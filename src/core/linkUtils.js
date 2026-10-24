@@ -19,9 +19,11 @@ export async function persistStudentTopicLink(studentId, topicId, patch) {
     repsPerConcept:     link.repsPerConcept ?? 1,
     params:             link.params ?? {},
     videoRewardEnabled: link.videoRewardEnabled ?? true,
-    answersPerStar:     link.answersPerStar ?? 1,
-    strictStars:        link.strictStars ?? true,
+    // null = never chosen here: the server keeps its stored value and the
+    // session falls back to the mode's own default (e.g. rewardDefaults.strictStars).
+    answersPerStar:     link.answersPerStar ?? null,
+    strictStars:        link.strictStars ?? null,
     rewardThreshold:    link.rewardThreshold ?? 90,
-    deckPosition:       link.deckPosition ?? 0,
+    deckPosition:       link.deckPosition ?? null,
   });
 }

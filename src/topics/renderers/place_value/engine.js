@@ -259,6 +259,24 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
   const groupTenCards       = allCards.filter(c => c.params?.mode === "group_ten");
 
+  // «Какое это число?» on the table (up to 100 and up to 1000): the places are
+  // rows, and from the third task on about half come in another order
+  // (единицы on top…) — the child reads the number by the rows' words, not top
+  // to bottom. The first two keep the usual order so the screen is learnt first.
+  const tableRowOrder = (i, hundreds = true) => {
+    const usual = hundreds ? ["hundreds", "tens", "ones"] : ["tens", "ones"];
+    if (i < 2 || Math.random() < 0.5) return usual;
+    const others = hundreds
+      ? [["ones", "tens", "hundreds"], ["tens", "ones", "hundreds"], ["ones", "hundreds", "tens"], ["tens", "hundreds", "ones"], ["hundreds", "ones", "tens"]]
+      : [["ones", "tens"]];
+    return others[randomInt(0, others.length - 1)];
+  };
+  // «Количество»: the rows' amounts as digits («6 десятков») or words («шесть
+  // десятков»), or either, task by task.
+  const tableAmounts = () => {
+    const amounts = params.amounts ?? "digits";
+    return amounts === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : amounts === "words" ? "words" : "digits";
+  };
   // «Числа: до 1000» — three-digit numbers for «Какое это число?» and «Собери
   // число» (HundredsTasks.jsx). On coins at most 5 hundreds (up to 599: more
   // plates don't fit a phone). A quarter have no tens and some no ones — the
@@ -279,7 +297,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       const prompt = params.prompt ?? "digits";
       tasks.push({
         type: mode, cardId: cards[i % cards.length].id, conceptId: cards[i % cards.length].conceptId, number,
-        ...(mode === "build_number" ? { target: counts, prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits" } : { model: counts, layout: "places" }),
+        ...(mode === "build_number" ? { target: counts, prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits" } : { model: counts, layout: "places", ...(view === "table" ? { order: tableRowOrder(i), amounts: tableAmounts() } : {}) }),
         view, supportMode: params.supportMode ?? "learning",
       });
     }
@@ -307,15 +325,23 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (mode === "identify_number") {
     if (!identifyNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
+    const view = ["scheme", "table"].includes(params.view) ? params.view : "coins";
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      const task = generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed");
+      const draw = () => generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed");
+      let task = draw();
+      // The table answers in two cells: no single-digit numbers there («0
+      // десятков, 7 единиц» would have to be written «07»).
+      for (let tries = 0; view === "table" && task.number < 10 && tries < 50; tries++) task = draw();
+      const layout = identifyLayout(task.number, params.layout ?? "places");
       tasks.push({
         ...task,
-        ...identifyLayout(task.number, params.layout ?? "places"),
+        ...layout,
+        // «Вперемешку» on the table: the ones' row on top.
+        ...(view === "table" ? { order: layout.layout === "mixed" ? ["ones", "tens"] : tableRowOrder(i, false), amounts: tableAmounts() } : {}),
         seed: randomInt(1, 100000),
         supportMode: params.supportMode ?? "learning",
-        view: ["scheme", "table"].includes(params.view) ? params.view : "coins",
+        view,
       });
     }
     return tasks;

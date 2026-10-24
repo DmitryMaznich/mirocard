@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import { generateTasks } from "./engine.js";
-import { numberWords, placeValuePhrase } from "./placeValueLabels.js";
+import { amountWords, numberWords, placeValuePhrase } from "./placeValueLabels.js";
 import { coinHarness } from "./coinTestHelpers.jsx";
 
 const counts = (n) => ({ hundreds: Math.floor(n / 100), tens: Math.floor(n / 10) % 10, ones: n % 10 });
@@ -54,11 +54,89 @@ describe("Сотни", () => {
     expect(h.container.querySelector(".fp-field--total .tb-digit--hundreds").textContent).toBe("8");
   });
 
-  it("«Таблица»: three columns; a mistake brings the scheme back", () => {
-    h.mount(IdentifyNumberTask, identify(305, { view: "table" }));
-    expect(Array.from(h.container.querySelectorAll(".tb-digit")).map((e) => e.textContent)).toEqual(["3", "0", "5"]);
-    answer(35);
-    expect(count(".tb-support .cb-square")).toBe(3);
+  it("«Таблица»: rows «digit + word» in the task's order, the number in three cells", () => {
+    const onCorrect = vi.fn(), onMistake = vi.fn();
+    h.mount(IdentifyNumberTask, identify(305, { view: "table", order: ["ones", "hundreds", "tens"] }), { onCorrect, onMistake });
+    const rows = Array.from(h.container.querySelectorAll(".hd-row")).map((r) => r.textContent);
+    expect(rows).toEqual(["5единиц", "3сотни", "0десятков"]);
+    const cells = () => Array.from(h.container.querySelectorAll(".hd-cell")).map((e) => e.textContent).join("|");
+    type(35);
+    expect(cells()).toBe("3|5|");
+    expect(h.container.querySelector('button[aria-label="Проверить"]').disabled).toBe(true);
+    h.click("Стереть цифру"); h.click("Стереть цифру");
+    // wrong order: the first wrong place gets a question and a lit row
+    answer(503);
+    expect(note()).toBe("Сколько сотен? С них число начинается.");
+    expect(h.container.querySelector(".hd-row--lit").textContent).toBe("3сотни");
+    expect(h.container.querySelector(".hd-row-support--off")).not.toBeNull();
+    expect(onMistake).toHaveBeenCalledWith("x", "x", { field: null, given: "503", expected: "305" });
+    h.flush();
+    expect(cells()).toBe("||");
+    // the second mistake brings the scheme into the rows
+    answer(350);
+    expect(note()).toBe("Сколько десятков? Они пишутся после сотен.");
+    expect(h.container.querySelector(".hd-row-support--off")).toBeNull();
+    expect(count(".hd-row-support .cb-square")).toBe(3);
+    h.flush(); answer(305);
+    expect(cells()).toBe("3|0|5");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("«Таблица» словами: «три сотни, ноль десятков, пять единиц»", () => {
+    h.mount(IdentifyNumberTask, identify(305, { view: "table", amounts: "words" }));
+    expect(Array.from(h.container.querySelectorAll(".hd-row-digit")).map((r) => r.textContent)).toEqual(["три", "ноль", "пять"]);
+    answer(305);
+    expect(Array.from(h.container.querySelectorAll(".hd-cell")).map((e) => e.textContent).join("")).toBe("305");
+  });
+
+  it("amounts in words agree with the place", () => {
+    expect([1, 2, 3, 14].map((n) => amountWords(n, "tens"))).toEqual(["один", "два", "три", "четырнадцать"]);
+    expect([1, 2, 0].map((n) => amountWords(n, "hundreds"))).toEqual(["одна", "две", "ноль"]);
+    expect(amountWords(1, "ones")).toBe("одна");
+  });
+
+  it("«Таблица» in a check: no lit row, no scheme", () => {
+    h.mount(IdentifyNumberTask, identify(340, { view: "table", supportMode: "independent" }));
+    expect(h.container.querySelector(".hd-row-support")).toBeNull();
+    answer(304);
+    expect(note()).toBe("Проверь число ещё раз.");
+    expect(h.container.querySelector(".hd-row--lit")).toBeNull();
+  });
+
+  it("engine: table tasks start in the usual order, later ones often not", () => {
+    const usual = "hundreds,tens,ones";
+    let other = 0;
+    for (let run = 0; run < 20; run++) {
+      const tasks = generateTasks("identify_number", [{ id: "i", conceptId: "i", renderer: "place_value", params: { mode: "identify_number" } }], 10, { range: "to1000", view: "table" });
+      expect(tasks.slice(0, 2).map((t) => t.order.join())).toEqual([usual, usual]);
+      other += tasks.slice(2).filter((t) => t.order.join() !== usual).length;
+    }
+    expect(other).toBeGreaterThan(40);
+    expect(other).toBeLessThan(120);
+  });
+
+  it("engine: «Сколько в разряде» goes to table tasks only; «Микс» gives both", () => {
+    const cards = [{ id: "i", conceptId: "i", renderer: "place_value", params: { mode: "identify_number" } }];
+    const gen = (params) => generateTasks("identify_number", cards, 30, params);
+    expect(new Set(gen({ range: "to1000", view: "table" }).map((t) => t.amounts))).toEqual(new Set(["digits"]));
+    expect(new Set(gen({ range: "to1000", view: "table", amounts: "words" }).map((t) => t.amounts))).toEqual(new Set(["words"]));
+    expect(new Set(gen({ range: "to100", view: "table", amounts: "mix" }).map((t) => t.amounts))).toEqual(new Set(["digits", "words"]));
+    expect(gen({ range: "to100", view: "coins", amounts: "words" }).every((t) => t.amounts === undefined)).toBe(true);
+  });
+
+  it("engine: up to 100 the table has two rows, never a single-digit number; «Вперемешку» puts ones on top", () => {
+    const cards = [{ id: "i", conceptId: "i", renderer: "place_value", params: { mode: "identify_number" } }];
+    for (let run = 0; run < 10; run++) {
+      const tasks = generateTasks("identify_number", cards, 20, { range: "to100", view: "table", trick: true });
+      for (const t of tasks) {
+        expect(t.number).toBeGreaterThanOrEqual(10);
+        expect([...t.order].sort()).toEqual(["ones", "tens"]);
+        if (t.layout === "mixed") expect(t.order).toEqual(["ones", "tens"]);
+      }
+    }
+    const plain = generateTasks("identify_number", cards, 10, { range: "to100", view: "table" });
+    expect(plain.slice(0, 2).map((t) => t.order.join())).toEqual(["tens,ones", "tens,ones"]);
   });
 
   it("«Собери число» on coins: take plates, stacks, coins and check", () => {

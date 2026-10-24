@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
-import { generateExamples, taskNeedsBorrowTeaching, resolveCompareMode } from "./engine.js";
+import { COPY_KINDS, columnTaskOfExample, generateCopySheet, taskNeedsBorrowTeaching, resolveCompareMode } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
@@ -432,6 +432,8 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       const pos = POSITIONS[i];
       const gridCol = digits + 2 - i;
       const key = `result:${pos}`;
+      // 102 − 7 = 95, 52 − 47 = 5: a leading zero is not written — no cell.
+      if (!task.steps.some((st) => st.cellType === "result" && st.position === pos)) continue;
       const filled = filledCells[key] !== undefined;
       const active = activeStep?.cellType === "result" && activeStep?.position === pos;
       cells.push(
@@ -491,7 +493,9 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
 // ── Main task component ───────────────────────────────────────────────────────
 
-function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
+// noHints — an example of «Контрольная работа» solved on the tablet: no 💡,
+// no first-time hints card.
+function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHints = false }) {
   const [phase, setPhase] = useState("form");
   const [topFilled, setTopFilled] = useState({});
   const [bottomFilled, setBottomFilled] = useState({});
@@ -515,6 +519,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const notebookRef = useRef(null);
 
   useEffect(() => {
+    if (noHints) return;
     try {
       if (!window.localStorage.getItem(COLUMN_HINTS_SEEN_KEY)) {
         window.localStorage.setItem(COLUMN_HINTS_SEEN_KEY, "1");
@@ -523,7 +528,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         setShowHints(true);
       }
     } catch { /* Help remains available manually. */ }
-  }, []);
+  }, [noHints]);
 
   // Sequential form-fill order: top left→right, sign, bottom left→right, line.
   const formSteps = useMemo(() => {
@@ -815,7 +820,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           🧮
         </button>
       )}
-      {!showHints && <button type="button" className="col-hint-toggle" onClick={() => { hintUsedRef.current = true; setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>}
+      {!showHints && !noHints && <button type="button" className="col-hint-toggle" onClick={() => { hintUsedRef.current = true; setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>}
       {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} onShown={() => { hintUsedRef.current = true; }} screenElement={rootRef.current} targetSelector={hintTargetSelector} avoidSelector=".col-notebook .col-digit, .col-notebook [data-cell-key], .col-expression, .col-controls-area" />}
     </div>
   );
@@ -823,7 +828,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
 
 // ── Copy mode numpad (5+5+controls) ──────────────────────────────────────────
 
-function CopyKeyboard({ cellSize, onDigit, onDelete, onRefresh }) {
+function CopyKeyboard({ cellSize, onDigit, onDelete, onRefresh, onCheck, canCheck }) {
   const bs        = cellSize;
   const bsStr     = bs + "px";
   const digitFS   = Math.round(bs * 0.72) + "px";
@@ -848,38 +853,108 @@ function CopyKeyboard({ cellSize, onDigit, onDelete, onRefresh }) {
         ))}
       </div>
       <div className="col-tap-row">
-        <button className="col-tap-btn col-copy-kb-del"     style={{ ...ctrlH, flex: 3 }} onClick={onDelete}>⌫</button>
-        <button className="col-tap-btn col-copy-kb-refresh" style={{ ...ctrlH, flex: 2 }} onClick={onRefresh}>↻</button>
+        <button className="col-tap-btn col-copy-kb-del"     style={{ ...ctrlH, flex: 2 }} aria-label="Стереть цифру" onClick={onDelete}>⌫</button>
+        <button className="col-tap-btn col-copy-kb-refresh" style={{ ...ctrlH, flex: 1 }} aria-label="Новый лист" onClick={onRefresh}>↻</button>
+        <button className="col-tap-btn col-copy-kb-check"   style={{ ...ctrlH, flex: 2 }} aria-label="Проверить" disabled={!canCheck} onClick={onCheck}>✓</button>
       </div>
     </div>
   );
 }
 
 // ── Copy mode (column_copy) ───────────────────────────────────────────────────
+// «Контрольная работа»: a sheet of examples written in a line («347 + 5 =»);
+// the child sets each one up in a column in the notebook — where the 5 goes is
+// half the test — solves it and types the answer. The answer field has no
+// fixed cells (they would tell how many digits the answer has: 95 + 7 → three)
+// and is checked by «✓», once: right stays green, wrong stays red with the
+// child's answer, and the next example starts. After the last one — the
+// adult's result: how many right, by kind, and each mistake with the right
+// answer. The kinds of examples are the adult's ticks (COPY_KINDS, engine.js).
+// «Где решаем: на планшете» (no notebook at hand; only in the settings, never
+// during the lesson): no keypad on the sheet — a tap on an example opens it in
+// the trainer (set up in the column and solved, no 💡), the example counts
+// once solved there; its slips on the way are counted for the adult.
+const MAX_ANSWER = 4;
+const pluralSlips = (n) => (n % 10 === 1 && n % 100 !== 11 ? "ошибка" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "ошибки" : "ошибок");
+const signOf = (op) => (op === "add" ? "+" : "−");
+const width10 = (n) => String(n).length;
+const answerOf = (ex) => (ex.operation === "add" ? ex.top + ex.bottom : ex.top - ex.bottom);
+
+function CopyResult({ examples, answers, slips, onTablet, onAgain, onDone }) {
+  // On the tablet every example ends right; what tells is a clean solve.
+  const clean = (ex, i) => (onTablet ? !slips[i] : answers[i] === answerOf(ex));
+  const right = examples.filter(clean).length;
+  const kinds = COPY_KINDS.filter((k) => examples.some((ex) => ex.kind === k.id));
+  const mistakes = onTablet ? [] : examples.map((ex, i) => ({ ex, given: answers[i] })).filter(({ ex, given }) => given !== answerOf(ex));
+  const slipped = onTablet ? examples.map((ex, i) => ({ ex, n: slips[i] ?? 0 })).filter(({ n }) => n > 0) : [];
+  return (
+    <div className="col-copy-result" role="status">
+      <div className="col-copy-result-total">{onTablet ? `Без ошибок ${right} из ${examples.length}` : `Верно ${right} из ${examples.length}`}</div>
+      {onTablet && <div className="col-copy-result-note">Решено на планшете</div>}
+      {kinds.length > 1 && (
+        <div className="col-copy-result-kinds">
+          {kinds.map((k) => {
+            const own = examples.map((ex, i) => [ex, i]).filter(([ex]) => ex.kind === k.id);
+            const ok = own.filter(([ex, i]) => clean(ex, i)).length;
+            return (
+              <div key={k.id} className={`col-copy-result-kind${ok < own.length ? " col-copy-result-kind--weak" : ""}`}>
+                <span>{k.label}</span><b>{ok} из {own.length}</b>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {mistakes.length > 0 && (
+        <div className="col-copy-result-mistakes">
+          <div className="col-copy-result-head">Ошибки</div>
+          {mistakes.map(({ ex, given }, i) => (
+            <div key={i} className="col-copy-result-mistake">
+              {ex.top} {signOf(ex.operation)} {ex.bottom} = <s>{given}</s> <b>{answerOf(ex)}</b>
+            </div>
+          ))}
+        </div>
+      )}
+      {slipped.length > 0 && (
+        <div className="col-copy-result-mistakes">
+          <div className="col-copy-result-head">С ошибками по ходу</div>
+          {slipped.map(({ ex, n }, i) => (
+            <div key={i} className="col-copy-result-mistake">
+              {ex.top} {signOf(ex.operation)} {ex.bottom} = {answerOf(ex)} <span className="col-copy-result-slips">— {n} {pluralSlips(n)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="col-copy-result-actions">
+        <button type="button" className="col-copy-result-btn col-copy-result-btn--again" onClick={onAgain}>Новый лист</button>
+        <button type="button" className="col-copy-result-btn" onClick={onDone}>Готово</button>
+      </div>
+    </div>
+  );
+}
 
 function ColumnCopyView({ sessionParams, onCorrect, student }) {
   const count     = Number(sessionParams?.count     ?? 6);
   const operation = sessionParams?.operation ?? "mixed";
   const carryMode = sessionParams?.carryMode ?? "none";
-  // Not Number()-converted here — "2+1" and "round10" are valid non-numeric
-  // values that generateExamples' own resolveDigitsParam knows how to read;
-  // forcing them to a number here would turn them into NaN before that.
-  const digits    = sessionParams?.digits ?? 2;
-  // Layout sizing only needs a column-width estimate, not the category
-  // itself — both "2+1" and "round10" are as wide as a 2-digit top number.
-  const layoutDigits = (digits === "2+1" || digits === "round10") ? 2 : Number(digits);
-
+  const kindKeys  = COPY_KINDS.map((k) => (sessionParams?.[k.key] ?? k.key === "kind_22") ? "1" : "0").join("");
+  const sheetParams = () => ({ operation, carryMode, ...Object.fromEntries(COPY_KINDS.map((k, i) => [k.key, kindKeys[i] === "1"])) });
+  const onTablet  = sessionParams?.solveOn === "tablet";
   const screenRef = useRef(null);
   const listRef   = useRef(null);
   const activeRef = useRef(null);
 
-  const [examples,   setExamples]   = useState(() => generateExamples(count, { operation, carryMode, digits }));
+  const [examples,   setExamples]   = useState(() => generateCopySheet(count, sheetParams()));
   const [activeIdx,  setActiveIdx]  = useState(0);
-  const [solved,     setSolved]     = useState({});
+  const [answers,    setAnswers]    = useState({});
   const [input,      setInput]      = useState([]);
-  const [shake,      setShake]      = useState(false);
   const [showReward, setShowReward] = useState(false);
   const [cellSize,   setCellSize]   = useState(44);
+  const [openIdx,    setOpenIdx]    = useState(null);
+  const [slips,      setSlips]      = useState({});
+  const finished = onTablet ? examples.every((_, i) => answers[i] !== undefined) : activeIdx >= examples.length;
+
+  // The widest line of the sheet: both numbers, sign, «=», room for the answer.
+  const exprCols = Math.max(...examples.map((ex) => width10(ex.top) + width10(ex.bottom)), 4) + 2 + MAX_ANSWER;
 
   // Adaptive sizing: fit expression width AND all rows within screen height
   useLayoutEffect(() => {
@@ -887,8 +962,6 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
       if (!screenRef.current) return;
       const w = screenRef.current.clientWidth;
       const h = screenRef.current.clientHeight;
-      // Expression: top_digits + sign + bottom_digits + eq + (digits+1 result digits)
-      const exprCols = 3 * layoutDigits + 3;
       const cs_w = Math.min(52, Math.max(20, Math.floor((w - 32) / exprCols)));
       // Height: count rows + (count-1) gap rows (each = cs) + keyboard 3 rows + overhead ~80px
       // Total cs rows = count + (count-1) + 3 = 2*count + 2
@@ -898,7 +971,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, [layoutDigits, count]);
+  }, [exprCols, count]);
 
   // Background grid alignment
   useLayoutEffect(() => {
@@ -922,47 +995,36 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
       const wOffY = ((lr.top  - wr.top)  % cs + cs) % cs;
       wrap.style.backgroundPosition = `${wOffX}px ${wOffY}px`;
     }
-  }, [cellSize, examples]);
+  }, [cellSize, examples, finished, openIdx]);
 
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [activeIdx]);
 
-  const activeEx      = examples[activeIdx] ?? null;
-  const correctResult = activeEx
-    ? (activeEx.operation === "add" ? activeEx.top + activeEx.bottom : activeEx.top - activeEx.bottom)
-    : null;
-  const resultStr = correctResult !== null ? String(correctResult) : "";
-
   function handleDigit(d) {
-    if (!activeEx || shake) return;
-    const next = [...input, String(d)];
-    if (next.length < resultStr.length) { setInput(next); return; }
-    if (Number(next.join("")) === correctResult) {
-      setSolved(prev => ({ ...prev, [activeIdx]: true }));
-      setInput([]);
-      if (activeIdx + 1 < examples.length) {
-        setActiveIdx(activeIdx + 1);
-      } else {
-        setTimeout(() => setShowReward(true), 400);
-      }
-    } else {
-      setShake(true);
-      setTimeout(() => { setShake(false); setInput([]); }, 500);
-    }
+    if (finished || input.length >= MAX_ANSWER) return;
+    setInput([...input, String(d)]);
   }
 
   function handleDelete() {
-    if (shake) return;
     setInput(prev => prev.slice(0, -1));
   }
 
-  function refresh() {
-    setExamples(generateExamples(count, { operation, carryMode, digits }));
-    setActiveIdx(0);
-    setSolved({});
+  // One answer per example: right or wrong, the next one starts.
+  function handleCheck() {
+    if (finished || !input.length) return;
+    setAnswers(prev => ({ ...prev, [activeIdx]: Number(input.join("")) }));
     setInput([]);
-    setShake(false);
+    setActiveIdx(activeIdx + 1);
+  }
+
+  function refresh() {
+    setExamples(generateCopySheet(count, sheetParams()));
+    setActiveIdx(0);
+    setAnswers({});
+    setSlips({});
+    setOpenIdx(null);
+    setInput([]);
     setShowReward(false);
   }
 
@@ -978,44 +1040,35 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
   const pt      = Math.round(cs * 0.5) + "px";
   const fs      = Math.round(cs * 1.14) + "px";
   const cellSty = { width: csStr, height: csStr, paddingTop: pt, fontSize: fs };
+  const digitCells = (text, key, className = "") => String(text).split("").map((ch, j) => (
+    <span key={`${key}${j}`} className={`col-expr-cell${className}`} style={cellSty}><span className="col-slant">{ch}</span></span>
+  ));
 
   return (
     <div className="col-screen col-copy-screen" ref={screenRef}>
       <div className="col-copy-list" ref={listRef} style={{ gap: `${cellSize}px` }}>
         {examples.map((ex, i) => {
-          const res      = ex.operation === "add" ? ex.top + ex.bottom : ex.top - ex.bottom;
-          const resStr   = String(res);
-          const sign     = ex.operation === "add" ? "+" : "−";
           const isActive = i === activeIdx;
-          const isSolved = !!solved[i];
+          const given    = answers[i];
+          const verdict  = given === undefined ? null : given === answerOf(ex) ? " col-copy-cell-ok" : " col-copy-cell-wrong";
+
+          const canOpen  = onTablet && given === undefined;
 
           return (
-            <div key={i} ref={isActive ? activeRef : null} className="col-copy-expr-row">
-              {String(ex.top).split("").map((ch, j) => (
-                <span key={j} className="col-expr-cell" style={cellSty}><span className="col-slant">{ch}</span></span>
-              ))}
-              <span className="col-expr-cell col-expr-sign" style={cellSty}><span className="col-slant">{sign}</span></span>
-              {String(ex.bottom).split("").map((ch, j) => (
-                <span key={`b${j}`} className="col-expr-cell" style={cellSty}><span className="col-slant">{ch}</span></span>
-              ))}
+            <div key={i} ref={isActive ? activeRef : null}
+              className={`col-copy-expr-row${canOpen ? " col-copy-expr-row--open" : ""}`}
+              {...(canOpen ? { role: "button", tabIndex: 0, "aria-label": `Решить ${ex.top} ${signOf(ex.operation)} ${ex.bottom}`, onClick: () => setOpenIdx(i) } : {})}>
+              {digitCells(ex.top, "t")}
+              <span className="col-expr-cell col-expr-sign" style={cellSty}><span className="col-slant">{signOf(ex.operation)}</span></span>
+              {digitCells(ex.bottom, "b")}
               <span className="col-expr-cell col-expr-eq" style={cellSty}><span className="col-slant">=</span></span>
-              {isSolved ? (
-                resStr.split("").map((ch, j) => (
-                  <span key={`r${j}`} className="col-expr-cell col-copy-cell-ok" style={cellSty}>
-                    <span className="col-slant">{ch}</span>
-                  </span>
-                ))
-              ) : isActive ? (
-                resStr.split("").map((_, j) => (
-                  <span key={`inp${j}`} className={`col-expr-cell col-copy-cell-input${shake ? " col-copy-cell-shake" : ""}`} style={cellSty}>
-                    {input[j] != null ? <span className="col-slant">{input[j]}</span> : null}
-                  </span>
-                ))
-              ) : (
-                resStr.split("").map((_, j) => (
-                  <span key={`w${j}`} className="col-expr-cell col-copy-cell-wait" style={cellSty} />
-                ))
-              )}
+              {verdict ? digitCells(given, "r", verdict)
+                : canOpen ? <span className="col-expr-cell col-copy-cell-ask" style={cellSty}><span className="col-slant">?</span></span>
+                : isActive ? <>
+                  {digitCells(input.join(""), "i", " col-copy-cell-typed")}
+                  {input.length < MAX_ANSWER && <span className="col-expr-cell col-copy-cell-input" style={cellSty} />}
+                </>
+                  : null}
             </div>
           );
         })}
@@ -1029,10 +1082,31 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
         />
       )}
 
-      <CopyKeyboard cellSize={cellSize} onDigit={handleDigit} onDelete={handleDelete} onRefresh={refresh} />
+      {finished
+        ? <CopyResult examples={examples} answers={answers} slips={slips} onTablet={onTablet} onAgain={refresh} onDone={() => setShowReward(true)} />
+        : onTablet ? <div className="col-copy-tap-note">Нажми на пример, чтобы решить его в столбик</div>
+          : <CopyKeyboard cellSize={cellSize} onDigit={handleDigit} onDelete={handleDelete} onRefresh={refresh} onCheck={handleCheck} canCheck={input.length > 0} />}
+
+      {openIdx !== null && (
+        <div className="col-copy-solve">
+          <button type="button" className="col-copy-solve-back" onClick={() => setOpenIdx(null)}>← К листу</button>
+          <ColumnArithmeticTask
+            key={openIdx}
+            task={columnTaskOfExample(examples[openIdx])}
+            noHints
+            sessionParams={{}}
+            onMistake={() => setSlips((prev) => ({ ...prev, [openIdx]: (prev[openIdx] ?? 0) + 1 }))}
+            onCorrect={() => {
+              setAnswers((prev) => ({ ...prev, [openIdx]: answerOf(examples[openIdx]) }));
+              setOpenIdx(null);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 

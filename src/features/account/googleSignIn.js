@@ -4,6 +4,7 @@ import { completeLogin } from "./completeLogin";
 
 // Called at boot with ?google_code= from the Google callback redirect.
 export async function handleGoogleCode(code) {
+  useAppStore.setState({ loginRecovery: null });
   const r = await api.post("/auth/google/exchange", { code });
   if (r.needsProfile) {
     useAppStore.setState({

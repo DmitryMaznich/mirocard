@@ -22,6 +22,8 @@ const redDot = (x, y) => <circle cx={x} cy={y} r={1.7} fill={RED} stroke="none" 
 // ---- paper kinds -------------------------------------------------------------------------------------------------------
 export const IconPaperPropis = () => S(<>{slants([9, 15, 21, 27], 3, 21)}{rule(6)}{guide(12)}{baseRule(18)}</>);
 export const IconPaperSquare = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke={GRAY} strokeWidth={1.1} /></>);
+// the Bulgarian copybook ruling: bold - thin - thin - bold, a steep guide
+export const IconPaperBg = () => S(<><path d="M14 4L10 20" stroke={GRAY} strokeWidth={1} />{baseRule(4)}{rule(10, 3, 21)}{rule(14, 3, 21)}{baseRule(20)}</>);
 export const IconPaperRuled = () => S(<>{rule(7, 3, 21)}{rule(12, 3, 21)}{rule(17, 3, 21)}<path d="M6 3.5v17" stroke={RED} strokeWidth={1.3} /></>);
 
 // ---- row size (the letter «а» on its ruling), slant density, dashes, writing space ---------------------------------------

@@ -307,6 +307,7 @@
 .p2-nb-main { min-width: 0; flex: 1 1 auto; }
 .p2-nb-name { font-weight: 800; }
 .p2-nb-meta { color: #6b7385; font-size: 13px; margin-top: 1px; }
+.p2-nb-desc { color: #4d5566; font-size: 13px; line-height: 1.35; margin-top: 4px; }
 .p2-nb-title { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 6px; margin-left: -6px; border: none; border-radius: 10px; background: transparent; font: inherit; font-weight: 800; font-size: 17px; color: var(--p2-ink); cursor: text; text-align: left; }
 .p2-nb-title span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; }
 .p2-nb-title svg { flex: 0 0 auto; width: 16px; height: 16px; color: #9aa3b2; }
@@ -353,8 +354,9 @@
 /* the element list shows what lands in the text: the id in curly braces under each tile */
 .p2-elements-panel .propis2-tile { gap: 2px; padding-bottom: 3px; }
 .p2-el-id { font: 700 .8rem/1 inherit; font-family: inherit; color: var(--p2-blue); }
-/* no gap between the tool strips and the page */
-.propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 0; }
+/* the page starts below the floating zoom pill and undo / redo (2026-10-23: the text is typed by tapping the rows, and the start of
+   the first row lay under the pill) */
+.propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 62px; }
 .propis2-editor2:not(.propis2-editor2--side) .propis2-preview .propis-print-page-wrap { padding-top: 0; }
 
 /* the app switches the system callout off on <body> (inherited): the typed text needs its copy / paste menu back */
@@ -510,3 +512,68 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 /* the PDF being made / ready (Propis2Home) */
 .p2-pdf-card { gap: 16px; }
 .p2-pdf-text { margin: 0; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+
+/* Typing straight onto the sheet (2026-10-23): the page's text is held by a textarea nobody sees (Propis2Keys); it must stay
+   focusable (a phone opens its keyboard for it) and must not scroll the page when it takes the focus. 16px: iOS does not zoom in. */
+/* wide and not wrapped (wrap="off"): ↑ ↓ go from line to line of the text = row to row, not through a word wrapped letter by letter */
+/* near the top of the screen: iOS scrolls the page to keep a focused field above its keyboard, up there there is nothing to scroll */
+.p2-keys { position: fixed; top: calc(60px + var(--app-safe-top, 0px)); left: 0; width: 4000px; height: 1px; white-space: pre; padding: 0; border: 0; opacity: 0; font-size: 16px; resize: none; overflow: hidden; pointer-events: none; caret-color: transparent; color: transparent; background: transparent; }
+.propis2-dock--keys { justify-content: center; }
+.p2-keys-hint { margin: 0; font-size: 13px; line-height: 1.35; color: #6b7385; }
+.propis2-page-col svg.propis-print-page-svg { cursor: text; }
+/* keyboard open and nothing to warn about: the strip under the page is empty, all the room goes to the page */
+.propis2-editor2--kb .propis2-dock--keys:not(:has(.p2-warns)) { padding: 0; min-height: 0; box-shadow: none; }
+
+/* ===== The computer layout (owner, 2026-10-23, «вариант Б»): one tool bar, the pages as thumbnails on the left, the sheet in the
+   middle, a status bar. Only for wide landscape screens (Propis2Editor SIDE_QUERY); phones and tablets keep the stacked layout. ===== */
+.propis2-editor2--desk { display: flex; flex-direction: column; height: 100dvh; background: var(--p2-bg); }
+.propis2-editor2--desk > .p2-header { flex: 0 0 auto; }
+.p2-desk-bar { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; padding: 6px calc(12px + var(--app-safe-right, 0px)) 6px calc(12px + var(--app-safe-left, 0px)); background: var(--p2-strip); border-bottom: 1px solid var(--p2-line); position: relative; z-index: 8; }
+.p2-desk-group { display: flex; align-items: center; gap: 2px; }
+/* the row's tools on the blue of the selected row: what they change is the row the caret is in */
+.p2-desk-group--row { padding: 2px 6px; border-radius: 14px; background: #eef3fb; }
+.p2-desk-fill { flex: 1 1 auto; }
+.p2-desk-bar .p2-ib.p2-tool, .p2-desk-bar .p2-pick-btn.p2-tool { flex: 0 0 auto; width: auto; min-width: 58px; height: 56px; padding: 5px 7px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; }
+.p2-desk-bar .p2-sep { width: 1px; height: 38px; margin: 0 8px; background: var(--p2-line); }
+.p2-desk-bar .p2-zoom { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 22px; background: #fff; border: 1px solid var(--p2-line); }
+.p2-desk-body { flex: 1 1 auto; min-height: 0; display: flex; }
+.p2-desk-canvas { flex: 1 1 auto; min-width: 0; position: relative; display: flex; background: var(--p2-board); }
+.p2-desk-canvas > .propis2-page-col { flex: 1 1 auto; min-height: 0; padding: 20px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+.p2-desk-canvas > .p2-offer { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 6; margin: 0; }
+/* the pages of the notebook */
+.p2-thumbs { flex: 0 0 176px; display: flex; flex-direction: column; min-height: 0; background: var(--p2-strip); border-right: 1px solid var(--p2-line); padding-left: var(--app-safe-left, 0px); }
+.p2-thumbs-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; }
+.p2-thumb { display: flex; align-items: flex-start; gap: 8px; padding: 0; border: 0; background: none; cursor: pointer; font: 800 12px/1 inherit; font-family: inherit; color: var(--p2-muted); text-align: left; }
+.p2-thumb-no { width: 18px; flex: 0 0 18px; text-align: right; padding-top: 2px; }
+.p2-thumb-sheet { flex: 1 1 auto; display: block; aspect-ratio: 148.5 / 210; background: #fff; border: 1px solid var(--p2-line); border-radius: 3px; overflow: hidden; box-shadow: 0 1px 3px rgba(40, 50, 60, .12); }
+.p2-thumb-sheet svg { display: block; width: 100%; height: auto; }
+.p2-thumb:hover .p2-thumb-sheet { border-color: #9fb3d9; }
+.p2-thumb.is-current { color: var(--p2-blue); cursor: default; }
+.p2-thumb.is-current .p2-thumb-sheet { outline: 3px solid #2563eb; outline-offset: 1px; }
+.p2-thumbs-foot { flex: 0 0 auto; padding: 8px 12px calc(12px + var(--app-safe-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--p2-line); }
+.p2-thumbs-add { height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 2px dashed #cbbf9f; border-radius: 10px; background: transparent; font: 800 14px/1 inherit; font-family: inherit; color: #8b7a52; cursor: pointer; }
+.p2-thumbs-add svg { width: 20px; height: 20px; }
+.p2-thumbs-add:hover { background: #fff; }
+.p2-thumbs-acts { display: flex; justify-content: space-between; }
+.p2-thumbs-acts button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--p2-line); border-radius: 9px; background: #fff; font: 800 16px/1 inherit; font-family: inherit; color: var(--p2-ink); cursor: pointer; }
+.p2-thumbs-acts button svg { width: 18px; height: 18px; }
+.p2-thumbs-acts button:disabled { opacity: .35; cursor: default; }
+.p2-thumbs-acts button.is-danger { color: var(--p2-red); }
+/* the status bar */
+.p2-status { flex: 0 0 auto; min-height: 34px; display: flex; align-items: center; gap: 18px; padding: 4px calc(16px + var(--app-safe-right, 0px)) calc(4px + var(--app-safe-bottom, 0px)) calc(16px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--p2-line); font-size: 13px; color: #6b7385; }
+.p2-status b { color: var(--p2-ink); }
+.p2-status .p2-warns { flex-direction: row; margin: 0; }
+.p2-status .p2-warn-note { left: auto; right: 0; width: min(420px, 60vw); }
+/* the tools of the bar look like those of the strips (flat, icon over caption, the «on» one teal underneath) */
+.p2-desk-bar .p2-ib.p2-tool, .p2-desk-bar .p2-pick-btn.p2-tool { border: none; background: transparent; box-shadow: none; color: var(--p2-ink); }
+.p2-desk-bar .p2-tool .p2-tool-ico { display: flex; align-items: center; justify-content: center; gap: 1px; height: 26px; }
+.p2-desk-bar .p2-tool .p2-tool-ico svg:first-child { width: 26px; height: 26px; }
+.p2-desk-bar .p2-tool .p2-tool-ico svg + svg { width: 9px; height: 9px; opacity: .6; }
+.p2-desk-bar .p2-tool:hover:not(:disabled) { background: rgba(255, 255, 255, .7); }
+.p2-desk-bar .p2-tool.is-on, .p2-desk-bar .p2-pick-btn.p2-tool.is-open { background: var(--p2-teal-soft); color: var(--p2-teal-dark); box-shadow: inset 0 -3px 0 var(--p2-teal); }
+.p2-desk-bar .p2-tool.is-on .p2-cap, .p2-desk-bar .p2-tool.is-open .p2-cap { color: var(--p2-teal-dark); }
+.p2-desk-bar .p2-tool:disabled { opacity: .35; }
+.p2-desk-bar .p2-ib--danger .p2-cap { color: var(--p2-red); }
+.p2-desk-bar .p2-seg { display: contents; }
+.propis2-editor2--desk .propis2-page-col { padding-top: 20px; }
+.propis2-editor2--desk .propis2-preview .propis-print-page-wrap { padding-top: 0; }

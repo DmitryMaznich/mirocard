@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
 import { hundredSteps } from "./ExchangeHundred.jsx";
 import { generateTasks } from "./engine.js";
@@ -46,14 +47,51 @@ describe("Плюс и минус через сотню", () => {
     expect(say()).toBeUndefined();
   });
 
+  it("table plus: 9 + 2 = 11 — the 1 under the tens, the ten flies up over the hundreds", () => {
+    h.mount(ExchangeTenTask, { ...plus, view: "table" });
+    type(4); type(11);
+    const res = Array.from(h.container.querySelectorAll(".xb-result")).map((e) => e.textContent);
+    expect(res).toEqual(["", "1", "4"]);
+    expect(h.container.querySelector(".xf-carry.xf-carry--hundreds").textContent).toBe("1");
+    expect(h.container.querySelector(".xb-over--hundreds").textContent).toBe("");
+    h.flush();
+    expect(h.container.querySelector(".xf-carry")).toBeNull();
+    expect(h.container.querySelector(".xb-over--hundreds").textContent).toBe("1");
+  });
+
   it("table minus: «не хватает» borrows a hundred; forgetting it is explained", () => {
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, { ...minus, view: "table" }, { onMistake });
     type(4); h.click("Не хватает");
-    expect(h.container.querySelector(".xb-over--tens").textContent).toBe("11");
-    type(8); type(2);
+    // The digits turn into the scheme: 2 squares, 1 stick; one square moves
+    // over to the tens and falls apart there — 1 square, 11 sticks.
+    const n = (sel) => h.container.querySelectorAll(sel).length;
+    expect(n(".xf-area--big .cb-square")).toBe(2);
+    expect(n(".xf-area--small .cb-stick")).toBe(1);
+    act(() => vi.advanceTimersByTime(1950));
+    expect(n(".xf-area--big .cb-square")).toBe(1);
+    expect(n(".xf-area--small .cb-stick")).toBe(11);
+    expect(n(".xf-area--small .xf-group--new .cb-stick")).toBe(10);
+    h.flush();
+    // Then the borrowed ten goes up over the tens as the written «1».
+    expect(h.container.querySelector(".xf-carry--lend").textContent).toBe("1");
+    h.flush();
+    expect(h.container.querySelector(".xf-layer")).toBeNull();
+    // The written way: the 2 crossed, the 1 not — a small «1» over it makes 11;
+    // over the hundreds nothing yet — «2 − 1» is the last step.
+    const over = (k) => h.container.querySelector(`.xb-over--${k}`).textContent;
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
+    expect(h.container.querySelector(".xb-over--tens .xb-lend").textContent).toBe("1");
+    expect(over("hundreds")).toBe("");
+    // A dot over the hundreds; it pulses at the last step, where 1 goes.
+    expect(h.container.querySelector(".xb-over--hundreds .xb-borrow-dot:not(.xb-borrow-dot--wait)")).not.toBeNull();
+    type(8);
+    expect(h.container.querySelector(".xb-over--hundreds .xb-borrow-dot--wait")).not.toBeNull();
+    type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");
+    expect(over("hundreds")).toBe("");
     h.flush(); type(1);
+    expect(over("hundreds")).toBe("1");
     expect(Array.from(h.container.querySelectorAll(".xb-result")).map((e) => e.textContent)).toEqual(["1", "8", "4"]);
     expect(onMistake).toHaveBeenCalledTimes(1);
   });

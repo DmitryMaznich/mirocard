@@ -1,3 +1,5 @@
+import { nativeLanguageName } from "../../../shared/topic-delivery.mjs";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
 import { STATUS_BADGES } from "./topicCategories";
@@ -34,6 +36,7 @@ export default function TopicTile({
   isActive,
   access = "free",
   claimSource,        // ownedTopics[...].source, or null
+  materialLanguage,
   personalCaption,    // getPersonalTopicCaption() result, or null — imported/granted topics only
   // True when this is a previously-claimed PAID topic whose entitlement
   // (subscription/trial/promo) has since expired. A downloaded copy may
@@ -53,6 +56,7 @@ export default function TopicTile({
   onLockedTap,
   disabled = false,
 }) {
+  const { t } = useUiTranslation();
   const [loading, setLoading] = useState(false);
   // 0..1 download fraction; null = size unknown (indeterminate bar).
   const [progress, setProgress] = useState(null);
@@ -107,6 +111,7 @@ export default function TopicTile({
   function requestAction() {
     if (status === "soon") setShowingSoon(true);
     else if (entitlementExpired && onLockedTap) onLockedTap(entry);
+    else if ((status === "install" || status === "update") && entry?.languageDownload) handleAction();
     else if (status === "install") setConfirmingInstall(true);
     else handleAction();
   }
@@ -135,7 +140,7 @@ export default function TopicTile({
   const topicId = installedRecord?.meta.id ?? entry?.id;
   const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
   const versionText = installedRecord
-    ? (isBuiltin ? "встроенная" : `v${installedRecord.meta.version}`)
+    ? (isBuiltin ? t("topics.builtin") : `v${installedRecord.meta.version}`)
     : (entry && !isSoon ? `v${entry.version}` : "");
 
   const badgeIcon = loading ? "…"
@@ -145,14 +150,14 @@ export default function TopicTile({
     : status === "request" ? <LockSmallIcon size={15} />
     : <ClockSmallIcon size={15} />; // pending, soon
 
-  const badgeLabel = loading ? "Загрузка…"
-    : status === "active"  ? "Активна"
-    : status === "open"    ? "Открыть"
-    : status === "update"  ? `Доступно обновление v${entry.version}`
-    : status === "install" ? "Установить"
-    : status === "request" ? "По подписке"
-    : status === "soon"    ? "Скоро"
-    : "Запрос отправлен";
+  const badgeLabel = loading ? t("common.loading")
+    : status === "active"  ? t("topics.active")
+    : status === "open"    ? t("topics.open")
+    : status === "update"  ? t("topics.updateAvailable", { version: entry.version })
+    : status === "install" ? t("topics.install")
+    : status === "request" ? t("topics.subscription")
+    : status === "soon"    ? t("topics.soon")
+    : t("topics.requestSent");
 
   return (
     <>
@@ -167,9 +172,10 @@ export default function TopicTile({
         <div className="topic-tile-row__title">{title}</div>
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
-          {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${statusKey}`}>{statusBadge.label}</span>}
-          {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>Личная</span>}
-          {loading && <span className="topic-tile-row__loading">{progress != null ? `${Math.round(progress * 100)}%` : "Загружаем…"}</span>}
+          {materialLanguage && <span>{t("topicLanguage.material", { language: nativeLanguageName(materialLanguage) })}</span>}
+          {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${statusKey}`}>{t(`topics.badge.${statusKey}`)}</span>}
+          {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>{t("topics.personal")}</span>}
+          {loading && <span className="topic-tile-row__loading">{progress != null ? `${Math.round(progress * 100)}%` : t("topics.downloading")}</span>}
         </div>
       </div>
       {installedRecord && !isBuiltin && onMenu && (
@@ -177,7 +183,7 @@ export default function TopicTile({
           type="button"
           className="topic-tile-row__more"
           onClick={(e) => { e.stopPropagation(); onMenu(installedRecord); }}
-          aria-label="Действия"
+          aria-label={t("topics.actions")}
         >
           <MoreDotsIcon size={16} />
         </button>
@@ -187,7 +193,7 @@ export default function TopicTile({
           type="button"
           className="topic-tile-row__more"
           onClick={(e) => { e.stopPropagation(); onInfo(installedRecord); }}
-          aria-label="О теме"
+          aria-label={t("topics.about")}
         >
           i
         </button>
@@ -205,7 +211,7 @@ export default function TopicTile({
         <div
           className={`topic-tile-row__progress${progress == null ? " topic-tile-row__progress--indeterminate" : ""}`}
           role="progressbar"
-          aria-label="Загрузка темы"
+          aria-label={t("topics.download")}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={progress == null ? undefined : Math.round(progress * 100)}
@@ -217,25 +223,25 @@ export default function TopicTile({
     {error && <div className="topic-tile-row__error" role="alert">{error}</div>}
     {showingSoon && (
       <Modal
-        title="Тема скоро появится"
+        title={t("topics.soonTitle")}
         onClose={() => setShowingSoon(false)}
-        actions={<Button variant="primary" onClick={() => setShowingSoon(false)}>Понятно</Button>}
+        actions={<Button variant="primary" onClick={() => setShowingSoon(false)}>{t("common.understood")}</Button>}
       >
-        <p>«{title}» уже готовится. Новые темы открываются постепенно — мы сообщим, когда эта станет доступна.</p>
+        <p>{t("topics.soonText", { title })}</p>
       </Modal>
     )}
     {confirmingInstall && (
       <Modal
-        title="Установить тему?"
+        title={t("topics.installTitle")}
         onClose={() => setConfirmingInstall(false)}
         actions={
           <>
-            <Button variant="secondary" onClick={() => setConfirmingInstall(false)}>Отмена</Button>
-            <Button variant="primary" onClick={confirmInstall}>Установить</Button>
+            <Button variant="secondary" onClick={() => setConfirmingInstall(false)}>{t("common.cancel")}</Button>
+            <Button variant="primary" onClick={confirmInstall}>{t("topics.install")}</Button>
           </>
         }
       >
-        <p>«{title}»{versionText ? ` ${versionText}` : ""} — тема будет скачана и сохранена на устройство.</p>
+        <p>{t("topics.installText", { title, version: versionText })}</p>
       </Modal>
     )}
     </>

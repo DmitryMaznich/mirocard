@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { PROPIS2_LADDER, ladderIndex } from "./data.js";
+import { outsideRowLabels } from "./glyphReach.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
 
@@ -438,20 +440,71 @@ describe("long text wraps by the grid the page is drawn with", () => {
   });
 });
 
-describe("«Методика» kits (kits.json, built from the `propis` notebooks' content lists)", () => {
+describe("ready notebooks (kits.json): one series of 16 notebooks × 24 pages, then the digits and the blank notebooks", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
-  it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits", "blank-narrow", "blank-wide", "blank-square", "blank-ruled"]);
+  const series = PROPIS2_LADDER.map((id) => kits.find((k) => k.id === id));
+  const kitOf = (id) => kits.find((k) => k.id === id);
+  const rowsOf = (k) => k.pages.flatMap((pg) => pg.rows);
+  it("the notebooks are there in order, every page fits one page and every symbol has a glyph", () => {
+    expect(kits.map((k) => k.id)).toEqual([...PROPIS2_LADDER, "digits", "blank-narrow", "blank-wide", "blank-dense", "blank-square", "blank-ruled"]);
     for (const k of kits) {
-      expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
         expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(rowsPerPage({ ...k.page, ...pg.paper }));
         for (const r of pg.rows) expect(findUnsupported(r.text, map), `${k.id} «${r.text}»`).toEqual([]);
       }
     }
   });
-  it("the blank notebooks: 12 leaves (24 pages) of empty rows, a whole page each: copybook narrow / wide, squared, ruled", () => {
-    for (const [id, grid] of [["blank-narrow", "regular"], ["blank-wide", "regular"], ["blank-square", "square"], ["blank-ruled", "ruled"]]) {
+  it("every notebook of the series is 24 A5 pages (12 leaves, a booklet that needs no trimming), a numbered step with a description", () => {
+    expect(series.every(Boolean)).toBe(true);
+    for (const k of series) expect(k.pages, k.id).toHaveLength(24);
+    expect(series.map((k) => k.title.match(/^(\d+)\. /)?.[1])).toEqual(series.map((_, i) => String(i + 1)));
+    expect(series.every((k) => k.description?.length > 20)).toBe(true);
+    expect(kitOf("digits").title).toBe("Цифры"); // not a step
+    expect(ladderIndex("digits")).toBe(PROPIS2_LADDER.length);
+  });
+  it("the wide row holds only what stays inside the row; no capital before the capitals notebooks", () => {
+    const outside = outsideRowLabels(map);
+    for (const id of PROPIS2_LADDER.slice(0, 5)) {
+      const k = kitOf(id);
+      expect(k.pages.every((pg) => (pg.paper ?? k.page).ruling === "wide"), id).toBe(true);
+      for (const r of rowsOf(k)) if (r.kind !== "element") expect([...r.text].filter((ch) => outside.has(ch)), `${id} «${r.text}»`).toEqual([]);
+    }
+    for (const id of PROPIS2_LADDER.slice(0, 9)) for (const r of rowsOf(kitOf(id))) if (r.kind !== "element") expect(/[А-ЯЁ]/.test(r.text), `${id} «${r.text}»`).toBe(false);
+  });
+  it("letters and words never run ahead of the child: only the letters learnt so far", () => {
+    const learnt = ["", "", "ийшнптгк", "лмяоаюс", "еёэхжчьыъ", "", "", "руздцщ", "бвф"];
+    let have = "";
+    learnt.forEach((add, i) => {
+      have += add;
+      if (!add) return;
+      const letters = new Set(rowsOf(series[i]).filter((r) => r.kind !== "element").flatMap((r) => [...r.text.replace(/\s/g, "")]));
+      expect([...letters].filter((ch) => !have.includes(ch)), series[i].id).toEqual([]);
+    });
+  });
+  it("pages are built the same way, help going down the page: the whole row traced, fading copies, start dots, then the model alone", () => {
+    const shape = (pg) => pg.rows.map((r) => (r.repeat === "one" ? `one/${r.dots}` : r.repeat));
+    const first = kitOf("s03-letters-i").pages[0];
+    expect(first.title).toBe("и");
+    expect(shape(first)).toEqual([...Array(4).fill("all"), ...Array(4).fill("fade"), ...Array(4).fill("one/all"), ...Array(4).fill("one/one")]);
+    // on every letter/element page of the series the help never goes up again further down the page
+    const level = { all: 0, auto: 0, fade: 1, "one/all": 2, "one/one": 3 };
+    for (const k of series.slice(0, 14)) for (const pg of k.pages) {
+      if (new Set(pg.rows.map((r) => r.text)).size > 1) continue; // pages of several items (words, reviews, two letters) go item by item
+      const lv = shape(pg).map((x) => level[x]);
+      expect(lv, `${k.id} ${pg.title}`).toEqual([...lv].sort((a, b) => a - b));
+    }
+    // fences are traced as one unbroken line (the engine's own rule), a fading copy would cut them into pieces
+    expect(rowsOf(kitOf("s01-sticks")).filter((r) => r.text === "заборчик" && r.repeat !== "one").every((r) => r.repeat === "auto")).toBe(true);
+  });
+  it("a kit becomes a set of the user's own pages (open to edit) that belong to it", () => {
+    const { set, pages } = kitToLibraryItems(kits[0]);
+    expect(set.pageIds).toHaveLength(kits[0].pages.length);
+    expect(pages.every((p) => !p.locked && p.kitId === set.id && p.ruling === "wide" && p.grid === "dense" && p.margin === "left")).toBe(true);
+    expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
+    expect(pageToLines(pages[0], map)[0]).toBe("|#r#g1"); // the whole row to trace first, a stick every other slant line
+  });
+  it("the blank notebooks: 12 leaves (24 pages) of empty rows, a whole page each: copybook narrow / wide / frequent slants, squared, ruled", () => {
+    for (const [id, grid] of [["blank-narrow", "regular"], ["blank-wide", "regular"], ["blank-dense", "dense"], ["blank-square", "square"], ["blank-ruled", "ruled"]]) {
       const k = kits.find((x) => x.id === id);
       expect(k.pages).toHaveLength(24);
       expect(taskGrid(k.page)).toBe(grid);
@@ -463,13 +516,6 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
       expect(set.pageIds).toHaveLength(24);
       expect(pages.some((p) => p.locked)).toBe(false);
     }
-  });
-  it("a kit becomes a set of the user's own pages (open to edit) that belong to it", () => {
-    const { set, pages } = kitToLibraryItems(kits[0]);
-    expect(set.pageIds).toHaveLength(kits[0].pages.length);
-    expect(pages.every((p) => !p.locked && p.kitId === set.id && p.ruling === "narrow" && p.margin === "left")).toBe(true);
-    expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
-    expect(pageToLines(pages[0], map)[0]).toMatch(/^и#f/);
   });
   it("the digits kit: squared pages, then digits in text on the copybook ruling, each page on its own paper", () => {
     const k = kits.find((x) => x.id === "digits");
@@ -483,14 +529,14 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
     expect(k.pages[0].rows[0]).toMatchObject({ text: "№1", repeat: "fade" });
     expect(k.pages[21].rows.some((r) => r.text === "Мне №5 лет, а Оле №3.")).toBe(true);
   });
-  it("letter pages: practice with fading copies, then independent writing with a sample at the start", () => {
-    const first = kits[0].pages;
-    expect(first[0].title).toContain("И и"); // a pair: the capital first, then the lowercase
-    expect(first[0].rows[0]).toMatchObject({ text: "и", repeat: "fade" });
-    expect(first[0].rows[3]).toMatchObject({ text: "И  и", asText: false, gap: 2 });
-    expect(first[1].rows[0]).toMatchObject({ text: "и", repeat: "one", dots: "one" });
-    const last = kits[1].pages.at(-1);
-    expect(last.rows.every((r) => !/[ЁЙЫ]/.test(r.text))).toBe(true); // no capital glyph for those: lowercase only
+  it("the punctuation kit: the 24 pages of the printed workbook, the rhythm pages on the frequent slants", () => {
+    const k = kits.find((x) => x.id === "punctuation");
+    expect(k.pages).toHaveLength(24);
+    const { pages } = kitToLibraryItems(k);
+    expect(pages.map((p, i) => (p.grid === "dense" ? i + 1 : 0)).filter(Boolean)).toEqual([1, 2, 3, 8, 9, 10, 13, 14]);
+    expect(k.pages[0].rows[1]).toMatchObject({ text: ".", repeat: "all", dots: "none" }); // no start dot on top of a full stop
+    expect(k.pages[5].rows.slice(0, 2).map((r) => r.kind)).toEqual(["text", "blank"]); // model, then the row to copy it into
+    expect(k.pages.flatMap((p) => p.rows).some((r) => r.text === "Где мяч? Вот он, Оля!")).toBe(true);
   });
 });
 
@@ -525,6 +571,28 @@ describe("pairs «Аа»: capital first, a gap inside the pair, a bigger one bet
     // within a pair the same distance, the next pair starts 2 cells (30 units at the narrow scale) later each time
     expect(apart[1] - apart[0]).toBeCloseTo(plain[1] - plain[0], 0);
     expect(apart[2] - apart[1]).toBeGreaterThan(plain[2] - plain[1] + 20);
+  });
+  it("kit pairs are evenly spaced (`even` -> #v): the lowercase stands as far from a wide capital as from a narrow one", () => {
+    expect(rowToLine(newRow({ text: "Г г", repeat: "fade", gap: 2, even: true }))).toBe("Г г#f#g2#v");
+    const w = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 0.5).placed[0].segments[0].width;
+    // ink gap inside the pair, up to a constant (the left pad): pair width − capital width − lowercase width
+    const gap = (U, l, flags) => w(`${U} ${l}${flags}`) - w(`${U}${flags}`) - w(`${l}${flags}`);
+    const spread = (flags) => { const g = ["Ии", "Гг", "Бб", "Дд", "Жж", "Фф", "Яя"].map(([U, l]) => gap(U, l, flags)); return Math.max(...g) - Math.min(...g); };
+    expect(spread("#1#c")).toBeGreaterThan(8); // counted in slant cells: Г г a whole cell wider than И и (the bug)
+    expect(spread("#1#c#v")).toBeLessThan(0.5);
+    // a pair row of a kit keeps the same gap in every copy across the row
+    const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
+    const pairs = kits.flatMap((k) => k.pages.flatMap((pg) => pg.rows)).filter((r) => /^\p{Lu} \p{Ll}$/u.test(r.text));
+    expect(pairs.length).toBeGreaterThan(40);
+    expect(pairs.every((r) => r.even)).toBe(true);
+  });
+});
+
+describe("a fence row", () => {
+  const strokes = (line) => layoutWideLinesIntoRows([line], map, undefined, true, 0.5).placed[0].segments[0].strokes.length;
+  it("is one unbroken line across the row when traced, but written once it stays one element (the child goes on alone)", () => {
+    expect(strokes("заборчик")).toBeGreaterThan(5);
+    expect(strokes("заборчик#1#o")).toBe(1);
   });
 });
 

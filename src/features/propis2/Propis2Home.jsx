@@ -5,9 +5,10 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
-import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
@@ -82,7 +83,16 @@ export default function Propis2Home({ db }) {
       const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
       if (!Array.isArray(res?.kv)) return;
       syncedRef.current = snapshotFromRemote(res.kv);
-      persist(openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(latest.current, res.kv))))));
+      const before = latest.current;
+      const merged = openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(before, res.kv)))));
+      persist(merged);
+      // The open notebook works on its own copy of the library: bring what another device changed in it onto the screen. Unsaved
+      // edits of this session are carried over onto the new copy; the undo history (made of the old copies) starts over.
+      setSession((cur) => {
+        if (!cur || !merged.sets.some((st) => st.id === cur.sid) || notebookJson(merged, cur.sid) === notebookJson(before, cur.sid)) return cur;
+        const lib = cur.lib === cur.base ? merged : mergeNotebook(merged, cur.lib, cur.sid, cur.base);
+        return { ...cur, lib, base: merged, past: [], future: [] };
+      });
     } catch {
       // offline or signed out: the local library keeps working, the queue catches up later
     }
@@ -109,17 +119,28 @@ export default function Propis2Home({ db }) {
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") pullRemote(); };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    // two devices both on screen never fire visibilitychange: pull now and then too (like the app-wide sync in App.jsx)
+    const timer = setInterval(() => { if (document.visibilityState === "visible") pullRemote(); }, 20_000);
+    return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(timer); };
   }, [pullRemote]);
   useEffect(() => () => { clearTimeout(saveTimer.current); flush(); }, [flush]);
 
-  const sheets = useMemo(() => topicRecord?.wideSheets ?? {}, [topicRecord]);
-  const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  // the methodology workbook as two ready notebooks: part 1 on the WIDE ruling, part 2 on the NARROW one (data.js)
-  const methodKits = useMemo(() => methodNotebooks(sheets, elementLabels), [sheets, elementLabels]);
-  const kitPresets = useMemo(() => [...methodKits, ...kits].map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [methodKits, kits]);
-  const readyAll = useMemo(() => kitPresets.map((ps) => ({ id: ps.id, title: ps.title, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets]);
+  // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) has no ready notebooks yet: the Russian methodology
+  // and kits are written in Russian letters and words
+  const ownKits = topicRecord?.meta?.methodology !== false;
+  // a new notebook starts on the deck's first paper (a variant deck: its own ruling, model.js deckPapers)
+  const newPaper = useMemo(() => { const id = deckPapers(topicRecord)[0]?.id; return id && id !== "propis" ? { gridKind: id } : {}; }, [topicRecord]);
+  // one series (data.js PROPIS2_LADDER), then the digits and the blank notebooks
+  const kitPresets = useMemo(() => (ownKits ? kits : []).map((k, i) => ({ k, i })).sort((a, b) => ladderIndex(a.k.id) - ladderIndex(b.k.id) || a.i - b.i)
+    .map(({ k }) => ({ id: `kit:${k.id}`, title: k.title, description: k.description, kit: k, builtin: true })), [ownKits, kits]);
+  const readyAll = useMemo(() => kitPresets.map((ps) => ({ id: ps.id, title: ps.title, description: ps.description, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets]);
+  // copies taken before the ready notebooks got their ladder titles follow the new title while they still have the old one
+  useEffect(() => {
+    if (!loaded || !ownKits || !kits.length) return;
+    const next = retitleKitCopies(library, Object.fromEntries(kits.map((k) => [k.id, k.title])));
+    if (next !== library) persist(next);
+  }, [loaded, ownKits, kits, library, persist]);
   const takenIds = useMemo(() => new Set(library.sets.map((st) => st.sourceId ?? (st.kit ? `kit:${st.kit}` : null)).filter(Boolean)), [library.sets]);
   const ready = useMemo(() => readyAll.filter((r) => !takenIds.has(r.id)), [readyAll, takenIds]);
   const ownCopyOf = (ps) => {
@@ -175,7 +196,7 @@ export default function Propis2Home({ db }) {
   // what the adult confirmed goes into the library as THAT notebook only
   const keepSession = (name) => {
     const lib = name ? setTitleOf(session.lib, session.sid, name) : session.lib;
-    persist(mergeNotebook(latest.current, lib, session.sid));
+    persist(mergeNotebook(latest.current, lib, session.sid, session.base));
     return lib;
   };
   const requestLeave = () => { if (dirty) setAsk({ mode: "leave" }); else toLibrary(); };
@@ -378,6 +399,7 @@ export default function Propis2Home({ db }) {
             onPageCount: onPartPages,
             printParts: runTasks.length > 1 ? runTasks : null,
             onEdge: (dir) => { setFragment(null); setPart({ index: partIndex + dir, startAt: dir < 0 ? "last" : 0 }); },
+            onJump: (where) => { setFragment(null); setPart(where === "first" ? { index: 0, startAt: 0 } : { index: sections.list.length - 1, startAt: "last" }); },
           } : {})}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
           onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}
@@ -438,6 +460,11 @@ export default function Propis2Home({ db }) {
     const nav = navSet && navIndex >= 0 ? {
       index: navIndex,
       total: navSet.pageIds.length,
+      // the notebook's pages with its paper (the computer layout shows them as thumbnails to click), and a jump to any of them
+      // (the stored page objects themselves, so a thumbnail is laid out again only when its page changed; `layout`: what the notebook imposes)
+      pages: navSet.pageIds.map((id) => (id === page.id ? page : pagesById.get(id))).filter(Boolean),
+      layout: notebookLayout(navSet, pagesById),
+      onGo: (i) => goPage(navSet.pageIds[i]),
       onPrev: () => goPage(navSet.pageIds[navIndex - 1]),
       onNext: () => goPage(navSet.pageIds[navIndex + 1]),
       onMoveBefore: () => { const ids = [...navSet.pageIds]; [ids[navIndex - 1], ids[navIndex]] = [ids[navIndex], ids[navIndex - 1]]; edit(upsertSet(working, { ...navSet, pageIds: ids })); },
@@ -513,7 +540,7 @@ export default function Propis2Home({ db }) {
       onDropDraft={() => { setDraft(null); clearDraft(db).catch(() => {}); }}
       onDropBlank={() => persist(blankIds.reduce((lib, id) => removeSet(lib, id), library))}
       onBack={() => setScreen((topicRecord?.modes?.length ?? 0) > 1 ? "modes" : "home")} // with the copied modes the topic has a mode list to go back to
-      onNew={() => createPage(newPage("Новая тетрадь"))}
+      onNew={() => createPage(newPage("Новая тетрадь", newPaper))}
       ready={ready}
       onOpenReady={openReady}
       onEditReady={editReady}

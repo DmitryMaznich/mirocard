@@ -1,0 +1,563 @@
+<title>Учим словенский</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+/* One look on purpose: the child's screen is the app's warm paper with a home
+   (orange, left) and a school (blue, right). Single light theme. */
+:root {
+  --paper: #fdfcf9;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #4b5563;
+  --line: #e5e7eb;
+  --home: #c2570c;
+  --home-dark: #9a3f06;
+  --home-tint: #fff1e2;
+  --school: #2563eb;
+  --school-dark: #1d4ed8;
+  --school-tint: #e8f0ff;
+  --teal: #4a9b8f;
+  --teal-dark: #2a6b60;
+  --ok: #16a34a;
+  --ok-tint: #f0fdf4;
+  --warn-tint: #fff7ed;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --tile: clamp(64px, 15vmin, 140px);
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font); font-size: 16px; }
+button { font-family: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--school); outline-offset: 2px; }
+
+/* ── Menu ── */
+.menu { max-width: 980px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 28px; }
+.menu h1 { margin: 0; font-size: clamp(30px, 5vw, 44px); font-weight: 900; text-wrap: balance; }
+.lead { margin: 6px 0 0; color: var(--muted); font-size: 17px; max-width: 62ch; line-height: 1.5; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 10px; border-radius: 14px; padding: 8px 14px; font-weight: 800; border: 3px solid; }
+.chip svg { width: 28px; height: 28px; }
+.chip--home { background: var(--home-tint); border-color: var(--home); color: var(--home-dark); }
+.chip--school { background: var(--school-tint); border-color: var(--school); color: var(--school-dark); }
+.section-title { margin: 0 0 12px; font-size: 20px; font-weight: 900; }
+.modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.mode { text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 16px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: var(--ink); min-height: 120px; }
+.mode:hover { border-color: var(--teal); }
+.mode b { font-size: 19px; font-weight: 900; }
+.mode span { color: var(--muted); font-size: 15px; line-height: 1.4; }
+.mode--checker { background: var(--school-tint); border-color: #bfd3fb; }
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.box { background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.seg { display: flex; gap: 6px; }
+.seg button { min-width: 48px; min-height: 44px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); font-weight: 800; font-size: 16px; cursor: pointer; color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal-dark); color: #fff; }
+.words { display: flex; flex-wrap: wrap; gap: 8px; }
+.word-toggle { display: flex; align-items: center; gap: 8px; border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px 6px 6px; background: var(--panel); cursor: pointer; font-weight: 700; color: var(--ink); min-height: 44px; }
+.word-toggle img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; }
+.word-toggle[aria-pressed="false"] { opacity: 0.45; text-decoration: line-through; }
+.hint { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 0; }
+.history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.history li { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; font-size: 15px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.history time { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 92px; }
+.tag { font-weight: 800; border-radius: 8px; padding: 1px 8px; font-size: 13px; }
+.tag--self { background: var(--ok-tint); color: #166534; }
+.tag--help { background: var(--warn-tint); color: var(--home-dark); }
+
+/* ── Child stage ── */
+.stage { position: fixed; inset: 0; background: var(--paper); display: flex; flex-direction: column; z-index: 5; }
+.topbar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--panel); border-bottom: 2px solid #eee8dc; }
+.close { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--teal); box-shadow: 0 3px 0 var(--teal-dark); color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
+.close:active { transform: translateY(3px); box-shadow: none; }
+.dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.dots i { width: 16px; height: 16px; border-radius: 50%; background: var(--line); }
+.dots i.self { background: #f59e0b; }
+.dots i.help { background: #fcd9a8; }
+.dots i.now { box-shadow: 0 0 0 3px #f59e0b55; }
+.count { font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.field { position: relative; flex: 1; min-height: 0; display: flex; }
+.tile { position: absolute; top: 16px; width: var(--tile); height: var(--tile); box-sizing: border-box; border-radius: 24%; border: 4px solid; display: grid; place-items: center; padding: 0; cursor: pointer; transition: transform .2s, box-shadow .2s, opacity .2s, border-width .2s; z-index: 2; }
+.tile svg { width: 66%; height: 66%; }
+.tile--home { left: max(16px, calc(16px + env(safe-area-inset-left, 0px))); background: var(--home-tint); border-color: var(--home); }
+.tile--school { right: max(16px, calc(16px + env(safe-area-inset-right, 0px))); background: var(--school-tint); border-color: var(--school); }
+.tile.speaking { border-width: 6px; transform: scale(1.06); }
+.tile--home.speaking { box-shadow: 0 0 0 12px rgba(194,87,12,.22); }
+.tile--school.speaking { box-shadow: 0 0 0 12px rgba(37,99,235,.22); }
+.tile--home.hint:not(.speaking) { border-style: dashed; border-color: #d58a4f; background: #fffaf4; opacity: .7; }
+.badge { position: absolute; bottom: -12px; width: 36%; height: 36%; border-radius: 50%; display: none; place-items: center; }
+.badge svg { width: 62%; height: 62%; }
+.tile.speaking .badge { display: grid; }
+.tile--home .badge { right: -12px; background: var(--home); }
+.tile--school .badge { left: -12px; background: var(--school); }
+.options { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: clamp(16px, 4vw, 56px); padding: calc(var(--tile) + 32px) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.options.n1 { --opt: min(52vw, 50vh, 420px); }
+.options.n2 { --opt: min(38vw, 44vh, 340px); }
+.options.n3 { --opt: min(27vw, 40vh, 280px); }
+.opt { position: relative; display: flex; width: var(--opt); height: var(--opt); box-sizing: border-box; padding: calc(var(--opt) * .05); border-radius: 28px; border: 3px solid var(--line); background: var(--panel); box-shadow: 0 8px 24px rgba(31,41,55,.08); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform .3s, opacity .35s, border-color .2s, box-shadow .2s, background .2s; }
+.opt img { flex: 1; min-width: 0; min-height: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 18px; pointer-events: none; user-select: none; }
+.opt.faded { opacity: .3; }
+.opt.hintme { border: 5px solid var(--school); box-shadow: 0 0 0 10px rgba(37,99,235,.18); transform: scale(1.08); }
+.opt.correct { border: 5px solid var(--ok); background: var(--ok-tint); transform: scale(1.1); }
+.opt.ready { animation: breathe 1.8s ease-in-out infinite; }
+.star { position: absolute; top: -14px; right: -14px; width: 30%; height: 30%; animation: pop .35s ease-out; }
+@keyframes breathe { 50% { transform: scale(1.03); } }
+@keyframes pop { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .opt, .tile { transition: none; } .opt.ready, .star { animation: none; } }
+.start, .done { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); text-align: center; }
+.go { min-width: 220px; min-height: 64px; border: 0; border-radius: 18px; background: var(--teal); box-shadow: 0 4px 0 var(--teal-dark); color: #fff; font-size: 24px; font-weight: 900; cursor: pointer; }
+.go:active { transform: translateY(4px); box-shadow: none; }
+.done h2 { margin: 0; font-size: 30px; font-weight: 900; }
+.done p { margin: 0; color: var(--muted); font-size: 18px; }
+.done .row { justify-content: center; }
+.ghost { min-height: 52px; padding: 0 20px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font-size: 17px; font-weight: 800; cursor: pointer; }
+
+/* ── Checker (Slovenian) ── */
+.check { max-width: 760px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.check h1 { margin: 0; font-size: 32px; font-weight: 900; }
+.check-row { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 12px; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.check-row.ok { border-color: #86efac; }
+.check-row.bad { border-color: #fdba74; }
+.check-row img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
+.check-letter { width: 64px; height: 64px; border-radius: 12px; display: grid; place-items: center; background: var(--school-tint); color: var(--school-dark); font-size: 28px; font-weight: 900; }
+.check-word { font-size: 24px; font-weight: 900; color: var(--school-dark); }
+.check-ru { color: var(--muted); font-size: 14px; }
+.check-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.pill { min-height: 44px; padding: 0 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); font-weight: 800; font-size: 15px; cursor: pointer; color: var(--ink); }
+.pill--play { background: var(--school); border-color: var(--school); color: #fff; }
+.pill[aria-pressed="true"].pill--ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.pill[aria-pressed="true"].pill--bad { background: var(--home); border-color: var(--home); color: #fff; }
+.check-note { grid-column: 1 / -1; }
+.check-note input, .text-input { width: 100%; box-sizing: border-box; min-height: 44px; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; font: inherit; color: var(--ink); background: var(--panel); }
+textarea.text-input { min-height: 160px; font-size: 15px; line-height: 1.5; resize: vertical; }
+label.lbl { font-weight: 800; display: flex; flex-direction: column; gap: 6px; }
+.back { align-self: flex-start; background: none; border: 0; color: var(--teal-dark); font-weight: 800; font-size: 16px; cursor: pointer; padding: 8px 0; min-height: 44px; }
+@media (max-width: 520px) { .check-row { grid-template-columns: 56px minmax(0, 1fr); } .check-btns { grid-column: 1 / -1; justify-content: flex-start; } .check-row img, .check-letter { width: 56px; height: 56px; } }
+</style>
+
+<main id="app"></main>
+
+<script>
+// ── Data: set 1 «Malica» and the distractors (docs/learn-slovene.md) ──
+const WORDS = [
+  ["voda", "voda", "вода"], ["sok", "sok", "сок"], ["caj", "čaj", "чай"], ["jabolko", "jabolko", "яблоко"],
+  ["banana", "banana", "банан"], ["hruska", "hruška", "груша"], ["mleko", "mleko", "молоко"], ["sir", "sir", "сыр"],
+].map(([id, sl, ru]) => ({ id, sl, ru, group: "malica", pics: [1, 2, 3].map((n) => `media/${id}_${n}.webp`) }));
+// Sets 2–5: recorded, pictures still to come. On the checker page only.
+const LATER = [
+  ["kruh", "kruh", "хлеб"], ["malica", "malica", "перекус"],
+  ["nos", "nos", "нос"], ["uho", "uho", "ухо"], ["noga", "noga", "нога"], ["roke", "roke", "руки"],
+  ["sola", "šola", "школа"], ["knjiga", "knjiga", "книга"], ["miza", "miza", "стол"], ["zvezek", "zvezek", "тетрадь"],
+  ["svincnik", "svinčnik", "карандаш"], ["barvice", "barvice", "цветные карандаши"], ["skarje", "škarje", "ножницы"],
+  ["lepilo", "lepilo", "клей"], ["tabla", "tabla", "доска"], ["torba", "torba", "рюкзак"],
+  ["copati", "copati", "тапочки"], ["jakna", "jakna", "куртка"], ["kapa", "kapa", "шапка"], ["cevlji", "čevlji", "ботинки"],
+  ["zoga", "žoga", "мяч"], ["avtobus", "avtobus", "автобус"], ["stol", "stol", "стул"],
+].map(([id, sl, ru]) => ({ id, sl, ru, pics: [] }));
+const CHECK_WORDS = [...WORDS, ...LATER];
+const DISTRACTORS = [
+  ["zoga", "žoga", "igrisce", [1, 2]], ["knjiga", "knjiga", "razred", [1]], ["cevlji", "čevlji", "garderoba", [1]],
+  ["svincnik", "svinčnik", "razred", [1, 2]], ["kapa", "kapa", "garderoba", [1, 2]], ["skarje", "škarje", "razred", [1, 2]],
+].flatMap(([id, sl, group, ns]) => ns.map((n) => ({ id, sl, group, pic: `media/${id}_${n}.webp` })));
+
+const MODES = [
+  { id: "pair", type: "pair", title: "1. Показ пары", text: "«яблоко» → «jabolko». Касание картинки — следующая. Ошибиться нельзя." },
+  { id: "both", type: "find", order: "ru_sl", n: 2, title: "2. Найди: оба слова", text: "Звучат оба слова, выбор из двух картинок." },
+  { id: "sl", type: "find", order: "sl", n: 2, title: "3. Найди по-словенски", text: "Только словенское слово. Русское — подсказка, если ребёнок молчит." },
+  { id: "sl3", type: "find", order: "sl", n: 3, title: "4. Три картинки", text: "Только словенское слово, три картинки." },
+];
+
+// ── Small helpers ──
+const $ = (sel, root = document) => root.querySelector(sel);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) n.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return n;
+};
+const svg = (markup) => { const t = document.createElement("template"); t.innerHTML = markup.trim(); return t.content.firstChild; };
+const HOME_SVG = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M10 50 L50 14 L90 50 Z" fill="#c2570c"/><rect x="20" y="48" width="60" height="42" fill="#f6b26b"/><rect x="44" y="64" width="14" height="26" fill="#7c3a06"/><rect x="26" y="56" width="12" height="12" fill="#fff"/><rect x="64" y="56" width="12" height="12" fill="#fff"/></svg>';
+const SCHOOL_SVG = '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="12" y="38" width="76" height="52" fill="#93b4f5"/><path d="M6 40 L50 14 L94 40 Z" fill="#2563eb"/><circle cx="50" cy="30" r="7" fill="#fff"/><rect x="20" y="48" width="12" height="12" fill="#fff"/><rect x="68" y="48" width="12" height="12" fill="#fff"/><rect x="42" y="66" width="16" height="24" fill="#1e3a8a"/></svg>';
+const SPEAKER_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/><path d="M16 8.5c1.2 1 1.8 2.2 1.8 3.5s-.6 2.5-1.8 3.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const STAR_SVG = '<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="#f59e0b"/></svg>';
+
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage is optional */ } },
+};
+const settings = Object.assign({ taskCount: 6, delay: 5, off: [] }, store.get("ls-settings", {}));
+const saveSettings = () => store.set("ls-settings", settings);
+
+// ── Audio: one clip at a time; a new run cancels the old one ──
+let current = null;
+let runId = 0;
+const audioPath = (w, lang) => `audio/${lang}/${w.id}.mp3`;
+function play(path) {
+  return new Promise((resolve) => {
+    if (current) { current.pause(); current = null; }
+    const a = new Audio(path);
+    current = a;
+    a.onended = () => resolve(true);
+    a.onerror = () => resolve(false);
+    a.play().catch(() => resolve(false));
+  });
+}
+function newRun() {
+  runId += 1;
+  if (current) { current.pause(); current = null; }
+  const id = runId;
+  return () => runId === id;
+}
+
+// ── Engine (same rules as src/topics/renderers/bilingual_words/engine.js) ──
+function pickDistractors(word, count) {
+  const first = (s) => s.charAt(0).toLowerCase();
+  const usable = DISTRACTORS.filter((d) => d.group !== word.group);
+  const strict = usable.filter((d) => first(d.sl) !== first(word.sl));
+  const picked = [];
+  for (const d of [...shuffle(strict), ...shuffle(usable)]) {
+    if (picked.length >= count) break;
+    if (!picked.some((p) => p.id === d.id)) picked.push(d);
+  }
+  return picked;
+}
+function sequence(words, length) {
+  const out = [];
+  const pass = new Map(words.map((w) => [w.id, 0]));
+  while (out.length < length) {
+    let order = shuffle(words);
+    if (order.length > 1 && order[0].id === out[out.length - 1]?.word.id) order = [...order.slice(1), order[0]];
+    for (const w of order) {
+      if (out.length >= length) break;
+      const n = pass.get(w.id); pass.set(w.id, n + 1);
+      out.push({ word: w, pic: w.pics[n % w.pics.length] });
+    }
+  }
+  return out;
+}
+function buildTasks(mode, words) {
+  if (mode.type === "pair") return sequence(words, words.length);
+  return sequence(words, settings.taskCount).map((t) => ({
+    ...t,
+    options: shuffle([{ pic: t.pic, sl: t.word.sl, target: true }, ...pickDistractors(t.word, mode.n - 1).map((d) => ({ pic: d.pic, sl: d.sl }))]),
+  }));
+}
+
+// ── Menu ──
+function chosenWords() { return WORDS.filter((w) => !settings.off.includes(w.id)); }
+function segmented(values, labelFor, key) {
+  return el("div", { class: "seg", role: "group" }, values.map((v) => el("button", {
+    type: "button", "aria-pressed": String(settings[key] === v),
+    onclick: () => { settings[key] = v; saveSettings(); renderMenu(); },
+  }, labelFor(v))));
+}
+function renderMenu() {
+  newRun();
+  const app = $("#app");
+  app.replaceChildren();
+  const history = store.get("ls-history", []);
+  const words = chosenWords();
+  app.append(el("div", { class: "menu" },
+    el("header", {},
+      el("h1", {}, "Учим словенский"),
+      el("p", { class: "lead" }, "Пробная версия режима «Одна вещь — два слова», набор Malica. Дома слово звучит по-русски, в школе — по-словенски. Ребёнок отвечает выбором картинки; говорить не нужно."),
+    ),
+    el("div", { class: "legend" },
+      el("span", { class: "chip chip--home" }, svg(HOME_SVG), "Дом — русский голос"),
+      el("span", { class: "chip chip--school" }, svg(SCHOOL_SVG), "Школа — словенский голос"),
+    ),
+    el("section", {},
+      el("h2", { class: "section-title" }, "Режимы"),
+      el("div", { class: "modes" },
+        MODES.map((m) => el("button", { type: "button", class: "mode", onclick: () => startSession(m), disabled: words.length < 2 }, el("b", {}, m.title), el("span", {}, m.text))),
+        el("button", { type: "button", class: "mode mode--checker", onclick: renderChecker }, el("b", {}, "Za naravnega govorca"), el("span", {}, "Проверка произношения: страница для носителя языка, по-словенски.")),
+      ),
+    ),
+    el("section", { class: "settings" },
+      el("div", { class: "box" },
+        el("h2", { class: "section-title" }, "Настройки"),
+        el("div", { class: "row" }, el("span", {}, "Заданий в занятии"), segmented([4, 6, 10], String, "taskCount")),
+        el("div", { class: "row" }, el("span", {}, "Подсказка через"), segmented([3, 5, 8], (v) => `${v} с`, "delay")),
+        el("p", { class: "hint" }, "Подсказки в режимах 3–4 идут по очереди: повтор словенского слова → русское слово → нужная картинка увеличивается."),
+      ),
+      el("div", { class: "box" },
+        el("h2", { class: "section-title" }, "Слова"),
+        el("div", { class: "words" }, WORDS.map((w) => el("button", {
+          type: "button", class: "word-toggle", "aria-pressed": String(!settings.off.includes(w.id)),
+          onclick: () => { settings.off = settings.off.includes(w.id) ? settings.off.filter((x) => x !== w.id) : [...settings.off, w.id]; saveSettings(); renderMenu(); },
+        }, el("img", { src: w.pics[0], alt: "" }), `${w.sl} · ${w.ru}`))),
+        el("p", { class: "hint" }, words.length < 2 ? "Оставьте хотя бы два слова." : "Снимите слова, которых ребёнок не понимает по-русски."),
+      ),
+    ),
+    el("section", { class: "box" },
+      el("h2", { class: "section-title" }, "Последние занятия на этом устройстве"),
+      history.length
+        ? el("ul", { class: "history" }, history.slice(0, 12).map((h) => el("li", {},
+          el("time", {}, new Date(h.at).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })),
+          el("b", {}, h.mode),
+          h.self != null ? el("span", { class: "tag tag--self" }, `сам ${h.self}`) : null,
+          h.help ? el("span", { class: "tag tag--help" }, `с помощью ${h.help}`) : null,
+          h.helpWords?.length ? el("span", { class: "hint" }, `помощь: ${h.helpWords.join(", ")}`) : null,
+        )))
+        : el("p", { class: "hint" }, "Здесь появятся итоги занятий: сколько ответов сам и какие слова с помощью. Они хранятся только в этом браузере."),
+    ),
+  ));
+}
+
+// ── Session ──
+let session = null;
+function startSession(mode) {
+  const words = chosenWords();
+  session = { mode, tasks: buildTasks(mode, words), i: 0, results: [] };
+  const stage = el("div", { class: "stage" },
+    el("div", { class: "topbar" },
+      el("button", { type: "button", class: "close", onclick: endSession }, "Закончить"),
+      el("div", { class: "dots", id: "dots" }),
+      el("span", { class: "count", id: "count" }),
+    ),
+    el("div", { class: "field", id: "field" },
+      el("div", { class: "start" },
+        el("p", { class: "lead" }, mode.title),
+        el("button", { type: "button", class: "go", onclick: () => showTask() }, "Начать"),
+      ),
+    ),
+  );
+  document.body.append(stage);
+  updateDots();
+}
+function updateDots() {
+  const dots = $("#dots"); if (!dots || !session) return;
+  dots.replaceChildren(...session.tasks.map((_, i) => {
+    const r = session.results[i];
+    return el("i", { class: [r?.outcome === "self" ? "self" : r ? "help" : "", i === session.i ? "now" : ""].join(" ") });
+  }));
+  $("#count").textContent = `${Math.min(session.i + 1, session.tasks.length)} / ${session.tasks.length}`;
+}
+function tiles(order) {
+  const home = el("button", { type: "button", class: `tile tile--home${order === "sl" ? " hint" : ""}`, "aria-label": "Дома: по-русски" }, svg(HOME_SVG), el("span", { class: "badge" }, svg(SPEAKER_SVG)));
+  const school = el("button", { type: "button", class: "tile tile--school", "aria-label": "В школе: по-словенски" }, svg(SCHOOL_SVG), el("span", { class: "badge" }, svg(SPEAKER_SVG)));
+  return { home, school };
+}
+function makeSay(t, alive) {
+  return async (lang, word) => {
+    if (!alive()) return false;
+    const tile = lang === "ru" ? t.home : t.school;
+    tile.classList.add("speaking");
+    await Promise.all([play(audioPath(word, lang)), wait(600)]);
+    tile.classList.remove("speaking");
+    return alive();
+  };
+}
+function next(result) {
+  if (result) session.results[session.i] = result;
+  session.i += 1;
+  if (session.i >= session.tasks.length) { endSession(); return; }
+  showTask();
+}
+function showTask() {
+  const task = session.tasks[session.i];
+  updateDots();
+  const field = $("#field");
+  const t = tiles(session.mode.order ?? "ru_sl");
+  const options = el("div", { class: `options n${task.options?.length ?? 1}` });
+  field.replaceChildren(t.home, t.school, options);
+  if (session.mode.type === "pair") pairTask(task, t, options);
+  else findTask(task, t, options);
+}
+
+// Mode 1: home says the word, school says it; a tap moves on once heard.
+function pairTask(task, t, options) {
+  let heard = false;
+  const card = el("button", { type: "button", class: "opt", "aria-label": `${task.word.ru} — ${task.word.sl}` }, el("img", { src: task.pic, alt: "" }));
+  options.append(card);
+  // A replay cancels the opening pair, so it also counts as having heard it.
+  const replay = async (lang) => {
+    const done = await makeSay(t, newRun())(lang, task.word);
+    if (done) { heard = true; card.classList.add("ready"); }
+  };
+  t.home.onclick = () => replay("ru");
+  t.school.onclick = () => replay("sl");
+  card.onclick = () => { if (heard) { newRun(); next({ word: task.word.sl, outcome: "self" }); } };
+  (async () => {
+    const alive = newRun(); const say = makeSay(t, alive);
+    if (!(await say("ru", task.word))) return;
+    await wait(700); if (!alive()) return;
+    if (!(await say("sl", task.word))) return;
+    heard = true; card.classList.add("ready");
+  })();
+}
+
+// Modes 2–4: the prompt chain repeat → Russian → highlight; no buzz on a mistake.
+function findTask(task, t, options) {
+  const order = session.mode.order;
+  const st = { phase: "stimulus", level: 0, errors: 0, timer: null };
+  const buttons = task.options.map((o) => {
+    const b = el("button", { type: "button", class: "opt", "aria-label": o.sl }, el("img", { src: o.pic, alt: "" }));
+    b.onclick = () => tap(o, b);
+    options.append(b);
+    return { o, b };
+  });
+  const target = buttons.find((x) => x.o.target);
+  const sayPair = async (say) => (await say("sl", task.word)) && (await wait(300), true) && say("ru", task.word);
+  const clearTimer = () => { clearTimeout(st.timer); st.timer = null; };
+  const showAnswer = () => {
+    target.b.classList.add("hintme");
+    for (const x of buttons) if (x !== target) x.b.classList.add("faded");
+  };
+  const toAwait = () => {
+    st.phase = "await";
+    clearTimer();
+    if (st.level >= 3) return;
+    st.timer = setTimeout(async () => {
+      st.level += 1;
+      st.phase = "busy";
+      const alive = newRun(); const say = makeSay(t, alive);
+      if (st.level === 3) showAnswer();
+      const done = await say(st.level === 2 ? "ru" : "sl", task.word);
+      if (done && st.phase === "busy") toAwait();
+    }, settings.delay * 1000);
+  };
+  async function tap(o, b) {
+    if (st.phase === "correct") return;
+    if (o.target) {
+      clearTimer();
+      st.phase = "correct";
+      const assisted = st.errors > 0 || st.level >= 2;
+      for (const x of buttons) if (x !== target) x.b.classList.add("faded");
+      b.classList.remove("hintme"); b.classList.add("correct"); b.append(svg(STAR_SVG));
+      const alive = newRun();
+      if (!(await sayPair(makeSay(t, alive)))) return;
+      await wait(400); if (!alive()) return;
+      next({ word: task.word.sl, outcome: assisted ? "help" : "self" });
+      return;
+    }
+    if (st.phase === "reveal" || b.classList.contains("faded")) return;
+    clearTimer();
+    st.errors += 1;
+    st.phase = "reveal";
+    showAnswer();
+    await sayPair(makeSay(t, newRun()));
+  }
+  async function replay(lang) {
+    if (st.phase === "correct") return;
+    if (lang === "ru" && order === "sl") st.level = Math.max(st.level, 2);
+    const resume = st.phase === "reveal" ? "reveal" : "await";
+    clearTimer();
+    st.phase = "busy";
+    const done = await makeSay(t, newRun())(lang, task.word);
+    if (done && st.phase === "busy") { if (resume === "await") toAwait(); else st.phase = "reveal"; }
+  }
+  t.home.onclick = () => replay("ru");
+  t.school.onclick = () => replay("sl");
+  (async () => {
+    const alive = newRun(); const say = makeSay(t, alive);
+    if (order === "ru_sl") {
+      if (!(await say("ru", task.word))) return;
+      await wait(700); if (!alive()) return;
+    }
+    if (!(await say("sl", task.word))) return;
+    if (st.phase === "stimulus") toAwait();
+  })();
+}
+
+function endSession() {
+  newRun();
+  const s = session; session = null;
+  const stage = $(".stage"); if (!stage) return;
+  const done = s.results.filter(Boolean);
+  if (done.length) {
+    const self = done.filter((r) => r.outcome === "self").length;
+    const helpWords = [...new Set(done.filter((r) => r.outcome === "help").map((r) => r.word))];
+    const isPair = s.mode.type === "pair";
+    const entry = { at: new Date().toISOString(), mode: s.mode.title, self: isPair ? null : self, help: isPair ? 0 : done.length - self, helpWords };
+    store.set("ls-history", [entry, ...store.get("ls-history", [])].slice(0, 50));
+    $("#field").replaceChildren(el("div", { class: "done" },
+      el("h2", {}, "Готово!"),
+      el("p", {}, isPair ? `Показано слов: ${done.length}` : `Сам: ${self} из ${done.length}${helpWords.length ? ` · с помощью: ${helpWords.join(", ")}` : ""}`),
+      el("div", { class: "row" },
+        el("button", { type: "button", class: "go", onclick: () => { stage.remove(); startSession(s.mode); } }, "Ещё раз"),
+        el("button", { type: "button", class: "ghost", onclick: () => { stage.remove(); renderMenu(); } }, "К режимам"),
+      ),
+    ));
+    $("#dots")?.replaceChildren();
+    $("#count").textContent = "";
+    $(".close").onclick = () => { stage.remove(); renderMenu(); };
+    return;
+  }
+  stage.remove();
+  renderMenu();
+}
+
+// ── Checker: for the native speaker, in Slovenian ──
+function renderChecker() {
+  newRun();
+  const review = Object.assign({ name: "", marks: {} }, store.get("ls-review", {}));
+  const save = () => store.set("ls-review", review);
+  const app = $("#app");
+  const summaryText = () => {
+    const lines = [`Preverjanje izgovorjave — ${review.name || "brez imena"}`];
+    for (const w of CHECK_WORDS) {
+      const m = review.marks[w.id];
+      lines.push(`${w.sl}: ${m?.ok === true ? "pravilno" : m?.ok === false ? `NI V REDU${m.note ? ` — ${m.note}` : ""}` : "ni preverjeno"}`);
+    }
+    return lines.join("\n");
+  };
+  const summary = el("textarea", { class: "text-input", id: "summary", readonly: true, "aria-label": "Povzetek" });
+  const refresh = () => { summary.value = summaryText(); };
+  const rows = CHECK_WORDS.map((w) => {
+    const m = review.marks[w.id] ?? {};
+    const row = el("div", { class: `check-row${m.ok === true ? " ok" : m.ok === false ? " bad" : ""}` });
+    const ok = el("button", { type: "button", class: "pill pill--ok", "aria-pressed": String(m.ok === true) }, "Pravilno");
+    const bad = el("button", { type: "button", class: "pill pill--bad", "aria-pressed": String(m.ok === false) }, "Ni v redu");
+    const note = el("input", { id: `note-${w.id}`, type: "text", placeholder: "Kaj je narobe? Npr. naglas, glas, hitrost", value: m.note ?? "", "aria-label": `Opomba za ${w.sl}` });
+    const noteWrap = el("div", { class: "check-note" }, note);
+    noteWrap.hidden = m.ok !== false;
+    const mark = (value) => {
+      review.marks[w.id] = { ...review.marks[w.id], ok: value };
+      ok.setAttribute("aria-pressed", String(value === true));
+      bad.setAttribute("aria-pressed", String(value === false));
+      row.className = `check-row ${value ? "ok" : "bad"}`;
+      noteWrap.hidden = value !== false;
+      if (value === false) note.focus();
+      save(); refresh();
+    };
+    ok.onclick = () => mark(true);
+    bad.onclick = () => mark(false);
+    note.oninput = () => { review.marks[w.id] = { ...review.marks[w.id], note: note.value }; save(); refresh(); };
+    row.append(
+      w.pics[0] ? el("img", { src: w.pics[0], alt: "" }) : el("span", { class: "check-letter", "aria-hidden": "true" }, w.sl.charAt(0).toUpperCase()),
+      el("div", {}, el("div", { class: "check-word" }, w.sl), el("div", { class: "check-ru" }, `rusko: ${w.ru}`)),
+      el("div", { class: "check-btns" },
+        el("button", { type: "button", class: "pill pill--play", onclick: () => { newRun(); play(audioPath(w, "sl")); } }, "▶ Predvajaj"),
+        el("button", { type: "button", class: "pill", title: "Ruski posnetek — za starša", onclick: () => { newRun(); play(audioPath(w, "ru")); } }, "RU"),
+        ok, bad,
+      ),
+      noteWrap,
+    );
+    return row;
+  });
+  const name = el("input", { id: "reviewer", class: "text-input", type: "text", value: review.name, placeholder: "Vaše ime (neobvezno)" });
+  name.oninput = () => { review.name = name.value; save(); refresh(); };
+  const status = el("span", { class: "hint", role: "status" });
+  const copy = el("button", { type: "button", class: "go", onclick: async () => {
+    try { await navigator.clipboard.writeText(summary.value); status.textContent = "Kopirano. Pošljite besedilo staršu."; }
+    catch { summary.focus(); summary.select(); status.textContent = "Besedilo je označeno — kopirajte ga ročno."; }
+  } }, "Kopiraj povzetek");
+  app.replaceChildren(el("div", { class: "check" },
+    el("button", { type: "button", class: "back", onclick: renderMenu }, "← Nazaj"),
+    el("h1", {}, "Preverjanje izgovorjave"),
+    el("p", { class: "lead" }, "Hvala za pomoč! Te besede se uči otrok, ki doma govori rusko in hodi v slovensko šolo. Prosimo, poslušajte vsako besedo in označite, ali je izgovorjena pravilno in naravno. Če ni, na kratko napišite, kaj je narobe. Gumb RU je ruski posnetek za starša, tega ni treba preverjati."),
+    el("label", { class: "lbl", for: "reviewer" }, "Vaše ime", name),
+    rows,
+    el("label", { class: "lbl", for: "summary" }, "Povzetek", summary),
+    el("div", { class: "row" }, copy, status),
+  ));
+  refresh();
+}
+
+renderMenu();
+</script>

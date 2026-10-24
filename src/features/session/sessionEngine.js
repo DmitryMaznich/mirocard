@@ -1,3 +1,4 @@
+import { applyRewardMistake, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { createSessionMetrics, recordResponse, recordAdvance, recordQuality, recordWrongAnswer, summarizeMetrics } from "../analytics/sessionMetrics";
 
 function generateId() {
@@ -54,7 +55,7 @@ export function reshuffleLoopTasks(tasks) {
 // Task types that never call handleAnswer/handleInstantCorrect (advance-only)
 const ADVANCE_ONLY_TYPES = new Set(["pair_intro", "season_overview"]);
 
-export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1, strictStars = true) {
+export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1, strictStars = true, rewardPolicy = undefined) {
   const rawAps = Math.max(1, Math.min(3, Math.round(answersPerStar ?? 1)));
   const evaluableCount = tasks.filter(t => !ADVANCE_ONLY_TYPES.has(t.type)).length;
   // Cap so 5 stars can always be earned within the available evaluable tasks.
@@ -74,6 +75,7 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     isDeckMode,
     answersPerStar: effectiveAps,
     strictStars: !!strictStars,
+    ...(rewardPolicy ? { rewardPolicy } : {}),
     correctCount: 0,
     incorrectCount: 0,
     streakCount: 0,
@@ -88,6 +90,11 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
   };
 }
 
+function learningStreakAfterCorrect(state, count) {
+  if (state.rewardAttemptCredited) return state.learningStreakCount ?? 0;
+  return state.rewardHadAnyError ? 0 : (state.learningStreakCount ?? 0) + count;
+}
+
 export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) {
   state = markSessionAction(state);
   if (state.mode.evaluation === "none") {
@@ -97,7 +104,8 @@ export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) 
   if (isCorrect) {
     const scoreCount = Math.max(1, Math.round(Number(options.scoreCount) || 1));
     const streakTarget = 5 * (state.answersPerStar ?? 1);
-    const streakCount = (state.streakCount ?? 0) + scoreCount;
+    const rewardScore = state.rewardPolicy?.version === 2 && (state.rewardAttemptBlocked || state.rewardAttemptCredited) ? 0 : scoreCount;
+    const streakCount = (state.streakCount ?? 0) + rewardScore;
     const earnedNow = Math.floor(streakCount / streakTarget);
     const rewardEarnedCount = (state.rewardEarnedCount ?? 0) + earnedNow;
     const finalStreak = streakCount % streakTarget;
@@ -106,15 +114,19 @@ export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) 
       status: "answer_correct",
       correctCount: state.correctCount + scoreCount,
       streakCount: finalStreak,
-      bestStreak: Math.max(state.bestStreak ?? 0, Math.min(streakCount, streakTarget)),
+      bestStreak: Math.max(state.bestStreak ?? 0, state.rewardPolicy?.version === 2 ? learningStreakAfterCorrect(state, scoreCount) : Math.min(streakCount, streakTarget)),
       rewardEarnedCount,
+      ...(state.rewardPolicy?.version === 2 ? {
+        rewardAttemptCredited: true,
+        learningStreakCount: learningStreakAfterCorrect(state, scoreCount),
+        rewardChangeReason: earnedNow > 0 ? "exchange" : rewardScore > 0 ? "gain" : state.rewardChangeReason,
+      } : {}),
     };
   }
   return {
-    ...state,
+    ...applyRewardMistake(state),
     status: "answer_incorrect",
     incorrectCount: state.incorrectCount + 1,
-    streakCount: state.strictStars ? 0 : (state.streakCount ?? 0),
     mistakes: conceptId
       ? [...state.mistakes, { conceptId, cardId }]
       : state.mistakes,
@@ -132,7 +144,8 @@ export function handleInstantCorrect(state) {
   state = markSessionAction(state);
   state = recordAdvance(recordResponse(state, "correct"));
   const streakTarget = 5 * (state.answersPerStar ?? 1);
-  const streakCount = (state.streakCount ?? 0) + 1;
+  const rewardScore = state.rewardPolicy?.version === 2 && (state.rewardAttemptBlocked || state.rewardAttemptCredited) ? 0 : 1;
+  const streakCount = (state.streakCount ?? 0) + rewardScore;
   const correctCount = state.correctCount + 1;
   const rewardEarnedCount = streakCount >= streakTarget
     ? (state.rewardEarnedCount ?? 0) + 1
@@ -140,14 +153,15 @@ export function handleInstantCorrect(state) {
   const finalStreak = streakCount >= streakTarget ? 0 : streakCount;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
   return {
-    ...state,
+    ...rewardAttemptComplete(state),
     status: finiteDone(state) ? "completed" : "task_active",
     taskIndex: nextIndex,
     taskRetry: 0,
     correctCount,
     streakCount: finalStreak,
-    bestStreak: Math.max(state.bestStreak ?? 0, streakCount),
+    bestStreak: Math.max(state.bestStreak ?? 0, state.rewardPolicy?.version === 2 ? learningStreakAfterCorrect(state, 1) : streakCount),
     rewardEarnedCount,
+    ...(state.rewardPolicy?.version === 2 ? { learningStreakCount: learningStreakAfterCorrect(state, 1), rewardChangeReason: streakCount >= streakTarget ? "exchange" : rewardScore > 0 ? "gain" : state.rewardChangeReason } : {}),
   };
 }
 
@@ -157,7 +171,7 @@ export function handleInstantIncorrect(state, conceptId, cardId, answer) {
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
-  return { ...state, status: finiteDone(state) ? "completed" : "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: state.strictStars ? 0 : (state.streakCount ?? 0), mistakes };
+  return { ...rewardAttemptComplete(applyRewardMistake(state)), status: finiteDone(state) ? "completed" : "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, mistakes };
 }
 
 // Custom exercises sometimes need immediate feedback and a retry on the same
@@ -170,11 +184,10 @@ export function handleInPlaceIncorrect(state, conceptId, cardId) {
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   return {
-    ...state,
+    ...applyRewardMistake(state, true),
     status: "task_active",
     taskRetry: (state.taskRetry ?? 0) + 1,
     incorrectCount,
-    streakCount: state.strictStars ? 0 : (state.streakCount ?? 0),
     mistakes,
   };
 }
@@ -194,9 +207,8 @@ export function handleStreakReset(state, conceptId, cardId) {
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   return {
-    ...state,
+    ...applyRewardMistake(state, true),
     incorrectCount,
-    streakCount: state.strictStars ? 0 : (state.streakCount ?? 0),
     mistakes,
   };
 }
@@ -218,16 +230,16 @@ export function handleAdvance(state) {
   if (nextIndex >= state.tasks.length) {
     if (state.mode?.loop) {
       return {
-        ...state,
+        ...rewardAttemptComplete(state),
         status: "task_active",
         taskIndex: 0,
         taskRetry: 0,
         tasks: state.mode.reshuffleOnLoop ? reshuffleLoopTasks(state.tasks) : state.tasks,
       };
     }
-    return { ...state, status: state.isDeckMode ? "deck_exhausted" : "completed" };
+    return { ...rewardAttemptComplete(state), status: state.isDeckMode ? "deck_exhausted" : "completed" };
   }
-  return { ...state, status: "task_active", taskIndex: nextIndex };
+  return { ...rewardAttemptComplete(state), status: "task_active", taskIndex: nextIndex };
 }
 
 function collapseOutcomes(items, keys) {

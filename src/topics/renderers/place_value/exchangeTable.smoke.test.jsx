@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
 import { exchangeSteps } from "./ExchangeTable.jsx";
 import { coinHarness } from "./coinTestHelpers.jsx";
@@ -18,6 +19,22 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(exchangeSteps(minus).steps.map((s) => s.text)).toEqual(["2 − 4: единиц хватает?", "12 − 4 =", "3 − 1 ="]);
     expect(exchangeSteps({ ...plus, k: 24, number: 38, result: 62 }).steps.map((s) => s.text)).toEqual(["8 + 4 =", "3 + 2 + 1 ="]);
     expect(exchangeSteps({ ...minus, k: 1, result: 31 }).steps.map((s) => s.text)).toEqual(["2 − 1: единиц хватает?", "2 − 1 =", "не меняются:"]);
+    // 92 − 66: not «9 − 1 − 6» but two steps — what goes over the 9, then 8 − 6.
+    const m92 = { ...minus, k: 66, number: 92, start: { tens: 9, ones: 2 }, result: 26 };
+    expect(exchangeSteps(m92).steps.map((s) => s.text)).toEqual(["2 − 6: единиц хватает?", "12 − 6 =", "9 − 1 =", "8 − 6 ="]);
+  });
+
+  it("92 − 66: «9 − 1» is written over the crossed 9 (the dot pulses there), then 8 − 6", () => {
+    h.mount(ExchangeTenTask, { ...minus, k: 66, number: 92, start: { tens: 9, ones: 2 }, result: 26 });
+    h.click("Не хватает"); h.flush(); h.flush();
+    type(6);
+    expect(h.container.querySelector(".xb-over--tens .xb-borrow-dot--wait")).not.toBeNull();
+    expect(text(".xb-step-text")).toBe("9 − 1 =");
+    type(8);
+    expect(text(".xb-over--tens")).toBe("8");
+    expect(text(".xb-step-text")).toBe("8 − 6 =");
+    type(2);
+    expect(cells().slice(4)).toEqual(["2", "6"]);
   });
 
   it("plus: 8 + 4 = 12 puts 2 under the ones and 1 over the tens; then 3 + 1", () => {
@@ -26,6 +43,14 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(cells()).toEqual(["3", "8", "", "4", "", ""]);
     expect(text(".xb-step-text")).toBe("8 + 4 =");
     type(12);
+    // Written way, no pieces: 2 stays under the ones, the 1 of 12 flies up
+    // over the tens and stays there.
+    expect(h.container.querySelector(".xf-area")).toBeNull();
+    expect(text(".xf-carry")).toBe("1");
+    expect(text(".xb-over--tens")).toBe("");
+    act(() => vi.advanceTimersByTime(800));
+    expect(h.container.querySelector(".xf-carry--up")).not.toBeNull();
+    h.flush();
     expect(text(".xb-over--tens")).toBe("1");
     expect(cells().slice(4)).toEqual(["", "2"]);
     expect(text(".xb-step-text")).toBe("3 + 1 =");
@@ -43,11 +68,29 @@ describe("«Плюс и минус через десяток» — «Табли�
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, minus, { onMistake });
     h.click("Хватает");
-    expect(note()).toBe("Из 2 нельзя вычесть 4 — единиц не хватает.");
+    // No ready answer: the child compares the two numbers, lit in the table.
+    expect(note()).toBe("Сначала сравни числа единиц.");
+    expect(text(".xb-compare-ask")).toBe("Что больше: 2 или 4?");
+    expect(h.container.querySelectorAll(".xb-cell--compare")).toHaveLength(2);
+    h.click("2");
+    expect(note()).toBe("Посмотри на числа в таблице ещё раз.");
+    h.click("4");
+    expect(text(".xb-compared")).toBe("2 < 4");
     h.click("Не хватает");
-    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
-    expect(text(".xb-over--ones")).toBe("12");
-    expect(text(".xb-over--tens")).toBe("2");
+    // 3 sticks, 2 dots; a stick goes to the ones and falls apart: 2 sticks, 12 dots.
+    const n = (sel) => h.container.querySelectorAll(sel).length;
+    expect(n(".xf-area--big .cb-stick")).toBe(3);
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(0);
+    act(() => vi.advanceTimersByTime(1950));
+    expect(n(".xf-area--big .cb-stick")).toBe(2);
+    expect(n(".xf-area--small .cb-dot")).toBe(12);
+    h.flush(); h.flush();
+    // The 3 crossed, the 2 not — a small «1» over it makes 12; over the tens
+    // nothing until «3 − 1» is solved.
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
+    expect(h.container.querySelector(".xb-over--ones .xb-lend").textContent).toBe("1");
+    expect(h.container.querySelector(".xb-over--tens .xb-borrow-dot:not(.xb-borrow-dot--wait)")).not.toBeNull();
+    expect(text(".xb-over--tens")).toBe("");
     type(9);
     expect(note()).toBe("Посчитай ещё раз: 12 − 4.");
     expect(h.container.querySelectorAll(".xb-support .cb-dot")).toHaveLength(16);

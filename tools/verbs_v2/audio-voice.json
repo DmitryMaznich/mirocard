@@ -1,7 +1,9 @@
 {
   "eats": {
     "text": "Ест.",
-    "model": "eleven_v4"
+    "model": "eleven_v4",
+    "direction": "[calm, clear, like a teacher dictating to a class, a crisp hard T at the end, not soft]",
+    "note": "2026-10-21: re-recorded, the old take sounded like «есть»"
   },
   "vacuums": {
     "text": "Пылесосит.",
@@ -141,11 +143,11 @@
   },
   "imp_eats": {
     "text": "Ешь!",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   },
   "runs": {
     "text": "Бежит.",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   },
   "walks": {
     "text": "Идёт.",
@@ -153,10 +155,178 @@
   },
   "rides": {
     "text": "Едет.",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   },
   "laughs": {
     "text": "Смеётся.",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
+  },
+  "falls": {
+    "text": "Падает.",
+    "model": "eleven_v4"
+  },
+  "gets_dressed": {
+    "text": "Одевается.",
+    "model": "eleven_v4"
+  },
+  "gives": {
+    "text": "Даёт.",
+    "model": "eleven_v4"
+  },
+  "imp_gets_dressed": {
+    "text": "Одевайся!",
+    "model": "eleven_v4"
+  },
+  "imp_gives": {
+    "text": "Дай!",
+    "model": "eleven_v4"
+  },
+  "imp_lies": {
+    "text": "Ложись!",
+    "model": "eleven_v4"
+  },
+  "imp_opens": {
+    "text": "Открой!",
+    "model": "eleven_v4"
+  },
+  "imp_sits": {
+    "text": "Сядь!",
+    "model": "eleven_v4"
+  },
+  "imp_stands": {
+    "text": "Встань!",
+    "model": "eleven_v4"
+  },
+  "lies": {
+    "text": "Лежит.",
+    "model": "eleven_v4"
+  },
+  "opens": {
+    "text": "Открывает.",
+    "model": "eleven_v4"
+  },
+  "sits": {
+    "text": "Сидит.",
+    "model": "eleven_v4"
+  },
+  "throws": {
+    "text": "Кидает.",
+    "model": "eleven_v4"
+  },
+  "washes_hands": {
+    "text": "Моет руки.",
+    "model": "eleven_v4"
+  },
+  "stands": {
+    "text": "Стои́т.",
+    "model": "eleven_v4"
+  },
+  "imp_throws": {
+    "text": "Кидай!",
+    "model": "eleven_v4"
+  },
+  "imp_washes_hands": {
+    "text": "МОЙ руки!",
+    "model": "eleven_v4"
+  },
+  "closes": {
+    "text": "Закрывает.",
+    "model": "eleven_v4"
+  },
+  "imp_closes": {
+    "text": "Закро́й!",
+    "model": "eleven_v4"
+  },
+  "swings": {
+    "text": "Кача́ется.",
+    "model": "eleven_v4"
+  },
+  "blows": {
+    "text": "Ду́ет.",
+    "model": "eleven_v4"
+  },
+  "imp_blows": {
+    "text": "Поду́й!",
+    "model": "eleven_v4"
+  },
+  "bathes": {
+    "text": "Купа́ется.",
+    "model": "eleven_v4"
+  },
+  "takes_off": {
+    "text": "Снимает.",
+    "model": "eleven_v4"
+  },
+  "imp_takes_off": {
+    "text": "Сними́!",
+    "model": "eleven_v4"
+  },
+  "takes": {
+    "text": "Берёт.",
+    "model": "eleven_v4"
+  },
+  "imp_takes": {
+    "text": "Возьми́!",
+    "model": "eleven_v4"
+  },
+  "wipes": {
+    "text": "Вытира́ет.",
+    "model": "eleven_v4"
+  },
+  "imp_wipes": {
+    "text": "ВЫТРИ руки!",
+    "model": "eleven_v4"
+  },
+  "claps": {
+    "text": "Хло́пает.",
+    "model": "eleven_v4"
+  },
+  "imp_claps": {
+    "text": "Хло́пай!",
+    "model": "eleven_v4"
+  },
+  "tidies": {
+    "text": "Убира́ет.",
+    "model": "eleven_v4"
+  },
+  "imp_tidies": {
+    "text": "Убери́!",
+    "model": "eleven_v4"
+  },
+  "builds": {
+    "text": "Стро́ит.",
+    "model": "eleven_v4"
+  },
+  "combs": {
+    "text": "Причёсывается.",
+    "model": "eleven_v4"
+  },
+  "imp_combs": {
+    "text": "Причеши́сь!",
+    "model": "eleven_v4"
+  },
+  "catches": {
+    "text": "Ло́вит.",
+    "model": "eleven_v4"
+  },
+  "imp_catches": {
+    "text": "Лови́!",
+    "model": "eleven_v4"
+  },
+  "writes": {
+    "text": "Пи́шет.",
+    "model": "eleven_v4"
+  },
+  "crawls": {
+    "text": "Ползёт.",
+    "model": "eleven_v4"
+  },
+  "imp_crawls": {
+    "text": "Ползи́!",
+    "model": "eleven_v4"
+  },
+  "flies": {
+    "text": "Лети́т.",
+    "model": "eleven_v4"
   }
 }

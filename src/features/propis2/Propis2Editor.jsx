@@ -1,23 +1,25 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
-import Propis2Field from "./Propis2Field";
-import Propis2TextEditor from "./Propis2TextEditor";
+import { ElementPicker } from "./Propis2Field";
+import Propis2Keys from "./Propis2Keys";
+import Propis2Thumbs from "./Propis2Thumbs";
 import { useKeyboardInset } from "./useKeyboardInset";
 import { bracesIn, bracesOut, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
 import { useHint } from "./Propis2Hint";
 
-// The page constructor. The page canvas, with settings above it and the tools below it (tabs «Символ», «Слово», «Текст»).
-// No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
-// symbol starts a new row. The selected row's bar edits its text, kind of row, repeat, order. The page is saved by the
-// parent on every change; nothing is ever dropped silently.
+// The page constructor: the page canvas with the settings of the page and of the row above it. The text is typed STRAIGHT ONTO THE
+// SHEET (owner, 2026-10-23, «как в Word»): a click on a row puts the caret there, between the letters, and the keyboard writes into the
+// row; there is no text field to look at. The page's text is one string, one line per row (fieldText.js), held by an invisible
+// textarea (Propis2Keys) — the caret, the selection, Enter, Backspace, the arrows are its own; caret.js maps them onto the sheet.
+// The selected row (the one the caret is in) gets its options from the row strip. The page is saved by the parent on every change.
 const OFFER_MS = 5000;
 const MAX_OVERFLOW = 1.2; // portrait tablet: the page may be this much taller than the room for it (a little scroll)
 
@@ -54,7 +56,7 @@ const SETTING_SAYS = {
 };
 
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
-const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled };
+const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
@@ -101,6 +103,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [fieldStartId, setFieldStartId] = useState(null);
   const [draft, setDraft] = useState("");
   const [caretRequest, setCaretRequest] = useState(null);
+  const keysRef = useRef(null);
+  const [sel, setSel] = useState({ start: 0, end: 0 });
+  const [typing, setTyping] = useState(false); // the invisible text has the focus: the caret shows on the sheet
   const [pageW, setPageW] = useState(0);
   const [colW, setColW] = useState(0); // the canvas width: the page at «По ширине»
   const locked = isLocked(page);
@@ -120,8 +125,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const elementCodes = useMemo(() => new Map(elementTiles.map((t) => [t.text, t.code])), [elementTiles]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
-  // wide screens: the text of the WHOLE page in a tall editor (line numbers, one line per row); a locked kit page edits one row in the small field
-  const full = side && !locked;
+  // the invisible text holds the WHOLE page, one line per row (a locked kit page: the selected row only)
+  const full = !locked;
   const sideRef = useRef(side);
   const phoneRef = useRef(phone);
   phoneRef.current = phone;
@@ -140,8 +145,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const el = wrapRef.current;
     if (!el) return undefined;
     const measure = () => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
+      // the computer layout: the room inside the canvas's own padding (it pads the sheet off the edges of the desk)
+      const cs = sideRef.current ? window.getComputedStyle(el) : null;
+      const w = cs ? el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) + 8 : el.clientWidth;
+      const h = cs ? el.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0) : el.clientHeight;
       if (!w || !h) return;
       setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * aspect)));
       setColW(Math.floor(w - 8));
@@ -194,42 +201,32 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
 
-  // Which physical row (0-based over the whole page) is under a screen point; -1 if none.
-  const rowAtPoint = (cx, cy) => {
-    const svg = wrapRef.current?.querySelector("svg.propis-print-page-svg");
-    if (!svg) return -1;
-    const box = svg.getBoundingClientRect();
-    if (cx < box.left || cx > box.right || cy < box.top || cy > box.bottom) return -1;
-    let y;
-    try {
-      const m = svg.getScreenCTM?.();
-      if (m && svg.createSVGPoint) { const pt = svg.createSVGPoint(); pt.x = cx; pt.y = cy; y = pt.matrixTransform(m.inverse()).y; }
-    } catch { y = undefined; }
-    if (!Number.isFinite(y)) {
-      const vbH = Number(String(svg.getAttribute("viewBox") ?? "").split(/\s+/)[3]) || box.height;
-      y = ((cy - box.top) / (box.height || 1)) * vbH;
-    }
-    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow", ["square", "ruled"].includes(taskGrid(page)) ? taskGrid(page) : null);
-    return local < 0 ? -1 : pageIndexRef.current * rowsPerPage(page) + local;
-  };
-
-  // Tap on the page: select the row under the finger; an empty place on the sheet gets a new, empty row (so any ruled
-  // row can be tapped and filled); a tap outside the ruled rows clears the selection.
-  const onPageClick = (e) => {
-    const abs = rowAtPoint(e.clientX, e.clientY);
-    if (abs < 0) { setSelectedId(null); setFieldStartId(null); return; }
+  // A click on the sheet (PrintPage onSheetPoint: the sheet row under it, the x in the row): the caret goes to the nearest letter
+  // boundary of that row — an empty place on the sheet gets a new, empty row first (any ruled row can be clicked and typed into);
+  // Shift + click selects from the caret to there. Outside the ruled rows: the caret goes away.
+  const onSheetPoint = ({ row: abs, x, shiftKey }) => {
+    if (abs < 0) { keysRef.current?.blur(); setSelectedId(null); setFieldStartId(null); return; }
+    // focus now, inside the click: a phone opens its keyboard only for a field focused by the user's own tap
+    keysRef.current?.focus({ preventScroll: true });
     if (locked) {
       const owner = abs < owners.length ? owners[abs] : undefined;
       setSelectedId(owner != null ? page.rows[owner].id : null);
+      setCaretRequest({ pos: owner != null ? String(page.rows[owner].text ?? "").length : 0, n: Date.now() });
       return;
     }
     const result = selectRowAt(page, glyphMap, abs);
     if (result.page !== page) onChange(result.page);
-    setSelectedId(result.rowId);
-    setFieldStartId(result.rowId);
-    // the full-page editor: the caret goes to the line of the tapped row
-    if (full) setCaretRequest({ line: result.page.rows.findIndex((r) => r.id === result.rowId), n: Date.now() });
+    const next = result.page;
+    const lines = bracesIn(fieldFromRows(next.rows, 0, true), elementCodes).split("\n");
+    const hit = caretFromSheet({ page: next, glyphMap, owners: lineOwners(next, glyphMap), abs, x, lines, codes: elementCodes })
+      ?? { rowIndex: Math.max(0, next.rows.findIndex((r) => r.id === result.rowId)), offset: 0 };
+    const pos = lines.slice(0, hit.rowIndex).reduce((n, l) => n + l.length + 1, 0) + hit.offset;
+    setSelectedId(next.rows[hit.rowIndex]?.id ?? result.rowId);
+    setFieldStartId(next.rows[0]?.id ?? null);
+    setCaretRequest({ pos, anchor: shiftKey ? sel.start : pos, n: Date.now() });
   };
+  // a click on the canvas around the sheet: the caret goes away
+  const onPageClick = (e) => { if (!e.target.closest?.("svg.propis-print-page-svg")) { keysRef.current?.blur(); setSelectedId(null); } };
 
   // undone, like any other change, with the undo arrow
   const clear = () => { if (typeof window !== "undefined" && window.confirm && !window.confirm("Очистить страницу? Все строки будут стёрты.")) return; setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
@@ -270,32 +267,40 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const id = rowIdAtCaret(page.rows, startId, draft, caret);
     if (id && id !== selectedId) setSelectedId(id);
   };
-  const insertElement = (token, caret) => {
+  const insertElement = (token, caret = sel.start) => {
     if (locked) { if (selected) onField(token, false); return; }
     const { value, caret: pos } = insertToken(draft, caret, token);
     onField(value, false);
     setCaretRequest({ pos, n: Date.now() });
   };
+  const onKeysSelect = ({ start, end }) => { setSel({ start, end }); onCaret(start); };
   const setRowAsText = (asText) => {
     if (!selected) return;
     patchSelected({ asText, kind: asText ? "passage" : "text" });
   };
 
-  // The rows of the sheet each line of the full-page editor takes: { from, to } (1-based, counted on through the sheets of this page).
-  // A running text typed without Enter wraps over several rows of the sheet: «1–9», not «1» (owner, 2026-10-18: the count must show
-  // when the text runs past the sheet). `perSheet`: the rows of one sheet — a range past it goes onto the next sheet.
-  const rowNumbers = useMemo(() => {
-    const out = [];
-    owners.forEach((o, abs) => {
-      if (o == null) return;
-      if (!out[o]) out[o] = { from: abs + 1, to: abs + 1 };
-      else out[o].to = abs + 1;
-    });
+  // Overlays on the page: the selected row (blue), problems (red), and while typing the caret / the selected stretch (caret.js).
+  const ownersNow = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
+  const caretMarks = useMemo(() => {
+    if (!typing || locked) return [];
+    const lines = draft.split("\n");
+    const at = (pos) => {
+      const before = draft.slice(0, Math.max(0, Math.min(draft.length, pos))).split("\n");
+      const rowIndex = before.length - 1;
+      return caretOnSheet({ page, glyphMap, owners: ownersNow, rowIndex, line: lines[rowIndex] ?? "", offset: before[rowIndex].length, codes: elementCodes });
+    };
+    const a = at(sel.start);
+    if (!a) return [];
+    if (sel.end <= sel.start) return [{ row: a.abs, tone: "caret", x: a.x }];
+    const b = at(sel.end);
+    if (!b) return [];
+    if (a.abs === b.abs) return [{ row: a.abs, tone: "range", x: a.x, x2: b.x }];
+    // over several sheet rows: from the start to the row's right edge, whole rows between, the last row from its start
+    const out = [{ row: a.abs, tone: "range", x: a.x, x2: 10000 }];
+    for (let r = a.abs + 1; r < b.abs; r += 1) out.push({ row: r, tone: "range", x: 0, x2: 10000 });
+    out.push({ row: b.abs, tone: "range", x: 0, x2: b.x });
     return out;
-  }, [owners]);
-  const perSheet = rowsPerPage(page);
-
-  // Overlays on the page: the selected row (blue), problems (red).
+  }, [typing, locked, draft, sel, page, glyphMap, ownersNow, elementCodes]);
   const overlays = useMemo(() => {
     const out = [];
     owners.forEach((o, abs) => {
@@ -304,23 +309,40 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       if (info && (info.unsupported.length || info.outside?.length || info.overflow)) out.push({ row: abs, tone: "warn" });
       if (page.rows[o]?.id === selectedId) out.push({ row: abs, tone: "select" });
     });
-    return out;
-  }, [owners, analysis, page.rows, selectedId]);
+    return [...out, ...caretMarks];
+  }, [owners, analysis, page.rows, selectedId, caretMarks]);
 
   const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW });
-  // the selected row stays in sight while it is edited, the page zoomed in or not (the canvas scrolls up or down to it)
+  // The caret (or, not typing, the selected row) stays in sight, the page zoomed in or not: the canvas scrolls to it. Also when the
+  // canvas itself changes size — above all when a phone's or a tablet's keyboard opens (the editor then takes only the visible part
+  // of the screen) — so the caret never stays under the keyboard (owner, 2026-10-23). Not on a zoom: Ctrl + wheel keeps the point under
+  // the pointer.
+  const keepInView = () => {
+    const col = wrapRef.current;
+    const mark = col?.querySelector('[data-overlay="caret"]') ?? col?.querySelector('[data-overlay="select"]');
+    if (!mark) return;
+    const c = col.getBoundingClientRect();
+    const r = mark.getBoundingClientRect();
+    const pad = 16;
+    const below = 28; // a little more room under the caret: the next row shows too
+    if (r.top < c.top + pad) col.scrollTop -= c.top + pad - r.top;
+    else if (r.bottom > c.bottom - below) col.scrollTop += Math.min(r.bottom - (c.bottom - below), r.top - (c.top + pad));
+    // zoomed in: sideways too (the caret only; a selected row spans the whole width)
+    if (mark.getAttribute("data-overlay") === "caret") {
+      if (r.left < c.left + pad) col.scrollLeft -= c.left + pad - r.left;
+      else if (r.right > c.right - pad) col.scrollLeft += r.right - (c.right - pad);
+    }
+  };
+  const keepRef = useRef(keepInView);
+  useEffect(() => { keepRef.current = keepInView; });
+  useEffect(() => { keepRef.current(); }, [overlays, keyboard.open, keyboard.height]);
   useEffect(() => {
     const col = wrapRef.current;
-    const row = col?.querySelector('[data-overlay="select"]');
-    if (!row) return;
-    const c = col.getBoundingClientRect();
-    const r = row.getBoundingClientRect();
-    const pad = 12;
-    if (r.top < c.top + pad) col.scrollTop -= c.top + pad - r.top;
-    else if (r.bottom > c.bottom - pad) col.scrollTop += Math.min(r.bottom - (c.bottom - pad), r.top - (c.top + pad));
-    // (not on a zoom: Ctrl + wheel keeps the point under the pointer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overlays]);
+    if (!col || typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(() => requestAnimationFrame(() => keepRef.current()));
+    ro.observe(col);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
@@ -341,30 +363,20 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             </div>
           );
 
-  return (
-    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
+  // ---- the pieces of the screen: the phone / tablet layout stacks them, the computer layout lays them out like a desktop editor ----
+  const headerEl = (
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }, { typing: true }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
         {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
-
-      <div className="propis2-main">
-        <div className="propis2-settings" role="group" aria-label="Настройки страницы">
-          {/* one strip for the page (owner, 2026-10-15): paging, then the paper, then what is done to the page; it scrolls on a phone */}
-          {nav?.total > 1 && (
-            <>
-              <button type="button" className="p2-ib p2-tool" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}><span className="p2-tool-ico p2-glyph">‹</span><span className="p2-cap">Назад</span></button>
-              <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
-              <button type="button" className="p2-ib p2-tool" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}><span className="p2-tool-ico p2-glyph">›</span><span className="p2-cap">Вперёд</span></button>
-              <span className="p2-sep" aria-hidden="true" />
-            </>
-          )}
+  );
+  const paperEls = <>
           {/* the notebook is A5 (owner, 2026-10-14: an A4 notebook needs another printer; A4 stays only as the sheet an A5 notebook is
               printed on): the format shows only on a page already made A4, to take it back to A5 */}
           {pageFormat(page) === "a4" && <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />}
-          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
           <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
           <Propis2Picker label="Косая линейка" caption="Наклон" value={page.grid ?? "regular"} disabled={locked || !propisGrid} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
           <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
@@ -377,6 +389,117 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               <IconBtn label="Очистить страницу" caption="Очистить" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
             </>
           )}
+  </>;
+  const rowEls = <>
+          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} onChange={(id) => patchSelected(repeatPatch(id))} options={REPEAT_OPTS} />
+          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
+          <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
+          <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
+          <span className="p2-sep" aria-hidden="true" />
+          <div className="p2-seg" role="group" aria-label="Строка">
+            <IconBtn label="Выше" caption="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
+            <IconBtn label="Ниже" caption="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
+            <IconBtn label="Дублировать" caption="Дубль" disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
+            <IconBtn label="Удалить строку" caption="Удалить" className="p2-ib--danger" disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
+          </div>
+  </>;
+  // the canvas zoom (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back
+  // `withHistory`: undo / redo in the same row as the zoom (phones / tablets, owner 2026-10-24: hides nothing there); the desk
+  // layout has them in its tool bar
+  const zoomEl = (withHistory = false) => (
+        <div className="p2-zoom" role="group" aria-label="Масштаб страницы">
+          {withHistory && onUndo && (
+            <>
+              <button type="button" className="p2-zoom-btn" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
+              <button type="button" className="p2-zoom-btn" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
+              <span className="p2-zoom-sep" aria-hidden="true" />
+            </>
+          )}
+          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= 1.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
+          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={zoom.z <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
+          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomIn} disabled={zoom.z >= zoom.maxZ - 0.001} aria-label="Увеличить" title="Увеличить (Ctrl + колесо)">+</button>
+          {zoom.canWidth && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.widthZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWidth} aria-label="По ширине" title="Страница по ширине"><I.IconFitWidth /></button>}
+        </div>
+  );
+  const canvasEl = (
+        <div className={`propis2-page-col${zoom.z > 1.001 ? " is-zoomed" : ""}`} ref={wrapRef} onClick={onPageClick}>
+          <div className="propis2-page-box" ref={boxRef} style={pageW ? { width: Math.round(pageW * zoom.z) } : undefined}>
+            <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onSheetPoint={onSheetPoint} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
+          </div>
+        </div>
+  );
+  const offerEl = offer && notebook && (
+          <div className="p2-offer" role="status" data-testid="propis2-offer">
+            <span className="p2-offer-msg">{SETTING_SAYS[offer.key](offer.value)} — {offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}</span>
+            {offer.done
+              ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
+              : <button type="button" className="p2-offer-btn" onClick={() => { notebook.applyAll(offer.key, offer.value); showOffer({ ...offer, done: true }, OFFER_MS - 1000); }}><I.IconSpread />На всю тетрадь</button>}
+            <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
+          </div>
+  );
+  const keysEl = (
+          <Propis2Keys inputRef={keysRef} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
+  );
+
+  if (side) {
+    // The computer layout (owner, 2026-10-23, «вариант Б»): one tool bar across the screen — undo / redo, the page's paper, the row's
+    // tools, the zoom — the notebook's pages as thumbnails on the left (a click opens one, the page's own actions under them), the
+    // sheet in the middle, a status bar at the bottom (page, row, what Enter does, the problems).
+    const rowNo = selectedIndex >= 0 ? owners.indexOf(selectedIndex) + 1 : 0;
+    const kindName = !selected ? "" : selected.kind === "passage" ? "связный текст" : selected.kind === "blank" || !String(selected.text ?? "").trim() ? "пустая строка" : selected.kind === "element" ? "элемент" : "образец";
+    return (
+      <div className={`screen propis2-home propis2-editor2 propis2-editor2--desk${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
+        {headerEl}
+        <div className="p2-desk-bar" role="toolbar" aria-label="Инструменты">
+          {onUndo && (
+            <>
+              <button type="button" className="p2-ib p2-tool" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)"><span className="p2-tool-ico"><I.IconUndo /></span><span className="p2-cap">Отменить</span></button>
+              <button type="button" className="p2-ib p2-tool" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть (Ctrl+Y)"><span className="p2-tool-ico"><I.IconRedo /></span><span className="p2-cap">Вернуть</span></button>
+              <span className="p2-sep" aria-hidden="true" />
+            </>
+          )}
+          <div className="p2-desk-group" role="group" aria-label="Настройки страницы">{paperEls}</div>
+          <span className="p2-sep" aria-hidden="true" />
+          <div className="p2-desk-group p2-desk-group--row" role="group" aria-label="Настройки строки">{rowEls}</div>
+          <span className="p2-desk-fill" />
+          {zoomEl()}
+        </div>
+        <div className="p2-desk-body">
+          {nav && <Propis2Thumbs nav={nav} live={page} topicRecord={topicRecord} glyphMap={glyphMap} />}
+          <div className="p2-desk-canvas">
+            {canvasEl}
+            {offerEl}
+          </div>
+        </div>
+        <div className="p2-status" role="status">
+          {nav && <span>Стр. <b>{nav.index + 1}</b> из {nav.total}</span>}
+          {rowNo > 0 && <span>Строка <b>{rowNo}</b>{kindName ? ` · ${kindName}` : ""}</span>}
+          <span className="p2-status-hint">{typing ? "Enter — новая строка · слово — образец, фраза с пробелами — связный текст · Ctrl+Z — отменить" : "Щёлкните по строке листа и печатайте"}</span>
+          {locked && <span>Страница закрыта: правится выбранная строка, «Править» откроет всю</span>}
+          <span className="p2-desk-fill" />
+          {warnsEl}
+        </div>
+        {keysEl}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`screen propis2-home propis2-editor2${phone ? " propis2-editor2--phone" : ""}${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
+      {headerEl}
+
+      <div className="propis2-main">
+        <div className="propis2-settings" role="group" aria-label="Настройки страницы">
+          {/* one strip for the page (owner, 2026-10-15): paging, then the paper, then what is done to the page; it scrolls on a phone */}
+          {nav?.total > 1 && (
+            <>
+              <button type="button" className="p2-ib p2-tool" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}><span className="p2-tool-ico p2-glyph">‹</span><span className="p2-cap">Назад</span></button>
+              <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
+              <button type="button" className="p2-ib p2-tool" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}><span className="p2-tool-ico p2-glyph">›</span><span className="p2-cap">Вперёд</span></button>
+              <span className="p2-sep" aria-hidden="true" />
+            </>
+          )}
+          {paperEls}
           {nav && (
             <>
               <span className="p2-sep" aria-hidden="true" />
@@ -394,68 +517,22 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
-          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} onChange={(id) => patchSelected(repeatPatch(id))} options={REPEAT_OPTS} />
-          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
-          <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
-          <span className="p2-sep" aria-hidden="true" />
-          <div className="p2-seg" role="group" aria-label="Строка">
-            <IconBtn label="Выше" caption="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
-            <IconBtn label="Ниже" caption="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
-            <IconBtn label="Дублировать" caption="Дубль" disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
-            <IconBtn label="Удалить строку" caption="Удалить" className="p2-ib--danger" disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
-          </div>
+          {rowEls}
         </div>
 
-        {offer && notebook && (
-          <div className="p2-offer" role="status" data-testid="propis2-offer">
-            <span className="p2-offer-msg">{SETTING_SAYS[offer.key](offer.value)} — {offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}</span>
-            {offer.done
-              ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
-              : <button type="button" className="p2-offer-btn" onClick={() => { notebook.applyAll(offer.key, offer.value); showOffer({ ...offer, done: true }, OFFER_MS - 1000); }}><I.IconSpread />На всю тетрадь</button>}
-            <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
-          </div>
-        )}
-        {/* one row over the canvas (owner, 2026-10-24: on a phone it hides nothing): undo / redo, then the canvas zoom
-            (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back */}
-        <div className="p2-zoom" role="group" aria-label="Масштаб страницы">
-          {onUndo && (
-            <>
-              <button type="button" className="p2-zoom-btn" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
-              <button type="button" className="p2-zoom-btn" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
-              <span className="p2-zoom-sep" aria-hidden="true" />
-            </>
-          )}
-          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= 1.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
-          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={zoom.z <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
-          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomIn} disabled={zoom.z >= zoom.maxZ - 0.001} aria-label="Увеличить" title="Увеличить (Ctrl + колесо)">+</button>
-          {zoom.canWidth && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.widthZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWidth} aria-label="По ширине" title="Страница по ширине"><I.IconFitWidth /></button>}
-        </div>
-        <div className={`propis2-page-col${zoom.z > 1.001 ? " is-zoomed" : ""}`} ref={wrapRef} onClick={onPageClick}>
-          <div className="propis2-page-box" ref={boxRef} style={pageW ? { width: Math.round(pageW * zoom.z) } : undefined}>
-            <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
-          </div>
-        </div>
+        {offerEl}
+        {zoomEl(true)}
+        {canvasEl}
 
-        <div className="propis2-dock">
-          {full ? (
-            <Propis2TextEditor value={draft} onChange={onField} onCaret={onCaret} placeholder="Буква, слово или текст. Enter — новая строка" elements={elementTiles} onInsertElement={insertElement} caretRequest={caretRequest} numbers={rowNumbers} perSheet={perSheet} activeLine={selectedIndex} bar={warnsEl} />
-          ) : (
-            <>
-              {warnsEl}
-              {side && locked && <p className="p2-ed-locked">Страница из готовой тетради закрыта: правится только выбранная строка. Кнопка «Править» вверху откроет всю страницу.</p>}
-          <Propis2Field
-            value={draft}
-            onChange={onField}
-            onCaret={onCaret}
-            disabled={locked && !selected}
-            singleLine={locked}
-            placeholder={locked ? "Выберите строку на странице" : "Буква, слово или текст. Enter — новая строка"}
-            elements={elementTiles}
-            onInsertElement={insertElement}
-            caretRequest={caretRequest}
-          />
-            </>
-          )}
+        <div className="propis2-dock propis2-dock--keys">
+          {warnsEl}
+          {/* with the keyboard open (or typing on a phone / portrait tablet: Android shrinks the window itself) the hint gives its room to the page */}
+          {!keyboard.open && !typing && <p className="p2-keys-hint" data-testid="propis2-keys-hint">
+            {typing
+              ? "Enter — новая строка. Слово — образец, фраза с пробелами — связный текст. Элементы — кнопкой «Элемент»."
+              : "Нажмите на строку листа и печатайте: буквы встают прямо на строку."}
+          </p>}
+          {keysEl}
         </div>
       </div>
     </div>

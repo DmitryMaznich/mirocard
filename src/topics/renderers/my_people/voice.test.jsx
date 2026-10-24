@@ -51,3 +51,51 @@ describe("«Озвучка» in every «Мои люди» mode", () => {
     }
   });
 });
+
+describe("people album word sound", () => {
+  let container;
+  let root;
+  afterEach(() => {
+    root?.unmount();
+    container?.remove();
+    speech.speak.mockClear();
+  });
+
+  function mountAlbum(sessionParams) {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{
+            type: "people_album",
+            conceptId: "album:label_photos:relation:anna_boris",
+            axis: "relation",
+            prompt: "Подпиши: кто это",
+            answerTitle: "Кто это",
+            entries: [{ personId: "anna", image: "", label: "мама" }, { personId: "boris", image: "", label: "папа" }],
+            answers: [{ id: "answer:anna", personId: "anna", label: "мама" }, { id: "answer:boris", personId: "boris", label: "папа" }],
+          }}
+          topicId="my_people"
+          soundEnabled
+          sessionParams={sessionParams}
+          onCorrect={vi.fn()}
+          onStreakReset={vi.fn()}
+        />,
+      );
+    });
+    const word = [...container.querySelectorAll(".people-album-answer")].find((button) => button.textContent === "мама");
+    act(() => word.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, cancelable: true, clientX: 10, clientY: 10 })));
+  }
+
+  it("says the word as it is picked", () => {
+    mountAlbum({});
+    expect(speech.speak).toHaveBeenCalledWith("мама");
+  });
+
+  it("keeps quiet with «Озвучивать слово при нажатии» off, so the child reads it", () => {
+    mountAlbum({ speakWords: false });
+    expect(speech.speak).not.toHaveBeenCalledWith("мама");
+  });
+});

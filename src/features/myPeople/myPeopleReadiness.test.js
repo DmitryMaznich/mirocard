@@ -40,9 +40,14 @@ describe("«Мои люди» readiness", () => {
     expect(myPeopleModeReadiness({ id: "who_is_this" }, met).ready).toBe(true);
   });
 
-  it("opens «Найди такого же» only with two people who have two photos each", () => {
+  it("opens «Найди такого же» on a different photo only with two people who have two photos each", () => {
     const mode = { id: "match_same", type: "person_match" };
-    expect(myPeopleModeReadiness(mode, { myPeople: [person("a"), person("b")] })).toMatchObject({ ready: false, tab: "family" });
-    expect(myPeopleModeReadiness(mode, { myPeople: [person("a", { photos: ["/1", "/2"] }), person("b", { photos: ["/3", "/4"] })] }).ready).toBe(true);
+    const onePhoto = { myPeople: [person("a"), person("b")] };
+    expect(myPeopleModeReadiness(mode, onePhoto, { sample: "other" })).toMatchObject({ ready: false, tab: "family" });
+    expect(myPeopleModeReadiness(mode, { myPeople: [person("a", { photos: ["/1", "/2"] }), person("b", { photos: ["/3", "/4"] })] }, { sample: "other" }).ready).toBe(true);
+    // The identical-photo step needs one photo each; the list lets the adult
+    // reach the params screen to choose it.
+    expect(myPeopleModeReadiness(mode, onePhoto, { sample: "same" }).ready).toBe(true);
+    expect(myPeopleModeReadiness(mode, onePhoto).ready).toBe(true);
   });
 });

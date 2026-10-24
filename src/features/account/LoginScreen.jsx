@@ -1,29 +1,38 @@
 import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useEffect, useState } from "react";
-import { authErrorMessage } from "./authErrors";
+import { authErrorKey } from "./authErrors";
+import { loginDiagnosticCode } from "./loginDiagnostics";
+import UiLanguagePicker from "@/shared/components/UiLanguagePicker";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { getDb } from "@/core/db";
 import { ApiError } from "@/core/api";
 import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
 import { completeLogin } from "./completeLogin";
+import { recoverLogin } from "./recoverLogin";
 import { fetchSignupStatus } from "./signupStatus";
 import GoogleSignInButton from "./GoogleSignInButton";
 import Button from "@/shared/components/Button";
 
 export default function LoginScreen() {
+  const { language, t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setPendingVerificationEmail = useAppStore((s) => s.setPendingVerificationEmail);
+  const loginRecovery = useAppStore((s) => s.loginRecovery);
 
   const [email,          setEmail]          = useState("");
   const [password,       setPassword]       = useState("");
   const [showPass,       setShowPass]       = useState(false);
   const [error,          setError]          = useState("");
+  const [diagnostic, setDiagnostic] = useState("");
   const [loading,        setLoading]        = useState(false);
   const [showResendHint, setShowResendHint] = useState(false);
   const [google,         setGoogle]         = useState(null);
   // Read once: a one-shot message from an earlier step (e.g. failed Google sign-in).
-  const [notice] = useState(() => useAppStore.getState().authNotice);
+  const [initialNotice] = useState(() => useAppStore.getState().authNotice);
+  const incomingNotice = useAppStore((s) => s.authNotice);
+  const notice = incomingNotice ?? initialNotice;
 
   useEffect(() => {
     let alive = true;
@@ -37,7 +46,9 @@ export default function LoginScreen() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setDiagnostic("");
     setLoading(true);
+    useAppStore.setState({ loginRecovery: null });
     try {
       const { account, token } = await api.post("/auth/login", { email, password });
       await completeLogin({ account, token });
@@ -45,11 +56,27 @@ export default function LoginScreen() {
       if (err instanceof ApiError && err.status === 403 && err.message === "email_not_verified") {
         setPendingVerificationEmail(email);
         setShowResendHint(true);
-        setError("Email не подтверждён. Проверьте почту или запросите новое письмо.");
+        setError("auth.emailNotVerified");
       } else {
-        setError(authErrorMessage(err, "Ошибка входа. Проверьте email и пароль."));
+        setError(authErrorKey(err) ?? "auth.loginFailed");
+        if (!authErrorKey(err)) setDiagnostic(loginDiagnosticCode(err, "password-request"));
       }
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRecovery() {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    setDiagnostic("");
+    try {
+      await recoverLogin();
+      window.location.reload();
+    } catch (err) {
+      setError("auth.recoveryFailed");
+      setDiagnostic(loginDiagnosticCode(err, "recovery-load-account"));
       setLoading(false);
     }
   }
@@ -66,11 +93,22 @@ export default function LoginScreen() {
   return (
     <div className="auth-screen">
       <MironiumLogo className="auth-logo" />
-      {notice && <p className="auth-notice auth-notice--standalone">{notice}</p>}
+      <UiLanguagePicker />
+      {notice && <p className="auth-notice auth-notice--standalone">{typeof notice === "string" ? notice : t(notice.key)}</p>}
+      {notice?.diagnostic && <p className="auth-notice"><small>{t("auth.supportCode")}: {notice.diagnostic}</small></p>}
+      {loginRecovery && (
+        <div className="auth-form">
+          <p>{t("auth.recoveryExplanation")}</p>
+          <p>{t("auth.recoveryLocalCopy")}</p>
+          <Button disabled={loading} fullWidth onClick={handleRecovery}>
+            {t(loading ? "auth.recovering" : "auth.recoverFromCloud")}
+          </Button>
+        </div>
+      )}
       {google && (
         <div className="auth-google">
-          <GoogleSignInButton clientId={google.clientId} text="signin_with" />
-          <div className="auth-divider"><span>или по почте</span></div>
+          <GoogleSignInButton clientId={google.clientId} text="signin_with" locale={language} />
+          <div className="auth-divider"><span>{t("auth.orEmail")}</span></div>
         </div>
       )}
       <form className="auth-form" onSubmit={handleSubmit}>
@@ -79,7 +117,8 @@ export default function LoginScreen() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder={t("auth.email")}
+          aria-label={t("auth.email")}
           required
           autoFocus
           autoComplete="email"
@@ -90,7 +129,8 @@ export default function LoginScreen() {
             type={showPass ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Пароль"
+            placeholder={t("auth.password")}
+            aria-label={t("auth.password")}
             required
             autoComplete="current-password"
           />
@@ -99,18 +139,19 @@ export default function LoginScreen() {
             className="auth-password-toggle"
             onClick={() => setShowPass((v) => !v)}
             tabIndex={-1}
-            aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+            aria-label={t(showPass ? "auth.hidePassword" : "auth.showPassword")}
           >
             {showPass ? "🙈" : "👁"}
           </button>
         </div>
-        {error && <div className="form-error">{error}</div>}
+        {error && <div className="form-error" role="alert">{t(error)}</div>}
+        {diagnostic && <p className="auth-notice"><small>{t("auth.supportCode")}: {diagnostic}</small></p>}
         <button
           type="button"
           className="auth-link auth-link--forgot"
           onClick={() => setScreen("forgot_password")}
         >
-          Забыли пароль?
+          {t("auth.forgotPassword")}
         </button>
         {showResendHint && (
           <button
@@ -118,22 +159,23 @@ export default function LoginScreen() {
             className="auth-link"
             onClick={() => setScreen("verify_email_sent")}
           >
-            Открыть страницу подтверждения
+            {t("auth.openVerification")}
           </button>
         )}
         <Button type="submit" disabled={loading} fullWidth>
-          {loading ? "Входим…" : "Войти"}
+          {t(loading ? "auth.signingIn" : "auth.signIn")}
         </Button>
       </form>
       <button className="auth-link" onClick={() => setScreen("register")}>
-        Нет аккаунта? Зарегистрироваться
+        {t("auth.register")}
       </button>
+      <small className="auth-build">v{useAppStore.getState().buildInfo.version}</small>
       {/* Hidden from ordinary visitors: work done in local mode silently
           vanishes once they register (launch testing finding N9). Kept
           reachable via ?local=1 for the owner/dev. */}
       {new URLSearchParams(window.location.search).has("local") && (
         <button className="auth-link auth-link--local" onClick={handleLocalMode}>
-          Без аккаунта (локальный режим)
+          {t("auth.localMode")}
         </button>
       )}
     </div>

@@ -1,0 +1,458 @@
+<title>«Мои люди»: редизайн</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Unbounded:wght@600;700&display=swap">
+<style>
+/* Layout: a light-table of phone screens, grouped by ladder step, each with the therapist's reason beside it. */
+:root {
+  /* page chrome (themed) */
+  --bg: #f2f5f3;
+  --fg: #1d302c;
+  --muted: #5f7570;
+  --line: #d8e3df;
+  --accent: #2f7d71;
+  --panel: #ffffff;
+  /* app screen (the app itself is light-only, so these never change) */
+  --app-bg: #fdfcf9;
+  --app-ink: #183d38;
+  --app-teal: #4a9b8f;
+  --app-teal-deep: #2a6b60;
+  --app-soft: #e8f3ef;
+  --app-adult: #f1f5f4;
+  --app-adult-line: #dfe9e6;
+  --app-adult-ink: #4c6661;
+  --ok: #22c55e;
+  --ok-tint: #dcfce7;
+  --mid: #ca8a04;
+  --mid-tint: #fef3c7;
+  --no: #ef4444;
+  --no-tint: #fee2e2;
+  --white: #ffffff;
+  --frame: #1f2b29;
+  --font-display: "Unbounded", "Nunito", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121a19; --fg: #e3ece9; --muted: #9db2ad; --line: #2a3a37; --accent: #6cc3b5; --panel: #1a2523; --frame: #000000;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121a19; --fg: #e3ece9; --muted: #9db2ad; --line: #2a3a37; --accent: #6cc3b5; --panel: #1a2523; --frame: #000000;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 56px; }
+header.top { display: grid; gap: 14px; max-width: 760px; }
+header.top h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4.4vw, 44px); line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+header.top p { margin: 0; color: var(--muted); font-size: 17px; max-width: 65ch; }
+.principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.principle { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; gap: 4px; min-width: 0; }
+.principle b { font-size: 15px; }
+.principle span { color: var(--muted); font-size: 14px; }
+
+section.step { display: grid; gap: 22px; }
+.step-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.step-head .n { font-family: var(--font-display); font-weight: 600; color: var(--accent); font-size: 15px; letter-spacing: .04em; }
+.step-head h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: clamp(20px, 2.6vw, 26px); text-wrap: balance; }
+.step-head .skill { color: var(--muted); font-size: 14px; }
+.screens { display: flex; flex-wrap: wrap; gap: 32px 40px; align-items: flex-start; }
+figure.shot { margin: 0; display: grid; gap: 14px; width: 300px; max-width: 100%; }
+figcaption { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+figcaption b { color: var(--fg); font-size: 15px; }
+figcaption ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+
+/* ── the phone ─────────────────────────────────────────── */
+.phone {
+  width: 300px; max-width: 100%; aspect-ratio: 300 / 620;
+  border-radius: 38px; padding: 9px; background: var(--frame);
+  box-shadow: 0 18px 40px rgba(16, 40, 36, .18);
+}
+.screen {
+  position: relative; height: 100%; border-radius: 30px; overflow: hidden;
+  background: var(--app-bg); color: var(--app-ink);
+  display: flex; flex-direction: column;
+  font-family: var(--font-body);
+}
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 30px 14px 6px; font-size: 11px; color: var(--app-adult-ink); font-weight: 700; }
+.stars { display: flex; gap: 3px; }
+.stars i { width: 9px; height: 9px; border-radius: 50%; background: var(--app-adult-line); display: block; }
+.stars i.on { background: var(--app-teal); }
+.x { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--app-adult-line); display: grid; place-items: center; font-size: 11px; }
+.stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 4px 14px; min-height: 0; }
+.adult {
+  background: var(--app-adult); border-top: 1px solid var(--app-adult-line);
+  padding: 9px 12px calc(14px + var(--app-safe-bottom, 0px));
+  display: grid; gap: 8px;
+}
+.adult-label { font-size: 9.5px; font-weight: 800; color: var(--app-adult-ink); letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+.ladder { display: flex; gap: 5px; }
+.ladder span { flex: 1; text-align: center; font-size: 10.5px; font-weight: 800; color: var(--app-adult-ink); background: var(--white); border: 1px solid var(--app-adult-line); border-radius: 9px; padding: 6px 2px; }
+.ladder span.done { background: var(--app-soft); border-color: var(--app-teal); color: var(--app-teal-deep); }
+.grades { display: flex; gap: 5px; }
+.grade.mid { flex: 1.5; }
+.grade { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10.5px; white-space: nowrap; font-weight: 800; color: var(--app-adult-ink); background: var(--white); border: 1.5px solid var(--app-adult-line); border-radius: 11px; padding: 8px 2px; }
+.grade i { font-style: normal; width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; color: var(--white); }
+.grade.ok i { background: var(--ok); }
+.grade.mid i { background: var(--mid); }
+.grade.no i { background: var(--app-adult-ink); }
+.grade.off { opacity: .4; }
+
+.q { font-weight: 900; font-size: 30px; line-height: 1.1; text-align: center; display: flex; align-items: center; gap: 6px; }
+.spk { width: 26px; height: 26px; color: #5d7f79; flex: none; }
+.photo { background: var(--white); border: 3px solid #e6f0ed; border-radius: 22px; padding: 5px; box-shadow: 0 8px 18px rgba(40, 84, 76, .13); position: relative; }
+.photo svg { display: block; width: 100%; height: auto; border-radius: 16px; }
+.photo.ok { border-color: var(--ok); box-shadow: 0 0 0 5px rgba(34, 197, 94, .2); }
+.photo.glow { border-color: var(--app-teal); box-shadow: 0 0 0 9px rgba(74, 155, 143, .2), 0 8px 18px rgba(40, 84, 76, .13); }
+.photo.fade { opacity: .35; }
+.badge-ok { position: absolute; right: -6px; top: -6px; width: 26px; height: 26px; border-radius: 50%; background: var(--ok); color: var(--white); display: grid; place-items: center; font-weight: 900; font-size: 15px; border: 3px solid var(--app-bg); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+
+/* AAC choice cards */
+.aac { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: 100%; }
+.aac-card { background: var(--white); border: 2.5px solid #cfe3dd; border-radius: 14px; box-shadow: 0 3px 0 #bcd6cf; padding: 6px 3px 7px; display: grid; justify-items: center; gap: 2px; }
+.aac-card svg { width: 38px; height: 38px; }
+.aac-card b { font-size: 15px; font-weight: 900; }
+
+/* reading words */
+.word { font-size: 28px; font-weight: 900; background: var(--white); border: 2.5px solid #cfe3dd; border-radius: 16px; box-shadow: 0 4px 0 #bcd6cf; padding: 8px 18px; color: var(--app-teal-deep); text-align: center; }
+.word.used { opacity: .28; box-shadow: none; }
+.word.picked { background: var(--app-teal); color: var(--white); border-color: var(--app-teal); box-shadow: 0 4px 0 var(--app-teal-deep); }
+.label-under { margin-top: 5px; font-size: 22px; font-weight: 900; text-align: center; color: var(--app-teal-deep); background: var(--app-soft); border-radius: 11px; padding: 2px 0; }
+.label-empty { margin-top: 5px; height: 33px; border: 2.5px dashed #b9d3cc; border-radius: 11px; }
+
+/* fingers hint */
+.hint-card { display: flex; align-items: center; gap: 10px; background: var(--white); border: 2px solid #cfe3dd; border-radius: 18px; padding: 8px 14px; }
+.big-num { font-size: 56px; font-weight: 900; line-height: 1; color: var(--app-teal-deep); }
+
+/* dialog */
+.dlg { width: 100%; display: grid; gap: 10px; }
+.turn { display: flex; gap: 8px; align-items: flex-end; }
+.turn.me { justify-content: flex-end; }
+.ava { width: 54px; height: 54px; border-radius: 50%; flex: none; overflow: hidden; border: 3px solid var(--white); box-shadow: 0 3px 8px rgba(40,84,76,.18); }
+.bubble { background: var(--white); border: 2px solid #d6e7e3; border-radius: 18px 18px 18px 6px; padding: 9px 12px; font-weight: 900; font-size: 19px; line-height: 1.2; }
+.turn.me .bubble { background: var(--app-soft); border-color: #b9d8d0; border-radius: 18px 18px 6px 18px; color: var(--app-teal-deep); font-size: 18px; }
+.gap { display: inline-block; width: 52px; height: 18px; border-bottom: 3px solid var(--app-teal); vertical-align: -3px; }
+.who { font-size: 11px; font-weight: 800; color: var(--app-adult-ink); }
+
+/* mode ladder screen */
+.ml { width: 100%; display: grid; gap: 7px; padding: 4px 0; }
+.ml-title { font-weight: 900; font-size: 20px; padding: 2px 4px 4px; }
+.ml-step { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 9px; background: var(--white); border: 1.5px solid var(--app-adult-line); border-radius: 14px; padding: 8px 10px; }
+.ml-step .ico { width: 34px; height: 34px; border-radius: 10px; background: var(--app-soft); display: grid; place-items: center; font-weight: 900; color: var(--app-teal-deep); font-size: 14px; }
+.ml-step b { font-size: 13.5px; display: block; line-height: 1.15; }
+.ml-step small { font-size: 10.5px; color: var(--app-adult-ink); display: block; line-height: 1.25; }
+.ml-step .st { font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 99px; white-space: nowrap; }
+.st.done { background: var(--ok-tint); color: #166534; }
+.st.next { background: var(--app-teal); color: var(--white); }
+.st.lock { background: var(--app-adult); color: var(--app-adult-ink); }
+.ml-step.cur { border-color: var(--app-teal); box-shadow: 0 0 0 3px rgba(74,155,143,.18); }
+.ml-step.locked { opacity: .62; }
+
+/* timer ring on «Покажи» */
+.ring { position: absolute; left: 10px; bottom: 10px; display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; color: var(--app-adult-ink); }
+.ring svg { width: 18px; height: 18px; }
+
+/* sample for match */
+.sample { width: 120px; border: 3px dashed #9cc6bd; background: #eef6f3; border-radius: 20px; padding: 5px; }
+.sample svg { display: block; width: 100%; border-radius: 14px; }
+
+/* before / after strip */
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.cmp { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.cmp h3 { margin: 0; font-size: 15px; }
+.cmp p { margin: 0; color: var(--muted); font-size: 14px; }
+.old-grades { display: flex; gap: 6px; }
+.old-grades span { flex: 1; text-align: center; color: #fff; font-weight: 800; font-size: 12.5px; border-radius: 12px; padding: 10px 2px; }
+.cmp-demo { background: var(--app-bg); border-radius: 12px; padding: 10px; }
+footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .photo.glow { animation: pulse 1.3s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 3px rgba(74,155,143,.12), 0 8px 18px rgba(40,84,76,.13); } }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Stylised portraits standing in for the family's real photos. -->
+    <symbol id="p-mama" viewBox="0 0 120 120"><rect width="120" height="120" fill="#f6d9c8"/><path d="M28 120c2-26 16-38 32-38s30 12 32 38z" fill="#d9617a"/><path d="M33 58c-2-30 14-40 27-40s29 10 27 40c-4 14-8 22-8 30H41c0-8-4-16-8-30z" fill="#6b3f2a"/><circle cx="60" cy="54" r="21" fill="#f3c7a7"/><circle cx="52" cy="53" r="2.4" fill="#3a2a22"/><circle cx="68" cy="53" r="2.4" fill="#3a2a22"/><path d="M53 63q7 5 14 0" stroke="#b5544f" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M39 46c6-14 30-16 42 0-10-5-30-6-42 0z" fill="#6b3f2a"/></symbol>
+    <symbol id="p-papa" viewBox="0 0 120 120"><rect width="120" height="120" fill="#cfe2f3"/><path d="M24 120c3-28 18-38 36-38s33 10 36 38z" fill="#3c6e9e"/><circle cx="60" cy="54" r="22" fill="#eabf9c"/><path d="M38 48c0-18 10-26 22-26s22 8 22 26c-6-8-12-10-22-10s-16 2-22 10z" fill="#2f2a26"/><circle cx="52" cy="54" r="2.4" fill="#2a211c"/><circle cx="68" cy="54" r="2.4" fill="#2a211c"/><path d="M49 66q11 8 22 0" stroke="#2f2a26" stroke-width="4" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="p-baba" viewBox="0 0 120 120"><rect width="120" height="120" fill="#e9e1f2"/><path d="M26 120c3-26 18-36 34-36s31 10 34 36z" fill="#7a5ea8"/><circle cx="60" cy="56" r="21" fill="#f0c9ad"/><path d="M38 52c0-20 10-30 22-30s22 10 22 30c-4-10-12-14-22-14s-18 4-22 14z" fill="#c9c4cc"/><circle cx="60" cy="24" r="9" fill="#c9c4cc"/><circle cx="52" cy="56" r="5.5" fill="none" stroke="#5a4a40" stroke-width="2"/><circle cx="68" cy="56" r="5.5" fill="none" stroke="#5a4a40" stroke-width="2"/><path d="M53 67q7 4 14 0" stroke="#a75a52" stroke-width="2.4" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="p-cat" viewBox="0 0 120 120"><rect width="120" height="120" fill="#dff0de"/><path d="M30 118c0-22 13-34 30-34s30 12 30 34z" fill="#f0a35e"/><path d="M36 40l6-22 14 14h8l14-14 6 22c4 8 4 22-2 30-6 8-14 12-22 12s-16-4-22-12c-6-8-6-22-2-30z" fill="#f0a35e"/><circle cx="50" cy="54" r="3.4" fill="#2c3a20"/><circle cx="70" cy="54" r="3.4" fill="#2c3a20"/><path d="M57 62h6l-3 4z" fill="#c25a5a"/><path d="M40 64h-12M40 68h-11M80 64h12M80 68h11" stroke="#7b5a3a" stroke-width="1.5"/></symbol>
+    <symbol id="p-mama2" viewBox="0 0 120 120"><rect width="120" height="120" fill="#fbeedd"/><path d="M28 120c2-26 16-38 32-38s30 12 32 38z" fill="#2e8a7a"/><path d="M36 56c-2-26 12-36 24-36s26 10 24 36c-2 6-6 10-6 14H42c0-4-4-8-6-14z" fill="#6b3f2a"/><circle cx="60" cy="56" r="20" fill="#f3c7a7"/><path d="M52 55q2-3 4 0M64 55q2-3 4 0" stroke="#3a2a22" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M52 64q8 7 16 0" stroke="#b5544f" stroke-width="2.4" fill="#fff" stroke-linecap="round"/><path d="M40 44c6-12 28-14 40 0-10-4-28-5-40 0z" fill="#6b3f2a"/></symbol>
+    <symbol id="p-doctor" viewBox="0 0 120 120"><rect width="120" height="120" fill="#e3eef6"/><path d="M24 120c3-28 18-38 36-38s33 10 36 38z" fill="#ffffff"/><path d="M52 84l8 14 8-14" fill="#9fc3df"/><circle cx="60" cy="54" r="22" fill="#e8bb98"/><path d="M38 46c2-16 12-22 22-22s20 6 22 22c-6-6-12-8-22-8s-16 2-22 8z" fill="#8a8580"/><circle cx="52" cy="54" r="2.4" fill="#2a211c"/><circle cx="68" cy="54" r="2.4" fill="#2a211c"/><path d="M52 65q8 5 16 0" stroke="#9c5a4c" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M40 98c0-8 6-10 8-16M80 98c0-8-6-10-8-16" stroke="#5b7f9b" stroke-width="2.5" fill="none"/></symbol>
+    <symbol id="spk" viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.3 6.4a8 8 0 0 1 0 11.2" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round"/></symbol>
+    <!-- AAC symbols: simple line pictograms, never the person's own photo. -->
+    <symbol id="s-woman" viewBox="0 0 40 40"><circle cx="20" cy="14" r="7" fill="#fbd4c0" stroke="#183d38" stroke-width="1.8"/><path d="M13 14c0-8 14-8 14 0" fill="#6b3f2a"/><path d="M9 36c1-9 6-13 11-13s10 4 11 13z" fill="#f4a3b5" stroke="#183d38" stroke-width="1.8"/></symbol>
+    <symbol id="s-man" viewBox="0 0 40 40"><circle cx="20" cy="14" r="7" fill="#fbd4c0" stroke="#183d38" stroke-width="1.8"/><path d="M13 12c1-6 13-6 14 0" fill="#2f2a26"/><path d="M9 36c1-9 6-13 11-13s10 4 11 13z" fill="#9cc3e6" stroke="#183d38" stroke-width="1.8"/></symbol>
+    <symbol id="s-cat" viewBox="0 0 40 40"><path d="M10 16l2-9 6 5h4l6-5 2 9c2 5 1 12-4 15-3 2-5 2-6 2s-3 0-6-2c-5-3-6-10-4-15z" fill="#f6be8a" stroke="#183d38" stroke-width="1.8" stroke-linejoin="round"/><circle cx="16" cy="20" r="1.5" fill="#183d38"/><circle cx="24" cy="20" r="1.5" fill="#183d38"/></symbol>
+    <symbol id="hand5" viewBox="0 0 60 60"><path d="M18 56c-6-6-10-14-10-20 0-3 4-4 6-1l4 6V14c0-3 5-3 5 0v18-24c0-3 5-3 5 0v24-22c0-3 5-3 5 0v22-18c0-3 5-3 5 0v26c0 10-4 16-8 16z" fill="#fbd4c0" stroke="#183d38" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="hand1" viewBox="0 0 60 60"><path d="M22 56c-6-4-8-10-8-16 0-5 2-8 6-8h2V12c0-3 5-3 5 0v20h8c4 0 8 2 8 8 0 9-4 16-10 16z" fill="#fbd4c0" stroke="#183d38" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <h1>«Мои люди»: редизайн по рекомендациям логопеда</h1>
+    <p>Макеты экранов темы после методического разбора. Ребёнок с РАС видит на экране только фото, вопрос и крупное слово. Подсказки и оценка уходят в отдельную спокойную панель взрослого внизу. Портреты нарисованы условно, в приложении там будут фото семьи ребёнка.</p>
+    <div class="principles">
+      <div class="principle"><b>Две зоны</b><span>Сцена ребёнка сверху. Панель взрослого снизу, на сером фоне и за линией.</span></div>
+      <div class="principle"><b>Ярким бывает только материал</b><span>Кнопки оценки светлые, цвет остаётся у значка. Красной кнопки на детском экране нет.</span></div>
+      <div class="principle"><b>Никаких служебных надписей</b><span>Убираем капс, «Перетащи имя на фото…» и «ПОЗНАКОМИМСЯ». Способ действия показываем жестом.</span></div>
+      <div class="principle"><b>Ответ есть у каждого</b><span>Если ребёнок не говорит, он отвечает выбором из озвучиваемых карточек, как на коммуникаторе.</span></div>
+    </div>
+  </header>
+
+  <section class="step" aria-labelledby="s0">
+    <div class="step-head"><span class="n">Вход</span><h2 id="s0">Выбор режима: лесенка</h2><span class="skill">для взрослого</span></div>
+    <div class="screens">
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span>‹ Темы</span><span>Миша</span></div>
+          <div class="stage" style="justify-content:flex-start">
+            <div class="ml">
+              <div class="ml-title">Мои люди</div>
+              <div class="ml-step"><span class="ico">1</span><span><b>Найди такого же</b><small>другое фото · поле 3</small></span><span class="st done">Освоено</span></div>
+              <div class="ml-step cur"><span class="ico">2</span><span><b>Покажи</b><small>сейчас поле 2 · пора поле 3</small></span><span class="st next">Следующий</span></div>
+              <div class="ml-step"><span class="ico">3</span><span><b>Кто это?</b><small>ответ выбором · 4 человека</small></span><span class="st lock">Начат</span></div>
+              <div class="ml-step"><span class="ico">4</span><span><b>Обо мне</b><small>Я · Семья</small></span><span class="st lock">Не начат</span></div>
+              <div class="ml-step locked"><span class="ico">5</span><span><b>Подпиши фото</b><small>нужно читать</small></span><span class="st lock">Позже</span></div>
+              <div class="ml-step locked"><span class="ico">6</span><span><b>Представься</b><small>после «Обо мне»</small></span><span class="st lock">Позже</span></div>
+            </div>
+          </div>
+        </div></div>
+        <figcaption><b>Лесенка вместо списка</b>
+          <ul><li>Порядок режимов виден как путь.</li><li>«Освоено» ставится при 80 % самостоятельных ответов в 2–3 уроках подряд.</li><li>«Следующий шаг» подсказывает, какой параметр поднять.</li></ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s1">
+    <div class="step-head"><span class="n">Шаги 1–2</span><h2 id="s1">Найди такого же и Покажи</h2><span class="skill">сопоставление, понимание слова</span></div>
+    <div class="screens">
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="sample"><svg viewBox="0 0 120 120"><use href="#p-mama"/></svg></div>
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 4v15M6 13l6 6 6-6" stroke="#9cc6bd" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>
+            <div class="row2">
+              <div class="photo"><svg viewBox="0 0 120 120"><use href="#p-baba"/></svg></div>
+              <div class="photo ok"><svg viewBox="0 0 120 120"><use href="#p-mama2"/></svg><span class="badge-ok">✓</span></div>
+            </div>
+          </div>
+          <div class="adult"><div class="adult-label">Образец</div><div class="ladder"><span>одинаковое фото</span><span class="done">другое фото</span></div></div>
+        </div></div>
+        <figcaption><b>Найди такого же</b>
+          <ul><li>Новая ступень «одинаковое фото» для тех, кому пока трудно с разными.</li><li>Стрелка от образца вниз показывает задание без слов.</li><li>После ответа образец «прилетает» к паре.</li></ul>
+        </figcaption>
+      </figure>
+
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage" style="position:relative">
+            <div class="q">Где мама? <svg class="spk" aria-hidden="true"><use href="#spk"/></svg></div>
+            <div class="row2">
+              <div class="photo fade"><svg viewBox="0 0 120 120"><use href="#p-papa"/></svg></div>
+              <div class="photo glow"><svg viewBox="0 0 120 120"><use href="#p-mama"/></svg></div>
+            </div>
+            <div class="ring"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5" fill="none" stroke="#dfe9e6" stroke-width="3"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="#4a9b8f" stroke-width="3" stroke-dasharray="47" stroke-dashoffset="0" transform="rotate(-90 10 10)"/></svg>5 с · подсказка</div>
+          </div>
+          <div class="adult"><div class="adult-label">Подсказка через</div><div class="ladder"><span>нет</span><span>3 с</span><span class="done">5 с</span></div></div>
+        </div></div>
+        <figcaption><b>Покажи: подсказка по задержке</b>
+          <ul><li>Ребёнок молчит 5 секунд: верное фото мягко светится, остальные бледнеют.</li><li>Проба засчитывается как «с подсказкой».</li><li>После промаха та же цель возвращается через 1–2 пробы.</li></ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s2">
+    <div class="step-head"><span class="n">Шаг 3</span><h2 id="s2">Кто это?</h2><span class="skill">называние: голосом или выбором</span></div>
+    <div class="screens">
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="photo" style="width:200px"><svg viewBox="0 0 120 120"><use href="#p-mama2"/></svg></div>
+            <div class="q" style="font-size:28px">Кто это? <svg class="spk" aria-hidden="true"><use href="#spk"/></svg></div>
+            <div style="font-size:32px;font-weight:900;color:var(--app-teal-deep);min-height:38px">Ма…</div>
+          </div>
+          <div class="adult">
+            <div class="adult-label">Подсказка · ответ: мама · Анна</div>
+            <div class="ladder"><span>Слово целиком</span><span class="done">Первый слог</span><span>Без подсказки</span></div>
+            <div class="grades"><span class="grade ok off"><i>✓</i>Сам</span><span class="grade mid"><i>½</i>С подсказкой</span><span class="grade no"><i>·</i>Пока нет</span></div>
+          </div>
+        </div></div>
+        <figcaption><b>Голосом</b>
+          <ul><li>Образец ответа «мама · Анна» стоит в панели взрослого. Ребёнок его не читает.</li><li>Ступеньки видны целиком: взрослый понимает, на какой ступени ребёнок.</li><li>Для нового человека начинаем со «Слова целиком», от большей подсказки к меньшей.</li><li>После подсказки «Сам» недоступна.</li></ul>
+        </figcaption>
+      </figure>
+
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="photo" style="width:180px"><svg viewBox="0 0 120 120"><use href="#p-papa"/></svg></div>
+            <div class="q" style="font-size:26px">Кто это? <svg class="spk" aria-hidden="true"><use href="#spk"/></svg></div>
+            <div class="aac">
+              <div class="aac-card"><svg aria-hidden="true"><use href="#s-woman"/></svg><b>мама</b></div>
+              <div class="aac-card" style="border-color:var(--ok);box-shadow:0 3px 0 #15803d"><svg aria-hidden="true"><use href="#s-man"/></svg><b>папа</b></div>
+              <div class="aac-card"><svg aria-hidden="true"><use href="#s-cat"/></svg><b>Мурка</b></div>
+            </div>
+          </div>
+          <div class="adult"><div class="adult-label">Ответ</div><div class="ladder"><span>голосом</span><span class="done">выбором</span></div></div>
+        </div></div>
+        <figcaption><b>Ответ выбором (AAC)</b>
+          <ul><li>Карточки озвучиваются при нажатии, как на коммуникаторе.</li><li>На карточке символ, а не фото этого человека. Иначе получится снова сопоставление.</li><li>Оценка автоматическая. Взрослому ничего нажимать не нужно.</li></ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s3">
+    <div class="step-head"><span class="n">Шаг 4</span><h2 id="s3">Обо мне</h2><span class="skill">ответ на вопрос о себе</span></div>
+    <div class="screens">
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="q" style="font-size:28px;max-width:230px">Сколько тебе лет? <svg class="spk" aria-hidden="true"><use href="#spk"/></svg></div>
+            <div class="hint-card">
+              <span class="big-num">6</span>
+              <svg width="52" height="52" aria-hidden="true"><use href="#hand5"/></svg>
+              <svg width="52" height="52" aria-hidden="true"><use href="#hand1"/></svg>
+            </div>
+          </div>
+          <div class="adult">
+            <div class="adult-label">Подсказка · ответ: 6 лет</div>
+            <div class="ladder"><span class="done">Цифра и пальцы</span><span>Ответ</span></div>
+            <div class="grades"><span class="grade ok off"><i>✓</i>Сам</span><span class="grade mid"><i>½</i>С подсказкой</span><span class="grade no"><i>·</i>Пока нет</span></div>
+          </div>
+        </div></div>
+        <figcaption><b>Возраст с опорой</b>
+          <ul><li>Первая подсказка: цифра и столько же пальцев. Пальцы годятся и как ответ жестом.</li><li>Вопрос о городе станет «В каком городе ты живёшь?», чтобы у него был один ответ.</li><li>Телефон показываем и озвучиваем группами цифр.</li></ul>
+        </figcaption>
+      </figure>
+
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="q" style="font-size:27px;max-width:240px">Как зовут маму? <svg class="spk" aria-hidden="true"><use href="#spk"/></svg></div>
+            <div class="photo" style="width:120px"><svg viewBox="0 0 120 120"><use href="#p-mama"/></svg></div>
+            <div style="display:flex;gap:10px">
+              <div class="word" style="font-size:24px">Анна</div>
+              <div class="word" style="font-size:24px">Ольга</div>
+            </div>
+          </div>
+          <div class="adult"><div class="adult-label">Ответ</div><div class="ladder"><span>голосом</span><span class="done">выбором</span></div></div>
+        </div></div>
+        <figcaption><b>Обо мне выбором</b>
+          <ul><li>Две озвучиваемые карточки. Отвлекающий ответ берём из того же раздела.</li><li>Для «мальчик или девочка» две картинки, для возраста две цифры.</li><li>Раздел «Безопасность» ставим последним: в нём больше всего запоминания.</li></ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s4">
+    <div class="step-head"><span class="n">Шаг 5</span><h2 id="s4">Подпиши фото</h2><span class="skill">глобальное чтение</span></div>
+    <div class="screens">
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="photo" style="width:210px;cursor:pointer"><svg viewBox="0 0 120 120"><use href="#p-baba"/></svg>
+              <svg viewBox="0 0 40 40" width="56" height="56" style="position:absolute;right:8px;bottom:8px" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#4a9b8f" fill-opacity=".22"/><path d="M17 30c-3-2-5-6-5-9 0-2 2-2 3-1l2 3V10c0-2 3-2 3 0v9h6c2 0 3 1 3 3 0 5-2 9-5 10z" fill="#fff" stroke="#183d38" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="word" style="font-size:34px">бабушка</div>
+          </div>
+          <div class="adult"><div class="adult-label">Знакомство</div><div style="font-size:11.5px;color:var(--app-adult-ink);font-weight:700">Ребёнок сам касается фото, слово прилипает к нему и звучит. Кнопка «Дальше» для взрослого — мелкая, в углу.</div></div>
+        </div></div>
+        <figcaption><b>Знакомство активное</b>
+          <ul><li>Первая проба без ошибки: ребёнок касается фото сам.</li><li>Пассивный экран с большой кнопкой «Дальше» уходит.</li></ul>
+        </figcaption>
+      </figure>
+
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="row2">
+              <div><div class="photo"><svg viewBox="0 0 120 120"><use href="#p-papa"/></svg></div><div class="label-under">папа</div></div>
+              <div><div class="photo glow"><svg viewBox="0 0 120 120"><use href="#p-mama"/></svg></div><div class="label-empty"></div></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:10px">
+              <div class="word used">папа</div>
+              <div class="word picked">мама</div>
+            </div>
+          </div>
+          <div class="adult"><div class="adult-label">Озвучивать слово при нажатии</div><div class="ladder"><span class="done">да, учим</span><span>нет, проверяем чтение</span></div></div>
+        </div></div>
+        <figcaption><b>Крупные слова</b>
+          <ul><li>Слова 28–34 px. Если не помещаются, уменьшаем число фото, а не шрифт.</li><li>Подпись под фото того же размера, что и карточка: видно, что это то же слово.</li><li>По умолчанию 2 фото. После промаха светится нужное фото, без тряски.</li><li>Озвучку слова можно выключить, чтобы проверить чтение.</li></ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s5">
+    <div class="step-head"><span class="n">Шаг 6</span><h2 id="s5">Представься</h2><span class="skill">диалог и связная речь</span></div>
+    <div class="screens">
+      <figure class="shot">
+        <div class="phone"><div class="screen">
+          <div class="topbar"><span class="stars"><i class="on"></i><i></i><i></i><i></i><i></i></span><span class="x">✕</span></div>
+          <div class="stage">
+            <div class="dlg">
+              <div class="who">С тобой знакомится доктор</div>
+              <div class="turn"><span class="ava"><svg viewBox="0 0 120 120" width="54" height="54"><use href="#p-doctor"/></svg></span><span class="bubble">Здравствуй! <svg class="spk" style="width:20px;height:20px;vertical-align:-4px" aria-hidden="true"><use href="#spk"/></svg></span></div>
+              <div class="turn me"><span class="bubble">Здравствуйте!</span></div>
+              <div class="turn"><span class="ava"><svg viewBox="0 0 120 120" width="54" height="54"><use href="#p-doctor"/></svg></span><span class="bubble">Как тебя зовут?</span></div>
+              <div class="turn me"><span class="bubble">Меня зовут <span class="gap"></span></span></div>
+            </div>
+          </div>
+          <div class="adult">
+            <div class="adult-label">Скрипт</div>
+            <div class="ladder"><span>Весь ответ</span><span class="done">Начало фразы</span><span>Без подсказки</span></div>
+            <div class="grades"><span class="grade ok off"><i>✓</i>Сам</span><span class="grade mid"><i>½</i>С подсказкой</span><span class="grade no"><i>·</i>Пока нет</span></div>
+          </div>
+        </div></div>
+        <figcaption><b>Диалог с собеседником</b>
+          <ul><li>Собеседник нарисован: учительница, мальчик на площадке, доктор.</li><li>Первая реплика ребёнка — ответное приветствие: взрослому «Здравствуйте!», ребёнку «Привет!».</li><li>Угасающий скрипт: пропуск на месте слова, затем пусто.</li><li>В конце встречный вопрос «А тебя как зовут?» и прощание.</li></ul>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s6">
+    <div class="step-head"><span class="n">Деталь</span><h2 id="s6">Оценка взрослого: было и стало</h2></div>
+    <div class="compare">
+      <div class="cmp">
+        <h3>Сейчас</h3>
+        <div class="cmp-demo"><div class="old-grades"><span style="background:#ef4444;box-shadow:0 3px 0 #b91c1c">Не знает</span><span style="background:#facc15;color:#3d2c00;box-shadow:0 3px 0 #ca8a04">С подсказкой</span><span style="background:#22c55e;box-shadow:0 3px 0 #15803d">Знает</span></div></div>
+        <p>Это самые яркие предметы на экране, ярче фото. Ребёнок тянется нажать. Красная кнопка «Не знает» читается как «плохо».</p>
+      </div>
+      <div class="cmp">
+        <h3>Предложение</h3>
+        <div class="cmp-demo"><div class="grades"><span class="grade ok"><i>✓</i>Сам</span><span class="grade mid"><i>½</i>С подсказкой</span><span class="grade no"><i>·</i>Пока нет</span></div></div>
+        <p>Светлые кнопки на сером фоне панели. Взрослый узнаёт их по цветному значку, ребёнка они не притягивают. Слова без приговора: «Сам», «Пока нет».</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Полный разбор: <code>docs/my-people-methodology-review.md</code> в репозитории Mirocard. Палитра и шрифт взяты из текущей темы (Nunito, бирюзовый акцент, кремовый фон).</footer>
+</div>

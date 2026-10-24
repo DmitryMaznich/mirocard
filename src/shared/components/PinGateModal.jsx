@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { hashPin, verifyPin } from "@/shared/utils/pinHash";
 import "./PinGateModal.css";
 
 export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = null }) {
+  const { t } = useUiTranslation();
   const isSetup = pinHash === null;
 
   const [stage,       setStage]       = useState("enter"); // "enter" | "confirm"
@@ -33,7 +35,7 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = 
           onSetPin(hash);
           onSuccess();
         } else {
-          triggerShake("PIN не совпадает. Начните заново.");
+          triggerShake("pin.mismatch");
           setStage("enter");
           setFirstDigits([]);
         }
@@ -43,7 +45,7 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = 
       if (ok) {
         onSuccess();
       } else {
-        triggerShake("Неверный PIN");
+        triggerShake("pin.invalid");
       }
     }
   }
@@ -63,13 +65,13 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = 
   }
 
   const title = isSetup
-    ? (stage === "enter" ? "Придумайте PIN-код" : "Повторите PIN-код")
-    : "Введите PIN-код";
+    ? (stage === "enter" ? "pin.create" : "pin.confirm")
+    : "pin.enter";
 
   return (
     <div className="pin-gate-overlay">
       <div className="pin-gate">
-        <div className="pin-gate__title">{title}</div>
+        <div className="pin-gate__title">{t(title)}</div>
 
         <div className={`pin-gate__dots${shake ? " pin-gate__dots--shake" : ""}`}>
           {[0, 1, 2, 3].map((i) => (
@@ -77,7 +79,7 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = 
           ))}
         </div>
 
-        <div className="pin-gate__error">{error}</div>
+        <div className="pin-gate__error" role="status">{error ? t(error) : ""}</div>
 
         <div className="pin-pad">
           {["1","2","3","4","5","6","7","8","9"].map((d) => (
@@ -85,11 +87,11 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = 
           ))}
           <button className="pin-key pin-key--empty" tabIndex={-1} />
           <button className="pin-key" onClick={() => pressDigit("0")}>0</button>
-          <button className="pin-key pin-key--back" onClick={pressBackspace}>⌫</button>
+          <button className="pin-key pin-key--back" aria-label={t("pin.erase")} onClick={pressBackspace}>⌫</button>
         </div>
 
         {onCancel && (
-          <button className="pin-gate__cancel" onClick={onCancel}>Отмена</button>
+          <button className="pin-gate__cancel" onClick={onCancel}>{t("common.cancel")}</button>
         )}
       </div>
     </div>

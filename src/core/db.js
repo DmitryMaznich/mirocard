@@ -1,4 +1,24 @@
 const DB_VERSION = 3;
+export const ACTIVE_DATABASE_KEY = "mironium.activeDatabase";
+
+export function getActiveDatabaseName() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ACTIVE_DATABASE_KEY) ?? "null");
+    if (/^mirocard-recovery-[a-f0-9-]{36}$/.test(saved?.name)) return saved.name;
+  } catch { /* The original database remains the default. */ }
+  return "mirocard";
+}
+
+// Called only after a complete server snapshot has committed in a NEW DB.
+// The source database (including unreadable entries and the sync queue) stays intact.
+export function activateRecoveredDatabase(db, preservedDatabase) {
+  if (!/^mirocard-recovery-[a-f0-9-]{36}$/.test(db.name) || db.name === preservedDatabase) {
+    throw new Error("Invalid recovery database");
+  }
+  localStorage.setItem(ACTIVE_DATABASE_KEY, JSON.stringify({ name: db.name, preservedDatabase }));
+  _dbName = db.name;
+  _dbPromise = Promise.resolve(db);
+}
 
 export function openDb(name = "mirocard") {
   return new Promise((resolve, reject) => {
@@ -28,9 +48,16 @@ export function openDb(name = "mirocard") {
 // ─── Singleton ────────────────────────────────────────────────────────────────
 
 let _dbPromise = null;
+let _dbName = null;
 
 export function getDb() {
-  if (!_dbPromise) _dbPromise = openDb();
+  const name = getActiveDatabaseName();
+  if (!_dbPromise || _dbName !== name) {
+    _dbName = name;
+    const promise = openDb(name);
+    _dbPromise = promise;
+    promise.catch(() => { if (_dbPromise === promise) _dbPromise = null; });
+  }
   return _dbPromise;
 }
 
@@ -60,6 +87,35 @@ function topicKey(topicId, filename) {
 }
 
 export const topics = {
+  replaceTopic(db, topicId, files, record, { keepFiles = [], extraValues = {} } = {}) {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(["topics", "keyval"], "readwrite");
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error ?? new Error("Topic installation aborted"));
+      const store = transaction.objectStore("topics");
+      const values = transaction.objectStore("keyval");
+      const prefix = `${topicId}/`;
+      const retained = new Set(keepFiles.map((file) => topicKey(topicId, file)));
+      const abort = (error) => { transaction.abort(); reject(error); };
+      try {
+        const keys = store.getAllKeys(IDBKeyRange.bound(prefix, prefix + "￿", false, false));
+        keys.onsuccess = () => {
+          try {
+            for (const key of keys.result) if (!retained.has(key)) store.delete(key);
+            for (const [name, file] of Object.entries(files)) store.put(file, topicKey(topicId, name));
+          } catch (error) { abort(error); }
+        };
+        values.put(record, `topic:${topicId}`);
+        for (const [key, value] of Object.entries(extraValues)) values.put(value, key);
+        const index = values.get("installedTopicIds");
+        index.onsuccess = () => {
+          const ids = index.result ?? [];
+          try { if (!ids.includes(topicId)) values.put([...ids, topicId], "installedTopicIds"); } catch (error) { abort(error); }
+        };
+      } catch (error) { abort(error); }
+    });
+  },
   async saveFile(db, topicId, filename, blob) {
     const buf = await blob.arrayBuffer();
     return req2p(tx(db, "topics", "readwrite").put({ buf, type: blob.type }, topicKey(topicId, filename)));

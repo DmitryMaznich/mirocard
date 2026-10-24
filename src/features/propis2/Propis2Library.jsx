@@ -110,6 +110,7 @@ export default function Propis2Library({ sets = [], ready = [], draft = null, bl
                     <div className="p2-nb-main">
                       <div className="p2-nb-name">{r.title}</div>
                       <div className="p2-nb-meta">{r.pages} стр.</div>
+                      {r.description && <div className="p2-nb-desc">{r.description}</div>}
                     </div>
                   </div>
                   <div className="p2-nb-tools" role="group" aria-label="Действия с тетрадью">

@@ -158,9 +158,10 @@ describe("propis2 (zip topic)", () => {
 
     // a ready notebook lies in the list like our own: editing it makes our copy quietly
     expect(host.querySelectorAll('[data-testid="propis2-ready-card"]').length).toBeGreaterThan(5);
-    await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 2 (узкая строка)"]'));
+    for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    await click(host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
-    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe("Листы методики, часть 2 (узкая строка)");
+    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe("9. Буквы б в ф и весь алфавит");
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await act(async () => { root.unmount(); await tick(500); });
@@ -190,6 +191,65 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
+  it("the computer layout: one tool bar, the notebook's pages as thumbnails (a click opens one), a status bar", async () => {
+    const before = window.matchMedia;
+    // a wide landscape screen: the editor's SIDE_QUERY matches
+    window.matchMedia = (q) => ({ matches: q.includes("min-width: 900px"), media: q, addEventListener() {}, removeEventListener() {} });
+    try {
+      const db = await freshDb();
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+      const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(60); }); };
+      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь 4. Буквы л м я о а ю с"]';
+      for (let i = 0; i < 40 && !host.querySelector(edit); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
+      await click(host.querySelector(edit));
+      const editor = host.querySelector('[data-testid="propis2-editor"]');
+      expect(editor.classList.contains("propis2-editor2--desk")).toBe(true);
+      // the tools in one bar: undo, the paper, the row's tools, the zoom; no floating undo / zoom over the sheet
+      const bar = host.querySelector(".p2-desk-bar");
+      for (const name of ["Отменить", "Тип бумаги", "Разлиновка", "Повтор", "Элементы", "Удалить строку", "Увеличить"]) expect(bar.querySelector(`[aria-label="${name}"]`), name).not.toBeNull();
+      expect(host.querySelector(".p2-history")).toBeNull();
+      // the pages as thumbnails, the open one marked; a click on another opens it
+      const thumbs = host.querySelectorAll(".p2-thumb");
+      expect(thumbs).toHaveLength(24);
+      expect(host.querySelector('.p2-thumb[aria-current="page"]').getAttribute("aria-label")).toBe("Страница 1");
+      expect(host.querySelector(".p2-status").textContent).toContain("Стр. 1 из 24");
+      await click(host.querySelector('.p2-thumb[aria-label="Страница 3"]'));
+      expect(host.querySelector('.p2-thumb[aria-current="page"]').getAttribute("aria-label")).toBe("Страница 3");
+      expect(host.querySelector(".p2-status").textContent).toContain("Стр. 3 из 24");
+      // the page's own actions under the thumbnails
+      for (const name of ["Добавить страницу", "Копия страницы", "Переместить страницу раньше", "Удалить страницу из тетради"]) expect(host.querySelector(`.p2-thumbs [aria-label="${name}"]`), name).not.toBeNull();
+      await act(async () => { root.unmount(); await tick(100); });
+      host.remove();
+    } finally {
+      window.matchMedia = before;
+    }
+  }, 40000);
+
+  it("« and » jump to the first / last page of the whole notebook, across its parts on different paper", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const open = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь Цифры"]';
+    for (let i = 0; i < 40 && !host.querySelector(open); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
+    await click(host.querySelector(open)); // squared pages 1-20, then the copybook ruling: two parts
+    const counter = () => host.querySelector(".propis-text-nav__counter").textContent;
+    expect(counter()).toBe("1 / 24");
+    expect(byLabel(host, "В начало").disabled).toBe(true);
+    await click(byLabel(host, "В конец"));
+    expect(counter()).toBe("24 / 24");
+    expect(byLabel(host, "В конец").disabled).toBe(true);
+    await click(byLabel(host, "В начало"));
+    expect(counter()).toBe("1 / 24");
+    await act(async () => { root.unmount(); await tick(100); });
+    host.remove();
+  }, 40000);
+
   it("tap on a row opens the show panel (repeat, slow, close) and closing keeps the page you were on", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
@@ -199,8 +259,9 @@ describe("propis2 (zip topic)", () => {
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
-    // a page long enough for two screens: pick the ready sheet (12 rows) and add more rows
-    await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 1 (широкая строка)"]'));
+    // a notebook long enough for two screens: a ready one
+    for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 3. Буквы и й ш н п т г к"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    await click(host.querySelector('[aria-label="Изменить тетрадь 3. Буквы и й ш н п т г к"]'));
     await click(byLabel(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
@@ -559,7 +620,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("a tap on an empty ruled row selects it (it is created); the field starts at the selected row", async () => {
+  it("typing on the sheet: a click on an empty ruled row creates it and puts the caret there; a click between letters puts it there", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -568,27 +629,35 @@ describe("propis2 (zip topic)", () => {
     const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
     await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая тетрадь")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
-    const svg = preview().querySelector("svg.propis-print-page-svg");
-    const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
-    svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
+    const svg = () => preview().querySelector("svg.propis-print-page-svg");
+    const [, , vbW, vbH] = svg().getAttribute("viewBox").split(/\s+/).map(Number);
+    const sheetAt = (x, y) => { const el = svg(); el.getBoundingClientRect = () => ({ left: 0, top: 0, right: vbW, bottom: vbH, width: vbW, height: vbH }); return el; };
     const yOfRow = (r) => { let y = 0; while (rowAtSvgY(y) !== r && y < vbH) y += 1; return y + 4; };
+    const field = () => fieldOf(host);
     expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
-    // tap row 3 of an empty page: a row is created there and selected; the field starts at it and is empty
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
+    expect(host.querySelector('[data-testid="propis2-keys-hint"]').textContent).toContain("Нажмите на строку листа");
+    // click row 3 of an empty page: the rows up to it are made, the caret stands on that row's (empty) line of the page's text
+    await click(sheetAt(), { clientX: 200, clientY: yOfRow(3) });
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
-    expect(fieldOf(host).value).toBe("");
-    // typing writes into that row (blank rows fill the gap above it)
-    await typeInField(host, "м");
-    expect(fieldOf(host).value).toBe("м");
-    // another tap on it shows its text again; a tap on a row above starts the field there and shows everything below
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
-    expect(fieldOf(host).value).toBe("м");
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(1) });
-    expect(fieldOf(host).value).toBe("\n\nм");
-    // a tap outside the ruled rows clears the selection and empties the field (the next typing goes below the last row)
+    expect(field().value).toBe("\n\n\n");
+    expect(field().selectionStart).toBe(3);
+    expect(document.activeElement).toBe(field()); // the keyboard goes to the invisible text: a phone opens its keyboard
+    expect(preview().querySelector('[data-overlay="caret"]')).not.toBeNull();
+    // typing writes into that row
+    await typeInField(host, "\n\n\nмама");
+    expect(field().value).toBe("\n\n\nмама");
+    // a click in the middle of the word puts the caret between its letters (the nearest boundary), Shift + click selects
+    await click(sheetAt(), { clientX: 2000, clientY: yOfRow(3) }); // far right: after the last letter
+    expect(field().selectionStart).toBe(7);
+    await click(sheetAt(), { clientX: 0, clientY: yOfRow(3) }); // far left: before the first letter
+    expect(field().selectionStart).toBe(3);
+    await click(sheetAt(), { clientX: 2000, clientY: yOfRow(3), shiftKey: true });
+    expect([field().selectionStart, field().selectionEnd]).toEqual([3, 7]);
+    expect(preview().querySelector('[data-overlay="range"]')).not.toBeNull();
+    // a click outside the ruled rows: no caret, no selected row
     await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: vbH + 500 });
     expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
-    expect(fieldOf(host).value).toBe("");
+    expect(preview().querySelector('[data-overlay="caret"]')).toBeNull();
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
@@ -625,7 +694,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("kits: the copy of a method's notebook is the user's own — open to edit in full, the kit stays the sample", async () => {
+  it("kits: the copy of a ready notebook is the user's own — open to edit in full, the kit stays the sample", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -633,7 +702,8 @@ describe("propis2 (zip topic)", () => {
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
-    await click(lbl("Изменить тетрадь Листы методики, часть 2 (узкая строка)"));
+    for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    await click(lbl("Изменить тетрадь 9. Буквы б в ф и весь алфавит"));
     expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
     expect(lbl("Тип бумаги").disabled).toBe(false);
     expect(lbl("Разлиновка").disabled).toBe(false);
@@ -667,6 +737,37 @@ describe("propis2 (zip topic)", () => {
     const setKeys = keys.filter((k) => k.startsWith("propis2:set:"));
     expect(setKeys).toContain("propis2:set:st_pg_remote");
     expect(setKeys).toHaveLength(2);
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
+  it("sync: an open notebook shows the text another device saved, and saving here does not overwrite it", async () => {
+    const db = await freshDb();
+    const a = newPage("A", { rows: [newRow({ text: "а" })], updatedAt: 1 });
+    const b = newPage("B", { rows: [newRow({ text: "б" })], updatedAt: 1 });
+    const st = newSet("Общая", { pageIds: [a.id, b.id], updatedAt: 1 });
+    await saveLibrary(upsertSet(upsertPage(upsertPage(emptyLibrary(), a), b), st), db);
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    await click(host.querySelector('[aria-label="Изменить тетрадь Общая"]'));
+    // the other device changed both pages; the pull comes while the notebook is open here
+    const later = Date.now() + 1000;
+    api.get.mockResolvedValue({ kv: [
+      { key: `propis2:page:${a.id}`, value: { ...a, rows: [newRow({ text: "мама" })], updatedAt: later } },
+      { key: `propis2:page:${b.id}`, value: { ...b, rows: [newRow({ text: "папа" })], updatedAt: later } },
+    ] });
+    await act(async () => { document.dispatchEvent(new Event("visibilitychange")); await tick(60); });
+    pushOp.mockClear();
+    // a row added to page A here, saved: it goes on top of the other device's text, and page B is not sent back at all
+    await typeInField(host, "мама\nрама"); // the page's text: the other device's row, then a new one typed here
+    await click(byLabel(host, "Сохранить тетрадь"));
+    await act(async () => { await tick(500); });
+    const sent = new Map(pushOp.mock.calls.filter((c) => c[0] === "kv.upsert").map((c) => [c[1].key, c[1].value]));
+    expect(sent.get(`propis2:page:${a.id}`).rows.map((r) => r.text)).toEqual(["мама", "рама"]);
+    expect(sent.has(`propis2:page:${b.id}`)).toBe(false);
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
@@ -720,7 +821,7 @@ describe("propis2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(80); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
-    const openKit = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь Прописи — соединения букв"]';
+    const openKit = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь 12. Слоги и соединения"]';
     for (let i = 0; i < 40 && !host.querySelector(openKit); i += 1) await act(async () => { await tick(100); });
     expect(host.querySelector('[data-testid="propis2-set-card"]')).toBeNull(); // nothing of ours yet
     await click(host.querySelector(openKit));
@@ -872,8 +973,9 @@ describe("propis2 (zip topic)", () => {
     it("a ready notebook only looked at or opened for editing is not copied into the list until a change is confirmed", async () => {
       const db = await freshDb();
       const { host, click, unmount, cards } = await mount(db);
-      const ready = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь Листы методики, часть 1 (широкая строка)"]';
-      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь Листы методики, часть 1 (широкая строка)"]';
+      const ready = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь 1. Палочки и заборчики"]';
+      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь 1. Палочки и заборчики"]';
+      for (let i = 0; i < 40 && !host.querySelector(ready); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
       await click(host.querySelector(ready));
       expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
       await click(host.querySelector(".propis-practice-close"));

@@ -1,5 +1,6 @@
 // `propis2` library: the adult's pages and page sets, stored on this device (IndexedDB keyval,
 // own key, nothing added to the app's shared tables). Account sync is a later step.
+import { PROPIS2_OLD_TITLES, PROPIS2_RETIRED } from "./data.js";
 import { getDb, kv } from "@/core/db";
 import { docKey } from "./syncLib.js";
 import { pageFromPreset } from "./model.js";
@@ -108,6 +109,25 @@ export function openKitCopies(library) {
   return { ...library, pages: library.pages.map((p) => (p.locked && ids.has(p.id) ? { ...p, locked: false } : p)) };
 }
 
+// A copy of a ready notebook keeps the title it got when it was taken. When the ready notebooks are renamed (data.js), a copy that still
+// has an OLD title (the adult never renamed it) takes the new one; a copy of a notebook the series replaced (PROPIS2_RETIRED) that is
+// still numbered as a step («2. Простые буквы…») loses the number. Stamped now, so it goes up to the account and wins over the old
+// title on the other devices (each device would rename it the same anyway; once renamed nothing matches any more).
+// `titles`: ready id -> current title.
+export function retitleKitCopies(library, titles, oldTitles = PROPIS2_OLD_TITLES, now = Date.now(), retired = PROPIS2_RETIRED) {
+  let changed = false;
+  const sets = library.sets.map((st) => {
+    const id = String(st.sourceId ?? (st.kit ? `kit:${st.kit}` : "")).replace(/^kit:/, "");
+    let title = null;
+    if (retired.includes(id) && /^\d+\.\s/.test(st.title ?? "")) title = st.title.replace(/^\d+\.\s+/, "");
+    else if (titles[id] && (oldTitles[id] ?? []).includes(st.title)) title = titles[id];
+    if (title === null) return st;
+    changed = true;
+    return { ...st, title, updatedAt: now };
+  });
+  return changed ? { ...library, sets } : library;
+}
+
 // There is no page outside a notebook: a page that no notebook lists becomes a notebook of one page. The id is made from the
 // page's, and the stamps are the page's own, so devices that migrate the same page build the same notebook (last write wins,
 // no duplicates).
@@ -146,18 +166,40 @@ export function presetsToNotebooks(library) {
 
 // What the adult confirmed goes into the library as THAT notebook only (its set and its pages; pages taken out of it are deleted):
 // the rest of the library is whatever it is now, so a pull that came in while editing is not overwritten.
-export function mergeNotebook(library, sessionLib, sid) {
+// `base`: the library the session started from. With it only what the session itself changed is written: a page edited on another
+// device meanwhile is not overwritten by this session's untouched (older) copy restamped as the newest, and a page another device
+// added to the notebook is not deleted. Without it (a draft resumed) the whole notebook is written.
+export function mergeNotebook(library, sessionLib, sid, base = null) {
   const next = sessionLib.sets.find((st) => st.id === sid);
   const old = library.sets.find((st) => st.id === sid);
   if (!next) return old ? removeSet(library, sid) : library;
+  const baseSet = base?.sets.find((st) => st.id === sid) ?? null;
+  const basePages = new Map((base?.pages ?? []).map((p) => [p.id, p]));
   let lib = library;
   const keep = new Set(next.pageIds);
-  for (const id of old?.pageIds ?? []) if (!keep.has(id)) lib = removePage(lib, id);
+  const removed = baseSet ? baseSet.pageIds.filter((id) => !keep.has(id)) : (old?.pageIds ?? []).filter((id) => !keep.has(id));
+  for (const id of removed) if (lib.pages.some((p) => p.id === id)) lib = removePage(lib, id);
   for (const id of next.pageIds) {
     const pg = sessionLib.pages.find((p) => p.id === id);
-    if (pg) lib = upsertPage(lib, pg);
+    const inLibrary = library.pages.some((p) => p.id === id);
+    if (pg && !(base && inLibrary && sameDoc(pg, basePages.get(id)))) lib = upsertPage(lib, pg);
   }
-  return upsertSet(lib, next);
+  if (!baseSet || !old) return upsertSet(lib, next);
+  if (sameDoc(next, baseSet) && !removed.length) return lib;
+  // pages another device put into this notebook meanwhile stay in it
+  const now = lib.sets.find((st) => st.id === sid);
+  const added = (now?.pageIds ?? []).filter((id) => !keep.has(id) && !baseSet.pageIds.includes(id));
+  return upsertSet(lib, added.length ? { ...next, pageIds: [...next.pageIds, ...added] } : next);
+}
+
+const docJson = (doc) => (doc ? JSON.stringify({ ...doc, updatedAt: undefined }) : "");
+const sameDoc = (a, b) => Boolean(a && b) && docJson(a) === docJson(b);
+
+// Everything a notebook is made of (its set and its pages), to tell whether a sync changed it.
+export function notebookJson(library, sid) {
+  const st = library.sets.find((x) => x.id === sid);
+  if (!st) return "";
+  return JSON.stringify([st, ...st.pageIds.map((id) => library.pages.find((p) => p.id === id) ?? null)]);
 }
 
 export const setTitleOf = (lib, sid, title) => ({ ...lib, sets: lib.sets.map((st) => (st.id === sid ? { ...st, title } : st)) });

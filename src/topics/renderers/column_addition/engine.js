@@ -40,7 +40,11 @@ export function buildSubColumns(top, bottom, digits, bottomDigits = digits) {
     const borrowOut = needsBorrow ? 1 : 0;
     const effectiveTopDigit = effective + (needsBorrow ? 10 : 0);
     const writeDigit = effectiveTopDigit - bd[i];
-    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: effective, writeDigit });
+    // A zero lent through (302 − 195: the ones borrow, the tens have 0): it
+    // borrows from the next place itself and is left with 9, written over the
+    // crossed-out 0 — never «−1». See buildSubSteps.
+    const throughZero = effective < 0;
+    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: throughZero ? 9 : effective, writeDigit, ...(throughZero ? { throughZero } : {}) });
     borrow = borrowOut;
   }
   return cols;
@@ -64,11 +68,30 @@ function buildSubSteps(columns) {
   for (let i = 0; i < columns.length; i++) {
     const col = columns[i];
     const next = columns[i + 1];
+    // The zero in the middle was settled when the column below it borrowed
+    // (the school's order: the hundreds give first, 3 → 2, then the 0 of the
+    // tens becomes 10 and gives one, 9): only its result is left.
+    if (col.throughZero) {
+      if (next || col.writeDigit !== 0) steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
+      continue;
+    }
+    if (col.borrowOut > 0 && next?.throughZero) {
+      const far = columns[i + 2];
+      steps.push({ cellType: "borrow", position: col.position, digit: 1 });
+      steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
+      steps.push({ cellType: "crossout", position: far.position, digit: null });
+      steps.push({ cellType: "adjust", position: far.position, digit: far.topDigit - 1 });
+      steps.push({ cellType: "crossout", position: next.position, digit: null });
+      steps.push({ cellType: "adjust", position: next.position, digit: 9 });
+      continue;
+    }
     if (col.borrowOut > 0 && next) {
       // "borrow" sits at the column that RECEIVES the extra ten (the one that
       // was short) — the child types "1" here to acknowledge the borrow.
       steps.push({ cellType: "borrow", position: col.position, digit: 1 });
     }
+    // 102 − 7 = 95: a leading zero is not written.
+    if (!next && i > 0 && col.writeDigit === 0) continue;
     // The current column is finished — borrowed if it needed to, then its
     // own result — BEFORE touching the source column at all. Only once this
     // column is fully done does work move to the source (crossout+adjust
@@ -227,33 +250,13 @@ function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digi
 // "2+1" and "round10" are the two non-numeric `digits` values. "2+1" is a
 // shorthand for "top is 2-значное, bottom is 1-значное" (uneven width);
 // "round10" means both operands are plain multiples of 10 (even width, both
-// digits real — no bottomDigits narrowing needed). Both generateTasks and
-// generateExamples resolve either the same way: grid width (digits) stays 2.
+// digits real — no bottomDigits narrowing needed). Grid width (digits) stays 2.
 function resolveDigitsParam(digitsParam) {
   const mixedWidth = digitsParam === "2+1";
   const roundTens = digitsParam === "round10";
   const digits = mixedWidth || roundTens ? 2 : Number(digitsParam ?? 2);
   const bottomDigits = mixedWidth ? 1 : digits;
   return { digits, bottomDigits, roundTens };
-}
-
-export function generateExamples(count, params) {
-  const operation = params?.operation ?? "add";
-  const carryMode = params?.carryMode ?? "none";
-  const { digits, bottomDigits, roundTens } = resolveDigitsParam(params?.digits);
-  const fakeCard = { id: "copy", conceptId: "copy" };
-  const results = [];
-  const usedPairs = new Set();
-  let attempts = 0;
-  while (results.length < count && attempts < count * 30) {
-    attempts++;
-    const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
-    const t = op === "add"
-      ? generateAddTask(carryMode, digits, fakeCard, usedPairs, bottomDigits, roundTens)
-      : generateSubTask(carryMode, digits, fakeCard, usedPairs, bottomDigits, roundTens);
-    if (t) results.push({ operation: t.operation, top: t.top, bottom: t.bottom });
-  }
-  return results;
 }
 
 // Gate for the borrow-teaching UI (comparison strip + borrow/adjust squares):
@@ -292,6 +295,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const operation = params.operation ?? "add";
   const carryMode = params.carryMode ?? "none";
   const { digits, bottomDigits, roundTens } = resolveDigitsParam(params.digits);
+  const kind = TRAINER_KINDS[params.digits];
 
   const filtered   = operation === "mixed" ? arithmeticCards
     : arithmeticCards.filter(c => (c.params?.operation ?? "add") === operation);
@@ -305,11 +309,170 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     attempts++;
     const card = activePool[idx % activePool.length];
     const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
-    const task = op === "add"
-      ? generateAddTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens)
-      : generateSubTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens);
+    const task = kind ? trainerTaskOfKind(kind, op, carryMode, card, usedPairs)
+      : op === "add"
+        ? generateAddTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens)
+        : generateSubTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens);
     if (task) { tasks.push(task); idx++; }
   }
 
   return tasks;
+}
+
+// ── «Контрольная работа» (column_copy): a sheet of mixed kinds ───────────────
+// The adult ticks the kinds of examples; the sheet mixes them. Numbers stay
+// within three digits; only «Переход в новый разряд» lets the answer grow a
+// place (95 + 7 = 102, 650 + 470 = 1120) or lose one (102 − 7 = 95) — every
+// other kind keeps the answer as wide as the longer number, so a wrong width
+// is a mistake of that kind alone. «Перенос / заём» filters every kind but
+// that one (a new place is a carry by nature).
+export const COPY_KINDS = [
+  { key: "kind_22", id: "22", label: "2 + 2", example: "34 + 18" },
+  { key: "kind_21", id: "21", label: "2 + 1", example: "34 + 7" },
+  { key: "kind_33", id: "33", label: "3 + 3", example: "347 + 128" },
+  { key: "kind_32", id: "32", label: "3 + 2", example: "347 + 28" },
+  { key: "kind_31", id: "31", label: "3 + 1", example: "347 + 5" },
+  { key: "kind_round", id: "round", label: "Круглые", example: "40 + 30, 500 − 70" },
+  { key: "kind_zero", id: "zero", label: "С нулём", example: "305 − 7, 400 − 126" },
+  { key: "kind_newplace", id: "newplace", label: "Новый разряд", example: "95 + 7, 102 − 7" },
+];
+
+const width = (n) => String(n).length;
+export function hasCarry(a, b) {
+  let carry = 0;
+  for (; a || b; a = Math.floor(a / 10), b = Math.floor(b / 10)) {
+    carry = (a % 10) + (b % 10) + carry >= 10 ? 1 : 0;
+    if (carry) return true;
+  }
+  return false;
+}
+export function hasBorrow(a, b) {
+  let borrow = 0;
+  for (; a || b; a = Math.floor(a / 10), b = Math.floor(b / 10)) {
+    borrow = (a % 10) - borrow < (b % 10) ? 1 : 0;
+    if (borrow) return true;
+  }
+  return false;
+}
+const pickOne = (items) => items[Math.floor(Math.random() * items.length)];
+const ofWidth = (w) => randomInt(10 ** (w - 1), 10 ** w - 1);
+
+// One draw of a kind's shape: [top, bottom] before the checks below.
+function drawKind(kind, op) {
+  switch (kind) {
+    case "22": return [ofWidth(2), ofWidth(2)];
+    case "21": return [ofWidth(2), randomInt(2, 9)];
+    case "33": return [ofWidth(3), ofWidth(3)];
+    case "32": return [ofWidth(3), ofWidth(2)];
+    case "31": return [ofWidth(3), randomInt(2, 9)];
+    case "round": {
+      const shape = pickOne(["tens", "hundreds", "mixed"]);
+      if (shape === "tens") return [randomInt(1, 9) * 10, randomInt(1, 9) * 10];
+      if (shape === "hundreds") return [randomInt(1, 9) * 100, randomInt(1, 9) * 100];
+      // 340 + 200, 500 − 70, 600 − 40
+      return [randomInt(11, 99) * 10, Math.random() < 0.5 ? randomInt(1, 9) * 10 : randomInt(1, 9) * 100];
+    }
+    case "zero": {
+      // A zero inside the top number: 305, 340, 400 — the borrow through zero.
+      const h = randomInt(1, 9);
+      const top = pickOne([h * 100 + randomInt(1, 9), h * 100 + randomInt(1, 9) * 10, h * 100]);
+      return [top, pickOne([randomInt(2, 9), ofWidth(2), ofWidth(3)])];
+    }
+    case "newplace":
+      if (op === "add") {
+        return Math.random() < 0.5
+          ? [ofWidth(2), randomInt(1, 99)] // 95 + 7, 64 + 58 → 100…198
+          : [ofWidth(3), ofWidth(3)]; // 650 + 470 → 1000…1998
+      }
+      return [randomInt(100, 198), randomInt(1, 99)]; // 102 − 7, 121 − 56 → 2 digits
+    default: return [ofWidth(2), ofWidth(2)];
+  }
+}
+
+function fitsKind(kind, op, top, bottom) {
+  const answer = op === "add" ? top + bottom : top - bottom;
+  if (op === "subtract" && answer <= 0) return false;
+  const wide = Math.max(width(top), width(bottom));
+  if (kind === "newplace") return op === "add" ? width(answer) > wide : width(answer) < width(top);
+  // Bottom never longer than top; the answer as wide as the longer number.
+  if (width(bottom) > width(top)) return false;
+  if (kind === "round" && (top % 10 || bottom % 10)) return false;
+  if (kind === "zero" && !String(top).slice(1).includes("0")) return false;
+  return width(answer) === wide;
+}
+
+export function generateCopyExample(kind, op, carryMode, usedPairs) {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const [top, bottom] = drawKind(kind, op);
+    if (!fitsKind(kind, op, top, bottom)) continue;
+    if (kind !== "newplace" && carryMode !== "mixed") {
+      const crosses = op === "add" ? hasCarry(top, bottom) : hasBorrow(top, bottom);
+      if (crosses !== (carryMode === "carry")) continue;
+    }
+    const pairKey = `${op}:${top},${bottom}`;
+    if (usedPairs?.has(pairKey)) continue;
+    usedPairs?.add(pairKey);
+    return { operation: op, top, bottom, kind };
+  }
+  return null;
+}
+
+// The ticked kinds take turns, the sheet's order is mixed, the same kind never
+// twice in a row when it can be helped. A kind that can't be made with this
+// «Перенос / заём» (round tens without a carry can't reach…) just gives way.
+export function generateCopySheet(count, params) {
+  const operation = params?.operation ?? "add";
+  const carryMode = params?.carryMode ?? "none";
+  let kinds = COPY_KINDS.filter((k) => params?.[k.key]).map((k) => k.id);
+  if (!kinds.length) kinds = ["22"];
+  const usedPairs = new Set();
+  const order = [...kinds].sort(() => Math.random() - 0.5);
+  const sheet = [];
+  for (let i = 0, misses = 0; sheet.length < count && misses < count * 4; i++) {
+    const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
+    const ex = generateCopyExample(order[i % order.length], op, carryMode, usedPairs);
+    if (ex) sheet.push(ex); else misses++;
+  }
+  for (let i = sheet.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [sheet[i], sheet[j]] = [sheet[j], sheet[i]]; }
+  for (let i = 1; i < sheet.length; i++) {
+    if (sheet[i].kind === sheet[i - 1].kind) {
+      const j = sheet.findIndex((e, k) => k > i && e.kind !== sheet[i - 1].kind);
+      if (j > 0) [sheet[i], sheet[j]] = [sheet[j], sheet[i]];
+    }
+  }
+  return sheet;
+}
+
+// «Контрольная работа» on the tablet: one example of the sheet as a trainer
+// task (the child sets it up in the column and solves it).
+export function columnTaskOfExample(ex) {
+  return trainerTaskFrom(ex, { id: "copy", conceptId: "copy" });
+}
+
+// «Разрядность» of the trainer that come from the sheet's kinds (3 + 2, 3 + 1,
+// круглые до 1000, с нулём): numbers as in the check, the grid as wide as the
+// top number — the answer never grows a place here (no «Новый разряд»).
+const TRAINER_KINDS = { "3+2": "32", "3+1": "31", round: "round", zero: "zero" };
+
+function trainerTaskOfKind(kind, op, carryMode, card, usedPairs) {
+  const ex = generateCopyExample(kind, op, carryMode, usedPairs);
+  return ex && trainerTaskFrom(ex, card);
+}
+
+function trainerTaskFrom(ex, card) {
+  const op = ex.operation;
+  const digits = width(ex.top), bottomDigits = width(ex.bottom);
+  const columns = op === "add" ? buildAddColumns(ex.top, ex.bottom, digits, bottomDigits) : buildSubColumns(ex.top, ex.bottom, digits, bottomDigits);
+  return {
+    type: "column_arithmetic",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    operation: op,
+    digits,
+    top: ex.top,
+    bottom: ex.bottom,
+    result: op === "add" ? ex.top + ex.bottom : ex.top - ex.bottom,
+    columns,
+    steps: op === "add" ? buildAddSteps(columns) : buildSubSteps(columns),
+  };
 }

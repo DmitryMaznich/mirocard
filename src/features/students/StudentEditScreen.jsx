@@ -1,4 +1,10 @@
+import RewardSettingsSection from "@/features/rewards/RewardSettingsSection.jsx";
+import { normalizeRewardSettings } from "../../../shared/reward-policy.mjs";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi as t } from "@/shared/i18n/uiLanguage.js";
 import { useState, useRef, useCallback, useMemo } from "react";
+import { LANGUAGES } from "../../../shared/languages.mjs";
+import LessonLanguagePicker from "@/shared/components/LessonLanguagePicker.jsx";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
@@ -22,22 +28,23 @@ function normaliseVideos(raw) {
   );
 }
 function photoErrorMessage(error) {
-  return error instanceof PhotoPrepareError ? error.message : "Не получилось добавить фото. Попробуйте ещё раз.";
+  return error instanceof PhotoPrepareError ? error.message : t("students.photoError");
 }
 
-const LANGS = [
-  { value: "",   label: "Не задан" },
-  { value: "ru", label: "Русский"  },
-  { value: "en", label: "English"  },
-];
-
-const SEXES = [
-  { value: "",  label: "Не указан" },
-  { value: "m", label: "Мальчик"   },
-  { value: "f", label: "Девочка"   },
-];
-
 export default function StudentEditScreen() {
+  const { t } = useUiTranslation();
+  const LANGS = [
+    { value: "",   label: t("students.unset") },
+    ...LANGUAGES.map(({ code, label }) => ({ value: code, label })),
+  ];
+
+  const SEXES = [
+    { value: "",  label: t("students.unspecified") },
+    { value: "m", label: t("students.boy")   },
+    { value: "f", label: t("students.girl")   },
+  ];
+
+
   const setScreen           = useAppStore((s) => s.setScreen);
   const students            = useAppStore((s) => s.students);
   const setStudents         = useAppStore((s) => s.setStudents);
@@ -52,10 +59,13 @@ export default function StudentEditScreen() {
   const [name,         setName]         = useState(initial?.name ?? "");
   const [comment,      setComment]      = useState(initial?.comment ?? "");
   const [lang,         setLang]         = useState(initial?.primaryLanguage ?? "");
+  const [lessonLanguage, setLessonLanguage] = useState(initial?.preferredLessonLanguage ?? null);
   const [sex,          setSex]          = useState(initial?.sex ?? "");
   const [photo,        setPhoto]        = useState(initial?.photo ?? null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const initialRewardSettingsRef = useRef(normalizeRewardSettings(initial?.rewardSettings));
+  const [rewardSettings, setRewardSettings] = useState(() => initialRewardSettingsRef.current);
   const [videos,       setVideos]       = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput,   setVideoInput]   = useState("");
   const [videoError,   setVideoError]   = useState("");
@@ -83,16 +93,16 @@ export default function StudentEditScreen() {
   const videosHintRef = useRef(null);
   const saveHintRef = useRef(null);
   const hintSteps = useMemo(() => [
-    { targetRef: nameHintRef, title: "Введите имя ученика", text: "Имя нужно, чтобы сохранить профиль и узнавать ученика в списке. Остальные поля можно заполнить позже." },
-    { targetRef: photoHintRef, title: "Добавьте фото", text: "Нажмите на аватар, чтобы выбрать фотографию ученика. Фото добавлять необязательно." },
-    { targetRef: notesHintRef, title: "Запишите важное", text: "Здесь можно указать цели занятий и особенности ученика. Если заполняете заметки, отметьте согласие ниже." },
-    { targetRef: sexHintRef, title: "Укажите пол", text: "Эта настройка используется в теме «Мои люди» для вопроса «Ты мальчик или девочка?». Можно оставить «Не указан»." },
-    { targetRef: languageHintRef, title: "Выберите основной язык", text: "Укажите язык, на котором общается ученик. Эта информация будет отображаться в профиле; можно оставить «Не задан»." },
-    { targetRef: peopleHintRef, title: "Добавьте окружение", text: "Здесь можно добавить знакомых людей и питомцев для занятий. При переходе приложение сначала сохранит профиль." },
-    ...(isEdit ? [{ targetRef: datesHintRef, title: "Добавьте важные даты", text: "Дни рождения, праздники и события появятся на экране «Сегодня». Добавлять даты необязательно." }] : []),
-    { targetRef: videosHintRef, title: "Подберите видео-награды", text: "Вставьте ссылку на любимое видео YouTube и нажмите «Добавить». Эти ролики используются для поощрения во время занятий." },
-    { targetRef: saveHintRef, title: "Сохраните настройки", text: "Когда закончите, нажмите «Сохранить». Подсказки сами ничего не меняют и не сохраняют." },
-  ], [isEdit]);
+    { targetRef: nameHintRef, title: t("students.enterName"), text: t("students.hintNameText") },
+    { targetRef: photoHintRef, title: t("students.hintPhoto"), text: t("students.hintPhotoText") },
+    { targetRef: notesHintRef, title: t("students.hintNotes"), text: t("students.hintNotesText") },
+    { targetRef: sexHintRef, title: t("students.hintSex"), text: t("students.hintSexText") },
+    { targetRef: languageHintRef, title: t("students.hintLanguage"), text: t("students.hintLanguageText") },
+    { targetRef: peopleHintRef, title: t("students.hintPeople"), text: t("students.hintPeopleText") },
+    ...(isEdit ? [{ targetRef: datesHintRef, title: t("students.hintDates"), text: t("students.hintDatesText") }] : []),
+    { targetRef: videosHintRef, title: t("students.hintVideos"), text: t("students.hintVideosText") },
+    { targetRef: saveHintRef, title: t("students.hintSave"), text: t("students.hintSaveText") },
+  ], [isEdit, t]);
 
   function goBack() {
     closeHints();
@@ -118,9 +128,9 @@ export default function StudentEditScreen() {
   async function handleSave(destination = null) {
     closeHints();
     let savedId = initial?.id;
-    if (!name.trim()) { setNameError("Введите имя ученика"); return; }
+    if (!name.trim()) { setNameError(t("students.enterName")); return; }
     if (comment.trim() && !healthDataConsent) {
-      setHealthConsentError("Отметьте согласие ниже, если в заметках есть сведения о здоровье или особенностях развития");
+      setHealthConsentError(t("students.consentError"));
       return;
     }
     setHealthConsentError("");
@@ -131,9 +141,13 @@ export default function StudentEditScreen() {
     const healthDataConsentAt = healthDataConsent
       ? (healthConsentChanged ? ts : (initial?.healthDataConsentAt ?? ts))
       : null;
+    const rewardSettingsChanged = JSON.stringify(rewardSettings) !== JSON.stringify(initialRewardSettingsRef.current);
     const data = {
+      ...(!isEdit || rewardSettingsChanged ? { rewardSettings, rewardSettingsUpdatedAt: ts } : {}),
       name: name.trim(), comment: comment.trim(),
       primaryLanguage: lang || null,
+      ...(!isEdit || lessonLanguage !== (initial?.preferredLessonLanguage ?? null)
+        ? { preferredLessonLanguage: lessonLanguage } : {}),
       sex: sex || null,
       rewardVideos: videos,
       healthDataConsent, healthDataConsentAt,
@@ -158,9 +172,16 @@ export default function StudentEditScreen() {
       // student.upsert covers only name/comment/language/sex — photo, video rewards and
       // close adults are each synced independently (their own op + timestamp), so a
       // stale device that hasn't seen another device's additions can't erase them.
-      pushOp("student.upsert", { ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined });
+      pushOp("student.upsert", {
+        ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined, rewardSettings: undefined, rewardSettingsUpdatedAt: undefined,
+        // An untouched field must not clear a choice made on another device.
+        preferredLessonLanguage: lessonLanguage !== (initial?.preferredLessonLanguage ?? null) ? lessonLanguage : undefined,
+      });
       if (photoChanged) {
         pushOp("student.photo.upsert", { studentId: initial.id, photo: photo ?? null, photoUpdatedAt: ts });
+      }
+      if (rewardSettingsChanged) {
+        pushOp("student.reward_settings.upsert", { studentId: initial.id, settings: rewardSettings, updatedAt: ts });
       }
       if (videosChanged) {
         pushOp("student.videos.upsert", { studentId: initial.id, rewardVideos: videos, updatedAt: ts });
@@ -202,7 +223,7 @@ export default function StudentEditScreen() {
 
   async function addVideo() {
     const url = videoInput.trim();
-    if (!isValidYoutubeUrl(url)) { setVideoError("Неверная ссылка YouTube"); return; }
+    if (!isValidYoutubeUrl(url)) { setVideoError(t("students.invalidVideo")); return; }
     setVideoLoading(true); setVideoError("");
     const title = await fetchYoutubeTitle(url);
     setVideos((prev) => [...prev, { url, title }]);
@@ -218,10 +239,10 @@ export default function StudentEditScreen() {
         if (!event.target.closest('.screen-hint-button')) closeHints();
       }}>
         <button className="back-btn" onClick={goBack}><BackArrowIcon /></button>
-        <h1 className="screen-title">{isEdit ? initial.name : isFirstEver ? "Первый ученик" : "Новый ученик"}</h1>
+        <h1 className="screen-title">{isEdit ? initial.name : isFirstEver ? t("students.first") : t("students.new")}</h1>
         <HintButton onClick={() => setHintsOpen(true)} hidden={hintsOpen} />
         <button ref={saveHintRef} className="se-save-btn" onClick={handleSave} disabled={saving}>
-          {saving ? "…" : "Сохранить"}
+          {saving ? "…" : t("common.save")}
         </button>
       </div>
 
@@ -233,14 +254,14 @@ export default function StudentEditScreen() {
 
         {/* ── Профиль ── */}
         <div className="settings-section">
-          <div className="settings-section-title student-data-heading">Имя и фото <StudentDataInfo kind="profile" /></div>
+          <div className="settings-section-title student-data-heading">{t("students.namePhoto")}<StudentDataInfo kind="profile" /></div>
           <div className="se-profile-row">
             <button
               type="button"
               ref={photoHintRef}
               className="se-photo-btn"
               onClick={() => studentPhotoRef.current?.click()}
-              title="Изменить фото"
+              title={t("students.changePhoto")}
             >
               {photo
                 ? <AuthenticatedImage src={photo} className="se-photo-btn__img" alt="" />
@@ -254,7 +275,7 @@ export default function StudentEditScreen() {
               type="text"
               value={name}
               onChange={(e) => { setName(e.target.value); setNameError(""); }}
-              placeholder="Имя ученика"
+              placeholder={t("students.name")}
               autoFocus={!isEdit}
             />
             <input
@@ -267,13 +288,13 @@ export default function StudentEditScreen() {
           </div>
           {nameError && <div className="se-name-error">{nameError}</div>}
           {photoError && <div className="se-name-error" role="alert">{photoError}</div>}
-          <div className="settings-section-title student-data-heading">Заметки <StudentDataInfo kind="notes" /></div>
+          <div className="settings-section-title student-data-heading">{t("students.notes")}<StudentDataInfo kind="notes" /></div>
           <textarea
             ref={notesHintRef}
             className="se-comment-input"
             value={comment}
             onChange={(e) => { setComment(e.target.value); setHealthConsentError(""); }}
-            placeholder="Заметки, особенности, цели…"
+            placeholder={t("students.notesPlaceholder")}
             rows={3}
           />
           <label className="se-health-consent">
@@ -282,17 +303,14 @@ export default function StudentEditScreen() {
               checked={healthDataConsent}
               onChange={(e) => { setHealthDataConsent(e.target.checked); setHealthConsentError(""); }}
             />
-            <span>
-              В заметках есть сведения о здоровье или особенностях развития ребёнка — даю согласие
-              на их обработку
-            </span>
+            <span>{t("students.consent")}</span>
           </label>
           {healthConsentError && <div className="se-name-error">{healthConsentError}</div>}
         </div>
 
         {/* ── Пол ── */}
         <div ref={sexHintRef} className="settings-section">
-          <div className="settings-section-title student-data-heading">Пол <StudentDataInfo kind="sex" /></div>
+          <div className="settings-section-title student-data-heading">{t("students.sex")}<StudentDataInfo kind="sex" /></div>
           {SEXES.map(({ value, label }) => (
             <button
               key={value}
@@ -308,7 +326,7 @@ export default function StudentEditScreen() {
 
         {/* ── Язык ── */}
         <div ref={languageHintRef} className="settings-section">
-          <div className="settings-section-title student-data-heading">Язык <StudentDataInfo kind="language" /></div>
+          <div className="settings-section-title student-data-heading">{t("students.language")}<StudentDataInfo kind="language" /></div>
           {LANGS.map(({ value, label }) => (
             <button
               key={value}
@@ -322,37 +340,44 @@ export default function StudentEditScreen() {
           ))}
         </div>
 
+        <div className="settings-section">
+          <LessonLanguagePicker value={lessonLanguage} onChange={setLessonLanguage} inherit />
+        </div>
+
        </div>{/* /se-col left */}
        <div className="se-col">
 
         <div className="settings-section se-my-people-card">
-          <div className="settings-section-title">Окружение ребёнка</div>
-          <p>Добавьте знакомых людей и питомцев — их фотографии будут использоваться в занятиях.</p>
+          <div className="settings-section-title">{t("students.people")}</div>
+          <p>{t("students.peopleHelp")}</p>
           <button ref={peopleHintRef} type="button" className="se-add-row" disabled={saving} onClick={() => handleSave('my_people_settings')}>
-            {isEdit ? 'Настроить окружение' : 'Сохранить и добавить окружение'}
+            {isEdit ? t("students.setupPeople") : t("students.savePeople")}
           </button>
         </div>
 
         {/* ── Важные даты ── */}
         {isEdit && (
           <div className="settings-section se-my-people-card">
-            <div className="settings-section-title student-data-heading">Важные даты <StudentDataInfo kind="dates" /></div>
-            <p>Дни рождения, праздники и события — для экрана «Сегодня».</p>
+            <div className="settings-section-title student-data-heading">{t("students.dates")}<StudentDataInfo kind="dates" /></div>
+            <p>{t("students.datesHelp")}</p>
             <button ref={datesHintRef} type="button" className="se-add-row" onClick={() => { useAppStore.getState().setImportantDatesReturnScreen("student_edit"); setScreen("important_dates_settings"); }}>
-              {initial.importantDates?.some((item) => !item.deletedAt) ? "Настроить даты" : "Добавить даты"}
+              {initial.importantDates?.some((item) => !item.deletedAt) ? t("students.setupDates") : t("students.addDates")}
             </button>
           </div>
         )}
 
+        <div className="settings-section">
+          <RewardSettingsSection value={rewardSettings} onChange={setRewardSettings} />
+        </div>
         {/* ── Видео-награды ── */}
         <div className="settings-section">
-          <div className="settings-section-title student-data-heading">Видео-награды <StudentDataInfo kind="videos" /></div>
+          <div className="settings-section-title student-data-heading">{t("students.videos")}<StudentDataInfo kind="videos" /></div>
           {videos.map((v, idx) => (
             <div key={idx} className="se-list-row">
               <span className="se-video-icon">▶</span>
               <span className="se-list-name">
                 {v.title || getVideoUrl(v)}
-                <span className="reward-video-view-count">Показано: {rewardVideoViewCount(initial?.rewardVideoViews, extractYoutubeId(getVideoUrl(v)))} раз</span>
+                <span className="reward-video-view-count">{t("students.views", { count: rewardVideoViewCount(initial?.rewardVideoViews, extractYoutubeId(getVideoUrl(v))) })}</span>
               </span>
               <button className="se-list-remove" onClick={() => setVideos((p) => p.filter((_, i) => i !== idx))}>✕</button>
             </div>
@@ -368,7 +393,7 @@ export default function StudentEditScreen() {
               onKeyDown={(e) => e.key === "Enter" && addVideo()}
             />
             <button className="se-video-add-btn" onClick={addVideo} disabled={videoLoading}>
-              {videoLoading ? "…" : "Добавить"}
+              {videoLoading ? "…" : t("common.add")}
             </button>
           </div>
           {videoError && <div className="form-error se-video-error">{videoError}</div>}
@@ -382,18 +407,15 @@ export default function StudentEditScreen() {
         <div className="se-delete-footer">
           {confirmDel ? (
             <div className="se-delete-confirm se-delete-confirm--footer">
-              <div className="se-delete-confirm__text">
-                Удалить <strong>{initial.name}</strong>? История сессий будет утеряна.
+              <div className="se-delete-confirm__text">{t("students.deleteConfirm", { name: initial.name })}
               </div>
               <div className="se-delete-confirm__actions">
-                <Button variant="secondary" onClick={() => setConfirmDel(false)}>Отмена</Button>
-                <Button variant="danger" onClick={handleDelete}>Удалить</Button>
+                <Button variant="secondary" onClick={() => setConfirmDel(false)}>{t("common.cancel")}</Button>
+                <Button variant="danger" onClick={handleDelete}>{t("common.delete")}</Button>
               </div>
             </div>
           ) : (
-            <button className="se-delete-link" onClick={() => { closeHints(); setConfirmDel(true); }}>
-              Удалить ученика
-            </button>
+            <button className="se-delete-link" onClick={() => { closeHints(); setConfirmDel(true); }}>{t("students.deleteAction")}</button>
           )}
         </div>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { TileGlyph } from "./Propis2Carousel";
 import * as I from "./Propis2Icons";
 import { useHint } from "./Propis2Hint";
+import { usePopupPos } from "./usePopupPos";
 
 // The constructor's one input: a multi-line field that grows with its text up to the room it has (then it scrolls) and
 // a button with the list of the deck's elements. The system keyboard does the typing: no letter tiles.
@@ -10,6 +11,9 @@ import { useHint } from "./Propis2Hint";
 export function ElementPicker({ elements, disabled, onInsert }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const btnRef = useRef(null);
+  // fixed to the screen under the button (usePopupPos): the button lives in the row's tool strip, which clips what sticks out of it
+  const panelStyle = usePopupPos(open, btnRef, 360, () => setOpen(false));
   const { bind, tip } = useHint("Элементы");
   useEffect(() => {
     if (!open) return undefined;
@@ -21,13 +25,13 @@ export function ElementPicker({ elements, disabled, onInsert }) {
   }, [open]);
   return (
     <div className="p2-pick p2-elements" ref={wrapRef}>
-      <button type="button" className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
         <span className="p2-tool-ico"><I.IconElement /></span>
         <span className="p2-cap">Элемент</span>
         {tip}
       </button>
       {open && (
-        <div className="p2-elements-panel" role="dialog" aria-label="Элементы">
+        <div className="p2-elements-panel" role="dialog" aria-label="Элементы" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           {elements.map((tile) => (
             <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
               <TileGlyph tile={tile} size={64} />

@@ -1,3 +1,4 @@
+import "./browserCompatibility.js";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import * as React from "react";

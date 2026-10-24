@@ -1,3 +1,6 @@
+import { effectiveRewardSettings, rewardPolicy, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
+import { selectedTopicLanguage } from "../../../shared/topic-language-contract.mjs";
+import { createContentContext } from "../../../shared/topic-language-contract.mjs";
 import { recordUsage } from "@/shared/hooks/useUsageTracking";
 import { peopleFor } from "../../../shared/student-people.mjs";
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -6,7 +9,7 @@ import { getDb, kv } from "@/core/db";
 import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
-import { aboutMeHistory } from "@/topics/renderers/my_people/engine";
+import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
 import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
@@ -22,11 +25,11 @@ import {
 const INCORRECT_FEEDBACK_MS = 1500;
 const ignoreCardEvent = () => {};
 
-function resolveStrictStars(mode, savedValue) {
+function resolveStrictStars(mode, savedValue, flexible = false) {
   // Some reaction drills are a true "correct answers in a row" exercise.
   // Their progression must not inherit a soft-count setting saved in another
   // mode of the same topic.
-  if (mode?.rewardDefaults?.forceStrictStars) return true;
+  if (mode?.rewardDefaults?.forceStrictStars && !flexible) return true;
   return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
 }
 
@@ -51,7 +54,20 @@ function resolveMode(topicRecord, modeId) {
 // so a freshly picked next mode gets the same concept selection a normal
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
-  const sessionParams = { ...readModeParams(link.params, mode), strictStars: resolveStrictStars(mode, link.strictStars) };
+  const selectedStudent = useAppStore.getState().students.find(s => s.id === useAppStore.getState().activeStudentId);
+  const flexible = effectiveRewardSettings(selectedStudent?.rewardSettings).algorithm === "flexible";
+  // Legacy ZIP renderers use this field only to forward intermediate mistakes.
+  // In the new policy always collect them; the engine decides whether to penalize.
+  const sessionParams = { ...readModeParams(link.params, mode), strictStars: flexible || resolveStrictStars(mode, link.strictStars) };
+  if (flexible) {
+    sessionParams.rewardPolicyVersion = 2;
+    sessionParams.rewardLossMode = effectiveRewardSettings(selectedStudent.rewardSettings).lossMode;
+  }
+  if (topicRecord?.languageContract) {
+    const state = useAppStore.getState();
+    const student = state.students.find((s) => s.id === state.activeStudentId);
+    sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params, student?.preferredLessonLanguage, state.settings.cardLanguage);
+  }
   const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
     && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
@@ -109,7 +125,7 @@ export function cardsForRenderer(topicRecord, mode, selectedConceptIds) {
   };
 }
 
-function buildGeneratedSessionState({
+export function buildGeneratedSessionState({
   topicRecord,
   mode,
   activeStudentId,
@@ -123,6 +139,12 @@ function buildGeneratedSessionState({
 }) {
   if (!topicRecord || !mode) return null;
 
+  let languageContext = null;
+  if (topicRecord.languageContract) {
+    try { languageContext = createContentContext(topicRecord, mode, sessionParams); }
+    catch { return null; } // Invalid/unavailable material must never start with a fallback.
+  }
+  const contentArgs = languageContext ? [languageContext, topicRecord.languageResources.content[languageContext.contentLanguage]] : [];
   const renderer = topicRecord.meta.renderer;
   let tasks;
   let isDeckMode = false;
@@ -192,12 +214,12 @@ function buildGeneratedSessionState({
     // selection cannot silently hide the requested cards.
     const { selectedCards, cards: cardsForEngine } = cardsForRenderer(topicRecord, mode, selectedConceptIds);
     tasks = generateTasks
-      ? generateTasks(mode, cardsForEngine, sessionSize, sessionParams)
+      ? generateTasks(mode, cardsForEngine, sessionSize, sessionParams, ...contentArgs)
       : [];
     // If the concept filter excluded cards required for this mode (e.g. only finger cards
     // selected but mode needs arithmetic cards), fall back to all cards so the session starts.
     if (!tasks.length && selectedCards.length && generateTasks) {
-      tasks = generateTasks(mode, topicRecord.cards, sessionSize, sessionParams);
+      tasks = generateTasks(mode, topicRecord.cards, sessionSize, sessionParams, ...contentArgs);
     }
   }
 
@@ -215,10 +237,18 @@ function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    resolveStrictStars(mode, link.strictStars),
+    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? effectiveRewardSettings(activeStudent.rewardSettings).strictStars : resolveStrictStars(mode, link.strictStars),
+    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible"
+      ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), effectiveRewardSettings(activeStudent.rewardSettings).lossMode) : undefined,
   );
 
-  baseState.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
+  baseState.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
+  baseState.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: baseState.strictStars }, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
+
+  if (languageContext) {
+    baseState.languageContext = languageContext;
+    baseState.statistics.conditions.languageContext = languageContext;
+  }
 
   if (mode.type === "assemble_text") {
     const totalWords = tasks.reduce((sum, task) => sum + (task.tokenCount ?? 0), 0);
@@ -287,6 +317,11 @@ export function useSessionEngine() {
       modeId: activeModeId,
       topicVersion: topicRecord.meta.version,
       conceptIds: selectedConceptIds,
+      languageContext: generatedState.languageContext,
+      params: generatedState.statistics?.conditions?.params,
+      rewardPolicy: generatedState.rewardPolicy,
+      rewardSettings: generatedState.rewardSettings,
+      strictStars: generatedState.strictStars,
     }) ?? generatedState;
   });
   const { getActiveDurationMs } = useActiveSessionTimer(
@@ -313,8 +348,11 @@ export function useSessionEngine() {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionState(() => {
-      const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null);
-      rebuilt.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, selectedConceptIds, null);
+      const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null, false, link.answersPerStar ?? 1,
+        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? effectiveRewardSettings(activeStudent.rewardSettings).strictStars : resolveStrictStars(mode, link.strictStars),
+        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), effectiveRewardSettings(activeStudent.rewardSettings).lossMode) : undefined);
+      rebuilt.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
+      rebuilt.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: rebuilt.strictStars }, tasks, selectedConceptIds, null);
       return rebuilt;
     });
   }, [activeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -602,7 +640,7 @@ export function useSessionEngine() {
   const onPrevious = useCallback(() => {
     setSessionState(s => {
       if (s.taskIndex <= 0) return s;
-      return { ...markSessionAction(s), taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
+      return { ...rewardAttemptComplete(markSessionAction(s)), taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
     });
   }, []);
 
@@ -622,7 +660,9 @@ export function useSessionEngine() {
         if (next.status === "completed") finishSession(next);
         return next;
       }
-      const next = handleAnswer(s, true, conceptId, cardId, options);
+      let next = handleAnswer(s, true, conceptId, cardId, options);
+      // «Мои люди»: a trial answered only with help comes back a little later.
+      if (options.retryLater) next = { ...next, tasks: insertRetryTrial(next.tasks, next.taskIndex) };
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
@@ -738,13 +778,14 @@ export function useSessionEngine() {
     currentTask,
     mode,
     topicRecord,
-    sessionParams,
+    sessionParams: { ...sessionParams, strictStars: sessionState?.rewardPolicy?.version === 2 ? true : sessionState?.strictStars },
     completedRecord,
     rewardProgress,
     streakCount,
     bestStreak,
     answersPerStar,
     rewardPending,
+    rewardChangeReason: sessionState?.rewardChangeReason,
     clearRewardPending,
     deckExhausted,
     sessionSaveError,

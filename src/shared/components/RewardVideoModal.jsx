@@ -1,9 +1,11 @@
+import { useRewardSettings } from "@/features/rewards/useRewardSettings.js";
+import { rewardVideoSeconds } from "../../../shared/reward-policy.mjs";
 import { useState, useEffect, useRef } from "react";
+import { flushSync } from "react-dom";
 import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { formatRewardTime } from "@/shared/utils/format";
 import { recordRewardVideoView } from "@/core/rewardVideoViews";
 
-const REWARD_SECONDS = 120;
 
 function blockInteraction(event) {
   if (event.target instanceof Element && event.target.closest(".video-reward-close")) return;
@@ -14,19 +16,34 @@ function blockInteraction(event) {
 export default function RewardVideoModal({
   rewardVideos = [],
   studentId,
+  settingsOverride,
   onDismiss,
   title = "Молодец! 🎉",
 }) {
-  const [videoUrl, setVideoUrl] = useState(null);
+  const currentSettings = useRewardSettings(studentId);
+  // A promised prize keeps its duration even if a remote device edits the student.
+  const [rewardSettings] = useState(() => settingsOverride ?? currentSettings);
+  const maxSeconds = rewardVideoSeconds(rewardSettings);
+  const [videoBudget, setVideoBudget] = useState(maxSeconds);
+  const playbackElapsedRef = useRef(0);
+  const [videoId, setVideoId] = useState(null);
+  const [playerReady, setPlayerReady] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [playbackError, setPlaybackError] = useState(null);
+  const iframeRef = useRef(null);
+  const playerHostRef = useRef(null);
+  const playerRef = useRef(null);
+  const watchRequestedRef = useRef(false);
+  const expiredRef = useRef(false);
   const viewRecordedRef = useRef(false);
 
   useEffect(() => {
-    if (!videoUrl || viewRecordedRef.current) return;
+    if (!videoId || !hasStarted || viewRecordedRef.current) return;
     viewRecordedRef.current = true;
-    const videoId = videoUrl.split("/embed/")[1].split("?")[0];
     recordRewardVideoView(studentId, videoId).catch((error) => console.error("Не удалось сохранить показ видео", error));
-  }, [videoUrl, studentId]);
+  }, [videoId, hasStarted, studentId]);
 
   // Some callers (e.g. column_addition's "Контрольная работа") pass an
   // inline onDismiss that's a new function on every one of their renders.
@@ -39,75 +56,176 @@ export default function RewardVideoModal({
   useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
 
   useEffect(() => {
-    if (!videoUrl) return undefined;
-    const t = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) { clearInterval(t); onDismissRef.current?.(); return 0; }
-        return prev - 1;
+    let disposed = false;
+    let player;
+    let started = false;
+    let poll;
+    let timeout;
+    const fail = () => {
+      if (disposed) return;
+      clearInterval(poll);
+      clearTimeout(timeout);
+      setIsPlaying(false);
+      setPlayerReady(false);
+      playerRef.current = null;
+      if (!window.YT?.Player) document.getElementById("reward-youtube-api")?.remove();
+      setPlaybackError("Не удалось загрузить видео. Закройте его и попробуйте ещё раз.");
+    };
+    function handlePlayerState(event) {
+      if (disposed || !watchRequestedRef.current) return;
+      const playing = event.data === 1;
+      setIsPlaying(playing);
+      if (playing) {
+        clearTimeout(timeout);
+        if (!started) {
+          const duration = playerRef.current?.getDuration?.();
+          if (Number.isFinite(duration) && duration > 0) {
+            const budget = Math.min(maxSeconds, Math.ceil(duration));
+            setVideoBudget(budget);
+            setSecondsLeft(budget);
+          }
+        }
+        started = true;
+        setHasStarted(true);
+        setPlaybackError(null);
+      }
+      if (event.data === 0 && started && !expiredRef.current) {
+        expiredRef.current = true;
+        onDismissRef.current?.();
+      }
+    }
+    function connect() {
+      if (disposed || !window.YT?.Player) return;
+      clearInterval(poll);
+      player = new window.YT.Player(iframeRef.current, {
+        events: {
+          onReady: (event) => {
+            if (disposed) return;
+            clearTimeout(timeout);
+            playerRef.current = event.target;
+            setPlayerReady(true);
+          },
+          onStateChange: handlePlayerState,
+          onError: fail,
+        },
       });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [videoUrl]);
+    }
+    // Prepare a silent, idle player before Watch is pressed. Creating it in
+    // the click handler defers playback until onReady, losing Safari's gesture.
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://www.youtube.com/embed/?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&autoplay=0&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3`;
+    iframe.allow = "accelerometer; autoplay; encrypted-media";
+    iframe.title = "Reward video";
+    iframe.className = "video-reward-iframe";
+    iframe.style.pointerEvents = "auto";
+    playerHostRef.current.appendChild(iframe);
+    iframeRef.current = iframe;
+    poll = setInterval(connect, 100);
+    timeout = setTimeout(fail, 15000);
+    if (!window.YT?.Player && !document.getElementById("reward-youtube-api")) {
+      const script = document.createElement("script");
+      script.id = "reward-youtube-api";
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      document.head.appendChild(script);
+    }
+    connect();
+    return () => {
+      disposed = true;
+      clearInterval(poll);
+      clearTimeout(timeout);
+      playerRef.current = null;
+      player?.destroy();
+      iframe.remove();
+      iframeRef.current = null;
+    };
+  }, [maxSeconds]);
+
+  useEffect(() => {
+    if (iframeRef.current) iframeRef.current.style.pointerEvents = isPlaying ? "none" : "auto";
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!isPlaying) return undefined;
+    const start = performance.now();
+    const update = () => setSecondsLeft(Math.max(0, Math.ceil((videoBudget * 1000 - playbackElapsedRef.current - (performance.now() - start)) / 1000)));
+    const timer = setInterval(update, 250);
+    return () => {
+      playbackElapsedRef.current += Math.max(0, performance.now() - start);
+      clearInterval(timer);
+    };
+  }, [isPlaying, videoBudget]);
+
+  useEffect(() => {
+    if (!hasStarted || secondsLeft > 0 || expiredRef.current) return;
+    expiredRef.current = true;
+    onDismissRef.current?.();
+  }, [hasStarted, secondsLeft]);
 
   function handleWatch() {
-    const videoId = pickStoredRewardVideoId(rewardVideos, `student:${studentId ?? "unknown"}`);
-    if (!videoId) { onDismiss(); return; }
-    setVideoUrl(
-      `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`
-    );
-    setSecondsLeft(REWARD_SECONDS);
+    const player = playerRef.current;
+    if (!player || watchRequestedRef.current) return;
+    const selectedId = pickStoredRewardVideoId(rewardVideos, `student:${studentId ?? "unknown"}`);
+    if (!selectedId) { onDismiss(); return; }
+    watchRequestedRef.current = true;
+    // Reveal the same prepared iframe and start it in this click's call stack.
+    // No effect, timer, network callback, or iframe replacement before playback.
+    flushSync(() => {
+      setVideoId(selectedId);
+      setSecondsLeft(maxSeconds);
+      setPlaybackError(null);
+    });
+    player.unMute();
+    player.loadVideoById(selectedId);
   }
 
-  if (videoUrl) {
-    return (
+  return (
+    <>
       <div
         className="video-reward-overlay"
-        onClickCapture={blockInteraction}
+        style={{ visibility: videoId ? "visible" : "hidden" }}
+        aria-hidden={!videoId}
+        onClickCapture={isPlaying ? blockInteraction : undefined}
         onContextMenu={blockInteraction}
-        onPointerDown={blockInteraction}
-        onPointerMove={blockInteraction}
-        onPointerUp={blockInteraction}
-        onTouchStart={blockInteraction}
-        onTouchMove={blockInteraction}
-        onTouchEnd={blockInteraction}
+        onPointerDown={isPlaying ? blockInteraction : undefined}
+        onPointerMove={isPlaying ? blockInteraction : undefined}
+        onPointerUp={isPlaying ? blockInteraction : undefined}
+        onTouchStart={isPlaying ? blockInteraction : undefined}
+        onTouchMove={isPlaying ? blockInteraction : undefined}
+        onTouchEnd={isPlaying ? blockInteraction : undefined}
         onWheel={blockInteraction}
       >
         <button className="video-reward-close" onClick={onDismiss} aria-label="Закрыть">✕</button>
         <div className="video-reward-frame">
-          <iframe
-            src={videoUrl}
-            allow="accelerometer; autoplay; encrypted-media"
-            frameBorder="0"
-            className="video-reward-iframe"
-            title="Reward video"
-          />
-          <div className="video-reward-blocker" aria-hidden="true" />
+          <div ref={playerHostRef} />
+          {isPlaying && <div className="video-reward-blocker" aria-hidden="true" />}
         </div>
+        {videoId && playbackError && <div role="alert" style={{ color: "#fff", padding: 12 }}>{playbackError}</div>}
         <div className="video-reward-progress">
           <div
             className="video-reward-progress__bar"
-            style={{ width: `${(secondsLeft / REWARD_SECONDS) * 100}%` }}
+            style={{ width: `${(secondsLeft / videoBudget) * 100}%` }}
           />
           <span className="video-reward-progress__label">{formatRewardTime(secondsLeft)}</span>
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="reward-modal-overlay" onClick={onDismiss}>
-      <div className="reward-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="reward-modal__stars">⭐⭐⭐⭐⭐</div>
-        <div className="reward-modal__title">{title}</div>
-        <div className="reward-modal__actions">
-          <button className="reward-modal__btn reward-modal__btn--watch" onClick={handleWatch}>
-            🎬 Смотреть видео
-          </button>
-          <button className="reward-modal__btn reward-modal__btn--continue" onClick={onDismiss}>
-            Продолжать занятие
-          </button>
+      {!videoId && (
+        <div className="reward-modal-overlay" onClick={onDismiss}>
+          <div className="reward-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="reward-modal__stars">⭐⭐⭐⭐⭐</div>
+            <div className="reward-modal__title">{title}</div>
+            {playbackError && <div role="alert">{playbackError}</div>}
+            <div className="reward-modal__actions">
+              <button className="reward-modal__btn reward-modal__btn--watch" onClick={handleWatch} disabled={!playerReady}>
+                {playerReady ? "🎬 Смотреть видео" : playbackError ? "Видео недоступно" : "Загрузка видео…"}
+              </button>
+              <button className="reward-modal__btn reward-modal__btn--continue" onClick={onDismiss}>
+                Продолжать занятие
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

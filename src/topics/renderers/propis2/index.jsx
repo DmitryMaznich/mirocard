@@ -11,6 +11,7 @@ import MatchPairView from "../propis/letters/MatchPairView";
 import SortCaseView from "../propis/letters/SortCaseView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { cardGlyphs } from "./letterCards.js";
+import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { pageToLines, newPage, newRow } from "./model.js";
 import GradeStamp from "./GradeStamp.jsx";
 import { gradeWriteMs } from "./gradeMark.js";
@@ -23,7 +24,7 @@ const GRADING = { Keys: GradeKeys, writeMs: gradeWriteMs };
 // topic's letters: the cards get them through the same glyph context, the dictation's answer sheet is written by this topic's engine.
 export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose, onCorrect, onMistake }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  const cards = useMemo(() => cardGlyphs(glyphMap), [glyphMap]);
+  const cards = useMemo(() => cardGlyphs(glyphMap, cardLetters(topicAlphabet(topicRecord, glyphMap))), [topicRecord, glyphMap]);
   const Answers = useMemo(() => function Propis2DictationAnswers({ items, level, grade }) {
     return <DictationAnswers items={items} level={level} grade={grade} topicRecord={topicRecord} glyphMap={glyphMap} />;
   }, [topicRecord, glyphMap]);

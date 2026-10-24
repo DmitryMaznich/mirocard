@@ -1,4 +1,5 @@
 import { kv } from "@/core/db";
+import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 
 export const ACTIVE_SESSION_KEY = "activeSession";
 export const ACTIVE_SESSION_SCHEMA_VERSION = 1;
@@ -46,12 +47,33 @@ export function restoreActiveSessionState(snapshot, context) {
   if ((normalized.context.textId ?? null) !== (context.textId ?? null)) return null;
   if (normalized.context.modeId !== context.modeId) return null;
   if (normalized.sessionState.topicVersion !== context.topicVersion) return null;
+  if (Object.hasOwn(context, "rewardPolicy")) {
+    const saved = normalized.sessionState.rewardPolicy;
+    if ((saved?.version ?? 1) !== (context.rewardPolicy?.version ?? 1)) return null;
+    if (saved?.version === 2 && saved.lossMode !== context.rewardPolicy.lossMode) return null;
+  }
+  if (context.strictStars !== undefined && normalized.sessionState.strictStars !== context.strictStars) return null;
+  if (context.rewardSettings && JSON.stringify(effectiveRewardSettings(normalized.sessionState.rewardSettings)) !== JSON.stringify(context.rewardSettings)) return null;
+  if (context.languageContext) {
+    const saved = normalized.sessionState.languageContext;
+    if (!saved || Object.entries(context.languageContext).some(([key, value]) => saved[key] !== value)) return null;
+  }
   // A parent can alter a mode's selected concepts without changing the topic
   // version. Never revive an earlier queue in that case: it would make the
   // picker show the new selection while the child still sees the old cards.
   if (Array.isArray(context.conceptIds) && !sameConceptIds(normalized.sessionState.conceptIds, context.conceptIds)) return null;
+  // Nor one built with other settings: the tasks were generated from them
+  // («Найди такого же» resumed on «Одинаковое фото» while «Другое фото» was
+  // chosen). Snapshots from before conditions were recorded still resume.
+  const savedParams = normalized.sessionState.statistics?.conditions?.params;
+  if (context.params && savedParams && !sameParams(savedParams, context.params)) return null;
 
   return normalized.sessionState;
+}
+
+function sameParams(saved, expected) {
+  const keys = new Set([...Object.keys(saved), ...Object.keys(expected)]);
+  return [...keys].every((key) => JSON.stringify(saved[key]) === JSON.stringify(expected[key]));
 }
 
 function sameConceptIds(saved, expected) {
@@ -71,6 +93,7 @@ export function sessionSettingsChanged(current, baseline) {
   if (current.videoRewardEnabled !== baseline.videoRewardEnabled) return true;
   if (current.answersPerStar !== baseline.answersPerStar) return true;
   if (current.strictStars !== baseline.strictStars) return true;
+  if (current.rewardLossMode !== baseline.rewardLossMode) return true;
 
   const currentParams = current.params ?? {};
   const baselineParams = baseline.params ?? {};

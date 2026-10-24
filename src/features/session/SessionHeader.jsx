@@ -22,6 +22,8 @@ export default function SessionHeader({
   showProgress,
   showStreak,
   streakCount,
+  rewardChangeReason,
+  rewardSettings,
   rewardAvailable,
   answersPerStar,
   taskIndex,
@@ -68,6 +70,8 @@ export default function SessionHeader({
     <StarBar
       className="session-progress"
       streakCount={streakCount}
+      changeReason={rewardChangeReason}
+      settingsOverride={rewardSettings}
       available={rewardAvailable}
       answersPerStar={answersPerStar}
     />

@@ -6,10 +6,17 @@ import { selectDistractorConceptIds } from "@/shared/utils/distractorEngine";
 // in the session's already-shuffled order - verbs_v2 shows a verb on all its
 // performers back to back so the child hears one word on many pictures,
 // instead of 80 unrelated cards interleaved at random.
-function generateIntroTasks(concepts, { groupByConcept = false } = {}) {
+// picturesPerConcept (verbs_v2 «Знакомство»: 2 / 4 / "all"): the boy and mum
+// pair first, then randomly chosen other pictures, so one session stays short.
+function generateIntroTasks(concepts, { groupByConcept = false, picturesPerConcept = "all" } = {}) {
   const tasks = [];
   for (const concept of concepts) {
-    for (const card of concept.cards) {
+    let cards = concept.cards;
+    if (typeof picturesPerConcept === "number") {
+      const contrast = cards.filter((card) => card.set === "contrast").sort((a, b) => Number(!!b.primary) - Number(!!a.primary));
+      cards = [...contrast, ...shuffle(cards.filter((card) => card.set !== "contrast"))].slice(0, picturesPerConcept);
+    }
+    for (const card of cards) {
       tasks.push({
         type: "intro",
         conceptId: concept.conceptId,
@@ -269,7 +276,7 @@ function generateYesNoTasks(concepts, params) {
         if (useCorrect) {
           displayLabel = accusativeLabel(concept.primary) ?? concept.conceptId;
         } else {
-          const others = concepts.filter((c) => c.conceptId !== concept.conceptId);
+          const others = concepts.filter((c) => c.conceptId !== concept.conceptId && !alsoShows(targetCard, c.conceptId));
           const distractor = others[Math.floor(Math.random() * others.length)];
           displayLabel = accusativeLabel(distractor?.primary) ?? accusativeLabel(concept.primary);
         }
@@ -311,6 +318,20 @@ function sameAgePool(concept, concepts, minSize = 2) {
   return narrowed.length >= minSize ? narrowed : concepts;
 }
 
+// card.alsoShows: concepts a picture shows besides its own action - verbs_v2's
+// «ест» boy sits on a chair, so in «Покажи: сидит» that card is a second right
+// answer. A card never stands in for (is never a distractor of) a concept it
+// also shows; a concept left with no such card drops out of the pool. A no-op
+// for topics whose cards never set alsoShows.
+const alsoShows = (card, conceptId) => card?.alsoShows?.includes(conceptId) ?? false;
+function withoutCardsShowing(concepts, targetConceptId) {
+  return concepts.map((c) => {
+    if (c.conceptId === targetConceptId || !c.cards.some((card) => alsoShows(card, targetConceptId))) return c;
+    const cards = c.cards.filter((card) => !alsoShows(card, targetConceptId));
+    return { ...c, cards, primary: cards.find((card) => card.primary) ?? cards[0] ?? c.primary };
+  }).filter((c) => c.cards.length > 0);
+}
+
 function generateFindNTasks(concepts, params) {
   const reps        = params.repsPerConcept ?? 1;
   const optionCount = params.optionCount    ?? 4;
@@ -323,7 +344,7 @@ function generateFindNTasks(concepts, params) {
       // with 3 images must produce 3 find_n tasks (x reps), otherwise most of
       // its variations never appear in a session at all.
       for (const targetCard of concept.cards) {
-        const pool = sameAgePool(concept, concepts, optionCount);
+        const pool = sameAgePool(concept, withoutCardsShowing(concepts, concept.conceptId), optionCount);
         const distractorCount = Math.min(optionCount - 1, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
           concept.conceptId, pool, distractorCount, difficulty
@@ -390,7 +411,9 @@ function generateChooseWordTasks(concepts, params) {
       // One task per photo variation, not one random pick per rep - see
       // generateFindNTasks for why.
       for (const targetCard of concept.cards) {
-        const pool = sameAgePool(concept, concepts, 4);
+        // The picture's other actions are right answers too, so never offer
+        // them as wrong words.
+        const pool = sameAgePool(concept, concepts.filter((c) => !alsoShows(targetCard, c.conceptId)), 4);
         const distractorCount = Math.min(3, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
           concept.conceptId, pool, distractorCount, "medium"
@@ -428,9 +451,10 @@ function generateChooseAllTasks(concepts, params) {
     for (let start = 0; start < concept.cards.length; start += maxTargets) {
       const targetCards    = concept.cards.slice(start, start + maxTargets);
       const distractorCount = gridSize - targetCards.length;
-      const distractorIds  = selectDistractorConceptIds(concept.conceptId, concepts, distractorCount, "medium");
+      const pool = withoutCardsShowing(concepts, concept.conceptId);
+      const distractorIds  = selectDistractorConceptIds(concept.conceptId, pool, distractorCount, "medium");
       const distractorCards = distractorIds.map((cid) => {
-        const dc = concepts.find((c) => c.conceptId === cid);
+        const dc = pool.find((c) => c.conceptId === cid);
         return pickVariation(dc);
       });
 
@@ -525,15 +549,20 @@ export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode
   // changes) for the early steps and a "variation" set (other people, objects,
   // places, styles) for generalisation. Cards with no `set` belong to every set,
   // so topics that never use it are unaffected.
-  const cardSet = params?.cardSet ?? mode?.cardSet ?? "all";
-  const inSet = (card) => cardSet === "all" || !card.set || card.set === cardSet;
+  // A saved "Картинки" value only counts while the mode still offers that
+  // setting (verbs_v2 dropped it in 2.1.0; old saved values must not narrow).
+  const cardSet = (mode?.params?.cardSet ? params?.cardSet : null) ?? mode?.cardSet ?? "all";
+  // mode.excludeAnimals: animals only on the later steps of a topic (verbs_v2:
+  // not in «Знакомство») — the animal is brighter than the action.
+  const inSet = (card) => (cardSet === "all" || !card.set || card.set === cardSet)
+    && !(mode?.excludeAnimals && card.agent === "animal");
   const displayConcepts = concepts.map((c) => {
     const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly && inSet(card));
     if (displayCards.length === c.cards.length) return c;
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
-  }).filter((c) => cardSet === "all" || c.cards.length > 0);
+  }).filter((c) => (cardSet === "all" && !mode?.excludeAnimals) || c.cards.length > 0);
   switch (modeType) {
-    case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true });
+    case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true, picturesPerConcept: params.picturesPerConcept });
     case "act_out":                return generateActOutTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);

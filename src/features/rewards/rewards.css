@@ -1,0 +1,21 @@
+.reward-settings { margin: 14px 0; color: #29483f; }
+.reward-settings h3, .reward-settings h4 { font-size: 15px; margin: 12px 0 8px; }
+.reward-settings p { font-size: 12px; line-height: 1.6; margin: 8px 0 12px; color: #668075; }
+.reward-settings__choices { display: flex; gap: 8px; }
+.reward-settings__choices--wrap { flex-wrap: wrap; }
+.reward-settings__choices button { flex: 1; min-width: 0; min-height: 44px; border: 1px solid #d5e3dc; border-radius: 10px; padding: 10px 12px; background: #fff; color: #426658; font: inherit; font-size: 13px; cursor: pointer; }
+.reward-settings__choices button[aria-pressed="true"] { border-color: #4a9b8f; background: #eaf5ef; color: #226957; font-weight: 700; }
+.reward-settings fieldset { border: 0; padding: 10px 0 0; margin: 0; min-width: 0; }
+.reward-settings fieldset:disabled { opacity: .5; }
+.reward-settings legend { font-size: 14px; font-weight: 700; }
+.reward-settings__notice { padding: 10px 12px; border-radius: 10px; background: #eff5ec; }
+.reward-settings__check { display: flex; align-items: center; min-height: 44px; gap: 10px; font-size: 13px; margin-top: 8px; }
+.reward-settings__check input { width: 20px; height: 20px; accent-color: #4a9b8f; }
+.star-bar-zone--soft.star-bar-zone--shake { animation: none; }
+.star-bar-zone--soft .star-bar-spark, .star-bar-zone--soft .star-bar-burn-flash { display: none; }
+.star-bar-zone--soft .star-bar-star--burn { animation: reward-soft-burn .75s ease-out forwards; }
+.operation-manual__star--burn { animation: reward-large-burn .75s ease-out; }
+.operation-manual__star--soft-burn { animation: reward-soft-burn .75s ease-out; }
+@keyframes reward-soft-burn { from { color: #f5c42c; opacity: 1; } to { color: #ddd; opacity: .25; } }
+@keyframes reward-large-burn { 0% { color: #f5c42c; } 40% { color: #f38b38; text-shadow: 0 0 20px #ffbb4c; } 70% { transform: scale(.8); color: #c77d47; } 100% { color: #ddd; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .operation-manual__star--burn, .operation-manual__star--soft-burn { animation: none; } }

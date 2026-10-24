@@ -1,4 +1,6 @@
 import { randomUUID, createHash } from "node:crypto";
+import { normalizeRewardSettings } from "../../shared/reward-policy.mjs";
+import { isLessonLanguage } from "../../shared/languages.mjs";
 import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { studentPeople, legacyAdults, applyLegacyAdults, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "../../src/shared/utils/rewardVideoViews.js";
@@ -318,10 +320,15 @@ export function updateAccountSettings(db, accountId, patch) {
   ];
   const fields = Object.keys(patch).filter((k) => allowed.includes(k));
   if (fields.length === 0) return;
+  if (("ui_language" in patch && !["ru", "sl"].includes(patch.ui_language)) ||
+      ("card_language" in patch && !isLessonLanguage(patch.card_language))) {
+    throw Object.assign(new Error("Invalid language preference"), { status: 400 });
+  }
 
   const sets = fields.map((f) => `${f} = ?`).join(", ");
   const values = fields.map((f) => patch[f]);
-  db.prepare(`UPDATE account_settings SET ${sets}, updated_at = ? WHERE account_id = ?`)
+  const revision = fields.some(f => f === "ui_language" || f === "card_language") ? ", language_revision=language_revision+1" : "";
+  db.prepare(`UPDATE account_settings SET ${sets}${revision}, updated_at = ? WHERE account_id = ?`)
     .run(...values, now(), accountId);
 }
 
@@ -470,6 +477,8 @@ export function upsertStudent(db, accountId, {
   name,
   comment = "",
   primaryLanguage = null,
+  preferredLessonLanguage = undefined,
+  rewardSettings = undefined,
   sex = null,
   photo = null,
   rewardVideos = [],
@@ -481,10 +490,15 @@ export function upsertStudent(db, accountId, {
   updatedAt = null,
 }) {
   const serverNow = now();
+  if (preferredLessonLanguage !== undefined && preferredLessonLanguage !== null && !isLessonLanguage(preferredLessonLanguage)) {
+    throw Object.assign(new Error("Invalid lesson language"), { status: 400 });
+  }
   if (db.prepare("SELECT 1 FROM erased_students WHERE student_id=?").get(id)) return;
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
-  const wasExisting = Boolean(db.prepare('SELECT 1 FROM students WHERE id = ?').get(id));
+  const existing = db.prepare('SELECT preferred_lesson_language FROM students WHERE id = ? AND account_id = ?').get(id, accountId);
+  const wasExisting = Boolean(existing);
+  const lessonLanguage = preferredLessonLanguage === undefined ? existing?.preferred_lesson_language ?? null : preferredLessonLanguage;
   // Photo, rewardVideos and closeAdults are each managed independently via their
   // own upsert* functions / sync ops (student.photo.upsert, student.videos.upsert,
   // student.adults.upsert). On INSERT (new student) we set their initial values;
@@ -495,12 +509,13 @@ export function upsertStudent(db, accountId, {
   const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
 
   db.prepare(`
-    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, health_data_consent, health_data_consent_at, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, account_id, name, comment, primary_language, preferred_lesson_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, health_data_consent, health_data_consent_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       comment = excluded.comment,
       primary_language = excluded.primary_language,
+      preferred_lesson_language = excluded.preferred_lesson_language,
       sex = excluded.sex,
       health_data_consent = excluded.health_data_consent,
       health_data_consent_at = excluded.health_data_consent_at,
@@ -512,6 +527,7 @@ export function upsertStudent(db, accountId, {
     name,
     comment,
     primaryLanguage,
+    lessonLanguage,
     sex ?? null,
     initialPhotoRef,
     initialPhotoRef ? updated : null,
@@ -525,9 +541,19 @@ export function upsertStudent(db, accountId, {
     updated,
   );
   if (!wasExisting) {
+    if (rewardSettings !== undefined) upsertStudentRewardSettings(db, accountId, { studentId: id, settings: rewardSettings, updatedAt: updated });
     const people = studentPeople({ myPeople, closeAdults: processedAdults, closeAdultsUpdatedAt: updated });
     if (people.length) upsertStudentMyPeople(db, accountId, { studentId: id, people, updatedAt: updated });
   }
+}
+
+export function upsertStudentRewardSettings(db, accountId, { studentId, settings, updatedAt }) {
+  if (!updatedAt || !Number.isFinite(Date.parse(updatedAt))) throw Object.assign(new Error("Invalid reward settings timestamp"), { status: 400 });
+  const stamp = new Date(updatedAt).toISOString();
+  const existing = db.prepare("SELECT reward_settings, reward_settings_updated_at FROM students WHERE id=? AND account_id=? AND deleted_at IS NULL").get(studentId, accountId);
+  if (!existing || (existing.reward_settings_updated_at && existing.reward_settings_updated_at > stamp)) return;
+  db.prepare("UPDATE students SET reward_settings=?, reward_settings_updated_at=? WHERE id=? AND account_id=?")
+    .run(JSON.stringify(normalizeRewardSettings({ ...safeJson(existing.reward_settings, {}), ...settings })), stamp, studentId, accountId);
 }
 
 export function upsertStudentPhoto(db, accountId, { studentId, photo, photoUpdatedAt }) {
@@ -853,14 +879,19 @@ export function upsertStudentTopicLink(db, accountId, {
   id, studentId, topicId,
   selectionMode = "auto", selectedConceptIds = [], repsPerConcept = 1,
   params = {}, videoRewardEnabled = true, rewardThreshold = 90,
+  answersPerStar = null, strictStars = null, deckPosition = null,
 }) {
   if (studentOwnedByAnother(db, accountId, studentId)) return;
   const ts = now();
+  const optionalInt = (value) => (Number.isFinite(value) ? Math.round(value) : null);
+  // answersPerStar/strictStars/deckPosition are optional: an op that omits one
+  // (an older client, the login upload) keeps the value already stored.
   db.prepare(`
     INSERT INTO student_topic_links
       (id, account_id, student_id, topic_id, selection_mode, selected_concept_ids, reps_per_concept,
-       params, video_reward_enabled, reward_threshold, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       params, video_reward_enabled, reward_threshold, answers_per_star, strict_stars, deck_position,
+       created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       selection_mode = excluded.selection_mode,
       selected_concept_ids = excluded.selected_concept_ids,
@@ -868,12 +899,17 @@ export function upsertStudentTopicLink(db, accountId, {
       params = excluded.params,
       video_reward_enabled = excluded.video_reward_enabled,
       reward_threshold = excluded.reward_threshold,
+      answers_per_star = COALESCE(excluded.answers_per_star, student_topic_links.answers_per_star),
+      strict_stars = COALESCE(excluded.strict_stars, student_topic_links.strict_stars),
+      deck_position = COALESCE(excluded.deck_position, student_topic_links.deck_position),
       updated_at = excluded.updated_at
     WHERE student_topic_links.account_id = excluded.account_id
   `).run(
     id, accountId, studentId, topicId,
     selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept,
-    JSON.stringify(params), videoRewardEnabled ? 1 : 0, rewardThreshold, ts, ts
+    JSON.stringify(params), videoRewardEnabled ? 1 : 0, rewardThreshold,
+    optionalInt(answersPerStar), typeof strictStars === "boolean" ? (strictStars ? 1 : 0) : null, optionalInt(deckPosition),
+    ts, ts
   );
 }
 

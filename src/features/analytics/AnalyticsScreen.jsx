@@ -1,3 +1,7 @@
+import { setupText } from "@/shared/i18n/setupText.js";
+import { getUiLanguage } from "@/shared/i18n/uiLanguage.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi as tr } from "@/shared/i18n/uiLanguage.js";
 import { useState, useEffect } from "react";
 import { api } from "@/core/api";
 import { flushQueue } from "@/core/syncApi";
@@ -9,11 +13,11 @@ const HYPOTHESIS_COLOR = {
   "угадывает":  "#c62828",
 };
 
-const STATUS_LABEL = {
-  mastered: "усвоена",
-  learning: "в процессе",
-  guessing: "угадывает",
-};
+const STATUS_LABEL = () => ({
+  mastered: tr("analytics.mastered"),
+  learning: tr("analytics.progress"),
+  guessing: tr("analytics.guessing"),
+});
 
 const STATUS_COLOR = {
   mastered: "#43a047",
@@ -22,6 +26,7 @@ const STATUS_COLOR = {
 };
 
 export function AnalyticsScreen({ studentId, topicId, topicTitle, onClose }) {
+  const { t: tr } = useUiTranslation();
   const [report,  setReport]  = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
@@ -63,22 +68,19 @@ export function AnalyticsScreen({ studentId, topicId, topicTitle, onClose }) {
         <div style={styles.headerTitle}>
           <span style={styles.topicTitle}>{topicTitle}</span>
           {report?.generated_at && (
-            <span style={styles.updatedAt}>
-              Обновлено {new Date(report.generated_at).toLocaleDateString("ru")}
+            <span style={styles.updatedAt}>{tr("analytics.updated")}{" "}{new Date(report.generated_at).toLocaleDateString(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU")}
             </span>
           )}
         </div>
         <button onClick={handleRefresh} disabled={loading} style={styles.refreshBtn}>
-          {loading ? "…" : report ? "Обновить" : "Сформировать"}
+          {loading ? "…" : report ? tr("analytics.refresh") : tr("analytics.generate")}
         </button>
       </div>
 
       {error && <div style={styles.error}>{error}</div>}
 
       {empty && !loading && (
-        <div style={styles.empty}>
-          Нажми «Сформировать» чтобы получить первый отчёт
-        </div>
+        <div style={styles.empty}>{tr("analytics.firstReport")}</div>
       )}
 
       {report && <ReportBody report={report} />}
@@ -87,19 +89,19 @@ export function AnalyticsScreen({ studentId, topicId, topicTitle, onClose }) {
 }
 
 function ReportBody({ report }) {
+  const { t: tr } = useUiTranslation();
   const color = HYPOTHESIS_COLOR[report.hypothesis] ?? "#888";
   return (
     <div style={styles.body}>
       <div style={styles.hypothesisRow}>
         <div style={{ ...styles.dot, background: color }} />
         <span style={styles.hypothesisText}>
-          {report.hypothesis} · {Math.round((report.confidence ?? 0) * 100)}% уверенность
-        </span>
+          {setupText(report.hypothesis)} · {Math.round((report.confidence ?? 0) * 100)}{tr("analytics.confidence")}</span>
       </div>
 
       {report.summary && <p style={styles.summary}>{report.summary}</p>}
 
-      <div style={styles.sectionLabel}>Карточки</div>
+      <div style={styles.sectionLabel}>{tr("analytics.cards")}</div>
       {report.cards?.map((card) => (
         <CardRow key={card.card_id} card={card} />
       ))}
@@ -112,7 +114,7 @@ function CardRow({ card }) {
   return (
     <div style={styles.cardRow}>
       <span style={styles.cardId}>{card.card_id}</span>
-      <span style={{ ...styles.statusLabel, color }}>{STATUS_LABEL[card.status] ?? card.status}</span>
+      <span style={{ ...styles.statusLabel, color }}>{STATUS_LABEL()[card.status] ?? card.status}</span>
       {card.note && <span style={styles.cardNote}>{card.note}</span>}
     </div>
   );

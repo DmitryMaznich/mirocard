@@ -1,3 +1,6 @@
+import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
+import { rewardText } from "@/features/rewards/rewardText.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
@@ -40,6 +43,7 @@ export function shouldPreferBundledRenderer(renderer) {
 }
 
 export default function SessionScreen() {
+  const { language: uiLanguage, t } = useUiTranslation();
   const setScreen             = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
@@ -57,11 +61,13 @@ export default function SessionScreen() {
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
     completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
-    rewardPending, clearRewardPending,
+    rewardPending, clearRewardPending, rewardChangeReason,
     deckExhausted, sessionSaveError, handleRestartDeck, handleFinishDeck, finishCurrentSession,
     onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
+
+  const sessionRewardSettings = sessionState?.rewardSettings ?? effectiveRewardSettings(null);
 
   const { soundEnabled, playFeedback, playTopicFile, playTopicFiles, isAudioPlaying, isTopicAudioPlaying } = useAudio();
   const pendingAudioAdvanceRef = useRef(null);
@@ -122,6 +128,9 @@ export default function SessionScreen() {
     "numeral_agreement", "adjective_agreement", "possessive_agreement",
     "preposition_recognize", "preposition_place", "preposition_phrase",
     "operation_observe",
+    // «Учим словенский»: a wrong tap only fades that option and shows the
+    // right one — no buzz (docs/learn-slovene.md); a word plays its own recording.
+    "lb_pair", "lb_find", "lb_trap", "lb_syll", "lb_word", "lb_build",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 
@@ -253,8 +262,8 @@ export default function SessionScreen() {
     return (
       <div className="session-screen">
         <div className="screen-center" style={{ gap: 16, padding: 24, textAlign: "center" }}>
-          <div>Нет данных для сессии</div>
-          <button className="btn btn--secondary" onClick={() => setScreen("home")}><BackArrowIcon size={16} /> На главную</button>
+          <div>{topicRecord?.languageContract ? t("setup.contentLanguageRequired") : "Нет данных для сессии"}</div>
+          <button className="btn btn--secondary" onClick={() => setScreen(topicRecord?.languageContract ? "params" : "home")}><BackArrowIcon size={16} /> {topicRecord?.languageContract ? t("nav.settings") : "На главную"}</button>
         </div>
       </div>
     );
@@ -268,8 +277,8 @@ export default function SessionScreen() {
     ? (pillFlash === "correct" ? "answer_correct" : "answer_incorrect")
     : status;
 
-  const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
-  const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
+  const topicTitle = getTopicTitle(topicRecord.meta.title, topicRecord.languageContract ? uiLanguage : "ru") || topicRecord.meta.id;
+  const modeTitle  = getTopicTitle(mode.ui?.title, topicRecord.languageContract ? uiLanguage : "ru") || mode.id;
 
   const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
     && mode.id === "navigator_learning"
@@ -321,6 +330,8 @@ export default function SessionScreen() {
           showProgress={showProgress}
           showStreak={showStreak}
           streakCount={streakCount}
+          rewardChangeReason={rewardChangeReason}
+          rewardSettings={sessionRewardSettings}
           rewardAvailable={rewardProgress?.available ?? false}
           answersPerStar={answersPerStar}
           taskIndex={taskIndex}
@@ -349,6 +360,8 @@ export default function SessionScreen() {
             topicId={topicRecord.meta.id}
             topicRecord={topicRecord}
             sessionParams={sessionParams}
+            uiLanguage={uiLanguage}
+            languageContext={sessionState.languageContext}
             student={activeStudent}
             soundEnabled={soundEnabled}
             playFeedback={playFeedback}
@@ -368,6 +381,8 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+          rewardChangeReason={rewardChangeReason}
+          rewardSettings={sessionRewardSettings}
             bestStreak={bestStreak}
             answersPerStar={answersPerStar}
           />
@@ -408,9 +423,10 @@ export default function SessionScreen() {
       {rewardPending && activeStudent && (
         <RewardVideoModal
           rewardVideos={activeStudent.rewardVideos ?? []}
+          settingsOverride={sessionRewardSettings}
           studentId={activeStudent.id}
           onDismiss={clearRewardPending}
-          title={`Молодец! ${5 * answersPerStar} правильных подряд!`}
+          title={sessionState.rewardPolicy?.version === 2 ? rewardText("rewardTitle") : `Молодец! ${5 * answersPerStar} правильных подряд!`}
         />
       )}
 

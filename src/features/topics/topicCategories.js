@@ -10,7 +10,9 @@ export const CATALOG_CATEGORIES = {
   sentence_puzzle:          "Чтение",
   vowel_consonant_ru:       "Чтение",
   magnetic_alphabet:        "Чтение",
+  learn_slovene:            "Чтение",
   comparison:               "Математика",
+  comparison_language_pilot: "Математика",
   math_houses:              "Математика",
   addition_subtraction:     "Математика",
   place_value:              "Математика",
@@ -53,4 +55,13 @@ export const CATEGORY_STYLE = {
   "Словарный запас": { icon: "vocab",    cls: "topic-tile-row--voc" },
   "Практика":        { icon: "practice", cls: "topic-tile-row--prac" },
   [OTHER_CATEGORY]:  { icon: "generic",  cls: "topic-tile-row--prac" },
+};
+
+// Labels are translated at render time; persisted/filter category values stay stable.
+export const CATEGORY_LABEL_KEYS = {
+  "Чтение": "topics.categoryReading",
+  "Математика": "topics.categoryMath",
+  "Словарный запас": "topics.categoryVocabulary",
+  "Практика": "topics.categoryPractice",
+  "Другое": "topics.categoryOther",
 };

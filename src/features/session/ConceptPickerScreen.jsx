@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -40,6 +41,7 @@ function ConceptCard({ concept, topicId, level, selected, onToggle }) {
 }
 
 export default function ConceptPickerScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen          = useAppStore((s) => s.setScreen);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
   const activeModeId       = useAppStore((s) => s.activeModeId);
@@ -58,13 +60,27 @@ export default function ConceptPickerScreen() {
   const allIds  = concepts.map((c) => c.conceptId);
   const rawSavedIds = studentTopicLinks[linkKey]?.selectedConceptIds;
   const savedIds = readModeSelectedConceptIds(topicRecord, mode, rawSavedIds);
-  // merge saved with any new concepts not yet in selection (new groups added after last save)
-  const saved = savedIds
-    ? [...new Set([...savedIds.filter((id) => allIds.includes(id)), ...allIds.filter((id) => !savedIds.includes(id))])]
-    : allIds;
+  // Open with exactly what the session plays: concepts left out on purpose stay
+  // off (re-adding every unselected concept here undid the adult's choice on the
+  // next visit), and concepts a deck update adds stay off until picked.
+  const saved = savedIds ? savedIds.filter((id) => allIds.includes(id)) : allIds;
 
   const [selected, setSelected]   = useState(new Set(saved));
-  const [activeGroup, setActiveGroup] = useState(null);
+  const groupIds = (gid) => concepts.filter((c) => c.primary?.group === gid).map((c) => c.conceptId);
+  // Opened on a saved selection that is exactly one group: show that group.
+  const [activeGroup, setActiveGroup] = useState(() => availableGroups.find((gid) => {
+    const ids = groupIds(gid);
+    return ids.length > 0 && ids.length === saved.length && ids.every((id) => saved.includes(id));
+  }) ?? null);
+
+  // A group chip is a choice, not just a view: the adult taps «Набор 2» and
+  // expects the lesson to be that set (the chips used to only hide the other
+  // concepts while every one stayed selected). «Все» shows everything and
+  // keeps the selection, so single concepts can still be added or removed.
+  function pickGroup(gid) {
+    setActiveGroup(gid);
+    setSelected(new Set(groupIds(gid)));
+  }
 
   const filteredConcepts = activeGroup
     ? concepts.filter((c) => c.primary?.group === activeGroup)
@@ -102,7 +118,7 @@ export default function ConceptPickerScreen() {
     <div className="screen" style={{ height: "100dvh", overflow: "hidden" }}>
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("params")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Понятия ({selected.size})</h1>
+        <h1 className="screen-title">{tr("setup.conceptCount", { count: selected.size })}</h1>
         <button className="header-action-btn" onClick={allFilteredSelected ? selectNone : selectAll}>
           {allFilteredSelected ? "−" : "✓"}
         </button>
@@ -113,14 +129,12 @@ export default function ConceptPickerScreen() {
           <button
             className={`group-filter-btn${activeGroup === null ? " group-filter-btn--active" : ""}`}
             onClick={() => setActiveGroup(null)}
-          >
-            Все
-          </button>
+          >{tr("setup.all")}</button>
           {availableGroups.map((gid) => (
             <button
               key={gid}
               className={`group-filter-btn${activeGroup === gid ? " group-filter-btn--active" : ""}`}
-              onClick={() => setActiveGroup(gid)}
+              onClick={() => pickGroup(gid)}
             >
               {groupMeta[gid]?.ru ?? gid}
             </button>
@@ -145,7 +159,7 @@ export default function ConceptPickerScreen() {
       </div>
       <div style={{ padding: 16 }}>
         <Button fullWidth disabled={selected.size === 0} onClick={confirm}>
-          Подтвердить ({selected.size})
+          {tr("setup.confirmConcepts", { count: selected.size })}
         </Button>
       </div>
     </div>

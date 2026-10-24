@@ -205,10 +205,24 @@ const SQUARE_LETTER_SCALE = (0.75 * SQUARE_CELL) / (TEXT_ROW_PITCH - TEXT_ROW_TH
 // notebook), the first 16 mm from the top; the letters smaller than on the copybook: a lowercase letter 3.2 mm, a capital 6.4 mm.
 const RULED_PITCH = mmToNativeUnits(8);
 const RULED_LETTER_SCALE = mmToNativeUnits(3.2) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
-// Papers with rows of their own (`ownRows`: "square" | "ruled"): pitch, first baseline, the room kept under the last row, letter scale.
+// `propis2_bg`, the Bulgarian copybook ruling ("bg", docs/propis2-variants.md): a row of four lines, bold (top of capitals and
+// ascenders) 6.08 mm above a thin line, the 4.94 mm lowercase band down to a thin baseline, 5.98 mm down to the next bold line (the
+// top line of the next row: rows every 17 mm, 11 on an A5 page); no dashes; sparse slant guides at 1 : 4 (76deg) every 35 mm. The
+// bands as on a Bulgarian teacher's writing video (owner, 2026-10-19: 1.23 : 1 : 1.21, near even; «Тетрадка 1 клас» had 6.5 /
+// 4.26 / 6.24). The letters are the copybook's, a lowercase letter 4.94 mm tall; the deck's meta.script stretches their
+// ascenders and descenders to the bold lines (wordEngine / scriptGeometry.js).
+const BG_UP_MM = 6.08;
+const BG_X_MM = 4.94;
+const BG_DOWN_MM = 5.98;
+const BG_PITCH = mmToNativeUnits(BG_UP_MM + BG_X_MM + BG_DOWN_MM);
+const BG_LETTER_SCALE = mmToNativeUnits(BG_X_MM) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
+const BG_GUIDE_STEP = mmToNativeUnits(35);
+const BG_GUIDE_TAN = 1 / 4; // horizontal run per unit of height of the guides (76deg from the horizontal)
+// Papers with rows of their own (`ownRows`: "square" | "ruled" | "bg"): pitch, first baseline, the room kept under the last row, letter scale.
 const OWN_ROWS = {
   square: { pitch: SQUARE_PITCH, first: SQUARE_FIRST_BASELINE, foot: SQUARE_CELL, scale: SQUARE_LETTER_SCALE },
   ruled: { pitch: RULED_PITCH, first: 2 * RULED_PITCH, foot: RULED_PITCH, scale: RULED_LETTER_SCALE },
+  bg: { pitch: BG_PITCH, first: mmToNativeUnits(10 + BG_UP_MM + BG_X_MM), foot: mmToNativeUnits(BG_DOWN_MM + 5), scale: BG_LETTER_SCALE },
 };
 const ownOf = (kind) => OWN_ROWS[kind === true ? "square" : kind] ?? null;
 const ownRowsOf = (geom, kind) => { const o = ownOf(kind); return Math.floor((geom.h - o.foot - o.first) / o.pitch) + 1; };
@@ -376,7 +390,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -404,13 +418,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
-  const plain = simpleGrid === "square" || simpleGrid === "ruled";
+  const plain = simpleGrid === "square" || simpleGrid === "ruled" || simpleGrid === "bg";
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
   // dashed guide lines are slightly red on the `propis2` pages (the `propis` sheets keep the grid colour)
   const dashColor = simpleGrid ? "#e57d7a" : guideColor;
   // wide ruling: the slants live only inside the wide bands, none in the narrow strips between them (as in the methodology)
   const clipId = `p2c${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
-  const slantClip = simpleGrid && wideRows && !narrowRows && simpleGrid !== "square" && simpleGrid !== "ruled";
+  const slantClip = simpleGrid && wideRows && !narrowRows && !plain;
   const squareEls = simpleGrid === "square" ? (
     <g data-simple-grid="square">
       {Array.from({ length: Math.floor(PAGE_W_UNITS / SQUARE_CELL) + 1 }, (_, i) => (
@@ -430,7 +444,33 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       })}
     </g>
   ) : null;
-  const simpleEls = squareEls ?? ruledEls ?? (simpleGrid && simpleGrid !== "ruled" ? (
+  // "bg": the Bulgarian copybook ruling (BG_* above): per row bold - thin - thin(baseline), the next row's bold line closing it, and the
+  // 76deg guides over the whole ruled part of the page
+  const bgEls = ownRows === "bg" ? (() => {
+    const rows = Array.from({ length: ownRowsOf(geom, "bg") }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
+    const base = (r) => ownRowY(r, "bg") + WIDE_BAND_BOTTOM_LOCAL;
+    const top = base(rows[0] ?? 0) - mmToNativeUnits(BG_UP_MM + BG_X_MM);
+    const bottom = base(rows[rows.length - 1] ?? 0) + mmToNativeUnits(BG_DOWN_MM);
+    const run = (bottom - top) * BG_GUIDE_TAN;
+    const guides = Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / BG_GUIDE_STEP) + 1 }, (_, k) => mmToNativeUnits(10) + k * BG_GUIDE_STEP);
+    return (
+      <g data-simple-grid="bg">
+        {onlyRow === null && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
+        {rows.map((r) => {
+          const y = base(r);
+          return (
+            <g key={r} data-bg-row={r}>
+              <line x1={0} y1={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />
+              <line x1={0} y1={y - mmToNativeUnits(BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              {(onlyRow !== null || r === rows[rows.length - 1]) && <line x1={0} y1={y + mmToNativeUnits(BG_DOWN_MM)} x2={PAGE_W_UNITS} y2={y + mmToNativeUnits(BG_DOWN_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />}
+            </g>
+          );
+        })}
+      </g>
+    );
+  })() : null;
+  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" ? (
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
@@ -452,6 +492,21 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   return (
     <svg
       className="propis-print-page-svg"
+      // `onSheetPoint({ row, x, shiftKey })`: a click on the sheet — the row of this page under it and the x in that row's own units
+      // (`propis2` typing on the sheet puts the caret there)
+      onClick={onSheetPoint ? (e) => {
+        const svg = e.currentTarget;
+        const m = svg.getScreenCTM?.();
+        let q;
+        if (m && svg.createSVGPoint) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; q = pt.matrixTransform(m.inverse()); } else {
+          // no screen matrix (a test DOM): the box on the screen scaled to the viewBox
+          const box = svg.getBoundingClientRect();
+          const [vx, vy, vw, vh] = String(svg.getAttribute("viewBox") ?? "").split(/\s+/).map(Number);
+          q = { x: vx + ((e.clientX - box.left) / (box.width || 1)) * vw, y: vy + ((e.clientY - box.top) / (box.height || 1)) * vh };
+        }
+        const row = rowAtSvgY(q.y, format, narrow17, ownRows);
+        onSheetPoint({ row, x: q.x - contentXUnits - (page.find((p) => p.rowIndex === row)?.x ?? 0), shiftKey: e.shiftKey });
+      } : undefined}
       viewBox={crop ? `${crop.x} ${crop.y} ${crop.w} ${crop.h}` : `0 0 ${PAGE_W_UNITS} ${PAGE_H_UNITS}`}
       style={crop ? { "--crop-ratio": crop.w / crop.h } : undefined}
       xmlns="http://www.w3.org/2000/svg"
@@ -583,6 +638,12 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       {overlays?.map((o, k) => {
         const { y: oy, h } = ownRows ? { y: ownRowY(o.row, ownRows) + WIDE_BAND_BOTTOM_LOCAL - ownOf(ownRows).pitch, h: ownOf(ownRows).pitch } : overlayRect(o.row, rowOff);
         const y = ownRows ? oy : oy + n17;
+        // `propis2` typing on the sheet: the caret / the selected stretch of a row, `x` (and `x2`) in the row's own units
+        if (o.tone === "caret" || o.tone === "range") {
+          const rowX = contentXUnits + (page.find((p) => p.rowIndex === o.row)?.x ?? 0);
+          if (o.tone === "range") return <rect key={`ov${k}`} x={rowX + Math.min(o.x, o.x2)} y={y + h * 0.18} width={Math.abs(o.x2 - o.x)} height={h * 0.8} fill="rgba(37,99,235,.22)" pointerEvents="none" data-overlay="range" />;
+          return <line key={`ov${k}`} className="propis-caret" x1={rowX + o.x} y1={y + h * 0.18} x2={rowX + o.x} y2={y + h * 0.98} stroke="#1d4ed8" strokeWidth={h * 0.035} strokeLinecap="round" pointerEvents="none" data-overlay="caret" />;
+        }
         return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
       })}
       {brand && (
@@ -787,14 +848,15 @@ function squareSnapFor(margin, geom) {
   return snap;
 }
 
-// Ruled paper: no cells; the letters smaller (`letterScale`), on the same undrawn slant grid scaled with them (see squareSnapFor).
-function ruledSnapFor() {
-  const step = TEXT_ROW_WIDE_DIAGONAL_SPACING * RULED_LETTER_SCALE;
+// Ruled paper (and the Bulgarian ruling, `scale` BG_LETTER_SCALE): no cells; the letters smaller (`letterScale`), on the same undrawn
+// slant grid scaled with them (see squareSnapFor).
+function ruledSnapFor(scale = RULED_LETTER_SCALE) {
+  const step = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   const snap = (_rowIndex, x, y) => {
     const lean = (WIDE_BAND_BOTTOM_LOCAL - y) * WIDE_SLANT_TAN;
     return Math.round((x - lean) / step) * step + lean;
   };
-  snap.letterScale = RULED_LETTER_SCALE;
+  snap.letterScale = scale;
   return snap;
 }
 
@@ -846,6 +908,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   const geom = geomOf(format);
   if (simpleGrid === "square") return squareSnapFor(margin, geom);
   if (simpleGrid === "ruled") return ruledSnapFor();
+  if (simpleGrid === "bg") return ruledSnapFor(BG_LETTER_SCALE);
   const dense = simpleGrid === "dense";
   if (dense) return narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
   // the methodology grid the letters snap to is NOT drawn on these pages (only the 20 mm slants): `hidden` tells the layout so
@@ -888,6 +951,7 @@ function layoutTaskPages(task) {
     wideGlyphsByLabel.set(item.label, item);
     for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
   }
+  if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
   const layout = wideRows
     ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
     : useElements
@@ -899,8 +963,9 @@ function layoutTaskPages(task) {
 
 // The top rows of the first page of a task, as printed (its own paper): the window on a notebook on its cover. `rows`: how much of
 // the page, in its rows.
+const TOP_DOCS = new WeakMap(); // task -> its layout: thumbnails of a notebook's pages are drawn again and again as the editor remounts
 export function PrintPageTop({ task, rows = 5 }) {
-  const doc = useMemo(() => layoutTaskPages(task), [task]);
+  const doc = useMemo(() => { if (!TOP_DOCS.has(task)) TOP_DOCS.set(task, layoutTaskPages(task)); return TOP_DOCS.get(task); }, [task]);
   const h = Math.min(doc.geom.h, doc.geom.h * ((rows + 0.6) / Math.max(1, doc.perPage)));
   return (
     <PrintPage page={doc.pages[0] ?? []} pageIndex={0} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}
@@ -913,7 +978,8 @@ export function PrintPageTop({ task, rows = 5 }) {
 // A long document can be shown in parts (`propis2`: a notebook whose pages are on different paper is laid out one run of pages at a
 // time): `pageBase` is the number of screen pages before this part, `pageTotal` the pages of the whole document, `onEdge(dir)` is
 // called when ‹ is pressed on the first page of the part (dir -1) or › on its last one (dir +1), `startAt` is the page of the part it opens on
-// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes. The page
+// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes;
+// `onJump("first" | "last")` is called by « / » when the first / last page of the document is in another part. The page
 // counter, `onPageIndexChange` and the side of the margin (it alternates from page to page) follow the whole document.
 // `printParts`: the tasks of ALL the parts, in order: printing then prints the whole document, every part on its own paper (the
 // pages numbered through, two A5 pages on an A4 sheet across the parts); without it the print is this task's pages.
@@ -923,7 +989,7 @@ export function PrintPageTop({ task, rows = 5 }) {
 // left half of the cover's landscape sheet; A4: the second sheet, in place of the empty one; `pageNumbers`: number the printed pages (the cover is not counted).
 // `booklet` (A5 only): print «Тетрадью» — the pages in saddle-stitch order (booklet.js), padded with ruled pages to a multiple of 4; the
 // cover sheet stays the outer one (white inside). `brandMarks`: the quiet Mironium mark on every printed page (brandMarks.jsx).
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoint = null, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, onJump = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -951,6 +1017,11 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const canNext = pageIndex < pages.length - 1 || Boolean(onEdge && pageBase + pages.length < total);
   const goPrev = () => { if (pageIndex > 0) setPageIndex(pageIndex - 1); else if (canPrev) onEdge(-1); };
   const goNext = () => { if (pageIndex < pages.length - 1) setPageIndex(pageIndex + 1); else if (canNext) onEdge(1); };
+  // « / »: to the first / last page of the whole document (owner, 2026-10-23: a 24-page notebook is a long way page by page)
+  const canFirst = pageBase + pageIndex > 0;
+  const canLast = pageBase + pageIndex < total - 1;
+  const goFirst = () => { if (pageBase > 0 && onJump) onJump("first"); else setPageIndex(0); };
+  const goLast = () => { if (pageBase + pages.length < total && onJump) onJump("last"); else setPageIndex(pages.length - 1); };
 
   // `focus`: a window on the first row only (the show panel). The writing row stands in the MIDDLE of the window (the room left
   // for the pen above it is left below it too) and the window is centred on the ink of the sample, not on the row's start; with
@@ -996,6 +1067,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               speedFactor={speedFactor}
               simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
+              onSheetPoint={onSheetPoint ? (p) => onSheetPoint({ ...p, row: p.row < 0 ? -1 : shownIndex * perPage + p.row }) : null}
               useElements={useElements}
               wideRows={wideRows}
               narrowRows={narrowRows}
@@ -1052,6 +1124,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
             </div>
 
             <div className={topNav ? "propis-text-nav propis-text-nav--top" : "propis-text-nav"}>
+              <button type="button" className="propis-ctrl-btn" onClick={goFirst} disabled={!canFirst} aria-label="В начало" title="В начало">«</button>
               <button
                 type="button"
                 className="propis-ctrl-btn"
@@ -1071,6 +1144,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               >
                 ›
               </button>
+              <button type="button" className="propis-ctrl-btn" onClick={goLast} disabled={!canLast} aria-label="В конец" title="В конец">»</button>
               <button type="button" className="propis-ctrl-btn propis-print-btn" onClick={() => (onPrint ? onPrint() : window.print())} aria-label="Печать" title="Печать">
                 {topNav ? "🖨" : "🖨 Печать"}
               </button>

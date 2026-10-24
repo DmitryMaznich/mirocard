@@ -12,6 +12,7 @@ describe("Student settings hints", () => {
   let root, container;
   const originalStore = useAppStore.getState();
   beforeEach(() => {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
     vi.clearAllMocks();
     container = document.createElement("div");
@@ -75,4 +76,26 @@ describe("Student settings hints", () => {
     expect(document.querySelector(".screen-hints")).toBeNull();
     expect(useAppStore.getState().screen).toBe("important_dates_settings");
   });
+  it("saves the opt-in and duration in their own durable sync operation", async () => {
+    mocks.getDb.mockResolvedValue({});
+    mount(true);
+    const pick = label => [...container.querySelectorAll("button")].find(button => button.textContent === label);
+    await act(async () => pick("Новые правила").click());
+    await act(async () => pick("1 минута").click());
+    await act(async () => pick("Все звёзды").click());
+    await act(async () => [...container.querySelectorAll("label")].find(label => label.textContent === "Строгий подсчёт").querySelector("input").click());
+    await act(async () => container.querySelector(".se-save-btn").click());
+    expect(mocks.pushOp).toHaveBeenCalledWith("student.reward_settings.upsert", expect.objectContaining({ studentId: "s1", settings: expect.objectContaining({ algorithm: "flexible", duration: "60", strictStars: false, lossMode: "all" }) }));
+    expect(useAppStore.getState().students[0].rewardSettings.duration).toBe("60");
+  });
+
+  it("does not treat a remote policy change while the form is open as a local edit", async () => {
+    mocks.getDb.mockResolvedValue({});
+    mount(true);
+    await act(async () => useAppStore.setState({ students: [{ id: "s1", name: "Миша", rewardSettings: { algorithm: "flexible", duration: "180" }, rewardSettingsUpdatedAt: "2026-10-23T12:00:00Z" }] }));
+    await act(async () => container.querySelector(".se-save-btn").click());
+    expect(mocks.pushOp.mock.calls.some(([type]) => type === "student.reward_settings.upsert")).toBe(false);
+    expect(useAppStore.getState().students[0].rewardSettings.algorithm).toBe("flexible");
+  });
+
 });

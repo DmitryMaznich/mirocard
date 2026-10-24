@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, mergeNotebook, migrateToNotebooks, normalizeLibrary, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
 import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
@@ -113,5 +113,77 @@ describe("propis2 library storage", () => {
     const once = openKitCopies(lib);
     expect(once.pages.map((p) => p.locked)).toEqual([false, false, false, true]);
     expect(openKitCopies(once)).toBe(once);
+  });
+
+  describe("saving an open notebook while another device edits it", () => {
+    const setup = () => {
+      const a = newPage("A", { rows: [newRow({ text: "а" })], updatedAt: 1 });
+      const b = newPage("B", { rows: [newRow({ text: "б" })], updatedAt: 1 });
+      const st = newSet("Тетрадь", { pageIds: [a.id, b.id], updatedAt: 1 });
+      const lib = { ...emptyLibrary(), pages: [a, b], sets: [st] };
+      return { a, b, st, lib };
+    };
+    const text = (lib, id) => lib.pages.find((p) => p.id === id).rows[0].text;
+
+    it("writes only the pages edited in the session: a newer text from another device survives", () => {
+      const { a, b, st, lib: base } = setup();
+      // the session edits page A; meanwhile another device's text of page B arrives into the library
+      const session = { ...base, pages: [{ ...a, rows: [newRow({ text: "мама" })] }, b] };
+      const library = { ...base, pages: [a, { ...b, rows: [newRow({ text: "папа" })], updatedAt: 5 }] };
+      const saved = mergeNotebook(library, session, st.id, base);
+      expect(text(saved, a.id)).toBe("мама");
+      expect(text(saved, b.id)).toBe("папа");
+      expect(saved.pages.find((p) => p.id === b.id).updatedAt).toBe(5);
+      expect(saved.sets[0]).toBe(library.sets[0]); // the set was not changed: not restamped
+    });
+
+    it("a page another device added to the notebook is kept, not deleted", () => {
+      const { a, b, st, lib: base } = setup();
+      const c = newPage("C", { rows: [newRow({ text: "в" })], updatedAt: 5 });
+      const library = { ...base, pages: [a, b, c], sets: [{ ...st, pageIds: [a.id, b.id, c.id], updatedAt: 5 }] };
+      // the session took page B out of the notebook
+      const session = { ...base, sets: [{ ...st, pageIds: [a.id] }] };
+      const saved = mergeNotebook(library, session, st.id, base);
+      expect(saved.sets[0].pageIds).toEqual([a.id, c.id]);
+      expect(saved.pages.map((p) => p.id).sort()).toEqual([a.id, c.id].sort());
+      expect(saved.deleted[`propis2:page:${b.id}`]).toBeTruthy();
+    });
+
+    it("a notebook new to the library (a ready one just copied) is written whole", () => {
+      const { a, b, st, lib: base } = setup();
+      const saved = mergeNotebook(emptyLibrary(), base, st.id, base);
+      expect(saved.sets.map((x) => x.id)).toEqual([st.id]);
+      expect(saved.pages.map((p) => p.id).sort()).toEqual([a.id, b.id].sort());
+    });
+  });
+});
+
+describe("copies of ready notebooks follow the ready titles", () => {
+  const lib = (sets) => ({ ...emptyLibrary(), sets });
+  const titles = { texts: "16. Списываем текст", digits: "Цифры" };
+  it("a copy that still has an old title takes the new one (and a new stamp, so it wins on the other devices)", () => {
+    const before = lib([
+      newSet("11. Списываем текст", { id: "a", kit: "texts", sourceId: "kit:texts", updatedAt: 5 }),
+      newSet("Прописи — цифры", { id: "b", kit: "digits", sourceId: "kit:digits", updatedAt: 5 }),
+    ]);
+    const after = retitleKitCopies(before, titles, undefined, 99);
+    expect(after.sets.map((s) => [s.title, s.updatedAt])).toEqual([["16. Списываем текст", 99], ["Цифры", 99]]);
+    expect(retitleKitCopies(after, titles, undefined, 100)).toBe(after); // nothing left to rename
+  });
+  it("a copy of a notebook the series replaced keeps its title but loses the step number of the old ladder", () => {
+    const before = lib([
+      newSet("2. Простые буквы: строчная и заглавная", { id: "a", kit: "letters-1", sourceId: "kit:letters-1" }),
+      newSet("1. Элементы и первые буквы", { id: "b", sourceId: "kit:method-1" }),
+      newSet("Прописи — часть 2 (сложные формы)", { id: "c", kit: "letters-2", sourceId: "kit:letters-2" }),
+    ]);
+    const after = retitleKitCopies(before, titles, undefined, 7);
+    expect(after.sets.map((s) => s.title)).toEqual(["Простые буквы: строчная и заглавная", "Элементы и первые буквы", "Прописи — часть 2 (сложные формы)"]);
+  });
+  it("a copy the adult renamed, and notebooks of their own, stay as they are", () => {
+    const before = lib([
+      newSet("Тексты Маши", { id: "a", kit: "texts", sourceId: "kit:texts" }),
+      newSet("11. Списываем текст", { id: "c" }),
+    ]);
+    expect(retitleKitCopies(before, titles)).toBe(before);
   });
 });

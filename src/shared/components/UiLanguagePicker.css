@@ -1,0 +1,45 @@
+.ui-language-picker {
+  width: 100%;
+  max-width: 380px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  color: #2f5b57;
+}
+.ui-language-picker__label { font-weight: 800; }
+.ui-language-picker__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  border: 1px solid #b8cdc9;
+  border-radius: 12px;
+  background: #fff;
+}
+.ui-language-picker__icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}
+.ui-language-picker select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #263131;
+  font: inherit;
+}
+.ui-language-picker select:focus-visible { outline: 3px solid #4a9b8f; outline-offset: 2px; }
+.ui-language-picker__help, .ui-language-picker__warning {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ui-language-picker__help { color: #667572; }
+.ui-language-picker__warning { color: #9a4c19; }
+.settings-body > .ui-language-picker { max-width: none; }
