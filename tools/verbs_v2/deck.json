@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.4.6",
+    "version": "2.4.7",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
@@ -110,13 +110,13 @@
       },
       "methodology": {
         "summary": "Звучит команда «Прыгай!» — ребёнок выполняет. Картинки сначала нет.",
-        "text": "Сначала только голос: «Прыгай!», «Пей!», «Хлопай!». Картинки на экране нет, чтобы ребёнок понимал слово, а не копировал позу. Если ребёнок не начал действовать, нажмите «Подсказка: картинка» или покажите действие сами. Оценка: «Легко» — сделал сам по слову, «С подсказкой» — после картинки или вашего показа, «Не понимает» — не сделал.",
+        "text": "Сначала только голос: «Прыгай!», «Пей!», «Танцуй!». Картинки на экране нет, чтобы ребёнок понимал слово, а не копировал позу. Если ребёнок не начал действовать, нажмите «Подсказка: картинка» или покажите действие сами. Оценка: «Легко» — сделал сам по слову, «С подсказкой» — после картинки или вашего показа, «Не понимает» — не сделал.",
         "goal": "Ребёнок выполняет действие по словесной команде без зрительной подсказки.",
         "duration": "3–5 минут",
         "tips": [
           "Перед командой привлеките внимание ребёнка, но не смотрите на нужный предмет и не начинайте движение сами — это тоже подсказка.",
-          "Для «Ешь!» и «Пей!» дайте предмет понарошку: ложку, пустую чашку. Для «Дай!», «Возьми!», «Открой!», «Закрой!» на столе нужна игрушка, коробка или книжка.",
-          "В режиме 12 команд, которые ребёнок выполнит за столом или рядом с ним сразу, без подготовки и без ухода из-за стола: ешь, пей, рисуй, сядь, встань, прыгай, хлопай, подуй, дай, возьми, открой, закрой.",
+          "Пантомима годится: «Чисти зубы!», «Мой руки!», «Причешись!» ребёнок показывает рукой без предмета. Для «Дай!», «Возьми!», «Открой!», «Закрой!», «Читай!» на столе нужна игрушка, коробка или книжка.",
+          "В режиме 22 команды — то, что ребёнок покажет за столом или рядом с ним: ешь, пей, рисуй, читай, сядь, встань, иди, прыгай, хлопай, подуй, танцуй, пой, смейся, чисти зубы, умывайся, мой руки, вытри руки, причешись, дай, возьми, открой, закрой. Нет тех, где нужен пол, простор, одежда или второй человек: беги, ложись, ползи, одевайся, сними, лови, кидай, убери, играй.",
           "Цель — «Легко» 8 раз из 10 на глаголах текущего набора."
         ]
       }
@@ -1973,7 +1973,11 @@
         "group2": "legs",
         "group3": "moderate"
       },
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "s3_c_walks_mom",
@@ -2001,7 +2005,11 @@
         "group2": "legs",
         "group3": "moderate"
       },
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "s3_v_walks_1",
@@ -2029,7 +2037,11 @@
         "group2": "legs",
         "group3": "moderate"
       },
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "s3_v_walks_2",
@@ -2057,7 +2069,11 @@
         "group2": "legs",
         "group3": "moderate"
       },
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "walks_1",
@@ -2085,7 +2101,11 @@
         "ru": "audio/walks.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "walks_2",
@@ -2113,7 +2133,11 @@
         "ru": "audio/walks.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "walks_3",
@@ -2141,7 +2165,11 @@
         "ru": "audio/walks.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "walks_5",
@@ -2169,7 +2197,11 @@
         "ru": "audio/walks.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
     },
     {
       "id": "s3_c_brushes_teeth_boy",
@@ -2200,7 +2232,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
     },
     {
       "id": "s3_c_brushes_teeth_mom",
@@ -2231,7 +2267,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
     },
     {
       "id": "s3_v_brushes_teeth_1",
@@ -2262,7 +2302,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
     },
     {
       "id": "s3_v_brushes_teeth_2",
@@ -2290,7 +2334,11 @@
         "group2": "mouth",
         "group3": "calm"
       },
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
     },
     {
       "id": "brushes_teeth_1",
@@ -2318,7 +2366,11 @@
         "ru": "audio/brushes_teeth.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
     },
     {
       "id": "brushes_teeth_5",
@@ -2346,7 +2398,11 @@
         "ru": "audio/brushes_teeth.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
     },
     {
       "id": "s3_c_plays_boy",
@@ -2657,7 +2713,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "s3_c_reads_mom",
@@ -2688,7 +2748,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "s3_v_reads_1",
@@ -2719,7 +2783,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "s3_v_reads_2",
@@ -2750,7 +2818,11 @@
       "alsoShows": [
         "lies"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "reads_1",
@@ -2781,7 +2853,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "reads_3",
@@ -2812,7 +2888,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "reads_5",
@@ -2843,7 +2923,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
     },
     {
       "id": "s3_c_rides_boy",
@@ -3313,7 +3397,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "s3_c_laughs_mom",
@@ -3344,7 +3432,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "s3_v_laughs_1",
@@ -3375,7 +3467,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "s3_v_laughs_2",
@@ -3406,7 +3502,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "laughs_1",
@@ -3434,7 +3534,11 @@
         "ru": "audio/laughs.mp3"
       },
       "set": "variation",
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "laughs_2",
@@ -3465,7 +3569,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "laughs_3",
@@ -3496,7 +3604,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set2"
+      "group": "set2",
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
     },
     {
       "id": "s3_c_washes_face_boy",
@@ -3527,7 +3639,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "s3_c_washes_face_mom",
@@ -3558,7 +3674,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "s3_v_washes_face_1",
@@ -3589,7 +3709,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "s3_v_washes_face_2",
@@ -3620,7 +3744,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "washes_face_1",
@@ -3648,7 +3776,11 @@
         "ru": "audio/washes_face.mp3"
       },
       "set": "variation",
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "washes_face_2",
@@ -3679,7 +3811,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "washes_face_3",
@@ -3710,7 +3846,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
     },
     {
       "id": "s3_c_swims_boy",
@@ -3913,7 +4053,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "s3_c_sings_mom",
@@ -3944,7 +4088,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "s3_v_sings_1",
@@ -3975,7 +4123,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "s3_v_sings_2",
@@ -4006,7 +4158,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "sings_2",
@@ -4037,7 +4193,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "sings_3",
@@ -4068,7 +4228,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "sings_4",
@@ -4097,7 +4261,11 @@
       },
       "set": "variation",
       "agent": "animal",
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
     },
     {
       "id": "s3_c_dances_boy",
@@ -4126,7 +4294,11 @@
         "group2": "legs",
         "group3": "active"
       },
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "s3_c_dances_mom",
@@ -4155,7 +4327,11 @@
         "group2": "legs",
         "group3": "active"
       },
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "s3_v_dances_1",
@@ -4184,7 +4360,11 @@
         "group2": "legs",
         "group3": "active"
       },
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "s3_v_dances_2",
@@ -4213,7 +4393,11 @@
         "group2": "legs",
         "group3": "active"
       },
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "dances_1",
@@ -4242,7 +4426,11 @@
         "ru": "audio/dances.mp3"
       },
       "set": "variation",
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "dances_2",
@@ -4271,7 +4459,11 @@
         "ru": "audio/dances.mp3"
       },
       "set": "variation",
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "dances_3",
@@ -4300,7 +4492,11 @@
         "ru": "audio/dances.mp3"
       },
       "set": "variation",
-      "group": "set3"
+      "group": "set3",
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
     },
     {
       "id": "s3_c_cuts_knife_boy",
@@ -5554,7 +5750,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set4"
+      "group": "set4",
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      }
     },
     {
       "id": "s4_c_washes_hands_mom",
@@ -5585,7 +5785,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set4"
+      "group": "set4",
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      }
     },
     {
       "id": "s4_v_washes_hands_1",
@@ -5613,7 +5817,11 @@
         "group2": "hands",
         "group3": "calm"
       },
-      "group": "set4"
+      "group": "set4",
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      }
     },
     {
       "id": "s4_v_washes_hands_2",
@@ -5644,7 +5852,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set4"
+      "group": "set4",
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      }
     },
     {
       "id": "s4_v_washes_hands_3",
@@ -5675,7 +5887,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set4"
+      "group": "set4",
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      }
     },
     {
       "id": "s4_v_washes_hands_4",
@@ -5706,7 +5922,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set4"
+      "group": "set4",
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      }
     },
     {
       "id": "s4_c_throws_boy",
@@ -7810,7 +8030,11 @@
         "stands",
         "washes_hands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      }
     },
     {
       "id": "s5_c_wipes_mom",
@@ -7842,7 +8066,11 @@
         "stands",
         "washes_hands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      }
     },
     {
       "id": "s5_v_wipes_1",
@@ -7870,7 +8098,11 @@
         "group2": "hands",
         "group3": "calm"
       },
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      }
     },
     {
       "id": "s5_v_wipes_2",
@@ -7901,7 +8133,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      }
     },
     {
       "id": "s5_v_wipes_3",
@@ -7933,7 +8169,11 @@
         "sits",
         "washes_face"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      }
     },
     {
       "id": "s5_v_wipes_4",
@@ -7966,7 +8206,11 @@
         "sits",
         "washes_face"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      }
     },
     {
       "id": "s5_c_claps_boy",
@@ -8583,7 +8827,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      }
     },
     {
       "id": "s5_c_combs_mom",
@@ -8614,7 +8862,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      }
     },
     {
       "id": "s5_v_combs_1",
@@ -8645,7 +8897,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      }
     },
     {
       "id": "s5_v_combs_2",
@@ -8676,7 +8932,11 @@
       "alsoShows": [
         "stands"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      }
     },
     {
       "id": "s5_v_combs_3",
@@ -8707,7 +8967,11 @@
       "alsoShows": [
         "sits"
       ],
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      }
     },
     {
       "id": "s5_v_combs_4",
@@ -8735,7 +8999,11 @@
         "group2": "hands",
         "group3": "calm"
       },
-      "group": "set5"
+      "group": "set5",
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      }
     },
     {
       "id": "s5_c_catches_boy",
