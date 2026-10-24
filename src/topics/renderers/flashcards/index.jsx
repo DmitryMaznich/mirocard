@@ -15,10 +15,19 @@ function getTaskAudioPath(task) {
 }
 
 // mode.ui.promptTemplate ("Покажи: {label}") frames the target word on screen;
-// the spoken prompt stays the recorded word alone.
+// the spoken prompt stays the recorded word alone. The frame repeats on every
+// task and carries nothing, so the word is the bold part and the frame is
+// quieter (docs/verbs-methodology-review.md, 5л). Weight, not colour: colour
+// already means right/wrong here.
 function promptText(mode, label) {
   const template = mode?.ui?.promptTemplate;
-  return template ? template.replace("{label}", label ?? "") : label;
+  if (!template) return label;
+  const [before, after = ""] = template.split("{label}");
+  return <>
+    {before && <span className="prompt-frame">{before}</span>}
+    <strong className="prompt-key">{label}</strong>
+    {after && <span className="prompt-frame">{after}</span>}
+  </>;
 }
 
 const MOOD_VALENCES = new Set(["positive", "negative", "neutral"]);
@@ -746,7 +755,7 @@ function ChooseAllTask({ task, mode, topicId, soundEnabled, playTopicFile, onCor
     <div className="session-body">
       <div className="choose-all-instruction">
         {mode?.ui?.promptTemplate
-          ? <strong>{promptText(mode, task.targetLabel)}</strong>
+          ? <span>{promptText(mode, task.targetLabel)}</span>
           : <>Найди все: <strong>{task.targetLabel}</strong></>}
         <InlineAudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
       </div>

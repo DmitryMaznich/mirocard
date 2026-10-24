@@ -22529,6 +22529,9 @@ body { background: #eef0ef; }
 }
 .qa-inline-speech { flex: 0 0 auto; }
 .find-n-question { display: flex; align-items: center; justify-content: center; gap: 7px; }
+/* promptTemplate: the target word stands out by weight, the repeated frame recedes. */
+.prompt-frame { font-weight: 500; opacity: 0.7; }
+.prompt-key { font-weight: 800; font-size: 1.15em; }
 
 /* ── Мои люди: индивидуальная тема в профиле ученика ───────────────────── */
 .se-my-people-card {

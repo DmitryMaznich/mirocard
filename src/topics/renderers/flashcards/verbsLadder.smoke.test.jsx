@@ -47,6 +47,8 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
   it("frames the target word with the mode's prompt template", () => {
     mount({ task: findTask(2), mode: FIND_MODE });
     expect(container.querySelector(".session-instruction").textContent).toBe("Покажи: ест");
+    // The verb is the bold part; the frame is not.
+    expect(container.querySelector(".session-instruction .prompt-key").textContent).toBe("ест");
   });
 
   it("errorless: a miss is recorded once, lights the right picture, and finishing counts as assisted", () => {
@@ -138,7 +140,8 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     const playTopicFile = vi.fn();
     const [task] = generateTasks("choose_all", CONCEPTS.filter((c) => c.conceptId === "eats"), CARDS, { optionCount: 4 });
     mount({ task, mode: { type: "choose_all", ui: { promptTemplate: "Найди все: {label}", autoplayPrompt: true } }, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
-    expect(container.querySelector(".choose-all-instruction strong").textContent).toBe("Найди все: ест");
+    expect(container.querySelector(".choose-all-instruction > span").textContent).toBe("Найди все: ест");
+    expect(container.querySelector(".choose-all-instruction .prompt-key").textContent).toBe("ест");
     expect(playTopicFile).toHaveBeenCalledWith("verbs_v2", "audio/eats.mp3");
   });
 
