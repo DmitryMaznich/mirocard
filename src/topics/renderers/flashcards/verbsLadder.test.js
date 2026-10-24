@@ -154,11 +154,12 @@ describe("flashcards engine additions", () => {
     expect(switches).toBe(1);
   });
 
-  it("act_out only offers actions a child can do in the room", () => {
+  // Only what a child does at the table, or right next to it, at once: no
+  // sink, no clothes, no second person, no leaving the table («Убери!», «Ползи!»).
+  it("act_out only offers commands a child can do at the table", () => {
     const tasks = generateTasks("act_out", deriveConcepts(deck.cards), deck.cards, {});
-    const ids = tasks.map((t) => t.conceptId);
-    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums", "falls", "swings", "bathes", "builds", "writes", "flies"]) expect(ids).not.toContain(id);
-    expect(ids).toHaveLength(31);
+    expect(tasks.map((t) => t.conceptId).sort()).toEqual(
+      ["blows", "claps", "closes", "draws", "drinks", "eats", "gives", "jumps", "opens", "sits", "stands", "takes"]);
   });
 
   it("postures and look-alikes: no picture that also shows сидит / стоит / лежит is a wrong answer for it", () => {

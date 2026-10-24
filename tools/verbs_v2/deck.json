@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.4.4",
+    "version": "2.4.5",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
@@ -110,13 +110,13 @@
       },
       "methodology": {
         "summary": "Звучит команда «Прыгай!» — ребёнок выполняет. Картинки сначала нет.",
-        "text": "Сначала только голос: «Прыгай!», «Пей!», «Танцуй!». Картинки на экране нет, чтобы ребёнок понимал слово, а не копировал позу. Если ребёнок не начал действовать, нажмите «Подсказка: картинка» или покажите действие сами. Оценка: «Легко» — сделал сам по слову, «С подсказкой» — после картинки или вашего показа, «Не понимает» — не сделал.",
+        "text": "Сначала только голос: «Прыгай!», «Пей!», «Хлопай!». Картинки на экране нет, чтобы ребёнок понимал слово, а не копировал позу. Если ребёнок не начал действовать, нажмите «Подсказка: картинка» или покажите действие сами. Оценка: «Легко» — сделал сам по слову, «С подсказкой» — после картинки или вашего показа, «Не понимает» — не сделал.",
         "goal": "Ребёнок выполняет действие по словесной команде без зрительной подсказки.",
         "duration": "3–5 минут",
         "tips": [
           "Перед командой привлеките внимание ребёнка, но не смотрите на нужный предмет и не начинайте движение сами — это тоже подсказка.",
-          "Для «Ешь!», «Пей!», «Чисти зубы!» дайте предмет понарошку: ложку, пустую чашку, щётку.",
-          "В режиме 31 действие — те, что можно выполнить в комнате. Плавает, едет, спит, плачет, режет, поливает, пылесосит, падает, качается, купается, строит, пишет, летит здесь нет.",
+          "Для «Ешь!» и «Пей!» дайте предмет понарошку: ложку, пустую чашку. Для «Дай!», «Возьми!», «Открой!», «Закрой!» на столе нужна игрушка, коробка или книжка.",
+          "В режиме 12 команд, которые ребёнок выполнит за столом или рядом с ним сразу, без подготовки и без ухода из-за стола: ешь, пей, рисуй, сядь, встань, прыгай, хлопай, подуй, дай, возьми, открой, закрой.",
           "Цель — «Легко» 8 раз из 10 на глаголах текущего набора."
         ]
       }
@@ -1259,10 +1259,6 @@
       "promptAudio": {
         "ru": "audio/runs.mp3"
       },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
-      },
       "wave": 1,
       "category": "movement",
       "tags": [
@@ -1292,10 +1288,6 @@
       "promptAudio": {
         "ru": "audio/runs.mp3"
       },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
-      },
       "wave": 1,
       "category": "movement",
       "tags": [
@@ -1324,10 +1316,6 @@
       },
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
       },
       "wave": 1,
       "category": "movement",
@@ -1370,10 +1358,6 @@
       "promptAudio": {
         "ru": "audio/runs.mp3"
       },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
-      },
       "set": "variation",
       "group": "set1"
     },
@@ -1402,10 +1386,6 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
       },
       "set": "variation",
       "group": "set1"
@@ -1436,10 +1416,6 @@
       "promptAudio": {
         "ru": "audio/runs.mp3"
       },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
-      },
       "set": "variation",
       "group": "set1"
     },
@@ -1468,10 +1444,6 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
       },
       "set": "variation",
       "agent": "animal",
@@ -1502,10 +1474,6 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      },
-      "imperative": "Беги!",
-      "imperativeAudio": {
-        "ru": "audio/imp_runs.mp3"
       },
       "set": "variation",
       "group": "set1"
@@ -1993,10 +1961,6 @@
       "promptAudio": {
         "ru": "audio/walks.mp3"
       },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
-      },
       "wave": 2,
       "category": "movement",
       "tags": [
@@ -2024,10 +1988,6 @@
       },
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
       },
       "wave": 2,
       "category": "movement",
@@ -2057,10 +2017,6 @@
       "promptAudio": {
         "ru": "audio/walks.mp3"
       },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
-      },
       "wave": 2,
       "category": "movement",
       "tags": [
@@ -2088,10 +2044,6 @@
       },
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
       },
       "wave": 2,
       "category": "movement",
@@ -2132,10 +2084,6 @@
       "promptAudio": {
         "ru": "audio/walks.mp3"
       },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
-      },
       "set": "variation",
       "group": "set2"
     },
@@ -2163,10 +2111,6 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
       },
       "set": "variation",
       "group": "set2"
@@ -2196,10 +2140,6 @@
       "promptAudio": {
         "ru": "audio/walks.mp3"
       },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
-      },
       "set": "variation",
       "group": "set2"
     },
@@ -2228,10 +2168,6 @@
       "promptAudio": {
         "ru": "audio/walks.mp3"
       },
-      "imperative": "Иди!",
-      "imperativeAudio": {
-        "ru": "audio/imp_walks.mp3"
-      },
       "set": "variation",
       "group": "set2"
     },
@@ -2248,10 +2184,6 @@
       },
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      },
-      "imperative": "Чисти зубы!",
-      "imperativeAudio": {
-        "ru": "audio/imp_brushes_teeth.mp3"
       },
       "wave": 2,
       "category": "self_care",
@@ -2284,10 +2216,6 @@
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
       },
-      "imperative": "Чисти зубы!",
-      "imperativeAudio": {
-        "ru": "audio/imp_brushes_teeth.mp3"
-      },
       "wave": 2,
       "category": "self_care",
       "tags": [
@@ -2319,10 +2247,6 @@
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
       },
-      "imperative": "Чисти зубы!",
-      "imperativeAudio": {
-        "ru": "audio/imp_brushes_teeth.mp3"
-      },
       "wave": 2,
       "category": "self_care",
       "tags": [
@@ -2353,10 +2277,6 @@
       },
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      },
-      "imperative": "Чисти зубы!",
-      "imperativeAudio": {
-        "ru": "audio/imp_brushes_teeth.mp3"
       },
       "wave": 2,
       "category": "self_care",
@@ -2397,10 +2317,6 @@
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
       },
-      "imperative": "Чисти зубы!",
-      "imperativeAudio": {
-        "ru": "audio/imp_brushes_teeth.mp3"
-      },
       "set": "variation",
       "group": "set2"
     },
@@ -2429,10 +2345,6 @@
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
       },
-      "imperative": "Чисти зубы!",
-      "imperativeAudio": {
-        "ru": "audio/imp_brushes_teeth.mp3"
-      },
       "set": "variation",
       "group": "set2"
     },
@@ -2449,10 +2361,6 @@
       },
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
       },
       "wave": 2,
       "category": "creative",
@@ -2486,10 +2394,6 @@
       "promptAudio": {
         "ru": "audio/plays.mp3"
       },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
-      },
       "wave": 2,
       "category": "creative",
       "tags": [
@@ -2522,10 +2426,6 @@
       "promptAudio": {
         "ru": "audio/plays.mp3"
       },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
-      },
       "wave": 2,
       "category": "creative",
       "tags": [
@@ -2556,10 +2456,6 @@
       },
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
       },
       "wave": 2,
       "category": "creative",
@@ -2603,10 +2499,6 @@
       "promptAudio": {
         "ru": "audio/plays.mp3"
       },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "catches"
@@ -2637,10 +2529,6 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
       },
       "set": "variation",
       "alsoShows": [
@@ -2673,10 +2561,6 @@
       "promptAudio": {
         "ru": "audio/plays.mp3"
       },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "stands"
@@ -2708,10 +2592,6 @@
       "promptAudio": {
         "ru": "audio/plays.mp3"
       },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
-      },
       "set": "variation",
       "agent": "animal",
       "group": "set2"
@@ -2741,10 +2621,6 @@
       "promptAudio": {
         "ru": "audio/plays.mp3"
       },
-      "imperative": "Играй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_plays.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "stands",
@@ -2765,10 +2641,6 @@
       },
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
       },
       "wave": 2,
       "category": "cognitive",
@@ -2801,10 +2673,6 @@
       "promptAudio": {
         "ru": "audio/reads.mp3"
       },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
-      },
       "wave": 2,
       "category": "cognitive",
       "tags": [
@@ -2836,10 +2704,6 @@
       "promptAudio": {
         "ru": "audio/reads.mp3"
       },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
-      },
       "wave": 2,
       "category": "cognitive",
       "tags": [
@@ -2870,10 +2734,6 @@
       },
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
       },
       "wave": 2,
       "category": "cognitive",
@@ -2917,10 +2777,6 @@
       "promptAudio": {
         "ru": "audio/reads.mp3"
       },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "sits"
@@ -2952,10 +2808,6 @@
       "promptAudio": {
         "ru": "audio/reads.mp3"
       },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "sits"
@@ -2986,10 +2838,6 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      },
-      "imperative": "Читай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_reads.mp3"
       },
       "set": "variation",
       "alsoShows": [
@@ -3450,10 +3298,6 @@
       "promptAudio": {
         "ru": "audio/laughs.mp3"
       },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
-      },
       "wave": 2,
       "category": "emotional",
       "tags": [
@@ -3484,10 +3328,6 @@
       },
       "promptAudio": {
         "ru": "audio/laughs.mp3"
-      },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
       },
       "wave": 2,
       "category": "emotional",
@@ -3520,10 +3360,6 @@
       "promptAudio": {
         "ru": "audio/laughs.mp3"
       },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
-      },
       "wave": 2,
       "category": "emotional",
       "tags": [
@@ -3554,10 +3390,6 @@
       },
       "promptAudio": {
         "ru": "audio/laughs.mp3"
-      },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
       },
       "wave": 2,
       "category": "emotional",
@@ -3601,10 +3433,6 @@
       "promptAudio": {
         "ru": "audio/laughs.mp3"
       },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
-      },
       "set": "variation",
       "group": "set2"
     },
@@ -3632,10 +3460,6 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/laughs.mp3"
-      },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
       },
       "set": "variation",
       "alsoShows": [
@@ -3668,10 +3492,6 @@
       "promptAudio": {
         "ru": "audio/laughs.mp3"
       },
-      "imperative": "Смейся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_laughs.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "sits"
@@ -3691,10 +3511,6 @@
       },
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
       },
       "wave": 3,
       "category": "self_care",
@@ -3727,10 +3543,6 @@
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
       },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
-      },
       "wave": 3,
       "category": "self_care",
       "tags": [
@@ -3762,10 +3574,6 @@
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
       },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
-      },
       "wave": 3,
       "category": "self_care",
       "tags": [
@@ -3796,10 +3604,6 @@
       },
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
       },
       "wave": 3,
       "category": "self_care",
@@ -3843,10 +3647,6 @@
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
       },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
-      },
       "set": "variation",
       "group": "set3"
     },
@@ -3874,10 +3674,6 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
       },
       "set": "variation",
       "alsoShows": [
@@ -3909,10 +3705,6 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      },
-      "imperative": "Умывайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_face.mp3"
       },
       "set": "variation",
       "alsoShows": [
@@ -4106,10 +3898,6 @@
       "promptAudio": {
         "ru": "audio/sings.mp3"
       },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
-      },
       "wave": 3,
       "category": "creative",
       "tags": [
@@ -4140,10 +3928,6 @@
       },
       "promptAudio": {
         "ru": "audio/sings.mp3"
-      },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
       },
       "wave": 3,
       "category": "creative",
@@ -4176,10 +3960,6 @@
       "promptAudio": {
         "ru": "audio/sings.mp3"
       },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
-      },
       "wave": 3,
       "category": "creative",
       "tags": [
@@ -4210,10 +3990,6 @@
       },
       "promptAudio": {
         "ru": "audio/sings.mp3"
-      },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
       },
       "wave": 3,
       "category": "creative",
@@ -4257,10 +4033,6 @@
       "promptAudio": {
         "ru": "audio/sings.mp3"
       },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
-      },
       "set": "variation",
       "alsoShows": [
         "stands"
@@ -4291,10 +4063,6 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/sings.mp3"
-      },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
       },
       "set": "variation",
       "alsoShows": [
@@ -4327,10 +4095,6 @@
       "promptAudio": {
         "ru": "audio/sings.mp3"
       },
-      "imperative": "Пой!",
-      "imperativeAudio": {
-        "ru": "audio/imp_sings.mp3"
-      },
       "set": "variation",
       "agent": "animal",
       "group": "set3"
@@ -4348,10 +4112,6 @@
       },
       "promptAudio": {
         "ru": "audio/dances.mp3"
-      },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
       },
       "wave": 3,
       "category": "movement",
@@ -4382,10 +4142,6 @@
       "promptAudio": {
         "ru": "audio/dances.mp3"
       },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
-      },
       "wave": 3,
       "category": "movement",
       "tags": [
@@ -4415,10 +4171,6 @@
       "promptAudio": {
         "ru": "audio/dances.mp3"
       },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
-      },
       "wave": 3,
       "category": "movement",
       "tags": [
@@ -4447,10 +4199,6 @@
       },
       "promptAudio": {
         "ru": "audio/dances.mp3"
-      },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
       },
       "wave": 3,
       "category": "movement",
@@ -4493,10 +4241,6 @@
       "promptAudio": {
         "ru": "audio/dances.mp3"
       },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
-      },
       "set": "variation",
       "group": "set3"
     },
@@ -4526,10 +4270,6 @@
       "promptAudio": {
         "ru": "audio/dances.mp3"
       },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
-      },
       "set": "variation",
       "group": "set3"
     },
@@ -4558,10 +4298,6 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/dances.mp3"
-      },
-      "imperative": "Танцуй!",
-      "imperativeAudio": {
-        "ru": "audio/imp_dances.mp3"
       },
       "set": "variation",
       "group": "set3"
@@ -5803,10 +5539,6 @@
       "promptAudio": {
         "ru": "audio/washes_hands.mp3"
       },
-      "imperative": "Мой руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_hands.mp3"
-      },
       "wave": 4,
       "category": "self_care",
       "tags": [
@@ -5837,10 +5569,6 @@
       },
       "promptAudio": {
         "ru": "audio/washes_hands.mp3"
-      },
-      "imperative": "Мой руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_hands.mp3"
       },
       "wave": 4,
       "category": "self_care",
@@ -5873,10 +5601,6 @@
       "promptAudio": {
         "ru": "audio/washes_hands.mp3"
       },
-      "imperative": "Мой руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_hands.mp3"
-      },
       "wave": 4,
       "category": "self_care",
       "tags": [
@@ -5904,10 +5628,6 @@
       },
       "promptAudio": {
         "ru": "audio/washes_hands.mp3"
-      },
-      "imperative": "Мой руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_hands.mp3"
       },
       "wave": 4,
       "category": "self_care",
@@ -5940,10 +5660,6 @@
       "promptAudio": {
         "ru": "audio/washes_hands.mp3"
       },
-      "imperative": "Мой руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_hands.mp3"
-      },
       "wave": 4,
       "category": "self_care",
       "tags": [
@@ -5974,10 +5690,6 @@
       },
       "promptAudio": {
         "ru": "audio/washes_hands.mp3"
-      },
-      "imperative": "Мой руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_washes_hands.mp3"
       },
       "wave": 4,
       "category": "self_care",
@@ -6010,10 +5722,6 @@
       "promptAudio": {
         "ru": "audio/throws.mp3"
       },
-      "imperative": "Кидай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_throws.mp3"
-      },
       "wave": 4,
       "category": "movement",
       "tags": [
@@ -6044,10 +5752,6 @@
       },
       "promptAudio": {
         "ru": "audio/throws.mp3"
-      },
-      "imperative": "Кидай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_throws.mp3"
       },
       "wave": 4,
       "category": "movement",
@@ -6080,10 +5784,6 @@
       "promptAudio": {
         "ru": "audio/throws.mp3"
       },
-      "imperative": "Кидай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_throws.mp3"
-      },
       "wave": 4,
       "category": "movement",
       "tags": [
@@ -6111,10 +5811,6 @@
       },
       "promptAudio": {
         "ru": "audio/throws.mp3"
-      },
-      "imperative": "Кидай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_throws.mp3"
       },
       "wave": 4,
       "category": "movement",
@@ -6144,10 +5840,6 @@
       "promptAudio": {
         "ru": "audio/throws.mp3"
       },
-      "imperative": "Кидай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_throws.mp3"
-      },
       "wave": 4,
       "category": "movement",
       "tags": [
@@ -6175,10 +5867,6 @@
       },
       "promptAudio": {
         "ru": "audio/throws.mp3"
-      },
-      "imperative": "Кидай!",
-      "imperativeAudio": {
-        "ru": "audio/imp_throws.mp3"
       },
       "wave": 4,
       "category": "movement",
@@ -6211,10 +5899,6 @@
       "promptAudio": {
         "ru": "audio/lies.mp3"
       },
-      "imperative": "Ложись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_lies.mp3"
-      },
       "wave": 4,
       "category": "posture",
       "tags": [
@@ -6242,10 +5926,6 @@
       },
       "promptAudio": {
         "ru": "audio/lies.mp3"
-      },
-      "imperative": "Ложись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_lies.mp3"
       },
       "wave": 4,
       "category": "posture",
@@ -6275,10 +5955,6 @@
       "promptAudio": {
         "ru": "audio/lies.mp3"
       },
-      "imperative": "Ложись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_lies.mp3"
-      },
       "wave": 4,
       "category": "posture",
       "tags": [
@@ -6306,10 +5982,6 @@
       },
       "promptAudio": {
         "ru": "audio/lies.mp3"
-      },
-      "imperative": "Ложись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_lies.mp3"
       },
       "wave": 4,
       "category": "posture",
@@ -6339,10 +6011,6 @@
       "promptAudio": {
         "ru": "audio/lies.mp3"
       },
-      "imperative": "Ложись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_lies.mp3"
-      },
       "wave": 4,
       "category": "posture",
       "tags": [
@@ -6370,10 +6038,6 @@
       },
       "promptAudio": {
         "ru": "audio/lies.mp3"
-      },
-      "imperative": "Ложись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_lies.mp3"
       },
       "wave": 4,
       "category": "posture",
@@ -6403,10 +6067,6 @@
       },
       "promptAudio": {
         "ru": "audio/gets_dressed.mp3"
-      },
-      "imperative": "Одевайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_gets_dressed.mp3"
       },
       "wave": 4,
       "category": "self_care",
@@ -6439,10 +6099,6 @@
       "promptAudio": {
         "ru": "audio/gets_dressed.mp3"
       },
-      "imperative": "Одевайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_gets_dressed.mp3"
-      },
       "wave": 4,
       "category": "self_care",
       "tags": [
@@ -6473,10 +6129,6 @@
       },
       "promptAudio": {
         "ru": "audio/gets_dressed.mp3"
-      },
-      "imperative": "Одевайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_gets_dressed.mp3"
       },
       "wave": 4,
       "category": "self_care",
@@ -6509,10 +6161,6 @@
       "promptAudio": {
         "ru": "audio/gets_dressed.mp3"
       },
-      "imperative": "Одевайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_gets_dressed.mp3"
-      },
       "wave": 4,
       "category": "self_care",
       "tags": [
@@ -6544,10 +6192,6 @@
       "promptAudio": {
         "ru": "audio/gets_dressed.mp3"
       },
-      "imperative": "Одевайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_gets_dressed.mp3"
-      },
       "wave": 4,
       "category": "self_care",
       "tags": [
@@ -6575,10 +6219,6 @@
       },
       "promptAudio": {
         "ru": "audio/gets_dressed.mp3"
-      },
-      "imperative": "Одевайся!",
-      "imperativeAudio": {
-        "ru": "audio/imp_gets_dressed.mp3"
       },
       "wave": 4,
       "category": "self_care",
@@ -7770,10 +7410,6 @@
       "promptAudio": {
         "ru": "audio/takes_off.mp3"
       },
-      "imperative": "Сними!",
-      "imperativeAudio": {
-        "ru": "audio/imp_takes_off.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -7803,10 +7439,6 @@
       },
       "promptAudio": {
         "ru": "audio/takes_off.mp3"
-      },
-      "imperative": "Сними!",
-      "imperativeAudio": {
-        "ru": "audio/imp_takes_off.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -7838,10 +7470,6 @@
       "promptAudio": {
         "ru": "audio/takes_off.mp3"
       },
-      "imperative": "Сними!",
-      "imperativeAudio": {
-        "ru": "audio/imp_takes_off.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -7871,10 +7499,6 @@
       },
       "promptAudio": {
         "ru": "audio/takes_off.mp3"
-      },
-      "imperative": "Сними!",
-      "imperativeAudio": {
-        "ru": "audio/imp_takes_off.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -7906,10 +7530,6 @@
       "promptAudio": {
         "ru": "audio/takes_off.mp3"
       },
-      "imperative": "Сними!",
-      "imperativeAudio": {
-        "ru": "audio/imp_takes_off.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -7940,10 +7560,6 @@
       },
       "promptAudio": {
         "ru": "audio/takes_off.mp3"
-      },
-      "imperative": "Сними!",
-      "imperativeAudio": {
-        "ru": "audio/imp_takes_off.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -8178,10 +7794,6 @@
       "promptAudio": {
         "ru": "audio/wipes.mp3"
       },
-      "imperative": "Вытри руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_wipes.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -8213,10 +7825,6 @@
       },
       "promptAudio": {
         "ru": "audio/wipes.mp3"
-      },
-      "imperative": "Вытри руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_wipes.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -8250,10 +7858,6 @@
       "promptAudio": {
         "ru": "audio/wipes.mp3"
       },
-      "imperative": "Вытри руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_wipes.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -8281,10 +7885,6 @@
       },
       "promptAudio": {
         "ru": "audio/wipes.mp3"
-      },
-      "imperative": "Вытри руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_wipes.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -8317,10 +7917,6 @@
       "promptAudio": {
         "ru": "audio/wipes.mp3"
       },
-      "imperative": "Вытри руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_wipes.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -8352,10 +7948,6 @@
       },
       "promptAudio": {
         "ru": "audio/wipes.mp3"
-      },
-      "imperative": "Вытри руки!",
-      "imperativeAudio": {
-        "ru": "audio/imp_wipes.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -8603,10 +8195,6 @@
       "promptAudio": {
         "ru": "audio/tidies.mp3"
       },
-      "imperative": "Убери!",
-      "imperativeAudio": {
-        "ru": "audio/imp_tidies.mp3"
-      },
       "wave": 5,
       "category": "household",
       "tags": [
@@ -8639,10 +8227,6 @@
       "promptAudio": {
         "ru": "audio/tidies.mp3"
       },
-      "imperative": "Убери!",
-      "imperativeAudio": {
-        "ru": "audio/imp_tidies.mp3"
-      },
       "wave": 5,
       "category": "household",
       "tags": [
@@ -8673,10 +8257,6 @@
       },
       "promptAudio": {
         "ru": "audio/tidies.mp3"
-      },
-      "imperative": "Убери!",
-      "imperativeAudio": {
-        "ru": "audio/imp_tidies.mp3"
       },
       "wave": 5,
       "category": "household",
@@ -8710,10 +8290,6 @@
       "promptAudio": {
         "ru": "audio/tidies.mp3"
       },
-      "imperative": "Убери!",
-      "imperativeAudio": {
-        "ru": "audio/imp_tidies.mp3"
-      },
       "wave": 5,
       "category": "household",
       "tags": [
@@ -8745,10 +8321,6 @@
       "promptAudio": {
         "ru": "audio/tidies.mp3"
       },
-      "imperative": "Убери!",
-      "imperativeAudio": {
-        "ru": "audio/imp_tidies.mp3"
-      },
       "wave": 5,
       "category": "household",
       "tags": [
@@ -8779,10 +8351,6 @@
       },
       "promptAudio": {
         "ru": "audio/tidies.mp3"
-      },
-      "imperative": "Убери!",
-      "imperativeAudio": {
-        "ru": "audio/imp_tidies.mp3"
       },
       "wave": 5,
       "category": "household",
@@ -9000,10 +8568,6 @@
       "promptAudio": {
         "ru": "audio/combs.mp3"
       },
-      "imperative": "Причешись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_combs.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -9034,10 +8598,6 @@
       },
       "promptAudio": {
         "ru": "audio/combs.mp3"
-      },
-      "imperative": "Причешись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_combs.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -9070,10 +8630,6 @@
       "promptAudio": {
         "ru": "audio/combs.mp3"
       },
-      "imperative": "Причешись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_combs.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -9104,10 +8660,6 @@
       },
       "promptAudio": {
         "ru": "audio/combs.mp3"
-      },
-      "imperative": "Причешись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_combs.mp3"
       },
       "wave": 5,
       "category": "self_care",
@@ -9140,10 +8692,6 @@
       "promptAudio": {
         "ru": "audio/combs.mp3"
       },
-      "imperative": "Причешись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_combs.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -9175,10 +8723,6 @@
       "promptAudio": {
         "ru": "audio/combs.mp3"
       },
-      "imperative": "Причешись!",
-      "imperativeAudio": {
-        "ru": "audio/imp_combs.mp3"
-      },
       "wave": 5,
       "category": "self_care",
       "tags": [
@@ -9206,10 +8750,6 @@
       },
       "promptAudio": {
         "ru": "audio/catches.mp3"
-      },
-      "imperative": "Лови!",
-      "imperativeAudio": {
-        "ru": "audio/imp_catches.mp3"
       },
       "wave": 5,
       "category": "movement",
@@ -9243,10 +8783,6 @@
       "promptAudio": {
         "ru": "audio/catches.mp3"
       },
-      "imperative": "Лови!",
-      "imperativeAudio": {
-        "ru": "audio/imp_catches.mp3"
-      },
       "wave": 5,
       "category": "movement",
       "tags": [
@@ -9278,10 +8814,6 @@
       },
       "promptAudio": {
         "ru": "audio/catches.mp3"
-      },
-      "imperative": "Лови!",
-      "imperativeAudio": {
-        "ru": "audio/imp_catches.mp3"
       },
       "wave": 5,
       "category": "movement",
@@ -9316,10 +8848,6 @@
       "promptAudio": {
         "ru": "audio/catches.mp3"
       },
-      "imperative": "Лови!",
-      "imperativeAudio": {
-        "ru": "audio/imp_catches.mp3"
-      },
       "wave": 5,
       "category": "movement",
       "tags": [
@@ -9353,10 +8881,6 @@
       "promptAudio": {
         "ru": "audio/catches.mp3"
       },
-      "imperative": "Лови!",
-      "imperativeAudio": {
-        "ru": "audio/imp_catches.mp3"
-      },
       "wave": 5,
       "category": "movement",
       "tags": [
@@ -9389,10 +8913,6 @@
       },
       "promptAudio": {
         "ru": "audio/catches.mp3"
-      },
-      "imperative": "Лови!",
-      "imperativeAudio": {
-        "ru": "audio/imp_catches.mp3"
       },
       "wave": 5,
       "category": "movement",
@@ -9614,10 +9134,6 @@
       "promptAudio": {
         "ru": "audio/crawls.mp3"
       },
-      "imperative": "Ползи!",
-      "imperativeAudio": {
-        "ru": "audio/imp_crawls.mp3"
-      },
       "wave": 5,
       "category": "movement",
       "tags": [
@@ -9644,10 +9160,6 @@
       },
       "promptAudio": {
         "ru": "audio/crawls.mp3"
-      },
-      "imperative": "Ползи!",
-      "imperativeAudio": {
-        "ru": "audio/imp_crawls.mp3"
       },
       "wave": 5,
       "category": "movement",
@@ -9676,10 +9188,6 @@
       "promptAudio": {
         "ru": "audio/crawls.mp3"
       },
-      "imperative": "Ползи!",
-      "imperativeAudio": {
-        "ru": "audio/imp_crawls.mp3"
-      },
       "wave": 5,
       "category": "movement",
       "tags": [
@@ -9706,10 +9214,6 @@
       },
       "promptAudio": {
         "ru": "audio/crawls.mp3"
-      },
-      "imperative": "Ползи!",
-      "imperativeAudio": {
-        "ru": "audio/imp_crawls.mp3"
       },
       "wave": 5,
       "category": "movement",
@@ -9741,10 +9245,6 @@
       "promptAudio": {
         "ru": "audio/crawls.mp3"
       },
-      "imperative": "Ползи!",
-      "imperativeAudio": {
-        "ru": "audio/imp_crawls.mp3"
-      },
       "wave": 5,
       "category": "movement",
       "tags": [
@@ -9771,10 +9271,6 @@
       },
       "promptAudio": {
         "ru": "audio/crawls.mp3"
-      },
-      "imperative": "Ползи!",
-      "imperativeAudio": {
-        "ru": "audio/imp_crawls.mp3"
       },
       "wave": 5,
       "category": "movement",
