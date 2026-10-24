@@ -137,6 +137,20 @@ function clone(x) {
   return JSON.parse(JSON.stringify(x));
 }
 
+// The words the cover PRINTS (what the child holds), by the topic's alphabet: a variant deck says them in `meta.coverWords.stamp`
+// (owner, 2026-10-24: «Български прописи» printed «ТЕТРАДЬ», «Имя», «12 листов» in Russian). The print dialog's own labels are the
+// adult's interface and stay Russian. { kicker, fields: {id: label}, leaves(n), price }
+export function coverStamp(topicRecord) {
+  const w = topicRecord?.meta?.coverWords?.stamp ?? {};
+  const forms = w.leaves; // { one, few, many } — «1 лист», «2 листа», «5 листов» (a variant may give one form for 2+, as Bulgarian does)
+  return {
+    kicker: w.kicker ?? "ТЕТРАДЬ",
+    field: (f) => w.fields?.[f.id] ?? f.label,
+    leaves: (n) => (forms ? `${n} ${n % 10 === 1 && n % 100 !== 11 ? forms.one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? forms.few ?? forms.many : forms.many}` : leavesLabel(n)),
+    price: w.price ?? "Цена 18 коп.",
+  };
+}
+
 // «12 листов»: the leaves of a notebook (two A5 pages a leaf; the cover not counted), printed on the back of its cover
 export const leavesLabel = (n) => {
   const d = n % 10, h = n % 100;

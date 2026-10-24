@@ -1,7 +1,7 @@
 import CoverTemplate from "./CoverTemplate.jsx";
 import CoverBack from "./CoverBack.jsx";
 import { useCoverTasks } from "./coverTasks.js";
-import { spinePaperOf } from "./coverConfig.js";
+import { coverStamp, spinePaperOf } from "./coverConfig.js";
 import { bookletPageCount } from "@/topics/renderers/propis/booklet.js";
 
 // One side of a notebook's cover with the engine tasks it needs: the front or the back. `notebook`: {title, a4, topicRecord, paper,
@@ -12,6 +12,6 @@ export default function CoverSide({ side, cover, notebook }) {
   const tasks = useCoverTasks({ topicRecord, cover, format: a4 ? "a4" : "a5", side, spinePaper: spinePaperOf(cover, paper) });
   const leaves = Math.ceil((booklet && !a4 ? bookletPageCount(pages) : pages) / 2);
   return side === "back"
-    ? <CoverBack cover={cover} back={tasks.back} spineTask={tasks.spineTask} leaves={pages > 0 ? leaves : 0} a4={a4} />
-    : <CoverTemplate cover={cover} title={title} tasks={tasks} a4={a4} />;
+    ? <CoverBack cover={cover} back={tasks.back} spineTask={tasks.spineTask} leaves={pages > 0 ? leaves : 0} a4={a4} words={coverStamp(topicRecord)} />
+    : <CoverTemplate cover={cover} title={title} tasks={tasks} a4={a4} words={coverStamp(topicRecord)} />;
 }

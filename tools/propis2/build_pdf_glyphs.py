@@ -24,8 +24,8 @@ FONTS = {
     "CoverSans-400": "CoverSans-400.ttf", "CoverSans-700": "CoverSans-700.ttf",
 }
 
-# what a notebook's texts can hold: Latin, Cyrillic, digits and the usual punctuation (« » © № · – — …); DM Serif writes only «Mironium»
-TEXT = set(chr(c) for c in range(0x20, 0x7F)) | set(chr(c) for c in range(0x410, 0x450)) | set("Ёё«»©№·–—…‐’“”„")
+# what a notebook's texts can hold: Latin, Cyrillic (the whole block U+0400–045F), digits and the usual punctuation (« » © № · – — …); DM Serif writes only «Mironium»
+TEXT = set(chr(c) for c in range(0x20, 0x7F)) | set(chr(c) for c in range(0x400, 0x460)) | set("«»©№·–—…‐’“”„")  # the whole Cyrillic block: Bulgarian ѝ Ѝ (propis2_bg) too
 LATIN = set(chr(c) for c in range(0x20, 0x7F))
 
 out = {}

@@ -93,3 +93,14 @@ describe("the leaves on the back", () => {
     expect([1, 2, 4, 5, 11, 12, 14, 21, 22, 25].map(leavesLabel)).toEqual(["1 лист", "2 листа", "4 листа", "5 листов", "11 листов", "12 листов", "14 листов", "21 лист", "22 листа", "25 листов"]);
   });
 });
+
+describe("coverStamp: the words the cover prints, by the topic (owner, 2026-10-24: «Български прописи» printed Russian ones)", () => {
+  it("Russian by default; a variant's own words from meta.coverWords.stamp", async () => {
+    const { coverStamp, FIELDS } = await import("./coverConfig.js");
+    const ru = coverStamp(null);
+    expect([ru.kicker, ru.field(FIELDS[0]), ru.leaves(12), ru.leaves(21), ru.price]).toEqual(["ТЕТРАДЬ", "Имя", "12 листов", "21 лист", "Цена 18 коп."]);
+    const { readFileSync } = await import("node:fs");
+    const bg = coverStamp({ meta: JSON.parse(readFileSync("tools/propis2/variants/bg/variant.json", "utf-8")).meta });
+    expect([bg.kicker, bg.field(FIELDS[0]), bg.field(FIELDS[4]), bg.leaves(1), bg.leaves(12), bg.price]).toEqual(["ТЕТРАДКА", "Име", "Започната", "1 лист", "12 листа", "Цена 18 ст."]);
+  });
+});

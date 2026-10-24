@@ -14,7 +14,7 @@
   },
   "meta": {
     "id": "propis2_bg",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "title": "Български прописи",
     "methodology": false,
     "script": {
@@ -54,6 +54,22 @@
         ",": "запетая",
         "?": "въпрос",
         "!": "удивление"
+      },
+      "stamp": {
+        "kicker": "ТЕТРАДКА",
+        "fields": {
+          "name": "Име",
+          "surname": "Фамилия",
+          "class": "Клас",
+          "school": "Училище",
+          "started": "Започната",
+          "finished": "Завършена"
+        },
+        "leaves": {
+          "one": "лист",
+          "many": "листа"
+        },
+        "price": "Цена 18 ст."
       }
     },
     "about": {
