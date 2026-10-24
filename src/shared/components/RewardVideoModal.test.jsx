@@ -351,9 +351,9 @@ describe("individual viewing duration", () => {
       useAppStore.setState({ students: [] });
     });
   }
-  it("uses a shorter known clip duration and keeps fractional playback across pauses", async () => {
+  it.each(["60", "120", "180"])("ends a shorter clip with the %s limit and keeps fractional playback across pauses", async (duration) => {
     const { useAppStore } = await import("@/core/store");
-    useAppStore.setState({ students: [{ id: "s1", rewardSettings: { algorithm: "flexible", duration: "end" } }] });
+    useAppStore.setState({ students: [{ id: "s1", rewardSettings: { algorithm: "flexible", duration } }] });
     const root = createTestRoot();
     await act(async () => root.render(<RewardVideoModal studentId="s1" rewardVideos={["aaaaaaaaaaa"]} onDismiss={() => {}} />));
     await act(async () => container.querySelector(".reward-modal__btn--watch").click());

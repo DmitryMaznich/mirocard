@@ -9,11 +9,11 @@ for (const width of [390, 768, 1024]) {
     await expect(duration).toBeEnabled();
     await page.getByRole("button", { name: "Все звёзды", exact: true }).click();
     await page.getByRole("checkbox", { name: "Строгий подсчёт", exact: true }).uncheck();
-    await page.getByRole("button", { name: "До конца ролика, не более 3 минут" }).click();
+    await page.getByRole("button", { name: "3 минуты" }).click();
     await page.getByRole("button", { name: "Прежние правила", exact: true }).click();
     await expect(duration).toBeDisabled();
     await page.getByRole("button", { name: "Новые правила", exact: true }).click();
-    await expect(page.getByRole("button", { name: "До конца ролика, не более 3 минут" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "3 минуты" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("button", { name: "Все звёзды", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("checkbox", { name: "Строгий подсчёт", exact: true })).not.toBeChecked();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);

@@ -8,7 +8,7 @@ export function normalizeRewardSettings(raw) {
   const value = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   return {
     algorithm: value.algorithm === "flexible" ? "flexible" : "legacy",
-    duration: ["60", "120", "180", "end"].includes(String(value.duration)) ? String(value.duration) : "120",
+    duration: value.duration === "end" ? "180" : ["60", "120", "180"].includes(String(value.duration)) ? String(value.duration) : "120",
     animation: value.animation === "soft" ? "soft" : "normal",
     sound: value.sound === true,
     strictStars: value.strictStars !== false,

@@ -16,6 +16,7 @@ describe("individual reward policy", () => {
     expect(normalizeRewardSettings(chosen)).toEqual(chosen);
     expect(effectiveRewardSettings(chosen).duration).toBe("120");
     expect(effectiveRewardSettings({ ...chosen, algorithm: "flexible" }).duration).toBe("180");
+    expect(normalizeRewardSettings({ duration: "end" }).duration).toBe("180");
     for (const duration of ["60", "120", "180", "end"]) expect(rewardVideoSeconds(effectiveRewardSettings({ algorithm: "flexible", duration }))).toBeLessThanOrEqual(180);
   });
   for (const perStar of [1, 2, 3]) for (const loss of ["one", "all"]) {

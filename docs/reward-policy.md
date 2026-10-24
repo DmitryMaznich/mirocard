@@ -4,7 +4,7 @@ Existing students retain the legacy algorithm. Enable **Ученик → Пра�
 
 ## Behavior contract
 
-- Student settings: 1/2/3 minutes or until the video ends (maximum 3 minutes), noticeable/mild star animation, optional sound. Loading and pauses do not spend viewing time; a natural video end closes the reward sooner.
+- Student settings: 1/2/3 minutes (or earlier if the video ends), noticeable/mild star animation, optional sound. Loading and pauses do not spend viewing time; a natural video end closes the reward sooner.
 - Student settings also include strict counting and loss of one/all stars, shared across every topic and mode. Lesson settings display the current rules without local overrides. Under the new rules strict counting controls intermediate mistakes in every topic that reports them. A wrong final answer always incurs a penalty. Topic-specific assessment and completion awards remain intact.
 - Only one penalty per evaluated attempt. A penalized attempt cannot earn reward progress by correcting or guessing, including at zero balance. Moving to the next task starts a new attempt. All reported errors still enter statistics.
 - One star removes one `answersPerStar` group. The new 5-of-5 display always shows five stars for targets of 5, 10, or 15 successful answers. Prize exchange has no loss animation.
@@ -16,6 +16,8 @@ Existing students retain the legacy algorithm. Enable **Ученик → Пра�
 For one student, select **Прежние правила**, save, and start a new lesson. New settings remain stored for a later retry. Other students are unaffected. Recovery rejects a saved session whose reward policy no longer matches the student's settings.
 
 Source baseline: `backup/rewards-before-flexible-20261023`, commit `472f9f83` (v1.0.2703). If a deployment rollback is needed, revert the reward feature commit on current main, resolve intervening changes, bump the application version in a separate commit, build and deploy normally. Do not reset/force-push main. Database additions are nullable/defaulted columns; keep them during rollback to preserve saved choices. No student, session or statistics deletion is needed.
+
+The retired `duration: "end"` choice normalizes to `"180"`, matching the three-minute limit.
 
 Settings missing the new strictness/loss fields default to strict counting and loss of one star. Old topic-specific choices are retained for legacy rollback and do not override the new student policy.
 

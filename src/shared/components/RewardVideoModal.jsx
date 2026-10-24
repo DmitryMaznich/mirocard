@@ -1,6 +1,5 @@
 import { useRewardSettings } from "@/features/rewards/useRewardSettings.js";
 import { rewardVideoSeconds } from "../../../shared/reward-policy.mjs";
-import { rewardText } from "@/features/rewards/rewardText.js";
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
@@ -207,7 +206,7 @@ export default function RewardVideoModal({
             className="video-reward-progress__bar"
             style={{ width: `${(secondsLeft / videoBudget) * 100}%` }}
           />
-          <span className="video-reward-progress__label">{formatRewardTime(secondsLeft)}{rewardSettings.duration === "end" && !hasStarted ? ` · ${rewardText("endLabel")}` : ""}</span>
+          <span className="video-reward-progress__label">{formatRewardTime(secondsLeft)}</span>
         </div>
       </div>
       {!videoId && (

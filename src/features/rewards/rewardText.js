@@ -8,7 +8,7 @@ const messages = {
     rollout: "Новые правила включаются отдельно для каждого ученика. Действуют со следующего запуска занятия.",
     rollback: "Для возврата выберите «Прежние правила» и сохраните ученика. Выбранные новые настройки останутся сохранены.",
     legacyHint: "Сейчас используется прежний алгоритм и просмотр до 2 минут. Новые параметры ниже не применяются.",
-    duration: "Длительность видеоприза", minute: "1 минута", two: "2 минуты", three: "3 минуты", end: "До конца ролика, не более 3 минут",
+    duration: "Длительность видеоприза", minute: "1 минута", two: "2 минуты", three: "3 минуты",
     timing: "Загрузка и пауза не расходуют время. Если ролик закончится раньше, просмотр завершится.",
     animation: "Анимация звёзд", soft: "Мягкая", normal: "Заметная", sound: "Звук при изменении звёзд",
     loss: "При ошибке сгорает", one: "Одна звезда", all: "Все звёзды",
@@ -16,7 +16,7 @@ const messages = {
     attempt: "За одну попытку — один штраф. Попытка с учитываемой ошибкой не даёт новую звезду после исправления. Новое самостоятельное выполнение снова может принести звезду.",
     legacyLesson: "Чтобы выбрать потерю одной звезды, включите новые правила в карточке ученика.",
     series: "Успехов до видеоприза", seriesInfo: "5, 10 или 15 засчитанных успешных ответов. Ошибки учитываются по выбранным правилам.",
-    rewardTitle: "Молодец! Видеоприз заработан!", endLabel: "До конца ролика · максимум 3:00",
+    rewardTitle: "Молодец! Видеоприз заработан!",
   },
   sl: {
     scope: "Ta pravila veljajo za vse teme in načine tega učenca.",
@@ -26,7 +26,7 @@ const messages = {
     rollout: "Nova pravila vključite za vsakega učenca posebej. Veljajo od naslednjega začetka učne ure.",
     rollback: "Za vrnitev izberite »Prejšnja pravila« in shranite učenca. Izbrane nove nastavitve ostanejo shranjene.",
     legacyHint: "Trenutno velja prejšnji način in ogled do 2 minut. Nove nastavitve spodaj se ne uporabljajo.",
-    duration: "Trajanje video nagrade", minute: "1 minuta", two: "2 minuti", three: "3 minute", end: "Do konca videa, največ 3 minute",
+    duration: "Trajanje video nagrade", minute: "1 minuta", two: "2 minuti", three: "3 minute",
     timing: "Nalaganje in premor ne porabljata časa. Če se video konča prej, se ogled zaključi.",
     animation: "Animacija zvezdic", soft: "Blaga", normal: "Opazna", sound: "Zvok ob spremembi zvezdic",
     loss: "Ob napaki izgori", one: "Ena zvezdica", all: "Vse zvezdice",
@@ -34,7 +34,7 @@ const messages = {
     attempt: "En poskus — ena izguba. Poskus z upoštevano napako po popravku ne prinese nove zvezdice. Novo samostojno reševanje jo lahko znova prinese.",
     legacyLesson: "Za izgubo ene zvezdice vključite nova pravila v profilu učenca.",
     series: "Uspehi do video nagrade", seriesInfo: "5, 10 ali 15 upoštevanih uspešnih odgovorov. Napake se upoštevajo po izbranih pravilih.",
-    rewardTitle: "Odlično! Video nagrada je prislužena!", endLabel: "Do konca videa · največ 3:00",
+    rewardTitle: "Odlično! Video nagrada je prislužena!",
   },
 };
 export function rewardText(key) { return (messages[getUiLanguage()] ?? messages.ru)[key] ?? messages.ru[key] ?? key; }

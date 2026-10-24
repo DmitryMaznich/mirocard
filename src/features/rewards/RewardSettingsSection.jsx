@@ -19,7 +19,7 @@ export default function RewardSettingsSection({ value, onChange }) {
     <fieldset disabled={!flexible}>
       <legend>{text("duration")}</legend>
       <div className="reward-settings__choices reward-settings__choices--wrap">
-        {[["60", "minute"], ["120", "two"], ["180", "three"], ["end", "end"]].map(([duration, label]) =>
+        {[["60", "minute"], ["120", "two"], ["180", "three"]].map(([duration, label]) =>
           <button type="button" key={duration} aria-pressed={settings.duration === duration} onClick={() => change({ duration })}>{text(label)}</button>)}
       </div>
       <p>{text("timing")}</p>

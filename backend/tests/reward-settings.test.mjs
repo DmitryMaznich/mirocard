@@ -16,12 +16,12 @@ test("reward settings sync independently, survive stale profile edits and can ro
     upsertStudent(db, account.id, { id: "s", name: "Новое имя", rewardSettings: { algorithm: "legacy" } });
     upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { algorithm: "legacy" }, updatedAt: "2026-10-22T12:00:00.000Z" });
     let student = buildBootstrap(db, account.id).students[0];
-    assert.deepEqual(student.rewardSettings, settings);
+    assert.deepEqual(student.rewardSettings, { ...settings, duration: "180" });
     assert.equal(student.rewardSettingsUpdatedAt, "2026-10-23T12:00:00.000Z");
     upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { ...settings, algorithm: "legacy" }, updatedAt: "2026-10-23T13:00:00.000Z" });
     student = buildBootstrap(db, account.id).students[0];
     assert.equal(student.rewardSettings.algorithm, "legacy");
-    assert.equal(student.rewardSettings.duration, "end");
+    assert.equal(student.rewardSettings.duration, "180");
     // A previous application version knows only the original four fields.
     upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { algorithm: "flexible", duration: "60", animation: "normal", sound: false }, updatedAt: "2026-10-24T13:00:00.000Z" });
     student = buildBootstrap(db, account.id).students[0];

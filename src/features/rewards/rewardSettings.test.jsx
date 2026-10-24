@@ -25,12 +25,12 @@ it("rolls back with one profile choice and retains the new duration for a later 
   await act(async () => root.render(<Profile />));
   expect(button("1 минута").matches(":disabled")).toBe(true);
   await act(async () => button("Новые правила").click());
-  await act(async () => button("До конца ролика, не более 3 минут").click());
-  expect(button("До конца ролика, не более 3 минут").getAttribute("aria-pressed")).toBe("true");
+  await act(async () => button("3 минуты").click());
+  expect(button("3 минуты").getAttribute("aria-pressed")).toBe("true");
   await act(async () => button("Прежние правила").click());
   expect(button("1 минута").matches(":disabled")).toBe(true);
   await act(async () => button("Новые правила").click());
-  expect(button("До конца ролика, не более 3 минут").getAttribute("aria-pressed")).toBe("true");
+  expect(button("3 минуты").getAttribute("aria-pressed")).toBe("true");
 });
 
 it("animates exactly the lost stars, and never burns stars exchanged for a prize", async () => {
