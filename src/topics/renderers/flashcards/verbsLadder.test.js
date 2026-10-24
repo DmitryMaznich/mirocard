@@ -101,6 +101,10 @@ describe("pictures", () => {
     const show = deck.modes.find((m) => m.id === "verbs_show");
     expect(generateTasks("find_n", deriveConcepts(deck.cards), deck.cards, { step: 2 }, show).some((t) => t.options.some((o) => o.isTarget && o.card.agent === "animal"))).toBe(true);
   });
+  // No answers are counted there, so a reward could never be earned: the switch is hidden.
+  it("«Знакомство» has no video-reward switch", () => {
+    expect(deck.modes.find((m) => m.id === "verbs_intro").hideVideoReward).toBe(true);
+  });
   // «летит» has a bird and a butterfly instead: people do not fly.
   it("every verb has a boy and a mum card plus at least two other pictures", () => {
     for (const c of deriveConcepts(deck.cards)) {

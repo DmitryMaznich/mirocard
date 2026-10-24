@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.4.3",
+    "version": "2.4.4",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
@@ -53,6 +53,7 @@
       "id": "verbs_intro",
       "type": "intro",
       "evaluation": "none",
+      "hideVideoReward": true,
       "ui": {
         "title": "Знакомство",
         "instruction": "Посмотри и послушай",
