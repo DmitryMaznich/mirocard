@@ -898,10 +898,27 @@ const SNAP_FNS = new Map();
 // the show panel's window (focus): room for the pen above (and, to keep the row in the middle, below) the row; margin beside the ink
 const FOCUS_PEN_ROOM = 44;
 const FOCUS_SIDE = 40;
+// `pageShift` (0 / 1): the parity of the notebook page the run starts on. A page is drawn by its place in the whole notebook (margin side,
+// slant grid shifted by a page width on the right half of a sheet); a run of a notebook on several papers starting on an odd page used to
+// snap its letters as if it started on an even one — off the drawn slants by 0.7 of a cell (3.5 mm on the wide row) and to the other
+// margin (owner, 2026-10-24: «on the dense slant the letters are not on the lines»). The run's rows are counted on by one page for it.
 export function snapXFor(args) {
-  const key = JSON.stringify([args.narrowRows, args.simpleGrid, args.margin ?? "off", args.format ?? "a5", args.narrow17 ?? false]);
+  const shift = (args.pageShift ?? 0) % 2;
+  const key = JSON.stringify([args.narrowRows, args.simpleGrid, args.margin ?? "off", args.format ?? "a5", args.narrow17 ?? false, shift]);
   let fn = SNAP_FNS.get(key);
-  if (!fn) { fn = makeSnapX(args); fn.cacheable = true; SNAP_FNS.set(key, fn); }
+  if (!fn) {
+    const base = makeSnapX(args);
+    if (!shift) fn = base;
+    else {
+      const per = perPageOf(geomOf(args.format ?? "a5"), args.narrow17 ?? false, OWN_ROWS[args.simpleGrid] ? args.simpleGrid : null);
+      fn = (rowIndex, x, y) => base(rowIndex + per, x, y);
+      if (base.hidden) fn.hidden = true;
+      if (base.letterScale) fn.letterScale = base.letterScale;
+      if (base.cell) fn.cell = { ...base.cell, origin: (rowIndex) => base.cell.origin(rowIndex + per) };
+    }
+    fn.cacheable = true;
+    SNAP_FNS.set(key, fn);
+  }
   return fn;
 }
 function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narrow17 = false }) {
@@ -953,7 +970,7 @@ function layoutTaskPages(task) {
   }
   if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
   const layout = wideRows
-    ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
+    ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17, pageShift: (Number(task?.firstPage) || 0) % 2 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
     : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(lines.join("\n"), lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel);
