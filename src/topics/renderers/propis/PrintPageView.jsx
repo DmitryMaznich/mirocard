@@ -390,7 +390,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+function PrintPage({ page, pageIndex, gridIndex = null, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -401,7 +401,10 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   const SHEET_DIAGONAL_LINES = geom.lines.std;
   const SHEET_DIAGONAL_LINES_DENSE = geom.lines.dense;
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows, margin, geom);
-  const diagonalShiftX = isLeftSlot || !geom.pairedSlots ? 0 : -PAGE_W_UNITS;
+  // the slant grid is shifted by a page width on an odd page of the notebook (it runs on across the open sheet), and the letters snap to
+  // it by that same page (snapXFor): `gridIndex` is that page when the side of the sheet (`pageIndex`: margin, number, mark) is another —
+  // «Тетрадью» puts page 8 on the left half; drawn by the half, its grid stood 1.5 mm off its letters (owner, 2026-10-24)
+  const diagonalShiftX = (gridIndex ?? pageIndex) % 2 === 0 || !geom.pairedSlots ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
   const rowOff = narrow17 ? 0 : 1;
@@ -1203,7 +1206,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
                         // a padding page is ruled like the last page of the notebook, and numbered on
                         const { page = [], part } = printPages[pi] ?? { part: printPages[printPages.length - 1]?.part ?? own };
                         // the slot (0 left, 1 right) is the page's side in the open notebook: margin, page number and mark follow it
-                        return <PrintPage key={slot} page={page} pageIndex={slot} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
+                        return <PrintPage key={slot} page={page} pageIndex={slot} gridIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
                       })}
                       <StapleMarks />
                     </div>
