@@ -855,3 +855,15 @@ describe("row settings over the next rows (owner, 2026-10-24)", () => {
     expect([made.repeat, made.dots]).toEqual(["fade", "one"]);
   });
 });
+
+// The Bulgarian paper's own middle dash (owner, 2026-10-25): off by default, apart from the copybook's `midDash`.
+describe("pageMidDash", () => {
+  it("copybook: on unless turned off; Bulgarian: off unless turned on", async () => {
+    const { pageMidDash, paperKey } = await import("./model.js");
+    expect(pageMidDash({ gridKind: "propis" })).toBe(true);
+    expect(pageMidDash({ gridKind: "propis", midDash: false })).toBe(false);
+    expect(pageMidDash({ gridKind: "bg", midDash: true })).toBe(false);
+    expect(pageMidDash({ gridKind: "bg", bgDash: true })).toBe(true);
+    expect(paperKey({ gridKind: "bg", bgDash: true })).not.toBe(paperKey({ gridKind: "bg" }));
+  });
+});

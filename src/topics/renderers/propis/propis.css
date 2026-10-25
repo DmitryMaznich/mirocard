@@ -776,3 +776,12 @@
 .propis-caret { animation: propis-caret-blink 1.06s steps(1, end) infinite; }
 @keyframes propis-caret-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
 @media print { .propis-caret, [data-overlay="range"] { display: none; } }
+
+/* propis2 squared paper on the screen: every grid line one whole CSS pixel (thinner than a pixel, they came out in stripes, some
+   lines dark and some all but gone — owner, 2026-10-25). Screen only: the PDF copies a line's style only from elements with a
+   class or style of their own (printPdf.js inlinedClone), these lines have none, so the file keeps its 0.25 lines. */
+[data-simple-grid="square"] line {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1px;
+  stroke-opacity: 0.5;
+}

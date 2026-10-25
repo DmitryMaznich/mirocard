@@ -64,6 +64,9 @@ export const taskGrid = (page) => {
 };
 // the Bulgarian paper keeps its own slant (76°) or none: no dense grid of its own
 export const pageNoSlant = (page) => page?.grid === "none";
+// The middle dash: on the copybook paper in the middles of the rows (on by default, `midDash`); on the Bulgarian paper only in the
+// middle of the x-height band, off by default and kept apart (`bgDash`, owner 2026-10-25), so a notebook's two papers don't share it.
+export const pageMidDash = (page) => (pageGridKind(page) === "bg" ? Boolean(page?.bgDash) : page?.midDash !== false);
 
 export const ROW_KINDS = [
   { id: "text", label: "Буквы, слоги, слова" },
@@ -138,7 +141,7 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
 // is `locked`: only the symbols / words of its rows can be changed, until the page is cleared. ----
 export const isLocked = (page) => Boolean(page?.locked);
 
-const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "writeAfter", "margin", "format"];
+const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "bgDash", "writeAfter", "margin", "format"];
 const copyRows = (rows) => (rows ?? []).map((r) => ({ ...r, id: newId("r"), marked: false }));
 
 export function pageFromPreset(preset, title) {
@@ -561,7 +564,7 @@ export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
 // notebook («тетрадь») has its OWN paper (a digits notebook: squared pages, then copybook pages with digits in the text); only the
 // format (A4 / A5) is the notebook's, because the pages are printed as one booklet. A new page takes the paper of the page it is added
 // after; a setting changed on one page can be put onto all the pages of the notebook (the editor offers it right after).
-export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "writeAfter", "margin"];
+export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "bgDash", "writeAfter", "margin"];
 export const NOTEBOOK_KEYS = ["format"];
 export const PAGE_PAPER_KEYS = LAYOUT_KEYS.filter((k) => !NOTEBOOK_KEYS.includes(k));
 
@@ -575,7 +578,7 @@ export function notebookLayout(set, pagesById) {
 
 // One string per paper as the engine draws it (defaults filled in), to tell whether two pages are on the same paper. «Писать после»
 // is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
-export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), pageNoSlant(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
+export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), pageNoSlant(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", pageMidDash(page), pageMargin(page)]);
 
 // Each page setting of the editor's strip as the strip shows it (defaults filled in). The ruling and middle dash mean something
 // on the copybook paper only, the slant on it and on the Bulgarian paper (there only «Редкая» / «Без наклонных»), so only those pages count.
@@ -585,11 +588,12 @@ const SETTING_OF = {
   grid: (p) => (p?.grid === "none" ? "none" : p?.grid === "dense" && pageGridKind(p) === "propis" ? "dense" : "regular"),
   margin: pageMargin,
   midDash: (p) => p?.midDash !== false,
+  bgDash: (p) => Boolean(p?.bgDash),
   writeAfter: (p) => Boolean(p?.writeAfter),
 };
 const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash"]);
 export const SLANT_PAPERS = new Set(["propis", "bg"]);
-const countsFor = (key, page) => !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page));
+const countsFor = (key, page) => (key === "bgDash" ? pageGridKind(page) === "bg" : !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page)));
 
 // Which settings differ between the pages of the notebook (the dot on a strip button, owner 2026-10-15): { key: true }.
 export function mixedSettings(set, pagesById) {
