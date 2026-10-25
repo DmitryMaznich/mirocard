@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
+import { SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import { ElementPicker } from "./Propis2Field";
@@ -58,7 +58,7 @@ const SETTING_SAYS = {
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
 const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
-const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
+const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense, none: I.IconSlantNone };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
 const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.IconMarginRight };
 const repeatChoice = (o) => (o.repeat === "all" && o.copies === "solid" ? SOLID_REPEAT : o.repeat);
@@ -143,6 +143,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
   const propisGrid = gridKind === "propis";
+  // the Bulgarian paper has no dense slant: only «Редкая» / «Без наклонных»
+  const slantValue = page.grid === "none" ? "none" : page.grid === "dense" && propisGrid ? "dense" : "regular";
   const aspect = pageAspect(page);
 
   // The page's width: the canvas width, but not so wide that the page is more than MAX_OVERFLOW times taller
@@ -393,7 +395,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           {pageFormat(page) === "a4" && <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />}
           <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
           <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
-          <Propis2Picker label="Косая линейка" caption="Наклон" value={page.grid ?? "regular"} disabled={locked || !propisGrid} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
+          <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.filter((g) => propisGrid || g.id !== "dense").map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
           <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
           <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={page.midDash !== false} disabled={locked || !propisGrid} mixed={mx.midDash} onClick={() => setSetting("midDash", page.midDash === false)} data-kind="dash"><I.IconDash /></IconBtn>
           <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>

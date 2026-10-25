@@ -19,3 +19,22 @@ describe("snapXFor pageShift", () => {
     expect(odd.cacheable).toBe(true);
   });
 });
+
+// The sparse slant and «без наклонных» (owner, 2026-10-25: «чтобы ... слева начиналось на одной позиции»): the narrow rows' hidden grid
+// is laid per row, so a row's first letter stands at the same x on every row and page; the dense slant keeps its page-long lines.
+describe("narrow rows: first letter at one place", () => {
+  for (const simpleGrid of ["regular", "none"]) {
+    it(`${simpleGrid}: same snapped x on every row`, () => {
+      const snap = snapXFor({ narrowRows: true, simpleGrid, margin: "left", format: "a5", narrow17: true });
+      for (const x of [3, 20]) {
+        const xs = Array.from({ length: 40 }, (_, r) => snap(r, x, 40));
+        for (const v of xs) expect(v).toBeCloseTo(xs[0], 9);
+      }
+    });
+  }
+  it("dense: still follows the page-long slant lines", () => {
+    const snap = snapXFor({ narrowRows: true, simpleGrid: "dense", margin: "left", format: "a5", narrow17: true });
+    const xs = Array.from({ length: 8 }, (_, r) => snap(r, 20, 40));
+    expect(new Set(xs.map((v) => v.toFixed(3))).size).toBeGreaterThan(1);
+  });
+});

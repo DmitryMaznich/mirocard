@@ -30,6 +30,7 @@ export const IconPaperRuled = () => S(<>{rule(7, 3, 21)}{rule(12, 3, 21)}{rule(1
 export const IconRowNarrow = () => S(<>{guide(3.5)}{rule(8)}{guide(12)}{baseRule(16)}{shape("a_narrow", 12 - SH.a_narrow.w / 2)}</>);
 export const IconRowWide = () => S(<>{rule(6)}{guide(12)}{baseRule(18)}{shape("a_wide", 12 - SH.a_wide.w / 2)}</>);
 export const IconSlantSparse = () => S(<>{slants([11, 21], 4, 20)}{baseRule(20)}</>);
+export const IconSlantNone = () => S(<>{rule(8)}{guide(14)}{baseRule(20)}</>);
 export const IconSlantDense = () => S(<>{slants([7, 11, 15, 19, 23], 4, 20)}{baseRule(20)}</>);
 export const IconDash = () => S(<>{rule(6)}{guide(12)}{baseRule(18)}</>);
 export const IconWriteAfter = () => S(<>{baseRule(10.5)}{shape("a_narrow", 4, -5.5)}{baseRule(20, 2.5, 13)}<path d="M15.5 21l1.1-3.9 3.6-3.6 2.1 2.1-3.6 3.6z" strokeWidth={1.4} /></>);

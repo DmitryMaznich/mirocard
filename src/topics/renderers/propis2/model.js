@@ -34,6 +34,8 @@ export const RULINGS = [
 export const GRIDS = [
   { id: "regular", label: "Редкая косая линейка (через 20 мм, стандарт)", short: "Редкая" },
   { id: "dense", label: "Частая косая линейка (через 2,5 мм на узкой строке, 5 мм на широкой)", short: "Частая" },
+  // only the rows' horizontal lines (owner, 2026-10-25); the letters stand by the hidden grid, as on the sparse slant
+  { id: "none", label: "Без наклонных линий", short: "Без наклонных" },
 ];
 
 // What kind of paper: the copybook ("прописи", slant grid and row guides), a plain squared page ("клетка", 5 mm)
@@ -58,8 +60,10 @@ export const pageGridKind = (page) => page?.gridKind ?? (page?.grid === "square"
 export const taskGrid = (page) => {
   const kind = pageGridKind(page);
   if (kind !== "propis") return kind;
-  return page?.grid === "dense" ? "dense" : "regular";
+  return page?.grid === "dense" ? "dense" : page?.grid === "none" ? "none" : "regular";
 };
+// the Bulgarian paper keeps its own slant (76°) or none: no dense grid of its own
+export const pageNoSlant = (page) => page?.grid === "none";
 
 export const ROW_KINDS = [
   { id: "text", label: "Буквы, слоги, слова" },
@@ -571,26 +575,28 @@ export function notebookLayout(set, pagesById) {
 
 // One string per paper as the engine draws it (defaults filled in), to tell whether two pages are on the same paper. «Писать после»
 // is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
-export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
+export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), pageNoSlant(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
 
-// Each page setting of the editor's strip as the strip shows it (defaults filled in). The ruling, slant and middle dash mean something
-// on the copybook paper only, so only its pages count for them.
+// Each page setting of the editor's strip as the strip shows it (defaults filled in). The ruling and middle dash mean something
+// on the copybook paper only, the slant on it and on the Bulgarian paper (there only «Редкая» / «Без наклонных»), so only those pages count.
 const SETTING_OF = {
   gridKind: pageGridKind,
   ruling: (p) => (p?.ruling === "wide" ? "wide" : "narrow"),
-  grid: (p) => (p?.grid === "dense" ? "dense" : "regular"),
+  grid: (p) => (p?.grid === "none" ? "none" : p?.grid === "dense" && pageGridKind(p) === "propis" ? "dense" : "regular"),
   margin: pageMargin,
   midDash: (p) => p?.midDash !== false,
   writeAfter: (p) => Boolean(p?.writeAfter),
 };
 const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash"]);
+export const SLANT_PAPERS = new Set(["propis", "bg"]);
+const countsFor = (key, page) => !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page));
 
 // Which settings differ between the pages of the notebook (the dot on a strip button, owner 2026-10-15): { key: true }.
 export function mixedSettings(set, pagesById) {
   const pages = (set?.pageIds ?? []).map((id) => pagesById.get(id)).filter(Boolean);
   const out = {};
   for (const [k, of] of Object.entries(SETTING_OF)) {
-    const vals = new Set((COPYBOOK_ONLY.has(k) ? pages.filter((p) => pageGridKind(p) === "propis") : pages).map(of));
+    const vals = new Set(pages.filter((p) => countsFor(k, p)).map(of));
     if (vals.size > 1) out[k] = true;
   }
   return out;
@@ -602,8 +608,8 @@ export function othersDiffer(set, pagesById, pageId, key, value) {
   if (!of) return false;
   return (set?.pageIds ?? []).some((id) => {
     const p = pagesById.get(id);
-    if (!p || id === pageId || (COPYBOOK_ONLY.has(key) && pageGridKind(p) !== "propis")) return false;
-    return of(p) !== of({ [key]: value });
+    if (!p || id === pageId || !countsFor(key, p)) return false;
+    return of(p) !== of({ ...p, [key]: value });
   });
 }
 

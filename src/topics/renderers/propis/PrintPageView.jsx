@@ -390,7 +390,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, gridIndex = null, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -458,7 +458,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, activeIndex, onToggleAct
     const guides = Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / BG_GUIDE_STEP) + 1 }, (_, k) => mmToNativeUnits(10) + k * BG_GUIDE_STEP);
     return (
       <g data-simple-grid="bg">
-        {onlyRow === null && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
+        {onlyRow === null && !noSlant && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
         {rows.map((r) => {
           const y = base(r);
           return (
@@ -473,7 +473,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, activeIndex, onToggleAct
       </g>
     );
   })() : null;
-  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" ? (
+  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" && simpleGrid !== "none" ? (
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
@@ -869,6 +869,15 @@ const narrowSnapFor = (margin, geom, narrow17) => (rowIndex, x, y) => {
   const k = Math.round((contentXUnits + x - narrowLineX(0, yAbs)) / NARROW_CELL);
   return narrowLineX(k, yAbs) - contentXUnits;
 };
+// `propis2`, the narrow row on the sparse slant or none: the hidden grid the letters snap to starts again in every row, on the row's own
+// baseline (as the wide row's does), so a row's first letter stands at one place in every row (owner, 2026-10-25). On the page-long grid
+// it moved by up to a cell from row to row. Nothing is drawn of this grid; the dense slant (drawn, continuous) keeps the page-long one.
+const narrowRowSnapFor = (margin, geom, narrow17) => (rowIndex, x, y) => {
+  const contentXUnits = rowContentX(rowIndex, margin, geom, narrow17);
+  const lineX = (k) => NARROW_FIRST_X + k * NARROW_CELL + (WIDE_BAND_BOTTOM_LOCAL - y) * WIDE_SLANT_TAN;
+  const k = Math.round((contentXUnits + x - lineX(0)) / NARROW_CELL);
+  return lineX(k) - contentXUnits;
+};
 
 const wideSnapFor = (margin, geom) => (rowIndex, x, y) => {
   const contentXUnits = rowContentX(rowIndex, margin, geom, false);
@@ -933,7 +942,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   if (dense) return narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
   // the methodology grid the letters snap to is NOT drawn on these pages (only the 20 mm slants): `hidden` tells the layout so
   // (a digit inside a number then keeps a steady gap to the one before instead of jumping to the next invisible line)
-  const fn = narrowRows ? narrowSnapFor(margin, geom, narrow17) : wideSnapFor(margin, geom);
+  const fn = narrowRows ? (simpleGrid ? narrowRowSnapFor : narrowSnapFor)(margin, geom, narrow17) : wideSnapFor(margin, geom);
   fn.hidden = true;
   return fn;
 }
@@ -978,7 +987,7 @@ function layoutTaskPages(task) {
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(lines.join("\n"), lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel);
   const pages = paginateRows(layout, wideRows ? perPage : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages), minPages: Number(task?.minPages) || 0 });
-  return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, midDash: task?.midDash !== false };
+  return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, noSlant: Boolean(task?.noSlant), midDash: task?.midDash !== false };
 }
 
 // The top rows of the first page of a task, as printed (its own paper): the window on a notebook on its cover. `rows`: how much of
@@ -989,7 +998,7 @@ export function PrintPageTop({ task, rows = 5 }) {
   const h = Math.min(doc.geom.h, doc.geom.h * ((rows + 0.6) / Math.max(1, doc.perPage)));
   return (
     <PrintPage page={doc.pages[0] ?? []} pageIndex={0} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}
-      simpleGrid={doc.simpleGrid} midDash={doc.midDash} margin={doc.margin} format={doc.geom.format} narrow17={doc.narrow17} ownRows={doc.ownRows} />
+      simpleGrid={doc.simpleGrid} noSlant={doc.noSlant} midDash={doc.midDash} margin={doc.margin} format={doc.geom.format} narrow17={doc.narrow17} ownRows={doc.ownRows} />
   );
 }
 
@@ -1085,7 +1094,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
-              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
+              simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
               onSheetPoint={onSheetPoint ? (p) => onSheetPoint({ ...p, row: p.row < 0 ? -1 : shownIndex * perPage + p.row }) : null}
               useElements={useElements}
@@ -1128,7 +1137,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
-                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
+                  simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
                 />
               </div>
               {isZoomed && (
@@ -1206,7 +1215,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
                         // a padding page is ruled like the last page of the notebook, and numbered on
                         const { page = [], part } = printPages[pi] ?? { part: printPages[printPages.length - 1]?.part ?? own };
                         // the slot (0 left, 1 right) is the page's side in the open notebook: margin, page number and mark follow it
-                        return <PrintPage key={slot} page={page} pageIndex={slot} gridIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
+                        return <PrintPage key={slot} page={page} pageIndex={slot} gridIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
                       })}
                       <StapleMarks />
                     </div>
@@ -1218,13 +1227,13 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
                         const pi = sheetIndex * 2 + slot;
                         // the empty right half of the last sheet (an odd number of pages) is ruled like the page beside it
                         const { page = [], part } = printPages[pi] ?? { part: printPages[pi - 1]?.part ?? own };
-                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
+                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
                       })}
                     </div>
                   ))
                   : printPages.map(({ page, part }, pi) => (
                     <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
-                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />
+                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />
                     </div>
                   ))}
               </div>,

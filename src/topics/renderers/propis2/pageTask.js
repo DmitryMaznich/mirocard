@@ -23,7 +23,7 @@ export function listElementChoices(topicRecord) {
 // The task object PrintPageView renders (same shape propis/engine.js builds for "read_lines").
 // Wide-row layout only needs the wide glyph bank from the installed deck, no captured-letter cards.
 // `minPages`: how many pages the task has at least (a notebook's pages, blank ones included: trailing blank rows are dropped below).
-export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0 }) {
+export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false }) {
   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
   const clean = (lines ?? []).map((l) => String(l).trim());
   if (grid === "square" || grid === "ruled" || grid === "bg") narrowRows = true; // squared / ruled / Bulgarian paper: its own rows (PrintPageView), letters and digits at the narrow size
@@ -42,7 +42,10 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     // the page of the whole notebook this run starts on: a page's paper is drawn by its place in the notebook (the side of the margin, the
     // slant grid shifted on the right half of a sheet), so the letters snap by it too (layoutTaskPages)
     firstPage,
-    simpleGrid: ["dense", "square", "ruled", "bg"].includes(grid) ? grid : "regular",
+    simpleGrid: ["dense", "square", "ruled", "bg", "none"].includes(grid) ? grid : "regular",
+    // the paper without slant lines (owner, 2026-10-25): «none» on the copybook paper is its own simpleGrid; on the Bulgarian paper its
+    // slants are left out (`noSlant`), the rest of that ruling stays
+    noSlant: grid === "none" || Boolean(noSlant),
     midDash: midDash !== false,
     format: format === "a4" ? "a4" : "a5",
     margin: margin === "left" || margin === "right" ? margin : "off",
