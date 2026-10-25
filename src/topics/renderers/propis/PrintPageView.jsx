@@ -429,7 +429,9 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
   const clipId = `p2c${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const slantClip = simpleGrid && wideRows && !narrowRows && !plain;
   const squareEls = simpleGrid === "square" ? (
-    <g data-simple-grid="square">
+    // crisp: each line a whole screen pixel. Lines thinner than a pixel otherwise come out in stripes on the screen, some darker
+    // and some all but gone (owner, 2026-10-25: «участки клеточного фона, не сплошной»); the PDF ignores it (svg2pdf: no shape-rendering)
+    <g data-simple-grid="square" shapeRendering="crispEdges">
       {Array.from({ length: Math.floor(PAGE_W_UNITS / SQUARE_CELL) + 1 }, (_, i) => (
         <line key={`v${i}`} x1={i * SQUARE_CELL} y1={0} x2={i * SQUARE_CELL} y2={PAGE_H_UNITS} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} opacity={0.7} />
       ))}
