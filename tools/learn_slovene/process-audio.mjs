@@ -11,14 +11,15 @@
 // The click cut is opt-in (--clicks): on hruška, груша and чай it fired on the
 // opening fricative/affricate itself, which a listener must not lose.
 //
-// Usage: node tools/learn_slovene/process-audio.mjs [sl|ru] [--keys=voda,sok] [--clicks]
+// Usage: node tools/learn_slovene/process-audio.mjs [sl|ru] [--keys=voda,sok] [--clicks] [--dir=<folder with sl/ ru/>]
 import { execFileSync, spawnSync } from "node:child_process";
 import { readdirSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), "audio");
 const args = process.argv.slice(2);
+const dirArg = args.find((a) => a.startsWith("--dir="));
+const DIR = dirArg ? dirArg.slice(6) : join(dirname(fileURLToPath(import.meta.url)), "audio");
 const langs = args.filter((a) => !a.startsWith("--"));
 const keysArg = args.find((a) => a.startsWith("--keys="));
 const KEYS = keysArg ? new Set(keysArg.slice(7).split(",")) : null;
