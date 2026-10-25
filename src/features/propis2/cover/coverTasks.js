@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { deckPapers, lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid, pageNoSlant } from "@/topics/renderers/propis2/model.js";
+import { deckPapers, lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid, pageGridKind, pageNoSlant } from "@/topics/renderers/propis2/model.js";
 import { digitsOut } from "@/topics/renderers/propis2/fieldText.js";
 import { backContent, backPaper } from "./backContent.js";
 import { topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
@@ -47,7 +47,7 @@ export function useCoverTasks({ topicRecord, cover, format, side = "both", spine
     // a compact block (owner, 2026-10-14, as the backs of the printed series): the heading in our own hand on its first row, centred,
     // then the content row after row; the page around it stays white
     const lines = [centredLine(once(content.heading), glyphMap, paper), ...content.lines];
-    const task = buildPageTask({ topicRecord, lines, narrowRows: true, grid: taskGrid(paper), noSlant: pageNoSlant(paper), midDash: true, margin: "off", format: pageFormat(paper) });
+    const task = buildPageTask({ topicRecord, lines, narrowRows: true, grid: taskGrid(paper), noSlant: pageNoSlant(paper), midDash: pageGridKind(paper) !== "bg", margin: "off", format: pageFormat(paper) });
     return { ...content, task, rows: lines.length, square: backPaperId === "square" };
   }, [backKind, backPaperId, topicRecord, fmt, glyphMap, copybook]);
   return { spineTask, back };

@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
@@ -292,7 +292,7 @@ export default function Propis2Home({ db }) {
   const partSec = sections?.list[partIndex] ?? null;
   // the runs' pages and paper (not their page counts): the tasks are rebuilt only when these change
   const runsKey = sections ? sections.list.map((sec) => `${sec.key}|${sec.pageIds.join()}`).join("/") : "";
-  const taskOf = useCallback((paper, lines, minPages = 0, firstPage = 0) => buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), noSlant: pageNoSlant(paper), midDash: paper.midDash, margin: pageMargin(paper), format: pageFormat(paper), minPages, firstPage }), [topicRecord]);
+  const taskOf = useCallback((paper, lines, minPages = 0, firstPage = 0) => buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), noSlant: pageNoSlant(paper), midDash: pageMidDash(paper), margin: pageMargin(paper), format: pageFormat(paper), minPages, firstPage }), [topicRecord]);
   // one task per run: the viewer shows the open one, printing prints them all; a run has at least as many pages as it has pages of
   // the notebook (blank pages at its end, or a whole blank notebook, are printed too)
   const runTasks = useMemo(
@@ -444,7 +444,7 @@ export default function Propis2Home({ db }) {
           />
         )}
         {fragment && (
-          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource?.midDash} onClose={() => setFragment(null)} />
+          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} onClose={() => setFragment(null)} />
         )}
         {dialog}
       </div>

@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { PrintPageTop } from "@/topics/renderers/propis/PrintPageView";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { pageFormat, pageMargin, pageToLines, taskGrid, pageNoSlant } from "@/topics/renderers/propis2/model.js";
+import { pageFormat, pageMargin, pageToLines, taskGrid, pageMidDash, pageNoSlant } from "@/topics/renderers/propis2/model.js";
 import * as I from "./Propis2Icons";
 
 // The computer layout's column of the notebook's pages (owner, 2026-10-23, «вариант Б»): every page as a thumbnail, a click opens
@@ -12,7 +12,7 @@ function taskOf(page, layout, topicRecord, glyphMap) {
   const key = JSON.stringify(layout ?? {});
   if (TASKS.has(page) && TASKS.get(page).key === key) return TASKS.get(page).task;
   const p = { ...page, ...layout };
-  const task = buildPageTask({ topicRecord, lines: pageToLines(p, glyphMap), narrowRows: p.ruling === "narrow", grid: taskGrid(p), noSlant: pageNoSlant(p), midDash: p.midDash, margin: pageMargin(p), format: pageFormat(p) });
+  const task = buildPageTask({ topicRecord, lines: pageToLines(p, glyphMap), narrowRows: p.ruling === "narrow", grid: taskGrid(p), noSlant: pageNoSlant(p), midDash: pageMidDash(p), margin: pageMargin(p), format: pageFormat(p) });
   TASKS.set(page, { key, task });
   return task;
 }

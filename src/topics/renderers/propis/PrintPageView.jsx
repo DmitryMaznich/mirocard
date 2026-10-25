@@ -466,6 +466,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
               <line x1={0} y1={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />
               <line x1={0} y1={y - mmToNativeUnits(BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
               <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              {midDash && <line x1={0} y1={y - mmToNativeUnits(BG_X_MM / 2)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_X_MM / 2)} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-bg-dash="1" />}
               {(onlyRow !== null || r === rows[rows.length - 1]) && <line x1={0} y1={y + mmToNativeUnits(BG_DOWN_MM)} x2={PAGE_W_UNITS} y2={y + mmToNativeUnits(BG_DOWN_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />}
             </g>
           );
