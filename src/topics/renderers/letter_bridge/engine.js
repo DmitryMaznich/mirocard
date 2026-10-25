@@ -73,7 +73,8 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
 
   switch (mode?.type) {
     case "lb_pair":
-      return letters.map((card) => ({ type: "lb_pair", conceptId: card.conceptId, card }));
+      // Shuffled each time: a fixed order would be learned instead of the letters.
+      return shuffle(letters).map((card) => ({ type: "lb_pair", conceptId: card.conceptId, card }));
 
     case "lb_find": {
       if (letters.length < 3) return needMore("Для «Найди пару» нужно хотя бы 3 буквы. Добавьте буквы в «Изменить».");

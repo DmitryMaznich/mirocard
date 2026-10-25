@@ -14,9 +14,14 @@ const WORDS = [
 const NEAR = { S: "ŠZ", Š: "SŽ", K: "GH", T: "D", D: "T", M: "N", N: "ML", A: "OE", O: "AU", E: "IA" };
 
 describe("letter_bridge engine", () => {
-  it("«Пара букв»: one task per picked letter", () => {
-    const tasks = generateTasks({ type: "lb_pair" }, G1, 500, {});
-    expect(tasks.map((t) => t.card.sl)).toEqual(["A", "E", "K", "M", "O", "T"]);
+  it("«Пара букв»: one task per picked letter, shuffled", () => {
+    const orders = new Set();
+    for (let run = 0; run < 20; run++) {
+      const tasks = generateTasks({ type: "lb_pair" }, G1, 500, {});
+      expect(tasks.map((t) => t.card.sl).sort()).toEqual(["A", "E", "K", "M", "O", "T"]);
+      orders.add(tasks.map((t) => t.card.sl).join(""));
+    }
+    expect(orders.size).toBeGreaterThan(1);
   });
 
   it("«Найди пару»: the right pair among three, never twice in a row", () => {

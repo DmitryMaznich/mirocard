@@ -45,26 +45,78 @@ function TrapTag() {
   return <span className="lb-trap-tag">ЛОВУШКА</span>;
 }
 
+// Fixed places for the whole topic: home (Russian) on the left, school
+// (Slovenian) on the right. The labels are Russian on purpose: the child
+// reads Russian, not Slovenian yet.
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M6 23 24 8l18 15" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 20v20h26V20" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+      <rect x="20" y="28" width="8" height="12" rx="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SchoolIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M24 4v8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      <path d="M24 4h9l-2 3 2 3h-9" fill="currentColor" />
+      <path d="M8 22 24 12l16 10" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 21v19h26V21" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" />
+      <rect x="15" y="25" width="5" height="5" rx="1" fill="currentColor" />
+      <rect x="28" y="25" width="5" height="5" rx="1" fill="currentColor" />
+      <rect x="21" y="32" width="6" height="8" rx="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PlaceLabel({ side }) {
+  const home = side === "ru";
+  return (
+    <span className={`lb-place lb-place--${side}`}>
+      <span className="lb-place__icon">{home ? <HomeIcon /> : <SchoolIcon />}</span>
+      <span>{home ? "Дома" : "В школе"}</span>
+      <span className="lb-place__lang">{home ? "по-русски" : "по-словенски"}</span>
+    </span>
+  );
+}
+
+// The child moves on by tapping the new (Slovenian) letter, so the eye and the
+// finger end on it; «Дальше» stays small, for the adult.
 export function PairTask({ task, mode, onAdvance }) {
   const { card } = task;
   const isTrap = Boolean(mode?.twins?.[card.sl]);
+  const [tapped, setTapped] = useState(false);
+  const next = async (event) => {
+    event.stopPropagation();
+    if (tapped) return;
+    setTapped(true);
+    await wait(500);
+    onAdvance?.();
+  };
   return (
     <div className="session-body lb-stage">
       <div className="lb-pair">
         <div className="lb-pair__col">
-          <span className="lb-label lb-label--ru">ПО-РУССКИ</span>
+          <PlaceLabel side="ru" />
           <div className="lb-card lb-card--ru lb-card--big">{card.ru}</div>
         </div>
         <span className="lb-eq">=</span>
         <div className="lb-pair__col">
-          <span className="lb-label lb-label--sl">PO SLOVENSKO</span>
-          <div className={`lb-card lb-card--sl lb-card--big lb-appear${isTrap ? " lb-card--trap" : ""}`}>
+          <PlaceLabel side="sl" />
+          <button
+            type="button"
+            aria-label={card.sl}
+            className={`lb-card lb-card--sl lb-card--big lb-card--tap lb-appear${isTrap ? " lb-card--trap" : ""}${tapped ? " lb-card--tapped" : ""}`}
+            onClick={next}
+          >
             {card.sl}
-            {isTrap && <TrapTag />}
-          </div>
+          </button>
         </div>
       </div>
-      <button type="button" className="lb-next" onClick={(event) => { event.stopPropagation(); onAdvance?.(); }}>Дальше</button>
+      <button type="button" className="lb-skip" onClick={(event) => { event.stopPropagation(); onAdvance?.(); }}>Дальше</button>
     </div>
   );
 }

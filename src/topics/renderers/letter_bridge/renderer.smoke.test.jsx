@@ -47,14 +47,20 @@ describe("letter_bridge renderer", () => {
   const tap = (el) => act(async () => { el.click(); });
   const option = (label) => container.querySelector(`[aria-label="${label}"]`);
 
-  it("«Пара букв»: Russian and Slovenian side by side, a trap gets its tag, «Дальше» moves on", async () => {
+  it("«Пара букв»: home and school labels in Russian, a tap on the Slovenian letter moves on", async () => {
     await mount({ type: "lb_pair", conceptId: "P", card: P });
     const cards = [...container.querySelectorAll(".lb-card")].map((c) => c.textContent);
-    expect(cards[0]).toBe("П");
-    expect(cards[1]).toContain("P");
-    expect(container.querySelector(".lb-trap-tag")).not.toBeNull();
-    await tap(container.querySelector(".lb-next"));
+    expect(cards).toEqual(["П", "P"]);
+    const labels = [...container.querySelectorAll(".lb-place")].map((l) => l.textContent);
+    expect(labels).toEqual(["Домапо-русски", "В школепо-словенски"]);
+    expect(container.querySelector(".lb-card--trap")).not.toBeNull();
+    await tap(option("P"));
+    await tap(option("P"));
+    expect(props.onAdvance).not.toHaveBeenCalled();
+    await wait(600);
     expect(props.onAdvance).toHaveBeenCalledTimes(1);
+    await tap(container.querySelector(".lb-skip"));
+    expect(props.onAdvance).toHaveBeenCalledTimes(2);
   });
 
   it("a right first tap counts as alone", async () => {
