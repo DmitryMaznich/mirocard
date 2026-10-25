@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { applyVariant } from "./lib/propis2-variant.mjs";
+import { applyVariant, variantKits } from "./lib/propis2-variant.mjs";
 
 // `propis2` deck: topic.json + glyph data merged from the shared tools/propis sources
 // (wide.json, elements.json), exactly as build-propis-deck.mjs does for `propis` («Прописи старые»). No renderer bundle:
@@ -32,6 +32,8 @@ if (existsSync(WIDE_PATH)) {
   topic.wideElementRepeat = wideData.elementRepeat ?? {};
 }
 if (variant) applyVariant(topic, variant);
+// the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
+if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
 
 const ID = topic.meta.id;
 const VERSION = topic.meta.version;

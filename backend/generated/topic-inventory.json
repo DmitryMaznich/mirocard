@@ -931,15 +931,15 @@
     {
       "id": "propis2_bg",
       "title": "Български прописи",
-      "version": "0.5.5",
+      "version": "0.6.0",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_bg_v0.5.5.zip",
+        "public/decks/propis2_bg_v0.6.0.zip",
         "src/topics/renderers/propis2"
       ],
       "bundle": {
-        "version": "0.5.5",
-        "url": "./decks/propis2_bg_v0.5.5.zip",
+        "version": "0.6.0",
+        "url": "./decks/propis2_bg_v0.6.0.zip",
         "title": "Български прописи",
         "description": "Конструктор тетрадей по письму на болгарской кириллице (30 букв: без Ё, Ы, Э). Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме два режима с заданиями на экране: «Узнай букву» и «Строчная и заглавная».",
         "renderer": "propis2",
@@ -949,7 +949,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2_bg",
-        "version": "0.5.5",
+        "version": "0.6.0",
         "title": {
           "ru": "Български прописи",
           "en": "Copybook (Bulgarian Cyrillic)"
@@ -958,7 +958,7 @@
           "ru": "Конструктор тетрадей по письму на болгарской кириллице: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная».",
           "en": "Handwriting notebook builder for Bulgarian Cyrillic: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case."
         },
-        "url": "./decks/propis2_bg_v0.5.5.zip",
+        "url": "./decks/propis2_bg_v0.6.0.zip",
         "status": "individual",
         "access": "paid"
       },

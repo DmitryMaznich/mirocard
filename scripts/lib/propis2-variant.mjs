@@ -24,3 +24,26 @@ export function applyVariant(base, v) {
     base.wide = base.wide.filter((g) => !foreign(g.label)).map((g) => (g.aliases?.some(foreign) ? { ...g, aliases: g.aliases.filter((a) => !foreign(a)) } : g));
   }
 }
+
+// Ready notebooks of a variant (`v.kits`, docs/propis2-variants.md): a base kit (src/topics/renderers/propis2/kits.json) copied, its
+// pages on the squared paper kept as they are (digits, numbers, signs: no letters), its pages of text replaced by the variant's own
+// sentences on the variant's first paper. `spec.rows`: how many rows that paper has on an A5 page (variant.test.jsx checks it against
+// model.js rowsPerPage): a sentence and an empty row under it, as many pairs as fit.
+const digitsOut = (t) => t.replace(/\d/g, "№$&");
+const modelRow = (t) => ({ text: digitsOut(t), kind: "text", repeat: "one", dots: "none", copies: "dash", asText: false });
+const blankRow = () => ({ text: "", kind: "blank", repeat: "one", dots: "none", copies: "dash" });
+export function variantKits(v, baseKits) {
+  return (v.kits ?? []).map((spec) => {
+    const rowsPerPage = spec.rows;
+    const base = baseKits.find((k) => k.id === spec.from);
+    if (!base) throw new Error(`variant kit: no base kit ${spec.from}`);
+    const keep = base.pages.filter((p) => (p.paper ?? base.page)?.gridKind === "square");
+    const textPaper = { ...(base.pages.find((p) => p.paper?.gridKind !== "square")?.paper ?? base.page), gridKind: v.meta.papers[0] };
+    const textPages = spec.textPages.map((tp) => {
+      const rows = tp.copy ? tp.sentences.map(modelRow) : tp.sentences.flatMap((t) => [modelRow(t), blankRow()]).slice(0, Math.floor(rowsPerPage / 2) * 2);
+      while (rows.length < rowsPerPage) rows.push(blankRow());
+      return { title: tp.title, paper: textPaper, rows: rows.slice(0, rowsPerPage) };
+    });
+    return { ...base, description: spec.description ?? base.description, pages: [...keep, ...textPages] };
+  });
+}

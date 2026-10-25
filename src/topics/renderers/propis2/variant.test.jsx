@@ -11,7 +11,7 @@ import { backContent } from "@/features/propis2/cover/backContent.js";
 import { renderToStaticMarkup } from "react-dom/server";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
-import { deckPapers, newPage, rowsPerPage } from "./model.js";
+import { analyzePage, deckPapers, kitToLibraryItems, newPage, rowsPerPage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { getPathEndpoints } from "../propis/pathGeometry.js";
 
@@ -139,5 +139,19 @@ describe("Bulgarian joins (meta.script.exactJoins)", () => {
       const { start, end } = getPathEndpoints(link.d);
       expect(Math.hypot(end[0] - start[0], end[1] - start[1]), w).toBeLessThan(1e-6);
     }
+  });
+
+  it("carries the «Цифры» notebook: the squared pages as in the Russian deck, the text pages in Bulgarian on its ruling (2026-10-25)", async () => {
+    const rec = await installed();
+    expect(rec.kits.map((k) => k.id)).toEqual(["digits"]);
+    const { set, pages } = kitToLibraryItems(rec.kits[0]);
+    expect(pages).toHaveLength(24);
+    expect(pages.filter((p) => p.gridKind === "square")).toHaveLength(20);
+    const text = pages.filter((p) => p.gridKind === "bg");
+    expect(text).toHaveLength(4);
+    for (const p of text) expect(p.rows).toHaveLength(rowsPerPage(p)); // variant.json kits[].rows: the rows of the Bulgarian ruling
+    const glyphMap = buildGlyphMap(rec);
+    for (const p of pages) expect([p.title, analyzePage(p, glyphMap).problems]).toEqual([p.title, 0]); // every symbol drawn, every row fits
+    expect(set.pageIds).toHaveLength(24);
   });
 });

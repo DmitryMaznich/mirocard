@@ -14,7 +14,7 @@
   },
   "meta": {
     "id": "propis2_bg",
-    "version": "0.5.5",
+    "version": "0.6.0",
     "title": "Български прописи",
     "methodology": false,
     "script": {
@@ -1216,6 +1216,59 @@
       "noLiftExit": true,
       "aliases": [
         "Ѝ"
+      ]
+    }
+  ],
+  "kits": [
+    {
+      "note": "The Russian «Цифры» kit (src/topics/renderers/propis2/kits.json, tools/propis2/build_kits.py): pages 1-20 (squared paper: digits, numbers, + - =, sums) are copied as they are; its four text pages are replaced by these, on the Bulgarian ruling. Each text page: a model sentence and an empty row under it to copy into, five a page (11 rows of the Bulgarian ruling; the Bulgarian hand is wider than the Russian one: a sentence longer than these runs off the row, variant.test.jsx checks every row); «Списываем»: the sentences one under another, then empty rows (scripts/lib/propis2-variant.mjs).",
+      "from": "digits",
+      "rows": 11,
+      "description": "Отдельно от букв: можно вести в любое время. В клетку — цифры по одной (1–9, 0) с повторением пройденных, числа до 20, знаки + − = и примеры; в конце цифры в болгарском тексте на болгарской строке.",
+      "textPages": [
+        {
+          "title": "Число и слово",
+          "sentences": [
+            "1 кит, 2 кита, 6 кита",
+            "1 къща, 4 къщи, 7 къщи",
+            "1 жаба, 2 жаби, 5 жаби",
+            "1 риба, 2 риби, 10 риби",
+            "1 слон, 2 слона, 7 слона"
+          ]
+        },
+        {
+          "title": "Сколько? Сколько лет?",
+          "sentences": [
+            "Аз съм на 7 години.",
+            "Имам 2 ръце.",
+            "Котката има 4 лапи.",
+            "Имам 10 пръста.",
+            "Ана е на 3 години."
+          ]
+        },
+        {
+          "title": "Даты и время",
+          "sentences": [
+            "1 май, 8 март",
+            "9 май, 1 юни",
+            "31 декември",
+            "Днес е 1 септември.",
+            "Урокът е в 9 сутринта."
+          ]
+        },
+        {
+          "title": "Списываем",
+          "copy": true,
+          "sentences": [
+            "На масата има 3 ябълки.",
+            "Мария има 2 котки.",
+            "Тръгваме в 8 сутринта.",
+            "В класа има 20 деца.",
+            "Татко има 5 риби.",
+            "В двора има 4 патици.",
+            "Аз съм на 7 години!"
+          ]
+        }
       ]
     }
   ]

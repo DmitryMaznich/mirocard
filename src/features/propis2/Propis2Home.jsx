@@ -45,8 +45,10 @@ export default function Propis2Home({ db }) {
   const [pdfJob, setPdfJob] = useState(null);
   const pdfTabRef = useRef(null); // the tab the PDF opens in, opened at the tap (printPdf.js)
   const [printCfgs, setPrintCfgs] = useState(() => readPrintCfgs());
-  const [kits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
-  useEffect(() => { let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, []);
+  const [bundleKits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
+  const deckKits = topicRecord?.kits;
+  useEffect(() => { if (deckKits) return undefined; let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, [deckKits]);
+  const kits = deckKits ?? bundleKits;
   const saveTimer = useRef(null);
   const latest = useRef(library);
   latest.current = library;
@@ -126,9 +128,9 @@ export default function Propis2Home({ db }) {
   useEffect(() => () => { clearTimeout(saveTimer.current); flush(); }, [flush]);
 
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) has no ready notebooks yet: the Russian methodology
-  // and kits are written in Russian letters and words
-  const ownKits = topicRecord?.meta?.methodology !== false;
+  // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) does not take the Russian kits (Russian letters and
+  // words): only the ready notebooks its deck carries (`topicRecord.kits`: the digits, with its own text pages)
+  const ownKits = topicRecord?.meta?.methodology !== false || Boolean(topicRecord?.kits?.length);
   // a new notebook starts on the deck's first paper (a variant deck: its own ruling, model.js deckPapers)
   const newPaper = useMemo(() => { const id = deckPapers(topicRecord)[0]?.id; return id && id !== "propis" ? { gridKind: id } : {}; }, [topicRecord]);
   // one series (data.js PROPIS2_LADDER), then the digits and the blank notebooks
