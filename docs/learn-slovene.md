@@ -228,3 +228,8 @@ https://claude.ai/artifact/B2MRuGHvfLX3ERBtMmmm6D, исходник `tools/learn
 `model_parameters`) и словенская фраза-носитель «To je sir.», из которой потом вырезается слово. При перезаписи
 словенских слов `language_code: "sl"` ставить всегда. Под подозрением ещё: SOK? (нет), BANANA, KAPA, TABLA, NOS, MIZA —
 слушать каждое.
+
+**Перезапись 2026-10-25:** все 31 словенское слово перезаписаны голосом Аны так: `language_code: "sl"` + фраза-носитель
+«To je X. X.» («To so …» для roke, barvice, škarje, copati, čevlji), последнее слово вырезает `cut-carrier.mjs`, затем
+`process-audio.mjs sl`. ElevenLabs flow `h4z39YEZ2BrEDaszzA0x`, по 2 дубля; владелец прослушал — взяты все дубли 1.
+Только `language_code` без носителя ненадёжен: в пробе 1 из 2 дублей «sir» всё равно вышел английским.
