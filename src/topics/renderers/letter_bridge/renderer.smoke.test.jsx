@@ -139,4 +139,20 @@ describe("letter_bridge renderer", () => {
     await tap(container.querySelector(".lb-next"));
     expect(props.onAdvance).toHaveBeenCalledTimes(1);
   });
+
+  it("between blocks the adult chooses: next block or finish", async () => {
+    props.onClose = vi.fn();
+    await mount({ type: "lb_block_end", runId: "r1", block: "g1", title: "Друзья", next: "Звук тот же" });
+    expect(container.textContent).toContain("Блок «Друзья» пройден");
+    await tap(container.querySelector(".lb-finish"));
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+    expect(props.onAdvance).not.toHaveBeenCalled();
+  });
+
+  it("after the last block «Закончить» ends the lesson", async () => {
+    await mount({ type: "lb_block_end", runId: "r1", block: "g4", title: "Ловушки", next: null });
+    expect(container.textContent).toContain("Весь алфавит пройден");
+    await tap(container.querySelector(".lb-next"));
+    expect(props.onAdvance).toHaveBeenCalledTimes(1);
+  });
 });

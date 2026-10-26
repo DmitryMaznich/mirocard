@@ -66,12 +66,56 @@ function syllableTasks(mode, cards, count) {
   });
 }
 
+// «Учим алфавит»: the whole alphabet, block after block (mode.blocks = the
+// letter groups in teaching order). Inside a block the letters come a few at a
+// time: each new letter is shown (lb_pair), then found among the letters seen
+// so far (lb_find; the trap block uses lb_trap — the true pair against the
+// look-alike). A block ends with lb_block_end, a screen for the adult: next
+// block or finish. The video reward comes for a finished block
+// (mode.rewardPerBlock + task.rewardAfter on the block's last check).
+export function alphabetTasks(mode, letters, params = {}) {
+  const per = [3, 4, 6].includes(Number(params.newPerStep)) ? Number(params.newPerStep) : 3;
+  const check = params.check !== "off";
+  const blocks = mode.blocks ?? [];
+  const start = Math.max(0, blocks.findIndex((b) => b.id === params.startBlock));
+  const runId = `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+  const seen = letters.filter((c) => blocks.slice(0, start).some((b) => b.id === c.group));
+  const tasks = [];
+  blocks.slice(start).forEach((block, bi) => {
+    const blockLetters = shuffle(letters.filter((c) => c.group === block.id));
+    if (!blockLetters.length) return;
+    for (let i = 0; i < blockLetters.length; i += per) {
+      const chunk = blockLetters.slice(i, i + per);
+      chunk.forEach((card) => tasks.push({ type: "lb_pair", conceptId: card.conceptId, card, runId, block: block.id }));
+      seen.push(...chunk);
+      if (!check) continue;
+      // Each new letter twice, in a fresh order, never the same letter twice in a row.
+      cycle(chunk, chunk.length * 2).forEach((card) => {
+        if (mode.twins?.[card.sl]) {
+          tasks.push({ type: "lb_trap", conceptId: card.conceptId, card, runId, block: block.id,
+            options: shuffle([{ text: card.ru, ok: true }, { text: mode.twins[card.sl], ok: false }]) });
+          return;
+        }
+        const others = shuffle(seen.filter((c) => c.sl !== card.sl && c.ru !== card.ru)).slice(0, 2);
+        tasks.push({ type: "lb_find", conceptId: card.conceptId, card, dir: "sl_ru", runId, block: block.id, options: shuffle([card, ...others]) });
+      });
+    }
+    if (check) tasks[tasks.length - 1].rewardAfter = true;
+    const next = blocks.slice(start + bi + 1).find((b) => letters.some((c) => c.group === b.id));
+    tasks.push({ type: "lb_block_end", runId, block: block.id, title: block.title, next: next?.title ?? null });
+  });
+  return tasks;
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const letters = (cards ?? []).filter((c) => c?.sl && c?.ru);
   const count = Number(params.taskCount) || DEFAULT_COUNT;
   if (!letters.length) return [];
 
   switch (mode?.type) {
+    case "lb_alphabet":
+      return alphabetTasks(mode, letters, params);
+
     case "lb_pair":
       // Shuffled each time: a fixed order would be learned instead of the letters.
       return shuffle(letters).map((card) => ({ type: "lb_pair", conceptId: card.conceptId, card }));

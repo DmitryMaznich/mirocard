@@ -158,12 +158,21 @@ function creditRewardStreak(state) {
   };
 }
 
+// A mode with `rewardPerBlock` gives the video for a finished block, not for a
+// series of right answers: the task that closes a block carries `rewardAfter`,
+// and moving on from it (answered alone, with help or skipped) earns it.
+function blockReward(state) {
+  if (!state.tasks?.[state.taskIndex]?.rewardAfter) return state;
+  return { ...state, rewardEarnedCount: (state.rewardEarnedCount ?? 0) + 1 };
+}
+
 export function handleInstantCorrect(state) {
   state = markSessionAction(state);
   state = recordAdvance(recordResponse(state, "correct"));
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
+  const credited = state.mode?.rewardPerBlock ? blockReward(state) : creditRewardStreak(state);
   return {
-    ...rewardAttemptComplete(creditRewardStreak(state)),
+    ...rewardAttemptComplete(credited),
     status: finiteDone(state) ? "completed" : "task_active",
     taskIndex: nextIndex,
     taskRetry: 0,
@@ -244,6 +253,7 @@ export function handleQualityAnswer(state, quality, conceptId, cardId) {
 export function handleAdvance(state) {
   state = markSessionAction(state);
   state = recordAdvance(state);
+  if (state.mode?.rewardPerBlock) state = blockReward(state);
   const nextIndex = state.taskIndex + 1;
   if (nextIndex >= state.tasks.length) {
     if (state.mode?.loop) {

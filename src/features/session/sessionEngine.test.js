@@ -375,4 +375,31 @@ describe("adult-rated modes earn the reward from the rating", () => {
   it("a mode without evaluation never earns one", () => {
     expect(rate(rated("none"), "easy", "easy", "easy", "easy", "easy").rewardEarnedCount).toBe(0);
   });
+
+describe("rewardPerBlock (letter_bridge «Учим алфавит»)", () => {
+  const MODE = { type: "lb_alphabet", evaluation: "instant", finite: true, rewardPerBlock: true };
+  const TASKS = [
+    { type: "lb_pair", conceptId: "A" },
+    { type: "lb_find", conceptId: "A" },
+    { type: "lb_find", conceptId: "A", rewardAfter: true },
+    { type: "lb_block_end" },
+    { type: "lb_find", conceptId: "S", rewardAfter: true },
+    { type: "lb_block_end" },
+  ];
+
+  it("right answers earn no streak reward; the block's last check earns one, alone or with help", () => {
+    let s = createSessionState(TASKS, MODE, "s1", "t", "1", ["A", "S"]);
+    s = handleAdvance(s);
+    s = handleInstantCorrect(s);
+    expect(s.rewardEarnedCount).toBe(0);
+    expect(s.streakCount).toBe(0);
+    s = handleInstantCorrect(s);
+    expect(s.rewardEarnedCount).toBe(1);
+    s = handleAdvance(s);
+    s = handleAdvance(s); // answered with help → advanced
+    expect(s.rewardEarnedCount).toBe(2);
+    s = handleAdvance(s);
+    expect(s.status).toBe("completed");
+  });
+});
 });

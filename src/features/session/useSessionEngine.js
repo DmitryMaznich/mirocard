@@ -119,7 +119,9 @@ export function cardsForRenderer(topicRecord, mode, selectedConceptIds) {
 
   return {
     selectedCards,
-    cards: modeHasCategoryParam || spatialRelationsOwnFilter
+    // `mode.allCards`: the mode walks the whole topic itself (letter_bridge's
+    // «Учим алфавит» goes block by block), so the concept picker is not used.
+    cards: modeHasCategoryParam || spatialRelationsOwnFilter || mode?.allCards
       ? allCards
       : (selectedCards.length ? selectedCards : allCards),
   };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateTasks, readableWords, cycle } from "./engine";
+import { generateTasks, readableWords, cycle, alphabetTasks } from "./engine";
 
 const letter = (sl, ru, group) => ({ id: sl, conceptId: sl, sl, ru, group, label: `${sl} = ${ru}` });
 const G1 = ["A:А", "E:Е", "K:К", "M:М", "O:О", "T:Т"].map((p) => letter(...p.split(":"), "g1"));
@@ -106,5 +106,46 @@ describe("letter_bridge engine", () => {
       const out = cycle(["a", "b"], 9);
       out.forEach((x, i) => { if (i) expect(x).not.toBe(out[i - 1]); });
     }
+  });
+
+  describe("«Учим алфавит»", () => {
+    const ALL = [...G1, ...G2, ...G3, ...G4];
+    const MODE = { type: "lb_alphabet", blocks: [{ id: "g1", title: "Друзья" }, { id: "g2", title: "Звук тот же" }, { id: "g3", title: "Шапочки" }, { id: "g4", title: "Ловушки" }], twins: { B: "В", C: "С", H: "Н", P: "Р" } };
+
+    it("goes block by block: 3 shown, then those 3 checked twice each, a screen between blocks", () => {
+      const tasks = alphabetTasks(MODE, ALL, {});
+      const ends = tasks.filter((t) => t.type === "lb_block_end");
+      expect(ends.map((t) => t.block)).toEqual(["g1", "g2", "g3", "g4"]);
+      expect(ends.map((t) => t.next)).toEqual(["Звук тот же", "Шапочки", "Ловушки", null]);
+      expect(tasks.slice(0, 3).map((t) => t.type)).toEqual(["lb_pair", "lb_pair", "lb_pair"]);
+      const shown = tasks.slice(0, 3).map((t) => t.card.sl);
+      const checks = tasks.slice(3, 9);
+      expect(checks.every((t) => t.type === "lb_find" && shown.includes(t.card.sl))).toBe(true);
+      checks.forEach((t) => t.options.forEach((o) => expect(shown).toContain(o.sl)));
+      // Every letter is shown once, in its own block.
+      const pairs = tasks.filter((t) => t.type === "lb_pair");
+      expect(pairs).toHaveLength(ALL.length);
+      pairs.forEach((t) => expect(t.block).toBe(t.card.group));
+    });
+
+    it("the video comes for a finished block: only each block's last check carries rewardAfter", () => {
+      const tasks = alphabetTasks(MODE, ALL, {});
+      tasks.forEach((t, i) => {
+        expect(Boolean(t.rewardAfter)).toBe(tasks[i + 1]?.type === "lb_block_end");
+      });
+    });
+
+    it("traps are checked against their look-alike", () => {
+      const traps = alphabetTasks(MODE, ALL, { startBlock: "g4" }).filter((t) => t.type === "lb_trap");
+      expect(traps).toHaveLength(8);
+      traps.forEach((t) => expect(t.options.map((o) => o.text).sort()).toEqual([t.card.ru, MODE.twins[t.card.sl]].sort()));
+    });
+
+    it("start block, letters per step, introduction only", () => {
+      const fromG2 = alphabetTasks(MODE, ALL, { startBlock: "g2", newPerStep: 4, check: "off" });
+      expect(fromG2[0].card.group).toBe("g2");
+      expect(fromG2.some((t) => t.type === "lb_find" || t.rewardAfter)).toBe(false);
+      expect(fromG2.filter((t) => t.type === "lb_block_end")).toHaveLength(3);
+    });
   });
 });

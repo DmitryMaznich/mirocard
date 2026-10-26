@@ -37,6 +37,17 @@ function useChoice(options, onRight) {
   return { tap, classFor };
 }
 
+// «Учим алфавит»: answers of the current run, per block, for the screen
+// between blocks (alone = found without a hint).
+const runResults = new Map();
+function noteResult(task, alone) {
+  if (!task.runId) return;
+  const key = `${task.runId}:${task.block}`;
+  const r = runResults.get(key) ?? { alone: 0, helped: 0 };
+  r[alone ? "alone" : "helped"] += 1;
+  runResults.set(key, r);
+}
+
 function report(onCorrect, conceptId, cardId, alone) {
   onCorrect?.(conceptId, cardId, alone ? undefined : { assisted: true });
 }
@@ -165,6 +176,7 @@ export function PairTask({ task, mode, topicId, playTopicFile, onAdvance }) {
 // heard each time it is found.
 function LetterChoice({ task, topicId, playTopicFile, stimulus, stimulusClass, options, optionClass, onCorrect, onStreakReset }) {
   const { tap, classFor } = useChoice(options, async (alone) => {
+    noteResult(task, alone);
     await Promise.all([task.card?.soundSl ? playTopicFile?.(topicId, task.card.soundSl) : null, wait(1100)]);
     report(onCorrect, task.conceptId, task.card?.id ?? task.cardId, alone);
   });
@@ -320,6 +332,25 @@ export function BuildTask({ task, topicId, playTopicFile, onCorrect, onStreakRes
             {letter}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Between blocks of «Учим алфавит»: the adult decides — next block or finish.
+export function BlockEndTask({ task, onAdvance, onClose }) {
+  const r = runResults.get(`${task.runId}:${task.block}`);
+  const [done, setDone] = useState(false);
+  const go = (fn) => (event) => { event.stopPropagation(); if (done) return; setDone(true); fn?.(); };
+  return (
+    <div className="session-body lb-stage">
+      <div className="lb-block-end">
+        <p className="lb-block-end__title">Блок «{task.title}» пройден</p>
+        {r && <p className="lb-block-end__stats">Сам: {r.alone} · с подсказкой: {r.helped}</p>}
+        {task.next
+          ? <button type="button" className="lb-next" onClick={go(onAdvance)}>Следующий блок: {task.next}</button>
+          : <p className="lb-block-end__stats">Весь алфавит пройден.</p>}
+        <button type="button" className={task.next ? "lb-finish" : "lb-next"} onClick={go(task.next ? onClose : onAdvance)}>Закончить</button>
       </div>
     </div>
   );
