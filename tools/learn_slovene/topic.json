@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "learn_slovene",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "renderer": "letter_bridge",
     "title": {
       "ru": "Учим словенский",
@@ -32,7 +32,7 @@
       "finalGoal": "Ребёнок читает короткие словенские слова без подсказки и собирает их из латинских букв.",
       "flow": [
         "Алфавит — режим 1 «Учим алфавит»: блоки друзья → звук тот же → шапочки → ловушки, между блоками решает взрослый.",
-        "Слоги (2), слова (3) и сборка слова (4) — когда буквы знакомы; буквы для них выбираются в «Изменить», по группам.",
+        "Слоги на слух (2), слова (3) и сборка слова (4) — когда буквы знакомы; буквы для них выбираются в «Изменить», по группам.",
         "Буква знакома, когда её точка стала зелёной: несколько занятий подряд без ошибок."
       ]
     }
@@ -430,12 +430,13 @@
         "title": "2. Слоги"
       },
       "methodology": {
-        "summary": "Прочитать словенский слог, выбрать русский.",
-        "text": "Слоги собираются из выбранных букв: MA, SO, ŠU. Неверные варианты отличаются одной похожей буквой (SO / ŠO / ZO).",
-        "goal": "Читать слоги из новых букв.",
+        "summary": "Школьный голос говорит слог — выбрать его из трёх словенских.",
+        "text": "Слог звучит сам (динамик — ещё раз), на экране три словенских слога: верный, с согласной, которую легко спутать на слух (KA / GA, TA / DA, MA / NA, LA / RA, SA / ZA), и с другой гласной (KA / KO). Русских букв в задании нет. Неверный вариант бледнеет, верный подсвечивается, слог звучит ещё раз. После ответа под динамиком появляется «KA = КА» — мостик к русскому чтению. Видео — по обычным звёздам.",
+        "goal": "Узнавать на слух и читать словенские слоги из знакомых букв.",
         "duration": "2–3 минуты",
         "tips": [
-          "Нужны и гласные, и согласные — хотя бы «Друзья»."
+          "Слоги берутся из выбранных букв: нужны согласные K G T D M N S Z L R и гласные A O U I.",
+          "Если ребёнок ошибается в паре (G/K), выберите в «Изменить» только эти буквы и гласные."
         ]
       },
       "params": {
@@ -459,13 +460,45 @@
           "default": 6
         }
       },
-      "vowels": [
-        "A",
-        "E",
-        "I",
-        "O",
-        "U"
-      ],
+      "syllables": {
+        "DA": "audio/syllables/sl/da.mp3",
+        "DI": "audio/syllables/sl/di.mp3",
+        "DO": "audio/syllables/sl/do.mp3",
+        "DU": "audio/syllables/sl/du.mp3",
+        "GA": "audio/syllables/sl/ga.mp3",
+        "GI": "audio/syllables/sl/gi.mp3",
+        "GO": "audio/syllables/sl/go.mp3",
+        "GU": "audio/syllables/sl/gu.mp3",
+        "KA": "audio/syllables/sl/ka.mp3",
+        "KI": "audio/syllables/sl/ki.mp3",
+        "KO": "audio/syllables/sl/ko.mp3",
+        "KU": "audio/syllables/sl/ku.mp3",
+        "LA": "audio/syllables/sl/la.mp3",
+        "LI": "audio/syllables/sl/li.mp3",
+        "MA": "audio/syllables/sl/ma.mp3",
+        "MI": "audio/syllables/sl/mi.mp3",
+        "MO": "audio/syllables/sl/mo.mp3",
+        "MU": "audio/syllables/sl/mu.mp3",
+        "NA": "audio/syllables/sl/na.mp3",
+        "NI": "audio/syllables/sl/ni.mp3",
+        "NO": "audio/syllables/sl/no.mp3",
+        "NU": "audio/syllables/sl/nu.mp3",
+        "RA": "audio/syllables/sl/ra.mp3",
+        "RI": "audio/syllables/sl/ri.mp3",
+        "RO": "audio/syllables/sl/ro.mp3",
+        "RU": "audio/syllables/sl/ru.mp3",
+        "SA": "audio/syllables/sl/sa.mp3",
+        "SI": "audio/syllables/sl/si.mp3",
+        "SO": "audio/syllables/sl/so.mp3",
+        "SU": "audio/syllables/sl/su.mp3",
+        "TA": "audio/syllables/sl/ta.mp3",
+        "TI": "audio/syllables/sl/ti.mp3",
+        "TO": "audio/syllables/sl/to.mp3",
+        "TU": "audio/syllables/sl/tu.mp3",
+        "ZA": "audio/syllables/sl/za.mp3",
+        "ZI": "audio/syllables/sl/zi.mp3",
+        "ZU": "audio/syllables/sl/zu.mp3"
+      },
       "near": {
         "S": "ŠZ",
         "Š": "SŽ",
