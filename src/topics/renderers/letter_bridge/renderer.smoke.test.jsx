@@ -47,24 +47,31 @@ describe("letter_bridge renderer", () => {
   const tap = (el) => act(async () => { el.click(); });
   const option = (label) => container.querySelector(`[aria-label="${label}"]`);
 
-  it("«Пара букв»: home and school labels in Russian, a tap on the Slovenian letter moves on", async () => {
+  it("«Пара букв»: home letter sounds, then the school letter appears and sounds, then «Дальше»", async () => {
     await mount({ type: "lb_pair", conceptId: "P", card: P });
-    const cards = [...container.querySelectorAll(".lb-card")].map((c) => c.textContent);
-    expect(cards).toEqual(["П", "P"]);
-    const labels = [...container.querySelectorAll(".lb-place")].map((l) => l.textContent);
-    expect(labels).toEqual(["Домапо-русски", "В школепо-словенски"]);
+    const next = container.querySelector(".lb-next");
+    const slCol = container.querySelectorAll(".lb-pair__col")[1];
+    expect(slCol.className).toContain("lb-hidden");
+    expect(next.disabled).toBe(true);
+    await tap(option("P"));
+    await tap(next);
+    expect(props.onAdvance).not.toHaveBeenCalled();
+    await wait(600);
+    expect(props.playTopicFile).toHaveBeenLastCalledWith("learn_slovene", "audio/letters/ru/P.mp3");
+    expect(option("П").className).toContain("lb-card--speaking");
+    await wait(1500);
+    expect(slCol.className).not.toContain("lb-hidden");
+    await wait(600);
+    expect(props.playTopicFile).toHaveBeenLastCalledWith("learn_slovene", "audio/letters/sl/P.mp3");
     expect(container.querySelector(".lb-card--trap")).not.toBeNull();
+    await wait(1500);
+    expect(next.disabled).toBe(false);
     await tap(option("П"));
     expect(props.playTopicFile).toHaveBeenLastCalledWith("learn_slovene", "audio/letters/ru/P.mp3");
     expect(props.onAdvance).not.toHaveBeenCalled();
-    await tap(option("P"));
-    expect(props.playTopicFile).toHaveBeenLastCalledWith("learn_slovene", "audio/letters/sl/P.mp3");
-    await tap(option("P"));
-    expect(props.onAdvance).not.toHaveBeenCalled();
-    await wait(600);
+    await tap(next);
+    await tap(next);
     expect(props.onAdvance).toHaveBeenCalledTimes(1);
-    await tap(container.querySelector(".lb-skip"));
-    expect(props.onAdvance).toHaveBeenCalledTimes(2);
   });
 
   it("a right first tap counts as alone", async () => {

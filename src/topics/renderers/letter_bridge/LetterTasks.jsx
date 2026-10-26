@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -83,48 +83,80 @@ function PlaceLabel({ side }) {
   );
 }
 
-// Each letter sounds when tapped: the Russian one in the home voice, the
-// Slovenian one in the school voice (card.soundRu / card.soundSl). The child
-// moves on by tapping the new (Slovenian) letter, so the eye and the finger end
-// on it; «Дальше» stays small, for the adult.
+// An introduction, not a task: the home letter appears and sounds in the home
+// voice, then the school letter appears and sounds in the school voice
+// (card.soundRu / card.soundSl). Only then does «Дальше» appear, so a child
+// tapping around cannot flick through the pairs; a tap on a letter after that
+// only repeats its sound.
+const SHOW_GAP = 500;
+const MIN_SOUND = 900;
+
 export function PairTask({ task, mode, topicId, playTopicFile, onAdvance }) {
   const { card } = task;
   const isTrap = Boolean(mode?.twins?.[card.sl]);
-  const [tapped, setTapped] = useState(false);
-  const sayRu = (event) => {
+  const [phase, setPhase] = useState("ru"); // ru → sl → ready
+  const [speaking, setSpeaking] = useState(null);
+  const advanced = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const say = async (side, file) => {
+      setSpeaking(side);
+      await Promise.all([file ? playTopicFile?.(topicId, file) : null, wait(MIN_SOUND)]);
+      if (!cancelled) setSpeaking(null);
+    };
+    (async () => {
+      await wait(SHOW_GAP);
+      if (cancelled) return;
+      await say("ru", card.soundRu);
+      await wait(SHOW_GAP);
+      if (cancelled) return;
+      setPhase("sl");
+      await wait(SHOW_GAP);
+      if (cancelled) return;
+      await say("sl", card.soundSl);
+      await wait(SHOW_GAP);
+      if (!cancelled) setPhase("ready");
+    })();
+    return () => { cancelled = true; };
+  }, [card, topicId, playTopicFile]);
+
+  const repeat = (side) => async (event) => {
     event.stopPropagation();
-    if (card.soundRu) playTopicFile?.(topicId, card.soundRu);
+    if (phase !== "ready" || speaking) return;
+    await say(side);
   };
-  const next = async (event) => {
+  async function say(side) {
+    setSpeaking(side);
+    await Promise.all([playTopicFile?.(topicId, side === "ru" ? card.soundRu : card.soundSl), wait(400)]);
+    setSpeaking(null);
+  }
+  const next = (event) => {
     event.stopPropagation();
-    if (tapped) return;
-    setTapped(true);
-    await Promise.all([card.soundSl ? playTopicFile?.(topicId, card.soundSl) : null, wait(500)]);
+    if (phase !== "ready" || advanced.current) return;
+    advanced.current = true;
     onAdvance?.();
   };
+  const cardClass = (side) => [
+    "lb-card", `lb-card--${side}`, "lb-card--big", "lb-card--tap",
+    side === "sl" && isTrap ? "lb-card--trap" : "",
+    speaking === side ? "lb-card--speaking" : "",
+  ].filter(Boolean).join(" ");
+
   return (
     <div className="session-body lb-stage">
       <div className="lb-pair">
         <div className="lb-pair__col">
           <PlaceLabel side="ru" />
-          <button type="button" aria-label={card.ru} className="lb-card lb-card--ru lb-card--big lb-card--tap" onClick={sayRu}>
-            {card.ru}
-          </button>
+          <button type="button" aria-label={card.ru} className={cardClass("ru")} onClick={repeat("ru")}>{card.ru}</button>
         </div>
-        <span className="lb-eq">=</span>
-        <div className="lb-pair__col">
+        <span className={`lb-eq${phase === "ru" ? " lb-hidden" : " lb-appear-now"}`}>=</span>
+        <div className={`lb-pair__col${phase === "ru" ? " lb-hidden" : " lb-appear-now"}`}>
           <PlaceLabel side="sl" />
-          <button
-            type="button"
-            aria-label={card.sl}
-            className={`lb-card lb-card--sl lb-card--big lb-card--tap lb-appear${isTrap ? " lb-card--trap" : ""}${tapped ? " lb-card--tapped" : ""}`}
-            onClick={next}
-          >
-            {card.sl}
-          </button>
+          <button type="button" aria-label={card.sl} className={cardClass("sl")} onClick={repeat("sl")}>{card.sl}</button>
         </div>
       </div>
-      <button type="button" className="lb-skip" onClick={(event) => { event.stopPropagation(); onAdvance?.(); }}>Дальше</button>
+      <button type="button" className={`lb-next${phase === "ready" ? " lb-appear-now" : " lb-hidden"}`} disabled={phase !== "ready"} onClick={next}>Дальше</button>
     </div>
   );
 }
