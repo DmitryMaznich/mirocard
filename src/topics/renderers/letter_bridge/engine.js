@@ -115,7 +115,16 @@ export function alphabetTasks(mode, letters, params = {}) {
         tasks.push(listenTask(card, [card, ...others], runId, block.id));
       });
     }
-    if (check) tasks[tasks.length - 1].rewardAfter = true;
+    if (check) {
+      // Five stars spread evenly over the block's checks; the last check
+      // completes the fifth and earns the video (mode.rewardPerBlock).
+      const checks = tasks.filter((t) => t.block === block.id && t.type === "lb_listen");
+      checks.forEach((t, i) => {
+        const stars = Math.floor(((i + 1) * 5) / checks.length) - Math.floor((i * 5) / checks.length);
+        if (stars) t.blockStars = stars;
+      });
+      tasks[tasks.length - 1].rewardAfter = true;
+    }
     const next = blocks.slice(start + bi + 1).find((b) => letters.some((c) => c.group === b.id));
     tasks.push({ type: "lb_block_end", runId, block: block.id, title: block.title, next: next?.title ?? null });
   });

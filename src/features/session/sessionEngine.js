@@ -159,11 +159,19 @@ function creditRewardStreak(state) {
 }
 
 // A mode with `rewardPerBlock` gives the video for a finished block, not for a
-// series of right answers: the task that closes a block carries `rewardAfter`,
-// and moving on from it (answered alone, with help or skipped) earns it.
+// series of right answers. The stars show how far the child is through the
+// block: tasks carry `blockStars` (the block's five stars spread over its
+// checks), and the task that closes the block carries `rewardAfter`. Moving on
+// from a task — answered alone, with help or skipped — credits them; a mistake
+// takes nothing away (the block is taught without errors).
 function blockReward(state) {
-  if (!state.tasks?.[state.taskIndex]?.rewardAfter) return state;
-  return { ...state, rewardEarnedCount: (state.rewardEarnedCount ?? 0) + 1 };
+  const task = state.tasks?.[state.taskIndex];
+  if (!task?.blockStars && !task?.rewardAfter) return state;
+  const perStar = state.answersPerStar ?? 1;
+  if (task.rewardAfter) {
+    return { ...state, streakCount: 0, rewardEarnedCount: (state.rewardEarnedCount ?? 0) + 1 };
+  }
+  return { ...state, streakCount: Math.min(5 * perStar, (state.streakCount ?? 0) + task.blockStars * perStar) };
 }
 
 export function handleInstantCorrect(state) {

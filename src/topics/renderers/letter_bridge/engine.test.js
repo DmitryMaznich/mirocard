@@ -128,8 +128,11 @@ describe("letter_bridge engine", () => {
       pairs.forEach((t) => expect(t.block).toBe(t.card.group));
     });
 
-    it("the video comes for a finished block: only each block's last check carries rewardAfter", () => {
+    it("the video comes for a finished block: only each block's last check carries rewardAfter; its checks carry 5 stars", () => {
       const tasks = alphabetTasks(MODE, ALL, {});
+      for (const b of ["g1", "g2", "g3", "g4"]) {
+        expect(tasks.filter((t) => t.block === b).reduce((n, t) => n + (t.blockStars ?? 0), 0)).toBe(5);
+      }
       tasks.forEach((t, i) => {
         expect(Boolean(t.rewardAfter)).toBe(tasks[i + 1]?.type === "lb_block_end");
       });

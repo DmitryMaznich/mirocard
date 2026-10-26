@@ -426,7 +426,7 @@ export default function SessionScreen() {
           settingsOverride={sessionRewardSettings}
           studentId={activeStudent.id}
           onDismiss={clearRewardPending}
-          title={sessionState.rewardPolicy?.version === 2 ? rewardText("rewardTitle") : `Молодец! ${5 * answersPerStar} правильных подряд!`}
+          title={mode?.rewardPerBlock ? "Блок пройден!" : sessionState.rewardPolicy?.version === 2 ? rewardText("rewardTitle") : `Молодец! ${5 * answersPerStar} правильных подряд!`}
         />
       )}
 
