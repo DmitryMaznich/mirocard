@@ -467,16 +467,16 @@
         "ru": "Учим словенский",
         "en": "Learning Slovenian"
       },
-      "version": "0.3.0",
+      "version": "0.3.1",
       "renderer": "letter_bridge",
       "sources": [
-        "public/decks/learn_slovene_v0.3.0.zip",
+        "public/decks/learn_slovene_v0.3.1.zip",
         "src/topics/renderers/letter_bridge",
         "tools/learn_slovene/topic.json"
       ],
       "bundle": {
-        "version": "0.3.0",
-        "url": "./decks/learn_slovene_v0.3.0.zip",
+        "version": "0.3.1",
+        "url": "./decks/learn_slovene_v0.3.1.zip",
         "title": {
           "ru": "Учим словенский",
           "en": "Learning Slovenian"
@@ -489,7 +489,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "learn_slovene",
-        "version": "0.3.0",
+        "version": "0.3.1",
         "title": {
           "ru": "Учим словенский",
           "en": "Learning Slovenian"
@@ -498,7 +498,7 @@
           "ru": "Словенские печатные буквы через русские: S = С, Č = Ч. Пары букв, ловушки (B = Б, P = П), слоги, чтение слов с гаснущей подсказкой кириллицей и сборка слов. Для ребёнка, который читает по-русски.",
           "en": "Slovenian capitals through Russian letters with the same sound: letter pairs, look-alike traps, syllables, reading words with a fading Cyrillic hint, building words."
         },
-        "url": "./decks/learn_slovene_v0.3.0.zip",
+        "url": "./decks/learn_slovene_v0.3.1.zip",
         "status": "beta",
         "access": "paid"
       },

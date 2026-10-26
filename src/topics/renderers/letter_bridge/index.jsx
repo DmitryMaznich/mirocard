@@ -1,4 +1,4 @@
-import { PairTask, FindTask, TrapTask, SyllableTask, WordTask, BuildTask, BlockEndTask, NeedMoreTask } from "./LetterTasks";
+import { PairTask, FindTask, TrapTask, ListenTask, SyllableTask, WordTask, BuildTask, BlockEndTask, NeedMoreTask } from "./LetterTasks";
 import "./letter_bridge.css";
 
 const TASKS = {
@@ -8,6 +8,7 @@ const TASKS = {
   lb_syll: SyllableTask,
   lb_word: WordTask,
   lb_build: BuildTask,
+  lb_listen: ListenTask,
   lb_block_end: BlockEndTask,
   lb_need_more: NeedMoreTask,
 };

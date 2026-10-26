@@ -66,11 +66,21 @@ function syllableTasks(mode, cards, count) {
   });
 }
 
+// The Slovenian letter a trap is misread as: B looks like В, so V.
+function twinOf(card, mode, letters) {
+  const ru = mode.twins?.[card.sl];
+  return ru ? letters.find((c) => c.ru === ru) ?? null : null;
+}
+
+function listenTask(card, options, runId, block) {
+  return { type: "lb_listen", conceptId: card.conceptId, card, runId, block, options: shuffle(options) };
+}
+
 // «Учим алфавит»: the whole alphabet, block after block (mode.blocks = the
 // letter groups in teaching order). Inside a block the letters come a few at a
-// time: each new letter is shown (lb_pair), then found among the letters seen
-// so far (lb_find; the trap block uses lb_trap — the true pair against the
-// look-alike). A block ends with lb_block_end, a screen for the adult: next
+// time: each new letter is shown (lb_pair), then checked by ear (lb_listen:
+// its sound, pick the Slovenian letter among those seen so far; a trap against
+// the letter it is misread as). A block ends with lb_block_end, a screen for the adult: next
 // block or finish. The video reward comes for a finished block
 // (mode.rewardPerBlock + task.rewardAfter on the block's last check).
 export function alphabetTasks(mode, letters, params = {}) {
@@ -89,15 +99,20 @@ export function alphabetTasks(mode, letters, params = {}) {
       chunk.forEach((card) => tasks.push({ type: "lb_pair", conceptId: card.conceptId, card, runId, block: block.id }));
       seen.push(...chunk);
       if (!check) continue;
-      // Each new letter twice, in a fresh order, never the same letter twice in a row.
+      // The check is by ear: the school voice says the letter's sound, the
+      // child picks the Slovenian letter (matching M to M on screen would test
+      // nothing). Each new letter twice, never the same twice in a row.
       cycle(chunk, chunk.length * 2).forEach((card) => {
-        if (mode.twins?.[card.sl]) {
-          tasks.push({ type: "lb_trap", conceptId: card.conceptId, card, runId, block: block.id,
-            options: shuffle([{ text: card.ru, ok: true }, { text: mode.twins[card.sl], ok: false }]) });
+        const twin = twinOf(card, mode, letters);
+        if (twin) {
+          // A trap is checked against the letter a Russian reader mistakes it
+          // for: [p] → P or R (P looks like Р), and back: [r] → R or P.
+          tasks.push(listenTask(card, [card, twin], runId, block.id));
+          if (seen.includes(twin)) tasks.push(listenTask(twin, [twin, card], runId, block.id));
           return;
         }
         const others = shuffle(seen.filter((c) => c.sl !== card.sl && c.ru !== card.ru)).slice(0, 2);
-        tasks.push({ type: "lb_find", conceptId: card.conceptId, card, dir: "sl_ru", runId, block: block.id, options: shuffle([card, ...others]) });
+        tasks.push(listenTask(card, [card, ...others], runId, block.id));
       });
     }
     if (check) tasks[tasks.length - 1].rewardAfter = true;

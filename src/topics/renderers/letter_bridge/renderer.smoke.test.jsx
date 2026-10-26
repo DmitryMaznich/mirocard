@@ -140,6 +140,16 @@ describe("letter_bridge renderer", () => {
     expect(props.onAdvance).toHaveBeenCalledTimes(1);
   });
 
+  it("«Учим алфавит» check: the sound plays by itself, the child picks the Slovenian letter", async () => {
+    await mount({ type: "lb_listen", conceptId: "S", card: S, runId: "r2", block: "g2", options: [R, S, N] });
+    await wait(450);
+    expect(props.playTopicFile).toHaveBeenCalledWith("learn_slovene", "audio/letters/sl/S.mp3");
+    expect(option("С")).toBeNull();
+    await tap(option("S"));
+    await wait(1200);
+    expect(props.onCorrect).toHaveBeenCalledWith("S", "S", undefined);
+  });
+
   it("between blocks the adult chooses: next block or finish", async () => {
     props.onClose = vi.fn();
     await mount({ type: "lb_block_end", runId: "r1", block: "g1", title: "Друзья", next: "Звук тот же" });

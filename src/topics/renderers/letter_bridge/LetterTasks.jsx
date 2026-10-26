@@ -233,6 +233,28 @@ export function SyllableTask(props) {
   return <LetterChoice {...props} stimulus={task.syl} stimulusClass="lb-card--sl lb-card--wide" options={task.options} optionClass="lb-opt--ru lb-opt--wide" />;
 }
 
+// «Учим алфавит» check: the school voice says a letter's sound, the child
+// picks the Slovenian letter. The sound plays by itself and on the speaker.
+export function ListenTask(props) {
+  const { task, topicId, playTopicFile } = props;
+  const say = () => { if (task.card.soundSl) playTopicFile?.(topicId, task.card.soundSl); };
+  useEffect(() => {
+    const timer = window.setTimeout(say, 400);
+    return () => window.clearTimeout(timer);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <LetterChoice
+      {...props}
+      stimulus={<button type="button" className="lb-speaker" aria-label="Ещё раз" onClick={(event) => { event.stopPropagation(); say(); }}>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 18h8l11-9v30l-11-9H8z" fill="currentColor" /><path d="M33 16a11 11 0 0 1 0 16M38 11a18 18 0 0 1 0 26" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
+      </button>}
+      stimulusClass="lb-card--sl lb-card--listen"
+      options={task.options.map((card) => ({ text: card.sl, ok: card.sl === task.card.sl }))}
+      optionClass="lb-opt--sl"
+    />
+  );
+}
+
 // Words read alone, per child and word, on this device: the auto hint fades with it.
 const readsKey = (student) => `letter-bridge:reads:${student?.id ?? "anon"}`;
 function loadReads(student) {
