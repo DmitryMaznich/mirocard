@@ -62,17 +62,28 @@ describe("letter_bridge engine", () => {
     expect(generateTasks({ type: "lb_trap", twins: { P: "Р" } }, G1, 500, {})).toEqual([]);
   });
 
-  it("«Слоги»: consonant + vowel from picked letters, transliterated, near-letter distractors", () => {
-    const tasks = generateTasks({ type: "lb_syll", vowels: ["A", "E", "I", "O", "U"], near: NEAR }, [...G1, ...G2, ...G3], 500, { taskCount: 12 });
+  it("«Слоги»: a recorded syllable from picked letters, by ear, against a misheard consonant and another vowel", () => {
+    const SYL = Object.fromEntries(["KA", "KO", "TA", "TO", "DA", "DO", "MA", "MO", "NA", "NO", "SA", "SO"].map((s) => [s, `audio/syllables/sl/${s.toLowerCase()}.mp3`]));
+    const tasks = generateTasks({ type: "lb_syll", syllables: SYL, near: NEAR }, [...G1, ...G2], 500, { taskCount: 12 });
     expect(tasks).toHaveLength(12);
-    const map = Object.fromEntries([...G1, ...G2, ...G3].map((c) => [c.sl, c.ru]));
     for (const t of tasks) {
-      expect(t.syl).toMatch(/^[^AEIOU][AEIOU]$/);
-      expect(t.syl[0]).not.toBe("J");
-      expect(t.options.find((o) => o.ok).text).toBe([...t.syl].map((c) => map[c]).join(""));
-      expect(new Set(t.options.map((o) => o.text)).size).toBe(t.options.length);
+      expect(t.sound).toBe(SYL[t.syl]);
       expect(t.conceptId).toBe(t.syl[0]);
+      expect(t.translit).toBe([...t.syl].map((c) => [...G1, ...G2].find((x) => x.sl === c).ru).join(""));
+      const texts = t.options.map((o) => o.text);
+      expect(new Set(texts).size).toBe(3);
+      expect(texts.every((x) => SYL[x])).toBe(true);
+      expect(t.options.find((o) => o.ok).text).toBe(t.syl);
+      // T/D and M/N have a near partner recorded: it is always one of the two.
+      const partner = { T: "D", D: "T", M: "N" }[t.syl[0]];
+      if (partner) expect(texts).toContain(partner + t.syl[1]);
+      expect(texts.some((x) => x[0] === t.syl[0] && x !== t.syl)).toBe(true);
     }
+  });
+
+  it("«Слоги» without recorded syllables of the picked letters explains what to add", () => {
+    const SYL = { GA: "a", GO: "b", GU: "c" };
+    expect(generateTasks({ type: "lb_syll", syllables: SYL, near: NEAR }, G1, 500, {})[0].type).toBe("lb_need_more");
   });
 
   it("only words whose letters are all picked can be read", () => {

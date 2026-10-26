@@ -4,7 +4,7 @@
 // adult picks letters with the ordinary concept picker and gets progress dots
 // per letter. What only some modes need lives on the mode:
 //   mode.twins   { B: "В", … }  the letter a trap is misread as (traps)
-//   mode.vowels  ["A", …]       vowels of the new script (syllables)
+//   mode.syllables { KA: "audio/…/ka.mp3" } recorded syllables (syllables)
 //   mode.near    { S: "ŠZ", … } easily confused letters (syllables, tiles)
 //   mode.words   [{ id, sl, ru, image, audio }] words with a picture (words, build)
 import { shuffle } from "@/shared/utils/shuffle";
@@ -38,30 +38,35 @@ function transliterate(text, cards) {
   return lettersOf(text).map((c) => map[c] ?? c).join("");
 }
 
+// «Слоги» by ear: the school voice says a syllable, the child picks it among
+// three Slovenian syllables — one with a consonant easily misheard for it (KA /
+// GA, from mode.near) and one with another vowel (KA / KO). Only syllables with
+// a recording (mode.syllables: { KA: "audio/…/ka.mp3" }) whose letters are all
+// picked take part. The Cyrillic spelling (KA = КА) shows after the answer.
 function syllableTasks(mode, cards, count) {
-  const vowels = new Set(mode.vowels ?? []);
-  const known = new Set(cards.map((c) => c.sl));
-  // J+vowel reads as one Russian letter (JA = Я): left out of plain syllables.
-  const consonants = cards.filter((c) => !vowels.has(c.sl) && c.sl !== "J");
-  const vowelList = [...vowels].filter((v) => known.has(v));
-  if (!consonants.length || !vowelList.length) return needMore("Для слогов нужны и гласные, и согласные. Добавьте буквы в «Изменить».");
-  const all = consonants.flatMap((c) => vowelList.map((v) => ({ syl: c.sl + v, consonant: c })));
-  return cycle(all, count).map(({ syl, consonant }) => {
-    const variants = new Set();
-    lettersOf(syl).forEach((ch, i) => {
-      for (const n of mode.near?.[ch] ?? "") if (known.has(n)) variants.add(syl.slice(0, i) + n + syl.slice(i + 1));
-    });
-    const wrong = shuffle([...variants]).slice(0, 2);
-    for (const other of shuffle(all.map((x) => x.syl))) {
+  const known = new Map(cards.map((c) => [c.sl, c]));
+  const pool = Object.keys(mode.syllables ?? {}).filter((syl) => lettersOf(syl).every((c) => known.has(c)));
+  if (pool.length < 3) return needMore("Для слогов нужны согласные K G T D M N S Z L R и гласные A O U I. Добавьте буквы в «Изменить».");
+  const inPool = new Set(pool);
+  const variant = (syl, i, letters) => shuffle([...letters]).map((n) => syl.slice(0, i) + n + syl.slice(i + 1)).find((v) => v !== syl && inPool.has(v));
+  const othersOf = (syl, i) => pool.map((v) => v[i]).filter((c, k, all) => all.indexOf(c) === k);
+  return cycle(pool, count).map((syl) => {
+    const consonant = variant(syl, 0, mode.near?.[syl[0]] ?? "") ?? variant(syl, 0, othersOf(syl, 0));
+    const vowel = variant(syl, 1, mode.near?.[syl[1]] ?? "") ?? variant(syl, 1, othersOf(syl, 1));
+    const wrong = [...new Set([consonant, vowel].filter(Boolean))];
+    for (const other of shuffle(pool)) {
       if (wrong.length >= 2) break;
       if (other !== syl && !wrong.includes(other)) wrong.push(other);
     }
+    const card = known.get(syl[0]);
     return {
       type: "lb_syll",
-      conceptId: consonant.conceptId,
-      cardId: consonant.id,
+      conceptId: card.conceptId,
+      cardId: card.id,
       syl,
-      options: shuffle([{ text: transliterate(syl, cards), ok: true }, ...wrong.map((w) => ({ text: transliterate(w, cards), ok: false }))]),
+      sound: mode.syllables[syl],
+      translit: transliterate(syl, cards),
+      options: shuffle([{ text: syl, ok: true }, ...wrong.map((w) => ({ text: w, ok: false }))]),
     };
   });
 }

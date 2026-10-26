@@ -228,9 +228,49 @@ export function TrapTask(props) {
   );
 }
 
-export function SyllableTask(props) {
-  const { task } = props;
-  return <LetterChoice {...props} stimulus={task.syl} stimulusClass="lb-card--sl lb-card--wide" options={task.options} optionClass="lb-opt--ru lb-opt--wide" />;
+const Speaker = ({ onSay }) => (
+  <button type="button" className="lb-speaker" aria-label="Ещё раз" onClick={(event) => { event.stopPropagation(); onSay(); }}>
+    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 18h8l11-9v30l-11-9H8z" fill="currentColor" /><path d="M33 16a11 11 0 0 1 0 16M38 11a18 18 0 0 1 0 26" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
+  </button>
+);
+
+// «Слоги» by ear: the school voice says the syllable by itself and on the
+// speaker; the child picks it among three Slovenian syllables. A wrong pick
+// says it again. After the answer the Russian spelling shows (KA = КА) — the
+// bridge to the script the child already reads.
+export function SyllableTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
+  const say = () => playTopicFile?.(topicId, task.sound);
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(say, 400);
+    return () => window.clearTimeout(timer);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { tap, classFor } = useChoice(task.options, async (alone) => {
+    setRevealed(true);
+    await Promise.all([say(), wait(1400)]);
+    report(onCorrect, task.conceptId, task.cardId, alone);
+  });
+  return (
+    <div className="session-body lb-stage">
+      <div className="lb-word">
+        <div className="lb-card lb-card--mid lb-card--sl lb-card--listen"><Speaker onSay={say} /></div>
+        <div className="lb-translit" style={{ opacity: 0.85 }}>{revealed ? <><span className="lb-translit__sl">{task.syl}</span> = {task.translit}</> : "\u00a0"}</div>
+      </div>
+      <div className="lb-opts">
+        {task.options.map((option, index) => (
+          <button
+            key={option.text}
+            type="button"
+            className={`${classFor(index)} lb-opt--sl lb-opt--wide`}
+            aria-label={option.text}
+            onClick={(event) => { event.stopPropagation(); tap(index, () => { say(); onStreakReset?.(task.conceptId, task.cardId); }); }}
+          >
+            {option.text}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // «Учим алфавит» check: the school voice says a letter's sound, the child
@@ -245,9 +285,7 @@ export function ListenTask(props) {
   return (
     <LetterChoice
       {...props}
-      stimulus={<button type="button" className="lb-speaker" aria-label="Ещё раз" onClick={(event) => { event.stopPropagation(); say(); }}>
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 18h8l11-9v30l-11-9H8z" fill="currentColor" /><path d="M33 16a11 11 0 0 1 0 16M38 11a18 18 0 0 1 0 26" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
-      </button>}
+      stimulus={<Speaker onSay={say} />}
       stimulusClass="lb-card--sl lb-card--listen"
       options={task.options.map((card) => ({ text: card.sl, ok: card.sl === task.card.sl }))}
       optionClass="lb-opt--sl"

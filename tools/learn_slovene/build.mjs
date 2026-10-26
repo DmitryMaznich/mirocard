@@ -6,13 +6,13 @@
 // point public/decks/catalog.json at it (CLAUDE.md, "Deck-zip topics").
 import JSZip from "jszip";
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "0.3.1";
+const VERSION = "0.4.0";
 
 const data = JSON.parse(readFileSync(join(DIR, "letters.json"), "utf8"));
 
@@ -28,6 +28,11 @@ const cards = data.groups.flatMap((g) => g.pairs.split(" ").map((p) => {
     soundRu: `audio/letters/ru/${soundKey(sl)}.mp3`, soundSl: `audio/letters/sl/${soundKey(sl)}.mp3`,
   };
 }));
+// Syllables in the school voice, audio/syllables/sl/ka.mp3 → { KA: … }: only
+// recorded ones are asked, so adding a recording is all a new syllable needs.
+const syllables = Object.fromEntries(readdirSync(join(DIR, "audio", "syllables", "sl"))
+  .filter((n) => n.endsWith(".mp3")).sort()
+  .map((n) => [n.slice(0, -4).toUpperCase(), `audio/syllables/sl/${n}`]));
 const words = data.words.map((w) => ({ ...w, image: `media/${w.id}_1.webp`, audio: `audio/sl/${w.id}.mp3` }));
 
 const taskCount = {
@@ -68,7 +73,7 @@ const topic = {
       finalGoal: "Ребёнок читает короткие словенские слова без подсказки и собирает их из латинских букв.",
       flow: [
         "Алфавит — режим 1 «Учим алфавит»: блоки друзья → звук тот же → шапочки → ловушки, между блоками решает взрослый.",
-        "Слоги (2), слова (3) и сборка слова (4) — когда буквы знакомы; буквы для них выбираются в «Изменить», по группам.",
+        "Слоги на слух (2), слова (3) и сборка слова (4) — когда буквы знакомы; буквы для них выбираются в «Изменить», по группам.",
         "Буква знакома, когда её точка стала зелёной: несколько занятий подряд без ошибок.",
       ],
     },
@@ -117,12 +122,15 @@ const topic = {
       },
     },
     graded("lb_syll", "lb_syll", "2. Слоги", {
-      summary: "Прочитать словенский слог, выбрать русский.",
-      text: "Слоги собираются из выбранных букв: MA, SO, ŠU. Неверные варианты отличаются одной похожей буквой (SO / ŠO / ZO).",
-      goal: "Читать слоги из новых букв.",
+      summary: "Школьный голос говорит слог — выбрать его из трёх словенских.",
+      text: "Слог звучит сам (динамик — ещё раз), на экране три словенских слога: верный, с согласной, которую легко спутать на слух (KA / GA, TA / DA, MA / NA, LA / RA, SA / ZA), и с другой гласной (KA / KO). Русских букв в задании нет. Неверный вариант бледнеет, верный подсвечивается, слог звучит ещё раз. После ответа под динамиком появляется «KA = КА» — мостик к русскому чтению. Видео — по обычным звёздам.",
+      goal: "Узнавать на слух и читать словенские слоги из знакомых букв.",
       duration: "2–3 минуты",
-      tips: ["Нужны и гласные, и согласные — хотя бы «Друзья»."],
-    }, { taskCount }, { vowels: data.vowels, near: data.near }),
+      tips: [
+        "Слоги берутся из выбранных букв: нужны согласные K G T D M N S Z L R и гласные A O U I.",
+        "Если ребёнок ошибается в паре (G/K), выберите в «Изменить» только эти буквы и гласные.",
+      ],
+    }, { taskCount }, { syllables, near: data.near }),
     graded("lb_word", "lb_word", "3. Слова", {
       summary: "Прочитать словенское слово, выбрать картинку.",
       text: "Под словом — подсказка кириллицей (VODA — ВОДА); она бледнеет и исчезает, когда ребёнок читает слово сам. После ответа слово звучит так, как его говорят в школе.",
@@ -140,7 +148,7 @@ const topic = {
   ],
 };
 
-const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio]), ...cards.flatMap((c) => [c.soundRu, c.soundSl])]);
+const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio]), ...cards.flatMap((c) => [c.soundRu, c.soundSl]), ...Object.values(syllables)]);
 const missing = [...files].filter((f) => !existsSync(join(DIR, f)));
 if (missing.length) throw new Error(`missing files:\n  ${missing.join("\n  ")}`);
 

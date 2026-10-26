@@ -150,6 +150,21 @@ describe("letter_bridge renderer", () => {
     expect(props.onCorrect).toHaveBeenCalledWith("S", "S", undefined);
   });
 
+  it("«Слоги»: the syllable sounds by itself, a wrong pick says it again, the answer shows KA = КА", async () => {
+    await mount({ type: "lb_syll", conceptId: "K", cardId: "K", syl: "KA", sound: "audio/syllables/sl/ka.mp3", translit: "КА",
+      options: [{ text: "GA", ok: false }, { text: "KA", ok: true }, { text: "KO", ok: false }] });
+    await wait(450);
+    expect(props.playTopicFile).toHaveBeenCalledWith("learn_slovene", "audio/syllables/sl/ka.mp3");
+    expect(container.textContent).not.toMatch(/[А-Я]/);
+    await tap(option("GA"));
+    expect(props.playTopicFile).toHaveBeenCalledTimes(2);
+    expect(props.onStreakReset).toHaveBeenCalledWith("K", "K");
+    await tap(option("KA"));
+    expect(container.textContent).toContain("KA = КА");
+    await wait(1500);
+    expect(props.onCorrect).toHaveBeenCalledWith("K", "K", { assisted: true });
+  });
+
   it("between blocks the adult chooses: next block or finish", async () => {
     props.onClose = vi.fn();
     await mount({ type: "lb_block_end", runId: "r1", block: "g1", title: "Друзья", next: "Звук тот же" });
