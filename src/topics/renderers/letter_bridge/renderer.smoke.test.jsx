@@ -3,10 +3,10 @@ import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import LetterBridgeRenderer from "./index.jsx";
 
-const S = { id: "S", conceptId: "S", sl: "S", ru: "С" };
+const S = { id: "S", conceptId: "S", sl: "S", ru: "С", soundSl: "audio/letters/sl/S.mp3" };
 const R = { id: "R", conceptId: "R", sl: "R", ru: "Р" };
 const N = { id: "N", conceptId: "N", sl: "N", ru: "Н" };
-const P = { id: "P", conceptId: "P", sl: "P", ru: "П" };
+const P = { id: "P", conceptId: "P", sl: "P", ru: "П", soundRu: "audio/letters/ru/P.mp3", soundSl: "audio/letters/sl/P.mp3" };
 const SOK = { id: "sok", sl: "SOK", ru: "СОК", image: "data:image/webp;base64,AA==", audio: "audio/sl/sok.mp3" };
 const VODA = { id: "voda", sl: "VODA", ru: "ВОДА", image: "data:image/webp;base64,AA==", audio: "audio/sl/voda.mp3" };
 
@@ -54,7 +54,11 @@ describe("letter_bridge renderer", () => {
     const labels = [...container.querySelectorAll(".lb-place")].map((l) => l.textContent);
     expect(labels).toEqual(["Домапо-русски", "В школепо-словенски"]);
     expect(container.querySelector(".lb-card--trap")).not.toBeNull();
+    await tap(option("П"));
+    expect(props.playTopicFile).toHaveBeenLastCalledWith("learn_slovene", "audio/letters/ru/P.mp3");
+    expect(props.onAdvance).not.toHaveBeenCalled();
     await tap(option("P"));
+    expect(props.playTopicFile).toHaveBeenLastCalledWith("learn_slovene", "audio/letters/sl/P.mp3");
     await tap(option("P"));
     expect(props.onAdvance).not.toHaveBeenCalled();
     await wait(600);
@@ -68,6 +72,7 @@ describe("letter_bridge renderer", () => {
     expect(container.querySelector(".lb-card").textContent).toBe("S");
     await tap(option("С"));
     expect(option("С").className).toContain("lb-opt--correct");
+    expect(props.playTopicFile).toHaveBeenCalledWith("learn_slovene", "audio/letters/sl/S.mp3");
     await wait(1200);
     expect(props.onCorrect).toHaveBeenCalledWith("S", "S", undefined);
     expect(props.onStreakReset).not.toHaveBeenCalled();

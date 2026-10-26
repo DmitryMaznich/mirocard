@@ -83,17 +83,23 @@ function PlaceLabel({ side }) {
   );
 }
 
-// The child moves on by tapping the new (Slovenian) letter, so the eye and the
-// finger end on it; «Дальше» stays small, for the adult.
-export function PairTask({ task, mode, onAdvance }) {
+// Each letter sounds when tapped: the Russian one in the home voice, the
+// Slovenian one in the school voice (card.soundRu / card.soundSl). The child
+// moves on by tapping the new (Slovenian) letter, so the eye and the finger end
+// on it; «Дальше» stays small, for the adult.
+export function PairTask({ task, mode, topicId, playTopicFile, onAdvance }) {
   const { card } = task;
   const isTrap = Boolean(mode?.twins?.[card.sl]);
   const [tapped, setTapped] = useState(false);
+  const sayRu = (event) => {
+    event.stopPropagation();
+    if (card.soundRu) playTopicFile?.(topicId, card.soundRu);
+  };
   const next = async (event) => {
     event.stopPropagation();
     if (tapped) return;
     setTapped(true);
-    await wait(500);
+    await Promise.all([card.soundSl ? playTopicFile?.(topicId, card.soundSl) : null, wait(500)]);
     onAdvance?.();
   };
   return (
@@ -101,7 +107,9 @@ export function PairTask({ task, mode, onAdvance }) {
       <div className="lb-pair">
         <div className="lb-pair__col">
           <PlaceLabel side="ru" />
-          <div className="lb-card lb-card--ru lb-card--big">{card.ru}</div>
+          <button type="button" aria-label={card.ru} className="lb-card lb-card--ru lb-card--big lb-card--tap" onClick={sayRu}>
+            {card.ru}
+          </button>
         </div>
         <span className="lb-eq">=</span>
         <div className="lb-pair__col">
@@ -121,9 +129,11 @@ export function PairTask({ task, mode, onAdvance }) {
   );
 }
 
-function LetterChoice({ task, stimulus, stimulusClass, options, optionClass, onCorrect, onStreakReset }) {
+// A right answer sounds the letter in the school voice, so the new shape is
+// heard each time it is found.
+function LetterChoice({ task, topicId, playTopicFile, stimulus, stimulusClass, options, optionClass, onCorrect, onStreakReset }) {
   const { tap, classFor } = useChoice(options, async (alone) => {
-    await wait(1100);
+    await Promise.all([task.card?.soundSl ? playTopicFile?.(topicId, task.card.soundSl) : null, wait(1100)]);
     report(onCorrect, task.conceptId, task.card?.id ?? task.cardId, alone);
   });
   return (
