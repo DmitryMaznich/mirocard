@@ -470,10 +470,22 @@
       "version": "0.4.0",
       "renderer": "letter_bridge",
       "sources": [
+        "public/decks/learn_slovene_v0.4.0.zip",
         "src/topics/renderers/letter_bridge",
         "tools/learn_slovene/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "0.4.0",
+        "url": "./decks/learn_slovene_v0.4.0.zip",
+        "title": {
+          "ru": "Учим словенский",
+          "en": "Learning Slovenian"
+        },
+        "description": "Словенские печатные заглавные буквы для ребёнка, который читает по-русски. Каждая словенская буква учится рядом с русской, у которой тот же звук: S = С, Č = Ч. Выучив 25 пар, ребёнок читает словенские слова: SOK = СОК. Ответ — выбором, говорить не нужно.",
+        "renderer": "letter_bridge",
+        "modes": 4,
+        "cards": 25
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "learn_slovene",
@@ -490,7 +502,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-26T12:36:38+00:00"
+      "sourceUpdatedAt": "2026-10-26T12:40:33+00:00"
     },
     {
       "id": "letter_writing",
