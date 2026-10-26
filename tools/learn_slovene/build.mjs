@@ -12,15 +12,21 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "0.2.1";
+const VERSION = "0.2.2";
 
 const data = JSON.parse(readFileSync(join(DIR, "letters.json"), "utf8"));
 
 // One card per letter pair. Only the first group is `primary`, so a new
 // student starts with the six «друзья»; the rest are added in «Изменить».
+// soundRu / soundSl: the letter's sound (not its name) in the home and school
+// voices, audio/letters/{ru,sl}/<key>.mp3 with Š → SH, Č → CH, Ž → ZH.
+const soundKey = (sl) => ({ "Š": "SH", "Č": "CH", "Ž": "ZH" })[sl] ?? sl;
 const cards = data.groups.flatMap((g) => g.pairs.split(" ").map((p) => {
   const [sl, ru] = p.split(":");
-  return { id: `letter_${sl}`, conceptId: sl, primary: g.id === "g1", sl, ru, label: `${sl} = ${ru}`, group: g.id };
+  return {
+    id: `letter_${sl}`, conceptId: sl, primary: g.id === "g1", sl, ru, label: `${sl} = ${ru}`, group: g.id,
+    soundRu: `audio/letters/ru/${soundKey(sl)}.mp3`, soundSl: `audio/letters/sl/${soundKey(sl)}.mp3`,
+  };
 }));
 const words = data.words.map((w) => ({ ...w, image: `media/${w.id}_1.webp`, audio: `audio/sl/${w.id}.mp3` }));
 
@@ -82,7 +88,7 @@ const topic = {
       twins: data.twins,
       methodology: {
         summary: "Русская буква и рядом словенская с тем же звуком.",
-        text: "Слева «Дома — по-русски»: русская буква, её ребёнок читает сам. Справа «В школе — по-словенски»: словенская буква с тем же звуком. Ребёнок касается словенской буквы — следующая пара. Пары каждый раз в новом порядке. Ловушки обведены жёлтым пунктиром. Ошибиться нельзя. Маленькая «Дальше» внизу — для взрослого.",
+        text: "Слева «Дома — по-русски»: русская буква, её ребёнок читает сам. Справа «В школе — по-словенски»: словенская буква с тем же звуком. Касание буквы — её звук: русская голосом папы, словенская школьным голосом. Касание словенской буквы — звук и следующая пара. Пары каждый раз в новом порядке. Ловушки обведены жёлтым пунктиром. Ошибиться нельзя. Маленькая «Дальше» внизу — для взрослого.",
         goal: "Связать новую букву со знакомой русской.",
         duration: "1–2 минуты",
         tips: ["Новые буквы — по 3 за раз, остальные — уже знакомые.", "Попросите прочитать русскую букву вслух, если ребёнок может."],
@@ -126,7 +132,7 @@ const topic = {
   ],
 };
 
-const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio])]);
+const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio]), ...cards.flatMap((c) => [c.soundRu, c.soundSl])]);
 const missing = [...files].filter((f) => !existsSync(join(DIR, f)));
 if (missing.length) throw new Error(`missing files:\n  ${missing.join("\n  ")}`);
 

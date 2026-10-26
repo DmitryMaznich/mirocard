@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "learn_slovene",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "renderer": "letter_bridge",
     "title": {
       "ru": "Учим словенский",
@@ -45,7 +45,9 @@
       "sl": "A",
       "ru": "А",
       "label": "A = А",
-      "group": "g1"
+      "group": "g1",
+      "soundRu": "audio/letters/ru/A.mp3",
+      "soundSl": "audio/letters/sl/A.mp3"
     },
     {
       "id": "letter_E",
@@ -54,7 +56,9 @@
       "sl": "E",
       "ru": "Е",
       "label": "E = Е",
-      "group": "g1"
+      "group": "g1",
+      "soundRu": "audio/letters/ru/E.mp3",
+      "soundSl": "audio/letters/sl/E.mp3"
     },
     {
       "id": "letter_K",
@@ -63,7 +67,9 @@
       "sl": "K",
       "ru": "К",
       "label": "K = К",
-      "group": "g1"
+      "group": "g1",
+      "soundRu": "audio/letters/ru/K.mp3",
+      "soundSl": "audio/letters/sl/K.mp3"
     },
     {
       "id": "letter_M",
@@ -72,7 +78,9 @@
       "sl": "M",
       "ru": "М",
       "label": "M = М",
-      "group": "g1"
+      "group": "g1",
+      "soundRu": "audio/letters/ru/M.mp3",
+      "soundSl": "audio/letters/sl/M.mp3"
     },
     {
       "id": "letter_O",
@@ -81,7 +89,9 @@
       "sl": "O",
       "ru": "О",
       "label": "O = О",
-      "group": "g1"
+      "group": "g1",
+      "soundRu": "audio/letters/ru/O.mp3",
+      "soundSl": "audio/letters/sl/O.mp3"
     },
     {
       "id": "letter_T",
@@ -90,7 +100,9 @@
       "sl": "T",
       "ru": "Т",
       "label": "T = Т",
-      "group": "g1"
+      "group": "g1",
+      "soundRu": "audio/letters/ru/T.mp3",
+      "soundSl": "audio/letters/sl/T.mp3"
     },
     {
       "id": "letter_S",
@@ -99,7 +111,9 @@
       "sl": "S",
       "ru": "С",
       "label": "S = С",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/S.mp3",
+      "soundSl": "audio/letters/sl/S.mp3"
     },
     {
       "id": "letter_R",
@@ -108,7 +122,9 @@
       "sl": "R",
       "ru": "Р",
       "label": "R = Р",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/R.mp3",
+      "soundSl": "audio/letters/sl/R.mp3"
     },
     {
       "id": "letter_N",
@@ -117,7 +133,9 @@
       "sl": "N",
       "ru": "Н",
       "label": "N = Н",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/N.mp3",
+      "soundSl": "audio/letters/sl/N.mp3"
     },
     {
       "id": "letter_L",
@@ -126,7 +144,9 @@
       "sl": "L",
       "ru": "Л",
       "label": "L = Л",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/L.mp3",
+      "soundSl": "audio/letters/sl/L.mp3"
     },
     {
       "id": "letter_I",
@@ -135,7 +155,9 @@
       "sl": "I",
       "ru": "И",
       "label": "I = И",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/I.mp3",
+      "soundSl": "audio/letters/sl/I.mp3"
     },
     {
       "id": "letter_U",
@@ -144,7 +166,9 @@
       "sl": "U",
       "ru": "У",
       "label": "U = У",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/U.mp3",
+      "soundSl": "audio/letters/sl/U.mp3"
     },
     {
       "id": "letter_V",
@@ -153,7 +177,9 @@
       "sl": "V",
       "ru": "В",
       "label": "V = В",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/V.mp3",
+      "soundSl": "audio/letters/sl/V.mp3"
     },
     {
       "id": "letter_Z",
@@ -162,7 +188,9 @@
       "sl": "Z",
       "ru": "З",
       "label": "Z = З",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/Z.mp3",
+      "soundSl": "audio/letters/sl/Z.mp3"
     },
     {
       "id": "letter_D",
@@ -171,7 +199,9 @@
       "sl": "D",
       "ru": "Д",
       "label": "D = Д",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/D.mp3",
+      "soundSl": "audio/letters/sl/D.mp3"
     },
     {
       "id": "letter_G",
@@ -180,7 +210,9 @@
       "sl": "G",
       "ru": "Г",
       "label": "G = Г",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/G.mp3",
+      "soundSl": "audio/letters/sl/G.mp3"
     },
     {
       "id": "letter_F",
@@ -189,7 +221,9 @@
       "sl": "F",
       "ru": "Ф",
       "label": "F = Ф",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/F.mp3",
+      "soundSl": "audio/letters/sl/F.mp3"
     },
     {
       "id": "letter_J",
@@ -198,7 +232,9 @@
       "sl": "J",
       "ru": "Й",
       "label": "J = Й",
-      "group": "g2"
+      "group": "g2",
+      "soundRu": "audio/letters/ru/J.mp3",
+      "soundSl": "audio/letters/sl/J.mp3"
     },
     {
       "id": "letter_Č",
@@ -207,7 +243,9 @@
       "sl": "Č",
       "ru": "Ч",
       "label": "Č = Ч",
-      "group": "g3"
+      "group": "g3",
+      "soundRu": "audio/letters/ru/CH.mp3",
+      "soundSl": "audio/letters/sl/CH.mp3"
     },
     {
       "id": "letter_Š",
@@ -216,7 +254,9 @@
       "sl": "Š",
       "ru": "Ш",
       "label": "Š = Ш",
-      "group": "g3"
+      "group": "g3",
+      "soundRu": "audio/letters/ru/SH.mp3",
+      "soundSl": "audio/letters/sl/SH.mp3"
     },
     {
       "id": "letter_Ž",
@@ -225,7 +265,9 @@
       "sl": "Ž",
       "ru": "Ж",
       "label": "Ž = Ж",
-      "group": "g3"
+      "group": "g3",
+      "soundRu": "audio/letters/ru/ZH.mp3",
+      "soundSl": "audio/letters/sl/ZH.mp3"
     },
     {
       "id": "letter_B",
@@ -234,7 +276,9 @@
       "sl": "B",
       "ru": "Б",
       "label": "B = Б",
-      "group": "g4"
+      "group": "g4",
+      "soundRu": "audio/letters/ru/B.mp3",
+      "soundSl": "audio/letters/sl/B.mp3"
     },
     {
       "id": "letter_C",
@@ -243,7 +287,9 @@
       "sl": "C",
       "ru": "Ц",
       "label": "C = Ц",
-      "group": "g4"
+      "group": "g4",
+      "soundRu": "audio/letters/ru/C.mp3",
+      "soundSl": "audio/letters/sl/C.mp3"
     },
     {
       "id": "letter_H",
@@ -252,7 +298,9 @@
       "sl": "H",
       "ru": "Х",
       "label": "H = Х",
-      "group": "g4"
+      "group": "g4",
+      "soundRu": "audio/letters/ru/H.mp3",
+      "soundSl": "audio/letters/sl/H.mp3"
     },
     {
       "id": "letter_P",
@@ -261,7 +309,9 @@
       "sl": "P",
       "ru": "П",
       "label": "P = П",
-      "group": "g4"
+      "group": "g4",
+      "soundRu": "audio/letters/ru/P.mp3",
+      "soundSl": "audio/letters/sl/P.mp3"
     }
   ],
   "modes": [
@@ -280,7 +330,7 @@
       },
       "methodology": {
         "summary": "Русская буква и рядом словенская с тем же звуком.",
-        "text": "Слева «Дома — по-русски»: русская буква, её ребёнок читает сам. Справа «В школе — по-словенски»: словенская буква с тем же звуком. Ребёнок касается словенской буквы — следующая пара. Пары каждый раз в новом порядке. Ловушки обведены жёлтым пунктиром. Ошибиться нельзя. Маленькая «Дальше» внизу — для взрослого.",
+        "text": "Слева «Дома — по-русски»: русская буква, её ребёнок читает сам. Справа «В школе — по-словенски»: словенская буква с тем же звуком. Касание буквы — её звук: русская голосом папы, словенская школьным голосом. Касание словенской буквы — звук и следующая пара. Пары каждый раз в новом порядке. Ловушки обведены жёлтым пунктиром. Ошибиться нельзя. Маленькая «Дальше» внизу — для взрослого.",
         "goal": "Связать новую букву со знакомой русской.",
         "duration": "1–2 минуты",
         "tips": [
