@@ -1191,6 +1191,12 @@ function firstCurveD(d) {
   return toks[0] === "M" && toks[3] === "C" ? toks.slice(0, 10).join(" ") : d;
 }
 
+// The first line of the grid to the right of the line `x` stands on (probing with growing steps: the grid's step is not known here)
+function nextLineRight(snapX, rowIndex, x, y) {
+  for (let d = 1; d <= 128; d *= 2) { const b = snapX(rowIndex, x + d, y); if (b > x + 1e-6) return b; }
+  return x;
+}
+
 function pathXsAtY(d, y) {
   const pts = samplePath(d, 40);
   const xs = [];
@@ -1497,7 +1503,7 @@ function layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale,
     let row = rows.get(key);
     if (!row) {
       // the row alone, with the grid of ITS place on the page
-      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.letterScale ? { letterScale: snapX.letterScale } : {});
+      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.drawn ? { drawn: true } : {}, snapX.letterScale ? { letterScale: snapX.letterScale } : {});
       row = { ...layoutWideLinesIntoRowsNow([line], glyphsByLabel, own, multiply, scale, maxX).placed[0], rowIndex };
       rows.set(key, row);
     }
@@ -1513,7 +1519,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   if (cellGrid?.scale) scale = cellGrid.scale;
   else if (snapX.letterScale) scale = snapX.letterScale; // ruled paper: the letters smaller, no cells
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
-  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {});
+  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.drawn ? { drawn: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
   const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
@@ -1702,6 +1708,16 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        // `#v` on a DRAWN slant grid (`propis2`, the dense paper: snapX.drawn): the letter still stands a fixed gap after the ink before it, but
+        // on the nearest line — the stems of a letter lie on the lines (the capture was made on the grid), so a letter set between two lines
+        // by the gap alone has all its stems between them (owner, 2026-10-28: «к» and «у» of the pairs «К к» / «У у» off the grid, tetrad 10).
+        // On a hidden grid (the methodology paper) the even gap stays as it was. If the line is nearer than the half of the gap, the next one.
+        if (even && snapX.drawn && !exactJoin && !exactTouch) {
+          const lead = local.start[0] - local.minX;
+          let cand = snapX(rowIndex, startX, local.start[1]);
+          if (cand - lead < prevToken.inkMaxX + EVEN_GAP * scale * 0.6) cand = nextLineRight(snapX, rowIndex, cand, local.start[1]);
+          startX = cand;
+        }
         // meta.script.exactJoins (Boyan's Б В Г Д З Ъ О У Ф Ю): after a capital with no exit the next letter stands one steady gap
         // from its ink at the narrowest height, not from its box (и goes under Г's bar, Д's and Ъ's bellies no longer touch it)
         if (loose && afterNoExit && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && prevGlyphStrokes && !inCell) {

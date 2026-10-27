@@ -928,6 +928,7 @@ export function snapXFor(args) {
       const per = perPageOf(geomOf(args.format ?? "a5"), args.narrow17 ?? false, OWN_ROWS[args.simpleGrid] ? args.simpleGrid : null);
       fn = (rowIndex, x, y) => base(rowIndex + per, x, y);
       if (base.hidden) fn.hidden = true;
+      if (base.drawn) fn.drawn = true;
       if (base.letterScale) fn.letterScale = base.letterScale;
       if (base.cell) fn.cell = { ...base.cell, origin: (rowIndex) => base.cell.origin(rowIndex + per) };
     }
@@ -942,7 +943,11 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   if (simpleGrid === "ruled") return ruledSnapFor();
   if (simpleGrid === "bg") return ruledSnapFor(BG_LETTER_SCALE);
   const dense = simpleGrid === "dense";
-  if (dense) return narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
+  if (dense) {
+    const drawn = narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
+    drawn.drawn = true; // its lines are drawn on the page: the layout may put a letter on one even where it keeps a gap (wordEngine `#v`)
+    return drawn;
+  }
   // the methodology grid the letters snap to is NOT drawn on these pages (only the 20 mm slants): `hidden` tells the layout so
   // (a digit inside a number then keeps a steady gap to the one before instead of jumping to the next invisible line)
   const fn = narrowRows ? (simpleGrid ? narrowRowSnapFor : narrowSnapFor)(margin, geom, narrow17) : wideSnapFor(margin, geom);
