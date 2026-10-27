@@ -23,15 +23,18 @@ export const P2_GLYPH_OVERRIDES = {
   // е: the curl at the bottom opened a little, still down to the baseline; the exit and the end point stay (a sharp corner / a rise from the lowest
   // point were tried and refused, 2026-10-27)
   "е": { softHook: 0.35 },
-  // т: the connector of the letter before ends ON its first slanted stem, so the pen goes from there straight up the stem (2026-10-27)
+  // т п р к: the connector of the letter before ends ON the glyph's first slanted stem, so the pen goes from there straight up the stem (2026-10-27;
+  // measured on the real grid: the arch rise of п р ran 1.1 right of the stem, т 1.6, к 0.5, н ш щ й ю were already on it)
   "т": { touchFirstLine: true },
+  "п": { touchFirstLine: true },
+  "к": { touchFirstLine: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
-  "р": { repeatCells: 4 },
+  "р": { repeatCells: 4, touchFirstLine: true },
   "у": { straightTail: 32 },
   "д": { straightTail: 31 },
   "з": { straightTail: 57 },
