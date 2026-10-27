@@ -23,6 +23,8 @@ export const P2_GLYPH_OVERRIDES = {
   // е: the curl at the bottom opened a little, still down to the baseline; the exit and the end point stay (a sharp corner / a rise from the lowest
   // point were tried and refused, 2026-10-27)
   "е": { softHook: 0.35 },
+  // т: the connector of the letter before ends ON its first slanted stem, so the pen goes from there straight up the stem (2026-10-27)
+  "т": { touchFirstLine: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },

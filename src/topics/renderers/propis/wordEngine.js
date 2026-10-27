@@ -1183,6 +1183,14 @@ function moveTailEndD(d, target) {
   return out.join(" ");
 }
 
+// the first curve of a path alone ("M x y C ..."): a `touchFirstLine` glyph (propis2 т) is met by the connector of the letter before on its first
+// stem only. The arch rise of т leaves that stem at the bottom and runs ~1.5 units to the right of it at the height where a connector arrives,
+// the connector then ended ON THE RISE, past the stem, and the pen went from there to the top of the stem at a different angle.
+function firstCurveD(d) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  return toks[0] === "M" && toks[3] === "C" ? toks.slice(0, 10).join(" ") : d;
+}
+
 function pathXsAtY(d, y) {
   const pts = samplePath(d, 40);
   const xs = [];
@@ -1762,7 +1770,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
           const st0h = getPathEndpoints(moved[0].d).start;
           const riseToStart = prevExit[1] - st0h[1];
-          if (!glyph.joinLeft && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
+          if (!glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
@@ -1773,7 +1781,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
-          const candidates = highJoined ? [] : pathXsAtY(moved[0].d, prevExit[1]);
+          const candidates = highJoined ? [] : pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
           const st0 = getPathEndpoints(moved[0].d).start;
           if (!highJoined && st0[1] > prevExit[1]) candidates.push(st0[0] + (st0[1] - prevExit[1]) * WIDE_JOIN_TAN);
           const contactX = candidates.length ? candidates.reduce((b, c) => (Math.abs(c - prevExit[0]) < Math.abs(b - prevExit[0]) ? c : b)) : null;
