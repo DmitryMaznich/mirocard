@@ -20,9 +20,9 @@ export const P2_GLYPH_OVERRIDES = {
   "ю": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "ф": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "в": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
-  // е: the hook at the bottom is unbent — the connector leaves the lowest point and rises straight (as о в ф); without it the next letter's
-  // first stroke ran beside the tail and the tail "went into" т р п and came back (2026-10-27). tailAlways: written last, е keeps its tail.
-  "е": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true, tailAlways: true },
+  // е: the curl at the bottom opened a little, still down to the baseline; the exit and the end point stay (a sharp corner / a rise from the lowest
+  // point were tried and refused, 2026-10-27)
+  "е": { softHook: 0.35 },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
@@ -168,8 +168,36 @@ export function straightenTail(glyph, from) {
   const tail = `C ${f(x0 + ((x0 - px) / il) * k)} ${f(y0 + ((y0 - py) / il) * k)} ${f(ex - (EXIT_RUN / len) * k)} ${f(ey + (EXIT_RISE / len) * k)} ${f(ex)} ${f(ey)}`;
   return { ...glyph, strokes: glyph.strokes.map((st, i) => (i === si ? { ...st, d: `${head} ${tail}` } : st)) };
 }
-const applyOverride = (g, { startLift, steepExit, straightTail, ...rest }) => {
+// `softHook` k (0..1): the small curl at the bottom of е (the last cubic of the stroke, from the foot of the left stem round the lowest point
+// into the straight exit) is opened a little: its control points move k of the way toward the chord, then are pushed down again until the
+// curl reaches the same depth (the baseline). The end point, the exit and the depth stay, the curl is only less crooked (2026-10-27).
+export function softenHook(glyph, k) {
+  const si = 0;
+  const d = String(glyph.strokes?.[si]?.d ?? "");
+  const at = d.lastIndexOf("C");
+  if (at < 0 || !(k > 0)) return glyph;
+  const num = (str) => (str.match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number);
+  const before = num(d.slice(0, at));
+  const cub = num(d.slice(at)).slice(0, 6);
+  if (before.length < 2 || cub.length < 6) return glyph;
+  const p0 = before.slice(-2), c1 = [cub[0], cub[1]], c2 = [cub[2], cub[3]], p3 = [cub[4], cub[5]];
+  const lowest = (a, b) => { let m = -Infinity; for (let i = 0; i <= 100; i += 1) { const t = i / 100, u = 1 - t; m = Math.max(m, u * u * u * p0[1] + 3 * u * u * t * a[1] + 3 * u * t * t * b[1] + t * t * t * p3[1]); } return m; };
+  const ch1 = [p0[0] + (p3[0] - p0[0]) / 3, p0[1] + (p3[1] - p0[1]) / 3], ch2 = [p0[0] + (2 * (p3[0] - p0[0])) / 3, p0[1] + (2 * (p3[1] - p0[1])) / 3];
+  let n1 = [c1[0] + (ch1[0] - c1[0]) * k, c1[1] + (ch1[1] - c1[1]) * k], n2 = [c2[0] + (ch2[0] - c2[0]) * k, c2[1] + (ch2[1] - c2[1]) * k];
+  const depth = lowest(c1, c2);
+  for (let i = 0; i < 200; i += 1) {
+    const diff = depth - lowest(n1, n2);
+    if (Math.abs(diff) < 0.05) break;
+    n1 = [n1[0], n1[1] + diff * 0.6]; n2 = [n2[0], n2[1] + diff * 0.6];
+  }
+  const f = (v) => v.toFixed(2);
+  const rest = d.slice(at).replace(/^C\s*(?:-?\d*\.?\d+(?:e-?\d+)?\s*){6}/i, "");
+  const nd = `${d.slice(0, at)}C ${f(n1[0])} ${f(n1[1])} ${f(n2[0])} ${f(n2[1])} ${f(p3[0])} ${f(p3[1])}${rest}`;
+  return { ...glyph, strokes: glyph.strokes.map((st, i) => (i === si ? { ...st, d: nd } : st)) };
+}
+const applyOverride = (g, { startLift, steepExit, straightTail, softHook, ...rest }) => {
   let out = liftStart({ ...g, ...rest }, startLift);
+  if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
   if (straightTail != null) out = straightenTail(out, straightTail);
   return out;
