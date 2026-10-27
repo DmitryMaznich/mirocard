@@ -20,6 +20,9 @@ export const P2_GLYPH_OVERRIDES = {
   "ю": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "ф": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "в": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  // е: the hook at the bottom is unbent — the connector leaves the lowest point and rises straight (as о в ф); without it the next letter's
+  // first stroke ran beside the tail and the tail "went into" т р п and came back (2026-10-27). tailAlways: written last, е keeps its tail.
+  "е": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true, tailAlways: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
