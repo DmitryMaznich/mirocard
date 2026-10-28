@@ -1806,7 +1806,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
           const st0h = getPathEndpoints(moved[0].d).start;
           const riseToStart = prevExit[1] - st0h[1];
-          if (!glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
+          if (!glyph.joinLeft && !glyph.touchFirstLine && !glyph.joinOnStem && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);

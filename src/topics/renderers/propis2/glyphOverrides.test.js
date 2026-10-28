@@ -144,8 +144,10 @@ describe("ь = ъ without the flag", () => {
     expect(layoutWideLinesIntoRows(["ь"], map, snap, false, 1).placed[0].segments[0].strokes.length).toBe(1);
     expect(layoutWideLinesIntoRows(["ьн"], map, snap, false, 1).placed[0].segments[0].strokes.length).toBeGreaterThanOrEqual(3);
   });
-  it("ы (ь + ы2) keeps composing from it", () => {
-    expect(map.get("ы").compose).toEqual(["ь", "ы2"]);
+  it("ы = ы1 + ы2 (the left part with the knot is its own glyph, ь in words is unchanged)", () => {
+    expect(map.get("ы").compose).toEqual(["ы1", "ы2"]);
+    expect(map.get("ы1")).toBeTruthy();
+    expect(map.get("ь").tailSplitCount).toBe(2);
   });
 });
 
@@ -165,5 +167,30 @@ describe("ы: the connector of ь enters the stem of ы2 along the stem (joinOnS
     // on the line of the stem of the stick (x + tan·y is the same as at its start, the top of the stem)
     expect(end[0] + tanS * end[1]).toBeCloseTo(stick[0] + tanS * stick[1], 0);
     expect(n).toBeGreaterThan(10);
+  });
+});
+
+describe("ы1: the knot at the top of the oval and the connector from it (the school copybook)", () => {
+  const map = buildGlyphMap({ wide });
+  const tanS = Math.tan((25 * Math.PI) / 180);
+  const left = map.get("ы1");
+  it("the oval comes back to the stem at the height of its top, a small knot, and the connector is the tail (the last cubic), leaving from the knot", () => {
+    const loc = wideGlyphLocal(left, 1);
+    expect(loc.tail).toBeTruthy();
+    const body = pts(loc.strokes[0].d), tail = pts(loc.tail.d);
+    expect(body.slice(-2)).toEqual(tail.slice(0, 2));
+    // the knot is on the level of the top of the oval (the middle line is at 40; the knot a little above), the connector rises to the right
+    expect(tail[1]).toBeLessThan(42);
+    expect(tail.slice(-2)[1]).toBeLessThan(tail[1]);
+    expect(tail.slice(-2)[0]).toBeGreaterThan(tail[0]);
+  });
+  it("the knot is not a corner: the heading at the end of the knot equals the heading at the start of the connector", () => {
+    const d = left.strokes[0].d;
+    const n = pts(d);
+    // the last two cubics: the knot [.. p3] and the connector [c1 ...]: the knot's last handle and the connector's first handle are on one line
+    const k = n.slice(-12, -6), c = n.slice(-6);
+    const a1 = Math.atan2(k[5] - k[3], k[4] - k[2]), a2 = Math.atan2(c[1] - k[5], c[0] - k[4]);
+    expect(Math.abs(a1 - a2)).toBeLessThan(0.02);
+    expect(tanS).toBeGreaterThan(0);
   });
 });
