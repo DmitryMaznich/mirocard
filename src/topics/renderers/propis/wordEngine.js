@@ -1131,7 +1131,7 @@ function alignLastPieceD(d, lineX, maxShift) {
 // over the dashed middle) is reached by bending the tail itself: its last cubic keeps its own launch, but now ends AT the
 // next letter's start, arriving along that letter's opening direction -- one line of changing angle, no hop up.
 const FLAT_RUN = 0.14; // how far the connection first follows the letter's bottom (fraction of the chord)
-function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
+function retargetTailEndD(d, target, dirUnit, arrive = 0.5) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
   for (let i = 0; i < toks.length;) {
@@ -1163,7 +1163,9 @@ function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   const k = run * 0.35;
   last.v = [p0[0] + uL[0] * k, p0[1] + uL[1] * k, D[0] - (um[0] / uml) * k, D[1] - (um[1] / uml) * k, D[0], D[1]];
   // a gentle final bend: the last third eases into the opening direction of the next letter instead of arriving dead straight
-  const ua = dirUnit ? [uT[0] * 0.5 + dirUnit[0] * 0.5, uT[1] * 0.5 + dirUnit[1] * 0.5] : uT; // no dirUnit: arrive dead straight
+  // `arrive` (glyph.joinArrive, default 0.5): how much of that bend follows the letter's opening direction rather than the chord; 1 = the
+  // connector enters along the opening direction, with its whole curve (ъ: no bend where it meets the flag)
+  const ua = dirUnit ? [uT[0] * (1 - arrive) + dirUnit[0] * arrive, uT[1] * (1 - arrive) + dirUnit[1] * arrive] : uT; // no dirUnit: arrive dead straight
   const ual = Math.hypot(ua[0], ua[1]) || 1;
   segs.push({ c: "C", v: [D[0] + (um[0] / uml) * tl * 0.15, D[1] + (um[1] / uml) * tl * 0.15, target[0] - (ua[0] / ual) * tl * 0.4, target[1] - (ua[1] / ual) * tl * 0.4, target[0], target[1]] });
   const f = (x) => Number(x.toFixed(3));
@@ -1808,7 +1810,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // the tail already ends (almost) at that start (`propis2` г starts where exits end): keep the tail's own shape, only
               // move its end there; reshaping it from its launch flattened о's connector into a long low line
               const near = Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale;
-              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
+              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl], glyph.joinArrive);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
