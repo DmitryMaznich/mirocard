@@ -14,7 +14,7 @@ const SPACE_UNITS = 14; // the caret after a typed space stands this far (× the
 
 // The page's snapping function, but for one sheet row: the engine lays a single line out as row 0, the page lays it out as row `row`.
 const snapAt = (snap, row) => (snap
-  ? Object.assign((_r, x, y) => snap(row, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(row) } } : {}, snap.hidden ? { hidden: true } : {}, snap.letterScale ? { letterScale: snap.letterScale } : {})
+  ? Object.assign((_r, x, y) => snap(row, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(row) } } : {}, snap.hidden ? { hidden: true } : {}, snap.drawn ? { drawn: true } : {}, snap.letterScale ? { letterScale: snap.letterScale } : {})
   : undefined);
 
 const CACHE = new WeakMap(); // glyphMap -> Map(key -> { width, minX })

@@ -1649,6 +1649,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       const dashed = !once[rowIndex] && (tokenSeen.get(token) ?? 0) >= 1;
       tokenSeen.set(token, (tokenSeen.get(token) ?? 0) + 1);
       const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
+      const isLetters = labels.length > 0 && /^[\u0400-\u04FF]/.test(token); // a letter or a word, by the text typed (in the bank «р» «л» «м» are marked as elements and «ш» is built of parts named «6»; the sticks and hooks are not letters)
       const isWordToken = !glyphsByLabel.has(token) && labels.length > 1; // a spelled-out word, not a letter/element (ш, ии are glyphs)
       // how far the NEXT token starts from this one's start, in sheet cells (wide.json `repeatCells`, measured
       // off the workbook photos); a token without one takes the next whole cell past its ink + ~0.4 cell
@@ -1657,6 +1658,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let tokenStartX = null;
       let tokenMinX = Infinity;
       let tokenMaxX = -Infinity;
+      let tokenStrokeFrom = -1; // index of the token's first stroke in `strokes` (the right edge of the token in the narrow row is taken from its strokes)
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingNoAlign = false; // glyph.tailNoAlign: the pending connector is not straightened onto the next letter's rise (see alignLastPieceD)
@@ -1793,6 +1795,25 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             startX = back;
           }
         }
+        // THE WORD SPACE (owner, 2026-10-29): between two tokens (letters, words, a pair «Р р») the LEFT EDGE of the next one (its ink in the narrow row) stands TWO CELLS (2 x 5 mm = 10 mm on any
+        // paper) after the right edge of the one before, taken in the narrow row; the start of the letter keeps its place on its slanted line relative to that edge (`lead`). On the drawn slant grid (dense paper) the edge is counted from the slanted line it lies on
+        // (the nearest line within `tol`: the drawings end a little off their line), else from the next line to the right of it, so the next start is on a line again; on
+        // any other paper there is no line to keep to: the start is exactly 2 cells after the edge. The same everywhere: between letters, between words, in the pairs of the
+        // alphabet rows (`#v`). Not for: samples of one sign repeated across a row (they keep their own step), the elements (sticks, hooks), digits, punctuation, the Bulgarian variant (exactJoins).
+        if (!inCell && !loose && !prevExit && !exactJoin && !exactTouch && prevToken && tokenStartX === null && isLetters && prevToken.isLetters && (prevToken.token !== token || once[rowIndex]) && !glyph.noJoin && glyph.kind !== "digit" && !glyphsByLabel?.script?.exactJoins && Number.isFinite(prevToken.bandX)) {
+          let edgeX = prevToken.bandX;
+          if (snapX.drawn) {
+            const near = snapX(rowIndex, prevToken.bandX, prevToken.bandY);
+            edgeX = near >= prevToken.bandX - 3 * scale ? near : nextLineRight(snapX, rowIndex, near, prevToken.bandY);
+          }
+          // how far the start of the letter is right of its own left edge in the narrow row (the left tangent of its ink: a round letter, «а» «о» «с», begins on its right side)
+          let leftU = Infinity;
+          const bTop = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
+          for (const st of local.strokes) for (const q of samplePath(st.d, 60)) if (q[1] >= bTop - 1e-6 && q[1] <= WIDE_BASELINE_Y + 1e-6) leftU = Math.min(leftU, q[0] + q[1] * WIDE_JOIN_TAN);
+          const lead = Number.isFinite(leftU) ? local.start[0] + local.start[1] * WIDE_JOIN_TAN - leftU : 0; // negative when the ink in the row begins right of the start (г, ч)
+          startX = edgeX + (prevToken.bandY - local.start[1]) * WIDE_JOIN_TAN + (2 + pendingGap) * CELL + lead; // every extra space typed (`_N`, the gap of the units of a multiplied row) adds a cell
+          if (snapX.drawn) startX = snapStart(startX);
+        }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
@@ -1878,7 +1899,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         cursorX = local.maxX + dx;
         if (!inCell) cellNext = null;
-        if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; }
+        if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; tokenStrokeFrom = firstMovedIndex; }
         tokenMinX = Math.min(tokenMinX, local.minX + dx);
         tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
       }
@@ -1895,7 +1916,16 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
       pendingGap = 0;
-      if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token, cellNext };
+      if (tokenStartX !== null) {
+        // the rightmost point of the token's ink IN THE NARROW ROW (between the middle dashed line and the baseline): the gap to the next token is counted from it
+        // (the capitals' upper parts, the tails and hooks above and below the row do not push the next token away)
+        const bandBottom = WIDE_BASELINE_Y, bandTop = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
+        let bandX = -Infinity, bandY = bandBottom;
+        for (let si = tokenStrokeFrom; si >= 0 && si < strokes.length; si += 1) {
+          for (const q of samplePath(strokes[si].d, 60)) if (q[1] >= bandTop - 1e-6 && q[1] <= bandBottom + 1e-6 && q[0] > bandX) { bandX = q[0]; bandY = q[1]; }
+        }
+        prevToken = { isElement, isLetters, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token, cellNext, bandX, bandY };
+      }
       cellNext = null;
     }
     // squared paper: a sign between two digits stands in the middle between their ink (the digits stand against the right side of their

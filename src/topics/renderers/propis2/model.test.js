@@ -352,7 +352,7 @@ describe("row options act on a single symbol and on mixed rows", () => {
   });
   it("a mixed sequence repeats as a whole", () => {
     const toks = layoutWideLinesIntoRows(["и м#r"], map, undefined, true, 1).placed[0];
-    expect(toks.segments[0].strokes.length).toBeGreaterThan(6);
+    expect(toks.segments[0].strokes.length).toBeGreaterThanOrEqual(6); // the word space is 2 cells (2026-10-29): fewer units fit the row than with the old step
   });
   it("dots «all» with a single sample: no copies drawn, a dot at every place across the row", () => {
     const s = seg("и#r#x");
@@ -572,14 +572,14 @@ describe("pairs «Аа»: capital first, a gap inside the pair, a bigger one bet
     expect(apart[1] - apart[0]).toBeCloseTo(plain[1] - plain[0], 0);
     expect(apart[2] - apart[1]).toBeGreaterThan(plain[2] - plain[1] + 20);
   });
-  it("kit pairs are evenly spaced (`even` -> #v): the lowercase stands as far from a wide capital as from a narrow one", () => {
+  it("kit pairs: the lowercase stands as far from a wide capital as from a narrow one (the same two cells in the narrow row, `even` -> #v)", () => {
     expect(rowToLine(newRow({ text: "Г г", repeat: "fade", gap: 2, even: true }))).toBe("Г г#f#g2#v");
-    const w = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 0.5).placed[0].segments[0].width;
-    // ink gap inside the pair, up to a constant (the left pad): pair width − capital width − lowercase width
-    const gap = (U, l, flags) => w(`${U} ${l}${flags}`) - w(`${U}${flags}`) - w(`${l}${flags}`);
-    const spread = (flags) => { const g = ["Ии", "Гг", "Бб", "Дд", "Жж", "Фф", "Яя"].map(([U, l]) => gap(U, l, flags)); return Math.max(...g) - Math.min(...g); };
-    expect(spread("#1#c")).toBeGreaterThan(8); // counted in slant cells: Г г a whole cell wider than И и (the bug)
-    expect(spread("#1#c#v")).toBeLessThan(0.5);
+    const gaps = ["Ии", "Гг", "Бб", "Дд", "Жж", "Фф", "Яя", "Рр"].map(([U, l]) => {
+      const st = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 0.5).placed[0].segments[0].strokes;
+      const nU = st(`${U}#1#c#v`).length, all = st(`${U} ${l}#1#c#v`);
+      return (bandU(all.slice(all.length - st(`${l}#1#c#v`).length), 0.5)[0] - bandU(all.slice(0, nU), 0.5)[1]) / 15;
+    });
+    gaps.forEach((g) => expect(g).toBeCloseTo(2, 1));
     // a pair row of a kit keeps the same gap in every copy across the row
     const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
     const pairs = kits.flatMap((k) => k.pages.flatMap((pg) => pg.rows)).filter((r) => /^\p{Lu} \p{Ll}$/u.test(r.text));
@@ -693,7 +693,7 @@ describe("layout cache (typing in one row lays out only that row)", () => {
       const snap = snapXFor(args);
       expect(snapXFor({ ...args })).toBe(snap);
       const scale = args.narrowRows ? 0.5 : 1;
-      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}, snap.hidden ? { hidden: true } : {}), true, scale);
+      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}, snap.hidden ? { hidden: true } : {}, snap.drawn ? { drawn: true } : {}), true, scale);
       const cached = layoutWideLinesIntoRows(lines, map, snap, true, scale);
       const again = layoutWideLinesIntoRows(lines, map, snap, true, scale);
       expect(JSON.parse(JSON.stringify(cached))).toEqual(JSON.parse(JSON.stringify(fresh)));
@@ -702,17 +702,30 @@ describe("layout cache (typing in one row lays out only that row)", () => {
   });
 });
 
+// the narrow row (between the middle dashed line and the baseline) of a laid-out row: the rightmost / leftmost reach of its ink along the slant, in units of `x + tan25°·y`
+const TAN25 = Math.tan((25 * Math.PI) / 180);
+const samplePts = (d) => {
+  const t = String(d).match(/[MCL]|-?\d*\.?\d+/g) ?? []; const out = []; let i = 0, p = null;
+  while (i < t.length) {
+    const c = t[i++];
+    if (c === "M" || c === "L") { p = [Number(t[i++]), Number(t[i++])]; out.push(p); }
+    else if (c === "C") { const a = [Number(t[i++]), Number(t[i++])], b = [Number(t[i++]), Number(t[i++])], e = [Number(t[i++]), Number(t[i++])]; for (let k = 1; k <= 30; k += 1) { const u = k / 30, m = 1 - u; out.push([m * m * m * p[0] + 3 * m * m * u * a[0] + 3 * m * u * u * b[0] + u * u * u * e[0], m * m * m * p[1] + 3 * m * m * u * a[1] + 3 * m * u * u * b[1] + u * u * u * e[1]]); } p = e; }
+  }
+  return out;
+};
+const bandU = (strokes, scale) => { const u = strokes.flatMap((st) => samplePts(st.d)).filter((q) => q[1] >= 64 - 24 * scale - 1e-6 && q[1] <= 64 + 1e-6).map((q) => q[0] + q[1] * TAN25); return [Math.min(...u), Math.max(...u)]; };
+
 describe("a sample multiplied across the row", () => {
-  it("never runs into its next copy: every letter keeps a gap to its copy (б р х ж had a step smaller than the letter)", () => {
-    const box = (sts) => { const xs = sts.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0)); return [Math.min(...xs), Math.max(...xs)]; };
-    const tooClose = [];
+  it("two letters typed with a space stand TWO CELLS apart in the narrow row (the word space, 2026-10-29): the same for every letter, never a step smaller than the letter", () => {
+    const off = [];
     for (const l of "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ") {
       if (!map.has(l)) continue;
       const n = layoutWideLinesIntoRows([`${l}#1`], map, undefined, false, 0.5).placed[0].segments[0].strokes.length;
       const two = layoutWideLinesIntoRows([`${l} ${l}#1`], map, undefined, false, 0.5).placed[0].segments[0].strokes;
-      if (box(two.slice(n))[0] - box(two.slice(0, n))[1] < 0.3 * 15) tooClose.push(l);
+      const gap = (bandU(two.slice(n), 0.5)[0] - bandU(two.slice(0, n), 0.5)[1]) / 15;
+      if (Math.abs(gap - 2) > 0.06) off.push(`${l} ${gap.toFixed(2)}`);
     }
-    expect(tooClose).toEqual([]);
+    expect(off).toEqual([]);
   });
 });
 
