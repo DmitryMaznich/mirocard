@@ -1799,8 +1799,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // paper) after the rightmost point of the ink of the one before (all of it, bars and tails too); the start of the letter keeps its place on its slanted line relative to that edge (`lead`). On the drawn slant grid (dense paper) the edge is counted from the slanted line it lies on
         // (the nearest line within `tol`: the drawings end a little off their line), else from the next line to the right of it, so the next start is on a line again; on
         // any other paper there is no line to keep to: the start is exactly 2 cells after the edge. The same everywhere: between letters, between words, in the pairs of the
-        // alphabet rows (`#v`). Not for: samples of one sign repeated across a row (they keep their own step), the elements (sticks, hooks), digits, punctuation, the Bulgarian variant (exactJoins).
-        if (!inCell && !loose && !prevExit && !exactJoin && !exactTouch && prevToken && tokenStartX === null && isLetters && prevToken.isLetters && (prevToken.token !== token || once[rowIndex]) && !glyph.noJoin && glyph.kind !== "digit" && !glyphsByLabel?.script?.exactJoins && Number.isFinite(prevToken.bandX)) {
+        // alphabet rows (`#v`). Not for: samples of one sign repeated across a row (they keep their own step), the elements (sticks, hooks), digits, punctuation. The Bulgarian deck (`meta.script`) is laid out in the same frame as the Russian one and its ink leaned afterwards as one piece (scriptGeometry.js), so
+        // the gap stays two cells along ITS slanted lines too.
+        if (!inCell && !loose && !prevExit && !exactJoin && !exactTouch && prevToken && tokenStartX === null && isLetters && prevToken.isLetters && (prevToken.token !== token || once[rowIndex]) && !glyph.noJoin && glyph.kind !== "digit" && Number.isFinite(prevToken.bandX)) {
           let edgeX = prevToken.bandX;
           if (snapX.drawn) {
             const near = snapX(rowIndex, prevToken.bandX, prevToken.bandY);

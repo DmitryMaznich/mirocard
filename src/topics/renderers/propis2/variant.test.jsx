@@ -154,4 +154,32 @@ describe("Bulgarian joins (meta.script.exactJoins)", () => {
     for (const p of pages) expect([p.title, analyzePage(p, glyphMap).problems]).toEqual([p.title, 0]); // every symbol drawn, every row fits
     expect(set.pageIds).toHaveLength(24);
   });
+
+  it("the word space is two cells in the Bulgarian deck too: from the rightmost point of the first letter to the left edge of the second, along ITS slanted lines (2026-10-29)", async () => {
+    const rec = await installed();
+    const map = buildGlyphMap(rec);
+    expect(map.script?.exactJoins).toBe(true);
+    const T0 = Math.tan((25 * Math.PI) / 180), T1 = Math.tan((14 * Math.PI) / 180); // the layout frame (65deg) and the Bulgarian lines (76deg)
+    const pts = (d) => {
+      const t = String(d).match(/[MCL]|-?\d*\.?\d+/g) ?? []; const out = []; let i = 0, p = null;
+      while (i < t.length) {
+        const c = t[i++];
+        if (c === "M" || c === "L") { p = [Number(t[i++]), Number(t[i++])]; out.push(p); }
+        else if (c === "C") { const a = [Number(t[i++]), Number(t[i++])], b = [Number(t[i++]), Number(t[i++])], e = [Number(t[i++]), Number(t[i++])]; for (let k = 1; k <= 30; k += 1) { const u = k / 30, m = 1 - u; out.push([m * m * m * p[0] + 3 * m * m * u * a[0] + 3 * m * u * u * b[0] + u * u * u * e[0], m * m * m * p[1] + 3 * m * m * u * a[1] + 3 * m * u * u * b[1] + u * u * u * e[1]]); } p = e; }
+      }
+      return out;
+    };
+    const snap = Object.assign((_r, x, y) => Math.round((x + y * T0) / 30) * 30 - y * T0, { drawn: true });
+    const st = (line) => layoutWideLinesIntoRows([line], map, snap, false, 1).placed[0].segments[0].strokes.map((s) => s.d);
+    const gaps = [];
+    for (const [a, b] of [["а", "н"], ["н", "о"], ["т", "г"], ["р", "а"], ["м", "ъ"], ["Г", "г"], ["К", "к"]]) {
+      const sa = st(a), sb = st(b), sab = st(`${a} ${b}`);
+      const bp = sab.slice(sab.length - sb.length);
+      const R = Math.max(...sa.flatMap(pts).map((q) => q[0] + q[1] * T1));
+      const f = pts(bp[0])[0];
+      const L = Math.min(...bp.flatMap(pts).filter((q) => q[1] >= 40 && q[1] <= 64).map((q) => q[0] + q[1] * T1), f[0] + f[1] * T1);
+      gaps.push((L - R) / 30);
+    }
+    gaps.forEach((g) => { expect(g).toBeGreaterThan(1.9); expect(g).toBeLessThan(3.2); });
+  });
 });
