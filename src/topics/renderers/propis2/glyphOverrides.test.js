@@ -10,7 +10,7 @@ const pts = (d) => (String(d).match(/-?\d*\.?\d+/g) ?? []).map(Number);
 describe("ъ stands by its stem (stemOnLine)", () => {
   const map = buildGlyphMap({ wide });
   const yer = map.get("ъ");
-  it("the shape and the size of the letter are the captured ones, only its start is lower on the same opening line (a quarter of the row below the top)", () => {
+  it("the shape and the size of the letter are the captured ones, only its start is lower (a quarter of the row below the top) and its opening line turned to the angle of the connector", () => {
     const raw = wide.find((g) => g.label === "ъ");
     const [rx, ry] = pts(raw.strokes[0].d), [nx, ny] = pts(yer.strokes[0].d);
     expect(ny - ry).toBeCloseTo(7, 1);
@@ -18,9 +18,12 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     expect(nx).toBeLessThan(rx);
     // everything after the opening line is the captured path
     expect(yer.strokes[0].d.slice(yer.strokes[0].d.indexOf("L"))).toBe(raw.strokes[0].d.slice(raw.strokes[0].d.indexOf("L")));
-    // and the opening line keeps its direction
+    // the opening line is turned about its far end to the angle of the connector before it (52.9° in the layout, slope 0.626 in glyph units):
+    // the connector of с / о arrives at the flag without a kink
     const [x1, y1] = pts(raw.strokes[0].d).slice(2, 4);
-    expect((x1 - nx) / (ny - y1)).toBeCloseTo((x1 - rx) / (ry - y1), 2);
+    expect((x1 - nx) / (ny - y1)).toBeCloseTo(0.626, 2);
+    const k = 1.806, t = Math.tan((25 * Math.PI) / 180);
+    expect((180 / Math.PI) * Math.atan(1 / (k * 0.626 - (k - 1) * t))).toBeCloseTo(52.9, 0);
   });
   it("the anchor is the top of the stem (the start of its first long straight segment)", () => {
     expect(yer.stemAnchor[0]).toBeCloseTo(164.35, 1);

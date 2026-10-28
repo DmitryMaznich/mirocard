@@ -30,7 +30,7 @@ export const P2_GLYPH_OVERRIDES = {
   "к": { touchFirstLine: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
-  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2 },
+  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, startSlope: 0.626, snapNotRight: 0.2 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
@@ -127,14 +127,19 @@ export function liftStart(glyph, lift) {
   return { ...glyph, anchorY: y0, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
 // `startDrop`: the opposite of `startLift`: the opening straight line (M x y L ...) is continued BACKWARDS, so the letter starts `drop` units of
-// height lower, on the same line (ъ: its flag starts a quarter of the row below the top line, not right under it)
-export function dropStart(glyph, drop) {
+// height lower (ъ: its flag starts a quarter of the row below the top line, not right under it). `slope` (dx per unit of rise, glyph units; default:
+// the line's own) turns the opening line about its far end, so that it can arrive at the angle of the connector before it: the connector of
+// с о (the exit of а) arrives at 52.9° to the line of writing in the layout (measured on «съ», «оъ»), the captured opening line rises at 62.5°
+// — a kink at the start of the flag (owner, 2026-10-28). The glyph is stretched across the slant (x1.806, slant kept), so a line of `slope`
+// rises at atan(1 / (1.806 * slope - 0.806 * tan 25°)) in the layout: slope 0.626 is 52.9°.
+export function dropStart(glyph, drop, slope) {
   const m = String(glyph.strokes?.[0]?.d ?? "").match(/^M\s*(-?[\d.]+)\s+(-?[\d.]+)\s*L\s*(-?[\d.]+)\s+(-?[\d.]+)/);
   if (!m || !(drop > 0)) return glyph;
   const [x0, y0, x1, y1] = m.slice(1).map(Number);
   if (!(y0 - y1 > 0.5)) return glyph;
-  const t = drop / (y0 - y1);
-  const d = `M ${(x0 - (x1 - x0) * t).toFixed(2)} ${(y0 + drop).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
+  const rise = y0 + drop - y1;
+  const nx = Number.isFinite(slope) ? x1 - slope * rise : x0 - ((x1 - x0) * drop) / (y0 - y1);
+  const d = `M ${nx.toFixed(2)} ${(y0 + drop).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
   return { ...glyph, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
 // The exit of а in the capture: its last straight piece, (135.46, 56.28) -> (153.61, 36) — the angle every connector should rise at.
@@ -229,9 +234,9 @@ export function markStem(glyph) {
   }
   return glyph;
 }
-const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, ...rest }) => {
+const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, startSlope, ...rest }) => {
   let out = liftStart({ ...g, ...rest }, startLift);
-  if (startDrop) out = dropStart(out, startDrop);
+  if (startDrop) out = dropStart(out, startDrop, startSlope);
   if (stemOnLine) out = markStem(out);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
