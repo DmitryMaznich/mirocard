@@ -306,8 +306,8 @@ const withOverride = (g) => {
 // is drawn because ы2 always follows; the layout redraws it to end at the start of ы2: `joinAtStart` + `joinReverse` there). ь itself in words is unchanged.
 // Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit); only the first three are kept.
 const Y_LOOP_POINTS = [
-  [147.65, 60.3], [149.6, 58.3], [151.76, 55.5], [154.33, 51.0], [155.75, 48.15], [157.04, 44.2], [158.24, 40.6], [158.88, 37.0], // the right side of the oval, almost straight along the slant
-  [158.35, 34.7], [157.0, 32.3], [155.7, 31.5], [154.4, 32.2], [153.74, 34.15], [154.2, 36.0], [155.4, 35.75], [156.82, 35.13], // its top, the loop against the stem
+  [147.65, 60.3], [149.6, 58.3], [151.76, 55.5], [154.44, 50.27], [156.16, 46.63], [157.47, 43.0], [158.4, 39.8], [158.78, 37.6], // the right side of the oval, almost straight along the slant
+  [158.76, 36.3], [158.25, 35.0], [157.15, 34.15], [155.8, 33.8], [154.6, 34.0], [153.85, 34.55], [154.45, 35.15], [155.62, 35.66], [156.82, 35.13], // its top, the loop against the stem (flattened: its upper and lower lines run almost along each other, no hole)
 ];
 const Y_LINK = [[168.3, 30.0], [175.95, 21.5], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
 export function yerLoop(soft) {
