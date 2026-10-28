@@ -109,3 +109,14 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     expect(pts(g.strokes[0].d).length).toBeGreaterThan(0);
   });
 });
+
+describe("е: the exit arrives on the middle line exactly (noLiftExit)", () => {
+  const map = buildGlyphMap({ wide });
+  it("the exit of е ends 2.2 units lower than the exits of the other letters (which end above the middle line); ё as е", () => {
+    const end = (lab) => wideGlyphLocal(map.get(lab), 1).end[1];
+    expect(end("н")).toBeCloseTo(37.8, 1);
+    expect(end("е") - end("н")).toBeGreaterThan(1.8);
+    expect(end("е") - end("н")).toBeLessThan(2.7);
+    expect(end("ё")).toBeCloseTo(end("е"), 1);
+  });
+});

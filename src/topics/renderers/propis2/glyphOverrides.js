@@ -21,8 +21,11 @@ export const P2_GLYPH_OVERRIDES = {
   "ф": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "в": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   // е: the curl at the bottom opened a little, still down to the baseline; the exit and the end point stay (a sharp corner / a rise from the lowest
-  // point were tried and refused, 2026-10-27)
-  "е": { softHook: 0.35 },
+  // point were tried and refused, 2026-10-27). `noLiftExit` (2026-10-28, owner): the exit arrives on the middle dashed line EXACTLY, not 2.2 units above it
+  // as the exits of the other letters do (wordEngine.js lifts every exit above the line, as in the workbook; the captured exit of е ends on the line)
+  "е": { softHook: 0.35, noLiftExit: true },
+  // the same for ё (its path is е1 + two dots): its exit ends on the middle line too
+  "ё": { noLiftExit: true },
   // т п р к: the connector of the letter before ends ON the glyph's first slanted stem, so the pen goes from there straight up the stem (2026-10-27;
   // measured on the real grid: the arch rise of п р ran 1.1 right of the stem, т 1.6, к 0.5, н ш щ й ю were already on it)
   "т": { touchFirstLine: true },
