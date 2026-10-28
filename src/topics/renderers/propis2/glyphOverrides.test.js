@@ -148,3 +148,22 @@ describe("ь = ъ without the flag", () => {
     expect(map.get("ы").compose).toEqual(["ь", "ы2"]);
   });
 });
+
+describe("ы: the connector of ь enters the stem of ы2 along the stem (joinOnStem)", () => {
+  const map = buildGlyphMap({ wide });
+  const tanS = Math.tan((25 * Math.PI) / 180);
+  const snap = (_r, x, y) => Math.round((x + y * tanS) / 30) * 30 - y * tanS;
+  it("the connector ends ON the stem line of the stick at the height of the exit, with the direction of the stem (65° to the line of writing)", () => {
+    const ds = layoutWideLinesIntoRows(["ы"], map, snap, false, 1).placed[0].segments[0].strokes.map((st) => st.d ?? st);
+    expect(ds.length).toBeGreaterThanOrEqual(3);
+    const tail = pts(ds[ds.length - 2]), stick = pts(ds[ds.length - 1]);
+    const n = tail.length;
+    const end = tail.slice(-2), c2 = tail.slice(-4, -2);
+    const ang = (Math.atan2(-(end[1] - c2[1]), end[0] - c2[0]) * 180) / Math.PI;
+    expect(ang).toBeGreaterThan(63.5);
+    expect(ang).toBeLessThan(66.5);
+    // on the line of the stem of the stick (x + tan·y is the same as at its start, the top of the stem)
+    expect(end[0] + tanS * end[1]).toBeCloseTo(stick[0] + tanS * stick[1], 0);
+    expect(n).toBeGreaterThan(10);
+  });
+});

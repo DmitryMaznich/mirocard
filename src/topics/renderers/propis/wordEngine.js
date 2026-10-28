@@ -1817,6 +1817,18 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
+          // `joinOnStem` (propis2 ы2, the stick that follows ь): the connector arrives ON the glyph's first stem, at the height where the connector ends, along the
+          // direction of that stem (the slant), so the pen goes on up the stem without a bend; the letter's own stroke, which starts at the top of the stem, then
+          // runs down over it (the stem above the contact is retraced, as for `touchFirstLine`)
+          if (!highJoined && glyph.joinOnStem) {
+            const xs = pathXsAtY(moved[0].d, prevExit[1]);
+            if (xs.length) {
+              const cx = xs.reduce((b, c) => (Math.abs(c - prevExit[0]) < Math.abs(b - prevExit[0]) ? c : b));
+              const dl = Math.hypot(WIDE_JOIN_TAN, 1);
+              const d3 = retargetTailEndD(strokes[prevExitStroke].d, [cx, prevExit[1]], [WIDE_JOIN_TAN / dl, -1 / dl], 1);
+              if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
+            }
+          }
           const candidates = highJoined ? [] : pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
           const st0 = getPathEndpoints(moved[0].d).start;
           if (!highJoined && st0[1] > prevExit[1]) candidates.push(st0[0] + (st0[1] - prevExit[1]) * WIDE_JOIN_TAN);

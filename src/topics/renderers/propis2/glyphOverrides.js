@@ -32,6 +32,8 @@ export const P2_GLYPH_OVERRIDES = {
   "п": { touchFirstLine: true },
   "к": { touchFirstLine: true },
   // ь = ъ without the flag (2026-10-28, owner): the same lower part from the reduced в, two variants, see `bellyFrom` below; the join to the start (the top of the stem) stays straight
+  // ы2, the stick of ы after ь: the connector of ь arrives on its stem along the stem (wordEngine.js `joinOnStem`), no bend where it joins
+  "ы2": { joinOnStem: true },
   "ь": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true, exitNudge: 24 },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
