@@ -578,7 +578,7 @@ describe("pairs «Аа»: capital first, a gap inside the pair, a bigger one bet
       const st = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 0.5).placed[0].segments[0].strokes;
       const nU = st(`${U}#1#c#v`).length, all = st(`${U} ${l}#1#c#v`);
       const sec = all.slice(all.length - st(`${l}#1#c#v`).length), f = samplePts(sec[0].d)[0];
-      return (Math.min(bandU(sec, 0.5)[0], f[0] + f[1] * TAN25) - bandU(all.slice(0, nU), 0.5)[1]) / 15;
+      return (Math.min(bandU(sec, 0.5)[0], f[0] + f[1] * TAN25) - allU(all.slice(0, nU))) / 15;
     });
     gaps.forEach((g) => expect(g).toBeCloseTo(2, 1));
     // a pair row of a kit keeps the same gap in every copy across the row
@@ -715,16 +715,17 @@ const samplePts = (d) => {
   return out;
 };
 const bandU = (strokes, scale) => { const u = strokes.flatMap((st) => samplePts(st.d)).filter((q) => q[1] >= 64 - 24 * scale - 1e-6 && q[1] <= 64 + 1e-6).map((q) => q[0] + q[1] * TAN25); return [Math.min(...u), Math.max(...u)]; };
+const allU = (strokes) => { const u = strokes.flatMap((st) => samplePts(st.d)).map((q) => q[0] + q[1] * TAN25); return Math.max(...u); }; // the rightmost point of the whole ink, along the slant
 
 describe("a sample multiplied across the row", () => {
-  it("two letters typed with a space stand TWO CELLS apart in the narrow row (the word space, 2026-10-29): the same for every letter, never a step smaller than the letter", () => {
+  it("two letters typed with a space stand TWO CELLS apart: from the rightmost point of the first to the leftmost of the second (the word space, 2026-10-29): the same for every letter, never a step smaller than the letter", () => {
     const off = [];
     for (const l of "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ") {
       if (!map.has(l)) continue;
       const n = layoutWideLinesIntoRows([`${l}#1`], map, undefined, false, 0.5).placed[0].segments[0].strokes.length;
       const two = layoutWideLinesIntoRows([`${l} ${l}#1`], map, undefined, false, 0.5).placed[0].segments[0].strokes;
       const second = two.slice(n), f = samplePts(second[0].d)[0];
-      const gap = (Math.min(bandU(second, 0.5)[0], f[0] + f[1] * TAN25) - bandU(two.slice(0, n), 0.5)[1]) / 15; // the left edge: the start of the letter or its ink in the row, whichever is further left
+      const gap = (Math.min(bandU(second, 0.5)[0], f[0] + f[1] * TAN25) - allU(two.slice(0, n))) / 15; // the left edge: the start of the letter or its ink in the row, whichever is further left
       if (Math.abs(gap - 2) > 0.06) off.push(`${l} ${gap.toFixed(2)}`);
     }
     expect(off).toEqual([]);

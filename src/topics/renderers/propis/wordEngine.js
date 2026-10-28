@@ -1796,7 +1796,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           }
         }
         // THE WORD SPACE (owner, 2026-10-29): between two tokens (letters, words, a pair «Р р») the LEFT EDGE of the next one (the start of its letter, or its ink in the narrow row when that reaches further left) stands TWO CELLS (2 x 5 mm = 10 mm on any
-        // paper) after the right edge of the one before, taken in the narrow row; the start of the letter keeps its place on its slanted line relative to that edge (`lead`). On the drawn slant grid (dense paper) the edge is counted from the slanted line it lies on
+        // paper) after the rightmost point of the ink of the one before (all of it, bars and tails too); the start of the letter keeps its place on its slanted line relative to that edge (`lead`). On the drawn slant grid (dense paper) the edge is counted from the slanted line it lies on
         // (the nearest line within `tol`: the drawings end a little off their line), else from the next line to the right of it, so the next start is on a line again; on
         // any other paper there is no line to keep to: the start is exactly 2 cells after the edge. The same everywhere: between letters, between words, in the pairs of the
         // alphabet rows (`#v`). Not for: samples of one sign repeated across a row (they keep their own step), the elements (sticks, hooks), digits, punctuation, the Bulgarian variant (exactJoins).
@@ -1917,12 +1917,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       }
       pendingGap = 0;
       if (tokenStartX !== null) {
-        // the rightmost point of the token's ink IN THE NARROW ROW (between the middle dashed line and the baseline): the gap to the next token is counted from it
-        // (the capitals' upper parts, the tails and hooks above and below the row do not push the next token away)
-        const bandBottom = WIDE_BASELINE_Y, bandTop = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
-        let bandX = -Infinity, bandY = bandBottom;
+        // the rightmost point of the token's ink (along the slant: the largest `x + tan·y`, the capitals' bars and the tails included): the gap to the next token is counted from it
+        // (owner, 2026-10-29: first the narrow row only was tried, the bars of Г П Т and the bowl of Р then stood close to the next letter)
+        let bandX = -Infinity, bandY = WIDE_BASELINE_Y, bestU = -Infinity;
         for (let si = tokenStrokeFrom; si >= 0 && si < strokes.length; si += 1) {
-          for (const q of samplePath(strokes[si].d, 60)) if (q[1] >= bandTop - 1e-6 && q[1] <= bandBottom + 1e-6 && q[0] > bandX) { bandX = q[0]; bandY = q[1]; }
+          for (const q of samplePath(strokes[si].d, 60)) { const u = q[0] + q[1] * WIDE_JOIN_TAN; if (u > bestU) { bestU = u; bandX = q[0]; bandY = q[1]; } }
         }
         prevToken = { isElement, isLetters, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token, cellNext, bandX, bandY };
       }
