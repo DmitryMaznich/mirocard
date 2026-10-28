@@ -1806,26 +1806,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
           const st0h = getPathEndpoints(moved[0].d).start;
           const riseToStart = prevExit[1] - st0h[1];
-          if (!glyph.joinLeft && !glyph.touchFirstLine && !glyph.joinOnStem && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
+          if (!glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
               // the tail already ends (almost) at that start (`propis2` г starts where exits end): keep the tail's own shape, only
               // move its end there; reshaping it from its launch flattened о's connector into a long low line
+              // `joinReverse` (ы2): the letter opens DOWNWARDS (a stem from its top), the connector comes from below: the arrival direction is the opening direction turned round
               const near = Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale;
-              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl], glyph.joinArrive);
-              if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
-            }
-          }
-          // `joinOnStem` (propis2 ы2, the stick that follows ь): the connector arrives ON the glyph's first stem, at the height where the connector ends, along the
-          // direction of that stem (the slant), so the pen goes on up the stem without a bend; the letter's own stroke, which starts at the top of the stem, then
-          // runs down over it (the stem above the contact is retraced, as for `touchFirstLine`)
-          if (!highJoined && glyph.joinOnStem) {
-            const xs = pathXsAtY(moved[0].d, prevExit[1]);
-            if (xs.length) {
-              const cx = xs.reduce((b, c) => (Math.abs(c - prevExit[0]) < Math.abs(b - prevExit[0]) ? c : b));
-              const dl = Math.hypot(WIDE_JOIN_TAN, 1);
-              const d3 = retargetTailEndD(strokes[prevExitStroke].d, [cx, prevExit[1]], [WIDE_JOIN_TAN / dl, -1 / dl], 1);
+              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }

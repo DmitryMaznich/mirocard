@@ -34,8 +34,8 @@ export const P2_GLYPH_OVERRIDES = {
   // ь = ъ without the flag (2026-10-28, owner): the same lower part from the reduced в, two variants, see `bellyFrom` below; the join to the start (the top of the stem) stays straight
   // ы = ы1 (ь with the knot at the top of the oval and the connector from it) + ы2 (see `yerLoop`)
   "ы": { compose: ["ы1", "ы2"] },
-  // ы2, the stick of ы after ь: the connector of ь arrives on its stem along the stem (wordEngine.js `joinOnStem`), no bend where it joins
-  "ы2": { joinOnStem: true },
+  // ы2, the stick of ы: the connector of ы1 ends at the TOP of its stem (the start), arriving rising up along the way of the stem (`joinReverse`: the stem opens downwards, the connector comes from below) — a narrow wedge with the stem
+  "ы2": { joinAtStart: true, joinReverse: true, joinArrive: 0.75 },
   "ь": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true, exitNudge: 24 },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
@@ -298,32 +298,38 @@ const withOverride = (g) => {
   return [{ ...own, aliases: aliases.length ? aliases : undefined }, ...split.map((a) => applyOverride({ ...g, label: a, aliases: undefined }, P2_GLYPH_OVERRIDES[a]))];
 };
 
-// `yerLoop(soft)`: the left part of ы, `ы1` (2026-10-28, the school copybook shown by the owner: Горецкий/«Школа России»). It is ь up to the top of its oval; there the oval does
-// not close on the stem lower down but comes back to the stem at the height of the top of the oval (the middle line), makes a small knot (a hook turning up and back to the
-// right) and the CONNECTOR leaves from that knot to the right, rising, and runs into the upper part of the next stem (`ы2`, `joinOnStem`: the engine brings its end onto
-// that stem along the stem). The connector is the tail (the last cubic): it is drawn because ы2 always follows. ь itself (in words) keeps its exit from the bottom.
-// Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit). `yTail`: height of the end of the connector
-// (the capture's units; the engine puts the end on the stem at that height), `knotY`: the height of the knot on the stem.
-export function yerLoop(soft, { knotY = 37, yTail = 18, cell = 16.6 } = {}) {
+// `yerLoop(soft)`: the left part of ы, `ы1` (2026-10-28), drawn after the school copybook (Горецкий / «Школа России») and the pen's path the owner traced over its photo.
+// It is ь up to the bottom of the oval (the stem and the lower lobe of в, reduced, see `yerBelly`); then the school form: the right side of the oval, almost straight along the slant, goes up, on to the left along its top, curls into a
+// small LOOP against the stem (counter-clockwise: left, down, right), crosses its own top edge and leaves to the right as the CONNECTOR, a concave rise to the TOP of the
+// next stem (`ы2`), where it meets the stem coming down in a narrow wedge. The oval is a little over half the row (its top at 0.59 of the height, the knot at 0.55).
+// The points are the owner's trace converted to the capture's units (calibrated on the stem line and the baseline of the photo). The connector is the tail (the last cubic: it
+// is drawn because ы2 always follows; the layout redraws it to end at the start of ы2: `joinAtStart` + `joinReverse` there). ь itself in words is unchanged.
+// Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit); only the first three are kept.
+const Y_LOOP_POINTS = [
+  [147.65, 60.3], [149.6, 58.3], [151.76, 55.5], [154.33, 51.0], [155.75, 48.15], [157.04, 44.2], [158.24, 40.6], [158.88, 37.0], // the right side of the oval, almost straight along the slant
+  [158.35, 34.7], [157.0, 32.3], [155.7, 31.5], [154.4, 32.2], [153.74, 34.15], [154.2, 36.0], [155.7, 36.0], [156.82, 35.13], // its top, the loop against the stem
+];
+const Y_LINK = [[161.0, 31.7], [177.4, 18.2], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
+export function yerLoop(soft) {
   const c = parseCmds(soft?.strokes?.[0]?.d);
   if (c.length !== 8 || c[1].c !== "L" || c.slice(2).some((x) => x.c !== "C")) return null;
   const f = (v) => v.toFixed(2);
   const show = (cm, n) => `${cm} ${n.map(f).join(" ")}`;
   const top = c[0].n.slice(-2);
-  const U = top[0] + SLANT * top[1]; // the stem line
-  const kx = U - SLANT * knotY; // the knot's place on the stem
-  const [ax, ay] = c[4].n.slice(-2); // the top of the oval
-  const cap = ["C", [ax - 3.0, ay, kx + 3.2, knotY - 0.4, kx, knotY]]; // along the top of the oval, back to the stem
-  const [px, py] = [kx + 1.2, knotY - 2.6]; // the knot: hardly left of the stem, up, and back to the right
-  const ex = U + cell - SLANT * yTail; // one slanted line to the right (the next stem), at the height of the end of the connector
-  const lx = (ex - px) * 0.22, ly = -5.0; // the way the connector leaves the knot (its first handle); the knot ends along it: no corner where they meet
-  const ul = Math.hypot(lx, ly), [ux, uy] = [lx / ul, ly / ul];
-  const knot = ["C", [kx - 0.9, knotY + 0.3, px - ux * 2.2, py - uy * 2.2, px, py]];
-  const link = ["C", [px + lx, py + ly, px + (ex - px) * 0.7, yTail + (py - yTail) * 0.3, ex, yTail]];
-  const d = [show("M", c[0].n), show("L", c[1].n), show("C", c[2].n), show("C", c[3].n), show("C", c[4].n), show(...cap), show(...knot), show(...link)].join(" ");
+  const dx = top[0] - 164.35, dy = top[1] - 10; // the trace is in the frame of the captured ь (its stem top at 164.35, 10): move it with the glyph
+  const B = c[2].n.slice(-2); // the bottom of the oval (the end of the lower lobe)
+  const P = [B, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy])];
+  // Catmull-Rom through the points -> cubics (the ends repeated)
+  const segs = P.slice(0, -1).map((p1, i) => {
+    const p0 = P[Math.max(0, i - 1)], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+    return ["C", [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]]];
+  });
+  const link = ["C", Y_LINK.flatMap(([x, y]) => [x + dx, y + dy])];
+  const d = [show("M", c[0].n), show("L", c[1].n), show("C", c[2].n), ...segs.map((sg) => show(...sg)), show(...link)].join(" ");
   const { tailNoAlign, bellyFrom, aliases, ...rest } = soft;
-  return { ...rest, label: "ы1", sourceLabel: "ы1: левая часть «ы» по школьной прописи (овал с узелком вверху, соединение из узелка)", tailSplit: 0, tailSplitCount: 1, tailLift: false, noLiftExit: true, strokes: [{ ...soft.strokes[0], d }] };
+  return { ...rest, label: "ы1", sourceLabel: "ы1: левая часть «ы» по школьной прописи и траектории владельца (овал, петля у стойки, соединение к верху правой стойки)", tailSplit: 0, tailSplitCount: 1, tailLift: false, noLiftExit: true, strokes: [{ ...soft.strokes[0], d }] };
 }
+
 export const withGlyphOverrides = (glyphs) => {
   const raw = new Map((glyphs ?? []).map((g) => [g.label, g]));
   const belly = (g) => (g.bellyFrom && raw.get(g.bellyFrom.label) ? yerBelly(g, raw.get(g.bellyFrom.label), g.bellyFrom) : g);
