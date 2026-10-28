@@ -168,6 +168,7 @@ export default function App() {
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
   const storageRequestAttempted = useRef(false);
+  const bootStarted = useRef(false);
 
   useEffect(() => {
     if (!account || screen === "boot" || storageRequestAttempted.current) return;
@@ -212,6 +213,11 @@ export default function App() {
   });
 
   useEffect(() => {
+    // Boot consumes one-time URL tokens. StrictMode replays effects in dev;
+    // replaying after replaceState would incorrectly start ordinary login boot.
+    if (bootStarted.current) return;
+    bootStarted.current = true;
+
     // Handle /verify-email?token= deep links before normal boot
     const urlParams = new URLSearchParams(window.location.search);
     const verifyToken = urlParams.get("token");
