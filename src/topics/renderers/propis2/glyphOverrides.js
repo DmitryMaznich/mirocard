@@ -30,7 +30,7 @@ export const P2_GLYPH_OVERRIDES = {
   "к": { touchFirstLine: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
-  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true },
+  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
@@ -126,6 +126,17 @@ export function liftStart(glyph, lift) {
   const d = `M ${(x0 + (x1 - x0) * t).toFixed(2)} ${(y0 - lift).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
   return { ...glyph, anchorY: y0, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
+// `startDrop`: the opposite of `startLift`: the opening straight line (M x y L ...) is continued BACKWARDS, so the letter starts `drop` units of
+// height lower, on the same line (ъ: its flag starts a quarter of the row below the top line, not right under it)
+export function dropStart(glyph, drop) {
+  const m = String(glyph.strokes?.[0]?.d ?? "").match(/^M\s*(-?[\d.]+)\s+(-?[\d.]+)\s*L\s*(-?[\d.]+)\s+(-?[\d.]+)/);
+  if (!m || !(drop > 0)) return glyph;
+  const [x0, y0, x1, y1] = m.slice(1).map(Number);
+  if (!(y0 - y1 > 0.5)) return glyph;
+  const t = drop / (y0 - y1);
+  const d = `M ${(x0 - (x1 - x0) * t).toFixed(2)} ${(y0 + drop).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
+  return { ...glyph, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
+}
 // The exit of а in the capture: its last straight piece, (135.46, 56.28) -> (153.61, 36) — the angle every connector should rise at.
 const EXIT_RUN = 153.61 - 135.46;
 const EXIT_RISE = 56.28 - 36;
@@ -218,8 +229,9 @@ export function markStem(glyph) {
   }
   return glyph;
 }
-const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, ...rest }) => {
+const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, ...rest }) => {
   let out = liftStart({ ...g, ...rest }, startLift);
+  if (startDrop) out = dropStart(out, startDrop);
   if (stemOnLine) out = markStem(out);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);

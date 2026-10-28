@@ -1715,7 +1715,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         const exactTouch = touchDx !== null;
         // a letter placed by its stem (`local.stemDx`, ъ): the point `stemDx` right of its start is the one snapped to a line
-        const snapStart = (x) => snapX(rowIndex, x + (local.stemDx ?? 0), local.start[1]) - (local.stemDx ?? 0);
+        // `snapNotRight` (ъ, after a letter that joins it): not the NEAREST line but the one at or left of the point (with that share of a cell of
+        // leeway to the right): the connector from the letter before then rises at least as steeply as the join angle, never flatter, and the
+        // letter stands one cell closer to it than the nearest line would put it (owner, 2026-10-28)
+        const notRight = prevExit && Number.isFinite(glyph.snapNotRight) ? CELL * (glyph.snapNotRight - 0.5) : 0;
+        const snapStart = (x) => snapX(rowIndex, x + (local.stemDx ?? 0) + notRight, local.start[1]) - (local.stemDx ?? 0);
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapStart(wantStartX);

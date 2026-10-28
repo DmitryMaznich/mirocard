@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
 import { markStem } from "./glyphOverrides.js";
-import { wideGlyphLocal } from "../propis/wordEngine.js";
+import { wideGlyphLocal, layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
 const pts = (d) => (String(d).match(/-?\d*\.?\d+/g) ?? []).map(Number);
@@ -10,9 +10,17 @@ const pts = (d) => (String(d).match(/-?\d*\.?\d+/g) ?? []).map(Number);
 describe("ъ stands by its stem (stemOnLine)", () => {
   const map = buildGlyphMap({ wide });
   const yer = map.get("ъ");
-  it("the shape and the size of the letter are the captured ones", () => {
+  it("the shape and the size of the letter are the captured ones, only its start is lower on the same opening line (a quarter of the row below the top)", () => {
     const raw = wide.find((g) => g.label === "ъ");
-    expect(yer.strokes[0].d).toBe(raw.strokes[0].d);
+    const [rx, ry] = pts(raw.strokes[0].d), [nx, ny] = pts(yer.strokes[0].d);
+    expect(ny - ry).toBeCloseTo(7, 1);
+    expect(ny).toBeCloseTo(10 + 0.25 * 50, 0);
+    expect(nx).toBeLessThan(rx);
+    // everything after the opening line is the captured path
+    expect(yer.strokes[0].d.slice(yer.strokes[0].d.indexOf("L"))).toBe(raw.strokes[0].d.slice(raw.strokes[0].d.indexOf("L")));
+    // and the opening line keeps its direction
+    const [x1, y1] = pts(raw.strokes[0].d).slice(2, 4);
+    expect((x1 - nx) / (ny - y1)).toBeCloseTo((x1 - rx) / (ry - y1), 2);
   });
   it("the anchor is the top of the stem (the start of its first long straight segment)", () => {
     expect(yer.stemAnchor[0]).toBeCloseTo(164.35, 1);
@@ -24,6 +32,21 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     expect(l.stemDx).toBeLessThan(19);
     // narrow rows: scaled with the letter
     expect(wideGlyphLocal(yer, 0.6).stemDx / l.stemDx).toBeCloseTo(0.6, 1);
+  });
+  const S = 30, tan = Math.tan((25 * Math.PI) / 180);
+  const snap = (_r, x, y) => Math.round((x + y * tan) / S) * S - y * tan;
+  it("alone, its STEM is on a line of the grid (the point stemDx right of the start)", () => {
+    const seg = layoutWideLinesIntoRows(["ъ"], map, snap, false, 1).placed[0].segments[0];
+    const [sx, sy] = seg.startPoints[0];
+    const k = (sx + wideGlyphLocal(yer, 1).stemDx + sy * tan) / S;
+    expect(Math.abs(k - Math.round(k))).toBeLessThan(0.01);
+  });
+  it("after a letter that joins it the connector is not flatter than the join angle: ъ stands at least as close as without snapNotRight", () => {
+    const plain = buildGlyphMap({ wide: wide.map((g) => (g.label === "ъ" ? { ...g, noOverrides: true } : g)) });
+    const noLeft = new Map(map); noLeft.set("ъ", { ...yer, snapNotRight: undefined });
+    const w = (m) => layoutWideLinesIntoRows(["съ"], m, snap, false, 1).placed[0].segments[0].width;
+    expect(w(map)).toBeLessThanOrEqual(w(noLeft));
+    expect(plain.get("ъ").stemAnchor).toBeUndefined();
   });
   it("other letters are snapped by their start as before", () => {
     for (const lab of ["ь", "н", "к", "у", "о"]) expect(wideGlyphLocal(map.get(lab), 1).stemDx).toBe(0);
