@@ -1659,6 +1659,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let tokenMaxX = -Infinity;
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
+      let pendingNoAlign = false; // glyph.tailNoAlign: the pending connector is not straightened onto the next letter's rise (see alignLastPieceD)
+      let curNoAlign = false;
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
       let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
@@ -1690,6 +1692,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           prevExit = getPathEndpoints(pendingTail.d).end;
           prevExitStroke = strokes.length - 1;
           curNudge = pendingNudge;
+          curNoAlign = pendingNoAlign;
           pendingTail = null;
         }
         const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
@@ -1822,7 +1825,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           let aligned = false;
           const sampled = samplePath(moved[0].d, 30);
           const rp = sampled.find((q) => Math.hypot(q[0] - st0[0], q[1] - st0[1]) > 6);
-          if (!highJoined && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
+          // (`curNoAlign`, ъ: its connector begins with the second pass over the bottom of the belly, which this would drag sideways off the first pass)
+          if (!highJoined && !curNoAlign && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
             const slope = (rp[0] - st0[0]) / (st0[1] - rp[1]); // dx per unit of rise
             const rising = Math.atan2(st0[1] - rp[1], rp[0] - st0[0]) * (180 / Math.PI);
             if (rising > 30 && rising < 70) {
@@ -1853,6 +1857,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         prevExit = [local.end[0] + dx, local.end[1]];
         curNudge = WIDE_MAX_CONTACT_NUDGE;
+        curNoAlign = false;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
         afterNoExit = Boolean(glyph.noExit);
@@ -1865,6 +1870,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (xs.length) pendingTouchX = Math.max(...xs);
           }
           pendingNudge = glyph.exitNudge ?? WIDE_MAX_CONTACT_NUDGE;
+          pendingNoAlign = Boolean(glyph.tailNoAlign);
           pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
           prevExit = null;
           prevExitStroke = -1;

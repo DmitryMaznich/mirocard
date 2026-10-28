@@ -10,17 +10,18 @@ const pts = (d) => (String(d).match(/-?\d*\.?\d+/g) ?? []).map(Number);
 describe("ъ stands by its stem (stemOnLine)", () => {
   const map = buildGlyphMap({ wide });
   const yer = map.get("ъ");
-  it("the shape and the size of the letter are the captured ones, only its start is lower on the same opening line (a quarter of the row below the top)", () => {
+  it("the flag and the stem are the captured ones, only the start is lower on the same opening line (a quarter of the row below the top)", () => {
     const raw = wide.find((g) => g.label === "ъ");
     const [rx, ry] = pts(raw.strokes[0].d), [nx, ny] = pts(yer.strokes[0].d);
     expect(ny - ry).toBeCloseTo(7, 1);
     expect(ny).toBeCloseTo(10 + 0.25 * 50, 0);
     expect(nx).toBeLessThan(rx);
-    // everything after the opening line, up to the end of the one turn of the belly, is the captured path
-    const b0 = yer.strokes[0].d;
-    expect(raw.strokes[0].d.slice(raw.strokes[0].d.indexOf("L")).startsWith(b0.slice(b0.indexOf("L"), b0.lastIndexOf(" L ")))).toBe(true);
+    // everything from the opening line to the top of the stem (the captured flag) is the captured path
+    const rd = raw.strokes[0].d, nd = yer.strokes[0].d;
+    const flag = (d) => d.slice(d.indexOf("L"), d.indexOf("L 164.3") + 12);
+    expect(flag(nd)).toBe(flag(rd));
     // the opening line keeps the direction of the captured one (the kink at the start of the flag is taken out by the connector, not by the flag)
-    const [x1, y1] = pts(raw.strokes[0].d).slice(2, 4);
+    const [x1, y1] = pts(rd).slice(2, 4);
     expect((x1 - nx) / (ny - y1)).toBeCloseTo((x1 - rx) / (ry - y1), 2);
   });
   it("the anchor is the top of the stem (the start of its first long straight segment)", () => {
@@ -49,22 +50,46 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     expect(w(map)).toBeLessThanOrEqual(w(noLeft));
     expect(plain.get("ъ").stemAnchor).toBeUndefined();
   });
-  it("one turn of the belly: the letter ends at the foot of the stem; the connector is a stroke of its own that REPLAYS the bottom (a second pass exactly on the first)", () => {
-    expect(yer.strokes.length).toBe(2);
-    const body = yer.strokes[0].d, tail = yer.strokes[1].d;
-    const foot = "143.47 54.78";
-    expect(body.endsWith(`L ${foot}`)).toBe(true);
-    expect(tail.startsWith(`M ${foot}`)).toBe(true);
-    // the commands of the tail up to its last cubic are the commands of the first pass: same numbers, so the same line
-    const bottom = tail.slice(tail.indexOf(foot) + foot.length, tail.lastIndexOf(" C "));
-    expect(body.slice(body.indexOf(foot) + foot.length).startsWith(bottom)).toBe(true);
-    expect(bottom.length).toBeGreaterThan(80);
+  it("the stem runs into the belly of в (reduced) on the stem's own line, and the belly is half a row high", () => {
+    const d = yer.strokes[0].d;
+    const n = pts(d);
+    // the stem ends on the line x + tan·y = U (the line through the top of the stem)
+    const U = 164.35 + tan * 10;
+    const m = d.match(/L 164\.35 10\.00 L (-?[\d.]+) (-?[\d.]+)/);
+    expect(m).not.toBeNull();
+    const [sx, sy] = [Number(m[1]), Number(m[2])];
+    expect(sx + tan * sy).toBeCloseTo(U, 0);
+    // the belly spans half the row: from the middle (36) to the baseline (62)
+    const ys = pts(d.slice(d.indexOf(m[0]) + m[0].length)).filter((_, i) => i % 2);
+    expect(Math.min(...ys)).toBeCloseTo(36, 0);
+    expect(Math.max(...ys)).toBeCloseTo(62, 0);
+    expect(n.length).toBeGreaterThan(60);
+  });
+  it("a second pass exactly on the first: the connector begins with the same cubic as the first pass of the bottom of the belly", () => {
+    const loc = wideGlyphLocal(yer, 1);
+    const body = pts(loc.strokes[0].d), tail = pts(loc.tail.d);
+    // the body ends where the tail begins (one turn: the end of a letter nothing follows)
+    expect(body.slice(-2)).toEqual(tail.slice(0, 2));
+    // the first cubic of the tail is the cubic of the body that starts at that point the first time (same numbers = the same line)
+    const at = (() => { for (let i = 0; i + 1 < body.length - 2; i += 2) if (Math.abs(body[i] - tail[0]) < 1e-2 && Math.abs(body[i + 1] - tail[1]) < 1e-2) return i; return -1; })();
+    expect(at).toBeGreaterThan(0);
+    tail.slice(2, 8).forEach((v, k) => expect(v).toBeCloseTo(body[at + 2 + k], 1));
   });
   it("variant 1: with no letter after it ъ is the body only; variant 2: with a letter after it the connector follows", () => {
     const alone = layoutWideLinesIntoRows(["ъ"], map, snap, false, 1).placed[0].segments[0];
     const before = layoutWideLinesIntoRows(["ъе"], map, snap, false, 1).placed[0].segments[0];
     expect(alone.strokes.length).toBe(1);
     expect(before.strokes.length).toBeGreaterThanOrEqual(3);
+  });
+  it("variant 2 in a word: the second pass over the bottom stays on the first (the rise of the next letter does not drag it: tailNoAlign)", () => {
+    for (const next of ["е", "и", "л", "н"]) {
+      const ds = layoutWideLinesIntoRows([`ъ${next}`], map, snap, false, 1).placed[0].segments[0].strokes.map((st) => st.d ?? st);
+      const body = pts(ds[0]), tail = pts(ds[1]);
+      let at = -1;
+      for (let i = 0; i + 1 < body.length - 2; i += 2) if (Math.abs(body[i] - tail[0]) < 1e-2 && Math.abs(body[i + 1] - tail[1]) < 1e-2) { at = i; break; }
+      expect(at, next).toBeGreaterThan(0);
+      tail.slice(2, 8).forEach((v, k) => expect(v, next).toBeCloseTo(body[at + 2 + k], 1));
+    }
   });
   it("the connector of the letter before enters the flag along the flag's own direction: no kink (joinArrive)", () => {
     const num = (str) => (String(str).match(/-?\d*\.?\d+/g) ?? []).map(Number);
