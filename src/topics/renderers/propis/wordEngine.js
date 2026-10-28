@@ -1416,7 +1416,16 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     const crossings = pathXsAtY(strokes[0].d, dashY);
     if (crossings.length) contactDx = Math.min(...crossings) - start[0];
   }
-  return { strokes, tail, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs) };
+  // `stemAnchor` (propis2 glyphOverrides.js `stemOnLine`): how far right of the start the slanted line through the stem lies, at the start's height
+  // — the layout snaps that line to the grid instead of the start's own
+  let stemDx = 0;
+  if (Array.isArray(glyph.stemAnchor)) {
+    const c = stretchKeepSlantPathD(`M ${glyph.stemAnchor[0]} ${glyph.stemAnchor[1]}`, stretch, 90 - 65, WIDE_CAPTURE_BASELINE);
+    const t = wideTransform(c, originX);
+    const a = getPathEndpoints(scale === 1 ? t : transformPathD(t, { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) })).start;
+    stemDx = a[0] + (a[1] - start[1]) * WIDE_JOIN_TAN - start[0];
+  }
+  return { strokes, tail, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs), stemDx };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1705,16 +1714,18 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           if (xs.length) touchDx = local.start[0] - Math.min(...xs);
         }
         const exactTouch = touchDx !== null;
+        // a letter placed by its stem (`local.stemDx`, ъ): the point `stemDx` right of its start is the one snapped to a line
+        const snapStart = (x) => snapX(rowIndex, x + (local.stemDx ?? 0), local.start[1]) - (local.stemDx ?? 0);
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
-          : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+          : loose ? wantStartX : snapStart(wantStartX);
         // `#v` on a DRAWN slant grid (`propis2`, the dense paper: snapX.drawn): the letter still stands a fixed gap after the ink before it, but
         // on the nearest line — the stems of a letter lie on the lines (the capture was made on the grid), so a letter set between two lines
         // by the gap alone has all its stems between them (owner, 2026-10-28: «к» and «у» of the pairs «К к» / «У у» off the grid, tetrad 10).
         // On a hidden grid (the methodology paper) the even gap stays as it was. If the line is nearer than the half of the gap, the next one.
         if (even && snapX.drawn && !exactJoin && !exactTouch) {
           const lead = local.start[0] - local.minX;
-          let cand = snapX(rowIndex, startX, local.start[1]);
+          let cand = snapStart(startX);
           if (cand - lead < prevToken.inkMaxX + EVEN_GAP * scale * 0.6) cand = nextLineRight(snapX, rowIndex, cand, local.start[1]);
           startX = cand;
         }
@@ -1748,8 +1759,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // the grid is not drawn: the digits of a number stand a steady gap apart («20», not «2 0» when the next line is far)
             startX = wantStartX + (WIDE_DIGIT_GAP - WIDE_PUNCT_GAP) * scale;
           } else {
-            startX = snapX(rowIndex, wantStartX, local.start[1]);
-            if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+            startX = snapStart(wantStartX);
+            if (startX < wantStartX - 1e-6) startX = snapStart(startX + CELL);
           }
         }
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
@@ -1762,13 +1773,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const afterMark = /[.,!?;:]$/.test(prevToken.token);
           // (a plain word space here is ~2x WIDE_WORD_MIN_GAP; after a mark at least 1.8x, measured from the mark's ink)
           const minGap = WIDE_WORD_MIN_GAP * (afterMark ? 1.8 : glyph.kind === "digit" ? 1.2 : 1) * scale;
-          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + minGap; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + minGap; k += 1) startX = snapStart(startX + CELL);
           // ...and not much further than a word space either: the step in cells counts from the START of the previous word, so after a
           // wide one-letter word («В классе», «У меня») the gap came out twice a word space. Moved back line by line while the gap stays
           // at least a plain word space (spaces typed on purpose, `pendingGap`, are kept).
           const plain = Math.max(minGap, WIDE_WORD_SPACE * scale);
           for (let k = 0; k < 4 && pendingGap === 0; k += 1) {
-            const back = snapX(rowIndex, startX - CELL, local.start[1]);
+            const back = snapStart(startX - CELL);
             if (back >= startX - 1e-6 || back - lead < prevToken.inkMaxX + plain) break;
             startX = back;
           }

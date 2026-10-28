@@ -30,7 +30,7 @@ export const P2_GLYPH_OVERRIDES = {
   "к": { touchFirstLine: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
-  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, widenFlag: { from: 156, shift: 7.3 } },
+  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
@@ -200,36 +200,27 @@ export function softenHook(glyph, k) {
   const nd = `${d.slice(0, at)}C ${f(n1[0])} ${f(n1[1])} ${f(n2[0])} ${f(n2[1])} ${f(p3[0])} ${f(p3[1])}${rest}`;
   return { ...glyph, strokes: glyph.strokes.map((st, i) => (i === si ? { ...st, d: nd } : st)) };
 }
-// `widenFlag` { from, shift } (ъ): the flag at the top of the letter takes the first cell and the stem with the belly start one cell on.
-// The stroke is [flag][stem down][belly, exit]; the stem is the first long straight segment. Everything of the flag from x = `from` on
-// (past the curl at its start) is stretched so that the flag ends at the stem's top moved right by `shift`; the stem and what follows
-// move by `shift`. The start of the letter (where the connector arrives) does not move.
-export function widenFlag(glyph, { from, shift }) {
-  const si = 0;
-  const d = String(glyph.strokes?.[si]?.d ?? "");
+// `stemOnLine` (ъ): the letter is placed so that its STEM lies on a slanted line of the grid, not the start of its flag (the flag starts 0.56 of
+// a cell from the stem's line, so with the start on a line the stem stood between two lines). The glyph gets `stemAnchor`, the top of the stem
+// (the start of the first long straight segment of the stroke); the layout snaps that point's line (wordEngine.js, `stemDx`). The shape and the
+// size of the letter do not change.
+export function markStem(glyph) {
+  const d = String(glyph.strokes?.[0]?.d ?? "");
   const toks = d.match(/[MLQCZ]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
-  const cmds = [];
-  for (const t of toks) { if (/[MLQCZ]/i.test(t)) cmds.push({ c: t, n: [] }); else cmds[cmds.length - 1]?.n.push(Number(t)); }
-  let prev = null, stemAt = -1;
-  for (let i = 0; i < cmds.length; i += 1) {
-    const { c, n } = cmds[i];
-    if (c === "L" && prev && Math.hypot(n[0] - prev[0], n[1] - prev[1]) > 25) { stemAt = i; break; }
-    if (n.length >= 2) prev = [n[n.length - 2], n[n.length - 1]];
+  let prev = null;
+  for (let i = 0; i < toks.length; i += 1) {
+    if (/[MLQC]/i.test(toks[i])) {
+      let j = i + 1; const n = [];
+      while (j < toks.length && !/[MLQCZ]/i.test(toks[j])) { n.push(Number(toks[j])); j += 1; }
+      if (toks[i] === "L" && prev && Math.hypot(n[0] - prev[0], n[1] - prev[1]) > 25) return { ...glyph, stemAnchor: prev };
+      if (n.length >= 2) prev = [n[n.length - 2], n[n.length - 1]];
+    }
   }
-  if (stemAt < 0 || !prev || !(shift > 0)) return glyph;
-  const k = (prev[0] + shift - from) / (prev[0] - from);
-  const stretch = (x) => (x > from ? from + (x - from) * k : x);
-  const f = (v) => v.toFixed(2);
-  const out = cmds.map(({ c, n }, i) => {
-    const nn = n.map((v, j) => (j % 2 ? v : i < stemAt ? stretch(v) : v + shift));
-    return `${c} ${nn.map(f).join(" ")}`;
-  });
-  // the long segment starts at the stretched top of the stem (the end of the previous command): its own start is implicit
-  return { ...glyph, strokes: glyph.strokes.map((st, i) => (i === si ? { ...st, d: out.join(" ") } : st)) };
+  return glyph;
 }
-const applyOverride = (g, { startLift, steepExit, straightTail, softHook, widenFlag: wf, ...rest }) => {
+const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, ...rest }) => {
   let out = liftStart({ ...g, ...rest }, startLift);
-  if (wf) out = widenFlag(out, wf);
+  if (stemOnLine) out = markStem(out);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
   if (straightTail != null) out = straightenTail(out, straightTail);
