@@ -304,10 +304,9 @@ const withOverride = (g) => {
 // next stem (`ы2`), where it meets the stem coming down in a narrow wedge. The oval is a little over half the row (its top at 0.59 of the height, the knot at 0.55).
 // The points are the owner's trace converted to the capture's units (calibrated on the stem line and the baseline of the photo). The connector is the tail (the last cubic: it
 // is drawn because ы2 always follows; the layout redraws it to end at the start of ы2: `joinAtStart` + `joinReverse` there). ь itself in words is unchanged.
-// Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit); only the first three are kept.
+// Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit); only the first four are kept (stem, three cubics of the oval up to its top).
 const Y_LOOP_POINTS = [
-  [147.65, 60.3], [149.6, 58.3], [151.76, 55.5], [154.44, 50.27], [156.16, 46.63], [157.47, 43.0], [158.4, 39.8], [158.78, 37.6], // the right side of the oval, almost straight along the slant
-  [158.76, 36.3], [158.25, 35.0], [157.15, 34.15], [155.8, 33.8], [154.6, 34.0], [153.85, 34.55], [154.45, 35.15], [155.62, 35.66], [156.82, 35.13], // its top, the loop against the stem (flattened: its upper and lower lines run almost along each other, no hole)
+  [157.15, 34.15], [155.8, 33.8], [154.6, 34.0], [153.85, 34.55], [154.45, 35.15], [155.62, 35.66], [156.82, 35.13], // the loop against the stem (flattened: its upper and lower lines run almost along each other, no hole)
 ];
 const Y_LINK = [[168.3, 30.0], [175.95, 21.5], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
 export function yerLoop(soft) {
@@ -317,15 +316,16 @@ export function yerLoop(soft) {
   const show = (cm, n) => `${cm} ${n.map(f).join(" ")}`;
   const top = c[0].n.slice(-2);
   const dx = top[0] - 164.35, dy = top[1] - 10; // the trace is in the frame of the captured ь (its stem top at 164.35, 10): move it with the glyph
-  const B = c[2].n.slice(-2); // the bottom of the oval (the end of the lower lobe)
-  const P = [B, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy])];
+  // the oval is ь's own as far as its top (the right side and the round top, 3 cubics: foot -> bottom -> right -> top); the loop goes on from the top
+  const T = c[4].n.slice(-2);
+  const P = [T, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy])];
   // Catmull-Rom through the points -> cubics (the ends repeated)
   const segs = P.slice(0, -1).map((p1, i) => {
     const p0 = P[Math.max(0, i - 1)], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
     return ["C", [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]]];
   });
   const link = ["C", Y_LINK.flatMap(([x, y]) => [x + dx, y + dy])];
-  const d = [show("M", c[0].n), show("L", c[1].n), show("C", c[2].n), ...segs.map((sg) => show(...sg)), show(...link)].join(" ");
+  const d = [show("M", c[0].n), show("L", c[1].n), show("C", c[2].n), show("C", c[3].n), show("C", c[4].n), ...segs.map((sg) => show(...sg)), show(...link)].join(" ");
   const { tailNoAlign, bellyFrom, aliases, ...rest } = soft;
   return { ...rest, label: "ы1", sourceLabel: "ы1: левая часть «ы» по школьной прописи и траектории владельца (овал, петля у стойки, соединение к верху правой стойки)", tailSplit: 0, tailSplitCount: 1, tailLift: false, noLiftExit: true, strokes: [{ ...soft.strokes[0], d }] };
 }
