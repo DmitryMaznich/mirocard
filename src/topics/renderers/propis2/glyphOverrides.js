@@ -31,7 +31,8 @@ export const P2_GLYPH_OVERRIDES = {
   "т": { touchFirstLine: true },
   "п": { touchFirstLine: true },
   "к": { touchFirstLine: true },
-  "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
+  // ь = ъ without the flag (2026-10-28, owner): the same lower part from the reduced в, two variants, see `bellyFrom` below; the join to the start (the top of the stem) stays straight
+  "ь": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
@@ -156,8 +157,11 @@ const parseCmds = (d) => {
 };
 export function yerBelly(glyph, source, { kv = 0.5, ku = 1 } = {}) {
   const yc = parseCmds(glyph.strokes?.[0]?.d), vc = parseCmds(source?.strokes?.[0]?.d);
-  if (yc.length !== 58 || vc.length !== 25 || yc[15].c !== "L" || yc[57].c !== "L") return glyph;
-  const top = yc[14].n.slice(-2); // the top of the stem
+  // the stem is the first long straight segment (ъ: command 15 after the flag, ь: command 1, the letter starts at the top of the stem); 43 commands from it to the end
+  let stemAt = -1;
+  for (let i = 1; i < yc.length && stemAt < 0; i += 1) if (yc[i].c === "L" && Math.hypot(yc[i].n[0] - yc[i - 1].n.slice(-2)[0], yc[i].n[1] - yc[i - 1].n.slice(-2)[1]) > 25) stemAt = i;
+  if (stemAt < 1 || yc.length - stemAt !== 43 || vc.length !== 25 || yc[yc.length - 1].c !== "L") return glyph;
+  const top = yc[stemAt - 1].n.slice(-2); // the top of the stem
   const U = top[0] + SLANT * top[1]; // the stem line: x + tan·y = U
   const base = Math.max(...vc.slice(18).flatMap((c) => c.n.filter((_, i) => i % 2))); // the bottom of the oval, the baseline of the capture
   const map = (x, y) => { const v = base - kv * (base - y), u = U + ku * (x + SLANT * y - U); return [u - SLANT * v, v]; };
@@ -165,13 +169,13 @@ export function yerBelly(glyph, source, { kv = 0.5, ku = 1 } = {}) {
   const f = (v) => v.toFixed(2);
   const show = (c, n) => `${c} ${n.map(f).join(" ")}`;
   const [sx, sy] = map(...vc[18].n.slice(-2)); // the point of the stem where the oval begins and ends
-  const head = yc.slice(0, 15).map(({ c, n }) => show(c, n));
+  const head = yc.slice(0, stemAt).map(({ c, n }) => show(c, n));
   const oval = [19, 20, 21, 22].map((i) => show("C", mapN(vc[i].n)));
   const again = mapN(vc[23].n); // the second pass over the bottom, the same numbers as the first
   const [bx, by] = again.slice(-2);
   // the end of the exit: в's, reduced the same way and carried up its slanted line to the height of ъ's captured exit end (the exit must end above the middle line),
   // so that the exit rises OUTSIDE the oval and not through it
-  const [exv, eyv] = vc[24].n.slice(-2), ey = yc[57].n[1];
+  const [exv, eyv] = vc[24].n.slice(-2), ey = yc[yc.length - 1].n[1];
   const ex = U + ku * (exv + SLANT * eyv - U) - SLANT * ey;
   const ch = Math.hypot(ex - bx, ey - by);
   const exit = show("C", [bx + ch * 0.35, by, ex - ch * 0.35, ey + ch * 0.3, ex, ey]);

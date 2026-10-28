@@ -120,3 +120,31 @@ describe("е: the exit arrives on the middle line exactly (noLiftExit)", () => {
     expect(end("ё")).toBeCloseTo(end("е"), 1);
   });
 });
+
+describe("ь = ъ without the flag", () => {
+  const map = buildGlyphMap({ wide });
+  const soft = map.get("ь"), hard = map.get("ъ");
+  const tanS = Math.tan((25 * Math.PI) / 180);
+  it("starts at the top of the stem, no flag; the belly is the same as ъ's from the stem on", () => {
+    const sd = soft.strokes[0].d, hd = hard.strokes[0].d;
+    expect(sd.startsWith("M 164.35 10.00 L ")).toBe(true);
+    // everything after the stem's top is the same path as in ъ
+    const afterTop = (d) => d.slice(d.indexOf("L", d.indexOf("164.35 10.00") + 5));
+    expect(afterTop(sd)).toBe(afterTop(hd));
+  });
+  it("one turn of the belly closes on the stem; the connector replays the bottom (variant 1 / variant 2 as ъ)", () => {
+    const loc = wideGlyphLocal(soft, 1);
+    const body = pts(loc.strokes[0].d), tail = pts(loc.tail.d);
+    expect(body.slice(-2)).toEqual(tail.slice(0, 2));
+    let at = -1;
+    for (let i = 0; i + 1 < body.length - 2; i += 2) if (Math.abs(body[i] - tail[0]) < 1e-2 && Math.abs(body[i + 1] - tail[1]) < 1e-2) { at = i; break; }
+    expect(at).toBeGreaterThan(0);
+    tail.slice(2, 8).forEach((v, k) => expect(v).toBeCloseTo(body[at + 2 + k], 1));
+    const snap = (_r, x, y) => Math.round((x + y * tanS) / 30) * 30 - y * tanS;
+    expect(layoutWideLinesIntoRows(["ь"], map, snap, false, 1).placed[0].segments[0].strokes.length).toBe(1);
+    expect(layoutWideLinesIntoRows(["ьн"], map, snap, false, 1).placed[0].segments[0].strokes.length).toBeGreaterThanOrEqual(3);
+  });
+  it("ы (ь + ы2) keeps composing from it", () => {
+    expect(map.get("ы").compose).toEqual(["ь", "ы2"]);
+  });
+});
