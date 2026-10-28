@@ -30,7 +30,7 @@ export const P2_GLYPH_OVERRIDES = {
   "к": { touchFirstLine: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
-  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
+  "ъ": { singleBelly: true, tailStroke: 1, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
@@ -137,6 +137,43 @@ export function dropStart(glyph, drop) {
   const d = `M ${(x0 - (x1 - x0) * t).toFixed(2)} ${(y0 + drop).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
   return { ...glyph, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
+// `singleBelly` (ъ): in the capture the pen goes round the belly and then passes the bottom a SECOND time on a slightly different curve (the two lines
+// parted at the bottom, 4 units at most). Now the letter is the stroke up to the end of ONE turn: flag, stem, the bottom, the right side and the top of the
+// belly, back down its left side to the foot of the stem (the pen touches the stem there: the end of a letter that nothing follows) — and the connector
+// as a stroke of its own (`tailStroke`, drawn only when a letter follows): it starts at that same foot, runs the bottom ALONG THE VERY SAME COMMANDS as the first
+// pass (so the second pass lies exactly on the first), then the captured exit rise. Indices are those of the captured path (58 commands): 15 the stem,
+// 16–22 the bottom up to where the exit and the right side of the belly part, 43 on the left side of the belly, 53–57 the exit (2026-10-28, owner's ask for ъ only).
+export function singleBelly(glyph) {
+  const d = String(glyph.strokes?.[0]?.d ?? "");
+  const toks = d.match(/[MLQC]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
+  const cmds = [];
+  for (const t of toks) { if (/[MLQC]/i.test(t)) cmds.push({ c: t, n: [] }); else cmds[cmds.length - 1]?.n.push(Number(t)); }
+  if (cmds.length !== 58 || cmds[15].c !== "L" || cmds[57].c !== "L") return glyph;
+  const f = (v) => v.toFixed(2);
+  const show = ({ c, n }) => `${c} ${n.map(f).join(" ")}`;
+  const foot = cmds[15].n; // the end of the stem
+  const at = (i) => cmds[i].n.slice(-2);
+  const body = [...cmds.slice(0, 44).map(show), `L ${foot.map(f).join(" ")}`].join(" ");
+  // The exit is ONE cubic from the end of the replayed bottom (cmd 22) to the end of the captured exit (cmd 57), like the connector of о: the layout redraws
+  // the last cubic of a connector whole when it has to reach the next letter's start (wordEngine.js `retargetTailEndD`), and a connector made of
+  // several small pieces came out of that with a bump. It leaves along the heading of the bottom and arrives along the heading of the captured exit;
+  // the two handle lengths are fitted to the captured exit's own points (53, 54, 56), so the rise has the shape it had.
+  const p0 = at(22), p3 = at(57);
+  const dir = (a, b) => { const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; };
+  const u0 = dir(cmds[22].n.slice(0, 2), p0), u3 = dir(at(56), p3);
+  const want = [at(53), at(54), at(56)];
+  const bez = (h0, h3, t) => { const c1 = [p0[0] + u0[0] * h0, p0[1] + u0[1] * h0], c2 = [p3[0] - u3[0] * h3, p3[1] - u3[1] * h3], m = 1 - t; return [0, 1].map((k) => m * m * m * p0[k] + 3 * m * m * t * c1[k] + 3 * m * t * t * c2[k] + t * t * t * p3[k]); };
+  let best = null;
+  for (let h0 = 2; h0 <= 24; h0 += 0.5) for (let h3 = 2; h3 <= 24; h3 += 0.5) {
+    const pts = Array.from({ length: 81 }, (_, i) => bez(h0, h3, i / 80));
+    const err = want.reduce((e, w) => e + Math.min(...pts.map((q) => (q[0] - w[0]) ** 2 + (q[1] - w[1]) ** 2)), 0);
+    if (!best || err < best.err) best = { err, h0, h3 };
+  }
+  const link = `C ${f(p0[0] + u0[0] * best.h0)} ${f(p0[1] + u0[1] * best.h0)} ${f(p3[0] - u3[0] * best.h3)} ${f(p3[1] - u3[1] * best.h3)} ${f(p3[0])} ${f(p3[1])}`;
+  const tail = [`M ${foot.map(f).join(" ")}`, ...cmds.slice(16, 23).map(show), link].join(" ");
+  const first = glyph.strokes[0];
+  return { ...glyph, strokes: [{ ...first, d: body }, { ...first, d: tail }, ...glyph.strokes.slice(1)] };
+}
 // The exit of а in the capture: its last straight piece, (135.46, 56.28) -> (153.61, 36) — the angle every connector should rise at.
 const EXIT_RUN = 153.61 - 135.46;
 const EXIT_RISE = 56.28 - 36;
@@ -229,9 +266,10 @@ export function markStem(glyph) {
   }
   return glyph;
 }
-const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, ...rest }) => {
+const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, singleBelly: sb, ...rest }) => {
   let out = liftStart({ ...g, ...rest }, startLift);
   if (startDrop) out = dropStart(out, startDrop);
+  if (sb) out = singleBelly(out);
   if (stemOnLine) out = markStem(out);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
