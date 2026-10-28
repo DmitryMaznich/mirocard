@@ -1795,7 +1795,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             startX = back;
           }
         }
-        // THE WORD SPACE (owner, 2026-10-29): between two tokens (letters, words, a pair «Р р») the LEFT EDGE of the next one (its ink in the narrow row) stands TWO CELLS (2 x 5 mm = 10 mm on any
+        // THE WORD SPACE (owner, 2026-10-29): between two tokens (letters, words, a pair «Р р») the LEFT EDGE of the next one (the start of its letter, or its ink in the narrow row when that reaches further left) stands TWO CELLS (2 x 5 mm = 10 mm on any
         // paper) after the right edge of the one before, taken in the narrow row; the start of the letter keeps its place on its slanted line relative to that edge (`lead`). On the drawn slant grid (dense paper) the edge is counted from the slanted line it lies on
         // (the nearest line within `tol`: the drawings end a little off their line), else from the next line to the right of it, so the next start is on a line again; on
         // any other paper there is no line to keep to: the start is exactly 2 cells after the edge. The same everywhere: between letters, between words, in the pairs of the
@@ -1810,7 +1810,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           let leftU = Infinity;
           const bTop = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
           for (const st of local.strokes) for (const q of samplePath(st.d, 60)) if (q[1] >= bTop - 1e-6 && q[1] <= WIDE_BASELINE_Y + 1e-6) leftU = Math.min(leftU, q[0] + q[1] * WIDE_JOIN_TAN);
-          const lead = Number.isFinite(leftU) ? local.start[0] + local.start[1] * WIDE_JOIN_TAN - leftU : 0; // negative when the ink in the row begins right of the start (г, ч)
+          const lead = Number.isFinite(leftU) ? Math.max(0, local.start[0] + local.start[1] * WIDE_JOIN_TAN - leftU) : 0; // the left edge is the start or, when the ink in the row reaches further left, that (г and ч begin LEFT of their ink in the row: their flag is above it)
           startX = edgeX + (prevToken.bandY - local.start[1]) * WIDE_JOIN_TAN + (2 + pendingGap) * CELL + lead; // every extra space typed (`_N`, the gap of the units of a multiplied row) adds a cell
           if (snapX.drawn) startX = snapStart(startX);
         }
