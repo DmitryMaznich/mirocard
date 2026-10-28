@@ -35,7 +35,7 @@ export const P2_GLYPH_OVERRIDES = {
   // ы = ы1 (ь with the knot at the top of the oval and the connector from it) + ы2 (see `yerLoop`)
   "ы": { compose: ["ы1", "ы2"] },
   // ы2, the stick of ы: the connector of ы1 ends at the TOP of its stem (the start), arriving rising up along the way of the stem (`joinReverse`: the stem opens downwards, the connector comes from below) — a narrow wedge with the stem
-  "ы2": { joinAtStart: true, joinReverse: true, joinArrive: 0.75 },
+  "ы2": { joinAtStart: true, joinReverse: true, joinArrive: 1 },
   "ь": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true, exitNudge: 24 },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
@@ -307,9 +307,9 @@ const withOverride = (g) => {
 // Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit); only the first three are kept.
 const Y_LOOP_POINTS = [
   [147.65, 60.3], [149.6, 58.3], [151.76, 55.5], [154.33, 51.0], [155.75, 48.15], [157.04, 44.2], [158.24, 40.6], [158.88, 37.0], // the right side of the oval, almost straight along the slant
-  [158.35, 34.7], [157.0, 32.3], [155.7, 31.5], [154.4, 32.2], [153.74, 34.15], [154.2, 36.0], [155.7, 36.0], [156.82, 35.13], // its top, the loop against the stem
+  [158.35, 34.7], [157.0, 32.3], [155.7, 31.5], [154.4, 32.2], [153.74, 34.15], [154.2, 36.0], [155.4, 35.75], [156.82, 35.13], // its top, the loop against the stem
 ];
-const Y_LINK = [[161.0, 31.7], [177.4, 18.2], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
+const Y_LINK = [[168.3, 30.0], [175.95, 21.5], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
 export function yerLoop(soft) {
   const c = parseCmds(soft?.strokes?.[0]?.d);
   if (c.length !== 8 || c[1].c !== "L" || c.slice(2).some((x) => x.c !== "C")) return null;
