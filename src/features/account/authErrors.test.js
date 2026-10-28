@@ -8,8 +8,14 @@ describe("authErrorMessage", () => {
   });
 
   it("never shows an unknown English server message", () => {
-    expect(authErrorMessage({ status: 500, message: "Internal server error" }, "Ошибка входа.")).toBe("Ошибка входа.");
-    expect(authErrorMessage(new TypeError("Failed to fetch"), "Ошибка входа.")).toBe("Ошибка входа.");
+    expect(authErrorMessage({ status: 500, message: "Internal server error" }, "Ошибка входа.")).not.toMatch(/Internal/);
+    expect(authErrorMessage({ status: 400, message: "Something odd" }, "Ошибка входа.")).toBe("Ошибка входа.");
+  });
+
+  it("explains network failures and server errors instead of a generic retry", () => {
+    expect(authErrorMessage(new TypeError("Failed to fetch"), "Ошибка входа.")).toMatch(/VPN/);
+    expect(authErrorMessage({ name: "AbortError" }, "Ошибка входа.")).toMatch(/Не удалось связаться/);
+    expect(authErrorMessage({ status: 502, message: "Bad Gateway" }, "Ошибка входа.")).toMatch(/Ошибка на стороне сервера/);
   });
 
   it("distinguishes an expired Google code from a failure after authentication", () => {

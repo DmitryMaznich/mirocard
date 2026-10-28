@@ -18,9 +18,17 @@ export function authErrorKey(error) {
   return MESSAGES[error?.message] ?? null;
 }
 
+// For screens that only have one generic fallback (register, reset password).
+// LoginScreen keeps using authErrorKey: an unknown error there shows a
+// diagnostic code for support instead.
 export function authErrorMessage(error, fallback) {
   const key = authErrorKey(error);
-  return key ? translateUi(key) : fallback;
+  if (key) return translateUi(key);
+  // No HTTP status means the request never got an answer (offline, timeout,
+  // connection reset by a provider or VPN) -- retrying the same way won't help.
+  if (typeof error?.status !== "number") return translateUi("auth.networkError");
+  if (error.status >= 500) return translateUi("auth.serverError");
+  return fallback;
 }
 
 export function googleAuthErrorKey(error) {
