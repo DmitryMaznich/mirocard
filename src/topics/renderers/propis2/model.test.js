@@ -883,3 +883,19 @@ describe("pageMidDash", () => {
     expect(paperKey({ gridKind: "bg", bgDash: true })).not.toBe(paperKey({ gridKind: "bg" }));
   });
 });
+
+describe("the word space on a paper with no drawn lines (2026-10-30)", () => {
+  it("a word stood by the two-cell rule keeps its letters joined: it is the same word as at the start of the row, only moved", () => {
+    const snap = Object.assign((_r, x, y) => Math.round((x + y * TAN25) / 30) * 30 - y * TAN25, {}); // the hidden lattice, no drawn lines
+    const strokes = (line) => layoutWideLinesIntoRows([line], map, snap, false, 1).placed[0].segments[0].strokes.map((st) => st.d);
+    const nums = (d) => d.match(/-?\d*\.?\d+/g).map(Number);
+    for (const [first, word] of [["а", "помогал"], ["мы", "по"], ["с", "путешествие"], ["я", "мальчик"], ["В", "ч"]]) {
+      const alone = strokes(word), after = strokes(`${first} ${word}`).slice(-alone.length);
+      expect(after.length).toBe(alone.length);
+      // every point of every stroke is moved by the SAME amount: the letters stand on one lattice, the joins are as laid out at the start of a row
+      const dx = nums(after[0])[0] - nums(alone[0])[0];
+      alone.forEach((d, i) => nums(d).forEach((v, k) => { if (k % 2 === 0) expect(nums(after[i])[k] - v, `${word} stroke ${i}`).toBeCloseTo(dx, 1); }));
+    }
+  });
+});
+

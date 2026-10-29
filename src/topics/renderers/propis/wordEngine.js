@@ -1658,6 +1658,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let tokenStartX = null;
       let tokenMinX = Infinity;
       let tokenMaxX = -Infinity;
+      let tokenPhase = 0; // how far this token's own slant lattice is shifted from the page's: a token stood by the word-space rule on a paper with no drawn lines is not on the hidden lattice, its letters keep their places on THEIR lattice
       let tokenStrokeFrom = -1; // index of the token's first stroke in `strokes` (the right edge of the token in the narrow row is taken from its strokes)
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
@@ -1726,7 +1727,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // leeway to the right): the connector from the letter before then rises at least as steeply as the join angle, never flatter, and the
         // letter stands one cell closer to it than the nearest line would put it (owner, 2026-10-28)
         const notRight = prevExit && Number.isFinite(glyph.snapNotRight) ? CELL * (glyph.snapNotRight - 0.5) : 0;
-        const snapStart = (x) => snapX(rowIndex, x + (local.stemDx ?? 0) + notRight, local.start[1]) - (local.stemDx ?? 0);
+        const snapStart = (x) => snapX(rowIndex, x - tokenPhase + (local.stemDx ?? 0) + notRight, local.start[1]) + tokenPhase - (local.stemDx ?? 0);
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapStart(wantStartX);
@@ -1814,6 +1815,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const lead = Number.isFinite(leftU) ? Math.max(0, local.start[0] + local.start[1] * WIDE_JOIN_TAN - leftU) : 0; // the left edge is the start or, when the ink in the row reaches further left, that (г and ч begin LEFT of their ink in the row: their flag is above it)
           startX = edgeX + (prevToken.bandY - local.start[1]) * WIDE_JOIN_TAN + (2 + pendingGap) * CELL + lead; // every extra space typed (`_N`, the gap of the units of a multiplied row) adds a cell
           if (snapX.drawn) startX = snapStart(startX);
+          else { tokenPhase = 0; tokenPhase = startX - snapStart(startX); } // no drawn lines: exactly two cells, and the rest of the word is joined on the lattice shifted by that
         }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
@@ -1913,7 +1915,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       }
       // a free tail (end of a word / before a space) is cut by the nearest slant line as well
       if (prevExit && prevExitStroke >= 0) {
-        const snapped = snapX(rowIndex, prevExit[0], prevExit[1]);
+        const snapped = snapX(rowIndex, prevExit[0] - tokenPhase, prevExit[1]) + tokenPhase;
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
       pendingGap = 0;
