@@ -12,7 +12,7 @@ import ParamsScreen from "@/features/session/ParamsScreen";
 import { buildGeneratedSessionState } from "@/features/session/useSessionEngine";
 import { createActiveSessionSnapshot, restoreActiveSessionState } from "@/features/session/activeSession";
 import { computeSessionRecord, handleAnswer } from "@/features/session/sessionEngine";
-import { generateTasks as originalTasks } from "../comparison/engine";
+import { generateTasks as originalTasks, visualModeLevel } from "../comparison/engine";
 import { generateTasks } from "./engine";
 import CompareVisual from "./CompareVisual";
 import CompareSign from "./CompareSign.jsx";
@@ -103,6 +103,10 @@ describe("independent interface and lesson languages", () => {
 
 it("keeps original numerical mechanics for all pilot parameter combinations", () => {
   for (const level of [1, 2, 3, 4]) for (const question of ["more", "less", "mix"]) for (const showEqual of [false, true]) for (const visualMode of ["dots", "dots_numbers", "numbers", "pairing"]) {
+    // Since comparison 2.38.0 the original holds each view to its own levels
+    // (plain dots only on 1, pairs up to 2, dots with a number up to 3); the
+    // pilot copy of 2.37.0 still takes any level, so compare only where both apply.
+    if (visualModeLevel(visualMode, level) !== level) continue;
     const params = { level, question, showEqual, visualMode, contentLanguage: "sl" };
     const random = vi.spyOn(Math, "random").mockImplementation(seedRandom());
     const projection = (tasks) => tasks.map(({ left, right, question, visualMode, showEqual }) => ({ left, right, question, visualMode, showEqual }));

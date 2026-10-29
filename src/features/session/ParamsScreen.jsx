@@ -25,7 +25,7 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
@@ -1385,12 +1385,12 @@ function getModeInstruction(mode) {
 
 function ComparisonParams({ params, onChange }) {
   const { t: tr } = useUiTranslation();
-  const VISUAL_OPTIONS = [
-    { value: "dots",         label: tr("setup.dots") },
-    { value: "dots_numbers", label: tr("setup.dotsNumbers") },
-    { value: "numbers",      label: tr("setup.numbersOnly") },
-    { value: "pairing",      label: tr("setup.pairs") },
-  ];
+  const VISUAL_LABELS = {
+    pairing:      tr("setup.pairs"),
+    dots:         tr("setup.dots"),
+    dots_numbers: tr("setup.dotsNumbers"),
+    numbers:      tr("setup.numbersOnly"),
+  };
 
   const QUESTION_OPTIONS = [
     { value: "more", label: tr("setup.more"),  hint: tr("setup.alwaysMore") },
@@ -1408,7 +1408,9 @@ function ComparisonParams({ params, onChange }) {
 
   const activeModeId     = useAppStore((s) => s.activeModeId);
   const levels           = COMPARISON_LEVELS.filter((l) => l.id !== 5 || PLACE_VALUE_MODE_IDS.includes(activeModeId));
-  const shownLevel       = params.level === 5 && !levels.some((l) => l.id === 5) ? 4 : params.level;
+  const shownLevel       = activeModeId === "compare_visual"
+    ? visualModeLevel(params.visualMode ?? "pairing", params.level ?? 1)
+    : params.level === 5 && !levels.some((l) => l.id === 5) ? 4 : params.level;
   const activeLevel      = levels.find((l) => l.id === shownLevel);
   const isEvaluateMode   = activeModeId === "compare_evaluate";
   const isVisualMode     = activeModeId === "compare_visual";
@@ -1436,12 +1438,18 @@ function ComparisonParams({ params, onChange }) {
   const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
   const multiMode       = isTestMode && (params.examplesCount ?? 1) > 1;
 
-  const currentVisualMode = params.visualMode ?? "dots";
-  const dotsOnly = isVisualMode && currentVisualMode !== "numbers";
+  const currentVisualMode = params.visualMode ?? "pairing";
+  const visualMaxLevel = isVisualMode ? visualModeLevel(currentVisualMode, 4) : 5;
 
+  // Pairs show «поровну» by themselves (every dot paired, none left over),
+  // so the = option comes on with them; the other views keep the setting.
   function handleVisualModeChange(newMode) {
-    const isNewDots = newMode !== "numbers";
-    onChange({ ...params, visualMode: newMode, level: isNewDots && params.level > 2 ? 2 : params.level });
+    onChange({
+      ...params,
+      visualMode: newMode,
+      level: visualModeLevel(newMode, params.level ?? 1),
+      showEqual: newMode === "pairing" ? true : params.showEqual,
+    });
   }
 
   return (
@@ -1462,7 +1470,7 @@ function ComparisonParams({ params, onChange }) {
                   <button
                     key={lvl.id}
                     className={`enum-btn enum-btn--compact ${shownLevel === lvl.id ? "enum-btn--active" : ""}`}
-                    disabled={dotsOnly && lvl.id > 2}
+                    disabled={lvl.id > visualMaxLevel}
                     onClick={() => onChange({ ...params, level: lvl.id })}
                   >
                     {lvl.id}
@@ -1470,7 +1478,7 @@ function ComparisonParams({ params, onChange }) {
                 ))}
               </div>
               {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
-              {dotsOnly && <div className="param-hint">{tr("setup.levelRestriction")}</div>}
+              {visualMaxLevel < 4 && <div className="param-hint">{tr(`setup.levelRestriction.${currentVisualMode}`)}</div>}
             </div>
 
             {/* compare_apply never reads showEqual (see engine.js's
@@ -1583,13 +1591,13 @@ function ComparisonParams({ params, onChange }) {
           <div className="param-label">{tr("setup.view")}</div>
           <div className="param-enum-section">
             <div className="param-enum-group">
-              {VISUAL_OPTIONS.map((opt) => (
+              {VISUAL_MODES.map(({ value }) => (
                 <button
-                  key={opt.value}
-                  className={`enum-btn ${currentVisualMode === opt.value ? "enum-btn--active" : ""}`}
-                  onClick={() => handleVisualModeChange(opt.value)}
+                  key={value}
+                  className={`enum-btn ${currentVisualMode === value ? "enum-btn--active" : ""}`}
+                  onClick={() => handleVisualModeChange(value)}
                 >
-                  {opt.label}
+                  {VISUAL_LABELS[value]}
                 </button>
               ))}
             </div>
@@ -1727,7 +1735,10 @@ export default function ParamsScreen() {
     if (isComparison) {
       // compare_visual's own methodology recommends starting at level 1
       // (diff >= 5, most contrastive) — other modes keep the general default.
-      const defaultLevel = activeModeId === "compare_visual" ? 1 : 2;
+      const isVisualMode = activeModeId === "compare_visual";
+      const defaultLevel = isVisualMode ? 1 : 2;
+      // «Сравни и нажми» starts with pairs, and pairs come with «поровну».
+      const visualMode = saved.visualMode ?? (isVisualMode ? "pairing" : "dots");
       // examplesCount is stored on the shared per-topic params object (this
       // link key isn't per-mode), but only "Контрольная работа" exposes a
       // control for it — force it to that mode's fixed shape on entry so a
@@ -1752,9 +1763,9 @@ export default function ParamsScreen() {
       return {
         level:         saved.level         ?? defaultLevel,
         question:      saved.question      ?? "more",
-        showEqual:     saved.showEqual     ?? false,
+        showEqual:     saved.showEqual     ?? (isVisualMode && visualMode === "pairing"),
         wordsVerdict:  saved.wordsVerdict  ?? false,
-        visualMode:    saved.visualMode    ?? "dots",
+        visualMode,
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",

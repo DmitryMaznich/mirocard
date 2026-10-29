@@ -32,6 +32,24 @@ const PLACE_TRAPS = [
 // earlier steps (quantities, the crocodile, drawing), «Применяем» works on a range.
 export const PLACE_VALUE_MODE_IDS = ["compare_evaluate", "compare_test"];
 
+// «Сравни и нажми» (compare_visual): its views in teaching order, each with
+// the highest level it makes sense on. Pairs come first — matching one to one
+// needs no counting, so they work on any difference up to 10. Plain dots only
+// on level 1: 9 and 10 scattered dots can't be told apart by eye, the child
+// would just guess. A number under the dots allows counting, so up to 20.
+// Numbers alone are the bridge to the crocodile step and take any range.
+export const VISUAL_MODES = [
+  { value: "pairing",      maxLevel: 2 },
+  { value: "dots",         maxLevel: 1 },
+  { value: "dots_numbers", maxLevel: 3 },
+  { value: "numbers",      maxLevel: 4 },
+];
+
+export function visualModeLevel(visualMode, level) {
+  const maxLevel = VISUAL_MODES.find((v) => v.value === visualMode)?.maxLevel ?? 1;
+  return Math.min(level, maxLevel);
+}
+
 export function placeValuePair(usedPairs) {
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
     const pair = Math.random() < 0.5 ? PLACE_TRAPS[rnd(0, PLACE_TRAPS.length - 1)]() : [rnd(100, 999), rnd(100, 999)];
@@ -415,7 +433,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     : 1;
   const showLabels = isVerbal ? (sessionParams.showLabels !== false) : false;
 
-  const levelId    = level === 5 && !PLACE_VALUE_MODE_IDS.includes(mode.id) ? 4 : level;
+  const levelId    = mode.type === "compare_visual"
+    ? visualModeLevel(visualMode, level)
+    : level === 5 && !PLACE_VALUE_MODE_IDS.includes(mode.id) ? 4 : level;
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === levelId) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
   const card       = resolveComparisonCard(mode, cards, sessionParams);

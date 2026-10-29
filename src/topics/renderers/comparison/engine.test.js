@@ -142,7 +142,7 @@ describe("generateTasks", () => {
   });
 
   it("level (not the card) controls the numeric range — level 4 reaches two-digit numbers", () => {
-    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 30, { level: 4 });
+    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 30, { level: 4, visualMode: "numbers" });
     tasks.forEach(({ left, right }) => {
       expect(left).toBeGreaterThanOrEqual(10);
       expect(left).toBeLessThanOrEqual(99);

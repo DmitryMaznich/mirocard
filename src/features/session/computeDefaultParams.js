@@ -1,8 +1,10 @@
 export function computeDefaultParams(topicRecord, mode) {
   const renderer = topicRecord?.meta?.renderer;
   if (renderer === "comparison") {
-    return { level: 2, question: "more", showEqual: false, wordsVerdict: false,
-             visualMode: "dots", examplesCount: 1, showLabels: true, style: "sign" };
+    // «Сравни и нажми» starts with pairs at level 1, and pairs come with «поровну».
+    const isVisual = mode?.id === "compare_visual";
+    return { level: isVisual ? 1 : 2, question: "more", showEqual: isVisual, wordsVerdict: false,
+             visualMode: isVisual ? "pairing" : "dots", examplesCount: 1, showLabels: true, style: "sign" };
   }
   const out = {};
   for (const [key, def] of Object.entries(mode?.params ?? {})) {
