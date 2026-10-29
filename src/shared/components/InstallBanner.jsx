@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useInstallPrompt } from "@/shared/hooks/useInstallPrompt";
 import IosInstallGuideModal from "@/shared/components/IosInstallGuideModal";
 import FirefoxInstallGuideModal from "@/shared/components/FirefoxInstallGuideModal";
+import AndroidInstallGuideModal from "@/shared/components/AndroidInstallGuideModal";
 
 export default function InstallBanner() {
-  const { visible, install, dismiss, isIos, isIosNonSafari, isFirefoxAndroid, hasNativePrompt } = useInstallPrompt();
+  const { visible, install, dismiss, isIos, isIosNonSafari, isAndroid, isFirefoxAndroid, hasNativePrompt } = useInstallPrompt();
   const [showGuide, setShowGuide] = useState(false);
 
   if (!visible) return null;
@@ -38,6 +39,9 @@ export default function InstallBanner() {
       )}
       {isFirefoxAndroid && !hasNativePrompt && (
         <FirefoxInstallGuideModal visible={showGuide} onClose={() => setShowGuide(false)} />
+      )}
+      {isAndroid && !isFirefoxAndroid && !hasNativePrompt && (
+        <AndroidInstallGuideModal visible={showGuide} onClose={() => setShowGuide(false)} />
       )}
     </>
   );

@@ -18,11 +18,12 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   localStorage.clear();
+  sessionStorage.clear();
 });
 
-function renderBanner(userAgent) {
+function renderBanner(userAgent, displayMode = "browser") {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(userAgent);
-  vi.stubGlobal("matchMedia", () => ({ matches: false }));
+  vi.stubGlobal("matchMedia", (query) => ({ matches: query === `(display-mode: ${displayMode})` }));
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -44,7 +45,7 @@ it("opens and closes the Firefox-specific guide instead of silently invoking an 
 
 it("preserves Chromium's native install confirmation", async () => {
   renderBanner("Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36");
-  expect(container.textContent).toBe("");
+  expect(container.textContent).toContain("Установить приложение");
   const prompt = vi.fn();
   const event = new Event("beforeinstallprompt", { cancelable: true });
   Object.assign(event, { prompt, userChoice: Promise.resolve({ outcome: "accepted" }) });
@@ -53,4 +54,39 @@ it("preserves Chromium's native install confirmation", async () => {
   await act(async () => button.click());
   expect(prompt).toHaveBeenCalledOnce();
   expect(container.textContent).toBe("");
+});
+
+it("opens the Android guide while Chrome has no native install prompt yet", () => {
+  renderBanner("Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36");
+  act(() => Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Установить").click());
+  expect(container.querySelector('[role="dialog"]').textContent).toContain("Установка на Android");
+});
+
+it("never displays the banner on desktop, even if the browser offers installation", () => {
+  renderBanner("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36");
+  const event = new Event("beforeinstallprompt", { cancelable: true });
+  Object.assign(event, { prompt: vi.fn(), userChoice: Promise.resolve({ outcome: "accepted" }) });
+  act(() => window.dispatchEvent(event));
+  expect(container.textContent).toBe("");
+  expect(event.defaultPrevented).toBe(false);
+});
+
+it.each(["standalone", "fullscreen"])("hides the banner in an installed Android app (%s)", (displayMode) => {
+  renderBanner("Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36", displayMode);
+  expect(container.textContent).toBe("");
+});
+
+it("closing the banner persists only in this tab and survives navigating away and back", () => {
+  renderBanner("Mozilla/5.0 (Android 15; Mobile; rv:147.0) Gecko/147.0 Firefox/147.0");
+  act(() => container.querySelector('button[aria-label="Закрыть"]').click());
+  expect(container.textContent).toBe("");
+  expect(sessionStorage.getItem("installBannerDismissedInTab")).toBe("1");
+  expect(localStorage.getItem("installBannerDismissedAt")).toBeNull();
+  act(() => root.render(<div />));
+  act(() => root.render(<InstallBanner />));
+  expect(container.textContent).toBe("");
+  sessionStorage.clear();
+  act(() => root.render(<div />));
+  act(() => root.render(<InstallBanner />));
+  expect(container.textContent).toContain("Установить приложение");
 });

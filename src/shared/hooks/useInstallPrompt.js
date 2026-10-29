@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const DISMISS_KEY = "installBannerDismissedAt";
-const DISMISS_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+const DISMISS_KEY = "installBannerDismissedInTab";
 
 function isIosDevice() {
   if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream) return true;
@@ -22,10 +21,9 @@ function isStandalone() {
     Boolean(navigator.standalone);
 }
 
-function wasDismissedRecently() {
+function wasDismissedInTab() {
   try {
-    const ts = Number(localStorage.getItem(DISMISS_KEY));
-    return ts > 0 && Date.now() - ts < DISMISS_TTL_MS;
+    return sessionStorage.getItem(DISMISS_KEY) === "1";
   } catch {
     return false;
   }
@@ -33,14 +31,18 @@ function wasDismissedRecently() {
 
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [dismissed, setDismissed] = useState(wasDismissedRecently);
+  const [dismissed, setDismissed] = useState(wasDismissedInTab);
   const [installed, setInstalled] = useState(isStandalone);
   const isIos = isIosDevice();
   const isIosNonSafari = isIos && isIosNonSafariBrowser();
-  const isFirefoxAndroid = /Android/i.test(navigator.userAgent) && /Firefox\//i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isFirefoxAndroid = isAndroid && /Firefox\//i.test(navigator.userAgent);
+  // A narrow desktop window or a touch-enabled Windows laptop is still a PC.
+  // Android tablets and desktop-mode iPads retain the mobile guide.
+  const isMobileDevice = isIos || isAndroid;
 
   useEffect(() => {
-    if (installed || dismissed) return;
+    if (!isMobileDevice || installed || dismissed) return;
 
     function onBeforeInstall(e) {
       e.preventDefault();
@@ -58,7 +60,7 @@ export function useInstallPrompt() {
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
       window.removeEventListener("appinstalled", onAppInstalled);
     };
-  }, [installed, dismissed]);
+  }, [isMobileDevice, installed, dismissed]);
 
   const install = useCallback(async () => {
     if (!deferredPrompt) return;
@@ -69,13 +71,14 @@ export function useInstallPrompt() {
   }, [deferredPrompt]);
 
   const dismiss = useCallback(() => {
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch {}
+    try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch {}
     setDismissed(true);
     setDeferredPrompt(null);
   }, []);
 
-  const visible = !installed && !dismissed && (deferredPrompt != null || isIos || isFirefoxAndroid);
+  // Phones/tablets can open a guide before a native install prompt is ready.
+  const visible = isMobileDevice && !installed && !dismissed;
 
-  return { visible, install, dismiss, isIos, isIosNonSafari, isFirefoxAndroid, hasNativePrompt: deferredPrompt != null };
+  return { visible, install, dismiss, isIos, isIosNonSafari, isAndroid, isFirefoxAndroid, hasNativePrompt: deferredPrompt != null };
 }
 
