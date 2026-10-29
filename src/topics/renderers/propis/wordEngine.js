@@ -1172,6 +1172,84 @@ function retargetTailEndD(d, target, dirUnit, arrive = 0.5) {
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
 
+// The first BEND_AT of the last cubic of a connector stays exactly as captured (its straight rise), only the rest bends: it eases from that direction into
+// `dirUnit`, so the pen arrives along the opening direction of the next letter (`joinSmooth`, ч). The length of the connector does not change.
+const BEND_AT = 0.62; // the larger the turn, the more of the curve is bent (BEND_AT is the share kept as captured at turns up to 30 degrees)
+function bendTailEndD(d, target, dirUnit) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const n = toks.length;
+  if (n < 9 || toks[n - 7] !== "C") return null;
+  const v = [...toks.slice(n - 9, n - 7), ...toks.slice(n - 6)].map(parseFloat); // p0 (x y), c1, c2, end
+  if (v.length !== 8) return null;
+  const [p0, c1, c2] = [[v[0], v[1]], [v[2], v[3]], [v[4], v[5]]];
+  const ea = Math.atan2(target[1] - c2[1], target[0] - c2[0]), da = Math.atan2(dirUnit[1], dirUnit[0]);
+  const turn = (Math.abs(((ea - da + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * 180) / Math.PI; // the corner the captured end would make with the next letter's opening
+  const at = Math.min(BEND_AT, Math.max(0.15, BEND_AT - (turn - 30) * 0.012));
+  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  // de Casteljau at t = BEND_AT: the left part is the captured curve itself
+  const e = [target[0], target[1]];
+  const a1 = lerp(p0, c1, at), a2 = lerp(c1, c2, at), a3 = lerp(c2, e, at);
+  const b1 = lerp(a1, a2, at), b2 = lerp(a2, a3, at);
+  const m = lerp(b1, b2, at);
+  const tl = Math.hypot(b2[0] - b1[0], b2[1] - b1[1]) || 1;
+  const tu = [(b2[0] - b1[0]) / tl, (b2[1] - b1[1]) / tl];
+  const rest = Math.hypot(e[0] - m[0], e[1] - m[1]);
+  if (rest < 2) return null;
+  const f = (x) => String(Number(x.toFixed(3)));
+  const head = toks.slice(0, n - 7).join(" ");
+  const seg1 = `C ${[a1, b1, m].flat().map(f).join(" ")}`;
+  const seg2 = `C ${[[m[0] + tu[0] * rest * 0.3, m[1] + tu[1] * rest * 0.3], [e[0] - dirUnit[0] * rest * 0.4, e[1] - dirUnit[1] * rest * 0.4], e].flat().map(f).join(" ")}`;
+  return `${head} ${seg1} ${seg2}`;
+}
+
+// The apex of the first rise of a path: where it first stops going up (the top of the stem of ч, the point its flag turns at). Returns the point, the
+// direction of the rise into it and the path continued from there (the rise itself is cut off), or null when the path does not rise and turn.
+function cutAtApex(d) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const segs = [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 2 || segs[0].c !== "M") return null;
+  const start = segs[0].v;
+  let p0 = start, falling = false;
+  for (let si = 1; si < segs.length; si += 1) {
+    const [x1, y1, x2, y2, x3, y3] = segs[si].v;
+    const at = (t) => { const u = 1 - t; return [u * u * u * p0[0] + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * p0[1] + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3]; };
+    let prev = at(0);
+    for (let k = 1; k <= 24; k += 1) {
+      const t = k / 24, q = at(t);
+      if (q[1] < prev[1] - 1e-6) falling = true; // y decreasing = going up the page
+      else if (falling && q[1] > prev[1] + 1e-6) {
+        const tk = (k - 1) / 24, u = 1 - tk;
+        const lerp = (a, b) => [a[0] + (b[0] - a[0]) * tk, a[1] + (b[1] - a[1]) * tk];
+        const a1 = lerp(p0, [x1, y1]), a2 = lerp([x1, y1], [x2, y2]), a3 = lerp([x2, y2], [x3, y3]);
+        const b1 = lerp(a1, a2), b2 = lerp(a2, a3);
+        const apex = lerp(b1, b2);
+        void u;
+        const dl = Math.hypot(apex[0] - start[0], apex[1] - start[1]) || 1;
+        const f = (x) => String(Number(x.toFixed(3)));
+        const head = `M ${f(apex[0])} ${f(apex[1])} C ${[b2, a3, [x3, y3]].flat().map(f).join(" ")}`;
+        const tail = segs.slice(si + 1).map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
+        return { apex, dir: [(apex[0] - start[0]) / dl, (apex[1] - start[1]) / dl], rest: `${head} ${tail}`.trim() };
+      }
+      prev = q;
+    }
+    p0 = [x3, y3];
+  }
+  return null;
+}
+
+// y where the last cubic of a path starts (the loop of a descender: the tail runs from deep under the line to the exit)
+function lastCubicStartY(d) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const n = toks.length;
+  return toks.length >= 14 && toks[n - 7] === "C" ? parseFloat(toks[n - 8]) : -Infinity;
+}
+
 // The last cubic's end (and its second control, by the same amount) moved onto `target`: the shape is kept.
 function moveTailEndD(d, target) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
@@ -1658,6 +1736,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let tokenStartX = null;
       let tokenMinX = Infinity;
       let tokenMaxX = -Infinity;
+      let tokenPhase = 0; // how far this token's own slant lattice is shifted from the page's: a token stood by the word-space rule on a paper with no drawn lines is not on the hidden lattice, its letters keep their places on THEIR lattice
       let tokenStrokeFrom = -1; // index of the token's first stroke in `strokes` (the right edge of the token in the narrow row is taken from its strokes)
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
@@ -1726,7 +1805,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // leeway to the right): the connector from the letter before then rises at least as steeply as the join angle, never flatter, and the
         // letter stands one cell closer to it than the nearest line would put it (owner, 2026-10-28)
         const notRight = prevExit && Number.isFinite(glyph.snapNotRight) ? CELL * (glyph.snapNotRight - 0.5) : 0;
-        const snapStart = (x) => snapX(rowIndex, x + (local.stemDx ?? 0) + notRight, local.start[1]) - (local.stemDx ?? 0);
+        const snapStart = (x) => snapX(rowIndex, x - tokenPhase + (local.stemDx ?? 0) + notRight, local.start[1]) + tokenPhase - (local.stemDx ?? 0);
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapStart(wantStartX);
@@ -1814,6 +1893,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const lead = Number.isFinite(leftU) ? Math.max(0, local.start[0] + local.start[1] * WIDE_JOIN_TAN - leftU) : 0; // the left edge is the start or, when the ink in the row reaches further left, that (г and ч begin LEFT of their ink in the row: their flag is above it)
           startX = edgeX + (prevToken.bandY - local.start[1]) * WIDE_JOIN_TAN + (2 + pendingGap) * CELL + lead; // every extra space typed (`_N`, the gap of the units of a multiplied row) adds a cell
           if (snapX.drawn) startX = snapStart(startX);
+          else { tokenPhase = 0; tokenPhase = startX - snapStart(startX); } // no drawn lines: exactly two cells, and the rest of the word is joined on the lattice shifted by that
         }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
@@ -1826,7 +1906,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // its own captured path from its start point (it retraces the stem above the contact).
           // candidates: every place the next stroke crosses the tail's height, plus (when the stroke starts lower than
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
-          const st0h = getPathEndpoints(moved[0].d).start;
+          let st0h = getPathEndpoints(moved[0].d).start;
+          // `joinToApex` (ч): joined to the letter before, it begins at the TOP of its stem (the flag): the connector goes up there by itself and the stem
+          // is not written again from the middle line. Alone, ч keeps its start on the middle line
+          const apexCut = glyph.joinToApex ? cutAtApex(moved[0].d) : null;
+          if (apexCut) { moved[0] = { ...moved[0], d: apexCut.rest }; st0h = apexCut.apex; }
+          // the tail of a descender (у д з) is ONE long cubic from the loop under the line: rebuilding it from its start (retargetTailEndD), or pulling its last piece onto the next stem (alignLastPieceD), swallowed the loop (з before е ё), so only its end is moved
+          const descTail = lastCubicStartY(strokes[prevExitStroke].d) > WIDE_BASELINE_Y + 4 * scale;
           const riseToStart = prevExit[1] - st0h[1];
           if (!glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
@@ -1835,8 +1921,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // the tail already ends (almost) at that start (`propis2` г starts where exits end): keep the tail's own shape, only
               // move its end there; reshaping it from its launch flattened о's connector into a long low line
               // `joinReverse` (ы2): the letter opens DOWNWARDS (a stem from its top), the connector comes from below: the arrival direction is the opening direction turned round
-              const near = Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale;
-              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
+              const near = !glyph.joinSmooth && Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale; // `joinSmooth` (ч): even a tail that already ends on the start is bent to enter along the opening direction
+              const d3 = apexCut && !descTail ? retargetTailEndD(strokes[prevExitStroke].d, st0h, apexCut.dir, glyph.joinArrive) : glyph.joinSmooth && !descTail ? bendTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]) : near || descTail ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
@@ -1849,7 +1935,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const sampled = samplePath(moved[0].d, 30);
           const rp = sampled.find((q) => Math.hypot(q[0] - st0[0], q[1] - st0[1]) > 6);
           // (`curNoAlign`, ъ: its connector begins with the second pass over the bottom of the belly, which this would drag sideways off the first pass)
-          if (!highJoined && !curNoAlign && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
+          if (!highJoined && !curNoAlign && !descTail && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
             const slope = (rp[0] - st0[0]) / (st0[1] - rp[1]); // dx per unit of rise
             const rising = Math.atan2(st0[1] - rp[1], rp[0] - st0[0]) * (180 / Math.PI);
             if (rising > 30 && rising < 70) {
@@ -1913,7 +1999,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       }
       // a free tail (end of a word / before a space) is cut by the nearest slant line as well
       if (prevExit && prevExitStroke >= 0) {
-        const snapped = snapX(rowIndex, prevExit[0], prevExit[1]);
+        const snapped = snapX(rowIndex, prevExit[0] - tokenPhase, prevExit[1]) + tokenPhase;
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
       pendingGap = 0;

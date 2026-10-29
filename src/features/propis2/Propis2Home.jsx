@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, screenPagesOf as screenPagesOfPage, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
@@ -263,7 +263,7 @@ export default function Propis2Home({ db }) {
     setShownPage(0);
     setView({ name: "showSet", setId: st.id, ...extra });
   };
-  const screenPagesOf = (pg) => Math.max(1, Math.ceil(pageToLines(pg, glyphMap).length / rowsPerPage(pg)));
+  const screenPagesOf = (pg) => screenPagesOfPage(pg, glyphMap);
   const openReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps); startSession(st.id, lib); showNotebook(st, new Map(lib.pages.map((p) => [p.id, p])), { from: "library" }); };
   const editReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps); startSession(st.id, lib); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); };
   // a new page is a notebook of one page (there is no page outside a notebook); it is not in the list until it is confirmed
@@ -320,7 +320,7 @@ export default function Propis2Home({ db }) {
   const squaredFirst = Boolean(coverFirstPage) && taskGrid(coverFirstPage) === "square";
   const printCfg = { numbers: true, booklet: false, ...(printKey ? printCfgs[printKey] : null) };
   // the pages printed: the notebook's screen pages, or the one page's
-  const printPageCount = view.name === "showSet" && set ? sections?.total ?? 0 : page ? Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page))) : 0;
+  const printPageCount = view.name === "showSet" && set ? sections?.total ?? 0 : page ? screenPagesOfPage(page, glyphMap) : 0;
   // its first page gives the spine its paper (when the cover says "as in the notebook"); the pages and the print mode give the leaves
   const coverNotebook = useMemo(() => {
     if (!printKey || !coverFirstPage) return null;
