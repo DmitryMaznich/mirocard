@@ -643,6 +643,33 @@
   50%      { height: 70%; opacity: 1; }
 }
 
+/* `propis2` «По слогам»: a second, quieter repeat under the diktor circle (outlined, so the circle stays the main one). */
+.propis-dictation-syllables {
+  appearance: none;
+  min-height: 48px;
+  padding: 10px 26px;
+  border: 2px solid #4a9b8f;
+  border-radius: 999px;
+  background: #fff;
+  color: #2f6f65;
+  font-family: "Nunito", sans-serif;
+  font-size: clamp(16px, 4vw, 19px);
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.propis-dictation-syllables:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.propis-dictation-syllables:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .propis-dictation-actions {
   display: flex;
   flex-direction: column;

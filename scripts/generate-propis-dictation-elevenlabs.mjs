@@ -27,6 +27,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned
 const MODEL_ID = "eleven_v4";
 const TAG = "[calm, clear, like a teacher dictating to a class]";
+// a lone syllable; the class-dictation tag made it repeat the syllable or read it as a word (pilot 2026-10-29). The raw clips still
+// need scripts/trim-dictation-syllables.mjs (cut at the first pause: a take can say the syllable twice).
+const SYLLABLE_TAG = "[calm, clear, like a teacher dictating to a first-grader]";
 const MAX_RETRIES = 4;
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => {
@@ -81,7 +84,7 @@ function buildEntries() {
       for (const syl of w.syllables.map((x) => x.toLowerCase())) {
         if (seen.has(syl) || (IDS && !IDS.has(syl))) continue;
         seen.add(syl);
-        entries.push({ key: syllableDictationKey(syl), text: `${capitalize(syl)}.` });
+        entries.push({ key: syllableDictationKey(syl), text: `${capitalize(syl)}.`, tag: SYLLABLE_TAG });
       }
     }
   }
@@ -90,13 +93,13 @@ function buildEntries() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function synthesize(text) {
+async function synthesize(text, tag = TAG) {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`;
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "audio/mpeg", ...(apiKey ? { "xi-api-key": apiKey } : {}) },
-      body: JSON.stringify({ text: `${TAG} ${text}`, model_id: MODEL_ID }),
+      body: JSON.stringify({ text: `${tag} ${text}`, model_id: MODEL_ID }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
     const body = await res.text();
@@ -111,12 +114,12 @@ async function synthesize(text) {
 const entries = buildEntries();
 mkdirSync(OUT_DIR, { recursive: true });
 let made = 0, skipped = 0;
-for (const { key, text } of entries) {
+for (const { key, text, tag } of entries) {
   for (let take = 1; take <= TAKES; take++) {
     const file = join(OUT_DIR, `${key}${take > 1 ? `__${take}` : ""}.mp3`);
     if (existsSync(file) && !args.force) { skipped++; continue; }
-    if (args["dry-run"]) { console.log(`${file.slice(ROOT.length + 1)}  ←  ${TAG} ${text}`); continue; }
-    writeFileSync(file, await synthesize(text));
+    if (args["dry-run"]) { console.log(`${file.slice(ROOT.length + 1)}  ←  ${tag ?? TAG} ${text}`); continue; }
+    writeFileSync(file, await synthesize(text, tag));
     made++;
     console.log(`✓ ${key}${take > 1 ? ` (take ${take})` : ""}  ${text}`);
   }

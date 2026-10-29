@@ -81,3 +81,18 @@ describe("«Диктовать знаки препинания» (2026-10-15)", 
     for (const x of topic.texts) for (const ch of x.text.replace(/\s/g, "")) expect(map.has(ch) || map.has(ch.toLowerCase()), `${x.id} ${ch}`).toBe(true);
   });
 });
+
+describe("«По слогам» (2026-10-29)", () => {
+  const words = generateTasks(mode("dictation"), rec, 500, { level: "words", itemCount: 1000 })[0].items;
+  it("a word of two or more syllables gets one clip per syllable, a pause between them, none after the last", () => {
+    const milk = words.find((it) => it.display === "молоко");
+    expect(milk.syllableAudio.map((a) => a.key)).toEqual(["syl_мо", "syl_ло", "syl_ко"]);
+    expect(milk.syllableAudio.map((a) => a.pauseAfterMs)).toEqual([450, 450, 0]);
+    expect(words.find((it) => it.display === "Маша").syllableAudio[0].key).toBe("syl_ма");
+    expect(words.find((it) => it.display === "дом").syllableAudio).toBeUndefined();
+  });
+  it("every syllable split spells its word and every syllable clip exists", () => {
+    for (const w of topic.words) expect(w.syllables.join(""), w.id).toBe(w.word);
+    for (const it of words) for (const a of it.syllableAudio ?? []) expect(existsSync(`public/audio/propis-dictation/${a.key}.mp3`), a.key).toBe(true);
+  });
+});
