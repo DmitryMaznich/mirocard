@@ -18,6 +18,7 @@ function isIosNonSafariBrowser() {
 
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
     Boolean(navigator.standalone);
 }
 
@@ -36,6 +37,7 @@ export function useInstallPrompt() {
   const [installed, setInstalled] = useState(isStandalone);
   const isIos = isIosDevice();
   const isIosNonSafari = isIos && isIosNonSafariBrowser();
+  const isFirefoxAndroid = /Android/i.test(navigator.userAgent) && /Firefox\//i.test(navigator.userAgent);
 
   useEffect(() => {
     if (installed || dismissed) return;
@@ -72,7 +74,8 @@ export function useInstallPrompt() {
     setDeferredPrompt(null);
   }, []);
 
-  const visible = !installed && !dismissed && (deferredPrompt != null || isIos);
+  const visible = !installed && !dismissed && (deferredPrompt != null || isIos || isFirefoxAndroid);
 
-  return { visible, install, dismiss, isIos, isIosNonSafari, hasNativePrompt: deferredPrompt != null };
+  return { visible, install, dismiss, isIos, isIosNonSafari, isFirefoxAndroid, hasNativePrompt: deferredPrompt != null };
 }
+
