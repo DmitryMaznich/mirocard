@@ -1179,7 +1179,7 @@ function bendTailEndD(d, target, dirUnit) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const n = toks.length;
   if (n < 9 || toks[n - 7] !== "C") return null;
-  const v = toks.slice(n - 8).filter((t) => t !== "C").map(parseFloat); // p0 (x y), c1, c2, end
+  const v = [...toks.slice(n - 9, n - 7), ...toks.slice(n - 6)].map(parseFloat); // p0 (x y), c1, c2, end
   if (v.length !== 8) return null;
   const [p0, c1, c2] = [[v[0], v[1]], [v[2], v[3]], [v[4], v[5]]];
   const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
@@ -1193,7 +1193,7 @@ function bendTailEndD(d, target, dirUnit) {
   const rest = Math.hypot(e[0] - m[0], e[1] - m[1]);
   if (rest < 2) return null;
   const f = (x) => String(Number(x.toFixed(3)));
-  const head = toks.slice(0, n - 8).join(" ");
+  const head = toks.slice(0, n - 7).join(" ");
   const seg1 = `C ${[a1, b1, m].flat().map(f).join(" ")}`;
   const seg2 = `C ${[[m[0] + tu[0] * rest * 0.3, m[1] + tu[1] * rest * 0.3], [e[0] - dirUnit[0] * rest * 0.4, e[1] - dirUnit[1] * rest * 0.4], e].flat().map(f).join(" ")}`;
   return `${head} ${seg1} ${seg2}`;
