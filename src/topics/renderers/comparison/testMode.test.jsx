@@ -10,12 +10,14 @@ const relation = (l, r) => (l === r ? "equal" : l < r ? "less" : "more");
 const swapped = ({ left, right }) => left !== right && String(left).split("").reverse().join("") === String(right);
 
 describe("Сравнение — «Контрольная работа»: лист", () => {
-  it("is one sheet, whatever level another mode left behind", () => {
-    const tasks = generateTasks(MODE_TEST, cards, 500, { level: 5, testRange: 20, examplesCount: 8 });
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].isTest).toBe(true);
-    expect(tasks[0].items).toHaveLength(8);
-    expect(tasks[0].items.every((i) => i.left <= 20 && i.right <= 20)).toBe(true);
+  it("gives sheet after sheet, whatever level another mode left behind", () => {
+    const tasks = generateTasks(MODE_TEST, cards, 20, { level: 5, testRange: 20, examplesCount: 8 });
+    expect(tasks).toHaveLength(20);
+    tasks.forEach((t) => {
+      expect(t.isTest).toBe(true);
+      expect(t.items).toHaveLength(8);
+      expect(t.items.every((i) => i.left <= 20 && i.right <= 20)).toBe(true);
+    });
   });
 
   it("mixes every step up to the ceiling and always has «равно»", () => {
@@ -75,7 +77,7 @@ describe("Сравнение — «Контрольная работа»: экр
 });
 
 describe("Сравнение — «Контрольная работа»: опубликованная тема", () => {
-  it("the published ZIP installs the test as a finite lesson", async () => {
+  it("the published ZIP installs the test as an ordinary, open-ended lesson", async () => {
     const { readFile } = await import("node:fs/promises");
     const { resolve, basename } = await import("node:path");
     const { openDb } = await import("@/core/db");
@@ -85,7 +87,7 @@ describe("Сравнение — «Контрольная работа»: опу
     const db = await openDb(`comparison-test-${Math.random()}`);
     const record = await importTopic(db, await readFile(resolve("public/decks", basename(deck.url))), "99.0.0");
     const test = record.modes.find((m) => m.id === "compare_test");
-    expect(test.finite).toBe(true);
+    expect(test.finite).toBeFalsy();
     const ids = record.modes.map((m) => m.id);
     expect(ids.indexOf("compare_evaluate")).toBeLessThan(ids.indexOf("compare_draw_sign"));
   });

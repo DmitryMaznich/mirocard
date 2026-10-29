@@ -263,7 +263,11 @@
   transition: background 0.15s;
 }
 .cfn-multi-row--active { background: #f8fafc; }
-.cfn-multi-num  { min-width: 0; flex-shrink: 1; font-size: clamp(13px, 56cqh, 34px); font-weight: 900; color: #1e293b; text-align: center; }
+/* Both numbers take equal halves around the sign square and hug it, so the
+   squares line up in one column down the sheet whatever the numbers' width
+   (7 against 305 used to shift the square sideways). */
+.cfn-multi-num  { flex: 1 1 0; min-width: 0; font-size: clamp(13px, 56cqh, 34px); font-weight: 900; color: #1e293b; text-align: right; white-space: nowrap; }
+.cfn-multi-sign + .cfn-multi-num { text-align: left; }
 .cfn-multi-sign { align-self: stretch; aspect-ratio: 1; flex-shrink: 0; border-radius: 12px; border: 2.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: clamp(11px, 42cqh, 24px); font-weight: 900; color: #94a3b8; background: #fff; transition: background 0.2s, border-color 0.2s, color 0.2s; }
 .cfn-multi-sign--active { border-style: solid; border-color: #f59e0b; background: #fef9c3; color: #d97706; }
 .cfn-multi-sign--done   { border-style: solid; border-color: #86efac; color: #16a34a; background: #f0fdf4; }

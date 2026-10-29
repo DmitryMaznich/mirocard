@@ -401,7 +401,7 @@ function* shuffledSceneCycle() {
   }
 }
 
-// «Контрольная работа»: one sheet, the whole lesson. Not one level but a mix
+// «Контрольная работа»: a sheet is one test. Not one level but a mix
 // of every step up to the chosen ceiling, so a test «до 100» still checks
 // numbers up to 10 and 20; the top range gets the most rows. Every sheet has
 // pairs on «равно» (one in short sheets, two from six rows), and from «до 100»
@@ -513,14 +513,17 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     if (!card) return [];
     const range = TEST_RANGES.includes(sessionParams.testRange) ? sessionParams.testRange : 20;
     const examples = Math.max(4, Math.min(10, Number(sessionParams.examplesCount ?? 8)));
-    return [{
+    // One sheet per task: each sheet is a test of its own with its own
+    // result, and the lesson goes on sheet after sheet like any other —
+    // a reward may need several sheets.
+    return Array.from({ length: count }, () => ({
       type: mode.type,
       items: generateTestSheet(range, examples),
       conceptId: card.conceptId,
       style: sessionParams.style ?? "sign",
       instruction: "Поставь правильный знак между числами",
       isTest: true,
-    }];
+    }));
   }
 
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;

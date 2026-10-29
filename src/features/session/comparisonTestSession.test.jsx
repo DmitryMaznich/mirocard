@@ -13,7 +13,7 @@ vi.mock("@/topics/renderers/engineRegistry", async () => {
 });
 globalThis.ResizeObserver ??= class { observe() {} disconnect() {} };
 
-const MODE = { id: "compare_test", type: "compare_evaluate", evaluation: "auto", finite: true, defaultCardId: "compare_hard", ui: { title: "7", instruction: "Реши" } };
+const MODE = { id: "compare_test", type: "compare_evaluate", evaluation: "auto", defaultCardId: "compare_hard", ui: { title: "7", instruction: "Реши" } };
 
 let root, host, engine;
 function Exercise() {
@@ -38,9 +38,9 @@ afterEach(async () => { if (root) await act(async () => root.unmount()); host.re
 
 const SIGN = { less: "<", equal: "=", more: ">" };
 
-it("«Контрольная работа» is one sheet: its result stays until a tap, then the lesson ends", async () => {
+it("«Контрольная работа»: a sheet's result stays until a tap, then the next sheet — the lesson doesn't end", async () => {
   await act(async () => root.render(<Exercise />));
-  expect(engine.sessionState.tasks).toHaveLength(1);
+  expect(engine.sessionState.tasks.length).toBeGreaterThan(5);
   for (const item of engine.currentTask.items) {
     await act(async () => [...host.querySelectorAll(".croc-put-sign-btn")].find((b) => b.textContent === SIGN[item.question]).click());
   }
@@ -48,5 +48,7 @@ it("«Контрольная работа» is one sheet: its result stays until
   expect(engine.sessionState.status).toBe("answer_correct");
   expect(host.textContent).toContain("С первого раза");
   await act(async () => engine.onAdvance());
-  expect(engine.sessionState.status).toBe("completed");
+  expect(engine.sessionState.status).toBe("task_active");
+  expect(engine.sessionState.taskIndex).toBe(1);
+  expect(engine.currentTask.isTest).toBe(true);
 });
