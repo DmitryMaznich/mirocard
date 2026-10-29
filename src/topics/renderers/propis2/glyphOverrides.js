@@ -26,7 +26,7 @@ export const P2_GLYPH_OVERRIDES = {
   "е": { softHook: 0.35, noLiftExit: true },
   // the same for ё (its path is е1 + two dots): its exit ends on the middle line too
   // dotScale: the two dots over ё are 1.5 times as big (owner, 2026-10-29: «при печати почти не видно точки»): a dot is a tiny stroke, so its length and its width both grow
-  "ё": { noLiftExit: true, dotScale: 1.5, dotShift: 18 },
+  "ё": { noLiftExit: true, dotScale: 1.5, dotShift: 3 },
   // the dots of the signs . , ! ? are 1.5 times as big as they were, like the dots over ё (owner, 2026-10-29): they were hardly visible in print
   ".": { punctDots: { strokes: [0] } },
   ",": { punctDots: { strokes: [0], anchor: "top" } },
@@ -290,8 +290,7 @@ export function markStem(glyph) {
   return glyph;
 }
 // `dotScale`: the dots (strokes listed in `noDotStrokes`: tiny «M x y L x y» pieces drawn with round caps) grow by that factor about their centres; they are
-// also drawn that much thicker (`dotWidth`, in the units of the usual stroke width 2). `dotShift`: the dots of ё also move right by that many capture units
-// (one line of the dense grid is about 18 of them: the owner asked for 1-1.5 lines, 2026-10-29, the lower end taken). `dotStrokes`: the strokes the width applies to (wordEngine)
+// also drawn that much thicker (`dotWidth`, in the units of the usual stroke width 2). `dotShift`: the dots of ё also move right by that many capture units (3 = about 1.25 widths of the pen: the owner asked for «1-1.5 lines», meaning the thickness of the line, not a line of the grid: 18 units was far too much, 2026-10-29). `dotStrokes`: the strokes the width applies to (wordEngine)
 const DOT_BASE_WIDTH = 2;
 export function scaleDots(glyph, k, shift = 0) {
   if (!glyph.noDotStrokes?.length || (!(k > 0) && !shift)) return glyph;
