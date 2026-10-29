@@ -899,3 +899,21 @@ describe("the word space on a paper with no drawn lines (2026-10-30)", () => {
   });
 });
 
+
+describe("«Писать» after the last row of a full page (2026-10-29)", () => {
+  it("the blank row added after the last row does not start a sheet of its own", () => {
+    const rpp = rowsPerPage(newPage("p"));
+    // enough rows for the last one to stand on the last line of the sheet (2 * rows - 1 = rpp): its blank row would be the first of the next sheet
+    const full = Array.from({ length: (rpp + 1) / 2 }, () => newRow({ text: "мама" }));
+    expect(full.length * 2 - 1).toBe(rpp);
+    const p1 = newPage("p1", { writeAfter: true, rows: full });
+    const p2 = newPage("p2", { writeAfter: true, rows: [newRow({ text: "папа" })] });
+    const set = newSet("s", { pageIds: [p1.id, p2.id] });
+    const byId = new Map([[p1.id, p1], [p2.id, p2]]);
+    // the editor shows the first page whole and then the second one: two sheets, not a blank one between them
+    expect(notebookSections(set, byId, map)[0].pages).toBe(2);
+    const lines = setToLines(set, byId, map);
+    expect(lines[rpp]).toMatch(/папа/); // the second page starts right after the first sheet
+    expect(lines.slice(0, rpp).filter(Boolean).length).toBe(full.length);
+  });
+});

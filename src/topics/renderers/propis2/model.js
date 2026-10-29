@@ -639,7 +639,16 @@ export function notebookSections(set, pagesById, glyphMap) {
   return out;
 }
 
-const screenPagesOf = (page, glyphMap) => Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page)));
+// The lines of a page as the notebook counts them: without the blank row «Писать» adds after the LAST row. It is not content (the engine drops
+// a blank end of the sheet anyway), but on a page whose last row stands on the last line it fell onto the next sheet: the preview and the PDF
+// then had a blank page after it, which the editor never showed (2026-10-29).
+export function pageLinesCounted(page, glyphMap) {
+  const lines = pageToLines(page, glyphMap);
+  if (page?.writeAfter && lines.length && lineOwners(page, glyphMap)[lines.length - 1] === null) lines.pop();
+  return lines;
+}
+
+export const screenPagesOf = (page, glyphMap) => Math.max(1, Math.ceil(pageLinesCounted(page, glyphMap).length / rowsPerPage(page)));
 
 // The part of `next` that differs from `prev` in the notebook-wide keys.
 export function layoutChange(prev, next) {
@@ -661,7 +670,7 @@ export function setToLines(set, pagesById, glyphMap, ids = set?.pageIds ?? []) {
   const out = [];
   const pages = ids.map((id) => pagesById.get(id)).filter(Boolean);
   pages.forEach((page, k) => {
-    const lines = pageToLines(page, glyphMap);
+    const lines = pageLinesCounted(page, glyphMap);
     out.push(...lines);
     if (k < pages.length - 1) {
       const rpp = rowsPerPage(page);
