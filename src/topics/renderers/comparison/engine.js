@@ -249,7 +249,7 @@ function* shuffledApplyComboCycle(min, max) {
   }
 }
 
-function generateApplyGenerateTask(min, max, op, value, includeEqual) {
+function generateApplyGenerateTask(min, max, op, value, includeEqual, twoFit = false) {
   const fits = (n) => (op === "more" ? n > value : n < value);
   const rest = [];
   for (let n = min; n <= max; n++) if (n !== value) rest.push(n);
@@ -262,16 +262,20 @@ function generateApplyGenerateTask(min, max, op, value, includeEqual) {
   // constraint actually was.
   const shuffledRest = shuffle(rest);
 
-  const correct = shuffledRest.find(fits);
+  // Usually one tile fits; on some tasks two do (twoFit), so the child sees
+  // that «больше 6» is not one number and can't settle it by elimination.
+  const fitting = shuffledRest.filter(fits);
+  const correct = fitting.slice(0, twoFit && fitting.length >= 2 ? 2 : 1);
   const nonFitting = shuffledRest.filter((n) => !fits(n));
+  const wrongCount = 4 - correct.length;
   // value itself is never in `rest`, so it's never drawn by chance — plant
   // it deliberately on an includeEqual task. It's neither больше nor
   // меньше than itself, so it's always a genuinely wrong tile; being the
   // exact number just spoken back at the child (not just "some other
   // number") is what makes it worth testing on purpose rather than only
   // when it happens to come up.
-  const wrong = includeEqual ? [value, ...nonFitting.slice(0, 2)] : nonFitting.slice(0, 3);
-  const options = shuffle([correct, ...wrong]);
+  const wrong = includeEqual ? [value, ...nonFitting.slice(0, wrongCount - 1)] : nonFitting.slice(0, wrongCount);
+  const options = shuffle([...correct, ...wrong]);
 
   return {
     taskType: "generate",
@@ -439,7 +443,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
         base = generateApplyOrderTask(min, max, numbersCount, orderDirection);
       } else {
         const { op, value, includeEqual } = comboCycle.next().value;
-        base = generateApplyGenerateTask(min, max, op, value, includeEqual);
+        base = generateApplyGenerateTask(min, max, op, value, includeEqual, i % 3 === 2);
       }
       tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
     }
