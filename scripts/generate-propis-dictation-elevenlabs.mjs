@@ -14,13 +14,14 @@
 // Resumable: existing files are skipped unless --force.
 //
 // Usage (in a cloud session Node's fetch needs NODE_USE_ENV_PROXY=1 to use the proxy):
-//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks] [--topic=tools/propis2/topic.json]
+//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks|syllables] [--topic=tools/propis2/topic.json]
 //     [--ids=w001,w006] [--takes=2] [--out=public/audio/propis-elevenlabs-words-pilot]
 //     [--force] [--dry-run]
 // --takes=2 writes <key>.mp3 and <key>__2.mp3 (review playlists); default 1.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { syllableDictationKey, wordSyllables } from "../src/topics/renderers/propis2/syllables.js";
 import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -70,6 +71,18 @@ function buildEntries() {
         const chunks = splitSentenceAtCommas(sentence);
         if (chunks.length > 1) chunks.forEach((chunk, j) => entries.push({ key: textChunkDictationKey(t, i, j), text: sayable(chunk) }));
       });
+    }
+  }
+  if (args.only === "syllables") {
+    // «Повтор по слогам» (propis2, words): one clip per syllable, shared by every word that has it; said as written («Мо.», not «ма»)
+    const seen = new Set();
+    for (const w of topic.words) {
+      if (IDS && !IDS.has(w.id)) continue;
+      for (const sy of wordSyllables(w)) {
+        if (seen.has(sy)) continue;
+        seen.add(sy);
+        entries.push({ key: syllableDictationKey(sy), text: sayable(capitalize(sy)) });
+      }
     }
   }
   return entries;

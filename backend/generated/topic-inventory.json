@@ -894,16 +894,16 @@
     {
       "id": "propis2",
       "title": "Прописи",
-      "version": "0.5.4",
+      "version": "0.5.5",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_v0.5.4.zip",
+        "public/decks/propis2_v0.5.5.zip",
         "src/topics/renderers/propis2",
         "tools/propis2/topic.json"
       ],
       "bundle": {
-        "version": "0.5.4",
-        "url": "./decks/propis2_v0.5.4.zip",
+        "version": "0.5.5",
+        "url": "./decks/propis2_v0.5.5.zip",
         "title": "Прописи",
         "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
         "renderer": "propis2",
@@ -913,7 +913,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2",
-        "version": "0.5.4",
+        "version": "0.5.5",
         "title": {
           "ru": "Прописи",
           "en": "Copybook"
@@ -922,7 +922,7 @@
           "ru": "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
           "en": "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
         },
-        "url": "./decks/propis2_v0.5.4.zip",
+        "url": "./decks/propis2_v0.5.5.zip",
         "status": "release",
         "access": "paid"
       },

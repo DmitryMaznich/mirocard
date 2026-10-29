@@ -12,12 +12,16 @@ import { useDictationVoice } from "./useDictationVoice";
 //   the cells say it (the cell of now carries its number);
 // - the session as notebook cells (done / now / left), in rows of ten: how much is left is seen, not read;
 // - a text shows which of its sentences sounds; a repeat limit shows the listens left as dots under the circle;
+// - words: «по слогам» under the circle -- one syllable arc per syllable, lit in time as they sound; the same repeat limit as the circle;
+//   it wakes once the word has sounded whole (it is a prompt: the word first, then its syllables);
 // - any screen: one composition drawn in the px of a reference screen and scaled by one unit (--u, dictation.css); portrait = one
 //   column, landscape = the circle | a panel as tall as it (the head, cells and «Дальше» inside `.p2d-panel`, `display: contents` in portrait).
 // After the last item: this topic's review (DictationReview.jsx), with its answer sheet (`Answers`, index.jsx).
 
 // Gap after each sentence of a text without the signs voiced (as in `propis/DictationView.jsx`).
 const SENTENCE_PAUSE_MS = 2500;
+// Gap between the syllables of «по слогам»: long enough to hear them apart, short enough to stay one word.
+const SYLLABLE_PAUSE_MS = 450;
 
 const LEVEL_LABEL = { letters: "Буквы", words: "Слова", texts: "Текст" };
 
@@ -43,6 +47,7 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
   const [repeatsUsed, setRepeatsUsed] = useState(0);
   const [done, setDone] = useState(false);
   const { isPlaying, speaking, clip, play } = useDictationVoice();
+  const [voice, setVoice] = useState("word"); // what the player plays now: "word" (the item) or "syllables"
 
   const item = items[index];
 
@@ -59,6 +64,12 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
     if (playbackItems.length) play(playbackItems);
   }, [play, playbackItems]);
 
+  const syllables = item?.syllables ?? [];
+  const playSyllables = () => {
+    setVoice("syllables");
+    play(syllables.map((sy, i) => ({ url: dictationAudioUrl(sy.key), pauseAfterMs: i < syllables.length - 1 ? SYLLABLE_PAUSE_MS : 0 })));
+  };
+
   // Auto-play on a real item advance only (a mid-playback re-render must not restart it). A layout effect: the new item never paints
   // in the last item's silence.
   useLayoutEffect(() => {
@@ -69,10 +80,17 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
   const repeatLimit = task?.repeatLimit ?? null;
   const canRepeat = repeatLimit == null || repeatsUsed < repeatLimit;
 
+  // Both repeats -- the whole word (the circle) and «по слогам» -- take from the same limit (owner, 2026-10-29).
   function handleRepeat() {
     if (!canRepeat || isPlaying) return;
     setRepeatsUsed((n) => n + 1);
+    setVoice("word");
     playCurrent();
+  }
+  function handleSyllables() {
+    if (!canRepeat || isPlaying || !syllables.length) return;
+    setRepeatsUsed((n) => n + 1);
+    playSyllables();
   }
 
   function handleNext() {
@@ -80,6 +98,7 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
     if (index + 1 >= total) setDone(true);
     else {
       setRepeatsUsed(0);
+      setVoice("word");
       setIndex((i) => i + 1);
     }
   }
@@ -97,7 +116,8 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
 
   const phase = speaking || clip < 0 ? "listen" : "write";
   const sentenceCount = item.sentences?.length ?? 0;
-  const sentenceNow = clip >= 0 ? (playbackItems[clip]?.sentence ?? 0) : 0;
+  const sentenceNow = voice === "word" && clip >= 0 ? (playbackItems[clip]?.sentence ?? 0) : 0;
+  const sylNow = voice === "syllables" && isPlaying ? clip : -1; // the syllable that sounds (or last sounded) in «по слогам»
   const last = index + 1 >= total;
   const dense = total > 20;
 
@@ -118,11 +138,23 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
               <span className="p2d-bar" />
             </button>
           </div>
-          {repeatLimit != null && repeatLimit > 0 && (
-            <div className="p2d-listens" aria-label={`Повторов осталось: ${repeatLimit - repeatsUsed}`}>
-              {Array.from({ length: repeatLimit }, (_, i) => <span key={i} className={`p2d-listen${i < repeatLimit - repeatsUsed ? " is-left" : ""}`} />)}
-            </div>
-          )}
+          <div className="p2d-under">
+            {syllables.length > 0 && (
+              // «по слогам»: one arc per syllable (the syllable arcs of a speech therapist's notation), lit one by one as they sound
+              <button type="button" className={`p2d-syl${sylNow >= 0 ? " is-playing" : ""}`} onClick={handleSyllables} disabled={isPlaying || !canRepeat} aria-label="Повторить по слогам">
+                {syllables.map((sy, i) => (
+                  <span key={i} className={`p2d-arc${i === sylNow && speaking ? " is-now" : i <= sylNow ? " is-done" : ""}`}>
+                    <svg viewBox="0 0 24 10" aria-hidden="true" focusable="false"><path d="M2 2Q12 13 22 2" /></svg>
+                  </span>
+                ))}
+              </button>
+            )}
+            {repeatLimit != null && repeatLimit > 0 && (
+              <div className="p2d-listens" aria-label={`Повторов осталось: ${repeatLimit - repeatsUsed}`}>
+                {Array.from({ length: repeatLimit }, (_, i) => <span key={i} className={`p2d-listen${i < repeatLimit - repeatsUsed ? " is-left" : ""}`} />)}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="p2d-panel">

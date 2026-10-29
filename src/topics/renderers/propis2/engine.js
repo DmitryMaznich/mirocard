@@ -1,4 +1,5 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { syllableDictationKey, wordSyllables } from "./syllables.js";
 import { generateLetterTasks } from "../propis/letters/lettersEngine.js";
 import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey } from "../propis/dictationAudio.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
@@ -43,7 +44,12 @@ function dictationTask(topicRecord, sessionParams) {
   const punctuation = Boolean(sessionParams?.punctuation);
   let pool;
   if (level === "words") {
-    pool = (topicRecord?.words ?? []).map((w) => ({ key: wordDictationKey(w), display: w.word }));
+    // «Повтор по слогам» (on by default): the word's syllables, each its own clip (syllables.js)
+    const bySyllables = sessionParams?.syllables !== false;
+    pool = (topicRecord?.words ?? []).map((w) => ({
+      key: wordDictationKey(w), display: w.word,
+      ...(bySyllables ? { syllables: wordSyllables(w).map((sy) => ({ key: syllableDictationKey(sy), display: sy })) } : {}),
+    }));
   } else if (level === "texts") {
     pool = (topicRecord?.texts ?? []).map((t) => ({
       key: textDictationKey(t),

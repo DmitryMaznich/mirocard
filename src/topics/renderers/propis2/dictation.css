@@ -172,6 +172,25 @@
 @keyframes p2d-bounce { 0%, 100% { transform: scaleY(0.55); } 50% { transform: scaleY(1.3); } }
 .p2d-diktor-wrap.is-exhausted .p2d-bar { opacity: 0.45; }
 
+.p2d-under { display: flex; flex-direction: column; align-items: center; gap: calc(14 * var(--u)); }
+/* «по слогам»: a pill of syllable arcs under the circle; the arc that sounds is dark and lifted, the ones heard stay teal */
+.p2d-syl {
+  --a: calc(34 * var(--u));
+  display: inline-flex; align-items: center; justify-content: center; gap: calc(4 * var(--u)); min-height: max(44px, calc(52 * var(--u))); padding: 0 calc(18 * var(--u));
+  border: max(1.5px, calc(2 * var(--u))) solid #cfe3de; border-radius: 999px; background: rgba(255, 255, 255, 0.92); color: var(--p2d-teal);
+  box-shadow: 0 calc(3 * var(--u)) 0 #dcebe7; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.2s, box-shadow 0.08s, transform 0.08s, opacity 0.2s;
+}
+.p2d-syl:active:not(:disabled) { transform: translateY(calc(2 * var(--u))); box-shadow: 0 calc(1 * var(--u)) 0 #dcebe7; }
+.p2d-syl:disabled { cursor: default; opacity: 0.45; }
+.p2d-syl.is-playing { opacity: 1; border-color: var(--p2d-teal); }
+.p2d-syl.is-playing .p2d-arc { color: #c9d8d4; }
+.p2d-arc { display: grid; width: var(--a); color: inherit; transition: color 0.15s, transform 0.15s; }
+.p2d-arc svg { width: 100%; height: auto; overflow: visible; }
+.p2d-arc path { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.p2d-syl.is-playing .p2d-arc.is-done { color: var(--p2d-teal); }
+.p2d-syl.is-playing .p2d-arc.is-now { color: var(--p2d-teal-dark); transform: translateY(calc(-2 * var(--u))) scale(1.15); }
+
 .p2d-listens { display: flex; gap: calc(8 * var(--u)); }
 .p2d-listen { width: calc(10 * var(--u)); height: calc(10 * var(--u)); box-sizing: border-box; border-radius: 50%; border: max(1.5px, calc(2 * var(--u))) solid #c9d8d4; }
 .p2d-listen.is-left { border-color: var(--p2d-teal); background: var(--p2d-teal); }
@@ -207,8 +226,10 @@
   }
   .p2d-voice { flex: none; }
   .p2d-diktor-wrap { --d: calc(400 * var(--u)); }
-  /* the dots hang under the circle, out of the flow, so the circle and the panel stay centred on one line */
-  .p2d-listens { position: absolute; top: calc(100% + 22 * var(--u)); left: 50%; transform: translateX(-50%); gap: calc(10 * var(--u)); }
+  /* «по слогам» and the dots hang under the circle, out of the flow, so the circle and the panel stay centred on one line */
+  .p2d-under { position: absolute; top: calc(100% + 22 * var(--u)); left: 50%; transform: translateX(-50%); gap: calc(16 * var(--u)); }
+  .p2d-syl { --a: calc(40 * var(--u)); min-height: calc(64 * var(--u)); padding: 0 calc(22 * var(--u)); }
+  .p2d-listens { gap: calc(10 * var(--u)); }
   .p2d-listen { width: calc(13 * var(--u)); height: calc(13 * var(--u)); }
   .p2d-panel { display: flex; flex-direction: column; justify-content: space-between; width: calc(450 * var(--u)); height: calc(400 * var(--u)); }
   .p2d-head { align-items: flex-start; gap: calc(10 * var(--u)); padding: 0; }
@@ -229,7 +250,10 @@
   .p2d-stage { --u: min(calc(100vw / 844), calc(100dvh / 390)); --rule: calc(30 * var(--u)); }
   .p2d-frame { gap: calc(64 * var(--u)); padding-left: calc(24 * var(--u) + var(--app-safe-left, 0px)); padding-right: calc(24 * var(--u) + var(--app-safe-right, 0px)); }
   .p2d-diktor-wrap { --d: calc(250 * var(--u)); }
-  .p2d-listens { top: calc(100% + 12 * var(--u)); }
+  .p2d-voice:has(.p2d-syl) { transform: translateY(calc(-34 * var(--u))); }
+  .p2d-voice:has(.p2d-syl) .p2d-diktor-wrap { --d: calc(210 * var(--u)); }
+  .p2d-under { top: calc(100% + 10 * var(--u)); gap: calc(8 * var(--u)); }
+  .p2d-syl { --a: calc(24 * var(--u)); min-height: 40px; padding: 0 calc(12 * var(--u)); }
   .p2d-listen { width: calc(9 * var(--u)); height: calc(9 * var(--u)); }
   .p2d-panel { width: calc(330 * var(--u)); height: calc(250 * var(--u)); }
   .p2d-title { --t: calc(34 * var(--u)); }
