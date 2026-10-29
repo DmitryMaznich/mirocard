@@ -119,7 +119,9 @@ export function markedCapital(baseGlyph, markedLower, plainLower, label, markSca
   const cxLean = (left + right) / 2;
   const moved = marks.map((s) => ({ ...s, d: mapPoints(s.d, (x, y) => [cxLean + (x - mx) * markScale, cy + (y - my) * markScale]) }));
   const dots = markedLower.noDotStrokes ? { noDotStrokes: moved.map((_, i) => baseGlyph.strokes.length + i) } : {};
-  return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots };
+  // the exit (where the next letter is joined) is the letter's own last stroke: the engine takes the stroke that ends furthest right, which for Й is its breve
+  const exitStroke = Number.isInteger(baseGlyph.exitStroke) ? baseGlyph.exitStroke : baseGlyph.strokes.length - 1;
+  return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], exitStroke, sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots };
 }
 const withMarkedCapitals = (glyphs) => {
   const byLabel = new Map(glyphs.map((g) => [g.label, g]));

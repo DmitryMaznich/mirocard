@@ -215,3 +215,15 @@ describe("ч is entered at the top of its stem, without a corner (2026-10-29)", 
     expect(alone[0][1]).toBeGreaterThan(48);
   });
 });
+
+describe("the breve of Й and the dots of Ё are not the exit of the letter (2026-10-29)", () => {
+  it("a connector bent into ч (Йч) leaves the marks where they are", () => {
+    const map = buildGlyphMap({ wide });
+    const strokes = (w) => layoutWideLinesIntoRows([w], map, undefined, false, 0.5).placed[0].segments[0].strokes.map((s) => s.d);
+    for (const [one, pair] of [["Й", "Йч"], ["Ё", "Ёч"]]) {
+      const alone = strokes(one), joined = strokes(pair);
+      // the marks of the letter written alone are in the pair too, unchanged
+      for (const d of alone.slice(1)) expect(joined, `${pair}: ${d.slice(0, 40)}`).toContain(d);
+    }
+  });
+});
