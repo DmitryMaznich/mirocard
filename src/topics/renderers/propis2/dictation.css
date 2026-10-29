@@ -21,8 +21,8 @@
 /* ─── «Диктант» in `propis2` (DictationScreen.jsx) ─────────────────────────────────────────────────────────────────────────────
    The topic's own family (cream paper, teal accent: the constructor's --p2-* values, copied here, not shared). The paper wears a faint
    copybook ruling: the child writes on paper next to it, the screen only says what and when. Phone / tablet portrait: one column;
-   landscape from 820px: the voice on the left, the schedule and «Дальше» on the right. In «Пиши» nothing moves (ripples and bars only
-   while the voice sounds). */
+   landscape from 820px: the voice on the left, the count, cells and «Дальше» on the right. In the silence after the voice nothing moves
+   (ripples and bars only while it sounds). */
 .p2d-stage {
   --p2d-bg: #fdfcf9; --p2d-paper: #fff; --p2d-line: #e3dccb; --p2d-ink: #28323c; --p2d-muted: #8b93a1;
   --p2d-teal: #4a9b8f; --p2d-teal-dark: #2a6b60; --p2d-teal-soft: #e5f2ef;
@@ -90,7 +90,7 @@
 }
 .p2d-diktor:active:not(:disabled) { transform: scale(0.96); }
 .p2d-diktor:disabled { cursor: default; }
-/* «Пиши»: the circle steps back (a quieter, flatter colour) -- the paper is what matters now; it stays tappable for a repeat */
+/* the silence after the voice (time to write): the circle steps back (a quieter, flatter colour) -- the paper is what matters now; it stays tappable for a repeat */
 .p2d-stage--write .p2d-diktor { filter: saturate(0.7) brightness(1.04); box-shadow: 0 8px 18px rgba(42, 107, 96, 0.18), inset 0 -6px 0 rgba(0, 0, 0, 0.1), 0 0 0 10px rgba(74, 155, 143, 0.06); }
 .p2d-diktor-wrap.is-exhausted .p2d-diktor { background: linear-gradient(160deg, #b5c7c3, #93a6a1); box-shadow: none; filter: none; }
 
@@ -108,18 +108,8 @@
 .p2d-listen { width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid #c9d8d4; }
 .p2d-listen.is-left { border-color: var(--p2d-teal); background: var(--p2d-teal); }
 
-/* the schedule, the sentences of a text, «Дальше» */
+/* the sentences of a text, «Дальше» */
 .p2d-side { grid-area: side; display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.2dvh, 22px); }
-.p2d-steps { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.p2d-step {
-  display: flex; align-items: center; gap: 8px; padding: 10px 18px 10px 14px; border: 2px solid var(--p2d-line); border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85); color: var(--p2d-muted); font-size: clamp(18px, 5vw, 22px); font-weight: 800;
-  transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s, box-shadow 0.25s;
-}
-.p2d-step svg { width: 1.25em; height: 1.25em; flex: none; }
-.p2d-step.is-on { border-color: var(--p2d-teal-dark); background: var(--p2d-teal-dark); color: #fff; transform: scale(1.06); box-shadow: 0 6px 14px rgba(42, 107, 96, 0.25); }
-.p2d-step-arrow { display: grid; color: #c9bfa8; }
-.p2d-step-arrow svg { width: 22px; height: 22px; }
 
 .p2d-sentences { display: flex; align-items: center; gap: 7px; color: var(--p2d-muted); font-size: 14px; font-weight: 700; }
 .p2d-sentences-label { margin-right: 4px; }
@@ -146,7 +136,6 @@
   .p2d-cells { --cell: 36px; gap: 8px; }
   .p2d-cells--dense { --cell: 24px; gap: 6px; }
   .p2d-diktor-wrap { --d: clamp(220px, 30dvh, 300px); }
-  .p2d-step { font-size: 26px; padding: 12px 24px 12px 18px; }
   .p2d-next { min-height: 68px; font-size: 26px; }
 }
 
@@ -162,10 +151,6 @@
   .p2d-cells--dense { --cell: 22px; }
   .p2d-diktor-wrap { --d: clamp(220px, 42dvh, 320px); }
   .p2d-side { align-items: stretch; justify-content: flex-start; gap: 20px; align-self: start; }
-  .p2d-steps { flex-direction: column; align-items: stretch; gap: 6px; }
-  .p2d-step { font-size: 26px; padding: 14px 22px; border-radius: 18px; }
-  .p2d-step.is-on { transform: none; }
-  .p2d-step-arrow { justify-content: center; transform: rotate(90deg); }
   .p2d-sentences { justify-content: flex-start; }
   .p2d-next { max-width: none; min-height: 68px; font-size: 26px; }
 }
