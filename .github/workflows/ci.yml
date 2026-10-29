@@ -53,6 +53,10 @@ jobs:
           node tests/localization/rollout.test.mjs
       - name: Topic language contracts (source and published ZIP)
         run: npm run topics:validate-languages
+      - name: Firefox Android PWA source prerequisites
+        run: |
+          node --test scripts/verify-pwa-installability.test.mjs
+          node scripts/verify-pwa-installability.mjs --local
       - name: Pilot language boundaries and new modules
         run: npx eslint shared/topic-language-contract.mjs scripts/validate-topic-languages.mjs scripts/topic-language-build-proof.mjs src/topics/renderers/comparison_language_pilot tools/comparison_language_pilot/build.mjs
       - name: Vitest
@@ -114,6 +118,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Published PWA manifest, icons and service worker
+        run: node scripts/verify-pwa-installability.mjs
       - name: Verify current production on PR; wait for exact rollout on main
         env:
           MIROCARD_EXPECTED_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
@@ -153,3 +159,4 @@ jobs:
       - name: Clean up test container
         if: always()
         run: docker rm -f mirocard-runtime-check || true
+

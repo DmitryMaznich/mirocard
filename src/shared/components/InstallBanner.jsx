@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useInstallPrompt } from "@/shared/hooks/useInstallPrompt";
 import IosInstallGuideModal from "@/shared/components/IosInstallGuideModal";
+import FirefoxInstallGuideModal from "@/shared/components/FirefoxInstallGuideModal";
 
 export default function InstallBanner() {
-  const { visible, install, dismiss, isIos, isIosNonSafari, hasNativePrompt } = useInstallPrompt();
-  const [showIosGuide, setShowIosGuide] = useState(false);
+  const { visible, install, dismiss, isIos, isIosNonSafari, isFirefoxAndroid, hasNativePrompt } = useInstallPrompt();
+  const [showGuide, setShowGuide] = useState(false);
 
   if (!visible) return null;
 
@@ -19,7 +20,7 @@ export default function InstallBanner() {
         <div className="install-banner__actions">
           <button
             className="install-banner__btn install-banner__btn--primary"
-            onClick={hasNativePrompt ? install : () => setShowIosGuide(true)}
+            onClick={hasNativePrompt ? install : () => setShowGuide(true)}
           >
             Установить
           </button>
@@ -30,11 +31,15 @@ export default function InstallBanner() {
       </div>
       {isIos && (
         <IosInstallGuideModal
-          visible={showIosGuide}
-          onClose={() => setShowIosGuide(false)}
+          visible={showGuide}
+          onClose={() => setShowGuide(false)}
           isIosNonSafari={isIosNonSafari}
         />
+      )}
+      {isFirefoxAndroid && !hasNativePrompt && (
+        <FirefoxInstallGuideModal visible={showGuide} onClose={() => setShowGuide(false)} />
       )}
     </>
   );
 }
+
