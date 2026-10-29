@@ -2,23 +2,30 @@ import { useState, useEffect } from "react";
 import CrocSign from "./CrocSign";
 import { getVerdict } from "./engine";
 
-function CrocTip() {
+const SIGN = { "open-right": "<", "open-left": ">", equal: "=" };
+
+// The tip follows what is asked: the open mouth faces the bigger number, the
+// sharp corner points at the smaller one — the same sign seen from each side.
+function CrocTip({ ask }) {
   return (
     <div className="compare-croc-tip">
       <div className="compare-croc-tip__icon">
         <CrocSign state="closed" size={52} />
       </div>
       <p className="compare-croc-tip__text">
-        Крокодил любит есть <strong>много!</strong>
+        {ask === "less"
+          ? <>Острый уголок показывает на <strong>меньшее</strong></>
+          : <>Крокодил открывает пасть к <strong>большему</strong></>}
       </p>
     </div>
   );
 }
 
-export default function CompareSign({ task, mode, sessionStatus, onCorrect, onIncorrect }) {
+export default function CompareSign({ task, sessionStatus, onCorrect, onIncorrect }) {
   const [answered, setAnswered] = useState(false);
   const [crocState, setCrocState] = useState("closed");
   const [verdict,   setVerdict]  = useState(null);
+  const [shake,     setShake]    = useState(null); // "left" | "right" | "equal" | null
 
   const isAnswered = answered || sessionStatus !== "task_active";
 
@@ -27,81 +34,73 @@ export default function CompareSign({ task, mode, sessionStatus, onCorrect, onIn
       setAnswered(false);
       setCrocState("closed");
       setVerdict(null);
+      setShake(null);
     }
   }, [sessionStatus]);
 
   const leftBigger  = task.left > task.right;
-  const isEqualTask = task.question === "equal";
+  const isEqualTask = task.left === task.right;
+  // Older tasks (cached before 2.39.0) carry no `ask`; their equal pairs ask "больше".
+  const ask = task.ask ?? (task.question === "less" ? "less" : "more");
+  const instruction = ask === "less" ? "Нажми на меньшее число" : "Нажми на большее число";
 
-  // Derive instruction from task data — never rely on engine-cached string
-  const baseQ = isEqualTask ? "more" : (task.question ?? "more");
-  const verb  = baseQ === "less" ? "меньшее" : "большее";
-  const instruction = isEqualTask
-    ? "Одинаковые — нажми посередине"
-    : `Нажми на ${verb} число`;
+  function wrong(target) {
+    setAnswered(true);
+    setShake(target);
+    onIncorrect(task.conceptId, null);
+  }
+
+  function right(state) {
+    setAnswered(true);
+    setCrocState(state);
+    setVerdict(getVerdict(task));
+    onCorrect(task.conceptId, null);
+  }
 
   function handleNumberTap(pickedLeft) {
     if (isAnswered) return;
-    if (isEqualTask) {
-      setAnswered(true);
-      onIncorrect(task.conceptId, null);
-      return;
-    }
-    const isLeftCorrect = task.question === "more" ? leftBigger : !leftBigger;
-    if (isLeftCorrect !== pickedLeft) {
-      setAnswered(true);
-      onIncorrect(task.conceptId, null);
-      return;
-    }
-    setAnswered(true);
-    setCrocState(leftBigger ? "open-left" : "open-right");
-    setVerdict(getVerdict(task));
-    onCorrect(task.conceptId, null);
+    const isLeftCorrect = ask === "more" ? leftBigger : !leftBigger;
+    if (isEqualTask || isLeftCorrect !== pickedLeft) return wrong(pickedLeft ? "left" : "right");
+    right(leftBigger ? "open-left" : "open-right");
   }
 
   function handleEqualTap() {
-    if (isAnswered || !isEqualTask) return;
-    setAnswered(true);
-    setCrocState("equal");
-    setVerdict(getVerdict(task));
-    onCorrect(task.conceptId, null);
+    if (isAnswered) return;
+    if (!isEqualTask) return wrong("equal");
+    right("equal");
   }
 
-  const crocEl = <CrocSign state={crocState} />;
+  const numberClass = (side) => `compare-side compare-side--number${shake === side ? " compare-side--shake" : ""}`;
 
   return (
     <div className="compare-body">
-      <CrocTip />
+      <CrocTip ask={ask} />
       <div className="compare-instruction">{instruction}</div>
+      {task.showEqual && <div className="compare-instruction-hint">Если поровну — нажми «=»</div>}
       <div className="compare-sign-row">
-        <button
-          className="compare-side compare-side--number"
-          disabled={isAnswered}
-          onClick={() => handleNumberTap(true)}
-        >
+        <button className={numberClass("left")} disabled={isAnswered} onClick={() => handleNumberTap(true)}>
           <div className="compare-big-number">{task.left}</div>
         </button>
 
-        {isEqualTask && !isAnswered
-          ? (
-            <button className="compare-croc-area croc-tap-btn" onClick={handleEqualTap}>
-              {crocEl}
-            </button>
-          ) : (
-            <div className="compare-croc-area">
-              {crocEl}
-            </div>
-          )
-        }
+        <div className="compare-croc-area">
+          <CrocSign state={crocState} />
+          {SIGN[crocState] && <div className="compare-croc-sign">{SIGN[crocState]}</div>}
+        </div>
 
-        <button
-          className="compare-side compare-side--number"
-          disabled={isAnswered}
-          onClick={() => handleNumberTap(false)}
-        >
+        <button className={numberClass("right")} disabled={isAnswered} onClick={() => handleNumberTap(false)}>
           <div className="compare-big-number">{task.right}</div>
         </button>
       </div>
+      {task.showEqual && (
+        <button
+          className={`croc-put-sign-btn compare-croc-equal-btn${shake === "equal" ? " croc-put-sign-btn--shake" : ""}`}
+          disabled={isAnswered}
+          onClick={handleEqualTap}
+          aria-label="Поровну"
+        >
+          =
+        </button>
+      )}
       {verdict && <div className="compare-verdict">{verdict}</div>}
     </div>
   );

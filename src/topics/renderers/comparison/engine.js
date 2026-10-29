@@ -149,7 +149,9 @@ function getFirstNumberRelation(left, right) {
 export function getVerdict(task) {
   const words = task.wordsVerdict;
 
-  if (task.type === "compare_first_number" || (task.type === "compare_evaluate" && task.showLabels)) {
+  // The crocodile leaves a sign between the two numbers, so its phrase reads
+  // that record left to right: 3 < 7 is «3 меньше 7», never «7 больше 3».
+  if (task.type === "compare_first_number" || task.type === "compare_sign" || (task.type === "compare_evaluate" && task.showLabels)) {
     if (task.left === task.right) {
       return words
         ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
@@ -506,7 +508,10 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     // Level 5: after a mistake the renderer shows both numbers by places
     // (PlaceHint) — not in «Контрольная работа».
     const placeHint = Boolean(baseParams.placeValue) && mode.id !== "compare_test";
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
+    // What the crocodile step asks to tap. An equal pair asks the same as the
+    // others, so the wording never gives away that this pair is the equal one.
+    const ask = taskQuestion === "equal" ? (question === "less" ? "less" : "more") : taskQuestion;
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, ask, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
   }
 
   if ((isFirstNumber || isEvaluate) && examplesCount > 1) {
