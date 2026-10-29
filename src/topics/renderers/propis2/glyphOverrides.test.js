@@ -195,3 +195,17 @@ describe("ы1: the knot at the top of the oval and the connector from it (the sc
     expect(tanS).toBeGreaterThan(0);
   });
 });
+
+describe("ч is entered without a corner (2026-10-29)", () => {
+  it("the connector of the letter before arrives along the opening stem of ч", () => {
+    const num = (d) => (d.match(/-?\d*\.?\d+/g) || []).map(Number);
+    const ang = (a, b) => (Math.atan2(-(b[1] - a[1]), b[0] - a[0]) * 180) / Math.PI;
+    for (const pair of ["Вч", "оч", "ич"]) {
+      const st = layoutWideLinesIntoRows([pair], buildGlyphMap({ wide }), undefined, false, 0.5).placed[0].segments[0].strokes.map((s) => num(s.d));
+      const a = st[st.length - 2], b = st[st.length - 1]; // the connector, then ч itself
+      expect(Math.hypot(a[a.length - 2] - b[0], a[a.length - 1] - b[1])).toBeLessThan(0.8);
+      const turn = Math.abs(ang([a[a.length - 4], a[a.length - 3]], [a[a.length - 2], a[a.length - 1]]) - ang([b[0], b[1]], [b[2], b[3]]));
+      expect(turn).toBeLessThan(15);
+    }
+  });
+});
