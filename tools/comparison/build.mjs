@@ -1,8 +1,10 @@
 import JSZip from "jszip";
+import { createHash } from "node:crypto";
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { RELEASE_TOPIC_COPY, applyReleaseTopicCopy } from "../../src/topics/releaseTopicCopy.js";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const root  = join(__dir, "..", "..");
@@ -23,7 +25,11 @@ if (!existsSync(rendererJsPath)) {
   throw new Error(`renderer not found at ${rendererJsPath}`);
 }
 
-const topicJson  = readFileSync(join(__dir, "topic.json"), "utf-8");
+// The published editorial copy (meta.about) lives in releaseTopicCopy.js;
+// without it here a source rebuild ships a ZIP that has lost it.
+const topic = applyReleaseTopicCopy(JSON.parse(readFileSync(join(__dir, "topic.json"), "utf-8")));
+topic.meta.copyHash = createHash("sha256").update(JSON.stringify(RELEASE_TOPIC_COPY.comparison)).digest("hex").slice(0, 16);
+const topicJson  = JSON.stringify(topic, null, 2);
 const avatarSvg  = readFileSync(join(__dir, "media", "avatar.svg"));
 const rendererJs = readFileSync(rendererJsPath);
 

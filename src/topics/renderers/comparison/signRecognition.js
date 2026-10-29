@@ -42,6 +42,12 @@ function findVertex(stroke) {
   return null;
 }
 
+// One flat bar may be the first half of «=» — the pad then waits longer for
+// the second one instead of reading the bar alone as an unknown sign.
+export function mayBeHalfOfEqual(strokes) {
+  return strokes?.length === 1 && strokes[0].length > 0 && isFlatBar(boundsOf(strokes[0]));
+}
+
 export function recognizeSign(strokes) {
   if (!strokes || strokes.length === 0) return null;
 

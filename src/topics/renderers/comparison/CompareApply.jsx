@@ -57,6 +57,11 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
   function handleHintSign(idx, n, sign, clearCanvas) {
     if (answered) return;
     const correctSign = n === task.value ? "=" : n < task.value ? "<" : ">";
+    // An unreadable drawing is not a wrong sign — just draw again.
+    if (sign === "?") {
+      window.setTimeout(() => clearCanvas(), 800);
+      return;
+    }
     if (sign !== correctSign) {
       setHintShakeIdx(idx);
       window.setTimeout(() => setHintShakeIdx(-1), 400);

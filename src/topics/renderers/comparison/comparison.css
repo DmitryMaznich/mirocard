@@ -34,8 +34,10 @@
   border-radius: 20px; pointer-events: none;
   backdrop-filter: blur(2px); animation: fadeIn 0.2s ease;
 }
-.draw-sign-overlay.success { background: rgba(220,252,231,0.85); color: #22c55e; }
-.draw-sign-overlay.error   { background: rgba(254,226,226,0.85); color: #ef4444; }
+/* Shows what the pad read, not whether it's right — so neutral colours:
+   green here used to praise a wrong sign a moment before the shake. */
+.draw-sign-overlay.success { background: rgba(219,234,254,0.85); color: #2d6fb5; }
+.draw-sign-overlay.error   { background: rgba(241,245,249,0.85); color: #94a3b8; }
 .croc-draw-sign-layout { gap: clamp(8px, 2vw, 24px); }
 .croc-draw-sign-layout .croc-put-sign-num { min-width: 0; font-size: clamp(64px, 14vw, 112px); }
 

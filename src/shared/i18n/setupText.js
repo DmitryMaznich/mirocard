@@ -134,6 +134,8 @@ const SLOVENIAN_SETUP_LABELS = {
   "2. Вводим знак — Крокодил": "2. Spoznamo znak – krokodil",
   "3. Нарисуй знак": "3. Nariši znak",
   "4. Сравни и поставь знак": "4. Primerjaj in vstavi znak",
+  "3. Сравни и поставь знак": "3. Primerjaj in vstavi znak",
+  "4. Нарисуй знак": "4. Nariši znak",
   "5. Сравни первое и второе": "5. Primerjaj prvo in drugo",
   "6. Применяем сравнение": "6. Uporabimo primerjanje",
   "7. Контрольная работа": "7. Preizkus znanja",
