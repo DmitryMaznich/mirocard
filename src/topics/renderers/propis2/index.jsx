@@ -3,7 +3,7 @@ import "../propis/propis.css";
 import "../propis/letters/letters.css";
 import "./dictation.css";
 import "./letters.css";
-import PrintPageView from "../propis/PrintPageView";
+import PrintPageView, { PrintPageTop, printPageRows } from "../propis/PrintPageView";
 import DictationScreen from "./DictationScreen";
 import { GlyphContext } from "../propis/letters/glyphs.js";
 import MatchView from "../propis/letters/MatchView";
@@ -14,10 +14,6 @@ import { cardGlyphs } from "./letterCards.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { pageToLines, newPage, newRow } from "./model.js";
 import GradeStamp from "./GradeStamp.jsx";
-import { gradeWriteMs } from "./gradeMark.js";
-import GradeKeys from "./GradeKeys.jsx";
-
-const GRADING = { Keys: GradeKeys, writeMs: gradeWriteMs };
 
 // `propis2` in a session. The constructor is the topic's home screen (src/features/propis2); a "page" task shows a page.
 // «Узнай букву», «Строчная и заглавная» and «Диктант» (copied from `propis` («Прописи старые»), 2026-10-10) use the very views of `propis`, with this
@@ -43,9 +39,11 @@ export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose,
     }
   })();
   if (lettersView) return <GlyphContext.Provider value={cards}><div className="propis2-letters">{lettersView}</div></GlyphContext.Provider>;
-  if (task.type === "dictation") return <DictationScreen task={task} onClose={onClose} Answers={Answers} Grading={GRADING} />;
+  if (task.type === "dictation") return <DictationScreen task={task} onClose={onClose} Answers={Answers} />;
   return <PrintPageView task={buildPageTask({ topicRecord, lines: task.lines })} onClose={onClose} />;
 }
+
+const MARK_ROWS = 2.4; // the empty rows under the answers where the mark is written
 
 // What was dictated, written out on the narrow copybook row as the child should have it in the notebook: letters and words run on,
 // row after row (letters two slant cells apart, words one more than usual, so they read as separate items); each text starts on a
@@ -57,10 +55,23 @@ function DictationAnswers({ items, level, grade, topicRecord, glyphMap }) {
     const page = newPage("Диктант", { ruling: "narrow", grid: "regular", rows: texts.map((t) => newRow({ kind: "passage", text: t, repeat: "one", dots: "none", asText: true })) });
     return buildPageTask({ topicRecord, lines: pageToLines(page, glyphMap).map((l) => (l ? `${l}#c` : l)), narrowRows: true, grid: "regular", midDash: true });
   }, [items, level, topicRecord, glyphMap]);
+  // Each page cut after its last written row (an empty A5 page under two rows of words made the ink tiny); the last one keeps
+  // MARK_ROWS empty rows for the mark, so the red pen never writes over the text. The sheet is fitted into the review's free space.
+  const parts = useMemo(() => {
+    const pages = printPageRows(task);
+    const used = pages.map((p, i) => ({ ...p, i })).filter((p, i) => p.rows > 0 || i === 0);
+    return used.map((p, k) => ({ ...p, rows: Math.min(p.perPage, p.rows + (k === used.length - 1 ? MARK_ROWS : 0)) }));
+  }, [task]);
+  const unitH = (p) => p.h * Math.min(1, (p.rows + 0.6) / Math.max(1, p.perPage));
+  const sheetH = parts.reduce((sum, p) => sum + unitH(p), 0);
+  const last = parts[parts.length - 1];
+  const markH = last ? Math.min(MARK_ROWS + 0.4, last.rows) / Math.max(1, last.perPage) * last.h : 0;
   return (
-    <div className="propis2-dictation-answers">
-      <PrintPageView task={task} bare />
-      {grade && <GradeStamp key={`${grade.n}${grade.sign}`} grade={grade} />}
+    <div className="propis2-answers-fit">
+      <div className="propis2-answers-sheet" style={{ "--ar": (last?.w ?? 1) / Math.max(1, sheetH), "--mark-h": markH / Math.max(1, sheetH) }}>
+        {parts.map((p) => <PrintPageTop key={p.i} task={task} page={p.i} rows={p.rows} />)}
+        {grade && <GradeStamp key={`${grade.n}${grade.sign}`} grade={grade} />}
+      </div>
     </div>
   );
 }

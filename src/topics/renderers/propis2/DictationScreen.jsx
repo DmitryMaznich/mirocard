@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
-import ReviewScreen from "../propis/DictationReviewScreen";
+import DictationReview from "./DictationReview";
 import { dictationAudioUrl } from "../propis/dictationAudio";
 import { useDictationVoice } from "./useDictationVoice";
 
@@ -12,7 +12,7 @@ import { useDictationVoice } from "./useDictationVoice";
 // - a text shows which of its sentences sounds; a repeat limit shows the listens left as dots under the circle;
 // - any screen: one composition drawn in the px of a reference screen and scaled by one unit (--u, dictation.css); portrait = one
 //   column, landscape = the circle | a panel as tall as it (the head, cells and «Дальше» inside `.p2d-panel`, `display: contents` in portrait).
-// The review screen after the last item is the shared one of `propis` (with this topic's `Answers` and `Grading`).
+// After the last item: this topic's review (DictationReview.jsx), with its answer sheet (`Answers`, index.jsx).
 
 // Gap after each sentence of a text without the signs voiced (as in `propis/DictationView.jsx`).
 const SENTENCE_PAUSE_MS = 2500;
@@ -32,7 +32,7 @@ const cellColumns = (total) => {
 };
 const cellColumn = (i) => (i % 10 < 5 ? i % 10 + 1 : i % 10 + 2);
 
-export default function DictationScreen({ task, onClose, Answers = null, Grading = null }) {
+export default function DictationScreen({ task, onClose, Answers = null }) {
   const items = task?.items ?? [];
   const total = items.length;
   const level = task?.level ?? "letters";
@@ -91,7 +91,7 @@ export default function DictationScreen({ task, onClose, Answers = null, Grading
     );
   }
 
-  if (done) return <ReviewScreen task={task} onClose={onClose} Answers={Answers} Grading={Grading} />;
+  if (done) return <DictationReview task={task} onClose={onClose} Answers={Answers} />;
 
   const phase = speaking || clip < 0 ? "listen" : "write";
   const sentenceCount = item.sentences?.length ?? 0;

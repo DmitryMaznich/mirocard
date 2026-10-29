@@ -998,14 +998,20 @@ function layoutTaskPages(task) {
   return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, noSlant: Boolean(task?.noSlant), midDash: task?.midDash !== false };
 }
 
-// The top rows of the first page of a task, as printed (its own paper): the window on a notebook on its cover. `rows`: how much of
-// the page, in its rows.
+// The top rows of a page of a task (the first one by default), as printed (its own paper): the window on a notebook on its cover;
+// `propis2`'s dictation review shows its answer pages this way, each cut after its last written row. `rows`: how much of the page, in its rows.
 const TOP_DOCS = new WeakMap(); // task -> its layout: thumbnails of a notebook's pages are drawn again and again as the editor remounts
-export function PrintPageTop({ task, rows = 5 }) {
-  const doc = useMemo(() => { if (!TOP_DOCS.has(task)) TOP_DOCS.set(task, layoutTaskPages(task)); return TOP_DOCS.get(task); }, [task]);
+const topDoc = (task) => { if (!TOP_DOCS.has(task)) TOP_DOCS.set(task, layoutTaskPages(task)); return TOP_DOCS.get(task); };
+// The pages of a task as { rows: the rows it writes on (its last written row + 1), perPage, w, h: the page's size in units }.
+export function printPageRows(task) {
+  const doc = topDoc(task);
+  return doc.pages.map((p) => ({ rows: p.length ? Math.max(...p.map((x) => x.rowIndex)) + 1 : 0, perPage: doc.perPage, w: doc.geom.w, h: doc.geom.h }));
+}
+export function PrintPageTop({ task, rows = 5, page = 0 }) {
+  const doc = useMemo(() => topDoc(task), [task]);
   const h = Math.min(doc.geom.h, doc.geom.h * ((rows + 0.6) / Math.max(1, doc.perPage)));
   return (
-    <PrintPage page={doc.pages[0] ?? []} pageIndex={0} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}
+    <PrintPage page={doc.pages[page] ?? []} pageIndex={page} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}
       simpleGrid={doc.simpleGrid} noSlant={doc.noSlant} midDash={doc.midDash} margin={doc.margin} format={doc.geom.format} narrow17={doc.narrow17} ownRows={doc.ownRows} />
   );
 }
