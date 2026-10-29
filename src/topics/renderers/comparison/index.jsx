@@ -26,7 +26,7 @@ const TYPE_MAP = {
 export default function ComparisonRenderer({ task, mode, sessionStatus, taskRetry = 0, onCorrect, onIncorrect, onMistake, onStreakReset, onAdvance, playFeedback }) {
   const Component = TYPE_MAP[task?.type];
   if (!Component) return null;
-  const component = <Component task={task} mode={mode} sessionStatus={sessionStatus} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} onStreakReset={onStreakReset} onAdvance={onAdvance} playFeedback={playFeedback} />;
+  const component = <Component task={task} mode={mode} sessionStatus={sessionStatus} taskRetry={taskRetry} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} onStreakReset={onStreakReset} onAdvance={onAdvance} playFeedback={playFeedback} />;
   // Level 5 «По разрядам»: the second try of a pair comes with the numbers by places.
   if (!task.placeHint || taskRetry < 1) return component;
   return <div className="cmp-with-place-hint">{component}<PlaceHint left={task.left} right={task.right} /></div>;

@@ -4,7 +4,7 @@ import { getVerdict } from "./engine";
 
 // The tip follows what is asked: the open mouth faces the bigger number, the
 // sharp corner points at the smaller one — the same sign seen from each side.
-function CrocTip({ ask }) {
+export function CrocTip({ ask }) {
   return (
     <div className="compare-croc-tip">
       <div className="compare-croc-tip__icon">
