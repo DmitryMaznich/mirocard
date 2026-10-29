@@ -184,6 +184,9 @@ shown to one account via catalog status `individual`. Never fork `propis2` code 
 alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
 hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 
+**Казахские прописи (`propis2_kk`), планируется (2026-10-29).** Тот же приём, что у болгарских: вариант-колода на тех же движке и рендерере, 9 особых букв (Ә Ғ Қ Ң Ө Ұ Ү Һ І). Всё, что
+узнали в сессии русских прописей (движок, соединения, пробел, стенд для картинок, правила работы с владельцем), собрано в **`docs/propis2-kk-handoff.md`: читать первым.**
+
 ## Важные даты (important dates) for the "Сегодня" screen
 
 Birthdays, holidays and one-off events kept on the student
