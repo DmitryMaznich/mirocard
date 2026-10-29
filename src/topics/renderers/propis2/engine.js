@@ -66,24 +66,25 @@ const SIGN_PAUSE_MS = 1500;
 
 // «Диктовать знаки препинания» (2026-10-15). Letters and words are written in a row through commas, the last one ends with a period
 // ("А, б, в."): each item gets `punct` (what stands after it on the answer sheet) and `audio` (its clip, then the sign's clip). A text keeps its
-// own signs: a sentence is dictated piece by piece up to each comma (sign voiced between), then the sign that ends it.
+// own signs: a sentence is dictated piece by piece up to each comma (sign voiced between), then the sign that ends it. A text's clip
+// carries `sentence` (its index), so the screen shows which sentence of the text sounds.
 function voiceSigns(items, level) {
   if (level === "texts") {
     for (const item of items) {
       const audio = [];
-      for (const sentence of item.sentences) {
+      item.sentences.forEach((sentence, si) => {
         const end = sentence.display.slice(-1);
         const hasCommas = sentence.chunks.length > 1;
         if (hasCommas) {
           sentence.chunks.forEach((chunk, j) => {
-            audio.push({ key: chunk.key, pauseAfterMs: WRITE_PAUSE_MS });
-            if (j < sentence.chunks.length - 1) audio.push({ key: punctuationDictationKey(","), pauseAfterMs: COMMA_PAUSE_MS });
+            audio.push({ key: chunk.key, pauseAfterMs: WRITE_PAUSE_MS, sentence: si });
+            if (j < sentence.chunks.length - 1) audio.push({ key: punctuationDictationKey(","), pauseAfterMs: COMMA_PAUSE_MS, sentence: si });
           });
         } else {
-          audio.push({ key: sentence.key, pauseAfterMs: WRITE_PAUSE_MS });
+          audio.push({ key: sentence.key, pauseAfterMs: WRITE_PAUSE_MS, sentence: si });
         }
-        audio.push({ key: punctuationDictationKey(punctuationDictationKey(end) ? end : "."), pauseAfterMs: SIGN_PAUSE_MS });
-      }
+        audio.push({ key: punctuationDictationKey(punctuationDictationKey(end) ? end : "."), pauseAfterMs: SIGN_PAUSE_MS, sentence: si });
+      });
       item.audio = audio;
     }
     return;
