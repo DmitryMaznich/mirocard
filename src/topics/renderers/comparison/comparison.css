@@ -268,6 +268,10 @@
 .cfn-multi-sign--active { border-style: solid; border-color: #f59e0b; background: #fef9c3; color: #d97706; }
 .cfn-multi-sign--done   { border-style: solid; border-color: #86efac; color: #16a34a; background: #f0fdf4; }
 .cfn-multi-sign--wrong  { border-style: solid; border-color: #fca5a5; background: #fef2f2; color: #dc2626; animation: cfn-shake 0.3s ease; }
+/* «Контрольная работа» result: a row that needed a second try. */
+.cfn-multi-sign--fixed  { border-style: solid; border-color: #fcd34d; color: #b45309; background: #fffbeb; }
+.cfn-test-summary { text-align: center; font-size: clamp(20px, 4.5vw, 30px); font-weight: 700; color: #334155; padding: 8px 0; }
+.cfn-test-summary strong { font-weight: 900; color: #1e293b; }
 @keyframes cfn-shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-4px); }

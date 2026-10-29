@@ -28,9 +28,10 @@ const PLACE_TRAPS = [
   () => { const h = rnd(2, 9) * 100; return [h, h - rnd(1, 9)]; },
   () => { const h = rnd(1, 9) * 100, a = rnd(1, 9), b = rnd(0, 9); return a === b ? null : [h + a * 10 + rnd(0, 9), h + b * 10 + rnd(0, 9)]; },
 ];
-// «По разрядам» is a skill of the sign modes only — modes 1–3 and 5 are
-// earlier steps (quantities, the crocodile, drawing), «Применяем» works on a range.
-export const PLACE_VALUE_MODE_IDS = ["compare_evaluate", "compare_test"];
+// «По разрядам» is a level of «Сравни и поставь знак» only — the other modes
+// are earlier steps (quantities, the crocodile, drawing) or work on a range;
+// «Контрольная работа» has its own «Числа до» and mixes the traps in itself.
+export const PLACE_VALUE_MODE_IDS = ["compare_evaluate"];
 
 // «Сравни и нажми» (compare_visual): its views in teaching order, each with
 // the highest level it makes sense on. Pairs come first — matching one to one
@@ -400,6 +401,63 @@ function* shuffledSceneCycle() {
   }
 }
 
+// «Контрольная работа»: one sheet, the whole lesson. Not one level but a mix
+// of every step up to the chosen ceiling, so a test «до 100» still checks
+// numbers up to 10 and 20; the top range gets the most rows. Every sheet has
+// pairs on «равно» (one in short sheets, two from six rows), and from «до 100»
+// the traps the ladder teaches: swapped digits (47 / 74), same tens (43 / 48);
+// «до 1000» adds the place-value traps (305 / 350, 99 / 100, 300 / 299).
+export const TEST_RANGES = [10, 20, 100, 1000];
+
+const TEST_BANDS = {
+  10:   [{ share: 1,   min: 1,  max: 10 }],
+  20:   [{ share: 0.4, min: 1,  max: 10 }, { share: 0.6, min: 1, max: 20, over: 10 }],
+  100:  [{ share: 0.2, min: 1,  max: 10 }, { share: 0.3, min: 1, max: 20, over: 10 }, { share: 0.5, min: 10, max: 99, traps: "tens" }],
+  1000: [{ share: 0.2, min: 1,  max: 20 }, { share: 0.3, min: 10, max: 99, traps: "tens" }, { share: 0.5, min: 100, max: 999, traps: "places" }],
+};
+
+const TENS_TRAPS = [
+  () => { const t = rnd(1, 9), o = rnd(1, 9); return t === o ? null : [t * 10 + o, o * 10 + t]; },
+  () => { const t = rnd(1, 9), a = rnd(0, 9), b = rnd(0, 9); return a === b ? null : [t * 10 + a, t * 10 + b]; },
+];
+
+function testPair(band, used) {
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    let pair;
+    if (band.traps === "places") { const p = placeValuePair(null); pair = [p.left, p.right]; }
+    else if (band.traps === "tens" && Math.random() < 0.5) pair = TENS_TRAPS[rnd(0, TENS_TRAPS.length - 1)]();
+    else pair = [rnd(band.min, band.max), rnd(band.min, band.max)];
+    if (!pair || pair[0] === pair[1]) continue;
+    // «до 20» rows are the teens: at least one number over 10.
+    if (band.over && Math.max(...pair) <= band.over) continue;
+    const key = `${pair[0]},${pair[1]}`;
+    if (used.has(key) || used.has(`${pair[1]},${pair[0]}`)) continue;
+    used.add(key);
+    return { left: pair[0], right: pair[1] };
+  }
+  return { left: band.min, right: band.max };
+}
+
+export function generateTestSheet(range, count) {
+  const bands = TEST_BANDS[range] ?? TEST_BANDS[20];
+  const used = new Set();
+  const equalCount = count >= 6 ? 2 : 1;
+  const rows = [];
+  // Rows per band by share, the rest to the top band.
+  const unequal = count - equalCount;
+  const perBand = bands.map((b) => Math.floor(unequal * b.share));
+  perBand[perBand.length - 1] += unequal - perBand.reduce((a, b) => a + b, 0);
+  bands.forEach((band, i) => { for (let k = 0; k < perBand[i]; k++) rows.push(testPair(band, used)); });
+  const top = bands[bands.length - 1];
+  for (let k = 0; k < equalCount; k++) {
+    let v, tries = 0;
+    do { v = rnd(top.over ? top.over + 1 : top.min, top.max); tries++; } while (used.has(`${v},${v}`) && tries < MAX_ATTEMPTS);
+    used.add(`${v},${v}`);
+    rows.push({ left: v, right: v });
+  }
+  return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
+}
+
 // sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
@@ -448,6 +506,21 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
     }
     return tasks;
+  }
+
+  if (mode.id === "compare_test") {
+    const card = resolveComparisonCard(mode, cards, sessionParams);
+    if (!card) return [];
+    const range = TEST_RANGES.includes(sessionParams.testRange) ? sessionParams.testRange : 20;
+    const examples = Math.max(4, Math.min(10, Number(sessionParams.examplesCount ?? 8)));
+    return [{
+      type: mode.type,
+      items: generateTestSheet(range, examples),
+      conceptId: card.conceptId,
+      style: sessionParams.style ?? "sign",
+      instruction: "Поставь правильный знак между числами",
+      isTest: true,
+    }];
   }
 
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;

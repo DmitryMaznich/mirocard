@@ -292,26 +292,6 @@ describe("generateTasks", () => {
     tasks.forEach((t) => expect(t.instruction).toBe("Поставь правильный знак между числами"));
   });
 
-  // "Контрольная работа" reuses compare_evaluate's type/engine branch —
-  // only the mode id/params differ (examplesCount is meaningful here).
-  it("compare_test (Контрольная работа) batches items like compare_evaluate does", () => {
-    const batches = generateTasks(MODE_TEST, ALL_CARDS, 5, { examplesCount: 4 });
-    expect(batches).toHaveLength(5);
-    batches.forEach((batch) => {
-      expect(batch.items).toHaveLength(4);
-      batch.items.forEach((item) => {
-        const real = item.left === item.right ? "equal" : item.left > item.right ? "more" : "less";
-        expect(item.question).toBe(real);
-      });
-    });
-  });
-
-  it("compare_test supports up to 10 examples per screen", () => {
-    const batches = generateTasks(MODE_TEST, ALL_CARDS, 3, { examplesCount: 10 });
-    expect(batches).toHaveLength(3);
-    batches.forEach((batch) => expect(batch.items).toHaveLength(10));
-  });
-
   describe("compare_apply", () => {
     it("'generate' tasks always leave a valid answer on the constrained side", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 60, { level: 2, taskType: "generate" });

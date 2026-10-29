@@ -679,6 +679,8 @@ export function useSessionEngine() {
         setSessionState((s) => {
           if (s.status !== "answer_correct") return s;
           if (s.mode.type === "compare_first_number") return s;
+          // «Контрольная работа»: the finished sheet shows its result until a tap.
+          if (s.mode.id === "compare_test") return s;
           if (s.mode.type === "sort_letters") return s;
           if (s.mode.type === "story_sequence") return s;
           const advanced = advanceTask(s);

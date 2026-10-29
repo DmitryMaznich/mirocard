@@ -25,7 +25,7 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
@@ -1460,7 +1460,20 @@ function ComparisonParams({ params, onChange }) {
           (У {A} / Поровну / У {B}) — neither "Уровень" nor "=" has any
           effect there, so don't expose controls that can't change anything
           (same reasoning as compare_apply's showEqual exclusion below). */}
-      {!isRealLifeMode && (
+      {/* «Контрольная работа» has its own «Числа до» below instead of the
+          shared level (a level picked in another mode used to carry over),
+          and every sheet has its «равно» pairs, so no = toggle either. */}
+      {isTestMode && (
+        <EnumParam
+          label={tr("setup.testRange")}
+          options={TEST_RANGES}
+          labels={Object.fromEntries(TEST_RANGES.map((r) => [r, tr("setup.upTo", { n: r })]))}
+          value={params.testRange ?? 20}
+          onChange={(v) => onChange({ ...params, testRange: Number(v) })}
+        />
+      )}
+
+      {!isRealLifeMode && !isTestMode && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.level")}</div>
           <div className="param-enum-row">
@@ -1540,9 +1553,9 @@ function ComparisonParams({ params, onChange }) {
 
       {isTestMode && (
         <NumberStepper
-          label={tr("setup.examplesOnScreen")}
-          value={params.examplesCount ?? 4}
-          min={2}
+          label={tr("setup.examplesInTest")}
+          value={params.examplesCount ?? 8}
+          min={4}
           max={10}
           onChange={(v) => onChange({ ...params, examplesCount: v })}
         />
@@ -1748,7 +1761,7 @@ export default function ParamsScreen() {
       // examples in "Контрольная работа").
       const isTestMode = activeModeId === "compare_test";
       const examplesCount = isTestMode
-        ? Math.max(2, Math.min(10, saved.examplesCount ?? 4))
+        ? Math.max(4, Math.min(10, saved.examplesCount ?? 8))
         : 1;
       // Same per-topic-not-per-mode leakage guard as examplesCount above —
       // taskType only means anything in compare_apply.
@@ -1772,6 +1785,7 @@ export default function ParamsScreen() {
         taskType,
         numbersCount,
         orderDirection,
+        testRange:     TEST_RANGES.includes(saved.testRange) ? saved.testRange : 20,
       };
     }
     const modeParams = mode?.params ?? {};

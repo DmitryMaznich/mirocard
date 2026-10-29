@@ -25,13 +25,11 @@ describe("Сравнение — уровень 5 «По разрядам»", ()
   it("tasks carry the hint, except in «Контрольная работа»", () => {
     const evaluate = generateTasks({ id: "compare_evaluate", type: "compare_evaluate" }, cards, 10, { level: 5 });
     expect(evaluate.every((t) => t.placeHint && Math.max(t.left, t.right) <= 999)).toBe(true);
-    const test = generateTasks({ id: "compare_test", type: "compare_evaluate" }, cards, 10, { level: 5 });
-    expect(test.every((t) => !t.placeHint)).toBe(true);
     const lvl4 = generateTasks({ id: "compare_evaluate", type: "compare_evaluate" }, cards, 10, { level: 4 });
     expect(lvl4.every((t) => !t.placeHint)).toBe(true);
   });
 
-  it("only in «Сравни и поставь знак» and the test; other modes fall back to level 4", () => {
+  it("only in «Сравни и поставь знак»; other modes fall back to level 4", () => {
     for (const id of ["compare_visual", "compare_sign", "compare_draw_sign", "compare_first_number"]) {
       const tasks = generateTasks({ id, type: id }, cards, 20, { level: 5, visualMode: "numbers" });
       expect(tasks.every((t) => t.left <= 99 && t.right <= 99 && !t.placeHint)).toBe(true);

@@ -161,11 +161,14 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
   const [wrongFlash, setWrongFlash] = useState(-1);
+  // Rows that needed a second try — the test's result marks them.
+  const [missed,     setMissed]     = useState(() => new Set());
   const doneRef      = useRef(false);
   const onCorrectRef = useRef(onCorrect);
   useEffect(() => { onCorrectRef.current = onCorrect; });
 
   const style = task.style ?? "sign";
+  const testDone = Boolean(task.isTest) && focusIndex >= items.length;
 
   function handleAnswer(value) {
     if (doneRef.current) return;
@@ -173,6 +176,7 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
     const correct = item.left > item.right ? "more" : item.left < item.right ? "less" : "equal";
     if (value !== correct) {
       setWrongFlash(focusIndex);
+      setMissed((prev) => new Set(prev).add(focusIndex));
       onMistake?.(task.conceptId, null);
       window.setTimeout(() => setWrongFlash(-1), 420);
       return;
@@ -184,14 +188,17 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
     setFocusIndex(nextFocus);
     if (nextFocus >= items.length) {
       doneRef.current = true;
-      window.setTimeout(() => onCorrectRef.current(task.conceptId, null), 650);
-    } else {
+      // The test's sheet shows its result right away and waits for a tap.
+      window.setTimeout(() => onCorrectRef.current(task.conceptId, null), task.isTest ? 0 : 650);
+    } else if (!task.isTest) {
+      // «Контрольная работа»: no praise row by row, like a real test.
       playFeedback?.("correct");
     }
   }
 
   function signClass(i) {
     const b = "cfn-multi-sign";
+    if (testDone && missed.has(i)) return `${b} ${b}--fixed`;
     if (wrongFlash === i)   return `${b} ${b}--wrong`;
     if (answers[i] != null) return `${b} ${b}--done`;
     if (focusIndex === i)   return `${b} ${b}--active`;
@@ -268,7 +275,13 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
       </div>
       <div ref={dividerRef} className="cfn-multi-divider" />
       <div ref={buttonsRef} className="cfn-multi-buttons-wrap">
-        <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
+        {testDone ? (
+          <div className="cfn-test-summary" aria-live="polite">
+            С первого раза: <strong>{items.length - missed.size} из {items.length}</strong>
+          </div>
+        ) : (
+          <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
+        )}
       </div>
     </div>
   );
