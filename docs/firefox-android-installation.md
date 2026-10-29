@@ -42,6 +42,13 @@ fallbacks, validates actual PNG dimensions, and checks the app's start page and
 service-worker resource. Neither mode proves installation on an Android device.
 CI runs both source and production checks on pull requests.
 
+CI also runs `node scripts/verify-firefox-pwa.mjs` in Playwright's desktop Firefox:
+the published app must boot far enough to activate its service worker, and the
+browser must fetch the manifest and decode both icons. This is a Gecko engine
+smoke test, not an Android launcher test. The first live HTTP CI run passed for
+production 1.0.2735 (`daa1e3b`), including manifest, PNGs, worker and start page:
+https://github.com/DmitryMaznich/mirocard/actions/runs/40850795700/job/123369449888
+
 ## Device acceptance check (still required)
 
 1. Record Android version, Firefox version, device/launcher and exact URL.

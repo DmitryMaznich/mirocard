@@ -126,6 +126,24 @@ jobs:
           MIROCARD_EXPECT_LOCALIZATION: ${{ github.event_name == 'push' && '1' || '0' }}
         run: node scripts/verify-localization-rollout.mjs
 
+  firefox-pwa-smoke:
+    name: Firefox engine PWA resources
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: npm ci
+        run: npm ci
+      - name: Install Firefox test browser
+        run: npx playwright install --with-deps firefox
+      - name: Verify published app in Firefox (not Android launcher)
+        run: node scripts/verify-firefox-pwa.mjs
+
   container-smoke:
     name: Production container startup
     runs-on: ubuntu-latest
