@@ -20,7 +20,7 @@ function render(task) {
 }
 const text = () => container.textContent;
 const sides = () => container.querySelectorAll(".compare-side");
-const equalButton = () => container.querySelector(".compare-croc-equal-btn");
+const equalButton = () => container.querySelector(".croc-tap-btn");
 
 describe("Сравнение — «Вводим знак — Крокодил»", () => {
   it("equal pairs are asked the same way as the others", () => {
@@ -55,7 +55,7 @@ describe("Сравнение — «Вводим знак — Крокодил»"
     expect(container.querySelector(".compare-croc-sign").textContent).toBe(">");
   });
 
-  it("with = on, the button is there on every pair and the wording gives nothing away", () => {
+  it("with = on, the crocodile answers «поровну» on every pair and the wording gives nothing away", () => {
     render({ left: 4, right: 4, question: "equal", ask: "more", showEqual: true });
     expect(text()).toContain("Нажми на большее число");
     act(() => equalButton().click());

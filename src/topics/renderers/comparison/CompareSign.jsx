@@ -76,31 +76,36 @@ export default function CompareSign({ task, sessionStatus, onCorrect, onIncorrec
     <div className="compare-body">
       <CrocTip ask={ask} />
       <div className="compare-instruction">{instruction}</div>
-      {task.showEqual && <div className="compare-instruction-hint">Если поровну — нажми «=»</div>}
+      {task.showEqual && <div className="compare-instruction-hint">Если поровну — нажми на крокодила</div>}
       <div className="compare-sign-row">
         <button className={numberClass("left")} disabled={isAnswered} onClick={() => handleNumberTap(true)}>
           <div className="compare-big-number">{task.left}</div>
         </button>
 
-        <div className="compare-croc-area">
-          <CrocSign state={crocState} />
-          {SIGN[crocState] && <div className="compare-croc-sign">{SIGN[crocState]}</div>}
-        </div>
+        {/* With = on, «поровну» is a tap on the crocodile itself — on every
+            pair, so a crocodile that only answers on the equal one can't give
+            it away. */}
+        {task.showEqual ? (
+          <button
+            className={`compare-croc-area croc-tap-btn${shake === "equal" ? " compare-side--shake" : ""}`}
+            disabled={isAnswered}
+            onClick={handleEqualTap}
+            aria-label="Поровну"
+          >
+            <CrocSign state={crocState} />
+            {SIGN[crocState] && <div className="compare-croc-sign">{SIGN[crocState]}</div>}
+          </button>
+        ) : (
+          <div className="compare-croc-area">
+            <CrocSign state={crocState} />
+            {SIGN[crocState] && <div className="compare-croc-sign">{SIGN[crocState]}</div>}
+          </div>
+        )}
 
         <button className={numberClass("right")} disabled={isAnswered} onClick={() => handleNumberTap(false)}>
           <div className="compare-big-number">{task.right}</div>
         </button>
       </div>
-      {task.showEqual && (
-        <button
-          className={`croc-put-sign-btn compare-croc-equal-btn${shake === "equal" ? " croc-put-sign-btn--shake" : ""}`}
-          disabled={isAnswered}
-          onClick={handleEqualTap}
-          aria-label="Поровну"
-        >
-          =
-        </button>
-      )}
       {verdict && <div className="compare-verdict">{verdict}</div>}
     </div>
   );
