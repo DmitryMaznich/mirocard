@@ -8,6 +8,8 @@ import { useDictationVoice } from "./useDictationVoice";
 // - the circle is the only signal of the phase: waves and bars while the voice sounds; in the silence after it (the time to write, also
 //   the pauses between the sentences of a text) nothing moves and the circle steps back, so the eyes go to the paper. No «Слушай/Пиши»
 //   labels: tried (2026-10-29), they looked like buttons that do nothing -- the owner's call to drop them;
+// - «Диктант» on top, on its own: the child should know what he is doing (owner, 2026-10-29); the level under it. No «2 из 10» counter:
+//   the cells say it (the cell of now carries its number);
 // - the session as notebook cells (done / now / left), in rows of ten: how much is left is seen, not read;
 // - a text shows which of its sentences sounds; a repeat limit shows the listens left as dots under the circle;
 // - any screen: one composition drawn in the px of a reference screen and scaled by one unit (--u, dictation.css); portrait = one
@@ -125,19 +127,14 @@ export default function DictationScreen({ task, onClose, Answers = null }) {
 
         <div className="p2d-panel">
           <header className="p2d-head">
-            <div className="p2d-title">
-              Диктант
-              <span className="p2d-level">{LEVEL_LABEL[level] ?? ""}</span>
-            </div>
-            <div className="p2d-count" aria-label={`${index + 1} из ${total}`}>
-              <b>{index + 1}</b><span>из {total}</span>
-            </div>
+            <h1 className="p2d-title">Диктант</h1>
+            <span className="p2d-level">{LEVEL_LABEL[level] ?? ""}</span>
           </header>
 
-          <ol className={`p2d-cells${dense ? " p2d-cells--dense" : ""}`} style={{ gridTemplateColumns: cellColumns(total) }} aria-hidden="true">
+          <ol className={`p2d-cells${dense ? " p2d-cells--dense" : ""}`} style={{ gridTemplateColumns: cellColumns(total) }} aria-label={`${index + 1} из ${total}`}>
             {items.map((_, i) => (
               <li key={i} className={`p2d-cell${i < index ? " is-done" : i === index ? " is-now" : ""}`} style={{ gridColumn: cellColumn(i) }}>
-                {i < index ? <IconCheck /> : i === index && !dense ? i + 1 : null}
+                {i < index ? <IconCheck /> : i === index ? i + 1 : null}
               </li>
             ))}
           </ol>

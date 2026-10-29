@@ -121,11 +121,9 @@
 .p2d-panel { display: contents; }
 
 /* head: the mode and level on the left (clear of the ✕), the count on the right of it */
-.p2d-head { grid-area: head; display: flex; align-items: center; gap: calc(12 * var(--u)); min-height: calc(44 * var(--u)); padding-right: calc(56 * var(--u)); }
-.p2d-title { --t: calc(26 * var(--u)); display: flex; align-items: baseline; gap: calc(0.4 * var(--t)); flex: 1 1 auto; min-width: 0; font-size: var(--t); font-weight: 900; color: var(--p2d-teal-dark); letter-spacing: 0.01em; line-height: 1.1; }
-.p2d-level { padding: 0.18em 0.6em; border-radius: 999px; background: var(--p2d-teal-soft); color: var(--p2d-teal-dark); font-size: 0.55em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; transform: translateY(-0.2em); }
-.p2d-count { --t: calc(26 * var(--u)); display: flex; align-items: baseline; gap: 0.2em; color: var(--p2d-muted); font-size: calc(0.62 * var(--t)); font-weight: 700; white-space: nowrap; }
-.p2d-count b { color: var(--p2d-ink); font-size: var(--t); font-weight: 900; font-variant-numeric: tabular-nums; }
+.p2d-head { grid-area: head; display: flex; flex-direction: column; align-items: center; gap: calc(6 * var(--u)); padding: 0 calc(56 * var(--u)); }
+.p2d-title { --t: calc(36 * var(--u)); margin: 0; font-size: var(--t); font-weight: 900; color: var(--p2d-teal-dark); letter-spacing: 0.01em; line-height: 1.05; }
+.p2d-level { padding: 0.2em 0.75em; border-radius: 999px; background: var(--p2d-teal-soft); color: var(--p2d-teal-dark); font-size: calc(15 * var(--u)); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 
 /* the session as notebook cells: done (teal, check) · now (outlined, number) · left (faint); rows of ten, a wider gap (--group, an empty
    column) after the fifth -- columns and each cell's column are set inline (cellColumns) */
@@ -139,6 +137,7 @@
 }
 .p2d-cell svg { width: 70%; height: 70%; }
 .p2d-cell.is-done { border-color: var(--p2d-teal); background: var(--p2d-teal); color: #fff; }
+.p2d-cells--dense .p2d-cell.is-now { font-size: calc(var(--cell) * 0.42); }
 .p2d-cell.is-now { border: max(2px, calc(2.5 * var(--u))) solid var(--p2d-teal-dark); background: var(--p2d-teal-soft); transform: scale(1.12); }
 
 /* the voice: the circle the child taps to hear the item again; listens left as dots under it */
@@ -212,8 +211,9 @@
   .p2d-listens { position: absolute; top: calc(100% + 22 * var(--u)); left: 50%; transform: translateX(-50%); gap: calc(10 * var(--u)); }
   .p2d-listen { width: calc(13 * var(--u)); height: calc(13 * var(--u)); }
   .p2d-panel { display: flex; flex-direction: column; justify-content: space-between; width: calc(450 * var(--u)); height: calc(400 * var(--u)); }
-  .p2d-head { min-height: 0; padding-right: 0; }
-  .p2d-title, .p2d-count { --t: calc(38 * var(--u)); }
+  .p2d-head { align-items: flex-start; gap: calc(10 * var(--u)); padding: 0; }
+  .p2d-title { --t: calc(52 * var(--u)); }
+  .p2d-level { font-size: calc(17 * var(--u)); }
   .p2d-cells { justify-content: start; --cell: calc(37 * var(--u)); --gap: calc(8 * var(--u)); --group: calc(8 * var(--u)); }
   .p2d-cells--dense { --cell: calc(36 * var(--u)); }
   .p2d-side { align-items: stretch; gap: calc(20 * var(--u)); }
@@ -232,7 +232,9 @@
   .p2d-listens { top: calc(100% + 12 * var(--u)); }
   .p2d-listen { width: calc(9 * var(--u)); height: calc(9 * var(--u)); }
   .p2d-panel { width: calc(330 * var(--u)); height: calc(250 * var(--u)); }
-  .p2d-title, .p2d-count { --t: calc(26 * var(--u)); }
+  .p2d-title { --t: calc(34 * var(--u)); }
+  .p2d-level { font-size: calc(12 * var(--u)); }
+  .p2d-head { gap: calc(6 * var(--u)); }
   .p2d-cells { --cell: calc(26 * var(--u)); --gap: calc(5 * var(--u)); --group: calc(5 * var(--u)); }
   .p2d-cells--dense { --cell: calc(20 * var(--u)); --gap: calc(4 * var(--u)); }
   .p2d-side { gap: calc(12 * var(--u)); }
