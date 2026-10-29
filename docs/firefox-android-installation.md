@@ -30,7 +30,7 @@ References:
 ## Automated checks
 
 ```sh
-node --test scripts/verify-pwa-installability.test.mjs
+node --test tests/harness/pwa-installability.test.mjs
 node scripts/verify-pwa-installability.mjs --local
 node scripts/verify-pwa-installability.mjs
 ```

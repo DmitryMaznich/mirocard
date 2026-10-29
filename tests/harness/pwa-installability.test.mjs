@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { checkManifest } from "./verify-pwa-installability.mjs";
+import { checkManifest } from "../../scripts/verify-pwa-installability.mjs";
 
-const manifest = JSON.parse(await readFile(new URL("../public/manifest.json", import.meta.url), "utf8"));
+const manifest = JSON.parse(await readFile(new URL("../../public/manifest.json", import.meta.url), "utf8"));
 const manifestUrl = "https://app.mironium.com/manifest.json";
 const pageUrl = "https://app.mironium.com/";
 
