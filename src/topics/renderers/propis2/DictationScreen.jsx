@@ -10,7 +10,8 @@ import { useDictationVoice } from "./useDictationVoice";
 //   labels: tried (2026-10-29), they looked like buttons that do nothing -- the owner's call to drop them;
 // - the session as notebook cells (done / now / left), in rows of ten: how much is left is seen, not read;
 // - a text shows which of its sentences sounds; a repeat limit shows the listens left as dots under the circle;
-// - phone and tablet portrait: one column; landscape (tablet): the circle on the left, the count, the cells and «Дальше» on the right.
+// - any screen: one composition drawn in the px of a reference screen and scaled by one unit (--u, dictation.css); portrait = one
+//   column, landscape = the circle | a panel as tall as it (the head, cells and «Дальше» inside `.p2d-panel`, `display: contents` in portrait).
 // The review screen after the last item is the shared one of `propis` (with this topic's `Answers` and `Grading`).
 
 // Gap after each sentence of a text without the signs voiced (as in `propis/DictationView.jsx`).
@@ -103,24 +104,6 @@ export default function DictationScreen({ task, onClose, Answers = null, Grading
       <button type="button" className="p2d-close" onClick={onClose} aria-label="Закрыть"><IconClose /></button>
 
       <div className="p2d-frame">
-        <header className="p2d-head">
-          <div className="p2d-title">
-            Диктант
-            <span className="p2d-level">{LEVEL_LABEL[level] ?? ""}</span>
-          </div>
-          <div className="p2d-count" aria-label={`${index + 1} из ${total}`}>
-            <b>{index + 1}</b><span>из {total}</span>
-          </div>
-        </header>
-
-        <ol className={`p2d-cells${dense ? " p2d-cells--dense" : ""}`} style={{ gridTemplateColumns: cellColumns(total) }} aria-hidden="true">
-          {items.map((_, i) => (
-            <li key={i} className={`p2d-cell${i < index ? " is-done" : i === index ? " is-now" : ""}`} style={{ gridColumn: cellColumn(i) }}>
-              {i < index ? <IconCheck /> : i === index && !dense ? i + 1 : null}
-            </li>
-          ))}
-        </ol>
-
         <div className="p2d-voice">
           <div className={`p2d-diktor-wrap${speaking ? " is-speaking" : ""}${!isPlaying && !canRepeat ? " is-exhausted" : ""}`}>
             <span className="p2d-ripple" />
@@ -140,20 +123,40 @@ export default function DictationScreen({ task, onClose, Answers = null, Grading
           )}
         </div>
 
-        <div className="p2d-side">
-          {sentenceCount > 1 && (
-            <div className="p2d-sentences" aria-label={`Предложение ${sentenceNow + 1} из ${sentenceCount}`}>
-              <span className="p2d-sentences-label">Предложение</span>
-              {Array.from({ length: sentenceCount }, (_, i) => (
-                <span key={i} className={`p2d-sentence${i < sentenceNow ? " is-done" : i === sentenceNow ? " is-now" : ""}`} />
-              ))}
+        <div className="p2d-panel">
+          <header className="p2d-head">
+            <div className="p2d-title">
+              Диктант
+              <span className="p2d-level">{LEVEL_LABEL[level] ?? ""}</span>
             </div>
-          )}
+            <div className="p2d-count" aria-label={`${index + 1} из ${total}`}>
+              <b>{index + 1}</b><span>из {total}</span>
+            </div>
+          </header>
 
-          <button type="button" className={`p2d-next${last ? " p2d-next--last" : ""}`} onClick={handleNext} disabled={isPlaying}>
-            {last ? "Готово" : "Дальше"}
-            {!last && <IconArrow />}
-          </button>
+          <ol className={`p2d-cells${dense ? " p2d-cells--dense" : ""}`} style={{ gridTemplateColumns: cellColumns(total) }} aria-hidden="true">
+            {items.map((_, i) => (
+              <li key={i} className={`p2d-cell${i < index ? " is-done" : i === index ? " is-now" : ""}`} style={{ gridColumn: cellColumn(i) }}>
+                {i < index ? <IconCheck /> : i === index && !dense ? i + 1 : null}
+              </li>
+            ))}
+          </ol>
+
+          <div className="p2d-side">
+            {sentenceCount > 1 && (
+              <div className="p2d-sentences" aria-label={`Предложение ${sentenceNow + 1} из ${sentenceCount}`}>
+                <span className="p2d-sentences-label">Предложение</span>
+                {Array.from({ length: sentenceCount }, (_, i) => (
+                  <span key={i} className={`p2d-sentence${i < sentenceNow ? " is-done" : i === sentenceNow ? " is-now" : ""}`} />
+                ))}
+              </div>
+            )}
+
+            <button type="button" className={`p2d-next${last ? " p2d-next--last" : ""}`} onClick={handleNext} disabled={isPlaying}>
+              {last ? "Готово" : "Дальше"}
+              {!last && <IconArrow />}
+            </button>
+          </div>
         </div>
       </div>
     </div>
