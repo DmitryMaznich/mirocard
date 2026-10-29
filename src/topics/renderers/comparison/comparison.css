@@ -86,9 +86,6 @@
   gap: clamp(6px, 2.5vw, 16px); width: 100%; max-width: 420px;
 }
 .compare-croc-area { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-/* The real sign the crocodile turns into after a correct answer. */
-.compare-croc-sign { font-size: clamp(40px, 9vw, 64px); font-weight: 900; line-height: 1; color: #2e7d32; animation: compare-croc-sign-in 0.35s ease-out; }
-@keyframes compare-croc-sign-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 .croc-tap-btn { all: unset; display: inline-flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; border-radius: 50%; padding: 4px; transition: transform 0.15s; }
 .croc-tap-btn:hover:not(:disabled)  { transform: scale(1.1); }
 .croc-tap-btn:active:not(:disabled) { transform: scale(0.95); }

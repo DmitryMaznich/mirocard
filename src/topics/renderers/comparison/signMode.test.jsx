@@ -38,12 +38,12 @@ describe("Сравнение — «Вводим знак — Крокодил»"
     expect(getVerdict({ type: "compare_sign", left: 3, right: 7, question: "more", wordsVerdict: true })).toBe("Три меньше семи");
   });
 
-  it("a correct tap turns the crocodile into the sign", () => {
+  it("a correct tap opens the crocodile and reads the record", () => {
     render({ left: 3, right: 7, question: "more", ask: "more", showEqual: false });
     expect(text()).toContain("пасть к большему");
     act(() => sides()[1].click());
     expect(calls).toEqual({ right: 1, wrong: 0 });
-    expect(container.querySelector(".compare-croc-sign").textContent).toBe("<");
+    expect(container.querySelector(".compare-croc-sign")).toBeNull();
     expect(text()).toContain("3 меньше 7");
   });
 
@@ -52,7 +52,7 @@ describe("Сравнение — «Вводим знак — Крокодил»"
     expect(text()).toContain("Нажми на меньшее число");
     expect(text()).toContain("уголок показывает на меньшее");
     act(() => sides()[1].click());
-    expect(container.querySelector(".compare-croc-sign").textContent).toBe(">");
+    expect(text()).toContain("8 больше 2");
   });
 
   it("with = on, the crocodile answers «поровну» on every pair and the wording gives nothing away", () => {
@@ -60,7 +60,7 @@ describe("Сравнение — «Вводим знак — Крокодил»"
     expect(text()).toContain("Нажми на большее число");
     act(() => equalButton().click());
     expect(calls).toEqual({ right: 1, wrong: 0 });
-    expect(container.querySelector(".compare-croc-sign").textContent).toBe("=");
+    expect(text()).toContain("4 = 4");
     act(() => root.unmount()); container.remove();
 
     render({ left: 4, right: 6, question: "more", ask: "more", showEqual: true });

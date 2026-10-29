@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import CrocSign from "./CrocSign";
 import { getVerdict } from "./engine";
 
-const SIGN = { "open-right": "<", "open-left": ">", equal: "=" };
-
 // The tip follows what is asked: the open mouth faces the bigger number, the
 // sharp corner points at the smaller one — the same sign seen from each side.
 function CrocTip({ ask }) {
@@ -93,12 +91,10 @@ export default function CompareSign({ task, sessionStatus, onCorrect, onIncorrec
             aria-label="Поровну"
           >
             <CrocSign state={crocState} />
-            {SIGN[crocState] && <div className="compare-croc-sign">{SIGN[crocState]}</div>}
           </button>
         ) : (
           <div className="compare-croc-area">
             <CrocSign state={crocState} />
-            {SIGN[crocState] && <div className="compare-croc-sign">{SIGN[crocState]}</div>}
           </div>
         )}
 

@@ -169,16 +169,16 @@
     {
       "id": "comparison",
       "title": "Сравнение",
-      "version": "2.39.1",
+      "version": "2.39.2",
       "renderer": "comparison",
       "sources": [
-        "public/decks/comparison_v2.39.1.zip",
+        "public/decks/comparison_v2.39.2.zip",
         "src/topics/renderers/comparison",
         "tools/comparison/topic.json"
       ],
       "bundle": {
-        "version": "2.39.1",
-        "url": "./decks/comparison_v2.39.1.zip",
+        "version": "2.39.2",
+        "url": "./decks/comparison_v2.39.2.zip",
         "title": "Сравнение",
         "description": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
         "renderer": "comparison",
@@ -188,7 +188,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "comparison",
-        "version": "2.39.1",
+        "version": "2.39.2",
         "title": {
           "ru": "Сравнение",
           "en": "Comparison"
@@ -197,7 +197,7 @@
           "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
           "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
         },
-        "url": "./decks/comparison_v2.39.1.zip",
+        "url": "./decks/comparison_v2.39.2.zip",
         "status": "release",
         "access": "free"
       },
