@@ -122,7 +122,7 @@
     },
     {
       "id": "comparison",
-      "version": "2.46.0",
+      "version": "2.47.0",
       "title": {
         "ru": "Сравнение",
         "en": "Comparison"
@@ -131,7 +131,7 @@
         "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
         "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
       },
-      "url": "./decks/comparison_v2.46.0.zip",
+      "url": "./decks/comparison_v2.47.0.zip",
       "status": "release",
       "access": "free"
     },

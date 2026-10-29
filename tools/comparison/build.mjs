@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { createHash } from "node:crypto";
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { RELEASE_TOPIC_COPY, applyReleaseTopicCopy } from "../../src/topics/releaseTopicCopy.js";
@@ -37,6 +37,12 @@ const zip = new JSZip();
 zip.file("topic.json",       topicJson);
 zip.file("media/avatar.svg", avatarSvg);
 zip.file("renderer",         rendererJs);
+
+// «Сравни в жизни» pictures: shipped with the topic, not the app bundle.
+const scenesDir = join(__dir, "media", "scenes");
+for (const name of readdirSync(scenesDir)) {
+  zip.file(`media/scenes/${name}`, readFileSync(join(scenesDir, name)));
+}
 
 if (existsSync(rendererCssPath)) {
   zip.file("mirocard2.css", readFileSync(rendererCssPath));

@@ -599,6 +599,8 @@
   overflow: hidden;
 }
 .reallife-scene-img { display: block; width: 100%; height: auto; }
+/* Same box as the picture (900 × 604) while it loads from the installed topic. */
+.reallife-scene-img--loading { aspect-ratio: 900 / 604; background: #f1f5f9; }
 .reallife-overlay { position: absolute; inset: 0; display: flex; }
 .reallife-side { position: relative; flex: 1; min-width: 0; }
 .reallife-side--wrong { animation: shake 0.35s; }

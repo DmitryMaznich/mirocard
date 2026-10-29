@@ -518,9 +518,9 @@ describe("generateTasks", () => {
       expect(askedLess).toBe(true);
     });
 
-    it("every task carries the scene's image", () => {
+    it("every task names its scene's picture — a file of the topic, not inline data", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
-      tasks.forEach((t) => expect(t.image).toMatch(/^data:image\/jpeg;base64,/));
+      tasks.forEach((t) => expect(t.image).toMatch(/^media\/scenes\/[a-z0-9_]+\.jpg$/));
     });
 
     it("includes at least one genuinely tied scene, so 'Поровну' is sometimes the correct answer", () => {

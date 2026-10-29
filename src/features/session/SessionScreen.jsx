@@ -8,6 +8,7 @@ import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
+import { loadTopicFileUrl } from "@/shared/hooks/useTopicFile";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -371,6 +372,7 @@ export default function SessionScreen() {
             playFeedback={playFeedback}
             playTopicFile={playTopicFile}
             playTopicFiles={playTopicFiles}
+            loadTopicFileUrl={loadTopicFileUrl}
             isTopicAudioPlaying={isTopicAudioPlaying}
             onCorrect={isAdvanceGateActive ? noop : handleCorrect}
             onPrevious={onPrevious}
