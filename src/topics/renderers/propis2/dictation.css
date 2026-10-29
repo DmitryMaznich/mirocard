@@ -17,3 +17,169 @@
 .propis2-grade-btn.is-on { border-color: #d22b2b; background: #fde8e6; color: #b01f1f; }
 .propis2-grade-keys-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
 .propis2-grade-gap { width: 14px; }
+
+/* ─── «Диктант» in `propis2` (DictationScreen.jsx) ─────────────────────────────────────────────────────────────────────────────
+   The topic's own family (cream paper, teal accent: the constructor's --p2-* values, copied here, not shared). The paper wears a faint
+   copybook ruling: the child writes on paper next to it, the screen only says what and when. Phone / tablet portrait: one column;
+   landscape from 820px: the voice on the left, the schedule and «Дальше» on the right. In «Пиши» nothing moves (ripples and bars only
+   while the voice sounds). */
+.p2d-stage {
+  --p2d-bg: #fdfcf9; --p2d-paper: #fff; --p2d-line: #e3dccb; --p2d-ink: #28323c; --p2d-muted: #8b93a1;
+  --p2d-teal: #4a9b8f; --p2d-teal-dark: #2a6b60; --p2d-teal-soft: #e5f2ef;
+  --p2d-rule: clamp(30px, 4.6dvh, 44px);
+  position: fixed; inset: 0; z-index: 500; display: flex; justify-content: center; overflow: hidden;
+  background-color: var(--p2d-bg);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--p2d-rule) - 1px), rgba(74, 155, 143, 0.09) calc(var(--p2d-rule) - 1px), rgba(74, 155, 143, 0.09) var(--p2d-rule));
+  color: var(--p2d-ink); font-family: "Nunito", sans-serif; touch-action: none;
+}
+
+.p2d-close {
+  position: absolute; top: calc(12px + var(--app-safe-top, 0px)); right: calc(12px + var(--app-safe-right, 0px)); z-index: 2;
+  width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--p2d-line); border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92); color: var(--p2d-muted); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.p2d-close svg { width: 20px; height: 20px; }
+.p2d-close:active { transform: scale(0.94); }
+
+.p2d-empty { align-self: center; padding: 24px; color: var(--p2d-muted); font-size: 18px; text-align: center; }
+
+.p2d-frame {
+  width: 100%; max-width: 520px; height: 100%; box-sizing: border-box;
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "head" "cells" "voice" "side";
+  gap: clamp(14px, 2.6dvh, 26px);
+  padding: calc(16px + var(--app-safe-top, 0px)) calc(20px + var(--app-safe-right, 0px)) calc(20px + var(--app-safe-bottom, 0px)) calc(20px + var(--app-safe-left, 0px));
+}
+
+/* head: the mode and level on the left (clear of the ✕), the count on the right of it */
+.p2d-head { grid-area: head; display: flex; align-items: center; gap: 12px; min-height: 44px; padding-right: 56px; }
+.p2d-title { display: flex; align-items: baseline; gap: 10px; flex: 1 1 auto; min-width: 0; font-size: clamp(22px, 6vw, 28px); font-weight: 900; color: var(--p2d-teal-dark); letter-spacing: 0.01em; }
+.p2d-level { padding: 3px 10px; border-radius: 999px; background: var(--p2d-teal-soft); color: var(--p2d-teal-dark); font-size: 0.55em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; transform: translateY(-0.2em); }
+.p2d-count { display: flex; align-items: baseline; gap: 5px; color: var(--p2d-muted); font-size: 16px; font-weight: 700; white-space: nowrap; }
+.p2d-count b { color: var(--p2d-ink); font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
+
+/* the session as notebook cells: done (teal, check) · now (outlined, number) · left (faint) */
+.p2d-cells { grid-area: cells; --cell: clamp(22px, 7vw, 32px); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.p2d-cells--dense { --cell: clamp(14px, 4.2vw, 20px); gap: 4px; }
+.p2d-cell {
+  width: var(--cell); height: var(--cell); box-sizing: border-box; display: grid; place-items: center;
+  border: 1.5px solid var(--p2d-line); border-radius: 6px; background: rgba(255, 255, 255, 0.75);
+  color: var(--p2d-teal-dark); font-size: calc(var(--cell) * 0.5); font-weight: 900; line-height: 1;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+.p2d-cell svg { width: 70%; height: 70%; }
+.p2d-cell.is-done { border-color: var(--p2d-teal); background: var(--p2d-teal); color: #fff; }
+.p2d-cell.is-now { border: 2.5px solid var(--p2d-teal-dark); background: var(--p2d-teal-soft); transform: scale(1.12); }
+
+/* the voice: the circle the child taps to hear the item again */
+.p2d-voice { grid-area: voice; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(14px, 2.4dvh, 22px); }
+.p2d-diktor-wrap { --d: clamp(150px, min(60vw, 34dvh), 250px); position: relative; width: var(--d); height: var(--d); display: flex; align-items: center; justify-content: center; }
+.p2d-ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--p2d-teal); opacity: 0; pointer-events: none; }
+.p2d-diktor-wrap.is-speaking .p2d-ripple { animation: p2d-ripple 1600ms ease-out infinite; }
+.p2d-diktor-wrap.is-speaking .p2d-ripple:nth-child(2) { animation-delay: 400ms; }
+.p2d-diktor-wrap.is-speaking .p2d-ripple:nth-child(3) { animation-delay: 800ms; }
+@keyframes p2d-ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.7); opacity: 0; } }
+
+.p2d-diktor {
+  position: relative; width: 100%; height: 100%; padding: 0; border: none; border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #5fb3a6 0%, var(--p2d-teal) 45%, var(--p2d-teal-dark) 100%);
+  box-shadow: 0 14px 30px rgba(42, 107, 96, 0.3), inset 0 -8px 0 rgba(0, 0, 0, 0.12), 0 0 0 10px rgba(74, 155, 143, 0.1);
+  display: flex; align-items: center; justify-content: center; gap: calc(var(--d) * 0.055);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, filter 0.3s ease, box-shadow 0.3s ease;
+}
+.p2d-diktor:active:not(:disabled) { transform: scale(0.96); }
+.p2d-diktor:disabled { cursor: default; }
+/* «Пиши»: the circle steps back (a quieter, flatter colour) -- the paper is what matters now; it stays tappable for a repeat */
+.p2d-stage--write .p2d-diktor { filter: saturate(0.7) brightness(1.04); box-shadow: 0 8px 18px rgba(42, 107, 96, 0.18), inset 0 -6px 0 rgba(0, 0, 0, 0.1), 0 0 0 10px rgba(74, 155, 143, 0.06); }
+.p2d-diktor-wrap.is-exhausted .p2d-diktor { background: linear-gradient(160deg, #b5c7c3, #93a6a1); box-shadow: none; filter: none; }
+
+.p2d-bar { width: calc(var(--d) * 0.06); height: 28%; border-radius: 999px; background: #f0fbf8; opacity: 0.85; }
+.p2d-bar:nth-child(2), .p2d-bar:nth-child(3) { height: 40%; }
+.p2d-diktor-wrap.is-speaking .p2d-bar { animation: p2d-bounce 900ms ease-in-out infinite; }
+.p2d-bar:nth-child(2) { animation-delay: 140ms; }
+.p2d-bar:nth-child(3) { animation-delay: 280ms; }
+.p2d-bar:nth-child(4) { animation-delay: 420ms; }
+@keyframes p2d-bounce { 0%, 100% { transform: scaleY(0.55); } 50% { transform: scaleY(1.3); } }
+.p2d-diktor-wrap.is-exhausted .p2d-bar { opacity: 0.45; }
+
+/* the listens left (only with a repeat limit) */
+.p2d-listens { display: flex; gap: 8px; margin-top: 6px; }
+.p2d-listen { width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid #c9d8d4; }
+.p2d-listen.is-left { border-color: var(--p2d-teal); background: var(--p2d-teal); }
+
+/* the schedule, the sentences of a text, «Дальше» */
+.p2d-side { grid-area: side; display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.2dvh, 22px); }
+.p2d-steps { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.p2d-step {
+  display: flex; align-items: center; gap: 8px; padding: 10px 18px 10px 14px; border: 2px solid var(--p2d-line); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85); color: var(--p2d-muted); font-size: clamp(18px, 5vw, 22px); font-weight: 800;
+  transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+.p2d-step svg { width: 1.25em; height: 1.25em; flex: none; }
+.p2d-step.is-on { border-color: var(--p2d-teal-dark); background: var(--p2d-teal-dark); color: #fff; transform: scale(1.06); box-shadow: 0 6px 14px rgba(42, 107, 96, 0.25); }
+.p2d-step-arrow { display: grid; color: #c9bfa8; }
+.p2d-step-arrow svg { width: 22px; height: 22px; }
+
+.p2d-sentences { display: flex; align-items: center; gap: 7px; color: var(--p2d-muted); font-size: 14px; font-weight: 700; }
+.p2d-sentences-label { margin-right: 4px; }
+.p2d-sentence { width: 22px; height: 6px; border-radius: 999px; background: #e7e1d3; transition: background 0.25s, width 0.25s; }
+.p2d-sentence.is-done { background: var(--p2d-teal); }
+.p2d-sentence.is-now { width: 34px; background: var(--p2d-teal-dark); }
+
+.p2d-next {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; max-width: 360px; min-height: 60px; padding: 0 28px;
+  border: none; border-radius: 18px; background: var(--p2d-teal); box-shadow: 0 5px 0 var(--p2d-teal-dark); color: #fff;
+  font: inherit; font-size: 22px; font-weight: 900; letter-spacing: 0.01em; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.08s, box-shadow 0.08s, background 0.25s, opacity 0.25s;
+}
+.p2d-next svg { width: 24px; height: 24px; }
+.p2d-next:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--p2d-teal-dark); }
+/* while the voice sounds «Дальше» is not for now: pale, flat */
+.p2d-next:disabled { background: #d9e4e1; box-shadow: 0 5px 0 #c3d1cd; color: #f6faf9; cursor: default; }
+.p2d-next--last:not(:disabled) { background: #1d4ed8; box-shadow: 0 5px 0 #1e3a8a; }
+.p2d-next--last:active:not(:disabled) { box-shadow: 0 1px 0 #1e3a8a; }
+
+/* tablet portrait: more air, larger type */
+@media (min-width: 700px) and (min-height: 820px) {
+  .p2d-frame { max-width: 640px; padding-top: calc(28px + var(--app-safe-top, 0px)); padding-bottom: calc(36px + var(--app-safe-bottom, 0px)); }
+  .p2d-cells { --cell: 36px; gap: 8px; }
+  .p2d-cells--dense { --cell: 24px; gap: 6px; }
+  .p2d-diktor-wrap { --d: clamp(220px, 30dvh, 300px); }
+  .p2d-step { font-size: 26px; padding: 12px 24px 12px 18px; }
+  .p2d-next { min-height: 68px; font-size: 26px; }
+}
+
+/* landscape (tablet, large phones turned): voice on the left, the rest on the right in a paper card */
+@media (orientation: landscape) and (min-width: 820px) {
+  .p2d-frame {
+    max-width: 1180px; grid-template-columns: minmax(0, 1fr) minmax(320px, 440px); grid-template-rows: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+    grid-template-areas: "voice ." "voice head" "voice cells" "voice side" "voice ."; column-gap: clamp(28px, 6vw, 96px); row-gap: 24px;
+    padding: calc(28px + var(--app-safe-top, 0px)) calc(72px + var(--app-safe-right, 0px)) calc(28px + var(--app-safe-bottom, 0px)) calc(56px + var(--app-safe-left, 0px));
+  }
+  .p2d-head { padding-right: 0; align-self: end; }
+  .p2d-cells { justify-content: flex-start; --cell: 34px; }
+  .p2d-cells--dense { --cell: 22px; }
+  .p2d-diktor-wrap { --d: clamp(220px, 42dvh, 320px); }
+  .p2d-side { align-items: stretch; justify-content: flex-start; gap: 20px; align-self: start; }
+  .p2d-steps { flex-direction: column; align-items: stretch; gap: 6px; }
+  .p2d-step { font-size: 26px; padding: 14px 22px; border-radius: 18px; }
+  .p2d-step.is-on { transform: none; }
+  .p2d-step-arrow { justify-content: center; transform: rotate(90deg); }
+  .p2d-sentences { justify-content: flex-start; }
+  .p2d-next { max-width: none; min-height: 68px; font-size: 26px; }
+}
+
+/* a short landscape phone: no air for the cells row, the count says it */
+@media (orientation: landscape) and (max-height: 500px) {
+  .p2d-cells { display: none; }
+  .p2d-frame { grid-template-columns: minmax(0, 1fr) minmax(260px, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "voice head" "voice side"; column-gap: 24px; padding-right: calc(64px + var(--app-safe-right, 0px)); }
+  .p2d-head { padding-right: 0; }
+  .p2d-diktor-wrap { --d: clamp(120px, 52dvh, 200px); }
+  .p2d-side { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p2d-diktor-wrap.is-speaking .p2d-ripple, .p2d-diktor-wrap.is-speaking .p2d-bar { animation: none; }
+  .p2d-diktor-wrap.is-speaking .p2d-ripple:nth-child(1) { opacity: 0.35; transform: scale(1.15); }
+}

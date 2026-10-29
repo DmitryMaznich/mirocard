@@ -4,7 +4,7 @@ import "../propis/letters/letters.css";
 import "./dictation.css";
 import "./letters.css";
 import PrintPageView from "../propis/PrintPageView";
-import DictationView from "../propis/DictationView";
+import DictationScreen from "./DictationScreen";
 import { GlyphContext } from "../propis/letters/glyphs.js";
 import MatchView from "../propis/letters/MatchView";
 import MatchPairView from "../propis/letters/MatchPairView";
@@ -43,7 +43,7 @@ export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose,
     }
   })();
   if (lettersView) return <GlyphContext.Provider value={cards}><div className="propis2-letters">{lettersView}</div></GlyphContext.Provider>;
-  if (task.type === "dictation") return <DictationView task={task} onClose={onClose} Answers={Answers} Grading={GRADING} />;
+  if (task.type === "dictation") return <DictationScreen task={task} onClose={onClose} Answers={Answers} Grading={GRADING} />;
   return <PrintPageView task={buildPageTask({ topicRecord, lines: task.lines })} onClose={onClose} />;
 }
 
