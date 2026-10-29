@@ -20,7 +20,7 @@ function probe({ userAgent, maxTouchPoints = 0, displayMode = "browser" }) {
 }
 
 describe("useInstallPrompt — iOS detection", () => {
-  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); });
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); sessionStorage.clear(); });
 
   it("shows the install guide banner on an iPhone", () => {
     const r = probe({ userAgent: IPHONE_SAFARI, maxTouchPoints: 5 });
@@ -58,9 +58,41 @@ describe("useInstallPrompt — iOS detection", () => {
     expect(r.visible).toBe(false);
   });
 
-  it("respects a dismissed Firefox install banner", () => {
-    localStorage.setItem("installBannerDismissedAt", String(Date.now()));
+  it("respects dismissal in the current tab", () => {
+    sessionStorage.setItem("installBannerDismissedInTab", "1");
     const r = probe({ userAgent: "Mozilla/5.0 (Android 15; Mobile; rv:147.0) Gecko/147.0 Firefox/147.0" });
+    expect(r.visible).toBe(false);
+  });
+
+  it("does not hide the banner for 14 days after an old dismissal", () => {
+    localStorage.setItem("installBannerDismissedAt", String(Date.now()));
+    const r = probe({ userAgent: "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36" });
+    expect(r.visible).toBe(true);
+  });
+
+  it.each([
+    "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 15; SM-X910) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 SamsungBrowser/28.0 Chrome/130.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0 Mobile Safari/537.36 EdgA/140.0",
+  ])("offers installation on Android even before a native prompt: %s", (userAgent) => {
+    const r = probe({ userAgent });
+    expect(r.visible).toBe(true);
+    expect(r.hasNativePrompt).toBe(false);
+  });
+
+  it.each([
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+    MAC_SAFARI,
+  ])("hides the banner on a PC: %s", (userAgent) => {
+    const r = probe({ userAgent });
+    expect(r.visible).toBe(false);
+  });
+
+  it("does not mistake a touch Windows PC for a tablet", () => {
+    const r = probe({ userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36", maxTouchPoints: 10 });
     expect(r.visible).toBe(false);
   });
 });
