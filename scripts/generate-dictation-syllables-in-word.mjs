@@ -25,6 +25,8 @@ const TAKES = Number(args.takes ?? 2);
 const TRIES = Number(args.tries ?? 4);
 // --said=роз:роззз|ро-з,дце:д-це -- how to write a syllable in the phrase, tried in turn instead of the stress-mark / plain pair. A voiced
 // final consonant is devoiced in speech (роз → «рос», радь → «рать»); stretching it («роззз») or setting it apart («ро-з») keeps it voiced.
+// --word=зе:зелёный -- the word named in the phrase instead of the first one of the bank that has the syllable
+const WORD = Object.fromEntries(String(args.word ?? "").split(",").filter(Boolean).map((x) => x.split(":")));
 const SAID = Object.fromEntries(String(args.said ?? "").split(",").filter(Boolean).map((x) => { const [k, v] = x.split(":"); return [k, v.split("|")]; }));
 const apiKey = process.env.ELEVENLABS_API_KEY;
 
@@ -77,7 +79,7 @@ for (const syl of ONLY) {
   const tries = [];
   for (let t = 1; t <= TRIES && tries.filter((x) => x.ok).length < TAKES; t += 1) {
     const said = SAID[syl] ? SAID[syl][(t - 1) % SAID[syl].length] : t % 2 === 1 ? stressed(syl) : syl;
-    const text = `${TAG} Слог «${said}», как в слове «${host.word.toLowerCase()}».`;
+    const text = `${TAG} Слог «${said}», как в слове «${(WORD[syl] ?? host.word).toLowerCase()}».`;
     const { audio_base64: audio, alignment } = await speak(text);
     const file = join(raw, `${syl}__t${t}.mp3`);
     writeFileSync(file, Buffer.from(audio, "base64"));
@@ -86,7 +88,10 @@ for (const syl of ONLY) {
     const t0 = alignment.character_start_times_seconds[at];
     const t1 = alignment.character_end_times_seconds[at + said.length - 1];
     const next = alignment.character_start_times_seconds[at + said.length + 2] ?? t1 + 0.4; // the word after «…», (a pause in between)
-    const [a, b] = soundIn(file, Math.max(0, t0 - 0.12), Math.min(next, t1 + 0.35));
+    const [a, quietAt] = soundIn(file, Math.max(0, t0 - 0.12), Math.min(next, t1 + 0.35));
+    // a closing stop (лик, мед) has a silent closure before its burst: the first stretch of sound ends there, so the end is at least where
+    // the timestamps put the last letter (owner, 2026-10-29: «ли» instead of лик, «ме» instead of мед)
+    const b = Math.max(quietAt, Math.min(t1 + 0.06, next - 0.02));
     const heard = await listen(file);
     tries.push({ t, file, a, b, said, heard, ok: heardSyllable(heard) === syl });
     console.log(`${heardSyllable(heard) === syl ? "✓" : "·"} ${syl} try ${t}  «${said}»  heard: ${heard}`);
@@ -95,7 +100,7 @@ for (const syl of ONLY) {
   keep.forEach((x, i) => {
     const start = Math.max(0, x.a - 0.03);
     execFileSync("ffmpeg", ["-v", "error", "-y", "-i", x.file, "-af", `atrim=${start}:${x.b + 0.06},asetpts=PTS-STARTPTS,afade=t=out:st=${x.b - start}:d=0.06`, "-ac", "1", "-c:a", "libmp3lame", "-b:a", "128k", join(OUT, `syl_${syl}__${i + 1}.mp3`)]);
-    made.push({ syllable: syl, n: i + 1, word: host.word, said: x.said, heard: x.heard, verified: x.ok, seconds: Number((x.b - x.a).toFixed(2)) });
+    made.push({ syllable: syl, n: i + 1, word: WORD[syl] ?? host.word, said: x.said, heard: x.heard, verified: x.ok, seconds: Number((x.b - x.a).toFixed(2)) });
   });
 }
 writeFileSync(join(OUT, "candidates.json"), JSON.stringify(made, null, 1));
