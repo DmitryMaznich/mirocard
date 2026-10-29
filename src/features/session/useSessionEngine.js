@@ -703,7 +703,6 @@ export function useSessionEngine() {
     setTimeout(() => {
       setSessionState((s) => {
         if (s.status !== "answer_incorrect") return s;
-        if (s.mode.type === "compare_first_number") return s;
         if (s.tasks[s.taskIndex]?.type === "choose_all") {
           const advanced = handleAdvance(s);
           if (advanced.status === "deck_exhausted") { setDeckExhausted(true); return advanced; }
