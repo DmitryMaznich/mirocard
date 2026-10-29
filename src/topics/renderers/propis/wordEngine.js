@@ -1174,7 +1174,7 @@ function retargetTailEndD(d, target, dirUnit, arrive = 0.5) {
 
 // The first BEND_AT of the last cubic of a connector stays exactly as captured (its straight rise), only the rest bends: it eases from that direction into
 // `dirUnit`, so the pen arrives along the opening direction of the next letter (`joinSmooth`, ч). The length of the connector does not change.
-const BEND_AT = 0.62;
+const BEND_AT = 0.62; // the larger the turn, the more of the curve is bent (BEND_AT is the share kept as captured at turns up to 30 degrees)
 function bendTailEndD(d, target, dirUnit) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const n = toks.length;
@@ -1182,12 +1182,15 @@ function bendTailEndD(d, target, dirUnit) {
   const v = [...toks.slice(n - 9, n - 7), ...toks.slice(n - 6)].map(parseFloat); // p0 (x y), c1, c2, end
   if (v.length !== 8) return null;
   const [p0, c1, c2] = [[v[0], v[1]], [v[2], v[3]], [v[4], v[5]]];
+  const ea = Math.atan2(target[1] - c2[1], target[0] - c2[0]), da = Math.atan2(dirUnit[1], dirUnit[0]);
+  const turn = (Math.abs(((ea - da + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * 180) / Math.PI; // the corner the captured end would make with the next letter's opening
+  const at = Math.min(BEND_AT, Math.max(0.15, BEND_AT - (turn - 30) * 0.012));
   const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
   // de Casteljau at t = BEND_AT: the left part is the captured curve itself
   const e = [target[0], target[1]];
-  const a1 = lerp(p0, c1, BEND_AT), a2 = lerp(c1, c2, BEND_AT), a3 = lerp(c2, e, BEND_AT);
-  const b1 = lerp(a1, a2, BEND_AT), b2 = lerp(a2, a3, BEND_AT);
-  const m = lerp(b1, b2, BEND_AT);
+  const a1 = lerp(p0, c1, at), a2 = lerp(c1, c2, at), a3 = lerp(c2, e, at);
+  const b1 = lerp(a1, a2, at), b2 = lerp(a2, a3, at);
+  const m = lerp(b1, b2, at);
   const tl = Math.hypot(b2[0] - b1[0], b2[1] - b1[1]) || 1;
   const tu = [(b2[0] - b1[0]) / tl, (b2[1] - b1[1]) / tl];
   const rest = Math.hypot(e[0] - m[0], e[1] - m[1]);
