@@ -20,12 +20,12 @@ const bar = (y) => [{ x: 40, y }, { x: 140, y: y + 2 }, { x: 240, y }];
 let container, root, calls;
 afterEach(() => { act(() => root?.unmount()); container?.remove(); });
 
-function render(left, right) {
+function render(left, right, taskRetry = 0) {
   calls = { right: 0, wrong: 0 };
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  act(() => root.render(<CompareDrawSign task={{ type: "compare_draw_sign", left, right, conceptId: "compare_hard" }} mode={{ ui: { instruction: "Нарисуй" } }}
+  act(() => root.render(<CompareDrawSign task={{ type: "compare_draw_sign", left, right, conceptId: "compare_hard" }} mode={{ ui: { instruction: "Нарисуй" } }} taskRetry={taskRetry}
     onCorrect={() => calls.right++} onIncorrect={() => calls.wrong++} />));
 }
 const draw = (sign) => act(() => container.querySelector(`[data-sign="${sign}"]`).click());
@@ -46,6 +46,20 @@ describe("Сравнение — «Нарисуй знак»", () => {
     draw("<");
     expect(calls).toEqual({ right: 1, wrong: 0 });
     expect(container.textContent).not.toContain("нарисуй ещё раз");
+  });
+
+  it("the phrase reads the drawn record left to right", () => {
+    render(3, 7);
+    draw("<");
+    expect(container.textContent).toContain("3 меньше 7");
+  });
+
+  it("after a wrong sign the crocodile reminds which way it opens", () => {
+    render(3, 7);
+    expect(container.querySelector(".compare-croc-tip")).toBeNull();
+    act(() => root.unmount()); container.remove();
+    render(3, 7, 1);
+    expect(container.textContent).toContain("пасть к большему");
   });
 
   it("a wrong sign is still a mistake", () => {

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import DrawingSignPad from "./DrawingSignPad";
 import { getVerdict } from "./engine";
+import { CrocTip } from "./CompareSign";
 import { getTopicTitle } from "@/shared/utils/format";
 
-export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) {
+export default function CompareDrawSign({ task, mode, taskRetry = 0, onCorrect, onIncorrect }) {
   const [answered,    setAnswered]    = useState(false);
   const [shakeCanvas, setShakeCanvas] = useState(false);
   const [verdict,     setVerdict2]    = useState(null);
@@ -36,6 +37,8 @@ export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) 
 
   return (
     <div className="compare-body">
+      {/* After a wrong sign: the crocodile from step 2 as a reminder of the direction. */}
+      {taskRetry > 0 && !answered && <CrocTip ask="more" />}
       <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       <div className="croc-put-sign-numbers croc-draw-sign-layout">
         <span className="croc-put-sign-num">{task.left}</span>

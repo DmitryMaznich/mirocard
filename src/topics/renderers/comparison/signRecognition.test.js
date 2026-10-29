@@ -69,3 +69,28 @@ describe("recognizeSign", () => {
     expect(recognizeSign([])).toBe(null);
   });
 });
+
+describe("recognizeSign — a sign drawn in two strokes", () => {
+  it("reads «<» drawn as two lines meeting in the corner, in any stroke order", () => {
+    const upper = stroke([[220, 40], [60, 150]]);
+    const lower = stroke([[60, 150], [220, 260]]);
+    expect(recognizeSign([upper, lower])).toBe("<");
+    expect(recognizeSign([lower, upper])).toBe("<");
+    expect(recognizeSign([[...upper].reverse(), lower])).toBe("<");
+  });
+
+  it("reads «>» drawn as two lines, the corner a little apart", () => {
+    expect(recognizeSign([stroke([[60, 40], [235, 148]]), stroke([[240, 158], [60, 260]])])).toBe(">");
+  });
+
+  it("two lines far apart are not a sign", () => {
+    expect(recognizeSign([stroke([[20, 20], [60, 120]]), stroke([[200, 180], [280, 280]])])).toBe("?");
+  });
+});
+
+describe("recognizeSign — «=» is not mistaken for a corner", () => {
+  it("short close bars stay «=»", () => {
+    expect(recognizeSign([stroke([[100, 140], [160, 140]]), stroke([[100, 165], [160, 165]])])).toBe("=");
+    expect(recognizeSign([stroke([[100, 140], [160, 140]]), stroke([[160, 165], [100, 165]])])).toBe("=");
+  });
+});

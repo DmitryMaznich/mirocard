@@ -149,9 +149,9 @@ function getFirstNumberRelation(left, right) {
 export function getVerdict(task) {
   const words = task.wordsVerdict;
 
-  // The crocodile leaves a sign between the two numbers, so its phrase reads
-  // that record left to right: 3 < 7 is «3 меньше 7», never «7 больше 3».
-  if (task.type === "compare_first_number" || task.type === "compare_sign" || (task.type === "compare_evaluate" && task.showLabels)) {
+  // The crocodile and the drawn sign stand between the two numbers, so the
+  // phrase reads that record left to right: 3 < 7 is «3 меньше 7», never «7 больше 3».
+  if (task.type === "compare_first_number" || task.type === "compare_sign" || task.type === "compare_draw_sign" || (task.type === "compare_evaluate" && task.showLabels)) {
     if (task.left === task.right) {
       return words
         ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
