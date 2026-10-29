@@ -95,4 +95,8 @@ describe("«По слогам» (2026-10-29)", () => {
     for (const w of topic.words) expect(w.syllables.join(""), w.id).toBe(w.word);
     for (const it of words) for (const a of it.syllableAudio ?? []) expect(existsSync(`public/audio/propis-dictation/${a.key}.mp3`), a.key).toBe(true);
   });
+  it("the param «Повтор по слогам» off: no syllables; not for letters", () => {
+    expect(generateTasks(mode("dictation"), rec, 500, { level: "words", itemCount: 50, syllables: false })[0].items.some((it) => it.syllableAudio)).toBe(false);
+    expect(generateTasks(mode("dictation"), rec, 500, { level: "letters", itemCount: 5 })[0].syllablesOn).toBe(false);
+  });
 });

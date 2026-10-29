@@ -42,8 +42,10 @@ function dictationTask(topicRecord, sessionParams) {
   const videoRewardEnabled = Boolean(sessionParams?.videoRewardEnabled);
   const punctuation = Boolean(sessionParams?.punctuation);
   let pool;
+  // «Повтор по слогам» (param `syllables`, on by default): only for words
+  const syllablesOn = level === "words" && sessionParams?.syllables !== false;
   if (level === "words") {
-    pool = (topicRecord?.words ?? []).map((w) => ({ key: wordDictationKey(w), display: w.word, syllableAudio: syllableAudio(w) }));
+    pool = (topicRecord?.words ?? []).map((w) => ({ key: wordDictationKey(w), display: w.word, ...(syllablesOn ? { syllableAudio: syllableAudio(w) } : {}) }));
   } else if (level === "texts") {
     pool = (topicRecord?.texts ?? []).map((t) => ({
       key: textDictationKey(t),
@@ -56,7 +58,7 @@ function dictationTask(topicRecord, sessionParams) {
   const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
   const items = noAdjacentRepeats(shuffle(pool).slice(0, itemCount), (item) => (item.display ?? "").toLowerCase());
   if (punctuation) voiceSigns(items, level);
-  return { type: "dictation", level, items, repeatLimit, videoRewardEnabled, signsVoiced: punctuation }; // not `punctuation`: the shared review screen reads that as a list of glyphs
+  return { type: "dictation", level, items, repeatLimit, videoRewardEnabled, signsVoiced: punctuation, syllablesOn }; // not `punctuation`: the shared review screen reads that as a list of glyphs
 }
 
 // «По слогам» (2026-10-29): the second repeat button plays the word one syllable clip after another (owner's choice over one clip per

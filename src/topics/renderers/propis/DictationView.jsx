@@ -57,14 +57,6 @@ export default function DictationView({ task, onClose, Answers = null, Grading =
     playCurrent();
   }
 
-  // `propis2` words: the word again, syllable by syllable; counts against the same repeat limit (owner's call, 2026-10-29).
-  const syllableItems = useMemo(() => (item?.syllableAudio ?? []).map((a) => ({ url: dictationAudioUrl(a.key), pauseAfterMs: a.pauseAfterMs })), [item]);
-  function handleSyllables() {
-    if (!canRepeat || isPlaying) return;
-    setRepeatsUsed((n) => n + 1);
-    play(syllableItems);
-  }
-
   function handleNext() {
     if (isPlaying) return;
     if (index + 1 >= total) setDone(true);
@@ -111,17 +103,6 @@ export default function DictationView({ task, onClose, Answers = null, Grading =
             <span className="propis-dictation-bar" />
           </button>
         </div>
-
-        {syllableItems.length > 0 && (
-          <button
-            type="button"
-            className="propis-dictation-syllables"
-            onClick={handleSyllables}
-            disabled={isPlaying || !canRepeat}
-          >
-            По слогам
-          </button>
-        )}
 
         <div className="propis-dictation-actions">
           <button
