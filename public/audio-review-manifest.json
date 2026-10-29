@@ -1800,6 +1800,51 @@
           "label": "n1000",
           "category": "Прочее",
           "version": "c93d398b13128d0b"
+        },
+        {
+          "id": "audio/place-value-numbers/p-ask.mp3",
+          "key": "p-ask",
+          "path": "audio/place-value-numbers/p-ask.mp3",
+          "url": "/audio/place-value-numbers/p-ask.mp3",
+          "label": "p-ask",
+          "category": "Прочее",
+          "version": "2fff3f90ace73d9e"
+        },
+        {
+          "id": "audio/place-value-numbers/p-empty.mp3",
+          "key": "p-empty",
+          "path": "audio/place-value-numbers/p-empty.mp3",
+          "url": "/audio/place-value-numbers/p-empty.mp3",
+          "label": "p-empty",
+          "category": "Прочее",
+          "version": "00ca9a698d4f45d5"
+        },
+        {
+          "id": "audio/place-value-numbers/p-fold.mp3",
+          "key": "p-fold",
+          "path": "audio/place-value-numbers/p-fold.mp3",
+          "url": "/audio/place-value-numbers/p-fold.mp3",
+          "label": "p-fold",
+          "category": "Прочее",
+          "version": "6bb59d56ecc3d6d1"
+        },
+        {
+          "id": "audio/place-value-numbers/p-full.mp3",
+          "key": "p-full",
+          "path": "audio/place-value-numbers/p-full.mp3",
+          "url": "/audio/place-value-numbers/p-full.mp3",
+          "label": "p-full",
+          "category": "Прочее",
+          "version": "22e1b2c53382e1c2"
+        },
+        {
+          "id": "audio/place-value-numbers/p-unfold.mp3",
+          "key": "p-unfold",
+          "path": "audio/place-value-numbers/p-unfold.mp3",
+          "url": "/audio/place-value-numbers/p-unfold.mp3",
+          "label": "p-unfold",
+          "category": "Прочее",
+          "version": "b5946c5f496e1360"
         }
       ]
     },
@@ -2103,6 +2148,3588 @@
           "label": "Строчная я",
           "category": "Буквы",
           "version": "30ce90c728dc4636"
+        },
+        {
+          "id": "audio/propis-dictation/punct_comma.mp3",
+          "key": "punct_comma",
+          "path": "audio/propis-dictation/punct_comma.mp3",
+          "url": "/audio/propis-dictation/punct_comma.mp3",
+          "label": "punct_comma",
+          "category": "Прочее",
+          "version": "035e2e98ad3f5834"
+        },
+        {
+          "id": "audio/propis-dictation/punct_excl.mp3",
+          "key": "punct_excl",
+          "path": "audio/propis-dictation/punct_excl.mp3",
+          "url": "/audio/propis-dictation/punct_excl.mp3",
+          "label": "punct_excl",
+          "category": "Прочее",
+          "version": "e3202ce6aa7aff6e"
+        },
+        {
+          "id": "audio/propis-dictation/punct_period.mp3",
+          "key": "punct_period",
+          "path": "audio/propis-dictation/punct_period.mp3",
+          "url": "/audio/propis-dictation/punct_period.mp3",
+          "label": "punct_period",
+          "category": "Прочее",
+          "version": "357d8be764b84920"
+        },
+        {
+          "id": "audio/propis-dictation/punct_question.mp3",
+          "key": "punct_question",
+          "path": "audio/propis-dictation/punct_question.mp3",
+          "url": "/audio/propis-dictation/punct_question.mp3",
+          "label": "punct_question",
+          "category": "Прочее",
+          "version": "b96cb2d6af19d4fc"
+        },
+        {
+          "id": "audio/propis-dictation/syl_а.mp3",
+          "key": "syl_а",
+          "path": "audio/propis-dictation/syl_а.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B0.mp3",
+          "label": "а — А·ня",
+          "category": "Слоги",
+          "version": "3950ad6c912c3b7a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ав.mp3",
+          "key": "syl_ав",
+          "path": "audio/propis-dictation/syl_ав.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B0%D0%B2.mp3",
+          "label": "ав — ав·то·бус",
+          "category": "Слоги",
+          "version": "e84517eff2dc0c70"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ар.mp3",
+          "key": "syl_ар",
+          "path": "audio/propis-dictation/syl_ар.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B0%D1%80.mp3",
+          "label": "ар — ар·буз",
+          "category": "Слоги",
+          "version": "03553ae1621ccc95"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ба.mp3",
+          "key": "syl_ба",
+          "path": "audio/propis-dictation/syl_ба.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%B0.mp3",
+          "label": "ба — ба·нан, ры·ба, ба·боч·ка, со·ба·ка и ещё 1",
+          "category": "Слоги",
+          "version": "58aceb5fcc731f54"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бё.mp3",
+          "key": "syl_бё",
+          "path": "audio/propis-dictation/syl_бё.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D1%91.mp3",
+          "label": "бё — ре·бё·нок",
+          "category": "Слоги",
+          "version": "b940fbeb9ff56f6e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бел.mp3",
+          "key": "syl_бел",
+          "path": "audio/propis-dictation/syl_бел.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%B5%D0%BB.mp3",
+          "label": "бел — бел·ка",
+          "category": "Слоги",
+          "version": "883fe4559703f769"
+        },
+        {
+          "id": "audio/propis-dictation/syl_би.mp3",
+          "key": "syl_би",
+          "path": "audio/propis-dictation/syl_би.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%B8.mp3",
+          "label": "би — ку·би·ки",
+          "category": "Слоги",
+          "version": "9d1bcaf5c684cf6b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бли.mp3",
+          "key": "syl_бли",
+          "path": "audio/propis-dictation/syl_бли.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%BB%D0%B8.mp3",
+          "label": "бли — бли·ны",
+          "category": "Слоги",
+          "version": "d64060ae92241214"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бо.mp3",
+          "key": "syl_бо",
+          "path": "audio/propis-dictation/syl_бо.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%BE.mp3",
+          "label": "бо — Бо·ря, бо·тин·ки, не·бо",
+          "category": "Слоги",
+          "version": "b0e8f862a11bc187"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бол.mp3",
+          "key": "syl_бол",
+          "path": "audio/propis-dictation/syl_бол.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%BE%D0%BB.mp3",
+          "label": "бол — фут·бол·ка",
+          "category": "Слоги",
+          "version": "64d3e62c932b9bb1"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бор.mp3",
+          "key": "syl_бор",
+          "path": "audio/propis-dictation/syl_бор.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%BE%D1%80.mp3",
+          "label": "бор — за·бор",
+          "category": "Слоги",
+          "version": "580e3930711bf2ee"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бот.mp3",
+          "key": "syl_бот",
+          "path": "audio/propis-dictation/syl_бот.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%BE%D1%82.mp3",
+          "label": "бот — ро·бот",
+          "category": "Слоги",
+          "version": "933160700c905739"
+        },
+        {
+          "id": "audio/propis-dictation/syl_боч.mp3",
+          "key": "syl_боч",
+          "path": "audio/propis-dictation/syl_боч.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D0%BE%D1%87.mp3",
+          "label": "боч — ба·боч·ка",
+          "category": "Слоги",
+          "version": "a3dc150c03b71c4f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_буз.mp3",
+          "key": "syl_буз",
+          "path": "audio/propis-dictation/syl_буз.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D1%83%D0%B7.mp3",
+          "label": "буз — ар·буз",
+          "category": "Слоги",
+          "version": "97c4fa6a0836a0e2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бус.mp3",
+          "key": "syl_бус",
+          "path": "audio/propis-dictation/syl_бус.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D1%83%D1%81.mp3",
+          "label": "бус — ав·то·бус",
+          "category": "Слоги",
+          "version": "d5b1a16f51b2425f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_буш.mp3",
+          "key": "syl_буш",
+          "path": "audio/propis-dictation/syl_буш.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D1%83%D1%88.mp3",
+          "label": "буш — ба·буш·ка",
+          "category": "Слоги",
+          "version": "44939d74e294c23f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_бы.mp3",
+          "key": "syl_бы",
+          "path": "audio/propis-dictation/syl_бы.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B1%D1%8B.mp3",
+          "label": "бы — зу·бы",
+          "category": "Слоги",
+          "version": "0d7b1c9bc1c5a970"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ва.mp3",
+          "key": "syl_ва",
+          "path": "audio/propis-dictation/syl_ва.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B0.mp3",
+          "label": "ва — ко·ро·ва, Во·ва, Ва·ся, го·ло·ва",
+          "category": "Слоги",
+          "version": "eaced6e3bd139998"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ван.mp3",
+          "key": "syl_ван",
+          "path": "audio/propis-dictation/syl_ван.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B0%D0%BD.mp3",
+          "label": "ван — ди·ван",
+          "category": "Слоги",
+          "version": "8a0c80519d307ef5"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вать.mp3",
+          "key": "syl_вать",
+          "path": "audio/propis-dictation/syl_вать.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B0%D1%82%D1%8C.mp3",
+          "label": "вать — кро·вать",
+          "category": "Слоги",
+          "version": "c1b442c64d61ffc2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ве.mp3",
+          "key": "syl_ве",
+          "path": "audio/propis-dictation/syl_ве.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B5.mp3",
+          "label": "ве — ве·тер, Ве·ра, ве·ло·си·пед, ве·чер",
+          "category": "Слоги",
+          "version": "d6373685b39d5235"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вед.mp3",
+          "key": "syl_вед",
+          "path": "audio/propis-dictation/syl_вед.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B5%D0%B4.mp3",
+          "label": "вед — вед·ро",
+          "category": "Слоги",
+          "version": "351930ae03c840e0"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ведь.mp3",
+          "key": "syl_ведь",
+          "path": "audio/propis-dictation/syl_ведь.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B5%D0%B4%D1%8C.mp3",
+          "label": "ведь — мед·ведь",
+          "category": "Слоги",
+          "version": "2b2a19057c4fc958"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вей.mp3",
+          "key": "syl_вей",
+          "path": "audio/propis-dictation/syl_вей.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B5%D0%B9.mp3",
+          "label": "вей — му·ра·вей",
+          "category": "Слоги",
+          "version": "a2e2a4f4f69032b4"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вер.mp3",
+          "key": "syl_вер",
+          "path": "audio/propis-dictation/syl_вер.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B5%D1%80.mp3",
+          "label": "вер — вер·то·лёт",
+          "category": "Слоги",
+          "version": "172c0f5352c76b4b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вёр.mp3",
+          "key": "syl_вёр",
+          "path": "audio/propis-dictation/syl_вёр.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D1%91%D1%80.mp3",
+          "label": "вёр — ко·вёр",
+          "category": "Слоги",
+          "version": "9735e34902104954"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вес.mp3",
+          "key": "syl_вес",
+          "path": "audio/propis-dictation/syl_вес.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B5%D1%81.mp3",
+          "label": "вес — вес·на",
+          "category": "Слоги",
+          "version": "5b14b4c93fce628a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ви.mp3",
+          "key": "syl_ви",
+          "path": "audio/propis-dictation/syl_ви.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B8.mp3",
+          "label": "ви — Ви·тя",
+          "category": "Слоги",
+          "version": "c9285b7c86f99a37"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вил.mp3",
+          "key": "syl_вил",
+          "path": "audio/propis-dictation/syl_вил.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B8%D0%BB.mp3",
+          "label": "вил — вил·ка",
+          "category": "Слоги",
+          "version": "47780fba6ded9509"
+        },
+        {
+          "id": "audio/propis-dictation/syl_виш.mp3",
+          "key": "syl_виш",
+          "path": "audio/propis-dictation/syl_виш.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%B8%D1%88.mp3",
+          "label": "виш — виш·ня",
+          "category": "Слоги",
+          "version": "a7a037ef07a1851b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_во.mp3",
+          "key": "syl_во",
+          "path": "audio/propis-dictation/syl_во.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%BE.mp3",
+          "label": "во — во·да, Во·ва, во·ло·сы, во·семь",
+          "category": "Слоги",
+          "version": "9d21bde96c4c8013"
+        },
+        {
+          "id": "audio/propis-dictation/syl_воч.mp3",
+          "key": "syl_воч",
+          "path": "audio/propis-dictation/syl_воч.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D0%BE%D1%87.mp3",
+          "label": "воч — де·воч·ка",
+          "category": "Слоги",
+          "version": "4a9d538641e8f697"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вче.mp3",
+          "key": "syl_вче",
+          "path": "audio/propis-dictation/syl_вче.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D1%87%D0%B5.mp3",
+          "label": "вче — вче·ра",
+          "category": "Слоги",
+          "version": "425d7d18e2dd691e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_вять.mp3",
+          "key": "syl_вять",
+          "path": "audio/propis-dictation/syl_вять.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B2%D1%8F%D1%82%D1%8C.mp3",
+          "label": "вять — де·вять",
+          "category": "Слоги",
+          "version": "f1af81824527ed1d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_га.mp3",
+          "key": "syl_га",
+          "path": "audio/propis-dictation/syl_га.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%B0.mp3",
+          "label": "га — кни·га, ра·ду·га, до·ро·га",
+          "category": "Слоги",
+          "version": "12cb98f240e83050"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ги.mp3",
+          "key": "syl_ги",
+          "path": "audio/propis-dictation/syl_ги.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%B8.mp3",
+          "label": "ги — но·ги",
+          "category": "Слоги",
+          "version": "5785de7d0003d6ec"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гла.mp3",
+          "key": "syl_гла",
+          "path": "audio/propis-dictation/syl_гла.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%BB%D0%B0.mp3",
+          "label": "гла — гла·за",
+          "category": "Слоги",
+          "version": "b71e6e35eea1ac0d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гнез.mp3",
+          "key": "syl_гнез",
+          "path": "audio/propis-dictation/syl_гнез.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%BD%D0%B5%D0%B7.mp3",
+          "label": "гнез — гнез·до",
+          "category": "Слоги",
+          "version": "c8906c47c5e30360"
+        },
+        {
+          "id": "audio/propis-dictation/syl_го.mp3",
+          "key": "syl_го",
+          "path": "audio/propis-dictation/syl_го.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%BE.mp3",
+          "label": "го — го·ра, го·ло·ва",
+          "category": "Слоги",
+          "version": "a26fbaffc6067648"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гонь.mp3",
+          "key": "syl_гонь",
+          "path": "audio/propis-dictation/syl_гонь.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%BE%D0%BD%D1%8C.mp3",
+          "label": "гонь — о·гонь",
+          "category": "Слоги",
+          "version": "636f6dbfa09547a4"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гор.mp3",
+          "key": "syl_гор",
+          "path": "audio/propis-dictation/syl_гор.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D0%BE%D1%80.mp3",
+          "label": "гор — гор·ка",
+          "category": "Слоги",
+          "version": "05a8fda21fca140e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гри.mp3",
+          "key": "syl_гри",
+          "path": "audio/propis-dictation/syl_гри.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D1%80%D0%B8.mp3",
+          "label": "гри — Гри·ша",
+          "category": "Слоги",
+          "version": "e7aec1cbe671a08e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гро.mp3",
+          "key": "syl_гро",
+          "path": "audio/propis-dictation/syl_гро.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D1%80%D0%BE.mp3",
+          "label": "гро — гро·за",
+          "category": "Слоги",
+          "version": "86672ca761260154"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гру.mp3",
+          "key": "syl_гру",
+          "path": "audio/propis-dictation/syl_гру.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D1%80%D1%83.mp3",
+          "label": "гру — гру·ша",
+          "category": "Слоги",
+          "version": "7cfe5aa92fb9c195"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гу.mp3",
+          "key": "syl_гу",
+          "path": "audio/propis-dictation/syl_гу.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D1%83.mp3",
+          "label": "гу — о·гу·рец",
+          "category": "Слоги",
+          "version": "c453c4df0a28b4de"
+        },
+        {
+          "id": "audio/propis-dictation/syl_гуш.mp3",
+          "key": "syl_гуш",
+          "path": "audio/propis-dictation/syl_гуш.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B3%D1%83%D1%88.mp3",
+          "label": "гуш — ля·гуш·ка",
+          "category": "Слоги",
+          "version": "3effb8f59862d6e0"
+        },
+        {
+          "id": "audio/propis-dictation/syl_да.mp3",
+          "key": "syl_да",
+          "path": "audio/propis-dictation/syl_да.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%B0.mp3",
+          "label": "да — во·да, звез·да, Лю·да, Да·ша",
+          "category": "Слоги",
+          "version": "cc99bce86829abb2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_де.mp3",
+          "key": "syl_де",
+          "path": "audio/propis-dictation/syl_де.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%B5.mp3",
+          "label": "де — де·душ·ка, де·воч·ка, де·вять, де·сять",
+          "category": "Слоги",
+          "version": "b1de1d7b4636c45f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ди.mp3",
+          "key": "syl_ди",
+          "path": "audio/propis-dictation/syl_ди.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%B8.mp3",
+          "label": "ди — Ди·ма, ди·ван",
+          "category": "Слоги",
+          "version": "f3b027b12f9a639f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_дин.mp3",
+          "key": "syl_дин",
+          "path": "audio/propis-dictation/syl_дин.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%B8%D0%BD.mp3",
+          "label": "дин — о·дин",
+          "category": "Слоги",
+          "version": "6302514f784c6b47"
+        },
+        {
+          "id": "audio/propis-dictation/syl_днев.mp3",
+          "key": "syl_днев",
+          "path": "audio/propis-dictation/syl_днев.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%BD%D0%B5%D0%B2.mp3",
+          "label": "днев — днев·ник",
+          "category": "Слоги",
+          "version": "d9a3e8baf21b32ee"
+        },
+        {
+          "id": "audio/propis-dictation/syl_до.mp3",
+          "key": "syl_до",
+          "path": "audio/propis-dictation/syl_до.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%BE.mp3",
+          "label": "до — гнез·до, до·ро·га",
+          "category": "Слоги",
+          "version": "d37780fb1814c467"
+        },
+        {
+          "id": "audio/propis-dictation/syl_дор.mp3",
+          "key": "syl_дор",
+          "path": "audio/propis-dictation/syl_дор.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%BE%D1%80.mp3",
+          "label": "дор — по·ми·дор",
+          "category": "Слоги",
+          "version": "95f4bb5feecb471a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_дос.mp3",
+          "key": "syl_дос",
+          "path": "audio/propis-dictation/syl_дос.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D0%BE%D1%81.mp3",
+          "label": "дос — дос·ка",
+          "category": "Слоги",
+          "version": "2802bdc1de22a276"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ду.mp3",
+          "key": "syl_ду",
+          "path": "audio/propis-dictation/syl_ду.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D1%83.mp3",
+          "label": "ду — ра·ду·га",
+          "category": "Слоги",
+          "version": "6e4ec4995121c4f2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_душ.mp3",
+          "key": "syl_душ",
+          "path": "audio/propis-dictation/syl_душ.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D1%83%D1%88.mp3",
+          "label": "душ — де·душ·ка, по·душ·ка",
+          "category": "Слоги",
+          "version": "47b0456096663d84"
+        },
+        {
+          "id": "audio/propis-dictation/syl_дце.mp3",
+          "key": "syl_дце",
+          "path": "audio/propis-dictation/syl_дце.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D1%86%D0%B5.mp3",
+          "label": "дце — сер·дце",
+          "category": "Слоги",
+          "version": "a314dc6284739f81"
+        },
+        {
+          "id": "audio/propis-dictation/syl_дя.mp3",
+          "key": "syl_дя",
+          "path": "audio/propis-dictation/syl_дя.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B4%D1%8F.mp3",
+          "label": "дя — дя·дя, дя·дя, На·дя",
+          "category": "Слоги",
+          "version": "6eb97b3018e11214"
+        },
+        {
+          "id": "audio/propis-dictation/syl_езд.mp3",
+          "key": "syl_езд",
+          "path": "audio/propis-dictation/syl_езд.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B5%D0%B7%D0%B4.mp3",
+          "label": "езд — по·езд",
+          "category": "Слоги",
+          "version": "b910c689955fe67b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_же.mp3",
+          "key": "syl_же",
+          "path": "audio/propis-dictation/syl_же.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B6%D0%B5.mp3",
+          "label": "же — Же·ня",
+          "category": "Слоги",
+          "version": "5255189c1d690f60"
+        },
+        {
+          "id": "audio/propis-dictation/syl_жи.mp3",
+          "key": "syl_жи",
+          "path": "audio/propis-dictation/syl_жи.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B6%D0%B8.mp3",
+          "label": "жи — жи·раф",
+          "category": "Слоги",
+          "version": "9b4b4af2ebb6d1c6"
+        },
+        {
+          "id": "audio/propis-dictation/syl_за.mp3",
+          "key": "syl_за",
+          "path": "audio/propis-dictation/syl_за.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%B0.mp3",
+          "label": "за — за·мок, за·бор, за·яц, гро·за и ещё 1",
+          "category": "Слоги",
+          "version": "1d80aded1cc24a35"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зав.mp3",
+          "key": "syl_зав",
+          "path": "audio/propis-dictation/syl_зав.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%B0%D0%B2.mp3",
+          "label": "зав — зав·тра",
+          "category": "Слоги",
+          "version": "50117507415fc0e9"
+        },
+        {
+          "id": "audio/propis-dictation/syl_звез.mp3",
+          "key": "syl_звез",
+          "path": "audio/propis-dictation/syl_звез.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%B2%D0%B5%D0%B7.mp3",
+          "label": "звез — звез·да",
+          "category": "Слоги",
+          "version": "553e37dfd3a57539"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зе.mp3",
+          "key": "syl_зе",
+          "path": "audio/propis-dictation/syl_зе.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%B5.mp3",
+          "label": "зе — о·зе·ро",
+          "category": "Слоги",
+          "version": "a5aa29c6648d79a3"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зеб.mp3",
+          "key": "syl_зеб",
+          "path": "audio/propis-dictation/syl_зеб.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%B5%D0%B1.mp3",
+          "label": "зеб — зеб·ра",
+          "category": "Слоги",
+          "version": "da7589c77b233bdb"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зи.mp3",
+          "key": "syl_зи",
+          "path": "audio/propis-dictation/syl_зи.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%B8.mp3",
+          "label": "зи — зи·ма",
+          "category": "Слоги",
+          "version": "418917fed71546ea"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зме.mp3",
+          "key": "syl_зме",
+          "path": "audio/propis-dictation/syl_зме.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D0%BC%D0%B5.mp3",
+          "label": "зме — зме·я",
+          "category": "Слоги",
+          "version": "cb7d7c342f74c010"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зу.mp3",
+          "key": "syl_зу",
+          "path": "audio/propis-dictation/syl_зу.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D1%83.mp3",
+          "label": "зу — зу·бы",
+          "category": "Слоги",
+          "version": "07a688a912534cda"
+        },
+        {
+          "id": "audio/propis-dictation/syl_зык.mp3",
+          "key": "syl_зык",
+          "path": "audio/propis-dictation/syl_зык.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B7%D1%8B%D0%BA.mp3",
+          "label": "зык — я·зык",
+          "category": "Слоги",
+          "version": "5862e44536514dff"
+        },
+        {
+          "id": "audio/propis-dictation/syl_и.mp3",
+          "key": "syl_и",
+          "path": "audio/propis-dictation/syl_и.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%B8.mp3",
+          "label": "и — И·ра",
+          "category": "Слоги",
+          "version": "4d975ae61db10953"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ка.mp3",
+          "key": "syl_ка",
+          "path": "audio/propis-dictation/syl_ка.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%B0.mp3",
+          "label": "ка — лож·ка, вил·ка, чаш·ка, круж·ка и ещё 27",
+          "category": "Слоги",
+          "version": "34d4188fe873661a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кал.mp3",
+          "key": "syl_кал",
+          "path": "audio/propis-dictation/syl_кал.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%B0%D0%BB.mp3",
+          "label": "кал — ска·кал·ка",
+          "category": "Слоги",
+          "version": "cd71ef9f34824c10"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кар.mp3",
+          "key": "syl_кар",
+          "path": "audio/propis-dictation/syl_кар.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%B0%D1%80.mp3",
+          "label": "кар — кар·тош·ка",
+          "category": "Слоги",
+          "version": "d42da44f05d59bd0"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кат.mp3",
+          "key": "syl_кат",
+          "path": "audio/propis-dictation/syl_кат.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%B0%D1%82.mp3",
+          "label": "кат — са·мо·кат",
+          "category": "Слоги",
+          "version": "77d11e6363f1c0d6"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ки.mp3",
+          "key": "syl_ки",
+          "path": "audio/propis-dictation/syl_ки.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%B8.mp3",
+          "label": "ки — сан·ки, конь·ки, оч·ки, бо·тин·ки и ещё 2",
+          "category": "Слоги",
+          "version": "92546be1f0bb5a66"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кни.mp3",
+          "key": "syl_кни",
+          "path": "audio/propis-dictation/syl_кни.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%BD%D0%B8.mp3",
+          "label": "кни — кни·га",
+          "category": "Слоги",
+          "version": "bcf540b2ab094b7b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ко.mp3",
+          "key": "syl_ко",
+          "path": "audio/propis-dictation/syl_ко.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%BE.mp3",
+          "label": "ко — ко·вёр, ко·ро·ва, ко·тё·нок, Ко·ля и ещё 4",
+          "category": "Слоги",
+          "version": "1c640512d04701ea"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ковь.mp3",
+          "key": "syl_ковь",
+          "path": "audio/propis-dictation/syl_ковь.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%BE%D0%B2%D1%8C.mp3",
+          "label": "ковь — мор·ковь",
+          "category": "Слоги",
+          "version": "83f8774c25ffa2f4"
+        },
+        {
+          "id": "audio/propis-dictation/syl_конь.mp3",
+          "key": "syl_конь",
+          "path": "audio/propis-dictation/syl_конь.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%BE%D0%BD%D1%8C.mp3",
+          "label": "конь — конь·ки",
+          "category": "Слоги",
+          "version": "4ca9ed12b0f6e633"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кош.mp3",
+          "key": "syl_кош",
+          "path": "audio/propis-dictation/syl_кош.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D0%BE%D1%88.mp3",
+          "label": "кош — кош·ка",
+          "category": "Слоги",
+          "version": "b1cd7510890e006f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_крес.mp3",
+          "key": "syl_крес",
+          "path": "audio/propis-dictation/syl_крес.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D1%80%D0%B5%D1%81.mp3",
+          "label": "крес — крес·ло",
+          "category": "Слоги",
+          "version": "491dcbdce3bccbc2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кро.mp3",
+          "key": "syl_кро",
+          "path": "audio/propis-dictation/syl_кро.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D1%80%D0%BE.mp3",
+          "label": "кро — кро·лик, кро·вать",
+          "category": "Слоги",
+          "version": "902c31d4864555a1"
+        },
+        {
+          "id": "audio/propis-dictation/syl_круж.mp3",
+          "key": "syl_круж",
+          "path": "audio/propis-dictation/syl_круж.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D1%80%D1%83%D0%B6.mp3",
+          "label": "круж — круж·ка",
+          "category": "Слоги",
+          "version": "cb30ee37bb2fbb7c"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кры.mp3",
+          "key": "syl_кры",
+          "path": "audio/propis-dictation/syl_кры.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D1%80%D1%8B.mp3",
+          "label": "кры — кры·ша, кры·ло",
+          "category": "Слоги",
+          "version": "6580581d76717f52"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ку.mp3",
+          "key": "syl_ку",
+          "path": "audio/propis-dictation/syl_ку.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D1%83.mp3",
+          "label": "ку — ку·ри·ца, ку·би·ки",
+          "category": "Слоги",
+          "version": "a5645cbe1bb18542"
+        },
+        {
+          "id": "audio/propis-dictation/syl_кур.mp3",
+          "key": "syl_кур",
+          "path": "audio/propis-dictation/syl_кур.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BA%D1%83%D1%80.mp3",
+          "label": "кур — кур·тка",
+          "category": "Слоги",
+          "version": "47940fefde795e50"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ла.mp3",
+          "key": "syl_ла",
+          "path": "audio/propis-dictation/syl_ла.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B0.mp3",
+          "label": "ла — ла·па, пи·ла, мет·ла, Ми·ла и ещё 4",
+          "category": "Слоги",
+          "version": "f01a197482f283af"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лам.mp3",
+          "key": "syl_лам",
+          "path": "audio/propis-dictation/syl_лам.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B0%D0%BC.mp3",
+          "label": "лам — лам·па",
+          "category": "Слоги",
+          "version": "68ea48a31bad888f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лап.mp3",
+          "key": "syl_лап",
+          "path": "audio/propis-dictation/syl_лап.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B0%D0%BF.mp3",
+          "label": "лап — лап·ша, лап·ти",
+          "category": "Слоги",
+          "version": "5224f7d2fe8eb330"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лат.mp3",
+          "key": "syl_лат",
+          "path": "audio/propis-dictation/syl_лат.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B0%D1%82.mp3",
+          "label": "лат — са·лат",
+          "category": "Слоги",
+          "version": "a9b0d2bef0c8047a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ле.mp3",
+          "key": "syl_ле",
+          "path": "audio/propis-dictation/syl_ле.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B5.mp3",
+          "label": "ле — ле·то, по·ле, Ле·на, те·ле·фон",
+          "category": "Слоги",
+          "version": "f539841803b3895e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лё.mp3",
+          "key": "syl_лё",
+          "path": "audio/propis-dictation/syl_лё.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D1%91.mp3",
+          "label": "лё — Лё·ша",
+          "category": "Слоги",
+          "version": "68ce0846d065976d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лень.mp3",
+          "key": "syl_лень",
+          "path": "audio/propis-dictation/syl_лень.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B5%D0%BD%D1%8C.mp3",
+          "label": "лень — о·лень",
+          "category": "Слоги",
+          "version": "68afc5520a1c3a16"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лёт.mp3",
+          "key": "syl_лёт",
+          "path": "audio/propis-dictation/syl_лёт.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D1%91%D1%82.mp3",
+          "label": "лёт — по·лёт, са·мо·лёт, вер·то·лёт",
+          "category": "Слоги",
+          "version": "ce1e7183fa15cb2d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ли.mp3",
+          "key": "syl_ли",
+          "path": "audio/propis-dictation/syl_ли.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B8.mp3",
+          "label": "ли — ли·па, ли·цо, ли·са, По·ли·на и ещё 1",
+          "category": "Слоги",
+          "version": "6e97d0e0696aa08d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лик.mp3",
+          "key": "syl_лик",
+          "path": "audio/propis-dictation/syl_лик.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B8%D0%BA.mp3",
+          "label": "лик — кро·лик",
+          "category": "Слоги",
+          "version": "73aff75f1aeb0d70"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лит.mp3",
+          "key": "syl_лит",
+          "path": "audio/propis-dictation/syl_лит.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%B8%D1%82.mp3",
+          "label": "лит — у·лит·ка",
+          "category": "Слоги",
+          "version": "9b29610cb5b343ea"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ло.mp3",
+          "key": "syl_ло",
+          "path": "audio/propis-dictation/syl_ло.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%BE.mp3",
+          "label": "ло — мас·ло, со·ло·ма, по·ло·са, кры·ло и ещё 7",
+          "category": "Слоги",
+          "version": "03d628049921f4c6"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лод.mp3",
+          "key": "syl_лод",
+          "path": "audio/propis-dictation/syl_лод.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%BE%D0%B4.mp3",
+          "label": "лод — лод·ка",
+          "category": "Слоги",
+          "version": "41ba16d2fed773a2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лож.mp3",
+          "key": "syl_лож",
+          "path": "audio/propis-dictation/syl_лож.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%BE%D0%B6.mp3",
+          "label": "лож — лож·ка",
+          "category": "Слоги",
+          "version": "97539ec69ab023c7"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лот.mp3",
+          "key": "syl_лот",
+          "path": "audio/propis-dictation/syl_лот.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D0%BE%D1%82.mp3",
+          "label": "лот — пи·лот",
+          "category": "Слоги",
+          "version": "d186540f18080924"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лу.mp3",
+          "key": "syl_лу",
+          "path": "audio/propis-dictation/syl_лу.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D1%83.mp3",
+          "label": "лу — лу·на",
+          "category": "Слоги",
+          "version": "5086fdd9ff5d6601"
+        },
+        {
+          "id": "audio/propis-dictation/syl_лю.mp3",
+          "key": "syl_лю",
+          "path": "audio/propis-dictation/syl_лю.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D1%8E.mp3",
+          "label": "лю — Лю·да",
+          "category": "Слоги",
+          "version": "44bf8646bae97add"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ля.mp3",
+          "key": "syl_ля",
+          "path": "audio/propis-dictation/syl_ля.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BB%D1%8F.mp3",
+          "label": "ля — ля·гуш·ка, Ко·ля, Ю·ля, О·ля",
+          "category": "Слоги",
+          "version": "679369236953eb0f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ма.mp3",
+          "key": "syl_ма",
+          "path": "audio/propis-dictation/syl_ма.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B0.mp3",
+          "label": "ма — ма·ма, ма·ма, со·ло·ма, Ма·ша и ещё 6",
+          "category": "Слоги",
+          "version": "0af958e1cf4763f4"
+        },
+        {
+          "id": "audio/propis-dictation/syl_маль.mp3",
+          "key": "syl_маль",
+          "path": "audio/propis-dictation/syl_маль.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B0%D0%BB%D1%8C.mp3",
+          "label": "маль — маль·чик",
+          "category": "Слоги",
+          "version": "9dbd237e734f6b6e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мас.mp3",
+          "key": "syl_мас",
+          "path": "audio/propis-dictation/syl_мас.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B0%D1%81.mp3",
+          "label": "мас — мас·ло",
+          "category": "Слоги",
+          "version": "3cad6455b9ea8e99"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ме.mp3",
+          "key": "syl_ме",
+          "path": "audio/propis-dictation/syl_ме.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B5.mp3",
+          "label": "ме — ме·сяц",
+          "category": "Слоги",
+          "version": "8ab4a7627e662d16"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мед.mp3",
+          "key": "syl_мед",
+          "path": "audio/propis-dictation/syl_мед.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B5%D0%B4.mp3",
+          "label": "мед — мед·ведь",
+          "category": "Слоги",
+          "version": "9c35f75f223bad3e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мес.mp3",
+          "key": "syl_мес",
+          "path": "audio/propis-dictation/syl_мес.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B5%D1%81.mp3",
+          "label": "мес — мес·то",
+          "category": "Слоги",
+          "version": "2130230da6bd6fc5"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мет.mp3",
+          "key": "syl_мет",
+          "path": "audio/propis-dictation/syl_мет.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B5%D1%82.mp3",
+          "label": "мет — мет·ла",
+          "category": "Слоги",
+          "version": "a2396715e5d0e84c"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ми.mp3",
+          "key": "syl_ми",
+          "path": "audio/propis-dictation/syl_ми.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B8.mp3",
+          "label": "ми — Ми·ла, Ми·ша, по·ми·дор",
+          "category": "Слоги",
+          "version": "ad90bfed364b7f84"
+        },
+        {
+          "id": "audio/propis-dictation/syl_миш.mp3",
+          "key": "syl_миш",
+          "path": "audio/propis-dictation/syl_миш.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%B8%D1%88.mp3",
+          "label": "миш — миш·ка",
+          "category": "Слоги",
+          "version": "64ed765db299b014"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мо.mp3",
+          "key": "syl_мо",
+          "path": "audio/propis-dictation/syl_мо.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%BE.mp3",
+          "label": "мо — са·мо·лёт, Ти·мо·ша, мо·ло·ко, мо·роз и ещё 2",
+          "category": "Слоги",
+          "version": "51651aa251da8896"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мок.mp3",
+          "key": "syl_мок",
+          "path": "audio/propis-dictation/syl_мок.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%BE%D0%BA.mp3",
+          "label": "мок — за·мок",
+          "category": "Слоги",
+          "version": "32f01fd6c89c9996"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мол.mp3",
+          "key": "syl_мол",
+          "path": "audio/propis-dictation/syl_мол.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%BE%D0%BB.mp3",
+          "label": "мол — мол·ни·я",
+          "category": "Слоги",
+          "version": "a1cd73f11e7ee736"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мор.mp3",
+          "key": "syl_мор",
+          "path": "audio/propis-dictation/syl_мор.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D0%BE%D1%80.mp3",
+          "label": "мор — мор·ковь",
+          "category": "Слоги",
+          "version": "8e8966fce45b5019"
+        },
+        {
+          "id": "audio/propis-dictation/syl_му.mp3",
+          "key": "syl_му",
+          "path": "audio/propis-dictation/syl_му.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D1%83.mp3",
+          "label": "му — му·ха, му·ра·вей",
+          "category": "Слоги",
+          "version": "0b7cf1245929ec34"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мья.mp3",
+          "key": "syl_мья",
+          "path": "audio/propis-dictation/syl_мья.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D1%8C%D1%8F.mp3",
+          "label": "мья — се·мья",
+          "category": "Слоги",
+          "version": "db446bce010d7efb"
+        },
+        {
+          "id": "audio/propis-dictation/syl_мя.mp3",
+          "key": "syl_мя",
+          "path": "audio/propis-dictation/syl_мя.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BC%D1%8F.mp3",
+          "label": "мя — мя·со",
+          "category": "Слоги",
+          "version": "179e39c5b2a93157"
+        },
+        {
+          "id": "audio/propis-dictation/syl_на.mp3",
+          "key": "syl_на",
+          "path": "audio/propis-dictation/syl_на.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%B0.mp3",
+          "label": "на — вес·на, лу·на, Ле·на, На·дя и ещё 3",
+          "category": "Слоги",
+          "version": "f6392f9e2edd9abb"
+        },
+        {
+          "id": "audio/propis-dictation/syl_нан.mp3",
+          "key": "syl_нан",
+          "path": "audio/propis-dictation/syl_нан.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%B0%D0%BD.mp3",
+          "label": "нан — ба·нан",
+          "category": "Слоги",
+          "version": "82d600835d398956"
+        },
+        {
+          "id": "audio/propis-dictation/syl_нас.mp3",
+          "key": "syl_нас",
+          "path": "audio/propis-dictation/syl_нас.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%B0%D1%81.mp3",
+          "label": "нас — Нас·тя",
+          "category": "Слоги",
+          "version": "af5c96ac6eac8200"
+        },
+        {
+          "id": "audio/propis-dictation/syl_не.mp3",
+          "key": "syl_не",
+          "path": "audio/propis-dictation/syl_не.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%B5.mp3",
+          "label": "не — не·бо",
+          "category": "Слоги",
+          "version": "c039c3fe959db739"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ни.mp3",
+          "key": "syl_ни",
+          "path": "audio/propis-dictation/syl_ни.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%B8.mp3",
+          "label": "ни — Ни·на, мол·ни·я",
+          "category": "Слоги",
+          "version": "a52cbe1ac5a5983d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ник.mp3",
+          "key": "syl_ник",
+          "path": "audio/propis-dictation/syl_ник.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%B8%D0%BA.mp3",
+          "label": "ник — днев·ник",
+          "category": "Слоги",
+          "version": "2308d61543e0290a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_но.mp3",
+          "key": "syl_но",
+          "path": "audio/propis-dictation/syl_но.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%BE.mp3",
+          "label": "но — ок·но, но·ги",
+          "category": "Слоги",
+          "version": "ba9a51524fc00246"
+        },
+        {
+          "id": "audio/propis-dictation/syl_нок.mp3",
+          "key": "syl_нок",
+          "path": "audio/propis-dictation/syl_нок.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D0%BE%D0%BA.mp3",
+          "label": "нок — ко·тё·нок, ре·бё·нок",
+          "category": "Слоги",
+          "version": "421bcdf1257faead"
+        },
+        {
+          "id": "audio/propis-dictation/syl_нце.mp3",
+          "key": "syl_нце",
+          "path": "audio/propis-dictation/syl_нце.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D1%86%D0%B5.mp3",
+          "label": "нце — сол·нце",
+          "category": "Слоги",
+          "version": "5552d79ab866fa80"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ны.mp3",
+          "key": "syl_ны",
+          "path": "audio/propis-dictation/syl_ны.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D1%8B.mp3",
+          "label": "ны — бли·ны",
+          "category": "Слоги",
+          "version": "c36f4f5d0f5c499f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_нья.mp3",
+          "key": "syl_нья",
+          "path": "audio/propis-dictation/syl_нья.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D1%8C%D1%8F.mp3",
+          "label": "нья — сви·нья",
+          "category": "Слоги",
+          "version": "09bdeb80d3051caa"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ня.mp3",
+          "key": "syl_ня",
+          "path": "audio/propis-dictation/syl_ня.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BD%D1%8F.mp3",
+          "label": "ня — А·ня, Же·ня, Со·ня, виш·ня",
+          "category": "Слоги",
+          "version": "7f1aa13c28251400"
+        },
+        {
+          "id": "audio/propis-dictation/syl_о.mp3",
+          "key": "syl_о",
+          "path": "audio/propis-dictation/syl_о.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BE.mp3",
+          "label": "о — о·са, о·гонь, о·лень, О·ля и ещё 4",
+          "category": "Слоги",
+          "version": "74d2aa609a1bb5b1"
+        },
+        {
+          "id": "audio/propis-dictation/syl_об.mp3",
+          "key": "syl_об",
+          "path": "audio/propis-dictation/syl_об.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BE%D0%B1.mp3",
+          "label": "об — об·ла·ко",
+          "category": "Слоги",
+          "version": "fef2cf3a2dc9d9cb"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ок.mp3",
+          "key": "syl_ок",
+          "path": "audio/propis-dictation/syl_ок.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BE%D0%BA.mp3",
+          "label": "ок — ок·но",
+          "category": "Слоги",
+          "version": "fba481acc6b0a2cc"
+        },
+        {
+          "id": "audio/propis-dictation/syl_оч.mp3",
+          "key": "syl_оч",
+          "path": "audio/propis-dictation/syl_оч.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BE%D1%87.mp3",
+          "label": "оч — оч·ки",
+          "category": "Слоги",
+          "version": "b47ad72d7251ba49"
+        },
+        {
+          "id": "audio/propis-dictation/syl_па.mp3",
+          "key": "syl_па",
+          "path": "audio/propis-dictation/syl_па.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B0.mp3",
+          "label": "па — па·па, па·па, ла·па, ли·па и ещё 2",
+          "category": "Слоги",
+          "version": "b539334b32d2c110"
+        },
+        {
+          "id": "audio/propis-dictation/syl_паль.mp3",
+          "key": "syl_паль",
+          "path": "audio/propis-dictation/syl_паль.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B0%D0%BB%D1%8C.mp3",
+          "label": "паль — паль·то",
+          "category": "Слоги",
+          "version": "5de1892f612df87f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пар.mp3",
+          "key": "syl_пар",
+          "path": "audio/propis-dictation/syl_пар.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B0%D1%80.mp3",
+          "label": "пар — пар·та",
+          "category": "Слоги",
+          "version": "57ac24a9e27bc71f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пас.mp3",
+          "key": "syl_пас",
+          "path": "audio/propis-dictation/syl_пас.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B0%D1%81.mp3",
+          "label": "пас — пас·та",
+          "category": "Слоги",
+          "version": "acf765a6c7523d38"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пе.mp3",
+          "key": "syl_пе",
+          "path": "audio/propis-dictation/syl_пе.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B5.mp3",
+          "label": "пе — пе·тух",
+          "category": "Слоги",
+          "version": "da91f905062ad68a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пед.mp3",
+          "key": "syl_пед",
+          "path": "audio/propis-dictation/syl_пед.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B5%D0%B4.mp3",
+          "label": "пед — ве·ло·си·пед",
+          "category": "Слоги",
+          "version": "f67b7925460dd4eb"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пи.mp3",
+          "key": "syl_пи",
+          "path": "audio/propis-dictation/syl_пи.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%B8.mp3",
+          "label": "пи — пи·ла, пи·лот, пи·рог",
+          "category": "Слоги",
+          "version": "847a30407707caa7"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пла.mp3",
+          "key": "syl_пла",
+          "path": "audio/propis-dictation/syl_пла.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%BB%D0%B0.mp3",
+          "label": "пла — пла·тье",
+          "category": "Слоги",
+          "version": "e24445cca2dd14a2"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пли.mp3",
+          "key": "syl_пли",
+          "path": "audio/propis-dictation/syl_пли.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%BB%D0%B8.mp3",
+          "label": "пли — пли·та",
+          "category": "Слоги",
+          "version": "603a3d6b90575117"
+        },
+        {
+          "id": "audio/propis-dictation/syl_по.mp3",
+          "key": "syl_по",
+          "path": "audio/propis-dictation/syl_по.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%BE.mp3",
+          "label": "по — по·лёт, по·ло·са, по·ле, по·эт и ещё 4",
+          "category": "Слоги",
+          "version": "c7c0c28add6e230d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пол.mp3",
+          "key": "syl_пол",
+          "path": "audio/propis-dictation/syl_пол.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D0%BE%D0%BB.mp3",
+          "label": "пол — пол·ка",
+          "category": "Слоги",
+          "version": "38b1eaa04108678f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пус.mp3",
+          "key": "syl_пус",
+          "path": "audio/propis-dictation/syl_пус.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D1%83%D1%81.mp3",
+          "label": "пус — ка·пус·та",
+          "category": "Слоги",
+          "version": "13a7870056517f8c"
+        },
+        {
+          "id": "audio/propis-dictation/syl_пче.mp3",
+          "key": "syl_пче",
+          "path": "audio/propis-dictation/syl_пче.mp3",
+          "url": "/audio/propis-dictation/syl_%D0%BF%D1%87%D0%B5.mp3",
+          "label": "пче — пче·ла",
+          "category": "Слоги",
+          "version": "568c49adb55efa10"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ра.mp3",
+          "key": "syl_ра",
+          "path": "audio/propis-dictation/syl_ра.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B0.mp3",
+          "label": "ра — зеб·ра, му·ра·вей, Ю·ра, Ве·ра и ещё 4",
+          "category": "Слоги",
+          "version": "0365d73f6c2ca51f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_рабль.mp3",
+          "key": "syl_рабль",
+          "path": "audio/propis-dictation/syl_рабль.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B0%D0%B1%D0%BB%D1%8C.mp3",
+          "label": "рабль — ко·рабль",
+          "category": "Слоги",
+          "version": "2934836a458b6bc7"
+        },
+        {
+          "id": "audio/propis-dictation/syl_радь.mp3",
+          "key": "syl_радь",
+          "path": "audio/propis-dictation/syl_радь.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B0%D0%B4%D1%8C.mp3",
+          "label": "радь — тет·радь",
+          "category": "Слоги",
+          "version": "6f49ea2825542ee5"
+        },
+        {
+          "id": "audio/propis-dictation/syl_раф.mp3",
+          "key": "syl_раф",
+          "path": "audio/propis-dictation/syl_раф.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B0%D1%84.mp3",
+          "label": "раф — жи·раф",
+          "category": "Слоги",
+          "version": "e5b2237a7d25c177"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ре.mp3",
+          "key": "syl_ре",
+          "path": "audio/propis-dictation/syl_ре.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B5.mp3",
+          "label": "ре — ре·бё·нок, ре·ка, мо·ре, че·ты·ре",
+          "category": "Слоги",
+          "version": "27aae60c94b9d40f"
+        },
+        {
+          "id": "audio/propis-dictation/syl_рец.mp3",
+          "key": "syl_рец",
+          "path": "audio/propis-dictation/syl_рец.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B5%D1%86.mp3",
+          "label": "рец — о·гу·рец",
+          "category": "Слоги",
+          "version": "6b73224b0791f68b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ри.mp3",
+          "key": "syl_ри",
+          "path": "audio/propis-dictation/syl_ри.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%B8.mp3",
+          "label": "ри — ку·ри·ца",
+          "category": "Слоги",
+          "version": "f466868377420e9d"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ро.mp3",
+          "key": "syl_ро",
+          "path": "audio/propis-dictation/syl_ро.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%BE.mp3",
+          "label": "ро — вед·ро, ко·ро·ва, о·зе·ро, до·ро·га и ещё 2",
+          "category": "Слоги",
+          "version": "fe2a456098b6fd40"
+        },
+        {
+          "id": "audio/propis-dictation/syl_рог.mp3",
+          "key": "syl_рог",
+          "path": "audio/propis-dictation/syl_рог.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%BE%D0%B3.mp3",
+          "label": "рог — пи·рог",
+          "category": "Слоги",
+          "version": "f00a7774923288d4"
+        },
+        {
+          "id": "audio/propis-dictation/syl_роз.mp3",
+          "key": "syl_роз",
+          "path": "audio/propis-dictation/syl_роз.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%BE%D0%B7.mp3",
+          "label": "роз — мо·роз",
+          "category": "Слоги",
+          "version": "76f8f68032673473"
+        },
+        {
+          "id": "audio/propis-dictation/syl_рок.mp3",
+          "key": "syl_рок",
+          "path": "audio/propis-dictation/syl_рок.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D0%BE%D0%BA.mp3",
+          "label": "рок — у·рок",
+          "category": "Слоги",
+          "version": "b18e9f544a22f681"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ру.mp3",
+          "key": "syl_ру",
+          "path": "audio/propis-dictation/syl_ру.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D1%83.mp3",
+          "label": "ру — ру·ки",
+          "category": "Слоги",
+          "version": "a6f035839a49c5c7"
+        },
+        {
+          "id": "audio/propis-dictation/syl_руч.mp3",
+          "key": "syl_руч",
+          "path": "audio/propis-dictation/syl_руч.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D1%83%D1%87.mp3",
+          "label": "руч — руч·ка",
+          "category": "Слоги",
+          "version": "893fc06f1c8d53be"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ры.mp3",
+          "key": "syl_ры",
+          "path": "audio/propis-dictation/syl_ры.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D1%8B.mp3",
+          "label": "ры — ры·ба",
+          "category": "Слоги",
+          "version": "75a531d64f8539cc"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ря.mp3",
+          "key": "syl_ря",
+          "path": "audio/propis-dictation/syl_ря.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%80%D1%8F.mp3",
+          "label": "ря — Бо·ря",
+          "category": "Слоги",
+          "version": "3e4b49af5a6d2f29"
+        },
+        {
+          "id": "audio/propis-dictation/syl_са.mp3",
+          "key": "syl_са",
+          "path": "audio/propis-dictation/syl_са.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B0.mp3",
+          "label": "са — о·са, са·лат, по·ло·са, ли·са и ещё 3",
+          "category": "Слоги",
+          "version": "d5a2f7409e051755"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сан.mp3",
+          "key": "syl_сан",
+          "path": "audio/propis-dictation/syl_сан.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B0%D0%BD.mp3",
+          "label": "сан — сан·ки",
+          "category": "Слоги",
+          "version": "2eec6eade641df19"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сви.mp3",
+          "key": "syl_сви",
+          "path": "audio/propis-dictation/syl_сви.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B2%D0%B8.mp3",
+          "label": "сви — сви·нья",
+          "category": "Слоги",
+          "version": "99755d45590c67ad"
+        },
+        {
+          "id": "audio/propis-dictation/syl_се.mp3",
+          "key": "syl_се",
+          "path": "audio/propis-dictation/syl_се.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B5.mp3",
+          "label": "се — се·мья",
+          "category": "Слоги",
+          "version": "4219b2b54af64019"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сё.mp3",
+          "key": "syl_сё",
+          "path": "audio/propis-dictation/syl_сё.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D1%91.mp3",
+          "label": "сё — Сё·ма",
+          "category": "Слоги",
+          "version": "04a83ebe43b63988"
+        },
+        {
+          "id": "audio/propis-dictation/syl_семь.mp3",
+          "key": "syl_семь",
+          "path": "audio/propis-dictation/syl_семь.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B5%D0%BC%D1%8C.mp3",
+          "label": "семь — во·семь",
+          "category": "Слоги",
+          "version": "2243a8ebb10c6f05"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сень.mp3",
+          "key": "syl_сень",
+          "path": "audio/propis-dictation/syl_сень.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B5%D0%BD%D1%8C.mp3",
+          "label": "сень — о·сень",
+          "category": "Слоги",
+          "version": "cd60199ff6357a95"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сер.mp3",
+          "key": "syl_сер",
+          "path": "audio/propis-dictation/syl_сер.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B5%D1%80.mp3",
+          "label": "сер — сер·дце",
+          "category": "Слоги",
+          "version": "fef9a5aee638de94"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сес.mp3",
+          "key": "syl_сес",
+          "path": "audio/propis-dictation/syl_сес.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B5%D1%81.mp3",
+          "label": "сес — сес·тра",
+          "category": "Слоги",
+          "version": "9a4f670c141675c8"
+        },
+        {
+          "id": "audio/propis-dictation/syl_си.mp3",
+          "key": "syl_си",
+          "path": "audio/propis-dictation/syl_си.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%B8.mp3",
+          "label": "си — си·то, ве·ло·си·пед",
+          "category": "Слоги",
+          "version": "945fa22309e053be"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ска.mp3",
+          "key": "syl_ска",
+          "path": "audio/propis-dictation/syl_ска.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%BA%D0%B0.mp3",
+          "label": "ска — ска·кал·ка",
+          "category": "Слоги",
+          "version": "b50ab83efddf514e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_со.mp3",
+          "key": "syl_со",
+          "path": "audio/propis-dictation/syl_со.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%BE.mp3",
+          "label": "со — со·ло·ма, со·ба·ка, Со·ня, мя·со",
+          "category": "Слоги",
+          "version": "11f33388d35a6200"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сол.mp3",
+          "key": "syl_сол",
+          "path": "audio/propis-dictation/syl_сол.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%BE%D0%BB.mp3",
+          "label": "сол — сол·нце",
+          "category": "Слоги",
+          "version": "ec316f23cabd6f31"
+        },
+        {
+          "id": "audio/propis-dictation/syl_спи.mp3",
+          "key": "syl_спи",
+          "path": "audio/propis-dictation/syl_спи.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D0%BF%D0%B8.mp3",
+          "label": "спи — спи·ца",
+          "category": "Слоги",
+          "version": "187933263267a636"
+        },
+        {
+          "id": "audio/propis-dictation/syl_стё.mp3",
+          "key": "syl_стё",
+          "path": "audio/propis-dictation/syl_стё.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D1%82%D1%91.mp3",
+          "label": "стё — Стё·па",
+          "category": "Слоги",
+          "version": "d2757433c5508fbe"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сы.mp3",
+          "key": "syl_сы",
+          "path": "audio/propis-dictation/syl_сы.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D1%8B.mp3",
+          "label": "сы — ча·сы, во·ло·сы",
+          "category": "Слоги",
+          "version": "f9842e1afec35c50"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ся.mp3",
+          "key": "syl_ся",
+          "path": "audio/propis-dictation/syl_ся.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D1%8F.mp3",
+          "label": "ся — Ва·ся",
+          "category": "Слоги",
+          "version": "93d15ad2f878fc38"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сять.mp3",
+          "key": "syl_сять",
+          "path": "audio/propis-dictation/syl_сять.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D1%8F%D1%82%D1%8C.mp3",
+          "label": "сять — де·сять",
+          "category": "Слоги",
+          "version": "8b9d639503387126"
+        },
+        {
+          "id": "audio/propis-dictation/syl_сяц.mp3",
+          "key": "syl_сяц",
+          "path": "audio/propis-dictation/syl_сяц.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%81%D1%8F%D1%86.mp3",
+          "label": "сяц — ме·сяц",
+          "category": "Слоги",
+          "version": "76b6b424c0c3ceaf"
+        },
+        {
+          "id": "audio/propis-dictation/syl_та.mp3",
+          "key": "syl_та",
+          "path": "audio/propis-dictation/syl_та.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B0.mp3",
+          "label": "та — пли·та, пас·та, ка·пус·та, пар·та",
+          "category": "Слоги",
+          "version": "0b5a4db44a54271a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_те.mp3",
+          "key": "syl_те",
+          "path": "audio/propis-dictation/syl_те.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B5.mp3",
+          "label": "те — те·ле·фон",
+          "category": "Слоги",
+          "version": "ac24007712b68e40"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тё.mp3",
+          "key": "syl_тё",
+          "path": "audio/propis-dictation/syl_тё.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%91.mp3",
+          "label": "тё — Тё·ма, ко·тё·нок, тё·тя",
+          "category": "Слоги",
+          "version": "436629b3480b2763"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тель.mp3",
+          "key": "syl_тель",
+          "path": "audio/propis-dictation/syl_тель.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B5%D0%BB%D1%8C.mp3",
+          "label": "тель — у·чи·тель",
+          "category": "Слоги",
+          "version": "8a81a9846befd123"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тер.mp3",
+          "key": "syl_тер",
+          "path": "audio/propis-dictation/syl_тер.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B5%D1%80.mp3",
+          "label": "тер — ве·тер",
+          "category": "Слоги",
+          "version": "60e778d7f22ea147"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тес.mp3",
+          "key": "syl_тес",
+          "path": "audio/propis-dictation/syl_тес.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B5%D1%81.mp3",
+          "label": "тес — тес·то",
+          "category": "Слоги",
+          "version": "2077d2b9c417c9f9"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тет.mp3",
+          "key": "syl_тет",
+          "path": "audio/propis-dictation/syl_тет.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B5%D1%82.mp3",
+          "label": "тет — тет·радь",
+          "category": "Слоги",
+          "version": "bf500d5172ebd7fd"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ти.mp3",
+          "key": "syl_ти",
+          "path": "audio/propis-dictation/syl_ти.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B8.mp3",
+          "label": "ти — лап·ти, Ти·мо·ша",
+          "category": "Слоги",
+          "version": "dd23fe09af4b6382"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тин.mp3",
+          "key": "syl_тин",
+          "path": "audio/propis-dictation/syl_тин.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%B8%D0%BD.mp3",
+          "label": "тин — бо·тин·ки",
+          "category": "Слоги",
+          "version": "ec7f3d64b8c78f17"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тка.mp3",
+          "key": "syl_тка",
+          "path": "audio/propis-dictation/syl_тка.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%BA%D0%B0.mp3",
+          "label": "тка — кур·тка",
+          "category": "Слоги",
+          "version": "1b9f214a59403f3b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_то.mp3",
+          "key": "syl_то",
+          "path": "audio/propis-dictation/syl_то.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%BE.mp3",
+          "label": "то — ле·то, тес·то, си·то, мес·то и ещё 4",
+          "category": "Слоги",
+          "version": "67616d84c822c408"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тош.mp3",
+          "key": "syl_тош",
+          "path": "audio/propis-dictation/syl_тош.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D0%BE%D1%88.mp3",
+          "label": "тош — кар·тош·ка",
+          "category": "Слоги",
+          "version": "71931a9169ba2331"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тра.mp3",
+          "key": "syl_тра",
+          "path": "audio/propis-dictation/syl_тра.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%80%D0%B0.mp3",
+          "label": "тра — сес·тра, зав·тра",
+          "category": "Слоги",
+          "version": "a4646f97bbb023dc"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ту.mp3",
+          "key": "syl_ту",
+          "path": "audio/propis-dictation/syl_ту.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%83.mp3",
+          "label": "ту — ту·ча",
+          "category": "Слоги",
+          "version": "7bf7c8698b2a043a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тух.mp3",
+          "key": "syl_тух",
+          "path": "audio/propis-dictation/syl_тух.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%83%D1%85.mp3",
+          "label": "тух — пе·тух",
+          "category": "Слоги",
+          "version": "fb93fefc1f51243e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ты.mp3",
+          "key": "syl_ты",
+          "path": "audio/propis-dictation/syl_ты.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%8B.mp3",
+          "label": "ты — че·ты·ре",
+          "category": "Слоги",
+          "version": "f0cea4d2564bd9ba"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тье.mp3",
+          "key": "syl_тье",
+          "path": "audio/propis-dictation/syl_тье.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%8C%D0%B5.mp3",
+          "label": "тье — пла·тье",
+          "category": "Слоги",
+          "version": "4f34b10404d19c97"
+        },
+        {
+          "id": "audio/propis-dictation/syl_тя.mp3",
+          "key": "syl_тя",
+          "path": "audio/propis-dictation/syl_тя.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%82%D1%8F.mp3",
+          "label": "тя — тё·тя, Ка·тя, Нас·тя, Ви·тя",
+          "category": "Слоги",
+          "version": "a867624ea347a0f4"
+        },
+        {
+          "id": "audio/propis-dictation/syl_у.mp3",
+          "key": "syl_у",
+          "path": "audio/propis-dictation/syl_у.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%83.mp3",
+          "label": "у — у·лит·ка, у·чи·тель, у·рок",
+          "category": "Слоги",
+          "version": "e32bab12334869f7"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ут.mp3",
+          "key": "syl_ут",
+          "path": "audio/propis-dictation/syl_ут.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%83%D1%82.mp3",
+          "label": "ут — ут·ка, ут·ро",
+          "category": "Слоги",
+          "version": "8d9e03d7157df96b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_фон.mp3",
+          "key": "syl_фон",
+          "path": "audio/propis-dictation/syl_фон.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%84%D0%BE%D0%BD.mp3",
+          "label": "фон — те·ле·фон",
+          "category": "Слоги",
+          "version": "ad2bf7fe7e83b441"
+        },
+        {
+          "id": "audio/propis-dictation/syl_фут.mp3",
+          "key": "syl_фут",
+          "path": "audio/propis-dictation/syl_фут.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%84%D1%83%D1%82.mp3",
+          "label": "фут — фут·бол·ка",
+          "category": "Слоги",
+          "version": "bb410a165315ccc0"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ха.mp3",
+          "key": "syl_ха",
+          "path": "audio/propis-dictation/syl_ха.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%85%D0%B0.mp3",
+          "label": "ха — му·ха",
+          "category": "Слоги",
+          "version": "acddc745d37413d5"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ца.mp3",
+          "key": "syl_ца",
+          "path": "audio/propis-dictation/syl_ца.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%86%D0%B0.mp3",
+          "label": "ца — спи·ца, ку·ри·ца",
+          "category": "Слоги",
+          "version": "57d8a89483c5f014"
+        },
+        {
+          "id": "audio/propis-dictation/syl_цо.mp3",
+          "key": "syl_цо",
+          "path": "audio/propis-dictation/syl_цо.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%86%D0%BE.mp3",
+          "label": "цо — ли·цо, яй·цо",
+          "category": "Слоги",
+          "version": "b7a8a3372cb60b8a"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ча.mp3",
+          "key": "syl_ча",
+          "path": "audio/propis-dictation/syl_ча.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%87%D0%B0.mp3",
+          "label": "ча — ту·ча, ча·сы",
+          "category": "Слоги",
+          "version": "1190badcf7fa2c68"
+        },
+        {
+          "id": "audio/propis-dictation/syl_чаш.mp3",
+          "key": "syl_чаш",
+          "path": "audio/propis-dictation/syl_чаш.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%87%D0%B0%D1%88.mp3",
+          "label": "чаш — чаш·ка",
+          "category": "Слоги",
+          "version": "3d232ffd7cdc7064"
+        },
+        {
+          "id": "audio/propis-dictation/syl_че.mp3",
+          "key": "syl_че",
+          "path": "audio/propis-dictation/syl_че.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%87%D0%B5.mp3",
+          "label": "че — ка·че·ли, че·ты·ре",
+          "category": "Слоги",
+          "version": "90f8344abb11a6cd"
+        },
+        {
+          "id": "audio/propis-dictation/syl_чер.mp3",
+          "key": "syl_чер",
+          "path": "audio/propis-dictation/syl_чер.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%87%D0%B5%D1%80.mp3",
+          "label": "чер — ве·чер",
+          "category": "Слоги",
+          "version": "4eec2c2bf8372bfe"
+        },
+        {
+          "id": "audio/propis-dictation/syl_чи.mp3",
+          "key": "syl_чи",
+          "path": "audio/propis-dictation/syl_чи.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%87%D0%B8.mp3",
+          "label": "чи — у·чи·тель",
+          "category": "Слоги",
+          "version": "f68621b3e3baa168"
+        },
+        {
+          "id": "audio/propis-dictation/syl_чик.mp3",
+          "key": "syl_чик",
+          "path": "audio/propis-dictation/syl_чик.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%87%D0%B8%D0%BA.mp3",
+          "label": "чик — маль·чик",
+          "category": "Слоги",
+          "version": "ad5ec9632c8266b5"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ша.mp3",
+          "key": "syl_ша",
+          "path": "audio/propis-dictation/syl_ша.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%88%D0%B0.mp3",
+          "label": "ша — лап·ша, Ма·ша, То·ша, Лё·ша и ещё 7",
+          "category": "Слоги",
+          "version": "af64fe7a3175d39b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_шадь.mp3",
+          "key": "syl_шадь",
+          "path": "audio/propis-dictation/syl_шадь.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%88%D0%B0%D0%B4%D1%8C.mp3",
+          "label": "шадь — ло·шадь",
+          "category": "Слоги",
+          "version": "ea777ec01cb20c2e"
+        },
+        {
+          "id": "audio/propis-dictation/syl_шап.mp3",
+          "key": "syl_шап",
+          "path": "audio/propis-dictation/syl_шап.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%88%D0%B0%D0%BF.mp3",
+          "label": "шап — шап·ка",
+          "category": "Слоги",
+          "version": "c710417474c11127"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ши.mp3",
+          "key": "syl_ши",
+          "path": "audio/propis-dictation/syl_ши.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%88%D0%B8.mp3",
+          "label": "ши — ма·ши·на",
+          "category": "Слоги",
+          "version": "ab8c8f97bba97345"
+        },
+        {
+          "id": "audio/propis-dictation/syl_шин.mp3",
+          "key": "syl_шин",
+          "path": "audio/propis-dictation/syl_шин.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%88%D0%B8%D0%BD.mp3",
+          "label": "шин — ма·шин·ка",
+          "category": "Слоги",
+          "version": "d59f27aef005e2ee"
+        },
+        {
+          "id": "audio/propis-dictation/syl_шко.mp3",
+          "key": "syl_шко",
+          "path": "audio/propis-dictation/syl_шко.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%88%D0%BA%D0%BE.mp3",
+          "label": "шко — шко·ла",
+          "category": "Слоги",
+          "version": "1ce9b03a36c817cc"
+        },
+        {
+          "id": "audio/propis-dictation/syl_эт.mp3",
+          "key": "syl_эт",
+          "path": "audio/propis-dictation/syl_эт.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8D%D1%82.mp3",
+          "label": "эт — по·эт",
+          "category": "Слоги",
+          "version": "7056c7fe57cee08b"
+        },
+        {
+          "id": "audio/propis-dictation/syl_ю.mp3",
+          "key": "syl_ю",
+          "path": "audio/propis-dictation/syl_ю.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8E.mp3",
+          "label": "ю — Ю·ра, Ю·ля, ю·ла",
+          "category": "Слоги",
+          "version": "8258643ccf28fd71"
+        },
+        {
+          "id": "audio/propis-dictation/syl_юб.mp3",
+          "key": "syl_юб",
+          "path": "audio/propis-dictation/syl_юб.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8E%D0%B1.mp3",
+          "label": "юб — юб·ка",
+          "category": "Слоги",
+          "version": "bd032ece34f65530"
+        },
+        {
+          "id": "audio/propis-dictation/syl_я.mp3",
+          "key": "syl_я",
+          "path": "audio/propis-dictation/syl_я.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8F.mp3",
+          "label": "я — зме·я, мол·ни·я, я·зык",
+          "category": "Слоги",
+          "version": "aacd1f9b17cbfc65"
+        },
+        {
+          "id": "audio/propis-dictation/syl_яб.mp3",
+          "key": "syl_яб",
+          "path": "audio/propis-dictation/syl_яб.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8F%D0%B1.mp3",
+          "label": "яб — яб·ло·ко",
+          "category": "Слоги",
+          "version": "00cb6b981976df86"
+        },
+        {
+          "id": "audio/propis-dictation/syl_яй.mp3",
+          "key": "syl_яй",
+          "path": "audio/propis-dictation/syl_яй.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8F%D0%B9.mp3",
+          "label": "яй — яй·цо",
+          "category": "Слоги",
+          "version": "e62e43f85d438b54"
+        },
+        {
+          "id": "audio/propis-dictation/syl_яц.mp3",
+          "key": "syl_яц",
+          "path": "audio/propis-dictation/syl_яц.mp3",
+          "url": "/audio/propis-dictation/syl_%D1%8F%D1%86.mp3",
+          "label": "яц — за·яц",
+          "category": "Слоги",
+          "version": "42a19a92800d24d9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t01_s1.mp3",
+          "key": "text_t01_s1",
+          "path": "audio/propis-dictation/text_t01_s1.mp3",
+          "url": "/audio/propis-dictation/text_t01_s1.mp3",
+          "label": "У нас есть кот.",
+          "category": "Предложения",
+          "version": "632daa3be6c8ae97"
+        },
+        {
+          "id": "audio/propis-dictation/text_t01_s2.mp3",
+          "key": "text_t01_s2",
+          "path": "audio/propis-dictation/text_t01_s2.mp3",
+          "url": "/audio/propis-dictation/text_t01_s2.mp3",
+          "label": "Кот любит спать.",
+          "category": "Предложения",
+          "version": "b7eb328785274acf"
+        },
+        {
+          "id": "audio/propis-dictation/text_t01_s3.mp3",
+          "key": "text_t01_s3",
+          "path": "audio/propis-dictation/text_t01_s3.mp3",
+          "url": "/audio/propis-dictation/text_t01_s3.mp3",
+          "label": "Кот пьёт молоко.",
+          "category": "Предложения",
+          "version": "952acf42a6ba4627"
+        },
+        {
+          "id": "audio/propis-dictation/text_t01_s4.mp3",
+          "key": "text_t01_s4",
+          "path": "audio/propis-dictation/text_t01_s4.mp3",
+          "url": "/audio/propis-dictation/text_t01_s4.mp3",
+          "label": "Кот мягкий и пушистый.",
+          "category": "Предложения",
+          "version": "76834591eb6d4e48"
+        },
+        {
+          "id": "audio/propis-dictation/text_t01_s5.mp3",
+          "key": "text_t01_s5",
+          "path": "audio/propis-dictation/text_t01_s5.mp3",
+          "url": "/audio/propis-dictation/text_t01_s5.mp3",
+          "label": "Мы гладим кота каждый день.",
+          "category": "Предложения",
+          "version": "25f5c5b7667a0897"
+        },
+        {
+          "id": "audio/propis-dictation/text_t02_s1.mp3",
+          "key": "text_t02_s1",
+          "path": "audio/propis-dictation/text_t02_s1.mp3",
+          "url": "/audio/propis-dictation/text_t02_s1.mp3",
+          "label": "Мама варит суп.",
+          "category": "Предложения",
+          "version": "405b0d5a0d4eaad0"
+        },
+        {
+          "id": "audio/propis-dictation/text_t02_s2.mp3",
+          "key": "text_t02_s2",
+          "path": "audio/propis-dictation/text_t02_s2.mp3",
+          "url": "/audio/propis-dictation/text_t02_s2.mp3",
+          "label": "Суп очень вкусный.",
+          "category": "Предложения",
+          "version": "c021fdce07b838c4"
+        },
+        {
+          "id": "audio/propis-dictation/text_t02_s3.mp3",
+          "key": "text_t02_s3",
+          "path": "audio/propis-dictation/text_t02_s3.mp3",
+          "url": "/audio/propis-dictation/text_t02_s3.mp3",
+          "label": "Мы едим суп.",
+          "category": "Предложения",
+          "version": "d513061020637ded"
+        },
+        {
+          "id": "audio/propis-dictation/text_t02_s4.mp3",
+          "key": "text_t02_s4",
+          "path": "audio/propis-dictation/text_t02_s4.mp3",
+          "url": "/audio/propis-dictation/text_t02_s4.mp3",
+          "label": "В супе много овощей.",
+          "category": "Предложения",
+          "version": "93df3336c71dfef1"
+        },
+        {
+          "id": "audio/propis-dictation/text_t02_s5.mp3",
+          "key": "text_t02_s5",
+          "path": "audio/propis-dictation/text_t02_s5.mp3",
+          "url": "/audio/propis-dictation/text_t02_s5.mp3",
+          "label": "После обеда мы моем посуду.",
+          "category": "Предложения",
+          "version": "659a685726353741"
+        },
+        {
+          "id": "audio/propis-dictation/text_t03_s1.mp3",
+          "key": "text_t03_s1",
+          "path": "audio/propis-dictation/text_t03_s1.mp3",
+          "url": "/audio/propis-dictation/text_t03_s1.mp3",
+          "label": "Зимой идёт снег.",
+          "category": "Предложения",
+          "version": "3c866c0e9d5d8df1"
+        },
+        {
+          "id": "audio/propis-dictation/text_t03_s2.mp3",
+          "key": "text_t03_s2",
+          "path": "audio/propis-dictation/text_t03_s2.mp3",
+          "url": "/audio/propis-dictation/text_t03_s2.mp3",
+          "label": "Дети катаются на санках.",
+          "category": "Предложения",
+          "version": "9429cd19a097ac45"
+        },
+        {
+          "id": "audio/propis-dictation/text_t03_s3.mp3",
+          "key": "text_t03_s3",
+          "path": "audio/propis-dictation/text_t03_s3.mp3",
+          "url": "/audio/propis-dictation/text_t03_s3.mp3",
+          "label": "Снег белый и холодный.",
+          "category": "Предложения",
+          "version": "21da53767610e5d9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t03_s4.mp3",
+          "key": "text_t03_s4",
+          "path": "audio/propis-dictation/text_t03_s4.mp3",
+          "url": "/audio/propis-dictation/text_t03_s4.mp3",
+          "label": "Мы лепим снеговика во дворе.",
+          "category": "Предложения",
+          "version": "d3ef211c5c301fe9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t03_s5.mp3",
+          "key": "text_t03_s5",
+          "path": "audio/propis-dictation/text_t03_s5.mp3",
+          "url": "/audio/propis-dictation/text_t03_s5.mp3",
+          "label": "Вечером мы пьём горячий чай.",
+          "category": "Предложения",
+          "version": "4aad88215aeea38d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t04_s1.mp3",
+          "key": "text_t04_s1",
+          "path": "audio/propis-dictation/text_t04_s1.mp3",
+          "url": "/audio/propis-dictation/text_t04_s1.mp3",
+          "label": "Летом тепло.",
+          "category": "Предложения",
+          "version": "e267a1444512d6ef"
+        },
+        {
+          "id": "audio/propis-dictation/text_t04_s2.mp3",
+          "key": "text_t04_s2",
+          "path": "audio/propis-dictation/text_t04_s2.mp3",
+          "url": "/audio/propis-dictation/text_t04_s2.mp3",
+          "label": "Мы гуляем в лесу.",
+          "category": "Предложения",
+          "version": "cfbd3e67c3ed4639"
+        },
+        {
+          "id": "audio/propis-dictation/text_t04_s3.mp3",
+          "key": "text_t04_s3",
+          "path": "audio/propis-dictation/text_t04_s3.mp3",
+          "url": "/audio/propis-dictation/text_t04_s3.mp3",
+          "label": "В лесу поют птицы.",
+          "category": "Предложения",
+          "version": "d8e04353ad8f330b"
+        },
+        {
+          "id": "audio/propis-dictation/text_t04_s4.mp3",
+          "key": "text_t04_s4",
+          "path": "audio/propis-dictation/text_t04_s4.mp3",
+          "url": "/audio/propis-dictation/text_t04_s4.mp3",
+          "label": "Мы собираем грибы и ягоды.",
+          "category": "Предложения",
+          "version": "136bf2b7e129d08a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t04_s5.mp3",
+          "key": "text_t04_s5",
+          "path": "audio/propis-dictation/text_t04_s5.mp3",
+          "url": "/audio/propis-dictation/text_t04_s5.mp3",
+          "label": "Домой мы идём усталые и весёлые.",
+          "category": "Предложения",
+          "version": "cd67508808e27dba"
+        },
+        {
+          "id": "audio/propis-dictation/text_t05_s1.mp3",
+          "key": "text_t05_s1",
+          "path": "audio/propis-dictation/text_t05_s1.mp3",
+          "url": "/audio/propis-dictation/text_t05_s1.mp3",
+          "label": "Папа читает книгу.",
+          "category": "Предложения",
+          "version": "15002fe8d02be6b8"
+        },
+        {
+          "id": "audio/propis-dictation/text_t05_s2.mp3",
+          "key": "text_t05_s2",
+          "path": "audio/propis-dictation/text_t05_s2.mp3",
+          "url": "/audio/propis-dictation/text_t05_s2.mp3",
+          "label": "Книга интересная.",
+          "category": "Предложения",
+          "version": "c14b2655592e1e24"
+        },
+        {
+          "id": "audio/propis-dictation/text_t05_s3.mp3",
+          "key": "text_t05_s3",
+          "path": "audio/propis-dictation/text_t05_s3.mp3",
+          "url": "/audio/propis-dictation/text_t05_s3.mp3",
+          "label": "Я тоже люблю читать.",
+          "category": "Предложения",
+          "version": "fd36ec4d7810cd12"
+        },
+        {
+          "id": "audio/propis-dictation/text_t05_s4.mp3",
+          "key": "text_t05_s4",
+          "path": "audio/propis-dictation/text_t05_s4.mp3",
+          "url": "/audio/propis-dictation/text_t05_s4.mp3",
+          "label": "У меня есть своя полка с книгами.",
+          "category": "Предложения",
+          "version": "40164dfcdc803c80"
+        },
+        {
+          "id": "audio/propis-dictation/text_t05_s5.mp3",
+          "key": "text_t05_s5",
+          "path": "audio/propis-dictation/text_t05_s5.mp3",
+          "url": "/audio/propis-dictation/text_t05_s5.mp3",
+          "label": "Вечером мы читаем вместе.",
+          "category": "Предложения",
+          "version": "3882dbc0e1cc59b9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t06_s1.mp3",
+          "key": "text_t06_s1",
+          "path": "audio/propis-dictation/text_t06_s1.mp3",
+          "url": "/audio/propis-dictation/text_t06_s1.mp3",
+          "label": "У бабушки есть сад.",
+          "category": "Предложения",
+          "version": "bdb257f61f746c17"
+        },
+        {
+          "id": "audio/propis-dictation/text_t06_s2.mp3",
+          "key": "text_t06_s2",
+          "path": "audio/propis-dictation/text_t06_s2.mp3",
+          "url": "/audio/propis-dictation/text_t06_s2.mp3",
+          "label": "В саду растут яблоки.",
+          "category": "Предложения",
+          "version": "02c30e7d08e9d215"
+        },
+        {
+          "id": "audio/propis-dictation/text_t06_s3.mp3",
+          "key": "text_t06_s3",
+          "path": "audio/propis-dictation/text_t06_s3.mp3",
+          "url": "/audio/propis-dictation/text_t06_s3.mp3",
+          "label": "Яблоки очень сладкие.",
+          "category": "Предложения",
+          "version": "6a6e273deb5244be"
+        },
+        {
+          "id": "audio/propis-dictation/text_t06_s4.mp3",
+          "key": "text_t06_s4",
+          "path": "audio/propis-dictation/text_t06_s4.mp3",
+          "url": "/audio/propis-dictation/text_t06_s4.mp3",
+          "label": "Мы собираем яблоки в корзину.",
+          "category": "Предложения",
+          "version": "bcea254b8994acb7"
+        },
+        {
+          "id": "audio/propis-dictation/text_t06_s5.mp3",
+          "key": "text_t06_s5",
+          "path": "audio/propis-dictation/text_t06_s5.mp3",
+          "url": "/audio/propis-dictation/text_t06_s5.mp3",
+          "label": "Бабушка печёт вкусный яблочный пирог.",
+          "category": "Предложения",
+          "version": "460b13481c272388"
+        },
+        {
+          "id": "audio/propis-dictation/text_t07_s1.mp3",
+          "key": "text_t07_s1",
+          "path": "audio/propis-dictation/text_t07_s1.mp3",
+          "url": "/audio/propis-dictation/text_t07_s1.mp3",
+          "label": "Собака бежит по двору.",
+          "category": "Предложения",
+          "version": "a4e47e0a021d5a5c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t07_s2.mp3",
+          "key": "text_t07_s2",
+          "path": "audio/propis-dictation/text_t07_s2.mp3",
+          "url": "/audio/propis-dictation/text_t07_s2.mp3",
+          "label": "Собака громко лает.",
+          "category": "Предложения",
+          "version": "76745d4e6166ba96"
+        },
+        {
+          "id": "audio/propis-dictation/text_t07_s3.mp3",
+          "key": "text_t07_s3",
+          "path": "audio/propis-dictation/text_t07_s3.mp3",
+          "url": "/audio/propis-dictation/text_t07_s3.mp3",
+          "label": "Мы играем с собакой.",
+          "category": "Предложения",
+          "version": "2e18fd4870f6a79b"
+        },
+        {
+          "id": "audio/propis-dictation/text_t07_s4.mp3",
+          "key": "text_t07_s4",
+          "path": "audio/propis-dictation/text_t07_s4.mp3",
+          "url": "/audio/propis-dictation/text_t07_s4.mp3",
+          "label": "У собаки есть мягкая подстилка.",
+          "category": "Предложения",
+          "version": "fcbccc9701e520df"
+        },
+        {
+          "id": "audio/propis-dictation/text_t07_s5.mp3",
+          "key": "text_t07_s5",
+          "path": "audio/propis-dictation/text_t07_s5.mp3",
+          "url": "/audio/propis-dictation/text_t07_s5.mp3",
+          "label": "Вечером собака спит рядом с домом.",
+          "category": "Предложения",
+          "version": "920778273d17f70d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t08_s1.mp3",
+          "key": "text_t08_s1",
+          "path": "audio/propis-dictation/text_t08_s1.mp3",
+          "url": "/audio/propis-dictation/text_t08_s1.mp3",
+          "label": "Осенью падают листья.",
+          "category": "Предложения",
+          "version": "ccc78ea47dfc080b"
+        },
+        {
+          "id": "audio/propis-dictation/text_t08_s2.mp3",
+          "key": "text_t08_s2",
+          "path": "audio/propis-dictation/text_t08_s2.mp3",
+          "url": "/audio/propis-dictation/text_t08_s2.mp3",
+          "label": "Листья жёлтые и красные.",
+          "category": "Предложения",
+          "version": "f2ac2635f7ca27b8"
+        },
+        {
+          "id": "audio/propis-dictation/text_t08_s3.mp3",
+          "key": "text_t08_s3",
+          "path": "audio/propis-dictation/text_t08_s3.mp3",
+          "url": "/audio/propis-dictation/text_t08_s3.mp3",
+          "label": "Ветер кружит листья.",
+          "category": "Предложения",
+          "version": "5bfb11d90356b38d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t08_s4.mp3",
+          "key": "text_t08_s4",
+          "path": "audio/propis-dictation/text_t08_s4.mp3",
+          "url": "/audio/propis-dictation/text_t08_s4.mp3",
+          "label": "Мы собираем листья в парке.",
+          "category": "Предложения",
+          "version": "a616d164e176038c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t08_s5.mp3",
+          "key": "text_t08_s5",
+          "path": "audio/propis-dictation/text_t08_s5.mp3",
+          "url": "/audio/propis-dictation/text_t08_s5.mp3",
+          "label": "Из листьев получается красивый букет.",
+          "category": "Предложения",
+          "version": "ced98ab4dd613620"
+        },
+        {
+          "id": "audio/propis-dictation/text_t09_s1.mp3",
+          "key": "text_t09_s1",
+          "path": "audio/propis-dictation/text_t09_s1.mp3",
+          "url": "/audio/propis-dictation/text_t09_s1.mp3",
+          "label": "В школе много детей.",
+          "category": "Предложения",
+          "version": "5b9a91ada3b3f21f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t09_s2.mp3",
+          "key": "text_t09_s2",
+          "path": "audio/propis-dictation/text_t09_s2.mp3",
+          "url": "/audio/propis-dictation/text_t09_s2.mp3",
+          "label": "Дети учат буквы.",
+          "category": "Предложения",
+          "version": "8e375b727f649089"
+        },
+        {
+          "id": "audio/propis-dictation/text_t09_s3.mp3",
+          "key": "text_t09_s3",
+          "path": "audio/propis-dictation/text_t09_s3.mp3",
+          "url": "/audio/propis-dictation/text_t09_s3.mp3",
+          "label": "Учитель пишет на доске.",
+          "category": "Предложения",
+          "version": "a8b054e5821af526"
+        },
+        {
+          "id": "audio/propis-dictation/text_t09_s4.mp3",
+          "key": "text_t09_s4",
+          "path": "audio/propis-dictation/text_t09_s4.mp3",
+          "url": "/audio/propis-dictation/text_t09_s4.mp3",
+          "label": "На перемене дети играют во дворе.",
+          "category": "Предложения",
+          "version": "351c55679087471e"
+        },
+        {
+          "id": "audio/propis-dictation/text_t09_s5.mp3",
+          "key": "text_t09_s5",
+          "path": "audio/propis-dictation/text_t09_s5.mp3",
+          "url": "/audio/propis-dictation/text_t09_s5.mp3",
+          "label": "После урока мы идём домой.",
+          "category": "Предложения",
+          "version": "f55edcc99520cd47"
+        },
+        {
+          "id": "audio/propis-dictation/text_t10_s1.mp3",
+          "key": "text_t10_s1",
+          "path": "audio/propis-dictation/text_t10_s1.mp3",
+          "url": "/audio/propis-dictation/text_t10_s1.mp3",
+          "label": "Утром светит солнце.",
+          "category": "Предложения",
+          "version": "5ec1b6e8465f6db2"
+        },
+        {
+          "id": "audio/propis-dictation/text_t10_s2.mp3",
+          "key": "text_t10_s2",
+          "path": "audio/propis-dictation/text_t10_s2.mp3",
+          "url": "/audio/propis-dictation/text_t10_s2.mp3",
+          "label": "Птицы поют песни.",
+          "category": "Предложения",
+          "version": "0c7ee85d0e7ceed5"
+        },
+        {
+          "id": "audio/propis-dictation/text_t10_s3.mp3",
+          "key": "text_t10_s3",
+          "path": "audio/propis-dictation/text_t10_s3.mp3",
+          "url": "/audio/propis-dictation/text_t10_s3.mp3",
+          "label": "Начинается новый день.",
+          "category": "Предложения",
+          "version": "e4665de45beb08b8"
+        },
+        {
+          "id": "audio/propis-dictation/text_t10_s4.mp3",
+          "key": "text_t10_s4",
+          "path": "audio/propis-dictation/text_t10_s4.mp3",
+          "url": "/audio/propis-dictation/text_t10_s4.mp3",
+          "label": "Мы завтракаем и идём гулять.",
+          "category": "Предложения",
+          "version": "1db56d40f0a64ccf"
+        },
+        {
+          "id": "audio/propis-dictation/text_t10_s5.mp3",
+          "key": "text_t10_s5",
+          "path": "audio/propis-dictation/text_t10_s5.mp3",
+          "url": "/audio/propis-dictation/text_t10_s5.mp3",
+          "label": "День обещает быть тёплым и радостным.",
+          "category": "Предложения",
+          "version": "1d7c017bbcbac4e9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t11_s1.mp3",
+          "key": "text_t11_s1",
+          "path": "audio/propis-dictation/text_t11_s1.mp3",
+          "url": "/audio/propis-dictation/text_t11_s1.mp3",
+          "label": "Мы едем на море.",
+          "category": "Предложения",
+          "version": "4135b69d12ea8c6b"
+        },
+        {
+          "id": "audio/propis-dictation/text_t11_s2.mp3",
+          "key": "text_t11_s2",
+          "path": "audio/propis-dictation/text_t11_s2.mp3",
+          "url": "/audio/propis-dictation/text_t11_s2.mp3",
+          "label": "Море большое и синее.",
+          "category": "Предложения",
+          "version": "57dfd32a18ec546f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t11_s3.mp3",
+          "key": "text_t11_s3",
+          "path": "audio/propis-dictation/text_t11_s3.mp3",
+          "url": "/audio/propis-dictation/text_t11_s3.mp3",
+          "label": "Мы купаемся и играем.",
+          "category": "Предложения",
+          "version": "340456fb57eb77aa"
+        },
+        {
+          "id": "audio/propis-dictation/text_t11_s4.mp3",
+          "key": "text_t11_s4",
+          "path": "audio/propis-dictation/text_t11_s4.mp3",
+          "url": "/audio/propis-dictation/text_t11_s4.mp3",
+          "label": "На берегу лежит тёплый песок.",
+          "category": "Предложения",
+          "version": "f51019693cbb472d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t11_s5.mp3",
+          "key": "text_t11_s5",
+          "path": "audio/propis-dictation/text_t11_s5.mp3",
+          "url": "/audio/propis-dictation/text_t11_s5.mp3",
+          "label": "Вечером мы смотрим на закат.",
+          "category": "Предложения",
+          "version": "b6ad665a5a61d6c3"
+        },
+        {
+          "id": "audio/propis-dictation/text_t12_s1.mp3",
+          "key": "text_t12_s1",
+          "path": "audio/propis-dictation/text_t12_s1.mp3",
+          "url": "/audio/propis-dictation/text_t12_s1.mp3",
+          "label": "Дома тепло и уютно.",
+          "category": "Предложения",
+          "version": "8759c046170b59d8"
+        },
+        {
+          "id": "audio/propis-dictation/text_t12_s2.mp3",
+          "key": "text_t12_s2",
+          "path": "audio/propis-dictation/text_t12_s2.mp3",
+          "url": "/audio/propis-dictation/text_t12_s2.mp3",
+          "label": "На столе стоит лампа.",
+          "category": "Предложения",
+          "version": "1a3248ffd5d4bc32"
+        },
+        {
+          "id": "audio/propis-dictation/text_t12_s3.mp3",
+          "key": "text_t12_s3",
+          "path": "audio/propis-dictation/text_t12_s3.mp3",
+          "url": "/audio/propis-dictation/text_t12_s3.mp3",
+          "label": "Вечером мы читаем книгу.",
+          "category": "Предложения",
+          "version": "01b509cdadccf3d6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t12_s4.mp3",
+          "key": "text_t12_s4",
+          "path": "audio/propis-dictation/text_t12_s4.mp3",
+          "url": "/audio/propis-dictation/text_t12_s4.mp3",
+          "label": "На кухне пахнет свежим чаем.",
+          "category": "Предложения",
+          "version": "dec463e79082cc0a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t12_s5.mp3",
+          "key": "text_t12_s5",
+          "path": "audio/propis-dictation/text_t12_s5.mp3",
+          "url": "/audio/propis-dictation/text_t12_s5.mp3",
+          "label": "Мы садимся все вместе за стол.",
+          "category": "Предложения",
+          "version": "c2e069fd25cdeaf7"
+        },
+        {
+          "id": "audio/propis-dictation/text_t13_s1.mp3",
+          "key": "text_t13_s1",
+          "path": "audio/propis-dictation/text_t13_s1.mp3",
+          "url": "/audio/propis-dictation/text_t13_s1.mp3",
+          "label": "Наступила весна.",
+          "category": "Предложения",
+          "version": "0904c81468aea43c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t13_s2.mp3",
+          "key": "text_t13_s2",
+          "path": "audio/propis-dictation/text_t13_s2.mp3",
+          "url": "/audio/propis-dictation/text_t13_s2.mp3",
+          "label": "Тает снег на дорожках.",
+          "category": "Предложения",
+          "version": "1bd558ed343ead17"
+        },
+        {
+          "id": "audio/propis-dictation/text_t13_s3.mp3",
+          "key": "text_t13_s3",
+          "path": "audio/propis-dictation/text_t13_s3.mp3",
+          "url": "/audio/propis-dictation/text_t13_s3.mp3",
+          "label": "Прилетают первые птицы.",
+          "category": "Предложения",
+          "version": "cd4438c959f2b23d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t13_s4.mp3",
+          "key": "text_t13_s4",
+          "path": "audio/propis-dictation/text_t13_s4.mp3",
+          "url": "/audio/propis-dictation/text_t13_s4.mp3",
+          "label": "На деревьях набухают почки.",
+          "category": "Предложения",
+          "version": "dd3ab3bedb48a6ae"
+        },
+        {
+          "id": "audio/propis-dictation/text_t13_s5.mp3",
+          "key": "text_t13_s5",
+          "path": "audio/propis-dictation/text_t13_s5.mp3",
+          "url": "/audio/propis-dictation/text_t13_s5.mp3",
+          "label": "Скоро появятся первые цветы.",
+          "category": "Предложения",
+          "version": "ac997b150e216ba6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t14_s1.mp3",
+          "key": "text_t14_s1",
+          "path": "audio/propis-dictation/text_t14_s1.mp3",
+          "url": "/audio/propis-dictation/text_t14_s1.mp3",
+          "label": "У меня есть сестра.",
+          "category": "Предложения",
+          "version": "9608e3cab4cda21f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t14_s2.mp3",
+          "key": "text_t14_s2",
+          "path": "audio/propis-dictation/text_t14_s2.mp3",
+          "url": "/audio/propis-dictation/text_t14_s2.mp3",
+          "label": "Мы вместе играем.",
+          "category": "Предложения",
+          "version": "ada2f6bc1312f8d2"
+        },
+        {
+          "id": "audio/propis-dictation/text_t14_s3.mp3",
+          "key": "text_t14_s3",
+          "path": "audio/propis-dictation/text_t14_s3.mp3",
+          "url": "/audio/propis-dictation/text_t14_s3.mp3",
+          "label": "Сестра рисует красивые картинки.",
+          "category": "Предложения",
+          "version": "a6661a8e26fe2768"
+        },
+        {
+          "id": "audio/propis-dictation/text_t14_s4.mp3",
+          "key": "text_t14_s4",
+          "path": "audio/propis-dictation/text_t14_s4.mp3",
+          "url": "/audio/propis-dictation/text_t14_s4.mp3",
+          "label": "Иногда мы вместе читаем книги.",
+          "category": "Предложения",
+          "version": "8ab6578f564913e4"
+        },
+        {
+          "id": "audio/propis-dictation/text_t14_s5.mp3",
+          "key": "text_t14_s5",
+          "path": "audio/propis-dictation/text_t14_s5.mp3",
+          "url": "/audio/propis-dictation/text_t14_s5.mp3",
+          "label": "Сестра часто помогает мне с уроками.",
+          "category": "Предложения",
+          "version": "8fd1a0ef547e56c0"
+        },
+        {
+          "id": "audio/propis-dictation/text_t15_s1.mp3",
+          "key": "text_t15_s1",
+          "path": "audio/propis-dictation/text_t15_s1.mp3",
+          "url": "/audio/propis-dictation/text_t15_s1.mp3",
+          "label": "Дедушка чинит стул.",
+          "category": "Предложения",
+          "version": "7d87e368d68ed4de"
+        },
+        {
+          "id": "audio/propis-dictation/text_t15_s2.mp3",
+          "key": "text_t15_s2",
+          "path": "audio/propis-dictation/text_t15_s2.mp3",
+          "url": "/audio/propis-dictation/text_t15_s2.mp3",
+          "label": "Стул был сломан.",
+          "category": "Предложения",
+          "version": "eadf87a21f74d9cb"
+        },
+        {
+          "id": "audio/propis-dictation/text_t15_s3.mp3",
+          "key": "text_t15_s3",
+          "path": "audio/propis-dictation/text_t15_s3.mp3",
+          "url": "/audio/propis-dictation/text_t15_s3.mp3",
+          "label": "Теперь стул снова крепкий.",
+          "category": "Предложения",
+          "version": "6c7c87d65ddcd32e"
+        },
+        {
+          "id": "audio/propis-dictation/text_t15_s4.mp3",
+          "key": "text_t15_s4",
+          "path": "audio/propis-dictation/text_t15_s4.mp3",
+          "url": "/audio/propis-dictation/text_t15_s4.mp3",
+          "label": "Дедушка умеет чинить разные вещи.",
+          "category": "Предложения",
+          "version": "9a788a66ea8c41af"
+        },
+        {
+          "id": "audio/propis-dictation/text_t15_s5.mp3",
+          "key": "text_t15_s5",
+          "path": "audio/propis-dictation/text_t15_s5.mp3",
+          "url": "/audio/propis-dictation/text_t15_s5.mp3",
+          "label": "Я люблю помогать ему в мастерской.",
+          "category": "Предложения",
+          "version": "5884c4f57f7f9c8b"
+        },
+        {
+          "id": "audio/propis-dictation/text_t16_s1.mp3",
+          "key": "text_t16_s1",
+          "path": "audio/propis-dictation/text_t16_s1.mp3",
+          "url": "/audio/propis-dictation/text_t16_s1.mp3",
+          "label": "На улице дует ветер.",
+          "category": "Предложения",
+          "version": "d62929ef292187be"
+        },
+        {
+          "id": "audio/propis-dictation/text_t16_s2.mp3",
+          "key": "text_t16_s2",
+          "path": "audio/propis-dictation/text_t16_s2.mp3",
+          "url": "/audio/propis-dictation/text_t16_s2.mp3",
+          "label": "Ветер качает деревья.",
+          "category": "Предложения",
+          "version": "0881253f3538c258"
+        },
+        {
+          "id": "audio/propis-dictation/text_t16_s3.mp3",
+          "key": "text_t16_s3",
+          "path": "audio/propis-dictation/text_t16_s3.mp3",
+          "url": "/audio/propis-dictation/text_t16_s3.mp3",
+          "label": "Листья шуршат на ветру.",
+          "category": "Предложения",
+          "version": "4ef2436b10611fc9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t16_s4.mp3",
+          "key": "text_t16_s4",
+          "path": "audio/propis-dictation/text_t16_s4.mp3",
+          "url": "/audio/propis-dictation/text_t16_s4.mp3",
+          "label": "Мы надеваем тёплые куртки.",
+          "category": "Предложения",
+          "version": "e42941c362f193aa"
+        },
+        {
+          "id": "audio/propis-dictation/text_t16_s5.mp3",
+          "key": "text_t16_s5",
+          "path": "audio/propis-dictation/text_t16_s5.mp3",
+          "url": "/audio/propis-dictation/text_t16_s5.mp3",
+          "label": "Гулять в такую погоду очень весело.",
+          "category": "Предложения",
+          "version": "28c254f52e06ddb5"
+        },
+        {
+          "id": "audio/propis-dictation/text_t17_s1.mp3",
+          "key": "text_t17_s1",
+          "path": "audio/propis-dictation/text_t17_s1.mp3",
+          "url": "/audio/propis-dictation/text_t17_s1.mp3",
+          "label": "Утка плавает в пруду.",
+          "category": "Предложения",
+          "version": "36c608136e807068"
+        },
+        {
+          "id": "audio/propis-dictation/text_t17_s2.mp3",
+          "key": "text_t17_s2",
+          "path": "audio/propis-dictation/text_t17_s2.mp3",
+          "url": "/audio/propis-dictation/text_t17_s2.mp3",
+          "label": "Рядом идут утята.",
+          "category": "Предложения",
+          "version": "ae34ca413e611fcf"
+        },
+        {
+          "id": "audio/propis-dictation/text_t17_s3.mp3",
+          "key": "text_t17_s3",
+          "path": "audio/propis-dictation/text_t17_s3.mp3",
+          "url": "/audio/propis-dictation/text_t17_s3.mp3",
+          "label": "Они ищут корм в воде.",
+          "category": "Предложения",
+          "version": "7f4bb27f45190fcb"
+        },
+        {
+          "id": "audio/propis-dictation/text_t17_s4.mp3",
+          "key": "text_t17_s4",
+          "path": "audio/propis-dictation/text_t17_s4.mp3",
+          "url": "/audio/propis-dictation/text_t17_s4.mp3",
+          "label": "Утята дружно плывут за мамой уткой.",
+          "category": "Предложения",
+          "version": "a6e098489d1ff95d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t17_s5.mp3",
+          "key": "text_t17_s5",
+          "path": "audio/propis-dictation/text_t17_s5.mp3",
+          "url": "/audio/propis-dictation/text_t17_s5.mp3",
+          "label": "Мы кормим их хлебными крошками.",
+          "category": "Предложения",
+          "version": "60595dd755c38ae7"
+        },
+        {
+          "id": "audio/propis-dictation/text_t18_s1.mp3",
+          "key": "text_t18_s1",
+          "path": "audio/propis-dictation/text_t18_s1.mp3",
+          "url": "/audio/propis-dictation/text_t18_s1.mp3",
+          "label": "Мы едем на автобусе.",
+          "category": "Предложения",
+          "version": "2ffe59a8429c78e1"
+        },
+        {
+          "id": "audio/propis-dictation/text_t18_s2.mp3",
+          "key": "text_t18_s2",
+          "path": "audio/propis-dictation/text_t18_s2.mp3",
+          "url": "/audio/propis-dictation/text_t18_s2.mp3",
+          "label": "Автобус едет по городу.",
+          "category": "Предложения",
+          "version": "beff8ec9687829a5"
+        },
+        {
+          "id": "audio/propis-dictation/text_t18_s3.mp3",
+          "key": "text_t18_s3",
+          "path": "audio/propis-dictation/text_t18_s3.mp3",
+          "url": "/audio/propis-dictation/text_t18_s3.mp3",
+          "label": "Скоро будет наша остановка.",
+          "category": "Предложения",
+          "version": "c5006f15de6c54cf"
+        },
+        {
+          "id": "audio/propis-dictation/text_t18_s4.mp3",
+          "key": "text_t18_s4",
+          "path": "audio/propis-dictation/text_t18_s4.mp3",
+          "url": "/audio/propis-dictation/text_t18_s4.mp3",
+          "label": "За окном мелькают дома и деревья.",
+          "category": "Предложения",
+          "version": "afba47097693ed0a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t18_s5.mp3",
+          "key": "text_t18_s5",
+          "path": "audio/propis-dictation/text_t18_s5.mp3",
+          "url": "/audio/propis-dictation/text_t18_s5.mp3",
+          "label": "Мы выходим и идём домой пешком.",
+          "category": "Предложения",
+          "version": "0a51ccc7c76fcea6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t19_s1.mp3",
+          "key": "text_t19_s1",
+          "path": "audio/propis-dictation/text_t19_s1.mp3",
+          "url": "/audio/propis-dictation/text_t19_s1.mp3",
+          "label": "У нас в доме есть кошка.",
+          "category": "Предложения",
+          "version": "1eb6c335fdd3cd7d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t19_s2.mp3",
+          "key": "text_t19_s2",
+          "path": "audio/propis-dictation/text_t19_s2.mp3",
+          "url": "/audio/propis-dictation/text_t19_s2.mp3",
+          "label": "Кошка спит на кресле.",
+          "category": "Предложения",
+          "version": "c24f286001d5b80e"
+        },
+        {
+          "id": "audio/propis-dictation/text_t19_s3.mp3",
+          "key": "text_t19_s3",
+          "path": "audio/propis-dictation/text_t19_s3.mp3",
+          "url": "/audio/propis-dictation/text_t19_s3.mp3",
+          "label": "Вечером кошка играет с нами.",
+          "category": "Предложения",
+          "version": "8fd873df5ce795af"
+        },
+        {
+          "id": "audio/propis-dictation/text_t19_s4.mp3",
+          "key": "text_t19_s4",
+          "path": "audio/propis-dictation/text_t19_s4.mp3",
+          "url": "/audio/propis-dictation/text_t19_s4.mp3",
+          "label": "Кошка любит мягкий клубок ниток.",
+          "category": "Предложения",
+          "version": "43df9e36d29a7f3f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t19_s5.mp3",
+          "key": "text_t19_s5",
+          "path": "audio/propis-dictation/text_t19_s5.mp3",
+          "url": "/audio/propis-dictation/text_t19_s5.mp3",
+          "label": "Утром кошка встречает нас у двери.",
+          "category": "Предложения",
+          "version": "9deeafa50f0cc6dd"
+        },
+        {
+          "id": "audio/propis-dictation/text_t20_s1.mp3",
+          "key": "text_t20_s1",
+          "path": "audio/propis-dictation/text_t20_s1.mp3",
+          "url": "/audio/propis-dictation/text_t20_s1.mp3",
+          "label": "Дождь стучит по крыше.",
+          "category": "Предложения",
+          "version": "c60361d80a8013ee"
+        },
+        {
+          "id": "audio/propis-dictation/text_t20_s2.mp3",
+          "key": "text_t20_s2",
+          "path": "audio/propis-dictation/text_t20_s2.mp3",
+          "url": "/audio/propis-dictation/text_t20_s2.mp3",
+          "label": "На улице лужи.",
+          "category": "Предложения",
+          "version": "f914761bf65e6f44"
+        },
+        {
+          "id": "audio/propis-dictation/text_t20_s3.mp3",
+          "key": "text_t20_s3",
+          "path": "audio/propis-dictation/text_t20_s3.mp3",
+          "url": "/audio/propis-dictation/text_t20_s3.mp3",
+          "label": "Мы берём зонт и идём гулять.",
+          "category": "Предложения",
+          "version": "769bcb706dbdf12a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t20_s4.mp3",
+          "key": "text_t20_s4",
+          "path": "audio/propis-dictation/text_t20_s4.mp3",
+          "url": "/audio/propis-dictation/text_t20_s4.mp3",
+          "label": "После дождя воздух свежий и чистый.",
+          "category": "Предложения",
+          "version": "e5d951ce445aded6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t20_s5.mp3",
+          "key": "text_t20_s5",
+          "path": "audio/propis-dictation/text_t20_s5.mp3",
+          "url": "/audio/propis-dictation/text_t20_s5.mp3",
+          "label": "Мы прыгаем через лужи в сапогах.",
+          "category": "Предложения",
+          "version": "bbe99a054cd7e3d2"
+        },
+        {
+          "id": "audio/propis-dictation/text_t21_s1.mp3",
+          "key": "text_t21_s1",
+          "path": "audio/propis-dictation/text_t21_s1.mp3",
+          "url": "/audio/propis-dictation/text_t21_s1.mp3",
+          "label": "Бабушка печёт пирог.",
+          "category": "Предложения",
+          "version": "168d3e709674669c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t21_s2.mp3",
+          "key": "text_t21_s2",
+          "path": "audio/propis-dictation/text_t21_s2.mp3",
+          "url": "/audio/propis-dictation/text_t21_s2.mp3",
+          "label": "Пирог пахнет очень вкусно.",
+          "category": "Предложения",
+          "version": "23208854b29cfa4e"
+        },
+        {
+          "id": "audio/propis-dictation/text_t21_s3.mp3",
+          "key": "text_t21_s3",
+          "path": "audio/propis-dictation/text_t21_s3.mp3",
+          "url": "/audio/propis-dictation/text_t21_s3.mp3",
+          "label": "Скоро мы будем его есть.",
+          "category": "Предложения",
+          "version": "1a38287bcb8a08a8"
+        },
+        {
+          "id": "audio/propis-dictation/text_t21_s4.mp3",
+          "key": "text_t21_s4",
+          "path": "audio/propis-dictation/text_t21_s4.mp3",
+          "url": "/audio/propis-dictation/text_t21_s4.mp3",
+          "label": "Пирог с яблоками и корицей.",
+          "category": "Предложения",
+          "version": "f81d456f5b12ff32"
+        },
+        {
+          "id": "audio/propis-dictation/text_t21_s5.mp3",
+          "key": "text_t21_s5",
+          "path": "audio/propis-dictation/text_t21_s5.mp3",
+          "url": "/audio/propis-dictation/text_t21_s5.mp3",
+          "label": "Вся семья собирается за большим столом.",
+          "category": "Предложения",
+          "version": "2da52ecefbd58593"
+        },
+        {
+          "id": "audio/propis-dictation/text_t22_s1.mp3",
+          "key": "text_t22_s1",
+          "path": "audio/propis-dictation/text_t22_s1.mp3",
+          "url": "/audio/propis-dictation/text_t22_s1.mp3",
+          "label": "В саду растут цветы.",
+          "category": "Предложения",
+          "version": "17b8ea30cc7d65f2"
+        },
+        {
+          "id": "audio/propis-dictation/text_t22_s2.mp3",
+          "key": "text_t22_s2",
+          "path": "audio/propis-dictation/text_t22_s2.mp3",
+          "url": "/audio/propis-dictation/text_t22_s2.mp3",
+          "label": "Цветы разного цвета.",
+          "category": "Предложения",
+          "version": "cdb6157f63480742"
+        },
+        {
+          "id": "audio/propis-dictation/text_t22_s3.mp3",
+          "key": "text_t22_s3",
+          "path": "audio/propis-dictation/text_t22_s3.mp3",
+          "url": "/audio/propis-dictation/text_t22_s3.mp3",
+          "label": "Пчёлы летают над цветами.",
+          "category": "Предложения",
+          "version": "5faa602fecf8fea4"
+        },
+        {
+          "id": "audio/propis-dictation/text_t22_s4.mp3",
+          "key": "text_t22_s4",
+          "path": "audio/propis-dictation/text_t22_s4.mp3",
+          "url": "/audio/propis-dictation/text_t22_s4.mp3",
+          "label": "Мы поливаем цветы каждый вечер.",
+          "category": "Предложения",
+          "version": "59957f57820e9f87"
+        },
+        {
+          "id": "audio/propis-dictation/text_t22_s5.mp3",
+          "key": "text_t22_s5",
+          "path": "audio/propis-dictation/text_t22_s5.mp3",
+          "url": "/audio/propis-dictation/text_t22_s5.mp3",
+          "label": "Цветы радуют нас всё лето.",
+          "category": "Предложения",
+          "version": "64a7fee4589e6174"
+        },
+        {
+          "id": "audio/propis-dictation/text_t23_s1.mp3",
+          "key": "text_t23_s1",
+          "path": "audio/propis-dictation/text_t23_s1.mp3",
+          "url": "/audio/propis-dictation/text_t23_s1.mp3",
+          "label": "Скоро придёт Новый год.",
+          "category": "Предложения",
+          "version": "4edd6287496d3394"
+        },
+        {
+          "id": "audio/propis-dictation/text_t23_s2.mp3",
+          "key": "text_t23_s2",
+          "path": "audio/propis-dictation/text_t23_s2.mp3",
+          "url": "/audio/propis-dictation/text_t23_s2.mp3",
+          "label": "Мы наряжаем ёлку.",
+          "category": "Предложения",
+          "version": "dd35464cdc6371c5"
+        },
+        {
+          "id": "audio/propis-dictation/text_t23_s3.mp3",
+          "key": "text_t23_s3",
+          "path": "audio/propis-dictation/text_t23_s3.mp3",
+          "url": "/audio/propis-dictation/text_t23_s3.mp3",
+          "label": "Все ждут подарки и праздник.",
+          "category": "Предложения",
+          "version": "0a4dc9a06ad84384"
+        },
+        {
+          "id": "audio/propis-dictation/text_t23_s4.mp3",
+          "key": "text_t23_s4",
+          "path": "audio/propis-dictation/text_t23_s4.mp3",
+          "url": "/audio/propis-dictation/text_t23_s4.mp3",
+          "label": "На улице падает мягкий снег.",
+          "category": "Предложения",
+          "version": "45520b2207f531f9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t23_s5.mp3",
+          "key": "text_t23_s5",
+          "path": "audio/propis-dictation/text_t23_s5.mp3",
+          "url": "/audio/propis-dictation/text_t23_s5.mp3",
+          "label": "Мы поём песни и пьём горячий чай.",
+          "category": "Предложения",
+          "version": "054c710179d24d1d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t24_s1.mp3",
+          "key": "text_t24_s1",
+          "path": "audio/propis-dictation/text_t24_s1.mp3",
+          "url": "/audio/propis-dictation/text_t24_s1.mp3",
+          "label": "Вечером мы идём спать.",
+          "category": "Предложения",
+          "version": "ddde8ea0db52c932"
+        },
+        {
+          "id": "audio/propis-dictation/text_t24_s2.mp3",
+          "key": "text_t24_s2",
+          "path": "audio/propis-dictation/text_t24_s2.mp3",
+          "url": "/audio/propis-dictation/text_t24_s2.mp3",
+          "label": "Мама читает сказку.",
+          "category": "Предложения",
+          "version": "ede8e200ed30015a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t24_s3.mp3",
+          "key": "text_t24_s3",
+          "path": "audio/propis-dictation/text_t24_s3.mp3",
+          "url": "/audio/propis-dictation/text_t24_s3.mp3",
+          "label": "Завтра будет новый день.",
+          "category": "Предложения",
+          "version": "82ce95e831d0177d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t24_s4.mp3",
+          "key": "text_t24_s4",
+          "path": "audio/propis-dictation/text_t24_s4.mp3",
+          "url": "/audio/propis-dictation/text_t24_s4.mp3",
+          "label": "Перед сном мы чистим зубы.",
+          "category": "Предложения",
+          "version": "63623621b5c607ac"
+        },
+        {
+          "id": "audio/propis-dictation/text_t24_s5.mp3",
+          "key": "text_t24_s5",
+          "path": "audio/propis-dictation/text_t24_s5.mp3",
+          "url": "/audio/propis-dictation/text_t24_s5.mp3",
+          "label": "Утром снова будет весело.",
+          "category": "Предложения",
+          "version": "8f2e1ac14bacc17a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s1_c1.mp3",
+          "key": "text_t25_s1_c1",
+          "path": "audio/propis-dictation/text_t25_s1_c1.mp3",
+          "url": "/audio/propis-dictation/text_t25_s1_c1.mp3",
+          "label": "text_t25_s1_c1",
+          "category": "Прочее",
+          "version": "b61267d83c75e7e9"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s1_c2.mp3",
+          "key": "text_t25_s1_c2",
+          "path": "audio/propis-dictation/text_t25_s1_c2.mp3",
+          "url": "/audio/propis-dictation/text_t25_s1_c2.mp3",
+          "label": "text_t25_s1_c2",
+          "category": "Прочее",
+          "version": "b9eadb30d66017cc"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s1.mp3",
+          "key": "text_t25_s1",
+          "path": "audio/propis-dictation/text_t25_s1.mp3",
+          "url": "/audio/propis-dictation/text_t25_s1.mp3",
+          "label": "text_t25_s1",
+          "category": "Прочее",
+          "version": "8dbe4ffdbf40e340"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s2_c1.mp3",
+          "key": "text_t25_s2_c1",
+          "path": "audio/propis-dictation/text_t25_s2_c1.mp3",
+          "url": "/audio/propis-dictation/text_t25_s2_c1.mp3",
+          "label": "text_t25_s2_c1",
+          "category": "Прочее",
+          "version": "d789b48fe6394aa6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s2_c2.mp3",
+          "key": "text_t25_s2_c2",
+          "path": "audio/propis-dictation/text_t25_s2_c2.mp3",
+          "url": "/audio/propis-dictation/text_t25_s2_c2.mp3",
+          "label": "text_t25_s2_c2",
+          "category": "Прочее",
+          "version": "92883b9e4375ff42"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s2.mp3",
+          "key": "text_t25_s2",
+          "path": "audio/propis-dictation/text_t25_s2.mp3",
+          "url": "/audio/propis-dictation/text_t25_s2.mp3",
+          "label": "text_t25_s2",
+          "category": "Прочее",
+          "version": "9a7144dada70efb1"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s3.mp3",
+          "key": "text_t25_s3",
+          "path": "audio/propis-dictation/text_t25_s3.mp3",
+          "url": "/audio/propis-dictation/text_t25_s3.mp3",
+          "label": "text_t25_s3",
+          "category": "Прочее",
+          "version": "e3398e052f33f10e"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s4.mp3",
+          "key": "text_t25_s4",
+          "path": "audio/propis-dictation/text_t25_s4.mp3",
+          "url": "/audio/propis-dictation/text_t25_s4.mp3",
+          "label": "text_t25_s4",
+          "category": "Прочее",
+          "version": "c906b6a8185765c2"
+        },
+        {
+          "id": "audio/propis-dictation/text_t25_s5.mp3",
+          "key": "text_t25_s5",
+          "path": "audio/propis-dictation/text_t25_s5.mp3",
+          "url": "/audio/propis-dictation/text_t25_s5.mp3",
+          "label": "text_t25_s5",
+          "category": "Прочее",
+          "version": "6e6c9cc266b3da19"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s1_c1.mp3",
+          "key": "text_t26_s1_c1",
+          "path": "audio/propis-dictation/text_t26_s1_c1.mp3",
+          "url": "/audio/propis-dictation/text_t26_s1_c1.mp3",
+          "label": "text_t26_s1_c1",
+          "category": "Прочее",
+          "version": "1778c70fa27078ee"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s1_c2.mp3",
+          "key": "text_t26_s1_c2",
+          "path": "audio/propis-dictation/text_t26_s1_c2.mp3",
+          "url": "/audio/propis-dictation/text_t26_s1_c2.mp3",
+          "label": "text_t26_s1_c2",
+          "category": "Прочее",
+          "version": "08b9aa7a8b2bd7f4"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s1.mp3",
+          "key": "text_t26_s1",
+          "path": "audio/propis-dictation/text_t26_s1.mp3",
+          "url": "/audio/propis-dictation/text_t26_s1.mp3",
+          "label": "text_t26_s1",
+          "category": "Прочее",
+          "version": "c0bd2715787d351f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s2.mp3",
+          "key": "text_t26_s2",
+          "path": "audio/propis-dictation/text_t26_s2.mp3",
+          "url": "/audio/propis-dictation/text_t26_s2.mp3",
+          "label": "text_t26_s2",
+          "category": "Прочее",
+          "version": "d135b026fbb1aeaf"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s3.mp3",
+          "key": "text_t26_s3",
+          "path": "audio/propis-dictation/text_t26_s3.mp3",
+          "url": "/audio/propis-dictation/text_t26_s3.mp3",
+          "label": "text_t26_s3",
+          "category": "Прочее",
+          "version": "0d93bc4db61b7543"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s4.mp3",
+          "key": "text_t26_s4",
+          "path": "audio/propis-dictation/text_t26_s4.mp3",
+          "url": "/audio/propis-dictation/text_t26_s4.mp3",
+          "label": "text_t26_s4",
+          "category": "Прочее",
+          "version": "8d398926de3b556d"
+        },
+        {
+          "id": "audio/propis-dictation/text_t26_s5.mp3",
+          "key": "text_t26_s5",
+          "path": "audio/propis-dictation/text_t26_s5.mp3",
+          "url": "/audio/propis-dictation/text_t26_s5.mp3",
+          "label": "text_t26_s5",
+          "category": "Прочее",
+          "version": "2998647dd7e4475c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s1_c1.mp3",
+          "key": "text_t27_s1_c1",
+          "path": "audio/propis-dictation/text_t27_s1_c1.mp3",
+          "url": "/audio/propis-dictation/text_t27_s1_c1.mp3",
+          "label": "text_t27_s1_c1",
+          "category": "Прочее",
+          "version": "f99bcb4cb0ba8cbc"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s1_c2.mp3",
+          "key": "text_t27_s1_c2",
+          "path": "audio/propis-dictation/text_t27_s1_c2.mp3",
+          "url": "/audio/propis-dictation/text_t27_s1_c2.mp3",
+          "label": "text_t27_s1_c2",
+          "category": "Прочее",
+          "version": "3bb6beadf341a8d6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s1.mp3",
+          "key": "text_t27_s1",
+          "path": "audio/propis-dictation/text_t27_s1.mp3",
+          "url": "/audio/propis-dictation/text_t27_s1.mp3",
+          "label": "text_t27_s1",
+          "category": "Прочее",
+          "version": "1b7311b298306eff"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s2.mp3",
+          "key": "text_t27_s2",
+          "path": "audio/propis-dictation/text_t27_s2.mp3",
+          "url": "/audio/propis-dictation/text_t27_s2.mp3",
+          "label": "text_t27_s2",
+          "category": "Прочее",
+          "version": "a0aee79259f84065"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s3.mp3",
+          "key": "text_t27_s3",
+          "path": "audio/propis-dictation/text_t27_s3.mp3",
+          "url": "/audio/propis-dictation/text_t27_s3.mp3",
+          "label": "text_t27_s3",
+          "category": "Прочее",
+          "version": "6f56f00574643d76"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s4.mp3",
+          "key": "text_t27_s4",
+          "path": "audio/propis-dictation/text_t27_s4.mp3",
+          "url": "/audio/propis-dictation/text_t27_s4.mp3",
+          "label": "text_t27_s4",
+          "category": "Прочее",
+          "version": "cfcf80e6e57c0cc7"
+        },
+        {
+          "id": "audio/propis-dictation/text_t27_s5.mp3",
+          "key": "text_t27_s5",
+          "path": "audio/propis-dictation/text_t27_s5.mp3",
+          "url": "/audio/propis-dictation/text_t27_s5.mp3",
+          "label": "text_t27_s5",
+          "category": "Прочее",
+          "version": "17ca5f07f5753fe5"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s1_c1.mp3",
+          "key": "text_t28_s1_c1",
+          "path": "audio/propis-dictation/text_t28_s1_c1.mp3",
+          "url": "/audio/propis-dictation/text_t28_s1_c1.mp3",
+          "label": "text_t28_s1_c1",
+          "category": "Прочее",
+          "version": "0f0ad131e26752a5"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s1_c2.mp3",
+          "key": "text_t28_s1_c2",
+          "path": "audio/propis-dictation/text_t28_s1_c2.mp3",
+          "url": "/audio/propis-dictation/text_t28_s1_c2.mp3",
+          "label": "text_t28_s1_c2",
+          "category": "Прочее",
+          "version": "e14d4a6c98a5a0fe"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s1.mp3",
+          "key": "text_t28_s1",
+          "path": "audio/propis-dictation/text_t28_s1.mp3",
+          "url": "/audio/propis-dictation/text_t28_s1.mp3",
+          "label": "text_t28_s1",
+          "category": "Прочее",
+          "version": "f1d7ed0ba79aa5e6"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s2.mp3",
+          "key": "text_t28_s2",
+          "path": "audio/propis-dictation/text_t28_s2.mp3",
+          "url": "/audio/propis-dictation/text_t28_s2.mp3",
+          "label": "text_t28_s2",
+          "category": "Прочее",
+          "version": "e34638f26dac5f08"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s3.mp3",
+          "key": "text_t28_s3",
+          "path": "audio/propis-dictation/text_t28_s3.mp3",
+          "url": "/audio/propis-dictation/text_t28_s3.mp3",
+          "label": "text_t28_s3",
+          "category": "Прочее",
+          "version": "60873f4aac1d27e4"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s4.mp3",
+          "key": "text_t28_s4",
+          "path": "audio/propis-dictation/text_t28_s4.mp3",
+          "url": "/audio/propis-dictation/text_t28_s4.mp3",
+          "label": "text_t28_s4",
+          "category": "Прочее",
+          "version": "2dc2da42352706d1"
+        },
+        {
+          "id": "audio/propis-dictation/text_t28_s5.mp3",
+          "key": "text_t28_s5",
+          "path": "audio/propis-dictation/text_t28_s5.mp3",
+          "url": "/audio/propis-dictation/text_t28_s5.mp3",
+          "label": "text_t28_s5",
+          "category": "Прочее",
+          "version": "3915b20186035500"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s1_c1.mp3",
+          "key": "text_t29_s1_c1",
+          "path": "audio/propis-dictation/text_t29_s1_c1.mp3",
+          "url": "/audio/propis-dictation/text_t29_s1_c1.mp3",
+          "label": "text_t29_s1_c1",
+          "category": "Прочее",
+          "version": "b1033a1a7b96389c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s1_c2.mp3",
+          "key": "text_t29_s1_c2",
+          "path": "audio/propis-dictation/text_t29_s1_c2.mp3",
+          "url": "/audio/propis-dictation/text_t29_s1_c2.mp3",
+          "label": "text_t29_s1_c2",
+          "category": "Прочее",
+          "version": "42eb781d8be33bb0"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s1.mp3",
+          "key": "text_t29_s1",
+          "path": "audio/propis-dictation/text_t29_s1.mp3",
+          "url": "/audio/propis-dictation/text_t29_s1.mp3",
+          "label": "text_t29_s1",
+          "category": "Прочее",
+          "version": "115455c79a5ab40a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s2_c1.mp3",
+          "key": "text_t29_s2_c1",
+          "path": "audio/propis-dictation/text_t29_s2_c1.mp3",
+          "url": "/audio/propis-dictation/text_t29_s2_c1.mp3",
+          "label": "text_t29_s2_c1",
+          "category": "Прочее",
+          "version": "c6082d76617581ef"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s2_c2.mp3",
+          "key": "text_t29_s2_c2",
+          "path": "audio/propis-dictation/text_t29_s2_c2.mp3",
+          "url": "/audio/propis-dictation/text_t29_s2_c2.mp3",
+          "label": "text_t29_s2_c2",
+          "category": "Прочее",
+          "version": "6a48cceac5f8437f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s2.mp3",
+          "key": "text_t29_s2",
+          "path": "audio/propis-dictation/text_t29_s2.mp3",
+          "url": "/audio/propis-dictation/text_t29_s2.mp3",
+          "label": "text_t29_s2",
+          "category": "Прочее",
+          "version": "64799e3874b69d1c"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s3.mp3",
+          "key": "text_t29_s3",
+          "path": "audio/propis-dictation/text_t29_s3.mp3",
+          "url": "/audio/propis-dictation/text_t29_s3.mp3",
+          "label": "text_t29_s3",
+          "category": "Прочее",
+          "version": "d5aa2c5f89944c78"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s4.mp3",
+          "key": "text_t29_s4",
+          "path": "audio/propis-dictation/text_t29_s4.mp3",
+          "url": "/audio/propis-dictation/text_t29_s4.mp3",
+          "label": "text_t29_s4",
+          "category": "Прочее",
+          "version": "9bf9da4b18524f7e"
+        },
+        {
+          "id": "audio/propis-dictation/text_t29_s5.mp3",
+          "key": "text_t29_s5",
+          "path": "audio/propis-dictation/text_t29_s5.mp3",
+          "url": "/audio/propis-dictation/text_t29_s5.mp3",
+          "label": "text_t29_s5",
+          "category": "Прочее",
+          "version": "f21dd7e40fcc650a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s1.mp3",
+          "key": "text_t30_s1",
+          "path": "audio/propis-dictation/text_t30_s1.mp3",
+          "url": "/audio/propis-dictation/text_t30_s1.mp3",
+          "label": "text_t30_s1",
+          "category": "Прочее",
+          "version": "1055132351ebb46f"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s2_c1.mp3",
+          "key": "text_t30_s2_c1",
+          "path": "audio/propis-dictation/text_t30_s2_c1.mp3",
+          "url": "/audio/propis-dictation/text_t30_s2_c1.mp3",
+          "label": "text_t30_s2_c1",
+          "category": "Прочее",
+          "version": "302a6004523cdf9a"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s2_c2.mp3",
+          "key": "text_t30_s2_c2",
+          "path": "audio/propis-dictation/text_t30_s2_c2.mp3",
+          "url": "/audio/propis-dictation/text_t30_s2_c2.mp3",
+          "label": "text_t30_s2_c2",
+          "category": "Прочее",
+          "version": "52a8154405c05f0b"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s2.mp3",
+          "key": "text_t30_s2",
+          "path": "audio/propis-dictation/text_t30_s2.mp3",
+          "url": "/audio/propis-dictation/text_t30_s2.mp3",
+          "label": "text_t30_s2",
+          "category": "Прочее",
+          "version": "47cab8346ff596bd"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s3.mp3",
+          "key": "text_t30_s3",
+          "path": "audio/propis-dictation/text_t30_s3.mp3",
+          "url": "/audio/propis-dictation/text_t30_s3.mp3",
+          "label": "text_t30_s3",
+          "category": "Прочее",
+          "version": "38ca71ae74dfead4"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s4.mp3",
+          "key": "text_t30_s4",
+          "path": "audio/propis-dictation/text_t30_s4.mp3",
+          "url": "/audio/propis-dictation/text_t30_s4.mp3",
+          "label": "text_t30_s4",
+          "category": "Прочее",
+          "version": "bc1d98a93045dbf0"
+        },
+        {
+          "id": "audio/propis-dictation/text_t30_s5.mp3",
+          "key": "text_t30_s5",
+          "path": "audio/propis-dictation/text_t30_s5.mp3",
+          "url": "/audio/propis-dictation/text_t30_s5.mp3",
+          "label": "text_t30_s5",
+          "category": "Прочее",
+          "version": "87738d14a739e784"
         },
         {
           "id": "audio/propis-dictation/up_а.mp3",

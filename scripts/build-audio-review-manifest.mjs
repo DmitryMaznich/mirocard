@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { NUMBER_WORDS } from "../src/topics/renderers/addition_subtraction/audioNumbers.js";
 import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
-import { letterDictationKey, splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { letterDictationKey, splitIntoSentences, syllableDictationKey, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
 import { PROPIS_NATURAL_PILOT } from "./lib/propis-natural-pilot-bank.mjs";
 import { PROPIS_ELEVENLABS_ALPHABET, PROPIS_ELEVENLABS_CASE_PILOT, PROPIS_ELEVENLABS_ENTRIES, PROPIS_ELEVENLABS_E_PILOT, PROPIS_ELEVENLABS_WORDS_PILOT } from "./lib/propis-elevenlabs-bank.mjs";
@@ -37,6 +37,15 @@ for (const card of propis.cards.filter((c) => /^[А-Яа-яЁё]$/.test(c.label 
 for (const word of propis.words) setLabel(`audio/propis-dictation/${wordDictationKey(word)}.mp3`, word.word, "Слова");
 for (const entry of propis.texts) {
   splitIntoSentences(entry.text).forEach((text, index) => setLabel(`audio/propis-dictation/${textSentenceDictationKey(entry, index)}.mp3`, text, "Предложения"));
+}
+// «По слогам» (propis2): each syllable with the words it is in
+const propis2Words = JSON.parse(readFileSync(join(root, "tools/propis2/topic.json"), "utf8")).words.filter((w) => (w.syllables?.length ?? 0) > 1);
+const syllableWords = new Map();
+for (const w of propis2Words) for (const syl of w.syllables.map((s) => s.toLowerCase())) syllableWords.set(syl, [...(syllableWords.get(syl) ?? []), w.syllables.join("·")]);
+for (const [syl, inWords] of syllableWords) {
+  const key = syllableDictationKey(syl);
+  const label = `${syl} — ${inWords.slice(0, 4).join(", ")}${inWords.length > 4 ? ` и ещё ${inWords.length - 4}` : ""}`;
+  setLabel(`audio/propis-dictation/${key}.mp3`, label, "Слоги");
 }
 for (const entry of PROPIS_PHONEME_ENTRIES) setLabel(`audio/propis-phoneme-review/${entry.key}.mp3`, entry.label, entry.category);
 for (const entry of PROPIS_ELEVENLABS_ENTRIES) {

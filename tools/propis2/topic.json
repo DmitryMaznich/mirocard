@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis2",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "renderer": "propis2",
     "title": "Прописи",
     "avatar": "media/avatar_propis.svg",
@@ -362,1247 +362,1496 @@
     {
       "id": "w001",
       "word": "мама",
-      "block": "A"
+      "block": "A",
+      "syllables": ["ма", "ма"]
     },
     {
       "id": "w002",
       "word": "папа",
-      "block": "A"
+      "block": "A",
+      "syllables": ["па", "па"]
     },
     {
       "id": "w003",
       "word": "лапа",
-      "block": "A"
+      "block": "A",
+      "syllables": ["ла", "па"]
     },
     {
       "id": "w004",
       "word": "липа",
-      "block": "A"
+      "block": "A",
+      "syllables": ["ли", "па"]
     },
     {
       "id": "w005",
       "word": "лето",
-      "block": "A"
+      "block": "A",
+      "syllables": ["ле", "то"]
     },
     {
       "id": "w006",
       "word": "лес",
-      "block": "A"
+      "block": "A",
+      "syllables": ["лес"]
     },
     {
       "id": "w007",
       "word": "сом",
-      "block": "A"
+      "block": "A",
+      "syllables": ["сом"]
     },
     {
       "id": "w008",
       "word": "стол",
-      "block": "A"
+      "block": "A",
+      "syllables": ["стол"]
     },
     {
       "id": "w009",
       "word": "мост",
-      "block": "A"
+      "block": "A",
+      "syllables": ["мост"]
     },
     {
       "id": "w010",
       "word": "масло",
-      "block": "A"
+      "block": "A",
+      "syllables": ["мас", "ло"]
     },
     {
       "id": "w011",
       "word": "тесто",
-      "block": "A"
+      "block": "A",
+      "syllables": ["тес", "то"]
     },
     {
       "id": "w012",
       "word": "оса",
-      "block": "A"
+      "block": "A",
+      "syllables": ["о", "са"]
     },
     {
       "id": "w013",
       "word": "пила",
-      "block": "A"
+      "block": "A",
+      "syllables": ["пи", "ла"]
     },
     {
       "id": "w014",
       "word": "сито",
-      "block": "A"
+      "block": "A",
+      "syllables": ["си", "то"]
     },
     {
       "id": "w015",
       "word": "салат",
-      "block": "A"
+      "block": "A",
+      "syllables": ["са", "лат"]
     },
     {
       "id": "w016",
       "word": "лист",
-      "block": "A"
+      "block": "A",
+      "syllables": ["лист"]
     },
     {
       "id": "w017",
       "word": "плита",
-      "block": "A"
+      "block": "A",
+      "syllables": ["пли", "та"]
     },
     {
       "id": "w018",
       "word": "лампа",
-      "block": "A"
+      "block": "A",
+      "syllables": ["лам", "па"]
     },
     {
       "id": "w019",
       "word": "солома",
-      "block": "A"
+      "block": "A",
+      "syllables": ["со", "ло", "ма"]
     },
     {
       "id": "w020",
       "word": "полёт",
-      "block": "A"
+      "block": "A",
+      "syllables": ["по", "лёт"]
     },
     {
       "id": "w021",
       "word": "полоса",
-      "block": "A"
+      "block": "A",
+      "syllables": ["по", "ло", "са"]
     },
     {
       "id": "w022",
       "word": "поле",
-      "block": "A"
+      "block": "A",
+      "syllables": ["по", "ле"]
     },
     {
       "id": "w023",
       "word": "метла",
-      "block": "A"
+      "block": "A",
+      "syllables": ["мет", "ла"]
     },
     {
       "id": "w024",
       "word": "место",
-      "block": "A"
+      "block": "A",
+      "syllables": ["мес", "то"]
     },
     {
       "id": "w025",
       "word": "лапша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["лап", "ша"]
     },
     {
       "id": "w026",
       "word": "лицо",
-      "block": "A"
+      "block": "A",
+      "syllables": ["ли", "цо"]
     },
     {
       "id": "w027",
       "word": "плащ",
-      "block": "A"
+      "block": "A",
+      "syllables": ["плащ"]
     },
     {
       "id": "w028",
       "word": "поэт",
-      "block": "A"
+      "block": "A",
+      "syllables": ["по", "эт"]
     },
     {
       "id": "w029",
       "word": "лапти",
-      "block": "A"
+      "block": "A",
+      "syllables": ["лап", "ти"]
     },
     {
       "id": "w030",
       "word": "спица",
-      "block": "A"
+      "block": "A",
+      "syllables": ["спи", "ца"]
     },
     {
       "id": "w031",
       "word": "паста",
-      "block": "A"
+      "block": "A",
+      "syllables": ["пас", "та"]
     },
     {
       "id": "w032",
       "word": "лиса",
-      "block": "A"
+      "block": "A",
+      "syllables": ["ли", "са"]
     },
     {
       "id": "w033",
       "word": "пилот",
-      "block": "A"
+      "block": "A",
+      "syllables": ["пи", "лот"]
     },
     {
       "id": "w034",
       "word": "самолёт",
-      "block": "A"
+      "block": "A",
+      "syllables": ["са", "мо", "лёт"]
     },
     {
       "id": "w035",
       "word": "мел",
-      "block": "A"
+      "block": "A",
+      "syllables": ["мел"]
     },
     {
       "id": "w036",
       "word": "Маша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Ма", "ша"]
     },
     {
       "id": "w037",
       "word": "Мила",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Ми", "ла"]
     },
     {
       "id": "w038",
       "word": "Тёма",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Тё", "ма"]
     },
     {
       "id": "w039",
       "word": "Сёма",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Сё", "ма"]
     },
     {
       "id": "w040",
       "word": "Тоша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["То", "ша"]
     },
     {
       "id": "w041",
       "word": "Стёпа",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Стё", "па"]
     },
     {
       "id": "w042",
       "word": "Лёша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Лё", "ша"]
     },
     {
       "id": "w043",
       "word": "Тимоша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Ти", "мо", "ша"]
     },
     {
       "id": "w044",
       "word": "Саша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Са", "ша"]
     },
     {
       "id": "w045",
       "word": "Миша",
-      "block": "A"
+      "block": "A",
+      "syllables": ["Ми", "ша"]
     },
     {
       "id": "w046",
       "word": "дом",
-      "block": "B"
+      "block": "B",
+      "syllables": ["дом"]
     },
     {
       "id": "w047",
       "word": "кот",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кот"]
     },
     {
       "id": "w048",
       "word": "жук",
-      "block": "B"
+      "block": "B",
+      "syllables": ["жук"]
     },
     {
       "id": "w049",
       "word": "ёж",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ёж"]
     },
     {
       "id": "w050",
       "word": "гриб",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гриб"]
     },
     {
       "id": "w051",
       "word": "груша",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гру", "ша"]
     },
     {
       "id": "w052",
       "word": "банан",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ба", "нан"]
     },
     {
       "id": "w053",
       "word": "ведро",
-      "block": "B"
+      "block": "B",
+      "syllables": ["вед", "ро"]
     },
     {
       "id": "w054",
       "word": "ключ",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ключ"]
     },
     {
       "id": "w055",
       "word": "замок",
-      "block": "B"
+      "block": "B",
+      "syllables": ["за", "мок"]
     },
     {
       "id": "w056",
       "word": "зима",
-      "block": "B"
+      "block": "B",
+      "syllables": ["зи", "ма"]
     },
     {
       "id": "w057",
       "word": "весна",
-      "block": "B"
+      "block": "B",
+      "syllables": ["вес", "на"]
     },
     {
       "id": "w058",
       "word": "ветер",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ве", "тер"]
     },
     {
       "id": "w059",
       "word": "рыба",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ры", "ба"]
     },
     {
       "id": "w060",
       "word": "крыша",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кры", "ша"]
     },
     {
       "id": "w061",
       "word": "крыло",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кры", "ло"]
     },
     {
       "id": "w062",
       "word": "гнездо",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гнез", "до"]
     },
     {
       "id": "w063",
       "word": "ковёр",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ко", "вёр"]
     },
     {
       "id": "w064",
       "word": "ложка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["лож", "ка"]
     },
     {
       "id": "w065",
       "word": "вилка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["вил", "ка"]
     },
     {
       "id": "w066",
       "word": "чашка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["чаш", "ка"]
     },
     {
       "id": "w067",
       "word": "кружка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["круж", "ка"]
     },
     {
       "id": "w068",
       "word": "окно",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ок", "но"]
     },
     {
       "id": "w069",
       "word": "дверь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["дверь"]
     },
     {
       "id": "w070",
       "word": "забор",
-      "block": "B"
+      "block": "B",
+      "syllables": ["за", "бор"]
     },
     {
       "id": "w071",
       "word": "огонь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["о", "гонь"]
     },
     {
       "id": "w072",
       "word": "вода",
-      "block": "B"
+      "block": "B",
+      "syllables": ["во", "да"]
     },
     {
       "id": "w073",
       "word": "звезда",
-      "block": "B"
+      "block": "B",
+      "syllables": ["звез", "да"]
     },
     {
       "id": "w074",
       "word": "луна",
-      "block": "B"
+      "block": "B",
+      "syllables": ["лу", "на"]
     },
     {
       "id": "w075",
       "word": "туча",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ту", "ча"]
     },
     {
       "id": "w076",
       "word": "дождь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["дождь"]
     },
     {
       "id": "w077",
       "word": "снег",
-      "block": "B"
+      "block": "B",
+      "syllables": ["снег"]
     },
     {
       "id": "w078",
       "word": "лёд",
-      "block": "B"
+      "block": "B",
+      "syllables": ["лёд"]
     },
     {
       "id": "w079",
       "word": "санки",
-      "block": "B"
+      "block": "B",
+      "syllables": ["сан", "ки"]
     },
     {
       "id": "w080",
       "word": "коньки",
-      "block": "B"
+      "block": "B",
+      "syllables": ["конь", "ки"]
     },
     {
       "id": "w081",
       "word": "мяч",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мяч"]
     },
     {
       "id": "w082",
       "word": "муха",
-      "block": "B"
+      "block": "B",
+      "syllables": ["му", "ха"]
     },
     {
       "id": "w083",
       "word": "май",
-      "block": "B"
+      "block": "B",
+      "syllables": ["май"]
     },
     {
       "id": "w084",
       "word": "флаг",
-      "block": "B"
+      "block": "B",
+      "syllables": ["флаг"]
     },
     {
       "id": "w085",
       "word": "кролик",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кро", "лик"]
     },
     {
       "id": "w086",
       "word": "мышь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мышь"]
     },
     {
       "id": "w087",
       "word": "волк",
-      "block": "B"
+      "block": "B",
+      "syllables": ["волк"]
     },
     {
       "id": "w088",
       "word": "медведь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мед", "ведь"]
     },
     {
       "id": "w089",
       "word": "заяц",
-      "block": "B"
+      "block": "B",
+      "syllables": ["за", "яц"]
     },
     {
       "id": "w090",
       "word": "белка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["бел", "ка"]
     },
     {
       "id": "w091",
       "word": "олень",
-      "block": "B"
+      "block": "B",
+      "syllables": ["о", "лень"]
     },
     {
       "id": "w092",
       "word": "тигр",
-      "block": "B"
+      "block": "B",
+      "syllables": ["тигр"]
     },
     {
       "id": "w093",
       "word": "лев",
-      "block": "B"
+      "block": "B",
+      "syllables": ["лев"]
     },
     {
       "id": "w094",
       "word": "слон",
-      "block": "B"
+      "block": "B",
+      "syllables": ["слон"]
     },
     {
       "id": "w095",
       "word": "жираф",
-      "block": "B"
+      "block": "B",
+      "syllables": ["жи", "раф"]
     },
     {
       "id": "w096",
       "word": "зебра",
-      "block": "B"
+      "block": "B",
+      "syllables": ["зеб", "ра"]
     },
     {
       "id": "w097",
       "word": "змея",
-      "block": "B"
+      "block": "B",
+      "syllables": ["зме", "я"]
     },
     {
       "id": "w098",
       "word": "лягушка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ля", "гуш", "ка"]
     },
     {
       "id": "w099",
       "word": "бабочка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ба", "боч", "ка"]
     },
     {
       "id": "w100",
       "word": "пчела",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пче", "ла"]
     },
     {
       "id": "w101",
       "word": "муравей",
-      "block": "B"
+      "block": "B",
+      "syllables": ["му", "ра", "вей"]
     },
     {
       "id": "w102",
       "word": "улитка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["у", "лит", "ка"]
     },
     {
       "id": "w103",
       "word": "курица",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ку", "ри", "ца"]
     },
     {
       "id": "w104",
       "word": "петух",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пе", "тух"]
     },
     {
       "id": "w105",
       "word": "корова",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ко", "ро", "ва"]
     },
     {
       "id": "w106",
       "word": "лошадь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ло", "шадь"]
     },
     {
       "id": "w107",
       "word": "свинья",
-      "block": "B"
+      "block": "B",
+      "syllables": ["сви", "нья"]
     },
     {
       "id": "w108",
       "word": "собака",
-      "block": "B"
+      "block": "B",
+      "syllables": ["со", "ба", "ка"]
     },
     {
       "id": "w109",
       "word": "кошка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кош", "ка"]
     },
     {
       "id": "w110",
       "word": "котёнок",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ко", "тё", "нок"]
     },
     {
       "id": "w111",
       "word": "гусь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гусь"]
     },
     {
       "id": "w112",
       "word": "утка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ут", "ка"]
     },
     {
       "id": "w113",
       "word": "брат",
-      "block": "B"
+      "block": "B",
+      "syllables": ["брат"]
     },
     {
       "id": "w114",
       "word": "сестра",
-      "block": "B"
+      "block": "B",
+      "syllables": ["сес", "тра"]
     },
     {
       "id": "w115",
       "word": "бабушка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ба", "буш", "ка"]
     },
     {
       "id": "w116",
       "word": "дедушка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["де", "душ", "ка"]
     },
     {
       "id": "w117",
       "word": "тётя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["тё", "тя"]
     },
     {
       "id": "w118",
       "word": "дядя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["дя", "дя"]
     },
     {
       "id": "w119",
       "word": "семья",
-      "block": "B"
+      "block": "B",
+      "syllables": ["се", "мья"]
     },
     {
       "id": "w120",
       "word": "друг",
-      "block": "B"
+      "block": "B",
+      "syllables": ["друг"]
     },
     {
       "id": "w121",
       "word": "мальчик",
-      "block": "B"
+      "block": "B",
+      "syllables": ["маль", "чик"]
     },
     {
       "id": "w122",
       "word": "девочка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["де", "воч", "ка"]
     },
     {
       "id": "w123",
       "word": "ребёнок",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ре", "бё", "нок"]
     },
     {
       "id": "w124",
       "word": "учитель",
-      "block": "B"
+      "block": "B",
+      "syllables": ["у", "чи", "тель"]
     },
     {
       "id": "w125",
       "word": "Вова",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Во", "ва"]
     },
     {
       "id": "w126",
       "word": "Катя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ка", "тя"]
     },
     {
       "id": "w127",
       "word": "Аня",
-      "block": "B"
+      "block": "B",
+      "syllables": ["А", "ня"]
     },
     {
       "id": "w128",
       "word": "Настя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Нас", "тя"]
     },
     {
       "id": "w129",
       "word": "Женя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Же", "ня"]
     },
     {
       "id": "w130",
       "word": "Витя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ви", "тя"]
     },
     {
       "id": "w131",
       "word": "Коля",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ко", "ля"]
     },
     {
       "id": "w132",
       "word": "Юра",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ю", "ра"]
     },
     {
       "id": "w133",
       "word": "Дима",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ди", "ма"]
     },
     {
       "id": "w134",
       "word": "Гриша",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Гри", "ша"]
     },
     {
       "id": "w135",
       "word": "Боря",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Бо", "ря"]
     },
     {
       "id": "w136",
       "word": "Вася",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ва", "ся"]
     },
     {
       "id": "w137",
       "word": "Лена",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ле", "на"]
     },
     {
       "id": "w138",
       "word": "Вера",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ве", "ра"]
     },
     {
       "id": "w139",
       "word": "Надя",
-      "block": "B"
+      "block": "B",
+      "syllables": ["На", "дя"]
     },
     {
       "id": "w140",
       "word": "Люда",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Лю", "да"]
     },
     {
       "id": "w141",
       "word": "Нина",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ни", "на"]
     },
     {
       "id": "w142",
       "word": "Ира",
-      "block": "B"
+      "block": "B",
+      "syllables": ["И", "ра"]
     },
     {
       "id": "w143",
       "word": "Юля",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Ю", "ля"]
     },
     {
       "id": "w144",
       "word": "Оля",
-      "block": "B"
+      "block": "B",
+      "syllables": ["О", "ля"]
     },
     {
       "id": "w145",
       "word": "Соня",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Со", "ня"]
     },
     {
       "id": "w146",
       "word": "Полина",
-      "block": "B"
+      "block": "B",
+      "syllables": ["По", "ли", "на"]
     },
     {
       "id": "w147",
       "word": "Даша",
-      "block": "B"
+      "block": "B",
+      "syllables": ["Да", "ша"]
     },
     {
       "id": "w148",
       "word": "хлеб",
-      "block": "B"
+      "block": "B",
+      "syllables": ["хлеб"]
     },
     {
       "id": "w149",
       "word": "молоко",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мо", "ло", "ко"]
     },
     {
       "id": "w150",
       "word": "сыр",
-      "block": "B"
+      "block": "B",
+      "syllables": ["сыр"]
     },
     {
       "id": "w151",
       "word": "яйцо",
-      "block": "B"
+      "block": "B",
+      "syllables": ["яй", "цо"]
     },
     {
       "id": "w152",
       "word": "мясо",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мя", "со"]
     },
     {
       "id": "w153",
       "word": "картошка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кар", "тош", "ка"]
     },
     {
       "id": "w154",
       "word": "морковь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мор", "ковь"]
     },
     {
       "id": "w155",
       "word": "капуста",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ка", "пус", "та"]
     },
     {
       "id": "w156",
       "word": "огурец",
-      "block": "B"
+      "block": "B",
+      "syllables": ["о", "гу", "рец"]
     },
     {
       "id": "w157",
       "word": "помидор",
-      "block": "B"
+      "block": "B",
+      "syllables": ["по", "ми", "дор"]
     },
     {
       "id": "w158",
       "word": "лук",
-      "block": "B"
+      "block": "B",
+      "syllables": ["лук"]
     },
     {
       "id": "w159",
       "word": "яблоко",
-      "block": "B"
+      "block": "B",
+      "syllables": ["яб", "ло", "ко"]
     },
     {
       "id": "w160",
       "word": "арбуз",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ар", "буз"]
     },
     {
       "id": "w161",
       "word": "вишня",
-      "block": "B"
+      "block": "B",
+      "syllables": ["виш", "ня"]
     },
     {
       "id": "w162",
       "word": "мёд",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мёд"]
     },
     {
       "id": "w163",
       "word": "суп",
-      "block": "B"
+      "block": "B",
+      "syllables": ["суп"]
     },
     {
       "id": "w164",
       "word": "блины",
-      "block": "B"
+      "block": "B",
+      "syllables": ["бли", "ны"]
     },
     {
       "id": "w165",
       "word": "пирог",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пи", "рог"]
     },
     {
       "id": "w166",
       "word": "стул",
-      "block": "B"
+      "block": "B",
+      "syllables": ["стул"]
     },
     {
       "id": "w167",
       "word": "диван",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ди", "ван"]
     },
     {
       "id": "w168",
       "word": "кресло",
-      "block": "B"
+      "block": "B",
+      "syllables": ["крес", "ло"]
     },
     {
       "id": "w169",
       "word": "шкаф",
-      "block": "B"
+      "block": "B",
+      "syllables": ["шкаф"]
     },
     {
       "id": "w170",
       "word": "полка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пол", "ка"]
     },
     {
       "id": "w171",
       "word": "кровать",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кро", "вать"]
     },
     {
       "id": "w172",
       "word": "подушка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["по", "душ", "ка"]
     },
     {
       "id": "w173",
       "word": "часы",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ча", "сы"]
     },
     {
       "id": "w174",
       "word": "телефон",
-      "block": "B"
+      "block": "B",
+      "syllables": ["те", "ле", "фон"]
     },
     {
       "id": "w175",
       "word": "книга",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кни", "га"]
     },
     {
       "id": "w176",
       "word": "тетрадь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["тет", "радь"]
     },
     {
       "id": "w177",
       "word": "ручка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["руч", "ка"]
     },
     {
       "id": "w178",
       "word": "очки",
-      "block": "B"
+      "block": "B",
+      "syllables": ["оч", "ки"]
     },
     {
       "id": "w179",
       "word": "футболка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["фут", "бол", "ка"]
     },
     {
       "id": "w180",
       "word": "платье",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пла", "тье"]
     },
     {
       "id": "w181",
       "word": "юбка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["юб", "ка"]
     },
     {
       "id": "w182",
       "word": "куртка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["кур", "тка"]
     },
     {
       "id": "w183",
       "word": "пальто",
-      "block": "B"
+      "block": "B",
+      "syllables": ["паль", "то"]
     },
     {
       "id": "w184",
       "word": "шапка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["шап", "ка"]
     },
     {
       "id": "w185",
       "word": "ботинки",
-      "block": "B"
+      "block": "B",
+      "syllables": ["бо", "тин", "ки"]
     },
     {
       "id": "w186",
       "word": "солнце",
-      "block": "B"
+      "block": "B",
+      "syllables": ["сол", "нце"]
     },
     {
       "id": "w187",
       "word": "небо",
-      "block": "B"
+      "block": "B",
+      "syllables": ["не", "бо"]
     },
     {
       "id": "w188",
       "word": "облако",
-      "block": "B"
+      "block": "B",
+      "syllables": ["об", "ла", "ко"]
     },
     {
       "id": "w189",
       "word": "гроза",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гро", "за"]
     },
     {
       "id": "w190",
       "word": "молния",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мол", "ни", "я"]
     },
     {
       "id": "w191",
       "word": "радуга",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ра", "ду", "га"]
     },
     {
       "id": "w192",
       "word": "мороз",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мо", "роз"]
     },
     {
       "id": "w193",
       "word": "река",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ре", "ка"]
     },
     {
       "id": "w194",
       "word": "озеро",
-      "block": "B"
+      "block": "B",
+      "syllables": ["о", "зе", "ро"]
     },
     {
       "id": "w195",
       "word": "море",
-      "block": "B"
+      "block": "B",
+      "syllables": ["мо", "ре"]
     },
     {
       "id": "w196",
       "word": "гора",
-      "block": "B"
+      "block": "B",
+      "syllables": ["го", "ра"]
     },
     {
       "id": "w197",
       "word": "дорога",
-      "block": "B"
+      "block": "B",
+      "syllables": ["до", "ро", "га"]
     },
     {
       "id": "w198",
       "word": "машина",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ма", "ши", "на"]
     },
     {
       "id": "w199",
       "word": "автобус",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ав", "то", "бус"]
     },
     {
       "id": "w200",
       "word": "поезд",
-      "block": "B"
+      "block": "B",
+      "syllables": ["по", "езд"]
     },
     {
       "id": "w201",
       "word": "вертолёт",
-      "block": "B"
+      "block": "B",
+      "syllables": ["вер", "то", "лёт"]
     },
     {
       "id": "w202",
       "word": "корабль",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ко", "рабль"]
     },
     {
       "id": "w203",
       "word": "лодка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["лод", "ка"]
     },
     {
       "id": "w204",
       "word": "велосипед",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ве", "ло", "си", "пед"]
     },
     {
       "id": "w205",
       "word": "мишка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["миш", "ка"]
     },
     {
       "id": "w206",
       "word": "робот",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ро", "бот"]
     },
     {
       "id": "w207",
       "word": "машинка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ма", "шин", "ка"]
     },
     {
       "id": "w208",
       "word": "кубики",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ку", "би", "ки"]
     },
     {
       "id": "w209",
       "word": "юла",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ю", "ла"]
     },
     {
       "id": "w210",
       "word": "качели",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ка", "че", "ли"]
     },
     {
       "id": "w211",
       "word": "горка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гор", "ка"]
     },
     {
       "id": "w212",
       "word": "самокат",
-      "block": "B"
+      "block": "B",
+      "syllables": ["са", "мо", "кат"]
     },
     {
       "id": "w213",
       "word": "скакалка",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ска", "кал", "ка"]
     },
     {
       "id": "w214",
       "word": "голова",
-      "block": "B"
+      "block": "B",
+      "syllables": ["го", "ло", "ва"]
     },
     {
       "id": "w215",
       "word": "волосы",
-      "block": "B"
+      "block": "B",
+      "syllables": ["во", "ло", "сы"]
     },
     {
       "id": "w216",
       "word": "глаза",
-      "block": "B"
+      "block": "B",
+      "syllables": ["гла", "за"]
     },
     {
       "id": "w217",
       "word": "нос",
-      "block": "B"
+      "block": "B",
+      "syllables": ["нос"]
     },
     {
       "id": "w218",
       "word": "рот",
-      "block": "B"
+      "block": "B",
+      "syllables": ["рот"]
     },
     {
       "id": "w219",
       "word": "зубы",
-      "block": "B"
+      "block": "B",
+      "syllables": ["зу", "бы"]
     },
     {
       "id": "w220",
       "word": "язык",
-      "block": "B"
+      "block": "B",
+      "syllables": ["я", "зык"]
     },
     {
       "id": "w221",
       "word": "руки",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ру", "ки"]
     },
     {
       "id": "w222",
       "word": "ноги",
-      "block": "B"
+      "block": "B",
+      "syllables": ["но", "ги"]
     },
     {
       "id": "w223",
       "word": "сердце",
-      "block": "B"
+      "block": "B",
+      "syllables": ["сер", "дце"]
     },
     {
       "id": "w224",
       "word": "школа",
-      "block": "B"
+      "block": "B",
+      "syllables": ["шко", "ла"]
     },
     {
       "id": "w225",
       "word": "урок",
-      "block": "B"
+      "block": "B",
+      "syllables": ["у", "рок"]
     },
     {
       "id": "w226",
       "word": "парта",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пар", "та"]
     },
     {
       "id": "w227",
       "word": "доска",
-      "block": "B"
+      "block": "B",
+      "syllables": ["дос", "ка"]
     },
     {
       "id": "w228",
       "word": "дневник",
-      "block": "B"
+      "block": "B",
+      "syllables": ["днев", "ник"]
     },
     {
       "id": "w229",
       "word": "класс",
-      "block": "B"
+      "block": "B",
+      "syllables": ["класс"]
     },
     {
       "id": "w230",
       "word": "один",
-      "block": "B"
+      "block": "B",
+      "syllables": ["о", "дин"]
     },
     {
       "id": "w231",
       "word": "два",
-      "block": "B"
+      "block": "B",
+      "syllables": ["два"]
     },
     {
       "id": "w232",
       "word": "три",
-      "block": "B"
+      "block": "B",
+      "syllables": ["три"]
     },
     {
       "id": "w233",
       "word": "четыре",
-      "block": "B"
+      "block": "B",
+      "syllables": ["че", "ты", "ре"]
     },
     {
       "id": "w234",
       "word": "пять",
-      "block": "B"
+      "block": "B",
+      "syllables": ["пять"]
     },
     {
       "id": "w235",
       "word": "шесть",
-      "block": "B"
+      "block": "B",
+      "syllables": ["шесть"]
     },
     {
       "id": "w236",
       "word": "семь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["семь"]
     },
     {
       "id": "w237",
       "word": "восемь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["во", "семь"]
     },
     {
       "id": "w238",
       "word": "девять",
-      "block": "B"
+      "block": "B",
+      "syllables": ["де", "вять"]
     },
     {
       "id": "w239",
       "word": "десять",
-      "block": "B"
+      "block": "B",
+      "syllables": ["де", "сять"]
     },
     {
       "id": "w240",
       "word": "утро",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ут", "ро"]
     },
     {
       "id": "w241",
       "word": "день",
-      "block": "B"
+      "block": "B",
+      "syllables": ["день"]
     },
     {
       "id": "w242",
       "word": "вечер",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ве", "чер"]
     },
     {
       "id": "w243",
       "word": "ночь",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ночь"]
     },
     {
       "id": "w244",
       "word": "месяц",
-      "block": "B"
+      "block": "B",
+      "syllables": ["ме", "сяц"]
     },
     {
       "id": "w245",
       "word": "год",
-      "block": "B"
+      "block": "B",
+      "syllables": ["год"]
     },
     {
       "id": "w246",
       "word": "час",
-      "block": "B"
+      "block": "B",
+      "syllables": ["час"]
     },
     {
       "id": "w247",
       "word": "завтра",
-      "block": "B"
+      "block": "B",
+      "syllables": ["зав", "тра"]
     },
     {
       "id": "w248",
       "word": "вчера",
-      "block": "B"
+      "block": "B",
+      "syllables": ["вче", "ра"]
     },
     {
       "id": "w249",
       "word": "осень",
-      "block": "B"
+      "block": "B",
+      "syllables": ["о", "сень"]
     }
   ],
   "texts": [
