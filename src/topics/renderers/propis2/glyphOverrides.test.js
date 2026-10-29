@@ -247,3 +247,28 @@ describe("the dots over ё are 1.5 times as big (2026-10-29)", () => {
     expect(st.filter((s) => s.width !== undefined && s.width !== 3).length).toBe(0);
   });
 });
+
+describe("the dots over ё stand further right; the dots of . , ! ? are 1.5 times as big (2026-10-29)", () => {
+  const map = buildGlyphMap({ wide });
+  const box = (d) => { const n = pts(d); const xs = n.filter((_, i) => i % 2 === 0), ys = n.filter((_, i) => i % 2 === 1); return { w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys), x: (Math.min(...xs) + Math.max(...xs)) / 2, bottom: Math.max(...ys), top: Math.min(...ys) }; };
+  it("the dots of lowercase ё are one line of the dense grid (18 units) right of where they were; Ё is not moved", () => {
+    const raw = wide.find((g) => g.label === "ё");
+    const g = map.get("ё");
+    g.noDotStrokes.forEach((si, k) => expect(box(g.strokes[si].d).x - box(raw.strokes[[1, 2][k]].d).x).toBeCloseTo(18, 1));
+    // the capital's dots are centred over the letter by their own rule, whatever the lowercase does
+    const cap = map.get("Ё"), plain = map.get("Е");
+    const markX = cap.strokes.slice(plain.strokes.length).map((s) => box(s.d).x);
+    const bodyX = box(plain.strokes[0].d).x;
+    expect(Math.abs((markX[0] + markX[1]) / 2 - bodyX)).toBeLessThan(40);
+  });
+  it("each dot of a sign is 1.5 times as big, drawn 1.5 times as thick and stands where it stood (on the line)", () => {
+    for (const [label, si, anchor] of [[".", 0, "bottom"], ["!", 1, "bottom"], ["?", 1, "bottom"], [",", 0, "top"]]) {
+      const g = map.get(label), raw = wide.find((x) => x.label === label);
+      const a = box(g.strokes[si].d), b = box(raw.strokes[si].d);
+      expect(g.dotWidth, label).toBeCloseTo(3, 5);
+      expect(a.w, label).toBeCloseTo(b.w * 1.5, 1);
+      expect(a.h, label).toBeCloseTo(b.h * 1.5, 1);
+      expect(anchor === "bottom" ? a.bottom : a.top, label).toBeCloseTo(anchor === "bottom" ? b.bottom : b.top, 1);
+    }
+  });
+});

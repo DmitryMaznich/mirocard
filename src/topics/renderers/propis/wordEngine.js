@@ -1480,6 +1480,7 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
   let end = getPathEndpoints(strokes[0].d).end;
   let exitStrokeIndex = 0;
   strokes.forEach((s, si) => {
+    if (si > 0 && glyph.noDotStrokes?.includes(si)) return; // the dots of ё are never the exit, wherever they stand
     const e = getPathEndpoints(s.d).end;
     if (e[0] > end[0]) { end = e; exitStrokeIndex = si; }
   });
@@ -1896,7 +1897,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           else { tokenPhase = 0; tokenPhase = startX - snapStart(startX); } // no drawn lines: exactly two cells, and the rest of the word is joined on the lattice shifted by that
         }
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.noDotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
         if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
