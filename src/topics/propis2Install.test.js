@@ -17,8 +17,9 @@ describe("propis2 deck install", () => {
     expect(rec.wideSheets.page18).toBeTruthy();
     expect(rec.elements.length).toBeGreaterThan(0);
     expect(rec.modes[0].type).toBe("builder");
-    // «Диктант» draws from these banks; without them the words level was empty (2026-10-11)
-    expect(rec.words.length).toBe(249);
+    // «Диктант» draws from these banks; without them the words level was empty (2026-10-11). 247: «солнце» and «сердце» left the
+    // dictation bank (silent consonants, owner 2026-10-29); `propis` below keeps all 249.
+    expect(rec.words.length).toBe(247);
     expect(rec.texts.length).toBeGreaterThan(0);
   });
 

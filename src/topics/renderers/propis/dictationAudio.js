@@ -62,3 +62,6 @@ export function splitSentenceAtCommas(sentence) {
 export function textChunkDictationKey(textEntry, sentenceIndex, chunkIndex) {
   return `text_${textEntry.id}_s${sentenceIndex + 1}_c${chunkIndex + 1}`;
 }
+
+// `propis2`, «По слогам»: one clip per distinct syllable (lowercase, so the same file serves "Ма" of Маша and "ма" of мама).
+export const syllableDictationKey = (syllable) => `syl_${syllable.toLowerCase()}`;

@@ -14,19 +14,22 @@
 // Resumable: existing files are skipped unless --force.
 //
 // Usage (in a cloud session Node's fetch needs NODE_USE_ENV_PROXY=1 to use the proxy):
-//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks] [--topic=tools/propis2/topic.json]
+//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks|syllables] [--topic=tools/propis2/topic.json]
 //     [--ids=w001,w006] [--takes=2] [--out=public/audio/propis-elevenlabs-words-pilot]
 //     [--force] [--dry-run]
 // --takes=2 writes <key>.mp3 and <key>__2.mp3 (review playlists); default 1.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey, syllableDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned
 const MODEL_ID = "eleven_v4";
 const TAG = "[calm, clear, like a teacher dictating to a class]";
+// a lone syllable; the class-dictation tag made it repeat the syllable or read it as a word (pilot 2026-10-29). The raw clips still
+// need scripts/trim-dictation-syllables.mjs (cut at the first pause: a take can say the syllable twice).
+const SYLLABLE_TAG = "[calm, clear, like a teacher dictating to a first-grader]";
 const MAX_RETRIES = 4;
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => {
@@ -72,18 +75,31 @@ function buildEntries() {
       });
     }
   }
+  if (args.only === "syllables") {
+    // «По слогам» (propis2, 2026-10-29): one clip per distinct syllable of the words, said as written (orthographic, no stress); not part of
+    // the default run, since only propis2's topic.json has `syllables`. --ids here lists syllables, not word ids.
+    const seen = new Set();
+    for (const w of topic.words) {
+      if ((w.syllables?.length ?? 0) < 2) continue;
+      for (const syl of w.syllables.map((x) => x.toLowerCase())) {
+        if (seen.has(syl) || (IDS && !IDS.has(syl))) continue;
+        seen.add(syl);
+        entries.push({ key: syllableDictationKey(syl), text: `${capitalize(syl)}.`, tag: SYLLABLE_TAG });
+      }
+    }
+  }
   return entries;
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function synthesize(text) {
+async function synthesize(text, tag = TAG) {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`;
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "audio/mpeg", ...(apiKey ? { "xi-api-key": apiKey } : {}) },
-      body: JSON.stringify({ text: `${TAG} ${text}`, model_id: MODEL_ID }),
+      body: JSON.stringify({ text: `${tag} ${text}`, model_id: MODEL_ID }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
     const body = await res.text();
@@ -98,12 +114,12 @@ async function synthesize(text) {
 const entries = buildEntries();
 mkdirSync(OUT_DIR, { recursive: true });
 let made = 0, skipped = 0;
-for (const { key, text } of entries) {
+for (const { key, text, tag } of entries) {
   for (let take = 1; take <= TAKES; take++) {
     const file = join(OUT_DIR, `${key}${take > 1 ? `__${take}` : ""}.mp3`);
     if (existsSync(file) && !args.force) { skipped++; continue; }
-    if (args["dry-run"]) { console.log(`${file.slice(ROOT.length + 1)}  ←  ${TAG} ${text}`); continue; }
-    writeFileSync(file, await synthesize(text));
+    if (args["dry-run"]) { console.log(`${file.slice(ROOT.length + 1)}  ←  ${tag ?? TAG} ${text}`); continue; }
+    writeFileSync(file, await synthesize(text, tag));
     made++;
     console.log(`✓ ${key}${take > 1 ? ` (take ${take})` : ""}  ${text}`);
   }

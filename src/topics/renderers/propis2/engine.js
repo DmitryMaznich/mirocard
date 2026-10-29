@@ -1,6 +1,6 @@
 import { shuffle } from "@/shared/utils/shuffle";
 import { generateLetterTasks } from "../propis/letters/lettersEngine.js";
-import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey } from "../propis/dictationAudio.js";
+import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey, syllableDictationKey } from "../propis/dictationAudio.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -42,8 +42,10 @@ function dictationTask(topicRecord, sessionParams) {
   const videoRewardEnabled = Boolean(sessionParams?.videoRewardEnabled);
   const punctuation = Boolean(sessionParams?.punctuation);
   let pool;
+  // «Повтор по слогам» (param `syllables`, on by default): only for words
+  const syllablesOn = level === "words" && sessionParams?.syllables !== false;
   if (level === "words") {
-    pool = (topicRecord?.words ?? []).map((w) => ({ key: wordDictationKey(w), display: w.word }));
+    pool = (topicRecord?.words ?? []).map((w) => ({ key: wordDictationKey(w), display: w.word, ...(syllablesOn ? { syllableAudio: syllableAudio(w) } : {}) }));
   } else if (level === "texts") {
     pool = (topicRecord?.texts ?? []).map((t) => ({
       key: textDictationKey(t),
@@ -56,7 +58,15 @@ function dictationTask(topicRecord, sessionParams) {
   const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
   const items = noAdjacentRepeats(shuffle(pool).slice(0, itemCount), (item) => (item.display ?? "").toLowerCase());
   if (punctuation) voiceSigns(items, level);
-  return { type: "dictation", level, items, repeatLimit, videoRewardEnabled, signsVoiced: punctuation }; // not `punctuation`: the shared review screen reads that as a list of glyphs
+  return { type: "dictation", level, items, repeatLimit, videoRewardEnabled, signsVoiced: punctuation, syllablesOn }; // not `punctuation`: the shared review screen reads that as a list of glyphs
+}
+
+// «По слогам» (2026-10-29): the second repeat button plays the word one syllable clip after another (owner's choice over one clip per
+// word: the same «ко» in молоко and яблоко). No button for a one-syllable word, nor for a word the deck has no split for (a variant).
+const SYLLABLE_PAUSE_MS = 450;
+function syllableAudio(word) {
+  if ((word.syllables?.length ?? 0) < 2) return undefined;
+  return word.syllables.map((syl, i) => ({ key: syllableDictationKey(syl), pauseAfterMs: i < word.syllables.length - 1 ? SYLLABLE_PAUSE_MS : 0 }));
 }
 
 // Pauses of the dictation with the signs voiced (ms): the child writes the piece, then hears the sign.
