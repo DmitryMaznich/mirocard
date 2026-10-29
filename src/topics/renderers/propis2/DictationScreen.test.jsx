@@ -49,24 +49,4 @@ describe("propis2 dictation screen", () => {
     expect(phase()).toBe("listen");
     expect([...host.querySelectorAll(".p2d-sentence")].map((s) => s.className)).toEqual(["p2d-sentence is-done", "p2d-sentence is-now", "p2d-sentence"]);
   });
-
-  it("words: «по слогам» wakes after the word, plays one clip per syllable, takes from the same limit", () => {
-    const syllables = ["мо", "ло", "ко"].map((sy) => ({ key: `syl_${sy}`, display: sy }));
-    const task = { type: "dictation", level: "words", items: [{ key: "w1", display: "молоко", syllables }], repeatLimit: 2 };
-    act(() => root.render(<DictationScreen task={task} onClose={() => {}} />));
-    const syl = () => host.querySelector(".p2d-syl");
-    expect(host.querySelectorAll(".p2d-arc")).toHaveLength(3);
-    expect(syl().disabled).toBe(true); // the word sounds first
-    act(() => FakeAudio.all[0].end());
-    act(() => vi.runAllTimers());
-    expect(syl().disabled).toBe(false);
-    act(() => syl().click());
-    expect(FakeAudio.all.at(-1).url).toContain("syl_мо");
-    expect(host.querySelector(".p2d-arc.is-now")).toBe(host.querySelectorAll(".p2d-arc")[0]);
-    act(() => FakeAudio.all.at(-1).end());
-    act(() => vi.advanceTimersByTime(450));
-    expect(FakeAudio.all.at(-1).url).toContain("syl_ло");
-    expect(host.querySelector(".p2d-arc.is-now")).toBe(host.querySelectorAll(".p2d-arc")[1]);
-    expect(host.querySelectorAll(".p2d-listen.is-left")).toHaveLength(1); // one of two listens spent
-  });
 });

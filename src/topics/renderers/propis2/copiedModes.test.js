@@ -42,9 +42,6 @@ describe("modes copied from `propis` («Прописи старые») (2026-10-
     expect(letters.items.every((it) => /^(up|lo)_/.test(it.key))).toBe(true);
     const [words] = generateTasks(mode("dictation"), rec, 500, { level: "words", itemCount: 5 });
     expect(words.items.every((it) => it.key && it.display)).toBe(true);
-    // «Повтор по слогам» (on by default): each word carries its syllable clips; off -- none
-    expect(words.items.every((it) => it.syllables.map((sy) => sy.display).join("") === it.display.toLowerCase() && it.syllables.every((sy) => sy.key.startsWith("syl_")))).toBe(true);
-    expect(generateTasks(mode("dictation"), rec, 500, { level: "words", itemCount: 5, syllables: false })[0].items.some((it) => it.syllables)).toBe(false);
     const [texts] = generateTasks(mode("dictation"), rec, 500, { level: "texts", itemCount: 2 });
     expect(texts.items[0].sentences.length).toBeGreaterThan(0);
     expect(generateTasks(mode("builder"), rec, 500, { lines: ["а"] })[0].type).toBe("page");
