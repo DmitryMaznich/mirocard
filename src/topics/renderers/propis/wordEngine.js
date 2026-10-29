@@ -1202,6 +1202,47 @@ function bendTailEndD(d, target, dirUnit) {
   return `${head} ${seg1} ${seg2}`;
 }
 
+// The apex of the first rise of a path: where it first stops going up (the top of the stem of ч, the point its flag turns at). Returns the point, the
+// direction of the rise into it and the path continued from there (the rise itself is cut off), or null when the path does not rise and turn.
+function cutAtApex(d) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const segs = [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 2 || segs[0].c !== "M") return null;
+  const start = segs[0].v;
+  let p0 = start, falling = false;
+  for (let si = 1; si < segs.length; si += 1) {
+    const [x1, y1, x2, y2, x3, y3] = segs[si].v;
+    const at = (t) => { const u = 1 - t; return [u * u * u * p0[0] + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * p0[1] + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3]; };
+    let prev = at(0);
+    for (let k = 1; k <= 24; k += 1) {
+      const t = k / 24, q = at(t);
+      if (q[1] < prev[1] - 1e-6) falling = true; // y decreasing = going up the page
+      else if (falling && q[1] > prev[1] + 1e-6) {
+        const tk = (k - 1) / 24, u = 1 - tk;
+        const lerp = (a, b) => [a[0] + (b[0] - a[0]) * tk, a[1] + (b[1] - a[1]) * tk];
+        const a1 = lerp(p0, [x1, y1]), a2 = lerp([x1, y1], [x2, y2]), a3 = lerp([x2, y2], [x3, y3]);
+        const b1 = lerp(a1, a2), b2 = lerp(a2, a3);
+        const apex = lerp(b1, b2);
+        void u;
+        const dl = Math.hypot(apex[0] - start[0], apex[1] - start[1]) || 1;
+        const f = (x) => String(Number(x.toFixed(3)));
+        const head = `M ${f(apex[0])} ${f(apex[1])} C ${[b2, a3, [x3, y3]].flat().map(f).join(" ")}`;
+        const tail = segs.slice(si + 1).map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
+        return { apex, dir: [(apex[0] - start[0]) / dl, (apex[1] - start[1]) / dl], rest: `${head} ${tail}`.trim() };
+      }
+      prev = q;
+    }
+    p0 = [x3, y3];
+  }
+  return null;
+}
+
 // y where the last cubic of a path starts (the loop of a descender: the tail runs from deep under the line to the exit)
 function lastCubicStartY(d) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
@@ -1865,7 +1906,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // its own captured path from its start point (it retraces the stem above the contact).
           // candidates: every place the next stroke crosses the tail's height, plus (when the stroke starts lower than
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
-          const st0h = getPathEndpoints(moved[0].d).start;
+          let st0h = getPathEndpoints(moved[0].d).start;
+          // `joinToApex` (ч): joined to the letter before, it begins at the TOP of its stem (the flag): the connector goes up there by itself and the stem
+          // is not written again from the middle line. Alone, ч keeps its start on the middle line
+          const apexCut = glyph.joinToApex ? cutAtApex(moved[0].d) : null;
+          if (apexCut) { moved[0] = { ...moved[0], d: apexCut.rest }; st0h = apexCut.apex; }
           // the tail of a descender (у д з) is ONE long cubic from the loop under the line: rebuilding it from its start (retargetTailEndD), or pulling its last piece onto the next stem (alignLastPieceD), swallowed the loop (з before е ё), so only its end is moved
           const descTail = lastCubicStartY(strokes[prevExitStroke].d) > WIDE_BASELINE_Y + 4 * scale;
           const riseToStart = prevExit[1] - st0h[1];
@@ -1877,7 +1922,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // move its end there; reshaping it from its launch flattened о's connector into a long low line
               // `joinReverse` (ы2): the letter opens DOWNWARDS (a stem from its top), the connector comes from below: the arrival direction is the opening direction turned round
               const near = !glyph.joinSmooth && Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale; // `joinSmooth` (ч): even a tail that already ends on the start is bent to enter along the opening direction
-              const d3 = glyph.joinSmooth && !descTail ? bendTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]) : near || descTail ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
+              const d3 = apexCut && !descTail ? retargetTailEndD(strokes[prevExitStroke].d, st0h, apexCut.dir, glyph.joinArrive) : glyph.joinSmooth && !descTail ? bendTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]) : near || descTail ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }

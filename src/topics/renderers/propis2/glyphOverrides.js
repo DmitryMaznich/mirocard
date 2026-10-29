@@ -60,7 +60,7 @@ export const P2_GLYPH_OVERRIDES = {
   "г": { startLift: 2.2 * 52 / 48, joinAtStart: true },
   // ч opens with a steep stem (65°) at the middle line, the connectors arrive much flatter (after В 28°, after о ~15°): a visible corner where they meet.
   // joinSmooth: the connector is bent so that it enters ч along that stem (the way ъ is entered), joinArrive 1 = all of the bend follows the stem (2026-10-29)
-  "ч": { joinAtStart: true, joinSmooth: true, joinArrive: 1 },
+  "ч": { joinAtStart: true, joinSmooth: true, joinToApex: true, joinArrive: 1 },
 };
 
 // Digits and signs (+ - = < >) captured on 2026-10-06 (tools/propis/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»

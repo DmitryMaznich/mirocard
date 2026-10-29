@@ -196,16 +196,22 @@ describe("ы1: the knot at the top of the oval and the connector from it (the sc
   });
 });
 
-describe("ч is entered without a corner (2026-10-29)", () => {
-  it("the connector of the letter before arrives along the opening stem of ч", () => {
+describe("ч is entered at the top of its stem, without a corner (2026-10-29)", () => {
+  it("after a letter that joins it the connector goes up to the top of the stem (the flag) along the stem, and ч does not write the stem again", () => {
     const num = (d) => (d.match(/-?\d*\.?\d+/g) || []).map(Number);
     const ang = (a, b) => (Math.atan2(-(b[1] - a[1]), b[0] - a[0]) * 180) / Math.PI;
-    for (const pair of ["Вч", "оч", "ич"]) {
+    for (const pair of ["Вч", "оч", "ич", "Дч"]) {
       const st = layoutWideLinesIntoRows([pair], buildGlyphMap({ wide }), undefined, false, 0.5).placed[0].segments[0].strokes.map((s) => num(s.d));
       const a = st[st.length - 2], b = st[st.length - 1]; // the connector, then ч itself
-      expect(Math.hypot(a[a.length - 2] - b[0], a[a.length - 1] - b[1])).toBeLessThan(0.8);
-      const turn = Math.abs(ang([a[a.length - 4], a[a.length - 3]], [a[a.length - 2], a[a.length - 1]]) - ang([b[0], b[1]], [b[2], b[3]]));
-      expect(turn).toBeLessThan(15);
+      const end = [a[a.length - 2], a[a.length - 1]];
+      expect(Math.hypot(end[0] - b[0], end[1] - b[1]), pair).toBeLessThan(0.8);
+      expect(end[1], `${pair}: the connector ends at the top of the stem, not on the middle line`).toBeLessThan(45);
+      const arrive = ang([a[a.length - 4], a[a.length - 3]], end);
+      expect(arrive, `${pair}: arrives along the stem`).toBeGreaterThan(50);
+      expect(arrive, `${pair}: arrives along the stem`).toBeLessThan(80);
     }
+    // alone, ч still starts on the middle line
+    const alone = layoutWideLinesIntoRows(["ч"], buildGlyphMap({ wide }), undefined, false, 0.5).placed[0].segments[0].strokes.map((s) => num(s.d));
+    expect(alone[0][1]).toBeGreaterThan(48);
   });
 });
