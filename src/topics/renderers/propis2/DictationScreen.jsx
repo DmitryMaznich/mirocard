@@ -8,7 +8,7 @@ import { useDictationVoice } from "./useDictationVoice";
 // - the circle is the only signal of the phase: waves and bars while the voice sounds; in the silence after it (the time to write, also
 //   the pauses between the sentences of a text) nothing moves and the circle steps back, so the eyes go to the paper. No «Слушай/Пиши»
 //   labels: tried (2026-10-29), they looked like buttons that do nothing -- the owner's call to drop them;
-// - the session as a row of notebook cells (done / now / left): how much is left is seen, not read;
+// - the session as notebook cells (done / now / left), in rows of ten: how much is left is seen, not read;
 // - a text shows which of its sentences sounds; a repeat limit shows the listens left as dots under the circle;
 // - phone and tablet portrait: one column; landscape (tablet): the circle on the left, the count, the cells and «Дальше» on the right.
 // The review screen after the last item is the shared one of `propis` (with this topic's `Answers` and `Grading`).
@@ -22,6 +22,14 @@ const icon = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strok
 const IconArrow = () => <svg {...icon}><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 const IconCheck = () => <svg {...icon} strokeWidth={3}><path d="M5.5 12.5l4 4 9-9" /></svg>;
 const IconClose = () => <svg {...icon} strokeWidth={2.4}><path d="M6 6l12 12M18 6L6 18" /></svg>;
+
+// The cells go in rows of ten with a gap after the fifth, like the beads of an abacus: 40 items are four even rows and "a row and a half
+// left" is seen without counting (a plain wrap cut the rows wherever the width ended: 17 + 17 + 6 on a phone).
+const cellColumns = (total) => {
+  const cols = Math.min(total, 10);
+  return cols > 5 ? `repeat(5, var(--cell)) var(--group) repeat(${cols - 5}, var(--cell))` : `repeat(${cols}, var(--cell))`;
+};
+const cellColumn = (i) => (i % 10 < 5 ? i % 10 + 1 : i % 10 + 2);
 
 export default function DictationScreen({ task, onClose, Answers = null, Grading = null }) {
   const items = task?.items ?? [];
@@ -105,9 +113,9 @@ export default function DictationScreen({ task, onClose, Answers = null, Grading
           </div>
         </header>
 
-        <ol className={`p2d-cells${dense ? " p2d-cells--dense" : ""}`} aria-hidden="true">
+        <ol className={`p2d-cells${dense ? " p2d-cells--dense" : ""}`} style={{ gridTemplateColumns: cellColumns(total) }} aria-hidden="true">
           {items.map((_, i) => (
-            <li key={i} className={`p2d-cell${i < index ? " is-done" : i === index ? " is-now" : ""}`}>
+            <li key={i} className={`p2d-cell${i < index ? " is-done" : i === index ? " is-now" : ""}`} style={{ gridColumn: cellColumn(i) }}>
               {i < index ? <IconCheck /> : i === index && !dense ? i + 1 : null}
             </li>
           ))}

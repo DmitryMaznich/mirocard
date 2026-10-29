@@ -59,8 +59,9 @@
 .p2d-count b { color: var(--p2d-ink); font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
 
 /* the session as notebook cells: done (teal, check) · now (outlined, number) · left (faint) */
-.p2d-cells { grid-area: cells; --cell: clamp(22px, 7vw, 32px); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.p2d-cells--dense { --cell: clamp(14px, 4.2vw, 20px); gap: 4px; }
+/* rows of ten, a wider gap (--group, an empty column) after the fifth; columns and each cell's column are set inline (cellColumns) */
+.p2d-cells { grid-area: cells; --cell: clamp(18px, calc((100vw - 104px) / 10), 32px); --group: 4px; display: grid; justify-content: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.p2d-cells--dense { --cell: clamp(14px, calc((100vw - 104px) / 14), 21px); gap: 4px; }
 .p2d-cell {
   width: var(--cell); height: var(--cell); box-sizing: border-box; display: grid; place-items: center;
   border: 1.5px solid var(--p2d-line); border-radius: 6px; background: rgba(255, 255, 255, 0.75);
@@ -133,8 +134,8 @@
 /* tablet portrait: more air, larger type */
 @media (min-width: 700px) and (min-height: 820px) {
   .p2d-frame { max-width: 640px; padding-top: calc(28px + var(--app-safe-top, 0px)); padding-bottom: calc(36px + var(--app-safe-bottom, 0px)); }
-  .p2d-cells { --cell: 36px; gap: 8px; }
-  .p2d-cells--dense { --cell: 24px; gap: 6px; }
+  .p2d-cells { --cell: 40px; --group: 8px; gap: 8px; }
+  .p2d-cells--dense { --cell: 32px; gap: 7px; }
   .p2d-diktor-wrap { --d: clamp(220px, 30dvh, 300px); }
   .p2d-next { min-height: 68px; font-size: 26px; }
 }
@@ -147,8 +148,8 @@
     padding: calc(28px + var(--app-safe-top, 0px)) calc(72px + var(--app-safe-right, 0px)) calc(28px + var(--app-safe-bottom, 0px)) calc(56px + var(--app-safe-left, 0px));
   }
   .p2d-head { padding-right: 0; align-self: end; }
-  .p2d-cells { justify-content: flex-start; --cell: 34px; }
-  .p2d-cells--dense { --cell: 22px; }
+  .p2d-cells { justify-content: start; --cell: 34px; --group: 6px; }
+  .p2d-cells--dense { --cell: 28px; }
   .p2d-diktor-wrap { --d: clamp(220px, 42dvh, 320px); }
   .p2d-side { align-items: stretch; justify-content: flex-start; gap: 20px; align-self: start; }
   .p2d-sentences { justify-content: flex-start; }
