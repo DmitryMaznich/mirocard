@@ -14,14 +14,14 @@
 // Resumable: existing files are skipped unless --force.
 //
 // Usage (in a cloud session Node's fetch needs NODE_USE_ENV_PROXY=1 to use the proxy):
-//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks] [--topic=tools/propis2/topic.json]
+//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks|syllables] [--topic=tools/propis2/topic.json]
 //     [--ids=w001,w006] [--takes=2] [--out=public/audio/propis-elevenlabs-words-pilot]
 //     [--force] [--dry-run]
 // --takes=2 writes <key>.mp3 and <key>__2.mp3 (review playlists); default 1.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey, syllableDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned
@@ -70,6 +70,19 @@ function buildEntries() {
         const chunks = splitSentenceAtCommas(sentence);
         if (chunks.length > 1) chunks.forEach((chunk, j) => entries.push({ key: textChunkDictationKey(t, i, j), text: sayable(chunk) }));
       });
+    }
+  }
+  if (args.only === "syllables") {
+    // «По слогам» (propis2, 2026-10-29): one clip per distinct syllable of the words, said as written (orthographic, no stress); not part of
+    // the default run, since only propis2's topic.json has `syllables`. --ids here lists syllables, not word ids.
+    const seen = new Set();
+    for (const w of topic.words) {
+      if ((w.syllables?.length ?? 0) < 2) continue;
+      for (const syl of w.syllables.map((x) => x.toLowerCase())) {
+        if (seen.has(syl) || (IDS && !IDS.has(syl))) continue;
+        seen.add(syl);
+        entries.push({ key: syllableDictationKey(syl), text: `${capitalize(syl)}.` });
+      }
     }
   }
   return entries;
