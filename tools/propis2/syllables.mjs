@@ -1,14 +1,13 @@
 // Fills `syllables` on the dictation words of tools/propis2/topic.json («По слогам», 2026-10-29): the repeat that plays a word syllable by
 // syllable, one recorded clip per syllable. Only words without `syllables` are filled, so a split the owner corrected by hand stays.
-// The split is the school one (rising sonority, as Russian first-grade books teach it: ко-шка, лам-па, конь-ки, чай-ник):
-// a syllable ends on its vowel; й, a doubled consonant's first half, a sonorant before a noisy consonant and a consonant with ь/ъ before
-// another consonant stay with the syllable before; every other consonant group goes to the next one.
+// The split is the one an adult says aloud dictating (owner's call, 2026-10-29: лож-ка, сес-тра, фут-бол-ка, not the first-grade
+// book's ло-жка): one consonant between vowels goes to the next syllable (ма-ма); of a group of them the first one (with its ь/ъ)
+// stays with the syllable before, й too (яй-цо, конь-ки); a sign right before the vowel goes on with its consonant (се-мья).
 // Usage: node tools/propis2/syllables.mjs [--check]  (--check: print the splits, write nothing)
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const VOWELS = "аеёиоуыэюя";
-const SONORANTS = "лмнр";
 const SIGNS = "ьъ";
 
 export function splitSyllables(word) {
@@ -28,10 +27,8 @@ export function splitSyllables(word) {
 function leftPart(group) {
   if (group.length < 2) return 0;
   if (group[0] === "й") return 1 + leftPart(group.slice(1));
-  if (SIGNS.includes(group[1])) return group.length > 2 ? 2 : 0; // конь-ки, паль-то, but се-мья (the sign right before the vowel)
-  if (group[0] === group[1]) return 1;
-  if (SONORANTS.includes(group[0]) && !SONORANTS.includes(group[1])) return 1;
-  return 0;
+  if (SIGNS.includes(group[1])) return group.length > 2 ? 2 : 0;
+  return 1;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
