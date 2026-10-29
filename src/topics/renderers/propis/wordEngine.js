@@ -1172,6 +1172,40 @@ function retargetTailEndD(d, target, dirUnit, arrive = 0.5) {
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
 
+// The first BEND_AT of the last cubic of a connector stays exactly as captured (its straight rise), only the rest bends: it eases from that direction into
+// `dirUnit`, so the pen arrives along the opening direction of the next letter (`joinSmooth`, ч). The length of the connector does not change.
+const BEND_AT = 0.62;
+function bendTailEndD(d, target, dirUnit) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const n = toks.length;
+  if (n < 9 || toks[n - 7] !== "C") return null;
+  const v = toks.slice(n - 8).filter((t) => t !== "C").map(parseFloat); // p0 (x y), c1, c2, end
+  if (v.length !== 8) return null;
+  const [p0, c1, c2] = [[v[0], v[1]], [v[2], v[3]], [v[4], v[5]]];
+  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  // de Casteljau at t = BEND_AT: the left part is the captured curve itself
+  const e = [target[0], target[1]];
+  const a1 = lerp(p0, c1, BEND_AT), a2 = lerp(c1, c2, BEND_AT), a3 = lerp(c2, e, BEND_AT);
+  const b1 = lerp(a1, a2, BEND_AT), b2 = lerp(a2, a3, BEND_AT);
+  const m = lerp(b1, b2, BEND_AT);
+  const tl = Math.hypot(b2[0] - b1[0], b2[1] - b1[1]) || 1;
+  const tu = [(b2[0] - b1[0]) / tl, (b2[1] - b1[1]) / tl];
+  const rest = Math.hypot(e[0] - m[0], e[1] - m[1]);
+  if (rest < 2) return null;
+  const f = (x) => String(Number(x.toFixed(3)));
+  const head = toks.slice(0, n - 8).join(" ");
+  const seg1 = `C ${[a1, b1, m].flat().map(f).join(" ")}`;
+  const seg2 = `C ${[[m[0] + tu[0] * rest * 0.3, m[1] + tu[1] * rest * 0.3], [e[0] - dirUnit[0] * rest * 0.4, e[1] - dirUnit[1] * rest * 0.4], e].flat().map(f).join(" ")}`;
+  return `${head} ${seg1} ${seg2}`;
+}
+
+// y where the last cubic of a path starts (the loop of a descender: the tail runs from deep under the line to the exit)
+function lastCubicStartY(d) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const n = toks.length;
+  return toks.length >= 14 && toks[n - 7] === "C" ? parseFloat(toks[n - 8]) : -Infinity;
+}
+
 // The last cubic's end (and its second control, by the same amount) moved onto `target`: the shape is kept.
 function moveTailEndD(d, target) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
@@ -1829,6 +1863,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // candidates: every place the next stroke crosses the tail's height, plus (when the stroke starts lower than
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
           const st0h = getPathEndpoints(moved[0].d).start;
+          // the tail of a descender (у д з) is ONE long cubic from the loop under the line: rebuilding it from its start (retargetTailEndD), or pulling its last piece onto the next stem (alignLastPieceD), swallowed the loop (з before е ё), so only its end is moved
+          const descTail = lastCubicStartY(strokes[prevExitStroke].d) > WIDE_BASELINE_Y + 4 * scale;
           const riseToStart = prevExit[1] - st0h[1];
           if (!glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
@@ -1838,7 +1874,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // move its end there; reshaping it from its launch flattened о's connector into a long low line
               // `joinReverse` (ы2): the letter opens DOWNWARDS (a stem from its top), the connector comes from below: the arrival direction is the opening direction turned round
               const near = !glyph.joinSmooth && Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale; // `joinSmooth` (ч): even a tail that already ends on the start is bent to enter along the opening direction
-              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
+              const d3 = glyph.joinSmooth && !descTail ? bendTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]) : near || descTail ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
@@ -1851,7 +1887,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const sampled = samplePath(moved[0].d, 30);
           const rp = sampled.find((q) => Math.hypot(q[0] - st0[0], q[1] - st0[1]) > 6);
           // (`curNoAlign`, ъ: its connector begins with the second pass over the bottom of the belly, which this would drag sideways off the first pass)
-          if (!highJoined && !curNoAlign && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
+          if (!highJoined && !curNoAlign && !descTail && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
             const slope = (rp[0] - st0[0]) / (st0[1] - rp[1]); // dx per unit of rise
             const rising = Math.atan2(st0[1] - rp[1], rp[0] - st0[0]) * (180 / Math.PI);
             if (rising > 30 && rising < 70) {
