@@ -302,7 +302,7 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
               ) : seg.type === "glyph" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {seg.strokes.map((s, ssi) => (
-                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" />
                   ))}
                 </g>
               ) : seg.type === "element" ? (
@@ -319,7 +319,7 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} />
+                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} />
                     )
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (

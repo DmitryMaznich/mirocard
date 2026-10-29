@@ -25,7 +25,8 @@ export const P2_GLYPH_OVERRIDES = {
   // as the exits of the other letters do (wordEngine.js lifts every exit above the line, as in the workbook; the captured exit of е ends on the line)
   "е": { softHook: 0.35, noLiftExit: true },
   // the same for ё (its path is е1 + two dots): its exit ends on the middle line too
-  "ё": { noLiftExit: true },
+  // dotScale: the two dots over ё are 1.5 times as big (owner, 2026-10-29: «при печати почти не видно точки»): a dot is a tiny stroke, so its length and its width both grow
+  "ё": { noLiftExit: true, dotScale: 1.5 },
   // т п р к: the connector of the letter before ends ON the glyph's first slanted stem, so the pen goes from there straight up the stem (2026-10-27;
   // measured on the real grid: the arch rise of п р ran 1.1 right of the stem, т 1.6, к 0.5, н ш щ й ю were already on it)
   "т": { touchFirstLine: true },
@@ -121,7 +122,7 @@ export function markedCapital(baseGlyph, markedLower, plainLower, label, markSca
   const dots = markedLower.noDotStrokes ? { noDotStrokes: moved.map((_, i) => baseGlyph.strokes.length + i) } : {};
   // the exit (where the next letter is joined) is the letter's own last stroke: the engine takes the stroke that ends furthest right, which for Й is its breve
   const exitStroke = Number.isInteger(baseGlyph.exitStroke) ? baseGlyph.exitStroke : baseGlyph.strokes.length - 1;
-  return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], exitStroke, sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots };
+  return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], exitStroke, sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots, ...(markedLower.dotWidth ? { dotWidth: markedLower.dotWidth } : {}) };
 }
 const withMarkedCapitals = (glyphs) => {
   const byLabel = new Map(glyphs.map((g) => [g.label, g]));
@@ -283,8 +284,25 @@ export function markStem(glyph) {
   }
   return glyph;
 }
-const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, ...rest }) => {
+// `dotScale`: the dots (strokes listed in `noDotStrokes`: tiny «M x y L x y» pieces drawn with round caps) grow by that factor about their centres; they are
+// also drawn that much thicker (`dotWidth`, in the units of the usual stroke width 2)
+const DOT_BASE_WIDTH = 2;
+export function scaleDots(glyph, k) {
+  if (!(k > 0) || k === 1 || !glyph.noDotStrokes?.length) return glyph;
+  const f = (v) => Number(v.toFixed(3));
+  const strokes = glyph.strokes.map((st, i) => {
+    if (!glyph.noDotStrokes.includes(i)) return st;
+    const m = String(st.d).match(/^M\s*(-?[\d.]+)\s+(-?[\d.]+)\s*L\s*(-?[\d.]+)\s+(-?[\d.]+)\s*$/);
+    if (!m) return st;
+    const [x0, y0, x1, y1] = m.slice(1).map(Number);
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    return { ...st, d: `M ${f(cx + (x0 - cx) * k)} ${f(cy + (y0 - cy) * k)} L ${f(cx + (x1 - cx) * k)} ${f(cy + (y1 - cy) * k)}` };
+  });
+  return { ...glyph, strokes, dotWidth: DOT_BASE_WIDTH * k };
+}
+const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, dotScale, ...rest }) => {
   let out = liftStart({ ...g, ...rest }, startLift);
+  if (dotScale) out = scaleDots(out, dotScale);
   if (startDrop) out = dropStart(out, startDrop);
   if (stemOnLine) out = markStem(out);
   if (softHook != null) out = softenHook(out, softHook);

@@ -1896,7 +1896,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           else { tokenPhase = 0; tokenPhase = startX - snapStart(startX); } // no drawn lines: exactly two cells, and the rest of the word is joined on the lattice shifted by that
         }
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.noDotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
         if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next

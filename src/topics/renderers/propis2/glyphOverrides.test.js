@@ -227,3 +227,23 @@ describe("the breve of Й and the dots of Ё are not the exit of the letter (202
     }
   });
 });
+
+describe("the dots over ё are 1.5 times as big (2026-10-29)", () => {
+  const map = buildGlyphMap({ wide });
+  const len = (d) => { const n = pts(d); return Math.hypot(n[2] - n[0], n[3] - n[1]); };
+  const raw = wide.find((g) => g.label === "ё");
+  it("each dot is 1.5 times as long and drawn 1.5 times as thick, on ё and on Ё", () => {
+    for (const label of ["ё", "Ё"]) {
+      const g = map.get(label);
+      expect(g.dotWidth, label).toBeCloseTo(3, 5);
+      expect(g.noDotStrokes.length, label).toBe(2);
+    }
+    const g = map.get("ё");
+    g.noDotStrokes.forEach((si, k) => expect(len(g.strokes[si].d)).toBeCloseTo(len(raw.strokes[[1, 2][k]].d) * 1.5, 2));
+  });
+  it("the width reaches the strokes of a word and only the dots have it", () => {
+    const st = layoutWideLinesIntoRows(["ёлка", "Ё"], map, undefined, false, 0.5).placed.flatMap((p) => p.segments.flatMap((sg) => sg.strokes));
+    expect(st.filter((s) => s.width === 3).length).toBe(4);
+    expect(st.filter((s) => s.width !== undefined && s.width !== 3).length).toBe(0);
+  });
+});
