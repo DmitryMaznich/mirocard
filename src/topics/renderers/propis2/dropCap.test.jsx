@@ -1,3 +1,5 @@
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -10,6 +12,7 @@ import { caretOnSheet } from "./caret.js";
 import { dropGeometry, dropLetters, suggestDrop, DROP_FRAME_MM, DROP_MAX_WIDTH, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
 import { mmToNativeUnits } from "../propis/propisRuling.js";
 
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
 const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
@@ -196,6 +199,21 @@ describe("the frame on the sheet", () => {
     expect(right).not.toContain("data-drop-remove");
     const withCross = renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord, lines: ["и#BИ#w5"], narrowRows: true, grid: "dense", margin: "off" })} bare onDropRemove={() => {}} />);
     expect(withCross).toContain("data-drop-remove");
+  });
+
+  it("the × never reaches the paper: the print / PDF markup (.propis-print-all) has the frames and no ×, even if the viewer is given a remove callback", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    const task = buildPageTask({ topicRecord, lines: ["и#bИ", "жук#BЖ#w5"], narrowRows: true, grid: "dense", margin: "off" });
+    await act(async () => { root.render(<PrintPageView task={task} onDropRemove={() => {}} />); });
+    const printAll = document.querySelector(".propis-print-all");
+    expect(printAll).not.toBeNull();
+    expect(printAll.querySelectorAll("[data-drop]").length).toBeGreaterThan(0);
+    expect(printAll.querySelectorAll("[data-drop-remove]").length).toBe(0);
+    expect(document.querySelectorAll("[data-drop-remove]").length).toBe(0);
+    await act(async () => { root.unmount(); });
+    host.remove();
   });
 
   it("with a margin the letter stands in it, whichever end it was put at", () => {
