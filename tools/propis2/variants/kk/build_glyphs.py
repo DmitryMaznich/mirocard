@@ -60,7 +60,33 @@ def g_bar_lower(y=36.0):
     return out
 
 
-RECIPES = [g_bar, g_bar_lower]
+def anchors_at(d, y):
+    """Path anchor points (the ends of each C/M segment) lying at height y: the oval's left and right extremes at its waist."""
+    pts = [tuple(map(float, q)) for q in re.findall(r"(-?[\d.]+) (-?[\d.]+)", d)]
+    return sorted({round(x, 2) for x, yy in pts[::1] if abs(yy - y) < 1e-6})
+
+
+def full_bar(d, y):
+    """Straight crossbar across the whole oval at height y: from its leftmost to its rightmost point there."""
+    xs = anchors_at(d, y); assert len(xs) >= 2, xs
+    return {"d": f"M {xs[0]:.2f} {y:.2f} L {xs[-1] if y != 36.0 else xs[1]:.2f} {y:.2f}"}
+
+
+def g_theta_upper():
+    """Ө: О (oval, then the connector as its tailStroke) + a straight bar across the whole oval at its waist (y=10, the narrow row's upper line)."""
+    g = BANK["О"]; s = g["strokes"]
+    return dict(g, label="Ө", strokes=[s[0], full_bar(s[0]["d"], 10.0), s[1]], tailStroke=2, noDotStrokes=[1],
+                sourceLabel="Ө = О + прямая перекладина на всю ширину овала")
+
+
+def g_theta_lower():
+    """ө: о (one stroke with entry and exit) + a straight bar across the oval on the dashed middle line (y=36); written last, the exit stays on stroke 0."""
+    g = BANK["о"]; s = g["strokes"]
+    return dict(g, label="ө", strokes=[s[0], full_bar(s[0]["d"], 36.0)], exitStroke=0, noDotStrokes=[1],
+                sourceLabel="ө = о + прямая перекладина на всю ширину овала по пунктиру")
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower]
 
 
 def preview(glyphs, path):
