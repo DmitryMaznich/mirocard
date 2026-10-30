@@ -61,6 +61,17 @@ describe("elements on the slant grid", () => {
     }
   });
 
+  it("a tile shows the element alone: one stroke per stroke of its glyph, no chain of copies, a closed ear stays closed", () => {
+    const glyphs = new Map(rec.wide.map((g) => [g.label, g]));
+    for (const t of buildTiles(rec).elements) {
+      const g = glyphs.get(t.text);
+      if (g) expect(t.strokes.length, `${t.no} ${t.text}`).toBe(g.strokes.length);
+    }
+    const ear = buildTiles(rec).elements.find((t) => t.text === "Ф-ухо");
+    const n = ear.strokes[0].match(/-?\d*\.?\d+/g).map(Number);
+    expect([n.at(-2), n.at(-1)]).toEqual([n[0], n[1]].map((v) => expect.closeTo(v, 2)));
+  });
+
   it("the tile draws the slant through the element's start: its start is on a drawn line", () => {
     const tan = 0.46631;
     for (const t of buildTiles(rec).elements) {

@@ -23,9 +23,11 @@ export function bboxOf(strokes) {
 
 // Strokes of one glyph laid out alone on the narrow ruling ([] if the engine cannot lay it out).
 // `snap`: the page's slant-grid function (snapXFor), when the glyph must stand where the page puts it (its start on a line of the grid).
+// `snap` also means «the glyph alone» (`#1`, written once): a lone element is otherwise chained along the row, and the end of its first copy
+// bends to meet the next one.
 export function narrowStrokes(glyphMap, label, snap) {
   try {
-    const { placed } = layoutWideLinesIntoRows([label], glyphMap, snap, false, NARROW_SCALE);
+    const { placed } = layoutWideLinesIntoRows([snap ? `${label}#1` : label], glyphMap, snap, false, NARROW_SCALE);
     return (placed[0]?.segments?.[0]?.trajectory?.strokes ?? []).map((st) => st.d).filter(Boolean);
   } catch {
     return [];
