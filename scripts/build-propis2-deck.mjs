@@ -12,6 +12,8 @@ import { applyVariant, variantKits } from "./lib/propis2-variant.mjs";
 const TOPIC_PATH = "tools/propis2/topic.json";
 const ELEMENTS_PATH = "tools/propis/elements.json";
 const WIDE_PATH = "tools/propis/wide.json";
+// «части букв» from the owner's sheet (tools/propis2/parts/README.md): element glyphs of propis2 only, appended after the shared ones
+const PARTS_PATH = "tools/propis2/parts_elements.json";
 const CATALOG_PATH = "public/decks/catalog.json";
 
 const variantId = (() => {
@@ -30,6 +32,7 @@ if (existsSync(WIDE_PATH)) {
   topic.wide = wideData.glyphs;
   topic.wideSheets = wideData.sheets ?? {};
   topic.wideElementRepeat = wideData.elementRepeat ?? {};
+  if (existsSync(PARTS_PATH)) topic.wide = [...topic.wide, ...JSON.parse(readFileSync(PARTS_PATH, "utf-8")).glyphs];
 }
 if (variant) applyVariant(topic, variant);
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own

@@ -360,7 +360,7 @@
     },
     {
       "id": "propis2",
-      "version": "0.5.5",
+      "version": "0.5.6",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -369,7 +369,7 @@
         "ru": "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
         "en": "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
       },
-      "url": "./decks/propis2_v0.5.5.zip",
+      "url": "./decks/propis2_v0.5.6.zip",
       "status": "release",
       "access": "paid"
     },
