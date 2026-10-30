@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Kazakh letters built from the Russian bank's strokes, by the owner's recipes (2026-10-30).
 
-  python3 tools/propis2/variants/kk/build_glyphs.py [--preview out.html]
+  python3 tools/propis2/variants/kk/build_glyphs.py [--preview out.html]   # raw bank coordinates: proportions are NOT the notebook's
+  tools/propis2/variants/kk/preview.sh out.png '["Г Ғ","Ғалым"]'            # the real page engine: use this to judge a letter
 
 Bank geometry (tools/propis/wide.json): baseline y=62, top of the lowercase (the narrow row's upper line) y=10,
 capitals up to y=-42, 65deg slant. Each recipe names the source letter's strokes (1-based, as on the stroke
