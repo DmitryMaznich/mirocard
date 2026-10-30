@@ -1,5 +1,6 @@
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
+import { NARROW_CELL, snapXFor } from "@/topics/renderers/propis/PrintPageView.jsx";
 import { RU_LOWER, topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
 
 // Tiles of the deck's symbols (elements, letters, marks), each drawn with its own captured strokes (not a font), so the
@@ -17,8 +18,9 @@ const MAX_TILE_SYMBOL_W = 100;
 // (the dense grid's step at the narrow scale), at 65 degrees from the horizontal: tan(25 deg) of run per unit of height.
 const WIDE_TOP = ROW_TOP - (ROW_BASE - ROW_TOP);
 const WIDE_BOTTOM = ROW_BASE + (ROW_BASE - ROW_TOP);
-const SLANT_STEP = 15;
 const SLANT_RUN = 0.46631;
+// an element stands in its tile where the page puts it: its start on a line of the dense slant grid of the narrow ruling
+const TILE_SNAP = snapXFor({ narrowRows: true, simpleGrid: "dense", margin: "off", format: "a5", narrow17: true });
 
 // any Cyrillic letter name (not only the deck's alphabet): a letter stored as an «element» is never listed with the elements
 const LETTER_NAMES = new Set([...RU_LOWER, ...RU_LOWER.toUpperCase()]);
@@ -30,7 +32,7 @@ export function buildTiles(topicRecord) {
   // a letter may be stored under another name and reached through an alias (г -> г1, п -> п1)
   const byLabel = new Map(wide.map((g) => [g.label, g]));
   for (const g of wide) for (const a of g.aliases ?? []) if (!byLabel.has(a)) byLabel.set(a, g);
-  const make = (kind, id, caption) => ({ key: id, kind, text: id, caption, strokes: strokesOf(id) });
+  const make = (kind, id, caption, snap) => ({ key: id, kind, text: id, caption, strokes: snap ? narrowStrokes(glyphMap, id, snap) : strokesOf(id) });
   const letters = (alphabet) => [...alphabet].filter((ch) => byLabel.has(ch)).map((ch) => make("text", ch, ch));
   const seen = new Set();
   const elements = [];
@@ -39,12 +41,12 @@ export function buildTiles(topicRecord) {
     // г п р л м я are stored as «elements» in the deck but are letters: they live under the letters, not here
     if ([g.label, ...(g.aliases ?? [])].some((n) => LETTER_NAMES.has(n))) continue;
     seen.add(g.label);
-    elements.push(make("element", g.label, g.label));
+    elements.push(make("element", g.label, g.label, TILE_SNAP));
   }
   for (const el of topicRecord?.elements ?? []) {
     if (seen.has(el.id)) continue;
     seen.add(el.id);
-    elements.push(make("element", el.id, el.labelRu ?? el.id));
+    elements.push(make("element", el.id, el.labelRu ?? el.id, TILE_SNAP));
   }
   // stable numbers (the deck's `elementNumbers`, tools/propis2/element_numbers.json): an element keeps its number whatever is added
   // or reordered; an element without one gets the next free number after the largest. The list is shown in number order.
@@ -89,6 +91,9 @@ export function buildTiles(topicRecord) {
     const long = t.box && t.box.maxX - t.box.minX > MAX_TILE_SYMBOL_W;
     t.frame = { x: t.box ? (long ? t.box.minX - 4 : cx - eWidth / 2) : 0, y: eTop, w: eWidth, h: eBottom - eTop };
     t.ruled = true;
+    // the grid line that passes through the element's start, at the baseline: the tile draws the slant through it, in steps of NARROW_CELL
+    const start = t.strokes[0]?.match(/-?\d*\.?\d+/g)?.map(Number);
+    t.slantX = start ? TILE_SNAP(0, start[0], start[1]) + (start[1] - ROW_BASE) * SLANT_RUN : 0;
   }
   return out;
 }
@@ -106,8 +111,9 @@ export function TileGlyph({ tile, size = 56, bare = false }) {
   if (tile.ruled && !bare) {
     // an element: the slant, the wide row's dashed lines and the narrow row, so it is clear at a glance where it stands
     const slants = [];
-    for (let k = Math.floor((x - h * SLANT_RUN) / SLANT_STEP); k <= Math.ceil((x + w) / SLANT_STEP); k++) {
-      const x0 = k * SLANT_STEP + (ROW_BASE - (y + h)) * SLANT_RUN; // the line's x at the bottom of the frame
+    const a = tile.slantX ?? 0; // x of a grid line at the baseline
+    for (let k = Math.floor((x - (ROW_BASE - y) * SLANT_RUN - a) / NARROW_CELL); k <= Math.ceil((x + w - (ROW_BASE - (y + h)) * SLANT_RUN - a) / NARROW_CELL); k++) {
+      const x0 = a + k * NARROW_CELL + (ROW_BASE - (y + h)) * SLANT_RUN; // the line's x at the bottom of the frame
       slants.push(<line key={k} x1={x0} y1={y + h} x2={x0 + h * SLANT_RUN} y2={y} />);
     }
     return (

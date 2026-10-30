@@ -143,7 +143,7 @@ const wideLineCount = (pageW) => Math.ceil((pageW + (TEXT_ROW_PITCH - TEXT_ROW_T
 // between bands (ascender / descender limit); a short bold bar at the left edge of each band. The 65deg slants (cell
 // 15 units) run through the WHOLE page, not only inside the bands.
 const NARROW_SCALE = 0.5;
-const NARROW_CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * NARROW_SCALE;
+export const NARROW_CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * NARROW_SCALE; // exported: the element list draws the same slant step
 // `propis2`, dense grid on the narrow ruling: exactly the letters' own cell (2.5 mm, the distance between the two tops of «и»),
 // so that every stem of every letter stands on a drawn line.
 const NARROW_BAND_H = (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE;

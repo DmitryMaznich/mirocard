@@ -1,6 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildTiles } from "./Propis2Carousel.jsx";
+import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
+import { NARROW_CELL, snapXFor } from "@/topics/renderers/propis/PrintPageView.jsx";
+import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
+import { ROW_BASE } from "@/topics/renderers/propis2/glyphReach.js";
 
 const json = (p) => JSON.parse(readFileSync(p, "utf-8"));
 const numbers = json("tools/propis2/element_numbers.json").numbers;
@@ -38,5 +42,31 @@ describe("stable element numbers", () => {
     const max = Math.max(...Object.values(numbers));
     expect(after.at(-1)).toMatchObject({ text: "новый-элемент", no: max + 1 });
     for (const [id, no] of before) expect(after.find((t) => t.text === id).no).toBe(no);
+  });
+});
+
+describe("elements on the slant grid", () => {
+  const rec = deckRecord();
+  const map = buildGlyphMap(rec);
+  const startOf = (strokes) => strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
+
+  it("on the page every element starts on a line of the slant grid (narrow and wide ruling, dense grid)", () => {
+    for (const [narrow, scale] of [[true, 0.5], [false, 1]]) {
+      const snap = snapXFor({ narrowRows: narrow, simpleGrid: "dense", margin: "off", format: "a5", narrow17: narrow });
+      for (const t of buildTiles(rec).elements) {
+        const { placed } = layoutWideLinesIntoRows([t.text], map, snap, false, scale);
+        const [x, y] = startOf(placed[0].segments[0].trajectory.strokes);
+        expect(Math.abs(snap(0, x, y) - x), `${t.no} ${t.text} (${narrow ? "narrow" : "wide"})`).toBeLessThan(0.01);
+      }
+    }
+  });
+
+  it("the tile draws the slant through the element's start: its start is on a drawn line", () => {
+    const tan = 0.46631;
+    for (const t of buildTiles(rec).elements) {
+      const [x, y] = startOf([{ d: t.strokes[0] }]);
+      const k = (x - t.slantX - (ROW_BASE - y) * tan) / NARROW_CELL;
+      expect(Math.abs(k - Math.round(k)), `${t.no} ${t.text}`).toBeLessThan(0.01);
+    }
   });
 });
