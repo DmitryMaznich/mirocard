@@ -400,7 +400,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.filter((g) => propisGrid || g.id !== "dense").map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
           <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
           <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={pageMidDash(page)} disabled={locked || !(propisGrid || bgPaper)} mixed={bgPaper ? mx.bgDash : mx.midDash} onClick={() => setSetting(bgPaper ? "bgDash" : "midDash", !pageMidDash(page))} data-kind="dash"><I.IconDash /></IconBtn>
-          <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
+          <IconBtn label="Строка для письма после каждой строки" caption="Строка для письма" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           {locked && (
             <>
               <span className="p2-lock" role="img" aria-label="Страница из тетради: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>
