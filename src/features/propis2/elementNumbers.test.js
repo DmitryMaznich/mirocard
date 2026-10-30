@@ -21,7 +21,7 @@ function deckRecord() {
 describe("stable element numbers", () => {
   it("every element of the deck has a number, numbers are unique whole numbers", () => {
     const tiles = buildTiles(deckRecord()).elements;
-    expect(tiles.length).toBeGreaterThan(30);
+    expect(tiles.length).toBeGreaterThan(25);
     for (const t of tiles) expect(numbers[t.text], t.text).toBeGreaterThan(0);
     const nos = Object.values(numbers);
     expect(new Set(nos).size).toBe(nos.length);

@@ -32,7 +32,9 @@ export function buildTiles(topicRecord) {
   // a letter may be stored under another name and reached through an alias (г -> г1, п -> п1)
   const byLabel = new Map(wide.map((g) => [g.label, g]));
   for (const g of wide) for (const a of g.aliases ?? []) if (!byLabel.has(a)) byLabel.set(a, g);
-  const make = (kind, id, caption, snap) => ({ key: id, kind, text: id, caption, strokes: snap ? narrowStrokes(glyphMap, id, snap) : strokesOf(id) });
+  // the engine repeats a lone element along the row (a chain of copies): a tile shows the element itself, the strokes of its own glyph, not the chain
+  const ownStrokes = (id, strokes) => (byLabel.get(id)?.strokes?.length ? strokes.slice(0, byLabel.get(id).strokes.length) : strokes);
+  const make = (kind, id, caption, snap) => ({ key: id, kind, text: id, caption, strokes: snap ? ownStrokes(id, narrowStrokes(glyphMap, id, snap)) : strokesOf(id) });
   const letters = (alphabet) => [...alphabet].filter((ch) => byLabel.has(ch)).map((ch) => make("text", ch, ch));
   const seen = new Set();
   const elements = [];
