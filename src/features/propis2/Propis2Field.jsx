@@ -49,9 +49,10 @@ export function ElementPicker({ elements, disabled, onInsert }) {
   );
 }
 
-// The button «Буква» with the capitals of the deck's alphabet: the printed letter in a frame, in the margin of the selected row
-// (topic/renderers/propis2/dropCap.js). The row's own first letter is offered on top; «Убрать букву» takes it off.
-export function LetterPicker({ letters, current, suggestion, label = "Буква в поле строки", disabled, onPick }) {
+// The button «Буква» with the capitals of the deck's alphabet: the printed letter in a frame, at the start of the row the caret stands at
+// (topic/renderers/propis2/dropCap.js). The row's own first letter is offered on top. The button is available only with the caret at the
+// start of a row that has no letter yet; the letter comes off with Backspace at the start of its row (Propis2Editor).
+export function LetterPicker({ letters, suggestion, label = "Буква в начале строки", disabled, onPick }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
@@ -68,7 +69,7 @@ export function LetterPicker({ letters, current, suggestion, label = "Буква
   const pick = (l) => { setOpen(false); onPick(l); };
   return (
     <div className="p2-pick p2-letters" ref={wrapRef}>
-      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open || current ? " is-on" : ""}`} aria-label={label} aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} data-kind="drop" {...bind}>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label={label} aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} data-kind="drop" {...bind}>
         <span className="p2-tool-ico"><I.IconLetterFrame /></span>
         <span className="p2-cap">Буква</span>
         {tip}
@@ -76,7 +77,7 @@ export function LetterPicker({ letters, current, suggestion, label = "Буква
       {open && (
         <div className="p2-letters-panel" role="dialog" aria-label="Буква для строки" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           <div className="p2-letters-title">Буква для строки</div>
-          {suggestion && suggestion !== current && (
+          {suggestion && (
             <button type="button" className="p2-letters-hint" onClick={() => pick(suggestion)}>
               <span className="p2-letters-hint-mark" aria-hidden="true">{suggestion}</span>
               <span>Из строки: <b>{suggestion}</b> · взять</span>
@@ -84,10 +85,9 @@ export function LetterPicker({ letters, current, suggestion, label = "Буква
           )}
           <div className="p2-letters-grid">
             {letters.map((l) => (
-              <button key={l} type="button" className={`p2-letters-cell${l === current ? " is-on" : ""}`} aria-pressed={l === current} onClick={() => pick(l)}>{l}</button>
+              <button key={l} type="button" className="p2-letters-cell" onClick={() => pick(l)}>{l}</button>
             ))}
           </div>
-          {current && <button type="button" className="p2-letters-clear" onClick={() => pick(null)}>Убрать букву</button>}
         </div>
       )}
     </div>

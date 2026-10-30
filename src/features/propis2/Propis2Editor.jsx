@@ -9,7 +9,7 @@ import { ElementPicker, LetterPicker } from "./Propis2Field";
 import Propis2Keys from "./Propis2Keys";
 import Propis2Thumbs from "./Propis2Thumbs";
 import { useKeyboardInset } from "./useKeyboardInset";
-import { bracesIn, bracesOut, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { bracesIn, bracesOut, caretAtLineStart, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
@@ -413,12 +413,29 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             </>
           )}
   </>;
+  // The printed letter of a row (dropCap.js) goes only at the START of a row that has none yet: the caret must stand there. Why not, in words (the button's
+  // name; a hint, not an error): one letter per row, none mid-row, none on the wide ruling. The letter comes off with Backspace at the start of its row.
+  const caretRowId = locked ? null : rowIdAtCaret(page.rows, startId, draft, sel.start);
+  const caretAtStart = Boolean(selected) && caretRowId === selected.id && caretAtLineStart(draft, sel.start);
+  const dropBlock = locked ? "Буква: страница из тетради закрыта для правки"
+    : !selected ? "Буква: выберите строку и поставьте курсор в её начало"
+    : !dropPage ? "Буква: только на узкой строке методической тетради"
+    : selected.drop ? "На строке уже есть буква. Убрать: Backspace в начале строки"
+    : !caretAtStart ? "Буква ставится в начале строки: поставьте курсор в начало"
+    : null;
+  const onBackspaceAtStart = (pos) => {
+    if (locked) return false;
+    const id = rowIdAtCaret(page.rows, startId, draft, pos);
+    if (!id || !page.rows.find((r) => r.id === id)?.drop) return false;
+    onChange(withRowDrop(page, id, null));
+    return true;
+  };
   const rowEls = <>
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
-          <LetterPicker letters={dropLettersList} current={selected?.drop ?? null} suggestion={suggestDrop(selected, dropLettersList)} disabled={locked || !selected || !dropPage}
-            label={dropPage ? "Буква в поле строки" : "Буква в поле: только на узкой строке методической тетради"} onPick={(l) => onChange(withRowDrop(page, selectedId, l))} />
+          <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} disabled={Boolean(dropBlock)}
+            label={dropBlock ?? "Буква в начале строки"} onPick={(l) => { onChange(withRowDrop(page, selectedId, l)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">
@@ -474,7 +491,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </div>
   );
   const keysEl = (
-          <Propis2Keys inputRef={keysRef} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
+          <Propis2Keys inputRef={keysRef} onBackspaceAtStart={onBackspaceAtStart} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
   );
 
   if (side) {

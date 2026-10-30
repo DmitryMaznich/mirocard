@@ -112,3 +112,9 @@ export function digitsOut(text) {
 export function digitsIn(text) {
   return String(text ?? "").replace(/(^|\s)((?:№[0-9+\-=<>])+)(?=\s|$)/g, (_m, pre, word) => `${pre}${word.replace(/№/g, "")}`);
 }
+
+// Is the caret at the very start of a line of the field text (offset 0 of its row)? The printed letter of a row can be put only there.
+export const caretAtLineStart = (value, caret) => {
+  const pos = Math.max(0, Math.min(String(value ?? "").length, caret ?? 0));
+  return pos === 0 || String(value)[pos - 1] === "\n";
+};

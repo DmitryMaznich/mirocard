@@ -315,8 +315,7 @@ export function pageToLines(page, glyphMap) {
   // a printed letter (`row.drop`, dropCap.js) stands in the margin when the page has one; without a margin it takes the start of its own row,
   // and the row's ink starts further in (`#iN`, as for the spaces an adult typed before a text)
   rows.forEach((row, ri) => {
-    // only on the first of the rows that follow each other with the same letter
-    const letter = row.drop && row.drop !== rows[ri - 1]?.drop ? row.drop : "";
+    const letter = row.drop ?? "";
     const tag = dropFlag(letter);
     const shift = dropShift(page, ri);
     const indentTag = shift ? `#i${shift}` : "";
@@ -482,11 +481,10 @@ export function withRowDrop(page, rowId, letter) {
 }
 
 // How many slant cells the ink of row `ri` starts further in because a printed letter stands at the start of the row: only without a margin
-// (with one the letter stands in it), only on the first of the rows that follow each other with the same letter.
+// (with one the letter stands in it).
 export function dropShift(page, ri) {
-  const rows = page?.rows ?? [];
-  const row = rows[ri];
-  if (!row?.drop || row.drop === rows[ri - 1]?.drop) return 0;
+  const row = page?.rows?.[ri];
+  if (!row?.drop) return 0;
   return pageMargin(page) === "off" && pageHasDropRows(page) ? DROP_ROW_INDENT_CELLS : 0;
 }
 const dropShiftUnits = (page, ri) => dropShift(page, ri) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (pageRuling(page) === "narrow" ? 0.5 : 1);
@@ -495,7 +493,9 @@ const dropShiftUnits = (page, ri) => dropShift(page, ri) * TEXT_ROW_WIDE_DIAGONA
 export const pageHasDropRows = (page) => pageRuling(page) === "narrow" && pageGridKind(page) === "propis";
 
 export function duplicateRow(rows, index) {
-  const copy = { ...rows[index], id: newId("r") };
+  // the printed letter (dropCap.js) stays with the row it was put on: a copy is another row of the same letter, without a frame of its own
+  const { drop, ...rest } = rows[index];
+  const copy = { ...rest, id: newId("r") };
   return [...rows.slice(0, index + 1), copy, ...rows.slice(index + 1)];
 }
 

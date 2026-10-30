@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import PrintPageView from "../propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { newRow, newPage, pageToLines, withRowDrop, pageHasDropRows, dropShift, lineOwners } from "./model.js";
+import { newRow, newPage, pageToLines, withRowDrop, pageHasDropRows, dropShift, lineOwners, duplicateRow } from "./model.js";
+import { caretAtLineStart } from "./fieldText.js";
 import { caretOnSheet } from "./caret.js";
 import { dropGeometry, dropLetters, suggestDrop, DROP_FRAME_MM, DROP_MAX_WIDTH, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
 import { mmToNativeUnits } from "../propis/propisRuling.js";
@@ -26,9 +27,18 @@ describe("the printed letter of a row (a «буквица»)", () => {
     expect(lines[2]).toMatch(/#1.*#bД$|#1#bД$/);
   });
 
-  it("rows that follow each other with the same letter show it once: on the first", () => {
-    const lines = pageToLines(pageOf(rowsOf(["и", "И"], ["иду", "И"], ["ива", "И"], ["жук", "Ж"], ["иду", "И"])), glyphMap);
-    expect(lines.map((l) => /#b(.)/.exec(l)?.[1] ?? null)).toEqual(["И", null, null, "Ж", "И"]);
+  it("every row that was given a letter carries it (what is set is what is seen)", () => {
+    const lines = pageToLines(pageOf(rowsOf(["и", "И"], ["иду", "И"], ["жук", "Ж"], ["иду", null])), glyphMap);
+    expect(lines.map((l) => /#b(.)/.exec(l)?.[1] ?? null)).toEqual(["И", "И", "Ж", null]);
+  });
+
+  it("a copy of a row (Дубль) does not carry the letter: it is another row of the same letter without a frame of its own", () => {
+    const rows = rowsOf(["и и", "И"]);
+    const next = duplicateRow(rows, 0);
+    expect(next).toHaveLength(2);
+    expect(next[0].drop).toBe("И");
+    expect("drop" in next[1]).toBe(false);
+    expect(next[1].text).toBe("и и");
   });
 
   it("a row without a letter gives the same line as before (no flag)", () => {
@@ -63,14 +73,14 @@ describe("the letter and the margin are independent", () => {
   });
 
   it("without a margin the letter takes the start of its own row: the ink of that row starts DROP_ROW_INDENT_CELLS in, the rows below are as they were", () => {
-    const page = pageOf(rowsOf(["и и", "И"], ["иду", "И"], ["жук", null]));
+    const page = pageOf(rowsOf(["и и", "И"], ["иду", null], ["жук", "Ж"]));
     expect(dropShift(page, 0)).toBe(DROP_ROW_INDENT_CELLS);
-    expect(dropShift(page, 1)).toBe(0); // the same letter below: no frame, no shift
-    expect(dropShift(page, 2)).toBe(0);
+    expect(dropShift(page, 1)).toBe(0); // a row without a letter is written from the left edge
+    expect(dropShift(page, 2)).toBe(DROP_ROW_INDENT_CELLS);
     const lines = pageToLines(page, glyphMap);
     expect(lines[0]).toContain(`#i${DROP_ROW_INDENT_CELLS}`);
     expect(lines[1]).not.toContain("#i");
-    expect(lines[2]).not.toContain("#i");
+    expect(lines[2]).toContain(`#i${DROP_ROW_INDENT_CELLS}`);
   });
 
   it("the ink of the row really starts further in, by whole slant cells (it stays on the lines)", () => {
@@ -95,6 +105,20 @@ describe("the letter and the margin are independent", () => {
     expect(pageHasDropRows(pageOf([], { ruling: "narrow" }))).toBe(true);
     expect(pageHasDropRows(pageOf([], { ruling: "wide" }))).toBe(false);
     expect(pageHasDropRows(pageOf([], { ruling: "narrow", gridKind: "square", grid: "square" }))).toBe(false);
+  });
+});
+
+describe("where the caret may put a letter", () => {
+  it("only at the start of a line of the field text", () => {
+    const text = "и и и\nжук\n\nщука";
+    expect(caretAtLineStart(text, 0)).toBe(true); // the start of the field
+    expect(caretAtLineStart(text, 6)).toBe(true); // after the first newline: the start of «жук»
+    expect(caretAtLineStart(text, 3)).toBe(false); // mid-row
+    expect(caretAtLineStart(text, 5)).toBe(false); // at the end of a row
+    expect(caretAtLineStart(text, 10)).toBe(true); // an empty row
+    expect(caretAtLineStart(text, 11)).toBe(true); // «щука»
+    expect(caretAtLineStart(text, 13)).toBe(false);
+    expect(caretAtLineStart("", 0)).toBe(true);
   });
 });
 

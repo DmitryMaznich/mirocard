@@ -46,8 +46,7 @@ export function suggestDrop(row, letters) {
   return letters.includes(first) ? first : null;
 }
 
-// A page's `drop` letters as the engine's line flag: the first line of a row carries it, a row that repeats the letter of the row above
-// does not (one frame stands for the rows that follow it)
+// A row's printed letter as the engine's line flag (the first line of the row carries it)
 export function dropFlag(letter) {
   return letter ? `#b${letter}` : "";
 }
