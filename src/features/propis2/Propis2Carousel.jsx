@@ -46,6 +46,12 @@ export function buildTiles(topicRecord) {
     seen.add(el.id);
     elements.push(make("element", el.id, el.labelRu ?? el.id));
   }
+  // stable numbers (the deck's `elementNumbers`, tools/propis2/element_numbers.json): an element keeps its number whatever is added
+  // or reordered; an element without one gets the next free number after the largest. The list is shown in number order.
+  const numbers = topicRecord?.elementNumbers ?? {};
+  let next = Math.max(0, ...Object.values(numbers)) + 1;
+  for (const t of elements) t.no = Number.isInteger(numbers[t.text]) ? numbers[t.text] : next++;
+  elements.sort((a, b) => a.no - b.no);
   // punctuation marks of the deck (wide.json kind "punct"), in the order of a sentence
   const marks = [".", ",", "!", "?"].filter((m) => byLabel.get(m)?.kind === "punct").map((m) => make("text", m, m));
   // the deck's own alphabet (alphabet.js: a variant deck has its own), capitals only of the letters that have one

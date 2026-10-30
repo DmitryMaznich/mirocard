@@ -34,10 +34,10 @@ export function ElementPicker({ elements, disabled, onInsert }) {
       </button>
       {open && (
         <div className="p2-elements-panel" role="dialog" aria-label="Элементы" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
-          {elements.map((tile, i) => (
-            <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={`№${i + 1}, ${tile.caption}`} title={`№${i + 1} · ${tile.caption}`} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
+          {elements.map((tile) => (
+            <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={`№${tile.no}, ${tile.caption}`} title={`№${tile.no} · ${tile.caption}`} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
               <TileGlyph tile={tile} size={ELEMENT_TILE_W} />
-              <span className="p2-el-num" aria-hidden="true">{i + 1}</span>
+              <span className="p2-el-num" aria-hidden="true">{tile.no}</span>
             </button>
           ))}
         </div>

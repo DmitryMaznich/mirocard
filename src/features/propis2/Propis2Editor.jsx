@@ -127,8 +127,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     showOffer(notebook?.othersDiffer(key, value) ? { key, value } : null, OFFER_MS);
   };
   const keyboard = useKeyboardInset();
-  // every element has a short code of its own for the field, {э1}, {э2}... (by its place in the list)
-  const elementTiles = useMemo(() => buildTiles(topicRecord).elements.map((t, i) => ({ ...t, code: `э${i + 1}` })), [topicRecord]);
+  // every element has a short code of its own for the field, {э1}, {э2}... (its stable number, the one on its tile)
+  const elementTiles = useMemo(() => buildTiles(topicRecord).elements.map((t) => ({ ...t, code: `э${t.no}` })), [topicRecord]);
   const elementCodes = useMemo(() => new Map(elementTiles.map((t) => [t.text, t.code])), [elementTiles]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
