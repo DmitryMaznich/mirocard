@@ -351,9 +351,9 @@
 .p2-banner-actions { display: flex; gap: 8px; }
 .p2-banner button { min-height: 40px; padding: 0 14px; border: 1px solid #d9c28a; border-radius: 12px; background: #fff; font: inherit; font-weight: 800; color: #5b4a1f; cursor: pointer; }
 
-/* the element list shows what lands in the text: the id in curly braces under each tile */
-.p2-elements-panel .propis2-tile { gap: 2px; padding-bottom: 3px; }
-.p2-el-id { font: 700 .8rem/1 inherit; font-family: inherit; color: var(--p2-blue); }
+/* the element list: a grid of tiles, each the element on the page's own ruling (no codes: the room goes to the picture) */
+.p2-elements-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); width: min(520px, 94vw); gap: 8px; justify-items: center; }
+.p2-elements-panel .propis2-tile { padding: 3px; }
 /* the page starts below the floating zoom pill and undo / redo (2026-10-23: the text is typed by tapping the rows, and the start of
    the first row lay under the pill) */
 .propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 62px; }

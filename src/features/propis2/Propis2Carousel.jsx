@@ -12,6 +12,13 @@ import { RU_LOWER, topicAlphabet } from "@/topics/renderers/propis2/alphabet.js"
 // tiles of different letters can be compared by eye.
 const ROW_MID = (ROW_TOP + ROW_BASE) / 2;
 const MAX_TILE_SYMBOL_W = 100;
+// The element tiles show the whole ruling the page has around the narrow row (measured on the printed dense ruling, narrow-row units):
+// the wide row's own dashed lines one narrow gap above the thin line and below the baseline, and the slant every SLANT_STEP
+// (the dense grid's step at the narrow scale), at 65 degrees from the horizontal: tan(25 deg) of run per unit of height.
+const WIDE_TOP = ROW_TOP - (ROW_BASE - ROW_TOP);
+const WIDE_BOTTOM = ROW_BASE + (ROW_BASE - ROW_TOP);
+const SLANT_STEP = 15;
+const SLANT_RUN = 0.46631;
 
 // any Cyrillic letter name (not only the deck's alphabet): a letter stored as an «element» is never listed with the elements
 const LETTER_NAMES = new Set([...RU_LOWER, ...RU_LOWER.toUpperCase()]);
@@ -64,6 +71,19 @@ export function buildTiles(topicRecord) {
     const long = t.box && t.box.maxX - t.box.minX > MAX_TILE_SYMBOL_W;
     t.frame = { x: t.box ? (long ? t.box.minX - 4 : cx - width / 2) : 0, y: top, w: width, h: bottom - top };
   }
+  // the element tiles: one frame of their own, from the wide row's top line to its bottom line (or further, for a tail), wide enough for the widest element
+  let eTop = WIDE_TOP - 4, eBottom = WIDE_BOTTOM + 4, eWidth = 40;
+  for (const t of out.elements) {
+    if (!t.box) continue;
+    eTop = Math.min(eTop, t.box.minY - 3); eBottom = Math.max(eBottom, t.box.maxY + 3);
+    if (t.box.maxX - t.box.minX <= MAX_TILE_SYMBOL_W) eWidth = Math.max(eWidth, t.box.maxX - t.box.minX + 8);
+  }
+  for (const t of out.elements) {
+    const cx = t.box ? (t.box.minX + t.box.maxX) / 2 : 0;
+    const long = t.box && t.box.maxX - t.box.minX > MAX_TILE_SYMBOL_W;
+    t.frame = { x: t.box ? (long ? t.box.minX - 4 : cx - eWidth / 2) : 0, y: eTop, w: eWidth, h: eBottom - eTop };
+    t.ruled = true;
+  }
   return out;
 }
 
@@ -76,7 +96,29 @@ export function TileGlyph({ tile, size = 56, bare = false }) {
   const { x, y, w, h } = bare && b
     ? { x: (b.minX + b.maxX) / 2 - side / 2, y: (b.minY + b.maxY) / 2 - side / 2, w: side, h: side }
     : tile.frame;
-  const sw = bare ? Math.max(2, side / 14) : 1.6; // ink width in row units
+  const sw = bare ? Math.max(2, side / 14) : tile.ruled ? 2.2 : 1.6; // ink width in row units
+  if (tile.ruled && !bare) {
+    // an element: the slant, the wide row's dashed lines and the narrow row, so it is clear at a glance where it stands
+    const slants = [];
+    for (let k = Math.floor((x - h * SLANT_RUN) / SLANT_STEP); k <= Math.ceil((x + w) / SLANT_STEP); k++) {
+      const x0 = k * SLANT_STEP + (ROW_BASE - (y + h)) * SLANT_RUN; // the line's x at the bottom of the frame
+      slants.push(<line key={k} x1={x0} y1={y + h} x2={x0 + h * SLANT_RUN} y2={y} />);
+    }
+    return (
+      <svg className="propis2-tile-glyph" width={size} height={Math.round((size * h) / w)} viewBox={`${x} ${y} ${w} ${h}`} aria-hidden="true">
+        <rect x={x} y={ROW_TOP} width={w} height={ROW_BASE - ROW_TOP} fill="#eef4ff" />
+        <g stroke="#c4cad4" strokeWidth="0.45" fill="none">{slants}</g>
+        <g fill="none">
+          <line x1={x} x2={x + w} y1={WIDE_TOP} y2={WIDE_TOP} stroke="#d98a85" strokeWidth="0.7" strokeDasharray="2.4 1.6" />
+          <line x1={x} x2={x + w} y1={WIDE_BOTTOM} y2={WIDE_BOTTOM} stroke="#d98a85" strokeWidth="0.7" strokeDasharray="2.4 1.6" />
+          <line x1={x} x2={x + w} y1={ROW_TOP} y2={ROW_TOP} stroke="#8a8f98" strokeWidth="0.7" />
+          <line x1={x} x2={x + w} y1={ROW_MID} y2={ROW_MID} stroke="#8a8f98" strokeWidth="0.6" strokeDasharray="2 1.4" />
+          <line x1={x} x2={x + w} y1={ROW_BASE} y2={ROW_BASE} stroke="#555" strokeWidth="1.3" />
+        </g>
+        {tile.strokes.map((d, i) => <path key={i} d={d} fill="none" stroke="#1d4ed8" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />)}
+      </svg>
+    );
+  }
   return (
     <svg className="propis2-tile-glyph" width={size} height={bare ? size : Math.round((size * h) / w)} viewBox={`${x} ${y} ${w} ${h}`} aria-hidden="true">
       {!bare && <g stroke="#8a8f98" strokeWidth="0.6" fill="none">

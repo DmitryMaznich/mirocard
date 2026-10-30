@@ -6,14 +6,16 @@ import { usePopupPos } from "./usePopupPos";
 
 // The constructor's one input: a multi-line field that grows with its text up to the room it has (then it scrolls) and
 // a button with the list of the deck's elements. The system keyboard does the typing: no letter tiles.
-// The button «Элемент» with the list of the deck's elements (each tile shows its code in braces: what lands in the text). Shared by the compact
+// The button «Элемент» with the list of the deck's elements (each tile is the element on the page's own ruling: wide row, narrow row, slant). Shared by the compact
 // field (phone) and the full-page text editor (wide screens).
+const ELEMENT_TILE_W = 84; // px: the ruling inside is drawn at this width, so the slant and the rows read at a glance
+
 export function ElementPicker({ elements, disabled, onInsert }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
   // fixed to the screen under the button (usePopupPos): the button lives in the row's tool strip, which clips what sticks out of it
-  const panelStyle = usePopupPos(open, btnRef, 360, () => setOpen(false));
+  const panelStyle = usePopupPos(open, btnRef, 520, () => setOpen(false));
   const { bind, tip } = useHint("Элементы");
   useEffect(() => {
     if (!open) return undefined;
@@ -33,9 +35,8 @@ export function ElementPicker({ elements, disabled, onInsert }) {
       {open && (
         <div className="p2-elements-panel" role="dialog" aria-label="Элементы" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           {elements.map((tile) => (
-            <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
-              <TileGlyph tile={tile} size={64} />
-              <span className="p2-el-id" aria-hidden="true">{`{${tile.code}}`}</span>
+            <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} title={tile.caption} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
+              <TileGlyph tile={tile} size={ELEMENT_TILE_W} />
             </button>
           ))}
         </div>
