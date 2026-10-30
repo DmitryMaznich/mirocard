@@ -29,8 +29,8 @@ def bar(cx, y, half=14.0, bend=2.5):
                  f"L {r - 9:.2f} {y:.2f} C {r - 6:.2f} {y:.2f} {r - 3:.2f} {y:.2f} {r:.2f} {y - bend:.2f}"}
 
 
-def short_bar(cx, y, length=7.2):
-    """A straight crossbar like э's own (its stroke 2 is 7.2 units long, on the dashed middle line y=36), centred on the stem."""
+def short_bar(cx, y, length=14.4):
+    """A straight crossbar like э's own (its stroke 2 is 7.2 units long, on the dashed middle line y=36), doubled for ғ at the owner's request, centred on the stem."""
     return {"d": f"M {cx - length / 2:.2f} {y:.2f} L {cx + length / 2:.2f} {y:.2f}"}
 
 
