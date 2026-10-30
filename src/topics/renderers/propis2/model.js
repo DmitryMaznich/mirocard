@@ -312,25 +312,27 @@ function wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap) {
 export function pageToLines(page, glyphMap) {
   const out = [];
   const rows = page?.rows ?? [];
-  // a printed letter (`row.drop`, dropCap.js) stands in the margin when the page has one; without a margin it takes the start of its own row,
-  // and the row's ink starts further in (`#iN`, as for the spaces an adult typed before a text)
   rows.forEach((row, ri) => {
+    // a printed letter (`row.drop`, dropCap.js) stands in the margin when the page has one; without a margin it takes the left or the right end of
+    // its own row: at the left the row's ink starts further in (`#iN`, as for the spaces an adult typed before a text), at the right it ends earlier (`#wN`)
     const letter = row.drop ?? "";
-    const tag = dropFlag(letter);
-    const shift = dropShift(page, ri);
-    const indentTag = shift ? `#i${shift}` : "";
+    const right = row.dropSide === "right";
+    const tag = dropFlag(letter, right ? "right" : "left");
+    const reserve = dropReserve(page, ri);
+    const indentTag = reserve && !right ? `#i${reserve}` : "";
+    const cutTag = reserve && right ? `#w${reserve}` : "";
     if (row.kind === "blank") { out.push(tag); return; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropShiftUnits(page, ri), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropReserveUnits(page, ri), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(tag); return; }
-      const indent = leadingSpaces(row.text) + shift;
-      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? tag : ""}`); if (page?.writeAfter) out.push(""); });
+      const indent = leadingSpaces(row.text) + (reserve && !right ? reserve : 0);
+      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}`); if (page?.writeAfter) out.push(""); });
       return;
     }
     const line = rowToLine(row);
     // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
     if (!line) { out.push(tag); return; }
-    out.push(`${line}${indentTag}${tag}`);
+    out.push(`${line}${indentTag}${cutTag}${tag}`);
     if (page?.writeAfter) out.push("");
   });
   return out;
@@ -345,7 +347,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropShiftUnits(page, i), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropReserveUnits(page, i), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
@@ -470,31 +472,33 @@ export function pageFromMarked(sourcePage, title) {
   return newPage(title ?? `${sourcePage.title}: повторение`, { ruling: sourcePage.ruling, writeAfter: sourcePage.writeAfter, rows });
 }
 
-// A printed letter (`row.drop`, dropCap.js) put on / taken off a row. Nothing else on the page changes: the margin stays the adult's own choice.
-export function withRowDrop(page, rowId, letter) {
+// A printed letter (`row.drop`, dropCap.js) put on / taken off a row, at its `side` ("left" / "right"). Nothing else on the page changes: the margin
+// stays the adult's own choice.
+export function withRowDrop(page, rowId, letter, side = "left") {
   const rows = (page?.rows ?? []).map((r) => {
     if (r.id !== rowId) return r;
-    const { drop, ...rest } = r;
-    return letter ? { ...rest, drop: letter } : rest;
+    const { drop, dropSide, ...rest } = r;
+    return letter ? { ...rest, drop: letter, dropSide: side === "right" ? "right" : "left" } : rest;
   });
   return { ...page, rows };
 }
 
-// How many slant cells the ink of row `ri` starts further in because a printed letter stands at the start of the row: only without a margin
-// (with one the letter stands in it).
-export function dropShift(page, ri) {
+// How many slant cells row `ri` gives up to a printed letter at its end (left or right): only without a margin (with one the letter stands in it)
+export function dropReserve(page, ri) {
   const row = page?.rows?.[ri];
   if (!row?.drop) return 0;
   return pageMargin(page) === "off" && pageHasDropRows(page) ? DROP_ROW_INDENT_CELLS : 0;
 }
-const dropShiftUnits = (page, ri) => dropShift(page, ri) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (pageRuling(page) === "narrow" ? 0.5 : 1);
+// ...and how many of them the ink of the row starts further in: the letter at the LEFT end only
+export const dropIndent = (page, ri) => (page?.rows?.[ri]?.dropSide === "right" ? 0 : dropReserve(page, ri));
+const dropReserveUnits = (page, ri) => dropReserve(page, ri) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (pageRuling(page) === "narrow" ? 0.5 : 1);
 
 // Can the page show a printed letter: the narrow ruling of the methodology paper (the frame is the height of a written capital on it)
 export const pageHasDropRows = (page) => pageRuling(page) === "narrow" && pageGridKind(page) === "propis";
 
 export function duplicateRow(rows, index) {
   // the printed letter (dropCap.js) stays with the row it was put on: a copy is another row of the same letter, without a frame of its own
-  const { drop, ...rest } = rows[index];
+  const { drop, dropSide, ...rest } = rows[index];
   const copy = { ...rest, id: newId("r") };
   return [...rows.slice(0, index + 1), copy, ...rows.slice(index + 1)];
 }

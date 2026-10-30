@@ -118,3 +118,10 @@ export const caretAtLineStart = (value, caret) => {
   const pos = Math.max(0, Math.min(String(value ?? "").length, caret ?? 0));
   return pos === 0 || String(value)[pos - 1] === "\n";
 };
+
+// ...or at the very end of a line (just before a newline or the end of the text)? An empty line is both its start and its end.
+export const caretAtLineEnd = (value, caret) => {
+  const text = String(value ?? "");
+  const pos = Math.max(0, Math.min(text.length, caret ?? 0));
+  return pos === text.length || text[pos] === "\n";
+};

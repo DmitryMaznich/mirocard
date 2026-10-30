@@ -9,7 +9,7 @@ import { ElementPicker, LetterPicker } from "./Propis2Field";
 import Propis2Keys from "./Propis2Keys";
 import Propis2Thumbs from "./Propis2Thumbs";
 import { useKeyboardInset } from "./useKeyboardInset";
-import { bracesIn, bracesOut, caretAtLineStart, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { bracesIn, bracesOut, caretAtLineEnd, caretAtLineStart, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
@@ -413,29 +413,37 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             </>
           )}
   </>;
-  // The printed letter of a row (dropCap.js) goes only at the START of a row that has none yet: the caret must stand there. Why not, in words (the button's
-  // name; a hint, not an error): one letter per row, none mid-row, none on the wide ruling. The letter comes off with Backspace at the start of its row.
+  // The printed letter of a row (dropCap.js) goes only at an END of a row that has none yet: the caret at the start puts it at the left end, at the end at the
+  // right one (an empty row is both: the list asks). Why not, in words (the button's name; a hint, not an error): one letter per row, none mid-row, none on
+  // the wide ruling. The letter comes off with its × on the sheet, Backspace at the start (a left one) or Delete at the end (a right one).
   const caretRowId = locked ? null : rowIdAtCaret(page.rows, startId, draft, sel.start);
-  const caretAtStart = Boolean(selected) && caretRowId === selected.id && caretAtLineStart(draft, sel.start);
+  const atRow = Boolean(selected) && caretRowId === selected.id;
+  const atStart = atRow && caretAtLineStart(draft, sel.start);
+  const atEnd = atRow && caretAtLineEnd(draft, sel.start);
+  const dropSides = [...(atStart ? ["left"] : []), ...(atEnd ? ["right"] : [])];
   const dropBlock = locked ? "Буква: страница из тетради закрыта для правки"
-    : !selected ? "Буква: выберите строку и поставьте курсор в её начало"
+    : !selected ? "Буква: выберите строку и поставьте курсор в её начало или в конец"
     : !dropPage ? "Буква: только на узкой строке методической тетради"
-    : selected.drop ? "На строке уже есть буква. Убрать: Backspace в начале строки"
-    : !caretAtStart ? "Буква ставится в начале строки: поставьте курсор в начало"
+    : selected.drop ? "На строке уже есть буква. Убрать: × на рамке, Backspace в начале или Delete в конце строки"
+    : !dropSides.length ? "Буква ставится в начале или в конце строки: поставьте курсор туда"
     : null;
-  const onBackspaceAtStart = (pos) => {
+  const dropLabel = dropBlock ?? (dropSides.length === 2 ? "Буква в начале или в конце строки" : dropSides[0] === "right" ? "Буква справа в строке" : "Буква слева в строке");
+  const removeDrop = (rowId) => onChange(withRowDrop(page, rowId, null));
+  const onEdgeKey = (key, pos) => {
     if (locked) return false;
-    const id = rowIdAtCaret(page.rows, startId, draft, pos);
-    if (!id || !page.rows.find((r) => r.id === id)?.drop) return false;
-    onChange(withRowDrop(page, id, null));
+    const row = page.rows.find((r) => r.id === rowIdAtCaret(page.rows, startId, draft, pos));
+    // Backspace at the start takes off a LEFT letter, Delete at the end a RIGHT one (an empty row: whichever it has)
+    if (!row?.drop || (row.dropSide === "right") !== (key === "Delete")) return false;
+    removeDrop(row.id);
     return true;
   };
+  const onDropRemove = locked ? null : (absLine) => { const ri = ownersNow[absLine]; if (ri != null && page.rows[ri]?.drop) removeDrop(page.rows[ri].id); };
   const rowEls = <>
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
-          <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} disabled={Boolean(dropBlock)}
-            label={dropBlock ?? "Буква в начале строки"} onPick={(l) => { onChange(withRowDrop(page, selectedId, l)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />
+          <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
+            onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">
@@ -466,7 +474,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const canvasEl = (
         <div className={`propis2-page-col${zoom.z > 1.001 ? " is-zoomed" : ""}`} ref={wrapRef} onClick={onPageClick}>
           <div className="propis2-page-box" ref={boxRef} style={pageW ? { width: Math.round(pageW * zoom.z) } : undefined}>
-            <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onSheetPoint={onSheetPoint} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
+            <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onSheetPoint={onSheetPoint} onDropRemove={onDropRemove} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
           </div>
         </div>
   );
@@ -491,7 +499,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </div>
   );
   const keysEl = (
-          <Propis2Keys inputRef={keysRef} onBackspaceAtStart={onBackspaceAtStart} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
+          <Propis2Keys inputRef={keysRef} onEdgeKey={onEdgeKey} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
   );
 
   if (side) {

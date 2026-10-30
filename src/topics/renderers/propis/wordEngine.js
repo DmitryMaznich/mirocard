@@ -1612,9 +1612,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.drawn ? { drawn: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[ig]\d+|b[^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
-  // bX = the row has a printed letter X in its margin (propis2 «буквица», drawn by PrintPageView): a flag of the row, no ink of its own
-  const drops = flags.map((f) => (/#b([^#\s])/.exec(f) ?? [])[1] ?? null);
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[igw]\d+|[bB][^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
+  // bX / BX = the row has a printed letter X (propis2 «буквица», drawn by PrintPageView) at its left / right end: a flag of the row, no ink of its own
+  const dropMarks = flags.map((f) => /#([bB])([^#\s])/.exec(f));
+  const drops = dropMarks.map((m) => (m ? m[2] : null));
+  const dropSides = dropMarks.map((m) => (m && m[1] === "B" ? "right" : "left"));
+  // wN = the row ends N slant cells before the usual right edge (a letter at its right end, no margin there to take it): the copies and the wrapping stop there
+  const cuts = flags.map((f) => Number(/#w(\d+)/.exec(f)?.[1] ?? 0));
   const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
   const fades = flags.map((f) => f.includes("#f"));
   // r = fill the row with copies of the row's content even when it is a single letter or a mixed sequence (the default
@@ -1634,7 +1638,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[ig]\d+|b[^#\s]))+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[igw]\d+|[bB][^#\s]))+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -1655,17 +1659,19 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       // how many units fit. A probe is a whole layout, so estimate from the pitch of two copies and check the neighbours
       // (the width only grows with the count)
       const widthOf = (n) => layoutWideLinesIntoRowsRu([`${rowOf(n)}${evens[rowIndex] ? "#v" : ""}`], glyphsByLabel, rowSnap(rowIndex), false, scale, WIDE_ROW_MAX_X).placed[0].segments[0]?.width ?? 0;
+      // the room of the row: the right edge less what a letter at the right end takes, and less the cells the row starts in (`#iN`)
+      const room = maxX - (cuts[rowIndex] + indents[rowIndex]) * CELL;
       const memo = new Map();
-      const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= maxX); return memo.get(n); };
+      const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= room); return memo.get(n); };
       const start = Math.max(1, toks.length / unit.length); // the row as typed is taken as fitting
       let n = start;
       if (start < 60) {
         const w1 = widthOf(start);
         const w2 = widthOf(start + 1);
-        if (w2 > maxX) return rowOf(start);
+        if (w2 > room) return rowOf(start);
         memo.set(start + 1, true);
         const pitch = Math.max(1, w2 - w1);
-        n = Math.min(60, Math.max(start + 1, start + Math.floor((maxX - w1) / pitch)));
+        n = Math.min(60, Math.max(start + 1, start + Math.floor((room - w1) / pitch)));
       }
       while (n < 60 && fits(n + 1)) n++;
       while (n > start && !fits(n)) n--;
@@ -1680,12 +1686,12 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
     if (!once[rowIndex] && chainGlyph && chainGlyph.kind === "element" && chainGlyph.strokes.length === 1 && wideTokenToLabels(chainToks[0], glyphsByLabel).length === 1) {
       const local = wideGlyphLocal(chainGlyph, scale);
       if (Math.abs(local.end[1] - local.start[1]) < 1) {
-        const startX = snapX(rowIndex, WIDE_LEFT_PAD - local.minX + local.start[0], local.start[1]);
+        const startX = snapX(rowIndex, WIDE_LEFT_PAD + indents[rowIndex] * CELL - local.minX + local.start[0], local.start[1]);
         const dx0 = startX - local.start[0];
         const pitch = Math.max(1, Math.round((local.end[0] - local.start[0]) / CELL)) * CELL;
         const strokes = [];
         const startPoints = [];
-        for (let k = 0; startX + (k + 1) * pitch <= maxX; k++) {
+        for (let k = 0; startX + (k + 1) * pitch <= maxX - cuts[rowIndex] * CELL; k++) {
           const dx = dx0 + k * pitch;
           let d = transformPathD(local.strokes[0].d, { translateX: dx });
           // the copy's last point lands exactly where the next copy starts
@@ -2057,7 +2063,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       : [];
     return { word: line, rowIndex, x: 0, segments };
   });
-  placed.forEach((row, i) => { if (drops[i]) row.drop = drops[i]; });
+  placed.forEach((row, i) => { if (drops[i]) { row.drop = drops[i]; row.dropSide = dropSides[i]; } });
   placed.forEach((row, i) => {
     const seg = row.segments[0];
     if (!seg) return;

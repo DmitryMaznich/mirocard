@@ -49,15 +49,19 @@ export function ElementPicker({ elements, disabled, onInsert }) {
   );
 }
 
-// The button «Буква» with the capitals of the deck's alphabet: the printed letter in a frame, at the start of the row the caret stands at
-// (topic/renderers/propis2/dropCap.js). The row's own first letter is offered on top. The button is available only with the caret at the
-// start of a row that has no letter yet; the letter comes off with Backspace at the start of its row (Propis2Editor).
-export function LetterPicker({ letters, suggestion, label = "Буква в начале строки", disabled, onPick }) {
+// The button «Буква» with the capitals of the deck's alphabet: the printed letter in a frame, at an end of the row the caret stands at
+// (topic/renderers/propis2/dropCap.js). `sides` ("left" / "right"): the ends the caret is at — one end: the letter goes there; both (an empty
+// row): the list has a «Слева · Справа» choice. The row's own first letter is offered on top. The button is available only with the caret at an
+// end of a row that has no letter yet (Propis2Editor says why not in the label).
+export function LetterPicker({ letters, suggestion, sides = ["left"], label = "Буква в строке", disabled, onPick }) {
   const [open, setOpen] = useState(false);
+  const [side, setSide] = useState("left");
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
   const panelStyle = usePopupPos(open, btnRef, 330, () => setOpen(false));
   const { bind, tip } = useHint(label);
+  const both = sides.length > 1;
+  const chosen = both ? side : sides[0] ?? "left";
   useEffect(() => {
     if (!open) return undefined;
     const away = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
@@ -66,17 +70,24 @@ export function LetterPicker({ letters, suggestion, label = "Буква в на�
     document.addEventListener("keydown", esc);
     return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
   }, [open]);
-  const pick = (l) => { setOpen(false); onPick(l); };
+  const pick = (l) => { setOpen(false); onPick(l, chosen); };
   return (
     <div className="p2-pick p2-letters" ref={wrapRef}>
       <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label={label} aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} data-kind="drop" {...bind}>
         <span className="p2-tool-ico"><I.IconLetterFrame /></span>
-        <span className="p2-cap">Буква</span>
+        <span className="p2-cap">{!disabled && !both && chosen === "right" ? "Буква справа" : !disabled && !both ? "Буква слева" : "Буква"}</span>
         {tip}
       </button>
       {open && (
         <div className="p2-letters-panel" role="dialog" aria-label="Буква для строки" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           <div className="p2-letters-title">Буква для строки</div>
+          {both && (
+            <div className="p2-letters-side" role="group" aria-label="Сторона">
+              {[["left", "Слева"], ["right", "Справа"]].map(([id, name]) => (
+                <button key={id} type="button" className={`p2-letters-side-btn${chosen === id ? " is-on" : ""}`} aria-pressed={chosen === id} onClick={() => setSide(id)}>{name}</button>
+              ))}
+            </div>
+          )}
           {suggestion && (
             <button type="button" className="p2-letters-hint" onClick={() => pick(suggestion)}>
               <span className="p2-letters-hint-mark" aria-hidden="true">{suggestion}</span>

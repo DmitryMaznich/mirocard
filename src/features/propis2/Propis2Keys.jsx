@@ -5,8 +5,8 @@ import { useEffect } from "react";
 // paste and the composing of an input method natively; the editor draws the caret and the letters on the copybook rows.
 // `request` { pos, anchor? }: put the caret (a selection from `anchor`) there; Ctrl/Cmd+Z and Ctrl+Y / Ctrl+Shift+Z go to the
 // editor's own undo (the textarea's native one knows nothing of the page).
-// `onBackspaceAtStart(pos)`: Backspace with the caret at the start of a line; true = handled (the row's printed letter was taken off), the key does nothing else
-export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFocusChange, onUndo, onRedo, onBackspaceAtStart, request, readOnly = false }) {
+// `onEdgeKey(key, pos)`: Backspace with the caret at the start of a line / Delete at its end; true = handled (the row's printed letter at that end was taken off), the key does nothing else
+export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFocusChange, onUndo, onRedo, onEdgeKey, request, readOnly = false }) {
   useEffect(() => {
     const el = inputRef.current;
     if (!el || !request) return;
@@ -24,10 +24,12 @@ export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFoc
     if (mod && !e.altKey && (e.key === "z" || e.key === "Z" || e.key === "я" || e.key === "Я")) { e.preventDefault(); (e.shiftKey ? onRedo : onUndo)?.(); return; }
     if (mod && !e.altKey && (e.key === "y" || e.key === "Y" || e.key === "н" || e.key === "Н")) { e.preventDefault(); onRedo?.(); return; }
     if (e.key === "Escape") e.currentTarget.blur();
-    if (e.key === "Backspace" && !mod && !e.altKey && onBackspaceAtStart) {
+    if ((e.key === "Backspace" || e.key === "Delete") && !mod && !e.altKey && onEdgeKey) {
       const el = e.currentTarget;
       const pos = el.selectionStart ?? 0;
-      if (pos === el.selectionEnd && (pos === 0 || el.value[pos - 1] === "\n") && onBackspaceAtStart(pos)) e.preventDefault();
+      const atStart = pos === 0 || el.value[pos - 1] === "\n";
+      const atEnd = pos === el.value.length || el.value[pos] === "\n";
+      if (pos === el.selectionEnd && (e.key === "Backspace" ? atStart : atEnd) && onEdgeKey(e.key, pos)) e.preventDefault();
     }
   };
 

@@ -13,8 +13,9 @@ export const DROP_STROKE_MM = 0.45;
 export const DROP_RADIUS_MM = 2.2;
 export const DROP_COLOR = "#2a6b60";
 export const DROP_FILL = "#e8f4f1";
-// Without a margin the frame stands at the start of its own row and the row's ink starts this many slant cells (2.5 mm each on the narrow ruling)
-// further in: the frame (8 mm) and 4.5 mm of air. The rows below write from the left edge as everywhere else.
+// Without a margin the frame stands at the left or the right end of its own row and the row gives up this many slant cells (2.5 mm each on the
+// narrow ruling) for it: the frame (8 mm) and 4.5 mm of air. At the left the ink starts that much further in (`#iN`), at the right the row ends
+// that much earlier (`#wN`). The rows without a letter are written edge to edge as everywhere else. With a margin the letter stands in it.
 export const DROP_ROW_INDENT_CELLS = 5;
 const NUNITO_CAP_HEIGHT = 0.705; // em
 
@@ -46,7 +47,7 @@ export function suggestDrop(row, letters) {
   return letters.includes(first) ? first : null;
 }
 
-// A row's printed letter as the engine's line flag (the first line of the row carries it)
-export function dropFlag(letter) {
-  return letter ? `#b${letter}` : "";
+// A row's printed letter as the engine's line flag (the first line of the row carries it): `#b` + letter at the left end, `#B` + letter at the right
+export function dropFlag(letter, side = "left") {
+  return letter ? `#${side === "right" ? "B" : "b"}${letter}` : "";
 }

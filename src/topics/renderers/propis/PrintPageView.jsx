@@ -391,7 +391,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, onDropRemove = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -589,19 +589,30 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
         </g>
       ))}
       {marginXUnits !== null && <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />}
-      {/* `propis2` «буквица»: the printed capital of a row, its frame ON the row's baseline (narrow ruling only): in the margin when the page
-          has one, else at the start of its own row (the row's ink is moved in by the layout, dropCap.js DROP_ROW_INDENT_CELLS) */}
+      {/* `propis2` «буквица»: the printed capital of a row, its frame ON the row's baseline (narrow ruling only). With a margin it stands in the margin; without
+          one at the left or the right end of its own row (the layout moves the ink in / ends the row earlier, dropCap.js DROP_ROW_INDENT_CELLS). On the
+          editor's screen a small × takes the letter off (`onDropRemove`, not in print / PDF) */}
       {wideRows && narrowRows && !ownRows && page.filter((p) => p.drop).map((p) => {
         const g = dropGeometry(p.drop);
         const baseline = rowY(p.rowIndex) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // the row's own baseline (row-local 64)
-        const cx = marginXUnits === null
-          ? contentXUnits + g.frame / 2
-          : marginXUnits < PAGE_W_UNITS / 2 ? marginXUnits / 2 : (marginXUnits + PAGE_W_UNITS) / 2;
+        const rightEnd = p.dropSide === "right";
+        const rowRight = contentXUnits + geom.maxX - (margin === "off" ? 0 : propis2MarginUnits()); // the right edge of the row's ink
+        const cx = marginXUnits !== null
+          ? (marginXUnits < PAGE_W_UNITS / 2 ? marginXUnits / 2 : (marginXUnits + PAGE_W_UNITS) / 2)
+          : rightEnd ? rowRight - g.frame / 2 : contentXUnits + g.frame / 2;
         const top = baseline - g.frame;
+        const r = mmToNativeUnits(2.6);
         return (
-          <g key={`drop${p.rowIndex}`} data-drop={p.drop}>
+          <g key={`drop${p.rowIndex}`} data-drop={p.drop} data-drop-side={rightEnd ? "right" : "left"}>
             <rect x={cx - g.frame / 2} y={top} width={g.frame} height={g.frame} rx={g.radius} fill={DROP_FILL} stroke={DROP_COLOR} strokeWidth={g.stroke} />
             <text x={cx} y={top + g.frame / 2 + g.capHeight / 2} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize={g.fontSize} fill={DROP_COLOR}>{p.drop}</text>
+            {onDropRemove && (
+              <g data-drop-remove className="propis-drop-remove" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onDropRemove(p.rowIndex); }}>
+                <circle cx={cx + g.frame / 2} cy={top} r={r * 1.9} fill="transparent" />
+                <circle cx={cx + g.frame / 2} cy={top} r={r} fill="#fff" stroke={DROP_COLOR} strokeWidth={g.stroke * 0.8} />
+                <path d={`M${cx + g.frame / 2 - r * 0.45} ${top - r * 0.45}l${r * 0.9} ${r * 0.9}m0 ${-r * 0.9}l${-r * 0.9} ${r * 0.9}`} stroke={DROP_COLOR} strokeWidth={g.stroke * 0.8} strokeLinecap="round" fill="none" />
+              </g>
+            )}
           </g>
         );
       })}
@@ -1049,7 +1060,7 @@ export function PrintPageTop({ task, rows = 5, page = 0 }) {
 // left half of the cover's landscape sheet; A4: the second sheet, in place of the empty one; `pageNumbers`: number the printed pages (the cover is not counted).
 // `booklet` (A5 only): print «Тетрадью» — the pages in saddle-stitch order (booklet.js), padded with ruled pages to a multiple of 4; the
 // cover sheet stays the outer one (white inside). `brandMarks`: the quiet Mironium mark on every printed page (brandMarks.jsx).
-export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoint = null, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, onJump = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoint = null, onDropRemove = null, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, onJump = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -1128,6 +1139,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
               simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
               onSheetPoint={onSheetPoint ? (p) => onSheetPoint({ ...p, row: p.row < 0 ? -1 : shownIndex * perPage + p.row }) : null}
+              onDropRemove={onDropRemove ? (row) => onDropRemove(shownIndex * perPage + row) : null}
               useElements={useElements}
               wideRows={wideRows}
               narrowRows={narrowRows}
