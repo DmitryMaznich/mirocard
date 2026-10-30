@@ -355,7 +355,7 @@
 .p2-elements-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); width: min(520px, 94vw); gap: 8px; justify-items: center; }
 .p2-elements-panel .propis2-tile { position: relative; padding: 3px; }
 /* the element's number (its place in the list), a badge sitting on the tile's corner, half outside it: it takes no room from the picture and covers none of its ink */
-.p2-el-num { position: absolute; top: -7px; left: -7px; min-width: 18px; height: 18px; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); padding: 0 4px; box-sizing: border-box; display: grid; place-items: center; border-radius: 9px; background: var(--p2-blue, #1d4ed8); color: #fff; font: 800 .68rem/1 inherit; pointer-events: none; }
+.p2-el-num { position: absolute; top: -7px; left: -7px; min-width: 20px; height: 20px; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); padding: 0 4px; box-sizing: border-box; display: grid; place-items: center; border-radius: 10px; background: var(--p2-blue, #1d4ed8); color: #fff; font-family: inherit; font-size: 11px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
 /* the page starts below the floating zoom pill and undo / redo (2026-10-23: the text is typed by tapping the rows, and the start of
    the first row lay under the pill) */
 .propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 62px; }
