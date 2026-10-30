@@ -8,7 +8,8 @@
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { bboxOf } from "./glyphReach.js";
 import { bracesOut } from "./fieldText.js";
-import { indentUnitsOf, leadingSpaces, pageRuling, pageSnap, rowMaxX, rowToLine, wrapPassage } from "./model.js";
+import { dropShift, indentUnitsOf, leadingSpaces, pageRuling, pageSnap, rowMaxX, rowToLine, wrapPassage } from "./model.js";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../propis/propisRuling.js";
 
 const SPACE_UNITS = 14; // the caret after a typed space stands this far (× the row's scale) right of the last ink
 
@@ -57,7 +58,15 @@ function firstLines(owners) {
 
 // Where the caret stands on the sheet: `rowIndex` (in page.rows), `line` (the field text of that row), `offset` in it.
 // Returns { abs, x } (abs: the sheet row, engine line index; x: in the row's own units) or null.
-export function caretOnSheet({ page, glyphMap, owners, rowIndex, line, offset, codes }) {
+export function caretOnSheet(args) {
+  const spot = caretOnSheetBase(args);
+  // a printed letter at the start of the row (no margin) moves the ink right by whole slant cells: the first sheet line of the row only
+  const dx = dropShift(args.page, args.rowIndex) * TEXT_ROW_WIDE_DIAGONAL_SPACING * scaleOf(args.page);
+  if (!spot || !dx) return spot;
+  const abs0 = firstLines(args.owners).get(args.rowIndex);
+  return spot.abs === abs0 ? { ...spot, x: spot.x + dx } : spot;
+}
+function caretOnSheetBase({ page, glyphMap, owners, rowIndex, line, offset, codes }) {
   const row = page?.rows?.[rowIndex];
   const first = firstLines(owners);
   const abs0 = first.get(rowIndex);
@@ -75,7 +84,7 @@ export function caretOnSheet({ page, glyphMap, owners, rowIndex, line, offset, c
   // running text: the wrapped line the caret is on, the text of that line up to the caret
   const text = String(row.text ?? "");
   const ruling = pageRuling(page);
-  const wrapped = wrapPassage(text, glyphMap, ruling, rowMaxX(page), indentUnitsOf(text, ruling), pageSnap(page));
+  const wrapped = wrapPassage(text, glyphMap, ruling, rowMaxX(page), indentUnitsOf(text, ruling) + dropShift(page, rowIndex) * TEXT_ROW_WIDE_DIAGONAL_SPACING * k, pageSnap(page));
   const step = page?.writeAfter ? 2 : 1;
   const words = wordsOf(text);
   const pre = rowPrefix(line, offset, codes);

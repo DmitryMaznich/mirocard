@@ -4,8 +4,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import PrintPageView from "../propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { newRow, newPage, pageToLines, withRowDrop, pageHasDropRows } from "./model.js";
-import { dropGeometry, dropLetters, suggestDrop, DROP_FRAME_MM, DROP_MAX_WIDTH } from "./dropCap.js";
+import { newRow, newPage, pageToLines, withRowDrop, pageHasDropRows, dropShift, lineOwners } from "./model.js";
+import { caretOnSheet } from "./caret.js";
+import { dropGeometry, dropLetters, suggestDrop, DROP_FRAME_MM, DROP_MAX_WIDTH, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
 import { mmToNativeUnits } from "../propis/propisRuling.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
@@ -43,30 +44,51 @@ describe("the printed letter of a row (a «буквица»)", () => {
   });
 });
 
-describe("the margin of a letter", () => {
-  it("the first letter switches an off margin on by itself; the last one taken off switches it off again", () => {
+describe("the letter and the margin are independent", () => {
+  it("putting a letter on a row or taking it off changes nothing but the row", () => {
     const page = pageOf(rowsOf(["и", null], ["ж", null]));
     const a = withRowDrop(page, page.rows[0].id, "И");
-    expect(a.margin).toBe("left");
-    expect(a.marginAuto).toBe(true);
     expect(a.rows[0].drop).toBe("И");
-    const b = withRowDrop(a, a.rows[1].id, "Ж");
-    expect(b.marginAuto).toBe(true);
-    const c = withRowDrop(b, b.rows[0].id, null);
-    expect(c.margin).toBe("left"); // another letter is still there
-    const d = withRowDrop(c, c.rows[1].id, null);
-    expect(d.margin).toBe("off");
-    expect(d.marginAuto).toBe(false);
-    expect(d.rows.some((r) => "drop" in r)).toBe(false);
-  });
-
-  it("a margin the adult chose is never touched", () => {
-    const page = pageOf(rowsOf(["и", null]), { margin: "right" });
-    const a = withRowDrop(page, page.rows[0].id, "И");
-    expect(a.margin).toBe("right");
+    expect(a.rows[1]).toEqual(page.rows[1]);
+    expect(a.margin).toBe(page.margin); // the margin is the adult's: never switched on for a letter
     expect(a.marginAuto).toBeUndefined();
     const b = withRowDrop(a, a.rows[0].id, null);
-    expect(b.margin).toBe("right");
+    expect(b.rows.some((r) => "drop" in r)).toBe(false);
+  });
+
+  it("with a margin the letter stands in it and the row is written as before", () => {
+    const page = pageOf(rowsOf(["и и", "И"]), { margin: "left" });
+    expect(pageToLines(page, glyphMap)[0]).toBe(`${pageToLines(pageOf(rowsOf(["и и", null]), { margin: "left" }), glyphMap)[0]}#bИ`);
+    expect(dropShift(page, 0)).toBe(0);
+  });
+
+  it("without a margin the letter takes the start of its own row: the ink of that row starts DROP_ROW_INDENT_CELLS in, the rows below are as they were", () => {
+    const page = pageOf(rowsOf(["и и", "И"], ["иду", "И"], ["жук", null]));
+    expect(dropShift(page, 0)).toBe(DROP_ROW_INDENT_CELLS);
+    expect(dropShift(page, 1)).toBe(0); // the same letter below: no frame, no shift
+    expect(dropShift(page, 2)).toBe(0);
+    const lines = pageToLines(page, glyphMap);
+    expect(lines[0]).toContain(`#i${DROP_ROW_INDENT_CELLS}`);
+    expect(lines[1]).not.toContain("#i");
+    expect(lines[2]).not.toContain("#i");
+  });
+
+  it("the ink of the row really starts further in, by whole slant cells (it stays on the lines)", () => {
+    const snap = (rowIndex, x) => x; // any grid: the shift is the same whatever the lines are
+    const base = layoutWideLinesIntoRows(["иду"], glyphMap, snap, true, 0.5).placed[0].segments[0].strokes[0].d;
+    const moved = layoutWideLinesIntoRows([`иду#i${DROP_ROW_INDENT_CELLS}`], glyphMap, snap, true, 0.5).placed[0].segments[0].strokes[0].d;
+    const x0 = Number(/M ([\d.-]+)/.exec(base)[1]);
+    const x1 = Number(/M ([\d.-]+)/.exec(moved)[1]);
+    expect(x1 - x0).toBeCloseTo(DROP_ROW_INDENT_CELLS * 15, 1);
+  });
+
+  it("a running text with a letter wraps with the shifted first line, and the caret stands after the ink (not under the frame)", () => {
+    const page = pageOf(rowsOf(["Иван идёт домой и несёт большой арбуз с рынка", "И", "passage"]));
+    const owners = lineOwners(page, glyphMap);
+    expect(owners.length).toBeGreaterThan(0);
+    const spot = caretOnSheet({ page, glyphMap, owners, rowIndex: 0, line: page.rows[0].text, offset: 0, codes: new Map() });
+    const free = caretOnSheet({ page: { ...page, rows: [{ ...page.rows[0], drop: undefined }] }, glyphMap, owners, rowIndex: 0, line: page.rows[0].text, offset: 0, codes: new Map() });
+    expect(spot.x - free.x).toBeGreaterThan(DROP_ROW_INDENT_CELLS * 15 * 0.8);
   });
 
   it("only the narrow ruling of the methodology paper takes letters", () => {
@@ -80,9 +102,14 @@ describe("the frame on the sheet", () => {
   const render = (margin, lines = ["и и#bИ", "жук#bЖ"]) =>
     renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord, lines, narrowRows: true, grid: "dense", margin })} bare />);
 
-  it("stands in the margin with a margin on, and is not drawn without one", () => {
+  it("stands in the margin with a margin on and at the start of its row without one", () => {
     expect(render("left").match(/data-drop="/g)?.length).toBe(2);
-    expect(render("off")).not.toContain("data-drop");
+    const off = render("off", ["и#bИ"]);
+    expect(off.match(/data-drop="/g)?.length).toBe(1);
+    const [x] = /<g data-drop="И"><rect x="([\d.-]+)"/.exec(off).slice(1).map(Number);
+    const inMargin = /<g data-drop="И"><rect x="([\d.-]+)"/.exec(render("left", ["и#bИ"]));
+    expect(x).toBeGreaterThan(0);
+    expect(x).toBeLessThan(Number(inMargin[1]) + 60); // by the left edge of the content, not far in
   });
 
   it("the frame is 8 mm square and its lower edge lies on the baseline of the row", () => {

@@ -589,12 +589,14 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
         </g>
       ))}
       {marginXUnits !== null && <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />}
-      {/* `propis2` «буквица»: the printed capital of a row stands in the margin, its frame ON the row's baseline (narrow ruling, margin on only) */}
-      {marginXUnits !== null && wideRows && narrowRows && !ownRows && page.filter((p) => p.drop).map((p) => {
+      {/* `propis2` «буквица»: the printed capital of a row, its frame ON the row's baseline (narrow ruling only): in the margin when the page
+          has one, else at the start of its own row (the row's ink is moved in by the layout, dropCap.js DROP_ROW_INDENT_CELLS) */}
+      {wideRows && narrowRows && !ownRows && page.filter((p) => p.drop).map((p) => {
         const g = dropGeometry(p.drop);
         const baseline = rowY(p.rowIndex) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // the row's own baseline (row-local 64)
-        const onLeft = marginXUnits < PAGE_W_UNITS / 2;
-        const cx = onLeft ? marginXUnits / 2 : (marginXUnits + PAGE_W_UNITS) / 2;
+        const cx = marginXUnits === null
+          ? contentXUnits + g.frame / 2
+          : marginXUnits < PAGE_W_UNITS / 2 ? marginXUnits / 2 : (marginXUnits + PAGE_W_UNITS) / 2;
         const top = baseline - g.frame;
         return (
           <g key={`drop${p.rowIndex}`} data-drop={p.drop}>

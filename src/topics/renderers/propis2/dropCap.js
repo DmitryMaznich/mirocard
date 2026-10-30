@@ -1,5 +1,6 @@
-// The printed letter in the margin (a «буквица»): one capital of the deck's alphabet in a frame that stands on the BASELINE of its row,
-// so a pupil sees which letter the elements and words of the row belong to. Owner's rules (2026-10-30): the frame as tall as a
+// The printed letter of a row (a «буквица»): one capital of the deck's alphabet in a frame that stands on the BASELINE of its row,
+// so a pupil sees which letter the elements and words of the row belong to. In the page margin when the page has one, else at the start
+// of its own row (the margin is the adult's choice and is never switched on for a letter). Owner's rules (2026-10-30): the frame as tall as a
 // written capital on the narrow ruling (8 mm: from the wide row's dashed top line to the baseline), square, in the page margin; Nunito
 // Bold, one colour (the app's teal, not the pupil's ink blue). Drawn by PrintPageView (the row line carries it as the flag `#bИ`).
 import { topicAlphabet } from "./alphabet.js";
@@ -12,6 +13,9 @@ export const DROP_STROKE_MM = 0.45;
 export const DROP_RADIUS_MM = 2.2;
 export const DROP_COLOR = "#2a6b60";
 export const DROP_FILL = "#e8f4f1";
+// Without a margin the frame stands at the start of its own row and the row's ink starts this many slant cells (2.5 mm each on the narrow ruling)
+// further in: the frame (8 mm) and 4.5 mm of air. The rows below write from the left edge as everywhere else.
+export const DROP_ROW_INDENT_CELLS = 5;
 const NUNITO_CAP_HEIGHT = 0.705; // em
 
 // Nunito Bold (700) advance widths of the Cyrillic capitals, 1/1000 em (public/fonts/pdf/glyphs.json): the letter is fitted into its frame

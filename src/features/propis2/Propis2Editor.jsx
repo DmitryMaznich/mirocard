@@ -124,8 +124,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   useEffect(() => () => clearTimeout(offerTimer.current), []);
   const showOffer = (o, ms) => { clearTimeout(offerTimer.current); setOffer(o); offerTimer.current = o ? setTimeout(() => setOffer(null), ms) : null; };
   const setSetting = (key, value) => {
-    // a margin the adult sets is his own: the automatic one (switched on by a printed letter) no longer follows the letters
-    onChange({ ...page, [key]: value, ...(key === "margin" ? { marginAuto: false } : {}) });
+    onChange({ ...page, [key]: value });
     showOffer(notebook?.othersDiffer(key, value) ? { key, value } : null, OFFER_MS);
   };
   const keyboard = useKeyboardInset();

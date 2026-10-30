@@ -1,7 +1,7 @@
 // `propis2`: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
-import { dropFlag } from "./dropCap.js";
+import { dropFlag, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
 import { snapXFor, ownRowsPerPage } from "../propis/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
@@ -312,21 +312,26 @@ function wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap) {
 export function pageToLines(page, glyphMap) {
   const out = [];
   const rows = page?.rows ?? [];
+  // a printed letter (`row.drop`, dropCap.js) stands in the margin when the page has one; without a margin it takes the start of its own row,
+  // and the row's ink starts further in (`#iN`, as for the spaces an adult typed before a text)
   rows.forEach((row, ri) => {
-    // the printed letter of the row (`row.drop`, dropCap.js): only on the first of the rows that follow each other with the same letter
-    const tag = dropFlag(row.drop && row.drop !== rows[ri - 1]?.drop ? row.drop : "");
+    // only on the first of the rows that follow each other with the same letter
+    const letter = row.drop && row.drop !== rows[ri - 1]?.drop ? row.drop : "";
+    const tag = dropFlag(letter);
+    const shift = dropShift(page, ri);
+    const indentTag = shift ? `#i${shift}` : "";
     if (row.kind === "blank") { out.push(tag); return; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropShiftUnits(page, ri), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(tag); return; }
-      const indent = leadingSpaces(row.text);
+      const indent = leadingSpaces(row.text) + shift;
       wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? tag : ""}`); if (page?.writeAfter) out.push(""); });
       return;
     }
     const line = rowToLine(row);
     // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
     if (!line) { out.push(tag); return; }
-    out.push(`${line}${tag}`);
+    out.push(`${line}${indentTag}${tag}`);
     if (page?.writeAfter) out.push("");
   });
   return out;
@@ -341,7 +346,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropShiftUnits(page, i), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
@@ -466,24 +471,25 @@ export function pageFromMarked(sourcePage, title) {
   return newPage(title ?? `${sourcePage.title}: повторение`, { ruling: sourcePage.ruling, writeAfter: sourcePage.writeAfter, rows });
 }
 
-// A printed letter (`row.drop`, dropCap.js) put on / taken off a row. The letter stands in the page margin, so adding the first one switches the
-// margin on by itself (`marginAuto`: ours, not the adult's choice); taking the last one off switches an automatic margin off again. A margin
-// the adult set or changed (setSetting of `margin` clears `marginAuto`) is never touched.
+// A printed letter (`row.drop`, dropCap.js) put on / taken off a row. Nothing else on the page changes: the margin stays the adult's own choice.
 export function withRowDrop(page, rowId, letter) {
   const rows = (page?.rows ?? []).map((r) => {
     if (r.id !== rowId) return r;
     const { drop, ...rest } = r;
     return letter ? { ...rest, drop: letter } : rest;
   });
-  const any = rows.some((r) => r.drop);
-  let { margin, marginAuto } = page;
-  if (any && pageMargin(page) === "off") { margin = "left"; marginAuto = true; }
-  else if (!any && marginAuto) { margin = "off"; marginAuto = false; }
-  const out = { ...page, rows };
-  if (margin !== undefined) out.margin = margin;
-  if (marginAuto !== undefined) out.marginAuto = marginAuto;
-  return out;
+  return { ...page, rows };
 }
+
+// How many slant cells the ink of row `ri` starts further in because a printed letter stands at the start of the row: only without a margin
+// (with one the letter stands in it), only on the first of the rows that follow each other with the same letter.
+export function dropShift(page, ri) {
+  const rows = page?.rows ?? [];
+  const row = rows[ri];
+  if (!row?.drop || row.drop === rows[ri - 1]?.drop) return 0;
+  return pageMargin(page) === "off" && pageHasDropRows(page) ? DROP_ROW_INDENT_CELLS : 0;
+}
+const dropShiftUnits = (page, ri) => dropShift(page, ri) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (pageRuling(page) === "narrow" ? 0.5 : 1);
 
 // Can the page show a printed letter: the narrow ruling of the methodology paper (the frame is the height of a written capital on it)
 export const pageHasDropRows = (page) => pageRuling(page) === "narrow" && pageGridKind(page) === "propis";
