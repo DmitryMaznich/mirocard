@@ -29,6 +29,11 @@ def bar(cx, y, half=14.0, bend=2.5):
                  f"L {r - 9:.2f} {y:.2f} C {r - 6:.2f} {y:.2f} {r - 3:.2f} {y:.2f} {r:.2f} {y - bend:.2f}"}
 
 
+def short_bar(cx, y, length=7.2):
+    """A straight crossbar like э's own (its stroke 2 is 7.2 units long, on the dashed middle line y=36), centred on the stem."""
+    return {"d": f"M {cx - length / 2:.2f} {y:.2f} L {cx + length / 2:.2f} {y:.2f}"}
+
+
 def g_bar():
     """Ғ: Г strokes 1 and 2, then a crossbar through the middle of the stem on the narrow row's upper line.
     Г's stroke 3 is its tailStroke (drawn only when a letter follows), kept so Ғ joins like Г."""
@@ -45,13 +50,13 @@ def stem_x_between(d, y):
     return x0 + (x1 - x0) * (y - y0) / (y1 - y0)
 
 
-def g_bar_lower(y=27.0):
+def g_bar_lower(y=36.0):
     """ғ: г (г1, one stroke with its own entry and exit) + a crossbar through the middle of the stem.
     The bar is written last, so exitStroke keeps the exit (the connector to the next letter) on stroke 0."""
     g = BANK["г1"]; s = g["strokes"]
     out = {k: v for k, v in g.items() if k != "aliases"}
-    out.update(label="ғ", strokes=[s[0], bar(stem_x_between(s[0]["d"], y), y, half=11.0)], exitStroke=0,
-               sourceLabel="ғ = г1 + перекладина посередине стойки")
+    out.update(label="ғ", strokes=[s[0], short_bar(stem_x_between(s[0]["d"], y), y)], exitStroke=0, noDotStrokes=[1],
+               sourceLabel="ғ = г1 + короткая прямая перекладина по пунктиру (как у э)")
     return out
 
 
