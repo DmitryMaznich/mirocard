@@ -28,9 +28,28 @@ const PLACE_TRAPS = [
   () => { const h = rnd(2, 9) * 100; return [h, h - rnd(1, 9)]; },
   () => { const h = rnd(1, 9) * 100, a = rnd(1, 9), b = rnd(0, 9); return a === b ? null : [h + a * 10 + rnd(0, 9), h + b * 10 + rnd(0, 9)]; },
 ];
-// «По разрядам» is a skill of the sign modes only — modes 1–3 and 5 are
-// earlier steps (quantities, the crocodile, drawing), «Применяем» works on a range.
-export const PLACE_VALUE_MODE_IDS = ["compare_evaluate", "compare_test"];
+// «По разрядам» is a level of «Сравни и поставь знак» only — the other modes
+// are earlier steps (quantities, the crocodile, drawing) or work on a range;
+// «Контрольная работа» has its own «Числа до» and mixes the traps in itself.
+export const PLACE_VALUE_MODE_IDS = ["compare_evaluate"];
+
+// «Сравни и нажми» (compare_visual): its views in teaching order, each with
+// the highest level it makes sense on. Pairs come first — matching one to one
+// needs no counting, so they work on any difference up to 10. Plain dots only
+// on level 1: 9 and 10 scattered dots can't be told apart by eye, the child
+// would just guess. A number under the dots allows counting, so up to 20.
+// Numbers alone are the bridge to the crocodile step and take any range.
+export const VISUAL_MODES = [
+  { value: "pairing",      maxLevel: 2 },
+  { value: "dots",         maxLevel: 1 },
+  { value: "dots_numbers", maxLevel: 3 },
+  { value: "numbers",      maxLevel: 4 },
+];
+
+export function visualModeLevel(visualMode, level) {
+  const maxLevel = VISUAL_MODES.find((v) => v.value === visualMode)?.maxLevel ?? 1;
+  return Math.min(level, maxLevel);
+}
 
 export function placeValuePair(usedPairs) {
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
@@ -45,21 +64,49 @@ export function placeValuePair(usedPairs) {
   return { left: 305, right: 350 };
 }
 
-const NUM_NOM = ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
-  "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
-  "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать", "двадцать"];
+// Numbers in words, 0–999, in the three cases the phrases need: «Три меньше
+// семи» (nominative, genitive), «Три равно трём» (dative). Each case lists
+// units 0–19, tens 2–9 and hundreds 1–9; a number is its parts in that case.
+const NUMERALS = {
+  nom: {
+    units: ["ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
+      "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"],
+    tens: ["", "", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"],
+    hundreds: ["", "сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот"],
+  },
+  gen: {
+    units: ["нуля", "одного", "двух", "трёх", "четырёх", "пяти", "шести", "семи", "восьми", "девяти", "десяти",
+      "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати", "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати"],
+    tens: ["", "", "двадцати", "тридцати", "сорока", "пятидесяти", "шестидесяти", "семидесяти", "восьмидесяти", "девяноста"],
+    hundreds: ["", "ста", "двухсот", "трёхсот", "четырёхсот", "пятисот", "шестисот", "семисот", "восьмисот", "девятисот"],
+  },
+  dat: {
+    units: ["нулю", "одному", "двум", "трём", "четырём", "пяти", "шести", "семи", "восьми", "девяти", "десяти",
+      "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати", "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати"],
+    tens: ["", "", "двадцати", "тридцати", "сорока", "пятидесяти", "шестидесяти", "семидесяти", "восьмидесяти", "девяноста"],
+    hundreds: ["", "ста", "двумстам", "трёмстам", "четырёмстам", "пятистам", "шестистам", "семистам", "восьмистам", "девятистам"],
+  },
+};
 
-const NUM_GEN = ["", "одного", "двух", "трёх", "четырёх", "пяти", "шести", "семи", "восьми", "девяти", "десяти",
-  "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати",
-  "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати", "двадцати"];
+export function numberInWords(n, grammaticalCase = "nom") {
+  const forms = NUMERALS[grammaticalCase];
+  if (!Number.isInteger(n) || n < 0 || n > 999) return String(n);
+  if (n === 0) return forms.units[0];
+  const parts = [];
+  if (n >= 100) parts.push(forms.hundreds[Math.floor(n / 100)]);
+  const rest = n % 100;
+  if (rest >= 20) {
+    parts.push(forms.tens[Math.floor(rest / 10)]);
+    if (rest % 10) parts.push(forms.units[rest % 10]);
+  } else if (rest) {
+    parts.push(forms.units[rest]);
+  }
+  return parts.join(" ");
+}
 
-const NUM_DAT = ["", "одному", "двум", "трём", "четырём", "пяти", "шести", "семи", "восьми", "девяти", "десяти",
-  "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати",
-  "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати", "двадцати"];
-
-function numNom(n) { return NUM_NOM[n] ?? String(n); }
-function numGen(n) { return NUM_GEN[n] ?? String(n); }
-function numDat(n) { return NUM_DAT[n] ?? String(n); }
+function numNom(n) { return numberInWords(n, "nom"); }
+function numGen(n) { return numberInWords(n, "gen"); }
+function numDat(n) { return numberInWords(n, "dat"); }
 function cap(s)    { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
 function isValidPair(left, right, minDiff, allowEqual) {
@@ -131,7 +178,9 @@ function getFirstNumberRelation(left, right) {
 export function getVerdict(task) {
   const words = task.wordsVerdict;
 
-  if (task.type === "compare_first_number" || (task.type === "compare_evaluate" && task.showLabels)) {
+  // The crocodile and the drawn sign stand between the two numbers, so the
+  // phrase reads that record left to right: 3 < 7 is «3 меньше 7», never «7 больше 3».
+  if (task.type === "compare_first_number" || task.type === "compare_sign" || task.type === "compare_draw_sign" || (task.type === "compare_evaluate" && task.showLabels)) {
     if (task.left === task.right) {
       return words
         ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
@@ -201,7 +250,7 @@ function* shuffledApplyComboCycle(min, max) {
   }
 }
 
-function generateApplyGenerateTask(min, max, op, value, includeEqual) {
+function generateApplyGenerateTask(min, max, op, value, includeEqual, twoFit = false) {
   const fits = (n) => (op === "more" ? n > value : n < value);
   const rest = [];
   for (let n = min; n <= max; n++) if (n !== value) rest.push(n);
@@ -214,16 +263,20 @@ function generateApplyGenerateTask(min, max, op, value, includeEqual) {
   // constraint actually was.
   const shuffledRest = shuffle(rest);
 
-  const correct = shuffledRest.find(fits);
+  // Usually one tile fits; on some tasks two do (twoFit), so the child sees
+  // that «больше 6» is not one number and can't settle it by elimination.
+  const fitting = shuffledRest.filter(fits);
+  const correct = fitting.slice(0, twoFit && fitting.length >= 2 ? 2 : 1);
   const nonFitting = shuffledRest.filter((n) => !fits(n));
+  const wrongCount = 4 - correct.length;
   // value itself is never in `rest`, so it's never drawn by chance — plant
   // it deliberately on an includeEqual task. It's neither больше nor
   // меньше than itself, so it's always a genuinely wrong tile; being the
   // exact number just spoken back at the child (not just "some other
   // number") is what makes it worth testing on purpose rather than only
   // when it happens to come up.
-  const wrong = includeEqual ? [value, ...nonFitting.slice(0, 2)] : nonFitting.slice(0, 3);
-  const options = shuffle([correct, ...wrong]);
+  const wrong = includeEqual ? [value, ...nonFitting.slice(0, wrongCount - 1)] : nonFitting.slice(0, wrongCount);
+  const options = shuffle([...correct, ...wrong]);
 
   return {
     taskType: "generate",
@@ -348,6 +401,63 @@ function* shuffledSceneCycle() {
   }
 }
 
+// «Контрольная работа»: a sheet is one test. Not one level but a mix
+// of every step up to the chosen ceiling, so a test «до 100» still checks
+// numbers up to 10 and 20; the top range gets the most rows. Every sheet has
+// pairs on «равно» (one in short sheets, two from six rows), and from «до 100»
+// the traps the ladder teaches: swapped digits (47 / 74), same tens (43 / 48);
+// «до 1000» adds the place-value traps (305 / 350, 99 / 100, 300 / 299).
+export const TEST_RANGES = [10, 20, 100, 1000];
+
+const TEST_BANDS = {
+  10:   [{ share: 1,   min: 1,  max: 10 }],
+  20:   [{ share: 0.4, min: 1,  max: 10 }, { share: 0.6, min: 1, max: 20, over: 10 }],
+  100:  [{ share: 0.2, min: 1,  max: 10 }, { share: 0.3, min: 1, max: 20, over: 10 }, { share: 0.5, min: 10, max: 99, traps: "tens" }],
+  1000: [{ share: 0.2, min: 1,  max: 20 }, { share: 0.3, min: 10, max: 99, traps: "tens" }, { share: 0.5, min: 100, max: 999, traps: "places" }],
+};
+
+const TENS_TRAPS = [
+  () => { const t = rnd(1, 9), o = rnd(1, 9); return t === o ? null : [t * 10 + o, o * 10 + t]; },
+  () => { const t = rnd(1, 9), a = rnd(0, 9), b = rnd(0, 9); return a === b ? null : [t * 10 + a, t * 10 + b]; },
+];
+
+function testPair(band, used) {
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    let pair;
+    if (band.traps === "places") { const p = placeValuePair(null); pair = [p.left, p.right]; }
+    else if (band.traps === "tens" && Math.random() < 0.5) pair = TENS_TRAPS[rnd(0, TENS_TRAPS.length - 1)]();
+    else pair = [rnd(band.min, band.max), rnd(band.min, band.max)];
+    if (!pair || pair[0] === pair[1]) continue;
+    // «до 20» rows are the teens: at least one number over 10.
+    if (band.over && Math.max(...pair) <= band.over) continue;
+    const key = `${pair[0]},${pair[1]}`;
+    if (used.has(key) || used.has(`${pair[1]},${pair[0]}`)) continue;
+    used.add(key);
+    return { left: pair[0], right: pair[1] };
+  }
+  return { left: band.min, right: band.max };
+}
+
+export function generateTestSheet(range, count) {
+  const bands = TEST_BANDS[range] ?? TEST_BANDS[20];
+  const used = new Set();
+  const equalCount = count >= 6 ? 2 : 1;
+  const rows = [];
+  // Rows per band by share, the rest to the top band.
+  const unequal = count - equalCount;
+  const perBand = bands.map((b) => Math.floor(unequal * b.share));
+  perBand[perBand.length - 1] += unequal - perBand.reduce((a, b) => a + b, 0);
+  bands.forEach((band, i) => { for (let k = 0; k < perBand[i]; k++) rows.push(testPair(band, used)); });
+  const top = bands[bands.length - 1];
+  for (let k = 0; k < equalCount; k++) {
+    let v, tries = 0;
+    do { v = rnd(top.over ? top.over + 1 : top.min, top.max); tries++; } while (used.has(`${v},${v}`) && tries < MAX_ATTEMPTS);
+    used.add(`${v},${v}`);
+    rows.push({ left: v, right: v });
+  }
+  return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
+}
+
 // sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
@@ -391,11 +501,29 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
         base = generateApplyOrderTask(min, max, numbersCount, orderDirection);
       } else {
         const { op, value, includeEqual } = comboCycle.next().value;
-        base = generateApplyGenerateTask(min, max, op, value, includeEqual);
+        base = generateApplyGenerateTask(min, max, op, value, includeEqual, i % 3 === 2);
       }
       tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
     }
     return tasks;
+  }
+
+  if (mode.id === "compare_test") {
+    const card = resolveComparisonCard(mode, cards, sessionParams);
+    if (!card) return [];
+    const range = TEST_RANGES.includes(sessionParams.testRange) ? sessionParams.testRange : 20;
+    const examples = Math.max(4, Math.min(10, Number(sessionParams.examplesCount ?? 8)));
+    // One sheet per task: each sheet is a test of its own with its own
+    // result, and the lesson goes on sheet after sheet like any other —
+    // a reward may need several sheets.
+    return Array.from({ length: count }, () => ({
+      type: mode.type,
+      items: generateTestSheet(range, examples),
+      conceptId: card.conceptId,
+      style: sessionParams.style ?? "sign",
+      instruction: "Поставь правильный знак между числами",
+      isTest: true,
+    }));
   }
 
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
@@ -415,7 +543,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     : 1;
   const showLabels = isVerbal ? (sessionParams.showLabels !== false) : false;
 
-  const levelId    = level === 5 && !PLACE_VALUE_MODE_IDS.includes(mode.id) ? 4 : level;
+  const levelId    = mode.type === "compare_visual"
+    ? visualModeLevel(visualMode, level)
+    : level === 5 && !PLACE_VALUE_MODE_IDS.includes(mode.id) ? 4 : level;
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === levelId) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
   const card       = resolveComparisonCard(mode, cards, sessionParams);
@@ -486,7 +616,10 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     // Level 5: after a mistake the renderer shows both numbers by places
     // (PlaceHint) — not in «Контрольная работа».
     const placeHint = Boolean(baseParams.placeValue) && mode.id !== "compare_test";
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
+    // What the crocodile step asks to tap. An equal pair asks the same as the
+    // others, so the wording never gives away that this pair is the equal one.
+    const ask = taskQuestion === "equal" ? (question === "less" ? "less" : "more") : taskQuestion;
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, ask, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
   }
 
   if ((isFirstNumber || isEvaluate) && examplesCount > 1) {

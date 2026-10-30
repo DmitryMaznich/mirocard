@@ -117,9 +117,11 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
   }
 
   function handleSide(pickedLeft) {
-    if (isAnswered || task.question === "equal") return;
+    if (isAnswered) return;
     setAnswered(true);
-    if (isLeftCorrect === pickedLeft) {
+    // On an equal pair neither side is the answer — a tap on a side is a
+    // mistake like any other, not a tap that silently does nothing.
+    if (task.question !== "equal" && isLeftCorrect === pickedLeft) {
       onCorrect(task.conceptId, null);
     } else {
       flashWrong(pickedLeft ? "left" : "right");

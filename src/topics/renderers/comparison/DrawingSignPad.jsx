@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { recognizeSign, DRAW_SPACE } from "./signRecognition";
+import { recognizeSign, mayBeHalfOfEqual, DRAW_SPACE } from "./signRecognition";
+
+const RECOGNIZE_MS        = 700;
+const EQUAL_SECOND_BAR_MS = 1600;
 
 // Backing-store resolution follows the canvas's real displayed CSS size *
 // devicePixelRatio, so lines stay crisp on retina screens instead of being
@@ -103,11 +106,13 @@ export default function DrawingSignPad({ taskKey, onSignRecognized, disabled, sh
     if (!isDrawing) return;
     setIsDrawing(false);
     e.currentTarget.releasePointerCapture?.(e.pointerId);
+    // A slow hand needs time between the two bars of «=».
+    const wait = mayBeHalfOfEqual(strokesRef.current) ? EQUAL_SECOND_BAR_MS : RECOGNIZE_MS;
     timerRef.current = setTimeout(() => {
       const sign = recognizeSign(strokesRef.current);
       setOverlaySign(sign);
       onSignRecognized(sign, clearCanvas);
-    }, 700);
+    }, wait);
   }
 
   return (

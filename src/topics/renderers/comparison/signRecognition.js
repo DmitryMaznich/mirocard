@@ -42,10 +42,44 @@ function findVertex(stroke) {
   return null;
 }
 
+// One flat bar may be the first half of «=» — the pad then waits longer for
+// the second one instead of reading the bar alone as an unknown sign.
+export function mayBeHalfOfEqual(strokes) {
+  return strokes?.length === 1 && strokes[0].length > 0 && isFlatBar(boundsOf(strokes[0]));
+}
+
+// Two strokes that meet end to end, as one line through the meeting point.
+// Null when no ends come close enough to be the same corner.
+function joinAtCorner(a, b) {
+  if (a.length < 2 || b.length < 2) return null;
+  const all = boundsOf([...a, ...b]);
+  const near = Math.max(30, Math.max(all.width, all.height) * 0.25);
+  const dist = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+  const [a0, a1, b0, b1] = [a[0], a.at(-1), b[0], b.at(-1)];
+  const options = [
+    [dist(a0, b0), () => [...a].reverse().concat(b)],
+    [dist(a0, b1), () => b.concat(a)],
+    [dist(a1, b0), () => a.concat(b)],
+    [dist(a1, b1), () => a.concat([...b].reverse())],
+  ];
+  const [gap, join] = options.reduce((best, o) => (o[0] < best[0] ? o : best));
+  if (gap > near) return null;
+  // The arms of a corner spread apart; two bars of «=» stay about as far
+  // apart at the other end as at the near one.
+  const line = join();
+  const spread = dist(line[0], line.at(-1));
+  return spread > Math.max(2 * gap, near) ? line : null;
+}
+
 export function recognizeSign(strokes) {
   if (!strokes || strokes.length === 0) return null;
 
   if (strokes.length === 2) {
+    // Many children draw «<» as two lines meeting in the corner. Checked
+    // before «=»: two slanted arms are each wide enough to pass as a bar.
+    const joined = joinAtCorner(strokes[0], strokes[1]);
+    const chevron = joined && findVertex(joined);
+    if (chevron) return chevron;
     if (isFlatBar(boundsOf(strokes[0])) && isFlatBar(boundsOf(strokes[1]))) return "=";
     return "?";
   }

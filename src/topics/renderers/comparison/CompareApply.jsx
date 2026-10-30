@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import DrawingSignPad from "./DrawingSignPad";
+import { getVerdict } from "./engine";
 
 // Tap one of a few concrete number tiles that fits the spoken constraint —
 // a closed choice, not free number entry. See engine.js's
@@ -23,16 +24,14 @@ import DrawingSignPad from "./DrawingSignPad";
 // from tapping the plain tile for real (see tapOption): opening and
 // closing the hint, and drawing a correct sign inside it, have no effect
 // on scoring, so a child who just peeks loses nothing, and one who solves
-// it via the hint still has to tap the real tile to get credit. A WRONG
-// sign inside the hint is different on purpose: the hint exists so a
-// child struggling with the real tiles has somewhere to go, so it costs
-// the star streak the same way a wrong tap would — via onStreakReset, a
-// narrower sibling of onMistake/onIncorrect (see sessionEngine.js's
-// handleStreakReset) that resets the streak without bumping taskRetry, so
-// it doesn't end the task, lock the tiles, or remount this component —
-// the child keeps working the hint right where they were, just without
-// the streak. onAnswer (real credit) still only ever comes from tapOption.
-function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }) {
+// it via the hint still has to tap the real tile to get credit. A wrong
+// sign inside the hint costs nothing either: the hint is where a struggling
+// child goes for help, so it shakes, clears and lets them draw again.
+// onAnswer (real credit) only ever comes from tapOption.
+//
+// Some tasks have two fitting tiles (engine.js) — any one of them counts:
+// «больше 6» is not one number.
+function GenerateStage({ task, answered, onAnswer, playFeedback }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
   const [isCorrectPick, setIsCorrectPick] = useState(false);
@@ -40,7 +39,7 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
   const [hintDone, setHintDone] = useState(() => Array(task.options.length).fill(false));
   const [hintShakeIdx, setHintShakeIdx] = useState(-1);
 
-  const matchIdx = task.options.findIndex((n) => (task.op === "more" ? n > task.value : n < task.value));
+  const fits = (n) => (task.op === "more" ? n > task.value : n < task.value);
 
   function tapOption(n, idx) {
     if (answered) return;
@@ -57,11 +56,15 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
   function handleHintSign(idx, n, sign, clearCanvas) {
     if (answered) return;
     const correctSign = n === task.value ? "=" : n < task.value ? "<" : ">";
+    // An unreadable drawing is not a wrong sign — just draw again.
+    if (sign === "?") {
+      window.setTimeout(() => clearCanvas(), 800);
+      return;
+    }
     if (sign !== correctSign) {
       setHintShakeIdx(idx);
       window.setTimeout(() => setHintShakeIdx(-1), 400);
       window.setTimeout(() => clearCanvas(), 800);
-      onStreakReset?.(task.conceptId, null);
       return;
     }
     playFeedback?.("correct");
@@ -88,7 +91,7 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
             {hintActive ? (
               <div className={[
                 "apply-hint-tile",
-                hintDone[i] && (i === matchIdx ? "apply-hint-tile--match" : "apply-hint-tile--done"),
+                hintDone[i] && (fits(n) ? "apply-hint-tile--match" : "apply-hint-tile--done"),
               ].filter(Boolean).join(" ")}>
                 <span className="apply-hint-tile-num">{n}</span>
                 <div className="apply-hint-tile-pad">
@@ -118,6 +121,11 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
           </div>
         ))}
       </div>
+      {isCorrectPick && (
+        <div className="compare-verdict">
+          {getVerdict({ type: "compare_sign", left: task.options[pickedIdx], right: task.value })}
+        </div>
+      )}
       {!answered && (
         <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
           <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
@@ -285,7 +293,10 @@ function OrderScaleHint({ min, max }) {
 // sort, not a tap-in-order sequence. Any slot can be filled first; each
 // drop is checked against its own position in `task.sorted`, so the child
 // decides where a number goes rather than always picking "the next one".
-function OrderStage({ task, answered, onAnswer }) {
+// A wrong drop is a mistake (onMistake) but the tile just goes back to the
+// tray: the numbers already in place stay there (SessionScreen keeps this
+// task mounted across it).
+function OrderStage({ task, answered, onAnswer, onMistake }) {
   const [showHint, setShowHint] = useState(false);
   // placement[tileIdx] = slotIdx once placed, else null.
   const [placement, setPlacement] = useState(() => Array(task.numbers.length).fill(null));
@@ -311,7 +322,7 @@ function OrderStage({ task, answered, onAnswer }) {
     if (task.sorted[slotIdx] !== task.numbers[tileIdx]) {
       setWrongSlotIdx(slotIdx);
       window.setTimeout(() => setWrongSlotIdx(-1), 350);
-      onAnswer(false);
+      onMistake?.(task.conceptId, null);
       return;
     }
 
@@ -374,7 +385,7 @@ function OrderStage({ task, answered, onAnswer }) {
   );
 }
 
-export default function CompareApply({ task, onCorrect, onIncorrect, onStreakReset, playFeedback }) {
+export default function CompareApply({ task, onCorrect, onIncorrect, onMistake, playFeedback }) {
   const [answered, setAnswered] = useState(false);
 
   function handleAnswer(isCorrect) {
@@ -388,9 +399,9 @@ export default function CompareApply({ task, onCorrect, onIncorrect, onStreakRes
     <div className="compare-body compare-body--apply">
       <div className="apply-kicker">{task.instruction}</div>
       {task.taskType === "order" ? (
-        <OrderStage task={task} answered={answered} onAnswer={handleAnswer} />
+        <OrderStage task={task} answered={answered} onAnswer={handleAnswer} onMistake={onMistake} />
       ) : (
-        <GenerateStage task={task} answered={answered} onAnswer={handleAnswer} onStreakReset={onStreakReset} playFeedback={playFeedback} />
+        <GenerateStage task={task} answered={answered} onAnswer={handleAnswer} playFeedback={playFeedback} />
       )}
     </div>
   );

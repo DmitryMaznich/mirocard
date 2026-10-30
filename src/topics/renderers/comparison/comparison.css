@@ -34,8 +34,10 @@
   border-radius: 20px; pointer-events: none;
   backdrop-filter: blur(2px); animation: fadeIn 0.2s ease;
 }
-.draw-sign-overlay.success { background: rgba(220,252,231,0.85); color: #22c55e; }
-.draw-sign-overlay.error   { background: rgba(254,226,226,0.85); color: #ef4444; }
+/* Shows what the pad read, not whether it's right — so neutral colours:
+   green here used to praise a wrong sign a moment before the shake. */
+.draw-sign-overlay.success { background: rgba(219,234,254,0.85); color: #2d6fb5; }
+.draw-sign-overlay.error   { background: rgba(241,245,249,0.85); color: #94a3b8; }
 .croc-draw-sign-layout { gap: clamp(8px, 2vw, 24px); }
 .croc-draw-sign-layout .croc-put-sign-num { min-width: 0; font-size: clamp(64px, 14vw, 112px); }
 
@@ -86,9 +88,10 @@
   gap: clamp(6px, 2.5vw, 16px); width: 100%; max-width: 420px;
 }
 .compare-croc-area { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-.croc-tap-btn { all: unset; display: inline-flex; flex-direction: column; align-items: center; cursor: pointer; border-radius: 50%; padding: 4px; transition: transform 0.15s; }
-.croc-tap-btn:hover  { transform: scale(1.1); }
-.croc-tap-btn:active { transform: scale(0.95); }
+.croc-tap-btn { all: unset; display: inline-flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; border-radius: 50%; padding: 4px; transition: transform 0.15s; }
+.croc-tap-btn:hover:not(:disabled)  { transform: scale(1.1); }
+.croc-tap-btn:active:not(:disabled) { transform: scale(0.95); }
+.croc-tap-btn:disabled { cursor: default; }
 .compare-croc-tip {
   display: flex; align-items: center; gap: 10px;
   background: #e8f5e9; border: 2px solid #66bb6a; border-radius: 16px;
@@ -260,11 +263,19 @@
   transition: background 0.15s;
 }
 .cfn-multi-row--active { background: #f8fafc; }
-.cfn-multi-num  { min-width: 0; flex-shrink: 1; font-size: clamp(13px, 56cqh, 34px); font-weight: 900; color: #1e293b; text-align: center; }
+/* Both numbers take equal halves around the sign square and hug it, so the
+   squares line up in one column down the sheet whatever the numbers' width
+   (7 against 305 used to shift the square sideways). */
+.cfn-multi-num  { flex: 1 1 0; min-width: 0; font-size: clamp(13px, 56cqh, 34px); font-weight: 900; color: #1e293b; text-align: right; white-space: nowrap; }
+.cfn-multi-sign + .cfn-multi-num { text-align: left; }
 .cfn-multi-sign { align-self: stretch; aspect-ratio: 1; flex-shrink: 0; border-radius: 12px; border: 2.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: clamp(11px, 42cqh, 24px); font-weight: 900; color: #94a3b8; background: #fff; transition: background 0.2s, border-color 0.2s, color 0.2s; }
 .cfn-multi-sign--active { border-style: solid; border-color: #f59e0b; background: #fef9c3; color: #d97706; }
 .cfn-multi-sign--done   { border-style: solid; border-color: #86efac; color: #16a34a; background: #f0fdf4; }
 .cfn-multi-sign--wrong  { border-style: solid; border-color: #fca5a5; background: #fef2f2; color: #dc2626; animation: cfn-shake 0.3s ease; }
+/* «Контрольная работа» result: a row that needed a second try. */
+.cfn-multi-sign--fixed  { border-style: solid; border-color: #fcd34d; color: #b45309; background: #fffbeb; }
+.cfn-test-summary { text-align: center; font-size: clamp(20px, 4.5vw, 30px); font-weight: 700; color: #334155; padding: 8px 0; }
+.cfn-test-summary strong { font-weight: 900; color: #1e293b; }
 @keyframes cfn-shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-4px); }
@@ -588,10 +599,13 @@
   overflow: hidden;
 }
 .reallife-scene-img { display: block; width: 100%; height: auto; }
+/* Same box as the picture (900 × 604) while it loads from the installed topic. */
+.reallife-scene-img--loading { aspect-ratio: 900 / 604; background: #f1f5f9; }
 .reallife-overlay { position: absolute; inset: 0; display: flex; }
 .reallife-side { position: relative; flex: 1; min-width: 0; }
 .reallife-side--wrong { animation: shake 0.35s; }
 .cfn-btn--wrong { animation: shake 0.35s; border-color: #ef4444; }
+.cfn-btn--correct { border-color: #22c55e; background: #dcfce7; }
 .reallife-side--correct::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: rgba(34,197,94,0.16);

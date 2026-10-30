@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { getVerdict } from "./engine";
+import { CrocTip } from "./CompareSign";
 
 const SIGN_CHAR = { less: "<", equal: "=", more: ">" };
 const OPTIONS = [
@@ -8,7 +9,7 @@ const OPTIONS = [
   { value: "more",  label: "Больше" },
 ];
 
-function Buttons({ style, correct, answered, onAnswer }) {
+function Buttons({ style, correct, answered, solved, onAnswer }) {
   const [shake, setShake] = useState(null);
 
   function handle(value) {
@@ -24,7 +25,12 @@ function Buttons({ style, correct, answered, onAnswer }) {
     return (
       <div className="cfn-options">
         {OPTIONS.map((opt) => (
-          <button key={opt.value} className="cfn-btn" disabled={answered} onClick={() => handle(opt.value)}>
+          <button
+            key={opt.value}
+            className={["cfn-btn", shake === opt.value && "cfn-btn--wrong", solved && correct === opt.value && "cfn-btn--correct"].filter(Boolean).join(" ")}
+            disabled={answered}
+            onClick={() => handle(opt.value)}
+          >
             <span className="cfn-btn-sign">{SIGN_CHAR[opt.value]}</span>
             <span className="cfn-btn-label">{opt.label}</span>
           </button>
@@ -40,7 +46,7 @@ function Buttons({ style, correct, answered, onAnswer }) {
           className={[
             "croc-put-sign-btn",
             shake === value && "croc-put-sign-btn--shake",
-            answered && correct === value && "croc-put-sign-btn--correct",
+            solved && correct === value && "croc-put-sign-btn--correct",
           ].filter(Boolean).join(" ")}
           disabled={answered}
           onClick={() => handle(value)}
@@ -76,7 +82,7 @@ function MultiButtons({ style, disabled, onAnswer }) {
   );
 }
 
-function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
+function SingleMode({ task, taskRetry, onCorrect, onIncorrect, onAdvance }) {
   const [answered, setAnswered] = useState(false);
   const [verdict,  setVerdict]  = useState(null);
 
@@ -98,14 +104,18 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
     }
   }
 
+  // The sign appears only once it's answered right: after a wrong answer the
+  // same pair comes back, and it must not come back already solved.
+  const solved = verdict !== null;
+
   const stage = showLabels ? (
     <div className="cfn-stage">
       <div className="cfn-card cfn-card--first">
         <div className="cfn-label">первое</div>
         <div className="cfn-number">{task.left}</div>
       </div>
-      <div className={`cfn-bridge${answered ? " cfn-bridge--shown" : ""}`}>
-        {answered ? SIGN_CHAR[correct] : "?"}
+      <div className={`cfn-bridge${solved ? " cfn-bridge--shown" : ""}`}>
+        {solved ? SIGN_CHAR[correct] : "?"}
       </div>
       <div className="cfn-card cfn-card--second">
         <div className="cfn-label">второе</div>
@@ -115,7 +125,7 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
   ) : (
     <div className="croc-put-sign-numbers">
       <span className="croc-put-sign-num">{task.left}</span>
-      <span className="croc-put-sign-blank">{answered ? SIGN_CHAR[correct] : "?"}</span>
+      <span className="croc-put-sign-blank">{solved ? SIGN_CHAR[correct] : "?"}</span>
       <span className="croc-put-sign-num">{task.right}</span>
     </div>
   );
@@ -130,12 +140,17 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
     );
   }
 
+  // After a mistake, the crocodile from step 2 comes back as a reminder of the
+  // sign's direction — not the answer. Level 5 has its own place-value hint.
+  const crocReminder = taskRetry > 0 && !answered && !showLabels && !task.placeHint;
+
   return (
     <div className="compare-body">
+      {crocReminder && <CrocTip ask="more" />}
       <div className="compare-instruction">{instruction}</div>
       {stage}
       <div className="cfn-multi-divider" />
-      <Buttons style={style} correct={correct} answered={answered} onAnswer={handleAnswer} />
+      <Buttons style={style} correct={correct} answered={answered} solved={solved} onAnswer={handleAnswer} />
       {verdict && !showLabels && <div className="compare-verdict">{verdict}</div>}
     </div>
   );
@@ -146,11 +161,14 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
   const [wrongFlash, setWrongFlash] = useState(-1);
+  // Rows that needed a second try — the test's result marks them.
+  const [missed,     setMissed]     = useState(() => new Set());
   const doneRef      = useRef(false);
   const onCorrectRef = useRef(onCorrect);
   useEffect(() => { onCorrectRef.current = onCorrect; });
 
   const style = task.style ?? "sign";
+  const testDone = Boolean(task.isTest) && focusIndex >= items.length;
 
   function handleAnswer(value) {
     if (doneRef.current) return;
@@ -158,6 +176,7 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
     const correct = item.left > item.right ? "more" : item.left < item.right ? "less" : "equal";
     if (value !== correct) {
       setWrongFlash(focusIndex);
+      setMissed((prev) => new Set(prev).add(focusIndex));
       onMistake?.(task.conceptId, null);
       window.setTimeout(() => setWrongFlash(-1), 420);
       return;
@@ -169,14 +188,17 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
     setFocusIndex(nextFocus);
     if (nextFocus >= items.length) {
       doneRef.current = true;
-      window.setTimeout(() => onCorrectRef.current(task.conceptId, null), 650);
-    } else {
+      // The test's sheet shows its result right away and waits for a tap.
+      window.setTimeout(() => onCorrectRef.current(task.conceptId, null), task.isTest ? 0 : 650);
+    } else if (!task.isTest) {
+      // «Контрольная работа»: no praise row by row, like a real test.
       playFeedback?.("correct");
     }
   }
 
   function signClass(i) {
     const b = "cfn-multi-sign";
+    if (testDone && missed.has(i)) return `${b} ${b}--fixed`;
     if (wrongFlash === i)   return `${b} ${b}--wrong`;
     if (answers[i] != null) return `${b} ${b}--done`;
     if (focusIndex === i)   return `${b} ${b}--active`;
@@ -253,15 +275,21 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
       </div>
       <div ref={dividerRef} className="cfn-multi-divider" />
       <div ref={buttonsRef} className="cfn-multi-buttons-wrap">
-        <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
+        {testDone ? (
+          <div className="cfn-test-summary" aria-live="polite">
+            С первого раза: <strong>{items.length - missed.size} из {items.length}</strong>
+          </div>
+        ) : (
+          <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
+        )}
       </div>
     </div>
   );
 }
 
-export default function CompareEvaluate({ task, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
+export default function CompareEvaluate({ task, taskRetry = 0, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
   if (task.items) {
     return <MultiMode task={task} onCorrect={onCorrect} onMistake={onMistake} playFeedback={playFeedback} />;
   }
-  return <SingleMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
+  return <SingleMode task={task} taskRetry={taskRetry} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
 }

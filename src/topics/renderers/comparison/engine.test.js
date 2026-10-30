@@ -142,7 +142,7 @@ describe("generateTasks", () => {
   });
 
   it("level (not the card) controls the numeric range — level 4 reaches two-digit numbers", () => {
-    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 30, { level: 4 });
+    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 30, { level: 4, visualMode: "numbers" });
     tasks.forEach(({ left, right }) => {
       expect(left).toBeGreaterThanOrEqual(10);
       expect(left).toBeLessThanOrEqual(99);
@@ -290,26 +290,6 @@ describe("generateTasks", () => {
   it("compare_evaluate has a fixed instruction independent of any question setting", () => {
     const tasks = generateTasks(MODE_EVALUATE, ALL_CARDS, 10, { question: "more" });
     tasks.forEach((t) => expect(t.instruction).toBe("Поставь правильный знак между числами"));
-  });
-
-  // "Контрольная работа" reuses compare_evaluate's type/engine branch —
-  // only the mode id/params differ (examplesCount is meaningful here).
-  it("compare_test (Контрольная работа) batches items like compare_evaluate does", () => {
-    const batches = generateTasks(MODE_TEST, ALL_CARDS, 5, { examplesCount: 4 });
-    expect(batches).toHaveLength(5);
-    batches.forEach((batch) => {
-      expect(batch.items).toHaveLength(4);
-      batch.items.forEach((item) => {
-        const real = item.left === item.right ? "equal" : item.left > item.right ? "more" : "less";
-        expect(item.question).toBe(real);
-      });
-    });
-  });
-
-  it("compare_test supports up to 10 examples per screen", () => {
-    const batches = generateTasks(MODE_TEST, ALL_CARDS, 3, { examplesCount: 10 });
-    expect(batches).toHaveLength(3);
-    batches.forEach((batch) => expect(batch.items).toHaveLength(10));
   });
 
   describe("compare_apply", () => {
@@ -538,9 +518,9 @@ describe("generateTasks", () => {
       expect(askedLess).toBe(true);
     });
 
-    it("every task carries the scene's image", () => {
+    it("every task names its scene's picture — a file of the topic, not inline data", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
-      tasks.forEach((t) => expect(t.image).toMatch(/^data:image\/jpeg;base64,/));
+      tasks.forEach((t) => expect(t.image).toMatch(/^media\/scenes\/[a-z0-9_]+\.jpg$/));
     });
 
     it("includes at least one genuinely tied scene, so 'Поровну' is sometimes the correct answer", () => {

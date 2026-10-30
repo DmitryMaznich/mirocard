@@ -1,37 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-
-const NOM_ONES  = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
-const NOM_TEENS = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать',
-                   'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
-const NOM_TENS  = ['', '', 'двадцать', 'тридцать', 'сорок',
-                   'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
-const GEN_ONES  = ['', 'одного', 'двух', 'трёх', 'четырёх', 'пяти', 'шести', 'семи', 'восьми', 'девяти'];
-const GEN_TEENS = ['десяти', 'одиннадцати', 'двенадцати', 'тринадцати', 'четырнадцати',
-                   'пятнадцати', 'шестнадцати', 'семнадцати', 'восемнадцати', 'девятнадцати'];
-const GEN_TENS  = ['', '', 'двадцати', 'тридцати', 'сорока',
-                   'пятидесяти', 'шестидесяти', 'семидесяти', 'восьмидесяти', 'девяноста'];
-
-function toNom(n) {
-  if (n >= 10 && n <= 19) return NOM_TEENS[n - 10];
-  const t = Math.floor(n / 10), o = n % 10;
-  if (t === 0) return NOM_ONES[o];
-  if (o === 0) return NOM_TENS[t];
-  return `${NOM_TENS[t]} ${NOM_ONES[o]}`;
-}
-function toGen(n) {
-  if (n >= 10 && n <= 19) return GEN_TEENS[n - 10];
-  const t = Math.floor(n / 10), o = n % 10;
-  if (t === 0) return GEN_ONES[o];
-  if (o === 0) return GEN_TENS[t];
-  return `${GEN_TENS[t]} ${GEN_ONES[o]}`;
-}
-function wordVerdict(left, right) {
-  const nomL = toNom(left);
-  const cap  = nomL.charAt(0).toUpperCase() + nomL.slice(1);
-  if (left === right) return `Одинаково! ${cap} и ${toNom(right)}`;
-  if (left < right)  return `${cap} меньше ${toGen(right)}`;
-  return `${cap} больше ${toGen(right)}`;
-}
+import { getVerdict } from "./engine";
+import { CrocTip } from "./CompareSign";
 
 const SIGN    = { less: "<", equal: "=", more: ">" };
 const OPTIONS = [
@@ -112,16 +81,25 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
   );
 }
 
-function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
-  const [answered, setAnswered] = useState(false);
+function SingleMode({ task, taskRetry, onCorrect, onIncorrect, onAdvance }) {
+  // Only a right answer reveals the sign and the phrase: after a wrong one the
+  // same pair comes back for another try and must not come back solved.
+  const [result, setResult] = useState(null); // null | "right" | "wrong"
+  const [picked, setPicked] = useState(null);
   const correct     = task.question;
   const showLabels  = task.showLabels !== false;
+  const solved      = result === "right";
 
   function handleAnswer(value) {
-    if (answered) return;
-    setAnswered(true);
-    if (value === correct) onCorrect(task.conceptId, null);
-    else                   onIncorrect(task.conceptId, null);
+    if (result) return;
+    setPicked(value);
+    if (value === correct) {
+      setResult("right");
+      onCorrect(task.conceptId, null);
+    } else {
+      setResult("wrong");
+      onIncorrect(task.conceptId, null);
+    }
   }
 
   const stage = (
@@ -130,8 +108,8 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
         {showLabels && <div className="cfn-label">первое</div>}
         <div className="cfn-number">{task.left}</div>
       </div>
-      <div className={`cfn-bridge${answered ? " cfn-bridge--shown" : ""}`}>
-        {answered ? SIGN[correct] : "?"}
+      <div className={`cfn-bridge${solved ? " cfn-bridge--shown" : ""}`}>
+        {solved ? SIGN[correct] : "?"}
       </div>
       <div className="cfn-card cfn-card--second">
         {showLabels && <div className="cfn-label">второе</div>}
@@ -140,13 +118,13 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
     </div>
   );
 
-  if (answered) {
+  if (solved) {
     return (
       <button className="session-full-tap cfn-result-tap" onClick={(e) => { e.stopPropagation(); onAdvance(); }}>
         <div className="compare-instruction">Сравни первое число со вторым:</div>
         {stage}
         <div className="compare-verdict cfn-verdict-reveal">
-          {wordVerdict(task.left, task.right)}
+          {getVerdict({ ...task, wordsVerdict: true })}
         </div>
       </button>
     );
@@ -154,6 +132,7 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
 
   return (
     <div className="compare-body">
+      {taskRetry > 0 && !result && <CrocTip ask="more" />}
       <div className="compare-instruction">Сравни первое число со вторым:</div>
       {stage}
       <div className="cfn-multi-divider" />
@@ -161,7 +140,8 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
         {OPTIONS.map((opt) => (
           <button
             key={opt.value}
-            className="cfn-btn"
+            className={`cfn-btn${result === "wrong" && picked === opt.value ? " cfn-btn--wrong" : ""}`}
+            disabled={Boolean(result)}
             onClick={() => handleAnswer(opt.value)}
           >
             <span className="cfn-btn-sign">{opt.sign}</span>
@@ -173,9 +153,9 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
   );
 }
 
-export default function CompareFirstNumber({ task, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
+export default function CompareFirstNumber({ task, taskRetry = 0, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
   if (task.items) {
     return <MultiMode task={task} onCorrect={onCorrect} onMistake={onMistake} playFeedback={playFeedback} />;
   }
-  return <SingleMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
+  return <SingleMode task={task} taskRetry={taskRetry} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
 }

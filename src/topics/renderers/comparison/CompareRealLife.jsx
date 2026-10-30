@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Which of the three answers ("a" | "equal" | "b") is actually correct for
 // this task — the same three values the answer buttons use, so a button's
@@ -11,10 +11,37 @@ function correctAnswerFor(task) {
   return task.correctAnswer;
 }
 
-function Scene({ task, answered, correctAnswer, wrongPick }) {
+// The scene picture is a file of the installed topic (media/scenes/*.jpg in
+// the ZIP), not part of the app bundle — fetched through the host's
+// loadTopicFileUrl. The box keeps its size while it loads.
+function useSceneImage(task, topicId, loadTopicFileUrl) {
+  // Kept with the path it was loaded for: a new scene shows nothing until its
+  // own picture arrives, never the previous one.
+  const [loaded, setLoaded] = useState({ path: null, url: null });
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl = null;
+    Promise.resolve(loadTopicFileUrl ? loadTopicFileUrl(topicId, task.image) : task.image)
+      .then((next) => {
+        if (next?.startsWith("blob:")) objectUrl = next;
+        if (cancelled) { if (objectUrl) URL.revokeObjectURL(objectUrl); return; }
+        setLoaded({ path: task.image, url: next ?? null });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [task.image, topicId, loadTopicFileUrl]);
+  return loaded.path === task.image ? loaded.url : null;
+}
+
+function Scene({ task, imageUrl, answered, correctAnswer, wrongPick }) {
   return (
     <div className="reallife-scene">
-      <img className="reallife-scene-img" src={task.image} alt="" draggable={false} />
+      {imageUrl
+        ? <img className="reallife-scene-img" src={imageUrl} alt="" draggable={false} />
+        : <div className="reallife-scene-img reallife-scene-img--loading" aria-hidden="true" />}
       <div className="reallife-overlay">
         <div className={[
           "reallife-side",
@@ -47,12 +74,13 @@ function Scene({ task, answered, correctAnswer, wrongPick }) {
 // needs its own explicit tap (onAdvance) before the session moves on —
 // matching the deliberate, unhurried pace the rest of the ladder's
 // speech-reveal modes use.
-export default function CompareRealLife({ task, onCorrect, onIncorrect, onAdvance }) {
+export default function CompareRealLife({ task, topicId, loadTopicFileUrl, onCorrect, onIncorrect, onAdvance }) {
   const [answered,  setAnswered]  = useState(false);
   const [locked,    setLocked]    = useState(false); // set on a wrong tap, until the remount resets it
   const [wrongPick, setWrongPick] = useState(null);  // "a" | "equal" | "b" | null
 
   const correctAnswer = correctAnswerFor(task);
+  const imageUrl = useSceneImage(task, topicId, loadTopicFileUrl);
 
   function handleAnswer(value) {
     if (answered || locked) return;
@@ -70,7 +98,7 @@ export default function CompareRealLife({ task, onCorrect, onIncorrect, onAdvanc
     return (
       <button className="session-full-tap cfn-result-tap" onClick={(e) => { e.stopPropagation(); onAdvance(); }}>
         <div className="compare-instruction">{task.instruction}</div>
-        <Scene task={task} answered={answered} correctAnswer={correctAnswer} wrongPick={null} />
+        <Scene task={task} imageUrl={imageUrl} answered={answered} correctAnswer={correctAnswer} wrongPick={null} />
         <div className="compare-verdict cfn-verdict-reveal">{task.verdictText}</div>
       </button>
     );
@@ -79,7 +107,7 @@ export default function CompareRealLife({ task, onCorrect, onIncorrect, onAdvanc
   return (
     <div className="compare-body compare-body--reallife">
       <div className="compare-instruction">{task.instruction}</div>
-      <Scene task={task} answered={false} correctAnswer={correctAnswer} wrongPick={wrongPick} />
+      <Scene task={task} imageUrl={imageUrl} answered={false} correctAnswer={correctAnswer} wrongPick={wrongPick} />
       <div className="cfn-options">
         {/* Plain text, deliberately no letter/sign badge: this mode's whole
             point is moving the child from symbols to ordinary speech ("У

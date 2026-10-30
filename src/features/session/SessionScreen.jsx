@@ -8,6 +8,7 @@ import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
+import { loadTopicFileUrl } from "@/shared/hooks/useTopicFile";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -293,7 +294,11 @@ export default function SessionScreen() {
   // error. Remounting it would discard its gentle "Посмотри ещё раз" feedback
   // before the replay begins.
   const keepsObserveSceneOnMistake = currentTask?.type === "operation_observe";
-  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake
+  // «Сравнение»: a mistake inside a multi-part task (a row of the test, one
+  // tile of «Расставь по порядку») must not wipe the rows and tiles already done.
+  const keepsComparisonProgressOnMistake = topicRecord.meta.renderer === "comparison"
+    && (Array.isArray(currentTask?.items) || currentTask?.taskType === "order");
+  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
   const showStreak = shouldShowSessionStreak({
@@ -367,6 +372,7 @@ export default function SessionScreen() {
             playFeedback={playFeedback}
             playTopicFile={playTopicFile}
             playTopicFiles={playTopicFiles}
+            loadTopicFileUrl={loadTopicFileUrl}
             isTopicAudioPlaying={isTopicAudioPlaying}
             onCorrect={isAdvanceGateActive ? noop : handleCorrect}
             onPrevious={onPrevious}

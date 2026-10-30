@@ -65,3 +65,14 @@ export function useTopicFile(topicId, filePath) {
 
   return url;
 }
+
+// The same lookup for a topic renderer shipped in its own ZIP: it can't
+// import this module (that would bundle a second copy of the db code), so
+// SessionScreen hands it this function as a prop, like playTopicFile.
+// Resolves to a URL for an <img>; a blob: URL is the caller's to revoke.
+export async function loadTopicFileUrl(topicId, filePath) {
+  if (!topicId || !filePath) return null;
+  if (/^(?:data:|blob:|https?:\/\/)/.test(filePath)) return filePath;
+  const blob = await topics.getFile(await getDb(), topicId, filePath);
+  return blob ? URL.createObjectURL(blob) : null;
+}
