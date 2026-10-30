@@ -38,7 +38,24 @@ def g_bar():
     return out
 
 
-RECIPES = [g_bar]
+def stem_x_between(d, y):
+    """x at height y on the stem of г1: the straight run between its 2nd and 3rd points (top of the stem -> bottom)."""
+    pts = [tuple(map(float, p)) for p in re.findall(r"(-?[\d.]+) (-?[\d.]+)", d)]
+    (x0, y0), (x1, y1) = pts[3], pts[5]  # stem top (after the hat's curve) and the stem's end before the bottom hook
+    return x0 + (x1 - x0) * (y - y0) / (y1 - y0)
+
+
+def g_bar_lower(y=27.0):
+    """ғ: г (г1, one stroke with its own entry and exit) + a crossbar through the middle of the stem.
+    The bar is written last, so exitStroke keeps the exit (the connector to the next letter) on stroke 0."""
+    g = BANK["г1"]; s = g["strokes"]
+    out = {k: v for k, v in g.items() if k != "aliases"}
+    out.update(label="ғ", strokes=[s[0], bar(stem_x_between(s[0]["d"], y), y, half=11.0)], exitStroke=0,
+               sourceLabel="ғ = г1 + перекладина посередине стойки")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower]
 
 
 def preview(glyphs, path):
