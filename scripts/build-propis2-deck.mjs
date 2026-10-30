@@ -36,7 +36,12 @@ if (existsSync(WIDE_PATH)) {
   topic.wideElementRepeat = wideData.elementRepeat ?? {};
   if (existsSync(PARTS_PATH)) topic.wide = [...topic.wide, ...JSON.parse(readFileSync(PARTS_PATH, "utf-8")).glyphs];
 }
-if (existsSync(NUMBERS_PATH)) topic.elementNumbers = JSON.parse(readFileSync(NUMBERS_PATH, "utf-8")).numbers;
+if (existsSync(NUMBERS_PATH)) {
+  const nd = JSON.parse(readFileSync(NUMBERS_PATH, "utf-8"));
+  topic.elementNumbers = nd.numbers;
+  topic.elementGroups = nd.groups ?? [];
+  topic.elementRetired = nd.retired ?? {};
+}
 if (variant) applyVariant(topic, variant);
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);

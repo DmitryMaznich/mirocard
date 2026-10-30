@@ -7,7 +7,8 @@ import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE } from "@/topics/renderers/propis2/glyphReach.js";
 
 const json = (p) => JSON.parse(readFileSync(p, "utf-8"));
-const numbers = json("tools/propis2/element_numbers.json").numbers;
+const numbersFile = json("tools/propis2/element_numbers.json");
+const numbers = numbersFile.numbers;
 
 // the deck's element list as build-propis2-deck.mjs makes it
 function deckRecord() {
@@ -15,7 +16,7 @@ function deckRecord() {
   const dropped = new Set(json("tools/propis2/dropped_elements.json").ids);
   const wide = json("tools/propis/wide.json");
   const parts = json("tools/propis2/parts_elements.json");
-  return { ...topic, wide: [...wide.glyphs, ...parts.glyphs], elements: json("tools/propis/elements.json").elements.filter((e) => !dropped.has(e.id)), elementNumbers: numbers };
+  return { ...topic, wide: [...wide.glyphs, ...parts.glyphs], elements: json("tools/propis/elements.json").elements.filter((e) => !dropped.has(e.id)), elementNumbers: numbers, elementGroups: numbersFile.groups, elementRetired: numbersFile.retired };
 }
 
 describe("stable element numbers", () => {
@@ -34,13 +35,25 @@ describe("stable element numbers", () => {
     expect(tiles.find((t) => t.text === "П-лев").no).toBe(numbers["П-лев"]);
   });
 
+  it("the list is grouped in the file's order and a group's elements go by number; retired numbers are never handed out again", () => {
+    const tiles = buildTiles(deckRecord()).elements;
+    const titles = [...new Set(tiles.map((t) => t.group))];
+    expect(titles).toEqual(numbersFile.groups.map((g) => g.title));
+    for (const g of numbersFile.groups) {
+      const nos = tiles.filter((t) => t.group === g.title).map((t) => t.no);
+      expect(nos).toEqual([...nos].sort((a, b) => a - b));
+    }
+    const taken = new Set(Object.values(numbers));
+    for (const [id, no] of Object.entries(numbersFile.retired)) expect(taken.has(no), `${id} ${no}`).toBe(false);
+  });
+
   it("a new element gets the next number after the largest and the old ones keep theirs", () => {
     const rec = deckRecord();
     const before = buildTiles(rec).elements.map((t) => [t.text, t.no]);
     rec.wide = [...rec.wide, { label: "новый-элемент", kind: "element", strokes: [{ d: "M 10 10 L 20 60" }] }];
     const after = buildTiles(rec).elements;
-    const max = Math.max(...Object.values(numbers));
-    expect(after.at(-1)).toMatchObject({ text: "новый-элемент", no: max + 1 });
+    const max = Math.max(...Object.values(numbers), ...Object.values(numbersFile.retired));
+    expect(after.at(-1)).toMatchObject({ text: "новый-элемент", no: max + 1, group: "Другие" });
     for (const [id, no] of before) expect(after.find((t) => t.text === id).no).toBe(no);
   });
 });

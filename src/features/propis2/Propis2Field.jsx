@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { TileGlyph } from "./Propis2Carousel";
 import * as I from "./Propis2Icons";
 import { useHint } from "./Propis2Hint";
@@ -34,11 +34,14 @@ export function ElementPicker({ elements, disabled, onInsert }) {
       </button>
       {open && (
         <div className="p2-elements-panel" role="dialog" aria-label="Элементы" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
-          {elements.map((tile) => (
-            <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={`№${tile.no}, ${tile.caption}`} title={`№${tile.no} · ${tile.caption}`} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
-              <TileGlyph tile={tile} size={ELEMENT_TILE_W} />
-              <span className="p2-el-num" aria-hidden="true">{tile.no}</span>
-            </button>
+          {elements.map((tile, i) => (
+            <Fragment key={tile.key}>
+              {tile.group && tile.group !== elements[i - 1]?.group && <div className="p2-el-group" role="presentation">{tile.group}</div>}
+              <button type="button" className="propis2-tile" data-tile={tile.text} aria-label={`№${tile.no}, ${tile.caption}`} title={`№${tile.no} · ${tile.caption}`} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
+                <TileGlyph tile={tile} size={ELEMENT_TILE_W} />
+                <span className="p2-el-num" aria-hidden="true">{tile.no}</span>
+              </button>
+            </Fragment>
           ))}
         </div>
       )}

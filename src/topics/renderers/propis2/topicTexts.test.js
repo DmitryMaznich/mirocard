@@ -52,7 +52,7 @@ describe("`propis2`: elements the owner threw out are not in the deck", () => {
     const deck = JSON.parse(await zip.file("topic.json").async("string"));
     const ids = deck.elements.map((e) => e.id);
     for (const id of dropped) expect(ids).not.toContain(id);
-    expect(ids).toContain("02a_naklonnaya_dlinnaya");
+    expect(ids).toContain("22_zaborchik_peremennyy");
     expect(ids.length).toBe(16 - dropped.length);
   });
 });

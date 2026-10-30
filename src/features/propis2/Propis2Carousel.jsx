@@ -49,11 +49,19 @@ export function buildTiles(topicRecord) {
     elements.push(make("element", el.id, el.labelRu ?? el.id, TILE_SNAP));
   }
   // stable numbers (the deck's `elementNumbers`, tools/propis2/element_numbers.json): an element keeps its number whatever is added
-  // or reordered; an element without one gets the next free number after the largest. The list is shown in number order.
+  // or reordered; an element without one gets the next free number after the largest (retired numbers stay taken).
+  // The list is grouped (`elementGroups`: palochki, first hooks, ...): groups in their order, inside one by number; what no group names goes last.
   const numbers = topicRecord?.elementNumbers ?? {};
-  let next = Math.max(0, ...Object.values(numbers)) + 1;
-  for (const t of elements) t.no = Number.isInteger(numbers[t.text]) ? numbers[t.text] : next++;
-  elements.sort((a, b) => a.no - b.no);
+  let next = Math.max(0, ...Object.values(numbers), ...Object.values(topicRecord?.elementRetired ?? {})) + 1;
+  const groups = topicRecord?.elementGroups ?? [];
+  const groupOf = new Map(groups.flatMap((g, gi) => g.ids.map((id) => [id, gi])));
+  for (const t of elements) {
+    t.no = Number.isInteger(numbers[t.text]) ? numbers[t.text] : next++;
+    const gi = groupOf.get(t.text);
+    t.groupIndex = gi ?? groups.length;
+    t.group = gi === undefined ? (groups.length ? "Другие" : "") : groups[gi].title;
+  }
+  elements.sort((a, b) => a.groupIndex - b.groupIndex || a.no - b.no);
   // punctuation marks of the deck (wide.json kind "punct"), in the order of a sentence
   const marks = [".", ",", "!", "?"].filter((m) => byLabel.get(m)?.kind === "punct").map((m) => make("text", m, m));
   // the deck's own alphabet (alphabet.js: a variant deck has its own), capitals only of the letters that have one

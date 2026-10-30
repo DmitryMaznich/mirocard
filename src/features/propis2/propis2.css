@@ -354,6 +354,9 @@
 /* the element list: a grid of tiles, each the element on the page's own ruling (no codes: the room goes to the picture) */
 .p2-elements-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); width: min(520px, 94vw); gap: 8px; justify-items: center; }
 .p2-elements-panel .propis2-tile { position: relative; padding: 3px; }
+/* a group heading: a full-width row in the grid of tiles */
+.p2-el-group { grid-column: 1 / -1; justify-self: stretch; margin: 6px 0 -2px; padding: 0 2px 4px; border-bottom: 2px solid #dbe4fb; font-family: inherit; font-size: 13px; font-weight: 800; line-height: 1.2; color: var(--p2-blue, #1d4ed8); }
+.p2-el-group:first-child { margin-top: 0; }
 /* the element's number (its place in the list), a badge sitting on the tile's corner, half outside it: it takes no room from the picture and covers none of its ink */
 .p2-el-num { position: absolute; top: -7px; left: -7px; min-width: 20px; height: 20px; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); padding: 0 4px; box-sizing: border-box; display: grid; place-items: center; border-radius: 10px; background: var(--p2-blue, #1d4ed8); color: #fff; font-family: inherit; font-size: 11px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
 /* the page starts below the floating zoom pill and undo / redo (2026-10-23: the text is typed by tapping the rows, and the start of
