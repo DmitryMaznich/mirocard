@@ -16,6 +16,10 @@ describe("propis2 deck install", () => {
     expect(rec.wide.length).toBeGreaterThan(50);
     expect(rec.wideSheets.page18).toBeTruthy();
     expect(rec.elements.length).toBeGreaterThan(0);
+    // the element list's numbers and groups must survive the install step (the topic loader copies fields one by one)
+    expect(Object.keys(rec.elementNumbers ?? {}).length).toBeGreaterThan(25);
+    expect(rec.elementGroups?.length).toBeGreaterThan(3);
+    expect(Object.keys(rec.elementRetired ?? {}).length).toBeGreaterThan(0);
     expect(rec.modes[0].type).toBe("builder");
     // «Диктант» draws from these banks; without them the words level was empty (2026-10-11). 247: «солнце» and «сердце» left the
     // dictation bank (silent consonants, owner 2026-10-29); `propis` below keeps all 249.

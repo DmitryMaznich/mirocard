@@ -2484,6 +2484,11 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin,
     wide:              manifest.wide              ?? undefined,
     wideSheets:        manifest.wideSheets        ?? undefined,
     wideElementRepeat: manifest.wideElementRepeat ?? undefined,
+    // propis2's element list: stable numbers, the groups of the list and the retired numbers (tools/propis2/element_numbers.json). Without them
+    // here the installed record has no groups and the list keeps its old order, numbered one by one (found on a phone, 2026-10-30).
+    elementNumbers: manifest.elementNumbers ?? undefined,
+    elementGroups:  manifest.elementGroups  ?? undefined,
+    elementRetired: manifest.elementRetired ?? undefined,
     // a propis2 variant deck's own ready notebooks (scripts/build-propis2-deck.mjs --variant, variant.json `kits`)
     kits:              manifest.kits              ?? undefined,
     installedAt: new Date().toISOString(),
