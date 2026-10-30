@@ -86,7 +86,28 @@ def g_theta_lower():
                 sourceLabel="ө = о + прямая перекладина на всю ширину овала по пунктиру")
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower]
+def tail_x(d, y):
+    """x at height y on У's long straight tail (the segment from its top point (y=-42) down to the hook)."""
+    pts = [tuple(map(float, q)) for q in re.findall(r"(-?[\d.]+) (-?[\d.]+)", d)]
+    i = next(k for k, (_, yy) in enumerate(pts) if yy == -42.0 and k > 2 and pts[k - 1][1] > -20)  # the L ... -42 corner after the loop
+    (x0, y0), (x1, y1) = pts[i], pts[i + 1]
+    return x0 + (x1 - x0) * (y - y0) / (y1 - y0)
+
+
+def g_u_straight():
+    """Ү: the Russian У as it is (straight tail, hook at the bottom)."""
+    g = BANK["У"]
+    return dict(g, label="Ү", sourceLabel="Ү = У без изменений")
+
+
+def g_u_bar(y=36.0):
+    """Ұ: У + a crossbar on its tail, like ғ's (straight, 14.4 long, on the dashed middle line y=36). Written last; the exit stays on stroke 0."""
+    g = BANK["У"]; s = g["strokes"]
+    return dict(g, label="Ұ", strokes=[s[0], short_bar(tail_x(s[0]["d"], y), y)], exitStroke=0, noDotStrokes=[1],
+                sourceLabel="Ұ = У + прямая перекладина на хвосте по пунктиру")
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar]
 
 
 def preview(glyphs, path):
