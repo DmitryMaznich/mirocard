@@ -1,10 +1,11 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
+import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
+import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
-import { ElementPicker } from "./Propis2Field";
+import { ElementPicker, LetterPicker } from "./Propis2Field";
 import Propis2Keys from "./Propis2Keys";
 import Propis2Thumbs from "./Propis2Thumbs";
 import { useKeyboardInset } from "./useKeyboardInset";
@@ -123,13 +124,17 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   useEffect(() => () => clearTimeout(offerTimer.current), []);
   const showOffer = (o, ms) => { clearTimeout(offerTimer.current); setOffer(o); offerTimer.current = o ? setTimeout(() => setOffer(null), ms) : null; };
   const setSetting = (key, value) => {
-    onChange({ ...page, [key]: value });
+    // a margin the adult sets is his own: the automatic one (switched on by a printed letter) no longer follows the letters
+    onChange({ ...page, [key]: value, ...(key === "margin" ? { marginAuto: false } : {}) });
     showOffer(notebook?.othersDiffer(key, value) ? { key, value } : null, OFFER_MS);
   };
   const keyboard = useKeyboardInset();
   // every element has a short code of its own for the field, {э1}, {э2}... (its stable number, the one on its tile)
   const elementTiles = useMemo(() => buildTiles(topicRecord).elements.map((t) => ({ ...t, code: `э${t.no}` })), [topicRecord]);
   const elementCodes = useMemo(() => new Map(elementTiles.map((t) => [t.text, t.code])), [elementTiles]);
+  // the printed letters of rows (dropCap.js): capitals of the deck's alphabet, on the narrow ruling of the methodology paper
+  const dropLettersList = useMemo(() => dropLetters(topicRecord, glyphMap), [topicRecord, glyphMap]);
+  const dropPage = pageHasDropRows(page);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
   // the invisible text holds the WHOLE page, one line per row (a locked kit page: the selected row only)
@@ -413,6 +418,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
+          <LetterPicker letters={dropLettersList} current={selected?.drop ?? null} suggestion={suggestDrop(selected, dropLettersList)} disabled={locked || !selected || !dropPage}
+            label={dropPage ? "Буква в поле строки" : "Буква в поле: только на узкой строке методической тетради"} onPick={(l) => onChange(withRowDrop(page, selectedId, l))} />
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">

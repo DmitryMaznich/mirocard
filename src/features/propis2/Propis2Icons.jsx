@@ -109,6 +109,8 @@ export const IconFormatA5 = () => formatText("А5");
 // elements = a tile like the ones in the list: a ruled cell with one pen stroke in it
 // elements = a tile like the ones in the list: two hooks (крючок влево, крючок вправо) on their ruling
 export const IconElement = () => S(<><rect x="2" y="2" width="20" height="20" rx="3.5" stroke={GRAY} strokeWidth={1.2} />{rule(6, 3.5, 20.5)}{guide(12.5, 3.5, 20.5)}{baseRule(19, 3.5, 20.5)}{shape("hook_l_big", 5)}{shape("hook_big", 12.5)}</>);
+// the printed letter in a frame (the «Буква» button): the frame and the capital «А» in the app's teal, as the letter stands on the page
+export const IconLetterFrame = () => S(<><rect x="3" y="3" width="18" height="18" rx="4.6" fill="#e8f4f1" stroke="#2a6b60" strokeWidth={1.8} /><path d="M8 17L12 7L16 17M9.5 13.6H14.5" stroke="#2a6b60" strokeWidth={2} /></>);
 export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);
 
 export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>); // pencil: unlock the kit page layout, keep the rows

@@ -1,3 +1,4 @@
+import { DROP_COLOR, DROP_FILL, dropGeometry } from "../propis2/dropCap.js";
 import { memo, useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, WIDE_ROW_MAX_X, paginateRows } from "./wordEngine.js";
@@ -588,6 +589,20 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
         </g>
       ))}
       {marginXUnits !== null && <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />}
+      {/* `propis2` «буквица»: the printed capital of a row stands in the margin, its frame ON the row's baseline (narrow ruling, margin on only) */}
+      {marginXUnits !== null && wideRows && narrowRows && !ownRows && page.filter((p) => p.drop).map((p) => {
+        const g = dropGeometry(p.drop);
+        const baseline = rowY(p.rowIndex) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // the row's own baseline (row-local 64)
+        const onLeft = marginXUnits < PAGE_W_UNITS / 2;
+        const cx = onLeft ? marginXUnits / 2 : (marginXUnits + PAGE_W_UNITS) / 2;
+        const top = baseline - g.frame;
+        return (
+          <g key={`drop${p.rowIndex}`} data-drop={p.drop}>
+            <rect x={cx - g.frame / 2} y={top} width={g.frame} height={g.frame} rx={g.radius} fill={DROP_FILL} stroke={DROP_COLOR} strokeWidth={g.stroke} />
+            <text x={cx} y={top + g.frame / 2 + g.capHeight / 2} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize={g.fontSize} fill={DROP_COLOR}>{p.drop}</text>
+          </g>
+        );
+      })}
       {page.map((p, i) => {
         // Element rows ("Элементы букв") are a print-only worksheet target with no
         // interactivity at all (2026-09-18, revised after the user decided a screen demo/

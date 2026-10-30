@@ -1612,7 +1612,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.drawn ? { drawn: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[ig]\d+|b[^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
+  // bX = the row has a printed letter X in its margin (propis2 «буквица», drawn by PrintPageView): a flag of the row, no ink of its own
+  const drops = flags.map((f) => (/#b([^#\s])/.exec(f) ?? [])[1] ?? null);
   const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
   const fades = flags.map((f) => f.includes("#f"));
   // r = fill the row with copies of the row's content even when it is a single letter or a mixed sequence (the default
@@ -1632,7 +1634,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[ig]\d+))+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[ig]\d+|b[^#\s]))+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -2055,6 +2057,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       : [];
     return { word: line, rowIndex, x: 0, segments };
   });
+  placed.forEach((row, i) => { if (drops[i]) row.drop = drops[i]; });
   placed.forEach((row, i) => {
     const seg = row.segments[0];
     if (!seg) return;

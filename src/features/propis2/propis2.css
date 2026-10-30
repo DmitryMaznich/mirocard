@@ -584,3 +584,13 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-desk-bar .p2-seg { display: contents; }
 .propis2-editor2--desk .propis2-page-col { padding-top: 20px; }
 .propis2-editor2--desk .propis2-preview .propis-print-page-wrap { padding-top: 0; }
+
+/* «Буква»: the printed letter of a row (in the page margin): the list of capitals of the deck's alphabet */
+.p2-letters-panel { display: grid; gap: 8px; width: min(330px, 94vw); padding: 12px; background: var(--p2-surface, #fff); border: 1px solid var(--p2-line, #e3dccb); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; max-height: 60dvh; overflow-y: auto; overscroll-behavior: contain; }
+.p2-letters-title { font-size: 14px; font-weight: 800; color: var(--p2-ink, #28323c); }
+.p2-letters-hint { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: none; border-radius: 12px; background: #e8f4f1; color: #2a6b60; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; text-align: left; }
+.p2-letters-hint-mark { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; border: 2px solid #2a6b60; background: #fff; font-size: 19px; font-weight: 700; line-height: 1; }
+.p2-letters-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.p2-letters-cell { aspect-ratio: 1; min-width: 0; padding: 0; border: 2px solid #d6e3df; border-radius: 10px; background: #fff; color: #2a6b60; font: inherit; font-size: 19px; font-weight: 700; line-height: 1; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.p2-letters-cell.is-on { border-color: #2a6b60; background: #e8f4f1; }
+.p2-letters-clear { justify-self: start; border: none; background: transparent; padding: 4px 2px; font: inherit; font-size: 13px; font-weight: 700; color: var(--p2-red, #b42318); cursor: pointer; }
