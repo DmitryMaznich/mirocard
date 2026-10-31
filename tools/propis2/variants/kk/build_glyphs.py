@@ -468,10 +468,10 @@ def g_h_lower():
     return out
 
 
-def g_h_upper(over=3.0):
-    """Һ (owner, 2026-10-31): the capital К, but where the loop at the foot of its stem comes up and CROSSES the slanted stem it does not go on up into К's upper arm: just past the stem
-    (`over` units to the right of it) it turns into К's lower stroke (the arch, the right leg and the exit). So: К's stroke 1 up the loop, THROUGH the stem and `over` units beyond it, then the
-    arch of К's stroke 2 from there. One stroke, so the exit is its end."""
+def g_h_upper():
+    """Һ (owner, 2026-10-31): the capital К made the same way К itself is made: К's stroke 1 (the flag, the stem, the loop at the foot) and К's stroke 2 (its lower stroke: the arch, the right
+    leg, the exit) taken AS THEY ARE, no stretching. In К the second stroke starts ON the loop, where the loop meets the slanted stem; Һ goes the loop up to exactly that point (the loop is
+    split there, not cut at a segment end) and on along the second stroke, so the upper arm of К is simply not written. One stroke, so the exit is its end."""
     import math
     k = BANK["К"]; s1, s2 = k["strokes"][0]["d"], k["strokes"][1]["d"]
     toks = re.findall(r"[MC]|-?[\d.]+", s1)
@@ -481,28 +481,25 @@ def g_h_upper(over=3.0):
         segs.append((toks[i], [float(v) for v in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
     ends = [(v[-2], v[-1]) for _, v in segs]
     foot = max(range(len(ends)), key=lambda j: ends[j][1])                       # the foot of the stem
-    sx, sy = (float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's second stroke starts, on the loop
-    cut = min(range(foot, len(ends)), key=lambda j: (ends[j][0] - sx) ** 2 + (ends[j][1] - sy) ** 2)
-    jarm = next(j for j in range(cut + 1, len(ends)) if math.hypot(ends[j][0] - ends[j - 1][0], ends[j][1] - ends[j - 1][1]) > 15)   # the long arm of К: the loop goes on through the stem up to its top
-    cut = jarm - 1
-    arm = segs[jarm]
-    P = [ends[cut], (arm[1][0], arm[1][1]), (arm[1][2], arm[1][3]), (arm[1][4], arm[1][5])]
-    t25 = math.tan(math.radians(25.0))
-    stem_x = lambda y: 201.04 - (y + 42.0) * t25                                  # К's stem: from its top (201.04, -42) down the 65-degree slant
-    at = lambda t: tuple((1 - t) ** 3 * P[0][c] + 3 * (1 - t) ** 2 * t * P[1][c] + 3 * (1 - t) * t * t * P[2][c] + t ** 3 * P[3][c] for c in (0, 1))
-    tt = next(t / 400 for t in range(1, 400) if at(t / 400)[0] - stem_x(at(t / 400)[1]) >= over)   # the first point of the arm that is `over` right of the stem
-    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * tt for c in (0, 1))
+    S = tuple(float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's second stroke starts, on the loop
+    best = None
+    for j in range(foot + 1, len(segs)):                                          # the cubics of the loop, after the foot
+        P = [ends[j - 1], tuple(segs[j][1][0:2]), tuple(segs[j][1][2:4]), tuple(segs[j][1][4:6])]
+        for n in range(0, 2001):
+            t = n / 2000
+            q = tuple((1 - t) ** 3 * P[0][c] + 3 * (1 - t) ** 2 * t * P[1][c] + 3 * (1 - t) * t * t * P[2][c] + t ** 3 * P[3][c] for c in (0, 1))
+            d = math.hypot(q[0] - S[0], q[1] - S[1])
+            if best is None or d < best[0]: best = (d, j, t, P)
+    d, j, t, P = best
+    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * t for c in (0, 1))
     a1, a2, a3 = lerp(P[0], P[1]), lerp(P[1], P[2]), lerp(P[2], P[3])
     b1, b2 = lerp(a1, a2), lerp(a2, a3)
     q = lerp(b1, b2)
-    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[: cut + 1])
-    part = f"C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"          # the arm as far as q
-    m = re.findall(r"C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)", s2)
-    arch = f"C {m[1][0]} {m[1][1]} {m[1][2]} {m[1][3]} {m[1][4]} {m[1][5]}"                    # the arch of К's second stroke (its 2nd cubic), from q
-    rest = " ".join(f"C {' '.join(c)}" for c in m[2:])
+    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:j]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"
+    tail = s2[s2.index("C"):]                                                    # К's second stroke, its first cubic included, unchanged
     out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
-    out.update(label="Һ", strokes=[{"d": f"{head} {part} {arch} {rest}"}],
-               sourceLabel="Һ = К: петля внизу пересекает стойку и сразу за ней переходит в нижний штрих К (арка, ножка, выход)")
+    out.update(label="Һ", strokes=[{"d": f"{head} {tail}"}],  # (the loop ends 1.4 units from К's second stroke's start: that stroke simply goes on from the loop point, its own control points unchanged)
+               sourceLabel="Һ = К: штрих 1 (флажок, стойка, петля) до точки, где начинается нижний штрих К, и сам нижний штрих К без изменений")
     return out
 
 
