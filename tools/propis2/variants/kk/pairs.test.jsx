@@ -26,6 +26,12 @@ it("pairs", () => {
     const nums = (d) => (d.match(/-?\d+\.?\d*/g) || []).map(Number);
     const first = [];
     for (const d of paths) { const n = nums(d); if (first.length && Math.abs(n[0] - nums(first[0])[0]) < 1e-6 && Math.abs(n[1] - nums(first[0])[1]) < 1e-6) break; first.push(d); }
+    if (process.env.KK_MODE === "exit") {
+      // a letter drawn as ONE stroke whose end is its exit: the distance from that end to the start of the next stroke
+      const e = nums(first[0]); const n2 = nums(first[1]);
+      res[w] = { gap: Math.hypot(e[e.length - 2] - n2[0], e[e.length - 1] - n2[1]), exitEnd: e.slice(-2), nextStart: n2.slice(0, 2) };
+      act(() => root.unmount()); host.remove(); continue;
+    }
     if (process.env.KK_MODE === "before") {
       // the LAST letter is the one the connector must reach: its body is the last stroke; the distance from its start to the ink before it
       const pts = (d) => { const n = nums(d); const P = []; for (let i = 0; i < n.length; i += 2) P.push([n[i], n[i + 1]]); const out = [P[0]]; for (let j = 1; j + 2 < P.length; j += 3) for (let k = 1; k <= 12; k += 1) { const t = k / 12, u = 1 - t; out.push([u * u * u * P[j - 1][0] + 3 * u * u * t * P[j][0] + 3 * u * t * t * P[j + 1][0] + t * t * t * P[j + 2][0], u * u * u * P[j - 1][1] + 3 * u * u * t * P[j][1] + 3 * u * t * t * P[j + 1][1] + t * t * t * P[j + 2][1]]); } return out; };

@@ -462,8 +462,13 @@ def g_h_lower():
     Already in the real proportions (no `stretch`)."""
     d = json.loads((HERE / "pdf_glyphs/h_lower.json").read_text())["d"]
     out = {kk: v for kk, v in BANK["п1"].items() if kk not in ("sourceLabel", "strokes", "aliases", "kind", "stretch", "gridFitted", "repeatCells")}
-    out.update(label="һ", kind="letter", ascender=True, repeatCells=4, strokes=[{"d": d}],
-               sourceLabel="һ = h из казахской прописи (слово «Яһуди»), средняя линия контура, подогнана под банк")
+    # the exit (the last straight piece of п's leg) becomes a connector of its own, o's curve like ә's (owner, 2026-10-31: «исходящее соединение к верхней точке следующей
+    # буквы, как у других»): it is drawn only when a letter follows, and the engine carries it up to the start of the next letter (growJoins)
+    i = d.rindex(" L ")
+    body_d = d[:i]
+    bx, by = (float(v) for v in re.findall(r"-?[\d.]+", body_d)[-2:])
+    out.update(label="һ", kind="letter", ascender=True, repeatCells=4, strokes=[{"d": body_d}, kazakh_tail(bx, by)], exitStroke=0, tailStroke=1, tailLift=True, tailContinuous=True,
+               sourceLabel="һ = h из казахской прописи (слово «Яһуди»), средняя линия контура, подогнана под банк; соединение как у ә")
     return out
 
 
