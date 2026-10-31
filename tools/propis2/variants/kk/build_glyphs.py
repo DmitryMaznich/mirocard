@@ -337,20 +337,16 @@ def kazakh_tail(bx, by, dx=None):
     return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k1:.2f} {by - math.sin(th) * k1:.2f} {ex - ux * k2:.2f} {ey - uy * k2:.2f} {ex:.2f} {ey:.2f}"}
 
 
-def align_start_to_bowl(dense, y_start=None):
-    """The entry of ә (owner, 2026-10-31): the old е's long flat entry leaves the start about 19 units left of the bowl, so ә stood far from the
-    letter before it. The start is moved onto the same SLANT line as the bowl's left edge (x + 0.4663 y equal), and the entry becomes a short
-    straight stroke along the slant from there up to the point of the old entry arc that lies on that line; the arc goes on as it was."""
+def align_start_to_bowl(dense):
+    """The start of ә (owner, 2026-10-31): the old е's entry begins about 19 units left of the bowl, so ә stood far from the letter before it. The
+    letter is NOT redrawn: the very same trajectory is started LATER, at the point of the entry that lies on the same slant line as the left edge of
+    the bowl (the slant line touching the bowl on the left: the minimum of x + 0.4663 y over the bowl). What came before that point is cut off."""
     t = 0.4663
-    y0 = dense[0][1] if y_start is None else y_start
-    left = min((q for q in dense if q[1] > y0 + 2), key=lambda q: q[0])          # the leftmost point of the bowl (below the entry)
-    u_left = left[0] + t * left[1]
-    j = next(i for i, q in enumerate(dense) if q[0] + t * q[1] >= u_left)        # where the old entry arc crosses that slant line
-    S = (u_left - t * y0, y0)
-    J = dense[j]
-    n = 24
-    entry = [(S[0] + (J[0] - S[0]) * k / n, S[1] + (J[1] - S[1]) * k / n) for k in range(n)]
-    return entry + dense[j:]
+    top = min(range(len(dense)), key=lambda i: dense[i][1])                      # the top of the arc: after it comes the right side and the bowl
+    bowl = [q for q in dense[top:] if q[1] > dense[0][1] + 2]                   # the bowl: below the entry's height
+    u_left = min(q[0] + t * q[1] for q in bowl)                                  # its left edge along the slant
+    j = next(i for i, q in enumerate(dense) if q[0] + t * q[1] >= u_left)        # the entry point on that slant line
+    return dense[j:]
 
 
 def g_schwa_lower():
