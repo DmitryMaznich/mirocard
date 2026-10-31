@@ -626,8 +626,8 @@ def g_hard_upper():
     dx = (164.35 - 0.4663 * (hy - 10.0)) - 56.43                                     # onto the line through ы1's first point (164.35, 10) at the slant of the grid
     flag = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{float(m.group(1)) + dx:.2f} {m.group(2)}", head)
     return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True,
-            "tailSplit": 0, "tailSplitCount": 1, "tailLift": False, "tailContinuous": True, "joinStraight": True, "exitNudge": 24, "noLiftExit": True,
-            "strokes": [{"d": flag + " L 164.35 10.00 " + Y1_PATH[Y1_PATH.index("L 146.14 49.00"):]}],
+            "noOverrides": True, "noNormalize": True, "noExit": True, "noLiftExit": True,                              # a capital with no exit, like the Bulgarian Ъ: no connector to the next letter (owner: "мы говорим про заглавный")
+            "strokes": [{"d": flag + " L 164.35 10.00 " + Y1_PATH[Y1_PATH.index("L 146.14 49.00"):Y1_PATH.index(" C 168.30 30.00")]}],
             "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина русской ы (ы1: стойка, овал с петлёй, соединение) как есть"}
 
 
