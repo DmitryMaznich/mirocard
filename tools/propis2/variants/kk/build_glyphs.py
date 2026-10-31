@@ -522,7 +522,49 @@ def g_h_upper(drop=float(__import__("os").environ.get("KK_H_DROP", 3.0)), straig
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper]
+def g_a_upper(y=19.4, over_l=9.0, over_r=9.0):
+    """А (owner, 2026-10-31, from the copybook PDF): as Л (its two strokes unchanged: the entry loop and left arm, then the right stem) plus a SEPARATE crossbar: a straight horizontal
+    line at about 0.4 of the letter's height, from a little left of the left arm to a little right of the right stem. The connector to the next letter leaves the right stem (Л's exit),
+    the bar is written last. The old А of the bank (Л + a bowl hook under the stem) is replaced."""
+    l = BANK["Л"]; s0, s1 = l["strokes"][0]["d"], l["strokes"][1]["d"]
+    def xs_at(d, yy):
+        n = [float(v) for v in re.findall(r"-?[\d.]+", d)]; P = list(zip(n[0::2], n[1::2])); out = []; i = 1
+        while i + 2 < len(P):
+            p0, p1, p2, p3 = P[i - 1], P[i], P[i + 1], P[i + 2]
+            for k in range(0, 401):
+                t = k / 400; u = 1 - t
+                q = tuple(u ** 3 * p0[c] + 3 * u * u * t * p1[c] + 3 * u * t * t * p2[c] + t ** 3 * p3[c] for c in (0, 1))
+                out.append(q)
+            i += 3
+        return [q for q in out if abs(q[1] - yy) < 0.3]
+    # the strokes are written in the bank's mixed M/C/L; flatten through the engine-independent sampler used above only for the C pieces, and L pieces by hand
+    def flat(d):
+        toks = re.findall(r"[MLC]|-?[\d.]+", d); pts = []; cur = None; i = 0
+        while i < len(toks):
+            t = toks[i]
+            if t == "M": cur = (float(toks[i + 1]), float(toks[i + 2])); pts.append(cur); i += 3
+            elif t == "L":
+                e = (float(toks[i + 1]), float(toks[i + 2]))
+                for k in range(1, 41): pts.append((cur[0] + (e[0] - cur[0]) * k / 40, cur[1] + (e[1] - cur[1]) * k / 40))
+                cur = e; i += 3
+            else:
+                c1 = (float(toks[i + 1]), float(toks[i + 2])); c2 = (float(toks[i + 3]), float(toks[i + 4])); e = (float(toks[i + 5]), float(toks[i + 6]))
+                for k in range(1, 41):
+                    t_ = k / 40; u = 1 - t_
+                    pts.append(tuple(u ** 3 * cur[c] + 3 * u * u * t_ * c1[c] + 3 * u * t_ * t_ * c2[c] + t_ ** 3 * e[c] for c in (0, 1)))
+                cur = e; i += 7
+        return pts
+    def x_at(d, yy):
+        pts = flat(d); best = min(pts, key=lambda q: abs(q[1] - yy)); return best[0]
+    xl, xr = x_at(s0, y), x_at(s1, y)
+    bar_ = {"d": f"M {min(xl, xr) - over_l:.2f} {y:.2f} L {max(xl, xr) + over_r:.2f} {y:.2f}"}
+    out = {kk: v for kk, v in l.items() if kk not in ("sourceLabel", "strokes")}
+    out.update(label="А", strokes=[{"d": s0}, {"d": s1}, bar_], exitStroke=1, noDotStrokes=[1, 2], continuousStrokes=[1],
+               sourceLabel="А = Л (два штриха без изменений) + отдельная горизонтальная перекладина, как в казахской прописи; выход от правой стойки")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper]
 
 
 def preview(glyphs, path):
