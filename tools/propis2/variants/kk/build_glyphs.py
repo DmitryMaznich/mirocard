@@ -387,28 +387,42 @@ def g_schwa_lower():
     return res
 
 
+U_END_SHIFT = float(__import__("os").environ.get("KK_U_END_SHIFT", 4.0))  # raw units the end of У's connector is moved LEFT of the grid point Ч's exit arrives at: 0 = 40deg, 8 = 49deg (ә crowds the stem), 4 = ~44deg
+
+
 def g_schwa_ujoin():
-    """A helper glyph, not a letter: only its connector is used (by the Russian У, `joinLikeLabel`). The same Kazakh rise as ә's, but ending at the point where ә
-    STARTS (ә starts low on its arc, so a rise to the upper line would pass over it; owner, 2026-10-31: the connection У-ә was the one thing not right)."""
+    """A helper glyph, not a letter: only its connector is used (by the Russian У, `joinLikeLabel`). A STRAIGHT line (a cubic with its controls on
+    the line: no concavity; owner, 2026-10-31) from the lowest point of the hook to the point where ә starts; the engine scales its width to the
+    end point of `joinEndLikeLabel` (ч_uend)."""
     g = g_schwa_lower()
     start_y = float(re.findall(r"-?[\d.]+", g["strokes"][0]["d"])[1])
     bx, by = (float(v) for v in re.findall(r"-?[\d.]+", g["strokes"][1]["d"])[:2])
-    return dict(g, label="ә_ujoin", strokes=[g["strokes"][0], kazakh_tail(bx, by, ey=start_y)], sourceLabel="служебный: соединение У -> ә (до начала ә)")
+    ex, ey = bx + 60.0, start_y
+    line = {"d": f"M {bx:.2f} {by:.2f} C {bx + (ex - bx) / 3:.2f} {by + (ey - by) / 3:.2f} {bx + 2 * (ex - bx) / 3:.2f} {by + 2 * (ey - by) / 3:.2f} {ex:.2f} {ey:.2f}"}
+    return dict(g, label="ә_ujoin", strokes=[g["strokes"][0], line], sourceLabel="служебный: прямое соединение У -> ә")
+
+
+def g_u_end_marker():
+    """A helper glyph, not a letter: it starts where У and Ч start and ends where the connector of У should arrive: Ч's exit point moved left by
+    U_END_SHIFT (raw units). The connector's angle depends on how far right of the hook it arrives, and the next letter then stands on the slant line there."""
+    ch = BANK["Ч"]["strokes"][0]["d"]
+    sx, sy = (float(v) for v in re.findall(r"-?[\d.]+", ch)[:2])
+    ex, ey = 175.20 - U_END_SHIFT, 36.0
+    return {"label": "ч_uend", "kind": "letter", "stretch": BANK["Ч"].get("stretch", 1.806), "strokes": [{"d": f"M {sx:.2f} {sy:.2f} C {sx:.2f} {sy:.2f} {ex:.2f} {ey:.2f} {ex:.2f} {ey:.2f}"}],
+            "sourceLabel": "служебный: точка, где кончается соединение У"}
 
 
 def g_u_russian_kazakh_tail():
-    """У (the Russian capital, as the Kazakh У is written): its hook stays, but the connector from the lowest point of the hook is the Kazakh one
-    (owner, 2026-10-31: «хвост после заглавной У должен идти более вверх»): from the lowest point up to where ә starts (g_schwa_ujoin), instead of
-    о's flat curve to the middle line. The engine borrows the connector of the glyph named in `joinLikeLabel` and ends it on the grid point
-    of `joinEndLikeLabel` (Ч: the same start as У). noOverrides: the join fields are set here, not by the base deck's table."""
+    """У (the Russian capital, as the Kazakh У is written): its hook stays, but the connector from the lowest point of the hook is a straight rise
+    to where ә starts (g_schwa_ujoin) instead of о's flat curve to the middle line (owner, 2026-10-31). noOverrides: the join fields are set here."""
     g = BANK["У"]
     out = {k: v for k, v in g.items() if k not in ("sourceLabel",)}
-    out.update(noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="ә_ujoin", joinEndLikeLabel="Ч",
-               sourceLabel="У = русская У, соединение от нижней точки крючка вверх до начала ә")
+    out.update(noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="ә_ujoin", joinEndLikeLabel="ч_uend",
+               sourceLabel="У = русская У, прямое соединение от нижней точки крючка вверх до начала ә")
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, g_schwa_ujoin, g_u_russian_kazakh_tail]
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, g_schwa_ujoin, g_u_end_marker, g_u_russian_kazakh_tail]
 
 
 def preview(glyphs, path):
