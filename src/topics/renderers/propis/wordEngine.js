@@ -2032,10 +2032,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           }
           if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !inCell && !loose && !innerPiece.has(pieceIndex) && (!glyph.joinLeft || glyphsByLabel.script.topJoinsStraight?.includes(prevLabel))) {
             const straightExit = Boolean(glyphsByLabel.script.topJoinsStraight?.includes(prevLabel));
-            // letters that start at the TOP: the line goes to their start. Letters that start at the middle line (the round ones, а с д ф б included): the line goes to the end the exit had (nudged
-            // onto the oval as the Russian join does it), so it has the same direction as the line to a top letter (owner 2026-10-31: «под другим углом» before с)
+            // the line goes to the START of the next letter (top for п р т н и к, the middle line for з о е я л м …: owner 2026-10-31, «должна точно воткнуться в начало з»). Only а с д ф б, which are
+            // entered from the left of their oval, are aimed at the point of the oval where the Russian join lands
             let tgt = st0h;
-            if (straightExit && st0h[1] >= prevExit[1] - 10 * scale) {
+            if (straightExit && glyph.joinLeft) {
               const xs = pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
               const cx = xs.length ? xs.reduce((m, c) => (Math.abs(c - prevExit[0]) < Math.abs(m - prevExit[0]) ? c : m)) : null;
               tgt = [cx !== null && Math.abs(cx - prevExit[0]) < curNudge * scale ? cx : prevExit[0], prevExit[1]];
