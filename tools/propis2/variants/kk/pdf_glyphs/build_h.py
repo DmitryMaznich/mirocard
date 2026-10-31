@@ -34,7 +34,7 @@ def walk(a, b):
 
 # waypoints (pixels of h_skel.png, y down), in the order of the pen
 E2, E1, E0 = tuple(near((1015, 75))), tuple(near((1320, 62))), tuple(near((995, 900)))
-W = [E2, (830, 265), (655, 372), (330, 470), (75, 700), (330, 700), (655, 372), (830, 265), (905, 273), E1, (905, 273), (700, 600), (900, 640), (1100, 540), (1300, 540), E0]
+W = [E2, (830, 265), (655, 372), (330, 700), (75, 700), (330, 470), (655, 372), (830, 265), (905, 273), E1, (905, 273), (700, 600), (900, 640), (1100, 540), (1300, 540), E0]   # up the RIGHT strand of the loop, over the top, down the LEFT one (the stem)
 W = [near(w) for w in W]
 poly = [W[0]]
 for a, b in zip(W, W[1:]): poly += walk(a, b)[1:]
