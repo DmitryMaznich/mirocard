@@ -234,7 +234,56 @@ def g_ng_lower():
                 sourceLabel="ң = н, правая стойка заканчивается хвостом и выходом ц")
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower]
+SLANT_T = 0.4663  # x shift per unit of height along a 65deg slant line
+
+
+def belly_of_v(attach, top_y=4.0):
+    """The lower belly of в (its loop after the stem point (152.19, 36)), mirrored across the slant line through `attach` (the stem
+    point of the letter it is joined to), so it lies LEFT of the stem; the belly's top is raised from в's 10 to `top_y` (owner: a bit above
+    the narrow row's upper line). Returns (path text of the belly cubics, the belly's lowest point). The last cubic of в (its exit to the
+    right) is left out: the exit is the letter's own connector."""
+    d = BANK["в"]["strokes"][0]["d"]
+    key = "152.19 36.00"
+    tail = d[d.index(key) + len(key):]
+    k = (62.0 - top_y) / (62.0 - 10.0)  # raise the belly about the baseline
+    cut = tail.rfind(" C ")
+    tail = tail[:cut]  # without the final exit cubic
+    u0 = attach[0] + SLANT_T * attach[1]
+    y_att = 62.0 - (62.0 - 36.0) * k
+    toks = re.findall(r"[MLCQ]|-?[\d.]+", tail)
+    out, nums = [], []
+    for t in toks:
+        if t in "MLCQ": out.append(t); continue
+        nums.append(float(t))
+    pts = list(zip(nums[0::2], nums[1::2]))
+    res = []
+    for x, y in pts:
+        y2 = 62.0 - (62.0 - y) * k
+        x2 = x + (attach[0] - 152.19)
+        y3 = y2 + (attach[1] - y_att)
+        u = x2 + SLANT_T * y3
+        res.append((2 * u0 - u - SLANT_T * y3, y3))
+    text, i = [], 0
+    for t in out:
+        n = {"C": 3, "L": 1, "Q": 2, "M": 1}[t]
+        text.append(t + " " + " ".join(f"{px:.2f} {py:.2f}" for px, py in res[i:i + n])); i += n
+    return " ".join(text), res[-1]
+
+
+def g_schwa_upper():
+    """Ә: Э's top and stem, then a belly like в's lower one but mirrored (left of the stem, its top a bit above the row's upper line), then
+    Э's own exit (a tail stroke: drawn only when a letter follows)."""
+    g = BANK["Э"]; s = g["strokes"]
+    d = s[0]["d"]; cut = (165.01, 31.15)
+    head = d[: d.index("165.01 31.15") + len("165.01 31.15")]
+    belly, low = belly_of_v(cut)
+    ex = s[2]["d"]; sx, sy = 142.12, 61.68
+    exit_d = shifted(ex, low[0] - sx, low[1] - sy)
+    return dict(g, label="Ә", strokes=[{"d": f"{head} {belly}"}, {"d": exit_d}], exitStroke=0, tailStroke=1,
+                sourceLabel="Ә = верх и стойка Э + нижнее пузо в, зеркально (слева от стойки), выход Э")
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper]
 
 
 def preview(glyphs, path):
