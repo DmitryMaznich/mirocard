@@ -242,7 +242,7 @@ def g_schwa_upper():
     d = s[0]["d"]
     assert d.rstrip().endswith("139.00 48.53"), d[-40:]
     top = 160.4
-    belly = (f"C 140.50 30.00 {top - 9.4:.2f} 9.00 {top:.2f} 10.00 "
+    belly = (f"C 141.60 34.80 {top - 9.4:.2f} 9.00 {top:.2f} 10.00 "  # first control on the tangent of Э's last cubic (heading (0.21, -1.11)), so the join is smooth
              f"C {top + 5.0:.2f} 10.00 {175.9 - 8.0:.2f} 10.00 175.90 10.00")
     return dict(g, label="Ә", strokes=[{"d": f"{d.rstrip()} {belly}"}, s[2]], exitStroke=0, tailStroke=1,
                 sourceLabel="Ә = Э целиком до левого нижнего изгиба, затем левая сторона пузо вверх и горизонтальное замыкание по верхней линии строки в стойку; выход Э")
