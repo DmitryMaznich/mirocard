@@ -454,7 +454,23 @@ def g_i_lower():
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower]
+def g_h_lower():
+    """һ (the Kazakh h, PDF «Яһуди», the poster): a TALL left stem with the flag of К at its top (as І's), straight down to the foot, then the bank's п (its arch and
+    right leg with the exit) from the foot of that stem. The stem is the line of п's own first stem carried up to the ascender height (y=-42), and the flag
+    is К's lead-in moved along so that it ends at the top of that line. One stroke, so the exit is its end."""
+    n = BANK["п1"]["strokes"][0]["d"]
+    k = BANK["К"]["strokes"][0]["d"]
+    flag = k[: k.index("201.04 -42.00") + len("201.04 -42.00")]
+    x_top = 136.83 + 0.46630765815499864 * (11.12 + 42.0)                         # п's first stem line at y = -42
+    fl = shifted(flag, x_top - 201.04, 0.0)
+    body = n[n.index("L 113.95 60.18"):]                                          # the stem on to the foot, the arch, the right leg, the exit
+    d = f"{fl} L 136.83 11.12 {body}"
+    out = {kk: v for kk, v in BANK["п1"].items() if kk not in ("sourceLabel", "strokes", "aliases", "kind")}
+    out.update(label="һ", kind="letter", ascender=True, strokes=[{"d": d}], sourceLabel="һ = флажок К + высокая стойка + арка и ножка п")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower]
 
 
 def preview(glyphs, path):
