@@ -636,35 +636,15 @@ def _no_flag(path):
     return f"{head} {rest}"
 
 
-import os as _os
-Y_TOP = float(_os.environ.get("KK_Y_TOP", 14.0))     # the top of the belly (the narrow row's upper line is 10): «чуть приплюснуть»
-Y_EY = float(_os.environ.get("KK_Y_EY", 20.0))       # the height at which the connector meets the right stem
-Y_DX = float(_os.environ.get("KK_Y_DX", 48.0))       # how far right of the belly's bottom that meeting point is
-Y_ARR = float(_os.environ.get("KK_Y_ARR", 35.0))     # the angle (bank units) at which the connector arrives at the stem
-
-
 def g_yery_upper():
-    """Ы (owner, 2026-10-31): the left part is the capital Ъ WITHOUT its flag, the belly pressed a little flatter (top at Y_TOP); the connector between the strokes follows the copybook's Ы (PDF page 34):
-    it leaves the flat bottom of the belly, bows like a parabola and arrives at the right stem at a steeper angle (Y_ARR), meeting it at the height Y_EY (not the middle line); the right stem is the capital
-    И's second stem, as tall as the first, which the connector enters; the pen goes up that stem to its top, turns and comes down it to the foot, where the exit leaves. Two strokes; the exit is the right stroke's end."""
-    import math
-    path, low = _hard_belly_small(Y_TOP)
-    left = _no_flag(path)
-    bx, by = low
-    E = (bx + Y_DX, Y_EY)
-    ln = math.hypot(E[0] - bx, E[1] - by)
-    ar = math.radians(Y_ARR)
-    c1 = (bx + 0.45 * ln * 0.6, by)                                                # leaves the bottom of the belly flat
-    c2 = (E[0] - 0.4 * ln * math.cos(ar), E[1] + 0.4 * ln * math.sin(ar))
-    conn = f"M {bx:.2f} {by:.2f} C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {E[0]:.2f} {E[1]:.2f}"
-    i_d = BANK["И"]["strokes"][0]["d"]
-    stem = i_d[i_d.index("L 193.44 -42.00"):]                                      # И's second stem: the top, then down to the foot, the hook and the exit
-    sx = E[0] - (193.44 - 0.46630765815499864 * (Y_EY + 42.0))                      # the stem's line (x = 193.44 at y = -42) put through E
-    stem = shifted(stem[2:], sx, 0.0)                                              # without its leading «L»
-    right = f"{conn} L {stem}"
+    """Ы (owner, 2026-10-31: «ты можешь вектор вытащить из PDF»): the capital Ы of the Kazakh copybook (PDF page 34), the centre line of its glyph outline (pdf_glyphs/build_y.py -> Y_glyph.json) fitted
+    to our system: height 104 (top -42, baseline 62), the slant of the right stem 65 degrees, the left stem without a flag, the belly about the height of the narrow row, and the long convex connector between
+    the belly and the right stem exactly as the copybook draws it. Two pen strokes: (1) the left stem, the belly; (2) from the bottom of the belly along the connector up the right stem, down it again,
+    the hook and the exit; the exit is the end of the second stroke."""
+    d = json.loads((HERE / "pdf_glyphs/Y_glyph.json").read_text())["strokes"]
     out = {kk: v for kk, v in BANK["О"].items() if kk not in ("sourceLabel", "strokes", "tailStroke", "tailContinuous", "noNormalize")}
-    out.update(label="Ы", strokes=[{"d": left}, {"d": right}], exitStroke=1, noDotStrokes=[], noNormalize=True, noOverrides=True, repeatCells=7,
-               sourceLabel="Ы = Ъ без флажка (пузо приплюснуто) + соединение как в казахской прописи + правая стойка И той же высоты")
+    out.update(label="Ы", strokes=[{"d": d[0]}, {"d": d[1]}], exitStroke=1, noDotStrokes=[], noNormalize=True, noOverrides=True, repeatCells=7,
+               sourceLabel="Ы = заглавная Ы казахской прописи (контур глифа из PDF, средняя линия), подогнана под банк")
     return out
 
 

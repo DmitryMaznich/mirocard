@@ -39,10 +39,12 @@ def main():
     x0, y0 = min(xs) - 0.5, min(ys) - 0.5
     W, H = int((max(xs) - x0 + 0.5) * S), int((max(ys) - y0 + 0.5) * S)
     # even-odd fill: draw each contour with XOR
-    mask = np.zeros((H, W), bool)
+    wind = np.zeros((H, W), int)                       # non-zero winding (TrueType / PDF glyphs overlap their contours: an even-odd fill would cancel the overlaps)
     for c in [c for c in cs if len(c) >= 3]:
         m = Image.new("1", (W, H), 0); ImageDraw.Draw(m).polygon([((x - x0) * S, (y - y0) * S) for x, y in c], fill=1)
-        mask ^= np.array(m, bool)
+        area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(c, c[1:] + c[:1]))
+        wind += np.where(np.array(m, bool), 1 if area > 0 else -1, 0)
+    mask = wind != 0
     sk = skeletonize(mask)
     ys_, xs_ = np.nonzero(sk)
     pts = set(zip(ys_.tolist(), xs_.tolist()))
