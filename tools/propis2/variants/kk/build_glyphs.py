@@ -400,7 +400,35 @@ def g_apex(label):
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м")]
+def g_i_upper():
+    """І (owner, 2026-10-31): the opening FLAG of К (its first stroke from its start up to the top of its stem), then the long straight stem of У (from the top
+    down to the baseline) with У's bottom hook; the stem is moved sideways so that it starts where the flag ends (the slant is the same, so it stays on its
+    slant). Joined to the next letter like У (the connector from the lowest point of the hook, borrowed from о)."""
+    k = BANK["К"]["strokes"][0]["d"]
+    flag = k[: k.index("201.04 -42.00") + len("201.04 -42.00")]
+    u = BANK["У"]["strokes"][0]["d"]
+    stem = u[u.index("L 193.57 -42.00") + len("L 193.57 -42.00"):].strip()      # L 148.78 54.05 C ... the hook ... L 139.19 36.00
+    d = f"{flag} {shifted(stem, 201.04 - 193.57, 0.0)}"
+    g = BANK["У"]
+    out = {kk: v for kk, v in g.items() if kk not in ("sourceLabel", "strokes")}
+    out.update(label="І", strokes=[{"d": d}], noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="о", joinEndLikeLabel="Ч",
+               sourceLabel="І = флажок К + прямая стойка У с её крючком; соединение как у У")
+    return out
+
+
+def g_i_lower():
+    """і (owner, 2026-10-31): the stem of и (its second stem, from the peak down, with the hook and the exit) and a dot over it like ё's (1.5 times as big)."""
+    d = BANK["и"]["strokes"][0]["d"]
+    stem = d[d.index("L 154.66 11.48") + 2:]                                       # 154.66 11.48 L 135.18 53.26 C ... L 161.22 36
+    d1 = "M " + stem.strip()
+    sx = 154.66 + 0.4663 * 8.5                                                      # a little right of the top of the stem, along the slant, at ё's dot height
+    out = {k_: v for k_, v in BANK["и"].items() if k_ not in ("sourceLabel", "strokes")}
+    out.update(label="і", strokes=[{"d": d1}, {"d": f"M {sx - 0.5:.2f} 3.00 L {sx + 0.55:.2f} 3.00"}], noDotStrokes=[1], dotStrokes=[1], dotWidth=3,
+               sourceLabel="і = вторая стойка и с выходом + точка как у ё")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_lower]
 
 
 def preview(glyphs, path):
