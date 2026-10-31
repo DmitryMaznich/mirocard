@@ -70,7 +70,45 @@ def to_bezier(pts, knots=70):
         out.append(f"C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}")
     return " ".join(out)
 
-Bs = smooth(B)
-d = to_bezier(Bs)
-json.dump({"d": d, "scale": k, "stem_slant_pdf_deg": math.degrees(math.atan(1 / t_pdf)), "start": Bs[0].tolist(), "end": Bs[-1].tolist(), "top": Bs[:, 1].min()}, open(HERE / "h_lower.json", "w"), ensure_ascii=False)
-print("scale", round(k, 3), "pdf stem angle", round(math.degrees(math.atan(1 / t_pdf)), 1), "start", Bs[0].round(1), "end", Bs[-1].round(1), "top y", round(Bs[:, 1].min(), 1))
+# --- the stem and the rest are NOT taken from the PDF (owner, 2026-10-31): the entry and the loop are the PDF's; from the top turn of the loop the line runs STRAIGHT down
+# the slant to the baseline; and from the foot on the letter is drawn as our lowercase п (its retrace up the stem, the arch, the right leg and the exit).
+import re as _re
+iu = int(np.argmin(B[:, 1]))                                   # the top of the loop
+W_ = 60                                                         # direction over a window: the thinned line is a staircase of single pixels
+for i in range(iu + 1, len(B) - W_):
+    dx, dy = B[i + W_] - B[i]
+    if dy > 0 and dx < 0 and math.degrees(math.atan2(dy, -dx)) >= 55:
+        turn = i; break
+T = B[turn]
+head = smooth(B[: turn + 1], sigma=1.4)
+FOOT_Y = 60.18                                                  # where our п's stem ends (the corner before its diagonal)
+tan25 = math.tan(math.radians(25.0))
+F = np.array([T[0] - tan25 * (FOOT_Y - T[1]), FOOT_Y])         # the foot of the straight stem
+
+# our п (the bank's п1, stretched the way the engine stretches it: x' = S x - (S-1) tan25 (62 - y)); its part after the foot corner, moved so that its foot is F
+Sx = 1.806
+bank = json.load(open(HERE.parents[4] / "tools/propis/wide.json"))["glyphs"]
+pd = next(g for g in bank if g["label"] == "п1")["strokes"][0]["d"]
+tail = pd[pd.index("L 113.95 60.18") + len("L 113.95 60.18"):]
+sx = lambda x, y: Sx * x - (Sx - 1) * tan25 * (62.0 - y)
+foot_x = sx(113.95, 60.18)
+toks = _re.findall(r"[MLC]|-?\d+\.?\d*", tail); out_tail = []; k = 0
+while k < len(toks):
+    t = toks[k]
+    if t in "LC":
+        n = 1 if t == "L" else 3
+        pts_ = [(float(toks[k + 1 + 2 * j]), float(toks[k + 2 + 2 * j])) for j in range(n)]
+        out_tail.append(t + " " + " ".join(f"{sx(x, y) - foot_x + F[0]:.2f} {y:.2f}" for x, y in pts_)); k += 1 + 2 * n
+    else: k += 1
+def bez(pts):
+    seg = np.hypot(*np.diff(pts, axis=0).T); acc = np.concatenate([[0], np.cumsum(seg)])
+    tk = np.linspace(0, acc[-1], max(int(acc[-1] / 6), 8)); K = np.stack([np.interp(tk, acc, pts[:, c]) for c in (0, 1)], 1)
+    ex = np.vstack([2 * K[0] - K[1], K, 2 * K[-1] - K[-2]]); o = [f"M {K[0][0]:.2f} {K[0][1]:.2f}"]
+    for i in range(1, len(ex) - 2):
+        p0, p1, p2, p3 = ex[i - 1], ex[i], ex[i + 1], ex[i + 2]
+        c1 = p1 + (p2 - p0) / 6.0; c2 = p2 - (p3 - p1) / 6.0
+        o.append(f"C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}")
+    return " ".join(o)
+d = f"{bez(head)} L {F[0]:.2f} {F[1]:.2f} " + " ".join(out_tail)
+json.dump({"d": d, "scale": k, "start": head[0].tolist(), "turn": T.tolist(), "foot": F.tolist()}, open(HERE / "h_lower.json", "w"), ensure_ascii=False)
+print("scale", round(float(104.0 / (0 - P[:, 1].min())), 3), "start", head[0].round(1), "turn", T.round(1), "foot", F.round(1), "exit", out_tail[-1][-14:])
