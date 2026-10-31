@@ -270,17 +270,40 @@ def belly_of_v(attach, top_y=4.0):
     return " ".join(text), res[-1]
 
 
+STEM_X10 = 175.5  # Э's stem at the narrow row's upper line (y=10); the stem runs on its 65deg slant from there
+
+
+def stem_at(y):
+    return STEM_X10 - SLANT_T * (y - 10.0)
+
+
+def schwa_belly(top=10.0):
+    """The belly of Ә (owner, 2026-10-31): the stem runs on down to the bottom, turns LEFT into a slanted oval, rises on its left side and
+    closes at the top by running HORIZONTALLY right along the narrow row's upper line (y = `top`) into the stem, entering it at that angle.
+    Returns (path text continuing from the stem, the belly's lowest point)."""
+    xb, yb = stem_at(56.0), 56.0
+    D = (stem_at(62.5) - 7.5, 62.5)          # the belly's lowest point
+    L = (D[0] - 6.0, 44.0)                   # its leftmost point
+    T = (stem_at(top) - 15.5, top - 1.5)     # the top, where the closing run begins
+    j = (stem_at(top), top)                  # the join with the stem
+    text = (f"L {xb:.2f} {yb:.2f} "
+            f"C {xb - 2.0:.2f} {yb + 4.5:.2f} {D[0] + 3.0:.2f} {D[1]:.2f} {D[0]:.2f} {D[1]:.2f} "
+            f"C {D[0] - 6.0:.2f} {D[1]:.2f} {L[0] - 1.5:.2f} {L[1] + 9.0:.2f} {L[0]:.2f} {L[1]:.2f} "
+            f"C {L[0] + 3.0:.2f} {L[1] - 17.0:.2f} {T[0] - 9.0:.2f} {T[1] + 0.5:.2f} {T[0]:.2f} {T[1] + 1.5:.2f} "
+            f"C {T[0] + 5.0:.2f} {T[1] + 1.5:.2f} {j[0] - 8.0:.2f} {j[1]:.2f} {j[0]:.2f} {j[1]:.2f}")
+    return text, D
+
+
 def g_schwa_upper():
-    """Ә: Э's top and stem, then a belly like в's lower one but mirrored (left of the stem, its top a bit above the row's upper line), then
-    Э's own exit (a tail stroke: drawn only when a letter follows)."""
+    """Ә: Э's top and stem, then the belly (see schwa_belly), then Э's own exit from the belly's lowest point (a tail stroke: drawn only
+    when a letter follows)."""
     g = BANK["Э"]; s = g["strokes"]
-    d = s[0]["d"]; cut = (165.01, 31.15)
+    d = s[0]["d"]
     head = d[: d.index("165.01 31.15") + len("165.01 31.15")]
-    belly, low = belly_of_v(cut)
-    ex = s[2]["d"]; sx, sy = 142.12, 61.68
-    exit_d = shifted(ex, low[0] - sx, low[1] - sy)
+    belly, low = schwa_belly()
+    exit_d = shifted(s[2]["d"], low[0] - 142.12, low[1] - 61.68)
     return dict(g, label="Ә", strokes=[{"d": f"{head} {belly}"}, {"d": exit_d}], exitStroke=0, tailStroke=1,
-                sourceLabel="Ә = верх и стойка Э + нижнее пузо в, зеркально (слева от стойки), выход Э")
+                sourceLabel="Ә = верх и стойка Э, стойка уходит в пузо слева, замыкается горизонтально по верхней линии строки; выход Э")
 
 
 RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper]
