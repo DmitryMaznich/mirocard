@@ -83,7 +83,7 @@ def g_theta_upper():
 def g_theta_lower():
     """ө: о (one stroke with entry and exit) + a straight bar across the oval on the dashed middle line (y=36); written last, the exit stays on stroke 0."""
     g = BANK["о"]; s = g["strokes"]
-    return dict(g, label="ө", strokes=[s[0], full_bar(s[0]["d"], 36.0)], exitStroke=0, noDotStrokes=[1],
+    return dict(g, label="ө", strokes=[s[0], full_bar(s[0]["d"], 36.0)], exitStroke=0, noDotStrokes=[1], joinLeft=True,
                 sourceLabel="ө = о + прямая перекладина на всю ширину овала по пунктиру")
 
 
@@ -665,7 +665,12 @@ def g_yery_up_2():
     return {"label": "ы2U", "kind": "letter", "scaleOf": {"label": "ы2", "k": 2.0, "keepTail": True}, "sourceLabel": "ы2 ×2 (правая часть заглавной Ы); крюк с выходом стандартного размера"}
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2]
+def _join_left(label):
+    """The Russian letter as it is, entered from the LEFT of its oval after the capitals Б В Ъ … (owner, 2026-10-31: «соединяем с левой крайней точкой овала»), like а с ф д."""
+    return lambda: dict(BANK[label], joinLeft=True)
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2, _join_left("е"), _join_left("ё")]
 
 
 def preview(glyphs, path):
