@@ -97,7 +97,7 @@ def tail_x(d, y):
 TAIL_BASE_X = 145.07  # where У's straight tail meets the baseline (y=62) when it runs on along its own 65deg line from (193.57, -42)
 
 
-CONN_DX = 15.0  # raw bank units the connector runs to the right while it climbs from the baseline (62) to the dashed line (36)
+CONN_DX = 22.0  # raw bank units the connector runs right while it climbs from the baseline (62) to the dashed line (36): ~45deg on the page, as in the Kazakh copybook PDF (the tail is 65deg, so steeper than ~55deg would retrace it)
 
 
 def u_body(dx=None):
