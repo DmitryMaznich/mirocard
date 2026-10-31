@@ -26,6 +26,14 @@ it("pairs", () => {
     const nums = (d) => (d.match(/-?\d+\.?\d*/g) || []).map(Number);
     const first = [];
     for (const d of paths) { const n = nums(d); if (first.length && Math.abs(n[0] - nums(first[0])[0]) < 1e-6 && Math.abs(n[1] - nums(first[0])[1]) < 1e-6) break; first.push(d); }
+    if (process.env.KK_MODE === "turn") {
+      // the turn at the join: the direction the exit arrives (its last cubic's end tangent) against the direction the next stroke leaves its start (its first cubic's start tangent)
+      const e = nums(first[0]); const n2 = nums(first[1]);
+      const a = Math.atan2(e[e.length - 1] - e[e.length - 3], e[e.length - 2] - e[e.length - 4]);
+      const b = Math.atan2(n2[3] - n2[1], n2[2] - n2[0]);
+      let t = ((b - a) * 180) / Math.PI; while (t > 180) t -= 360; while (t < -180) t += 360;
+      res[w] = { turn: t, arrive: (a * 180) / Math.PI, leave: (b * 180) / Math.PI }; act(() => root.unmount()); host.remove(); continue;
+    }
     if (process.env.KK_MODE === "exit") {
       // a letter drawn as ONE stroke whose end is its exit: the distance from that end to the start of the next stroke
       const e = nums(first[0]); const n2 = nums(first[1]);
