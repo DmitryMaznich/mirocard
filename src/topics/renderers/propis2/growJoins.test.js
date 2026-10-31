@@ -46,13 +46,13 @@ describe("meta.script.topJoins", () => {
     const st = placed[0].segments[0].strokes;
     return { end: getPathEndpoints(st[0].d).end, next: getPathEndpoints(st[1].d).start };
   };
-  it("takes the exit of п и н … up to the top point of a letter that starts at the top, and stands that letter one line further", () => {
+  it("takes the exit of п и н … up to the top point of a letter that starts at the top, the letter standing where it stood", () => {
     const plain = mapOf(null), top = mapOf({ topJoins: true });
     for (const w of ["пи", "ин", "пр", "ит"]) {
       const a = exitEnd(plain, w), b = exitEnd(top, w);
       expect(b.end[1]).toBeLessThan(a.end[1] - 5);          // ends high, at the start of the next letter
       expect(Math.hypot(b.end[0] - b.next[0], b.end[1] - b.next[1])).toBeLessThan(0.5);
-      expect(b.next[0]).toBeGreaterThan(a.next[0] + 5);      // one more slant line to the right
+      expect(b.next[0]).toBeCloseTo(a.next[0], 3);            // the distance is the one of the Russian deck
     }
   });
   it("leaves the joins to letters that start at the middle line (о а д …) as they are", () => {

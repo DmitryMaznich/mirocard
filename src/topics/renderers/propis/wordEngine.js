@@ -1893,11 +1893,6 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapStart(wantStartX);
-        // `meta.script.topJoins`: a letter that starts at the TOP is joined by a long concave curve from the foot of the letter before (topJoinD below), so it stands one more slant line
-        // to the right: the curve then arrives flatter than the stem and does not hug it (owner 2026-10-31: the next letter stood too close, the join and the stem made a cross)
-        if (glyphsByLabel?.script?.topJoins && prevExit && !prevExitIsTail && !exactJoin && !exactTouch && !loose && !inCell && !glyph.joinLeft && !glyph.joinAtStart && !glyph.joinToApex && local.start[1] < prevExit[1] - 10 * scale) {
-          startX = snapStart(startX + CELL);
-        }
         // `#v` on a DRAWN slant grid (`propis2`, the dense paper: snapX.drawn): the letter still stands a fixed gap after the ink before it, but
         // on the nearest line — the stems of a letter lie on the lines (the capture was made on the grid), so a letter set between two lines
         // by the gap alone has all its stems between them (owner, 2026-10-28: «к» and «у» of the pairs «К к» / «У у» off the grid, tetrad 10).
@@ -2024,7 +2019,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
                 if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; moved[0] = { ...moved[0], d: cut.rest }; highJoined = true; }
               }
             } else if (st0h[1] < prevExit[1] - 10 * scale) {
-              const d4 = topJoinD(strokes[prevExitStroke].d, st0h);
+              // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
+              const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
+              const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
+              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null);
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
             }
           }
