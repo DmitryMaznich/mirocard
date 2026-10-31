@@ -1954,7 +1954,14 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // (о а д …), which starts on the middle line, nothing is left to grow. Only upwards or level, and only a short way (more than a hair, less than `GROW_JOIN_MAX`)
           if (glyphsByLabel?.script?.growJoins && !inCell && !loose) {
             const tailEnd = getPathEndpoints(strokes[prevExitStroke].d).end;
-            const target = getPathEndpoints(moved[0].d).start;
+            let target = getPathEndpoints(moved[0].d).start;
+            // `growToApex` (л м in the Kazakh variant, owner 2026-10-31; the copybook's «Бол»: the connector runs into the left leg of л and up to its top, the little stub at the
+            // bottom of the Russian л is not written): the target is the FIRST top of the letter's first stroke
+            if (glyph.growToApex) {
+              const ap = samplePath(moved[0].d, 200); let best = ap[0], seen = false;
+              for (const q of ap) { if (q[1] < best[1]) best = q; if (best[1] < target[1] - 10 * scale) seen = true; if (seen && q[1] > best[1] + 8 * scale) break; }
+              if (seen) target = best;
+            }
             const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
             // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line; the connector comes within a hair of that start and is carried to it,
             // owner 2026-10-31: «соединение от ә идёт в начало л». A start well below the connector's end is not reached.)

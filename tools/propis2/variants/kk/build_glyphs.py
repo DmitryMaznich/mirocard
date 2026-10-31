@@ -386,7 +386,16 @@ def g_schwa_lower():
     return res
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower]
+def g_apex(label):
+    """л, м as in the Russian bank, only marked `growToApex`: after a letter whose connector ends on the middle line (ә) the connector is carried up to the first
+    top of the letter, as in the Kazakh copybook («Бол»: the connector runs into the left leg of л). The glyph itself is not changed."""
+    g = BANK[label]
+    out = {k: v for k, v in g.items() if k != "aliases"}
+    out["growToApex"] = True
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м")]
 
 
 def preview(glyphs, path):
