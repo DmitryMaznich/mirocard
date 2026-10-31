@@ -628,9 +628,11 @@ def g_hard_upper():
     hy = -34.12
     dx = (ax - 0.4663 * (hy + 42.0)) - 56.43                                         # the enlarged stem line starts at (164.35, -42)
     flag = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{float(m.group(1)) + dx:.2f} {m.group(2)}", head)
-    return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True, "noOverrides": True, "noNormalize": True, "noExit": True, "noLiftExit": True,
-            "strokes": [{"d": flag + left}],
-            "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина заглавной Ы (ы1 ×2: стойка и пузо с петлёй), без соединения и второго штриха"}
+    xb = ax + k * (145.48 - ax)                                                     # the lowest point of the enlarged oval, on the baseline
+    conn = f"M {xb:.2f} 62.00 C {xb + 9.0:.2f} 62.00 {xb + 29.4:.2f} 43.05 {xb + 39.12:.2f} 36.00"   # the connector of the capitals В / Б: from under the oval along its bottom, then up to the standard exit point (tailStroke)
+    return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True, "noOverrides": True, "noNormalize": True, "noLiftExit": True, "tailStroke": 1,
+            "strokes": [{"d": flag + left}, {"d": conn}],
+            "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина заглавной Ы (ы1 ×2: стойка и пузо с петлёй); соединитель из-под пуза, как у В и Б (tailStroke)"}
 
 
 def _no_flag(path):
