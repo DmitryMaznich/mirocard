@@ -13,7 +13,7 @@ it("dump", () => {
   const kk = JSON.parse(readFileSync(process.env.KK_GLYPHS, "utf-8"));
   const labels = new Set(kk.map((g) => g.label));
   const topicRecord = { wide: [...wide.filter((g) => !labels.has(g.label)), ...kk], elements: [], meta: { script: { growJoins: true, topJoins: true, topJoinsStraight: ["ү", "ұ"] } } };
-  const task = buildPageTask({ topicRecord, lines: JSON.parse(process.env.KK_LINES), grid: process.env.KK_GRID || "regular" });
+  const task = buildPageTask({ topicRecord, lines: JSON.parse(process.env.KK_LINES), grid: process.env.KK_GRID || "regular", format: process.env.KK_FORMAT || "a5" });
   const host = document.createElement("div"); document.body.appendChild(host);
   const root = createRoot(host);
   act(() => root.render(<PrintPageView task={task} onClose={() => {}} />));
