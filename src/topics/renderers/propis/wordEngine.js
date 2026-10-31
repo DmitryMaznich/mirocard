@@ -1084,6 +1084,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const GROW_JOIN_MIN = 0.6, GROW_JOIN_MAX = 42; // growJoins: a gap in this range (row units, before the row scale) is closed by a straight piece
 const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
 const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
 const WIDE_DIGIT_GAP = 10; // between the ink of two digits of one number on a page whose snapping grid is not drawn (row-local units at full scale)
@@ -1955,6 +1956,29 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           }
           if (!aligned && contactX !== null && Math.abs(contactX - prevExit[0]) < curNudge * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
+          }
+          // `meta.script.growJoins` (the Kazakh variant, owner 2026-10-31: «соединяем с верхней точкой следующей буквы»): the connector is carried on to the START of the next
+          // letter when it has not reached it. After и п р т н … the nudges above end it on the stem at the middle line; it is grown up the stem to its top. After a round letter
+          // (о а д …), which starts on the middle line, nothing is left to grow. Only upwards or level, and only a short way (more than a hair, less than `GROW_JOIN_MAX`)
+          if (glyphsByLabel?.script?.growJoins && !inCell && !loose) {
+            const tailEnd = getPathEndpoints(strokes[prevExitStroke].d).end;
+            const target = getPathEndpoints(moved[0].d).start;
+            const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
+            // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line and the connector ends 2 units above it, is reached too)
+            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && target[1] <= tailEnd[1] + 12 * scale) {
+              const f2 = (v) => v.toFixed(3);
+              // a SMOOTH piece (owner 2026-10-31: «плавный изгиб вверх или по прямой», not a vertical stub): it leaves along the direction the connector was going and arrives
+              // along the way the next letter goes from its start (a stem written downwards is entered from below, so the direction is turned round)
+              const dTail = strokes[prevExitStroke].d.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
+              const tdx = dTail[dTail.length - 2] - dTail[dTail.length - 4], tdy = dTail[dTail.length - 1] - dTail[dTail.length - 3];
+              const tl = Math.hypot(tdx, tdy) || 1;
+              const after = samplePath(moved[0].d, 40).find((q) => Math.hypot(q[0] - target[0], q[1] - target[1]) > 4 * scale);
+              let adx = after ? after[0] - target[0] : 0, ady = after ? after[1] - target[1] : -1;
+              if (ady > 0) { adx = -adx; ady = -ady; }
+              const al = Math.hypot(adx, ady) || 1;
+              const k1 = dist * 0.4, k2 = dist * 0.4;
+              strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `${strokes[prevExitStroke].d} C ${f2(tailEnd[0] + (tdx / tl) * k1)} ${f2(tailEnd[1] + (tdy / tl) * k1)} ${f2(target[0] - (adx / al) * k2)} ${f2(target[1] - (ady / al) * k2)} ${f2(target[0])} ${f2(target[1])}` };
+            }
           }
         }
         const firstMovedIndex = strokes.length;
