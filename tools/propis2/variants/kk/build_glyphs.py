@@ -468,10 +468,11 @@ def g_h_lower():
     return out
 
 
-def g_h_upper():
-    """Һ (owner, 2026-10-31): the capital К made the same way К itself is made: К's stroke 1 (the flag, the stem, the loop at the foot) and К's stroke 2 (its lower stroke: the arch, the right
-    leg, the exit) taken AS THEY ARE, no stretching. In К the second stroke starts ON the loop, where the loop meets the slanted stem; Һ goes the loop up to exactly that point (the loop is
-    split there, not cut at a segment end) and on along the second stroke, so the upper arm of К is simply not written. One stroke, so the exit is its end."""
+def g_h_upper(drop=float(__import__("os").environ.get("KK_H_DROP", 3.0))):
+    """Һ (owner, 2026-10-31): the capital К made the way К itself is made: К's stroke 1 (the flag, the stem, the loop at the foot) and К's lower stroke (the arch, the right leg, the exit),
+    the upper arm of К not written. In К the lower stroke starts ON the loop where it meets the slanted stem; Һ's loop enters it `drop` units LOWER along the loop (owner: «опусти точку входа
+    петли ещё чуть-чуть»): the loop is cut there and goes on in one smooth piece to the end of the first little rise of К's lower stroke; the arch and the rest are К's, unchanged.
+    One stroke, so the exit is its end."""
     import math
     k = BANK["К"]; s1, s2 = k["strokes"][0]["d"], k["strokes"][1]["d"]
     toks = re.findall(r"[MC]|-?[\d.]+", s1)
@@ -481,30 +482,35 @@ def g_h_upper():
         segs.append((toks[i], [float(v) for v in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
     ends = [(v[-2], v[-1]) for _, v in segs]
     foot = max(range(len(ends)), key=lambda j: ends[j][1])                       # the foot of the stem
-    S = tuple(float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's second stroke starts, on the loop
+    S = tuple(float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's lower stroke starts, on the loop
+    at = lambda P, t: tuple((1 - t) ** 3 * P[0][c] + 3 * (1 - t) ** 2 * t * P[1][c] + 3 * (1 - t) * t * t * P[2][c] + t ** 3 * P[3][c] for c in (0, 1))
+    cub = lambda j: [ends[j - 1], tuple(segs[j][1][0:2]), tuple(segs[j][1][2:4]), tuple(segs[j][1][4:6])]
     best = None
     for j in range(foot + 1, len(segs)):                                          # the cubics of the loop, after the foot
-        P = [ends[j - 1], tuple(segs[j][1][0:2]), tuple(segs[j][1][2:4]), tuple(segs[j][1][4:6])]
+        P = cub(j)
         for n in range(0, 2001):
-            t = n / 2000
-            q = tuple((1 - t) ** 3 * P[0][c] + 3 * (1 - t) ** 2 * t * P[1][c] + 3 * (1 - t) * t * t * P[2][c] + t ** 3 * P[3][c] for c in (0, 1))
-            d = math.hypot(q[0] - S[0], q[1] - S[1])
-            if best is None or d < best[0]: best = (d, j, t, P)
-    d, j, t, P = best
-    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * t for c in (0, 1))
+            q = at(P, n / 2000); d = math.hypot(q[0] - S[0], q[1] - S[1])
+            if best is None or d < best[0]: best = (d, j, n / 2000)
+    _, j, t = best
+    P = cub(j)
+    # go back `drop` units along the loop from that point (inside the same cubic)
+    tt, run, prev = t, 0.0, at(P, t)
+    while tt > 0 and run < drop:
+        tt = max(0.0, tt - 0.002); cur = at(P, tt); run += math.hypot(cur[0] - prev[0], cur[1] - prev[1]); prev = cur
+    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * tt for c in (0, 1))
     a1, a2, a3 = lerp(P[0], P[1]), lerp(P[1], P[2]), lerp(P[2], P[3])
     b1, b2 = lerp(a1, a2), lerp(a2, a3)
     q = lerp(b1, b2)
     head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:j]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"
-    tail = s2[s2.index("C"):]                                                    # К's second stroke, its first cubic included, unchanged
+    m = re.findall(r"C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)", s2)
+    E = (float(m[0][4]), float(m[0][5])); c2 = (float(m[0][2]), float(m[0][3]))   # the end of К's first little rise and its last control
+    tq = (q[0] - b1[0], q[1] - b1[1]); tl = math.hypot(*tq) or 1.0
+    ln = math.hypot(E[0] - q[0], E[1] - q[1])
+    link = f"C {q[0] + tq[0] / tl * ln * 0.35:.2f} {q[1] + tq[1] / tl * ln * 0.35:.2f} {c2[0]:.2f} {c2[1]:.2f} {E[0]:.2f} {E[1]:.2f}"
+    rest = " ".join(f"C {' '.join(c)}" for c in m[1:])
     out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
-    # the end of the loop is joined to the start of К's second stroke (owner 2026-10-31): the last piece of the loop ENDS at that start (its end and second control are moved by the
-    # small offset between the two points), so the pen goes on into К's lower stroke with no little turn at the joint
-    off = (S[0] - q[0], S[1] - q[1])
-    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:j]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0] + off[0]:.2f} {b1[1] + off[1]:.2f} {S[0]:.2f} {S[1]:.2f}"
-    link = ""
-    out.update(label="Һ", strokes=[{"d": f"{head} {link} {tail}"}],
-               sourceLabel="Һ = К: штрих 1 (флажок, стойка, петля) до точки, где начинается нижний штрих К, и сам нижний штрих К без изменений")
+    out.update(label="Һ", strokes=[{"d": f"{head} {link} {rest}"}],
+               sourceLabel="Һ = К: штрих 1 (флажок, стойка, петля), петля входит в нижний штрих К чуть ниже, дальше арка, ножка, выход К без изменений")
     return out
 
 
