@@ -275,25 +275,31 @@ def bezier_points(P, per=30):
     return np.array(out)
 
 
-def smooth_path_d(pts, knots=18, passes=6, win=7):
-    """A hand-drawn path made smooth (owner, 2026-10-31: «убрать искривления, сделать всю линию плавной»): the dense polyline is smoothed
-    (a moving average, ends held fixed), cut into `knots` points evenly along its length, and drawn again as one smooth cubic Bézier chain
-    through them (Catmull-Rom). The start and the end stay exactly where they were."""
+def smooth_path_d(pts, knots=14, sigma=3.2, step=0.4):
+    """A hand-drawn path made smooth (owner, 2026-10-31: «красивая плавная траектория от начала и до конца, исправить все мелкие искривления»):
+    the polyline is resampled evenly along its length, smoothed with a Gaussian of width `sigma` units (the ends are mirrored through themselves so
+    the start and the end stay put and keep their direction), then drawn again as ONE smooth chain of `knots` cubic Béziers' worth of points
+    (Catmull-Rom through points spaced evenly along the length): no small wobbles are left, only the large shape."""
     import numpy as np
     q = np.array(pts, float)
-    for _ in range(passes):
-        pad = np.vstack([np.repeat(q[:1], win, 0), q, np.repeat(q[-1:], win, 0)])
-        k = np.ones(2 * win + 1) / (2 * win + 1)
-        sm = np.stack([np.convolve(pad[:, c], k, mode="valid") for c in (0, 1)], 1)
-        sm[0], sm[-1] = q[0], q[-1]
-        q = sm
     seg = np.hypot(*np.diff(q, axis=0).T); acc = np.concatenate([[0], np.cumsum(seg)])
-    ts = np.linspace(0, acc[-1], knots)
-    K = np.stack([np.interp(ts, acc, q[:, c]) for c in (0, 1)], 1)
-    ext = np.vstack([K[:1], K, K[-1:]])
+    n = max(int(acc[-1] / step), 20)
+    ts = np.linspace(0, acc[-1], n)
+    r = np.stack([np.interp(ts, acc, q[:, c]) for c in (0, 1)], 1)
+    half = int(4 * sigma / step)
+    k = np.exp(-0.5 * (np.arange(-half, half + 1) * step / sigma) ** 2); k /= k.sum()
+    pad_a = 2 * r[0] - r[1:half + 1][::-1]          # odd reflection: the curve goes on through the start with the same direction
+    pad_b = 2 * r[-1] - r[-half - 1:-1][::-1]
+    ext = np.vstack([pad_a, r, pad_b])
+    sm = np.stack([np.convolve(ext[:, c], k, mode="valid") for c in (0, 1)], 1)
+    sm[0], sm[-1] = r[0], r[-1]
+    seg = np.hypot(*np.diff(sm, axis=0).T); acc = np.concatenate([[0], np.cumsum(seg)])
+    tk = np.linspace(0, acc[-1], knots)
+    K = np.stack([np.interp(tk, acc, sm[:, c]) for c in (0, 1)], 1)
+    ex = np.vstack([2 * K[0] - K[1], K, 2 * K[-1] - K[-2]])
     out = [f"M {K[0][0]:.2f} {K[0][1]:.2f}"]
-    for i in range(1, len(ext) - 2):
-        p0, p1, p2, p3 = ext[i - 1], ext[i], ext[i + 1], ext[i + 2]
+    for i in range(1, len(ex) - 2):
+        p0, p1, p2, p3 = ex[i - 1], ex[i], ex[i + 1], ex[i + 2]
         c1 = p1 + (p2 - p0) / 6.0; c2 = p2 - (p3 - p1) / 6.0
         out.append(f"C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}")
     return " ".join(out)
@@ -320,7 +326,7 @@ def first_self_crossing(pts, skip=12):
 CONN_RUN, CONN_RISE = 39.1, 26.0
 
 
-SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 66.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п). With ә's start on the slant line of the bowl's left edge (align_start_to_bowl) those are 34-42 (angle ~47deg) and 66-74 (~34-31deg); 66 is the steeper of the second, close to the PDF (~38deg), a little flatter than the first try (owner, 2026-10-31)
+SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 58.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п). With ә's start on the slant line of the bowl's left edge, a little earlier (align_start_to_bowl, BACK_U) those are up to 34 and 58-66; 58 is the steepest of the second: ~37deg on the page, the angle of the PDF (owner, 2026-10-31)
 
 
 def kazakh_tail(bx, by, dx=None):
@@ -337,6 +343,9 @@ def kazakh_tail(bx, by, dx=None):
     return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k1:.2f} {by - math.sin(th) * k1:.2f} {ex - ux * k2:.2f} {ey - uy * k2:.2f} {ex:.2f} {ey:.2f}"}
 
 
+BACK_U = float(__import__("os").environ.get("KK_BACK_U", 8.0))  # how far back along the slant (in x + 0.4663 y units) the start is taken from that line: «чуть-чуть назад»
+
+
 def align_start_to_bowl(dense):
     """The start of ә (owner, 2026-10-31): the old е's entry begins about 19 units left of the bowl, so ә stood far from the letter before it. The
     letter is NOT redrawn: the very same trajectory is started LATER, at the point of the entry that lies on the same slant line as the left edge of
@@ -345,7 +354,7 @@ def align_start_to_bowl(dense):
     top = min(range(len(dense)), key=lambda i: dense[i][1])                      # the top of the arc: after it comes the right side and the bowl
     bowl = [q for q in dense[top:] if q[1] > dense[0][1] + 2]                   # the bowl: below the entry's height
     u_left = min(q[0] + t * q[1] for q in bowl)                                  # its left edge along the slant
-    j = next(i for i, q in enumerate(dense) if q[0] + t * q[1] >= u_left)        # the entry point on that slant line
+    j = next(i for i, q in enumerate(dense) if q[0] + t * q[1] >= u_left - BACK_U)  # the entry point on that slant line, a little earlier
     return dense[j:]
 
 
