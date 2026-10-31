@@ -1181,7 +1181,7 @@ const BEND_AT = 0.62; // the larger the turn, the more of the curve is bent (BEN
 // the letter) up to the top point of the next letter: it leaves the foot flat (LEAVE degrees above the row), then bends up and arrives at ARRIVE degrees, which is flatter than
 // the slant of the stem it joins (65), so the curve stays on the left of that stem and never crosses it.
 const TOP_JOIN_LEAVE_DEG = 12, TOP_JOIN_ARRIVE_DEG = 50;
-function topJoinD(d, target, arriveDir = null, descender = false) {
+function topJoinD(d, target, arriveDir = null, descender = false, straight = false) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
   for (let i = 0; i < toks.length;) {
@@ -1195,6 +1195,12 @@ function topJoinD(d, target, arriveDir = null, descender = false) {
   const p0 = prev.c === "M" ? prev.v : prev.v.slice(-2);
   const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]);
   if (chord < 8 || target[0] < p0[0] + 4) return null;
+  if (straight) {
+    // `meta.script.topJoinsStraight` (ү ұ з, owner 2026-10-31: «выход прямым, без параболы»): a straight line from the start of the last cubic to the top point of the next letter
+    const f1 = (x) => Number(x.toFixed(3));
+    segs[segs.length - 1].v = [p0[0] + (target[0] - p0[0]) / 3, p0[1] + (target[1] - p0[1]) / 3, p0[0] + (2 * (target[0] - p0[0])) / 3, p0[1] + (2 * (target[1] - p0[1])) / 3, target[0], target[1]];
+    return segs.map((sg) => `${sg.c} ${sg.v.map(f1).join(" ")}`).join(" ");
+  }
   const rad = (a) => (a * Math.PI) / 180;
   // it leaves along the way the hook of the letter itself arrives at that point (no kink where the two meet: owner 2026-10-31, «без деформирующих изгибов»)
   let ul = [Math.cos(rad(TOP_JOIN_LEAVE_DEG)), -Math.sin(rad(TOP_JOIN_LEAVE_DEG))];
@@ -1832,6 +1838,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingNoAlign = false; // glyph.tailNoAlign: the pending connector is not straightened onto the next letter's rise (see alignLastPieceD)
       let curNoAlign = false;
+      let prevLabel = null; // the label of the glyph whose exit is being joined
       let prevExitIsTail = false; // growJoins: the exit being joined is a connector stroke of its own (о ә …), not a part of the letter's stroke (п и …)
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
       let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
@@ -2028,7 +2035,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
-              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail);
+              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, Boolean(glyphsByLabel.script.topJoinsStraight?.includes(prevLabel)));
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
             }
           }
@@ -2104,6 +2111,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitIsTail = false;
+        prevLabel = label;
         curNudge = WIDE_MAX_CONTACT_NUDGE;
         curNoAlign = false;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;

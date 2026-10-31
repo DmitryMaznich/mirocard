@@ -19,7 +19,12 @@
   "methodology": false,
   "script": {
    "growJoins": true,
-   "topJoins": true
+   "topJoins": true,
+   "topJoinsStraight": [
+    "ү",
+    "ұ",
+    "з"
+   ]
   },
   "alphabet": {
    "lower": "аәбвгғдеёжзийкқлмнңоөпрстуұүфхһцчшщъыіьэюя",

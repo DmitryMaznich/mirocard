@@ -26,8 +26,8 @@ describe("propis2 variant: Kazakh", () => {
       if (!noCapital.includes(ch)) expect(drawn(map.get(ch.toUpperCase())), `capital ${ch.toUpperCase()}`).toBeGreaterThan(0);
     }
     expect(topicAlphabet(topic, map).lower).toContain("ә");
-    expect(topic.meta.script).toEqual({ growJoins: true, topJoins: true });
-    expect(map.script).toEqual({ growJoins: true, topJoins: true });
+    expect(topic.meta.script).toEqual({ growJoins: true, topJoins: true, topJoinsStraight: ["ү", "ұ", "з"] });
+    expect(map.script).toEqual({ growJoins: true, topJoins: true, topJoinsStraight: ["ү", "ұ", "з"] });
   });
 
   it("lays out Kazakh words without a missing letter, every connector reaching the letter after it", async () => {
