@@ -1956,9 +1956,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const tailEnd = getPathEndpoints(strokes[prevExitStroke].d).end;
             const target = getPathEndpoints(moved[0].d).start;
             const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
-            // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line, the connector ends 2 units above it: it is joined exactly as after the
-            // Russian о, nothing is grown: owner 2026-10-31, «ә и л соединяются как в русском о и л»)
-            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && target[1] <= tailEnd[1] + 1 * scale) {
+            // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line; the connector comes within a hair of that start and is carried to it,
+            // owner 2026-10-31: «соединение от ә идёт в начало л». A start well below the connector's end is not reached.)
+            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && (target[1] <= tailEnd[1] + 1 * scale || dist < 3 * scale)) {
               const f2 = (v) => v.toFixed(3);
               // a SMOOTH piece (owner 2026-10-31: «плавный изгиб вверх или по прямой», not a vertical stub): it leaves along the direction the connector was going and arrives
               // along the way the next letter goes from its start (a stem written downwards is entered from below, so the direction is turned round)

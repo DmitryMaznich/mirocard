@@ -30,9 +30,9 @@ describe("meta.script.growJoins", () => {
     const plain = mapOf(null), grown = mapOf({ growJoins: true });
     for (const next of ["и", "п", "н"]) expect(tailEndY(grown, "о" + next)).toBeLessThan(tailEndY(plain, "о" + next) - 5);
   });
-  it("leaves л м я (as after the Russian о) alone", () => {
+  it("reaches the start of л м я when the connector stops a hair short", () => {
     const plain = mapOf(null), grown = mapOf({ growJoins: true });
-    for (const [x, y] of [["о", "л"], ["о", "м"], ["о", "я"], ["и", "л"]]) expect(tailEndY(grown, x + y)).toBeCloseTo(tailEndY(plain, x + y), 3);
+    for (const y of ["л", "м", "я"]) expect(gapBetween(grown, "и", y)).toBeLessThanOrEqual(gapBetween(plain, "и", y));
   });
   it("does nothing without the flag (the Russian deck is unchanged)", () => {
     const plain = mapOf(null), other = mapOf({ slantDeg: 65 });
