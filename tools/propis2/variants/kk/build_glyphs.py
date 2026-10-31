@@ -612,19 +612,25 @@ def _hard_belly_small(top=10.0):
     return " ".join(out), ends[foot]
 
 
+Y1_PATH = ("M 164.35 10.00 L 146.14 49.00 C 142.80 56.18 142.50 62.00 145.48 62.00 C 148.46 62.00 153.60 56.18 156.94 49.00 C 160.29 41.82 160.59 34.20 157.61 34.20 "
+           "C 157.53 34.19 157.45 34.21 157.15 34.15 C 156.85 34.09 156.21 33.88 155.80 33.85 C 155.39 33.83 155.00 33.92 154.70 34.00 C 154.40 34.08 154.02 34.23 154.00 34.35 "
+           "C 153.98 34.47 154.32 34.63 154.60 34.70 C 154.88 34.77 155.35 34.80 155.70 34.75 C 156.05 34.70 156.53 34.46 156.70 34.40 C 168.30 30.00 175.95 21.50 181.47 10.15")  # ы1 (glyphOverrides.js yerLoop, resolved)
+
+
 def g_hard_upper():
-    """Ъ (owner, 2026-10-31): the flag of the Bulgarian capital Ъ + the LEFT half of the Russian capital И: the stem and its bottom hook, nothing else (no connector, no second stroke), no exit.
-    The flag is the Bulgarian path up to where it meets its stem (56.43, -34.12), moved sideways onto И's left stem line; И's own hat is dropped."""
+    """Ъ (owner, 2026-10-31): the flag of the Bulgarian capital Ъ + the LEFT half of the capital Ы made before (ы1 enlarged x2 about its start, as in `scaleOf`: the stem and the big oval with the loop by the stem),
+    without the connector and without the second stroke, no exit. The stem runs up to the Bulgarian flag on the same slanted line."""
     bg = _hard_capital()["strokes"][0]["d"]
-    head = bg[: bg.index(" C 49.58 -19.44")]
-    i = BANK["И"]; d = i["strokes"][0]["d"]
+    head = bg[: bg.index(" C 49.58 -19.44")]                                        # the flag, up to where it meets its stem at (56.43, -34.12)
+    k, ax = 2.0, 164.35
+    left = Y1_PATH[Y1_PATH.index(" L 146.14 49.00"): Y1_PATH.index(" C 168.30 30.00")]   # the stem down, the oval, the loop; ы1's connector is left out
+    left = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{ax + k * (float(m.group(1)) - ax):.2f} {62 + k * (float(m.group(2)) - 62):.2f}", left)
     hy = -34.12
-    dx = (170.79 - 0.4663 * (hy + 32.02)) - 56.43                                   # И's left stem line (170.79, -32.02) -> (140.18, 33.62) at the flag's end height
+    dx = (ax - 0.4663 * (hy + 42.0)) - 56.43                                         # the enlarged stem line starts at (164.35, -42)
     flag = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{float(m.group(1)) + dx:.2f} {m.group(2)}", head)
-    left = d[d.index(" L 140.18 33.62"): d.index(" L 169.19 10.00")]                 # the stem down and the bottom hook; И's connector (L 169.19 10 ...) and right stem are left out
     return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True, "noOverrides": True, "noNormalize": True, "noExit": True, "noLiftExit": True,
             "strokes": [{"d": flag + left}],
-            "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина заглавной И (стойка и нижний крюк), без соединения и второго штриха"}
+            "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина заглавной Ы (ы1 ×2: стойка и пузо с петлёй), без соединения и второго штриха"}
 
 
 def _no_flag(path):
