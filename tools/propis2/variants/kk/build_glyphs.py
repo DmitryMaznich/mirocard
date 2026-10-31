@@ -179,7 +179,62 @@ def g_u_bar_lower(y=73.8, length=14.7):
     return g
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower]
+def tail_of(label, hook_start):
+    """The tail of Ц / ц (owner, 2026-10-31: «как у Ц», the outgoing connection too, capital and lowercase): everything after the foot of the
+    right stem, i.e. the hook, the retrace down the stem line into the descender loop and the exit up to the dashed line. Returns the path text
+    that follows the point `hook_start` of the glyph's single stroke, and that start point."""
+    d = BANK[label]["strokes"][0]["d"]
+    i = d.index(f"{hook_start[0]:.2f} {hook_start[1]:.2f}") + len(f"{hook_start[0]:.2f} {hook_start[1]:.2f}")
+    return d[i:].strip(), hook_start
+
+
+def shifted(path, dx, dy):
+    """A path text with every coordinate pair moved by (dx, dy) (M / L / C / Q only, as the bank writes them)."""
+    toks = re.findall(r"[MLCQ]|-?[\d.]+", path)
+    out, k = [], 0
+    for t in toks:
+        if t in "MLCQ": out.append(t); continue
+        out.append(f"{float(t) + (dx if k % 2 == 0 else dy):.2f}"); k += 1
+    return " ".join(out)
+
+
+def graft(d, cut, tail_label, tail_start):
+    """`d` up to and including the point `cut` (x, y) of its path, then Ц/ц's tail moved so that its start lands on that point."""
+    key = f"{cut[0]:.2f} {cut[1]:.2f}"
+    head = d[: d.index(key) + len(key)]
+    tail, ts = tail_of(tail_label, tail_start)
+    return f"{head} {shifted(tail, cut[0] - ts[0], cut[1] - ts[1])}"
+
+
+def g_kz_upper():
+    """Қ: К with Ц's tail instead of its leg's foot hook and exit (the leg is stroke 2, it keeps the exit)."""
+    g = BANK["К"]; s = g["strokes"]
+    return dict(g, label="Қ", strokes=[s[0], {"d": graft(s[1]["d"], (175.84, 50.58), "Ц", (148.65, 54.05))}],
+                sourceLabel="Қ = К, нога заканчивается хвостом и выходом Ц")
+
+
+def g_kz_lower():
+    """қ: к with ц's tail instead of its leg's foot hook and exit."""
+    g = BANK["к"]; s = g["strokes"]
+    return dict(g, label="қ", strokes=[s[0], {"d": graft(s[1]["d"], (143.31, 55.13), "ц", (135.18, 53.26))}],
+                sourceLabel="қ = к, нога заканчивается хвостом и выходом ц")
+
+
+def g_ng_upper():
+    """Ң: Н with Ц's tail instead of its right stem's foot hook and exit."""
+    g = BANK["Н"]; s = g["strokes"]
+    return dict(g, label="Ң", strokes=[{"d": graft(s[0]["d"], (174.21, 54.05), "Ц", (148.65, 54.05))}],
+                sourceLabel="Ң = Н, правая стойка заканчивается хвостом и выходом Ц")
+
+
+def g_ng_lower():
+    """ң: н with ц's tail instead of its right stem's foot hook and exit."""
+    g = BANK["н"]; s = g["strokes"]
+    return dict(g, label="ң", strokes=[{"d": graft(s[0]["d"], (134.98, 53.68), "ц", (135.18, 53.26))}],
+                sourceLabel="ң = н, правая стойка заканчивается хвостом и выходом ц")
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower]
 
 
 def preview(glyphs, path):
