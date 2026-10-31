@@ -257,7 +257,28 @@ def g_schwa_upper():
                 sourceLabel="Ә = Э до нижней точки стойки, затем скруглённая дуга по эскизу владельца и горизонтальное замыкание по верхней линии строки; выход Э")
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper]
+def g_schwa_lower():
+    """ә (owner, 2026-10-31; shape from the Kazakh copybook PDF): э's arc from its start over the top and down its right side as far as the
+    point (135.47, 36) on the dashed middle line; then, like the capital Ә's belly, a smooth round bowl (down to the baseline, round the
+    bottom-left corner, up the left side) that closes by a HORIZONTAL run right along the dashed middle line (y=36) which crosses the right
+    side and goes on as the letter's exit (the PDF's ә has no separate exit: the bar is the connector). One stroke."""
+    g = BANK["э"]; s = g["strokes"]
+    d = s[0]["d"]
+    key = "135.47 36.00"
+    assert key in d, "э's right-side point not found"
+    head = d[: d.index(key) + len(key)]
+    B, E = (116.5, 62.0), (112.0, 47.0)
+    bowl = (f"C 131.30 45.00 124.50 62.00 {B[0]:.2f} {B[1]:.2f} "          # down the right side to the lowest point, arriving heading left
+            f"C 112.00 62.00 110.60 53.90 {E[0]:.2f} {E[1]:.2f} "          # round the bottom-left corner, up the left side
+            f"C 113.40 40.10 117.00 36.00 122.00 36.00 "                    # into the horizontal, tangent-continuous
+            f"L 154.81 36.00")                                              # along the dashed line across the right side and out: the exit
+    out = {k: v for k, v in g.items() if k not in ("tailStroke",)}
+    out.update(label="ә", strokes=[{"d": f"{head} {bowl}"}], exitStroke=0, noDotStrokes=[])
+    out["sourceLabel"] = "ә = э: верх и правая сторона, затем чаша и горизонталь по средней линии, переходящая в соединение (как в казахской прописи)"
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower]
 
 
 def preview(glyphs, path):
