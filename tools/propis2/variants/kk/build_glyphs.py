@@ -365,7 +365,19 @@ def g_schwa_lower():
     return res
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower]
+def g_u_russian_kazakh_tail():
+    """У (the Russian capital, as the Kazakh У is written): its hook stays, but the connector from the lowest point of the hook is the Kazakh one
+    (owner, 2026-10-31: «хвост после заглавной У должен идти более вверх»): ә's, from the lowest point up to the top of the next letter, instead of
+    о's flat curve to the middle line. The engine borrows the connector of the glyph named in `joinLikeLabel` and ends it on the grid point
+    of `joinEndLikeLabel`; the base У uses о and Ч, this one ә and Ч. noOverrides: the join fields are set here, not by the base deck's table."""
+    g = BANK["У"]
+    out = {k: v for k, v in g.items() if k not in ("sourceLabel",)}
+    out.update(noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="ә", joinEndLikeLabel="Ч",
+               sourceLabel="У = русская У, соединение от нижней точки крючка как у ә (вверх до верха следующей буквы)")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, g_u_russian_kazakh_tail]
 
 
 def preview(glyphs, path):
