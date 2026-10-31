@@ -1270,6 +1270,37 @@ function cutLegAtLevel(d, yLevel) {
   }
   return null;
 }
+// Cuts a path at the point of it that lies nearest to `pt` (the part before that point is dropped): returns { pt, rest }.
+function cutPathNear(d, pt) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const segs = [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 2 || segs[0].c !== "M") return null;
+  let p0 = segs[0].v, best = null;
+  for (let si = 1; si < segs.length; si += 1) {
+    const [x1, y1, x2, y2, x3, y3] = segs[si].v;
+    const P = [p0, [x1, y1], [x2, y2], [x3, y3]];
+    const at = (t) => { const u = 1 - t; return [u * u * u * P[0][0] + 3 * u * u * t * P[1][0] + 3 * u * t * t * P[2][0] + t * t * t * P[3][0], u * u * u * P[0][1] + 3 * u * u * t * P[1][1] + 3 * u * t * t * P[2][1] + t * t * t * P[3][1]]; };
+    for (let k = 0; k <= 96; k += 1) {
+      const q = at(k / 96), dd = Math.hypot(q[0] - pt[0], q[1] - pt[1]);
+      if (!best || dd < best.dd) best = { dd, si, t: k / 96, P };
+    }
+    p0 = [x3, y3];
+  }
+  if (!best) return null;
+  const { si, t, P } = best;
+  const lerp = (a, b) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  const a1 = lerp(P[0], P[1]), a2 = lerp(P[1], P[2]), a3 = lerp(P[2], P[3]);
+  const b1 = lerp(a1, a2), b2 = lerp(a2, a3);
+  const q = lerp(b1, b2);
+  const f = (x) => String(Number(x.toFixed(3)));
+  return { pt: q, rest: `M ${f(q[0])} ${f(q[1])} C ${[b2, a3, P[3]].flat().map(f).join(" ")} ${segs.slice(si + 1).map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ")}`.trim() };
+}
 function bendTailEndD(d, target, dirUnit) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const n = toks.length;
@@ -2018,7 +2049,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // the tail of a descender (у д з) is ONE long cubic from the loop under the line: rebuilding it from its start (retargetTailEndD), or pulling its last piece onto the next stem (alignLastPieceD), swallowed the loop (з before е ё), so only its end is moved
           const descTail = lastCubicStartY(strokes[prevExitStroke].d) > WIDE_BASELINE_Y + 4 * scale;
           const riseToStart = prevExit[1] - st0h[1];
-          if (!glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
+          // (a variant's straight exit — ү ұ, `topJoinsStraight` — is built below, by its own rule: this move of the old tail's end would keep the tail's curve)
+          const ownStraight = glyphsByLabel?.script?.topJoinsStraight?.includes(prevLabel);
+          if (!ownStraight && !glyph.joinLeft && !glyph.touchFirstLine && ((riseToStart > 5 * scale && riseToStart < 16 * scale) || glyph.joinAtStart)) {
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
@@ -2044,8 +2077,26 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
-              const d4 = topJoinD(strokes[prevExitStroke].d, tgt, tgt === st0h && aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
-              if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
+              // a straight exit meets the next letter's start at an angle (з: the line comes up at ~50° and the hat of з leaves its start another way): the little piece at the start is not
+              // written and the line runs into the hat where it continues the line's own direction (owner 2026-10-31: «без излома»)
+              let join = tgt, rest = null;
+              if (straightExit && tgt === st0h && aft && aft[1] <= st0h[1] + 1) {
+                const p0e = (() => { const nn = strokes[prevExitStroke].d.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number); return [nn[nn.length - 8], nn[nn.length - 7]]; })();
+                const ang = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0]);
+                const lead = ang(st0h, aft), line = ang(p0e, st0h);
+                let turn = ((lead - line) * 180) / Math.PI; while (turn > 180) turn -= 360; while (turn < -180) turn += 360;
+                if (Math.abs(turn) > 12 && Math.abs(turn) < 100) {
+                  const pts = samplePath(moved[0].d, 80);
+                  for (let i = 3; i < Math.min(pts.length, 50); i += 1) {
+                    const tq = ang(pts[i - 1], pts[i + 1] ?? pts[i]);
+                    const cd = ang(p0e, pts[i]);
+                    let df = ((tq - cd) * 180) / Math.PI; while (df > 180) df -= 360; while (df < -180) df += 360;
+                    if (Math.abs(df) < 8) { const cut = cutPathNear(moved[0].d, pts[i]); if (cut) { join = cut.pt; rest = cut.rest; } break; }
+                  }
+                }
+              }
+              const d4 = topJoinD(strokes[prevExitStroke].d, join, tgt === st0h && aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
+              if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; if (rest) moved[0] = { ...moved[0], d: rest }; highJoined = true; }
             }
           }
           const candidates = highJoined ? [] : pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
