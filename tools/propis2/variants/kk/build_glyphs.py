@@ -97,7 +97,7 @@ def tail_x(d, y):
 TAIL_BASE_X = 145.07  # where У's straight tail meets the baseline (y=62) when it runs on along its own 65deg line from (193.57, -42)
 
 
-CONN_DX = 22.0  # Ү/Ұ: raw units the connector runs right while it climbs from the foot (62) to the dashed middle line (36): ~45deg on the page, a visible acute angle to the 65deg tail (15 made it ~56deg and it merged into the tail)
+CONN_DX = float(__import__("os").environ.get("KK_CONN_DX", 26.0))  # Ү/Ұ: raw units the connector runs right while it climbs from the foot (62) to the dashed middle line (36). On a page the next letter stands on a slant line and the engine can nudge the connector end only a few units: 26-30 closes the gap for every following letter (22 left 5.4 units), 26 is the steepest of those
 
 
 def u_body(dx=None):
@@ -140,7 +140,7 @@ def y_straight_body():
 
 
 TIP = (110.29, 106.62)  # the descender's lowest point
-CONN_DX_LOWER = 37.6    # raw units right while it climbs from the tip to the dashed line (36): ~58deg on the page, ~7deg off the tail
+CONN_DX_LOWER = float(__import__("os").environ.get("KK_CONN_LOWER", 34.0))  # ү: raw units right while it climbs from the descender tip to the dashed line; 30-34 close the gap to every following letter on the page grid (37.6 left 3-4 units), 34 is the widest of them (~5deg off the tail)
 
 
 def y_straight_with_exit():
