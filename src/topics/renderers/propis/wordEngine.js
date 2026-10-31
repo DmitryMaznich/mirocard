@@ -1744,6 +1744,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingNoAlign = false; // glyph.tailNoAlign: the pending connector is not straightened onto the next letter's rise (see alignLastPieceD)
       let curNoAlign = false;
+      let prevExitIsTail = false; // growJoins: the exit being joined is a connector stroke of its own (о ә …), not a part of the letter's stroke (п и …)
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
       let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
@@ -1774,6 +1775,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           strokes.push(pendingTail);
           prevExit = getPathEndpoints(pendingTail.d).end;
           prevExitStroke = strokes.length - 1;
+          prevExitIsTail = true;
           curNudge = pendingNudge;
           curNoAlign = pendingNoAlign;
           pendingTail = null;
@@ -1949,10 +1951,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           if (!aligned && contactX !== null && Math.abs(contactX - prevExit[0]) < curNudge * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
-          // `meta.script.growJoins` (the Kazakh variant, owner 2026-10-31: «соединяем с верхней точкой следующей буквы»): the connector is carried on to the START of the next
+          // `meta.script.growJoins` (the Kazakh variant, owner 2026-10-31: «соединяем с верхней точкой следующей буквы»; only for a connector that is a stroke of its own: the exits that are part of a letter (п и …) are left as in the Russian deck): the connector is carried on to the START of the next
           // letter when it has not reached it. After и п р т н … the nudges above end it on the stem at the middle line; it is grown up the stem to its top. After a round letter
           // (о а д …), which starts on the middle line, nothing is left to grow. Only upwards or level, and only a short way (more than a hair, less than `GROW_JOIN_MAX`)
-          if (glyphsByLabel?.script?.growJoins && !inCell && !loose) {
+          if (glyphsByLabel?.script?.growJoins && prevExitIsTail && !inCell && !loose) {
             const tailEnd = getPathEndpoints(strokes[prevExitStroke].d).end;
             let target = getPathEndpoints(moved[0].d).start;
             // `growToApex` (л м in the Kazakh variant, owner 2026-10-31; the copybook's «Бол»: the connector runs into the left leg of л and up to its top, the little stub at the
@@ -1999,6 +2001,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           if (cellRec) cellRec.dotTo = startPoints.length;
         }
         prevExit = [local.end[0] + dx, local.end[1]];
+        prevExitIsTail = false;
         curNudge = WIDE_MAX_CONTACT_NUDGE;
         curNoAlign = false;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
