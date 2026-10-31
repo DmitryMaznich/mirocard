@@ -143,11 +143,24 @@ TIP = (110.29, 106.62)  # the descender's lowest point
 CONN_DX_LOWER = float(__import__("os").environ.get("KK_CONN_LOWER", 47.0))  # ү: raw units right while it climbs from the descender tip (106.6) to the dashed line (36): ~52deg on the page, i.e. ~13deg off the 65deg tail (owner, 2026-10-31: half the 24deg of the first try, which looked like Ү's ~41deg); 47-50 close the gap to every following letter on the page grid, 47 is the sharpest of them
 
 
+CURVE_RUN = float(__import__("os").environ.get("KK_CURVE_RUN", 30.0))  # how far (raw y units) the connector keeps the tail's direction before it bends
+CURVE_END_DEG = float(__import__("os").environ.get("KK_CURVE_END", 38.0))  # raw angle to the row at which it arrives at the contact point
+
+
 def y_straight_with_exit():
-    """у without the loop: bowl, right arm, the straight descender to its lowest point, then straight back up-right from that very point at a
-    very acute angle to the descender (it starts merged with it and parts slowly) up to the dashed line where the next letter begins."""
+    """у without the loop: bowl, right arm, the straight descender to its lowest point, then the connector (owner, 2026-10-31): it leaves
+    that very point along the tail, and after the first ~10% bends gently, like a flat parabola, up to the contact point at the dashed line
+    (the same point as the straight version's end). One cubic: first control on the tail's own direction, second on the arrival direction."""
+    import math
     b = y_straight_body()
-    return {"d": f"{b['d']} L {TIP[0] + CONN_DX_LOWER:.2f} 36.00"}
+    x0, y0 = TIP
+    x3, y3 = TIP[0] + CONN_DX_LOWER, 36.0
+    k = math.tan(math.radians(25))  # the tail's 65deg lean: x per unit of height
+    x1, y1 = x0 + CURVE_RUN * k, y0 - CURVE_RUN
+    arr = math.radians(CURVE_END_DEG)
+    run2 = float(__import__("os").environ.get("KK_CURVE_ARR", 25.0))
+    x2, y2 = x3 - run2 * math.cos(arr), y3 + run2 * math.sin(arr)
+    return {"d": f"{b['d']} C {x1:.2f} {y1:.2f} {x2:.2f} {y2:.2f} {x3:.2f} {y3:.2f}"}
 
 
 def g_ue_lower():
