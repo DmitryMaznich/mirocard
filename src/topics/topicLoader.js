@@ -2491,6 +2491,8 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin,
     elementRetired: manifest.elementRetired ?? undefined,
     // a propis2 variant deck's own ready notebooks (scripts/build-propis2-deck.mjs --variant, variant.json `kits`)
     kits:              manifest.kits              ?? undefined,
+    // a propis2 deck with several writing languages (scripts/build-propis2-deck.mjs --languages, propis2/languages.js)
+    languages:         manifest.languages         ?? undefined,
     installedAt: new Date().toISOString(),
   });
 

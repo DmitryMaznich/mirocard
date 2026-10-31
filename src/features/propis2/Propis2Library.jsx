@@ -46,12 +46,13 @@ function NotebookTitle({ title, onRename }) {
 
 // «Мои тетради»: the home of the topic. A notebook is the only thing the adult keeps: create one from scratch or from a ready one,
 // open it as the student sees it, edit, rename, copy, delete.
-export default function Propis2Library({ sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
+export default function Propis2Library({ headerExtra = null, emptyNote = null, sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
   return (
     <div className="screen propis2-home propis2-lib" data-testid="propis2-library">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <h1 className="screen-title">Прописи</h1>
+        {headerExtra}
       </div>
       <div className="propis2-body">
         {draft && (
@@ -63,6 +64,7 @@ export default function Propis2Library({ sets = [], ready = [], draft = null, bl
             </span>
           </div>
         )}
+        {sets.length === 0 && emptyNote}
         <div className="p2-nb-start">
           <button type="button" className="p2-tile p2-tile--primary p2-tile--wide" aria-label="Новая тетрадь" onClick={onNew}>
             <span className="p2-tile-ico"><I.IconAddPage /></span>

@@ -3,11 +3,19 @@ import { generateLetterTasks } from "../propis/letters/lettersEngine.js";
 import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey, syllableDictationKey } from "../propis/dictationAudio.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { buildGlyphMap } from "./pageTask.js";
+import { deckLanguages, languageView, pickLanguage } from "./languages.js";
 
 // `propis2`. The constructor is the topic's home screen (src/features/propis2), its session only hands the renderer one "page" task.
 // «Узнай букву», «Строчная и заглавная» and «Диктант» are copied from `propis` («Прописи старые») (2026-10-10): the same tasks, the same pairing data
 // (LETTER_DATA, filtered to the deck alphabet) and the same recorded dictation; the renderer draws them with this topic's own letters.
-export function generateTasks(mode, topicRecord, sessionSize, sessionParams) {
+export function generateTasks(mode, deckRecord, sessionSize, sessionParams) {
+  // a deck with several writing languages (languages.js): the tasks are of the student's language, and say which (the renderer draws them in it)
+  const writingLang = deckLanguages(deckRecord) ? pickLanguage(deckRecord, sessionParams?.writingLang) : null;
+  if (writingLang) return generateTasksOf(mode, languageView(deckRecord, writingLang), sessionSize, sessionParams).map((t) => ({ ...t, writingLang }));
+  return generateTasksOf(mode, deckRecord, sessionSize, sessionParams);
+}
+
+function generateTasksOf(mode, topicRecord, sessionSize, sessionParams) {
   const letters = ["letters_recognize", "letters_case", "dictation"].includes(mode?.type) ? deckLetters(topicRecord).letters : [];
   if (mode?.type === "letters_recognize") {
     const direction = sessionParams?.direction ?? "print_to_written";

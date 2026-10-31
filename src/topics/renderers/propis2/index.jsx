@@ -10,6 +10,7 @@ import MatchView from "../propis/letters/MatchView";
 import MatchPairView from "../propis/letters/MatchPairView";
 import SortCaseView from "../propis/letters/SortCaseView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
+import { languageView } from "./languages.js";
 import { cardGlyphs } from "./letterCards.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { pageToLines, newPage, newRow } from "./model.js";
@@ -18,7 +19,9 @@ import GradeStamp from "./GradeStamp.jsx";
 // `propis2` in a session. The constructor is the topic's home screen (src/features/propis2); a "page" task shows a page.
 // «Узнай букву», «Строчная и заглавная» and «Диктант» (copied from `propis` («Прописи старые»), 2026-10-10) use the very views of `propis`, with this
 // topic's letters: the cards get them through the same glyph context, the dictation's answer sheet is written by this topic's engine.
-export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose, onCorrect, onMistake }) {
+export default function Propis2Renderer({ task, topicRecord: deckRecord, onAdvance, onClose, onCorrect, onMistake }) {
+  // a deck with several writing languages: the task says which one it was made in (engine.js)
+  const topicRecord = languageView(deckRecord, task?.writingLang);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const cards = useMemo(() => cardGlyphs(glyphMap, cardLetters(topicAlphabet(topicRecord, glyphMap))), [topicRecord, glyphMap]);
   const Answers = useMemo(() => function Propis2DictationAnswers({ items, level, grade }) {

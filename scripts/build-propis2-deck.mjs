@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { applyVariant, variantKits } from "./lib/propis2-variant.mjs";
 import { simplifyGlyphs } from "./lib/simplify-path.mjs";
 
@@ -10,6 +11,10 @@ import { simplifyGlyphs } from "./lib/simplify-path.mjs";
 // `--variant <id>` builds a VARIANT deck instead (docs/propis2-variants.md): the same topic with the data of
 // tools/propis2/variants/<id>/variant.json laid over it — its own id, title, alphabet, modes, dictation words/texts and the glyphs
 // that differ (replacing the base glyph of the same label). Same renderer, no code of its own.
+//
+// `--languages` builds the deck with several writing languages in it (docs/propis2-languages.md): tools/propis2/languages.json —
+// the base topic with its own id and modes, and `languages`: each its alphabet, writing, papers, cover words, letters and ready
+// notebooks (taken from a variant.json with `from`). The app shows the student's chosen one (src/topics/renderers/propis2/languages.js).
 const TOPIC_PATH = "tools/propis2/topic.json";
 const ELEMENTS_PATH = "tools/propis/elements.json";
 const WIDE_PATH = "tools/propis/wide.json";
@@ -24,6 +29,8 @@ const variantId = (() => {
   return i === -1 ? null : process.argv[i + 1];
 })();
 if (variantId !== null && !/^[a-z]+$/.test(variantId ?? "")) throw new Error("--variant needs an id (tools/propis2/variants/<id>)");
+const LANGUAGES_PATH = process.argv.includes("--languages") ? "tools/propis2/languages.json" : null;
+if (LANGUAGES_PATH && variantId) throw new Error("--languages and --variant build different decks: one at a time");
 const VARIANT_PATH = variantId && `tools/propis2/variants/${variantId}/variant.json`;
 const variant = variantId ? JSON.parse(readFileSync(VARIANT_PATH, "utf-8")) : null;
 
@@ -51,6 +58,29 @@ if (variant?.simplifyGlyphs) {
   console.log(`✓ glyph paths simplified (tolerance ${variant.simplifyGlyphs}): ${r.before} -> ${r.after} numbers, worst deviation ${r.worst.dev.toFixed(3)} (${r.worst.label})`);
 }
 if (variant) applyVariant(topic, variant);
+const langSpec = LANGUAGES_PATH ? JSON.parse(readFileSync(LANGUAGES_PATH, "utf-8")) : null;
+if (langSpec) {
+  topic.meta = { ...topic.meta, ...langSpec.meta, renderer: topic.meta.renderer };
+  topic.modes = topic.modes.filter((m) => langSpec.modes.includes(m.id));
+  // the dictation's words and texts are Russian and the dictation is not in this deck: none, not [] (topicLoader validateManifest)
+  delete topic.words;
+  delete topic.texts;
+  const baseKits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
+  topic.languages = langSpec.languages.map((spec) => {
+    const { from, glyphsFrom, ...lang } = spec;
+    if (from) {
+      const v = JSON.parse(readFileSync(from, "utf-8"));
+      const glyphs = v.simplifyGlyphs ? simplifyGlyphs(v.glyphs ?? [], v.simplifyGlyphs).glyphs : v.glyphs ?? [];
+      const { alphabet, script, papers, coverWords, methodology } = v.meta;
+      Object.assign(lang, { alphabet, script, papers, coverWords, methodology, glyphs, kits: v.kits?.length ? variantKits(v, baseKits) : undefined }, Object.fromEntries(Object.entries(lang).filter(([k]) => !["id", "title", "status"].includes(k))));
+    }
+    if (glyphsFrom) lang.glyphs = JSON.parse(execFileSync(glyphsFrom[0], glyphsFrom.slice(1), { encoding: "utf-8", maxBuffer: 64 << 20 }));
+    const lower = lang.alphabet?.lower;
+    const missing = lower ? [...lower].filter((ch) => !topic.wide.some((g) => g.label === ch || g.aliases?.includes(ch)) && !lang.glyphs?.some((g) => g.label === ch)) : [];
+    console.log(`  ${lang.id} ${lang.title} (${lang.status}): ${lang.glyphs?.length ?? 0} own glyphs${missing.length ? `, no letter yet: ${missing.join(" ")}` : ""}`);
+    return lang;
+  });
+}
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
 
@@ -58,7 +88,7 @@ const ID = topic.meta.id;
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/${ID}_v${VERSION}.zip`;
 if (existsSync(ZIP_PATH)) {
-  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? TOPIC_PATH} before building again.`);
+  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? LANGUAGES_PATH ?? TOPIC_PATH} before building again.`);
 }
 
 const zip = new JSZip();
@@ -68,8 +98,9 @@ writeFileSync(ZIP_PATH, buffer);
 console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024).toFixed(0)} KB, ${topic.wide?.length ?? 0} glyphs, ${Object.keys(topic.wideSheets ?? {}).length} sheets, ${topic.elements?.length ?? 0} elements)`);
 
 const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
-const entry = variant
-  ? { id: ID, version: VERSION, title: variant.catalog.title, description: variant.catalog.description, url: `./decks/${ID}_v${VERSION}.zip`, status: variant.catalog.status, access: variant.catalog.access }
+const own = variant ?? langSpec;
+const entry = own
+  ? { id: ID, version: VERSION, title: own.catalog.title, description: own.catalog.description, url: `./decks/${ID}_v${VERSION}.zip`, status: own.catalog.status, access: own.catalog.access }
   : {
     id: "propis2",
     version: VERSION,
@@ -84,7 +115,7 @@ const entry = variant
   };
 const idx = catalog.decks.findIndex((d) => d.id === ID);
 if (idx === -1) {
-  const after = catalog.decks.findIndex((d) => d.id === (variant ? "propis2" : "propis"));
+  const after = catalog.decks.findIndex((d) => d.id === (own ? "propis2" : "propis"));
   catalog.decks.splice(after === -1 ? catalog.decks.length : after + 1, 0, entry);
 } else {
   catalog.decks[idx] = { ...catalog.decks[idx], ...entry };

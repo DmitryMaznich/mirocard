@@ -19,6 +19,8 @@ export function topicAlphabet(topicRecord, glyphMap) {
   const lower = [...(spec?.lower ?? RU_LOWER)];
   const noCapital = new Set(spec?.noCapital ?? RU_NO_CAPITAL);
   if (glyphMap) for (const ch of lower) if (!noCapital.has(ch) && !glyphMap.get(ch.toUpperCase())) noCapital.add(ch);
+  // a letter with no ink at all (a language still being drawn: Kazakh һ і) is left out of the cards, not drawn empty
+  if (glyphMap) for (let i = lower.length - 1; i >= 0; i--) if (!glyphMap.get(lower[i])) lower.splice(i, 1);
   const byLower = new Map(LETTER_DATA.map((l) => [l.params.printed_lower, l]));
   const letters = lower.map((ch) => {
     const base = byLower.get(ch);

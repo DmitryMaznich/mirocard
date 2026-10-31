@@ -1,0 +1,31 @@
+{
+  "note": "Колода-копия «Прописи» с выбором языка письма внутри темы (docs/propis2-languages.md). Сборка: node scripts/build-propis2-deck.mjs --languages. База — tools/propis2/topic.json и русский банк букв; язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json; язык с `glyphsFrom` получает буквы из вывода скрипта (казахские: build_glyphs.py, пока они не перенесены в variant.json). Режимы — без диктанта: он русский и уходит в свою тему.",
+  "catalog": {
+    "title": { "ru": "Прописи (языки, тест)", "en": "Copybook (languages, test)" },
+    "description": {
+      "ru": "Испытание: конструктор тетрадей по письму с выбором языка письма — русский, болгарский, казахский. Режимы «Узнай букву», «Строчная и заглавная».",
+      "en": "Trial: the handwriting notebook builder with a choice of writing language — Russian, Bulgarian, Kazakh. Modes: Recognise the letter, Upper and lower case."
+    },
+    "status": "individual",
+    "access": "paid"
+  },
+  "meta": {
+    "id": "propis2_lang",
+    "version": "0.1.0",
+    "title": "Прописи (языки, тест)"
+  },
+  "modes": ["builder", "letters_recognize", "letters_case"],
+  "languages": [
+    { "id": "ru", "title": "Русский", "status": "ready" },
+    { "id": "bg", "title": "Български", "status": "ready", "from": "tools/propis2/variants/bg/variant.json" },
+    {
+      "id": "kk",
+      "title": "Қазақша",
+      "status": "draft",
+      "alphabet": { "lower": "аәбвгғдеёжзийкқлмнңоөпрстуұүфхһцчшщъыіьэюя", "noCapital": ["ъ", "ы", "ь"] },
+      "script": { "growJoins": true },
+      "methodology": false,
+      "glyphsFrom": ["python3", "tools/propis2/variants/kk/build_glyphs.py"]
+    }
+  ]
+}
