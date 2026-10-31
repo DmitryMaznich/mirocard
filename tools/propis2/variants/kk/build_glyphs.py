@@ -320,7 +320,7 @@ def first_self_crossing(pts, skip=12):
 CONN_RUN, CONN_RISE = 39.1, 26.0
 
 
-SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 82.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п): 44-56 (the next letter stands tight against ә, the stem 12 units left of the connector end) and 78-86 (one cell further: even spacing У-ә-т, owner 2026-10-31); 82 is the middle of the second plateau
+SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 56.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п): 44-56 and 78-86. 48 was the first try, 82 (a cell further) came out too flat (owner, 2026-10-31: «чуть ниже наклонённые, но не так сильно»): 56 is the flattest of the first plateau, a line thickness flatter than 48 and about the angle of the PDF
 
 
 def kazakh_tail(bx, by, dx=None):
