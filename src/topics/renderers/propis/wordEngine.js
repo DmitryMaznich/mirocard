@@ -1963,8 +1963,17 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
             if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale) {
               const f2 = (v) => v.toFixed(3);
-              const dxg = target[0] - tailEnd[0], dyg = target[1] - tailEnd[1];
-              strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `${strokes[prevExitStroke].d} C ${f2(tailEnd[0] + dxg / 3)} ${f2(tailEnd[1] + dyg / 3)} ${f2(tailEnd[0] + (2 * dxg) / 3)} ${f2(tailEnd[1] + (2 * dyg) / 3)} ${f2(target[0])} ${f2(target[1])}` };
+              // a SMOOTH piece (owner 2026-10-31: «плавный изгиб вверх или по прямой», not a vertical stub): it leaves along the direction the connector was going and arrives
+              // along the way the next letter goes from its start (a stem written downwards is entered from below, so the direction is turned round)
+              const dTail = strokes[prevExitStroke].d.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
+              const tdx = dTail[dTail.length - 2] - dTail[dTail.length - 4], tdy = dTail[dTail.length - 1] - dTail[dTail.length - 3];
+              const tl = Math.hypot(tdx, tdy) || 1;
+              const after = samplePath(moved[0].d, 40).find((q) => Math.hypot(q[0] - target[0], q[1] - target[1]) > 4 * scale);
+              let adx = after ? after[0] - target[0] : 0, ady = after ? after[1] - target[1] : -1;
+              if (ady > 0) { adx = -adx; ady = -ady; }
+              const al = Math.hypot(adx, ady) || 1;
+              const k1 = dist * 0.4, k2 = dist * 0.4;
+              strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `${strokes[prevExitStroke].d} C ${f2(tailEnd[0] + (tdx / tl) * k1)} ${f2(tailEnd[1] + (tdy / tl) * k1)} ${f2(target[0] - (adx / al) * k2)} ${f2(target[1] - (ady / al) * k2)} ${f2(target[0])} ${f2(target[1])}` };
             }
           }
         }
