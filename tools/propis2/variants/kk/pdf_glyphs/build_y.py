@@ -131,6 +131,17 @@ climb = np.vstack([cs[-1][None, :], stem_fit[j0:][::-1]])                       
 fall = np.vstack([stem_fit[:-1], sm(ds2)])                                                    # top -> foot -> hook
 d2 = bez(cs, spacing=7.0) + " " + bez(climb, spacing=9.0).split(" ", 3)[3] + " " + bez(fall, spacing=7.0).split(" ", 3)[3]
 P2 = np.vstack([cs, climb, fall])
+# --- owner, 2026-10-31: stroke 1 stays as is; stroke 2 = the connector of capital У (a straight 45deg climb, Ү/Ұ) + the right element of capital И exactly (stem up, the same line down, hook, exit),
+# И's element shifted right so that its stem is met by the connector at И's own junction height (y=10).
+import re as _re
+_B = {g["label"]: g for g in json.load(open(HERE.parents[3] / "propis/wide.json"))["glyphs"]}
+_i = _B["И"]["strokes"][0]["d"]
+_tail = _i[_i.index("L 169.19 10.00"):]                                    # L 169.19 10 (stem foot-of-climb) L 193.44 -42 (top) L 148.65 54.05 (foot) C ... hook L 175.07 36 (exit)
+_x0, _y0 = P2[0]
+_tx = (_x0 + (_y0 - 10.0)) - 169.19                                          # the 45deg connector from the belly bottom reaches y=10 at x = x0 + (y0-10)
+_shift = lambda m: f"{float(m.group(1)) + _tx:.2f} {m.group(2)}"
+_tail = _re.sub(r"(-?[\d.]+) (-?[\d.]+)", _shift, _tail)
+d2 = f"M {_x0:.2f} {_y0:.2f} " + _tail
 B1, B2 = P1, P2
 json.dump({"strokes": [d1, d2], "scale": k, "pdf_stem_slant_deg": math.degrees(math.atan(1 / t_pdf)), "start1": top1.tolist(), "start2": P2[0].tolist(), "exit": P2[-1].tolist()}, open(HERE / "Y_glyph.json", "w"), ensure_ascii=False)
 print("scale", round(k, 3), "start1", top1.round(1), "start2", P2[0].round(1), "exit", P2[-1].round(1))
