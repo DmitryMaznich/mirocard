@@ -468,7 +468,29 @@ def g_h_lower():
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower]
+def g_h_upper():
+    """Һ (owner, 2026-10-31): the capital К, but where the loop at the foot of its stem comes up and crosses the slanted stem it does NOT go on up into К's upper arm: it goes straight on into
+    К's lower stroke (the arch, the right leg and the exit). So: К's stroke 1 as far as that crossing (the point of the loop where К's second stroke starts), then К's stroke 2.
+    One stroke, so the exit is its end."""
+    k = BANK["К"]; s1, s2 = k["strokes"][0]["d"], k["strokes"][1]["d"]
+    toks = re.findall(r"[MC]|-?[\d.]+", s1)
+    segs, i = [], 0
+    while i < len(toks):
+        n = 3 if toks[i] == "C" else 1
+        segs.append((toks[i], [float(v) for v in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
+    ends = [(v[-2], v[-1]) for _, v in segs]
+    foot = max(range(len(ends)), key=lambda j: ends[j][1])                       # the lowest end point: the foot of the stem
+    sx, sy = (float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's second stroke starts, on the loop
+    cut = min(range(foot, len(ends)), key=lambda j: (ends[j][0] - sx) ** 2 + (ends[j][1] - sy) ** 2)
+    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[: cut + 1])
+    tail = s2[s2.index("C"):]                                                    # К's second stroke without its M
+    out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
+    out.update(label="Һ", strokes=[{"d": f"{head} L {sx:.2f} {sy:.2f} {tail}"}],
+               sourceLabel="Һ = К: петля внизу, пересекая стойку, идёт не в верхнюю ветку, а в нижний штрих К (арка, ножка, выход)")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper]
 
 
 def preview(glyphs, path):
