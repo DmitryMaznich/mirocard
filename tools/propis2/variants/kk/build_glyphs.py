@@ -588,30 +588,63 @@ def _hard_capital():
     return next(g for g in v["glyphs"] if g["label"] == "Ъ")
 
 
+def _hard_belly_small(top=10.0):
+    """The capital Ъ with its belly lowered to the height of the narrow row (owner, 2026-10-31: «пузо немного уменьшить по высоте, чтобы было примерно той же высоты, что узкая строка»): the flag and the
+    stem are as they are; the belly (the cubics after the foot of the stem) is pressed down about the baseline until its top is at `top` (the narrow row's upper line), sheared along the slant so that it stays
+    on its slant lines; its end is put on the stem. Returns (path text, the lowest point of the belly)."""
+    h = _hard_capital(); d = h["strokes"][0]["d"]
+    toks = re.findall(r"[MC]|-?[\d.]+", d); segs, i = [], 0
+    while i < len(toks):
+        n = 1 if toks[i] == "M" else 3
+        segs.append((toks[i], [float(x) for x in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
+    ends = [(v[-2], v[-1]) for _, v in segs]
+    foot = max(range(len(ends)), key=lambda j: ends[j][1])                      # the foot of the stem = the bottom of the belly
+    belly_top = min(y for j in range(foot + 1, len(ends)) for y in [ends[j][1]] + segs[j][1][1::2])
+    k = (62.0 - top) / (62.0 - belly_top); t25 = 0.46630765815499864
+    def f(x, y):
+        y2 = 62.0 - (62.0 - y) * k
+        return x - t25 * (y2 - y), y2
+    out = []
+    for j, (c, vals) in enumerate(segs):
+        if j <= foot: out.append(f"{c} " + " ".join(f"{v:.2f}" for v in vals)); continue
+        pts = [f(vals[m], vals[m + 1]) for m in range(0, len(vals), 2)]
+        out.append(f"{c} " + " ".join(f"{x:.2f} {y:.2f}" for x, y in pts))
+    return " ".join(out), ends[foot]
+
+
 def g_hard_upper():
-    """Ъ: the Bulgarian capital Ъ, unchanged (a real Kazakh letter: Ъ has a capital in the 42-letter alphabet)."""
-    g = dict(_hard_capital()); g["sourceLabel"] = "Ъ = заглавная Ъ болгарского варианта без изменений (флажок, стойка, овал)"
+    """Ъ: the Bulgarian capital Ъ with its belly lowered to the height of the narrow row (owner, 2026-10-31: «в таком виде мы не можем взять, пузо немного уменьшить по высоте»); a real Kazakh letter
+    (Ъ has a capital in the 42-letter alphabet)."""
+    g = dict(_hard_capital()); path, _ = _hard_belly_small()
+    g["strokes"] = [{"d": path}]
+    g["sourceLabel"] = "Ъ = заглавная Ъ болгарского варианта, пузо уменьшено до высоты узкой строки"
     return g
 
 
-def g_yery_upper(gap=0.0):
-    """Ы (owner, 2026-10-31: «из заглавной Ъ сделаем Ы»): the capital Ъ as it is (the tall stem with the belly on its right) plus a second tall stem, the right one, as in the copybook's Ы (PDF page 34):
-    a straight stroke down the 65-degree slant from the height of the left stem's top, touching the right side of the belly (`gap` units off it) and ending on the middle line where it joins the next
-    letter (the exit, as the right stem of Л and А). The belly keeps its own closing; the connector to the next letter leaves the right stem."""
-    h = _hard_capital(); d = h["strokes"][0]["d"]
-    pts = _flat_points(d)
-    t25 = 0.46630765815499864
-    u0 = max(x + t25 * y for x, y in pts if y > -5) + gap            # the slant line touching the belly on the right
-    ytop = min(y for _, y in pts)
-    x_at = lambda y: u0 - t25 * y
-    stem = {"d": f"M {x_at(ytop):.2f} {ytop:.2f} L {x_at(36.0):.2f} 36.00"}
-    out = {kk: v for kk, v in h.items() if kk not in ("sourceLabel", "strokes", "noExit")}
-    out.update(label="Ы", strokes=[{"d": d}, stem], exitStroke=1, noDotStrokes=[1], continuousStrokes=[],
-               sourceLabel="Ы = заглавная Ъ + правая высокая стойка, выход от неё")
+def g_hard_belly():
+    """A helper glyph, not a letter: Ъ with the lowered belly and, from the bottom of the belly, the connector of the capital О (it goes up to the middle line, to the right stroke): the left part of Ы."""
+    path, low = _hard_belly_small()
+    bx, by = low
+    o = BANK["О"]; ot = o["strokes"][1]["d"]
+    ot = ot[ot.rindex("C"):]                                                        # the connector itself: the last cubic of O's tail stroke (the first one retraces the oval's left side)
+    nums = [float(v) for v in re.findall(r"-?[\d.]+", ot)]                       # C 122.10 62.00 139.42 50.10 158.82 36.00, from the bottom (113.10, 62.00)
+    dx, dy = bx - 113.10, by - 62.00
+    tail = f"M {bx:.2f} {by:.2f} C " + " ".join(f"{nums[m] + dx:.2f} {nums[m + 1] + dy:.2f}" for m in range(0, 6, 2))
+    h = _hard_capital()
+    out = {kk: v for kk, v in h.items() if kk not in ("sourceLabel", "strokes", "noExit", "noLiftExit")}
+    out.update(label="Ъ_п", strokes=[{"d": path}, {"d": tail}], tailStroke=1, tailContinuous=True,
+               sourceLabel="служебный: заглавная Ъ с пузом по высоте узкой строки + соединение как у О; левая часть Ы")
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper]
+def g_yery_upper():
+    """Ы (owner, 2026-10-31): the left part is the capital Ъ with the belly the height of the narrow row (g_hard_belly), then the connector as of the capital О, and the right stroke is the one of
+    the lowercase ы / и (the bank's ы2): as the lowercase ы is composed of ь and ы2. The engine writes the pieces as one letter."""
+    return {"label": "Ы", "kind": "letter", "compose": ["Ъ_п", "ы2"], "repeatCells": 7,
+            "sourceLabel": "Ы = Ъ (пузо по высоте узкой строки) + соединение как у О + правый штрих ы2"}
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_hard_belly, g_yery_upper]
 
 
 def preview(glyphs, path):
