@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Прописи: язык письма — макеты</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap");
+  :root { --surface:#fff; --paper:#fffdf8; --line:#e3dccb; --ink:#28323c; --muted:#6b7385; --teal:#4a9b8f; --teal-dark:#2a6b60; --teal-soft:#e5f2ef; --amber:#5b4a1f; --amber-soft:#fbf3dc; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:28px 32px 40px; font-family:"Nunito",sans-serif; color:var(--ink); background:#efece4; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  .lead { color:var(--muted); margin:0 0 22px; font-size:15px; max-width:1100px; }
+  .row { display:flex; gap:30px; flex-wrap:wrap; align-items:flex-start; }
+  .shot { width:330px; }
+  .cap { font-weight:900; font-size:15px; margin:0 0 8px; }
+  .cap b { display:inline-flex; width:24px; height:24px; border-radius:50%; background:var(--teal); color:#fff; align-items:center; justify-content:center; font-size:13px; margin-right:6px; }
+  .note { font-size:13px; color:#4b5563; margin:10px 2px 0; line-height:1.4; }
+  .phone { width:330px; height:640px; border-radius:34px; background:var(--paper); border:8px solid #1f2933; overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:0 10px 30px rgba(0,0,0,.18); }
+  .status { height:26px; flex:0 0 auto; }
+  .hdr { display:flex; align-items:center; gap:8px; padding:6px 14px 10px; border-bottom:1px solid var(--line); background:#fff; }
+  .back { width:34px; height:34px; border-radius:10px; background:var(--teal-soft); color:var(--teal-dark); display:flex; align-items:center; justify-content:center; font-weight:900; }
+  .ttl { font-weight:900; font-size:18px; flex:1; }
+  .chip { display:inline-flex; align-items:center; gap:5px; height:32px; padding:0 10px 0 12px; border-radius:16px; border:1.5px solid var(--line); background:#fff; font-weight:800; font-size:13px; color:var(--ink); }
+  .chip .caret { font-size:10px; color:var(--muted); }
+  .chip--on { border-color:var(--teal); color:var(--teal-dark); background:var(--teal-soft); }
+  .body { flex:1; overflow:hidden; padding:14px; position:relative; }
+  .section { font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:14px 2px 8px; }
+  .section:first-child { margin-top:2px; }
+  /* home */
+  .home-bg { background:linear-gradient(#fdf8ec,#f6efdf); }
+  .greet { font-weight:900; font-size:20px; margin:4px 2px 12px; }
+  .tiles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tile { background:#fff; border-radius:18px; padding:12px; min-height:128px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 2px 0 #e3dccb; border:1px solid #efe7d4; }
+  .tile .pic { height:58px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:30px; font-family:"Segoe Script","Comic Sans MS",cursive; color:var(--teal-dark); background:var(--teal-soft); }
+  .tile .nm { font-weight:900; font-size:15px; margin-top:8px; }
+  .tile .sub { font-size:12px; color:var(--muted); font-weight:600; }
+  .tile--new { outline:3px solid #f59e0b; outline-offset:2px; }
+  .tile--dim { opacity:.45; }
+  .badge-new { display:inline-block; background:#fef3c7; color:#92400e; font-size:10px; font-weight:900; padding:1px 6px; border-radius:6px; margin-left:4px; vertical-align:2px; }
+  /* settings list */
+  .card { background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .opt { display:flex; align-items:center; gap:12px; padding:12px 14px; border-top:1px solid #f1ecdf; }
+  .opt:first-child { border-top:none; }
+  .radio { width:22px; height:22px; border-radius:50%; border:2px solid #cbd5e1; flex:0 0 auto; }
+  .opt--sel .radio { border:7px solid var(--teal); }
+  .opt--sel { background:#f7fbfa; }
+  .lang { flex:1; min-width:0; }
+  .lang .n { font-weight:900; font-size:16px; }
+  .lang .a { font-size:13px; color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lang .a em { font-style:normal; color:var(--teal-dark); font-weight:900; }
+  .draft { font-size:10px; font-weight:900; color:var(--amber); background:var(--amber-soft); border:1px solid #ecd9a4; padding:2px 6px; border-radius:6px; }
+  .opt--draft .lang .n { color:#7a6a45; }
+  .hint { font-size:12.5px; color:#4b5563; line-height:1.4; margin:10px 4px 0; }
+  .admin { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:var(--amber); margin:12px 4px 6px; }
+  .param { display:flex; justify-content:space-between; align-items:center; padding:13px 14px; font-weight:700; font-size:15px; border-top:1px solid #f1ecdf; }
+  .param:first-child { border-top:none; }
+  .param span { color:var(--muted); font-weight:700; font-size:14px; }
+  /* library */
+  .newnb { display:flex; align-items:center; gap:12px; padding:14px; border-radius:16px; border:2px dashed #b8d4cf; color:var(--teal-dark); font-weight:900; background:#fff; }
+  .newnb .plus { width:40px; height:40px; border-radius:12px; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 3px 0 var(--teal-dark); }
+  .nb { display:flex; gap:12px; align-items:center; background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:10px; }
+  .nb .ico { width:40px; height:48px; border-radius:6px; background:repeating-linear-gradient(#fff 0 9px,#d8e8e5 9px 10px); border:1.5px solid #b8d4cf; flex:0 0 auto; position:relative; }
+  .nb .ico::after { content:""; position:absolute; left:6px; top:0; bottom:0; border-left:1.5px solid #f0b4b4; }
+  .nb .nm { font-weight:900; font-size:15px; }
+  .nb .mt { font-size:12px; color:var(--muted); font-weight:600; }
+  .empty { text-align:center; padding:26px 10px 6px; color:var(--muted); font-weight:700; font-size:14px; line-height:1.45; }
+  .empty .big { font-size:34px; font-family:"Segoe Script","Comic Sans MS",cursive; color:var(--teal-dark); letter-spacing:4px; margin-bottom:8px; }
+  .other { margin-top:14px; font-size:13px; color:var(--teal-dark); font-weight:800; text-align:center; }
+  /* sheet */
+  .scrim { position:absolute; inset:0; background:rgba(20,28,36,.38); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:#fff; border-radius:22px 22px 0 0; padding:10px 14px 22px; box-shadow:0 -6px 24px rgba(0,0,0,.15); }
+  .grab { width:40px; height:5px; border-radius:3px; background:#d8d2c4; margin:0 auto 10px; }
+  .sheet h3 { margin:0 0 4px; font-size:18px; font-weight:900; }
+  .sheet .sub { font-size:13px; color:var(--muted); margin:0 0 12px; font-weight:600; }
+  .btn { display:block; text-align:center; margin-top:14px; background:var(--teal); color:#fff; font-weight:900; border-radius:14px; padding:13px; box-shadow:0 4px 0 var(--teal-dark); }
+  /* editor */
+  .canvas { background:#fff; border:1px solid var(--line); border-radius:12px; height:250px; position:relative; overflow:hidden; }
+  .rule { position:absolute; left:0; right:0; border-top:1px solid #b9d3e8; }
+  .rule.mid { border-top:1px dashed #cfe0ee; }
+  .slants { position:absolute; inset:0; background:repeating-linear-gradient(76deg, transparent 0 34px, #e3eef7 34px 35px); opacity:.9; }
+  .ink { position:absolute; left:14px; font-family:"Segoe Script","Comic Sans MS",cursive; font-size:30px; color:#1d3b8a; letter-spacing:1px; }
+  .tray { margin-top:12px; background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; }
+  .tray .lbl { font-size:11px; font-weight:900; color:var(--muted); margin-bottom:6px; display:flex; justify-content:space-between; }
+  .keys { display:grid; grid-template-columns:repeat(9,1fr); gap:5px; }
+  .key { height:30px; border-radius:8px; background:#f7f4ec; border:1px solid #e9e2d0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; box-shadow:0 2px 0 #e3dccb; }
+  .key--own { background:var(--teal-soft); border-color:#b8d4cf; color:var(--teal-dark); }
+  /* modes */
+  .mode { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:10px; }
+  .mode .mi { width:46px; height:46px; border-radius:12px; background:var(--teal-soft); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--teal-dark); font-size:20px; }
+  .mode .nm { font-weight:900; font-size:15px; }
+  .mode .mt { font-size:12px; color:var(--muted); font-weight:600; }
+  .langline { display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px 12px; font-weight:800; font-size:14px; }
+  .langline a { color:var(--teal-dark); text-decoration:none; font-size:13px; }
+  .arrow { font-weight:900; color:#f59e0b; }
+  .legend { margin-top:26px; max-width:1100px; font-size:14px; line-height:1.5; color:#374151; }
+  .legend li { margin-bottom:4px; }
+</style>
+</head>
+<body>
+<h1>Прописи: язык письма внутри темы</h1>
+<p class="lead">Одна тема «Прописи» со всеми алфавитами в одном ZIP (работает офлайн). Язык — параметр ученика в теме (общий <code>params</code>), а не режим и не отдельная тема. Диктант выделен в свою тему, только русский.</p>
+
+<div class="row">
+
+  <!-- 1. Home -->
+  <div class="shot">
+    <p class="cap"><b>1</b>Главный экран</p>
+    <div class="phone home-bg">
+      <div class="status"></div>
+      <div class="body">
+        <div class="greet">Миша, привет!</div>
+        <div class="tiles">
+          <div class="tile"><div class="pic">Аа</div><div><div class="nm">Прописи</div><div class="sub">Конструктор · буквы</div></div></div>
+          <div class="tile tile--new"><div class="pic">✎ ♪</div><div><div class="nm">Диктант <span class="badge-new">НОВОЕ</span></div><div class="sub">Буквы · слова · текст</div></div></div>
+          <div class="tile tile--dim"><div class="pic" style="font-family:Nunito">2+3</div><div><div class="nm">Плюс и минус</div></div></div>
+          <div class="tile tile--dim"><div class="pic" style="font-family:Nunito">☀</div><div><div class="nm">Сегодня</div></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="note">«Прописи» больше не содержат диктант: он своя плитка. Отдельных плиток «Български прописи» / «Қазақ жазуы» нет. Тем, кто пользовался диктантом из «Прописей», при первом входе — подсказка «Диктант переехал сюда».</p>
+  </div>
+
+  <!-- 2. Mode menu -->
+  <div class="shot">
+    <p class="cap"><b>2</b>Вход в «Прописи»</p>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="hdr"><div class="back">‹</div><div class="ttl">Прописи</div></div>
+      <div class="body">
+        <div class="langline"><span>Пишем: Български</span><a>Сменить</a></div>
+        <div class="mode"><div class="mi">✎</div><div><div class="nm">Конструктор тетрадей</div><div class="mt">Для взрослого: страницы, показ, печать</div></div></div>
+        <div class="mode"><div class="mi">Б</div><div><div class="nm">Узнай букву</div><div class="mt">30 букв болгарского алфавита</div></div></div>
+        <div class="mode"><div class="mi">Бб</div><div><div class="nm">Строчная и заглавная</div><div class="mt">29 пар</div></div></div>
+      </div>
+    </div>
+    <p class="note">Строка «Пишем: …» видна, <b>только если язык не русский</b>. У русскоязычного пользователя меню такое же, как сейчас, без новых элементов. Подписи режимов берут число букв из алфавита.</p>
+  </div>
+
+  <!-- 3. Settings -->
+  <div class="shot">
+    <p class="cap"><b>3</b>Настройки темы → Язык письма</p>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="hdr"><div class="back">‹</div><div class="ttl">Настройки: Прописи</div></div>
+      <div class="body">
+        <div class="section">Язык письма</div>
+        <div class="card">
+          <div class="opt"><div class="radio"></div><div class="lang"><div class="n">Русский</div><div class="a">33 буквы · наклон 65°</div></div></div>
+          <div class="opt opt--sel"><div class="radio"></div><div class="lang"><div class="n">Български</div><div class="a">30 букв · без ы э ё · наклон 76°</div></div></div>
+          <div class="opt"><div class="radio"></div><div class="lang"><div class="n">Қазақша</div><div class="a">42 буквы · <em>ә ғ қ ң ө ұ ү һ і</em></div></div></div>
+        </div>
+        <div class="admin">🔒 Видно только администратору</div>
+        <div class="card">
+          <div class="opt opt--draft"><div class="radio"></div><div class="lang"><div class="n">Українська</div><div class="a">не все буквы записаны</div></div><span class="draft">ЧЕРНОВИК</span></div>
+        </div>
+        <p class="hint">Язык — у ученика. От него зависят буквы конструктора, бумага, наклон и карточки «Узнай букву». Тетради на другом языке не удаляются.</p>
+      </div>
+    </div>
+    <p class="note">Названия на самом языке, без флагов. Под названием то, что реально меняется: число букв, особые буквы, наклон. Недоделанный язык видит только админ, выдача по аккаунтам не нужна.</p>
+  </div>
+
+</div>
+
+<div class="row" style="margin-top:34px">
+
+  <!-- 4. Library with chip -->
+  <div class="shot">
+    <p class="cap"><b>4</b>Библиотека конструктора</p>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="hdr"><div class="back">‹</div><div class="ttl">Тетради</div><span class="chip">Русский <span class="caret">▾</span></span></div>
+      <div class="body">
+        <div class="newnb"><div class="plus">+</div>Новая тетрадь</div>
+        <div class="nb"><div class="ico"></div><div><div class="nm">Буква Ш и слоги</div><div class="mt">6 стр. · вчера</div></div></div>
+        <div class="nb"><div class="ico"></div><div><div class="nm">Соединения о-а</div><div class="mt">4 стр. · 26 окт.</div></div></div>
+        <div class="section">Методика</div>
+        <div class="nb"><div class="ico"></div><div><div class="nm">Комплект «Гласные»</div><div class="mt">12 стр.</div></div></div>
+      </div>
+    </div>
+    <p class="note">Чип языка — тихий, справа в шапке: виден всегда, но не мешает. Это та же настройка, что в п.3, просто ближе. Если хочется ещё тише — показывать чип только тем, у кого язык не русский; тогда русскоязычный не узнает о других языках без настроек.</p>
+  </div>
+
+  <!-- 5. Sheet -->
+  <div class="shot">
+    <p class="cap"><b>5</b>Нажали чип</p>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="hdr"><div class="back">‹</div><div class="ttl">Тетради</div><span class="chip chip--on">Русский <span class="caret">▴</span></span></div>
+      <div class="body">
+        <div class="newnb"><div class="plus">+</div>Новая тетрадь</div>
+        <div class="nb"><div class="ico"></div><div><div class="nm">Буква Ш и слоги</div><div class="mt">6 стр. · вчера</div></div></div>
+      </div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <h3>На каком языке пишем?</h3>
+        <p class="sub">Для Миши. Тетради каждого языка хранятся отдельно.</p>
+        <div class="card">
+          <div class="opt opt--sel"><div class="radio"></div><div class="lang"><div class="n">Русский</div><div class="a">2 тетради</div></div></div>
+          <div class="opt"><div class="radio"></div><div class="lang"><div class="n">Български</div><div class="a">тетрадей нет</div></div></div>
+          <div class="opt"><div class="radio"></div><div class="lang"><div class="n">Қазақша</div><div class="a">тетрадей нет · <em>ә ғ қ ң ө…</em></div></div></div>
+        </div>
+        <div class="btn">Готово</div>
+      </div>
+    </div>
+    <p class="note">Нижняя панель, а не выпадающий список: крупные строки под палец. В строке — сколько тетрадей на этом языке, чтобы было понятно, что ничего не пропадёт. Отступ снизу — с <code>--app-safe-bottom</code>.</p>
+  </div>
+
+  <!-- 6. Kazakh library empty + editor -->
+  <div class="shot">
+    <p class="cap"><b>6</b>Выбрали «Қазақша»</p>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="hdr"><div class="back">‹</div><div class="ttl">Тетради</div><span class="chip">Қазақша <span class="caret">▾</span></span></div>
+      <div class="body">
+        <div class="empty"><div class="big">Әә Ққ Өө</div>Казахских тетрадей пока нет</div>
+        <div class="newnb" style="margin-top:14px"><div class="plus">+</div>Новая тетрадь</div>
+        <div class="other">Русские тетради (2) — переключить язык</div>
+      </div>
+    </div>
+    <p class="note">Пустое состояние показывает буквы нового алфавита, чтобы было видно, что язык действительно сменился. Ссылка внизу возвращает назад. Готовые тетради «Методика» здесь не показываются: они на русских словах.</p>
+  </div>
+
+  <!-- 7. Editor -->
+  <div class="shot">
+    <p class="cap"><b>7</b>Редактор: казахская тетрадь</p>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="hdr"><div class="back">‹</div><div class="ttl">Тетрадь 1</div></div>
+      <div class="body">
+        <div class="canvas">
+          <div class="slants" style="background:repeating-linear-gradient(65deg, transparent 0 22px, #e3eef7 22px 23px)"></div>
+          <div class="rule" style="top:40px"></div><div class="rule mid" style="top:58px"></div><div class="rule" style="top:76px"></div>
+          <div class="ink" style="top:30px">қала  үй</div>
+          <div class="rule" style="top:140px"></div><div class="rule mid" style="top:158px"></div><div class="rule" style="top:176px"></div>
+          <div class="ink" style="top:130px">Әке  өнер</div>
+        </div>
+        <div class="tray">
+          <div class="lbl"><span>БУКВЫ</span><span>Қазақша · 42</span></div>
+          <div class="keys">
+            <div class="key">а</div><div class="key key--own">ә</div><div class="key">б</div><div class="key">в</div><div class="key">г</div><div class="key key--own">ғ</div><div class="key">д</div><div class="key">е</div><div class="key">ё</div>
+            <div class="key">ж</div><div class="key">з</div><div class="key">и</div><div class="key">й</div><div class="key">к</div><div class="key key--own">қ</div><div class="key">л</div><div class="key">м</div><div class="key">н</div>
+            <div class="key key--own">ң</div><div class="key">о</div><div class="key key--own">ө</div><div class="key">п</div><div class="key">р</div><div class="key">с</div><div class="key">т</div><div class="key">у</div><div class="key key--own">ұ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="note">В редакторе язык не показывается и не переключается: всё берётся из тетради. Свои буквы языка на плитках чуть выделены, чтобы их было легко найти. Бумага и наклон — по языку (тут русские 65°, как решит владелец).</p>
+  </div>
+
+</div>
+
+<ul class="legend">
+  <li><b>Не меняется для 95%:</b> русскоязычный пользователь видит только чип «Русский ▾» в шапке библиотеки (п.4). Если и он лишний — скрыть, язык остаётся в настройках (п.3).</li>
+  <li><b>Тетрадь помнит свой язык.</b> Смена языка не переделывает тетради, а показывает тетради выбранного языка. Сменить язык готовой тетради нельзя: у языков разные наклон, бумага и алфавит.</li>
+  <li><b>Офлайн:</b> все алфавиты в одном ZIP (болгарский вариант ≈ 58 КБ), докачки нет.</li>
+  <li><b>Хранение:</b> язык — в <code>params</code> пары «ученик — тема» (синхронизируется без правок бэкенда), у тетради поле <code>lang</code>.</li>
+</ul>
+</body>
+</html>
