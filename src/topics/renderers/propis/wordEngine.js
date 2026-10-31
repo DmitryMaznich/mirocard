@@ -2031,11 +2031,12 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             }
           }
           if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && !innerPiece.has(pieceIndex)) {
-            if (st0h[1] < prevExit[1] - 10 * scale) {
+            const straightExit = Boolean(glyphsByLabel.script.topJoinsStraight?.includes(prevLabel));
+            if (straightExit || st0h[1] < prevExit[1] - 10 * scale) {   // ү ұ з: to the start of ANY next letter (top, middle line), one rule for all
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
-              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, Boolean(glyphsByLabel.script.topJoinsStraight?.includes(prevLabel)));
+              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
             }
           }
