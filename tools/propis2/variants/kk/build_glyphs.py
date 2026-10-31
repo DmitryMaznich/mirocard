@@ -637,18 +637,21 @@ def _no_flag(path):
 
 
 def g_yery_upper():
-    """Ы (owner, 2026-10-31: «ты можешь вектор вытащить из PDF»): the capital Ы of the Kazakh copybook (PDF page 34), the centre line of its glyph outline (pdf_glyphs/build_y.py -> Y_glyph.json) fitted
-    to our system: height 104 (top -42, baseline 62), the slant of the right stem 65 degrees, the left stem without a flag, the belly about the height of the narrow row, and the long convex connector between
-    the belly and the right stem exactly as the copybook draws it. Two pen strokes: (1) the left stem, the belly; (2) from the bottom of the belly along the connector up the right stem, down it again,
-    the hook and the exit; the exit is the end of the second stroke."""
-    d = json.loads((HERE / "pdf_glyphs/Y_glyph.json").read_text())["strokes"]
-    out = {kk: v for kk, v in BANK["О"].items() if kk not in ("sourceLabel", "strokes", "tailStroke", "tailContinuous", "noNormalize")}
-    out.update(label="Ы", strokes=[{"d": d[0]}, {"d": d[1]}], exitStroke=1, noDotStrokes=[], noNormalize=True, noOverrides=True, repeatCells=7,
-               sourceLabel="Ы = заглавная Ы казахской прописи (контур глифа из PDF, средняя линия), подогнана под банк")
-    return out
+    """Ы (owner, 2026-10-31): the Russian ы as it is, enlarged to capital height (52 -> 104 units, k=2, slant kept). Russian propis2 has no capital Ы; its ы is composed in the
+    engine (ы1 + ы2, glyphOverrides.js), so the capital is composed from the two enlarged halves (`scaleOf`, see withGlyphOverrides). The lowercase ы of the variant is the Russian one untouched."""
+    return {"label": "Ы", "kind": "letter", "compose": ["ы1U", "ы2U"], "repeatCells": 7,
+            "sourceLabel": "Ы = русская ы (ы1 + ы2), увеличенная в 2 раза по высоте строчной до заглавной, как есть"}
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper]
+def g_yery_up_1():
+    return {"label": "ы1U", "kind": "letter", "scaleOf": {"label": "ы1", "k": 2.0}, "sourceLabel": "ы1 ×2 (левая часть заглавной Ы)"}
+
+
+def g_yery_up_2():
+    return {"label": "ы2U", "kind": "letter", "scaleOf": {"label": "ы2", "k": 2.0}, "sourceLabel": "ы2 ×2 (правая часть заглавной Ы)"}
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2]
 
 
 def preview(glyphs, path):

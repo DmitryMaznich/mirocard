@@ -383,6 +383,16 @@ export const withGlyphOverrides = (glyphs) => {
   // ы = ы1 + ы2: its left part is built from the patched ь (see yerLoop)
   const loop = yerLoop(patched.find((g) => g.label === "ь"));
   if (loop) patched.push(loop);
+  // `scaleOf: {label, k}` (variants): the glyph is the (already patched) glyph `label` enlarged by k about its own start on the baseline, slant kept; any other field of the record overrides the copy.
+  // Kazakh Ы = ы1 + ы2 at k = 2 (the lowercase is 52 units high, a capital 104): «заглавную просто масштабировать по высоте, как она есть»
+  const scaleGlyph = (g, src) => {
+    if (!src) return g;
+    const { k } = g.scaleOf; const first = src.strokes?.[0]?.d?.match(/-?\d*\.?\d+/g) ?? []; const ax = parseFloat(first[0]) || 0;
+    const sc = (d) => d.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${(ax + k * (parseFloat(x) - ax)).toFixed(2)} ${(62 + k * (parseFloat(y) - 62)).toFixed(2)}`);
+    const { scaleOf: _ignored, ...own } = g;
+    return { ...src, ...own, strokes: (src.strokes ?? []).map((st) => ({ ...st, d: sc(st.d) })) };
+  };
+  for (let i = 0; i < patched.length; i += 1) if (patched[i].scaleOf) patched[i] = scaleGlyph(patched[i], patched.find((x) => x.label === patched[i].scaleOf.label));
   // `joinLikeLabel` -> the (already patched) glyph whose connector is borrowed
   return patched.map((g) => (g.joinLikeLabel ? { ...g, joinLike: patched.find((x) => x.label === g.joinLikeLabel), joinEndLike: patched.find((x) => x.label === g.joinEndLikeLabel) } : g));
 };
