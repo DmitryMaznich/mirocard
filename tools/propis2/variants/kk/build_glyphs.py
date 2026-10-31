@@ -235,25 +235,26 @@ def g_ng_lower():
 
 
 def g_schwa_upper():
-    """Ә (owner, 2026-10-31): Э's stroke 1 from the hat down its stem, exactly as Э, as far as the point (145.38, 60.02) just above its bottom. The tight, angular
-    bottom-left curl of Э is replaced by one smooth round arc (down to the baseline at (140.5, 62), then up the left side), which flows on into
-    the belly's left side; the belly closes at the top by running HORIZONTALLY right along the narrow row's upper line (y=10) into the stem.
-    The exit is Э's own tail (from the new lowest point), drawn only when a letter follows."""
+    """Ә (owner, 2026-10-31): Э's stroke 1 from the hat down its stem, exactly as Э, as far as the point (145.38, 60.02) just above its bottom.
+    From there one smooth round arc, as the owner drew it in red on the render: to the baseline, round the bottom-left corner (rounded, not
+    squared), up the left side (slightly bulging) and into the belly's closing: a horizontal run right along the narrow row's upper line
+    (y=10) into the stem. The exit is Э's own tail from the new lowest point, drawn only when a letter follows."""
     g = BANK["Э"]; s = g["strokes"]
     d = s[0]["d"]
     key = "145.38 60.02"
     assert key in d, "Э's stem point not found"
     head = d[: d.index(key) + len(key)]
-    B, E = (141.5, 62.0), (139.4, 44.0)
+    B, E = (141.5, 62.0), (138.6, 44.5)
+    C1, C2 = (137.6, 62.0), (136.2, 55.5)       # the corner: C1 is short, so it is rounded; C2 makes the left side bulge a little
     arc = (f"C 143.40 61.60 144.00 62.00 {B[0]:.2f} {B[1]:.2f} "           # on from Э's own path to the lowest point, arriving heading left
-           f"C 135.00 62.00 136.70 56.70 {E[0]:.2f} {E[1]:.2f} ")          # one wide round turn up the left side, leaving heading up-right
+           f"C {C1[0]:.2f} {C1[1]:.2f} {C2[0]:.2f} {C2[1]:.2f} {E[0]:.2f} {E[1]:.2f} ")
     top = 160.4
-    belly = (f"C 141.90 32.20 {top - 9.4:.2f} 9.00 {top:.2f} 10.00 "      # tangent-continuous with the arc's end
+    belly = (f"C 141.10 32.70 {top - 9.4:.2f} 9.00 {top:.2f} 10.00 "      # tangent-continuous with the arc's end
              f"C {top + 5.0:.2f} 10.00 {175.9 - 8.0:.2f} 10.00 175.90 10.00")
-    back = f"M {E[0]:.2f} {E[1]:.2f} C 136.70 56.70 135.00 62.00 {B[0]:.2f} {B[1]:.2f}"   # the exit retraces the arc down to the lowest point
+    back = f"M {E[0]:.2f} {E[1]:.2f} C {C2[0]:.2f} {C2[1]:.2f} {C1[0]:.2f} {C1[1]:.2f} {B[0]:.2f} {B[1]:.2f}"   # the exit retraces the arc down to the lowest point
     tail = shifted(s[2]["d"][s[2]["d"].index("C 151.12 61.68"):], B[0] - 142.12, B[1] - 61.68)
     return dict(g, label="Ә", strokes=[{"d": f"{head} {arc}{belly}"}, {"d": f"{back} {tail}"}], exitStroke=0, tailStroke=1,
-                sourceLabel="Ә = Э до точки стойки, затем гладкая дуга до базовой линии и левая сторона пузо, горизонтальное замыкание по верхней линии строки; выход Э")
+                sourceLabel="Ә = Э до нижней точки стойки, затем скруглённая дуга по эскизу владельца и горизонтальное замыкание по верхней линии строки; выход Э")
 
 
 RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper]
