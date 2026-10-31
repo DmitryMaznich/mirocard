@@ -11,6 +11,7 @@ catalog sheet) and adds the new strokes; the result goes to variant.json -> glyp
 import json, re, sys
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
 ROOT = Path(__file__).resolve().parents[4]
 BANK = {g["label"]: g for g in json.loads((ROOT / "tools/propis/wide.json").read_text())["glyphs"]}
 X_TOP, BASE = 10.0, 62.0
@@ -455,18 +456,14 @@ def g_i_lower():
 
 
 def g_h_lower():
-    """һ (the Kazakh h, PDF «Яһуди», the poster): a TALL left stem with the flag of К at its top (as І's), straight down to the foot, then the bank's п (its arch and
-    right leg with the exit) from the foot of that stem. The stem is the line of п's own first stem carried up to the ascender height (y=-42), and the flag
-    is К's lead-in moved along so that it ends at the top of that line. One stroke, so the exit is its end."""
-    n = BANK["п1"]["strokes"][0]["d"]
-    k = BANK["К"]["strokes"][0]["d"]
-    flag = k[: k.index("201.04 -42.00") + len("201.04 -42.00")]
-    x_top = 136.83 + 0.46630765815499864 * (11.12 + 42.0)                         # п's first stem line at y = -42
-    fl = shifted(flag, x_top - 201.04, 0.0)
-    body = n[n.index("L 113.95 60.18"):]                                          # the stem on to the foot, the arch, the right leg, the exit
-    d = f"{fl} L 136.83 11.12 {body}"
-    out = {kk: v for kk, v in BANK["п1"].items() if kk not in ("sourceLabel", "strokes", "aliases", "kind")}
-    out.update(label="һ", kind="letter", ascender=True, strokes=[{"d": d}], sourceLabel="һ = флажок К + высокая стойка + арка и ножка п")
+    """һ (owner, 2026-10-31: «вытащи h из этого слова и подгони под нашу систему»): the h of the Kazakh copybook PDF («Яһуди», page 38; the PDF's font has no
+    Kazakh Һ/һ, the author typed this h, and it is also the school h: entry from the lower left, loop at the top, stem, arch, leg, exit). Its centre line is taken from the
+    outline of the glyph (pdf_glyphs/skeleton.py), walked in pen order and fitted to the bank (pdf_glyphs/build_h.py -> h_lower.json): baseline 62, top -42, 65 degrees.
+    Already in the real proportions (no `stretch`)."""
+    d = json.loads((HERE / "pdf_glyphs/h_lower.json").read_text())["d"]
+    out = {kk: v for kk, v in BANK["п1"].items() if kk not in ("sourceLabel", "strokes", "aliases", "kind", "stretch", "gridFitted", "repeatCells")}
+    out.update(label="һ", kind="letter", ascender=True, repeatCells=4, strokes=[{"d": d}],
+               sourceLabel="һ = h из казахской прописи (слово «Яһуди»), средняя линия контура, подогнана под банк")
     return out
 
 
