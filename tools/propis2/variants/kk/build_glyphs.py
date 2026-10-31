@@ -320,14 +320,21 @@ def first_self_crossing(pts, skip=12):
 CONN_RUN, CONN_RISE = 39.1, 26.0
 
 
-def o_like_tail(bx, by):
+SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 48.0))  # raw units right while the connector climbs all the way to the narrow row's upper line; 44-56 close the gap to every following letter that has an up-stroke (н ш т к и: 0-0.4), л м stay 14-17 away (their form differs), 48 is the steepest-ish middle of the plateau
+
+
+def kazakh_tail(bx, by, dx=None):
+    """The connector of a letter with a round bottom in the Kazakh copybook (owner, 2026-10-31; PDF «Бол», «Бала», «Бас»): it does not stop on the
+    middle line as o's does in the Russian one but rises from the lowest point all the way to the TOP of the next letter (the narrow row's upper line,
+    y=10) and at a sharper angle: it leaves the bowl flat (so as not to cut into it) and arrives along the slant. One cubic; the engine puts the next
+    letter so that its up-stroke meets the end."""
     import math
-    ex, ey = bx + CONN_RUN, by - CONN_RISE
-    run, rise = 153.61 - 135.46, 56.28 - 36.0          # the exit of а, the angle every connector should rise at
-    ln = math.hypot(run, rise); ux, uy = run / ln, -rise / ln
+    ex, ey = bx + (SCHWA_DX if dx is None else dx), 10.0
+    chord = math.hypot(ex - bx, ey - by)
     th = math.radians(15.0)
-    chord = math.hypot(ex - bx, ey - by); k = chord * 0.35
-    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k:.2f} {by - math.sin(th) * k:.2f} {ex - ux * k:.2f} {ey - uy * k:.2f} {ex:.2f} {ey:.2f}"}
+    ux, uy = unit_slant = (0.4663 / math.hypot(0.4663, 1.0), -1.0 / math.hypot(0.4663, 1.0))   # the 65deg slant, upwards
+    k1, k2 = chord * 0.30, chord * 0.40
+    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k1:.2f} {by - math.sin(th) * k1:.2f} {ex - ux * k2:.2f} {ey - uy * k2:.2f} {ex:.2f} {ey:.2f}"}
 
 
 def g_schwa_lower():
@@ -353,8 +360,8 @@ def g_schwa_lower():
     low = max(dense, key=lambda q: q[1])
     g = BANK["е"]
     res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
-    res.update(label="ә", strokes=[{"d": body}, o_like_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True,
-               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная; соединение как у о")
+    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True,
+               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная; соединение прямой вверх под острым углом, как в казахской прописи")
     return res
 
 
