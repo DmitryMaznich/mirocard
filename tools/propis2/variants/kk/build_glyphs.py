@@ -234,76 +234,18 @@ def g_ng_lower():
                 sourceLabel="ң = н, правая стойка заканчивается хвостом и выходом ц")
 
 
-SLANT_T = 0.4663  # x shift per unit of height along a 65deg slant line
-
-
-def belly_of_v(attach, top_y=4.0):
-    """The lower belly of в (its loop after the stem point (152.19, 36)), mirrored across the slant line through `attach` (the stem
-    point of the letter it is joined to), so it lies LEFT of the stem; the belly's top is raised from в's 10 to `top_y` (owner: a bit above
-    the narrow row's upper line). Returns (path text of the belly cubics, the belly's lowest point). The last cubic of в (its exit to the
-    right) is left out: the exit is the letter's own connector."""
-    d = BANK["в"]["strokes"][0]["d"]
-    key = "152.19 36.00"
-    tail = d[d.index(key) + len(key):]
-    k = (62.0 - top_y) / (62.0 - 10.0)  # raise the belly about the baseline
-    cut = tail.rfind(" C ")
-    tail = tail[:cut]  # without the final exit cubic
-    u0 = attach[0] + SLANT_T * attach[1]
-    y_att = 62.0 - (62.0 - 36.0) * k
-    toks = re.findall(r"[MLCQ]|-?[\d.]+", tail)
-    out, nums = [], []
-    for t in toks:
-        if t in "MLCQ": out.append(t); continue
-        nums.append(float(t))
-    pts = list(zip(nums[0::2], nums[1::2]))
-    res = []
-    for x, y in pts:
-        y2 = 62.0 - (62.0 - y) * k
-        x2 = x + (attach[0] - 152.19)
-        y3 = y2 + (attach[1] - y_att)
-        u = x2 + SLANT_T * y3
-        res.append((2 * u0 - u - SLANT_T * y3, y3))
-    text, i = [], 0
-    for t in out:
-        n = {"C": 3, "L": 1, "Q": 2, "M": 1}[t]
-        text.append(t + " " + " ".join(f"{px:.2f} {py:.2f}" for px, py in res[i:i + n])); i += n
-    return " ".join(text), res[-1]
-
-
-STEM_X10 = 175.5  # Э's stem at the narrow row's upper line (y=10); the stem runs on its 65deg slant from there
-
-
-def stem_at(y):
-    return STEM_X10 - SLANT_T * (y - 10.0)
-
-
-def schwa_belly(top=10.0):
-    """The belly of Ә (owner, 2026-10-31): the stem runs on down to the bottom, turns LEFT into a slanted oval, rises on its left side and
-    closes at the top by running HORIZONTALLY right along the narrow row's upper line (y = `top`) into the stem, entering it at that angle.
-    Returns (path text continuing from the stem, the belly's lowest point)."""
-    xb, yb = stem_at(56.0), 56.0
-    D = (stem_at(62.5) - 7.5, 62.5)          # the belly's lowest point
-    L = (D[0] - 6.0, 44.0)                   # its leftmost point
-    T = (stem_at(top) - 15.5, top - 1.5)     # the top, where the closing run begins
-    j = (stem_at(top), top)                  # the join with the stem
-    text = (f"L {xb:.2f} {yb:.2f} "
-            f"C {xb - 2.0:.2f} {yb + 4.5:.2f} {D[0] + 3.0:.2f} {D[1]:.2f} {D[0]:.2f} {D[1]:.2f} "
-            f"C {D[0] - 6.0:.2f} {D[1]:.2f} {L[0] - 1.5:.2f} {L[1] + 9.0:.2f} {L[0]:.2f} {L[1]:.2f} "
-            f"C {L[0] + 3.0:.2f} {L[1] - 17.0:.2f} {T[0] - 9.0:.2f} {T[1] + 0.5:.2f} {T[0]:.2f} {T[1] + 1.5:.2f} "
-            f"C {T[0] + 5.0:.2f} {T[1] + 1.5:.2f} {j[0] - 8.0:.2f} {j[1]:.2f} {j[0]:.2f} {j[1]:.2f}")
-    return text, D
-
-
 def g_schwa_upper():
-    """Ә: Э's top and stem, then the belly (see schwa_belly), then Э's own exit from the belly's lowest point (a tail stroke: drawn only
-    when a letter follows)."""
+    """Ә (owner, 2026-10-31): Э's own stroke 1 WHOLE, unchanged, down its stem and round its bottom-left curl up to (139, 48.5): that part is
+    exactly Э's trajectory. From there the belly's left side rises and closes at the top by running HORIZONTALLY right along the narrow row's
+    upper line (y=10) into the stem, entering it at that angle. The exit is Э's own tail stroke, untouched."""
     g = BANK["Э"]; s = g["strokes"]
     d = s[0]["d"]
-    head = d[: d.index("165.01 31.15") + len("165.01 31.15")]
-    belly, low = schwa_belly()
-    exit_d = shifted(s[2]["d"], low[0] - 142.12, low[1] - 61.68)
-    return dict(g, label="Ә", strokes=[{"d": f"{head} {belly}"}, {"d": exit_d}], exitStroke=0, tailStroke=1,
-                sourceLabel="Ә = верх и стойка Э, стойка уходит в пузо слева, замыкается горизонтально по верхней линии строки; выход Э")
+    assert d.rstrip().endswith("139.00 48.53"), d[-40:]
+    top = 160.4
+    belly = (f"C 140.50 30.00 {top - 9.4:.2f} 9.00 {top:.2f} 10.00 "
+             f"C {top + 5.0:.2f} 10.00 {175.9 - 8.0:.2f} 10.00 175.90 10.00")
+    return dict(g, label="Ә", strokes=[{"d": f"{d.rstrip()} {belly}"}, s[2]], exitStroke=0, tailStroke=1,
+                sourceLabel="Ә = Э целиком до левого нижнего изгиба, затем левая сторона пузо вверх и горизонтальное замыкание по верхней линии строки в стойку; выход Э")
 
 
 RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper]
