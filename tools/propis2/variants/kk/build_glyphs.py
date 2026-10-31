@@ -564,7 +564,54 @@ def g_a_upper(y=19.4, over_l=9.0, over_r=9.0):
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper]
+def _flat_points(d, n=40):
+    toks = re.findall(r"[MLC]|-?[\d.]+", d); pts = []; cur = None; i = 0
+    while i < len(toks):
+        t = toks[i]
+        if t == "M": cur = (float(toks[i + 1]), float(toks[i + 2])); pts.append(cur); i += 3
+        elif t == "L":
+            e = (float(toks[i + 1]), float(toks[i + 2]))
+            pts += [(cur[0] + (e[0] - cur[0]) * k / n, cur[1] + (e[1] - cur[1]) * k / n) for k in range(1, n + 1)]; cur = e; i += 3
+        else:
+            c1 = (float(toks[i + 1]), float(toks[i + 2])); c2 = (float(toks[i + 3]), float(toks[i + 4])); e = (float(toks[i + 5]), float(toks[i + 6]))
+            for k in range(1, n + 1):
+                u_ = k / n; v_ = 1 - u_
+                pts.append(tuple(v_ ** 3 * cur[c] + 3 * v_ * v_ * u_ * c1[c] + 3 * v_ * u_ * u_ * c2[c] + u_ ** 3 * e[c] for c in (0, 1)))
+            cur = e; i += 7
+    return pts
+
+
+def _hard_capital():
+    """The capital Ъ of the alphabet (owner, 2026-10-31: «в алфавите заглавный твёрдый знак»): the one the Bulgarian variant has (flag, stem, an oval of lowercase height closing on the stem),
+    as it is. Its record is read from tools/propis2/variants/bg/variant.json."""
+    v = json.loads((ROOT / "tools/propis2/variants/bg/variant.json").read_text(encoding="utf-8"))
+    return next(g for g in v["glyphs"] if g["label"] == "Ъ")
+
+
+def g_hard_upper():
+    """Ъ: the Bulgarian capital Ъ, unchanged (a real Kazakh letter: Ъ has a capital in the 42-letter alphabet)."""
+    g = dict(_hard_capital()); g["sourceLabel"] = "Ъ = заглавная Ъ болгарского варианта без изменений (флажок, стойка, овал)"
+    return g
+
+
+def g_yery_upper(gap=0.0):
+    """Ы (owner, 2026-10-31: «из заглавной Ъ сделаем Ы»): the capital Ъ as it is (the tall stem with the belly on its right) plus a second tall stem, the right one, as in the copybook's Ы (PDF page 34):
+    a straight stroke down the 65-degree slant from the height of the left stem's top, touching the right side of the belly (`gap` units off it) and ending on the middle line where it joins the next
+    letter (the exit, as the right stem of Л and А). The belly keeps its own closing; the connector to the next letter leaves the right stem."""
+    h = _hard_capital(); d = h["strokes"][0]["d"]
+    pts = _flat_points(d)
+    t25 = 0.46630765815499864
+    u0 = max(x + t25 * y for x, y in pts if y > -5) + gap            # the slant line touching the belly on the right
+    ytop = min(y for _, y in pts)
+    x_at = lambda y: u0 - t25 * y
+    stem = {"d": f"M {x_at(ytop):.2f} {ytop:.2f} L {x_at(36.0):.2f} 36.00"}
+    out = {kk: v for kk, v in h.items() if kk not in ("sourceLabel", "strokes", "noExit")}
+    out.update(label="Ы", strokes=[{"d": d}, stem], exitStroke=1, noDotStrokes=[1], continuousStrokes=[],
+               sourceLabel="Ы = заглавная Ъ + правая высокая стойка, выход от неё")
+    return out
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper]
 
 
 def preview(glyphs, path):
