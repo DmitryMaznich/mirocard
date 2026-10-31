@@ -1203,6 +1203,17 @@ function topJoinD(d, target) {
   const f = (x) => Number(x.toFixed(3));
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
+// the first top of a stroke (л м: the stroke starts low, at the foot of its first leg, and the first peak is where a join from the letter before is aimed: owner 2026-10-31)
+function firstTopOf(d, scale) {
+  const ap = samplePath(d, 200);
+  let best = ap[0], seen = false;
+  for (const q of ap) {
+    if (q[1] < best[1]) best = q;
+    if (best[1] < ap[0][1] - 10 * scale) seen = true;
+    if (seen && q[1] > best[1] + 8 * scale) break;
+  }
+  return seen ? best : null;
+}
 function bendTailEndD(d, target, dirUnit) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const n = toks.length;
@@ -1962,9 +1973,12 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
-          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && st0h[1] < prevExit[1] - 10 * scale) {
-            const d4 = topJoinD(strokes[prevExitStroke].d, st0h);
-            if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
+          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose) {
+            const tgt = (glyph.growToApex ? firstTopOf(moved[0].d, scale) : null) ?? st0h;       // л м: the first peak, others: the start (the top of their stem)
+            if (tgt[1] < prevExit[1] - 10 * scale) {
+              const d4 = topJoinD(strokes[prevExitStroke].d, tgt);
+              if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
+            }
           }
           const candidates = highJoined ? [] : pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
           const st0 = getPathEndpoints(moved[0].d).start;
