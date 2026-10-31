@@ -400,10 +400,17 @@ def g_apex(label):
     return out
 
 
+def stretched_x(x, y, S=1.806, T=0.46630765815499864):
+    """x of a bank point after the engine's stretch (stretchKeepSlantPathD about the baseline 62)."""
+    return S * x - (S - 1) * T * (62.0 - y)
+
+
 def g_i_upper():
     """І (owner, 2026-10-31): the opening FLAG of К (its first stroke from its start up to the top of its stem), then the long straight stem of У (from the top
     down to the baseline) with У's bottom hook; the stem is moved sideways so that it starts where the flag ends (the slant is the same, so it stays on its
-    slant). Joined to the next letter like У (the connector from the lowest point of the hook, borrowed from о)."""
+    slant). The connector to the next letter is У's («после І соединение по принципу У»): from the lowest point of the hook, o's curve. The engine ends it at a fixed
+    distance from the START of the letter (the point where Ч's exit arrives); І starts 25 units further left of its stem than У does, so that point is moved
+    (the helper glyph ч_iend) to keep the connector exactly as long and as steep as У's."""
     k = BANK["К"]["strokes"][0]["d"]
     flag = k[: k.index("201.04 -42.00") + len("201.04 -42.00")]
     u = BANK["У"]["strokes"][0]["d"]
@@ -411,9 +418,28 @@ def g_i_upper():
     d = f"{flag} {shifted(stem, 201.04 - 193.57, 0.0)}"
     g = BANK["У"]
     out = {kk: v for kk, v in g.items() if kk not in ("sourceLabel", "strokes")}
-    out.update(label="І", strokes=[{"d": d}], noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="о", joinEndLikeLabel="Ч",
+    out.update(label="І", strokes=[{"d": d}], noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="о", joinEndLikeLabel="ч_iend",
                sourceLabel="І = флажок К + прямая стойка У с её крючком; соединение как у У")
     return out
+
+
+def g_i_end_marker():
+    """A helper glyph, not a letter: it starts where І starts and ends where the connector of І should arrive, so that this connector equals У's
+    (the same distance from the lowest point of the hook to its end)."""
+    S = 1.806
+    ch, u = BANK["Ч"]["strokes"][0]["d"], BANK["У"]["strokes"][0]["d"]
+    ux, uy = (float(v) for v in re.findall(r"-?[\d.]+", u)[:2])                 # У's start
+    sx, sy = -0.0 + 170.00, -14.10                                                 # І's start (the flag of К)
+    chx, chy = 175.20, 36.0                                                        # where Ч's exit (= У's connector end) arrives, in У's frame
+    lowU = 141.07                                                                  # the lowest point of У's hook (x), I's is 7.47 right of it
+    # local (stretched, relative to the start) end of У's connector, and of the same connector under I's own hook
+    endU = stretched_x(chx, chy) - stretched_x(ux, uy)
+    lowU_local = stretched_x(lowU, 62.0) - stretched_x(ux, uy)
+    lowI_local = stretched_x(lowU + 7.47, 62.0) - stretched_x(sx, sy)
+    endI = endU + (lowI_local - lowU_local)
+    ex = sx + (endI - (-(S - 1) * 0.46630765815499864 * ((62.0 - chy) - (62.0 - sy)) * 1.0)) / S
+    return {"label": "ч_iend", "kind": "letter", "stretch": S, "strokes": [{"d": f"M {sx:.2f} {sy:.2f} C {sx:.2f} {sy:.2f} {ex:.2f} {chy:.2f} {ex:.2f} {chy:.2f}"}],
+            "sourceLabel": "служебный: точка, где кончается соединение І"}
 
 
 def g_i_lower():
@@ -428,7 +454,7 @@ def g_i_lower():
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_lower]
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower]
 
 
 def preview(glyphs, path):
