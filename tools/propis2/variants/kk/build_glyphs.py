@@ -648,7 +648,7 @@ def g_yery_up_1():
 
 
 def g_yery_up_2():
-    return {"label": "ы2U", "kind": "letter", "scaleOf": {"label": "ы2", "k": 2.0}, "sourceLabel": "ы2 ×2 (правая часть заглавной Ы)"}
+    return {"label": "ы2U", "kind": "letter", "scaleOf": {"label": "ы2", "k": 2.0, "keepTail": True}, "sourceLabel": "ы2 ×2 (правая часть заглавной Ы); крюк с выходом стандартного размера"}
 
 
 RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2]

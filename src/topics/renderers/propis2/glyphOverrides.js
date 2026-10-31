@@ -390,7 +390,19 @@ export const withGlyphOverrides = (glyphs) => {
     const { k } = g.scaleOf; const first = src.strokes?.[0]?.d?.match(/-?\d*\.?\d+/g) ?? []; const ax = parseFloat(first[0]) || 0;
     const sc = (d) => d.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${(ax + k * (parseFloat(x) - ax)).toFixed(2)} ${(62 + k * (parseFloat(y) - 62)).toFixed(2)}`);
     const { scaleOf: _ignored, ...own } = g;
-    return { ...src, ...own, strokes: (src.strokes ?? []).map((st) => ({ ...st, d: sc(st.d) })) };
+    // `keepTail`: the hook after the stem (from the first C on) is NOT enlarged: it stays the standard size, ending on the middle line of the narrow row, and is hung on the enlarged stem
+    // (the stem line runs on down to the height where the original hook began, M a L b C ...)
+    const scaleStroke = (st) => {
+      const at = g.scaleOf.keepTail ? st.d.indexOf(" C ") : -1;
+      if (at < 0) return { ...st, d: sc(st.d) };
+      const head = st.d.slice(0, at), tail = st.d.slice(at);
+      const n = head.match(/-?\d*\.?\d+/g).map(Number), [bx, by] = [n[n.length - 2], n[n.length - 1]];
+      const [sx0, sy0] = sc(head).match(/-?\d*\.?\d+/g).slice(-4, -2).map(Number), [sx1, sy1] = sc(head).match(/-?\d*\.?\d+/g).slice(-2).map(Number);
+      const nx = sx1 + (sx1 - sx0) * (by - sy1) / (sy1 - sy0);                      // the enlarged stem line at the height where the hook began
+      const shifted = tail.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${(parseFloat(x) + nx - bx).toFixed(2)} ${y}`);
+      return { ...st, d: sc(head).replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)$/, `${nx.toFixed(2)} ${by.toFixed(2)}`) + shifted };
+    };
+    return { ...src, ...own, strokes: (src.strokes ?? []).map(scaleStroke) };
   };
   for (let i = 0; i < patched.length; i += 1) if (patched[i].scaleOf) patched[i] = scaleGlyph(patched[i], patched.find((x) => x.label === patched[i].scaleOf.label));
   // `joinLikeLabel` -> the (already patched) glyph whose connector is borrowed
