@@ -12,7 +12,7 @@ it("dump", () => {
   const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
   const kk = JSON.parse(readFileSync(process.env.KK_GLYPHS, "utf-8"));
   const labels = new Set(kk.map((g) => g.label));
-  const topicRecord = { wide: [...wide.filter((g) => !labels.has(g.label)), ...kk], elements: [], meta: { script: { growJoins: true, topJoins: true, topJoinsStraight: ["ү", "ұ", "з"] } } };
+  const topicRecord = { wide: [...wide.filter((g) => !labels.has(g.label)), ...kk], elements: [], meta: { script: { growJoins: true, topJoins: true, topJoinsStraight: ["ү", "ұ"] } } };
   const task = buildPageTask({ topicRecord, lines: JSON.parse(process.env.KK_LINES), grid: process.env.KK_GRID || "regular" });
   const host = document.createElement("div"); document.body.appendChild(host);
   const root = createRoot(host);

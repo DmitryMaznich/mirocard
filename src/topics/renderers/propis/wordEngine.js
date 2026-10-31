@@ -2032,14 +2032,19 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           }
           if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !inCell && !loose && !innerPiece.has(pieceIndex) && (!glyph.joinLeft || glyphsByLabel.script.topJoinsStraight?.includes(prevLabel))) {
             const straightExit = Boolean(glyphsByLabel.script.topJoinsStraight?.includes(prevLabel));
-            // а с д ф б are entered from the LEFT of their oval: the join aims at the leftmost crossing of the oval with the line of the exit (the same point the Russian join takes)
+            // letters that start at the TOP: the line goes to their start. Letters that start at the middle line (the round ones, а с д ф б included): the line goes to the end the exit had (nudged
+            // onto the oval as the Russian join does it), so it has the same direction as the line to a top letter (owner 2026-10-31: «под другим углом» before с)
             let tgt = st0h;
-            if (glyph.joinLeft) { const xs = pathXsAtY(moved[0].d, prevExit[1]); if (xs.length) tgt = [Math.min(...xs), prevExit[1]]; }
+            if (straightExit && st0h[1] >= prevExit[1] - 10 * scale) {
+              const xs = pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
+              const cx = xs.length ? xs.reduce((m, c) => (Math.abs(c - prevExit[0]) < Math.abs(m - prevExit[0]) ? c : m)) : null;
+              tgt = [cx !== null && Math.abs(cx - prevExit[0]) < curNudge * scale ? cx : prevExit[0], prevExit[1]];
+            }
             if (straightExit || tgt[1] < prevExit[1] - 10 * scale) {   // ү ұ з: to the start of ANY next letter (top, middle line), one rule for all
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
-              const d4 = topJoinD(strokes[prevExitStroke].d, tgt, !glyph.joinLeft && aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
+              const d4 = topJoinD(strokes[prevExitStroke].d, tgt, tgt === st0h && aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
             }
           }
