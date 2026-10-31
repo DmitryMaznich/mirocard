@@ -17,15 +17,22 @@ const gapBetween = (map, a, b) => {
   return best;
 };
 
+import { getPathEndpoints } from "../propis/pathGeometry.js";
+
+const tailEndY = (map, word) => {
+  const { placed } = layoutWideLinesIntoRows([word], map, undefined, false, 1);
+  const st = placed[0].segments[0].strokes;
+  return getPathEndpoints(st[1].d).end[1]; // о: body, connector, then the next letter
+};
+
 describe("meta.script.growJoins", () => {
-  it("closes a gap that stays without the flag, and leaves the ones that were closed alone", () => {
+  it("carries the connector up to the start of the next letter (top of the stem of и п р)", () => {
     const plain = mapOf(null), grown = mapOf({ growJoins: true });
-    let found = null;
-    outer: for (const a of labels) for (const b of labels) { const g = gapBetween(plain, a, b); if (g > 2 && g < 20) { found = [a, b, g]; break outer; } }
-    expect(found, "the Russian bank has a pair with a visible gap").not.toBeNull();
-    const [a, b] = found;
-    expect(gapBetween(grown, a, b)).toBeLessThan(0.8);
-    for (const [x, y] of [["и", "н"], ["о", "н"], ["т", "и"]]) expect(gapBetween(grown, x, y)).toBeCloseTo(gapBetween(plain, x, y), 0);
+    for (const next of ["и", "п", "н"]) expect(tailEndY(grown, "о" + next)).toBeLessThan(tailEndY(plain, "о" + next) - 5);
+  });
+  it("leaves л м я (as after the Russian о) alone", () => {
+    const plain = mapOf(null), grown = mapOf({ growJoins: true });
+    for (const [x, y] of [["о", "л"], ["о", "м"], ["о", "я"], ["и", "л"]]) expect(tailEndY(grown, x + y)).toBeCloseTo(tailEndY(plain, x + y), 3);
   });
   it("does nothing without the flag (the Russian deck is unchanged)", () => {
     const plain = mapOf(null), other = mapOf({ slantDeg: 65 });
