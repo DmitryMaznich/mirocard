@@ -320,7 +320,7 @@ def first_self_crossing(pts, skip=12):
 CONN_RUN, CONN_RISE = 39.1, 26.0
 
 
-SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 56.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п): 44-56 and 78-86. 48 was the first try, 82 (a cell further) came out too flat (owner, 2026-10-31: «чуть ниже наклонённые, но не так сильно»): 56 is the flattest of the first plateau, a line thickness flatter than 48 and about the angle of the PDF
+SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 66.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п). With ә's start on the slant line of the bowl's left edge (align_start_to_bowl) those are 34-42 (angle ~47deg) and 66-74 (~34-31deg); 66 is the steeper of the second, close to the PDF (~38deg), a little flatter than the first try (owner, 2026-10-31)
 
 
 def kazakh_tail(bx, by, dx=None):
@@ -335,6 +335,22 @@ def kazakh_tail(bx, by, dx=None):
     ux, uy = unit_slant = (0.4663 / math.hypot(0.4663, 1.0), -1.0 / math.hypot(0.4663, 1.0))   # the 65deg slant, upwards
     k1, k2 = chord * 0.30, chord * 0.40
     return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k1:.2f} {by - math.sin(th) * k1:.2f} {ex - ux * k2:.2f} {ey - uy * k2:.2f} {ex:.2f} {ey:.2f}"}
+
+
+def align_start_to_bowl(dense, y_start=None):
+    """The entry of ә (owner, 2026-10-31): the old е's long flat entry leaves the start about 19 units left of the bowl, so ә stood far from the
+    letter before it. The start is moved onto the same SLANT line as the bowl's left edge (x + 0.4663 y equal), and the entry becomes a short
+    straight stroke along the slant from there up to the point of the old entry arc that lies on that line; the arc goes on as it was."""
+    t = 0.4663
+    y0 = dense[0][1] if y_start is None else y_start
+    left = min((q for q in dense if q[1] > y0 + 2), key=lambda q: q[0])          # the leftmost point of the bowl (below the entry)
+    u_left = left[0] + t * left[1]
+    j = next(i for i, q in enumerate(dense) if q[0] + t * q[1] >= u_left)        # where the old entry arc crosses that slant line
+    S = (u_left - t * y0, y0)
+    J = dense[j]
+    n = 24
+    entry = [(S[0] + (J[0] - S[0]) * k / n, S[1] + (J[1] - S[1]) * k / n) for k in range(n)]
+    return entry + dense[j:]
 
 
 def g_schwa_lower():
@@ -354,6 +370,7 @@ def g_schwa_lower():
     P = [f(x, y) for x, y in zip(xs, ys)]
     lift = 62.0 - max(q[1] for q in bezier_points(P))   # the turned letter is not symmetric about the start-end midpoint: put its bowl on the baseline
     dense = [(q[0], q[1] + lift) for q in bezier_points(P)[::-1]]  # written backwards: the pen starts at the image of the old END (on the left)
+    dense = align_start_to_bowl(dense)
     cross = first_self_crossing(dense)
     if cross: dense = dense[: cross[0] + 1] + [cross[1]]  # the line ends on the crossing
     body = smooth_path_d(dense)
