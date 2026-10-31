@@ -49,10 +49,12 @@ t_bank = math.tan(math.radians(25.0))
 rs = np.array([[p[1] / S + X0, p[0] / S + Y0] for p in walk(near(J2), near(R_TOP))])          # the right stem, to measure its slant
 t_pdf = (rs[-1][0] - rs[0][0]) / (rs[0][1] - rs[-1][1])
 
+STRETCH = 1.806
 def to_bank(poly):
     P = np.array([[p[1] / S + X0, p[0] / S + Y0] for p in poly])
     h = (base - P[:, 1]) * k                                                    # height above the baseline in bank units
-    x = (P[:, 0] - allp[:, 0].min()) * k + h * (t_bank - t_pdf)
+    u = (P[:, 0] - allp[:, 0].min()) * k - h * t_pdf                             # x with the PDF's own slant taken out
+    x = u / STRETCH + h * t_bank                                                 # the engine stretches every bank glyph by 1.806 (slant kept), so pre-compress: on the page the belly is as wide as in the PDF
     return np.stack([x + 124.7, 62.0 - h], 1)
 
 def smooth(B, sigma=1.2, step=0.4):
