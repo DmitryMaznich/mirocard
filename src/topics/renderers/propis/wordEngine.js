@@ -1960,12 +1960,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (glyph.growToApex) {
               const ap = samplePath(moved[0].d, 200); let best = ap[0], seen = false;
               for (const q of ap) { if (q[1] < best[1]) best = q; if (best[1] < target[1] - 10 * scale) seen = true; if (seen && q[1] > best[1] + 8 * scale) break; }
-              if (seen) target = best;
+              // (on a narrow row the connector may end well short of that top: then it is only carried to the start, as the stub's top)
+              if (seen && Math.hypot(best[0] - tailEnd[0], best[1] - tailEnd[1]) < GROW_JOIN_MAX * scale) target = best;
             }
             const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
             // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line; the connector comes within a hair of that start and is carried to it,
             // owner 2026-10-31: «соединение от ә идёт в начало л». A start well below the connector's end is not reached.)
-            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && (target[1] <= tailEnd[1] + 1 * scale || dist < 3 * scale)) {
+            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && (target[1] <= tailEnd[1] + 1 * scale || dist < 5 * scale)) {
               const f2 = (v) => v.toFixed(3);
               // a SMOOTH piece (owner 2026-10-31: «плавный изгиб вверх или по прямой», not a vertical stub): it leaves along the direction the connector was going and arrives
               // along the way the next letter goes from its start (a stem written downwards is entered from below, so the direction is turned round)

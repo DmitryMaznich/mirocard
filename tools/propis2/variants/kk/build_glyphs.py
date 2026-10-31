@@ -330,16 +330,21 @@ SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 58.0))  # raw units
 
 
 def kazakh_tail(bx, by, dx=None, ey=None):
-    """The connector of ә: o's own (glyphOverrides.js steepenExit): from the lowest point of the bowl, leaving it rising at 15 degrees and arriving at the
-    middle dashed line along the exit of а. Owner, 2026-10-31: the rise to the TOP of the next letter (as in the PDF) left every round letter that
-    starts on the dashed line (а б д е ж з о с ф х э я л м) unjoined (gap 12-27 units); with o's connector they all touch, as after o."""
+    """The connector of ә: EXACTLY o's (owner, 2026-10-31: «точно такое же соединение, как с о»). o's own connector in the bank is the last cubic of its stroke,
+    from the lowest point to the exit point (+39.1, -26) away, redrawn by glyphOverrides.js steepenExit (leaves the bottom rising at 15 degrees, arrives along
+    the exit of а); the engine then stretches every bank glyph by `stretch` = 1.806 across (stretchKeepSlantPathD: x' = s x - (s-1) tan25 (62 - y)). ә is drawn
+    in the already-wide frame (no stretch), so the same curve is built here and carried through that very transformation about the lowest point."""
     import math
-    ex, ey = bx + 39.1, by - 26.0
+    S, T = float(__import__("os").environ.get("KK_TAIL_S", 2.3)), math.tan(math.radians(25.0))
+    ex, ey = 39.1, -26.0                                   # raw offsets of the exit from the lowest point
     run, rise = 153.61 - 135.46, 56.28 - 36.0
     ln = math.hypot(run, rise); ux, uy = run / ln, -rise / ln
     th = math.radians(15.0)
-    chord = math.hypot(ex - bx, ey - by); k = chord * 0.35
-    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k:.2f} {by - math.sin(th) * k:.2f} {ex - ux * k:.2f} {ey - uy * k:.2f} {ex:.2f} {ey:.2f}"}
+    chord = math.hypot(ex, ey); k = chord * 0.35
+    raw = [(0.0, 0.0), (math.cos(th) * k, -math.sin(th) * k), (ex - ux * k, ey - uy * k), (ex, ey)]
+    wide = [(S * x - (S - 1) * T * (0.0 - y), y) for x, y in raw]   # offsets from the lowest point, y up = negative; (by - y) = -y
+    p = [(bx + x, by + y) for x, y in wide]
+    return {"d": f"M {p[0][0]:.2f} {p[0][1]:.2f} C {p[1][0]:.2f} {p[1][1]:.2f} {p[2][0]:.2f} {p[2][1]:.2f} {p[3][0]:.2f} {p[3][1]:.2f}"}
 
 
 BACK_U = float(__import__("os").environ.get("KK_BACK_U", 8.0))  # how far back along the slant (in x + 0.4663 y units) the start is taken from that line: «чуть-чуть назад»
@@ -381,7 +386,7 @@ def g_schwa_lower():
     low = max(dense, key=lambda q: q[1])
     g = BANK["е"]
     res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
-    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, joinAtStart=True,
+    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True, tailContinuous=True, joinAtStart=True,
                sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная; соединение прямой вверх под острым углом, как в казахской прописи")
     return res
 
