@@ -257,41 +257,37 @@ def g_schwa_upper():
                 sourceLabel="Ә = Э до нижней точки стойки, затем скруглённая дуга по эскизу владельца и горизонтальное замыкание по верхней линии строки; выход Э")
 
 
-def rotated_reversed(d, cx, y_sum=72.0):
-    """A path turned through 180 degrees about x = cx with y -> y_sum - y (a mirror in the vertical, then one in the horizontal: the slant lines
-    stay slant lines), then written backwards, so the pen still goes from left to right: its start is the old end's image, its end the old start's."""
-    toks = re.findall(r"[MLC]|-?[\d.]+", d)
-    segs, cur, i = [], None, 0
-    while i < len(toks):
-        t = toks[i]
-        if t == "M": cur = (float(toks[i + 1]), float(toks[i + 2])); i += 3
-        elif t == "L": p = (float(toks[i + 1]), float(toks[i + 2])); segs.append(("L", cur, p)); cur = p; i += 3
-        else:
-            c1 = (float(toks[i + 1]), float(toks[i + 2])); c2 = (float(toks[i + 3]), float(toks[i + 4])); p = (float(toks[i + 5]), float(toks[i + 6]))
-            segs.append(("C", cur, c1, c2, p)); cur = p; i += 7
-    rot = lambda q: (2 * cx - q[0], y_sum - q[1])
-    last = rot(segs[-1][-1])
-    out = [f"M {last[0]:.2f} {last[1]:.2f}"]
-    for sg in reversed(segs):
-        if sg[0] == "L": q = rot(sg[1]); out.append(f"L {q[0]:.2f} {q[1]:.2f}")
-        else:
-            a1, a2, e = rot(sg[2]), rot(sg[3]), rot(sg[1])   # reversed: the controls swap, the end is the old start
-            out.append(f"C {a1[0]:.2f} {a1[1]:.2f} {a2[0]:.2f} {a2[1]:.2f} {e[0]:.2f} {e[1]:.2f}")
-    return " ".join(out)
+def old_card_stroke(label):
+    """The first version of the copybook (the archived topic `propis`, tools/propis/topic.json): the letter card's first stroke."""
+    cards = json.loads((ROOT / "tools/propis/topic.json").read_text())["cards"]
+    return next(c for c in cards if c.get("label") == label)["strokes"][0]["d"]
 
 
 def g_schwa_lower():
-    """ә (owner, 2026-10-31): the bank's lowercase е turned through 180 degrees (mirrored in the vertical, then in the horizontal) and written
-    backwards: the top loop of е becomes the bowl at the bottom, its bottom hook the top hook; the entry comes from the left, the exit goes
-    right. The bank's own е, untouched otherwise."""
+    """ә (owner, 2026-10-31): the FIRST version's lowercase е (the old card, not the bank's е), turned through 180 degrees about the midpoint
+    of its start and end (a mirror in the vertical, then in the horizontal). That keeps its start and end where they were (entry on the left and
+    exit on the right, both on the middle line), so ә joins exactly as е does. Scaled uniformly (the old cards are in a 100x150 box, the 65deg
+    slant already in place) so that its x-height fills the bank's band (baseline 62, top 10); no stretch (the bank's glyphs are stretched
+    1.806 by the engine, these coordinates are already that wide)."""
+    d = old_card_stroke("е")
+    nums = [float(x) for x in re.findall(r"-?[\d.]+", d)]
+    xs, ys = nums[0::2], nums[1::2]
+    sx, sy, ex, ey = xs[0], ys[0], xs[-1], ys[-1]
+    ybot, ytop = max(ys), min(ys)
+    k = 52.0 / (ybot - ytop)
+    X0 = 124.7                                         # the bank's е starts here; only the start matters (the engine places by it)
+    f = lambda x, y: (X0 + ((sx + ex - x) - sx) * k, 62.0 - (ybot - (sy + ey - y)) * k)
+    P = [f(x, y) for x, y in zip(xs, ys)]                 # M p0, then C c1 c2 p, C c1 c2 p, ...
+    segs = [(P[1 + 3 * j], P[2 + 3 * j], P[3 + 3 * j]) for j in range((len(P) - 1) // 3)]
+    starts = [P[0]] + [sg[2] for sg in segs[:-1]]
+    out = [f"M {P[-1][0]:.2f} {P[-1][1]:.2f}"]            # written backwards: the pen starts at the image of the old END (on the left)
+    for sg, st in zip(reversed(segs), reversed(starts)):
+        out.append(f"C {sg[1][0]:.2f} {sg[1][1]:.2f} {sg[0][0]:.2f} {sg[0][1]:.2f} {st[0]:.2f} {st[1]:.2f}")
     g = BANK["е"]
-    d = g["strokes"][0]["d"]
-    pts = [float(x) for x in re.findall(r"-?[\d.]+", d)][0::2]
-    cx = (min(pts) + max(pts)) / 2
-    out = {k: v for k, v in g.items() if k not in ("strokes", "sourceLabel")}
-    out.update(label="ә", strokes=[{"d": rotated_reversed(d, cx)}],
-               sourceLabel="ә = строчная е банка, повёрнутая на 180° (зеркало по вертикали и по горизонтали), пером в обратную сторону")
-    return out
+    res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
+    res.update(label="ә", strokes=[{"d": " ".join(out)}],
+               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° вокруг середины между началом и концом")
+    return res
 
 
 RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower]
