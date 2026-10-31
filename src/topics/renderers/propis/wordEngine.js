@@ -1176,6 +1176,33 @@ function retargetTailEndD(d, target, dirUnit, arrive = 0.5) {
 // The first BEND_AT of the last cubic of a connector stays exactly as captured (its straight rise), only the rest bends: it eases from that direction into
 // `dirUnit`, so the pen arrives along the opening direction of the next letter (`joinSmooth`, ч). The length of the connector does not change.
 const BEND_AT = 0.62; // the larger the turn, the more of the curve is bent (BEND_AT is the share kept as captured at turns up to 30 degrees)
+// `meta.script.topJoins` (the Kazakh variant, owner 2026-10-31: «исходящие концы п, р и почти всех, кто выходит снизу до серединного пунктира, делаем вогнутыми, и они приходят
+// в верхнюю точку следующей буквы»): the last cubic of an exit that is a part of the letter's stroke (п р и н т к ш …) becomes ONE concave curve from its own start (the foot of
+// the letter) up to the top point of the next letter: it leaves the foot flat (LEAVE degrees above the row), then bends up and arrives at ARRIVE degrees, which is flatter than
+// the slant of the stem it joins (65), so the curve stays on the left of that stem and never crosses it.
+const TOP_JOIN_LEAVE_DEG = 12, TOP_JOIN_ARRIVE_DEG = 50;
+function topJoinD(d, target) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const segs = [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 2 || segs[segs.length - 1].c !== "C") return null;
+  const prev = segs[segs.length - 2];
+  const p0 = prev.c === "M" ? prev.v : prev.v.slice(-2);
+  const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]);
+  if (chord < 8 || target[0] < p0[0] + 4) return null;
+  const rad = (a) => (a * Math.PI) / 180;
+  const ul = [Math.cos(rad(TOP_JOIN_LEAVE_DEG)), -Math.sin(rad(TOP_JOIN_LEAVE_DEG))];
+  const ua = [Math.cos(rad(TOP_JOIN_ARRIVE_DEG)), -Math.sin(rad(TOP_JOIN_ARRIVE_DEG))];
+  const k1 = chord * 0.34, k2 = chord * 0.4;
+  segs[segs.length - 1].v = [p0[0] + ul[0] * k1, p0[1] + ul[1] * k1, target[0] - ua[0] * k2, target[1] - ua[1] * k2, target[0], target[1]];
+  const f = (x) => Number(x.toFixed(3));
+  return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
+}
 function bendTailEndD(d, target, dirUnit) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const n = toks.length;
@@ -1813,6 +1840,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapStart(wantStartX);
+        // `meta.script.topJoins`: a letter that starts at the TOP is joined by a long concave curve from the foot of the letter before (topJoinD below), so it stands one more slant line
+        // to the right: the curve then arrives flatter than the stem and does not hug it (owner 2026-10-31: the next letter stood too close, the join and the stem made a cross)
+        if (glyphsByLabel?.script?.topJoins && prevExit && !prevExitIsTail && !exactJoin && !exactTouch && !loose && !inCell && !glyph.joinLeft && !glyph.joinAtStart && !glyph.joinToApex && local.start[1] < prevExit[1] - 10 * scale) {
+          startX = snapStart(startX + CELL);
+        }
         // `#v` on a DRAWN slant grid (`propis2`, the dense paper: snapX.drawn): the letter still stands a fixed gap after the ink before it, but
         // on the nearest line — the stems of a letter lie on the lines (the capture was made on the grid), so a letter set between two lines
         // by the gap alone has all its stems between them (owner, 2026-10-28: «к» and «у» of the pairs «К к» / «У у» off the grid, tetrad 10).
@@ -1929,6 +1961,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               const d3 = apexCut && !descTail ? retargetTailEndD(strokes[prevExitStroke].d, st0h, apexCut.dir, glyph.joinArrive) : glyph.joinSmooth && !descTail ? bendTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]) : near || descTail ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [((glyph.joinReverse ? -1 : 1) * (q[0] - st0h[0])) / dl, ((glyph.joinReverse ? -1 : 1) * (q[1] - st0h[1])) / dl], glyph.joinArrive);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
+          }
+          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && st0h[1] < prevExit[1] - 10 * scale) {
+            const d4 = topJoinD(strokes[prevExitStroke].d, st0h);
+            if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
           }
           const candidates = highJoined ? [] : pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
           const st0 = getPathEndpoints(moved[0].d).start;
