@@ -381,7 +381,7 @@ def g_schwa_lower():
     low = max(dense, key=lambda q: q[1])
     g = BANK["е"]
     res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
-    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True,
+    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True, joinAtStart=True,
                sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная; соединение прямой вверх под острым углом, как в казахской прописи")
     return res
 

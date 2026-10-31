@@ -1954,14 +1954,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // (о а д …), which starts on the middle line, nothing is left to grow. Only upwards or level, and only a short way (more than a hair, less than `GROW_JOIN_MAX`)
           if (glyphsByLabel?.script?.growJoins && !inCell && !loose) {
             const tailEnd = getPathEndpoints(strokes[prevExitStroke].d).end;
-            let target = getPathEndpoints(moved[0].d).start;
-            if (target[1] > tailEnd[1] + 1 * scale) {
-              // the next letter starts BELOW where the connector ends (л м я: the foot of the first stem): the connector is only a hair short of its ink, grown to the nearest point of it
-              let nearD = Infinity;
-              for (const mv of moved) for (const q of samplePath(mv.d, 60)) { const dd = Math.hypot(q[0] - tailEnd[0], q[1] - tailEnd[1]); if (dd < nearD) { nearD = dd; target = q; } }
-            }
+            const target = getPathEndpoints(moved[0].d).start;
             const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
-            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale) {
+            // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line and the connector ends 2 units above it, is reached too)
+            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && target[1] <= tailEnd[1] + 12 * scale) {
               const f2 = (v) => v.toFixed(3);
               // a SMOOTH piece (owner 2026-10-31: «плавный изгиб вверх или по прямой», not a vertical stub): it leaves along the direction the connector was going and arrives
               // along the way the next letter goes from its start (a stem written downwards is entered from below, so the direction is turned round)
