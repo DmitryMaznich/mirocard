@@ -1196,7 +1196,12 @@ function topJoinD(d, target, arriveDir = null) {
   const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]);
   if (chord < 8 || target[0] < p0[0] + 4) return null;
   const rad = (a) => (a * Math.PI) / 180;
-  const ul = [Math.cos(rad(TOP_JOIN_LEAVE_DEG)), -Math.sin(rad(TOP_JOIN_LEAVE_DEG))];
+  // it leaves along the way the hook of the letter itself arrives at that point (no kink where the two meet: owner 2026-10-31, «без деформирующих изгибов»)
+  let ul = [Math.cos(rad(TOP_JOIN_LEAVE_DEG)), -Math.sin(rad(TOP_JOIN_LEAVE_DEG))];
+  if (prev.c === "C") {
+    const tx = p0[0] - prev.v[2], ty = p0[1] - prev.v[3], tl = Math.hypot(tx, ty);
+    if (tl > 1e-6 && tx > 0 && ty < 0) ul = [tx / tl, ty / tl];
+  }
   const ua = arriveDir ?? [Math.cos(rad(TOP_JOIN_ARRIVE_DEG)), -Math.sin(rad(TOP_JOIN_ARRIVE_DEG))];
   const k1 = chord * 0.34, k2 = chord * 0.4;
   segs[segs.length - 1].v = [p0[0] + ul[0] * k1, p0[1] + ul[1] * k1, target[0] - ua[0] * k2, target[1] - ua[1] * k2, target[0], target[1]];
@@ -1830,7 +1835,12 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
       let afterNoExit = false;
       let prevGlyphStrokes = null; // the last glyph's strokes as placed (meta.script.exactJoins: the gap after a noExit capital)
+      // the pieces of ONE composed letter (ш = three hooks, ы = ь + ы2, ии): they are written as the letter itself, never joined by a variant's own connector (`topJoins`)
+      const innerPiece = new Set();
+      { let at = 0; for (const raw of wideTokenToLabelsRaw(token, glyphsByLabel)) { const n = glyphsByLabel.get(raw)?.compose?.length ?? 1; for (let k = 1; k < n; k += 1) innerPiece.add(at + k); at += n; } }
+      let pieceIndex = -1;
       for (const label of labels) {
+        pieceIndex += 1;
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
@@ -2010,15 +2020,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
-          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose) {
-            if (glyph.growToApex) {
-              // л м: the connector runs into the first leg at the middle line and goes up along it (the stub of the Russian л м is not written)
-              const cut = cutLegAtLevel(moved[0].d, prevExit[1]);
-              if (cut) {
-                const d4 = topJoinD(strokes[prevExitStroke].d, cut.pt, cut.dir);
-                if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; moved[0] = { ...moved[0], d: cut.rest }; highJoined = true; }
-              }
-            } else if (st0h[1] < prevExit[1] - 10 * scale) {
+          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && !innerPiece.has(pieceIndex)) {
+            if (st0h[1] < prevExit[1] - 10 * scale) {
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
