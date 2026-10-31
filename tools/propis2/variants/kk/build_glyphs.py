@@ -468,10 +468,11 @@ def g_h_lower():
     return out
 
 
-def g_h_upper():
-    """Һ (owner, 2026-10-31): the capital К, but where the loop at the foot of its stem comes up and crosses the slanted stem it does NOT go on up into К's upper arm: it goes straight on into
-    К's lower stroke (the arch, the right leg and the exit). So: К's stroke 1 as far as that crossing (the point of the loop where К's second stroke starts), then К's stroke 2.
-    One stroke, so the exit is its end."""
+def g_h_upper(over=3.0):
+    """Һ (owner, 2026-10-31): the capital К, but where the loop at the foot of its stem comes up and CROSSES the slanted stem it does not go on up into К's upper arm: just past the stem
+    (`over` units to the right of it) it turns into К's lower stroke (the arch, the right leg and the exit). So: К's stroke 1 up the loop, THROUGH the stem and `over` units beyond it, then the
+    arch of К's stroke 2 from there. One stroke, so the exit is its end."""
+    import math
     k = BANK["К"]; s1, s2 = k["strokes"][0]["d"], k["strokes"][1]["d"]
     toks = re.findall(r"[MC]|-?[\d.]+", s1)
     segs, i = [], 0
@@ -479,14 +480,29 @@ def g_h_upper():
         n = 3 if toks[i] == "C" else 1
         segs.append((toks[i], [float(v) for v in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
     ends = [(v[-2], v[-1]) for _, v in segs]
-    foot = max(range(len(ends)), key=lambda j: ends[j][1])                       # the lowest end point: the foot of the stem
+    foot = max(range(len(ends)), key=lambda j: ends[j][1])                       # the foot of the stem
     sx, sy = (float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's second stroke starts, on the loop
     cut = min(range(foot, len(ends)), key=lambda j: (ends[j][0] - sx) ** 2 + (ends[j][1] - sy) ** 2)
+    jarm = next(j for j in range(cut + 1, len(ends)) if math.hypot(ends[j][0] - ends[j - 1][0], ends[j][1] - ends[j - 1][1]) > 15)   # the long arm of К: the loop goes on through the stem up to its top
+    cut = jarm - 1
+    arm = segs[jarm]
+    P = [ends[cut], (arm[1][0], arm[1][1]), (arm[1][2], arm[1][3]), (arm[1][4], arm[1][5])]
+    t25 = math.tan(math.radians(25.0))
+    stem_x = lambda y: 201.04 - (y + 42.0) * t25                                  # К's stem: from its top (201.04, -42) down the 65-degree slant
+    at = lambda t: tuple((1 - t) ** 3 * P[0][c] + 3 * (1 - t) ** 2 * t * P[1][c] + 3 * (1 - t) * t * t * P[2][c] + t ** 3 * P[3][c] for c in (0, 1))
+    tt = next(t / 400 for t in range(1, 400) if at(t / 400)[0] - stem_x(at(t / 400)[1]) >= over)   # the first point of the arm that is `over` right of the stem
+    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * tt for c in (0, 1))
+    a1, a2, a3 = lerp(P[0], P[1]), lerp(P[1], P[2]), lerp(P[2], P[3])
+    b1, b2 = lerp(a1, a2), lerp(a2, a3)
+    q = lerp(b1, b2)
     head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[: cut + 1])
-    tail = s2[s2.index("C"):]                                                    # К's second stroke without its M
+    part = f"C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"          # the arm as far as q
+    m = re.findall(r"C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)", s2)
+    arch = f"C {m[1][0]} {m[1][1]} {m[1][2]} {m[1][3]} {m[1][4]} {m[1][5]}"                    # the arch of К's second stroke (its 2nd cubic), from q
+    rest = " ".join(f"C {' '.join(c)}" for c in m[2:])
     out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
-    out.update(label="Һ", strokes=[{"d": f"{head} L {sx:.2f} {sy:.2f} {tail}"}],
-               sourceLabel="Һ = К: петля внизу, пересекая стойку, идёт не в верхнюю ветку, а в нижний штрих К (арка, ножка, выход)")
+    out.update(label="Һ", strokes=[{"d": f"{head} {part} {arch} {rest}"}],
+               sourceLabel="Һ = К: петля внизу пересекает стойку и сразу за ней переходит в нижний штрих К (арка, ножка, выход)")
     return out
 
 
