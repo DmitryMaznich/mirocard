@@ -74,6 +74,51 @@ def bez(pts, spacing=5.0):
         o.append(f"C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}")
     return " ".join(o)
 
-B1, B2 = smooth(to_bank(stroke1)), smooth(to_bank(stroke2))
-json.dump({"strokes": [bez(B1), bez(B2)], "scale": k, "pdf_stem_slant_deg": math.degrees(math.atan(1 / t_pdf)), "start1": B1[0].tolist(), "start2": B2[0].tolist(), "exit": B2[-1].tolist()}, open(HERE / "Y_glyph.json", "w"), ensure_ascii=False)
-print("scale", round(k, 3), "pdf stem", round(math.degrees(math.atan(1 / t_pdf)), 1), "start1", B1[0].round(1), "start2", B2[0].round(1), "exit", B2[-1].round(1), "pts", len(B1), len(B2))
+# --- clean strokes (owner, 2026-10-31: «выровняй траекторию»): the stems are exact straight lines, only the belly, the connector and the hook are curves of the skeleton, smoothed hard
+# (the thinning leaves little spurs and steps around the junctions) and joined to the lines without a corner.
+SIG = 3.0
+def curve_tail(P, sig=SIG):
+    """The smoothed curve through P as the cubics of bez() without its leading M (it continues the path before it)."""
+    return bez(smooth(P, sigma=sig), spacing=7.0).split(" ", 3)[3]
+
+def line_fit(P):
+    """The straight line (point, unit direction) through the points P (least squares)."""
+    c = P.mean(axis=0); u, s_, vt = np.linalg.svd(P - c); return c, vt[0]
+
+P1, P2 = to_bank(stroke1), to_bank(stroke2)
+# left stem: the line through its straight part (from the top to the junction), carried on down to where the belly's lower left curve begins
+i1 = next(i for i, q in enumerate(stroke1) if i > 5 and math.hypot(q[0] - near(J1)[0], q[1] - near(J1)[1]) < 1.5)
+c1, u1 = line_fit(P1[: i1 - 12])
+if u1[1] < 0: u1 = -u1
+dev1 = lambda q: abs((q[0] - c1[0]) * u1[1] - (q[1] - c1[1]) * u1[0])
+j = i1
+while j + 1 < len(P1) and dev1(P1[j + 1]) < 0.8: j += 1                      # the stem goes on straight below the junction until the belly's curve leaves it
+top1 = c1 + u1 * float(np.dot(P1[0] - c1, u1))
+down1 = c1 + u1 * float(np.dot(P1[j] - c1, u1))
+# the belly: from the end of the straight stem round the bottom, up its right side and over the top back to the stem; it ends ON the stem line
+end1 = c1 + u1 * float(np.dot(P1[-1] - c1, u1))
+belly = np.vstack([P1[j - 20: len(P1) - 12], end1[None, :]]) if False else P1[j - 20: len(P1) - 14]
+d1 = f"M {top1[0]:.2f} {top1[1]:.2f} L {down1[0]:.2f} {down1[1]:.2f} " + curve_tail(np.vstack([down1[None, :], P1[j + 1: len(P1) - 14], end1[None, :]]))
+
+jn = near(J2); itop = next(i for i, q in enumerate(stroke2) if math.hypot(q[0] - near(R_TOP)[0], q[1] - near(R_TOP)[1]) < 1.5)
+ia = next(i for i, q in enumerate(stroke2) if math.hypot(q[0] - jn[0], q[1] - jn[1]) < 1.5)                              # the connector reaches the right stem
+ib = next(i for i in range(itop, len(stroke2)) if math.hypot(stroke2[i][0] - jn[0], stroke2[i][1] - jn[1]) < 1.5)       # coming down again
+c2, u2 = line_fit(P2[itop: ib])                                                                                         # the right stem: one straight line
+if u2[1] < 0: u2 = -u2
+dev2 = lambda q: abs((q[0] - c2[0]) * u2[1] - (q[1] - c2[1]) * u2[0])
+top = c2 + u2 * float(np.dot(P2[itop] - c2, u2))
+ie = ib
+while ie + 1 < len(P2) and dev2(P2[ie + 1]) < 0.8: ie += 1
+foot = c2 + u2 * float(np.dot(P2[ie] - c2, u2))
+J = c2 + u2 * float(np.dot(P2[ia] - c2, u2))                                                                            # where the connector meets the stem line
+# the connector: ONE clean cubic from the bottom of the belly to the stem line (the skeleton wobbles in the last few units before the junction): it leaves along the skeleton's start direction
+# and arrives along the direction the skeleton had a little before the junction
+n0 = max(ia - 45, 12)
+sdir = P2[10] - P2[0]; sdir = sdir / np.hypot(*sdir)
+edir = P2[n0 + 20] - P2[n0]; edir = edir / np.hypot(*edir)
+ln = float(np.hypot(*(J - P2[0])))
+c_1 = P2[0] + sdir * ln * 0.38; c_2 = J - edir * ln * 0.38
+d2 = f"M {P2[0][0]:.2f} {P2[0][1]:.2f} C {c_1[0]:.2f} {c_1[1]:.2f} {c_2[0]:.2f} {c_2[1]:.2f} {J[0]:.2f} {J[1]:.2f}" + f" L {top[0]:.2f} {top[1]:.2f} L {foot[0]:.2f} {foot[1]:.2f} " + curve_tail(np.vstack([foot[None, :], P2[ie + 1:]]))
+B1, B2 = P1, P2
+json.dump({"strokes": [d1, d2], "scale": k, "pdf_stem_slant_deg": math.degrees(math.atan(1 / t_pdf)), "start1": top1.tolist(), "start2": P2[0].tolist(), "exit": P2[-1].tolist()}, open(HERE / "Y_glyph.json", "w"), ensure_ascii=False)
+print("scale", round(k, 3), "start1", top1.round(1), "start2", P2[0].round(1), "exit", P2[-1].round(1), "stem top", top.round(1), "foot", foot.round(1), "stem1 down", down1.round(1))
