@@ -97,7 +97,7 @@ def tail_x(d, y):
 TAIL_BASE_X = 145.07  # where У's straight tail meets the baseline (y=62) when it runs on along its own 65deg line from (193.57, -42)
 
 
-CONN_DX = 15.0  # Ү: raw units the connector runs right while it climbs from the foot (62) to the dashed line (36): ~56deg on the page, ~9deg off the 65deg tail, so it leaves the foot merged with the tail and parts from it slowly (owner, 2026-10-31: a straight line from the very lowest point at a very acute angle)
+CONN_DX = 22.0  # Ү/Ұ: raw units the connector runs right while it climbs from the foot (62) to the dashed middle line (36): ~45deg on the page, a visible acute angle to the 65deg tail (15 made it ~56deg and it merged into the tail)
 
 
 def u_body(dx=None):
