@@ -263,12 +263,48 @@ def old_card_stroke(label):
     return next(c for c in cards if c.get("label") == label)["strokes"][0]["d"]
 
 
+def bezier_points(P, per=30):
+    """Dense points along `M p0 C c1 c2 p ...` given as the list [p0, c1, c2, p, c1, c2, p, ...]."""
+    import numpy as np
+    P = np.array(P, float); out = [P[0]]
+    for j in range((len(P) - 1) // 3):
+        p0, c1, c2, p1 = P[3 * j], P[3 * j + 1], P[3 * j + 2], P[3 * j + 3]
+        for t in np.linspace(0, 1, per + 1)[1:]:
+            u = 1 - t
+            out.append(u ** 3 * p0 + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t ** 3 * p1)
+    return np.array(out)
+
+
+def smooth_path_d(pts, knots=18, passes=6, win=7):
+    """A hand-drawn path made smooth (owner, 2026-10-31: «убрать искривления, сделать всю линию плавной»): the dense polyline is smoothed
+    (a moving average, ends held fixed), cut into `knots` points evenly along its length, and drawn again as one smooth cubic Bézier chain
+    through them (Catmull-Rom). The start and the end stay exactly where they were."""
+    import numpy as np
+    q = np.array(pts, float)
+    for _ in range(passes):
+        pad = np.vstack([np.repeat(q[:1], win, 0), q, np.repeat(q[-1:], win, 0)])
+        k = np.ones(2 * win + 1) / (2 * win + 1)
+        sm = np.stack([np.convolve(pad[:, c], k, mode="valid") for c in (0, 1)], 1)
+        sm[0], sm[-1] = q[0], q[-1]
+        q = sm
+    seg = np.hypot(*np.diff(q, axis=0).T); acc = np.concatenate([[0], np.cumsum(seg)])
+    ts = np.linspace(0, acc[-1], knots)
+    K = np.stack([np.interp(ts, acc, q[:, c]) for c in (0, 1)], 1)
+    ext = np.vstack([K[:1], K, K[-1:]])
+    out = [f"M {K[0][0]:.2f} {K[0][1]:.2f}"]
+    for i in range(1, len(ext) - 2):
+        p0, p1, p2, p3 = ext[i - 1], ext[i], ext[i + 1], ext[i + 2]
+        c1 = p1 + (p2 - p0) / 6.0; c2 = p2 - (p3 - p1) / 6.0
+        out.append(f"C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}")
+    return " ".join(out)
+
+
 def g_schwa_lower():
     """ә (owner, 2026-10-31): the FIRST version's lowercase е (the old card, not the bank's е), turned through 180 degrees about the midpoint
-    of its start and end (a mirror in the vertical, then in the horizontal). That keeps its start and end where they were (entry on the left and
-    exit on the right, both on the middle line), so ә joins exactly as е does. Scaled uniformly (the old cards are in a 100x150 box, the 65deg
-    slant already in place) so that its x-height fills the bank's band (baseline 62, top 10); no stretch (the bank's glyphs are stretched
-    1.806 by the engine, these coordinates are already that wide)."""
+    of its start and end (a mirror in the vertical, then in the horizontal), written backwards, and its hand-drawn wobbles smoothed out
+    (smooth_path_d). That keeps its start and end where they were (entry on the left and exit on the right, both on the middle line), so ә joins
+    exactly as е does. Scaled uniformly (the old cards are in a 100x150 box, the 65deg slant already in place) so that its x-height fills the
+    bank's band (baseline 62, top 10); no stretch (these coordinates are already that wide)."""
     d = old_card_stroke("е")
     nums = [float(x) for x in re.findall(r"-?[\d.]+", d)]
     xs, ys = nums[0::2], nums[1::2]
@@ -276,17 +312,13 @@ def g_schwa_lower():
     ybot, ytop = max(ys), min(ys)
     k = 52.0 / (ybot - ytop)
     X0 = 124.7                                         # the bank's е starts here; only the start matters (the engine places by it)
-    f = lambda x, y: (X0 + ((sx + ex - x) - sx) * k, 62.0 - (ybot - (sy + ey - y)) * k)
-    P = [f(x, y) for x, y in zip(xs, ys)]                 # M p0, then C c1 c2 p, C c1 c2 p, ...
-    segs = [(P[1 + 3 * j], P[2 + 3 * j], P[3 + 3 * j]) for j in range((len(P) - 1) // 3)]
-    starts = [P[0]] + [sg[2] for sg in segs[:-1]]
-    out = [f"M {P[-1][0]:.2f} {P[-1][1]:.2f}"]            # written backwards: the pen starts at the image of the old END (on the left)
-    for sg, st in zip(reversed(segs), reversed(starts)):
-        out.append(f"C {sg[1][0]:.2f} {sg[1][1]:.2f} {sg[0][0]:.2f} {sg[0][1]:.2f} {st[0]:.2f} {st[1]:.2f}")
+    f = lambda x, y: (X0 + (ex - x) * k, 62.0 - (ybot - (sy + ey - y)) * k)
+    P = [f(x, y) for x, y in zip(xs, ys)]
+    dense = bezier_points(P)[::-1]                    # written backwards: the pen starts at the image of the old END (on the left)
     g = BANK["е"]
     res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
-    res.update(label="ә", strokes=[{"d": " ".join(out)}],
-               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° вокруг середины между началом и концом")
+    res.update(label="ә", strokes=[{"d": smooth_path_d(dense)}],
+               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная")
     return res
 
 
