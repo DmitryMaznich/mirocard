@@ -485,4 +485,11 @@ def preview(glyphs, path):
 if __name__ == "__main__":
     built = [r() for r in RECIPES]
     if "--preview" in sys.argv: preview(built, sys.argv[sys.argv.index("--preview") + 1])
+    elif "--write-variant" in sys.argv:
+        # the glyphs go into variant.json (the other keys stay); helper glyphs (ч_iend …) are real glyph records the engine borrows, so they go too
+        vp = HERE / "variant.json"
+        v = json.loads(vp.read_text(encoding="utf-8"))
+        v["glyphs"] = built
+        vp.write_text(json.dumps(v, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        print(f"{len(built)} glyphs -> {vp}")
     else: print(json.dumps(built, ensure_ascii=False, indent=1))
