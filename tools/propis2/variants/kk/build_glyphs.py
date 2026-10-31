@@ -97,7 +97,7 @@ def tail_x(d, y):
 TAIL_BASE_X = 145.07  # where У's straight tail meets the baseline (y=62) when it runs on along its own 65deg line from (193.57, -42)
 
 
-CONN_DX = 22.0  # raw bank units the connector runs right while it climbs from the baseline (62) to the dashed line (36): ~45deg on the page, as in the Kazakh copybook PDF (the tail is 65deg, so steeper than ~55deg would retrace it)
+CONN_DX = 15.0  # Ү: raw units the connector runs right while it climbs from the foot (62) to the dashed line (36): ~56deg on the page, ~9deg off the 65deg tail, so it leaves the foot merged with the tail and parts from it slowly (owner, 2026-10-31: a straight line from the very lowest point at a very acute angle)
 
 
 def u_body(dx=None):
@@ -139,23 +139,29 @@ def y_straight_body():
     return {"d": d[: d.index(STRAIGHT_END) + len(STRAIGHT_END)]}
 
 
-def y_connector():
-    """The exit: leaves the descender where it crosses the baseline and climbs right at ~45deg, like Ү's (part of the letter)."""
-    return {"d": f"M {TAIL_FOOT_X:.2f} 62.00 L {TAIL_FOOT_X + CONN_DX:.2f} 36.00"}
+TIP = (110.29, 106.62)  # the descender's lowest point
+CONN_DX_LOWER = 37.6    # raw units right while it climbs from the tip to the dashed line (36): ~58deg on the page, ~7deg off the tail
+
+
+def y_straight_with_exit():
+    """у without the loop: bowl, right arm, the straight descender to its lowest point, then straight back up-right from that very point at a
+    very acute angle to the descender (it starts merged with it and parts slowly) up to the dashed line where the next letter begins."""
+    b = y_straight_body()
+    return {"d": f"{b['d']} L {TIP[0] + CONN_DX_LOWER:.2f} 36.00"}
 
 
 def g_ue_lower():
     """ү: у with a straight pointed descender, no loop; the connector leaves the descender at the baseline."""
     g = {k: v for k, v in BANK["у"].items() if k != "aliases"}
-    g.update(label="ү", strokes=[y_straight_body(), y_connector()], exitStroke=1, noDotStrokes=[1],
-             sourceLabel="ү = у с прямым хвостом без петли; соединение выходит из хвоста на базовой линии под ~45°")
+    g.update(label="ү", strokes=[y_straight_with_exit()], exitStroke=0,
+             sourceLabel="ү = у с прямым хвостом без петли; соединение — прямая из нижней точки хвоста под очень острым углом к нему")
     return g
 
 
 def g_u_bar_lower(y=73.8, length=30.0):
     """ұ: ү + a horizontal bar across the descender (from the PDF: 66% down it, 30 units long, centred)."""
     g = g_ue_lower()
-    g.update(label="ұ", strokes=[g["strokes"][0], short_bar(y_tail_x(y), y, length), g["strokes"][1]], exitStroke=2, noDotStrokes=[1, 2],
+    g.update(label="ұ", strokes=[g["strokes"][0], short_bar(y_tail_x(y), y, length)], exitStroke=0, noDotStrokes=[1],
              sourceLabel="ұ = ү + горизонтальная перекладина на хвосте (как в казахской прописи)")
     return g
 
