@@ -90,35 +90,37 @@ def tail_x(d, y):
     """x at height y on У's long straight tail (the segment from its top point (y=-42) down to the hook)."""
     pts = [tuple(map(float, q)) for q in re.findall(r"(-?[\d.]+) (-?[\d.]+)", d)]
     i = next(k for k, (_, yy) in enumerate(pts) if yy == -42.0 and k > 2 and pts[k - 1][1] > -20)  # the L ... -42 corner after the loop
-    (x0, y0), (x1, y1) = pts[i], pts[i + 1] if i + 1 < len(pts) else (TAIL_BASE_X, 62.0)
+    (x0, y0), (x1, y1) = pts[i], pts[i + 1]
     return x0 + (x1 - x0) * (y - y0) / (y1 - y0)
 
 
 TAIL_BASE_X = 145.07  # where У's straight tail meets the baseline (y=62) when it runs on along its own 65deg line from (193.57, -42)
 
 
-def u_body():
-    """У's hat and long tail, the tail run straight on its slant to the baseline (no hook). Returns (stroke, connector).
-    The connector leaves the tail's foot at a sharp angle and rises to the next letter (the bank's canonical connection curve
-    C +9 / +29.4,-19 / +39.1,-26 from the foot, with its first control pulled up so the turn is sharp)."""
+CONN_DX = 15.0  # raw bank units the connector runs to the right while it climbs from the baseline (62) to the dashed line (36)
+
+
+def u_body(dx=None):
+    """У's hat and long tail, the tail run straight on its slant to the baseline (no hook), then the connector: a steep straight
+    climb to the right (the owner, 2026-10-31: part of the letter, always drawn, "резко вверх", about 45-60deg to the row).
+    One stroke, so the letter's exit is its end."""
     d = BANK["У"]["strokes"][0]["d"]
     head = d[: d.index("L 193.57 -42.00") + len("L 193.57 -42.00")]
     x, y = TAIL_BASE_X, 62.0
-    conn = {"d": f"M {x:.2f} {y:.2f} C {x + 6:.2f} {y - 5:.2f} {x + 28:.2f} {y - 21:.2f} {x + 39.1:.2f} {y - 26:.2f}"}
-    return {"d": f"{head} L {x:.2f} {y:.2f}"}, conn
+    return {"d": f"{head} L {x:.2f} {y:.2f} L {x + (dx or CONN_DX):.2f} 36.00"}
 
 
 def g_u_straight():
-    """Ү: У, but the tail runs straight on its slant to the baseline; the sharp upward connector is drawn only when a letter follows (tailStroke)."""
-    g = BANK["У"]; body, conn = u_body()
-    return dict(g, label="Ү", strokes=[body, conn], exitStroke=0, tailStroke=1,
-                sourceLabel="Ү = У, хвост строго по наклонной до базовой; соединение вверх под острым углом (только перед следующей буквой)")
+    """Ү: У, the tail straight on its slant to the baseline, then the sharp climb of the connector (part of the letter)."""
+    g = BANK["У"]
+    return dict(g, label="Ү", strokes=[u_body()],
+                sourceLabel="Ү = У, хвост строго по наклонной до базовой, затем резкий подъём-соединение (часть буквы)")
 
 
 def g_u_bar(y=36.0):
-    """Ұ: Ү + a crossbar on the tail, like ғ's (straight, 14.4 long, on the dashed middle line y=36)."""
-    g = BANK["У"]; body, conn = u_body()
-    return dict(g, label="Ұ", strokes=[body, short_bar(tail_x(body["d"], y), y), conn], exitStroke=0, tailStroke=2, noDotStrokes=[1],
+    """Ұ: Ү + a crossbar on the tail, like ғ's (straight, 14.4 long, on the dashed middle line y=36). Written last; the exit stays on stroke 0."""
+    g = BANK["У"]; body = u_body()
+    return dict(g, label="Ұ", strokes=[body, short_bar(tail_x(body["d"], y), y)], exitStroke=0, noDotStrokes=[1],
                 sourceLabel="Ұ = Ү + прямая перекладина на хвосте по пунктиру")
 
 
