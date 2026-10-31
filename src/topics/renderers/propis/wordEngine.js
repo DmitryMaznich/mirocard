@@ -2123,7 +2123,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // `meta.script.growJoins` (the Kazakh variant, owner 2026-10-31: «соединяем с верхней точкой следующей буквы»; only for a connector that is a stroke of its own: the exits that are part of a letter (п и …) are left as in the Russian deck): the connector is carried on to the START of the next
           // letter when it has not reached it. After и п р т н … the nudges above end it on the stem at the middle line; it is grown up the stem to its top. After a round letter
           // (о а д …), which starts on the middle line, nothing is left to grow. Only upwards or level, and only a short way (more than a hair, less than `GROW_JOIN_MAX`)
-          if (glyphsByLabel?.script?.growJoins && prevExitIsTail && !inCell && !loose) {
+          // (a letter entered from the LEFT of its oval, joinLeft: а с ф д б, owner 2026-10-31 «соединяем с левой крайней точкой овала, не с точкой начала»: the connector already ends there, nothing to grow)
+          if (glyphsByLabel?.script?.growJoins && prevExitIsTail && !inCell && !loose && !glyph.joinLeft) {
             const tailEnd = getPathEndpoints(strokes[prevExitStroke].d).end;
             let target = getPathEndpoints(moved[0].d).start;
             // `growToApex` (л м in the Kazakh variant, owner 2026-10-31; the copybook's «Бол»: the connector runs into the left leg of л and up to its top, the little stub at the
