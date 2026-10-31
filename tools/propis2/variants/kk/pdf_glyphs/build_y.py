@@ -8,7 +8,7 @@ Input Y_skel.json: the centre line of the glyph outline (skeleton.py, from Y_gly
   2. from the bottom of the belly along the connector up to the right stem, up it to the top, back down it (the same line), to the foot, the hook and the exit.
 Fitted: the capital's height to 104 bank units (top -42, baseline 62), the slant of the right stem turned to 65 degrees, a light smoothing, the start of the letter on x = 124.7.
 """
-import json, math
+import json, math, os
 from collections import deque
 from pathlib import Path
 import numpy as np
@@ -143,7 +143,18 @@ _x0, _y0 = P2[0]
 _tx = (_x0 + (_y0 - 10.0)) - 169.19                                          # the 45deg connector from the belly bottom reaches y=10 at x = x0 + (y0-10)
 _shift = lambda m: f"{float(m.group(1)) + _tx:.2f} {m.group(2)}"
 _tail = _re.sub(r"(-?[\d.]+) (-?[\d.]+)", _shift, _tail)
-d2 = f"M {_x0:.2f} {_y0:.2f} " + _tail
+# the connector (owner, 2026-10-31): leaves the bottom of the oval along the oval's own tangent, then breaks away and rises on a light parabola to the right element; the end point (and the gap between the elements) is unchanged.
+_i0 = int(np.argmin(np.hypot(P1[:, 0] - _x0, P1[:, 1] - _y0)))
+_t0 = P1[max(_i0 - 22, 0)] - P1[max(_i0 - 52, 0)]
+if _t0[0] < 0: _t0 = -_t0
+_t0 = _t0 / np.hypot(*_t0)
+_end = np.array([_x0 + (_y0 - 10.0), 10.0])
+_t1 = np.array([1.0, -float(os.environ.get("KK_Y_END_SLOPE", 1.9))]); _t1 = _t1 / np.hypot(*_t1)       # arrives steeper than it left: a parabola opening upwards
+_L = float(np.hypot(*(_end - np.array([_x0, _y0]))))
+_c1 = np.array([_x0, _y0]) + _t0 * _L * float(os.environ.get("KK_Y_C1", 0.5)); _c2 = _end - _t1 * _L * float(os.environ.get("KK_Y_C2", 0.3))
+_tail = _tail[_tail.index("L ", 2):] if False else _tail
+d2 = f"M {_x0:.2f} {_y0:.2f} C {_c1[0]:.2f} {_c1[1]:.2f} {_c2[0]:.2f} {_c2[1]:.2f} {_end[0]:.2f} {_end[1]:.2f} " + _tail[_tail.index(" L ") + 1:]
+print("oval tangent at start", _t0.round(2))
 B1, B2 = P1, P2
 json.dump({"strokes": [d1, d2], "scale": k, "pdf_stem_slant_deg": math.degrees(math.atan(1 / t_pdf)), "start1": top1.tolist(), "start2": P2[0].tolist(), "exit": P2[-1].tolist()}, open(HERE / "Y_glyph.json", "w"), ensure_ascii=False)
 print("scale", round(k, 3), "start1", top1.round(1), "start2", P2[0].round(1), "exit", P2[-1].round(1))
