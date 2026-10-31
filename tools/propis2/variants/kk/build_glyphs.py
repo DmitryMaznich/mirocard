@@ -621,30 +621,45 @@ def g_hard_upper():
     return g
 
 
-def g_hard_belly():
-    """A helper glyph, not a letter: Ъ with the lowered belly and, from the bottom of the belly, the connector of the capital О (it goes up to the middle line, to the right stroke): the left part of Ы."""
-    path, low = _hard_belly_small()
-    bx, by = low
-    o = BANK["О"]; ot = o["strokes"][1]["d"]
-    ot = ot[ot.rindex("C"):]                                                        # the connector itself: the last cubic of O's tail stroke (the first one retraces the oval's left side)
-    nums = [float(v) for v in re.findall(r"-?[\d.]+", ot)]                       # C 122.10 62.00 139.42 50.10 158.82 36.00, from the bottom (113.10, 62.00)
-    dx, dy = bx - 113.10, by - 62.00
-    tail = f"M {bx:.2f} {by:.2f} C " + " ".join(f"{nums[m] + dx:.2f} {nums[m + 1] + dy:.2f}" for m in range(0, 6, 2))
-    h = _hard_capital()
-    out = {kk: v for kk, v in h.items() if kk not in ("sourceLabel", "strokes", "noExit", "noLiftExit")}
-    out.update(label="Ъ_п", strokes=[{"d": path}, {"d": tail}], tailStroke=1, tailContinuous=True,
-               sourceLabel="служебный: заглавная Ъ с пузом по высоте узкой строки + соединение как у О; левая часть Ы")
-    return out
+def _no_flag(path):
+    """The capital Ъ's path without the flag before the stem (owner, 2026-10-31: «у Ы не будет флажка перед первой стойкой»): the stroke starts at the TOP of the stem and goes straight down it."""
+    toks = re.findall(r"[MC]|-?[\d.]+", path); segs, i = [], 0
+    while i < len(toks):
+        n = 1 if toks[i] == "M" else 3
+        segs.append((toks[i], [float(x) for x in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
+    ends = [(v[-2], v[-1]) for _, v in segs]
+    j = next(k for k, e in enumerate(ends) if e[1] > 0 and k > 1)                  # the first end on the stem itself, below the flag
+    t25 = 0.46630765815499864
+    top = (ends[j][0] + t25 * (ends[j][1] + 42.0), -42.0)                           # the stem line carried up to the capital's top
+    head = f"M {top[0]:.2f} {top[1]:.2f} L {ends[j][0]:.2f} {ends[j][1]:.2f}"
+    rest = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[j + 1:])
+    return f"{head} {rest}"
 
 
 def g_yery_upper():
-    """Ы (owner, 2026-10-31): the left part is the capital Ъ with the belly the height of the narrow row (g_hard_belly), then the connector as of the capital О, and the right stroke is the one of
-    the lowercase ы / и (the bank's ы2): as the lowercase ы is composed of ь and ы2. The engine writes the pieces as one letter."""
-    return {"label": "Ы", "kind": "letter", "compose": ["Ъ_п", "ы2"], "repeatCells": 7,
-            "sourceLabel": "Ы = Ъ (пузо по высоте узкой строки) + соединение как у О + правый штрих ы2"}
+    """Ы (owner, 2026-10-31): the left part is the capital Ъ WITHOUT its flag, the belly the height of the narrow row; from the bottom of the belly the connector of the capital О goes up to the middle line;
+    the right stem is the capital И's second stem (it is as tall as the first one), which the connector enters on the middle line; the pen goes up that stem to its top, turns and comes down it again to
+    the foot, where the exit leaves. One letter, two strokes; the exit is the right stroke's end."""
+    path, low = _hard_belly_small()
+    left = _no_flag(path)
+    bx, by = low
+    ot = BANK["О"]["strokes"][1]["d"]; ot = ot[ot.rindex("C"):]
+    nums = [float(v) for v in re.findall(r"-?[\d.]+", ot)]
+    dx, dy = bx - 113.10, by - 62.00
+    conn = f"M {bx:.2f} {by:.2f} C " + " ".join(f"{nums[m] + dx:.2f} {nums[m + 1] + dy:.2f}" for m in range(0, 6, 2))
+    E = (nums[4] + dx, nums[5] + dy)                                               # where the connector meets the right stem, on the middle line
+    i_d = BANK["И"]["strokes"][0]["d"]
+    stem = i_d[i_d.index("L 193.44 -42.00"):]                                      # И's second stem: the top, then down to the foot, the hook and the exit
+    sx = E[0] - (193.44 - 0.46630765815499864 * 78.0)                              # moves the stem's line (x at y=36 is 157.07) onto E
+    stem = shifted(stem[2:], sx, 0.0)                                              # without its leading «L»
+    right = f"{conn} L {stem}"
+    out = {kk: v for kk, v in BANK["О"].items() if kk not in ("sourceLabel", "strokes", "tailStroke", "tailContinuous", "noNormalize")}
+    out.update(label="Ы", strokes=[{"d": left}, {"d": right}], exitStroke=1, noDotStrokes=[], noNormalize=True, noOverrides=True, repeatCells=7,
+               sourceLabel="Ы = Ъ без флажка (пузо по высоте узкой строки) + соединение как у О + правая стойка И той же высоты")
+    return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_hard_belly, g_yery_upper]
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper]
 
 
 def preview(glyphs, path):
