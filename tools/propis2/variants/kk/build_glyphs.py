@@ -329,13 +329,13 @@ CONN_RUN, CONN_RISE = 39.1, 26.0
 SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 58.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п). With ә's start on the slant line of the bowl's left edge, a little earlier (align_start_to_bowl, BACK_U) those are up to 34 and 58-66; 58 is the steepest of the second: ~37deg on the page, the angle of the PDF (owner, 2026-10-31)
 
 
-def kazakh_tail(bx, by, dx=None):
+def kazakh_tail(bx, by, dx=None, ey=10.0):
     """The connector of a letter with a round bottom in the Kazakh copybook (owner, 2026-10-31; PDF «Бол», «Бала», «Бас»): it does not stop on the
     middle line as o's does in the Russian one but rises from the lowest point all the way to the TOP of the next letter (the narrow row's upper line,
     y=10) and at a sharper angle: it leaves the bowl flat (so as not to cut into it) and arrives along the slant. One cubic; the engine puts the next
     letter so that its up-stroke meets the end."""
     import math
-    ex, ey = bx + (SCHWA_DX if dx is None else dx), 10.0
+    ex = bx + (SCHWA_DX if dx is None else dx)
     chord = math.hypot(ex - bx, ey - by)
     th = math.radians(15.0)
     ux, uy = unit_slant = (0.4663 / math.hypot(0.4663, 1.0), -1.0 / math.hypot(0.4663, 1.0))   # the 65deg slant, upwards
@@ -387,19 +387,28 @@ def g_schwa_lower():
     return res
 
 
+def g_schwa_ujoin():
+    """A helper glyph, not a letter: only its connector is used (by the Russian У, `joinLikeLabel`). The same Kazakh rise as ә's, but ending at the point where ә
+    STARTS (ә starts low on its arc, so a rise to the upper line would pass over it; owner, 2026-10-31: the connection У-ә was the one thing not right)."""
+    g = g_schwa_lower()
+    start_y = float(re.findall(r"-?[\d.]+", g["strokes"][0]["d"])[1])
+    bx, by = (float(v) for v in re.findall(r"-?[\d.]+", g["strokes"][1]["d"])[:2])
+    return dict(g, label="ә_ujoin", strokes=[g["strokes"][0], kazakh_tail(bx, by, ey=start_y)], sourceLabel="служебный: соединение У -> ә (до начала ә)")
+
+
 def g_u_russian_kazakh_tail():
     """У (the Russian capital, as the Kazakh У is written): its hook stays, but the connector from the lowest point of the hook is the Kazakh one
-    (owner, 2026-10-31: «хвост после заглавной У должен идти более вверх»): ә's, from the lowest point up to the top of the next letter, instead of
+    (owner, 2026-10-31: «хвост после заглавной У должен идти более вверх»): from the lowest point up to where ә starts (g_schwa_ujoin), instead of
     о's flat curve to the middle line. The engine borrows the connector of the glyph named in `joinLikeLabel` and ends it on the grid point
-    of `joinEndLikeLabel`; the base У uses о and Ч, this one ә and Ч. noOverrides: the join fields are set here, not by the base deck's table."""
+    of `joinEndLikeLabel` (Ч: the same start as У). noOverrides: the join fields are set here, not by the base deck's table."""
     g = BANK["У"]
     out = {k: v for k, v in g.items() if k not in ("sourceLabel",)}
-    out.update(noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="ә", joinEndLikeLabel="Ч",
-               sourceLabel="У = русская У, соединение от нижней точки крючка как у ә (вверх до верха следующей буквы)")
+    out.update(noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="ә_ujoin", joinEndLikeLabel="Ч",
+               sourceLabel="У = русская У, соединение от нижней точки крючка вверх до начала ә")
     return out
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, g_u_russian_kazakh_tail]
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, g_schwa_ujoin, g_u_russian_kazakh_tail]
 
 
 def preview(glyphs, path):
