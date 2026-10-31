@@ -613,11 +613,18 @@ def _hard_belly_small(top=10.0):
 
 
 def g_hard_upper():
-    """Ъ: the Bulgarian capital Ъ with its belly lowered to the height of the narrow row (owner, 2026-10-31: «в таком виде мы не можем взять, пузо немного уменьшить по высоте»); a real Kazakh letter
-    (Ъ has a capital in the 42-letter alphabet)."""
-    g = dict(_hard_capital()); path, _ = _hard_belly_small()
-    g["strokes"] = [{"d": path}]
-    g["sourceLabel"] = "Ъ = заглавная Ъ болгарского варианта, пузо уменьшено до высоты узкой строки"
+    """Ъ (owner, 2026-10-31): the flag of the Bulgarian capital Ъ, everything else from the Russian capital И (the left stem, its bottom hook, the connector up, the right stem with its hook and exit).
+    The flag is the Bulgarian path up to the point where it meets its stem (56.43, -34.12), moved sideways onto И's left stem line; И's own hat is dropped."""
+    bg = _hard_capital()["strokes"][0]["d"]
+    head = bg[: bg.index(" C 49.58 -19.44")]
+    i = BANK["И"]; d = i["strokes"][0]["d"]
+    (hx, hy) = (56.43, -34.12)
+    stem_x = 170.79 - 0.4663 * (hy + 32.02)                                      # И's left stem line (170.79, -32.02) -> (140.18, 33.62) at the flag's end height
+    dx = stem_x - hx
+    flag = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{float(m.group(1)) + dx:.2f} {m.group(2)}", head)
+    g = {k: v for k, v in i.items() if k not in ("strokes", "label")}
+    g.update(label="Ъ", strokes=[{"d": flag + d[d.index(" L 140.18 33.62"):]}],
+             sourceLabel="Ъ = флажок болгарской заглавной Ъ + остальное от заглавной И (стойка, крюк, соединение, правая стойка)")
     return g
 
 
