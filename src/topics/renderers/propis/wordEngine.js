@@ -2020,7 +2020,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
-          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && !innerPiece.has(pieceIndex)) {
+          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && !innerPiece.has(pieceIndex) && !descTail) { // (a descender's own tail — у д з ү ұ — keeps its path)
             if (st0h[1] < prevExit[1] - 10 * scale) {
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
