@@ -299,12 +299,43 @@ def smooth_path_d(pts, knots=18, passes=6, win=7):
     return " ".join(out)
 
 
+def first_self_crossing(pts, skip=12):
+    """Index i and the point where the polyline's segment i first crosses an earlier, non-neighbouring segment (None if it never does)."""
+    def inter(p, q, r, t):
+        d1, d2 = (q[0] - p[0], q[1] - p[1]), (t[0] - r[0], t[1] - r[1])
+        den = d1[0] * d2[1] - d1[1] * d2[0]
+        if abs(den) < 1e-12: return None
+        u = ((r[0] - p[0]) * d2[1] - (r[1] - p[1]) * d2[0]) / den
+        v = ((r[0] - p[0]) * d1[1] - (r[1] - p[1]) * d1[0]) / den
+        return (p[0] + u * d1[0], p[1] + u * d1[1]) if 0 <= u <= 1 and 0 <= v <= 1 else None
+    for i in range(skip, len(pts) - 1):
+        for j in range(0, i - skip):
+            x = inter(pts[i], pts[i + 1], pts[j], pts[j + 1])
+            if x is not None: return i, x
+    return None
+
+
+# о's connector: from the lowest point of the oval to the exit point E, (+39.1, -26) away, leaving it rising at 15 degrees and arriving along а's exit
+# (glyphOverrides.js steepenExit): the same curve for every letter that joins "like о"
+CONN_RUN, CONN_RISE = 39.1, 26.0
+
+
+def o_like_tail(bx, by):
+    import math
+    ex, ey = bx + CONN_RUN, by - CONN_RISE
+    run, rise = 153.61 - 135.46, 56.28 - 36.0          # the exit of а, the angle every connector should rise at
+    ln = math.hypot(run, rise); ux, uy = run / ln, -rise / ln
+    th = math.radians(15.0)
+    chord = math.hypot(ex - bx, ey - by); k = chord * 0.35
+    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k:.2f} {by - math.sin(th) * k:.2f} {ex - ux * k:.2f} {ey - uy * k:.2f} {ex:.2f} {ey:.2f}"}
+
+
 def g_schwa_lower():
     """ә (owner, 2026-10-31): the FIRST version's lowercase е (the old card, not the bank's е), turned through 180 degrees about the midpoint
     of its start and end (a mirror in the vertical, then in the horizontal), written backwards, and its hand-drawn wobbles smoothed out
-    (smooth_path_d). That keeps its start and end where they were (entry on the left and exit on the right, both on the middle line), so ә joins
-    exactly as е does. Scaled uniformly (the old cards are in a 100x150 box, the 65deg slant already in place) so that its x-height fills the
-    bank's band (baseline 62, top 10); no stretch (these coordinates are already that wide)."""
+    (smooth_path_d). The line ENDS where it crosses the right side (no stub beyond the crossing). The connector to the next letter is a stroke of
+    its own, as o's: from the lowest point of the bowl, only when a letter follows (tailStroke). Scaled uniformly (the old cards are in a
+    100x150 box, the 65deg slant already in place) so that its x-height fills the bank's band (baseline 62, top 10); no stretch."""
     d = old_card_stroke("е")
     nums = [float(x) for x in re.findall(r"-?[\d.]+", d)]
     xs, ys = nums[0::2], nums[1::2]
@@ -314,11 +345,16 @@ def g_schwa_lower():
     X0 = 124.7                                         # the bank's е starts here; only the start matters (the engine places by it)
     f = lambda x, y: (X0 + (ex - x) * k, 62.0 - (ybot - (sy + ey - y)) * k)
     P = [f(x, y) for x, y in zip(xs, ys)]
-    dense = bezier_points(P)[::-1]                    # written backwards: the pen starts at the image of the old END (on the left)
+    lift = 62.0 - max(q[1] for q in bezier_points(P))   # the turned letter is not symmetric about the start-end midpoint: put its bowl on the baseline
+    dense = [(q[0], q[1] + lift) for q in bezier_points(P)[::-1]]  # written backwards: the pen starts at the image of the old END (on the left)
+    cross = first_self_crossing(dense)
+    if cross: dense = dense[: cross[0] + 1] + [cross[1]]  # the line ends on the crossing
+    body = smooth_path_d(dense)
+    low = max(dense, key=lambda q: q[1])
     g = BANK["е"]
     res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
-    res.update(label="ә", strokes=[{"d": smooth_path_d(dense)}],
-               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная")
+    res.update(label="ә", strokes=[{"d": body}, o_like_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True,
+               sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная; соединение как у о")
     return res
 
 
