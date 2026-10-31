@@ -468,7 +468,7 @@ def g_h_lower():
     return out
 
 
-def g_h_upper(drop=float(__import__("os").environ.get("KK_H_DROP", 3.0))):
+def g_h_upper(drop=float(__import__("os").environ.get("KK_H_DROP", 3.0)), straight=float(__import__("os").environ.get("KK_H_STRAIGHT", 14.0))):
     """Һ (owner, 2026-10-31): the capital К made the way К itself is made: К's stroke 1 (the flag, the stem, the loop at the foot) and К's lower stroke (the arch, the right leg, the exit),
     the upper arm of К not written. In К the lower stroke starts ON the loop where it meets the slanted stem; Һ's loop enters it `drop` units LOWER along the loop (owner: «опусти точку входа
     петли ещё чуть-чуть»): the loop is cut there and goes on in one smooth piece to the end of the first little rise of К's lower stroke; the arch and the rest are К's, unchanged.
@@ -493,20 +493,28 @@ def g_h_upper(drop=float(__import__("os").environ.get("KK_H_DROP", 3.0))):
             if best is None or d < best[0]: best = (d, j, n / 2000)
     _, j, t = best
     P = cub(j)
-    # go back `drop` units along the loop from that point (inside the same cubic)
-    tt, run, prev = t, 0.0, at(P, t)
-    while tt > 0 and run < drop:
-        tt = max(0.0, tt - 0.002); cur = at(P, tt); run += math.hypot(cur[0] - prev[0], cur[1] - prev[1]); prev = cur
-    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * tt for c in (0, 1))
+    # go back `drop` units along the loop from that point, then `straight` more: from there the loop runs as a STRAIGHT line (owner, 2026-10-31: the loop had a little hump before the stem; it must
+    # come up to the stem along a straight line) to the end of the first little rise of К's lower stroke, crossing the slanted stem on the way
+    def walk_back(j0, t0, length):
+        jj, tt, run = j0, t0, 0.0
+        prev = at(cub(jj), tt)
+        while run < length:
+            tt -= 0.002
+            if tt < 0:
+                if jj - 1 <= foot: return jj, 0.0
+                jj -= 1; tt = 1.0
+            cur = at(cub(jj), tt); run += math.hypot(cur[0] - prev[0], cur[1] - prev[1]); prev = cur
+        return jj, tt
+    jr, tr = walk_back(j, t, drop + straight)
+    P = cub(jr)
+    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * tr for c in (0, 1))
     a1, a2, a3 = lerp(P[0], P[1]), lerp(P[1], P[2]), lerp(P[2], P[3])
     b1, b2 = lerp(a1, a2), lerp(a2, a3)
     q = lerp(b1, b2)
-    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:j]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"
+    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:jr]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"
     m = re.findall(r"C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)", s2)
-    E = (float(m[0][4]), float(m[0][5])); c2 = (float(m[0][2]), float(m[0][3]))   # the end of К's first little rise and its last control
-    tq = (q[0] - b1[0], q[1] - b1[1]); tl = math.hypot(*tq) or 1.0
-    ln = math.hypot(E[0] - q[0], E[1] - q[1])
-    link = f"C {q[0] + tq[0] / tl * ln * 0.35:.2f} {q[1] + tq[1] / tl * ln * 0.35:.2f} {c2[0]:.2f} {c2[1]:.2f} {E[0]:.2f} {E[1]:.2f}"
+    E = (float(m[0][4]), float(m[0][5]))                                           # the end of К's first little rise
+    link = f"C {q[0] + (E[0] - q[0]) / 3:.2f} {q[1] + (E[1] - q[1]) / 3:.2f} {q[0] + 2 * (E[0] - q[0]) / 3:.2f} {q[1] + 2 * (E[1] - q[1]) / 3:.2f} {E[0]:.2f} {E[1]:.2f}"
     rest = " ".join(f"C {' '.join(c)}" for c in m[1:])
     out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
     out.update(label="Һ", strokes=[{"d": f"{head} {link} {rest}"}],
