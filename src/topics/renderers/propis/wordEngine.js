@@ -1181,7 +1181,7 @@ const BEND_AT = 0.62; // the larger the turn, the more of the curve is bent (BEN
 // the letter) up to the top point of the next letter: it leaves the foot flat (LEAVE degrees above the row), then bends up and arrives at ARRIVE degrees, which is flatter than
 // the slant of the stem it joins (65), so the curve stays on the left of that stem and never crosses it.
 const TOP_JOIN_LEAVE_DEG = 12, TOP_JOIN_ARRIVE_DEG = 50;
-function topJoinD(d, target, arriveDir = null) {
+function topJoinD(d, target, arriveDir = null, descender = false) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
   for (let i = 0; i < toks.length;) {
@@ -1201,7 +1201,10 @@ function topJoinD(d, target, arriveDir = null) {
   if (prev.c === "C") {
     const tx = p0[0] - prev.v[2], ty = p0[1] - prev.v[3], tl = Math.hypot(tx, ty);
     if (tl > 1e-6 && tx > 0 && ty < 0) ul = [tx / tl, ty / tl];
-  }
+    // the tip of a straight descender (ү ұ): the pen turns round at a point and goes back up along the descender itself («сначала идёт снизу почти по наклонной, потом изгибается»)
+    else if (tl > 1e-6 && tx < 0 && ty > 0) ul = [-tx / tl, -ty / tl];
+    else if (descender) return null; // a loop's own tail (у д з): not rebuilt
+  } else if (descender) return null;
   const ua = arriveDir ?? [Math.cos(rad(TOP_JOIN_ARRIVE_DEG)), -Math.sin(rad(TOP_JOIN_ARRIVE_DEG))];
   const k1 = chord * 0.34, k2 = chord * 0.4;
   segs[segs.length - 1].v = [p0[0] + ul[0] * k1, p0[1] + ul[1] * k1, target[0] - ua[0] * k2, target[1] - ua[1] * k2, target[0], target[1]];
@@ -2020,12 +2023,12 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
-          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && !innerPiece.has(pieceIndex) && !descTail) { // (a descender's own tail — у д з ү ұ — keeps its path)
+          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose && !innerPiece.has(pieceIndex)) {
             if (st0h[1] < prevExit[1] - 10 * scale) {
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
-              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null);
+              const d4 = topJoinD(strokes[prevExitStroke].d, st0h, aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail);
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
             }
           }
