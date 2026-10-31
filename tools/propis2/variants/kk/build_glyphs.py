@@ -140,7 +140,7 @@ def y_straight_body():
 
 
 TIP = (110.29, 106.62)  # the descender's lowest point
-CONN_DX_LOWER = float(__import__("os").environ.get("KK_CONN_LOWER", 68.0))  # ү: raw units right while it climbs from the descender tip (106.6) to the dashed line (36): ~41deg on the page, the same angle as Ү's connector (owner, 2026-10-31), so it is long; 64-68 close the gap to every following letter on the page grid (the next plateaus are 84+)
+CONN_DX_LOWER = float(__import__("os").environ.get("KK_CONN_LOWER", 47.0))  # ү: raw units right while it climbs from the descender tip (106.6) to the dashed line (36): ~52deg on the page, i.e. ~13deg off the 65deg tail (owner, 2026-10-31: half the 24deg of the first try, which looked like Ү's ~41deg); 47-50 close the gap to every following letter on the page grid, 47 is the sharpest of them
 
 
 def y_straight_with_exit():
