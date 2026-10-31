@@ -335,7 +335,7 @@ def kazakh_tail(bx, by, dx=None, ey=None):
     the exit of а); the engine then stretches every bank glyph by `stretch` = 1.806 across (stretchKeepSlantPathD: x' = s x - (s-1) tan25 (62 - y)). ә is drawn
     in the already-wide frame (no stretch), so the same curve is built here and carried through that very transformation about the lowest point."""
     import math
-    S, T = float(__import__("os").environ.get("KK_TAIL_S", 2.3)), math.tan(math.radians(25.0))
+    S, T = float(__import__("os").environ.get("KK_TAIL_S", 1.5)), math.tan(math.radians(25.0))
     ex, ey = 39.1, -26.0                                   # raw offsets of the exit from the lowest point
     run, rise = 153.61 - 135.46, 56.28 - 36.0
     ln = math.hypot(run, rise); ux, uy = run / ln, -rise / ln
