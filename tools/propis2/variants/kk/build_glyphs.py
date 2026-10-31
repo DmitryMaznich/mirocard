@@ -329,18 +329,17 @@ CONN_RUN, CONN_RISE = 39.1, 26.0
 SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 58.0))  # raw units right while the connector climbs all the way to the narrow row's upper line. The next letter stands on a slant line, so only some lengths join it (gap 0-0.6 for н ш т к и р п). With ә's start on the slant line of the bowl's left edge, a little earlier (align_start_to_bowl, BACK_U) those are up to 34 and 58-66; 58 is the steepest of the second: ~37deg on the page, the angle of the PDF (owner, 2026-10-31)
 
 
-def kazakh_tail(bx, by, dx=None, ey=10.0):
-    """The connector of a letter with a round bottom in the Kazakh copybook (owner, 2026-10-31; PDF «Бол», «Бала», «Бас»): it does not stop on the
-    middle line as o's does in the Russian one but rises from the lowest point all the way to the TOP of the next letter (the narrow row's upper line,
-    y=10) and at a sharper angle: it leaves the bowl flat (so as not to cut into it) and arrives along the slant. One cubic; the engine puts the next
-    letter so that its up-stroke meets the end."""
+def kazakh_tail(bx, by, dx=None, ey=None):
+    """The connector of ә: o's own (glyphOverrides.js steepenExit): from the lowest point of the bowl, leaving it rising at 15 degrees and arriving at the
+    middle dashed line along the exit of а. Owner, 2026-10-31: the rise to the TOP of the next letter (as in the PDF) left every round letter that
+    starts on the dashed line (а б д е ж з о с ф х э я л м) unjoined (gap 12-27 units); with o's connector they all touch, as after o."""
     import math
-    ex = bx + (SCHWA_DX if dx is None else dx)
-    chord = math.hypot(ex - bx, ey - by)
+    ex, ey = bx + 39.1, by - 26.0
+    run, rise = 153.61 - 135.46, 56.28 - 36.0
+    ln = math.hypot(run, rise); ux, uy = run / ln, -rise / ln
     th = math.radians(15.0)
-    ux, uy = unit_slant = (0.4663 / math.hypot(0.4663, 1.0), -1.0 / math.hypot(0.4663, 1.0))   # the 65deg slant, upwards
-    k1, k2 = chord * 0.30, chord * 0.40
-    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k1:.2f} {by - math.sin(th) * k1:.2f} {ex - ux * k2:.2f} {ey - uy * k2:.2f} {ex:.2f} {ey:.2f}"}
+    chord = math.hypot(ex - bx, ey - by); k = chord * 0.35
+    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k:.2f} {by - math.sin(th) * k:.2f} {ex - ux * k:.2f} {ey - uy * k:.2f} {ex:.2f} {ey:.2f}"}
 
 
 BACK_U = float(__import__("os").environ.get("KK_BACK_U", 8.0))  # how far back along the slant (in x + 0.4663 y units) the start is taken from that line: «чуть-чуть назад»
