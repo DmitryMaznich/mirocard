@@ -498,7 +498,12 @@ def g_h_upper():
     head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:j]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"
     tail = s2[s2.index("C"):]                                                    # К's second stroke, its first cubic included, unchanged
     out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
-    out.update(label="Һ", strokes=[{"d": f"{head} {tail}"}],  # (the loop ends 1.4 units from К's second stroke's start: that stroke simply goes on from the loop point, its own control points unchanged)
+    # the end of the loop is joined to the start of К's second stroke (owner 2026-10-31): the last piece of the loop ENDS at that start (its end and second control are moved by the
+    # small offset between the two points), so the pen goes on into К's lower stroke with no little turn at the joint
+    off = (S[0] - q[0], S[1] - q[1])
+    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:j]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0] + off[0]:.2f} {b1[1] + off[1]:.2f} {S[0]:.2f} {S[1]:.2f}"
+    link = ""
+    out.update(label="Һ", strokes=[{"d": f"{head} {link} {tail}"}],
                sourceLabel="Һ = К: штрих 1 (флажок, стойка, петля) до точки, где начинается нижний штрих К, и сам нижний штрих К без изменений")
     return out
 
