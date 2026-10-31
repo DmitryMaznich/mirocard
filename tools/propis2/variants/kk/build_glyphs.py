@@ -117,7 +117,7 @@ def g_u_straight():
                 sourceLabel="Ү = У, хвост строго по наклонной до базовой, затем резкий подъём-соединение (часть буквы)")
 
 
-def g_u_bar(y=21.9, length=18.2):
+def g_u_bar(y=21.9, length=12.7):
     """Ұ: Ү + a crossbar on the tail, like ғ's (straight, 14.4 long, on the dashed middle line y=36). Written last; the exit stays on stroke 0."""
     g = BANK["У"]; body = u_body()
     return dict(g, label="Ұ", strokes=[body, short_bar(tail_x(body["d"], y), y, length)], exitStroke=0, noDotStrokes=[1],
@@ -171,7 +171,7 @@ def g_ue_lower():
     return g
 
 
-def g_u_bar_lower(y=73.8, length=21.0):
+def g_u_bar_lower(y=73.8, length=14.7):
     """ұ: ү + a horizontal bar across the descender (from the PDF: 66% down it, 30 units long, centred)."""
     g = g_ue_lower()
     g.update(label="ұ", strokes=[g["strokes"][0], short_bar(y_tail_x(y), y, length)], exitStroke=0, noDotStrokes=[1],
