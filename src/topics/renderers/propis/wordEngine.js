@@ -1181,7 +1181,7 @@ const BEND_AT = 0.62; // the larger the turn, the more of the curve is bent (BEN
 // the letter) up to the top point of the next letter: it leaves the foot flat (LEAVE degrees above the row), then bends up and arrives at ARRIVE degrees, which is flatter than
 // the slant of the stem it joins (65), so the curve stays on the left of that stem and never crosses it.
 const TOP_JOIN_LEAVE_DEG = 12, TOP_JOIN_ARRIVE_DEG = 50;
-function topJoinD(d, target) {
+function topJoinD(d, target, arriveDir = null) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
   for (let i = 0; i < toks.length;) {
@@ -1197,7 +1197,7 @@ function topJoinD(d, target) {
   if (chord < 8 || target[0] < p0[0] + 4) return null;
   const rad = (a) => (a * Math.PI) / 180;
   const ul = [Math.cos(rad(TOP_JOIN_LEAVE_DEG)), -Math.sin(rad(TOP_JOIN_LEAVE_DEG))];
-  const ua = [Math.cos(rad(TOP_JOIN_ARRIVE_DEG)), -Math.sin(rad(TOP_JOIN_ARRIVE_DEG))];
+  const ua = arriveDir ?? [Math.cos(rad(TOP_JOIN_ARRIVE_DEG)), -Math.sin(rad(TOP_JOIN_ARRIVE_DEG))];
   const k1 = chord * 0.34, k2 = chord * 0.4;
   segs[segs.length - 1].v = [p0[0] + ul[0] * k1, p0[1] + ul[1] * k1, target[0] - ua[0] * k2, target[1] - ua[1] * k2, target[0], target[1]];
   const f = (x) => Number(x.toFixed(3));
@@ -1213,6 +1213,48 @@ function firstTopOf(d, scale) {
     if (seen && q[1] > best[1] + 8 * scale) break;
   }
   return seen ? best : null;
+}
+// л м (owner 2026-10-31, his sketch): they start with a small stub going down to the foot of their first leg, then go up it. A join from the letter before runs into the first leg
+// AT THE HEIGHT `yLevel` (the middle dashed line, where the Russian join ends) and goes up along it: the stroke is cut there, the stub and the lower part of the leg are not written.
+// Returns the point on the leg, the direction of the leg and the rest of the path.
+function cutLegAtLevel(d, yLevel) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const segs = [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 2 || segs[0].c !== "M") return null;
+  let p0 = segs[0].v, down = false;
+  for (let si = 1; si < segs.length; si += 1) {
+    const [x1, y1, x2, y2, x3, y3] = segs[si].v;
+    const P = [p0, [x1, y1], [x2, y2], [x3, y3]];
+    const at = (t) => { const u = 1 - t; return [u * u * u * P[0][0] + 3 * u * u * t * P[1][0] + 3 * u * t * t * P[2][0] + t * t * t * P[3][0], u * u * u * P[0][1] + 3 * u * u * t * P[1][1] + 3 * u * t * t * P[2][1] + t * t * t * P[3][1]]; };
+    let prev = at(0);
+    for (let k = 1; k <= 48; k += 1) {
+      const t = k / 48, q = at(t);
+      if (q[1] > yLevel + 3) down = true;                                     // the stub has gone below the level: from here on we look for the way back up
+      if (down && prev[1] > yLevel && q[1] <= yLevel) {
+        let lo = (k - 1) / 48, hi = t;
+        for (let it = 0; it < 24; it += 1) { const mid = (lo + hi) / 2; if (at(mid)[1] > yLevel) lo = mid; else hi = mid; }
+        const tk = (lo + hi) / 2;
+        const lerp = (a, b) => [a[0] + (b[0] - a[0]) * tk, a[1] + (b[1] - a[1]) * tk];
+        const a1 = lerp(P[0], P[1]), a2 = lerp(P[1], P[2]), a3 = lerp(P[2], P[3]);
+        const b1 = lerp(a1, a2), b2 = lerp(a2, a3);
+        const pt = lerp(b1, b2);
+        const f = (x) => String(Number(x.toFixed(3)));
+        const rest = `M ${f(pt[0])} ${f(pt[1])} C ${[b2, a3, [x3, y3]].flat().map(f).join(" ")} ${segs.slice(si + 1).map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ")}`.trim();
+        const after = samplePath(rest, 60).find((r) => Math.hypot(r[0] - pt[0], r[1] - pt[1]) > 6);
+        const dl = after ? Math.hypot(after[0] - pt[0], after[1] - pt[1]) : 1;
+        return { pt, dir: after ? [(after[0] - pt[0]) / dl, (after[1] - pt[1]) / dl] : [0.4, -0.9], rest };
+      }
+      prev = q;
+    }
+    p0 = [x3, y3];
+  }
+  return null;
 }
 function bendTailEndD(d, target, dirUnit) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
@@ -1974,9 +2016,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             }
           }
           if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !glyph.joinLeft && !inCell && !loose) {
-            const tgt = (glyph.growToApex ? firstTopOf(moved[0].d, scale) : null) ?? st0h;       // л м: the first peak, others: the start (the top of their stem)
-            if (tgt[1] < prevExit[1] - 10 * scale) {
-              const d4 = topJoinD(strokes[prevExitStroke].d, tgt);
+            if (glyph.growToApex) {
+              // л м: the connector runs into the first leg at the middle line and goes up along it (the stub of the Russian л м is not written)
+              const cut = cutLegAtLevel(moved[0].d, prevExit[1]);
+              if (cut) {
+                const d4 = topJoinD(strokes[prevExitStroke].d, cut.pt, cut.dir);
+                if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; moved[0] = { ...moved[0], d: cut.rest }; highJoined = true; }
+              }
+            } else if (st0h[1] < prevExit[1] - 10 * scale) {
+              const d4 = topJoinD(strokes[prevExitStroke].d, st0h);
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; highJoined = true; }
             }
           }
