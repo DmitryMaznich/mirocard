@@ -100,25 +100,37 @@ end1 = c1 + u1 * float(np.dot(P1[-1] - c1, u1))
 belly = np.vstack([P1[j - 20: len(P1) - 12], end1[None, :]]) if False else P1[j - 20: len(P1) - 14]
 d1 = f"M {top1[0]:.2f} {top1[1]:.2f} L {down1[0]:.2f} {down1[1]:.2f} " + curve_tail(np.vstack([down1[None, :], P1[j + 1: len(P1) - 14], end1[None, :]]))
 
-jn = near(J2); itop = next(i for i, q in enumerate(stroke2) if math.hypot(q[0] - near(R_TOP)[0], q[1] - near(R_TOP)[1]) < 1.5)
-ia = next(i for i, q in enumerate(stroke2) if math.hypot(q[0] - jn[0], q[1] - jn[1]) < 1.5)                              # the connector reaches the right stem
-ib = next(i for i in range(itop, len(stroke2)) if math.hypot(stroke2[i][0] - jn[0], stroke2[i][1] - jn[1]) < 1.5)       # coming down again
-c2, u2 = line_fit(P2[itop: ib])                                                                                         # the right stem: one straight line
-if u2[1] < 0: u2 = -u2
-dev2 = lambda q: abs((q[0] - c2[0]) * u2[1] - (q[1] - c2[1]) * u2[0])
-top = c2 + u2 * float(np.dot(P2[itop] - c2, u2))
-ie = ib
-while ie + 1 < len(P2) and dev2(P2[ie + 1]) < 0.8: ie += 1
-foot = c2 + u2 * float(np.dot(P2[ie] - c2, u2))
-J = c2 + u2 * float(np.dot(P2[ia] - c2, u2))                                                                            # where the connector meets the stem line
-# the connector: ONE clean cubic from the bottom of the belly to the stem line (the skeleton wobbles in the last few units before the junction): it leaves along the skeleton's start direction
-# and arrives along the direction the skeleton had a little before the junction
-n0 = max(ia - 45, 12)
-sdir = P2[10] - P2[0]; sdir = sdir / np.hypot(*sdir)
-edir = P2[n0 + 20] - P2[n0]; edir = edir / np.hypot(*edir)
-ln = float(np.hypot(*(J - P2[0])))
-c_1 = P2[0] + sdir * ln * 0.38; c_2 = J - edir * ln * 0.38
-d2 = f"M {P2[0][0]:.2f} {P2[0][1]:.2f} C {c_1[0]:.2f} {c_1[1]:.2f} {c_2[0]:.2f} {c_2[1]:.2f} {J[0]:.2f} {J[1]:.2f}" + f" L {top[0]:.2f} {top[1]:.2f} L {foot[0]:.2f} {foot[1]:.2f} " + curve_tail(np.vstack([foot[None, :], P2[ie + 1:]]))
+# stroke 2 follows the PDF's own centre line (owner, 2026-10-31: «ты исказил полностью исходную фигуру»): a straight-line/one-cubic version sagged below the real connector.
+# The connector, the right stem (walked once, then back along the very same smoothed points) and the foot with the hook are each smoothed lightly (SIG2) and joined end to end.
+SIG2 = 2.0
+conn = to_bank(walk(near(BOTTOM), near(J2)))
+stem = to_bank(walk(near(J2), near(R_TOP)))
+down = to_bank(walk(near(J2), near(FOOT)) + walk(near(FOOT), near(EXIT))[1:])
+sm = lambda P: smooth(P, sigma=SIG2, step=0.4)
+cs, ss, ds = sm(conn), sm(stem), sm(down)
+# the skeleton of the right stem is pulled sideways where the connector merges into it (y ~7..34): take the stem from its clean parts above and below, x as a quadratic of y
+imax = int(np.argmax(ds[:, 1]))                                                              # the foot's lowest point: the descending part ends there, the hook rises after it
+desc = ds[: imax + 1]
+clean = np.vstack([ss[ss[:, 1] < 4.0], desc[(desc[:, 1] > 36.0) & (desc[:, 1] < 54.0)]])
+coef = np.polyfit(clean[:, 1], clean[:, 0], 2); fx = lambda y: np.polyval(coef, y)
+ytop = -41.8; Y_END = 42.0
+ys = np.linspace(ytop, Y_END, 120); stem_fit = np.stack([fx(ys), ys], 1)
+i_end = int(np.argmax(desc[:, 1] >= Y_END))
+ds2 = np.vstack([stem_fit[-1][None, :], ds[i_end:]])                                         # the foot and the hook from the skeleton, continuing the fitted stem
+# the connector ends where it comes closest to the fitted stem; the last bit is carried straight on to the stem along its direction there
+dist = np.array([fx(q[1]) - q[0] for q in cs])
+k_end = int(np.argmin(abs(dist[len(cs) // 2:]))) + len(cs) // 2
+cs = cs[: k_end + 1]
+tdir = cs[-1] - cs[-6]; tdir /= np.hypot(*tdir)
+for _ in range(40):                                                                           # step along the direction until the line meets the stem curve
+    e = cs[-1] + tdir * 0.3
+    if (fx(e[1]) - e[0]) * (fx(cs[-1][1]) - cs[-1][0]) <= 0 or abs(fx(e[1]) - e[0]) < 0.15: cs = np.vstack([cs, e]); break
+    cs = np.vstack([cs, e])
+j0 = int(np.argmin(abs(ys - cs[-1][1])))
+climb = np.vstack([cs[-1][None, :], stem_fit[j0:][::-1]])                                     # junction -> top
+fall = np.vstack([stem_fit[:-1], sm(ds2)])                                                    # top -> foot -> hook
+d2 = bez(cs, spacing=7.0) + " " + bez(climb, spacing=9.0).split(" ", 3)[3] + " " + bez(fall, spacing=7.0).split(" ", 3)[3]
+P2 = np.vstack([cs, climb, fall])
 B1, B2 = P1, P2
 json.dump({"strokes": [d1, d2], "scale": k, "pdf_stem_slant_deg": math.degrees(math.atan(1 / t_pdf)), "start1": top1.tolist(), "start2": P2[0].tolist(), "exit": P2[-1].tolist()}, open(HERE / "Y_glyph.json", "w"), ensure_ascii=False)
-print("scale", round(k, 3), "start1", top1.round(1), "start2", P2[0].round(1), "exit", P2[-1].round(1), "stem top", top.round(1), "foot", foot.round(1), "stem1 down", down1.round(1))
+print("scale", round(k, 3), "start1", top1.round(1), "start2", P2[0].round(1), "exit", P2[-1].round(1))
