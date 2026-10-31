@@ -636,26 +636,35 @@ def _no_flag(path):
     return f"{head} {rest}"
 
 
+import os as _os
+Y_TOP = float(_os.environ.get("KK_Y_TOP", 14.0))     # the top of the belly (the narrow row's upper line is 10): «чуть приплюснуть»
+Y_EY = float(_os.environ.get("KK_Y_EY", 20.0))       # the height at which the connector meets the right stem
+Y_DX = float(_os.environ.get("KK_Y_DX", 48.0))       # how far right of the belly's bottom that meeting point is
+Y_ARR = float(_os.environ.get("KK_Y_ARR", 35.0))     # the angle (bank units) at which the connector arrives at the stem
+
+
 def g_yery_upper():
-    """Ы (owner, 2026-10-31): the left part is the capital Ъ WITHOUT its flag, the belly the height of the narrow row; from the bottom of the belly the connector of the capital О goes up to the middle line;
-    the right stem is the capital И's second stem (it is as tall as the first one), which the connector enters on the middle line; the pen goes up that stem to its top, turns and comes down it again to
-    the foot, where the exit leaves. One letter, two strokes; the exit is the right stroke's end."""
-    path, low = _hard_belly_small()
+    """Ы (owner, 2026-10-31): the left part is the capital Ъ WITHOUT its flag, the belly pressed a little flatter (top at Y_TOP); the connector between the strokes follows the copybook's Ы (PDF page 34):
+    it leaves the flat bottom of the belly, bows like a parabola and arrives at the right stem at a steeper angle (Y_ARR), meeting it at the height Y_EY (not the middle line); the right stem is the capital
+    И's second stem, as tall as the first, which the connector enters; the pen goes up that stem to its top, turns and comes down it to the foot, where the exit leaves. Two strokes; the exit is the right stroke's end."""
+    import math
+    path, low = _hard_belly_small(Y_TOP)
     left = _no_flag(path)
     bx, by = low
-    ot = BANK["О"]["strokes"][1]["d"]; ot = ot[ot.rindex("C"):]
-    nums = [float(v) for v in re.findall(r"-?[\d.]+", ot)]
-    dx, dy = bx - 113.10, by - 62.00
-    conn = f"M {bx:.2f} {by:.2f} C " + " ".join(f"{nums[m] + dx:.2f} {nums[m + 1] + dy:.2f}" for m in range(0, 6, 2))
-    E = (nums[4] + dx, nums[5] + dy)                                               # where the connector meets the right stem, on the middle line
+    E = (bx + Y_DX, Y_EY)
+    ln = math.hypot(E[0] - bx, E[1] - by)
+    ar = math.radians(Y_ARR)
+    c1 = (bx + 0.45 * ln * 0.6, by)                                                # leaves the bottom of the belly flat
+    c2 = (E[0] - 0.4 * ln * math.cos(ar), E[1] + 0.4 * ln * math.sin(ar))
+    conn = f"M {bx:.2f} {by:.2f} C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {E[0]:.2f} {E[1]:.2f}"
     i_d = BANK["И"]["strokes"][0]["d"]
     stem = i_d[i_d.index("L 193.44 -42.00"):]                                      # И's second stem: the top, then down to the foot, the hook and the exit
-    sx = E[0] - (193.44 - 0.46630765815499864 * 78.0)                              # moves the stem's line (x at y=36 is 157.07) onto E
+    sx = E[0] - (193.44 - 0.46630765815499864 * (Y_EY + 42.0))                      # the stem's line (x = 193.44 at y = -42) put through E
     stem = shifted(stem[2:], sx, 0.0)                                              # without its leading «L»
     right = f"{conn} L {stem}"
     out = {kk: v for kk, v in BANK["О"].items() if kk not in ("sourceLabel", "strokes", "tailStroke", "tailContinuous", "noNormalize")}
     out.update(label="Ы", strokes=[{"d": left}, {"d": right}], exitStroke=1, noDotStrokes=[], noNormalize=True, noOverrides=True, repeatCells=7,
-               sourceLabel="Ы = Ъ без флажка (пузо по высоте узкой строки) + соединение как у О + правая стойка И той же высоты")
+               sourceLabel="Ы = Ъ без флажка (пузо приплюснуто) + соединение как в казахской прописи + правая стойка И той же высоты")
     return out
 
 
