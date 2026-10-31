@@ -1,5 +1,6 @@
 {
   "note": "Болгарский вариант темы propis2 (docs/propis2-variants.md). Только данные: рендерер тот же. Сборка: node scripts/build-propis2-deck.mjs --variant bg. glyphs — формы букв, которые в болгарском письме отличаются от русских (заменяют глиф базы с тем же label); пока пусто — все буквы русские, ждём эталон болгарской прописи.",
+  "simplifyGlyphs": 0.1,
   "catalog": {
     "title": {
       "ru": "Български прописи",
@@ -14,7 +15,7 @@
   },
   "meta": {
     "id": "propis2_bg",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "title": "Български прописи",
     "methodology": false,
     "script": {

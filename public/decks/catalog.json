@@ -375,7 +375,7 @@
     },
     {
       "id": "propis2_bg",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "title": {
         "ru": "Български прописи",
         "en": "Copybook (Bulgarian Cyrillic)"
@@ -384,7 +384,7 @@
         "ru": "Конструктор тетрадей по письму на болгарской кириллице: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная».",
         "en": "Handwriting notebook builder for Bulgarian Cyrillic: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case."
       },
-      "url": "./decks/propis2_bg_v0.6.0.zip",
+      "url": "./decks/propis2_bg_v0.6.1.zip",
       "status": "individual",
       "access": "paid"
     },

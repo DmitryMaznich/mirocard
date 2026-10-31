@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { applyVariant, variantKits } from "./lib/propis2-variant.mjs";
+import { simplifyGlyphs } from "./lib/simplify-path.mjs";
 
 // `propis2` deck: topic.json + glyph data merged from the shared tools/propis sources
 // (wide.json, elements.json), exactly as build-propis-deck.mjs does for `propis` («Прописи старые»). No renderer bundle:
@@ -41,6 +42,13 @@ if (existsSync(NUMBERS_PATH)) {
   topic.elementNumbers = nd.numbers;
   topic.elementGroups = nd.groups ?? [];
   topic.elementRetired = nd.retired ?? {};
+}
+// variant.json `simplifyGlyphs` (a tolerance, glyph units): the variant's own letters traced too densely are refitted with fewer
+// Bézier segments (scripts/lib/simplify-path.mjs); the traced source in variant.json stays as it is
+if (variant?.simplifyGlyphs) {
+  const r = simplifyGlyphs(variant.glyphs ?? [], variant.simplifyGlyphs);
+  variant.glyphs = r.glyphs;
+  console.log(`✓ glyph paths simplified (tolerance ${variant.simplifyGlyphs}): ${r.before} -> ${r.after} numbers, worst deviation ${r.worst.dev.toFixed(3)} (${r.worst.label})`);
 }
 if (variant) applyVariant(topic, variant);
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
