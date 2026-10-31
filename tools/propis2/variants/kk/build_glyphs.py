@@ -50,13 +50,13 @@ def stem_x_between(d, y):
     return x0 + (x1 - x0) * (y - y0) / (y1 - y0)
 
 
-def g_bar_lower(y=36.0):
+def g_bar_lower(y=36.0, length=25.5):
     """ғ: г (г1, one stroke with its own entry and exit) + a crossbar through the middle of the stem.
     The bar is written last, so exitStroke keeps the exit (the connector to the next letter) on stroke 0."""
     g = BANK["г1"]; s = g["strokes"]
     out = {k: v for k, v in g.items() if k != "aliases"}
-    out.update(label="ғ", strokes=[s[0], short_bar(stem_x_between(s[0]["d"], y), y)], exitStroke=0, noDotStrokes=[1],
-               sourceLabel="ғ = г1 + короткая прямая перекладина по пунктиру (как у э)")
+    out.update(label="ғ", strokes=[s[0], short_bar(stem_x_between(s[0]["d"], y), y, length)], exitStroke=0, noDotStrokes=[1],
+               sourceLabel="ғ = г1 + прямая перекладина по пунктиру, длина как в казахской прописи (половина высоты строчной)")
     return out
 
 
@@ -117,14 +117,50 @@ def g_u_straight():
                 sourceLabel="Ү = У, хвост строго по наклонной до базовой, затем резкий подъём-соединение (часть буквы)")
 
 
-def g_u_bar(y=36.0):
+def g_u_bar(y=21.9, length=26.0):
     """Ұ: Ү + a crossbar on the tail, like ғ's (straight, 14.4 long, on the dashed middle line y=36). Written last; the exit stays on stroke 0."""
     g = BANK["У"]; body = u_body()
-    return dict(g, label="Ұ", strokes=[body, short_bar(tail_x(body["d"], y), y)], exitStroke=0, noDotStrokes=[1],
-                sourceLabel="Ұ = Ү + прямая перекладина на хвосте по пунктиру")
+    return dict(g, label="Ұ", strokes=[body, short_bar(tail_x(body["d"], y), y, length)], exitStroke=0, noDotStrokes=[1],
+                sourceLabel="Ұ = Ү + прямая перекладина на хвосте: на 61% длины хвоста, длина четверть хвоста (как в казахской прописи)")
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar]
+STRAIGHT_END = "L 110.29 106.62"  # end of у's straight descender, just before its loop
+TAIL_FOOT_X = 131.40              # where that descender crosses the baseline (y=62)
+
+
+def y_tail_x(y):
+    """x at height y on у's straight descender, from its top (155.35, 10) to (110.29, 106.62)."""
+    return 155.35 + (110.29 - 155.35) * (y - 10.0) / (106.62 - 10.0)
+
+
+def y_straight_body():
+    """у without the loop: the bowl and the right arm as in у, then the straight descender ending in a point (Kazakh ү)."""
+    d = BANK["у"]["strokes"][0]["d"]
+    return {"d": d[: d.index(STRAIGHT_END) + len(STRAIGHT_END)]}
+
+
+def y_connector():
+    """The exit: leaves the descender where it crosses the baseline and climbs right at ~45deg, like Ү's (part of the letter)."""
+    return {"d": f"M {TAIL_FOOT_X:.2f} 62.00 L {TAIL_FOOT_X + CONN_DX:.2f} 36.00"}
+
+
+def g_ue_lower():
+    """ү: у with a straight pointed descender, no loop; the connector leaves the descender at the baseline."""
+    g = {k: v for k, v in BANK["у"].items() if k != "aliases"}
+    g.update(label="ү", strokes=[y_straight_body(), y_connector()], exitStroke=1, noDotStrokes=[1],
+             sourceLabel="ү = у с прямым хвостом без петли; соединение выходит из хвоста на базовой линии под ~45°")
+    return g
+
+
+def g_u_bar_lower(y=73.8, length=30.0):
+    """ұ: ү + a horizontal bar across the descender (from the PDF: 66% down it, 30 units long, centred)."""
+    g = g_ue_lower()
+    g.update(label="ұ", strokes=[g["strokes"][0], short_bar(y_tail_x(y), y, length), g["strokes"][1]], exitStroke=2, noDotStrokes=[1, 2],
+             sourceLabel="ұ = ү + горизонтальная перекладина на хвосте (как в казахской прописи)")
+    return g
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower]
 
 
 def preview(glyphs, path):
