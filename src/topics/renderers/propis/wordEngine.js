@@ -1089,6 +1089,12 @@ const STEM_ARRIVE_K = 0.5, STEM_ARRIVE_DEG = 50; // growJoins before a stem: the
 const OVAL_JOIN_ARRIVE_DEG = 35; // topJoins before an oval (joinLeft): the angle the exit arrives at the oval's point (the canonical connector of о ends at 35°)
 const GROW_JOIN_MIN = 0.6, GROW_JOIN_MAX = 42; // growJoins: a gap in this range (row units, before the row scale) is closed by a straight piece
 const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
+// Capitals that follow each other («СССР», «МХАТ», «КГБ», «ИВАН»): no connector between them, each is written on its own. The next capital stands
+// CAP_GAP_CELLS slant cells (owner, 2026-11-01: one) from the ink of the one before at the narrowest height, on the nearest slant line that does not
+// bring it closer than CAP_GAP_MIN of that.
+const CAP_GAP_CELLS = 1;
+const CAP_GAP_MIN = 0.75;
+const isCapitalLabel = (label) => /^\p{Lu}$/u.test(label);
 const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
 const WIDE_DIGIT_GAP = 10; // between the ink of two digits of one number on a page whose snapping grid is not drawn (row-local units at full scale)
 // Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
@@ -1890,6 +1896,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
       let afterNoExit = false;
+      // the previous glyph is a capital letter: a capital right after it is written apart (CAP_GAP_CELLS), never joined to it
+      let prevCapital = false;
       // the previous glyph is a sign (`noJoin`) INSIDE the token («кое-что», a red «нет начертания» box, «к@т»): the next letter stands
       // after its ink with the small gap of a sign, not where a new token would start (it was drawn over the start of the word)
       let afterSign = false;
@@ -1904,6 +1912,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         if (!glyph) continue;
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
         const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
+        const isCap = !inCell && glyph.kind === "letter" && isCapitalLabel(label);
+        const capAfterCap = prevCapital && isCap && tokenStartX !== null;
+        // the connector the capital before it would have drawn to it is not drawn
+        if (capAfterCap) { pendingTail = null; prevExit = null; prevExitStroke = -1; }
         // meta.script.exactJoins (the Bulgarian о б в ю): the connector is drawn only before a letter that starts on its oval; a
         // letter with a lead-in hook from the middle starts right on the oval's side there, the pen lifted, no connector
         let liftJoin = false;
@@ -1986,6 +1998,20 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) - x);
           }
           if (Number.isFinite(need)) startX = need + WIDE_NO_EXIT_GAP * scale + local.start[0];
+        }
+        // a capital after a capital: CAP_GAP_CELLS cells from the ink of the one before at the narrowest height (the same measure as after a capital
+        // with no exit), then on the nearest slant line that keeps at least CAP_GAP_MIN of that gap
+        if (capAfterCap && prevGlyphStrokes && !inCell) {
+          const rows = new Map();
+          for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 40)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
+          let need = -Infinity;
+          for (const m of local.strokes) for (const [x, y] of samplePath(m.d, 40)) {
+            for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) - x);
+          }
+          const want = (Number.isFinite(need) ? need : cursorX - local.minX) + CAP_GAP_CELLS * CELL + local.start[0];
+          let cand = snapStart(want);
+          if (cand < want - (1 - CAP_GAP_MIN) * CELL) cand = nextLineRight(snapX, rowIndex, cand, local.start[1]);
+          startX = cand;
         }
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
         if (inCell) {
@@ -2209,8 +2235,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
         cellRun.push(cellRec);
         if (prevExit && !exactTouch && !liftJoin) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
-        if (tokenStartX === null) {
-          // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
+        if (tokenStartX === null || capAfterCap) {
+          // every token's first glyph gets its red start dot(s), and so does a capital written apart after a capital; only the very first one also gets direction arrows
           for (const [si, s] of moved.entries()) {
             if (glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
             startPoints.push(getPathEndpoints(s.d).start);
@@ -2229,6 +2255,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
         afterNoExit = Boolean(glyph.noExit);
         afterSign = Boolean(glyph.noJoin);
+        prevCapital = isCap;
         prevGlyphStrokes = moved;
         pendingTouchX = null;
         if (local.tail) {
