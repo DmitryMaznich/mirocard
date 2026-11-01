@@ -542,6 +542,7 @@ export default function Propis2Home({ db }) {
         title={navSet ? navSet.title : undefined}
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={topicRecord}
+        language={languages ? languages.find((l) => l.id === lang) ?? null : null}
         onChange={(next, how) => {
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
           const change = navSet ? layoutChange(shown, next) : {};

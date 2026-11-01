@@ -99,7 +99,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, notebook = null }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, notebook = null, language = null }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // The checks of the rows and the map of the sheet's rows are worked out on a deferred copy of the page (as the preview is): a key
   // typed shows in the field at once, the marks on the sheet follow a moment later.
@@ -391,6 +391,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }, { typing: true }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
+        {/* a deck with several writing languages: the notebook's language (it never changes, docs/propis2-languages.md) */}
+        {language && <span className="p2-lang-badge" title={`Язык тетради: ${language.title}`} aria-label={`Язык тетради: ${language.title}`} data-testid="propis2-notebook-lang">{language.short ?? language.title}</span>}
         {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>

@@ -71,6 +71,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       field.dispatchEvent(new Event("input", { bubbles: true }));
       await tick();
     });
+    // the editor says the notebook's language
+    expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ҚАЗ");
     await click(host.querySelector(".back-btn"));
     await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
     await act(async () => { await tick(400); });
