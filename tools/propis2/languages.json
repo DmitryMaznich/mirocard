@@ -11,7 +11,7 @@
   },
   "meta": {
     "id": "propis2_lang",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "title": "Прописи (языки, тест)"
   },
   "modes": ["builder", "letters_recognize", "letters_case"],
