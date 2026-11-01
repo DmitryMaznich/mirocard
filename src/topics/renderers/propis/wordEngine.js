@@ -1885,6 +1885,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
+        // `gapBeforeCells: n` (the Kazakh ъ Ъ, owner 2026-11-01: its flag ran into the exit of the letter before): not joined to the letter before; it stands n cells after that letter's ink (the exit tail is not drawn);
+        // its own exit joins the next letter as usual
+        const gapBefore = Boolean(glyph.gapBeforeCells) && tokenStartX !== null;
+        if (gapBefore) { pendingTail = null; }
         const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         // meta.script.exactJoins (the Bulgarian о б в ю): the connector is drawn only before a letter that starts on its oval; a
         // letter with a lead-in hook from the middle starts right on the oval's side there, the pen lifted, no connector
@@ -1911,11 +1915,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           curNoAlign = pendingNoAlign;
           pendingTail = null;
         }
-        const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
+        const loose = (Boolean(glyph.noJoin) || afterNoExit || gapBefore) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = loose
-          ? cursorX + WIDE_PUNCT_GAP * scale - local.minX + local.start[0]
+          ? cursorX + (gapBefore ? glyph.gapBeforeCells * CELL : WIDE_PUNCT_GAP * scale) - local.minX + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx
           : prevToken

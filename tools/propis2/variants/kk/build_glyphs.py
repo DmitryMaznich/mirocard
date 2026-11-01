@@ -630,7 +630,7 @@ def g_hard_upper():
     flag = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{float(m.group(1)) + dx:.2f} {m.group(2)}", head)
     xb = ax + k * (145.48 - ax)                                                     # the lowest point of the enlarged oval, on the baseline
     conn = f"M {xb:.2f} 62.00 C {xb + 9.0:.2f} 62.00 {xb + 21.84:.2f} 43.05 {xb + 31.56:.2f} 36.00"   # the connector of the capital В (tailStroke): from under the oval along its bottom, then up to the exit point; В's own offsets from its oval's lowest point (9.0, 21.84, 31.56)
-    return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True, "noOverrides": True, "noNormalize": True, "noLiftExit": True, "tailStroke": 1,
+    return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True, "noOverrides": True, "noNormalize": True, "noLiftExit": True, "tailStroke": 1, "gapBeforeCells": 1,
             "strokes": [{"d": flag + left}, {"d": conn}],
             "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина заглавной Ы (ы1 ×2: стойка и пузо с петлёй); соединитель из-под пуза, как у В и Б (tailStroke)"}
 
@@ -670,7 +670,12 @@ def _join_left(label):
     return lambda: dict(BANK[label], joinLeft=True)
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2, _join_left("е"), _join_left("ё")]
+def g_hard_lower():
+    """ъ (owner, 2026-11-01): the Russian ъ as it is, but it stands one cell after the letter before it and is not joined to it (its flag ran into that letter's exit)."""
+    return dict(BANK["ъ"], gapBeforeCells=1)
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2, _join_left("е"), _join_left("ё"), g_hard_lower]
 
 
 def preview(glyphs, path):
