@@ -375,7 +375,7 @@
     },
     {
       "id": "propis2_lang",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "title": {
         "ru": "Прописи (языки, тест)",
         "en": "Copybook (languages, test)"
@@ -384,7 +384,7 @@
         "ru": "Испытание: конструктор тетрадей по письму с выбором языка письма — русский, болгарский, казахский. Режимы «Узнай букву», «Строчная и заглавная».",
         "en": "Trial: the handwriting notebook builder with a choice of writing language — Russian, Bulgarian, Kazakh. Modes: Recognise the letter, Upper and lower case."
       },
-      "url": "./decks/propis2_lang_v0.1.1.zip",
+      "url": "./decks/propis2_lang_v0.1.2.zip",
       "status": "individual",
       "access": "paid"
     },

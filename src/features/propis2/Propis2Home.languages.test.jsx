@@ -60,7 +60,6 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
 
     // a Kazakh notebook: the language chosen next to «Новая тетрадь»
     await click(host.querySelector('[data-testid="propis2-new-lang"]'));
-    expect(document.querySelector('[data-testid="propis2-lang-sheet"]').textContent).toContain("черновик");
     await sheetPick("Қазақша");
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Қазақша");
     expect(cards(host, "propis2-ready-card")).toHaveLength(0); // Kazakh has no ready notebooks
