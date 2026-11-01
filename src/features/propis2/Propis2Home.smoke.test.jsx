@@ -191,7 +191,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
-  it("paste: Ctrl+V and the «Вставить» button put cleaned text at the caret, one undo step", async () => {
+  it("paste: Ctrl+V and the «Вставить» button put the text as one running text (no line breaks: the sheet wraps it), one undo step", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -202,7 +202,7 @@ describe("propis2 (zip topic)", () => {
 
     await click(btn("Новая тетрадь"));
     await typeInField(host, "кот");
-    // Ctrl+V: the field's own paste goes through the cleaner (CRLF, indent, a non-breaking space, a soft hyphen, two blank lines)
+    // Ctrl+V: the field's own paste goes through the cleaner: the line breaks (CRLF, blank lines) are spaces, one running text
     const field = fieldOf(host);
     await act(async () => {
       field.focus();
@@ -212,17 +212,17 @@ describe("propis2 (zip topic)", () => {
       field.dispatchEvent(e);
       await tick();
     });
-    expect(fieldOf(host).value).toBe("мама мыла раму\n\nдом");
+    expect(fieldOf(host).value).toBe("мама мыла раму дом");
     // the button reads the clipboard; the text goes where the caret was
     const readText = vi.fn().mockResolvedValue("сад");
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { readText } });
     await act(async () => { fieldOf(host).setSelectionRange(0, 4); fieldOf(host).dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Shift" })); await tick(); });
     await click(btn("Вставить текст из буфера обмена"));
     expect(readText).toHaveBeenCalled();
-    expect(fieldOf(host).value).toBe("сад мыла раму\n\nдом");
+    expect(fieldOf(host).value).toBe("сад мыла раму дом");
     // a paste is an undo step of its own
     await click(btn("Отменить"));
-    expect(fieldOf(host).value).toBe("мама мыла раму\n\nдом");
+    expect(fieldOf(host).value).toBe("мама мыла раму дом");
     delete navigator.clipboard;
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();

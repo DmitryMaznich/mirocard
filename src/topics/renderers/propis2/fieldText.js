@@ -71,28 +71,33 @@ export function rowIdAtCaret(rows, startId, value, caret) {
   return rows[start + line]?.id ?? null;
 }
 
-// Text pasted into the field (Ctrl+V, the «Вставить» button), from a document, a web page, a messenger: what it carries that
-// the copybook has no use for is taken out, so the paste lands as rows the way typed text does. Line breaks of any kind -> Enter;
-// tabs and the wide / non-breaking spaces -> a space; soft hyphens and zero-width marks dropped (unseen, they'd break a word into
-// «нет начертания»); «…» -> «...» (the hand has the dot); the typographic hyphens -> «-» (a carried-over word «ра-», «кое-что»); a line's indent and trailing spaces dropped (a leading space moves the
-// text right on its row, a trailing one makes a word running text), runs of spaces -> one; blank lines between paragraphs kept
-// as ONE empty row, none at the start or the end. `singleLine`: a closed page edits one row, the lines are joined by a space.
-// Letters with no shape in the hand (quotes, dashes, Latin) are kept: a red box stands in their place on the sheet, the adult decides.
-// Hard line breaks inside a sentence (a PDF) are kept too: the adult joins the lines or keeps them.
-export function cleanPastedText(text, { singleLine = false } = {}) {
-  const lines = String(text ?? "")
-    .replace(/\r\n?|[\u2028\u2029\v\f\u0085]/g, "\n")
+// Text pasted into the field (Ctrl+V, the «Вставить» button), from a document, a web page, a PDF, a messenger: ONE running text,
+// wrapped over the rows by the sheet as typed text with spaces is (owner, 2026-11-01: the line breaks of the source made rows of
+// their own, a PDF's broke sentences mid-line). So every line break, of any kind, is a space; tabs and the wide / non-breaking spaces
+// a space; soft hyphens and zero-width marks dropped (unseen, they'd break a word into «нет начертания»); «…» -> «...» (the hand has
+// the dot); the typographic hyphens -> «-» (a word carried over in the source, «ра- му», stays so: the adult joins it or keeps it);
+// runs of spaces -> one, none at the ends. Letters with no shape in the hand (quotes, dashes, Latin) are kept: a red box stands in
+// their place on the sheet, the adult decides. The adult splits the text into rows with Enter where they want.
+export function cleanPastedText(text) {
+  return String(text ?? "")
+    .replace(/\r\n?|[\n\u2028\u2029\v\f\u0085]/g, " ")
     .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, "")
     .replace(/[\t\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, " ")
     .replace(/\u2026/g, "...")
     .replace(/[\u2010\u2011]/g, "-")
-    .split("\n")
-    .map((l) => l.replace(/ {2,}/g, " ").trim());
-  if (singleLine) return lines.filter(Boolean).join(" ");
-  const out = [];
-  for (const l of lines) if (l || (out.length && out[out.length - 1])) out.push(l);
-  while (out.length && !out[out.length - 1]) out.pop();
-  return out.join("\n");
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+
+// Where the pasted text goes in the field: in place of the selection, a space added where it would glue to a word on either side
+// (pasting after «кот» gives «кот Жили…», not «котЖили…»). Returns the new field text and the caret after the paste.
+export function insertPasted(value, start, end, clean) {
+  const text = String(value ?? "");
+  const left = text.slice(0, start);
+  const right = text.slice(end);
+  const before = left + (left && !/\s$/.test(left) ? " " : "") + clean;
+  const after = (right && !/^\s/.test(right) ? " " : "") + right;
+  return { value: before + after, caret: before.length };
 }
 
 // Puts `token` (an element's id) into the field AT THE CARET, as a word of its own: spaces are added where it touches other

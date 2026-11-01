@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
 import { newPage, newRow, pageToLines } from "./model.js";
-import { cleanPastedText, fieldFromRows, insertToken, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
+import { cleanPastedText, insertPasted, fieldFromRows, insertToken, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
 const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
@@ -132,20 +132,22 @@ describe("full-page editor text", () => {
   });
 });
 
-describe("pasted text", () => {
-  it("line breaks of any kind are Enter; tabs / wide spaces a space; invisible marks dropped; indent and runs of spaces gone", () => {
-    expect(cleanPastedText("  Мама\tмыла\u00A0\u00A0раму.  \r\nПапа\u2028сын")).toBe("Мама мыла раму.\nПапа\nсын");
+describe("pasted text: one running text, the sheet wraps it (owner, 2026-11-01)", () => {
+  it("every line break is a space (a PDF's broken sentences, paragraphs); tabs / wide spaces a space; invisible marks dropped; one space between words", () => {
+    expect(cleanPastedText("  Мама\tмыла\u00A0\u00A0раму.  \r\nПапа\u2028сын\n\n\nспит")).toBe("Мама мыла раму. Папа сын спит");
+    expect(cleanPastedText("Жили-были дед\nда баба.")).toBe("Жили-были дед да баба.");
     expect(cleanPastedText("ко\u00ADшка\u200B идёт\uFEFF")).toBe("кошка идёт");
     expect(cleanPastedText("Ну и ну…")).toBe("Ну и ну...");
-  });
-  it("blank lines between paragraphs are one empty row, none at the start or the end", () => {
-    expect(cleanPastedText("\n\n  \nраз\n\n \n\nдва\n\n")).toBe("раз\n\nдва");
     expect(cleanPastedText(" \n\t\n")).toBe("");
   });
-  it("one row only (a closed page): the lines joined by a space", () => {
-    expect(cleanPastedText("раз\n\nдва\r\nтри", { singleLine: true })).toBe("раз два три");
-  });
-  it("letters the hand lacks are kept (the sheet flags them)", () => {
+  it("a word carried over in the source keeps its hyphen; letters the hand lacks are kept (the sheet flags them)", () => {
+    expect(cleanPastedText("ра\u2010\nму")).toBe("ра- му");
     expect(cleanPastedText("«Привет» — сказал")).toBe("«Привет» — сказал");
+  });
+  it("goes in place of the selection, a space where it would glue to a word", () => {
+    expect(insertPasted("кот", 3, 3, "Жили-были")).toEqual({ value: "кот Жили-были", caret: 13 });
+    expect(insertPasted("кот", 0, 0, "Жили")).toEqual({ value: "Жили кот", caret: 4 });
+    expect(insertPasted("кот\nдом", 0, 3, "сад")).toEqual({ value: "сад\nдом", caret: 3 });
+    expect(insertPasted("", 0, 0, "сад")).toEqual({ value: "сад", caret: 3 });
   });
 });

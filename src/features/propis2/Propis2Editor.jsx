@@ -9,7 +9,7 @@ import { ElementPicker, LetterPicker } from "./Propis2Field";
 import Propis2Keys from "./Propis2Keys";
 import Propis2Thumbs from "./Propis2Thumbs";
 import { useKeyboardInset } from "./useKeyboardInset";
-import { bracesIn, bracesOut, caretAtLineEnd, caretAtLineStart, cleanPastedText, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { bracesIn, bracesOut, caretAtLineEnd, caretAtLineStart, cleanPastedText, fieldFromRows, insertPasted, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
@@ -304,18 +304,18 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     setCaretRequest({ pos, n: Date.now() });
   };
   // A paste (Ctrl+V into the field, or the «Вставить» button on a phone / tablet, where the field is invisible and has no
-  // system menu): cleaned (cleanPastedText) and put in place of the selection, one undo step. The caret goes after it only while
-  // the field has the focus (the button does not open the keyboard on a phone).
+  // system menu): cleaned into one running text (cleanPastedText: no line breaks, the sheet wraps it) and put in place of the
+  // selection, one undo step. The caret goes after it only while the field has the focus (the button does not open the keyboard on a phone).
   const canPaste = !(locked && !selected);
   const pasteText = (raw, range = sel) => {
     if (!canPaste) return;
-    const clean = cleanPastedText(raw, { singleLine: locked });
+    const clean = cleanPastedText(raw);
     if (!clean) return;
     const start = Math.max(0, Math.min(draft.length, Math.min(range.start, range.end)));
     const end = Math.max(start, Math.min(draft.length, Math.max(range.start, range.end)));
-    const pos = start + clean.length;
+    const { value, caret: pos } = insertPasted(draft, start, end, clean);
     setSel({ start: pos, end: pos });
-    onField(draft.slice(0, start) + clean + draft.slice(end), false);
+    onField(value, false);
     if (typeof document !== "undefined" && document.activeElement === keysRef.current) setCaretRequest({ pos, n: Date.now() });
   };
   const pasteFromClipboard = async () => {
