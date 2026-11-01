@@ -289,6 +289,19 @@ export function markStem(glyph) {
   }
   return glyph;
 }
+// `flagWidenK` (a variant's own value, Kazakh ъ, owner 2026-11-01): the flag before the stem is widened k times ALONG THE GRID (about the slanted line of the stem, which stays where it is), so that
+// the start of the flag stands one whole cell (the next slanted line) from the stem: the letter before ends on a line, the flag starts on the next one, the stem is on the one after. Needs `stemAnchor` (markStem).
+// The flag is the path up to the stem's top.
+export function widenFlag(glyph, k) {
+  if (!Array.isArray(glyph.stemAnchor) || !(k > 0) || k === 1) return glyph;
+  const T = 0.4663, [ax, ay] = glyph.stemAnchor, u0 = ax + T * ay;
+  const d = String(glyph.strokes?.[0]?.d ?? "");
+  const re = /(-?\d*\.?\d+) (-?\d*\.?\d+)/g; let m, end = -1;
+  while ((m = re.exec(d))) if (Math.abs(+m[1] - ax) < 1e-6 && Math.abs(+m[2] - ay) < 1e-6) { end = re.lastIndex; break; }
+  if (end < 0) return glyph;
+  const head = d.slice(0, end).replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => { const u = +x + T * +y; return `${(+x + (k - 1) * (u - u0)).toFixed(3)} ${y}`; });
+  return { ...glyph, strokes: glyph.strokes.map((st, i) => (i === 0 ? { ...st, d: head + d.slice(end) } : st)) };
+}
 // `dotScale`: the dots (strokes listed in `noDotStrokes`: tiny «M x y L x y» pieces drawn with round caps) grow by that factor about their centres; they are
 // also drawn that much thicker (`dotWidth`, in the units of the usual stroke width 2). `dotShift`: the dots of ё also move right by that many capture units (3 = about 1.25 widths of the pen: the owner asked for «1-1.5 lines», meaning the thickness of the line, not a line of the grid: 18 units was far too much, 2026-10-29). `dotStrokes`: the strokes the width applies to (wordEngine)
 const DOT_BASE_WIDTH = 2;
@@ -324,6 +337,7 @@ const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOn
   if (punctDots) out = scalePunctDots(out, punctDots);
   if (startDrop) out = dropStart(out, startDrop);
   if (stemOnLine) out = markStem(out);
+  if (g.flagWidenK != null) out = widenFlag(out, g.flagWidenK);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
   if (straightTail != null) out = straightenTail(out, straightTail);

@@ -589,6 +589,7 @@
    ],
    "stretch": 1.806,
    "repeatCells": 3,
+   "flagWidenK": 1.743,
    "snapNotRightOwn": 0.7
   }
  ]

@@ -672,7 +672,7 @@ def _join_left(label):
 
 def g_hard_lower():
     """ъ (owner, 2026-11-01): the Russian ъ as it is, but it stands one cell after the letter before it and is not joined to it (its flag ran into that letter's exit)."""
-    return dict(BANK["ъ"], snapNotRightOwn=float(__import__("os").environ.get("KK_YER_SNAP", 0.7)))
+    return dict(BANK["ъ"], flagWidenK=float(__import__("os").environ.get("KK_FLAG_K", 1.743)), snapNotRightOwn=float(__import__("os").environ.get("KK_YER_SNAP", 0.7)))
 
 
 RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2, _join_left("е"), _join_left("ё"), g_hard_lower]
