@@ -1084,6 +1084,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const OVAL_JOIN_ARRIVE_DEG = 35; // topJoins before an oval (joinLeft): the angle the exit arrives at the oval's point (the canonical connector of о ends at 35°)
 const GROW_JOIN_MIN = 0.6, GROW_JOIN_MAX = 42; // growJoins: a gap in this range (row units, before the row scale) is closed by a straight piece
 const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
 const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
@@ -2063,17 +2064,19 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
-          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !inCell && !loose && !innerPiece.has(pieceIndex) && (!glyph.joinLeft || glyphsByLabel.script.topJoinsStraight?.includes(prevLabel))) {
+          if (glyphsByLabel?.script?.topJoins && !highJoined && !prevExitIsTail && !inCell && !loose && !innerPiece.has(pieceIndex)) {
             const straightExit = Boolean(glyphsByLabel.script.topJoinsStraight?.includes(prevLabel));
             // the line goes to the START of the next letter (top for п р т н и к, the middle line for з о е я л м …: owner 2026-10-31, «должна точно воткнуться в начало з»). Only а с д ф б, which are
             // entered from the left of their oval, are aimed at the point of the oval where the Russian join lands
             let tgt = st0h;
-            if (straightExit && glyph.joinLeft) {
+            // (owner 2026-11-01: «слегка изогнуто, как у ө»: before an oval entered from the left, а с д ф б е ё, the exit is bent like that of о: it leaves along the hook and arrives at the oval's point at 35°, not the short straight rise of the Russian deck)
+            const ovalJoin = Boolean(glyph.joinLeft) && !straightExit;
+            if (glyph.joinLeft) {
               const xs = pathXsAtY(glyph.touchFirstLine ? firstCurveD(moved[0].d) : moved[0].d, prevExit[1]);
               const cx = xs.length ? xs.reduce((m, c) => (Math.abs(c - prevExit[0]) < Math.abs(m - prevExit[0]) ? c : m)) : null;
               tgt = [cx !== null && Math.abs(cx - prevExit[0]) < curNudge * scale ? cx : prevExit[0], prevExit[1]];
             }
-            if (straightExit || tgt[1] < prevExit[1] - 10 * scale) {   // ү ұ з: to the start of ANY next letter (top, middle line), one rule for all
+            if (straightExit || ovalJoin || tgt[1] < prevExit[1] - 10 * scale) {   // ү ұ з: to the start of ANY next letter (top, middle line), one rule for all
               // it arrives along the stem of the next letter (the way the letter itself goes down from its start, turned round), so the two lie on one line and there is no wedge between them
               const aft = samplePath(moved[0].d, 60).find((q) => Math.hypot(q[0] - st0h[0], q[1] - st0h[1]) > 6 * scale);
               const al = aft ? Math.hypot(aft[0] - st0h[0], aft[1] - st0h[1]) : 0;
@@ -2095,7 +2098,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
                   }
                 }
               }
-              const d4 = topJoinD(strokes[prevExitStroke].d, join, tgt === st0h && aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
+              const d4 = topJoinD(strokes[prevExitStroke].d, join, ovalJoin ? [Math.cos((OVAL_JOIN_ARRIVE_DEG * Math.PI) / 180), -Math.sin((OVAL_JOIN_ARRIVE_DEG * Math.PI) / 180)] : tgt === st0h && aft && aft[1] > st0h[1] ? [(st0h[0] - aft[0]) / al, (st0h[1] - aft[1]) / al] : null, descTail, straightExit);
               if (d4) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d4 }; if (rest) moved[0] = { ...moved[0], d: rest }; highJoined = true; }
             }
           }
