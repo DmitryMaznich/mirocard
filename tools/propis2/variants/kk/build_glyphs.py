@@ -11,6 +11,7 @@ catalog sheet) and adds the new strokes; the result goes to variant.json -> glyp
 import json, re, sys
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
 ROOT = Path(__file__).resolve().parents[4]
 BANK = {g["label"]: g for g in json.loads((ROOT / "tools/propis/wide.json").read_text())["glyphs"]}
 X_TOP, BASE = 10.0, 62.0
@@ -38,7 +39,7 @@ def g_bar():
     """Ғ: Г strokes 1 and 2, then a crossbar through the middle of the stem on the narrow row's upper line.
     Г's stroke 3 is its tailStroke (drawn only when a letter follows), kept so Ғ joins like Г."""
     g = BANK["Г"]; s = g["strokes"]
-    out = dict(g, label="Ғ", strokes=[s[0], s[1], bar(stem_x(s[0]["d"], X_TOP), X_TOP), s[2]], tailStroke=3,
+    out = dict(g, label="Ғ", strokes=[s[0], s[1], bar(stem_x(s[0]["d"], X_TOP), X_TOP), s[2]], tailStroke=3, pushNextCells=1,
                sourceLabel="Ғ = Г (штрихи 1, 2) + перекладина на верхней линии узкой строки; соединение — штрих 3 Г")
     return out
 
@@ -82,7 +83,7 @@ def g_theta_upper():
 def g_theta_lower():
     """ө: о (one stroke with entry and exit) + a straight bar across the oval on the dashed middle line (y=36); written last, the exit stays on stroke 0."""
     g = BANK["о"]; s = g["strokes"]
-    return dict(g, label="ө", strokes=[s[0], full_bar(s[0]["d"], 36.0)], exitStroke=0, noDotStrokes=[1],
+    return dict(g, label="ө", strokes=[s[0], full_bar(s[0]["d"], 36.0)], exitStroke=0, noDotStrokes=[1], joinLeft=True,
                 sourceLabel="ө = о + прямая перекладина на всю ширину овала по пунктиру")
 
 
@@ -330,16 +331,21 @@ SCHWA_DX = float(__import__("os").environ.get("KK_SCHWA_DX", 58.0))  # raw units
 
 
 def kazakh_tail(bx, by, dx=None, ey=None):
-    """The connector of ә: o's own (glyphOverrides.js steepenExit): from the lowest point of the bowl, leaving it rising at 15 degrees and arriving at the
-    middle dashed line along the exit of а. Owner, 2026-10-31: the rise to the TOP of the next letter (as in the PDF) left every round letter that
-    starts on the dashed line (а б д е ж з о с ф х э я л м) unjoined (gap 12-27 units); with o's connector they all touch, as after o."""
+    """The connector of ә: EXACTLY o's (owner, 2026-10-31: «точно такое же соединение, как с о»). o's own connector in the bank is the last cubic of its stroke,
+    from the lowest point to the exit point (+39.1, -26) away, redrawn by glyphOverrides.js steepenExit (leaves the bottom rising at 15 degrees, arrives along
+    the exit of а); the engine then stretches every bank glyph by `stretch` = 1.806 across (stretchKeepSlantPathD: x' = s x - (s-1) tan25 (62 - y)). ә is drawn
+    in the already-wide frame (no stretch), so the same curve is built here and carried through that very transformation about the lowest point."""
     import math
-    ex, ey = bx + 39.1, by - 26.0
+    S, T = float(__import__("os").environ.get("KK_TAIL_S", 1.5)), math.tan(math.radians(25.0))
+    ex, ey = 39.1, -26.0                                   # raw offsets of the exit from the lowest point
     run, rise = 153.61 - 135.46, 56.28 - 36.0
     ln = math.hypot(run, rise); ux, uy = run / ln, -rise / ln
     th = math.radians(15.0)
-    chord = math.hypot(ex - bx, ey - by); k = chord * 0.35
-    return {"d": f"M {bx:.2f} {by:.2f} C {bx + math.cos(th) * k:.2f} {by - math.sin(th) * k:.2f} {ex - ux * k:.2f} {ey - uy * k:.2f} {ex:.2f} {ey:.2f}"}
+    chord = math.hypot(ex, ey); k = chord * 0.35
+    raw = [(0.0, 0.0), (math.cos(th) * k, -math.sin(th) * k), (ex - ux * k, ey - uy * k), (ex, ey)]
+    wide = [(S * x - (S - 1) * T * (0.0 - y), y) for x, y in raw]   # offsets from the lowest point, y up = negative; (by - y) = -y
+    p = [(bx + x, by + y) for x, y in wide]
+    return {"d": f"M {p[0][0]:.2f} {p[0][1]:.2f} C {p[1][0]:.2f} {p[1][1]:.2f} {p[2][0]:.2f} {p[2][1]:.2f} {p[3][0]:.2f} {p[3][1]:.2f}"}
 
 
 BACK_U = float(__import__("os").environ.get("KK_BACK_U", 8.0))  # how far back along the slant (in x + 0.4663 y units) the start is taken from that line: «чуть-чуть назад»
@@ -381,12 +387,295 @@ def g_schwa_lower():
     low = max(dense, key=lambda q: q[1])
     g = BANK["е"]
     res = {k_: v for k_, v in g.items() if k_ not in ("strokes", "sourceLabel", "stretch")}
-    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True, joinAtStart=True,
+    res.update(label="ә", strokes=[{"d": body}, kazakh_tail(low[0], low[1])], exitStroke=0, tailStroke=1, tailLift=True, tailContinuous=True, joinAtStart=True,
                sourceLabel="ә = строчная е первой версии прописей (старая карточка), повёрнутая на 180° и сглаженная; соединение прямой вверх под острым углом, как в казахской прописи")
     return res
 
 
-RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower]
+def g_apex(label):
+    """л, м as in the Russian bank, only marked `growToApex`: after a letter whose connector ends on the middle line (ә) the connector is carried up to the first
+    top of the letter, as in the Kazakh copybook («Бол»: the connector runs into the left leg of л). The glyph itself is not changed."""
+    g = BANK[label]
+    out = {k: v for k, v in g.items() if k != "aliases"}
+    out["growToApex"] = True
+    return out
+
+
+def stretched_x(x, y, S=1.806, T=0.46630765815499864):
+    """x of a bank point after the engine's stretch (stretchKeepSlantPathD about the baseline 62)."""
+    return S * x - (S - 1) * T * (62.0 - y)
+
+
+def g_i_upper():
+    """І (owner, 2026-10-31): the opening FLAG of К (its first stroke from its start up to the top of its stem), then the long straight stem of У (from the top
+    down to the baseline) with У's bottom hook; the stem is moved sideways so that it starts where the flag ends (the slant is the same, so it stays on its
+    slant). The connector to the next letter is У's («после І соединение по принципу У»): from the lowest point of the hook, o's curve. The engine ends it at a fixed
+    distance from the START of the letter (the point where Ч's exit arrives); І starts 25 units further left of its stem than У does, so that point is moved
+    (the helper glyph ч_iend) to keep the connector exactly as long and as steep as У's."""
+    k = BANK["К"]["strokes"][0]["d"]
+    flag = k[: k.index("201.04 -42.00") + len("201.04 -42.00")]
+    u = BANK["У"]["strokes"][0]["d"]
+    stem = u[u.index("L 193.57 -42.00") + len("L 193.57 -42.00"):].strip()      # L 148.78 54.05 C ... the hook ... L 139.19 36.00
+    d = f"{flag} {shifted(stem, 201.04 - 193.57, 0.0)}"
+    g = BANK["У"]
+    out = {kk: v for kk, v in g.items() if kk not in ("sourceLabel", "strokes")}
+    out.update(label="І", strokes=[{"d": d}], noOverrides=True, joinFrom={"stroke": 0}, joinLikeLabel="о", joinEndLikeLabel="ч_iend",
+               sourceLabel="І = флажок К + прямая стойка У с её крючком; соединение как у У")
+    return out
+
+
+def g_i_end_marker():
+    """A helper glyph, not a letter: it starts where І starts and ends where the connector of І should arrive, so that this connector equals У's
+    (the same distance from the lowest point of the hook to its end)."""
+    S = 1.806
+    ch, u = BANK["Ч"]["strokes"][0]["d"], BANK["У"]["strokes"][0]["d"]
+    ux, uy = (float(v) for v in re.findall(r"-?[\d.]+", u)[:2])                 # У's start
+    sx, sy = -0.0 + 170.00, -14.10                                                 # І's start (the flag of К)
+    chx, chy = 175.20, 36.0                                                        # where Ч's exit (= У's connector end) arrives, in У's frame
+    lowU = 141.07                                                                  # the lowest point of У's hook (x), I's is 7.47 right of it
+    # local (stretched, relative to the start) end of У's connector, and of the same connector under I's own hook
+    endU = stretched_x(chx, chy) - stretched_x(ux, uy)
+    lowU_local = stretched_x(lowU, 62.0) - stretched_x(ux, uy)
+    lowI_local = stretched_x(lowU + 7.47, 62.0) - stretched_x(sx, sy)
+    endI = endU + (lowI_local - lowU_local)
+    ex = sx + (endI - (-(S - 1) * 0.46630765815499864 * ((62.0 - chy) - (62.0 - sy)) * 1.0)) / S
+    return {"label": "ч_iend", "kind": "letter", "stretch": S, "strokes": [{"d": f"M {sx:.2f} {sy:.2f} C {sx:.2f} {sy:.2f} {ex:.2f} {chy:.2f} {ex:.2f} {chy:.2f}"}],
+            "sourceLabel": "служебный: точка, где кончается соединение І"}
+
+
+def g_i_lower():
+    """і (owner, 2026-10-31): the stem of и (its second stem, from the peak down, with the hook and the exit) and a dot over it like ё's (1.5 times as big)."""
+    d = BANK["и"]["strokes"][0]["d"]
+    stem = d[d.index("L 154.66 11.48") + 2:]                                       # 154.66 11.48 L 135.18 53.26 C ... L 161.22 36
+    d1 = "M " + stem.strip()
+    sx = 154.66 + 0.4663 * 8.5                                                      # a little right of the top of the stem, along the slant, at ё's dot height
+    out = {k_: v for k_, v in BANK["и"].items() if k_ not in ("sourceLabel", "strokes")}
+    out.update(label="і", strokes=[{"d": d1}, {"d": f"M {sx - 0.5:.2f} 3.00 L {sx + 0.55:.2f} 3.00"}], noDotStrokes=[1], dotStrokes=[1], dotWidth=3,
+               sourceLabel="і = вторая стойка и с выходом + точка как у ё")
+    return out
+
+
+def g_h_lower():
+    """һ (owner, 2026-10-31: «вытащи h из этого слова и подгони под нашу систему»): the h of the Kazakh copybook PDF («Яһуди», page 38; the PDF's font has no
+    Kazakh Һ/һ, the author typed this h, and it is also the school h: entry from the lower left, loop at the top, stem, arch, leg, exit). Its centre line is taken from the
+    outline of the glyph (pdf_glyphs/skeleton.py), walked in pen order and fitted to the bank (pdf_glyphs/build_h.py -> h_lower.json): baseline 62, top -42, 65 degrees.
+    Already in the real proportions (no `stretch`)."""
+    d = json.loads((HERE / "pdf_glyphs/h_lower.json").read_text())["d"]
+    out = {kk: v for kk, v in BANK["п1"].items() if kk not in ("sourceLabel", "strokes", "aliases", "kind", "stretch", "gridFitted", "repeatCells")}
+    # the exit is п's own (owner, 2026-10-31: «точно то, что используем для строчной п»): the foot hook and the straight exit of the bank's п1 stay in the stroke
+    out.update(label="һ", kind="letter", ascender=True, repeatCells=4, strokes=[{"d": d}],
+               sourceLabel="һ = h из казахской прописи (слово «Яһуди»), средняя линия контура, подогнана под банк; ножка и выход как у п")
+    return out
+
+
+def g_h_upper(drop=float(__import__("os").environ.get("KK_H_DROP", 3.0)), straight=float(__import__("os").environ.get("KK_H_STRAIGHT", 14.0))):
+    """Һ (owner, 2026-10-31): the capital К made the way К itself is made: К's stroke 1 (the flag, the stem, the loop at the foot) and К's lower stroke (the arch, the right leg, the exit),
+    the upper arm of К not written. In К the lower stroke starts ON the loop where it meets the slanted stem; Һ's loop enters it `drop` units LOWER along the loop (owner: «опусти точку входа
+    петли ещё чуть-чуть»): the loop is cut there and goes on in one smooth piece to the end of the first little rise of К's lower stroke; the arch and the rest are К's, unchanged.
+    One stroke, so the exit is its end."""
+    import math
+    k = BANK["К"]; s1, s2 = k["strokes"][0]["d"], k["strokes"][1]["d"]
+    toks = re.findall(r"[MC]|-?[\d.]+", s1)
+    segs, i = [], 0
+    while i < len(toks):
+        n = 3 if toks[i] == "C" else 1
+        segs.append((toks[i], [float(v) for v in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
+    ends = [(v[-2], v[-1]) for _, v in segs]
+    foot = max(range(len(ends)), key=lambda j: ends[j][1])                       # the foot of the stem
+    S = tuple(float(v) for v in re.findall(r"-?[\d.]+", s2)[:2])                 # where К's lower stroke starts, on the loop
+    at = lambda P, t: tuple((1 - t) ** 3 * P[0][c] + 3 * (1 - t) ** 2 * t * P[1][c] + 3 * (1 - t) * t * t * P[2][c] + t ** 3 * P[3][c] for c in (0, 1))
+    cub = lambda j: [ends[j - 1], tuple(segs[j][1][0:2]), tuple(segs[j][1][2:4]), tuple(segs[j][1][4:6])]
+    best = None
+    for j in range(foot + 1, len(segs)):                                          # the cubics of the loop, after the foot
+        P = cub(j)
+        for n in range(0, 2001):
+            q = at(P, n / 2000); d = math.hypot(q[0] - S[0], q[1] - S[1])
+            if best is None or d < best[0]: best = (d, j, n / 2000)
+    _, j, t = best
+    P = cub(j)
+    # go back `drop` units along the loop from that point, then `straight` more: from there the loop runs as a STRAIGHT line (owner, 2026-10-31: the loop had a little hump before the stem; it must
+    # come up to the stem along a straight line) to the end of the first little rise of К's lower stroke, crossing the slanted stem on the way
+    def walk_back(j0, t0, length):
+        jj, tt, run = j0, t0, 0.0
+        prev = at(cub(jj), tt)
+        while run < length:
+            tt -= 0.002
+            if tt < 0:
+                if jj - 1 <= foot: return jj, 0.0
+                jj -= 1; tt = 1.0
+            cur = at(cub(jj), tt); run += math.hypot(cur[0] - prev[0], cur[1] - prev[1]); prev = cur
+        return jj, tt
+    jr, tr = walk_back(j, t, drop + straight)
+    P = cub(jr)
+    lerp = lambda A, B: tuple(A[c] + (B[c] - A[c]) * tr for c in (0, 1))
+    a1, a2, a3 = lerp(P[0], P[1]), lerp(P[1], P[2]), lerp(P[2], P[3])
+    b1, b2 = lerp(a1, a2), lerp(a2, a3)
+    q = lerp(b1, b2)
+    head = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[:jr]) + f" C {a1[0]:.2f} {a1[1]:.2f} {b1[0]:.2f} {b1[1]:.2f} {q[0]:.2f} {q[1]:.2f}"
+    m = re.findall(r"C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)", s2)
+    E = (float(m[0][4]), float(m[0][5]))                                           # the end of К's first little rise
+    link = f"C {q[0] + (E[0] - q[0]) / 3:.2f} {q[1] + (E[1] - q[1]) / 3:.2f} {q[0] + 2 * (E[0] - q[0]) / 3:.2f} {q[1] + 2 * (E[1] - q[1]) / 3:.2f} {E[0]:.2f} {E[1]:.2f}"
+    rest = " ".join(f"C {' '.join(c)}" for c in m[1:])
+    out = {kk: v for kk, v in k.items() if kk not in ("sourceLabel", "strokes", "exitStroke")}
+    out.update(label="Һ", strokes=[{"d": f"{head} {link} {rest}"}],
+               sourceLabel="Һ = К: штрих 1 (флажок, стойка, петля), петля входит в нижний штрих К чуть ниже, дальше арка, ножка, выход К без изменений")
+    return out
+
+
+def g_a_upper(y=19.4, over_l=9.0, over_r=9.0):
+    """А (owner, 2026-10-31, from the copybook PDF): as Л (its two strokes unchanged: the entry loop and left arm, then the right stem) plus a SEPARATE crossbar: a straight horizontal
+    line at about 0.4 of the letter's height, from a little left of the left arm to a little right of the right stem. The connector to the next letter leaves the right stem (Л's exit),
+    the bar is written last. The old А of the bank (Л + a bowl hook under the stem) is replaced."""
+    l = BANK["Л"]; s0, s1 = l["strokes"][0]["d"], l["strokes"][1]["d"]
+    def xs_at(d, yy):
+        n = [float(v) for v in re.findall(r"-?[\d.]+", d)]; P = list(zip(n[0::2], n[1::2])); out = []; i = 1
+        while i + 2 < len(P):
+            p0, p1, p2, p3 = P[i - 1], P[i], P[i + 1], P[i + 2]
+            for k in range(0, 401):
+                t = k / 400; u = 1 - t
+                q = tuple(u ** 3 * p0[c] + 3 * u * u * t * p1[c] + 3 * u * t * t * p2[c] + t ** 3 * p3[c] for c in (0, 1))
+                out.append(q)
+            i += 3
+        return [q for q in out if abs(q[1] - yy) < 0.3]
+    # the strokes are written in the bank's mixed M/C/L; flatten through the engine-independent sampler used above only for the C pieces, and L pieces by hand
+    def flat(d):
+        toks = re.findall(r"[MLC]|-?[\d.]+", d); pts = []; cur = None; i = 0
+        while i < len(toks):
+            t = toks[i]
+            if t == "M": cur = (float(toks[i + 1]), float(toks[i + 2])); pts.append(cur); i += 3
+            elif t == "L":
+                e = (float(toks[i + 1]), float(toks[i + 2]))
+                for k in range(1, 41): pts.append((cur[0] + (e[0] - cur[0]) * k / 40, cur[1] + (e[1] - cur[1]) * k / 40))
+                cur = e; i += 3
+            else:
+                c1 = (float(toks[i + 1]), float(toks[i + 2])); c2 = (float(toks[i + 3]), float(toks[i + 4])); e = (float(toks[i + 5]), float(toks[i + 6]))
+                for k in range(1, 41):
+                    t_ = k / 40; u = 1 - t_
+                    pts.append(tuple(u ** 3 * cur[c] + 3 * u * u * t_ * c1[c] + 3 * u * t_ * t_ * c2[c] + t_ ** 3 * e[c] for c in (0, 1)))
+                cur = e; i += 7
+        return pts
+    def x_at(d, yy):
+        pts = flat(d); best = min(pts, key=lambda q: abs(q[1] - yy)); return best[0]
+    xl, xr = x_at(s0, y), x_at(s1, y)
+    bar_ = {"d": f"M {min(xl, xr) - over_l:.2f} {y:.2f} L {max(xl, xr) + over_r:.2f} {y:.2f}"}
+    out = {kk: v for kk, v in l.items() if kk not in ("sourceLabel", "strokes")}
+    out.update(label="А", strokes=[{"d": s0}, {"d": s1}, bar_], exitStroke=1, noDotStrokes=[1, 2], continuousStrokes=[1],
+               sourceLabel="А = Л (два штриха без изменений) + отдельная горизонтальная перекладина, как в казахской прописи; выход от правой стойки")
+    return out
+
+
+def _flat_points(d, n=40):
+    toks = re.findall(r"[MLC]|-?[\d.]+", d); pts = []; cur = None; i = 0
+    while i < len(toks):
+        t = toks[i]
+        if t == "M": cur = (float(toks[i + 1]), float(toks[i + 2])); pts.append(cur); i += 3
+        elif t == "L":
+            e = (float(toks[i + 1]), float(toks[i + 2]))
+            pts += [(cur[0] + (e[0] - cur[0]) * k / n, cur[1] + (e[1] - cur[1]) * k / n) for k in range(1, n + 1)]; cur = e; i += 3
+        else:
+            c1 = (float(toks[i + 1]), float(toks[i + 2])); c2 = (float(toks[i + 3]), float(toks[i + 4])); e = (float(toks[i + 5]), float(toks[i + 6]))
+            for k in range(1, n + 1):
+                u_ = k / n; v_ = 1 - u_
+                pts.append(tuple(v_ ** 3 * cur[c] + 3 * v_ * v_ * u_ * c1[c] + 3 * v_ * u_ * u_ * c2[c] + u_ ** 3 * e[c] for c in (0, 1)))
+            cur = e; i += 7
+    return pts
+
+
+def _hard_capital():
+    """The capital Ъ of the alphabet (owner, 2026-10-31: «в алфавите заглавный твёрдый знак»): the one the Bulgarian variant has (flag, stem, an oval of lowercase height closing on the stem),
+    as it is. Its record is read from tools/propis2/variants/bg/variant.json."""
+    v = json.loads((ROOT / "tools/propis2/variants/bg/variant.json").read_text(encoding="utf-8"))
+    return next(g for g in v["glyphs"] if g["label"] == "Ъ")
+
+
+def _hard_belly_small(top=10.0):
+    """The capital Ъ with its belly lowered to the height of the narrow row (owner, 2026-10-31: «пузо немного уменьшить по высоте, чтобы было примерно той же высоты, что узкая строка»): the flag and the
+    stem are as they are; the belly (the cubics after the foot of the stem) is pressed down about the baseline until its top is at `top` (the narrow row's upper line), sheared along the slant so that it stays
+    on its slant lines; its end is put on the stem. Returns (path text, the lowest point of the belly)."""
+    h = _hard_capital(); d = h["strokes"][0]["d"]
+    toks = re.findall(r"[MC]|-?[\d.]+", d); segs, i = [], 0
+    while i < len(toks):
+        n = 1 if toks[i] == "M" else 3
+        segs.append((toks[i], [float(x) for x in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
+    ends = [(v[-2], v[-1]) for _, v in segs]
+    foot = max(range(len(ends)), key=lambda j: ends[j][1])                      # the foot of the stem = the bottom of the belly
+    belly_top = min(y for j in range(foot + 1, len(ends)) for y in [ends[j][1]] + segs[j][1][1::2])
+    k = (62.0 - top) / (62.0 - belly_top); t25 = 0.46630765815499864
+    def f(x, y):
+        y2 = 62.0 - (62.0 - y) * k
+        return x - t25 * (y2 - y), y2
+    out = []
+    for j, (c, vals) in enumerate(segs):
+        if j <= foot: out.append(f"{c} " + " ".join(f"{v:.2f}" for v in vals)); continue
+        pts = [f(vals[m], vals[m + 1]) for m in range(0, len(vals), 2)]
+        out.append(f"{c} " + " ".join(f"{x:.2f} {y:.2f}" for x, y in pts))
+    return " ".join(out), ends[foot]
+
+
+Y1_PATH = ("M 164.35 10.00 L 146.14 49.00 C 142.80 56.18 142.50 62.00 145.48 62.00 C 148.46 62.00 153.60 56.18 156.94 49.00 C 160.29 41.82 160.59 34.20 157.61 34.20 "
+           "C 157.53 34.19 157.45 34.21 157.15 34.15 C 156.85 34.09 156.21 33.88 155.80 33.85 C 155.39 33.83 155.00 33.92 154.70 34.00 C 154.40 34.08 154.02 34.23 154.00 34.35 "
+           "C 153.98 34.47 154.32 34.63 154.60 34.70 C 154.88 34.77 155.35 34.80 155.70 34.75 C 156.05 34.70 156.53 34.46 156.70 34.40 C 168.30 30.00 175.95 21.50 181.47 10.15")  # ы1 (glyphOverrides.js yerLoop, resolved)
+
+
+def g_hard_upper():
+    """Ъ (owner, 2026-10-31): the flag of the Bulgarian capital Ъ + the LEFT half of the capital Ы made before (ы1 enlarged x2 about its start, as in `scaleOf`: the stem and the big oval with the loop by the stem),
+    without the connector and without the second stroke, no exit. The stem runs up to the Bulgarian flag on the same slanted line."""
+    bg = _hard_capital()["strokes"][0]["d"]
+    head = bg[: bg.index(" C 49.58 -19.44")]                                        # the flag, up to where it meets its stem at (56.43, -34.12)
+    k, ax = 2.0, 164.35
+    left = Y1_PATH[Y1_PATH.index(" L 146.14 49.00"): Y1_PATH.index(" C 168.30 30.00")]   # the stem down, the oval, the loop; ы1's connector is left out
+    left = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{ax + k * (float(m.group(1)) - ax):.2f} {62 + k * (float(m.group(2)) - 62):.2f}", left)
+    hy = -34.12
+    dx = (ax - 0.4663 * (hy + 42.0)) - 56.43                                         # the enlarged stem line starts at (164.35, -42)
+    flag = re.sub(r"(-?\d*\.?\d+) (-?\d*\.?\d+)", lambda m: f"{float(m.group(1)) + dx:.2f} {m.group(2)}", head)
+    xb = ax + k * (145.48 - ax)                                                     # the lowest point of the enlarged oval, on the baseline
+    conn = f"M {xb:.2f} 62.00 C {xb + 9.0:.2f} 62.00 {xb + 21.84:.2f} 43.05 {xb + 31.56:.2f} 36.00"   # the connector of the capital В (tailStroke): from under the oval along its bottom, then up to the exit point; В's own offsets from its oval's lowest point (9.0, 21.84, 31.56)
+    return {"label": "Ъ", "kind": "letter", "stretch": 1.806, "repeatCells": 6, "ascender": True, "noOverrides": True, "noNormalize": True, "noLiftExit": True, "tailStroke": 1,
+            "strokes": [{"d": flag + left}, {"d": conn}],
+            "sourceLabel": "Ъ = флажок болгарской заглавной Ъ + левая половина заглавной Ы (ы1 ×2: стойка и пузо с петлёй); соединитель из-под пуза, как у В и Б (tailStroke)"}
+
+
+def _no_flag(path):
+    """The capital Ъ's path without the flag before the stem (owner, 2026-10-31: «у Ы не будет флажка перед первой стойкой»): the stroke starts at the TOP of the stem and goes straight down it."""
+    toks = re.findall(r"[MC]|-?[\d.]+", path); segs, i = [], 0
+    while i < len(toks):
+        n = 1 if toks[i] == "M" else 3
+        segs.append((toks[i], [float(x) for x in toks[i + 1:i + 1 + 2 * n]])); i += 1 + 2 * n
+    ends = [(v[-2], v[-1]) for _, v in segs]
+    j = next(k for k, e in enumerate(ends) if e[1] > 0 and k > 1)                  # the first end on the stem itself, below the flag
+    t25 = 0.46630765815499864
+    top = (ends[j][0] + t25 * (ends[j][1] + 42.0), -42.0)                           # the stem line carried up to the capital's top
+    head = f"M {top[0]:.2f} {top[1]:.2f} L {ends[j][0]:.2f} {ends[j][1]:.2f}"
+    rest = " ".join(f"{c} " + " ".join(f"{v:.2f}" for v in vals) for c, vals in segs[j + 1:])
+    return f"{head} {rest}"
+
+
+def g_yery_upper():
+    """Ы (owner, 2026-10-31): the Russian ы as it is, enlarged to capital height (52 -> 104 units, k=2, slant kept). Russian propis2 has no capital Ы; its ы is composed in the
+    engine (ы1 + ы2, glyphOverrides.js), so the capital is composed from the two enlarged halves (`scaleOf`, see withGlyphOverrides). The lowercase ы of the variant is the Russian one untouched."""
+    return {"label": "Ы", "kind": "letter", "compose": ["ы1U", "ы2U"], "repeatCells": 7,
+            "sourceLabel": "Ы = русская ы (ы1 + ы2), увеличенная в 2 раза по высоте строчной до заглавной, как есть"}
+
+
+def g_yery_up_1():
+    return {"label": "ы1U", "kind": "letter", "scaleOf": {"label": "ы1", "k": 2.0}, "sourceLabel": "ы1 ×2 (левая часть заглавной Ы)"}
+
+
+def g_yery_up_2():
+    return {"label": "ы2U", "kind": "letter", "scaleOf": {"label": "ы2", "k": 2.0, "keepTail": True}, "sourceLabel": "ы2 ×2 (правая часть заглавной Ы); крюк с выходом стандартного размера"}
+
+
+def _join_left(label):
+    """The Russian letter as it is, entered from the LEFT of its oval after the capitals Б В Ъ … (owner, 2026-10-31: «соединяем с левой крайней точкой овала»), like а с ф д."""
+    return lambda: dict(BANK[label], joinLeft=True)
+
+
+def g_hard_lower():
+    """ъ (owner, 2026-11-01): the Russian ъ as it is, but it stands one cell after the letter before it and is not joined to it (its flag ran into that letter's exit)."""
+    return dict(BANK["ъ"], flagWidenK=float(__import__("os").environ.get("KK_FLAG_K", 1.743)), snapNotRightOwn=float(__import__("os").environ.get("KK_YER_SNAP", 0.7)))
+
+
+RECIPES = [g_bar, g_bar_lower, g_theta_upper, g_theta_lower, g_u_straight, g_u_bar, g_ue_lower, g_u_bar_lower, g_kz_upper, g_kz_lower, g_ng_upper, g_ng_lower, g_schwa_upper, g_schwa_lower, lambda: g_apex("л"), lambda: g_apex("м"), g_i_upper, g_i_end_marker, g_i_lower, g_h_lower, g_h_upper, g_a_upper, g_hard_upper, g_yery_upper, g_yery_up_1, g_yery_up_2, _join_left("е"), _join_left("ё"), g_hard_lower]
 
 
 def preview(glyphs, path):
@@ -403,4 +692,11 @@ def preview(glyphs, path):
 if __name__ == "__main__":
     built = [r() for r in RECIPES]
     if "--preview" in sys.argv: preview(built, sys.argv[sys.argv.index("--preview") + 1])
+    elif "--write-variant" in sys.argv:
+        # the glyphs go into variant.json (the other keys stay); helper glyphs (ч_iend …) are real glyph records the engine borrows, so they go too
+        vp = HERE / "variant.json"
+        v = json.loads(vp.read_text(encoding="utf-8"))
+        v["glyphs"] = built
+        vp.write_text(json.dumps(v, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        print(f"{len(built)} glyphs -> {vp}")
     else: print(json.dumps(built, ensure_ascii=False, indent=1))
