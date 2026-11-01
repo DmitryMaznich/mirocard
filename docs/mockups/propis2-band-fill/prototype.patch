@@ -1,0 +1,279 @@
+diff --git a/src/features/propis2/Propis2Editor.jsx b/src/features/propis2/Propis2Editor.jsx
+index f883839..1094400 100644
+--- a/src/features/propis2/Propis2Editor.jsx
++++ b/src/features/propis2/Propis2Editor.jsx
+@@ -14,6 +14,7 @@ import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.j
+ import Propis2Preview from "./Propis2Preview";
+ import * as I from "./Propis2Icons";
+ import Propis2Picker from "./Propis2Picker";
++import Propis2FillPicker from "./Propis2FillPicker";
+ import { useHint } from "./Propis2Hint";
+ 
+ // The page constructor: the page canvas with the settings of the page and of the row above it. The text is typed STRAIGHT ONTO THE
+@@ -425,6 +426,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
+           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.filter((g) => propisGrid || g.id !== "dense").map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
+           <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
+           <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={pageMidDash(page)} disabled={locked || !(propisGrid || bgPaper)} mixed={bgPaper ? mx.bgDash : mx.midDash} onClick={() => setSetting(bgPaper ? "bgDash" : "midDash", !pageMidDash(page))} data-kind="dash"><I.IconDash /></IconBtn>
++          <Propis2FillPicker value={page.bandFill} disabled={locked || !propisGrid || page.ruling === "wide"} startOpen={typeof window !== "undefined" && window.__p2FillOpen === true} onChange={(v) => onChange({ ...page, bandFill: v })} />
+           <IconBtn label="Строка для письма после каждой строки" caption="Строка для письма" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
+           {locked && (
+             <>
+diff --git a/src/features/propis2/Propis2FillPicker.jsx b/src/features/propis2/Propis2FillPicker.jsx
+new file mode 100644
+index 0000000..f19b948
+--- /dev/null
++++ b/src/features/propis2/Propis2FillPicker.jsx
+@@ -0,0 +1,60 @@
++import { useEffect, useRef, useState } from "react";
++import { useHint } from "./Propis2Hint";
++import { usePopupPos } from "./usePopupPos";
++import { BAND_FILLS } from "@/topics/renderers/propis2/model.js";
++import { IconBandFill, IconFillAll, IconFillWrite } from "./Propis2Icons";
++
++// «Заливка» (prototype): one button showing the current tint; its popup: a row of swatches, then where the band is tinted.
++const Caret = () => (
++  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 3.5l3 3 3-3" /></svg>
++);
++const WHERE = [
++  { id: "write", label: "Строки для письма", Icon: IconFillWrite },
++  { id: "all", label: "Все строки", Icon: IconFillAll },
++];
++
++export default function Propis2FillPicker({ value, onChange, disabled = false, startOpen = false }) {
++  const [openRaw, setOpen] = useState(startOpen);
++  const open = openRaw && !disabled;
++  const ref = useRef(null);
++  const btnRef = useRef(null);
++  const listStyle = usePopupPos(open, btnRef, 212, () => setOpen(false));
++  const fill = BAND_FILLS.find((f) => f.id === value?.id) ?? BAND_FILLS[0];
++  const where = value?.where === "all" ? "all" : "write";
++  useEffect(() => {
++    if (!open) return undefined;
++    const away = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
++    document.addEventListener("pointerdown", away);
++    return () => document.removeEventListener("pointerdown", away);
++  }, [open]);
++  const { bind, tip } = useHint("Заливка узкой строки");
++  return (
++    <div className="p2-pick" ref={ref}>
++      <button type="button" ref={btnRef} className={`p2-pick-btn p2-tool${open ? " is-open" : ""}`} aria-label="Заливка узкой строки" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
++        <span className="p2-tool-ico"><IconBandFill color={fill.color} /><Caret /></span>
++        <span className="p2-cap">Заливка</span>
++        {tip}
++      </button>
++      {open && (
++        <div className="p2-pick-list p2-fill-pop" role="dialog" aria-label="Заливка узкой строки" style={listStyle ?? undefined}>
++          <div className="p2-fill-title">Цвет строки</div>
++          <div className="p2-fill-swatches" role="radiogroup" aria-label="Цвет">
++            {BAND_FILLS.map((f) => (
++              <button key={f.id} type="button" role="radio" aria-checked={f.id === fill.id} aria-label={f.label} title={f.label}
++                className={`p2-fill-sw${f.id === fill.id ? " is-on" : ""}${f.color ? "" : " p2-fill-sw--none"}`} style={f.color ? { "--sw": f.color } : undefined}
++                onClick={() => onChange({ id: f.id, where })} />
++            ))}
++          </div>
++          <div className="p2-fill-title">Где</div>
++          <div className="p2-fill-where" role="radiogroup" aria-label="Где заливать">
++            {WHERE.map(({ id, label, Icon }) => (
++              <button key={id} type="button" role="radio" aria-checked={id === where} disabled={!fill.color} className={`p2-fill-opt${id === where ? " is-on" : ""}`} onClick={() => onChange({ id: fill.id, where: id })}>
++                <Icon /><span>{label}</span>
++              </button>
++            ))}
++          </div>
++        </div>
++      )}
++    </div>
++  );
++}
+diff --git a/src/features/propis2/Propis2Icons.jsx b/src/features/propis2/Propis2Icons.jsx
+index 21a91cc..dca700b 100644
+--- a/src/features/propis2/Propis2Icons.jsx
++++ b/src/features/propis2/Propis2Icons.jsx
+@@ -125,3 +125,9 @@ export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18"
+ export const IconRename = () => S(<><path d="M4 20h16" /><path d="M6 16l.8-3.2L15.6 4a1.8 1.8 0 012.6 0 1.8 1.8 0 010 2.6L9.4 15.4z" /></>);
+ 
+ export const IconSave = () => S(<><path d="M5 12.5l4.5 4.5L19 7.5" strokeWidth="2.4" /></>); // confirm: keep the changes in the notebook
++
++// «Заливка»: the narrow row with its band tinted (`color`; none: a white band crossed out by a thin slash)
++export const IconBandFill = ({ color = null }) => S(<>{color && <rect x="2.5" y="8" width="19" height="8" fill={color} stroke="none" />}{rule(8)}{guide(12)}{baseRule(16)}{!color && <path d="M5 20L19 4" stroke={GRAY} strokeWidth={1.4} />}</>);
++// where the band is tinted: the rows to write in only (a sample row white, the rows under it tinted) / every row
++export const IconFillWrite = () => S(<>{rule(4)}{baseRule(9)}<path d="M5 8.2c1.2-3.4 3.2-3.4 3.2 0 0 1 .8 1 1.6 0 1.2-3.4 3.2-3.4 3.2 0 0 1 .8 1 1.6 0 1.2-3.4 3.2-3.4 3.2 0" /><rect x="2.5" y="13" width="19" height="5" fill="#f2c94c" opacity=".55" stroke="none" />{rule(13)}{baseRule(18)}</>);
++export const IconFillAll = () => S(<><rect x="2.5" y="4" width="19" height="5" fill="#f2c94c" opacity=".55" stroke="none" /><rect x="2.5" y="13" width="19" height="5" fill="#f2c94c" opacity=".55" stroke="none" />{rule(4)}{baseRule(9)}{rule(13)}{baseRule(18)}</>);
+diff --git a/src/features/propis2/Propis2Preview.jsx b/src/features/propis2/Propis2Preview.jsx
+index 7143909..325a165 100644
+--- a/src/features/propis2/Propis2Preview.jsx
++++ b/src/features/propis2/Propis2Preview.jsx
+@@ -1,7 +1,7 @@
+ import { useDeferredValue, useMemo } from "react";
+ import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+ import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
+-import { pageFormat, pageMargin, pageToLines, taskGrid, pageMidDash, pageNoSlant } from "@/topics/renderers/propis2/model.js";
++import { pageFormat, pageMargin, pageToLines, taskGrid, pageMidDash, pageNoSlant, pageBandFill } from "@/topics/renderers/propis2/model.js";
+ 
+ // Live preview of the page being edited: the page as it will be shown and printed. The layout runs
+ // on a deferred copy of the page, so typing stays responsive while the preview catches up.
+@@ -9,7 +9,7 @@ export default function Propis2Preview({ page, topicRecord, overlays = null, onS
+   const deferred = useDeferredValue(page);
+   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
+   const task = useMemo(
+-    () => buildPageTask({ topicRecord, lines: pageToLines(deferred, glyphMap), narrowRows: deferred.ruling === "narrow", grid: taskGrid(deferred), noSlant: pageNoSlant(deferred), midDash: pageMidDash(deferred), margin: pageMargin(deferred), format: pageFormat(deferred) }),
++    () => buildPageTask({ topicRecord, lines: pageToLines(deferred, glyphMap), narrowRows: deferred.ruling === "narrow", grid: taskGrid(deferred), noSlant: pageNoSlant(deferred), midDash: pageMidDash(deferred), margin: pageMargin(deferred), format: pageFormat(deferred), bandFill: pageBandFill(deferred) }),
+     [topicRecord, deferred, glyphMap],
+   );
+   return (
+diff --git a/src/features/propis2/propis2.css b/src/features/propis2/propis2.css
+index a2da3aa..1080af2 100644
+--- a/src/features/propis2/propis2.css
++++ b/src/features/propis2/propis2.css
+@@ -621,3 +621,18 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
+ /* a language's empty library: its own letters, so it is plain the language has changed */
+ .propis2-lib .p2-lang-empty { text-align: center; padding: 18px 10px 4px; color: #6b7385; font-weight: 700; }
+ .propis2-lib .p2-lang-empty-letters { font-size: 34px; color: #2a6b60; letter-spacing: 4px; margin-bottom: 6px; }
++
++/* «Заливка» (prototype): the popup of the band tint — swatches, then where */
++.p2-fill-pop { gap: 6px; padding: 10px 10px 8px; width: 212px; box-sizing: border-box; }
++.p2-fill-title { font-size: 12px; font-weight: 800; color: #6b7385; letter-spacing: .02em; padding: 0 2px; }
++.p2-fill-swatches { display: flex; gap: 8px; padding: 2px 2px 6px; }
++.p2-fill-sw { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(40,50,60,.18); background: linear-gradient(180deg, #fff 0 30%, var(--sw) 30% 70%, #fff 70%); box-shadow: inset 0 0 0 1px #fff; cursor: pointer; position: relative; }
++.p2-fill-sw::after { content: ""; position: absolute; left: 4px; right: 4px; top: calc(70% - 1px); height: 1.5px; background: #4b5563; border-radius: 1px; }
++.p2-fill-sw--none { background: #fff; }
++.p2-fill-sw--none::before { content: ""; position: absolute; left: 50%; top: 6px; bottom: 6px; width: 1.5px; background: #b4bac4; transform: rotate(45deg); }
++.p2-fill-sw.is-on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #4a9b8f; }
++.p2-fill-where { display: flex; flex-direction: column; gap: 4px; }
++.p2-fill-opt { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border: none; border-radius: 12px; background: transparent; font: inherit; font-size: 14px; font-weight: 700; color: var(--p2-ink, #28323c); cursor: pointer; text-align: left; }
++.p2-fill-opt svg { width: 26px; height: 26px; flex: 0 0 auto; }
++.p2-fill-opt.is-on { background: var(--p2-teal-soft, #e3f1ee); color: #2a6b60; box-shadow: inset 0 0 0 2px #4a9b8f; }
++.p2-fill-opt:disabled { opacity: .4; cursor: default; }
+diff --git a/src/topics/renderers/propis/PrintPageView.jsx b/src/topics/renderers/propis/PrintPageView.jsx
+index d65714f..1d8c299 100644
+--- a/src/topics/renderers/propis/PrintPageView.jsx
++++ b/src/topics/renderers/propis/PrintPageView.jsx
+@@ -393,7 +393,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
+ // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
+ const PAGE_NUMBER_R_MM = 2.6;
+ const PAGE_NUMBER_INSET_MM = 6.5;
+-function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, onDropRemove = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
++function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, onDropRemove = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, bandFill = null, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+   const geom = geomOf(format);
+   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
+   const PAGE_W_UNITS = geom.w;
+@@ -528,6 +528,15 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
+         const ks = Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i);
+         return (
+           <g data-narrow-grid="1">
++            {/* the colour of the narrow row's band (propis2 «Заливка»): under the slants, the lines and the ink; `where` "write": only the
++                rows with no ink (the child writes there), "all": every row */}
++            {bandFill && !plain && (() => {
++              const inked = new Set(page.filter((p) => p.segments?.length).map((p) => contentRow(p.rowIndex)));
++              return ROW_INDICES.slice(rowOff).filter((row) => (onlyRow === null || row === onlyRow) && (bandFill.where === "all" || !inked.has(row))).map((row) => {
++                const bottom = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL;
++                return <rect key={`fill${row}`} x={0} y={bottom - NARROW_BAND_H} width={PAGE_W_UNITS} height={NARROW_BAND_H} fill={bandFill.color} data-band-fill={row} />;
++              });
++            })()}
+             {!simpleStep && ks.map((k) => (
+               <line key={k} x1={narrowLineX(k, 0)} y1={0} x2={narrowLineX(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
+             ))}
+@@ -1025,7 +1034,7 @@ function layoutTaskPages(task) {
+       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
+       : layoutTextIntoRows(lines.join("\n"), lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel);
+   const pages = paginateRows(layout, wideRows ? perPage : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages), minPages: Number(task?.minPages) || 0 });
+-  return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, noSlant: Boolean(task?.noSlant), midDash: task?.midDash !== false };
++  return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, noSlant: Boolean(task?.noSlant), midDash: task?.midDash !== false, bandFill: task?.bandFill ?? null };
+ }
+ 
+ // The top rows of a page of a task (the first one by default), as printed (its own paper): the window on a notebook on its cover;
+@@ -1042,7 +1051,7 @@ export function PrintPageTop({ task, rows = 5, page = 0 }) {
+   const h = Math.min(doc.geom.h, doc.geom.h * ((rows + 0.6) / Math.max(1, doc.perPage)));
+   return (
+     <PrintPage page={doc.pages[page] ?? []} pageIndex={page} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}
+-      simpleGrid={doc.simpleGrid} noSlant={doc.noSlant} midDash={doc.midDash} margin={doc.margin} format={doc.geom.format} narrow17={doc.narrow17} ownRows={doc.ownRows} />
++      simpleGrid={doc.simpleGrid} noSlant={doc.noSlant} midDash={doc.midDash} bandFill={doc.bandFill} margin={doc.margin} format={doc.geom.format} narrow17={doc.narrow17} ownRows={doc.ownRows} />
+   );
+ }
+ 
+@@ -1138,7 +1147,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
+               onToggleActive={focus ? () => {} : null}
+               crop={focusCrop}
+               speedFactor={speedFactor}
+-              simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
++              simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} bandFill={task?.bandFill ?? null} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
+               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
+               onSheetPoint={onSheetPoint ? (p) => onSheetPoint({ ...p, row: p.row < 0 ? -1 : shownIndex * perPage + p.row }) : null}
+               onDropRemove={onDropRemove ? (row) => onDropRemove(shownIndex * perPage + row) : null}
+@@ -1182,7 +1191,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
+                   useElements={useElements}
+                   wideRows={wideRows}
+                   narrowRows={narrowRows}
+-                  simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
++                  simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} bandFill={task?.bandFill ?? null} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
+                 />
+               </div>
+               {isZoomed && (
+@@ -1260,7 +1269,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
+                         // a padding page is ruled like the last page of the notebook, and numbered on
+                         const { page = [], part } = printPages[pi] ?? { part: printPages[printPages.length - 1]?.part ?? own };
+                         // the slot (0 left, 1 right) is the page's side in the open notebook: margin, page number and mark follow it
+-                        return <PrintPage key={slot} page={page} pageIndex={slot} gridIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
++                        return <PrintPage key={slot} page={page} pageIndex={slot} gridIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} bandFill={part.bandFill} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
+                       })}
+                       <StapleMarks />
+                     </div>
+@@ -1272,13 +1281,13 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
+                         const pi = sheetIndex * 2 + slot;
+                         // the empty right half of the last sheet (an odd number of pages) is ruled like the page beside it
+                         const { page = [], part } = printPages[pi] ?? { part: printPages[pi - 1]?.part ?? own };
+-                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
++                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} bandFill={part.bandFill} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />;
+                       })}
+                     </div>
+                   ))
+                   : printPages.map(({ page, part }, pi) => (
+                     <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
+-                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />
++                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} noSlant={part.noSlant} midDash={part.midDash} bandFill={part.bandFill} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} ownRows={part.ownRows} />
+                     </div>
+                   ))}
+               </div>,
+diff --git a/src/topics/renderers/propis2/model.js b/src/topics/renderers/propis2/model.js
+index 2652d4e..592db7c 100644
+--- a/src/topics/renderers/propis2/model.js
++++ b/src/topics/renderers/propis2/model.js
+@@ -67,6 +67,18 @@ export const taskGrid = (page) => {
+ export const pageNoSlant = (page) => page?.grid === "none";
+ // The middle dash: on the copybook paper in the middles of the rows (on by default, `midDash`); on the Bulgarian paper only in the
+ // middle of the x-height band, off by default and kept apart (`bgDash`, owner 2026-10-25), so a notebook's two papers don't share it.
++// «Заливка» (prototype, 2026-11-01): the band of the narrow row tinted, on the copybook paper only. `where`: "write" = the rows the
++// child writes in (no ink), "all" = every row. Pale tones that keep the blue ink and the red start dots readable; no blue (the ink).
++export const BAND_FILLS = [
++  { id: "none", label: "Без заливки", color: null },
++  { id: "yellow", label: "Жёлтая", color: "#fff1b8" },
++  { id: "green", label: "Зелёная", color: "#ddf1d8" },
++  { id: "pink", label: "Розовая", color: "#fbdde8" },
++];
++export const pageBandFill = (page) => {
++  const f = BAND_FILLS.find((x) => x.id === page?.bandFill?.id);
++  return f?.color && pageGridKind(page) === "propis" && page?.ruling !== "wide" ? { color: f.color, where: page.bandFill.where === "all" ? "all" : "write" } : null;
++};
+ export const pageMidDash = (page) => (pageGridKind(page) === "bg" ? Boolean(page?.bgDash) : page?.midDash !== false);
+ 
+ export const ROW_KINDS = [
+diff --git a/src/topics/renderers/propis2/pageTask.js b/src/topics/renderers/propis2/pageTask.js
+index bbcbf30..92f83a8 100644
+--- a/src/topics/renderers/propis2/pageTask.js
++++ b/src/topics/renderers/propis2/pageTask.js
+@@ -23,7 +23,7 @@ export function listElementChoices(topicRecord) {
+ // The task object PrintPageView renders (same shape propis/engine.js builds for "read_lines").
+ // Wide-row layout only needs the wide glyph bank from the installed deck, no captured-letter cards.
+ // `minPages`: how many pages the task has at least (a notebook's pages, blank ones included: trailing blank rows are dropped below).
+-export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false }) {
++export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false, bandFill = null }) {
+   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
+   const clean = (lines ?? []).map((l) => String(l).trim());
+   if (grid === "square" || grid === "ruled" || grid === "bg") narrowRows = true; // squared / ruled / Bulgarian paper: its own rows (PrintPageView), letters and digits at the narrow size
+@@ -47,6 +47,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
+     // slants are left out (`noSlant`), the rest of that ruling stays
+     noSlant: grid === "none" || Boolean(noSlant),
+     midDash: midDash !== false,
++    bandFill: bandFill?.color ? bandFill : null,
+     format: format === "a4" ? "a4" : "a5",
+     margin: margin === "left" || margin === "right" ? margin : "off",
+     narrowRows,
