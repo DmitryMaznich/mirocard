@@ -74,16 +74,18 @@ export function rowIdAtCaret(rows, startId, value, caret) {
 // Text pasted into the field (Ctrl+V, the «Вставить» button), from a document, a web page, a messenger: what it carries that
 // the copybook has no use for is taken out, so the paste lands as rows the way typed text does. Line breaks of any kind -> Enter;
 // tabs and the wide / non-breaking spaces -> a space; soft hyphens and zero-width marks dropped (unseen, they'd break a word into
-// «нет начертания»); «…» -> «...» (the hand has the dot); a line's indent and trailing spaces dropped (a leading space moves the
+// «нет начертания»); «…» -> «...» (the hand has the dot); the typographic hyphens -> «-» (a carried-over word «ра-», «кое-что»); a line's indent and trailing spaces dropped (a leading space moves the
 // text right on its row, a trailing one makes a word running text), runs of spaces -> one; blank lines between paragraphs kept
 // as ONE empty row, none at the start or the end. `singleLine`: a closed page edits one row, the lines are joined by a space.
-// Letters with no shape in the hand (quotes, dashes, Latin) are kept: the sheet flags them, the adult decides.
+// Letters with no shape in the hand (quotes, dashes, Latin) are kept: a red box stands in their place on the sheet, the adult decides.
+// Hard line breaks inside a sentence (a PDF) are kept too: the adult joins the lines or keeps them.
 export function cleanPastedText(text, { singleLine = false } = {}) {
   const lines = String(text ?? "")
     .replace(/\r\n?|[\u2028\u2029\v\f\u0085]/g, "\n")
     .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, "")
     .replace(/[\t\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, " ")
     .replace(/\u2026/g, "...")
+    .replace(/[\u2010\u2011]/g, "-")
     .split("\n")
     .map((l) => l.replace(/ {2,}/g, " ").trim());
   if (singleLine) return lines.filter(Boolean).join(" ");

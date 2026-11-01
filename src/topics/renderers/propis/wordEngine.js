@@ -1084,6 +1084,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const WIDE_AFTER_SIGN_GAP = 14; // a letter after a sign inside the word («кое-что»): its lead-in must not read as joined to the hyphen
 const GROW_JOIN_MIN = 0.6, GROW_JOIN_MAX = 42; // growJoins: a gap in this range (row units, before the row scale) is closed by a straight piece
 const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
 const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
@@ -1519,6 +1520,10 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
 // Glyph labels a token spells: "a+b" joins whole labels (needed for long element ids); a plain
 // label is one glyph; anything else is read as letters, greedy longest-match so a multi-char
 // label ("г1") still wins over its first character. Unknown characters are skipped.
+// A character with no shape in the hand is dropped from the row — unless the bank has this glyph (`propis2`: a red box, see
+// propis2/glyphOverrides.js missingGlyph): it then stands in the character's place, so the adult sees on the sheet WHERE it is.
+// The label can't be typed (longer than the 4 characters the lookup tries).
+export const MISSING_GLYPH_LABEL = "¤missing";
 export function wideTokenToLabels(token, glyphsByLabel) {
   const flat = (labels) => labels.flatMap((l) => glyphsByLabel.get(l)?.compose ?? [l]);
   return flat(wideTokenToLabelsRaw(token, glyphsByLabel));
@@ -1535,7 +1540,7 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
       const cand = token.slice(i, i + len);
       if (glyphsByLabel.has(cand)) { hit = cand; break; }
     }
-    if (hit) { out.push(hit); i += hit.length; } else i += 1;
+    if (hit) { out.push(hit); i += hit.length; } else { if (glyphsByLabel.has(MISSING_GLYPH_LABEL)) out.push(MISSING_GLYPH_LABEL); i += 1; }
   }
   return out;
 }
@@ -1756,6 +1761,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
       let afterNoExit = false;
+      // the previous glyph is a sign (`noJoin`) INSIDE the token («кое-что», a red «нет начертания» box, «к@т»): the next letter stands
+      // after its ink with the small gap of a sign, not where a new token would start (it was drawn over the start of the word)
+      let afterSign = false;
       let prevGlyphStrokes = null; // the last glyph's strokes as placed (meta.script.exactJoins: the gap after a noExit capital)
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
@@ -1786,11 +1794,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           curNoAlign = pendingNoAlign;
           pendingTail = null;
         }
-        const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
+        const loose = (Boolean(glyph.noJoin) || afterNoExit || afterSign) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = loose
-          ? cursorX + WIDE_PUNCT_GAP * scale - local.minX + local.start[0]
+          ? cursorX + (afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx
           : prevToken
@@ -1906,7 +1914,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           else { tokenPhase = 0; tokenPhase = startX - snapStart(startX); } // no drawn lines: exactly two cells, and the rest of the word is joined on the lattice shifted by that
         }
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.missing ? { missing: true } : {}), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
         if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
@@ -2003,6 +2011,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
         afterNoExit = Boolean(glyph.noExit);
+        afterSign = Boolean(glyph.noJoin);
         prevGlyphStrokes = moved;
         pendingTouchX = null;
         if (local.tail) {

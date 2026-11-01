@@ -272,3 +272,27 @@ describe("the dots over ё stand further right; the dots of . , ! ? are 1.5 time
     }
   });
 });
+
+describe("the hyphen and the red box of a character with no shape (owner, 2026-11-01)", () => {
+  const map = buildGlyphMap({ wide });
+  const lay = (text) => layoutWideLinesIntoRows([text], map, undefined, true, 0.5).placed[0].segments.flatMap((sg) => sg.strokes ?? []);
+  const inkMaxX = (strokes) => Math.max(...strokes.flatMap((s) => pts(s.d).filter((_, i) => i % 2 === 0)));
+
+  it("«ра-», «кое-что»: the hyphen is written (the minus stroke), not flagged", async () => {
+    const { findUnsupported } = await import("./model.js");
+    expect(findUnsupported("ра- кое-что", map)).toEqual([]);
+    expect(lay("ра-").some((s) => s.missing)).toBe(false);
+    expect(lay("ра-").length).toBeGreaterThan(lay("ра").length);
+  });
+
+  it("a character the hand lacks is a red box in its place, flagged; the letters after it stand after the box", async () => {
+    const { findUnsupported } = await import("./model.js");
+    expect(findUnsupported("к@т «да»", map)).toEqual(["@", "«", "»"]);
+    const strokes = lay("к@т").filter((s) => !s.dashed); // the sample, not its copies along the row
+    const box = strokes.filter((s) => s.missing);
+    expect(box).toHaveLength(1);
+    // «т» is drawn right of the box, not over the start of the word
+    const t = strokes.slice(strokes.indexOf(box[0]) + 1);
+    expect(Math.min(...t.flatMap((s) => pts(s.d).filter((_, i) => i % 2 === 0)))).toBeGreaterThan(inkMaxX(box) - 1);
+  });
+});

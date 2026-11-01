@@ -12,6 +12,7 @@
 //                letter is a stroke of its own from the LOWEST point of that stroke: the curve of `joinLike` (о), its end on the grid point where the exit of
 //                `joinEndLike` (Ч: the same start as У) arrives (the mid dashed line x the next slant line, the same for every connector)
 import DIGIT_GLYPHS from "./digitGlyphs.json";
+import { MISSING_GLYPH_LABEL } from "../propis/wordEngine.js";
 
 export const P2_GLYPH_OVERRIDES = {
   // steepExit: the connector runs a little along the bottom and then rises STRAIGHT at the angle of а's exit, into the same end point
@@ -376,10 +377,21 @@ export function yerLoop(soft) {
   return { ...rest, label: "ы1", sourceLabel: "ы1: левая часть «ы» по школьной прописи и траектории владельца (овал, петля у стойки, соединение к верху правой стойки)", tailSplit: 0, tailSplitCount: 1, tailLift: false, noLiftExit: true, strokes: [{ ...soft.strokes[0], d }] };
 }
 
+// Two glyphs of the constructor's own, not from a captured hand (2026-11-01, owner):
+//  - «-», the hyphen (a word carried over to the next line, «кое-что»): the stroke of the minus of the digits (digitGlyphs.json «№-»),
+//    at the middle of the lowercase letters (between the middle line y=10 and the base line y=62), standing after the word like a sign;
+//  - the red box in the place of a character the hand has no shape for (wordEngine.js MISSING_GLYPH_LABEL): a slanted box the size of
+//    a lowercase letter; the row is flagged «нет начертания» under the page too.
+const MINUS = DIGIT_GLYPHS.find((g) => g.label === "№-");
+const minusLen = MINUS ? (() => { const n = MINUS.strokes[0].d.match(/-?\d*\.?\d+/g).map(Number); return Math.abs(n[2] - n[0]); })() : 36;
+const HYPHEN_GLYPH = { label: "-", kind: "punct", stretch: 1, noNormalize: true, noJoin: true, sourceLabel: "дефис: штрих минуса («№-») на середине строчных букв", strokes: [{ d: `M 10 36 L ${(10 + minusLen * 0.6).toFixed(2)} 36` }] };
+const MISSING_GLYPH = { label: MISSING_GLYPH_LABEL, kind: "punct", stretch: 1, noNormalize: true, noJoin: true, missing: true, sourceLabel: "нет начертания: красная рамка на месте символа", strokes: [{ d: "M 2 62 L 30 62 L 54.2 10 L 26.2 10 L 2 62" }] };
+
 export const withGlyphOverrides = (glyphs) => {
   const raw = new Map((glyphs ?? []).map((g) => [g.label, g]));
   const belly = (g) => (g.bellyFrom && raw.get(g.bellyFrom.label) ? yerBelly(g, raw.get(g.bellyFrom.label), g.bellyFrom) : g);
-  const patched = [...withMarkedCapitals((glyphs ?? []).flatMap(withOverride).map(belly)), ...(glyphs?.length ? DIGIT_GLYPHS : [])];
+  const own = glyphs?.length ? [...DIGIT_GLYPHS, ...(raw.has("-") ? [] : [HYPHEN_GLYPH]), MISSING_GLYPH] : [];
+  const patched = [...withMarkedCapitals((glyphs ?? []).flatMap(withOverride).map(belly)), ...own];
   // ы = ы1 + ы2: its left part is built from the patched ь (see yerLoop)
   const loop = yerLoop(patched.find((g) => g.label === "ь"));
   if (loop) patched.push(loop);

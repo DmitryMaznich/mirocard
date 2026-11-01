@@ -13,6 +13,8 @@ import {
   PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PROPIS2_MARGIN_MM, propis2MarginUnits, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
 } from "./propisRuling.js";
+// a character the hand has no shape for (propis2: the red box wordEngine puts in its place)
+const MISSING_COLOR = "#dc2626";
 
 const PAGE_W_UNITS = mmToNativeUnits(PRINT_PAGE_W_MM);
 const CONTENT_W_UNITS = mmToNativeUnits(PRINT_CONTENT_W_MM);
@@ -320,7 +322,7 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} />
+                      <path key={ssi} d={s.d} fill="none" stroke={s.missing ? MISSING_COLOR : INK_COLOR} strokeWidth={s.width ?? 2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} data-missing={s.missing ? "1" : undefined} />
                     )
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (
