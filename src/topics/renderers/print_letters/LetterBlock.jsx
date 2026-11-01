@@ -1,5 +1,6 @@
 import LetterGlyph from "./LetterGlyph";
 import GridRow, { CELL } from "./Ruling";
+import RowContentPicker from "./RowContentPicker";
 
 const TILE_W = CELL + 14;
 const CELLS  = 8; // letters per row — fixed, real grid paper isn't stretched to fill the page width either
@@ -50,20 +51,11 @@ export default function LetterBlock({ letter, color, rows, onAddRow, onRemoveRow
               ))}
             </GridRow>
             <div className="pl-row-controls no-print" style={{ marginLeft: TILE_W + 6 }}>
-              <select
-                className="pl-row-select"
+              <RowContentPicker
                 value={row.content}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  onChangeRowContent(row.id, v === "full" || v === "blank" ? v : Number(v));
-                }}
-              >
-                <option value="full">Целиком</option>
-                {letter.strokes.map((_, i) => (
-                  <option key={i} value={i}>Элемент {i + 1}</option>
-                ))}
-                <option value="blank">Пусто</option>
-              </select>
+                strokeCount={letter.strokes.length}
+                onChange={(content) => onChangeRowContent(row.id, content)}
+              />
               <button type="button" onClick={() => onRemoveRow(row.id)} aria-label="Удалить строку">✕</button>
             </div>
           </div>
