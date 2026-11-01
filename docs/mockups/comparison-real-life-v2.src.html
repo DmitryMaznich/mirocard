@@ -36,7 +36,7 @@ p { margin: 0; max-width: 68ch; }
 .group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .enum-btn { font: inherit; font-size: .9rem; padding: 7px 12px; min-height: 40px; border: 1.5px solid var(--sheet-line); border-radius: 10px; background: color-mix(in srgb, var(--sheet-line) 30%, var(--sheet-card)); color: var(--sheet-fg); cursor: pointer; }
 .enum-btn--active { border-color: var(--sheet-accent); background: var(--sheet-accent); color: #fff; font-weight: 700; }
-.enum-btn:focus-visible, .tool-btn:focus-visible, .pick:focus-visible, .eq:focus-visible { outline: 3px solid var(--sheet-accent); outline-offset: 2px; }
+.enum-btn:focus-visible, .tool-btn:focus-visible, .tbtn:focus-visible { outline: 3px solid var(--sheet-accent); outline-offset: 2px; }
 .param-hint { flex-basis: 100%; font-size: .82rem; color: var(--sheet-muted); }
 .tool-btn { font: inherit; font-weight: 800; font-size: 15px; border: 0; border-radius: 12px; padding: 10px 16px; cursor: pointer; background: var(--sheet-accent); color: #fff; box-shadow: 0 3px 0 #145a51; }
 .tool-btn:active { transform: translateY(3px); box-shadow: none; }
@@ -69,10 +69,9 @@ p { margin: 0; max-width: 68ch; }
 .side.ok .name { background: var(--app-green); border-color: #16a34a; color: #fff; }
 
 .btns { display: flex; gap: 8px; width: 100%; }
-.tbtn { flex: 1; min-height: 56px; border: 3px solid #e2e8f0; border-radius: 18px; background: #fff; font: inherit; font-weight: 800; font-size: 15px; color: var(--app-ink); }
-.eq { width: 74px; height: 74px; flex-shrink: 0; background: var(--app-amber-bg); border: 3px dashed var(--app-amber); border-radius: 18px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.eq.ok { border-style: solid; border-color: var(--app-green); background: #f0fdf4; }
-.eq.bad { border-style: solid; border-color: var(--app-red); animation: shake .35s; }
+.tbtn { flex: 1; min-height: 56px; border: 3px solid #e2e8f0; border-radius: 18px; background: #fff; font: inherit; font-weight: 800; font-size: 15px; color: var(--app-ink); cursor: pointer; }
+.tbtn.ok { border-color: var(--app-green); background: #dcfce7; }
+.tbtn.bad { border-color: var(--app-red); animation: shake .35s; }
 .verdict { min-height: 2.6em; font-size: clamp(19px, 5.6cqw, 26px); font-weight: 800; color: var(--app-verdict); text-align: center; text-wrap: balance; }
 .tapnext { font-size: 13px; font-weight: 700; color: #94a3b8; }
 
@@ -106,13 +105,13 @@ p { margin: 0; max-width: 68ch; }
 <div class="wrap">
   <header>
     <div class="eyebrow">Сравнение · режим 8 «Сравни в жизни» · макет</div>
-    <h1>Сравни в жизни: ответ на картинке и «Хватит ли?»</h1>
-    <p class="lead">Две части. Первая — быстрые правки на нынешних картинках: ребёнок отвечает нажатием на персонажа, без чтения. Вторая — новый тип сюжета, который соберёт конструктор. По всем экранам можно нажимать.</p>
+    <h1>Сравни в жизни: зеркало, фраза и «Хватит ли?»</h1>
+    <p class="lead">Две части. Первая — быстрые правки на нынешних картинках: зеркальные показы и ступеньки фразы, ответ по-прежнему кнопками с текстом. Вторая — новый тип сюжета, который соберёт конструктор. По всем экранам можно нажимать.</p>
   </header>
 
   <section aria-labelledby="h1s">
-    <h2 id="h1s">1. Ответ нажатием на персонажа</h2>
-    <p class="sec-lead">Сейчас ответить можно только кнопками «У Пети» / «Поровну» / «У Маши», и для этого надо читать. В предложении ребёнок нажимает на самого Петю или Машу на картинке, а «поровну» — это ваш жёлтый квадрат, как в режиме 1.</p>
+    <h2 id="h1s">1. Зеркало и ступеньки фразы</h2>
+    <p class="sec-lead">Экран и кнопки «У Пети» / «Поровну» / «У Маши» остаются как есть: к этой ступени ребёнок читает. Меняется то, что показывается: половина показов зеркальная, а фраза после ответа идёт ступеньками.</p>
     <div class="params">
       <div class="param-row"><div class="param-label">Сюжет</div><div class="group" id="o-scene"></div></div>
       <div class="param-row"><div class="param-label">Зеркально</div><div class="group" id="o-mirror"></div>
@@ -139,7 +138,7 @@ p { margin: 0; max-width: 68ch; }
     <div class="panel">
       <h2>Как это работает</h2>
       <ul>
-        <li><strong>Ответ на картинке.</strong> Нажатие на левую или правую половину картинки — это ответ про того, кто там нарисован. Имена остаются подписями, но читать их не обязательно. Неверно — половина трясётся с красной рамкой, как сейчас.</li>
+        <li><strong>Ответ — кнопками с текстом, как сейчас.</strong> К этой ступени ребёнок читает, поэтому экран под нечитающих не перестраиваем.</li>
         <li><strong>Зеркало.</strong> Картинка отражается, а числа и имена меняются местами в данных. Перерисовывать ничего не надо.</li>
         <li><strong>«Хватит ли?», сначала проверка.</strong> Ребёнок нажимает на предметы, и каждый встаёт к своему персонажу. Кому не хватило — тот подсвечивается, лишний предмет тоже. Потом фраза: «Стульев не хватит».</li>
         <li><strong>«Хватит ли?», сначала ответ.</strong> Труднее: ребёнок сначала отвечает «хватит» или «не хватит» на глаз, потом проверяет, расставляя предметы. Неверный ответ не штрафуется до проверки: проверка сама покажет.</li>
@@ -149,7 +148,6 @@ p { margin: 0; max-width: 68ch; }
     <div class="panel panel--q">
       <h2>Нужно ваше решение</h2>
       <ol>
-        <li><strong>Жёлтый квадрат «поровну» под картинкой</strong>, как в макете, подходит? И убираем ли совсем кнопки с текстом «У Пети / У Маши»?</li>
         <li><strong>Фраза по умолчанию:</strong> короткая, с предметом или полная?</li>
         <li><strong>«Хватит ли?»:</strong> оба порядка как две ступени (сначала проверка, потом ответ), или только один?</li>
         <li><strong>Набор бытовых пар</strong> для заготовок: дети и стулья, чашки и блюдца, собаки и косточки. Что добавить? Я бы взял ещё дети и шапки, куклы и кроватки, тарелки и ложки.</li>
@@ -198,20 +196,11 @@ p { margin: 0; max-width: 68ch; }
     const wall = document.getElementById("wall1"); wall.innerHTML = "";
     const img = `<img src="${IMAGES[s.img]}" alt="" class="${st.mirror ? "mirror" : ""}">`;
 
-    const old = document.createElement("article"); old.className = "shot";
-    old.innerHTML = `<div class="tag">было</div><h3>Ответ кнопками с текстом</h3><p>Чтобы ответить, надо прочитать «У Пети» и найти Петю на картинке.</p>` + frame(`
-      <div class="instr">У кого больше ${s.item}?</div>
-      <div class="scene">${img}<div class="overlay"><div class="side"><span class="name">${s.A[0]}</span></div><div class="side"><span class="name">${s.B[0]}</span></div></div></div>
-      <div class="btns"><button class="tbtn" type="button">У ${s.A[1]}</button><button class="tbtn" type="button">Поровну</button><button class="tbtn" type="button">У ${s.B[1]}</button></div>`);
-    wall.append(old);
-
     const nw = document.createElement("article"); nw.className = "shot";
-    nw.innerHTML = `<div class="tag">предложение</div><h3>Нажми на того, у кого больше</h3><p>Нажмите на Петю, на Машу или на жёлтый квадрат.</p>` + frame(`
-      <div class="instr">У кого больше ${s.item}?<div class="instr-hint">Если поровну — нажми на жёлтый квадрат</div></div>
-      <div class="scene">${img}<div class="overlay">
-        <button type="button" class="side pick" data-v="a" aria-label="${s.A[0]}"><span class="name">${s.A[0]}</span></button>
-        <button type="button" class="side pick" data-v="b" aria-label="${s.B[0]}"><span class="name">${s.B[0]}</span></button></div></div>
-      <button type="button" class="eq" data-v="eq" aria-label="Поровну"></button>
+    nw.innerHTML = `<div class="tag">${st.mirror ? "зеркальный показ" : "обычный показ"}</div><h3>Ответ кнопками, как сейчас</h3><p>Нажмите на кнопку: после верного ответа появится фраза выбранной ступеньки.</p>` + frame(`
+      <div class="instr">У кого больше ${s.item}?</div>
+      <div class="scene">${img}<div class="overlay"><div class="side" data-side="a"><span class="name">${s.A[0]}</span></div><div class="side" data-side="b"><span class="name">${s.B[0]}</span></div></div></div>
+      <div class="btns"><button class="tbtn" type="button" data-v="a">У ${s.A[1]}</button><button class="tbtn" type="button" data-v="eq">Поровну</button><button class="tbtn" type="button" data-v="b">У ${s.B[1]}</button></div>
       <div class="verdict"></div><div class="tapnext"></div>`);
     wall.append(nw);
     let done = false;
@@ -220,6 +209,7 @@ p { margin: 0; max-width: 68ch; }
       nw.querySelectorAll(".bad").forEach((x) => x.classList.remove("bad"));
       if (b.dataset.v === correct) {
         done = true; b.classList.add("ok");
+        nw.querySelectorAll(".side").forEach((sd) => { if (sd.dataset.side === correct) sd.classList.add("ok"); });
         nw.querySelector(".verdict").textContent = verdict(s, correct) + ".";
         nw.querySelector(".tapnext").textContent = "Нажми, чтобы дальше";
       } else { void b.offsetWidth; b.classList.add("bad"); }
@@ -260,7 +250,7 @@ p { margin: 0; max-width: 68ch; }
         <div class="row whos" style="grid-template-columns:repeat(${cols},1fr)">${Array.from({ length: who }, (_, i) => `<div class="who" data-i="${i}">${draw[set.who](i)}</div>`).join("")}</div>
         <div class="row things" style="grid-template-columns:repeat(${cols},1fr);margin-top:18px">${Array.from({ length: things }, (_, i) => `<button type="button" class="thing" data-i="${i}" aria-label="Предмет ${i + 1}">${draw[set.thing](i)}</button>`).join("")}</div>
       </div>
-      ${st.order === "answer" ? `<div class="choice"><button type="button" data-a="yes"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 21 l8 8 l16 -18" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>Хватит</button><button type="button" data-a="no"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M11 11 l18 18 M29 11 l-18 18" fill="none" stroke="#64748b" stroke-width="5" stroke-linecap="round"/></svg>Не хватит</button></div>` : ""}
+      ${st.order === "answer" ? `<div class="choice"><button type="button" data-a="yes">Хватит</button><button type="button" data-a="no">Не хватит</button></div>` : ""}
       <div class="helper"></div>
       <div class="verdict"></div>`);
     wall.append(shot);
