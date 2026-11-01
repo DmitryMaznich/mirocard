@@ -184,7 +184,7 @@ shown to one account via catalog status `individual`. Never fork `propis2` code 
 alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
 hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 
-**Языки внутри одной темы (`propis2_lang`, тестовая копия, 2026-10-31).** Русский, болгарский и казахский в одной колоде, язык выбирается у ученика, тетради помнят свой язык. Read `docs/propis2-languages.md` before continuing.
+**Языки внутри одной темы (`propis2_lang`, тестовая копия, 2026-10-31).** Русский, болгарский и казахский в одной колоде; язык — у тетради (не у ученика), у карточек — параметр режима. Read `docs/propis2-languages.md` before continuing.
 
 **Казахские прописи (`propis2_kk`), планируется (2026-10-29).** Тот же приём, что у болгарских: вариант-колода на тех же движке и рендерере, 9 особых букв (Ә Ғ Қ Ң Ө Ұ Ү Һ І). Всё, что
 узнали в сессии русских прописей (движок, соединения, пробел, стенд для картинок, правила работы с владельцем), собрано в **`docs/propis2-kk-handoff.md`: читать первым.**

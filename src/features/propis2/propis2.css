@@ -597,8 +597,6 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-letters-side-btn.is-on { border-color: #2a6b60; background: #e8f4f1; }
 
 /* ===== The writing language of a deck with several (Propis2LangPicker.jsx, docs/mockups/propis2-languages.html, 2026-10-31) */
-.propis2-lib .p2-lang-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 10px 0 12px; border-radius: 17px; border: 1.5px solid var(--p2-line); background: #fff; font: inherit; font-weight: 800; font-size: 14px; color: var(--p2-ink); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.propis2-lib .p2-lang-chip:hover { border-color: var(--p2-teal); color: var(--p2-teal-dark); }
 .propis2-lib .p2-lang-caret { font-size: 10px; color: #6b7385; }
 .p2-lang-layer { position: fixed; inset: 0; z-index: 900; }
 .p2-lang-scrim { position: absolute; inset: 0; background: rgba(20, 28, 36, .38); }
@@ -621,3 +619,25 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 /* a language's empty library: its own letters, so it is plain the language has changed */
 .propis2-lib .p2-lang-empty { text-align: center; padding: 18px 10px 4px; color: #6b7385; font-weight: 700; }
 .propis2-lib .p2-lang-empty-letters { font-size: 34px; color: #2a6b60; letter-spacing: 4px; margin-bottom: 6px; }
+/* languages per notebook (2026-11-01): the language of a new notebook next to «Новая тетрадь», the filter, the mark on a card */
+.propis2-lib .p2-lang-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.propis2-lib .p2-lang-fchip { height: 34px; padding: 0 14px; border-radius: 17px; border: 1.5px solid var(--p2-line); background: #fff; font: inherit; font-weight: 800; font-size: 14px; color: var(--p2-ink); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-lib .p2-lang-fchip.is-on { border-color: var(--p2-teal); background: var(--p2-teal-soft); color: var(--p2-teal-dark); }
+/* the notebook's language in the editor's header (a deck with several writing languages) */
+/* «Новая тетрадь» with the language inside it: one teal button, the language a light pill behind a thin divider (a split button) */
+.propis2-lib .p2-new-split { gap: 0; border-radius: 16px; box-shadow: 0 3px 0 var(--p2-teal-dark); }
+.propis2-lib .p2-new-split > .p2-tile { border-radius: 16px 0 0 16px; box-shadow: none; justify-content: flex-start; padding-left: 18px; }
+.propis2-lib .p2-new-lang-btn { flex: 0 0 auto; display: flex; align-items: center; padding: 0 12px 0 10px; border: 0; border-left: 1px solid rgba(255, 255, 255, .35); border-radius: 0 16px 16px 0; background: var(--p2-teal); color: #fff; font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-lib .p2-new-lang-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 18px; background: rgba(255, 255, 255, .2); font-weight: 800; font-size: 15px; white-space: nowrap; }
+.propis2-lib .p2-new-lang-pill .p2-lang-caret { color: rgba(255, 255, 255, .85); font-size: 11px; }
+.propis2-lib .p2-new-lang-btn:hover .p2-new-lang-pill { background: rgba(255, 255, 255, .3); }
+.propis2-lib .p2-new-split:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--p2-teal-dark); }
+/* the language of a notebook: top right corner of its card, a soft colour per language (the same in the editor's header) */
+.propis2-lib .p2-nb--lang { position: relative; }
+.propis2-lib .p2-nb--lang .p2-nb-main { padding-right: 52px; }
+.propis2-lib .p2-nb-lang { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 8px; font-size: 12px; font-weight: 900; letter-spacing: .05em; line-height: 1.2; }
+.p2-header .p2-lang-badge { flex: 0 0 auto; display: inline-flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 900; letter-spacing: .05em; white-space: nowrap; }
+.p2-lang-tone-0 { background: #e5f2ef; color: #2a6b60; }
+.p2-lang-tone-1 { background: #e6edfb; color: #1e40af; }
+.p2-lang-tone-2 { background: #fdf0d5; color: #8a5300; }
+.p2-lang-tone-3 { background: #f6e6f0; color: #8b2a6b; }

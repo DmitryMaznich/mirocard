@@ -9,6 +9,7 @@ import { topicAlphabet } from "./alphabet.js";
 import { deckPapers } from "./model.js";
 import { generateTasks } from "./engine.js";
 import { deckLanguages, languageView, pickLanguage, offeredLanguages } from "./languages.js";
+import { applyVariant } from "../../../../scripts/lib/propis2-variant.mjs";
 
 // The deck with several writing languages (scripts/build-propis2-deck.mjs --languages, docs/propis2-languages.md), installed from its
 // built ZIP through the real importer, against the decks it stands for: its Russian must be `propis2` exactly, its Bulgarian `propis2_bg`.
@@ -29,11 +30,11 @@ describe("propis2 writing languages", () => {
     expect(pickLanguage(ru, "bg")).toBeNull();
   });
 
-  it("the test deck carries Russian, Bulgarian and a Kazakh draft, for one account, without the dictation", () => {
+  it("the test deck carries Russian, Bulgarian and Kazakh, for one account, without the dictation", () => {
     expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("individual");
-    expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "draft"]]);
+    expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "ready"]]);
     expect(multi.modes.map((m) => m.type)).toEqual(["builder", "letters_recognize", "letters_case"]);
-    expect(offeredLanguages(multi).map((l) => l.id)).toEqual(["ru", "bg"]);
+    expect(offeredLanguages(multi).map((l) => l.id)).toEqual(["ru", "bg", "kk"]);
     expect(offeredLanguages(multi, true).map((l) => l.id)).toEqual(["ru", "bg", "kk"]);
     expect(pickLanguage(multi, undefined)).toBe("ru");
     expect(pickLanguage(multi, "xx")).toBe("ru");
@@ -56,18 +57,31 @@ describe("propis2 writing languages", () => {
     expect(view.kits?.map((k) => k.id)).toEqual(bg.kits?.map((k) => k.id));
   });
 
-  it("its Kazakh has its own letters; a letter not drawn yet is left out of the cards, not shown empty", () => {
+  it("its Kazakh is the Kazakh variant (tools/propis2/variants/kk/variant.json) exactly: 42 letters, its writing, the same pages", async () => {
+    // the variant deck as build-propis2-deck.mjs --variant kk makes it, over the installed `propis2` (the same base)
+    const v = JSON.parse(await readFile("tools/propis2/variants/kk/variant.json", "utf-8"));
+    const kk = structuredClone({ ...ru, meta: { ...ru.meta }, modes: ru.modes });
+    applyVariant(kk, v);
     const view = languageView(multi, "kk");
-    const map = buildGlyphMap(view);
-    const lower = topicAlphabet(view, map).lower.join("");
-    for (const ch of "әғқңөұү") expect(lower).toContain(ch);
-    expect(lower).not.toContain("һ"); // not drawn yet (2026-10-31)
-    expect(view.meta.script).toEqual({ growJoins: true });
+    const lower = topicAlphabet(view, buildGlyphMap(view)).lower.join("");
+    expect(lower).toBe("аәбвгғдеёжзийкқлмнңоөпрстуұүфхһцчшщъыіьэюя");
+    expect(topicAlphabet(view, buildGlyphMap(view)).noCapital).toEqual(new Set(["ь"])); // Ы has its capital (Ыстық)
+    expect(view.meta.script).toEqual(v.meta.script);
     expect(view.meta.methodology).toBe(false);
-    expect(page(view, ["қала үй әке"], "regular")).toContain("<path");
+    const lines = ["қала үй әке өнер", "Ғалым Ұлт Үй Һәм Ізет", "Ыстық шырын, ъ, ь", "ғ ө ұ ү қ ң ә һ і"];
+    for (const grid of ["regular", "dense", "square", "ruled"]) expect(page(view, lines, grid)).toBe(page(kk, lines, grid));
   });
 
-  it("the letter cards are made in the student's language and say which", () => {
+  it("the letter cards take the language from the mode's own settings, Russian by default", () => {
+    for (const m of multi.modes.filter((x) => x.type !== "builder")) {
+      expect(m.params.writingLang).toMatchObject({ type: "enum", values: ["ru", "bg", "kk"], default: "ru" });
+      expect(m.params.writingLang.labels.ru.kk).toBe("Қазақша");
+    }
+    // Kazakh words start with Ы (Ыстық): its capital is expected, it shows up once it is drawn
+    expect(deckLanguages(multi).find((l) => l.id === "kk").alphabet.noCapital).toEqual(["ь"]);
+  });
+
+  it("the letter cards are made in the chosen language and say which", () => {
     const mode = multi.modes.find((m) => m.type === "letters_recognize");
     const tasks = generateTasks(mode, multi, 10, { writingLang: "bg" });
     expect(tasks.length).toBeGreaterThan(0);

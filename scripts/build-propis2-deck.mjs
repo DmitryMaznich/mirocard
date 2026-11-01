@@ -80,6 +80,21 @@ if (langSpec) {
     console.log(`  ${lang.id} ${lang.title} (${lang.status}): ${lang.glyphs?.length ?? 0} own glyphs${missing.length ? `, no letter yet: ${missing.join(" ")}` : ""}`);
     return lang;
   });
+  // the letter cards are made in the language chosen in the mode's settings (`writingLang`, read by propis2/engine.js), not in the
+  // student's: one «student» may be a whole class, and a child may write in two languages
+  for (const m of topic.modes) {
+    if (!["letters_recognize", "letters_case"].includes(m.type)) continue;
+    m.params = {
+      writingLang: {
+        type: "enum",
+        label: { ru: "Язык" },
+        values: topic.languages.map((l) => l.id),
+        labels: { ru: Object.fromEntries(topic.languages.map((l) => [l.id, l.title])) },
+        default: topic.languages[0].id,
+      },
+      ...(m.params ?? {}),
+    };
+  }
 }
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
