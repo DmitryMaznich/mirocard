@@ -51,7 +51,7 @@ def stem_x_between(d, y):
     return x0 + (x1 - x0) * (y - y0) / (y1 - y0)
 
 
-def g_bar_lower(y=36.0, length=25.5):
+def g_bar_lower(y=36.0, length=12.75):
     """ғ: г (г1, one stroke with its own entry and exit) + a crossbar through the middle of the stem.
     The bar is written last, so exitStroke keeps the exit (the connector to the next letter) on stroke 0."""
     g = BANK["г1"]; s = g["strokes"]
