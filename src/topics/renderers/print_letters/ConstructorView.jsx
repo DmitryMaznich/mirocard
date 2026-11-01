@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import LetterBlock from "./LetterBlock";
+import LetterPickerButton from "./LetterPickerButton";
 
-const FAMILY_TITLES = { straight: "Прямые линии" };
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
 
 let uid = 1;
@@ -16,6 +16,10 @@ function defaultRows(letter) {
   return rows.map((r) => ({ id: nextId(), ...r }));
 }
 
+// Same architecture as the propis2 constructor: the canvas (the notebook) is
+// the main view, a narrow tool strip sits above it, and picking a letter is
+// a popup from a toolbar button rather than a permanent grid taking up its
+// own panel.
 export default function ConstructorView({ task, onAdvance }) {
   const letters = task?.letters ?? [];
   const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
@@ -29,17 +33,16 @@ export default function ConstructorView({ task, onAdvance }) {
     return Array.from(map.entries());
   }, [letters]);
 
-  const [activeLetterId, setActiveLetterId] = useState(letters[0]?.id ?? null);
   const [blocks, setBlocks] = useState([]); // { id, letterId, color, rows: [{ id, content }] }
 
-  function addBlock() {
-    const letter = byId[activeLetterId];
+  function addBlock(letterId) {
+    const letter = byId[letterId];
     if (!letter) return;
     setBlocks((prev) => [
       ...prev,
       {
         id: nextId(),
-        letterId: activeLetterId,
+        letterId,
         color: PALETTE[prev.length % PALETTE.length],
         rows: defaultRows(letter),
       },
@@ -66,40 +69,23 @@ export default function ConstructorView({ task, onAdvance }) {
 
   return (
     <div className="pl-constructor">
-      <div className="pl-builder">
-        <div className="pl-builder-section">
-          <div className="pl-builder-label">Буква для нового блока</div>
-          {families.map(([famId, famLetters]) => (
-            <div key={famId} className="pl-family-group">
-              <div className="pl-family-title">{FAMILY_TITLES[famId] ?? famId}</div>
-              <div className="pl-letter-tiles">
-                {famLetters.map((l) => (
-                  <button
-                    key={l.id}
-                    type="button"
-                    className={`pl-letter-tile${l.id === activeLetterId ? " pl-letter-tile--active" : ""}`}
-                    onClick={() => setActiveLetterId(l.id)}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button type="button" className="pl-btn pl-btn--add" onClick={addBlock} disabled={!activeLetterId}>
-          + Добавить блок буквы
-        </button>
+      <div className="pl-toolbar no-print">
+        <LetterPickerButton families={families} onPick={addBlock} />
         {blocks.length > 0 && (
-          <button type="button" className="pl-btn pl-btn--print" onClick={printNotebook}>🖨 Печать</button>
+          <button type="button" className="pl-tool" onClick={printNotebook}>
+            <span className="pl-tool-ico" aria-hidden="true">🖨</span>
+            <span className="pl-tool-cap">Печать</span>
+          </button>
         )}
-        <button type="button" className="pl-btn pl-btn--done" onClick={onAdvance}>Завершить занятие</button>
+        <button type="button" className="pl-tool pl-tool--muted" onClick={onAdvance}>
+          <span className="pl-tool-ico" aria-hidden="true">✕</span>
+          <span className="pl-tool-cap">Завершить</span>
+        </button>
       </div>
 
-      <div className="pl-preview">
+      <div className="pl-canvas">
         {blocks.length === 0 && (
-          <div className="pl-preview-empty">Выберите букву и нажмите «Добавить блок буквы» — дальше в каждом блоке можно добавлять и убирать строки</div>
+          <div className="pl-preview-empty">Нажмите «+ Буква» — появится блок; в нём можно добавлять и настраивать строки</div>
         )}
         <div className="pl-notebook">
           {blocks.map((b) => (

@@ -1,43 +1,73 @@
 .pl-constructor {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 12px;
+  height: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
 
-.pl-builder {
+/* Narrow tool strip above the canvas — propis2's layout, not a side panel
+   that permanently shows every option. Not pinned to a screen edge (it
+   scrolls with the canvas below it), so it needs no iOS safe-area inset. */
+.pl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+
+.pl-tool {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  align-items: center;
+  gap: 1px;
+  min-width: 56px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #1e293b;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.pl-tool-ico { font-size: 15px; line-height: 1; }
+.pl-tool-cap { font-size: 10px; font-weight: 600; }
+
+.pl-tool.is-open,
+.pl-tool:hover { border-color: #1d4ed8; }
+
+.pl-tool--muted { margin-left: auto; color: #64748b; }
+
+.pl-pick { position: relative; }
+
+.pl-letters-panel {
+  background: white;
+  border: 1px solid #d8e2ea;
   border-radius: 12px;
-  padding: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  padding: 10px;
+  z-index: 50;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
-.pl-builder-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 4px;
-}
-
-.pl-family-title {
-  font-size: 12px;
+.pl-el-group {
+  font-size: 11px;
   color: #64748b;
   margin: 4px 0 6px;
 }
 
-.pl-letter-tiles,
-.pl-pagetype-tiles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.pl-letters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
 }
 
-.pl-letter-tile {
+.pl-letters-cell {
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -46,32 +76,18 @@
   font-size: 20px;
   font-weight: 700;
   color: #1e293b;
-}
-
-.pl-letter-tile--active {
-  background: #1d4ed8;
-  color: white;
-  border-color: #1d4ed8;
-}
-
-.pl-btn {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
 }
 
-.pl-btn--add    { background: #1d4ed8; color: white; }
-.pl-btn--print  { background: #0f766e; color: white; }
-.pl-btn--done   { background: #e2e8f0; color: #1e293b; }
-.pl-btn:disabled { opacity: 0.5; cursor: default; }
+.pl-letters-cell:hover { border-color: #1d4ed8; }
 
-.pl-preview {
+.pl-canvas {
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 16px 12px;
   gap: 20px;
 }
 
@@ -189,13 +205,13 @@
 }
 
 @media print {
-  .pl-builder,
+  .pl-toolbar,
   .pl-preview-empty,
   .no-print { display: none !important; }
 
-  .pl-constructor { max-width: none; padding: 0; }
+  .pl-constructor { max-width: none; height: auto; }
 
-  .pl-preview { gap: 0; }
+  .pl-canvas { padding: 0; gap: 0; overflow: visible; }
 
   .pl-notebook {
     max-width: none;

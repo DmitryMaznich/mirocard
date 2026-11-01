@@ -255,8 +255,12 @@ ruling with no slant guides), what's built (8 letters, "straight lines" family o
 per-letter print block — colored tile, teacher freely adds/removes rows and picks each row's
 content: whole letter / one stroke element / blank line for independent writing — several blocks
 flow continuously into a notebook, paginated by the browser's own print engine, not fixed-count
-page chunks; see the two "Разворот 2026-11-01" sections for why the first giant-glyph full-page
-version and then the auto-generated-rows version were both replaced; registered in
+page chunks; the constructor's own UI is a canvas-plus-top-toolbar, with letter choice as a popup
+from a toolbar button — deliberately mirroring `propis2`'s own editor pattern
+(`ElementPicker`/`LetterPicker` in `Propis2Field.jsx`, `usePopupPos`), copied as generic
+positioning code rather than imported from `src/features/propis2/`; see the three
+"Разворот 2026-11-01" sections for why the giant-glyph full-page version, then the
+auto-generated-rows version, then the sidebar-panel version were each replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a
