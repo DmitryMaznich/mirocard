@@ -122,6 +122,13 @@
 .compare-equal-btn--hint { background: #fef3c7; border-color: #f59e0b; }
 .compare-equal-btn--hint:hover:not(:disabled) { background: #fde68a; border-color: #d97706; }
 .compare-equal-btn--shake { animation: shake 0.35s; }
+/* Visible "=" + caption on the step-1 "same" button (it used to be an
+   empty amber square nobody could read as "equal"). */
+.compare-equal-btn--empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.compare-equal-btn__sign    { font-size: clamp(40px, 11vw, 96px); font-weight: 800; line-height: 1; color: #b45309; }
+.compare-equal-btn__caption { font-size: clamp(13px, 3vw, 22px); font-weight: 700; line-height: 1.1; color: #92400e; }
 
 .compare-sign-row--first-number { max-width: 560px; }
 .compare-side--focus { border-color: #22c55e; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); box-shadow: 0 8px 26px rgba(34,197,94,0.18); }

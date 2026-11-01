@@ -87,7 +87,7 @@ resolution.`;
 // engine.js used to keep in REAL_LIFE_SCENARIOS before this bank replaced it ─
 const SCENES = [
   {
-    id: "apples_petya_masha", item: "яблок", left: 3, right: 7,
+    id: "apples_petya_masha", item: "яблок", left: 3, right: 7, counted: [2, 7],
     nameA: "Пети", nameANom: "Петя", genderA: "boy", nameB: "Маши", nameBNom: "Маша", genderB: "girl",
     prompt: `${STYLE}
 
@@ -110,7 +110,7 @@ must be exact: 3 apples on the left, 7 apples on the right — arrange the apple
 they are individually countable, not overlapping into a blob.`,
   },
   {
-    id: "apples_lyosha_ksyusha", item: "яблок", left: 6, right: 2,
+    id: "apples_lyosha_ksyusha", item: "яблок", left: 6, right: 2, counted: [5, 2],
     nameA: "Лёши", nameANom: "Лёша", genderA: "boy", nameB: "Ксюши", nameBNom: "Ксюша", genderB: "girl",
     prompt: `${STYLE}
 
@@ -133,7 +133,7 @@ must be exact: 6 apples on the left, 2 apples on the right — arrange the apple
 they are individually countable, not overlapping into a blob.`,
   },
   {
-    id: "candies_kostya_anya", item: "конфет", left: 8, right: 3,
+    id: "candies_kostya_anya", item: "конфет", left: 8, right: 3, counted: [7, 3],
     nameA: "Кости", nameANom: "Костя", genderA: "boy", nameB: "Ани", nameBNom: "Аня", genderB: "girl",
     prompt: `${STYLE}
 
@@ -156,7 +156,7 @@ must be exact: 8 candies on the left, 3 candies on the right — arrange the can
 so they are individually countable, not overlapping into a blob.`,
   },
   {
-    id: "candies_roma_nastya", item: "конфет", left: 2, right: 6,
+    id: "candies_roma_nastya", item: "конфет", left: 2, right: 6, counted: [2, 7],
     nameA: "Ромы", nameANom: "Рома", genderA: "boy", nameB: "Насти", nameBNom: "Настя", genderB: "girl",
     prompt: `${STYLE}
 
@@ -200,7 +200,7 @@ frame. Count must be exact: 2 toy cars on the left, 5 toy cars on the right —
 arrange the cars so they are individually countable, not overlapping into a blob.`,
   },
   {
-    id: "cars_tima_vika", item: "машинок", left: 7, right: 3,
+    id: "cars_tima_vika", item: "машинок", left: 7, right: 3, counted: [8, 3],
     nameA: "Тимы", nameANom: "Тима", genderA: "boy", nameB: "Вики", nameBNom: "Вика", genderB: "girl",
     prompt: `${STYLE}
 
@@ -246,7 +246,7 @@ arrange the balloons so they are individually countable, not overlapping into a
 blob, each a different bright color.`,
   },
   {
-    id: "balloons_seva_polina", item: "шариков", left: 3, right: 8,
+    id: "balloons_seva_polina", item: "шариков", left: 3, right: 8, counted: [3, 9],
     nameA: "Севы", nameANom: "Сева", genderA: "boy", nameB: "Полины", nameBNom: "Полина", genderB: "girl",
     prompt: `${STYLE}
 
@@ -467,7 +467,7 @@ each pile so the apples are individually countable, not overlapping into a blob,
 and so the two piles visibly look the same size at a glance.`,
   },
   {
-    id: "candies_misha_yulya", item: "конфет", left: 6, right: 6,
+    id: "candies_misha_yulya", item: "конфет", left: 6, right: 6, counted: [7, 7],
     nameA: "Миши", nameANom: "Миша", genderA: "boy", nameB: "Юли", nameBNom: "Юля", genderB: "girl",
     prompt: `${STYLE}
 
@@ -652,7 +652,7 @@ placed so every one of their legs can be individually counted. Leg count must
 be exact: 2 legs on the boy, 4 legs on the dog.`,
   },
   {
-    id: "wheels_bike_car", item: "колёс", left: 2, right: 4,
+    id: "wheels_bike_car", item: "колёс", left: 2, right: 4, excluded: "the drawn car shows only 2 wheels (side view), so a child who counts sees 2 = 2",
     nameA: "велосипеда", nameANom: "Велосипед", genderA: "object",
     nameB: "машины", nameBNom: "Машина", genderB: "object",
     askKind: "what", // inanimate: "у чего", not "у кого"
@@ -728,7 +728,7 @@ one of their petals can be individually counted. Petal count must be exact: 4
 petals on the tulip, 8 petals on the daisy.`,
   },
   {
-    id: "train_cars_equal", item: "вагонов", left: 3, right: 3,
+    id: "train_cars_equal", item: "вагонов", left: 3, right: 3, counted: [2, 2],
     nameA: "жёлтого поезда", nameANom: "Жёлтый поезд", genderA: "object",
     nameB: "синего поезда", nameBNom: "Синий поезд", genderB: "object",
     // вагоны — составные части одного целого (как страницы книги), а не
@@ -790,7 +790,7 @@ every one of their floors can be individually counted. Floor count must be
 exact: 1 floor on the cottage, 5 floors on the skyscraper.`,
   },
   {
-    id: "stairs_small_tall", item: "ступенек", left: 3, right: 7,
+    id: "stairs_small_tall", item: "ступенек", left: 3, right: 7, counted: [4, 7],
     nameA: "маленькой лестницы", nameANom: "Маленькая лестница", genderA: "object",
     nameB: "большой лестницы", nameBNom: "Большая лестница", genderB: "object",
     // ступеньки — часть лестницы, на которой стоят: "на лестнице десять
@@ -818,7 +818,7 @@ every one of their steps can be individually counted. Step count must be
 exact: 3 steps on the short staircase, 7 steps on the tall staircase.`,
   },
   {
-    id: "sails_boat_ship", item: "парусов", left: 1, right: 2,
+    id: "sails_boat_ship", item: "парусов", left: 1, right: 2, counted: [2, 3],
     nameA: "лодки", nameANom: "Лодка", genderA: "object",
     nameB: "яхты", nameBNom: "Яхта", genderB: "object",
     askKind: "what", // inanimate: "у чего", not "у кого"
@@ -911,6 +911,15 @@ count must be exact: 2 wings on the bird, 4 wings on the butterfly.`,
   },
 ];
 
+// What the bank uses is what is DRAWN, not what the prompt asked for: the
+// model often draws one item more or fewer. Every image was recounted by hand
+// on 2026-11-01; `counted: [left, right]` holds the drawn count where it
+// differs from the prompt. Regenerating a scene → delete its `counted` and
+// recount the new picture. `excluded` keeps a scene out of the bank (a picture
+// whose count contradicts the answer).
+const sceneCounts = (scene) => scene.counted ?? [scene.left, scene.right];
+const BANK = SCENES.filter((s) => !s.excluded);
+
 const targets = ONLY_ID ? SCENES.filter((s) => s.id === ONLY_ID) : SCENES;
 if (!targets.length) { console.error(`No scene matches id "${ONLY_ID}"`); process.exit(1); }
 
@@ -936,7 +945,7 @@ for (const scene of targets) {
 // (missing scenes) would silently shrink the answer bank at runtime instead
 // of failing loudly, so bail out instead of writing one.
 const OUT_MODULE = path.join(ROOT, "src", "topics", "renderers", "comparison", "realLifeScenes.js");
-const missing = SCENES.filter((s) => !fs.existsSync(path.join(CACHE_DIR, `${s.id}.png`)));
+const missing = BANK.filter((s) => !fs.existsSync(path.join(CACHE_DIR, `${s.id}.png`)));
 if (missing.length) {
   console.log(`\nSkipping module write — missing PNGs for: ${missing.map((s) => s.id).join(", ")}`);
   process.exit(0);
@@ -949,14 +958,14 @@ console.log("\nBuilding realLifeScenes.js…");
 const SCENES_DIR = path.join(ROOT, "tools", "comparison", "media", "scenes");
 fs.mkdirSync(SCENES_DIR, { recursive: true });
 const scenesOut = [];
-for (const scene of SCENES) {
+for (const scene of BANK) {
   const raw = fs.readFileSync(path.join(CACHE_DIR, `${scene.id}.png`));
   // 900px-wide JPEG keeps each scene ~50-90KB (vs. several MB straight out of
   // the API) — plenty for the ~360px on-screen box.
   const jpeg = await sharp(raw).resize({ width: 900 }).jpeg({ quality: 82 }).toBuffer();
   fs.writeFileSync(path.join(SCENES_DIR, `${scene.id}.jpg`), jpeg);
   scenesOut.push({
-    id: scene.id, item: scene.item, left: scene.left, right: scene.right,
+    id: scene.id, item: scene.item, left: sceneCounts(scene)[0], right: sceneCounts(scene)[1],
     nameA: scene.nameA, nameANom: scene.nameANom, genderA: scene.genderA,
     nameB: scene.nameB, nameBNom: scene.nameBNom, genderB: scene.genderB,
     ...(scene.containerPhrase ? { containerPhrase: scene.containerPhrase } : {}),

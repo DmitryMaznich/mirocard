@@ -3,6 +3,16 @@ import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
 import { getTopicTitle } from "@/shared/utils/format";
 
+// Neutral pair: red means "mistake" everywhere else in the app (shake,
+// wrong answer), so the right-hand pile must not be red.
+const LEFT_COLOR  = "#3b82f6";
+const RIGHT_COLOR = "#f97316";
+
+function sideLabel(side, value, visualMode) {
+  const where = side === "left" ? "Слева" : "Справа";
+  return visualMode === "numbers" ? `${where} число ${value}` : `${where} точек: ${value}`;
+}
+
 // One-to-one pairing before the "where's more" judgement: the child taps
 // off dots on each side in lockstep. Once the smaller side is exhausted,
 // whatever's left unmatched on the other side is the visual proof of
@@ -51,17 +61,17 @@ function PairingStage({ left, right, onDone }) {
 
   return (
     <div className="compare-sides">
-      <button type="button" className="compare-side compare-side--dots" onClick={() => tapSide("left")}>
+      <button type="button" className="compare-side compare-side--dots" aria-label={sideLabel("left", left, "dots")} onClick={() => tapSide("left")}>
         <div className="compare-pairing-col">
           {dotClasses(left).map((cls, i) => (
-            <div key={i} className={`dot compare-pairing-dot ${cls}`} style={{ background: "#3b82f6" }} />
+            <div key={i} className={`dot compare-pairing-dot ${cls}`} style={{ background: LEFT_COLOR }} />
           ))}
         </div>
       </button>
-      <button type="button" className="compare-side compare-side--dots" onClick={() => tapSide("right")}>
+      <button type="button" className="compare-side compare-side--dots" aria-label={sideLabel("right", right, "dots")} onClick={() => tapSide("right")}>
         <div className="compare-pairing-col">
           {dotClasses(right).map((cls, i) => (
-            <div key={i} className={`dot compare-pairing-dot ${cls}`} style={{ background: "#fc8181" }} />
+            <div key={i} className={`dot compare-pairing-dot ${cls}`} style={{ background: RIGHT_COLOR }} />
           ))}
         </div>
       </button>
@@ -156,8 +166,8 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
         <PairingStage left={task.left} right={task.right} onDone={() => setPairingDone(true)} />
       ) : (
         <div className="compare-sides">
-          <button className={sideClass("left")} disabled={isAnswered} onClick={() => handleSide(true)}>
-            <SideContent value={task.left} color="#3b82f6" visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
+          <button className={sideClass("left")} disabled={isAnswered} aria-label={sideLabel("left", task.left, isNumbers ? "numbers" : "dots")} onClick={() => handleSide(true)}>
+            <SideContent value={task.left} color={LEFT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
           </button>
           {task.showEqual && (
             <button
@@ -165,11 +175,14 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
               style={{ alignSelf: "center" }}
               disabled={isAnswered}
               onClick={handleEqual}
-              aria-label="Одинаково"
-            />
+              aria-label="Поровну"
+            >
+              <span className="compare-equal-btn__sign" aria-hidden="true">=</span>
+              <span className="compare-equal-btn__caption" aria-hidden="true">поровну</span>
+            </button>
           )}
-          <button className={sideClass("right")} disabled={isAnswered} onClick={() => handleSide(false)}>
-            <SideContent value={task.right} color="#fc8181" visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
+          <button className={sideClass("right")} disabled={isAnswered} aria-label={sideLabel("right", task.right, isNumbers ? "numbers" : "dots")} onClick={() => handleSide(false)}>
+            <SideContent value={task.right} color={RIGHT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
           </button>
         </div>
       )}
