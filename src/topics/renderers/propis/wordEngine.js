@@ -1084,6 +1084,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const STEM_ARRIVE_K = 0.5, STEM_ARRIVE_DEG = 50; // growJoins before a stem: the rebuilt connector's last control point lies this share of the chord from the stem's start, back along STEM_ARRIVE_DEG (shallower than the stem's 65°)
 const OVAL_JOIN_ARRIVE_DEG = 35; // topJoins before an oval (joinLeft): the angle the exit arrives at the oval's point (the canonical connector of о ends at 35°)
 const GROW_JOIN_MIN = 0.6, GROW_JOIN_MAX = 42; // growJoins: a gap in this range (row units, before the row scale) is closed by a straight piece
 const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
@@ -2139,9 +2140,31 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               if (seen && Math.hypot(best[0] - tailEnd[0], best[1] - tailEnd[1]) < GROW_JOIN_MAX * scale) target = best;
             }
             const dist = Math.hypot(target[0] - tailEnd[0], target[1] - tailEnd[1]);
+            // (owner 2026-11-01, Бш Бц …: «соединение сначала пересекает штрих, потом идёт кверху с другой стороны»: a connector that is one cubic (M C, from under the oval) met the first stem of the next letter at the angle of the stem
+            // itself (65°) and crossed its lower hook.) Before a STEM the connector is rebuilt as one cubic that keeps its own start and arrives at the stem's start / top at STEM_ARRIVE_DEG, shallower than the stem, so it stays on the left
+            // of the stem line all the way.
+            let stemRebuilt = false;
+            {
+              const aft2 = samplePath(moved[0].d, 40).find((q) => Math.hypot(q[0] - target[0], q[1] - target[1]) > 4 * scale);
+              const dd0 = strokes[prevExitStroke].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+              if (aft2 && dd0.length === 10 && dd0[0] === "M" && dd0[3] === "C") {
+                let ux = aft2[0] - target[0], uy = aft2[1] - target[1];
+                if (uy > 0) { ux = -ux; uy = -uy; }
+                const stemDeg = (Math.atan2(-uy, ux) * 180) / Math.PI;                       // the stem's own angle (up along it), degrees from the horizontal
+                const n = dd0.map((t) => (t === "M" || t === "C" ? t : parseFloat(t)));
+                const p0 = [n[1], n[2]], c1 = [n[4], n[5]];
+                if (stemDeg > 55 && stemDeg < 85 && target[0] > p0[0] + 4 && target[1] < p0[1] - 4 * scale) {
+                  const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]), kk2 = chord * STEM_ARRIVE_K;
+                  const f3 = (v) => v.toFixed(3);
+                  const th = (STEM_ARRIVE_DEG * Math.PI) / 180;
+                  strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `M ${f3(p0[0])} ${f3(p0[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(target[0] - Math.cos(th) * kk2)} ${f3(target[1] + Math.sin(th) * kk2)} ${f3(target[0])} ${f3(target[1])}` };
+                  stemRebuilt = true;
+                }
+              }
+            }
             // (a letter that starts a little LOWER than the connector ends, л м я: it starts on the middle line; the connector comes within a hair of that start and is carried to it,
             // owner 2026-10-31: «соединение от ә идёт в начало л». A start well below the connector's end is not reached.)
-            if (dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && (target[1] <= tailEnd[1] + 1 * scale || dist < 5 * scale)) {
+            if (!stemRebuilt && dist > GROW_JOIN_MIN * scale && dist < GROW_JOIN_MAX * scale && (target[1] <= tailEnd[1] + 1 * scale || dist < 5 * scale)) {
               const f2 = (v) => v.toFixed(3);
               // a SMOOTH piece (owner 2026-10-31: «плавный изгиб вверх или по прямой», not a vertical stub): it leaves along the direction the connector was going and arrives
               // along the way the next letter goes from its start (a stem written downwards is entered from below, so the direction is turned round)
