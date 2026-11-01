@@ -50,10 +50,27 @@ describe("Сравнение — «Применяем сравнение»", () 
   });
 
   it("«Выбери число»: a wrong sign inside the hint costs nothing", () => {
-    render({ taskType: "generate", op: "more", value: 6, options: [2, 9, 6, 4] });
-    act(() => container.querySelector(".apply-hint-btn").click());
+    render({ taskType: "generate", op: "more", value: 6, options: [2, 9, 6, 4], min: 1, max: 10 });
+    const hintButton = (label) => [...container.querySelectorAll(".apply-hint-btn")].find((b) => b.textContent.includes(label));
+    act(() => hintButton("Подсказка").click());
+    act(() => hintButton("Ещё подсказка").click());
     act(() => container.querySelector(".fake-pad").click()); // «>» for 2 vs 6 is wrong
     expect(calls).toEqual({ right: 0, wrong: 0, mistake: 0 });
+  });
+
+  it("«Выбери число»: the hint is the wedge first, drawing the sign second, never both", () => {
+    render({ taskType: "generate", op: "more", value: 6, options: [2, 9, 6, 4], min: 1, max: 10 });
+    const hintButton = (label) => [...container.querySelectorAll(".apply-hint-btn")].find((b) => b.textContent.includes(label));
+    act(() => hintButton("Подсказка").click());
+    expect(container.querySelector(".apply-wedge")).not.toBeNull();
+    expect(container.querySelector(".apply-wedge-mark text").textContent).toBe("6");
+    expect(container.querySelector(".fake-pad")).toBeNull();
+    act(() => hintButton("Ещё подсказка").click());
+    expect(container.querySelector(".apply-wedge")).toBeNull();
+    expect(container.querySelectorAll(".fake-pad")).toHaveLength(4);
+    act(() => hintButton("Убрать подсказку").click());
+    expect(container.querySelector(".apply-wedge")).toBeNull();
+    expect(container.querySelector(".fake-pad")).toBeNull();
   });
 
   it("«Расставь по порядку»: a wrong drop is a mistake, the numbers in place stay", () => {

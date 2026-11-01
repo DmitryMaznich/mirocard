@@ -416,6 +416,9 @@
    "Подсказка"/"Убрать подсказку" states, even though the label itself
    still changes width when toggled either way. */
 .apply-hint-btn-icon { font-size: 0.9em; line-height: 1; }
+/* «Выбери число»: the wedge is step 1 of the hint; «Ещё подсказка» under it
+   opens step 2 (draw the sign on each tile). */
+.apply-hint-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
 /* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
    CompareDrawSign as-is (same recognizer, same visual language). Same
@@ -430,7 +433,7 @@
 .apply-hint-tile {
   position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(8px, 3cqi, 16px); padding: 0 clamp(10px, 4cqi, 18px);
+  gap: clamp(6px, 2.5cqi, 16px); padding: 0 clamp(8px, 3cqi, 18px);
   border-radius: 18px; background: #fff;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
 }
@@ -454,14 +457,17 @@
    stays under .apply-ineq-value's 52px so the reference card above reads
    as the bigger, primary number. */
 .apply-hint-tile-num {
-  font-size: clamp(20px, 20cqi, 36px); font-weight: 900; color: #1e293b;
+  /* 15cqi, not 20: two-digit numbers (level «до 99») plus the canvas must
+     fit a ~176px phone cell — at 20cqi «46 [canvas] 46» overflowed the
+     tile and ran into the next one («4671»). */
+  font-size: clamp(18px, 15cqi, 36px); font-weight: 900; color: #1e293b;
   min-width: 0; flex-shrink: 0; text-align: center; line-height: 1;
 }
 /* As big as the tile's own height allows while staying square — a canvas
    stretched to the tile's 1.5:1 shape would distort stroke geometry in
    ways recognizeSign wasn't tuned for. */
 .apply-hint-tile .draw-sign-canvas {
-  width: clamp(60px, 50cqi, 104px); height: clamp(60px, 50cqi, 104px);
+  width: clamp(60px, 42cqi, 104px); height: clamp(60px, 42cqi, 104px);
 }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
@@ -568,6 +574,9 @@
 .apply-wedge-flag line { stroke: #16a34a; stroke-width: 2; }
 .apply-wedge-flag rect { fill: #16a34a; }
 .apply-wedge-flag text { fill: #fff; font-size: 13px; font-weight: 800; }
+.apply-wedge-mark line { stroke: #1e293b; stroke-width: 3; stroke-linecap: round; }
+.apply-wedge-mark rect { fill: #1e293b; }
+.apply-wedge-mark text { fill: #fff; font-size: 13px; font-weight: 800; }
 .apply-wedge-flag { animation: apply-wedge-flag-in 0.3s ease-out; }
 @keyframes apply-wedge-flag-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .apply-wedge-flag { animation: none; } }
@@ -733,6 +742,7 @@
      tall one. */
   .apply-wedge { max-width: min(46vw, 300px); }
 
+
   /* Even with the scale trimmed above, a 5-tile order task still overflows
      a short landscape phone (~390px tall): .apply-order-slots/-tray size
      their boxes/fonts as a %-of-column via `cqi` (see slotSizeStyle in
@@ -751,6 +761,21 @@
      screen), so trim it here too rather than shrinking the grid further
      and risking tap targets. */
   .apply-hint-btn { font-size: clamp(15px, 3.2vw, 18px); padding: 4px 8px; }
+}
+
+/* «Выбери число» on a short landscape phone (667×375 and the like): the
+   portrait layout measured ~516px of content — the task card and the
+   instruction were cut off at the top even before any hint. Compact card,
+   the four tiles in one row, tighter gaps; and if the wedge still doesn't
+   fit, the screen scrolls instead of cutting anything off. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .compare-body--apply:has(.apply-ineq) { justify-content: flex-start; gap: 10px; overflow-y: auto; padding-top: 8px; }
+  .compare-body--apply:has(.apply-ineq) .apply-kicker { font-size: clamp(18px, 3.2vw, 24px); }
+  .apply-ineq { padding: 8px 22px; border-radius: 20px; }
+  .apply-ineq-blank { width: 56px; height: 56px; font-size: 28px; border-radius: 14px; }
+  .apply-ineq-sign, .apply-ineq-value { font-size: 36px; }
+  .apply-choice-grid:not(.apply-choice-grid--hint) { grid-template-columns: repeat(4, 1fr); max-width: min(80vw, 520px); }
+  .apply-choice-btn { aspect-ratio: 1.7; }
 }
 
 /* Level 5 «По разрядам»: the numbers by places after a mistake (PlaceHint.jsx).

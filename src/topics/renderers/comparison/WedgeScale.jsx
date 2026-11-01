@@ -14,6 +14,11 @@ import { useId, useRef, useState } from "react";
 // (owner's call, 2026-11-01, replacing the earlier "not tied to the task at
 // all" rule). It still answers nothing: the tiles are dragged by hand.
 //
+// «Выбери число» passes `mark` — the number of the task («? > 6» marks 6):
+// a dark line across the wedge with the number under the axis, so the child
+// sees which flags lie on the thick side of it and which on the thin side.
+// Nothing is tinted: which side fits is still the child's call.
+//
 // Drawn in a fixed 360-wide viewBox and scaled by CSS, so it fits the slot
 // grid's width on any screen.
 
@@ -49,7 +54,7 @@ export function flagRows(xs) {
   });
 }
 
-export default function WedgeScale({ min, max, direction, numbers = [] }) {
+export default function WedgeScale({ min, max, direction, numbers = [], mark = null }) {
   const asc = direction !== "desc";
   const span = Math.max(1, max - min);
   const [value, setValue] = useState(asc ? min : max);
@@ -115,6 +120,10 @@ export default function WedgeScale({ min, max, direction, numbers = [] }) {
   // The far end gets its own label unless it would crowd the last one.
   const last = labelled[labelled.length - 1];
   const endLabel = last && last.value !== max && Math.abs(xOf(max) - xOf(last.value)) >= 22 ? max : null;
+  const hasMark = mark != null && mark >= min && mark <= max;
+  // Tick labels give way to the mark's own number under the axis.
+  const labels = [...labelled.map((t) => t.value), ...(endLabel != null ? [endLabel] : [])]
+    .filter((v) => !hasMark || Math.abs(xOf(v) - xOf(mark)) >= 22);
 
   const narrowX = asc ? PAD : W - PAD;
   const wideX = asc ? W - PAD : PAD;
@@ -152,9 +161,16 @@ export default function WedgeScale({ min, max, direction, numbers = [] }) {
         {ticks.map((t) => (
           <line key={t.value} className="apply-wedge-tick" x1={xOf(t.value)} x2={xOf(t.value)} y1={base + 2} y2={base + (t.major ? 10 : 6)} strokeWidth={t.major ? 1.6 : 1} />
         ))}
-        {[...labelled.map((t) => t.value), ...(endLabel != null ? [endLabel] : [])].map((v) => (
+        {labels.map((v) => (
           <text key={`l${v}`} className="apply-wedge-label" x={xOf(v)} y={base + 24} textAnchor="middle">{v}</text>
         ))}
+        {hasMark && (
+          <g className="apply-wedge-mark">
+            <line x1={xOf(mark)} x2={xOf(mark)} y1={base - hOf(mark) - 8} y2={base + 8} />
+            <rect x={xOf(mark) - 16} y={base + 10} width="32" height="20" rx="6" />
+            <text x={xOf(mark)} y={base + 25} textAnchor="middle">{mark}</text>
+          </g>
+        )}
         {/* Higher rows first, so a lower flag's box covers the pole of the
             flag stacked above it instead of the pole crossing its number. */}
         {found.map((n, i) => ({ n, row: rows[i] })).sort((a, b) => b.row - a.row).map(({ n, row }) => {
