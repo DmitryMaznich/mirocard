@@ -44,6 +44,11 @@ function NotebookTitle({ title, onRename }) {
   );
 }
 
+// the language of a notebook in a deck with several (its own soft colour per language: the list is told apart at a glance)
+function LangMark({ mark }) {
+  return <span className={`p2-nb-lang p2-lang-tone-${mark.tone}`} title={`Язык тетради: ${mark.title}`} aria-label={`Язык: ${mark.title}`}>{mark.short}</span>;
+}
+
 // «Мои тетради»: the home of the topic. A notebook is the only thing the adult keeps: create one from scratch or from a ready one,
 // open it as the student sees it, edit, rename, copy, delete.
 export default function Propis2Library({ newLang = null, filterBar = null, langOf = null, sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
@@ -63,13 +68,17 @@ export default function Propis2Library({ newLang = null, filterBar = null, langO
             </span>
           </div>
         )}
-        <div className="p2-nb-start">
+        <div className={`p2-nb-start${newLang ? " p2-new-split" : ""}`}>
           <button type="button" className="p2-tile p2-tile--primary p2-tile--wide" aria-label="Новая тетрадь" onClick={onNew}>
             <span className="p2-tile-ico"><I.IconAddPage /></span>
             <span className="p2-tile-cap">Новая тетрадь</span>
           </button>
-          {/* a deck with several writing languages: the language the new notebook gets */}
-          {newLang && <div className="p2-new-lang"><span>Язык:</span>{newLang}</div>}
+          {/* a deck with several writing languages: the language the new notebook gets, inside the same button (a split button) */}
+          {newLang && (
+            <button type="button" className="p2-new-lang-btn" onClick={newLang.onOpen} aria-haspopup="dialog" aria-label={`Язык новой тетради: ${newLang.title}`} data-testid="propis2-new-lang">
+              <span className="p2-new-lang-pill">{newLang.title}<span className="p2-lang-caret" aria-hidden="true">▾</span></span>
+            </button>
+          )}
         </div>
         {filterBar}
 
@@ -83,12 +92,13 @@ export default function Propis2Library({ newLang = null, filterBar = null, langO
         {sets.length > 0 && (
           <ul className="propis2-pages">
             {sets.map((st) => (
-              <li key={st.id} className="p2-nb" data-testid="propis2-set-card">
+              <li key={st.id} className={`p2-nb${langOf ? " p2-nb--lang" : ""}`} data-testid="propis2-set-card">
+                {langOf && <LangMark mark={langOf(st)} />}
                 <div className="p2-nb-head">
                   <span className="p2-nb-ico"><I.IconNotebook /></span>
                   <div className="p2-nb-main">
                     <NotebookTitle title={st.title ?? ""} onRename={(t) => onRenameSet(st.id, t)} />
-                    <div className="p2-nb-meta">{langOf && <span className="p2-lang-tag">{langOf(st)}</span>}{st.pageIds.length} стр. · {dateLabel(st.updatedAt)}</div>
+                    <div className="p2-nb-meta">{st.pageIds.length} стр. · {dateLabel(st.updatedAt)}</div>
                   </div>
                 </div>
                 <div className="p2-nb-tools" role="group" aria-label="Действия с тетрадью">
@@ -107,12 +117,13 @@ export default function Propis2Library({ newLang = null, filterBar = null, langO
             <h2 className="propis2-h2">Готовые тетради</h2>
             <ul className="propis2-pages">
               {ready.map((r) => (
-                <li key={r.id} className="p2-nb p2-nb--ready" data-testid="propis2-ready-card">
+                <li key={r.id} className={`p2-nb p2-nb--ready${langOf && r.lang ? " p2-nb--lang" : ""}`} data-testid="propis2-ready-card">
+                  {langOf && r.lang && <LangMark mark={langOf(r)} />}
                   <div className="p2-nb-head">
                     <span className="p2-nb-ico"><I.IconNotebook /></span>
                     <div className="p2-nb-main">
                       <div className="p2-nb-name">{r.title}</div>
-                      <div className="p2-nb-meta">{langOf && r.lang && <span className="p2-lang-tag">{langOf(r)}</span>}{r.pages} стр.</div>
+                      <div className="p2-nb-meta">{r.pages} стр.</div>
                       {r.description && <div className="p2-nb-desc">{r.description}</div>}
                     </div>
                   </div>

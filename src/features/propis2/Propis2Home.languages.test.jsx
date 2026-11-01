@@ -53,7 +53,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     // only Russian in use: no marks, no filter, the Russian ready notebooks only (no Bulgarian «Цифры»)
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Русский");
     expect(host.querySelector('[data-testid="propis2-lang-filter"]')).toBeNull();
-    expect(host.querySelector(".p2-lang-tag")).toBeNull();
+    expect(host.querySelector(".p2-nb-lang")).toBeNull();
     for (let i = 0; i < 100 && !cards(host, "propis2-ready-card").length; i++) await act(async () => { await tick(50); }); // the bundled kits load apart
     const ruReady = cards(host, "propis2-ready-card").length;
     expect(ruReady).toBeGreaterThan(1);

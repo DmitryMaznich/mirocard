@@ -193,7 +193,7 @@ export default function Propis2Home({ db }) {
   const multiLang = Boolean(usedLangs && usedLangs.size > 1);
   const shownSets = useMemo(() => (languages && langFilter !== "all" ? library.sets.filter((st) => langOf(st) === langFilter) : library.sets), [languages, langFilter, library.sets]);
   const shownReady = useMemo(() => (!languages ? ready : ready.filter((r) => (langFilter === "all" ? usedLangs.has(r.lang) : r.lang === langFilter))), [languages, ready, langFilter, usedLangs]);
-  const shortOf = (id) => languages?.find((l) => l.id === id)?.short ?? id?.toUpperCase();
+  const markOf = (id) => { const i = languages?.findIndex((l) => l.id === id) ?? -1; const l = languages?.[i]; return { short: l?.short ?? id?.toUpperCase(), title: l?.title ?? id, tone: Math.max(i, 0) % 4 }; };
   const langCounts = useMemo(() => (languages ? Object.fromEntries(languages.map((l) => [l.id, library.sets.filter((st) => langOf(st) === l.id).length])) : {}), [languages, library.sets]);
   // ---- the session of a notebook: open it, work on it, confirm or drop ----
   const startSession = (sid, lib = library) => setSession({ sid, lib, base: lib, past: [], future: [] });
@@ -542,7 +542,7 @@ export default function Propis2Home({ db }) {
         title={navSet ? navSet.title : undefined}
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={topicRecord}
-        language={languages ? languages.find((l) => l.id === lang) ?? null : null}
+        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone } : null}
         onChange={(next, how) => {
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
           const change = navSet ? layoutChange(shown, next) : {};
@@ -576,8 +576,8 @@ export default function Propis2Home({ db }) {
     <>
     <Propis2Library
       sets={shownSets}
-      langOf={multiLang ? (item) => shortOf(item.lang ?? langOf(item)) : null}
-      newLang={languages ? <button type="button" className="p2-lang-chip" onClick={() => setLangSheet(true)} aria-haspopup="dialog" aria-label={`Язык новой тетради: ${languages.find((l) => l.id === newLang)?.title}`} data-testid="propis2-new-lang">{languages.find((l) => l.id === newLang)?.title} <span className="p2-lang-caret" aria-hidden="true">▾</span></button> : null}
+      langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
+      newLang={languages ? { title: languages.find((l) => l.id === newLang)?.title, onOpen: () => setLangSheet(true) } : null}
       filterBar={multiLang ? <LangFilter languages={languages.filter((l) => usedLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
       blankCount={blankIds.length}
