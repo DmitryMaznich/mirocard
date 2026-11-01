@@ -3,7 +3,18 @@ import LetterBlock from "./LetterBlock";
 
 const FAMILY_TITLES = { straight: "Прямые линии" };
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
-const BLOCKS_PER_SHEET = 4;
+
+let uid = 1;
+const nextId = () => uid++;
+
+// Starting point when a block is created — one row per stroke element, then
+// the whole letter. Purely a convenient default: every row is independently
+// editable/removable afterwards, and more rows can be added freely.
+function defaultRows(letter) {
+  const rows = letter.strokes.map((_, i) => ({ content: i }));
+  rows.push({ content: "full" });
+  return rows.map((r) => ({ id: nextId(), ...r }));
+}
 
 export default function ConstructorView({ task, onAdvance }) {
   const letters = task?.letters ?? [];
@@ -18,16 +29,35 @@ export default function ConstructorView({ task, onAdvance }) {
     return Array.from(map.entries());
   }, [letters]);
 
-  const [selected, setSelected] = useState([]); // ordered letter ids
-  const [mode, setMode] = useState("trace"); // "trace" | "independent"
+  const [activeLetterId, setActiveLetterId] = useState(letters[0]?.id ?? null);
+  const [blocks, setBlocks] = useState([]); // { id, letterId, color, rows: [{ id, content }] }
 
-  function toggleLetter(id) {
-    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  function addBlock() {
+    const letter = byId[activeLetterId];
+    if (!letter) return;
+    setBlocks((prev) => [
+      ...prev,
+      {
+        id: nextId(),
+        letterId: activeLetterId,
+        color: PALETTE[prev.length % PALETTE.length],
+        rows: defaultRows(letter),
+      },
+    ]);
   }
-
-  const sheets = [];
-  for (let i = 0; i < selected.length; i += BLOCKS_PER_SHEET) {
-    sheets.push(selected.slice(i, i + BLOCKS_PER_SHEET));
+  function removeBlock(blockId) {
+    setBlocks((prev) => prev.filter((b) => b.id !== blockId));
+  }
+  function addRow(blockId) {
+    setBlocks((prev) => prev.map((b) => (b.id === blockId ? { ...b, rows: [...b.rows, { id: nextId(), content: "full" }] } : b)));
+  }
+  function removeRow(blockId, rowId) {
+    setBlocks((prev) => prev.map((b) => (b.id === blockId ? { ...b, rows: b.rows.filter((r) => r.id !== rowId) } : b)));
+  }
+  function setRowContent(blockId, rowId, content) {
+    setBlocks((prev) => prev.map((b) => (
+      b.id === blockId ? { ...b, rows: b.rows.map((r) => (r.id === rowId ? { ...r, content } : r)) } : b
+    )));
   }
 
   function printNotebook() {
@@ -38,7 +68,7 @@ export default function ConstructorView({ task, onAdvance }) {
     <div className="pl-constructor">
       <div className="pl-builder">
         <div className="pl-builder-section">
-          <div className="pl-builder-label">Буквы для тетради</div>
+          <div className="pl-builder-label">Буква для нового блока</div>
           {families.map(([famId, famLetters]) => (
             <div key={famId} className="pl-family-group">
               <div className="pl-family-title">{FAMILY_TITLES[famId] ?? famId}</div>
@@ -47,8 +77,8 @@ export default function ConstructorView({ task, onAdvance }) {
                   <button
                     key={l.id}
                     type="button"
-                    className={`pl-letter-tile${selected.includes(l.id) ? " pl-letter-tile--active" : ""}`}
-                    onClick={() => toggleLetter(l.id)}
+                    className={`pl-letter-tile${l.id === activeLetterId ? " pl-letter-tile--active" : ""}`}
+                    onClick={() => setActiveLetterId(l.id)}
                   >
                     {l.label}
                   </button>
@@ -58,50 +88,33 @@ export default function ConstructorView({ task, onAdvance }) {
           ))}
         </div>
 
-        <div className="pl-builder-section">
-          <div className="pl-builder-label">Тип строки</div>
-          <div className="pl-pagetype-tiles">
-            <button
-              type="button"
-              className={`pl-pagetype-tile${mode === "trace" ? " pl-pagetype-tile--active" : ""}`}
-              onClick={() => setMode("trace")}
-            >
-              Обводка по точкам
-            </button>
-            <button
-              type="button"
-              className={`pl-pagetype-tile${mode === "independent" ? " pl-pagetype-tile--active" : ""}`}
-              onClick={() => setMode("independent")}
-            >
-              Часть строки — самостоятельно
-            </button>
-          </div>
-        </div>
-
-        {selected.length > 0 && (
+        <button type="button" className="pl-btn pl-btn--add" onClick={addBlock} disabled={!activeLetterId}>
+          + Добавить блок буквы
+        </button>
+        {blocks.length > 0 && (
           <button type="button" className="pl-btn pl-btn--print" onClick={printNotebook}>🖨 Печать</button>
         )}
         <button type="button" className="pl-btn pl-btn--done" onClick={onAdvance}>Завершить занятие</button>
       </div>
 
       <div className="pl-preview">
-        {selected.length === 0 && (
-          <div className="pl-preview-empty">Отметьте буквы — страницы соберутся сами, по {BLOCKS_PER_SHEET} буквы на лист</div>
+        {blocks.length === 0 && (
+          <div className="pl-preview-empty">Выберите букву и нажмите «Добавить блок буквы» — дальше в каждом блоке можно добавлять и убирать строки</div>
         )}
-        {sheets.map((group, sheetIdx) => (
-          <div key={sheetIdx} className="pl-sheet">
-            <div className="pl-page">
-              {group.map((id, idx) => (
-                <LetterBlock
-                  key={id}
-                  letter={byId[id]}
-                  color={PALETTE[(sheetIdx * BLOCKS_PER_SHEET + idx) % PALETTE.length]}
-                  independent={mode === "independent"}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="pl-notebook">
+          {blocks.map((b) => (
+            <LetterBlock
+              key={b.id}
+              letter={byId[b.letterId]}
+              color={b.color}
+              rows={b.rows}
+              onAddRow={() => addRow(b.id)}
+              onRemoveRow={(rowId) => removeRow(b.id, rowId)}
+              onChangeRowContent={(rowId, content) => setRowContent(b.id, rowId, content)}
+              onRemoveBlock={() => removeBlock(b.id)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

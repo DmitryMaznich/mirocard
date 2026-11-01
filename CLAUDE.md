@@ -251,15 +251,16 @@ deliberately separate from `propis2` (cursive constructor) and from `letter_writ
 **independent — don't touch**, but its simple no-slant letter glyphs and stroke order were reused
 verbatim for consistency across the app). **Read `docs/print-letters.md` first** — methodology
 (letter families by stroke complexity, not alphabet order; most-to-least-prompting support; 3-line
-ruling with no slant guides), what's built (8 letters, "straight lines" family only; compact
-per-letter print blocks — colored tile + 2–3 build-up rows from isolated stroke to whole letter,
-several blocks per A4 sheet, matching a real copybook page rather than one full screen per letter
-— see the "Разворот 2026-11-01" section for why the first full-page/giant-glyph version was wrong
-and got replaced; registered in `engineRegistry.js`/`registry.js` but **not yet in
-`public/decks/catalog.json`** — can't be opened via the normal catalog/zip path yet, by design,
-paper-first visual was the priority for this round), and open decisions (zip/catalog registration,
-notebook persistence, on-screen tracing as a second wave, remaining letter families, stroke
-direction review by the owner as methodologist).
+ruling with no slant guides), what's built (8 letters, "straight lines" family only; one naborny
+per-letter print block — colored tile, teacher freely adds/removes rows and picks each row's
+content: whole letter / one stroke element / blank line for independent writing — several blocks
+flow continuously into a notebook, paginated by the browser's own print engine, not fixed-count
+page chunks; see the two "Разворот 2026-11-01" sections for why the first giant-glyph full-page
+version and then the auto-generated-rows version were both replaced; registered in
+`engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
+via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
+round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a
+second wave, remaining letter families, stroke direction review by the owner as methodologist).
 
 ## Important
 

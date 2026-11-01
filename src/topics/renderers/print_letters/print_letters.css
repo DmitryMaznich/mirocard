@@ -54,21 +54,6 @@
   border-color: #1d4ed8;
 }
 
-.pl-pagetype-tile {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: white;
-  font-size: 13px;
-  color: #1e293b;
-}
-
-.pl-pagetype-tile--active {
-  background: #1d4ed8;
-  color: white;
-  border-color: #1d4ed8;
-}
-
 .pl-btn {
   padding: 10px 14px;
   border-radius: 10px;
@@ -78,6 +63,7 @@
   cursor: pointer;
 }
 
+.pl-btn--add    { background: #1d4ed8; color: white; }
 .pl-btn--print  { background: #0f766e; color: white; }
 .pl-btn--done   { background: #e2e8f0; color: #1e293b; }
 .pl-btn:disabled { opacity: 0.5; cursor: default; }
@@ -93,27 +79,24 @@
   color: #94a3b8;
   font-size: 14px;
   padding: 24px 0;
+  text-align: center;
+  max-width: 340px;
 }
 
-/* A4 vertical sheet, scaled to the screen; real mm size only matters in print */
-.pl-sheet {
+/* On screen this is one continuously scrolling A4-proportioned column, not
+   fixed-height page cards — how many physical sheets it takes depends on how
+   many rows the teacher has added to each block, which print pagination
+   (@page + break-inside below) handles on its own. */
+.pl-notebook {
   width: 100%;
   max-width: 480px;
-  aspect-ratio: 210 / 297;
   background: #fefef6;
   border: 1px solid #d8e2ea;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.pl-page {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   padding: 14px;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
 }
 
@@ -121,15 +104,18 @@
 
 .pl-glyph--tappable:active { opacity: 0.85; }
 
-/* One letter's printable practice block — compact, several per sheet,
-   matching a real copybook page rather than a single giant letter. */
+/* One letter's printable practice block — naborny: the teacher adds/removes
+   rows and picks each row's content (whole letter / one stroke element /
+   blank), so the block's height is whatever they build it to be. */
 .pl-block {
   position: relative;
   border: 2px solid;
   border-radius: 14px;
-  padding: 4px 6px;
+  padding: 4px 6px 8px;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  break-inside: avoid;
 }
 
 .pl-block-tile {
@@ -145,6 +131,58 @@
   font-weight: 700;
 }
 
+.pl-block-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+
+.pl-block-add-row {
+  align-self: flex-start;
+  margin-left: 60px;
+  margin-top: 2px;
+  border: 1px dashed #cbd5e1;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pl-row-rightslot {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pl-row-select {
+  font-size: 11px;
+  border: 1px solid #d8e2ea;
+  border-radius: 6px;
+  padding: 2px 4px;
+  color: #475569;
+  background: white;
+}
+
+.pl-row-rightslot button {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
 .pl-block-blank-slot {
   display: inline-block;
   width: 34px;
@@ -153,20 +191,24 @@
 @media print {
   .pl-builder,
   .pl-preview-empty,
-  .pl-btn { display: none !important; }
+  .no-print { display: none !important; }
 
   .pl-constructor { max-width: none; padding: 0; }
 
   .pl-preview { gap: 0; }
 
-  .pl-sheet {
-    width: 210mm;
-    height: 297mm;
+  .pl-notebook {
     max-width: none;
-    aspect-ratio: auto;
+    background: none;
     border: none;
     box-shadow: none;
     border-radius: 0;
-    page-break-after: always;
+    padding: 0;
+    gap: 10mm;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm;
   }
 }

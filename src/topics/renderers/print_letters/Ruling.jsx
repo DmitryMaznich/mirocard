@@ -8,6 +8,7 @@ export default function RulingRow({
   justify = "flex-start",
   padLeft = 18,
   showMargin = true,
+  rightSlot,
   children,
 }) {
   return (
@@ -23,9 +24,16 @@ export default function RulingRow({
         <line x1={0} y1={heightPx - 2} x2={widthPx} y2={heightPx - 2} stroke="#5b9bd5" strokeWidth="1.6" />
         {showMargin && <line x1={14} y1={0} x2={14} y2={heightPx} stroke="#f4b8b8" strokeWidth="1.2" />}
       </svg>
-      <div className="pl-row-content" style={{ position: "relative", height: "100%", display: "flex", alignItems: "flex-end", justifyContent: justify, paddingLeft: padLeft, paddingRight: 10 }}>
+      <div
+        className="pl-row-content"
+        style={{
+          position: "relative", height: "100%", display: "flex", alignItems: "flex-end",
+          justifyContent: justify, paddingLeft: padLeft, paddingRight: rightSlot ? 108 : 10,
+        }}
+      >
         {children}
       </div>
+      {rightSlot && <div className="pl-row-rightslot no-print">{rightSlot}</div>}
     </div>
   );
 }
