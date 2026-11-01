@@ -117,4 +117,29 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
+
+  it("a new Bulgarian notebook is on the Bulgarian paper; a Russian one on the Russian", async () => {
+    for (const [lang, title, paper] of [["bg", "Български", "bg"], ["ru", "Русский", undefined]]) {
+      localStorage.clear();
+      const db = await openDb("p2lang-paper-" + Date.now() + Math.random());
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+      if (lang !== "ru") { await click(host.querySelector('[data-testid="propis2-new-lang"]')); await sheetPick(title); }
+      await click(btn(host, "Новая тетрадь"));
+      expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe(lang === "bg" ? "БЪЛ" : "РУС");
+      const field = host.querySelector('[aria-label="Текст страницы"]');
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "мама");
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        await tick();
+      });
+      await click(host.querySelector(".back-btn"));
+      await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+      await act(async () => { root.unmount(); await tick(400); });
+      expect((await loadLibrary(db)).pages.map((p) => p.gridKind)).toEqual([paper]);
+      host.remove();
+    }
+  });
 });
