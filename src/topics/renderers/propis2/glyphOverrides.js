@@ -327,6 +327,7 @@ const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOn
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
   if (straightTail != null) out = straightenTail(out, straightTail);
+  if (g.snapNotRightOwn != null) out = { ...out, snapNotRight: g.snapNotRightOwn }; // a variant's own value for the override's `snapNotRight` (Kazakh ъ: it stands further right, owner 2026-11-01)
   return out;
 };
 // `noOverrides`: a glyph of a variant deck made from another source (the Bulgarian letters traced from a font, tools/propis2/variants/bg):
