@@ -8,19 +8,21 @@ import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { topicAlphabet } from "./alphabet.js";
 import { deckPapers } from "./model.js";
 import { generateTasks } from "./engine.js";
-import { deckLanguages, languageView, pickLanguage, offeredLanguages } from "./languages.js";
+import { deckLanguages, languageView, pickLanguage, offeredLanguages, tagUntaggedNotebooks, legacyNotebookLang } from "./languages.js";
 import { applyVariant } from "../../../../scripts/lib/propis2-variant.mjs";
 
-// The deck with several writing languages (scripts/build-propis2-deck.mjs --languages, docs/propis2-languages.md), installed from its
-// built ZIP through the real importer, against the decks it stands for: its Russian must be `propis2` exactly, its Bulgarian `propis2_bg`.
+// «Прописи» (`propis2`) with its writing languages (since v0.6.0, scripts/build-propis2-deck.mjs, docs/propis2-languages.md), installed
+// from its built ZIP through the real importer, against the decks it stands for: its Russian must be `propis2` v0.5.11 (the last one
+// without languages, kept in test-fixtures/decks) exactly — pages, letter cards, dictation; its Bulgarian `propis2_bg`; its Kazakh the
+// Kazakh variant.
 const catalog = JSON.parse(await readFile("public/decks/catalog.json", "utf-8"));
-async function install(id) {
+async function install(id, file) {
   const entry = catalog.decks.find((d) => d.id === id);
-  const db = await openDb(`test-p2lang-${id}-${Date.now()}`);
-  await importTopic(db, await readFile(`public/decks/${entry.url.replace("./decks/", "")}`), "999.0.0");
+  const db = await openDb(`test-p2lang-${id}-${Date.now()}-${Math.random()}`);
+  await importTopic(db, await readFile(file ?? `public/decks/${entry.url.replace("./decks/", "")}`), "999.0.0");
   return getTopicRecord(db, id);
 }
-const [multi, ru, bg] = await Promise.all([install("propis2_lang"), install("propis2"), install("propis2_bg")]);
+const [multi, ru, bg] = await Promise.all([install("propis2"), install("propis2", "test-fixtures/decks/propis2_v0.5.11.zip"), install("propis2_bg")]);
 const page = (rec, lines, grid) => renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines, grid })} bare />);
 
 describe("propis2 writing languages", () => {
@@ -30,20 +32,28 @@ describe("propis2 writing languages", () => {
     expect(pickLanguage(ru, "bg")).toBeNull();
   });
 
-  it("the test deck carries Russian, Bulgarian and Kazakh, for one account, without the dictation", () => {
-    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("individual");
+  it("«Прописи» carry Russian, Bulgarian and Kazakh, for everyone, the dictation kept; the test copy is archived", () => {
+    expect(catalog.decks.find((d) => d.id === "propis2").status).toBe("release");
+    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("archived");
     expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "ready"]]);
-    expect(multi.modes.map((m) => m.type)).toEqual(["builder", "letters_recognize", "letters_case"]);
+    expect(multi.modes.map((m) => m.type)).toEqual(ru.modes.map((m) => m.type));
+    expect(multi.modes.map((m) => m.type)).toContain("dictation");
     expect(offeredLanguages(multi).map((l) => l.id)).toEqual(["ru", "bg", "kk"]);
     expect(offeredLanguages(multi, true).map((l) => l.id)).toEqual(["ru", "bg", "kk"]);
     expect(pickLanguage(multi, undefined)).toBe("ru");
     expect(pickLanguage(multi, "xx")).toBe("ru");
   });
 
-  it("its Russian draws a page exactly as `propis2` does, on every paper", () => {
+  it("its Russian is `propis2` v0.5.11 exactly: pages on every paper, alphabet, dictation banks", () => {
     const lines = ["мама мыла раму", "у Шуры шары", "Ёжик и Юля", "", "щука, ёлка, съел"];
     for (const grid of ["regular", "dense", "square", "ruled"]) expect(page(languageView(multi, "ru"), lines, grid)).toBe(page(ru, lines, grid));
     expect(topicAlphabet(languageView(multi, "ru")).lower.join("")).toBe(topicAlphabet(ru).lower.join(""));
+    expect(multi.words).toEqual(ru.words);
+    expect(multi.texts).toEqual(ru.texts);
+    const dict = (rec) => rec.modes.find((m) => m.type === "dictation");
+    expect(dict(multi).params).toEqual(dict(ru).params); // the dictation's settings: no language (Russian only)
+    const lettersDict = (rec) => JSON.stringify(generateTasks(dict(rec), rec, 10, { level: "letters", itemCount: 999 })[0].items.map((i) => i.display).sort());
+    expect(lettersDict(multi)).toBe(lettersDict(ru));
   });
 
   it("its Bulgarian is `propis2_bg`: alphabet, slant, papers and the same page", () => {
@@ -73,7 +83,7 @@ describe("propis2 writing languages", () => {
   });
 
   it("the letter cards take the language from the mode's own settings, Russian by default", () => {
-    for (const m of multi.modes.filter((x) => x.type !== "builder")) {
+    for (const m of multi.modes.filter((x) => ["letters_recognize", "letters_case"].includes(x.type))) {
       expect(m.params.writingLang).toMatchObject({ type: "enum", values: ["ru", "bg", "kk"], default: "ru" });
       expect(m.params.writingLang.labels.ru.kk).toBe("Қазақша");
     }
@@ -90,5 +100,15 @@ describe("propis2 writing languages", () => {
     expect(shown).not.toMatch(/"ы"|"э"|"ё"/);
     const ruTasks = generateTasks(ru.modes.find((m) => m.type === "letters_recognize"), ru, 10, {});
     expect(ruTasks.some((t) => "writingLang" in t)).toBe(false);
+  });
+
+  it("the Bulgarian customer's old notebooks become Bulgarian; tagged ones and other accounts are left alone", () => {
+    expect(legacyNotebookLang(multi, ["propis2", "propis2_bg"])).toBe("bg");
+    expect(legacyNotebookLang(multi, ["propis2"])).toBeNull();
+    expect(legacyNotebookLang(ru, ["propis2_bg"])).toBeNull(); // a deck without languages
+    const lib = { pages: [], sets: [{ id: "a", pageIds: [], updatedAt: 1 }, { id: "b", lang: "kk", pageIds: [], updatedAt: 1 }] };
+    const out = tagUntaggedNotebooks(lib, "bg", 5);
+    expect(out.sets).toEqual([{ id: "a", lang: "bg", pageIds: [], updatedAt: 5 }, { id: "b", lang: "kk", pageIds: [], updatedAt: 1 }]);
+    expect(tagUntaggedNotebooks(out, "bg", 9)).toBe(out); // nothing left to tag: the same library, nothing to save or sync
   });
 });

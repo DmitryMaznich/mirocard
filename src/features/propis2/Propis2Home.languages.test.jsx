@@ -6,7 +6,8 @@ import { api } from "@/core/api";
 import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { useAppStore } from "@/core/store";
-import { loadLibrary } from "@/topics/renderers/propis2/storage.js";
+import { loadLibrary, saveLibrary, emptyLibrary, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { newPage, newSet } from "@/topics/renderers/propis2/model.js";
 import Propis2Home from "./Propis2Home.jsx";
 
 vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
@@ -21,10 +22,10 @@ window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEven
 // every notebook; marks and a filter only once more than one language is in use; the language of a new notebook chosen next to
 // «Новая тетрадь» and remembered on the device; ready notebooks of the languages in use.
 const catalog = JSON.parse(await readFile("public/decks/catalog.json", "utf-8"));
-const entry = catalog.decks.find((d) => d.id === "propis2_lang");
+const entry = catalog.decks.find((d) => d.id === "propis2");
 const installDb = await openDb("p2lang-install-" + Date.now());
 await importTopic(installDb, await readFile(`public/decks/${entry.url.replace("./decks/", "")}`), "999.0.0");
-const record = await getTopicRecord(installDb, "propis2_lang");
+const record = await getTopicRecord(installDb, "propis2");
 
 const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 const btn = (host, text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -40,7 +41,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
   beforeEach(() => {
     vi.spyOn(api, "get").mockRejectedValue(new Error("offline"));
     localStorage.clear();
-    useAppStore.setState({ topicRecords: [record], activeTopicId: "propis2_lang", activeStudentId: "s1", students: [{ id: "s1", name: "1А" }], studentTopicLinks: {}, screen: "params" });
+    useAppStore.setState({ topicRecords: [record], activeTopicId: "propis2", activeStudentId: "s1", students: [{ id: "s1", name: "1А" }], studentTopicLinks: {}, screen: "params" });
   });
 
   it("one list, a language per notebook, marks and a filter once two are in use", async () => {
@@ -96,5 +97,24 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Български");
     await act(async () => { again.unmount(); await tick(400); });
     host.remove();
+  });
+
+  it("the Bulgarian customer's old notebooks (no language: made in propis2_bg) open as Bulgarian; other accounts' stay Russian", async () => {
+    for (const [owned, want] of [[["propis2", "propis2_bg"], "bg"], [["propis2"], undefined]]) {
+      useAppStore.setState({ ownedTopics: owned.map((topicId) => ({ topicId, source: "paid" })) });
+      const db = await openDb("p2lang-legacy-" + Date.now() + Math.random());
+      const pg = newPage("Стара тетрадка", { gridKind: "bg" });
+      await saveLibrary(upsertSet(upsertPage(emptyLibrary(), pg), newSet("Стара тетрадка", { id: `st_${pg.id}`, pageIds: [pg.id] })), db);
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(400); });
+      // his new notebooks are Bulgarian too, until he picks another language
+      expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain(want === "bg" ? "Български" : "Русский");
+      expect(cards(host, "propis2-set-card")[0].textContent.includes("БЪЛ")).toBe(false); // one language in use: no marks
+      await act(async () => { root.unmount(); await tick(400); }); // leaving saves what is pending
+      expect((await loadLibrary(db)).sets.map((st) => st.lang)).toEqual([want]);
+      host.remove();
+    }
   });
 });

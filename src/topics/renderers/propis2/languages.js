@@ -71,3 +71,15 @@ export function languageView(record, langId) {
 // The language a notebook (or the draft of one) is written in: notebooks made before the deck had languages carry none and are Russian.
 export const DEFAULT_LANG = "ru";
 export const langOf = (item) => item?.lang ?? DEFAULT_LANG;
+
+// Notebooks made before their deck had languages carry none and count as Russian. On an account that had the Bulgarian variant deck
+// (`propis2_bg`, one Bulgarian customer, docs/propis2-languages.md) they are Bulgarian: owner 2026-11-01 — his Russian notebooks, if
+// any, do not matter. A tagged notebook is never touched; `updatedAt` moves so the tag wins over an older copy on another device.
+export function tagUntaggedNotebooks(lib, lang, now = Date.now()) {
+  if (!lib?.sets?.some((st) => !st.lang)) return lib;
+  return { ...lib, sets: lib.sets.map((st) => (st.lang ? st : { ...st, lang, updatedAt: now })) };
+}
+// which language an account's untagged notebooks are in: Bulgarian where the Bulgarian variant was owned, else none (they stay Russian)
+export function legacyNotebookLang(record, ownedTopicIds) {
+  return deckLanguages(record)?.some((l) => l.id === "bg") && ownedTopicIds.includes("propis2_bg") ? "bg" : null;
+}

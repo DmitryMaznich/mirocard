@@ -360,16 +360,16 @@
     },
     {
       "id": "propis2",
-      "version": "0.5.11",
+      "version": "0.6.0",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
       },
       "description": {
-        "ru": "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
-        "en": "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
+        "ru": "Конструктор тетрадей по письму и тренажёры письменных букв на русском, болгарском и казахском: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
+        "en": "Handwriting notebook builder and written-letter trainers in Russian, Bulgarian and Kazakh: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
       },
-      "url": "./decks/propis2_v0.5.11.zip",
+      "url": "./decks/propis2_v0.6.0.zip",
       "status": "release",
       "access": "paid"
     },
@@ -385,7 +385,7 @@
         "en": "Trial: the handwriting notebook builder with a choice of writing language — Russian, Bulgarian, Kazakh. Modes: Recognise the letter, Upper and lower case."
       },
       "url": "./decks/propis2_lang_v0.1.3.zip",
-      "status": "individual",
+      "status": "archived",
       "access": "paid"
     },
     {

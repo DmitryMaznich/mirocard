@@ -1,23 +1,25 @@
 {
-  "note": "Колода-копия «Прописи» с выбором языка письма внутри темы (docs/propis2-languages.md). Сборка: node scripts/build-propis2-deck.mjs --languages. База — tools/propis2/topic.json и русский банк букв; язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json; Режимы — без диктанта: он русский и уходит в свою тему.",
-  "catalog": {
-    "title": { "ru": "Прописи (языки, тест)", "en": "Copybook (languages, test)" },
-    "description": {
-      "ru": "Испытание: конструктор тетрадей по письму с выбором языка письма — русский, болгарский, казахский. Режимы «Узнай букву», «Строчная и заглавная».",
-      "en": "Trial: the handwriting notebook builder with a choice of writing language — Russian, Bulgarian, Kazakh. Modes: Recognise the letter, Upper and lower case."
-    },
-    "status": "individual",
-    "access": "paid"
-  },
-  "meta": {
-    "id": "propis2_lang",
-    "version": "0.1.3",
-    "title": "Прописи (языки, тест)"
-  },
-  "modes": ["builder", "letters_recognize", "letters_case"],
+  "note": "Языки письма темы «Прописи» (propis2), docs/propis2-languages.md. Собираются в колоду propis2: node scripts/build-propis2-deck.mjs. Язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json. Первый язык — русский банк букв, он же язык диктанта и тетрадей без пометки.",
   "languages": [
-    { "id": "ru", "title": "Русский", "short": "РУС", "status": "ready" },
-    { "id": "bg", "title": "Български", "short": "БЪЛ", "status": "ready", "from": "tools/propis2/variants/bg/variant.json" },
-    { "id": "kk", "title": "Қазақша", "short": "ҚАЗ", "status": "ready", "from": "tools/propis2/variants/kk/variant.json" }
+    {
+      "id": "ru",
+      "title": "Русский",
+      "short": "РУС",
+      "status": "ready"
+    },
+    {
+      "id": "bg",
+      "title": "Български",
+      "short": "БЪЛ",
+      "status": "ready",
+      "from": "tools/propis2/variants/bg/variant.json"
+    },
+    {
+      "id": "kk",
+      "title": "Қазақша",
+      "short": "ҚАЗ",
+      "status": "ready",
+      "from": "tools/propis2/variants/kk/variant.json"
+    }
   ]
 }
