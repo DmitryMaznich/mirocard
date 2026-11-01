@@ -99,19 +99,19 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
 
-  it("the Bulgarian customer's old notebooks (no language: made in propis2_bg) open as Bulgarian; other accounts' stay Russian", async () => {
-    for (const [owned, want] of [[["propis2", "propis2_bg"], "bg"], [["propis2"], undefined]]) {
+  it("old notebooks on the Bulgarian paper open as Bulgarian, the rest stay Russian, whatever topics the account has", async () => {
+    for (const [owned, paper, want] of [[["propis2", "propis2_bg"], "bg", "bg"], [["propis2", "propis2_bg"], undefined, undefined], [["propis2"], undefined, undefined]]) {
       useAppStore.setState({ ownedTopics: owned.map((topicId) => ({ topicId, source: "paid" })) });
+      localStorage.clear();
       const db = await openDb("p2lang-legacy-" + Date.now() + Math.random());
-      const pg = newPage("Стара тетрадка", { gridKind: "bg" });
+      const pg = newPage("Стара тетрадка", paper ? { gridKind: paper } : {});
       await saveLibrary(upsertSet(upsertPage(emptyLibrary(), pg), newSet("Стара тетрадка", { id: `st_${pg.id}`, pageIds: [pg.id] })), db);
       const host = document.createElement("div");
       document.body.appendChild(host);
       const root = createRoot(host);
       await act(async () => { root.render(<Propis2Home db={db} />); await tick(400); });
-      // his new notebooks are Bulgarian too, until he picks another language
+      // a new notebook is in the language most of the library is in: Bulgarian for the Bulgarian customer
       expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain(want === "bg" ? "Български" : "Русский");
-      expect(cards(host, "propis2-set-card")[0].textContent.includes("БЪЛ")).toBe(false); // one language in use: no marks
       await act(async () => { root.unmount(); await tick(400); }); // leaving saves what is pending
       expect((await loadLibrary(db)).sets.map((st) => st.lang)).toEqual([want]);
       host.remove();

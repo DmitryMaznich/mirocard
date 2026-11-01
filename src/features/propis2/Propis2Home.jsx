@@ -11,7 +11,7 @@ import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } f
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import { Propis2LangSheet } from "./Propis2LangPicker";
-import { deckLanguages, langOf, languageView, legacyNotebookLang, pickLanguage, tagUntaggedNotebooks } from "@/topics/renderers/propis2/languages.js";
+import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, mostUsedLang, pickLanguage } from "@/topics/renderers/propis2/languages.js";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
 import Propis2SaveDialog from "./Propis2SaveDialog";
@@ -35,8 +35,8 @@ export default function Propis2Home({ db }) {
   // one «student» may be a whole class, a child may write in two languages. Everything below works on the deck as the language of the
   // notebook being worked on; in the list, as the language a new notebook will get (`newLang`, remembered on this device)
   const languages = deckLanguages(deckRecord);
-  // (the first time: the deck's first language — Bulgarian for the Bulgarian customer, whose notebooks are Bulgarian)
-  const [newLang, setNewLangState] = useState(() => (languages ? pickLanguage(deckRecord, readNewLang(activeTopicId) ?? legacyNotebookLang(deckRecord, (useAppStore.getState().ownedTopics ?? []).map((o) => o.topicId))) : null));
+  // (until one is picked on this device: the language most of the library is in, once it is loaded — Bulgarian for the Bulgarian customer)
+  const [newLang, setNewLangState] = useState(() => (languages ? pickLanguage(deckRecord, readNewLang(activeTopicId)) : null));
   const setNewLang = (id) => { setNewLangState(id); writeNewLang(activeTopicId, id); };
   const [langSheet, setLangSheet] = useState(false);
   const [langFilter, setLangFilter] = useState("all");
@@ -103,9 +103,8 @@ export default function Propis2Home({ db }) {
       syncedRef.current = snapshotFromRemote(res.kv);
       const before = latest.current;
       const pulled = openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(before, res.kv)))));
-      const state = useAppStore.getState(); // the Bulgarian customer's old notebooks may arrive only now, on a new device (languages.js)
-      const legacy = legacyNotebookLang(state.topicRecords.find((r) => r.meta.id === state.activeTopicId), (state.ownedTopics ?? []).map((o) => o.topicId));
-      const merged = legacy ? tagUntaggedNotebooks(pulled, legacy) : pulled;
+      // the Bulgarian customer's old notebooks may arrive only now, on a new device (languages.js)
+      const merged = fixLegacyNotebookLangs(pulled, useAppStore.getState().topicRecords.find((r) => r.meta.id === useAppStore.getState().activeTopicId));
       persist(merged);
       // The open notebook works on its own copy of the library: bring what another device changed in it onto the screen. Unsaved
       // edits of this session are carried over onto the new copy; the undo history (made of the old copies) starts over.
@@ -127,9 +126,11 @@ export default function Propis2Home({ db }) {
         // no page lives outside a notebook: what was saved loose becomes a notebook of one page (and goes up with the next flush)
         const opened = openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(raw))));
         // the Bulgarian customer's notebooks, made in `propis2_bg` before «Прописи» had languages, are Bulgarian (languages.js)
-        const state = useAppStore.getState();
-        const legacy = legacyNotebookLang(state.topicRecords.find((r) => r.meta.id === state.activeTopicId), (state.ownedTopics ?? []).map((o) => o.topicId));
-        const lib = legacy ? tagUntaggedNotebooks(opened, legacy) : opened;
+        const lib = fixLegacyNotebookLangs(opened, useAppStore.getState().topicRecords.find((r) => r.meta.id === useAppStore.getState().activeTopicId));
+        // the language of a new notebook, until one is picked on this device: the language most of the library is in
+        const { activeTopicId: topicId, topicRecords } = useAppStore.getState();
+        const most = !readNewLang(topicId) && mostUsedLang(lib);
+        if (most) setNewLangState((cur) => pickLanguage(topicRecords.find((r) => r.meta.id === topicId), most) ?? cur);
         syncedRef.current = snapshotDocs(raw);
         latest.current = lib;
         setLibrary(lib);

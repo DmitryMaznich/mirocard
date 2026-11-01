@@ -72,14 +72,28 @@ export function languageView(record, langId) {
 export const DEFAULT_LANG = "ru";
 export const langOf = (item) => item?.lang ?? DEFAULT_LANG;
 
-// Notebooks made before their deck had languages carry none and count as Russian. On an account that had the Bulgarian variant deck
-// (`propis2_bg`, one Bulgarian customer, docs/propis2-languages.md) they are Bulgarian: owner 2026-11-01 — his Russian notebooks, if
-// any, do not matter. A tagged notebook is never touched; `updatedAt` moves so the tag wins over an older copy on another device.
-export function tagUntaggedNotebooks(lib, lang, now = Date.now()) {
-  if (!lib?.sets?.some((st) => !st.lang)) return lib;
-  return { ...lib, sets: lib.sets.map((st) => (st.lang ? st : { ...st, lang, updatedAt: now })) };
+// Notebooks made before their deck had languages carry none and count as Russian — except the Bulgarian customer's, made in the
+// Bulgarian variant deck (`propis2_bg`): a notebook with a page on the Bulgarian paper (`gridKind: "bg"`, offered only by that deck) is
+// Bulgarian. (owner 2026-11-01: his Russian notebooks, if any, do not matter.)
+// v1.0.2758 tagged Bulgarian EVERY untagged notebook of an account that owned `propis2_bg` — the owner's own Russian notebooks too (he
+// had it for testing). Undone here: a notebook it tagged Bulgarian (made before that release) with no page on the Bulgarian paper is
+// Russian again. A tagged notebook is otherwise never touched; `updatedAt` moves so the fix wins over the wrong copy on other devices.
+export const LEGACY_LANG_CUTOFF = Date.parse("2026-11-01T16:40:00Z");
+export function fixLegacyNotebookLangs(lib, record, now = Date.now()) {
+  if (!deckLanguages(record)?.some((l) => l.id === "bg") || !lib?.sets?.length) return lib;
+  const byId = new Map((lib.pages ?? []).map((p) => [p.id, p]));
+  const onBgPaper = (st) => (st.pageIds ?? []).some((id) => byId.get(id)?.gridKind === "bg");
+  let changed = false;
+  const sets = lib.sets.map((st) => {
+    if (!st.lang && onBgPaper(st)) { changed = true; return { ...st, lang: "bg", updatedAt: now }; }
+    if (st.lang === "bg" && !onBgPaper(st) && (st.createdAt ?? 0) < LEGACY_LANG_CUTOFF) { changed = true; return { ...st, lang: "ru", updatedAt: now }; }
+    return st;
+  });
+  return changed ? { ...lib, sets } : lib;
 }
-// which language an account's untagged notebooks are in: Bulgarian where the Bulgarian variant was owned, else none (they stay Russian)
-export function legacyNotebookLang(record, ownedTopicIds) {
-  return deckLanguages(record)?.some((l) => l.id === "bg") && ownedTopicIds.includes("propis2_bg") ? "bg" : null;
+// the language most of the library is in (the first language a new notebook gets, until one is picked on this device)
+export function mostUsedLang(lib) {
+  const n = {};
+  for (const st of lib?.sets ?? []) n[langOf(st)] = (n[langOf(st)] ?? 0) + 1;
+  return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }

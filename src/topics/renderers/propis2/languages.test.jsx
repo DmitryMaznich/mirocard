@@ -8,7 +8,7 @@ import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { topicAlphabet } from "./alphabet.js";
 import { deckPapers } from "./model.js";
 import { generateTasks } from "./engine.js";
-import { deckLanguages, languageView, pickLanguage, offeredLanguages, tagUntaggedNotebooks, legacyNotebookLang } from "./languages.js";
+import { deckLanguages, languageView, pickLanguage, offeredLanguages, fixLegacyNotebookLangs, mostUsedLang, LEGACY_LANG_CUTOFF } from "./languages.js";
 import { applyVariant } from "../../../../scripts/lib/propis2-variant.mjs";
 
 // «Прописи» (`propis2`) with its writing languages (since v0.6.0, scripts/build-propis2-deck.mjs, docs/propis2-languages.md), installed
@@ -102,13 +102,23 @@ describe("propis2 writing languages", () => {
     expect(ruTasks.some((t) => "writingLang" in t)).toBe(false);
   });
 
-  it("the Bulgarian customer's old notebooks become Bulgarian; tagged ones and other accounts are left alone", () => {
-    expect(legacyNotebookLang(multi, ["propis2", "propis2_bg"])).toBe("bg");
-    expect(legacyNotebookLang(multi, ["propis2"])).toBeNull();
-    expect(legacyNotebookLang(ru, ["propis2_bg"])).toBeNull(); // a deck without languages
-    const lib = { pages: [], sets: [{ id: "a", pageIds: [], updatedAt: 1 }, { id: "b", lang: "kk", pageIds: [], updatedAt: 1 }] };
-    const out = tagUntaggedNotebooks(lib, "bg", 5);
-    expect(out.sets).toEqual([{ id: "a", lang: "bg", pageIds: [], updatedAt: 5 }, { id: "b", lang: "kk", pageIds: [], updatedAt: 1 }]);
-    expect(tagUntaggedNotebooks(out, "bg", 9)).toBe(out); // nothing left to tag: the same library, nothing to save or sync
+  it("old notebooks on the Bulgarian paper become Bulgarian; the owner's Russian ones wrongly tagged by v1.0.2758 are Russian again", () => {
+    const before = LEGACY_LANG_CUTOFF - 60_000, after = LEGACY_LANG_CUTOFF + 60_000;
+    const lib = {
+      pages: [{ id: "p1", gridKind: "bg", rows: [] }, { id: "p2", gridKind: "square", rows: [] }, { id: "p3", rows: [] }, { id: "p4", rows: [] }, { id: "p5", rows: [] }],
+      sets: [
+        { id: "old-bg", pageIds: ["p1", "p2"], createdAt: before, updatedAt: 1 }, // made in propis2_bg: a page on the Bulgarian paper
+        { id: "old-ru", pageIds: ["p3"], createdAt: before, updatedAt: 1 }, // a Russian notebook, never tagged: stays as it is
+        { id: "wrong", lang: "bg", pageIds: ["p4"], createdAt: before, updatedAt: 2 }, // the owner's Russian notebook v1.0.2758 tagged Bulgarian
+        { id: "new-bg", lang: "bg", pageIds: ["p5"], createdAt: after, updatedAt: 3 }, // made Bulgarian on purpose after the fix: kept
+        { id: "kk", lang: "kk", pageIds: ["p3"], createdAt: before, updatedAt: 4 },
+      ],
+    };
+    const out = fixLegacyNotebookLangs(lib, multi, 9);
+    expect(out.sets.map((st) => [st.id, st.lang, st.updatedAt])).toEqual([["old-bg", "bg", 9], ["old-ru", undefined, 1], ["wrong", "ru", 9], ["new-bg", "bg", 3], ["kk", "kk", 4]]);
+    expect(fixLegacyNotebookLangs(out, multi, 10)).toBe(out); // nothing left to fix: nothing to save or sync
+    expect(fixLegacyNotebookLangs(lib, ru, 9)).toBe(lib); // a deck without languages
+    expect(mostUsedLang(out)).toBe("bg");
+    expect(mostUsedLang({ sets: [{ id: "a" }, { id: "b" }, { id: "c", lang: "bg" }] })).toBe("ru");
   });
 });
