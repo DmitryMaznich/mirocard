@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
 <style>
 /* Layout: a working sheet for the owner — part 1 (answer on the picture),
-   part 2 («Хватит ли?» built by the scene constructor), then the decisions.
+   part 2 («Всем хватает?» built by the scene constructor), then the decisions.
    App frames keep the app's own light colours. */
 :root {
   --sheet-bg: #eef3f2; --sheet-fg: #1a2e2b; --sheet-muted: #557a74; --sheet-card: #ffffff;
@@ -75,7 +75,7 @@ p { margin: 0; max-width: 68ch; }
 .verdict { min-height: 2.6em; font-size: clamp(19px, 5.6cqw, 26px); font-weight: 800; color: var(--app-verdict); text-align: center; text-wrap: balance; }
 .tapnext { font-size: 13px; font-weight: 700; color: #94a3b8; }
 
-/* «Хватит ли?» */
+/* «Всем хватает?» */
 .board { width: 100%; background: #fff; border-radius: 24px; box-shadow: 0 6px 22px rgba(15,23,42,.12); padding: 14px 8px; display: flex; flex-direction: column; gap: 6px; }
 .row { display: grid; justify-items: center; align-items: end; }
 .who svg, .thing svg { width: 100%; height: auto; display: block; }
@@ -105,7 +105,7 @@ p { margin: 0; max-width: 68ch; }
 <div class="wrap">
   <header>
     <div class="eyebrow">Сравнение · режим 8 «Сравни в жизни» · макет</div>
-    <h1>Сравни в жизни: зеркало, фраза и «Хватит ли?»</h1>
+    <h1>Сравни в жизни: зеркало, фраза и «Всем хватает?»</h1>
     <p class="lead">Две части. Первая — быстрые правки на нынешних картинках: зеркальные показы и ступеньки фразы, ответ по-прежнему кнопками с текстом. Вторая — новый тип сюжета, который соберёт конструктор. По всем экранам можно нажимать.</p>
   </header>
 
@@ -123,8 +123,8 @@ p { margin: 0; max-width: 68ch; }
   </section>
 
   <section aria-labelledby="h2s">
-    <h2 id="h2s">2. «Хватит ли?»</h2>
-    <p class="sec-lead">Бытовое сравнение «один к одному»: всем ли хватит стульев, чашек, косточек. Это продолжение «Пар» из режима 1, только в жизни. Сцену собирает код из отдельных рисунков, поэтому количество всегда точное. <span class="stub">Рисунки здесь — заглушки. Настоящие нарисует Gemini по списку заготовок.</span></p>
+    <h2 id="h2s">2. «Всем хватает?»</h2>
+    <p class="sec-lead">Бытовое сравнение «один к одному»: всем ли хватает стульев, блюдец, косточек. Это продолжение «Пар» из режима 1, только в жизни. Сцену собирает код из отдельных рисунков, поэтому количество всегда точное. <span class="stub">Рисунки здесь — заглушки. Настоящие нарисует Gemini по списку заготовок.</span></p>
     <div class="params">
       <div class="param-row"><div class="param-label">Предметы</div><div class="group" id="o-set"></div></div>
       <div class="param-row"><div class="param-label">Порядок</div><div class="group" id="o-order"></div>
@@ -140,18 +140,18 @@ p { margin: 0; max-width: 68ch; }
       <ul>
         <li><strong>Ответ — кнопками с текстом, как сейчас.</strong> К этой ступени ребёнок читает, поэтому экран под нечитающих не перестраиваем.</li>
         <li><strong>Зеркало.</strong> Картинка отражается, а числа и имена меняются местами в данных. Перерисовывать ничего не надо.</li>
-        <li><strong>«Хватит ли?», сначала проверка.</strong> Ребёнок нажимает на предметы, и каждый встаёт к своему персонажу. Кому не хватило — тот подсвечивается, лишний предмет тоже. Потом фраза: «Стульев не хватит».</li>
-        <li><strong>«Хватит ли?», сначала ответ.</strong> Труднее: ребёнок сначала отвечает «хватит» или «не хватит» на глаз, потом проверяет, расставляя предметы. Неверный ответ не штрафуется до проверки: проверка сама покажет.</li>
-        <li><strong>Три исхода:</strong> не хватит, хватит ровно (поровну), хватит и останутся лишние. Количество 3–6 персонажей, разница 0–2.</li>
+        <li><strong>«Всем хватает?», сначала проверка.</strong> Ребёнок нажимает на предметы, и каждый встаёт к своему персонажу. Кому не хватает — тот подсвечивается, лишний предмет тоже. Потом фраза: «Стульев не хватает. Одному не хватает стула».</li>
+        <li><strong>«Всем хватает?», сначала ответ.</strong> Труднее: ребёнок сначала отвечает «хватает» или «не хватает» на глаз, потом проверяет, расставляя предметы. Неверный ответ не штрафуется до проверки: проверка сама покажет.</li>
+        <li><strong>Три исхода:</strong> не хватает, хватает ровно (поровну), хватает и есть лишние. Количество 3–6 персонажей, разница 0–2.</li>
       </ul>
     </div>
     <div class="panel panel--q">
       <h2>Нужно ваше решение</h2>
       <ol>
         <li><strong>Фраза по умолчанию:</strong> короткая, с предметом или полная?</li>
-        <li><strong>«Хватит ли?»:</strong> оба порядка как две ступени (сначала проверка, потом ответ), или только один?</li>
+        <li><strong>«Всем хватает?»:</strong> оба порядка как две ступени (сначала проверка, потом ответ), или только один?</li>
         <li><strong>Набор бытовых пар</strong> для заготовок: дети и стулья, чашки и блюдца, собаки и косточки. Что добавить? Я бы взял ещё дети и шапки, куклы и кроватки, тарелки и ложки.</li>
-        <li><strong>Где «Хватит ли?» в теме:</strong> вариантом внутри «Сравни в жизни» или отдельной ступенью?</li>
+        <li><strong>Где «Всем хватает?» в теме:</strong> вариантом внутри «Сравни в жизни» или отдельной ступенью?</li>
       </ol>
     </div>
   </section>
@@ -227,9 +227,12 @@ p { margin: 0; max-width: 68ch; }
     bone: () => `<svg viewBox="0 0 60 30" aria-hidden="true"><path d="M14 11 h32 M14 19 h32" stroke="#a8a29e" stroke-width="2"/><rect x="12" y="10" width="36" height="10" fill="#fafaf9"/><circle cx="10" cy="10" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/><circle cx="10" cy="20" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/><circle cx="50" cy="10" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/><circle cx="50" cy="20" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/></svg>`,
   };
   const SETS = {
-    chairs: { who: "kid", thing: "chair", q: "Всем хватит стульев?", things: "стульев", label: "Дети и стулья" },
-    cups: { who: "cup", thing: "saucer", q: "Всем чашкам хватит блюдец?", things: "блюдец", label: "Чашки и блюдца" },
-    dogs: { who: "dog", thing: "bone", q: "Всем собакам хватит косточек?", things: "косточек", label: "Собаки и косточки" },
+    chairs: { who: "kid", thing: "chair", q: "Всем хватает стульев?", things: "стульев", label: "Дети и стулья",
+      lack: ["Одному не хватает стула.", "Двоим не хватает стульев."], spare: ["Один стул лишний.", "Два стула лишних."] },
+    cups: { who: "cup", thing: "saucer", q: "Всем чашкам хватает блюдец?", things: "блюдец", label: "Чашки и блюдца",
+      lack: ["Одной чашке не хватает блюдца.", "Двум чашкам не хватает блюдец."], spare: ["Одно блюдце лишнее.", "Два блюдца лишних."] },
+    dogs: { who: "dog", thing: "bone", q: "Всем собакам хватает косточек?", things: "косточек", label: "Собаки и косточки",
+      lack: ["Одной собаке не хватает косточки.", "Двум собакам не хватает косточек."], spare: ["Одна косточка лишняя.", "Две косточки лишние."] },
   };
   let rnd = (n) => Math.floor(Math.random() * n);
   function newTask() { const who = 3 + rnd(4); const d = [-2, -1, -1, 0, 1][rnd(5)]; st.task = { who, things: Math.max(2, who + d) }; }
@@ -250,7 +253,7 @@ p { margin: 0; max-width: 68ch; }
         <div class="row whos" style="grid-template-columns:repeat(${cols},1fr)">${Array.from({ length: who }, (_, i) => `<div class="who" data-i="${i}">${draw[set.who](i)}</div>`).join("")}</div>
         <div class="row things" style="grid-template-columns:repeat(${cols},1fr);margin-top:18px">${Array.from({ length: things }, (_, i) => `<button type="button" class="thing" data-i="${i}" aria-label="Предмет ${i + 1}">${draw[set.thing](i)}</button>`).join("")}</div>
       </div>
-      ${st.order === "answer" ? `<div class="choice"><button type="button" data-a="yes">Хватит</button><button type="button" data-a="no">Не хватит</button></div>` : ""}
+      ${st.order === "answer" ? `<div class="choice"><button type="button" data-a="yes">Хватает</button><button type="button" data-a="no">Не хватает</button></div>` : ""}
       <div class="helper"></div>
       <div class="verdict"></div>`);
     wall.append(shot);
@@ -286,12 +289,12 @@ p { margin: 0; max-width: 68ch; }
       if (things < who) {
         whoEls.slice(things).forEach((w) => w.classList.add("left-out"));
         const n = who - things;
-        verdictEl.textContent = `${cap(set.things)} не хватит. ${n === 1 ? "Одному не хватило." : `Двоим не хватило.`}`;
+        verdictEl.textContent = `${cap(set.things)} не хватает. ${set.lack[n === 1 ? 0 : 1]}`;
       } else if (things === who) {
-        verdictEl.textContent = `${cap(set.things)} хватит всем. Поровну.`;
+        verdictEl.textContent = `${cap(set.things)} хватает всем. Поровну.`;
       } else {
         thingsEls.filter((t) => !t.dataset.placed).forEach((t) => { t.classList.add("extra"); t.disabled = true; });
-        verdictEl.textContent = `${cap(set.things)} хватит всем, ${things - who === 1 ? "один лишний" : "два лишних"}.`;
+        verdictEl.textContent = `${cap(set.things)} хватает всем. ${set.spare[things - who === 1 ? 0 : 1]}`;
       }
     }
   }
