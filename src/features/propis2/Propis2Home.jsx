@@ -459,7 +459,7 @@ export default function Propis2Home({ db }) {
           />
         )}
         {fragment && (
-          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} bandFill={gridSource ? pageBandFill(gridSource) : false} onClose={() => setFragment(null)} />
+          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} bandFill={gridSource ? pageBandFill(gridSource) : null} onClose={() => setFragment(null)} />
         )}
         {dialog}
       </div>

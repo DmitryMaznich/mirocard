@@ -25,7 +25,7 @@ export function listElementChoices(topicRecord) {
 // `minPages`: how many pages the task has at least (a notebook's pages, blank ones included: trailing blank rows are dropped below).
 const OWN_ROW_GRIDS = new Set(["square", "ruled", "bg"]);
 
-export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false, bandFill = false }) {
+export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false, bandFill = null }) {
   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
   const clean = (lines ?? []).map((l) => String(l).trim());
   if (grid === "square" || grid === "ruled" || grid === "bg") narrowRows = true; // squared / ruled / Bulgarian paper: its own rows (PrintPageView), letters and digits at the narrow size
@@ -49,7 +49,8 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     // slants are left out (`noSlant`), the rest of that ruling stays
     noSlant: grid === "none" || Boolean(noSlant),
     midDash: midDash !== false,
-    bandFill: Boolean(bandFill) && Boolean(narrowRows) && !OWN_ROW_GRIDS.has(grid), // «Подсветка» of the narrow rows (model.js pageBandFill)
+    // «Подсветка» of the narrow rows: the tint's colour (model.js pageBandFill), or null
+    bandFill: typeof bandFill === "string" && narrowRows && !OWN_ROW_GRIDS.has(grid) ? bandFill : null,
     format: format === "a4" ? "a4" : "a5",
     margin: margin === "left" || margin === "right" ? margin : "off",
     narrowRows,

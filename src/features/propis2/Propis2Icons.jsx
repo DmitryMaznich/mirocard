@@ -32,8 +32,8 @@ export const IconRowWide = () => S(<>{rule(6)}{guide(12)}{baseRule(18)}{shape("a
 export const IconSlantSparse = () => S(<>{slants([11, 21], 4, 20)}{baseRule(20)}</>);
 export const IconSlantNone = () => S(<>{slants([15], 4, 20)}{baseRule(20)}<path d="M5 5L19 19" stroke={DARK} strokeWidth={1.4} /></>);
 export const IconSlantDense = () => S(<>{slants([7, 11, 15, 19, 23], 4, 20)}{baseRule(20)}</>);
-// «Подсветка»: the narrow row with its band tinted
-export const IconBandFill = () => S(<><rect x="2.5" y="8" width="19" height="8" fill="#c9daf5" stroke="none" />{rule(8)}{guide(12)}{baseRule(16)}</>);
+// «Подсветка»: the narrow row with its band tinted `color` (a tint deepened for the 24 px pictogram, else it is not seen); none: a slash
+export const IconBandFill = ({ color = null }) => S(<>{color && <rect x="2.5" y="6" width="19" height="12" fill={color} stroke="none" />}{rule(6)}{baseRule(18)}{!color && <path d="M6 21L18 3" stroke={GRAY} strokeWidth={1.4} />}</>);
 export const IconDash = () => S(<>{rule(6)}{guide(12)}{baseRule(18)}</>);
 export const IconWriteAfter = () => S(<>{baseRule(10.5)}{shape("a_narrow", 4, -5.5)}{baseRule(20, 2.5, 13)}<path d="M15.5 21l1.1-3.9 3.6-3.6 2.1 2.1-3.6 3.6z" strokeWidth={1.4} /></>);
 

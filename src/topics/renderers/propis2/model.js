@@ -67,9 +67,24 @@ export const taskGrid = (page) => {
 export const pageNoSlant = (page) => page?.grid === "none";
 // The middle dash: on the copybook paper in the middles of the rows (on by default, `midDash`); on the Bulgarian paper only in the
 // middle of the x-height band, off by default and kept apart (`bgDash`, owner 2026-10-25), so a notebook's two papers don't share it.
-// «Подсветка» (owner, 2026-11-01): the band of every narrow row of the sheet is tinted pale blue, with letters on it or not. A page
-// setting like the middle dash (the editor offers it for the whole notebook right after); on the copybook paper, narrow ruling only.
-export const pageBandFill = (page) => Boolean(page?.bandFill) && pageGridKind(page) === "propis" && page?.ruling !== "wide";
+// «Подсветка» (owner, 2026-11-01): the band of every narrow row of the sheet is tinted, with letters on it or not — the row is a part
+// of the sheet. A page setting like the middle dash (the editor offers it for the whole notebook right after); on the copybook paper,
+// narrow ruling only. `page.bandFill`: the id of a tint (`true`, the first version: grey, the default). Six light tints: pale enough
+// for the blue ink and the red start dots to stay readable and for the pencil on a black-and-white print (they all print light grey).
+export const BAND_FILLS = [
+  { id: "grey", label: "Серая", color: "#e9ebef" },
+  { id: "blue", label: "Голубая", color: "#e3ecf9" },
+  { id: "green", label: "Зелёная", color: "#e1f1de" },
+  { id: "yellow", label: "Жёлтая", color: "#fdf1c7" },
+  { id: "pink", label: "Розовая", color: "#fbe2ea" },
+  { id: "lilac", label: "Сиреневая", color: "#ebe5f6" },
+];
+export const bandFillId = (page) => (page?.bandFill === true ? "grey" : BAND_FILLS.some((f) => f.id === page?.bandFill) ? page.bandFill : "none");
+// the tint the sheet is drawn with, or null (none, or not the narrow copybook row)
+export const pageBandFill = (page) => {
+  const id = bandFillId(page);
+  return id !== "none" && pageGridKind(page) === "propis" && page?.ruling !== "wide" ? BAND_FILLS.find((f) => f.id === id).color : null;
+};
 export const pageMidDash = (page) => (pageGridKind(page) === "bg" ? Boolean(page?.bgDash) : page?.midDash !== false);
 
 export const ROW_KINDS = [
@@ -628,7 +643,7 @@ const SETTING_OF = {
   margin: pageMargin,
   midDash: (p) => p?.midDash !== false,
   bgDash: (p) => Boolean(p?.bgDash),
-  bandFill: (p) => Boolean(p?.bandFill),
+  bandFill: bandFillId,
   writeAfter: (p) => Boolean(p?.writeAfter),
 };
 const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash", "bandFill"]);

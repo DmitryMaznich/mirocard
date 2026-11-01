@@ -18,7 +18,7 @@ const kindOf = (fragment) => {
   return "Слово";
 };
 
-export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, midDash, bandFill = false, onClose }) {
+export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, midDash, bandFill = null, onClose }) {
   const [slow, setSlow] = useState(false);
   const [playKey, setPlayKey] = useState(0);
   const stageRef = useRef(null);

@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows } from "@/topics/renderers/propis2/model.js";
+import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -47,13 +47,19 @@ function useMedia(query) {
 export const MIXED_TEXT = "в тетради по-разному";
 // What a strip button did, for the offer to do it on the whole notebook.
 const optionName = (list, id, field = "label") => String(list.find((o) => o.id === id)?.[field] ?? id).toLowerCase();
+// «Подсветка»: none, then the six tints; the pictogram is the row with its band in the tint, deepened a little (24 px)
+const deepen = (hex, k = 0.3, to = [138, 148, 166]) => `#${[1, 3, 5].map((i, n) => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - k) + to[n] * k).toString(16).padStart(2, "0")).join("")}`;
+const BAND_FILL_OPTS = [
+  { id: "none", label: "Без подсветки", Icon: () => <I.IconBandFill /> },
+  ...BAND_FILLS.map((f) => ({ id: f.id, label: f.label, Icon: () => <I.IconBandFill color={deepen(f.color, 0.12)} /> })),
+];
 const SETTING_SAYS = {
   gridKind: (v) => `Бумага: ${optionName(GRID_KINDS, v)}`,
   ruling: (v) => `Строки: ${optionName(RULINGS, v, "short")}`,
   grid: (v) => `Наклон: ${optionName(GRIDS, v, "short")}`,
   margin: (v) => `Поля: ${optionName(MARGINS, v)}`,
   midDash: (v) => (v ? "Пунктир включён" : "Пунктир выключен"),
-  bandFill: (v) => (v ? "Подсветка строк включена" : "Подсветка строк выключена"),
+  bandFill: (v) => `Подсветка: ${BAND_FILL_OPTS.find((o) => o.id === v)?.label ?? "нет"}`,
   bgDash: (v) => (v ? "Пунктир включён" : "Пунктир выключен"),
   writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
 };
@@ -426,7 +432,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.filter((g) => propisGrid || g.id !== "dense").map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
           <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
           <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={pageMidDash(page)} disabled={locked || !(propisGrid || bgPaper)} mixed={bgPaper ? mx.bgDash : mx.midDash} onClick={() => setSetting(bgPaper ? "bgDash" : "midDash", !pageMidDash(page))} data-kind="dash"><I.IconDash /></IconBtn>
-          <IconBtn label="Подсветка узкой строки" caption="Подсветка" on={Boolean(page.bandFill)} disabled={locked || !propisGrid || page.ruling === "wide"} mixed={mx.bandFill} onClick={() => setSetting("bandFill", !page.bandFill)} data-kind="bandfill"><I.IconBandFill /></IconBtn>
+          <Propis2Picker label="Подсветка узкой строки" caption="Подсветка" disabled={locked || !propisGrid || page.ruling === "wide"} mixed={mx.bandFill} value={bandFillId(page)} onChange={(id) => setSetting("bandFill", id)} options={BAND_FILL_OPTS} />
           <IconBtn label="Строка для письма после каждой строки" caption="Строка для письма" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           {locked && (
             <>

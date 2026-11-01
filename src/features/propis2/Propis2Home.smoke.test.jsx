@@ -228,7 +228,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
-  it("«Подсветка»: the narrow rows of the page tinted, letters or not; offered for the whole notebook; the student sees it", async () => {
+  it("«Подсветка»: every narrow row of the page tinted, letters or not, in one of six tints (grey first); offered for the whole notebook; the student sees it", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -237,29 +237,37 @@ describe("propis2 (zip topic)", () => {
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
     const fill = () => host.querySelector('button[aria-label="Подсветка узкой строки"]');
+    const pick = async (name) => { await click(fill()); await click(host.querySelector(`[role="option"][aria-label="${name}"]`)); };
     const offer = () => host.querySelector('[data-testid="propis2-offer"]');
-    const tinted = () => host.querySelectorAll('[data-testid="propis2-preview"] [data-band-fill]').length;
+    const bands = () => [...host.querySelectorAll('[data-testid="propis2-preview"] [data-band-fill]')];
 
     await click(btn("Новая тетрадь"));
     await typeInField(host, "мама");
     await click(host.querySelector('[aria-label="Добавить страницу"]'));
-    expect(tinted()).toBe(0);
+    expect(bands()).toHaveLength(0);
+    expect(fill().getAttribute("data-value")).toBe("none");
+    // six tints after «Без подсветки», grey first
     await click(fill());
-    expect(fill().getAttribute("aria-pressed")).toBe("true");
+    expect([...host.querySelectorAll('[role="option"]')].map((o) => o.getAttribute("aria-label"))).toEqual(["Без подсветки", "Серая", "Голубая", "Зелёная", "Жёлтая", "Розовая", "Сиреневая"]);
+    await click(fill());
+    await pick("Серая");
     // every narrow row of the sheet, the one with letters too (17 on an A5 page)
-    expect(tinted()).toBe(17);
+    expect(bands()).toHaveLength(17);
+    expect(bands()[0].getAttribute("fill")).toBe("#e9ebef");
     expect(fill().querySelector(".p2-mixed")).not.toBeNull(); // page 1 has none yet
-    expect(offer().textContent).toMatch(/^Подсветка строк включена — на стр\. 2/);
+    expect(offer().textContent).toMatch(/^Подсветка: Серая — на стр\. 2/);
     await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На всю тетрадь"));
     expect(fill().querySelector(".p2-mixed")).toBeNull();
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
-    expect(fill().getAttribute("aria-pressed")).toBe("true");
-    expect(tinted()).toBe(17);
+    expect(fill().getAttribute("data-value")).toBe("grey");
+    expect(bands()).toHaveLength(17);
+    await pick("Сиреневая");
+    expect(bands()[0].getAttribute("fill")).toBe("#ebe5f6");
     // the wide ruling has no narrow row: the button is off there
     await click(host.querySelector('button[aria-label="Разлиновка"]'));
     await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
     expect(fill().disabled).toBe(true);
-    expect(tinted()).toBe(0);
+    expect(bands()).toHaveLength(0);
     await click(btn("Отменить"));
     await click(btn("Показать ученику"));
     expect(host.querySelectorAll('[data-testid="propis2-view"] [data-band-fill]').length).toBeGreaterThan(0);

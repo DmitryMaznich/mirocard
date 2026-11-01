@@ -15,8 +15,6 @@ import {
 } from "./propisRuling.js";
 // a character the hand has no shape for (propis2: the red box wordEngine puts in its place)
 const MISSING_COLOR = "#dc2626";
-// the tint of the narrow row's band (propis2 «Подсветка»): pale blue on screen, a light grey on a black-and-white printer
-const BAND_FILL_COLOR = "#e3ecf9";
 
 const PAGE_W_UNITS = mmToNativeUnits(PRINT_PAGE_W_MM);
 const CONTENT_W_UNITS = mmToNativeUnits(PRINT_CONTENT_W_MM);
@@ -395,7 +393,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, onDropRemove = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, bandFill = false, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, onDropRemove = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, bandFill = null, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -530,10 +528,10 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
         const ks = Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i);
         return (
           <g data-narrow-grid="1">
-            {/* `propis2` «Подсветка»: the band of every narrow row tinted, under the slants, the lines and the ink */}
+            {/* `propis2` «Подсветка»: the band of every narrow row tinted (`bandFill`: the colour), under the slants, the lines and the ink */}
             {bandFill && !plain && ROW_INDICES.slice(rowOff).filter((row) => onlyRow === null || row === onlyRow).map((row) => {
               const bottom = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL;
-              return <rect key={`fill${row}`} x={0} y={bottom - NARROW_BAND_H} width={PAGE_W_UNITS} height={NARROW_BAND_H} fill={BAND_FILL_COLOR} data-band-fill={row} />;
+              return <rect key={`fill${row}`} x={0} y={bottom - NARROW_BAND_H} width={PAGE_W_UNITS} height={NARROW_BAND_H} fill={bandFill} data-band-fill={row} />;
             })}
             {!simpleStep && ks.map((k) => (
               <line key={k} x1={narrowLineX(k, 0)} y1={0} x2={narrowLineX(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
@@ -1032,7 +1030,7 @@ function layoutTaskPages(task) {
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(lines.join("\n"), lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel);
   const pages = paginateRows(layout, wideRows ? perPage : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages), minPages: Number(task?.minPages) || 0 });
-  return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, noSlant: Boolean(task?.noSlant), midDash: task?.midDash !== false, bandFill: Boolean(task?.bandFill) };
+  return { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, noSlant: Boolean(task?.noSlant), midDash: task?.midDash !== false, bandFill: task?.bandFill ?? null };
 }
 
 // The top rows of a page of a task (the first one by default), as printed (its own paper): the window on a notebook on its cover;
@@ -1145,7 +1143,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
-              simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} bandFill={Boolean(task?.bandFill)} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
+              simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} bandFill={task?.bandFill ?? null} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
               onSheetPoint={onSheetPoint ? (p) => onSheetPoint({ ...p, row: p.row < 0 ? -1 : shownIndex * perPage + p.row }) : null}
               onDropRemove={onDropRemove ? (row) => onDropRemove(shownIndex * perPage + row) : null}
@@ -1189,7 +1187,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoi
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
-                  simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} bandFill={Boolean(task?.bandFill)} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
+                  simpleGrid={task?.simpleGrid ?? null} noSlant={Boolean(task?.noSlant)} midDash={task?.midDash !== false} bandFill={task?.bandFill ?? null} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
                 />
               </div>
               {isZoomed && (
