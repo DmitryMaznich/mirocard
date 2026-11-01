@@ -169,6 +169,9 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
           <button className={sideClass("left")} disabled={isAnswered} aria-label={sideLabel("left", task.left, isNumbers ? "numbers" : "dots")} onClick={() => handleSide(true)}>
             <SideContent value={task.left} color={LEFT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
           </button>
+          {/* Deliberately an empty amber square, no «=» and no caption: the
+              owner's choice — nothing extra to distract, and it looks
+              inviting to the child. Don't "fix" it (tried in 2.48.0, reverted). */}
           {task.showEqual && (
             <button
               className={`compare-equal-btn compare-equal-btn--empty compare-equal-btn--hint${shakeSide === "equal" ? " compare-equal-btn--shake" : ""}`}
@@ -176,10 +179,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
               disabled={isAnswered}
               onClick={handleEqual}
               aria-label="Поровну"
-            >
-              <span className="compare-equal-btn__sign" aria-hidden="true">=</span>
-              <span className="compare-equal-btn__caption" aria-hidden="true">поровну</span>
-            </button>
+            />
           )}
           <button className={sideClass("right")} disabled={isAnswered} aria-label={sideLabel("right", task.right, isNumbers ? "numbers" : "dots")} onClick={() => handleSide(false)}>
             <SideContent value={task.right} color={RIGHT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />

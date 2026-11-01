@@ -51,14 +51,14 @@ describe("Сравнение — «Сравни и нажми»: тап по с�
     expect(wrong).toBe(1);
     expect(right).toBe(0);
   });
-  it("the «same» button shows «=» and the piles are blue and orange, not red", () => {
+  it("the «same» button stays an empty square; the piles are blue and orange, not red", () => {
     const task = { type: "compare_visual", left: 3, right: 5, question: "more", showEqual: true, visualMode: "dots", conceptId: "compare_easy", instruction: "Где больше точек?" };
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
     act(() => root.render(<ComparisonRenderer task={task} mode={MODE_VISUAL} sessionStatus="task_active" onCorrect={() => {}} onIncorrect={() => {}} />));
     const equal = container.querySelector(".compare-equal-btn");
-    expect(equal.textContent).toContain("=");
+    expect(equal.textContent).toBe("");
     expect(equal.getAttribute("aria-label")).toBe("Поровну");
     const sides = [...container.querySelectorAll(".compare-side")];
     expect(sides.map((b) => b.getAttribute("aria-label"))).toEqual(["Слева точек: 3", "Справа точек: 5"]);

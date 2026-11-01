@@ -108,12 +108,13 @@ p { margin: 0; max-width: 68ch; }
 .body { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 12px 20px; min-height: 360px; justify-content: center; }
 .instr { font-size: clamp(20px, 6cqw, 30px); font-weight: 800; text-align: center; }
 
-/* Phone: two big squares, «поровну» moves under them so the squares can grow
-   from 26vw (≈100px) to almost half the screen. Tablet: as today, «=» between. */
-.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 760px; }
-.sides .eq { grid-column: 1 / -1; grid-row: 2; }
-.wall--tablet .sides { grid-template-columns: 240px 200px 240px; justify-content: center; align-items: center; gap: 24px; }
-.wall--tablet .sides .eq { grid-column: auto; grid-row: 1; grid-column-start: 2; }
+/* As in the app: card · «поровну» · card in one row, each clamp(90px, 26vw, 220px);
+   tablet 240 · 200 · 240. */
+.sides { display: flex; gap: 16px; justify-content: center; align-items: center; width: 100%; }
+.side, .eq { width: clamp(90px, 26cqw, 220px); flex-shrink: 0; }
+.wall--tablet .sides { gap: 24px; }
+.wall--tablet .side { width: 240px; }
+.wall--tablet .eq { width: 200px; }
 
 .side {
   appearance: none; font: inherit; color: inherit; padding: 10px; cursor: pointer;
@@ -128,16 +129,13 @@ p { margin: 0; max-width: 68ch; }
 .dot { position: absolute; border-radius: 50%; transition: left .6s cubic-bezier(.3,.8,.3,1), top .6s cubic-bezier(.3,.8,.3,1), width .6s, height .6s; }
 .num { font-size: clamp(22px, 7cqw, 34px); font-weight: 800; line-height: 1; }
 
+/* The owner's empty amber square (compare-equal-btn--empty --hint): no sign,
+   no caption, on purpose. */
 .eq {
-  appearance: none; font: inherit; cursor: pointer; border-radius: 18px;
-  background: var(--app-amber-bg); border: 3px dashed var(--app-amber); color: var(--app-amber-ink);
-  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; padding: 6px 14px;
+  appearance: none; font: inherit; cursor: pointer; aspect-ratio: 1; padding: 0;
+  background: var(--app-amber-bg); border: 3px dashed var(--app-amber); border-radius: 20px;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.wall--tablet .eq { flex-direction: column; gap: 2px; width: 200px; height: 200px; border-radius: 20px; }
-.eq-sign { font-size: 40px; font-weight: 800; line-height: 1; }
-.wall--tablet .eq-sign { font-size: 88px; }
-.eq-cap { font-size: 18px; font-weight: 700; color: #92400e; }
 .eq.ok { border-style: solid; border-color: var(--app-green); background: var(--app-green-bg); }
 .eq.bad { border-style: solid; border-color: var(--app-red); animation: shake .35s; }
 
@@ -198,7 +196,8 @@ p { margin: 0; max-width: 68ch; }
         <li><strong>Ловушка на «поровну».</strong> Поровну, но одна сторона выглядит больше. Это классическая проба на сохранение количества. Поэтому в ловушке кнопка «поровну» включается сама, как в «Парах».</li>
         <li><strong>После ошибки</strong> точки обеих сторон съезжаются в ряды одного размера, и в повторе задание остаётся рядами. Ребёнок видит, что правда больше, и не ошибается второй раз на том же обмане.</li>
         <li><strong>Где доступно.</strong> «Точки» и «Точки + цифра». В «Парах» точки остаются столбиками: там важно видеть лишние. В «Только цифры» точек нет.</li>
-        <li><strong>Телефон.</strong> Сейчас карточка на телефоне шириной около 100 px, и мелкие точки ловушки получились бы 7 px. Поэтому в макете «поровну» на телефоне уходит под карточки, а карточки вырастают почти до половины экрана. На планшете всё как сейчас.</li>
+        <li><strong>Кнопка «поровну»</strong> остаётся как есть: пустой жёлтый квадрат между карточками.</li>
+        <li><strong>Телефон.</strong> Карточка там шириной около 100 px, поэтому мелкие точки ловушки получаются примерно 8 px. Посмотрите вид «Телефон». Если это слишком мелко, на телефоне можно делать кучку чуть просторнее, а разницу в размере меньше.</li>
       </ul>
     </div>
     <div class="panel panel--q">
@@ -207,7 +206,7 @@ p { margin: 0; max-width: 68ch; }
         <li><strong>Одна настройка из трёх шагов</strong> (как в макете) или две отдельные: «Вразброс» и «Разный размер»? Я за одну: меньше кнопок, и порядок шагов виден сразу.</li>
         <li><strong>Доля подвохов в ловушке</strong> — половина заданий. Больше или меньше?</li>
         <li><strong>После ошибки съезжаться в ряды?</strong> Или только трясти карточку, как сейчас, без подсказки?</li>
-        <li><strong>«Поровну» под карточками на телефоне</strong>: только для разброса или для всех видов режима 1? На планшете не меняется.</li>
+        <li><strong>Ловушка на телефоне</strong>: мелкие точки около 8 px, это нормально? Посмотрите вид «Телефон».</li>
         <li><strong>Цвет.</strong> В ловушке обе стороны остаются синей и оранжевой. Можно сделать обе одного цвета, чтобы цвет вообще не подсказывал. Я бы оставил два цвета: так понятнее, где чья кучка.</li>
       </ol>
     </div>
@@ -333,7 +332,7 @@ p { margin: 0; max-width: 68ch; }
         <div class="instr">Где больше точек?</div>
         <div class="sides">
           <button type="button" class="side" data-side="L"><div class="field"></div>${cfg.view === "dots_numbers" ? `<div class="num">${cfg.left}</div>` : ""}</button>
-          <button type="button" class="eq" aria-label="Поровну"><span class="eq-sign" aria-hidden="true">=</span><span class="eq-cap" aria-hidden="true">поровну</span></button>
+          <button type="button" class="eq" aria-label="Поровну"></button>
           <button type="button" class="side" data-side="R"><div class="field"></div>${cfg.view === "dots_numbers" ? `<div class="num">${cfg.right}</div>` : ""}</button>
         </div>
         <div class="verdict"></div>
