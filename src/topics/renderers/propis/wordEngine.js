@@ -2147,17 +2147,21 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             {
               const aft2 = samplePath(moved[0].d, 40).find((q) => Math.hypot(q[0] - target[0], q[1] - target[1]) > 4 * scale);
               const dd0 = strokes[prevExitStroke].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
-              if (aft2 && dd0.length === 10 && dd0[0] === "M" && dd0[3] === "C") {
+              if (aft2 && dd0[0] === "M") {
                 let ux = aft2[0] - target[0], uy = aft2[1] - target[1];
                 if (uy > 0) { ux = -ux; uy = -uy; }
                 const stemDeg = (Math.atan2(-uy, ux) * 180) / Math.PI;                       // the stem's own angle (up along it), degrees from the horizontal
-                const n = dd0.map((t) => (t === "M" || t === "C" ? t : parseFloat(t)));
-                const p0 = [n[1], n[2]], c1 = [n[4], n[5]];
-                if (stemDeg > 55 && stemDeg < 85 && target[0] > p0[0] + 4 && target[1] < p0[1] - 4 * scale) {
-                  const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]), kk2 = chord * STEM_ARRIVE_K;
+                // the connector may be several cubics (Э В Р …: the loop under the oval, then the rise): it is kept up to its LOWEST point and rebuilt from there
+                const segs = []; { let i = 0; while (i < dd0.length) { const c = dd0[i], m = c === "M" ? 2 : 6; segs.push({ c, v: dd0.slice(i + 1, i + 1 + m).map(parseFloat) }); i += 1 + m; } }
+                let low = 0; segs.forEach((sg, i) => { const e = sg.v.slice(-2); if (e[1] >= segs[low].v.slice(-2)[1] - 1e-6) low = i; });
+                const p0 = segs[low].v.slice(-2);
+                if (low < segs.length - 1 && stemDeg > 55 && stemDeg < 85 && target[0] > p0[0] + 4 && target[1] < p0[1] - 4 * scale) {
+                  const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]), kk2 = chord * STEM_ARRIVE_K, kk1 = low === 0 ? 0 : chord * 0.3;
                   const f3 = (v) => v.toFixed(3);
                   const th = (STEM_ARRIVE_DEG * Math.PI) / 180;
-                  strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `M ${f3(p0[0])} ${f3(p0[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(target[0] - Math.cos(th) * kk2)} ${f3(target[1] + Math.sin(th) * kk2)} ${f3(target[0])} ${f3(target[1])}` };
+                  const c1 = low === 0 ? [segs[1].v[0], segs[1].v[1]] : [p0[0] + kk1, p0[1]];  // a single cubic keeps its own first control point, a longer path leaves its lowest point horizontally
+                  const head = segs.slice(0, low + 1).map((sg) => `${sg.c} ${sg.v.map(f3).join(" ")}`).join(" ");
+                  strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `${head} C ${f3(c1[0])} ${f3(c1[1])} ${f3(target[0] - Math.cos(th) * kk2)} ${f3(target[1] + Math.sin(th) * kk2)} ${f3(target[0])} ${f3(target[1])}` };
                   stemRebuilt = true;
                 }
               }
