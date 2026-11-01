@@ -65,6 +65,16 @@
 .compare-side--number { width: clamp(90px, 26vw, 220px); height: clamp(90px, 26vw, 220px); }
 .compare-side--dots   { height: auto; min-height: clamp(90px, 26vw, 220px); justify-content: flex-start; padding-top: 14px; padding-bottom: 14px; }
 .compare-side--shake  { animation: shake 0.35s; }
+/* «Вразброс» / «Ловушка»: the dots lie in a square field filling the card;
+   positions and sizes are % of the field (dotLayout.js), so the same layout
+   fits a ~100px phone card and a 260px tablet one. */
+.compare-side--field { padding: 10px; gap: 6px; justify-content: center; }
+.compare-dot-field   { position: relative; width: 100%; aspect-ratio: 1; flex-shrink: 0; }
+.compare-field-dot   {
+  position: absolute; border-radius: 50%;
+  transition: left 0.6s cubic-bezier(.3,.8,.3,1), top 0.6s cubic-bezier(.3,.8,.3,1), width 0.6s, height 0.6s;
+}
+@media (prefers-reduced-motion: reduce) { .compare-field-dot { transition: none; } }
 
 .compare-big-number { font-size: clamp(48px, 14vw, 96px); font-weight: 900; line-height: 1; }
 .compare-number     { font-size: 1.8rem; font-weight: 700; }

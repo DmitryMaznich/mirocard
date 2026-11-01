@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
+import { buildDotLayout, rowsPair } from "./dotLayout.js";
 import { getTopicTitle } from "@/shared/utils/format";
 
 // Neutral pair: red means "mistake" everywhere else in the app (shake,
@@ -79,7 +80,31 @@ function PairingStage({ left, right, onDone }) {
   );
 }
 
-function SideContent({ value, color, visualMode, showHint }) {
+// Scattered / lure dots: absolutely placed in a square field, sizes in % of
+// it. When `pts` switches to rows (after a mistake) the dots glide there.
+function DotField({ pts, color }) {
+  return (
+    <div className="compare-dot-field">
+      {pts.map((p, i) => (
+        <div
+          key={i}
+          className="compare-field-dot"
+          style={{ background: color, width: `${p.d * 100}%`, height: `${p.d * 100}%`, left: `${(p.x - p.d / 2) * 100}%`, top: `${(p.y - p.d / 2) * 100}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SideContent({ value, color, visualMode, showHint, pts }) {
+  if (pts) {
+    return (
+      <>
+        <DotField pts={pts} color={color} />
+        {visualMode === "dots_numbers" && <div className="compare-number">{value}</div>}
+      </>
+    );
+  }
   if (visualMode === "numbers") {
     return (
       <>
@@ -97,7 +122,7 @@ function SideContent({ value, color, visualMode, showHint }) {
   );
 }
 
-export default function CompareVisual({ task, mode, sessionStatus, onCorrect, onIncorrect }) {
+export default function CompareVisual({ task, mode, sessionStatus, taskRetry = 0, onCorrect, onIncorrect }) {
   const [answered,  setAnswered]  = useState(false);
   const [showHints, setShowHints] = useState(false);
   const [shakeSide, setShakeSide] = useState(null); // "left" | "right" | "equal" | null
@@ -107,6 +132,25 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
   const isPairing     = visualMode === "pairing";
   const [pairingDone, setPairingDone] = useState(!isPairing);
   const isLeftCorrect = task.question === "more" ? task.left > task.right : task.left < task.right;
+
+  // «Как лежат точки»: scatter / lure lay the dots out once per task. After a
+  // mistake they glide into rows of one size, and the repeat (the screen is
+  // remounted with taskRetry ≥ 1) starts in rows, so the same trick can't
+  // fool the child twice.
+  const isFieldLayout = (task.dotLayout === "scatter" || task.dotLayout === "lure") && (visualMode === "dots" || visualMode === "dots_numbers");
+  const [inRows, setInRows] = useState(taskRetry > 0);
+  const layout = useMemo(
+    () => (isFieldLayout ? buildDotLayout(task.left, task.right, task.dotLayout, task.lure) : null),
+    [isFieldLayout, task.left, task.right, task.dotLayout, task.lure],
+  );
+  const rows = useMemo(() => rowsPair(task.left, task.right), [task.left, task.right]);
+  const pts = isFieldLayout ? (inRows ? rows : layout) : null;
+  const rowsTimer = useRef(null);
+  useEffect(() => () => clearTimeout(rowsTimer.current), []);
+  function showRowsAfterShake() {
+    if (!isFieldLayout) return;
+    rowsTimer.current = setTimeout(() => setInRows(true), 380);
+  }
 
   // Derive locked state from authoritative session status so retries always unblock
   const isAnswered = answered || sessionStatus !== "task_active";
@@ -135,6 +179,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
       onCorrect(task.conceptId, null);
     } else {
       flashWrong(pickedLeft ? "left" : "right");
+      showRowsAfterShake();
       if (isNumbers) {
         setShowHints(true);
         setTimeout(() => setShowHints(false), 1500);
@@ -150,12 +195,13 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
       onCorrect(task.conceptId, null);
     } else {
       flashWrong("equal");
+      showRowsAfterShake();
       onIncorrect(task.conceptId, null);
     }
   }
 
   function sideClass(side) {
-    return `compare-side${isNumbers ? " compare-side--number" : " compare-side--dots"}${shakeSide === side ? " compare-side--shake" : ""}`;
+    return `compare-side${isNumbers ? " compare-side--number" : " compare-side--dots"}${isFieldLayout ? " compare-side--field" : ""}${shakeSide === side ? " compare-side--shake" : ""}`;
   }
 
   return (
@@ -167,7 +213,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
       ) : (
         <div className="compare-sides">
           <button className={sideClass("left")} disabled={isAnswered} aria-label={sideLabel("left", task.left, isNumbers ? "numbers" : "dots")} onClick={() => handleSide(true)}>
-            <SideContent value={task.left} color={LEFT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
+            <SideContent value={task.left} color={LEFT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} pts={pts?.left} />
           </button>
           {/* Deliberately an empty amber square, no «=» and no caption: the
               owner's choice — nothing extra to distract, and it looks
@@ -182,7 +228,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
             />
           )}
           <button className={sideClass("right")} disabled={isAnswered} aria-label={sideLabel("right", task.right, isNumbers ? "numbers" : "dots")} onClick={() => handleSide(false)}>
-            <SideContent value={task.right} color={RIGHT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} />
+            <SideContent value={task.right} color={RIGHT_COLOR} visualMode={isPairing ? "dots" : visualMode} showHint={showHints} pts={pts?.right} />
           </button>
         </div>
       )}

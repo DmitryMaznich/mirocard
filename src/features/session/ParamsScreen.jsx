@@ -25,7 +25,8 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, PLACE_VALUE_MODE_IDS, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { DOT_LAYOUTS } from "@/topics/renderers/comparison/dotLayout.js";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
@@ -1618,6 +1619,21 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
+      {/* «Как лежат точки»: rows → scatter → lure, only where there is a pile
+          of dots to judge (not pairs, not numbers). The lure brings «поровну»
+          with it: its strongest task is an equal pair that looks unequal. */}
+      {isVisualMode && DOT_LAYOUT_VIEWS.includes(currentVisualMode) && (
+        <EnumParam
+          label={tr("setup.dotLayout")}
+          options={DOT_LAYOUTS}
+          labels={Object.fromEntries(DOT_LAYOUTS.map((v) => [v, tr(`setup.dotLayout.${v}`)]))}
+          value={params.dotLayout ?? "rows"}
+          ordered
+          hint={tr(`setup.dotLayoutHint.${params.dotLayout ?? "rows"}`)}
+          onChange={(v) => onChange({ ...params, dotLayout: v, showEqual: v === "lure" ? true : params.showEqual })}
+        />
+      )}
+
       {!isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
         // compare_first_number's own verdict is always spoken as words by
         // design ("Три меньше семи"), compare_apply has no left/right
@@ -1779,6 +1795,7 @@ export default function ParamsScreen() {
         showEqual:     saved.showEqual     ?? (isVisualMode && visualMode === "pairing"),
         wordsVerdict:  saved.wordsVerdict  ?? false,
         visualMode,
+        dotLayout:     DOT_LAYOUTS.includes(saved.dotLayout) ? saved.dotLayout : "rows",
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",

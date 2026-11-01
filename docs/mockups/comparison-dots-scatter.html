@@ -107,6 +107,7 @@ p { margin: 0; max-width: 68ch; }
 
 .body { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 12px 20px; min-height: 360px; justify-content: center; }
 .instr { font-size: clamp(20px, 6cqw, 30px); font-weight: 800; text-align: center; }
+.instr-hint { font-size: clamp(14px, 4cqw, 20px); font-weight: 500; color: #718096; margin-top: 4px; }
 
 /* As in the app: card · «поровну» · card in one row, each clamp(90px, 26vw, 220px);
    tablet 240 · 200 · 240. */
@@ -329,7 +330,7 @@ p { margin: 0; max-width: 68ch; }
     frame.innerHTML = `
       <div class="topbar"><span class="stars">★★★<span class="off">★★</span></span><span>3 / 10</span><span class="finish">Закончить</span></div>
       <div class="body">
-        <div class="instr">Где больше точек?</div>
+        <div class="instr">Где больше точек?<div class="instr-hint">Если поровну — нажми на жёлтый квадрат</div></div>
         <div class="sides">
           <button type="button" class="side" data-side="L"><div class="field"></div>${cfg.view === "dots_numbers" ? `<div class="num">${cfg.left}</div>` : ""}</button>
           <button type="button" class="eq" aria-label="Поровну"></button>

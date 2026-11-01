@@ -1,4 +1,5 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { DOT_LAYOUTS } from "./dotLayout.js";
 import { REAL_LIFE_SCENES } from "./realLifeScenes.js";
 
 const MAX_ATTEMPTS = 100;
@@ -45,6 +46,15 @@ export const VISUAL_MODES = [
   { value: "dots_numbers", maxLevel: 3 },
   { value: "numbers",      maxLevel: 4 },
 ];
+
+// «Как лежат точки» applies to the views with a pile of dots to judge by eye.
+// Pairs keep their columns (the leftovers must be visible), numbers have no dots.
+export const DOT_LAYOUT_VIEWS = ["dots", "dots_numbers"];
+
+export function dotLayoutFor(visualMode, dotLayout) {
+  if (!DOT_LAYOUT_VIEWS.includes(visualMode)) return "rows";
+  return DOT_LAYOUTS.includes(dotLayout) ? dotLayout : "rows";
+}
 
 export function visualModeLevel(visualMode, level) {
   const maxLevel = VISUAL_MODES.find((v) => v.value === visualMode)?.maxLevel ?? 1;
@@ -458,7 +468,7 @@ export function generateTestSheet(range, count) {
   return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
 
@@ -526,7 +536,11 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     }));
   }
 
-  const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
+  const { question = "more", level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
+  const dotLayout = mode.type === "compare_visual" ? dotLayoutFor(visualMode, sessionParams.dotLayout) : "rows";
+  // The lure's strongest task is «поровну» that looks unequal, so it comes
+  // with the = square, like pairs do.
+  const showEqual = dotLayout === "lure" ? true : (sessionParams.showEqual ?? false);
 
   const isFirstNumber = mode.type === "compare_first_number";
   const isEvaluate    = mode.type === "compare_evaluate";
@@ -610,7 +624,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
           : question;
 
     const equalHint = showEqual
-      ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если одинаково — нажми посередине")
+      ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если поровну — нажми на жёлтый квадрат")
       : null;
 
     // Level 5: after a mistake the renderer shows both numbers by places
@@ -619,7 +633,12 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     // What the crocodile step asks to tap. An equal pair asks the same as the
     // others, so the wording never gives away that this pair is the equal one.
     const ask = taskQuestion === "equal" ? (question === "less" ? "less" : "more") : taskQuestion;
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, ask, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
+    // Lure: every other task in each group (equal pairs first, then the rest)
+    // is drawn to mislead, the others honestly — always misleading would just
+    // teach «pick the small dots».
+    const lure = dotLayout === "lure" && (isEqual ? i : i - equalTarget) % 2 === 0;
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, ask, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint,
+      ...(mode.type === "compare_visual" ? { dotLayout, lure } : {}) });
   }
 
   if ((isFirstNumber || isEvaluate) && examplesCount > 1) {
