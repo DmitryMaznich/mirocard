@@ -397,8 +397,8 @@
 /* On-demand hint, shared between both compare_apply task types: for
    GenerateStage ("Выбери число") it turns each answer tile in place into
    its own tiny worked example (see .apply-hint-tile below); for OrderStage
-   ("Расставь по порядку") it reveals the draggable number line (see
-   .apply-order-scale below). Neither opens a separate screen — the actual
+   ("Расставь по порядку") it reveals the wedge scale (see .apply-wedge
+   below). Neither opens a separate screen — the actual
    task above stays visible and untouched throughout. */
 .apply-hint-btn {
   position: relative; z-index: 1;
@@ -547,46 +547,30 @@
   font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
 }
 
-/* "Расставь по порядку" hint: a hand-draggable number line spanning the
-   level's whole min–max range (not the task's own drawn numbers — see the
-   comment on OrderScaleHint in CompareApply.jsx). Deliberately plain: no
-   tick marks or tray-number callouts, since the point is just a felt sense
-   of "this direction = bigger", not a tool for solving the task. */
-.apply-order-scale {
+/* The wedge scale (WedgeScale.jsx): a number line that thickens toward the
+   bigger numbers, nearly as wide as the slot grid above it so a place on
+   the wedge lines up with a place in the slots. Drawn in a 360-wide SVG
+   viewBox, so everything in it scales with its width. */
+.apply-wedge {
   position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: 100%; max-width: min(94vw, 480px);
-  margin-top: 2px;
+  width: 100%; max-width: min(94vw, 600px);
+  touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.apply-order-scale-value {
-  font-size: clamp(32px, 10vw, 56px); font-weight: 900; color: #2563eb; line-height: 1;
-}
-.apply-order-scale-track {
-  position: relative; width: 100%; height: 14px; border-radius: 999px;
-  background: #e2e8f0; touch-action: none; cursor: pointer;
-}
-.apply-order-scale-fill {
-  position: absolute; top: 0; left: 0; height: 100%; border-radius: 999px;
-  background: #93c5fd; pointer-events: none;
-}
-/* Tracks the pointer 1:1 while dragging — no transition on `left`, or the
-   thumb would visibly lag behind a fast drag. Only the "picked up" state
-   (scale + shadow lift) animates, since that toggles just twice per drag
-   rather than continuously. */
-.apply-order-scale-thumb {
-  position: absolute; top: 50%; width: 34px; height: 34px; border-radius: 50%;
-  background: #2563eb; box-shadow: 0 4px 0 #1d4ed8, 0 4px 10px rgba(37,99,235,0.35);
-  transform: translate(-50%, -50%); pointer-events: none;
-  transition: box-shadow 0.1s, transform 0.1s;
-}
-.apply-order-scale-track--active .apply-order-scale-thumb {
-  box-shadow: 0 2px 0 #1d4ed8, 0 4px 14px rgba(37,99,235,0.45);
-  transform: translate(-50%, -50%) scale(1.12);
-}
-.apply-order-scale-ends {
-  display: flex; justify-content: space-between; width: 100%;
-  font-size: clamp(13px, 2vw, 16px); font-weight: 700; color: #93a5c4;
-}
+.apply-wedge:focus-visible { outline: 3px solid #93c5fd; outline-offset: 4px; border-radius: 12px; }
+.apply-wedge svg { display: block; width: 100%; height: auto; overflow: visible; }
+.apply-wedge-body  { stroke: #3b82f6; stroke-width: 1.5; stroke-linejoin: round; }
+.apply-wedge-tick  { stroke: #64748b; }
+.apply-wedge-label { fill: #64748b; font-size: 12px; font-weight: 700; }
+.apply-wedge-guide { stroke: #2563eb; stroke-width: 2; stroke-dasharray: 3 4; stroke-linecap: round; opacity: 0.7; }
+.apply-wedge-thumb { fill: #2563eb; stroke: #fff; stroke-width: 3; }
+.apply-wedge-value { fill: #2563eb; font-weight: 900; }
+.apply-wedge-flag line { stroke: #16a34a; stroke-width: 2; }
+.apply-wedge-flag rect { fill: #16a34a; }
+.apply-wedge-flag text { fill: #fff; font-size: 13px; font-weight: 800; }
+.apply-wedge-flag { animation: apply-wedge-flag-in 0.3s ease-out; }
+@keyframes apply-wedge-flag-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .apply-wedge-flag { animation: none; } }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
 /* A single pre-illustrated scene (realLifeScenes.js — both children, both
@@ -740,18 +724,14 @@
   .cfn-multi-row     { min-height: 24px; max-height: 100px; }
   .cfn-multi-divider { max-width: min(720px, 94vw); }
 
-  /* "Расставь по порядку"'s scale hint, sized down for a short landscape
+  /* "Расставь по порядку"'s wedge hint, sized down for a short landscape
      viewport — its portrait sizing (clamp ceilings driven by vw, which
      stays generous on a WIDE-but-short landscape phone) measured out to
      genuinely overflowing the card on an 844×390 phone with 5 tiles: the
      scale alone added ~110px on top of an already-full screen. Trimmed to
      what a landscape phone actually has spare, not what looks nice on a
      tall one. */
-  .apply-order-scale       { gap: 4px; margin-top: 0; }
-  .apply-order-scale-value { font-size: clamp(18px, 4.5vw, 22px); }
-  .apply-order-scale-track { height: 8px; }
-  .apply-order-scale-thumb { width: 24px; height: 24px; }
-  .apply-order-scale-ends  { font-size: clamp(11px, 2vw, 13px); }
+  .apply-wedge { max-width: min(46vw, 300px); }
 
   /* Even with the scale trimmed above, a 5-tile order task still overflows
      a short landscape phone (~390px tall): .apply-order-slots/-tray size
