@@ -116,7 +116,8 @@
    "exitStroke": 0,
    "sourceLabel": "Ғ = Г (штрихи 1, 2) + перекладина на верхней линии узкой строки; соединение — штрих 3 Г",
    "noLiftExit": true,
-   "tailStroke": 3
+   "tailStroke": 3,
+   "pushNextCells": 1
   },
   {
    "label": "ғ",

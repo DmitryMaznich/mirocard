@@ -39,7 +39,7 @@ def g_bar():
     """Ғ: Г strokes 1 and 2, then a crossbar through the middle of the stem on the narrow row's upper line.
     Г's stroke 3 is its tailStroke (drawn only when a letter follows), kept so Ғ joins like Г."""
     g = BANK["Г"]; s = g["strokes"]
-    out = dict(g, label="Ғ", strokes=[s[0], s[1], bar(stem_x(s[0]["d"], X_TOP), X_TOP), s[2]], tailStroke=3,
+    out = dict(g, label="Ғ", strokes=[s[0], s[1], bar(stem_x(s[0]["d"], X_TOP), X_TOP), s[2]], tailStroke=3, pushNextCells=1,
                sourceLabel="Ғ = Г (штрихи 1, 2) + перекладина на верхней линии узкой строки; соединение — штрих 3 Г")
     return out
 

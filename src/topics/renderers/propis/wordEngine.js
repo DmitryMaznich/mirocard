@@ -1915,11 +1915,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
+        // `pushNextCells: n` (Ғ, owner 2026-11-01: its bar ends on the upper line of the narrow row, exactly where the connector climbs to the top of the next stem, the two and the top of the stem fused): a letter that STARTS AT THE TOP
+        // after it (и п р т …) stands n cells further right, so that the connector comes up to the right of the end of the bar
+        const prevGlyph = prevLabel ? glyphsByLabel.get(prevLabel) : null;
+        const pushNext = prevExit && prevGlyph?.pushNextCells && !glyph.joinLeft && local.start[1] < prevExit[1] - 18 * scale ? prevGlyph.pushNextCells * CELL : 0;
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = loose
           ? cursorX + WIDE_PUNCT_GAP * scale - local.minX + local.start[0]
           : prevExit
-          ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx
+          ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx + pushNext
           : prevToken
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
