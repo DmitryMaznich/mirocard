@@ -46,13 +46,12 @@ function NotebookTitle({ title, onRename }) {
 
 // «Мои тетради»: the home of the topic. A notebook is the only thing the adult keeps: create one from scratch or from a ready one,
 // open it as the student sees it, edit, rename, copy, delete.
-export default function Propis2Library({ headerExtra = null, emptyNote = null, sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
+export default function Propis2Library({ newLang = null, filterBar = null, langOf = null, sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
   return (
     <div className="screen propis2-home propis2-lib" data-testid="propis2-library">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <h1 className="screen-title">Прописи</h1>
-        {headerExtra}
       </div>
       <div className="propis2-body">
         {draft && (
@@ -64,13 +63,15 @@ export default function Propis2Library({ headerExtra = null, emptyNote = null, s
             </span>
           </div>
         )}
-        {sets.length === 0 && emptyNote}
         <div className="p2-nb-start">
           <button type="button" className="p2-tile p2-tile--primary p2-tile--wide" aria-label="Новая тетрадь" onClick={onNew}>
             <span className="p2-tile-ico"><I.IconAddPage /></span>
             <span className="p2-tile-cap">Новая тетрадь</span>
           </button>
+          {/* a deck with several writing languages: the language the new notebook gets */}
+          {newLang && <div className="p2-new-lang"><span>Язык:</span>{newLang}</div>}
         </div>
+        {filterBar}
 
         {blankCount > 0 && (
           <div className="p2-banner" role="status" data-testid="propis2-blank-banner">
@@ -87,7 +88,7 @@ export default function Propis2Library({ headerExtra = null, emptyNote = null, s
                   <span className="p2-nb-ico"><I.IconNotebook /></span>
                   <div className="p2-nb-main">
                     <NotebookTitle title={st.title ?? ""} onRename={(t) => onRenameSet(st.id, t)} />
-                    <div className="p2-nb-meta">{st.pageIds.length} стр. · {dateLabel(st.updatedAt)}</div>
+                    <div className="p2-nb-meta">{langOf && <span className="p2-lang-tag">{langOf(st)}</span>}{st.pageIds.length} стр. · {dateLabel(st.updatedAt)}</div>
                   </div>
                 </div>
                 <div className="p2-nb-tools" role="group" aria-label="Действия с тетрадью">
@@ -111,7 +112,7 @@ export default function Propis2Library({ headerExtra = null, emptyNote = null, s
                     <span className="p2-nb-ico"><I.IconNotebook /></span>
                     <div className="p2-nb-main">
                       <div className="p2-nb-name">{r.title}</div>
-                      <div className="p2-nb-meta">{r.pages} стр.</div>
+                      <div className="p2-nb-meta">{langOf && r.lang && <span className="p2-lang-tag">{langOf(r)}</span>}{r.pages} стр.</div>
                       {r.description && <div className="p2-nb-desc">{r.description}</div>}
                     </div>
                   </div>

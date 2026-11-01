@@ -11,18 +11,19 @@
   },
   "meta": {
     "id": "propis2_lang",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "title": "Прописи (языки, тест)"
   },
   "modes": ["builder", "letters_recognize", "letters_case"],
   "languages": [
-    { "id": "ru", "title": "Русский", "status": "ready" },
-    { "id": "bg", "title": "Български", "status": "ready", "from": "tools/propis2/variants/bg/variant.json" },
+    { "id": "ru", "title": "Русский", "short": "РУС", "status": "ready" },
+    { "id": "bg", "title": "Български", "short": "БЪЛ", "status": "ready", "from": "tools/propis2/variants/bg/variant.json" },
     {
       "id": "kk",
       "title": "Қазақша",
+      "short": "ҚАЗ",
       "status": "draft",
-      "alphabet": { "lower": "аәбвгғдеёжзийкқлмнңоөпрстуұүфхһцчшщъыіьэюя", "noCapital": ["ъ", "ы", "ь"] },
+      "alphabet": { "lower": "аәбвгғдеёжзийкқлмнңоөпрстуұүфхһцчшщъыіьэюя", "noCapital": ["ъ", "ь"] },
       "script": { "growJoins": true },
       "methodology": false,
       "glyphsFrom": ["python3", "tools/propis2/variants/kk/build_glyphs.py"]

@@ -67,7 +67,16 @@ describe("propis2 writing languages", () => {
     expect(page(view, ["қала үй әке"], "regular")).toContain("<path");
   });
 
-  it("the letter cards are made in the student's language and say which", () => {
+  it("the letter cards take the language from the mode's own settings, Russian by default", () => {
+    for (const m of multi.modes.filter((x) => x.type !== "builder")) {
+      expect(m.params.writingLang).toMatchObject({ type: "enum", values: ["ru", "bg", "kk"], default: "ru" });
+      expect(m.params.writingLang.labels.ru.kk).toBe("Қазақша");
+    }
+    // Kazakh words start with Ы (Ыстық): its capital is expected, it shows up once it is drawn
+    expect(deckLanguages(multi).find((l) => l.id === "kk").alphabet.noCapital).toEqual(["ъ", "ь"]);
+  });
+
+  it("the letter cards are made in the chosen language and say which", () => {
     const mode = multi.modes.find((m) => m.type === "letters_recognize");
     const tasks = generateTasks(mode, multi, 10, { writingLang: "bg" });
     expect(tasks.length).toBeGreaterThan(0);

@@ -2099,9 +2099,21 @@ export default function ParamsScreen() {
       })}
     </>
   ) : isLettersCase ? (
-    <LetterGlyphProvider cards={topicRecord.cards}>
-      <LettersCaseParams params={params} onChange={setParams} />
-    </LetterGlyphProvider>
+    <>
+      {/* a propis2 deck with several writing languages: the language of the cards (propis2/languages.js) */}
+      {mode?.params?.writingLang?.type === "enum" && (
+        <EnumParam
+          label={setupText(mode.params.writingLang.label) || "Язык"}
+          options={mode.params.writingLang.values}
+          labels={setupLabels(mode.params.writingLang.labels)}
+          value={params.writingLang ?? mode.params.writingLang.default}
+          onChange={(v) => setParams((p) => ({ ...p, writingLang: v }))}
+        />
+      )}
+      <LetterGlyphProvider cards={topicRecord.cards}>
+        <LettersCaseParams params={params} onChange={setParams} />
+      </LetterGlyphProvider>
+    </>
   ) : isComparison ? (
     <ComparisonParams params={params} onChange={setParams} />
   ) : isGraphicDictation ? (

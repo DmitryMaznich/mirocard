@@ -621,3 +621,10 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 /* a language's empty library: its own letters, so it is plain the language has changed */
 .propis2-lib .p2-lang-empty { text-align: center; padding: 18px 10px 4px; color: #6b7385; font-weight: 700; }
 .propis2-lib .p2-lang-empty-letters { font-size: 34px; color: #2a6b60; letter-spacing: 4px; margin-bottom: 6px; }
+/* languages per notebook (2026-11-01): the language of a new notebook next to «Новая тетрадь», the filter, the mark on a card */
+.propis2-lib .p2-new-lang { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; font-weight: 700; font-size: 14px; color: #6b7385; }
+.propis2-lib .p2-new-lang .p2-lang-chip { margin-left: 0; }
+.propis2-lib .p2-lang-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.propis2-lib .p2-lang-fchip { height: 34px; padding: 0 14px; border-radius: 17px; border: 1.5px solid var(--p2-line); background: #fff; font: inherit; font-weight: 800; font-size: 14px; color: var(--p2-ink); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-lib .p2-lang-fchip.is-on { border-color: var(--p2-teal); background: var(--p2-teal-soft); color: var(--p2-teal-dark); }
+.propis2-lib .p2-lang-tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 6px; background: var(--p2-teal-soft); color: var(--p2-teal-dark); font-size: 11px; font-weight: 900; letter-spacing: .03em; vertical-align: 1px; }
