@@ -78,38 +78,9 @@
   cursor: pointer;
 }
 
-.pl-btn--add    { background: #1d4ed8; color: white; }
 .pl-btn--print  { background: #0f766e; color: white; }
 .pl-btn--done   { background: #e2e8f0; color: #1e293b; }
 .pl-btn:disabled { opacity: 0.5; cursor: default; }
-
-.pl-pages-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.pl-pages-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 13px;
-}
-
-.pl-pages-list-actions button {
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  padding: 2px 6px;
-  cursor: pointer;
-}
 
 .pl-preview {
   display: flex;
@@ -142,32 +113,42 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 18px;
-  gap: 4px;
+  padding: 14px;
+  gap: 14px;
 }
 
-.pl-page-title {
-  font-size: 13px;
-  color: #475569;
-  margin-bottom: 6px;
-  text-align: center;
-}
-
-.pl-page--intro {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 18px;
-}
-
-.pl-intro-caption {
-  font-size: 14px;
-  color: #475569;
-}
-
-.pl-row { margin-bottom: 6px; }
+.pl-row { margin-bottom: 0; }
 
 .pl-glyph--tappable:active { opacity: 0.85; }
+
+/* One letter's printable practice block — compact, several per sheet,
+   matching a real copybook page rather than a single giant letter. */
+.pl-block {
+  position: relative;
+  border: 2px solid;
+  border-radius: 14px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pl-block-tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px 4px 4px 10px;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.pl-block-blank-slot {
+  display: inline-block;
+  width: 34px;
+}
 
 @media print {
   .pl-builder,

@@ -250,9 +250,12 @@ New dedicated-renderer topic for preschoolers (4–6yo): printed/block letters, 
 deliberately separate from `propis2` (cursive constructor) and from `letter_writing` (hidden/paid,
 **independent — don't touch**, but its simple no-slant letter glyphs and stroke order were reused
 verbatim for consistency across the app). **Read `docs/print-letters.md` first** — methodology
-(letter families by stroke complexity, not alphabet order; 4-page most-to-least-prompting ladder;
-3-line ruling with no slant guides), what's built (8 letters, "straight lines" family only;
-constructor + 4 page types; registered in `engineRegistry.js`/`registry.js` but **not yet in
+(letter families by stroke complexity, not alphabet order; most-to-least-prompting support; 3-line
+ruling with no slant guides), what's built (8 letters, "straight lines" family only; compact
+per-letter print blocks — colored tile + 2–3 build-up rows from isolated stroke to whole letter,
+several blocks per A4 sheet, matching a real copybook page rather than one full screen per letter
+— see the "Разворот 2026-11-01" section for why the first full-page/giant-glyph version was wrong
+and got replaced; registered in `engineRegistry.js`/`registry.js` but **not yet in
 `public/decks/catalog.json`** — can't be opened via the normal catalog/zip path yet, by design,
 paper-first visual was the priority for this round), and open decisions (zip/catalog registration,
 notebook persistence, on-screen tracing as a second wave, remaining letter families, stroke

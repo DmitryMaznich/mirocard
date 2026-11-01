@@ -1,19 +1,9 @@
 import { useState, useMemo } from "react";
-import IntroPage       from "./pages/IntroPage";
-import DottedPage       from "./pages/DottedPage";
-import FadingPage       from "./pages/FadingPage";
-import IndependentPage  from "./pages/IndependentPage";
-
-const PAGE_TYPES = [
-  { id: "intro",       label: "1. Знакомство",          Comp: IntroPage },
-  { id: "dotted",      label: "2. Обводка по точкам",   Comp: DottedPage },
-  { id: "fading",      label: "3. Угасающая опора",     Comp: FadingPage },
-  { id: "independent", label: "4. Самостоятельно",      Comp: IndependentPage },
-];
+import LetterBlock from "./LetterBlock";
 
 const FAMILY_TITLES = { straight: "Прямые линии" };
-
-let nextPageSeq = 1;
+const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
+const BLOCKS_PER_SHEET = 4;
 
 export default function ConstructorView({ task, onAdvance }) {
   const letters = task?.letters ?? [];
@@ -28,26 +18,16 @@ export default function ConstructorView({ task, onAdvance }) {
     return Array.from(map.entries());
   }, [letters]);
 
-  const [activeLetterId, setActiveLetterId] = useState(letters[0]?.id ?? null);
-  const [activePageType, setActivePageType] = useState(PAGE_TYPES[0].id);
-  const [pages, setPages] = useState([]);
+  const [selected, setSelected] = useState([]); // ordered letter ids
+  const [mode, setMode] = useState("trace"); // "trace" | "independent"
 
-  function addPage() {
-    if (!activeLetterId) return;
-    setPages((prev) => [...prev, { seq: nextPageSeq++, letterId: activeLetterId, pageType: activePageType }]);
+  function toggleLetter(id) {
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
-  function removePage(seq) {
-    setPages((prev) => prev.filter((p) => p.seq !== seq));
-  }
-  function movePage(seq, dir) {
-    setPages((prev) => {
-      const idx = prev.findIndex((p) => p.seq === seq);
-      const next = idx + dir;
-      if (idx < 0 || next < 0 || next >= prev.length) return prev;
-      const copy = [...prev];
-      [copy[idx], copy[next]] = [copy[next], copy[idx]];
-      return copy;
-    });
+
+  const sheets = [];
+  for (let i = 0; i < selected.length; i += BLOCKS_PER_SHEET) {
+    sheets.push(selected.slice(i, i + BLOCKS_PER_SHEET));
   }
 
   function printNotebook() {
@@ -58,7 +38,7 @@ export default function ConstructorView({ task, onAdvance }) {
     <div className="pl-constructor">
       <div className="pl-builder">
         <div className="pl-builder-section">
-          <div className="pl-builder-label">Буква</div>
+          <div className="pl-builder-label">Буквы для тетради</div>
           {families.map(([famId, famLetters]) => (
             <div key={famId} className="pl-family-group">
               <div className="pl-family-title">{FAMILY_TITLES[famId] ?? famId}</div>
@@ -67,8 +47,8 @@ export default function ConstructorView({ task, onAdvance }) {
                   <button
                     key={l.id}
                     type="button"
-                    className={`pl-letter-tile${l.id === activeLetterId ? " pl-letter-tile--active" : ""}`}
-                    onClick={() => setActiveLetterId(l.id)}
+                    className={`pl-letter-tile${selected.includes(l.id) ? " pl-letter-tile--active" : ""}`}
+                    onClick={() => toggleLetter(l.id)}
                   >
                     {l.label}
                   </button>
@@ -79,64 +59,49 @@ export default function ConstructorView({ task, onAdvance }) {
         </div>
 
         <div className="pl-builder-section">
-          <div className="pl-builder-label">Тип страницы</div>
+          <div className="pl-builder-label">Тип строки</div>
           <div className="pl-pagetype-tiles">
-            {PAGE_TYPES.map((pt) => (
-              <button
-                key={pt.id}
-                type="button"
-                className={`pl-pagetype-tile${pt.id === activePageType ? " pl-pagetype-tile--active" : ""}`}
-                onClick={() => setActivePageType(pt.id)}
-              >
-                {pt.label}
-              </button>
-            ))}
+            <button
+              type="button"
+              className={`pl-pagetype-tile${mode === "trace" ? " pl-pagetype-tile--active" : ""}`}
+              onClick={() => setMode("trace")}
+            >
+              Обводка по точкам
+            </button>
+            <button
+              type="button"
+              className={`pl-pagetype-tile${mode === "independent" ? " pl-pagetype-tile--active" : ""}`}
+              onClick={() => setMode("independent")}
+            >
+              Часть строки — самостоятельно
+            </button>
           </div>
         </div>
 
-        <button type="button" className="pl-btn pl-btn--add" onClick={addPage} disabled={!activeLetterId}>
-          + Добавить страницу
-        </button>
-
-        {pages.length > 0 && (
-          <ol className="pl-pages-list">
-            {pages.map((p, idx) => {
-              const pt = PAGE_TYPES.find((x) => x.id === p.pageType);
-              return (
-                <li key={p.seq} className="pl-pages-list-item">
-                  <span>{p.letterId} — {pt?.label}</span>
-                  <span className="pl-pages-list-actions">
-                    <button type="button" onClick={() => movePage(p.seq, -1)} disabled={idx === 0} aria-label="Выше">↑</button>
-                    <button type="button" onClick={() => movePage(p.seq, 1)} disabled={idx === pages.length - 1} aria-label="Ниже">↓</button>
-                    <button type="button" onClick={() => removePage(p.seq)} aria-label="Удалить">✕</button>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-
-        {pages.length > 0 && (
+        {selected.length > 0 && (
           <button type="button" className="pl-btn pl-btn--print" onClick={printNotebook}>🖨 Печать</button>
         )}
         <button type="button" className="pl-btn pl-btn--done" onClick={onAdvance}>Завершить занятие</button>
       </div>
 
       <div className="pl-preview">
-        {pages.length === 0 && (
-          <div className="pl-preview-empty">Выберите букву и тип страницы, затем нажмите «Добавить страницу»</div>
+        {selected.length === 0 && (
+          <div className="pl-preview-empty">Отметьте буквы — страницы соберутся сами, по {BLOCKS_PER_SHEET} буквы на лист</div>
         )}
-        {pages.map((p) => {
-          const letter = byId[p.letterId];
-          const pt = PAGE_TYPES.find((x) => x.id === p.pageType);
-          if (!letter || !pt) return null;
-          const Comp = pt.Comp;
-          return (
-            <div key={p.seq} className="pl-sheet">
-              <Comp letter={letter} />
+        {sheets.map((group, sheetIdx) => (
+          <div key={sheetIdx} className="pl-sheet">
+            <div className="pl-page">
+              {group.map((id, idx) => (
+                <LetterBlock
+                  key={id}
+                  letter={byId[id]}
+                  color={PALETTE[(sheetIdx * BLOCKS_PER_SHEET + idx) % PALETTE.length]}
+                  independent={mode === "independent"}
+                />
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
