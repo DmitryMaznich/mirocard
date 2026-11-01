@@ -244,6 +244,20 @@ hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
 the owner's rules learned the hard way, the work procedure and open items;
 per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
+## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
+
+New dedicated-renderer topic for preschoolers (4–6yo): printed/block letters, not cursive —
+deliberately separate from `propis2` (cursive constructor) and from `letter_writing` (hidden/paid,
+**independent — don't touch**, but its simple no-slant letter glyphs and stroke order were reused
+verbatim for consistency across the app). **Read `docs/print-letters.md` first** — methodology
+(letter families by stroke complexity, not alphabet order; 4-page most-to-least-prompting ladder;
+3-line ruling with no slant guides), what's built (8 letters, "straight lines" family only;
+constructor + 4 page types; registered in `engineRegistry.js`/`registry.js` but **not yet in
+`public/decks/catalog.json`** — can't be opened via the normal catalog/zip path yet, by design,
+paper-first visual was the priority for this round), and open decisions (zip/catalog registration,
+notebook persistence, on-screen tracing as a second wave, remaining letter families, stroke
+direction review by the owner as methodologist).
+
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.

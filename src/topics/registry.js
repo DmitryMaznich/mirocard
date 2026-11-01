@@ -8,6 +8,7 @@ import FunctionCardsRenderer       from "./renderers/function_cards/index.jsx";
 import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
 import NarrativeRenderer           from "./renderers/narrative/index.jsx";
 import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
+import PrintLettersRenderer        from "./renderers/print_letters/index.jsx";
 import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
 import ColumnAdditionRenderer       from "./renderers/column_addition/index.jsx";
 import PlaceValueRenderer           from "./renderers/place_value/index.jsx";
@@ -37,6 +38,7 @@ export const RENDERER_REGISTRY = {
   opposites:             OppositeRenderer,
   narrative:             NarrativeRenderer,
   letter_writing:        LetterWritingRenderer,
+  print_letters:         PrintLettersRenderer,
   streak_tracker:        StreakTrackerRenderer,
   column_addition:       ColumnAdditionRenderer,
   place_value:           PlaceValueRenderer,
