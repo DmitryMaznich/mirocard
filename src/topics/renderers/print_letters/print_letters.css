@@ -116,7 +116,16 @@
   gap: 14px;
 }
 
-.pl-row { margin-bottom: 0; }
+.pl-row-wrap { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+
+.pl-cell {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .pl-glyph--tappable:active { opacity: 0.85; }
 
@@ -161,7 +170,7 @@
 
 .pl-block-add-row {
   align-self: flex-start;
-  margin-left: 60px;
+  margin-left: 58px;
   margin-top: 2px;
   border: 1px dashed #cbd5e1;
   background: transparent;
@@ -172,10 +181,7 @@
   cursor: pointer;
 }
 
-.pl-row-rightslot {
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
+.pl-row-controls {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -190,18 +196,13 @@
   background: white;
 }
 
-.pl-row-rightslot button {
+.pl-row-controls button {
   border: none;
   background: transparent;
   color: #94a3b8;
   font-size: 12px;
   cursor: pointer;
   padding: 2px 4px;
-}
-
-.pl-block-blank-slot {
-  display: inline-block;
-  width: 34px;
 }
 
 @media print {

@@ -250,8 +250,11 @@ New dedicated-renderer topic for preschoolers (4–6yo): printed/block letters, 
 deliberately separate from `propis2` (cursive constructor) and from `letter_writing` (hidden/paid,
 **independent — don't touch**, but its simple no-slant letter glyphs and stroke order were reused
 verbatim for consistency across the app). **Read `docs/print-letters.md` first** — methodology
-(letter families by stroke complexity, not alphabet order; most-to-least-prompting support; 3-line
-ruling with no slant guides), what's built (8 letters, "straight lines" family only; one naborny
+(letter families by stroke complexity, not alphabet order; most-to-least-prompting support;
+**клетка/square-grid ruling, not ruled lines** — switched 2026-11-01 after reading Ilyukhina's
+«Волшебные линии 2» preschool workbook in full, which writes printed letters directly in grid
+cells; her famous stroke-vocabulary ("секрет"/"крючок"/etc.) is cursive-joining terminology and
+wasn't ported over, only the general "named reusable element" principle), what's built (8 letters, "straight lines" family only; one naborny
 per-letter print block — colored tile, teacher freely adds/removes rows and picks each row's
 content: whole letter / one stroke element / blank line for independent writing — several blocks
 flow continuously into a notebook, paginated by the browser's own print engine, not fixed-count
