@@ -67,6 +67,9 @@ export const taskGrid = (page) => {
 export const pageNoSlant = (page) => page?.grid === "none";
 // The middle dash: on the copybook paper in the middles of the rows (on by default, `midDash`); on the Bulgarian paper only in the
 // middle of the x-height band, off by default and kept apart (`bgDash`, owner 2026-10-25), so a notebook's two papers don't share it.
+// «Подсветка» (owner, 2026-11-01): the band of every narrow row of the sheet is tinted pale blue, with letters on it or not. A page
+// setting like the middle dash (the editor offers it for the whole notebook right after); on the copybook paper, narrow ruling only.
+export const pageBandFill = (page) => Boolean(page?.bandFill) && pageGridKind(page) === "propis" && page?.ruling !== "wide";
 export const pageMidDash = (page) => (pageGridKind(page) === "bg" ? Boolean(page?.bgDash) : page?.midDash !== false);
 
 export const ROW_KINDS = [
@@ -142,7 +145,7 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
 // is `locked`: only the symbols / words of its rows can be changed, until the page is cleared. ----
 export const isLocked = (page) => Boolean(page?.locked);
 
-const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "bgDash", "writeAfter", "margin", "format"];
+const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "bgDash", "bandFill", "writeAfter", "margin", "format"];
 const copyRows = (rows) => (rows ?? []).map((r) => ({ ...r, id: newId("r"), marked: false }));
 
 export function pageFromPreset(preset, title) {
@@ -600,7 +603,7 @@ export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
 // notebook («тетрадь») has its OWN paper (a digits notebook: squared pages, then copybook pages with digits in the text); only the
 // format (A4 / A5) is the notebook's, because the pages are printed as one booklet. A new page takes the paper of the page it is added
 // after; a setting changed on one page can be put onto all the pages of the notebook (the editor offers it right after).
-export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "bgDash", "writeAfter", "margin"];
+export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "bgDash", "bandFill", "writeAfter", "margin"];
 export const NOTEBOOK_KEYS = ["format"];
 export const PAGE_PAPER_KEYS = LAYOUT_KEYS.filter((k) => !NOTEBOOK_KEYS.includes(k));
 
@@ -614,7 +617,7 @@ export function notebookLayout(set, pagesById) {
 
 // One string per paper as the engine draws it (defaults filled in), to tell whether two pages are on the same paper. «Писать после»
 // is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
-export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), pageNoSlant(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", pageMidDash(page), pageMargin(page)]);
+export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), pageNoSlant(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", pageMidDash(page), pageMargin(page), pageBandFill(page)]);
 
 // Each page setting of the editor's strip as the strip shows it (defaults filled in). The ruling and middle dash mean something
 // on the copybook paper only, the slant on it and on the Bulgarian paper (there only «Редкая» / «Без наклонных»), so only those pages count.
@@ -625,9 +628,10 @@ const SETTING_OF = {
   margin: pageMargin,
   midDash: (p) => p?.midDash !== false,
   bgDash: (p) => Boolean(p?.bgDash),
+  bandFill: (p) => Boolean(p?.bandFill),
   writeAfter: (p) => Boolean(p?.writeAfter),
 };
-const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash"]);
+const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash", "bandFill"]);
 export const SLANT_PAPERS = new Set(["propis", "bg"]);
 const countsFor = (key, page) => (key === "bgDash" ? pageGridKind(page) === "bg" : !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page)));
 

@@ -23,7 +23,9 @@ export function listElementChoices(topicRecord) {
 // The task object PrintPageView renders (same shape propis/engine.js builds for "read_lines").
 // Wide-row layout only needs the wide glyph bank from the installed deck, no captured-letter cards.
 // `minPages`: how many pages the task has at least (a notebook's pages, blank ones included: trailing blank rows are dropped below).
-export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false }) {
+const OWN_ROW_GRIDS = new Set(["square", "ruled", "bg"]);
+
+export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false, bandFill = false }) {
   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
   const clean = (lines ?? []).map((l) => String(l).trim());
   if (grid === "square" || grid === "ruled" || grid === "bg") narrowRows = true; // squared / ruled / Bulgarian paper: its own rows (PrintPageView), letters and digits at the narrow size
@@ -47,6 +49,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     // slants are left out (`noSlant`), the rest of that ruling stays
     noSlant: grid === "none" || Boolean(noSlant),
     midDash: midDash !== false,
+    bandFill: Boolean(bandFill) && Boolean(narrowRows) && !OWN_ROW_GRIDS.has(grid), // «Подсветка» of the narrow rows (model.js pageBandFill)
     format: format === "a4" ? "a4" : "a5",
     margin: margin === "left" || margin === "right" ? margin : "off",
     narrowRows,

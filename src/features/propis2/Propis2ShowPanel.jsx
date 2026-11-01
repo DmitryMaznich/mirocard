@@ -18,7 +18,7 @@ const kindOf = (fragment) => {
   return "Слово";
 };
 
-export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, midDash, onClose }) {
+export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, midDash, bandFill = false, onClose }) {
   const [slow, setSlow] = useState(false);
   const [playKey, setPlayKey] = useState(0);
   const stageRef = useRef(null);
@@ -40,8 +40,8 @@ export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, 
     const scale = snap.cell?.scale ?? (narrow ? 0.5 : 1);
     const w = lineWidth(fragment, buildGlyphMap(topicRecord), narrow ? "narrow" : "wide", snap);
     const indent = Math.max(0, Math.floor((WIDE_ROW_MAX_X / 2 - w / 2) / (TEXT_ROW_WIDE_DIAGONAL_SPACING * scale)));
-    return buildPageTask({ topicRecord, lines: [`${fragment}#1${indent ? `#i${indent}` : ""}`], narrowRows: ruling === "narrow", grid, midDash });
-  }, [topicRecord, fragment, ruling, grid, midDash]);
+    return buildPageTask({ topicRecord, lines: [`${fragment}#1${indent ? `#i${indent}` : ""}`], narrowRows: ruling === "narrow", grid, midDash, bandFill });
+  }, [topicRecord, fragment, ruling, grid, midDash, bandFill]);
   const shown = String(fragment ?? "").replace(/№/g, "");
   return (
     <div className="propis2-panel" role="dialog" aria-label="Показ написания" data-testid="propis2-panel">

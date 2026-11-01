@@ -228,6 +228,45 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
+  it("«Подсветка»: the narrow rows of the page tinted, letters or not; offered for the whole notebook; the student sees it", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
+    const fill = () => host.querySelector('button[aria-label="Подсветка узкой строки"]');
+    const offer = () => host.querySelector('[data-testid="propis2-offer"]');
+    const tinted = () => host.querySelectorAll('[data-testid="propis2-preview"] [data-band-fill]').length;
+
+    await click(btn("Новая тетрадь"));
+    await typeInField(host, "мама");
+    await click(host.querySelector('[aria-label="Добавить страницу"]'));
+    expect(tinted()).toBe(0);
+    await click(fill());
+    expect(fill().getAttribute("aria-pressed")).toBe("true");
+    // every narrow row of the sheet, the one with letters too (17 on an A5 page)
+    expect(tinted()).toBe(17);
+    expect(fill().querySelector(".p2-mixed")).not.toBeNull(); // page 1 has none yet
+    expect(offer().textContent).toMatch(/^Подсветка строк включена — на стр\. 2/);
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На всю тетрадь"));
+    expect(fill().querySelector(".p2-mixed")).toBeNull();
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(fill().getAttribute("aria-pressed")).toBe("true");
+    expect(tinted()).toBe(17);
+    // the wide ruling has no narrow row: the button is off there
+    await click(host.querySelector('button[aria-label="Разлиновка"]'));
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
+    expect(fill().disabled).toBe(true);
+    expect(tinted()).toBe(0);
+    await click(btn("Отменить"));
+    await click(btn("Показать ученику"));
+    expect(host.querySelectorAll('[data-testid="propis2-view"] [data-band-fill]').length).toBeGreaterThan(0);
+    await act(async () => { root.unmount(); await tick(500); });
+    host.remove();
+  });
+
   it("the computer layout: one tool bar, the notebook's pages as thumbnails (a click opens one), a status bar", async () => {
     const before = window.matchMedia;
     // a wide landscape screen: the editor's SIDE_QUERY matches

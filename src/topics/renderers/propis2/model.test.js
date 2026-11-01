@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer, followingSameRows, rowSetting, mixedRowSettings } from "./model.js";
+import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer, followingSameRows, rowSetting, mixedRowSettings, pageBandFill } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { PROPIS2_LADDER, ladderIndex } from "./data.js";
 import { outsideRowLabels } from "./glyphReach.js";
@@ -915,5 +915,23 @@ describe("«Писать» after the last row of a full page (2026-10-29)", () =
     const lines = setToLines(set, byId, map);
     expect(lines[rpp]).toMatch(/папа/); // the second page starts right after the first sheet
     expect(lines.slice(0, rpp).filter(Boolean).length).toBe(full.length);
+  });
+});
+
+describe("«Подсветка» of the narrow rows (owner, 2026-11-01)", () => {
+  it("counts on the copybook paper with the narrow ruling only", () => {
+    expect(pageBandFill(newPage("p", { bandFill: true }))).toBe(true);
+    expect(pageBandFill(newPage("p"))).toBe(false);
+    expect(pageBandFill(newPage("p", { bandFill: true, ruling: "wide" }))).toBe(false);
+    expect(pageBandFill(newPage("p", { bandFill: true, gridKind: "square" }))).toBe(false);
+  });
+  it("is part of the paper (a run of the notebook), is offered for the other pages and shows the «differs» dot", () => {
+    const a = newPage("a"), b = newPage("b", { bandFill: true });
+    expect(paperKey(a)).not.toBe(paperKey(b));
+    const set = { ...newSet("t"), pageIds: [a.id, b.id] };
+    const byId = new Map([[a.id, a], [b.id, b]]);
+    expect(mixedSettings(set, byId).bandFill).toBe(true);
+    expect(othersDiffer(set, byId, b.id, "bandFill", true)).toBe(true);
+    expect(othersDiffer(set, byId, a.id, "bandFill", true)).toBe(false); // the other page has it already
   });
 });
