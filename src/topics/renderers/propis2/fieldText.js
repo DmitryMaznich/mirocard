@@ -71,6 +71,28 @@ export function rowIdAtCaret(rows, startId, value, caret) {
   return rows[start + line]?.id ?? null;
 }
 
+// Text pasted into the field (Ctrl+V, the «Вставить» button), from a document, a web page, a messenger: what it carries that
+// the copybook has no use for is taken out, so the paste lands as rows the way typed text does. Line breaks of any kind -> Enter;
+// tabs and the wide / non-breaking spaces -> a space; soft hyphens and zero-width marks dropped (unseen, they'd break a word into
+// «нет начертания»); «…» -> «...» (the hand has the dot); a line's indent and trailing spaces dropped (a leading space moves the
+// text right on its row, a trailing one makes a word running text), runs of spaces -> one; blank lines between paragraphs kept
+// as ONE empty row, none at the start or the end. `singleLine`: a closed page edits one row, the lines are joined by a space.
+// Letters with no shape in the hand (quotes, dashes, Latin) are kept: the sheet flags them, the adult decides.
+export function cleanPastedText(text, { singleLine = false } = {}) {
+  const lines = String(text ?? "")
+    .replace(/\r\n?|[\u2028\u2029\v\f\u0085]/g, "\n")
+    .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, "")
+    .replace(/[\t\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, " ")
+    .replace(/\u2026/g, "...")
+    .split("\n")
+    .map((l) => l.replace(/ {2,}/g, " ").trim());
+  if (singleLine) return lines.filter(Boolean).join(" ");
+  const out = [];
+  for (const l of lines) if (l || (out.length && out[out.length - 1])) out.push(l);
+  while (out.length && !out[out.length - 1]) out.pop();
+  return out.join("\n");
+}
+
 // Puts `token` (an element's id) into the field AT THE CARET, as a word of its own: spaces are added where it touches other
 // text, none at the end of the line (a trailing space would turn the row into running text). Returns the new text and the caret.
 export function insertToken(value, caret, token) {

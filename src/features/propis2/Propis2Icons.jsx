@@ -44,6 +44,8 @@ export const IconBackspace = () => S(<><path d="M8.5 5H20a1 1 0 011 1v12a1 1 0 0
 export const IconUp = () => S(<><path d="M12 19V5M6 11l6-6 6 6" /></>);
 export const IconDown = () => S(<><path d="M12 5v14M6 13l6 6 6-6" /></>);
 export const IconDuplicate = () => S(<><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" /></>);
+// a clipboard with lines of text: «Вставить» (paste the copied text)
+export const IconPaste = () => S(<><path d="M9 4.5H7a2 2 0 00-2 2V19a2 2 0 002 2h10a2 2 0 002-2V6.5a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="3.5" rx="1" /><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4" /></>);
 export const IconTrash = () => S(<><path d="M4 7h16M10 7V4.5h4V7M6.5 7l1 13h9l1-13" /><path d="M10 11v6M14 11v6" /></>);
 export const IconRepeat = () => S(<><path d="M17 3l3 3-3 3" /><path d="M4 11V9.5A3.5 3.5 0 017.5 6H20" /><path d="M7 21l-3-3 3-3" /><path d="M20 13v1.5a3.5 3.5 0 01-3.5 3.5H4" /></>);
 export const IconWarn = () => S(<><path d="M12 3.5L2.8 19.5h18.4z" /><path d="M12 10v4.5" /><circle cx="12" cy="17.2" r=".6" fill="currentColor" /></>);

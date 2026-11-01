@@ -9,7 +9,7 @@ import { ElementPicker, LetterPicker } from "./Propis2Field";
 import Propis2Keys from "./Propis2Keys";
 import Propis2Thumbs from "./Propis2Thumbs";
 import { useKeyboardInset } from "./useKeyboardInset";
-import { bracesIn, bracesOut, caretAtLineEnd, caretAtLineStart, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { bracesIn, bracesOut, caretAtLineEnd, caretAtLineStart, cleanPastedText, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
@@ -296,6 +296,27 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     onField(value, false);
     setCaretRequest({ pos, n: Date.now() });
   };
+  // A paste (Ctrl+V into the field, or the «Вставить» button on a phone / tablet, where the field is invisible and has no
+  // system menu): cleaned (cleanPastedText) and put in place of the selection, one undo step. The caret goes after it only while
+  // the field has the focus (the button does not open the keyboard on a phone).
+  const canPaste = !(locked && !selected);
+  const pasteText = (raw, range = sel) => {
+    if (!canPaste) return;
+    const clean = cleanPastedText(raw, { singleLine: locked });
+    if (!clean) return;
+    const start = Math.max(0, Math.min(draft.length, Math.min(range.start, range.end)));
+    const end = Math.max(start, Math.min(draft.length, Math.max(range.start, range.end)));
+    const pos = start + clean.length;
+    setSel({ start: pos, end: pos });
+    onField(draft.slice(0, start) + clean + draft.slice(end), false);
+    if (typeof document !== "undefined" && document.activeElement === keysRef.current) setCaretRequest({ pos, n: Date.now() });
+  };
+  const pasteFromClipboard = async () => {
+    const text = await Promise.resolve(navigator.clipboard?.readText?.()).catch(() => null);
+    if (text == null) { window.alert?.("Не получилось прочитать буфер обмена. Разрешите браузеру доступ к нему или нажмите Ctrl+V, когда курсор стоит на строке."); return; }
+    if (!cleanPastedText(text)) { window.alert?.("В буфере обмена нет текста."); return; }
+    pasteText(text);
+  };
   const onKeysSelect = ({ start, end }) => { setSel({ start, end }); onCaret(start); };
   const setRowAsText = (asText) => {
     if (!selected) return;
@@ -442,6 +463,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
+          {/* keeps the field's focus (the keyboard stays open, the caret where it was) */}
+          <IconBtn label="Вставить текст из буфера обмена" caption="Вставить" disabled={!canPaste} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}><I.IconPaste /></IconBtn>
           <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
             onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
@@ -499,7 +522,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </div>
   );
   const keysEl = (
-          <Propis2Keys inputRef={keysRef} onEdgeKey={onEdgeKey} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
+          <Propis2Keys inputRef={keysRef} onEdgeKey={onEdgeKey} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} onPasteText={pasteText} request={caretRequest} readOnly={locked && !selected} />
   );
 
   if (side) {
@@ -535,7 +558,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <div className="p2-status" role="status">
           {nav && <span>Стр. <b>{nav.index + 1}</b> из {nav.total}</span>}
           {rowNo > 0 && <span>Строка <b>{rowNo}</b>{kindName ? ` · ${kindName}` : ""}</span>}
-          <span className="p2-status-hint">{typing ? "Enter — новая строка · слово — образец, фраза с пробелами — связный текст · Ctrl+Z — отменить" : "Щёлкните по строке листа и печатайте"}</span>
+          <span className="p2-status-hint">{typing ? "Enter — новая строка · слово — образец, фраза с пробелами — связный текст · Ctrl+V — вставить · Ctrl+Z — отменить" : "Щёлкните по строке листа и печатайте"}</span>
           {locked && <span>Страница закрыта: правится выбранная строка, «Править» откроет всю</span>}
           <span className="p2-desk-fill" />
           {warnsEl}

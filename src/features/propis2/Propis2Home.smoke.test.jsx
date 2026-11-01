@@ -191,6 +191,43 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
+  it("paste: Ctrl+V and the «Вставить» button put cleaned text at the caret, one undo step", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
+
+    await click(btn("Новая тетрадь"));
+    await typeInField(host, "кот");
+    // Ctrl+V: the field's own paste goes through the cleaner (CRLF, indent, a non-breaking space, a soft hyphen, two blank lines)
+    const field = fieldOf(host);
+    await act(async () => {
+      field.focus();
+      field.setSelectionRange(0, 3); // «кот» selected: the paste takes its place
+      const e = new Event("paste", { bubbles: true, cancelable: true });
+      e.clipboardData = { getData: (t) => (t === "text/plain" ? "\r\n\tмама\u00A0мыла ра\u00ADму\r\n\r\n\r\nдом" : "") };
+      field.dispatchEvent(e);
+      await tick();
+    });
+    expect(fieldOf(host).value).toBe("мама мыла раму\n\nдом");
+    // the button reads the clipboard; the text goes where the caret was
+    const readText = vi.fn().mockResolvedValue("сад");
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { readText } });
+    await act(async () => { fieldOf(host).setSelectionRange(0, 4); fieldOf(host).dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Shift" })); await tick(); });
+    await click(btn("Вставить текст из буфера обмена"));
+    expect(readText).toHaveBeenCalled();
+    expect(fieldOf(host).value).toBe("сад мыла раму\n\nдом");
+    // a paste is an undo step of its own
+    await click(btn("Отменить"));
+    expect(fieldOf(host).value).toBe("мама мыла раму\n\nдом");
+    delete navigator.clipboard;
+    await act(async () => { root.unmount(); await tick(500); });
+    host.remove();
+  });
+
   it("the computer layout: one tool bar, the notebook's pages as thumbnails (a click opens one), a status bar", async () => {
     const before = window.matchMedia;
     // a wide landscape screen: the editor's SIDE_QUERY matches

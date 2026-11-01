@@ -5,8 +5,10 @@ import { useEffect } from "react";
 // paste and the composing of an input method natively; the editor draws the caret and the letters on the copybook rows.
 // `request` { pos, anchor? }: put the caret (a selection from `anchor`) there; Ctrl/Cmd+Z and Ctrl+Y / Ctrl+Shift+Z go to the
 // editor's own undo (the textarea's native one knows nothing of the page).
+// `onPasteText(text, { start, end })`: a paste (Ctrl+V, the system menu) goes to the editor, which cleans it (fieldText.js
+// cleanPastedText) and puts it in the selection; without it the textarea pastes natively.
 // `onEdgeKey(key, pos)`: Backspace with the caret at the start of a line / Delete at its end; true = handled (the row's printed letter at that end was taken off), the key does nothing else
-export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFocusChange, onUndo, onRedo, onEdgeKey, request, readOnly = false }) {
+export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFocusChange, onUndo, onRedo, onEdgeKey, onPasteText, request, readOnly = false }) {
   useEffect(() => {
     const el = inputRef.current;
     if (!el || !request) return;
@@ -33,6 +35,13 @@ export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFoc
     }
   };
 
+  const onPaste = (e) => {
+    const text = e.clipboardData?.getData("text/plain");
+    if (readOnly || !onPasteText || text == null) return;
+    e.preventDefault();
+    onPasteText(text, { start: e.currentTarget.selectionStart ?? 0, end: e.currentTarget.selectionEnd ?? 0 });
+  };
+
   return (
     <textarea
       ref={inputRef}
@@ -49,6 +58,7 @@ export default function Propis2Keys({ inputRef, value, onChange, onSelect, onFoc
       onSelect={report}
       onKeyUp={report}
       onKeyDown={onKeyDown}
+      onPaste={onPaste}
       onFocus={() => onFocusChange?.(true)}
       onBlur={() => onFocusChange?.(false)}
     />

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
 import { newPage, newRow, pageToLines } from "./model.js";
-import { fieldFromRows, insertToken, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
+import { cleanPastedText, fieldFromRows, insertToken, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
 const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
@@ -129,5 +129,23 @@ describe("full-page editor text", () => {
     // editing it back keeps three rows
     const { rows: back } = rowsFromField({ rows, startId: rows[0].id, value: "кот\n\n", glyphMap: new Map(), page: null });
     expect(back).toHaveLength(3);
+  });
+});
+
+describe("pasted text", () => {
+  it("line breaks of any kind are Enter; tabs / wide spaces a space; invisible marks dropped; indent and runs of spaces gone", () => {
+    expect(cleanPastedText("  Мама\tмыла\u00A0\u00A0раму.  \r\nПапа\u2028сын")).toBe("Мама мыла раму.\nПапа\nсын");
+    expect(cleanPastedText("ко\u00ADшка\u200B идёт\uFEFF")).toBe("кошка идёт");
+    expect(cleanPastedText("Ну и ну…")).toBe("Ну и ну...");
+  });
+  it("blank lines between paragraphs are one empty row, none at the start or the end", () => {
+    expect(cleanPastedText("\n\n  \nраз\n\n \n\nдва\n\n")).toBe("раз\n\nдва");
+    expect(cleanPastedText(" \n\t\n")).toBe("");
+  });
+  it("one row only (a closed page): the lines joined by a space", () => {
+    expect(cleanPastedText("раз\n\nдва\r\nтри", { singleLine: true })).toBe("раз два три");
+  });
+  it("letters the hand lacks are kept (the sheet flags them)", () => {
+    expect(cleanPastedText("«Привет» — сказал")).toBe("«Привет» — сказал");
   });
 });
