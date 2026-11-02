@@ -56,7 +56,7 @@ function getStoryTitle(story) {
 // The full text stays available through the story's questions. Text-search
 // responses are graded; oral responses are assessed separately by the adult.
 function buildStoryQuizTasks(topicRecord, sessionParams) {
-  const rawText = mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, sessionParams?.storyQuizText);
+  const rawText = mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, sessionParams?.storyQuizText, topicRecord?.storyQuiz?.previousDefaultTexts);
   const parsed = parseStoryQuizText(rawText);
   if (!parsed.valid) return [];
 

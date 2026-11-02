@@ -6,5 +6,6 @@ export default function setup() {
   execFileSync(process.execPath, ["node_modules/vite/bin/vite.js", "build", "-c", "tests/responsive/reading-micro.vite.config.mjs", "--configLoader", "native"], { cwd: root, stdio: "pipe" });
   const output = new URL("../../.cache/reading-micro-preview/decks/", import.meta.url);
   mkdirSync(output, { recursive: true });
-  copyFileSync(new URL("../../public/decks/reading_short_stories_v2.0.1.zip", import.meta.url), new URL("reading_short_stories_v2.0.1.zip", output));
+  copyFileSync(new URL("../../public/decks/reading_short_stories_v2.0.2.zip", import.meta.url), new URL("reading_short_stories_v2.0.2.zip", output));
+  copyFileSync(new URL("../../docs/methodology/reading-micro-review.html", import.meta.url), new URL("../reading-micro-review.html", output));
 }

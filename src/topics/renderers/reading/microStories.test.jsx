@@ -9,7 +9,7 @@ import ReadingRenderer from "./index";
 import { useAppStore } from "@/core/store";
 
 vi.mock("@/shared/hooks/useTopicFile", () => ({ useTopicFile: (_topic, path) => path ? `/preview/${path}` : null }));
-const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.1.zip"));
+const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.2.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const micro = topic.texts.filter((story) => story.storyStage === "micro");
 const findTasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, {});
@@ -67,6 +67,23 @@ describe("micro-story content and staircase", () => {
     expect(merged.groups.find((group) => group.title === "Помощь маме").questions[0].prompt).toBe("Мой вопрос?");
     expect(merged.groups.find((group) => group.title === "Мяч под стулом").questions).toHaveLength(4);
     expect(mergeStoryQuizText(topic.storyQuiz.defaultText, "invalid edit")).toBe("invalid edit");
+  });
+
+  it("refreshes unchanged questions from the previous edition while keeping a child's edits", () => {
+    const saved = topic.storyQuiz.previousDefaultTexts[0].replace("Куда закатился мяч?", "Где лежал мяч?");
+    const merged = mergeStoryQuizText(topic.storyQuiz.defaultText, saved, topic.storyQuiz.previousDefaultTexts);
+    expect(merged).toContain("Где лежал мяч?");
+    expect(merged).toContain("Куда Вова наступил?");
+    expect(merged).not.toContain("По какой дорожке гулял Вова?");
+    const stories = topic.texts.map((story) => ({ ...story, title: story.title.ru }));
+    expect(validateStoryQuizText(merged, stories, micro.map((story) => story.id)).valid).toBe(true);
+    const tasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, { storyQuizText: saved });
+    expect(tasks).toHaveLength(60);
+    expect(tasks.find((task) => task.textId === "micro_boots" && task.question.id === "q2").question.target).toBe("в грязь");
+    const customInvalid = saved.replace("по грязной дорожке", "по дорожке");
+    const preserved = mergeStoryQuizText(topic.storyQuiz.defaultText, customInvalid, topic.storyQuiz.previousDefaultTexts);
+    expect(preserved).toContain("+ по дорожке");
+    expect(validateStoryQuizText(preserved, stories, ["micro_boots"]).valid).toBe(false);
   });
 });
 

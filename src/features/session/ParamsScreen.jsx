@@ -711,11 +711,11 @@ function StorySelectionParam({ options, labels, value, onChange, info, onShowInf
   );
 }
 
-function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, onChange }) {
+function StoryQuizEditorParam({ value, defaultText, previousDefaultTexts, stories, selectedStoryIds, onChange }) {
   const { t: tr } = useUiTranslation();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const effectiveText = mergeStoryQuizText(defaultText, value);
+  const effectiveText = mergeStoryQuizText(defaultText, value, previousDefaultTexts);
   const validation = validateStoryQuizText(effectiveText, stories, selectedStoryIds);
   const edited = Boolean(value?.trim());
 
@@ -2083,6 +2083,7 @@ export default function ParamsScreen() {
               key={key}
               value={params[key] ?? ""}
               defaultText={topicRecord?.storyQuiz?.defaultText ?? ""}
+              previousDefaultTexts={topicRecord?.storyQuiz?.previousDefaultTexts}
               stories={storyQuizStories}
               selectedStoryIds={selectedStoryQuizIds}
               onChange={(value) => setParams((current) => ({ ...current, [key]: value }))}
@@ -2480,7 +2481,7 @@ export default function ParamsScreen() {
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
   const storyQuizValidation = mode?.type === "story_quiz"
     ? validateStoryQuizText(
-        mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, params.storyQuizText),
+        mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, params.storyQuizText, topicRecord?.storyQuiz?.previousDefaultTexts),
         storyQuizStories,
         selectedStoryQuizIds,
       )

@@ -4,7 +4,7 @@ import JSZip from "jszip";
 import sharp from "sharp";
 import { applyReleaseTopicCopy, RELEASE_TOPIC_COPY } from "../src/topics/releaseTopicCopy.js";
 
-const version = "2.0.1";
+const version = "2.0.2";
 const source = JSON.parse(await readFile("content/reading_short_stories/micro/stories.json", "utf8"));
 const illustrationTemplate = JSON.parse(await readFile("docs/design/reading-sheet-illustrations.template.json", "utf8"));
 function frameCrop(width, height, spec) {
@@ -24,6 +24,8 @@ const stripSyllables = (value) => value.replace(/(\p{L})-(?=\p{L})/gu, "$1");
 const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v1.6.4.zip"));
 const previous = JSON.parse(await zip.file("topic.json").async("string"));
 const legacyQuestions = await zip.file("questions.txt").async("string");
+const previousMicroZip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.1.zip"));
+const previousMicroManifest = JSON.parse(await previousMicroZip.file("topic.json").async("string"));
 const microQuestions = source.map((story) => `# ${story.title}\n\n${story.find.map(([question, target]) => `? ${question}\n+ ${target}`).join("\n\n")}\n\n* ${story.discuss}`).join("\n\n");
 const microStories = [];
 
@@ -73,7 +75,7 @@ const questions = `${microQuestions}\n\n${legacyQuestions.trim()}\n`;
 const manifest = applyReleaseTopicCopy({
   ...previous,
   meta: {
-    ...previous.meta, version, minAppVersion: "1.0.2767", defaultStoryStage: "micro",
+    ...previous.meta, version, minAppVersion: "1.0.2776", defaultStoryStage: "micro",
     conceptCount: microStories.length + previous.texts.length,
     sessionConfig: { ...previous.meta.sessionConfig, maxSize: 27 },
     description: {
@@ -83,7 +85,7 @@ const manifest = applyReleaseTopicCopy({
   },
   modes,
   texts: [...microStories, ...previous.texts.map((story) => ({ ...story, storyStage: "extended", level: 2 }))],
-  storyQuiz: { ...previous.storyQuiz, defaultText: questions },
+  storyQuiz: { ...previous.storyQuiz, defaultText: questions, previousDefaultTexts: [previousMicroManifest.storyQuiz.defaultText] },
 });
 manifest.meta.copyHash = createHash("sha256").update(JSON.stringify(RELEASE_TOPIC_COPY.reading_short_stories)).digest("hex").slice(0, 16);
 zip.file("topic.json", `${JSON.stringify(manifest, null, 2)}\n`);

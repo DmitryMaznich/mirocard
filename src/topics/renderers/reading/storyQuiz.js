@@ -33,12 +33,24 @@ export function getSelectedReadingStories(topicRecord, sessionParams = {}) {
 
 // Keep a child's edited blocks while adding new stories from deck updates.
 // Invalid edits stay visible to validation instead of silently falling back.
-export function mergeStoryQuizText(defaultText, customText) {
+export function mergeStoryQuizText(defaultText, customText, previousDefaultTexts = []) {
   if (!customText?.trim()) return defaultText ?? "";
   const base = parseStoryQuizText(defaultText);
   const custom = parseStoryQuizText(customText);
   if (!base.valid || !custom.valid) return customText;
   const overrides = new Map(custom.groups.map((group) => [group.title, group]));
+  // A saved editor value contains the full collection. Refresh blocks that
+  // still equal a published default; retain actual per-child edits, including
+  // invalid ones, so validation can explain what needs the adult's attention.
+  const signature = (group) => JSON.stringify(group.questions.map(({ kind, prompt, target }) => [kind, prompt, target ?? null]));
+  for (const previousText of Array.isArray(previousDefaultTexts) ? previousDefaultTexts : []) {
+    const previous = parseStoryQuizText(previousText);
+    if (!previous.valid) continue;
+    for (const group of previous.groups) {
+      const override = overrides.get(group.title);
+      if (override && signature(override) === signature(group)) overrides.delete(group.title);
+    }
+  }
   const baseTitles = new Set(base.groups.map((group) => group.title));
   const groups = [
     ...base.groups.map((group) => overrides.get(group.title) ?? group),
