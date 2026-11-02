@@ -298,7 +298,9 @@ export default function SessionScreen() {
   // tile of «Расставь по порядку») must not wipe the rows and tiles already done.
   const keepsComparisonProgressOnMistake = topicRecord.meta.renderer === "comparison"
     && (Array.isArray(currentTask?.items) || currentTask?.taskType === "order");
-  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake
+  // A retry must retain whether the picture was opened for this question.
+  const keepsStorySupportOnMistake = currentTask?.type === "story_quiz";
+  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
   const showStreak = shouldShowSessionStreak({
@@ -323,7 +325,7 @@ export default function SessionScreen() {
   const isDailyOrientation = topicRecord.meta.renderer === "daily_orientation";
 
   return (
-    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}`}>
+    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}`}>
       {sessionExitPromptOpen && (
         <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
       )}

@@ -29,20 +29,20 @@ describe("Сравнение — «Сравни в жизни», опция «В
     });
   });
 
-  it("the question, the sentence (no «поровну») and the adult's «почему», in the right case and gender", () => {
+  it("«почему»: five comparisons, two right ones on an unequal card, «сколько …, столько и …» on every card", () => {
     const ec = enoughCards(600, { enough: "answer" });
     const find = (set, diff) => ec.find((t) => t.set === set && t.things - t.who === diff);
     const c = find("chairs", -1);
     expect(c.enoughQuestion).toBe("Всем детям хватает стульев?");
-    expect(c.verdictText).toBe("Стульев не хватает. Одному не хватает стула.");
-    expect(c.whyText).toBe("Спросите: почему не хватает? — Потому что детей больше, чем стульев.");
-    expect(find("chairs", -2).verdictText).toBe("Стульев не хватает. Двоим не хватает стульев.");
-    expect(find("cups", 1).verdictText).toBe("Блюдец хватает всем. Одно блюдце лишнее.");
-    expect(find("cups", 1).whyText).toBe("Спросите: почему хватает? — Потому что блюдец больше, чем чашек.");
-    expect(find("dogs", 2).verdictText).toBe("Косточек хватает всем. Две косточки лишние.");
-    expect(find("rabbits", 0).verdictText).toBe("Морковок хватает всем: каждому кролику по морковке.");
-    expect(find("rabbits", 0).whyText).toBe("Спросите: почему хватает? — Потому что сколько кроликов, столько и морковок.");
-    expect(ec.some((t) => /поровну/i.test(t.verdictText + t.whyText))).toBe(false);
+    expect(c.whyQuestion).toBe("Почему стульев не хватает?");
+    expect(c.whyOptions.map((o) => o.label)).toEqual(["детей больше", "стульев больше", "детей меньше", "стульев меньше", "сколько детей, столько и стульев"]);
+    expect(c.whyRight).toEqual(["whoMore", "thingLess"]);
+    expect(find("cups", 1).whyQuestion).toBe("Почему блюдец хватает?");
+    expect(find("cups", 1).whyRight).toEqual(["thingMore", "whoLess"]);
+    expect(find("rabbits", 0).whyRight).toEqual(["same"]);
+    expect(find("rabbits", 0).whyOptions[4].label).toBe("сколько кроликов, столько и морковок");
+    expect(ec.every((t) => t.whyOptions.some((o) => o.id === "same"))).toBe(true);
+    expect(ec.some((t) => /поровну/i.test(t.whyOptions.map((o) => o.label).join(" ")))).toBe(false);
     expect(find("cars", 0).enoughQuestion).toBe("Всем машинкам хватает гаражей?");
     expect(ec.every((t) => t.order === "answer")).toBe(true);
   });
@@ -57,8 +57,9 @@ describe("Сравнение — «Всем хватает?»: экран", () =
     whoSprites: ["media/enough/kid_1.webp", "media/enough/kid_2.webp", "media/enough/kid_3.webp"],
     thingSprite: "media/enough/chair.webp", place: ENOUGH_SETS[0].place,
     enoughQuestion: "Всем детям хватает стульев?", matchHint: "Дай каждому ребёнку стул",
-    verdictText: "Стульев не хватает. Одному не хватает стула.",
-    whyText: "Спросите: почему не хватает? — Потому что детей больше, чем стульев.",
+    whyQuestion: "Почему стульев не хватает?", whyRight: ["whoMore", "thingLess"],
+    whyOptions: [{ id: "whoMore", label: "детей больше" }, { id: "thingMore", label: "стульев больше" }, { id: "whoLess", label: "детей меньше" },
+      { id: "thingLess", label: "стульев меньше" }, { id: "same", label: "сколько детей, столько и стульев" }],
   };
   async function mount(task) {
     const calls = { correct: 0, mistake: 0 };
@@ -74,7 +75,7 @@ describe("Сравнение — «Всем хватает?»: экран", () =
   const button = (label) => [...container.querySelectorAll(".cfn-btn")].find((b) => b.textContent === label);
   const wait = (ms) => act(() => new Promise((r) => setTimeout(r, ms)));
 
-  it("«Сначала проверить»: match, then «всем хватает»; a wrong answer shakes, is a mistake, and is answered again", async () => {
+  it("«Сначала проверить»: match, «всем хватает?», «почему?»; a wrong answer shakes, is a mistake, and is answered again; no sentence at the end", async () => {
     const calls = await mount({ ...base, order: "check" });
     expect(heading()).toBe("Дай каждому ребёнку стул");
     expect(container.querySelector(".cfn-btn")).toBeNull();
@@ -90,9 +91,19 @@ describe("Сравнение — «Всем хватает?»: экран", () =
     expect(calls.correct).toBe(0);
     act(() => button("Не хватает").click());
     await wait(400);
+    expect(heading()).toBe("Почему стульев не хватает?");
+    expect(calls.correct).toBe(0);
+    expect(container.querySelector(".enough-because").textContent).toBe("Потому что…");
+    act(() => button("стульев больше").click());
+    expect(calls.mistake).toBe(2);
+    expect(container.querySelector(".enough-because").textContent).toBe("Потому что…");
+    act(() => button("стульев меньше").click()); // = «детей больше», counts too
+    await wait(400);
     expect(calls.correct).toBe(1);
-    expect(container.querySelector(".compare-verdict").textContent).toBe(base.verdictText);
-    expect(container.querySelector(".enough-why").textContent).toBe(base.whyText);
+    expect(container.querySelector(".compare-verdict")).toBeNull();
+    expect(container.querySelector("button button")).toBeNull();
+    expect([...container.querySelectorAll(".enough-why-grid .cfn-btn--correct")].map((b) => b.textContent)).toEqual(["стульев меньше"]);
+    expect(container.querySelector(".enough-because").textContent).toBe("Потому что стульев меньше.");
   });
 
   it("«Сначала ответить»: the answer first by eye, a wrong one is kept and counted, then the matching", async () => {
@@ -107,6 +118,9 @@ describe("Сравнение — «Всем хватает?»: экран", () =
     act(() => things()[0].click());
     act(() => things()[1].click());
     await wait(500);
+    expect(heading()).toBe("Почему стульев не хватает?");
+    act(() => button("детей больше").click());
+    await wait(400);
     expect(calls).toEqual({ correct: 1, mistake: 1 });
   });
 

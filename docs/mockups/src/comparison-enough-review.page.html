@@ -47,6 +47,7 @@ p { margin: 0; max-width: 72ch; }
 .btn.right { border-color: var(--app-green); background: var(--app-green-bg); }
 .verdict { color: var(--app-verdict); font-weight: 800; font-size: 15px; }
 .why { color: var(--sheet-muted); font-weight: 600; font-size: 14px; }
+.because { color: var(--app-verdict); font-weight: 800; font-size: 15px; }
 .step { font-size: 13px; color: var(--sheet-muted); font-weight: 700; }
 @media (max-width: 860px) { .card { grid-template-columns: 30px minmax(0, 1fr); } .text { grid-column: 2; } }
 
@@ -73,7 +74,7 @@ p { margin: 0; max-width: 72ch; }
   <header>
     <div class="eyebrow">Сравнение · ступень 9 · проверка каждой карточки</div>
     <h1>«Всем хватает?»: все карточки</h1>
-    <p class="lead">Опция «Всем хватает?» режима «Сравни в жизни». Шесть наборов, в каждом пять исходов: не хватает одного, не хватает двух, хватает ровно, один лишний, два лишних. Слева сцена до расстановки и после, справа что видит ребёнок: действие, вопрос, кнопки (верная — зелёная), фраза и серая строка для взрослого. Отметьте номера карточек, которые надо поправить.</p>
+    <p class="lead">Опция «Всем хватает?» режима «Сравни в жизни». Шесть наборов, в каждом пять исходов: не хватает одного, не хватает двух, хватает ровно, один лишний, два лишних. Слева сцена до расстановки и после, справа что видит ребёнок: действие, вопрос «хватает?», потом «почему?» (верные кнопки — зелёные; если зелёных две, засчитывается любая). Текста-вывода на экране нет. Отметьте номера карточек, которые надо поправить.</p>
   </header>
 
   <section class="cols" aria-label="Как устроено">
@@ -82,7 +83,7 @@ p { margin: 0; max-width: 72ch; }
       <ul>
         <li><strong>Ребёнок отвечает на один вопрос:</strong> «Всем кроликам хватает морковок?» — «Хватает / Не хватает». Без «Чего больше?» и без «поровну».</li>
         <li><strong>Проверка:</strong> ребёнок даёт каждому по предмету («Дай каждому кролику морковку»). Кому не хватило и что лишнее — подсвечивается.</li>
-        <li><strong>Почему — говорит взрослый.</strong> Под фразой серая строка: «Спросите: почему не хватает? — Потому что кроликов больше, чем морковок».</li>
+        <li><strong>Потом «почему?»</strong> — пять кнопок: «Потому что…» и пять продолжений: «кроликов больше / морковок больше / кроликов меньше / морковок меньше / сколько кроликов, столько и морковок». «Кроликов больше» и «морковок меньше» — одно и то же, засчитывается любая. Текста-вывода нет, полную фразу говорит взрослый.</li>
         <li><strong>Порядок</strong> (настройка): «Сначала проверить» — расставить, потом ответить; «Сначала ответить» — на глаз, потом проверка.</li>
       </ul>
     </div>
@@ -91,7 +92,6 @@ p { margin: 0; max-width: 72ch; }
       <ol>
         <li>Номера карточек, где не так картинка, вопрос, фраза или строка для взрослого.</li>
         <li>Номера рисунков в самом низу, которые надо перерисовать.</li>
-        <li>Оставляем ли серую строку для взрослого.</li>
       </ol>
     </div>
   </section>
@@ -147,7 +147,7 @@ for (const c of CARDS) {
   const btn = (b) => `<span class="btn${b === c.right ? " right" : ""}">${b}</span>`;
   el.innerHTML = `<div class="num">${c.n}</div>
     <div class="scenes"><div><div class="scene-cap">до · ${c.who} и ${c.things}</div>${board(c, false)}</div><div><div class="scene-cap">после</div>${board(c, true)}</div></div>
-    <div class="text text--new"><div class="step">Действие: ${c.match}</div><div class="q">${c.q}</div><div class="btns">${btn("Хватает")}${btn("Не хватает")}</div><div class="verdict">${c.verdict}</div><div class="why">${c.why}</div></div>`;
+    <div class="text text--new"><div class="step">Действие: ${c.match}</div><div class="q">${c.q}</div><div class="btns">${btn("Хватает")}${btn("Не хватает")}</div><div class="q">${c.whyQ}</div><div class="because">Потому что…</div><div class="btns">${c.whyOpts.map((o) => `<span class="btn${o.ok ? " right" : ""}">${o.label}</span>`).join("")}</div></div>`;
   setEl.append(el);
 }
 document.getElementById("gallery").innerHTML = Object.entries(SPRITES).map(([k, v]) => `<div class="g"><img src="${v}" alt=""><span>${k}</span></div>`).join("");
