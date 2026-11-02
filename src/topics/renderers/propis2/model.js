@@ -80,10 +80,13 @@ export const BAND_FILLS = [
   { id: "lilac", label: "Сиреневая", color: "#ebe5f6" },
 ];
 export const bandFillId = (page) => (page?.bandFill === true ? "grey" : BAND_FILLS.some((f) => f.id === page?.bandFill) ? page.bandFill : "none");
-// the tint the sheet is drawn with, or null (none, or not the narrow copybook row)
+// On the Bulgarian paper the tinted band is the x-height band of every row (between the thin line and the baseline), whatever
+// `ruling` the page keeps from the copybook paper (owner, 2026-11-02: it was missing there).
+export const bandFillPaper = (page) => pageGridKind(page) === "bg" || (pageGridKind(page) === "propis" && page?.ruling !== "wide");
+// the tint the sheet is drawn with, or null (none, or not the narrow copybook row / the Bulgarian row)
 export const pageBandFill = (page) => {
   const id = bandFillId(page);
-  return id !== "none" && pageGridKind(page) === "propis" && page?.ruling !== "wide" ? BAND_FILLS.find((f) => f.id === id).color : null;
+  return id !== "none" && bandFillPaper(page) ? BAND_FILLS.find((f) => f.id === id).color : null;
 };
 export const pageMidDash = (page) => (pageGridKind(page) === "bg" ? Boolean(page?.bgDash) : page?.midDash !== false);
 
@@ -648,7 +651,7 @@ const SETTING_OF = {
 };
 const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash", "bandFill"]);
 export const SLANT_PAPERS = new Set(["propis", "bg"]);
-const countsFor = (key, page) => (key === "bgDash" ? pageGridKind(page) === "bg" : !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page)));
+const countsFor = (key, page) => (key === "bgDash" ? pageGridKind(page) === "bg" : !COPYBOOK_ONLY.has(key) || (key === "grid" || key === "bandFill" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page)));
 
 // Which settings differ between the pages of the notebook (the dot on a strip button, owner 2026-10-15): { key: true }.
 export function mixedSettings(set, pagesById) {
