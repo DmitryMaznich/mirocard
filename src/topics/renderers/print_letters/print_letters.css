@@ -16,11 +16,14 @@
   --pl-red: #b91c1c;
   --pl-red-soft: #fee2e2;
 
+  /* No max-width/margin: propis2's own editor (.propis2-editor2) fills the
+     whole screen width too — this topic's chrome should read as the same
+     app, not a centered, artificially narrowed version of it. The actual
+     page preview still keeps its own fixed size (.pl-sheet's max-width),
+     so only the surrounding canvas/toolbar chrome widens, same as propis2. */
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-width: 900px;
-  margin: 0 auto;
   color: var(--pl-ink);
 }
 
