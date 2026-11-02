@@ -28,20 +28,21 @@ describe("Сравнение — «Сравни в жизни», опция «В
     });
   });
 
-  it("«почему»: five comparisons, two right ones on an unequal card, «сколько …, столько и …» on every card", () => {
+  it("«почему»: three endings, exactly one right, «… и … поровну» on every card", () => {
     const ec = enoughCards(600, { enough: "answer" }); // an old saved value: still on
     const find = (set, diff) => ec.find((t) => t.set === set && t.things - t.who === diff);
     const c = find("chairs", -1);
     expect(c.enoughQuestion).toBe("Всем детям хватает стульев?");
     expect(c.whyQuestion).toBe("Почему стульев не хватает?");
-    expect(c.whyOptions.map((o) => o.label)).toEqual(["детей больше", "стульев больше", "детей меньше", "стульев меньше", "сколько детей, столько и стульев"]);
-    expect(c.whyRight).toEqual(["whoMore", "thingLess"]);
+    expect(c.whyOptions.map((o) => o.label)).toEqual(["детей больше", "стульев больше", "детей и стульев поровну"]);
+    expect(c.whyRight).toEqual(["whoMore"]);
     expect(find("cups", 1).whyQuestion).toBe("Почему блюдец хватает?");
-    expect(find("cups", 1).whyRight).toEqual(["thingMore", "whoLess"]);
+    expect(find("cups", 1).whyRight).toEqual(["thingMore"]);
     expect(find("rabbits", 0).whyRight).toEqual(["same"]);
-    expect(find("rabbits", 0).whyOptions[4].label).toBe("сколько кроликов, столько и морковок");
+    expect(find("rabbits", 0).whyOptions[2].label).toBe("кроликов и морковок поровну");
     expect(ec.every((t) => t.whyOptions.some((o) => o.id === "same"))).toBe(true);
-    expect(ec.some((t) => /поровну/i.test(t.whyOptions.map((o) => o.label).join(" ")))).toBe(false);
+    expect(ec.every((t) => t.whyRight.length === 1)).toBe(true);
+    expect(ec.some((t) => /меньше|сколько/.test(t.whyOptions.map((o) => o.label).join(" ")))).toBe(false);
     expect(find("cars", 0).enoughQuestion).toBe("Всем машинкам хватает гаражей?");
   });
 });
@@ -55,9 +56,8 @@ describe("Сравнение — «Всем хватает?»: экран", () =
     whoSprites: ["media/enough/kid_1.webp", "media/enough/kid_2.webp", "media/enough/kid_3.webp"],
     thingSprite: "media/enough/chair.webp", place: ENOUGH_SETS[0].place,
     enoughQuestion: "Всем детям хватает стульев?", matchHint: "Дай каждому ребёнку стул",
-    whyQuestion: "Почему стульев не хватает?", whyRight: ["whoMore", "thingLess"],
-    whyOptions: [{ id: "whoMore", label: "детей больше" }, { id: "thingMore", label: "стульев больше" }, { id: "whoLess", label: "детей меньше" },
-      { id: "thingLess", label: "стульев меньше" }, { id: "same", label: "сколько детей, столько и стульев" }],
+    whyQuestion: "Почему стульев не хватает?", whyRight: ["whoMore"],
+    whyOptions: [{ id: "whoMore", label: "детей больше" }, { id: "thingMore", label: "стульев больше" }, { id: "same", label: "детей и стульев поровну" }],
   };
   async function mount(task) {
     const calls = { correct: 0, mistake: 0 };
@@ -84,12 +84,14 @@ describe("Сравнение — «Всем хватает?»: экран", () =
     expect(container.querySelector(".enough-because").textContent).toBe("Потому что…");
     act(() => button("стульев больше").click());
     expect(calls.mistake).toBe(1);
-    act(() => button("стульев меньше").click()); // = «детей больше», counts too
+    act(() => button("детей и стульев поровну").click());
+    expect(calls.mistake).toBe(2);
+    act(() => button("детей больше").click());
     await wait(400);
-    expect(calls).toEqual({ correct: 1, mistake: 1 });
+    expect(calls).toEqual({ correct: 1, mistake: 2 });
     expect(container.querySelector("button button")).toBeNull();
-    expect([...container.querySelectorAll(".enough-why-grid .cfn-btn--correct")].map((b) => b.textContent)).toEqual(["стульев меньше"]);
-    expect(container.querySelector(".enough-because").textContent).toBe("Потому что стульев меньше.");
+    expect([...container.querySelectorAll(".enough-why-grid .cfn-btn--correct")].map((b) => b.textContent)).toEqual(["детей больше"]);
+    expect(container.querySelector(".enough-because").textContent).toBe("Потому что детей больше.");
   });
 
   it("wrong by eye: the guess stays marked, «Проверь: …» matching, the question again, then «почему?»", async () => {

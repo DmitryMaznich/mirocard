@@ -429,16 +429,13 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 // so the count on screen is always the task's count.
 //
 // The child answers the everyday question — «Всем детям хватает стульев?»,
-// Хватает / Не хватает — and then why (owner's calls, 2026-11-02: no «Чего
-// больше?» question, no «поровну», and no sentences on the screen — too
-// much text): «Почему стульев не хватает?» with «Детей больше / Стульев
-// больше / Детей меньше / Стульев меньше / Сколько детей, столько и
-// стульев». The options continue «Потому что…» shown above them (owner's
-// call), so they start in lower case and the answer reads as one sentence:
-// «Потому что детей больше». Two of the four comparisons say the same thing in other words
-// («детей больше» = «стульев меньше»), and either counts. «Сколько …,
-// столько и …» is on every card, so its presence never gives the equal case
-// away.
+// Хватает / Не хватает — and then why: «Потому что…» with three endings,
+// «детей больше / стульев больше / детей и стульев поровну». Exactly one
+// is right on every card (owner's calls, 2026-11-02: no synonyms like
+// «детей больше» = «стульев меньше» — two right answers confuse a child
+// with ASD; «поровну» runs through the whole topic, so the equal case is
+// «детей и стульев поровну», not «сколько…, столько и…»; no sentences on
+// the screen — too much text).
 //
 // Each set carries its Russian (genitive plural of both sides, the dative of
 // the characters, the action), `mover` — what the action moves:
@@ -493,11 +490,9 @@ function generateEnoughTask(set, outcome) {
   const whyOptions = [
     { id: "whoMore", label: `${set.whoGen} больше` },
     { id: "thingMore", label: `${set.thingGen} больше` },
-    { id: "whoLess", label: `${set.whoGen} меньше` },
-    { id: "thingLess", label: `${set.thingGen} меньше` },
-    { id: "same", label: `сколько ${set.whoGen}, столько и ${set.thingGen}` },
+    { id: "same", label: `${set.whoGen} и ${set.thingGen} поровну` },
   ];
-  const whyRight = short > 0 ? ["whoMore", "thingLess"] : extra > 0 ? ["thingMore", "whoLess"] : ["same"];
+  const whyRight = [short > 0 ? "whoMore" : extra > 0 ? "thingMore" : "same"];
   return {
     set: set.id, who, things, enough: things >= who,
     whoSprites, thingSprite: `media/enough/${set.thing}.webp`, mover: set.mover ?? "thing", place: set.place,

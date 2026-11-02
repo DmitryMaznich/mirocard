@@ -8,9 +8,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 // chair to the child, the cup onto its saucer, the car into its garage.
 //
 // The child answers «Всем детям хватает стульев?» — Хватает / Не хватает —
-// by eye, then «Почему стульев не хватает?» («Потому что…» + five endings,
-// two of which say the same thing in other words; either counts — see
-// ENOUGH_SETS in engine.js). No sentences on the screen (owner: too much
+// by eye, then «Почему стульев не хватает?» («Потому что…» + three endings,
+// one right: «детей больше / стульев больше / детей и стульев поровну» —
+// see ENOUGH_SETS in engine.js). No sentences on the screen (owner: too much
 // text).
 //
 // The matching — each one gets its object — is the check after a wrong
