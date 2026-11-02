@@ -673,15 +673,15 @@
    the matching afterwards shows how it really is. */
 .cfn-btn--wrong-kept { border-color: #ef4444; background: #fef2f2; }
 .enough-options .cfn-btn { flex: 1; min-height: 56px; font-size: clamp(16px, 4vw, 20px); font-weight: 800; }
-/* «Почему …?»: «больше» in the first row, «меньше» in the second,
-   «сколько …, столько и …» across the bottom. */
+/* «Почему …?»: the two «больше» side by side, «… и … поровну» across the
+   bottom. */
 .enough-because { position: relative; z-index: 1; width: 100%; max-width: 480px; text-align: left; font-size: clamp(18px, 4.6vw, 24px); font-weight: 800; color: #2d6fb5; }
 .enough-why-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 480px; }
 .enough-why-grid .cfn-btn { min-height: 52px; display: flex; align-items: center; justify-content: center; font-size: clamp(15px, 3.8vw, 19px); font-weight: 800; padding: 4px 8px; text-align: center; }
 .enough-why-grid .enough-why-same { grid-column: 1 / -1; }
 /* The topic's landscape rule caps every .cfn-btn at 150px (sized for the
    three short answer buttons elsewhere); here the buttons fill their grid
-   cells, or «сколько кроликов, столько и морковок» wraps into four lines. */
+   cells, or «кроликов и морковок поровну» wraps into several lines. */
 .enough-why-grid .cfn-btn, .enough-options .cfn-btn { max-width: none; min-width: 0; }
 /* Right / kept-wrong stay visible under a hovering mouse too. */
 .enough-body .cfn-btn.cfn-btn--correct, .enough-body .cfn-btn.cfn-btn--correct:hover { border-color: #22c55e; background: #dcfce7; transform: none; box-shadow: none; }

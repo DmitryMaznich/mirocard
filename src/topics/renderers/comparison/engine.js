@@ -429,16 +429,13 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 // so the count on screen is always the task's count.
 //
 // The child answers the everyday question — «Всем детям хватает стульев?»,
-// Хватает / Не хватает — and then why (owner's calls, 2026-11-02: no «Чего
-// больше?» question, no «поровну», and no sentences on the screen — too
-// much text): «Почему стульев не хватает?» with «Детей больше / Стульев
-// больше / Детей меньше / Стульев меньше / Сколько детей, столько и
-// стульев». The options continue «Потому что…» shown above them (owner's
-// call), so they start in lower case and the answer reads as one sentence:
-// «Потому что детей больше». Two of the four comparisons say the same thing in other words
-// («детей больше» = «стульев меньше»), and either counts. «Сколько …,
-// столько и …» is on every card, so its presence never gives the equal case
-// away.
+// Хватает / Не хватает — and then why: «Потому что…» with three endings,
+// «детей больше / стульев больше / детей и стульев поровну». Exactly one
+// is right on every card (owner's calls, 2026-11-02: no synonyms like
+// «детей больше» = «стульев меньше» — two right answers confuse a child
+// with ASD; «поровну» runs through the whole topic, so the equal case is
+// «детей и стульев поровну», not «сколько…, столько и…»; no sentences on
+// the screen — too much text).
 //
 // Each set carries its Russian (genitive plural of both sides, the dative of
 // the characters, the action), `mover` — what the action moves:
@@ -467,10 +464,15 @@ export const ENOUGH_SETS = [
     matchHint: "Надень каждому ребёнку шапку",
     place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
 ];
-// «Всем хватает?» in «Сравни в жизни»: off, or on with the matching first
-// (the answers are then visible — the easier way) or the answers first, by
-// eye, checked by the matching afterwards.
-export const ENOUGH_OPTIONS = ["off", "check", "answer"];
+// «Всем хватает?» in «Сравни в жизни»: off or on. The matching (each one
+// gets its object) is the check after a wrong answer only (owner's call,
+// 2026-11-02 — a child who answered right has nothing to check). The old
+// "check" / "answer" orders of 2.51–2.55 both read as on.
+export const ENOUGH_OPTIONS = ["off", "on"];
+export function normalizeEnoughOption(value) {
+  if (value === "check" || value === "answer") return "on";
+  return ENOUGH_OPTIONS.includes(value) ? value : "off";
+}
 const ENOUGH_SPRITE_VARIANTS = 6;
 
 // One card: 3–6 characters; the outcome is given by the caller, which cycles
@@ -488,11 +490,9 @@ function generateEnoughTask(set, outcome) {
   const whyOptions = [
     { id: "whoMore", label: `${set.whoGen} больше` },
     { id: "thingMore", label: `${set.thingGen} больше` },
-    { id: "whoLess", label: `${set.whoGen} меньше` },
-    { id: "thingLess", label: `${set.thingGen} меньше` },
-    { id: "same", label: `сколько ${set.whoGen}, столько и ${set.thingGen}` },
+    { id: "same", label: `${set.whoGen} и ${set.thingGen} поровну` },
   ];
-  const whyRight = short > 0 ? ["whoMore", "thingLess"] : extra > 0 ? ["thingMore", "whoLess"] : ["same"];
+  const whyRight = [short > 0 ? "whoMore" : extra > 0 ? "thingMore" : "same"];
   return {
     set: set.id, who, things, enough: things >= who,
     whoSprites, thingSprite: `media/enough/${set.thing}.webp`, mover: set.mover ?? "thing", place: set.place,
@@ -505,12 +505,12 @@ function generateEnoughTask(set, outcome) {
 
 // The «Всем хватает?» cards of a «Сравни в жизни» session: sets and outcomes
 // each cycle through their own shuffled bag.
-function* enoughTaskCycle(order, conceptId) {
+function* enoughTaskCycle(conceptId) {
   let sets = [], outcomes = [];
   for (;;) {
     if (!sets.length) sets = shuffle(ENOUGH_SETS);
     if (!outcomes.length) outcomes = shuffle(["lack", "equal", "spare"]);
-    yield { type: "compare_enough", conceptId, order, ...generateEnoughTask(sets.pop(), outcomes.pop()) };
+    yield { type: "compare_enough", conceptId, ...generateEnoughTask(sets.pop(), outcomes.pop()) };
   }
 }
 
@@ -581,7 +581,7 @@ export function generateTestSheet(range, count) {
   return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enough?: "off"|"check"|"answer" (compare_real_life: «Всем хватает?» cards) }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enough?: "off"|"on" (compare_real_life: «Всем хватает?» cards; old "check"/"answer" = on) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
 
@@ -592,8 +592,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const phrase = REAL_LIFE_PHRASES.includes(sessionParams.phrase) ? sessionParams.phrase : "full";
     const cycle = shuffledSceneCycle();
     // «Всем хватает?» on: its cards go in turn with the picture scenes.
-    const enough = ENOUGH_OPTIONS.includes(sessionParams.enough) ? sessionParams.enough : "off";
-    const enoughCycle = enough === "off" ? null : enoughTaskCycle(enough, card.conceptId);
+    const enoughCycle = normalizeEnoughOption(sessionParams.enough) === "on" ? enoughTaskCycle(card.conceptId) : null;
     const tasks = [];
     for (let i = 0; i < count; i++) {
       if (enoughCycle && i % 2 === 1) { tasks.push(enoughCycle.next().value); continue; }
