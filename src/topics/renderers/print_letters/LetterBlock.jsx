@@ -1,8 +1,15 @@
-import LetterGlyph, { strokeBBox } from "./LetterGlyph";
-import GridRow, { UNIT_MM } from "./Ruling";
+import LetterGlyph, { letterCells, letterFrame } from "./LetterGlyph";
+import { FINE_MM } from "./Ruling";
 
-const TILE_W = UNIT_MM; // one letter-cell square, so letter columns start on the next grid line
-const CELLS  = 8; // letters per row — fixed, real grid paper isn't stretched to fill the page width either
+// Everything below is counted in whole notebook cells (FINE_MM = 5mm), so
+// every edge — block outline, tile, each letter's box — lands on a printed
+// grid line. A letter is 2 cells tall and letterCells() wide.
+const LETTER_H = 2;   // cells
+const TILE     = 2;   // label tile: 2×2 cells
+const GAP      = 1;   // blank cell between letters, between rows, after the tile
+const ROW_CELLS = 16; // writing width of a row, in cells
+
+const mm = (cells) => `${cells * FINE_MM}mm`;
 
 function strokesForContent(letter, content) {
   if (content === "full") return letter.strokes;
@@ -11,27 +18,48 @@ function strokesForContent(letter, content) {
   return letter.strokes[idx] ? [letter.strokes[idx]] : letter.strokes;
 }
 
+// How many copies of a letter fit in a row: each copy is its own width plus
+// one blank cell, the last one needs no trailing gap.
+export function copiesPerRow(letter) {
+  const w = letterCells(letter);
+  return Math.max(1, Math.floor((ROW_CELLS + GAP) / (w + GAP)));
+}
+
 // A naborny (fully composable) print block for one letter: the teacher picks
 // how many rows it has and what each row drills — the whole letter, one
-// isolated stroke element, or a blank cell row for independent writing. The
-// block itself is a clean preview only (propis2's model): a click selects a
-// row (or the block, via its tile) and every action on that selection lives
-// in the toolbar above the canvas, not inline here.
+// isolated stroke element, or a blank row for independent writing. The block
+// itself is a clean preview only (propis2's model): a click selects a row (or
+// the block, via its tile) and every action on that selection lives in the
+// toolbar above the canvas, not inline here.
+//
+// Every row draws its strokes inside the SAME frame — the whole letter's grid
+// box — so an isolated element (Н's crossbar) sits exactly where it sits in
+// the full letter, at the letter's real proportions, and the label tile shows
+// that same letter shape rather than a font glyph with other proportions.
 export default function LetterBlock({ letter, color, rows, selected, selectedRowId, onSelectBlock, onSelectRow }) {
-  // Computed once from the whole letter, not per row — see strokeBBox()'s own
-  // comment for why a lone stroke's own bbox can't be used for its cell.
-  const frame = strokeBBox(letter.strokes);
+  const frame = letterFrame(letter);
+  const w = letterCells(letter);
+  const copies = copiesPerRow(letter);
+  const blockCells = TILE + GAP + ROW_CELLS + GAP;
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ borderColor: color }}
+      style={{ outlineColor: color, width: mm(blockCells), minHeight: mm(GAP + LETTER_H + GAP), paddingBottom: mm(GAP) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
         className="pl-block-tile"
-        style={{ height: `${UNIT_MM}mm`, width: `${TILE_W}mm`, background: color }}
+        style={{ top: mm(GAP), height: mm(TILE), width: mm(TILE), background: color }}
+        aria-label={`Буква ${letter.label}`}
       >
-        {letter.label}
+        <LetterGlyph
+          letter={letter}
+          frame={frame}
+          heightMm={TILE * FINE_MM * 0.6}
+          color="#ffffff"
+          showArrows={false}
+          tappable={false}
+        />
       </div>
 
       {rows.map((row) => {
@@ -43,17 +71,18 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
           <div
             key={row.id}
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
+            style={{ paddingTop: mm(GAP), paddingLeft: mm(TILE + GAP) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
-            <GridRow cells={CELLS} padLeft={TILE_W}>
-              {Array.from({ length: CELLS }).map((_, i) => (
-                <div key={i} className="pl-cell">
+            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(ROW_CELLS), gap: mm(GAP) }}>
+              {Array.from({ length: copies }).map((_, i) => (
+                <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(LETTER_H) }}>
                   {!isBlank && (
                     <LetterGlyph
                       letter={miniLetter}
                       frame={frame}
-                      heightMm={UNIT_MM}
-                      widthMm={UNIT_MM}
+                      heightMm={LETTER_H * FINE_MM}
+                      widthMm={w * FINE_MM}
                       variant="dotted"
                       showArrows={i === 0}
                       showNumbers={isFull && i === 0}
@@ -62,7 +91,7 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
                   )}
                 </div>
               ))}
-            </GridRow>
+            </div>
           </div>
         );
       })}

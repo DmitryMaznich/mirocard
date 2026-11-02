@@ -14,34 +14,20 @@ function parseStartPoint(d) {
   return m ? [parseFloat(m[1]), parseFloat(m[2])] : [50, 50];
 }
 
-// The letter_writing-derived viewBox ("0 0 100 110") carries a wide margin
-// around the ink (room for this component's own stroke-order badges), so
-// rendering it as-is left the guide floating inside the grid cell instead of
-// touching its lines. Cropping to the WHOLE letter's ink extent — M/L pairs
-// only, this topic's current "straight" family has no curves — makes the
-// rendered box exactly that letter's own bounds, so it can be stretched
-// flush to all four sides of a square cell.
-//
-// Must be computed from the full letter, never from whatever subset of
-// strokes a given row/cell happens to be drawing: a single straight stroke
-// that's purely vertical or horizontal has zero extent on the other axis
-// (an isolated "M 12,5 L 12,105" has xmin===xmax===12), which collapses to
-// an empty, invisible viewBox if cropped on its own — and even where it
-// wouldn't collapse, every row of the same letter needs the same frame so
-// an isolated element lines up with where it sits inside the full letter.
-export function strokeBBox(strokes) {
-  let xmin = Infinity, ymin = Infinity, xmax = -Infinity, ymax = -Infinity;
-  for (const s of strokes) {
-    const nums = (s.d.match(/-?\d+\.?\d*/g) || []).map(Number);
-    for (let i = 0; i + 1 < nums.length; i += 2) {
-      const [x, y] = [nums[i], nums[i + 1]];
-      if (x < xmin) xmin = x;
-      if (x > xmax) xmax = x;
-      if (y < ymin) ymin = y;
-      if (y > ymax) ymax = y;
-    }
-  }
-  return isFinite(xmin) ? [xmin, ymin, xmax - xmin, ymax - ymin] : [0, 0, 100, 110];
+// Glyph geometry lives directly on the notebook grid (tools/print_letters/
+// topic.json): 1 cell = 50 units, a letter is 2 cells tall (y 0..100) and
+// `cells` wide (most letters 1 cell, wide ones like Ш — 2). Its viewBox is
+// exactly that box, so every stroke that sits on a cell boundary in the data
+// lands on a printed grid line — no cropping, no per-axis stretching, and the
+// same proportions everywhere the letter is drawn (rows, label tile).
+export const UNITS_PER_CELL = 50;
+
+export function letterCells(letter) {
+  return Math.max(1, Number(letter?.cells) || 1);
+}
+
+export function letterFrame(letter) {
+  return [0, 0, letterCells(letter) * UNITS_PER_CELL, 2 * UNITS_PER_CELL];
 }
 
 const BADGE_FILL = { idle: "#e5e7eb", active: "#1d4ed8", done: "#22c55e" };
@@ -53,9 +39,10 @@ const BADGE_TEXT = { idle: "#6b7280", active: "white",   done: "white"   };
 // same everywhere so a child always sees the same motor plan for a letter.
 export default function LetterGlyph({
   letter,
-  frame,                   // [x, y, w, h] — the WHOLE letter's ink bbox; see strokeBBox() above
+  frame,                   // [x, y, w, h] — the WHOLE letter's grid box; see letterFrame() above
   heightMm,
-  widthMm     = heightMm,  // square cell by default
+  widthMm,
+  color       = STROKE_COLOR,
   variant     = "solid",   // "solid" | "dotted" | "fading"
   opacity     = 1,
   showNumbers = false,
@@ -65,7 +52,8 @@ export default function LetterGlyph({
   label,
 }) {
   const { strokes = [] } = letter;
-  const [vbX, vbY, vbW, vbH] = frame ?? strokeBBox(strokes);
+  const [vbX, vbY, vbW, vbH] = frame ?? letterFrame(letter);
+  const wMm = widthMm ?? (heightMm * vbW) / vbH;
   const viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
 
   const svgRef     = useRef(null);
@@ -168,22 +156,14 @@ export default function LetterGlyph({
   // physical size (SVG width/height accept CSS length units, so "Nmm" is a
   // true physical size the browser's print pipeline honors directly).
   const strokeW = variant === "dotted" ? 7 : 9;
-  // Stretched independently on each axis (preserveAspectRatio="none") so the
-  // ink reaches all four edges of its own cell, not just the taller one —
-  // клетка needs the letter snapped to both the horizontal AND vertical
-  // grid lines around it, which a uniform (aspect-preserving) fit can't do
-  // for a letter whose natural ink proportions aren't already square.
-  const needsOverflow = showArrows || showNumbers; // badges/arrows reach past the tight ink box
-
   return (
     <svg
       ref={svgRef}
       viewBox={viewBox}
-      preserveAspectRatio="none"
-      width={`${widthMm}mm`}
+            width={`${wMm}mm`}
       height={`${heightMm}mm`}
       className={`pl-glyph pl-glyph--${variant}${tappable ? " pl-glyph--tappable" : ""}`}
-      style={{ display: "block", flexShrink: 0, opacity, cursor: tappable ? "pointer" : "default", overflow: needsOverflow ? "visible" : undefined }}
+      style={{ display: "block", flexShrink: 0, opacity, cursor: tappable ? "pointer" : "default", overflow: "visible" }}
       onClick={tappable && !playing ? play : undefined}
       role={tappable ? "button" : "img"}
       aria-label={label ? `Буква ${label}` : undefined}
@@ -199,7 +179,7 @@ export default function LetterGlyph({
           motor plan stays legible even when the guide stroke itself fades */}
       {showArrows && strokes.map((s, i) => (
         <path key={`g${i}`} d={s.d} fill="none"
-          stroke={STROKE_COLOR} strokeWidth={strokeW}
+          stroke={color} strokeWidth={strokeW}
           strokeLinecap="round" strokeLinejoin="round" opacity={0.14}
           markerEnd={`url(#pl-arr-${letter.id})`} />
       ))}
@@ -211,7 +191,7 @@ export default function LetterGlyph({
           key={`guide${i}`}
           d={s.d}
           fill="none"
-          stroke={STROKE_COLOR}
+          stroke={color}
           strokeWidth={strokeW}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -227,7 +207,7 @@ export default function LetterGlyph({
           data-lg-anim={i}
           d={s.d}
           fill="none"
-          stroke={STROKE_COLOR}
+          stroke={color}
           strokeWidth={strokeW}
           strokeLinecap="round"
           strokeLinejoin="round"

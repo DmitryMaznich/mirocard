@@ -292,7 +292,7 @@
    IconPaperRuled) minus the slant guide — only the horizontal lines, same
    5mm pitch as клетка so a letter's own baseline (the bottom of its 2-cell
    box) still lands exactly on one of them. No vertical lines, so there is
-   nothing for a letter's sides to snap to — see .pl-cell below. */
+   nothing for a letter's sides to snap to: the letter box (2 cells) still starts and ends on a line. */
 .pl-sheet--line {
   background-image: linear-gradient(to bottom, #bcd4e8 1px, transparent 1px);
   background-size: 100% 5mm;
@@ -303,18 +303,13 @@
 
 .pl-row-wrap { display: flex; flex-direction: column; }
 
+/* One row of copies: sizes come inline from LetterBlock.jsx, in whole cells. */
+.pl-row { display: flex; }
+
 .pl-cell {
-  width: 10mm;
-  height: 10mm;
   flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
-
-/* Линейка has no vertical lines to snap a letter's sides to — only its own
-   bottom edge (baseline) anchors, to the horizontal line under the cell. */
-.pl-sheet--line .pl-cell { align-items: flex-end; }
 
 .pl-glyph--tappable:active { opacity: 0.85; }
 
@@ -324,9 +319,13 @@
    padding, square corners: it sits flush on the page's own grid rather than
    floating as a card on top of it — a thin colored outline groups the rows
    as "this letter," nothing more. */
+/* The colored frame is an outline, not a border: a border would push the
+   rows 2px off the page grid; an outline takes no space. */
 .pl-block {
   position: relative;
-  border: 2px solid;
+  align-self: flex-start;
+  outline: 2px solid;
+  outline-offset: -1px;
   border-radius: 2px;
   padding: 0;
   display: flex;
@@ -344,9 +343,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
 }
 
 .pl-row-wrap.is-selected { background: var(--pl-teal-soft); border-radius: 8px; }
