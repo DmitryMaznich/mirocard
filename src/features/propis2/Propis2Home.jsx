@@ -196,12 +196,15 @@ export default function Propis2Home({ db }) {
     const nb = tag(newSet(pg.title, { id: `st_${pg.id}`, ruling: pg.ruling, pageIds: [pg.id], createdAt: pg.createdAt, sourceId: ps.id }));
     return { lib: upsertSet(upsertPage(library, pg), nb), set: nb };
   };
-  // the list with languages: one list of every notebook, each with its language's mark, and a filter — both only when more than one
-  // language is in use. Ready notebooks are offered in the languages in use (the notebooks' and the new notebook's), or the filter's
+  // the list with languages: one list of every notebook, each with its language's mark, and a filter — both only when the list holds
+  // more than one language (the notebooks', the new notebook's, the ready ones'). The filter narrows the notebooks and the ready ones.
   const usedLangs = useMemo(() => (languages ? new Set([...library.sets.map(langOf), newLang]) : null), [languages, library.sets, newLang]);
-  const multiLang = Boolean(usedLangs && usedLangs.size > 1);
+  // the ready notebooks of every language are always offered (owner, 2026-11-02: the Kazakh ones were hidden until Kazakh was in use),
+  // so their languages count for the marks and the filter too
+  const shownLangs = useMemo(() => (languages ? new Set([...usedLangs, ...ready.map((r) => r.lang)]) : null), [languages, usedLangs, ready]);
+  const multiLang = Boolean(shownLangs && shownLangs.size > 1);
   const shownSets = useMemo(() => (languages && langFilter !== "all" ? library.sets.filter((st) => langOf(st) === langFilter) : library.sets), [languages, langFilter, library.sets]);
-  const shownReady = useMemo(() => (!languages ? ready : ready.filter((r) => (langFilter === "all" ? usedLangs.has(r.lang) : r.lang === langFilter))), [languages, ready, langFilter, usedLangs]);
+  const shownReady = useMemo(() => (!languages ? ready : ready.filter((r) => langFilter === "all" || r.lang === langFilter)), [languages, ready, langFilter]);
   const markOf = (id) => { const i = languages?.findIndex((l) => l.id === id) ?? -1; const l = languages?.[i]; return { short: l?.short ?? id?.toUpperCase(), title: l?.title ?? id, tone: Math.max(i, 0) % 4 }; };
   const langCounts = useMemo(() => (languages ? Object.fromEntries(languages.map((l) => [l.id, library.sets.filter((st) => langOf(st) === l.id).length])) : {}), [languages, library.sets]);
   // ---- the session of a notebook: open it, work on it, confirm or drop ----
@@ -587,7 +590,7 @@ export default function Propis2Home({ db }) {
       sets={shownSets}
       langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
       newLang={languages ? { title: languages.find((l) => l.id === newLang)?.title, onOpen: () => setLangSheet(true) } : null}
-      filterBar={multiLang ? <LangFilter languages={languages.filter((l) => usedLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
+      filterBar={multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
       blankCount={blankIds.length}
       onResumeDraft={resumeDraft}

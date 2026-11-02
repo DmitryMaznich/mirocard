@@ -44,27 +44,29 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     useAppStore.setState({ topicRecords: [record], activeTopicId: "propis2", activeStudentId: "s1", students: [{ id: "s1", name: "1А" }], studentTopicLinks: {}, screen: "params" });
   });
 
-  it("one list, a language per notebook, marks and a filter once two are in use", async () => {
+  it("one list, a language per notebook; the ready notebooks of every language always, with marks and a filter", async () => {
     const db = await openDb("p2lang-home-" + Date.now());
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
 
-    // only Russian in use: no marks, no filter, the Russian ready notebooks only (no Bulgarian «Цифры»)
+    // only Russian in use, yet the ready notebooks of every language are offered (owner, 2026-11-02), each with its mark, and a filter
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Русский");
-    expect(host.querySelector('[data-testid="propis2-lang-filter"]')).toBeNull();
-    expect(host.querySelector(".p2-nb-lang")).toBeNull();
-    for (let i = 0; i < 100 && !cards(host, "propis2-ready-card").length; i++) await act(async () => { await tick(50); }); // the bundled kits load apart
-    const ruReady = cards(host, "propis2-ready-card").length;
-    expect(ruReady).toBeGreaterThan(1);
+    for (let i = 0; i < 100 && !cards(host, "propis2-ready-card").some((c) => c.textContent.includes("РУС")); i++) await act(async () => { await tick(50); }); // the bundled kits load apart
+    const readyMarks = () => new Set(cards(host, "propis2-ready-card").map((c) => ["РУС", "БЪЛ", "ҚАЗ"].find((m) => c.textContent.includes(m))));
+    expect([...readyMarks()].sort()).toEqual(["БЪЛ", "РУС", "ҚАЗ"].sort());
+    const filter0 = host.querySelector('[data-testid="propis2-lang-filter"]');
+    expect([...filter0.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Русский", "Български", "Қазақша"]);
+    await click([...filter0.querySelectorAll("button")].find((b) => b.textContent === "Қазақша"));
+    // Kazakh: its own two word notebooks (variant.json kits, 2026-11-02)
+    expect(cards(host, "propis2-ready-card").map((c) => c.textContent)).toEqual([expect.stringContaining("Слова 1: А – О"), expect.stringContaining("Слова 2: Ө – Я")]);
+    await click([...host.querySelector('[data-testid="propis2-lang-filter"]').querySelectorAll("button")].find((b) => b.textContent === "Все"));
 
     // a Kazakh notebook: the language chosen next to «Новая тетрадь»
     await click(host.querySelector('[data-testid="propis2-new-lang"]'));
     await sheetPick("Қазақша");
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Қазақша");
-    // Kazakh: its own two word notebooks (variant.json kits, 2026-11-02)
-    expect(cards(host, "propis2-ready-card").map((c) => c.textContent)).toEqual([expect.stringContaining("Слова 1: А – О"), expect.stringContaining("Слова 2: Ө – Я")]);
     await click(btn(host, "Новая тетрадь"));
     const field = host.querySelector('[aria-label="Текст страницы"]');
     await act(async () => {
@@ -79,13 +81,13 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { await tick(400); });
     expect((await loadLibrary(db)).sets.map((s) => s.lang)).toEqual(["kk"]);
 
-    // then Bulgarian for the next one: two languages in use -> marks and the filter; the Bulgarian ready notebooks join the list
+    // then Bulgarian for the next one: the notebook keeps its mark, the filter narrows notebooks and ready ones
     await click(host.querySelector('[data-testid="propis2-new-lang"]'));
     await sheetPick("Български");
     expect(cards(host, "propis2-set-card")).toHaveLength(1);
     expect(cards(host, "propis2-set-card")[0].textContent).toContain("ҚАЗ");
     const filter = host.querySelector('[data-testid="propis2-lang-filter"]');
-    expect([...filter.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Български", "Қазақша"]);
+    expect([...filter.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Русский", "Български", "Қазақша"]);
     expect(cards(host, "propis2-ready-card").some((c) => c.textContent.includes("БЪЛ"))).toBe(true);
     await click([...filter.querySelectorAll("button")].find((b) => b.textContent === "Български"));
     expect(cards(host, "propis2-set-card")).toHaveLength(0);
