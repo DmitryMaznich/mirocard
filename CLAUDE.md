@@ -281,15 +281,21 @@ blocks happens to equal Ilyukhina's own "leave a blank cell between letter group
 `@page margin` is 5mm, matching a typical printer's own unprintable zone, plus `.pl-sheet`'s own
 5mm padding so a block border is never flush against the physical edge. Toolbar icons are
 purpose-specific (`IconLetterA`/`IconAddRow`, not a shared generic plus for two different "add"
-actions; delete buttons get a `.pl-tool--danger` red hover, distinct from add) — see the
-"Разворот" sections (ten so far, 2026-11-01/02; the seventh records a background agent that
-implemented the page rail without authorization while investigating, got stopped, and had its work
-kept only after the owner reviewed and approved it; the eighth explains why this topic's header
-has no back button — `propis2` is a full-screen route that replaces the session header entirely,
-this topic is a normal session task that already has one above it) for why each earlier shape —
+actions) and **copied path-for-path from `propis2`'s own `Propis2Icons.jsx`/`propis2.css`**, not
+approximated — delete buttons (`.pl-tool--danger`) are red **at rest**, matching propis2's
+`.p2-ib--danger { color: var(--p2-red); }` exactly (an earlier hover-only red was the actual root
+cause of three repeated owner complaints that the trash icon "doesn't make sense": at rest it was
+visually identical to the add buttons), and `IconLetterA` is propis2's `IconLetterFrame` two-tone
+filled tile (not a monochrome stroke shape) — see the "Разворот" sections (eleven so far,
+2026-11-01/02; the seventh records a background agent that implemented the page rail without
+authorization while investigating, got stopped, and had its work kept only after the owner
+reviewed and approved it; the eighth explains why this topic's header has no back button —
+`propis2` is a full-screen route that replaces the session header entirely, this topic is a normal
+session task that already has one above it; the eleventh is the icon-fidelity fix above, done only
+after reading propis2's real source rather than guessing a third time) for why each earlier shape —
 giant full-page glyph, auto-generated rows, sidebar letter panel, per-row inline controls, single
 flat page, ad hoc blue palette with emoji icons, per-block mini-grids on a blank page, px-based
-cell sizing, ambiguous plus/trash icons — got replaced; registered in
+cell sizing, ambiguous plus/trash icons, hover-only danger color — got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a

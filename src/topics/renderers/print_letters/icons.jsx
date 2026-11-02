@@ -1,23 +1,37 @@
-// Small line-icon set for this topic's UI chrome, drawn fresh in the same
-// recipe propis2's own icons use (24x24, stroke=currentColor, round caps) —
-// not copied from Propis2Icons.jsx, which draws propis2-specific pictograms
-// (paper/ruling/element shapes); these are generic action glyphs (add,
-// trash, print...) with nothing propis2-specific to reuse.
-const base = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" };
+// This topic's UI chrome icons — generic action pictograms (trash, undo-
+// style arrows, a plus...) copied path-for-path from propis2's own
+// Propis2Icons.jsx where it draws the same generic action, per the owner:
+// "look at the icon style on the propis2 constructor's buttons." These
+// shapes aren't propis2-specific content (a trash can is a trash can); the
+// one deliberately-NOT-copied kind is propis2's page/ruling pictograms,
+// which really do draw propis2's own cursive content.
+const base = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" };
 const S = (children) => <svg {...base}>{children}</svg>;
 
 export const IconPlus = () => S(<path d="M12 5v14M5 12h14" />);
-export const IconTrash = () => S(<><path d="M4 7h16M9 7V4.5a1 1 0 011-1h4a1 1 0 011 1V7M6.5 7l1 13h9l1-13" /><path d="M10 11v6M14 11v6" /></>);
+// Copied from propis2's IconTrash (Propis2Icons.jsx) — same shape, verbatim.
+export const IconTrash = () => S(<><path d="M4 7h16M10 7V4.5h4V7M6.5 7l1 13h9l1-13" /><path d="M10 11v6M14 11v6" /></>);
 export const IconPrint = () => S(<><rect x="6" y="9" width="12" height="7" rx="1" /><path d="M8 9V4.5h8V9" /><path d="M8 16.5V19.5h8V16.5" /></>);
 export const IconClose = () => S(<path d="M6 6l12 12M18 6L6 18" />);
 export const IconCaret = () => S(<path d="M6 9l6 6 6-6" />);
 export const IconBack = () => S(<path d="M15 5l-7 7 7 7" />);
-export const IconUp = () => S(<path d="M12 19V6M6 11l6-6 6 6" />);
-export const IconDown = () => S(<path d="M12 5v13M6 13l6 6 6-6" />);
+// Copied from propis2's IconUp/IconDown.
+export const IconUp = () => S(<path d="M12 19V5M6 11l6-6 6 6" />);
+export const IconDown = () => S(<path d="M12 5v14M6 13l6 6 6-6" />);
+// Copied from propis2's IconDuplicate.
 export const IconDuplicate = () => S(<><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" /></>);
-export const IconLetter = () => S(<><path d="M5 19V5h10l4 4v10z" /><path d="M9 11h6M9 15h6" /></>);
-// A capital letter itself — for "insert a letter", not a generic plus.
-export const IconLetterA = () => S(<><path d="M12 4l6 16M12 4L6 20" /><path d="M8.5 14h7" /></>);
-// An existing ruled row plus one being added — for "insert a row", not the
-// same plus used for "insert a letter" (a different thing is being added).
-export const IconAddRow = () => S(<><path d="M4 7h16M4 13h10" /><path d="M17 17v4M15 19h4" /></>);
+// Copied from propis2's IconLetterFrame — the one deliberately two-colour
+// icon in the set (teal fill/stroke, not currentColor), since that is what
+// makes "Буква" read as a distinct letter-tile rather than another line
+// pictogram: a frame with the capital letter itself inside it, not an
+// abstract plus.
+export const IconLetterA = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <rect x="3" y="3" width="18" height="18" rx="4.6" fill="#e8f4f1" stroke="#2a6b60" strokeWidth="1.8" />
+    <path d="M8 17L12 7L16 17M9.5 13.6H14.5" stroke="#2a6b60" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+// Copied from propis2's IconAddRow — an existing ruled line, a dashed one
+// being typed, and a plus: "insert a row," not the same plus "Буква" uses
+// for a different kind of insertion.
+export const IconAddRow = () => S(<><path d="M3 18h10" strokeWidth="1.6" /><path d="M3 12h10" strokeDasharray="2 2.4" strokeWidth="1.4" /><path d="M18 8v8M14 12h8" /></>);

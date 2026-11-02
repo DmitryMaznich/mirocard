@@ -81,10 +81,12 @@
 
 .pl-tool--muted { color: var(--pl-muted); }
 
-/* Delete actions get their own hover color (red, not teal) so they read as
-   destructive at a glance instead of blending in with the add actions right
-   next to them in the same group. */
-.pl-tool--danger:hover:not(:disabled) { background: var(--pl-red-soft); color: var(--pl-red); }
+/* Delete actions are red AT REST, like propis2's own .p2-ib--danger
+   (color: var(--p2-red), not just on :hover) — a resting-state-only teal vs.
+   red difference was never visible without first hovering, which is why the
+   earlier hover-only version still read as identical to the add buttons. */
+.pl-tool--danger { color: var(--pl-red); }
+.pl-tool--danger:hover:not(:disabled) { background: var(--pl-red-soft); }
 
 .pl-tool:disabled { opacity: 0.35; cursor: default; }
 
