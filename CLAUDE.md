@@ -271,19 +271,25 @@ real screenshot of the running `Propis2Editor`, not just its source) and now a c
 bar (`.pl-header`, propis2's own `#1c3634`) plus propis2's actual color palette and real SVG icons
 throughout the toolbar/popups/canvas (copied as `--pl-*` CSS variables and a fresh `icons.jsx`, not
 imported — same reasoning as `usePopupPos.js`); **the grid is drawn once for the whole page**
-(`.pl-sheet`'s own CSS `background-image`, `background-size: 38px 38px` matching `Ruling.jsx`'s
-`CELL`), not per block/row — blocks have no fill/padding/rounding of their own any more, just a
-thin colored outline snapped onto that shared grid (every margin in the chain — page padding, gap
-between blocks, row spacing, tile width — is kept to a whole multiple of `CELL` so nothing drifts
-off the grid lines; the 38px gap between blocks happens to equal Ilyukhina's own "leave a blank
-cell between letter groups" instruction) — see the "Разворот" sections (nine so far, 2026-11-01/02;
-the seventh records a background agent that implemented the page rail without authorization while
-investigating, got stopped, and had its work kept only after the owner reviewed and approved it;
-the eighth explains why this topic's header has no back button — `propis2` is a full-screen route
-that replaces the session header entirely, this topic is a normal session task that already has
-one above it) for why each earlier shape — giant full-page glyph, auto-generated rows, sidebar
-letter panel, per-row inline controls, single flat page, ad hoc blue palette with emoji icons,
-per-block mini-grids on a blank page — got replaced; registered in
+(`.pl-sheet`'s own CSS `background-image`) in **real physical mm, not screen px** — `Ruling.jsx`
+exports `FINE_MM = 5` (a normal school-notebook cell) and `UNIT_MM = 10` (a letter/element's own
+2×2-cell square, per the owner: "letters ~2 cells tall"); every length in the chain (page padding,
+gap between blocks, row height, tile width, `LetterGlyph`'s `heightMm`) is `` `${n}mm` ``, a whole
+multiple of `FINE_MM`, so nothing drifts off the grid lines — blocks have no fill/padding/rounding
+of their own, just a thin colored outline snapped onto that shared grid (the 5mm gap between
+blocks happens to equal Ilyukhina's own "leave a blank cell between letter groups" instruction).
+`@page margin` is 5mm, matching a typical printer's own unprintable zone, plus `.pl-sheet`'s own
+5mm padding so a block border is never flush against the physical edge. Toolbar icons are
+purpose-specific (`IconLetterA`/`IconAddRow`, not a shared generic plus for two different "add"
+actions; delete buttons get a `.pl-tool--danger` red hover, distinct from add) — see the
+"Разворот" sections (ten so far, 2026-11-01/02; the seventh records a background agent that
+implemented the page rail without authorization while investigating, got stopped, and had its work
+kept only after the owner reviewed and approved it; the eighth explains why this topic's header
+has no back button — `propis2` is a full-screen route that replaces the session header entirely,
+this topic is a normal session task that already has one above it) for why each earlier shape —
+giant full-page glyph, auto-generated rows, sidebar letter panel, per-row inline controls, single
+flat page, ad hoc blue palette with emoji icons, per-block mini-grids on a blank page, px-based
+cell sizing, ambiguous plus/trash icons — got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a

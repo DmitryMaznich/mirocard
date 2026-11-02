@@ -23,7 +23,7 @@ const BADGE_TEXT = { idle: "#6b7280", active: "white",   done: "white"   };
 // same everywhere so a child always sees the same motor plan for a letter.
 export default function LetterGlyph({
   letter,
-  heightPx,
+  heightMm,
   variant     = "solid",   // "solid" | "dotted" | "fading"
   opacity     = 1,
   showNumbers = false,
@@ -131,16 +131,19 @@ export default function LetterGlyph({
     rafRef.current = requestAnimationFrame(frame);
   }
 
-  const svgH = heightPx;
-  const svgW = Math.round(svgH * (vbW / vbH));
+  // Real mm, not screen px — this glyph is meant to print at an actual
+  // physical size (SVG width/height accept CSS length units, so "Nmm" is a
+  // true physical size the browser's print pipeline honors directly).
+  const svgH = heightMm;
+  const svgW = +(svgH * (vbW / vbH)).toFixed(3);
   const strokeW = variant === "dotted" ? 7 : 9;
 
   return (
     <svg
       ref={svgRef}
       viewBox={viewBox}
-      width={svgW}
-      height={svgH}
+      width={`${svgW}mm`}
+      height={`${svgH}mm`}
       className={`pl-glyph pl-glyph--${variant}${tappable ? " pl-glyph--tappable" : ""}`}
       style={{ display: "block", flexShrink: 0, opacity, cursor: tappable ? "pointer" : "default" }}
       onClick={tappable && !playing ? play : undefined}

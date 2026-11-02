@@ -3,7 +3,7 @@ import LetterBlock from "./LetterBlock";
 import LetterPickerButton from "./LetterPickerButton";
 import RowContentPicker from "./RowContentPicker";
 import PageThumb from "./PageThumb";
-import { IconPlus, IconTrash, IconPrint, IconClose, IconUp, IconDown, IconDuplicate } from "./icons";
+import { IconPlus, IconAddRow, IconTrash, IconPrint, IconClose, IconUp, IconDown, IconDuplicate } from "./icons";
 
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
 
@@ -160,7 +160,7 @@ export default function ConstructorView({ task, onAdvance }) {
         {/* Group 1: the letter block as a whole. */}
         <div className="pl-tool-group" role="group" aria-label="Буква">
           <LetterPickerButton families={families} onPick={addBlock} />
-          <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
+          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
             <span className="pl-tool-ico"><IconTrash /></span>
             <span className="pl-tool-cap">Блок</span>
           </button>
@@ -169,7 +169,7 @@ export default function ConstructorView({ task, onAdvance }) {
         {/* Group 2: the selected row inside that block. */}
         <div className="pl-tool-group" role="group" aria-label="Строка">
           <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={addRowToSelectedBlock}>
-            <span className="pl-tool-ico"><IconPlus /></span>
+            <span className="pl-tool-ico"><IconAddRow /></span>
             <span className="pl-tool-cap">Строка</span>
           </button>
           <RowContentPicker
@@ -178,7 +178,7 @@ export default function ConstructorView({ task, onAdvance }) {
             strokeCount={selectedBlock ? byId[selectedBlock.letterId].strokes.length : 0}
             onChange={setSelectedRowContent}
           />
-          <button type="button" className="pl-tool" disabled={!selectedRow} onClick={removeSelectedRow}>
+          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedRow} onClick={removeSelectedRow}>
             <span className="pl-tool-ico"><IconTrash /></span>
             <span className="pl-tool-cap">Строка</span>
           </button>

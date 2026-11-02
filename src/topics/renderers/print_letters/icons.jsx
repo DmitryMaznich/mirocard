@@ -16,3 +16,8 @@ export const IconUp = () => S(<path d="M12 19V6M6 11l6-6 6 6" />);
 export const IconDown = () => S(<path d="M12 5v13M6 13l6 6 6-6" />);
 export const IconDuplicate = () => S(<><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" /></>);
 export const IconLetter = () => S(<><path d="M5 19V5h10l4 4v10z" /><path d="M9 11h6M9 15h6" /></>);
+// A capital letter itself — for "insert a letter", not a generic plus.
+export const IconLetterA = () => S(<><path d="M12 4l6 16M12 4L6 20" /><path d="M8.5 14h7" /></>);
+// An existing ruled row plus one being added — for "insert a row", not the
+// same plus used for "insert a letter" (a different thing is being added).
+export const IconAddRow = () => S(<><path d="M4 7h16M4 13h10" /><path d="M17 17v4M15 19h4" /></>);

@@ -1,7 +1,7 @@
 import LetterGlyph from "./LetterGlyph";
-import GridRow, { CELL } from "./Ruling";
+import GridRow, { UNIT_MM } from "./Ruling";
 
-const TILE_W = CELL; // exactly one grid column, so the letter cells start on the next grid line
+const TILE_W = UNIT_MM; // one letter-cell square, so letter columns start on the next grid line
 const CELLS  = 8; // letters per row — fixed, real grid paper isn't stretched to fill the page width either
 
 function strokesForContent(letter, content) {
@@ -26,7 +26,7 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
     >
       <div
         className="pl-block-tile"
-        style={{ height: CELL, width: TILE_W, background: color }}
+        style={{ height: `${UNIT_MM}mm`, width: `${TILE_W}mm`, background: color }}
       >
         {letter.label}
       </div>
@@ -48,7 +48,7 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
                   {!isBlank && (
                     <LetterGlyph
                       letter={miniLetter}
-                      heightPx={CELL * 0.84}
+                      heightMm={UNIT_MM * 0.84}
                       variant="dotted"
                       showArrows={i === 0}
                       showNumbers={isFull && i === 0}

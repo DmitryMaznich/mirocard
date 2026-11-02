@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { usePopupPos } from "./usePopupPos";
-import { IconPlus } from "./icons";
+import { IconLetterA } from "./icons";
 
 const FAMILY_TITLES = { straight: "Прямые линии" };
 const PANEL_W = 300;
@@ -33,7 +33,7 @@ export default function LetterPickerButton({ families, onPick }) {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="pl-tool-ico"><IconPlus /></span>
+        <span className="pl-tool-ico"><IconLetterA /></span>
         <span className="pl-tool-cap">Буква</span>
       </button>
       {open && (
