@@ -25,7 +25,7 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_OPTIONS, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_OPTIONS, normalizeEnoughOption, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
 import { DOT_LAYOUTS } from "@/topics/renderers/comparison/dotLayout.js";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
@@ -1634,16 +1634,16 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
-      {/* «Всем хватает?» cards in turn with the scenes — «Чего больше: детей
-          или стульев?», then «Всем детям хватает стульев?», plus matching one
-          to one. The hardest part of the mode for now, off by default. */}
+      {/* «Всем хватает?» cards in turn with the scenes: «Всем детям хватает
+          стульев?», then «Почему…?»; matching one to one only after a wrong
+          answer. The hardest part of the mode for now, off by default. */}
       {isRealLifeMode && (
         <EnumParam
           label={tr("setup.enough")}
           options={ENOUGH_OPTIONS}
           labels={Object.fromEntries(ENOUGH_OPTIONS.map((v) => [v, tr(`setup.enough.${v}`)]))}
-          value={params.enough ?? "off"}
-          hint={tr(`setup.enoughHint.${params.enough ?? "off"}`)}
+          value={normalizeEnoughOption(params.enough)}
+          hint={tr(`setup.enoughHint.${normalizeEnoughOption(params.enough)}`)}
           onChange={(v) => onChange({ ...params, enough: v })}
         />
       )}
@@ -1826,7 +1826,7 @@ export default function ParamsScreen() {
         visualMode,
         dotLayout:     DOT_LAYOUTS.includes(saved.dotLayout) ? saved.dotLayout : "rows",
         phrase:        REAL_LIFE_PHRASES.includes(saved.phrase) ? saved.phrase : "full",
-        enough:        ENOUGH_OPTIONS.includes(saved.enough) ? saved.enough : "off",
+        enough:        normalizeEnoughOption(saved.enough),
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",

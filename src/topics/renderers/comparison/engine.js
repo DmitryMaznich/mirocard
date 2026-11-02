@@ -467,10 +467,15 @@ export const ENOUGH_SETS = [
     matchHint: "Надень каждому ребёнку шапку",
     place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
 ];
-// «Всем хватает?» in «Сравни в жизни»: off, or on with the matching first
-// (the answers are then visible — the easier way) or the answers first, by
-// eye, checked by the matching afterwards.
-export const ENOUGH_OPTIONS = ["off", "check", "answer"];
+// «Всем хватает?» in «Сравни в жизни»: off or on. The matching (each one
+// gets its object) is the check after a wrong answer only (owner's call,
+// 2026-11-02 — a child who answered right has nothing to check). The old
+// "check" / "answer" orders of 2.51–2.55 both read as on.
+export const ENOUGH_OPTIONS = ["off", "on"];
+export function normalizeEnoughOption(value) {
+  if (value === "check" || value === "answer") return "on";
+  return ENOUGH_OPTIONS.includes(value) ? value : "off";
+}
 const ENOUGH_SPRITE_VARIANTS = 6;
 
 // One card: 3–6 characters; the outcome is given by the caller, which cycles
@@ -505,12 +510,12 @@ function generateEnoughTask(set, outcome) {
 
 // The «Всем хватает?» cards of a «Сравни в жизни» session: sets and outcomes
 // each cycle through their own shuffled bag.
-function* enoughTaskCycle(order, conceptId) {
+function* enoughTaskCycle(conceptId) {
   let sets = [], outcomes = [];
   for (;;) {
     if (!sets.length) sets = shuffle(ENOUGH_SETS);
     if (!outcomes.length) outcomes = shuffle(["lack", "equal", "spare"]);
-    yield { type: "compare_enough", conceptId, order, ...generateEnoughTask(sets.pop(), outcomes.pop()) };
+    yield { type: "compare_enough", conceptId, ...generateEnoughTask(sets.pop(), outcomes.pop()) };
   }
 }
 
@@ -581,7 +586,7 @@ export function generateTestSheet(range, count) {
   return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enough?: "off"|"check"|"answer" (compare_real_life: «Всем хватает?» cards) }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enough?: "off"|"on" (compare_real_life: «Всем хватает?» cards; old "check"/"answer" = on) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
 
@@ -592,8 +597,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const phrase = REAL_LIFE_PHRASES.includes(sessionParams.phrase) ? sessionParams.phrase : "full";
     const cycle = shuffledSceneCycle();
     // «Всем хватает?» on: its cards go in turn with the picture scenes.
-    const enough = ENOUGH_OPTIONS.includes(sessionParams.enough) ? sessionParams.enough : "off";
-    const enoughCycle = enough === "off" ? null : enoughTaskCycle(enough, card.conceptId);
+    const enoughCycle = normalizeEnoughOption(sessionParams.enough) === "on" ? enoughTaskCycle(card.conceptId) : null;
     const tasks = [];
     for (let i = 0; i < count; i++) {
       if (enoughCycle && i % 2 === 1) { tasks.push(enoughCycle.next().value); continue; }

@@ -8,15 +8,17 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 // chair to the child, the cup onto its saucer, the car into its garage.
 //
 // The child answers «Всем детям хватает стульев?» — Хватает / Не хватает —
-// and then «Почему стульев не хватает?» from five comparisons, where two say
-// the same thing in other words and either counts (see ENOUGH_SETS in
-// engine.js). No sentences on the screen (owner: too much text) — the board
-// and the chosen answers say it.
-// order "check": match, «хватает?», «почему?». order "answer": «хватает?» by
-// eye first — a wrong guess is marked and counted, not retried — then the
-// matching, then «почему?». Any other wrong answer shakes, counts as a
-// mistake (onMistake) and is answered again. The card counts (onCorrect)
-// when all steps are done.
+// by eye, then «Почему стульев не хватает?» («Потому что…» + five endings,
+// two of which say the same thing in other words; either counts — see
+// ENOUGH_SETS in engine.js). No sentences on the screen (owner: too much
+// text).
+//
+// The matching — each one gets its object — is the check after a wrong
+// answer only (owner's call, 2026-11-02): right → «почему?» straight away;
+// wrong → the guess stays marked, counts as a mistake, «Проверь: дай
+// каждому…», then the same question again (now the board shows it), then
+// «почему?». A wrong «почему» shakes, counts and is answered again. The card
+// counts (onCorrect) when «почему» is answered.
 //
 // The scene is built from sprites of the topic (media/enough/*.webp), so the
 // count on screen is always the card's count.
@@ -51,15 +53,10 @@ function placedStyle(place) {
   return style;
 }
 
-// The steps of one card, in order.
-function stepsFor(order) {
-  return order === "answer" ? ["enough", "match", "why"] : ["match", "enough", "why"];
-}
-
 export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorrect, onMistake, onAdvance }) {
   const urls = useTopicFiles([...task.whoSprites, task.thingSprite], topicId, loadTopicFileUrl);
-  const steps = stepsFor(task.order);
-  const [stepIdx, setStepIdx] = useState(0);
+  // enough → why → done, or after a wrong «хватает?»: enough → match → again → why → done
+  const [step, setStep] = useState("enough");
   // pairs[k] = [character, object], in the order they were made. What moves
   // is what the action names (task.mover): «Дай каждому ребёнку стул» — the
   // chair goes to the child; «Поставь каждую чашку на блюдце» — the cup goes
@@ -72,12 +69,11 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
   const placedRefs = useRef([]);
 
   const moverIsWho = task.mover === "who";
-  const step = steps[stepIdx] ?? "done";
   const done = step === "done";
   const matched = pairs.length === Math.min(task.who, task.things);
   const showOutcome = matched;                       // who is without / what is spare lights up once matched
   const cols = Math.max(task.who, task.things);
-  const right = { enough: [task.enough ? "yes" : "no"], why: task.whyRight ?? [] };
+  const right = { enough: [task.enough ? "yes" : "no"], again: [task.enough ? "yes" : "no"], why: task.whyRight ?? [] };
   const pairOfWho = (w) => pairs.findIndex(([pw]) => pw === w);
   const pairOfThing = (t) => pairs.findIndex(([, pt]) => pt === t);
 
@@ -88,10 +84,10 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
     }
   }, [done, onCorrect, task.conceptId]);
 
-  // The last pair made ends the matching step.
+  // The last pair made ends the check; the question comes again.
   useEffect(() => {
     if (step === "match" && matched) {
-      const t = window.setTimeout(() => setStepIdx((i) => i + 1), 450);
+      const t = window.setTimeout(() => setStep("again"), 450);
       return () => clearTimeout(t);
     }
   }, [step, matched]);
@@ -124,19 +120,19 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
     setPairs((prev) => [...prev, moverIsWho ? [index, partner] : [partner, index]]);
   }
 
+  const NEXT = { enough: "why", again: "why", why: "done" };
   function answer(question, value) {
     if (step !== question || picked[question] !== undefined) return;
     if (right[question].includes(value)) {
       setPicked((p) => ({ ...p, [question]: value }));
-      window.setTimeout(() => setStepIdx((i) => i + 1), 350);
+      window.setTimeout(() => setStep(NEXT[question]), 350);
       return;
     }
     onMistake?.(task.conceptId, null);
-    if (task.order === "answer" && question === "enough") {
-      // By eye, before the check: the guess stays marked and the card goes on;
-      // the matching will show how it really is.
-      setPicked((p) => ({ ...p, [question]: value }));
-      window.setTimeout(() => setStepIdx((i) => i + 1), 600);
+    if (question === "enough") {
+      // The first guess, by eye: it stays marked, and the matching checks it.
+      setPicked((p) => ({ ...p, enough: value }));
+      window.setTimeout(() => setStep("match"), 600);
     } else {
       setShake(value);
       window.setTimeout(() => setShake(null), 400);
@@ -244,19 +240,18 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
     );
   }
 
-  const heading = step === "match" ? task.matchHint : step === "why" ? task.whyQuestion : task.enoughQuestion;
+  const heading = step === "match" ? `Проверь: ${task.matchHint[0].toLowerCase()}${task.matchHint.slice(1)}` : step === "why" ? task.whyQuestion : task.enoughQuestion;
   return (
     <div className="compare-body enough-body">
       <div className="compare-instruction">{heading}</div>
       {board}
-      {step === "enough" && (
+      {(step === "enough" || step === "again") && (
         <div className="cfn-options enough-options">
-          <button type="button" className={optionClass("enough", "yes")} onClick={() => answer("enough", "yes")}>Хватает</button>
-          <button type="button" className={optionClass("enough", "no")} onClick={() => answer("enough", "no")}>Не хватает</button>
+          <button type="button" className={optionClass(step, "yes")} onClick={() => answer(step, "yes")}>Хватает</button>
+          <button type="button" className={optionClass(step, "no")} onClick={() => answer(step, "no")}>Не хватает</button>
         </div>
       )}
       {step === "why" && whyButtons}
-      {step === "match" && task.order === "answer" && <div className="enough-hint">Теперь проверь</div>}
     </div>
   );
 }
