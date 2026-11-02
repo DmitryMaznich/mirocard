@@ -63,7 +63,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await click(host.querySelector('[data-testid="propis2-new-lang"]'));
     await sheetPick("Қазақша");
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Қазақша");
-    expect(cards(host, "propis2-ready-card")).toHaveLength(0); // Kazakh has no ready notebooks
+    // Kazakh: its own two word notebooks (variant.json kits, 2026-11-02)
+    expect(cards(host, "propis2-ready-card").map((c) => c.textContent)).toEqual([expect.stringContaining("Слова 1: А – О"), expect.stringContaining("Слова 2: Ө – Я")]);
     await click(btn(host, "Новая тетрадь"));
     const field = host.querySelector('[aria-label="Текст страницы"]');
     await act(async () => {

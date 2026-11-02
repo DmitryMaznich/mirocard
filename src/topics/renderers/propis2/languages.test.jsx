@@ -6,7 +6,7 @@ import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { topicAlphabet } from "./alphabet.js";
-import { deckPapers } from "./model.js";
+import { analyzePage, deckPapers, kitToLibraryItems, rowsPerPage } from "./model.js";
 import { generateTasks } from "./engine.js";
 import { deckLanguages, languageView, pickLanguage, offeredLanguages, fixLegacyNotebookLangs, mostUsedLang, LEGACY_LANG_CUTOFF } from "./languages.js";
 import { applyVariant } from "../../../../scripts/lib/propis2-variant.mjs";
@@ -24,6 +24,26 @@ async function install(id, file) {
 }
 const [multi, ru, bg] = await Promise.all([install("propis2"), install("propis2", "test-fixtures/decks/propis2_v0.5.11.zip"), install("propis2_bg")]);
 const page = (rec, lines, grid) => renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines, grid })} bare />);
+
+describe("propis2 Kazakh word notebooks (variant.json kits, 2026-11-02)", () => {
+  it("two notebooks of words, a page per letter, every word a model and its fading copies; every symbol drawn, every row fits", () => {
+    const kk = languageView(multi, "kk");
+    expect(kk.kits.map((k) => [k.id, k.pages.length])).toEqual([["kk-words-1", 18], ["kk-words-2", 18]]);
+    expect(kk.kits[0].pages[0].title).toBe("А а");
+    expect(kk.kits[1].pages.at(-1).title).toBe("Я я");
+    const glyphMap = buildGlyphMap(kk);
+    for (const kit of kk.kits) {
+      const { pages } = kitToLibraryItems(kit);
+      for (const p of pages) {
+        expect(p.rows.length).toBeLessThanOrEqual(rowsPerPage(p));
+        expect(p.rows.every((r) => r.repeat === "fade" && r.dots === "all" && r.kind === "text")).toBe(true);
+        expect([p.title, analyzePage(p, glyphMap).problems]).toEqual([p.title, 0]);
+      }
+    }
+    // the other languages keep theirs: Russian the bundled ones, Bulgarian its «Цифры»
+    expect(languageView(multi, "bg").kits.map((k) => k.id)).toEqual(["digits"]);
+  });
+});
 
 describe("propis2 writing languages", () => {
   it("a deck without languages is left as it is", () => {
