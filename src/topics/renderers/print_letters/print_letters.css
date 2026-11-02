@@ -16,11 +16,15 @@
   --pl-red: #b91c1c;
   --pl-red-soft: #fee2e2;
 
+  /* Fills the whole screen width, like propis2's own editor
+     (.propis2-editor2). The session wrapper centres its child and would
+     otherwise shrink it to its content (1236px wide in a 1920px window);
+     the page preview keeps its real paper size and stays centred. */
   display: flex;
   flex-direction: column;
+  width: 100%;
+  align-self: stretch;
   height: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
   color: var(--pl-ink);
 }
 
