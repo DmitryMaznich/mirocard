@@ -5,7 +5,7 @@ export function computeDefaultParams(topicRecord, mode) {
     const isVisual = mode?.id === "compare_visual";
     const isTest = mode?.id === "compare_test";
     return { level: isVisual ? 1 : 2, question: "more", showEqual: isVisual, wordsVerdict: false,
-             visualMode: isVisual ? "pairing" : "dots", dotLayout: "rows", phrase: "full", enoughOrder: "check", examplesCount: isTest ? 8 : 1, showLabels: true, style: "sign",
+             visualMode: isVisual ? "pairing" : "dots", dotLayout: "rows", phrase: "full", enough: "off", examplesCount: isTest ? 8 : 1, showLabels: true, style: "sign",
              ...(isTest ? { testRange: 20 } : {}) };
   }
   const out = {};

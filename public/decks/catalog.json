@@ -128,8 +128,8 @@
         "en": "Comparison"
       },
       "description": {
-        "ru": "Девять режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа, задачи с персонажами и предметами и «Всем хватает?» — сопоставление один к одному в жизни.",
-        "en": "Nine modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories, and match one to one in everyday scenes."
+        "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами, включая «Всем хватает?» — сопоставление один к одному в жизни.",
+        "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories, and match one to one in everyday scenes."
       },
       "url": "./decks/comparison_v2.51.0.zip",
       "status": "release",

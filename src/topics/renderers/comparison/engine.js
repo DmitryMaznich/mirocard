@@ -422,43 +422,61 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
   };
 }
 
-// «Всем хватает?» (compare_enough): everyday one-to-one — children and
-// chairs, cups and saucers... The scene is built from separate sprites
-// (tools/comparison/media/enough/*.webp, scripts/generate-enough-sprites.mjs), so
-// the count on screen is always the task's count. Each set carries its
-// Russian: the question, the genitive plural of both sides, and the «not
-// enough» / «spare» sentences for one and for two, gender and case per noun.
-// `place` is where a matched object goes relative to its character's box
-// (anchor, offset in box heights, size as a share of the box, in front of or
-// behind it) — the screen reads it, the engine only passes it on. `whoSize`
-// shrinks the character inside its box when the object must hold it (a car
-// inside its garage).
+// «Всем хватает?»: an option of «Сравни в жизни» (owner's call, 2026-11-02 —
+// not a step of its own), its hardest part for now. Everyday one-to-one —
+// children and chairs, cups and saucers... — built from separate sprites
+// (tools/comparison/media/enough/*.webp, scripts/generate-enough-sprites.mjs),
+// so the count on screen is always the task's count.
+//
+// The child answers one question, the everyday one: «Всем детям хватает
+// стульев?» — Хватает / Не хватает (owner's call, 2026-11-02: no «Чего
+// больше?» buttons and no «поровну» on these cards). The comparison behind
+// it — «почему не хватает? потому что детей больше, чем стульев» — is the
+// adult's to say: the screen shows it in a small line for the adult under
+// the sentence. In that line «кого больше» only when both sides are alive
+// (cats and dogs); as soon as one side is objects it is «чего больше».
+//
+// Each set carries its Russian (genitive plural of both sides, the dative of
+// the characters, «каждому … по …», the action, «not enough» / «spare» for one
+// and for two, gender and case per noun) and `place`: where a matched object
+// goes relative to its character's box (anchor, offset in box heights, size
+// as a share of the box, in front of or behind it). `whoSize` shrinks the
+// character inside its box when the object must hold it (a car in a garage).
 export const ENOUGH_SETS = [
-  { id: "chairs", who: "kid", thing: "chair", question: "Всем хватает стульев?", tapHint: "Нажимай на стулья", whoGen: "детей", thingGen: "стульев",
+  { id: "chairs", each: "каждому ребёнку по стулу", who: "kid", thing: "chair", whoGen: "детей", thingGen: "стульев", whoDat: "детям",
+    matchHint: "Дай каждому ребёнку стул",
     lack: ["Одному не хватает стула.", "Двоим не хватает стульев."], spare: ["Один стул лишний.", "Два стула лишних."],
     place: { anchor: "bottom", dy: 0.08, size: 0.62, front: true } },
-  { id: "cups", who: "cup", thing: "saucer", question: "Всем чашкам хватает блюдец?", tapHint: "Нажимай на блюдца", whoGen: "чашек", thingGen: "блюдец",
+  { id: "cups", each: "каждой чашке по блюдцу", who: "cup", thing: "saucer", whoGen: "чашек", thingGen: "блюдец", whoDat: "чашкам",
+    matchHint: "Поставь каждую чашку на блюдце",
     lack: ["Одной чашке не хватает блюдца.", "Двум чашкам не хватает блюдец."], spare: ["Одно блюдце лишнее.", "Два блюдца лишних."],
     place: { anchor: "bottom", dy: 0.06, size: 1.15, front: false } },
-  { id: "dogs", who: "dog", thing: "bone", question: "Всем собакам хватает косточек?", tapHint: "Нажимай на косточки", whoGen: "собак", thingGen: "косточек",
+  { id: "dogs", each: "каждой собаке по косточке", who: "dog", thing: "bone", whoGen: "собак", thingGen: "косточек", whoDat: "собакам",
+    matchHint: "Дай каждой собаке косточку",
     lack: ["Одной собаке не хватает косточки.", "Двум собакам не хватает косточек."], spare: ["Одна косточка лишняя.", "Две косточки лишние."],
     place: { anchor: "bottom", dy: 0.12, size: 0.6, front: true } },
-  { id: "rabbits", who: "rabbit", thing: "carrot", question: "Всем кроликам хватает морковок?", tapHint: "Нажимай на морковки", whoGen: "кроликов", thingGen: "морковок",
+  { id: "rabbits", each: "каждому кролику по морковке", who: "rabbit", thing: "carrot", whoGen: "кроликов", thingGen: "морковок", whoDat: "кроликам",
+    matchHint: "Дай каждому кролику морковку",
     lack: ["Одному кролику не хватает морковки.", "Двум кроликам не хватает морковок."], spare: ["Одна морковка лишняя.", "Две морковки лишние."],
     place: { anchor: "bottom", dy: 0.12, size: 0.55, front: true } },
-  { id: "cars", who: "car", thing: "garage", question: "Всем машинкам хватает гаражей?", tapHint: "Нажимай на гаражи", whoGen: "машинок", thingGen: "гаражей",
+  { id: "cars", each: "каждой машинке по гаражу", who: "car", thing: "garage", whoGen: "машинок", thingGen: "гаражей", whoDat: "машинкам",
+    matchHint: "Поставь каждую машинку в гараж",
     lack: ["Одной машинке не хватает гаража.", "Двум машинкам не хватает гаражей."], spare: ["Один гараж лишний.", "Два гаража лишних."],
     place: { anchor: "bottom", dy: 0.02, size: 1.0, front: false }, whoSize: 0.78 },
-  { id: "hats", who: "kid", thing: "hat", question: "Всем хватает шапок?", tapHint: "Нажимай на шапки", whoGen: "детей", thingGen: "шапок",
+  { id: "hats", each: "каждому ребёнку по шапке", who: "kid", thing: "hat", whoGen: "детей", thingGen: "шапок", whoDat: "детям",
+    matchHint: "Надень каждому ребёнку шапку",
     lack: ["Одному не хватает шапки.", "Двоим не хватает шапок."], spare: ["Одна шапка лишняя.", "Две шапки лишние."],
     place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
 ];
-export const ENOUGH_ORDERS = ["check", "answer"];
+// «Всем хватает?» in «Сравни в жизни»: off, or on with the matching first
+// (the answers are then visible — the easier way) or the answers first, by
+// eye, checked by the matching afterwards.
+export const ENOUGH_OPTIONS = ["off", "check", "answer"];
 const ENOUGH_SPRITE_VARIANTS = 6;
 
-// One task: 3–6 characters; the outcome cycles evenly through «не хватает»
-// (1 or 2 short), «поровну» and «лишние» (1 or 2 extra), so «хватает» is not
-// the safe guess.
+// One card: 3–6 characters; the outcome is given by the caller, which cycles
+// evenly through «не хватает» (1 or 2 short), «поровну» and «лишние» (1 or 2
+// extra), so no answer is the safe guess.
 function generateEnoughTask(set, outcome) {
   const who = 3 + Math.floor(Math.random() * 4);
   const diff = outcome === "equal" ? 0 : (Math.random() < 0.5 ? 1 : 2) * (outcome === "lack" ? -1 : 1);
@@ -471,12 +489,32 @@ function generateEnoughTask(set, outcome) {
     ? `${cap(set.thingGen)} не хватает. ${set.lack[short === 1 ? 0 : 1]}`
     : extra > 0
       ? `${cap(set.thingGen)} хватает всем. ${set.spare[extra === 1 ? 0 : 1]}`
-      : `${cap(set.thingGen)} хватает всем: ${set.whoGen} и ${set.thingGen} поровну.`;
+      : `${cap(set.thingGen)} хватает всем: ${set.each}.`;
+  // For the adult: the «почему», with the comparison the card is about.
+  const whyText = short > 0
+    ? `Спросите: почему не хватает? — Потому что ${set.whoGen} больше, чем ${set.thingGen}.`
+    : extra > 0
+      ? `Спросите: почему хватает? — Потому что ${set.thingGen} больше, чем ${set.whoGen}.`
+      : `Спросите: почему хватает? — Потому что сколько ${set.whoGen}, столько и ${set.thingGen}.`;
   return {
     set: set.id, who, things, enough: things >= who,
     whoSprites, thingSprite: `media/enough/${set.thing}.webp`, place: set.place, whoSize: set.whoSize ?? 1,
-    instruction: set.question, tapHint: set.tapHint, verdictText,
+    enoughQuestion: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
+    matchHint: set.matchHint,
+    instruction: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
+    verdictText, whyText,
   };
+}
+
+// The «Всем хватает?» cards of a «Сравни в жизни» session: sets and outcomes
+// each cycle through their own shuffled bag.
+function* enoughTaskCycle(order, conceptId) {
+  let sets = [], outcomes = [];
+  for (;;) {
+    if (!sets.length) sets = shuffle(ENOUGH_SETS);
+    if (!outcomes.length) outcomes = shuffle(["lack", "equal", "spare"]);
+    yield { type: "compare_enough", conceptId, order, ...generateEnoughTask(sets.pop(), outcomes.pop()) };
+  }
 }
 
 // Cycles through the whole bank in a fresh shuffled order before repeating —
@@ -546,23 +584,9 @@ export function generateTestSheet(range, count) {
   return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enoughOrder?: "check"|"answer" (compare_enough) }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enough?: "off"|"check"|"answer" (compare_real_life: «Всем хватает?» cards) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
-
-  if (mode.type === "compare_enough") {
-    const card = resolveComparisonCard(mode, cards, sessionParams);
-    if (!card) return [];
-    const order = ENOUGH_ORDERS.includes(sessionParams.enoughOrder) ? sessionParams.enoughOrder : "check";
-    const tasks = [];
-    let sets = [], outcomes = [];
-    for (let i = 0; i < count; i++) {
-      if (!sets.length) sets = shuffle(ENOUGH_SETS);
-      if (!outcomes.length) outcomes = shuffle(["lack", "equal", "spare"]);
-      tasks.push({ type: mode.type, conceptId: card.conceptId, order, ...generateEnoughTask(sets.pop(), outcomes.pop()) });
-    }
-    return tasks;
-  }
 
   if (mode.type === "compare_real_life") {
     const card = resolveComparisonCard(mode, cards, sessionParams);
@@ -570,8 +594,12 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const questionMode = sessionParams.question ?? "more";
     const phrase = REAL_LIFE_PHRASES.includes(sessionParams.phrase) ? sessionParams.phrase : "full";
     const cycle = shuffledSceneCycle();
+    // «Всем хватает?» on: its cards go in turn with the picture scenes.
+    const enough = ENOUGH_OPTIONS.includes(sessionParams.enough) ? sessionParams.enough : "off";
+    const enoughCycle = enough === "off" ? null : enoughTaskCycle(enough, card.conceptId);
     const tasks = [];
     for (let i = 0; i < count; i++) {
+      if (enoughCycle && i % 2 === 1) { tasks.push(enoughCycle.next().value); continue; }
       const askDirection = questionMode === "mix" ? (Math.random() < 0.5 ? "more" : "less") : questionMode;
       // Half of the showings are mirrored — always on, nothing to set.
       const t = realLifeTaskFromScene(cycle.next().value, askDirection, { mirror: Math.random() < 0.5, phrase });

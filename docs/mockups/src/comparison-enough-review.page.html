@@ -32,7 +32,7 @@ p { margin: 0; max-width: 72ch; }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; }
 
 .set { display: flex; flex-direction: column; gap: 12px; }
-.card { display: grid; grid-template-columns: 34px minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start;
+.card { display: grid; grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; align-items: start;
   background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; padding: 14px; }
 .num { font-size: 20px; font-weight: 900; color: var(--sheet-accent); font-variant-numeric: tabular-nums; }
 .scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
@@ -46,7 +46,8 @@ p { margin: 0; max-width: 72ch; }
 .btn { border: 2.5px solid var(--app-btn-line); background: #fff; color: var(--app-ink); border-radius: 12px; padding: 4px 10px; font-weight: 800; font-size: 14px; }
 .btn.right { border-color: var(--app-green); background: var(--app-green-bg); }
 .verdict { color: var(--app-verdict); font-weight: 800; font-size: 15px; }
-.text--cur .verdict { color: var(--sheet-fg); opacity: .8; }
+.why { color: var(--sheet-muted); font-weight: 600; font-size: 14px; }
+.step { font-size: 13px; color: var(--sheet-muted); font-weight: 700; }
 @media (max-width: 860px) { .card { grid-template-columns: 30px minmax(0, 1fr); } .text { grid-column: 2; } }
 
 /* scene: same geometry as CompareEnough.jsx / comparison.css .enough-* */
@@ -70,24 +71,25 @@ p { margin: 0; max-width: 72ch; }
   <header>
     <div class="eyebrow">Сравнение · ступень 9 · проверка каждой карточки</div>
     <h1>«Всем хватает?»: все карточки</h1>
-    <p class="lead">Шесть наборов, в каждом пять исходов: не хватает одного, не хватает двух, поровну, один лишний, два лишних. Слева сцена до расстановки и после, дальше то, что в приложении сейчас, и предложение с вопросом «Чего больше: …?». Отметьте номера карточек, которые надо поправить.</p>
+    <p class="lead">Опция «Всем хватает?» режима «Сравни в жизни». Шесть наборов, в каждом пять исходов: не хватает одного, не хватает двух, хватает ровно, один лишний, два лишних. Слева сцена до расстановки и после, справа что видит ребёнок: действие, вопрос, кнопки (верная — зелёная), фраза и серая строка для взрослого. Отметьте номера карточек, которые надо поправить.</p>
   </header>
 
-  <section class="cols" aria-label="Предложение">
+  <section class="cols" aria-label="Как устроено">
     <div class="panel">
-      <h2>Что предлагаю поменять</h2>
+      <h2>Как устроена карточка</h2>
       <ul>
-        <li><strong>Главный вопрос — сравнение:</strong> «Чего больше: детей или стульев?», кнопки «Детей / Поровну / Стульев». Ступень стоит в теме «Сравнение», и ваш вопрос держит её в теме.</li>
-        <li><strong>«Всем хватает?» — смысл в фразе после ответа.</strong> Фраза связывает сравнение с жизнью: «Детей больше, чем стульев. Одному не хватает стула». Это и есть главный мостик ступени: больше одних — значит, других не хватает.</li>
-        <li><strong>Проверка расстановкой остаётся:</strong> «Сначала проверить» — ребёнок расставляет, потом отвечает, когда всё видно; «Сначала ответить» — ответ на глаз, потом проверка.</li>
+        <li><strong>Ребёнок отвечает на один вопрос:</strong> «Всем кроликам хватает морковок?» — «Хватает / Не хватает». Без «Чего больше?» и без «поровну».</li>
+        <li><strong>Проверка:</strong> ребёнок даёт каждому по предмету («Дай каждому кролику морковку»). Кому не хватило и что лишнее — подсвечивается.</li>
+        <li><strong>Почему — говорит взрослый.</strong> Под фразой серая строка: «Спросите: почему не хватает? — Потому что кроликов больше, чем морковок».</li>
+        <li><strong>Порядок</strong> (настройка): «Сначала проверить» — расставить, потом ответить; «Сначала ответить» — на глаз, потом проверка.</li>
       </ul>
     </div>
     <div class="panel panel--q">
-      <h2>Нужно ваше решение</h2>
+      <h2>Что нужно от вас</h2>
       <ol>
-        <li>Вопрос «Чего больше: …?» вместо «Всем хватает …?», или оба (вопрос про сравнение, а «хватает» — второй вопрос после расстановки)?</li>
-        <li>Название ступени: оставить «9. Всем хватает?» или «9. Чего больше?»</li>
-        <li>Карточки и рисунки ниже: какие номера поправить?</li>
+        <li>Номера карточек, где не так картинка, вопрос, фраза или строка для взрослого.</li>
+        <li>Номера рисунков в самом низу, которые надо перерисовать.</li>
+        <li>Оставляем ли серую строку для взрослого.</li>
       </ol>
     </div>
   </section>
@@ -135,12 +137,11 @@ for (const c of CARDS) {
     host.append(setEl);
     host.style.display = "flex"; host.style.flexDirection = "column"; host.style.gap = "28px";
   }
-  const btns = c.btns.map((b, i) => `<span class="btn${["who", "eq", "thing"][i] === c.newAns ? " right" : ""}">${b}</span>`).join("");
   const el = document.createElement("article"); el.className = "card";
+  const btn = (b) => `<span class="btn${b === c.right ? " right" : ""}">${b}</span>`;
   el.innerHTML = `<div class="num">${c.n}</div>
     <div class="scenes"><div><div class="scene-cap">до · ${c.who} и ${c.things}</div>${board(c, false)}</div><div><div class="scene-cap">после</div>${board(c, true)}</div></div>
-    <div class="text text--cur"><div class="tlabel">Сейчас</div><div class="q">${c.curQ}</div><div class="btns"><span class="btn${c.curAns === "Хватает" ? " right" : ""}">Хватает</span><span class="btn${c.curAns === "Не хватает" ? " right" : ""}">Не хватает</span></div><div class="verdict">${c.cur}</div></div>
-    <div class="text text--new"><div class="tlabel">Предложение</div><div class="q">${c.newQ}</div><div class="btns">${btns}</div><div class="verdict">${c.new}</div></div>`;
+    <div class="text text--new"><div class="step">Действие: ${c.match}</div><div class="q">${c.q}</div><div class="btns">${btn("Хватает")}${btn("Не хватает")}</div><div class="verdict">${c.verdict}</div><div class="why">${c.why}</div></div>`;
   setEl.append(el);
 }
 document.getElementById("gallery").innerHTML = Object.entries(SPRITES).map(([k, v]) => `<div class="g"><img src="${v}" alt=""><span>${k}</span></div>`).join("");
