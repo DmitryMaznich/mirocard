@@ -249,7 +249,10 @@ per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 New dedicated-renderer topic for preschoolers (4–6yo): printed/block letters, not cursive —
 deliberately separate from `propis2` (cursive constructor) and from `letter_writing` (hidden/paid,
 **independent — don't touch**, but its simple no-slant letter glyphs and stroke order were reused
-verbatim for consistency across the app). **Read `docs/print-letters.md` first** — methodology
+verbatim for consistency across the app). **Read the «Handoff» section of `docs/print-letters.md`
+first** (branch, latest commit, and this session's own process mistakes not to repeat — a test
+screenshot harness that silently dropped the app's real font, and sending a stale pre-fix
+screenshot as if it were verified) — then the rest of the file for methodology
 (letter families by stroke complexity, not alphabet order; most-to-least-prompting support;
 **клетка/square-grid ruling, not ruled lines** — switched 2026-11-01 after reading Ilyukhina's
 «Волшебные линии 2» preschool workbook in full, which writes printed letters directly in grid
