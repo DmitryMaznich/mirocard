@@ -446,10 +446,10 @@ export const ENOUGH_SETS = [
     place: { anchor: "bottom", dy: 0.12, size: 0.55, front: true } },
   { id: "cars", who: "car", thing: "garage", question: "Всем машинкам хватает гаражей?", tapHint: "Нажимай на гаражи", whoGen: "машинок", thingGen: "гаражей",
     lack: ["Одной машинке не хватает гаража.", "Двум машинкам не хватает гаражей."], spare: ["Один гараж лишний.", "Два гаража лишних."],
-    place: { anchor: "center", dy: -0.05, size: 1.45, front: false } },
+    place: { anchor: "bottom", dy: 0.02, size: 1.0, front: false } },
   { id: "hats", who: "kid", thing: "hat", question: "Всем хватает шапок?", tapHint: "Нажимай на шапки", whoGen: "детей", thingGen: "шапок",
     lack: ["Одному не хватает шапки.", "Двоим не хватает шапок."], spare: ["Одна шапка лишняя.", "Две шапки лишние."],
-    place: { anchor: "top", dy: -0.04, size: 0.42, front: true } },
+    place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
 ];
 export const ENOUGH_ORDERS = ["check", "answer"];
 const ENOUGH_SPRITE_VARIANTS = 6;
