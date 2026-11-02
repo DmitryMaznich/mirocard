@@ -3,6 +3,7 @@ import LetterBlock from "./LetterBlock";
 import LetterPickerButton from "./LetterPickerButton";
 import RowContentPicker from "./RowContentPicker";
 import PageThumb from "./PageThumb";
+import PaperPicker from "./PaperPicker";
 import { IconPlus, IconAddRow, IconTrash, IconPrint, IconClose, IconUp, IconDown, IconDuplicate } from "./icons";
 
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
@@ -20,7 +21,7 @@ function defaultRows(letter) {
 }
 
 function blankPage() {
-  return { id: nextId(), blocks: [] };
+  return { id: nextId(), blocks: [], paper: "cell" };
 }
 
 // propis2's own model (verified against the real Propis2Editor, not just its
@@ -70,7 +71,7 @@ export default function ConstructorView({ task, onAdvance }) {
   }
   function duplicateActivePage() {
     if (!activePage) return;
-    const copy = { id: nextId(), blocks: activePage.blocks.map((b) => ({ ...b, id: nextId(), rows: b.rows.map((r) => ({ ...r, id: nextId() })) })) };
+    const copy = { ...activePage, id: nextId(), blocks: activePage.blocks.map((b) => ({ ...b, id: nextId(), rows: b.rows.map((r) => ({ ...r, id: nextId() })) })) };
     setPages((prev) => {
       const next = [...prev];
       next.splice(activePageIndex + 1, 0, copy);
@@ -134,6 +135,9 @@ export default function ConstructorView({ task, onAdvance }) {
     updateActivePage((p) => ({ ...p, blocks: p.blocks.map((b) => (b.id === selectedBlockId ? { ...b, rows: b.rows.filter((r) => r.id !== selectedRowId) } : b)) }));
     setSelectedRowId(null);
   }
+  function setPagePaper(paper) {
+    updateActivePage((p) => ({ ...p, paper }));
+  }
   function setSelectedRowContent(content) {
     if (!selectedBlockId || !selectedRowId) return;
     updateActivePage((p) => ({
@@ -157,12 +161,17 @@ export default function ConstructorView({ task, onAdvance }) {
       </div>
 
       <div className="pl-toolbar no-print" role="toolbar" aria-label="Инструменты">
+        {/* Group 0: the page's own background — a page-wide setting, not tied to any selection. */}
+        <div className="pl-tool-group" role="group" aria-label="Подложка">
+          <PaperPicker value={activePage?.paper ?? "cell"} onChange={setPagePaper} />
+        </div>
+        <span className="pl-sep" aria-hidden="true" />
         {/* Group 1: the letter block as a whole. */}
         <div className="pl-tool-group" role="group" aria-label="Буква">
           <LetterPickerButton families={families} onPick={addBlock} />
-          <button type="button" className="pl-tool pl-tool--danger" aria-label="Удалить блок" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
+          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
             <span className="pl-tool-ico"><IconTrash /></span>
-            <span className="pl-tool-cap">Удалить</span>
+            <span className="pl-tool-cap">Удалить блок</span>
           </button>
         </div>
         <span className="pl-sep" aria-hidden="true" />
@@ -178,9 +187,9 @@ export default function ConstructorView({ task, onAdvance }) {
             strokeCount={selectedBlock ? byId[selectedBlock.letterId].strokes.length : 0}
             onChange={setSelectedRowContent}
           />
-          <button type="button" className="pl-tool pl-tool--danger" aria-label="Удалить строку" disabled={!selectedRow} onClick={removeSelectedRow}>
+          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedRow} onClick={removeSelectedRow}>
             <span className="pl-tool-ico"><IconTrash /></span>
-            <span className="pl-tool-cap">Удалить</span>
+            <span className="pl-tool-cap">Очистить строку</span>
           </button>
         </div>
         <span className="pl-toolbar-fill" />
@@ -219,7 +228,7 @@ export default function ConstructorView({ task, onAdvance }) {
             <div className="pl-preview-empty">Нажмите «+ Буква» — появится блок; кликните по строке, чтобы настроить именно её</div>
           )}
           {activePage && (
-            <div className="pl-sheet">
+            <div className={`pl-sheet pl-sheet--${activePage.paper ?? "cell"}`}>
               {activePage.blocks.map((b) => (
                 <LetterBlock
                   key={b.id}
@@ -240,7 +249,7 @@ export default function ConstructorView({ task, onAdvance }) {
       {/* Print renders every page as its own physical sheet, not just the one being edited on screen. */}
       <div className="pl-print-pages">
         {pages.map((p) => (
-          <div key={p.id} className="pl-sheet pl-sheet--print">
+          <div key={p.id} className={`pl-sheet pl-sheet--print pl-sheet--${p.paper ?? "cell"}`}>
             {p.blocks.map((b) => (
               <LetterBlock
                 key={b.id}

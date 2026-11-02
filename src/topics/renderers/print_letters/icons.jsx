@@ -35,3 +35,21 @@ export const IconLetterA = () => (
 // being typed, and a plus: "insert a row," not the same plus "Буква" uses
 // for a different kind of insertion.
 export const IconAddRow = () => S(<><path d="M3 18h10" strokeWidth="1.6" /><path d="M3 12h10" strokeDasharray="2 2.4" strokeWidth="1.4" /><path d="M18 8v8M14 12h8" /></>);
+// Copied from propis2's IconPaperSquare/IconPaperRuled (Propis2Icons.jsx) —
+// the same two-colour, non-currentColor convention as IconLetterA: a
+// bordered square with its own cross-grid for "Клетка," plain grey rules
+// plus the school-notebook red margin line for "Линейка."
+export const IconPaperSquare = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke="#9aa3af" strokeWidth="1.2" fill="none" />
+    <path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke="#9aa3af" strokeWidth="1.1" />
+  </svg>
+);
+export const IconPaperRuled = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M3 7H21" stroke="#9aa3af" strokeWidth="1.1" />
+    <path d="M3 12H21" stroke="#9aa3af" strokeWidth="1.1" />
+    <path d="M3 17H21" stroke="#9aa3af" strokeWidth="1.1" />
+    <path d="M6 3.5v17" stroke="#dc2626" strokeWidth="1.3" />
+  </svg>
+);

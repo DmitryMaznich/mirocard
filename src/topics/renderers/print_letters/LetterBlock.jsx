@@ -48,7 +48,7 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
                   {!isBlank && (
                     <LetterGlyph
                       letter={miniLetter}
-                      heightMm={UNIT_MM * 0.84}
+                      heightMm={UNIT_MM}
                       variant="dotted"
                       showArrows={i === 0}
                       showNumbers={isFull && i === 0}
