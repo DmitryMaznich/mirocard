@@ -1,9 +1,46 @@
+/* Palette borrowed from propis2's own design system (src/features/propis2/propis2.css
+   --p2-* variables) — this topic's UI chrome should read as the same app, not a
+   different one. Letter colors (the block palette in ConstructorView.jsx) and the
+   pen-ink blue in LetterGlyph.jsx are content colors, not UI chrome, and stay as-is. */
 .pl-constructor {
+  --pl-bg: #fdfcf9;
+  --pl-strip: #f6f1e4;
+  --pl-line: #e3dccb;
+  --pl-ink: #28323c;
+  --pl-muted: #8b93a1;
+  --pl-teal: #4a9b8f;
+  --pl-teal-dark: #2a6b60;
+  --pl-teal-soft: #e5f2ef;
+  --pl-header: #1c3634;
+  --pl-canvas: #e2ddd0;
+  --pl-red: #b91c1c;
+  --pl-red-soft: #fee2e2;
+
   display: flex;
   flex-direction: column;
   height: 100%;
   max-width: 900px;
   margin: 0 auto;
+  color: var(--pl-ink);
+}
+
+/* Dark title bar, cosmetic only — propis2's own editor replaces the whole
+   session screen so its header also carries back/save/show-to-student; this
+   topic is a normal session task (the standard session header above it
+   already has a close button), so this bar is just the matching top tier. */
+.pl-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--pl-header);
+}
+
+.pl-header-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
 }
 
 /* Narrow tool strip above the canvas — propis2's layout, not a side panel
@@ -12,10 +49,10 @@
 .pl-toolbar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  gap: 2px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--pl-line);
+  background: var(--pl-strip);
   flex-wrap: wrap;
 }
 
@@ -23,38 +60,39 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  justify-content: center;
+  gap: 2px;
   min-width: 56px;
-  padding: 5px 8px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: white;
-  color: #1e293b;
+  height: 52px;
+  padding: 5px 7px 4px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--pl-ink);
   font-size: 10px;
   cursor: pointer;
 }
 
-.pl-tool-ico { font-size: 15px; line-height: 1; }
-.pl-tool-cap { font-size: 10px; font-weight: 600; }
+.pl-tool-ico { display: flex; align-items: center; justify-content: center; }
+.pl-tool-cap { font-size: 10px; font-weight: 700; }
 
 .pl-tool.is-open,
-.pl-tool:hover { border-color: #1d4ed8; }
+.pl-tool:hover:not(:disabled) { background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
 
-.pl-tool--muted { color: #64748b; }
+.pl-tool--muted { color: var(--pl-muted); }
 
-.pl-tool:disabled { opacity: 0.4; cursor: default; }
-.pl-tool:disabled:hover { border-color: #cbd5e1; }
+.pl-tool:disabled { opacity: 0.35; cursor: default; }
 
-.pl-sep { width: 1px; align-self: stretch; background: #e2e8f0; margin: 2px 2px; }
+.pl-sep { width: 1px; align-self: stretch; background: var(--pl-line); margin: 6px 6px; }
 .pl-toolbar-fill { flex: 1; }
 
 .pl-pick { position: relative; }
 
 .pl-letters-panel {
-  background: white;
-  border: 1px solid #d8e2ea;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  background: #fff;
+  border: 1px solid var(--pl-line);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(28, 54, 52, 0.18);
   padding: 10px;
   z-index: 50;
   max-height: 60vh;
@@ -63,7 +101,7 @@
 
 .pl-el-group {
   font-size: 11px;
-  color: #64748b;
+  color: var(--pl-muted);
   margin: 4px 0 6px;
 }
 
@@ -77,15 +115,15 @@
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: white;
+  border: 1px solid var(--pl-line);
+  background: #fff;
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--pl-ink);
   cursor: pointer;
 }
 
-.pl-letters-cell:hover { border-color: #1d4ed8; }
+.pl-letters-cell:hover { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
 
 /* Page sidebar + canvas, side by side — propis2's own desktop layout
    (Propis2Thumbs on the left, the sheet in the middle). */
@@ -101,8 +139,8 @@
   display: flex;
   flex-direction: column;
   padding: 10px 8px;
-  background: #f1ede3;
-  border-right: 1px solid #e2ddd0;
+  background: var(--pl-strip);
+  border-right: 1px solid var(--pl-line);
   overflow-y: auto;
 }
 
@@ -119,19 +157,19 @@
   cursor: pointer;
 }
 
-.pl-thumb-num { font-size: 11px; color: #78716c; }
+.pl-thumb-num { font-size: 11px; color: var(--pl-muted); }
 
 .pl-thumb-sheet {
   width: 88px;
   aspect-ratio: 210 / 297;
-  background: #fefef6;
-  border: 2px solid #d8d2c2;
+  background: var(--pl-bg);
+  border: 2px solid var(--pl-line);
   border-radius: 4px;
   overflow: hidden;
   position: relative;
 }
 
-.pl-thumb.is-active .pl-thumb-sheet { border-color: #1d4ed8; }
+.pl-thumb.is-active .pl-thumb-sheet { border-color: var(--pl-teal); }
 
 .pl-thumb-scale {
   transform-origin: top left;
@@ -145,14 +183,22 @@
 
 .pl-page-add {
   margin-top: 10px;
-  border: 1px dashed #b7af9b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--pl-line);
   background: transparent;
-  color: #78716c;
+  color: var(--pl-muted);
   font-size: 11px;
+  font-weight: 700;
   padding: 6px 4px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
 }
+
+.pl-page-add svg { width: 15px; height: 15px; }
+.pl-page-add:hover { background: var(--pl-teal-soft); color: var(--pl-teal-dark); border-color: var(--pl-teal); }
 
 .pl-page-actions {
   margin-top: auto;
@@ -163,18 +209,22 @@
 }
 
 .pl-page-actions button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   background: transparent;
-  color: #78716c;
-  font-size: 13px;
-  padding: 4px 6px;
+  color: var(--pl-muted);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 9px;
 }
 
-.pl-page-actions button:hover { background: #e7e2d4; }
+.pl-page-actions button svg { width: 17px; height: 17px; }
+.pl-page-actions button:hover:not(:disabled) { background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
 .pl-page-actions button:disabled { opacity: 0.35; cursor: default; }
-.pl-page-actions-danger:hover { background: #fee2e2 !important; color: #b91c1c; }
+.pl-page-actions-danger:hover:not(:disabled) { background: var(--pl-red-soft) !important; color: var(--pl-red) !important; }
 
 .pl-canvas {
   flex: 1;
@@ -183,11 +233,11 @@
   flex-direction: column;
   align-items: center;
   padding: 20px 16px;
-  background: #e2ddd0;
+  background: var(--pl-canvas);
 }
 
 .pl-preview-empty {
-  color: #78716c;
+  color: var(--pl-muted);
   font-size: 14px;
   padding: 24px 0;
   text-align: center;
@@ -200,10 +250,10 @@
   width: 100%;
   max-width: 480px;
   min-height: 640px;
-  background: #fefef6;
-  border: 1px solid #d8e2ea;
+  background: var(--pl-bg);
+  border: 1px solid var(--pl-line);
   border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 2px 10px rgba(28, 54, 52, 0.12);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -241,7 +291,7 @@
   cursor: pointer;
 }
 
-.pl-block.is-selected { box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.25); }
+.pl-block.is-selected { box-shadow: 0 0 0 3px var(--pl-teal-soft), 0 0 0 1px var(--pl-teal); }
 
 .pl-block-tile {
   position: absolute;
@@ -256,13 +306,13 @@
   font-weight: 700;
 }
 
-.pl-row-wrap.is-selected { background: #e0e7ff; border-radius: 8px; }
+.pl-row-wrap.is-selected { background: var(--pl-teal-soft); border-radius: 8px; }
 
 .pl-row-pick-list {
-  background: white;
-  border: 1px solid #d8e2ea;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  background: #fff;
+  border: 1px solid var(--pl-line);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(28, 54, 52, 0.18);
   padding: 4px;
   z-index: 50;
   display: flex;
@@ -273,17 +323,18 @@
   text-align: left;
   border: none;
   background: transparent;
-  color: #1e293b;
+  color: var(--pl-ink);
   font-size: 12px;
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.pl-row-pick-list button.is-on { background: #e0e7ff; color: #1d4ed8; font-weight: 600; }
-.pl-row-pick-list button:hover { background: #f1f5f9; }
+.pl-row-pick-list button.is-on { background: var(--pl-teal-soft); color: var(--pl-teal-dark); font-weight: 700; }
+.pl-row-pick-list button:hover { background: #f1efe9; }
 
 @media print {
+  .pl-header,
   .pl-toolbar,
   .pl-preview-empty,
   .pl-pages-rail,

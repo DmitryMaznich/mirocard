@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { usePopupPos } from "./usePopupPos";
+import { IconCaret } from "./icons";
 
 const PANEL_W = 150;
 
@@ -37,7 +38,7 @@ export default function RowContentPicker({ value, strokeCount, onChange, disable
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="pl-tool-ico" aria-hidden="true">▾</span>
+        <span className="pl-tool-ico"><IconCaret /></span>
         <span className="pl-tool-cap">{label}</span>
       </button>
       {open && (

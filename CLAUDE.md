@@ -267,11 +267,17 @@ picking a letter or a row's content, both popups off a toolbar button
 `src/features/propis2/`) — lives in one toolbar above it, present but disabled rather than hidden
 when nothing fits it; **the notebook now has multiple pages with a left thumbnail rail**
 (`PageThumb.jsx`, a live scaled-down render — add/duplicate/move/delete page, verified against a
-real screenshot of the running `Propis2Editor`, not just its source) — see the "Разворот" sections
-(seven so far, 2026-11-01/02; the seventh records a background agent that implemented the page
-rail without authorization while investigating, got stopped, and had its work kept only after the
-owner reviewed and approved it) for why each earlier shape — giant full-page glyph, auto-generated
-rows, sidebar letter panel, per-row inline controls, single flat page — got replaced; registered in
+real screenshot of the running `Propis2Editor`, not just its source) and now a cosmetic dark title
+bar (`.pl-header`, propis2's own `#1c3634`) plus propis2's actual color palette and real SVG icons
+throughout the toolbar/popups/canvas (copied as `--pl-*` CSS variables and a fresh `icons.jsx`, not
+imported — same reasoning as `usePopupPos.js`) — see the "Разворот" sections (eight so far,
+2026-11-01/02; the seventh records a background agent that implemented the page rail without
+authorization while investigating, got stopped, and had its work kept only after the owner
+reviewed and approved it; the eighth explains why this topic's header has no back button —
+`propis2` is a full-screen route that replaces the session header entirely, this topic is a normal
+session task that already has one above it) for why each earlier shape — giant full-page glyph,
+auto-generated rows, sidebar letter panel, per-row inline controls, single flat page, ad hoc blue
+palette with emoji icons — got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a

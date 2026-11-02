@@ -3,6 +3,7 @@ import LetterBlock from "./LetterBlock";
 import LetterPickerButton from "./LetterPickerButton";
 import RowContentPicker from "./RowContentPicker";
 import PageThumb from "./PageThumb";
+import { IconPlus, IconTrash, IconPrint, IconClose, IconUp, IconDown, IconDuplicate } from "./icons";
 
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
 
@@ -23,10 +24,13 @@ function blankPage() {
 }
 
 // propis2's own model (verified against the real Propis2Editor, not just its
-// source comments): a page sidebar with real-content thumbnails on the
-// left, one page open on the canvas at a time, and a toolbar above it whose
-// buttons act on whatever is selected (a row, a block) and are present but
-// disabled rather than hidden when there is nothing to act on.
+// source comments): a title bar, a page sidebar with real-content thumbnails
+// on the left, one page open on the canvas at a time, and a toolbar above it
+// whose buttons act on whatever is selected (a row, a block) and are present
+// but disabled rather than hidden when there is nothing to act on. No back
+// button here — the standard session header above this renderer already
+// has one; this title bar is cosmetic, "Завершить" below still means
+// "this task is done," a different action from leaving the session.
 export default function ConstructorView({ task, onAdvance }) {
   const letters = task?.letters ?? [];
   const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
@@ -148,15 +152,19 @@ export default function ConstructorView({ task, onAdvance }) {
 
   return (
     <div className="pl-constructor">
+      <div className="pl-header no-print">
+        <span className="pl-header-title">Печатные буквы</span>
+      </div>
+
       <div className="pl-toolbar no-print" role="toolbar" aria-label="Инструменты">
         <LetterPickerButton families={families} onPick={addBlock} />
         <span className="pl-sep" aria-hidden="true" />
         <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={addRowToSelectedBlock}>
-          <span className="pl-tool-ico" aria-hidden="true">+</span>
+          <span className="pl-tool-ico"><IconPlus /></span>
           <span className="pl-tool-cap">Строка</span>
         </button>
         <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
-          <span className="pl-tool-ico" aria-hidden="true">🗑</span>
+          <span className="pl-tool-ico"><IconTrash /></span>
           <span className="pl-tool-cap">Блок</span>
         </button>
         <span className="pl-sep" aria-hidden="true" />
@@ -167,18 +175,18 @@ export default function ConstructorView({ task, onAdvance }) {
           onChange={setSelectedRowContent}
         />
         <button type="button" className="pl-tool" disabled={!selectedRow} onClick={removeSelectedRow}>
-          <span className="pl-tool-ico" aria-hidden="true">✕</span>
+          <span className="pl-tool-ico"><IconClose /></span>
           <span className="pl-tool-cap">Строку</span>
         </button>
         <span className="pl-toolbar-fill" />
         {hasContent && (
           <button type="button" className="pl-tool" onClick={printNotebook}>
-            <span className="pl-tool-ico" aria-hidden="true">🖨</span>
+            <span className="pl-tool-ico"><IconPrint /></span>
             <span className="pl-tool-cap">Печать</span>
           </button>
         )}
         <button type="button" className="pl-tool pl-tool--muted" onClick={onAdvance}>
-          <span className="pl-tool-ico" aria-hidden="true">✕</span>
+          <span className="pl-tool-ico"><IconClose /></span>
           <span className="pl-tool-cap">Завершить</span>
         </button>
       </div>
@@ -190,12 +198,14 @@ export default function ConstructorView({ task, onAdvance }) {
               <PageThumb key={p.id} page={p} byId={byId} active={p.id === activePageId} index={i} onSelect={() => switchPage(p.id)} />
             ))}
           </div>
-          <button type="button" className="pl-page-add" onClick={addPage}>+ Страница</button>
+          <button type="button" className="pl-page-add" onClick={addPage}>
+            <IconPlus /> Страница
+          </button>
           <div className="pl-page-actions">
-            <button type="button" onClick={duplicateActivePage} aria-label="Дублировать страницу" title="Дублировать">⧉</button>
-            <button type="button" onClick={() => moveActivePage(-1)} disabled={activePageIndex <= 0} aria-label="Страница выше" title="Выше">↑</button>
-            <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex < 0 || activePageIndex >= pages.length - 1} aria-label="Страница ниже" title="Ниже">↓</button>
-            <button type="button" onClick={removeActivePage} aria-label="Удалить страницу" title="Удалить" className="pl-page-actions-danger">🗑</button>
+            <button type="button" onClick={duplicateActivePage} aria-label="Дублировать страницу" title="Дублировать"><IconDuplicate /></button>
+            <button type="button" onClick={() => moveActivePage(-1)} disabled={activePageIndex <= 0} aria-label="Страница выше" title="Выше"><IconUp /></button>
+            <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex < 0 || activePageIndex >= pages.length - 1} aria-label="Страница ниже" title="Ниже"><IconDown /></button>
+            <button type="button" onClick={removeActivePage} aria-label="Удалить страницу" title="Удалить" className="pl-page-actions-danger"><IconTrash /></button>
           </div>
         </div>
 
