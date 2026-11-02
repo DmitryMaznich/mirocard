@@ -1,7 +1,7 @@
 import LetterGlyph from "./LetterGlyph";
 import GridRow, { CELL } from "./Ruling";
 
-const TILE_W = CELL + 14;
+const TILE_W = CELL; // exactly one grid column, so the letter cells start on the next grid line
 const CELLS  = 8; // letters per row — fixed, real grid paper isn't stretched to fill the page width either
 
 function strokesForContent(letter, content) {
@@ -42,7 +42,7 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
-            <GridRow cells={CELLS} padLeft={TILE_W + 6}>
+            <GridRow cells={CELLS} padLeft={TILE_W}>
               {Array.from({ length: CELLS }).map((_, i) => (
                 <div key={i} className="pl-cell">
                   {!isBlank && (

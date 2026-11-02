@@ -157,27 +157,32 @@ export default function ConstructorView({ task, onAdvance }) {
       </div>
 
       <div className="pl-toolbar no-print" role="toolbar" aria-label="Инструменты">
-        <LetterPickerButton families={families} onPick={addBlock} />
+        {/* Group 1: the letter block as a whole. */}
+        <div className="pl-tool-group" role="group" aria-label="Буква">
+          <LetterPickerButton families={families} onPick={addBlock} />
+          <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
+            <span className="pl-tool-ico"><IconTrash /></span>
+            <span className="pl-tool-cap">Блок</span>
+          </button>
+        </div>
         <span className="pl-sep" aria-hidden="true" />
-        <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={addRowToSelectedBlock}>
-          <span className="pl-tool-ico"><IconPlus /></span>
-          <span className="pl-tool-cap">Строка</span>
-        </button>
-        <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
-          <span className="pl-tool-ico"><IconTrash /></span>
-          <span className="pl-tool-cap">Блок</span>
-        </button>
-        <span className="pl-sep" aria-hidden="true" />
-        <RowContentPicker
-          disabled={!selectedRow}
-          value={selectedRow?.content ?? "full"}
-          strokeCount={selectedBlock ? byId[selectedBlock.letterId].strokes.length : 0}
-          onChange={setSelectedRowContent}
-        />
-        <button type="button" className="pl-tool" disabled={!selectedRow} onClick={removeSelectedRow}>
-          <span className="pl-tool-ico"><IconClose /></span>
-          <span className="pl-tool-cap">Строку</span>
-        </button>
+        {/* Group 2: the selected row inside that block. */}
+        <div className="pl-tool-group" role="group" aria-label="Строка">
+          <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={addRowToSelectedBlock}>
+            <span className="pl-tool-ico"><IconPlus /></span>
+            <span className="pl-tool-cap">Строка</span>
+          </button>
+          <RowContentPicker
+            disabled={!selectedRow}
+            value={selectedRow?.content ?? "full"}
+            strokeCount={selectedBlock ? byId[selectedBlock.letterId].strokes.length : 0}
+            onChange={setSelectedRowContent}
+          />
+          <button type="button" className="pl-tool" disabled={!selectedRow} onClick={removeSelectedRow}>
+            <span className="pl-tool-ico"><IconTrash /></span>
+            <span className="pl-tool-cap">Строка</span>
+          </button>
+        </div>
         <span className="pl-toolbar-fill" />
         {hasContent && (
           <button type="button" className="pl-tool" onClick={printNotebook}>
