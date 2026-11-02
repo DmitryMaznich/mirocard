@@ -6,12 +6,14 @@ import { describe, expect, it, vi } from "vitest";
 import { generateTasks } from "./engine";
 import { getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, validateStoryQuizText } from "./storyQuiz";
 import ReadingRenderer from "./index";
+import { useAppStore } from "@/core/store";
 
 vi.mock("@/shared/hooks/useTopicFile", () => ({ useTopicFile: (_topic, path) => path ? `/preview/${path}` : null }));
 const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.1.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const micro = topic.texts.filter((story) => story.storyStage === "micro");
 const findTasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, {});
+const readTasks = generateTasks({ type: "read_text" }, topic, micro[0].id, {});
 
 describe("micro-story content and staircase", () => {
   it("starts with exactly 15 short stories and keeps legacy selection separate", () => {
@@ -69,10 +71,11 @@ describe("micro-story content and staircase", () => {
 });
 
 function mount(task) {
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
-  const callbacks = { onCorrect: vi.fn(), onIncorrect: vi.fn(), onQualityAnswer: vi.fn() };
+  const callbacks = { onCorrect: vi.fn(), onIncorrect: vi.fn(), onQualityAnswer: vi.fn(), onAdvance: vi.fn() };
   act(() => root.render(createElement(ReadingRenderer, { task, topicId: topic.meta.id, sessionParams: {}, ...callbacks })));
   return { container, ...callbacks, close() { act(() => root.unmount()); container.remove(); } };
 }
@@ -118,6 +121,70 @@ describe("micro-story reading support", () => {
       click(h.container, "Пока нет ответа");
       expect(h.onQualityAnswer).toHaveBeenCalledWith("none", "micro_ball", "q4");
       expect(h.onCorrect).not.toHaveBeenCalled();
+    } finally { h.close(); }
+  });
+});
+
+describe("questions inside the micro-story reader", () => {
+  it("adds the questions to an already saved reading task from the previous app version", () => {
+    const records = useAppStore.getState().topicRecords;
+    useAppStore.setState({ topicRecords: [topic] });
+    const cached = { ...readTasks[0], storyQuestions: undefined };
+    const h = mount(cached);
+    try {
+      click(h.container, "Вопросы");
+      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Как зовут мальчика?");
+      click(h.container, "Вова");
+      expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
+    } finally { h.close(); useAppStore.setState({ topicRecords: records }); }
+  });
+  it("keeps every found question and answer through all fifteen stories, including the final discussion", () => {
+    expect(readTasks).toHaveLength(15);
+    for (const task of readTasks) {
+      const h = mount(task);
+      try {
+        expect(h.container.querySelectorAll("img")).toHaveLength(2);
+        click(h.container, "Вопросы");
+        expect(h.container.querySelectorAll("img")).toHaveLength(0);
+        const questions = task.storyQuestions.filter((q) => q.kind === "find");
+        expect(questions).toHaveLength(3);
+        for (const [index, question] of questions.entries()) {
+          expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe(question.prompt);
+          click(h.container, question.target);
+          expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(index + 1);
+          for (const completed of questions.slice(0, index + 1)) {
+            expect(h.container.querySelector(".micro-answer-history").textContent).toContain(completed.prompt);
+            expect(h.container.querySelector(".micro-answer-history").textContent).toContain(completed.target);
+          }
+          expect(h.onAdvance).not.toHaveBeenCalled();
+          click(h.container, "Следующий вопрос");
+        }
+        expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(3);
+        expect(h.container.querySelectorAll(".story-quiz__word")).toHaveLength(0);
+        click(h.container, "Обсудили");
+        expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(4);
+        expect(h.container.querySelector(".micro-answer-history").textContent).toContain(task.text.discussionAnswer);
+        expect(h.container.querySelector(".micro-answer-kind").textContent).toBe("Вариант ответа");
+      } finally { h.close(); }
+    }
+  });
+
+  it("retains answers and the active question after an incorrect tap and a return to reading", () => {
+    const h = mount(readTasks[0]);
+    try {
+      click(h.container, "Вопросы");
+      click(h.container, "играл");
+      expect(h.container.querySelector("[role=status]").textContent).toContain("ещё раз");
+      expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(0);
+      click(h.container, "Вова");
+      click(h.container, "Следующий вопрос");
+      click(h.container, "Рассказ");
+      expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
+      click(h.container, "Вопросы");
+      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Куда закатился мяч?");
+      click(h.container, "под стул");
+      expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(2);
+      expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.assisted).toBe("true");
     } finally { h.close(); }
   });
 });

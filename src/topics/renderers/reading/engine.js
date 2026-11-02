@@ -36,8 +36,14 @@ function buildReadTextTask(text) {
 // "[] = all" convention; deck order is preserved regardless of pick order.
 // Scoped to this one deck for now, not the "reading" renderer generally.
 function buildAllStoriesTasks(topicRecord, sessionParams) {
-  return getSelectedReadingStories(topicRecord, sessionParams).map((text, storyIndex, stories) => ({
+  const selected = getSelectedReadingStories(topicRecord, sessionParams);
+  const questions = selected.some((story) => story.sentenceLayout)
+    ? buildStoryQuizTasks(topicRecord, sessionParams)
+    : [];
+  return selected.map((text, storyIndex, stories) => ({
     ...buildReadTextTask(text), storyIndex, storyCount: stories.length,
+    ...(text.sentenceLayout ? { storyQuestions: questions.filter((task) => task.textId === text.id)
+      .map(({ question, expectedAnswer }) => ({ ...question, expectedAnswer })) } : {}),
   }));
 }
 

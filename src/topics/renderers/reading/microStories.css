@@ -51,6 +51,59 @@
   font-weight: 500;
   letter-spacing: 0.02em;
 }
+.micro-reader-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.micro-questions-toggle, .micro-exercise-next {
+  min-height: 44px; padding: 10px 18px; border: 1px solid #dedad1; border-radius: 9px;
+  background: #fff; color: #203f47; font: inherit; font-size: 15px; cursor: pointer;
+}
+.micro-questions-toggle[aria-pressed="false"], .micro-exercise-next { background: #f7f3eb; border-color: #e5d5c5; }
+.micro-questions-toggle:focus-visible, .micro-exercise-next:focus-visible { outline: 2px solid #bb6947; outline-offset: 3px; }
+.reading-body.reading-page.story-screen--micro.micro-exercise {
+  grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: max-content max-content max-content;
+  grid-template-areas: "text question" "answers answers" "navigation navigation";
+  align-content: start; overflow-y: auto; gap: 28px 40px;
+}
+.reading-body.reading-page.story-screen--micro.micro-exercise .story-text-wrap { align-self: start; max-height: none; overflow: visible; }
+.micro-exercise .story-quiz__text { margin: 0; padding: 0; overflow: visible; }
+.micro-exercise .reading-flow-text { font-size: clamp(22px, 2.05vw, 28px); line-height: 1.6; font-weight: 400; text-align: left; }
+.micro-exercise .reading-flow-para { margin: 0 0 9px; }
+.micro-exercise .reading-flow-para:first-child::first-letter { float: none; font: inherit; color: inherit; padding: 0; }
+.micro-exercise .story-picture-support { margin-top: 16px; }
+.micro-exercise-question { grid-area: question; align-self: start; padding: 5px 0 0 28px; border-left: 1px solid var(--micro-rule); }
+.micro-exercise-question h2 { margin: 16px 0; font-size: clamp(24px, 2.25vw, 29px); line-height: 1.3; font-weight: 700; }
+.micro-exercise-question p { margin: 0 0 20px; color: #78868a; font-size: 15px; line-height: 1.6; }
+.micro-answer-history { grid-area: answers; padding-top: 22px; border-top: 1px solid var(--micro-rule); }
+.micro-answer-history h2 { margin: 0 0 16px; font-size: 17px; font-weight: 700; }
+.micro-answer-history ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 32px; list-style: none; margin: 0; padding: 0; }
+.micro-answer-history li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 16px; line-height: 1.45; }
+.micro-answer-history li > span { flex: 1; }
+.micro-answer-history strong { max-width: 45%; }
+.micro-answer-history strong { color: #315f50; font-size: 21px; font-weight: 700; }
+.micro-answer-kind { display: block; margin-top: 5px; color: #78868a; font-size: 12px; }
+.reading-body.reading-page.story-screen--micro.micro-has-answers:not(.micro-exercise) {
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-areas: "text illustration" "answers answers" "navigation navigation";
+  overflow-y: auto;
+}
+@media (max-width: 959px) {
+  .reading-body.reading-page.story-screen--micro.micro-exercise {
+    display: flex; flex-direction: column; gap: 24px; overflow-y: auto;
+  }
+  .micro-exercise > .story-text-wrap { order: 1; flex: none; width: 100%; }
+  .micro-exercise-question { order: 0; flex: none; width: 100%; padding: 0 0 20px; border-left: 0; border-bottom: 1px solid var(--micro-rule); }
+  .micro-exercise-question h2 { margin-top: 10px; }
+  .micro-exercise-question p { margin-bottom: 12px; }
+  .micro-answer-history { order: 2; flex: none; width: 100%; }
+  .micro-answer-history ol { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .micro-answer-history li { flex-direction: row; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .micro-answer-history li span { flex: 1; }
+  .micro-answer-history strong { max-width: 45%; }
+  .micro-exercise > .micro-reader-nav { order: 3; }
+  .reading-body.reading-page.story-screen--micro.micro-has-answers:not(.micro-exercise) {
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas: "text" "illustration" "answers" "navigation";
+  }
+}
 .story-screen--micro .reading-title {
   color: var(--micro-ink);
   margin: 12px 0 30px;
