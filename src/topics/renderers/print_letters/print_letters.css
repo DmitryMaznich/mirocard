@@ -1,0 +1,421 @@
+/* Palette borrowed from propis2's own design system (src/features/propis2/propis2.css
+   --p2-* variables) — this topic's UI chrome should read as the same app, not a
+   different one. Letter colors (the block palette in ConstructorView.jsx) and the
+   pen-ink blue in LetterGlyph.jsx are content colors, not UI chrome, and stay as-is. */
+.pl-constructor {
+  --pl-bg: #fdfcf9;
+  --pl-strip: #f6f1e4;
+  --pl-line: #e3dccb;
+  --pl-ink: #28323c;
+  --pl-muted: #8b93a1;
+  --pl-teal: #4a9b8f;
+  --pl-teal-dark: #2a6b60;
+  --pl-teal-soft: #e5f2ef;
+  --pl-header: #1c3634;
+  --pl-canvas: #e2ddd0;
+  --pl-red: #b91c1c;
+  --pl-red-soft: #fee2e2;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  color: var(--pl-ink);
+}
+
+/* Dark title bar, cosmetic only — propis2's own editor replaces the whole
+   session screen so its header also carries back/save/show-to-student; this
+   topic is a normal session task (the standard session header above it
+   already has a close button), so this bar is just the matching top tier. */
+.pl-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--pl-header);
+}
+
+.pl-header-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+/* Narrow tool strip above the canvas — propis2's layout, not a side panel
+   that permanently shows every option. Not pinned to a screen edge (it
+   scrolls with the canvas below it), so it needs no iOS safe-area inset. */
+.pl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--pl-line);
+  background: var(--pl-strip);
+  flex-wrap: wrap;
+}
+
+.pl-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 56px;
+  height: 52px;
+  padding: 5px 7px 4px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--pl-ink);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.pl-tool-ico { display: flex; align-items: center; justify-content: center; }
+.pl-tool-cap { font-size: 10px; font-weight: 700; }
+
+.pl-tool.is-open,
+.pl-tool:hover:not(:disabled) { background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
+
+.pl-tool--muted { color: var(--pl-muted); }
+
+/* Delete actions are red AT REST, like propis2's own .p2-ib--danger
+   (color: var(--p2-red), not just on :hover) — a resting-state-only teal vs.
+   red difference was never visible without first hovering, which is why the
+   earlier hover-only version still read as identical to the add buttons. */
+.pl-tool--danger { color: var(--pl-red); }
+.pl-tool--danger:hover:not(:disabled) { background: var(--pl-red-soft); }
+
+.pl-tool:disabled { opacity: 0.35; cursor: default; }
+
+.pl-tool-group { display: flex; align-items: center; gap: 2px; }
+
+.pl-sep { width: 1px; align-self: stretch; background: var(--pl-line); margin: 6px 6px; }
+.pl-toolbar-fill { flex: 1; }
+
+.pl-pick { position: relative; }
+
+.pl-letters-panel {
+  background: #fff;
+  border: 1px solid var(--pl-line);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(28, 54, 52, 0.18);
+  padding: 10px;
+  z-index: 50;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.pl-el-group {
+  font-size: 11px;
+  color: var(--pl-muted);
+  margin: 4px 0 6px;
+}
+
+.pl-letters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.pl-letters-cell {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--pl-line);
+  background: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--pl-ink);
+  cursor: pointer;
+}
+
+.pl-letters-cell:hover { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
+
+/* Page sidebar + canvas, side by side — propis2's own desktop layout
+   (Propis2Thumbs on the left, the sheet in the middle). */
+.pl-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.pl-pages-rail {
+  width: 108px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+  background: var(--pl-strip);
+  border-right: 1px solid var(--pl-line);
+  overflow-y: auto;
+}
+
+.pl-pages-list { display: flex; flex-direction: column; gap: 8px; }
+
+.pl-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pl-thumb-num { font-size: 11px; color: var(--pl-muted); }
+
+.pl-thumb-sheet {
+  width: 88px;
+  aspect-ratio: 210 / 297;
+  background: var(--pl-bg);
+  border: 2px solid var(--pl-line);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pl-thumb.is-active .pl-thumb-sheet { border-color: var(--pl-teal); }
+
+.pl-thumb-scale {
+  transform-origin: top left;
+  width: 480px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  pointer-events: none;
+}
+
+.pl-page-add {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--pl-line);
+  background: transparent;
+  color: var(--pl-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pl-page-add svg { width: 15px; height: 15px; }
+.pl-page-add:hover { background: var(--pl-teal-soft); color: var(--pl-teal-dark); border-color: var(--pl-teal); }
+
+.pl-page-actions {
+  margin-top: auto;
+  padding-top: 10px;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.pl-page-actions button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--pl-muted);
+  cursor: pointer;
+  border-radius: 9px;
+}
+
+.pl-page-actions button svg { width: 17px; height: 17px; }
+.pl-page-actions button:hover:not(:disabled) { background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
+.pl-page-actions button:disabled { opacity: 0.35; cursor: default; }
+.pl-page-actions-danger:hover:not(:disabled) { background: var(--pl-red-soft) !important; color: var(--pl-red) !important; }
+
+.pl-canvas {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  background: var(--pl-canvas);
+}
+
+.pl-preview-empty {
+  color: var(--pl-muted);
+  font-size: 14px;
+  padding: 24px 0;
+  text-align: center;
+  max-width: 340px;
+}
+
+/* The page itself — a bounded A4 sheet sitting on the canvas's tan
+   background, not blocks floating loose on it. The grid is drawn once, here,
+   for the WHOLE page (not per block/row): a real sheet of squared paper, not
+   a blank page with little grids glued onto it. Letter blocks sit on top
+   with no fill of their own, so the grid shows straight through them.
+   Real mm throughout (5mm = a normal school-notebook cell, Ruling.jsx's
+   FINE_MM) — padding/gaps below are kept at whole multiples of it so every
+   row's edges land exactly on a grid line. The 5mm padding also happens to
+   match a typical printer's own unprintable margin, on top of the page-level
+   @page margin below — a block never sits flush against either edge. Only
+   the outer width/max-width stay in px: that's just how big the preview
+   appears on screen, not a claim about the physical page size. */
+.pl-sheet {
+  width: 100%;
+  max-width: 480px;
+  min-height: 640px;
+  background-color: var(--pl-bg);
+  border: 1px solid var(--pl-line);
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(28, 54, 52, 0.12);
+  padding: 5mm;
+  display: flex;
+  flex-direction: column;
+  gap: 5mm;
+}
+
+/* Клетка: both axes ruled, so a letter's 2×2-cell box sits flush inside one
+   grid square — snapped to the horizontal AND vertical lines around it. */
+.pl-sheet--cell {
+  background-image:
+    linear-gradient(to right, #bcd4e8 1px, transparent 1px),
+    linear-gradient(to bottom, #bcd4e8 1px, transparent 1px);
+  background-size: 5mm 5mm;
+}
+
+/* Линейка: propis2's own ruled-paper idea (Propis2Editor's gridKind/ruling,
+   IconPaperRuled) minus the slant guide — only the horizontal lines, same
+   5mm pitch as клетка so a letter's own baseline (the bottom of its 2-cell
+   box) still lands exactly on one of them. No vertical lines, so there is
+   nothing for a letter's sides to snap to — see .pl-cell below. */
+.pl-sheet--line {
+  background-image: linear-gradient(to bottom, #bcd4e8 1px, transparent 1px);
+  background-size: 100% 5mm;
+}
+
+/* Only rendered under @media print — see below. */
+.pl-print-pages { display: none; }
+
+.pl-row-wrap { display: flex; flex-direction: column; }
+
+.pl-cell {
+  width: 10mm;
+  height: 10mm;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Линейка has no vertical lines to snap a letter's sides to — only its own
+   bottom edge (baseline) anchors, to the horizontal line under the cell. */
+.pl-sheet--line .pl-cell { align-items: flex-end; }
+
+.pl-glyph--tappable:active { opacity: 0.85; }
+
+/* One letter's printable practice block — naborny: the teacher adds/removes
+   rows and picks each row's content (whole letter / one stroke element /
+   blank), so the block's height is whatever they build it to be. No fill, no
+   padding, square corners: it sits flush on the page's own grid rather than
+   floating as a card on top of it — a thin colored outline groups the rows
+   as "this letter," nothing more. */
+.pl-block {
+  position: relative;
+  border: 2px solid;
+  border-radius: 2px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  break-inside: avoid;
+  cursor: pointer;
+}
+
+.pl-block.is-selected { box-shadow: 0 0 0 3px var(--pl-teal-soft), 0 0 0 1px var(--pl-teal); }
+
+.pl-block-tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.pl-row-wrap.is-selected { background: var(--pl-teal-soft); border-radius: 8px; }
+
+.pl-row-pick-list {
+  background: #fff;
+  border: 1px solid var(--pl-line);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(28, 54, 52, 0.18);
+  padding: 4px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.pl-row-pick-list button {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--pl-ink);
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pl-row-pick-list button.is-on { background: var(--pl-teal-soft); color: var(--pl-teal-dark); font-weight: 700; }
+.pl-row-pick-list button:hover { background: #f1efe9; }
+
+.pl-paper-opt { display: flex; align-items: center; gap: 8px; }
+.pl-paper-opt .pl-tool-ico { flex-shrink: 0; }
+
+@media print {
+  .pl-header,
+  .pl-toolbar,
+  .pl-preview-empty,
+  .pl-pages-rail,
+  .pl-body,
+  .no-print { display: none !important; }
+
+  .pl-constructor { max-width: none; height: auto; }
+
+  .pl-block.is-selected { box-shadow: none; }
+  .pl-row-wrap.is-selected { background: none; }
+
+  /* The screen-only single-page view (.pl-body/.pl-sheet) is hidden; every
+     page prints instead, each as its own physical sheet. */
+  .pl-print-pages { display: block; }
+
+  .pl-sheet--print {
+    width: auto;
+    max-width: none;
+    min-height: 0;
+    /* Keep background-color/background-image (the grid) — on paper that
+       grid IS the writing surface, not screen-only chrome. Only the on-screen
+       "card" framing (border/shadow/rounding) is page furniture to drop. */
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    break-after: page;
+  }
+
+  .pl-sheet--print:last-child { break-after: auto; }
+
+  @page {
+    size: A4;
+    /* A typical printer's own unprintable zone is about 5mm; the sheet's own
+       5mm padding (.pl-sheet above) adds a little more clearance on top of
+       that, so a block border is never the very first thing at the edge. */
+    margin: 5mm;
+  }
+}

@@ -1,0 +1,71 @@
+import LetterGlyph, { strokeBBox } from "./LetterGlyph";
+import GridRow, { UNIT_MM } from "./Ruling";
+
+const TILE_W = UNIT_MM; // one letter-cell square, so letter columns start on the next grid line
+const CELLS  = 8; // letters per row — fixed, real grid paper isn't stretched to fill the page width either
+
+function strokesForContent(letter, content) {
+  if (content === "full") return letter.strokes;
+  if (content === "blank") return [];
+  const idx = Number(content);
+  return letter.strokes[idx] ? [letter.strokes[idx]] : letter.strokes;
+}
+
+// A naborny (fully composable) print block for one letter: the teacher picks
+// how many rows it has and what each row drills — the whole letter, one
+// isolated stroke element, or a blank cell row for independent writing. The
+// block itself is a clean preview only (propis2's model): a click selects a
+// row (or the block, via its tile) and every action on that selection lives
+// in the toolbar above the canvas, not inline here.
+export default function LetterBlock({ letter, color, rows, selected, selectedRowId, onSelectBlock, onSelectRow }) {
+  // Computed once from the whole letter, not per row — see strokeBBox()'s own
+  // comment for why a lone stroke's own bbox can't be used for its cell.
+  const frame = strokeBBox(letter.strokes);
+  return (
+    <div
+      className={`pl-block${selected ? " is-selected" : ""}`}
+      style={{ borderColor: color }}
+      onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
+    >
+      <div
+        className="pl-block-tile"
+        style={{ height: `${UNIT_MM}mm`, width: `${TILE_W}mm`, background: color }}
+      >
+        {letter.label}
+      </div>
+
+      {rows.map((row) => {
+        const subset = strokesForContent(letter, row.content);
+        const miniLetter = { ...letter, strokes: subset };
+        const isFull = row.content === "full";
+        const isBlank = row.content === "blank";
+        return (
+          <div
+            key={row.id}
+            className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
+            onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
+          >
+            <GridRow cells={CELLS} padLeft={TILE_W}>
+              {Array.from({ length: CELLS }).map((_, i) => (
+                <div key={i} className="pl-cell">
+                  {!isBlank && (
+                    <LetterGlyph
+                      letter={miniLetter}
+                      frame={frame}
+                      heightMm={UNIT_MM}
+                      widthMm={UNIT_MM}
+                      variant="dotted"
+                      showArrows={i === 0}
+                      showNumbers={isFull && i === 0}
+                      tappable={i === 0}
+                    />
+                  )}
+                </div>
+              ))}
+            </GridRow>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

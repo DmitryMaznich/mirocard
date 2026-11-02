@@ -244,6 +244,93 @@ hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
 the owner's rules learned the hard way, the work procedure and open items;
 per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
+## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
+
+New dedicated-renderer topic for preschoolers (4–6yo): printed/block letters, not cursive —
+deliberately separate from `propis2` (cursive constructor) and from `letter_writing` (hidden/paid,
+**independent — don't touch**, but its simple no-slant letter glyphs and stroke order were reused
+verbatim for consistency across the app). **Read the «Handoff» section of `docs/print-letters.md`
+first** (branch, latest commit, and this session's own process mistakes not to repeat — a test
+screenshot harness that silently dropped the app's real font, and sending a stale pre-fix
+screenshot as if it were verified) — then the rest of the file for methodology
+(letter families by stroke complexity, not alphabet order; most-to-least-prompting support;
+**клетка/square-grid ruling, not ruled lines** — switched 2026-11-01 after reading Ilyukhina's
+«Волшебные линии 2» preschool workbook in full, which writes printed letters directly in grid
+cells; her famous stroke-vocabulary ("секрет"/"крючок"/etc.) is cursive-joining terminology and
+wasn't ported over, only the general "named reusable element" principle), what's built (8 letters, "straight lines" family only; one naborny
+per-letter print block — colored tile, teacher freely adds/removes rows and picks each row's
+content: whole letter / one stroke element / blank line for independent writing — several blocks
+flow continuously into a notebook, paginated by the browser's own print engine, not fixed-count
+page chunks; the constructor's own UI follows `propis2`'s own editor model closely
+(`Propis2Editor.jsx`): the canvas is a clean content preview, a click selects a row or block
+(highlighted, not form controls attached to it), and every action on the selection — including
+picking a letter or a row's content, both popups off a toolbar button
+(`ElementPicker`/`LetterPicker`/`Propis2Picker` in `Propis2Field.jsx`/`Propis2Picker.jsx`,
+`usePopupPos`, copied as generic positioning code rather than imported from
+`src/features/propis2/`) — lives in one toolbar above it, present but disabled rather than hidden
+when nothing fits it; **the notebook now has multiple pages with a left thumbnail rail**
+(`PageThumb.jsx`, a live scaled-down render — add/duplicate/move/delete page, verified against a
+real screenshot of the running `Propis2Editor`, not just its source) and now a cosmetic dark title
+bar (`.pl-header`, propis2's own `#1c3634`) plus propis2's actual color palette and real SVG icons
+throughout the toolbar/popups/canvas (copied as `--pl-*` CSS variables and a fresh `icons.jsx`, not
+imported — same reasoning as `usePopupPos.js`); **the grid is drawn once for the whole page**
+(`.pl-sheet`'s own CSS `background-image`) in **real physical mm, not screen px** — `Ruling.jsx`
+exports `FINE_MM = 5` (a normal school-notebook cell) and `UNIT_MM = 10` (a letter/element's own
+2×2-cell square, per the owner: "letters ~2 cells tall"); every length in the chain (page padding,
+gap between blocks, row height, tile width, `LetterGlyph`'s `heightMm`) is `` `${n}mm` ``, a whole
+multiple of `FINE_MM`, so nothing drifts off the grid lines — blocks have no fill/padding/rounding
+of their own, just a thin colored outline snapped onto that shared grid (the 5mm gap between
+blocks happens to equal Ilyukhina's own "leave a blank cell between letter groups" instruction).
+`@page margin` is 5mm, matching a typical printer's own unprintable zone, plus `.pl-sheet`'s own
+5mm padding so a block border is never flush against the physical edge. Toolbar icons are
+purpose-specific (`IconLetterA`/`IconAddRow`, not a shared generic plus for two different "add"
+actions) and **copied path-for-path from `propis2`'s own `Propis2Icons.jsx`/`propis2.css`**, not
+approximated — delete buttons (`.pl-tool--danger`) are red **at rest**, matching propis2's
+`.p2-ib--danger { color: var(--p2-red); }` exactly (an earlier hover-only red was the actual root
+cause of three repeated owner complaints that the trash icon "doesn't make sense": at rest it was
+visually identical to the add buttons), and `IconLetterA` is propis2's `IconLetterFrame` two-tone
+filled tile (not a monochrome stroke shape). **Delete buttons' visible caption names the action in
+full** ("Удалить блок", "Очистить строку" — not a bare "Удалить", and never just the object's own
+name): propis2's own delete buttons (`Propis2Editor.jsx`) at least caption with the verb "Удалить"
+and put the object in `aria-label`, since a trash icon captioned with the object's own name alone
+("Блок") reads as a compound noun ("that object's own trash can"), not a delete command; here the
+owner asked for the fuller wording on screen instead of leaning on `aria-label`. **Two selectable
+page backgrounds, "Клетка" (default) and "Линейка"** (`PaperPicker.jsx`, page-level — not block/row
+— `page.paper`, icons copied from propis2's real "Тип бумаги" picker's `IconPaperSquare`/
+`IconPaperRuled`): клетка keeps both axes of the grid, линейка (`.pl-sheet--line`) keeps only the
+horizontal lines at the same 5mm pitch and anchors a letter to just its own baseline
+(`.pl-sheet--line .pl-cell { align-items: flex-end; }`), since there are no vertical lines left to
+snap its sides to. **A letter's ink is cropped to its own true bounding box and stretched
+(`preserveAspectRatio="none"`) to fill its 2×2-cell square flush on all four sides** —
+`LetterGlyph.jsx`'s `strokeBBox(strokes)` computes that box from the stroke path coordinates (M/L
+pairs only — this topic's one family, "straight," has no curves yet), replacing the raw
+`letter_writing`-derived `viewBox="0 0 100 110"`, which carries its own margin (room for this
+component's stroke-order badges, not for grid-snapping) that an earlier `heightMm={UNIT_MM * 0.84}`
+shrink attempt only shrank further instead of removing. **That bbox must be computed from the
+WHOLE letter, never from one row's own stroke subset**: a lone stroke that's purely vertical or
+horizontal has zero extent on the other axis (e.g. Н's left stick is literally `xmin === xmax`),
+which collapses to an invisible, zero-size viewBox if cropped per-row — so `LetterBlock.jsx`
+computes `strokeBBox(letter.strokes)` once from the complete, original letter and passes it as a
+`frame` prop into every row's `LetterGlyph`, so an isolated element sits exactly where it belongs
+within the full letter's frame instead of vanishing — see the "Разворот" sections (fourteen so far,
+2026-11-01/02; the seventh records a background agent that implemented the page rail without
+authorization while investigating, got stopped, and had its work kept only after the owner
+reviewed and approved it; the eighth explains why this topic's header has no back button —
+`propis2` is a full-screen route that replaces the session header entirely, this topic is a normal
+session task that already has one above it; the eleventh through fourteenth are the icon/caption/
+grid-anchoring fixes above, each done only after reading propis2's real source, a direct owner
+answer, or — for the per-row bbox collapse — the owner's own screenshot pushback rather than
+guessing again) for why each earlier shape — giant full-page glyph, auto-generated rows, sidebar
+letter panel, per-row inline controls, single flat page, ad hoc blue palette with emoji icons,
+per-block mini-grids on a blank page, px-based cell sizing, ambiguous plus/trash icons, hover-only
+danger color, object-named delete captions, grid-only backgrounds with letters floating clear of
+the lines, a letter still floating inside its own viewBox margin even after being sized to the
+cell — got replaced; registered in
+`engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
+via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
+round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a
+second wave, remaining letter families, stroke direction review by the owner as methodologist).
+
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.
