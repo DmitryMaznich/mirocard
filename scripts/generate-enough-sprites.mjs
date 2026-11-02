@@ -13,9 +13,10 @@
  *   node scripts/generate-enough-sprites.mjs --skip    # keep sprites already made
  *   node scripts/generate-enough-sprites.mjs kid_1     # one sprite by id
  *
- * Writes the raw white-background PNG to tools/comparison/media-src/enough/
- * (kept in git so the cut-out can be redone without a new generation) and the
- * cut-out sprite to tools/comparison/media/enough/ (packed into the topic ZIP).
+ * Writes the raw white-background picture to tools/comparison/media-src/enough/
+ * as JPEG (kept in git so the cut-out can be redone without a new generation)
+ * and the cut-out sprite to tools/comparison/media/enough/ as WebP with alpha
+ * (~15 KB, packed into the topic ZIP; PNG was ~90 KB each).
  */
 
 import fs from "fs";
@@ -56,7 +57,7 @@ const SPRITES = [
     id: `cup_${i + 1}`,
     prompt: `A single ${c} ceramic tea cup with a handle on the right, seen from the side at eye level, empty, no saucer under it, no spoon.`,
   })),
-  ...["light brown puppy with floppy ears", "white puppy with black spots", "dark brown dachshund", "grey fluffy puppy", "golden retriever puppy", "black puppy with a white chest"].map((d, i) => ({
+  ...["light brown puppy with floppy ears", "white puppy with black spots", "dark brown dachshund puppy (exactly ONE dog with ONE head, no second dog or extra head anywhere)", "grey fluffy puppy", "golden retriever puppy", "black puppy with a white chest"].map((d, i) => ({
     id: `dog_${i + 1}`,
     prompt: `A cute ${d}, sitting, whole body, facing the viewer, friendly.`,
   })),
@@ -74,7 +75,7 @@ const SPRITES = [
   { id: "bone", prompt: "A single cartoon dog bone (white-cream colour), lying horizontally, classic bone shape with two round knobs at each end." },
   { id: "carrot", prompt: "A single orange carrot with green leaves on top, lying diagonally." },
   { id: "hat", prompt: "A single warm knitted winter hat (beanie) for a child, red with a white pompom on top, seen from the front." },
-  { id: "garage", prompt: "A small toy garage for one toy car, seen from the front, its wide door fully open and the inside empty, simple red roof." },
+  { id: "garage", prompt: "A small toy CAR garage for one toy car (clearly a garage for cars, NOT a dog house or kennel: no pointed roof, no round opening): a low wide box-shaped building with a flat grey roof, light grey walls and a wide rectangular roll-up door fully open, the inside empty, seen from the front." },
 ];
 
 async function callGemini(prompt) {
@@ -104,19 +105,19 @@ if (!targets.length) { console.error(`No sprite "${ONLY}"`); process.exit(1); }
 
 let failed = 0;
 for (const sprite of targets) {
-  const rawPath = path.join(RAW_DIR, `${sprite.id}.png`);
-  const outPath = path.join(OUT_DIR, `${sprite.id}.png`);
+  const rawPath = path.join(RAW_DIR, `${sprite.id}.jpg`);
+  const outPath = path.join(OUT_DIR, `${sprite.id}.webp`);
   try {
     if (!(SKIP && fs.existsSync(rawPath))) {
       console.log(`▶ ${sprite.id}`);
       const raw = await callGemini(`${STYLE}\n\n${sprite.prompt}`);
-      fs.writeFileSync(rawPath, await sharp(raw).resize(512, 512, { fit: "inside" }).png().toBuffer());
+      fs.writeFileSync(rawPath, await sharp(raw).resize(512, 512, { fit: "inside" }).flatten({ background: "#ffffff" }).jpeg({ quality: 92 }).toBuffer());
     } else {
       console.log(`↩ ${sprite.id} (raw kept)`);
     }
     const cut = await removeWhiteBg(fs.readFileSync(rawPath));
     // 320px on the long side is plenty for a ~70px slot on a tablet (2× density).
-    fs.writeFileSync(outPath, await sharp(cut).resize(320, 320, { fit: "inside" }).png({ compressionLevel: 9 }).toBuffer());
+    fs.writeFileSync(outPath, await sharp(cut).resize(320, 320, { fit: "inside" }).webp({ quality: 82, alphaQuality: 90 }).toBuffer());
     console.log(`  ✓ ${path.relative(ROOT, outPath)}`);
   } catch (err) {
     failed++;

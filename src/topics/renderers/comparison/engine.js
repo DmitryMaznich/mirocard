@@ -424,7 +424,7 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 
 // «Всем хватает?» (compare_enough): everyday one-to-one — children and
 // chairs, cups and saucers... The scene is built from separate sprites
-// (tools/comparison/media/enough, scripts/generate-enough-sprites.mjs), so
+// (tools/comparison/media/enough/*.webp, scripts/generate-enough-sprites.mjs), so
 // the count on screen is always the task's count. Each set carries its
 // Russian: the question, the genitive plural of both sides, and the «not
 // enough» / «spare» sentences for one and for two, gender and case per noun.
@@ -462,7 +462,7 @@ function generateEnoughTask(set, outcome) {
   const diff = outcome === "equal" ? 0 : (Math.random() < 0.5 ? 1 : 2) * (outcome === "lack" ? -1 : 1);
   const things = Math.min(7, Math.max(2, who + diff));
   const variants = shuffle(Array.from({ length: ENOUGH_SPRITE_VARIANTS }, (_, i) => i + 1));
-  const whoSprites = Array.from({ length: who }, (_, i) => `media/enough/${set.who}_${variants[i % variants.length]}.png`);
+  const whoSprites = Array.from({ length: who }, (_, i) => `media/enough/${set.who}_${variants[i % variants.length]}.webp`);
   const cap = (w) => w[0].toUpperCase() + w.slice(1);
   const short = who - things, extra = things - who;
   const verdictText = short > 0
@@ -472,7 +472,7 @@ function generateEnoughTask(set, outcome) {
       : `${cap(set.thingGen)} хватает всем: ${set.whoGen} и ${set.thingGen} поровну.`;
   return {
     set: set.id, who, things, enough: things >= who,
-    whoSprites, thingSprite: `media/enough/${set.thing}.png`, place: set.place,
+    whoSprites, thingSprite: `media/enough/${set.thing}.webp`, place: set.place,
     instruction: set.question, tapHint: set.tapHint, verdictText,
   };
 }

@@ -12,7 +12,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 // wrong guess is recorded (onMistake) but nothing is retried: the matching
 // itself shows the truth, and the task is then done like any other.
 //
-// The scene is built from sprites of the topic (media/enough/*.png), so the
+// The scene is built from sprites of the topic (media/enough/*.webp), so the
 // count on screen is always the task's count.
 
 function useTopicFiles(paths, topicId, loadTopicFileUrl) {

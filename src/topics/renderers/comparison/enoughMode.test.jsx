@@ -46,8 +46,8 @@ describe("Сравнение — «Всем хватает?»: экран", () =
 
   const base = {
     type: "compare_enough", conceptId: "compare_easy", set: "chairs", who: 3, things: 2, enough: false,
-    whoSprites: ["media/enough/kid_1.png", "media/enough/kid_2.png", "media/enough/kid_3.png"],
-    thingSprite: "media/enough/chair.png", place: ENOUGH_SETS[0].place,
+    whoSprites: ["media/enough/kid_1.webp", "media/enough/kid_2.webp", "media/enough/kid_3.webp"],
+    thingSprite: "media/enough/chair.webp", place: ENOUGH_SETS[0].place,
     instruction: "Всем хватает стульев?", tapHint: "Нажимай на стулья", verdictText: "Стульев не хватает. Одному не хватает стула.",
   };
   async function mount(task) {
