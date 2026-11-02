@@ -45,7 +45,7 @@ import {
   LINE_MM, NATIVE_L1, NATIVE_L4, INK_COLOR,
   buildRowGuideLines, buildDiagonalLines,
 } from "@/topics/renderers/propis/propisRuling.js";
-import { validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
+import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
@@ -715,7 +715,7 @@ function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, o
   const { t: tr } = useUiTranslation();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const effectiveText = value?.trim() ? value : defaultText;
+  const effectiveText = mergeStoryQuizText(defaultText, value);
   const validation = validateStoryQuizText(effectiveText, stories, selectedStoryIds);
   const edited = Boolean(value?.trim());
 
@@ -1730,7 +1730,7 @@ export default function ParamsScreen() {
 
   const storyQuizStories = (topicRecord?.texts ?? [])
     .filter((text) => text.kind === "story")
-    .map((text) => ({ id: text.id, title: getTopicTitle(text.title), lines: text.lines ?? [] }));
+    .map((text) => ({ ...text, title: getTopicTitle(text.title), lines: text.lines ?? [] }));
 
   if (isReadingInstruction) {
     return (
@@ -1883,6 +1883,7 @@ export default function ParamsScreen() {
   }
 
   const [params,         setParams]        = useState(getInitialParams);
+  const selectedStoryQuizIds = getSelectedReadingStories(topicRecord, params).map((story) => story.id);
   const [videoReward,   setVideoReward]   = useState(hideVideoReward ? false : (link.videoRewardEnabled ?? true));
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
   const studentRewardSettings = effectiveRewardSettings(student?.rewardSettings);
@@ -2073,6 +2074,9 @@ export default function ParamsScreen() {
         />
       )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        if (def.showWhen && !Object.entries(def.showWhen).every(([condition, expected]) => (
+          params[condition] ?? mode.params[condition]?.default
+        ) === expected)) return null;
         if (def.type === "story_quiz") {
           return (
             <StoryQuizEditorParam
@@ -2080,13 +2084,13 @@ export default function ParamsScreen() {
               value={params[key] ?? ""}
               defaultText={topicRecord?.storyQuiz?.defaultText ?? ""}
               stories={storyQuizStories}
-              selectedStoryIds={params.selectedStories ?? []}
+              selectedStoryIds={selectedStoryQuizIds}
               onChange={(value) => setParams((current) => ({ ...current, [key]: value }))}
             />
           );
         }
         if (def.type === "enum_multi") {
-          if (isShortStories && key === "selectedStories") {
+          if (isShortStories && ["selectedStories", "selectedMicroStories"].includes(key)) {
             return (
               <StorySelectionParam
                 key={key}
@@ -2476,9 +2480,9 @@ export default function ParamsScreen() {
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
   const storyQuizValidation = mode?.type === "story_quiz"
     ? validateStoryQuizText(
-        params.storyQuizText?.trim() ? params.storyQuizText : (topicRecord?.storyQuiz?.defaultText ?? ""),
+        mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, params.storyQuizText),
         storyQuizStories,
-        params.selectedStories ?? [],
+        selectedStoryQuizIds,
       )
     : null;
   const isManualFigureSetTooSmall = topicRecord?.meta?.id === "symmetry_draw"

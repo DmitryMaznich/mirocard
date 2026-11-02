@@ -5,6 +5,7 @@ import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import { getStoryQuizTargetMatches, tokenizeStoryQuizWords } from "./storyQuiz";
+import { StoryPictures, StoryPictureSupport } from "./StoryPictures";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
@@ -15,6 +16,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getSafeCodeConfig, appendSafeCodeLog } from "@/core/groupStore";
 import "./reading.css";
+import "./microStories.css";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -333,7 +335,7 @@ const STORY_SWIPE_MAX_DRAG = 110;
 // (same reasoning as AssembleLineTask's pointer handling above: a React
 // state update per pointermove would be needless re-render churn for
 // something purely visual until the gesture actually commits).
-function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
+function StorySwipeNav({ onAdvance, onPrevious, navRef, minimal = false, storyIndex = 0, storyCount }) {
   const stripRef = useRef(null);
   const dragRef = useRef(null);
 
@@ -363,7 +365,7 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
   }
 
   function handlePointerDown(event) {
-    if (dragRef.current) return;
+    if (dragRef.current || event.target.closest("button")) return;
     stripRef.current?.setPointerCapture(event.pointerId);
     dragRef.current = { pointerId: event.pointerId, startX: event.clientX };
   }
@@ -397,6 +399,20 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
     resetDragVisual(true);
   }
 
+  if (minimal) return (
+    <nav className="micro-reader-nav" aria-label="Рассказы" ref={setStripRef}
+      onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp} onPointerCancel={handlePointerCancel}>
+      <button type="button" className="micro-reader-nav__previous" onClick={onPrevious} disabled={storyIndex === 0}>
+        <span aria-hidden="true">←</span> Назад
+      </button>
+      <span className="micro-reader-nav__count">{storyIndex + 1}<span> / {storyCount ?? 1}</span></span>
+      <button type="button" className="micro-reader-nav__next" onClick={onAdvance}>
+        {storyCount && storyIndex === storyCount - 1 ? "Завершить" : "Дальше"} <span aria-hidden="true">→</span>
+      </button>
+    </nav>
+  );
+
   return (
     <div
       className="story-swipe-nav"
@@ -427,32 +443,34 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
 function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   const lines = task.text?.lines ?? [];
   const hasImage = !!task.text?.image && !task.text?.cornerPhotos;
-  const fit = useStoryFit(true, [task.text?.id, textStyle, lines.length], { spreadCapable: hasImage });
+  const isMicro = !!task.text?.sentenceLayout;
+  const fit = useStoryFit(!isMicro, [task.text?.id, textStyle, lines.length], { spreadCapable: hasImage });
 
   return (
-    <div className={`session-body reading-body reading-page story-screen${hasImage ? " story-screen--with-image" : ""}`} ref={fit.bodyRef}>
+    <div className={`session-body reading-body reading-page story-screen${hasImage ? " story-screen--with-image" : ""}${task.text?.sentenceLayout ? " story-screen--micro" : ""}`} ref={fit.bodyRef}>
       <div className="story-text-wrap" ref={fit.textWrapRef}>
+        {isMicro && <div className="micro-reader-eyebrow">Читаем вместе</div>}
         <div className="reading-title">{getTopicTitle(task.text.title)}</div>
-        <ReadingTextBlock lines={lines} textStyle={textStyle} bookStyle flow />
+        <ReadingTextBlock lines={lines} textStyle={textStyle} bookStyle={!task.text?.sentenceLayout} flow={!task.text?.sentenceLayout} />
       </div>
       {hasImage ? (
         <div className="story-illustration">
-          <ReadingIllustration topicId={topicId} text={task.text} />
+          {task.text?.images?.length ? <StoryPictures topicId={topicId} text={task.text} /> : <ReadingIllustration topicId={topicId} text={task.text} />}
         </div>
       ) : task.text?.cornerPhotos ? (
         <ReadingIllustration topicId={topicId} text={task.text} />
       ) : null}
-      <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} navRef={fit.navRef} />
+      <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} navRef={fit.navRef} minimal={isMicro} storyIndex={task.storyIndex} storyCount={task.storyCount} />
     </div>
   );
 }
 
-function StoryQuizTargetText({ lines, textStyle, target, answered, onTarget, onMiss }) {
+function StoryQuizTargetText({ lines, textStyle, target, answered, onTarget, onMiss, sentenceLayout = false }) {
   const items = lines ?? [];
   const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
   const paragraphs = [];
   items.forEach((line, index) => {
-    if (index === 0 || line.newParagraph) paragraphs.push([]);
+    if (index === 0 || line.newParagraph || sentenceLayout) paragraphs.push([]);
     paragraphs[paragraphs.length - 1].push(line);
   });
 
@@ -556,13 +574,19 @@ function StoryQuizTargetText({ lines, textStyle, target, answered, onTarget, onM
   );
 }
 
-function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect }) {
+function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect, onQualityAnswer }) {
   const textStyle = sessionParams?.textStyle ?? "normal";
   const [answered, setAnswered] = useState(false);
+  const pictureUsed = useRef(false);
+  const onRequest = task.text?.illustrationSupport === "on_request";
 
   function chooseTarget() {
     if (answered) return;
     setAnswered(true);
+    if (pictureUsed.current) {
+      onQualityAnswer("prompted", task.textId, task.question.id);
+      return;
+    }
     // Finding the phrase is the answer itself. Keep the highlight visible briefly,
     // then move to the next question without requiring an extra tap on the card.
     onCorrect(task.textId, task.question.id, {
@@ -577,7 +601,7 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
   }
 
   return (
-    <div className="session-body reading-body story-quiz">
+    <div className={`session-body reading-body story-quiz${onRequest ? " story-quiz--micro" : ""}`}>
       <div className="story-quiz__reading">
         <div className="story-quiz__story-copy">
           <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
@@ -594,11 +618,13 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
             answered={answered}
             onTarget={chooseTarget}
             onMiss={markMiss}
+            sentenceLayout={task.text?.sentenceLayout}
           />
+          {onRequest && <StoryPictureSupport topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
         </div>
-        <div className="story-quiz__illustration">
+        {!onRequest && <div className="story-quiz__illustration">
           <ReadingIllustration topicId={topicId} text={task.text} />
-        </div>
+        </div>}
       </div>
     </div>
   );
@@ -611,31 +637,48 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
 // would the child have done) — there is no single located phrase to grade,
 // so it advances on the adult's own "next" tap rather than through the
 // find/miss scoring the rest of the mode uses.
-function StoryQuizDiscussTask({ task, topicId, sessionParams, onCorrect }) {
+function StoryQuizDiscussTask({ task, topicId, sessionParams, onCorrect, onQualityAnswer }) {
   const textStyle = sessionParams?.textStyle ?? "normal";
+  const pictureUsed = useRef(false);
+  const onRequest = task.text?.illustrationSupport === "on_request";
+
+  function assess(value) {
+    onQualityAnswer(value === "independent" && pictureUsed.current ? "prompted" : value, task.textId, task.question.id);
+  }
 
   function next() {
     onCorrect(task.textId, task.question.id, { assisted: true });
   }
 
   return (
-    <div className="session-body reading-body story-quiz">
+    <div className={`session-body reading-body story-quiz${onRequest ? " story-quiz--micro story-quiz--oral" : ""}`}>
       <div className="story-quiz__reading">
         <div className="story-quiz__story-copy">
           <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
           <section className="story-quiz__question story-quiz__question--discuss" aria-labelledby="story-quiz-discuss-question">
-            <div className="story-quiz__question-count">Обсудите вместе · {task.questionIndex + 1} из {task.questionCount}</div>
+            <div className="story-quiz__question-count">{onRequest ? "Ответь по смыслу" : "Обсудите вместе"} · {task.questionIndex + 1} из {task.questionCount}</div>
             <h2 id="story-quiz-discuss-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
-            <button type="button" className="story-quiz__discuss-next" onClick={next}>Обсудили, дальше</button>
+            {onRequest ? <>
+              <div className="story-quiz__hint">Ответ можно сказать, показать или разыграть.</div>
+            </> : <button type="button" className="story-quiz__discuss-next" onClick={next}>Обсудили, дальше</button>}
           </section>
           <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
           <div className="story-quiz__text">
-            <ReadingTextBlock lines={task.text?.lines ?? []} textStyle={textStyle} flow />
+            <ReadingTextBlock lines={task.text?.lines ?? []} textStyle={textStyle} flow={!task.text?.sentenceLayout} />
           </div>
+          {onRequest && <StoryPictureSupport topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
+          {onRequest && <div className="micro-oral-assessment">
+            <div className="micro-assessment-label">Отметка взрослого</div>
+            <div className="story-quiz__assessment">
+              <button type="button" onClick={() => assess("independent")}>Самостоятельно</button>
+              <button type="button" onClick={() => assess("prompted")}>С помощью</button>
+              <button type="button" onClick={() => assess("none")}>Пока нет ответа</button>
+            </div>
+          </div>}
         </div>
-        <div className="story-quiz__illustration">
+        {!onRequest && <div className="story-quiz__illustration">
           <ReadingIllustration topicId={topicId} text={task.text} />
-        </div>
+        </div>}
       </div>
     </div>
   );

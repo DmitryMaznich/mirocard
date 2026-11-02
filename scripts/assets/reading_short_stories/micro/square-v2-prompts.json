@@ -1,0 +1,31 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "purpose": "Recompose four existing story diptychs into two square panels without cutting meaningful content.",
+  "common": "Use case: identity-preserve, illustration-story. The provided image is the edit target and character/style reference. Recompose its two existing scenes into one landscape canvas with an exact 2:1 aspect ratio, composed of TWO EQUAL SQUARE panels side by side, split at the exact center, with no gutter, no border, no captions, no letters, no numbers. Each square must be a self-contained complete scene, composed for a square crop. Preserve the original warm polished children's illustration style, consistent faces, hair, clothes, objects, room and colors. Move the camera farther back and rearrange perspective as needed to retain all important people and objects in each square; do not stretch. Keep faces, hands, feet and story objects within the central 88% of each square, with simple background in its corners. One moment per panel, no extra characters, no decorative symbols, no text or watermarks.",
+  "edits": [
+    {
+      "id": "micro_tower",
+      "source": "scripts/assets/reading_short_stories/micro/micro_tower.png",
+      "destination": "scripts/assets/reading_short_stories/micro/micro_tower-square-v2.png",
+      "prompt": "LEFT SQUARE: Petya, the same curly brown-haired boy in a green T-shirt, dark grey trousers and blue sneakers, sits beside scattered red, yellow and blue building blocks after his tower fell. Keep his entire seated figure and a small clear cluster of fallen blocks visible. RIGHT SQUARE: the very same boy sits beside a rebuilt upright tower of the SAME building blocks. Keep the boy and the whole tower from its base to its red top fully inside this square, with enough breathing room. Same simple light room and wooden floor. Reduce the number of spare blocks to keep the action clear. Preserve the child's identity."
+    },
+    {
+      "id": "micro_cat",
+      "source": "scripts/assets/reading_short_stories/micro/micro_cat.png",
+      "destination": "scripts/assets/reading_short_stories/micro/micro_cat-square-v2.png",
+      "prompt": "LEFT SQUARE: Petya, the same curly brown-haired boy in a green T-shirt, dark grey trousers and blue sneakers, kneels beside the same orange cat and an EMPTY BLUE bowl on the floor. Entire boy, cat including tail and the empty bowl visible, arranged in depth rather than stretched across a wide scene. RIGHT SQUARE: the same cat is EATING visible dry kibble from the SAME BLUE bowl; Petya kneels just behind or beside the cat holding a plain paper food bag. Both complete characters and the bowl comfortably fit inside the square. Same simple light room, same wooden floor. Preserve the characters' identity and clearly distinguish the empty bowl from the food-filled bowl."
+    },
+    {
+      "id": "micro_puddle",
+      "source": "scripts/assets/reading_short_stories/micro/micro_puddle.png",
+      "destination": "scripts/assets/reading_short_stories/micro/micro_puddle-square-v2.png",
+      "prompt": "LEFT SQUARE: Vova, the same blond blue-eyed boy wearing a blue T-shirt, navy trousers and red sneakers, stands at the dry edge of a clearly visible puddle on a park path. A swing is visible farther up the same path. Arrange boy and puddle in the foreground and swing behind them so all three fit inside the square. RIGHT SQUARE: the very same boy has reached the same swing, standing on dry ground beside it with a hand lightly touching the chain; the puddle remains farther behind along the path. His shoes are dry, he did not step into the puddle. Keep the boy's whole body and the swing's seat and chain clear. Simplify park background, no other people. Preserve the child's face and outfit, one clear event in each panel."
+    },
+    {
+      "id": "micro_pass",
+      "source": "scripts/assets/reading_short_stories/micro/micro_pass.png",
+      "destination": "scripts/assets/reading_short_stories/micro/micro_pass-square-v2.png",
+      "prompt": "LEFT SQUARE: Vova, the same blond blue-eyed boy in a blue T-shirt, navy trousers and red sneakers, sits on the floor with his father, the same brown-haired man in a light blue shirt and dark trousers. Vova has rolled a RED BALL toward father; the red ball is on the floor between them and the father is ready to catch it. RIGHT SQUARE: the same two characters in the same room and positions, with Vova now HOLDING the red ball in his hands after father rolled it back. Arrange them partly diagonally in depth so their whole seated figures and all feet and hands are visible inside EACH square. The red ball must be visible once in each panel. Maintain the clear Vova-to-father then father-to-Vova sequence. Simple warm room, cream rug and pale wall. No motion lines or text."
+    }
+  ]
+}
