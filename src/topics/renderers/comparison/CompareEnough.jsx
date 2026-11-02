@@ -216,7 +216,12 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
 
   // On the finished card the options are plain tiles (the whole card is the
   // «next» button there, and a button can't hold buttons).
+  // «Потому что…» stands over the options, which continue it; once the right
+  // one is chosen the dots give way to it: «Потому что кроликов больше.»
+  const chosenWhy = (task.whyOptions ?? []).find((o) => o.id === picked.why && right.why.includes(o.id));
   const whyButtons = (
+    <>
+    <div className="enough-because">{chosenWhy ? `Потому что ${chosenWhy.label}.` : "Потому что…"}</div>
     <div className="enough-why-grid">
       {(task.whyOptions ?? []).map((o) => {
         const cls = `${optionClass("why", o.id)}${o.id === "same" ? " enough-why-same" : ""}`;
@@ -225,6 +230,7 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
           : <button key={o.id} type="button" className={cls} onClick={() => answer("why", o.id)}>{o.label}</button>;
       })}
     </div>
+    </>
   );
 
   if (done) {

@@ -433,7 +433,9 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 // больше?» question, no «поровну», and no sentences on the screen — too
 // much text): «Почему стульев не хватает?» with «Детей больше / Стульев
 // больше / Детей меньше / Стульев меньше / Сколько детей, столько и
-// стульев». Two of the four comparisons say the same thing in other words
+// стульев». The options continue «Потому что…» shown above them (owner's
+// call), so they start in lower case and the answer reads as one sentence:
+// «Потому что детей больше». Two of the four comparisons say the same thing in other words
 // («детей больше» = «стульев меньше»), and either counts. «Сколько …,
 // столько и …» is on every card, so its presence never gives the equal case
 // away.
@@ -484,11 +486,11 @@ function generateEnoughTask(set, outcome) {
   const short = who - things, extra = things - who;
   const whyQuestion = `Почему ${set.thingGen} ${short > 0 ? "не хватает" : "хватает"}?`;
   const whyOptions = [
-    { id: "whoMore", label: `${cap(set.whoGen)} больше` },
-    { id: "thingMore", label: `${cap(set.thingGen)} больше` },
-    { id: "whoLess", label: `${cap(set.whoGen)} меньше` },
-    { id: "thingLess", label: `${cap(set.thingGen)} меньше` },
-    { id: "same", label: `Сколько ${set.whoGen}, столько и ${set.thingGen}` },
+    { id: "whoMore", label: `${set.whoGen} больше` },
+    { id: "thingMore", label: `${set.thingGen} больше` },
+    { id: "whoLess", label: `${set.whoGen} меньше` },
+    { id: "thingLess", label: `${set.thingGen} меньше` },
+    { id: "same", label: `сколько ${set.whoGen}, столько и ${set.thingGen}` },
   ];
   const whyRight = short > 0 ? ["whoMore", "thingLess"] : extra > 0 ? ["thingMore", "whoLess"] : ["same"];
   return {
