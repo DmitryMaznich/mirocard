@@ -17,17 +17,17 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.6.4",
+      "version": "2.0.1",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Двенадцать коротких иллюстрированных рассказов. Ребёнок читает их вместе со взрослым обычным текстом или по слогам; затем отвечает на вопросы, находя в рассказе нужное слово или фразу, и обсуждает прочитанное устно.",
-        "en": "Twelve illustrated stories for shared reading, finding answers in the text, and discussing each story aloud."
+        "ru": "Первая ступень — 15 микрорассказов по 4–5 предложений с четырьмя постоянными героями и двумя иллюстрациями. Проверка начинается с имени героя: ребёнок ищет ответы в доступном тексте, а картинки открывает при необходимости. Прежние 12 рассказов доступны отдельно.",
+        "en": "Fifteen micro-stories with recurring children, name questions and optional picture support, plus the twelve previous stories."
       },
-      "url": "./decks/reading_short_stories_v1.6.4.zip",
-      "status": "beta",
+      "url": "./decks/reading_short_stories_v2.0.1.zip",
+      "status": "release",
       "access": "paid"
     },
     {

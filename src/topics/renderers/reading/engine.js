@@ -1,5 +1,5 @@
 
-import { parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
+import { getMinimumStoryFindQuestions, getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
 
 export function getReadingText(topicRecord, textId, textOverride = null) {
   if (textOverride?.id === textId) return textOverride;
@@ -35,12 +35,10 @@ function buildReadTextTask(text) {
 // ParamsScreen.jsx) empty/missing means "all", matching that component's own
 // "[] = all" convention; deck order is preserved regardless of pick order.
 // Scoped to this one deck for now, not the "reading" renderer generally.
-function buildAllStoriesTasks(topicRecord, selectedStoryIds) {
-  const stories = (topicRecord.texts ?? []).filter((t) => t.kind === "story");
-  const selected = selectedStoryIds?.length
-    ? stories.filter((t) => selectedStoryIds.includes(t.id))
-    : stories;
-  return selected.map((t) => buildReadTextTask(t));
+function buildAllStoriesTasks(topicRecord, sessionParams) {
+  return getSelectedReadingStories(topicRecord, sessionParams).map((text, storyIndex, stories) => ({
+    ...buildReadTextTask(text), storyIndex, storyCount: stories.length,
+  }));
 }
 
 function getStoryTitle(story) {
@@ -49,13 +47,10 @@ function getStoryTitle(story) {
     : story?.title?.ru ?? story?.title?.en ?? story?.id ?? "";
 }
 
-// The trainer keeps one story visible while its five comprehension questions
-// follow below. Tasks are still individual questions so the existing graded
-// session and video-reward machinery counts every answer normally.
+// The full text stays available through the story's questions. Text-search
+// responses are graded; oral responses are assessed separately by the adult.
 function buildStoryQuizTasks(topicRecord, sessionParams) {
-  const rawText = sessionParams?.storyQuizText?.trim()
-    ? sessionParams.storyQuizText
-    : topicRecord?.storyQuiz?.defaultText;
+  const rawText = mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, sessionParams?.storyQuizText);
   const parsed = parseStoryQuizText(rawText);
   if (!parsed.valid) return [];
 
@@ -63,15 +58,10 @@ function buildStoryQuizTasks(topicRecord, sessionParams) {
     .filter((text) => text.kind === "story")
     .map((text) => ({ ...text, title: getStoryTitle(text) }));
   const questionsByStoryId = quizGroupsByStoryId(parsed, stories);
-  const selectedStoryIds = sessionParams?.selectedStories;
-  const selectedStories = selectedStoryIds?.length
-    ? stories.filter((story) => selectedStoryIds.includes(story.id))
-    : stories;
-  // The optional discussion question (kind "discuss") doesn't count toward
-  // the 5 find-questions a story needs to be included — see the matching
-  // check in storyQuiz.js's validateStoryQuizText.
+  const selectedStoryIds = new Set(getSelectedReadingStories(topicRecord, sessionParams).map((story) => story.id));
+  const selectedStories = stories.filter((story) => selectedStoryIds.has(story.id));
   const readyStories = selectedStories.filter((story) => (questionsByStoryId[story.id] ?? [])
-    .filter((question) => question.kind !== "discuss").length >= 5);
+    .filter((question) => question.kind !== "discuss").length >= getMinimumStoryFindQuestions(story));
 
   return readyStories.flatMap((story, storyIndex) => {
     const allQuestions = questionsByStoryId[story.id] ?? [];
@@ -87,6 +77,7 @@ function buildStoryQuizTasks(topicRecord, sessionParams) {
       textId: story.id,
       text: story,
       question,
+      expectedAnswer: question.prompt === story.discussionPrompt ? story.discussionAnswer : undefined,
       storyIndex,
       storyCount: readyStories.length,
       questionIndex,
@@ -193,7 +184,7 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
   switch (mode.type) {
     case "read_text":
       return topicRecord?.meta?.id === "reading_short_stories"
-        ? buildAllStoriesTasks(topicRecord, sessionParams?.selectedStories)
+        ? buildAllStoriesTasks(topicRecord, sessionParams)
         : [buildReadTextTask(text)];
     case "story_quiz":
       return topicRecord?.meta?.id === "reading_short_stories"

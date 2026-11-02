@@ -7,12 +7,48 @@
  *   * Как ты думаешь, почему мама попросила катать мяч по очереди?
  *
  * `?` is the prompt, `+` the exact word or phrase the child finds and taps
- * in the story — five of this pair are required per story. `*` is an
+ * in the story — the minimum is authored per story (five by default). `*` is an
  * optional, unscored discussion question with no located phrase: a "why" or
  * "what would you do" prompt meant for the child to answer out loud to the
  * adult, not by tapping the text. Keeping the source as plain text makes a
  * per-child correction far less cumbersome than a form.
  */
+export function getMinimumStoryFindQuestions(story) {
+  return Number.isInteger(story?.minimumFindQuestions) && story.minimumFindQuestions > 0
+    ? story.minimumFindQuestions
+    : 5;
+}
+
+// Shared by the task engine and settings validation. An unconfigured legacy
+// deck still means all stories; the revised deck starts with micro-stories.
+export function getSelectedReadingStories(topicRecord, sessionParams = {}) {
+  const stage = sessionParams?.storyStage ?? topicRecord?.meta?.defaultStoryStage;
+  const stories = (topicRecord?.texts ?? []).filter((story) => story.kind === "story"
+    && (!stage || story.storyStage === stage));
+  const selectedIds = stage === "micro"
+    ? sessionParams?.selectedMicroStories
+    : sessionParams?.selectedStories;
+  return selectedIds?.length ? stories.filter((story) => selectedIds.includes(story.id)) : stories;
+}
+
+// Keep a child's edited blocks while adding new stories from deck updates.
+// Invalid edits stay visible to validation instead of silently falling back.
+export function mergeStoryQuizText(defaultText, customText) {
+  if (!customText?.trim()) return defaultText ?? "";
+  const base = parseStoryQuizText(defaultText);
+  const custom = parseStoryQuizText(customText);
+  if (!base.valid || !custom.valid) return customText;
+  const overrides = new Map(custom.groups.map((group) => [group.title, group]));
+  const baseTitles = new Set(base.groups.map((group) => group.title));
+  const groups = [
+    ...base.groups.map((group) => overrides.get(group.title) ?? group),
+    ...custom.groups.filter((group) => !baseTitles.has(group.title)),
+  ];
+  return groups.map((group) => `# ${group.title}\n\n${group.questions.map((question) => (
+    question.kind === "discuss" ? `* ${question.prompt}` : `? ${question.prompt}\n+ ${question.target}`
+  )).join("\n\n")}`).join("\n\n");
+}
+
 export function normalizeStoryQuizText(value) {
   return String(value ?? "")
     .toLocaleLowerCase("ru-RU")
@@ -222,12 +258,14 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
       errors.push({ line: null, message: `Нет вопросов к рассказу «${story.title}».` });
       continue;
     }
-    // Only questions with a located phrase count toward the minimum — the
-    // discussion question (*) is optional and unscored, so it shouldn't let
-    // an author satisfy the "5 find-questions" requirement with fewer.
+    // An oral question cannot substitute for a required text-search question.
     const findCount = group.questions.filter((question) => question.kind !== "discuss").length;
-    if (findCount < 5) {
-      errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше 5 вопросов со знаком + (сейчас ${findCount}).` });
+    const minimum = getMinimumStoryFindQuestions(story);
+    if (findCount < minimum) {
+      errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше ${minimum} вопросов со знаком + (сейчас ${findCount}).` });
+    }
+    if (story.character && normalizeStoryQuizText(group.questions[0]?.target).join(" ") !== normalizeStoryQuizText(story.character).join(" ")) {
+      errors.push({ line: null, message: `Первым в рассказе «${story.title}» должен быть вопрос об имени: ${story.character}.` });
     }
   }
 
