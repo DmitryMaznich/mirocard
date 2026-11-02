@@ -1,20 +1,48 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { letterCells } from "./model";
 
-const STROKE_COLOR = "#1d4ed8";
-const BADGE_R      = 6.5;
-const TIP_R        = 4.5;
-const START_R      = 7;
-const START_COLOR  = "#e8702a";
-const BASE_SPEED   = 60; // SVG units per second
+// Print palette, chosen to read the same on a colour and a black-and-white
+// printer: the sample in dark navy (prints near-black), the tracing guide in
+// a light grey-blue (prints light grey), the start dot green — "green = start
+// here" is the usual handwriting-workbook convention, and in b/w it is still
+// a solid dark dot.
+export const INK = "#1f3a8a";
+export const GUIDE = "#8fa3c8";
+export const START = "#15803d";
+
+const START_R    = 9;   // start dot
+const BADGE_R    = 11;  // numbered start dot (≈2.2mm across on paper)
+const SHIFT      = 26;  // a start that lies on an earlier element moves this far along its own line
+const TINY       = 10;  // strokes shorter than this (Ё's dots) get no marks
+const TIP_R      = 6;
+const BASE_SPEED = 60;  // SVG units per second
 
 function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 }
 
-function parseStartPoint(d) {
-  const m = d.match(/M\s*([\d.-]+)[,\s]+([\d.-]+)/);
-  return m ? [parseFloat(m[1]), parseFloat(m[2])] : [50, 50];
+// Start point, direction of the first segment and total length of an M/L path.
+function strokeGeom(d) {
+  const nums = (d.match(/-?\d+\.?\d*/g) || []).map(Number);
+  const pts = [];
+  for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
+  const [x0, y0] = pts[0] ?? [0, 0];
+  const [x1, y1] = pts[1] ?? [x0, y0];
+  let len = 0;
+  for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  const seg = Math.hypot(x1 - x0, y1 - y0) || 1;
+  return { start: [x0, y0], dir: [(x1 - x0) / seg, (y1 - y0) / seg], len, pts };
+}
+
+function onPolyline([px, py], pts) {
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1];
+    const [bx, by] = pts[i];
+    const l2 = (bx - ax) ** 2 + (by - ay) ** 2;
+    const t = l2 ? Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / l2)) : 0;
+    if (Math.hypot(px - (ax + t * (bx - ax)), py - (ay + t * (by - ay))) < 1) return true;
+  }
+  return false;
 }
 
 // Glyph geometry lives directly on the notebook grid (tools/print_letters/
@@ -25,44 +53,53 @@ function parseStartPoint(d) {
 // same proportions everywhere the letter is drawn (rows, label tile).
 export const UNITS_PER_CELL = 50;
 
-
 export function letterFrame(letter) {
   return [0, 0, letterCells(letter) * UNITS_PER_CELL, 2 * UNITS_PER_CELL];
 }
 
-const BADGE_FILL = { idle: "#e5e7eb", active: "#1d4ed8", done: "#22c55e" };
-const BADGE_TEXT = { idle: "#6b7280", active: "white",   done: "white"   };
-
-// Shared animated SVG letter — one visual building block reused across every
-// page type (intro / dotted / fading / independent). `variant` controls how
-// the guide stroke itself is drawn; the stroke-order animation on tap is the
-// same everywhere so a child always sees the same motor plan for a letter.
+// One printed letter (or a subset of its elements). Variants:
+//   sample — solid ink with the motor plan: an arrow at the end of each
+//            element, a green dot where it starts, and its number (when the
+//            row has more than one element, numbered by the element's place
+//            in the whole letter, `stroke.n`). Tap plays the stroke order.
+//   dotted — light dotted guide to trace over.
+//   trace  — light solid guide (faded copies; `opacity` per copy).
+//   starts — only the green start dot over a faint trace of the element.
+//   plain  — solid strokes in `color`, no marks (label tile, panel header).
 export default function LetterGlyph({
   letter,
-  frame,                   // [x, y, w, h] — the WHOLE letter's grid box; see letterFrame() above
+  frame,          // [x, y, w, h] — the WHOLE letter's grid box; see letterFrame()
   heightMm,
   widthMm,
-  color       = STROKE_COLOR,
-  variant     = "solid",   // "solid" | "dotted" | "starts" (only the start dots, no stroke)
-  opacity     = 1,
-  showNumbers = false,
-  showArrows  = true,
-  tappable    = true,
-  autoPlay    = false,
+  variant  = "plain",
+  color,
+  opacity  = 1,
+  tappable = false,
   label,
 }) {
   const { strokes = [] } = letter;
   const [vbX, vbY, vbW, vbH] = frame ?? letterFrame(letter);
   const wMm = widthMm ?? (heightMm * vbW) / vbH;
-  const viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
+  const geoms = strokes.map((s) => strokeGeom(s.d));
+  const markable = geoms.map((g) => g.len >= TINY);
+  const numbered = variant === "sample" && markable.filter(Boolean).length > 1;
+  // Where each element's start mark goes: at its start point, unless that
+  // point lies on an element drawn earlier in this glyph (Н's crossbar starts
+  // on the left stick, П's second stick at the bar's corner) — then a little
+  // way along its own line, so the mark clearly belongs to it.
+  const marks = geoms.map((g, i) => {
+    const shared = geoms.slice(0, i).some((e) => onPolyline(g.start, e.pts));
+    return shared && numbered ? [g.start[0] + g.dir[0] * SHIFT, g.start[1] + g.dir[1] * SHIFT] : g.start;
+  });
+  const arrowId = `pl-arr-${letter.id}-${strokes.map((s) => s.n ?? "").join("")}`;
 
   const svgRef     = useRef(null);
-  const rafRef      = useRef(null);
-  const timersRef   = useRef([]);
-  const strokeLens  = useRef([]);
-  const [badgeStates, setBadgeStates] = useState(() => strokes.map(() => "idle"));
-  const [tipPos, setTipPos]           = useState(null);
-  const [playing, setPlaying]         = useState(false);
+  const rafRef     = useRef(null);
+  const timersRef  = useRef([]);
+  const strokeLens = useRef([]);
+  const [active, setActive]   = useState(-1);
+  const [tipPos, setTipPos]   = useState(null);
+  const [playing, setPlaying] = useState(false);
 
   const cleanup = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -72,55 +109,30 @@ export default function LetterGlyph({
 
   useEffect(() => {
     const svg = svgRef.current;
-    if (!svg) return;
-    // Only the pen-demo overlay (not the always-visible guide stroke) is
-    // measured and dash-animated, so the idle look (solid/dotted/faded
-    // guide) never depends on whether a play has ever run.
-    const paths = svg.querySelectorAll("[data-lg-anim]");
-    strokeLens.current = Array.from(paths).map((el) => {
+    if (!svg) return undefined;
+    strokeLens.current = Array.from(svg.querySelectorAll("[data-lg-anim]")).map((el) => {
       const len = el.getTotalLength();
       el.setAttribute("stroke-dasharray", len);
       el.setAttribute("stroke-dashoffset", len);
       return len;
     });
-    if (autoPlay) {
-      const t = setTimeout(() => play(), 300);
-      timersRef.current.push(t);
-    }
     return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [letter.id]);
-
-  function resetStrokes() {
-    const svg = svgRef.current;
-    if (!svg) return;
-    svg.querySelectorAll("[data-lg-anim]").forEach((el, i) => {
-      el.setAttribute("stroke-dashoffset", strokeLens.current[i]);
-    });
-  }
+  }, [letter.id, cleanup]);
 
   function play() {
     cleanup();
     setPlaying(true);
     setTipPos(null);
-    setBadgeStates(strokes.map(() => "idle"));
-    resetStrokes();
+    const svg = svgRef.current;
+    svg?.querySelectorAll("[data-lg-anim]").forEach((el, i) => el.setAttribute("stroke-dashoffset", strokeLens.current[i]));
     const pause = 300;
-
     function runStroke(i) {
-      if (i >= strokes.length) {
-        setTipPos(null);
-        setPlaying(false);
-        return;
-      }
-      setBadgeStates((prev) => { const n = [...prev]; n[i] = "active"; return n; });
-      const t = setTimeout(() => {
-        animStroke(i, () => {
-          setBadgeStates((prev) => { const n = [...prev]; n[i] = "done"; return n; });
-          const t2 = setTimeout(() => runStroke(i + 1), pause);
-          timersRef.current.push(t2);
-        });
-      }, pause);
+      if (i >= strokes.length) { setActive(-1); setTipPos(null); setPlaying(false); return; }
+      setActive(i);
+      const t = setTimeout(() => animStroke(i, () => {
+        const t2 = setTimeout(() => runStroke(i + 1), pause);
+        timersRef.current.push(t2);
+      }), pause);
       timersRef.current.push(t);
     }
     const t0 = setTimeout(() => runStroke(0), 150);
@@ -128,135 +140,87 @@ export default function LetterGlyph({
   }
 
   function animStroke(idx, onDone) {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const el = svg.querySelector(`[data-lg-anim="${idx}"]`);
+    const el = svgRef.current?.querySelector(`[data-lg-anim="${idx}"]`);
     if (!el) { onDone(); return; }
     const len = strokeLens.current[idx];
     const dur = (len / BASE_SPEED) * 1000;
-    const t0  = performance.now();
-    function frame(now) {
-      const raw   = Math.min((now - t0) / dur, 1);
+    const t0 = performance.now();
+    function step(now) {
+      const raw = Math.min((now - t0) / dur, 1);
       const eased = easeInOut(raw);
       el.setAttribute("stroke-dashoffset", len * (1 - eased));
       const pt = el.getPointAtLength(eased * len);
       setTipPos({ x: pt.x, y: pt.y });
-      if (raw < 1) {
-        rafRef.current = requestAnimationFrame(frame);
-      } else {
-        el.setAttribute("stroke-dashoffset", 0);
-        setTipPos(null);
-        onDone();
-      }
+      if (raw < 1) rafRef.current = requestAnimationFrame(step);
+      else { el.setAttribute("stroke-dashoffset", 0); setTipPos(null); onDone(); }
     }
-    rafRef.current = requestAnimationFrame(frame);
+    rafRef.current = requestAnimationFrame(step);
   }
 
-  // Real mm, not screen px — this glyph is meant to print at an actual
-  // physical size (SVG width/height accept CSS length units, so "Nmm" is a
-  // true physical size the browser's print pipeline honors directly).
-  const strokeW = variant === "dotted" ? 7 : 9;
+  const ink = color ?? (variant === "sample" || variant === "plain" ? INK : GUIDE);
+  const strokeW = variant === "dotted" ? 7 : variant === "starts" ? 5 : 9;
+  const canPlay = tappable && variant === "sample";
+
   return (
     <svg
       ref={svgRef}
-      viewBox={viewBox}
-            width={`${wMm}mm`}
+      viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
+      width={`${wMm}mm`}
       height={`${heightMm}mm`}
-      className={`pl-glyph pl-glyph--${variant}${tappable ? " pl-glyph--tappable" : ""}`}
-      style={{ display: "block", flexShrink: 0, opacity, cursor: tappable ? "pointer" : "default", overflow: "visible" }}
-      onClick={tappable && !playing ? play : undefined}
-      role={tappable ? "button" : "img"}
+      className={`pl-glyph pl-glyph--${variant}${canPlay ? " pl-glyph--tappable" : ""}`}
+      style={{ display: "block", flexShrink: 0, opacity, cursor: canPlay ? "pointer" : undefined, overflow: "visible" }}
+      onClick={canPlay && !playing ? play : undefined}
+      role={canPlay ? "button" : "img"}
       aria-label={label ? `Буква ${label}` : undefined}
     >
-      <defs>
-        <marker id={`pl-arr-${letter.id}`} viewBox="0 0 9 7" refX="8.5" refY="3.5"
-          markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="7" orient="auto">
-          <path d="M 0,0 L 9,3.5 L 0,7 Z" fill="#fbbf24" opacity="0.85" />
-        </marker>
-      </defs>
+      {variant === "sample" && (
+        <defs>
+          <marker id={arrowId} viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="17" markerHeight="17" orient="auto">
+            <path d="M0 1L9 5L0 9z" fill={ink} />
+          </marker>
+        </defs>
+      )}
 
-      {/* ghost outline with direction arrows — always full strength so the
-          motor plan stays legible even when the guide stroke itself fades */}
-      {showArrows && variant !== "starts" && strokes.map((s, i) => (
-        <path key={`g${i}`} d={s.d} fill="none"
-          stroke={color} strokeWidth={strokeW}
-          strokeLinecap="round" strokeLinejoin="round" opacity={0.14}
-          markerEnd={`url(#pl-arr-${letter.id})`} />
+      {strokes.map((s, i) => (
+        <path
+          key={`s${i}`}
+          d={s.d}
+          fill="none"
+          stroke={ink}
+          strokeWidth={strokeW}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray={variant === "dotted" ? "1 10" : undefined}
+          opacity={variant === "starts" ? 0.3 : 1}
+          markerEnd={variant === "sample" && markable[i] ? `url(#${arrowId})` : undefined}
+        />
       ))}
 
-      {/* guide stroke — always visible, solid/dotted/faded per page type.
-          Independent of the tap-to-animate overlay below. */}
-      {/* «Точки начала»: a faint trace of the element (so neighbouring
-          copies' dots don't read as one dotted line) and a bold dot where
-          the pencil goes down. */}
-      {variant === "starts" && strokes.map((s, i) => (
-        <path key={`trace${i}`} d={s.d} fill="none" stroke={color} strokeWidth={5}
-          strokeLinecap="round" strokeLinejoin="round" opacity={0.28} />
+      {canPlay && strokes.map((s, i) => (
+        <path key={`a${i}`} data-lg-anim={i} d={s.d} fill="none" stroke={START} strokeWidth={9}
+          strokeLinecap="round" strokeLinejoin="round" opacity={playing ? 1 : 0} />
       ))}
-      {variant === "starts" && strokes.map((s, i) => {
-        const [sx, sy] = parseStartPoint(s.d);
-        return <circle key={`start${i}`} cx={sx} cy={sy} r={START_R} fill={START_COLOR} />;
+
+      {/* Start marks. With several elements the green start dot carries the
+          element's number (its place in the whole letter): the number sits ON
+          the element it belongs to, never floating in the blank cell between
+          rows where it could be read as part of the row above. */}
+      {(variant === "sample" || variant === "starts") && geoms.map((g, i) => {
+        if (!markable[i]) return null;
+        const [mx, my] = marks[i];
+        if (!numbered) return <circle key={`d${i}`} cx={mx} cy={my} r={START_R} fill={START} />;
+        const on = active === i;
+        return (
+          <g key={`d${i}`} style={{ pointerEvents: "none" }}>
+            <circle cx={mx} cy={my} r={BADGE_R} fill={START} stroke={on ? INK : "#ffffff"} strokeWidth={on ? 4 : 2} />
+            <text x={mx} y={my + 5} textAnchor="middle" fontSize={15} fontWeight="800" fontFamily="Nunito, sans-serif" fill="#ffffff">
+              {strokes[i].n ?? i + 1}
+            </text>
+          </g>
+        );
       })}
 
-      {variant !== "starts" && strokes.map((s, i) => (
-        <path
-          key={`guide${i}`}
-          d={s.d}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeW}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeDasharray={variant === "dotted" ? "3 9" : undefined}
-        />
-      ))}
-
-      {/* pen-demo overlay — solid, drawn progressively on tap/autoplay, then
-          hidden again so the guide underneath (e.g. dotted) shows through */}
-      {variant !== "starts" && strokes.map((s, i) => (
-        <path
-          key={`a${i}`}
-          data-lg-anim={i}
-          d={s.d}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeW}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity={playing ? 1 : 0}
-        />
-      ))}
-
-      {/* Several printed-letter strokes often start at the exact same corner
-          (both strokes of «Г», the left bar and left stick of «П»…). Stacking
-          badges there would hide all but the last one, so repeats of the
-          same start point cascade diagonally with a leader line back to the
-          real point. */}
-      {showNumbers && (() => {
-        const seen = new Map();
-        return strokes.map((s, i) => {
-          const [bx, by] = parseStartPoint(s.d);
-          const key = `${bx},${by}`;
-          const dup = seen.get(key) || 0;
-          seen.set(key, dup + 1);
-          const ox = bx + dup * 11;
-          const oy = by + dup * 11;
-          return (
-            <g key={`b${i}`}>
-              {dup > 0 && (
-                <line x1={bx} y1={by} x2={ox} y2={oy} stroke="#94a3b8" strokeWidth={0.8} strokeDasharray="1.5 2" />
-              )}
-              <circle cx={ox} cy={oy} r={BADGE_R} fill={BADGE_FILL[badgeStates[i]]} stroke="white" strokeWidth={0.8} />
-              <text x={ox} y={oy + 2} textAnchor="middle" fontSize={6.5} fontWeight="700"
-                fill={BADGE_TEXT[badgeStates[i]]} style={{ userSelect: "none", pointerEvents: "none" }}>
-                {s.n ?? i + 1}
-              </text>
-            </g>
-          );
-        });
-      })()}
-
-      {tipPos && <circle cx={tipPos.x} cy={tipPos.y} r={TIP_R} fill="#fbbf24" opacity={0.9} />}
+      {tipPos && <circle cx={tipPos.x} cy={tipPos.y} r={TIP_R} fill={START} />}
     </svg>
   );
 }

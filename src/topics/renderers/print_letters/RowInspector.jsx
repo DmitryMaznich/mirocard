@@ -65,8 +65,8 @@ function ElementIcon({ letter, index }) {
 function Head({ letter, color, title, onMoveRow, canUp, canDown }) {
   return (
     <div className="pl-insp-head">
-      <span className="pl-insp-tile" style={{ background: color }}>
-        <LetterGlyph letter={letter} heightMm={4.2} color="#ffffff" showArrows={false} tappable={false} />
+      <span className="pl-insp-tile" style={{ "--pl-block-color": color }}>
+        <LetterGlyph letter={letter} heightMm={4.2} variant="plain" />
       </span>
       <span className="pl-insp-title">{title}</span>
       {onMoveRow && (

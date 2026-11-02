@@ -41,14 +41,16 @@ describe("print_letters model", () => {
     expect(toggleElement([0, 1], 2)).toEqual([0, 1, 2]);
   });
 
-  it("plans each copy by support level", () => {
+  it("starts every non-blank row with a sample, then gives less help by support level", () => {
     const row = (support) => ({ elements: [0, 1], support });
-    expect(copyPlan(row("dotted"), 3).map((p) => p.variant)).toEqual(["dotted", "dotted", "dotted"]);
-    expect(copyPlan(row("starts"), 3).map((p) => p.variant)).toEqual(["solid", "starts", "starts"]);
-    expect(copyPlan(row("sample"), 3).map((p) => p && p.variant)).toEqual(["solid", null, null]);
-    const fade = copyPlan(row("fade"), 5).map((p) => p.opacity);
+    const v = (support, n) => copyPlan(row(support), n).map((p) => p && p.variant);
+    expect(v("dotted", 3)).toEqual(["sample", "dotted", "dotted"]);
+    expect(v("starts", 3)).toEqual(["sample", "starts", "starts"]);
+    expect(v("sample", 3)).toEqual(["sample", null, null]);
+    expect(v("fade", 3)).toEqual(["sample", "trace", "trace"]);
+    const fade = copyPlan(row("fade"), 6).slice(1).map((p) => p.opacity);
     expect(fade[0]).toBe(1);
-    expect(fade[4]).toBeCloseTo(0.12);
+    expect(fade[4]).toBeCloseTo(0.15);
     expect(fade).toEqual([...fade].sort((a, b) => b - a));
     expect(copyPlan({ elements: [], support: "dotted" }, 3)).toEqual([null, null, null]);
   });

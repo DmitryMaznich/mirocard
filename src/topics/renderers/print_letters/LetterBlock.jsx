@@ -26,10 +26,10 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
     >
       <div
         className="pl-block-tile"
-        style={{ top: mm(GAP), height: mm(TILE), width: mm(TILE), background: color }}
+        style={{ top: mm(GAP), height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
         aria-label={`Буква ${letter.label}`}
       >
-        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.6} color="#ffffff" showArrows={false} tappable={false} />
+        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.6} variant="plain" />
       </div>
 
       {rows.map((row) => {
@@ -55,9 +55,7 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
                       widthMm={w * FINE_MM}
                       variant={p.variant}
                       opacity={p.opacity}
-                      showArrows={p.guide}
-                      showNumbers={p.guide}
-                      tappable={p.guide}
+                      tappable={p.variant === "sample"}
                     />
                   )}
                 </div>

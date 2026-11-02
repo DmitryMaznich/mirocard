@@ -60,8 +60,12 @@ export function pageHeightCells(page) {
   return page.blocks.reduce((sum, b) => sum + blockHeightCells(b), 0) + (page.blocks.length - 1) * GAP;
 }
 
+// The sheet header («Имя ____ Дата ____ · Буква Н»): 2 cells tall plus a
+// blank cell before the first block.
+export const HEADER_CELLS = 3;
+
 export function pageOverflows(page, formatId) {
-  return pageHeightCells(page) > sheetCells(formatId).rows;
+  return pageHeightCells(page) > sheetCells(formatId).rows - HEADER_CELLS;
 }
 
 // ---- Rows ----------------------------------------------------------------
@@ -69,9 +73,9 @@ export function pageOverflows(page, formatId) {
 // strokes drawn in this row (sorted; [] = a blank row for writing on one's
 // own); `support` — how much help each copy gives (most-to-least prompting).
 export const SUPPORTS = [
-  { id: "dotted", label: "Пунктир", hint: "обвести по точкам" },
-  { id: "starts", label: "Точки", hint: "точка, где начать, и бледный след" },
-  { id: "fade", label: "Бледнеет", hint: "опора тает к концу строки" },
+  { id: "dotted", label: "Пунктир", hint: "образец, дальше обвести по пунктиру" },
+  { id: "starts", label: "Точки", hint: "образец, дальше только зелёная точка начала и бледный след" },
+  { id: "fade", label: "Бледнеет", hint: "образец, дальше след тает к концу строки" },
   { id: "sample", label: "Образец", hint: "один образец, дальше сам" },
 ];
 
@@ -109,25 +113,29 @@ export function ladderRows(letter) {
   return rows;
 }
 
-// What each copy in a row draws, given the row's support level.
-// Returns one entry per copy: null (empty cell) or { variant, opacity, guide }
-// where guide=true marks the copy that carries arrows and stroke numbers.
+// What each copy in a row draws. The first copy of every non-blank row is
+// the SAMPLE — solid, with arrows, start dots and numbers: the child first
+// sees how the element is written, then practises. The rest depends on the
+// support level, from most help to least: dotted guide to trace → start dots
+// over a faint trace → a guide fading away along the row → nothing (write on
+// your own after the sample). Returns one entry per copy: null or
+// { variant, opacity } (variants as in LetterGlyph).
 export function copyPlan(row, copies) {
   if (!row.elements.length) return Array.from({ length: copies }, () => null);
   return Array.from({ length: copies }, (_, i) => {
-    const first = i === 0;
+    if (i === 0) return { variant: "sample", opacity: 1 };
     switch (row.support) {
       case "starts":
-        return first ? { variant: "solid", opacity: 1, guide: true } : { variant: "starts", opacity: 1, guide: false };
+        return { variant: "starts", opacity: 1 };
       case "fade": {
-        const t = copies > 1 ? i / (copies - 1) : 0;
-        return { variant: "solid", opacity: Math.max(0.12, 1 - t * 0.88), guide: first };
+        const t = copies > 2 ? (i - 1) / (copies - 2) : 0;
+        return { variant: "trace", opacity: Math.max(0.15, 1 - t * 0.85) };
       }
       case "sample":
-        return first ? { variant: "solid", opacity: 1, guide: true } : null;
+        return null;
       case "dotted":
       default:
-        return { variant: "dotted", opacity: 1, guide: first };
+        return { variant: "dotted", opacity: 1 };
     }
   });
 }
