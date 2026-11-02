@@ -1,50 +1,27 @@
-import LetterGlyph, { letterCells, letterFrame } from "./LetterGlyph";
+import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-
-// Everything below is counted in whole notebook cells (FINE_MM = 5mm), so
-// every edge — block outline, tile, each letter's box — lands on a printed
-// grid line. A letter is 2 cells tall and letterCells() wide.
-const LETTER_H = 2;   // cells
-const TILE     = 2;   // label tile: 2×2 cells
-const GAP      = 1;   // blank cell between letters, between rows, after the tile
-const ROW_CELLS = 16; // writing width of a row, in cells
+import { LETTER_H, TILE, GAP, blockCells, rowCells, copiesPerRow, copyPlan, letterCells } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
-function strokesForContent(letter, content) {
-  if (content === "full") return letter.strokes;
-  if (content === "blank") return [];
-  const idx = Number(content);
-  return letter.strokes[idx] ? [letter.strokes[idx]] : letter.strokes;
-}
-
-// How many copies of a letter fit in a row: each copy is its own width plus
-// one blank cell, the last one needs no trailing gap.
-export function copiesPerRow(letter) {
-  const w = letterCells(letter);
-  return Math.max(1, Math.floor((ROW_CELLS + GAP) / (w + GAP)));
-}
-
-// A naborny (fully composable) print block for one letter: the teacher picks
-// how many rows it has and what each row drills — the whole letter, one
-// isolated stroke element, or a blank row for independent writing. The block
-// itself is a clean preview only (propis2's model): a click selects a row (or
-// the block, via its tile) and every action on that selection lives in the
-// toolbar above the canvas, not inline here.
+// A naborny print block for one letter. Every length is a whole number of
+// notebook cells (model.js), so every edge — block outline, tile, each
+// letter's box — lands on a printed grid line; the block spans the sheet's
+// whole usable width, so the number of copies per row follows the format.
 //
-// Every row draws its strokes inside the SAME frame — the whole letter's grid
-// box — so an isolated element (Н's crossbar) sits exactly where it sits in
-// the full letter, at the letter's real proportions, and the label tile shows
-// that same letter shape rather than a font glyph with other proportions.
-export default function LetterBlock({ letter, color, rows, selected, selectedRowId, onSelectBlock, onSelectRow }) {
+// Every row draws its elements inside the SAME frame — the whole letter's
+// grid box — so an isolated element (Н's crossbar) sits exactly where it
+// sits in the full letter, and the label tile shows that same stroke shape.
+// What each copy draws (dotted / start dots / fading / one sample) comes
+// from the row's support level via copyPlan().
+export default function LetterBlock({ letter, color, rows, format, selected, selectedRowId, onSelectBlock, onSelectRow }) {
   const frame = letterFrame(letter);
   const w = letterCells(letter);
-  const copies = copiesPerRow(letter);
-  const blockCells = TILE + GAP + ROW_CELLS + GAP;
+  const copies = copiesPerRow(letter, format);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ outlineColor: color, width: mm(blockCells), minHeight: mm(GAP + LETTER_H + GAP), paddingBottom: mm(GAP) }}
+      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(GAP + LETTER_H + GAP), paddingBottom: mm(GAP) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
@@ -52,21 +29,13 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
         style={{ top: mm(GAP), height: mm(TILE), width: mm(TILE), background: color }}
         aria-label={`Буква ${letter.label}`}
       >
-        <LetterGlyph
-          letter={letter}
-          frame={frame}
-          heightMm={TILE * FINE_MM * 0.6}
-          color="#ffffff"
-          showArrows={false}
-          tappable={false}
-        />
+        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.6} color="#ffffff" showArrows={false} tappable={false} />
       </div>
 
       {rows.map((row) => {
-        const subset = strokesForContent(letter, row.content);
-        const miniLetter = { ...letter, strokes: subset };
-        const isFull = row.content === "full";
-        const isBlank = row.content === "blank";
+        const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
+        const miniLetter = { ...letter, strokes };
+        const plan = copyPlan(row, copies);
         return (
           <div
             key={row.id}
@@ -74,19 +43,21 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
             style={{ paddingTop: mm(GAP), paddingLeft: mm(TILE + GAP) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
-            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(ROW_CELLS), gap: mm(GAP) }}>
-              {Array.from({ length: copies }).map((_, i) => (
+            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(rowCells(format)), gap: mm(GAP) }}>
+              {plan.map((p, i) => (
                 <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(LETTER_H) }}>
-                  {!isBlank && (
+                  {p && (
                     <LetterGlyph
+                      key={`${row.elements.join(",")}-${p.variant}`}
                       letter={miniLetter}
                       frame={frame}
                       heightMm={LETTER_H * FINE_MM}
                       widthMm={w * FINE_MM}
-                      variant="dotted"
-                      showArrows={i === 0}
-                      showNumbers={isFull && i === 0}
-                      tappable={i === 0}
+                      variant={p.variant}
+                      opacity={p.opacity}
+                      showArrows={p.guide}
+                      showNumbers={p.guide}
+                      tappable={p.guide}
                     />
                   )}
                 </div>

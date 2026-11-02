@@ -53,3 +53,10 @@ export const IconPaperRuled = () => (
     <path d="M6 3.5v17" stroke="#dc2626" strokeWidth="1.3" />
   </svg>
 );
+
+// Copied from propis2's IconFormatA4/IconFormatA5 — the format's own name as the icon.
+const formatText = (t) => S(<text x="12" y="16.2" textAnchor="middle" fontFamily="Nunito, system-ui, sans-serif" fontWeight="800" fontSize="10.5" fill="currentColor" stroke="none" letterSpacing="-.3">{t}</text>);
+export const IconFormatA4 = () => formatText("А4");
+export const IconFormatA5 = () => formatText("А5");
+// A ladder: rows that grow step by step.
+export const IconLadder = () => S(<><path d="M4 19h4M4 14h9M4 9h14" /><path d="M4 4.5h16" strokeDasharray="2 2.5" /></>);

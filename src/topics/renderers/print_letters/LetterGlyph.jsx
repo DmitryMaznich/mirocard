@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { letterCells } from "./model";
 
 const STROKE_COLOR = "#1d4ed8";
 const BADGE_R      = 6.5;
 const TIP_R        = 4.5;
+const START_R      = 7;
+const START_COLOR  = "#e8702a";
 const BASE_SPEED   = 60; // SVG units per second
 
 function easeInOut(t) {
@@ -22,9 +25,6 @@ function parseStartPoint(d) {
 // same proportions everywhere the letter is drawn (rows, label tile).
 export const UNITS_PER_CELL = 50;
 
-export function letterCells(letter) {
-  return Math.max(1, Number(letter?.cells) || 1);
-}
 
 export function letterFrame(letter) {
   return [0, 0, letterCells(letter) * UNITS_PER_CELL, 2 * UNITS_PER_CELL];
@@ -43,7 +43,7 @@ export default function LetterGlyph({
   heightMm,
   widthMm,
   color       = STROKE_COLOR,
-  variant     = "solid",   // "solid" | "dotted" | "fading"
+  variant     = "solid",   // "solid" | "dotted" | "starts" (only the start dots, no stroke)
   opacity     = 1,
   showNumbers = false,
   showArrows  = true,
@@ -177,7 +177,7 @@ export default function LetterGlyph({
 
       {/* ghost outline with direction arrows — always full strength so the
           motor plan stays legible even when the guide stroke itself fades */}
-      {showArrows && strokes.map((s, i) => (
+      {showArrows && variant !== "starts" && strokes.map((s, i) => (
         <path key={`g${i}`} d={s.d} fill="none"
           stroke={color} strokeWidth={strokeW}
           strokeLinecap="round" strokeLinejoin="round" opacity={0.14}
@@ -186,7 +186,19 @@ export default function LetterGlyph({
 
       {/* guide stroke — always visible, solid/dotted/faded per page type.
           Independent of the tap-to-animate overlay below. */}
-      {strokes.map((s, i) => (
+      {/* «Точки начала»: a faint trace of the element (so neighbouring
+          copies' dots don't read as one dotted line) and a bold dot where
+          the pencil goes down. */}
+      {variant === "starts" && strokes.map((s, i) => (
+        <path key={`trace${i}`} d={s.d} fill="none" stroke={color} strokeWidth={5}
+          strokeLinecap="round" strokeLinejoin="round" opacity={0.28} />
+      ))}
+      {variant === "starts" && strokes.map((s, i) => {
+        const [sx, sy] = parseStartPoint(s.d);
+        return <circle key={`start${i}`} cx={sx} cy={sy} r={START_R} fill={START_COLOR} />;
+      })}
+
+      {variant !== "starts" && strokes.map((s, i) => (
         <path
           key={`guide${i}`}
           d={s.d}
@@ -201,7 +213,7 @@ export default function LetterGlyph({
 
       {/* pen-demo overlay — solid, drawn progressively on tap/autoplay, then
           hidden again so the guide underneath (e.g. dotted) shows through */}
-      {strokes.map((s, i) => (
+      {variant !== "starts" && strokes.map((s, i) => (
         <path
           key={`a${i}`}
           data-lg-anim={i}
@@ -237,7 +249,7 @@ export default function LetterGlyph({
               <circle cx={ox} cy={oy} r={BADGE_R} fill={BADGE_FILL[badgeStates[i]]} stroke="white" strokeWidth={0.8} />
               <text x={ox} y={oy + 2} textAnchor="middle" fontSize={6.5} fontWeight="700"
                 fill={BADGE_TEXT[badgeStates[i]]} style={{ userSelect: "none", pointerEvents: "none" }}>
-                {i + 1}
+                {s.n ?? i + 1}
               </text>
             </g>
           );

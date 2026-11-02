@@ -1,20 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { usePopupPos } from "./usePopupPos";
-import { IconPaperSquare, IconPaperRuled } from "./icons";
 
 const PANEL_W = 170;
-const OPTIONS = [
-  { id: "cell", label: "Клетка", Icon: IconPaperSquare },
-  { id: "line", label: "Линейка", Icon: IconPaperRuled },
-];
 
-// Page-level background choice, same button-pops-a-list pattern as the other
-// toolbar pickers — propis2's own "Тип бумаги" (Propis2Editor.jsx). Клетка
-// snaps a letter to both the grid's horizontal AND vertical lines (its 2×2
-// cell box sits flush inside one grid square); линейка drops the vertical
-// lines and anchors only the letter's own baseline — the bottom edge of
-// that same box — to one of the remaining horizontal lines.
-export default function PaperPicker({ value, onChange }) {
+// A page/notebook setting picked from a short list — propis2's own toolbar
+// picker pattern (Propis2Picker: a button that pops a list under itself).
+// Used for the paper (Клетка/Линейка — Клетка snaps letters to both grid
+// axes, Линейка keeps only the horizontal lines) and the format (А4/А5).
+export default function OptionPicker({ options, value, onChange, label, caption }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
@@ -29,7 +22,7 @@ export default function PaperPicker({ value, onChange }) {
     return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
   }, [open]);
 
-  const current = OPTIONS.find((o) => o.id === value) ?? OPTIONS[0];
+  const current = options.find((o) => o.id === value) ?? options[0];
   const pick = (id) => { setOpen(false); onChange(id); };
 
   return (
@@ -40,14 +33,15 @@ export default function PaperPicker({ value, onChange }) {
         className={`pl-tool${open ? " is-open" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={`${label}: ${current.label}`}
         onClick={() => setOpen((o) => !o)}
       >
         <span className="pl-tool-ico"><current.Icon /></span>
-        <span className="pl-tool-cap">{current.label}</span>
+        <span className="pl-tool-cap">{caption ?? current.label}</span>
       </button>
       {open && (
-        <div className="pl-row-pick-list" role="listbox" aria-label="Подложка страницы" style={{ ...panelStyle, width: PANEL_W }}>
-          {OPTIONS.map(({ id, label, Icon }) => (
+        <div className="pl-row-pick-list" role="listbox" aria-label={label} style={{ ...panelStyle, width: PANEL_W }}>
+          {options.map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
