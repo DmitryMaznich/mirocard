@@ -201,7 +201,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-11-02T16:39:59+00:00"
+      "sourceUpdatedAt": "2026-11-02T18:17:54+00:00"
     },
     {
       "id": "comparison_language_pilot",
@@ -811,6 +811,49 @@
         }
       },
       "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+    },
+    {
+      "id": "print_letters",
+      "title": {
+        "ru": "Печатные буквы",
+        "en": "Block Letters"
+      },
+      "version": "0.1.0",
+      "renderer": "print_letters",
+      "sources": [
+        "public/decks/print_letters_v0.1.0.zip",
+        "src/topics/renderers/print_letters",
+        "tools/print_letters/topic.json"
+      ],
+      "bundle": {
+        "version": "0.1.0",
+        "url": "./decks/print_letters_v0.1.0.zip",
+        "title": {
+          "ru": "Печатные буквы",
+          "en": "Block Letters"
+        },
+        "description": "Конструктор листов и тетрадей для печати: печатные заглавные буквы для дошкольников 4–6 лет. Буквы стоят на клетке или линейке, каждая строка блока — элементы буквы и уровень опоры, лист печатается в А4 или А5.",
+        "renderer": "print_letters",
+        "modes": 1,
+        "cards": 8
+      },
+      "builtin": false,
+      "catalogEntry": {
+        "id": "print_letters",
+        "version": "0.1.0",
+        "url": "./decks/print_letters_v0.1.0.zip",
+        "title": {
+          "ru": "Печатные буквы",
+          "en": "Block Letters"
+        },
+        "description": {
+          "ru": "Конструктор листов и тетрадей для печати: печатные заглавные буквы для дошкольников. Блок буквы собирается лесенкой — элемент за элементом, потом опора убывает; в каждой строке взрослый сам выбирает элементы буквы и опору (пунктир, точки начала, бледнеющий след, образец). Клетка или линейка, формат А4 или А5.",
+          "en": "Printable worksheet and notebook builder for block capital letters: each letter built step by step on a grid or ruled paper, with fading support, A4 or A5."
+        },
+        "status": "beta",
+        "access": "paid"
+      },
+      "sourceUpdatedAt": null
     },
     {
       "id": "print_materials",

@@ -244,6 +244,21 @@ hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
 the owner's rules learned the hard way, the work procedure and open items;
 per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
+## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
+
+Printed-letter worksheet/notebook constructor for preschoolers (4–6yo), not cursive — a separate
+topic from `propis2` (cursive) and from `letter_writing` (hidden/paid, **independent — don't touch**).
+**Read the «Handoff» section of `docs/print-letters.md` first** (current branch, what's built, the
+owner's decisions, the screenshot harness, past process mistakes), then its «Разворот» sections for
+why each earlier shape was replaced. Key facts: glyphs live in notebook-cell coordinates in
+`tools/print_letters/topic.json` (1 cell = 50 units, letters 2 cells tall, `cells` wide — most 1,
+Ш 2), so strokes on cell boundaries print exactly on grid lines — never stretch or crop them;
+every length in a block is a whole number of 5mm cells (`model.js`); format А4/А5 is notebook-wide
+and the sheet is drawn at real printable size; rows are `{elements, support}` picked in the row
+panel (`RowInspector.jsx`, right side; bottom sheet on phones). UI copies `propis2`'s editor
+model, palette and icons (copied, not imported from `src/features/propis2/`). Registered in
+`engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** (no ZIP yet).
+
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.

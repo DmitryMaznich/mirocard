@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
-import { tokenizeReadingLine } from "./engine";
+import { generateTasks, tokenizeReadingLine } from "./engine";
 import { getStoryQuizTargetMatches, tokenizeStoryQuizWords } from "./storyQuiz";
 import { StoryPictures, StoryPictureSupport } from "./StoryPictures";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
@@ -341,7 +341,7 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef, minimal = false, storyIn
 
   const setStripRef = useCallback((node) => {
     stripRef.current = node;
-    navRef(node);
+    navRef?.(node);
   }, [navRef]);
 
   function applyDragVisual(dx) {
@@ -446,6 +446,8 @@ function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   const isMicro = !!task.text?.sentenceLayout;
   const fit = useStoryFit(!isMicro, [task.text?.id, textStyle, lines.length], { spreadCapable: hasImage });
 
+  if (isMicro) return <MicroStoryReader key={task.textId} task={task} topicId={topicId} textStyle={textStyle} onAdvance={onAdvance} onPrevious={onPrevious} />;
+
   return (
     <div className={`session-body reading-body reading-page story-screen${hasImage ? " story-screen--with-image" : ""}${task.text?.sentenceLayout ? " story-screen--micro" : ""}`} ref={fit.bodyRef}>
       <div className="story-text-wrap" ref={fit.textWrapRef}>
@@ -461,6 +463,91 @@ function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
         <ReadingIllustration topicId={topicId} text={task.text} />
       ) : null}
       <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} navRef={fit.navRef} minimal={isMicro} storyIndex={task.storyIndex} storyCount={task.storyCount} />
+    </div>
+  );
+}
+
+function MicroStoryReader({ task, topicId, textStyle, onAdvance, onPrevious }) {
+  const topicRecord = useAppStore((state) => state.topicRecords.find((record) => record.meta.id === topicId));
+  const [questionsVisible, setQuestionsVisible] = useState(false);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState([]);
+  const [finished, setFinished] = useState(false);
+  const [missed, setMissed] = useState(false);
+  const answerGate = useRef(false);
+  const pictureUsed = useRef(false);
+  const bodyRef = useRef(null);
+  const questions = useMemo(() => task.storyQuestions ?? (topicRecord ? generateTasks({ type: "story_quiz" }, topicRecord, task.textId, {
+    storyStage: "micro", selectedMicroStories: [task.textId],
+  }).map(({ question, expectedAnswer }) => ({ ...question, expectedAnswer })) : []), [task.storyQuestions, task.textId, topicRecord]);
+  const question = questions[questionIndex];
+  const findCount = questions.filter((item) => item.kind !== "discuss").length;
+  const answered = answers.some((item) => item.id === question?.id);
+  const discussing = question?.kind === "discuss";
+  useLayoutEffect(() => {
+    if (questionsVisible && bodyRef.current) bodyRef.current.scrollTop = 0;
+  }, [questionsVisible, questionIndex]);
+
+  function toggleQuestions() {
+    if (questionsVisible && !answered) pictureUsed.current = true;
+    setQuestionsVisible(!questionsVisible);
+  }
+  function chooseAnswer() {
+    if (answerGate.current || answered || finished || !question || discussing) return;
+    answerGate.current = true;
+    setMissed(false);
+    setAnswers((previous) => [...previous, { id: question.id, prompt: question.prompt, answer: question.target, assisted: pictureUsed.current }]);
+  }
+  function nextQuestion() {
+    if (!answered) return;
+    if (questionIndex === questions.length - 1) { setFinished(true); return; }
+    answerGate.current = false;
+    pictureUsed.current = false;
+    setMissed(false);
+    setQuestionIndex((index) => index + 1);
+  }
+  function finishDiscussion() {
+    if (question?.expectedAnswer && !answers.some((answer) => answer.id === question.id)) {
+      setAnswers((previous) => [...previous, { id: question.id, prompt: question.prompt, answer: question.expectedAnswer, kind: "discuss", assisted: pictureUsed.current }]);
+    }
+    setFinished(true);
+  }
+
+  return (
+    <div ref={bodyRef} className={`session-body reading-body reading-page story-screen story-screen--micro${questionsVisible ? " micro-exercise" : ""}${answers.length ? " micro-has-answers" : ""}`}>
+      <div className="story-text-wrap">
+        <div className="micro-reader-controls">
+          <div className="micro-reader-eyebrow">{questionsVisible ? "Находим ответы в тексте" : "Читаем вместе"}</div>
+          {questions.length > 0 && <button type="button" className="micro-questions-toggle" aria-pressed={questionsVisible} onClick={toggleQuestions}>
+            {questionsVisible ? "Рассказ" : "Вопросы"}
+          </button>}
+        </div>
+        <div className="reading-title">{getTopicTitle(task.text.title)}</div>
+        {questionsVisible && !discussing && !finished ? <StoryQuizTargetText
+          key={question.id} lines={task.text.lines} textStyle={textStyle} target={question.target}
+          answered={answered} onTarget={chooseAnswer} onMiss={() => setMissed(true)} sentenceLayout
+        /> : <ReadingTextBlock lines={task.text.lines} textStyle={textStyle} />}
+        {questionsVisible && <StoryPictureSupport key={questionIndex} topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
+      </div>
+      {!questionsVisible ? <div className="story-illustration"><StoryPictures topicId={topicId} text={task.text} /></div> : (
+        <section className="micro-exercise-question" aria-labelledby="micro-current-question">
+          <div className="micro-reader-eyebrow">{finished ? "Готово" : discussing ? "Обсудите вместе" : `Вопрос ${questionIndex + 1} из ${findCount}`}</div>
+          <h2 id="micro-current-question">{finished ? "Все ответы найдены" : question?.prompt}</h2>
+          {finished ? <p>Вопросы и ответы остались внизу. Можно ещё раз обсудить рассказ.</p>
+            : discussing ? <><p>Ответ можно сказать, показать или разыграть.</p><button type="button" className="micro-exercise-next" onClick={finishDiscussion}>Обсудили</button></>
+            : <>
+              <p role="status">{answered ? "Ответ найден и сохранён внизу." : missed ? "Посмотри в тексте ещё раз." : "Нажми на нужное слово или фразу в рассказе."}</p>
+              {answered && <button type="button" className="micro-exercise-next" onClick={nextQuestion}>{questionIndex === questions.length - 1 ? "Закончить вопросы" : "Следующий вопрос"}</button>}
+            </>}
+        </section>
+      )}
+      {answers.length > 0 && <section className="micro-answer-history" aria-label="Вопросы и ответы">
+        <h2>Вопросы и ответы</h2>
+        <ol>{answers.map((answer) => <li key={answer.id} data-assisted={answer.assisted ? "true" : "false"}>
+          <span>{answer.prompt}{answer.kind === "discuss" && <small className="micro-answer-kind">Вариант ответа</small>}</span><strong>{answer.answer}</strong>
+        </li>)}</ol>
+      </section>}
+      {(!questionsVisible || finished) && <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} minimal storyIndex={task.storyIndex} storyCount={task.storyCount} />}
     </div>
   );
 }
