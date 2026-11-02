@@ -40,7 +40,9 @@ function Scene({ task, imageUrl, answered, correctAnswer, wrongPick }) {
   return (
     <div className="reallife-scene">
       {imageUrl
-        ? <img className="reallife-scene-img" src={imageUrl} alt="" draggable={false} />
+        // Mirrored showing: only the picture flips; the name tags sit in the
+        // overlay above it, so their text never reads backwards.
+        ? <img className={`reallife-scene-img${task.mirror ? " reallife-scene-img--mirror" : ""}`} src={imageUrl} alt="" draggable={false} />
         : <div className="reallife-scene-img reallife-scene-img--loading" aria-hidden="true" />}
       <div className="reallife-overlay">
         <div className={[

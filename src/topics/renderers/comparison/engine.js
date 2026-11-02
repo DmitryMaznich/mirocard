@@ -330,7 +330,26 @@ function generateApplyOrderTask(min, max, count, direction) {
 // has more. Before this, the question was always "больше" and the two
 // happened to coincide; correctAnswer is the one place that separates them,
 // so CompareRealLife.jsx never has to re-derive "more" vs "less" itself.
-function realLifeTaskFromScene(scene, askDirection) {
+//
+// mirror: the picture is shown flipped (CompareRealLife.jsx), so the two
+// sides swap — names, counts and every per-side field — before anything
+// else is derived; the bank doubles without a new picture, and the boy is
+// not always on the left.
+//
+// phrase: the verdict's step on the speech ladder — "short" («У Маши
+// больше»), "item" («У Маши больше яблок») or "full" (default, «У Маши
+// больше яблок, чем у Пети»).
+const REAL_LIFE_SIDE_FIELDS = [["left", "right"], ["nameA", "nameB"], ["nameANom", "nameBNom"], ["genderA", "genderB"], ["nameALoc", "nameBLoc"]];
+export const REAL_LIFE_PHRASES = ["short", "item", "full"];
+
+function mirrorScene(scene) {
+  const out = { ...scene };
+  for (const [a, b] of REAL_LIFE_SIDE_FIELDS) { out[a] = scene[b]; out[b] = scene[a]; }
+  return out;
+}
+
+function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phrase = "full" } = {}) {
+  const scene = mirror ? mirrorScene(sourceScene) : sourceScene;
   const dataFact = scene.left === scene.right ? "equal" : scene.left > scene.right ? "more" : "less";
   // Most scenes count discrete objects ("больше яблок?"); a few compare a
   // continuous amount inside a container instead (water in a glass, porridge
@@ -366,21 +385,23 @@ function realLifeTaskFromScene(scene, askDirection) {
     instruction = `Где ${where}${askWord} ${scene.item}?`;
     labelA = `${cap(prep)} ${scene.nameALoc}`;
     labelB = `${cap(prep)} ${scene.nameBLoc}`;
+    const [winLoc, loseLoc] = correctAnswer === "a" ? [scene.nameALoc, scene.nameBLoc] : [scene.nameBLoc, scene.nameALoc];
     verdictText = dataFact === "equal"
-      ? `${cap(prep)} ${scene.nameALoc} и ${prep} ${scene.nameBLoc} ${where}${scene.item} поровну.`
-      : correctAnswer === "a"
-        ? `${cap(prep)} ${scene.nameALoc} ${where}${askWord} ${scene.item}, чем ${prep} ${scene.nameBLoc}.`
-        : `${cap(prep)} ${scene.nameBLoc} ${where}${askWord} ${scene.item}, чем ${prep} ${scene.nameALoc}.`;
+      ? { short: "Поровну.", item: `${cap(scene.item)} ${where}поровну.`,
+          full: `${cap(prep)} ${scene.nameALoc} и ${prep} ${scene.nameBLoc} ${where}${scene.item} поровну.` }[phrase]
+      : { short: `${cap(prep)} ${winLoc} ${askWord}.`, item: `${cap(prep)} ${winLoc} ${where}${askWord} ${scene.item}.`,
+          full: `${cap(prep)} ${winLoc} ${where}${askWord} ${scene.item}, чем ${prep} ${loseLoc}.` }[phrase];
   } else {
     const interrogative = askKind === "what" ? "чего" : "кого";
     instruction = `У ${interrogative} ${where}${askWord} ${scene.item}?`;
     labelA = `У ${scene.nameA}`;
     labelB = `У ${scene.nameB}`;
+    const [win, lose] = correctAnswer === "a" ? [scene.nameA, scene.nameB] : [scene.nameB, scene.nameA];
     verdictText = dataFact === "equal"
-      ? `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.`
-      : correctAnswer === "a"
-        ? `У ${scene.nameA} ${where}${askWord} ${scene.item}, чем у ${scene.nameB}.`
-        : `У ${scene.nameB} ${where}${askWord} ${scene.item}, чем у ${scene.nameA}.`;
+      ? { short: "Поровну.", item: `${cap(scene.item)} ${where}поровну.`,
+          full: `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.` }[phrase]
+      : { short: `У ${win} ${askWord}.`, item: `У ${win} ${where}${askWord} ${scene.item}.`,
+          full: `У ${win} ${where}${askWord} ${scene.item}, чем у ${lose}.` }[phrase];
   }
 
   return {
@@ -397,7 +418,62 @@ function realLifeTaskFromScene(scene, askDirection) {
     genderA: scene.genderA, genderB: scene.genderB,
     item: scene.item, containerPhrase: scene.containerPhrase, askKind,
     prep: scene.prep, nameALoc: scene.nameALoc, nameBLoc: scene.nameBLoc,
-    correctAnswer, instruction, verdictText, labelA, labelB, image: scene.image,
+    correctAnswer, instruction, verdictText, labelA, labelB, image: scene.image, mirror,
+  };
+}
+
+// «Всем хватает?» (compare_enough): everyday one-to-one — children and
+// chairs, cups and saucers... The scene is built from separate sprites
+// (tools/comparison/media/enough, scripts/generate-enough-sprites.mjs), so
+// the count on screen is always the task's count. Each set carries its
+// Russian: the question, the genitive plural of both sides, and the «not
+// enough» / «spare» sentences for one and for two, gender and case per noun.
+// `place` is where a matched object goes relative to its character's box
+// (anchor, offset in box heights, size as a share of the box, in front of or
+// behind it) — the screen reads it, the engine only passes it on.
+export const ENOUGH_SETS = [
+  { id: "chairs", who: "kid", thing: "chair", question: "Всем хватает стульев?", tapHint: "Нажимай на стулья", whoGen: "детей", thingGen: "стульев",
+    lack: ["Одному не хватает стула.", "Двоим не хватает стульев."], spare: ["Один стул лишний.", "Два стула лишних."],
+    place: { anchor: "bottom", dy: 0.08, size: 0.62, front: true } },
+  { id: "cups", who: "cup", thing: "saucer", question: "Всем чашкам хватает блюдец?", tapHint: "Нажимай на блюдца", whoGen: "чашек", thingGen: "блюдец",
+    lack: ["Одной чашке не хватает блюдца.", "Двум чашкам не хватает блюдец."], spare: ["Одно блюдце лишнее.", "Два блюдца лишних."],
+    place: { anchor: "bottom", dy: 0.06, size: 1.15, front: false } },
+  { id: "dogs", who: "dog", thing: "bone", question: "Всем собакам хватает косточек?", tapHint: "Нажимай на косточки", whoGen: "собак", thingGen: "косточек",
+    lack: ["Одной собаке не хватает косточки.", "Двум собакам не хватает косточек."], spare: ["Одна косточка лишняя.", "Две косточки лишние."],
+    place: { anchor: "bottom", dy: 0.12, size: 0.6, front: true } },
+  { id: "rabbits", who: "rabbit", thing: "carrot", question: "Всем кроликам хватает морковок?", tapHint: "Нажимай на морковки", whoGen: "кроликов", thingGen: "морковок",
+    lack: ["Одному кролику не хватает морковки.", "Двум кроликам не хватает морковок."], spare: ["Одна морковка лишняя.", "Две морковки лишние."],
+    place: { anchor: "bottom", dy: 0.12, size: 0.55, front: true } },
+  { id: "cars", who: "car", thing: "garage", question: "Всем машинкам хватает гаражей?", tapHint: "Нажимай на гаражи", whoGen: "машинок", thingGen: "гаражей",
+    lack: ["Одной машинке не хватает гаража.", "Двум машинкам не хватает гаражей."], spare: ["Один гараж лишний.", "Два гаража лишних."],
+    place: { anchor: "center", dy: -0.05, size: 1.45, front: false } },
+  { id: "hats", who: "kid", thing: "hat", question: "Всем хватает шапок?", tapHint: "Нажимай на шапки", whoGen: "детей", thingGen: "шапок",
+    lack: ["Одному не хватает шапки.", "Двоим не хватает шапок."], spare: ["Одна шапка лишняя.", "Две шапки лишние."],
+    place: { anchor: "top", dy: -0.04, size: 0.42, front: true } },
+];
+export const ENOUGH_ORDERS = ["check", "answer"];
+const ENOUGH_SPRITE_VARIANTS = 6;
+
+// One task: 3–6 characters; the outcome cycles evenly through «не хватает»
+// (1 or 2 short), «поровну» and «лишние» (1 or 2 extra), so «хватает» is not
+// the safe guess.
+function generateEnoughTask(set, outcome) {
+  const who = 3 + Math.floor(Math.random() * 4);
+  const diff = outcome === "equal" ? 0 : (Math.random() < 0.5 ? 1 : 2) * (outcome === "lack" ? -1 : 1);
+  const things = Math.min(7, Math.max(2, who + diff));
+  const variants = shuffle(Array.from({ length: ENOUGH_SPRITE_VARIANTS }, (_, i) => i + 1));
+  const whoSprites = Array.from({ length: who }, (_, i) => `media/enough/${set.who}_${variants[i % variants.length]}.png`);
+  const cap = (w) => w[0].toUpperCase() + w.slice(1);
+  const short = who - things, extra = things - who;
+  const verdictText = short > 0
+    ? `${cap(set.thingGen)} не хватает. ${set.lack[short === 1 ? 0 : 1]}`
+    : extra > 0
+      ? `${cap(set.thingGen)} хватает всем. ${set.spare[extra === 1 ? 0 : 1]}`
+      : `${cap(set.thingGen)} хватает всем: ${set.whoGen} и ${set.thingGen} поровну.`;
+  return {
+    set: set.id, who, things, enough: things >= who,
+    whoSprites, thingSprite: `media/enough/${set.thing}.png`, place: set.place,
+    instruction: set.question, tapHint: set.tapHint, verdictText,
   };
 }
 
@@ -468,19 +544,35 @@ export function generateTestSheet(range, count) {
   return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enoughOrder?: "check"|"answer" (compare_enough) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
+
+  if (mode.type === "compare_enough") {
+    const card = resolveComparisonCard(mode, cards, sessionParams);
+    if (!card) return [];
+    const order = ENOUGH_ORDERS.includes(sessionParams.enoughOrder) ? sessionParams.enoughOrder : "check";
+    const tasks = [];
+    let sets = [], outcomes = [];
+    for (let i = 0; i < count; i++) {
+      if (!sets.length) sets = shuffle(ENOUGH_SETS);
+      if (!outcomes.length) outcomes = shuffle(["lack", "equal", "spare"]);
+      tasks.push({ type: mode.type, conceptId: card.conceptId, order, ...generateEnoughTask(sets.pop(), outcomes.pop()) });
+    }
+    return tasks;
+  }
 
   if (mode.type === "compare_real_life") {
     const card = resolveComparisonCard(mode, cards, sessionParams);
     if (!card) return [];
     const questionMode = sessionParams.question ?? "more";
+    const phrase = REAL_LIFE_PHRASES.includes(sessionParams.phrase) ? sessionParams.phrase : "full";
     const cycle = shuffledSceneCycle();
     const tasks = [];
     for (let i = 0; i < count; i++) {
       const askDirection = questionMode === "mix" ? (Math.random() < 0.5 ? "more" : "less") : questionMode;
-      const t = realLifeTaskFromScene(cycle.next().value, askDirection);
+      // Half of the showings are mirrored — always on, nothing to set.
+      const t = realLifeTaskFromScene(cycle.next().value, askDirection, { mirror: Math.random() < 0.5, phrase });
       tasks.push({ type: mode.type, conceptId: card.conceptId, allowEqual: true, ...t });
     }
     return tasks;

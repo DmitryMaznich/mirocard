@@ -602,6 +602,7 @@
   overflow: hidden;
 }
 .reallife-scene-img { display: block; width: 100%; height: auto; }
+.reallife-scene-img--mirror { transform: scaleX(-1); }
 /* Same box as the picture (900 × 604) while it loads from the installed topic. */
 .reallife-scene-img--loading { aspect-ratio: 900 / 604; background: #f1f5f9; }
 .reallife-overlay { position: absolute; inset: 0; display: flex; }
@@ -636,6 +637,41 @@
 
 .compare-body--reallife .cfn-options { flex-direction: row; max-width: 480px; }
 .compare-body--reallife .cfn-btn { min-height: 56px; flex: 1; font-size: clamp(14px, 3.6vw, 17px); font-weight: 800; padding: 0 6px; }
+
+/* «Всем хватает?» (CompareEnough.jsx): characters in the top row, their
+   objects in the bottom row; a matched object sits inside its character's
+   box (left/top/width from ENOUGH_SETS.place via inline style). */
+.enough-body { gap: 14px; }
+.enough-board {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 560px; box-sizing: border-box;
+  background: #fff; border-radius: 24px; padding: 16px 10px 14px;
+  box-shadow: 0 6px 22px rgba(15,23,42,0.12);
+  display: flex; flex-direction: column; gap: clamp(14px, 4vw, 28px);
+}
+.enough-row { display: grid; gap: clamp(4px, 1.5vw, 12px); align-items: end; justify-items: center; }
+.enough-who { position: relative; width: 100%; max-width: 110px; aspect-ratio: 0.8; display: flex; align-items: flex-end; justify-content: center; }
+.enough-who-img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; pointer-events: none; user-select: none; }
+.enough-placed { position: absolute; height: auto; pointer-events: none; user-select: none; }
+.enough-who--without .enough-who-img { animation: enough-glow 0.8s ease-in-out infinite; }
+.enough-thing {
+  width: 100%; max-width: 92px; aspect-ratio: 1; padding: 4px; border: 0; background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.enough-thing img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.enough-thing:disabled { cursor: default; }
+.enough-thing--spare img { animation: enough-glow 0.8s ease-in-out infinite; }
+.enough-options { flex-direction: row; max-width: 480px; }
+.enough-options .cfn-btn { flex: 1; min-height: 56px; font-size: clamp(16px, 4vw, 20px); font-weight: 800; }
+.enough-hint { font-size: clamp(15px, 3.6vw, 18px); font-weight: 700; color: #64748b; text-align: center; min-height: 1.4em; }
+@keyframes enough-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(245,158,11,0)); }
+  50%      { filter: drop-shadow(0 0 10px rgba(245,158,11,0.95)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enough-who--without .enough-who-img, .enough-thing--spare img { animation: none; filter: drop-shadow(0 0 6px rgba(245,158,11,0.95)); }
+}
 
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {

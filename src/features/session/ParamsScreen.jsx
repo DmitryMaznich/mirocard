@@ -25,7 +25,7 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, PLACE_VALUE_MODE_IDS, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_ORDERS, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
 import { DOT_LAYOUTS } from "@/topics/renderers/comparison/dotLayout.js";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
@@ -1434,6 +1434,9 @@ function ComparisonParams({ params, onChange }) {
   // which side actually answers it, rather than always hard-coding
   // "больше" the way this mode used to.
   const isRealLifeMode   = activeModeId === "compare_real_life";
+  // «Всем хватает?»: counts come from the task itself (3–6, the outcome
+  // cycles), no level, no «=», no more/less, no number words — only the order.
+  const isEnoughMode     = activeModeId === "compare_enough";
   const isEvaluateFamily  = isEvaluateMode || isTestMode;
 
   const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
@@ -1474,7 +1477,19 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
-      {!isRealLifeMode && !isTestMode && (
+      {isEnoughMode && (
+        <EnumParam
+          label={tr("setup.enoughOrder")}
+          options={ENOUGH_ORDERS}
+          labels={Object.fromEntries(ENOUGH_ORDERS.map((v) => [v, tr(`setup.enoughOrder.${v}`)]))}
+          value={params.enoughOrder ?? "check"}
+          ordered
+          hint={tr(`setup.enoughOrderHint.${params.enoughOrder ?? "check"}`)}
+          onChange={(v) => onChange({ ...params, enoughOrder: v })}
+        />
+      )}
+
+      {!isRealLifeMode && !isTestMode && !isEnoughMode && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.level")}</div>
           <div className="param-enum-row">
@@ -1522,7 +1537,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && (
+      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && !isEnoughMode && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.teach")}</div>
           <div className="param-enum-section">
@@ -1619,6 +1634,21 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
+      {/* «Сравни в жизни»: the verdict as a speech ladder — short → with the
+          item → full (default, the step's target). The short ones are for a
+          child who struggles to repeat the long sentence. */}
+      {isRealLifeMode && (
+        <EnumParam
+          label={tr("setup.phrase")}
+          options={REAL_LIFE_PHRASES}
+          labels={Object.fromEntries(REAL_LIFE_PHRASES.map((v) => [v, tr(`setup.phrase.${v}`)]))}
+          value={params.phrase ?? "full"}
+          ordered
+          hint={tr(`setup.phraseHint.${params.phrase ?? "full"}`)}
+          onChange={(v) => onChange({ ...params, phrase: v })}
+        />
+      )}
+
       {/* «Как лежат точки»: rows → scatter → lure, only where there is a pile
           of dots to judge (not pairs, not numbers). The lure brings «поровну»
           with it: its strongest task is an equal pair that looks unequal. */}
@@ -1634,7 +1664,7 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
-      {!isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
+      {!isFirstNumberMode && !isApplyMode && !isRealLifeMode && !isEnoughMode && (
         // compare_first_number's own verdict is always spoken as words by
         // design ("Три меньше семи"), compare_apply has no left/right
         // verdict sentence at all, and compare_real_life's verdict is a
@@ -1796,6 +1826,8 @@ export default function ParamsScreen() {
         wordsVerdict:  saved.wordsVerdict  ?? false,
         visualMode,
         dotLayout:     DOT_LAYOUTS.includes(saved.dotLayout) ? saved.dotLayout : "rows",
+        phrase:        REAL_LIFE_PHRASES.includes(saved.phrase) ? saved.phrase : "full",
+        enoughOrder:   ENOUGH_ORDERS.includes(saved.enoughOrder) ? saved.enoughOrder : "check",
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",
