@@ -660,6 +660,12 @@
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
 .enough-thing img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+/* Mover characters (cups, cars) are the buttons; their objects (saucers,
+   garages) stay put and hold them once paired. */
+.enough-thing--target { position: relative; }
+.enough-thing--target .enough-placed { max-width: none; max-height: none; }
+.enough-who--mover { padding: 0; border: 0; background: none; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.enough-who--mover:disabled { cursor: default; }
 .enough-thing:disabled { cursor: default; }
 .enough-thing--spare img { animation: enough-glow 0.8s ease-in-out infinite; }
 .enough-options { flex-direction: row; max-width: 480px; }

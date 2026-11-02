@@ -4,6 +4,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 // mode). Characters stand in the top row, their objects lie in the bottom
 // row; every tap on an object gives it to the next character who has none.
 //
+// What moves is what the action names (task.mover, see ENOUGH_SETS): the
+// chair to the child, the cup onto its saucer, the car into its garage.
+//
 // The child answers one question, «Всем детям хватает стульев?» — Хватает /
 // Не хватает; the «почему» (детей больше, чем стульев) is the adult's to say,
 // prompted by a small line under the sentence (see ENOUGH_SETS in engine.js).
@@ -55,20 +58,26 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
   const urls = useTopicFiles([...task.whoSprites, task.thingSprite], topicId, loadTopicFileUrl);
   const steps = stepsFor(task.order);
   const [stepIdx, setStepIdx] = useState(0);
-  const [owner, setOwner] = useState(() => Array(task.things).fill(-1)); // owner[thing] = character index, -1 still in the row
+  // pairs[k] = [character, object], in the order they were made. What moves
+  // is what the action names (task.mover): «Дай каждому ребёнку стул» — the
+  // chair goes to the child; «Поставь каждую чашку на блюдце» — the cup goes
+  // down onto the saucer, and a cup left without one stays alone on top.
+  const [pairs, setPairs] = useState([]);
   const [picked, setPicked] = useState({});          // { enough: "yes"|"no" } — the given answer
   const [shake, setShake] = useState(null);          // the button value shaking after a wrong answer
   const reportedRef = useRef(false);
-  const movingRef = useRef(null);                    // { thing, from: DOMRect } for the glide
+  const movingRef = useRef(null);                    // { pair, from: DOMRect } for the glide
   const placedRefs = useRef([]);
 
+  const moverIsWho = task.mover === "who";
   const step = steps[stepIdx] ?? "done";
   const done = step === "done";
-  const placedCount = owner.filter((o) => o >= 0).length;
-  const matched = placedCount === Math.min(task.who, task.things);
+  const matched = pairs.length === Math.min(task.who, task.things);
   const showOutcome = matched;                       // who is without / what is spare lights up once matched
   const cols = Math.max(task.who, task.things);
   const right = { enough: task.enough ? "yes" : "no" };
+  const pairOfWho = (w) => pairs.findIndex(([pw]) => pw === w);
+  const pairOfThing = (t) => pairs.findIndex(([, pt]) => pt === t);
 
   useEffect(() => {
     if (done && !reportedRef.current) {
@@ -77,7 +86,7 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
     }
   }, [done, onCorrect, task.conceptId]);
 
-  // The last object placed ends the matching step.
+  // The last pair made ends the matching step.
   useEffect(() => {
     if (step === "match" && matched) {
       const t = window.setTimeout(() => setStepIdx((i) => i + 1), 450);
@@ -85,25 +94,32 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
     }
   }, [step, matched]);
 
-  // Glide: the object is drawn at its new place right away, then animated
-  // from where it was tapped.
+  // Glide: the moved picture is drawn at its new place right away, then
+  // animated from where it was tapped.
   useLayoutEffect(() => {
     const moving = movingRef.current;
     if (!moving) return;
     movingRef.current = null;
-    const el = placedRefs.current[moving.thing];
+    const el = placedRefs.current[moving.pair];
     if (!el?.animate) return;
     const to = el.getBoundingClientRect();
     const dx = moving.from.left + moving.from.width / 2 - (to.left + to.width / 2);
     const dy = moving.from.top + moving.from.height / 2 - (to.top + to.height / 2);
     el.animate([{ transform: `${el.style.transform || ""} translate(${dx}px, ${dy}px)` }, { transform: el.style.transform || "none" }],
       { duration: 420, easing: "cubic-bezier(.3,.8,.3,1)" });
-  }, [owner]);
+  }, [pairs]);
 
-  function tapThing(i, e) {
-    if (step !== "match" || matched || owner[i] >= 0) return;
-    movingRef.current = { thing: i, from: e.currentTarget.getBoundingClientRect() };
-    setOwner((prev) => { const next = [...prev]; next[i] = placedCount; return next; });
+  // A tap on a mover pairs it with the next partner still free, left to right.
+  function tapMover(index, e) {
+    if (step !== "match" || matched) return;
+    if (moverIsWho ? pairOfWho(index) >= 0 : pairOfThing(index) >= 0) return;
+    const usedPartners = new Set(pairs.map(([w, t]) => (moverIsWho ? t : w)));
+    const partnerCount = moverIsWho ? task.things : task.who;
+    let partner = 0;
+    while (usedPartners.has(partner) && partner < partnerCount) partner++;
+    if (partner >= partnerCount) return;
+    movingRef.current = { pair: pairs.length, from: e.currentTarget.getBoundingClientRect() };
+    setPairs((prev) => [...prev, moverIsWho ? [index, partner] : [partner, index]]);
   }
 
   function answer(question, value) {
@@ -132,17 +148,29 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
     return "cfn-btn";
   }
 
+  const canTap = step === "match" && !matched;
+  const whoImg = (path, style) => urls[path] && <img className="enough-who-img" src={urls[path]} alt="" draggable={false} style={style} />;
   const board = (
     <div className="enough-board">
       <div className="enough-row enough-row--who" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
         {task.whoSprites.map((path, w) => {
-          const thing = owner.indexOf(w);
+          const k = pairOfWho(w);
+          const without = showOutcome && k < 0;
+          const cls = `enough-who${without ? " enough-who--without" : ""}${moverIsWho ? " enough-who--mover" : ""}`;
+          // Mover characters (cups, cars) leave their place when paired.
+          if (moverIsWho) {
+            return (
+              <button key={w} type="button" className={cls} disabled={!canTap || k >= 0} onClick={(e) => tapMover(w, e)}
+                style={{ visibility: k >= 0 ? "hidden" : "visible" }} aria-label={`Персонаж ${w + 1}`}>
+                {whoImg(path)}
+              </button>
+            );
+          }
           return (
-            <div key={w} className={`enough-who${showOutcome && w >= task.things ? " enough-who--without" : ""}`}>
-              {urls[path] && <img className="enough-who-img" src={urls[path]} alt="" draggable={false}
-                style={task.whoSize && task.whoSize !== 1 ? { width: `${task.whoSize * 100}%`, height: `${task.whoSize * 100}%` } : undefined} />}
-              {thing >= 0 && urls[task.thingSprite] && (
-                <img ref={(el) => { placedRefs.current[thing] = el; }} className="enough-placed" style={placedStyle(task.place)}
+            <div key={w} className={cls}>
+              {whoImg(path)}
+              {k >= 0 && urls[task.thingSprite] && (
+                <img ref={(el) => { placedRefs.current[k] = el; }} className="enough-placed" style={placedStyle(task.place)}
                   src={urls[task.thingSprite]} alt="" draggable={false} />
               )}
             </div>
@@ -150,13 +178,30 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
         })}
       </div>
       <div className="enough-row enough-row--things" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
-        {owner.map((o, i) => (
-          <button key={i} type="button" className={`enough-thing${showOutcome && o < 0 ? " enough-thing--spare" : ""}`}
-            disabled={step !== "match" || matched || o >= 0} onClick={(e) => tapThing(i, e)}
-            style={{ visibility: o >= 0 ? "hidden" : "visible" }} aria-label={`Предмет ${i + 1}`}>
-            {urls[task.thingSprite] && <img src={urls[task.thingSprite]} alt="" draggable={false} />}
-          </button>
-        ))}
+        {Array.from({ length: task.things }, (_, i) => {
+          const k = pairOfThing(i);
+          const spare = showOutcome && k < 0;
+          const thingImg = urls[task.thingSprite] && <img className="enough-thing-img" src={urls[task.thingSprite]} alt="" draggable={false} />;
+          if (moverIsWho) {
+            // Objects that stay put (saucers, garages): the character comes to them.
+            return (
+              <div key={i} className={`enough-thing enough-thing--target${spare ? " enough-thing--spare" : ""}`}>
+                {thingImg}
+                {k >= 0 && urls[task.whoSprites[pairs[k][0]]] && (
+                  <img ref={(el) => { placedRefs.current[k] = el; }} className="enough-placed" style={placedStyle(task.place)}
+                    src={urls[task.whoSprites[pairs[k][0]]]} alt="" draggable={false} />
+                )}
+              </div>
+            );
+          }
+          return (
+            <button key={i} type="button" className={`enough-thing${spare ? " enough-thing--spare" : ""}`}
+              disabled={!canTap || k >= 0} onClick={(e) => tapMover(i, e)}
+              style={{ visibility: k >= 0 ? "hidden" : "visible" }} aria-label={`Предмет ${i + 1}`}>
+              {thingImg}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

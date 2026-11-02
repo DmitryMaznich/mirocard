@@ -110,6 +110,22 @@ describe("Сравнение — «Всем хватает?»: экран", () =
     expect(calls).toEqual({ correct: 1, mistake: 1 });
   });
 
+  it("cups move onto the saucers (what the action names moves); a cup without one stays alone on top", async () => {
+    const cups = { ...base, set: "cups", mover: "who", place: ENOUGH_SETS.find((x) => x.id === "cups").place,
+      whoSprites: ["media/enough/cup_1.webp", "media/enough/cup_2.webp", "media/enough/cup_3.webp"], thingSprite: "media/enough/saucer.webp",
+      matchHint: "Поставь каждую чашку на блюдце", order: "check" };
+    await mount(cups);
+    const cupButtons = () => [...container.querySelectorAll("button.enough-who")];
+    expect(cupButtons()).toHaveLength(3);
+    expect(container.querySelectorAll("button.enough-thing")).toHaveLength(0); // saucers stay put
+    act(() => cupButtons()[2].click());
+    act(() => cupButtons()[0].click());
+    expect(cupButtons().map((b) => b.style.visibility)).toEqual(["hidden", "visible", "hidden"]);
+    const onSaucers = [...container.querySelectorAll(".enough-thing--target .enough-placed")].map((img) => img.getAttribute("src"));
+    expect(onSaucers).toEqual(["/media/enough/cup_3.webp", "/media/enough/cup_1.webp"]);
+    expect(cupButtons()[1].classList.contains("enough-who--without")).toBe(true);
+  });
+
   it("spare objects light up when everyone already has one", async () => {
     await mount({ ...base, who: 2, things: 3, enough: true, whoSprites: base.whoSprites.slice(0, 2), order: "check" });
     act(() => things()[0].click());

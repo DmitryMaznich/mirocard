@@ -60,6 +60,8 @@ p { margin: 0; max-width: 72ch; }
 .thing { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; padding: 2px; }
 .thing img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .thing.gone { visibility: hidden; }
+.thing.target { position: relative; }
+.thing.target > img.p { position: absolute; max-width: none; max-height: none; height: auto; }
 
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
 .g { background: #fff; border-radius: 12px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 1.5px solid var(--sheet-line); }
@@ -116,14 +118,18 @@ function placedStyle(p) {
 }
 function board(c, after) {
   const cols = Math.max(c.who, c.things);
-  const ws = c.whoSize !== 1 ? ` style="width:${c.whoSize * 100}%;height:${c.whoSize * 100}%"` : "";
+  const pairs = after ? Math.min(c.who, c.things) : 0;
+  const moverWho = c.mover === "who";
   const who = c.whoSp.map((sp, w) => {
-    const has = after && w < c.things;
-    return `<div class="who${after && w >= c.things ? " without" : ""}"><img class="w" src="${SPRITES[sp]}" alt=""${ws}>${has ? `<img class="p" src="${SPRITES[c.thingSp]}" style="${placedStyle(c.place)}" alt="">` : ""}</div>`;
+    const paired = w < pairs;
+    const hidden = moverWho && paired;
+    const holds = !moverWho && paired;
+    return `<div class="who${after && !paired ? " without" : ""}" style="${hidden ? "visibility:hidden" : ""}"><img class="w" src="${SPRITES[sp]}" alt="">${holds ? `<img class="p" src="${SPRITES[c.thingSp]}" style="${placedStyle(c.place)}" alt="">` : ""}</div>`;
   }).join("");
   const things = Array.from({ length: c.things }, (_, i) => {
-    const used = after && i < c.who;
-    return `<div class="thing${used ? " gone" : ""}${after && i >= c.who ? " spare" : ""}"><img src="${SPRITES[c.thingSp]}" alt=""></div>`;
+    const paired = i < pairs;
+    if (moverWho) return `<div class="thing target${after && !paired ? " spare" : ""}"><img src="${SPRITES[c.thingSp]}" alt="">${paired ? `<img class="p" src="${SPRITES[c.whoSp[i]]}" style="${placedStyle(c.place)}" alt="">` : ""}</div>`;
+    return `<div class="thing${paired ? " gone" : ""}${after && !paired ? " spare" : ""}"><img src="${SPRITES[c.thingSp]}" alt=""></div>`;
   }).join("");
   return `<div class="board"><div class="row" style="grid-template-columns:repeat(${cols},1fr)">${who}</div><div class="row" style="grid-template-columns:repeat(${cols},1fr)">${things}</div></div>`;
 }

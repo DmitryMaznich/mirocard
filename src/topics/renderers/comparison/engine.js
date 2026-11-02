@@ -438,10 +438,12 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 //
 // Each set carries its Russian (genitive plural of both sides, the dative of
 // the characters, «каждому … по …», the action, «not enough» / «spare» for one
-// and for two, gender and case per noun) and `place`: where a matched object
-// goes relative to its character's box (anchor, offset in box heights, size
-// as a share of the box, in front of or behind it). `whoSize` shrinks the
-// character inside its box when the object must hold it (a car in a garage).
+// and for two, gender and case per noun), `mover` — what the action moves:
+// the object by default («Дай каждому ребёнку стул»), the character when the
+// action is about it («Поставь каждую чашку на блюдце», «…машинку в гараж»:
+// owner's catch, 2026-11-02 — the garage must not drive onto the car) — and
+// `place`: where the moved picture goes inside its partner's box (anchor,
+// offset in box heights, size as a share of the box, in front or behind).
 export const ENOUGH_SETS = [
   { id: "chairs", each: "каждому ребёнку по стулу", who: "kid", thing: "chair", whoGen: "детей", thingGen: "стульев", whoDat: "детям",
     matchHint: "Дай каждому ребёнку стул",
@@ -450,7 +452,7 @@ export const ENOUGH_SETS = [
   { id: "cups", each: "каждой чашке по блюдцу", who: "cup", thing: "saucer", whoGen: "чашек", thingGen: "блюдец", whoDat: "чашкам",
     matchHint: "Поставь каждую чашку на блюдце",
     lack: ["Одной чашке не хватает блюдца.", "Двум чашкам не хватает блюдец."], spare: ["Одно блюдце лишнее.", "Два блюдца лишних."],
-    place: { anchor: "bottom", dy: 0.06, size: 1.15, front: false } },
+    mover: "who", place: { anchor: "bottom", dy: -0.4, size: 0.8, front: true } },
   { id: "dogs", each: "каждой собаке по косточке", who: "dog", thing: "bone", whoGen: "собак", thingGen: "косточек", whoDat: "собакам",
     matchHint: "Дай каждой собаке косточку",
     lack: ["Одной собаке не хватает косточки.", "Двум собакам не хватает косточек."], spare: ["Одна косточка лишняя.", "Две косточки лишние."],
@@ -462,7 +464,7 @@ export const ENOUGH_SETS = [
   { id: "cars", each: "каждой машинке по гаражу", who: "car", thing: "garage", whoGen: "машинок", thingGen: "гаражей", whoDat: "машинкам",
     matchHint: "Поставь каждую машинку в гараж",
     lack: ["Одной машинке не хватает гаража.", "Двум машинкам не хватает гаражей."], spare: ["Один гараж лишний.", "Два гаража лишних."],
-    place: { anchor: "bottom", dy: 0.02, size: 1.0, front: false }, whoSize: 0.78 },
+    mover: "who", place: { anchor: "bottom", dy: -0.15, size: 0.72, front: true } },
   { id: "hats", each: "каждому ребёнку по шапке", who: "kid", thing: "hat", whoGen: "детей", thingGen: "шапок", whoDat: "детям",
     matchHint: "Надень каждому ребёнку шапку",
     lack: ["Одному не хватает шапки.", "Двоим не хватает шапок."], spare: ["Одна шапка лишняя.", "Две шапки лишние."],
@@ -498,7 +500,7 @@ function generateEnoughTask(set, outcome) {
       : `Спросите: почему хватает? — Потому что сколько ${set.whoGen}, столько и ${set.thingGen}.`;
   return {
     set: set.id, who, things, enough: things >= who,
-    whoSprites, thingSprite: `media/enough/${set.thing}.webp`, place: set.place, whoSize: set.whoSize ?? 1,
+    whoSprites, thingSprite: `media/enough/${set.thing}.webp`, mover: set.mover ?? "thing", place: set.place,
     enoughQuestion: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
     matchHint: set.matchHint,
     instruction: `Всем ${set.whoDat} хватает ${set.thingGen}?`,

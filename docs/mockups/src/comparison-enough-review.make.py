@@ -8,7 +8,7 @@ SETS=[
       place=dict(anchor="bottom",dy=0.08,size=0.62,front=True)),
  dict(id="cups",who="cup",thing="saucer",whoGen="чашек",thingGen="блюдец",whoDat="чашкам",each="каждой чашке по блюдцу",match="Поставь каждую чашку на блюдце",
       lack=["Одной чашке не хватает блюдца.","Двум чашкам не хватает блюдец."],spare=["Одно блюдце лишнее.","Два блюдца лишних."],
-      place=dict(anchor="bottom",dy=0.06,size=1.15,front=False)),
+      mover="who",place=dict(anchor="bottom",dy=-0.4,size=0.8,front=True)),
  dict(id="dogs",who="dog",thing="bone",whoGen="собак",thingGen="косточек",whoDat="собакам",each="каждой собаке по косточке",match="Дай каждой собаке косточку",
       lack=["Одной собаке не хватает косточки.","Двум собакам не хватает косточек."],spare=["Одна косточка лишняя.","Две косточки лишние."],
       place=dict(anchor="bottom",dy=0.12,size=0.6,front=True)),
@@ -17,7 +17,7 @@ SETS=[
       place=dict(anchor="bottom",dy=0.12,size=0.55,front=True)),
  dict(id="cars",who="car",thing="garage",whoGen="машинок",thingGen="гаражей",whoDat="машинкам",each="каждой машинке по гаражу",match="Поставь каждую машинку в гараж",
       lack=["Одной машинке не хватает гаража.","Двум машинкам не хватает гаражей."],spare=["Один гараж лишний.","Два гаража лишних."],
-      place=dict(anchor="bottom",dy=0.02,size=1.0,front=False),whoSize=0.78),
+      mover="who",place=dict(anchor="bottom",dy=-0.15,size=0.72,front=True)),
  dict(id="hats",who="kid",thing="hat",whoGen="детей",thingGen="шапок",whoDat="детям",each="каждому ребёнку по шапке",match="Надень каждому ребёнку шапку",
       lack=["Одному не хватает шапки.","Двоим не хватает шапок."],spare=["Одна шапка лишняя.","Две шапки лишние."],
       place=dict(anchor="top",dy=-0.14,size=0.3,front=True)),
@@ -36,7 +36,7 @@ for s_ in SETS:
         else:
             v=f"{cap(s_['thingGen'])} хватает всем: {s_['each']}."; why=f"Спросите: почему хватает? — Потому что сколько {s_['whoGen']}, столько и {s_['thingGen']}."
         cards.append(dict(n=n,set=s_['id'],who=who,things=things,whoSp=[f"{s_['who']}_{(i%6)+1}" for i in range(who)],thingSp=s_['thing'],
-          place=s_['place'],whoSize=s_.get('whoSize',1),match=s_['match'],q=f"Всем {s_['whoDat']} хватает {s_['thingGen']}?",
+          place=s_['place'],whoSize=1,mover=s_.get('mover','thing'),match=s_['match'],q=f"Всем {s_['whoDat']} хватает {s_['thingGen']}?",
           right=("Хватает" if things>=who else "Не хватает"),verdict=v,why=why))
 src=open(ROOT+'/docs/mockups/src/comparison-enough-review.page.html').read()
 out=src.replace('__SPRITES__',json.dumps(sprites)).replace('__CARDS__',json.dumps(cards,ensure_ascii=False))
