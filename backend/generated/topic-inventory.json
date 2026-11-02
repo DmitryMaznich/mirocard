@@ -169,39 +169,39 @@
     {
       "id": "comparison",
       "title": "Сравнение",
-      "version": "2.50.0",
+      "version": "2.51.0",
       "renderer": "comparison",
       "sources": [
-        "public/decks/comparison_v2.50.0.zip",
+        "public/decks/comparison_v2.51.0.zip",
         "src/topics/renderers/comparison",
         "tools/comparison/topic.json"
       ],
       "bundle": {
-        "version": "2.50.0",
-        "url": "./decks/comparison_v2.50.0.zip",
+        "version": "2.51.0",
+        "url": "./decks/comparison_v2.51.0.zip",
         "title": "Сравнение",
-        "description": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
+        "description": "Девять режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа, задачи с персонажами и предметами и «Всем хватает?» — сопоставление один к одному в жизни.",
         "renderer": "comparison",
-        "modes": 8,
+        "modes": 9,
         "cards": 3
       },
       "builtin": false,
       "catalogEntry": {
         "id": "comparison",
-        "version": "2.50.0",
+        "version": "2.51.0",
         "title": {
           "ru": "Сравнение",
           "en": "Comparison"
         },
         "description": {
-          "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
-          "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
+          "ru": "Девять режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа, задачи с персонажами и предметами и «Всем хватает?» — сопоставление один к одному в жизни.",
+          "en": "Nine modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories, and match one to one in everyday scenes."
         },
-        "url": "./decks/comparison_v2.50.0.zip",
+        "url": "./decks/comparison_v2.51.0.zip",
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-11-01T19:29:27+00:00"
+      "sourceUpdatedAt": "2026-11-02T05:38:34+00:00"
     },
     {
       "id": "comparison_language_pilot",

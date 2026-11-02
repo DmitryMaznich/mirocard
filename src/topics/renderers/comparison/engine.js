@@ -430,7 +430,9 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 // enough» / «spare» sentences for one and for two, gender and case per noun.
 // `place` is where a matched object goes relative to its character's box
 // (anchor, offset in box heights, size as a share of the box, in front of or
-// behind it) — the screen reads it, the engine only passes it on.
+// behind it) — the screen reads it, the engine only passes it on. `whoSize`
+// shrinks the character inside its box when the object must hold it (a car
+// inside its garage).
 export const ENOUGH_SETS = [
   { id: "chairs", who: "kid", thing: "chair", question: "Всем хватает стульев?", tapHint: "Нажимай на стулья", whoGen: "детей", thingGen: "стульев",
     lack: ["Одному не хватает стула.", "Двоим не хватает стульев."], spare: ["Один стул лишний.", "Два стула лишних."],
@@ -446,7 +448,7 @@ export const ENOUGH_SETS = [
     place: { anchor: "bottom", dy: 0.12, size: 0.55, front: true } },
   { id: "cars", who: "car", thing: "garage", question: "Всем машинкам хватает гаражей?", tapHint: "Нажимай на гаражи", whoGen: "машинок", thingGen: "гаражей",
     lack: ["Одной машинке не хватает гаража.", "Двум машинкам не хватает гаражей."], spare: ["Один гараж лишний.", "Два гаража лишних."],
-    place: { anchor: "bottom", dy: 0.02, size: 1.0, front: false } },
+    place: { anchor: "bottom", dy: 0.02, size: 1.0, front: false }, whoSize: 0.78 },
   { id: "hats", who: "kid", thing: "hat", question: "Всем хватает шапок?", tapHint: "Нажимай на шапки", whoGen: "детей", thingGen: "шапок",
     lack: ["Одному не хватает шапки.", "Двоим не хватает шапок."], spare: ["Одна шапка лишняя.", "Две шапки лишние."],
     place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
@@ -472,7 +474,7 @@ function generateEnoughTask(set, outcome) {
       : `${cap(set.thingGen)} хватает всем: ${set.whoGen} и ${set.thingGen} поровну.`;
   return {
     set: set.id, who, things, enough: things >= who,
-    whoSprites, thingSprite: `media/enough/${set.thing}.webp`, place: set.place,
+    whoSprites, thingSprite: `media/enough/${set.thing}.webp`, place: set.place, whoSize: set.whoSize ?? 1,
     instruction: set.question, tapHint: set.tapHint, verdictText,
   };
 }

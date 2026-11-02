@@ -100,7 +100,8 @@ export default function CompareEnough({ task, topicId, loadTopicFileUrl, onCorre
           const thing = owner.indexOf(w);
           return (
             <div key={w} className={`enough-who${done && w >= task.things ? " enough-who--without" : ""}`}>
-              {urls[path] && <img className="enough-who-img" src={urls[path]} alt="" draggable={false} />}
+              {urls[path] && <img className="enough-who-img" src={urls[path]} alt="" draggable={false}
+                style={task.whoSize && task.whoSize !== 1 ? { width: `${task.whoSize * 100}%`, height: `${task.whoSize * 100}%` } : undefined} />}
               {thing >= 0 && urls[task.thingSprite] && (
                 <img ref={(el) => { placedRefs.current[thing] = el; }} className="enough-placed" style={placedStyle(task.place)}
                   src={urls[task.thingSprite]} alt="" draggable={false} />
