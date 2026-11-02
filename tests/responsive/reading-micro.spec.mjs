@@ -1,6 +1,32 @@
 import { test, expect } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 
+for (const [width, height, safeBottom] of [[320, 844, 0], [390, 844, 34], [844, 390, 21], [768, 1024, 0], [1280, 800, 0]]) {
+  test(`story navigation stays at the screen bottom at ${width}x${height}`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto("http://127.0.0.1:8099/tests/responsive/reading-micro.html", { waitUntil: "domcontentloaded" });
+    await page.evaluate(value => document.documentElement.style.setProperty("--app-safe-bottom", `${value}px`), safeBottom);
+    await expect(page.locator(".story-frame__image")).toHaveCount(2);
+    const nav = page.locator(".micro-reader-nav");
+    const position = await nav.boundingBox();
+    expect(Math.abs(position.y + position.height - height)).toBeLessThan(2);
+    await page.locator(".story-screen--micro").evaluate(el => { el.scrollTop = el.scrollHeight; });
+    const after = await nav.boundingBox();
+    expect(Math.abs(after.y - position.y)).toBeLessThan(1);
+    expect(Math.abs(after.y + after.height - height)).toBeLessThan(2);
+    const picture = await page.locator(".story-frame__image").last().boundingBox();
+    expect(picture.y + picture.height).toBeLessThanOrEqual(after.y);
+    const next = await page.locator(".micro-reader-nav__next").boundingBox();
+    expect(next.y + next.height).toBeLessThanOrEqual(height - safeBottom);
+    await page.locator(".micro-reader-nav__next").click();
+    await expect(page.locator(".reading-title")).toHaveText("Башня упала");
+    await page.locator(".micro-reader-nav__previous").click();
+    await expect(page.locator(".reading-title")).toHaveText("Мяч под стулом");
+    mkdirSync(".cache/reading-micro-screenshots", { recursive: true });
+    await page.screenshot({ path: `.cache/reading-micro-screenshots/fixed-nav-${width}.png` });
+  });
+}
+
 test("all fifteen stories keep every answer without overflow on a narrow phone", async ({ page }) => {
   const stories = JSON.parse(readFileSync("content/reading_short_stories/micro/stories.json", "utf8"));
   await page.setViewportSize({ width: 320, height: 844 });

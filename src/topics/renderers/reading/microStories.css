@@ -379,3 +379,23 @@
   .story-quiz.story-quiz--micro .story-quiz__text .reading-flow-text,
   .story-quiz.story-quiz--micro .story-quiz__text .reading-line { font-size: 21px; line-height: 1.65; }
 }
+
+/* Story navigation stays at the viewport edge while the page itself scrolls.
+   The session already reserves the device's bottom safe area. */
+.session-screen--micro-reading .session-renderer-wrap:has(.story-screen--micro > .micro-reader-nav) {
+  padding-bottom: calc(72px + clamp(10px, 2.3vw, 30px));
+}
+.story-screen--micro > .micro-reader-nav {
+  position: fixed;
+  z-index: 21;
+  left: var(--app-safe-left, 0px);
+  right: var(--app-safe-right, 0px);
+  bottom: 0;
+  width: auto;
+  height: calc(72px + var(--app-safe-bottom, 0px));
+  margin: 0;
+  padding: 12px clamp(16px, 3vw, 40px) calc(12px + var(--app-safe-bottom, 0px));
+  border-top: 1px solid var(--micro-rule);
+  background: #fff;
+  box-shadow: 0 -4px 20px #203f4705;
+}
