@@ -286,16 +286,22 @@ approximated — delete buttons (`.pl-tool--danger`) are red **at rest**, matchi
 `.p2-ib--danger { color: var(--p2-red); }` exactly (an earlier hover-only red was the actual root
 cause of three repeated owner complaints that the trash icon "doesn't make sense": at rest it was
 visually identical to the add buttons), and `IconLetterA` is propis2's `IconLetterFrame` two-tone
-filled tile (not a monochrome stroke shape) — see the "Разворот" sections (eleven so far,
-2026-11-01/02; the seventh records a background agent that implemented the page rail without
-authorization while investigating, got stopped, and had its work kept only after the owner
-reviewed and approved it; the eighth explains why this topic's header has no back button —
-`propis2` is a full-screen route that replaces the session header entirely, this topic is a normal
-session task that already has one above it; the eleventh is the icon-fidelity fix above, done only
-after reading propis2's real source rather than guessing a third time) for why each earlier shape —
-giant full-page glyph, auto-generated rows, sidebar letter panel, per-row inline controls, single
+filled tile (not a monochrome stroke shape). **Delete buttons' visible caption is the verb
+"Удалить", never the object name** ("Блок"/"Строка") — propis2's own delete buttons
+(`Propis2Editor.jsx`) caption with "Удалить" only and put the object in `aria-label` instead
+(`aria-label="Удалить строку"`, caption "Удалить"); a trash icon captioned with the object's own
+name reads as a compound noun ("that object's own trash can"), not a delete command — see the
+"Разворот" sections (twelve so far, 2026-11-01/02; the seventh records a background agent that
+implemented the page rail without authorization while investigating, got stopped, and had its work
+kept only after the owner reviewed and approved it; the eighth explains why this topic's header has
+no back button — `propis2` is a full-screen route that replaces the session header entirely, this
+topic is a normal session task that already has one above it; the eleventh and twelfth are the two-
+stage icon-fidelity fix above — color/shape first, then caption wording — both done only after
+reading propis2's real source rather than guessing again) for why each earlier shape — giant
+full-page glyph, auto-generated rows, sidebar letter panel, per-row inline controls, single
 flat page, ad hoc blue palette with emoji icons, per-block mini-grids on a blank page, px-based
-cell sizing, ambiguous plus/trash icons, hover-only danger color — got replaced; registered in
+cell sizing, ambiguous plus/trash icons, hover-only danger color, object-named delete captions —
+got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a

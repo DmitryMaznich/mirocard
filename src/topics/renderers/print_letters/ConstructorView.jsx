@@ -160,9 +160,9 @@ export default function ConstructorView({ task, onAdvance }) {
         {/* Group 1: the letter block as a whole. */}
         <div className="pl-tool-group" role="group" aria-label="Буква">
           <LetterPickerButton families={families} onPick={addBlock} />
-          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
+          <button type="button" className="pl-tool pl-tool--danger" aria-label="Удалить блок" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
             <span className="pl-tool-ico"><IconTrash /></span>
-            <span className="pl-tool-cap">Блок</span>
+            <span className="pl-tool-cap">Удалить</span>
           </button>
         </div>
         <span className="pl-sep" aria-hidden="true" />
@@ -178,9 +178,9 @@ export default function ConstructorView({ task, onAdvance }) {
             strokeCount={selectedBlock ? byId[selectedBlock.letterId].strokes.length : 0}
             onChange={setSelectedRowContent}
           />
-          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedRow} onClick={removeSelectedRow}>
+          <button type="button" className="pl-tool pl-tool--danger" aria-label="Удалить строку" disabled={!selectedRow} onClick={removeSelectedRow}>
             <span className="pl-tool-ico"><IconTrash /></span>
-            <span className="pl-tool-cap">Строка</span>
+            <span className="pl-tool-cap">Удалить</span>
           </button>
         </div>
         <span className="pl-toolbar-fill" />
