@@ -1,4 +1,4 @@
-import LetterGlyph from "./LetterGlyph";
+import LetterGlyph, { strokeBBox } from "./LetterGlyph";
 import GridRow, { UNIT_MM } from "./Ruling";
 
 const TILE_W = UNIT_MM; // one letter-cell square, so letter columns start on the next grid line
@@ -18,6 +18,9 @@ function strokesForContent(letter, content) {
 // row (or the block, via its tile) and every action on that selection lives
 // in the toolbar above the canvas, not inline here.
 export default function LetterBlock({ letter, color, rows, selected, selectedRowId, onSelectBlock, onSelectRow }) {
+  // Computed once from the whole letter, not per row — see strokeBBox()'s own
+  // comment for why a lone stroke's own bbox can't be used for its cell.
+  const frame = strokeBBox(letter.strokes);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
@@ -48,7 +51,9 @@ export default function LetterBlock({ letter, color, rows, selected, selectedRow
                   {!isBlank && (
                     <LetterGlyph
                       letter={miniLetter}
+                      frame={frame}
                       heightMm={UNIT_MM}
+                      widthMm={UNIT_MM}
                       variant="dotted"
                       showArrows={i === 0}
                       showNumbers={isFull && i === 0}

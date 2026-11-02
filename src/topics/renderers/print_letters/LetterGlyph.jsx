@@ -14,6 +14,36 @@ function parseStartPoint(d) {
   return m ? [parseFloat(m[1]), parseFloat(m[2])] : [50, 50];
 }
 
+// The letter_writing-derived viewBox ("0 0 100 110") carries a wide margin
+// around the ink (room for this component's own stroke-order badges), so
+// rendering it as-is left the guide floating inside the grid cell instead of
+// touching its lines. Cropping to the WHOLE letter's ink extent — M/L pairs
+// only, this topic's current "straight" family has no curves — makes the
+// rendered box exactly that letter's own bounds, so it can be stretched
+// flush to all four sides of a square cell.
+//
+// Must be computed from the full letter, never from whatever subset of
+// strokes a given row/cell happens to be drawing: a single straight stroke
+// that's purely vertical or horizontal has zero extent on the other axis
+// (an isolated "M 12,5 L 12,105" has xmin===xmax===12), which collapses to
+// an empty, invisible viewBox if cropped on its own — and even where it
+// wouldn't collapse, every row of the same letter needs the same frame so
+// an isolated element lines up with where it sits inside the full letter.
+export function strokeBBox(strokes) {
+  let xmin = Infinity, ymin = Infinity, xmax = -Infinity, ymax = -Infinity;
+  for (const s of strokes) {
+    const nums = (s.d.match(/-?\d+\.?\d*/g) || []).map(Number);
+    for (let i = 0; i + 1 < nums.length; i += 2) {
+      const [x, y] = [nums[i], nums[i + 1]];
+      if (x < xmin) xmin = x;
+      if (x > xmax) xmax = x;
+      if (y < ymin) ymin = y;
+      if (y > ymax) ymax = y;
+    }
+  }
+  return isFinite(xmin) ? [xmin, ymin, xmax - xmin, ymax - ymin] : [0, 0, 100, 110];
+}
+
 const BADGE_FILL = { idle: "#e5e7eb", active: "#1d4ed8", done: "#22c55e" };
 const BADGE_TEXT = { idle: "#6b7280", active: "white",   done: "white"   };
 
@@ -23,7 +53,9 @@ const BADGE_TEXT = { idle: "#6b7280", active: "white",   done: "white"   };
 // same everywhere so a child always sees the same motor plan for a letter.
 export default function LetterGlyph({
   letter,
+  frame,                   // [x, y, w, h] — the WHOLE letter's ink bbox; see strokeBBox() above
   heightMm,
+  widthMm     = heightMm,  // square cell by default
   variant     = "solid",   // "solid" | "dotted" | "fading"
   opacity     = 1,
   showNumbers = false,
@@ -32,8 +64,9 @@ export default function LetterGlyph({
   autoPlay    = false,
   label,
 }) {
-  const { viewBox = "0 0 100 110", strokes = [] } = letter;
-  const [, , vbW, vbH] = viewBox.split(" ").map(Number);
+  const { strokes = [] } = letter;
+  const [vbX, vbY, vbW, vbH] = frame ?? strokeBBox(strokes);
+  const viewBox = `${vbX} ${vbY} ${vbW} ${vbH}`;
 
   const svgRef     = useRef(null);
   const rafRef      = useRef(null);
@@ -134,18 +167,23 @@ export default function LetterGlyph({
   // Real mm, not screen px — this glyph is meant to print at an actual
   // physical size (SVG width/height accept CSS length units, so "Nmm" is a
   // true physical size the browser's print pipeline honors directly).
-  const svgH = heightMm;
-  const svgW = +(svgH * (vbW / vbH)).toFixed(3);
   const strokeW = variant === "dotted" ? 7 : 9;
+  // Stretched independently on each axis (preserveAspectRatio="none") so the
+  // ink reaches all four edges of its own cell, not just the taller one —
+  // клетка needs the letter snapped to both the horizontal AND vertical
+  // grid lines around it, which a uniform (aspect-preserving) fit can't do
+  // for a letter whose natural ink proportions aren't already square.
+  const needsOverflow = showArrows || showNumbers; // badges/arrows reach past the tight ink box
 
   return (
     <svg
       ref={svgRef}
       viewBox={viewBox}
-      width={`${svgW}mm`}
-      height={`${svgH}mm`}
+      preserveAspectRatio="none"
+      width={`${widthMm}mm`}
+      height={`${heightMm}mm`}
       className={`pl-glyph pl-glyph--${variant}${tappable ? " pl-glyph--tappable" : ""}`}
-      style={{ display: "block", flexShrink: 0, opacity, cursor: tappable ? "pointer" : "default" }}
+      style={{ display: "block", flexShrink: 0, opacity, cursor: tappable ? "pointer" : "default", overflow: needsOverflow ? "visible" : undefined }}
       onClick={tappable && !playing ? play : undefined}
       role={tappable ? "button" : "img"}
       aria-label={label ? `Буква ${label}` : undefined}

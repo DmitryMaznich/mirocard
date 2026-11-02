@@ -294,23 +294,35 @@ and put the object in `aria-label`, since a trash icon captioned with the object
 owner asked for the fuller wording on screen instead of leaning on `aria-label`. **Two selectable
 page backgrounds, "Клетка" (default) and "Линейка"** (`PaperPicker.jsx`, page-level — not block/row
 — `page.paper`, icons copied from propis2's real "Тип бумаги" picker's `IconPaperSquare`/
-`IconPaperRuled`): клетка keeps both axes of the grid and a letter's 2×2-cell box now fills its
-square edge-to-edge (`LetterBlock.jsx`'s old `heightMm={UNIT_MM * 0.84}` shrink was removed — it
-left a visible gap between the letter and the grid lines instead of snapping to them); линейка
-(`.pl-sheet--line`) keeps only the horizontal lines at the same 5mm pitch and anchors a letter to
-just its own baseline (`.pl-sheet--line .pl-cell { align-items: flex-end; }`), since there are no
-vertical lines left to snap its sides to — see the "Разворот" sections (thirteen so far,
+`IconPaperRuled`): клетка keeps both axes of the grid, линейка (`.pl-sheet--line`) keeps only the
+horizontal lines at the same 5mm pitch and anchors a letter to just its own baseline
+(`.pl-sheet--line .pl-cell { align-items: flex-end; }`), since there are no vertical lines left to
+snap its sides to. **A letter's ink is cropped to its own true bounding box and stretched
+(`preserveAspectRatio="none"`) to fill its 2×2-cell square flush on all four sides** —
+`LetterGlyph.jsx`'s `strokeBBox(strokes)` computes that box from the stroke path coordinates (M/L
+pairs only — this topic's one family, "straight," has no curves yet), replacing the raw
+`letter_writing`-derived `viewBox="0 0 100 110"`, which carries its own margin (room for this
+component's stroke-order badges, not for grid-snapping) that an earlier `heightMm={UNIT_MM * 0.84}`
+shrink attempt only shrank further instead of removing. **That bbox must be computed from the
+WHOLE letter, never from one row's own stroke subset**: a lone stroke that's purely vertical or
+horizontal has zero extent on the other axis (e.g. Н's left stick is literally `xmin === xmax`),
+which collapses to an invisible, zero-size viewBox if cropped per-row — so `LetterBlock.jsx`
+computes `strokeBBox(letter.strokes)` once from the complete, original letter and passes it as a
+`frame` prop into every row's `LetterGlyph`, so an isolated element sits exactly where it belongs
+within the full letter's frame instead of vanishing — see the "Разворот" sections (fourteen so far,
 2026-11-01/02; the seventh records a background agent that implemented the page rail without
 authorization while investigating, got stopped, and had its work kept only after the owner
 reviewed and approved it; the eighth explains why this topic's header has no back button —
 `propis2` is a full-screen route that replaces the session header entirely, this topic is a normal
-session task that already has one above it; the eleventh through thirteenth are the icon/caption/
-grid-anchoring fixes above, each done only after reading propis2's real source or a direct owner
-answer rather than guessing again) for why each earlier shape — giant full-page glyph,
-auto-generated rows, sidebar letter panel, per-row inline controls, single flat page, ad hoc blue
-palette with emoji icons, per-block mini-grids on a blank page, px-based cell sizing, ambiguous
-plus/trash icons, hover-only danger color, object-named delete captions, grid-only backgrounds with
-letters floating clear of the lines — got replaced; registered in
+session task that already has one above it; the eleventh through fourteenth are the icon/caption/
+grid-anchoring fixes above, each done only after reading propis2's real source, a direct owner
+answer, or — for the per-row bbox collapse — the owner's own screenshot pushback rather than
+guessing again) for why each earlier shape — giant full-page glyph, auto-generated rows, sidebar
+letter panel, per-row inline controls, single flat page, ad hoc blue palette with emoji icons,
+per-block mini-grids on a blank page, px-based cell sizing, ambiguous plus/trash icons, hover-only
+danger color, object-named delete captions, grid-only backgrounds with letters floating clear of
+the lines, a letter still floating inside its own viewBox margin even after being sized to the
+cell — got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a
