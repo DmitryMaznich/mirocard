@@ -35,7 +35,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "can_i_watch_tv",
@@ -56,7 +56,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "chat_with_mom",
@@ -83,7 +83,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "clothes_basic",
@@ -125,7 +125,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "column_addition",
@@ -164,7 +164,7 @@
           "en": "Seven modes progress from finger counting and tens-and-ones models to regrouping, column arithmetic, and independent written examples."
         }
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "comparison",
@@ -201,7 +201,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-11-02T13:23:23+00:00"
+      "sourceUpdatedAt": "2026-11-02T16:04:03+00:00"
     },
     {
       "id": "comparison_language_pilot",
@@ -285,7 +285,7 @@
           }
         }
       },
-      "sourceUpdatedAt": "2026-10-29T19:02:45+01:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "daily_orientation",
@@ -298,7 +298,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "emotions_v2",
@@ -340,7 +340,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "feel_sick",
@@ -361,7 +361,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "first_then",
@@ -396,7 +396,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "good_night",
@@ -417,7 +417,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "help_me",
@@ -438,7 +438,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "im_hungry",
@@ -459,7 +459,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "learn_slovene",
@@ -502,7 +502,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "letter_writing",
@@ -540,7 +540,7 @@
         "access": "paid",
         "hidden": true
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "magnetic_alphabet",
@@ -577,7 +577,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "math_houses",
@@ -619,7 +619,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "morning_greeting",
@@ -640,7 +640,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "my_people",
@@ -653,7 +653,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "opposites",
@@ -687,7 +687,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "people_names",
@@ -730,7 +730,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "phonetic_analysis",
@@ -768,7 +768,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "place_value",
@@ -810,7 +810,50 @@
           "en": "Tens and ones with coins: group a heap into stacks of ten, build and read a number, and decide when a ten must be exchanged (carry and borrow)."
         }
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+    },
+    {
+      "id": "print_letters",
+      "title": {
+        "ru": "Печатные буквы",
+        "en": "Block Letters"
+      },
+      "version": "0.1.0",
+      "renderer": "print_letters",
+      "sources": [
+        "public/decks/print_letters_v0.1.0.zip",
+        "src/topics/renderers/print_letters",
+        "tools/print_letters/topic.json"
+      ],
+      "bundle": {
+        "version": "0.1.0",
+        "url": "./decks/print_letters_v0.1.0.zip",
+        "title": {
+          "ru": "Печатные буквы",
+          "en": "Block Letters"
+        },
+        "description": "Конструктор листов и тетрадей для печати: печатные заглавные буквы для дошкольников 4–6 лет. Буквы стоят на клетке или линейке, каждая строка блока — элементы буквы и уровень опоры, лист печатается в А4 или А5.",
+        "renderer": "print_letters",
+        "modes": 1,
+        "cards": 8
+      },
+      "builtin": false,
+      "catalogEntry": {
+        "id": "print_letters",
+        "version": "0.1.0",
+        "url": "./decks/print_letters_v0.1.0.zip",
+        "title": {
+          "ru": "Печатные буквы",
+          "en": "Block Letters"
+        },
+        "description": {
+          "ru": "Конструктор листов и тетрадей для печати: печатные заглавные буквы для дошкольников. Блок буквы собирается лесенкой — элемент за элементом, потом опора убывает; в каждой строке взрослый сам выбирает элементы буквы и опору (пунктир, точки начала, бледнеющий след, образец). Клетка или линейка, формат А4 или А5.",
+          "en": "Printable worksheet and notebook builder for block capital letters: each letter built step by step on a grid or ruled paper, with fading support, A4 or A5."
+        },
+        "status": "beta",
+        "access": "paid"
+      },
+      "sourceUpdatedAt": "2026-11-02T16:44:50+00:00"
     },
     {
       "id": "print_materials",
@@ -852,7 +895,7 @@
         "hidden": true,
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "propis",
@@ -1097,7 +1140,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "reading_short_stories",
@@ -1176,7 +1219,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "spatial_prepositions_ru",
@@ -1218,7 +1261,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "streak_tracker",
@@ -1231,7 +1274,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "symmetry_draw",
@@ -1269,7 +1312,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "tools_functions",
@@ -1311,7 +1354,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "transport_photo",
@@ -1353,7 +1396,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "verbs_v2",
@@ -1395,7 +1438,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "vowel_consonant_ru",
@@ -1435,7 +1478,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "word_agreement_ru",
@@ -1476,7 +1519,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "word_formation_soup",
@@ -1518,7 +1561,7 @@
           "en": "Word-formation pairs across soup, juice, jam, porridge, materials, weather, and seasons; three modes cover pair recognition, form choice, and seasonal adjective endings."
         }
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     },
     {
       "id": "written_letters",
@@ -1560,7 +1603,7 @@
         "access": "paid",
         "hidden": true
       },
-      "sourceUpdatedAt": "2026-10-29T14:15:26+00:00"
+      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
     }
   ],
   "warnings": []
