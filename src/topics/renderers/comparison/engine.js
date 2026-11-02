@@ -428,46 +428,41 @@ function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phra
 // (tools/comparison/media/enough/*.webp, scripts/generate-enough-sprites.mjs),
 // so the count on screen is always the task's count.
 //
-// The child answers one question, the everyday one: «Всем детям хватает
-// стульев?» — Хватает / Не хватает (owner's call, 2026-11-02: no «Чего
-// больше?» buttons and no «поровну» on these cards). The comparison behind
-// it — «почему не хватает? потому что детей больше, чем стульев» — is the
-// adult's to say: the screen shows it in a small line for the adult under
-// the sentence. In that line «кого больше» only when both sides are alive
-// (cats and dogs); as soon as one side is objects it is «чего больше».
+// The child answers the everyday question — «Всем детям хватает стульев?»,
+// Хватает / Не хватает — and then why (owner's calls, 2026-11-02: no «Чего
+// больше?» question, no «поровну», and no sentences on the screen — too
+// much text): «Почему стульев не хватает?» with «Детей больше / Стульев
+// больше / Детей меньше / Стульев меньше / Сколько детей, столько и
+// стульев». Two of the four comparisons say the same thing in other words
+// («детей больше» = «стульев меньше»), and either counts. «Сколько …,
+// столько и …» is on every card, so its presence never gives the equal case
+// away.
 //
 // Each set carries its Russian (genitive plural of both sides, the dative of
-// the characters, «каждому … по …», the action, «not enough» / «spare» for one
-// and for two, gender and case per noun), `mover` — what the action moves:
+// the characters, the action), `mover` — what the action moves:
 // the object by default («Дай каждому ребёнку стул»), the character when the
 // action is about it («Поставь каждую чашку на блюдце», «…машинку в гараж»:
 // owner's catch, 2026-11-02 — the garage must not drive onto the car) — and
 // `place`: where the moved picture goes inside its partner's box (anchor,
 // offset in box heights, size as a share of the box, in front or behind).
 export const ENOUGH_SETS = [
-  { id: "chairs", each: "каждому ребёнку по стулу", who: "kid", thing: "chair", whoGen: "детей", thingGen: "стульев", whoDat: "детям",
+  { id: "chairs", who: "kid", thing: "chair", whoGen: "детей", thingGen: "стульев", whoDat: "детям",
     matchHint: "Дай каждому ребёнку стул",
-    lack: ["Одному не хватает стула.", "Двоим не хватает стульев."], spare: ["Один стул лишний.", "Два стула лишних."],
     place: { anchor: "bottom", dy: 0.08, size: 0.62, front: true } },
-  { id: "cups", each: "каждой чашке по блюдцу", who: "cup", thing: "saucer", whoGen: "чашек", thingGen: "блюдец", whoDat: "чашкам",
+  { id: "cups", who: "cup", thing: "saucer", whoGen: "чашек", thingGen: "блюдец", whoDat: "чашкам",
     matchHint: "Поставь каждую чашку на блюдце",
-    lack: ["Одной чашке не хватает блюдца.", "Двум чашкам не хватает блюдец."], spare: ["Одно блюдце лишнее.", "Два блюдца лишних."],
     mover: "who", place: { anchor: "bottom", dy: -0.4, size: 0.8, front: true } },
-  { id: "dogs", each: "каждой собаке по косточке", who: "dog", thing: "bone", whoGen: "собак", thingGen: "косточек", whoDat: "собакам",
+  { id: "dogs", who: "dog", thing: "bone", whoGen: "собак", thingGen: "косточек", whoDat: "собакам",
     matchHint: "Дай каждой собаке косточку",
-    lack: ["Одной собаке не хватает косточки.", "Двум собакам не хватает косточек."], spare: ["Одна косточка лишняя.", "Две косточки лишние."],
     place: { anchor: "bottom", dy: 0.12, size: 0.6, front: true } },
-  { id: "rabbits", each: "каждому кролику по морковке", who: "rabbit", thing: "carrot", whoGen: "кроликов", thingGen: "морковок", whoDat: "кроликам",
+  { id: "rabbits", who: "rabbit", thing: "carrot", whoGen: "кроликов", thingGen: "морковок", whoDat: "кроликам",
     matchHint: "Дай каждому кролику морковку",
-    lack: ["Одному кролику не хватает морковки.", "Двум кроликам не хватает морковок."], spare: ["Одна морковка лишняя.", "Две морковки лишние."],
     place: { anchor: "bottom", dy: 0.12, size: 0.55, front: true } },
-  { id: "cars", each: "каждой машинке по гаражу", who: "car", thing: "garage", whoGen: "машинок", thingGen: "гаражей", whoDat: "машинкам",
+  { id: "cars", who: "car", thing: "garage", whoGen: "машинок", thingGen: "гаражей", whoDat: "машинкам",
     matchHint: "Поставь каждую машинку в гараж",
-    lack: ["Одной машинке не хватает гаража.", "Двум машинкам не хватает гаражей."], spare: ["Один гараж лишний.", "Два гаража лишних."],
     mover: "who", place: { anchor: "bottom", dy: -0.15, size: 0.72, front: true } },
-  { id: "hats", each: "каждому ребёнку по шапке", who: "kid", thing: "hat", whoGen: "детей", thingGen: "шапок", whoDat: "детям",
+  { id: "hats", who: "kid", thing: "hat", whoGen: "детей", thingGen: "шапок", whoDat: "детям",
     matchHint: "Надень каждому ребёнку шапку",
-    lack: ["Одному не хватает шапки.", "Двоим не хватает шапок."], spare: ["Одна шапка лишняя.", "Две шапки лишние."],
     place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
 ];
 // «Всем хватает?» in «Сравни в жизни»: off, or on with the matching first
@@ -487,24 +482,22 @@ function generateEnoughTask(set, outcome) {
   const whoSprites = Array.from({ length: who }, (_, i) => `media/enough/${set.who}_${variants[i % variants.length]}.webp`);
   const cap = (w) => w[0].toUpperCase() + w.slice(1);
   const short = who - things, extra = things - who;
-  const verdictText = short > 0
-    ? `${cap(set.thingGen)} не хватает. ${set.lack[short === 1 ? 0 : 1]}`
-    : extra > 0
-      ? `${cap(set.thingGen)} хватает всем. ${set.spare[extra === 1 ? 0 : 1]}`
-      : `${cap(set.thingGen)} хватает всем: ${set.each}.`;
-  // For the adult: the «почему», with the comparison the card is about.
-  const whyText = short > 0
-    ? `Спросите: почему не хватает? — Потому что ${set.whoGen} больше, чем ${set.thingGen}.`
-    : extra > 0
-      ? `Спросите: почему хватает? — Потому что ${set.thingGen} больше, чем ${set.whoGen}.`
-      : `Спросите: почему хватает? — Потому что сколько ${set.whoGen}, столько и ${set.thingGen}.`;
+  const whyQuestion = `Почему ${set.thingGen} ${short > 0 ? "не хватает" : "хватает"}?`;
+  const whyOptions = [
+    { id: "whoMore", label: `${cap(set.whoGen)} больше` },
+    { id: "thingMore", label: `${cap(set.thingGen)} больше` },
+    { id: "whoLess", label: `${cap(set.whoGen)} меньше` },
+    { id: "thingLess", label: `${cap(set.thingGen)} меньше` },
+    { id: "same", label: `Сколько ${set.whoGen}, столько и ${set.thingGen}` },
+  ];
+  const whyRight = short > 0 ? ["whoMore", "thingLess"] : extra > 0 ? ["thingMore", "whoLess"] : ["same"];
   return {
     set: set.id, who, things, enough: things >= who,
     whoSprites, thingSprite: `media/enough/${set.thing}.webp`, mover: set.mover ?? "thing", place: set.place,
     enoughQuestion: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
     matchHint: set.matchHint,
     instruction: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
-    verdictText, whyText,
+    whyQuestion, whyOptions, whyRight,
   };
 }
 

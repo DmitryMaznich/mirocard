@@ -29,15 +29,12 @@ for s_ in SETS:
     for oid,who,things in OUTCOMES:
         n+=1
         short,extra=who-things,things-who
-        if short>0:
-            v=f"{cap(s_['thingGen'])} не хватает. {s_['lack'][short-1]}"; why=f"Спросите: почему не хватает? — Потому что {s_['whoGen']} больше, чем {s_['thingGen']}."
-        elif extra>0:
-            v=f"{cap(s_['thingGen'])} хватает всем. {s_['spare'][extra-1]}"; why=f"Спросите: почему хватает? — Потому что {s_['thingGen']} больше, чем {s_['whoGen']}."
-        else:
-            v=f"{cap(s_['thingGen'])} хватает всем: {s_['each']}."; why=f"Спросите: почему хватает? — Потому что сколько {s_['whoGen']}, столько и {s_['thingGen']}."
+        right=["whoMore","thingLess"] if short>0 else (["thingMore","whoLess"] if extra>0 else ["same"])
+        whyQ=f"Почему {s_['thingGen']} {'не хватает' if short>0 else 'хватает'}?"
+        opts=[("whoMore",f"{cap(s_['whoGen'])} больше"),("thingMore",f"{cap(s_['thingGen'])} больше"),("whoLess",f"{cap(s_['whoGen'])} меньше"),("thingLess",f"{cap(s_['thingGen'])} меньше"),("same",f"Сколько {s_['whoGen']}, столько и {s_['thingGen']}")]
         cards.append(dict(n=n,set=s_['id'],who=who,things=things,whoSp=[f"{s_['who']}_{(i%6)+1}" for i in range(who)],thingSp=s_['thing'],
           place=s_['place'],whoSize=1,mover=s_.get('mover','thing'),match=s_['match'],q=f"Всем {s_['whoDat']} хватает {s_['thingGen']}?",
-          right=("Хватает" if things>=who else "Не хватает"),verdict=v,why=why))
+          right=("Хватает" if things>=who else "Не хватает"),whyQ=whyQ,whyOpts=[dict(id=i,label=l,ok=i in right) for i,l in opts]))
 src=open(ROOT+'/docs/mockups/src/comparison-enough-review.page.html').read()
 out=src.replace('__SPRITES__',json.dumps(sprites)).replace('__CARDS__',json.dumps(cards,ensure_ascii=False))
 open(ROOT+'/docs/mockups/comparison-enough-review.html','w').write(out)
