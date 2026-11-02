@@ -32,11 +32,16 @@ import WedgeScale from "./WedgeScale";
 //
 // Some tasks have two fitting tiles (engine.js) — any one of them counts:
 // «больше 6» is not one number.
+//
+// The hint has two steps (owner's call, 2026-11-01): 💡 first shows the
+// wedge scale under the tiles, with the task's number marked and a flag for
+// every tile number the slider passes; «Ещё подсказка» then switches to the
+// draw-the-sign tiles described above. Never both at once.
 function GenerateStage({ task, answered, onAnswer, playFeedback }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
   const [isCorrectPick, setIsCorrectPick] = useState(false);
-  const [showHint, setShowHint] = useState(false);
+  const [hintStep, setHintStep] = useState(0); // 0 none · 1 wedge · 2 draw the sign
   const [hintDone, setHintDone] = useState(() => Array(task.options.length).fill(false));
   const [hintShakeIdx, setHintShakeIdx] = useState(-1);
 
@@ -75,7 +80,7 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
     setHintDone((prev) => prev.map((v, i) => (i === idx ? true : v)));
   }
 
-  const hintActive = showHint && !answered;
+  const hintActive = hintStep === 2 && !answered;
 
   return (
     <>
@@ -127,11 +132,30 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
           {getVerdict({ type: "compare_sign", left: task.options[pickedIdx], right: task.value })}
         </div>
       )}
+      {!answered && hintStep === 1 && (
+        <WedgeScale min={task.min} max={task.max} direction="asc" numbers={task.options} mark={task.value} />
+      )}
       {!answered && (
-        <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
-          <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
-          {showHint ? "Убрать подсказку" : "Подсказка"}
-        </button>
+        <div className="apply-hint-row">
+          {hintStep === 0 ? (
+            <button type="button" className="apply-hint-btn" onClick={() => setHintStep(1)}>
+              <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
+              Подсказка
+            </button>
+          ) : (
+            <>
+              {hintStep === 1 && (
+                <button type="button" className="apply-hint-btn" onClick={() => setHintStep(2)}>
+                  <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
+                  Ещё подсказка
+                </button>
+              )}
+              <button type="button" className="apply-hint-btn" onClick={() => setHintStep(0)}>
+                Убрать подсказку
+              </button>
+            </>
+          )}
+        </div>
       )}
     </>
   );

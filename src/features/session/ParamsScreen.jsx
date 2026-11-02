@@ -25,7 +25,7 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, PLACE_VALUE_MODE_IDS, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_OPTIONS, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
 import { DOT_LAYOUTS } from "@/topics/renderers/comparison/dotLayout.js";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
@@ -1619,6 +1619,35 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
+      {/* «Сравни в жизни»: the verdict as a speech ladder — short → with the
+          item → full (default, the step's target). The short ones are for a
+          child who struggles to repeat the long sentence. */}
+      {isRealLifeMode && (
+        <EnumParam
+          label={tr("setup.phrase")}
+          options={REAL_LIFE_PHRASES}
+          labels={Object.fromEntries(REAL_LIFE_PHRASES.map((v) => [v, tr(`setup.phrase.${v}`)]))}
+          value={params.phrase ?? "full"}
+          ordered
+          hint={tr(`setup.phraseHint.${params.phrase ?? "full"}`)}
+          onChange={(v) => onChange({ ...params, phrase: v })}
+        />
+      )}
+
+      {/* «Всем хватает?» cards in turn with the scenes — «Чего больше: детей
+          или стульев?», then «Всем детям хватает стульев?», plus matching one
+          to one. The hardest part of the mode for now, off by default. */}
+      {isRealLifeMode && (
+        <EnumParam
+          label={tr("setup.enough")}
+          options={ENOUGH_OPTIONS}
+          labels={Object.fromEntries(ENOUGH_OPTIONS.map((v) => [v, tr(`setup.enough.${v}`)]))}
+          value={params.enough ?? "off"}
+          hint={tr(`setup.enoughHint.${params.enough ?? "off"}`)}
+          onChange={(v) => onChange({ ...params, enough: v })}
+        />
+      )}
+
       {/* «Как лежат точки»: rows → scatter → lure, only where there is a pile
           of dots to judge (not pairs, not numbers). The lure brings «поровну»
           with it: its strongest task is an equal pair that looks unequal. */}
@@ -1796,6 +1825,8 @@ export default function ParamsScreen() {
         wordsVerdict:  saved.wordsVerdict  ?? false,
         visualMode,
         dotLayout:     DOT_LAYOUTS.includes(saved.dotLayout) ? saved.dotLayout : "rows",
+        phrase:        REAL_LIFE_PHRASES.includes(saved.phrase) ? saved.phrase : "full",
+        enough:        ENOUGH_OPTIONS.includes(saved.enough) ? saved.enough : "off",
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",

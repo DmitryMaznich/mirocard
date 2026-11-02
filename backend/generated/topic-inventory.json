@@ -169,18 +169,18 @@
     {
       "id": "comparison",
       "title": "Сравнение",
-      "version": "2.49.0",
+      "version": "2.51.0",
       "renderer": "comparison",
       "sources": [
-        "public/decks/comparison_v2.49.0.zip",
+        "public/decks/comparison_v2.51.0.zip",
         "src/topics/renderers/comparison",
         "tools/comparison/topic.json"
       ],
       "bundle": {
-        "version": "2.49.0",
-        "url": "./decks/comparison_v2.49.0.zip",
+        "version": "2.51.0",
+        "url": "./decks/comparison_v2.51.0.zip",
         "title": "Сравнение",
-        "description": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
+        "description": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами, включая «Всем хватает?» — сопоставление один к одному в жизни.",
         "renderer": "comparison",
         "modes": 8,
         "cards": 3
@@ -188,20 +188,20 @@
       "builtin": false,
       "catalogEntry": {
         "id": "comparison",
-        "version": "2.49.0",
+        "version": "2.51.0",
         "title": {
           "ru": "Сравнение",
           "en": "Comparison"
         },
         "description": {
-          "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
-          "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
+          "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами, включая «Всем хватает?» — сопоставление один к одному в жизни.",
+          "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories, and match one to one in everyday scenes."
         },
-        "url": "./decks/comparison_v2.49.0.zip",
+        "url": "./decks/comparison_v2.51.0.zip",
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-11-01T19:01:10+00:00"
+      "sourceUpdatedAt": "2026-11-02T06:17:46+00:00"
     },
     {
       "id": "comparison_language_pilot",
@@ -889,21 +889,21 @@
         "status": "archived",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-01T16:18:00+00:00"
+      "sourceUpdatedAt": "2026-11-02T10:35:55+00:00"
     },
     {
       "id": "propis2",
       "title": "Прописи",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_v0.6.0.zip",
+        "public/decks/propis2_v0.6.1.zip",
         "src/topics/renderers/propis2",
         "tools/propis2/topic.json"
       ],
       "bundle": {
-        "version": "0.6.0",
-        "url": "./decks/propis2_v0.6.0.zip",
+        "version": "0.6.1",
+        "url": "./decks/propis2_v0.6.1.zip",
         "title": "Прописи",
         "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
         "renderer": "propis2",
@@ -913,7 +913,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2",
-        "version": "0.6.0",
+        "version": "0.6.1",
         "title": {
           "ru": "Прописи",
           "en": "Copybook"
@@ -922,11 +922,11 @@
           "ru": "Конструктор тетрадей по письму и тренажёры письменных букв на русском, болгарском и казахском: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
           "en": "Handwriting notebook builder and written-letter trainers in Russian, Bulgarian and Kazakh: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
         },
-        "url": "./decks/propis2_v0.6.0.zip",
+        "url": "./decks/propis2_v0.6.1.zip",
         "status": "release",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-01T16:44:15+00:00"
+      "sourceUpdatedAt": "2026-11-02T11:17:43+00:00"
     },
     {
       "id": "propis2_bg",
@@ -962,7 +962,7 @@
         "status": "individual",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-01T16:44:15+00:00"
+      "sourceUpdatedAt": "2026-11-02T11:17:43+00:00"
     },
     {
       "id": "propis2_lang",
@@ -998,7 +998,7 @@
         "status": "archived",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-01T16:44:15+00:00"
+      "sourceUpdatedAt": "2026-11-02T11:17:43+00:00"
     },
     {
       "id": "reading_dad_instructions",

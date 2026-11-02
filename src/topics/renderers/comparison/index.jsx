@@ -7,6 +7,7 @@ import ComparePutSign     from "./ComparePutSign";
 import CompareEvaluate    from "./CompareEvaluate";
 import CompareApply       from "./CompareApply";
 import CompareRealLife    from "./CompareRealLife";
+import CompareEnough      from "./CompareEnough";
 import PlaceHint          from "./PlaceHint";
 
 const TYPE_MAP = {
@@ -21,6 +22,7 @@ const TYPE_MAP = {
   compare_evaluate:     CompareEvaluate,
   compare_apply:        CompareApply,
   compare_real_life:    CompareRealLife,
+  compare_enough:       CompareEnough,   // «9. Всем хватает?» (2.51.0)
 };
 
 export default function ComparisonRenderer({ task, mode, sessionStatus, taskRetry = 0, topicId, loadTopicFileUrl, onCorrect, onIncorrect, onMistake, onStreakReset, onAdvance, playFeedback }) {

@@ -38,10 +38,14 @@ zip.file("topic.json",       topicJson);
 zip.file("media/avatar.svg", avatarSvg);
 zip.file("renderer",         rendererJs);
 
-// «Сравни в жизни» pictures: shipped with the topic, not the app bundle.
-const scenesDir = join(__dir, "media", "scenes");
-for (const name of readdirSync(scenesDir)) {
-  zip.file(`media/scenes/${name}`, readFileSync(join(scenesDir, name)));
+// «Сравни в жизни» pictures and the «Всем хватает?» sprites: shipped with the
+// topic, not the app bundle. (media-src/ — the raw generations — stays out.)
+for (const dirName of ["scenes", "enough"]) {
+  const dir = join(__dir, "media", dirName);
+  if (!existsSync(dir)) continue;
+  for (const name of readdirSync(dir)) {
+    zip.file(`media/${dirName}/${name}`, readFileSync(join(dir, name)));
+  }
 }
 
 if (existsSync(rendererCssPath)) {
