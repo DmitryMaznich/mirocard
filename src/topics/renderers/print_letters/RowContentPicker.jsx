@@ -4,10 +4,12 @@ import { usePopupPos } from "./usePopupPos";
 const PANEL_W = 150;
 
 // Same button-pops-a-list pattern as the toolbar's LetterPickerButton (and
-// propis2's Propis2Picker) — a row's content is picked here too, not from a
-// native <select> sitting permanently open under the row.
-export default function RowContentPicker({ value, strokeCount, onChange }) {
-  const [open, setOpen] = useState(false);
+// propis2's Propis2Picker) — lives in the main toolbar now, not attached to
+// the row itself, and is disabled (present, greyed out) rather than hidden
+// when no row is selected, matching how propis2's own row tools behave.
+export default function RowContentPicker({ value, strokeCount, onChange, disabled = false }) {
+  const [openRaw, setOpen] = useState(false);
+  const open = openRaw && !disabled;
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
   const panelStyle = usePopupPos(open, btnRef, PANEL_W, () => setOpen(false));
@@ -21,7 +23,7 @@ export default function RowContentPicker({ value, strokeCount, onChange }) {
     return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
   }, [open]);
 
-  const label = value === "full" ? "Целиком" : value === "blank" ? "Пусто" : `Элемент ${Number(value) + 1}`;
+  const label = disabled ? "—" : value === "full" ? "Целиком" : value === "blank" ? "Пусто" : `Элемент ${Number(value) + 1}`;
   const pick = (v) => { setOpen(false); onChange(v); };
 
   return (
@@ -29,12 +31,14 @@ export default function RowContentPicker({ value, strokeCount, onChange }) {
       <button
         type="button"
         ref={btnRef}
-        className={`pl-row-pick-btn${open ? " is-open" : ""}`}
+        className={`pl-tool${open ? " is-open" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((o) => !o)}
       >
-        {label} <span aria-hidden="true">▾</span>
+        <span className="pl-tool-ico" aria-hidden="true">▾</span>
+        <span className="pl-tool-cap">{label}</span>
       </button>
       {open && (
         <div className="pl-row-pick-list" role="listbox" aria-label="Содержимое строки" style={{ ...panelStyle, width: PANEL_W }}>

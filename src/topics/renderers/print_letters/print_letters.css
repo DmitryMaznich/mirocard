@@ -40,7 +40,13 @@
 .pl-tool.is-open,
 .pl-tool:hover { border-color: #1d4ed8; }
 
-.pl-tool--muted { margin-left: auto; color: #64748b; }
+.pl-tool--muted { color: #64748b; }
+
+.pl-tool:disabled { opacity: 0.4; cursor: default; }
+.pl-tool:disabled:hover { border-color: #cbd5e1; }
+
+.pl-sep { width: 1px; align-self: stretch; background: #e2e8f0; margin: 2px 2px; }
+.pl-toolbar-fill { flex: 1; }
 
 .pl-pick { position: relative; }
 
@@ -141,7 +147,10 @@
   flex-direction: column;
   gap: 2px;
   break-inside: avoid;
+  cursor: pointer;
 }
+
+.pl-block.is-selected { box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.25); }
 
 .pl-block-tile {
   position: absolute;
@@ -156,48 +165,7 @@
   font-weight: 700;
 }
 
-.pl-block-remove {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 13px;
-  padding: 4px 6px;
-  cursor: pointer;
-}
-
-.pl-block-add-row {
-  align-self: flex-start;
-  margin-left: 58px;
-  margin-top: 2px;
-  border: 1px dashed #cbd5e1;
-  background: transparent;
-  color: #64748b;
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.pl-row-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pl-row-pick-btn {
-  font-size: 11px;
-  border: 1px solid #d8e2ea;
-  border-radius: 6px;
-  padding: 3px 7px;
-  color: #475569;
-  background: white;
-  cursor: pointer;
-}
-
-.pl-row-pick-btn.is-open { border-color: #1d4ed8; }
+.pl-row-wrap.is-selected { background: #e0e7ff; border-radius: 8px; }
 
 .pl-row-pick-list {
   background: white;
@@ -224,21 +192,15 @@
 .pl-row-pick-list button.is-on { background: #e0e7ff; color: #1d4ed8; font-weight: 600; }
 .pl-row-pick-list button:hover { background: #f1f5f9; }
 
-.pl-row-controls button:not(.pl-row-pick-btn) {
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 12px;
-  cursor: pointer;
-  padding: 2px 4px;
-}
-
 @media print {
   .pl-toolbar,
   .pl-preview-empty,
   .no-print { display: none !important; }
 
   .pl-constructor { max-width: none; height: auto; }
+
+  .pl-block.is-selected { box-shadow: none; }
+  .pl-row-wrap.is-selected { background: none; }
 
   .pl-canvas { padding: 0; gap: 0; overflow: visible; }
 

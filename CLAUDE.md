@@ -258,12 +258,16 @@ wasn't ported over, only the general "named reusable element" principle), what's
 per-letter print block — colored tile, teacher freely adds/removes rows and picks each row's
 content: whole letter / one stroke element / blank line for independent writing — several blocks
 flow continuously into a notebook, paginated by the browser's own print engine, not fixed-count
-page chunks; the constructor's own UI is a canvas-plus-top-toolbar, with letter choice as a popup
-from a toolbar button — deliberately mirroring `propis2`'s own editor pattern
-(`ElementPicker`/`LetterPicker` in `Propis2Field.jsx`, `usePopupPos`), copied as generic
-positioning code rather than imported from `src/features/propis2/`; see the three
-"Разворот 2026-11-01" sections for why the giant-glyph full-page version, then the
-auto-generated-rows version, then the sidebar-panel version were each replaced; registered in
+page chunks; the constructor's own UI follows `propis2`'s own editor model closely
+(`Propis2Editor.jsx`): the canvas is a clean content preview, a click selects a row or block
+(highlighted, not form controls attached to it), and every action on the selection — including
+picking a letter or a row's content, both popups off a toolbar button
+(`ElementPicker`/`LetterPicker`/`Propis2Picker` in `Propis2Field.jsx`/`Propis2Picker.jsx`,
+`usePopupPos`, copied as generic positioning code rather than imported from
+`src/features/propis2/`) — lives in one toolbar above it, present but disabled rather than hidden
+when nothing fits it; see the "Разворот" sections (six so far, 2026-11-01/02) for why each earlier
+shape — giant full-page glyph, auto-generated rows, sidebar letter panel, per-row inline controls
+— got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a
