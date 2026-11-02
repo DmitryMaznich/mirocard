@@ -265,9 +265,13 @@ picking a letter or a row's content, both popups off a toolbar button
 (`ElementPicker`/`LetterPicker`/`Propis2Picker` in `Propis2Field.jsx`/`Propis2Picker.jsx`,
 `usePopupPos`, copied as generic positioning code rather than imported from
 `src/features/propis2/`) — lives in one toolbar above it, present but disabled rather than hidden
-when nothing fits it; see the "Разворот" sections (six so far, 2026-11-01/02) for why each earlier
-shape — giant full-page glyph, auto-generated rows, sidebar letter panel, per-row inline controls
-— got replaced; registered in
+when nothing fits it; **the notebook now has multiple pages with a left thumbnail rail**
+(`PageThumb.jsx`, a live scaled-down render — add/duplicate/move/delete page, verified against a
+real screenshot of the running `Propis2Editor`, not just its source) — see the "Разворот" sections
+(seven so far, 2026-11-01/02; the seventh records a background agent that implemented the page
+rail without authorization while investigating, got stopped, and had its work kept only after the
+owner reviewed and approved it) for why each earlier shape — giant full-page glyph, auto-generated
+rows, sidebar letter panel, per-row inline controls, single flat page — got replaced; registered in
 `engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** — can't be opened
 via the normal catalog/zip path yet, by design, paper-first visual was the priority for this
 round), and open decisions (zip/catalog registration, notebook persistence, on-screen tracing as a

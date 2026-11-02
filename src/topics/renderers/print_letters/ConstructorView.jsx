@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import LetterBlock from "./LetterBlock";
 import LetterPickerButton from "./LetterPickerButton";
 import RowContentPicker from "./RowContentPicker";
+import PageThumb from "./PageThumb";
 
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
 
@@ -17,12 +18,15 @@ function defaultRows(letter) {
   return rows.map((r) => ({ id: nextId(), ...r }));
 }
 
-// propis2's own model, not a reinvented one: the canvas is a clean preview —
-// no controls live on the rows themselves — and a click on a row selects it;
-// everything you can do to that selection (or to its block) lives in one
-// toolbar above the canvas, present but disabled when nothing fits it. Only
-// the "letter"/"row content" pickers keep their own popups, same as propis2's
-// Propis2Picker buttons sitting right in that same toolbar.
+function blankPage() {
+  return { id: nextId(), blocks: [] };
+}
+
+// propis2's own model (verified against the real Propis2Editor, not just its
+// source comments): a page sidebar with real-content thumbnails on the
+// left, one page open on the canvas at a time, and a toolbar above it whose
+// buttons act on whatever is selected (a row, a block) and are present but
+// disabled rather than hidden when there is nothing to act on.
 export default function ConstructorView({ task, onAdvance }) {
   const letters = task?.letters ?? [];
   const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
@@ -36,12 +40,60 @@ export default function ConstructorView({ task, onAdvance }) {
     return Array.from(map.entries());
   }, [letters]);
 
-  const [blocks, setBlocks] = useState([]); // { id, letterId, color, rows: [{ id, content }] }
+  const [pages, setPages] = useState(() => [blankPage()]);
+  const [activePageId, setActivePageId] = useState(() => pages[0]?.id ?? null);
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [selectedRowId, setSelectedRowId] = useState(null);
 
-  const selectedBlock = blocks.find((b) => b.id === selectedBlockId) ?? null;
+  const activePageIndex = pages.findIndex((p) => p.id === activePageId);
+  const activePage = pages[activePageIndex] ?? null;
+  const selectedBlock = activePage?.blocks.find((b) => b.id === selectedBlockId) ?? null;
   const selectedRow = selectedBlock?.rows.find((r) => r.id === selectedRowId) ?? null;
+
+  function updateActivePage(fn) {
+    setPages((prev) => prev.map((p) => (p.id === activePageId ? fn(p) : p)));
+  }
+
+  function switchPage(pageId) {
+    setActivePageId(pageId);
+    setSelectedBlockId(null);
+    setSelectedRowId(null);
+  }
+  function addPage() {
+    const page = blankPage();
+    setPages((prev) => [...prev, page]);
+    switchPage(page.id);
+  }
+  function duplicateActivePage() {
+    if (!activePage) return;
+    const copy = { id: nextId(), blocks: activePage.blocks.map((b) => ({ ...b, id: nextId(), rows: b.rows.map((r) => ({ ...r, id: nextId() })) })) };
+    setPages((prev) => {
+      const next = [...prev];
+      next.splice(activePageIndex + 1, 0, copy);
+      return next;
+    });
+    switchPage(copy.id);
+  }
+  function moveActivePage(dir) {
+    setPages((prev) => {
+      const i = prev.findIndex((p) => p.id === activePageId);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  }
+  function removeActivePage() {
+    if (!activePage) return;
+    setPages((prev) => {
+      const next = prev.filter((p) => p.id !== activePageId);
+      const result = next.length > 0 ? next : [blankPage()];
+      const fallback = result[Math.min(activePageIndex, result.length - 1)];
+      switchPage(fallback.id);
+      return result;
+    });
+  }
 
   function selectBlock(blockId) {
     setSelectedBlockId(blockId);
@@ -54,40 +106,45 @@ export default function ConstructorView({ task, onAdvance }) {
 
   function addBlock(letterId) {
     const letter = byId[letterId];
-    if (!letter) return;
+    if (!letter || !activePage) return;
     const id = nextId();
     const rows = defaultRows(letter);
-    setBlocks((prev) => [...prev, { id, letterId, color: PALETTE[prev.length % PALETTE.length], rows }]);
+    updateActivePage((p) => ({ ...p, blocks: [...p.blocks, { id, letterId, color: PALETTE[p.blocks.length % PALETTE.length], rows }] }));
     setSelectedBlockId(id);
     setSelectedRowId(rows[rows.length - 1].id);
   }
   function removeSelectedBlock() {
     if (!selectedBlockId) return;
-    setBlocks((prev) => prev.filter((b) => b.id !== selectedBlockId));
+    updateActivePage((p) => ({ ...p, blocks: p.blocks.filter((b) => b.id !== selectedBlockId) }));
     setSelectedBlockId(null);
     setSelectedRowId(null);
   }
   function addRowToSelectedBlock() {
     if (!selectedBlockId) return;
     const rowId = nextId();
-    setBlocks((prev) => prev.map((b) => (b.id === selectedBlockId ? { ...b, rows: [...b.rows, { id: rowId, content: "full" }] } : b)));
+    updateActivePage((p) => ({ ...p, blocks: p.blocks.map((b) => (b.id === selectedBlockId ? { ...b, rows: [...b.rows, { id: rowId, content: "full" }] } : b)) }));
     setSelectedRowId(rowId);
   }
   function removeSelectedRow() {
     if (!selectedBlockId || !selectedRowId) return;
-    setBlocks((prev) => prev.map((b) => (b.id === selectedBlockId ? { ...b, rows: b.rows.filter((r) => r.id !== selectedRowId) } : b)));
+    updateActivePage((p) => ({ ...p, blocks: p.blocks.map((b) => (b.id === selectedBlockId ? { ...b, rows: b.rows.filter((r) => r.id !== selectedRowId) } : b)) }));
     setSelectedRowId(null);
   }
   function setSelectedRowContent(content) {
     if (!selectedBlockId || !selectedRowId) return;
-    setBlocks((prev) => prev.map((b) => (
-      b.id === selectedBlockId ? { ...b, rows: b.rows.map((r) => (r.id === selectedRowId ? { ...r, content } : r)) } : b
-    )));
+    updateActivePage((p) => ({
+      ...p,
+      blocks: p.blocks.map((b) => (
+        b.id === selectedBlockId ? { ...b, rows: b.rows.map((r) => (r.id === selectedRowId ? { ...r, content } : r)) } : b
+      )),
+    }));
   }
 
   function printNotebook() {
     window.print();
   }
+
+  const hasContent = pages.some((p) => p.blocks.length > 0);
 
   return (
     <div className="pl-constructor">
@@ -114,7 +171,7 @@ export default function ConstructorView({ task, onAdvance }) {
           <span className="pl-tool-cap">Строку</span>
         </button>
         <span className="pl-toolbar-fill" />
-        {blocks.length > 0 && (
+        {hasContent && (
           <button type="button" className="pl-tool" onClick={printNotebook}>
             <span className="pl-tool-ico" aria-hidden="true">🖨</span>
             <span className="pl-tool-cap">Печать</span>
@@ -126,24 +183,63 @@ export default function ConstructorView({ task, onAdvance }) {
         </button>
       </div>
 
-      <div className="pl-canvas" onClick={() => { setSelectedBlockId(null); setSelectedRowId(null); }}>
-        {blocks.length === 0 && (
-          <div className="pl-preview-empty">Нажмите «+ Буква» — появится блок; кликните по строке, чтобы настроить именно её</div>
-        )}
-        <div className="pl-notebook">
-          {blocks.map((b) => (
-            <LetterBlock
-              key={b.id}
-              letter={byId[b.letterId]}
-              color={b.color}
-              rows={b.rows}
-              selected={b.id === selectedBlockId}
-              selectedRowId={b.id === selectedBlockId ? selectedRowId : null}
-              onSelectBlock={() => selectBlock(b.id)}
-              onSelectRow={(rowId) => selectRow(b.id, rowId)}
-            />
-          ))}
+      <div className="pl-body">
+        <div className="pl-pages-rail no-print">
+          <div className="pl-pages-list">
+            {pages.map((p, i) => (
+              <PageThumb key={p.id} page={p} byId={byId} active={p.id === activePageId} index={i} onSelect={() => switchPage(p.id)} />
+            ))}
+          </div>
+          <button type="button" className="pl-page-add" onClick={addPage}>+ Страница</button>
+          <div className="pl-page-actions">
+            <button type="button" onClick={duplicateActivePage} aria-label="Дублировать страницу" title="Дублировать">⧉</button>
+            <button type="button" onClick={() => moveActivePage(-1)} disabled={activePageIndex <= 0} aria-label="Страница выше" title="Выше">↑</button>
+            <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex < 0 || activePageIndex >= pages.length - 1} aria-label="Страница ниже" title="Ниже">↓</button>
+            <button type="button" onClick={removeActivePage} aria-label="Удалить страницу" title="Удалить" className="pl-page-actions-danger">🗑</button>
+          </div>
         </div>
+
+        <div className="pl-canvas" onClick={() => { setSelectedBlockId(null); setSelectedRowId(null); }}>
+          {!hasContent && (
+            <div className="pl-preview-empty">Нажмите «+ Буква» — появится блок; кликните по строке, чтобы настроить именно её</div>
+          )}
+          {activePage && (
+            <div className="pl-sheet">
+              {activePage.blocks.map((b) => (
+                <LetterBlock
+                  key={b.id}
+                  letter={byId[b.letterId]}
+                  color={b.color}
+                  rows={b.rows}
+                  selected={b.id === selectedBlockId}
+                  selectedRowId={b.id === selectedBlockId ? selectedRowId : null}
+                  onSelectBlock={() => selectBlock(b.id)}
+                  onSelectRow={(rowId) => selectRow(b.id, rowId)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Print renders every page as its own physical sheet, not just the one being edited on screen. */}
+      <div className="pl-print-pages">
+        {pages.map((p) => (
+          <div key={p.id} className="pl-sheet pl-sheet--print">
+            {p.blocks.map((b) => (
+              <LetterBlock
+                key={b.id}
+                letter={byId[b.letterId]}
+                color={b.color}
+                rows={b.rows}
+                selected={false}
+                selectedRowId={null}
+                onSelectBlock={() => {}}
+                onSelectRow={() => {}}
+              />
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );
