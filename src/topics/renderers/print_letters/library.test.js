@@ -58,6 +58,6 @@ describe("print_letters notebooks", () => {
     ]);
     for (const r of ready) for (const p of r.pages) expect(pageOverflows(p, r.format)).toBe(false);
     expect(ready[0].pages[0].blocks[0].size).toBe(4); // sticks and bars — large
-    expect(ready[3].pages.every((p) => p.paper === "line3")).toBe(true); // review — on ruled paper
+    expect(ready[3].pages.every((p) => p.paper === "line")).toBe(true); // review — on ruled paper
   });
 });

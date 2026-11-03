@@ -7,17 +7,17 @@ import RowInspector from "./RowInspector";
 import BottomSheet from "./BottomSheet";
 import PrintPages from "./PrintPages";
 import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
-import { FORMATS, paperOf, isRuled, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { FORMATS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import {
   IconPlus, IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconBack, IconSave,
-  IconPaperSquare, IconPaperLine3, IconPaperLine2, IconFormatA4, IconFormatA5,
+  IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
 } from "./icons";
 
 const PAPER_OPTIONS = [
+  { id: "bigcell", label: "Крупная клетка", Icon: IconPaperBigCell },
   { id: "cell", label: "Клетка", Icon: IconPaperSquare },
-  { id: "line3", label: "Линейка: 3 линии", Icon: IconPaperLine3 },
-  { id: "line2", label: "Линейка: 2 линии", Icon: IconPaperLine2 },
+  { id: "line", label: "Линейка", Icon: IconPaperLine },
 ];
 const FORMAT_OPTIONS = [
   { id: "a4", label: FORMATS.a4.label, Icon: IconFormatA4 },
@@ -184,7 +184,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       onMoveRow={moveSelectedRow}
       onLadder={applyLadder}
       size={selectedBlock?.size === 4 ? 4 : 2}
-      ruled={activePage ? isRuled(paperOf(activePage)) : false}
+      paper={activePage ? paperOf(activePage) : "cell"}
       onSetSize={(size) => updateSelectedBlock((b) => ({ ...b, size }))}
       peek={peek}
     />

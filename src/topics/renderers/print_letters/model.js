@@ -40,7 +40,21 @@ export function blockSize(block) {
 // the same for every block on the page — a child gets used to that row; the
 // large size is a step on клетка only (large → normal → then линейка).
 export function drawnSize(block, paper) {
-  return isRuled(paper) ? 2 : blockSize(block);
+  return paper === "cell" ? blockSize(block) : 2;
+}
+
+// Blank space, in our 5mm cells, around rows on a paper: above each row,
+// before its first letter, after its last one, under the block and between
+// blocks. On the 1cm big cell it is a whole big cell (2 of ours), so every
+// edge — block, plate, each letter's left side, top and bottom — lands on a
+// 1cm line, and writing rows go every other row, as in Ilyukhina's workbook.
+export function paperGap(paper = "cell") {
+  return paper === "bigcell" ? 2 : GAP;
+}
+
+// The sheet header plus the blank space under it.
+export function headerCells(paper = "cell") {
+  return 2 + paperGap(paper);
 }
 
 // Height and width of a letter, in cells, at a block size.
@@ -65,18 +79,20 @@ export function blockCells(formatId) {
 // plate uses the block from edge to edge (owner, 2026-11-03: no wasted space
 // under the plate). A row is beside the plate when its letters would start
 // higher than one blank cell below the plate's bottom edge.
-export function rowBesidePlate(index, size = 2) {
-  return index * (GAP + letterH(size)) + GAP < TILE + GAP;
+export function rowBesidePlate(index, size = 2, paper = "cell") {
+  const g = paperGap(paper);
+  return index * (g + letterH(size)) + g < TILE + GAP;
 }
 
 // Where a row's letters start, in cells from the block's left edge.
-export function rowStartCells(besidePlate) {
-  return besidePlate ? TILE + GAP : GAP;
+export function rowStartCells(besidePlate, paper = "cell") {
+  const g = paperGap(paper);
+  return besidePlate ? TILE + g : g;
 }
 
 // Writing width of a row: from its start to one blank cell before the right edge.
-export function rowCells(formatId, besidePlate = true) {
-  return blockCells(formatId) - rowStartCells(besidePlate) - GAP;
+export function rowCells(formatId, besidePlate = true, paper = "cell") {
+  return blockCells(formatId) - rowStartCells(besidePlate, paper) - paperGap(paper);
 }
 
 // Width of a letter in our 5mm cells at the normal size. Ilyukhina
@@ -101,50 +117,53 @@ export function copyPitch(size = 2) {
   return letterH(size);
 }
 
-export function copiesPerRow(letter, formatId, besidePlate = true, size = 2) {
+export function copiesPerRow(letter, formatId, besidePlate = true, size = 2, paper = "cell") {
   const w = letterW(letter, size);
-  return Math.max(1, Math.floor((rowCells(formatId, besidePlate) - w) / copyPitch(size)) + 1);
+  return Math.max(1, Math.floor((rowCells(formatId, besidePlate, paper) - w) / copyPitch(size)) + 1);
 }
 
 export function blockHeightCells(block, paper = "cell") {
   const rows = block.rows.length;
-  return Math.max(TILE, rows * (GAP + letterH(drawnSize(block, paper))) + GAP);
+  const g = paperGap(paper);
+  return Math.max(TILE, rows * (g + letterH(drawnSize(block, paper))) + g);
 }
 
 export function pageHeightCells(page) {
   if (!page.blocks.length) return 0;
   const paper = paperOf(page);
-  return page.blocks.reduce((sum, b) => sum + blockHeightCells(b, paper), 0) + (page.blocks.length - 1) * GAP;
+  return page.blocks.reduce((sum, b) => sum + blockHeightCells(b, paper), 0) + (page.blocks.length - 1) * paperGap(paper);
 }
 
-// The sheet header («Имя ____ Дата ____ · Буква Н»): 2 cells tall plus a
-// blank cell before the first block.
-export const HEADER_CELLS = 3;
 
 export function pageOverflows(page, formatId) {
-  return pageHeightCells(page) > sheetCells(formatId).rows - HEADER_CELLS;
+  return pageHeightCells(page) > sheetCells(formatId).rows - headerCells(paperOf(page));
 }
 
 // ---- Paper ---------------------------------------------------------------
-// Page-level. A step of the support ladder too: клетка holds the letter on
-// every side; линейка leaves the width and the spacing to the child, with
-// the height (2 lines) and also the middle (3 lines: a dashed middle line
-// for crossbars) still marked. On линейка each row draws its own lines for
-// its block's size — there is no page-wide ruling, the sheet is plain.
+// Page-level (owner, 2026-11-03), three papers:
+//  - bigcell: the 1cm cell of Ilyukhina's workbook — one letter in one cell,
+//    at its left line; the child divides the cell "with the eyes";
+//  - cell: the 5mm school-notebook cell — top, bottom, left side and middle
+//    of a letter all on lines (the most support);
+//  - line: school ruled paper, rows 1cm tall: the letter stands on the solid
+//    baseline, a dashed line marks its height, a blank gap between rows.
+// The large letter size exists on `cell` only; on the other two one letter
+// is always one cell / one row (1cm).
 export const PAPERS = [
+  { id: "bigcell", label: "Крупная клетка" },
   { id: "cell", label: "Клетка" },
-  { id: "line3", label: "Линейка: 3 линии" },
-  { id: "line2", label: "Линейка: 2 линии" },
+  { id: "line", label: "Линейка" },
 ];
 
-// Pages saved before the two ruled papers existed say "line".
+// Unpublished drafts once had two ruled papers ("line3", "line2").
 export function paperOf(page) {
   const p = page?.paper;
-  return p === "line" ? "line3" : PAPERS.some((x) => x.id === p) ? p : "cell";
+  if (p === "line3" || p === "line2") return "line";
+  return PAPERS.some((x) => x.id === p) ? p : "cell";
 }
 
 export function isRuled(paper) {
-  return paper === "line3" || paper === "line2";
+  return paper === "line";
 }
 
 // ---- Rows ----------------------------------------------------------------

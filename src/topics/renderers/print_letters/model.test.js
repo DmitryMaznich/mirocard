@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  paperOf, isRuled, rowBesidePlate, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
+  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -43,16 +43,29 @@ describe("print_letters model", () => {
     expect(blockHeightCells({ rows })).toBe(19);
     expect(blockHeightCells({ rows, size: 4 })).toBe(31);
     // on линейка the ruling sets the size: a large block is drawn at the normal size
-    expect(blockHeightCells({ rows, size: 4 }, "line3")).toBe(19);
+    expect(blockHeightCells({ rows, size: 4 }, "line")).toBe(19);
   });
 
-  it("knows the papers; a page saved as «line» is the 3-line ruling", () => {
-    expect(paperOf({ paper: "line" })).toBe("line3");
-    expect(paperOf({ paper: "line2" })).toBe("line2");
+  it("knows the three papers; old drafts' «line3»/«line2» read as the one ruling", () => {
+    expect(paperOf({ paper: "line3" })).toBe("line");
+    expect(paperOf({ paper: "line2" })).toBe("line");
+    expect(paperOf({ paper: "bigcell" })).toBe("bigcell");
     expect(paperOf({})).toBe("cell");
-    expect(paperOf({ paper: "nonsense" })).toBe("cell");
-    expect([isRuled("cell"), isRuled("line3"), isRuled("line2")]).toEqual([false, true, true]);
+    expect([isRuled("cell"), isRuled("bigcell"), isRuled("line")]).toEqual([false, false, true]);
   });
+
+  it("on the 1cm big cell every gap is a whole big cell, so all edges fall on 1cm lines", () => {
+    // block left edge at 5mm, big lines every 10mm from 5mm: starts must be even numbers of our cells
+    expect(rowStartCells(true, "bigcell")).toBe(6);
+    expect(rowStartCells(false, "bigcell")).toBe(2);
+    expect(rowCells("a4", false, "bigcell")).toBe(34);
+    expect(copiesPerRow(letter("Н"), "a4", false, 2, "bigcell")).toBe(17);
+    // rows every other big row: 2 blank + 2 letter per row, 2 blank under the block
+    const rows = ladderRows(letter("Н")); // 6 rows
+    expect(blockHeightCells({ rows }, "bigcell")).toBe(26);
+    expect(blockHeightCells({ rows, size: 4 }, "bigcell")).toBe(26); // one letter = one big cell, always
+    expect([0, 1].map((i) => rowBesidePlate(i, 2, "bigcell"))).toEqual([true, false]);
+  });;
 
   it("follows Ilyukhina's stroke order: Г stick first, П and Ш in two strokes, Н both sticks then the bar", () => {
     const names = (id) => letter(id).strokes.map((s) => s.name);

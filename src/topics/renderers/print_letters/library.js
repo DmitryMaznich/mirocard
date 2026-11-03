@@ -220,9 +220,9 @@ export function readyNotebooks(byId) {
   const all = ["Г", "Т", "П", "Н", "И", "Ш", "Е", "Ё"];
   if (have(...all)) {
     const blocks = all.map((id, i) => reviewBlock(L(id), PALETTE[i % PALETTE.length]));
-    out.push(nb("straight-review", "Повторяем прямые линии", "Все восемь букв на линейке: один образец и строка самостоятельно. Проверка, что буквы усвоены и пишутся без клетки.", [
-      page(blocks.slice(0, 4), "line3"),
-      page(blocks.slice(4), "line3"),
+    out.push(nb("straight-review", "Повторяем прямые линии", "Все восемь букв на линейке: один образец и строка самостоятельно. Проверка, что буквы усвоены и пишутся без клетки — по строке и до пунктира.", [
+      page(blocks.slice(0, 4), "line"),
+      page(blocks.slice(4), "line"),
     ]));
   }
   return out;

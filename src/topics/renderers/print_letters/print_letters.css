@@ -293,9 +293,21 @@
    for its block's size (.pl-ruling below), as in printed-letter copybooks;
    one page-wide ruling every 5mm told the child nothing about which lines
    bound the letter. */
-.pl-sheet--line3,
-.pl-sheet--line2 {
+.pl-sheet--line {
   background-image: none;
+}
+
+/* Крупная клетка: Ilyukhina's 1cm cell. Lines every 10mm, offset by the
+   sheet's 5mm padding so the block edges, the plate and every letter's
+   left side, top and bottom fall on them; blocks and the header are a whole
+   big cell apart (model.js paperGap/headerCells). */
+.pl-sheet--bigcell {
+  background-image:
+    linear-gradient(to right, #9fbfdc 1px, transparent 1px),
+    linear-gradient(to bottom, #9fbfdc 1px, transparent 1px);
+  background-size: 10mm 10mm;
+  background-position: 5mm 5mm;
+  gap: 10mm;
 }
 
 /* Only rendered under @media print — see below. */
@@ -303,23 +315,15 @@
 
 .pl-row-wrap { display: flex; flex-direction: column; position: relative; }
 
-/* A row's own ruling on линейка: top line (the letter's height), bottom
-   line (it stands on it) and, for 3 lines, a dashed middle line for the
-   crossbars. Drawn under the letters; borders print without
-   "background graphics". */
+/* A row's own ruling on линейка: the solid baseline the letter stands on
+   and a dashed line at its height; the blank space between rows is the gap
+   above the next row. Borders print without "background graphics". */
 .pl-ruling {
   position: absolute;
   box-sizing: border-box;
-  border-top: 0.35mm solid #5f7fa8;
-  border-bottom: 0.35mm solid #5f7fa8;
-  pointer-events: none;
-}
-.pl-ruling-mid {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
   border-top: 0.3mm dashed #8aa2c4;
+  border-bottom: 0.4mm solid #5f7fa8;
+  pointer-events: none;
 }
 .pl-row { position: relative; }
 

@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
+import { TILE, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -18,10 +18,11 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
   const frame = letterFrame(letter);
   const w = letterW(letter, size);
   const h = letterH(size);
+  const g = paperGap(paper);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(TILE), paddingBottom: mm(GAP) }}
+      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(TILE), paddingBottom: mm(g) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
@@ -33,8 +34,10 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
       </div>
 
       {rows.map((row, index) => {
-        const beside = rowBesidePlate(index, size);
-        const copies = copiesPerRow(letter, format, beside, size);
+        const beside = rowBesidePlate(index, size, paper);
+        const copies = copiesPerRow(letter, format, beside, size, paper);
+        const start = rowStartCells(beside, paper);
+        const width = rowCells(format, beside, paper);
         const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
         const miniLetter = { ...letter, strokes };
         const plan = copyPlan(row, copies);
@@ -42,19 +45,17 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
           <div
             key={row.id}
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
-            style={{ paddingTop: mm(GAP), paddingLeft: mm(rowStartCells(beside)) }}
+            style={{ paddingTop: mm(g), paddingLeft: mm(start) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
             {isRuled(paper) && (
               <div
                 className="pl-ruling"
                 aria-hidden="true"
-                style={{ left: mm(rowStartCells(beside)), top: mm(GAP), width: mm(rowCells(format, beside)), height: mm(h) }}
-              >
-                {paper === "line3" && <span className="pl-ruling-mid" />}
-              </div>
+                style={{ left: mm(start), top: mm(g), width: mm(width), height: mm(h) }}
+              />
             )}
-            <div className="pl-row" style={{ height: mm(h), width: mm(rowCells(format, beside)) }}>
+            <div className="pl-row" style={{ height: mm(h), width: mm(width) }}>
               {plan.map((p, i) => (
                 <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? w : copyPitch(size)), height: mm(h) }}>
                   {p && (
