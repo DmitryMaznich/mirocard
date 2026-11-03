@@ -73,21 +73,23 @@ const vowelGaps = (text) => {
 // The ladder of a word block: the word over dotted contours → the vowel left out («впиши
 // пропущенную») → a half-tone fading along the row → the sample alone → a blank row. With several
 // words (a block of syllables): each over dotted contours, then each fading, then a blank row.
+// A word doesn't change from row to row, so only each word's first row and the «sample only» row
+// start with a sample; the others go straight to contours (owner, 2026-11-03: «тяжеловато»).
 export function wordLadderRows(words) {
   const row = (text, extra = {}) => ({ text, elements: allLetterIdx(text), ...WORD_STYLE, ...extra });
   if (words.length === 1) {
     const [w] = words;
     const rows = [row(w)];
     const gaps = vowelGaps(w);
-    if (gaps) rows.push(row(w, { elements: gaps }));
-    rows.push(row(w, { line: "tone", guide: "fade" }));
+    if (gaps) rows.push(row(w, { elements: gaps, sample: false }));
+    rows.push(row(w, { line: "tone", guide: "fade", sample: false }));
     rows.push(row(w, { line: "tone", guide: "none" }));
     rows.push({ ...row(w), elements: [] });
     return rows;
   }
   return [
     ...words.map((w) => row(w)),
-    ...words.map((w) => row(w, { line: "tone", guide: "fade" })),
+    ...words.map((w) => row(w, { line: "tone", guide: "fade", sample: false })),
     { ...row(words[0]), elements: [] },
   ];
 }

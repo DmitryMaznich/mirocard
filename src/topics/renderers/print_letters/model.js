@@ -235,6 +235,7 @@ export function describeStyle(row) {
   else parts.push(LINES.find((l) => l.id === st.line).label.toLowerCase(), GUIDES.find((g) => g.id === st.guide).label.toLowerCase());
   if (st.dots !== "none") parts.push(st.dots === "all" ? "точки на всех" : "точки на образце");
   if (!st.arrows) parts.push("без стрелок");
+  if (row.sample === false && st.guide !== "none") parts.unshift("без образца");
   return parts.join(" · ");
 }
 
@@ -280,13 +281,17 @@ export function ladderRows(letter) {
 export function copyPlan(row, copies) {
   if (!row.elements.length) return Array.from({ length: copies }, () => null);
   const st = rowStyle(row);
+  // `row.sample === false` (syllable / word rows, owner 2026-11-03): no sample at the start — the row
+  // is contours from its first copy; a «sample only» row always keeps it (it would be empty otherwise)
+  const withSample = row.sample !== false || st.guide === "none";
+  const first = withSample ? 1 : 0;
   return Array.from({ length: copies }, (_, i) => {
-    if (i === 0) return { variant: "sample", opacity: 1, dots: st.dots !== "none", arrows: st.arrows };
+    if (i === 0 && withSample) return { variant: "sample", opacity: 1, dots: st.dots !== "none", arrows: st.arrows };
     if (st.guide === "none") return null;
     const variant = st.line === "dash" ? "dotted" : "trace";
     let opacity = 1;
     if (st.guide === "fade") {
-      const t = copies > 2 ? (i - 1) / (copies - 2) : 0;
+      const t = copies - first > 1 ? (i - first) / (copies - first - 1) : 0;
       opacity = Math.max(0.15, 1 - t * 0.85);
     }
     return { variant, opacity, dots: st.dots === "all" };

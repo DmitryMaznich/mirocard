@@ -116,4 +116,6 @@ export const IconDotsNone = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks
 export const IconArrows = () => S(<><path d="M8 4v16" strokeWidth="2.6" /><path d="M15 6v11M12.3 14.2L15 17.2l2.7-3" stroke="#dc2626" strokeWidth="1.6" /></>);
 // «PDF»: a page with a folded corner and an arrow down into it (save the file).
 export const IconPdf = () => S(<><path d="M6 3.5h8l4 4v13H6z" /><path d="M14 3.5v4h4" /><path d="M12 10.5v6M9.5 14l2.5 2.5 2.5-2.5" /></>);
+// «Образец» on/off for syllable / word rows: a solid first letter, then dotted ones.
+export const IconSampleToggle = () => S(<><path d="M5 5v14M5 5h5" strokeWidth="2.6" /><path d="M14 5v14M14 5h5" strokeWidth="2" strokeDasharray="0.1 3.4" opacity="0.6" /></>);
 

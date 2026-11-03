@@ -6,7 +6,7 @@ import { PlateWords } from "./WordBlock";
 import { allLetterIdx, plateWords } from "./words";
 import {
   IconUp, IconDown, IconLadder, IconAddRow, IconTrash,
-  IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone, IconArrows,
+  IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone, IconArrows, IconSampleToggle,
 } from "./icons";
 
 const LINE_ICONS = { tone: IconLineTone, dash: IconLineDash };
@@ -131,7 +131,7 @@ function SizeSwitch({ size, onSetSize, paper }) {
 }
 
 // The row's look: three pickers like the strips above (propis2's icon + drop-down list).
-function LookPickers({ row, blank, onSetStyle }) {
+function LookPickers({ row, blank, onSetStyle, word = false }) {
   const st = rowStyle(row);
   return (
     <section className="pl-insp-sec" aria-label="Как выглядят контуры">
@@ -148,6 +148,21 @@ function LookPickers({ row, blank, onSetStyle }) {
             <span className="pl2-cap">Стрелки</span>
           </button>
         </div>
+        {/* syllables and words: the sample at the row's start is optional — the word is the same in
+            every row (a «sample only» row keeps it) */}
+        {word && (() => {
+          const on = row.sample !== false || st.guide === "none";
+          return (
+            <div className="pl2-pick">
+              <button type="button" className={`pl2-pick-btn pl2-tool pl-toggle${on ? " is-on" : ""}`} role="switch" aria-checked={on}
+                aria-label={`Образец в начале строки: ${on ? "есть" : "нет"}`} title={st.guide === "none" ? "В строке «только образец» он нужен" : on ? "Образец в начале строки: есть" : "Образец в начале строки: нет"}
+                disabled={blank || st.guide === "none"} onClick={() => onSetStyle({ sample: !on })}>
+                <span className="pl2-tool-ico"><IconSampleToggle /></span>
+                <span className="pl2-cap">Образец</span>
+              </button>
+            </div>
+          );
+        })()}
       </div>
       <span className="pl-insp-hint">{blank ? "Пустая строка — ребёнок пишет сам." : describeStyle(row)}</span>
     </section>
@@ -231,7 +246,7 @@ function WordInspector({ block, byId, color, row, rowIndex, rowCount, size, pape
         </div>
       </section>
 
-      <LookPickers row={row} blank={blank} onSetStyle={onSetStyle} />
+      <LookPickers row={row} blank={blank} onSetStyle={onSetStyle} word />
       <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word />
     </div>
   );

@@ -43,8 +43,14 @@ describe("print_letters syllables and words", () => {
     expect(rows.map((r) => [r.elements.join(""), r.line, r.guide])).toEqual([
       ["012", "dash", "full"], ["02", "dash", "full"], ["012", "tone", "fade"], ["012", "tone", "none"], ["", "dash", "full"],
     ]);
-    // the sample is always the whole word; a left-out letter only leaves the contours
-    expect(copyPlan(rows[1], 3)[0].variant).toBe("sample");
+    // only the word's first row and the «sample only» row start with a sample (the word doesn't change)
+    expect(rows.map((r) => r.sample !== false)).toEqual([true, false, false, true, true]);
+    expect(copyPlan(rows[0], 3)[0].variant).toBe("sample");
+    expect(copyPlan(rows[1], 3).map((p) => p.variant)).toEqual(["dotted", "dotted", "dotted"]);
+    expect(copyPlan({ ...rows[3], sample: false }, 3)[0].variant).toBe("sample"); // «sample only» keeps it
+    const fade = copyPlan(rows[2], 6);
+    expect(fade[0].opacity).toBe(1);
+    expect(fade[5].opacity).toBeCloseTo(0.15);
     const multi = wordLadderRows(["НИ", "НЕ"]);
     expect(multi.map((r) => r.text)).toEqual(["НИ", "НЕ", "НИ", "НЕ", "НИ"]);
     const page = { paper: "cell", blocks: [{ kind: "word", words: ["НЕТ"], size: 2, rows }, { kind: "word", words: ["НИ", "НЕ"], size: 2, rows: multi }] };
