@@ -25,14 +25,6 @@ import {
 const INCORRECT_FEEDBACK_MS = 1500;
 const ignoreCardEvent = () => {};
 
-function resolveStrictStars(mode, savedValue, flexible = false) {
-  // Some reaction drills are a true "correct answers in a row" exercise.
-  // Their progression must not inherit a soft-count setting saved in another
-  // mode of the same topic.
-  if (mode?.rewardDefaults?.forceStrictStars && !flexible) return true;
-  return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
-}
-
 // Shared between the initial mode lookup and the loopModes auto-advance
 // effect below, so both resolve a mode id the exact same way.
 function resolveMode(topicRecord, modeId) {
@@ -55,14 +47,10 @@ function resolveMode(topicRecord, modeId) {
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
   const selectedStudent = useAppStore.getState().students.find(s => s.id === useAppStore.getState().activeStudentId);
-  const flexible = effectiveRewardSettings(selectedStudent?.rewardSettings).algorithm === "flexible";
-  // Legacy ZIP renderers use this field only to forward intermediate mistakes.
-  // In the new policy always collect them; the engine decides whether to penalize.
-  const sessionParams = { ...readModeParams(link.params, mode), strictStars: flexible || resolveStrictStars(mode, link.strictStars) };
-  if (flexible) {
-    sessionParams.rewardPolicyVersion = 2;
-    sessionParams.rewardLossMode = effectiveRewardSettings(selectedStudent.rewardSettings).lossMode;
-  }
+  const settings = effectiveRewardSettings(selectedStudent?.rewardSettings);
+  // ZIP renderers forward intermediate mistakes; the engine applies strictness.
+  const sessionParams = { ...readModeParams(link.params, mode), strictStars: true,
+    rewardPolicyVersion: 2, rewardLossMode: settings.lossMode };
   if (topicRecord?.languageContract) {
     const state = useAppStore.getState();
     const student = state.students.find((s) => s.id === state.activeStudentId);
@@ -239,9 +227,8 @@ export function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? effectiveRewardSettings(activeStudent.rewardSettings).strictStars : resolveStrictStars(mode, link.strictStars),
-    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible"
-      ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), effectiveRewardSettings(activeStudent.rewardSettings).lossMode) : undefined,
+    effectiveRewardSettings(activeStudent?.rewardSettings).strictStars,
+    rewardPolicy(effectiveRewardSettings(activeStudent?.rewardSettings), effectiveRewardSettings(activeStudent?.rewardSettings).lossMode),
   );
 
   baseState.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
@@ -351,8 +338,8 @@ export function useSessionEngine() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionState(() => {
       const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null, false, link.answersPerStar ?? 1,
-        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? effectiveRewardSettings(activeStudent.rewardSettings).strictStars : resolveStrictStars(mode, link.strictStars),
-        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), effectiveRewardSettings(activeStudent.rewardSettings).lossMode) : undefined);
+        effectiveRewardSettings(activeStudent?.rewardSettings).strictStars,
+        rewardPolicy(effectiveRewardSettings(activeStudent?.rewardSettings), effectiveRewardSettings(activeStudent?.rewardSettings).lossMode));
       rebuilt.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
       rebuilt.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: rebuilt.strictStars }, tasks, selectedConceptIds, null);
       return rebuilt;

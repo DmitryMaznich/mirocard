@@ -7,8 +7,8 @@ import { handleAnswer, handleStreakReset } from "./sessionEngine.js";
 const original = useAppStore.getState();
 afterEach(() => { vi.restoreAllMocks(); useAppStore.setState(original, true); });
 
-it("uses one student's rules across topics and scoped modes despite conflicting saved lesson settings", () => {
-  const student = { id: "s", rewardSettings: { algorithm: "flexible", strictStars: false, lossMode: "all", duration: "60" } };
+it.each([undefined, "legacy", "flexible"])("uses student rules across topics despite saved algorithm %s and conflicting lesson settings", algorithm => {
+  const student = { id: "s", rewardSettings: { algorithm, strictStars: false, lossMode: "all", duration: "60" } };
   useAppStore.setState({ activeStudentId: "s", students: [student] });
   for (const renderer of ["streak_tracker", "comparison", "reading", "place_value", "sentence_puzzle"]) {
     vi.spyOn(ENGINE_REGISTRY, renderer).mockReturnValue(Array.from({ length: 20 }, (_, i) => ({ type: "streak", cardId: String(i), conceptId: "c" })));
@@ -39,4 +39,10 @@ it("uses one student's rules across topics and scoped modes despite conflicting 
   expect(state.strictStars).toBe(true);
   expect(handleStreakReset({ ...state, streakCount: 3 }).streakCount).toBe(2);
   expect(student.rewardSettings.strictStars).toBe(false);
+});
+
+it("uses the current default policy when the selected student has no settings", () => {
+  useAppStore.setState({ activeStudentId: "missing", students: [] });
+  const selection = resolveModeSelection({ meta: { id: "streak_tracker" } }, { id: "m" }, { params: {}, strictStars: false }, false);
+  expect(selection.sessionParams).toMatchObject({ strictStars: true, rewardPolicyVersion: 2, rewardLossMode: "one" });
 });
