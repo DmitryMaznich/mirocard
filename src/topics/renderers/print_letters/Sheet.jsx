@@ -10,7 +10,8 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // One printable sheet at its real size: the paper format minus the printer
 // margin (@page). The same component draws the page on the canvas, inside a
 // thumbnail (scaled) and in the print run, so the three never disagree.
-export default function Sheet({ page, format, byId, className = "", style, selectedBlockId = null, selectedRowId = null, onSelectBlock, onSelectRow }) {
+// `nameLine`: the «Имя ____ Дата ____» lines of the header (the notebook's toolbar option).
+export default function Sheet({ page, format, byId, className = "", style, selectedBlockId = null, selectedRowId = null, onSelectBlock, onSelectRow, nameLine = true }) {
   const { w, h } = sheetSizeMm(format);
   // On paper, 1mm less than the exact printable height: an exact fit can
   // round over and push a blank sheet out after every page.
@@ -32,7 +33,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
       <SheetGrid paper={paperOf(page)} w={w} h={heightMm} />
       {page.blocks.length > 0 && (
         <div className="pl-sheet-head-at" style={{ position: "absolute", top: mm(GAP), left: mm(GAP), width: mm(blockCells(format)) }}>
-          <SheetHeader page={page} byId={byId} />
+          <SheetHeader page={page} byId={byId} nameLine={nameLine} />
         </div>
       )}
       {page.blocks.map((b, i) => {
@@ -101,24 +102,32 @@ function SheetGrid({ paper, w, h }) {
   );
 }
 
-// «Имя ____ Дата ____» — the child (or adult) writes them in: a name is
-// itself a writing goal at this age, the date lets progress be compared
-// across sheets. On the right: the page's letters, drawn with the same
-// strokes as in the blocks, not typed in a font.
+// «Имя ____ Дата ____» (optional, the notebook's toolbar switch) — the child (or adult) writes them
+// in: a name is itself a writing goal at this age, the date lets progress be compared across sheets.
+// On the right: «Пишем» and the page's letters and words, drawn with the same strokes as in the
+// blocks, not typed in a font.
 // Syllables and words are listed after the letters, the heading becomes «Пишем».
-function SheetHeader({ page, byId }) {
+function SheetHeader({ page, byId, nameLine }) {
   const ids = [...new Set(page.blocks.filter((b) => !isWordBlock(b)).map((b) => b.letterId))].filter((id) => byId[id]);
   const words = [...new Set(page.blocks.filter(isWordBlock).flatMap((b) => b.words ?? []))];
+  // «Пишем А, Б, В, МАМА» (owner, 2026-11-03): the letters, then the syllables and words, comma-separated
+  const items = [
+    ...ids.map((id) => <LetterGlyph key={`l${id}`} letter={byId[id]} heightMm={5} variant="plain" label={byId[id].label} />),
+    ...words.map((w) => <PlateWords key={`w${w}`} words={[w]} byId={byId} heightMm={5} color="#1f3a8a" weight={9} />),
+  ];
   return (
     <div className="pl-sheet-head">
-      <span>Имя</span><span className="pl-sheet-head-line pl-sheet-head-line--name" />
-      <span>Дата</span><span className="pl-sheet-head-line pl-sheet-head-line--date" />
+      {nameLine && <>
+        <span>Имя</span><span className="pl-sheet-head-line pl-sheet-head-line--name" />
+        <span>Дата</span><span className="pl-sheet-head-line pl-sheet-head-line--date" />
+      </>}
       <span className="pl-sheet-head-fill" />
       <span className="pl-sheet-head-title">
-        {words.length ? "Пишем" : ids.length > 1 ? "Буквы" : "Буква"}
+        Пишем
         <span className="pl-sheet-head-letters">
-          {ids.map((id) => <LetterGlyph key={id} letter={byId[id]} heightMm={5} variant="plain" label={byId[id].label} />)}
-          {words.length > 0 && <PlateWords words={words} byId={byId} heightMm={5} color="#1f3a8a" weight={9} />}
+          {items.map((item, k) => (
+            <span key={k} className="pl-sheet-head-item">{item}{k < items.length - 1 && <span className="pl-sheet-head-comma">,</span>}</span>
+          ))}
         </span>
       </span>
     </div>

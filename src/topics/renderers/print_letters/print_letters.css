@@ -840,3 +840,6 @@
 .pl-pdf-msg { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl-pdf-save { flex: 0 0 auto; min-height: 40px; padding: 0 16px; border: none; border-radius: 12px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
 .pl-pdf-close { flex: 0 0 auto; width: 36px; height: 36px; border: none; border-radius: 10px; background: rgba(255, 255, 255, .12); color: #fff; font: inherit; font-size: 20px; cursor: pointer; }
+/* the header's «Пишем А, Б, МАМА»: items with commas */
+.pl-sheet-head-item { display: flex; align-items: flex-end; }
+.pl-sheet-head-comma { color: #1f3a8a; font-weight: 800; font-size: 12pt; line-height: 1; margin-left: 0.3mm; }

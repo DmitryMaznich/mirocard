@@ -10,7 +10,7 @@ import { FORMATS, DEFAULT_STYLE, describeStyle, withStyle, paperOf, allElements,
 import { PALETTE, blankPage, newId } from "./library";
 import { WORD_STYLE, allLetterIdx, isWordBlock, wordLadderRows } from "./words";
 import {
-  IconTrash, IconPdf, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
+  IconTrash, IconPdf, IconNameLine, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
   IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
 } from "./icons";
 
@@ -33,9 +33,10 @@ const DOCK_KEY = "print_letters:dock-open";
 const withIds = (rows) => rows.map((r) => ({ id: newId(), ...r }));
 
 // A strip tool: propis2's IconBtn with a caption (p2-ib p2-tool: the icon over its caption).
-function Tool({ label, caption, onClick, disabled, danger = false, children }) {
+function Tool({ label, caption, onClick, disabled, danger = false, on, children }) {
   return (
-    <button type="button" className={`pl2-ib pl2-tool${danger ? " pl2-ib--danger" : ""}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}>
+    <button type="button" className={`pl2-ib pl2-tool${danger ? " pl2-ib--danger" : ""}${on ? " is-on" : ""}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}
+      aria-pressed={on === undefined ? undefined : on}>
       <span className="pl2-tool-ico">{children}</span>
       <span className="pl2-cap">{caption}</span>
     </button>
@@ -59,6 +60,9 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const format = notebook.format ?? "a4";
   const setPages = (updater) => onChange((nb) => ({ ...nb, pages: typeof updater === "function" ? updater(nb.pages) : updater }));
   const setFormat = (f) => onChange((nb) => ({ ...nb, format: f }));
+  // «Имя / Дата» in every sheet's header — notebook-wide, like the format (owner, 2026-11-03)
+  const nameLine = notebook.nameLine !== false;
+  const toggleNameLine = () => onChange((nb) => ({ ...nb, nameLine: !(nb.nameLine !== false) }));
   const setTitle = (title) => onChange((nb) => ({ ...nb, title }), { typing: true });
 
   const [activePageState, setActivePageId] = useState(() => pages[0]?.id ?? null);
@@ -266,6 +270,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const pageEls = <>
     <OptionPicker label="Формат" caption="Формат" options={FORMAT_OPTIONS} value={format} onChange={setFormat} />
     <OptionPicker label="Бумага" caption="Бумага" options={PAPER_OPTIONS} value={paper} onChange={(p) => updateActivePage((pg) => ({ ...pg, paper: p }))} />
+    <Tool label={nameLine ? "Строки «Имя» и «Дата» в шапке листа: есть" : "Строки «Имя» и «Дата» в шапке листа: нет"} caption="Имя, дата" on={nameLine} onClick={toggleNameLine}><IconNameLine /></Tool>
   </>;
   // the top bar holds only the block: add one (the letter picker) and delete the selected one;
   // everything about a row lives in the row panel (RowInspector)
@@ -298,6 +303,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
             byId={byId}
             className="pl-sheet--screen"
             style={sheetZoom !== 1 ? { zoom: sheetZoom } : undefined}
+            nameLine={nameLine}
             selectedBlockId={selectedBlockId}
             selectedRowId={selectedRowId}
             onSelectBlock={selectBlock}
@@ -334,7 +340,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
                   <span className="pl2-thumb-no">{i + 1}</span>
                   <span className="pl2-thumb-sheet pl-thumb-sheet2" style={{ width: THUMB_W, aspectRatio: `${sheet.w} / ${sheet.h}` }}>
                     <span className="pl-thumb-scale" style={{ transform: `scale(${scale})` }}>
-                      <Sheet page={p} format={format} byId={byId} className="pl-sheet--thumb" />
+                      <Sheet page={p} format={format} byId={byId} className="pl-sheet--thumb" nameLine={nameLine} />
                     </span>
                   </span>
                 </button>

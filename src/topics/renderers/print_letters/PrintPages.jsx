@@ -19,7 +19,7 @@ export default function PrintPages({ notebook, byId, exporting = false, containe
         aria-hidden={exporting || undefined}
       >
         {notebook.pages.map((p) => (
-          <Sheet key={p.id} page={p} format={format} byId={byId} className="pl-sheet--print" />
+          <Sheet key={p.id} page={p} format={format} byId={byId} className="pl-sheet--print" nameLine={notebook.nameLine !== false} />
         ))}
       </div>
     </>
