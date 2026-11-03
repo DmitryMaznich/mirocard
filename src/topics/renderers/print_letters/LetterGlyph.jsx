@@ -204,7 +204,7 @@ export default function LetterGlyph({
     >
       {variant === "sample" && (
         <defs>
-          <marker id={arrowId} viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="17" markerHeight="17" orient="auto">
+          <marker id={arrowId} viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="17" markerHeight="17" orient="auto">
             <path d="M0 1L9 5L0 9z" fill={ink} />
           </marker>
         </defs>
@@ -217,7 +217,9 @@ export default function LetterGlyph({
           fill="none"
           stroke={ink}
           strokeWidth={strokeW}
-          strokeLinecap="round"
+          /* on the sample the arrow's tip is the stroke's end — exactly on the grid line; a round
+             cap would poke past it and the arrow would sit short of the line */
+          strokeLinecap={variant === "sample" && markable[i] ? "butt" : "round"}
           strokeLinejoin="round"
           strokeDasharray={variant === "dotted" ? "1 10" : undefined}
           opacity={variant === "starts" ? 0.3 : 1}

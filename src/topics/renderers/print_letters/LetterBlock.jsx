@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
+import { TILE, LETTER_H, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -30,7 +30,9 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
         style={{ height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
         aria-label={`Буква ${letter.label}`}
       >
-        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.55} variant="plain" color="#ffffff" weight={15} />
+        {/* the plate letter is a letter's own height, 2 cells, centred in the 4-cell plate: its top
+            and bottom lie on grid lines like the letters in the rows (owner, 2026-11-03) */}
+        <LetterGlyph letter={letter} frame={frame} heightMm={LETTER_H * FINE_MM} variant="plain" color="#ffffff" weight={15} />
       </div>
 
       {rows.map((row, index) => {
