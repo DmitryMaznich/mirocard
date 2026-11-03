@@ -1,4 +1,5 @@
 import { DEFAULT_STYLE, allElements, ladderRows } from "./model";
+import { canWrite, wordLadderRows } from "./words";
 
 const FADING = { line: "tone", guide: "fade", dots: "all" };
 const SAMPLE_ONLY = { line: "tone", guide: "none", dots: "sample" };
@@ -226,6 +227,14 @@ export function readyNotebooks(byId) {
     out.push(nb("straight-review", "Повторяем прямые линии", "Все восемь букв на линейке: один образец и строка самостоятельно. Проверка, что буквы усвоены и пишутся без клетки — по строке и до пунктира.", [
       page(blocks.slice(0, 4), "line"),
       page(blocks.slice(4), "line"),
+    ]));
+  }
+  // syllables, then words, from the letters already drawn (words.js); grows as letters are added
+  const wordBlock = (words, color) => ({ id: rid("b"), kind: "word", words, color, size: 2, rows: rowsOf(wordLadderRows(words)) });
+  if (["НИ", "НЕ", "ТИ", "ТЕ", "НЕТ", "ТИП"].every((w) => canWrite(w, byId))) {
+    out.push(nb("first-words", "Первые слоги и слова", "Из уже знакомых букв: слоги НИ НЕ, ТИ ТЕ, потом слова НЕТ и ТИП. В слове на второй строке пропущена гласная — ребёнок вписывает её сам.", [
+      page([wordBlock(["НИ", "НЕ"], PALETTE[0]), wordBlock(["ТИ", "ТЕ"], PALETTE[1])]),
+      page([wordBlock(["НЕТ"], PALETTE[3]), wordBlock(["ТИП"], PALETTE[2])]),
     ]));
   }
   return out;

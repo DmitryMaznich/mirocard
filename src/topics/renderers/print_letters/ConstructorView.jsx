@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import LetterPickerButton from "./LetterPickerButton";
+import BlockPickerButton from "./BlockPickerButton";
 import OptionPicker from "./OptionPicker";
 import Sheet from "./Sheet";
 import RowInspector from "./RowInspector";
@@ -8,6 +8,7 @@ import PrintPages from "./PrintPages";
 import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
 import { FORMATS, DEFAULT_STYLE, describeStyle, withStyle, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
+import { WORD_STYLE, allLetterIdx, isWordBlock, wordLadderRows } from "./words";
 import {
   IconTrash, IconPrint, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
   IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
@@ -82,7 +83,9 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const activeId = activePage?.id ?? null;
   const paper = activePage ? paperOf(activePage) : "cell";
   const selectedBlock = activePage?.blocks.find((b) => b.id === selectedBlockId) ?? null;
-  const selectedLetter = selectedBlock ? byId[selectedBlock.letterId] : null;
+  const selectedWord = isWordBlock(selectedBlock) ? selectedBlock : null;
+  const selectedLetter = selectedBlock && !selectedWord ? byId[selectedBlock.letterId] : null;
+  const blockLabel = selectedWord ? selectedWord.words.join(" ") : selectedLetter?.label ?? "";
   const selectedRowIndex = selectedBlock ? selectedBlock.rows.findIndex((r) => r.id === selectedRowId) : -1;
   const selectedRow = selectedRowIndex >= 0 ? selectedBlock.rows[selectedRowIndex] : null;
 
@@ -158,14 +161,29 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     setSelectedBlockId(id);
     setSelectedRowId(rows[0].id);
   }
+  // a syllable / word block (words.js): its words, built by the ladder
+  function addWordBlock(words) {
+    if (!words.length || !activePage) return;
+    const id = newId();
+    const rows = withIds(wordLadderRows(words));
+    updateActivePage((p) => ({ ...p, blocks: [...p.blocks, { id, kind: "word", words, color: PALETTE[p.blocks.length % PALETTE.length], size: 2, rows }] }));
+    setSelectedBlockId(id);
+    setSelectedRowId(rows[0].id);
+  }
   function removeSelectedBlock() {
     if (!selectedBlockId) return;
     updateActivePage((p) => ({ ...p, blocks: p.blocks.filter((b) => b.id !== selectedBlockId) }));
     clearSelection();
   }
   function addRow() {
-    if (!selectedBlock || !selectedLetter) return;
-    const row = { id: newId(), elements: allElements(selectedLetter), ...DEFAULT_STYLE };
+    if (!selectedBlock || (!selectedLetter && !selectedWord)) return;
+    let row;
+    if (selectedWord) {
+      const text = selectedRow?.text ?? selectedWord.words[0];
+      row = { id: newId(), text, elements: allLetterIdx(text), ...WORD_STYLE };
+    } else {
+      row = { id: newId(), elements: allElements(selectedLetter), ...DEFAULT_STYLE };
+    }
     const at = selectedRowIndex >= 0 ? selectedRowIndex + 1 : selectedBlock.rows.length;
     updateSelectedBlock((b) => ({ ...b, rows: [...b.rows.slice(0, at), row, ...b.rows.slice(at)] }));
     setSelectedRowId(row.id);
@@ -189,8 +207,8 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     });
   }
   function applyLadder() {
-    if (!selectedLetter) return;
-    const rows = withIds(ladderRows(selectedLetter));
+    if (!selectedLetter && !selectedWord) return;
+    const rows = withIds(selectedWord ? wordLadderRows(selectedWord.words) : ladderRows(selectedLetter));
     updateSelectedBlock((b) => ({ ...b, rows }));
     setSelectedRowId(rows[0].id);
   }
@@ -202,11 +220,14 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const inspector = (
     <RowInspector
       letter={selectedLetter}
+      wordBlock={selectedWord}
+      byId={byId}
       color={selectedBlock?.color}
       row={selectedRow}
       rowIndex={selectedRowIndex}
       rowCount={selectedBlock?.rows.length ?? 0}
       onSetElements={(elements) => updateSelectedRow((r) => ({ ...r, elements }))}
+      onSetText={(text) => updateSelectedRow((r) => ({ ...r, text, elements: r.elements.length ? allLetterIdx(text) : [] }))}
       onSetStyle={(patch) => updateSelectedRow((r) => withStyle(r, patch))}
       onMoveRow={moveSelectedRow}
       onAddRow={addRow}
@@ -237,7 +258,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   // the top bar holds only the block: add one (the letter picker) and delete the selected one;
   // everything about a row lives in the row panel (RowInspector)
   const blockEls = <>
-    <LetterPickerButton families={families} onPick={addBlock} />
+    <BlockPickerButton families={families} byId={byId} onPickLetter={addBlock} onPickWords={addWordBlock} />
     <Tool label="Удалить блок буквы" caption="Удалить блок" danger disabled={!selectedBlockId} onClick={removeSelectedBlock}><IconTrash /></Tool>
   </>;
   const printEl = <Tool label="Печать тетради" caption="Печать" disabled={!hasContent} onClick={() => window.print()}><IconPrint /></Tool>;
@@ -322,7 +343,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
         <div className="pl2-status no-print" role="status">
           <span>Стр. <b>{activePageIndex + 1}</b> из {pages.length}</span>
           {rowNo > 0 && <span>Строка <b>{rowNo}</b>{styleName ? ` · ${styleName}` : ""}</span>}
-          <span className="pl2-status-hint">{hasContent ? "Щёлкните по строке листа — справа её элементы и опора" : "«Буква» — новый блок: он сразу собран лесенкой"}</span>
+          <span className="pl2-status-hint">{hasContent ? "Щёлкните по строке листа — справа её элементы и опора" : "«Блок» — буква, слог или слово: блок сразу собран лесенкой"}</span>
         </div>
         <PrintPages notebook={notebook} byId={byId} />
       </div>
@@ -356,8 +377,8 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
         <div className={`plb-dock pl-dock${dockOpen ? "" : " is-folded"}`}>
           <button type="button" className="pl-dock-toggle" onClick={toggleDock} aria-expanded={dockOpen} aria-label={dockOpen ? "Свернуть настройки строки" : "Показать настройки строки"}>
             <span className="pl-dock-sum">{dockOpen ? null : <>
-              {selectedBlock && <span className="pl-dock-tile" style={{ "--pl-block-color": selectedBlock.color }}>{selectedLetter?.label}</span>}
-              <span className="pl-dock-text">{rowNo > 0 ? <>Строка <b>{rowNo}</b> из {selectedBlock.rows.length}{styleName ? ` · ${styleName}` : ""}</> : selectedBlock ? <>Буква <b>{selectedLetter?.label}</b></> : "Настройки строки"}</span>
+              {selectedBlock && <span className="pl-dock-tile" style={{ "--pl-block-color": selectedBlock.color }}>{blockLabel}</span>}
+              <span className="pl-dock-text">{rowNo > 0 ? <>Строка <b>{rowNo}</b> из {selectedBlock.rows.length}{styleName ? ` · ${styleName}` : ""}</> : selectedBlock ? <>{selectedWord ? "Блок" : "Буква"} <b>{blockLabel}</b></> : "Настройки строки"}</span>
             </>}</span>
             <span className="pl-dock-chev" aria-hidden="true">{dockOpen ? <IconChevronDown /> : <IconChevronUp />}</span>
           </button>

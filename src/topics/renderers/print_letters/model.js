@@ -84,15 +84,16 @@ export function rowBesidePlate(index, size = 2, paper = "cell") {
   return index * (g + letterH(size)) + g < TILE + GAP;
 }
 
-// Where a row's letters start, in cells from the block's left edge.
-export function rowStartCells(besidePlate, paper = "cell") {
+// Where a row's letters start, in cells from the block's left edge. `plateW`: the plate's width —
+// 4 cells for a letter, wider for a syllable or word (words.js plateCells).
+export function rowStartCells(besidePlate, paper = "cell", plateW = TILE) {
   const g = paperGap(paper);
-  return besidePlate ? TILE + g : g;
+  return besidePlate ? plateW + g : g;
 }
 
 // Writing width of a row: from its start to one blank cell before the right edge.
-export function rowCells(formatId, besidePlate = true, paper = "cell") {
-  return blockCells(formatId) - rowStartCells(besidePlate, paper) - paperGap(paper);
+export function rowCells(formatId, besidePlate = true, paper = "cell", plateW = TILE) {
+  return blockCells(formatId) - rowStartCells(besidePlate, paper, plateW) - paperGap(paper);
 }
 
 // Width of a letter in our 5mm cells at the normal size. Ilyukhina

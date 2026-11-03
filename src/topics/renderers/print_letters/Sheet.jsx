@@ -1,4 +1,6 @@
 import LetterBlock from "./LetterBlock";
+import WordBlock, { PlateWords } from "./WordBlock";
+import { isWordBlock } from "./words";
 import LetterGlyph from "./LetterGlyph";
 import { drawnSize, paperOf, sheetSizeMm } from "./model";
 
@@ -17,6 +19,22 @@ export default function Sheet({ page, format, byId, className = "", style, selec
     >
       {page.blocks.length > 0 && <SheetHeader page={page} byId={byId} />}
       {page.blocks.map((b) => {
+        if (isWordBlock(b)) {
+          return (
+            <WordBlock
+              key={b.id}
+              block={b}
+              byId={byId}
+              format={format}
+              size={drawnSize(b, paperOf(page))}
+              paper={paperOf(page)}
+              selected={b.id === selectedBlockId}
+              selectedRowId={b.id === selectedBlockId ? selectedRowId : null}
+              onSelectBlock={() => onSelectBlock?.(b.id)}
+              onSelectRow={(rowId) => onSelectRow?.(b.id, rowId)}
+            />
+          );
+        }
         const letter = byId[b.letterId];
         if (!letter) return null;
         return (
@@ -43,17 +61,20 @@ export default function Sheet({ page, format, byId, className = "", style, selec
 // itself a writing goal at this age, the date lets progress be compared
 // across sheets. On the right: the page's letters, drawn with the same
 // strokes as in the blocks, not typed in a font.
+// Syllables and words are listed after the letters, the heading becomes «Пишем».
 function SheetHeader({ page, byId }) {
-  const ids = [...new Set(page.blocks.map((b) => b.letterId))].filter((id) => byId[id]);
+  const ids = [...new Set(page.blocks.filter((b) => !isWordBlock(b)).map((b) => b.letterId))].filter((id) => byId[id]);
+  const words = [...new Set(page.blocks.filter(isWordBlock).flatMap((b) => b.words ?? []))];
   return (
     <div className="pl-sheet-head">
       <span>Имя</span><span className="pl-sheet-head-line pl-sheet-head-line--name" />
       <span>Дата</span><span className="pl-sheet-head-line pl-sheet-head-line--date" />
       <span className="pl-sheet-head-fill" />
       <span className="pl-sheet-head-title">
-        {ids.length > 1 ? "Буквы" : "Буква"}
+        {words.length ? "Пишем" : ids.length > 1 ? "Буквы" : "Буква"}
         <span className="pl-sheet-head-letters">
           {ids.map((id) => <LetterGlyph key={id} letter={byId[id]} heightMm={5} variant="plain" label={byId[id].label} />)}
+          {words.length > 0 && <PlateWords words={words} byId={byId} heightMm={5} color="#1f3a8a" weight={9} />}
         </span>
       </span>
     </div>
