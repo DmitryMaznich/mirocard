@@ -21,15 +21,15 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(GAP + LETTER_H + GAP), paddingBottom: mm(GAP) }}
+      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(TILE), paddingBottom: mm(GAP) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
         className="pl-block-tile"
-        style={{ top: mm(GAP), height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
+        style={{ height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
         aria-label={`Буква ${letter.label}`}
       >
-        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.6} variant="plain" />
+        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.55} variant="plain" color="#ffffff" />
       </div>
 
       {rows.map((row) => {

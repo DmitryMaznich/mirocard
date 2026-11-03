@@ -21,7 +21,7 @@ export function sheetSizeMm(formatId) {
 
 // ---- Block geometry, in whole notebook cells (FINE_MM) -------------------
 export const LETTER_H = 2; // a letter is 2 cells tall
-export const TILE = 2;     // label tile: 2×2 cells
+export const TILE = 4;     // letter plate: 4×4 cells, flush with the block's top-left corner
 export const GAP = 1;      // blank cell: between letters, above each row, after the tile, page padding
 
 // Usable cells inside the sheet's own 1-cell padding.
@@ -52,7 +52,7 @@ export function copiesPerRow(letter, formatId) {
 
 export function blockHeightCells(block) {
   const rows = block.rows.length;
-  return Math.max(GAP + LETTER_H + GAP, rows * (GAP + LETTER_H) + GAP);
+  return Math.max(TILE, rows * (GAP + LETTER_H) + GAP);
 }
 
 export function pageHeightCells(page) {

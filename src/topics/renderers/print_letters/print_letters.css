@@ -337,15 +337,14 @@
 
 .pl-block.is-selected { box-shadow: 0 0 0 3px var(--pl-teal-soft), 0 0 0 1px var(--pl-teal); }
 
-/* Label tile: the letter in ink on a pale tint of the block colour, with a
-   coloured frame — not a solid colour fill: saves ink and stays legible on
-   a black-and-white printer (a white letter on a grey square does not). */
+/* Letter plate (owner, 2026-11-03): a square in the block colour, 4×4 cells,
+   its left and top edges on the block's own edges, nothing on it but the
+   letter (white, same strokes as in the rows). */
 .pl-block-tile,
 .pl-insp-tile {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
-  background: color-mix(in srgb, var(--pl-block-color, #8b93a1) 14%, #ffffff);
-  box-shadow: inset 0 0 0 2px var(--pl-block-color, #8b93a1);
+  background: var(--pl-block-color, #8b93a1);
 }
 
 .pl-block-tile {

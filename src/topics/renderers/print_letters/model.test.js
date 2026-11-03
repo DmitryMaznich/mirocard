@@ -12,15 +12,15 @@ describe("print_letters model", () => {
     expect(sheetCells("a4").cols).toBe(38);
     expect(sheetCells("a5").cols).toBe(25);
     expect(blockCells("a4")).toBe(38);
-    expect(rowCells("a4")).toBe(34);
-    expect(rowCells("a5")).toBe(21);
+    expect(rowCells("a4")).toBe(32);
+    expect(rowCells("a5")).toBe(19);
   });
 
   it("places copies one blank cell apart, wide letters taking two cells", () => {
-    expect(copiesPerRow(letter("Н"), "a4")).toBe(17);
+    expect(copiesPerRow(letter("Н"), "a4")).toBe(16);
     expect(copiesPerRow(letter("Ш"), "a4")).toBe(11);
-    expect(copiesPerRow(letter("Н"), "a5")).toBe(11);
-    expect(copiesPerRow(letter("Ш"), "a5")).toBe(7);
+    expect(copiesPerRow(letter("Н"), "a5")).toBe(10);
+    expect(copiesPerRow(letter("Ш"), "a5")).toBe(6);
   });
 
   it("builds the ladder: elements add up, then the support fades, then blank", () => {
