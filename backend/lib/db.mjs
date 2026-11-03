@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { DB_PATH } from "./config.mjs";
+import { initDeletionSurveySchema } from "./deletion-survey.mjs";
 
 let _db = null;
 
@@ -612,6 +613,8 @@ export function initDb(dbPath = DB_PATH) {
 
   backfillOrdersAndEntitlementsFromLegacySubscriptions(db);
   grantAllAccessToExistingAccounts(db);
+
+  initDeletionSurveySchema(db);
 
   return db;
 }

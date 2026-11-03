@@ -75,6 +75,8 @@ export const GOOGLE_CLIENT_ID = readEnv("GOOGLE_CLIENT_ID");
 // Overridable only for tests (local JWKS with test keys).
 export const GOOGLE_JWKS_URL = readEnv("GOOGLE_JWKS_URL") || "https://www.googleapis.com/oauth2/v3/certs";
 export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mironium <noreply@mironium.com>";
+export const DELETION_SURVEY_FROM = readEnv("DELETION_SURVEY_FROM") || "Дмитрий из Mironium <hello@mironium.com>";
+export const DELETION_SURVEY_REPLY_TO = readEnv("DELETION_SURVEY_REPLY_TO") || "dmaznichenko@gmail.com";
 export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 
 // Admin
