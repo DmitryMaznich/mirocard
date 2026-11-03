@@ -35,8 +35,22 @@ export function blockCells(formatId) {
   return sheetCells(formatId).cols;
 }
 
-export function rowCells(formatId) {
-  return blockCells(formatId) - TILE - 2 * GAP;
+// Rows beside the letter plate start one cell after it; every row below the
+// plate uses the block from edge to edge (owner, 2026-11-03: no wasted space
+// under the plate). A row is beside the plate when its letters would start
+// higher than one blank cell below the plate's bottom edge.
+export function rowBesidePlate(index) {
+  return index * (GAP + LETTER_H) + GAP < TILE + GAP;
+}
+
+// Where a row's letters start, in cells from the block's left edge.
+export function rowStartCells(besidePlate) {
+  return besidePlate ? TILE + GAP : GAP;
+}
+
+// Writing width of a row: from its start to one blank cell before the right edge.
+export function rowCells(formatId, besidePlate = true) {
+  return blockCells(formatId) - rowStartCells(besidePlate) - GAP;
 }
 
 export function letterCells(letter) {
@@ -45,9 +59,9 @@ export function letterCells(letter) {
 
 // Copies of a letter in one row: its own width plus one blank cell each, no
 // trailing gap after the last one.
-export function copiesPerRow(letter, formatId) {
+export function copiesPerRow(letter, formatId, besidePlate = true) {
   const w = letterCells(letter);
-  return Math.max(1, Math.floor((rowCells(formatId) + GAP) / (w + GAP)));
+  return Math.max(1, Math.floor((rowCells(formatId, besidePlate) + GAP) / (w + GAP)));
 }
 
 export function blockHeightCells(block) {

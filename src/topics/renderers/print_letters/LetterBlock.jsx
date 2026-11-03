@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { LETTER_H, TILE, GAP, blockCells, rowCells, copiesPerRow, copyPlan, letterCells } from "./model";
+import { LETTER_H, TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPlan, letterCells } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -17,7 +17,6 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 export default function LetterBlock({ letter, color, rows, format, selected, selectedRowId, onSelectBlock, onSelectRow }) {
   const frame = letterFrame(letter);
   const w = letterCells(letter);
-  const copies = copiesPerRow(letter, format);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
@@ -32,7 +31,9 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
         <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.55} variant="plain" color="#ffffff" weight={15} />
       </div>
 
-      {rows.map((row) => {
+      {rows.map((row, index) => {
+        const beside = rowBesidePlate(index);
+        const copies = copiesPerRow(letter, format, beside);
         const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
         const miniLetter = { ...letter, strokes };
         const plan = copyPlan(row, copies);
@@ -40,10 +41,10 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
           <div
             key={row.id}
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
-            style={{ paddingTop: mm(GAP), paddingLeft: mm(TILE + GAP) }}
+            style={{ paddingTop: mm(GAP), paddingLeft: mm(rowStartCells(beside)) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
-            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(rowCells(format)), gap: mm(GAP) }}>
+            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(rowCells(format, beside)), gap: mm(GAP) }}>
               {plan.map((p, i) => (
                 <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(LETTER_H) }}>
                   {p && (

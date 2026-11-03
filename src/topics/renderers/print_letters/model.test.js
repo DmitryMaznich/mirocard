@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
+  rowBesidePlate, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -14,6 +14,9 @@ describe("print_letters model", () => {
     expect(blockCells("a4")).toBe(38);
     expect(rowCells("a4")).toBe(32);
     expect(rowCells("a5")).toBe(19);
+    // rows below the letter plate use the block from edge to edge
+    expect(rowCells("a4", false)).toBe(36);
+    expect(rowCells("a5", false)).toBe(23);
   });
 
   it("places copies one blank cell apart, wide letters taking two cells", () => {
@@ -21,6 +24,12 @@ describe("print_letters model", () => {
     expect(copiesPerRow(letter("Ш"), "a4")).toBe(11);
     expect(copiesPerRow(letter("Н"), "a5")).toBe(10);
     expect(copiesPerRow(letter("Ш"), "a5")).toBe(6);
+    expect(copiesPerRow(letter("Н"), "a4", false)).toBe(18);
+    expect(copiesPerRow(letter("Ш"), "a4", false)).toBe(12);
+  });
+
+  it("indents only the rows beside the plate (the first two)", () => {
+    expect([0, 1, 2, 3].map(rowBesidePlate)).toEqual([true, true, false, false]);
   });
 
   it("builds the ladder: elements add up, then the support fades, then blank", () => {
