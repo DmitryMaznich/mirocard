@@ -60,6 +60,19 @@ function strokeGeom(d) {
   return { start: pts[0] ?? [0, 0], dir: dir ?? [0, 1], len, pts };
 }
 
+// Distance from point p to a polyline.
+function distPolyline([px, py], pts) {
+  let best = Infinity;
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i];
+    const l2 = (bx - ax) ** 2 + (by - ay) ** 2;
+    const t = l2 ? Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / l2)) : 0;
+    best = Math.min(best, Math.hypot(px - (ax + t * (bx - ax)), py - (ay + t * (by - ay))));
+  }
+  return best;
+}
+const nearPolyline = (p, pts, tol) => distPolyline(p, pts) < tol;
+
 // A thin red arrow beside a stroke, showing which way to write it (owner, 2026-11-03: «красные
 // тонкие стрелки… с хвостом и крошечным наконечником»): it runs parallel to the stroke, ARROW_GAP
 // units off it on the side away from the letter's centre, along the middle of a straight line (from
@@ -69,7 +82,7 @@ const ARROW = "#dc2626";
 const ARROW_GAP = 9;
 const ARROW_HEAD = 5.5;
 const ARROW_MIN = 30; // shorter strokes (Ц's tail, Д's feet, Ё's dots, Й's breve) get none
-function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0) {
+function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others = []) {
   const { pts } = g;
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -85,14 +98,25 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0) {
   };
   // start past the numbered start dot (`skip` along the stroke), so the dot never hides the tail
   const bent = !arc && pts.length > 2;
-  const s0 = Math.min(Math.max(arc ? 0.08 * L : bent ? 0.15 * L : 0.3 * L, skip + numRoom), L * 0.6);
-  const s1 = Math.min(Math.max(arc ? 0.4 * L : bent ? 0.85 * L : 0.7 * L, s0 + 20), L - 3);
+  // `early`: the stroke's middle is a crossing (Ж, Х) — the arrow goes before it, not into the knot
+  const lo = arc || early ? 0.08 : bent ? 0.15 : 0.3;
+  const hi = arc || early ? 0.4 : bent ? 0.85 : 0.7;
+  const s0 = Math.min(Math.max(lo * L, skip + numRoom), L * 0.6);
+  const s1 = Math.min(Math.max(hi * L, s0 + 20), L - 3);
   const mid = at((s0 + s1) / 2);
   // the outer side: the normal pointing away from the letter's centre (a centred stroke — Н's bar,
   // Ж's stick — gets it above / to the right)
   let n = [-mid.d[1], mid.d[0]];
   const away = (mid.p[0] + n[0] - cx) ** 2 + (mid.p[1] + n[1] - cy) ** 2 - ((mid.p[0] - n[0] - cx) ** 2 + (mid.p[1] - n[1] - cy) ** 2);
-  if (away < -1e-6 || (Math.abs(away) <= 1e-6 && (n[1] > 0 || (n[1] === 0 && n[0] < 0)))) n = [-n[0], -n[1]];
+  // a stroke through the centre (Х, Ж's slants) has no clear outer side: take the side with more room
+  // from the other strokes
+  if (Math.abs(away) < 0.5 && others.length) {
+    const room = (sg) => {
+      const q = [mid.p[0] + sg * n[0] * ARROW_GAP, mid.p[1] + sg * n[1] * ARROW_GAP];
+      return Math.min(...others.map((pts) => distPolyline(q, pts)));
+    };
+    if (room(-1) > room(1)) n = [-n[0], -n[1]];
+  } else if (away < -1e-6 || (Math.abs(away) <= 1e-6 && (n[1] > 0 || (n[1] === 0 && n[0] < 0)))) n = [-n[0], -n[1]];
   // A bent stroke (Ж's «уголок»: two straight pieces in one movement) gets an arrow that bends with
   // it, on the inner side of the angle (the open side, away from the stick): each piece offset
   // towards the chord between the stroke's ends, the pieces joined at a mitred corner.
@@ -238,7 +262,9 @@ export default function LetterGlyph({
       return { d: null, num: [m[0] + nn[0] * (ARROW_GAP + 1), m[1] + nn[1] * (ARROW_GAP + 1)] };
     }
     const skip = showDots ? SAMPLE_DOT + 3 : 0;
-    return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip, showNumbers ? NUM_ROOM : 0);
+    const mid = g.pts.length === 2 ? [(g.pts[0][0] + g.pts[1][0]) / 2, (g.pts[0][1] + g.pts[1][1]) / 2] : null;
+    const crossed = mid && geoms.some((o, j) => j !== i && nearPolyline(mid, o.pts, 4));
+    return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip, showNumbers ? NUM_ROOM : 0, crossed, geoms.filter((_, j) => j !== i).map((o) => o.pts));
   }) : [];
 
   const svgRef     = useRef(null);
