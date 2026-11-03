@@ -710,9 +710,28 @@
    a taller panel then overflows at the TOP, where no scroll reaches — the 0.2.1 bug (owner,
    2026-11-03: «не скроллится и занимает слишком много места»). Here it starts at the top. */
 .plb-editor2--phone .plb-dock.pl-dock {
-  display: block; height: 38dvh; max-height: 38dvh; padding-top: 0;
-  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  display: flex; flex-direction: column; gap: 0; height: 38dvh; max-height: 38dvh; padding-top: 0; overflow: hidden;
 }
+.pl-dock-body { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+/* folded: only the bar is left, the sheet gets the rest of the screen */
+.plb-editor2--phone .plb-dock.pl-dock.is-folded { height: auto; max-height: none; }
+/* the fold bar: a grip, what is selected, a chevron — the whole bar is the button */
+.pl-dock-toggle {
+  flex: 0 0 auto; position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px;
+  padding: 8px 2px; border: none; border-bottom: 1px solid var(--pl-line); background: transparent; color: var(--pl-ink);
+  font: inherit; font-size: 15px; text-align: left; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.pl-dock.is-folded .pl-dock-toggle { border-bottom: none; }
+/* open: the row's own header just below says what is selected, so the bar is only the grip and the chevron */
+.pl-dock:not(.is-folded) .pl-dock-toggle { min-height: 30px; padding: 2px 0 0; justify-content: center; border-bottom: none; }
+.pl-dock:not(.is-folded) .pl-dock-sum { display: none; }
+.pl-dock:not(.is-folded) .pl-dock-chev { width: 56px; height: 26px; border-radius: 13px; background: var(--pl-strip); color: #8b93a1; }
+.pl-dock-sum { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pl-dock-sum b { font-weight: 800; }
+.pl-dock-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pl-dock-tile { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 6px 0 6px 0; background: var(--pl-block-color); color: #fff; font-weight: 900; font-size: 15px; }
+.pl-dock-chev { flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--pl-strip); color: var(--pl-teal-dark); }
+.pl-dock-chev svg { width: 20px; height: 20px; }
 .plb-dock .pl-insp { padding: 0 0 8px; gap: 12px; }
 /* the row's title and its ↑ ↓ stay in sight while the panel scrolls */
 .plb-dock .pl-insp-head { position: sticky; top: 0; z-index: 2; background: var(--pl2-surface, #fff); padding: 10px 0 8px; margin-bottom: -4px; }

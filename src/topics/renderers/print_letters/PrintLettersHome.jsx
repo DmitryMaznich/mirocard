@@ -41,7 +41,7 @@ function Tool({ label, caption, tone = "", onClick, children }) {
 // beside it and its own undo/redo; nothing reaches «Мои тетради» until «Сохранить» (or the
 // question when leaving), and the working copy is mirrored to this device as a draft.
 export default function PrintLettersHome({ task, onBack, onAdvance, accountKv }) {
-  const letters = task?.letters ?? [];
+  const letters = useMemo(() => task?.letters ?? [], [task]);
   const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
   const families = useMemo(() => {
     const map = new Map();

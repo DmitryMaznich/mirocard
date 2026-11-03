@@ -9,7 +9,7 @@ import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
 import { FORMATS, SUPPORTS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import {
-  IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth,
+  IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
   IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
 } from "./icons";
 
@@ -26,6 +26,8 @@ const PX_PER_MM = 96 / 25.4;
 const THUMB_W = 124; // px — the sheet in the page rail (propis2's p2-thumbs column)
 const ZOOM_STEP = 0.25;
 const ZOOM_MAX = 3;
+
+const DOCK_KEY = "print_letters:dock-open";
 
 const withIds = (rows) => rows.map((r) => ({ id: newId(), ...r }));
 
@@ -62,6 +64,14 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [selectedRowId, setSelectedRowId] = useState(null);
   const [zoom, setZoom] = useState(1);
+  // phone: the row panel folds down to one bar (owner, 2026-11-03); remembered on this device
+  const [dockOpen, setDockOpen] = useState(() => {
+    try { return window.localStorage.getItem(DOCK_KEY) !== "0"; } catch { return true; }
+  });
+  const toggleDock = () => setDockOpen((open) => {
+    try { window.localStorage.setItem(DOCK_KEY, open ? "0" : "1"); } catch { /* private mode: just this session */ }
+    return !open;
+  });
 
   const sheet = sheetSizeMm(format);
   const fit = useFitZoom(canvasRef, sheet.w, narrow ? 0 : sheet.h);
@@ -343,7 +353,16 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
         <div className="plb-settings plb-settings--row" role="group" aria-label="Буква и строка">{rowEls}</div>
         {zoomEl}
         {canvasEl}
-        <div className="plb-dock pl-dock">{inspector}</div>
+        <div className={`plb-dock pl-dock${dockOpen ? "" : " is-folded"}`}>
+          <button type="button" className="pl-dock-toggle" onClick={toggleDock} aria-expanded={dockOpen} aria-label={dockOpen ? "Свернуть настройки строки" : "Показать настройки строки"}>
+            <span className="pl-dock-sum">{dockOpen ? null : <>
+              {selectedBlock && <span className="pl-dock-tile" style={{ "--pl-block-color": selectedBlock.color }}>{selectedLetter?.label}</span>}
+              <span className="pl-dock-text">{rowNo > 0 ? <>Строка <b>{rowNo}</b> из {selectedBlock.rows.length}{supportName ? ` · ${supportName}` : ""}</> : selectedBlock ? <>Буква <b>{selectedLetter?.label}</b></> : "Настройки строки"}</span>
+            </>}</span>
+            <span className="pl-dock-chev" aria-hidden="true">{dockOpen ? <IconChevronDown /> : <IconChevronUp />}</span>
+          </button>
+          {dockOpen && <div className="pl-dock-body">{inspector}</div>}
+        </div>
       </div>
       <PrintPages notebook={notebook} byId={byId} />
     </div>
