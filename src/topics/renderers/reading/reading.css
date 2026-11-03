@@ -345,6 +345,11 @@
 
 /* Every candidate uses the same interaction before confirmation. Selecting
    or hovering a word never reveals its correctness. Spaces are not answers. */
+.story-screen--micro,
+.story-quiz {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .story-quiz__word {
   display: inline;
   margin: 0;

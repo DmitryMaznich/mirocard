@@ -6,6 +6,7 @@ test("all choices look alike and only confirmation checks the answer on a phone"
   await page.goto("http://127.0.0.1:8099/tests/responsive/reading-micro.html", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => document.documentElement.style.setProperty("--app-safe-bottom", "34px"));
   await page.getByRole("button", { name: "Вопросы", exact: true }).click();
+  await expect(page.locator(".story-screen--micro")).toHaveCSS("-webkit-tap-highlight-color", "rgba(0, 0, 0, 0)");
   const right = page.getByRole("button", { name: "Вова", exact: true }).first();
   const wrong = page.getByRole("button", { name: "играл", exact: true }).first();
   const confirm = page.getByRole("button", { name: "Ответить", exact: true });
