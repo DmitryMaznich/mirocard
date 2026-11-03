@@ -18,6 +18,7 @@ const PAD_CELL = 52; // px per notebook cell in the element pad — the only ele
 const INK = "#2a6b60";
 const IDLE = "#b8bfc9";
 
+// Only the strokes — no dots, numbers or arrows (owner, 2026-11-03); the sheet's sample shows those.
 // The letter drawn large on its own grid; each element is a tap target that
 // toggles whether that element goes into the selected row. Any number of
 // elements can be on — they keep their places inside the letter's frame.
@@ -57,12 +58,6 @@ function ElementPad({ letter, elements, onToggle }) {
           />
         ))}
       </svg>
-      {/* dots, arrows and numbers exactly as on the sheet's sample: the same LetterGlyph, its own
-          strokes transparent (the pad draws on/off strokes itself), under no taps */}
-      <div style={{ position: "absolute", left: PAD_CELL, top: PAD_CELL, pointerEvents: "none" }} aria-hidden="true">
-        <LetterGlyph letter={{ ...letter, strokes: letter.strokes.map((st, i) => ({ ...st, n: i + 1 })) }} frame={letterFrame(letter)}
-          heightMm={(2 * PAD_CELL * 25.4) / 96} widthMm={(w * PAD_CELL * 25.4) / 96} variant="sample" color="transparent" />
-      </div>
     </div>
   );
 }
