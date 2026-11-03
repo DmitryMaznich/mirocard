@@ -58,6 +58,65 @@ function strokeGeom(d) {
   return { start: pts[0] ?? [0, 0], dir: dir ?? [0, 1], len, pts };
 }
 
+// A thin red arrow beside a stroke, showing which way to write it (owner, 2026-11-03: «красные
+// тонкие стрелки… с хвостом и крошечным наконечником»): it runs parallel to the stroke, ARROW_GAP
+// units off it on the side away from the letter's centre, along the middle of a straight line (from
+// 30% to 70% of it) or near the start of an arc (8–40%, where the direction is decided), and ends
+// in a small open «V» head.
+const ARROW = "#dc2626";
+const ARROW_GAP = 9;
+const ARROW_HEAD = 5.5;
+const ARROW_MIN = 30; // shorter strokes (Ц's tail, Д's feet, Ё's dots, Й's breve) get none
+function guideArrow(g, cx, cy, arc, skip = 0) {
+  const { pts } = g;
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = cum[cum.length - 1];
+  const at = (s) => {
+    let i = 1;
+    while (i < cum.length - 1 && cum[i] < s) i++;
+    const seg = cum[i] - cum[i - 1] || 1;
+    const t = (s - cum[i - 1]) / seg;
+    const [ax, ay] = pts[i - 1], [bx, by] = pts[i];
+    const len = Math.hypot(bx - ax, by - ay) || 1;
+    return { p: [ax + (bx - ax) * t, ay + (by - ay) * t], d: [(bx - ax) / len, (by - ay) / len] };
+  };
+  // start past the numbered start dot (`skip` along the stroke), so the dot never hides the tail
+  const s0 = Math.min(Math.max(arc ? 0.08 * L : 0.3 * L, skip), L * 0.6);
+  const s1 = Math.min(Math.max(arc ? 0.4 * L : 0.7 * L, s0 + 20), L - 3);
+  const mid = at((s0 + s1) / 2);
+  // the outer side: the normal pointing away from the letter's centre (a centred stroke — Н's bar,
+  // Ж's stick — gets it above / to the right)
+  let n = [-mid.d[1], mid.d[0]];
+  const away = (mid.p[0] + n[0] - cx) ** 2 + (mid.p[1] + n[1] - cy) ** 2 - ((mid.p[0] - n[0] - cx) ** 2 + (mid.p[1] - n[1] - cy) ** 2);
+  if (away < -1e-6 || (Math.abs(away) <= 1e-6 && (n[1] > 0 || (n[1] === 0 && n[0] < 0)))) n = [-n[0], -n[1]];
+  const steps = arc ? 10 : 1;
+  const line = [];
+  for (let k = 0; k <= steps; k++) {
+    const q = at(s0 + ((s1 - s0) * k) / steps);
+    // along an arc every point takes the normal pointing away from the letter's centre — the arrow
+    // follows the curve outside it without kinks
+    const nn = arc ? (() => {
+      const m = [-q.d[1], q.d[0]];
+      const out = (q.p[0] + m[0] - cx) ** 2 + (q.p[1] + m[1] - cy) ** 2 >= (q.p[0] - m[0] - cx) ** 2 + (q.p[1] - m[1] - cy) ** 2;
+      return out ? m : [-m[0], -m[1]];
+    })() : n;
+    line.push([q.p[0] + nn[0] * ARROW_GAP, q.p[1] + nn[1] * ARROW_GAP]);
+  }
+  const [ex, ey] = line[line.length - 1];
+  const [px, py] = line[line.length - 2];
+  const dl = Math.hypot(ex - px, ey - py) || 1;
+  const [dx, dy] = [(ex - px) / dl, (ey - py) / dl];
+  const head = (sgn) => {
+    const a = (sgn * 28 * Math.PI) / 180;
+    const rx = dx * Math.cos(a) - dy * Math.sin(a), ry = dx * Math.sin(a) + dy * Math.cos(a);
+    return [ex - rx * ARROW_HEAD, ey - ry * ARROW_HEAD];
+  };
+  const f = (v) => Math.round(v * 100) / 100;
+  const [h1, h2] = [head(1), head(-1)];
+  return `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`;
+}
+
 function onPolyline([px, py], pts) {
   for (let i = 1; i < pts.length; i++) {
     const [ax, ay] = pts[i - 1];
@@ -120,7 +179,15 @@ export default function LetterGlyph({
     const shared = geoms.slice(0, i).some((e) => onPolyline(g.start, e.pts));
     return shared && numbered ? [g.start[0] + g.dir[0] * SHIFT, g.start[1] + g.dir[1] * SHIFT] : g.start;
   });
-  const arrowId = `pl-arr-${letter.id}-${strokes.map((s) => s.n ?? "").join("")}`;
+  // The direction arrows of the sample (see guideArrow): beside each stroke, on the letter's outer
+  // side, so they never sit on another stroke.
+  const [cx, cy] = [vbX + vbW / 2, vbY + vbH / 2];
+  const arrows = variant === "sample" ? geoms.map((g, i) => {
+    if (g.len < ARROW_MIN) return null;
+    const moved = marks[i][0] !== g.start[0] || marks[i][1] !== g.start[1];
+    const skip = showDots ? (moved ? SHIFT : 0) + (numbered ? BADGE_R : START_R) + 4 : 0;
+    return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip);
+  }) : [];
 
   const svgRef     = useRef(null);
   const rafRef     = useRef(null);
@@ -202,13 +269,6 @@ export default function LetterGlyph({
       role={canPlay ? "button" : "img"}
       aria-label={label ? `Буква ${label}` : undefined}
     >
-      {variant === "sample" && (
-        <defs>
-          <marker id={arrowId} viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="17" markerHeight="17" orient="auto">
-            <path d="M0 1L9 5L0 9z" fill={ink} />
-          </marker>
-        </defs>
-      )}
 
       {strokes.map((s, i) => (
         <path
@@ -217,14 +277,15 @@ export default function LetterGlyph({
           fill="none"
           stroke={ink}
           strokeWidth={strokeW}
-          /* on the sample the arrow's tip is the stroke's end — exactly on the grid line; a round
-             cap would poke past it and the arrow would sit short of the line */
-          strokeLinecap={variant === "sample" && markable[i] ? "butt" : "round"}
+          strokeLinecap="round"
           strokeLinejoin="round"
           strokeDasharray={variant === "dotted" ? "1 10" : undefined}
           opacity={variant === "starts" ? 0.3 : 1}
-          markerEnd={variant === "sample" && markable[i] ? `url(#${arrowId})` : undefined}
         />
+      ))}
+
+      {arrows.map((d, i) => d && (
+        <path key={`g${i}`} d={d} fill="none" stroke={ARROW} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
       ))}
 
       {canPlay && strokes.map((s, i) => (
