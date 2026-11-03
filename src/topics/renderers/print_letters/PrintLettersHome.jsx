@@ -5,7 +5,7 @@ import PrintPages from "./PrintPages";
 import usePdfExport from "./usePdfExport";
 import {
   SYNC_PREFIX, clearDraft, copyNotebook, docFor, docKey, loadDraft, loadLocal, mergeRemote, newNotebook, notebookJson,
-  putNotebook, READY_SECTIONS, readyNotebooks, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
+  putNotebook, READY_SECTIONS, readyNotebooks, reflowNotebook, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
 } from "./library";
 import { IconAddPage, IconDuplicate, IconEditPage, IconNotebook, IconPdf, IconTrash } from "./icons";
 
@@ -125,7 +125,8 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv, m
     lastTyping.current = typing ? now : 0;
     setSession((s) => {
       if (!s) return s;
-      const nb = fn(s.nb);
+      // every change ends with the automatic page breaks (library.js reflowNotebook) — one undo step
+      const nb = reflowNotebook(fn(s.nb));
       if (nb === s.nb) return s;
       return { ...s, nb, past: merge ? s.past : [...s.past, s.nb].slice(-UNDO_DEPTH), future: [] };
     });

@@ -61,8 +61,8 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const setFormat = (f) => onChange((nb) => ({ ...nb, format: f }));
   const setTitle = (title) => onChange((nb) => ({ ...nb, title }), { typing: true });
 
-  const [activePageId, setActivePageId] = useState(() => pages[0]?.id ?? null);
-  const [selectedBlockId, setSelectedBlockId] = useState(null);
+  const [activePageState, setActivePageId] = useState(() => pages[0]?.id ?? null);
+  const [selectedBlockState, setSelectedBlockId] = useState(null);
   const [selectedRowId, setSelectedRowId] = useState(null);
   const [zoom, setZoom] = useState(1);
   // phone: the row panel folds down to one bar (owner, 2026-11-03); remembered on this device
@@ -77,6 +77,17 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const sheet = sheetSizeMm(format);
   const fit = useFitZoom(canvasRef, sheet.w, narrow ? 0 : sheet.h);
 
+  // The selection follows what the automatic page breaks moved (library.js reflowPages keeps row and
+  // block ids): the selected row's block and page win over the remembered ones.
+  const located = (() => {
+    for (const p of pages) for (const b of p.blocks) {
+      if (selectedRowId && b.rows.some((r) => r.id === selectedRowId)) return { pageId: p.id, blockId: b.id };
+    }
+    if (selectedBlockState) for (const p of pages) if (p.blocks.some((b) => b.id === selectedBlockState)) return { pageId: p.id, blockId: selectedBlockState };
+    return null;
+  })();
+  const activePageId = located?.pageId ?? activePageState;
+  const selectedBlockId = located?.blockId ?? null;
   const found = pages.findIndex((p) => p.id === activePageId);
   const activePageIndex = found >= 0 ? found : 0;
   const activePage = pages[activePageIndex] ?? null;

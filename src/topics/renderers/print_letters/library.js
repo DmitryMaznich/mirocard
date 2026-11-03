@@ -1,4 +1,4 @@
-import { DEFAULT_STYLE, allElements, ladderRows, pageOverflows } from "./model";
+import { DEFAULT_STYLE, allElements, drawnSize, headerCells, ladderRows, letterH, pageOverflows, paperGap, paperOf, sheetCells } from "./model";
 import { canWrite, wordLadderRows } from "./words";
 
 // «Мои тетради» for print_letters (docs/print-letters.md): the same
@@ -159,6 +159,53 @@ export function mergeRemote(lib, items) {
   for (const n of merged.notebooks) if (!(remoteAt.get(n.id) >= (Number(n.updatedAt) || 0))) push.push(n.id);
   for (const [id, ts] of Object.entries(deleted)) if (!(remoteAt.get(id) >= ts)) push.push(id);
   return { lib: merged, push };
+}
+
+// ---- automatic page breaks ---------------------------------------------------
+// (owner, 2026-11-03: «авто разрыв и перенос на следующую страницу») After every change, a page whose
+// blocks no longer fit its sheet passes the overflow on, in order:
+//  - several blocks on it — the last block moves, whole, to the top of the next page (a block is kept
+//    together where it can be);
+//  - one block that alone is taller than the sheet — the rows that don't fit go on as a continuation
+//    of that block (same letter / word, colour and plate) at the top of the next page;
+//  - no next page, or the next one has another paper — a new page with this page's paper is put
+//    right after it.
+// It cascades down the notebook. Nothing is pulled back up when rows are removed (pages would jump
+// under the hand at every edit). Row and block ids are kept, so a selection can follow what moved.
+export function reflowPages(pages, format) {
+  const out = pages.map((p) => ({ ...p, blocks: [...p.blocks] }));
+  let changed = false;
+  for (let i = 0; i < out.length; i++) {
+    const pg = out[i];
+    let guard = 0;
+    while (pageOverflows(pg, format) && guard++ < 200) {
+      changed = true;
+      let target = out[i + 1];
+      if (!target || paperOf(target) !== paperOf(pg)) {
+        target = { id: newId(), paper: pg.paper, blocks: [] };
+        out.splice(i + 1, 0, target);
+      }
+      if (pg.blocks.length > 1) {
+        target.blocks.unshift(pg.blocks.pop());
+        continue;
+      }
+      const b = pg.blocks[0];
+      const paper = paperOf(pg);
+      const g = paperGap(paper);
+      const avail = sheetCells(format).rows - headerCells(paper);
+      const fit = Math.max(1, Math.floor((avail - g) / (g + letterH(drawnSize(b, paper)))));
+      if (fit >= b.rows.length) break; // can't be helped (a single row taller than the sheet)
+      pg.blocks[0] = { ...b, rows: b.rows.slice(0, fit) };
+      target.blocks.unshift({ ...b, id: newId(), rows: b.rows.slice(fit) });
+    }
+  }
+  return changed ? out : pages;
+}
+
+export function reflowNotebook(nb) {
+  if (!nb?.pages) return nb;
+  const pages = reflowPages(nb.pages, nb.format ?? "a4");
+  return pages === nb.pages ? nb : { ...nb, pages };
 }
 
 // ---- ready notebooks («Готовые тетради») ----------------------------------

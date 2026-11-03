@@ -70,4 +70,26 @@ describe("print_letters notebooks", () => {
       for (const p of r.pages) for (const b of p.blocks) if (b.kind === "word") for (const w of b.words) for (const ch of w) expect(learnt.has(ch), `${r.title}: ${w}`).toBe(true);
     }
   });
+
+  it("breaks pages automatically: a whole block moves on, a block taller than the sheet goes on as a continuation", async () => {
+    const { reflowPages } = await import("./library");
+    const { ladderRows: ladder, pageOverflows: over } = await import("./model");
+    const L = (id) => byId[id];
+    const blk = (id, n) => ({ id: `b-${id}-${n}`, letterId: id, color: "#000", size: 2, rows: Array.from({ length: n }, (_, i) => ({ id: `r-${id}-${i}`, ...ladder(L(id))[Math.min(i, 2)] })) });
+    // three 8-row blocks on one A4 page: the third moves to a new page
+    const pages = reflowPages([{ id: "p1", paper: "cell", blocks: [blk("Г", 8), blk("Т", 8), blk("П", 8)] }], "a4");
+    expect(pages.map((p) => p.blocks.map((b) => b.letterId))).toEqual([["Г", "Т"], ["П"]]);
+    expect(pages.every((p) => !over(p, "a4"))).toBe(true);
+    // one 40-row block: split into a page-full and a continuation, row ids kept, same paper
+    const long = reflowPages([{ id: "p1", paper: "bigcell", blocks: [blk("Н", 40)] }], "a4");
+    expect(long.length).toBeGreaterThan(2);
+    expect(long.every((p) => p.paper === "bigcell" && !over(p, "a4"))).toBe(true);
+    expect(long.flatMap((p) => p.blocks.flatMap((b) => b.rows.map((r) => r.id)))).toEqual(Array.from({ length: 40 }, (_, i) => `r-Н-${i}`));
+    // a page that fits is returned as is
+    const ok = [{ id: "p1", paper: "cell", blocks: [blk("Г", 3)] }];
+    expect(reflowPages(ok, "a4")).toBe(ok);
+    // the next page has another paper: a new page goes in between
+    const mixed = reflowPages([{ id: "p1", paper: "cell", blocks: [blk("Г", 8), blk("Т", 8), blk("П", 8)] }, { id: "p2", paper: "line", blocks: [] }], "a4");
+    expect(mixed.map((p) => p.paper)).toEqual(["cell", "cell", "line"]);
+  });
 });
