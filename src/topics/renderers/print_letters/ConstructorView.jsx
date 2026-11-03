@@ -5,16 +5,17 @@ import OptionPicker from "./OptionPicker";
 import Sheet from "./Sheet";
 import RowInspector from "./RowInspector";
 import BottomSheet from "./BottomSheet";
-import { FORMATS, PAGE_MARGIN_MM, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { FORMATS, PAGE_MARGIN_MM, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import {
   IconPlus, IconAddRow, IconTrash, IconPrint, IconClose, IconUp, IconDown, IconDuplicate,
-  IconPaperSquare, IconPaperRuled, IconFormatA4, IconFormatA5,
+  IconPaperSquare, IconPaperLine3, IconPaperLine2, IconFormatA4, IconFormatA5,
 } from "./icons";
 
 const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
 const PAPER_OPTIONS = [
   { id: "cell", label: "Клетка", Icon: IconPaperSquare },
-  { id: "line", label: "Линейка", Icon: IconPaperRuled },
+  { id: "line3", label: "Линейка: 3 линии", Icon: IconPaperLine3 },
+  { id: "line2", label: "Линейка: 2 линии", Icon: IconPaperLine2 },
 ];
 const FORMAT_OPTIONS = [
   { id: "a4", label: FORMATS.a4.label, Icon: IconFormatA4 },
@@ -246,7 +247,7 @@ export default function ConstructorView({ task, onAdvance }) {
       <div className="pl-toolbar no-print" role="toolbar" aria-label="Инструменты">
         <div className="pl-tool-group" role="group" aria-label="Лист">
           <OptionPicker label="Формат" caption="Формат" options={FORMAT_OPTIONS} value={format} onChange={setFormat} />
-          <OptionPicker label="Бумага" options={PAPER_OPTIONS} value={activePage?.paper ?? "cell"} onChange={(paper) => updateActivePage((p) => ({ ...p, paper }))} />
+          <OptionPicker label="Бумага" options={PAPER_OPTIONS} value={activePage ? paperOf(activePage) : "cell"} onChange={(paper) => updateActivePage((p) => ({ ...p, paper }))} />
         </div>
         <span className="pl-sep" aria-hidden="true" />
         <div className="pl-tool-group" role="group" aria-label="Буква">

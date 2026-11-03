@@ -1,6 +1,6 @@
 import LetterBlock from "./LetterBlock";
 import LetterGlyph from "./LetterGlyph";
-import { sheetSizeMm } from "./model";
+import { paperOf, sheetSizeMm } from "./model";
 
 // One printable sheet at its real size: the paper format minus the printer
 // margin (@page). The same component draws the page on the canvas, inside a
@@ -12,7 +12,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
   const heightMm = className.includes("pl-sheet--print") ? h - 1 : h;
   return (
     <div
-      className={`pl-sheet pl-sheet--${page.paper ?? "cell"} ${className}`}
+      className={`pl-sheet pl-sheet--${paperOf(page)} ${className}`}
       style={{ width: `${w}mm`, height: `${heightMm}mm`, ...style }}
     >
       {page.blocks.length > 0 && <SheetHeader page={page} byId={byId} />}
@@ -27,6 +27,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
             rows={b.rows}
             format={format}
             size={b.size === 4 ? 4 : 2}
+            paper={paperOf(page)}
             selected={b.id === selectedBlockId}
             selectedRowId={b.id === selectedBlockId ? selectedRowId : null}
             onSelectBlock={() => onSelectBlock?.(b.id)}

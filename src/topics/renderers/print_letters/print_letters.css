@@ -289,20 +289,39 @@
   background-size: 5mm 5mm;
 }
 
-/* Линейка: propis2's own ruled-paper idea (Propis2Editor's gridKind/ruling,
-   IconPaperRuled) minus the slant guide — only the horizontal lines, same
-   5mm pitch as клетка so a letter's own baseline (the bottom of its 2-cell
-   box) still lands exactly on one of them. No vertical lines, so there is
-   nothing for a letter's sides to snap to: the letter box (2 cells) still starts and ends on a line. */
-.pl-sheet--line {
-  background-image: linear-gradient(to bottom, #bcd4e8 1px, transparent 1px);
-  background-size: 100% 5mm;
+/* Линейка (3 or 2 lines): a plain sheet — every row draws its own lines
+   for its block's size (.pl-ruling below), as in printed-letter copybooks;
+   one page-wide ruling every 5mm told the child nothing about which lines
+   bound the letter. */
+.pl-sheet--line3,
+.pl-sheet--line2 {
+  background-image: none;
 }
 
 /* Only rendered under @media print — see below. */
 .pl-print-pages { display: none; }
 
-.pl-row-wrap { display: flex; flex-direction: column; }
+.pl-row-wrap { display: flex; flex-direction: column; position: relative; }
+
+/* A row's own ruling on линейка: top line (the letter's height), bottom
+   line (it stands on it) and, for 3 lines, a dashed middle line for the
+   crossbars. Drawn under the letters; borders print without
+   "background graphics". */
+.pl-ruling {
+  position: absolute;
+  box-sizing: border-box;
+  border-top: 0.35mm solid #5f7fa8;
+  border-bottom: 0.35mm solid #5f7fa8;
+  pointer-events: none;
+}
+.pl-ruling-mid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 0.3mm dashed #8aa2c4;
+}
+.pl-row { position: relative; }
 
 /* One row of copies: sizes come inline from LetterBlock.jsx, in whole cells. */
 .pl-row { display: flex; }

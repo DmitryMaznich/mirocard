@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPlan, letterH, letterW } from "./model";
+import { TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPlan, letterH, letterW, isRuled } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -14,7 +14,7 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // sits in the full letter, and the label tile shows that same stroke shape.
 // What each copy draws (dotted / start dots / fading / one sample) comes
 // from the row's support level via copyPlan().
-export default function LetterBlock({ letter, color, rows, format, size = 2, selected, selectedRowId, onSelectBlock, onSelectRow }) {
+export default function LetterBlock({ letter, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow }) {
   const frame = letterFrame(letter);
   const w = letterW(letter, size);
   const h = letterH(size);
@@ -45,6 +45,15 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, sel
             style={{ paddingTop: mm(GAP), paddingLeft: mm(rowStartCells(beside)) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
+            {isRuled(paper) && (
+              <div
+                className="pl-ruling"
+                aria-hidden="true"
+                style={{ left: mm(rowStartCells(beside)), top: mm(GAP), width: mm(rowCells(format, beside)), height: mm(h) }}
+              >
+                {paper === "line3" && <span className="pl-ruling-mid" />}
+              </div>
+            )}
             <div className="pl-row" style={{ height: mm(h), width: mm(rowCells(format, beside)), gap: mm(GAP) }}>
               {plan.map((p, i) => (
                 <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(h) }}>

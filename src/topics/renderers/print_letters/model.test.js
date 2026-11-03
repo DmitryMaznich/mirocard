@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  rowBesidePlate, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
+  paperOf, isRuled, rowBesidePlate, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -42,6 +42,14 @@ describe("print_letters model", () => {
     const rows = ladderRows(letter("Н")); // 6 rows
     expect(blockHeightCells({ rows })).toBe(19);
     expect(blockHeightCells({ rows, size: 4 })).toBe(31);
+  });
+
+  it("knows the papers; a page saved as «line» is the 3-line ruling", () => {
+    expect(paperOf({ paper: "line" })).toBe("line3");
+    expect(paperOf({ paper: "line2" })).toBe("line2");
+    expect(paperOf({})).toBe("cell");
+    expect(paperOf({ paper: "nonsense" })).toBe("cell");
+    expect([isRuled("cell"), isRuled("line3"), isRuled("line2")]).toEqual([false, true, true]);
   });
 
   it("builds the ladder: elements add up, then the support fades, then blank", () => {

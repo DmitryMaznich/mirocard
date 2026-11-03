@@ -45,6 +45,21 @@ export const IconPaperSquare = () => (
     <path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke="#9aa3af" strokeWidth="1.1" />
   </svg>
 );
+// Ruled paper for printed letters: rows with a top and a bottom line, and
+// (3 lines) a dashed middle line.
+const rowLines = (y, mid) => (
+  <>
+    <path d={`M3 ${y}H21`} stroke="#5f7fa8" strokeWidth="1.2" />
+    {mid && <path d={`M3 ${y + 3}H21`} stroke="#8aa2c4" strokeWidth="1" strokeDasharray="1.6 1.4" />}
+    <path d={`M3 ${y + 6}H21`} stroke="#5f7fa8" strokeWidth="1.2" />
+  </>
+);
+export const IconPaperLine3 = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">{rowLines(3, true)}{rowLines(14, true)}</svg>
+);
+export const IconPaperLine2 = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">{rowLines(3, false)}{rowLines(14, false)}</svg>
+);
 export const IconPaperRuled = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <path d="M3 7H21" stroke="#9aa3af" strokeWidth="1.1" />

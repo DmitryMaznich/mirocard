@@ -104,6 +104,28 @@ export function pageOverflows(page, formatId) {
   return pageHeightCells(page) > sheetCells(formatId).rows - HEADER_CELLS;
 }
 
+// ---- Paper ---------------------------------------------------------------
+// Page-level. A step of the support ladder too: клетка holds the letter on
+// every side; линейка leaves the width and the spacing to the child, with
+// the height (2 lines) and also the middle (3 lines: a dashed middle line
+// for crossbars) still marked. On линейка each row draws its own lines for
+// its block's size — there is no page-wide ruling, the sheet is plain.
+export const PAPERS = [
+  { id: "cell", label: "Клетка" },
+  { id: "line3", label: "Линейка: 3 линии" },
+  { id: "line2", label: "Линейка: 2 линии" },
+];
+
+// Pages saved before the two ruled papers existed say "line".
+export function paperOf(page) {
+  const p = page?.paper;
+  return p === "line" ? "line3" : PAPERS.some((x) => x.id === p) ? p : "cell";
+}
+
+export function isRuled(paper) {
+  return paper === "line3" || paper === "line2";
+}
+
 // ---- Rows ----------------------------------------------------------------
 // A row is { id, elements, support }: `elements` — indices of the letter's
 // strokes drawn in this row (sorted; [] = a blank row for writing on one's
