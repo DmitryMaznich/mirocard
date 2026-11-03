@@ -8,7 +8,7 @@
   Прототип режима «Пишу на экране» темы print_letters (2026-11-03).
   Глифы — живые данные из tools/print_letters/topic.json (вписаны при сборке макета).
   Это макет для обсуждения с владельцем, не код приложения. Описание — docs/print-letters-screen-writing.md.
-  Скриншот-режим: ?letter=П&level=corridor&adult=1
+  Скриншот-режим: ?letter=П&level=trace&adult=1
 -->
 <style>
 :root {
@@ -106,7 +106,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 .ink { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
 .ink.given { stroke: #94a3b8; }
 .raw { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; transition: opacity .6s; }
-.raw.fading { opacity: 0; }
+.raw.burn { stroke: #94a3b8; opacity: 0; transition: stroke-dashoffset .6s ease-in, stroke .15s, opacity .6s ease-in; }
 .letter-done .ink { stroke: var(--ok-d); transition: stroke .3s; }
 .letter-done { filter: drop-shadow(0 0 6px rgba(34,197,94,.55)); }
 
@@ -202,11 +202,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   <div id="letterPick"></div>
   <h4>Ступень</h4>
   <div class="levels" id="levelPick"></div>
-  <h4>Ширина коридора</h4>
+  <h4>Ширина дорожки («Обвожу»)</h4>
   <div class="seg" id="widthPick"></div>
   <h4>Подстройка</h4>
   <div class="row">«Спрятанная буква» — готово всё, кроме последнего штриха <input type="checkbox" id="hidden"></div>
-  <div class="row">Голос: название штриха <input type="checkbox" id="voice" checked></div>
   <div class="row">Тихий звук на штрих <input type="checkbox" id="sound" checked></div>
   <div class="row">Пишет левой рукой (образец справа) <input type="checkbox" id="lefty"></div>
   <div class="row">Копий в задании
@@ -221,25 +220,23 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 const DATA = {"letterFamilies":[{"id":"straight","title":"Прямые линии","letters":["Г","Т","Ч","П","Н","И","Ш","Е","Ё"]},{"id":"slant","title":"Наклонные линии","letters":["Л","А","Й","Д","Ц","Щ","У","Х","К","Ж","М"]},{"id":"oval","title":"Овалы и полуовалы","letters":["Ь","Ъ","Ы","Р","Б","Ф","Я","В","З","О","Ю","С","Э"]}],"cards":[{"id":"Г","label":"Г","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"}]},{"id":"Т","label":"Т","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 66.665,0","name":"верхняя черта"},{"d":"M 33.333,0 L 33.333,100","name":"палочка"}]},{"id":"П","label":"П","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"},{"d":"M 50,0 L 50,100","name":"правая палочка"}]},{"id":"Н","label":"Н","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 50,0 L 50,100","name":"правая палочка"},{"d":"M 0,50 L 50,50","name":"перекладина"}]},{"id":"И","label":"И","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,100 L 50,0","name":"наклонная"},{"d":"M 50,0 L 50,100","name":"правая палочка"}]},{"id":"Ш","label":"Ш","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 33.333,0 L 33.333,100","name":"средняя палочка"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"},{"d":"M 0,100 L 66.665,100","name":"нижняя черта"}]},{"id":"Е","label":"Е","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"},{"d":"M 0,50 L 50,50","name":"средняя черта"},{"d":"M 0,100 L 50,100","name":"нижняя черта"}]},{"id":"Ё","label":"Ё","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"},{"d":"M 0,50 L 50,50","name":"средняя черта"},{"d":"M 0,100 L 50,100","name":"нижняя черта"},{"d":"M 14,-16 L 15,-16","name":"левая точка"},{"d":"M 35,-16 L 36,-16","name":"правая точка"}]},{"id":"Ч","label":"Ч","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,50","name":"левая палочка"},{"d":"M 0,50 L 50,50","name":"перекладина"},{"d":"M 50,0 L 50,100","name":"правая палочка"}]},{"id":"Л","label":"Л","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,100 L 33.333,0","name":"левая наклонная"},{"d":"M 33.333,0 L 66.665,100","name":"правая наклонная"}]},{"id":"А","label":"А","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,100 L 33.333,0","name":"левая наклонная"},{"d":"M 33.333,0 L 66.665,100","name":"правая наклонная"},{"d":"M 13.333,60 L 53.332,60","name":"перекладина"}]},{"id":"Й","label":"Й","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,100 L 50,0","name":"наклонная"},{"d":"M 50,0 L 50,100","name":"правая палочка"},{"d":"M 13,-20 C 17,-11 33,-11 37,-20","name":"краткая"}]},{"id":"Д","label":"Д","viewBox":"0 0 66.665 100","strokes":[{"d":"M 6,100 L 33.333,0","name":"левая наклонная"},{"d":"M 33.333,0 L 60.665,100","name":"правая наклонная"},{"d":"M 0,100 L 66.665,100","name":"основание"},{"d":"M 0,100 L 0,118","name":"левая ножка"},{"d":"M 66.665,100 L 66.665,118","name":"правая ножка"}]},{"id":"Ц","label":"Ц","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,100 L 58,100","name":"нижняя черта"},{"d":"M 50,0 L 50,100","name":"правая палочка"},{"d":"M 58,100 L 58,118","name":"хвостик"}]},{"id":"Щ","label":"Щ","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 33.333,0 L 33.333,100","name":"средняя палочка"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"},{"d":"M 0,100 L 74,100","name":"нижняя черта"},{"d":"M 74,100 L 74,118","name":"хвостик"}]},{"id":"У","label":"У","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 25,60","name":"короткая наклонная"},{"d":"M 50,0 L 8,100","name":"длинная наклонная"}]},{"id":"Х","label":"Х","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 50,100","name":"наклонная слева направо"},{"d":"M 50,0 L 0,100","name":"наклонная справа налево"}]},{"id":"К","label":"К","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 50,0 L 0,50 L 50,100","name":"уголок"}]},{"id":"Ж","label":"Ж","viewBox":"0 0 66.665 100","strokes":[{"d":"M 33.333,0 L 33.333,100","name":"палочка"},{"d":"M 0,0 L 66.665,100","name":"наклонная слева направо"},{"d":"M 66.665,0 L 0,100","name":"наклонная справа налево"}]},{"id":"М","label":"М","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,0 L 33.333,66.665","name":"наклонная вниз"},{"d":"M 33.333,66.665 L 66.665,0","name":"наклонная вверх"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"}]},{"id":"Ь","label":"Ь","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","name":"полуовал"}]},{"id":"Ъ","label":"Ъ","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 16.665,0","name":"верхняя черта"},{"d":"M 16.665,0 L 16.665,100","name":"палочка"},{"d":"M 16.665,50 L 38,50 C 53.832,50 66.665,61.192 66.665,75 C 66.665,88.808 53.832,100 38,100 L 16.665,100","name":"полуовал"}]},{"id":"Ы","label":"Ы","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,50 L 16,50 C 29.255,50 40,61.192 40,75 C 40,88.808 29.255,100 16,100 L 0,100","name":"полуовал"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"}]},{"id":"Р","label":"Р","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 22,0 C 37.464,0 50,11.192 50,25 C 50,38.808 37.464,50 22,50 L 0,50","name":"полуовал"}]},{"id":"Б","label":"Б","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","name":"полуовал"},{"d":"M 0,0 L 48,0","name":"верхняя черта"}]},{"id":"Ф","label":"Ф","viewBox":"0 0 66.665 100","strokes":[{"d":"M 33.333,0 L 33.333,100","name":"палочка"},{"d":"M 33.333,0 C 14.923,0 0,13.431 0,30 C 0,46.569 14.923,60 33.333,60","name":"левый полуовал"},{"d":"M 33.333,0 C 51.742,0 66.665,13.431 66.665,30 C 66.665,46.569 51.742,60 33.333,60","name":"правый полуовал"}]},{"id":"Я","label":"Я","viewBox":"0 0 50 100","strokes":[{"d":"M 50,0 L 28,0 C 12.536,0 0,11.192 0,25 C 0,38.808 12.536,50 28,50 L 50,50","name":"полуовал"},{"d":"M 50,0 L 50,100","name":"палочка"},{"d":"M 28,50 L 0,100","name":"наклонная"}]},{"id":"В","label":"В","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 20,0 C 33.255,0 44,11.192 44,25 C 44,38.808 33.255,50 20,50 L 0,50","name":"верхний полуовал"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","name":"нижний полуовал"}]},{"id":"З","label":"З","viewBox":"0 0 50 100","strokes":[{"d":"M 3,14 C 7,5 15,0 24,0 C 37,0 46,10 46,24 C 46,39 35,50 20,50","name":"верхний полуовал"},{"d":"M 20,50 C 37,50 50,60 50,75 C 50,90 39,100 25,100 C 15,100 7,95 2,86","name":"нижний полуовал"}]},{"id":"О","label":"О","viewBox":"0 0 50 100","strokes":[{"d":"M 25,0 C 11.192,0 0,22.385 0,50 C 0,77.615 11.192,100 25,100 C 38.808,100 50,77.615 50,50 C 50,22.385 38.808,0 25,0","name":"овал"}]},{"id":"Ю","label":"Ю","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,50 L 20,50","name":"перекладина"},{"d":"M 43.333,0 C 30.447,0 20.001,22.385 20.001,50 C 20.001,77.615 30.447,100 43.333,100 C 56.219,100 66.665,77.615 66.665,50 C 66.665,22.385 56.219,0 43.333,0","name":"овал"}]},{"id":"С","label":"С","viewBox":"0 0 50 100","strokes":[{"d":"M 46,15 C 41.5,5.7 33.9,0 25,0 C 11.19,0 0,22.39 0,50 C 0,77.61 11.19,100 25,100 C 33.9,100 41.5,94.3 46,85","name":"полуовал"}]},{"id":"Э","label":"Э","viewBox":"0 0 50 100","strokes":[{"d":"M 4,15 C 8.5,5.7 16.1,0 25,0 C 38.81,0 50,22.39 50,50 C 50,77.61 38.81,100 25,100 C 16.1,100 8.5,94.3 4,85","name":"полуовал"},{"d":"M 18,50 L 50,50","name":"перекладина"}]}]};
 const GLYPHS = Object.fromEntries(DATA.cards.map(c => [c.id, c]));
 const LEVELS = [
-  { id: "watch",    title: "Смотрю",       sub: "Буква пишется сама, штрих за штрихом. Нажатие — ещё раз." },
-  { id: "lead",     title: "За точкой",    sub: "Синяя точка ведёт, палец догоняет. Точка ждёт палец." },
-  { id: "corridor", title: "Коридор",      sub: "Широкая дорожка; линия рисуется только внутри неё." },
-  { id: "dots",     title: "Пунктир",      sub: "Как на листе: пунктир, точка начала, стрелка." },
-  { id: "fade",     title: "Бледный след", sub: "След бледнеет от копии к копии." },
-  { id: "free",     title: "Сам",          sub: "Пустая клетка, образец сбоку. Проверка после каждого штриха." },
+  { id: "watch", title: "Смотрю", sub: "Буква пишется сама, штрих за штрихом. Нажатие — ещё раз." },
+  { id: "trace", title: "Обвожу", sub: "Дорожка по букве, видна настоящая линия пальца. Оторвал палец раньше конца или ушёл с дорожки — штрих сгорает." },
+  { id: "free",  title: "Сам",    sub: "Пустая клетка, образец сбоку. Штрих проверяется после отрыва пальца; не тот — сгорает и показывается." },
 ];
 const WIDTHS = { wide: { t: 14, label: "Широкий" }, mid: { t: 10, label: "Средний" }, narrow: { t: 7, label: "Узкий" } };
 const INK_W = 7;          // толщина линии в единицах клетки (буква — 100)
 const LOOK = 24;          // палец не может «перепрыгнуть» вперёд больше чем на 24 ед.
-const LEAD = 12;          // ведущая точка опережает палец
+const END_SLACK = 0.06;   // штрих засчитан, если до конца осталось меньше 6 % длины (не меньше 3 ед.)
+const OUT = 1.25;         // уход с дорожки дальше 1,25 полуширины — штрих сгорает
 const IDLE_NUDGE = 6000, IDLE_DEMO = 12000;
 
 const qs = new URLSearchParams(location.search);
 const S = {
   letter: GLYPHS[qs.get("letter")] ? qs.get("letter") : "П",
-  level: LEVELS.some(l => l.id === qs.get("level")) ? qs.get("level") : "corridor",
+  level: LEVELS.some(l => l.id === qs.get("level")) ? qs.get("level") : "trace",
   width: qs.get("width") in WIDTHS ? qs.get("width") : "wide",
-  hidden: qs.get("hidden") === "1", voice: true, sound: true, lefty: qs.get("lefty") === "1",
+  hidden: qs.get("hidden") === "1", voice: false, sound: true, lefty: qs.get("lefty") === "1",
   copies: 3, copy: 0, log: [],
 };
 const NS = "http://www.w3.org/2000/svg";
@@ -298,7 +295,7 @@ function newTask() {
   const n = g.strokes.length;
   const given = S.hidden && n > 1 ? n - 1 : 0;
   T = { g, geo, n, given, cur: given, prog: geo.map((_, i) => (i < given ? _.pts.length - 1 : 0)),
-        raw: [], prompted: false, done: false, started: performance.now(), lastAct: performance.now(), nudged: false, demoed: false };
+        ink: geo.map(() => null), burns: 0, burnsHere: 0, prompted: false, done: false, started: performance.now(), lastAct: performance.now(), nudged: false, demoed: false };
   $("finish").classList.remove("is-on");
   buildBoard(); buildSample(); buildStrip(); drawStars(); render();
   if (S.level === "watch") setTimeout(() => demoLetter(), 500);
@@ -339,44 +336,22 @@ function render() {
   L.ink.classList.toggle("letter-done", T.done);
   T.geo.forEach((g, i) => {
     const doneHere = i < T.cur;
-    // опора под штрихом
-    if (!doneHere && lv !== "free" && lv !== "watch") {
+    // дорожка (только «Обвожу»): текущий штрих ярче, следующие — едва заметно
+    if (!doneHere && lv === "trace") {
       const isCur = i === T.cur;
-      if (lv === "lead" || lv === "corridor") {
-        el("path", { d: polyD(g.pts), fill: "none", stroke: "rgba(59,130,246," + (isCur ? (lv === "corridor" ? .16 : .09) : .06) + ")", "stroke-width": tol * 2, "stroke-linecap": "round", "stroke-linejoin": "round" }, L.guide);
-        el("path", { d: polyD(g.pts), fill: "none", stroke: isCur ? "#93c5fd" : "#cbd5e1", "stroke-width": 1.2, "stroke-dasharray": "3 4", "stroke-linecap": "round" }, L.guide);
-      } else if (lv === "dots") {
-        el("path", { d: polyD(g.pts), fill: "none", stroke: isCur ? "#64748b" : "#a3aec0", "stroke-width": 3.2, "stroke-dasharray": "0.1 6.5", "stroke-linecap": "round" }, L.guide);
-      } else if (lv === "fade") {
-        const op = [0.55, 0.32, 0.16][Math.min(S.copy, 2)];
-        el("path", { d: polyD(g.pts), fill: "none", stroke: `rgba(100,116,139,${op})`, "stroke-width": INK_W, "stroke-linecap": "round", "stroke-linejoin": "round" }, L.guide);
-      }
+      el("path", { d: polyD(g.pts), fill: "none", stroke: `rgba(59,130,246,${isCur ? .16 : .06})`, "stroke-width": tol * 2, "stroke-linecap": "round", "stroke-linejoin": "round" }, L.guide);
+      el("path", { d: polyD(g.pts), fill: "none", stroke: isCur ? "#93c5fd" : "#cbd5e1", "stroke-width": 1.2, "stroke-dasharray": "3 4", "stroke-linecap": "round" }, L.guide);
     }
-    // чернила (кроме «Сам»: там остаётся линия ребёнка)
-    const k = T.prog[i];
-    if (k > 0 && !(lv === "free" && i >= T.given)) {
-      el("path", { class: "ink" + (i < T.given ? " given" : ""), d: polyD(g.pts, k), "stroke-width": INK_W }, L.ink);
-    }
+    // линии: «спрятанная буква» — по образцу серым; свои — настоящая траектория пальца; «Смотрю» — по образцу
+    if (i < T.given) el("path", { class: "ink given", d: polyD(g.pts), "stroke-width": INK_W }, L.ink);
+    else if (T.ink[i]) el("path", { class: "ink", d: polyD(T.ink[i]), "stroke-width": INK_W }, L.ink);
+    else if (lv === "watch" && T.prog[i] > 0) el("path", { class: "ink", d: polyD(g.pts, T.prog[i]), "stroke-width": INK_W }, L.ink);
   });
-  if (lv === "free") T.raw.forEach(r => r.ok && L.ink.appendChild(r.node));
-  // точка начала и стрелка у текущего штриха
-  if (!T.done && T.cur < T.n && lv !== "watch") {
-    const g = T.geo[T.cur], k = T.prog[T.cur];
-    const showStart = lv !== "free" || T.nudged;
-    if (showStart) {
-      const p = g.pts[k];
-      if (k === 0) {
-        el("circle", { class: "start-dot" + (T.nudged ? " nudge" : ""), cx: p.x, cy: p.y, r: 5.5 }, L.marks);
-        if (g.L > 8) arrow(g, L.marks);
-      } else {
-        el("circle", { cx: p.x, cy: p.y, r: 4.2, fill: "var(--ink)", stroke: "#fff", "stroke-width": 1.5 }, L.marks);
-      }
-    }
-    if (lv === "lead") {
-      const p = g.pts[Math.min(g.pts.length - 1, k + (k === 0 ? 0 : LEAD))];
-      el("circle", { class: "lead-halo", cx: p.x, cy: p.y, r: 11 }, L.marks);
-      el("circle", { class: "lead-dot", cx: p.x, cy: p.y, r: 6 }, L.marks);
-    }
+  // точка начала и стрелка у текущего штриха (у «Сам» — только как подсказка)
+  if (!T.done && T.cur < T.n && lv !== "watch" && (lv === "trace" || T.nudged)) {
+    const g = T.geo[T.cur], p = g.pts[0];
+    el("circle", { class: "start-dot" + (T.nudged ? " nudge" : ""), cx: p.x, cy: p.y, r: 5.5 }, L.marks);
+    if (g.L > 8) arrow(g, L.marks);
   }
   updateStrip();
 }
@@ -401,51 +376,68 @@ board.addEventListener("pointerdown", e => {
   const p = toSvg(e); touch();
   if (S.level === "watch") { demoLetter(); return; }
   if (T.cur >= T.n) return;
-  const g = T.geo[T.cur], k = T.prog[T.cur], tol = WIDTHS[S.width].t;
-  if (S.level === "free") {
-    active = { id: e.pointerId, pts: [p] };
-    active.node = el("path", { class: "raw", d: polyD([p]), "stroke-width": INK_W }, L.raw);
-    board.setPointerCapture(e.pointerId); return;
-  }
-  const anchor = g.pts[k];
-  if (dist(p, anchor) > Math.max(tol * 1.6, 14)) { T.nudged = true; render(); return; } // не там — мигает точка начала, линия не рисуется
-  active = { id: e.pointerId };
+  const g = T.geo[T.cur], tol = WIDTHS[S.width].t;
+  if (S.level === "trace" && dist(p, g.pts[0]) > Math.max(tol * 1.6, 14)) { T.nudged = true; render(); return; } // не от точки начала — линия не рисуется, точка мигает
+  active = { id: e.pointerId, pts: [p] };
+  active.node = el("path", { class: "raw", d: polyD([p]), "stroke-width": INK_W }, L.raw);
   board.setPointerCapture(e.pointerId);
-  if (g.L < 4) { completeStroke(); active = null; }
+  if (S.level === "trace" && g.L < 4) finishStroke();   // точка у Ё — касание
 });
 board.addEventListener("pointermove", e => {
-  if (!active || e.pointerId !== active.id) return;
+  if (!active || e.pointerId !== active.id || active.over) return;
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
   for (const ev of (evs.length ? evs : [e])) {
-    const p = toSvg(ev);
-    if (S.level === "free") { active.pts.push(p); active.node.setAttribute("d", polyD(active.pts)); continue; }
-    advance(p); if (!active) break;
+    const p = toSvg(ev); active.pts.push(p);
+    if (S.level === "trace") { advance(p); if (active.over) break; }
   }
+  if (!active.over) active.node.setAttribute("d", polyD(active.pts));
   touch();
 });
 function endPointer(e) {
   if (!active || e.pointerId !== active.id) return;
-  if (S.level === "free") checkFree(active);
+  if (!active.over) {
+    if (S.level === "free") checkFree(active);
+    else burn("lift");                     // оторвал палец раньше конца штриха — сгорает
+  }
   active = null; render();
 }
 board.addEventListener("pointerup", endPointer);
 board.addEventListener("pointercancel", endPointer);
 
 function advance(p) {
-  const g = T.geo[T.cur], tol = WIDTHS[S.width].t; let k = T.prog[T.cur];
+  const g = T.geo[T.cur], tol = WIDTHS[S.width].t; const k = T.prog[T.cur];
   let best = -1, bd = 1e9;
   for (let i = Math.max(0, k - 3); i <= Math.min(g.pts.length - 1, k + LOOK); i++) {
     const d = dist(p, g.pts[i]); if (d < bd) { bd = d; best = i; }
   }
-  if (bd <= tol && best > k) {
-    T.prog[T.cur] = best; render();
-    if (best >= g.pts.length - 2) completeStroke();
-  }
+  if (bd > tol * OUT) { burn("out"); return; }   // ушёл с дорожки (или срезал) — сгорает
+  if (best > k) T.prog[T.cur] = best;
+  if (T.prog[T.cur] >= g.pts.length - 1 - Math.max(3, Math.round(g.L * END_SLACK))) finishStroke();
+}
+function finishStroke() {
+  active.node.setAttribute("d", polyD(active.pts));
+  T.ink[T.cur] = active.pts.slice(); active.node.remove(); active.over = true;
+  completeStroke();
+}
+/* «Сгорает»: линия выцветает и стягивается назад к началу, штрих — заново от точки начала */
+function burn(why) {
+  const node = active.node; active.over = true;
+  T.prog[T.cur] = 0; T.burns++; T.burnsHere++;
+  if (active.pts.length > 1) {
+    node.setAttribute("d", polyD(active.pts));
+    const len = node.getTotalLength();
+    node.style.strokeDasharray = `${len} ${len + 10}`; node.style.strokeDashoffset = 0;
+    node.getBoundingClientRect();
+    node.classList.add("burn"); node.style.strokeDashoffset = -len;
+    setTimeout(() => node.remove(), 700);
+  } else node.remove();
+  if (T.burnsHere >= 2 && S.level === "trace") { T.burnsHere = 0; T.prompted = true; demoStroke(T.cur); }
+  render();
 }
 function completeStroke() {
-  const g = T.geo[T.cur]; T.prog[T.cur] = g.pts.length - 1; T.cur++; T.nudged = false;
+  const g = T.geo[T.cur]; T.prog[T.cur] = g.pts.length - 1; T.cur++; T.nudged = false; T.burnsHere = 0;
   tone([660]);
-  if (T.cur >= T.n) { active = null; letterDone(); } else { render(); announce(); }
+  if (T.cur >= T.n) { letterDone(); } else { render(); announce(); }
 }
 
 /* «Сам»: штрих проверяется после отрыва пальца */
@@ -462,12 +454,10 @@ function matches(raw, g, tol) {
 function checkFree(a) {
   const g = T.geo[T.cur]; const tol = WIDTHS[S.width].t * 1.15;
   if (matches(a.pts, g, tol)) {
-    T.raw.push({ ok: true, node: a.node }); T.prog[T.cur] = g.pts.length - 1;
-    completeStroke();
+    finishStroke();
   } else {
-    // без «неправильно»: линия тихо тает, и этот штрих показывается ещё раз
-    a.node.classList.add("fading"); setTimeout(() => a.node.remove(), 650);
-    T.prompted = true; T.nudged = true; demoStroke(T.cur);
+    // не тот штрих — сгорает, и этот штрих один раз показывается точкой
+    burn("free"); T.prompted = true; T.nudged = true; demoStroke(T.cur); render();
   }
 }
 
@@ -489,7 +479,7 @@ function demoStroke(i) {
 }
 let demoRun = 0;
 function demoLetter() {
-  const run = ++demoRun; L.ghost.innerHTML = ""; T.cur = 0; T.prog = T.prog.map(() => 0); T.done = false; render();
+  const run = ++demoRun; L.ghost.innerHTML = ""; T.cur = 0; T.prog = T.prog.map(() => 0); T.ink = T.ink.map(() => null); T.done = false; render();
   const next = i => {
     if (run !== demoRun) return;
     if (i >= T.n) { T.done = true; render(); return; }
@@ -579,7 +569,7 @@ function letterDone() {
   T.done = true; render(); tone([523, 659, 784], 0.16);
   setTimeout(() => say("Буква " + T.g.label), 250);
   if (S.level !== "watch") {
-    S.log.unshift({ letter: T.g.label, level: S.level, prompted: T.prompted, sec: Math.round((performance.now() - T.started) / 1000) });
+    S.log.unshift({ letter: T.g.label, level: S.level, prompted: T.prompted, burns: T.burns, sec: Math.round((performance.now() - T.started) / 1000) });
     drawLog();
   }
   S.copy++; drawStars();
@@ -592,7 +582,7 @@ function drawLog() {
   const box = $("log"); box.innerHTML = "";
   S.log.slice(0, 12).forEach(r => {
     const d = document.createElement("div");
-    d.innerHTML = `<b>${r.letter}</b> · ${LEVELS.find(l => l.id === r.level).title} · ${r.sec} с <span class="tag ${r.prompted ? "pr" : "ind"}">${r.prompted ? "с подсказкой" : "сам"}</span>`;
+    d.innerHTML = `<b>${r.letter}</b> · ${LEVELS.find(l => l.id === r.level).title} · ${r.sec} с${r.burns ? ` · сгорело ${r.burns}` : ""} <span class="tag ${r.prompted ? "pr" : "ind"}">${r.prompted ? "с подсказкой" : "сам"}</span>`;
     box.appendChild(d);
   });
 }
@@ -617,7 +607,6 @@ function buildAdult() {
   $("hidden").checked = S.hidden; $("lefty").checked = S.lefty;
 }
 $("hidden").onchange = e => { S.hidden = e.target.checked; S.copy = 0; newTask(); };
-$("voice").onchange = e => { S.voice = e.target.checked; };
 $("sound").onchange = e => { S.sound = e.target.checked; };
 $("lefty").onchange = e => { S.lefty = e.target.checked; $("app").classList.toggle("is-left", S.lefty); buildBoard(); render(); };
 $("adultClose").onclick = () => $("adult").classList.remove("is-open");
@@ -628,7 +617,8 @@ gear.addEventListener("pointerdown", () => { gear.classList.add("is-holding"); h
 
 $("app").classList.toggle("is-left", S.lefty);
 buildAdult(); newTask();
-let rzT; window.addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(() => { buildBoard(); render(); }, 120); });
+// доска пересобирается при любом изменении её размера (поворот, панель, первая раскладка)
+let rzT; new ResizeObserver(() => { clearTimeout(rzT); rzT = setTimeout(() => { if (active) return; buildBoard(); render(); }, 80); }).observe($("board"));
 if (qs.get("adult") === "1") $("adult").classList.add("is-open");
 window.__proto = { S, get T() { return T; }, newTask };
 </script>
