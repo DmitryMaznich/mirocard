@@ -810,7 +810,7 @@
 .plb-editor2 .plb-main > .plb-settings:has(.pl-blockpick),
 .plb-editor2 .plb-main > .plb-settings:has(.pl-row-pick-list) { position: relative; z-index: 20; }
 /* the plate stays above a selected row's highlight */
-.pl-block-tile { z-index: 1; }
+.pl-block-tile { z-index: 1; box-sizing: border-box; align-items: flex-start; } /* the letter stands from paddingTop, on a grid line */
 
 /* The grid (Sheet.jsx SheetGrid): vector lines under everything, from the sheet's padding-box
    corner — where the old background tile started. */

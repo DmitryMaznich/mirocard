@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
+import { TILE, LETTER_H, plateHeightCells, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
 import { plateCells, plateWords, wordCopiesPerRow, wordLetters, wordPitchCells, wordWidthCells } from "./words";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
@@ -13,6 +13,7 @@ export default function WordBlock({ block, byId, format, size = 2, paper = "cell
   const plateW = plateCells(block);
   const h = letterH(size);
   const g = paperGap(paper);
+  const plateH = plateHeightCells(block.rows.length, size, paper);
   const pitch = copyPitch(size);
   return (
     <div
@@ -22,7 +23,7 @@ export default function WordBlock({ block, byId, format, size = 2, paper = "cell
     >
       <div
         className="pl-block-tile pl-block-tile--word"
-        style={{ height: mm(TILE), width: mm(plateW), "--pl-block-color": block.color }}
+        style={{ height: mm(plateH), width: mm(plateW), paddingTop: mm(Math.floor((plateH - LETTER_H) / 2)), "--pl-block-color": block.color }}
         aria-label={plateWords(block).join(", ")}
       >
         <PlateWords words={plateWords(block)} byId={byId} />

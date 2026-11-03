@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, LETTER_H, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
+import { TILE, LETTER_H, plateHeightCells, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -19,6 +19,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
   const w = letterW(letter, size);
   const h = letterH(size);
   const g = paperGap(paper);
+  const plateH = plateHeightCells(rows.length, size, paper);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
@@ -27,7 +28,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
     >
       <div
         className="pl-block-tile"
-        style={{ height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
+        style={{ height: mm(plateH), width: mm(TILE), paddingTop: mm(Math.floor((plateH - LETTER_H) / 2)), "--pl-block-color": color }}
         aria-label={`Буква ${letter.label}`}
       >
         {/* the plate letter is a letter's own height, 2 cells, centred in the 4-cell plate: its top

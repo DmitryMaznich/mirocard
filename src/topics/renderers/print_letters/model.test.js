@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, rowStyle, withStyle, describeStyle, DEFAULT_STYLE, pageOverflows, rowCells, sheetCells, toggleElement,
+  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, rowStyle, withStyle, describeStyle, DEFAULT_STYLE, pageOverflows, rowCells, sheetCells, toggleElement, plateHeightCells,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -129,4 +129,12 @@ describe("print_letters model", () => {
     expect(pageOverflows({ blocks: [block, block] }, "a4")).toBe(false);
     expect(pageOverflows({ blocks: [block, block] }, "a5")).toBe(true);
   });;
+
+  it("runs the plate down beside every row next to it (owner's drawing, 2026-11-03)", () => {
+    expect(plateHeightCells(7, 2, "cell")).toBe(6);   // 2 rows beside it: 2 × (1 + 2)
+    expect(plateHeightCells(1, 2, "cell")).toBe(4);   // never shorter than 4 cells
+    expect(plateHeightCells(7, 4, "cell")).toBe(5);   // large letters: 1 row beside it
+    expect(plateHeightCells(7, 2, "bigcell")).toBe(4);
+    for (const n of [1, 2, 3, 7]) expect(plateHeightCells(n, 2, "cell")).toBeLessThanOrEqual(blockHeightCells({ rows: Array(n).fill({}), size: 2 }, "cell"));
+  });
 });

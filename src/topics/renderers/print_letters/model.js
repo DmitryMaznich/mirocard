@@ -84,6 +84,17 @@ export function rowBesidePlate(index, size = 2, paper = "cell") {
   return index * (g + letterH(size)) + g < TILE + GAP;
 }
 
+// The plate's height (owner, 2026-11-03, drawing: «размер цветной плашки как на рисунке»): it runs
+// down the block's left side beside every row that stands next to it — to the band of the first row
+// that uses the full block width — never shorter than its 4 cells. With 2-cell letters on клетка
+// that is 2 rows = 6 cells; on крупная клетка and for large letters 1 row.
+export function plateHeightCells(rowCount, size = 2, paper = "cell") {
+  const g = paperGap(paper);
+  let beside = 0;
+  while (beside < rowCount && rowBesidePlate(beside, size, paper)) beside++;
+  return Math.max(TILE, beside * (g + letterH(size)));
+}
+
 // Where a row's letters start, in cells from the block's left edge. `plateW`: the plate's width —
 // 4 cells for a letter, wider for a syllable or word (words.js plateCells).
 export function rowStartCells(besidePlate, paper = "cell", plateW = TILE) {
