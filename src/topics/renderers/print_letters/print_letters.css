@@ -775,3 +775,13 @@
 .plb-dock .pl-insp-acts { flex: 0 0 auto; gap: 2px; padding: 2px; }
 .plb-dock .pl-insp-acts button { flex: 0 0 auto; width: 42px; height: 42px; }
 .plb-dock .pl-insp-acts button span { display: none; }
+/* the row's three look pickers: a strip of propis2-style tools inside the panel */
+.pl-insp-picks { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: var(--pl-strip); }
+.pl-insp-picks .pl2-pick { flex: 1 1 0; display: flex; }
+.pl-insp-picks .pl2-pick-btn { flex: 1 1 auto; width: 100%; }
+.pl-insp-picks .pl2-pick-btn:disabled { opacity: 0.35; cursor: default; }
+.pl-insp-picks .pl2-pick-btn { height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 6px; border-radius: 12px; background: #fff; border: 1px solid var(--pl-line); box-shadow: none; }
+.pl-insp-picks .pl2-pick-btn.is-open { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
+.pl-insp-picks .pl2-tool-ico { display: flex; align-items: center; gap: 2px; height: 26px; }
+.pl-insp-picks .pl2-tool-ico svg:first-child { width: 26px; height: 26px; }
+.pl-insp-picks .pl2-cap { font-size: 11px; font-weight: 700; color: var(--pl-ink); line-height: 1.1; }

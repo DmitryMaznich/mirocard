@@ -1,7 +1,16 @@
 import { useState } from "react";
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
-import { SIZES, LINES, GUIDES, DOTS, rowStyle, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
-import { IconUp, IconDown, IconLadder, IconAddRow, IconTrash } from "./icons";
+import { SIZES, LINES, GUIDES, DOTS, rowStyle, describeStyle, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
+import OptionPicker from "./OptionPicker";
+import {
+  IconUp, IconDown, IconLadder, IconAddRow, IconTrash,
+  IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone,
+} from "./icons";
+
+const LINE_ICONS = { tone: IconLineTone, dash: IconLineDash };
+const GUIDE_ICONS = { full: IconGuideFull, fade: IconGuideFade, none: IconGuideNone };
+const DOT_ICONS = { sample: IconDotsSample, all: IconDotsAll, none: IconDotsNone };
+const withIcons = (list, icons) => list.map((o) => ({ ...o, Icon: icons[o.id] }));
 
 const PAD_CELL = 52; // px per notebook cell in the element pad — the only element control (owner, 2026-11-03)
 const INK = "#2a6b60";
@@ -128,20 +137,6 @@ function SizeSwitch({ size, onSetSize, paper }) {
   );
 }
 
-// One option of the row as a segmented switch.
-function Seg({ label, options, value, disabled, onChange }) {
-  return (
-    <div className="pl-seg" role="radiogroup" aria-label={label}>
-      {options.map((o) => (
-        <button key={o.id} type="button" role="radio" aria-checked={value === o.id} disabled={disabled}
-          className={value === o.id ? "is-on" : ""} onClick={() => onChange(o.id)}>
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 // The selected row's own settings — a right-hand panel on a computer, the
 // docked panel at the bottom on a phone. Elements are picked only on the big
 // letter (ElementPad) — no duplicate list beside it (owner, 2026-11-03).
@@ -188,20 +183,15 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
         </div>
       </section>
 
-      <section className="pl-insp-sec" aria-label="Линия">
-        <span className="pl-insp-lbl">Линия контура</span>
-        <Seg label="Линия контура" options={LINES} value={st.line} disabled={blank || st.guide === "none"} onChange={(line) => onSetStyle({ line })} />
-      </section>
-
-      <section className="pl-insp-sec" aria-label="Контуры">
-        <span className="pl-insp-lbl">Контуры после образца</span>
-        <Seg label="Контуры после образца" options={GUIDES} value={st.guide} disabled={blank} onChange={(guide) => onSetStyle({ guide })} />
-      </section>
-
-      <section className="pl-insp-sec" aria-label="Точки">
-        <span className="pl-insp-lbl">Точки начала штрихов</span>
-        <Seg label="Точки начала штрихов" options={DOTS} value={st.dots} disabled={blank} onChange={(dots) => onSetStyle({ dots })} />
-        {blank && <span className="pl-insp-hint">Пустая строка — ребёнок пишет сам.</span>}
+      {/* the row's look: three pickers like the strips above (propis2's icon + drop-down list) */}
+      <section className="pl-insp-sec" aria-label="Как выглядят контуры">
+        <span className="pl-insp-lbl">Контуры</span>
+        <div className="pl-insp-picks" role="group" aria-label="Как выглядят контуры">
+          <OptionPicker label="Линия контура" caption="Линия" options={withIcons(LINES, LINE_ICONS)} value={st.line} disabled={blank || st.guide === "none"} onChange={(line) => onSetStyle({ line })} />
+          <OptionPicker label="Контуры после образца" caption="Контуры" options={withIcons(GUIDES, GUIDE_ICONS)} value={st.guide} disabled={blank} onChange={(guide) => onSetStyle({ guide })} />
+          <OptionPicker label="Точки начала штрихов" caption="Точки" options={withIcons(DOTS, DOT_ICONS)} value={st.dots} disabled={blank} onChange={(dots) => onSetStyle({ dots })} />
+        </div>
+        <span className="pl-insp-hint">{blank ? "Пустая строка — ребёнок пишет сам." : describeStyle(row)}</span>
       </section>
 
       <section className="pl-insp-sec pl-insp-sec--block" aria-label="Весь блок">

@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { usePopupPos } from "./usePopupPos";
 
-const PANEL_W = 170;
+const PANEL_W = 190;
+const OPTION_H = 46; // a list entry's height, to open the list above the button when it doesn't fit below
 
-// A page/notebook setting picked from a short list — propis2's own toolbar
-// picker pattern (Propis2Picker: a button that pops a list under itself).
-// Used for the paper (Клетка/Линейка — Клетка snaps letters to both grid
-// axes, Линейка keeps only the horizontal lines) and the format (А4/А5).
-export default function OptionPicker({ options, value, onChange, label, caption }) {
+// A setting picked from a short list — propis2's own toolbar picker pattern
+// (Propis2Picker: a button that pops a list under itself). Used for the
+// page (format, paper) and for the row's look (line, contours, dots) in the
+// row panel, where the list opens upward when the button is low on screen.
+export default function OptionPicker({ options, value, onChange, label, caption, disabled = false }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
-  const panelStyle = usePopupPos(open, btnRef, PANEL_W, () => setOpen(false));
+  const panelStyle = usePopupPos(open, btnRef, PANEL_W, () => setOpen(false), options.length * OPTION_H + 12);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -34,6 +35,8 @@ export default function OptionPicker({ options, value, onChange, label, caption 
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${label}: ${current.label}`}
+        title={`${label}: ${current.label}`}
+        disabled={disabled}
         onClick={() => setOpen((o) => !o)}
       >
         <span className="pl2-tool-ico"><current.Icon /><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>

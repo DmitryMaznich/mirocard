@@ -98,3 +98,18 @@ export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18"
 // The phone row panel's fold bar: chevrons, not arrows — the arrows already move a row up / down.
 export const IconChevronUp = () => S(<path d="M6 15l6-6 6 6" />);
 export const IconChevronDown = () => S(<path d="M6 9l6 6 6-6" />);
+
+// The row's three options (model.js LINES / GUIDES / DOTS), drawn as tiny rows of sticks: the
+// first stick is the sample (dark), the rest are the contours.
+const DOT = "#15803d";
+const sticks = (xs, props = {}) => xs.map((x, i) => <path key={i} d={`M${x} 6v13`} {...(typeof props === "function" ? props(i) : props)} />);
+export const IconLineTone = () => S(<path d="M6 5v14M6 5h12M18 5v14" strokeWidth="3.2" opacity="0.45" />);
+export const IconLineDash = () => S(<path d="M6 5v14M6 5h12M18 5v14" strokeWidth="2.6" strokeDasharray="0.1 3.6" />);
+export const IconGuideFull = () => S(<>{sticks([4], { strokeWidth: 2.4 })}{sticks([10, 15, 20], { strokeWidth: 2.4, opacity: 0.45 })}</>);
+export const IconGuideFade = () => S(<>{sticks([4], { strokeWidth: 2.4 })}{sticks([10, 15, 20], (i) => ({ strokeWidth: 2.4, opacity: [0.5, 0.28, 0.12][i] }))}</>);
+export const IconGuideNone = () => S(<>{sticks([4], { strokeWidth: 2.4 })}<path d="M10 19h10" strokeDasharray="0.1 3" opacity="0.5" /></>);
+const dotsAt = (xs) => xs.map((x) => <circle key={`d${x}`} cx={x} cy={5} r={2.3} fill={DOT} stroke="none" />);
+export const IconDotsSample = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}{dotsAt([6])}</>);
+export const IconDotsAll = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}{dotsAt([6, 13, 19])}</>);
+export const IconDotsNone = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}</>);
+
