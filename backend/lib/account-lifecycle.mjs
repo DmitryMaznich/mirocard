@@ -2,6 +2,7 @@ import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { withTransaction } from "./db.mjs";
 import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { collectReferencedPhotoHashes } from "./photo-gc.mjs";
+import { enqueueDeletionSurvey, cancelDeletionSurvey } from "./deletion-survey.mjs";
 function eraseReleasedPhotos(db, before) {
   const after = collectReferencedPhotoHashes(db);
   for (const hash of before) if (!after.has(hash)) db.prepare("DELETE FROM photos WHERE hash=?").run(hash);
@@ -182,6 +183,7 @@ export function restoreAccount(db, id, action, why, now = Date.now()) {
         "UPDATE account_lifecycle SET scheduled_at = NULL, delete_after = NULL, deletion_previous_status = NULL WHERE account_id = ?",
       ).run(id);
     } else fail(409, "Это действие недоступно для текущего статуса аккаунта.");
+    cancelDeletionSurvey(db, id);
     revokeCredentials(db, a); // Restoring never brings old login tokens back.
     db.prepare(
       "UPDATE accounts SET status = ?, updated_at = ? WHERE id = ?",
@@ -263,6 +265,7 @@ export function archiveAccount(db, id, actor = "admin_token", now = Date.now()) 
     revokeCredentials(db, a);
     db.prepare("UPDATE accounts SET status='archived', updated_at=? WHERE id=?").run(iso(now), id);
     event(db, id, "archive", actor === "self" ? "Удаление пользователем" : "Перенос администратором", {dataRetained:true}, now, actor);
+    if (actor === "self") enqueueDeletionSurvey(db, a, iso(now));
     enqueueAccountNotification(db, a, "archived", { actor, now });
     return {ok:true, status:"archived", dataRetained:true};
   });
@@ -294,6 +297,7 @@ export function eraseStudent(db, accountId, studentId, now = Date.now()) {
 export function eraseAccount(db, id, now = Date.now()) {
   return withTransaction(db, () => {
     const a = account(db, id);
+    cancelDeletionSurvey(db, id);
     const photosBefore = collectReferencedPhotoHashes(db);
     revokeCredentials(db, a);
     const students = db.prepare("SELECT id FROM students WHERE account_id=?").all(id);
@@ -305,7 +309,7 @@ export function eraseAccount(db, id, now = Date.now()) {
     const tables = ["checkout_consents", "orders", "subscriptions", "payment_events", "entitlements",
       "promo_redemptions", "sessions", "student_topic_links", "students", "account_topics",
       "account_topic_assignments", "account_settings", "account_identities", "account_kv",
-      "audio_overrides", "sync_revision", "usage_events", "erased_students", "account_lifecycle"];
+      "audio_overrides", "sync_revision", "usage_events", "erased_students", "account_lifecycle", "marketing_consent_events"];
     for (const table of tables) db.prepare(`DELETE FROM ${table} WHERE account_id=?`).run(id);
     db.prepare("DELETE FROM materials_leads WHERE lower(email)=lower(?)").run(a.email);
     db.prepare("DELETE FROM admin_account_events WHERE account_id=?").run(id);

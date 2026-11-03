@@ -17,7 +17,7 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "2.0.2",
+      "version": "2.0.3",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
@@ -26,7 +26,7 @@
         "ru": "Первая ступень — 15 микрорассказов по 4–5 предложений с четырьмя постоянными героями и двумя иллюстрациями. Проверка начинается с имени героя: ребёнок ищет ответы в доступном тексте, а картинки открывает при необходимости. Прежние 12 рассказов доступны отдельно.",
         "en": "Fifteen micro-stories with recurring children, name questions and optional picture support, plus the twelve previous stories."
       },
-      "url": "./decks/reading_short_stories_v2.0.2.zip",
+      "url": "./decks/reading_short_stories_v2.0.3.zip",
       "status": "release",
       "access": "paid"
     },

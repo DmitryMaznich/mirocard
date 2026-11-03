@@ -51,7 +51,7 @@ import { writeJson, writeNoContent, readJsonBody, readRawBody, readFormBody, par
 import { createRateLimiter } from "./lib/rate-limit.mjs";
 import {
   sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
-  sendMaterialsLinkEmail, setEmailBudget,
+  sendMaterialsLinkEmail, sendDeletionSurveyEmail, setEmailBudget,
 } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { sessionToApi, getSessionStatistics, restoreSessionHistory } from "./lib/session-statistics.mjs";
@@ -76,6 +76,8 @@ import { gitSha } from "../scripts/git-sha.mjs";
 import { pruneBackups, DEFAULT_KEEP as DEFAULT_BACKUP_KEEP } from "../scripts/railway-backup-loop.mjs";
 import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure, archiveAccount, eraseAccount, eraseStudent } from "./lib/account-lifecycle.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
+import { startDeletionSurveyLoop, getDeletionSurveyStatus } from "./lib/deletion-survey.mjs";
+import { DELETION_SURVEY_FROM, DELETION_SURVEY_REPLY_TO } from "./lib/config.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
@@ -2083,6 +2085,10 @@ async function router(req, res) {
       if (!db.prepare("SELECT id FROM accounts WHERE id = ?").get(id)) return writeJson(res, 404, {error:"Account not found"});
       return writeJson(res, 200, getUsageReport(db, id, new URL(req.url, "http://localhost").searchParams.get("period") ?? "30"));
     }
+    if (method === "GET" && p === "/admin/deletion-surveys") {
+      requireAdmin(req);
+      return writeJson(res, 200, getDeletionSurveyStatus(db));
+    }
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
     if (method === "GET"    && p === "/admin/catalog")                             return await handleAdminCatalog(req, res);
     if (p === "/admin/topics" && method === "GET") {
@@ -2171,6 +2177,13 @@ const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.
 if (isMainModule) {
   cancelScheduledErasure(db);
   startTelegramNotifications(db);
+  startDeletionSurveyLoop(db, {
+    send: sendDeletionSurveyEmail,
+    // Keep the existing reserve for verification retries and password resets.
+    canSend: () => emailBudget.canStartSignup(),
+    from: DELETION_SURVEY_FROM,
+    replyTo: DELETION_SURVEY_REPLY_TO,
+  });
   createServer(router).listen(PORT, () => {
     console.log(`Mirocard2 backend running on port ${PORT}`);
   });
