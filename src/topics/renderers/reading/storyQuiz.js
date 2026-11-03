@@ -6,7 +6,8 @@
  *   + один мяч
  *   * Как ты думаешь, почему мама попросила катать мяч по очереди?
  *
- * `?` is the prompt, `+` the exact word or phrase the child finds and taps
+ * `?` is the prompt, `+` the exact word or phrase the child finds and taps.
+ * Additional `+` lines under the same prompt specify accepted alternatives
  * in the story — the minimum is authored per story (five by default). `*` is an
  * optional, unscored discussion question with no located phrase: a "why" or
  * "what would you do" prompt meant for the child to answer out loud to the
@@ -42,22 +43,26 @@ export function mergeStoryQuizText(defaultText, customText, previousDefaultTexts
   // A saved editor value contains the full collection. Refresh blocks that
   // still equal a published default; retain actual per-child edits, including
   // invalid ones, so validation can explain what needs the adult's attention.
-  const signature = (group) => JSON.stringify(group.questions.map(({ kind, prompt, target }) => [kind, prompt, target ?? null]));
+  const signature = (group) => JSON.stringify(group.questions.map(({ kind, prompt, target, targets }) => [kind, prompt, targets ?? (target ? [target] : null)]));
+  const obsoleteDefaults = new Set();
   for (const previousText of Array.isArray(previousDefaultTexts) ? previousDefaultTexts : []) {
     const previous = parseStoryQuizText(previousText);
     if (!previous.valid) continue;
     for (const group of previous.groups) {
       const override = overrides.get(group.title);
-      if (override && signature(override) === signature(group)) overrides.delete(group.title);
+      if (override && signature(override) === signature(group)) {
+        overrides.delete(group.title);
+        obsoleteDefaults.add(group.title);
+      }
     }
   }
   const baseTitles = new Set(base.groups.map((group) => group.title));
   const groups = [
     ...base.groups.map((group) => overrides.get(group.title) ?? group),
-    ...custom.groups.filter((group) => !baseTitles.has(group.title)),
+    ...custom.groups.filter((group) => !baseTitles.has(group.title) && !obsoleteDefaults.has(group.title)),
   ];
   return groups.map((group) => `# ${group.title}\n\n${group.questions.map((question) => (
-    question.kind === "discuss" ? `* ${question.prompt}` : `? ${question.prompt}\n+ ${question.target}`
+    question.kind === "discuss" ? `* ${question.prompt}` : `? ${question.prompt}\n${(question.targets ?? [question.target]).map((target) => `+ ${target}`).join("\n")}`
   )).join("\n\n")}`).join("\n\n");
 }
 
@@ -91,6 +96,17 @@ export function tokenizeStoryQuizWords(lineText) {
  * syllable-reading variant, so the renderer can make them accessible targets.
  */
 export function getStoryQuizTargetMatches(lineText, target) {
+  if (Array.isArray(target)) {
+    // Keep accepted alternatives as separate candidates where possible.
+    // For nested phrases the shorter accepted answer remains tappable.
+    const candidates = target.flatMap((value) => getStoryQuizTargetMatches(lineText, value))
+      .sort((a, b) => (a.end - a.start) - (b.end - b.start) || a.start - b.start);
+    const chosen = [];
+    for (const candidate of candidates) {
+      if (!chosen.some((range) => candidate.start < range.end && range.start < candidate.end)) chosen.push(candidate);
+    }
+    return chosen.sort((a, b) => a.start - b.start);
+  }
   const wanted = normalizeStoryQuizText(target);
   if (!wanted.length) return [];
 
@@ -138,6 +154,7 @@ export function parseStoryQuizText(source) {
         kind: "find",
         prompt: question.prompt,
         target: question.target,
+        ...(question.targets.length > 1 ? { targets: question.targets } : {}),
         targetLine: question.targetLine,
       });
     }
@@ -179,7 +196,7 @@ export function parseStoryQuizText(source) {
         return;
       }
       questionNumber += 1;
-      question = { line: lineNumber, prompt, target: "", targetLine: null };
+      question = { line: lineNumber, prompt, target: "", targets: [], targetLine: null };
       return;
     }
 
@@ -193,12 +210,11 @@ export function parseStoryQuizText(source) {
         fail(lineNumber, "После знака + напишите слово или фразу из рассказа.");
         return;
       }
-      if (question.target) {
-        fail(lineNumber, "У вопроса может быть только один фрагмент для поиска.");
-        return;
+      if (!question.target) {
+        question.target = target;
+        question.targetLine = lineNumber;
       }
-      question.target = target;
-      question.targetLine = lineNumber;
+      if (!question.targets.includes(target)) question.targets.push(target);
       return;
     }
 
@@ -255,11 +271,13 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
     }
     for (const question of group.questions) {
       if (question.kind === "discuss") continue;
-      if (question.target && !storyQuizTargetExists(story, question.target)) {
-        errors.push({
-          line: question.targetLine,
-          message: `Фрагмент «${question.target}» не найден в рассказе «${group.title}».`,
-        });
+      for (const target of question.targets ?? [question.target]) {
+        if (target && !storyQuizTargetExists(story, target)) {
+          errors.push({
+            line: question.targetLine,
+            message: `Фрагмент «${target}» не найден в рассказе «${group.title}».`,
+          });
+        }
       }
     }
   }
