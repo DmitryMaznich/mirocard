@@ -821,3 +821,5 @@
    own lists, `.plb-settings:has(.pl2-pick-list)`) */
 .plb-editor2 .plb-main > .plb-settings:has(.pl-blockpick),
 .plb-editor2 .plb-main > .plb-settings:has(.pl-row-pick-list) { position: relative; z-index: 20; }
+/* the plate stays above a selected row's highlight */
+.pl-block-tile { z-index: 1; }

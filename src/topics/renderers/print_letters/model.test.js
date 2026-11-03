@@ -74,8 +74,12 @@ describe("print_letters model", () => {
     expect(names("Н")).toEqual(["левая палочка", "правая палочка", "перекладина"]);
     expect(names("Ш")).toEqual(["левая палочка", "средняя палочка", "правая палочка", "нижняя черта"]);
     expect(names("Е")).toEqual(["палочка", "верхняя черта", "средняя черта", "нижняя черта"]);
-    // no stroke turns a corner: every path is a single segment (dots of Ё are tiny segments too)
-    for (const c of topic.cards) for (const s of c.strokes) expect(s.d.match(/L/g)).toHaveLength(1);
+    // no stroke made of straight lines turns a corner: each is a single segment (Ё's dots too);
+    // a stroke with an arc (C) is one oval / half-oval element and may join the stick with short lines
+    for (const c of topic.cards) for (const s of c.strokes) if (!s.d.includes("C")) expect(s.d.match(/L/g), `${c.id}: ${s.name}`).toHaveLength(1);
+    expect(topic.cards).toHaveLength(33);
+    expect(names("Б")).toEqual(["палочка", "полуовал", "верхняя черта"]); // Ilyukhina: stick, Ь, then the top
+    expect(names("Л")).toEqual(["левая наклонная", "правая наклонная"]); // Л as a roof, like А without the bar
     expect([letter("Т").wide, letter("Ш").wide, letter("Н").wide]).toEqual([true, true, undefined]);
   });
 

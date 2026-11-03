@@ -5,7 +5,7 @@ import LetterGlyph from "./LetterGlyph";
 import { PlateWords } from "./WordBlock";
 import { ALPHABET, VOWELS, syllableSuggestions, wordSuggestions } from "./words";
 
-const FAMILY_TITLES = { straight: "Прямые линии" };
+const FAMILY_TITLES = { straight: "Прямые линии", slant: "Наклонные линии", oval: "Овалы и полуовалы" };
 const PANEL_W = 340;
 const TABS = [
   { id: "letter", label: "Буква" },
@@ -19,7 +19,9 @@ const MAX_LEN = 6;
 // a syllable or a word — tap letter tiles to build one (only letters the topic has drawn; the rest
 // show dashed and can't be tapped, so it's clear why «НА» isn't there yet) or take ready ones from
 // the list; several picked become the rows of one block.
-export default function BlockPickerButton({ families, byId, onPickLetter, onPickWords }) {
+// `focusLetters`: the letters of the page's letter blocks — with nothing typed yet, the ready list
+// shows the syllables and words with them (all the syllables at once would be 170 chips).
+export default function BlockPickerButton({ families, byId, onPickLetter, onPickWords, focusLetters = [] }) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("letter");
   const [draft, setDraft] = useState("");
@@ -52,7 +54,16 @@ export default function BlockPickerButton({ families, byId, onPickLetter, onPick
     close();
   };
 
-  const ready = tab === "syllable" ? syllableSuggestions(byId) : tab === "word" ? wordSuggestions(byId) : [];
+  const all = tab === "syllable" ? syllableSuggestions(byId) : tab === "word" ? wordSuggestions(byId) : [];
+  const focus = focusLetters.filter((id) => byId[id]);
+  const ready = draft
+    ? all.filter((w) => w.startsWith(draft) && w !== draft)
+    : focus.length
+      ? all.filter((w) => [...w].some((ch) => focus.includes(ch)))
+      : tab === "word" ? all : [];
+  const hint = draft
+    ? (ready.length ? `Начинаются на «${draft}»` : `На «${draft}» готовых нет — добавьте как есть`)
+    : focus.length ? `С буквами страницы: ${focus.join(" ")}` : tab === "syllable" ? "Нажмите согласную — появятся её слоги" : "Все слова";
   const chips = [...ready, ...picked.filter((w) => !ready.includes(w))];
   const count = picked.length + (draft.length >= 2 && !picked.includes(draft) ? 1 : 0);
 
@@ -111,7 +122,7 @@ export default function BlockPickerButton({ families, byId, onPickLetter, onPick
                   );
                 })}
               </div>
-              <div className="pl-el-group">{tab === "syllable" ? "Готовые слоги" : "Готовые слова"} — можно несколько</div>
+              <div className="pl-el-group">{tab === "syllable" ? "Готовые слоги" : "Готовые слова"} — можно несколько · {hint}</div>
               {chips.length ? (
                 <div className="pl-bp-chips">
                   {chips.map((w) => (
@@ -120,9 +131,7 @@ export default function BlockPickerButton({ families, byId, onPickLetter, onPick
                     </button>
                   ))}
                 </div>
-              ) : (
-                <p className="pl-bp-none">Из нарисованных букв {tab === "syllable" ? "слогов" : "слов"} пока не собрать — нужны гласные.</p>
-              )}
+              ) : null}
               <button type="button" className="pl-bp-add" onClick={addBlock} disabled={!count}>
                 {count > 1 ? `Добавить блок · ${count}` : "Добавить блок"}
               </button>

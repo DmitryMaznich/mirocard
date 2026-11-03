@@ -54,7 +54,9 @@ describe("print_letters notebooks", () => {
   it("ready notebooks: the planned ones, every page fits its A4 sheet", () => {
     const ready = readyNotebooks(byId);
     expect(ready.map((r) => r.title)).toEqual([
-      "Палочки и черточки", "Прямые линии 1: Г Т П Н", "Прямые линии 2: И Ш Е Ё", "Повторяем прямые линии", "Первые слоги и слова",
+      "Палочки и черточки", "Прямые линии 1: Г Т П Н", "Прямые линии 2: И Ш Е Ё", "Повторяем прямые линии",
+      "Наклонные линии 1: Л А Д Й", "Наклонные линии 2: Ц Щ У Х", "Наклонные линии 3: К Ж М",
+      "Овалы 1: Ь Ъ Ы Р Б", "Овалы 2: Ф Я В З", "Овалы 3: О Ю С Э", "Первые слоги и слова",
     ]);
     for (const r of ready) for (const p of r.pages) expect(pageOverflows(p, r.format)).toBe(false);
     expect(ready[0].pages[0].blocks[0].size).toBe(4); // sticks and bars — large

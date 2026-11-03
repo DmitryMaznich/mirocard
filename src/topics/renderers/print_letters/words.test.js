@@ -12,9 +12,15 @@ describe("print_letters syllables and words", () => {
     const syl = syllableSuggestions(byId);
     expect(syl).toContain("НИ");
     expect(syl).toContain("ТЕ");
-    expect(syl).not.toContain("НА"); // А is not drawn yet
+    expect(syl).toContain("НА");
+    expect(syl).not.toContain("ШЫ"); // a spelling Russian doesn't use
     expect(syl.every((s) => canWrite(s, byId))).toBe(true);
-    expect(wordSuggestions(byId)).toEqual(["НЕТ", "ТИП", "ШИП", "ТИШЕ", "ТЕНИ"]);
+    const words = wordSuggestions(byId);
+    expect(words).toContain("МАМА");
+    expect(words.every((w) => canWrite(w, byId))).toBe(true);
+    const only = Object.fromEntries(["Н", "Е", "Т", "И", "П", "Ш"].map((id) => [id, byId[id]]));
+    expect(syllableSuggestions(only)).not.toContain("НА"); // only drawn letters are offered
+    expect(wordSuggestions(only)).toEqual(["НЕТ", "ТИП", "ШИП", "ТИШЕ", "ТЕНИ"]);
   });
 
   it("puts every letter in its own letter-cell, a clean letter-cell between words", () => {

@@ -214,6 +214,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   }
 
   const hasContent = pages.some((p) => p.blocks.length > 0);
+  const pageLetters = [...new Set((activePage?.blocks ?? []).filter((b) => !isWordBlock(b)).map((b) => b.letterId))];
   const overflow = activePage ? pageOverflows(activePage, format) : false;
   const sheetZoom = fit * zoom;
 
@@ -258,7 +259,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   // the top bar holds only the block: add one (the letter picker) and delete the selected one;
   // everything about a row lives in the row panel (RowInspector)
   const blockEls = <>
-    <BlockPickerButton families={families} byId={byId} onPickLetter={addBlock} onPickWords={addWordBlock} />
+    <BlockPickerButton families={families} byId={byId} onPickLetter={addBlock} onPickWords={addWordBlock} focusLetters={pageLetters} />
     <Tool label="Удалить блок буквы" caption="Удалить блок" danger disabled={!selectedBlockId} onClick={removeSelectedBlock}><IconTrash /></Tool>
   </>;
   const printEl = <Tool label="Печать тетради" caption="Печать" disabled={!hasContent} onClick={() => window.print()}><IconPrint /></Tool>;

@@ -229,12 +229,26 @@ export function readyNotebooks(byId) {
       page(blocks.slice(4), "line"),
     ]));
   }
+  // the slanted-line and oval letters, by Ilyukhina's order, two ladder blocks a page
+  const ladderBook = (id, title, description, ids, paletteFrom = 0) => {
+    if (!have(...ids)) return;
+    const pages = [];
+    for (let i = 0; i < ids.length; i += 2) pages.push(page(ids.slice(i, i + 2).map((x, k) => ladderBlock(L(x), PALETTE[(paletteFrom + i + k) % PALETTE.length]))));
+    out.push(nb(id, title, description, pages));
+  };
+  ladderBook("slant-1", "Наклонные линии 1: Л А Д Й", "Первые наклонные: Л — «домик», А — тот же домик с перекладиной, Д — из Л с основанием и ножками, Й — И с краткой.", ["Л", "А", "Д", "Й"], 0);
+  ladderBook("slant-2", "Наклонные линии 2: Ц Щ У Х", "Хвостик Ц и Щ — под строкой справа. У — короткая наклонная к длинной, Х — две наклонные крест-накрест.", ["Ц", "Щ", "У", "Х"], 2);
+  ladderBook("slant-3", "Наклонные линии 3: К Ж М", "К и Ж — наклонные к палочке и от неё, М — палочка, «галочка», палочка.", ["К", "Ж", "М"], 4);
+  ladderBook("oval-1", "Овалы 1: Ь Ъ Ы Р Б", "Полуовал у палочки: внизу (Ь Ъ Ы Б) и вверху (Р). У Б верхняя черта — последней, как у Илюхиной.", ["Ь", "Ъ", "Ы", "Р", "Б"], 1);
+  ladderBook("oval-2", "Овалы 2: Ф Я В З", "Ф — палочка и два полуовала, Я — полуовал слева и ножка, В и З — два полуовала друг над другом.", ["Ф", "Я", "В", "З"], 3);
+  ladderBook("oval-3", "Овалы 3: О Ю С Э", "Овал одним движением сверху против часовой стрелки; С и Э — незамкнутые, у Э перекладина.", ["О", "Ю", "С", "Э"], 5);
+
   // syllables, then words, from the letters already drawn (words.js); grows as letters are added
   const wordBlock = (words, color) => ({ id: rid("b"), kind: "word", words, color, size: 2, rows: rowsOf(wordLadderRows(words)) });
-  if (["НИ", "НЕ", "ТИ", "ТЕ", "НЕТ", "ТИП"].every((w) => canWrite(w, byId))) {
-    out.push(nb("first-words", "Первые слоги и слова", "Из уже знакомых букв: слоги НИ НЕ, ТИ ТЕ, потом слова НЕТ и ТИП. В слове на второй строке пропущена гласная — ребёнок вписывает её сам.", [
-      page([wordBlock(["НИ", "НЕ"], PALETTE[0]), wordBlock(["ТИ", "ТЕ"], PALETTE[1])]),
-      page([wordBlock(["НЕТ"], PALETTE[3]), wordBlock(["ТИП"], PALETTE[2])]),
+  if (["МА", "МО", "МУ", "НА", "НО", "НУ", "МАМА", "ДОМ"].every((w) => canWrite(w, byId))) {
+    out.push(nb("first-words", "Первые слоги и слова", "Слоги МА МО МУ и НА НО НУ, потом слова МАМА (как у Илюхиной, занятие 10) и ДОМ. В слове на второй строке пропущены гласные — ребёнок вписывает их сам.", [
+      page([wordBlock(["МА", "МО", "МУ"], PALETTE[0]), wordBlock(["НА", "НО", "НУ"], PALETTE[1])]),
+      page([wordBlock(["МАМА"], PALETTE[3]), wordBlock(["ДОМ"], PALETTE[2])]),
     ]));
   }
   return out;

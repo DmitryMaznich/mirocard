@@ -21,17 +21,41 @@ function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 }
 
-// Start point, direction of the first segment and total length of an M/L path.
+// Start point, direction of the first segment, total length and a sampled outline of a stroke.
+// Paths use M, L and C (straight lines and the cubic arcs of ovals and half-ovals); arcs are sampled
+// so the length and the "does this start lie on an earlier stroke" test work for them too.
 function strokeGeom(d) {
-  const nums = (d.match(/-?\d+\.?\d*/g) || []).map(Number);
+  const tokens = d.match(/[MLC]|-?\d*\.?\d+/g) || [];
   const pts = [];
-  for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
-  const [x0, y0] = pts[0] ?? [0, 0];
-  const [x1, y1] = pts[1] ?? [x0, y0];
+  let dir = null;
+  let cmd = "M";
+  let cur = [0, 0];
+  let k = 0;
+  const num = () => Number(tokens[k++]);
+  const setDir = (to) => {
+    if (dir) return;
+    const len = Math.hypot(to[0] - cur[0], to[1] - cur[1]);
+    if (len > 1e-6) dir = [(to[0] - cur[0]) / len, (to[1] - cur[1]) / len];
+  };
+  while (k < tokens.length) {
+    if (/^[MLC]$/.test(tokens[k])) cmd = tokens[k++];
+    if (cmd === "M") { cur = [num(), num()]; pts.push(cur); cmd = "L"; continue; }
+    if (cmd === "L") { const to = [num(), num()]; setDir(to); pts.push(to); cur = to; continue; }
+    if (cmd === "C") {
+      const c1 = [num(), num()], c2 = [num(), num()], to = [num(), num()];
+      setDir(Math.hypot(c1[0] - cur[0], c1[1] - cur[1]) > 1e-6 ? c1 : c2);
+      for (let t = 1; t <= 12; t++) {
+        const u = t / 12, a = (1 - u) ** 3, b = 3 * (1 - u) ** 2 * u, c = 3 * (1 - u) * u * u, e = u ** 3;
+        pts.push([a * cur[0] + b * c1[0] + c * c2[0] + e * to[0], a * cur[1] + b * c1[1] + c * c2[1] + e * to[1]]);
+      }
+      cur = to;
+      continue;
+    }
+    k++;
+  }
   let len = 0;
   for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-  const seg = Math.hypot(x1 - x0, y1 - y0) || 1;
-  return { start: [x0, y0], dir: [(x1 - x0) / seg, (y1 - y0) / seg], len, pts };
+  return { start: pts[0] ?? [0, 0], dir: dir ?? [0, 1], len, pts };
 }
 
 function onPolyline([px, py], pts) {
