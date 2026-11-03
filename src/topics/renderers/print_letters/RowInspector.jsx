@@ -18,20 +18,6 @@ const PAD_CELL = 52; // px per notebook cell in the element pad — the only ele
 const INK = "#2a6b60";
 const IDLE = "#b8bfc9";
 
-// The strokes' start points, strokes that start at the same point together.
-function startGroups(letter) {
-  const groups = [];
-  letter.strokes.forEach((s, i) => {
-    const m = /M\s*([-\d.]+)[ ,]+([-\d.]+)/.exec(s.d);
-    if (!m) return;
-    const [x, y] = [+m[1], +m[2]];
-    const hit = groups.find((g) => Math.hypot(g.x - x, g.y - y) < 1.5);
-    if (hit) hit.idx.push(i);
-    else groups.push({ x, y, idx: [i] });
-  });
-  return groups;
-}
-
 // The letter drawn large on its own grid; each element is a tap target that
 // toggles whether that element goes into the selected row. Any number of
 // elements can be on — they keep their places inside the letter's frame.
@@ -52,17 +38,6 @@ function ElementPad({ letter, elements, onToggle }) {
           <path key={`v${i}`} d={s.d} fill="none" stroke={on.has(i) ? INK : IDLE} strokeWidth={on.has(i) ? 9 : 6}
             strokeDasharray={on.has(i) ? undefined : "1 8"} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
         ))}
-        {/* numbers at the strokes' starts; strokes starting at one point get their numbers side by
-            side, centred on it (like the sample's «1 2» mark) */}
-        {startGroups(letter).map((g) => g.idx.map((i, j) => {
-          const cx = g.x + (j - (g.idx.length - 1) / 2) * 19;
-          return (
-            <g key={`n${i}`} pointerEvents="none">
-              <circle cx={cx} cy={g.y} r={9} fill={on.has(i) ? "#3aa655" : "#c4cad3"} stroke="#fff" strokeWidth={1.5} />
-              <text x={cx} y={g.y + 4.2} textAnchor="middle" fontSize={12} fontWeight={800} fill="#fff">{i + 1}</text>
-            </g>
-          );
-        }))}
         {letter.strokes.map((s, i) => (
           <path
             key={`h${i}`}
@@ -82,6 +57,12 @@ function ElementPad({ letter, elements, onToggle }) {
           />
         ))}
       </svg>
+      {/* dots, arrows and numbers exactly as on the sheet's sample: the same LetterGlyph, its own
+          strokes transparent (the pad draws on/off strokes itself), under no taps */}
+      <div style={{ position: "absolute", left: PAD_CELL, top: PAD_CELL, pointerEvents: "none" }} aria-hidden="true">
+        <LetterGlyph letter={{ ...letter, strokes: letter.strokes.map((st, i) => ({ ...st, n: i + 1 })) }} frame={letterFrame(letter)}
+          heightMm={(2 * PAD_CELL * 25.4) / 96} widthMm={(w * PAD_CELL * 25.4) / 96} variant="sample" color="transparent" />
+      </div>
     </div>
   );
 }
