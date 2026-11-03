@@ -116,11 +116,13 @@ describe("print_letters model", () => {
   });
 
   it("reads rows saved with the old single «опора» and rewrites them on the first change", () => {
-    expect(rowStyle({ elements: [0], support: "fade" })).toEqual({ line: "tone", guide: "fade", dots: "sample" });
+    expect(rowStyle({ elements: [0], support: "fade" })).toEqual({ line: "tone", guide: "fade", dots: "sample", arrows: true });
     expect(rowStyle({ elements: [0], support: "sample" }).guide).toBe("none");
     expect(rowStyle({ elements: [0] })).toEqual(DEFAULT_STYLE);
     const r = withStyle({ id: "x", elements: [0], support: "dotted" }, { dots: "none" });
-    expect(r).toEqual({ id: "x", elements: [0], line: "dash", guide: "full", dots: "none" });
+    expect(r).toEqual({ id: "x", elements: [0], line: "dash", guide: "full", dots: "none", arrows: true });
+    expect(describeStyle({ elements: [0], ...DEFAULT_STYLE, arrows: false })).toContain("без стрелок");
+    expect(copyPlan({ elements: [0], ...DEFAULT_STYLE, arrows: false }, 2)[0].arrows).toBe(false);
     expect(describeStyle({ elements: [0, 1], line: "dash", guide: "fade", dots: "all" })).toBe("пунктир · затухают · точки на всех");
   });
 

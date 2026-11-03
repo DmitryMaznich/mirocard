@@ -202,7 +202,8 @@ export const DOTS = [
   { id: "all", label: "На всех" },
   { id: "none", label: "Без точек" },
 ];
-export const DEFAULT_STYLE = { line: "dash", guide: "full", dots: "all" };
+// `arrows`: the thin red direction arrows on the sample (owner, 2026-11-03: «опцией вкл/выкл»).
+export const DEFAULT_STYLE = { line: "dash", guide: "full", dots: "all", arrows: true };
 
 // A row's three options; notebooks saved before them carry `support` instead.
 const FROM_SUPPORT = {
@@ -217,6 +218,7 @@ export function rowStyle(row) {
     line: row?.line ?? base.line,
     guide: row?.guide ?? base.guide,
     dots: row?.dots ?? base.dots,
+    arrows: row?.arrows ?? true,
   };
 }
 // Set one option; the row is rewritten in the new form (the old `support` goes).
@@ -232,6 +234,7 @@ export function describeStyle(row) {
   if (st.guide === "none") parts.push("только образец");
   else parts.push(LINES.find((l) => l.id === st.line).label.toLowerCase(), GUIDES.find((g) => g.id === st.guide).label.toLowerCase());
   if (st.dots !== "none") parts.push(st.dots === "all" ? "точки на всех" : "точки на образце");
+  if (!st.arrows) parts.push("без стрелок");
   return parts.join(" · ");
 }
 
@@ -278,7 +281,7 @@ export function copyPlan(row, copies) {
   if (!row.elements.length) return Array.from({ length: copies }, () => null);
   const st = rowStyle(row);
   return Array.from({ length: copies }, (_, i) => {
-    if (i === 0) return { variant: "sample", opacity: 1, dots: st.dots !== "none" };
+    if (i === 0) return { variant: "sample", opacity: 1, dots: st.dots !== "none", arrows: st.arrows };
     if (st.guide === "none") return null;
     const variant = st.line === "dash" ? "dotted" : "trace";
     let opacity = 1;

@@ -63,7 +63,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
                 <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? w : copyPitch(size)), height: mm(h) }}>
                   {p && (
                     <LetterGlyph
-                      key={`${row.elements.join(",")}-${p.variant}-${p.dots ? 1 : 0}`}
+                      key={`${row.elements.join(",")}-${p.variant}-${p.dots ? 1 : 0}-${p.arrows === false ? 0 : 1}`}
                       letter={miniLetter}
                       frame={frame}
                       heightMm={h * FINE_MM}
@@ -72,6 +72,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
                       opacity={p.opacity}
                       tappable={p.variant === "sample"}
                       dots={p.dots}
+                      arrows={p.arrows !== false}
                     />
                   )}
                 </div>

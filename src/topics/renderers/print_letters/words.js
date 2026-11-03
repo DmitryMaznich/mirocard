@@ -17,7 +17,7 @@ export const ALPHABET = [..."АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧ�
 
 // The look of a new word row: dotted contours to the end, start dots on the sample only (dots on
 // every letter of every copy turn a row of words into green noise).
-export const WORD_STYLE = { line: "dash", guide: "full", dots: "sample" };
+export const WORD_STYLE = { line: "dash", guide: "full", dots: "sample", arrows: true };
 
 export const isWordBlock = (block) => block?.kind === "word";
 

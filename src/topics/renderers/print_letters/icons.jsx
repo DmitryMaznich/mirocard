@@ -112,4 +112,6 @@ const dotsAt = (xs) => xs.map((x) => <circle key={`d${x}`} cx={x} cy={5} r={2.3}
 export const IconDotsSample = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}{dotsAt([6])}</>);
 export const IconDotsAll = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}{dotsAt([6, 13, 19])}</>);
 export const IconDotsNone = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}</>);
+// The «Стрелки» toggle: a stick with a thin red arrow beside it.
+export const IconArrows = () => S(<><path d="M8 4v16" strokeWidth="2.6" /><path d="M15 6v11M12.3 14.2L15 17.2l2.7-3" stroke="#dc2626" strokeWidth="1.6" /></>);
 

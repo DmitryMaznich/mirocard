@@ -817,3 +817,9 @@
 .pl-sheet { position: relative; overflow: hidden; }
 .pl-sheet-grid { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .pl-sheet > :not(.pl-sheet-grid) { position: relative; z-index: 1; }
+/* the «Стрелки» on/off switch among the row's look pickers: lit when on */
+.pl-insp-picks .pl-toggle { position: relative; }
+.pl-insp-picks .pl-toggle:not(.is-on) .pl2-tool-ico svg { opacity: .35; }
+.pl-insp-picks .pl-toggle.is-on { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
+.pl-insp-picks .pl-toggle::after { content: ""; position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #c4cad3; }
+.pl-insp-picks .pl-toggle.is-on::after { background: var(--pl-teal); }

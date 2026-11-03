@@ -163,6 +163,7 @@ export default function LetterGlyph({
   weight,         // stroke width override in glyph units (bold letter on the plate)
   label,
   dots,           // start dots on/off; default: on for sample and starts, off for contours
+  arrows = true,  // the sample's red direction arrows (the row's «Стрелки» option)
 }) {
   const { strokes = [] } = letter;
   const [vbX, vbY, vbW, vbH] = frame ?? letterFrame(letter);
@@ -182,7 +183,7 @@ export default function LetterGlyph({
   // The direction arrows of the sample (see guideArrow): beside each stroke, on the letter's outer
   // side, so they never sit on another stroke.
   const [cx, cy] = [vbX + vbW / 2, vbY + vbH / 2];
-  const arrows = variant === "sample" ? geoms.map((g, i) => {
+  const arrowPaths = variant === "sample" && arrows ? geoms.map((g, i) => {
     if (g.len < ARROW_MIN) return null;
     const moved = marks[i][0] !== g.start[0] || marks[i][1] !== g.start[1];
     const skip = showDots ? (moved ? SHIFT : 0) + (numbered ? BADGE_R : START_R) + 4 : 0;
@@ -284,7 +285,7 @@ export default function LetterGlyph({
         />
       ))}
 
-      {arrows.map((d, i) => d && (
+      {arrowPaths.map((d, i) => d && (
         <path key={`g${i}`} d={d} fill="none" stroke={ARROW} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
       ))}
 

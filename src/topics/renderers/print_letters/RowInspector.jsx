@@ -6,7 +6,7 @@ import { PlateWords } from "./WordBlock";
 import { allLetterIdx, plateWords } from "./words";
 import {
   IconUp, IconDown, IconLadder, IconAddRow, IconTrash,
-  IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone,
+  IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone, IconArrows,
 } from "./icons";
 
 const LINE_ICONS = { tone: IconLineTone, dash: IconLineDash };
@@ -149,6 +149,14 @@ function LookPickers({ row, blank, onSetStyle }) {
         <OptionPicker label="Линия контура" caption="Линия" options={withIcons(LINES, LINE_ICONS)} value={st.line} disabled={blank || st.guide === "none"} onChange={(line) => onSetStyle({ line })} />
         <OptionPicker label="Контуры после образца" caption="Контуры" options={withIcons(GUIDES, GUIDE_ICONS)} value={st.guide} disabled={blank} onChange={(guide) => onSetStyle({ guide })} />
         <OptionPicker label="Точки начала штрихов" caption="Точки" options={withIcons(DOTS, DOT_ICONS)} value={st.dots} disabled={blank} onChange={(dots) => onSetStyle({ dots })} />
+        <div className="pl2-pick">
+          <button type="button" className={`pl2-pick-btn pl2-tool pl-toggle${st.arrows ? " is-on" : ""}`} role="switch" aria-checked={st.arrows}
+            aria-label={`Стрелки направления на образце: ${st.arrows ? "включены" : "выключены"}`} title={st.arrows ? "Стрелки на образце: вкл" : "Стрелки на образце: выкл"}
+            disabled={blank} onClick={() => onSetStyle({ arrows: !st.arrows })}>
+            <span className="pl2-tool-ico"><IconArrows /></span>
+            <span className="pl2-cap">Стрелки</span>
+          </button>
+        </div>
       </div>
       <span className="pl-insp-hint">{blank ? "Пустая строка — ребёнок пишет сам." : describeStyle(row)}</span>
     </section>

@@ -57,7 +57,7 @@ export default function WordBlock({ block, byId, format, size = 2, paper = "cell
                     return (
                       <div key={li} style={{ position: "absolute", left: mm(li * pitch), top: 0 }}>
                         <LetterGlyph
-                          key={`${p.variant}-${p.dots ? 1 : 0}`}
+                          key={`${p.variant}-${p.dots ? 1 : 0}-${p.arrows === false ? 0 : 1}`}
                           letter={letter}
                           frame={letterFrame(letter)}
                           heightMm={h * FINE_MM}
@@ -66,6 +66,8 @@ export default function WordBlock({ block, byId, format, size = 2, paper = "cell
                           opacity={p.opacity}
                           tappable={sample}
                           dots={p.dots}
+                          arrows={p.arrows !== false}
+                      arrows={p.arrows !== false}
                           label={sample ? letter.label : undefined}
                         />
                       </div>
