@@ -10,9 +10,11 @@ export const INK = "#1f3a8a";
 export const GUIDE = "#8fa3c8";
 export const START = "#15803d";
 
-const START_R    = 9;   // start dot
-const BADGE_R    = 11;  // numbered start dot (≈2.2mm across on paper)
-const PILL_STEP  = 13;  // a start shared by several strokes: each further number widens the mark by this
+const SAMPLE_DOT = 6.5; // the sample's start dot: small, plain — one per start point, shared starts too
+const NUM_ROOM   = 13;  // room before the arrow's tail for the stroke's number
+// Variant A (false): no numbers, like Ilyukhina's workbook — the order shows in the ladder; variant B
+// (true): each stroke's number by its own arrow (owner to choose, 2026-11-03).
+export const NUMBERS_BY_ARROWS = true;
 const TINY       = 10;  // strokes shorter than this (Ё's dots) get no marks
 const TIP_R      = 6;
 const BASE_SPEED = 60;  // SVG units per second
@@ -67,7 +69,7 @@ const ARROW = "#dc2626";
 const ARROW_GAP = 9;
 const ARROW_HEAD = 5.5;
 const ARROW_MIN = 30; // shorter strokes (Ц's tail, Д's feet, Ё's dots, Й's breve) get none
-function guideArrow(g, cx, cy, arc, skip = 0) {
+function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0) {
   const { pts } = g;
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -82,7 +84,7 @@ function guideArrow(g, cx, cy, arc, skip = 0) {
     return { p: [ax + (bx - ax) * t, ay + (by - ay) * t], d: [(bx - ax) / len, (by - ay) / len] };
   };
   // start past the numbered start dot (`skip` along the stroke), so the dot never hides the tail
-  const s0 = Math.min(Math.max(arc ? 0.08 * L : 0.3 * L, skip), L * 0.6);
+  const s0 = Math.min(Math.max(arc ? 0.08 * L : 0.3 * L, skip + numRoom), L * 0.6);
   const s1 = Math.min(Math.max(arc ? 0.4 * L : 0.7 * L, s0 + 20), L - 3);
   const mid = at((s0 + s1) / 2);
   // the outer side: the normal pointing away from the letter's centre (a centred stroke — Н's bar,
@@ -114,7 +116,10 @@ function guideArrow(g, cx, cy, arc, skip = 0) {
   };
   const f = (v) => Math.round(v * 100) / 100;
   const [h1, h2] = [head(1), head(-1)];
-  return `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`;
+  // the stroke's number, if wanted, stands just before the arrow's tail, on the same side
+  const nq = at(Math.max(0, s0 - numRoom * 0.55));
+  const num = [nq.p[0] + n[0] * ARROW_GAP, nq.p[1] + n[1] * ARROW_GAP];
+  return { d: `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num };
 }
 
 // Glyph geometry lives directly on the notebook grid (tools/print_letters/
@@ -153,6 +158,7 @@ export default function LetterGlyph({
   label,
   dots,           // start dots on/off; default: on for sample and starts, off for contours
   arrows = true,  // the sample's red direction arrows (the row's «Стрелки» option)
+  numbers = NUMBERS_BY_ARROWS, // the strokes' numbers beside their arrows (variant B) or none (A, as in Ilyukhina)
 }) {
   const { strokes = [] } = letter;
   const [vbX, vbY, vbW, vbH] = frame ?? letterFrame(letter);
@@ -160,11 +166,6 @@ export default function LetterGlyph({
   const geoms = strokes.map((s) => strokeGeom(s.d));
   const markable = geoms.map((g) => g.len >= TINY);
   const showDots = dots ?? (variant === "sample" || variant === "starts");
-  const numbered = variant === "sample" && showDots && markable.filter(Boolean).length > 1;
-  // Where each element's start mark goes: at its start point, unless that
-  // point lies on an element drawn earlier in this glyph (Н's crossbar starts
-  // on the left stick, П's second stick at the bar's corner) — then a little
-  // way along its own line, so the mark clearly belongs to it.
   // Start marks stand EXACTLY where their strokes start (owner, 2026-11-03: «точки часто не на
   // началах штрихов» — a start shared with an earlier stroke used to be moved along its line). Strokes
   // that start at the same point share one mark: a pill with their numbers in order («1 2» at Г's
@@ -176,20 +177,18 @@ export default function LetterGlyph({
     if (hit) hit.idx.push(i);
     else starts.push({ p: g.start, idx: [i] });
   });
-  const pillHalf = (count) => BADGE_R + (count - 1) * PILL_STEP / 2;
-  const startOf = (i) => starts.find((st) => st.idx.includes(i));
+
   // The direction arrows of the sample (see guideArrow): beside each stroke, on the letter's outer
   // side, so they never sit on another stroke.
   const [cx, cy] = [vbX + vbW / 2, vbY + vbH / 2];
-  const arrowPaths = variant === "sample" && arrows ? geoms.map((g, i) => {
-    if (g.len < ARROW_MIN) return null;
-    // the arrow's tail starts where the stroke leaves its start mark (a pill is wider than tall)
-    const st = startOf(i);
-    const hw = numbered ? pillHalf(st?.idx.length ?? 1) : START_R;
-    const hh = numbered ? BADGE_R : START_R;
-    const along = Math.min(Math.abs(g.dir[0]) > 1e-6 ? hw / Math.abs(g.dir[0]) : Infinity, Math.abs(g.dir[1]) > 1e-6 ? hh / Math.abs(g.dir[1]) : Infinity);
-    const skip = showDots ? along + 4 : 0;
-    return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip);
+  // Sample: a small plain dot at each start point; the arrow beside each stroke, and (variant B) the
+  // stroke's number just before the arrow — each stroke has its own arrow, so shared starts never
+  // pile numbers up.
+  const showNumbers = variant === "sample" && numbers && markable.filter(Boolean).length > 1;
+  const guides = variant === "sample" && (arrows || showNumbers) ? geoms.map((g, i) => {
+    if (g.len < ARROW_MIN || !markable[i]) return null;
+    const skip = showDots ? SAMPLE_DOT + 3 : 0;
+    return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip, showNumbers ? NUM_ROOM : 0);
   }) : [];
 
   const svgRef     = useRef(null);
@@ -287,8 +286,14 @@ export default function LetterGlyph({
         />
       ))}
 
-      {arrowPaths.map((d, i) => d && (
-        <path key={`g${i}`} d={d} fill="none" stroke={ARROW} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
+      {arrows && guides.map((gd, i) => gd && (
+        <path key={`g${i}`} d={gd.d} fill="none" stroke={ARROW} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
+      ))}
+      {showNumbers && guides.map((gd, i) => gd && (
+        <text key={`n${i}`} x={gd.num[0]} y={gd.num[1] + 5} textAnchor="middle" fontSize={15} fontWeight="900" fontFamily="Nunito, sans-serif"
+          fill={START} stroke="#ffffff" strokeWidth={3} paintOrder="stroke" style={{ pointerEvents: "none" }}>
+          {strokes[i].n ?? i + 1}
+        </text>
       ))}
 
       {canPlay && strokes.map((s, i) => (
@@ -302,19 +307,11 @@ export default function LetterGlyph({
           rows where it could be read as part of the row above. */}
       {showDots && variant !== "plain" && starts.map((st, k) => {
         const [mx, my] = st.p;
-        if (!numbered) return <circle key={`d${k}`} cx={mx} cy={my} r={START_R} fill={START} />;
         const on = st.idx.includes(active);
-        const hw = pillHalf(st.idx.length);
-        return (
-          <g key={`d${k}`} style={{ pointerEvents: "none" }}>
-            <rect x={mx - hw} y={my - BADGE_R} width={hw * 2} height={BADGE_R * 2} rx={BADGE_R} fill={START} stroke={on ? INK : "#ffffff"} strokeWidth={on ? 4 : 2} />
-            {st.idx.map((i, j) => (
-              <text key={i} x={mx - hw + BADGE_R + j * PILL_STEP} y={my + 5} textAnchor="middle" fontSize={15} fontWeight="800" fontFamily="Nunito, sans-serif" fill="#ffffff">
-                {strokes[i].n ?? i + 1}
-              </text>
-            ))}
-          </g>
-        );
+        // the same small dot on the sample and on the contours (Ilyukhina's contours have small dots too)
+        return variant === "sample"
+          ? <circle key={`d${k}`} cx={mx} cy={my} r={SAMPLE_DOT} fill={START} stroke={on ? INK : "#ffffff"} strokeWidth={on ? 3 : 1.5} style={{ pointerEvents: "none" }} />
+          : <circle key={`d${k}`} cx={mx} cy={my} r={SAMPLE_DOT} fill={START} />;
       })}
 
       {tipPos && <circle cx={tipPos.x} cy={tipPos.y} r={TIP_R} fill={START} />}
