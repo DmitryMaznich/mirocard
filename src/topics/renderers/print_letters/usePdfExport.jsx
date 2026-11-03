@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import PrintPages from "./PrintPages";
+import PdfPages from "./PdfPages";
+import PdfDialog from "./PdfDialog";
+import { saveOpts } from "./pdfOptions";
 
 // «PDF» instead of the print dialog (owner, 2026-11-03: «просто был диалог сохранить в PDF»).
 // The PDF itself is made by the app (`makePdf`, src/features/printLetters/printLettersPdf.js) from
@@ -27,12 +29,21 @@ function download(blob, name) {
 }
 
 export default function usePdfExport({ makePdf, byId }) {
-  const [job, setJob] = useState(null); // { nb, status: making|ready|saved|error, progress, blob, handle }
+  const [job, setJob] = useState(null); // { nb, opts, status: making|ready|saved|error, progress, blob, handle }
+  const [asking, setAsking] = useState(null); // the notebook the «Тетрадь в PDF» dialog is open for
   const ref = useRef(null);
 
-  async function start(nb) {
+  // «PDF» opens the dialog first (cover, how to print, page numbers — as in propis2); its «Сохранить
+  // PDF» starts the file (that tap is the user activation the «Save as» dialog needs)
+  function start(nb) {
     if (!nb) return;
     if (!makePdf) { window.print(); return; }
+    setAsking(nb);
+  }
+
+  async function go(nb, opts) {
+    setAsking(null);
+    saveOpts(opts);
     let handle = null;
     if (canPickFile()) {
       try {
@@ -42,7 +53,7 @@ export default function usePdfExport({ makePdf, byId }) {
         handle = null;
       }
     }
-    setJob({ nb, status: "making", progress: 0, handle });
+    setJob({ nb, opts, status: "making", progress: 0, handle });
   }
 
   // the sheets are on the page now: make the file
@@ -94,7 +105,7 @@ export default function usePdfExport({ makePdf, byId }) {
 
   const node = job ? (
     <>
-      {job.status === "making" && <PrintPages notebook={job.nb} byId={byId} exporting containerRef={ref} />}
+      {job.status === "making" && <PdfPages notebook={job.nb} byId={byId} opts={job.opts} containerRef={ref} />}
       <div className="pl-pdf-toast no-print" role="status" aria-live="polite">
         {job.status === "making" && <span className="pl-pdf-msg">Готовлю PDF… {Math.round((job.progress ?? 0) * 100)}%</span>}
         {job.status === "ready" && <>
@@ -111,5 +122,6 @@ export default function usePdfExport({ makePdf, byId }) {
     </>
   ) : null;
 
-  return { start, busy: job?.status === "making", node };
+  const dialog = asking ? <PdfDialog notebook={asking} onSave={(o) => go(asking, o)} onCancel={() => setAsking(null)} /> : null;
+  return { start, busy: job?.status === "making", node: <>{dialog}{node}</> };
 }

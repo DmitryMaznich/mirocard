@@ -11,7 +11,7 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // margin (@page). The same component draws the page on the canvas, inside a
 // thumbnail (scaled) and in the print run, so the three never disagree.
 // `nameLine`: the «Имя ____ Дата ____» lines of the header (the notebook's toolbar option).
-export default function Sheet({ page, format, byId, className = "", style, selectedBlockId = null, selectedRowId = null, onSelectBlock, onSelectRow, nameLine = true }) {
+export default function Sheet({ page, format, byId, className = "", style, selectedBlockId = null, selectedRowId = null, onSelectBlock, onSelectRow, nameLine = true, pageNo = null }) {
   const { w, h } = sheetSizeMm(format);
   // On paper, 1mm less than the exact printable height: an exact fit can
   // round over and push a blank sheet out after every page.
@@ -31,6 +31,11 @@ export default function Sheet({ page, format, byId, className = "", style, selec
       style={{ width: `${w}mm`, height: `${heightMm}mm`, ...style }}
     >
       <SheetGrid paper={paperOf(page)} w={w} h={heightMm} />
+      {/* the PDF's page number (PdfPages.jsx): at the bottom, by the outer edge — right on odd pages,
+          left on even ones, as in a notebook */}
+      {pageNo != null && (
+        <span className="pl-sheet-pageno" style={{ position: "absolute", bottom: "1.5mm", [pageNo % 2 ? "right" : "left"]: mm(GAP) }}>{pageNo}</span>
+      )}
       {page.blocks.length > 0 && (
         <div className="pl-sheet-head-at" style={{ position: "absolute", top: mm(GAP), left: mm(GAP), width: mm(blockCells(format)) }}>
           <SheetHeader page={page} byId={byId} nameLine={nameLine} />

@@ -152,37 +152,44 @@ function sheetSvg(sheet, sheetWmm, fonts) {
   return [...out, ...lines].join("");
 }
 
-// container: the export print pages (`.pl-print-pages`, data-format / data-paper-w / -h / -margin /
-// -sheet-w / -sheet-h set by PrintPages). Returns the PDF as a Blob.
+// container: the export pages (PdfPages.jsx) — one `.pl-pdf-page` per PDF page (data-w/-h, mm), each
+// with `.pl-pdf-slot`s (data-x/-y: where its sheet goes on the paper; data-w/-h: the sheet's size). An
+// empty slot is a blank half (the cover's back, a padding half). Returns the PDF as a Blob.
 export async function makePrintLettersPdf(container, { onProgress } = {}) {
   const [{ jsPDF }, { svg2pdf }, fonts] = await Promise.all([import("jspdf"), import("svg2pdf.js"), loadGlyphs()]);
   await document.fonts?.ready;
   await nextFrame();
   await nextFrame();
-  const d = container.dataset;
-  const [pw, ph, margin, sw, sh] = [d.paperW, d.paperH, d.margin, d.sheetW, d.sheetH].map(Number);
-  const sheets = [...container.querySelectorAll(".pl-sheet")];
-  const doc = new jsPDF({ unit: "mm", format: [pw, ph], orientation: "portrait", compress: true });
+  const pages = [...container.querySelectorAll(".pl-pdf-page")];
+  let doc = null;
   const host = document.createElement("div");
   host.style.cssText = "position:fixed;left:-20000px;top:0;width:10px;height:10px;overflow:hidden";
   document.body.appendChild(host);
   try {
-    for (const [i, sheet] of sheets.entries()) {
-      if (i > 0) doc.addPage([pw, ph], "portrait");
-      const svg = document.createElementNS(SVG_NS, "svg");
-      svg.setAttribute("xmlns", SVG_NS);
-      svg.setAttribute("viewBox", `0 0 ${sw} ${sh}`);
-      svg.setAttribute("width", `${sw}`);
-      svg.setAttribute("height", `${sh}`);
-      svg.innerHTML = sheetSvg(sheet, sw, fonts);
-      host.appendChild(svg);
-      await svg2pdf(svg, doc, { x: margin, y: margin, width: sw, height: sh });
-      svg.remove();
-      onProgress?.((i + 1) / sheets.length);
+    for (const [i, pg] of pages.entries()) {
+      const [pw, ph] = [Number(pg.dataset.w), Number(pg.dataset.h)];
+      const orientation = pw > ph ? "landscape" : "portrait";
+      if (!doc) doc = new jsPDF({ unit: "mm", format: [pw, ph], orientation, compress: true });
+      else doc.addPage([pw, ph], orientation);
+      for (const slot of pg.querySelectorAll(".pl-pdf-slot")) {
+        const sheet = slot.querySelector(".pl-sheet");
+        if (!sheet) continue;
+        const [x, y, sw, sh] = ["x", "y", "w", "h"].map((k) => Number(slot.dataset[k]));
+        const svg = document.createElementNS(SVG_NS, "svg");
+        svg.setAttribute("xmlns", SVG_NS);
+        svg.setAttribute("viewBox", `0 0 ${sw} ${sh}`);
+        svg.setAttribute("width", `${sw}`);
+        svg.setAttribute("height", `${sh}`);
+        svg.innerHTML = sheetSvg(sheet, sw, fonts);
+        host.appendChild(svg);
+        await svg2pdf(svg, doc, { x, y, width: sw, height: sh });
+        svg.remove();
+      }
+      onProgress?.((i + 1) / pages.length);
       await nextFrame();
     }
   } finally {
     host.remove();
   }
-  return doc.output("blob");
+  return doc ? doc.output("blob") : null;
 }
