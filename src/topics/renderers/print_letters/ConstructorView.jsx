@@ -211,6 +211,10 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     <div className="screen-header pl2-header no-print">
       <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
       <input className="plb-title-input" value={notebook.title} onChange={(e) => setTitle(e.target.value)} placeholder="Без названия" aria-label="Название тетради" />
+      {narrow && <>
+        <button type="button" className="pl2-hist" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><IconUndo /></button>
+        <button type="button" className="pl2-hist" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><IconRedo /></button>
+      </>}
       <button type="button" className="pl2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><IconP2Save /></button>
     </div>
   );
@@ -228,13 +232,12 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     <Tool label="Удалить строку" caption="Удалить" danger disabled={!selectedRow} onClick={removeSelectedRow}><IconTrash /></Tool>
   </>;
   const printEl = <Tool label="Печать тетради" caption="Печать" disabled={!hasContent} onClick={() => window.print()}><IconPrint /></Tool>;
-  const historyEls = (cls) => <>
-    <button type="button" className={cls} onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)">{cls.includes("pl2-tool") ? <><span className="pl2-tool-ico"><IconUndo /></span><span className="pl2-cap">Отменить</span></> : <IconUndo />}</button>
-    <button type="button" className={cls} onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть (Ctrl+Y)">{cls.includes("pl2-tool") ? <><span className="pl2-tool-ico"><IconRedo /></span><span className="pl2-cap">Вернуть</span></> : <IconRedo />}</button>
+  const historyEls = <>
+    <Tool label="Отменить (Ctrl+Z)" caption="Отменить" onClick={onUndo} disabled={!canUndo}><IconUndo /></Tool>
+    <Tool label="Вернуть (Ctrl+Y)" caption="Вернуть" onClick={onRedo} disabled={!canRedo}><IconRedo /></Tool>
   </>;
-  const zoomEl = (withHistory) => (
+  const zoomEl = (
     <div className="pl2-zoom no-print" role="group" aria-label="Масштаб страницы">
-      {withHistory && <>{historyEls("pl2-zoom-btn")}<span className="pl2-zoom-sep" aria-hidden="true" /></>}
       <button type="button" className="pl2-zoom-btn" onClick={() => setZoom((z) => Math.max(1, z - ZOOM_STEP))} disabled={zoom <= 1.001} aria-label="Уменьшить" title="Уменьшить">−</button>
       <button type="button" className="pl2-zoom-btn pl2-zoom-pct" onClick={() => setZoom(1)} disabled={zoom <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom * 100)}%</button>
       <button type="button" className="pl2-zoom-btn" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))} disabled={zoom >= ZOOM_MAX - 0.001} aria-label="Увеличить" title="Увеличить">+</button>
@@ -270,7 +273,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       <div className="screen plb-home plb-editor2 plb-editor2--desk pl-editor" data-testid="print-letters-editor">
         {headerEl}
         <div className="pl2-desk-bar no-print" role="toolbar" aria-label="Инструменты">
-          {historyEls("pl2-ib pl2-tool")}
+          {historyEls}
           <span className="pl2-sep" aria-hidden="true" />
           <div className="pl2-desk-group" role="group" aria-label="Настройки страницы">{pageEls}</div>
           <span className="pl2-sep" aria-hidden="true" />
@@ -278,7 +281,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
           <span className="pl2-sep" aria-hidden="true" />
           {printEl}
           <span className="pl2-desk-fill" />
-          {zoomEl(false)}
+          {zoomEl}
         </div>
         <div className="pl2-desk-body no-print">
           <div className="pl2-thumbs">
@@ -338,7 +341,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
           {printEl}
         </div>
         <div className="plb-settings plb-settings--row" role="group" aria-label="Буква и строка">{rowEls}</div>
-        {zoomEl(true)}
+        {zoomEl}
         {canvasEl}
         <div className="plb-dock pl-dock">{inspector}</div>
       </div>

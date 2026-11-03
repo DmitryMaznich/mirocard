@@ -737,9 +737,25 @@
 .plb-editor2--desk .pl2-thumb { align-items: flex-start; }
 .pl2-status-hint { margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl-editor .plb-page-box .pl-overflow { margin-bottom: 12px; }
-/* phone: the row panel docked at the bottom scrolls on its own */
-.plb-editor2--phone .plb-dock.pl-dock { overflow-y: auto; max-height: 45dvh; }
-.plb-dock .pl-insp { padding: 4px 0; }
+/* phone: the row panel docked at the bottom — a fixed share of the screen, its insides scroll.
+   propis2's dock pins its content to the bottom (justify-content: flex-end, for its text field):
+   a taller panel then overflows at the TOP, where no scroll reaches — the 0.2.1 bug (owner,
+   2026-11-03: «не скроллится и занимает слишком много места»). Here it starts at the top. */
+.plb-editor2--phone .plb-dock.pl-dock {
+  display: block; height: 38dvh; max-height: 38dvh; padding-top: 0;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+}
+.plb-dock .pl-insp { padding: 0 0 8px; gap: 12px; }
+/* the row's title and its ↑ ↓ stay in sight while the panel scrolls */
+.plb-dock .pl-insp-head { position: sticky; top: 0; z-index: 2; background: var(--pl2-surface, #fff); padding: 10px 0 8px; margin-bottom: -4px; }
+.plb-dock .pl-insp--empty { padding-top: 12px; }
+
+/* phone: undo / redo in the header beside «save» (not over the sheet in the zoom pill) */
+.pl2-hist { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border: none; border-radius: 12px; background: rgba(255, 255, 255, .1); color: #fff; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-hist svg { width: 22px; height: 22px; }
+.pl2-hist:disabled { opacity: .35; cursor: default; }
+.pl2-hist:not(:disabled):active { background: rgba(255, 255, 255, .22); }
+.plb-editor2--phone .screen-header .plb-title-input { min-width: 0; flex: 1 1 auto; }
 
 /* «Мои тетради»: propis2's library markup, but the whole width of the device (owner's rule) —
    the cards go into a grid that adds columns as the screen widens. */
@@ -750,3 +766,9 @@
 @media print {
   .plb-editor2, .plb-editor2--desk, .pl-lib2 { height: auto !important; min-height: 0 !important; overflow: visible !important; background: none !important; display: block !important; }
 }
+/* phone dock: the same panel, tighter — the letter pad smaller, the explanations left to the computer */
+.plb-dock .pl-elpad { zoom: 0.72; }
+.plb-dock .pl-insp-sec { gap: 6px; }
+.plb-dock .pl-insp-hint { display: none; }
+.plb-dock .pl-insp-sec--block { padding-top: 10px; }
+.plb-dock .pl-el { min-height: 40px; }
