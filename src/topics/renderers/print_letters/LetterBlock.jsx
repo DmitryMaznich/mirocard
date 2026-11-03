@@ -12,8 +12,8 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // Every row draws its elements inside the SAME frame — the whole letter's
 // grid box — so an isolated element (Н's crossbar) sits exactly where it
 // sits in the full letter, and the label tile shows that same stroke shape.
-// What each copy draws (dotted / start dots / fading / one sample) comes
-// from the row's support level via copyPlan().
+// What each copy draws comes from the row's three options (line, contours,
+// dots) via copyPlan().
 export default function LetterBlock({ letter, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow }) {
   const frame = letterFrame(letter);
   const w = letterW(letter, size);
@@ -60,7 +60,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
                 <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? w : copyPitch(size)), height: mm(h) }}>
                   {p && (
                     <LetterGlyph
-                      key={`${row.elements.join(",")}-${p.variant}`}
+                      key={`${row.elements.join(",")}-${p.variant}-${p.dots ? 1 : 0}`}
                       letter={miniLetter}
                       frame={frame}
                       heightMm={h * FINE_MM}
@@ -68,6 +68,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
                       variant={p.variant}
                       opacity={p.opacity}
                       tappable={p.variant === "sample"}
+                      dots={p.dots}
                     />
                   )}
                 </div>

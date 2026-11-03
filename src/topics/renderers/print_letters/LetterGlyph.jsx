@@ -66,6 +66,8 @@ export function letterFrame(letter) {
 //   trace  — light solid guide (faded copies; `opacity` per copy).
 //   starts — only the green start dot over a faint trace of the element.
 //   plain  — solid strokes in `color`, no marks (label tile, panel header).
+// `dots` (sample, dotted, trace): a green dot where each stroke starts — numbered on the sample,
+// plain on a contour; false hides them (the row's «точки» option, model.js copyPlan).
 export default function LetterGlyph({
   letter,
   frame,          // [x, y, w, h] — the WHOLE letter's grid box; see letterFrame()
@@ -77,13 +79,15 @@ export default function LetterGlyph({
   tappable = false,
   weight,         // stroke width override in glyph units (bold letter on the plate)
   label,
+  dots,           // start dots on/off; default: on for sample and starts, off for contours
 }) {
   const { strokes = [] } = letter;
   const [vbX, vbY, vbW, vbH] = frame ?? letterFrame(letter);
   const wMm = widthMm ?? (heightMm * vbW) / vbH;
   const geoms = strokes.map((s) => strokeGeom(s.d));
   const markable = geoms.map((g) => g.len >= TINY);
-  const numbered = variant === "sample" && markable.filter(Boolean).length > 1;
+  const showDots = dots ?? (variant === "sample" || variant === "starts");
+  const numbered = variant === "sample" && showDots && markable.filter(Boolean).length > 1;
   // Where each element's start mark goes: at its start point, unless that
   // point lies on an element drawn earlier in this glyph (Н's crossbar starts
   // on the left stick, П's second stick at the bar's corner) — then a little
@@ -206,7 +210,7 @@ export default function LetterGlyph({
           element's number (its place in the whole letter): the number sits ON
           the element it belongs to, never floating in the blank cell between
           rows where it could be read as part of the row above. */}
-      {(variant === "sample" || variant === "starts") && geoms.map((g, i) => {
+      {showDots && variant !== "plain" && geoms.map((g, i) => {
         if (!markable[i]) return null;
         const [mx, my] = marks[i];
         if (!numbered) return <circle key={`d${i}`} cx={mx} cy={my} r={START_R} fill={START} />;

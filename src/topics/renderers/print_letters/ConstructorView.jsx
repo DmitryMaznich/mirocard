@@ -6,7 +6,7 @@ import Sheet from "./Sheet";
 import RowInspector from "./RowInspector";
 import PrintPages from "./PrintPages";
 import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
-import { FORMATS, SUPPORTS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { FORMATS, DEFAULT_STYLE, describeStyle, withStyle, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import {
   IconTrash, IconPrint, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
@@ -165,7 +165,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   }
   function addRow() {
     if (!selectedBlock || !selectedLetter) return;
-    const row = { id: newId(), elements: allElements(selectedLetter), support: "dotted" };
+    const row = { id: newId(), elements: allElements(selectedLetter), ...DEFAULT_STYLE };
     const at = selectedRowIndex >= 0 ? selectedRowIndex + 1 : selectedBlock.rows.length;
     updateSelectedBlock((b) => ({ ...b, rows: [...b.rows.slice(0, at), row, ...b.rows.slice(at)] }));
     setSelectedRowId(row.id);
@@ -207,7 +207,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       rowIndex={selectedRowIndex}
       rowCount={selectedBlock?.rows.length ?? 0}
       onSetElements={(elements) => updateSelectedRow((r) => ({ ...r, elements }))}
-      onSetSupport={(support) => updateSelectedRow((r) => ({ ...r, support }))}
+      onSetStyle={(patch) => updateSelectedRow((r) => withStyle(r, patch))}
       onMoveRow={moveSelectedRow}
       onAddRow={addRow}
       onRemoveRow={removeSelectedRow}
@@ -274,7 +274,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     </div>
   );
   const rowNo = selectedRowIndex >= 0 ? selectedRowIndex + 1 : 0;
-  const supportName = selectedRow ? (selectedRow.elements.length ? SUPPORTS.find((s) => s.id === selectedRow.support)?.label.toLowerCase() : "пустая строка") : "";
+  const styleName = selectedRow ? describeStyle(selectedRow) : "";
 
   if (!narrow) {
     const scale = THUMB_W / (sheet.w * PX_PER_MM);
@@ -321,7 +321,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
         </div>
         <div className="pl2-status no-print" role="status">
           <span>Стр. <b>{activePageIndex + 1}</b> из {pages.length}</span>
-          {rowNo > 0 && <span>Строка <b>{rowNo}</b>{supportName ? ` · ${supportName}` : ""}</span>}
+          {rowNo > 0 && <span>Строка <b>{rowNo}</b>{styleName ? ` · ${styleName}` : ""}</span>}
           <span className="pl2-status-hint">{hasContent ? "Щёлкните по строке листа — справа её элементы и опора" : "«Буква» — новый блок: он сразу собран лесенкой"}</span>
         </div>
         <PrintPages notebook={notebook} byId={byId} />
@@ -357,7 +357,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
           <button type="button" className="pl-dock-toggle" onClick={toggleDock} aria-expanded={dockOpen} aria-label={dockOpen ? "Свернуть настройки строки" : "Показать настройки строки"}>
             <span className="pl-dock-sum">{dockOpen ? null : <>
               {selectedBlock && <span className="pl-dock-tile" style={{ "--pl-block-color": selectedBlock.color }}>{selectedLetter?.label}</span>}
-              <span className="pl-dock-text">{rowNo > 0 ? <>Строка <b>{rowNo}</b> из {selectedBlock.rows.length}{supportName ? ` · ${supportName}` : ""}</> : selectedBlock ? <>Буква <b>{selectedLetter?.label}</b></> : "Настройки строки"}</span>
+              <span className="pl-dock-text">{rowNo > 0 ? <>Строка <b>{rowNo}</b> из {selectedBlock.rows.length}{styleName ? ` · ${styleName}` : ""}</> : selectedBlock ? <>Буква <b>{selectedLetter?.label}</b></> : "Настройки строки"}</span>
             </>}</span>
             <span className="pl-dock-chev" aria-hidden="true">{dockOpen ? <IconChevronDown /> : <IconChevronUp />}</span>
           </button>

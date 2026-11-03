@@ -1,11 +1,14 @@
-import { allElements, ladderRows } from "./model";
+import { DEFAULT_STYLE, allElements, ladderRows } from "./model";
+
+const FADING = { line: "tone", guide: "fade", dots: "all" };
+const SAMPLE_ONLY = { line: "tone", guide: "none", dots: "sample" };
 
 // «Мои тетради» for print_letters (docs/print-letters.md): the same
 // architecture as propis2's library, without its many options.
 //
 // A notebook: { id, title, format, pages: [{ id, paper, blocks: [...] }],
 // createdAt, updatedAt }. A block: { id, letterId, color, size, rows }, a row:
-// { id, elements, support } (model.js).
+// { id, elements, line, guide, dots } (model.js; older ones carry `support`, read by rowStyle).
 //
 // Storage, two layers:
 //  - this device: localStorage (the whole library, and the draft of the
@@ -176,7 +179,7 @@ function ladderBlock(letter, color, size = 2) {
 
 function reviewBlock(letter, color) {
   const all = allElements(letter);
-  return { id: rid("b"), letterId: letter.id, color, size: 2, rows: rowsOf([{ elements: all, support: "sample" }, { elements: [], support: "sample" }]) };
+  return { id: rid("b"), letterId: letter.id, color, size: 2, rows: rowsOf([{ elements: all, ...SAMPLE_ONLY }, { elements: [], ...DEFAULT_STYLE }]) };
 }
 
 function page(blocks, paper = "cell") {
@@ -195,12 +198,12 @@ export function readyNotebooks(byId) {
       page([{
         id: rid("b"), letterId: g.id, color: "#8b93a1", size: 4,
         rows: rowsOf([
-          { elements: [0], support: "dotted" },
-          { elements: [0], support: "fade" },
-          { elements: [1], support: "dotted" },
-          { elements: [1], support: "fade" },
-          { elements: [0, 1], support: "dotted" },
-          { elements: [0, 1], support: "sample" },
+          { elements: [0], ...DEFAULT_STYLE },
+          { elements: [0], ...FADING },
+          { elements: [1], ...DEFAULT_STYLE },
+          { elements: [1], ...FADING },
+          { elements: [0, 1], ...DEFAULT_STYLE },
+          { elements: [0, 1], ...SAMPLE_ONLY },
         ]),
       }]),
     ]));

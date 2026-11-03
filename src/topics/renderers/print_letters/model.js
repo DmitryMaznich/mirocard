@@ -170,12 +170,58 @@ export function isRuled(paper) {
 // A row is { id, elements, support }: `elements` — indices of the letter's
 // strokes drawn in this row (sorted; [] = a blank row for writing on one's
 // own); `support` — how much help each copy gives (most-to-least prompting).
-export const SUPPORTS = [
-  { id: "dotted", label: "Пунктир", hint: "образец, дальше обвести по пунктиру" },
-  { id: "starts", label: "Точки", hint: "образец, дальше только зелёная точка начала и бледный след" },
-  { id: "fade", label: "Бледнеет", hint: "образец, дальше след тает к концу строки" },
-  { id: "sample", label: "Образец", hint: "один образец, дальше сам" },
+// How the copies after the sample look — three independent options of a row (owner, 2026-11-03;
+// they replace the single «опора» list: dotted / starts / fade / sample):
+//   line   — what a contour is drawn with: a half-tone solid line or a dotted line;
+//   guide  — contours to the end of the row, fading along it, or none (write on your own);
+//   dots   — green start dots: only on the sample, on every contour too, or none at all.
+// Every stroke of the row gets its own dot.
+export const LINES = [
+  { id: "tone", label: "Полутон" },
+  { id: "dash", label: "Пунктир" },
 ];
+export const GUIDES = [
+  { id: "full", label: "До конца строки" },
+  { id: "fade", label: "Затухают" },
+  { id: "none", label: "Без контуров" },
+];
+export const DOTS = [
+  { id: "sample", label: "На образце" },
+  { id: "all", label: "На всех" },
+  { id: "none", label: "Без точек" },
+];
+export const DEFAULT_STYLE = { line: "dash", guide: "full", dots: "all" };
+
+// A row's three options; notebooks saved before them carry `support` instead.
+const FROM_SUPPORT = {
+  dotted: { line: "dash", guide: "full", dots: "sample" },
+  starts: { line: "tone", guide: "full", dots: "all" },
+  fade: { line: "tone", guide: "fade", dots: "sample" },
+  sample: { line: "tone", guide: "none", dots: "sample" },
+};
+export function rowStyle(row) {
+  const base = FROM_SUPPORT[row?.support] ?? DEFAULT_STYLE;
+  return {
+    line: row?.line ?? base.line,
+    guide: row?.guide ?? base.guide,
+    dots: row?.dots ?? base.dots,
+  };
+}
+// Set one option; the row is rewritten in the new form (the old `support` goes).
+export function withStyle(row, patch) {
+  const { support, ...rest } = row;
+  return { ...rest, ...rowStyle(row), ...patch };
+}
+// Short words for a status line: «пунктир · затухают · точки на всех».
+export function describeStyle(row) {
+  if (!row.elements.length) return "пустая строка";
+  const st = rowStyle(row);
+  const parts = [];
+  if (st.guide === "none") parts.push("только образец");
+  else parts.push(LINES.find((l) => l.id === st.line).label.toLowerCase(), GUIDES.find((g) => g.id === st.guide).label.toLowerCase());
+  if (st.dots !== "none") parts.push(st.dots === "all" ? "точки на всех" : "точки на образце");
+  return parts.join(" · ");
+}
 
 export function allElements(letter) {
   return letter.strokes.map((_, i) => i);
@@ -204,36 +250,30 @@ export function ladderRows(letter) {
   const n = letter.strokes.length;
   const all = allElements(letter);
   const rows = [];
-  for (let k = 1; k <= n; k++) rows.push({ elements: all.slice(0, k), support: "dotted" });
-  rows.push({ elements: all, support: "fade" });
-  rows.push({ elements: all, support: "sample" });
-  rows.push({ elements: [], support: "sample" });
+  for (let k = 1; k <= n; k++) rows.push({ elements: all.slice(0, k), ...DEFAULT_STYLE });
+  rows.push({ elements: all, line: "tone", guide: "fade", dots: "all" });
+  rows.push({ elements: all, line: "tone", guide: "none", dots: "sample" });
+  rows.push({ elements: [], ...DEFAULT_STYLE });
   return rows;
 }
 
-// What each copy in a row draws. The first copy of every non-blank row is
-// the SAMPLE — solid, with arrows, start dots and numbers: the child first
-// sees how the element is written, then practises. The rest depends on the
-// support level, from most help to least: dotted guide to trace → start dots
-// over a faint trace → a guide fading away along the row → nothing (write on
-// your own after the sample). Returns one entry per copy: null or
-// { variant, opacity } (variants as in LetterGlyph).
+// What each copy in a row draws. The first copy of every non-blank row is the SAMPLE — solid, with
+// arrows and (unless dots are off) numbered start dots: the child first sees how the letter is
+// written, then practises. The others follow the row's options (rowStyle): a half-tone or dotted
+// contour, to the end of the row or fading along it, or nothing after the sample; start dots on
+// them too when dots are «на всех». One entry per copy: null or { variant, opacity, dots }.
 export function copyPlan(row, copies) {
   if (!row.elements.length) return Array.from({ length: copies }, () => null);
+  const st = rowStyle(row);
   return Array.from({ length: copies }, (_, i) => {
-    if (i === 0) return { variant: "sample", opacity: 1 };
-    switch (row.support) {
-      case "starts":
-        return { variant: "starts", opacity: 1 };
-      case "fade": {
-        const t = copies > 2 ? (i - 1) / (copies - 2) : 0;
-        return { variant: "trace", opacity: Math.max(0.15, 1 - t * 0.85) };
-      }
-      case "sample":
-        return null;
-      case "dotted":
-      default:
-        return { variant: "dotted", opacity: 1 };
+    if (i === 0) return { variant: "sample", opacity: 1, dots: st.dots !== "none" };
+    if (st.guide === "none") return null;
+    const variant = st.line === "dash" ? "dotted" : "trace";
+    let opacity = 1;
+    if (st.guide === "fade") {
+      const t = copies > 2 ? (i - 1) / (copies - 2) : 0;
+      opacity = Math.max(0.15, 1 - t * 0.85);
     }
+    return { variant, opacity, dots: st.dots === "all" };
   });
 }

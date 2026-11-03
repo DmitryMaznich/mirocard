@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
+  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, rowStyle, withStyle, describeStyle, DEFAULT_STYLE, pageOverflows, rowCells, sheetCells, toggleElement,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -79,15 +79,15 @@ describe("print_letters model", () => {
     expect([letter("Т").wide, letter("Ш").wide, letter("Н").wide]).toEqual([true, true, undefined]);
   });
 
-  it("builds the ladder: elements add up, then the support fades, then blank", () => {
+  it("builds the ladder: elements add up, then the contours fade, then the sample only, then blank", () => {
     const rows = ladderRows(letter("Н"));
-    expect(rows.map((r) => [r.elements.join(""), r.support])).toEqual([
-      ["0", "dotted"],
-      ["01", "dotted"],
-      ["012", "dotted"],
-      ["012", "fade"],
-      ["012", "sample"],
-      ["", "sample"],
+    expect(rows.map((r) => [r.elements.join(""), r.line, r.guide, r.dots])).toEqual([
+      ["0", "dash", "full", "all"],
+      ["01", "dash", "full", "all"],
+      ["012", "dash", "full", "all"],
+      ["012", "tone", "fade", "all"],
+      ["012", "tone", "none", "sample"],
+      ["", "dash", "full", "all"],
     ]);
   });
 
@@ -97,18 +97,27 @@ describe("print_letters model", () => {
     expect(toggleElement([0, 1], 2)).toEqual([0, 1, 2]);
   });
 
-  it("starts every non-blank row with a sample, then gives less help by support level", () => {
-    const row = (support) => ({ elements: [0, 1], support });
-    const v = (support, n) => copyPlan(row(support), n).map((p) => p && p.variant);
-    expect(v("dotted", 3)).toEqual(["sample", "dotted", "dotted"]);
-    expect(v("starts", 3)).toEqual(["sample", "starts", "starts"]);
-    expect(v("sample", 3)).toEqual(["sample", null, null]);
-    expect(v("fade", 3)).toEqual(["sample", "trace", "trace"]);
-    const fade = copyPlan(row("fade"), 6).slice(1).map((p) => p.opacity);
-    expect(fade[0]).toBe(1);
-    expect(fade[4]).toBeCloseTo(0.15);
-    expect(fade).toEqual([...fade].sort((a, b) => b - a));
-    expect(copyPlan({ elements: [], support: "dotted" }, 3)).toEqual([null, null, null]);
+  it("starts every non-blank row with a sample, then follows the row's line / contours / dots", () => {
+    const row = (st) => ({ elements: [0, 1], ...st });
+    const v = (st, n) => copyPlan(row(st), n).map((p) => p && `${p.variant}${p.dots ? "+" : ""}`);
+    expect(v({ line: "dash", guide: "full", dots: "all" }, 3)).toEqual(["sample+", "dotted+", "dotted+"]);
+    expect(v({ line: "tone", guide: "full", dots: "sample" }, 3)).toEqual(["sample+", "trace", "trace"]);
+    expect(v({ line: "tone", guide: "none", dots: "none" }, 3)).toEqual(["sample", null, null]);
+    const fade = copyPlan(row({ line: "dash", guide: "fade", dots: "all" }), 6).slice(1);
+    expect(fade.every((p) => p.variant === "dotted")).toBe(true);
+    expect(fade[0].opacity).toBe(1);
+    expect(fade[4].opacity).toBeCloseTo(0.15);
+    expect(fade.map((p) => p.opacity)).toEqual(fade.map((p) => p.opacity).sort((a, b) => b - a));
+    expect(copyPlan({ elements: [], ...DEFAULT_STYLE }, 3)).toEqual([null, null, null]);
+  });
+
+  it("reads rows saved with the old single «опора» and rewrites them on the first change", () => {
+    expect(rowStyle({ elements: [0], support: "fade" })).toEqual({ line: "tone", guide: "fade", dots: "sample" });
+    expect(rowStyle({ elements: [0], support: "sample" }).guide).toBe("none");
+    expect(rowStyle({ elements: [0] })).toEqual(DEFAULT_STYLE);
+    const r = withStyle({ id: "x", elements: [0], support: "dotted" }, { dots: "none" });
+    expect(r).toEqual({ id: "x", elements: [0], line: "dash", guide: "full", dots: "none" });
+    expect(describeStyle({ elements: [0, 1], line: "dash", guide: "fade", dots: "all" })).toBe("пунктир · затухают · точки на всех");
   });
 
   it("detects a page that no longer fits the sheet", () => {

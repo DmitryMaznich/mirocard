@@ -1,6 +1,6 @@
 import { useState } from "react";
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
-import { SIZES, SUPPORTS, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
+import { SIZES, LINES, GUIDES, DOTS, rowStyle, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
 import { IconUp, IconDown, IconLadder, IconAddRow, IconTrash } from "./icons";
 
 const PAD_CELL = 52; // px per notebook cell in the element pad — the only element control (owner, 2026-11-03)
@@ -128,10 +128,24 @@ function SizeSwitch({ size, onSetSize, paper }) {
   );
 }
 
+// One option of the row as a segmented switch.
+function Seg({ label, options, value, disabled, onChange }) {
+  return (
+    <div className="pl-seg" role="radiogroup" aria-label={label}>
+      {options.map((o) => (
+        <button key={o.id} type="button" role="radio" aria-checked={value === o.id} disabled={disabled}
+          className={value === o.id ? "is-on" : ""} onClick={() => onChange(o.id)}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // The selected row's own settings — a right-hand panel on a computer, the
 // docked panel at the bottom on a phone. Elements are picked only on the big
 // letter (ElementPad) — no duplicate list beside it (owner, 2026-11-03).
-export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetSupport, onMoveRow, onAddRow, onRemoveRow, onLadder }) {
+export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetStyle, onMoveRow, onAddRow, onRemoveRow, onLadder }) {
   if (!letter) {
     return (
       <div className="pl-insp pl-insp--empty">
@@ -156,6 +170,7 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
   const blank = elements.length === 0;
   const full = isFull(letter, elements);
   const toggle = (i) => onSetElements(toggleElement(elements, i));
+  const st = rowStyle(row);
 
   return (
     <div className="pl-insp">
@@ -173,24 +188,27 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
         </div>
       </section>
 
-      <section className="pl-insp-sec" aria-label="Опора">
-        <span className="pl-insp-lbl">Опора</span>
-        <div className="pl-seg" role="radiogroup" aria-label="Опора в строке">
-          {SUPPORTS.map((s) => (
-            <button key={s.id} type="button" role="radio" aria-checked={row.support === s.id} disabled={blank} title={s.hint}
-              className={row.support === s.id ? "is-on" : ""} onClick={() => onSetSupport(s.id)}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-        <span className="pl-insp-hint">{blank ? "Пустая строка — ребёнок пишет сам." : SUPPORTS.find((s) => s.id === row.support)?.hint}</span>
+      <section className="pl-insp-sec" aria-label="Линия">
+        <span className="pl-insp-lbl">Линия контура</span>
+        <Seg label="Линия контура" options={LINES} value={st.line} disabled={blank || st.guide === "none"} onChange={(line) => onSetStyle({ line })} />
+      </section>
+
+      <section className="pl-insp-sec" aria-label="Контуры">
+        <span className="pl-insp-lbl">Контуры после образца</span>
+        <Seg label="Контуры после образца" options={GUIDES} value={st.guide} disabled={blank} onChange={(guide) => onSetStyle({ guide })} />
+      </section>
+
+      <section className="pl-insp-sec" aria-label="Точки">
+        <span className="pl-insp-lbl">Точки начала штрихов</span>
+        <Seg label="Точки начала штрихов" options={DOTS} value={st.dots} disabled={blank} onChange={(dots) => onSetStyle({ dots })} />
+        {blank && <span className="pl-insp-hint">Пустая строка — ребёнок пишет сам.</span>}
       </section>
 
       <section className="pl-insp-sec pl-insp-sec--block" aria-label="Весь блок">
         <span className="pl-insp-lbl">Весь блок</span>
         <SizeSwitch size={size} onSetSize={onSetSize} paper={paper} />
         <LadderButton onLadder={onLadder} />
-        <span className="pl-insp-hint">1 → 1+2 → … → вся буква → бледнеет → образец → пусто. Потом любую строку можно поменять.</span>
+        <span className="pl-insp-hint">1 → 1+2 → … → вся буква → затухают → только образец → пусто. Потом любую строку можно поменять.</span>
       </section>
     </div>
   );
