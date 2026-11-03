@@ -67,12 +67,15 @@ describe("print_letters model", () => {
     expect([0, 1].map((i) => rowBesidePlate(i, 2, "bigcell"))).toEqual([true, false]);
   });;
 
-  it("follows Ilyukhina's stroke order: Г stick first, П and Ш in two strokes, Н both sticks then the bar", () => {
+  it("one straight line = one stroke (owner, 2026-11-03), in Ilyukhina's order", () => {
     const names = (id) => letter(id).strokes.map((s) => s.name);
     expect(names("Г")).toEqual(["палочка", "верхняя черта"]);
-    expect(names("П")).toEqual(["левая палочка", "верх и правая палочка"]);
+    expect(names("П")).toEqual(["левая палочка", "верхняя черта", "правая палочка"]);
     expect(names("Н")).toEqual(["левая палочка", "правая палочка", "перекладина"]);
-    expect(names("Ш")).toEqual(["левая палочка, низ и правая палочка", "средняя палочка"]);
+    expect(names("Ш")).toEqual(["левая палочка", "средняя палочка", "правая палочка", "нижняя черта"]);
+    expect(names("Е")).toEqual(["палочка", "верхняя черта", "средняя черта", "нижняя черта"]);
+    // no stroke turns a corner: every path is a single segment (dots of Ё are tiny segments too)
+    for (const c of topic.cards) for (const s of c.strokes) expect(s.d.match(/L/g)).toHaveLength(1);
     expect([letter("Т").wide, letter("Ш").wide, letter("Н").wide]).toEqual([true, true, undefined]);
   });
 

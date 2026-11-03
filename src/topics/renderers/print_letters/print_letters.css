@@ -471,7 +471,6 @@
 }
 
 .pl-insp { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
-.pl-insp--peek { gap: 10px; padding: 4px 16px 0; }
 .pl-insp--empty { color: var(--pl-muted); font-size: 14px; line-height: 1.45; }
 .pl-insp--empty p { margin: 0; }
 
@@ -492,10 +491,8 @@
 .pl-insp-lbl { font-size: 11px; font-weight: 800; color: #5b6472; text-transform: uppercase; letter-spacing: 0.04em; }
 .pl-insp-hint { font-size: 12px; color: #5b6472; line-height: 1.4; margin: 0; }
 
-.pl-insp-els { display: flex; gap: 12px; align-items: flex-start; }
-.pl-insp-list { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.pl-insp-els { display: flex; justify-content: center; }
 .pl-insp-row { display: flex; gap: 8px; }
-.pl-insp-pills { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .pl-elpad {
   position: relative;
@@ -549,34 +546,6 @@
 
 /* ---- Bottom sheet (phones). Pinned to the bottom and side edges of the
    screen, so it reserves the iOS safe areas (CLAUDE.md). ---- */
-.pl-bsheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 40;
-  max-height: 72vh;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border-radius: 18px 18px 0 0;
-  box-shadow: 0 -6px 24px rgba(28, 54, 52, 0.2);
-  padding: 0 var(--app-safe-right, 0px) calc(12px + var(--app-safe-bottom, 0px)) var(--app-safe-left, 0px);
-}
-.pl-bsheet-handle {
-  align-self: stretch;
-  height: 28px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  touch-action: none;
-}
-.pl-bsheet-handle span { width: 40px; height: 5px; border-radius: 3px; background: #d4cfc2; }
-.pl-bsheet-body { overflow-y: auto; }
-.pl-bsheet.is-expanded .pl-insp { padding-top: 0; }
 
 /* ---- Narrow screens: page strip on top, toolbar scrolls sideways ---- */
 .pl-constructor.is-narrow .pl-toolbar { flex-wrap: nowrap; overflow-x: auto; }
@@ -598,7 +567,6 @@
 .pl-constructor.is-narrow .pl-page-actions { display: flex; margin-top: 0; padding-top: 0; margin-left: auto; }
 .pl-constructor.is-narrow .pl-page-actions button { width: 40px; height: 40px; }
 .pl-constructor.is-narrow .pl-canvas { padding: 12px 16px; }
-.pl-canvas.has-bsheet { padding-bottom: 200px; }
 
 /* Sheet header: «Имя ____ Дата ____» to fill in and which letters the page
    drills. Exactly 2 cells tall (the sheet's flex gap adds the blank cell
@@ -767,7 +735,7 @@
   .plb-editor2, .plb-editor2--desk, .pl-lib2 { height: auto !important; min-height: 0 !important; overflow: visible !important; background: none !important; display: block !important; }
 }
 /* phone dock: the same panel, tighter — the letter pad smaller, the explanations left to the computer */
-.plb-dock .pl-elpad { zoom: 0.72; }
+.plb-dock .pl-elpad { zoom: 0.8; }
 .plb-dock .pl-insp-sec { gap: 6px; }
 .plb-dock .pl-insp-hint { display: none; }
 .plb-dock .pl-insp-sec--block { padding-top: 10px; }
