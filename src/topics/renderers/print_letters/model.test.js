@@ -77,9 +77,10 @@ describe("print_letters model", () => {
     // no stroke made of straight lines turns a corner: each is a single segment (Ё's dots too);
     // a stroke with an arc (C) is one oval / half-oval element and may join the stick with short lines
     // — except the «уголки» Ilyukhina writes in one movement (Ж: the stick and two angles)
-    const BENT = new Set(["Ж:левый уголок", "Ж:правый уголок"]);
+    const BENT = new Set(["Ж:левый уголок", "Ж:правый уголок", "К:уголок"]);
     for (const c of topic.cards) for (const s of c.strokes) if (!s.d.includes("C") && !BENT.has(`${c.id}:${s.name}`)) expect(s.d.match(/L/g), `${c.id}: ${s.name}`).toHaveLength(1);
     expect(names("Ж")).toEqual(["палочка", "левый уголок", "правый уголок"]);
+    expect(names("К")).toEqual(["палочка", "уголок"]); // her «К | К»: the stick, then the angle
     expect(names("Ц")).toEqual(["левая палочка", "нижняя черта", "правая палочка", "хвостик"]); // her «Ц | L | Ц»
     expect(topic.cards).toHaveLength(33);
     expect(names("Б")).toEqual(["палочка", "полуовал", "верхняя черта"]); // Ilyukhina: stick, Ь, then the top
