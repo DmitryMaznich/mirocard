@@ -2227,7 +2227,7 @@ export default function ParamsScreen() {
     </>
   ) : (
     <>
-      {!modeHasCategoryParam && !mode?.hideConceptPicker && (
+      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.concepts")}</div>
           <div className="param-concept-col">
