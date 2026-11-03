@@ -12,7 +12,7 @@ export const START = "#15803d";
 
 const START_R    = 9;   // start dot
 const BADGE_R    = 11;  // numbered start dot (≈2.2mm across on paper)
-const SHIFT      = 26;  // a start that lies on an earlier element moves this far along its own line
+const PILL_STEP  = 13;  // a start shared by several strokes: each further number widens the mark by this
 const TINY       = 10;  // strokes shorter than this (Ё's dots) get no marks
 const TIP_R      = 6;
 const BASE_SPEED = 60;  // SVG units per second
@@ -117,17 +117,6 @@ function guideArrow(g, cx, cy, arc, skip = 0) {
   return `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`;
 }
 
-function onPolyline([px, py], pts) {
-  for (let i = 1; i < pts.length; i++) {
-    const [ax, ay] = pts[i - 1];
-    const [bx, by] = pts[i];
-    const l2 = (bx - ax) ** 2 + (by - ay) ** 2;
-    const t = l2 ? Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / l2)) : 0;
-    if (Math.hypot(px - (ax + t * (bx - ax)), py - (ay + t * (by - ay))) < 1) return true;
-  }
-  return false;
-}
-
 // Glyph geometry lives directly on the notebook grid (tools/print_letters/
 // topic.json): 1 cell = 50 units, a letter is 2 cells tall (y 0..100) and
 // `cells` wide (most letters 1 cell, wide ones like Ш — 2). Its viewBox is
@@ -176,17 +165,30 @@ export default function LetterGlyph({
   // point lies on an element drawn earlier in this glyph (Н's crossbar starts
   // on the left stick, П's second stick at the bar's corner) — then a little
   // way along its own line, so the mark clearly belongs to it.
-  const marks = geoms.map((g, i) => {
-    const shared = geoms.slice(0, i).some((e) => onPolyline(g.start, e.pts));
-    return shared && numbered ? [g.start[0] + g.dir[0] * SHIFT, g.start[1] + g.dir[1] * SHIFT] : g.start;
+  // Start marks stand EXACTLY where their strokes start (owner, 2026-11-03: «точки часто не на
+  // началах штрихов» — a start shared with an earlier stroke used to be moved along its line). Strokes
+  // that start at the same point share one mark: a pill with their numbers in order («1 2» at Г's
+  // corner) — start here, first this stroke, then that one.
+  const starts = [];
+  geoms.forEach((g, i) => {
+    if (!markable[i]) return;
+    const hit = starts.find((st) => Math.hypot(st.p[0] - g.start[0], st.p[1] - g.start[1]) < 1.5);
+    if (hit) hit.idx.push(i);
+    else starts.push({ p: g.start, idx: [i] });
   });
+  const pillHalf = (count) => BADGE_R + (count - 1) * PILL_STEP / 2;
+  const startOf = (i) => starts.find((st) => st.idx.includes(i));
   // The direction arrows of the sample (see guideArrow): beside each stroke, on the letter's outer
   // side, so they never sit on another stroke.
   const [cx, cy] = [vbX + vbW / 2, vbY + vbH / 2];
   const arrowPaths = variant === "sample" && arrows ? geoms.map((g, i) => {
     if (g.len < ARROW_MIN) return null;
-    const moved = marks[i][0] !== g.start[0] || marks[i][1] !== g.start[1];
-    const skip = showDots ? (moved ? SHIFT : 0) + (numbered ? BADGE_R : START_R) + 4 : 0;
+    // the arrow's tail starts where the stroke leaves its start mark (a pill is wider than tall)
+    const st = startOf(i);
+    const hw = numbered ? pillHalf(st?.idx.length ?? 1) : START_R;
+    const hh = numbered ? BADGE_R : START_R;
+    const along = Math.min(Math.abs(g.dir[0]) > 1e-6 ? hw / Math.abs(g.dir[0]) : Infinity, Math.abs(g.dir[1]) > 1e-6 ? hh / Math.abs(g.dir[1]) : Infinity);
+    const skip = showDots ? along + 4 : 0;
     return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip);
   }) : [];
 
@@ -298,17 +300,19 @@ export default function LetterGlyph({
           element's number (its place in the whole letter): the number sits ON
           the element it belongs to, never floating in the blank cell between
           rows where it could be read as part of the row above. */}
-      {showDots && variant !== "plain" && geoms.map((g, i) => {
-        if (!markable[i]) return null;
-        const [mx, my] = marks[i];
-        if (!numbered) return <circle key={`d${i}`} cx={mx} cy={my} r={START_R} fill={START} />;
-        const on = active === i;
+      {showDots && variant !== "plain" && starts.map((st, k) => {
+        const [mx, my] = st.p;
+        if (!numbered) return <circle key={`d${k}`} cx={mx} cy={my} r={START_R} fill={START} />;
+        const on = st.idx.includes(active);
+        const hw = pillHalf(st.idx.length);
         return (
-          <g key={`d${i}`} style={{ pointerEvents: "none" }}>
-            <circle cx={mx} cy={my} r={BADGE_R} fill={START} stroke={on ? INK : "#ffffff"} strokeWidth={on ? 4 : 2} />
-            <text x={mx} y={my + 5} textAnchor="middle" fontSize={15} fontWeight="800" fontFamily="Nunito, sans-serif" fill="#ffffff">
-              {strokes[i].n ?? i + 1}
-            </text>
+          <g key={`d${k}`} style={{ pointerEvents: "none" }}>
+            <rect x={mx - hw} y={my - BADGE_R} width={hw * 2} height={BADGE_R * 2} rx={BADGE_R} fill={START} stroke={on ? INK : "#ffffff"} strokeWidth={on ? 4 : 2} />
+            {st.idx.map((i, j) => (
+              <text key={i} x={mx - hw + BADGE_R + j * PILL_STEP} y={my + 5} textAnchor="middle" fontSize={15} fontWeight="800" fontFamily="Nunito, sans-serif" fill="#ffffff">
+                {strokes[i].n ?? i + 1}
+              </text>
+            ))}
           </g>
         );
       })}
