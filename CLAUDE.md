@@ -248,6 +248,8 @@ per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
 Printed-letter worksheet/notebook constructor for preschoolers (4–6yo), not cursive — a separate
 topic from `propis2` (cursive) and from `letter_writing` (hidden/paid, **independent — don't touch**).
+The method's primary source is V. A. Ilyukhina's workbooks «Волшебные линии» №1/№2 (`docs/references/ilyukhina/`,
+analysis in `docs/print-letters-ilyukhina.md`) — letter shape, proportions, stroke order follow them.
 **Read the «Handoff» section of `docs/print-letters.md` first** (current branch, what's built, the
 owner's decisions, the screenshot harness, past process mistakes), then its «Разворот» sections for
 why each earlier shape was replaced. Key facts: glyphs live in notebook-cell coordinates in
