@@ -327,7 +327,9 @@
   align-self: flex-start;
   outline: 1.5px solid;
   outline-offset: -0.75px;
-  border-radius: 2px;
+  /* One corner radius for the block and its letter plate (owner, 2026-11-03). */
+  --pl-block-radius: 3mm;
+  border-radius: var(--pl-block-radius);
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -347,10 +349,13 @@
   background: var(--pl-block-color, #8b93a1);
 }
 
+/* Top-left follows the block's rounded corner it sits in; bottom-right is
+   rounded the same way; the other two corners stay square. */
 .pl-block-tile {
   position: absolute;
   top: 0;
   left: 0;
+  border-radius: var(--pl-block-radius) 0 var(--pl-block-radius) 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -448,7 +453,7 @@
 .pl-insp--empty p { margin: 0; }
 
 .pl-insp-head { display: flex; align-items: center; gap: 10px; }
-.pl-insp-tile { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pl-insp-tile { width: 32px; height: 32px; border-radius: 8px 0 8px 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .pl-insp-title { flex: 1; font-weight: 800; font-size: 15px; }
 .pl-insp-move { display: flex; gap: 4px; }
 .pl-insp-move button {

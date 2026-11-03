@@ -75,6 +75,7 @@ export default function LetterGlyph({
   color,
   opacity  = 1,
   tappable = false,
+  weight,         // stroke width override in glyph units (bold letter on the plate)
   label,
 }) {
   const { strokes = [] } = letter;
@@ -158,7 +159,7 @@ export default function LetterGlyph({
   }
 
   const ink = color ?? (variant === "sample" || variant === "plain" ? INK : GUIDE);
-  const strokeW = variant === "dotted" ? 7 : variant === "starts" ? 5 : 9;
+  const strokeW = weight ?? (variant === "dotted" ? 7 : variant === "starts" ? 5 : 9);
   const canPlay = tappable && variant === "sample";
 
   return (

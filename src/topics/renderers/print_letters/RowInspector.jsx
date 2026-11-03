@@ -66,7 +66,7 @@ function Head({ letter, color, title, onMoveRow, canUp, canDown }) {
   return (
     <div className="pl-insp-head">
       <span className="pl-insp-tile" style={{ "--pl-block-color": color }}>
-        <LetterGlyph letter={letter} heightMm={4.2} variant="plain" color="#ffffff" />
+        <LetterGlyph letter={letter} heightMm={4.2} variant="plain" color="#ffffff" weight={15} />
       </span>
       <span className="pl-insp-title">{title}</span>
       {onMoveRow && (

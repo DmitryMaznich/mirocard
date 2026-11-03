@@ -29,7 +29,7 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
         style={{ height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
         aria-label={`Буква ${letter.label}`}
       >
-        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.55} variant="plain" color="#ffffff" />
+        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.55} variant="plain" color="#ffffff" weight={15} />
       </div>
 
       {rows.map((row) => {
