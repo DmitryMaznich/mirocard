@@ -1,0 +1,100 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#28323c;--muted:#8b93a1;--line:#e3dccb;--strip:#f6f1e4;--bg:#fdfcf9;--teal:#4a9b8f;--tealD:#2a6b60;--tealS:#e5f2ef;--blue:#eef3fb;--head:#1c3634;--board:#cfc4ad}
+*{box-sizing:border-box}body{margin:0;font-family:Nunito,sans-serif;color:var(--ink);background:#e9e4d8}
+.frame{width:1440px;padding:28px 32px;display:flex;flex-direction:column;gap:22px}
+h1{margin:0;font-size:26px;font-weight:900}h2{margin:0 0 6px;font-size:18px;font-weight:900}
+.cap{font-size:14px;color:#4b5563;line-height:1.45;max-width:1300px}
+.row{display:flex;gap:24px;align-items:flex-start}
+.card{background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:18px}
+.tag{display:inline-block;background:var(--head);color:#fff;border-radius:8px;padding:2px 9px;font-weight:900;font-size:13px;margin-right:6px}
+/* picker */
+.pick{width:470px}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--strip);border-radius:12px;margin-bottom:14px}
+.tabs b{flex:1;text-align:center;padding:9px 0;border-radius:9px;font-size:14px;color:#5b6472}
+.tabs b.on{background:#fff;color:var(--tealD);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.lbl{font-size:11px;font-weight:800;color:#5b6472;text-transform:uppercase;letter-spacing:.04em;margin:12px 0 7px}
+.keys{display:flex;flex-wrap:wrap;gap:6px}
+.key{width:44px;height:48px;border:1.5px solid var(--line);border-radius:10px;display:grid;place-items:center;background:#fff}
+.key.v{background:#fff5e6;border-color:#f0c98a}
+.key.off{opacity:.3;border-style:dashed}
+.compose{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--teal);border-radius:14px;padding:8px 10px}
+.compose .w{flex:1;display:flex;gap:4px}
+.btn{border:none;border-radius:12px;background:var(--teal);color:#fff;font-weight:900;padding:11px 16px;font-size:14px;box-shadow:0 3px 0 var(--tealD)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;gap:3px;padding:5px 9px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+.chip.on{border-color:var(--tealD);background:var(--tealS)}
+.note{font-size:12px;color:#5b6472;line-height:1.4;margin-top:8px}
+/* sheet */
+.sheet{background:#fffdf8;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.18);position:relative;
+ background-image:linear-gradient(to right,#cfe0ef 1px,transparent 1px),linear-gradient(to bottom,#cfe0ef 1px,transparent 1px);background-size:13px 13px}
+.blk{position:absolute;border:1.5px solid;border-radius:8px}
+.plate{position:absolute;left:-1.5px;top:-1.5px;border-radius:8px 0 8px 0;display:flex;align-items:center;justify-content:center;gap:4px}
+.board{background:var(--board);padding:22px;border-radius:14px}
+/* phone */
+.phone{width:390px;border-radius:34px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.2);overflow:hidden;border:8px solid #111}
+.ph-head{background:var(--head);color:#fff;padding:12px 14px;font-weight:900;font-size:17px}
+.dock{padding:10px 14px 18px;display:flex;flex-direction:column;gap:12px}
+.dhead{display:flex;align-items:center;gap:8px}
+.tile{border-radius:6px 0 6px 0;padding:4px 7px;display:flex;gap:2px}
+.acts{display:flex;gap:2px;background:var(--blue);border-radius:12px;padding:2px;margin-left:auto}
+.acts span{width:38px;height:38px;display:grid;place-items:center;font-size:18px}
+.wordpad{display:flex;gap:8px;justify-content:center;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px}
+.lt{position:relative;padding:6px 6px 4px;border-radius:10px;border:1.5px solid var(--tealD);background:var(--tealS)}
+.lt.off{border:1.5px dashed #b8c0cc;background:#fff}
+.lt.off svg{opacity:.25}
+.picks{display:flex;gap:6px;padding:4px;border-radius:14px;background:var(--strip)}
+.picks div{flex:1;height:56px;background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;gap:4px}
+.seg2{display:flex;gap:6px}.seg2 b{flex:1;text-align:center;border:1.5px solid var(--line);border-radius:10px;padding:10px 0;font-size:13px}.seg2 b.on{border-color:var(--tealD);background:var(--tealS);color:var(--tealD)}
+.num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--head);color:#fff;font-weight:900;font-size:14px;margin-right:8px}
+</style></head><body><div class="frame" id="f"></div>
+<script>
+const G={"Г": {"w": 1, "s": ["M 0,0 L 0,100", "M 0,0 L 50,0"]}, "Т": {"w": 1.3333, "s": ["M 0,0 L 66.665,0", "M 33.333,0 L 33.333,100"]}, "П": {"w": 1, "s": ["M 0,0 L 0,100", "M 0,0 L 50,0", "M 50,0 L 50,100"]}, "Н": {"w": 1, "s": ["M 0,0 L 0,100", "M 50,0 L 50,100", "M 0,50 L 50,50"]}, "И": {"w": 1, "s": ["M 0,0 L 0,100", "M 0,100 L 50,0", "M 50,0 L 50,100"]}, "Ш": {"w": 1.3333, "s": ["M 0,0 L 0,100", "M 33.333,0 L 33.333,100", "M 66.665,0 L 66.665,100", "M 0,100 L 66.665,100"]}, "Е": {"w": 1, "s": ["M 0,0 L 0,100", "M 0,0 L 50,0", "M 0,50 L 50,50", "M 0,100 L 50,100"]}, "Ё": {"w": 1, "s": ["M 0,0 L 0,100", "M 0,0 L 50,0", "M 0,50 L 50,50", "M 0,100 L 50,100", "M 14,-16 L 15,-16", "M 35,-16 L 36,-16"]}};
+const INK="#1f3a8a",GUIDE="#8fa3c8",DOT="#15803d";
+// one letter as svg at cell px size c; variant: sample|dash|tone|plain
+function L(ch,c,variant="sample",color,op=1,dots=true,wt){const g=G[ch];if(!g)return"";const w=g.w*50;
+ const sw=wt??(variant==="dash"?7:9);const col=color??(variant==="sample"||variant==="plain"?INK:GUIDE);
+ let p=g.s.map(d=>'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"'+(variant==="dash"?' stroke-dasharray="1 10"':'')+'/>').join("");
+ if(dots&&variant!=="plain")p+=g.s.map(d=>{const m=/M\s*([-\d.]+)[ ,]+([-\d.]+)/.exec(d);return d.length>14?'<circle cx="'+m[1]+'" cy="'+m[2]+'" r="'+(variant==="sample"?9:7)+'" fill="'+DOT+'"/>':""}).join("");
+ return '<svg viewBox="0 0 '+w+' 100" width="'+(g.w*c)+'" height="'+(2*c)+'" style="overflow:visible;opacity:'+op+';display:block">'+p+'</svg>';}
+// a word at pitch: each letter in its own letter-cell (2 cells), as in Ilyukhina
+function W(word,c,variant,op=1,dots=true,missing=[]){return '<div style="display:flex">'+[...word].map((ch,i)=>'<div style="width:'+(2*c)+'px">'+(missing.includes(i)?"":L(ch,c,variant,undefined,op,dots))+'</div>').join("")+'</div>';}
+const f=document.getElementById("f");let h="";
+h+='<h1>Слоги и слова в «Печатных буквах» — предложение</h1><div class="cap">Одна идея на всё: <b>блок — это то, что пишем</b> (букву, слог или слово), а строки блока — как пишем (линия, контуры, точки — те же три настройки). Никакого набора текста: слог или слово собирается из плиток <b>только тех букв, которые уже нарисованы</b>, или берётся из готового списка. Каждая буква слова стоит в своей клетке-букве (как у Илюхиной), между словами — чистая клетка.</div>';
+// screen 1 picker
+const avail=["Г","Т","П","Н","И","Ш","Е","Ё"],vow=["И","Е","Ё"];
+const missingV=["А","О","У","Ы","Э","Ю","Я"];
+h+='<div class="row"><div class="card pick"><h2><span class="num">1</span>Кнопка «Блок» вверху: Буква · Слог · Слово</h2>';
+h+='<div class="tabs"><b>Буква</b><b class="on">Слог</b><b>Слово</b></div>';
+h+='<div class="compose"><div class="w">'+W("НИ",20,"sample",1,false)+'</div><span style="color:#8b93a1;font-size:22px">⌫</span><button class="btn">Добавить блок</button></div>';
+h+='<div class="lbl">Плитки букв — нажимайте по порядку</div><div class="keys">'+avail.map(ch=>'<div class="key'+(vow.includes(ch)?" v":"")+'">'+L(ch,13,"plain",undefined,1,false,11)+'</div>').join("")+missingV.map(ch=>'<div class="key off"><b style="font-size:20px;color:#b8c0cc">'+ch+'</b></div>').join("")+'</div>';
+h+='<div class="note">Гласные — на тёплом фоне. Ещё не нарисованные буквы видны пунктиром и не нажимаются: сразу понятно, почему слога «НА» пока нет.</div>';
+h+='<div class="lbl">Готовые слоги из нарисованных букв</div><div class="chips">'+["НИ","НЕ","ТИ","ТЕ","ПИ","ПЕ","ШИ","ШЕ","ГИ"].map((s,i)=>'<div class="chip'+(i<2?" on":"")+'">'+W(s,9,"plain",1,false)+'</div>').join("")+'</div>';
+h+='<div class="note">Можно отметить несколько — каждый слог станет строкой одного блока «НИ · НЕ».</div></div>';
+// screen 2 sheet
+const c=13,SW=40*c;
+h+='<div><h2 style="margin-left:4px"><span class="num">2</span>На листе: буква → слоги → слово</h2><div class="board"><div class="sheet" style="width:'+(SW+2*c)+'px;height:'+(46*c)+'px">';
+function block(top,h_,color,plateHtml,plateW,rows){let s='<div class="blk" style="left:'+c+'px;top:'+top*c+'px;width:'+SW+'px;height:'+h_*c+'px;border-color:'+color+'"><div class="plate" style="width:'+plateW*c+'px;height:'+4*c+'px;background:'+color+'">'+plateHtml+'</div>';
+ rows.forEach(r=>{s+='<div style="position:absolute;left:'+r.x*c+'px;top:'+r.y*c+'px;display:flex;gap:'+(r.gap*c)+'px">'+r.items.join("")+'</div>'});return s+'</div>';}
+// letter block Н
+const rowLetters=(ch,n,v,op)=>Array.from({length:n},(_,i)=>'<div style="width:'+(i?2*c- G[ch].w*c:0)+'px"></div>'+L(ch,c,i?v:"sample",undefined,op?op(i):1,i==0||v!=="tone"));
+let r1=[];for(let i=0;i<16;i++)r1.push('<div style="width:'+(2*c)+'px">'+L("Н",c,i?"dash":"sample",undefined,1,true)+'</div>');
+h+=block(1,8,"#2f8fd1",L("Н",c*.85,"plain","#fff",1,false,15),4,[{x:5,y:1,gap:0,items:r1.slice(0,17)},{x:1,y:5,gap:0,items:Array.from({length:19},(_,i)=>'<div style="width:'+(2*c)+'px">'+L("Н",c,i?"tone":"sample",undefined,i?Math.max(.15,1-i*.06):1,i==0)+'</div>')}]);
+// syllable block
+const syl=(w,n,v,dots,fade)=>Array.from({length:n},(_,i)=>W(w,c,i?v:"sample",fade?Math.max(.2,1-i*.17):1,i==0||dots));
+h+=block(10,12,"#e8702a",W("НИ",c*.8,"plain",1,false).replace(/#1f3a8a/g,"#fff"),6,[{x:7,y:1,gap:2,items:syl("НИ",5,"dash",false)},{x:1,y:5,gap:2,items:syl("НЕ",6,"dash",false)},{x:1,y:8,gap:2,items:syl("НИ",6,"tone",false,true)}]);
+// word block with missing letter
+h+=block(23,12,"#3aa655",W("НЕТ",c*.8,"plain",1,false).replace(/#1f3a8a/g,"#fff"),8,[{x:9,y:1,gap:2,items:Array.from({length:4},(_,i)=>W("НЕТ",c,i?"dash":"sample",1,i==0))},{x:1,y:5,gap:2,items:Array.from({length:5},(_,i)=>i?'<div style="display:flex">'+W("НЕТ",c,"dash",1,false,[1])+'</div>':W("НЕТ",c,"sample",1,true))},{x:1,y:8,gap:2,items:[W("НЕТ",c,"sample",1,true)]}]);
+h+='<div style="position:absolute;left:'+c+'px;top:'+36.5*c+'px;width:'+SW+'px;font-size:13px;color:#4b5563;line-height:1.45">Слоги и слова: <b>образец</b> → <b>пунктир</b> → <b>пропущенная буква</b> (впиши недостающую — приём Илюхиной) → <b>только образец</b>. Плашка растёт по слову: 2 буквы — 6 клеток, 3 буквы — 8. Точки по умолчанию только на образце — в словах их слишком много.</div>';
+h+='</div></div></div></div>';
+// screen 3 phone
+h+='<div class="row"><div class="phone"><div class="ph-head">Нижняя панель: строка слова</div><div class="dock">';
+h+='<div class="dhead"><span class="tile" style="background:#3aa655">'+W("НЕТ",8,"plain",1,false).replace(/#1f3a8a/g,"#fff")+'</span><b>Строка 2 из 4</b><div class="acts"><span>⊕</span><span>↑</span><span>↓</span><span style="color:#b91c1c">🗑</span></div></div>';
+h+='<div class="lbl" style="margin:0">Буквы — нажмите, чтобы пропустить</div><div class="wordpad">'+[...("НЕТ")].map((ch,i)=>'<div class="lt'+(i==1?" off":"")+'">'+L(ch,22,"sample",undefined,1,false)+'</div>').join("")+'</div>';
+h+='<div class="seg2"><b class="on">Всё слово</b><b>Пустая строка</b></div>';
+h+='<div class="lbl" style="margin:0">Контуры</div><div class="picks"><div>⋮⋮ Линия</div><div>║║║ Контуры</div><div>●|| Точки</div></div>';
+h+='<div style="font-size:12px;color:#5b6472">пунктир · до конца строки · точки на образце · пропущена «Е»</div></div></div>';
+h+='<div class="card" style="flex:1"><h2><span class="num">3</span>Строка слова — как строка буквы, только элементы — буквы</h2><div class="cap">У строки буквы элементы — штрихи на крупной букве. У строки слога или слова элементы — <b>буквы</b>: нажатие на букву оставляет на её месте пустую клетку, и получается «впиши пропущенную». Остальное то же самое: «Линия», «Контуры», «Точки», кнопки строки в шапке панели, лесенка блока.<br><br><b>Лесенка слова</b>: образец + пунктир → пропущенная гласная → полутон затухает → только образец → пусто.<br><br><b>Чего не делаем</b>: свободного набора текста и предложений; слов с ещё не нарисованными буквами.<br><br><b>Ограничение сейчас</b>: из гласных нарисованы только И, Е, Ё — получаются слоги НИ, ТЕ, ПЕ… и немного слов (НЕТ, ТИП, ШИП, ТИШЕ, ТЕНИ). Поэтому для слогов следующими стоит рисовать гласные А, О, У, Ы — у Илюхиной А идёт сразу после прямых линий (занятие 5).</div></div></div>';
+f.innerHTML=h;
+</script></body></html>
