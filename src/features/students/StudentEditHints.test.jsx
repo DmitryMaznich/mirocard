@@ -76,11 +76,10 @@ describe("Student settings hints", () => {
     expect(document.querySelector(".screen-hints")).toBeNull();
     expect(useAppStore.getState().screen).toBe("important_dates_settings");
   });
-  it("saves the opt-in and duration in their own durable sync operation", async () => {
+  it("saves the reward settings and duration in their own durable sync operation", async () => {
     mocks.getDb.mockResolvedValue({});
     mount(true);
     const pick = label => [...container.querySelectorAll("button")].find(button => button.textContent === label);
-    await act(async () => pick("Новые правила").click());
     await act(async () => pick("1 минута").click());
     await act(async () => pick("Все звёзды").click());
     await act(async () => [...container.querySelectorAll("label")].find(label => label.textContent === "Строгий подсчёт").querySelector("input").click());

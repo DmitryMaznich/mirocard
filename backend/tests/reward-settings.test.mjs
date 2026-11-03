@@ -5,7 +5,7 @@ import { createAccount, upsertStudent, upsertStudentRewardSettings, getStudents,
 import { processSync } from "../lib/sync-processor.mjs";
 import { buildBootstrap } from "../lib/snapshot-builder.mjs";
 
-test("reward settings sync independently, survive stale profile edits and can roll back", () => {
+test("reward settings sync independently, survive stale profile edits and ignore legacy algorithm writes", () => {
   const db = initDb(":memory:");
   try {
     const account = createAccount(db, { email: "rewards@test.test", passwordHash: "test" });
@@ -20,7 +20,7 @@ test("reward settings sync independently, survive stale profile edits and can ro
     assert.equal(student.rewardSettingsUpdatedAt, "2026-10-23T12:00:00.000Z");
     upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { ...settings, algorithm: "legacy" }, updatedAt: "2026-10-23T13:00:00.000Z" });
     student = buildBootstrap(db, account.id).students[0];
-    assert.equal(student.rewardSettings.algorithm, "legacy");
+    assert.equal(student.rewardSettings.algorithm, "flexible");
     assert.equal(student.rewardSettings.duration, "180");
     // A previous application version knows only the original four fields.
     upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { algorithm: "flexible", duration: "60", animation: "normal", sound: false }, updatedAt: "2026-10-24T13:00:00.000Z" });
