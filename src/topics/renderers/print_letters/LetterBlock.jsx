@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { LETTER_H, TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPlan, letterCells } from "./model";
+import { TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPlan, letterH, letterW } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -14,9 +14,10 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // sits in the full letter, and the label tile shows that same stroke shape.
 // What each copy draws (dotted / start dots / fading / one sample) comes
 // from the row's support level via copyPlan().
-export default function LetterBlock({ letter, color, rows, format, selected, selectedRowId, onSelectBlock, onSelectRow }) {
+export default function LetterBlock({ letter, color, rows, format, size = 2, selected, selectedRowId, onSelectBlock, onSelectRow }) {
   const frame = letterFrame(letter);
-  const w = letterCells(letter);
+  const w = letterW(letter, size);
+  const h = letterH(size);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
@@ -32,8 +33,8 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
       </div>
 
       {rows.map((row, index) => {
-        const beside = rowBesidePlate(index);
-        const copies = copiesPerRow(letter, format, beside);
+        const beside = rowBesidePlate(index, size);
+        const copies = copiesPerRow(letter, format, beside, size);
         const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
         const miniLetter = { ...letter, strokes };
         const plan = copyPlan(row, copies);
@@ -44,15 +45,15 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
             style={{ paddingTop: mm(GAP), paddingLeft: mm(rowStartCells(beside)) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
-            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(rowCells(format, beside)), gap: mm(GAP) }}>
+            <div className="pl-row" style={{ height: mm(h), width: mm(rowCells(format, beside)), gap: mm(GAP) }}>
               {plan.map((p, i) => (
-                <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(LETTER_H) }}>
+                <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(h) }}>
                   {p && (
                     <LetterGlyph
                       key={`${row.elements.join(",")}-${p.variant}`}
                       letter={miniLetter}
                       frame={frame}
-                      heightMm={LETTER_H * FINE_MM}
+                      heightMm={h * FINE_MM}
                       widthMm={w * FINE_MM}
                       variant={p.variant}
                       opacity={p.opacity}

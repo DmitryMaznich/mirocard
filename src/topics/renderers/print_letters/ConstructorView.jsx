@@ -228,6 +228,8 @@ export default function ConstructorView({ task, onAdvance }) {
       onSetSupport={(support) => updateSelectedRow((r) => ({ ...r, support }))}
       onMoveRow={moveSelectedRow}
       onLadder={applyLadder}
+      size={selectedBlock?.size === 4 ? 4 : 2}
+      onSetSize={(size) => updateSelectedBlock((b) => ({ ...b, size }))}
       peek={peek}
     />
   );

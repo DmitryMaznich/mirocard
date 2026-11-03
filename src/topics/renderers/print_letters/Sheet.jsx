@@ -26,6 +26,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
             color={b.color}
             rows={b.rows}
             format={format}
+            size={b.size === 4 ? 4 : 2}
             selected={b.id === selectedBlockId}
             selectedRowId={b.id === selectedBlockId ? selectedRowId : null}
             onSelectBlock={() => onSelectBlock?.(b.id)}

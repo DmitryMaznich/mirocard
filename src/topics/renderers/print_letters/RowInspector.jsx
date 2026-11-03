@@ -1,6 +1,6 @@
 import { useState } from "react";
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
-import { SUPPORTS, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
+import { SIZES, SUPPORTS, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
 import { IconUp, IconDown, IconLadder } from "./icons";
 
 const PAD_CELL = 40; // px per notebook cell in the element pad
@@ -100,7 +100,25 @@ function LadderButton({ onLadder }) {
 // The selected row's own settings — a right-hand panel on wide screens, a
 // bottom sheet on phones (BottomSheet). `peek` is the sheet's folded state:
 // just the header and quick element buttons.
-export default function RowInspector({ letter, color, row, rowIndex, rowCount, onSetElements, onSetSupport, onMoveRow, onLadder, peek = false }) {
+// Block-wide size switch: normal (2 cells) or large (4 cells).
+function SizeSwitch({ size, onSetSize }) {
+  if (!onSetSize) return null;
+  return (
+    <>
+      <div className="pl-seg" role="radiogroup" aria-label="Размер букв в блоке">
+        {SIZES.map((s) => (
+          <button key={s.id} type="button" role="radio" aria-checked={size === s.id} title={s.hint}
+            className={size === s.id ? "is-on" : ""} onClick={() => onSetSize(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <span className="pl-insp-hint">{SIZES.find((s) => s.id === size)?.hint}</span>
+    </>
+  );
+}
+
+export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, onSetSize, onSetElements, onSetSupport, onMoveRow, onLadder, peek = false }) {
   if (!letter) {
     return (
       <div className="pl-insp pl-insp--empty">
@@ -115,6 +133,7 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, o
       <div className="pl-insp">
         <Head letter={letter} color={color} title={`Буква ${letter.label}`} />
         {!peek && <p className="pl-insp-hint">Выберите строку в блоке, чтобы настроить её элементы и опору.</p>}
+        {!peek && <SizeSwitch size={size} onSetSize={onSetSize} />}
         <LadderButton onLadder={onLadder} />
       </div>
     );
@@ -175,6 +194,7 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, o
 
           <section className="pl-insp-sec pl-insp-sec--block" aria-label="Весь блок">
             <span className="pl-insp-lbl">Весь блок</span>
+            <SizeSwitch size={size} onSetSize={onSetSize} />
             <LadderButton onLadder={onLadder} />
             <span className="pl-insp-hint">1 → 1+2 → … → вся буква → бледнеет → образец → пусто. Потом любую строку можно поменять.</span>
           </section>

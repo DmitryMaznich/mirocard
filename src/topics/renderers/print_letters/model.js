@@ -20,7 +20,25 @@ export function sheetSizeMm(formatId) {
 }
 
 // ---- Block geometry, in whole notebook cells (FINE_MM) -------------------
-export const LETTER_H = 2; // a letter is 2 cells tall
+export const LETTER_H = 2; // a letter is 2 cells tall at the normal size
+
+// Letter size, per block (methodology: large before small — a new letter is
+// written big, a practised one at the working size). Only 2 and 4 cells:
+// doubling keeps every stroke on a grid line (3 cells would put crossbars
+// and right sticks in the middle of a cell, or change the letter's shape).
+export const SIZES = [
+  { id: 2, label: "Обычный", hint: "буква в 2 клетки (1 см) — рабочий размер" },
+  { id: 4, label: "Крупный", hint: "буква в 4 клетки (2 см) — для новой буквы и маленьких" },
+];
+
+export function blockSize(block) {
+  return block?.size === 4 ? 4 : 2;
+}
+
+// Height and width of a letter, in cells, at a block size.
+export function letterH(size = 2) {
+  return size;
+}
 export const TILE = 4;     // letter plate: 4×4 cells, flush with the block's top-left corner
 export const GAP = 1;      // blank cell: between letters, above each row, after the tile, page padding
 
@@ -39,8 +57,8 @@ export function blockCells(formatId) {
 // plate uses the block from edge to edge (owner, 2026-11-03: no wasted space
 // under the plate). A row is beside the plate when its letters would start
 // higher than one blank cell below the plate's bottom edge.
-export function rowBesidePlate(index) {
-  return index * (GAP + LETTER_H) + GAP < TILE + GAP;
+export function rowBesidePlate(index, size = 2) {
+  return index * (GAP + letterH(size)) + GAP < TILE + GAP;
 }
 
 // Where a row's letters start, in cells from the block's left edge.
@@ -57,16 +75,20 @@ export function letterCells(letter) {
   return Math.max(1, Number(letter?.cells) || 1);
 }
 
+export function letterW(letter, size = 2) {
+  return (letterCells(letter) * size) / 2;
+}
+
 // Copies of a letter in one row: its own width plus one blank cell each, no
 // trailing gap after the last one.
-export function copiesPerRow(letter, formatId, besidePlate = true) {
-  const w = letterCells(letter);
+export function copiesPerRow(letter, formatId, besidePlate = true, size = 2) {
+  const w = letterW(letter, size);
   return Math.max(1, Math.floor((rowCells(formatId, besidePlate) + GAP) / (w + GAP)));
 }
 
 export function blockHeightCells(block) {
   const rows = block.rows.length;
-  return Math.max(TILE, rows * (GAP + LETTER_H) + GAP);
+  return Math.max(TILE, rows * (GAP + letterH(blockSize(block))) + GAP);
 }
 
 export function pageHeightCells(page) {

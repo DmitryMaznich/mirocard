@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  rowBesidePlate, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
+  rowBesidePlate, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, pageOverflows, rowCells, sheetCells, toggleElement,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -30,6 +30,18 @@ describe("print_letters model", () => {
 
   it("indents only the rows beside the plate (the first two)", () => {
     expect([0, 1, 2, 3].map(rowBesidePlate)).toEqual([true, true, false, false]);
+  });
+
+  it("doubles everything at the large size, still on whole cells", () => {
+    // Н 4 cells tall, 2 wide + 1 blank cell
+    expect(copiesPerRow(letter("Н"), "a4", true, 4)).toBe(11);
+    expect(copiesPerRow(letter("Н"), "a4", false, 4)).toBe(12);
+    expect(copiesPerRow(letter("Ш"), "a4", false, 4)).toBe(7);
+    // only the first row stands beside the 4-cell plate
+    expect([0, 1].map((i) => rowBesidePlate(i, 4))).toEqual([true, false]);
+    const rows = ladderRows(letter("Н")); // 6 rows
+    expect(blockHeightCells({ rows })).toBe(19);
+    expect(blockHeightCells({ rows, size: 4 })).toBe(31);
   });
 
   it("builds the ladder: elements add up, then the support fades, then blank", () => {
