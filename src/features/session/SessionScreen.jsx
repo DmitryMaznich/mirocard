@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
+import { accountKv } from "@/topics/accountKv";
 import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
@@ -366,6 +367,7 @@ export default function SessionScreen() {
             sessionStatus={status}
             topicId={topicRecord.meta.id}
             topicRecord={topicRecord}
+            accountKv={accountKv}
             sessionParams={sessionParams}
             uiLanguage={uiLanguage}
             languageContext={sessionState.languageContext}

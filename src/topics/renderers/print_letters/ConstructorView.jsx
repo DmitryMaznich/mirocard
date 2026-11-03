@@ -1,17 +1,19 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import LetterPickerButton from "./LetterPickerButton";
 import PageThumb from "./PageThumb";
 import OptionPicker from "./OptionPicker";
 import Sheet from "./Sheet";
 import RowInspector from "./RowInspector";
 import BottomSheet from "./BottomSheet";
-import { FORMATS, PAGE_MARGIN_MM, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import PrintPages from "./PrintPages";
+import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
+import { FORMATS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { PALETTE, blankPage, newId } from "./library";
 import {
-  IconPlus, IconAddRow, IconTrash, IconPrint, IconClose, IconUp, IconDown, IconDuplicate,
+  IconPlus, IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconBack, IconSave,
   IconPaperSquare, IconPaperLine3, IconPaperLine2, IconFormatA4, IconFormatA5,
 } from "./icons";
 
-const PALETTE = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7a52c9"];
 const PAPER_OPTIONS = [
   { id: "cell", label: "Клетка", Icon: IconPaperSquare },
   { id: "line3", label: "Линейка: 3 линии", Icon: IconPaperLine3 },
@@ -21,92 +23,45 @@ const FORMAT_OPTIONS = [
   { id: "a4", label: FORMATS.a4.label, Icon: IconFormatA4 },
   { id: "a5", label: FORMATS.a5.label, Icon: IconFormatA5 },
 ];
-const NARROW_QUERY = "(max-width: 760px)";
-const PX_PER_MM = 96 / 25.4;
-const CANVAS_PAD_PX = 32;
 
-let uid = 1;
-const nextId = () => uid++;
-const withIds = (rows) => rows.map((r) => ({ id: nextId(), ...r }));
+const withIds = (rows) => rows.map((r) => ({ id: newId(), ...r }));
 
-function blankPage() {
-  return { id: nextId(), blocks: [], paper: "cell" };
-}
-
-function useMediaQuery(query) {
-  const get = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(query).matches;
-  const [match, setMatch] = useState(get);
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return undefined;
-    const mq = window.matchMedia(query);
-    const on = () => setMatch(mq.matches);
-    on();
-    mq.addEventListener?.("change", on);
-    return () => mq.removeEventListener?.("change", on);
-  }, [query]);
-  return match;
-}
-
-// Shrinks the real-size sheet to the canvas width when the canvas is
-// narrower than the paper (phones, small windows); never enlarges it.
-function useFitZoom(ref, sheetWidthMm) {
-  const [zoom, setZoom] = useState(1);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof ResizeObserver === "undefined") return undefined;
-    const update = () => {
-      const avail = el.clientWidth - CANVAS_PAD_PX;
-      setZoom(Math.min(1, Math.max(0.2, avail / (sheetWidthMm * PX_PER_MM))));
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [ref, sheetWidthMm]);
-  return zoom;
-}
-
-// propis2's own editor model: a page rail with real thumbnails, one page on
-// the canvas, a toolbar for page/block actions, and — this topic's own part —
-// a row panel (right side on wide screens, bottom sheet on phones) where the
-// selected row's elements are picked by tapping them on the letter itself,
-// plus its support level and the block's «Лесенка». No back button here: the
-// session header above already has one; "Завершить" means "task done".
-export default function ConstructorView({ task, onAdvance }) {
-  const letters = task?.letters ?? [];
-  const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
-  const families = useMemo(() => {
-    const map = new Map();
-    for (const l of letters) {
-      const famId = l.family ?? "other";
-      if (!map.has(famId)) map.set(famId, []);
-      map.get(famId).push(l);
-    }
-    return Array.from(map.entries());
-  }, [letters]);
-
+// The editor of one notebook — propis2's own editor model: a dark header with
+// back / the notebook's name / save, a toolbar for page and block actions, a
+// page rail with real thumbnails, one page on the canvas and — this topic's
+// own part — a row panel (right side on wide screens, bottom sheet on phones)
+// where the selected row's elements are picked on the letter itself.
+//
+// The notebook lives in PrintLettersHome (a session with a saved copy and a
+// draft); every change goes up through onChange(updater).
+export default function ConstructorView({ notebook, onChange, byId, families, dirty, onSave, onBack }) {
   const narrow = useMediaQuery(NARROW_QUERY);
   const canvasRef = useRef(null);
 
-  const [format, setFormat] = useState("a4");
-  const [pages, setPages] = useState(() => [blankPage()]);
+  const pages = notebook.pages;
+  const format = notebook.format ?? "a4";
+  const setPages = (updater) => onChange((nb) => ({ ...nb, pages: typeof updater === "function" ? updater(nb.pages) : updater }));
+  const setFormat = (f) => onChange((nb) => ({ ...nb, format: f }));
+  const setTitle = (title) => onChange((nb) => ({ ...nb, title }));
+
   const [activePageId, setActivePageId] = useState(() => pages[0]?.id ?? null);
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [selectedRowId, setSelectedRowId] = useState(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
 
-  const sheetSize = sheetSizeMm(format);
-  const zoom = useFitZoom(canvasRef, sheetSize.w);
+  const zoom = useFitZoom(canvasRef, sheetSizeMm(format).w);
 
-  const activePageIndex = pages.findIndex((p) => p.id === activePageId);
+  const found = pages.findIndex((p) => p.id === activePageId);
+  const activePageIndex = found >= 0 ? found : 0;
   const activePage = pages[activePageIndex] ?? null;
+  const activeId = activePage?.id ?? null;
   const selectedBlock = activePage?.blocks.find((b) => b.id === selectedBlockId) ?? null;
   const selectedLetter = selectedBlock ? byId[selectedBlock.letterId] : null;
   const selectedRowIndex = selectedBlock ? selectedBlock.rows.findIndex((r) => r.id === selectedRowId) : -1;
   const selectedRow = selectedRowIndex >= 0 ? selectedBlock.rows[selectedRowIndex] : null;
 
   function updateActivePage(fn) {
-    setPages((prev) => prev.map((p) => (p.id === activePageId ? fn(p) : p)));
+    setPages((prev) => prev.map((p) => (p.id === activeId ? fn(p) : p)));
   }
   function updateSelectedBlock(fn) {
     if (!selectedBlockId) return;
@@ -127,13 +82,13 @@ export default function ConstructorView({ task, onAdvance }) {
     clearSelection();
   }
   function addPage() {
-    const page = blankPage();
+    const page = blankPage(activePage ? paperOf(activePage) : "cell");
     setPages((prev) => [...prev, page]);
     switchPage(page.id);
   }
   function duplicateActivePage() {
     if (!activePage) return;
-    const copy = { ...activePage, id: nextId(), blocks: activePage.blocks.map((b) => ({ ...b, id: nextId(), rows: b.rows.map((r) => ({ ...r, id: nextId() })) })) };
+    const copy = { ...activePage, id: newId(), blocks: activePage.blocks.map((b) => ({ ...b, id: newId(), rows: b.rows.map((r) => ({ ...r, id: newId() })) })) };
     setPages((prev) => {
       const next = [...prev];
       next.splice(activePageIndex + 1, 0, copy);
@@ -143,7 +98,7 @@ export default function ConstructorView({ task, onAdvance }) {
   }
   function moveActivePage(dir) {
     setPages((prev) => {
-      const i = prev.findIndex((p) => p.id === activePageId);
+      const i = prev.findIndex((p) => p.id === activeId);
       const j = i + dir;
       if (i < 0 || j < 0 || j >= prev.length) return prev;
       const next = [...prev];
@@ -153,7 +108,7 @@ export default function ConstructorView({ task, onAdvance }) {
   }
   function removeActivePage() {
     if (!activePage) return;
-    const next = pages.filter((p) => p.id !== activePageId);
+    const next = pages.filter((p) => p.id !== activeId);
     const result = next.length > 0 ? next : [blankPage()];
     setPages(result);
     switchPage(result[Math.min(activePageIndex, result.length - 1)].id);
@@ -171,9 +126,9 @@ export default function ConstructorView({ task, onAdvance }) {
   function addBlock(letterId) {
     const letter = byId[letterId];
     if (!letter || !activePage) return;
-    const id = nextId();
+    const id = newId();
     const rows = withIds(ladderRows(letter));
-    updateActivePage((p) => ({ ...p, blocks: [...p.blocks, { id, letterId, color: PALETTE[p.blocks.length % PALETTE.length], rows }] }));
+    updateActivePage((p) => ({ ...p, blocks: [...p.blocks, { id, letterId, color: PALETTE[p.blocks.length % PALETTE.length], size: 2, rows }] }));
     setSelectedBlockId(id);
     setSelectedRowId(rows[0].id);
   }
@@ -184,7 +139,7 @@ export default function ConstructorView({ task, onAdvance }) {
   }
   function addRow() {
     if (!selectedBlock || !selectedLetter) return;
-    const row = { id: nextId(), elements: allElements(selectedLetter), support: "dotted" };
+    const row = { id: newId(), elements: allElements(selectedLetter), support: "dotted" };
     const at = selectedRowIndex >= 0 ? selectedRowIndex + 1 : selectedBlock.rows.length;
     updateSelectedBlock((b) => ({ ...b, rows: [...b.rows.slice(0, at), row, ...b.rows.slice(at)] }));
     setSelectedRowId(row.id);
@@ -216,7 +171,6 @@ export default function ConstructorView({ task, onAdvance }) {
 
   const hasContent = pages.some((p) => p.blocks.length > 0);
   const overflow = activePage ? pageOverflows(activePage, format) : false;
-  const { w: paperW, h: paperH } = FORMATS[format];
 
   const inspector = (peek) => (
     <RowInspector
@@ -237,11 +191,17 @@ export default function ConstructorView({ task, onAdvance }) {
 
   return (
     <div className={`pl-constructor${narrow ? " is-narrow" : ""}`}>
-      {/* The printer's paper size follows the notebook's format. */}
-      <style>{`@media print { @page { size: ${paperW}mm ${paperH}mm; margin: ${PAGE_MARGIN_MM}mm; } }`}</style>
-
       <div className="pl-header no-print">
-        <span className="pl-header-title">Печатные буквы</span>
+        <button type="button" className="pl-header-back" onClick={onBack} aria-label="Назад, к моим тетрадям"><IconBack /></button>
+        <label className="pl-title-field">
+          <span className="pl-sr">Название тетради</span>
+          <input className="pl-title-input" value={notebook.title} onChange={(e) => setTitle(e.target.value)} placeholder="Без названия" />
+        </label>
+        <span className="pl-header-fill" />
+        {dirty && <span className="pl-dirty" role="status">● Не сохранено</span>}
+        <button type="button" className="pl-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь">
+          <IconSave /><span>{dirty ? "Сохранить" : "Сохранено"}</span>
+        </button>
       </div>
 
       <div className="pl-toolbar no-print" role="toolbar" aria-label="Инструменты">
@@ -275,17 +235,13 @@ export default function ConstructorView({ task, onAdvance }) {
             <span className="pl-tool-cap">Печать</span>
           </button>
         )}
-        <button type="button" className="pl-tool pl-tool--muted" onClick={onAdvance}>
-          <span className="pl-tool-ico"><IconClose /></span>
-          <span className="pl-tool-cap">Завершить</span>
-        </button>
       </div>
 
       <div className="pl-body no-print">
         <div className="pl-pages-rail">
           <div className="pl-pages-list">
             {pages.map((p, i) => (
-              <PageThumb key={p.id} page={p} format={format} byId={byId} active={p.id === activePageId} index={i} compact={narrow} onSelect={() => switchPage(p.id)} />
+              <PageThumb key={p.id} page={p} format={format} byId={byId} active={p.id === activeId} index={i} compact={narrow} onSelect={() => switchPage(p.id)} />
             ))}
           </div>
           <button type="button" className="pl-page-add" onClick={addPage} aria-label="Добавить страницу">
@@ -294,7 +250,7 @@ export default function ConstructorView({ task, onAdvance }) {
           <div className="pl-page-actions">
             <button type="button" onClick={duplicateActivePage} aria-label="Дублировать страницу" title="Дублировать"><IconDuplicate /></button>
             <button type="button" onClick={() => moveActivePage(-1)} disabled={activePageIndex <= 0} aria-label="Страница выше" title="Выше"><IconUp /></button>
-            <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex < 0 || activePageIndex >= pages.length - 1} aria-label="Страница ниже" title="Ниже"><IconDown /></button>
+            <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex >= pages.length - 1} aria-label="Страница ниже" title="Ниже"><IconDown /></button>
             <button type="button" onClick={removeActivePage} aria-label="Удалить страницу" title="Удалить" className="pl-page-actions-danger"><IconTrash /></button>
           </div>
         </div>
@@ -330,12 +286,7 @@ export default function ConstructorView({ task, onAdvance }) {
         </BottomSheet>
       )}
 
-      {/* Print renders every page as its own physical sheet, not just the one being edited on screen. */}
-      <div className="pl-print-pages">
-        {pages.map((p) => (
-          <Sheet key={p.id} page={p} format={format} byId={byId} className="pl-sheet--print" />
-        ))}
-      </div>
+      <PrintPages notebook={notebook} byId={byId} />
     </div>
   );
 }

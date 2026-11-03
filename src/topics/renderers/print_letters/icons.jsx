@@ -75,3 +75,9 @@ export const IconFormatA4 = () => formatText("А4");
 export const IconFormatA5 = () => formatText("А5");
 // A ladder: rows that grow step by step.
 export const IconLadder = () => S(<><path d="M4 19h4M4 14h9M4 9h14" /><path d="M4 4.5h16" strokeDasharray="2 2.5" /></>);
+// Copied from propis2's IconEditPage idea: a pencil.
+export const IconEdit = () => S(<path d="M4 20h4l10-10-4-4L4 16z" />);
+// Save: a floppy.
+export const IconSave = () => S(<><path d="M5 4h11l3 3v13H5z" /><path d="M8 4v5h7V4M8 20v-6h8v6" /></>);
+// A new notebook: a page with a plus.
+export const IconNewNotebook = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.5" /><path d="M12 9v6M9 12h6" /></>);

@@ -256,8 +256,11 @@ why each earlier shape was replaced. Key facts: glyphs live in notebook-cell coo
 every length in a block is a whole number of 5mm cells (`model.js`); format А4/А5 is notebook-wide
 and the sheet is drawn at real printable size; rows are `{elements, support}` picked in the row
 panel (`RowInspector.jsx`, right side; bottom sheet on phones). UI copies `propis2`'s editor
-model, palette and icons (copied, not imported from `src/features/propis2/`). Registered in
-`engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** (no ZIP yet).
+model, palette and icons (copied, not imported from `src/features/propis2/`). Opens on «Мои тетради»
+(`PrintLettersHome.jsx`): notebooks saved on the device and in the account (`print_letters:nb:<id>` kv
+documents via the `accountKv` prop that `SessionScreen` passes to renderers — `src/topics/accountKv.js`),
+plus ready notebooks defined in `library.js`. Screens use the device's full width (owner's rule). Registered in
+`engineRegistry.js`/`registry.js`; deck ZIP built by `node tools/print_letters/build.mjs`, catalog status `beta`.
 
 ## Important
 

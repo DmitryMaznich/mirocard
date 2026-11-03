@@ -1,7 +1,11 @@
 import "./print_letters.css";
-import ConstructorView from "./ConstructorView";
+import PrintLettersHome from "./PrintLettersHome";
 
-export default function PrintLettersRenderer({ task, onAdvance }) {
+// «Печатные буквы»: «Мои тетради» and the notebook editor (PrintLettersHome).
+// `accountKv` is the app's bridge to the account's documents (SessionScreen,
+// src/topics/accountKv.js) — absent in an older app: the notebooks then stay
+// on this device only.
+export default function PrintLettersRenderer({ task, onAdvance, accountKv }) {
   if (!task) return null;
-  return <ConstructorView task={task} onAdvance={onAdvance} />;
+  return <PrintLettersHome task={task} onAdvance={onAdvance} accountKv={accountKv} />;
 }
