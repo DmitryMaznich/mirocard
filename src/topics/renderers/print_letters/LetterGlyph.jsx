@@ -265,7 +265,7 @@ export default function LetterGlyph({
       width={`${wMm}mm`}
       height={`${heightMm}mm`}
       className={`pl-glyph pl-glyph--${variant}${canPlay ? " pl-glyph--tappable" : ""}`}
-      style={{ display: "block", flexShrink: 0, opacity, cursor: canPlay ? "pointer" : undefined, overflow: "visible" }}
+      style={{ display: "block", flexShrink: 0, width: `${wMm}mm`, height: `${heightMm}mm`, opacity, cursor: canPlay ? "pointer" : undefined, overflow: "visible" }}
       onClick={canPlay && !playing ? play : undefined}
       role={canPlay ? "button" : "img"}
       aria-label={label ? `Буква ${label}` : undefined}

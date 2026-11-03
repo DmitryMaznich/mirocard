@@ -1,8 +1,5 @@
-import { DEFAULT_STYLE, allElements, ladderRows } from "./model";
+import { DEFAULT_STYLE, allElements, ladderRows, pageOverflows } from "./model";
 import { canWrite, wordLadderRows } from "./words";
-
-const FADING = { line: "tone", guide: "fade", dots: "all" };
-const SAMPLE_ONLY = { line: "tone", guide: "none", dots: "sample" };
 
 // «Мои тетради» for print_letters (docs/print-letters.md): the same
 // architecture as propis2's library, without its many options.
@@ -165,14 +162,26 @@ export function mergeRemote(lib, items) {
 }
 
 // ---- ready notebooks («Готовые тетради») ----------------------------------
-// Chosen by method (docs/print-letters.md, «Разворот 19»): the hand first
-// (sticks and bars, large), then the straight-line letters by ladder, two
-// per page, then a review sheet on ruled paper (the next step of the
-// ladder — the skill moved off the grid).
+// A course after Ilyukhina's «Волшебные линии» №2 (owner, 2026-11-03: «ответь сам как логопед
+// методист»; docs/print-letters.md, «Готовые тетради — курс по занятиям»):
+//  - «Подготовка руки» — the elements first, large (her workbook №1): stick, bar, slants, half-oval,
+//    oval;
+//  - one notebook per lesson (2–16): the lesson's new letters, each by its ladder on «крупная клетка»
+//    (the workbook's 1cm cell, one letter per page), then a review page on 5mm «клетка» — the new
+//    letters after a sample, a row alternating the letters learnt lately (her «чередование букв»),
+//    syllables and words made only of letters learnt so far (from lesson 4, when the first vowels
+//    come);
+//  - after each family a review on «линейка», where the skill leaves the grid.
+// `section` groups them on the «Мои тетради» screen.
+
+export const READY_SECTIONS = ["Подготовка руки", "Прямые линии", "Наклонные линии", "Овалы и полуовалы"];
 
 let seq = 0;
 const rid = (p) => `ready-${p}-${++seq}`;
 const rowsOf = (list) => list.map((r) => ({ id: rid("r"), ...r }));
+
+const SAMPLE_ONLY = { line: "tone", guide: "none", dots: "sample", arrows: true };
+const FADING = { line: "tone", guide: "fade", dots: "all", arrows: true };
 
 function ladderBlock(letter, color, size = 2) {
   return { id: rid("b"), letterId: letter.id, color, size, rows: rowsOf(ladderRows(letter)) };
@@ -183,73 +192,121 @@ function reviewBlock(letter, color) {
   return { id: rid("b"), letterId: letter.id, color, size: 2, rows: rowsOf([{ elements: all, ...SAMPLE_ONLY }, { elements: [], ...DEFAULT_STYLE }]) };
 }
 
+function wordBlock(words, color, rows = wordLadderRows(words)) {
+  return { id: rid("b"), kind: "word", words, color, size: 2, rows: rowsOf(rows) };
+}
+
 function page(blocks, paper = "cell") {
   return { id: rid("p"), paper, blocks };
 }
+
+// Blocks onto as few A4 pages as they fit, in order.
+function pack(blocks, paper) {
+  const pages = [];
+  let cur = [];
+  for (const b of blocks) {
+    if (cur.length && pageOverflows({ paper, blocks: [...cur, b] }, "a4")) { pages.push(page(cur, paper)); cur = []; }
+    cur.push(b);
+  }
+  if (cur.length) pages.push(page(cur, paper));
+  return pages;
+}
+
+// The same, but spread evenly over those pages (13 review letters: 5 + 4 + 4, not 6 + 6 + 1).
+function packEven(blocks, paper) {
+  const n = pack(blocks, paper).length;
+  const per = Math.ceil(blocks.length / n);
+  const pages = [];
+  for (let i = 0; i < blocks.length; i += per) pages.push(page(blocks.slice(i, i + per), paper));
+  return pages;
+}
+
+// The lessons of workbook №2 that bring letters (lesson 1 is the alphabet and the cell), with the
+// syllables and words of each — only letters learnt by then; the words are hers where she gives
+// them (МАМА — 10, ФИЛИН and ФЛАГ — 13, ЖИРАФ — 14, ГУСЬ — 14/16), the rest everyday things.
+const LESSONS = [
+  { n: 2, letters: ["Г", "Т", "Ч"], section: 1 },
+  { n: 3, letters: ["П", "Н"], section: 1, hint: "в букве П «спряталась» Г" },
+  { n: 4, letters: ["Е", "Ё", "Ш"], section: 1, syllables: ["ТЕ", "НЕ", "ПЕ", "ШЕ"], words: ["НЕТ"] },
+  { n: 5, letters: ["Л", "А"], section: 2, syllables: ["ЛА", "ТА", "НА", "ПА"], words: ["ПАПА", "ЛАПА"], hint: "Л — «домик», А — тот же домик с перекладиной" },
+  { n: 6, letters: ["И", "Й", "Д"], section: 2, syllables: ["ДА", "ДИ", "ЛИ", "НИ"], words: ["ЧАЙ", "ЛИПА"], hint: "Д получается из Л" },
+  { n: 7, letters: ["Ц", "Щ"], section: 2, syllables: ["ЦА", "ЩА", "ЩИ"], words: ["ПТИЦА"], hint: "хвостик — под строкой" },
+  { n: 8, letters: ["У", "Х"], section: 2, syllables: ["ТУ", "ДУ", "ХА", "ХИ"], words: ["УХА", "УЛИЦА"] },
+  { n: 9, letters: ["К", "Ж"], section: 2, syllables: ["КА", "КУ", "ЖА", "ЖИ"], words: ["ЖУК", "КАША"], alternation: "УХКЖ" },
+  { n: 10, letters: ["М"], section: 2, syllables: ["МА", "МУ", "МИ", "МЕ"], words: ["МАМА", "МУХА"] },
+  { n: 11, letters: ["Ь", "Ъ", "Ы"], section: 3, syllables: ["МЫ", "ТЫ", "НЫ", "ДЫ"], words: ["МЫШКА", "ПЫЛЬ"] },
+  { n: 12, letters: ["Р", "Б"], section: 3, syllables: ["РА", "РУ", "БА", "БЫ"], words: ["РЫБА", "РУКА"], hint: "у Б верхняя черта — последней" },
+  { n: 13, letters: ["Ф", "Я"], section: 3, syllables: ["ФА", "ЛЯ", "МЯ", "ТЯ"], words: ["ФИЛИН", "ФЛАГ"] },
+  { n: 14, letters: ["В", "З"], section: 3, syllables: ["ВА", "ВЕ", "ЗА", "ЗИ"], words: ["ВАЗА", "ЖИРАФ"] },
+  { n: 15, letters: ["О", "Ю"], section: 3, syllables: ["ЛО", "НО", "МО", "ЛЮ"], words: ["ЮЛА", "ДОМ"] },
+  { n: 16, letters: ["С", "Э"], section: 3, syllables: ["СА", "СО", "СУ", "СЫ"], words: ["ЭХО", "ГУСЬ"] },
+];
+
+const FAMILY_REVIEW = [
+  { id: "review-straight", section: 1, title: "Повторяем прямые линии", letters: ["Г", "Т", "Ч", "П", "Н", "Е", "Ё", "Ш"] },
+  { id: "review-slant", section: 2, title: "Повторяем наклонные линии", letters: ["Л", "А", "И", "Й", "Д", "Ц", "Щ", "У", "Х", "К", "Ж", "М"] },
+  { id: "review-oval", section: 3, title: "Повторяем овалы", letters: ["Ь", "Ъ", "Ы", "Р", "Б", "Ф", "Я", "В", "З", "О", "Ю", "С", "Э"] },
+];
 
 export function readyNotebooks(byId) {
   const L = (id) => byId[id];
   const have = (...ids) => ids.every((id) => L(id));
   const out = [];
-  const nb = (id, title, description, pages) => ({ id: `ready:${id}`, ready: true, title, description, format: "a4", pages, createdAt: 0, updatedAt: 0 });
+  const nb = (id, section, title, description, pages) => ({ id: `ready:${id}`, ready: true, section: READY_SECTIONS[section], title, description, format: "a4", pages, createdAt: 0, updatedAt: 0 });
+  const color = (i) => PALETTE[i % PALETTE.length];
 
-  if (have("Г")) {
-    const g = L("Г"); // strokes (Ilyukhina's first way): 0 — палочка, 1 — верхняя черта
-    out.push(nb("sticks", "Палочки и черточки", "Подготовка руки перед буквами, крупно: палочка сверху вниз, черта слева направо, потом вместе — получается Г.", [
-      page([{
-        id: rid("b"), letterId: g.id, color: "#8b93a1", size: 4,
-        rows: rowsOf([
-          { elements: [0], ...DEFAULT_STYLE },
-          { elements: [0], ...FADING },
-          { elements: [1], ...DEFAULT_STYLE },
-          { elements: [1], ...FADING },
-          { elements: [0, 1], ...DEFAULT_STYLE },
-          { elements: [0, 1], ...SAMPLE_ONLY },
-        ]),
-      }]),
+  // Подготовка руки: the elements on their own, large — each a stroke of a letter (the plate shows
+  // the letter it ends up in): stick and bar (Г), the two slants (Л), half-oval (С), oval (О).
+  if (have("Г", "Л", "С", "О")) {
+    const el = (letter, elementRows, c) => ({ id: rid("b"), letterId: letter.id, color: c, size: 2, rows: rowsOf(elementRows) });
+    out.push(nb("hand", 0, "Подготовка руки: палочки, наклонные, овалы", "Элементы букв по одному, крупно, в клетке 1 см: палочка сверху вниз и черта слева направо (из них Г), наклонные вверх и вниз (из них Л), полуовал (С) и овал (О) — сверху, против часовой стрелки.", [
+      page([
+        el(L("Г"), [{ elements: [0], ...DEFAULT_STYLE }, { elements: [0], ...FADING }, { elements: [1], ...DEFAULT_STYLE }, { elements: [1], ...FADING }, { elements: [0, 1], ...DEFAULT_STYLE }], "#8b93a1"),
+        el(L("Л"), [{ elements: [0], ...DEFAULT_STYLE }, { elements: [1], ...DEFAULT_STYLE }, { elements: [0, 1], ...FADING }], color(1)),
+      ], "bigcell"),
+      page([
+        el(L("С"), [{ elements: [0], ...DEFAULT_STYLE }, { elements: [0], ...FADING }, { elements: [0], ...SAMPLE_ONLY }], color(2)),
+        el(L("О"), [{ elements: [0], ...DEFAULT_STYLE }, { elements: [0], ...FADING }, { elements: [0], ...SAMPLE_ONLY }], color(3)),
+      ], "bigcell"),
     ]));
   }
-  if (have("Г", "Т", "П", "Н")) {
-    out.push(nb("straight-1", "Прямые линии 1: Г Т П Н", "Каждая буква лесенкой: элемент за элементом, потом опора убывает до пустой строки.", [
-      page([ladderBlock(L("Г"), PALETTE[0]), ladderBlock(L("Т"), PALETTE[1])]),
-      page([ladderBlock(L("П"), PALETTE[2]), ladderBlock(L("Н"), PALETTE[3])]),
-    ]));
-  }
-  if (have("И", "Ш", "Е", "Ё")) {
-    out.push(nb("straight-2", "Прямые линии 2: И Ш Е Ё", "Те же шаги. В И — первая наклонная, Ш — широкая буква (две трети клетки), в Ё — точки.", [
-      page([ladderBlock(L("И"), PALETTE[4]), ladderBlock(L("Ш"), PALETTE[5])]),
-      page([ladderBlock(L("Е"), PALETTE[0]), ladderBlock(L("Ё"), PALETTE[1])]),
-    ]));
-  }
-  const all = ["Г", "Т", "П", "Н", "И", "Ш", "Е", "Ё"];
-  if (have(...all)) {
-    const blocks = all.map((id, i) => reviewBlock(L(id), PALETTE[i % PALETTE.length]));
-    out.push(nb("straight-review", "Повторяем прямые линии", "Все восемь букв на линейке: один образец и строка самостоятельно. Проверка, что буквы усвоены и пишутся без клетки — по строке и до пунктира.", [
-      page(blocks.slice(0, 4), "line"),
-      page(blocks.slice(4), "line"),
-    ]));
-  }
-  // the slanted-line and oval letters, by Ilyukhina's order, two ladder blocks a page
-  const ladderBook = (id, title, description, ids, paletteFrom = 0) => {
-    if (!have(...ids)) return;
-    const pages = [];
-    for (let i = 0; i < ids.length; i += 2) pages.push(page(ids.slice(i, i + 2).map((x, k) => ladderBlock(L(x), PALETTE[(paletteFrom + i + k) % PALETTE.length]))));
-    out.push(nb(id, title, description, pages));
-  };
-  ladderBook("slant-1", "Наклонные линии 1: Л А Д Й", "Первые наклонные: Л — «домик», А — тот же домик с перекладиной, Д — из Л с основанием и ножками, Й — И с краткой.", ["Л", "А", "Д", "Й"], 0);
-  ladderBook("slant-2", "Наклонные линии 2: Ц Щ У Х", "Хвостик Ц и Щ — под строкой справа. У — короткая наклонная к длинной, Х — две наклонные крест-накрест.", ["Ц", "Щ", "У", "Х"], 2);
-  ladderBook("slant-3", "Наклонные линии 3: К Ж М", "К и Ж — наклонные к палочке и от неё, М — палочка, «галочка», палочка.", ["К", "Ж", "М"], 4);
-  ladderBook("oval-1", "Овалы 1: Ь Ъ Ы Р Б", "Полуовал у палочки: внизу (Ь Ъ Ы Б) и вверху (Р). У Б верхняя черта — последней, как у Илюхиной.", ["Ь", "Ъ", "Ы", "Р", "Б"], 1);
-  ladderBook("oval-2", "Овалы 2: Ф Я В З", "Ф — палочка и два полуовала, Я — полуовал слева и ножка, В и З — два полуовала друг над другом.", ["Ф", "Я", "В", "З"], 3);
-  ladderBook("oval-3", "Овалы 3: О Ю С Э", "Овал одним движением сверху против часовой стрелки; С и Э — незамкнутые, у Э перекладина.", ["О", "Ю", "С", "Э"], 5);
 
-  // syllables, then words, from the letters already drawn (words.js); grows as letters are added
-  const wordBlock = (words, color) => ({ id: rid("b"), kind: "word", words, color, size: 2, rows: rowsOf(wordLadderRows(words)) });
-  if (["МА", "МО", "МУ", "НА", "НО", "НУ", "МАМА", "ДОМ"].every((w) => canWrite(w, byId))) {
-    out.push(nb("first-words", "Первые слоги и слова", "Слоги МА МО МУ и НА НО НУ, потом слова МАМА (как у Илюхиной, занятие 10) и ДОМ. В слове на второй строке пропущены гласные — ребёнок вписывает их сам.", [
-      page([wordBlock(["МА", "МО", "МУ"], PALETTE[0]), wordBlock(["НА", "НО", "НУ"], PALETTE[1])]),
-      page([wordBlock(["МАМА"], PALETTE[3]), wordBlock(["ДОМ"], PALETTE[2])]),
+  const learnt = [];
+  LESSONS.forEach((lesson, li) => {
+    if (!have(...lesson.letters)) return;
+    learnt.push(...lesson.letters);
+    // new letters: one per page on крупная клетка, by its ladder
+    const pages = lesson.letters.map((id, k) => page([ladderBlock(L(id), color(li + k))], "bigcell"));
+    // review on клетка 5 мм
+    const review = [];
+    review.push(wordBlock(lesson.letters, color(li), [
+      ...lesson.letters.map((id) => ({ text: id, elements: [0], ...SAMPLE_ONLY })),
+      { text: lesson.letters[0], elements: [], ...DEFAULT_STYLE },
     ]));
-  }
+    const alt = lesson.alternation ?? (learnt.length >= 4 ? learnt.slice(-5).join("") : null);
+    if (alt && canWrite(alt, byId)) {
+      review.push(wordBlock([alt], color(li + 1), [
+        { text: alt, elements: [...alt].map((_, i) => i), line: "dash", guide: "full", dots: "sample", arrows: false },
+        { text: alt, elements: [...alt].map((_, i) => i), line: "tone", guide: "fade", dots: "sample", arrows: false },
+        { text: alt, elements: [], ...DEFAULT_STYLE },
+      ]));
+    }
+    const syl = (lesson.syllables ?? []).filter((w) => canWrite(w, byId)).slice(0, 3);
+    if (syl.length) review.push(wordBlock(syl, color(li + 2)));
+    const words = (lesson.words ?? []).filter((w) => canWrite(w, byId));
+    for (const [k, w] of words.entries()) review.push(wordBlock([w], color(li + 3 + k)));
+    pages.push(...pack(review, "cell"));
+    const what = [
+      `Новые буквы ${lesson.letters.join(" ")} — лесенкой, каждая на своей странице, в клетке 1 см.`,
+      lesson.hint ? `Подсказка: ${lesson.hint}.` : "",
+      `Повторение на клетке: буквы по образцу${alt ? `, чередование ${[...alt].join(" ")}` : ""}${syl.length ? `, слоги ${syl.join(" ")}` : ""}${words.length ? `, ${words.length > 1 ? "слова" : "слово"} ${words.join(", ")}` : ""}.`,
+    ].filter(Boolean).join(" ");
+    out.push(nb(`lesson-${lesson.n}`, lesson.section, `Занятие ${lesson.n}: ${lesson.letters.join(" ")}`, what, pages));
+    const fam = FAMILY_REVIEW.find((f) => f.section === lesson.section && lesson.n === Math.max(...LESSONS.filter((x) => x.section === f.section).map((x) => x.n)));
+    if (fam && have(...fam.letters)) {
+      out.push(nb(fam.id, fam.section, fam.title, `Все буквы группы на линейке: один образец и строка самостоятельно. Проверка, что буквы усвоены и пишутся без клетки — по строке и до пунктира.`,
+        packEven(fam.letters.map((id, k) => reviewBlock(L(id), color(k))), "line")));
+    }
+  });
   return out;
 }

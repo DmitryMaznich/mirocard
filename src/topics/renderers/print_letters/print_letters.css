@@ -823,3 +823,7 @@
 .pl-insp-picks .pl-toggle.is-on { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
 .pl-insp-picks .pl-toggle::after { content: ""; position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #c4cad3; }
 .pl-insp-picks .pl-toggle.is-on::after { background: var(--pl-teal); }
+/* «Готовые тетради»: the course, by sections */
+.pl-ready-intro { margin: -4px 0 4px; font-size: 13px; color: #5b6472; line-height: 1.45; }
+.pl-ready-sec { display: flex; flex-direction: column; gap: 8px; }
+.pl-ready-h3 { margin: 8px 0 0; font-size: 14px; font-weight: 900; color: var(--pl-teal-dark); text-transform: uppercase; letter-spacing: .04em; }

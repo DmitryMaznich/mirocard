@@ -95,7 +95,7 @@ function SheetGrid({ paper, w, h }) {
   for (let y = g.offset; y <= h + 0.01; y += g.step) ys.push(y);
   const d = xs.map((x) => `M${x} 0V${h}`).join("") + ys.map((y) => `M0 ${y}H${w}`).join("");
   return (
-    <svg className="pl-sheet-grid" viewBox={`0 0 ${w} ${h}`} width={`${w}mm`} height={`${h}mm`} aria-hidden="true">
+    <svg className="pl-sheet-grid" viewBox={`0 0 ${w} ${h}`} width={`${w}mm`} height={`${h}mm`} style={{ width: `${w}mm`, height: `${h}mm` }} aria-hidden="true">
       <path d={d} fill="none" stroke={g.color} strokeWidth="1" vectorEffect="non-scaling-stroke" shapeRendering="crispEdges" />
     </svg>
   );

@@ -51,15 +51,23 @@ describe("print_letters notebooks", () => {
     expect(notebookJson({ ...cp, updatedAt: 1 })).toBe(notebookJson({ ...cp, updatedAt: 2 }));
   });
 
-  it("ready notebooks: the planned ones, every page fits its A4 sheet", () => {
+  it("ready notebooks: the course after Ilyukhina — hand, lessons 2–16, a review per family; every page fits A4", () => {
     const ready = readyNotebooks(byId);
-    expect(ready.map((r) => r.title)).toEqual([
-      "Палочки и черточки", "Прямые линии 1: Г Т П Н", "Прямые линии 2: И Ш Е Ё", "Повторяем прямые линии",
-      "Наклонные линии 1: Л А Д Й", "Наклонные линии 2: Ц Щ У Х", "Наклонные линии 3: К Ж М",
-      "Овалы 1: Ь Ъ Ы Р Б", "Овалы 2: Ф Я В З", "Овалы 3: О Ю С Э", "Первые слоги и слова",
-    ]);
-    for (const r of ready) for (const p of r.pages) expect(pageOverflows(p, r.format)).toBe(false);
-    expect(ready[0].pages[0].blocks[0].size).toBe(4); // sticks and bars — large
-    expect(ready[3].pages.every((p) => p.paper === "line")).toBe(true); // review — on ruled paper
+    expect(ready[0].title).toMatch(/^Подготовка руки/);
+    const lessons = ready.filter((r) => r.id.startsWith("ready:lesson-"));
+    expect(lessons.map((r) => r.title.split(":")[0])).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((n) => `Занятие ${n}`));
+    expect(ready.filter((r) => r.id.startsWith("ready:review-")).map((r) => r.title)).toEqual(["Повторяем прямые линии", "Повторяем наклонные линии", "Повторяем овалы"]);
+    for (const r of ready) for (const p of r.pages) expect(pageOverflows(p, r.format), `${r.title}`).toBe(false);
+    // new letters on крупная клетка, one per page; the review on клетка; family reviews on линейка
+    const l5 = ready.find((r) => r.id === "ready:lesson-5");
+    expect(l5.pages.slice(0, 2).map((p) => [p.paper, p.blocks.length, p.blocks[0].letterId])).toEqual([["bigcell", 1, "Л"], ["bigcell", 1, "А"]]);
+    expect(l5.pages.slice(2).every((p) => p.paper === "cell")).toBe(true);
+    expect(ready.find((r) => r.id === "ready:review-oval").pages.every((p) => p.paper === "line")).toBe(true);
+    // syllables and words only from letters learnt by that lesson
+    const learnt = new Set();
+    for (const r of lessons) {
+      r.pages.filter((p) => p.paper === "bigcell").forEach((p) => p.blocks.forEach((b) => learnt.add(b.letterId)));
+      for (const p of r.pages) for (const b of p.blocks) if (b.kind === "word") for (const w of b.words) for (const ch of w) expect(learnt.has(ch), `${r.title}: ${w}`).toBe(true);
+    }
   });
 });

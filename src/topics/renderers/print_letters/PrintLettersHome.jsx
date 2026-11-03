@@ -4,7 +4,7 @@ import ConstructorView from "./ConstructorView";
 import PrintPages from "./PrintPages";
 import {
   SYNC_PREFIX, clearDraft, copyNotebook, docFor, docKey, loadDraft, loadLocal, mergeRemote, newNotebook, notebookJson,
-  putNotebook, readyNotebooks, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
+  putNotebook, READY_SECTIONS, readyNotebooks, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
 } from "./library";
 import { IconAddPage, IconDuplicate, IconEditPage, IconNotebook, IconPrint, IconTrash } from "./icons";
 
@@ -250,24 +250,34 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv })
         {ready.length > 0 && (
           <>
             <h2 className="plb-h2">Готовые тетради</h2>
-            <ul className="plb-pages">
-              {ready.map((r) => (
-                <li key={r.id} className="pl2-nb pl2-nb--ready">
-                  <div className="pl2-nb-head">
-                    <span className="pl2-nb-ico"><IconNotebook /></span>
-                    <div className="pl2-nb-main">
-                      <div className="pl2-nb-name">{r.title}</div>
-                      <div className="pl2-nb-meta">{metaLine(r)}</div>
-                      {r.description && <div className="pl2-nb-desc">{r.description}</div>}
-                    </div>
-                  </div>
-                  <div className="pl2-nb-tools" role="group" aria-label="Действия с тетрадью">
-                    <Tool label={`Изменить тетрадь ${r.title}`} caption="Править" tone="pl2-tool--go" onClick={() => editReady(r)}><IconEditPage /></Tool>
-                    <Tool label={`Печать тетради ${r.title}`} caption="Печать" onClick={() => setPrintNb(r)}><IconPrint /></Tool>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <p className="pl-ready-intro">Курс по «Волшебным линиям» В. А. Илюхиной: занятие — новые буквы лесенкой в клетке 1 см, потом повторение, слоги и слова из уже изученных букв.</p>
+            {READY_SECTIONS.map((section) => {
+              const list = ready.filter((r) => r.section === section);
+              if (!list.length) return null;
+              return (
+                <section key={section} className="pl-ready-sec" aria-label={section}>
+                  <h3 className="pl-ready-h3">{section}</h3>
+                  <ul className="plb-pages">
+                    {list.map((r) => (
+                      <li key={r.id} className="pl2-nb pl2-nb--ready">
+                        <div className="pl2-nb-head">
+                          <span className="pl2-nb-ico"><IconNotebook /></span>
+                          <div className="pl2-nb-main">
+                            <div className="pl2-nb-name">{r.title}</div>
+                            <div className="pl2-nb-meta">{metaLine(r)}</div>
+                            {r.description && <div className="pl2-nb-desc">{r.description}</div>}
+                          </div>
+                        </div>
+                        <div className="pl2-nb-tools" role="group" aria-label="Действия с тетрадью">
+                          <Tool label={`Изменить тетрадь ${r.title}`} caption="Править" tone="pl2-tool--go" onClick={() => editReady(r)}><IconEditPage /></Tool>
+                          <Tool label={`Печать тетради ${r.title}`} caption="Печать" onClick={() => setPrintNb(r)}><IconPrint /></Tool>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
           </>
         )}
       </div>
