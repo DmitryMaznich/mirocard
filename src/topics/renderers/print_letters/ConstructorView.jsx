@@ -10,7 +10,7 @@ import { FORMATS, DEFAULT_STYLE, describeStyle, withStyle, paperOf, allElements,
 import { PALETTE, blankPage, newId } from "./library";
 import { WORD_STYLE, allLetterIdx, isWordBlock, wordLadderRows } from "./words";
 import {
-  IconTrash, IconPrint, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
+  IconTrash, IconPdf, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
   IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
 } from "./icons";
 
@@ -51,7 +51,7 @@ function Tool({ label, caption, onClick, disabled, danger = false, children }) {
 //    panel docked at the bottom.
 // The notebook lives in PrintLettersHome (a session: saved copy, draft, undo/redo); every change
 // goes up through onChange(updater, { typing }).
-export default function ConstructorView({ notebook, onChange, byId, families, dirty, onSave, onBack, onUndo, onRedo, canUndo, canRedo }) {
+export default function ConstructorView({ notebook, onChange, byId, families, dirty, onSave, onBack, onUndo, onRedo, canUndo, canRedo, onPdf, pdfBusy = false }) {
   const narrow = useMediaQuery(NARROW_QUERY);
   const canvasRef = useRef(null);
 
@@ -262,7 +262,8 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     <BlockPickerButton families={families} byId={byId} onPickLetter={addBlock} onPickWords={addWordBlock} focusLetters={pageLetters} />
     <Tool label="Удалить блок буквы" caption="Удалить блок" danger disabled={!selectedBlockId} onClick={removeSelectedBlock}><IconTrash /></Tool>
   </>;
-  const printEl = <Tool label="Печать тетради" caption="Печать" disabled={!hasContent} onClick={() => window.print()}><IconPrint /></Tool>;
+  // «PDF»: the notebook as a PDF file, «Сохранить как» (usePdfExport.jsx) — no print dialog
+  const printEl = <Tool label="Сохранить тетрадь в PDF" caption="PDF" disabled={!hasContent || pdfBusy} onClick={() => (onPdf ? onPdf() : window.print())}><IconPdf /></Tool>;
   const historyEls = <>
     <Tool label="Отменить (Ctrl+Z)" caption="Отменить" onClick={onUndo} disabled={!canUndo}><IconUndo /></Tool>
     <Tool label="Вернуть (Ctrl+Y)" caption="Вернуть" onClick={onRedo} disabled={!canRedo}><IconRedo /></Tool>

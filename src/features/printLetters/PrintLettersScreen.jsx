@@ -4,6 +4,7 @@ import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { accountKv } from "@/topics/accountKv";
+import { makePrintLettersPdf } from "./printLettersPdf";
 
 // «Печатные буквы» owns a full screen, like propis2's Propis2Home (owner, 2026-11-03: the
 // constructor must not sit under the session header). App's ParamsRoute sends the topic here
@@ -28,5 +29,5 @@ export default function PrintLettersScreen() {
   const onBack = () => setScreen((record?.modes?.length ?? 0) > 1 ? "modes" : "home");
 
   if (!record || !Renderer || !task) return <div className="screen-center">Загрузка…</div>;
-  return <Renderer task={task} topicRecord={record} accountKv={accountKv} onBack={onBack} fullScreen />;
+  return <Renderer task={task} topicRecord={record} accountKv={accountKv} makePdf={makePrintLettersPdf} onBack={onBack} fullScreen />;
 }

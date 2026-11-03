@@ -827,3 +827,16 @@
 .pl-ready-intro { margin: -4px 0 4px; font-size: 13px; color: #5b6472; line-height: 1.45; }
 .pl-ready-sec { display: flex; flex-direction: column; gap: 8px; }
 .pl-ready-h3 { margin: 8px 0 0; font-size: 14px; font-weight: 900; color: var(--pl-teal-dark); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ---- PDF (usePdfExport.jsx): the sheets laid out off screen, and the progress / «Сохранить» panel ---- */
+.pl-print-pages--export { display: block !important; position: fixed; left: -20000px; top: 0; zoom: 1; pointer-events: none; }
+.pl-print-pages--export .pl-sheet { margin-bottom: 10mm; }
+.pl-pdf-toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + var(--app-safe-bottom, 0px)); z-index: 900;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px - var(--app-safe-left, 0px) - var(--app-safe-right, 0px));
+  padding: 10px 10px 10px 16px; border-radius: 16px; background: #1c3634; color: #fff; box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
+  font-size: 14px; font-weight: 700;
+}
+.pl-pdf-msg { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-pdf-save { flex: 0 0 auto; min-height: 40px; padding: 0 16px; border: none; border-radius: 12px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
+.pl-pdf-close { flex: 0 0 auto; width: 36px; height: 36px; border: none; border-radius: 10px; background: rgba(255, 255, 255, .12); color: #fff; font: inherit; font-size: 20px; cursor: pointer; }

@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import ConstructorView from "./ConstructorView";
 import PrintPages from "./PrintPages";
+import usePdfExport from "./usePdfExport";
 import {
   SYNC_PREFIX, clearDraft, copyNotebook, docFor, docKey, loadDraft, loadLocal, mergeRemote, newNotebook, notebookJson,
   putNotebook, READY_SECTIONS, readyNotebooks, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
 } from "./library";
-import { IconAddPage, IconDuplicate, IconEditPage, IconNotebook, IconPrint, IconTrash } from "./icons";
+import { IconAddPage, IconDuplicate, IconEditPage, IconNotebook, IconPdf, IconTrash } from "./icons";
 
 const MONTHS = ["янв.", "февр.", "марта", "апр.", "мая", "июня", "июля", "авг.", "сент.", "окт.", "нояб.", "дек."];
 const UNDO_DEPTH = 200;
@@ -40,7 +41,7 @@ function Tool({ label, caption, tone = "", onClick, children }) {
 // options. A notebook opened for editing is a SESSION: a working copy with the saved version
 // beside it and its own undo/redo; nothing reaches «Мои тетради» until «Сохранить» (or the
 // question when leaving), and the working copy is mirrored to this device as a draft.
-export default function PrintLettersHome({ task, onBack, onAdvance, accountKv }) {
+export default function PrintLettersHome({ task, onBack, onAdvance, accountKv, makePdf }) {
   const letters = useMemo(() => task?.letters ?? [], [task]);
   const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
   const families = useMemo(() => {
@@ -98,12 +99,15 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv })
     else clearDraft();
   }, [session, dirty]);
 
-  // Printing from the list: render that notebook's sheets, print, drop them.
+  // Printing (the browser's print, only when the app has no PDF maker): render that notebook's
+  // sheets, print, drop them.
   useEffect(() => {
     if (!printNb) return undefined;
     const t = setTimeout(() => { window.print(); setPrintNb(null); }, 50);
     return () => clearTimeout(t);
   }, [printNb]);
+  const pdf = usePdfExport({ makePdf, byId });
+  const toPdf = (nb) => (makePdf ? pdf.start(nb) : setPrintNb(nb));
 
   function open(nb, isNew = false) {
     setSession({ nb, base: isNew ? null : notebookJson(nb), past: [], future: [] });
@@ -182,7 +186,10 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv })
           onRedo={redo}
           canUndo={session.past.length > 0}
           canRedo={session.future.length > 0}
+          onPdf={() => toPdf(session.nb)}
+          pdfBusy={pdf.busy}
         />
+        {pdf.node}
         {leaveAsk && (
           <div className="pl-modal no-print" role="presentation">
             <div className="pl-dialog" role="dialog" aria-modal="true" aria-labelledby="pl-leave-title">
@@ -238,7 +245,7 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv })
                 </div>
                 <div className="pl2-nb-tools" role="group" aria-label="Действия с тетрадью">
                   <Tool label={`Изменить тетрадь ${nb.title}`} caption="Править" tone="pl2-tool--go" onClick={() => open(nb)}><IconEditPage /></Tool>
-                  <Tool label={`Печать тетради ${nb.title}`} caption="Печать" onClick={() => setPrintNb(nb)}><IconPrint /></Tool>
+                  <Tool label={`PDF тетради ${nb.title}`} caption="PDF" onClick={() => toPdf(nb)}><IconPdf /></Tool>
                   <Tool label={`Копия тетради ${nb.title}`} caption="Копия" onClick={() => copy(nb)}><IconDuplicate /></Tool>
                   <Tool label={`Удалить тетрадь ${nb.title}`} caption="Удалить" tone="pl2-ib--danger" onClick={() => remove(nb)}><IconTrash /></Tool>
                 </div>
@@ -270,7 +277,7 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv })
                         </div>
                         <div className="pl2-nb-tools" role="group" aria-label="Действия с тетрадью">
                           <Tool label={`Изменить тетрадь ${r.title}`} caption="Править" tone="pl2-tool--go" onClick={() => editReady(r)}><IconEditPage /></Tool>
-                          <Tool label={`Печать тетради ${r.title}`} caption="Печать" onClick={() => setPrintNb(r)}><IconPrint /></Tool>
+                          <Tool label={`PDF тетради ${r.title}`} caption="PDF" onClick={() => toPdf(r)}><IconPdf /></Tool>
                         </div>
                       </li>
                     ))}
@@ -283,6 +290,7 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv })
       </div>
 
       <PrintPages notebook={printNb} byId={byId} />
+      {pdf.node}
     </div>
   );
 }

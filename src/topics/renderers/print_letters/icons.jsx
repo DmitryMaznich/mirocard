@@ -114,4 +114,6 @@ export const IconDotsAll = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks(
 export const IconDotsNone = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}</>);
 // The «Стрелки» toggle: a stick with a thin red arrow beside it.
 export const IconArrows = () => S(<><path d="M8 4v16" strokeWidth="2.6" /><path d="M15 6v11M12.3 14.2L15 17.2l2.7-3" stroke="#dc2626" strokeWidth="1.6" /></>);
+// «PDF»: a page with a folded corner and an arrow down into it (save the file).
+export const IconPdf = () => S(<><path d="M6 3.5h8l4 4v13H6z" /><path d="M14 3.5v4h4" /><path d="M12 10.5v6M9.5 14l2.5 2.5 2.5-2.5" /></>);
 
