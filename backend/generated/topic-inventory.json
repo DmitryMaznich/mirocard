@@ -818,16 +818,16 @@
         "ru": "Печатные буквы",
         "en": "Block Letters"
       },
-      "version": "0.1.1",
+      "version": "0.1.2",
       "renderer": "print_letters",
       "sources": [
-        "public/decks/print_letters_v0.1.1.zip",
+        "public/decks/print_letters_v0.1.2.zip",
         "src/topics/renderers/print_letters",
         "tools/print_letters/topic.json"
       ],
       "bundle": {
-        "version": "0.1.1",
-        "url": "./decks/print_letters_v0.1.1.zip",
+        "version": "0.1.2",
+        "url": "./decks/print_letters_v0.1.2.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -840,8 +840,8 @@
       "builtin": false,
       "catalogEntry": {
         "id": "print_letters",
-        "version": "0.1.1",
-        "url": "./decks/print_letters_v0.1.1.zip",
+        "version": "0.1.2",
+        "url": "./decks/print_letters_v0.1.2.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -853,7 +853,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T18:34:33+00:00"
+      "sourceUpdatedAt": "2026-11-03T05:40:52+00:00"
     },
     {
       "id": "print_materials",
@@ -1083,7 +1083,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T17:58:39+01:00"
+      "sourceUpdatedAt": "2026-11-02T20:03:42+01:00"
     },
     {
       "id": "reading_dad_poems",
@@ -1128,7 +1128,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T17:58:39+01:00"
+      "sourceUpdatedAt": "2026-11-02T20:03:42+01:00"
     },
     {
       "id": "reading_dad_texts",
@@ -1182,7 +1182,7 @@
         "status": "release",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T17:58:39+01:00"
+      "sourceUpdatedAt": "2026-11-02T20:03:42+01:00"
     },
     {
       "id": "sentence_puzzle",
