@@ -33,6 +33,8 @@ function strokeGeom(d) {
   let cmd = "M";
   let cur = [0, 0];
   let k = 0;
+  let curveFrom = -1;
+  let curveTo = -1;
   const num = () => Number(tokens[k++]);
   const setDir = (to) => {
     if (dir) return;
@@ -44,6 +46,7 @@ function strokeGeom(d) {
     if (cmd === "M") { cur = [num(), num()]; pts.push(cur); cmd = "L"; continue; }
     if (cmd === "L") { const to = [num(), num()]; setDir(to); pts.push(to); cur = to; continue; }
     if (cmd === "C") {
+      if (curveFrom < 0) curveFrom = pts.length - 1;
       const c1 = [num(), num()], c2 = [num(), num()], to = [num(), num()];
       setDir(Math.hypot(c1[0] - cur[0], c1[1] - cur[1]) > 1e-6 ? c1 : c2);
       for (let t = 1; t <= 12; t++) {
@@ -51,13 +54,15 @@ function strokeGeom(d) {
         pts.push([a * cur[0] + b * c1[0] + c * c2[0] + e * to[0], a * cur[1] + b * c1[1] + c * c2[1] + e * to[1]]);
       }
       cur = to;
+      curveTo = pts.length - 1;
       continue;
     }
     k++;
   }
   let len = 0;
   for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-  return { start: pts[0] ?? [0, 0], dir: dir ?? [0, 1], len, pts };
+  // the arc's own part (index range in pts) — a half-oval joins its stick with short straight pieces
+  return { start: pts[0] ?? [0, 0], dir: dir ?? [0, 1], len, pts, curve: curveFrom >= 0 ? [curveFrom, curveTo] : null };
 }
 
 // Distance from point p to a polyline.
@@ -82,7 +87,7 @@ const ARROW = "#dc2626";
 const ARROW_GAP = 9;
 const ARROW_HEAD = 5.5;
 const ARROW_MIN = 30; // shorter strokes (Ц's tail, Д's feet, Ё's dots, Й's breve) get none
-function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others = []) {
+function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others = [], win = null) {
   const { pts } = g;
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -101,16 +106,30 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
   // `early`: the stroke's middle is a crossing (Ж, Х) — the arrow goes before it, not into the knot
   const lo = arc || early ? 0.08 : bent ? 0.15 : 0.3;
   const hi = arc || early ? 0.4 : bent ? 0.85 : 0.7;
-  const s0 = Math.min(Math.max(lo * L, skip + numRoom), L * 0.6);
-  const s1 = Math.min(Math.max(hi * L, s0 + 20), L - 3);
+  let s0 = Math.min(Math.max((win ? win[0] : lo) * L, skip + numRoom), L * 0.7);
+  let s1 = Math.min(Math.max((win ? win[1] : hi) * L, s0 + 20), L - 3);
+  // an arc: the arrow runs over its curved part only (not the short straight pieces of a half-oval),
+  // from near its start, and stays OUTSIDE it — «outside» measured from the arc's own centre (the
+  // middle of its curve), never from the letter's: Б's, Р's half-ovals sit across the letter's centre
+  let ac = null;
+  if (arc && g.curve) {
+    const [ci, cj] = g.curve;
+    const c0 = cum[ci], c1 = cum[cj], cl = c1 - c0;
+    s0 = Math.max(c0 + 0.06 * cl, Math.min(skip + numRoom, c0 + 0.3 * cl));
+    s1 = Math.max(s0 + 20, c0 + (cl > 220 ? 0.32 : 0.5) * cl);
+    s1 = Math.min(s1, c1 - 2);
+    const cp = pts.slice(ci, cj + 1);
+    ac = [cp.reduce((a, q) => a + q[0], 0) / cp.length, cp.reduce((a, q) => a + q[1], 0) / cp.length];
+  }
   const mid = at((s0 + s1) / 2);
   // the outer side: the normal pointing away from the letter's centre (a centred stroke — Н's bar,
   // Ж's stick — gets it above / to the right)
   let n = [-mid.d[1], mid.d[0]];
-  const away = (mid.p[0] + n[0] - cx) ** 2 + (mid.p[1] + n[1] - cy) ** 2 - ((mid.p[0] - n[0] - cx) ** 2 + (mid.p[1] - n[1] - cy) ** 2);
+  const [ocx, ocy] = ac ?? [cx, cy];
+  const away = (mid.p[0] + n[0] - ocx) ** 2 + (mid.p[1] + n[1] - ocy) ** 2 - ((mid.p[0] - n[0] - ocx) ** 2 + (mid.p[1] - n[1] - ocy) ** 2);
   // a stroke through the centre (Х, Ж's slants) has no clear outer side: take the side with more room
   // from the other strokes
-  if (Math.abs(away) < 0.5 && others.length) {
+  if (!ac && Math.abs(away) < 0.5 && others.length) {
     const room = (sg) => {
       const q = [mid.p[0] + sg * n[0] * ARROW_GAP, mid.p[1] + sg * n[1] * ARROW_GAP];
       return Math.min(...others.map((pts) => distPolyline(q, pts)));
@@ -165,7 +184,8 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
     // follows the curve outside it without kinks
     const nn = arc ? (() => {
       const m = [-q.d[1], q.d[0]];
-      const out = (q.p[0] + m[0] - cx) ** 2 + (q.p[1] + m[1] - cy) ** 2 >= (q.p[0] - m[0] - cx) ** 2 + (q.p[1] - m[1] - cy) ** 2;
+      const [ox, oy] = ac ?? [cx, cy];
+      const out = (q.p[0] + m[0] - ox) ** 2 + (q.p[1] + m[1] - oy) ** 2 >= (q.p[0] - m[0] - ox) ** 2 + (q.p[1] - m[1] - oy) ** 2;
       return out ? m : [-m[0], -m[1]];
     })() : n;
     line.push([q.p[0] + nn[0] * ARROW_GAP, q.p[1] + nn[1] * ARROW_GAP]);
@@ -184,7 +204,7 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
   // the stroke's number, if wanted, stands just before the arrow's tail, on the same side
   const nq = at(Math.max(0, s0 - numRoom * 0.55));
   const num = [nq.p[0] + n[0] * ARROW_GAP, nq.p[1] + n[1] * ARROW_GAP];
-  return { d: `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num };
+  return { d: `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num, line };
 }
 
 // Glyph geometry lives directly on the notebook grid (tools/print_letters/
@@ -264,7 +284,28 @@ export default function LetterGlyph({
     const skip = showDots ? SAMPLE_DOT + 3 : 0;
     const mid = g.pts.length === 2 ? [(g.pts[0][0] + g.pts[1][0]) / 2, (g.pts[0][1] + g.pts[1][1]) / 2] : null;
     const crossed = mid && geoms.some((o, j) => j !== i && nearPolyline(mid, o.pts, 4));
-    return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip, showNumbers ? NUM_ROOM : 0, crossed, geoms.filter((_, j) => j !== i).map((o) => o.pts));
+    const others = geoms.filter((_, j) => j !== i).map((o) => o.pts);
+    const isArc = /C/.test(strokes[i].d);
+    const first = guideArrow(g, cx, cy, isArc, skip, showNumbers ? NUM_ROOM : 0, crossed, others);
+    // an arrow that touches another stroke (Ф's stick runs through the oval) looks for a clear stretch
+    // of its own stroke — nearer the end, then nearer the start
+    const clear = (gd) => {
+      if (!gd?.line) return true;
+      for (let k = 1; k < gd.line.length; k++) {
+        const [a, b] = [gd.line[k - 1], gd.line[k]];
+        for (let t = 0; t <= 1.0001; t += 0.1) {
+          const q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+          if (others.some((pts) => distPolyline(q, pts) <= 4.5)) return false;
+        }
+      }
+      return true;
+    };
+    if (isArc || clear(first)) return first;
+    for (const w of [[0.62, 0.94], [0.08, 0.38]]) {
+      const alt = guideArrow(g, cx, cy, false, skip, showNumbers ? NUM_ROOM : 0, false, others, w);
+      if (clear(alt)) return alt;
+    }
+    return first;
   }) : [];
 
   const svgRef     = useRef(null);
