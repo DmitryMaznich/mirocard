@@ -1,7 +1,7 @@
 import { useState } from "react";
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { SIZES, SUPPORTS, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
-import { IconUp, IconDown, IconLadder } from "./icons";
+import { IconUp, IconDown, IconLadder, IconAddRow, IconTrash } from "./icons";
 
 const PAD_CELL = 52; // px per notebook cell in the element pad — the only element control (owner, 2026-11-03)
 const INK = "#2a6b60";
@@ -60,18 +60,27 @@ function ElementPad({ letter, elements, onToggle }) {
   );
 }
 
-function Head({ letter, color, title, onMoveRow, canUp, canDown }) {
+// The panel's top: which block / row this is, and everything done to the row itself — add one
+// below, move it, delete it. These used to sit in the top tool bar; the bottom panel now owns the
+// row, the top bar only the block (owner, 2026-11-03: «нелогичное разделение»).
+function Head({ letter, color, title, rowActions = null }) {
   return (
     <div className="pl-insp-head">
-      <span className="pl-insp-tile" style={{ "--pl-block-color": color }}>
-        <LetterGlyph letter={letter} heightMm={4.2} variant="plain" color="#ffffff" weight={15} />
-      </span>
-      <span className="pl-insp-title">{title}</span>
-      {onMoveRow && (
-        <span className="pl-insp-move">
-          <button type="button" onClick={() => onMoveRow(-1)} disabled={!canUp} aria-label="Строка выше" title="Выше"><IconUp /></button>
-          <button type="button" onClick={() => onMoveRow(1)} disabled={!canDown} aria-label="Строка ниже" title="Ниже"><IconDown /></button>
+      <div className="pl-insp-head-line">
+        <span className="pl-insp-tile" style={{ "--pl-block-color": color }}>
+          <LetterGlyph letter={letter} heightMm={4.2} variant="plain" color="#ffffff" weight={15} />
         </span>
+        <span className="pl-insp-title">{title}</span>
+      </div>
+      {rowActions && (
+        <div className="pl-insp-acts" role="group" aria-label="Строка">
+          <button type="button" onClick={rowActions.onAdd} aria-label="Добавить строку ниже"><IconAddRow /><span>Строка</span></button>
+          {rowActions.onMove && <>
+            <button type="button" onClick={() => rowActions.onMove(-1)} disabled={!rowActions.canUp} aria-label="Строка выше"><IconUp /><span>Выше</span></button>
+            <button type="button" onClick={() => rowActions.onMove(1)} disabled={!rowActions.canDown} aria-label="Строка ниже"><IconDown /><span>Ниже</span></button>
+            <button type="button" className="is-danger" onClick={rowActions.onRemove} aria-label="Удалить строку"><IconTrash /><span>Удалить</span></button>
+          </>}
+        </div>
       )}
     </div>
   );
@@ -122,7 +131,7 @@ function SizeSwitch({ size, onSetSize, paper }) {
 // The selected row's own settings — a right-hand panel on a computer, the
 // docked panel at the bottom on a phone. Elements are picked only on the big
 // letter (ElementPad) — no duplicate list beside it (owner, 2026-11-03).
-export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetSupport, onMoveRow, onLadder }) {
+export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetSupport, onMoveRow, onAddRow, onRemoveRow, onLadder }) {
   if (!letter) {
     return (
       <div className="pl-insp pl-insp--empty">
@@ -135,7 +144,7 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
   if (!row) {
     return (
       <div className="pl-insp">
-        <Head letter={letter} color={color} title={`Буква ${letter.label}`} />
+        <Head letter={letter} color={color} title={`Буква ${letter.label}`} rowActions={{ onAdd: onAddRow }} />
         <p className="pl-insp-hint">Выберите строку в блоке, чтобы настроить её элементы и опору.</p>
         <SizeSwitch size={size} onSetSize={onSetSize} paper={paper} />
         <LadderButton onLadder={onLadder} />
@@ -150,7 +159,8 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
 
   return (
     <div className="pl-insp">
-      <Head letter={letter} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`} onMoveRow={onMoveRow} canUp={rowIndex > 0} canDown={rowIndex < rowCount - 1} />
+      <Head letter={letter} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`}
+        rowActions={{ onAdd: onAddRow, onMove: onMoveRow, onRemove: onRemoveRow, canUp: rowIndex > 0, canDown: rowIndex < rowCount - 1 }} />
 
       <section className="pl-insp-sec" aria-label="Элементы">
         <span className="pl-insp-lbl">Элементы — нажмите на штрих буквы</span>

@@ -474,17 +474,21 @@
 .pl-insp--empty { color: var(--pl-muted); font-size: 14px; line-height: 1.45; }
 .pl-insp--empty p { margin: 0; }
 
-.pl-insp-head { display: flex; align-items: center; gap: 10px; }
+.pl-insp-head { display: flex; flex-direction: column; gap: 10px; }
+.pl-insp-head-line { display: flex; align-items: center; gap: 10px; }
 .pl-insp-tile { width: 32px; height: 32px; border-radius: 8px 0 8px 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .pl-insp-title { flex: 1; font-weight: 800; font-size: 15px; }
-.pl-insp-move { display: flex; gap: 4px; }
-.pl-insp-move button {
-  width: 40px; height: 40px; border: none; border-radius: 10px;
-  background: var(--pl-strip); color: var(--pl-ink); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+/* the row's own tools: add · up · down · delete, captioned like the strip tools */
+.pl-insp-acts { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: #eef3fb; }
+.pl-insp-acts button {
+  flex: 1 1 0; min-width: 0; height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: none; border-radius: 10px; background: transparent; color: var(--pl-ink);
+  font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.pl-insp-move button svg { width: 18px; height: 18px; }
-.pl-insp-move button:disabled { opacity: 0.35; cursor: default; }
+.pl-insp-acts button svg { width: 22px; height: 22px; }
+.pl-insp-acts button:hover:not(:disabled) { background: #fff; }
+.pl-insp-acts button:disabled { opacity: 0.35; cursor: default; }
+.pl-insp-acts button.is-danger { color: var(--pl-red); }
 
 .pl-insp-sec { display: flex; flex-direction: column; gap: 8px; }
 .pl-insp-sec--block { border-top: 1px solid var(--pl-line); padding-top: 14px; }
@@ -734,7 +738,8 @@
 .pl-dock-chev svg { width: 20px; height: 20px; }
 .plb-dock .pl-insp { padding: 0 0 8px; gap: 12px; }
 /* the row's title and its ↑ ↓ stay in sight while the panel scrolls */
-.plb-dock .pl-insp-head { position: sticky; top: 0; z-index: 2; background: var(--pl2-surface, #fff); padding: 10px 0 8px; margin-bottom: -4px; }
+.plb-dock .pl-insp-head { position: sticky; top: 0; z-index: 2; background: var(--pl2-surface, #fff); padding: 6px 0 8px; margin-bottom: -4px; gap: 6px; }
+.plb-dock .pl-insp-acts button { height: 48px; }
 .plb-dock .pl-insp--empty { padding-top: 12px; }
 
 /* phone: undo / redo in the header beside «save» (not over the sheet in the zoom pill) */
@@ -759,3 +764,14 @@
 .plb-dock .pl-insp-hint { display: none; }
 .plb-dock .pl-insp-sec--block { padding-top: 10px; }
 .plb-dock .pl-el { min-height: 40px; }
+
+/* phone, first strip: the block's two tools on their own blue tier, before the page settings */
+.pl2-blockgrp { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 14px; background: #eef3fb; flex: 0 0 auto; }
+/* phone: the row's title and its four tools on one line (icons only — the computer keeps the
+   captions), so the sticky top of the panel stays low and the panel shows its settings */
+.plb-dock .pl-insp-head { flex-direction: row; align-items: center; gap: 8px; }
+.plb-dock .pl-insp-head-line { flex: 1 1 auto; min-width: 0; }
+.plb-dock .pl-insp-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plb-dock .pl-insp-acts { flex: 0 0 auto; gap: 2px; padding: 2px; }
+.plb-dock .pl-insp-acts button { flex: 0 0 auto; width: 42px; height: 42px; }
+.plb-dock .pl-insp-acts button span { display: none; }

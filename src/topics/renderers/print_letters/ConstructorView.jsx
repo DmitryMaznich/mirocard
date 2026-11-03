@@ -9,7 +9,7 @@ import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
 import { FORMATS, SUPPORTS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import {
-  IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
+  IconTrash, IconPrint, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth, IconChevronUp, IconChevronDown,
   IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
 } from "./icons";
 
@@ -209,6 +209,8 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       onSetElements={(elements) => updateSelectedRow((r) => ({ ...r, elements }))}
       onSetSupport={(support) => updateSelectedRow((r) => ({ ...r, support }))}
       onMoveRow={moveSelectedRow}
+      onAddRow={addRow}
+      onRemoveRow={removeSelectedRow}
       onLadder={applyLadder}
       size={selectedBlock?.size === 4 ? 4 : 2}
       paper={paper}
@@ -232,14 +234,11 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     <OptionPicker label="Формат" caption="Формат" options={FORMAT_OPTIONS} value={format} onChange={setFormat} />
     <OptionPicker label="Бумага" caption="Бумага" options={PAPER_OPTIONS} value={paper} onChange={(p) => updateActivePage((pg) => ({ ...pg, paper: p }))} />
   </>;
-  const rowEls = <>
+  // the top bar holds only the block: add one (the letter picker) and delete the selected one;
+  // everything about a row lives in the row panel (RowInspector)
+  const blockEls = <>
     <LetterPickerButton families={families} onPick={addBlock} />
     <Tool label="Удалить блок буквы" caption="Удалить блок" danger disabled={!selectedBlockId} onClick={removeSelectedBlock}><IconTrash /></Tool>
-    <span className="pl2-sep" aria-hidden="true" />
-    <Tool label="Добавить строку в блок" caption="Строка" disabled={!selectedBlockId} onClick={addRow}><IconAddRow /></Tool>
-    <Tool label="Строка выше" caption="Выше" disabled={!selectedRow || selectedRowIndex <= 0} onClick={() => moveSelectedRow(-1)}><IconUp /></Tool>
-    <Tool label="Строка ниже" caption="Ниже" disabled={!selectedRow || selectedRowIndex >= (selectedBlock?.rows.length ?? 0) - 1} onClick={() => moveSelectedRow(1)}><IconDown /></Tool>
-    <Tool label="Удалить строку" caption="Удалить" danger disabled={!selectedRow} onClick={removeSelectedRow}><IconTrash /></Tool>
   </>;
   const printEl = <Tool label="Печать тетради" caption="Печать" disabled={!hasContent} onClick={() => window.print()}><IconPrint /></Tool>;
   const historyEls = <>
@@ -287,7 +286,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
           <span className="pl2-sep" aria-hidden="true" />
           <div className="pl2-desk-group" role="group" aria-label="Настройки страницы">{pageEls}</div>
           <span className="pl2-sep" aria-hidden="true" />
-          <div className="pl2-desk-group pl2-desk-group--row" role="group" aria-label="Буква и строка">{rowEls}</div>
+          <div className="pl2-desk-group pl2-desk-group--row" role="group" aria-label="Блок буквы">{blockEls}</div>
           <span className="pl2-sep" aria-hidden="true" />
           {printEl}
           <span className="pl2-desk-fill" />
@@ -334,7 +333,9 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     <div className="screen plb-home plb-editor2 plb-editor2--phone pl-editor" data-testid="print-letters-editor">
       {headerEl}
       <div className="plb-main no-print">
-        <div className="plb-settings" role="group" aria-label="Настройки страницы">
+        <div className="plb-settings" role="group" aria-label="Блок и страница">
+          <div className="pl2-blockgrp" role="group" aria-label="Блок буквы">{blockEls}</div>
+          <span className="pl2-sep" aria-hidden="true" />
           {pages.length > 1 && (
             <>
               <button type="button" className="pl2-ib pl2-tool" aria-label="Предыдущая страница" disabled={activePageIndex <= 0} onClick={() => switchPage(pages[activePageIndex - 1].id)}><span className="pl2-tool-ico pl2-glyph">‹</span><span className="pl2-cap">Назад</span></button>
@@ -350,7 +351,6 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
           <Tool label={pages.length > 1 ? "Удалить страницу" : "Очистить страницу"} caption="Удалить" danger onClick={removeActivePage}><IconTrash /></Tool>
           {printEl}
         </div>
-        <div className="plb-settings plb-settings--row" role="group" aria-label="Буква и строка">{rowEls}</div>
         {zoomEl}
         {canvasEl}
         <div className={`plb-dock pl-dock${dockOpen ? "" : " is-folded"}`}>
