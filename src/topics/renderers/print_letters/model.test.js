@@ -42,6 +42,8 @@ describe("print_letters model", () => {
     const rows = ladderRows(letter("Н")); // 6 rows
     expect(blockHeightCells({ rows })).toBe(19);
     expect(blockHeightCells({ rows, size: 4 })).toBe(31);
+    // on линейка the ruling sets the size: a large block is drawn at the normal size
+    expect(blockHeightCells({ rows, size: 4 }, "line3")).toBe(19);
   });
 
   it("knows the papers; a page saved as «line» is the 3-line ruling", () => {

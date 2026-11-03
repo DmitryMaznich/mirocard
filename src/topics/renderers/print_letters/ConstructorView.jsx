@@ -7,7 +7,7 @@ import RowInspector from "./RowInspector";
 import BottomSheet from "./BottomSheet";
 import PrintPages from "./PrintPages";
 import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
-import { FORMATS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { FORMATS, paperOf, isRuled, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import {
   IconPlus, IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconBack, IconSave,
@@ -184,6 +184,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       onMoveRow={moveSelectedRow}
       onLadder={applyLadder}
       size={selectedBlock?.size === 4 ? 4 : 2}
+      ruled={activePage ? isRuled(paperOf(activePage)) : false}
       onSetSize={(size) => updateSelectedBlock((b) => ({ ...b, size }))}
       peek={peek}
     />

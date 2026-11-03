@@ -35,6 +35,14 @@ export function blockSize(block) {
   return block?.size === 4 ? 4 : 2;
 }
 
+// The size a block is actually drawn at on a page. On линейка the ruling
+// sets the size (owner, 2026-11-03): one letter = one row between the lines,
+// the same for every block on the page — a child gets used to that row; the
+// large size is a step on клетка only (large → normal → then линейка).
+export function drawnSize(block, paper) {
+  return isRuled(paper) ? 2 : blockSize(block);
+}
+
 // Height and width of a letter, in cells, at a block size.
 export function letterH(size = 2) {
   return size;
@@ -86,14 +94,15 @@ export function copiesPerRow(letter, formatId, besidePlate = true, size = 2) {
   return Math.max(1, Math.floor((rowCells(formatId, besidePlate) + GAP) / (w + GAP)));
 }
 
-export function blockHeightCells(block) {
+export function blockHeightCells(block, paper = "cell") {
   const rows = block.rows.length;
-  return Math.max(TILE, rows * (GAP + letterH(blockSize(block))) + GAP);
+  return Math.max(TILE, rows * (GAP + letterH(drawnSize(block, paper))) + GAP);
 }
 
 export function pageHeightCells(page) {
   if (!page.blocks.length) return 0;
-  return page.blocks.reduce((sum, b) => sum + blockHeightCells(b), 0) + (page.blocks.length - 1) * GAP;
+  const paper = paperOf(page);
+  return page.blocks.reduce((sum, b) => sum + blockHeightCells(b, paper), 0) + (page.blocks.length - 1) * GAP;
 }
 
 // The sheet header («Имя ____ Дата ____ · Буква Н»): 2 cells tall plus a

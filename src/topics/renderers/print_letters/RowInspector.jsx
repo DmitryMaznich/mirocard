@@ -101,8 +101,9 @@ function LadderButton({ onLadder }) {
 // bottom sheet on phones (BottomSheet). `peek` is the sheet's folded state:
 // just the header and quick element buttons.
 // Block-wide size switch: normal (2 cells) or large (4 cells).
-function SizeSwitch({ size, onSetSize }) {
+function SizeSwitch({ size, onSetSize, ruled }) {
   if (!onSetSize) return null;
+  if (ruled) return <span className="pl-insp-hint">На линейке размер задаёт линейка: одна буква — одна строка между линиями. Крупный размер — на клетке.</span>;
   return (
     <>
       <div className="pl-seg" role="radiogroup" aria-label="Размер букв в блоке">
@@ -118,7 +119,7 @@ function SizeSwitch({ size, onSetSize }) {
   );
 }
 
-export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, onSetSize, onSetElements, onSetSupport, onMoveRow, onLadder, peek = false }) {
+export default function RowInspector({ letter, color, row, rowIndex, rowCount, size = 2, ruled = false, onSetSize, onSetElements, onSetSupport, onMoveRow, onLadder, peek = false }) {
   if (!letter) {
     return (
       <div className="pl-insp pl-insp--empty">
@@ -133,7 +134,7 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
       <div className="pl-insp">
         <Head letter={letter} color={color} title={`Буква ${letter.label}`} />
         {!peek && <p className="pl-insp-hint">Выберите строку в блоке, чтобы настроить её элементы и опору.</p>}
-        {!peek && <SizeSwitch size={size} onSetSize={onSetSize} />}
+        {!peek && <SizeSwitch size={size} onSetSize={onSetSize} ruled={ruled} />}
         <LadderButton onLadder={onLadder} />
       </div>
     );
@@ -194,7 +195,7 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, s
 
           <section className="pl-insp-sec pl-insp-sec--block" aria-label="Весь блок">
             <span className="pl-insp-lbl">Весь блок</span>
-            <SizeSwitch size={size} onSetSize={onSetSize} />
+            <SizeSwitch size={size} onSetSize={onSetSize} ruled={ruled} />
             <LadderButton onLadder={onLadder} />
             <span className="pl-insp-hint">1 → 1+2 → … → вся буква → бледнеет → образец → пусто. Потом любую строку можно поменять.</span>
           </section>

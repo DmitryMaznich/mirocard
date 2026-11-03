@@ -1,6 +1,6 @@
 import LetterBlock from "./LetterBlock";
 import LetterGlyph from "./LetterGlyph";
-import { paperOf, sheetSizeMm } from "./model";
+import { drawnSize, paperOf, sheetSizeMm } from "./model";
 
 // One printable sheet at its real size: the paper format minus the printer
 // margin (@page). The same component draws the page on the canvas, inside a
@@ -26,7 +26,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
             color={b.color}
             rows={b.rows}
             format={format}
-            size={b.size === 4 ? 4 : 2}
+            size={drawnSize(b, paperOf(page))}
             paper={paperOf(page)}
             selected={b.id === selectedBlockId}
             selectedRowId={b.id === selectedBlockId ? selectedRowId : null}
