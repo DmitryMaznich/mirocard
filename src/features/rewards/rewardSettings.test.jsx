@@ -20,16 +20,16 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); useAppStore.setState(original, true); vi.useRealTimers(); });
 const button = name => [...host.querySelectorAll("button")].find(item => item.textContent === name);
 
-it("rolls back with one profile choice and retains the new duration for a later opt-in", async () => {
-  function Profile() { const [settings, setSettings] = useState({ algorithm: "legacy" }); return <RewardSettingsSection value={settings} onChange={setSettings} />; }
+it("makes all controls available for a saved legacy profile without a system switch", async () => {
+  function Profile() { const [settings, setSettings] = useState({ algorithm: "legacy", duration: "60", strictStars: false, lossMode: "all" }); return <RewardSettingsSection value={settings} onChange={setSettings} />; }
   await act(async () => root.render(<Profile />));
-  expect(button("1 минута").matches(":disabled")).toBe(true);
-  await act(async () => button("Новые правила").click());
+  expect(button("Прежние правила")).toBeUndefined();
+  expect(button("Новые правила")).toBeUndefined();
+  expect(button("1 минута").matches(":disabled")).toBe(false);
+  expect(button("1 минута").getAttribute("aria-pressed")).toBe("true");
+  expect(button("Все звёзды").getAttribute("aria-pressed")).toBe("true");
+  expect(host.querySelector('input[type="checkbox"]').checked).toBe(false);
   await act(async () => button("3 минуты").click());
-  expect(button("3 минуты").getAttribute("aria-pressed")).toBe("true");
-  await act(async () => button("Прежние правила").click());
-  expect(button("1 минута").matches(":disabled")).toBe(true);
-  await act(async () => button("Новые правила").click());
   expect(button("3 минуты").getAttribute("aria-pressed")).toBe("true");
 });
 
