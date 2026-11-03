@@ -818,16 +818,16 @@
         "ru": "Печатные буквы",
         "en": "Block Letters"
       },
-      "version": "0.2.9",
+      "version": "0.2.10",
       "renderer": "print_letters",
       "sources": [
-        "public/decks/print_letters_v0.2.9.zip",
+        "public/decks/print_letters_v0.2.10.zip",
         "src/topics/renderers/print_letters",
         "tools/print_letters/topic.json"
       ],
       "bundle": {
-        "version": "0.2.9",
-        "url": "./decks/print_letters_v0.2.9.zip",
+        "version": "0.2.10",
+        "url": "./decks/print_letters_v0.2.10.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -840,8 +840,8 @@
       "builtin": false,
       "catalogEntry": {
         "id": "print_letters",
-        "version": "0.2.9",
-        "url": "./decks/print_letters_v0.2.9.zip",
+        "version": "0.2.10",
+        "url": "./decks/print_letters_v0.2.10.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -853,7 +853,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-03T15:10:41+00:00"
+      "sourceUpdatedAt": "2026-11-03T16:29:50+00:00"
     },
     {
       "id": "print_materials",
