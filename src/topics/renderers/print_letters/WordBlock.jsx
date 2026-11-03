@@ -9,7 +9,7 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // and rows on whole cells, but every copy is a word, each letter in its own letter-cell, one clean
 // letter-cell between copies. The first copy of a row is the sample (the whole word, solid, with
 // arrows and start dots); the contours after it leave out the letters the row doesn't draw.
-export default function WordBlock({ block, byId, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow }) {
+export default function WordBlock({ block, byId, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow, style }) {
   const plateW = plateCells(block);
   const h = letterH(size);
   const g = paperGap(paper);
@@ -17,7 +17,7 @@ export default function WordBlock({ block, byId, format, size = 2, paper = "cell
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ outlineColor: block.color, width: mm(blockCells(format)), minHeight: mm(TILE), paddingBottom: mm(g) }}
+      style={{ ...style, outlineColor: block.color, width: mm(blockCells(format)), height: mm(Math.max(TILE, block.rows.length * (g + h) + g)) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
@@ -41,7 +41,7 @@ export default function WordBlock({ block, byId, format, size = 2, paper = "cell
           <div
             key={row.id}
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
-            style={{ paddingTop: mm(g), paddingLeft: mm(start) }}
+            style={{ position: "absolute", top: mm(index * (g + h)), left: 0, right: 0, paddingTop: mm(g), paddingLeft: mm(start) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
             {isRuled(paper) && (

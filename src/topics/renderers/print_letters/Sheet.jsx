@@ -2,7 +2,10 @@ import LetterBlock from "./LetterBlock";
 import WordBlock, { PlateWords } from "./WordBlock";
 import { isWordBlock } from "./words";
 import LetterGlyph from "./LetterGlyph";
-import { drawnSize, paperOf, sheetSizeMm } from "./model";
+import { GAP, blockCells, blockHeightCells, drawnSize, headerCells, paperGap, paperOf, sheetSizeMm } from "./model";
+import { FINE_MM } from "./Ruling";
+
+const mm = (cells) => `${cells * FINE_MM}mm`;
 
 // One printable sheet at its real size: the paper format minus the printer
 // margin (@page). The same component draws the page on the canvas, inside a
@@ -12,18 +15,32 @@ export default function Sheet({ page, format, byId, className = "", style, selec
   // On paper, 1mm less than the exact printable height: an exact fit can
   // round over and push a blank sheet out after every page.
   const heightMm = className.includes("pl-sheet--print") ? h - 1 : h;
+  // Every block is placed at its exact offset from the sheet's corner, counted in whole cells
+  // (model.js) — not stacked one after another. Stacked, each block's height was rounded to the
+  // screen's pixels on its own and the error added up: every next block's frame sat a little further
+  // off the grid (owner, 2026-11-03: «каждый следующий блок съезжает относительно сетки»).
+  const paper = paperOf(page);
+  const gap = paperGap(paper);
+  const heights = page.blocks.map((b) => blockHeightCells(b, paper) + gap);
+  const place = heights.map((_, i) => GAP + headerCells(paper) + heights.slice(0, i).reduce((a, x) => a + x, 0));
+  const at = (i) => ({ position: "absolute", top: mm(place[i]), left: mm(GAP) });
   return (
     <div
       className={`pl-sheet pl-sheet--${paperOf(page)} ${className}`}
       style={{ width: `${w}mm`, height: `${heightMm}mm`, ...style }}
     >
       <SheetGrid paper={paperOf(page)} w={w} h={heightMm} />
-      {page.blocks.length > 0 && <SheetHeader page={page} byId={byId} />}
-      {page.blocks.map((b) => {
+      {page.blocks.length > 0 && (
+        <div className="pl-sheet-head-at" style={{ position: "absolute", top: mm(GAP), left: mm(GAP), width: mm(blockCells(format)) }}>
+          <SheetHeader page={page} byId={byId} />
+        </div>
+      )}
+      {page.blocks.map((b, i) => {
         if (isWordBlock(b)) {
           return (
             <WordBlock
               key={b.id}
+              style={at(i)}
               block={b}
               byId={byId}
               format={format}
@@ -41,6 +58,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
         return (
           <LetterBlock
             key={b.id}
+            style={at(i)}
             letter={letter}
             color={b.color}
             rows={b.rows}

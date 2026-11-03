@@ -14,7 +14,7 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // sits in the full letter, and the label tile shows that same stroke shape.
 // What each copy draws comes from the row's three options (line, contours,
 // dots) via copyPlan().
-export default function LetterBlock({ letter, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow }) {
+export default function LetterBlock({ letter, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow, style }) {
   const frame = letterFrame(letter);
   const w = letterW(letter, size);
   const h = letterH(size);
@@ -22,7 +22,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(TILE), paddingBottom: mm(g) }}
+      style={{ ...style, outlineColor: color, width: mm(blockCells(format)), height: mm(Math.max(TILE, rows.length * (g + h) + g)) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
@@ -47,7 +47,7 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
           <div
             key={row.id}
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
-            style={{ paddingTop: mm(g), paddingLeft: mm(start) }}
+            style={{ position: "absolute", top: mm(index * (g + h)), left: 0, right: 0, paddingTop: mm(g), paddingLeft: mm(start) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
             {isRuled(paper) && (
