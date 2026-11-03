@@ -84,14 +84,55 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0) {
     return { p: [ax + (bx - ax) * t, ay + (by - ay) * t], d: [(bx - ax) / len, (by - ay) / len] };
   };
   // start past the numbered start dot (`skip` along the stroke), so the dot never hides the tail
-  const s0 = Math.min(Math.max(arc ? 0.08 * L : 0.3 * L, skip + numRoom), L * 0.6);
-  const s1 = Math.min(Math.max(arc ? 0.4 * L : 0.7 * L, s0 + 20), L - 3);
+  const bent = !arc && pts.length > 2;
+  const s0 = Math.min(Math.max(arc ? 0.08 * L : bent ? 0.15 * L : 0.3 * L, skip + numRoom), L * 0.6);
+  const s1 = Math.min(Math.max(arc ? 0.4 * L : bent ? 0.85 * L : 0.7 * L, s0 + 20), L - 3);
   const mid = at((s0 + s1) / 2);
   // the outer side: the normal pointing away from the letter's centre (a centred stroke — Н's bar,
   // Ж's stick — gets it above / to the right)
   let n = [-mid.d[1], mid.d[0]];
   const away = (mid.p[0] + n[0] - cx) ** 2 + (mid.p[1] + n[1] - cy) ** 2 - ((mid.p[0] - n[0] - cx) ** 2 + (mid.p[1] - n[1] - cy) ** 2);
   if (away < -1e-6 || (Math.abs(away) <= 1e-6 && (n[1] > 0 || (n[1] === 0 && n[0] < 0)))) n = [-n[0], -n[1]];
+  // A bent stroke (Ж's «уголок»: two straight pieces in one movement) gets an arrow that bends with
+  // it, on the inner side of the angle (the open side, away from the stick): each piece offset
+  // towards the chord between the stroke's ends, the pieces joined at a mitred corner.
+  if (!arc && pts.length > 2) {
+    const verts = [at(s0).p, ...pts.filter((_, i) => cum[i] > s0 && cum[i] < s1), at(s1).p];
+    const chordMid = [(pts[0][0] + pts[pts.length - 1][0]) / 2, (pts[0][1] + pts[pts.length - 1][1]) / 2];
+    const segN = [];
+    for (let k = 1; k < verts.length; k++) {
+      const [ax, ay] = verts[k - 1], [bx, by] = verts[k];
+      const l = Math.hypot(bx - ax, by - ay) || 1;
+      let m = [-(by - ay) / l, (bx - ax) / l];
+      const mid = [(ax + bx) / 2, (ay + by) / 2];
+      if ((chordMid[0] - mid[0]) * m[0] + (chordMid[1] - mid[1]) * m[1] < 0) m = [-m[0], -m[1]];
+      segN.push(m);
+    }
+    const off = verts.map((v, k) => {
+      if (k === 0) return [v[0] + segN[0][0] * ARROW_GAP, v[1] + segN[0][1] * ARROW_GAP];
+      if (k === verts.length - 1) { const m = segN[segN.length - 1]; return [v[0] + m[0] * ARROW_GAP, v[1] + m[1] * ARROW_GAP]; }
+      const [a, b] = [segN[k - 1], segN[k]];
+      const bis = [a[0] + b[0], a[1] + b[1]];
+      const bl = Math.hypot(bis[0], bis[1]) || 1;
+      const u = [bis[0] / bl, bis[1] / bl];
+      const scale = ARROW_GAP / Math.max(0.3, u[0] * a[0] + u[1] * a[1]);
+      return [v[0] + u[0] * scale, v[1] + u[1] * scale];
+    });
+    const [ex, ey] = off[off.length - 1];
+    const [px, py] = off[off.length - 2];
+    const dl = Math.hypot(ex - px, ey - py) || 1;
+    const [dx, dy] = [(ex - px) / dl, (ey - py) / dl];
+    const head = (sgn) => {
+      const a = (sgn * 28 * Math.PI) / 180;
+      const rx = dx * Math.cos(a) - dy * Math.sin(a), ry = dx * Math.sin(a) + dy * Math.cos(a);
+      return [ex - rx * ARROW_HEAD, ey - ry * ARROW_HEAD];
+    };
+    const f = (v) => Math.round(v * 100) / 100;
+    const [h1, h2] = [head(1), head(-1)];
+    const nq = at(Math.max(0, s0 - numRoom * 0.55));
+    const num = [nq.p[0] + segN[0][0] * ARROW_GAP, nq.p[1] + segN[0][1] * ARROW_GAP];
+    return { d: `M${off.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num };
+  }
   const steps = arc ? 10 : 1;
   const line = [];
   for (let k = 0; k <= steps; k++) {
@@ -186,7 +227,16 @@ export default function LetterGlyph({
   // pile numbers up.
   const showNumbers = variant === "sample" && numbers && markable.filter(Boolean).length > 1;
   const guides = variant === "sample" && (arrows || showNumbers) ? geoms.map((g, i) => {
-    if (g.len < ARROW_MIN || !markable[i]) return null;
+    if (!markable[i]) return null;
+    if (g.len < ARROW_MIN) {
+      // a short stroke (Ц's tail, Д's feet) has no room for an arrow, but keeps its number: beside its
+      // middle, on the side away from the letter's centre
+      if (!showNumbers) return null;
+      const m = [(g.start[0] + (g.pts[g.pts.length - 1]?.[0] ?? g.start[0])) / 2, (g.start[1] + (g.pts[g.pts.length - 1]?.[1] ?? g.start[1])) / 2];
+      let nn = [-g.dir[1], g.dir[0]];
+      if ((m[0] + nn[0] - cx) ** 2 + (m[1] + nn[1] - cy) ** 2 < (m[0] - nn[0] - cx) ** 2 + (m[1] - nn[1] - cy) ** 2) nn = [-nn[0], -nn[1]];
+      return { d: null, num: [m[0] + nn[0] * (ARROW_GAP + 1), m[1] + nn[1] * (ARROW_GAP + 1)] };
+    }
     const skip = showDots ? SAMPLE_DOT + 3 : 0;
     return guideArrow(g, cx, cy, /C/.test(strokes[i].d), skip, showNumbers ? NUM_ROOM : 0);
   }) : [];
@@ -286,7 +336,7 @@ export default function LetterGlyph({
         />
       ))}
 
-      {arrows && guides.map((gd, i) => gd && (
+      {arrows && guides.map((gd, i) => gd?.d && (
         <path key={`g${i}`} d={gd.d} fill="none" stroke={ARROW} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: "none" }} />
       ))}
       {showNumbers && guides.map((gd, i) => gd && (
