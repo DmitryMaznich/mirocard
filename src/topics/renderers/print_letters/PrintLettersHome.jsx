@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import ConstructorView from "./ConstructorView";
-import PageThumb from "./PageThumb";
 import PrintPages from "./PrintPages";
-import { NARROW_QUERY, useMediaQuery } from "./hooks";
 import {
   SYNC_PREFIX, clearDraft, copyNotebook, docFor, docKey, loadDraft, loadLocal, mergeRemote, newNotebook, notebookJson,
   putNotebook, readyNotebooks, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
 } from "./library";
-import { IconClose, IconDuplicate, IconEdit, IconNewNotebook, IconPrint, IconTrash } from "./icons";
+import { IconAddPage, IconDuplicate, IconEditPage, IconNotebook, IconPrint, IconTrash } from "./icons";
 
 const MONTHS = ["янв.", "февр.", "марта", "апр.", "мая", "июня", "июля", "авг.", "сент.", "окт.", "нояб.", "дек."];
+const UNDO_DEPTH = 200;
+const UNDO_TYPING_MS = 1000;
 
 function dateLabel(ts) {
   if (!ts) return "";
@@ -22,15 +23,24 @@ function dateLabel(ts) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 }
 
-const metaLine = (nb) => `${nb.pages.length} стр. · ${(nb.format ?? "a4").toUpperCase().replace("A", "А")}`;
+const metaLine = (nb) => `${nb.pages.length} стр. · ${(nb.format ?? "a4") === "a5" ? "А5" : "А4"}`;
 
-// «Печатные буквы» home: «Мои тетради» → the editor of one notebook. The
-// architecture of propis2's own home (Propis2Home/Propis2Library), without
-// its options: a notebook opened for editing is a SESSION — a working copy
-// with the saved version beside it; nothing reaches «Мои тетради» until
-// «Сохранить» (or the question when leaving), and the working copy is
-// mirrored to this device as a draft so a closed app loses nothing.
-export default function PrintLettersHome({ task, onAdvance, accountKv }) {
+// A library tool: propis2's own (Propis2Library's Tool — an icon over its caption).
+function Tool({ label, caption, tone = "", onClick, children }) {
+  return (
+    <button type="button" className={`pl2-ib pl2-tool ${tone}`} aria-label={label} title={label} onClick={onClick}>
+      <span className="pl2-tool-ico">{children}</span>
+      <span className="pl2-cap">{caption}</span>
+    </button>
+  );
+}
+
+// «Печатные буквы» home: «Мои тетради» → the editor of one notebook — propis2's own home
+// (Propis2Home / Propis2Library), its look copied class for class (propis2-style.css), without its
+// options. A notebook opened for editing is a SESSION: a working copy with the saved version
+// beside it and its own undo/redo; nothing reaches «Мои тетради» until «Сохранить» (or the
+// question when leaving), and the working copy is mirrored to this device as a draft.
+export default function PrintLettersHome({ task, onBack, onAdvance, accountKv }) {
   const letters = task?.letters ?? [];
   const byId = useMemo(() => Object.fromEntries(letters.map((l) => [l.id, l])), [letters]);
   const families = useMemo(() => {
@@ -43,14 +53,14 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
     return Array.from(map.entries());
   }, [letters]);
   const ready = useMemo(() => readyNotebooks(byId), [byId]);
-  const narrow = useMediaQuery(NARROW_QUERY);
 
   const [lib, setLibState] = useState(loadLocal);
   const libRef = useRef(lib);
   const setLib = (next) => { libRef.current = next; setLibState(next); saveLocal(next); };
 
-  // the notebook being edited: { nb, base } — base is the saved version's JSON (null: never saved)
+  // the notebook being edited: { nb, base, past, future } — base: the saved version's JSON (null: never saved)
   const [session, setSession] = useState(null);
+  const lastTyping = useRef(0);
   const [leaveAsk, setLeaveAsk] = useState(false);
   const [draft, setDraft] = useState(() => {
     const d = loadDraft();
@@ -96,7 +106,7 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
   }, [printNb]);
 
   function open(nb, isNew = false) {
-    setSession({ nb, base: isNew ? null : notebookJson(nb) });
+    setSession({ nb, base: isNew ? null : notebookJson(nb), past: [], future: [] });
     setDraft(null);
   }
   function close() {
@@ -104,13 +114,27 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
     setLeaveAsk(false);
     clearDraft();
   }
+  // A change: one undo step, except typing the name (one step per pause, like propis2).
+  function change(fn, { typing = false } = {}) {
+    const now = Date.now();
+    const merge = typing && now - lastTyping.current < UNDO_TYPING_MS;
+    lastTyping.current = typing ? now : 0;
+    setSession((s) => {
+      if (!s) return s;
+      const nb = fn(s.nb);
+      if (nb === s.nb) return s;
+      return { ...s, nb, past: merge ? s.past : [...s.past, s.nb].slice(-UNDO_DEPTH), future: [] };
+    });
+  }
+  const undo = () => setSession((s) => (s && s.past.length ? { ...s, nb: s.past[s.past.length - 1], past: s.past.slice(0, -1), future: [s.nb, ...s.future] } : s));
+  const redo = () => setSession((s) => (s && s.future.length ? { ...s, nb: s.future[0], past: [...s.past, s.nb], future: s.future.slice(1) } : s));
   function save() {
     if (!session) return null;
     const nb = { ...session.nb, title: session.nb.title.trim() || "Без названия", updatedAt: Date.now() };
     const next = putNotebook(libRef.current, nb);
     setLib(next);
     push(nb.id, next);
-    setSession({ nb, base: notebookJson(nb) });
+    setSession((s) => ({ ...s, nb, base: notebookJson(nb) }));
     clearDraft();
     return nb;
   }
@@ -130,16 +154,11 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
     setLib(next);
     push(nb.id, next);
   }
-  function takeReady(r) {
-    const cp = copyNotebook(r);
-    const next = putNotebook(libRef.current, cp);
-    setLib(next);
-    push(cp.id, next);
-    open(cp);
-  }
+  // A ready notebook opens as an editable copy — it reaches «Мои тетради» when saved (propis2: «Править»).
+  const editReady = (r) => open(copyNotebook(r), true);
   function resumeDraft() {
     const saved = libRef.current.notebooks.find((n) => n.id === draft.nb.id);
-    setSession({ nb: draft.nb, base: !draft.isNew && saved ? notebookJson(saved) : null });
+    setSession({ nb: draft.nb, base: !draft.isNew && saved ? notebookJson(saved) : null, past: [], future: [] });
     setDraft(null);
   }
   function dropDraft() {
@@ -153,12 +172,16 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
         <ConstructorView
           key={session.nb.id}
           notebook={session.nb}
-          onChange={(fn) => setSession((s) => (s ? { ...s, nb: fn(s.nb) } : s))}
+          onChange={change}
           byId={byId}
           families={families}
           dirty={dirty}
           onSave={save}
           onBack={back}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={session.past.length > 0}
+          canRedo={session.future.length > 0}
         />
         {leaveAsk && (
           <div className="pl-modal no-print" role="presentation">
@@ -176,52 +199,48 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
   }
 
   const mine = sortedNotebooks(lib);
-  const Tool = ({ label, caption, tone = "", onClick, children }) => (
-    <button type="button" className={`pl-lib-tool ${tone}`} aria-label={label} title={label} onClick={onClick}>
-      {children}{!narrow && <span>{caption}</span>}
-    </button>
-  );
+  const leave = onBack ?? onAdvance;
 
   return (
-    <div className={`pl-lib${narrow ? " is-narrow" : ""}`}>
-      <div className="pl-header no-print">
-        <span className="pl-header-title">Печатные буквы</span>
-        <span className="pl-header-fill" />
-        {onAdvance && (
-          <button type="button" className="pl-header-btn" onClick={onAdvance}><IconClose /><span>Завершить</span></button>
-        )}
+    <div className="screen plb-home plb-lib pl-lib2" data-testid="print-letters-library">
+      <div className="screen-header no-print">
+        {leave && <button className="back-btn" onClick={leave} aria-label="Назад"><BackArrowIcon /></button>}
+        <h1 className="screen-title">Печатные буквы</h1>
       </div>
-
-      <div className="pl-lib-body no-print">
+      <div className="plb-body no-print">
         {draft && (
-          <div className="pl-banner" role="status">
-            <span>Не сохранена тетрадь «{draft.nb.title.trim() || "Без названия"}»</span>
-            <button type="button" className="pl-banner-go" onClick={resumeDraft}>Продолжить</button>
-            <button type="button" className="pl-banner-drop" onClick={dropDraft}>Удалить</button>
+          <div className="pl2-banner" role="status">
+            <span className="pl2-banner-text">Не сохранена тетрадь «{draft.nb.title.trim() || "Без названия"}»</span>
+            <span className="pl2-banner-actions">
+              <button type="button" aria-label="Продолжить несохранённую тетрадь" onClick={resumeDraft}>Продолжить</button>
+              <button type="button" aria-label="Удалить несохранённую тетрадь" onClick={dropDraft}>Удалить</button>
+            </span>
           </div>
         )}
+        <div className="pl2-nb-start">
+          <button type="button" className="pl2-tile pl2-tile--primary pl2-tile--wide" aria-label="Новая тетрадь" onClick={() => open(newNotebook(), true)}>
+            <span className="pl2-tile-ico"><IconAddPage /></span>
+            <span className="pl2-tile-cap">Новая тетрадь</span>
+          </button>
+        </div>
 
-        <button type="button" className="pl-lib-new" onClick={() => open(newNotebook(), true)}>
-          <IconNewNotebook /> Новая тетрадь
-        </button>
-
-        {mine.length > 0 && <h2 className="pl-lib-h2">Мои тетради</h2>}
+        {mine.length > 0 && <h2 className="plb-h2">Мои тетради</h2>}
         {mine.length > 0 && (
-          <ul className="pl-lib-grid">
+          <ul className="plb-pages">
             {mine.map((nb) => (
-              <li key={nb.id} className="pl-lib-card">
-                <div className="pl-lib-card-main">
-                  <PageThumb page={nb.pages[0]} format={nb.format} byId={byId} index={0} hideNumber label={`Открыть тетрадь ${nb.title}`} onSelect={() => open(nb)} />
-                  <div className="pl-lib-card-text">
-                    <span className="pl-lib-card-title">{nb.title}</span>
-                    <span className="pl-lib-meta">{metaLine(nb)} · {dateLabel(nb.updatedAt)}</span>
+              <li key={nb.id} className="pl2-nb">
+                <div className="pl2-nb-head">
+                  <span className="pl2-nb-ico"><IconNotebook /></span>
+                  <div className="pl2-nb-main">
+                    <div className="pl2-nb-name">{nb.title}</div>
+                    <div className="pl2-nb-meta">{metaLine(nb)} · {dateLabel(nb.updatedAt)}</div>
                   </div>
                 </div>
-                <div className="pl-lib-tools" role="group" aria-label={`Действия с тетрадью ${nb.title}`}>
-                  <Tool label={`Править тетрадь ${nb.title}`} caption="Править" tone="is-go" onClick={() => open(nb)}><IconEdit /></Tool>
+                <div className="pl2-nb-tools" role="group" aria-label="Действия с тетрадью">
+                  <Tool label={`Изменить тетрадь ${nb.title}`} caption="Править" tone="pl2-tool--go" onClick={() => open(nb)}><IconEditPage /></Tool>
                   <Tool label={`Печать тетради ${nb.title}`} caption="Печать" onClick={() => setPrintNb(nb)}><IconPrint /></Tool>
                   <Tool label={`Копия тетради ${nb.title}`} caption="Копия" onClick={() => copy(nb)}><IconDuplicate /></Tool>
-                  <Tool label={`Удалить тетрадь ${nb.title}`} caption="Удалить" tone="is-danger" onClick={() => remove(nb)}><IconTrash /></Tool>
+                  <Tool label={`Удалить тетрадь ${nb.title}`} caption="Удалить" tone="pl2-ib--danger" onClick={() => remove(nb)}><IconTrash /></Tool>
                 </div>
               </li>
             ))}
@@ -230,23 +249,20 @@ export default function PrintLettersHome({ task, onAdvance, accountKv }) {
 
         {ready.length > 0 && (
           <>
-            <div className="pl-lib-h2row">
-              <h2 className="pl-lib-h2">Готовые тетради</h2>
-              <span className="pl-lib-meta">«Взять в мои» кладёт копию в «Мои тетради» — её можно менять, готовая остаётся как была</span>
-            </div>
-            <ul className="pl-lib-grid pl-lib-grid--ready">
+            <h2 className="plb-h2">Готовые тетради</h2>
+            <ul className="plb-pages">
               {ready.map((r) => (
-                <li key={r.id} className="pl-lib-card is-ready">
-                  <div className="pl-lib-card-main">
-                    <PageThumb page={r.pages[0]} format={r.format} byId={byId} index={0} hideNumber label={`Взять тетрадь ${r.title}`} onSelect={() => takeReady(r)} />
-                    <div className="pl-lib-card-text">
-                      <span className="pl-lib-card-title">{r.title}</span>
-                      <span className="pl-lib-meta">{metaLine(r)}</span>
+                <li key={r.id} className="pl2-nb pl2-nb--ready">
+                  <div className="pl2-nb-head">
+                    <span className="pl2-nb-ico"><IconNotebook /></span>
+                    <div className="pl2-nb-main">
+                      <div className="pl2-nb-name">{r.title}</div>
+                      <div className="pl2-nb-meta">{metaLine(r)}</div>
+                      {r.description && <div className="pl2-nb-desc">{r.description}</div>}
                     </div>
                   </div>
-                  <p className="pl-lib-desc">{r.description}</p>
-                  <div className="pl-lib-tools" role="group" aria-label={`Действия с готовой тетрадью ${r.title}`}>
-                    <button type="button" className="pl-lib-take" onClick={() => takeReady(r)}>Взять в мои</button>
+                  <div className="pl2-nb-tools" role="group" aria-label="Действия с тетрадью">
+                    <Tool label={`Изменить тетрадь ${r.title}`} caption="Править" tone="pl2-tool--go" onClick={() => editReady(r)}><IconEditPage /></Tool>
                     <Tool label={`Печать тетради ${r.title}`} caption="Печать" onClick={() => setPrintNb(r)}><IconPrint /></Tool>
                   </div>
                 </li>

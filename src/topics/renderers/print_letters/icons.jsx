@@ -84,3 +84,14 @@ export const IconEdit = () => S(<path d="M4 20h4l10-10-4-4L4 16z" />);
 export const IconSave = () => S(<><path d="M5 4h11l3 3v13H5z" /><path d="M8 4v5h7V4M8 20v-6h8v6" /></>);
 // A new notebook: a page with a plus.
 export const IconNewNotebook = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.5" /><path d="M12 9v6M9 12h6" /></>);
+
+// ---- Copied path-for-path from src/features/propis2/Propis2Icons.jsx (2026-11-03): the constructor
+// copies propis2's whole look, its pictograms included.
+export const IconP2Save = () => S(<path d="M5 12.5l4.5 4.5L19 7.5" strokeWidth="2.4" />); // confirm: keep the changes
+export const IconPlay = () => S(<><circle cx="12" cy="12" r="9" /><path d="M10 8.5l5.5 3.5-5.5 3.5z" fill="currentColor" /></>);
+export const IconUndo = () => S(<><path d="M9 14L4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 010 11H11" /></>);
+export const IconRedo = () => S(<><path d="M15 14l5-5-5-5" /><path d="M20 9H9.5a5.5 5.5 0 000 11H13" /></>);
+export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>);
+export const IconFitWidth = () => S(<><rect x="7" y="4" width="10" height="16" rx="1.5" strokeWidth="1.4" /><path d="M2.5 12h6M2.5 12l2.2-2.2M2.5 12l2.2 2.2M21.5 12h-6M21.5 12l-2.2-2.2M21.5 12l-2.2 2.2" strokeWidth="1.7" /></>);
+export const IconAddPage = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.8" /><path d="M12 8.5v7M8.5 12h7" /></>);
+export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18" rx="1.8" /><path d="M9 3v18" /><path d="M12 8h4M12 11.5h4" strokeWidth="1.4" /></>);

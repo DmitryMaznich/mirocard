@@ -722,3 +722,31 @@
 @media print {
   .pl-lib { height: auto; background: none; }
 }
+
+/* ===== 2026-11-03: the editor and the library are propis2's own (propis2-style.css); below
+   only what this topic adds to them: its colour tokens for the sheet/row panel, the row panel
+   column, the thumbnails (a live Sheet scaled down, not an SVG) and print. ===== */
+.pl-editor, .pl-lib2 {
+  --pl-bg: #fdfcf9; --pl-strip: #f6f1e4; --pl-line: #e3dccb; --pl-ink: #28323c; --pl-muted: #8b93a1;
+  --pl-teal: #4a9b8f; --pl-teal-dark: #2a6b60; --pl-teal-soft: #e5f2ef; --pl-header: #1c3634;
+  --pl-red: #b91c1c; --pl-red-soft: #fee2e2;
+  width: 100%; align-self: stretch;
+}
+.pl2-desk-body > .pl-inspector { min-height: 0; padding-right: var(--app-safe-right, 0px); }
+.pl2-thumb-sheet.pl-thumb-sheet2 { flex: 0 0 auto; position: relative; }
+.plb-editor2--desk .pl2-thumb { align-items: flex-start; }
+.pl2-status-hint { margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-editor .plb-page-box .pl-overflow { margin-bottom: 12px; }
+/* phone: the row panel docked at the bottom scrolls on its own */
+.plb-editor2--phone .plb-dock.pl-dock { overflow-y: auto; max-height: 45dvh; }
+.plb-dock .pl-insp { padding: 4px 0; }
+
+/* «Мои тетради»: propis2's library markup, but the whole width of the device (owner's rule) —
+   the cards go into a grid that adds columns as the screen widens. */
+.pl-lib2 { display: flex; flex-direction: column; min-height: 100dvh; background: var(--pl-bg); }
+.pl-lib2 .plb-body { max-width: none; padding: 16px clamp(16px, 2.5vw, 32px) calc(32px + var(--app-safe-bottom, 0px)); }
+.pl-lib2 .plb-pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+
+@media print {
+  .plb-editor2, .plb-editor2--desk, .pl-lib2 { height: auto !important; min-height: 0 !important; overflow: visible !important; background: none !important; display: block !important; }
+}

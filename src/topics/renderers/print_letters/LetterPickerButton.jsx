@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePopupPos } from "./usePopupPos";
 import { IconLetterA } from "./icons";
+import LetterGlyph from "./LetterGlyph";
 
 const FAMILY_TITLES = { straight: "Прямые линии" };
 const PANEL_W = 300;
@@ -24,17 +25,18 @@ export default function LetterPickerButton({ families, onPick }) {
   }, [open]);
 
   return (
-    <div className="pl-pick" ref={wrapRef}>
+    <div className="pl2-pick" ref={wrapRef}>
       <button
         type="button"
         ref={btnRef}
-        className={`pl-tool${open ? " is-open" : ""}`}
+        className={`pl2-pick-btn pl2-tool${open ? " is-open" : ""}`}
+        aria-label="Буква: новый блок"
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="pl-tool-ico"><IconLetterA /></span>
-        <span className="pl-tool-cap">Буква</span>
+        <span className="pl2-tool-ico"><IconLetterA /><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
+        <span className="pl2-cap">Буква</span>
       </button>
       {open && (
         <div className="pl-letters-panel" role="dialog" aria-label="Буква для нового блока" style={{ ...panelStyle, width: PANEL_W }}>
@@ -47,9 +49,10 @@ export default function LetterPickerButton({ families, onPick }) {
                     key={l.id}
                     type="button"
                     className="pl-letters-cell"
+                    aria-label={`Буква ${l.label}`}
                     onClick={() => { setOpen(false); onPick(l.id); }}
                   >
-                    {l.label}
+                    <LetterGlyph letter={l} heightMm={7} variant="plain" />
                   </button>
                 ))}
               </div>

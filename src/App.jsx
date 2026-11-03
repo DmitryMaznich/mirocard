@@ -35,6 +35,7 @@ import AllTextsScreen from "@/features/reading/AllTextsScreen";
 import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "@/features/session/ParamsScreen";
 import Propis2Home from "@/features/propis2/Propis2Home";
+import PrintLettersScreen from "@/features/printLetters/PrintLettersScreen";
 import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
@@ -79,7 +80,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-// `propis2` owns its home screen for its constructor mode; its other modes (copied from `propis` («Прописи старые»), 2026-10-10) and every other
+// `propis2` owns its home screen for its constructor mode (and `print_letters` for its only mode); its other modes (copied from `propis` («Прописи старые»), 2026-10-10) and every other
 // topic keep the generic settings screen.
 function ParamsRoute() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);
@@ -87,7 +88,10 @@ function ParamsRoute() {
   const topicRecords = useAppStore((s) => s.topicRecords);
   const record = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode = record?.modes?.find((m) => m.id === activeModeId);
-  return record?.meta.renderer === "propis2" && (!mode || mode.type === "builder") ? <Propis2Home /> : <ParamsScreen />;
+  if (record?.meta.renderer === "propis2" && (!mode || mode.type === "builder")) return <Propis2Home />;
+  // «Печатные буквы»: its notebook constructor is a full screen too (owner, 2026-11-03)
+  if (record?.meta.renderer === "print_letters") return <PrintLettersScreen />;
+  return <ParamsScreen />;
 }
 
 const SCREENS = {

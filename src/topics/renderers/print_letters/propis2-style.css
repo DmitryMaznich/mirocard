@@ -1,0 +1,647 @@
+/* «Печатные буквы»: a copy of propis2's whole stylesheet (src/features/propis2/propis2.css,
+   copied 2026-11-03), owner: «скопируй весь стиль, как это сделано в конструкторе прописи».
+   Renamed, not shared: `propis2-` → `plb-`, `p2-` (classes, variables, keyframes) → `pl2-`. A
+   shared stylesheet would ship a frozen copy inside this topic's deck ZIP, and once propis2
+   changed its own, that stale copy (loaded later) could override propis2's look. To refresh:
+   re-run the same rename on the current propis2.css. */
+.plb-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; max-width: 720px; margin: 0 auto; width: 100%; }
+.plb-field { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.plb-field--inline { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
+.plb-rows { list-style: decimal inside; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.plb-rows li { display: flex; gap: 8px; align-items: center; }
+.plb-rows input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #d8d2c4; border-radius: 8px; font: inherit; }
+.plb-rows button { border: none; background: transparent; font-size: 1rem; cursor: pointer; padding: 6px 10px; }
+.plb-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.plb-view { position: fixed; inset: 0; z-index: 50; background: #fffdf8; }
+.plb-row { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid #e6e0d2; border-radius: 10px; background: #fffdf8; }
+.plb-row-main { display: flex; gap: 6px; flex-wrap: wrap; }
+.plb-row-main input, .plb-row-main select, .plb-field select, .plb-field input { padding: 8px 10px; border: 1px solid #d8d2c4; border-radius: 8px; font: inherit; background: #fff; }
+.plb-row-main input { flex: 1; min-width: 140px; }
+.plb-row-tools { display: flex; gap: 4px; }
+.plb-row-tools button { border: 1px solid #d8d2c4; background: #fff; border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 1rem; }
+.plb-row-tools button:disabled { opacity: .35; cursor: default; }
+.plb-warn { color: #9a3412; background: #fff1e6; border-radius: 8px; padding: 6px 10px; font-size: .9rem; }
+.plb-warn--summary { font-weight: 600; }
+.plb-empty { color: #6b7385; }
+.plb-pages { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.plb-page-card { border: 1px solid #e6e0d2; border-radius: 12px; background: #fffdf8; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.plb-page-title { font-weight: 700; }
+.plb-page-meta { color: #6b7385; font-size: .85rem; }
+.plb-link { border: none; background: transparent; color: #1f4fd8; cursor: pointer; font: inherit; padding: 6px; }
+.plb-row-main textarea { flex: 1; min-width: 200px; padding: 8px 10px; border: 1px solid #d8d2c4; border-radius: 8px; font: inherit; resize: vertical; }
+.plb-blank-note { color: #6b7385; align-self: center; }
+.plb-mark { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; margin-right: 8px; }
+.plb-hint { color: #6b7385; font-size: .85rem; margin: 0; }
+.plb-h2 { font-size: 1.05rem; margin: 8px 0 0; }
+.plb-editor-layout { display: flex; flex-direction: column; gap: 12px; }
+.plb-editor-layout .plb-body { max-width: none; }
+.plb-preview-col { padding: 0 16px 16px; }
+.plb-preview { border-radius: 12px; overflow: hidden; background: #cabfa9; }
+.plb-preview .propis-practice-stage { position: static; inset: auto; height: auto; background: transparent; touch-action: auto; }
+.plb-preview .propis-print-frame { height: auto; background: transparent; }
+.plb-preview .propis-print-page-wrap { padding: 8px; background: transparent; overflow: visible; touch-action: auto; }
+.plb-preview .propis-print-page-svg { max-height: 78vh; }
+@media (min-width: 900px) {
+  .plb-editor-layout { flex-direction: row; align-items: flex-start; }
+  .plb-editor-layout .plb-body { flex: 1 1 52%; min-width: 0; }
+  .plb-preview-col { flex: 1 1 48%; position: sticky; top: 8px; padding: 16px 16px 16px 0; }
+}
+
+/* ===== constructor `propis2`: icons only, one calm family (cream paper, teal accent, blue ink) ===== */
+.plb-editor2 {
+  --pl2-bg: #fdfcf9; --pl2-surface: #fff; --pl2-strip: #f6f1e4; --pl2-line: #e3dccb; --pl2-board: #cfc4ad;
+  --pl2-ink: #28323c; --pl2-muted: #8b93a1; --pl2-teal: #4a9b8f; --pl2-teal-dark: #2a6b60; --pl2-teal-soft: #e5f2ef;
+  --pl2-blue: #1d4ed8; --pl2-red: #dc2626; --pl2-red-soft: #fef2f2;
+  --dock-h: clamp(270px, 37dvh, 390px);
+  display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; background: var(--pl2-bg); color: var(--pl2-ink);
+}
+
+/* header: back, title, show-to-the-student */
+.plb-editor2 .screen-header { gap: 10px; flex-wrap: nowrap; align-items: center; }
+.plb-title-input { flex: 1 1 auto; min-width: 0; font-size: 1.05rem; font-weight: 800; border: 1px solid transparent; background: rgba(255,255,255,.14); color: #fff; border-radius: 12px; padding: 8px 12px; font-family: inherit; }
+.plb-title-input:focus { outline: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.2); }
+.pl2-show { flex: 0 0 auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: var(--pl2-teal); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 var(--pl2-teal-dark); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-show svg { width: 30px; height: 30px; }
+.pl2-show:active { transform: translateY(3px); box-shadow: none; }
+
+/* icon buttons (the only kind of control) and segmented groups of them */
+.pl2-ib { position: relative; flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border: none; border-radius: 12px; background: transparent; color: var(--pl2-ink); display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s, box-shadow .12s, transform .08s; }
+.pl2-ib svg { width: 26px; height: 26px; }
+.pl2-ib:hover:not(:disabled):not(.is-on) { background: var(--pl2-teal-soft); }
+.pl2-ib:active:not(:disabled) { transform: translateY(2px); }
+.pl2-ib.is-on { background: var(--pl2-teal); color: #fff; box-shadow: 0 2px 0 var(--pl2-teal-dark); }
+.pl2-ib:disabled { opacity: .3; cursor: default; }
+.pl2-ib:focus-visible { outline: 2px solid var(--pl2-blue); outline-offset: 1px; }
+.pl2-ib--plain { background: var(--pl2-surface); border: 1px solid var(--pl2-line); box-shadow: 0 2px 0 var(--pl2-line); }
+.pl2-ib--primary { background: var(--pl2-teal); color: #fff; box-shadow: 0 3px 0 var(--pl2-teal-dark); }
+.pl2-ib--primary:disabled { background: #b8d4cf; box-shadow: none; opacity: 1; }
+.pl2-ib--danger { color: var(--pl2-red); }
+.pl2-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--pl2-red); color: #fff; font-size: .72rem; font-weight: 800; display: grid; place-items: center; }
+.pl2-seg { display: inline-flex; flex: 0 0 auto; gap: 2px; padding: 3px; background: var(--pl2-surface); border: 1px solid var(--pl2-line); border-radius: 16px; box-shadow: 0 2px 0 var(--pl2-line); }
+
+/* the strip of paper settings above the canvas */
+.plb-settings { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-height: 62px; background: var(--pl2-strip); border-bottom: 1px solid var(--pl2-line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.plb-settings::-webkit-scrollbar { display: none; }
+
+/* layout areas: portrait = settings / canvas / panel; phone = the same with a half-page canvas; landscape tablet = canvas | settings + panel */
+.plb-main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) var(--dock-h); grid-template-areas: "settings" "rowset" "page" "dock"; }
+.plb-main > .plb-settings.plb-settings--row { grid-area: rowset; background: #eef3fb; border-bottom: 3px solid #2563eb; }
+.plb-settings--row .pl2-seg { opacity: 1; } .plb-settings--row .pl2-ib:disabled { opacity: .35; }
+.plb-main > .plb-settings { grid-area: settings; }
+.plb-main > .plb-page-col { grid-area: page; }
+/* «… на стр. 2 · На всю тетрадь»: over the bottom of the page area for a few seconds (Propis2Editor, owner 2026-10-15) */
+.plb-main > .pl2-offer { grid-area: page; align-self: end; z-index: 3; margin: 0 10px 10px; }
+.plb-editor2--side .plb-main > .pl2-offer { margin-bottom: calc(12px + var(--app-safe-bottom, 0px)); margin-right: calc(10px + var(--app-safe-right, 0px)); }
+.pl2-offer { position: relative; display: flex; align-items: center; gap: 10px; padding: 9px 9px 11px 14px; border-radius: 14px; background: var(--pl2-ink); color: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); font-weight: 700; font-size: .9rem; line-height: 1.3; animation: pl2-offer-in .18s ease-out; }
+.pl2-offer-msg { flex: 1 1 auto; min-width: 0; }
+.pl2-offer-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 10px; padding: 9px 12px; background: var(--pl2-teal); color: #fff; font: inherit; font-weight: 900; cursor: pointer; touch-action: manipulation; }
+.pl2-offer-btn svg { width: 18px; height: 18px; }
+.pl2-offer-btn--ghost { background: transparent; color: #9ee0d5; }
+.pl2-offer-btn:focus-visible { outline: 2px solid #9ee0d5; outline-offset: 1px; }
+.pl2-offer-timer { position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px; border-radius: 1px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+.pl2-offer-timer i { display: block; height: 100%; background: #9ee0d5; transform-origin: left; animation: pl2-offer-timer linear forwards; }
+@keyframes pl2-offer-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes pl2-offer-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .pl2-offer, .pl2-offer-timer i { animation: none; } }
+/* the dot on a strip button: the notebook's pages differ in this setting */
+.pl2-mixed { position: absolute; top: 2px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: #d97706; border: 2px solid var(--pl2-strip); pointer-events: none; z-index: 1; }
+.plb-main > .plb-dock { grid-area: dock; }
+.plb-page-col { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 6px; display: flex; justify-content: center; align-items: flex-start; background: var(--pl2-board); }
+.plb-page-box { max-width: 100%; flex: none; margin-inline: auto; }
+/* zoomed in (useCanvasZoom.js): the page wider than the canvas, which scrolls both ways; auto margins centre a smaller page and let
+   a bigger one start at the edge (centring it with justify-content would cut its left part off) */
+.plb-main > .plb-page-col.is-zoomed { overflow: auto; justify-content: flex-start; align-items: flex-start; }
+.plb-main > .plb-page-col.is-zoomed .plb-page-box { max-width: none; margin-block: auto; }
+.plb-main > .pl2-zoom { grid-area: page; justify-self: start; align-self: start; z-index: 6; display: flex; gap: 2px; padding: 3px; margin: 12px 0 0 calc(12px + var(--app-safe-left, 0px)); border-radius: 24px; background: rgba(255, 255, 255, .94); box-shadow: 0 4px 14px rgba(0, 0, 0, .22), 0 1px 3px rgba(0, 0, 0, .12); }
+.pl2-zoom-btn { min-width: 38px; height: 38px; padding: 0 6px; border: none; border-radius: 19px; background: transparent; color: #1f2937; font: 800 20px/1 inherit; font-family: inherit; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-zoom-btn svg { width: 24px; height: 24px; }
+.pl2-zoom-pct { min-width: 54px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.pl2-zoom-btn:disabled { color: #b8c0cc; cursor: default; }
+.pl2-zoom-pct:disabled { color: #4b5563; }
+.pl2-zoom-btn.is-on { background: var(--pl2-teal-soft); color: var(--pl2-teal-dark); }
+.pl2-zoom-btn:not(:disabled):hover { background: var(--pl2-teal-soft); }
+.pl2-zoom-sep { flex: 0 0 1px; align-self: stretch; margin: 7px 3px; background: var(--pl2-line); }
+.pl2-zoom-btn:focus-visible { outline: 2px solid var(--pl2-blue); outline-offset: 1px; }
+.plb-page-box .plb-preview { width: 100%; background: transparent; }
+.plb-page-col .propis-print-page-svg { max-height: none; width: 100%; border-radius: 3px; }
+
+/* the bottom panel: fixed size, only its insides scroll */
+.plb-dock { height: var(--dock-h); display: flex; flex-direction: column; gap: 6px; padding: 8px 12px calc(8px + var(--app-safe-bottom, 0px)); padding-left: calc(12px + var(--app-safe-left, 0px)); padding-right: calc(12px + var(--app-safe-right, 0px)); background: var(--pl2-surface); border-radius: 20px 20px 0 0; box-shadow: 0 -4px 18px rgba(40, 50, 60, .12); overflow: hidden; z-index: 1; }
+.plb-dock-bar { flex: 0 0 auto; height: 116px; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: 6px; scrollbar-width: thin; }
+.plb-dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pl2-field { flex: 1 1 200px; min-width: 150px; display: flex; align-items: center; gap: 6px; background: var(--pl2-bg); border: 1px solid var(--pl2-line); border-radius: 14px; padding: 2px 4px 2px 12px; }
+.pl2-field input, .pl2-field textarea { flex: 1 1 auto; min-width: 0; border: none; background: transparent; font: 700 1.25rem/1.2 inherit; font-family: inherit; color: var(--pl2-blue); padding: 8px 0; outline: none; resize: none; }
+.pl2-blank { display: grid; place-items: center; flex: 1; color: var(--pl2-muted); height: 44px; }
+.pl2-hint { display: grid; place-items: center; color: var(--pl2-muted); height: 100%; }
+.pl2-warn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 8px; border-radius: 12px; background: var(--pl2-red-soft); color: #b91c1c; flex: 0 0 auto; }
+.pl2-warn svg { width: 22px; height: 22px; }
+.pl2-warn b { font-size: 1.15rem; font-weight: 800; }
+.pl2-warn--summary { align-self: flex-start; }
+.pl2-cut { width: 34px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #b91c1c 0 55%, transparent 100%); -webkit-mask: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px); mask: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px); }
+
+/* tabs: symbol / word / text */
+.plb-tabs { flex: 0 0 auto; display: flex; gap: 6px; border-bottom: 1px solid var(--pl2-line); }
+.plb-tab { flex: 1 1 0; height: 48px; display: grid; place-items: center; border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--pl2-muted); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.plb-tab svg { width: 28px; height: 28px; }
+.plb-tab.is-on { color: var(--pl2-teal-dark); border-bottom-color: var(--pl2-teal); }
+.pl2-tab-glyph { display: grid; place-items: center; color: inherit; }
+.pl2-tab-glyph svg path { stroke: currentColor; }
+.plb-dock-body { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.plb-typed { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; padding-top: 6px; overflow-y: auto; }
+.plb-typed input, .plb-typed textarea { flex: 1 1 200px; min-width: 150px; font: 700 1.25rem/1.2 inherit; font-family: inherit; color: var(--pl2-blue); padding: 10px 12px; border: 1px solid var(--pl2-line); border-radius: 14px; background: var(--pl2-bg); outline: none; }
+.plb-typed input:focus, .plb-typed textarea:focus, .pl2-field:focus-within { border-color: var(--pl2-teal); }
+
+/* symbol picker: categories as handwriting icons, a scrolling grid of tiles */
+.plb-carousel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
+.plb-carousel-tabs { flex: 0 0 auto; display: flex; gap: 8px; }
+.plb-carousel-tab { width: 54px; height: 42px; display: grid; place-items: center; border: 1px solid var(--pl2-line); border-radius: 12px; background: var(--pl2-surface); color: var(--pl2-muted); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.plb-carousel-tab .plb-tile-glyph path { stroke: currentColor; }
+.plb-carousel-tab.is-on { background: var(--pl2-teal-soft); border-color: var(--pl2-teal); color: var(--pl2-teal-dark); }
+.plb-carousel-list { flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; touch-action: pan-y; padding: 2px 2px 8px; scrollbar-width: thin; }
+.plb-tile { flex: 0 0 auto; display: grid; place-items: center; padding: 4px; background: var(--pl2-surface); border: 1px solid var(--pl2-line); border-radius: 12px; box-shadow: 0 2px 0 var(--pl2-line); cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; transition: transform .08s, box-shadow .08s; }
+.plb-tile:active { transform: translateY(2px); box-shadow: none; }
+.plb-tile-glyph { display: block; pointer-events: none; }
+.plb-chip-text { display: inline-block; font-weight: 800; color: var(--pl2-blue); }
+
+/* phone: the canvas shows about half a page and scrolls; the panel takes the rest of the screen */
+.plb-editor2--phone .plb-main { grid-template-rows: auto auto auto minmax(0, 1fr); grid-template-areas: "settings" "rowset" "page" "dock"; }
+.plb-editor2--phone .plb-settings--row { flex-wrap: wrap; overflow: visible; min-height: 0; padding: 6px 8px; gap: 6px 8px; }
+.plb-editor2--phone .plb-settings { flex-wrap: wrap; overflow: visible; min-height: 0; padding: 6px 8px; gap: 6px 8px; }
+.plb-editor2--phone .plb-page-col { height: min(72vw, 40dvh); }
+.plb-editor2--phone .plb-dock { height: auto; min-height: 0; padding-top: 6px; }
+.plb-editor2--phone .plb-dock-bar { height: 110px; }
+.plb-editor2--phone .pl2-ib { width: 42px; height: 42px; }
+.plb-editor2--phone .pl2-ib svg { width: 24px; height: 24px; }
+.plb-editor2--phone .plb-editor2 .screen-header, .plb-editor2--phone .screen-header { padding-left: 8px; padding-right: 8px; gap: 8px; }
+
+/* landscape tablet: the canvas takes the whole height on the left, the tools sit on the right */
+.plb-editor2--side .plb-main { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "settings page" "rowset page" "dock page"; }
+.plb-editor2--side .plb-settings--row { flex-wrap: wrap; overflow: visible; border-right: 1px solid var(--pl2-line); min-height: 0; padding: 10px 12px; }
+.plb-editor2--side .plb-settings { flex-wrap: wrap; overflow: visible; border-right: 1px solid var(--pl2-line); min-height: 0; padding: 10px 12px; }
+.plb-editor2--side .plb-dock { height: auto; min-height: 0; border-radius: 0; box-shadow: none; border-right: 1px solid var(--pl2-line); }
+.plb-editor2--side .plb-page-col { align-items: center; }
+.plb-editor2--side .pl2-ib { width: 48px; height: 48px; }
+.plb-editor2--side .plb-dock-bar { height: 124px; }
+@media (min-width: 700px) { .plb-editor2 .pl2-ib { width: 48px; height: 48px; } .plb-editor2 .pl2-ib svg { width: 28px; height: 28px; } }
+
+/* mini-pickers (page and row tiers) */
+.pl2-grow { flex: 1 1 auto; }
+.pl2-pick { position: relative; flex: 0 0 auto; }
+.pl2-pick-btn { position: relative; display: flex; align-items: center; gap: 2px; height: 46px; padding: 0 6px 0 8px; border: 1px solid var(--pl2-line); border-radius: 14px; background: var(--pl2-surface); color: var(--pl2-ink, #28323c); box-shadow: 0 2px 0 var(--pl2-line); cursor: pointer; }
+.pl2-pick-btn svg:first-child { width: 26px; height: 26px; }
+.pl2-pick-btn.is-open { border-color: #4a9b8f; background: #e5f2ef; }
+.pl2-pick-btn:disabled { opacity: .38; cursor: default; }
+.pl2-pick-list { position: fixed; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--pl2-surface); border: 1px solid var(--pl2-line); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; }
+.pl2-pick-opt { width: 48px; height: 44px; border: none; border-radius: 12px; background: transparent; color: inherit; display: grid; place-items: center; cursor: pointer; }
+.pl2-pick-opt svg { width: 26px; height: 26px; }
+.pl2-pick-opt.is-on { background: var(--pl2-teal-soft, #e3f1ee); color: #2a6b60; box-shadow: inset 0 0 0 2px #4a9b8f; } /* light: the pictograms are three-coloured (grey ruling, red guides) and would vanish on solid teal */
+.plb-editor2--phone .pl2-pick-btn { height: 42px; padding: 0 3px 0 5px; border-radius: 12px; }
+.plb-editor2--phone .pl2-pick-btn svg:first-child { width: 22px; height: 22px; }
+.plb-settings { overflow: visible; }
+.plb-settings { position: relative; z-index: 6; }
+.plb-editor2--phone .plb-settings--row { flex-wrap: nowrap; gap: 4px; padding: 5px 6px; }
+.plb-editor2--phone .plb-settings--row .pl2-seg .pl2-ib { width: 34px; height: 38px; }
+.plb-editor2--phone .plb-settings--row .pl2-seg { padding: 2px; }
+.plb-editor2--phone .plb-settings--row > .pl2-ib { width: 38px; height: 42px; }
+
+/* presets popover, locked-page marker */
+.pl2-lock { display: grid; place-items: center; color: #8b93a1; } .pl2-lock svg { width: 22px; height: 22px; }
+.plb-main > .plb-settings:not(.plb-settings--row) { z-index: 8; }
+
+/* the name of an icon button (long press on a touch screen) */
+.pl2-ib, .pl2-pick-btn, .pl2-pick-opt { position: relative; }
+.pl2-tip { position: fixed; z-index: 760; padding: 6px 10px; border-radius: 10px; background: #28323c; color: #fff; font: 700 13px/1.2 inherit; white-space: nowrap; max-width: 70vw; pointer-events: none; box-shadow: 0 6px 16px rgba(0,0,0,.3); }
+.pl2-pick-opt .pl2-tip { left: calc(100% + 6px); top: 50%; transform: translateY(-50%); }
+.plb-dock .pl2-tip { top: auto; bottom: calc(100% + 6px); }
+.pl2-tip--start { left: 0; transform: none; }
+.pl2-tip--end { left: auto; right: 0; transform: none; }
+.pl2-pick-opt .pl2-tip--start, .pl2-pick-opt .pl2-tip--end { left: calc(100% + 6px); right: auto; transform: translateY(-50%); }
+
+/* the one text field (bottom block) */
+.plb-main { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.plb-dock { height: auto; max-height: var(--dock-h); min-height: 0; justify-content: flex-end; }
+.pl2-warns { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pl2-fieldwrap { flex: 0 1 auto; min-height: 0; display: flex; align-items: flex-end; gap: 8px; }
+.pl2-textarea { flex: 1 1 auto; min-width: 0; max-height: calc(var(--dock-h) - 70px); overflow-y: auto; resize: none; box-sizing: border-box; border: 1px solid var(--pl2-line); border-radius: 14px; background: var(--pl2-bg); padding: 10px 12px; font: 700 1.3rem/1.3 inherit; font-family: inherit; color: var(--pl2-blue); outline: none; overscroll-behavior: contain; }
+.pl2-textarea:focus { border-color: var(--pl2-teal); }
+.pl2-textarea:disabled { opacity: .5; }
+.pl2-elements-panel { position: absolute; right: 0; bottom: calc(100% + 8px); width: min(360px, 92vw); max-height: 45dvh; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: var(--pl2-surface); border: 1px solid var(--pl2-line); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; overscroll-behavior: contain; }
+.pl2-elements .pl2-ib { width: 52px; height: 52px; }
+.plb-editor2--phone .plb-main { grid-template-rows: auto auto auto minmax(0, 1fr); }
+.plb-editor2--phone .plb-dock { max-height: none; }
+.plb-editor2--phone .pl2-textarea { max-height: 40dvh; }
+.plb-editor2--side .plb-main { grid-template-rows: auto auto minmax(0, 1fr); }
+.plb-editor2--side .plb-dock { max-height: none; }
+.plb-editor2--side .pl2-textarea { max-height: 55dvh; }
+
+/* on-screen keyboard: the editor is exactly the visible part of the screen, so the text field (its bottom edge) is right above the keyboard */
+.plb-editor2--kb { position: fixed; left: 0; right: 0; top: var(--pl2-vvtop, 0px); height: var(--pl2-vvh); z-index: 800; }
+.plb-editor2--kb .plb-dock, .plb-editor2--kb.plb-editor2--phone .plb-dock, .plb-editor2--kb.plb-editor2--side .plb-dock { align-self: end; height: auto; max-height: min(var(--dock-h), calc(var(--pl2-vvh) - 190px)); padding-bottom: 8px; }
+.plb-editor2--kb .pl2-textarea, .plb-editor2--kb.plb-editor2--phone .pl2-textarea { min-height: 3.6rem; max-height: min(calc(var(--dock-h) - 70px), calc(var(--pl2-vvh) - 260px)); }
+
+/* the element button stands to the LEFT of the field (where messengers keep «+»): the right side is where «send» would be */
+.pl2-fieldwrap .pl2-elements { order: -1; }
+.pl2-elements-panel { left: 0; right: auto; }
+/* no fixed bottom zone: the dock is just the text field and takes what its text needs; the canvas gets the rest */
+.plb-editor2--phone .plb-main { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.plb-editor2--phone .plb-page-col { height: auto; }
+.plb-editor2--phone .plb-dock { height: auto; max-height: min(var(--dock-h), 45dvh); }
+
+/* the element list opens above the field: the dock must not clip it and must stand above the tiers */
+.plb-dock { overflow: visible; position: relative; z-index: 12; }
+
+/* the viewer: «edit this page» next to the close button */
+/* Show modal: full screen; the ruled window with the animated fragment takes all the space under the one-line button row */
+/* show panel: what is shown (kind + fragment) at the top, the writing row in the middle, the controls at the bottom */
+.plb-panel { position: absolute; inset: 0; z-index: 700; /* above `propis` .propis-practice-stage (500) */ background: #fffdf8; display: flex; flex-direction: column; }
+.plb-panel-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; position: relative; padding: calc(14px + var(--app-safe-top, 0px)) calc(72px + var(--app-safe-right, 0px)) 6px calc(72px + var(--app-safe-left, 0px)); }
+.plb-panel-what { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.plb-panel-kind { font: 700 clamp(13px, 1.6vw, 16px)/1.2 "Nunito", sans-serif; color: #8b8577; text-transform: uppercase; letter-spacing: .08em; }
+.plb-panel-title { font: 800 clamp(26px, 4vw, 40px)/1.15 "Nunito", sans-serif; color: #1f2937; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plb-panel-close { position: absolute; top: calc(12px + var(--app-safe-top, 0px)); right: calc(12px + var(--app-safe-right, 0px)); width: 48px; height: 48px; border: none; border-radius: 50%; background: #efe9dc; color: #4b5563; font: 700 22px/1 "Nunito", sans-serif; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.plb-panel-close:active { background: #e3dccb; }
+.plb-panel-stage { flex: 1 1 auto; min-height: 0; position: relative; padding: 0 var(--app-safe-right, 0px) 0 var(--app-safe-left, 0px); }
+.plb-panel-controls { flex: 0 0 auto; display: flex; justify-content: center; gap: 14px; padding: 10px 16px calc(18px + var(--app-safe-bottom, 0px)); }
+.plb-panel-btn { min-width: 150px; height: 56px; padding: 0 22px; border: none; border-radius: 16px; background: #4a9b8f; color: #fff; font: 800 18px/1 "Nunito", sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 3px 0 #2a6b60; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.plb-panel-btn:active { transform: translateY(3px); box-shadow: none; }
+.plb-panel-ico { font-size: 22px; line-height: 1; }
+.plb-panel-btn--slow { background: #fff; color: #2a6b60; box-shadow: 0 3px 0 #c9d9d5, inset 0 0 0 2px #4a9b8f; }
+.plb-panel-btn--slow.is-on { background: #2a6b60; color: #fff; box-shadow: 0 3px 0 #1d4f47; }
+.plb-panel-stage .propis-practice-stage { position: static; inset: auto; height: 100%; padding: 0; background: transparent; }
+.plb-panel-stage .propis-print-frame { height: 100%; background: transparent; }
+.plb-panel-stage .propis-print-page-wrap { container-type: size; height: 100%; padding: 0; background: transparent; overflow: visible; touch-action: auto; display: flex; align-items: center; justify-content: center; }
+.plb-panel-stage .propis-print-page-svg { aspect-ratio: var(--crop-ratio); width: min(100cqw, calc(100cqh * var(--crop-ratio))); height: auto; max-width: none; max-height: none; box-shadow: none; border: none; border-radius: 0; }
+.plb-view-edit { position: fixed; top: calc(12px + var(--app-safe-top, 0px)); right: calc(64px + var(--app-safe-right, 0px)); z-index: 900; }
+
+
+/* ---- tool strips (Edits style): every panel is ONE horizontally scrolling line of tools: icon over a short caption.
+   Popups (pickers, presets, hints) are fixed to the screen from the button's rect, so the strip does not clip them. ---- */
+.plb-editor2 .plb-settings { flex-wrap: nowrap; align-items: stretch; gap: 4px; padding: 6px 10px; min-height: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.plb-editor2 .plb-settings::-webkit-scrollbar { display: none; }
+.plb-editor2 .plb-settings > * { scroll-snap-align: start; }
+.plb-editor2 .plb-settings .pl2-ib.pl2-tool, .plb-editor2 .plb-settings .pl2-pick-btn.pl2-tool { flex: 0 0 auto; width: auto; min-width: 58px; height: 58px; padding: 5px 7px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: none; border-radius: 12px; background: transparent; box-shadow: none; color: var(--pl2-ink); }
+.plb-editor2 .plb-settings .pl2-tool .pl2-tool-ico { display: flex; align-items: center; justify-content: center; gap: 1px; height: 26px; }
+.plb-editor2 .plb-settings .pl2-tool .pl2-tool-ico svg:first-child { width: 26px; height: 26px; }
+.plb-editor2 .plb-settings .pl2-tool .pl2-tool-ico svg + svg { width: 9px; height: 9px; opacity: .6; }
+.plb-editor2 .plb-settings .pl2-tool .pl2-glyph { font-size: 30px; line-height: 1; width: 26px; }
+/* «Строка для письма»: the longest caption of the strip, two short lines */
+.pl2-tool[data-kind="writeafter"] .pl2-cap { white-space: normal; text-align: center; max-width: 66px; }
+.pl2-cap { font-size: 11px; font-weight: 700; line-height: 1.1; color: #5b6472; white-space: nowrap; letter-spacing: .01em; }
+.plb-editor2 .plb-settings .pl2-tool.is-on, .plb-editor2 .plb-settings .pl2-pick-btn.pl2-tool.is-open { background: var(--pl2-teal-soft, #e5f2ef); color: var(--pl2-teal-dark, #2a6b60); box-shadow: inset 0 -3px 0 var(--pl2-teal, #4a9b8f); }
+.plb-editor2 .plb-settings .pl2-tool.is-on .pl2-cap, .plb-editor2 .plb-settings .pl2-tool.is-open .pl2-cap { color: var(--pl2-teal-dark, #2a6b60); }
+.plb-editor2 .plb-settings .pl2-tool:disabled { opacity: .35; }
+.plb-editor2 .plb-settings .pl2-ib--danger .pl2-cap { color: var(--pl2-red, #b42318); }
+.plb-editor2 .plb-settings .pl2-seg { display: contents; }
+.pl2-sep { flex: 0 0 1px; align-self: center; width: 1px; height: 34px; margin: 0 4px; background: var(--pl2-line); }
+.plb-editor2 .plb-settings .pl2-lock { flex: 0 0 auto; align-self: center; padding: 0 6px; }
+.pl2-pager-pos { flex: 0 0 auto; align-self: center; padding: 0 8px; font-weight: 800; font-size: 14px; color: #5b4a1f; white-space: nowrap; }
+/* a strip with an open popup rises above the text dock (the popup is fixed, but its stacking context is the strip's) */
+.plb-editor2 .plb-main > .plb-settings:has(.pl2-pick-list) { z-index: 20; }
+/* ---- the library: tiles to start, one card per notebook with a row of tools (same family as the editor's strips) ---- */
+.plb-lib { --pl2-surface: #fff; --pl2-line: #e3dccb; --pl2-ink: #28323c; --pl2-teal: #4a9b8f; --pl2-teal-dark: #2a6b60; --pl2-teal-soft: #e5f2ef; --pl2-red: #b42318; }
+.pl2-nb-start { display: flex; gap: 10px; }
+.pl2-tile { position: relative; flex: 1 1 0; min-height: 84px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 8px; border: 1px solid var(--pl2-line); border-radius: 16px; background: #fff; color: var(--pl2-ink); box-shadow: 0 2px 0 var(--pl2-line); cursor: pointer; font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-tile:active { transform: translateY(2px); box-shadow: none; }
+.pl2-tile--primary { background: var(--pl2-teal); border-color: var(--pl2-teal); color: #fff; box-shadow: 0 3px 0 var(--pl2-teal-dark); }
+.pl2-tile-ico svg { width: 32px; height: 32px; }
+.pl2-tile-cap { font-size: 13px; font-weight: 800; }
+/* the native picker sits invisibly over the «Готовые» tile: a tap opens the system list */
+.pl2-tile select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.pl2-nb { list-style: none; display: flex; flex-direction: column; gap: 4px; padding: 10px 6px 4px 12px; background: #fff; border: 1px solid var(--pl2-line); border-radius: 16px; box-shadow: 0 2px 0 var(--pl2-line); }
+.pl2-nb--tpl { flex-direction: row; align-items: center; padding: 6px 6px 6px 12px; gap: 10px; }
+.pl2-nb-head { display: flex; align-items: center; gap: 12px; }
+.pl2-nb-ico { flex: 0 0 auto; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--pl2-teal-soft); color: var(--pl2-teal-dark); }
+.pl2-nb-ico svg { width: 26px; height: 26px; }
+.pl2-nb-main { min-width: 0; flex: 1 1 auto; }
+.pl2-nb-name { font-weight: 800; }
+.pl2-nb-meta { color: #6b7385; font-size: 13px; margin-top: 1px; }
+.pl2-nb-desc { color: #4d5566; font-size: 13px; line-height: 1.35; margin-top: 4px; }
+.pl2-nb-title { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 6px; margin-left: -6px; border: none; border-radius: 10px; background: transparent; font: inherit; font-weight: 800; font-size: 17px; color: var(--pl2-ink); cursor: text; text-align: left; }
+.pl2-nb-title span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; }
+.pl2-nb-title svg { flex: 0 0 auto; width: 16px; height: 16px; color: #9aa3b2; }
+.pl2-nb-title:hover { background: #f4efe3; }
+.pl2-nb-title-input { width: 100%; padding: 6px 8px; border: 2px solid var(--pl2-teal); border-radius: 10px; font: inherit; font-weight: 800; font-size: 17px; background: #fff; }
+.pl2-nb-tools { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin-right: 6px; }
+.pl2-nb-tools::-webkit-scrollbar { display: none; }
+.plb-lib .pl2-ib.pl2-tool { flex: 0 0 auto; width: auto; min-width: 62px; height: 58px; padding: 5px 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: none; border-radius: 12px; background: transparent; box-shadow: none; color: var(--pl2-ink); cursor: pointer; }
+.plb-lib .pl2-tool .pl2-tool-ico { display: flex; align-items: center; justify-content: center; height: 26px; }
+.plb-lib .pl2-tool .pl2-tool-ico svg { width: 26px; height: 26px; }
+.plb-lib .pl2-tool:hover { background: var(--pl2-teal-soft); }
+.plb-lib .pl2-tool--go { color: var(--pl2-teal-dark); }
+.plb-lib .pl2-tool--go .pl2-cap { color: var(--pl2-teal-dark); }
+.plb-lib .pl2-ib--danger .pl2-cap { color: var(--pl2-red); }
+.plb-lib .pl2-ib--danger { color: var(--pl2-red); }
+.plb-lib .pl2-cap { font-size: 11px; font-weight: 700; line-height: 1.1; color: #5b6472; white-space: nowrap; }
+.pl2-tile--wide { flex-direction: row; gap: 10px; min-height: 64px; }
+.pl2-tile--wide .pl2-tile-cap { font-size: 16px; }
+.pl2-nb--ready .pl2-nb-ico { background: #eaf0fb; color: #1d4ed8; }
+
+/* confirmation dialog and the save button */
+.pl2-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 24, 33, .5); }
+.pl2-modal-card { width: min(420px, 100%); background: #fff; border-radius: 20px; padding: 20px 18px 16px; box-shadow: 0 18px 48px rgba(0, 0, 0, .35); display: flex; flex-direction: column; gap: 12px; color: #28323c; }
+.pl2-modal-title { margin: 0; font-size: 19px; }
+.pl2-modal-text { margin: 0; font-weight: 700; color: #4b5563; overflow-wrap: anywhere; }
+.pl2-modal-field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 14px; }
+.pl2-modal-field input { padding: 10px 12px; border: 2px solid #4a9b8f; border-radius: 12px; font: inherit; font-size: 17px; }
+.pl2-modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.pl2-modal-btn { min-height: 48px; border: 1px solid #e3dccb; border-radius: 14px; background: #fff; font: inherit; font-weight: 800; font-size: 16px; color: #28323c; cursor: pointer; touch-action: manipulation; }
+.pl2-modal-btn--primary { background: #4a9b8f; border-color: #4a9b8f; color: #fff; box-shadow: 0 3px 0 #2a6b60; }
+.pl2-modal-btn--primary:disabled { background: #b8d4cf; border-color: #b8d4cf; box-shadow: none; }
+.pl2-modal-btn--danger { color: #b42318; }
+/* undo / redo: two round buttons one above the other, floating over the right side of the canvas (same grid area as the page) */
+.pl2-save { flex: 0 0 auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: #2563eb; color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 #1d4ed8; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-save svg { width: 28px; height: 28px; }
+.pl2-save:disabled { background: #cbd5e1; box-shadow: none; color: #fff; cursor: default; }
+.pl2-save:not(:disabled):active { transform: translateY(3px); box-shadow: none; }
+/* library banners: an unsaved notebook from a closed app, empty notebooks */
+.pl2-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; background: #fff7e6; border: 1px solid #ecd9b0; font-weight: 700; color: #5b4a1f; }
+.pl2-banner-text { flex: 1 1 200px; }
+.pl2-banner-actions { display: flex; gap: 8px; }
+.pl2-banner button { min-height: 40px; padding: 0 14px; border: 1px solid #d9c28a; border-radius: 12px; background: #fff; font: inherit; font-weight: 800; color: #5b4a1f; cursor: pointer; }
+
+/* the element list: a grid of tiles, each the element on the page's own ruling (no codes: the room goes to the picture) */
+.pl2-elements-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); width: min(520px, 94vw); gap: 8px; justify-items: center; }
+.pl2-elements-panel .plb-tile { position: relative; padding: 3px; }
+/* a group heading: a full-width row in the grid of tiles */
+.pl2-el-group { grid-column: 1 / -1; justify-self: stretch; margin: 6px 0 -2px; padding: 0 2px 4px; border-bottom: 2px solid #dbe4fb; font-family: inherit; font-size: 13px; font-weight: 800; line-height: 1.2; color: var(--pl2-blue, #1d4ed8); }
+.pl2-el-group:first-child { margin-top: 0; }
+/* the element's number (its place in the list), a badge sitting on the tile's corner, half outside it: it takes no room from the picture and covers none of its ink */
+.pl2-el-num { position: absolute; top: -7px; left: -7px; min-width: 20px; height: 20px; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); padding: 0 4px; box-sizing: border-box; display: grid; place-items: center; border-radius: 10px; background: var(--pl2-blue, #1d4ed8); color: #fff; font-family: inherit; font-size: 11px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
+/* the page starts below the floating zoom pill and undo / redo (2026-10-23: the text is typed by tapping the rows, and the start of
+   the first row lay under the pill) */
+.plb-editor2:not(.plb-editor2--side) .plb-page-col { padding-top: 62px; }
+.plb-editor2:not(.plb-editor2--side) .plb-preview .propis-print-page-wrap { padding-top: 0; }
+
+/* the app switches the system callout off on <body> (inherited): the typed text needs its copy / paste menu back */
+.pl2-textarea, .plb-editor2 input[type="text"], .plb-editor2 textarea { -webkit-touch-callout: default; -webkit-user-select: text; user-select: text; }
+/* no gap between the header, the page strip and the tool strips (.screen has 16px between its blocks) */
+.plb-editor2 { gap: 0; }
+
+/* ---- covers of a printed notebook (cover/CoverTemplate.jsx, CoverBack.jsx): sizes in cqw, so a preview is the cover itself,
+   smaller; --pl2-accent is the cover's colour (coverConfig.js ACCENTS) ---- */
+.pl2-cover { --pl2-accent: #2f6f65; container-type: inline-size; position: relative; width: 100%; aspect-ratio: 148.5 / 210; background: #fff; color: #1f2933; font-family: "Nunito", sans-serif; overflow: hidden; box-sizing: border-box; }
+.pl2-cover--a4 { aspect-ratio: 210 / 297; }
+.propis-print-cover .pl2-cover { height: 100%; aspect-ratio: auto; }
+/* the stamp's face: the printed series' cover was set in Arial — its metric twin Liberation Sans, renamed (public/fonts/cover, OFL) */
+/* The stamp («ТЕТРАДЬ», the name, the fields) at the sizes and places of the printed series' cover (scripts/cover_tetrad.py, owner
+   2026-10-15: «exactly as on that cover»): ТЕТРАДЬ bold 20 pt, its baseline 86.2 mm from the top, centred on the cover; the name 15 pt,
+   its baseline 24 pt lower; the fields 11 pt, the first baseline 62 pt under ТЕТРАДЬ, then 33 and 31 pt, from 30 mm off the fold to
+   20 mm off the edge, lines 0.55 pt. In cqw of the A5 cover (1 cqw = 1.485 mm = 4.209 pt); lines of height 1 (1.2 for the name) put a
+   Mironium Cover Sans baseline 0.847 (0.947) em under the top of its line. */
+.pl2-cover-mid { font-family: "Mironium Cover Sans", Arial, "Liberation Sans", sans-serif; position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 54.03cqw 13.47cqw 0; }
+.pl2-cover-kicker { font-weight: 700; font-size: 4.75cqw; line-height: 1; letter-spacing: 0.278em; padding-left: 0.278em; } /* «Т Е Т Р А Д Ь»: a space of Arial between the letters */
+.pl2-cover-name { font-weight: 400; font-size: 3.564cqw; line-height: 1.2; color: #404040; text-align: center; overflow-wrap: anywhere; margin-top: 1.6cqw; }
+.pl2-cover-fields { align-self: stretch; display: flex; flex-direction: column; margin: 5.91cqw 0 0 6.73cqw; }
+.pl2-cover-field { display: flex; align-items: baseline; gap: 1.19cqw; font-size: 2.613cqw; line-height: 1; font-weight: 400; color: #1f1f1f; }
+.pl2-cover-field + .pl2-cover-field { margin-top: 5.227cqw; }
+.pl2-cover-field + .pl2-cover-field + .pl2-cover-field { margin-top: 4.747cqw; }
+.pl2-cover-field i { flex: 1; align-self: baseline; height: 0; border-bottom: 0.131cqw solid #262626; }
+.pl2-cover .propis-paper { fill: #fff; }
+/* the Mironium logo (MironiumLogo.jsx): small, centred at the foot of the front */
+.pl2-cover-logo { position: absolute; left: 50%; transform: translateX(-50%); bottom: 9cqw; height: 5.2cqw; width: auto; display: block; }
+
+/* ---- the print dialog (Propis2PrintDialog.jsx) ---- */
+.pl2-cover-kicker { color: var(--pl2-accent); }
+/* the back: a compact block (the heading is its first row, written by the engine), white around it, the logo and the site at the foot */
+.pl2-back-block { position: absolute; left: 5cqw; right: 5cqw; top: 36cqw; line-height: 0; }
+.pl2-back-block .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
+.pl2-back-foot { position: absolute; left: 10cqw; bottom: 8cqw; line-height: 1.2; }
+.pl2-back-logo { display: block; height: 7.5cqw; width: auto; }
+.pl2-back-site { font-size: 2.5cqw; color: #6b7280; margin-top: 0.6cqw; padding-left: 0.6cqw; }
+/* the number of leaves of the notebook, above the logo */
+.pl2-back-leaves { font-weight: 800; font-size: 2.6cqw; color: var(--pl2-accent); letter-spacing: 0.02em; line-height: 1.2; margin-top: 1.4cqw; padding-left: 0.6cqw; }
+.pl2-back-price { position: absolute; left: 10cqw; top: 9cqw; font-weight: 700; font-size: 2.5cqw; color: #6b7280; letter-spacing: 0.02em; line-height: 1.2; }
+/* the spine (CoverSpine.jsx): 20 mm of an A5 width (13.47 %) at the fold on each side, the paper of the notebook, accent lines on its
+   outer edges; the inner box is one whole page of that paper (148.5 / 20 of the band), the front shows its next 20 mm (shifted by one
+   band). The content of each side moves out of it. */
+.pl2-spine { position: absolute; top: 0; bottom: 0; width: 13.468cqw; overflow: hidden; line-height: 0; background: #fff; }
+.pl2-spine--front { left: 0; }
+.pl2-spine--back { right: 0; }
+/* the edge line over the paper (a border would narrow the band and shift the ruling against the other half at the fold) */
+.pl2-spine::after { content: ""; position: absolute; top: 0; bottom: 0; width: 0.35cqw; background: var(--pl2-accent); }
+.pl2-spine--front::after { right: 0; }
+.pl2-spine--back::after { left: 0; }
+.pl2-spine-paper { width: 742.5%; }
+.pl2-spine--front .pl2-spine-paper { margin-left: -100%; }
+.pl2-spine .propis-print-page-svg { display: block; width: 100%; height: auto; box-shadow: none; border-radius: 0; }
+.pl2-cover--spine .pl2-cover-mid { padding-left: 16.47cqw; padding-right: 16.47cqw; } /* centred as without the spine, off its edge */
+.pl2-cover--spine .pl2-cover-fields { margin-left: 3.73cqw; margin-right: -3cqw; } /* the fields still from 30 mm off the fold to 20 mm off the edge */
+.pl2-cover--spine .pl2-cover-logo { left: calc(50% + 6.75cqw); }
+.pl2-back.pl2-cover--spine .pl2-back-block { left: 4cqw; right: calc(3cqw + 13.5cqw); }
+/* the back of the cover: a printed heading, then the content written in our hand on its own paper (the whole width of the page) */
+
+.pl2-print-card { width: min(520px, 100%); max-height: calc(100dvh - 32px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px)); overflow-y: auto; }
+.pl2-print-sub { margin: -6px 0 0; color: #6b7280; font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.pl2-print-sec { font-weight: 800; font-size: 15px; }
+.pl2-print-covers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: start; }
+.pl2-print-cover { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 6px 6px 8px; border: 2px solid #e3dccb; border-radius: 12px; background: #fff; font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-print-cover.is-on { border-color: #4a9b8f; box-shadow: 0 0 0 3px #d5ebe7; }
+.pl2-print-thumb { flex: none; display: block; border: 1px solid #e5e1d6; border-radius: 6px; overflow: hidden; aspect-ratio: 148.5 / 210; background: #fff; pointer-events: none; }
+.pl2-print-thumb .pl2-cover { height: 100%; aspect-ratio: auto; }
+.pl2-print-none { display: flex; height: 100%; align-items: center; justify-content: center; font-size: 28px; color: #9aa3af; }
+.pl2-print-label { line-height: 1.15; font-weight: 800; font-size: clamp(10px, 2.7vw, 12.5px); color: #28323c; text-align: center; }
+.pl2-print-note { margin: -4px 0 0; font-size: 12.5px; color: #6b7280; font-weight: 600; }
+.pl2-print-note--sw { margin-left: 56px; margin-top: -10px; }
+.pl2-print-switch { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; padding: 6px 0; cursor: pointer; }
+.pl2-print-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pl2-print-sw { position: relative; width: 46px; height: 28px; border-radius: 14px; background: #cbd5e1; flex: none; transition: background .15s; }
+.pl2-print-sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.pl2-print-switch input:checked + .pl2-print-sw { background: #4a9b8f; }
+.pl2-print-switch input:checked + .pl2-print-sw::after { left: 21px; }
+.pl2-print-switch input:focus-visible + .pl2-print-sw { outline: 2px solid #4a9b8f; outline-offset: 2px; }
+
+/* the print dialog: the live preview of the cover (the back left, the front right, as on the sheet), the options as rows of chips */
+.pl2-print-card > * { flex-shrink: 0; } /* the card scrolls: nothing in it may be squeezed (the preview would collapse) */
+.pl2-print-sides { display: none; gap: 6px; justify-content: center; }
+.pl2-print-spread { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #e5e1d6; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, .08); }
+.pl2-print-page { min-width: 0; }
+.pl2-print-page--back { border-right: 1px dashed #d6d0c2; }
+.pl2-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl2-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 2px solid #e3dccb; border-radius: 18px; background: #fff; font: inherit; font-weight: 700; font-size: 14px; color: #28323c; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-chip.is-on { border-color: #4a9b8f; background: #e8f4f1; color: #1f5f55; }
+.pl2-chip:disabled { opacity: 0.45; cursor: not-allowed; }
+.pl2-chip-swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.pl2-print-opt { display: flex; flex-direction: column; gap: 6px; }
+.pl2-print-opt-label { font-weight: 800; font-size: 13px; color: #4b5563; }
+.pl2-print-opt--small .pl2-chip { min-height: 32px; font-size: 13px; }
+.pl2-print-more { align-self: flex-start; min-height: 40px; padding: 0 4px; border: 0; background: none; font: inherit; font-weight: 800; font-size: 15px; color: #2f6f65; cursor: pointer; touch-action: manipulation; }
+.pl2-print-tune { display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 14px; background: #faf8f2; border: 1px solid #ece6d8; }
+.pl2-print-field { display: flex; flex-direction: column; gap: 6px; font-weight: 800; font-size: 13px; color: #4b5563; }
+.pl2-print-field input { padding: 9px 12px; border: 2px solid #e3dccb; border-radius: 12px; font: inherit; font-size: 16px; color: #28323c; -webkit-user-select: text; user-select: text; }
+.pl2-print-field input:focus { outline: none; border-color: #4a9b8f; }
+@media (max-width: 559px) {
+  /* a phone: one side at a time, switched */
+  .pl2-print-sides { display: flex; }
+  .pl2-print-spread { grid-template-columns: 1fr; width: min(260px, 100%); justify-self: center; align-self: center; }
+  .pl2-print-spread--front .pl2-print-page--back, .pl2-print-spread--back .pl2-print-page--front { display: none; }
+  .pl2-print-page--back { border-right: 0; }
+}
+@media (min-width: 560px) {
+  .pl2-print-card { width: min(640px, 100%); }
+}
+
+/* the element button under the field is a tool like the ones in the strips above: icon with its caption underneath */
+.plb-editor2 .pl2-elements .pl2-ib.pl2-tool { flex: 0 0 auto; width: auto; min-width: 58px; height: 58px; padding: 5px 7px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.plb-editor2 .pl2-elements .pl2-tool .pl2-tool-ico { display: flex; align-items: center; justify-content: center; height: 26px; }
+.plb-editor2 .pl2-elements .pl2-tool .pl2-tool-ico svg { width: 26px; height: 26px; }
+.plb-editor2 .pl2-elements .pl2-tool.is-on { background: var(--pl2-teal-soft, #e5f2ef); color: var(--pl2-teal-dark, #2a6b60); box-shadow: inset 0 -3px 0 var(--pl2-teal, #4a9b8f); }
+.plb-editor2 .pl2-elements .pl2-tool.is-on .pl2-cap { color: var(--pl2-teal-dark, #2a6b60); }
+
+/* the red marks under the page are buttons: a tap opens a note with the cause and what to do */
+button.pl2-warn { border: none; font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button.pl2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
+.pl2-warns { position: relative; }
+.pl2-warn-note { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); z-index: 30; box-shadow: 0 8px 24px rgba(60,20,20,.22); background: #fff5f5; border: 1px solid #f5c2c2; border-radius: 12px; padding: 8px 12px; color: #7f1d1d; font-size: .88rem; line-height: 1.35; max-height: 34dvh; overflow-y: auto; }
+.pl2-warn-note p { margin: 4px 0 0; }
+.pl2-warn-note-title { font-size: .95rem; }
+.pl2-warn-note-fix b { font-weight: 800; }
+
+/* ---- wide screens: the whole page's text as a mini text editor in the free area of the side panel ---- */
+.plb-editor2--side .plb-dock { justify-content: flex-start; gap: 8px; }
+.pl2-ed { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.pl2-ed-bar { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 10px; }
+.pl2-ed-bar-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; position: relative; padding-top: 6px; }
+.pl2-ed-title { font-size: .95rem; color: var(--pl2-ink); }
+.pl2-ed .pl2-warns { position: relative; }
+.pl2-ed .pl2-warn-note { bottom: auto; top: calc(100% + 6px); }
+.pl2-ed .pl2-elements-panel { bottom: auto; top: calc(100% + 8px); left: 0; right: auto; max-height: 60dvh; }
+.pl2-ed-body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; border: 1px solid var(--pl2-line); border-radius: 12px; background: var(--pl2-bg); overflow: hidden; }
+.pl2-ed-body:focus-within { border-color: var(--pl2-teal); }
+.pl2-ed-gutter { flex: 0 0 auto; width: 56px; overflow: hidden; background: #f3efe3; border-right: 1px solid var(--pl2-line); padding-top: 10px; box-sizing: border-box; user-select: none; }
+.pl2-ed-num { box-sizing: border-box; padding-right: 9px; text-align: right; font: 600 .78rem/1.75rem inherit; font-family: inherit; color: #9a9384; }
+.pl2-ed-num.is-active { color: var(--pl2-teal-dark); font-weight: 800; background: rgba(74, 155, 143, .14); }
+.pl2-ed-rows { display: block; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* rows past the first sheet of the page (they print on the next sheet) and the mark where it begins */
+.pl2-ed-num.is-over { color: #b45309; }
+.pl2-ed-sheet { display: block; margin: 0 -9px 0 0; padding: 0 9px 0 0; font: 800 .62rem/1.1rem inherit; font-family: inherit; color: #fff; background: #d97706; border-radius: 6px 0 0 6px; text-align: right; white-space: nowrap; }
+.pl2-ed-text, .pl2-ed-measure { box-sizing: border-box; font: 700 1.25rem/1.75rem inherit; font-family: inherit; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; }
+.pl2-ed-text { flex: 1 1 auto; min-width: 0; resize: none; border: none; outline: none; background: transparent; padding: 10px 12px; color: var(--pl2-blue); overflow-y: auto; }
+.pl2-ed-measure { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; padding: 0 12px; }
+.pl2-ed-hint { flex: 0 0 auto; margin: 0; font-size: .78rem; line-height: 1.35; color: var(--pl2-muted); }
+.pl2-ed-locked { margin: 0; padding: 8px 10px; border-radius: 10px; background: #fff7e6; color: #5b4a1f; font-size: .85rem; line-height: 1.35; }
+
+/* the PDF being made / ready (Propis2Home) */
+.pl2-pdf-card { gap: 16px; }
+.pl2-pdf-text { margin: 0; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+
+/* Typing straight onto the sheet (2026-10-23): the page's text is held by a textarea nobody sees (Propis2Keys); it must stay
+   focusable (a phone opens its keyboard for it) and must not scroll the page when it takes the focus. 16px: iOS does not zoom in. */
+/* wide and not wrapped (wrap="off"): ↑ ↓ go from line to line of the text = row to row, not through a word wrapped letter by letter */
+/* near the top of the screen: iOS scrolls the page to keep a focused field above its keyboard, up there there is nothing to scroll */
+.pl2-keys { position: fixed; top: calc(60px + var(--app-safe-top, 0px)); left: 0; width: 4000px; height: 1px; white-space: pre; padding: 0; border: 0; opacity: 0; font-size: 16px; resize: none; overflow: hidden; pointer-events: none; caret-color: transparent; color: transparent; background: transparent; }
+.plb-dock--keys { justify-content: center; }
+.pl2-keys-hint { margin: 0; font-size: 13px; line-height: 1.35; color: #6b7385; }
+.plb-page-col svg.propis-print-page-svg { cursor: text; }
+/* keyboard open and nothing to warn about: the strip under the page is empty, all the room goes to the page */
+.plb-editor2--kb .plb-dock--keys:not(:has(.pl2-warns)) { padding: 0; min-height: 0; box-shadow: none; }
+
+/* ===== The computer layout (owner, 2026-10-23, «вариант Б»): one tool bar, the pages as thumbnails on the left, the sheet in the
+   middle, a status bar. Only for wide landscape screens (Propis2Editor SIDE_QUERY); phones and tablets keep the stacked layout. ===== */
+.plb-editor2--desk { display: flex; flex-direction: column; height: 100dvh; background: var(--pl2-bg); }
+.plb-editor2--desk > .pl2-header { flex: 0 0 auto; }
+.pl2-desk-bar { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; padding: 6px calc(12px + var(--app-safe-right, 0px)) 6px calc(12px + var(--app-safe-left, 0px)); background: var(--pl2-strip); border-bottom: 1px solid var(--pl2-line); position: relative; z-index: 8; }
+.pl2-desk-group { display: flex; align-items: center; gap: 2px; }
+/* the row's tools on the blue of the selected row: what they change is the row the caret is in */
+.pl2-desk-group--row { padding: 2px 6px; border-radius: 14px; background: #eef3fb; }
+.pl2-desk-fill { flex: 1 1 auto; }
+.pl2-desk-bar .pl2-ib.pl2-tool, .pl2-desk-bar .pl2-pick-btn.pl2-tool { flex: 0 0 auto; width: auto; min-width: 58px; height: 56px; padding: 5px 7px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; }
+.pl2-desk-bar .pl2-sep { width: 1px; height: 38px; margin: 0 8px; background: var(--pl2-line); }
+.pl2-desk-bar .pl2-zoom { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 22px; background: #fff; border: 1px solid var(--pl2-line); }
+.pl2-desk-body { flex: 1 1 auto; min-height: 0; display: flex; }
+.pl2-desk-canvas { flex: 1 1 auto; min-width: 0; position: relative; display: flex; background: var(--pl2-board); }
+.pl2-desk-canvas > .plb-page-col { flex: 1 1 auto; min-height: 0; padding: 20px; overflow: auto; display: flex; justify-content: center; align-items: flex-start; }
+.pl2-desk-canvas > .pl2-offer { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 6; margin: 0; }
+/* the pages of the notebook */
+.pl2-thumbs { flex: 0 0 176px; display: flex; flex-direction: column; min-height: 0; background: var(--pl2-strip); border-right: 1px solid var(--pl2-line); padding-left: var(--app-safe-left, 0px); }
+.pl2-thumbs-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; }
+.pl2-thumb { display: flex; align-items: flex-start; gap: 8px; padding: 0; border: 0; background: none; cursor: pointer; font: 800 12px/1 inherit; font-family: inherit; color: var(--pl2-muted); text-align: left; }
+.pl2-thumb-no { width: 18px; flex: 0 0 18px; text-align: right; padding-top: 2px; }
+.pl2-thumb-sheet { flex: 1 1 auto; display: block; aspect-ratio: 148.5 / 210; background: #fff; border: 1px solid var(--pl2-line); border-radius: 3px; overflow: hidden; box-shadow: 0 1px 3px rgba(40, 50, 60, .12); }
+.pl2-thumb-sheet svg { display: block; width: 100%; height: auto; }
+.pl2-thumb:hover .pl2-thumb-sheet { border-color: #9fb3d9; }
+.pl2-thumb.is-current { color: var(--pl2-blue); cursor: default; }
+.pl2-thumb.is-current .pl2-thumb-sheet { outline: 3px solid #2563eb; outline-offset: 1px; }
+.pl2-thumbs-foot { flex: 0 0 auto; padding: 8px 12px calc(12px + var(--app-safe-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--pl2-line); }
+.pl2-thumbs-add { height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 2px dashed #cbbf9f; border-radius: 10px; background: transparent; font: 800 14px/1 inherit; font-family: inherit; color: #8b7a52; cursor: pointer; }
+.pl2-thumbs-add svg { width: 20px; height: 20px; }
+.pl2-thumbs-add:hover { background: #fff; }
+.pl2-thumbs-acts { display: flex; justify-content: space-between; }
+.pl2-thumbs-acts button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--pl2-line); border-radius: 9px; background: #fff; font: 800 16px/1 inherit; font-family: inherit; color: var(--pl2-ink); cursor: pointer; }
+.pl2-thumbs-acts button svg { width: 18px; height: 18px; }
+.pl2-thumbs-acts button:disabled { opacity: .35; cursor: default; }
+.pl2-thumbs-acts button.is-danger { color: var(--pl2-red); }
+/* the status bar */
+.pl2-status { flex: 0 0 auto; min-height: 34px; display: flex; align-items: center; gap: 18px; padding: 4px calc(16px + var(--app-safe-right, 0px)) calc(4px + var(--app-safe-bottom, 0px)) calc(16px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--pl2-line); font-size: 13px; color: #6b7385; }
+.pl2-status b { color: var(--pl2-ink); }
+.pl2-status .pl2-warns { flex-direction: row; margin: 0; }
+.pl2-status .pl2-warn-note { left: auto; right: 0; width: min(420px, 60vw); }
+/* the tools of the bar look like those of the strips (flat, icon over caption, the «on» one teal underneath) */
+.pl2-desk-bar .pl2-ib.pl2-tool, .pl2-desk-bar .pl2-pick-btn.pl2-tool { border: none; background: transparent; box-shadow: none; color: var(--pl2-ink); }
+.pl2-desk-bar .pl2-tool .pl2-tool-ico { display: flex; align-items: center; justify-content: center; gap: 1px; height: 26px; }
+.pl2-desk-bar .pl2-tool .pl2-tool-ico svg:first-child { width: 26px; height: 26px; }
+.pl2-desk-bar .pl2-tool .pl2-tool-ico svg + svg { width: 9px; height: 9px; opacity: .6; }
+.pl2-desk-bar .pl2-tool:hover:not(:disabled) { background: rgba(255, 255, 255, .7); }
+.pl2-desk-bar .pl2-tool.is-on, .pl2-desk-bar .pl2-pick-btn.pl2-tool.is-open { background: var(--pl2-teal-soft); color: var(--pl2-teal-dark); box-shadow: inset 0 -3px 0 var(--pl2-teal); }
+.pl2-desk-bar .pl2-tool.is-on .pl2-cap, .pl2-desk-bar .pl2-tool.is-open .pl2-cap { color: var(--pl2-teal-dark); }
+.pl2-desk-bar .pl2-tool:disabled { opacity: .35; }
+.pl2-desk-bar .pl2-ib--danger .pl2-cap { color: var(--pl2-red); }
+.pl2-desk-bar .pl2-seg { display: contents; }
+.plb-editor2--desk .plb-page-col { padding-top: 20px; }
+.plb-editor2--desk .plb-preview .propis-print-page-wrap { padding-top: 0; }
+
+/* «Буква»: the printed letter of a row (in the page margin): the list of capitals of the deck's alphabet */
+.pl2-letters-panel { display: grid; gap: 8px; width: min(330px, 94vw); padding: 12px; background: var(--pl2-surface, #fff); border: 1px solid var(--pl2-line, #e3dccb); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; max-height: 60dvh; overflow-y: auto; overscroll-behavior: contain; }
+.pl2-letters-title { font-size: 14px; font-weight: 800; color: var(--pl2-ink, #28323c); }
+.pl2-letters-hint { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: none; border-radius: 12px; background: #e8f4f1; color: #2a6b60; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; text-align: left; }
+.pl2-letters-hint-mark { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; border: 2px solid #2a6b60; background: #fff; font-size: 19px; font-weight: 700; line-height: 1; }
+.pl2-letters-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.pl2-letters-cell { aspect-ratio: 1; min-width: 0; padding: 0; border: 2px solid #d6e3df; border-radius: 10px; background: #fff; color: #2a6b60; font: inherit; font-size: 19px; font-weight: 700; line-height: 1; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-letters-side { display: flex; gap: 6px; }
+.pl2-letters-side-btn { flex: 1; padding: 6px 8px; border: 2px solid #d6e3df; border-radius: 10px; background: #fff; color: #2a6b60; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.pl2-letters-side-btn.is-on { border-color: #2a6b60; background: #e8f4f1; }
+
+/* ===== The writing language of a deck with several (Propis2LangPicker.jsx, docs/mockups/plb-languages.html, 2026-10-31) */
+.plb-lib .pl2-lang-caret { font-size: 10px; color: #6b7385; }
+.pl2-lang-layer { position: fixed; inset: 0; z-index: 900; }
+.pl2-lang-scrim { position: absolute; inset: 0; background: rgba(20, 28, 36, .38); }
+.pl2-lang-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; background: #fff; border-radius: 22px 22px 0 0; padding: 10px calc(16px + var(--app-safe-right, 0px)) calc(20px + var(--app-safe-bottom, 0px)) calc(16px + var(--app-safe-left, 0px)); box-shadow: 0 -6px 24px rgba(0, 0, 0, .15); color: #28323c; }
+.pl2-lang-grab { width: 40px; height: 5px; border-radius: 3px; background: #d8d2c4; margin: 0 auto 10px; }
+.pl2-lang-sheet h2 { margin: 0 0 4px; font-size: 19px; font-weight: 900; }
+.pl2-lang-sub { margin: 0 0 12px; font-size: 14px; color: #6b7385; font-weight: 600; }
+.pl2-lang-list { border: 1px solid #e3dccb; border-radius: 16px; overflow: hidden; }
+.pl2-lang-opt { display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 14px; border: 0; border-top: 1px solid #f1ecdf; background: #fff; font: inherit; text-align: left; cursor: pointer; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-lang-opt:first-child { border-top: 0; }
+.pl2-lang-opt.is-on { background: #f7fbfa; }
+.pl2-lang-radio { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #cbd5e1; box-sizing: border-box; }
+.pl2-lang-opt.is-on .pl2-lang-radio { border: 7px solid #4a9b8f; }
+.pl2-lang-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pl2-lang-name { font-weight: 900; font-size: 17px; }
+.pl2-lang-note { font-size: 13px; color: #6b7385; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl2-lang-draft { font-size: 11px; font-weight: 900; color: #5b4a1f; background: #fbf3dc; border: 1px solid #ecd9a4; padding: 2px 7px; border-radius: 6px; }
+.pl2-lang-done { display: block; width: 100%; margin-top: 14px; padding: 14px; border: 0; border-radius: 14px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; font-size: 16px; box-shadow: 0 4px 0 #2a6b60; cursor: pointer; touch-action: manipulation; }
+.pl2-lang-done:active { transform: translateY(3px); box-shadow: none; }
+/* a language's empty library: its own letters, so it is plain the language has changed */
+.plb-lib .pl2-lang-empty { text-align: center; padding: 18px 10px 4px; color: #6b7385; font-weight: 700; }
+.plb-lib .pl2-lang-empty-letters { font-size: 34px; color: #2a6b60; letter-spacing: 4px; margin-bottom: 6px; }
+/* languages per notebook (2026-11-01): the language of a new notebook next to «Новая тетрадь», the filter, the mark on a card */
+.plb-lib .pl2-lang-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.plb-lib .pl2-lang-fchip { height: 34px; padding: 0 14px; border-radius: 17px; border: 1.5px solid var(--pl2-line); background: #fff; font: inherit; font-weight: 800; font-size: 14px; color: var(--pl2-ink); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.plb-lib .pl2-lang-fchip.is-on { border-color: var(--pl2-teal); background: var(--pl2-teal-soft); color: var(--pl2-teal-dark); }
+/* the notebook's language in the editor's header (a deck with several writing languages) */
+/* «Новая тетрадь» with the language inside it: one teal button, the language a light pill behind a thin divider (a split button) */
+.plb-lib .pl2-new-split { gap: 0; border-radius: 16px; box-shadow: 0 3px 0 var(--pl2-teal-dark); }
+.plb-lib .pl2-new-split > .pl2-tile { border-radius: 16px 0 0 16px; box-shadow: none; justify-content: flex-start; padding-left: 18px; }
+.plb-lib .pl2-new-lang-btn { flex: 0 0 auto; display: flex; align-items: center; padding: 0 12px 0 10px; border: 0; border-left: 1px solid rgba(255, 255, 255, .35); border-radius: 0 16px 16px 0; background: var(--pl2-teal); color: #fff; font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.plb-lib .pl2-new-lang-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 18px; background: rgba(255, 255, 255, .2); font-weight: 800; font-size: 15px; white-space: nowrap; }
+.plb-lib .pl2-new-lang-pill .pl2-lang-caret { color: rgba(255, 255, 255, .85); font-size: 11px; }
+.plb-lib .pl2-new-lang-btn:hover .pl2-new-lang-pill { background: rgba(255, 255, 255, .3); }
+.plb-lib .pl2-new-split:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--pl2-teal-dark); }
+/* the language of a notebook: top right corner of its card, a soft colour per language (the same in the editor's header) */
+.plb-lib .pl2-nb--lang { position: relative; }
+.plb-lib .pl2-nb--lang .pl2-nb-main { padding-right: 52px; }
+.plb-lib .pl2-nb-lang { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 8px; font-size: 12px; font-weight: 900; letter-spacing: .05em; line-height: 1.2; }
+.pl2-header .pl2-lang-badge { flex: 0 0 auto; display: inline-flex; align-items: center; height: 26px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 900; letter-spacing: .05em; white-space: nowrap; }
+.pl2-lang-tone-0 { background: #e5f2ef; color: #2a6b60; }
+.pl2-lang-tone-1 { background: #e6edfb; color: #1e40af; }
+.pl2-lang-tone-2 { background: #fdf0d5; color: #8a5300; }
+.pl2-lang-tone-3 { background: #f6e6f0; color: #8b2a6b; }

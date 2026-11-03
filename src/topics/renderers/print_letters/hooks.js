@@ -19,20 +19,23 @@ export function useMediaQuery(query) {
 }
 
 // Shrinks the real-size sheet to the canvas width when the canvas is
-// narrower than the paper (phones, small windows); never enlarges it.
-export function useFitZoom(ref, sheetWidthMm) {
+// narrower than the paper (phones, small windows); never enlarges it. With
+// sheetHeightMm the whole page fits the canvas, as propis2's editor shows it
+// at 100% on a computer.
+export function useFitZoom(ref, sheetWidthMm, sheetHeightMm = 0) {
   const [zoom, setZoom] = useState(1);
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return undefined;
     const update = () => {
-      const avail = el.clientWidth - CANVAS_PAD_PX;
-      setZoom(Math.min(1, Math.max(0.2, avail / (sheetWidthMm * PX_PER_MM))));
+      const byW = (el.clientWidth - CANVAS_PAD_PX) / (sheetWidthMm * PX_PER_MM);
+      const byH = sheetHeightMm ? (el.clientHeight - CANVAS_PAD_PX - 24) / (sheetHeightMm * PX_PER_MM + 40) : Infinity;
+      setZoom(Math.min(1, Math.max(0.2, Math.min(byW, byH))));
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref, sheetWidthMm]);
+  }, [ref, sheetWidthMm, sheetHeightMm]);
   return zoom;
 }

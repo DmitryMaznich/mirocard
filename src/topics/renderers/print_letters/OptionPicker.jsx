@@ -26,18 +26,18 @@ export default function OptionPicker({ options, value, onChange, label, caption 
   const pick = (id) => { setOpen(false); onChange(id); };
 
   return (
-    <div className="pl-pick" ref={wrapRef}>
+    <div className="pl2-pick" ref={wrapRef}>
       <button
         type="button"
         ref={btnRef}
-        className={`pl-tool${open ? " is-open" : ""}`}
+        className={`pl2-pick-btn pl2-tool${open ? " is-open" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${label}: ${current.label}`}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="pl-tool-ico"><current.Icon /></span>
-        <span className="pl-tool-cap">{caption ?? current.label}</span>
+        <span className="pl2-tool-ico"><current.Icon /><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
+        <span className="pl2-cap">{caption ?? current.label}</span>
       </button>
       {open && (
         <div className="pl-row-pick-list" role="listbox" aria-label={label} style={{ ...panelStyle, width: PANEL_W }}>

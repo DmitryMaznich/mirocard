@@ -1,16 +1,15 @@
 import { useState, useRef } from "react";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import LetterPickerButton from "./LetterPickerButton";
-import PageThumb from "./PageThumb";
 import OptionPicker from "./OptionPicker";
 import Sheet from "./Sheet";
 import RowInspector from "./RowInspector";
-import BottomSheet from "./BottomSheet";
 import PrintPages from "./PrintPages";
 import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
-import { FORMATS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { FORMATS, SUPPORTS, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import {
-  IconPlus, IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconBack, IconSave,
+  IconAddRow, IconTrash, IconPrint, IconUp, IconDown, IconDuplicate, IconP2Save, IconUndo, IconRedo, IconAddPage, IconFitWidth,
   IconPaperSquare, IconPaperBigCell, IconPaperLine, IconFormatA4, IconFormatA5,
 } from "./icons";
 
@@ -23,18 +22,33 @@ const FORMAT_OPTIONS = [
   { id: "a4", label: FORMATS.a4.label, Icon: IconFormatA4 },
   { id: "a5", label: FORMATS.a5.label, Icon: IconFormatA5 },
 ];
+const PX_PER_MM = 96 / 25.4;
+const THUMB_W = 124; // px — the sheet in the page rail (propis2's p2-thumbs column)
+const ZOOM_STEP = 0.25;
+const ZOOM_MAX = 3;
 
 const withIds = (rows) => rows.map((r) => ({ id: newId(), ...r }));
 
-// The editor of one notebook — propis2's own editor model: a dark header with
-// back / the notebook's name / save, a toolbar for page and block actions, a
-// page rail with real thumbnails, one page on the canvas and — this topic's
-// own part — a row panel (right side on wide screens, bottom sheet on phones)
-// where the selected row's elements are picked on the letter itself.
-//
-// The notebook lives in PrintLettersHome (a session with a saved copy and a
-// draft); every change goes up through onChange(updater).
-export default function ConstructorView({ notebook, onChange, byId, families, dirty, onSave, onBack }) {
+// A strip tool: propis2's IconBtn with a caption (p2-ib p2-tool: the icon over its caption).
+function Tool({ label, caption, onClick, disabled, danger = false, children }) {
+  return (
+    <button type="button" className={`pl2-ib pl2-tool${danger ? " pl2-ib--danger" : ""}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}>
+      <span className="pl2-tool-ico">{children}</span>
+      <span className="pl2-cap">{caption}</span>
+    </button>
+  );
+}
+
+// The editor of one notebook — propis2's own editor (Propis2Editor), its two layouts copied:
+//  - computer: header (back · the notebook's name · save), one tool bar (undo/redo · the page ·
+//    the row's tools on their blue tier · print · zoom), the pages as thumbnails on the left, the
+//    sheet in the middle, a status bar at the bottom — plus this topic's own row panel on the right
+//    (the elements of the selected row are picked on the letter itself);
+//  - phone / narrow: header, the page strip, the row strip, the zoom pill, the sheet, and the row
+//    panel docked at the bottom.
+// The notebook lives in PrintLettersHome (a session: saved copy, draft, undo/redo); every change
+// goes up through onChange(updater, { typing }).
+export default function ConstructorView({ notebook, onChange, byId, families, dirty, onSave, onBack, onUndo, onRedo, canUndo, canRedo }) {
   const narrow = useMediaQuery(NARROW_QUERY);
   const canvasRef = useRef(null);
 
@@ -42,19 +56,21 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
   const format = notebook.format ?? "a4";
   const setPages = (updater) => onChange((nb) => ({ ...nb, pages: typeof updater === "function" ? updater(nb.pages) : updater }));
   const setFormat = (f) => onChange((nb) => ({ ...nb, format: f }));
-  const setTitle = (title) => onChange((nb) => ({ ...nb, title }));
+  const setTitle = (title) => onChange((nb) => ({ ...nb, title }), { typing: true });
 
   const [activePageId, setActivePageId] = useState(() => pages[0]?.id ?? null);
   const [selectedBlockId, setSelectedBlockId] = useState(null);
   const [selectedRowId, setSelectedRowId] = useState(null);
-  const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
-  const zoom = useFitZoom(canvasRef, sheetSizeMm(format).w);
+  const sheet = sheetSizeMm(format);
+  const fit = useFitZoom(canvasRef, sheet.w, narrow ? 0 : sheet.h);
 
   const found = pages.findIndex((p) => p.id === activePageId);
   const activePageIndex = found >= 0 ? found : 0;
   const activePage = pages[activePageIndex] ?? null;
   const activeId = activePage?.id ?? null;
+  const paper = activePage ? paperOf(activePage) : "cell";
   const selectedBlock = activePage?.blocks.find((b) => b.id === selectedBlockId) ?? null;
   const selectedLetter = selectedBlock ? byId[selectedBlock.letterId] : null;
   const selectedRowIndex = selectedBlock ? selectedBlock.rows.findIndex((r) => r.id === selectedRowId) : -1;
@@ -82,7 +98,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     clearSelection();
   }
   function addPage() {
-    const page = blankPage(activePage ? paperOf(activePage) : "cell");
+    const page = blankPage(paper);
     setPages((prev) => [...prev, page]);
     switchPage(page.id);
   }
@@ -171,8 +187,9 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
 
   const hasContent = pages.some((p) => p.blocks.length > 0);
   const overflow = activePage ? pageOverflows(activePage, format) : false;
+  const sheetZoom = fit * zoom;
 
-  const inspector = (peek) => (
+  const inspector = (
     <RowInspector
       letter={selectedLetter}
       color={selectedBlock?.color}
@@ -184,109 +201,147 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       onMoveRow={moveSelectedRow}
       onLadder={applyLadder}
       size={selectedBlock?.size === 4 ? 4 : 2}
-      paper={activePage ? paperOf(activePage) : "cell"}
+      paper={paper}
       onSetSize={(size) => updateSelectedBlock((b) => ({ ...b, size }))}
-      peek={peek}
     />
   );
 
-  return (
-    <div className={`pl-constructor${narrow ? " is-narrow" : ""}`}>
-      <div className="pl-header no-print">
-        <button type="button" className="pl-header-back" onClick={onBack} aria-label="Назад, к моим тетрадям"><IconBack /></button>
-        <label className="pl-title-field">
-          <span className="pl-sr">Название тетради</span>
-          <input className="pl-title-input" value={notebook.title} onChange={(e) => setTitle(e.target.value)} placeholder="Без названия" />
-        </label>
-        <span className="pl-header-fill" />
-        {dirty && <span className="pl-dirty" role="status">● Не сохранено</span>}
-        <button type="button" className="pl-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь">
-          <IconSave /><span>{dirty ? "Сохранить" : "Сохранено"}</span>
-        </button>
-      </div>
-
-      <div className="pl-toolbar no-print" role="toolbar" aria-label="Инструменты">
-        <div className="pl-tool-group" role="group" aria-label="Лист">
-          <OptionPicker label="Формат" caption="Формат" options={FORMAT_OPTIONS} value={format} onChange={setFormat} />
-          <OptionPicker label="Бумага" options={PAPER_OPTIONS} value={activePage ? paperOf(activePage) : "cell"} onChange={(paper) => updateActivePage((p) => ({ ...p, paper }))} />
-        </div>
-        <span className="pl-sep" aria-hidden="true" />
-        <div className="pl-tool-group" role="group" aria-label="Буква">
-          <LetterPickerButton families={families} onPick={addBlock} />
-          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedBlockId} onClick={removeSelectedBlock}>
-            <span className="pl-tool-ico"><IconTrash /></span>
-            <span className="pl-tool-cap">Удалить блок</span>
-          </button>
-        </div>
-        <span className="pl-sep" aria-hidden="true" />
-        <div className="pl-tool-group" role="group" aria-label="Строка">
-          <button type="button" className="pl-tool" disabled={!selectedBlockId} onClick={addRow}>
-            <span className="pl-tool-ico"><IconAddRow /></span>
-            <span className="pl-tool-cap">Строка</span>
-          </button>
-          <button type="button" className="pl-tool pl-tool--danger" disabled={!selectedRow} onClick={removeSelectedRow}>
-            <span className="pl-tool-ico"><IconTrash /></span>
-            <span className="pl-tool-cap">Удалить строку</span>
-          </button>
-        </div>
-        <span className="pl-toolbar-fill" />
-        {hasContent && (
-          <button type="button" className="pl-tool" onClick={() => window.print()}>
-            <span className="pl-tool-ico"><IconPrint /></span>
-            <span className="pl-tool-cap">Печать</span>
-          </button>
+  // ---- the pieces, laid out per layout below (as Propis2Editor does)
+  const headerEl = (
+    <div className="screen-header pl2-header no-print">
+      <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
+      <input className="plb-title-input" value={notebook.title} onChange={(e) => setTitle(e.target.value)} placeholder="Без названия" aria-label="Название тетради" />
+      <button type="button" className="pl2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><IconP2Save /></button>
+    </div>
+  );
+  const pageEls = <>
+    <OptionPicker label="Формат" caption="Формат" options={FORMAT_OPTIONS} value={format} onChange={setFormat} />
+    <OptionPicker label="Бумага" caption="Бумага" options={PAPER_OPTIONS} value={paper} onChange={(p) => updateActivePage((pg) => ({ ...pg, paper: p }))} />
+  </>;
+  const rowEls = <>
+    <LetterPickerButton families={families} onPick={addBlock} />
+    <Tool label="Удалить блок буквы" caption="Удалить блок" danger disabled={!selectedBlockId} onClick={removeSelectedBlock}><IconTrash /></Tool>
+    <span className="pl2-sep" aria-hidden="true" />
+    <Tool label="Добавить строку в блок" caption="Строка" disabled={!selectedBlockId} onClick={addRow}><IconAddRow /></Tool>
+    <Tool label="Строка выше" caption="Выше" disabled={!selectedRow || selectedRowIndex <= 0} onClick={() => moveSelectedRow(-1)}><IconUp /></Tool>
+    <Tool label="Строка ниже" caption="Ниже" disabled={!selectedRow || selectedRowIndex >= (selectedBlock?.rows.length ?? 0) - 1} onClick={() => moveSelectedRow(1)}><IconDown /></Tool>
+    <Tool label="Удалить строку" caption="Удалить" danger disabled={!selectedRow} onClick={removeSelectedRow}><IconTrash /></Tool>
+  </>;
+  const printEl = <Tool label="Печать тетради" caption="Печать" disabled={!hasContent} onClick={() => window.print()}><IconPrint /></Tool>;
+  const historyEls = (cls) => <>
+    <button type="button" className={cls} onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)">{cls.includes("pl2-tool") ? <><span className="pl2-tool-ico"><IconUndo /></span><span className="pl2-cap">Отменить</span></> : <IconUndo />}</button>
+    <button type="button" className={cls} onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть (Ctrl+Y)">{cls.includes("pl2-tool") ? <><span className="pl2-tool-ico"><IconRedo /></span><span className="pl2-cap">Вернуть</span></> : <IconRedo />}</button>
+  </>;
+  const zoomEl = (withHistory) => (
+    <div className="pl2-zoom no-print" role="group" aria-label="Масштаб страницы">
+      {withHistory && <>{historyEls("pl2-zoom-btn")}<span className="pl2-zoom-sep" aria-hidden="true" /></>}
+      <button type="button" className="pl2-zoom-btn" onClick={() => setZoom((z) => Math.max(1, z - ZOOM_STEP))} disabled={zoom <= 1.001} aria-label="Уменьшить" title="Уменьшить">−</button>
+      <button type="button" className="pl2-zoom-btn pl2-zoom-pct" onClick={() => setZoom(1)} disabled={zoom <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom * 100)}%</button>
+      <button type="button" className="pl2-zoom-btn" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))} disabled={zoom >= ZOOM_MAX - 0.001} aria-label="Увеличить" title="Увеличить">+</button>
+      {!narrow && <button type="button" className={`pl2-zoom-btn pl2-zoom-width${zoom === 1 ? " is-on" : ""}`} onClick={() => setZoom(1)} aria-label="По ширине" title="Страница по ширине"><IconFitWidth /></button>}
+    </div>
+  );
+  const canvasEl = (
+    <div className={`plb-page-col no-print${zoom > 1.001 ? " is-zoomed" : ""}`} ref={canvasRef} onClick={clearSelection}>
+      <div className="plb-page-box">
+        {overflow && <div className="pl-overflow" role="status">Лист переполнен — нижние строки не поместятся при печати. Уберите строку или перенесите блок на новую страницу.</div>}
+        {activePage && (
+          <Sheet
+            page={activePage}
+            format={format}
+            byId={byId}
+            className="pl-sheet--screen"
+            style={sheetZoom !== 1 ? { zoom: sheetZoom } : undefined}
+            selectedBlockId={selectedBlockId}
+            selectedRowId={selectedRowId}
+            onSelectBlock={selectBlock}
+            onSelectRow={selectRow}
+          />
         )}
       </div>
+    </div>
+  );
+  const rowNo = selectedRowIndex >= 0 ? selectedRowIndex + 1 : 0;
+  const supportName = selectedRow ? (selectedRow.elements.length ? SUPPORTS.find((s) => s.id === selectedRow.support)?.label.toLowerCase() : "пустая строка") : "";
 
-      <div className="pl-body no-print">
-        <div className="pl-pages-rail">
-          <div className="pl-pages-list">
-            {pages.map((p, i) => (
-              <PageThumb key={p.id} page={p} format={format} byId={byId} active={p.id === activeId} index={i} compact={narrow} onSelect={() => switchPage(p.id)} />
-            ))}
-          </div>
-          <button type="button" className="pl-page-add" onClick={addPage} aria-label="Добавить страницу">
-            <IconPlus /> {!narrow && "Страница"}
-          </button>
-          <div className="pl-page-actions">
-            <button type="button" onClick={duplicateActivePage} aria-label="Дублировать страницу" title="Дублировать"><IconDuplicate /></button>
-            <button type="button" onClick={() => moveActivePage(-1)} disabled={activePageIndex <= 0} aria-label="Страница выше" title="Выше"><IconUp /></button>
-            <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex >= pages.length - 1} aria-label="Страница ниже" title="Ниже"><IconDown /></button>
-            <button type="button" onClick={removeActivePage} aria-label="Удалить страницу" title="Удалить" className="pl-page-actions-danger"><IconTrash /></button>
-          </div>
+  if (!narrow) {
+    const scale = THUMB_W / (sheet.w * PX_PER_MM);
+    return (
+      <div className="screen plb-home plb-editor2 plb-editor2--desk pl-editor" data-testid="print-letters-editor">
+        {headerEl}
+        <div className="pl2-desk-bar no-print" role="toolbar" aria-label="Инструменты">
+          {historyEls("pl2-ib pl2-tool")}
+          <span className="pl2-sep" aria-hidden="true" />
+          <div className="pl2-desk-group" role="group" aria-label="Настройки страницы">{pageEls}</div>
+          <span className="pl2-sep" aria-hidden="true" />
+          <div className="pl2-desk-group pl2-desk-group--row" role="group" aria-label="Буква и строка">{rowEls}</div>
+          <span className="pl2-sep" aria-hidden="true" />
+          {printEl}
+          <span className="pl2-desk-fill" />
+          {zoomEl(false)}
         </div>
-
-        <div className={`pl-canvas${narrow && selectedBlock ? " has-bsheet" : ""}`} ref={canvasRef} onClick={clearSelection}>
-          {!hasContent && (
-            <div className="pl-preview-empty">Нажмите «Буква» — появится блок. Нажмите на строку, чтобы выбрать её элементы и опору.</div>
-          )}
-          {overflow && (
-            <div className="pl-overflow" role="status">Лист переполнен — нижние строки не поместятся при печати. Уберите строку или перенесите блок на новую страницу.</div>
-          )}
-          {activePage && (
-            <Sheet
-              page={activePage}
-              format={format}
-              byId={byId}
-              className="pl-sheet--screen"
-              style={zoom < 1 ? { zoom } : undefined}
-              selectedBlockId={selectedBlockId}
-              selectedRowId={selectedRowId}
-              onSelectBlock={selectBlock}
-              onSelectRow={selectRow}
-            />
-          )}
+        <div className="pl2-desk-body no-print">
+          <div className="pl2-thumbs">
+            <div className="pl2-thumbs-list">
+              {pages.map((p, i) => (
+                <button key={p.id} type="button" className={`pl2-thumb${p.id === activeId ? " is-current" : ""}`} onClick={() => switchPage(p.id)} aria-label={`Страница ${i + 1}`} aria-current={p.id === activeId ? "page" : undefined}>
+                  <span className="pl2-thumb-no">{i + 1}</span>
+                  <span className="pl2-thumb-sheet pl-thumb-sheet2" style={{ width: THUMB_W, aspectRatio: `${sheet.w} / ${sheet.h}` }}>
+                    <span className="pl-thumb-scale" style={{ transform: `scale(${scale})` }}>
+                      <Sheet page={p} format={format} byId={byId} className="pl-sheet--thumb" />
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="pl2-thumbs-foot">
+              <button type="button" className="pl2-thumbs-add" onClick={addPage}><IconAddPage />Страница</button>
+              <div className="pl2-thumbs-acts">
+                <button type="button" onClick={duplicateActivePage} aria-label="Копия страницы" title="Копия страницы"><IconDuplicate /></button>
+                <button type="button" onClick={() => moveActivePage(-1)} disabled={activePageIndex <= 0} aria-label="Страница раньше" title="Раньше">↑</button>
+                <button type="button" onClick={() => moveActivePage(1)} disabled={activePageIndex >= pages.length - 1} aria-label="Страница позже" title="Позже">↓</button>
+                <button type="button" className="is-danger" onClick={removeActivePage} aria-label="Удалить страницу" title="Удалить страницу"><IconTrash /></button>
+              </div>
+            </div>
+          </div>
+          <div className="pl2-desk-canvas">{canvasEl}</div>
+          <aside className="pl-inspector" aria-label="Настройки строки">{inspector}</aside>
         </div>
-
-        {!narrow && <aside className="pl-inspector" aria-label="Настройки строки" onClick={(e) => e.stopPropagation()}>{inspector(false)}</aside>}
+        <div className="pl2-status no-print" role="status">
+          <span>Стр. <b>{activePageIndex + 1}</b> из {pages.length}</span>
+          {rowNo > 0 && <span>Строка <b>{rowNo}</b>{supportName ? ` · ${supportName}` : ""}</span>}
+          <span className="pl2-status-hint">{hasContent ? "Щёлкните по строке листа — справа её элементы и опора" : "«Буква» — новый блок: он сразу собран лесенкой"}</span>
+        </div>
+        <PrintPages notebook={notebook} byId={byId} />
       </div>
+    );
+  }
 
-      {narrow && selectedBlock && (
-        <BottomSheet expanded={sheetExpanded} onExpandedChange={setSheetExpanded}>
-          {inspector(!sheetExpanded)}
-        </BottomSheet>
-      )}
-
+  return (
+    <div className="screen plb-home plb-editor2 plb-editor2--phone pl-editor" data-testid="print-letters-editor">
+      {headerEl}
+      <div className="plb-main no-print">
+        <div className="plb-settings" role="group" aria-label="Настройки страницы">
+          {pages.length > 1 && (
+            <>
+              <button type="button" className="pl2-ib pl2-tool" aria-label="Предыдущая страница" disabled={activePageIndex <= 0} onClick={() => switchPage(pages[activePageIndex - 1].id)}><span className="pl2-tool-ico pl2-glyph">‹</span><span className="pl2-cap">Назад</span></button>
+              <span className="pl2-pager-pos" aria-live="polite">Стр. {activePageIndex + 1} из {pages.length}</span>
+              <button type="button" className="pl2-ib pl2-tool" aria-label="Следующая страница" disabled={activePageIndex >= pages.length - 1} onClick={() => switchPage(pages[activePageIndex + 1].id)}><span className="pl2-tool-ico pl2-glyph">›</span><span className="pl2-cap">Вперёд</span></button>
+              <span className="pl2-sep" aria-hidden="true" />
+            </>
+          )}
+          {pageEls}
+          <span className="pl2-sep" aria-hidden="true" />
+          <Tool label="Добавить страницу" caption="Добавить" onClick={addPage}><IconAddPage /></Tool>
+          <Tool label="Копия страницы" caption="Копия" onClick={duplicateActivePage}><IconDuplicate /></Tool>
+          <Tool label={pages.length > 1 ? "Удалить страницу" : "Очистить страницу"} caption="Удалить" danger onClick={removeActivePage}><IconTrash /></Tool>
+          {printEl}
+        </div>
+        <div className="plb-settings plb-settings--row" role="group" aria-label="Буква и строка">{rowEls}</div>
+        {zoomEl(true)}
+        {canvasEl}
+        <div className="plb-dock pl-dock">{inspector}</div>
+      </div>
       <PrintPages notebook={notebook} byId={byId} />
     </div>
   );
