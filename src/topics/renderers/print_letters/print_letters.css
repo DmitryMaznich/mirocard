@@ -865,7 +865,7 @@
 .pl-cv-plate { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; display: flex; justify-content: center; align-items: flex-start; }
 .pl-cv-fields { background: #f6f1e4; display: flex; flex-direction: column; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .pl-cv-field { display: flex; align-items: flex-end; font-weight: 700; color: #4b5563; }
-.pl-cv-field > span:first-child { width: 22mm; flex: none; }
+.pl-cv-field > span:first-child:not(.pl-cv-line) { width: 22mm; flex: none; }
 .pl-cv-line { flex: 1; border-bottom: 0.4mm solid #4b5563; height: 6mm; }
 .pl-cv-stripes { display: flex; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .pl-cv-legend { display: flex; justify-content: center; color: #4b5563; font-weight: 700; }

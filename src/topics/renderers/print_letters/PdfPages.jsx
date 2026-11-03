@@ -121,9 +121,10 @@ function CoverFront({ notebook, byId, format }) {
       </div>
       <div className="pl-cover-fill" />
       <div className="pl-cv-fields" style={{ marginBottom: u(10), padding: `${u(6)} ${u(8)}`, gap: u(6), borderRadius: u(4) }}>
-        {["Имя", "Группа"].map((f) => (
-          <div key={f} className="pl-cv-field" style={{ fontSize: `${12 * k}pt`, gap: u(3) }}>
-            <span>{f}</span><span className="pl-cv-line" />
+        {/* two blank write-in lines, no labels (owner, 2026-11-03) */}
+        {[0, 1].map((i) => (
+          <div key={i} className="pl-cv-field" style={{ height: u(9) }}>
+            <span className="pl-cv-line" />
           </div>
         ))}
       </div>
