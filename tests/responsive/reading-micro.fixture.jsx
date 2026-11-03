@@ -9,7 +9,7 @@ import "@fontsource/nunito/400.css";
 import "@fontsource/nunito/700.css";
 import "./reading-micro.css";
 
-const bytes = await (await fetch("/decks/reading_short_stories_v2.0.2.zip")).arrayBuffer();
+const bytes = await (await fetch("/decks/reading_short_stories_v2.0.3.zip")).arrayBuffer();
 const topic = await importTopic(await getDb(), bytes, "99.0.0");
 const stories = topic.texts.filter((story) => story.storyStage === "micro");
 

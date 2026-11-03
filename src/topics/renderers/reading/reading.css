@@ -343,10 +343,8 @@
   object-fit: cover;
 }
 
-/* Every word in the story is its own tap target, not just the target
-   phrase. A stray tap then always lands on something and reacts right under
-   the finger, instead of the whole passage silently scoring any miss —
-   including a tap that just landed between two words — as a wrong answer. */
+/* Every candidate uses the same interaction before confirmation. Selecting
+   or hovering a word never reveals its correctness. Spaces are not answers. */
 .story-quiz__word {
   display: inline;
   margin: 0;
@@ -367,26 +365,24 @@
 }
 
 .story-quiz__word--miss {
-  background: #ffd9d3;
-  box-shadow: inset 0 -2px 0 #d4685a;
-  color: #8a2f24;
-  animation: story-quiz-miss-pulse 0.45s ease;
+  background: #f6e6d8;
+  box-shadow: inset 0 -2px 0 #b98966;
+  color: #704b32;
 }
 
-@keyframes story-quiz-miss-pulse {
-  0% { transform: scale(1); }
-  35% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+.story-quiz__word:not(:disabled):not(.story-quiz__word--selected):hover {
+  background: #edf1f3;
 }
-
-.story-quiz__target:not(:disabled):hover,
-.story-quiz__target:not(:disabled):focus-visible {
-  background: #e7f3ed;
-  outline: none;
+.story-quiz__word:focus-visible {
+  outline: 2px solid #587684;
+  outline-offset: 2px;
 }
-
-.story-quiz__target--found,
-.story-quiz__target:disabled {
+.story-quiz__word--selected:not(.story-quiz__word--miss):not(.story-quiz__word--found) {
+  background: #e5edf1;
+  box-shadow: inset 0 -2px 0 #587684;
+  color: inherit;
+}
+.story-quiz__word--found {
   background: #bfe8d4;
   box-shadow: inset 0 -2px 0 #4caa82;
   color: #15573e;

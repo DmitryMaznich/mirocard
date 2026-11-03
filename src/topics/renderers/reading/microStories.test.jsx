@@ -9,7 +9,7 @@ import ReadingRenderer from "./index";
 import { useAppStore } from "@/core/store";
 
 vi.mock("@/shared/hooks/useTopicFile", () => ({ useTopicFile: (_topic, path) => path ? `/preview/${path}` : null }));
-const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.2.zip"));
+const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.3.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const micro = topic.texts.filter((story) => story.storyStage === "micro");
 const findTasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, {});
@@ -110,6 +110,7 @@ describe("micro-story reading support", () => {
       expect(h.container.textContent).toContain("Вова играл с мячом.");
       expect(h.container.querySelectorAll("img")).toHaveLength(0);
       click(h.container, "Вова");
+      click(h.container, "Ответить");
       expect(h.onCorrect).toHaveBeenCalledWith("micro_ball", "q1", expect.objectContaining({ autoAdvance: true }));
       expect(h.onQualityAnswer).not.toHaveBeenCalled();
     } finally { h.close(); }
@@ -123,8 +124,10 @@ describe("micro-story reading support", () => {
       expect(h.container.querySelectorAll("figcaption")).toHaveLength(0);
       click(h.container, "Скрыть картинки");
       click(h.container, "играл");
+      click(h.container, "Ответить");
       expect(h.onIncorrect).toHaveBeenCalled();
       click(h.container, "Вова");
+      click(h.container, "Ответить");
       expect(h.onQualityAnswer).toHaveBeenCalledWith("prompted", "micro_ball", "q1");
       expect(h.onCorrect).not.toHaveBeenCalled();
     } finally { h.close(); }
@@ -143,6 +146,42 @@ describe("micro-story reading support", () => {
 });
 
 describe("questions inside the micro-story reader", () => {
+  it("treats every candidate equally and grades only the confirmed choice", () => {
+    const h = mount(readTasks[0]);
+    try {
+      click(h.container, "Вопросы");
+      const submit = () => [...h.container.querySelectorAll("button")].find((b) => b.textContent === "Ответить");
+      expect(submit().disabled).toBe(true);
+      for (const label of ["Вова", "играл", "с", "мячом"]) {
+        click(h.container, label);
+        const selected = h.container.querySelectorAll(".story-quiz__word[aria-pressed=true]");
+        expect(selected).toHaveLength(1);
+        expect(selected[0].textContent).toBe(label);
+        expect(selected[0].className).toBe("story-quiz__word story-quiz__word--selected");
+        expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(0);
+      }
+      click(h.container, "Ответить");
+      expect(submit().disabled).toBe(true);
+      expect(h.container.querySelector("[role=status]").textContent).toContain("Мы ищем имя мальчика");
+      click(h.container, "Ответить"); // A repeated confirmation cannot add an attempt.
+      click(h.container, "Вова");
+      expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(0);
+      click(h.container, "Ответить");
+      const answer = h.container.querySelector(".micro-answer-history li");
+      expect(answer.dataset.attempts).toBe("2");
+      expect(answer.dataset.firstAnswer).toBe("мячом");
+      expect(answer.dataset.assisted).toBe("false");
+      expect(answer.textContent).toContain("Первый ответ: «мячом»");
+      expect(h.container.querySelectorAll(".story-quiz__word--found")).toHaveLength(1);
+      click(h.container, "Следующий вопрос");
+      expect(submit().disabled).toBe(true);
+      click(h.container, "под стул");
+      click(h.container, "Ответить");
+      expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.attempts).toBe("1");
+      expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.firstAnswer).toBe("под стул");
+    } finally { h.close(); }
+  });
+
   it("adds the questions to an already saved reading task from the previous app version", () => {
     const records = useAppStore.getState().topicRecords;
     useAppStore.setState({ topicRecords: [topic] });
@@ -152,6 +191,7 @@ describe("questions inside the micro-story reader", () => {
       click(h.container, "Вопросы");
       expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Как зовут мальчика?");
       click(h.container, "Вова");
+      click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
     } finally { h.close(); useAppStore.setState({ topicRecords: records }); }
   });
@@ -168,6 +208,7 @@ describe("questions inside the micro-story reader", () => {
         for (const [index, question] of questions.entries()) {
           expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe(question.prompt);
           click(h.container, question.target);
+      click(h.container, "Ответить");
           expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(index + 1);
           for (const completed of questions.slice(0, index + 1)) {
             expect(h.container.querySelector(".micro-answer-history").textContent).toContain(completed.prompt);
@@ -191,15 +232,18 @@ describe("questions inside the micro-story reader", () => {
     try {
       click(h.container, "Вопросы");
       click(h.container, "играл");
-      expect(h.container.querySelector("[role=status]").textContent).toContain("ещё раз");
+      click(h.container, "Ответить");
+      expect(h.container.querySelector("[role=status]").textContent).toContain("Мы ищем имя мальчика");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(0);
       click(h.container, "Вова");
+      click(h.container, "Ответить");
       click(h.container, "Следующий вопрос");
       click(h.container, "Рассказ");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
       click(h.container, "Вопросы");
       expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Куда закатился мяч?");
       click(h.container, "под стул");
+      click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(2);
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.assisted).toBe("true");
     } finally { h.close(); }

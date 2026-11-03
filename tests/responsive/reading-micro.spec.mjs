@@ -1,6 +1,48 @@
 import { test, expect } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 
+test("all choices look alike and only confirmation checks the answer on a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("http://127.0.0.1:8099/tests/responsive/reading-micro.html", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => document.documentElement.style.setProperty("--app-safe-bottom", "34px"));
+  await page.getByRole("button", { name: "Вопросы", exact: true }).click();
+  const right = page.getByRole("button", { name: "Вова", exact: true }).first();
+  const wrong = page.getByRole("button", { name: "играл", exact: true }).first();
+  const confirm = page.getByRole("button", { name: "Ответить", exact: true });
+  await expect(confirm).toBeDisabled();
+  await right.hover();
+  const rightHover = await right.evaluate(el => getComputedStyle(el).backgroundColor);
+  await wrong.hover();
+  expect(await wrong.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(rightHover);
+  await right.focus();
+  const rightFocus = await right.evaluate(el => getComputedStyle(el).outline);
+  await wrong.focus();
+  expect(await wrong.evaluate(el => getComputedStyle(el).outline)).toBe(rightFocus);
+  await right.click();
+  await expect(page.locator(".micro-answer-history li")).toHaveCount(0);
+  const rightSelected = await right.evaluate(el => getComputedStyle(el).backgroundColor);
+  await wrong.click();
+  expect(await wrong.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(rightSelected);
+  await expect(wrong).toHaveAttribute("aria-pressed", "true");
+  await expect(right).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".story-quiz__word--found, .story-quiz__word--miss")).toHaveCount(0);
+  const box = await confirm.boundingBox();
+  expect(box.y + box.height).toBeLessThanOrEqual(844 - 34);
+  await confirm.click();
+  await expect(wrong).toHaveClass(/story-quiz__word--miss/);
+  await expect(confirm).toBeDisabled();
+  await expect(page.locator(".micro-exercise-question [role=status]")).toContainText("Мы ищем имя мальчика");
+  await expect(page.locator(".micro-answer-history li")).toHaveCount(0);
+  await right.click();
+  await expect(page.locator(".micro-answer-history li")).toHaveCount(0);
+  await confirm.click();
+  await expect(page.locator(".micro-answer-history li")).toHaveAttribute("data-attempts", "2");
+  await expect(page.locator(".micro-answer-history li")).toHaveAttribute("data-first-answer", "играл");
+  await expect(page.getByRole("button", { name: "Следующий вопрос", exact: true })).toBeVisible();
+  mkdirSync(".cache/reading-micro-screenshots", { recursive: true });
+  await page.screenshot({ path: ".cache/reading-micro-screenshots/confirmed-selection-phone.png" });
+});
+
 for (const [width, height, safeBottom] of [[320, 844, 0], [390, 844, 34], [844, 390, 21], [768, 1024, 0], [1280, 800, 0]]) {
   test(`story navigation stays at the screen bottom at ${width}x${height}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
@@ -37,6 +79,7 @@ test("all fifteen stories keep every answer without overflow on a narrow phone",
     for (const [index, [prompt, target]] of story.find.entries()) {
       await expect(page.locator(".micro-exercise-question h2")).toHaveText(prompt);
       await page.getByRole("button", { name: target, exact: true }).first().click();
+      await page.getByRole("button", { name: "Ответить", exact: true }).click();
       await expect(page.locator(".micro-answer-history li")).toHaveCount(index + 1);
       expect(await page.locator(".story-screen--micro").evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
       await page.getByRole("button", { name: "Следующий вопрос", exact: true }).click();
@@ -54,16 +97,20 @@ for (const [width, height] of [[360, 800], [768, 1024], [1280, 800]]) {
     await expect(page.locator(".story-frames img")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Как зовут мальчика?" })).toBeVisible();
     await page.getByRole("button", { name: "играл", exact: true }).first().click();
-    await expect(page.getByRole("status").filter({ hasText: "Посмотри в тексте ещё раз." })).toBeVisible();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Мы ищем имя мальчика." })).toBeVisible();
     await page.getByRole("button", { name: "Вова", exact: true }).first().click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await expect(page.locator(".micro-answer-history li")).toHaveCount(1);
     await page.getByRole("button", { name: "Следующий вопрос", exact: true }).click();
     await page.getByRole("button", { name: "под стул", exact: true }).click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await expect(page.locator(".micro-answer-history li")).toHaveCount(2);
     await expect(page.locator(".micro-answer-history")).toContainText("Как зовут мальчика?");
     await expect(page.locator(".micro-answer-history")).toContainText("под стул");
     await page.getByRole("button", { name: "Следующий вопрос", exact: true }).click();
     await page.getByRole("button", { name: "мяч", exact: true }).first().click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await expect(page.locator(".micro-answer-history li")).toHaveCount(3);
     await page.getByRole("button", { name: "Следующий вопрос", exact: true }).click();
     await expect(page.getByRole("button", { name: "Обсудили", exact: true })).toBeVisible();
@@ -103,12 +150,16 @@ for (const [width, height] of [[360, 800], [768, 1024], [1280, 800]]) {
     await expect(page.locator(".story-frames img")).toHaveCount(2);
     await page.getByRole("button", { name: "Скрыть картинки", exact: true }).click();
     await page.getByRole("button", { name: "играл", exact: true }).first().click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await page.getByRole("button", { name: "Вова", exact: true }).first().click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await expect(page.locator("[data-outcome='prompted']")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Куда закатился мяч?" })).toBeVisible();
     await expect(page.locator(".story-frames img")).toHaveCount(0);
     await page.getByRole("button", { name: "под стул", exact: true }).click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await page.getByRole("button", { name: "мяч", exact: true }).first().click();
+    await page.getByRole("button", { name: "Ответить", exact: true }).click();
     await expect(page.getByRole("button", { name: "Пока нет ответа", exact: true })).toBeVisible();
     await expect(page.locator(".story-quiz__text")).toContainText("Вова играл с мячом.");
     await page.screenshot({ path: `.cache/reading-micro-screenshots/oral-${width}.png` });

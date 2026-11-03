@@ -57,6 +57,7 @@ aside{margin:24px 0;padding:4px 24px 16px;background:#f5f7f7;border-radius:12px}
 <h2>Критерии первой ступени</h2>${list(review.principles)}
 <h2>Что показывает выполнение</h2>${list(review.assessmentLimits)}
 <h2>Как использовать материалы</h2>${list(review.adultProcedure, true)}
+${review.interactionReview ? `<h2>Механика ответа · ${escape(review.interactionEdition)}</h2>${list(Object.values(review.interactionReview))}` : ""}
 <h2>Карта разбора</h2><table><thead><tr><th>Рассказ</th><th>Решение</th><th>Задача</th></tr></thead><tbody>${toc}</tbody></table>
 ${cards}
 <section class="sources"><h2>Основания для решений</h2>${review.sources.map((source) => `<p><a href="${escape(source.url)}">${escape(source.title)}</a></p><p>${escape(source.supports)}</p><p class="muted">Границы: ${escape(source.limit)}</p>`).join("")}</section>
