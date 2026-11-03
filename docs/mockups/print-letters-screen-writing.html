@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Пишу на экране — прототип</title>
+<!--
+  Прототип режима «Пишу на экране» темы print_letters (2026-11-03).
+  Глифы — живые данные из tools/print_letters/topic.json (вписаны при сборке макета).
+  Это макет для обсуждения с владельцем, не код приложения. Описание — docs/print-letters-screen-writing.md.
+  Скриншот-режим: ?letter=П&level=corridor&adult=1
+-->
+<style>
+:root {
+  --paper: #fffef5;
+  --grid: #cfe2ef;
+  --grid-strong: #a9cde4;
+  --ink: #1d4ed8;
+  --guide: #3b82f6;
+  --teal: #4a9b8f;
+  --teal-d: #2a6b60;
+  --ok: #22c55e;
+  --ok-d: #16a34a;
+  --ok-tint: #dcfce7;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #fdfcf9; color: #1e293b; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; touch-action: manipulation; }
+.app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+
+/* ---- шапка сессии (в приложении — общая .session-topbar, здесь имитация) ---- */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(8px + var(--app-safe-top)) calc(12px + var(--app-safe-right)) 8px calc(12px + var(--app-safe-left));
+  background: #fff; border-bottom: 1px solid var(--line); min-height: 56px;
+}
+.tb-back { width: 40px; height: 40px; border-radius: 12px; border: 0; background: #f1f5f9; font-size: 22px; font-weight: 800; }
+.tb-stars { flex: 1; display: flex; justify-content: center; gap: 6px; }
+.tb-star { width: 30px; height: 30px; transition: transform .3s; }
+.tb-star.is-on { transform: scale(1.15); }
+.tb-gear {
+  position: relative; width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent;
+  color: #94a3b8; font-size: 20px; display: grid; place-items: center;
+}
+.tb-gear svg.ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+.tb-gear .ring circle { fill: none; stroke: var(--teal); stroke-width: 3; stroke-dasharray: 113; stroke-dashoffset: 113; }
+.tb-gear.is-holding .ring circle { transition: stroke-dashoffset .8s linear; stroke-dashoffset: 0; }
+
+/* ---- сцена ---- */
+.stage {
+  flex: 1; min-height: 0; display: grid;
+  grid-template-columns: minmax(150px, 24%) 1fr; grid-template-rows: 1fr auto;
+  gap: 12px; padding: 12px calc(12px + var(--app-safe-right)) calc(12px + var(--app-safe-bottom)) calc(12px + var(--app-safe-left));
+}
+.app.is-left .stage { grid-template-columns: 1fr minmax(150px, 24%); }
+.app.is-left .sample { order: 2; }
+.sample {
+  background: #fff; border: 2px solid var(--line); border-radius: 20px; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 0;
+  cursor: pointer;
+}
+.sample svg { width: 100%; flex: 1; min-height: 0; }
+.sample-cap { font-size: clamp(13px, 1.6vw, 16px); font-weight: 800; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.board-wrap {
+  position: relative; min-height: 0; background: var(--paper); border-radius: 24px;
+  border: 2px solid #efe9d6; overflow: hidden;
+}
+.board { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+.strip {
+  grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: clamp(8px, 1.5vw, 14px);
+}
+.chip {
+  width: clamp(48px, 7vw, 64px); height: clamp(48px, 7vw, 64px); border-radius: 16px;
+  background: #f1f5f9; border: 2px solid var(--line); display: grid; place-items: center; position: relative;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.chip svg { width: 70%; height: 70%; }
+.chip .num { position: absolute; top: -8px; left: -8px; width: 22px; height: 22px; border-radius: 50%;
+  background: #e5e7eb; color: #6b7280; font-size: 12px; font-weight: 900; display: grid; place-items: center; }
+.chip.is-active { background: #eff6ff; border-color: var(--guide); transform: translateY(-3px); }
+.chip.is-active .num { background: var(--ink); color: #fff; }
+.chip.is-done { background: var(--ok-tint); border-color: var(--ok); }
+.chip.is-done .num { background: var(--ok); color: #fff; }
+.chip.is-given { opacity: .45; }
+.strip-arrow { color: #cbd5e1; font-size: 22px; font-weight: 900; }
+.reward { width: clamp(48px, 7vw, 64px); height: clamp(48px, 7vw, 64px); display: grid; place-items: center; }
+
+/* SVG-состояния */
+.start-dot { fill: var(--ok); }
+.start-dot.nudge { animation: pulse 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.7); } }
+.lead-dot { fill: var(--guide); }
+.lead-halo { fill: rgba(59,130,246,.22); animation: breathe 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+.ink { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
+.ink.given { stroke: #94a3b8; }
+.raw { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; transition: opacity .6s; }
+.raw.fading { opacity: 0; }
+.letter-done .ink { stroke: var(--ok-d); transition: stroke .3s; }
+.letter-done { filter: drop-shadow(0 0 6px rgba(34,197,94,.55)); }
+
+/* финальная карточка */
+.finish {
+  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+  background: rgba(255,254,245,.92); flex-direction: column; gap: 16px; text-align: center; padding: 24px;
+}
+.finish.is-on { display: flex; }
+.finish h2 { margin: 0; font-size: clamp(22px, 3vw, 32px); font-weight: 900; }
+.finish p { margin: 0; color: var(--muted); font-weight: 700; max-width: 420px; }
+.btn {
+  border: 0; border-radius: 16px; padding: 14px 22px; font-weight: 900; font-size: 17px; color: #fff;
+  background: var(--teal); box-shadow: 0 4px 0 var(--teal-d); cursor: pointer;
+}
+.btn:active { transform: translateY(3px); box-shadow: none; }
+.btn.secondary { background: #fff; color: #334155; box-shadow: 0 4px 0 #cbd5e1; border: 2px solid var(--line); }
+
+/* ---- панель взрослого ---- */
+.adult {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 94vw); background: #fff;
+  border-left: 1px solid var(--line); box-shadow: -12px 0 32px rgba(15,23,42,.12);
+  transform: translateX(105%); transition: transform .25s ease; z-index: 50; display: flex; flex-direction: column;
+  padding: calc(14px + var(--app-safe-top)) calc(16px + var(--app-safe-right)) calc(14px + var(--app-safe-bottom)) 16px;
+  overflow-y: auto;
+}
+.adult.is-open { transform: none; }
+.adult h3 { margin: 0 0 4px; font-size: 19px; font-weight: 900; display: flex; justify-content: space-between; align-items: center; }
+.adult h4 { margin: 16px 0 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.adult .close { border: 0; background: #f1f5f9; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; }
+.fam { font-size: 12px; font-weight: 800; color: #94a3b8; margin: 8px 0 4px; }
+.letters { display: flex; flex-wrap: wrap; gap: 6px; }
+.lt { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--line); background: #fff; font-weight: 900; font-size: 18px; }
+.lt.is-on { border-color: var(--teal); background: #e8f4f2; color: var(--teal-d); }
+.levels { display: flex; flex-direction: column; gap: 6px; }
+.lv { display: flex; gap: 10px; align-items: flex-start; text-align: left; border: 2px solid var(--line); background: #fff; border-radius: 14px; padding: 8px 10px; }
+.lv b { display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #f1f5f9; font-size: 13px; }
+.lv span { font-size: 14px; font-weight: 800; }
+.lv small { display: block; font-weight: 600; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.lv.is-on { border-color: var(--teal); background: #f2faf8; }
+.lv.is-on b { background: var(--teal); color: #fff; }
+.seg { display: flex; background: #f1f5f9; border-radius: 12px; padding: 3px; gap: 3px; }
+.seg button { flex: 1; border: 0; background: transparent; border-radius: 9px; padding: 8px 4px; font-weight: 800; font-size: 13px; }
+.seg button.is-on { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12); color: var(--teal-d); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 14px; margin: 6px 0; }
+.log { font-size: 13px; color: #334155; display: flex; flex-direction: column; gap: 4px; }
+.log .tag { display: inline-block; padding: 1px 8px; border-radius: 99px; font-weight: 800; font-size: 11px; }
+.tag.ind { background: var(--ok-tint); color: var(--ok-d); }
+.tag.pr { background: #fef3c7; color: #b45309; }
+.proto-note { margin-top: 16px; font-size: 12px; color: #94a3b8; line-height: 1.4; }
+
+@media (max-aspect-ratio: 4/5) {
+  .stage, .app.is-left .stage { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .sample { flex-direction: row; height: 128px; padding: 8px 14px; gap: 16px; }
+  .sample svg { width: 112px; height: 100%; flex: 0 0 auto; }
+  .app.is-left .sample { order: 0; flex-direction: row-reverse; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <button class="tb-back" aria-label="Назад">‹</button>
+    <div class="tb-stars" id="stars"></div>
+    <button class="tb-gear" id="gear" aria-label="Для взрослого: удерживайте">
+      <svg class="ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/></svg>⚙
+    </button>
+  </header>
+  <main class="stage">
+    <div class="sample" id="sample" title="Нажми — покажу ещё раз">
+      <svg id="sampleSvg"></svg>
+      <div class="sample-cap">▶ Смотри</div>
+    </div>
+    <div class="board-wrap">
+      <svg class="board" id="board" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="finish" id="finish">
+        <svg width="72" height="72" viewBox="0 0 24 24"><path fill="#facc15" stroke="#eab308" stroke-width="1" d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg>
+        <h2 id="finishTitle">Готово!</h2>
+        <p id="finishText">Теперь эту букву — на бумаге.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+          <button class="btn" id="again">Ещё раз</button>
+          <button class="btn secondary" id="toPaper">Лист для печати</button>
+        </div>
+      </div>
+    </div>
+    <div class="strip" id="strip"></div>
+  </main>
+</div>
+
+<aside class="adult" id="adult" aria-label="Настройки для взрослого">
+  <h3>Для взрослого <button class="close" id="adultClose">✕</button></h3>
+  <h4>Буква</h4>
+  <div id="letterPick"></div>
+  <h4>Ступень</h4>
+  <div class="levels" id="levelPick"></div>
+  <h4>Ширина коридора</h4>
+  <div class="seg" id="widthPick"></div>
+  <h4>Подстройка</h4>
+  <div class="row">«Спрятанная буква» — готово всё, кроме последнего штриха <input type="checkbox" id="hidden"></div>
+  <div class="row">Голос: название штриха <input type="checkbox" id="voice" checked></div>
+  <div class="row">Тихий звук на штрих <input type="checkbox" id="sound" checked></div>
+  <div class="row">Пишет левой рукой (образец справа) <input type="checkbox" id="lefty"></div>
+  <div class="row">Копий в задании
+    <div class="seg" id="copiesPick" style="width:140px"></div>
+  </div>
+  <h4>Журнал попыток</h4>
+  <div class="log" id="log"><span style="color:#94a3b8">Пока пусто</span></div>
+  <p class="proto-note">Прототип для обсуждения. В приложении эта панель открывается удержанием ⚙ 0,8 с (защита от ребёнка); данные попыток идут в прогресс ученика.</p>
+</aside>
+
+<script>
+const DATA = {"letterFamilies":[{"id":"straight","title":"Прямые линии","letters":["Г","Т","Ч","П","Н","И","Ш","Е","Ё"]},{"id":"slant","title":"Наклонные линии","letters":["Л","А","Й","Д","Ц","Щ","У","Х","К","Ж","М"]},{"id":"oval","title":"Овалы и полуовалы","letters":["Ь","Ъ","Ы","Р","Б","Ф","Я","В","З","О","Ю","С","Э"]}],"cards":[{"id":"Г","label":"Г","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"}]},{"id":"Т","label":"Т","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 66.665,0","name":"верхняя черта"},{"d":"M 33.333,0 L 33.333,100","name":"палочка"}]},{"id":"П","label":"П","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"},{"d":"M 50,0 L 50,100","name":"правая палочка"}]},{"id":"Н","label":"Н","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 50,0 L 50,100","name":"правая палочка"},{"d":"M 0,50 L 50,50","name":"перекладина"}]},{"id":"И","label":"И","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,100 L 50,0","name":"наклонная"},{"d":"M 50,0 L 50,100","name":"правая палочка"}]},{"id":"Ш","label":"Ш","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 33.333,0 L 33.333,100","name":"средняя палочка"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"},{"d":"M 0,100 L 66.665,100","name":"нижняя черта"}]},{"id":"Е","label":"Е","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"},{"d":"M 0,50 L 50,50","name":"средняя черта"},{"d":"M 0,100 L 50,100","name":"нижняя черта"}]},{"id":"Ё","label":"Ё","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 50,0","name":"верхняя черта"},{"d":"M 0,50 L 50,50","name":"средняя черта"},{"d":"M 0,100 L 50,100","name":"нижняя черта"},{"d":"M 14,-16 L 15,-16","name":"левая точка"},{"d":"M 35,-16 L 36,-16","name":"правая точка"}]},{"id":"Ч","label":"Ч","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,50","name":"левая палочка"},{"d":"M 0,50 L 50,50","name":"перекладина"},{"d":"M 50,0 L 50,100","name":"правая палочка"}]},{"id":"Л","label":"Л","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,100 L 33.333,0","name":"левая наклонная"},{"d":"M 33.333,0 L 66.665,100","name":"правая наклонная"}]},{"id":"А","label":"А","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,100 L 33.333,0","name":"левая наклонная"},{"d":"M 33.333,0 L 66.665,100","name":"правая наклонная"},{"d":"M 13.333,60 L 53.332,60","name":"перекладина"}]},{"id":"Й","label":"Й","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,100 L 50,0","name":"наклонная"},{"d":"M 50,0 L 50,100","name":"правая палочка"},{"d":"M 13,-20 C 17,-11 33,-11 37,-20","name":"краткая"}]},{"id":"Д","label":"Д","viewBox":"0 0 66.665 100","strokes":[{"d":"M 6,100 L 33.333,0","name":"левая наклонная"},{"d":"M 33.333,0 L 60.665,100","name":"правая наклонная"},{"d":"M 0,100 L 66.665,100","name":"основание"},{"d":"M 0,100 L 0,118","name":"левая ножка"},{"d":"M 66.665,100 L 66.665,118","name":"правая ножка"}]},{"id":"Ц","label":"Ц","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,100 L 58,100","name":"нижняя черта"},{"d":"M 50,0 L 50,100","name":"правая палочка"},{"d":"M 58,100 L 58,118","name":"хвостик"}]},{"id":"Щ","label":"Щ","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 33.333,0 L 33.333,100","name":"средняя палочка"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"},{"d":"M 0,100 L 74,100","name":"нижняя черта"},{"d":"M 74,100 L 74,118","name":"хвостик"}]},{"id":"У","label":"У","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 25,60","name":"короткая наклонная"},{"d":"M 50,0 L 8,100","name":"длинная наклонная"}]},{"id":"Х","label":"Х","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 50,100","name":"наклонная слева направо"},{"d":"M 50,0 L 0,100","name":"наклонная справа налево"}]},{"id":"К","label":"К","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 50,0 L 0,50 L 50,100","name":"уголок"}]},{"id":"Ж","label":"Ж","viewBox":"0 0 66.665 100","strokes":[{"d":"M 33.333,0 L 33.333,100","name":"палочка"},{"d":"M 0,0 L 66.665,100","name":"наклонная слева направо"},{"d":"M 66.665,0 L 0,100","name":"наклонная справа налево"}]},{"id":"М","label":"М","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,0 L 33.333,66.665","name":"наклонная вниз"},{"d":"M 33.333,66.665 L 66.665,0","name":"наклонная вверх"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"}]},{"id":"Ь","label":"Ь","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","name":"полуовал"}]},{"id":"Ъ","label":"Ъ","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 16.665,0","name":"верхняя черта"},{"d":"M 16.665,0 L 16.665,100","name":"палочка"},{"d":"M 16.665,50 L 38,50 C 53.832,50 66.665,61.192 66.665,75 C 66.665,88.808 53.832,100 38,100 L 16.665,100","name":"полуовал"}]},{"id":"Ы","label":"Ы","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"левая палочка"},{"d":"M 0,50 L 16,50 C 29.255,50 40,61.192 40,75 C 40,88.808 29.255,100 16,100 L 0,100","name":"полуовал"},{"d":"M 66.665,0 L 66.665,100","name":"правая палочка"}]},{"id":"Р","label":"Р","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 22,0 C 37.464,0 50,11.192 50,25 C 50,38.808 37.464,50 22,50 L 0,50","name":"полуовал"}]},{"id":"Б","label":"Б","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","name":"полуовал"},{"d":"M 0,0 L 48,0","name":"верхняя черта"}]},{"id":"Ф","label":"Ф","viewBox":"0 0 66.665 100","strokes":[{"d":"M 33.333,0 L 33.333,100","name":"палочка"},{"d":"M 33.333,0 C 14.923,0 0,13.431 0,30 C 0,46.569 14.923,60 33.333,60","name":"левый полуовал"},{"d":"M 33.333,0 C 51.742,0 66.665,13.431 66.665,30 C 66.665,46.569 51.742,60 33.333,60","name":"правый полуовал"}]},{"id":"Я","label":"Я","viewBox":"0 0 50 100","strokes":[{"d":"M 50,0 L 28,0 C 12.536,0 0,11.192 0,25 C 0,38.808 12.536,50 28,50 L 50,50","name":"полуовал"},{"d":"M 50,0 L 50,100","name":"палочка"},{"d":"M 28,50 L 0,100","name":"наклонная"}]},{"id":"В","label":"В","viewBox":"0 0 50 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,0 L 20,0 C 33.255,0 44,11.192 44,25 C 44,38.808 33.255,50 20,50 L 0,50","name":"верхний полуовал"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","name":"нижний полуовал"}]},{"id":"З","label":"З","viewBox":"0 0 50 100","strokes":[{"d":"M 3,14 C 7,5 15,0 24,0 C 37,0 46,10 46,24 C 46,39 35,50 20,50","name":"верхний полуовал"},{"d":"M 20,50 C 37,50 50,60 50,75 C 50,90 39,100 25,100 C 15,100 7,95 2,86","name":"нижний полуовал"}]},{"id":"О","label":"О","viewBox":"0 0 50 100","strokes":[{"d":"M 25,0 C 11.192,0 0,22.385 0,50 C 0,77.615 11.192,100 25,100 C 38.808,100 50,77.615 50,50 C 50,22.385 38.808,0 25,0","name":"овал"}]},{"id":"Ю","label":"Ю","viewBox":"0 0 66.665 100","strokes":[{"d":"M 0,0 L 0,100","name":"палочка"},{"d":"M 0,50 L 20,50","name":"перекладина"},{"d":"M 43.333,0 C 30.447,0 20.001,22.385 20.001,50 C 20.001,77.615 30.447,100 43.333,100 C 56.219,100 66.665,77.615 66.665,50 C 66.665,22.385 56.219,0 43.333,0","name":"овал"}]},{"id":"С","label":"С","viewBox":"0 0 50 100","strokes":[{"d":"M 46,15 C 41.5,5.7 33.9,0 25,0 C 11.19,0 0,22.39 0,50 C 0,77.61 11.19,100 25,100 C 33.9,100 41.5,94.3 46,85","name":"полуовал"}]},{"id":"Э","label":"Э","viewBox":"0 0 50 100","strokes":[{"d":"M 4,15 C 8.5,5.7 16.1,0 25,0 C 38.81,0 50,22.39 50,50 C 50,77.61 38.81,100 25,100 C 16.1,100 8.5,94.3 4,85","name":"полуовал"},{"d":"M 18,50 L 50,50","name":"перекладина"}]}]};
+const GLYPHS = Object.fromEntries(DATA.cards.map(c => [c.id, c]));
+const LEVELS = [
+  { id: "watch",    title: "Смотрю",       sub: "Буква пишется сама, штрих за штрихом. Нажатие — ещё раз." },
+  { id: "lead",     title: "За точкой",    sub: "Синяя точка ведёт, палец догоняет. Точка ждёт палец." },
+  { id: "corridor", title: "Коридор",      sub: "Широкая дорожка; линия рисуется только внутри неё." },
+  { id: "dots",     title: "Пунктир",      sub: "Как на листе: пунктир, точка начала, стрелка." },
+  { id: "fade",     title: "Бледный след", sub: "След бледнеет от копии к копии." },
+  { id: "free",     title: "Сам",          sub: "Пустая клетка, образец сбоку. Проверка после каждого штриха." },
+];
+const WIDTHS = { wide: { t: 14, label: "Широкий" }, mid: { t: 10, label: "Средний" }, narrow: { t: 7, label: "Узкий" } };
+const INK_W = 7;          // толщина линии в единицах клетки (буква — 100)
+const LOOK = 24;          // палец не может «перепрыгнуть» вперёд больше чем на 24 ед.
+const LEAD = 12;          // ведущая точка опережает палец
+const IDLE_NUDGE = 6000, IDLE_DEMO = 12000;
+
+const qs = new URLSearchParams(location.search);
+const S = {
+  letter: GLYPHS[qs.get("letter")] ? qs.get("letter") : "П",
+  level: LEVELS.some(l => l.id === qs.get("level")) ? qs.get("level") : "corridor",
+  width: qs.get("width") in WIDTHS ? qs.get("width") : "wide",
+  hidden: qs.get("hidden") === "1", voice: true, sound: true, lefty: qs.get("lefty") === "1",
+  copies: 3, copy: 0, log: [],
+};
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+/* ---------- геометрия штрихов ---------- */
+const measurer = el("svg", { width: 0, height: 0, style: "position:absolute;visibility:hidden" });
+document.body.appendChild(measurer);
+function sample(d) {
+  const p = el("path", { d }, measurer);
+  const L = p.getTotalLength(); const n = Math.max(2, Math.ceil(L)); const pts = [];
+  for (let i = 0; i <= n; i++) { const q = p.getPointAtLength(L * i / n); pts.push({ x: q.x, y: q.y }); }
+  p.remove(); return { pts, L };
+}
+function polyD(pts, to = pts.length - 1) {
+  if (to < 1) return `M ${pts[0].x} ${pts[0].y} l 0.01 0`;
+  let s = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+  for (let i = 1; i <= to; i++) s += ` L ${pts[i].x.toFixed(2)} ${pts[i].y.toFixed(2)}`;
+  return s;
+}
+function direction(stroke, g) {
+  if (g.L < 4) return "";
+  if (/[Cc]/.test(stroke.d) || (stroke.d.match(/L/g) || []).length > 1) return "";
+  const a = g.pts[0], b = g.pts[g.pts.length - 1]; const dx = b.x - a.x, dy = b.y - a.y;
+  if (Math.abs(dy) > 2 * Math.abs(dx)) return dy > 0 ? "сверху вниз" : "снизу вверх";
+  if (Math.abs(dx) > 2 * Math.abs(dy)) return dx > 0 ? "слева направо" : "справа налево";
+  return dy > 0 ? "наискосок вниз" : "наискосок вверх";
+}
+
+/* ---------- звук и голос ---------- */
+let actx = null;
+function tone(freqs, dur = 0.09) {
+  if (!S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain(); const t = actx.currentTime + i * 0.09;
+      o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.06, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+    });
+  } catch {}
+}
+function say(text) {
+  if (!S.voice || !text || !window.speechSynthesis) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ru-RU"; u.rate = 0.9; speechSynthesis.speak(u); } catch {}
+}
+
+/* ---------- состояние задания ---------- */
+let T; // текущая копия
+function newTask() {
+  const g = GLYPHS[S.letter];
+  const geo = g.strokes.map(s => sample(s.d));
+  const n = g.strokes.length;
+  const given = S.hidden && n > 1 ? n - 1 : 0;
+  T = { g, geo, n, given, cur: given, prog: geo.map((_, i) => (i < given ? _.pts.length - 1 : 0)),
+        raw: [], prompted: false, done: false, started: performance.now(), lastAct: performance.now(), nudged: false, demoed: false };
+  $("finish").classList.remove("is-on");
+  buildBoard(); buildSample(); buildStrip(); drawStars(); render();
+  if (S.level === "watch") setTimeout(() => demoLetter(), 500);
+  else announce();
+}
+function announce() {
+  if (T.cur >= T.n) return;
+  const s = T.g.strokes[T.cur]; say([s.name, direction(s, T.geo[T.cur])].filter(Boolean).join(", "));
+}
+
+/* ---------- доска ---------- */
+let L = {}; // слои
+function boardBox() {
+  const [, , w] = T.g.viewBox.split(" ").map(Number);
+  const x0 = -50, x1 = Math.ceil((w + 50) / 50) * 50, y0 = -50, y1 = 150;
+  return { x0, y0, w: x1 - x0, h: y1 - y0, gw: w };
+}
+function buildBoard() {
+  const svg = $("board"); svg.innerHTML = "";
+  // сетка на всю доску: расширяем viewBox под пропорции доски, начало — на линии клетки
+  const need = boardBox(); const r = svg.getBoundingClientRect(); const ar = r.width && r.height ? r.width / r.height : need.w / need.h;
+  let w = need.w, h = need.h; if (ar > w / h) w = h * ar; else h = w / ar;
+  const b = { x0: need.x0 - (w - need.w) / 2, y0: need.y0 - (h - need.h) / 2, w, h };
+  svg.setAttribute("viewBox", `${b.x0} ${b.y0} ${b.w} ${b.h}`);
+  const gx0 = Math.floor(b.x0 / 25) * 25, gy0 = Math.floor(b.y0 / 25) * 25;
+  el("rect", { x: b.x0, y: b.y0, width: b.w, height: b.h, fill: "var(--paper)" }, svg);
+  const grid = el("g", {}, svg);
+  for (let x = gx0; x <= b.x0 + b.w; x += 25) el("line", { x1: x, y1: b.y0, x2: x, y2: b.y0 + b.h, stroke: x % 50 === 0 ? "var(--grid-strong)" : "var(--grid)", "stroke-width": x % 50 === 0 ? 0.9 : 0.5 }, grid);
+  for (let y = gy0; y <= b.y0 + b.h; y += 25) el("line", { x1: b.x0, y1: y, x2: b.x0 + b.w, y2: y, stroke: y % 50 === 0 ? "var(--grid-strong)" : "var(--grid)", "stroke-width": y % 50 === 0 ? 0.9 : 0.5 }, grid);
+  // строка письма: верх и низ буквы — чуть заметнее (как линии клетки-буквы на листе)
+  [0, 100].forEach(y => el("line", { x1: b.x0, y1: y, x2: b.x0 + b.w, y2: y, stroke: "#7fb3d5", "stroke-width": 1.1 }, grid));
+  L.guide = el("g", {}, svg); L.ink = el("g", {}, svg); L.raw = el("g", {}, svg);
+  L.marks = el("g", {}, svg); L.ghost = el("g", {}, svg);
+}
+function render() {
+  const tol = WIDTHS[S.width].t; const lv = S.level;
+  L.guide.innerHTML = ""; L.ink.innerHTML = ""; L.marks.innerHTML = "";
+  L.ink.classList.toggle("letter-done", T.done);
+  T.geo.forEach((g, i) => {
+    const doneHere = i < T.cur;
+    // опора под штрихом
+    if (!doneHere && lv !== "free" && lv !== "watch") {
+      const isCur = i === T.cur;
+      if (lv === "lead" || lv === "corridor") {
+        el("path", { d: polyD(g.pts), fill: "none", stroke: "rgba(59,130,246," + (isCur ? (lv === "corridor" ? .16 : .09) : .06) + ")", "stroke-width": tol * 2, "stroke-linecap": "round", "stroke-linejoin": "round" }, L.guide);
+        el("path", { d: polyD(g.pts), fill: "none", stroke: isCur ? "#93c5fd" : "#cbd5e1", "stroke-width": 1.2, "stroke-dasharray": "3 4", "stroke-linecap": "round" }, L.guide);
+      } else if (lv === "dots") {
+        el("path", { d: polyD(g.pts), fill: "none", stroke: isCur ? "#64748b" : "#a3aec0", "stroke-width": 3.2, "stroke-dasharray": "0.1 6.5", "stroke-linecap": "round" }, L.guide);
+      } else if (lv === "fade") {
+        const op = [0.55, 0.32, 0.16][Math.min(S.copy, 2)];
+        el("path", { d: polyD(g.pts), fill: "none", stroke: `rgba(100,116,139,${op})`, "stroke-width": INK_W, "stroke-linecap": "round", "stroke-linejoin": "round" }, L.guide);
+      }
+    }
+    // чернила (кроме «Сам»: там остаётся линия ребёнка)
+    const k = T.prog[i];
+    if (k > 0 && !(lv === "free" && i >= T.given)) {
+      el("path", { class: "ink" + (i < T.given ? " given" : ""), d: polyD(g.pts, k), "stroke-width": INK_W }, L.ink);
+    }
+  });
+  if (lv === "free") T.raw.forEach(r => r.ok && L.ink.appendChild(r.node));
+  // точка начала и стрелка у текущего штриха
+  if (!T.done && T.cur < T.n && lv !== "watch") {
+    const g = T.geo[T.cur], k = T.prog[T.cur];
+    const showStart = lv !== "free" || T.nudged;
+    if (showStart) {
+      const p = g.pts[k];
+      if (k === 0) {
+        el("circle", { class: "start-dot" + (T.nudged ? " nudge" : ""), cx: p.x, cy: p.y, r: 5.5 }, L.marks);
+        if (g.L > 8) arrow(g, L.marks);
+      } else {
+        el("circle", { cx: p.x, cy: p.y, r: 4.2, fill: "var(--ink)", stroke: "#fff", "stroke-width": 1.5 }, L.marks);
+      }
+    }
+    if (lv === "lead") {
+      const p = g.pts[Math.min(g.pts.length - 1, k + (k === 0 ? 0 : LEAD))];
+      el("circle", { class: "lead-halo", cx: p.x, cy: p.y, r: 11 }, L.marks);
+      el("circle", { class: "lead-dot", cx: p.x, cy: p.y, r: 6 }, L.marks);
+    }
+  }
+  updateStrip();
+}
+function arrow(g, parent, color = "var(--ok-d)") {
+  const i = Math.min(g.pts.length - 2, Math.round(Math.min(18, g.L * 0.35)));
+  const a = g.pts[i], b = g.pts[i + 1]; const ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+  // стрелка сбоку от линии, чтобы не закрывать её
+  const nx = -(b.y - a.y), ny = b.x - a.x, nl = Math.hypot(nx, ny) || 1; const off = 11;
+  const cx = a.x + nx / nl * off, cy = a.y + ny / nl * off;
+  const grp = el("g", { transform: `translate(${cx} ${cy}) rotate(${ang})` }, parent);
+  el("path", { d: "M -6 0 L 5 0 M 1 -4 L 5.5 0 L 1 4", fill: "none", stroke: color, "stroke-width": 2.2, "stroke-linecap": "round", "stroke-linejoin": "round" }, grp);
+}
+
+/* ---------- ввод ---------- */
+const board = $("board");
+let active = null;
+function toSvg(e) { const pt = board.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(board.getScreenCTM().inverse()); }
+function touch() { T.lastAct = performance.now(); if (T.nudged && S.level !== "free") { T.nudged = false; } }
+
+board.addEventListener("pointerdown", e => {
+  if (active || T.done) return;            // второй палец / ладонь — игнор
+  const p = toSvg(e); touch();
+  if (S.level === "watch") { demoLetter(); return; }
+  if (T.cur >= T.n) return;
+  const g = T.geo[T.cur], k = T.prog[T.cur], tol = WIDTHS[S.width].t;
+  if (S.level === "free") {
+    active = { id: e.pointerId, pts: [p] };
+    active.node = el("path", { class: "raw", d: polyD([p]), "stroke-width": INK_W }, L.raw);
+    board.setPointerCapture(e.pointerId); return;
+  }
+  const anchor = g.pts[k];
+  if (dist(p, anchor) > Math.max(tol * 1.6, 14)) { T.nudged = true; render(); return; } // не там — мигает точка начала, линия не рисуется
+  active = { id: e.pointerId };
+  board.setPointerCapture(e.pointerId);
+  if (g.L < 4) { completeStroke(); active = null; }
+});
+board.addEventListener("pointermove", e => {
+  if (!active || e.pointerId !== active.id) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of (evs.length ? evs : [e])) {
+    const p = toSvg(ev);
+    if (S.level === "free") { active.pts.push(p); active.node.setAttribute("d", polyD(active.pts)); continue; }
+    advance(p); if (!active) break;
+  }
+  touch();
+});
+function endPointer(e) {
+  if (!active || e.pointerId !== active.id) return;
+  if (S.level === "free") checkFree(active);
+  active = null; render();
+}
+board.addEventListener("pointerup", endPointer);
+board.addEventListener("pointercancel", endPointer);
+
+function advance(p) {
+  const g = T.geo[T.cur], tol = WIDTHS[S.width].t; let k = T.prog[T.cur];
+  let best = -1, bd = 1e9;
+  for (let i = Math.max(0, k - 3); i <= Math.min(g.pts.length - 1, k + LOOK); i++) {
+    const d = dist(p, g.pts[i]); if (d < bd) { bd = d; best = i; }
+  }
+  if (bd <= tol && best > k) {
+    T.prog[T.cur] = best; render();
+    if (best >= g.pts.length - 2) completeStroke();
+  }
+}
+function completeStroke() {
+  const g = T.geo[T.cur]; T.prog[T.cur] = g.pts.length - 1; T.cur++; T.nudged = false;
+  tone([660]);
+  if (T.cur >= T.n) { active = null; letterDone(); } else { render(); announce(); }
+}
+
+/* «Сам»: штрих проверяется после отрыва пальца */
+function minD(p, pts) { let m = 1e9; for (const q of pts) { const d = dist(p, q); if (d < m) m = d; } return m; }
+function matches(raw, g, tol) {
+  if (g.L < 4) return minD(raw[0], g.pts) < tol * 2.2;
+  if (raw.length < 3) return false;
+  const a = raw[0], b = raw[raw.length - 1], s = g.pts[0], f = g.pts[g.pts.length - 1];
+  if (dist(a, s) > tol * 2.2 || dist(b, f) > tol * 2.2) return false;   // начало и конец — там, и направление верное
+  let sum = 0; for (const r of raw) sum += minD(r, g.pts); if (sum / raw.length > tol * 1.2) return false;
+  for (let t = 0; t <= 20; t++) if (minD(g.pts[Math.round(t / 20 * (g.pts.length - 1))], raw) > tol * 2) return false;
+  return true;
+}
+function checkFree(a) {
+  const g = T.geo[T.cur]; const tol = WIDTHS[S.width].t * 1.15;
+  if (matches(a.pts, g, tol)) {
+    T.raw.push({ ok: true, node: a.node }); T.prog[T.cur] = g.pts.length - 1;
+    completeStroke();
+  } else {
+    // без «неправильно»: линия тихо тает, и этот штрих показывается ещё раз
+    a.node.classList.add("fading"); setTimeout(() => a.node.remove(), 650);
+    T.prompted = true; T.nudged = true; demoStroke(T.cur);
+  }
+}
+
+/* ---------- подсказки и демонстрация ---------- */
+function moveDot(g, parent, ms, onEnd, color = "var(--guide)") {
+  const trail = el("path", { d: polyD(g.pts, 0), fill: "none", stroke: color, "stroke-opacity": .45, "stroke-width": INK_W, "stroke-linecap": "round", "stroke-linejoin": "round" }, parent);
+  const dot = el("circle", { r: 6, fill: color }, parent);
+  const t0 = performance.now(); const dur = Math.max(450, g.L * ms);
+  (function step(now) {
+    const t = Math.min(1, (now - t0) / dur); const e = t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const k = Math.round(e * (g.pts.length - 1)); const p = g.pts[k];
+    dot.setAttribute("cx", p.x); dot.setAttribute("cy", p.y); trail.setAttribute("d", polyD(g.pts, k));
+    if (t < 1) requestAnimationFrame(step); else onEnd && onEnd(trail, dot);
+  })(t0);
+}
+function demoStroke(i) {
+  L.ghost.innerHTML = "";
+  moveDot(T.geo[i], L.ghost, 9, (trail, dot) => setTimeout(() => { trail.remove(); dot.remove(); render(); }, 500));
+}
+let demoRun = 0;
+function demoLetter() {
+  const run = ++demoRun; L.ghost.innerHTML = ""; T.cur = 0; T.prog = T.prog.map(() => 0); T.done = false; render();
+  const next = i => {
+    if (run !== demoRun) return;
+    if (i >= T.n) { T.done = true; render(); return; }
+    T.cur = i; updateStrip(); const s = T.g.strokes[i]; say([s.name, direction(s, T.geo[i])].filter(Boolean).join(", "));
+    moveDot(T.geo[i], L.ghost, 12, (trail, dot) => {
+      dot.remove(); trail.remove(); T.prog[i] = T.geo[i].pts.length - 1; T.cur = i + 1; render(); tone([660]);
+      setTimeout(() => next(i + 1), 650);
+    }, "var(--ink)");
+  };
+  setTimeout(() => next(0), 300);
+}
+setInterval(() => {
+  if (!T || T.done || active || S.level === "watch") return;
+  const idle = performance.now() - T.lastAct;
+  if (idle > IDLE_DEMO && !T.demoed) { T.demoed = true; T.prompted = true; demoStroke(T.cur); T.lastAct = performance.now(); }
+  else if (idle > IDLE_NUDGE && !T.nudged) { T.nudged = true; render(); }
+}, 500);
+
+/* ---------- образец ---------- */
+function buildSample() {
+  const svg = $("sampleSvg"); svg.innerHTML = "";
+  const [, , w] = T.g.viewBox.split(" ").map(Number);
+  svg.setAttribute("viewBox", `-26 -38 ${w + 52} 176`);
+  T.geo.forEach((g, i) => {
+    el("path", { d: polyD(g.pts), fill: "none", stroke: "#334155", "stroke-width": 6, "stroke-linecap": "round", "stroke-linejoin": "round", "data-i": i }, svg);
+  });
+  T.geo.forEach((g, i) => {
+    if (g.L > 8) arrow(g, svg, "#16a34a");
+    // номер — позади точки начала (против направления штриха), чтобы номера общих начал не накрывали друг друга
+    const s0 = g.pts[0], s1 = g.pts[Math.min(g.pts.length - 1, 4)]; const dl = Math.hypot(s1.x - s0.x, s1.y - s0.y) || 1;
+    const p = { x: s0.x - (s1.x - s0.x) / dl * 12, y: s0.y - (s1.y - s0.y) / dl * 12 };
+    el("circle", { cx: s0.x, cy: s0.y, r: 3.5, fill: "#16a34a" }, svg);
+    el("circle", { cx: p.x, cy: p.y, r: 7.5, fill: "#fff", stroke: "#16a34a", "stroke-width": 2 }, svg);
+    const t = el("text", { x: p.x, y: p.y + 3.6, "text-anchor": "middle", "font-size": 10, "font-weight": 900, fill: "#16a34a", "font-family": "Nunito, sans-serif" }, svg);
+    t.textContent = i + 1;
+  });
+}
+function playSample() {
+  const paths = [...$("sampleSvg").querySelectorAll("path[data-i]")];
+  paths.forEach((p, i) => { const len = T.geo[i].L || 1; p.style.transition = "none"; p.style.strokeDasharray = len + 1; p.style.strokeDashoffset = len + 1; });
+  let delay = 150;
+  paths.forEach((p, i) => {
+    const dur = Math.max(350, T.geo[i].L * 9);
+    setTimeout(() => { p.style.transition = `stroke-dashoffset ${dur}ms ease-in-out`; p.style.strokeDashoffset = 0; }, delay);
+    delay += dur + 350;
+  });
+}
+$("sample").addEventListener("click", () => { touch(); playSample(); });
+
+/* ---------- полоска штрихов (план «сначала — потом») ---------- */
+function buildStrip() {
+  const strip = $("strip"); strip.innerHTML = "";
+  T.g.strokes.forEach((s, i) => {
+    if (i > 0) { const a = document.createElement("span"); a.className = "strip-arrow"; a.textContent = "›"; strip.appendChild(a); }
+    const c = document.createElement("div"); c.className = "chip"; c.dataset.i = i;
+    const g = T.geo[i]; const xs = g.pts.map(p => p.x), ys = g.pts.map(p => p.y);
+    const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+    const sz = Math.max(maxx - minx, maxy - miny, 20) + 16; const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+    const svg = el("svg", { viewBox: `${cx - sz / 2} ${cy - sz / 2} ${sz} ${sz}` });
+    el("path", { d: polyD(g.pts), fill: "none", stroke: "#334155", "stroke-width": sz / 9, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+    c.appendChild(svg); const n = document.createElement("span"); n.className = "num"; n.textContent = i + 1; c.appendChild(n);
+    strip.appendChild(c);
+  });
+  const a = document.createElement("span"); a.className = "strip-arrow"; a.textContent = "›"; strip.appendChild(a);
+  const r = document.createElement("div"); r.className = "reward";
+  r.innerHTML = '<svg width="44" height="44" viewBox="0 0 24 24"><path fill="#fde68a" stroke="#eab308" stroke-width="1.2" d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg>';
+  strip.appendChild(r);
+}
+function updateStrip() {
+  document.querySelectorAll(".chip").forEach(c => {
+    const i = +c.dataset.i;
+    c.classList.toggle("is-done", i < T.cur || T.done);
+    c.classList.toggle("is-active", i === T.cur && !T.done);
+    c.classList.toggle("is-given", i < T.given);
+  });
+}
+function drawStars() {
+  const box = $("stars"); box.innerHTML = "";
+  for (let i = 0; i < S.copies; i++) {
+    const on = i < S.copy;
+    box.insertAdjacentHTML("beforeend", `<svg class="tb-star ${on ? "is-on" : ""}" viewBox="0 0 24 24"><path fill="${on ? "#facc15" : "#e2e8f0"}" stroke="${on ? "#eab308" : "#cbd5e1"}" stroke-width="1" d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg>`);
+  }
+}
+
+/* ---------- буква готова ---------- */
+function letterDone() {
+  T.done = true; render(); tone([523, 659, 784], 0.16);
+  setTimeout(() => say("Буква " + T.g.label), 250);
+  if (S.level !== "watch") {
+    S.log.unshift({ letter: T.g.label, level: S.level, prompted: T.prompted, sec: Math.round((performance.now() - T.started) / 1000) });
+    drawLog();
+  }
+  S.copy++; drawStars();
+  setTimeout(() => {
+    if (S.copy >= S.copies) { $("finish").classList.add("is-on"); $("finishText").textContent = `Буква ${T.g.label} — ${S.copies} раза. Теперь её — на бумаге.`; }
+    else newTask();
+  }, 1500);
+}
+function drawLog() {
+  const box = $("log"); box.innerHTML = "";
+  S.log.slice(0, 12).forEach(r => {
+    const d = document.createElement("div");
+    d.innerHTML = `<b>${r.letter}</b> · ${LEVELS.find(l => l.id === r.level).title} · ${r.sec} с <span class="tag ${r.prompted ? "pr" : "ind"}">${r.prompted ? "с подсказкой" : "сам"}</span>`;
+    box.appendChild(d);
+  });
+}
+$("again").addEventListener("click", () => { S.copy = 0; newTask(); });
+$("toPaper").addEventListener("click", () => alert("В приложении: открыть конструктор с готовым блоком этой буквы (лесенка → печать)."));
+
+/* ---------- панель взрослого ---------- */
+function buildAdult() {
+  const lp = $("letterPick"); lp.innerHTML = "";
+  DATA.letterFamilies.forEach(f => {
+    const t = document.createElement("div"); t.className = "fam"; t.textContent = f.title; lp.appendChild(t);
+    const row = document.createElement("div"); row.className = "letters";
+    f.letters.forEach(ch => { if (!GLYPHS[ch]) return; const b = document.createElement("button"); b.className = "lt" + (ch === S.letter ? " is-on" : ""); b.textContent = ch; b.onclick = () => { S.letter = ch; S.copy = 0; buildAdult(); newTask(); }; row.appendChild(b); });
+    lp.appendChild(row);
+  });
+  const lv = $("levelPick"); lv.innerHTML = "";
+  LEVELS.forEach((l, i) => { const b = document.createElement("button"); b.className = "lv" + (l.id === S.level ? " is-on" : ""); b.innerHTML = `<b>${i + 1}</b><div><span>${l.title}</span><small>${l.sub}</small></div>`; b.onclick = () => { S.level = l.id; S.copy = 0; buildAdult(); newTask(); }; lv.appendChild(b); });
+  const wp = $("widthPick"); wp.innerHTML = "";
+  Object.entries(WIDTHS).forEach(([k, v]) => { const b = document.createElement("button"); b.className = k === S.width ? "is-on" : ""; b.textContent = v.label; b.onclick = () => { S.width = k; buildAdult(); render(); }; wp.appendChild(b); });
+  const cp = $("copiesPick"); cp.innerHTML = "";
+  [1, 3, 5].forEach(n => { const b = document.createElement("button"); b.className = n === S.copies ? "is-on" : ""; b.textContent = n; b.onclick = () => { S.copies = n; S.copy = 0; buildAdult(); newTask(); }; cp.appendChild(b); });
+  $("hidden").checked = S.hidden; $("lefty").checked = S.lefty;
+}
+$("hidden").onchange = e => { S.hidden = e.target.checked; S.copy = 0; newTask(); };
+$("voice").onchange = e => { S.voice = e.target.checked; };
+$("sound").onchange = e => { S.sound = e.target.checked; };
+$("lefty").onchange = e => { S.lefty = e.target.checked; $("app").classList.toggle("is-left", S.lefty); buildBoard(); render(); };
+$("adultClose").onclick = () => $("adult").classList.remove("is-open");
+// удержание 0,8 с — чтобы ребёнок случайно не открыл
+let holdT = null; const gear = $("gear");
+gear.addEventListener("pointerdown", () => { gear.classList.add("is-holding"); holdT = setTimeout(() => { $("adult").classList.add("is-open"); gear.classList.remove("is-holding"); }, 800); });
+["pointerup", "pointerleave", "pointercancel"].forEach(ev => gear.addEventListener(ev, () => { clearTimeout(holdT); gear.classList.remove("is-holding"); }));
+
+$("app").classList.toggle("is-left", S.lefty);
+buildAdult(); newTask();
+let rzT; window.addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(() => { buildBoard(); render(); }, 120); });
+if (qs.get("adult") === "1") $("adult").classList.add("is-open");
+window.__proto = { S, get T() { return T; }, newTask };
+</script>
+</body>
+</html>
