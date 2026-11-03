@@ -243,19 +243,25 @@ export function pdfTab() {
   } catch { return null; }
 }
 
+// Android (owner, 2026-11-03: a user's phone, Chrome): a PDF behind a blob link in a new tab is not shown — the tap did nothing visible
+// and the app went back to the page. There the file is SAVED (`download`): Chrome puts it in «Загрузки» and offers «Открыть».
+export const pdfSavesOnDevice = () => typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent ?? "");
+
 let lastUrl = null; // freed when the next PDF is made: the viewer may still need it to save the file
+// -> "tab" (into the tab opened at the tap), "link" (a new tab), "saved" (downloaded, Android)
 export function openPdf(blob, fileName, tab) {
   if (lastUrl) URL.revokeObjectURL(lastUrl);
   lastUrl = URL.createObjectURL(new File([blob], fileName, { type: "application/pdf" }));
   if (tab && !tab.closed) { tab.location.href = lastUrl; return "tab"; }
-  const a = document.createElement("a"); // no `download`: open, not save
+  const save = pdfSavesOnDevice();
+  const a = document.createElement("a"); // no `download` but on Android: open, not save
   a.href = lastUrl;
-  a.target = "_blank";
-  a.rel = "noopener";
+  if (save) a.download = fileName;
+  else { a.target = "_blank"; a.rel = "noopener"; }
   document.body.appendChild(a);
   a.click();
   a.remove();
-  return "link";
+  return save ? "saved" : "link";
 }
 
 // a file name from the notebook's title: no characters the file systems refuse

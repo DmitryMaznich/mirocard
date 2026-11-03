@@ -70,3 +70,25 @@ describe("the PDF's glyph outlines ship with the app (public/fonts/pdf/glyphs.js
     for (const name of ["DMSerif", "DMSerif-Italic"]) for (const ch of "Mironium") expect(fonts[name].glyphs[ch][1]).toBeTruthy();
   });
 });
+
+describe("opening the PDF", () => {
+  // Android Chrome showed nothing for a blob PDF in a new tab (a user, 2026-11-03): there the file is saved instead
+  it("saves it on Android, opens it in a new tab elsewhere", async () => {
+    const { openPdf } = await import("./printPdf.js");
+    const clicked = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () { clicked.push({ download: this.download, target: this.target }); });
+    URL.createObjectURL ??= () => "blob:x";
+    URL.revokeObjectURL ??= () => {};
+    const blob = new Blob(["%PDF-1.3"], { type: "application/pdf" });
+    try {
+      Object.defineProperty(window.navigator, "userAgent", { configurable: true, get: () => "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/156.0 Mobile Safari/537.36" });
+      expect(openPdf(blob, "Тетрадь.pdf")).toBe("saved");
+      Object.defineProperty(window.navigator, "userAgent", { configurable: true, get: () => "Mozilla/5.0 (X11; Linux x86_64) Chrome/156.0 Safari/537.36" });
+      expect(openPdf(blob, "Тетрадь.pdf")).toBe("link");
+      expect(clicked).toEqual([{ download: "Тетрадь.pdf", target: "" }, { download: "", target: "_blank" }]);
+    } finally {
+      click.mockRestore();
+      delete window.navigator.userAgent; // back to the prototype's
+    }
+  });
+});

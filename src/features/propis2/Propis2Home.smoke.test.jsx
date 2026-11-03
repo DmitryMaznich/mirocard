@@ -494,6 +494,10 @@ describe("propis2 (zip topic)", () => {
     expect(openPdf).toHaveBeenCalledTimes(1);
     expect(openPdf.mock.calls[0][1]).toMatch(/\.pdf$/);
     expect(openPdf.mock.calls[0][2]).toBeUndefined();
+    // the window stays and says where the PDF went (2026-11-03: on Android the tap did nothing visible and the window was gone)
+    expect(pdfBox().textContent).toContain("PDF открыт в новой вкладке");
+    expect([...pdfBox().querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Открыть ещё раз", "Закрыть"]);
+    await click([...pdfBox().querySelectorAll("button")].find((b) => b.textContent === "Закрыть"));
     expect(pdfBox()).toBeNull();
     // A5: the back on the left half of the cover's sheet, the cover on the right, then the empty sheet
     const sheets = [...document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")];
@@ -522,9 +526,11 @@ describe("propis2 (zip topic)", () => {
     pdfTab.mockReturnValueOnce(tab);
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Открыть PDF"));
     await act(async () => { await tick(120); });
-    // the tab opened at the tap gets the PDF, nothing more to tap
+    // the tab opened at the tap gets the PDF; the window says so (the tab may be behind the app: 2026-11-03)
     expect(openPdf).toHaveBeenCalledTimes(2);
     expect(openPdf.mock.calls[1][2]).toBe(tab);
+    expect(document.querySelector('[data-testid="propis2-pdf"]').textContent).toContain("PDF открыт в новой вкладке");
+    await click([...document.querySelectorAll('[data-testid="propis2-pdf"] button')].find((b) => b.textContent === "Закрыть"));
     expect(document.querySelector('[data-testid="propis2-pdf"]')).toBeNull();
     expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["4", "1", "2", "3"]);
     expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
