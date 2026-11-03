@@ -26,7 +26,8 @@ async function loadGlyphs() {
   return glyphData;
 }
 
-const fontKey = (weight) => {
+const fontKey = (weight, family = "") => {
+  if (/DM Serif/i.test(family)) return "DMSerif";
   const w = Number(weight) || (weight === "bold" ? 700 : 400);
   return w >= 850 ? "Nunito-900" : w >= 750 ? "Nunito-800" : w >= 600 ? "Nunito-700" : "Nunito-400";
 };
@@ -113,7 +114,9 @@ function sheetSvg(sheet, sheetWmm, fonts) {
     if (cs.display === "none" || cs.visibility === "hidden") return;
     const r = at(el.getBoundingClientRect());
     if (el !== sheet) {
-      const radii = ["borderTopLeftRadius", "borderTopRightRadius", "borderBottomRightRadius", "borderBottomLeftRadius"].map((p) => (parseFloat(cs[p]) || 0) * k);
+      // a radius in % (border-radius: 50% — a round dot) is a share of the box; cap it at half a side
+      const radius = (v) => (String(v).trim().endsWith("%") ? (parseFloat(v) / 100) * Math.min(r.w, r.h) : (parseFloat(v) || 0) * k);
+      const radii = ["borderTopLeftRadius", "borderTopRightRadius", "borderBottomRightRadius", "borderBottomLeftRadius"].map((p) => Math.min(radius(cs[p]), r.w / 2, r.h / 2));
       if (visible(cs.backgroundColor)) out.push(`<path d="${roundedPath(r, radii)}" fill="${cs.backgroundColor}"/>`);
       const ow = parseFloat(cs.outlineWidth) || 0;
       if (cs.outlineStyle !== "none" && ow > 0 && visible(cs.outlineColor)) {
@@ -134,7 +137,7 @@ function sheetSvg(sheet, sheetWmm, fonts) {
     }
     for (const child of el.childNodes) {
       if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-        const font = fonts[fontKey(cs.fontWeight)];
+        const font = fonts[fontKey(cs.fontWeight, cs.fontFamily)];
         const size = parseFloat(cs.fontSize) * k;
         for (const w of textWords(child)) {
           const baseline = (w.top - box.top + (w.height * font.ascent) / (font.ascent + font.descent)) * k;

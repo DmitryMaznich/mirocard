@@ -856,3 +856,21 @@
 .pl-cover-line { border-bottom: 0.4mm solid #4b5563; height: 6mm; }
 .pl-pdf-page { margin-bottom: 10mm; }
 .pl-pdf-slot { margin-bottom: 4mm; }
+/* the cover's template (PdfPages.jsx CoverFront / CoverBack) */
+.pl-cv-kicker { font-weight: 900; color: #2a6b60; }
+.pl-cv-title { font-weight: 900; color: #1c3634; line-height: 1.05; }
+.pl-cv-sub { font-weight: 800; color: #4a9b8f; }
+.pl-sheet--cover .pl-cv-hero { position: relative !important; }
+.pl-sheet--cover .pl-cv-hero > * { position: absolute !important; }
+.pl-cv-plate { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; display: flex; justify-content: center; align-items: flex-start; }
+.pl-cv-fields { background: #f6f1e4; display: flex; flex-direction: column; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-cv-field { display: flex; align-items: flex-end; font-weight: 700; color: #4b5563; }
+.pl-cv-field > span:first-child { width: 22mm; flex: none; }
+.pl-cv-line { flex: 1; border-bottom: 0.4mm solid #4b5563; height: 6mm; }
+.pl-cv-stripes { display: flex; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-cv-legend { display: flex; justify-content: center; color: #4b5563; font-weight: 700; }
+.pl-cv-legend-item { display: inline-flex; align-items: center; }
+.pl-cv-dot { display: inline-block; border-radius: 50%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-cv-brand { display: flex; align-items: center; justify-content: center; }
+.pl-cv-brand-name { font-family: "DM Serif Display", Georgia, serif; color: #1c3634; }
+.pl-cv-brand-url { font-weight: 700; color: #8b93a1; margin-left: 2mm; }
