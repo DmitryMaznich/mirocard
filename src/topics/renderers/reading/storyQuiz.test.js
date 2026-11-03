@@ -47,6 +47,19 @@ ${COMPLETE_QUESTION}
     ]);
   });
 
+  it("retains and validates all accepted answer variants", () => {
+    const source = '# Мяч по очереди\n? Что было?\n+ один мяч\n+ мяч';
+    const parsed = parseStoryQuizText(source);
+    expect(parsed.valid).toBe(true);
+    expect(parsed.groups[0].questions[0].targets).toEqual(['один мяч', 'мяч']);
+    const story = { ...BALL_STORY, minimumFindQuestions: 1 };
+    expect(validateStoryQuizText(source, [story]).valid).toBe(true);
+    expect(validateStoryQuizText(source + '\n+ два мяча', [story]).valid).toBe(false);
+    const matches = getStoryQuizTargetMatches(BALL_STORY.lines[0].text, ['один мяч', 'мяч']);
+    expect(matches.map(m => BALL_STORY.lines[0].text.slice(m.start, m.end))).toEqual(['мяч']);
+    expect(getStoryQuizTargetMatches('мяч мя-чом', ['мяч', 'мячом'])).toHaveLength(2);
+  });
+
   it("requires five questions and verifies every target is in its story", () => {
     const source = `# Мяч по очереди
 

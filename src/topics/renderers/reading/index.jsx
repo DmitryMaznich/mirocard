@@ -545,7 +545,7 @@ function MicroStoryReader({ task, topicId, textStyle, onAdvance, onPrevious }) {
   function chooseAnswer(result) {
     if (answerGate.current || answered || finished || !question || discussing) return;
     answerGate.current = true;
-    setAnswers((previous) => [...previous, { id: question.id, prompt: question.prompt, answer: question.target, assisted: pictureUsed.current, ...result }]);
+    setAnswers((previous) => [...previous, { id: question.id, prompt: question.prompt, answer: result.attempts.at(-1).answer, assisted: pictureUsed.current, ...result }]);
   }
   function nextQuestion() {
     if (!answered) return;
@@ -573,7 +573,7 @@ function MicroStoryReader({ task, topicId, textStyle, onAdvance, onPrevious }) {
         </div>
         <div className="reading-title">{getTopicTitle(task.text.title)}</div>
         {questionsVisible && !discussing && !finished ? <StoryQuizTargetText
-          key={question.id} lines={task.text.lines} textStyle={textStyle} target={question.target}
+          key={question.id} lines={task.text.lines} textStyle={textStyle} target={question.targets ?? question.target}
           answered={answered} selection={choice.selected} rejected={choice.rejected} onSelect={choice.select} sentenceLayout
         /> : <ReadingTextBlock lines={task.text.lines} textStyle={textStyle} />}
         {questionsVisible && <StoryPictureSupport key={questionIndex} topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
@@ -721,7 +721,7 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect, o
           <StoryQuizTargetText
             lines={task.text?.lines ?? []}
             textStyle={textStyle}
-            target={task.question?.target ?? ""}
+            target={task.question?.targets ?? task.question?.target ?? ""}
             answered={answered}
             selection={choice.selected}
             rejected={choice.rejected}

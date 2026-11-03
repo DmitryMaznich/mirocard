@@ -1,0 +1,827 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-03",
+  "scope": "Все 15 текстов и 82 вопроса согласованы. Иллюстрации сверены и подготовлены; пользователь поручил опубликовать подборку в продакшене.",
+  "status": "approved_for_publication",
+  "stories": [
+    {
+      "id": "micro_ball",
+      "title": "Мяч под стулом",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Вова играл с мячом.",
+        "Мяч закатился под стул.",
+        "Вова наклонился и достал мяч.",
+        "Вова снова стал играть с мячом."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Вова"
+          ]
+        },
+        {
+          "question": "С чем играл Вова?",
+          "acceptedAnswers": [
+            "с мячом"
+          ]
+        },
+        {
+          "question": "Куда закатился мяч?",
+          "acceptedAnswers": [
+            "под стул"
+          ]
+        },
+        {
+          "question": "Что сделал Вова?",
+          "acceptedAnswers": [
+            "наклонился и достал мяч",
+            "достал мяч"
+          ]
+        },
+        {
+          "question": "Что Вова стал делать в конце рассказа?",
+          "acceptedAnswers": [
+            "стал играть с мячом",
+            "снова стал играть с мячом"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_tower",
+      "title": "Башня упала",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Петя строил башню из кубиков.",
+        "Башня упала.",
+        "Кубики рассыпались по полу.",
+        "Петя собрал кубики.",
+        "Петя построил новую башню."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Петя"
+          ]
+        },
+        {
+          "question": "Из чего Петя строил башню?",
+          "acceptedAnswers": [
+            "из кубиков"
+          ]
+        },
+        {
+          "question": "Что случилось с башней?",
+          "acceptedAnswers": [
+            "Башня упала",
+            "упала"
+          ]
+        },
+        {
+          "question": "Что Петя сделал с кубиками?",
+          "acceptedAnswers": [
+            "собрал кубики"
+          ]
+        },
+        {
+          "question": "Что Петя сделал в конце рассказа?",
+          "acceptedAnswers": [
+            "построил новую башню"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_book",
+      "title": "Книга на полке",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Аня взяла книгу с полки.",
+        "Аня села на диван.",
+        "Аня смотрела картинки в книге.",
+        "Аня закрыла книгу.",
+        "Аня вернула книгу на полку."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Аня"
+          ]
+        },
+        {
+          "question": "Что Аня взяла с полки?",
+          "acceptedAnswers": [
+            "книгу"
+          ]
+        },
+        {
+          "question": "Куда Аня села?",
+          "acceptedAnswers": [
+            "на диван"
+          ]
+        },
+        {
+          "question": "Что Аня смотрела в книге?",
+          "acceptedAnswers": [
+            "картинки"
+          ]
+        },
+        {
+          "question": "Что Аня сделала в конце рассказа?",
+          "acceptedAnswers": [
+            "вернула книгу на полку"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_hands",
+      "title": "Мокрые руки",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Оля вымыла руки.",
+        "Руки стали мокрыми.",
+        "Оля взяла полотенце.",
+        "Оля вытерла руки полотенцем.",
+        "Теперь у Оли руки чистые и сухие."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Оля"
+          ]
+        },
+        {
+          "question": "Что Оля вымыла?",
+          "acceptedAnswers": [
+            "руки"
+          ]
+        },
+        {
+          "question": "Какими стали руки после мытья?",
+          "acceptedAnswers": [
+            "мокрыми"
+          ]
+        },
+        {
+          "question": "Чем Оля вытерла руки?",
+          "acceptedAnswers": [
+            "полотенцем"
+          ]
+        },
+        {
+          "question": "Какие теперь у Оли руки?",
+          "acceptedAnswers": [
+            "чистые и сухие"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_cat",
+      "title": "Вода для кота",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Петя увидел, что у кота в миске нет воды.",
+        "Петя взял стакан.",
+        "Петя налил в стакан воду из крана.",
+        "Петя вылил воду из стакана в миску.",
+        "Кот стал пить воду из миски."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Петя"
+          ]
+        },
+        {
+          "question": "Что Петя взял?",
+          "acceptedAnswers": [
+            "стакан"
+          ]
+        },
+        {
+          "question": "Откуда Петя налил воду в стакан?",
+          "acceptedAnswers": [
+            "из крана"
+          ]
+        },
+        {
+          "question": "Куда Петя вылил воду из стакана?",
+          "acceptedAnswers": [
+            "в миску"
+          ]
+        },
+        {
+          "question": "Что стал делать кот?",
+          "acceptedAnswers": [
+            "стал пить воду из миски",
+            "пить воду"
+          ]
+        }
+      ],
+      "illustration": {
+        "status": "agreed",
+        "source": "scripts/assets/reading_short_stories/micro/micro_cat-water-square-v3.png",
+        "promptSet": "scripts/assets/reading_short_stories/micro/water-cat-v3-prompts.json",
+        "frameAspectRatio": [
+          1,
+          1
+        ],
+        "frames": [
+          "Петя набирает воду из крана в стакан.",
+          "Кот пьёт воду из миски. Петя держит пустой стакан."
+        ]
+      }
+    },
+    {
+      "id": "micro_water",
+      "title": "Пролитая вода",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Аня пила воду из стакана.",
+        "Аня пролила воду на стол.",
+        "Аня взяла тряпку и вытерла стол.",
+        "Стол стал сухим."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Аня"
+          ]
+        },
+        {
+          "question": "Что пила Аня?",
+          "acceptedAnswers": [
+            "воду"
+          ]
+        },
+        {
+          "question": "Из чего Аня пила воду?",
+          "acceptedAnswers": [
+            "из стакана"
+          ]
+        },
+        {
+          "question": "Куда Аня пролила воду?",
+          "acceptedAnswers": [
+            "на стол"
+          ]
+        },
+        {
+          "question": "Что сделала Аня?",
+          "acceptedAnswers": [
+            "взяла тряпку и вытерла стол",
+            "вытерла стол"
+          ]
+        },
+        {
+          "question": "Каким стал стол?",
+          "acceptedAnswers": [
+            "сухим"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_boots",
+      "title": "Грязные сапоги",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Вова гулял в сапогах.",
+        "Вова наступил в грязь.",
+        "Дома Вова вымыл грязные сапоги.",
+        "Сапоги стали чистыми.",
+        "Вова поставил сапоги сушиться."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Вова"
+          ]
+        },
+        {
+          "question": "В чём гулял Вова?",
+          "acceptedAnswers": [
+            "в сапогах"
+          ]
+        },
+        {
+          "question": "Куда Вова наступил?",
+          "acceptedAnswers": [
+            "в грязь"
+          ]
+        },
+        {
+          "question": "Где Вова вымыл сапоги?",
+          "acceptedAnswers": [
+            "Дома"
+          ]
+        },
+        {
+          "question": "Какими стали сапоги?",
+          "acceptedAnswers": [
+            "чистыми"
+          ]
+        },
+        {
+          "question": "Что Вова сделал в конце рассказа?",
+          "acceptedAnswers": [
+            "поставил сапоги сушиться"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_pencil",
+      "title": "Сломанный карандаш",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Петя рисовал дом карандашом.",
+        "У карандаша сломался кончик.",
+        "Петя взял точилку.",
+        "Петя заточил карандаш.",
+        "Петя дорисовал дом."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Петя"
+          ]
+        },
+        {
+          "question": "Что рисовал Петя?",
+          "acceptedAnswers": [
+            "дом"
+          ]
+        },
+        {
+          "question": "Что случилось с карандашом?",
+          "acceptedAnswers": [
+            "сломался кончик"
+          ]
+        },
+        {
+          "question": "Что Петя взял?",
+          "acceptedAnswers": [
+            "точилку"
+          ]
+        },
+        {
+          "question": "Что Петя сделал с карандашом?",
+          "acceptedAnswers": [
+            "заточил карандаш"
+          ]
+        },
+        {
+          "question": "Что Петя сделал в конце рассказа?",
+          "acceptedAnswers": [
+            "дорисовал дом"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_puddle",
+      "title": "Лужа на дорожке",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "previousText": [
+        "Вова шёл к качелям.",
+        "На дорожке была лужа.",
+        "Вова обошёл лужу.",
+        "Вова подошёл к качелям."
+      ],
+      "revisionReason": "Пользователь отметил несогласованную географию двух прежних кадров, недостаточную ширину лужи и отсутствие на картинке самого обхода. Сначала исправляются кадры, затем согласуется текст.",
+      "illustration": {
+        "status": "agreed",
+        "source": "scripts/assets/reading_short_stories/micro/micro_puddle-square-v3.png",
+        "promptSet": "scripts/assets/reading_short_stories/micro/puddle-v3-prompts.json",
+        "frameAspectRatio": [
+          1,
+          1
+        ],
+        "frames": [
+          "Вова стоит перед лужей, перекрывающей дорожку.",
+          "Вова идёт по траве в обход лужи."
+        ],
+        "continuity": "Одна точка обзора; расположение дорожки, лужи и качелей сохраняется; скамейки нет в обоих кадрах."
+      },
+      "lines": [
+        "Вова шёл к качелям.",
+        "На дорожке была большая лужа.",
+        "Вова остановился перед лужей.",
+        "Вова обошёл лужу по траве."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Вова"
+          ]
+        },
+        {
+          "question": "Куда шёл Вова?",
+          "acceptedAnswers": [
+            "к качелям"
+          ]
+        },
+        {
+          "question": "Что было на дорожке?",
+          "acceptedAnswers": [
+            "большая лужа",
+            "лужа"
+          ]
+        },
+        {
+          "question": "Где Вова остановился?",
+          "acceptedAnswers": [
+            "перед лужей"
+          ]
+        },
+        {
+          "question": "Что Вова сделал в конце рассказа?",
+          "acceptedAnswers": [
+            "обошёл лужу по траве",
+            "обошёл лужу"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_watering",
+      "title": "Пустая лейка",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Аня взяла лейку.",
+        "В лейке не было воды.",
+        "Аня налила воду в лейку.",
+        "Аня полила цветок из лейки."
+      ],
+      "illustration": {
+        "status": "agreed",
+        "source": "scripts/assets/reading_short_stories/micro/micro_watering-v3.png",
+        "promptSet": "scripts/assets/reading_short_stories/micro/watering-v3-prompts.json",
+        "frameAspectRatio": [
+          1,
+          1
+        ],
+        "frames": [
+          "Аня сама наливает воду из кувшина в лейку.",
+          "Аня поливает цветок из лейки."
+        ],
+        "revisionReason": "По согласованному тексту Аня сама наполняет лейку. Мама удалена из первого кадра; второй сюжет сохранён."
+      },
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Аня"
+          ]
+        },
+        {
+          "question": "Что Аня взяла?",
+          "acceptedAnswers": [
+            "лейку"
+          ]
+        },
+        {
+          "question": "Чего не было в лейке?",
+          "acceptedAnswers": [
+            "воды"
+          ]
+        },
+        {
+          "question": "Куда Аня налила воду?",
+          "acceptedAnswers": [
+            "в лейку"
+          ]
+        },
+        {
+          "question": "Что Аня сделала в конце рассказа?",
+          "acceptedAnswers": [
+            "полила цветок из лейки",
+            "полила цветок"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_bag",
+      "title": "Помощь маме",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Оля с мамой купили продукты в магазине.",
+        "Мама сложила продукты в два пакета.",
+        "Оля сказала: «Мама, давай помогу!»",
+        "Мама дала Оле маленький пакет.",
+        "Оля с мамой понесли пакеты домой."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Оля"
+          ]
+        },
+        {
+          "question": "Где Оля с мамой купили продукты?",
+          "acceptedAnswers": [
+            "в магазине"
+          ]
+        },
+        {
+          "question": "Во что мама сложила продукты?",
+          "acceptedAnswers": [
+            "в два пакета"
+          ]
+        },
+        {
+          "question": "Что Оля сказала маме?",
+          "acceptedAnswers": [
+            "Мама, давай помогу!",
+            "давай помогу"
+          ]
+        },
+        {
+          "question": "Какой пакет мама дала Оле?",
+          "acceptedAnswers": [
+            "маленький пакет"
+          ]
+        },
+        {
+          "question": "Куда Оля с мамой понесли пакеты?",
+          "acceptedAnswers": [
+            "домой"
+          ]
+        }
+      ],
+      "illustration": {
+        "status": "agreed",
+        "source": "scripts/assets/reading_short_stories/micro/micro_bag.png",
+        "frames": [
+          "Мама несёт два пакета с продуктами у магазина; Оля идёт рядом.",
+          "Оля несёт маленький пакет, мама — большой."
+        ]
+      }
+    },
+    {
+      "id": "micro_red_pencil",
+      "title": "Котёнок",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "replacesTitle": "Красный карандаш",
+      "revisionReason": "Пользователь отклонил прежний сюжет с карандашом и согласовал новый рассказ о котёнке после обсуждения пособия Мартыновой.",
+      "lines": [
+        "Аня сидела на диване.",
+        "К Ане подошёл котёнок.",
+        "Аня погладила котёнка.",
+        "Котёнок запрыгнул к Ане на колени.",
+        "Котёнок уснул."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Аня"
+          ]
+        },
+        {
+          "question": "Где сидела Аня?",
+          "acceptedAnswers": [
+            "на диване"
+          ]
+        },
+        {
+          "question": "Кто подошёл к Ане?",
+          "acceptedAnswers": [
+            "котёнок"
+          ]
+        },
+        {
+          "question": "Что сделала Аня?",
+          "acceptedAnswers": [
+            "погладила котёнка"
+          ]
+        },
+        {
+          "question": "Куда запрыгнул котёнок?",
+          "acceptedAnswers": [
+            "к Ане на колени",
+            "на колени"
+          ]
+        },
+        {
+          "question": "Что сделал котёнок в конце рассказа?",
+          "acceptedAnswers": [
+            "уснул"
+          ]
+        }
+      ],
+      "illustration": {
+        "status": "approved_for_publication",
+        "source": "scripts/assets/reading_short_stories/micro/micro_kitten-square-v3.png",
+        "promptSet": "scripts/assets/reading_short_stories/micro/kitten-v3-prompts.json",
+        "frameAspectRatio": [
+          1,
+          1
+        ],
+        "frames": [
+          "Аня сидит на диване и гладит подошедшего котёнка.",
+          "Котёнок спит на коленях у Ани."
+        ]
+      }
+    },
+    {
+      "id": "micro_pass",
+      "title": "Игра с папой",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Вова играл с папой в мяч.",
+        "Вова бросил мяч папе.",
+        "Папа поймал мяч.",
+        "Папа бросил мяч Вове.",
+        "Вова поймал мяч."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Вова"
+          ]
+        },
+        {
+          "question": "С кем играл Вова?",
+          "acceptedAnswers": [
+            "с папой"
+          ]
+        },
+        {
+          "question": "Во что играл Вова?",
+          "acceptedAnswers": [
+            "в мяч"
+          ]
+        },
+        {
+          "question": "Кому Вова бросил мяч?",
+          "acceptedAnswers": [
+            "папе"
+          ]
+        },
+        {
+          "question": "Кому папа бросил мяч?",
+          "acceptedAnswers": [
+            "Вове"
+          ]
+        },
+        {
+          "question": "Что Вова сделал в конце рассказа?",
+          "acceptedAnswers": [
+            "поймал мяч"
+          ]
+        }
+      ],
+      "illustration": {
+        "status": "approved_for_publication",
+        "source": "scripts/assets/reading_short_stories/micro/micro_pass-throw-square-v3.png",
+        "promptSet": "scripts/assets/reading_short_stories/micro/pass-v3-prompts.json",
+        "frameAspectRatio": [
+          1,
+          1
+        ],
+        "frames": [
+          "Вова бросил мяч папе: мяч в воздухе, папа готовится поймать.",
+          "Вова поймал мяч, который бросил папа."
+        ]
+      }
+    },
+    {
+      "id": "micro_napkin",
+      "title": "Салфетка для папы",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Оля сидела за столом с папой.",
+        "Папа пролил воду на стол.",
+        "Папа сказал: «Оля, дай салфетку».",
+        "Оля дала папе салфетку.",
+        "Папа вытер стол салфеткой."
+      ],
+      "questions": [
+        {
+          "question": "Как зовут девочку?",
+          "acceptedAnswers": [
+            "Оля"
+          ]
+        },
+        {
+          "question": "Что пролил папа?",
+          "acceptedAnswers": [
+            "воду"
+          ]
+        },
+        {
+          "question": "Куда папа пролил воду?",
+          "acceptedAnswers": [
+            "на стол"
+          ]
+        },
+        {
+          "question": "Что Оля дала папе?",
+          "acceptedAnswers": [
+            "салфетку"
+          ]
+        },
+        {
+          "question": "Что папа сделал в конце рассказа?",
+          "acceptedAnswers": [
+            "вытер стол салфеткой",
+            "вытер стол"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro_cookies",
+      "title": "Печенье для бабушки",
+      "textStatus": "agreed",
+      "questionsStatus": "agreed",
+      "lines": [
+        "Петя положил печенье на тарелку.",
+        "Петя принёс тарелку бабушке.",
+        "Бабушка взяла печенье.",
+        "Бабушка съела печенье.",
+        "Бабушка сказала: «Спасибо, Петя!»"
+      ],
+      "questions": [
+        {
+          "question": "Как зовут мальчика?",
+          "acceptedAnswers": [
+            "Петя"
+          ]
+        },
+        {
+          "question": "Что Петя положил на тарелку?",
+          "acceptedAnswers": [
+            "печенье"
+          ]
+        },
+        {
+          "question": "Куда Петя положил печенье?",
+          "acceptedAnswers": [
+            "на тарелку"
+          ]
+        },
+        {
+          "question": "Кому Петя принёс тарелку?",
+          "acceptedAnswers": [
+            "бабушке"
+          ]
+        },
+        {
+          "question": "Кто съел печенье?",
+          "acceptedAnswers": [
+            "Бабушка"
+          ]
+        },
+        {
+          "question": "Что бабушка сказала Пете?",
+          "acceptedAnswers": [
+            "Спасибо, Петя!",
+            "Спасибо"
+          ]
+        }
+      ]
+    }
+  ],
+  "release": {
+    "topicVersion": "2.0.4",
+    "appVersion": "1.0.2794",
+    "titleDisambiguation": {
+      "storyId": "micro_bag",
+      "agreedHeading": "Помощь маме",
+      "publishedHeading": "Оля помогает маме",
+      "reason": "Название «Помощь маме» уже занято в прежней коллекции; текст и вопросы сохранены."
+    }
+  }
+}
