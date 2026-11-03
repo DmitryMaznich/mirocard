@@ -19,13 +19,13 @@ describe("print_letters model", () => {
     expect(rowCells("a5", false)).toBe(23);
   });
 
-  it("places copies one blank cell apart, wide letters taking two cells", () => {
+  it("places one copy per letter-cell (2 of our cells); wide letters take two thirds of it", () => {
     expect(copiesPerRow(letter("Н"), "a4")).toBe(16);
-    expect(copiesPerRow(letter("Ш"), "a4")).toBe(11);
+    expect(copiesPerRow(letter("Ш"), "a4")).toBe(16);
     expect(copiesPerRow(letter("Н"), "a5")).toBe(10);
-    expect(copiesPerRow(letter("Ш"), "a5")).toBe(6);
+    expect(copiesPerRow(letter("Ш"), "a5")).toBe(9);
     expect(copiesPerRow(letter("Н"), "a4", false)).toBe(18);
-    expect(copiesPerRow(letter("Ш"), "a4", false)).toBe(12);
+    expect(copiesPerRow(letter("Ш"), "a4", false)).toBe(18);
   });
 
   it("indents only the rows beside the plate (the first two)", () => {
@@ -34,9 +34,9 @@ describe("print_letters model", () => {
 
   it("doubles everything at the large size, still on whole cells", () => {
     // Н 4 cells tall, 2 wide + 1 blank cell
-    expect(copiesPerRow(letter("Н"), "a4", true, 4)).toBe(11);
-    expect(copiesPerRow(letter("Н"), "a4", false, 4)).toBe(12);
-    expect(copiesPerRow(letter("Ш"), "a4", false, 4)).toBe(7);
+    expect(copiesPerRow(letter("Н"), "a4", true, 4)).toBe(8);
+    expect(copiesPerRow(letter("Н"), "a4", false, 4)).toBe(9);
+    expect(copiesPerRow(letter("Ш"), "a4", false, 4)).toBe(9);
     // only the first row stands beside the 4-cell plate
     expect([0, 1].map((i) => rowBesidePlate(i, 4))).toEqual([true, false]);
     const rows = ladderRows(letter("Н")); // 6 rows
@@ -54,8 +54,17 @@ describe("print_letters model", () => {
     expect([isRuled("cell"), isRuled("line3"), isRuled("line2")]).toEqual([false, true, true]);
   });
 
+  it("follows Ilyukhina's stroke order: Г stick first, П and Ш in two strokes, Н both sticks then the bar", () => {
+    const names = (id) => letter(id).strokes.map((s) => s.name);
+    expect(names("Г")).toEqual(["палочка", "верхняя черта"]);
+    expect(names("П")).toEqual(["левая палочка", "верх и правая палочка"]);
+    expect(names("Н")).toEqual(["левая палочка", "правая палочка", "перекладина"]);
+    expect(names("Ш")).toEqual(["левая палочка, низ и правая палочка", "средняя палочка"]);
+    expect([letter("Т").wide, letter("Ш").wide, letter("Н").wide]).toEqual([true, true, undefined]);
+  });
+
   it("builds the ladder: elements add up, then the support fades, then blank", () => {
-    const rows = ladderRows(letter("П"));
+    const rows = ladderRows(letter("Н"));
     expect(rows.map((r) => [r.elements.join(""), r.support])).toEqual([
       ["0", "dotted"],
       ["01", "dotted"],
@@ -87,8 +96,8 @@ describe("print_letters model", () => {
   });
 
   it("detects a page that no longer fits the sheet", () => {
-    const block = { rows: ladderRows(letter("Ш")) }; // 7 rows → 22 cells tall
+    const block = { rows: ladderRows(letter("Н")) }; // 6 rows → 19 cells tall
     expect(pageOverflows({ blocks: [block, block] }, "a4")).toBe(false);
     expect(pageOverflows({ blocks: [block, block] }, "a5")).toBe(true);
-  });
+  });;
 });

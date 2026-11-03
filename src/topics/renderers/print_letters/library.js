@@ -190,15 +190,15 @@ export function readyNotebooks(byId) {
   const nb = (id, title, description, pages) => ({ id: `ready:${id}`, ready: true, title, description, format: "a4", pages, createdAt: 0, updatedAt: 0 });
 
   if (have("Г")) {
-    const g = L("Г"); // strokes: 0 — верхняя черта, 1 — палочка
+    const g = L("Г"); // strokes (Ilyukhina's first way): 0 — палочка, 1 — верхняя черта
     out.push(nb("sticks", "Палочки и черточки", "Подготовка руки перед буквами, крупно: палочка сверху вниз, черта слева направо, потом вместе — получается Г.", [
       page([{
         id: rid("b"), letterId: g.id, color: "#8b93a1", size: 4,
         rows: rowsOf([
-          { elements: [1], support: "dotted" },
-          { elements: [1], support: "fade" },
           { elements: [0], support: "dotted" },
           { elements: [0], support: "fade" },
+          { elements: [1], support: "dotted" },
+          { elements: [1], support: "fade" },
           { elements: [0, 1], support: "dotted" },
           { elements: [0, 1], support: "sample" },
         ]),
@@ -212,7 +212,7 @@ export function readyNotebooks(byId) {
     ]));
   }
   if (have("И", "Ш", "Е", "Ё")) {
-    out.push(nb("straight-2", "Прямые линии 2: И Ш Е Ё", "Те же шаги. В И — первая наклонная, Ш — широкая буква, в Ё — точки.", [
+    out.push(nb("straight-2", "Прямые линии 2: И Ш Е Ё", "Те же шаги. В И — первая наклонная, Ш — широкая буква (две трети клетки), в Ё — точки.", [
       page([ladderBlock(L("И"), PALETTE[4]), ladderBlock(L("Ш"), PALETTE[5])]),
       page([ladderBlock(L("Е"), PALETTE[0]), ladderBlock(L("Ё"), PALETTE[1])]),
     ]));

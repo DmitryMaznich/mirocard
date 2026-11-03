@@ -253,8 +253,9 @@ analysis in `docs/print-letters-ilyukhina.md`) — letter shape, proportions, st
 **Read the «Handoff» section of `docs/print-letters.md` first** (current branch, what's built, the
 owner's decisions, the screenshot harness, past process mistakes), then its «Разворот» sections for
 why each earlier shape was replaced. Key facts: glyphs live in notebook-cell coordinates in
-`tools/print_letters/topic.json` (1 cell = 50 units, letters 2 cells tall, `cells` wide — most 1,
-Ш 2), so strokes on cell boundaries print exactly on grid lines — never stretch or crop them;
+`tools/print_letters/topic.json` (1 cell = 50 units, letters 2 cells tall; width per Ilyukhina — half a
+letter-cell = 1 cell, or two thirds (`wide`: Т Ш … = 4/3 cells); one copy per letter-cell = 2 cells), so
+strokes on cell boundaries print exactly on grid lines — never stretch or crop them;
 every length in a block is a whole number of 5mm cells (`model.js`); format А4/А5 is notebook-wide
 and the sheet is drawn at real printable size; rows are `{elements, support}` picked in the row
 panel (`RowInspector.jsx`, right side; bottom sheet on phones). UI copies `propis2`'s editor

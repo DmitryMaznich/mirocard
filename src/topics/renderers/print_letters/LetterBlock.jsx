@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPlan, letterH, letterW, isRuled } from "./model";
+import { TILE, GAP, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -54,9 +54,9 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
                 {paper === "line3" && <span className="pl-ruling-mid" />}
               </div>
             )}
-            <div className="pl-row" style={{ height: mm(h), width: mm(rowCells(format, beside)), gap: mm(GAP) }}>
+            <div className="pl-row" style={{ height: mm(h), width: mm(rowCells(format, beside)) }}>
               {plan.map((p, i) => (
-                <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(h) }}>
+                <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? w : copyPitch(size)), height: mm(h) }}>
                   {p && (
                     <LetterGlyph
                       key={`${row.elements.join(",")}-${p.variant}`}

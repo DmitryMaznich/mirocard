@@ -79,7 +79,12 @@ export function rowCells(formatId, besidePlate = true) {
   return blockCells(formatId) - rowStartCells(besidePlate) - GAP;
 }
 
+// Width of a letter in our 5mm cells at the normal size. Ilyukhina
+// (docs/print-letters-ilyukhina.md): a letter stands in one letter-cell
+// (≈1cm = our 2×2 cells) at its left line and takes half of it (most letters:
+// 1 of our cells) or two thirds (`wide`: Д Ж Л М Ф Ш Щ Ю Ы А Т — 4/3 cells).
 export function letterCells(letter) {
+  if (letter?.wide) return 4 / 3;
   return Math.max(1, Number(letter?.cells) || 1);
 }
 
@@ -89,9 +94,16 @@ export function letterW(letter, size = 2) {
 
 // Copies of a letter in one row: its own width plus one blank cell each, no
 // trailing gap after the last one.
+// One copy per letter-cell: the step is the letter's own height (a square
+// letter-cell — 2 of our cells at the normal size, 4 at the large one); the
+// letter stands at the cell's left line, the rest of the cell stays blank.
+export function copyPitch(size = 2) {
+  return letterH(size);
+}
+
 export function copiesPerRow(letter, formatId, besidePlate = true, size = 2) {
   const w = letterW(letter, size);
-  return Math.max(1, Math.floor((rowCells(formatId, besidePlate) + GAP) / (w + GAP)));
+  return Math.max(1, Math.floor((rowCells(formatId, besidePlate) - w) / copyPitch(size)) + 1);
 }
 
 export function blockHeightCells(block, paper = "cell") {
