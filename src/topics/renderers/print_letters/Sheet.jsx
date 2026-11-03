@@ -17,6 +17,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
       className={`pl-sheet pl-sheet--${paperOf(page)} ${className}`}
       style={{ width: `${w}mm`, height: `${heightMm}mm`, ...style }}
     >
+      <SheetGrid paper={paperOf(page)} w={w} h={heightMm} />
       {page.blocks.length > 0 && <SheetHeader page={page} byId={byId} />}
       {page.blocks.map((b) => {
         if (isWordBlock(b)) {
@@ -54,6 +55,31 @@ export default function Sheet({ page, format, byId, className = "", style, selec
         );
       })}
     </div>
+  );
+}
+
+// The notebook grid, drawn as vector lines exactly every 5mm (крупная клетка: every 10mm, from
+// 5mm in). It used to be a CSS background tile, but a browser snaps a tile to whole device pixels
+// once the sheet is scaled down (`zoom` to fit a phone): the grid then crept a fraction of a pixel
+// per cell away from the blocks, which sit at exact sizes — further down the page, the further off
+// (owner, 2026-11-03: «каждый следующий блок съезжает относительно сетки»). Lines in an SVG in
+// millimetres scale with the sheet exactly, on screen and on paper.
+const GRID = {
+  cell: { step: 5, offset: 0, color: "#bcd4e8" },
+  bigcell: { step: 10, offset: 5, color: "#9fbfdc" },
+};
+function SheetGrid({ paper, w, h }) {
+  const g = GRID[paper];
+  if (!g) return null;
+  const xs = [];
+  for (let x = g.offset; x <= w + 0.01; x += g.step) xs.push(x);
+  const ys = [];
+  for (let y = g.offset; y <= h + 0.01; y += g.step) ys.push(y);
+  const d = xs.map((x) => `M${x} 0V${h}`).join("") + ys.map((y) => `M0 ${y}H${w}`).join("");
+  return (
+    <svg className="pl-sheet-grid" viewBox={`0 0 ${w} ${h}`} width={`${w}mm`} height={`${h}mm`} aria-hidden="true">
+      <path d={d} fill="none" stroke={g.color} strokeWidth="1" vectorEffect="non-scaling-stroke" shapeRendering="crispEdges" />
+    </svg>
   );
 }
 
