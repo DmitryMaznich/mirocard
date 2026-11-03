@@ -275,7 +275,12 @@ export function handleAdvance(state) {
     }
     return { ...rewardAttemptComplete(state), status: state.isDeckMode ? "deck_exhausted" : "completed" };
   }
-  return { ...rewardAttemptComplete(state), status: "task_active", taskIndex: nextIndex };
+  // taskRetry counts the retries of THIS task (SessionScreen's remount key,
+  // and renderers show their after-a-mistake help by it: comparison's dots in
+  // rows, the crocodile reminder, the place-value table). It must start over
+  // on the next task — kept, every task after a first mistake looked like a
+  // retry (owner, 2026-11-03: «одинаковые точки рядами 5 раз подряд»).
+  return { ...rewardAttemptComplete(state), status: "task_active", taskIndex: nextIndex, taskRetry: 0 };
 }
 
 function collapseOutcomes(items, keys) {

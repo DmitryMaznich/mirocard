@@ -404,3 +404,18 @@ describe("rewardPerBlock (letter_bridge «Учим алфавит»)", () => {
   });
 });
 });
+
+describe("handleAdvance — taskRetry", () => {
+  it("a retry belongs to its task: the next task starts with taskRetry 0", () => {
+    // Comparison shows its after-a-mistake help by taskRetry (dots in rows,
+    // the crocodile reminder, the place-value table). Kept across tasks, every
+    // task after a first mistake looked like a retry (owner, 2026-11-03).
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", ["tshirt", "jacket", "skirt"]);
+    state = { ...handleAnswer(state, false, "tshirt", "t1"), status: "task_active", taskRetry: 1 }; // as useSessionEngine does after a mistake
+    state = handleAnswer(state, true, "tshirt", "t1");
+    expect(state.taskRetry).toBe(1);
+    state = handleAdvance(state);
+    expect(state.taskIndex).toBe(1);
+    expect(state.taskRetry).toBe(0);
+  });
+});
