@@ -853,7 +853,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-03T06:54:52+00:00"
+      "sourceUpdatedAt": "2026-11-03T09:04:48+00:00"
     },
     {
       "id": "print_materials",
@@ -932,7 +932,7 @@
         "status": "archived",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T10:35:55+00:00"
+      "sourceUpdatedAt": "2026-11-03T08:17:02+00:00"
     },
     {
       "id": "propis2",
@@ -1083,7 +1083,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T20:03:42+01:00"
+      "sourceUpdatedAt": "2026-11-03T10:14:20+01:00"
     },
     {
       "id": "reading_dad_poems",
@@ -1128,7 +1128,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T20:03:42+01:00"
+      "sourceUpdatedAt": "2026-11-03T10:14:20+01:00"
     },
     {
       "id": "reading_dad_texts",
@@ -1182,7 +1182,7 @@
         "status": "release",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-11-02T20:03:42+01:00"
+      "sourceUpdatedAt": "2026-11-03T10:14:20+01:00"
     },
     {
       "id": "sentence_puzzle",
