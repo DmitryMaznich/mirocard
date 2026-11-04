@@ -251,6 +251,7 @@ export default function TopicLibraryScreen() {
         entitlementExpired={entitlementExpired}
         hasAccess={hasActiveEntitlement(account, subscription)}
         onLockedTap={() => setScreen("subscription")}
+        materialLanguages={item.entry?.materialLanguages ?? (item.installedRecord?.meta.language ? [item.installedRecord.meta.language] : null)}
         materialLanguage={item.installedRecord?.languageContract ? topicLanguageForStudent(item.installedRecord) : null}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}

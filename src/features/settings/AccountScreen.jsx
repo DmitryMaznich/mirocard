@@ -1,3 +1,4 @@
+import AdultPinSettings from "./AdultPinSettings.jsx";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
@@ -45,6 +46,7 @@ export default function AccountScreen() {
       </div>
 
       <div className="settings-body">
+        <p className="settings-scope">{tr("settings.accountScope")}</p>
         <AccountCard onLogout={handleLogout} />
 
         {!PAID_PLANS_PAUSED && <div className="settings-section">
@@ -79,6 +81,7 @@ export default function AccountScreen() {
 
         <div className="settings-section">
           <div className="settings-section-title">{tr("account.security")}</div>
+          <AdultPinSettings />
           <div className="settings-row">
             <span className="settings-row__label">{tr("auth.password")}</span>
             <button className="link-btn" onClick={() => setChangePasswordOpen(true)}>{tr("account.changePassword")}</button>

@@ -37,6 +37,7 @@ export default function TopicTile({
   access = "free",
   claimSource,        // ownedTopics[...].source, or null
   materialLanguage,
+  materialLanguages,
   personalCaption,    // getPersonalTopicCaption() result, or null — imported/granted topics only
   // True when this is a previously-claimed PAID topic whose entitlement
   // (subscription/trial/promo) has since expired. A downloaded copy may
@@ -172,6 +173,7 @@ export default function TopicTile({
         <div className="topic-tile-row__title">{title}</div>
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
+          {!materialLanguage && materialLanguages?.length > 0 && <span>{t("topicLanguage.available", { languages: materialLanguages.map(nativeLanguageName).join(" · ") })}</span>}
           {materialLanguage && <span>{t("topicLanguage.material", { language: nativeLanguageName(materialLanguage) })}</span>}
           {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${statusKey}`}>{t(`topics.badge.${statusKey}`)}</span>}
           {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>{t("topics.personal")}</span>}

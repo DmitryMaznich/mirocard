@@ -8,7 +8,7 @@ export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, 
   return (
     <div className="action-sheet-overlay" onClick={handleOverlay}>
       <div className="action-sheet" role="dialog" aria-modal="true">
-        <div className="action-sheet__title">{t("nav.account")}</div>
+        <div className="action-sheet__title">{t("nav.accountAndStudents")}</div>
         <button
           className="action-sheet__item"
           onClick={() => { onOpenProfile(); onClose(); }}

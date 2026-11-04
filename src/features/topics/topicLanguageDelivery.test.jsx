@@ -53,7 +53,7 @@ afterEach(async () => {
 });
 const urls = () => fetchMock.mock.calls.map(([url]) => new URL(String(url), "https://example.test").pathname);
 const findButton = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
-async function submit() { await act(async () => findButton("Скачать")?.click()); }
+async function submit() { await act(async () => host.querySelector('input[value="sl"]')?.click()); await act(async () => findButton("Скачать")?.click()); }
 async function settle(predicate) {
   for (let i = 0; i < 100; i++) {
     if (predicate()) return;
@@ -87,7 +87,7 @@ for (const ui of ["ru", "sl"]) {
     setUiLanguage(ui);
     let result;
     await act(async () => { result = requestTopicLanguage({ entry }); root.render(<TopicLanguageDialog />); });
-    expect(host.querySelector('input[value="sl"]').checked).toBe(true);
+    expect(host.querySelector('input[value="ru"]').checked).toBe(true);
     expect(host.textContent).toContain(ui === "ru" ? "Без речевой озвучки" : "Brez govornega zvoka");
     expect(host.textContent).toContain(ui === "ru" ? "3 режима" : "3 načini");
     expect(host.textContent).toContain(ui === "ru" ? "Озвучена подсказка после ошибки" : "Govorjeni namig po napaki");
@@ -117,7 +117,7 @@ it("one topic choice applies to both modes, remains student-specific and survive
   setUiLanguage("sl");
   useAppStore.setState({ activeStudentId: "two", activeModeId: "compare_sign" });
   const secondBefore = resolveModeSelection(record, record.modes[1], {}, false, null);
-  expect(secondBefore.sessionParams.contentLanguage).toBe("ru");
+  expect(secondBefore.sessionParams.contentLanguage).toBeNull();
   expect(() => createContentContext(record, record.modes[1], secondBefore.sessionParams)).toThrow();
   await act(async () => { result = requestTopicLanguage({ entry, record }); });
   expect(host.querySelector('input[value="ru"]').checked).toBe(true);

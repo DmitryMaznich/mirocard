@@ -40,9 +40,9 @@ describe("HomeMenuSheet — mounted through the real component", () => {
   it("renders the four destinations grouped into two sections", () => {
     mount(baseProps());
     const items = Array.from(container.querySelectorAll(".action-sheet__item")).map((el) => el.textContent);
-    expect(items).toEqual(["Профиль", "Ученики", "Настройки", "Помощь и поддержка", "Отмена"]);
+    expect(items).toEqual(["Мой аккаунт", "Ученики", "Настройки приложения", "Помощь и поддержка", "Отмена"]);
     const titles = Array.from(container.querySelectorAll(".action-sheet__title")).map((el) => el.textContent);
-    expect(titles).toEqual(["Аккаунт", "Приложение"]);
+    expect(titles).toEqual(["Аккаунт и ученики", "Приложение"]);
   });
 
   it("tapping Ученики calls onOpenStudents and closes the sheet", () => {

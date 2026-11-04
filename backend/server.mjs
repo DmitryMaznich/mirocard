@@ -327,6 +327,8 @@ function serializeStudent(row) {
     preferredLessonLanguage: row.preferred_lesson_language ?? null,
     rewardVideos: safeJson(row.reward_videos, []),
     rewardSettings: safeJson(row.reward_settings, {}),
+    lessonFlow: safeJson(row.lesson_flow, {}),
+    lessonFlowUpdatedAt: row.lesson_flow_updated_at ?? null,
     rewardSettingsUpdatedAt: row.reward_settings_updated_at ?? null,
     rewardVideoViews: safeJson(row.reward_video_views, {}),
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
@@ -842,7 +844,8 @@ async function handleUpsertStudent(req, res) {
     id,
     name: String(body.name).trim(),
     comment: String(body.comment ?? ""),
-    primaryLanguage: body.primaryLanguage ?? null,
+    primaryLanguage: body.primaryLanguage,
+    lessonFlow: body.lessonFlow,
     preferredLessonLanguage: body.preferredLessonLanguage,
     rewardVideos: Array.isArray(body.rewardVideos)
       ? body.rewardVideos

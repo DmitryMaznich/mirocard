@@ -16,3 +16,15 @@
   .student-edit-screen .screen-header { gap: 8px; padding-left: 10px; padding-right: 10px; }
   .student-edit-screen .se-save-btn { padding-left: 9px; padding-right: 9px; }
 }
+
+.student-edit-screen .student-settings-body {
+  display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: none;
+}
+.student-settings-group {
+  border: 1px solid rgba(28, 54, 52, .12); border-radius: 16px; background: #fffefb; min-width: 0;
+}
+.student-settings-group > summary { padding: 18px 16px; font-weight: 800; cursor: pointer; }
+.student-settings-content { display: grid; gap: 16px; padding: 0 14px 16px; min-width: 0; }
+.lesson-flow-settings { border: 0; margin: 0; padding: 12px; min-width: 0; }
+.lesson-flow-settings legend { font-weight: 800; }
+.lesson-flow-settings p, .settings-scope { color: #526e67; font-size: .9rem; line-height: 1.5; }

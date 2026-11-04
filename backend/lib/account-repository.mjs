@@ -1,3 +1,4 @@
+import { normalizeLessonFlow } from "../../shared/lesson-flow.mjs";
 import { randomUUID, createHash } from "node:crypto";
 import { normalizeRewardSettings } from "../../shared/reward-policy.mjs";
 import { isLessonLanguage } from "../../shared/languages.mjs";
@@ -476,9 +477,10 @@ export function upsertStudent(db, accountId, {
   id,
   name,
   comment = "",
-  primaryLanguage = null,
+  primaryLanguage = undefined,
   preferredLessonLanguage = undefined,
   rewardSettings = undefined,
+  lessonFlow = undefined,
   sex = null,
   photo = null,
   rewardVideos = [],
@@ -496,7 +498,7 @@ export function upsertStudent(db, accountId, {
   if (db.prepare("SELECT 1 FROM erased_students WHERE student_id=?").get(id)) return;
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
-  const existing = db.prepare('SELECT preferred_lesson_language FROM students WHERE id = ? AND account_id = ?').get(id, accountId);
+  const existing = db.prepare('SELECT primary_language, preferred_lesson_language FROM students WHERE id = ? AND account_id = ?').get(id, accountId);
   const wasExisting = Boolean(existing);
   const lessonLanguage = preferredLessonLanguage === undefined ? existing?.preferred_lesson_language ?? null : preferredLessonLanguage;
   // Photo, rewardVideos and closeAdults are each managed independently via their
@@ -526,7 +528,7 @@ export function upsertStudent(db, accountId, {
     accountId,
     name,
     comment,
-    primaryLanguage,
+    primaryLanguage === undefined ? existing?.primary_language ?? null : primaryLanguage,
     lessonLanguage,
     sex ?? null,
     initialPhotoRef,
@@ -541,10 +543,20 @@ export function upsertStudent(db, accountId, {
     updated,
   );
   if (!wasExisting) {
+    if (lessonFlow !== undefined) upsertStudentLessonFlow(db, accountId, { studentId: id, settings: lessonFlow, updatedAt: updated });
     if (rewardSettings !== undefined) upsertStudentRewardSettings(db, accountId, { studentId: id, settings: rewardSettings, updatedAt: updated });
     const people = studentPeople({ myPeople, closeAdults: processedAdults, closeAdultsUpdatedAt: updated });
     if (people.length) upsertStudentMyPeople(db, accountId, { studentId: id, people, updatedAt: updated });
   }
+}
+
+export function upsertStudentLessonFlow(db, accountId, { studentId, settings, updatedAt, initialize = false }) {
+  if (!updatedAt || !Number.isFinite(Date.parse(updatedAt))) throw Object.assign(new Error("Invalid lesson flow timestamp"), { status: 400 });
+  const stamp = new Date(updatedAt).toISOString();
+  const row = db.prepare("SELECT lesson_flow_updated_at FROM students WHERE id=? AND account_id=? AND deleted_at IS NULL").get(studentId, accountId);
+  if (!row || (initialize && row.lesson_flow_updated_at) || (row.lesson_flow_updated_at && row.lesson_flow_updated_at >= stamp)) return;
+  db.prepare("UPDATE students SET lesson_flow=?, lesson_flow_updated_at=? WHERE id=? AND account_id=?")
+    .run(JSON.stringify(normalizeLessonFlow(settings)), stamp, studentId, accountId);
 }
 
 export function upsertStudentRewardSettings(db, accountId, { studentId, settings, updatedAt }) {
@@ -874,6 +886,19 @@ export function revokeAccountTopic(db, accountId, topicId) {
 }
 
 // ─── Student topic links ──────────────────────────────────────────────────────
+
+// The one-time migration never replaces a newer explicit choice or any
+// unrelated mode/reward parameter arriving from another device.
+export function initializeTopicLanguage(db, accountId, { studentId, topicId, language }) {
+  if (!/^[a-z]{2,3}$/.test(language ?? "")) throw Object.assign(new Error("Invalid material language"), { status: 400 });
+  if (!db.prepare("SELECT 1 FROM students WHERE id=? AND account_id=? AND deleted_at IS NULL").get(studentId, accountId)) return;
+  const row = db.prepare("SELECT id, params FROM student_topic_links WHERE student_id=? AND topic_id=? AND account_id=?").get(studentId, topicId, accountId);
+  if (!row) return;
+  const params = safeJson(row.params, {});
+  if (params.topicContentLanguage) return;
+  db.prepare("UPDATE student_topic_links SET params=?, updated_at=? WHERE id=? AND account_id=?")
+    .run(JSON.stringify({ ...params, topicContentLanguage: language }), now(), row.id, accountId);
+}
 
 export function upsertStudentTopicLink(db, accountId, {
   id, studentId, topicId,

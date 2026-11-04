@@ -24,9 +24,8 @@ function LanguagePicker({ request }) {
   const entry = request.entry ?? { id: record.meta.id, version: record.meta.version, title: record.meta.title, access: record.installation?.access ?? "free", languageDownload: topicDownloadDescriptor(record) };
   const delivery = entry.languageDownload;
   const options = delivery?.languages ?? record?.languageContract?.packages ?? {};
-  const student = state.students.find((s) => s.id === request.studentId);
   const [selected, setSelected] = useState(() => {
-    const preferred = record ? topicLanguageForStudent(record) : student?.preferredLessonLanguage ?? state.settings.cardLanguage;
+    const preferred = record ? topicLanguageForStudent(record) : null;
     return Object.hasOwn(options, preferred) ? preferred : Object.keys(options)[0];
   });
   const [busy, setBusy] = useState(false);

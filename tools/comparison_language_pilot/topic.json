@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "comparison_language_pilot",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "renderer": "comparison_language_pilot",
     "title": {
       "ru": "Сравнение · языковой пилот",
@@ -64,7 +64,7 @@
     "selectionScope": "topic",
     "delivery": {
       "version": 1,
-      "coreUrl": "./decks/comparison_language_pilot_v0.5.0.zip"
+      "coreUrl": "./decks/comparison_language_pilot_v0.5.1.zip"
     }
   },
   "modes": [
