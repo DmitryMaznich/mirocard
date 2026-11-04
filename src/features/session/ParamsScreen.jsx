@@ -2,7 +2,7 @@ import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 import { RewardRulesSummary } from "@/features/rewards/RewardSettingsSection.jsx";
 import { rewardText } from "@/features/rewards/rewardText.js";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
-import { availableContentLanguages, initialContentLanguage, contentLanguageParam } from "../../../shared/topic-language-contract.mjs";
+import { availableContentLanguages, initialContentLanguage } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -1697,7 +1697,6 @@ export default function ParamsScreen() {
   const studentTopicLinks      = useAppStore((s) => s.studentTopicLinks);
   const sessions               = useAppStore((s) => s.sessions);
   const adultPinHash           = useAppStore((s) => s.settings.adultPinHash);
-  const settings               = useAppStore((s) => s.settings);
   const patchSettings          = useAppStore((s) => s.patchSettings);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
 
@@ -1845,7 +1844,7 @@ export default function ParamsScreen() {
       : {};
     for (const [key, def] of Object.entries(modeParams)) {
       if (def.type === "content_language") {
-        out[key] = initialContentLanguage(topicRecord, mode.id, saved[key], student?.preferredLessonLanguage, settings.cardLanguage);
+        out[key] = initialContentLanguage(topicRecord, mode.id, saved[key]);
         continue;
       }
       if (def.type === "concept_selector") continue;

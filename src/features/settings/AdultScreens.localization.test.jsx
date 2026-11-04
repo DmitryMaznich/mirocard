@@ -27,7 +27,7 @@ afterEach(async () => { await act(async () => root.unmount()); host.remove(); se
 
 it('keeps profile edits and account deletion confirmation intact across languages', async () => {
   await mount(AccountScreen);
-  expect(host.querySelector('h1').textContent).toBe('Račun');
+  expect(host.querySelector('h1').textContent).toBe('Moj račun');
   expect(host.textContent).toContain('Geslo');
   expect(host.textContent).not.toContain('undefined');
   await act(async () => host.querySelector('[aria-label="Uredi profil"]').click());

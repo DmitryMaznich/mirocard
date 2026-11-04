@@ -1,6 +1,5 @@
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
-import { languageName } from "../../../shared/languages.mjs";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
@@ -123,11 +122,6 @@ export default function StudentsScreen() {
             <div className="student-detail-meta">
               {t("students.added", { date: formatDate(panelStudent.createdAt) })}
             </div>
-            {panelStudent.primaryLanguage && (
-              <div className="student-detail-lang">
-                {languageName(panelStudent.primaryLanguage)}
-              </div>
-            )}
             {(panelStudent.rewardVideos?.length ?? 0) > 0 && (
               <div className="student-detail-meta">
                 🎬 {t("students.videoCount", { count: panelStudent.rewardVideos.length })}

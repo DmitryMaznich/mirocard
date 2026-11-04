@@ -51,7 +51,7 @@ it("uses Slovenian on home and in its menu, switches live, and keeps the selecte
   expect(host.textContent).toContain("Primerjanje");
   await act(async () => host.querySelector('[aria-label="Meni"]').click());
   expect(button("Učenci")).toBeTruthy();
-  expect(button("Nastavitve")).toBeTruthy();
+  expect(button("Nastavitve aplikacije")).toBeTruthy();
   await changeLanguage("ru");
   expect(button("Ученики")).toBeTruthy();
   expect(host.textContent).toContain("Собери занятие");

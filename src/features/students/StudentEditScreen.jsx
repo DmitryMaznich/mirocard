@@ -1,10 +1,10 @@
+import LessonFlowSettings from "./LessonFlowSettings.jsx";
+import { normalizeLessonFlow } from "../../../shared/lesson-flow.mjs";
 import RewardSettingsSection from "@/features/rewards/RewardSettingsSection.jsx";
 import { normalizeRewardSettings } from "../../../shared/reward-policy.mjs";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { translateUi as t } from "@/shared/i18n/uiLanguage.js";
 import { useState, useRef, useCallback, useMemo } from "react";
-import { LANGUAGES } from "../../../shared/languages.mjs";
-import LessonLanguagePicker from "@/shared/components/LessonLanguagePicker.jsx";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
@@ -33,11 +33,6 @@ function photoErrorMessage(error) {
 
 export default function StudentEditScreen() {
   const { t } = useUiTranslation();
-  const LANGS = [
-    { value: "",   label: t("students.unset") },
-    ...LANGUAGES.map(({ code, label }) => ({ value: code, label })),
-  ];
-
   const SEXES = [
     { value: "",  label: t("students.unspecified") },
     { value: "m", label: t("students.boy")   },
@@ -52,20 +47,20 @@ export default function StudentEditScreen() {
   const studentEditReturnScreen    = useAppStore((s) => s.studentEditReturnScreen);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
 
-  const initial = editingStudentId ? (students.find((s) => s.id === editingStudentId) ?? null) : null;
+  const [initial] = useState(() => editingStudentId ? (students.find((s) => s.id === editingStudentId) ?? null) : null);
   const isEdit  = !!initial;
   const isFirstEver = !isEdit && students.length === 0;
 
   const [name,         setName]         = useState(initial?.name ?? "");
   const [comment,      setComment]      = useState(initial?.comment ?? "");
-  const [lang,         setLang]         = useState(initial?.primaryLanguage ?? "");
-  const [lessonLanguage, setLessonLanguage] = useState(initial?.preferredLessonLanguage ?? null);
   const [sex,          setSex]          = useState(initial?.sex ?? "");
   const [photo,        setPhoto]        = useState(initial?.photo ?? null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const initialFlowRef = useRef(normalizeLessonFlow(initial?.lessonFlow));
+  const [lessonFlow, setLessonFlow] = useState(() => normalizeLessonFlow(initial?.lessonFlow));
   const initialRewardSettingsRef = useRef(normalizeRewardSettings(initial?.rewardSettings));
-  const [rewardSettings, setRewardSettings] = useState(() => initialRewardSettingsRef.current);
+  const [rewardSettings, setRewardSettings] = useState(() => normalizeRewardSettings(initial?.rewardSettings));
   const [videos,       setVideos]       = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput,   setVideoInput]   = useState("");
   const [videoError,   setVideoError]   = useState("");
@@ -87,7 +82,6 @@ export default function StudentEditScreen() {
   const photoHintRef = useRef(null);
   const notesHintRef = useRef(null);
   const sexHintRef = useRef(null);
-  const languageHintRef = useRef(null);
   const peopleHintRef = useRef(null);
   const datesHintRef = useRef(null);
   const videosHintRef = useRef(null);
@@ -97,7 +91,6 @@ export default function StudentEditScreen() {
     { targetRef: photoHintRef, title: t("students.hintPhoto"), text: t("students.hintPhotoText") },
     { targetRef: notesHintRef, title: t("students.hintNotes"), text: t("students.hintNotesText") },
     { targetRef: sexHintRef, title: t("students.hintSex"), text: t("students.hintSexText") },
-    { targetRef: languageHintRef, title: t("students.hintLanguage"), text: t("students.hintLanguageText") },
     { targetRef: peopleHintRef, title: t("students.hintPeople"), text: t("students.hintPeopleText") },
     ...(isEdit ? [{ targetRef: datesHintRef, title: t("students.hintDates"), text: t("students.hintDatesText") }] : []),
     { targetRef: videosHintRef, title: t("students.hintVideos"), text: t("students.hintVideosText") },
@@ -128,8 +121,9 @@ export default function StudentEditScreen() {
   async function handleSave(destination = null) {
     closeHints();
     let savedId = initial?.id;
-    if (!name.trim()) { setNameError(t("students.enterName")); return; }
+    if (!name.trim()) { nameHintRef.current?.closest("details")?.setAttribute("open", ""); setNameError(t("students.enterName")); return; }
     if (comment.trim() && !healthDataConsent) {
+      notesHintRef.current?.closest("details")?.setAttribute("open", "");
       setHealthConsentError(t("students.consentError"));
       return;
     }
@@ -141,15 +135,15 @@ export default function StudentEditScreen() {
     const healthDataConsentAt = healthDataConsent
       ? (healthConsentChanged ? ts : (initial?.healthDataConsentAt ?? ts))
       : null;
+    const flowChanged = JSON.stringify(lessonFlow) !== JSON.stringify(initialFlowRef.current);
     const rewardSettingsChanged = JSON.stringify(rewardSettings) !== JSON.stringify(initialRewardSettingsRef.current);
+    const videosChanged = JSON.stringify(videos) !== JSON.stringify(normaliseVideos(initial?.rewardVideos));
     const data = {
+      ...(!isEdit || flowChanged ? { lessonFlow, lessonFlowUpdatedAt: ts } : {}),
       ...(!isEdit || rewardSettingsChanged ? { rewardSettings, rewardSettingsUpdatedAt: ts } : {}),
       name: name.trim(), comment: comment.trim(),
-      primaryLanguage: lang || null,
-      ...(!isEdit || lessonLanguage !== (initial?.preferredLessonLanguage ?? null)
-        ? { preferredLessonLanguage: lessonLanguage } : {}),
       sex: sex || null,
-      rewardVideos: videos,
+      ...(!isEdit || videosChanged ? { rewardVideos: videos } : {}),
       healthDataConsent, healthDataConsentAt,
     };
     const db = await getDb();
@@ -158,15 +152,14 @@ export default function StudentEditScreen() {
       // Compare against the snapshot the form was opened with — if this device's copy
       // of the student was stale (another device added videos/adults meanwhile), an
       // untouched list here must NOT be pushed as if it were a deliberate change.
-      const videosChanged = JSON.stringify(videos) !== JSON.stringify(normaliseVideos(initial.rewardVideos));
       const rewardVideosUpdatedAt = videosChanged ? ts : (initial.rewardVideosUpdatedAt ?? null);
       const updated = {
         ...useAppStore.getState().students.find((item) => item.id === initial.id), ...data,
-        photo: photo ?? null, photoUpdatedAt,
-        rewardVideosUpdatedAt,
+        ...(photoChanged ? { photo: photo ?? null, photoUpdatedAt } : {}),
+        ...(videosChanged ? { rewardVideosUpdatedAt } : {}),
         updatedAt: ts,
       };
-      const next = students.map((s) => (s.id === initial.id ? updated : s));
+      const next = useAppStore.getState().students.map((s) => (s.id === initial.id ? updated : s));
       await kv.set(db, "students", next);
       setStudents(next);
       // student.upsert covers only name/comment/language/sex — photo, video rewards and
@@ -175,10 +168,13 @@ export default function StudentEditScreen() {
       pushOp("student.upsert", {
         ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined, rewardSettings: undefined, rewardSettingsUpdatedAt: undefined,
         // An untouched field must not clear a choice made on another device.
-        preferredLessonLanguage: lessonLanguage !== (initial?.preferredLessonLanguage ?? null) ? lessonLanguage : undefined,
+        preferredLessonLanguage: undefined, primaryLanguage: undefined, lessonFlow: undefined, lessonFlowUpdatedAt: undefined,
       });
       if (photoChanged) {
         pushOp("student.photo.upsert", { studentId: initial.id, photo: photo ?? null, photoUpdatedAt: ts });
+      }
+      if (flowChanged) {
+        pushOp("student.lesson_flow.upsert", { studentId: initial.id, settings: lessonFlow, updatedAt: ts });
       }
       if (rewardSettingsChanged) {
         pushOp("student.reward_settings.upsert", { studentId: initial.id, settings: rewardSettings, updatedAt: ts });
@@ -246,11 +242,14 @@ export default function StudentEditScreen() {
         </button>
       </div>
 
-      <div className="se-body" onClickCapture={(event) => {
+      <div className="se-body student-settings-body" onClickCapture={(event) => {
         // Close the tour before opening a photo picker, explanation or sub-screen.
         if (event.target.closest('button')) closeHints();
       }}>
-       <div className="se-col">
+        <p className="settings-scope">{isEdit ? t("settings.studentScope", { name: initial.name }) : t("settings.optional")}</p>
+        <details className="student-settings-group" open>
+          <summary>{t("settings.studentData")}</summary><div className="student-settings-content">
+
 
         {/* ── Профиль ── */}
         <div className="settings-section">
@@ -324,48 +323,10 @@ export default function StudentEditScreen() {
           ))}
         </div>
 
-        {/* ── Язык ── */}
-        <div ref={languageHintRef} className="settings-section">
-          <div className="settings-section-title student-data-heading">{t("students.language")}<StudentDataInfo kind="language" /></div>
-          {LANGS.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              className={`se-lang-row${lang === value ? " se-lang-row--active" : ""}`}
-              onClick={() => setLang(value)}
-            >
-              {label}
-              {lang === value && <span className="se-lang-check">✓</span>}
-            </button>
-          ))}
-        </div>
-
-        <div className="settings-section">
-          <LessonLanguagePicker value={lessonLanguage} onChange={setLessonLanguage} inherit />
-        </div>
-
-       </div>{/* /se-col left */}
-       <div className="se-col">
-
-        <div className="settings-section se-my-people-card">
-          <div className="settings-section-title">{t("students.people")}</div>
-          <p>{t("students.peopleHelp")}</p>
-          <button ref={peopleHintRef} type="button" className="se-add-row" disabled={saving} onClick={() => handleSave('my_people_settings')}>
-            {isEdit ? t("students.setupPeople") : t("students.savePeople")}
-          </button>
-        </div>
-
-        {/* ── Важные даты ── */}
-        {isEdit && (
-          <div className="settings-section se-my-people-card">
-            <div className="settings-section-title student-data-heading">{t("students.dates")}<StudentDataInfo kind="dates" /></div>
-            <p>{t("students.datesHelp")}</p>
-            <button ref={datesHintRef} type="button" className="se-add-row" onClick={() => { useAppStore.getState().setImportantDatesReturnScreen("student_edit"); setScreen("important_dates_settings"); }}>
-              {initial.importantDates?.some((item) => !item.deletedAt) ? t("students.setupDates") : t("students.addDates")}
-            </button>
-          </div>
-        )}
-
+        </div></details>
+        <details className="student-settings-group" open={hintsOpen}>
+          <summary>{t("settings.studentLessons")}</summary><div className="student-settings-content">
+          <LessonFlowSettings value={lessonFlow} onChange={setLessonFlow} />
         <div className="settings-section">
           <RewardSettingsSection value={rewardSettings} onChange={setRewardSettings} />
         </div>
@@ -399,7 +360,31 @@ export default function StudentEditScreen() {
           {videoError && <div className="form-error se-video-error">{videoError}</div>}
         </div>
 
-       </div>{/* /se-col right */}
+        </div></details>
+        <details className="student-settings-group" open={hintsOpen}>
+          <summary>{t("settings.studentMaterials")}</summary><div className="student-settings-content">
+
+
+        <div className="settings-section se-my-people-card">
+          <div className="settings-section-title">{t("students.people")}</div>
+          <p>{t("students.peopleHelp")}</p>
+          <button ref={peopleHintRef} type="button" className="se-add-row" disabled={saving} onClick={() => handleSave('my_people_settings')}>
+            {isEdit ? t("students.setupPeople") : t("students.savePeople")}
+          </button>
+        </div>
+
+        {/* ── Важные даты ── */}
+        {isEdit && (
+          <div className="settings-section se-my-people-card">
+            <div className="settings-section-title student-data-heading">{t("students.dates")}<StudentDataInfo kind="dates" /></div>
+            <p>{t("students.datesHelp")}</p>
+            <button ref={datesHintRef} type="button" className="se-add-row" onClick={() => { useAppStore.getState().setImportantDatesReturnScreen("student_edit"); setScreen("important_dates_settings"); }}>
+              {initial.importantDates?.some((item) => !item.deletedAt) ? t("students.setupDates") : t("students.addDates")}
+            </button>
+          </div>
+        )}
+
+        </div></details>
       </div>{/* /se-body */}
 
       {/* ── Удаление — мелко, внизу ── */}

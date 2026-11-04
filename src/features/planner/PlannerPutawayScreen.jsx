@@ -1,3 +1,5 @@
+import ZoneSettingsSection from "@/features/settings/ZoneSettingsSection";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { getDb, kv } from '@/core/db';
@@ -88,6 +90,9 @@ function LongPressZoneButton({ className, onTap, onLongPress, children }) {
 }
 
 export default function PlannerPutawayScreen() {
+  const { t } = useUiTranslation();
+  const [zoneSettingsOpen, setZoneSettingsOpen] = useState(false);
+  const student = useAppStore(s => s.students.find(item => item.id === s.activeStudentId));
   const setScreen = useAppStore((s) => s.setScreen);
   const studentId = useAppStore((s) => s.activeStudentId);
   const adultPinHash = useAppStore((s) => s.settings.adultPinHash);
@@ -195,6 +200,14 @@ export default function PlannerPutawayScreen() {
     };
   }
 
+  if (zoneSettingsOpen) return <div className="screen">
+    <div className="screen-header"><button className="back-btn" aria-label={t("common.back")} onClick={() => {
+      setZoneSettingsOpen(false);
+      getPlannerZoneCustomizations(studentId).then(data => setEffectiveZones(getEffectiveZones(data)));
+    }}><BackArrowIcon /></button><h1 className="screen-title">{t("settings.zonesFor", { name: student?.name ?? "" })}</h1></div>
+    <div className="settings-body"><p>{t("settings.zonesScope")}</p><ZoneSettingsSection /></div>
+  </div>;
+
   if (loading) return <div className="screen screen-center">Загрузка…</div>;
 
   return (
@@ -202,6 +215,7 @@ export default function PlannerPutawayScreen() {
       <div className="planner-header">
         <button className="planner-header__back" onClick={() => setScreen('home')}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">Раскладка</h1>
+        <button className="link-btn" disabled={!studentId} onClick={() => setZoneSettingsOpen(true)}>{t("settings.zones")}</button>
       </div>
 
       {!current ? (
@@ -316,7 +330,7 @@ export default function PlannerPutawayScreen() {
             <div className="portions-sheet__handle" />
             <PhotoCaptureCard
               key={editingZoneId}
-              title={`Сфотографируй: ${ZONES.find((z) => z.id === editingZoneId).label}`}
+              title={`Сфотографируй: ${effectiveZones.find((z) => z.id === editingZoneId)?.label ?? editingZoneId}`}
               hint="Так ученик быстрее узнает своё место"
               maxDim={1280}
               quality={0.75}
