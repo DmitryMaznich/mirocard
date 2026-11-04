@@ -1,3 +1,4 @@
+import { effectiveRewardSettings } from "../../shared/reward-policy.mjs";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { useAppStore } from "../../src/core/store.js";
@@ -11,9 +12,10 @@ import { BUILTIN_TOPICS } from "../../src/topics/builtinTopics.js";
 import "../../src/styles.css";
 
 const query = new URLSearchParams(location.search);
-const settings = { algorithm: "flexible", duration: "60", animation: "normal", sound: false };
+const savedSettings = { algorithm: "legacy", duration: "60", animation: "normal", sound: false };
+const settings = effectiveRewardSettings(savedSettings);
 const topic = BUILTIN_TOPICS.find(item => item.meta.id === "streak_tracker");
-useAppStore.setState({ students: [{ id: "kid", name: "Миша", rewardVideos: ["https://youtu.be/aaaaaaaaaaa"], rewardSettings: settings }], activeStudentId: "kid", editingStudentId: "kid", activeTopicId: topic.meta.id, activeModeId: "streak", topicRecords: [topic], studentTopicLinks: {}, account: null });
+useAppStore.setState({ students: [{ id: "kid", name: "Миша", rewardVideos: ["https://youtu.be/aaaaaaaaaaa"], rewardSettings: savedSettings }], activeStudentId: "kid", editingStudentId: "kid", activeTopicId: topic.meta.id, activeModeId: "streak", topicRecords: [topic], studentTopicLinks: {}, account: null });
 document.documentElement.classList.add("app-ios-standalone");
 document.documentElement.style.setProperty("--app-safe-top", "47px");
 document.documentElement.style.setProperty("--app-safe-bottom", "34px");

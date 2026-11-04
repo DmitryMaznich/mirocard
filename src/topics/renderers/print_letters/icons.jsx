@@ -45,6 +45,24 @@ export const IconPaperSquare = () => (
     <path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke="#9aa3af" strokeWidth="1.1" />
   </svg>
 );
+// Ruled paper for printed letters: rows with a dashed height line and a
+// solid baseline.
+const rowLines = (y) => (
+  <>
+    <path d={`M3 ${y}H21`} stroke="#8aa2c4" strokeWidth="1" strokeDasharray="1.6 1.4" />
+    <path d={`M3 ${y + 6}H21`} stroke="#5f7fa8" strokeWidth="1.4" />
+  </>
+);
+export const IconPaperLine = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">{rowLines(3)}{rowLines(14)}</svg>
+);
+// The 1cm big cell: a coarse 2×2 grid.
+export const IconPaperBigCell = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#7fa7c9" strokeWidth="1.4" />
+    <path d="M12 3v18M3 12h18" stroke="#7fa7c9" strokeWidth="1.4" />
+  </svg>
+);
 export const IconPaperRuled = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <path d="M3 7H21" stroke="#9aa3af" strokeWidth="1.1" />
@@ -60,3 +78,46 @@ export const IconFormatA4 = () => formatText("А4");
 export const IconFormatA5 = () => formatText("А5");
 // A ladder: rows that grow step by step.
 export const IconLadder = () => S(<><path d="M4 19h4M4 14h9M4 9h14" /><path d="M4 4.5h16" strokeDasharray="2 2.5" /></>);
+// Copied from propis2's IconEditPage idea: a pencil.
+export const IconEdit = () => S(<path d="M4 20h4l10-10-4-4L4 16z" />);
+// Save: a floppy.
+export const IconSave = () => S(<><path d="M5 4h11l3 3v13H5z" /><path d="M8 4v5h7V4M8 20v-6h8v6" /></>);
+// A new notebook: a page with a plus.
+export const IconNewNotebook = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.5" /><path d="M12 9v6M9 12h6" /></>);
+
+// ---- Copied path-for-path from src/features/propis2/Propis2Icons.jsx (2026-11-03): the constructor
+// copies propis2's whole look, its pictograms included.
+export const IconP2Save = () => S(<path d="M5 12.5l4.5 4.5L19 7.5" strokeWidth="2.4" />); // confirm: keep the changes
+export const IconPlay = () => S(<><circle cx="12" cy="12" r="9" /><path d="M10 8.5l5.5 3.5-5.5 3.5z" fill="currentColor" /></>);
+export const IconUndo = () => S(<><path d="M9 14L4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 010 11H11" /></>);
+export const IconRedo = () => S(<><path d="M15 14l5-5-5-5" /><path d="M20 9H9.5a5.5 5.5 0 000 11H13" /></>);
+export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>);
+export const IconFitWidth = () => S(<><rect x="7" y="4" width="10" height="16" rx="1.5" strokeWidth="1.4" /><path d="M2.5 12h6M2.5 12l2.2-2.2M2.5 12l2.2 2.2M21.5 12h-6M21.5 12l-2.2-2.2M21.5 12l-2.2 2.2" strokeWidth="1.7" /></>);
+export const IconAddPage = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.8" /><path d="M12 8.5v7M8.5 12h7" /></>);
+export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18" rx="1.8" /><path d="M9 3v18" /><path d="M12 8h4M12 11.5h4" strokeWidth="1.4" /></>);
+// The phone row panel's fold bar: chevrons, not arrows — the arrows already move a row up / down.
+export const IconChevronUp = () => S(<path d="M6 15l6-6 6 6" />);
+export const IconChevronDown = () => S(<path d="M6 9l6 6 6-6" />);
+
+// The row's three options (model.js LINES / GUIDES / DOTS), drawn as tiny rows of sticks: the
+// first stick is the sample (dark), the rest are the contours.
+const DOT = "#15803d";
+const sticks = (xs, props = {}) => xs.map((x, i) => <path key={i} d={`M${x} 6v13`} {...(typeof props === "function" ? props(i) : props)} />);
+export const IconLineTone = () => S(<path d="M6 5v14M6 5h12M18 5v14" strokeWidth="3.2" opacity="0.45" />);
+export const IconLineDash = () => S(<path d="M6 5v14M6 5h12M18 5v14" strokeWidth="2.6" strokeDasharray="0.1 3.6" />);
+export const IconGuideFull = () => S(<>{sticks([4], { strokeWidth: 2.4 })}{sticks([10, 15, 20], { strokeWidth: 2.4, opacity: 0.45 })}</>);
+export const IconGuideFade = () => S(<>{sticks([4], { strokeWidth: 2.4 })}{sticks([10, 15, 20], (i) => ({ strokeWidth: 2.4, opacity: [0.5, 0.28, 0.12][i] }))}</>);
+export const IconGuideNone = () => S(<>{sticks([4], { strokeWidth: 2.4 })}<path d="M10 19h10" strokeDasharray="0.1 3" opacity="0.5" /></>);
+const dotsAt = (xs) => xs.map((x) => <circle key={`d${x}`} cx={x} cy={5} r={2.3} fill={DOT} stroke="none" />);
+export const IconDotsSample = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}{dotsAt([6])}</>);
+export const IconDotsAll = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}{dotsAt([6, 13, 19])}</>);
+export const IconDotsNone = () => S(<>{sticks([6], { strokeWidth: 2.2 })}{sticks([13, 19], { strokeWidth: 2.2, opacity: 0.45 })}</>);
+// The «Стрелки» toggle: a stick with a thin red arrow beside it.
+export const IconArrows = () => S(<><path d="M8 4v16" strokeWidth="2.6" /><path d="M15 6v11M12.3 14.2L15 17.2l2.7-3" stroke="#dc2626" strokeWidth="1.6" /></>);
+// «PDF»: a page with a folded corner and an arrow down into it (save the file).
+export const IconPdf = () => S(<><path d="M6 3.5h8l4 4v13H6z" /><path d="M14 3.5v4h4" /><path d="M12 10.5v6M9.5 14l2.5 2.5 2.5-2.5" /></>);
+// «Образец» on/off for syllable / word rows: a solid first letter, then dotted ones.
+export const IconSampleToggle = () => S(<><path d="M5 5v14M5 5h5" strokeWidth="2.6" /><path d="M14 5v14M14 5h5" strokeWidth="2" strokeDasharray="0.1 3.4" opacity="0.6" /></>);
+// «Имя, дата» header switch: two short write-in lines.
+export const IconNameLine = () => S(<><path d="M3 9.5h5.5M3 16h4" strokeWidth="1.6" /><path d="M10 10.5h11M9 17h8" strokeWidth="1.6" /></>);
+

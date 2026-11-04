@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
-import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
+import { openPdf, pdfFileName, pdfSavesOnDevice, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, screenPagesOf as screenPagesOfPage, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageBandFill, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { ladderIndex } from "@/topics/renderers/propis2/data.js";
@@ -407,7 +407,8 @@ export default function Propis2Home({ db }) {
         pdfTabRef.current = null;
         if (!blob) { tab?.close(); setPdfJob({ status: "error" }); return; }
         // the tab opened at the tap shows the PDF; without one (pop-ups blocked, closed meanwhile) — a button to tap
-        if (tab && !tab.closed) { openPdf(blob, name, tab); setPdfJob(null); }
+        // the window stays, saying where the PDF went: a tab behind the app looked like nothing happened (2026-11-03)
+        if (tab && !tab.closed) { openPdf(blob, name, tab); setPdfJob({ status: "opened", blob, name }); }
         else setPdfJob({ status: "ready", blob, name });
       } catch (e) {
         console.error(e);
@@ -465,9 +466,17 @@ export default function Propis2Home({ db }) {
               {pdfJob.status === "making" && <p className="p2-pdf-text">Готовлю PDF… {Math.round((pdfJob.progress ?? 0) * 100)}%</p>}
               {pdfJob.status === "error" && <p className="p2-pdf-text">Не получилось собрать PDF. Попробуйте ещё раз.</p>}
               {pdfJob.status === "ready" && <p className="p2-pdf-text">PDF готов: «{pdfJob.name}»</p>}
+              {pdfJob.status === "opened" && <p className="p2-pdf-text">PDF открыт в новой вкладке: «{pdfJob.name}»</p>}
+              {pdfJob.status === "saved" && (
+                <p className="p2-pdf-text">PDF сохранён в «Загрузки»: «{pdfJob.name}». Откройте его из уведомления браузера или из папки «Загрузки».</p>
+              )}
               <div className="p2-modal-actions">
-                {pdfJob.status === "ready" && (
-                  <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => { openPdf(pdfJob.blob, pdfJob.name); setPdfJob(null); }}>Открыть PDF</button>
+                {pdfJob.status !== "making" && pdfJob.status !== "error" && (
+                  // a fresh tap opens it (again); the window stays and says where the PDF went (2026-11-03: on Android the tap did
+                  // nothing visible and the window was gone)
+                  <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => { const how = openPdf(pdfJob.blob, pdfJob.name); setPdfJob({ ...pdfJob, status: how === "saved" ? "saved" : "opened" }); }}>
+                    {pdfSavesOnDevice() ? (pdfJob.status === "saved" ? "Сохранить ещё раз" : "Сохранить PDF") : pdfJob.status === "ready" ? "Открыть PDF" : "Открыть ещё раз"}
+                  </button>
                 )}
                 {pdfJob.status !== "making" && <button type="button" className="p2-modal-btn" onClick={() => setPdfJob(null)}>Закрыть</button>}
               </div>

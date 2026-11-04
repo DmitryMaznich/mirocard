@@ -1,0 +1,24 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "useCase": "precise-object-edit / illustration-story",
+  "date": "2026-11-03",
+  "storyId": "micro_watering",
+  "title": "Пустая лейка",
+  "purpose": "Иллюстрации к согласованной редакции: Аня сама наполняет лейку и поливает цветок. Связаны с редакторским черновиком.",
+  "reference": {
+    "role": "edit target and character/object/room/style reference",
+    "file": "scripts/assets/reading_short_stories/micro/micro_watering.png"
+  },
+  "destination": "scripts/assets/reading_short_stories/micro/micro_watering-v3.png",
+  "generatedSource": "C:/Users/dmazn/.codex/generated_images/01a19897-63f8-7732-9ad1-7dffb6f41e28/exec-385ee347-a5a6-45b9-b978-7bda81cb9071.png",
+  "frames": [
+    "Аня сама наливает воду из кувшина в лейку.",
+    "Аня поливает цветок из лейки."
+  ],
+  "review": {
+    "adultsPresent": false,
+    "characterAndObjectsConsistent": true,
+    "layout": "Два горизонтально расположенных кадра; квадратное кадрирование выполняется шаблоном листа."
+  },
+  "prompt": "Use case: precise-object-edit / illustration-story.\nAsset type: paired illustrations for a Russian reading-comprehension micro-story.\nInput image 1 is the edit target and the character, object, room and style reference.\nPrimary edit: remove the adult woman completely from the LEFT scene, and make the child Anya herself pour water from a small transparent pitcher into the green watering can. There must be NO adult anywhere in either scene. The child performs the whole sequence herself.\n\nMatch the provided warm, polished, softly shaded children's book illustration style. Preserve Anya's recognizable face, green eyes, freckles, orange-red hair in two braids, yellow short-sleeved T-shirt and turquoise trousers. Preserve the same green watering can, the same pink flowering plant in a terracotta pot and saucer, the same wooden table, bright window, cream curtains and calm light room. The RIGHT scene already fits the story: keep Anya watering the same potted flower, with the same pose, objects and room composition as closely as possible.\n\nComposition: produce one opaque 2:1 landscape canvas divided precisely at the midpoint into TWO EQUAL SQUARE scenes, each suitable for use as a separate square illustration. Fill each square naturally, with the child, her face, both hands and all important objects safely inside the central 90%. No gutters, borders, labels, captions, numbers, writing, logos or watermark; no rounded corners baked into the asset.\n\nLEFT SQUARE: Anya stands alone at the wooden table, comfortably reaching it. A small green watering can stands upright on the table. Anya pours clean water from a small manageable transparent pitcher into the OPEN TOP of the watering can. She holds the pitcher naturally with both hands, one on its handle and one supporting the body. The pitcher spout is directly above the watering can's top filling opening, and a single clear water stream visibly enters that opening. Keep the watering can's separate long side spout and sprinkler head recognizable. Do not pour water into the watering can's side spout. Her face, her hands, the pitcher, water stream, watering can opening and green can should all be clearly visible without confusing overlaps. The matching potted pink flower remains nearby on the table.\n\nRIGHT SQUARE: the same Anya stands alone at the same table and tilts the SAME green watering can, one hand on the handle and the other supporting it, as in the reference. A gentle visible stream from its sprinkler head reaches the SOIL at the base of the SAME potted flowering plant. Keep her right-panel face, appearance, pose and setting as close to the original as possible. One instantaneous action per panel; no inset extra moments.\n\nStory for semantic guidance only; render NO text:\nАня взяла лейку.\nВ лейке не было воды.\nАня налила воду в лейку.\nАня полила цветок из лейки.\n\nCritical constraints: exactly one child in each panel; no mother, no adult, no adult hands; consistent child's identity, clothing, green watering can, pink flowers, pot, table, room and lighting across both panels. Believable hand anatomy, small pitcher that a child can manage, physically coherent pouring. No spills, no duplicated objects, no decorative additions."
+}

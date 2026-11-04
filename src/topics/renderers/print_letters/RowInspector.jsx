@@ -1,12 +1,24 @@
 import { useState } from "react";
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
-import { SUPPORTS, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
-import { IconUp, IconDown, IconLadder } from "./icons";
+import { SIZES, LINES, GUIDES, DOTS, rowStyle, describeStyle, allElements, elementName, isFull, letterCells, toggleElement } from "./model";
+import OptionPicker from "./OptionPicker";
+import { PlateWords } from "./WordBlock";
+import { allLetterIdx, plateWords } from "./words";
+import {
+  IconUp, IconDown, IconLadder, IconAddRow, IconTrash,
+  IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone, IconArrows, IconSampleToggle,
+} from "./icons";
 
-const PAD_CELL = 40; // px per notebook cell in the element pad
+const LINE_ICONS = { tone: IconLineTone, dash: IconLineDash };
+const GUIDE_ICONS = { full: IconGuideFull, fade: IconGuideFade, none: IconGuideNone };
+const DOT_ICONS = { sample: IconDotsSample, all: IconDotsAll, none: IconDotsNone };
+const withIcons = (list, icons) => list.map((o) => ({ ...o, Icon: icons[o.id] }));
+
+const PAD_CELL = 52; // px per notebook cell in the element pad — the only element control (owner, 2026-11-03)
 const INK = "#2a6b60";
 const IDLE = "#b8bfc9";
 
+// Only the strokes — no dots, numbers or arrows (owner, 2026-11-03); the sheet's sample shows those.
 // The letter drawn large on its own grid; each element is a tap target that
 // toggles whether that element goes into the selected row. Any number of
 // elements can be on — they keep their places inside the letter's frame.
@@ -34,7 +46,7 @@ function ElementPad({ letter, elements, onToggle }) {
             fill="none"
             stroke="transparent"
             strokeWidth={30}
-            strokeLinecap="round"
+            strokeLinecap="butt"
             strokeLinejoin="round"
             className="pl-elpad-hit"
             role="button"
@@ -50,36 +62,33 @@ function ElementPad({ letter, elements, onToggle }) {
   );
 }
 
-// Tiny picture of one element inside the whole letter, for list buttons.
-function ElementIcon({ letter, index }) {
-  const [x, y, vw, vh] = letterFrame(letter);
-  return (
-    <svg viewBox={`${x - 8} ${y - 8} ${vw + 16} ${vh + 16}`} height={22} width={22 * (vw + 16) / (vh + 16)} aria-hidden="true" style={{ overflow: "visible", flexShrink: 0 }}>
-      {letter.strokes.map((s, i) => (
-        <path key={i} d={s.d} fill="none" stroke={i === index ? "currentColor" : "#cfd4db"} strokeWidth={i === index ? 14 : 8} strokeLinecap="round" strokeLinejoin="round" />
-      ))}
-    </svg>
-  );
-}
-
-function Head({ letter, color, title, onMoveRow, canUp, canDown }) {
+// The panel's top: which block / row this is, and everything done to the row itself — add one
+// below, move it, delete it. These used to sit in the top tool bar; the bottom panel now owns the
+// row, the top bar only the block (owner, 2026-11-03: «нелогичное разделение»).
+function Head({ letter, tile = null, color, title, rowActions = null }) {
   return (
     <div className="pl-insp-head">
-      <span className="pl-insp-tile" style={{ "--pl-block-color": color }}>
-        <LetterGlyph letter={letter} heightMm={4.2} variant="plain" />
-      </span>
-      <span className="pl-insp-title">{title}</span>
-      {onMoveRow && (
-        <span className="pl-insp-move">
-          <button type="button" onClick={() => onMoveRow(-1)} disabled={!canUp} aria-label="Строка выше" title="Выше"><IconUp /></button>
-          <button type="button" onClick={() => onMoveRow(1)} disabled={!canDown} aria-label="Строка ниже" title="Ниже"><IconDown /></button>
+      <div className="pl-insp-head-line">
+        <span className={`pl-insp-tile${tile ? " pl-insp-tile--word" : ""}`} style={{ "--pl-block-color": color }}>
+          {tile ?? <LetterGlyph letter={letter} heightMm={4.2} variant="plain" color="#ffffff" weight={15} />}
         </span>
+        <span className="pl-insp-title">{title}</span>
+      </div>
+      {rowActions && (
+        <div className="pl-insp-acts" role="group" aria-label="Строка">
+          <button type="button" onClick={rowActions.onAdd} aria-label="Добавить строку ниже"><IconAddRow /><span>Строка</span></button>
+          {rowActions.onMove && <>
+            <button type="button" onClick={() => rowActions.onMove(-1)} disabled={!rowActions.canUp} aria-label="Строка выше"><IconUp /><span>Выше</span></button>
+            <button type="button" onClick={() => rowActions.onMove(1)} disabled={!rowActions.canDown} aria-label="Строка ниже"><IconDown /><span>Ниже</span></button>
+            <button type="button" className="is-danger" onClick={rowActions.onRemove} aria-label="Удалить строку"><IconTrash /><span>Удалить</span></button>
+          </>}
+        </div>
       )}
     </div>
   );
 }
 
-function LadderButton({ onLadder }) {
+function LadderButton({ onLadder, word = false }) {
   const [asking, setAsking] = useState(false);
   if (asking) {
     return (
@@ -92,20 +101,168 @@ function LadderButton({ onLadder }) {
   }
   return (
     <button type="button" className="pl-ladder" onClick={() => setAsking(true)}>
-      <IconLadder /> Лесенка: собрать букву по шагам
+      <IconLadder /> {word ? "Лесенка: от образца к самостоятельному письму" : "Лесенка: собрать букву по шагам"}
     </button>
   );
 }
 
-// The selected row's own settings — a right-hand panel on wide screens, a
-// bottom sheet on phones (BottomSheet). `peek` is the sheet's folded state:
-// just the header and quick element buttons.
-export default function RowInspector({ letter, color, row, rowIndex, rowCount, onSetElements, onSetSupport, onMoveRow, onLadder, peek = false }) {
+// Block-wide size switch: normal (2 cells) or large (4 cells).
+const FIXED_SIZE_HINT = {
+  bigcell: "На крупной клетке одна буква — одна клетка (1 см), как в пособии. Крупный размер — на обычной клетке.",
+  line: "На линейке размер задаёт линейка: буква стоит на строке и доходит до пунктира. Крупный размер — на обычной клетке.",
+};
+
+function SizeSwitch({ size, onSetSize, paper }) {
+  if (!onSetSize) return null;
+  if (FIXED_SIZE_HINT[paper]) return <span className="pl-insp-hint">{FIXED_SIZE_HINT[paper]}</span>;
+  return (
+    <>
+      <div className="pl-seg" role="radiogroup" aria-label="Размер букв в блоке">
+        {SIZES.map((s) => (
+          <button key={s.id} type="button" role="radio" aria-checked={size === s.id} title={s.hint}
+            className={size === s.id ? "is-on" : ""} onClick={() => onSetSize(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <span className="pl-insp-hint">{SIZES.find((s) => s.id === size)?.hint}</span>
+    </>
+  );
+}
+
+// The row's look: three pickers like the strips above (propis2's icon + drop-down list).
+function LookPickers({ row, blank, onSetStyle, word = false }) {
+  const st = rowStyle(row);
+  return (
+    <section className="pl-insp-sec" aria-label="Как выглядят контуры">
+      <span className="pl-insp-lbl">Контуры</span>
+      <div className="pl-insp-picks" role="group" aria-label="Как выглядят контуры">
+        <OptionPicker label="Линия контура" caption="Линия" options={withIcons(LINES, LINE_ICONS)} value={st.line} disabled={blank || st.guide === "none"} onChange={(line) => onSetStyle({ line })} />
+        <OptionPicker label="Контуры после образца" caption="Контуры" options={withIcons(GUIDES, GUIDE_ICONS)} value={st.guide} disabled={blank} onChange={(guide) => onSetStyle({ guide })} />
+        <OptionPicker label="Точки начала штрихов" caption="Точки" options={withIcons(DOTS, DOT_ICONS)} value={st.dots} disabled={blank} onChange={(dots) => onSetStyle({ dots })} />
+        <div className="pl2-pick">
+          <button type="button" className={`pl2-pick-btn pl2-tool pl-toggle${st.arrows ? " is-on" : ""}`} role="switch" aria-checked={st.arrows}
+            aria-label={`Стрелки направления на образце: ${st.arrows ? "включены" : "выключены"}`} title={st.arrows ? "Стрелки на образце: вкл" : "Стрелки на образце: выкл"}
+            disabled={blank} onClick={() => onSetStyle({ arrows: !st.arrows })}>
+            <span className="pl2-tool-ico"><IconArrows /></span>
+            <span className="pl2-cap">Стрелки</span>
+          </button>
+        </div>
+        {/* syllables and words: the sample at the row's start is optional — the word is the same in
+            every row (a «sample only» row keeps it) */}
+        {word && (() => {
+          const on = row.sample !== false || st.guide === "none";
+          return (
+            <div className="pl2-pick">
+              <button type="button" className={`pl2-pick-btn pl2-tool pl-toggle${on ? " is-on" : ""}`} role="switch" aria-checked={on}
+                aria-label={`Образец в начале строки: ${on ? "есть" : "нет"}`} title={st.guide === "none" ? "В строке «только образец» он нужен" : on ? "Образец в начале строки: есть" : "Образец в начале строки: нет"}
+                disabled={blank || st.guide === "none"} onClick={() => onSetStyle({ sample: !on })}>
+                <span className="pl2-tool-ico"><IconSampleToggle /></span>
+                <span className="pl2-cap">Образец</span>
+              </button>
+            </div>
+          );
+        })()}
+      </div>
+      <span className="pl-insp-hint">{blank ? "Пустая строка — ребёнок пишет сам." : describeStyle(row)}</span>
+    </section>
+  );
+}
+
+function BlockSection({ size, onSetSize, paper, onLadder, word }) {
+  return (
+    <section className="pl-insp-sec pl-insp-sec--block" aria-label="Весь блок">
+      <span className="pl-insp-lbl">Весь блок</span>
+      <SizeSwitch size={size} onSetSize={onSetSize} paper={paper} />
+      <LadderButton onLadder={onLadder} word={word} />
+      <span className="pl-insp-hint">{word
+        ? "Слово по пунктиру → пропущена гласная → затухает → только образец → пусто."
+        : "1 → 1+2 → … → вся буква → затухают → только образец → пусто. Потом любую строку можно поменять."}</span>
+    </section>
+  );
+}
+
+// The word drawn large: each letter a tile; tapping one leaves it out of the contours after the
+// sample (its letter-cell stays blank — «впиши пропущенную»). The sample keeps the whole word.
+function WordPad({ text, byId, elements, onToggle }) {
+  const on = new Set(elements);
+  return (
+    <div className="pl-wordpad">
+      {[...text].map((ch, i) => {
+        const letter = byId[ch];
+        if (!letter) return null;
+        return (
+          <button key={i} type="button" className={`pl-wordpad-l${on.has(i) ? " is-on" : ""}`} aria-pressed={on.has(i)}
+            aria-label={`${ch}: ${on.has(i) ? "в контурах" : "пропущена"}`} onClick={() => onToggle(i)}>
+            <LetterGlyph letter={letter} heightMm={11} variant="plain" color={on.has(i) ? "#1f3a8a" : "#b8c0cc"} weight={10} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// A syllable / word block's row (words.js): which word, which letters stay on the contours, the
+// look — and the block's size and ladder.
+function WordInspector({ block, byId, color, row, rowIndex, rowCount, size, paper, onSetSize, onSetElements, onSetText, onSetStyle, onMoveRow, onAddRow, onRemoveRow, onLadder }) {
+  const tile = <PlateWords words={plateWords(block)} byId={byId} heightMm={4.2} />;
+  const label = block.words.join(" ");
+  if (!row) {
+    return (
+      <div className="pl-insp">
+        <Head tile={tile} color={color} title={label} rowActions={{ onAdd: onAddRow }} />
+        <p className="pl-insp-hint">Выберите строку в блоке, чтобы настроить её буквы и контуры.</p>
+        <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word />
+      </div>
+    );
+  }
+  const text = row.text ?? block.words[0];
+  const elements = row.elements;
+  const blank = elements.length === 0;
+  const all = allLetterIdx(text);
+  const toggle = (i) => onSetElements(toggleElement(elements, i));
+  return (
+    <div className="pl-insp">
+      <Head tile={tile} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`}
+        rowActions={{ onAdd: onAddRow, onMove: onMoveRow, onRemove: onRemoveRow, canUp: rowIndex > 0, canDown: rowIndex < rowCount - 1 }} />
+
+      {block.words.length > 1 && (
+        <section className="pl-insp-sec" aria-label="Что пишем в строке">
+          <span className="pl-insp-lbl">Что пишем</span>
+          <div className="pl-seg" role="radiogroup" aria-label="Слог или слово строки">
+            {block.words.map((w) => (
+              <button key={w} type="button" role="radio" aria-checked={text === w} className={text === w ? "is-on" : ""} onClick={() => onSetText(w)}>{w}</button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="pl-insp-sec" aria-label="Буквы">
+        <span className="pl-insp-lbl">Буквы — нажмите, чтобы пропустить</span>
+        <WordPad text={text} byId={byId} elements={elements} onToggle={toggle} />
+        <div className="pl-insp-row">
+          <button type="button" className={`pl-el pl-el--grow${elements.length === all.length ? " is-on" : ""}`} onClick={() => onSetElements(all)}>{text.length > 2 ? "Всё слово" : "Весь слог"}</button>
+          <button type="button" className={`pl-el pl-el--grow${blank ? " is-on" : ""}`} onClick={() => onSetElements([])}>Пустая строка</button>
+        </div>
+      </section>
+
+      <LookPickers row={row} blank={blank} onSetStyle={onSetStyle} word />
+      <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word />
+    </div>
+  );
+}
+
+// The selected row's own settings — a right-hand panel on a computer, the
+// docked panel at the bottom on a phone. Elements are picked only on the big
+// letter (ElementPad) — no duplicate list beside it (owner, 2026-11-03).
+export default function RowInspector(props) {
+  const { letter, wordBlock, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetStyle, onMoveRow, onAddRow, onRemoveRow, onLadder } = props;
+  if (wordBlock) return <WordInspector {...props} block={wordBlock} size={size} paper={paper} />;
   if (!letter) {
     return (
       <div className="pl-insp pl-insp--empty">
         <p>Нажмите на строку на листе — здесь появятся её элементы и опора.</p>
-        <p>Новый блок — кнопка «Буква» на панели.</p>
+        <p>Новый блок — кнопка «Блок» на панели: буква, слог или слово.</p>
       </div>
     );
   }
@@ -113,9 +270,9 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, o
   if (!row) {
     return (
       <div className="pl-insp">
-        <Head letter={letter} color={color} title={`Буква ${letter.label}`} />
-        {!peek && <p className="pl-insp-hint">Выберите строку в блоке, чтобы настроить её элементы и опору.</p>}
-        <LadderButton onLadder={onLadder} />
+        <Head letter={letter} color={color} title={`Буква ${letter.label}`} rowActions={{ onAdd: onAddRow }} />
+        <p className="pl-insp-hint">Выберите строку в блоке, чтобы настроить её элементы и опору.</p>
+        <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word={false} />
       </div>
     );
   }
@@ -126,60 +283,24 @@ export default function RowInspector({ letter, color, row, rowIndex, rowCount, o
   const toggle = (i) => onSetElements(toggleElement(elements, i));
 
   return (
-    <div className={`pl-insp${peek ? " pl-insp--peek" : ""}`}>
-      <Head letter={letter} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`} onMoveRow={peek ? null : onMoveRow} canUp={rowIndex > 0} canDown={rowIndex < rowCount - 1} />
+    <div className="pl-insp">
+      <Head letter={letter} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`}
+        rowActions={{ onAdd: onAddRow, onMove: onMoveRow, onRemove: onRemoveRow, canUp: rowIndex > 0, canDown: rowIndex < rowCount - 1 }} />
 
-      {peek ? (
-        <div className="pl-insp-pills">
-          {letter.strokes.map((_, i) => (
-            <button key={i} type="button" className={`pl-el${elements.includes(i) ? " is-on" : ""}`} aria-pressed={elements.includes(i)} aria-label={`${i + 1}: ${elementName(letter, i)}`} onClick={() => toggle(i)}>
-              <ElementIcon letter={letter} index={i} />{i + 1}
-            </button>
-          ))}
-          <button type="button" className={`pl-el${full ? " is-on" : ""}`} onClick={() => onSetElements(allElements(letter))}>Вся</button>
-          <button type="button" className={`pl-el${blank ? " is-on" : ""}`} onClick={() => onSetElements([])}>Пусто</button>
+      <section className="pl-insp-sec" aria-label="Элементы">
+        <span className="pl-insp-lbl">Элементы — нажмите на штрих буквы</span>
+        <div className="pl-insp-els">
+          <ElementPad letter={letter} elements={elements} onToggle={toggle} />
         </div>
-      ) : (
-        <>
-          <section className="pl-insp-sec" aria-label="Элементы">
-            <span className="pl-insp-lbl">Элементы — нажмите на букве</span>
-            <div className="pl-insp-els">
-              <ElementPad letter={letter} elements={elements} onToggle={toggle} />
-              <div className="pl-insp-list">
-                {letter.strokes.map((_, i) => (
-                  <button key={i} type="button" className={`pl-el pl-el--wide${elements.includes(i) ? " is-on" : ""}`} aria-pressed={elements.includes(i)} onClick={() => toggle(i)}>
-                    <ElementIcon letter={letter} index={i} />
-                    <span>{i + 1} · {elementName(letter, i)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="pl-insp-row">
-              <button type="button" className={`pl-el pl-el--grow${full ? " is-on" : ""}`} onClick={() => onSetElements(allElements(letter))}>Вся буква</button>
-              <button type="button" className={`pl-el pl-el--grow${blank ? " is-on" : ""}`} onClick={() => onSetElements([])}>Пустая строка</button>
-            </div>
-          </section>
+        <div className="pl-insp-row">
+          <button type="button" className={`pl-el pl-el--grow${full ? " is-on" : ""}`} onClick={() => onSetElements(allElements(letter))}>Вся буква</button>
+          <button type="button" className={`pl-el pl-el--grow${blank ? " is-on" : ""}`} onClick={() => onSetElements([])}>Пустая строка</button>
+        </div>
+      </section>
 
-          <section className="pl-insp-sec" aria-label="Опора">
-            <span className="pl-insp-lbl">Опора</span>
-            <div className="pl-seg" role="radiogroup" aria-label="Опора в строке">
-              {SUPPORTS.map((s) => (
-                <button key={s.id} type="button" role="radio" aria-checked={row.support === s.id} disabled={blank} title={s.hint}
-                  className={row.support === s.id ? "is-on" : ""} onClick={() => onSetSupport(s.id)}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-            <span className="pl-insp-hint">{blank ? "Пустая строка — ребёнок пишет сам." : SUPPORTS.find((s) => s.id === row.support)?.hint}</span>
-          </section>
+      <LookPickers row={row} blank={blank} onSetStyle={onSetStyle} />
 
-          <section className="pl-insp-sec pl-insp-sec--block" aria-label="Весь блок">
-            <span className="pl-insp-lbl">Весь блок</span>
-            <LadderButton onLadder={onLadder} />
-            <span className="pl-insp-hint">1 → 1+2 → … → вся буква → бледнеет → образец → пусто. Потом любую строку можно поменять.</span>
-          </section>
-        </>
-      )}
+      <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word={false} />
     </div>
   );
 }

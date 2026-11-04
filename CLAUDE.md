@@ -248,16 +248,22 @@ per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
 Printed-letter worksheet/notebook constructor for preschoolers (4–6yo), not cursive — a separate
 topic from `propis2` (cursive) and from `letter_writing` (hidden/paid, **independent — don't touch**).
+The method's primary source is V. A. Ilyukhina's workbooks «Волшебные линии» №1/№2 (`docs/references/ilyukhina/`,
+analysis in `docs/print-letters-ilyukhina.md`) — letter shape, proportions, stroke order follow them.
 **Read the «Handoff» section of `docs/print-letters.md` first** (current branch, what's built, the
 owner's decisions, the screenshot harness, past process mistakes), then its «Разворот» sections for
 why each earlier shape was replaced. Key facts: glyphs live in notebook-cell coordinates in
-`tools/print_letters/topic.json` (1 cell = 50 units, letters 2 cells tall, `cells` wide — most 1,
-Ш 2), so strokes on cell boundaries print exactly on grid lines — never stretch or crop them;
+`tools/print_letters/topic.json` (1 cell = 50 units, letters 2 cells tall; width per Ilyukhina — half a
+letter-cell = 1 cell, or two thirds (`wide`: Т Ш … = 4/3 cells); one copy per letter-cell = 2 cells), so
+strokes on cell boundaries print exactly on grid lines — never stretch or crop them;
 every length in a block is a whole number of 5mm cells (`model.js`); format А4/А5 is notebook-wide
 and the sheet is drawn at real printable size; rows are `{elements, support}` picked in the row
 panel (`RowInspector.jsx`, right side; bottom sheet on phones). UI copies `propis2`'s editor
-model, palette and icons (copied, not imported from `src/features/propis2/`). Registered in
-`engineRegistry.js`/`registry.js` but **not yet in `public/decks/catalog.json`** (no ZIP yet).
+model, palette and icons (copied, not imported from `src/features/propis2/`). Opens on «Мои тетради»
+(`PrintLettersHome.jsx`): notebooks saved on the device and in the account (`print_letters:nb:<id>` kv
+documents via the `accountKv` prop that `SessionScreen` passes to renderers — `src/topics/accountKv.js`),
+plus ready notebooks defined in `library.js`. Screens use the device's full width (owner's rule). Since deck 0.2.1 the topic opens full-screen like `propis2` (`ParamsRoute` → `src/features/printLetters/PrintLettersScreen.jsx`, no session header) and its whole UI is a renamed copy of propis2's stylesheet/editor layout (`propis2-style.css`, `plb-`/`pl2-` prefixes). Since deck 0.2.5 a block can also be a syllable or word (`words.js`, `WordBlock.jsx`, «Блок» picker) — see «Слоги и слова» in the handoff. Registered in
+`engineRegistry.js`/`registry.js`; deck ZIP built by `node tools/print_letters/build.mjs`, catalog status `beta`. Since deck 0.3.0 there is a second mode, «Пишу на экране» (`screen_write`): the child writes the letter with a finger on screen (levels «Смотрю»/«Обвожу»/«Сам», a stroke lifted too early or leaving the track burns), an ordinary session, not the full-screen constructor — read `docs/print-letters-screen-writing.md` first (owner's decisions, what's done, what isn't); code in `src/topics/renderers/print_letters/screenWrite/`.
 
 ## Important
 

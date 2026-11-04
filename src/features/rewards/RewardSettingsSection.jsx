@@ -6,17 +6,11 @@ import "./rewards.css";
 export default function RewardSettingsSection({ value, onChange }) {
   useUiTranslation();
   const settings = normalizeRewardSettings(value);
-  const flexible = settings.algorithm === "flexible";
   const change = patch => onChange({ ...settings, ...patch });
   return <section className="reward-settings" aria-label={text("title")}>
     <h3>{text("title")}</h3>
     <p>{text("rollout")}</p>
-    <div className="reward-settings__choices" role="group" aria-label={text("title")}>
-      {["legacy", "flexible"].map(algorithm => <button type="button" key={algorithm}
-        aria-pressed={settings.algorithm === algorithm} onClick={() => change({ algorithm })}>{text(algorithm)}</button>)}
-    </div>
-    <p className="reward-settings__notice">{flexible ? text("rollback") : text("legacyHint")}</p>
-    <fieldset disabled={!flexible}>
+    <fieldset>
       <legend>{text("duration")}</legend>
       <div className="reward-settings__choices reward-settings__choices--wrap">
         {[["60", "minute"], ["120", "two"], ["180", "three"]].map(([duration, label]) =>

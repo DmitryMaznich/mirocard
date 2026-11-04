@@ -1,13 +1,13 @@
 export const DEFAULT_REWARD_SETTINGS = Object.freeze({
-  algorithm: "legacy", duration: "120", animation: "normal", sound: false, strictStars: true, lossMode: "one",
+  algorithm: "flexible", duration: "120", animation: "normal", sound: false, strictStars: true, lossMode: "one",
 });
 
-// This module is shared by storage and the app. Unknown/old records keep the
-// original behavior; opting out retains the saved experimental choices.
+// Shared by storage and the app. Keep the algorithm field for older clients,
+// but always use the current policy, including for saved legacy records.
 export function normalizeRewardSettings(raw) {
   const value = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
   return {
-    algorithm: value.algorithm === "flexible" ? "flexible" : "legacy",
+    algorithm: "flexible",
     duration: value.duration === "end" ? "180" : ["60", "120", "180"].includes(String(value.duration)) ? String(value.duration) : "120",
     animation: value.animation === "soft" ? "soft" : "normal",
     sound: value.sound === true,
@@ -17,8 +17,7 @@ export function normalizeRewardSettings(raw) {
 }
 
 export function effectiveRewardSettings(raw) {
-  const settings = normalizeRewardSettings(raw);
-  return settings.algorithm === "flexible" ? settings : { ...DEFAULT_REWARD_SETTINGS };
+  return normalizeRewardSettings(raw);
 }
 
 export function rewardVideoSeconds(settings) {
@@ -26,7 +25,7 @@ export function rewardVideoSeconds(settings) {
 }
 
 export function rewardPolicy(settings, lossMode) {
-  return { version: settings.algorithm === "flexible" ? 2 : 1, lossMode: lossMode === "all" ? "all" : "one" };
+  return { version: 2, lossMode: lossMode === "all" ? "all" : "one" };
 }
 
 export function applyRewardMistake(state, intermediate = false) {

@@ -10,7 +10,7 @@ import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
 const mocks = vi.hoisted(() => ({ persist: vi.fn(), start: vi.fn() }));
 vi.mock("@/core/linkUtils", () => ({ persistStudentTopicLink: mocks.persist }));
 vi.mock("@/features/timer/TimerContext", () => ({ useTimer: () => ({ markSessionStart: mocks.start }) }));
-const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.1.zip"));
+const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.4.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const initial = useAppStore.getState();
 let root, host;
@@ -28,6 +28,7 @@ it("opens the real micro-story settings and starts the default fifteen stories w
   await act(async () => root.render(<ParamsScreen />));
   expect(host.querySelectorAll('.story-selection-options input')).toHaveLength(16);
   expect(host.textContent).toContain("Мяч под стулом");
+  expect(host.textContent).not.toContain("Понятия");
   expect(host.querySelector('.story-quiz-param__invalid')).toBeNull();
   const start = [...host.querySelectorAll('button')].find(button => button.textContent.trim() === "Начать занятие");
   expect(start).toBeTruthy(); expect(start.disabled).toBe(false);

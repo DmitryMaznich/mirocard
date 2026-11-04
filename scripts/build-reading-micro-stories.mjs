@@ -4,7 +4,8 @@ import JSZip from "jszip";
 import sharp from "sharp";
 import { applyReleaseTopicCopy, RELEASE_TOPIC_COPY } from "../src/topics/releaseTopicCopy.js";
 
-const version = "2.0.1";
+const version = "2.0.4";
+const appVersion = JSON.parse(await readFile("package.json", "utf8")).version;
 const source = JSON.parse(await readFile("content/reading_short_stories/micro/stories.json", "utf8"));
 const illustrationTemplate = JSON.parse(await readFile("docs/design/reading-sheet-illustrations.template.json", "utf8"));
 function frameCrop(width, height, spec) {
@@ -24,7 +25,9 @@ const stripSyllables = (value) => value.replace(/(\p{L})-(?=\p{L})/gu, "$1");
 const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v1.6.4.zip"));
 const previous = JSON.parse(await zip.file("topic.json").async("string"));
 const legacyQuestions = await zip.file("questions.txt").async("string");
-const microQuestions = source.map((story) => `# ${story.title}\n\n${story.find.map(([question, target]) => `? ${question}\n+ ${target}`).join("\n\n")}\n\n* ${story.discuss}`).join("\n\n");
+const previousMicroZip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.3.zip"));
+const previousMicroManifest = JSON.parse(await previousMicroZip.file("topic.json").async("string"));
+const microQuestions = source.map((story) => `# ${story.title}\n\n${story.questions.map(({ prompt, targets }) => `? ${prompt}\n${targets.map((target) => `+ ${target}`).join("\n")}`).join("\n\n")}`).join("\n\n");
 const microStories = [];
 
 for (const story of source) {
@@ -46,9 +49,8 @@ for (const story of source) {
   microStories.push({
     id: story.id, kind: "story", title: { ru: story.title },
     storyStage: "micro", level: 1, character: story.character,
-    sentenceLayout: true, minimumFindQuestions: 3,
+    sentenceLayout: true, minimumFindQuestions: 5,
     illustrationSupport: "on_request", image: images[0].file, images,
-    discussionPrompt: story.discuss, discussionAnswer: story.answer,
     lines: story.lines.map((syllableText, index) => ({ id: `l${index + 1}`, text: stripSyllables(syllableText), syllableText })),
   });
 }
@@ -73,7 +75,7 @@ const questions = `${microQuestions}\n\n${legacyQuestions.trim()}\n`;
 const manifest = applyReleaseTopicCopy({
   ...previous,
   meta: {
-    ...previous.meta, version, minAppVersion: "1.0.2767", defaultStoryStage: "micro",
+    ...previous.meta, version, minAppVersion: appVersion, defaultStoryStage: "micro",
     conceptCount: microStories.length + previous.texts.length,
     sessionConfig: { ...previous.meta.sessionConfig, maxSize: 27 },
     description: {
@@ -83,14 +85,14 @@ const manifest = applyReleaseTopicCopy({
   },
   modes,
   texts: [...microStories, ...previous.texts.map((story) => ({ ...story, storyStage: "extended", level: 2 }))],
-  storyQuiz: { ...previous.storyQuiz, defaultText: questions },
+  storyQuiz: { ...previous.storyQuiz, defaultText: questions, previousDefaultTexts: [...(previousMicroManifest.storyQuiz.previousDefaultTexts ?? []), previousMicroManifest.storyQuiz.defaultText] },
 });
 manifest.meta.copyHash = createHash("sha256").update(JSON.stringify(RELEASE_TOPIC_COPY.reading_short_stories)).digest("hex").slice(0, 16);
 zip.file("topic.json", `${JSON.stringify(manifest, null, 2)}\n`);
 zip.file("questions.txt", questions);
 zip.file("micro-sources.json", JSON.stringify({
   text: "Original educational drafts prepared for this project; see content/reading_short_stories/micro/stories.json.",
-  illustrations: "Generated for this project with OpenAI image_gen; four diptychs recomposed for square frames on 2026-11-02. No third-party storybook illustrations used.",
+  illustrations: "Generated for this project with OpenAI image_gen. Five diptychs revised for the agreed editorial edition on 2026-11-03: cat water, puddle, watering can, kitten, ball throwing. No third-party storybook illustrations used.",
   sourceNotes: "Separate character reference, prompts and original two-panel images are retained in scripts/assets/reading_short_stories/micro/.",
 }, null, 2));
 const filename = `reading_short_stories_v${version}.zip`;
@@ -116,4 +118,4 @@ if (inventoryEntry) {
   };
   await writeFile(inventoryPath, `${JSON.stringify(inventory, null, 2)}\n`);
 }
-console.log(`Built ${filename}: ${microStories.length} micro-stories, 30 frames, 60 questions; ${previous.texts.length} previous stories retained.`);
+console.log(`Built ${filename}: ${microStories.length} micro-stories, 30 frames, ${source.reduce((n, s) => n + s.questions.length, 0)} questions; ${previous.texts.length} previous stories retained.`);

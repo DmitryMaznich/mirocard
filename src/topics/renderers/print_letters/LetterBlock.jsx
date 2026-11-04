@@ -1,6 +1,6 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { LETTER_H, TILE, GAP, blockCells, rowCells, copiesPerRow, copyPlan, letterCells } from "./model";
+import { TILE, LETTER_H, plateHeightCells, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -12,27 +12,35 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // Every row draws its elements inside the SAME frame — the whole letter's
 // grid box — so an isolated element (Н's crossbar) sits exactly where it
 // sits in the full letter, and the label tile shows that same stroke shape.
-// What each copy draws (dotted / start dots / fading / one sample) comes
-// from the row's support level via copyPlan().
-export default function LetterBlock({ letter, color, rows, format, selected, selectedRowId, onSelectBlock, onSelectRow }) {
+// What each copy draws comes from the row's three options (line, contours,
+// dots) via copyPlan().
+export default function LetterBlock({ letter, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow, style }) {
   const frame = letterFrame(letter);
-  const w = letterCells(letter);
-  const copies = copiesPerRow(letter, format);
+  const w = letterW(letter, size);
+  const h = letterH(size);
+  const g = paperGap(paper);
+  const plateH = plateHeightCells(rows.length, size, paper);
   return (
     <div
       className={`pl-block${selected ? " is-selected" : ""}`}
-      style={{ outlineColor: color, width: mm(blockCells(format)), minHeight: mm(GAP + LETTER_H + GAP), paddingBottom: mm(GAP) }}
+      style={{ ...style, outlineColor: color, width: mm(blockCells(format)), height: mm(Math.max(TILE, rows.length * (g + h) + g)) }}
       onClick={(e) => { e.stopPropagation(); onSelectBlock(); }}
     >
       <div
         className="pl-block-tile"
-        style={{ top: mm(GAP), height: mm(TILE), width: mm(TILE), "--pl-block-color": color }}
+        style={{ height: mm(plateH), width: mm(TILE), paddingTop: mm(Math.floor((plateH - LETTER_H) / 2)), "--pl-block-color": color }}
         aria-label={`Буква ${letter.label}`}
       >
-        <LetterGlyph letter={letter} frame={frame} heightMm={TILE * FINE_MM * 0.6} variant="plain" />
+        {/* the plate letter is a letter's own height, 2 cells, centred in the 4-cell plate: its top
+            and bottom lie on grid lines like the letters in the rows (owner, 2026-11-03) */}
+        <LetterGlyph letter={letter} frame={frame} heightMm={LETTER_H * FINE_MM} variant="plain" color="#ffffff" weight={15} />
       </div>
 
-      {rows.map((row) => {
+      {rows.map((row, index) => {
+        const beside = rowBesidePlate(index, size, paper);
+        const copies = copiesPerRow(letter, format, beside, size, paper);
+        const start = rowStartCells(beside, paper);
+        const width = rowCells(format, beside, paper);
         const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
         const miniLetter = { ...letter, strokes };
         const plan = copyPlan(row, copies);
@@ -40,22 +48,31 @@ export default function LetterBlock({ letter, color, rows, format, selected, sel
           <div
             key={row.id}
             className={`pl-row-wrap${row.id === selectedRowId ? " is-selected" : ""}`}
-            style={{ paddingTop: mm(GAP), paddingLeft: mm(TILE + GAP) }}
+            style={{ position: "absolute", top: mm(index * (g + h)), left: 0, right: 0, paddingTop: mm(g), paddingLeft: mm(start) }}
             onClick={(e) => { e.stopPropagation(); onSelectRow(row.id); }}
           >
-            <div className="pl-row" style={{ height: mm(LETTER_H), width: mm(rowCells(format)), gap: mm(GAP) }}>
+            {isRuled(paper) && (
+              <div
+                className="pl-ruling"
+                aria-hidden="true"
+                style={{ left: mm(start), top: mm(g), width: mm(width), height: mm(h) }}
+              />
+            )}
+            <div className="pl-row" style={{ height: mm(h), width: mm(width) }}>
               {plan.map((p, i) => (
-                <div key={i} className="pl-cell" style={{ width: mm(w), height: mm(LETTER_H) }}>
+                <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? w : copyPitch(size)), height: mm(h) }}>
                   {p && (
                     <LetterGlyph
-                      key={`${row.elements.join(",")}-${p.variant}`}
+                      key={`${row.elements.join(",")}-${p.variant}-${p.dots ? 1 : 0}-${p.arrows === false ? 0 : 1}`}
                       letter={miniLetter}
                       frame={frame}
-                      heightMm={LETTER_H * FINE_MM}
+                      heightMm={h * FINE_MM}
                       widthMm={w * FINE_MM}
                       variant={p.variant}
                       opacity={p.opacity}
                       tappable={p.variant === "sample"}
+                      dots={p.dots}
+                      arrows={p.arrows !== false}
                     />
                   )}
                 </div>

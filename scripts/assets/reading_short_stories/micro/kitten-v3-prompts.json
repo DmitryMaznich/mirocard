@@ -1,0 +1,18 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "useCase": "identity-preserve / illustration-story",
+  "date": "2026-11-03",
+  "storyId": "micro_red_pencil",
+  "title": "Котёнок",
+  "reference": {
+    "role": "edit target and character/style reference",
+    "file": "scripts/assets/reading_short_stories/micro/micro_book.png"
+  },
+  "destination": "scripts/assets/reading_short_stories/micro/micro_kitten-square-v3.png",
+  "generatedSource": "C:/Users/dmazn/.codex/generated_images/01a19897-63f8-7732-9ad1-7dffb6f41e28/exec-72211083-65a4-42b5-a0e2-9f662b0ed06c.png",
+  "frames": [
+    "Аня сидит на диване и гладит подошедшего котёнка.",
+    "Котёнок спит на коленях у Ани."
+  ],
+  "prompt": "Use case: identity-preserve / illustration-story.\nAsset type: two paired educational story illustrations.\nInput image 1 is the edit target and the reference for Anya's identity, clothes, blue sofa, bookcase, room, palette and illustration style. Replace the story about a book with the new kitten story below, preserving the same recognizable Anya and room.\n\nStory, for semantic guidance only; render NO text:\nАня сидела на диване.\nК Ане подошёл котёнок.\nАня погладила котёнка.\nКотёнок запрыгнул к Ане на колени.\nКотёнок уснул.\n\nOne opaque landscape canvas with aspect ratio 2:1, containing TWO EQUAL SQUARE scenes exactly side by side. Each scene must work independently when cropped as a square. No gutter, border, labels, speech bubbles, writing, numbers, logos, or watermarks. Important content inside the central 90% of each scene. Keep the warm, polished, softly shaded children's book style of the reference. Calm sparse light room.\n\nAnya is the SAME young child as reference: orange-red hair in TWO braids, green eyes, freckles, yellow short-sleeved T-shirt, turquoise trousers and white sneakers. The kitten is one small grey tabby kitten with a white chest and white paws. It must be clearly a KITTEN rather than an adult cat. Identical markings, size and proportions across both panels.\n\nLEFT SQUARE: Anya sits on the same blue sofa with both feet on the floor. A small grey-and-white tabby kitten has come right up to her feet on the floor beside the sofa. Anya leans forward just enough to gently stroke the top of the kitten's head or upper back with one hand. Her other hand rests on her own knee. The friendly kitten is awake, standing naturally on all four paws, close enough for the stroke without Anya stretching impossibly. Show the interaction, both characters' faces, her stroking hand, kitten's whole body including its paws and tail, and enough of the blue sofa to make her seated position unmistakable. No book or pencil in Anya's hands or on her lap.\n\nRIGHT SQUARE: same fixed room layout and camera, same Anya still sitting on the same blue sofa. The SAME kitten is now curled up ASLEEP directly ON HER LAP, resting across the tops of her thighs, eyes closed and body relaxed. Its whole body and curled tail are visible; its position on her knees is unmistakable. Anya looks down calmly at it, with her hands resting gently and naturally around the kitten without hiding it. No book or pencil on her lap.\n\nContinuity: preserve sofa color/shape, pale wall, warm wooden floor, small cream rug, bookcase and room plant from the reference. Same furniture positions in both scenes; do not swap the sofa and bookcase. Exactly one child and one kitten per scene. No adults, no extra pets, no extra narrative events, no repeated action within a single panel, no floating or anatomically merged hands/paws. Keep all essential meaning readable at small mobile-screen sizes."
+}
