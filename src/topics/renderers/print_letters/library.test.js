@@ -2,13 +2,29 @@ import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import { pageOverflows } from "./model";
 import {
-  SYNC_PREFIX, copyNotebook, emptyLibrary, mergeRemote, newNotebook, notebookJson, putNotebook, readyNotebooks, removeNotebook,
+  SYNC_PREFIX, copyNotebook, emptyLibrary, lessonNotebook, mergeRemote, newNotebook, notebookJson, putNotebook, readyNotebooks, removeNotebook,
 } from "./library";
 
 const byId = Object.fromEntries(topic.cards.map((c) => [c.id, c]));
 const item = (nb) => ({ key: `${SYNC_PREFIX}${nb.id}`, value: nb });
 
 describe("print_letters notebooks", () => {
+  it("«Лист для тетради»: a block of four rows per letter, on the 5mm cell, every page fits A4", () => {
+    const letters = ["Г", "Т", "П", "Н", "Ш", "Ж", "О", "Ю"].map((id) => byId[id]);
+    const nb = lessonNotebook(letters, "Г Т … · 4 ноября");
+    const blocks = nb.pages.flatMap((p) => p.blocks);
+    expect(blocks.map((b) => b.letterId)).toEqual(["Г", "Т", "П", "Н", "Ш", "Ж", "О", "Ю"]);
+    for (const b of blocks) {
+      expect(b.rows).toHaveLength(4);
+      expect(b.rows[0].elements).toEqual(byId[b.letterId].strokes.map((_, i) => i));
+      expect(b.rows[3].elements).toEqual([]);
+    }
+    for (const p of nb.pages) {
+      expect(p.paper).toBe("cell");
+      expect(pageOverflows(p, "a4")).toBe(false);
+    }
+  });
+
   it("takes the newer version of each notebook from the account, keeps the newer local one", () => {
     const a = { ...newNotebook("A"), updatedAt: 100 };
     const b = { ...newNotebook("B"), updatedAt: 300 };

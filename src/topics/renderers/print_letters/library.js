@@ -161,6 +161,46 @@ export function mergeRemote(lib, items) {
   return { lib: merged, push };
 }
 
+// ---- «Лист для тетради» (the end of a «Пишу на экране» lesson) ------------------
+// (owner, 2026-11-04: «основной блок на каждую букву… 3-4 строки будет достаточно») The letters the child
+// has just written on the screen, on paper: one block per letter on the 5mm cell, in the lesson's order —
+// a dotted row with start dots, a fading row, a sample and write on, a blank row from memory. Saved to
+// «Мои тетради» as an ordinary notebook (the adult can print it or edit it in the constructor).
+export const OPEN_KEY = "print_letters:open"; // sessionStorage: a notebook id to open when the topic opens
+
+export function paperRows(letter) {
+  const all = allElements(letter);
+  return [
+    { elements: all, ...DEFAULT_STYLE },
+    { elements: all, line: "tone", guide: "fade", dots: "all", arrows: true },
+    { elements: all, line: "tone", guide: "none", dots: "sample", arrows: true },
+    { elements: [], ...DEFAULT_STYLE },
+  ];
+}
+
+export function lessonNotebook(letters, title, at = Date.now()) {
+  const blocks = letters.map((letter, i) => ({
+    id: newId(), letterId: letter.id, color: PALETTE[i % PALETTE.length], size: 2,
+    rows: paperRows(letter).map((r) => ({ id: newId(), ...r })),
+  }));
+  const pages = [];
+  let cur = [];
+  for (const b of blocks) {
+    if (cur.length && pageOverflows({ paper: "cell", blocks: [...cur, b] }, "a4")) { pages.push({ id: newId(), paper: "cell", blocks: cur }); cur = []; }
+    cur.push(b);
+  }
+  pages.push({ id: newId(), paper: "cell", blocks: cur });
+  return reflowNotebook({ id: newId(), title, format: "a4", pages, createdAt: at, updatedAt: at });
+}
+
+// Into this device's library and the account (the constructor merges both when it opens).
+export function addNotebook(nb, accountKv) {
+  const next = putNotebook(loadLocal(), nb);
+  saveLocal(next);
+  if (accountKv?.put) Promise.resolve(accountKv.put(docKey(nb.id), nb)).catch(() => {});
+  return nb;
+}
+
 // ---- automatic page breaks ---------------------------------------------------
 // (owner, 2026-11-03: «авто разрыв и перенос на следующую страницу») After every change, a page whose
 // blocks no longer fit its sheet passes the overflow on, in order:

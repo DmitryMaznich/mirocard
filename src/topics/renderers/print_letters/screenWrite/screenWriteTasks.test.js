@@ -25,7 +25,8 @@ describe("print_letters engine — «Пишу на экране»", () => {
 
   it("passes the adult's settings to the task", () => {
     const [t] = generateTasks(mode, topic, 500, { letters: ["П"], level: "free", width: "narrow", hidden: true, sound: false });
-    expect(t).toMatchObject({ level: "free", width: "narrow", hidden: true, sound: false });
+    expect(t).toMatchObject({ level: "free", width: "narrow", sound: false });
+    expect(t.hidden).toBeUndefined(); // «Спрятанная буква» removed (owner, 2026-11-04)
   });
 
   it("names the letters to go back to and on to (the set ends after its last letter)", () => {

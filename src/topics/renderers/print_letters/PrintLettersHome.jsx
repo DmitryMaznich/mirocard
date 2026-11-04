@@ -4,7 +4,7 @@ import ConstructorView from "./ConstructorView";
 import PrintPages from "./PrintPages";
 import usePdfExport from "./usePdfExport";
 import {
-  SYNC_PREFIX, clearDraft, copyNotebook, docFor, docKey, loadDraft, loadLocal, mergeRemote, newNotebook, notebookJson,
+  OPEN_KEY, SYNC_PREFIX, clearDraft, copyNotebook, docFor, docKey, loadDraft, loadLocal, mergeRemote, newNotebook, notebookJson,
   putNotebook, READY_SECTIONS, readyNotebooks, reflowNotebook, removeNotebook, saveDraft, saveLocal, sortedNotebooks,
 } from "./library";
 import { IconAddPage, IconDuplicate, IconEditPage, IconNotebook, IconPdf, IconTrash } from "./icons";
@@ -60,7 +60,14 @@ export default function PrintLettersHome({ task, onBack, onAdvance, accountKv, m
   const setLib = (next) => { libRef.current = next; setLibState(next); saveLocal(next); };
 
   // the notebook being edited: { nb, base, past, future } — base: the saved version's JSON (null: never saved)
-  const [session, setSession] = useState(null);
+  // «Лист для тетради» at the end of a «Пишу на экране» lesson saves a notebook and asks for it here
+  // (library.js OPEN_KEY): the constructor opens straight on it.
+  const [session, setSession] = useState(() => {
+    let id = null;
+    try { id = window.sessionStorage.getItem(OPEN_KEY); window.sessionStorage.removeItem(OPEN_KEY); } catch { /* blocked */ }
+    const nb = id ? lib.notebooks.find((n) => n.id === id) : null;
+    return nb ? { nb, base: notebookJson(nb), past: [], future: [] } : null;
+  });
   const lastTyping = useRef(0);
   const [leaveAsk, setLeaveAsk] = useState(false);
   const [draft, setDraft] = useState(() => {

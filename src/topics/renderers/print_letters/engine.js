@@ -33,7 +33,6 @@ export function screenWriteTasks(letters, params = {}) {
         card: { id: c.id, label: c.label ?? c.id, viewBox: c.viewBox, strokes: c.strokes },
         level,
         width: ["wide", "mid", "narrow"].includes(params.width) ? params.width : "wide",
-        hidden: params.hidden === true,
         sound: params.sound !== false,
         copy: k,
         copies,

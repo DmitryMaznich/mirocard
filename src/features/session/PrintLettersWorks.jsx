@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useAppStore } from "@/core/store";
+import { accountKv } from "@/topics/accountKv";
+import { OPEN_KEY, addNotebook, lessonNotebook } from "@/topics/renderers/print_letters/library";
 import "./printLettersWorks.css";
 import { letterWorks } from "./printLettersWorks.js";
 
@@ -85,10 +88,45 @@ async function makeWorksPdf(works, { studentName, dateLabel }) {
   return svgPagesToPdf(pages.map((p) => ({ w: MM.w, h: MM.h, markup: p.parts.join("") })));
 }
 
+// The lesson's letters as the deck's cards (strokes, ids), in the order the child wrote them, each once.
+function lessonLetters(works, cards) {
+  const byLabel = new Map();
+  for (const c of (Array.isArray(cards) ? cards : cards?.cards) ?? []) if (Array.isArray(c.strokes) && c.strokes.length) byLabel.set(c.label ?? c.id, c);
+  const out = [];
+  for (const w of works) {
+    const c = byLabel.get(w.letter);
+    if (c && !out.includes(c)) out.push(c);
+  }
+  return out;
+}
+
 export default function PrintLettersWorks({ session, studentName }) {
   const works = letterWorks(session);
   const [job, setJob] = useState(null); // { status: making | ready | saved | error, blob }
+  const record = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === session.topicId));
+  const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
+  const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+  const setScreen = useAppStore((s) => s.setScreen);
+  const [sheetId, setSheetId] = useState(null); // the notebook made by «Лист для тетради» (once per lesson)
   if (!works.length) return null;
+  const paperLetters = lessonLetters(works, record?.cards);
+
+  // «Лист для тетради»: the lesson's letters, a block of four rows each, saved to «Мои тетради» and
+  // opened in the constructor (owner, 2026-11-04)
+  function openSheet() {
+    let id = sheetId;
+    if (!id) {
+      const day = new Date(session.completedAt ?? session.startedAt ?? Date.now()).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+      const nb = addNotebook(lessonNotebook(paperLetters, `${paperLetters.map((c) => c.label ?? c.id).join(" ")} · ${day}`), accountKv);
+      id = nb.id;
+      setSheetId(id);
+    }
+    try { window.sessionStorage.setItem(OPEN_KEY, id); } catch { /* blocked: «Мои тетради» still lists it */ }
+    const constructor = record?.modes?.find((m) => m.type === "constructor");
+    setActiveTopicId(session.topicId);
+    if (constructor) setActiveModeId(constructor.id);
+    setScreen("params");
+  }
   const date = new Date(session.completedAt ?? session.startedAt);
   const dateLabel = date.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const name = fileName(studentName, date.toLocaleDateString("ru-RU"));
@@ -148,6 +186,9 @@ export default function PrintLettersWorks({ session, studentName }) {
           <button type="button" className="plw-works-btn" onClick={makePdf} disabled={job?.status === "making"}>
             {job?.status === "making" ? "Готовлю PDF…" : job?.status === "saved" ? "Сохранено ✓ · ещё раз" : job?.status === "error" ? "Не получилось — ещё раз" : "Сохранить в PDF"}
           </button>
+        )}
+        {paperLetters.length > 0 && record?.modes?.some((m) => m.type === "constructor") && (
+          <button type="button" className="plw-works-btn" onClick={openSheet}>Лист для тетради</button>
         )}
       </div>
     </section>

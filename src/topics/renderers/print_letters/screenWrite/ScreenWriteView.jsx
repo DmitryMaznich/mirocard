@@ -175,7 +175,8 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
   const t = halfWidth(task.width);
   const geo = useMemo(() => strokeGeometry(card), [card]);
   const n = geo.length;
-  const given = task.hidden && level !== "watch" && n > 1 ? n - 1 : 0;
+  // strokes the app draws for the child: none since «Спрятанная буква» was removed (owner, 2026-11-04)
+  const given = 0;
   const tone = useTone(task.sound !== false);
   const freshInks = useCallback(() => geo.map((g, i) => (i < given ? g.pts : null)), [geo, given]);
 
