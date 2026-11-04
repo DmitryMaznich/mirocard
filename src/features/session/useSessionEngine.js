@@ -11,7 +11,7 @@ import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
-import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord, withWork } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
@@ -637,14 +637,15 @@ export function useSessionEngine() {
   const onCorrect = useCallback((conceptId, cardId, options = {}) => {
     if (options.assisted) {
       setSessionState((s) => {
-        const next = advanceTask(recordResponse(markSessionAction(s), "assisted"));
+        const next = advanceTask(recordResponse(markSessionAction(withWork(s, options.work)), "assisted"));
         if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
         if (next.status === "completed") finishSession(next);
         return next;
       });
       return;
     }
-    setSessionState((s) => {
+    setSessionState((prev) => {
+      const s = withWork(prev, options.work);
       if (s.mode?.evaluation === "instant") {
         const next = handleInstantCorrect(s, conceptId, cardId);
         if (next.status === "completed") finishSession(next);

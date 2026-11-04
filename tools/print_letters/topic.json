@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_letters",
-    "version": "0.3.9",
+    "version": "0.3.10",
     "renderer": "print_letters",
     "title": { "ru": "Печатные буквы", "en": "Block Letters" },
     "avatar": "media/avatar.svg",
@@ -62,6 +62,7 @@
       "type": "screen_write",
       "evaluation": "instant",
       "hideConceptPicker": true,
+      "summaryOnFinish": true,
       "ui": { "title": "Пишу на экране", "instruction": "Пиши букву пальцем: от зелёной точки, по стрелке, до конца штриха, не отрывая пальца" },
       "methodology": {
         "summary": "Ребёнок пишет печатную букву пальцем на экране, приложение ведёт и проверяет порядок и направление каждого штриха.",

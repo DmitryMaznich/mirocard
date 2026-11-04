@@ -294,6 +294,16 @@ function collapseOutcomes(items, keys) {
   return [...groups.values()];
 }
 
+// What the child made in the lesson, as a renderer hands it with a right answer (`onCorrect(…,
+// { work })`) — «Печатные буквы»: each letter written on the screen, shown at the end of the lesson
+// («Мои буквы», SessionSummary) and saved to PDF there. Kept in the record on this device only (the
+// server stores its own session columns). The newest MAX_WORKS are kept.
+export const MAX_WORKS = 60;
+export function withWork(state, work) {
+  if (!state || !work || typeof work !== "object") return state;
+  return { ...state, works: [...(state.works ?? []), work].slice(-MAX_WORKS) };
+}
+
 export function computeSessionRecord(state, studentId, topicId, topicVersion, cardEvents = [], telemetry = {}) {
   const isEvaluated = state.mode.evaluation !== "none";
 
@@ -342,6 +352,7 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
     mistakes:       collapseOutcomes(state.mistakes, ["conceptId", "cardId"]),
     assessments:    state.assessments?.length ? collapseOutcomes(state.assessments, ["quality", "conceptId", "cardId"]) : undefined,
     cardEvents:     cardEvents.length ? cardEvents : undefined,
+    works:          state.works?.length ? state.works : undefined,
   };
   if (!record.textId) delete record.textId;
   return record;

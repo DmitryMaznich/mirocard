@@ -196,3 +196,42 @@ export async function makePrintLettersPdf(container, { onProgress } = {}) {
   }
   return doc ? doc.output("blob") : null;
 }
+
+// ── Plain SVG pages → PDF (the end-of-lesson «Мои буквы», src/features/session/PrintLettersWorks.jsx) ──
+// `pages`: [{ w, h, markup }] — sizes in mm, markup = the SVG content in mm. Text in the markup must
+// already be outlines (`outlineText`): no font is embedded. Returns the PDF as a Blob.
+export async function svgPagesToPdf(pages) {
+  const [{ jsPDF }, { svg2pdf }] = await Promise.all([import("jspdf"), import("svg2pdf.js")]);
+  let doc = null;
+  const host = document.createElement("div");
+  host.style.cssText = "position:fixed;left:-20000px;top:0;width:10px;height:10px;overflow:hidden";
+  document.body.appendChild(host);
+  try {
+    for (const { w, h, markup } of pages) {
+      const orientation = w > h ? "landscape" : "portrait";
+      if (!doc) doc = new jsPDF({ unit: "mm", format: [w, h], orientation, compress: true });
+      else doc.addPage([w, h], orientation);
+      const svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("xmlns", SVG_NS);
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      svg.setAttribute("width", `${w}`);
+      svg.setAttribute("height", `${h}`);
+      svg.innerHTML = markup;
+      host.appendChild(svg);
+      await svg2pdf(svg, doc, { x: 0, y: 0, width: w, height: h });
+      svg.remove();
+      await nextFrame();
+    }
+  } finally {
+    host.remove();
+  }
+  return doc ? doc.output("blob") : null;
+}
+
+// `text` in Nunito of `weight` at `size` (mm) from (x, baseline y) as SVG paths filled with `fill`.
+export async function outlineText(text, size, x, y, { weight = 700, fill = "#1e293b" } = {}) {
+  const fonts = await loadGlyphs();
+  const font = fonts[fontKey(weight)] ?? fonts["Nunito-400"];
+  const { markup, width } = shape(font, String(text ?? ""), size, x, y);
+  return { markup: `<g fill="${fill}">${markup}</g>`, width };
+}

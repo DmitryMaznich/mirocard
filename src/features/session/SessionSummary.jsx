@@ -7,6 +7,8 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 import { useTimer } from "@/features/timer/TimerContext";
 import PlaceValueCheckResult from "./PlaceValueCheckResult.jsx";
+import PrintLettersWorks from "./PrintLettersWorks.jsx";
+import { letterWorks } from "./printLettersWorks.js";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -147,6 +149,11 @@ export default function SessionSummary() {
 
         <div className="summary-praise">{praiseText}</div>
       </div>
+
+      {/* «Печатные буквы» → «Пишу на экране»: the letters the child wrote, with «Сохранить в PDF» */}
+      {letterWorks(session).length > 0 && (
+        <PrintLettersWorks session={session} studentName={students.find((st) => st.id === session.studentId)?.name ?? ""} />
+      )}
 
       {/* Actions */}
       <div className="summary-actions">

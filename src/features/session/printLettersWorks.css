@@ -1,0 +1,34 @@
+/* «Мои буквы» on the lesson summary (PrintLettersWorks.jsx): the child's letters on the notebook grid */
+.plw-works {
+  width: min(100%, 880px);
+  margin: 4px auto 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #fffef5;
+  border: 2px solid #efe9d6;
+  border-radius: 24px;
+  font-family: "Nunito", sans-serif;
+}
+.plw-works-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.plw-works-title { margin: 0; font-size: clamp(20px, 2.6vw, 26px); font-weight: 900; color: #1e293b; }
+.plw-works-count { font-size: 15px; font-weight: 800; color: #64748b; }
+.plw-works-grid-wrap {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  max-height: 46vh; overflow-y: auto;
+}
+.plw-works-tile {
+  height: clamp(84px, 13vh, 120px); width: auto;
+  background: #fff; border-radius: 12px; border: 1px solid #e8eef4;
+}
+.plw-works-grid line { stroke: #cfe0ee; stroke-width: 1.4; }
+.plw-works-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+.plw-works-btn {
+  min-height: 48px; padding: 10px 20px;
+  border: 2px solid #e2e8f0; border-radius: 14px; background: #fff; color: #2a6b60;
+  font: inherit; font-size: 16px; font-weight: 900;
+  box-shadow: 0 3px 0 #cbd5e1; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.plw-works-btn:active { transform: translateY(3px); box-shadow: none; }
+.plw-works-btn:disabled { opacity: 0.6; cursor: default; }
+.plw-works-btn--primary { background: #4a9b8f; border-color: #4a9b8f; color: #fff; box-shadow: 0 3px 0 #2a6b60; }

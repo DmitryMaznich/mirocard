@@ -130,6 +130,24 @@ function BurnPath({ pts, onDone }) {
   return <path ref={ref} className="plw-ink plw-burn" d={polyD(pts)} strokeWidth={INK_W} />;
 }
 
+// A written letter for the lesson's record, small: each stroke as «x y x y …» in glyph units, whole
+// numbers, a point kept only every 2 units of the way (a letter is a few hundred bytes).
+// `w` is the letter's width on the screen (50 or 75), `given` — strokes the app drew («спрятанная буква»).
+function workOf(card, inks, given, assisted) {
+  const strokes = inks.map((pts) => {
+    if (!pts?.length) return "";
+    const kept = [pts[0]];
+    for (const p of pts.slice(1)) {
+      const q = kept[kept.length - 1];
+      if (Math.hypot(p.x - q.x, p.y - q.y) >= 2) kept.push(p);
+    }
+    const last = pts[pts.length - 1];
+    if (kept[kept.length - 1] !== last) kept.push(last);
+    return kept.map((p) => `${Math.round(p.x)} ${Math.round(p.y)}`).join(" ");
+  });
+  return { kind: "print_letter", letter: card.label ?? card.id, w: glyphWidth(card), strokes, given, assisted: Boolean(assisted) };
+}
+
 function PlayIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" /></svg>;
 }
@@ -163,6 +181,9 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
 
   const [cur, setCur] = useState(given);
   const [inks, setInks] = useState(freshInks);
+  // the same lines, readable at once (the session gets the child's letter the moment it is done)
+  const inksRef = useRef(null);
+  if (inksRef.current === null) inksRef.current = freshInks();
   const [done, setDone] = useState(false);
   const [nudged, setNudged] = useState(false);
   const [burning, setBurning] = useState([]);
@@ -281,8 +302,10 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
     setDone(true);
     tone([523, 659, 784], 0.16);
     const assisted = stats.current.prompted;
+    // the letter as the child wrote it, for «Мои буквы» at the end of the lesson (SessionSummary)
+    const work = workOf(card, inksRef.current, given, assisted);
     later(() => {
-      onCorrect?.(card.id, card.id, assisted ? { assisted: true } : undefined);
+      onCorrect?.(card.id, card.id, assisted ? { assisted: true, work } : { work });
       // The session moves on and normally mounts a fresh view; when it comes back to this same
       // task (one letter, one copy — the session loops) it does not, so start a fresh copy here.
       later(() => newCopy(), 60);
@@ -307,6 +330,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
     a.over = true;
     const i = live.current.cur;
     const pts = a.pts.slice();
+    inksRef.current = inksRef.current.map((v, j) => (j === i ? pts : v));
     setInks((prev) => prev.map((v, j) => (j === i ? pts : v)));
     setLive(null);
     tone([660]);
@@ -332,6 +356,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
     demoRun.current++; rafs.current.forEach(cancelAnimationFrame); rafs.current.clear();
     active.current = null; setLive(null); setDemo(null);
     live.current.cur = given; live.current.done = false;
+    inksRef.current = freshInks();
     setCur(given); setInks(freshInks()); setNudged(false); setBurning([]); setDone(false);
   }
 

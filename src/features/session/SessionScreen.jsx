@@ -88,12 +88,19 @@ export default function SessionScreen() {
   }
 
   async function handleFinishSession() {
-    await finishCurrentSession();
+    const record = await finishCurrentSession();
     if (activeLessonPlanItemId) {
       await lessonPlan?.markItemDone(activeLessonPlanItemId, true);
       setActiveLessonPlanItemId(null);
     }
     closeSessionExitPrompt();
+    // A looping mode that collects the child's work (mode.summaryOnFinish — «Пишу на экране») ends on
+    // the summary with that work («Мои буквы»), not straight on the home screen.
+    if (mode?.summaryOnFinish && record?.works?.length) {
+      setSessionReturnScreen(null);
+      setScreen("summary");
+      return;
+    }
     setScreen(sessionReturnScreen ?? "home");
     setSessionReturnScreen(null);
   }

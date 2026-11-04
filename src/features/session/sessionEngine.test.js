@@ -419,3 +419,26 @@ describe("handleAdvance — taskRetry", () => {
     expect(state.taskRetry).toBe(0);
   });
 });
+
+describe("works — what the child made, kept with the lesson's record", () => {
+  it("withWork appends a work, keeps only the newest MAX_WORKS, ignores nothing-given", async () => {
+    const { withWork, MAX_WORKS } = await import("./sessionEngine");
+    const s0 = { works: undefined };
+    expect(withWork(s0, undefined)).toBe(s0);
+    const s1 = withWork(s0, { kind: "print_letter", letter: "П", strokes: ["0 0 0 100"] });
+    expect(s1.works).toHaveLength(1);
+    let s = s1;
+    for (let i = 0; i < MAX_WORKS + 5; i++) s = withWork(s, { kind: "print_letter", letter: String(i), strokes: [] });
+    expect(s.works).toHaveLength(MAX_WORKS);
+    expect(s.works.at(-1).letter).toBe(String(MAX_WORKS + 4));
+  });
+
+  it("the session record carries the works when there are any", async () => {
+    const { createSessionState, computeSessionRecord, withWork } = await import("./sessionEngine");
+    const mode = { id: "screen_write", type: "screen_write", evaluation: "instant" };
+    const state = createSessionState([{ type: "pl_screen_write", conceptId: "П" }], mode, "st", "print_letters", "0.3.10", []);
+    expect(computeSessionRecord(state, "st", "print_letters", "0.3.10").works).toBeUndefined();
+    const withLetter = withWork(state, { kind: "print_letter", letter: "П", w: 50, strokes: ["0 0 0 100"], given: 0, assisted: false });
+    expect(computeSessionRecord(withLetter, "st", "print_letters", "0.3.10").works).toEqual([{ kind: "print_letter", letter: "П", w: 50, strokes: ["0 0 0 100"], given: 0, assisted: false }]);
+  });
+});

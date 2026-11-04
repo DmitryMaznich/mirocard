@@ -224,10 +224,22 @@
       "version": "0.5.1",
       "renderer": "comparison_language_pilot",
       "sources": [
+        "public/decks/comparison_language_pilot_v0.5.1.zip",
         "src/topics/renderers/comparison_language_pilot",
         "tools/comparison_language_pilot/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "0.5.1",
+        "url": "./decks/comparison_language_pilot_v0.5.1.zip",
+        "title": {
+          "ru": "Сравнение · языковой пилот",
+          "sl": "Primerjanje · jezikovni pilot"
+        },
+        "description": null,
+        "renderer": "comparison_language_pilot",
+        "modes": 3,
+        "cards": 3
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "comparison_language_pilot",
@@ -853,16 +865,16 @@
         "ru": "Печатные буквы",
         "en": "Block Letters"
       },
-      "version": "0.3.9",
+      "version": "0.3.10",
       "renderer": "print_letters",
       "sources": [
-        "public/decks/print_letters_v0.3.9.zip",
+        "public/decks/print_letters_v0.3.10.zip",
         "src/topics/renderers/print_letters",
         "tools/print_letters/topic.json"
       ],
       "bundle": {
-        "version": "0.3.9",
-        "url": "./decks/print_letters_v0.3.9.zip",
+        "version": "0.3.10",
+        "url": "./decks/print_letters_v0.3.10.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -875,8 +887,8 @@
       "builtin": false,
       "catalogEntry": {
         "id": "print_letters",
-        "version": "0.3.9",
-        "url": "./decks/print_letters_v0.3.9.zip",
+        "version": "0.3.10",
+        "url": "./decks/print_letters_v0.3.10.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -1702,7 +1714,5 @@
       "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     }
   ],
-  "warnings": [
-    "public/decks/comparison_language_pilot_v0.5.0.zip: ENOENT: no such file or directory, open '/workspace/mirocard/public/decks/comparison_language_pilot_v0.5.0.zip'"
-  ]
+  "warnings": []
 }
