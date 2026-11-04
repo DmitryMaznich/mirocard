@@ -56,15 +56,20 @@ function boardBox(card, size) {
 // big cell tall (1 cm in «Волшебные линии» №2 = 100 glyph units) and stands at the cell's left line.
 // The division she asks the child to make «мысленно, глазами» — in half for a regular letter, in
 // thirds for a wide one (⅔ of the cell) — is a thin red dashed vertical line through the whole board
+// (and one horizontal at half the height where the letter needs it)
 // (owner, 2026-11-04): red so it is read neither as part of the grid nor as a letter's path to trace.
 // Earlier tries: a blue dashed line across the cell (read as «trace me»), ticks on the cell's edges.
 const CELL = 100;
-function cellDivisions(card) {
+function cellDivisions(card, geo) {
   const wide = glyphWidth(card) > CELL / 2 + 1;
-  return wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
+  const v = wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
+  // one horizontal line too, at half the height — only for a letter with a stroke starting or ending
+  // there (Е's middle bar, Н Ч, the half-ovals of Р Ь Б В …; owner: «нам оно понадобится для буквы Е»)
+  const mid = geo.some((g) => [g.pts[0], g.pts[g.pts.length - 1]].some((p) => Math.abs(p.y - CELL / 2) < 0.6));
+  return { v, h: mid ? [CELL / 2] : [] };
 }
 
-function Grid({ box, card }) {
+function Grid({ box, card, geo }) {
   const lines = [];
   const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
   for (let x = Math.floor(box.x0 / CELL) * CELL; x <= x1; x += CELL) {
@@ -73,12 +78,14 @@ function Grid({ box, card }) {
   for (let y = Math.floor(box.y0 / CELL) * CELL; y <= y1; y += CELL) {
     lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-cell" />);
   }
+  const div = cellDivisions(card, geo);
   return (
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
       <rect x={0} y={0} width={CELL} height={CELL} className="plw-cell-own" />
       {lines}
-      {cellDivisions(card).map((x) => <line key={`dv${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-div" />)}
+      {div.v.map((x) => <line key={`dv${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-div" />)}
+      {div.h.map((y) => <line key={`dh${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-div" />)}
     </g>
   );
 }
@@ -374,7 +381,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} card={card} />
+          <Grid box={box} card={card} geo={geo} />
           {showTrack && geo.map((g, i) => (i < cur ? null : (
             <g key={`t${i}`} className={i === cur ? "plw-track is-current" : "plw-track"}>
               <path d={polyD(g.pts)} className="plw-track-band" strokeWidth={t * 2} />
