@@ -4,8 +4,8 @@ import JSZip from "jszip";
 import sharp from "sharp";
 import { applyReleaseTopicCopy, RELEASE_TOPIC_COPY } from "../src/topics/releaseTopicCopy.js";
 
-const version = "2.0.5";
-const previousMicroVersion = "2.0.4";
+const version = "2.0.6";
+const previousMicroVersion = "2.0.5";
 const appVersion = JSON.parse(await readFile("package.json", "utf8")).version;
 const source = JSON.parse(await readFile("content/reading_short_stories/micro/stories.json", "utf8"));
 const illustrationTemplate = JSON.parse(await readFile("docs/design/reading-sheet-illustrations.template.json", "utf8"));
@@ -118,7 +118,7 @@ zip.file("topic.json", `${JSON.stringify(manifest, null, 2)}\n`);
 zip.file("questions.txt", questions);
 zip.file("micro-sources.json", JSON.stringify({
   text: "Original educational drafts prepared for this project; see content/reading_short_stories/micro/stories.json.",
-  illustrations: "Generated for this project with OpenAI image_gen. Five diptychs revised for the agreed editorial edition on 2026-11-03: cat water, puddle, watering can, kitten, ball throwing. No third-party storybook illustrations used.",
+  illustrations: "Generated for this project with OpenAI image_gen. Five diptychs revised on 2026-11-03: cat water, puddle, watering can, kitten, ball throwing. Pencil story corrected on 2026-11-04: house drawing in both scenes is upright from Petya's viewpoint. No third-party storybook illustrations used.",
   sourceNotes: "Separate character reference, prompts and original two-panel images are retained in scripts/assets/reading_short_stories/micro/.",
 }, null, 2));
 const filename = `reading_short_stories_v${version}.zip`;

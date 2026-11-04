@@ -10,7 +10,7 @@ import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
 const mocks = vi.hoisted(() => ({ persist: vi.fn(), start: vi.fn() }));
 vi.mock("@/core/linkUtils", () => ({ persistStudentTopicLink: mocks.persist }));
 vi.mock("@/features/timer/TimerContext", () => ({ useTimer: () => ({ markSessionStart: mocks.start }) }));
-const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.5.zip"));
+const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.6.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const initial = useAppStore.getState();
 let root, host;

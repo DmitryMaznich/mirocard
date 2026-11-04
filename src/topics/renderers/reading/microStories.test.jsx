@@ -9,7 +9,7 @@ import ReadingRenderer from "./index";
 import { useAppStore } from "@/core/store";
 
 vi.mock("@/shared/hooks/useTopicFile", () => ({ useTopicFile: (_topic, path) => path ? `/preview/${path}` : null }));
-const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.5.zip"));
+const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.6.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const micro = topic.texts.filter((story) => story.storyStage === "micro");
 const findTasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, {});
