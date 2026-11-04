@@ -818,16 +818,16 @@
         "ru": "Печатные буквы",
         "en": "Block Letters"
       },
-      "version": "0.3.7",
+      "version": "0.3.8",
       "renderer": "print_letters",
       "sources": [
-        "public/decks/print_letters_v0.3.7.zip",
+        "public/decks/print_letters_v0.3.8.zip",
         "src/topics/renderers/print_letters",
         "tools/print_letters/topic.json"
       ],
       "bundle": {
-        "version": "0.3.7",
-        "url": "./decks/print_letters_v0.3.7.zip",
+        "version": "0.3.8",
+        "url": "./decks/print_letters_v0.3.8.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -840,8 +840,8 @@
       "builtin": false,
       "catalogEntry": {
         "id": "print_letters",
-        "version": "0.3.7",
-        "url": "./decks/print_letters_v0.3.7.zip",
+        "version": "0.3.8",
+        "url": "./decks/print_letters_v0.3.8.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"

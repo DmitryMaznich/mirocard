@@ -56,16 +56,16 @@ function boardBox(card, size) {
   return { x0: need.x0 - (bw - need.w) / 2, y0: need.y0 - (bh - need.h) / 2, w: bw, h: bh };
 }
 
-// Red ruler ticks on the top and bottom lines of the letter's row, in every cell: a long one at the
+// Red ruler ticks on the top and bottom lines of the letter's own cells only (owner: «рисками только ту
+// зону, где мы рисуем букву»), in each of those cells: a long one at the
 // middle, short ones at ¼ and ¾ (owner, 2026-11-04: «риски как на линейке… по верхней и нижней линиям…
 // красного цвета»). Red, so they are read neither as the grid nor as a path to trace; they mark where
 // a stroke starts (Т's stick at ¾, О's top at ½) without lines through the cell. Earlier tries: dashed
 // lines across the board (read as «trace me»), Ilyukhina's big cell (thirds — too hard to see).
 const TICK_LONG = 9, TICK_SHORT = 5;
-function RulerTicks({ box }) {
+function RulerTicks({ width }) {
   const ticks = [];
-  const x1 = box.x0 + box.w;
-  for (let c = Math.floor(box.x0 / CELL) * CELL; c <= x1; c += CELL) {
+  for (let c = 0; c < width; c += CELL) {
     for (const [dx, len] of [[CELL / 4, TICK_SHORT], [CELL / 2, TICK_LONG], [(3 * CELL) / 4, TICK_SHORT]]) {
       const x = c + dx;
       ticks.push(<line key={`t${x}`} x1={x} y1={0} x2={x} y2={len} />, <line key={`b${x}`} x1={x} y1={2 * CELL - len} x2={x} y2={2 * CELL} />);
@@ -88,7 +88,7 @@ function Grid({ box, card }) {
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
       <rect x={0} y={0} width={glyphWidth(card)} height={2 * CELL} className="plw-cell-own" />
       {lines}
-      <RulerTicks box={box} />
+      <RulerTicks width={Math.ceil(glyphWidth(card) / CELL) * CELL} />
     </g>
   );
 }
