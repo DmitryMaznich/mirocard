@@ -80,7 +80,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-// `propis2` owns its home screen for its constructor mode (and `print_letters` for its only mode); its other modes (copied from `propis` («Прописи старые»), 2026-10-10) and every other
+// `propis2` owns its home screen for its constructor mode (and `print_letters` for its constructor); its other modes (copied from `propis` («Прописи старые»), 2026-10-10) and every other
 // topic keep the generic settings screen.
 function ParamsRoute() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);
@@ -89,8 +89,9 @@ function ParamsRoute() {
   const record = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode = record?.modes?.find((m) => m.id === activeModeId);
   if (record?.meta.renderer === "propis2" && (!mode || mode.type === "builder")) return <Propis2Home />;
-  // «Печатные буквы»: its notebook constructor is a full screen too (owner, 2026-11-03)
-  if (record?.meta.renderer === "print_letters") return <PrintLettersScreen />;
+  // «Печатные буквы»: its notebook constructor is a full screen too (owner, 2026-11-03); «Пишу на
+  // экране» (screen_write) is an ordinary session with the generic settings screen
+  if (record?.meta.renderer === "print_letters" && mode?.type !== "screen_write") return <PrintLettersScreen />;
   return <ParamsScreen />;
 }
 

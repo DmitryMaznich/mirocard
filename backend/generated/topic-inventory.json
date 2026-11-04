@@ -818,30 +818,30 @@
         "ru": "Печатные буквы",
         "en": "Block Letters"
       },
-      "version": "0.2.14",
+      "version": "0.3.0",
       "renderer": "print_letters",
       "sources": [
-        "public/decks/print_letters_v0.2.14.zip",
+        "public/decks/print_letters_v0.3.0.zip",
         "src/topics/renderers/print_letters",
         "tools/print_letters/topic.json"
       ],
       "bundle": {
-        "version": "0.2.14",
-        "url": "./decks/print_letters_v0.2.14.zip",
+        "version": "0.3.0",
+        "url": "./decks/print_letters_v0.3.0.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
         },
         "description": "Конструктор листов и тетрадей для печати: печатные заглавные буквы для дошкольников 4–6 лет. Буквы стоят на клетке или линейке, каждая строка блока — элементы буквы и уровень опоры, лист печатается в А4 или А5.",
         "renderer": "print_letters",
-        "modes": 1,
+        "modes": 2,
         "cards": 33
       },
       "builtin": false,
       "catalogEntry": {
         "id": "print_letters",
-        "version": "0.2.14",
-        "url": "./decks/print_letters_v0.2.14.zip",
+        "version": "0.3.0",
+        "url": "./decks/print_letters_v0.3.0.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"

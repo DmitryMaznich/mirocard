@@ -133,6 +133,9 @@ export default function SessionScreen() {
     // «Учим словенский»: a wrong tap only fades that option and shows the
     // right one — no buzz (docs/learn-slovene.md); a word plays its own recording.
     "lb_pair", "lb_find", "lb_trap", "lb_syll", "lb_word", "lb_build", "lb_listen", "lb_block_end",
+    // «Печатные буквы» → «Пишу на экране»: its own quiet tone per stroke, no chime and no error sound
+    // (a burnt stroke just fades, docs/print-letters-screen-writing.md)
+    "pl_screen_write",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 

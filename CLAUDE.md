@@ -263,7 +263,7 @@ model, palette and icons (copied, not imported from `src/features/propis2/`). Op
 (`PrintLettersHome.jsx`): notebooks saved on the device and in the account (`print_letters:nb:<id>` kv
 documents via the `accountKv` prop that `SessionScreen` passes to renderers — `src/topics/accountKv.js`),
 plus ready notebooks defined in `library.js`. Screens use the device's full width (owner's rule). Since deck 0.2.1 the topic opens full-screen like `propis2` (`ParamsRoute` → `src/features/printLetters/PrintLettersScreen.jsx`, no session header) and its whole UI is a renamed copy of propis2's stylesheet/editor layout (`propis2-style.css`, `plb-`/`pl2-` prefixes). Since deck 0.2.5 a block can also be a syllable or word (`words.js`, `WordBlock.jsx`, «Блок» picker) — see «Слоги и слова» in the handoff. Registered in
-`engineRegistry.js`/`registry.js`; deck ZIP built by `node tools/print_letters/build.mjs`, catalog status `beta`.
+`engineRegistry.js`/`registry.js`; deck ZIP built by `node tools/print_letters/build.mjs`, catalog status `beta`. Since deck 0.3.0 there is a second mode, «Пишу на экране» (`screen_write`): the child writes the letter with a finger on screen (levels «Смотрю»/«Обвожу»/«Сам», a stroke lifted too early or leaving the track burns), an ordinary session, not the full-screen constructor — read `docs/print-letters-screen-writing.md` first (owner's decisions, what's done, what isn't); code in `src/topics/renderers/print_letters/screenWrite/`.
 
 ## Important
 
