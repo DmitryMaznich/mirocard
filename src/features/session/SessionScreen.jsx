@@ -143,6 +143,8 @@ export default function SessionScreen() {
     // «Печатные буквы» → «Пишу на экране»: its own quiet tone per stroke, no chime and no error sound
     // (a burnt stroke just fades, docs/print-letters-screen-writing.md)
     "pl_screen_write",
+    // «Почини букву»: its own soft click when a part snaps in, no error sound (docs/print-letters-fix-letter.md)
+    "pl_fix_letter",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 

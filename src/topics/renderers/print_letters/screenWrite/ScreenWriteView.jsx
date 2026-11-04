@@ -2,6 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import {
   TRACE_TUNING, strokeGeometry, halfWidth, canStart, createTracer, matchFreeStroke, polyD, polyLength, screenGlyph,
 } from "./traceEngine";
+import { Grid } from "./board";
+import { boardBox, glyphWidth, useTone } from "./boardGeometry";
 
 // «Пишу на экране» (mode screen_write): one copy of one letter per task, written with a finger.
 // Three levels (owner, 2026-11-03): «Смотрю» (watch) — the letter writes itself; «Обвожу» (trace)
@@ -17,85 +19,6 @@ import {
 const INK_W = 7;           // line width in glyph units (a letter is 100 tall)
 const DEMO_MS = 9;         // the dot's pace when it writes a stroke, ms per unit
 const DONE_HOLD_MS = 1100; // the finished letter stays on screen before the session hears about it
-
-function useTone(enabled) {
-  const ctxRef = useRef(null);
-  return useCallback((freqs, dur = 0.09) => {
-    if (!enabled) return;
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      const ctx = ctxRef.current ?? (ctxRef.current = new Ctx());
-      freqs.forEach((f, i) => {
-        const o = ctx.createOscillator(), g = ctx.createGain(), t0 = ctx.currentTime + i * 0.09;
-        o.type = "sine"; o.frequency.value = f;
-        g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime(0.06, t0 + 0.015);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        o.connect(g).connect(ctx.destination); o.start(t0); o.stop(t0 + dur + 0.02);
-      });
-    } catch { /* no audio — silent */ }
-  }, [enabled]);
-}
-
-function glyphWidth(card) {
-  return Number(String(card.viewBox ?? "0 0 50 100").split(/\s+/)[2]) || 50;
-}
-
-// The board is the ordinary notebook grid edge to edge (owner, 2026-11-04: «мы же можем спокойно
-// использовать обычную клетку»): a letter is 2 cells tall, a regular one 1 cell wide, a wide one 1½
-// (screenGlyph), standing on cell lines. The viewBox grows to the board's proportions around the
-// letter (a cell of margin on every side, room for Ё's dots and Д's legs, and one more cell below for
-// the navigation buttons that lie over the grid at the bottom).
-const CELL = 50;
-function boardBox(card, size) {
-  const w = glyphWidth(card);
-  const ar = size?.w > 0 && size?.h > 0 ? size.w / size.h : 1;
-  // upright screens are narrow: the letter goes two cells lower, clear of the sample card in the corner
-  const need = ar < 1
-    ? { x0: -CELL, y0: -2.5 * CELL, w: Math.ceil(w / CELL) * CELL + 2 * CELL, h: 6.5 * CELL }
-    : { x0: -CELL, y0: -1.5 * CELL, w: Math.ceil(w / CELL) * CELL + 2 * CELL, h: 5.5 * CELL };
-  let bw = need.w, bh = need.h;
-  if (ar > bw / bh) bw = bh * ar; else bh = bw / ar;
-  return { x0: need.x0 - (bw - need.w) / 2, y0: need.y0 - (bh - need.h) / 2, w: bw, h: bh };
-}
-
-// Red ruler ticks on the top and bottom lines of the letter's own cells only (owner: «рисками только ту
-// зону, где мы рисуем букву»), in each of those cells: a long one at the
-// middle, short ones at ¼ and ¾ (owner, 2026-11-04: «риски как на линейке… по верхней и нижней линиям…
-// красного цвета»). Red, so they are read neither as the grid nor as a path to trace; they mark where
-// a stroke starts (Т's stick at ¾, О's top at ½) without lines through the cell. Earlier tries: dashed
-// lines across the board (read as «trace me»), Ilyukhina's big cell (thirds — too hard to see).
-const TICK_LONG = 9, TICK_SHORT = 5;
-function RulerTicks({ width }) {
-  const ticks = [];
-  for (let c = 0; c < width; c += CELL) {
-    for (const [dx, len] of [[CELL / 4, TICK_SHORT], [CELL / 2, TICK_LONG], [(3 * CELL) / 4, TICK_SHORT]]) {
-      const x = c + dx;
-      ticks.push(<line key={`t${x}`} x1={x} y1={0} x2={x} y2={len} />, <line key={`b${x}`} x1={x} y1={2 * CELL - len} x2={x} y2={2 * CELL} />);
-    }
-  }
-  return <g className="plw-ruler">{ticks}</g>;
-}
-
-function Grid({ box, card }) {
-  const lines = [];
-  const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
-  for (let x = Math.floor(box.x0 / CELL) * CELL; x <= x1; x += CELL) {
-    lines.push(<line key={`x${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-cell" />);
-  }
-  for (let y = Math.floor(box.y0 / CELL) * CELL; y <= y1; y += CELL) {
-    lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-cell" />);
-  }
-  return (
-    <g>
-      <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
-      <rect x={0} y={0} width={glyphWidth(card)} height={2 * CELL} className="plw-cell-own" />
-      {lines}
-      <RulerTicks width={Math.ceil(glyphWidth(card) / CELL) * CELL} />
-    </g>
-  );
-}
 
 /** A small arrow beside the start of a stroke, pointing along it. */
 function StartArrow({ g, className }) {

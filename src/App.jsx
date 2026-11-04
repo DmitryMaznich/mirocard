@@ -90,8 +90,8 @@ function ParamsRoute() {
   const mode = record?.modes?.find((m) => m.id === activeModeId);
   if (record?.meta.renderer === "propis2" && (!mode || mode.type === "builder")) return <Propis2Home />;
   // «Печатные буквы»: its notebook constructor is a full screen too (owner, 2026-11-03); «Пишу на
-  // экране» (screen_write) is an ordinary session with the generic settings screen
-  if (record?.meta.renderer === "print_letters" && mode?.type !== "screen_write") return <PrintLettersScreen />;
+  // экране» (screen_write) and «Почини букву» (fix_letter) are ordinary sessions with the generic settings screen
+  if (record?.meta.renderer === "print_letters" && !["screen_write", "fix_letter"].includes(mode?.type)) return <PrintLettersScreen />;
   return <ParamsScreen />;
 }
 
