@@ -90,3 +90,15 @@ describe("preserving historical device evidence", () => {
     expect(merged.correctCount).toBe(9);
   });
 });
+
+describe("device-only fields survive a refresh from the server", () => {
+  it("keeps the child's works (and the reward note) the server does not store", async () => {
+    const { mergeSessionHistory } = await import("../../../shared/historical-session-statistics.mjs");
+    const local = [{ id: "s1", studentId: "st", topicId: "print_letters", modeId: "screen_write", startedAt: "2026-11-04T10:00:00.000Z", completedAt: "2026-11-04T10:05:00.000Z", recordState: "final", correctCount: 1, incorrectCount: 0,
+      works: [{ kind: "print_letter", letter: "Г", w: 50, strokes: ["0 0 0 100", "0 0 50 0"], given: 0, assisted: false }], reward: { videoEnabled: true } }];
+    const remote = [{ id: "s1", studentId: "st", topicId: "print_letters", modeId: "screen_write", startedAt: "2026-11-04T10:00:00.000Z", completedAt: "2026-11-04T10:05:00.000Z", recordState: "final", correctCount: 1, incorrectCount: 0 }];
+    const [merged] = mergeSessionHistory(local, remote);
+    expect(merged.works).toEqual(local[0].works);
+    expect(merged.reward).toEqual({ videoEnabled: true });
+  });
+});

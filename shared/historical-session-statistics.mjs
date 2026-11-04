@@ -95,7 +95,10 @@ export function mergeSessionHistory(local = [], remote = []) {
         saved = { ...saved, statistics: { ...metadata, recovery: { ...metadata.recovery, responses: null } } };
       }
       merged = { ...raw };
-      for (const field of ["paramsSnapshot", "statistics", "assessments", "cardEvents", "conceptIds", "textId", "completionReason", "activeDurationMs", "elapsedDurationMs"]) {
+      // `works` (what the child made — «Мои буквы») and `reward` live on this device only: the server
+      // has no such columns, so a refresh must not drop them (it did: the letters vanished from the
+      // summary on the next 20-second sync and it turned into the plain «Молодец», 2026-11-04).
+      for (const field of ["paramsSnapshot", "statistics", "assessments", "cardEvents", "conceptIds", "textId", "completionReason", "activeDurationMs", "elapsedDurationMs", "works", "reward"]) {
         const current = raw[field];
         if (current == null || (Array.isArray(current) && !current.length) || (object(current) && !Object.keys(current).length)) merged[field] = saved[field] ?? current;
       }

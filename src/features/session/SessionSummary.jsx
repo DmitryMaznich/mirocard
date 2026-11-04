@@ -50,7 +50,11 @@ export default function SessionSummary() {
   const setActiveModeId   = useAppStore((s) => s.setActiveModeId);
   const { markSessionStart } = useTimer();
 
-  const session = sessions[sessions.length - 1];
+  // The summary is for the session that just ended: pinned by id on opening. The sessions list is
+  // replaced on every sync with the server (every 20 s); taking «the last one» again each time made
+  // the summary switch records and its spoken praise start over (2026-11-04).
+  const [sessionId] = useState(() => sessions[sessions.length - 1]?.id ?? null);
+  const session = sessions.find((s) => s.id === sessionId) ?? sessions[sessions.length - 1];
 
   const topicRecord = topicRecords.find((r) => r.meta.id === session?.topicId);
   const sessionText = topicRecord?.texts?.find((text) => text.id === session?.textId);
@@ -69,6 +73,7 @@ export default function SessionSummary() {
   // «Пишу на экране»: the end of the lesson is «Мои буквы» alone — no «Молодец, ты справился» and no
   // spoken praise (owner, 2026-11-04: «он, получается, нам не нужен»)
   const lettersOnly = letterWorks(session).length > 0;
+  const hasSession = Boolean(session);
 
   // «Видео в конце занятия» (ParamsScreen): the session was gone through to the end (not stopped with
   // ✕), the setting was on, video rewards are on and the student has videos → «Смотреть видео».
@@ -77,13 +82,13 @@ export default function SessionSummary() {
   const [endVideo, setEndVideo] = useState("offered"); // offered → open → watched
 
   useEffect(() => {
-    if (!session || voiceOff || lettersOnly) return;
+    if (!hasSession || voiceOff || lettersOnly) return;
     const timer = setTimeout(() => speak(praiseText), 600);
     return () => {
       clearTimeout(timer);
       window.speechSynthesis?.cancel();
     };
-  }, [praiseText, session, voiceOff, lettersOnly]);
+  }, [praiseText, hasSession, voiceOff, lettersOnly]); // once per opened summary, not on every sync
 
   if (!session) {
     return (
