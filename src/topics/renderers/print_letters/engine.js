@@ -56,19 +56,23 @@ export function fixLetterTasks(letters, params = {}) {
   const chosen = Array.isArray(params.letters) && params.letters.length ? new Set(params.letters) : null;
   const pool = letters.filter((c) => (chosen ? chosen.has(c.id) : true));
   const list = pool.length ? pool : letters.slice(0, 1);
-  const broken = ["1", "2", "all", 1, 2].includes(params.broken) ? String(params.broken) : "1";
+  // one setting for the adult (owner, 2026-11-04: «нереальное количество настроек… не стоит столько»):
+  // «Легко» — one part shifted; «Средне» — two, one may be tilted; «Трудно» — all, a tilt and a mirrored
+  // half-oval may come. The magnet is always the strong one, the sample is always in the corner, the
+  // sound follows the app's sound switch.
+  const level = ["easy", "mid", "hard"].includes(params.level) ? params.level : "easy";
+  const LEVELS = {
+    easy: { broken: 1, tilt: false, mirror: false },
+    mid: { broken: 2, tilt: true, mirror: false },
+    hard: { broken: "all", tilt: true, mirror: true },
+  };
   const tasks = list.map((c) => ({
     type: "pl_fix_letter",
     id: `fix:${c.id}`,
     conceptId: c.id,
     card: { id: c.id, label: c.label ?? c.id, viewBox: c.viewBox, strokes: c.strokes },
-    broken: broken === "all" ? "all" : Number(broken),
-    tilt: params.tilt === true,
-    mirror: params.mirror === true,
-    magnet: params.magnet === "normal" ? "normal" : "strong",
-    contour: params.contour === true,
-    sample: params.sample !== false,
-    sound: params.sound !== false,
+    level,
+    ...LEVELS[level],
   }));
   tasks.forEach((t, i) => {
     t.prevLabel = tasks.length > 1 ? tasks[(i - 1 + tasks.length) % tasks.length].card.label : null;

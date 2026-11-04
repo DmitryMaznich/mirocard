@@ -17,7 +17,8 @@ const INK_W = 7;           // as in «Пишу на экране»: a letter is 
 const HIT_W = 30;          // what the finger can grab
 const SNAP_MS = 160;
 const IDLE_HINT_MS = 8000; // idle: the place of one broken part glows softly (counts as help)
-const DONE_HOLD_MS = 1100; // the fixed letter stays on screen before the session hears about it
+const DONE_HOLD_MS = 1100;
+const MAGNET = "strong";   // one setting only (owner): the strong magnet always // the fixed letter stays on screen before the session hears about it
 
 function partTransform(p) {
   if (p.line) return undefined;
@@ -31,10 +32,10 @@ function partD(p) {
   return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
 }
 
-export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }) {
+export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious, soundEnabled }) {
   const card = useMemo(() => screenGlyph(task.card), [task.card]);
-  const opts = useMemo(() => ({ broken: task.broken, tilt: task.tilt, mirror: task.mirror, magnet: task.magnet }), [task.broken, task.tilt, task.mirror, task.magnet]);
-  const tone = useTone(task.sound !== false);
+  const opts = useMemo(() => ({ broken: task.broken, tilt: task.tilt, mirror: task.mirror, magnet: MAGNET }), [task.broken, task.tilt, task.mirror]);
+  const tone = useTone(soundEnabled !== false);
   const targets = useMemo(() => letterTargets(card), [card]);
 
   const [parts, setParts] = useState(() => breakLetter(card, opts));
@@ -139,7 +140,7 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
   // the magnet: a part let go near a free place it fits slides onto it; then — is the letter whole?
   function settle(i) {
     const p = partsRef.current[i];
-    const to = snapTarget(partsRef.current, i, targets, task.magnet);
+    const to = snapTarget(partsRef.current, i, targets, MAGNET);
     if (!to) { check(); return; }
     // slide from where the part is now: a straight part's two ends; a shape by how far its middle is off
     const start = p.line
@@ -200,7 +201,6 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
           onPointerCancel={onPointerUp}
         >
           <Grid box={box} card={card} />
-          {task.contour && targets.map((t) => <path key={`c${t.i}`} d={polyD(t.pts)} className="plf-contour" />)}
           {hint != null && <path d={polyD(targets[hint].pts)} strokeWidth={INK_W + 6} className="plf-hint" />}
           <g className={done ? "plf-parts is-done" : "plf-parts"}>
             {order.map((i) => {
@@ -225,13 +225,11 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
           </g>
         </svg>
       </div>
-      {task.sample !== false && (
-        <div className="plw-sample plf-sample" aria-label={`Образец: буква ${card.label ?? card.id}`}>
-          <svg viewBox={`-14 -24 ${w + 28} 156`} className="plw-sample-glyph" aria-hidden="true">
-            {card.strokes.map((s, i) => <path key={i} d={s.d} className="plw-sample-line" />)}
-          </svg>
-        </div>
-      )}
+      <div className="plw-sample plf-sample" aria-label={`Образец: буква ${card.label ?? card.id}`}>
+        <svg viewBox={`-14 -24 ${w + 28} 156`} className="plw-sample-glyph" aria-hidden="true">
+          {card.strokes.map((s, i) => <path key={i} d={s.d} className="plw-sample-line" />)}
+        </svg>
+      </div>
       <nav className="plw-nav">
         {task.prevLabel ? (
           <button type="button" className="plw-nav-btn" onClick={(e) => { e.stopPropagation(); onPrevious?.(); }} aria-label={`Назад, к букве ${task.prevLabel}`}>

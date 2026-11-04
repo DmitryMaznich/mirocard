@@ -16,9 +16,9 @@ import FixLetterView from "./fixLetter/FixLetterView";
 // letter per task (screenWrite/ScreenWriteView.jsx, docs/print-letters-screen-writing.md).
 // «Почини букву» (task type pl_fix_letter) — a game of cards in the ordinary session: put the knocked-out
 // strokes of a letter back (fixLetter/FixLetterView.jsx, docs/print-letters-fix-letter.md).
-export default function PrintLettersRenderer({ task, onBack, onAdvance, onCorrect, onPrevious, accountKv, makePdf }) {
+export default function PrintLettersRenderer({ task, onBack, onAdvance, onCorrect, onPrevious, accountKv, makePdf, soundEnabled }) {
   if (!task) return null;
-  if (task.type === "pl_fix_letter") return <FixLetterView task={task} onCorrect={onCorrect} onAdvance={onAdvance} onPrevious={onPrevious} />;
+  if (task.type === "pl_fix_letter") return <FixLetterView task={task} onCorrect={onCorrect} onAdvance={onAdvance} onPrevious={onPrevious} soundEnabled={soundEnabled} />;
   if (task.type === "pl_screen_write") return <ScreenWriteView task={task} onCorrect={onCorrect} onAdvance={onAdvance} onPrevious={onPrevious} />;
   return <PrintLettersHome task={task} onBack={onBack} onAdvance={onAdvance} accountKv={accountKv} makePdf={makePdf} />;
 }
