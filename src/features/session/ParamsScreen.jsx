@@ -1,5 +1,6 @@
 import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 import VideoPrizeCard from "@/features/rewards/VideoPrizeCard.jsx";
+import { saveStudentRewardSettings } from "@/features/rewards/saveStudentRewardSettings.js";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { availableContentLanguages, initialContentLanguage } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
@@ -2586,6 +2587,7 @@ export default function ParamsScreen() {
                 atEnd={params.videoAtEnd === true}
                 onAtEnd={(on) => setParams((p) => ({ ...p, videoAtEnd: on }))}
                 rules={mode.evaluation !== "none" ? studentRewardSettings : null}
+                onRules={student ? (patch) => saveStudentRewardSettings(student.id, patch) : null}
                 onShowInfo={setActiveInfo}
               />
             </div>

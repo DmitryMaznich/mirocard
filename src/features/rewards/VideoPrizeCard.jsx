@@ -45,7 +45,7 @@ export default function VideoPrizeCard({
   enabled, onEnabled,
   showSeries = true, answersPerStar = 1, onAnswersPerStar,
   showAtEnd = false, atEnd = false, onAtEnd,
-  rules = null, note = null, onShowInfo,
+  rules = null, onRules = null, note = null, onShowInfo,
 }) {
   useUiTranslation();
   const off = !enabled;
@@ -76,10 +76,33 @@ export default function VideoPrizeCard({
         </div>
       )}
 
+      {/* the student's prize rules — editable here when onRules is given (they are the student's own
+          rules, shared by every topic, the same as «Ученик → Правила видеоприза»); owner 2026-11-04:
+          «строгий подсчёт должен остаться» */}
+      {rules && onRules && (
+        <>
+          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
+            <Label label={text("strict")} info={text("strictInfo")} onShowInfo={onShowInfo} />
+            <Switch on={rules.strictStars} onChange={(on) => onRules({ strictStars: on })} label={text("strict")} disabled={off} />
+          </div>
+          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
+            <Label label={text("loss")} info={text("attempt")} onShowInfo={onShowInfo} />
+            <div className="param-enum-group">
+              {["one", "all"].map((loss) => (
+                <button key={loss} type="button" className={`enum-btn ${(rules.lossMode === "all" ? "all" : "one") === loss ? "enum-btn--active" : ""}`} disabled={off} onClick={() => onRules({ lossMode: loss })}>
+                  {text(loss)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       {(rules || note) && (
         <div className="param-row video-prize-card__foot">
           {note && <span>{note}</span>}
-          {rules && (
+          {rules && onRules && <span>{text("sharedRules")}</span>}
+          {rules && !onRules && (
             <span>
               {text("strict")}: <strong>{text(rules.strictStars ? "on" : "off")}</strong>
               {" · "}{text("loss")}: <strong>{text(rules.lossMode === "all" ? "all" : "one").toLowerCase()}</strong>
