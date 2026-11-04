@@ -5,8 +5,9 @@ import "./rewards.css";
 // «Видеоприз» — the one standard block of video-prize settings for a lesson (owner, 2026-11-04: «три
 // разных слова — видеонаграда, видеоприз, видео — и всё на разных плашках… сделаем типовым во всём
 // приложении»). One plate, one word: the prize on/off, how many right answers in a row earn it, and
-// whether it is also offered at the end of the lesson; under them the student's prize rules in one
-// line. Rows a screen does not use are left out (`showSeries`, `showAtEnd`). Uses the settings
+// whether it is also offered at the end of the lesson, and «Строгий подсчёт» for this lesson (per topic,
+// owner 2026-11-04: «как и было»); under them what a mistake burns — the student's rule, shown, changed
+// in the student card with the prize's duration. Rows a screen does not use are left out (`showSeries`, `showAtEnd`). Uses the settings
 // screen's own classes (.param-plate / .param-row / .param-toggle / .enum-btn).
 
 function Label({ label, info, onShowInfo }) {
@@ -45,7 +46,8 @@ export default function VideoPrizeCard({
   enabled, onEnabled,
   showSeries = true, answersPerStar = 1, onAnswersPerStar,
   showAtEnd = false, atEnd = false, onAtEnd,
-  rules = null, onRules = null, note = null, onShowInfo,
+  showStrict = false, strict = true, onStrict,
+  rules = null, note = null, onShowInfo,
 }) {
   useUiTranslation();
   const off = !enabled;
@@ -76,37 +78,20 @@ export default function VideoPrizeCard({
         </div>
       )}
 
-      {/* the student's prize rules — editable here when onRules is given (they are the student's own
-          rules, shared by every topic, the same as «Ученик → Правила видеоприза»); owner 2026-11-04:
-          «строгий подсчёт должен остаться» */}
-      {rules && onRules && (
-        <>
-          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
-            <Label label={text("strict")} info={text("strictInfo")} onShowInfo={onShowInfo} />
-            <Switch on={rules.strictStars} onChange={(on) => onRules({ strictStars: on })} label={text("strict")} disabled={off} />
-          </div>
-          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
-            <Label label={text("loss")} info={text("attempt")} onShowInfo={onShowInfo} />
-            <div className="param-enum-group">
-              {["one", "all"].map((loss) => (
-                <button key={loss} type="button" className={`enum-btn ${(rules.lossMode === "all" ? "all" : "one") === loss ? "enum-btn--active" : ""}`} disabled={off} onClick={() => onRules({ lossMode: loss })}>
-                  {text(loss)}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
+      {showStrict && (
+        <div className={`param-row${off ? " param-row--disabled" : ""}`}>
+          <Label label={text("strict")} info={text("strictInfo")} onShowInfo={onShowInfo} />
+          <Switch on={strict} onChange={onStrict} label={text("strict")} disabled={off} />
+        </div>
       )}
 
       {(rules || note) && (
         <div className="param-row video-prize-card__foot">
           {note && <span>{note}</span>}
-          {rules && onRules && <span>{text("sharedRules")}</span>}
-          {rules && !onRules && (
+          {rules && (
             <span>
-              {text("strict")}: <strong>{text(rules.strictStars ? "on" : "off")}</strong>
-              {" · "}{text("loss")}: <strong>{text(rules.lossMode === "all" ? "all" : "one").toLowerCase()}</strong>
-              {". "}{text("editProfile")}
+              {text("loss")}: <strong>{text(rules.lossMode === "all" ? "all" : "one").toLowerCase()}</strong>
+              {". "}{text("lossWhere")}
             </span>
           )}
         </div>

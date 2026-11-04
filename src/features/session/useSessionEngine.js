@@ -226,7 +226,9 @@ export function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    effectiveRewardSettings(activeStudent?.rewardSettings).strictStars,
+    // «Строгий подсчёт» is set before the lesson on the «Видеоприз» plate (owner, 2026-11-04: «как и
+    // было»), kept per topic in link.strictStars; untouched, the student's rule applies.
+    link.strictStars ?? effectiveRewardSettings(activeStudent?.rewardSettings).strictStars,
     rewardPolicy(effectiveRewardSettings(activeStudent?.rewardSettings), effectiveRewardSettings(activeStudent?.rewardSettings).lossMode),
   );
 
@@ -339,7 +341,7 @@ export function useSessionEngine() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionState(() => {
       const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null, false, link.answersPerStar ?? 1,
-        effectiveRewardSettings(activeStudent?.rewardSettings).strictStars,
+        link.strictStars ?? effectiveRewardSettings(activeStudent?.rewardSettings).strictStars,
         rewardPolicy(effectiveRewardSettings(activeStudent?.rewardSettings), effectiveRewardSettings(activeStudent?.rewardSettings).lossMode));
       rebuilt.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
       rebuilt.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: rebuilt.strictStars }, tasks, selectedConceptIds, null);

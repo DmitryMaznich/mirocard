@@ -1,6 +1,5 @@
 import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 import VideoPrizeCard from "@/features/rewards/VideoPrizeCard.jsx";
-import { saveStudentRewardSettings } from "@/features/rewards/saveStudentRewardSettings.js";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { availableContentLanguages, initialContentLanguage } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
@@ -1893,7 +1892,9 @@ export default function ParamsScreen() {
   const endsOnItsOwn = sessionEndsOnItsOwn(mode, topicRecord?.meta.renderer);
   const studentRewardSettings = effectiveRewardSettings(student?.rewardSettings);
   const rewardLossMode = studentRewardSettings.lossMode;
-  const strictStars = studentRewardSettings.strictStars;
+  // «Строгий подсчёт» — per topic, before the lesson, on the «Видеоприз» plate (owner, 2026-11-04);
+  // untouched, the student's rule. How many stars a mistake burns stays the student's rule.
+  const [strictStars, setStrictStars] = useState(link.strictStars ?? studentRewardSettings.strictStars);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
@@ -1999,7 +2000,7 @@ export default function ParamsScreen() {
       videoRewardEnabled: hideVideoReward ? false : (link.videoRewardEnabled ?? true),
       rewardLossMode,
       answersPerStar: link.answersPerStar ?? 1,
-      strictStars: studentRewardSettings.strictStars,
+      strictStars: link.strictStars ?? studentRewardSettings.strictStars,
     };
     const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars, rewardLossMode };
     if (sessionSettingsChanged(current, baseline)) {
@@ -2011,7 +2012,7 @@ export default function ParamsScreen() {
       params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, params),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
-      strictStars: link.strictStars,
+      strictStars,
     });
     setScreen("session");
     setSessionReturnScreen(null);
@@ -2586,8 +2587,10 @@ export default function ParamsScreen() {
                 showAtEnd={mode.evaluation !== "none" && endsOnItsOwn}
                 atEnd={params.videoAtEnd === true}
                 onAtEnd={(on) => setParams((p) => ({ ...p, videoAtEnd: on }))}
+                showStrict={mode.evaluation !== "none"}
+                strict={strictStars}
+                onStrict={setStrictStars}
                 rules={mode.evaluation !== "none" ? studentRewardSettings : null}
-                onRules={student ? (patch) => saveStudentRewardSettings(student.id, patch) : null}
                 onShowInfo={setActiveInfo}
               />
             </div>

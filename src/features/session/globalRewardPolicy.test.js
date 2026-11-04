@@ -7,7 +7,9 @@ import { handleAnswer, handleStreakReset } from "./sessionEngine.js";
 const original = useAppStore.getState();
 afterEach(() => { vi.restoreAllMocks(); useAppStore.setState(original, true); });
 
-it.each([undefined, "legacy", "flexible"])("uses student rules across topics despite saved algorithm %s and conflicting lesson settings", algorithm => {
+// «Строгий подсчёт» is set per topic before the lesson (the «Видеоприз» plate, owner 2026-11-04: «как и
+// было») — link.strictStars wins; what a mistake burns and the duration stay the student's rules.
+it.each([undefined, "legacy", "flexible"])("uses the lesson's strict counting and the student's loss and duration (saved algorithm %s)", algorithm => {
   const student = { id: "s", rewardSettings: { algorithm, strictStars: false, lossMode: "all", duration: "60" } };
   useAppStore.setState({ activeStudentId: "s", students: [student] });
   for (const renderer of ["streak_tracker", "comparison", "reading", "place_value", "sentence_puzzle"]) {
@@ -21,10 +23,10 @@ it.each([undefined, "legacy", "flexible"])("uses student rules across topics des
       // Renderers forward all errors, while the central engine applies strictness.
       expect(selection.sessionParams.strictStars).toBe(true);
       const state = buildGeneratedSessionState({ topicRecord: topic, mode, activeStudentId: "s", activeTopicId: renderer, activeTextId: "text", activeStudent: student, link, ...selection });
-      expect(state.strictStars).toBe(false);
+      expect(state.strictStars).toBe(true);
       expect(state.rewardPolicy).toEqual({ version: 2, lossMode: "all" });
       const progress = { ...state, streakCount: 3 };
-      expect(handleStreakReset(progress).streakCount).toBe(3);
+      expect(handleStreakReset(progress).streakCount).toBe(0);
       expect(handleAnswer(progress, false).streakCount).toBe(0);
       expect(state.rewardSettings.duration).toBe("60");
     }
@@ -36,8 +38,12 @@ it.each([undefined, "legacy", "flexible"])("uses student rules across topics des
   const mode = { id: "m", type: "streak", evaluation: "auto" };
   const selection = resolveModeSelection(topic, mode, { strictStars: false, params: { rewardLossMode: "all" } }, false);
   const state = buildGeneratedSessionState({ topicRecord: topic, mode, activeStudentId: "other", activeTopicId: topic.meta.id, activeStudent: other, link: { strictStars: false }, ...selection });
-  expect(state.strictStars).toBe(true);
-  expect(handleStreakReset({ ...state, streakCount: 3 }).streakCount).toBe(2);
+  expect(state.strictStars).toBe(false);
+  expect(handleStreakReset({ ...state, streakCount: 3 }).streakCount).toBe(3);
+  // a topic where strict counting was never set takes the student's rule
+  const unset = buildGeneratedSessionState({ topicRecord: topic, mode, activeStudentId: "other", activeTopicId: topic.meta.id, activeStudent: other, link: {}, ...selection });
+  expect(unset.strictStars).toBe(true);
+  expect(handleStreakReset({ ...unset, streakCount: 3 }).streakCount).toBe(2);
   expect(student.rewardSettings.strictStars).toBe(false);
 });
 
