@@ -221,13 +221,32 @@ owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs
 pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
 ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
 
-## Мои люди (my_people) — разбор логопеда и редизайн
+## Мои люди (my_people) — согласованная механика и переделка
 
-Второй методический проход по теме (2026-10-20): оценка всех режимов глазами логопеда (РАС),
-пробелы (нет критерия перехода, нет ответа выбором для неговорящих, детская и взрослая зоны
-экрана смешаны) и предложение по редизайну. **Read `docs/my-people-methodology-review.md` first**
-before touching `my_people`; макеты — `docs/mockups/my-people-redesign.html`. История прошлых правок —
-`docs/my-people-review.md`.
+Последняя фиксация с владельцем — 2026-11-04, макеты 01–07. **Read
+`docs/my-people-design.md` first** before continuing `my_people`. План реализации:
+`docs/superpowers/plans/2026-11-04-my-people-redesign.md`. Основной путь:
+`docs/mockups/my-people-2026-11-04/my-people-v07.html`; лестница 2/3/4/6:
+`docs/mockups/my-people-2026-11-04/my-people-v06.html`.
+
+**Rollback required by owner:** read `docs/my-people-rollback.md` before implementation.
+Production baseline `1.0.2818`, SHA `9b7ca097983cd5cc2906563063deab45be7412c5`,
+reserved branch `backup/my-people-before-redesign-2026-11-04` (do not move/delete).
+Keep the old topic path behind a version switch; additive migrations must pass an
+old-client/new-data round trip. Before release, verify a restorable production DB
+and photo backup. The backup branch contains source code, not production data.
+
+Зафиксировано: две цели (имя / отношение), выбор фото и называние, самостоятельная
+работа и работа со взрослым, четыре компактные кнопки без поясняющего текста на
+детском экране, параметры каждого задания и результат с условиями. Подготовленный
+детский план меняется после подтверждения взрослого. Озвучка окончательно не
+принята и отложена отдельно. HTML — макет, не готовый исходник React.
+
+История: `docs/my-people-review.md` (2026-10-15) и
+`docs/my-people-methodology-review.md` (2026-10-20), старый макет
+`docs/mockups/my-people-redesign.html`. Старые предложения о едином результате
+называния человека, большой взрослой панели и автоматическом критерии «освоено»
+не заменяют последнюю спецификацию.
 
 ## Учим словенский — новая тема (started 2026-10-22)
 
@@ -235,6 +254,14 @@ Second language (Slovenian) for the owner's minimally verbal autistic son, start
 listening mode «Одна вещь — два слова» (Russian word = home, Slovenian word = school, Russian
 faded out as a prompt). Not the app's Slovenian UI localization. **Read
 `docs/learn-slovene.md` first** — methodology, vocabulary, chosen voices, plan and status.
+
+## Короткие рассказы: микрорассказы (reading_short_stories)
+
+Шлифовка 15 микрорассказов для ребёнка, который ещё не умеет и не хочет искать в тексте (начата
+2026-11-04). Методика сделана в колоде 2.0.5: три вида вопросов (`?` поиск, `??` понимание,
+`*` разговор), три уровня сборника; дизайн экранов ещё впереди. **Read
+`docs/reading-micro-stories.md` first** — виды вопросов, правила их составления, сборка
+(базовые колоды в `test-fixtures/decks/`, исходных PNG в git нет), открытые пункты.
 
 ## Разряды числа (place_value)
 
@@ -308,3 +335,4 @@ absolute-positioned element, not as a follow-up:**
   ```
   then screenshot the screen — anything now cramped or overlapping the top/bottom edge
   needs the fix above.
+

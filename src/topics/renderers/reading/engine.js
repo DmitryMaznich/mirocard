@@ -1,5 +1,5 @@
 
-import { getMinimumStoryFindQuestions, getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
+import { countStoryFindQuestions, getMinimumStoryFindQuestions, getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
 
 export function getReadingText(topicRecord, textId, textOverride = null) {
   if (textOverride?.id === textId) return textOverride;
@@ -66,16 +66,21 @@ function buildStoryQuizTasks(topicRecord, sessionParams) {
   const questionsByStoryId = quizGroupsByStoryId(parsed, stories);
   const selectedStoryIds = new Set(getSelectedReadingStories(topicRecord, sessionParams).map((story) => story.id));
   const selectedStories = stories.filter((story) => selectedStoryIds.has(story.id));
-  const readyStories = selectedStories.filter((story) => (questionsByStoryId[story.id] ?? [])
-    .filter((question) => question.kind !== "discuss").length >= getMinimumStoryFindQuestions(story));
+  const readyStories = selectedStories.filter((story) => countStoryFindQuestions(questionsByStoryId[story.id])
+    >= getMinimumStoryFindQuestions(story));
+  // "find" keeps only the plain search questions plus the adult's talking
+  // point: for a child who is still learning to search the text at all,
+  // the comprehension questions can wait.
+  const includeGist = sessionParams?.questionSet !== "find";
 
   return readyStories.flatMap((story, storyIndex) => {
     const allQuestions = questionsByStoryId[story.id] ?? [];
-    // Discussion questions are unscored, so they're appended after the
-    // graded find-questions rather than interleaved — the child finishes
-    // the scored part of the story before the adult opens the talking point.
+    // Easy search questions first (they build momentum), then the
+    // comprehension questions about the same event, then the unscored
+    // discussion point for the adult.
     const orderedQuestions = [
-      ...allQuestions.filter((question) => question.kind !== "discuss"),
+      ...allQuestions.filter((question) => question.kind === "find"),
+      ...(includeGist ? allQuestions.filter((question) => question.kind === "gist") : []),
       ...allQuestions.filter((question) => question.kind === "discuss"),
     ];
     return orderedQuestions.map((question, questionIndex) => ({

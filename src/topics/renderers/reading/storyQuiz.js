@@ -7,6 +7,11 @@
  *   * Как ты думаешь, почему мама попросила катать мяч по очереди?
  *
  * `?` is the prompt, `+` the exact word or phrase the child finds and taps.
+ * `??` is a comprehension question: the answer is still a fragment the child
+ * taps in the text, but the question does not repeat the sentence's words —
+ * it asks about the problem, a cause or a purpose of the same event (e.g.
+ * «Что Петя увидел в начале?» → «у кота в миске нет воды»). These come after
+ * the plain search questions and can be switched off per session.
  * Additional `+` lines under the same prompt specify accepted alternatives
  * in the story — the minimum is authored per story (five by default). `*` is an
  * optional, unscored discussion question with no located phrase: a "why" or
@@ -18,6 +23,11 @@ export function getMinimumStoryFindQuestions(story) {
   return Number.isInteger(story?.minimumFindQuestions) && story.minimumFindQuestions > 0
     ? story.minimumFindQuestions
     : 5;
+}
+
+// Plain search questions, i.e. not comprehension (`??`) or discussion (`*`).
+export function countStoryFindQuestions(questions) {
+  return (questions ?? []).filter((question) => question.kind === "find").length;
 }
 
 // Shared by the task engine and settings validation. An unconfigured legacy
@@ -62,7 +72,7 @@ export function mergeStoryQuizText(defaultText, customText, previousDefaultTexts
     ...custom.groups.filter((group) => !baseTitles.has(group.title) && !obsoleteDefaults.has(group.title)),
   ];
   return groups.map((group) => `# ${group.title}\n\n${group.questions.map((question) => (
-    question.kind === "discuss" ? `* ${question.prompt}` : `? ${question.prompt}\n${(question.targets ?? [question.target]).map((target) => `+ ${target}`).join("\n")}`
+    question.kind === "discuss" ? `* ${question.prompt}` : `${question.kind === "gist" ? "??" : "?"} ${question.prompt}\n${(question.targets ?? [question.target]).map((target) => `+ ${target}`).join("\n")}`
   )).join("\n\n")}`).join("\n\n");
 }
 
@@ -124,6 +134,15 @@ export function getStoryQuizTargetMatches(lineText, target) {
   return matches;
 }
 
+// Every word of the story is its own, identical tap target, so the layout
+// never shows where an answer begins or ends. A tap on any meaningful word
+// inside an accepted answer counts («стул» for «под стул»); a tap on one of
+// these function words inside it only earns a "you're close" hint.
+const STORY_QUIZ_FUNCTION_WORDS = new Set(["и", "а", "в", "во", "на", "с", "со", "из", "под", "к", "ко", "по", "перед", "у", "для", "от", "до", "за", "о", "об", "что"]);
+export function isStoryQuizFunctionWord(word) {
+  return STORY_QUIZ_FUNCTION_WORDS.has(normalizeStoryQuizText(word).join(" "));
+}
+
 export function storyQuizTargetExists(story, target) {
   return (story?.lines ?? []).some((line) => getStoryQuizTargetMatches(line?.text ?? line, target).length > 0);
 }
@@ -151,7 +170,7 @@ export function parseStoryQuizText(source) {
     } else {
       group.questions.push({
         id: `q${group.questions.length + 1}`,
-        kind: "find",
+        kind: question.kind,
         prompt: question.prompt,
         target: question.target,
         ...(question.targets.length > 1 ? { targets: question.targets } : {}),
@@ -190,13 +209,14 @@ export function parseStoryQuizText(source) {
 
     if (line.startsWith("?")) {
       finishQuestion();
-      const prompt = line.slice(1).trim();
+      const kind = line.startsWith("??") ? "gist" : "find";
+      const prompt = line.slice(kind === "gist" ? 2 : 1).trim();
       if (!prompt) {
         fail(lineNumber, "После ? напишите вопрос.");
         return;
       }
       questionNumber += 1;
-      question = { line: lineNumber, prompt, target: "", targets: [], targetLine: null };
+      question = { line: lineNumber, kind, prompt, target: "", targets: [], targetLine: null };
       return;
     }
 
@@ -242,7 +262,7 @@ export function parseStoryQuizText(source) {
       return;
     }
 
-    fail(lineNumber, "Используйте # для рассказа, ? для вопроса, + для фрагмента в тексте и * для вопроса на обсуждение.");
+    fail(lineNumber, "Используйте # для рассказа, ? для вопроса на поиск, ?? для вопроса на понимание, + для фрагмента в тексте и * для вопроса на обсуждение.");
   });
 
   finishGroup();
@@ -288,8 +308,9 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
       errors.push({ line: null, message: `Нет вопросов к рассказу «${story.title}».` });
       continue;
     }
-    // An oral question cannot substitute for a required text-search question.
-    const findCount = group.questions.filter((question) => question.kind !== "discuss").length;
+    // Neither an oral nor a comprehension question substitutes for a
+    // required plain search question.
+    const findCount = countStoryFindQuestions(group.questions);
     const minimum = getMinimumStoryFindQuestions(story);
     if (findCount < minimum) {
       errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше ${minimum} вопросов со знаком + (сейчас ${findCount}).` });

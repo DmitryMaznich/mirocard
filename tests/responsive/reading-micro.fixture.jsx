@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import ReadingRenderer from "../../src/topics/renderers/reading/index.jsx";
+import MicroStoryShelf from "../../src/features/reading/MicroStoryShelf.jsx";
 import { generateTasks } from "../../src/topics/renderers/reading/engine.js";
 import { getDb } from "../../src/core/db.js";
 import { importTopic } from "../../src/topics/topicLoader.js";
@@ -9,7 +10,7 @@ import "@fontsource/nunito/400.css";
 import "@fontsource/nunito/700.css";
 import "./reading-micro.css";
 
-const bytes = await (await fetch("/decks/reading_short_stories_v2.0.4.zip")).arrayBuffer();
+const bytes = await (await fetch("/decks/reading_short_stories_v2.0.6.zip")).arrayBuffer();
 const topic = await importTopic(await getDb(), bytes, "99.0.0");
 const stories = topic.texts.filter((story) => story.storyStage === "micro");
 
@@ -18,7 +19,8 @@ function Preview() {
   const [mode, setMode] = useState(new URLSearchParams(location.search).get("mode") ?? "read_text");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [result, setResult] = useState("");
-  const tasks = generateTasks({ type: mode }, topic, storyId, { selectedMicroStories: [storyId] });
+  const [shelf, setShelf] = useState([]);
+  const tasks = mode === "shelf" ? [{}] : generateTasks({ type: mode }, topic, storyId, { selectedMicroStories: [storyId] });
   const storyIndex = stories.findIndex((story) => story.id === storyId);
   const task = { ...tasks[questionIndex % tasks.length], storyIndex, storyCount: stories.length };
   function advance(outcome = "") { setResult(outcome); setQuestionIndex((value) => value + 1); }
@@ -37,11 +39,14 @@ function Preview() {
         <div className="micro-preview__modes" role="group" aria-label="Занятие">
           <button type="button" aria-pressed={mode === "read_text"} onClick={() => changeMode("read_text")}>Читаем вместе</button>
           <button type="button" aria-pressed={mode === "story_quiz"} onClick={() => changeMode("story_quiz")}>Ищем ответы</button>
+          <button type="button" aria-pressed={mode === "shelf"} onClick={() => changeMode("shelf")}>Полка</button>
         </div>
       </div>
     </header>
     <span className={`micro-preview__result${result ? " micro-preview__result--visible" : ""}`} role="status" data-outcome={result}>{result === "prompted" ? "Ответ с помощью" : result === "independent" ? "Самостоятельно" : result === "none" ? "Пока нет ответа" : result}</span>
-    <div className="session-screen session-screen--micro-reading">
+    {mode === "shelf" ? <div className="micro-preview__shelf" style={{ padding: "16px", background: "#fdfcf9", minHeight: "100vh" }}>
+      <MicroStoryShelf topicId={topic.meta.id} stories={topic.texts} options={stories.map((story) => story.id)} value={shelf} onChange={setShelf} />
+    </div> : <div className="session-screen session-screen--micro-reading">
       <div className="session-renderer-wrap">
         <ReadingRenderer key={`${storyId}_${mode}_${questionIndex}`} task={task} topicId={topic.meta.id} sessionParams={{}}
           onCorrect={() => advance("independent")} onQualityAnswer={(quality) => advance(quality)}
@@ -49,7 +54,7 @@ function Preview() {
           onAdvance={() => mode === "read_text" ? changeStory(stories[(storyIndex + 1) % stories.length].id) : advance()}
           onPrevious={() => mode === "read_text" ? changeStory(stories[Math.max(0, storyIndex - 1)].id) : setQuestionIndex((value) => Math.max(0, value - 1))} />
       </div>
-    </div>
+    </div>}
   </div>;
 }
 createRoot(document.getElementById("root")).render(<Preview />);

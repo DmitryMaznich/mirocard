@@ -4,39 +4,66 @@ import { readFile } from "node:fs/promises";
 import JSZip from "jszip";
 import { describe, expect, it, vi } from "vitest";
 import { generateTasks } from "./engine";
-import { getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, validateStoryQuizText } from "./storyQuiz";
+import { getSelectedReadingStories, getStoryQuizTargetMatches, isStoryQuizFunctionWord, mergeStoryQuizText, parseStoryQuizText, validateStoryQuizText } from "./storyQuiz";
 import ReadingRenderer from "./index";
 import { useAppStore } from "@/core/store";
 
 vi.mock("@/shared/hooks/useTopicFile", () => ({ useTopicFile: (_topic, path) => path ? `/preview/${path}` : null }));
-const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.4.zip"));
+const zip = await JSZip.loadAsync(await readFile("public/decks/reading_short_stories_v2.0.6.zip"));
 const topic = JSON.parse(await zip.file("topic.json").async("string"));
 const micro = topic.texts.filter((story) => story.storyStage === "micro");
 const findTasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, {});
 const readTasks = generateTasks({ type: "read_text" }, topic, micro[0].id, {});
-const agreed = JSON.parse(await readFile("content/reading_short_stories/micro/editorial-draft.json", "utf8"));
+const source = JSON.parse(await readFile("content/reading_short_stories/micro/stories.json", "utf8"));
+const stripSyllables = (value) => value.replace(/(\p{L})-(?=\p{L})/gu, "$1");
+// Most interaction checks use «Мяч под стулом»; the collection opens on «Книга на полке».
+const ballFind = findTasks.filter((task) => task.textId === "micro_ball");
+const ballRead = readTasks.find((task) => task.textId === "micro_ball");
+const totalQuestions = source.reduce((n, story) => n + story.questions.length + (story.discussion ? 1 : 0), 0);
 
 describe("micro-story content and staircase", () => {
-  it("publishes exactly the agreed sentences and every accepted answer variant", () => {
-    for (const draft of agreed.stories) {
-      const story = micro.find(s => s.id === draft.id);
-      expect(story.lines.map(line => line.text)).toEqual(draft.lines);
-      const questions = findTasks.filter(task => task.textId === draft.id).map(task => task.question);
-      expect(questions.map(q => q.prompt)).toEqual(draft.questions.map(q => q.question));
-      questions.forEach((q, index) => expect(new Set(q.targets ?? [q.target])).toEqual(new Set(draft.questions[index].acceptedAnswers)));
+  it("publishes exactly the source sentences and questions: search, then comprehension, then the talking point", () => {
+    expect(micro.map((story) => story.id)).toEqual(source.map((story) => story.id));
+    for (const entry of source) {
+      const story = micro.find(s => s.id === entry.id);
+      expect(story.lines.map(line => line.text)).toEqual(entry.lines.map(stripSyllables));
+      expect(story.microLevel).toBe(entry.level);
+      const questions = findTasks.filter(task => task.textId === entry.id).map(task => task.question);
+      const expected = [...entry.questions.filter(q => q.kind === "find"), ...entry.questions.filter(q => q.kind === "gist")];
+      expect(questions.map(q => q.prompt)).toEqual([...expected.map(q => q.prompt), entry.discussion.prompt]);
+      expect(questions.map(q => q.kind)).toEqual([...expected.map(q => q.kind), "discuss"]);
+      expected.forEach((q, index) => expect(new Set(questions[index].targets ?? [questions[index].target])).toEqual(new Set(q.targets)));
+      expect(findTasks.find(task => task.textId === entry.id && task.type === "story_quiz_discuss").expectedAnswer).toBe(entry.discussion.answer);
     }
+  });
+
+  it("offers a search-only set that drops just the comprehension questions", () => {
+    const searchOnly = generateTasks({ type: "story_quiz" }, topic, micro[0].id, { questionSet: "find" });
+    const gist = source.reduce((n, story) => n + story.questions.filter(q => q.kind === "gist").length, 0);
+    expect(gist).toBeGreaterThanOrEqual(30);
+    expect(searchOnly).toHaveLength(totalQuestions - gist);
+    expect(searchOnly.some(task => task.question.kind === "gist")).toBe(false);
+    expect(searchOnly.filter(task => task.type === "story_quiz_discuss")).toHaveLength(15);
+  });
+
+  it("parses ?? as a comprehension question that still needs a fragment in the text", () => {
+    const parsed = parseStoryQuizText("# Вода для кота\n\n?? Что Петя увидел в начале?\n+ нет воды\n\n?? Без ответа?");
+    expect(parsed.groups[0].questions[0]).toMatchObject({ kind: "gist", prompt: "Что Петя увидел в начале?", target: "нет воды" });
+    expect(parsed.valid).toBe(false);
+    const merged = mergeStoryQuizText(topic.storyQuiz.defaultText, "# Вода для кота\n\n? Как зовут мальчика?\n+ Петя\n\n?? Что Петя увидел?\n+ нет воды");
+    expect(merged).toContain("?? Что Петя увидел?\n+ нет воды");
   });
   it("starts with exactly 15 short stories and keeps legacy selection separate", () => {
     expect(getSelectedReadingStories(topic)).toHaveLength(15);
     expect(getSelectedReadingStories(topic, { storyStage: "extended" })).toHaveLength(12);
     expect(getSelectedReadingStories(topic, { selectedStories: ["help_mommy"] })).toHaveLength(15);
     expect(getSelectedReadingStories(topic, { selectedMicroStories: ["micro_book", "micro_ball"] }).map((story) => story.id))
-      .toEqual(["micro_ball", "micro_book"]);
+      .toEqual(["micro_book", "micro_ball"]);
     expect(new Set(topic.texts.map((story) => story.title.ru)).size).toBe(27);
   });
 
-  it("ships 82 agreed questions, a name first, valid normal and syllable targets, and 30 real frames", () => {
-    expect(findTasks).toHaveLength(82);
+  it("ships every question, a name first, valid normal and syllable targets, and 30 real frames", () => {
+    expect(findTasks).toHaveLength(totalQuestions);
     const stories = topic.texts.map((story) => ({ ...story, title: story.title.ru }));
     expect(validateStoryQuizText(topic.storyQuiz.defaultText, stories, micro.map((story) => story.id)).errors).toEqual([]);
     const syllableStories = stories.map((story) => ({ ...story, lines: story.lines.map((line) => ({ text: line.syllableText ?? line.text })) }));
@@ -56,8 +83,9 @@ describe("micro-story content and staircase", () => {
         files.push(frame.file);
       }
       const tasks = findTasks.filter((task) => task.textId === story.id);
-      expect(tasks.length).toBeGreaterThanOrEqual(5);
-      expect(tasks.every(task => task.type === "story_quiz")).toBe(true);
+      expect(tasks.filter(task => task.question.kind === "find").length).toBeGreaterThanOrEqual(5);
+      expect(tasks.filter(task => task.question.kind === "gist").length).toBeGreaterThanOrEqual(2);
+      expect(tasks.map(task => task.type)).toEqual([...tasks.slice(0, -1).map(() => "story_quiz"), "story_quiz_discuss"]);
       expect(tasks[0].question.prompt).toMatch(/^Как зовут (мальчика|девочку)\?$/);
       expect(tasks[0].question.target).toBe(story.character);
     }
@@ -75,7 +103,7 @@ describe("micro-story content and staircase", () => {
     const merged = parseStoryQuizText(mergeStoryQuizText(topic.storyQuiz.defaultText, old));
     expect(merged.groups).toHaveLength(27);
     expect(merged.groups.find((group) => group.title === "Помощь маме").questions[0].prompt).toBe("Мой вопрос?");
-    expect(merged.groups.find((group) => group.title === "Мяч под стулом").questions).toHaveLength(5);
+    expect(merged.groups.find((group) => group.title === "Мяч под стулом").questions).toHaveLength(8);
     expect(mergeStoryQuizText(topic.storyQuiz.defaultText, "invalid edit")).toBe("invalid edit");
   });
 
@@ -90,7 +118,10 @@ describe("micro-story content and staircase", () => {
     // it cannot silently bypass the new five-question minimum.
     expect(validateStoryQuizText(merged, stories, micro.map((story) => story.id)).valid).toBe(false);
     const tasks = generateTasks({ type: "story_quiz" }, topic, micro[0].id, { storyQuizText: saved });
-    expect(tasks).toHaveLength(77);
+    // The edited three-question «Мяч под стулом» is below the minimum, so that
+    // story is skipped; every other story gets the current questions.
+    const ball = source.find((story) => story.id === "micro_ball");
+    expect(tasks).toHaveLength(totalQuestions - ball.questions.length - 1);
     expect(tasks.find((task) => task.textId === "micro_boots" && task.question.id === "q3").question.target).toBe("в грязь");
     const customInvalid = saved.replace("по грязной дорожке", "по дорожке");
     const preserved = mergeStoryQuizText(topic.storyQuiz.defaultText, customInvalid, topic.storyQuiz.previousDefaultTexts);
@@ -107,7 +138,7 @@ describe("micro-story content and staircase", () => {
     expect(merged).toContain("# Котёнок");
     expect(merged).not.toContain("# Красный карандаш");
     expect(merged).not.toContain("# Корм для кота");
-    expect(generateTasks({ type: "story_quiz" }, topic, micro[0].id, { storyQuizText: saved })).toHaveLength(82);
+    expect(generateTasks({ type: "story_quiz" }, topic, micro[0].id, { storyQuizText: saved })).toHaveLength(totalQuestions);
   });
 });
 
@@ -122,14 +153,14 @@ function mount(task) {
 }
 
 function click(container, label) {
-  const button = [...container.querySelectorAll("button")].find((item) => item.textContent === label);
+  const button = [...container.querySelectorAll("button")].find((item) => item.textContent.trim() === label || item.getAttribute("aria-label") === label);
   expect(button, label).toBeTruthy();
   act(() => button.click());
 }
 
 describe("micro-story reading support", () => {
   it("keeps the full text but renders no pictures until requested", () => {
-    const h = mount(findTasks[0]);
+    const h = mount(ballFind[0]);
     try {
       expect(h.container.textContent).toContain("Вова играл с мячом.");
       expect(h.container.querySelectorAll("img")).toHaveLength(0);
@@ -141,7 +172,7 @@ describe("micro-story reading support", () => {
   });
 
   it("retains picture assistance after hiding pictures and after a wrong answer", () => {
-    const h = mount(findTasks[0]);
+    const h = mount(ballFind[0]);
     try {
       click(h.container, "Показать картинки");
       expect(h.container.querySelectorAll("img")).toHaveLength(2);
@@ -158,7 +189,7 @@ describe("micro-story reading support", () => {
   });
 
   it("lets the adult record no oral answer without treating it as correct", () => {
-    const h = mount({ ...findTasks[0], type: "story_quiz_discuss", question: { id: "oral", kind: "discuss", prompt: "Обсудим рассказ?" } });
+    const h = mount({ ...ballFind[0], type: "story_quiz_discuss", question: { id: "oral", kind: "discuss", prompt: "Обсудим рассказ?" } });
     try {
       expect(h.container.querySelectorAll("img")).toHaveLength(0);
       expect(h.container.textContent).toContain("Вова играл с мячом.");
@@ -171,7 +202,7 @@ describe("micro-story reading support", () => {
 
 describe("questions inside the micro-story reader", () => {
   it("treats every candidate equally and grades only the confirmed choice", () => {
-    const h = mount(readTasks[0]);
+    const h = mount(ballRead);
     try {
       click(h.container, "Вопросы");
       const submit = () => [...h.container.querySelectorAll("button")].find((b) => b.textContent === "Ответить");
@@ -195,25 +226,61 @@ describe("questions inside the micro-story reader", () => {
       expect(answer.dataset.attempts).toBe("2");
       expect(answer.dataset.firstAnswer).toBe("мячом");
       expect(answer.dataset.assisted).toBe("false");
-      expect(answer.textContent).toContain("Первый ответ: «мячом»");
+      expect(answer.textContent).toContain("первый ответ «мячом»");
       expect(h.container.querySelectorAll(".story-quiz__word--found")).toHaveLength(1);
-      click(h.container, "Следующий вопрос");
+      click(h.container, "Дальше");
       expect(submit().disabled).toBe(true);
-      click(h.container, "с мячом");
+      // One tap on the meaningful word records the whole answer phrase.
+      click(h.container, "мячом");
       click(h.container, "Ответить");
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.attempts).toBe("1");
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.firstAnswer).toBe("с мячом");
+      expect([...h.container.querySelectorAll(".story-quiz__word--found")].map((b) => b.textContent)).toEqual(["с", "мячом"]);
+    } finally { h.close(); }
+  });
+
+  it("shows every word as its own identical button, so the layout never outlines an answer", () => {
+    for (const task of readTasks) {
+      const h = mount(task);
+      try {
+        click(h.container, "Вопросы");
+        const words = [...h.container.querySelectorAll(".story-quiz__word")];
+        expect(words.length).toBeGreaterThan(10);
+        expect(words.every((b) => !/\s/.test(b.textContent) && b.className === "story-quiz__word")).toBe(true);
+      } finally { h.close(); }
+    }
+  });
+
+  it("gives a 'you are close' hint for a preposition inside the answer and accepts the noun", () => {
+    const h = mount(ballRead);
+    try {
+      click(h.container, "Вопросы");
+      for (let i = 0; i < 2; i += 1) {
+        click(h.container, h.container.querySelector("#micro-current-question").textContent === "Как зовут мальчика?" ? "Вова" : "мячом");
+        click(h.container, "Ответить");
+        click(h.container, "Дальше");
+      }
+      expect(h.container.querySelector("#micro-current-question").textContent).toBe("Куда закатился мяч?");
+      click(h.container, "под");
+      click(h.container, "Ответить");
+      expect(h.container.querySelector("[role=status]").textContent).toBe("Ты рядом. Выбери другое слово здесь же.");
+      click(h.container, "стул");
+      click(h.container, "Ответить");
+      const answer = h.container.querySelector(".micro-answer-history li:last-child");
+      expect(answer.querySelector("strong").textContent).toBe("под стул");
+      expect(answer.dataset.attempts).toBe("2");
+      expect(answer.dataset.firstAnswer).toBe("под");
     } finally { h.close(); }
   });
 
   it("adds the questions to an already saved reading task from the previous app version", () => {
     const records = useAppStore.getState().topicRecords;
     useAppStore.setState({ topicRecords: [topic] });
-    const cached = { ...readTasks[0], storyQuestions: undefined };
+    const cached = { ...ballRead, storyQuestions: undefined };
     const h = mount(cached);
     try {
       click(h.container, "Вопросы");
-      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Как зовут мальчика?");
+      expect(h.container.querySelector("#micro-current-question").textContent).toBe("Как зовут мальчика?");
       click(h.container, "Вова");
       click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
@@ -224,32 +291,54 @@ describe("questions inside the micro-story reader", () => {
     for (const task of readTasks) {
       const h = mount(task);
       try {
-        expect(h.container.querySelectorAll("img")).toHaveLength(2);
+        // One big frame on the reading spread; no pictures during questions.
+        expect(h.container.querySelectorAll("img")).toHaveLength(1);
         click(h.container, "Вопросы");
         expect(h.container.querySelectorAll("img")).toHaveLength(0);
-        const questions = task.storyQuestions.filter((q) => q.kind === "find");
-        expect(questions.length).toBeGreaterThanOrEqual(5);
+        const questions = task.storyQuestions.filter((q) => q.kind !== "discuss");
+        expect(questions.length).toBeGreaterThanOrEqual(7);
+        const found = [];
         for (const [index, question] of questions.entries()) {
-          expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe(question.prompt);
-          click(h.container, question.target);
-      click(h.container, "Ответить");
+          expect(h.container.querySelector("#micro-current-question").textContent).toBe(question.prompt);
+          // Tap one meaningful word that lies inside an accepted answer in the text.
+          let button = null;
+          for (const para of h.container.querySelectorAll(".story-quiz__text .reading-flow-para")) {
+            const [match] = getStoryQuizTargetMatches(para.textContent, question.targets ?? question.target);
+            if (!match) continue;
+            let offset = 0;
+            for (const node of para.childNodes) {
+              const length = node.textContent.length;
+              if (node.matches?.(".story-quiz__word") && offset >= match.start && offset < match.end && !isStoryQuizFunctionWord(node.textContent)) { button = node; break; }
+              offset += length;
+            }
+            if (button) break;
+          }
+          expect(button, question.prompt).toBeTruthy();
+          const label = button.textContent;
+          act(() => button.click());
+          click(h.container, "Ответить");
+          found.push([question.prompt, label]);
           expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(index + 1);
-          for (const completed of questions.slice(0, index + 1)) {
-            expect(h.container.querySelector(".micro-answer-history").textContent).toContain(completed.prompt);
-            expect(h.container.querySelector(".micro-answer-history").textContent).toContain(completed.target);
+          for (const [prompt, answer] of found) {
+            expect(h.container.querySelector(".micro-answer-history").textContent).toContain(prompt);
+            expect(h.container.querySelector(".micro-answer-history").textContent).toContain(answer);
           }
           expect(h.onAdvance).not.toHaveBeenCalled();
-          click(h.container, index === questions.length - 1 ? "Закончить вопросы" : "Следующий вопрос");
+          click(h.container, "Дальше");
         }
-        expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(questions.length);
+        expect(h.container.querySelector(".msr-bubble__kind").textContent).toBe("Поговорим");
+        click(h.container, "Обсудили");
+        expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(questions.length + 1);
         expect(h.container.querySelectorAll(".story-quiz__word")).toHaveLength(0);
-        expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Все ответы найдены");
+        // The end of the story: the found answers as a chain for retelling.
+        expect(h.container.querySelector(".msr--done")).toBeTruthy();
+        expect(h.container.querySelectorAll(".msr-chain .msr-chip")).toHaveLength(questions.length);
       } finally { h.close(); }
     }
   });
 
   it("retains answers and the active question after an incorrect tap and a return to reading", () => {
-    const h = mount(readTasks[0]);
+    const h = mount(ballRead);
     try {
       click(h.container, "Вопросы");
       click(h.container, "играл");
@@ -258,15 +347,49 @@ describe("questions inside the micro-story reader", () => {
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(0);
       click(h.container, "Вова");
       click(h.container, "Ответить");
-      click(h.container, "Следующий вопрос");
+      click(h.container, "Дальше");
       click(h.container, "Рассказ");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
       click(h.container, "Вопросы");
-      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("С чем играл Вова?");
-      click(h.container, "с мячом");
+      expect(h.container.querySelector("#micro-current-question").textContent).toBe("С чем играл Вова?");
+      click(h.container, "мячом");
       click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(2);
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.assisted).toBe("true");
+    } finally { h.close(); }
+  });
+
+  it("keeps attempts and help out of the child's screen, in the adult sheet behind the lock", () => {
+    const h = mount(ballRead);
+    try {
+      click(h.container, "Вопросы");
+      expect(h.container.querySelectorAll(".msr-track__dot")).toHaveLength(ballRead.storyQuestions.length);
+      click(h.container, "играл");
+      click(h.container, "Ответить");
+      click(h.container, "Вова");
+      click(h.container, "Ответить");
+      const sheet = h.container.querySelector(".msr-adult");
+      expect(sheet.hidden).toBe(true);
+      click(h.container, "Для взрослого");
+      expect(sheet.hidden).toBe(false);
+      expect(sheet.textContent).toContain("Попыток: 2");
+      expect(sheet.textContent).toContain("Для разговора: «Зачем Вова достал мяч?»");
+      click(h.container, "Закрыть");
+      expect(sheet.hidden).toBe(true);
+    } finally { h.close(); }
+  });
+
+  it("moves the frame with the marked sentence on the reading spread", () => {
+    const h = mount(ballRead);
+    try {
+      const src = () => h.container.querySelector(".msr-frame img").getAttribute("src");
+      expect(src()).toContain("micro_ball_1");
+      const lines = h.container.querySelectorAll(".msr-line");
+      act(() => lines[3].click());
+      expect(lines[3].className).toContain("is-now");
+      expect(src()).toContain("micro_ball_2");
+      act(() => lines[0].click());
+      expect(src()).toContain("micro_ball_1");
     } finally { h.close(); }
   });
 });

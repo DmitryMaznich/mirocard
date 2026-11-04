@@ -119,6 +119,7 @@
       ]
     },
     "micro_pencil": {
+      "source": "micro_pencil-orientation-v4.png",
       "frames": [
         {
           "focus": [

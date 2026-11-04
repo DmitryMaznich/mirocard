@@ -36,7 +36,7 @@ export function useSpeech() {
     };
   }, []);
 
-  const speak = useCallback((text, { rate = 0.88, pitch = 1.0 } = {}) => {
+  const speak = useCallback((text, { rate = 0.88, pitch = 1.0, onEnd = null } = {}) => {
     const synth = synthRef.current;
     if (!synth || !text) return;
     synth.cancel();
@@ -55,6 +55,10 @@ export function useSpeech() {
       if (ruVoice) utterance.voice = ruVoice;
     }
 
+    // Optional: lets a caller chain sentences (e.g. a story read aloud with
+    // a marker following the voice). Not called when cancelled by a later
+    // speak(): callers guard with their own token.
+    if (onEnd) utterance.onend = onEnd;
     synth.speak(utterance);
   }, [ttsEngine]);
 
