@@ -10,6 +10,10 @@ import UiLanguagePicker from "@/shared/components/UiLanguagePicker";
 import AccountLessonLanguagePicker from "./AccountLessonLanguagePicker.jsx";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
+// Temporarily hide the keyboard option while keeping its UI, saved preference
+// and lesson handlers available for a future return.
+const SHOW_KEYBOARD_SETTINGS = false;
+
 export default function SettingsScreen() {
   const { t } = useUiTranslation();
   const setScreen        = useAppStore((s) => s.setScreen);
@@ -144,7 +148,7 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        <div className="settings-section">
+        {SHOW_KEYBOARD_SETTINGS && <div className="settings-section">
           <div className="settings-section-title">{t("settings.controls")}</div>
           <div
             className="settings-row"
@@ -160,7 +164,7 @@ export default function SettingsScreen() {
               style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
             />
           </div>
-        </div>
+        </div>}
 
         <div className="settings-section">
           <div className="settings-section-title">{t("settings.deviceData")}</div>

@@ -25,12 +25,14 @@ describe("settings UI language", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await act(async () => root.render(<SettingsScreen />));
+    expect(container.querySelector('[aria-label="Физическая клавиатура"]')).toBeNull();
     act(() => {
       setUiLanguage("sl");
       applyBootstrapToStore({ settings: { uiLanguage: "ru" } });
     });
     expect(container.querySelector("h1").textContent).toBe("Nastavitve");
     expect(container.querySelector("select").value).toBe("sl");
+    expect(container.querySelector('[aria-label="Fizična tipkovnica"]')).toBeNull();
     expect(useAppStore.getState().settings.uiLanguage).toBe("sl");
     expect(useAppStore.getState().settings.cardLanguage).toBe("ru");
     expect(useAppStore.getState().settings.physicalKeyboard).toBe(true);
