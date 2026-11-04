@@ -54,22 +54,17 @@ function boardBox(card, size) {
 
 // Ilyukhina's notebook cell (owner, 2026-11-04: «сделаем клетку как у неё»): the letter is exactly one
 // big cell tall (1 cm in «Волшебные линии» №2 = 100 glyph units) and stands at the cell's left line.
-// On the edges of the letter's own cell the division she asks the child to make «мысленно, глазами»
-// is marked with short ticks (not lines across the cell — those read as «trace me»): in half for a regular letter, in thirds for a wide one (⅔ of the cell), and
-// across where the letter has a stroke starting or ending (half: Е Н Ч, the half-ovals; ⅔: М). So
-// every stroke starts and ends on a line or at a crossing.
+// The division she asks the child to make «мысленно, глазами» — in half for a regular letter, in
+// thirds for a wide one (⅔ of the cell) — is a thin red dashed vertical line through the whole board
+// (owner, 2026-11-04): red so it is read neither as part of the grid nor as a letter's path to trace.
+// Earlier tries: a blue dashed line across the cell (read as «trace me»), ticks on the cell's edges.
 const CELL = 100;
-const TICK = 7; // length of a division mark on the cell's edge
-function cellDivisions(card, geo) {
+function cellDivisions(card) {
   const wide = glyphWidth(card) > CELL / 2 + 1;
-  const v = wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
-  // across: only the lines a stroke of this letter starts or ends on (Е Н Ч — the half, М — ⅔)
-  const ends = geo.flatMap((g) => [g.pts[0], g.pts[g.pts.length - 1]]);
-  const h = [CELL / 3, CELL / 2, (2 * CELL) / 3].filter((y) => ends.some((p) => Math.abs(p.y - y) < 0.6));
-  return { v, h };
+  return wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
 }
 
-function Grid({ box, card, geo }) {
+function Grid({ box, card }) {
   const lines = [];
   const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
   for (let x = Math.floor(box.x0 / CELL) * CELL; x <= x1; x += CELL) {
@@ -78,25 +73,12 @@ function Grid({ box, card, geo }) {
   for (let y = Math.floor(box.y0 / CELL) * CELL; y <= y1; y += CELL) {
     lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-cell" />);
   }
-  const div = cellDivisions(card, geo);
   return (
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
       <rect x={0} y={0} width={CELL} height={CELL} className="plw-cell-own" />
-      {/* the division as short ticks on the cell's edges, like a ruler's marks — a line through the
-          cell read as «trace me» (owner, 2026-11-04: «пунктир посредине клетки выглядит как
-          приглашение для проведения линии») */}
-      {div.v.map((x) => (
-        <g key={`dv${x}`} className="plw-grid-tick">
-          <line x1={x} y1={0} x2={x} y2={TICK} /><line x1={x} y1={CELL - TICK} x2={x} y2={CELL} />
-        </g>
-      ))}
-      {div.h.map((y) => (
-        <g key={`dh${y}`} className="plw-grid-tick">
-          <line x1={0} y1={y} x2={TICK} y2={y} /><line x1={CELL - TICK} y1={y} x2={CELL} y2={y} />
-        </g>
-      ))}
       {lines}
+      {cellDivisions(card).map((x) => <line key={`dv${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-div" />)}
     </g>
   );
 }
@@ -392,7 +374,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} card={card} geo={geo} />
+          <Grid box={box} card={card} />
           {showTrack && geo.map((g, i) => (i < cur ? null : (
             <g key={`t${i}`} className={i === cur ? "plw-track is-current" : "plw-track"}>
               <path d={polyD(g.pts)} className="plw-track-band" strokeWidth={t * 2} />
