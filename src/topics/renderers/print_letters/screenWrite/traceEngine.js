@@ -87,12 +87,12 @@ export function samplePath(d, step = TRACE_TUNING.step) {
 }
 
 /**
- * The letter as the screen shows it (owner, 2026-11-04): on the ordinary notebook grid, 2 cells tall,
- * a wide letter (⅔ of Ilyukhina's letter-cell in topic.json — Т Ш Ж Ф М Л А Д Щ Ю Ы Ъ) stretched to
- * 2 cells, so its middle stick runs along a cell line instead of a third the child must find by eye.
- * Only x is scaled; the printed sheets keep topic.json's proportions.
+ * The letter as the screen shows it (owner, 2026-11-04): on the ordinary notebook grid, 2 cells tall;
+ * a wide letter (⅔ of Ilyukhina's letter-cell in topic.json, 1⅓ cells — Т Ш Ж Ф М Л А Д Щ Ю Ы Ъ) is
+ * 1½ cells wide, close to her proportion, so its middle stick lands on the ruler tick at ¾ of a cell
+ * instead of a third the child must find by eye. Only x is scaled; the printed sheets keep topic.json.
  */
-export const SCREEN_WIDE_WIDTH = 100;
+export const SCREEN_WIDE_WIDTH = 75;
 export function screenGlyph(card) {
   const w = Number(String(card?.viewBox ?? "0 0 50 100").split(/\s+/)[2]) || 50;
   if (!(w > 51)) return card;
@@ -101,8 +101,8 @@ export function screenGlyph(card) {
     let i = 0;
     return String(d).replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (m) => {
       const v = Number(m);
-      // x of every x,y pair; topic.json writes ⅓ as 33.333 — snap the product back onto the half-unit
-      const x = v * k, snapped = Math.round(x * 2) / 2;
+      // x of every x,y pair; topic.json writes ⅓ as 33.333 — snap the product back onto the quarter-unit
+      const x = v * k, snapped = Math.round(x * 4) / 4;
       const out = i % 2 === 0 ? (Math.abs(x - snapped) < 0.02 ? snapped : Math.round(x * 1000) / 1000) : v;
       i += 1;
       return String(out);

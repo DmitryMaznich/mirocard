@@ -35,10 +35,10 @@
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
 }
 .plw-paper { fill: var(--plw-paper); }
-/* the ordinary notebook grid (a letter is 2 cells tall); red dashes mark the middle of a cell where a stroke starts/ends */
+/* the ordinary notebook grid (a letter is 2 cells tall); red ruler ticks on the row's top and bottom lines: ½ long, ¼ ¾ short */
 .plw-grid-cell { stroke: var(--plw-grid-row); stroke-width: 1; }
 .plw-cell-own { fill: rgba(127, 179, 213, 0.07); }
-.plw-grid-div { stroke: #ef4444; stroke-opacity: 0.7; stroke-width: 0.6; stroke-dasharray: 3 3; }
+.plw-ruler line { stroke: #ef4444; stroke-width: 1.1; stroke-linecap: round; }
 
 .plw-track-band { fill: none; stroke: rgba(var(--plw-track), 0.06); stroke-linecap: round; stroke-linejoin: round; }
 .plw-track.is-current .plw-track-band { stroke: rgba(var(--plw-track), 0.16); }

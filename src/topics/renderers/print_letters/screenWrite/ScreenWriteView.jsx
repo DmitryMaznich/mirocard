@@ -43,7 +43,7 @@ function glyphWidth(card) {
 }
 
 // The board is the ordinary notebook grid edge to edge (owner, 2026-11-04: «мы же можем спокойно
-// использовать обычную клетку»): a letter is 2 cells tall, a regular one 1 cell wide, a wide one 2
+// использовать обычную клетку»): a letter is 2 cells tall, a regular one 1 cell wide, a wide one 1½
 // (screenGlyph), standing on cell lines. The viewBox grows to the board's proportions around the
 // letter (a cell of margin on every side, room for Ё's dots and Д's legs).
 const CELL = 50;
@@ -56,19 +56,25 @@ function boardBox(card, size) {
   return { x0: need.x0 - (bw - need.w) / 2, y0: need.y0 - (bh - need.h) / 2, w: bw, h: bh };
 }
 
-// Where a stroke of this letter starts or ends in the middle of a cell (О's top, Ъ's stick), a thin red
-// dashed line runs through the middle of that cell column / row across the whole board — red so it is
-// read neither as the grid nor as a path to trace (owner, 2026-11-04). Points elsewhere (Ё's dots,
-// Д's and Щ's tails, the ends of open half-ovals) get no line.
-function cellMiddles(geo) {
-  const ends = geo.flatMap((g) => [g.pts[0], g.pts[g.pts.length - 1]]);
-  const mids = (vals) => [...new Set(vals
-    .filter((v) => Math.abs(((v % CELL) + CELL) % CELL - CELL / 2) < 0.6)
-    .map((v) => Math.round(v * 2) / 2))];
-  return { v: mids(ends.map((p) => p.x)), h: mids(ends.map((p) => p.y)) };
+// Red ruler ticks on the top and bottom lines of the letter's row, in every cell: a long one at the
+// middle, short ones at ¼ and ¾ (owner, 2026-11-04: «риски как на линейке… по верхней и нижней линиям…
+// красного цвета»). Red, so they are read neither as the grid nor as a path to trace; they mark where
+// a stroke starts (Т's stick at ¾, О's top at ½) without lines through the cell. Earlier tries: dashed
+// lines across the board (read as «trace me»), Ilyukhina's big cell (thirds — too hard to see).
+const TICK_LONG = 9, TICK_SHORT = 5;
+function RulerTicks({ box }) {
+  const ticks = [];
+  const x1 = box.x0 + box.w;
+  for (let c = Math.floor(box.x0 / CELL) * CELL; c <= x1; c += CELL) {
+    for (const [dx, len] of [[CELL / 4, TICK_SHORT], [CELL / 2, TICK_LONG], [(3 * CELL) / 4, TICK_SHORT]]) {
+      const x = c + dx;
+      ticks.push(<line key={`t${x}`} x1={x} y1={0} x2={x} y2={len} />, <line key={`b${x}`} x1={x} y1={2 * CELL - len} x2={x} y2={2 * CELL} />);
+    }
+  }
+  return <g className="plw-ruler">{ticks}</g>;
 }
 
-function Grid({ box, card, geo }) {
+function Grid({ box, card }) {
   const lines = [];
   const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
   for (let x = Math.floor(box.x0 / CELL) * CELL; x <= x1; x += CELL) {
@@ -77,14 +83,12 @@ function Grid({ box, card, geo }) {
   for (let y = Math.floor(box.y0 / CELL) * CELL; y <= y1; y += CELL) {
     lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-cell" />);
   }
-  const mid = cellMiddles(geo);
   return (
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
-      <rect x={0} y={0} width={Math.ceil(glyphWidth(card) / CELL) * CELL} height={2 * CELL} className="plw-cell-own" />
+      <rect x={0} y={0} width={glyphWidth(card)} height={2 * CELL} className="plw-cell-own" />
       {lines}
-      {mid.v.map((x) => <line key={`mv${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-div" />)}
-      {mid.h.map((y) => <line key={`mh${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-div" />)}
+      <RulerTicks box={box} />
     </g>
   );
 }
@@ -381,7 +385,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} card={card} geo={geo} />
+          <Grid box={box} card={card} />
           {showTrack && geo.map((g, i) => (i < cur ? null : (
             <g key={`t${i}`} className={i === cur ? "plw-track is-current" : "plw-track"}>
               <path d={polyD(g.pts)} className="plw-track-band" strokeWidth={t * 2} />

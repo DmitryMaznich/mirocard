@@ -133,18 +133,16 @@ describe("traceEngine — «Сам» on every letter", () => {
 });
 
 describe("traceEngine — the screen's letter shapes", () => {
-  it("stretches a wide letter to 2 cells, so its middle stick is on a cell line", () => {
+  it("draws a wide letter 1½ cells wide, so its middle stick is on the ¾-cell tick", () => {
     const t = screenGlyph(letter("Т"));
-    expect(t.viewBox).toBe("0 0 100 100");
-    expect(t.strokes.map((s) => s.d)).toEqual(["M 0,0 L 100,0", "M 50,0 L 50,100"]);
-    expect(screenGlyph(letter("Ш")).strokes[1].d).toBe("M 50,0 L 50,100");
-    expect(screenGlyph(letter("Ъ")).strokes[1].d).toBe("M 25,0 L 25,100");
+    expect(t.viewBox).toBe("0 0 75 100");
+    expect(t.strokes.map((s) => s.d)).toEqual(["M 0,0 L 75,0", "M 37.5,0 L 37.5,100"]);
+    expect(screenGlyph(letter("Ш")).strokes.map((s) => s.d).slice(0, 3)).toEqual(["M 0,0 L 0,100", "M 37.5,0 L 37.5,100", "M 75,0 L 75,100"]);
   });
 
   it("leaves regular letters and the heights alone", () => {
     expect(screenGlyph(letter("П"))).toBe(letter("П"));
-    const m = screenGlyph(letter("М"));
-    expect(m.strokes[1].d).toBe("M 0,0 L 50,66.665");
+    expect(screenGlyph(letter("М")).strokes[1].d).toBe("M 0,0 L 37.5,66.665");
   });
 
   it("every screen shape is still traceable", () => {
