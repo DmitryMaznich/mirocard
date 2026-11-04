@@ -63,15 +63,18 @@ export default function SessionSummary() {
 
   // A mode run with "Озвучка" off stays silent here too.
   const voiceOff = session?.paramsSnapshot?.voice === false;
+  // «Пишу на экране»: the end of the lesson is «Мои буквы» alone — no «Молодец, ты справился» and no
+  // spoken praise (owner, 2026-11-04: «он, получается, нам не нужен»)
+  const lettersOnly = letterWorks(session).length > 0;
 
   useEffect(() => {
-    if (!session || voiceOff) return;
+    if (!session || voiceOff || lettersOnly) return;
     const timer = setTimeout(() => speak(praiseText), 600);
     return () => {
       clearTimeout(timer);
       window.speechSynthesis?.cancel();
     };
-  }, [praiseText, session, voiceOff]);
+  }, [praiseText, session, voiceOff, lettersOnly]);
 
   if (!session) {
     return (
@@ -134,7 +137,7 @@ export default function SessionSummary() {
     <div className="screen summary-screen">
 
       {/* Celebration block */}
-      <div className="summary-celebration">
+      {!lettersOnly && <div className="summary-celebration">
         <div className="summary-topic-label">
           {getTopicTitle(topicRecord?.meta.title) || session.topicId}
           {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
@@ -148,7 +151,7 @@ export default function SessionSummary() {
         <div className="summary-check">✓</div>
 
         <div className="summary-praise">{praiseText}</div>
-      </div>
+      </div>}
 
       {/* «Печатные буквы» → «Пишу на экране»: the letters the child wrote, with «Сохранить в PDF» */}
       {letterWorks(session).length > 0 && (
