@@ -26,7 +26,9 @@ afterEach(async () => { await act(async () => root.unmount()); host.remove(); us
 
 it("opens the real micro-story settings and starts the default fifteen stories with valid name-first questions", async () => {
   await act(async () => root.render(<ParamsScreen />));
-  expect(host.querySelectorAll('.story-selection-options input')).toHaveLength(16);
+  // The micro-stories are a shelf of covers in three levels, not a list.
+  expect(host.querySelectorAll('.mss-cover input')).toHaveLength(15);
+  expect([...host.querySelectorAll('.mss-level__head b')].map((b) => b.textContent)).toEqual(["Шаг за шагом", "Что-то случилось", "Вдвоём"]);
   expect(host.textContent).toContain("Мяч под стулом");
   expect(host.textContent).not.toContain("Понятия");
   expect(host.querySelector('.story-quiz-param__invalid')).toBeNull();
@@ -46,4 +48,15 @@ it("switches to the twelve previous stories without the three-question rule brea
   await act(async () => extended.click());
   expect(host.querySelectorAll('.story-selection-options input')).toHaveLength(13);
   expect(host.querySelector('.story-quiz-param__invalid')).toBeNull();
+});
+
+it("selects one hero's stories from the shelf and keeps [] for all", async () => {
+  await act(async () => root.render(<ParamsScreen />));
+  const hero = [...host.querySelectorAll('.mss-hero')].find((button) => button.textContent.endsWith("Вова"));
+  await act(async () => hero.click());
+  const checked = [...host.querySelectorAll('.mss-cover input')].filter((input) => input.checked).map((input) => input.getAttribute("aria-label"));
+  expect(checked).toEqual(["Мяч под стулом", "Грязные сапоги", "Лужа на дорожке", "Игра с папой"]);
+  expect(host.querySelector('.mss-summary').textContent).toBe("Выбрано: 4 рассказа");
+  await act(async () => [...host.querySelectorAll('.mss-hero')][0].click());
+  expect(host.querySelector('.mss-summary').textContent).toBe("Все 15 рассказов");
 });

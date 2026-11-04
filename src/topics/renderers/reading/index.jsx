@@ -4,7 +4,8 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { generateTasks, tokenizeReadingLine } from "./engine";
-import { getStoryQuizTargetMatches, isStoryQuizFunctionWord, tokenizeStoryQuizWords } from "./storyQuiz";
+import { getLineText, storyQuizSearchHint, StoryQuizTargetText, useStoryQuizChoice } from "./storyQuizText";
+import MicroStoryReader from "./MicroStoryReader";
 import { StoryPictures, StoryPictureSupport } from "./StoryPictures";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
@@ -23,12 +24,6 @@ const UNDERSTAND_BUTTONS = [
   { value: "after_text",  label: "После текста", mod: "prompted" },
   { value: "none",        label: "Нет ответа", mod: "fail" },
 ];
-
-function getLineText(line, textStyle = "normal") {
-  if (typeof line === "string") return line;
-  if (textStyle === "syllables" && line?.syllableText) return line.syllableText;
-  return line?.text ?? "";
-}
 
 function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false, flow = false }) {
   const items = lines ?? [];
@@ -467,45 +462,6 @@ function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   );
 }
 
-function useStoryQuizChoice() {
-  const [selected, setSelected] = useState(null);
-  const [rejected, setRejected] = useState(false);
-  const attempts = useRef([]);
-  const submittedId = useRef(null);
-
-  function select(candidate) {
-    if (candidate.id === selected?.id) return;
-    submittedId.current = null;
-    setRejected(false);
-    setSelected(candidate);
-  }
-  function confirm(onTarget, onMiss) {
-    if (!selected || submittedId.current === selected.id) return;
-    submittedId.current = selected.id;
-    // A correct tap records the whole answer phrase it belongs to.
-    const answer = (selected.isTarget ? selected.answerText ?? selected.text : selected.text).replace(/(\p{L})-(?=\p{L})/gu, "$1");
-    attempts.current = [...attempts.current, { answer, correct: selected.isTarget }];
-    const result = { firstAnswer: attempts.current[0].answer, attempts: attempts.current };
-    if (selected.isTarget) onTarget(result);
-    else { setRejected(true); onMiss(result); }
-  }
-  function reset() {
-    attempts.current = [];
-    submittedId.current = null;
-    setSelected(null);
-    setRejected(false);
-  }
-  return { selected, rejected, select, confirm, reset };
-}
-
-function storyQuizSearchHint(prompt, rejected, near = false) {
-  if (!rejected) return "Выбери слово в рассказе, затем нажми «Ответить». Выбор можно изменить.";
-  if (near) return "Ты рядом. Выбери другое слово здесь же.";
-  if (/^Как зовут мальчика\?/u.test(prompt)) return "Мы ищем имя мальчика. Прочитай вопрос ещё раз и выбери другое слово.";
-  if (/^Как зовут девочку\?/u.test(prompt)) return "Мы ищем имя девочки. Прочитай вопрос ещё раз и выбери другое слово.";
-  return "Прочитай вопрос ещё раз. Выбери в рассказе фрагмент, который на него отвечает.";
-}
-
 function StoryQuizAnswerBar({ choice, answered, onConfirm, onNext, nextLabel = "Следующий вопрос" }) {
   return <div className="story-quiz__answer-bar" aria-label="Выбранный ответ">
     <div className="story-quiz__selection-copy">
@@ -517,168 +473,6 @@ function StoryQuizAnswerBar({ choice, answered, onConfirm, onNext, nextLabel = "
         {answered ? "Ответ принят" : "Ответить"}
       </button>}
   </div>;
-}
-
-function MicroStoryReader({ task, topicId, textStyle, onAdvance, onPrevious }) {
-  const topicRecord = useAppStore((state) => state.topicRecords.find((record) => record.meta.id === topicId));
-  const [questionsVisible, setQuestionsVisible] = useState(false);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState([]);
-  const [finished, setFinished] = useState(false);
-  const choice = useStoryQuizChoice();
-  const answerGate = useRef(false);
-  const pictureUsed = useRef(false);
-  const bodyRef = useRef(null);
-  const questions = useMemo(() => task.storyQuestions ?? (topicRecord ? generateTasks({ type: "story_quiz" }, topicRecord, task.textId, {
-    storyStage: "micro", selectedMicroStories: [task.textId],
-  }).map(({ question, expectedAnswer }) => ({ ...question, expectedAnswer })) : []), [task.storyQuestions, task.textId, topicRecord]);
-  const question = questions[questionIndex];
-  const findCount = questions.filter((item) => item.kind !== "discuss").length;
-  const answered = answers.some((item) => item.id === question?.id);
-  const discussing = question?.kind === "discuss";
-  useLayoutEffect(() => {
-    if (questionsVisible && bodyRef.current) bodyRef.current.scrollTop = 0;
-  }, [questionsVisible, questionIndex]);
-
-  function toggleQuestions() {
-    if (questionsVisible && !answered) pictureUsed.current = true;
-    setQuestionsVisible(!questionsVisible);
-  }
-  function chooseAnswer(result) {
-    if (answerGate.current || answered || finished || !question || discussing) return;
-    answerGate.current = true;
-    setAnswers((previous) => [...previous, { id: question.id, prompt: question.prompt, answer: result.attempts.at(-1).answer, assisted: pictureUsed.current, ...result }]);
-  }
-  function nextQuestion() {
-    if (!answered) return;
-    if (questionIndex === questions.length - 1) { setFinished(true); return; }
-    answerGate.current = false;
-    pictureUsed.current = false;
-    choice.reset();
-    setQuestionIndex((index) => index + 1);
-  }
-  function finishDiscussion() {
-    if (question?.expectedAnswer && !answers.some((answer) => answer.id === question.id)) {
-      setAnswers((previous) => [...previous, { id: question.id, prompt: question.prompt, answer: question.expectedAnswer, kind: "discuss", assisted: pictureUsed.current }]);
-    }
-    setFinished(true);
-  }
-
-  return (
-    <div ref={bodyRef} className={`session-body reading-body reading-page story-screen story-screen--micro${questionsVisible ? " micro-exercise" : ""}${answers.length ? " micro-has-answers" : ""}`}>
-      <div className="story-text-wrap">
-        <div className="micro-reader-controls">
-          <div className="micro-reader-eyebrow">{questionsVisible ? "Находим ответы в тексте" : "Читаем вместе"}</div>
-          {questions.length > 0 && <button type="button" className="micro-questions-toggle" aria-pressed={questionsVisible} onClick={toggleQuestions}>
-            {questionsVisible ? "Рассказ" : "Вопросы"}
-          </button>}
-        </div>
-        <div className="reading-title">{getTopicTitle(task.text.title)}</div>
-        {questionsVisible && !discussing && !finished ? <StoryQuizTargetText
-          key={question.id} lines={task.text.lines} textStyle={textStyle} target={question.targets ?? question.target}
-          answered={answered} selection={choice.selected} rejected={choice.rejected} onSelect={choice.select} sentenceLayout
-        /> : <ReadingTextBlock lines={task.text.lines} textStyle={textStyle} />}
-        {questionsVisible && <StoryPictureSupport key={questionIndex} topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
-      </div>
-      {!questionsVisible ? <div className="story-illustration"><StoryPictures topicId={topicId} text={task.text} /></div> : (
-        <section className="micro-exercise-question" aria-labelledby="micro-current-question">
-          <div className="micro-reader-eyebrow">{finished ? "Готово" : discussing ? "Обсудите вместе" : `${question?.kind === "gist" ? "Подумай и найди · " : ""}Вопрос ${questionIndex + 1} из ${findCount}`}</div>
-          <h2 id="micro-current-question">{finished ? "Все ответы найдены" : question?.prompt}</h2>
-          {finished ? <p>Вопросы и ответы остались внизу. Можно ещё раз обсудить рассказ.</p>
-            : discussing ? <><p>Ответ можно сказать, показать или разыграть.</p><button type="button" className="micro-exercise-next" onClick={finishDiscussion}>Обсудили</button></>
-            : <>
-              <p role="status">{answered ? "Ответ найден и сохранён внизу." : storyQuizSearchHint(question?.prompt, choice.rejected, choice.selected?.near)}</p>
-            </>}
-        </section>
-      )}
-      {answers.length > 0 && <section className="micro-answer-history" aria-label="Вопросы и ответы">
-        <h2>Вопросы и ответы</h2>
-        <ol>{answers.map((answer) => <li key={answer.id} data-assisted={answer.assisted ? "true" : "false"} data-attempts={answer.attempts?.length} data-first-answer={answer.firstAnswer}>
-          <span>{answer.prompt}{answer.kind === "discuss" ? <small className="micro-answer-kind">Вариант ответа</small>
-            : <small className="micro-answer-details">{answer.attempts?.length === 1 ? "С первой попытки" : `Попыток: ${answer.attempts?.length ?? 1}. Первый ответ: «${answer.firstAnswer}»`}{answer.assisted ? " · С картинкой" : ""}</small>}</span><strong>{answer.answer}</strong>
-        </li>)}</ol>
-      </section>}
-      {questionsVisible && !discussing && !finished && <StoryQuizAnswerBar choice={choice} answered={answered}
-        onConfirm={() => choice.confirm(chooseAnswer, () => {})} onNext={nextQuestion}
-        nextLabel={questionIndex === questions.length - 1 ? "Закончить вопросы" : "Следующий вопрос"} />}
-      {(!questionsVisible || finished) && <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} minimal storyIndex={task.storyIndex} storyCount={task.storyCount} />}
-    </div>
-  );
-}
-
-function StoryQuizTargetText({ lines, textStyle, target, answered, selection, rejected, onSelect, sentenceLayout = false }) {
-  const items = lines ?? [];
-  const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
-  const paragraphs = [];
-  items.forEach((line, index) => {
-    if (index === 0 || line.newParagraph || sentenceLayout) paragraphs.push([]);
-    paragraphs[paragraphs.length - 1].push(line);
-  });
-
-  // Every word is its own candidate with identical look and interaction
-  // before confirmation: neither hover, focus, spacing nor tapping reveals
-  // where an answer is. A meaningful word inside an accepted answer counts;
-  // once confirmed, the whole answer phrase lights up.
-  function renderLine(text, key) {
-    const matches = getStoryQuizTargetMatches(text, target);
-    const words = tokenizeStoryQuizWords(text);
-    const parts = [];
-    let cursor = 0;
-    let previousFound = false;
-
-    words.forEach((word, wordIndex) => {
-      const match = matches.find((range) => word.start >= range.start && word.start < range.end);
-      const matchId = match ? `${key}_m${match.start}` : null;
-      const found = answered && !!matchId && selection?.matchId === matchId;
-      if (word.start > cursor) {
-        const gap = text.slice(cursor, word.start);
-        parts.push(previousFound && found ? <span key={`${key}_g${wordIndex}`} className="story-quiz__gap story-quiz__gap--found">{gap}</span> : gap);
-      }
-      const wordText = text.slice(word.start, word.end);
-      const id = `${key}_w${wordIndex}`;
-      const functionWord = isStoryQuizFunctionWord(wordText);
-      const selected = selection?.id === id;
-      parts.push(<button key={id} type="button"
-        className={`story-quiz__word${selected ? " story-quiz__word--selected" : ""}${found ? " story-quiz__word--found" : ""}${selected && rejected ? " story-quiz__word--miss" : ""}`}
-        onClick={(event) => {
-          event.stopPropagation();
-          if (!answered) onSelect({
-            id, text: wordText, matchId,
-            isTarget: !!match && !functionWord,
-            near: !!match && functionWord,
-            answerText: match ? text.slice(match.start, match.end) : null,
-          });
-        }}
-        disabled={answered} aria-pressed={selected} aria-label={wordText}>{wordText}</button>);
-      cursor = word.end;
-      previousFound = found;
-    });
-
-    if (cursor < text.length) parts.push(text.slice(cursor));
-    return parts;
-  }
-
-  return (
-    <div className="reading-text reading-text--flow story-quiz__text">
-      <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
-        {paragraphs.map((paraLines, paragraphIndex) => (
-          <p className="reading-flow-para" key={paraLines[0]?.id ?? paragraphIndex}>
-            {paraLines.map((line, index) => {
-              const text = getLineText(line, textStyle);
-              const isDialogue = text.trimStart().startsWith("—");
-              const previousIsDialogue = index > 0 && getLineText(paraLines[index - 1], textStyle).trimStart().startsWith("—");
-              return (
-                <Fragment key={line.id ?? index}>
-                  {index > 0 && (isDialogue || previousIsDialogue ? <br /> : " ")}
-                  {renderLine(text, line.id ?? index)}
-                </Fragment>
-              );
-            })}
-          </p>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect, onQualityAnswer }) {

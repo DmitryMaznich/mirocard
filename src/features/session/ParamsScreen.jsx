@@ -30,6 +30,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
+import MicroStoryShelf from "@/features/reading/MicroStoryShelf";
 import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS, scalePortionQty } from "@/features/planner/recipeParser.js";
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
@@ -2094,6 +2095,18 @@ export default function ParamsScreen() {
           );
         }
         if (def.type === "enum_multi") {
+          if (isShortStories && key === "selectedMicroStories") {
+            return (
+              <MicroStoryShelf
+                key={key}
+                topicId={activeTopicId}
+                stories={topicRecord?.texts ?? []}
+                options={def.values}
+                value={params[key] ?? def.default ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
           if (isShortStories && ["selectedStories", "selectedMicroStories"].includes(key)) {
             return (
               <StorySelectionParam

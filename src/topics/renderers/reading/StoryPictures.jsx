@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 
-function StoryFrame({ topicId, frame }) {
+export function StoryFrame({ topicId, frame }) {
   const url = useTopicFile(topicId, frame.file);
   const crop = frame.crop;
   const placement = crop ? {

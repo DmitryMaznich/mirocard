@@ -153,7 +153,7 @@ function mount(task) {
 }
 
 function click(container, label) {
-  const button = [...container.querySelectorAll("button")].find((item) => item.textContent === label);
+  const button = [...container.querySelectorAll("button")].find((item) => item.textContent.trim() === label || item.getAttribute("aria-label") === label);
   expect(button, label).toBeTruthy();
   act(() => button.click());
 }
@@ -226,9 +226,9 @@ describe("questions inside the micro-story reader", () => {
       expect(answer.dataset.attempts).toBe("2");
       expect(answer.dataset.firstAnswer).toBe("мячом");
       expect(answer.dataset.assisted).toBe("false");
-      expect(answer.textContent).toContain("Первый ответ: «мячом»");
+      expect(answer.textContent).toContain("первый ответ «мячом»");
       expect(h.container.querySelectorAll(".story-quiz__word--found")).toHaveLength(1);
-      click(h.container, "Следующий вопрос");
+      click(h.container, "Дальше");
       expect(submit().disabled).toBe(true);
       // One tap on the meaningful word records the whole answer phrase.
       click(h.container, "мячом");
@@ -256,11 +256,11 @@ describe("questions inside the micro-story reader", () => {
     try {
       click(h.container, "Вопросы");
       for (let i = 0; i < 2; i += 1) {
-        click(h.container, h.container.querySelector(".micro-exercise-question h2").textContent === "Как зовут мальчика?" ? "Вова" : "мячом");
+        click(h.container, h.container.querySelector("#micro-current-question").textContent === "Как зовут мальчика?" ? "Вова" : "мячом");
         click(h.container, "Ответить");
-        click(h.container, "Следующий вопрос");
+        click(h.container, "Дальше");
       }
-      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Куда закатился мяч?");
+      expect(h.container.querySelector("#micro-current-question").textContent).toBe("Куда закатился мяч?");
       click(h.container, "под");
       click(h.container, "Ответить");
       expect(h.container.querySelector("[role=status]").textContent).toBe("Ты рядом. Выбери другое слово здесь же.");
@@ -280,7 +280,7 @@ describe("questions inside the micro-story reader", () => {
     const h = mount(cached);
     try {
       click(h.container, "Вопросы");
-      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Как зовут мальчика?");
+      expect(h.container.querySelector("#micro-current-question").textContent).toBe("Как зовут мальчика?");
       click(h.container, "Вова");
       click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
@@ -291,14 +291,15 @@ describe("questions inside the micro-story reader", () => {
     for (const task of readTasks) {
       const h = mount(task);
       try {
-        expect(h.container.querySelectorAll("img")).toHaveLength(2);
+        // One big frame on the reading spread; no pictures during questions.
+        expect(h.container.querySelectorAll("img")).toHaveLength(1);
         click(h.container, "Вопросы");
         expect(h.container.querySelectorAll("img")).toHaveLength(0);
         const questions = task.storyQuestions.filter((q) => q.kind !== "discuss");
         expect(questions.length).toBeGreaterThanOrEqual(7);
         const found = [];
         for (const [index, question] of questions.entries()) {
-          expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe(question.prompt);
+          expect(h.container.querySelector("#micro-current-question").textContent).toBe(question.prompt);
           // Tap one meaningful word that lies inside an accepted answer in the text.
           let button = null;
           for (const para of h.container.querySelectorAll(".story-quiz__text .reading-flow-para")) {
@@ -323,13 +324,15 @@ describe("questions inside the micro-story reader", () => {
             expect(h.container.querySelector(".micro-answer-history").textContent).toContain(answer);
           }
           expect(h.onAdvance).not.toHaveBeenCalled();
-          click(h.container, "Следующий вопрос");
+          click(h.container, "Дальше");
         }
-        expect(h.container.querySelector(".micro-exercise-question .micro-reader-eyebrow").textContent).toBe("Обсудите вместе");
+        expect(h.container.querySelector(".msr-bubble__kind").textContent).toBe("Поговорим");
         click(h.container, "Обсудили");
         expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(questions.length + 1);
         expect(h.container.querySelectorAll(".story-quiz__word")).toHaveLength(0);
-        expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Все ответы найдены");
+        // The end of the story: the found answers as a chain for retelling.
+        expect(h.container.querySelector(".msr--done")).toBeTruthy();
+        expect(h.container.querySelectorAll(".msr-chain .msr-chip")).toHaveLength(questions.length);
       } finally { h.close(); }
     }
   });
@@ -344,15 +347,49 @@ describe("questions inside the micro-story reader", () => {
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(0);
       click(h.container, "Вова");
       click(h.container, "Ответить");
-      click(h.container, "Следующий вопрос");
+      click(h.container, "Дальше");
       click(h.container, "Рассказ");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
       click(h.container, "Вопросы");
-      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("С чем играл Вова?");
+      expect(h.container.querySelector("#micro-current-question").textContent).toBe("С чем играл Вова?");
       click(h.container, "мячом");
       click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(2);
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.assisted).toBe("true");
+    } finally { h.close(); }
+  });
+
+  it("keeps attempts and help out of the child's screen, in the adult sheet behind the lock", () => {
+    const h = mount(ballRead);
+    try {
+      click(h.container, "Вопросы");
+      expect(h.container.querySelectorAll(".msr-track__dot")).toHaveLength(ballRead.storyQuestions.length);
+      click(h.container, "играл");
+      click(h.container, "Ответить");
+      click(h.container, "Вова");
+      click(h.container, "Ответить");
+      const sheet = h.container.querySelector(".msr-adult");
+      expect(sheet.hidden).toBe(true);
+      click(h.container, "Для взрослого");
+      expect(sheet.hidden).toBe(false);
+      expect(sheet.textContent).toContain("Попыток: 2");
+      expect(sheet.textContent).toContain("Для разговора: «Зачем Вова достал мяч?»");
+      click(h.container, "Закрыть");
+      expect(sheet.hidden).toBe(true);
+    } finally { h.close(); }
+  });
+
+  it("moves the frame with the marked sentence on the reading spread", () => {
+    const h = mount(ballRead);
+    try {
+      const src = () => h.container.querySelector(".msr-frame img").getAttribute("src");
+      expect(src()).toContain("micro_ball_1");
+      const lines = h.container.querySelectorAll(".msr-line");
+      act(() => lines[3].click());
+      expect(lines[3].className).toContain("is-now");
+      expect(src()).toContain("micro_ball_2");
+      act(() => lines[0].click());
+      expect(src()).toContain("micro_ball_1");
     } finally { h.close(); }
   });
 });
