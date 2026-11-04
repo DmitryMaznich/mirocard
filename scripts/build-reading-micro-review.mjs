@@ -19,22 +19,23 @@ const entries = stories.map((story, index) => {
   const lines = story.lines.map(stripSyllables);
   return { story, note, lines, index, words: lines.reduce((count, line) => count + line.split(/\s+/).length, 0) };
 });
-const changedTexts = entries.filter(({ note }) => note.textChanges.length).length;
-const changedQuestions = entries.filter(({ note }) => note.questionChanges.length).length;
-const toc = entries.map(({ story, note, index }) => `<tr><td><a href="#${escape(story.id)}">${index + 1}. ${escape(story.title)}</a></td><td>${escape(note.decision)}</td><td>${escape(note.learningTarget)}</td></tr>`).join("");
+const byKind = (story, kind) => story.questions.filter((question) => question.kind === kind);
+const total = (kind) => stories.reduce((n, story) => n + byKind(story, kind).length, 0);
+const levelNames = { 1: "цепочка действий", 2: "проблема и решение", 3: "двое участников, речь" };
+const questionList = (items) => `<ol class="questions">${items.map(({ prompt, targets }) => `<li>${escape(prompt)} <span>→ ${targets.map(escape).join(" / ")}</span></li>`).join("")}</ol>`;
+const toc = entries.map(({ story, note, index }) => `<tr><td><a href="#${escape(story.id)}">${index + 1}. ${escape(story.title)}</a></td><td>${story.level} · ${escape(levelNames[story.level])}</td><td>${escape(note.learningTarget)}</td></tr>`).join("");
 const cards = entries.map(({ story, note, lines, index, words }) => `<article id="${escape(story.id)}">
-  <p class="eyebrow">${String(index + 1).padStart(2, "0")} / 15 · ${countLabel(lines.length, ["предложение", "предложения", "предложений"])} · ${countLabel(words, ["слово", "слова", "слов"])}</p>
+  <p class="eyebrow">${String(index + 1).padStart(2, "0")} / 15 · уровень ${story.level} · ${countLabel(lines.length, ["предложение", "предложения", "предложений"])} · ${countLabel(words, ["слово", "слова", "слов"])}</p>
   <h2>${escape(story.title)}</h2><p class="decision">${escape(note.decision)}</p>
   ${section("Задача", note.learningTarget)}
   <div class="text">${lines.map((line) => `<p>${escape(line)}</p>`).join("")}</div>
-  ${section("Связность события", note.coherence)}${section("Язык", note.language)}
-  ${note.textChanges.length || note.questionChanges.length ? `<h3>Что изменено</h3>${list([...note.textChanges, ...note.questionChanges])}` : ""}
-  <h3>Три вопроса на поиск в тексте</h3>
-  <ol class="questions">${story.find.map(([question, target]) => `<li>${escape(question)} <span>→ ${escape(target)}</span></li>`).join("")}</ol>
-  <h3>Четвёртый вопрос со взрослым</h3><p>${escape(story.discuss)} <span class="answer">→ ${escape(story.answer)}</span></p>
+  ${section("Связность события", note.coherence)}
+  ${note.questionChanges.length ? `<h3>Что изменено в вопросах</h3>${list(note.questionChanges)}` : ""}
+  <h3>Вопросы на поиск — слова вопроса есть в предложении</h3>${questionList(byKind(story, "find"))}
+  <h3>Вопросы на понимание — ответ в тексте, слов вопроса там нет</h3>${questionList(byKind(story, "gist"))}
+  <aside><h3>Разговор со взрослым, без оценки</h3><p>${escape(story.discussion.prompt)}</p><p class="answer">Пример ответа: ${escape(story.discussion.answer)}</p></aside>
   ${section("Проверка иллюстраций", note.illustrationReview)}
   <p><strong>Слова и отношения, которые могут потребовать показа:</strong> ${note.vocabulary.map(escape).join(", ")}.</p>
-  <aside><h3>Дополнительный шаг — по готовности ребёнка</h3><p>${escape(note.optionalBridge.question)}</p><p class="answer">Пример ответа: ${escape(note.optionalBridge.answer)}</p><p class="muted">Это вопрос для обсуждения с поддержкой. Он не включён в обязательные вопросы приложения.</p></aside>
 </article>`).join("");
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Микрорассказы — разбор всех 15 текстов</title><style>
@@ -52,12 +53,11 @@ aside{margin:24px 0;padding:4px 24px 16px;background:#f5f7f7;border-radius:12px}
 <p class="eyebrow">МЕТОДИЧЕСКАЯ РЕДАКТУРА · ${escape(review.date)} · РЕДАКЦИЯ ${escape(review.edition)}</p>
 <h1>Понимание короткого события: все 15 микрорассказов</h1>
 <p class="lead">${escape(review.purpose)}</p><p>${escape(review.scope)}</p>
-<div class="counts"><strong>15 рассказов</strong><span>${changedTexts} текстов уточнены</span><span>В ${changedQuestions} рассказах изменены вопросы</span><span>45 вопросов на поиск + 15 со взрослым</span></div>
+<div class="counts"><strong>15 рассказов · 3 уровня</strong><span>${total("find")} вопросов на поиск</span><span>${total("gist")} на понимание</span><span>${stories.length} для разговора</span></div>
 <p>${escape(review.evidenceBoundary)}</p>
 <h2>Критерии первой ступени</h2>${list(review.principles)}
 <h2>Что показывает выполнение</h2>${list(review.assessmentLimits)}
 <h2>Как использовать материалы</h2>${list(review.adultProcedure, true)}
-${review.interactionReview ? `<h2>Механика ответа · ${escape(review.interactionEdition)}</h2>${list(Object.values(review.interactionReview))}` : ""}
 <h2>Карта разбора</h2><table><thead><tr><th>Рассказ</th><th>Решение</th><th>Задача</th></tr></thead><tbody>${toc}</tbody></table>
 ${cards}
 <section class="sources"><h2>Основания для решений</h2>${review.sources.map((source) => `<p><a href="${escape(source.url)}">${escape(source.title)}</a></p><p>${escape(source.supports)}</p><p class="muted">Границы: ${escape(source.limit)}</p>`).join("")}</section>

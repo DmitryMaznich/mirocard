@@ -580,7 +580,7 @@ function MicroStoryReader({ task, topicId, textStyle, onAdvance, onPrevious }) {
       </div>
       {!questionsVisible ? <div className="story-illustration"><StoryPictures topicId={topicId} text={task.text} /></div> : (
         <section className="micro-exercise-question" aria-labelledby="micro-current-question">
-          <div className="micro-reader-eyebrow">{finished ? "Готово" : discussing ? "Обсудите вместе" : `Вопрос ${questionIndex + 1} из ${findCount}`}</div>
+          <div className="micro-reader-eyebrow">{finished ? "Готово" : discussing ? "Обсудите вместе" : `${question?.kind === "gist" ? "Подумай и найди · " : ""}Вопрос ${questionIndex + 1} из ${findCount}`}</div>
           <h2 id="micro-current-question">{finished ? "Все ответы найдены" : question?.prompt}</h2>
           {finished ? <p>Вопросы и ответы остались внизу. Можно ещё раз обсудить рассказ.</p>
             : discussing ? <><p>Ответ можно сказать, показать или разыграть.</p><button type="button" className="micro-exercise-next" onClick={finishDiscussion}>Обсудили</button></>
@@ -713,7 +713,7 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect, o
         <div className="story-quiz__story-copy">
           <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
           <section className="story-quiz__question" aria-labelledby="story-quiz-question" onClick={(event) => event.stopPropagation()}>
-            <div className="story-quiz__question-count">Найди в тексте · {task.questionIndex + 1} из {task.questionCount}</div>
+            <div className="story-quiz__question-count">{task.question?.kind === "gist" ? "Подумай и найди" : "Найди в тексте"} · {task.questionIndex + 1} из {task.questionCount}</div>
             <h2 id="story-quiz-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
             <div className="story-quiz__hint" role="status">{answered ? "Ответ найден." : storyQuizSearchHint(task.question?.prompt, choice.rejected)}</div>
           </section>

@@ -255,6 +255,14 @@ listening mode «Одна вещь — два слова» (Russian word = home,
 faded out as a prompt). Not the app's Slovenian UI localization. **Read
 `docs/learn-slovene.md` first** — methodology, vocabulary, chosen voices, plan and status.
 
+## Короткие рассказы: микрорассказы (reading_short_stories)
+
+Шлифовка 15 микрорассказов для ребёнка, который ещё не умеет и не хочет искать в тексте (начата
+2026-11-04). Методика сделана в колоде 2.0.5: три вида вопросов (`?` поиск, `??` понимание,
+`*` разговор), три уровня сборника; дизайн экранов ещё впереди. **Read
+`docs/reading-micro-stories.md` first** — виды вопросов, правила их составления, сборка
+(базовые колоды в `test-fixtures/decks/`, исходных PNG в git нет), открытые пункты.
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
