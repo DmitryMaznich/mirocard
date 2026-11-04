@@ -22,8 +22,20 @@ describe("print_letters engine — «Пишу на экране»", () => {
   });
 
   it("passes the adult's settings to the task", () => {
-    const [t] = generateTasks(mode, topic, 500, { letters: ["П"], level: "free", width: "narrow", hidden: true, lefty: true, sound: false });
-    expect(t).toMatchObject({ level: "free", width: "narrow", hidden: true, lefty: true, sound: false });
+    const [t] = generateTasks(mode, topic, 500, { letters: ["П"], level: "free", width: "narrow", hidden: true, sound: false });
+    expect(t).toMatchObject({ level: "free", width: "narrow", hidden: true, sound: false });
+  });
+
+  it("names the letters to go back to and on to (the session loops)", () => {
+    const tasks = generateTasks(mode, topic, 500, { letters: ["Г", "Т"], copies: 2 });
+    expect(tasks.map((t) => [t.prevLabel, t.nextLabel])).toEqual([[null, "Г"], ["Г", "Т"], ["Г", "Т"], ["Т", "Г"]]);
+    expect(generateTasks(mode, topic, 500, { letters: ["П"], copies: 1 })[0].nextLabel).toBeNull();
+  });
+
+  it("is an ordinary looping session, so the usual video reward applies", () => {
+    expect(mode.finite).toBeUndefined();
+    expect(mode.rewardPerBlock).toBeUndefined();
+    expect(mode.evaluation).toBe("instant");
   });
 
   it("keeps the constructor mode as it was", () => {

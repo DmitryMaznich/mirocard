@@ -8,10 +8,14 @@ import {
 // — a track along the letter, the line is the finger's real path, a stroke lifted too early or
 // leaving the track burns and is written again; «Сам» (free) — an empty cell, each stroke checked
 // after the lift. Method and decisions: docs/print-letters-screen-writing.md; checking: traceEngine.js.
-// No error colours and no error sound — a burnt stroke fades to grey and shrinks back to its start.
+//
+// The screen is one big grid board and nothing else (owner, 2026-11-04): no separate sample, no
+// stroke strip. «Показать» on the board writes the letter right there, at the child's scale; under
+// the board only the way to the previous / next letter. No error colours and no error sound — a
+// burnt stroke fades to grey and shrinks back to its start.
 
-const INK_W = 7;          // line width in glyph units (a letter is 100 tall)
-const DEMO_MS = 9;        // the dot's pace when it writes a stroke, ms per unit
+const INK_W = 7;           // line width in glyph units (a letter is 100 tall)
+const DEMO_MS = 9;         // the dot's pace when it writes a stroke, ms per unit
 const DONE_HOLD_MS = 1100; // the finished letter stays on screen before the session hears about it
 
 function useTone(enabled) {
@@ -101,89 +105,25 @@ function BurnPath({ pts, onDone }) {
   return <path ref={ref} className="plw-ink plw-burn" d={polyD(pts)} strokeWidth={INK_W} />;
 }
 
-function SamplePanel({ card, geo }) {
-  const svgRef = useRef(null);
-  const w = glyphWidth(card);
-  const play = () => {
-    const paths = [...(svgRef.current?.querySelectorAll("path[data-i]") ?? [])];
-    let delay = 150;
-    paths.forEach((p, i) => {
-      const len = (geo[i].length || 1) + 1;
-      p.style.transition = "none";
-      p.style.strokeDasharray = String(len);
-      p.style.strokeDashoffset = String(len);
-      const dur = Math.max(350, geo[i].length * DEMO_MS);
-      setTimeout(() => { p.style.transition = `stroke-dashoffset ${dur}ms ease-in-out`; p.style.strokeDashoffset = "0"; }, delay);
-      delay += dur + 350;
-    });
-  };
-  return (
-    <button type="button" className="plw-sample" onClick={play} aria-label="Показать, как писать букву">
-      <svg ref={svgRef} viewBox={`-26 -38 ${w + 52} 176`} className="plw-sample-svg">
-        {geo.map((g, i) => <path key={i} data-i={i} d={polyD(g.pts)} className="plw-sample-line" />)}
-        {geo.map((g, i) => {
-          // the number sits behind the start (against the stroke's direction), so numbers of strokes
-          // starting at the same point (П: 1 and 2) do not cover each other
-          const s0 = g.pts[0], s1 = g.pts[Math.min(g.pts.length - 1, 4)];
-          const dl = Math.hypot(s1.x - s0.x, s1.y - s0.y) || 1;
-          const p = dl > 0.5 ? { x: s0.x - ((s1.x - s0.x) / dl) * 12, y: s0.y - ((s1.y - s0.y) / dl) * 12 } : { x: s0.x, y: s0.y - 12 };
-          return (
-            <g key={`b${i}`}>
-              <StartArrow g={g} className="plw-sample-arrow" />
-              <circle cx={s0.x} cy={s0.y} r={3.5} className="plw-sample-dot" />
-              <circle cx={p.x} cy={p.y} r={7.5} className="plw-sample-badge" />
-              <text x={p.x} y={p.y + 3.6} className="plw-sample-num">{i + 1}</text>
-            </g>
-          );
-        })}
-      </svg>
-      <span className="plw-sample-cap">▶ Смотри</span>
-    </button>
-  );
+function PlayIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" /></svg>;
 }
 
-function StrokeStrip({ geo, cur, done, given }) {
-  const chips = [];
-  geo.forEach((g, i) => {
-    if (i > 0) chips.push(<span key={`a${i}`} className="plw-strip-arrow">›</span>);
-    const xs = g.pts.map((p) => p.x), ys = g.pts.map((p) => p.y);
-    const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
-    const sz = Math.max(maxx - minx, maxy - miny, 20) + 16;
-    const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
-    const cls = ["plw-chip", (i < cur || done) && "is-done", i === cur && !done && "is-active", i < given && "is-given"].filter(Boolean).join(" ");
-    chips.push(
-      <div key={i} className={cls}>
-        <svg viewBox={`${cx - sz / 2} ${cy - sz / 2} ${sz} ${sz}`}>
-          <path d={polyD(g.pts)} className="plw-chip-line" strokeWidth={sz / 9} />
-        </svg>
-        <span className="plw-chip-num">{i + 1}</span>
-      </div>,
-    );
-  });
-  chips.push(<span key="end" className="plw-strip-arrow">›</span>);
-  chips.push(
-    <div key="star" className={`plw-strip-star${done ? " is-done" : ""}`}>
-      <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" /></svg>
-    </div>,
-  );
-  return <div className="plw-strip">{chips}</div>;
-}
-
-export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
+export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious }) {
   const { card, level = "trace" } = task;
   const t = halfWidth(task.width);
   const geo = useMemo(() => strokeGeometry(card), [card]);
   const n = geo.length;
   const given = task.hidden && level !== "watch" && n > 1 ? n - 1 : 0;
   const tone = useTone(task.sound !== false);
+  const freshInks = useCallback(() => geo.map((g, i) => (i < given ? g.pts : null)), [geo, given]);
 
   const [cur, setCur] = useState(given);
-  const [inks, setInks] = useState(() => geo.map((g, i) => (i < given ? g.pts : null)));
+  const [inks, setInks] = useState(freshInks);
   const [done, setDone] = useState(false);
   const [nudged, setNudged] = useState(false);
   const [burning, setBurning] = useState([]);
   const [demo, setDemo] = useState(null);       // { i, k } — the dot writing stroke i, up to sample k
-  const [watched, setWatched] = useState(false);
 
   // the pointer handlers and the idle timer read the current state through this ref
   const live = useRef({ cur: given, done: false, demo: false, nudged: false });
@@ -194,6 +134,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
   const timers = useRef([]);
   const rafs = useRef(new Set());
   const burnId = useRef(0);
+  const demoRun = useRef(0);
   const svgRef = useRef(null);
   const liveRef = useRef(null);
   const wrapRef = useRef(null);
@@ -217,46 +158,54 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
   }, []);
   const box = useMemo(() => boardBox(card, size), [card, size]);
 
-  // the dot writes stroke i once; onEnd after it has
-  const runDot = useCallback((i, onEnd) => {
-    const g = geo[i];
-    const t0 = performance.now(), dur = Math.max(450, g.length * DEMO_MS);
-    const step = (now) => {
-      const p = Math.min(1, (now - t0) / dur);
-      const e = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
-      setDemo({ i, k: Math.round(e * (g.pts.length - 1)) });
-      if (p < 1) { const id = requestAnimationFrame(step); rafs.current.add(id); } else onEnd?.();
+  // the dot writes strokes `from…to` one after another, right on the board; onEnd after the last
+  const runDots = useCallback((from, to, { onStroke, onEnd } = {}) => {
+    const run = ++demoRun.current;
+    rafs.current.forEach(cancelAnimationFrame); rafs.current.clear();
+    const one = (i) => {
+      if (run !== demoRun.current) return;
+      if (i > to) { setDemo(null); onEnd?.(); return; }
+      const g = geo[i];
+      const t0 = performance.now(), dur = Math.max(450, g.length * DEMO_MS);
+      const step = (now) => {
+        if (run !== demoRun.current) return;
+        const p = Math.min(1, (now - t0) / dur);
+        const e = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+        setDemo({ i, k: Math.round(e * (g.pts.length - 1)) });
+        if (p < 1) { const id = requestAnimationFrame(step); rafs.current.add(id); return; }
+        onStroke?.(i);
+        later(() => one(i + 1), 450);
+      };
+      const id = requestAnimationFrame(step); rafs.current.add(id);
     };
-    const id = requestAnimationFrame(step); rafs.current.add(id);
+    one(from);
   }, [geo]);
 
   const showStroke = useCallback((i) => {
-    runDot(i, () => later(() => { setDemo(null); stats.current.lastAct = performance.now(); }, 400));
-  }, [runDot]);
+    runDots(i, i, { onEnd: () => { stats.current.lastAct = performance.now(); } });
+  }, [runDots]);
 
-  // «Смотрю»: the whole letter writes itself, stroke after stroke
-  const watchRun = useRef(0);
+  // «Смотрю»: the whole letter writes itself and stays on the board
   const playWatch = useCallback(() => {
-    const run = ++watchRun.current;
-    rafs.current.forEach(cancelAnimationFrame); rafs.current.clear();
-    setInks(geo.map(() => null)); setCur(0); setDone(false); setWatched(false); setDemo(null);
-    const next = (i) => {
-      if (run !== watchRun.current) return;
-      if (i >= n) { setDemo(null); setDone(true); setWatched(true); return; }
-      setCur(i);
-      runDot(i, () => {
-        if (run !== watchRun.current) return;
-        setInks((prev) => prev.map((v, j) => (j === i ? geo[i].pts : v)));
-        tone([660]);
-        later(() => next(i + 1), 550);
-      });
-    };
-    later(() => next(0), 400);
-  }, [geo, n, runDot, tone]);
+    setInks(geo.map(() => null)); setCur(0); setDone(false);
+    runDots(0, n - 1, {
+      onStroke: (i) => { setInks((prev) => prev.map((v, j) => (j === i ? geo[i].pts : v))); setCur(i + 1); tone([660]); },
+      onEnd: () => setDone(true),
+    });
+  }, [geo, n, runDots, tone]);
+
+  // «Показать» (trace / free): the dot writes the whole letter over the board, the child's lines stay;
+  // seeing it counts as help for this copy
+  const showLetter = () => {
+    if (level === "watch") { playWatch(); return; }
+    if (live.current.done || active.current) return;
+    stats.current.prompted = true;
+    runDots(0, n - 1, { onEnd: () => { stats.current.lastAct = performance.now(); } });
+  };
 
   useEffect(() => {
     if (level !== "watch") return undefined;
-    const id = setTimeout(playWatch, 0);
+    const id = setTimeout(playWatch, 400);
     return () => clearTimeout(id);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -289,7 +238,17 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
     setDone(true);
     tone([523, 659, 784], 0.16);
     const assisted = stats.current.prompted;
-    later(() => onCorrect?.(card.id, card.id, assisted ? { assisted: true } : undefined), DONE_HOLD_MS);
+    later(() => {
+      onCorrect?.(card.id, card.id, assisted ? { assisted: true } : undefined);
+      // The session moves on and normally mounts a fresh view; when it comes back to this same
+      // task (one letter, one copy — the session loops) it does not, so start a fresh copy here.
+      later(() => newCopy(), 60);
+    }, DONE_HOLD_MS);
+  }
+
+  function newCopy() {
+    clearBoard();
+    stats.current = { prompted: false, burnsHere: 0, demoed: false, lastAct: performance.now() };
   }
 
   function nextStroke() {
@@ -326,12 +285,25 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
     }
   }
 
+  function clearBoard() {
+    demoRun.current++; rafs.current.forEach(cancelAnimationFrame); rafs.current.clear();
+    active.current = null; setLive(null); setDemo(null);
+    live.current.cur = given; live.current.done = false;
+    setCur(given); setInks(freshInks()); setNudged(false); setBurning([]); setDone(false);
+  }
+
+  // «Заново»: the same copy from a clean board (no penalty)
+  function restart() {
+    if (live.current.done) return;
+    clearBoard();
+    stats.current.burnsHere = 0; stats.current.lastAct = performance.now();
+  }
+
   function onPointerDown(e) {
     if (active.current) return;                     // a second finger or the palm — ignored
     stats.current.lastAct = performance.now();
-    if (level === "watch") { if (!live.current.demo) playWatch(); return; }
     const L = live.current;
-    if (L.done || L.demo || L.cur >= n) return;
+    if (level === "watch" || L.done || L.demo || L.cur >= n) return;
     const p = toSvg(e);
     const g = geo[L.cur];
     if (level === "trace" && !canStart(g, p, t)) { setNudged(true); return; } // not at the start dot — nothing is drawn
@@ -377,11 +349,9 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
 
   const showTrack = level === "trace" && !done;
   const marksFor = !done && cur < n && level !== "watch" && !demo && (level === "trace" || nudged);
-  const rootCls = ["plw-root", task.lefty && "plw-root--lefty"].filter(Boolean).join(" ");
 
   return (
-    <div className={rootCls}>
-      <SamplePanel card={card} geo={geo} />
+    <div className="plw-root">
       <div className="plw-board-wrap" ref={wrapRef}>
         <svg
           ref={svgRef}
@@ -415,19 +385,42 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance }) {
           )}
           {demo && (
             <g className={level === "watch" ? "plw-demo is-watch" : "plw-demo"}>
+              {/* strokes the dot has already written in this showing */}
+              {level !== "watch" && geo.slice(0, demo.i).map((g, i) => <path key={i} d={polyD(g.pts)} strokeWidth={INK_W} className="plw-demo-trail" />)}
               <path d={polyD(geo[demo.i].pts, demo.k)} strokeWidth={INK_W} className="plw-demo-trail" />
               <circle cx={geo[demo.i].pts[demo.k].x} cy={geo[demo.i].pts[demo.k].y} r={6} className="plw-demo-dot" />
             </g>
           )}
         </svg>
-        {level === "watch" && watched && (
-          <div className="plw-watch-actions">
-            <button type="button" className="plw-btn plw-btn--secondary" onClick={(e) => { e.stopPropagation(); playWatch(); }}>Ещё раз</button>
-            <button type="button" className="plw-btn" onClick={(e) => onAdvance?.(e)}>Дальше</button>
-          </div>
-        )}
+        <button
+          type="button"
+          className="plw-show"
+          onClick={(e) => { e.stopPropagation(); showLetter(); }}
+          disabled={!!demo || (done && level !== "watch")}
+          aria-label="Показать, как писать"
+        >
+          <PlayIcon /><span>Показать</span>
+        </button>
       </div>
-      <StrokeStrip geo={geo} cur={cur} done={done} given={given} />
+      <nav className="plw-nav">
+        {task.prevLabel ? (
+          <button type="button" className="plw-nav-btn" onClick={(e) => { e.stopPropagation(); onPrevious?.(); }} aria-label={`Назад, к букве ${task.prevLabel}`}>
+            <span className="plw-nav-arrow">‹</span><span className="plw-nav-letter">{task.prevLabel}</span>
+          </button>
+        ) : <span className="plw-nav-gap" />}
+        {level !== "watch" ? (
+          <button type="button" className="plw-nav-btn plw-nav-btn--quiet" onClick={(e) => { e.stopPropagation(); restart(); }} disabled={done} aria-label="Написать заново">↺</button>
+        ) : <span className="plw-nav-gap" />}
+        {task.nextLabel ? (
+          <button type="button" className={`plw-nav-btn${level === "watch" && done ? " is-ready" : ""}`} onClick={(e) => onAdvance?.(e)} aria-label={`Дальше, к букве ${task.nextLabel}`}>
+            <span className="plw-nav-letter">{task.nextLabel}</span><span className="plw-nav-arrow">›</span>
+          </button>
+        ) : (
+          <button type="button" className={`plw-nav-btn${level === "watch" && done ? " is-ready" : ""}`} onClick={(e) => onAdvance?.(e)} aria-label="Дальше">
+            <span className="plw-nav-arrow">›</span>
+          </button>
+        )}
+      </nav>
     </div>
   );
 }

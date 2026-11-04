@@ -1,6 +1,8 @@
 /* «Пишу на экране» (print_letters, mode screen_write). Literacy palette (cream paper, teal UI,
    pen-ink blue); correct = green; no error colour at all — a burnt stroke goes grey and fades.
-   Prefix plw-. Lives inside the session (.session-stage), no screen-edge elements of its own. */
+   Prefix plw-. One big grid board over the whole working area (owner, 2026-11-04), «Показать» on
+   the board itself, under it only the previous / next letter. Lives inside the session
+   (.session-stage); the nav row is the screen's bottom edge, so it keeps the home-indicator space. */
 .plw-root {
   --plw-paper: #fffef5;
   --plw-grid: #d6e7f2;
@@ -10,50 +12,24 @@
   --plw-track: 59, 130, 246;
   --plw-ok: #22c55e;
   --plw-ok-dark: #16a34a;
-  --plw-ok-soft: #dcfce7;
   --plw-teal: #4a9b8f;
   --plw-teal-dark: #2a6b60;
   --plw-line: #e2e8f0;
-  --plw-muted: #64748b;
 
-  display: grid;
-  grid-template-columns: minmax(140px, 24%) 1fr;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   align-self: stretch;
   min-height: 0;
   box-sizing: border-box;
-  padding: 12px;
-  background: #fdfcf9;
+  background: var(--plw-paper);
   color: #1e293b;
   font-family: "Nunito", sans-serif;
 }
-.plw-root--lefty { grid-template-columns: 1fr minmax(140px, 24%); }
-.plw-root--lefty .plw-sample { order: 2; }
-
-/* образец */
-.plw-sample {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  min-height: 0; padding: 12px;
-  background: #fff; border: 2px solid var(--plw-line); border-radius: 20px;
-  font: inherit; color: inherit; cursor: pointer;
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-}
-.plw-sample-svg { width: 100%; flex: 1; min-height: 0; }
-.plw-sample-line { fill: none; stroke: #334155; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-.plw-sample-arrow { fill: none; stroke: var(--plw-ok-dark); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.plw-sample-dot { fill: var(--plw-ok-dark); }
-.plw-sample-badge { fill: #fff; stroke: var(--plw-ok-dark); stroke-width: 2; }
-.plw-sample-num { font-family: "Nunito", sans-serif; font-size: 10px; font-weight: 900; fill: var(--plw-ok-dark); text-anchor: middle; }
-.plw-sample-cap { font-size: clamp(13px, 1.6vw, 16px); font-weight: 800; color: var(--plw-muted); }
 
 /* доска */
-.plw-board-wrap {
-  position: relative; min-height: 0; min-width: 0; overflow: hidden;
-  background: var(--plw-paper); border: 2px solid #efe9d6; border-radius: 24px;
-}
+.plw-board-wrap { position: relative; flex: 1; min-height: 0; min-width: 0; overflow: hidden; background: var(--plw-paper); }
 .plw-board {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
@@ -87,49 +63,42 @@
 .plw-demo.is-watch .plw-demo-trail { stroke: var(--plw-ink); stroke-opacity: 1; }
 .plw-demo.is-watch .plw-demo-dot { fill: var(--plw-ink); }
 
-.plw-watch-actions {
-  position: absolute; left: 0; right: 0; bottom: 16px;
-  display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; pointer-events: none;
+/* «Показать» — маленькая кнопка в углу холста */
+.plw-show {
+  position: absolute;
+  top: 12px;
+  left: calc(12px + var(--app-safe-left, 0px));
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 8px 16px 8px 12px;
+  border: 2px solid var(--plw-line); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92); color: var(--plw-teal-dark);
+  font: inherit; font-size: 15px; font-weight: 800;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.plw-btn {
-  pointer-events: auto;
-  border: 0; border-radius: 16px; padding: 14px 24px; min-height: 52px;
-  font: inherit; font-size: 17px; font-weight: 900; color: #fff;
-  background: var(--plw-teal); box-shadow: 0 4px 0 var(--plw-teal-dark); cursor: pointer;
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-}
-.plw-btn:active { transform: translateY(3px); box-shadow: none; }
-.plw-btn--secondary { background: #fff; color: #334155; border: 2px solid var(--plw-line); box-shadow: 0 4px 0 #cbd5e1; }
+.plw-show svg { width: 20px; height: 20px; fill: currentColor; }
+.plw-show:active { transform: translateY(1px); }
+.plw-show:disabled { opacity: 0.45; cursor: default; }
 
-/* полоска штрихов «сначала — потом» */
-.plw-strip { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: clamp(8px, 1.5vw, 14px); padding-top: 6px; }
-.plw-chip {
-  position: relative; display: grid; place-items: center;
-  width: clamp(48px, 7vw, 64px); height: clamp(48px, 7vw, 64px);
-  background: #f1f5f9; border: 2px solid var(--plw-line); border-radius: 16px;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+/* низ: только назад / заново / дальше */
+.plw-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px calc(12px + var(--app-safe-right, 0px)) calc(10px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px));
+  background: var(--plw-paper);
 }
-.plw-chip svg { width: 70%; height: 70%; }
-.plw-chip-line { fill: none; stroke: #334155; stroke-linecap: round; stroke-linejoin: round; }
-.plw-chip-num {
-  position: absolute; top: -8px; left: -8px; width: 22px; height: 22px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 12px; font-weight: 900; background: #e5e7eb; color: #6b7280;
+.plw-nav-gap { width: 56px; }
+.plw-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-width: 56px; min-height: 52px; padding: 6px 16px;
+  border: 2px solid var(--plw-line); border-radius: 16px; background: #fff; color: #334155;
+  font: inherit; font-weight: 900; box-shadow: 0 3px 0 #cbd5e1;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
-.plw-chip.is-active { background: #eff6ff; border-color: #3b82f6; transform: translateY(-3px); }
-.plw-chip.is-active .plw-chip-num { background: var(--plw-ink); color: #fff; }
-.plw-chip.is-done { background: var(--plw-ok-soft); border-color: var(--plw-ok); }
-.plw-chip.is-done .plw-chip-num { background: var(--plw-ok); color: #fff; }
-.plw-chip.is-given { opacity: 0.45; }
-.plw-strip-arrow { color: #cbd5e1; font-size: 22px; font-weight: 900; }
-.plw-strip-star { width: clamp(44px, 6vw, 56px); height: clamp(44px, 6vw, 56px); }
-.plw-strip-star svg { width: 100%; height: 100%; }
-.plw-strip-star path { fill: #fef3c7; stroke: #eab308; stroke-width: 1.2; transition: fill 0.3s; }
-.plw-strip-star.is-done path { fill: #facc15; }
-
-/* телефон вертикально: образец — карточка сверху */
-@media (max-aspect-ratio: 4/5) {
-  .plw-root, .plw-root--lefty { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; padding: 10px; gap: 10px; }
-  .plw-sample { flex-direction: row; height: 112px; padding: 8px 14px; gap: 16px; }
-  .plw-root--lefty .plw-sample { order: 0; flex-direction: row-reverse; }
-  .plw-sample-svg { width: 104px; height: 100%; flex: 0 0 auto; }
-}
+.plw-nav-btn:active { transform: translateY(3px); box-shadow: none; }
+.plw-nav-btn:disabled { opacity: 0.4; cursor: default; }
+.plw-nav-arrow { font-size: 28px; line-height: 1; color: #94a3b8; }
+.plw-nav-letter { font-size: 22px; }
+.plw-nav-btn--quiet { font-size: 22px; color: #64748b; }
+.plw-nav-btn.is-ready { background: var(--plw-teal); border-color: var(--plw-teal); color: #fff; box-shadow: 0 3px 0 var(--plw-teal-dark); }
+.plw-nav-btn.is-ready .plw-nav-arrow { color: #fff; }

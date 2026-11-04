@@ -12,8 +12,8 @@ import ScreenWriteView from "./screenWrite/ScreenWriteView";
 // «PDF» falls back to the browser's print.
 // «Пишу на экране» (task type pl_screen_write) runs in the ordinary session: one copy of one
 // letter per task (screenWrite/ScreenWriteView.jsx, docs/print-letters-screen-writing.md).
-export default function PrintLettersRenderer({ task, onBack, onAdvance, onCorrect, accountKv, makePdf }) {
+export default function PrintLettersRenderer({ task, onBack, onAdvance, onCorrect, onPrevious, accountKv, makePdf }) {
   if (!task) return null;
-  if (task.type === "pl_screen_write") return <ScreenWriteView task={task} onCorrect={onCorrect} onAdvance={onAdvance} />;
+  if (task.type === "pl_screen_write") return <ScreenWriteView task={task} onCorrect={onCorrect} onAdvance={onAdvance} onPrevious={onPrevious} />;
   return <PrintLettersHome task={task} onBack={onBack} onAdvance={onAdvance} accountKv={accountKv} makePdf={makePdf} />;
 }
