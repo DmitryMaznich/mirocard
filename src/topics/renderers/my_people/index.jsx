@@ -1,3 +1,4 @@
+import PeopleLearningTask from '@/features/myPeople/PeopleLearningTask';
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSpeech } from "@/shared/hooks/useSpeech";
@@ -17,9 +18,9 @@ const DRAG_START_DISTANCE = 8;
 // brightest things on screen, and red read as "bad". The words don't judge
 // either: «Пока нет», not «Не знает».
 const QUALITY_BUTTONS = [
-  { value: "correct", label: "Сам", mark: "✓", mod: "correct" },
+  { value: "correct", label: "Полностью сам", mark: "✓", mod: "correct" },
   { value: "prompted", label: "С подсказкой", mark: "½", mod: "prompted" },
-  { value: "fail", label: "Пока нет", mark: "·", mod: "fail" },
+  { value: "fail", label: "Не вспомнил", mark: "·", mod: "fail" },
 ];
 
 // "Hear it again". Drawn as a plain speaker, not a filled teal tile: in the
@@ -397,7 +398,6 @@ function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCa
       </div>
       <div className="people-adult" aria-label="Для взрослого">
         <div className="people-adult__row">
-          <span className="people-adult__label">Знакомство: ребёнок касается фото сам</span>
           <button type="button" className="people-adult__skip person-intro__next" onClick={confirmIntroduction} disabled={confirmed}>
             Дальше
           </button>
@@ -407,29 +407,10 @@ function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCa
   );
 }
 
-// The adult's hint ladder as a row of steps: each one stays on screen once
-// used (ticked), so the adult sees how far up the ladder this answer went.
+// One compact control advances the existing hint ladder.
 function HintSteps({ steps, level }) {
-  if (!steps.length) return null;
-  return (
-    <div className="people-adult__steps">
-      {steps.map((step) => {
-        const used = level >= step.level;
-        return (
-          <button
-            key={step.label}
-            type="button"
-            className={`people-adult__step${used ? " people-adult__step--used" : ""}`}
-            onClick={step.onClick}
-            disabled={used}
-            aria-pressed={used}
-          >
-            {step.label}
-          </button>
-        );
-      })}
-    </div>
-  );
+  const next = steps.find(step => step.level > level) ?? steps.at(-1);
+  return next ? <button type="button" className="people-grade" onClick={next.onClick}>Подсказка</button> : null;
 }
 
 // Two zones: the child's stage on top (photo, question, the word to echo)
@@ -488,9 +469,8 @@ function QualityAnswerTask({
         </div>
       </div>
       <div className="people-adult" aria-label="Для взрослого">
-        <div className="people-adult__label">Ответ: <b>{task.answer}</b></div>
-        {hints}
-        <div className="people-grade-row">
+        <div className="people-grade-row people-grade-row--compact">
+          {hints}
           {QUALITY_BUTTONS.map((button) => (
             <button
               key={button.value}
@@ -810,6 +790,8 @@ export default function MyPeopleRenderer(rawProps) {
 
 function MyPeopleTask(props) {
   switch (props.task?.type) {
+    case "people_learning_v2":
+      return <PeopleLearningTask {...props} />;
     case "people_album":
       return <PeopleAlbumTask {...props} />;
     case "person_intro":

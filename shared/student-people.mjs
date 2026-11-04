@@ -1,3 +1,4 @@
+import { personRelations } from './my-people-v2.mjs';
 // Shared by the browser and server. myPeople is the canonical store; closeAdults
 // is a compatibility projection for older clients, never a second editor.
 const list = (value) => Array.isArray(value) ? value : [];
@@ -119,6 +120,8 @@ export function mergePeopleCards(people, sourceId, targetId, timestamp) {
   const unique = (a, b) => [...new Set([...list(a), ...list(b)])];
   const merged = { ...target, photos: unique(target.photos, source.photos),
     contexts: unique(target.contexts, source.contexts), introducedAxes: unique(target.introducedAxes, source.introducedAxes),
+    relations: [...new Map([...personRelations(source), ...personRelations(target)].map(r => [r.key, r])).values()],
+    nameVariants: unique(target.nameVariants, source.nameVariants),
     relation: target.relation || source.relation, enabled: target.enabled || source.enabled,
     sentenceLabel: target.sentenceLabel || source.sentenceLabel,
     useInSentences: target.useInSentences || source.useInSentences, useInChat: target.useInChat || source.useInChat,

@@ -223,6 +223,13 @@ ids — without them `topicLoader` silently replaces generic flashcards modes' u
 
 ## Мои люди (my_people) — согласованная механика и переделка
 
+Рабочая v2 реализована как включаемый взрослым пилот: сначала прочитать
+`docs/my-people-implementation.md`. Без явного выбора остаётся старый маршрут;
+«Новая механика» включает новый вход для ученика. Возврат — из подготовки.
+Новый журнал `statistics.myPeople` не смешивать с legacy-оценками имени/роли.
+SQLite schema не менялась; полный аварийный restore production вне volume ещё
+не проверен — до глобального переключения по умолчанию выполнить план отката.
+
 Последняя фиксация с владельцем — 2026-11-04, макеты 01–07. **Read
 `docs/my-people-design.md` first** before continuing `my_people`. План реализации:
 `docs/superpowers/plans/2026-11-04-my-people-redesign.md`. Основной путь:

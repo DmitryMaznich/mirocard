@@ -1,3 +1,7 @@
+import { exposureKey } from '@/features/myPeople/peopleLearning';
+import { saveLearningDocument } from '@/features/myPeople/peopleLearningStore';
+import { PEOPLE_MODE_ID, generateLearningTasks } from '@/features/myPeople/peopleLearning';
+import { applyLearningEvent } from '@/features/myPeople/peopleLearningSession';
 import { normalizeLessonFlow } from "../../../shared/lesson-flow.mjs";
 import { effectiveRewardSettings, rewardPolicy, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { selectedTopicLanguage } from "../../../shared/topic-language-contract.mjs";
@@ -50,8 +54,16 @@ export function resolveModeSelection(topicRecord, mode, link, isReading, activeT
   const selectedStudent = useAppStore.getState().students.find(s => s.id === useAppStore.getState().activeStudentId);
   const settings = effectiveRewardSettings(selectedStudent?.rewardSettings);
   // ZIP renderers forward intermediate mistakes; the engine applies strictness.
-  const sessionParams = { ...readModeParams(link.params, mode), strictStars: true,
+  let sessionParams = { ...readModeParams(link.params, mode), strictStars: true,
     rewardPolicyVersion: 2, rewardLossMode: settings.lossMode };
+  if (mode?.id === PEOPLE_MODE_ID) {
+    const store = useAppStore.getState();
+    const saved = store.activeSessionSnapshot?.context;
+    const plan = store.myPeopleLaunchPlan?.studentId === store.activeStudentId ? store.myPeopleLaunchPlan
+      : saved?.studentId === store.activeStudentId && saved?.modeId === PEOPLE_MODE_ID ? store.activeSessionSnapshot.sessionState.statistics?.conditions?.params : null;
+    sessionParams = { ...sessionParams, ...plan };
+    return { sessionParams, selectedConceptIds: sessionParams.targetPersonIds ?? [] };
+  }
   if (topicRecord?.languageContract) {
     sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params);
   }
@@ -190,6 +202,10 @@ export function buildGeneratedSessionState({
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionSize, sessionParams) : [];
+  } else if (renderer === "my_people" && mode.id === PEOPLE_MODE_ID) {
+    if (sessionParams.schemaVersion !== 2 || !sessionParams.id || !sessionParams.targetPersonIds?.length) return null;
+    tasks = generateLearningTasks(activeStudent, sessionParams, sessionParams.exposures ?? {});
+    if (!tasks.length) return null;
   } else if (renderer === "my_people") {
     const generateTasks = ENGINE_REGISTRY.my_people;
     // «Обо мне» picks its questions from what earlier lessons recorded.
@@ -236,6 +252,10 @@ export function buildGeneratedSessionState({
   baseState.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
   baseState.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: baseState.strictStars }, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
 
+  if (mode.id === PEOPLE_MODE_ID) {
+    baseState.statistics.myPeople = { schemaVersion: 2, trials: [], progress: {} };
+    baseState.conceptIds = sessionParams.targetPersonIds ?? [];
+  }
   if (languageContext) {
     baseState.languageContext = languageContext;
     baseState.statistics.conditions.languageContext = languageContext;
@@ -430,6 +450,20 @@ export function useSessionEngine() {
       });
     };
   }, [sessionState?.id, activeTopicId, activeModeId]);
+
+  const sessionOwner = useRef(useAppStore.getState().account?.id).current;
+  const savedExposures = useRef(new Set());
+  useEffect(() => {
+    for (const trial of sessionState?.statistics?.myPeople?.trials ?? []) {
+      if (trial.outcome !== 'presented' || savedExposures.current.has(trial.trialId)) continue;
+      const task = sessionState.tasks.find(t => t.trialId === trial.trialId);
+      if (!task) continue;
+      savedExposures.current.add(trial.trialId);
+      const key = exposureKey(task);
+      saveLearningDocument(sessionOwner, activeStudentId, 'exposure', encodeURIComponent(key), { exposureKey: key })
+        .then(() => flushQueue()).catch(() => savedExposures.current.delete(trial.trialId));
+    }
+  }, [sessionState?.statistics?.myPeople?.trials, activeStudentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const savedRecords = useRef(new Map());
   const pendingRecords = useRef(new Map());
@@ -632,6 +666,7 @@ export function useSessionEngine() {
 
   const onPrevious = useCallback(() => {
     setSessionState(s => {
+      if (s.mode?.id === PEOPLE_MODE_ID) return s;
       if (s.taskIndex <= 0) return s;
       return { ...rewardAttemptComplete(markSessionAction(s)), taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
     });
@@ -718,12 +753,33 @@ export function useSessionEngine() {
 
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
+      if (s.mode?.id === PEOPLE_MODE_ID && s.status !== 'answer_correct') return s;
       const next = advanceTask(s);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
     });
   }, [advanceTask]);
+
+  const onPeopleEvent = useCallback((event) => {
+    setSessionState(s => {
+      const next = applyLearningEvent(s, event);
+      if (next.status === "completed") finishSession(next);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (mode?.id !== PEOPLE_MODE_ID || sessionState?.status !== 'answer_correct' || tapToAdvance || rewardPending) return;
+    const trialId = sessionState.tasks[sessionState.taskIndex]?.trialId;
+    const timer = setTimeout(() => setSessionState(s => {
+      if (s.status !== 'answer_correct' || s.tasks[s.taskIndex]?.trialId !== trialId) return s;
+      const next = advanceTask(s);
+      if (next.status === 'completed') finishSession(next);
+      return next;
+    }), autoAdvanceDelay * 1000);
+    return () => clearTimeout(timer);
+  }, [mode?.id, sessionState, tapToAdvance, autoAdvanceDelay, rewardPending]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onQualityAnswer = useCallback((quality, conceptId, cardId) => {
     setSessionState((s) => {
@@ -794,6 +850,7 @@ export function useSessionEngine() {
     onStreakReset,
     onAdvance,
     onQualityAnswer,
+    onPeopleEvent,
     onCardShown: ignoreCardEvent,
     onTap:       ignoreCardEvent,
     onQuality:   ignoreCardEvent,

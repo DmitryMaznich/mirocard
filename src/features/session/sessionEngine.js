@@ -1,3 +1,4 @@
+import { learningSummary } from '@/features/myPeople/peopleLearning';
 import { applyRewardMistake, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { createSessionMetrics, recordResponse, recordAdvance, recordQuality, recordWrongAnswer, summarizeMetrics } from "../analytics/sessionMetrics";
 
@@ -13,7 +14,7 @@ export function markSessionAction(state) {
   const now = new Date();
   const day = sessionDay(now);
   const previousDay = state.statisticsDay ?? sessionDay(new Date(state.startedAt));
-  if (previousDay !== day) {
+  if (previousDay !== day && state.mode?.type !== 'people_learning_v2') {
     const statistics = createSessionMetrics();
     statistics.conditions = state.statistics?.conditions;
     // A correction after midnight is still not a new first response.
@@ -325,6 +326,13 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
     correctCount   = isEvaluated ? state.correctCount   : null;
     incorrectCount = isEvaluated ? state.incorrectCount : null;
     percentCorrect = isEvaluated && total > 0 ? Math.round((state.correctCount / total) * 100) : null;
+  }
+
+  if (state.mode?.type === 'people_learning_v2') {
+    const summary = learningSummary(state.statistics?.myPeople?.trials);
+    correctCount = summary.checked ? summary.independent : null;
+    incorrectCount = summary.checked ? summary.checked - summary.independent : null;
+    percentCorrect = summary.percentCorrect;
   }
 
   const record = {

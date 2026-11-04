@@ -1,3 +1,4 @@
+import PeopleLearningSummary from '@/features/myPeople/PeopleLearningSummary';
 import { useState, useEffect } from "react";
 import { aboutMeQuestionLabel, mainWord } from "@/topics/renderers/my_people/engine";
 import { useAppStore } from "@/core/store";
@@ -41,6 +42,12 @@ function speak(text) {
 }
 
 export default function SessionSummary() {
+  const [id] = useState(() => useAppStore.getState().sessions.at(-1)?.id);
+  const session = useAppStore(s => s.sessions.find(item => item.id === id));
+  return session?.statistics?.myPeople?.schemaVersion === 2 ? <PeopleLearningSummary session={session} /> : <LegacySessionSummary />;
+}
+
+function LegacySessionSummary() {
   const setScreen         = useAppStore((s) => s.setScreen);
   const sessions          = useAppStore((s) => s.sessions);
   const topicRecords      = useAppStore((s) => s.topicRecords);

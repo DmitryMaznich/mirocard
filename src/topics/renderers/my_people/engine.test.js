@@ -25,7 +25,7 @@ describe("my_people album engine", () => {
     expect(labelPhotos.params.peopleCount.values).toEqual([2, 3, 4, 6]);
     expect(labelPhotos.params.peopleCount.default).toBe(2);
     expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "all"]);
-    expect(topic.modes.every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
+    expect(topic.modes.filter(mode => mode.id !== "people_learning_v2").every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
     expect(whoIsThis).toEqual(expect.objectContaining({ type: "person_naming", evaluation: "adult", hideConceptPicker: true }));
   });
@@ -35,7 +35,7 @@ describe("my_people album engine", () => {
     expect(modes.filter((mode) => !mode.retired).map((mode) => mode.id))
       .toEqual(["match_same", "show_me", "who_is_this", "about_me", "label_photos", "introduce_self"]);
     expect(modes.filter((mode) => mode.retired).map((mode) => mode.id))
-      .toEqual(["family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
+      .toEqual(["people_learning_v2", "family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
   });
 
   it("keeps each mode's settings apart, carrying over the old shared ones", () => {

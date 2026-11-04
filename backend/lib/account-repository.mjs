@@ -1,3 +1,4 @@
+import { comparePeopleDocuments, isPeopleDocumentKey } from '../../shared/my-people-v2.mjs';
 import { normalizeLessonFlow } from "../../shared/lesson-flow.mjs";
 import { randomUUID, createHash } from "node:crypto";
 import { normalizeRewardSettings } from "../../shared/reward-policy.mjs";
@@ -430,6 +431,14 @@ export function findMaterialsLeadByToken(db, tokenHash) {
 // ─── Account KV ───────────────────────────────────────────────────────────────
 
 export function upsertAccountKv(db, accountId, key, value) {
+  if (isPeopleDocumentKey(key)) {
+    const studentId = key.split(':')[2];
+    if (value?.schemaVersion !== 2 || !Number.isSafeInteger(value.revision) || value.revision < 1 || typeof value.id !== 'string' || !value.id) return;
+    if (value?.studentId !== studentId || studentOwnedByAnother(db, accountId, studentId)) return;
+    const previous = db.prepare('SELECT value FROM account_kv WHERE account_id = ? AND key = ?').get(accountId, key);
+    if (previous && comparePeopleDocuments(value, safeJson(previous.value, null)) <= 0) return;
+  }
+
   const erased = db.prepare("SELECT student_id FROM erased_students WHERE account_id=?").all(accountId);
   if (erased.some((s) => key.split(":").includes(s.student_id))) return;
   db.prepare(`

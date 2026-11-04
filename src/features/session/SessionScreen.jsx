@@ -41,7 +41,7 @@ export function shouldShowSessionStreak({ mode, isNavigatorFlashCards, renderer,
 // its ZIP used to ship a renderer.js; if one remains in IndexedDB it must not
 // override the current bundled component after the topic has been updated.
 export function shouldPreferBundledRenderer(renderer) {
-  return renderer === "spatial_prepositions";
+  return renderer === "spatial_prepositions" || renderer === "my_people";
 }
 
 export default function SessionScreen() {
@@ -66,7 +66,7 @@ export default function SessionScreen() {
     rewardPending, clearRewardPending, rewardChangeReason,
     deckExhausted, sessionSaveError, handleRestartDeck, handleFinishDeck, finishCurrentSession,
     onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
-    onCardShown, onTap, onQuality,
+    onCardShown, onTap, onQuality, onPeopleEvent,
   } = useSessionEngine();
 
   const sessionRewardSettings = sessionState?.rewardSettings ?? effectiveRewardSettings(null);
@@ -83,6 +83,7 @@ export default function SessionScreen() {
   }, [pillFlash]);
 
   function handleOpenModeSettings() {
+    if (mode?.type === "people_learning_v2") { setScreen("modes"); return; }
     setSessionReturnScreen("session");
     setScreen("params");
   }
@@ -402,6 +403,8 @@ export default function SessionScreen() {
             onCardShown={onCardShown}
             onTap={onTap}
             onQuality={onQuality}
+            onPeopleEvent={onPeopleEvent}
+            peopleProgress={sessionState.statistics?.myPeople?.progress?.[currentTask.trialId]}
             streakCount={streakCount}
           rewardChangeReason={rewardChangeReason}
           rewardSettings={sessionRewardSettings}

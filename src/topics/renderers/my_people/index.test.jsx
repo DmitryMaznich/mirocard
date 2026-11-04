@@ -389,9 +389,9 @@ describe("«Обо мне» renderer", () => {
         />,
       );
     });
-    const knows = () => [...container.querySelectorAll(".people-grade")].find((button) => buttonLabel(button) === "Сам");
+    const knows = () => [...container.querySelectorAll(".people-grade")].find((button) => buttonLabel(button) === "Полностью сам");
     expect(knows().disabled).toBe(false);
-    act(() => [...container.querySelectorAll("button")].find((button) => button.textContent === "Показать фото").click());
+    act(() => [...container.querySelectorAll("button")].find((button) => button.textContent === "Подсказка").click());
     expect(knows().disabled).toBe(true);
     expect([...container.querySelectorAll(".people-grade")].find((button) => buttonLabel(button) === "С подсказкой").disabled).toBe(false);
     act(() => root.unmount());
@@ -415,18 +415,19 @@ describe("«Кто это?» renderer", () => {
       );
     });
     const button = (text) => [...container.querySelectorAll("button")].find((item) => buttonLabel(item) === text);
-    expect(button("Сам").disabled).toBe(false);
+    expect(button("Полностью сам").disabled).toBe(false);
 
-    act(() => button("Первый слог").click());
+    act(() => button("Подсказка").click());
     expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("ма…");
-    expect(button("Сам").disabled).toBe(true);
+    expect(button("Полностью сам").disabled).toBe(true);
     // A used step stays on the adult's panel, ticked and inactive.
-    expect(button("Первый слог").disabled).toBe(true);
+    expect(button("Подсказка").disabled).toBe(false);
 
-    act(() => button("Показать ответ").click());
+    act(() => button("Подсказка").click());
     // The stage shows the child's word to echo, the adult's panel both answers.
     expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("мама");
-    expect(container.querySelector(".people-adult__label")?.textContent).toBe("Ответ: мама · Анна");
+    expect(container.querySelector(".people-adult__label")).toBeNull();
+    expect(container.querySelectorAll(".people-adult button")).toHaveLength(4);
     expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("");
     expect(button("С подсказкой").disabled).toBe(false);
     act(() => root.unmount());
@@ -451,11 +452,11 @@ describe("«Представься» renderer", () => {
   it("without a script grades freely, then fades in the starter and the answer", () => {
     const { container, button, done } = mount(0);
     expect(container.textContent).toContain("С тобой знакомится: Доктор");
-    expect(button("Сам").disabled).toBe(false);
-    act(() => button("Начало фразы").click());
+    expect(button("Полностью сам").disabled).toBe(false);
+    act(() => button("Подсказка").click());
     expect(container.querySelector(".introduce-turn__starter")?.textContent).toBe("Меня зовут …");
-    expect(button("Сам").disabled).toBe(true);
-    act(() => button("Весь ответ").click());
+    expect(button("Полностью сам").disabled).toBe(true);
+    act(() => button("Подсказка").click());
     expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
     done();
   });
@@ -463,8 +464,8 @@ describe("«Представься» renderer", () => {
   it("starting from the whole script shows it at once and allows «С подсказкой» at best", () => {
     const { container, button, done } = mount(2);
     expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
-    expect(button("Начало фразы").disabled).toBe(true);
-    expect(button("Сам").disabled).toBe(true);
+    expect(button("Подсказка").disabled).toBe(false);
+    expect(button("Полностью сам").disabled).toBe(true);
     expect(button("С подсказкой").disabled).toBe(false);
     done();
   });
