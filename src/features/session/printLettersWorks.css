@@ -1,7 +1,7 @@
 /* «Мои буквы» on the lesson summary (PrintLettersWorks.jsx): the child's letters on the notebook grid */
 .plw-works {
   width: min(100%, 880px);
-  margin: 4px auto 16px;
+  margin: 24px auto 16px;
   padding: 16px;
   box-sizing: border-box;
   background: #fffef5;

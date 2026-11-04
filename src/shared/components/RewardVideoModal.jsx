@@ -19,6 +19,7 @@ export default function RewardVideoModal({
   settingsOverride,
   onDismiss,
   title = "Молодец! 🎉",
+  continueLabel = "Продолжать занятие",
 }) {
   const currentSettings = useRewardSettings(studentId);
   // A promised prize keeps its duration even if a remote device edits the student.
@@ -220,7 +221,7 @@ export default function RewardVideoModal({
                 {playerReady ? "🎬 Смотреть видео" : playbackError ? "Видео недоступно" : "Загрузка видео…"}
               </button>
               <button className="reward-modal__btn reward-modal__btn--continue" onClick={onDismiss}>
-                Продолжать занятие
+                {continueLabel}
               </button>
             </div>
           </div>

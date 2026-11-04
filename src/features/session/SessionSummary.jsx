@@ -8,7 +8,10 @@ import Button from "@/shared/components/Button";
 import { useTimer } from "@/features/timer/TimerContext";
 import PlaceValueCheckResult from "./PlaceValueCheckResult.jsx";
 import PrintLettersWorks from "./PrintLettersWorks.jsx";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
+import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 import { letterWorks } from "./printLettersWorks.js";
+import { endVideoAvailable } from "./endVideo.js";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -66,6 +69,12 @@ export default function SessionSummary() {
   // «Пишу на экране»: the end of the lesson is «Мои буквы» alone — no «Молодец, ты справился» and no
   // spoken praise (owner, 2026-11-04: «он, получается, нам не нужен»)
   const lettersOnly = letterWorks(session).length > 0;
+
+  // «Видео в конце занятия» (ParamsScreen): the session was gone through to the end (not stopped with
+  // ✕), the setting was on, video rewards are on and the student has videos → «Смотреть видео».
+  const student = students.find((st) => st.id === session?.studentId) ?? null;
+  const showEndVideo = endVideoAvailable(session, student);
+  const [endVideo, setEndVideo] = useState("offered"); // offered → open → watched
 
   useEffect(() => {
     if (!session || voiceOff || lettersOnly) return;
@@ -156,6 +165,24 @@ export default function SessionSummary() {
       {/* «Печатные буквы» → «Пишу на экране»: the letters the child wrote, with «Сохранить в PDF» */}
       {letterWorks(session).length > 0 && (
         <PrintLettersWorks session={session} studentName={students.find((st) => st.id === session.studentId)?.name ?? ""} />
+      )}
+
+      {showEndVideo && endVideo !== "watched" && (
+        <div className="summary-end-video">
+          <button type="button" className="reward-modal__btn reward-modal__btn--watch" onClick={() => setEndVideo("open")}>
+            🎬 Смотреть видео
+          </button>
+        </div>
+      )}
+      {endVideo === "open" && student && (
+        <RewardVideoModal
+          rewardVideos={student.rewardVideos ?? []}
+          studentId={student.id}
+          settingsOverride={effectiveRewardSettings(student.rewardSettings)}
+          onDismiss={() => setEndVideo("watched")}
+          title="Всё занятие пройдено!"
+          continueLabel="Закрыть"
+        />
       )}
 
       {/* Actions */}

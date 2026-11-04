@@ -639,8 +639,8 @@
     },
     {
       "id": "print_letters",
-      "version": "0.3.10",
-      "url": "./decks/print_letters_v0.3.10.zip",
+      "version": "0.3.11",
+      "url": "./decks/print_letters_v0.3.11.zip",
       "title": {
         "ru": "Печатные буквы",
         "en": "Block Letters"

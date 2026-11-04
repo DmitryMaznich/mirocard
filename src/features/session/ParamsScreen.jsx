@@ -22,7 +22,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, sessionEndsOnItsOwn, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_OPTIONS, normalizeEnoughOption, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
@@ -1878,6 +1878,8 @@ export default function ParamsScreen() {
       }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
     }
+    // «Видео в конце занятия» is not a declared mode option: kept with the params like figureFilters
+    if (saved.videoAtEnd === true) out.videoAtEnd = true;
     return out;
   }
 
@@ -1885,6 +1887,10 @@ export default function ParamsScreen() {
   const selectedStoryQuizIds = getSelectedReadingStories(topicRecord, params).map((story) => story.id);
   const [videoReward,   setVideoReward]   = useState(hideVideoReward ? false : (link.videoRewardEnabled ?? true));
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
+  // «Видео в конце занятия» (owner, 2026-11-04): on top of the series videos, a session that ends on
+  // its own offers «Смотреть видео» on the summary when it was gone through to the end. Kept with the
+  // mode's params (link.params), so it rides the existing sync and lands in the session's paramsSnapshot.
+  const endsOnItsOwn = sessionEndsOnItsOwn(mode, topicRecord?.meta.renderer);
   const studentRewardSettings = effectiveRewardSettings(student?.rewardSettings);
   const rewardLossMode = studentRewardSettings.lossMode;
   const strictStars = studentRewardSettings.strictStars;
@@ -2615,6 +2621,28 @@ export default function ParamsScreen() {
                       ))}
                     </div>
                   </div>
+
+                  {endsOnItsOwn && (
+                    <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
+                      <ParamLabel
+                        label="Видео в конце занятия"
+                        info={{
+                          title: "Видео в конце занятия",
+                          text: "Когда занятие пройдено до конца, на итоговом экране появится кнопка «Смотреть видео». Работает вместе с видео за серию: можно включить одно, другое или оба. Если занятие закончено раньше крестиком, видео в конце нет.",
+                        }}
+                        onShowInfo={setActiveInfo}
+                      />
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={params.videoAtEnd === true}
+                        aria-label="Видео в конце занятия"
+                        className={`param-toggle ${params.videoAtEnd === true ? "param-toggle--on" : ""}`}
+                        disabled={!videoReward}
+                        onClick={() => setParams((p) => ({ ...p, videoAtEnd: p.videoAtEnd !== true }))}
+                      />
+                    </div>
+                  )}
 
                   <RewardRulesSummary settings={studentRewardSettings} />
                 </>

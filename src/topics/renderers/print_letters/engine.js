@@ -11,9 +11,10 @@ export function generateTasks(mode, cards, _sessionSize, sessionParams) {
 }
 
 // «Пишу на экране»: every chosen letter `copies` times in a row (one letter at a time — the child
-// meets the same letter until it is done), letters in the order of the deck (by family). The session
-// loops over them like other topics (no `finite`), so the usual star series and video reward apply:
-// every independently written letter is a right answer, a copy with help is «assisted».
+// meets the same letter until it is done), letters in the order of the deck (by family). The set is the
+// lesson (`finite`): after its last letter the summary shows «Мои буквы». Every independently written
+// letter is a right answer in the usual star series, a copy with help is «assisted»; the adult can also
+// switch on «Видео в конце занятия» (ParamsScreen).
 export function screenWriteTasks(letters, params = {}) {
   const chosen = Array.isArray(params.letters) && params.letters.length ? new Set(params.letters) : null;
   const pool = letters.filter((c) => (chosen ? chosen.has(c.id) : true));
@@ -37,10 +38,10 @@ export function screenWriteTasks(letters, params = {}) {
       });
     }
   }
-  // under the board: the letters you go back / on to (the session loops, so after the last comes the first)
+  // under the board: the letters you go back / on to (the set ends after its last letter)
   tasks.forEach((t, i) => {
     t.prevLabel = i > 0 ? tasks[i - 1].card.label : null;
-    t.nextLabel = tasks.length > 1 ? tasks[(i + 1) % tasks.length].card.label : null;
+    t.nextLabel = i + 1 < tasks.length ? tasks[i + 1].card.label : null;
   });
   return tasks;
 }
