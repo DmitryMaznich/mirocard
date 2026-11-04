@@ -1,3 +1,4 @@
+import { migrateSettings } from "./settingsMigration.js";
 import { kv } from "@/core/db";
 import { getUiLanguage, hydrateUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import { accountLanguages } from "./languageSync.js";
@@ -112,6 +113,7 @@ export function mergeStudentRecords(local, server) {
     const resolvedPhotoTs = photoWinner.photoUpdatedAt ?? null;
 
     const videosWinner = pickByFieldTimestamp("rewardVideosUpdatedAt");
+    const lessonFlowWinner = pickByFieldTimestamp("lessonFlowUpdatedAt");
     const rewardSettingsWinner = pickByFieldTimestamp("rewardSettingsUpdatedAt");
     const resolvedVideos   = videosWinner.rewardVideos ?? [];
     const resolvedVideosTs = videosWinner.rewardVideosUpdatedAt ?? null;
@@ -164,6 +166,11 @@ export function mergeStudentRecords(local, server) {
       photoUpdatedAt: resolvedPhotoTs,
       sex:            student.sex   ?? current.sex   ?? null,
       rewardVideos:          resolvedVideos,
+      primaryLanguage: winner.primaryLanguage === undefined
+        ? (student.primaryLanguage !== undefined ? student.primaryLanguage : current.primaryLanguage ?? null)
+        : winner.primaryLanguage,
+      lessonFlow: lessonFlowWinner.lessonFlow ?? {},
+      lessonFlowUpdatedAt: lessonFlowWinner.lessonFlowUpdatedAt ?? null,
       rewardSettings: rewardSettingsWinner.rewardSettings ?? {},
       rewardSettingsUpdatedAt: rewardSettingsWinner.rewardSettingsUpdatedAt ?? null,
       rewardVideosUpdatedAt: resolvedVideosTs,
@@ -400,7 +407,8 @@ export async function loadLocalBootstrap(db) {
       })(),
     ]);
 
-  const migratedStudents = (students ?? []).map(migrateStudentPeople);
+  const migration = await migrateSettings(db, { students: (students ?? []).map(migrateStudentPeople), studentTopicLinks: indexStudentTopicLinks(studentTopicLinks), topicRecords, settings: settings ?? {} });
+  const migratedStudents = migration.students;
   if (JSON.stringify(migratedStudents) !== JSON.stringify(students ?? [])) {
     await kv.set(db, 'students', migratedStudents);
   }
@@ -416,7 +424,7 @@ export async function loadLocalBootstrap(db) {
     students: migratedStudents,
     ownedTopics,
     topicRecords,
-    studentTopicLinks,
+    studentTopicLinks: migration.studentTopicLinks,
     conceptProgress,
     sessions: recoveredSessions,
     lastContext,
@@ -460,6 +468,14 @@ export async function clearUserIdbData(db) {
 }
 
 export async function persistBootstrap(db, raw) {
+  if ("students" in raw) {
+    const [localStudents, localSettings, records, localLinks, localAccount] = await Promise.all([kv.get(db, "students"), kv.get(db, "settings"), listTopicRecords(db), kv.get(db, "studentTopicLinks"), kv.get(db, "account")]);
+    const sameAccount = sameHistoryAccount(localAccount, raw.account);
+    const migration = await migrateSettings(db, { students: mergeStudents(sameAccount ? localStudents ?? [] : [], raw.students ?? []), settings: { ...localSettings, ...raw.settings }, topicRecords: records,
+      studentTopicLinks: { ...indexStudentTopicLinks(sameAccount ? localLinks : {}), ...indexStudentTopicLinks(raw.studentTopicLinks) } });
+    raw.students = migration.students;
+    raw.studentTopicLinks = migration.studentTopicLinks;
+  }
   const bootstrap = normalizeBootstrap(raw);
   if ("sessions" in raw) {
     const [localSessions, localAccount, localAccountId] = await Promise.all([kv.get(db, "sessions"), kv.get(db, "account"), kv.get(db, "accountId")]);
@@ -477,7 +493,7 @@ export async function persistBootstrap(db, raw) {
   if ("token" in raw) writes.push(kv.set(db, "token", bootstrap.token));
   if ("account" in raw) writes.push(kv.set(db, "account", bootstrap.account));
   if ("settings" in raw) {
-    const settings = { ...bootstrap.settings };
+    const settings = { ...await kv.get(db, "settings"), ...bootstrap.settings };
     // Preserve locally-set PIN if server returns null (race: API call may not have completed).
     const localPinHash = useAppStore.getState().settings.adultPinHash ?? null;
     if (settings.adultPinHash === null && localPinHash !== null) {

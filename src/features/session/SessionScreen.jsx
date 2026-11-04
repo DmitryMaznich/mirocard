@@ -57,7 +57,7 @@ export default function SessionScreen() {
   const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
   const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance) ?? true;
+  const adultConfirmAdvance = false; // Legacy gate retained, hidden confirmation retired.
   const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
 
   const {

@@ -33,9 +33,12 @@
         },
         "url": "./decks/addition_subtraction_v1.9.2.zip",
         "status": "release",
-        "access": "free"
+        "access": "free",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "can_i_watch_tv",
@@ -56,7 +59,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "chat_with_mom",
@@ -83,7 +86,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "clothes_basic",
@@ -123,9 +126,12 @@
         },
         "url": "./decks/clothes_basic_v1.1.0.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "column_addition",
@@ -162,9 +168,12 @@
         "description": {
           "ru": "Два режима сложения и вычитания в столбик: пошаговый тренажёр, где ребёнок перетаскивает цифры в клетки — единицы, перенос или заём, десятки, — и контрольная работа, где примеры переписываются в тетрадь и решаются самостоятельно. Десятки и единицы на монетах — в теме «Разряды числа», счёт на пальцах — в теме «Плюс и минус».",
           "en": "Seven modes progress from finger counting and tens-and-ones models to regrouping, column arithmetic, and independent written examples."
-        }
+        },
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "comparison",
@@ -199,9 +208,12 @@
         },
         "url": "./decks/comparison_v2.57.0.zip",
         "status": "release",
-        "access": "free"
+        "access": "free",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-02T18:17:54+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "comparison_language_pilot",
@@ -209,29 +221,17 @@
         "ru": "Сравнение · языковой пилот",
         "sl": "Primerjanje · jezikovni pilot"
       },
-      "version": "0.5.0",
+      "version": "0.5.1",
       "renderer": "comparison_language_pilot",
       "sources": [
-        "public/decks/comparison_language_pilot_v0.5.0.zip",
         "src/topics/renderers/comparison_language_pilot",
         "tools/comparison_language_pilot/topic.json"
       ],
-      "bundle": {
-        "version": "0.5.0",
-        "url": "./decks/comparison_language_pilot_v0.5.0.zip",
-        "title": {
-          "ru": "Сравнение · языковой пилот",
-          "sl": "Primerjanje · jezikovni pilot"
-        },
-        "description": null,
-        "renderer": "comparison_language_pilot",
-        "modes": 3,
-        "cards": 3
-      },
+      "bundle": null,
       "builtin": false,
       "catalogEntry": {
         "id": "comparison_language_pilot",
-        "version": "0.5.0",
+        "version": "0.5.1",
         "title": {
           "ru": "Сравнение · языковой пилот",
           "sl": "Primerjanje · jezikovni pilot"
@@ -240,17 +240,17 @@
           "ru": "Три режима пилотной копии: сравнение количеств и чисел с крокодилом, рисование знака. Русский и словенский материал выбираются независимо от интерфейса. В русском пакете озвучена подсказка после ошибки; словенский пока без речи.",
           "sl": "Trije načini v pilotni kopiji: primerjanje količin in števil s krokodilom ter risanje znaka. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora."
         },
-        "url": "./decks/comparison_language_pilot_v0.5.0.zip",
+        "url": "./decks/comparison_language_pilot_v0.5.1.zip",
         "status": "hidden",
         "hidden": true,
         "access": "free",
         "languageDownload": {
           "schemaVersion": 1,
           "core": {
-            "url": "./decks/comparison_language_pilot_v0.5.0.zip",
-            "version": "0.5.0",
-            "bytes": 10620,
-            "sha256": "5ee5a3a5153ab732795d483470c6d185db4d49916e8b4e092d40ac96c0c367af"
+            "url": "./decks/comparison_language_pilot_v0.5.1.zip",
+            "version": "0.5.1",
+            "bytes": 10625,
+            "sha256": "069bf34e6b43a30fe73947f6978b7e6ee8a7affee28f87342f3121bd23664885"
           },
           "languages": {
             "ru": {
@@ -283,9 +283,13 @@
               "audio": "none"
             }
           }
-        }
+        },
+        "materialLanguages": [
+          "ru",
+          "sl"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "daily_orientation",
@@ -298,7 +302,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "emotions_v2",
@@ -338,9 +342,12 @@
         },
         "url": "./decks/emotions_v2_v1.10.1.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "feel_sick",
@@ -361,7 +368,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "first_then",
@@ -394,9 +401,12 @@
         },
         "url": "./decks/first_then_v1.1.9.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "good_night",
@@ -417,7 +427,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "help_me",
@@ -438,7 +448,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "im_hungry",
@@ -459,7 +469,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "learn_slovene",
@@ -500,9 +510,13 @@
         },
         "url": "./decks/learn_slovene_v0.4.0.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru",
+          "sl"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "letter_writing",
@@ -538,9 +552,12 @@
         "url": "./decks/letter_writing_v1.1.0.zip",
         "status": "hidden",
         "access": "paid",
-        "hidden": true
+        "hidden": true,
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "magnetic_alphabet",
@@ -575,9 +592,12 @@
         },
         "url": "./decks/magnetic_alphabet_v1.7.1.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "math_houses",
@@ -617,9 +637,12 @@
         },
         "url": "./decks/math_houses_v1.2.1.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "morning_greeting",
@@ -640,7 +663,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "my_people",
@@ -653,7 +676,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "opposites",
@@ -685,9 +708,12 @@
         },
         "url": "./decks/opposites_v2.12.0.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "people_names",
@@ -728,9 +754,12 @@
         },
         "renderer": "flashcards",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "phonetic_analysis",
@@ -766,9 +795,12 @@
         },
         "renderer": "phonetic_analysis",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "place_value",
@@ -808,9 +840,12 @@
         "description": {
           "ru": "Как устроено число: отдельные монеты — единицы, стопка из десяти монет — десяток. Ребёнок сам складывает россыпь монет стопками по десять и называет число, собирает число и читает готовую модель, а затем сам решает, когда нужен обмен десятка: раскладывает стопку, если единиц не хватает, и складывает новую, если единиц набралось десять.",
           "en": "Tens and ones with coins: group a heap into stacks of ten, build and read a number, and decide when a ten must be exchanged (carry and borrow)."
-        }
+        },
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "print_letters",
@@ -851,9 +886,12 @@
           "en": "Printable worksheet and notebook builder for block capital letters: each letter built step by step on a grid or ruled paper, with fading support, A4 or A5."
         },
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-03T20:17:33+00:00"
+      "sourceUpdatedAt": "2026-11-04T07:02:09Z"
     },
     {
       "id": "print_materials",
@@ -893,9 +931,12 @@
         "url": "./decks/print_materials_v1.0.36.zip",
         "status": "hidden",
         "hidden": true,
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "propis",
@@ -930,9 +971,12 @@
         },
         "url": "./decks/propis_v1.32.244.zip",
         "status": "archived",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-03T08:17:02+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "propis2",
@@ -967,9 +1011,14 @@
         },
         "url": "./decks/propis2_v0.6.1.zip",
         "status": "release",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru",
+          "bg",
+          "kk"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-02T11:17:43+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "propis2_bg",
@@ -1003,9 +1052,12 @@
         },
         "url": "./decks/propis2_bg_v0.6.1.zip",
         "status": "individual",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "bg"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-02T11:17:43+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "propis2_lang",
@@ -1039,9 +1091,14 @@
         },
         "url": "./decks/propis2_lang_v0.1.3.zip",
         "status": "archived",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru",
+          "bg",
+          "kk"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-02T11:17:43+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "reading_dad_instructions",
@@ -1081,9 +1138,12 @@
         },
         "url": "./decks/reading_dad_instructions_v1.0.7.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-03T18:59:00+01:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "reading_dad_poems",
@@ -1126,9 +1186,12 @@
         },
         "url": "./decks/reading_dad_poems_v1.0.24.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-03T18:59:00+01:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "reading_dad_texts",
@@ -1140,7 +1203,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "reading_short_stories",
@@ -1180,9 +1243,12 @@
         },
         "url": "./decks/reading_short_stories_v2.0.4.zip",
         "status": "release",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-11-03T18:59:00+01:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "sentence_puzzle",
@@ -1217,9 +1283,12 @@
         },
         "url": "./decks/sentence_puzzle_v1.10.1.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "spatial_prepositions_ru",
@@ -1259,9 +1328,12 @@
         },
         "renderer": "spatial_prepositions",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "streak_tracker",
@@ -1274,7 +1346,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "symmetry_draw",
@@ -1310,9 +1382,12 @@
         },
         "renderer": "flashcards",
         "status": "release",
-        "access": "free"
+        "access": "free",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "tools_functions",
@@ -1352,9 +1427,12 @@
         },
         "url": "./decks/tools_functions_v1.3.10.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "transport_photo",
@@ -1394,9 +1472,12 @@
         },
         "url": "./decks/transport_photo_v1.1.0.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "verbs_v2",
@@ -1436,9 +1517,12 @@
         },
         "url": "./decks/verbs_v2_v2.4.7.zip",
         "status": "release",
-        "access": "free"
+        "access": "free",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "vowel_consonant_ru",
@@ -1476,9 +1560,12 @@
         },
         "url": "./decks/vowel_consonant_ru_v1.0.1.zip",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "word_agreement_ru",
@@ -1517,9 +1604,12 @@
         },
         "renderer": "word_agreement",
         "status": "beta",
-        "access": "paid"
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "word_formation_soup",
@@ -1559,9 +1649,12 @@
         "description": {
           "ru": "В группах «суп», «сок», «варенье», «каша» и «материалы» ребёнок соотносит сочетание «из чего?» с прилагательным. В сценарии «Суп» продукт связан с фотографией готового супа: суп из рыбы — рыбный суп. Три режима: знакомство с парами, выбор прилагательного и согласование прилагательных с существительными. Отдельно представлены погода и времена года.",
           "en": "Word-formation pairs across soup, juice, jam, porridge, materials, weather, and seasons; three modes cover pair recognition, form choice, and seasonal adjective endings."
-        }
+        },
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     },
     {
       "id": "written_letters",
@@ -1601,10 +1694,15 @@
         "zipUrl": "written_letters_v1.0.5.zip",
         "status": "hidden",
         "access": "paid",
-        "hidden": true
+        "hidden": true,
+        "materialLanguages": [
+          "ru"
+        ]
       },
-      "sourceUpdatedAt": "2026-10-30T14:01:28+00:00"
+      "sourceUpdatedAt": "2026-11-03T18:12:06Z"
     }
   ],
-  "warnings": []
+  "warnings": [
+    "public/decks/comparison_language_pilot_v0.5.0.zip: ENOENT: no such file or directory, open '/workspace/mirocard/public/decks/comparison_language_pilot_v0.5.0.zip'"
+  ]
 }

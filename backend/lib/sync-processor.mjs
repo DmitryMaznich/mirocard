@@ -2,19 +2,21 @@ import { appendUsageEvent } from "./usage-repository.mjs";
 import {
   upsertStudent, softDeleteStudent, upsertStudentPhoto,
   upsertStudentVideos, upsertStudentAdults,
-  upsertStudentRewardSettings,
+  upsertStudentRewardSettings, upsertStudentLessonFlow,
   recordStudentVideoViews,
   upsertStudentMyPeopleProfile, upsertStudentMyPeople,
   upsertStudentImportantDates,
   appendSession,
   upsertAccountTopic, softDeleteAccountTopic,
-  upsertStudentTopicLink,
+  upsertStudentTopicLink, initializeTopicLanguage,
   upsertConceptProgress,
   upsertAccountKv,
   incrementRevision,
 } from "./account-repository.mjs";
 
 const HANDLERS = {
+  "student.topic_language.initialize": (db, accountId, data) => initializeTopicLanguage(db, accountId, data),
+  "student.lesson_flow.upsert": (db, accountId, data) => upsertStudentLessonFlow(db, accountId, data),
   "student.reward_settings.upsert": (db, accountId, data) => upsertStudentRewardSettings(db, accountId, data),
   "usage.append": (db, accountId, data) => appendUsageEvent(db, accountId, data),
   "student.video_view.record": (db, accountId, data) =>

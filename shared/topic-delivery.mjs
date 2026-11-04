@@ -29,7 +29,7 @@ export function topicDownloadDescriptor(record) {
 }
 
 export function nativeLanguageName(code) {
-  return ({ ru: "Русский", sl: "Slovenščina", en: "English" })[code] ?? code;
+  return ({ ru: "Русский", sl: "Slovenščina", en: "English", bg: "Български", kk: "Қазақша" })[code] ?? code;
 }
 
 export function hasInstalledPackage(record, language, part) {

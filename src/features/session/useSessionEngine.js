@@ -1,3 +1,4 @@
+import { normalizeLessonFlow } from "../../../shared/lesson-flow.mjs";
 import { effectiveRewardSettings, rewardPolicy, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { selectedTopicLanguage } from "../../../shared/topic-language-contract.mjs";
 import { createContentContext } from "../../../shared/topic-language-contract.mjs";
@@ -52,9 +53,7 @@ export function resolveModeSelection(topicRecord, mode, link, isReading, activeT
   const sessionParams = { ...readModeParams(link.params, mode), strictStars: true,
     rewardPolicyVersion: 2, rewardLossMode: settings.lossMode };
   if (topicRecord?.languageContract) {
-    const state = useAppStore.getState();
-    const student = state.students.find((s) => s.id === state.activeStudentId);
-    sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params, student?.preferredLessonLanguage, state.settings.cardLanguage);
+    sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params);
   }
   const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
     && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
@@ -260,9 +259,11 @@ export function useSessionEngine() {
   const activeSessionSnapshot = useAppStore((s) => s.activeSessionSnapshot);
   const setActiveSessionSnapshot = useAppStore((s) => s.setActiveSessionSnapshot);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
-  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
-  const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
-  const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
+  // Legacy confirmation handlers remain dormant; pacing belongs to this student.
+  const adultConfirmAdvance = false;
+  const flow = normalizeLessonFlow(students.find(s => s.id === activeStudentId)?.lessonFlow);
+  const tapToAdvance = flow.advance === "tap";
+  const autoAdvanceDelay = flow.delaySeconds;
 
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
