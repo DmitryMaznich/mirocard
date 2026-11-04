@@ -221,13 +221,25 @@ owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs
 pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
 ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
 
-## Мои люди (my_people) — разбор логопеда и редизайн
+## Мои люди (my_people) — согласованная механика и переделка
 
-Второй методический проход по теме (2026-10-20): оценка всех режимов глазами логопеда (РАС),
-пробелы (нет критерия перехода, нет ответа выбором для неговорящих, детская и взрослая зоны
-экрана смешаны) и предложение по редизайну. **Read `docs/my-people-methodology-review.md` first**
-before touching `my_people`; макеты — `docs/mockups/my-people-redesign.html`. История прошлых правок —
-`docs/my-people-review.md`.
+Последняя фиксация с владельцем — 2026-11-04, макеты 01–07. **Read
+`docs/my-people-design.md` first** before continuing `my_people`. План реализации:
+`docs/superpowers/plans/2026-11-04-my-people-redesign.md`. Основной путь:
+`docs/mockups/my-people-2026-11-04/my-people-v07.html`; лестница 2/3/4/6:
+`docs/mockups/my-people-2026-11-04/my-people-v06.html`.
+
+Зафиксировано: две цели (имя / отношение), выбор фото и называние, самостоятельная
+работа и работа со взрослым, четыре компактные кнопки без поясняющего текста на
+детском экране, параметры каждого задания и результат с условиями. Подготовленный
+детский план меняется после подтверждения взрослого. Озвучка окончательно не
+принята и отложена отдельно. HTML — макет, не готовый исходник React.
+
+История: `docs/my-people-review.md` (2026-10-15) и
+`docs/my-people-methodology-review.md` (2026-10-20), старый макет
+`docs/mockups/my-people-redesign.html`. Старые предложения о едином результате
+называния человека, большой взрослой панели и автоматическом критерии «освоено»
+не заменяют последнюю спецификацию.
 
 ## Учим словенский — новая тема (started 2026-10-22)
 
@@ -308,3 +320,4 @@ absolute-positioned element, not as a follow-up:**
   ```
   then screenshot the screen — anything now cramped or overlapping the top/bottom edge
   needs the fix above.
+
