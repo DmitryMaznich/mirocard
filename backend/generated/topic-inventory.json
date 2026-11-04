@@ -489,7 +489,7 @@
         "ru": "Учим словенский",
         "en": "Learning Slovenian"
       },
-      "version": "0.4.0",
+      "version": "0.4.1",
       "renderer": "letter_bridge",
       "sources": [
         "public/decks/learn_slovene_v0.4.0.zip",
@@ -497,7 +497,7 @@
         "tools/learn_slovene/topic.json"
       ],
       "bundle": {
-        "version": "0.4.0",
+        "version": "0.4.1",
         "url": "./decks/learn_slovene_v0.4.0.zip",
         "title": {
           "ru": "Учим словенский",
@@ -511,7 +511,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "learn_slovene",
-        "version": "0.4.0",
+        "version": "0.4.1",
         "title": {
           "ru": "Учим словенский",
           "en": "Learning Slovenian"
@@ -865,16 +865,16 @@
         "ru": "Печатные буквы",
         "en": "Block Letters"
       },
-      "version": "0.4.0",
+      "version": "0.4.1",
       "renderer": "print_letters",
       "sources": [
-        "public/decks/print_letters_v0.4.0.zip",
+        "public/decks/print_letters_v0.4.1.zip",
         "src/topics/renderers/print_letters",
         "tools/print_letters/topic.json"
       ],
       "bundle": {
-        "version": "0.4.0",
-        "url": "./decks/print_letters_v0.4.0.zip",
+        "version": "0.4.1",
+        "url": "./decks/print_letters_v0.4.1.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"
@@ -887,8 +887,8 @@
       "builtin": false,
       "catalogEntry": {
         "id": "print_letters",
-        "version": "0.4.0",
-        "url": "./decks/print_letters_v0.4.0.zip",
+        "version": "0.4.1",
+        "url": "./decks/print_letters_v0.4.1.zip",
         "title": {
           "ru": "Печатные буквы",
           "en": "Block Letters"

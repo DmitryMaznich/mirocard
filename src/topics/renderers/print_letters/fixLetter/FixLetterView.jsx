@@ -2,14 +2,15 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { screenGlyph, polyD } from "../screenWrite/traceEngine";
 import { Grid } from "../screenWrite/board";
 import { boardBox, glyphWidth, useTone } from "../screenWrite/boardGeometry";
-import { breakLetter, grabRole, isFixed, moved, partEnds, snapKeys } from "./breakLetter";
+import { breakLetter, coverage, grabRole, isSolved, letterTargets, looseParts, moved, partEnds, snapTarget } from "./breakLetter";
 
 // «Почини букву» (mode fix_letter): a big letter on the notebook grid with some strokes knocked out of
 // place — shifted, tilted (one end moved), a half-oval mirrored; the child puts them back. A game of
 // cards (owner, 2026-11-04: «просто выполняет карточки, это больше как игра»): a fixed letter is a right
 // answer in the usual star series, then the next letter. Every part moves — the whole ones too — and a
-// straight stroke drags by the middle (whole) or near an end (that end). A part let go near its place
-// snaps in. No error colours, no error sound. Decisions: docs/print-letters-fix-letter.md; the pure
+// straight stroke drags by the middle (whole) or near an end (that end). A part let go near a place it
+// fits snaps in — any place of the same shape (Е's three bars are interchangeable: the letter is checked
+// by its shape, not by which part stands where). No error colours, no error sound. Decisions: docs/print-letters-fix-letter.md; the pure
 // part (how a letter breaks, what a drag moves): breakLetter.js.
 
 const INK_W = 7;           // as in «Пишу на экране»: a letter is 100 units tall
@@ -34,6 +35,7 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
   const card = useMemo(() => screenGlyph(task.card), [task.card]);
   const opts = useMemo(() => ({ broken: task.broken, tilt: task.tilt, mirror: task.mirror, magnet: task.magnet }), [task.broken, task.tilt, task.mirror, task.magnet]);
   const tone = useTone(task.sound !== false);
+  const targets = useMemo(() => letterTargets(card), [card]);
 
   const [parts, setParts] = useState(() => breakLetter(card, opts));
   const partsRef = useRef(parts);
@@ -42,7 +44,7 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
   const doneRef = useRef(false);
   const setDone = (v) => { doneRef.current = v; setDoneState(v); };
   const [drag, setDrag] = useState(null);        // { i, role } — for the drawing only
-  const [hint, setHint] = useState(null);        // index of the part whose place glows
+  const [hint, setHint] = useState(null);        // index of the free target (place) that glows
   const dragRef = useRef(null);                  // { i, role, last, moved, id }
   const stats = useRef({ assisted: false, lastAct: 0 });
   const timers = useRef([]);
@@ -79,13 +81,13 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
     const id = setInterval(() => {
       if (done || dragRef.current) return;
       if (performance.now() - stats.current.lastAct < IDLE_HINT_MS) return;
-      const i = partsRef.current.findIndex((p) => !isFixed(p));
+      const i = coverage(partsRef.current, targets).findIndex((j) => j < 0);
       if (i < 0 || hint === i) return;
       stats.current.assisted = true;
       setHint(i);
     }, 500);
     return () => clearInterval(id);
-  }, [done, hint]);
+  }, [done, hint, targets]);
 
   const toSvg = (e) => {
     const svg = svgRef.current;
@@ -134,27 +136,33 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
     settle(d.i);
   }
 
-  // the magnet: an offset let go inside it slides to zero; then — is the letter whole?
+  // the magnet: a part let go near a free place it fits slides onto it; then — is the letter whole?
   function settle(i) {
     const p = partsRef.current[i];
-    const keys = snapKeys(p, task.magnet);
-    if (!keys.length) { check(); return; }
-    const from = Object.fromEntries(keys.map((k) => [k, { ...p[k] }]));
+    const to = snapTarget(partsRef.current, i, targets, task.magnet);
+    if (!to) { check(); return; }
+    // slide from where the part is now: a straight part's two ends; a shape by how far its middle is off
+    const start = p.line
+      ? { pa: { ...p.pa }, pb: { ...p.pb } }
+      : { off: { x: p.cx + p.off.x - to.cx, y: p.cy + p.off.y - to.cy } };
     let t0 = null;                                  // the first frame's time
     const step = (now) => {
       if (t0 === null) t0 = now;
       const k = Math.max(0, Math.min(1, (now - t0) / SNAP_MS)), ease = 1 - (1 - k) * (1 - k);
-      const patch = Object.fromEntries(keys.map((key) => [key, k < 1 ? { x: from[key].x * (1 - ease), y: from[key].y * (1 - ease) } : { x: 0, y: 0 }]));
-      setPartsLive(partsRef.current.map((q, j) => (j === i ? { ...q, ...patch } : q)));
+      const mix = (a, b) => ({ x: a.x + (b.x - a.x) * ease, y: a.y + (b.y - a.y) * ease });
+      const cur = k >= 1 ? to : p.line
+        ? { ...to, pa: mix(start.pa, to.pa), pb: mix(start.pb, to.pb) }
+        : { ...to, off: mix(start.off, { x: 0, y: 0 }) };
+      setPartsLive(partsRef.current.map((q, j) => (j === i ? cur : q)));
       if (k < 1) { const id = requestAnimationFrame(step); rafs.current.add(id); return; }
-      tone(isFixed(partsRef.current[i]) ? [523, 784] : [523]);
+      tone([523, 784]);
       check();
     };
     const id = requestAnimationFrame(step); rafs.current.add(id);
   }
 
   function check() {
-    if (doneRef.current || !partsRef.current.every(isFixed)) return;
+    if (doneRef.current || !isSolved(partsRef.current, targets)) return;
     setDone(true); setHint(null);
     tone([523, 659, 784], 0.16);
     const assisted = stats.current.assisted;
@@ -173,7 +181,10 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
 
   const w = glyphWidth(card);
   // broken parts on top: where two parts meet (П's corner) the finger takes the broken one
-  const order = useMemo(() => parts.map((p, i) => i).sort((a, b) => Number(!isFixed(parts[a])) - Number(!isFixed(parts[b]))), [parts]);
+  const order = useMemo(() => {
+    const loose = new Set(looseParts(parts, targets));
+    return parts.map((p, i) => i).sort((a, b) => Number(loose.has(a)) - Number(loose.has(b)));
+  }, [parts, targets]);
 
   return (
     <div className="plw-root plf-root">
@@ -189,8 +200,8 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious }
           onPointerCancel={onPointerUp}
         >
           <Grid box={box} card={card} />
-          {task.contour && parts.map((p) => <path key={`c${p.i}`} d={polyD(p.pts)} className="plf-contour" />)}
-          {hint != null && <path d={polyD(parts[hint].pts)} strokeWidth={INK_W + 6} className="plf-hint" />}
+          {task.contour && targets.map((t) => <path key={`c${t.i}`} d={polyD(t.pts)} className="plf-contour" />)}
+          {hint != null && <path d={polyD(targets[hint].pts)} strokeWidth={INK_W + 6} className="plf-hint" />}
           <g className={done ? "plf-parts is-done" : "plf-parts"}>
             {order.map((i) => {
               const p = parts[i];
