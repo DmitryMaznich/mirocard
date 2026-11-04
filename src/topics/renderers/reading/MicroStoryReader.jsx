@@ -11,20 +11,12 @@ import "./microReader.css";
  * The micro-story reader — design «тихая книжка» (owner-approved mockup
  * docs/mockups/reading-micro-2026-11-04/reading-micro-v01.html):
  *   read  — one big frame that follows the text, a marker on the sentence;
- *   ask   — the question as the hero's speech bubble, equal word buttons,
+ *   ask   — the question in a speech bubble, equal word buttons,
  *           an answer slot; no explanatory text on the child's screen;
  *   done  — both frames and the found answers as a chain for retelling.
  * Attempts, picture help and the talking point's sample answer live in the
  * adult sheet behind the lock button.
  */
-
-// The four recurring children, by the colour of their T-shirts in the pictures.
-const HERO_COLORS = { "Вова": "#3b6fd8", "Петя": "#2f9a55", "Аня": "#e0882b", "Оля": "#e0645a" };
-
-export function HeroAvatar({ name, size = "md" }) {
-  if (!name) return null;
-  return <span className={`msr-avatar msr-avatar--${size}`} style={{ background: HERO_COLORS[name] ?? "#4a9b8f" }} aria-hidden="true">{name[0]}</span>;
-}
 
 const Icon = {
   back: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>,
@@ -113,7 +105,6 @@ export default function MicroStoryReader({ task, topicId, textStyle, onAdvance, 
   const text = task.text;
   const lines = text.lines ?? [];
   const frames = text.images?.length ? text.images : (text.image ? [{ file: text.image }] : []);
-  const hero = text.character;
   const questions = useMemo(() => task.storyQuestions ?? (topicRecord ? generateTasks({ type: "story_quiz" }, topicRecord, task.textId, {
     storyStage: "micro", selectedMicroStories: [task.textId],
   }).map(({ question, expectedAnswer }) => ({ ...question, expectedAnswer })) : []), [task.storyQuestions, task.textId, topicRecord]);
@@ -238,7 +229,6 @@ export default function MicroStoryReader({ task, topicId, textStyle, onAdvance, 
           </div>}
         </div>}
         <div className="msr-page">
-          {hero && <div className="msr-who"><HeroAvatar name={hero} size="sm" />{hero}</div>}
           <h2 className="msr-title">{getTopicTitle(text.title)}</h2>
           <div className="msr-lines">
             {lines.map((line, i) => <p key={line.id ?? i} className={`msr-line${activeLine === null ? "" : activeLine === i ? " is-now" : " is-faded"}`}
@@ -282,8 +272,9 @@ export default function MicroStoryReader({ task, topicId, textStyle, onAdvance, 
   const status = answered ? "Ответ найден." : storyQuizSearchHint(question.prompt, choice.rejected, choice.selected?.near);
   return <div ref={bodyRef} className={`session-body msr msr--ask${discussing ? " msr--talk" : ""}`}>
     {tools}
+    {/* No hero name or initial on the child's screens: it is the answer to
+        the first question, and the owner finds it superfluous (2026-11-04). */}
     <div className="msr-ask">
-      <HeroAvatar name={hero} size="lg" />
       <div className="msr-bubble">
         {kindLabel && <span className="msr-bubble__kind">{kindLabel}</span>}
         <h2 id="micro-current-question">{question.prompt}</h2>

@@ -69,13 +69,6 @@
 .msr-btn:disabled { background: #d9dedd; box-shadow: 0 5px 0 #c2c9c8; color: #f4f6f6; cursor: default; }
 .msr-btn--ghost { background: #fff; color: var(--msr-ink); border: 2px solid var(--msr-rule); box-shadow: 0 5px 0 var(--msr-rule); }
 
-.msr-avatar {
-  display: grid; place-items: center; flex: none;
-  border-radius: 50%; color: #fff; font-weight: 900;
-}
-.msr-avatar--sm { width: 26px; height: 26px; font-size: 13px; }
-.msr-avatar--md { width: 40px; height: 40px; font-size: 18px; }
-.msr-avatar--lg { width: clamp(44px, 5vw, 56px); height: clamp(44px, 5vw, 56px); font-size: clamp(20px, 2.3vw, 24px); }
 
 .msr-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -136,7 +129,6 @@
 .msr-frame__dots button.is-on::before { width: 26px; background: var(--msr-ink); }
 
 .msr-page { min-width: 0; min-height: 0; align-self: center; max-height: 100%; overflow-y: auto; }
-.msr-who { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; color: var(--msr-soft); font-weight: 700; font-size: 16px; }
 .msr-title { margin: 0 0 clamp(8px, 1.8vh, 22px); font-size: clamp(24px, min(3.2vw, 4.3vh), 36px); line-height: 1.15; font-weight: 900; letter-spacing: -.01em; }
 .msr-lines { display: flex; flex-direction: column; gap: clamp(4px, 1.1vh, 12px); }
 .msr-line {
@@ -159,7 +151,7 @@
 .msr-bubble {
   position: relative; flex: 1; min-width: 0;
   padding: 14px 70px 16px 22px;
-  border: 2px solid var(--msr-rule); border-radius: 6px 26px 26px 26px;
+  border: 2px solid var(--msr-rule); border-radius: 24px;
   background: #fff;
 }
 .msr-bubble h2 { margin: 0; font-size: clamp(20px, min(2.9vw, 3.9vh), 31px); line-height: 1.25; font-weight: 900; }
