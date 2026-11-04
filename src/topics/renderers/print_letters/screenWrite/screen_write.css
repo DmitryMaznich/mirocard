@@ -35,7 +35,7 @@
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
 }
 .plw-paper { fill: var(--plw-paper); }
-/* Ilyukhina's big cell: the letter is one cell tall; the division (½ or ⅓) is a thin red dashed vertical line */
+/* the ordinary notebook grid (a letter is 2 cells tall); red dashes mark the middle of a cell where a stroke starts/ends */
 .plw-grid-cell { stroke: var(--plw-grid-row); stroke-width: 1; }
 .plw-cell-own { fill: rgba(127, 179, 213, 0.07); }
 .plw-grid-div { stroke: #ef4444; stroke-opacity: 0.7; stroke-width: 0.6; stroke-dasharray: 3 3; }

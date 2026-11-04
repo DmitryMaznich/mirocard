@@ -86,6 +86,31 @@ export function samplePath(d, step = TRACE_TUNING.step) {
   return { pts, length };
 }
 
+/**
+ * The letter as the screen shows it (owner, 2026-11-04): on the ordinary notebook grid, 2 cells tall,
+ * a wide letter (⅔ of Ilyukhina's letter-cell in topic.json — Т Ш Ж Ф М Л А Д Щ Ю Ы Ъ) stretched to
+ * 2 cells, so its middle stick runs along a cell line instead of a third the child must find by eye.
+ * Only x is scaled; the printed sheets keep topic.json's proportions.
+ */
+export const SCREEN_WIDE_WIDTH = 100;
+export function screenGlyph(card) {
+  const w = Number(String(card?.viewBox ?? "0 0 50 100").split(/\s+/)[2]) || 50;
+  if (!(w > 51)) return card;
+  const k = SCREEN_WIDE_WIDTH / w;
+  const scale = (d) => {
+    let i = 0;
+    return String(d).replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (m) => {
+      const v = Number(m);
+      // x of every x,y pair; topic.json writes ⅓ as 33.333 — snap the product back onto the half-unit
+      const x = v * k, snapped = Math.round(x * 2) / 2;
+      const out = i % 2 === 0 ? (Math.abs(x - snapped) < 0.02 ? snapped : Math.round(x * 1000) / 1000) : v;
+      i += 1;
+      return String(out);
+    });
+  };
+  return { ...card, viewBox: `0 0 ${SCREEN_WIDE_WIDTH} 100`, strokes: card.strokes.map((st) => ({ ...st, d: scale(st.d) })) };
+}
+
 /** Geometry of every stroke of a letter card. */
 export function strokeGeometry(card) {
   return (card?.strokes ?? []).map((s) => {

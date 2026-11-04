@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  TRACE_TUNING, strokeGeometry, halfWidth, canStart, createTracer, matchFreeStroke, polyD, polyLength,
+  TRACE_TUNING, strokeGeometry, halfWidth, canStart, createTracer, matchFreeStroke, polyD, polyLength, screenGlyph,
 } from "./traceEngine";
 
 // «Пишу на экране» (mode screen_write): one copy of one letter per task, written with a finger.
@@ -42,31 +42,30 @@ function glyphWidth(card) {
   return Number(String(card.viewBox ?? "0 0 50 100").split(/\s+/)[2]) || 50;
 }
 
-// The board shows the notebook grid edge to edge: the viewBox grows to the board's proportions
-// around the letter's cell (half a cell of margin on every side, room for Ё's dots and Д's legs).
+// The board is the ordinary notebook grid edge to edge (owner, 2026-11-04: «мы же можем спокойно
+// использовать обычную клетку»): a letter is 2 cells tall, a regular one 1 cell wide, a wide one 2
+// (screenGlyph), standing on cell lines. The viewBox grows to the board's proportions around the
+// letter (a cell of margin on every side, room for Ё's dots and Д's legs).
+const CELL = 50;
 function boardBox(card, size) {
-  const need = { x0: -50, y0: -50, w: 200, h: 200 };
+  const w = glyphWidth(card);
+  const need = { x0: -CELL, y0: -CELL, w: Math.ceil(w / CELL) * CELL + 2 * CELL, h: 4 * CELL };
   const ar = size?.w > 0 && size?.h > 0 ? size.w / size.h : need.w / need.h;
   let bw = need.w, bh = need.h;
   if (ar > bw / bh) bw = bh * ar; else bh = bw / ar;
   return { x0: need.x0 - (bw - need.w) / 2, y0: need.y0 - (bh - need.h) / 2, w: bw, h: bh };
 }
 
-// Ilyukhina's notebook cell (owner, 2026-11-04: «сделаем клетку как у неё»): the letter is exactly one
-// big cell tall (1 cm in «Волшебные линии» №2 = 100 glyph units) and stands at the cell's left line.
-// The division she asks the child to make «мысленно, глазами» — in half for a regular letter, in
-// thirds for a wide one (⅔ of the cell) — is a thin red dashed vertical line through the whole board
-// (and one horizontal at half the height where the letter needs it)
-// (owner, 2026-11-04): red so it is read neither as part of the grid nor as a letter's path to trace.
-// Earlier tries: a blue dashed line across the cell (read as «trace me»), ticks on the cell's edges.
-const CELL = 100;
-function cellDivisions(card, geo) {
-  const wide = glyphWidth(card) > CELL / 2 + 1;
-  const v = wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
-  // one horizontal line too, at half the height — only for a letter with a stroke starting or ending
-  // there (Е's middle bar, Н Ч, the half-ovals of Р Ь Б В …; owner: «нам оно понадобится для буквы Е»)
-  const mid = geo.some((g) => [g.pts[0], g.pts[g.pts.length - 1]].some((p) => Math.abs(p.y - CELL / 2) < 0.6));
-  return { v, h: mid ? [CELL / 2] : [] };
+// Where a stroke of this letter starts or ends in the middle of a cell (О's top, Ъ's stick), a thin red
+// dashed line runs through the middle of that cell column / row across the whole board — red so it is
+// read neither as the grid nor as a path to trace (owner, 2026-11-04). Points elsewhere (Ё's dots,
+// Д's and Щ's tails, the ends of open half-ovals) get no line.
+function cellMiddles(geo) {
+  const ends = geo.flatMap((g) => [g.pts[0], g.pts[g.pts.length - 1]]);
+  const mids = (vals) => [...new Set(vals
+    .filter((v) => Math.abs(((v % CELL) + CELL) % CELL - CELL / 2) < 0.6)
+    .map((v) => Math.round(v * 2) / 2))];
+  return { v: mids(ends.map((p) => p.x)), h: mids(ends.map((p) => p.y)) };
 }
 
 function Grid({ box, card, geo }) {
@@ -78,14 +77,14 @@ function Grid({ box, card, geo }) {
   for (let y = Math.floor(box.y0 / CELL) * CELL; y <= y1; y += CELL) {
     lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-cell" />);
   }
-  const div = cellDivisions(card, geo);
+  const mid = cellMiddles(geo);
   return (
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
-      <rect x={0} y={0} width={CELL} height={CELL} className="plw-cell-own" />
+      <rect x={0} y={0} width={Math.ceil(glyphWidth(card) / CELL) * CELL} height={2 * CELL} className="plw-cell-own" />
       {lines}
-      {div.v.map((x) => <line key={`dv${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-div" />)}
-      {div.h.map((y) => <line key={`dh${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-div" />)}
+      {mid.v.map((x) => <line key={`mv${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-div" />)}
+      {mid.h.map((y) => <line key={`mh${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-div" />)}
     </g>
   );
 }
@@ -128,7 +127,8 @@ function PlayIcon() {
 }
 
 export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious }) {
-  const { card, level = "trace" } = task;
+  const { level = "trace" } = task;
+  const card = useMemo(() => screenGlyph(task.card), [task.card]);
   const t = halfWidth(task.width);
   const geo = useMemo(() => strokeGeometry(card), [card]);
   const n = geo.length;

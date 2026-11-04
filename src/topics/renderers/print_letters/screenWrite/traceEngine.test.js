@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../../tools/print_letters/topic.json";
 import {
-  TRACE_TUNING, parsePath, samplePath, strokeGeometry, halfWidth, canStart, createTracer, matchFreeStroke, polyD,
+  TRACE_TUNING, parsePath, screenGlyph, samplePath, strokeGeometry, halfWidth, canStart, createTracer, matchFreeStroke, polyD,
 } from "./traceEngine";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -129,5 +129,33 @@ describe("traceEngine — «Сам» on every letter", () => {
   it("does not accept another stroke of the letter in place of this one", () => {
     const [stick, bar] = strokeGeometry(letter("Г"));
     expect(matchFreeStroke(bar.pts, stick, T)).toBe(false);
+  });
+});
+
+describe("traceEngine — the screen's letter shapes", () => {
+  it("stretches a wide letter to 2 cells, so its middle stick is on a cell line", () => {
+    const t = screenGlyph(letter("Т"));
+    expect(t.viewBox).toBe("0 0 100 100");
+    expect(t.strokes.map((s) => s.d)).toEqual(["M 0,0 L 100,0", "M 50,0 L 50,100"]);
+    expect(screenGlyph(letter("Ш")).strokes[1].d).toBe("M 50,0 L 50,100");
+    expect(screenGlyph(letter("Ъ")).strokes[1].d).toBe("M 25,0 L 25,100");
+  });
+
+  it("leaves regular letters and the heights alone", () => {
+    expect(screenGlyph(letter("П"))).toBe(letter("П"));
+    const m = screenGlyph(letter("М"));
+    expect(m.strokes[1].d).toBe("M 0,0 L 50,66.665");
+  });
+
+  it("every screen shape is still traceable", () => {
+    for (const c of topic.cards) {
+      for (const g of strokeGeometry(screenGlyph(c))) {
+        if (g.isDot) continue;
+        const tr = createTracer(g, T);
+        let s = "move";
+        for (const p of g.pts.slice(1)) { s = tr.push(p); if (s !== "move") break; }
+        expect(s, c.id).toBe("done");
+      }
+    }
   });
 });
