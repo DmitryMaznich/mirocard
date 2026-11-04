@@ -107,15 +107,21 @@
 .msr-foot__dots i.is-on { background: var(--msr-teal); }
 
 /* ── read: the spread ───────────────────────────────────────────────── */
+/* The page fits the screen without scrolling: the spread takes whatever
+   height is left between the tools and the footer, and the frame is the
+   largest square that fits its cell (container query units). */
 .msr-spread {
-  flex: 1 0 auto;
-  display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
-  align-items: center; gap: clamp(20px, 3.5vw, 44px);
+  flex: 1 1 0; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); grid-template-rows: minmax(0, 1fr);
+  align-items: stretch; gap: clamp(16px, 3vw, 40px);
   width: 100%; max-width: 1240px; margin: 0 auto;
-  padding: 4px clamp(16px, 3.5vw, 40px) 8px;
+  padding: 2px clamp(16px, 3.5vw, 40px) 4px;
 }
-.msr-frame { min-width: 0; }
-.msr-frame .story-frame { margin: 0; }
+.msr-frame {
+  min-width: 0; min-height: 0; container-type: size;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.msr-frame .story-frame { margin: 0; width: min(100cqw, calc(100cqh - 36px)); }
 .msr-frame .story-frame__image {
   position: relative; overflow: hidden; aspect-ratio: 1;
   border-radius: clamp(18px, 2.6vw, 28px); background: var(--msr-paper-2);
@@ -129,13 +135,13 @@
 .msr-frame__dots button::before { content: ""; width: 10px; height: 10px; border-radius: 5px; background: var(--msr-rule); transition: width .2s; }
 .msr-frame__dots button.is-on::before { width: 26px; background: var(--msr-ink); }
 
-.msr-page { min-width: 0; }
+.msr-page { min-width: 0; min-height: 0; align-self: center; max-height: 100%; overflow-y: auto; }
 .msr-who { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; color: var(--msr-soft); font-weight: 700; font-size: 16px; }
-.msr-title { margin: 0 0 clamp(12px, 2vw, 22px); font-size: clamp(26px, 3.2vw, 36px); line-height: 1.15; font-weight: 900; letter-spacing: -.01em; }
-.msr-lines { display: flex; flex-direction: column; gap: clamp(6px, 1vw, 12px); }
+.msr-title { margin: 0 0 clamp(8px, 1.8vh, 22px); font-size: clamp(24px, min(3.2vw, 4.3vh), 36px); line-height: 1.15; font-weight: 900; letter-spacing: -.01em; }
+.msr-lines { display: flex; flex-direction: column; gap: clamp(4px, 1.1vh, 12px); }
 .msr-line {
   margin: 0; cursor: pointer;
-  font-size: clamp(22px, 2.8vw, 31px); line-height: 1.42;
+  font-size: clamp(19px, min(2.8vw, 3.9vh), 31px); line-height: 1.38;
   transition: opacity .2s;
 }
 .msr-line.is-faded { opacity: .36; }
@@ -156,7 +162,7 @@
   border: 2px solid var(--msr-rule); border-radius: 6px 26px 26px 26px;
   background: #fff;
 }
-.msr-bubble h2 { margin: 0; font-size: clamp(22px, 2.9vw, 31px); line-height: 1.25; font-weight: 900; }
+.msr-bubble h2 { margin: 0; font-size: clamp(20px, min(2.9vw, 3.9vh), 31px); line-height: 1.25; font-weight: 900; }
 .msr-bubble__kind {
   display: inline-block; margin-bottom: 6px; padding: 3px 10px; border-radius: 999px;
   background: var(--msr-teal-tint); color: var(--msr-teal-dark);
@@ -165,16 +171,16 @@
 .msr-bubble__say { position: absolute; top: 12px; right: 12px; }
 
 .msr-textcard {
-  position: relative; flex: 1 0 auto;
+  position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto;
   width: calc(100% - 2 * clamp(16px, 3.5vw, 40px)); max-width: 1160px;
-  margin: clamp(12px, 2vw, 18px) auto 0;
+  margin: clamp(10px, 1.6vh, 18px) auto 0;
   padding: clamp(16px, 2.4vw, 24px) clamp(16px, 2.8vw, 30px);
   padding-right: 72px;
   border: 2px solid var(--msr-rule); border-radius: 24px; background: #fff;
 }
 .msr-textcard__pic { position: absolute; top: 14px; right: 14px; }
 .msr-textcard .story-quiz__text { margin: 0; padding: 0; overflow: visible; }
-.msr-textcard .reading-flow-text { font-size: clamp(22px, 2.8vw, 30px); line-height: 1.55; font-weight: 400; text-align: left; }
+.msr-textcard .reading-flow-text { font-size: clamp(19px, min(2.8vw, 3.9vh), 30px); line-height: 1.5; font-weight: 400; text-align: left; }
 .msr-textcard .reading-flow-para { margin: 0 0 clamp(6px, 1vw, 12px); border-radius: 10px; transition: background .3s; }
 .msr-textcard .reading-flow-para:first-child::first-letter { float: none; font: inherit; color: inherit; padding: 0; }
 .msr-textcard .story-quiz__para--hint { background: #fbf4dc; box-shadow: 0 0 0 6px #fbf4dc; }
@@ -199,12 +205,13 @@
 
 /* ── done ────────────────────────────────────────────────────────────── */
 .msr-done {
-  flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2vw, 22px);
+  flex: 1 1 0; min-height: 0; container-type: size;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(10px, 1.8vh, 22px);
   width: 100%; max-width: 980px; margin: 0 auto; padding: 4px clamp(16px, 3.5vw, 40px) 12px;
   text-align: center;
 }
 .msr-done .msr-title { margin: 0; }
-.msr-done .story-frames { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: min(100%, 520px); }
+.msr-done .story-frames { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: min(100%, 520px, max(220px, calc((100cqh - 250px) * 2))); flex: none; }
 .msr-done .story-frame__image { position: relative; overflow: hidden; aspect-ratio: 1; border-radius: 22px; }
 .msr-done .story-frame__image img { position: absolute; max-width: none; }
 .msr-chain { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
@@ -247,14 +254,25 @@
 .msr-adult__note { margin: 14px 0 0; color: var(--msr-faint); font-size: 13px; line-height: 1.5; }
 
 /* ── phones / narrow ─────────────────────────────────────────────────── */
+/* Portrait (tablets and phones): text on top, the picture below it in the
+   space that is left. */
+@media (orientation: portrait) {
+  .msr-spread { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: clamp(10px, 2vh, 28px); padding-top: 4px; }
+  .msr-page { order: -1; align-self: start; max-height: none; overflow: visible; }
+  .msr-line { font-size: clamp(20px, min(3.8vw, 2.9vh), 34px); }
+  .msr-title { font-size: clamp(24px, min(4.4vw, 3.3vh), 38px); }
+}
 @media (max-width: 760px) {
-  .msr-spread { grid-template-columns: minmax(0, 1fr); align-items: start; }
-  .msr-frame { width: min(100%, 36vh, 440px); margin: 0 auto; }
   .msr-foot .msr-btn { padding: 12px 18px; }
   .msr-foot__dots i { display: none; }
   .msr-bubble { padding-right: 62px; }
   .msr-textcard { padding-right: 62px; }
 }
-@media (max-height: 560px) and (min-width: 761px) {
-  .msr-frame { max-width: 46vh; justify-self: center; }
+/* Very short screens (phones held sideways): let the page scroll rather
+   than shrink the text below reading size. */
+@media (max-height: 480px) {
+  .session-body.msr { overflow-y: auto; }
+  .msr-spread, .msr-done { flex: 1 0 auto; }
+  .msr-frame { container-type: normal; }
+  .msr-frame .story-frame { width: min(100%, 70vh); }
 }
