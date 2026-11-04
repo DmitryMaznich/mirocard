@@ -16,10 +16,12 @@
   --plw-teal-dark: #2a6b60;
   --plw-line: #e2e8f0;
 
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  /* the grid starts right under the session header: the header keeps 58px (86px on a phone) of empty
+     space below it for the right/wrong badge — the board runs under it, the badge lies on the grid */
+  margin-top: -58px;
   width: 100%;
-  height: 100%;
+  height: calc(100% + 58px);
   align-self: stretch;
   min-height: 0;
   box-sizing: border-box;
@@ -29,7 +31,7 @@
 }
 
 /* доска */
-.plw-board-wrap { position: relative; flex: 1; min-height: 0; min-width: 0; overflow: hidden; background: var(--plw-paper); }
+.plw-board-wrap { position: absolute; inset: 0; overflow: hidden; background: var(--plw-paper); }
 .plw-board {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
@@ -64,29 +66,41 @@
 .plw-demo.is-watch .plw-demo-trail { stroke: var(--plw-ink); stroke-opacity: 1; }
 .plw-demo.is-watch .plw-demo-dot { fill: var(--plw-ink); }
 
-/* «Показать» — маленькая кнопка в углу холста */
-.plw-show {
+/* образец = задание + «Показать»: карточка в левом верхнем углу холста */
+.plw-sample {
   position: absolute;
   top: 12px;
   left: calc(12px + var(--app-safe-left, 0px));
-  display: inline-flex; align-items: center; gap: 6px;
-  min-height: 44px; padding: 8px 16px 8px 12px;
-  border: 2px solid var(--plw-line); border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92); color: var(--plw-teal-dark);
-  font: inherit; font-size: 15px; font-weight: 800;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  z-index: 2;
+  width: clamp(84px, 14vmin, 136px);
+  aspect-ratio: 5 / 6;
+  padding: 8px;
+  display: grid; place-items: center;
+  border: 2px solid var(--plw-line); border-radius: 20px;
+  background: #fff; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
   cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.plw-show svg { width: 20px; height: 20px; fill: currentColor; }
-.plw-show:active { transform: translateY(1px); }
-.plw-show:disabled { opacity: 0.45; cursor: default; }
+.plw-sample:active { transform: translateY(2px); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); }
+.plw-sample:disabled { cursor: default; }
+.plw-sample:disabled .plw-sample-play { opacity: 0.4; }
+.plw-sample-glyph { width: 100%; height: 100%; }
+.plw-sample-line { fill: none; stroke: #1e293b; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.plw-sample-play {
+  position: absolute; right: -10px; bottom: -10px;
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--plw-teal); box-shadow: 0 3px 0 var(--plw-teal-dark);
+}
+.plw-sample-play svg { width: 20px; height: 20px; fill: #fff; margin-left: 2px; }
 
 /* низ: только назад / заново / дальше */
 .plw-nav {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 8px calc(12px + var(--app-safe-right, 0px)) calc(10px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px));
-  background: var(--plw-paper);
+  pointer-events: none; /* the grid under the row stays writable between the buttons */
 }
+.plw-nav > * { pointer-events: auto; }
 .plw-nav-gap { width: 56px; }
 .plw-nav-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -103,3 +117,7 @@
 .plw-nav-btn--quiet { font-size: 22px; color: #64748b; }
 .plw-nav-btn.is-ready { background: var(--plw-teal); border-color: var(--plw-teal); color: #fff; box-shadow: 0 3px 0 var(--plw-teal-dark); }
 .plw-nav-btn.is-ready .plw-nav-arrow { color: #fff; }
+
+@media (max-width: 560px) {
+  .plw-root { margin-top: -86px; height: calc(100% + 86px); }
+}

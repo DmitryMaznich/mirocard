@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_letters",
-    "version": "0.3.8",
+    "version": "0.3.9",
     "renderer": "print_letters",
     "title": { "ru": "Печатные буквы", "en": "Block Letters" },
     "avatar": "media/avatar.svg",
