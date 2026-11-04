@@ -23,7 +23,7 @@ const MAGNET = "strong";   // one setting only (owner): the strong magnet always
 function partTransform(p) {
   if (p.line) return undefined;
   let t = `translate(${p.off.x} ${p.off.y})`;
-  if (p.mirror) t += ` translate(${p.cx} 0) scale(-1 1) translate(${-p.cx} 0)`;
+  if (p.mirror) t += p.flip === "y" ? ` translate(0 ${p.cy}) scale(1 -1) translate(0 ${-p.cy})` : ` translate(${p.cx} 0) scale(-1 1) translate(${-p.cx} 0)`;
   return t;
 }
 function partD(p) {

@@ -140,3 +140,43 @@ describe("«Почини букву»: dragging and snapping parts", () => {
     expect(isSolved(parts, targets)).toBe(true);
   });
 });
+
+describe("«Почини букву»: the ovals of О Ю С Э cut in half (owner, 2026-11-04)", () => {
+  it("О, Ю, С, Э have a top and a bottom arc instead of one oval; other letters are as in the glyph", () => {
+    for (const id of ["О", "Ю", "С", "Э"]) {
+      const t = letterTargets(glyph(id)).filter((x) => !x.line);
+      expect(t.map((x) => x.name.split(":")[0]), id).toEqual(["верхняя половина", "нижняя половина"]);
+      expect(t[0].cy, id).toBeLessThan(50);
+      expect(t[1].cy, id).toBeGreaterThan(50);
+    }
+    expect(letterTargets(glyph("З")).length).toBe(2);           // З already has two half-ovals
+    expect(letterTargets(glyph("В")).length).toBe(3);
+  });
+
+  it("О's arcs mirror upside down (they look the same from both sides), С's and Э's sideways", () => {
+    expect(letterTargets(glyph("О")).map((t) => t.flip)).toEqual(["y", "y"]);
+    expect(letterTargets(glyph("С")).map((t) => t.flip)).toEqual(["x", "x"]);
+    expect(letterTargets(glyph("Э")).filter((t) => !t.line).map((t) => t.flip)).toEqual(["x", "x"]);
+  });
+
+  it("a mirrored arc does not fit until it is turned back; an upside-down top arc of О fits the bottom place", () => {
+    const О = glyph("О");
+    const targets = letterTargets(О);
+    const parts = letterParts(О);
+    parts[0] = { ...parts[0], mirror: true };                  // the top arc upside down — a cup at the top
+    expect(isSolved(parts, targets)).toBe(false);
+    parts[0] = { ...parts[0], mirror: false };
+    expect(isSolved(parts, targets)).toBe(true);
+    // the shape decides: the top arc turned over is the bottom arc's shape
+    const cup = { ...letterParts(О)[0], mirror: true, off: { x: 0, y: 50 } };
+    expect(matchDistance(cup, targets[1])).toBeLessThan(2);
+  });
+
+  it("С with both halves mirrored would read as Э — at most one half is ever mirrored", () => {
+    const С = glyph("С");
+    for (let seed = 1; seed <= 60; seed++) {
+      const parts = breakLetter(С, { broken: "all", tilt: true, mirror: true }, seeded(seed));
+      expect(parts.filter((p) => p.mirror).length).toBeLessThanOrEqual(1);
+    }
+  });
+});
