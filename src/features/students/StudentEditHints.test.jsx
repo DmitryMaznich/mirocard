@@ -82,9 +82,10 @@ describe("Student settings hints", () => {
     const pick = label => [...container.querySelectorAll("button")].find(button => button.textContent === label);
     await act(async () => pick("1 минута").click());
     await act(async () => pick("Все звёзды").click());
-    await act(async () => [...container.querySelectorAll("label")].find(label => label.textContent === "Строгий подсчёт").querySelector("input").click());
+    // «Строгий подсчёт» is per topic now (the «Видеоприз» plate); the student card has no such box
+    expect([...container.querySelectorAll("label")].some(label => label.textContent === "Строгий подсчёт")).toBe(false);
     await act(async () => container.querySelector(".se-save-btn").click());
-    expect(mocks.pushOp).toHaveBeenCalledWith("student.reward_settings.upsert", expect.objectContaining({ studentId: "s1", settings: expect.objectContaining({ algorithm: "flexible", duration: "60", strictStars: false, lossMode: "all" }) }));
+    expect(mocks.pushOp).toHaveBeenCalledWith("student.reward_settings.upsert", expect.objectContaining({ studentId: "s1", settings: expect.objectContaining({ algorithm: "flexible", duration: "60", lossMode: "all" }) }));
     expect(useAppStore.getState().students[0].rewardSettings.duration).toBe("60");
   });
 

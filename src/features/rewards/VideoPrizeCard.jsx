@@ -80,7 +80,7 @@ export default function VideoPrizeCard({
 
       {showStrict && (
         <div className={`param-row${off ? " param-row--disabled" : ""}`}>
-          <Label label={text("strict")} info={text("strictInfo")} onShowInfo={onShowInfo} />
+          <Label label={text("strict")} info={text("topicStrictInfo")} onShowInfo={onShowInfo} />
           <Switch on={strict} onChange={onStrict} label={text("strict")} disabled={off} />
         </div>
       )}

@@ -28,10 +28,14 @@ export function rewardPolicy(settings, lossMode) {
   return { version: 2, lossMode: lossMode === "all" ? "all" : "one" };
 }
 
-export function applyRewardMistake(state, intermediate = false) {
+// «Строгий подсчёт» (owner, 2026-11-04): set per topic before the lesson (state.strictStars). On — a
+// mistake, a final answer or a step inside the task, burns stars by the student's rule (one / all).
+// Off — stars do not burn. Either way the attempt is spent: a right answer after a mistake on the
+// same card earns no star (no guessing your way to the prize).
+export function applyRewardMistake(state) {
   if (state.rewardPolicy?.version !== 2) return { ...state, streakCount: state.strictStars ? 0 : (state.streakCount ?? 0) };
   state = { ...state, learningStreakCount: 0, rewardHadAnyError: true };
-  if (intermediate && !state.strictStars) return state;
+  if (!state.strictStars) return { ...state, rewardAttemptBlocked: true };
   if (state.rewardAttemptPenalized) return { ...state, rewardAttemptBlocked: true };
   const before = state.streakCount ?? 0;
   const after = state.rewardPolicy.lossMode === "all" ? 0 : Math.max(0, before - (state.answersPerStar ?? 1));

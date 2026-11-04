@@ -8,14 +8,14 @@ for (const width of [390, 768, 1024]) {
     const duration = page.getByRole("button", { name: "1 минута", exact: true });
     await expect(duration).toBeEnabled();
     await page.getByRole("button", { name: "Все звёзды", exact: true }).click();
-    await page.getByRole("checkbox", { name: "Строгий подсчёт", exact: true }).uncheck();
     await page.getByRole("button", { name: "3 минуты" }).click();
     await expect(page.getByRole("button", { name: "Прежние правила", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Новые правила", exact: true })).toHaveCount(0);
     await expect(duration).toBeEnabled();
     await expect(page.getByRole("button", { name: "3 минуты" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("button", { name: "Все звёзды", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByRole("checkbox", { name: "Строгий подсчёт", exact: true })).not.toBeChecked();
+    // «Строгий подсчёт» is switched per topic on the lesson's «Видеоприз» plate, not in the student card
+    await expect(page.getByRole("checkbox", { name: "Строгий подсчёт", exact: true })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
     mkdirSync(".cache/reward-settings-screenshots", { recursive: true });
     await page.locator("section.reward-settings").screenshot({ path: `.cache/reward-settings-screenshots/profile-${width}.png` });

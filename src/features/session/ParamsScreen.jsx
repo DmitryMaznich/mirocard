@@ -1892,9 +1892,9 @@ export default function ParamsScreen() {
   const endsOnItsOwn = sessionEndsOnItsOwn(mode, topicRecord?.meta.renderer);
   const studentRewardSettings = effectiveRewardSettings(student?.rewardSettings);
   const rewardLossMode = studentRewardSettings.lossMode;
-  // «Строгий подсчёт» — per topic, before the lesson, on the «Видеоприз» plate (owner, 2026-11-04);
-  // untouched, the student's rule. How many stars a mistake burns stays the student's rule.
-  const [strictStars, setStrictStars] = useState(link.strictStars ?? studentRewardSettings.strictStars);
+  // «Строгий подсчёт» — per topic, before the lesson, on the «Видеоприз» plate (owner, 2026-11-04): on —
+  // stars burn by the student's rule (one / all), off — they do not burn. On unless switched off.
+  const [strictStars, setStrictStars] = useState(link.strictStars ?? true);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
@@ -2000,7 +2000,7 @@ export default function ParamsScreen() {
       videoRewardEnabled: hideVideoReward ? false : (link.videoRewardEnabled ?? true),
       rewardLossMode,
       answersPerStar: link.answersPerStar ?? 1,
-      strictStars: link.strictStars ?? studentRewardSettings.strictStars,
+      strictStars: link.strictStars ?? true,
     };
     const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars, rewardLossMode };
     if (sessionSettingsChanged(current, baseline)) {

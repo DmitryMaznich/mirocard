@@ -18,9 +18,8 @@ export default function RewardSettingsSection({ value, onChange }) {
       </div>
       <p>{text("timing")}</p>
       <p>{text("scope")}</p>
-      <label className="reward-settings__check"><input type="checkbox" checked={settings.strictStars}
-        onChange={event => change({ strictStars: event.target.checked })} />{text("strict")}</label>
-      <p>{text("strictInfo")}</p>
+      {/* «Строгий подсчёт» is switched on or off per topic, before the lesson (the «Видеоприз» plate);
+          here only how it burns — one star or all (owner, 2026-11-04) */}
       <RewardLossControl value={settings.lossMode} onChange={lossMode => change({ lossMode })} />
       <h4>{text("animation")}</h4>
       <div className="reward-settings__choices">
@@ -49,7 +48,6 @@ export function RewardRulesSummary({ settings }) {
   useUiTranslation();
   return <div className="reward-settings" aria-label={text("title")}>
     <p className="reward-settings__notice">{text("scope")} {text("editProfile")}</p>
-    <p>{text("strict")}: <strong>{text(settings.strictStars ? "on" : "off")}</strong></p>
     <p>{text("loss")}: <strong>{text(settings.lossMode === "all" ? "all" : "one")}</strong></p>
   </div>;
 }

@@ -53,14 +53,14 @@ describe("individual reward policy", () => {
     expect(state.streakCount).toBe(1);
     expect(handleAnswer(state, true).streakCount).toBe(1);
   });
-  it("soft mode records internal errors, while a final wrong answer always applies a penalty", () => {
+  it("strict counting off: stars never burn, but a right answer after a mistake on the same card earns none", () => {
     let state = handleInPlaceIncorrect(start({ strict: false }), "c", "0");
     expect(state.streakCount).toBe(3);
     expect(state.incorrectCount).toBe(1);
-    expect(handleAnswer(state, true).streakCount).toBe(4);
+    expect(handleAnswer(state, true).streakCount).toBe(3);
     state = handleAnswer(start({ strict: false }), false);
-    expect(state.streakCount).toBe(2);
-    expect(handleAnswer(state, true).streakCount).toBe(2);
+    expect(state.streakCount).toBe(3);
+    expect(handleAnswer(state, true).streakCount).toBe(3);
   });
   it("instant modes clear the trial only when moving to the next task", () => {
     let state = handleInPlaceIncorrect(start({ instant: true }));
