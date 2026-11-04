@@ -5,8 +5,8 @@ import { generateTasks } from "../engine";
 const mode = topic.modes.find((m) => m.id === "screen_write");
 
 describe("print_letters engine — «Пишу на экране»", () => {
-  it("is a mode of the deck with three levels", () => {
-    expect(mode.params.level.values).toEqual(["watch", "trace", "free"]);
+  it("is a mode of the deck with two levels — «Обвожу» and «Сам»", () => {
+    expect(mode.params.level.values).toEqual(["trace", "free"]);
   });
 
   it("gives every chosen letter `copies` times in a row, in deck order", () => {
@@ -16,9 +16,11 @@ describe("print_letters engine — «Пишу на экране»", () => {
     expect(tasks.map((t) => t.copy)).toEqual([0, 1, 2, 0, 1, 2]);
   });
 
-  it("takes every letter when none is chosen, and one look per letter on «Смотрю»", () => {
+  it("takes every letter when none is chosen; a saved «Смотрю» becomes «Обвожу»", () => {
     expect(generateTasks(mode, topic, 500, { letters: [], copies: 1 })).toHaveLength(topic.cards.length);
-    expect(generateTasks(mode, topic, 500, { letters: ["П"], level: "watch", copies: 5 })).toHaveLength(1);
+    const watch = generateTasks(mode, topic, 500, { letters: ["П"], level: "watch", copies: 2 });
+    expect(watch).toHaveLength(2);
+    expect(watch[0].level).toBe("trace");
   });
 
   it("passes the adult's settings to the task", () => {

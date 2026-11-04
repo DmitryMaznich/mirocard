@@ -20,10 +20,12 @@ export function screenWriteTasks(letters, params = {}) {
   const pool = letters.filter((c) => (chosen ? chosen.has(c.id) : true));
   const list = pool.length ? pool : letters.slice(0, 1);
   const copies = Math.max(1, Math.min(10, Number(params.copies ?? 3) || 3));
-  const level = ["watch", "trace", "free"].includes(params.level) ? params.level : "trace";
+  // «Смотрю» is gone (owner, 2026-11-04: the sample card shows the letter on every screen); a saved
+  // «watch» becomes «Обвожу»
+  const level = ["trace", "free"].includes(params.level) ? params.level : "trace";
   const tasks = [];
   for (const c of list) {
-    for (let k = 0; k < (level === "watch" ? 1 : copies); k++) {
+    for (let k = 0; k < copies; k++) {
       tasks.push({
         type: "pl_screen_write",
         id: `${c.id}:${k}`,
