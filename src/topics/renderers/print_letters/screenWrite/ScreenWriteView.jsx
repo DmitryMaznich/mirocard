@@ -54,11 +54,12 @@ function boardBox(card, size) {
 
 // Ilyukhina's notebook cell (owner, 2026-11-04: «сделаем клетку как у неё»): the letter is exactly one
 // big cell tall (1 cm in «Волшебные линии» №2 = 100 glyph units) and stands at the cell's left line.
-// Inside the letter's own cell the division she asks the child to make «мысленно, глазами» is drawn
-// as faint dashed lines: in half for a regular letter, in thirds for a wide one (⅔ of the cell), and
+// On the edges of the letter's own cell the division she asks the child to make «мысленно, глазами»
+// is marked with short ticks (not lines across the cell — those read as «trace me»): in half for a regular letter, in thirds for a wide one (⅔ of the cell), and
 // across where the letter has a stroke starting or ending (half: Е Н Ч, the half-ovals; ⅔: М). So
 // every stroke starts and ends on a line or at a crossing.
 const CELL = 100;
+const TICK = 7; // length of a division mark on the cell's edge
 function cellDivisions(card, geo) {
   const wide = glyphWidth(card) > CELL / 2 + 1;
   const v = wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
@@ -82,8 +83,19 @@ function Grid({ box, card, geo }) {
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
       <rect x={0} y={0} width={CELL} height={CELL} className="plw-cell-own" />
-      {div.v.map((x) => <line key={`dv${x}`} x1={x} y1={0} x2={x} y2={CELL} className="plw-grid-div" />)}
-      {div.h.map((y) => <line key={`dh${y}`} x1={0} y1={y} x2={CELL} y2={y} className="plw-grid-div" />)}
+      {/* the division as short ticks on the cell's edges, like a ruler's marks — a line through the
+          cell read as «trace me» (owner, 2026-11-04: «пунктир посредине клетки выглядит как
+          приглашение для проведения линии») */}
+      {div.v.map((x) => (
+        <g key={`dv${x}`} className="plw-grid-tick">
+          <line x1={x} y1={0} x2={x} y2={TICK} /><line x1={x} y1={CELL - TICK} x2={x} y2={CELL} />
+        </g>
+      ))}
+      {div.h.map((y) => (
+        <g key={`dh${y}`} className="plw-grid-tick">
+          <line x1={0} y1={y} x2={TICK} y2={y} /><line x1={CELL - TICK} y1={y} x2={CELL} y2={y} />
+        </g>
+      ))}
       {lines}
     </g>
   );
