@@ -19,3 +19,8 @@
 @keyframes reward-soft-burn { from { color: #f5c42c; opacity: 1; } to { color: #ddd; opacity: .25; } }
 @keyframes reward-large-burn { 0% { color: #f5c42c; } 40% { color: #f38b38; text-shadow: 0 0 20px #ffbb4c; } 70% { transform: scale(.8); color: #c77d47; } 100% { color: #ddd; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .operation-manual__star--burn, .operation-manual__star--soft-burn { animation: none; } }
+
+/* «Видеоприз» — the standard prize block on lesson settings screens (VideoPrizeCard.jsx) */
+.video-prize-card__head .param-label { font-weight: 900; }
+.video-prize-card__foot { font-size: 0.78rem; color: #7a9e9a; line-height: 1.4; display: block; }
+.video-prize-card__foot strong { color: #537b75; }

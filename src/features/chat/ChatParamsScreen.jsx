@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import VideoPrizeCard from "@/features/rewards/VideoPrizeCard.jsx";
 import { peopleFor } from "../../../shared/student-people.mjs";
 import { useAppStore } from "@/core/store";
 import { scriptToText, textToScript } from "./scriptFormat";
@@ -165,30 +166,14 @@ export default function ChatParamsScreen() {
               </div>
             )}
 
-            {/* Видео-награда */}
+            {/* «Видеоприз» — the standard prize block (src/features/rewards/VideoPrizeCard.jsx) */}
             {hasVideos && (
-              <div className="param-row param-row--block">
-                <div className="param-label">Видео-награда</div>
-                <div className="param-enum-section">
-                  <div className="param-enum-group">
-                    <button
-                      className={`enum-btn enum-btn--compact ${!videoReward ? "enum-btn--active" : ""}`}
-                      onClick={() => setVideoReward(false)}
-                    >
-                      Нет
-                    </button>
-                    <button
-                      className={`enum-btn enum-btn--compact ${videoReward ? "enum-btn--active" : ""}`}
-                      onClick={() => setVideoReward(true)}
-                    >
-                      Да
-                    </button>
-                  </div>
-                  <div className="param-hint">
-                    {videoReward ? "Награда доступна на экране завершения" : "Видео-награда отключена"}
-                  </div>
-                </div>
-              </div>
+              <VideoPrizeCard
+                enabled={videoReward}
+                onEnabled={setVideoReward}
+                showSeries={false}
+                note={videoReward ? "Видеоприз — на экране завершения." : null}
+              />
             )}
 
             {/* Скрипт */}

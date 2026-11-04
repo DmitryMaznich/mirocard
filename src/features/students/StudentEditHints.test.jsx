@@ -40,7 +40,7 @@ describe("Student settings hints", () => {
   it("walks through all eight edit steps without changing or saving the profile", () => {
     mount(true);
     open();
-    const expected = ["Введите имя ученика", "Добавьте фото", "Запишите важное", "Укажите пол", "Добавьте окружение", "Добавьте важные даты", "Подберите видео-награды", "Сохраните настройки"];
+    const expected = ["Введите имя ученика", "Добавьте фото", "Запишите важное", "Укажите пол", "Добавьте окружение", "Добавьте важные даты", "Подберите видео для видеоприза", "Сохраните настройки"];
     for (const step of expected) { expect(title()).toBe(step); next(); }
     expect(document.querySelector(".screen-hints")).toBeNull();
     expect(container.querySelector(".se-name-input").value).toBe("Миша");
@@ -56,7 +56,7 @@ describe("Student settings hints", () => {
     open();
     expect(document.querySelector(".screen-hints__eyebrow").textContent).toContain("1 ИЗ 7");
     for (let i = 0; i < 5; i++) next();
-    expect(title()).toBe("Подберите видео-награды");
+    expect(title()).toBe("Подберите видео для видеоприза");
     next();
     expect(title()).toBe("Сохраните настройки");
     act(() => container.querySelector(".se-save-btn").click());

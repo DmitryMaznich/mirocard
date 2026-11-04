@@ -674,7 +674,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
                       src={embedUrl}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      title="Видео-награда"
+                      title="Видеоприз"
                       tabIndex={-1}
                       referrerPolicy="strict-origin-when-cross-origin"
                     />
@@ -766,7 +766,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
                   src={embedUrl}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
-                  title="Видео-награда"
+                  title="Видеоприз"
                   tabIndex={-1}
                   referrerPolicy="strict-origin-when-cross-origin"
                 />

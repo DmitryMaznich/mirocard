@@ -1,6 +1,5 @@
 import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
-import { RewardRulesSummary } from "@/features/rewards/RewardSettingsSection.jsx";
-import { rewardText } from "@/features/rewards/rewardText.js";
+import VideoPrizeCard from "@/features/rewards/VideoPrizeCard.jsx";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { availableContentLanguages, initialContentLanguage } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
@@ -2576,77 +2575,19 @@ export default function ParamsScreen() {
 
           {hasVideos && !hideVideoReward && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
             <div className="param-section">
-              <div className="param-section__header">{tr("setup.reward")}</div>
-
-              <div className="param-row">
-                <ParamLabel
-                  label={tr("setup.videoReward")}
-                  info={{
-                    text: tr("setup.videoRewardInfo"),
-                    tip: tr("setup.videoRewardTip"),
-                  }}
-                  onShowInfo={setActiveInfo}
-                />
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={videoReward}
-                  aria-label={tr("setup.videoReward")}
-                  className={`param-toggle ${videoReward ? "param-toggle--on" : ""}`}
-                  onClick={() => setVideoReward((v) => !v)}
-                />
-              </div>
-
-              {mode.evaluation !== "none" && (
-                <>
-                  <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
-                    <ParamLabel
-                      label={rewardText("series")}
-                      info={{
-                        text: rewardText("seriesInfo"),
-                        tip: tr("setup.rewardSeriesTip"),
-                      }}
-                      onShowInfo={setActiveInfo}
-                    />
-                    <div className="param-enum-group">
-                      {[1, 2, 3].map((n) => (
-                        <button
-                          key={n}
-                          className={`enum-btn ${answersPerStar === n ? "enum-btn--active" : ""}`}
-                          disabled={!videoReward}
-                          onClick={() => setAnswersPerStar(n)}
-                        >
-                          {5 * n}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {endsOnItsOwn && (
-                    <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
-                      <ParamLabel
-                        label="Видео в конце занятия"
-                        info={{
-                          title: "Видео в конце занятия",
-                          text: "Когда занятие пройдено до конца, на итоговом экране появится кнопка «Смотреть видео». Работает вместе с видео за серию: можно включить одно, другое или оба. Если занятие закончено раньше крестиком, видео в конце нет.",
-                        }}
-                        onShowInfo={setActiveInfo}
-                      />
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={params.videoAtEnd === true}
-                        aria-label="Видео в конце занятия"
-                        className={`param-toggle ${params.videoAtEnd === true ? "param-toggle--on" : ""}`}
-                        disabled={!videoReward}
-                        onClick={() => setParams((p) => ({ ...p, videoAtEnd: p.videoAtEnd !== true }))}
-                      />
-                    </div>
-                  )}
-
-                  <RewardRulesSummary settings={studentRewardSettings} />
-                </>
-              )}
+              {/* «Видеоприз» — the standard prize block (src/features/rewards/VideoPrizeCard.jsx) */}
+              <VideoPrizeCard
+                enabled={videoReward}
+                onEnabled={setVideoReward}
+                showSeries={mode.evaluation !== "none"}
+                answersPerStar={answersPerStar}
+                onAnswersPerStar={setAnswersPerStar}
+                showAtEnd={mode.evaluation !== "none" && endsOnItsOwn}
+                atEnd={params.videoAtEnd === true}
+                onAtEnd={(on) => setParams((p) => ({ ...p, videoAtEnd: on }))}
+                rules={mode.evaluation !== "none" ? studentRewardSettings : null}
+                onShowInfo={setActiveInfo}
+              />
             </div>
           )}
 
