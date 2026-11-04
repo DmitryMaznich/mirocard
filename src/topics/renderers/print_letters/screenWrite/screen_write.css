@@ -35,9 +35,10 @@
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
 }
 .plw-paper { fill: var(--plw-paper); }
-.plw-grid-half { stroke: var(--plw-grid); stroke-width: 0.5; }
-.plw-grid-cell { stroke: var(--plw-grid-cell); stroke-width: 0.9; }
-.plw-grid-row { stroke: var(--plw-grid-row); stroke-width: 1.1; }
+/* Ilyukhina's big cell: the letter is one cell tall; inside the letter's cell its division (½ or ⅓) */
+.plw-grid-cell { stroke: var(--plw-grid-row); stroke-width: 1; }
+.plw-cell-own { fill: rgba(127, 179, 213, 0.07); }
+.plw-grid-div { stroke: var(--plw-grid-cell); stroke-width: 0.8; stroke-dasharray: 2.5 3; }
 
 .plw-track-band { fill: none; stroke: rgba(var(--plw-track), 0.06); stroke-linecap: round; stroke-linejoin: round; }
 .plw-track.is-current .plw-track-band { stroke: rgba(var(--plw-track), 0.16); }

@@ -43,30 +43,47 @@ function glyphWidth(card) {
 }
 
 // The board shows the notebook grid edge to edge: the viewBox grows to the board's proportions
-// around the letter (plus a cell of margin on every side, room for Ё's dots and Д's legs).
+// around the letter's cell (half a cell of margin on every side, room for Ё's dots and Д's legs).
 function boardBox(card, size) {
-  const w = glyphWidth(card);
-  const need = { x0: -50, y0: -50, w: Math.ceil((w + 50) / 50) * 50 + 50, h: 200 };
+  const need = { x0: -50, y0: -50, w: 200, h: 200 };
   const ar = size?.w > 0 && size?.h > 0 ? size.w / size.h : need.w / need.h;
   let bw = need.w, bh = need.h;
   if (ar > bw / bh) bw = bh * ar; else bh = bw / ar;
   return { x0: need.x0 - (bw - need.w) / 2, y0: need.y0 - (bh - need.h) / 2, w: bw, h: bh };
 }
 
-function Grid({ box }) {
+// Ilyukhina's notebook cell (owner, 2026-11-04: «сделаем клетку как у неё»): the letter is exactly one
+// big cell tall (1 cm in «Волшебные линии» №2 = 100 glyph units) and stands at the cell's left line.
+// Inside the letter's own cell the division she asks the child to make «мысленно, глазами» is drawn
+// as faint dashed lines: in half for a regular letter, in thirds for a wide one (⅔ of the cell), and
+// across where the letter has a stroke starting or ending (half: Е Н Ч, the half-ovals; ⅔: М). So
+// every stroke starts and ends on a line or at a crossing.
+const CELL = 100;
+function cellDivisions(card, geo) {
+  const wide = glyphWidth(card) > CELL / 2 + 1;
+  const v = wide ? [CELL / 3, (2 * CELL) / 3] : [CELL / 2];
+  // across: only the lines a stroke of this letter starts or ends on (Е Н Ч — the half, М — ⅔)
+  const ends = geo.flatMap((g) => [g.pts[0], g.pts[g.pts.length - 1]]);
+  const h = [CELL / 3, CELL / 2, (2 * CELL) / 3].filter((y) => ends.some((p) => Math.abs(p.y - y) < 0.6));
+  return { v, h };
+}
+
+function Grid({ box, card, geo }) {
   const lines = [];
   const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
-  for (let x = Math.floor(box.x0 / 25) * 25; x <= x1; x += 25) {
-    lines.push(<line key={`x${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className={x % 50 === 0 ? "plw-grid-cell" : "plw-grid-half"} />);
+  for (let x = Math.floor(box.x0 / CELL) * CELL; x <= x1; x += CELL) {
+    lines.push(<line key={`x${x}`} x1={x} y1={box.y0} x2={x} y2={y1} className="plw-grid-cell" />);
   }
-  for (let y = Math.floor(box.y0 / 25) * 25; y <= y1; y += 25) {
-    lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className={y % 50 === 0 ? "plw-grid-cell" : "plw-grid-half"} />);
+  for (let y = Math.floor(box.y0 / CELL) * CELL; y <= y1; y += CELL) {
+    lines.push(<line key={`y${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-cell" />);
   }
-  // the letter's top and bottom — the writing line, a little stronger (as on the printed sheet)
-  [0, 100].forEach((y) => lines.push(<line key={`r${y}`} x1={box.x0} y1={y} x2={x1} y2={y} className="plw-grid-row" />));
+  const div = cellDivisions(card, geo);
   return (
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
+      <rect x={0} y={0} width={CELL} height={CELL} className="plw-cell-own" />
+      {div.v.map((x) => <line key={`dv${x}`} x1={x} y1={0} x2={x} y2={CELL} className="plw-grid-div" />)}
+      {div.h.map((y) => <line key={`dh${y}`} x1={0} y1={y} x2={CELL} y2={y} className="plw-grid-div" />)}
       {lines}
     </g>
   );
@@ -363,7 +380,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} />
+          <Grid box={box} card={card} geo={geo} />
           {showTrack && geo.map((g, i) => (i < cur ? null : (
             <g key={`t${i}`} className={i === cur ? "plw-track is-current" : "plw-track"}>
               <path d={polyD(g.pts)} className="plw-track-band" strokeWidth={t * 2} />
