@@ -229,6 +229,13 @@ ids — without them `topicLoader` silently replaces generic flashcards modes' u
 `docs/mockups/my-people-2026-11-04/my-people-v07.html`; лестница 2/3/4/6:
 `docs/mockups/my-people-2026-11-04/my-people-v06.html`.
 
+**Rollback required by owner:** read `docs/my-people-rollback.md` before implementation.
+Production baseline `1.0.2818`, SHA `9b7ca097983cd5cc2906563063deab45be7412c5`,
+reserved branch `backup/my-people-before-redesign-2026-11-04` (do not move/delete).
+Keep the old topic path behind a version switch; additive migrations must pass an
+old-client/new-data round trip. Before release, verify a restorable production DB
+and photo backup. The backup branch contains source code, not production data.
+
 Зафиксировано: две цели (имя / отношение), выбор фото и называние, самостоятельная
 работа и работа со взрослым, четыре компактные кнопки без поясняющего текста на
 детском экране, параметры каждого задания и результат с условиями. Подготовленный
