@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import JSZip from "jszip";
 import { describe, expect, it, vi } from "vitest";
 import { generateTasks } from "./engine";
-import { getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, validateStoryQuizText } from "./storyQuiz";
+import { getSelectedReadingStories, getStoryQuizTargetMatches, isStoryQuizFunctionWord, mergeStoryQuizText, parseStoryQuizText, validateStoryQuizText } from "./storyQuiz";
 import ReadingRenderer from "./index";
 import { useAppStore } from "@/core/store";
 
@@ -230,10 +230,46 @@ describe("questions inside the micro-story reader", () => {
       expect(h.container.querySelectorAll(".story-quiz__word--found")).toHaveLength(1);
       click(h.container, "Следующий вопрос");
       expect(submit().disabled).toBe(true);
-      click(h.container, "с мячом");
+      // One tap on the meaningful word records the whole answer phrase.
+      click(h.container, "мячом");
       click(h.container, "Ответить");
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.attempts).toBe("1");
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.firstAnswer).toBe("с мячом");
+      expect([...h.container.querySelectorAll(".story-quiz__word--found")].map((b) => b.textContent)).toEqual(["с", "мячом"]);
+    } finally { h.close(); }
+  });
+
+  it("shows every word as its own identical button, so the layout never outlines an answer", () => {
+    for (const task of readTasks) {
+      const h = mount(task);
+      try {
+        click(h.container, "Вопросы");
+        const words = [...h.container.querySelectorAll(".story-quiz__word")];
+        expect(words.length).toBeGreaterThan(10);
+        expect(words.every((b) => !/\s/.test(b.textContent) && b.className === "story-quiz__word")).toBe(true);
+      } finally { h.close(); }
+    }
+  });
+
+  it("gives a 'you are close' hint for a preposition inside the answer and accepts the noun", () => {
+    const h = mount(ballRead);
+    try {
+      click(h.container, "Вопросы");
+      for (let i = 0; i < 2; i += 1) {
+        click(h.container, h.container.querySelector(".micro-exercise-question h2").textContent === "Как зовут мальчика?" ? "Вова" : "мячом");
+        click(h.container, "Ответить");
+        click(h.container, "Следующий вопрос");
+      }
+      expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("Куда закатился мяч?");
+      click(h.container, "под");
+      click(h.container, "Ответить");
+      expect(h.container.querySelector("[role=status]").textContent).toBe("Ты рядом. Выбери другое слово здесь же.");
+      click(h.container, "стул");
+      click(h.container, "Ответить");
+      const answer = h.container.querySelector(".micro-answer-history li:last-child");
+      expect(answer.querySelector("strong").textContent).toBe("под стул");
+      expect(answer.dataset.attempts).toBe("2");
+      expect(answer.dataset.firstAnswer).toBe("под");
     } finally { h.close(); }
   });
 
@@ -263,11 +299,22 @@ describe("questions inside the micro-story reader", () => {
         const found = [];
         for (const [index, question] of questions.entries()) {
           expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe(question.prompt);
-          // Nested alternatives render as the shortest accepted fragment.
-          const labels = new Set([...h.container.querySelectorAll(".story-quiz__word")].map((b) => b.textContent));
-          const label = [...(question.targets ?? [question.target])].sort((a, b) => a.length - b.length).find((t) => labels.has(t));
-          expect(label, question.prompt).toBeTruthy();
-          click(h.container, label);
+          // Tap one meaningful word that lies inside an accepted answer in the text.
+          let button = null;
+          for (const para of h.container.querySelectorAll(".story-quiz__text .reading-flow-para")) {
+            const [match] = getStoryQuizTargetMatches(para.textContent, question.targets ?? question.target);
+            if (!match) continue;
+            let offset = 0;
+            for (const node of para.childNodes) {
+              const length = node.textContent.length;
+              if (node.matches?.(".story-quiz__word") && offset >= match.start && offset < match.end && !isStoryQuizFunctionWord(node.textContent)) { button = node; break; }
+              offset += length;
+            }
+            if (button) break;
+          }
+          expect(button, question.prompt).toBeTruthy();
+          const label = button.textContent;
+          act(() => button.click());
           click(h.container, "Ответить");
           found.push([question.prompt, label]);
           expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(index + 1);
@@ -302,7 +349,7 @@ describe("questions inside the micro-story reader", () => {
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(1);
       click(h.container, "Вопросы");
       expect(h.container.querySelector(".micro-exercise-question h2").textContent).toBe("С чем играл Вова?");
-      click(h.container, "с мячом");
+      click(h.container, "мячом");
       click(h.container, "Ответить");
       expect(h.container.querySelectorAll(".micro-answer-history li")).toHaveLength(2);
       expect(h.container.querySelector(".micro-answer-history li:last-child").dataset.assisted).toBe("true");

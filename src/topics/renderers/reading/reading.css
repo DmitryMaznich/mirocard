@@ -394,6 +394,12 @@
   cursor: default;
   opacity: 1;
 }
+/* The space between two words of a found answer phrase, so the whole
+   phrase reads as one highlighted answer after confirmation. */
+.story-quiz__gap--found {
+  background: #bfe8d4;
+  box-shadow: inset 0 -2px 0 #4caa82;
+}
 
 /* The one unscored "talk about it" question per story is visually a
    different kind of card from "find it in the text" — a warmer, amber

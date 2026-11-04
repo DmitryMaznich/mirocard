@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { generateTasks, tokenizeReadingLine } from "./engine";
-import { getStoryQuizTargetMatches, tokenizeStoryQuizWords } from "./storyQuiz";
+import { getStoryQuizTargetMatches, isStoryQuizFunctionWord, tokenizeStoryQuizWords } from "./storyQuiz";
 import { StoryPictures, StoryPictureSupport } from "./StoryPictures";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
@@ -482,7 +482,8 @@ function useStoryQuizChoice() {
   function confirm(onTarget, onMiss) {
     if (!selected || submittedId.current === selected.id) return;
     submittedId.current = selected.id;
-    const answer = selected.text.replace(/(\p{L})-(?=\p{L})/gu, "$1");
+    // A correct tap records the whole answer phrase it belongs to.
+    const answer = (selected.isTarget ? selected.answerText ?? selected.text : selected.text).replace(/(\p{L})-(?=\p{L})/gu, "$1");
     attempts.current = [...attempts.current, { answer, correct: selected.isTarget }];
     const result = { firstAnswer: attempts.current[0].answer, attempts: attempts.current };
     if (selected.isTarget) onTarget(result);
@@ -497,8 +498,9 @@ function useStoryQuizChoice() {
   return { selected, rejected, select, confirm, reset };
 }
 
-function storyQuizSearchHint(prompt, rejected) {
-  if (!rejected) return "Выбери слово или фразу в рассказе, затем нажми «Ответить». Выбор можно изменить.";
+function storyQuizSearchHint(prompt, rejected, near = false) {
+  if (!rejected) return "Выбери слово в рассказе, затем нажми «Ответить». Выбор можно изменить.";
+  if (near) return "Ты рядом. Выбери другое слово здесь же.";
   if (/^Как зовут мальчика\?/u.test(prompt)) return "Мы ищем имя мальчика. Прочитай вопрос ещё раз и выбери другое слово.";
   if (/^Как зовут девочку\?/u.test(prompt)) return "Мы ищем имя девочки. Прочитай вопрос ещё раз и выбери другое слово.";
   return "Прочитай вопрос ещё раз. Выбери в рассказе фрагмент, который на него отвечает.";
@@ -508,7 +510,7 @@ function StoryQuizAnswerBar({ choice, answered, onConfirm, onNext, nextLabel = "
   return <div className="story-quiz__answer-bar" aria-label="Выбранный ответ">
     <div className="story-quiz__selection-copy">
       <span>{answered ? "Ответ найден" : choice.rejected ? "Попробуй другой ответ" : "Твой выбор"}</span>
-      <strong>{choice.selected ? `«${choice.selected.text}»` : "Выбери слово в тексте"}</strong>
+      <strong>{choice.selected ? `«${answered ? choice.selected.answerText ?? choice.selected.text : choice.selected.text}»` : "Выбери слово в тексте"}</strong>
     </div>
     {answered && onNext ? <button type="button" className="micro-exercise-next" onClick={onNext}>{nextLabel}</button>
       : <button type="button" className="micro-exercise-next" onClick={onConfirm} disabled={!choice.selected || choice.rejected || answered}>
@@ -585,7 +587,7 @@ function MicroStoryReader({ task, topicId, textStyle, onAdvance, onPrevious }) {
           {finished ? <p>Вопросы и ответы остались внизу. Можно ещё раз обсудить рассказ.</p>
             : discussing ? <><p>Ответ можно сказать, показать или разыграть.</p><button type="button" className="micro-exercise-next" onClick={finishDiscussion}>Обсудили</button></>
             : <>
-              <p role="status">{answered ? "Ответ найден и сохранён внизу." : storyQuizSearchHint(question?.prompt, choice.rejected)}</p>
+              <p role="status">{answered ? "Ответ найден и сохранён внизу." : storyQuizSearchHint(question?.prompt, choice.rejected, choice.selected?.near)}</p>
             </>}
         </section>
       )}
@@ -613,45 +615,44 @@ function StoryQuizTargetText({ lines, textStyle, target, answered, selection, re
     paragraphs[paragraphs.length - 1].push(line);
   });
 
-  // Every candidate has identical interaction before confirmation. Neither
-  // hover, keyboard focus nor tapping reveals whether the candidate is right.
-  function candidateButton(text, id, isTarget) {
-    const selected = selection?.id === id;
-    return <button key={id} type="button"
-      className={`story-quiz__word${selected ? " story-quiz__word--selected" : ""}${selected && answered ? " story-quiz__word--found" : ""}${selected && rejected ? " story-quiz__word--miss" : ""}`}
-      onClick={(event) => { event.stopPropagation(); if (!answered) onSelect({ id, text, isTarget }); }}
-      disabled={answered} aria-pressed={selected} aria-label={text}>{text}</button>;
-  }
-
+  // Every word is its own candidate with identical look and interaction
+  // before confirmation: neither hover, focus, spacing nor tapping reveals
+  // where an answer is. A meaningful word inside an accepted answer counts;
+  // once confirmed, the whole answer phrase lights up.
   function renderLine(text, key) {
     const matches = getStoryQuizTargetMatches(text, target);
     const words = tokenizeStoryQuizWords(text);
     const parts = [];
     let cursor = 0;
-    let wordIndex = 0;
-    let matchIndex = 0;
+    let previousFound = false;
 
-    while (wordIndex < words.length) {
-      const word = words[wordIndex];
-      const match = matches[matchIndex];
-
-      if (match && word.start >= match.start && word.start < match.end) {
-        if (match.start > cursor) parts.push(text.slice(cursor, match.start));
-        const phrase = text.slice(match.start, match.end);
-        parts.push(candidateButton(phrase, `${key}_phrase_${wordIndex}`, true));
-        cursor = match.end;
-        matchIndex += 1;
-        while (wordIndex < words.length && words[wordIndex].start < match.end) wordIndex += 1;
-        continue;
+    words.forEach((word, wordIndex) => {
+      const match = matches.find((range) => word.start >= range.start && word.start < range.end);
+      const matchId = match ? `${key}_m${match.start}` : null;
+      const found = answered && !!matchId && selection?.matchId === matchId;
+      if (word.start > cursor) {
+        const gap = text.slice(cursor, word.start);
+        parts.push(previousFound && found ? <span key={`${key}_g${wordIndex}`} className="story-quiz__gap story-quiz__gap--found">{gap}</span> : gap);
       }
-
-      if (word.start > cursor) parts.push(text.slice(cursor, word.start));
       const wordText = text.slice(word.start, word.end);
-      const uid = `${key}_w${wordIndex}`;
-      parts.push(candidateButton(wordText, uid, false));
+      const id = `${key}_w${wordIndex}`;
+      const functionWord = isStoryQuizFunctionWord(wordText);
+      const selected = selection?.id === id;
+      parts.push(<button key={id} type="button"
+        className={`story-quiz__word${selected ? " story-quiz__word--selected" : ""}${found ? " story-quiz__word--found" : ""}${selected && rejected ? " story-quiz__word--miss" : ""}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (!answered) onSelect({
+            id, text: wordText, matchId,
+            isTarget: !!match && !functionWord,
+            near: !!match && functionWord,
+            answerText: match ? text.slice(match.start, match.end) : null,
+          });
+        }}
+        disabled={answered} aria-pressed={selected} aria-label={wordText}>{wordText}</button>);
       cursor = word.end;
-      wordIndex += 1;
-    }
+      previousFound = found;
+    });
 
     if (cursor < text.length) parts.push(text.slice(cursor));
     return parts;
@@ -715,7 +716,7 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect, o
           <section className="story-quiz__question" aria-labelledby="story-quiz-question" onClick={(event) => event.stopPropagation()}>
             <div className="story-quiz__question-count">{task.question?.kind === "gist" ? "Подумай и найди" : "Найди в тексте"} · {task.questionIndex + 1} из {task.questionCount}</div>
             <h2 id="story-quiz-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
-            <div className="story-quiz__hint" role="status">{answered ? "Ответ найден." : storyQuizSearchHint(task.question?.prompt, choice.rejected)}</div>
+            <div className="story-quiz__hint" role="status">{answered ? "Ответ найден." : storyQuizSearchHint(task.question?.prompt, choice.rejected, choice.selected?.near)}</div>
           </section>
           <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
           <StoryQuizTargetText

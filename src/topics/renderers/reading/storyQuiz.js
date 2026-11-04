@@ -134,6 +134,15 @@ export function getStoryQuizTargetMatches(lineText, target) {
   return matches;
 }
 
+// Every word of the story is its own, identical tap target, so the layout
+// never shows where an answer begins or ends. A tap on any meaningful word
+// inside an accepted answer counts («стул» for «под стул»); a tap on one of
+// these function words inside it only earns a "you're close" hint.
+const STORY_QUIZ_FUNCTION_WORDS = new Set(["и", "а", "в", "во", "на", "с", "со", "из", "под", "к", "ко", "по", "перед", "у", "для", "от", "до", "за", "о", "об", "что"]);
+export function isStoryQuizFunctionWord(word) {
+  return STORY_QUIZ_FUNCTION_WORDS.has(normalizeStoryQuizText(word).join(" "));
+}
+
 export function storyQuizTargetExists(story, target) {
   return (story?.lines ?? []).some((line) => getStoryQuizTargetMatches(line?.text ?? line, target).length > 0);
 }
