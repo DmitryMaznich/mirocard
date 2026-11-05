@@ -1,0 +1,77 @@
+{
+  "profile": "slovenian",
+  "updated": "2026-11-05",
+  "copyright": "External originals are link-only; verify local use and redistribution rights",
+  "sources": [
+    {
+      "id": "si-curriculum-2026",
+      "title": "Government curriculum for grades 1-3",
+      "section": "official-curriculum",
+      "url": "https://www.gov.si/assets/ministrstva/MVI/Dokumenti/Osnovna-sola/Ucni-nacrti/Ucni-nacrti/2025/UN_OS/Ucni_nacrt_za_prvo_vzgojno-izobrazevalno_obdobje_2025.pdf",
+      "verification": "verified-open",
+      "format": "pdf",
+      "notes": "educational goals; not glyph stroke diagrams",
+      "commit_original": false
+    },
+    {
+      "id": "si-teacher-2026",
+      "title": "Government didactic recommendations",
+      "section": "official-methodology",
+      "url": "https://www.gov.si/assets/ministrstva/MVI/Dokumenti/Osnovna-sola/Ucni-nacrti/Ucni-nacrti/2025/UN_OS/Didakticna_priporocila_k_ucnemu_nacrtu_za_prvo_vzgojno-izobrazevalno_obdobje_2025.pdf",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "check current validity and reproduction conditions",
+      "commit_original": false
+    },
+    {
+      "id": "si-school-gabrovka",
+      "title": "OŠ Gabrovka-Dole second grade handwriting",
+      "section": "school-samples",
+      "url": "https://www.os-gabrovka-dole.si/2-razred/",
+      "verification": "link-collected",
+      "format": "webpage",
+      "notes": "historic school practices; not the 2026 norm",
+      "commit_original": false
+    },
+    {
+      "id": "si-letter-animation",
+      "title": "Naša ulica letter writing animation",
+      "section": "stroke-order",
+      "url": "https://nasaulica.si/datoteke/Prikaz_pisanja_crk/story_html5.html",
+      "verification": "link-collected",
+      "format": "webpage",
+      "notes": "animation embedded by school resource",
+      "commit_original": false
+    },
+    {
+      "id": "si-adult-handwriting-guide",
+      "title": "Uporabna slovenščina alphabet pages",
+      "section": "alphabet-samples",
+      "url": "https://ssu.acs.si/wp-content/uploads/2025/12/uporabna-slovenscina.pdf",
+      "verification": "verified-open",
+      "format": "pdf",
+      "notes": "pages 4-7 of adult educational material, October 2017",
+      "commit_original": false
+    },
+    {
+      "id": "si-zrc-foreign-letters",
+      "title": "ZRC SAZU q w x y in Slovene cursive",
+      "section": "expert-guidance",
+      "url": "https://svetovalnica.zrc-sazu.si/topic/4439/kako-pisati-tuje-%C4%8Drke-q-w-x-in-y-s-pisanimi-%C4%8Drkami/1",
+      "verification": "link-collected",
+      "format": "webpage",
+      "notes": "professional comment, not binding school requirement",
+      "commit_original": false
+    },
+    {
+      "id": "si-pravopis",
+      "title": "Slovenski pravopis rules",
+      "section": "alphabet-reference",
+      "url": "https://www.fran.si/134/slovenski-pravopis/datoteke/Pravopis_Pravila.pdf",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "alphabet and usage; not handwriting guidance",
+      "commit_original": false
+    }
+  ]
+}
