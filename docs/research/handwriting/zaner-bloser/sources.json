@@ -1,0 +1,167 @@
+{
+  "project": "Mironium handwriting research",
+  "topic": "Zaner-Bloser / US handwriting",
+  "checked": "2026-11-05",
+  "sources": [
+    {
+      "id": "zb-2025-student",
+      "title": "Zaner-Bloser Handwriting 2025 - Grade 2C Student Edition Sample",
+      "type": "pdf",
+      "section": "cursive",
+      "url": "https://www.zaner-bloser.com/sites/default/files/2025-03/Zaner-Bloser-Handwriting-G2C-Student-Edition-Sample.pdf",
+      "availability": "verified_open_2026-11-05",
+      "download": true,
+      "notes": "24-page official excerpt. Publisher states all rights reserved; no redistribution without permission."
+    },
+    {
+      "id": "zb-2025-teacher",
+      "title": "Zaner-Bloser Handwriting 2025 - Grade 2C Teacher Edition Sampler",
+      "type": "pdf",
+      "section": "methodology",
+      "url": "https://media.zaner-bloser.com/handwriting/pdfs/Zaner-Bloser-Handwriting-2025-Sampler-Teacher-2C-H3158.pdf",
+      "availability": "fetch_error_502_2026-11-05",
+      "download": true,
+      "notes": "Official sample link, returned a gateway error during checking; downloader will retry."
+    },
+    {
+      "id": "zb-2025-quick-look",
+      "title": "Zaner-Bloser Handwriting 2025 - Quick Look Sampler",
+      "type": "pdf",
+      "section": "methodology",
+      "url": "https://media.zaner-bloser.com/handwriting/pdfs/Zaner-Bloser-Handwriting-2025-Quick-Look-ZBHH3167.pdf",
+      "availability": "fetch_error_502_2026-11-05",
+      "download": true,
+      "notes": "Linked by publisher; currently unreliable."
+    },
+    {
+      "id": "zb-2020-cursive-practice",
+      "title": "Zaner-Bloser Cursive Practice Pack (legacy link)",
+      "type": "pdf",
+      "section": "cursive",
+      "url": "https://media.zaner-bloser.com/handwriting/pdfs/ZB_HW_Cursive_Practice_Package.pdf",
+      "availability": "redirects_to_manuscript_2026-11-05",
+      "download": false,
+      "notes": "DO NOT use as cursive source without re-checking. Current publisher shop sells the Fundamentals Pack."
+    },
+    {
+      "id": "zb-2020-manuscript-practice",
+      "title": "Zaner-Bloser Manuscript Practice Pack (legacy free PDF)",
+      "type": "pdf",
+      "section": "manuscript",
+      "url": "https://media.zaner-bloser.com/handwriting/pdfs/ZB_HW_Manuscript_Practice_Package.pdf",
+      "availability": "verified_open_2026-11-05",
+      "download": true,
+      "notes": "Manuscript/print, not cursive. For reference only; check licensing."
+    },
+    {
+      "id": "zb-cursive-paper",
+      "title": "Zaner-Bloser Cursive Paper Templates",
+      "type": "pdf",
+      "section": "paper",
+      "url": "https://go.zaner-bloser.com/ZB_HW_Cursive_Paper_Templates.pdf",
+      "availability": "source_page_link_timeout_2026-11-05",
+      "download": true,
+      "notes": "The publisher free resources page links here. May time out."
+    },
+    {
+      "id": "ksm-cursive-uppercase",
+      "title": "KSM - Zaner-Bloser-style Cursive Capitals",
+      "type": "pdf",
+      "section": "cursive",
+      "url": "https://www.ksmwritingtutor.com/wp-content/uploads/2020/04/CursiveCaps.pdf",
+      "availability": "linked_from_ksm_index_pdf_not_fetched_2026-11-05",
+      "download": true,
+      "notes": "Independent teaching aid made with ZWriting font; not an official Zaner-Bloser release."
+    },
+    {
+      "id": "ksm-cursive-lowercase-r",
+      "title": "KSM - Zaner-Bloser-style Cursive Lowercase (right-handed)",
+      "type": "pdf",
+      "section": "cursive",
+      "url": "https://www.ksmwritingtutor.com/wp-content/uploads/2020/04/CursiveLowerCaseRighties.pdf",
+      "availability": "linked_from_ksm_index_pdf_not_fetched_2026-11-05",
+      "download": true,
+      "notes": "Independent teaching aid; verify permissions for reuse."
+    },
+    {
+      "id": "ksm-cursive-lowercase-l",
+      "title": "KSM - Zaner-Bloser-style Cursive Lowercase (left-handed)",
+      "type": "pdf",
+      "section": "cursive",
+      "url": "https://www.ksmwritingtutor.com/wp-content/uploads/2020/04/CursiveLowerCaseLefties.pdf",
+      "availability": "linked_from_ksm_index_pdf_not_fetched_2026-11-05",
+      "download": true,
+      "notes": "Independent teaching aid; verify permissions for reuse."
+    },
+    {
+      "id": "ksm-manuscript-uppercase",
+      "title": "KSM - Zaner-Bloser-style Manuscript Capitals",
+      "type": "pdf",
+      "section": "manuscript",
+      "url": "https://www.ksmwritingtutor.com/wp-content/uploads/2020/04/ManuscriptCaps.pdf",
+      "availability": "linked_from_ksm_index_pdf_not_fetched_2026-11-05",
+      "download": true,
+      "notes": "Supplementary, for comparing print versus cursive."
+    },
+    {
+      "id": "ksm-manuscript-lowercase-r",
+      "title": "KSM - Zaner-Bloser-style Manuscript Lowercase (right-handed)",
+      "type": "pdf",
+      "section": "manuscript",
+      "url": "https://www.ksmwritingtutor.com/wp-content/uploads/2020/04/ManuscriptLowerCaseRighties.pdf",
+      "availability": "linked_from_ksm_index_pdf_not_fetched_2026-11-05",
+      "download": true,
+      "notes": "Supplementary, for comparing print versus cursive."
+    },
+    {
+      "id": "ksm-manuscript-lowercase-l",
+      "title": "KSM - Zaner-Bloser-style Manuscript Lowercase (left-handed)",
+      "type": "pdf",
+      "section": "manuscript",
+      "url": "https://www.ksmwritingtutor.com/wp-content/uploads/2020/04/ManuscriptLowerCaseLefties.pdf",
+      "availability": "linked_from_ksm_index_pdf_not_fetched_2026-11-05",
+      "download": true,
+      "notes": "Supplementary, for comparing print versus cursive."
+    },
+    {
+      "id": "zb-free-index",
+      "title": "Zaner-Bloser - Official Free Resources",
+      "type": "webpage",
+      "section": "indexes",
+      "url": "https://www.zaner-bloser.com/handwriting/zaner-bloser-handwriting/free-resources",
+      "availability": "verified_open_2026-11-05",
+      "download": false,
+      "notes": "Source for practice paper links; an index, not a PDF."
+    },
+    {
+      "id": "ksm-index",
+      "title": "KSM Writing Tutor - Handwriting Guides",
+      "type": "webpage",
+      "section": "indexes",
+      "url": "https://www.ksmwritingtutor.com/handwriting-guides/",
+      "availability": "verified_open_2026-11-05",
+      "download": false,
+      "notes": "Official index for the six independent KSM guides."
+    },
+    {
+      "id": "zb-publisher-terms",
+      "title": "Zaner-Bloser - Terms of Use",
+      "type": "webpage",
+      "section": "licensing",
+      "url": "https://www.zaner-bloser.com/policies/terms-of-use",
+      "availability": "verified_open_2026-11-05",
+      "download": false,
+      "notes": "Contains reproduction, storage and distribution restrictions."
+    },
+    {
+      "id": "zb-current-fundamentals",
+      "title": "Zaner-Bloser - Cursive Fundamentals Pack (currently sold)",
+      "type": "webpage",
+      "section": "licensing",
+      "url": "https://shop.zaner-bloser.com/products/instant-download-cursive-fundamentals-pack-english",
+      "availability": "verified_open_2026-11-05",
+      "download": false,
+      "notes": "Not a free download as of verification."
+    }
+  ]
+}
