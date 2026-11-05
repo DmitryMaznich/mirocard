@@ -462,37 +462,53 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
     </g>
   ) : null;
   // "ruled": the lines of a school ruled notebook, one under each row (its baseline), from the first row to the last
-  const ruledEls = ownRows === "ruled" ? (
-    <g data-simple-grid="ruled">
-      {Array.from({ length: ownRowsOf(geom, "ruled") }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow).map((r) => {
-        const y = ownRowY(r, "ruled") + WIDE_BAND_BOTTOM_LOCAL;
-        return <line key={r} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W * 1.6} />;
-      })}
-    </g>
-  ) : null;
+  const ruledEls = ownRows === "ruled" ? (() => {
+    // the ruling runs to the top and the bottom edge of the sheet (owner, 2026-11-05), the rows are the writable part of it
+    const count = ownRowsOf(geom, "ruled");
+    const pitch = ownOf("ruled").pitch;
+    const extra = Math.ceil(PAGE_H_UNITS / pitch);
+    const rows = onlyRow === null ? Array.from({ length: count + 2 * extra }, (_, i) => i - extra) : [onlyRow];
+    return (
+      <g data-simple-grid="ruled">
+        {rows.map((r) => {
+          const y = ownRowY(r, "ruled") + WIDE_BAND_BOTTOM_LOCAL;
+          return y >= -0.01 && y <= PAGE_H_UNITS + 0.01 ? <line key={r} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W * 1.6} /> : null;
+        })}
+      </g>
+    );
+  })() : null;
   // "bg": the Bulgarian copybook ruling (BG_* above): per row bold - thin - thin(baseline), the next row's bold line closing it, and the
   // 76deg guides over the whole ruled part of the page
   const bgEls = ownRows === "bg" ? (() => {
-    const rows = Array.from({ length: ownRowsOf(geom, "bg") }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
+    const count = ownRowsOf(geom, "bg");
+    const rows = Array.from({ length: count }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
     const base = (r) => ownRowY(r, "bg") + WIDE_BAND_BOTTOM_LOCAL;
-    const top = base(rows[0] ?? 0) - mmToNativeUnits(BG_UP_MM + BG_X_MM);
-    const bottom = base(rows[rows.length - 1] ?? 0) + mmToNativeUnits(BG_DOWN_MM);
+    const up = mmToNativeUnits(BG_UP_MM + BG_X_MM);
+    // the ruling runs to every edge of the sheet (owner, 2026-11-05): the cycle goes on above the first row and below the last one
+    const extra = Math.ceil(PAGE_H_UNITS / BG_PITCH);
+    const drawRows = onlyRow === null ? Array.from({ length: count + 2 * extra }, (_, i) => i - extra) : rows;
+    const top = onlyRow === null ? 0 : base(rows[0] ?? 0) - up;
+    const bottom = onlyRow === null ? PAGE_H_UNITS : base(rows[rows.length - 1] ?? 0) + mmToNativeUnits(BG_DOWN_MM);
     const run = (bottom - top) * BG_GUIDE_TAN;
     const guides = Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / BG_GUIDE_STEP) + 1 }, (_, k) => mmToNativeUnits(10) + k * BG_GUIDE_STEP);
+    const inside = (y) => y >= -0.01 && y <= PAGE_H_UNITS + 0.01;
+    const hline = (y, key, w, extraProps = {}) => (inside(y) ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={w} {...extraProps} /> : null);
     return (
       <g data-simple-grid="bg">
         {/* `propis2` «Подсветка» on the Bulgarian ruling: the x-height band of every row (thin line to baseline), under the guides and lines */}
         {bandFill && rows.map((r) => <rect key={`fill${r}`} x={0} y={base(r) - mmToNativeUnits(BG_X_MM)} width={PAGE_W_UNITS} height={mmToNativeUnits(BG_X_MM)} fill={bandFill} data-band-fill={r} />)}
         {onlyRow === null && !noSlant && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
-        {rows.map((r) => {
+        {drawRows.map((r) => {
           const y = base(r);
+          const content = r >= 0 && r < count;
+          const mid = y - mmToNativeUnits(BG_X_MM / 2);
           return (
-            <g key={r} data-bg-row={r}>
-              <line x1={0} y1={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />
-              <line x1={0} y1={y - mmToNativeUnits(BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
-              <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
-              {midDash && <line x1={0} y1={y - mmToNativeUnits(BG_X_MM / 2)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_X_MM / 2)} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-bg-dash="1" />}
-              {(onlyRow !== null || r === rows[rows.length - 1]) && <line x1={0} y1={y + mmToNativeUnits(BG_DOWN_MM)} x2={PAGE_W_UNITS} y2={y + mmToNativeUnits(BG_DOWN_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />}
+            <g key={r} data-bg-row={content ? r : undefined}>
+              {hline(y - up, "u", GUIDE_BOLD_W)}
+              {hline(y - mmToNativeUnits(BG_X_MM), "x", GUIDE_THIN_W)}
+              {hline(y, "b", GUIDE_THIN_W)}
+              {midDash && inside(mid) && <line x1={0} y1={mid} x2={PAGE_W_UNITS} y2={mid} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-bg-dash="1" />}
+              {onlyRow !== null && hline(y + mmToNativeUnits(BG_DOWN_MM), "d", GUIDE_BOLD_W)}
             </g>
           );
         })}
@@ -505,25 +521,34 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
     const mz = MZ[ownRows];
     const band = mmToNativeUnits(mz.bandMm);
     const gap = mmToNativeUnits(mz.gapMm);
-    const rows = Array.from({ length: ownRowsOf(geom, ownRows) }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
+    const count = ownRowsOf(geom, ownRows);
+    const rows = Array.from({ length: count }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
     const base = (r) => ownRowY(r, ownRows) + WIDE_BAND_BOTTOM_LOCAL;
-    const top = base(rows[0] ?? 0) - band - gap / 2;
-    const bottom = base(rows[rows.length - 1] ?? 0) + gap / 2;
+    // the ruling runs to every edge of the sheet (owner, 2026-11-05: no white strip at the top or the bottom of an A4 page, the printer
+    // leaves what it cannot reach): the cycle goes on above the first row and below the last one, where nobody writes; the show panel's
+    // window (one row) keeps its own row only
+    const pitch = band + gap;
+    const drawRows = onlyRow === null ? Array.from({ length: count + 2 * Math.ceil(PAGE_H_UNITS / pitch) }, (_, i) => i - Math.ceil(PAGE_H_UNITS / pitch)) : rows;
+    const top = onlyRow === null ? 0 : base(rows[0] ?? 0) - band - gap / 2;
+    const bottom = onlyRow === null ? PAGE_H_UNITS : base(rows[rows.length - 1] ?? 0) + gap / 2;
     const at = (l, y) => l.x1 + ((l.x2 - l.x1) * y) / PAGE_H_UNITS + diagonalShiftX;
-    const dash = (y, key) => (midDash ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-mz-dash="1" /> : null);
+    const inside = (y) => y >= -0.01 && y <= PAGE_H_UNITS + 0.01;
+    const dash = (y, key) => (midDash && inside(y) ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-mz-dash="1" /> : null);
+    const solid = (y, key, w) => (inside(y) ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={w} /> : null);
     return (
       <g data-simple-grid={ownRows}>
         {bandFill && rows.map((r) => <rect key={`fill${r}`} x={0} y={base(r) - band} width={PAGE_W_UNITS} height={band} fill={bandFill} data-band-fill={r} />)}
         {onlyRow === null && !noSlant && geom.lines[ownRows].map((l, i) => <line key={`s${i}`} x1={at(l, bottom)} y1={bottom} x2={at(l, top)} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
-        {rows.map((r) => {
+        {drawRows.map((r) => {
           const y = base(r);
+          const content = r >= 0 && r < count;
           return (
-            <g key={r} data-mz-row={r}>
+            <g key={r} data-mz-row={content ? r : undefined} data-mz-extra={content ? undefined : r}>
               {dash(y - band - gap / 2, "g")}
-              <line x1={0} y1={y - band} x2={PAGE_W_UNITS} y2={y - band} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              {solid(y - band, "t", GUIDE_THIN_W)}
               {dash(y - band / 2, "m")}
-              <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />
-              {(onlyRow !== null || r === rows[rows.length - 1]) && dash(y + gap / 2, "f")}
+              {solid(y, "b", GUIDE_BOLD_W)}
+              {onlyRow !== null && r === rows[rows.length - 1] && dash(y + gap / 2, "f")}
             </g>
           );
         })}
