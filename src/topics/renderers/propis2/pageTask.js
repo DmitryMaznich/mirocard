@@ -50,7 +50,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     noSlant: grid === "none" || Boolean(noSlant),
     midDash: midDash !== false,
     // «Подсветка» of the narrow rows: the tint's colour (model.js pageBandFill), or null
-    bandFill: typeof bandFill === "string" && (grid === "bg" || (narrowRows && !OWN_ROW_GRIDS.has(grid))) ? bandFill : null,
+    bandFill: typeof bandFill === "string" && (grid === "bg" || grid === "m1" || grid === "m2" || (narrowRows && !OWN_ROW_GRIDS.has(grid))) ? bandFill : null,
     format: format === "a4" ? "a4" : "a5",
     margin: margin === "left" || margin === "right" ? margin : "off",
     narrowRows,

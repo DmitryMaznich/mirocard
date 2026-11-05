@@ -513,6 +513,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
     const dash = (y, key) => (midDash ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-mz-dash="1" /> : null);
     return (
       <g data-simple-grid={ownRows}>
+        {bandFill && rows.map((r) => <rect key={`fill${r}`} x={0} y={base(r) - band} width={PAGE_W_UNITS} height={band} fill={bandFill} data-band-fill={r} />)}
         {onlyRow === null && !noSlant && geom.lines[ownRows].map((l, i) => <line key={`s${i}`} x1={at(l, bottom)} y1={bottom} x2={at(l, top)} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
         {rows.map((r) => {
           const y = base(r);

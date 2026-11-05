@@ -236,7 +236,7 @@ describe("propis2 (zip topic)", () => {
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
-    const fill = () => host.querySelector('button[aria-label="Подсветка узкой строки"]');
+    const fill = () => host.querySelector('button[aria-label="Подсветка рабочей строки"]');
     const pick = async (name) => { await click(fill()); await click(host.querySelector(`[role="option"][aria-label="${name}"]`)); };
     const offer = () => host.querySelector('[data-testid="propis2-offer"]');
     const bands = () => [...host.querySelectorAll('[data-testid="propis2-preview"] [data-band-fill]')];
@@ -263,11 +263,15 @@ describe("propis2 (zip topic)", () => {
     expect(bands()).toHaveLength(17);
     await pick("Сиреневая");
     expect(bands()[0].getAttribute("fill")).toBe("#ebe5f6");
-    // the Mazina steps have no narrow row: the button is off there
+    // the Mazina steps tint their working band too (9 rows of 22 mm on A5; owner, 2026-11-05: every variant of the copybook ruling)
     await click(host.querySelector('button[aria-label="Тип бумаги"]'));
     await click(host.querySelector('[role="option"][aria-label="Ступень 1 (строка 8 мм)"]'));
-    expect(fill().disabled).toBe(true);
-    expect(bands()).toHaveLength(0);
+    expect(fill().disabled).toBe(false);
+    expect(bands()).toHaveLength(9);
+    expect(bands()[0].getAttribute("fill")).toBe("#ebe5f6");
+    await click(host.querySelector('button[aria-label="Тип бумаги"]'));
+    await click(host.querySelector('[role="option"][aria-label="Ступень 2 (строка 5 мм)"]'));
+    expect(bands()).toHaveLength(13);
     await click(btn("Отменить"));
     await click(btn("Показать ученику"));
     expect(host.querySelectorAll('[data-testid="propis2-view"] [data-band-fill]').length).toBeGreaterThan(0);
