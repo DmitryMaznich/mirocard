@@ -90,7 +90,7 @@ h+='<div class="cap">Основное новое задание — <b>«Доп�
 // ---------- screen 1: sheet ----------
 const c=16, SH_W=(COLS+2)*c;
 let sh='';
-sh+='<div class="hdr" style="left:'+c+'px;top:'+(c*0.4)+'px">Имя ____________&nbsp;&nbsp;&nbsp;Пишем П, Н, Г → П, Л → А</div>';
+sh+='<div class="hdr" style="left:'+c+'px;top:'+(c*0.4)+'px">Имя ____________&nbsp;&nbsp;&nbsp;Пишем П, Н, О, Г → П, Л → А, Ь → Б</div>';
 // block A: ladder for П
 sh+=block(c,3,[
  (x0,y,w)=>put("П",c,x0,y,{mode:"sample"})+fill(["П"],c,x0+2,y,w-2,()=>({mode:"dash"})),
@@ -103,29 +103,28 @@ const ca=(y,t)=>'<div class="call" style="left:'+(SH_W+8)+'px;top:'+(y*c+6)+'px"
 sh+=ca(4,"как сейчас: образец + пунктир")+ca(7,"новое: недостающий штрих пунктиром")+ca(10,"новое: только точка начала")+ca(13,"новое: без подсказки");
 // block B: review row of a family
 sh+=block(c,18,[
- (x0,y,w)=>fill(["Г","П","Н","И","Ш","Е","Т","Ч"],c,x0,y,w,(k,ch)=>({mode:"ink",miss:turn(ch,k>>3?1:0),hint:"dot"})),
- (x0,y,w)=>fill(["Е","Н","Ш","П","Т","И","Г","Ч"],c,x0,y,w,(k,ch)=>({mode:"ink",miss:turn(ch,1),hint:"none"})),
+ (x0,y,w)=>put("Н",c,x0,y,{mode:"sample"})+fill(["Н"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:turn("Н",k),hint:"dot"})),
+ (x0,y,w)=>fill(["Н"],c,x0,y,w,(k)=>({mode:"ink",miss:turn("Н",k),hint:"none"})),
 ],"#0f766e",["Н"]);
-sh+=ca(19,"повторение семьи «Прямые линии»")+ca(22,"разные буквы, у каждой свой пропуск");
-// block C: hidden letter pairs
-sh+=block(c,26,[
- (x0,y,w)=>put("Г",c,x0,y,{mode:"ink"})+'<div style="position:absolute;left:'+((x0+1.25)*c)+'px;top:'+((y+0.45)*c)+'px;font-weight:900;color:#9ca3af;font-size:15px">→</div>'+fill(["П"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:2,hint:k<3?"dash":"dot"})),
- (x0,y,w)=>put("Л",c,x0,y,{mode:"ink"})+'<div style="position:absolute;left:'+((x0+1.55)*c)+'px;top:'+((y+0.45)*c)+'px;font-weight:900;color:#9ca3af;font-size:15px">→</div>'+fill(["А"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:2,hint:k<3?"dash":"dot"})),
- (x0,y,w)=>put("Ь",c,x0,y,{mode:"ink"})+'<div style="position:absolute;left:'+((x0+1.25)*c)+'px;top:'+((y+0.45)*c)+'px;font-weight:900;color:#9ca3af;font-size:15px">→</div>'+fill(["Б"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:2,hint:k<3?"dash":"dot"})),
-],"#c2410c",["Г","П"]);
-sh+=ca(27,"«спрятанная буква»: Г → П")+ca(30,"Л → А")+ca(33,"Ь → Б");
+sh+=ca(19,"образец Н, дальше — только Н")+ca(22,"та же буква, без подсказки");
+// block C: hidden letter pairs — one block per pair, the plate names it
+const arrow=(x0,y,dx)=>'<div style="position:absolute;left:'+((x0+dx)*c)+'px;top:'+((y+0.45)*c)+'px;font-weight:900;color:#9ca3af;font-size:15px">→</div>';
+[["Г","П",1.25,26],["Л","А",1.55,31],["Ь","Б",1.25,36]].forEach(([from,to,dx,y])=>{
+ sh+=block(c,y,[(x0,yy,w)=>put(from,c,x0,yy,{mode:"ink"})+arrow(x0,yy,dx)+fill([to],c,x0+2,yy,w-2,(k)=>({mode:"ink",miss:2,hint:k<3?"dash":"dot"}))],"#c2410c",[from,to]);
+ sh+=ca(y+1,"«спрятанная буква»: "+from+" → "+to);
+});
 // block D: О — one-stroke letter cut in half
-sh+=block(c,37,[
- (x0,y,w)=>fill(["О","С","З","Р","В","Ь","Ы","Э"],c,x0,y,w,(k,ch)=>({mode:"ink",miss:ch==="С"?undefined:turn(ch,k),hint:"dot"})),
+sh+=block(c,41,[
+ (x0,y,w)=>put("О",c,x0,y,{mode:"sample"})+fill(["О"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:k%2,hint:"dot"})),
 ],"#7c3aed",["О"]);
-sh+=ca(38,"овалы: у О — верх или низ");
-let H1='<div class="row"><div><h2><span class="num">1</span>На листе (А4, фрагмент): «Допиши штрих» <span class="prio p1">первая очередь</span></h2><div class="board"><div class="sheet" style="--c:'+c+'px;width:'+SH_W+'px;height:'+(42*c)+'px">'+sh+'</div></div></div>';
+sh+=ca(42,"овалы: у О — верх или низ");
+let H1='<div class="row"><div><h2><span class="num">1</span>На листе (А4, фрагмент): «Допиши штрих» <span class="prio p1">первая очередь</span></h2><div class="board"><div class="sheet" style="--c:'+c+'px;width:'+SH_W+'px;height:'+(46*c)+'px">'+sh+'</div></div></div>';
 // zoom + rules
 H1+='<div class="side" style="margin-top:34px;margin-left:200px;width:480px"><div class="card"><h2>Крупно: одна буква, три подсказки</h2><div style="display:flex;gap:26px;align-items:flex-end;padding:8px 4px 4px">';
 [["dash","пунктир"],["dot","точка начала"],["none","ничего"]].forEach(([hn,t])=>{H1+='<div style="display:flex;flex-direction:column;align-items:center;gap:10px"><div style="padding:10px;background:#fffdf8;background-image:linear-gradient(to right,#cfe0ef 1px,transparent 1px),linear-gradient(to bottom,#cfe0ef 1px,transparent 1px);background-size:40px 40px;border-radius:6px">'+big("Н",{c:40,mode:"ink",miss:2,hint:hn})+'</div><b style="font-size:13px">'+t+'</b></div>'});
 H1+='</div><div class="note" style="margin-top:10px">Данный штрих напечатан <b>сплошным</b> — как в тетради, ребёнок пишет только недостающий. Пунктир — тот же, что у контуров, точка начала — зелёная, как везде.</div></div>';
 H1+='<div class="card"><h2>Правила, которые прячут в код</h2><table class="rules">';
-H1+='<tr><td>Какой штрих пропущен</td><td>По очереди у каждой копии: в П — левая палочка, черта, правая палочка, снова левая… Ребёнок видит, что пропуск каждый раз в новом месте. Настройки «какой штрих» нет.</td></tr>';
+H1+='<tr><td>Какую букву дописываем</td><td>Только букву с плашки блока, в строке — она одна. Если пропуск даёт другую букву (П → Г), это всё равно П: цель известна по плашке и образцу.</td></tr><tr><td>Какой штрих пропущен</td><td>По очереди у каждой копии: в П — левая палочка, черта, правая палочка, снова левая… Ребёнок видит, что пропуск каждый раз в новом месте. Настройки «какой штрих» нет.</td></tr>';
 H1+='<tr><td>Что не пропускаем</td><td>Мелочь, которую почти не видно: точки Ё, краткая Й, хвостик Ц и Щ, ножки Д — кроме пар «спрятанная буква» (И → Й).</td></tr>';
 H1+='<tr><td>Буквы из одного штриха</td><td>О режем по горизонтали пополам (как в «Почини букву»). С — пропускаем, в строке остаётся целой.</td></tr>';
 H1+='<tr><td>Порядок в лесенке</td><td>Образец + пунктир → недостающий пунктиром → точка → без подсказки. Новые строки встают в лесенку буквы после контуров.</td></tr>';
@@ -151,7 +150,7 @@ let H2='<div class="row"><div><h2><span class="num">2</span>Панель стр�
 H2+='<div class="side" style="margin-top:34px;width:620px"><div class="card"><div class="note">';
 H2+='<b>Без новой кучи настроек.</b> В выборе «Что пишем в строке» появляется плитка <b>«Допиши штрих»</b>. У неё одна своя настройка — <b>подсказка</b>: пунктир / точка / ничего. «Линия контура» и «Контуры после образца» для такой строки не имеют смысла и прячутся; «Точки начала» заменяет сама подсказка.<br><br>';
 H2+='<b>В лесенке буквы</b> (кнопка «Лесенка» блока) две новые строки встают после контуров: «пунктиром» и «без подсказки». Существующие тетради не меняются — строка по-прежнему <code>{elements, line, guide, dots}</code>, новый вид — дополнительное поле, например <code>miss: "dash" | "dot" | "none"</code>.<br><br>';
-H2+='<b>Строка повторения</b> (блок 2 на листе): в блоке буквы можно выбрать «Допиши штрих — все буквы листа», тогда в строке идут буквы всех блоков страницы вперемешку. Это то, что у Илюхиной идёт в конце занятия.</div></div>';
+H2+='<b>Строки вперемешку — нет.</b> Буква без штриха часто становится другой буквой (П без правой палочки — Г, Ь без полуовала — палочка), поэтому в строке «Допиши штрих» только буква с плашки блока: цель задаёт плашка. Повторять несколько букв — несколько блоков на листе.</div></div>';
 H2+='<div class="card"><h2>«Спрятанная буква» — готовая тетрадь, не настройка</h2><div class="note" style="margin-bottom:10px">Пары, где новая буква = знакомая + один штрих. Нашлись по самим штрихам из <code>topic.json</code> (точное совпадение остальных штрихов):</div><div class="pairs">';
 [["Г","П","правая палочка"],["Л","А","перекладина"],["Ь","Б","верхняя черта"],["Ь","В","верхний полуовал"],["И","Й","краткая"]].forEach(([a,b,n])=>{H2+='<div class="pair">'+big(a,{c:14})+'→'+big(b,{c:14})+'<span style="font-size:11px;font-weight:700">+ '+n+'</span></div>'});
 H2+='</div><div class="note" style="margin-top:10px">У Илюхиной ещё Л → Д, Ш → Щ, Е → Ё, Ф+Ж → Я; у нас Д и Щ нарисованы не «знакомая + штрих» (другая геометрия), поэтому в список не попали. Предлагаю одну готовую тетрадь «Спрятанные буквы» в «Готовых тетрадях», а не отдельный вид блока.</div></div></div></div>';
