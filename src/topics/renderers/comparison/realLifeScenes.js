@@ -10,7 +10,7 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "apples_petya_masha",
     "item": "яблок",
-    "left": 3,
+    "left": 2,
     "right": 7,
     "nameA": "Пети",
     "nameANom": "Петя",
@@ -23,7 +23,7 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "apples_lyosha_ksyusha",
     "item": "яблок",
-    "left": 6,
+    "left": 5,
     "right": 2,
     "nameA": "Лёши",
     "nameANom": "Лёша",
@@ -36,7 +36,7 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "candies_kostya_anya",
     "item": "конфет",
-    "left": 8,
+    "left": 7,
     "right": 3,
     "nameA": "Кости",
     "nameANom": "Костя",
@@ -50,7 +50,7 @@ export const REAL_LIFE_SCENES = [
     "id": "candies_roma_nastya",
     "item": "конфет",
     "left": 2,
-    "right": 6,
+    "right": 7,
     "nameA": "Ромы",
     "nameANom": "Рома",
     "genderA": "boy",
@@ -75,7 +75,7 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "cars_tima_vika",
     "item": "машинок",
-    "left": 7,
+    "left": 8,
     "right": 3,
     "nameA": "Тимы",
     "nameANom": "Тима",
@@ -102,7 +102,7 @@ export const REAL_LIFE_SCENES = [
     "id": "balloons_seva_polina",
     "item": "шариков",
     "left": 3,
-    "right": 8,
+    "right": 9,
     "nameA": "Севы",
     "nameANom": "Сева",
     "genderA": "boy",
@@ -209,8 +209,8 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "candies_misha_yulya",
     "item": "конфет",
-    "left": 6,
-    "right": 6,
+    "left": 7,
+    "right": 7,
     "nameA": "Миши",
     "nameANom": "Миша",
     "genderA": "boy",
@@ -300,20 +300,6 @@ export const REAL_LIFE_SCENES = [
     "image": "media/scenes/legs_boy_dog.jpg"
   },
   {
-    "id": "wheels_bike_car",
-    "item": "колёс",
-    "left": 2,
-    "right": 4,
-    "nameA": "велосипеда",
-    "nameANom": "Велосипед",
-    "genderA": "object",
-    "nameB": "машины",
-    "nameBNom": "Машина",
-    "genderB": "object",
-    "askKind": "what",
-    "image": "media/scenes/wheels_bike_car.jpg"
-  },
-  {
     "id": "windows_house_building",
     "item": "окон",
     "left": 2,
@@ -344,8 +330,8 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "train_cars_equal",
     "item": "вагонов",
-    "left": 3,
-    "right": 3,
+    "left": 2,
+    "right": 2,
     "nameA": "жёлтого поезда",
     "nameANom": "Жёлтый поезд",
     "genderA": "object",
@@ -378,7 +364,7 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "stairs_small_tall",
     "item": "ступенек",
-    "left": 3,
+    "left": 4,
     "right": 7,
     "nameA": "маленькой лестницы",
     "nameANom": "Маленькая лестница",
@@ -395,8 +381,8 @@ export const REAL_LIFE_SCENES = [
   {
     "id": "sails_boat_ship",
     "item": "парусов",
-    "left": 1,
-    "right": 2,
+    "left": 2,
+    "right": 3,
     "nameA": "лодки",
     "nameANom": "Лодка",
     "genderA": "object",

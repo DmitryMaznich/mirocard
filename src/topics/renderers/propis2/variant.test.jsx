@@ -11,7 +11,7 @@ import { backContent } from "@/features/propis2/cover/backContent.js";
 import { renderToStaticMarkup } from "react-dom/server";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
-import { analyzePage, deckPapers, kitToLibraryItems, newPage, rowsPerPage } from "./model.js";
+import { analyzePage, deckPapers, kitToLibraryItems, newPage, pageBandFill, rowsPerPage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { getPathEndpoints } from "../propis/pathGeometry.js";
 
@@ -89,6 +89,19 @@ describe("propis2 variant: Bulgarian", () => {
     const guide = /<g data-simple-grid="bg"><line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)"/.exec(html);
     const [x1, y1, x2, y2] = guide.slice(1).map(Number);
     expect((Math.atan2(y1 - y2, x2 - x1) * 180) / Math.PI).toBeCloseTo(76, 0);
+  });
+  it("«Подсветка» on the Bulgarian ruling: the x-height band of every row tinted, under the guides (2026-11-02: it was unavailable)", async () => {
+    const rec = await installed();
+    const page = newPage("т", { gridKind: "bg", bandFill: "yellow", ruling: "wide" });
+    const task = buildPageTask({ topicRecord: rec, lines: ["Ана"], grid: "bg", narrowRows: false, bandFill: pageBandFill(page) });
+    const html = renderToStaticMarkup(<PrintPageView task={task} bare />);
+    const fills = [...html.matchAll(/<rect x="0" y="([-\d.]+)" width="[-\d.]+" height="([-\d.]+)" fill="#fdf1c7" data-band-fill="\d+"/g)];
+    expect(fills).toHaveLength(11);
+    // the band ends on the baseline (the third line of the row) and is the x-height high
+    const row0 = /<g data-bg-row="0"><line[^>]*><\/line><line x1="0" y1="([-\d.]+)"[^>]*><\/line><line x1="0" y1="([-\d.]+)"/.exec(html);
+    expect(Number(fills[0][1])).toBeCloseTo(Number(row0[1]), 3);
+    expect(Number(fills[0][1]) + Number(fills[0][2])).toBeCloseTo(Number(row0[2]), 3);
+    expect(html.indexOf("data-band-fill")).toBeLessThan(html.indexOf("data-bg-row"));
   });
 
   it("writes no letter outside its alphabet: a pasted Russian ы э ё is «нет начертания», not the Russian hand (2026-10-20)", async () => {

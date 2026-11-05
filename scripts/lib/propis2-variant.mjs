@@ -26,8 +26,17 @@ export function applyVariant(base, v) {
 const digitsOut = (t) => t.replace(/\d/g, "№$&");
 const modelRow = (t) => ({ text: digitsOut(t), kind: "text", repeat: "one", dots: "none", copies: "dash", asText: false });
 const blankRow = () => ({ text: "", kind: "blank", repeat: "one", dots: "none", copies: "dash" });
+// A kit of its own (`spec.wordPages`, no `from`: the Kazakh word notebooks, 2026-11-02): a page per entry, a row per word, each the
+// model word and its copies fading out along the row (`repeat: "fade"`, start dots on all), on `spec.page`.
+const fadeRow = (t) => ({ text: digitsOut(t), kind: "text", repeat: "fade", dots: "all", copies: "dash", gap: 1 });
+function ownKit(spec) {
+  const { wordPages, note, ...kit } = spec;
+  return { ...kit, pages: wordPages.map((wp) => ({ title: wp.title, paper: spec.page, rows: wp.words.map(fadeRow) })) };
+}
+
 export function variantKits(v, baseKits) {
   return (v.kits ?? []).map((spec) => {
+    if (spec.wordPages) return ownKit(spec);
     const rowsPerPage = spec.rows;
     const base = baseKits.find((k) => k.id === spec.from);
     if (!base) throw new Error(`variant kit: no base kit ${spec.from}`);

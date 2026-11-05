@@ -1,0 +1,216 @@
+{
+  "name": "reading-sheet-paired-scenes",
+  "version": 2,
+  "frame_aspect_ratio": [
+    1,
+    1
+  ],
+  "panel": {
+    "padding_pt": 0,
+    "gap_pt": 14
+  },
+  "frame_radius_pt": 12,
+  "source_edge_inset": 0.006,
+  "frames": [
+    {
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "protected_bounds": [
+        0.065,
+        0.02,
+        0.973,
+        0.89
+      ]
+    },
+    {
+      "focus": [
+        0.5,
+        0.5
+      ],
+      "protected_bounds": [
+        0.04,
+        0.05,
+        0.97,
+        0.93
+      ]
+    }
+  ],
+  "default_frame": {
+    "focus": [
+      0.5,
+      0.5
+    ],
+    "protected_bounds": [
+      0.03,
+      0.02,
+      0.97,
+      0.96
+    ]
+  },
+  "stories": {
+    "micro_tower": {
+      "source": "micro_tower-square-v2.png"
+    },
+    "micro_cat": {
+      "source": "micro_cat-water-square-v3.png"
+    },
+    "micro_puddle": {
+      "source": "micro_puddle-square-v3.png"
+    },
+    "micro_pass": {
+      "source": "micro_pass-throw-square-v3.png"
+    },
+    "micro_book": {
+      "frames": [
+        {
+          "focus": [
+            0.55,
+            0.5
+          ],
+          "protected_bounds": [
+            0.27,
+            0.02,
+            0.78,
+            0.96
+          ]
+        },
+        {
+          "focus": [
+            0.55,
+            0.5
+          ],
+          "protected_bounds": [
+            0.34,
+            0.02,
+            0.96,
+            0.96
+          ]
+        }
+      ]
+    },
+    "micro_hands": {
+      "frames": [
+        {
+          "focus": [
+            0.55,
+            0.5
+          ],
+          "protected_bounds": [
+            0.21,
+            0.02,
+            0.91,
+            0.96
+          ]
+        },
+        {
+          "focus": [
+            0.55,
+            0.5
+          ],
+          "protected_bounds": [
+            0.15,
+            0.02,
+            0.93,
+            0.96
+          ]
+        }
+      ]
+    },
+    "micro_pencil": {
+      "source": "micro_pencil-orientation-v4.png",
+      "frames": [
+        {
+          "focus": [
+            0.52,
+            0.5
+          ],
+          "protected_bounds": [
+            0.21,
+            0.02,
+            0.9,
+            0.96
+          ]
+        },
+        {
+          "focus": [
+            0.52,
+            0.5
+          ],
+          "protected_bounds": [
+            0.21,
+            0.02,
+            0.9,
+            0.96
+          ]
+        }
+      ]
+    },
+    "micro_watering": {
+      "frames": [
+        {
+          "focus": [
+            0.53,
+            0.5
+          ],
+          "protected_bounds": [
+            0.12,
+            0.02,
+            0.93,
+            0.96
+          ]
+        },
+        {
+          "focus": [
+            0.53,
+            0.5
+          ],
+          "protected_bounds": [
+            0.14,
+            0.02,
+            0.94,
+            0.96
+          ]
+        }
+      ],
+      "source": "micro_watering-v3.png"
+    },
+    "micro_napkin": {
+      "frames": [
+        {
+          "focus": [
+            0.52,
+            0.5
+          ],
+          "protected_bounds": [
+            0.15,
+            0.02,
+            0.9,
+            0.96
+          ]
+        },
+        {
+          "focus": [
+            0.52,
+            0.5
+          ],
+          "protected_bounds": [
+            0.15,
+            0.02,
+            0.9,
+            0.96
+          ]
+        }
+      ]
+    },
+    "micro_bag": {
+      "source": "micro_bag.png"
+    },
+    "micro_red_pencil": {
+      "source": "micro_kitten-square-v3.png"
+    }
+  },
+  "cropping_policy": "Заполнять одинаковый квадратный кадр с сохранением пропорций. Координаты focus и protected_bounds нормированы от 0 до 1. Если обрезка затрагивает protected_bounds, остановить сборку и подготовить другую иллюстрацию; не уменьшать рисунок до узкой полосы.",
+  "generation_brief": "Два отдельных квадратных кадра 1:1 для детского микрорассказа. Один и тот же персонаж, предметы, комната и масштаб. Композиция заполняет квадрат. Все смысловые предметы, лицо, руки и действие должны находиться внутри центральных 90% кадра; в углах и у краев только фон. Без надписей, рамок, полей и разделителей. Спокойный светлый фон, ясное действие, минимум второстепенных деталей."
+}

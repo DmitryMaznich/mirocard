@@ -3,8 +3,10 @@ import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
-import { tokenizeReadingLine } from "./engine";
-import { getStoryQuizTargetMatches, tokenizeStoryQuizWords } from "./storyQuiz";
+import { generateTasks, tokenizeReadingLine } from "./engine";
+import { getLineText, storyQuizSearchHint, StoryQuizTargetText, useStoryQuizChoice } from "./storyQuizText";
+import MicroStoryReader from "./MicroStoryReader";
+import { StoryPictures, StoryPictureSupport } from "./StoryPictures";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
@@ -15,18 +17,13 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getSafeCodeConfig, appendSafeCodeLog } from "@/core/groupStore";
 import "./reading.css";
+import "./microStories.css";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
   { value: "after_text",  label: "После текста", mod: "prompted" },
   { value: "none",        label: "Нет ответа", mod: "fail" },
 ];
-
-function getLineText(line, textStyle = "normal") {
-  if (typeof line === "string") return line;
-  if (textStyle === "syllables" && line?.syllableText) return line.syllableText;
-  return line?.text ?? "";
-}
 
 function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false, flow = false }) {
   const items = lines ?? [];
@@ -333,13 +330,13 @@ const STORY_SWIPE_MAX_DRAG = 110;
 // (same reasoning as AssembleLineTask's pointer handling above: a React
 // state update per pointermove would be needless re-render churn for
 // something purely visual until the gesture actually commits).
-function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
+function StorySwipeNav({ onAdvance, onPrevious, navRef, minimal = false, storyIndex = 0, storyCount }) {
   const stripRef = useRef(null);
   const dragRef = useRef(null);
 
   const setStripRef = useCallback((node) => {
     stripRef.current = node;
-    navRef(node);
+    navRef?.(node);
   }, [navRef]);
 
   function applyDragVisual(dx) {
@@ -363,7 +360,7 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
   }
 
   function handlePointerDown(event) {
-    if (dragRef.current) return;
+    if (dragRef.current || event.target.closest("button")) return;
     stripRef.current?.setPointerCapture(event.pointerId);
     dragRef.current = { pointerId: event.pointerId, startX: event.clientX };
   }
@@ -397,6 +394,20 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
     resetDragVisual(true);
   }
 
+  if (minimal) return (
+    <nav className="micro-reader-nav" aria-label="Рассказы" ref={setStripRef}
+      onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp} onPointerCancel={handlePointerCancel}>
+      <button type="button" className="micro-reader-nav__previous" onClick={onPrevious} disabled={storyIndex === 0}>
+        <span aria-hidden="true">←</span> Назад
+      </button>
+      <span className="micro-reader-nav__count">{storyIndex + 1}<span> / {storyCount ?? 1}</span></span>
+      <button type="button" className="micro-reader-nav__next" onClick={onAdvance}>
+        {storyCount && storyIndex === storyCount - 1 ? "Завершить" : "Дальше"} <span aria-hidden="true">→</span>
+      </button>
+    </nav>
+  );
+
   return (
     <div
       className="story-swipe-nav"
@@ -427,179 +438,98 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
 function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   const lines = task.text?.lines ?? [];
   const hasImage = !!task.text?.image && !task.text?.cornerPhotos;
-  const fit = useStoryFit(true, [task.text?.id, textStyle, lines.length], { spreadCapable: hasImage });
+  const isMicro = !!task.text?.sentenceLayout;
+  const fit = useStoryFit(!isMicro, [task.text?.id, textStyle, lines.length], { spreadCapable: hasImage });
+
+  if (isMicro) return <MicroStoryReader key={task.textId} task={task} topicId={topicId} textStyle={textStyle} onAdvance={onAdvance} onPrevious={onPrevious} />;
 
   return (
-    <div className={`session-body reading-body reading-page story-screen${hasImage ? " story-screen--with-image" : ""}`} ref={fit.bodyRef}>
+    <div className={`session-body reading-body reading-page story-screen${hasImage ? " story-screen--with-image" : ""}${task.text?.sentenceLayout ? " story-screen--micro" : ""}`} ref={fit.bodyRef}>
       <div className="story-text-wrap" ref={fit.textWrapRef}>
+        {isMicro && <div className="micro-reader-eyebrow">Читаем вместе</div>}
         <div className="reading-title">{getTopicTitle(task.text.title)}</div>
-        <ReadingTextBlock lines={lines} textStyle={textStyle} bookStyle flow />
+        <ReadingTextBlock lines={lines} textStyle={textStyle} bookStyle={!task.text?.sentenceLayout} flow={!task.text?.sentenceLayout} />
       </div>
       {hasImage ? (
         <div className="story-illustration">
-          <ReadingIllustration topicId={topicId} text={task.text} />
+          {task.text?.images?.length ? <StoryPictures topicId={topicId} text={task.text} /> : <ReadingIllustration topicId={topicId} text={task.text} />}
         </div>
       ) : task.text?.cornerPhotos ? (
         <ReadingIllustration topicId={topicId} text={task.text} />
       ) : null}
-      <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} navRef={fit.navRef} />
+      <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} navRef={fit.navRef} minimal={isMicro} storyIndex={task.storyIndex} storyCount={task.storyCount} />
     </div>
   );
 }
 
-function StoryQuizTargetText({ lines, textStyle, target, answered, onTarget, onMiss }) {
-  const items = lines ?? [];
-  const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
-  const paragraphs = [];
-  items.forEach((line, index) => {
-    if (index === 0 || line.newParagraph) paragraphs.push([]);
-    paragraphs[paragraphs.length - 1].push(line);
-  });
-
-  // Every word is its own tap target, not just the ones the child needs to
-  // find. That gives a stray tap somewhere to land on, with a reaction right
-  // under the finger, instead of the whole passage silently scoring any
-  // miss-tap — including a tap that just landed between two words — as a
-  // wrong answer.
-  const [missedWordUid, setMissedWordUid] = useState(null);
-  const missTimeoutRef = useRef(null);
-  useEffect(() => () => clearTimeout(missTimeoutRef.current), []);
-
-  function handleWordMiss(uid, event) {
-    event.stopPropagation();
-    if (answered) return;
-    clearTimeout(missTimeoutRef.current);
-    setMissedWordUid(uid);
-    missTimeoutRef.current = setTimeout(() => setMissedWordUid(null), 450);
-    onMiss();
-  }
-
-  function renderLine(text, key) {
-    const matches = getStoryQuizTargetMatches(text, target);
-    const words = tokenizeStoryQuizWords(text);
-    const parts = [];
-    let cursor = 0;
-    let wordIndex = 0;
-    let matchIndex = 0;
-
-    while (wordIndex < words.length) {
-      const word = words[wordIndex];
-      const match = matches[matchIndex];
-
-      if (match && word.start >= match.start && word.start < match.end) {
-        if (match.start > cursor) parts.push(text.slice(cursor, match.start));
-        const phrase = text.slice(match.start, match.end);
-        parts.push(
-          <button
-            key={`${key}_target_${matchIndex}`}
-            type="button"
-            className={`story-quiz__word story-quiz__target${answered ? " story-quiz__target--found" : ""}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onTarget();
-            }}
-            disabled={answered}
-            aria-label={answered ? `Найденный фрагмент: ${phrase}` : phrase}
-          >
-            {phrase}
-          </button>,
-        );
-        cursor = match.end;
-        matchIndex += 1;
-        while (wordIndex < words.length && words[wordIndex].start < match.end) wordIndex += 1;
-        continue;
-      }
-
-      if (word.start > cursor) parts.push(text.slice(cursor, word.start));
-      const wordText = text.slice(word.start, word.end);
-      const uid = `${key}_w${wordIndex}`;
-      parts.push(
-        <button
-          key={uid}
-          type="button"
-          className={`story-quiz__word${missedWordUid === uid ? " story-quiz__word--miss" : ""}`}
-          onClick={(event) => handleWordMiss(uid, event)}
-          disabled={answered}
-          aria-label={wordText}
-        >
-          {wordText}
-        </button>,
-      );
-      cursor = word.end;
-      wordIndex += 1;
-    }
-
-    if (cursor < text.length) parts.push(text.slice(cursor));
-    return parts;
-  }
-
-  return (
-    <div className="reading-text reading-text--flow story-quiz__text">
-      <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
-        {paragraphs.map((paraLines, paragraphIndex) => (
-          <p className="reading-flow-para" key={paraLines[0]?.id ?? paragraphIndex}>
-            {paraLines.map((line, index) => {
-              const text = getLineText(line, textStyle);
-              const isDialogue = text.trimStart().startsWith("—");
-              const previousIsDialogue = index > 0 && getLineText(paraLines[index - 1], textStyle).trimStart().startsWith("—");
-              return (
-                <Fragment key={line.id ?? index}>
-                  {index > 0 && (isDialogue || previousIsDialogue ? <br /> : " ")}
-                  {renderLine(text, line.id ?? index)}
-                </Fragment>
-              );
-            })}
-          </p>
-        ))}
-      </div>
+function StoryQuizAnswerBar({ choice, answered, onConfirm, onNext, nextLabel = "Следующий вопрос" }) {
+  return <div className="story-quiz__answer-bar" aria-label="Выбранный ответ">
+    <div className="story-quiz__selection-copy">
+      <span>{answered ? "Ответ найден" : choice.rejected ? "Попробуй другой ответ" : "Твой выбор"}</span>
+      <strong>{choice.selected ? `«${answered ? choice.selected.answerText ?? choice.selected.text : choice.selected.text}»` : "Выбери слово в тексте"}</strong>
     </div>
-  );
+    {answered && onNext ? <button type="button" className="micro-exercise-next" onClick={onNext}>{nextLabel}</button>
+      : <button type="button" className="micro-exercise-next" onClick={onConfirm} disabled={!choice.selected || choice.rejected || answered}>
+        {answered ? "Ответ принят" : "Ответить"}
+      </button>}
+  </div>;
 }
 
-function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect }) {
+function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect, onQualityAnswer }) {
   const textStyle = sessionParams?.textStyle ?? "normal";
   const [answered, setAnswered] = useState(false);
+  const choice = useStoryQuizChoice();
+  const pictureUsed = useRef(false);
+  const onRequest = task.text?.illustrationSupport === "on_request";
 
   function chooseTarget() {
     if (answered) return;
     setAnswered(true);
-    // Finding the phrase is the answer itself. Keep the highlight visible briefly,
-    // then move to the next question without requiring an extra tap on the card.
+    if (pictureUsed.current) {
+      onQualityAnswer("prompted", task.textId, task.question.id);
+      return;
+    }
+    // This mode submits only on confirmation. Keep the confirmed choice visible
+    // briefly before advancing; the reader's inline exercise advances manually.
     onCorrect(task.textId, task.question.id, {
       autoAdvance: true,
       autoAdvanceDelayMs: 700,
     });
   }
 
-  function markMiss() {
+  function markMiss(result) {
     if (answered) return;
-    onIncorrect(task.textId, task.question.id);
+    onIncorrect(task.textId, task.question.id, result.attempts.at(-1).answer);
   }
 
   return (
-    <div className="session-body reading-body story-quiz">
+    <div className={`session-body reading-body story-quiz${onRequest ? " story-quiz--micro" : ""}`}>
       <div className="story-quiz__reading">
         <div className="story-quiz__story-copy">
           <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
           <section className="story-quiz__question" aria-labelledby="story-quiz-question" onClick={(event) => event.stopPropagation()}>
-            <div className="story-quiz__question-count">Найди в тексте · {task.questionIndex + 1} из {task.questionCount}</div>
+            <div className="story-quiz__question-count">{task.question?.kind === "gist" ? "Подумай и найди" : "Найди в тексте"} · {task.questionIndex + 1} из {task.questionCount}</div>
             <h2 id="story-quiz-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
-            <div className="story-quiz__hint">Нажми на нужное слово или фразу в рассказе.</div>
+            <div className="story-quiz__hint" role="status">{answered ? "Ответ найден." : storyQuizSearchHint(task.question?.prompt, choice.rejected, choice.selected?.near)}</div>
           </section>
           <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
           <StoryQuizTargetText
             lines={task.text?.lines ?? []}
             textStyle={textStyle}
-            target={task.question?.target ?? ""}
+            target={task.question?.targets ?? task.question?.target ?? ""}
             answered={answered}
-            onTarget={chooseTarget}
-            onMiss={markMiss}
+            selection={choice.selected}
+            rejected={choice.rejected}
+            onSelect={choice.select}
+            sentenceLayout={task.text?.sentenceLayout}
           />
+          {onRequest && <StoryPictureSupport topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
         </div>
-        <div className="story-quiz__illustration">
+        {!onRequest && <div className="story-quiz__illustration">
           <ReadingIllustration topicId={topicId} text={task.text} />
-        </div>
+        </div>}
       </div>
+      <StoryQuizAnswerBar choice={choice} answered={answered} onConfirm={() => choice.confirm(chooseTarget, markMiss)} />
     </div>
   );
 }
@@ -611,31 +541,48 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
 // would the child have done) — there is no single located phrase to grade,
 // so it advances on the adult's own "next" tap rather than through the
 // find/miss scoring the rest of the mode uses.
-function StoryQuizDiscussTask({ task, topicId, sessionParams, onCorrect }) {
+function StoryQuizDiscussTask({ task, topicId, sessionParams, onCorrect, onQualityAnswer }) {
   const textStyle = sessionParams?.textStyle ?? "normal";
+  const pictureUsed = useRef(false);
+  const onRequest = task.text?.illustrationSupport === "on_request";
+
+  function assess(value) {
+    onQualityAnswer(value === "independent" && pictureUsed.current ? "prompted" : value, task.textId, task.question.id);
+  }
 
   function next() {
     onCorrect(task.textId, task.question.id, { assisted: true });
   }
 
   return (
-    <div className="session-body reading-body story-quiz">
+    <div className={`session-body reading-body story-quiz${onRequest ? " story-quiz--micro story-quiz--oral" : ""}`}>
       <div className="story-quiz__reading">
         <div className="story-quiz__story-copy">
           <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
           <section className="story-quiz__question story-quiz__question--discuss" aria-labelledby="story-quiz-discuss-question">
-            <div className="story-quiz__question-count">Обсудите вместе · {task.questionIndex + 1} из {task.questionCount}</div>
+            <div className="story-quiz__question-count">{onRequest ? "Ответь по смыслу" : "Обсудите вместе"} · {task.questionIndex + 1} из {task.questionCount}</div>
             <h2 id="story-quiz-discuss-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
-            <button type="button" className="story-quiz__discuss-next" onClick={next}>Обсудили, дальше</button>
+            {onRequest ? <>
+              <div className="story-quiz__hint">Ответ можно сказать, показать или разыграть.</div>
+            </> : <button type="button" className="story-quiz__discuss-next" onClick={next}>Обсудили, дальше</button>}
           </section>
           <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
           <div className="story-quiz__text">
-            <ReadingTextBlock lines={task.text?.lines ?? []} textStyle={textStyle} flow />
+            <ReadingTextBlock lines={task.text?.lines ?? []} textStyle={textStyle} flow={!task.text?.sentenceLayout} />
           </div>
+          {onRequest && <StoryPictureSupport topicId={topicId} text={task.text} onReveal={() => { pictureUsed.current = true; }} />}
+          {onRequest && <div className="micro-oral-assessment">
+            <div className="micro-assessment-label">Отметка взрослого</div>
+            <div className="story-quiz__assessment">
+              <button type="button" onClick={() => assess("independent")}>Самостоятельно</button>
+              <button type="button" onClick={() => assess("prompted")}>С помощью</button>
+              <button type="button" onClick={() => assess("none")}>Пока нет ответа</button>
+            </div>
+          </div>}
         </div>
-        <div className="story-quiz__illustration">
+        {!onRequest && <div className="story-quiz__illustration">
           <ReadingIllustration topicId={topicId} text={task.text} />
-        </div>
+        </div>}
       </div>
     </div>
   );

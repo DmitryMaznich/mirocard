@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Короткие рассказы — макет v01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Макет, не исходник React. Палитра — группа «грамотность» из правил
+   оформления Mirocard: кремовая бумага, бирюзовый акцент, Nunito. */
+:root {
+  --paper: #fdfcf9;
+  --paper-2: #f6f2ea;
+  --ink: #23383d;
+  --ink-soft: #5c6d70;
+  --ink-faint: #9aa6a7;
+  --rule: #e8e2d6;
+  --teal: #4a9b8f;
+  --teal-dark: #2a6b60;
+  --teal-tint: #e3f1ee;
+  --pick: #e5edf1;
+  --pick-line: #587684;
+  --ok: #16a34a;
+  --ok-tint: #dcfce7;
+  --near: #f6e6d8;
+  --near-line: #b98966;
+  --vova: #3b6fd8;   /* синяя футболка */
+  --petya: #2f9a55;  /* зелёная футболка */
+  --anya: #e0882b;   /* рыжие косички, жёлтая футболка */
+  --olya: #e0645a;   /* коралловая футболка */
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #e9ecec; color: var(--ink); font-family: "Nunito", sans-serif; }
+.doc { max-width: 1180px; margin: 0 auto; padding: 40px 24px 80px; }
+.doc > h1 { font-size: 34px; margin: 0 0 8px; }
+.doc > p.lead { font-size: 18px; color: var(--ink-soft); max-width: 820px; margin: 0 0 8px; line-height: 1.5; }
+.screen-block { margin-top: 56px; }
+.screen-block h2 { font-size: 22px; margin: 0 0 6px; }
+.screen-block .why { color: var(--ink-soft); max-width: 860px; margin: 0 0 18px; line-height: 1.55; font-size: 16px; }
+.screen-block .why b { color: var(--ink); }
+.row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+
+/* Рамки устройств */
+.ipad { width: 1024px; height: 768px; border-radius: 28px; background: var(--paper); box-shadow: 0 0 0 10px #1e2628, 0 24px 60px rgba(0,0,0,.25); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.phone { width: 390px; height: 844px; border-radius: 44px; background: var(--paper); box-shadow: 0 0 0 10px #1e2628, 0 24px 60px rgba(0,0,0,.25); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.phone .status { height: 50px; flex: none; }
+@media (max-width: 1100px) { .ipad { transform: scale(.8); transform-origin: top left; margin-bottom: -150px; margin-right: -200px; } }
+
+/* Общие элементы */
+.bar { display: flex; align-items: center; gap: 14px; padding: 18px 26px 10px; flex: none; }
+.bar h3 { margin: 0; font-size: 22px; font-weight: 800; flex: 1; }
+.icon-btn { width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--paper-2); display: grid; place-items: center; color: var(--ink-soft); flex: none; }
+.icon-btn svg { width: 24px; height: 24px; }
+.icon-btn.quiet { background: transparent; color: var(--ink-faint); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; flex: none; }
+.avatar.sm { width: 26px; height: 26px; font-size: 12px; }
+.avatar.lg { width: 56px; height: 56px; font-size: 24px; }
+.v { background: var(--vova); } .p { background: var(--petya); } .a { background: var(--anya); } .o { background: var(--olya); }
+.btn { border: 0; border-radius: 18px; font: inherit; font-weight: 800; font-size: 20px; padding: 16px 28px; color: #fff; background: var(--teal); box-shadow: 0 5px 0 var(--teal-dark); display: inline-flex; align-items: center; gap: 10px; }
+.btn.ghost { background: #fff; color: var(--ink); box-shadow: 0 5px 0 var(--rule); border: 2px solid var(--rule); }
+.btn[disabled] { background: #d9dedd; box-shadow: 0 5px 0 #c2c9c8; color: #f4f6f6; }
+.btn svg { width: 22px; height: 22px; }
+
+/* A. Полка */
+.heroes { display: flex; gap: 10px; padding: 4px 26px 14px; flex: none; }
+.hero-chip { display: flex; align-items: center; gap: 8px; padding: 6px 16px 6px 6px; border-radius: 999px; background: #fff; border: 2px solid var(--rule); font-weight: 800; font-size: 16px; }
+.hero-chip.all { padding: 10px 18px; }
+.hero-chip.on { border-color: var(--teal); background: var(--teal-tint); }
+.shelf { overflow: hidden; padding: 0 0 0 26px; flex: 1; }
+.level { margin-bottom: 18px; }
+.level-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px; }
+.level-head .n { width: 30px; height: 30px; border-radius: 10px; background: var(--ink); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 16px; }
+.level-head b { font-size: 19px; }
+.level-head span { color: var(--ink-faint); font-size: 15px; font-weight: 600; }
+.covers { display: flex; gap: 16px; }
+.cover { width: 150px; flex: none; }
+.cover .img { width: 150px; height: 150px; border-radius: 18px; overflow: hidden; position: relative; background: var(--paper-2); box-shadow: 0 2px 0 rgba(0,0,0,.05); }
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover .img .avatar { position: absolute; left: 8px; bottom: 8px; border: 2px solid #fff; }
+.cover .done { position: absolute; right: 8px; top: 8px; width: 28px; height: 28px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; border: 2px solid #fff; }
+.cover .done svg { width: 16px; height: 16px; }
+.cover .t { font-weight: 800; font-size: 15px; margin-top: 8px; line-height: 1.25; }
+.cover.dim .img { opacity: .35; }
+
+/* B. Разворот */
+.spread { flex: 1; display: grid; grid-template-columns: .92fr 1.08fr; gap: 36px; padding: 6px 36px 0; min-height: 0; }
+.frame { position: relative; align-self: center; }
+.frame img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 28px; display: block; }
+.frame .dots { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rule); }
+.dot.on { background: var(--ink); width: 26px; border-radius: 5px; }
+.page { align-self: center; }
+.page .who { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+.page h4 { font-size: 34px; margin: 0 0 22px; font-weight: 900; letter-spacing: -.01em; }
+.sent { font-size: 29px; line-height: 1.45; margin: 0 0 14px; color: var(--ink); transition: opacity .2s; }
+.sent.faded { opacity: .38; }
+.sent.now { background: linear-gradient(transparent 62%, #f3e3b8 62%); display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.foot { display: flex; align-items: center; gap: 16px; padding: 14px 30px 22px; flex: none; }
+.foot .grow { flex: 1; display: flex; justify-content: center; gap: 6px; }
+.foot .mini { width: 8px; height: 8px; border-radius: 50%; background: var(--rule); }
+.foot .mini.on { background: var(--teal); }
+
+/* C. Вопрос */
+.qtrack { display: flex; gap: 8px; align-items: center; }
+.qtrack i { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--rule); }
+.qtrack i.done { background: var(--teal); }
+.qtrack i.now { outline: 3px solid var(--teal); outline-offset: 2px; background: #fff; }
+.qtrack i.gist { border-radius: 3px; transform: rotate(45deg); width: 12px; height: 12px; margin: 0 4px; }
+.qtrack i.talk { border-radius: 50% 50% 50% 4px; }
+.qtrack .sep { width: 10px; }
+.ask { display: flex; gap: 16px; align-items: flex-start; padding: 8px 36px 0; flex: none; }
+.bubble { background: #fff; border: 2px solid var(--rule); border-radius: 6px 26px 26px 26px; padding: 16px 22px 18px; flex: 1; position: relative; }
+.bubble .kind { display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--teal-dark); background: var(--teal-tint); border-radius: 999px; padding: 3px 10px; margin-bottom: 6px; }
+.bubble p { margin: 0; font-size: 30px; font-weight: 900; line-height: 1.25; }
+.bubble .say { position: absolute; right: 14px; top: 14px; }
+.textcard { margin: 18px 36px 0; padding: 22px 28px; background: #fff; border-radius: 24px; border: 2px solid var(--rule); flex: 1; min-height: 0; position: relative; }
+.textcard .ln { font-size: 30px; line-height: 1.55; margin: 0 0 14px; }
+.w { padding: 1px 3px; border-radius: 7px; }
+.w.pick { background: var(--pick); box-shadow: inset 0 -3px 0 var(--pick-line); }
+.w.ok, .gap.ok { background: var(--ok-tint); box-shadow: inset 0 -3px 0 var(--ok); color: #14532d; }
+.w.near { background: var(--near); box-shadow: inset 0 -3px 0 var(--near-line); }
+.textcard .pic { position: absolute; right: 16px; top: 16px; }
+.answerbar { display: flex; align-items: center; gap: 18px; padding: 16px 36px 24px; flex: none; }
+.slot { flex: 1; height: 64px; border-radius: 18px; border: 2.5px dashed #cbd5d4; display: flex; align-items: center; padding: 0 22px; font-size: 26px; font-weight: 900; color: var(--ink-faint); }
+.slot.filled { border-style: solid; border-color: var(--pick-line); background: var(--pick); color: var(--ink); }
+.slot.ok { border-style: solid; border-color: var(--ok); background: var(--ok-tint); color: #14532d; gap: 12px; }
+.slot.ok svg { width: 28px; height: 28px; }
+
+/* E. Финал */
+.final { flex: 1; padding: 6px 36px 0; display: flex; flex-direction: column; align-items: center; }
+.final h4 { font-size: 32px; margin: 0 0 18px; font-weight: 900; }
+.pair { display: flex; gap: 18px; }
+.pair img { width: 220px; height: 220px; border-radius: 22px; object-fit: cover; }
+.chain { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 26px 0 0; max-width: 960px; }
+.chip { background: #fff; border: 2px solid var(--rule); border-radius: 14px; padding: 8px 14px; font-size: 21px; font-weight: 800; }
+.chip.g { border-color: var(--teal); background: var(--teal-tint); }
+.arrow { color: var(--ink-faint); font-size: 22px; font-weight: 900; }
+.next-cover { display: flex; align-items: center; gap: 12px; }
+.next-cover img { width: 46px; height: 46px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(255,255,255,.7); }
+
+/* F. Слой взрослого */
+.scrim { position: absolute; inset: 0; background: rgba(20,30,32,.38); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 28px 28px 0 0; padding: 14px 32px 26px; max-height: 78%; }
+.grab { width: 48px; height: 5px; border-radius: 3px; background: var(--rule); margin: 0 auto 12px; }
+.sheet h5 { font-size: 22px; margin: 0 0 4px; font-weight: 900; }
+.sheet .sub { color: var(--ink-soft); margin: 0 0 14px; font-size: 15px; }
+.qa { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 18px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 16px; }
+.qa .q { color: var(--ink-soft); }
+.qa .ans { font-weight: 900; font-size: 18px; }
+.tag { font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--paper-2); color: var(--ink-soft); white-space: nowrap; }
+.tag.first { background: var(--ok-tint); color: #166534; }
+.tag.help { background: #fdf0d6; color: #8a5a10; }
+.tag.kind { background: var(--teal-tint); color: var(--teal-dark); }
+.talkbox { margin-top: 14px; background: var(--paper-2); border-radius: 16px; padding: 12px 16px; }
+.talkbox b { display: block; font-size: 17px; }
+.talkbox span { color: var(--ink-soft); }
+.toggle { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; font-weight: 700; }
+.sw { width: 52px; height: 30px; border-radius: 15px; background: var(--teal); position: relative; }
+.sw::after { content: ""; position: absolute; right: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; }
+
+/* Телефон */
+.phone .frame img { border-radius: 22px; }
+.phone .page h4 { font-size: 28px; margin-bottom: 14px; }
+.phone .sent { font-size: 24px; margin-bottom: 8px; }
+.phone .bubble p { font-size: 24px; }
+.phone .textcard { margin: 14px 16px 0; padding: 16px 18px; }
+.phone .textcard .ln { font-size: 22px; }
+.phone .ask { padding: 6px 16px 0; gap: 10px; }
+.phone .answerbar { padding: 12px 16px calc(18px + 34px); gap: 12px; }
+.phone .slot { height: 56px; font-size: 22px; }
+.phone .btn { font-size: 18px; padding: 14px 20px; }
+
+/* Записки к макету */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 18px; max-width: 1040px; }
+.note { background: #fff; border-radius: 14px; padding: 14px 16px; font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
+.note b { color: var(--ink); display: block; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>Короткие рассказы — макет v01</h1>
+  <p class="lead">Идея «тихая книжка»: кремовая бумага, одно действие на экране, никаких служебных подписей на детском экране. Тексты, вопросы и кадры настоящие (колода 2.0.5, «Вода для кота»). Это макет для согласования, не исходник: размеры и цвета взяты из правил оформления Mirocard для тем грамотности.</p>
+
+  <!-- A. Полка -->
+  <section class="screen-block">
+    <h2>A. Сборник — полка с книжками</h2>
+    <p class="why">Вместо выпадающего списка — обложки по трём уровням. <b>Фильтр по героям</b>: ребёнок выбирает знакомого героя. Выполненный рассказ отмечен галочкой без звёзд и процентов. Замок вверху справа открывает слой взрослого (экран F).</p>
+    <div class="ipad">
+      <div class="bar">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3>Короткие рассказы</h3>
+        <button class="icon-btn quiet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+      </div>
+      <div class="heroes">
+        <span class="hero-chip all on">Все</span>
+        <span class="hero-chip"><span class="avatar sm v" style="width:30px;height:30px">В</span>Вова</span>
+        <span class="hero-chip"><span class="avatar sm p" style="width:30px;height:30px">П</span>Петя</span>
+        <span class="hero-chip"><span class="avatar sm a" style="width:30px;height:30px">А</span>Аня</span>
+        <span class="hero-chip"><span class="avatar sm o" style="width:30px;height:30px">О</span>Оля</span>
+      </div>
+      <div class="shelf">
+        <div class="level">
+          <div class="level-head"><span class="n">1</span><b>Шаг за шагом</b><span>одно действие за другим</span></div>
+          <div class="covers">
+            <div class="cover"><div class="img"><img src="img/micro_book_1.webp" alt=""><span class="avatar sm a">А</span><span class="done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div><div class="t">Книга на полке</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_hands_1.webp" alt=""><span class="avatar sm o">О</span><span class="done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div><div class="t">Мокрые руки</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_red_pencil_1.webp" alt=""><span class="avatar sm a">А</span></div><div class="t">Котёнок</div></div>
+          </div>
+        </div>
+        <div class="level">
+          <div class="level-head"><span class="n">2</span><b>Что-то случилось</b><span>проблема и как её решили</span></div>
+          <div class="covers">
+            <div class="cover"><div class="img"><img src="img/micro_ball_1.webp" alt=""><span class="avatar sm v">В</span></div><div class="t">Мяч под стулом</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_tower_1.webp" alt=""><span class="avatar sm p">П</span></div><div class="t">Башня упала</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_water_1.webp" alt=""><span class="avatar sm a">А</span></div><div class="t">Пролитая вода</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_pencil_1.webp" alt=""><span class="avatar sm p">П</span></div><div class="t">Сломанный карандаш</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_boots_1.webp" alt=""><span class="avatar sm v">В</span></div><div class="t">Грязные сапоги</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_puddle_1.webp" alt=""><span class="avatar sm v">В</span></div><div class="t">Лужа на дорожке</div></div>
+          </div>
+        </div>
+        <div class="level">
+          <div class="level-head"><span class="n">3</span><b>Вдвоём</b><span>двое героев, просьба, разговор</span></div>
+          <div class="covers">
+            <div class="cover"><div class="img"><img src="img/micro_pass_1.webp" alt=""><span class="avatar sm v">В</span></div><div class="t">Игра с папой</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_cookies_1.webp" alt=""><span class="avatar sm p">П</span></div><div class="t">Печенье для бабушки</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_napkin_1.webp" alt=""><span class="avatar sm o">О</span></div><div class="t">Салфетка для папы</div></div>
+            <div class="cover"><div class="img"><img src="img/micro_bag_1.webp" alt=""><span class="avatar sm o">О</span></div><div class="t">Оля помогает маме</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><b>Уровень = полка</b>Ряд листается вбок; уровень 2 длиннее экрана — это видно по обрезанной справа обложке.</div>
+      <div class="note"><b>Аватар героя</b>Кружок цвета его футболки с первой буквой: Вова синий, Петя зелёный, Аня оранжевая, Оля коралловая. Одинаков на обложке, в вопросе и в фильтре.</div>
+      <div class="note"><b>Названия уровней</b>Детские, без терминов: «Шаг за шагом», «Что-то случилось», «Вдвоём». Методические названия — в слое взрослого.</div>
+    </div>
+  </section>
+
+  <!-- B. Разворот -->
+  <section class="screen-block">
+    <h2>B. Чтение — разворот</h2>
+    <p class="why">Кадр крупно слева, текст справа, <b>кадр меняется по ходу текста</b>: первая половина рассказа идёт под первую картинку, вторая — под вторую (какое предложение к какому кадру — задаётся в данных рассказа). Взрослый нажимает на предложение — оно подсвечивается маркером, остальные бледнеют. Текст 30 px, по предложению на строку. Перелистывание свайпом; кнопка «Вопросы» — главная.</p>
+    <div class="ipad">
+      <div class="bar">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3></h3>
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+        <button class="icon-btn quiet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+      </div>
+      <div class="spread">
+        <div class="frame"><img src="img/micro_cat_1.webp" alt=""><div class="dots"><span class="dot on"></span><span class="dot"></span></div></div>
+        <div class="page">
+          <div class="who"><span class="avatar sm p">П</span>Петя</div>
+          <h4>Вода для кота</h4>
+          <p class="sent"><span class="sent now">Петя увидел, что у кота в миске нет воды.</span></p>
+          <p class="sent faded">Петя взял стакан.</p>
+          <p class="sent faded">Петя налил в стакан воду из крана.</p>
+          <p class="sent faded">Петя вылил воду из стакана в миску.</p>
+          <p class="sent faded">Кот стал пить воду из миски.</p>
+        </div>
+      </div>
+      <div class="foot">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="grow"><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini on"></span><span class="mini"></span><span class="mini"></span><span class="mini"></span><span class="mini"></span></div>
+        <button class="btn">Вопросы <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><b>Слоговой режим</b>Вместо дефисов — дуги под слогами или чередование двух оттенков, как в букварях. Дефис похож на знак препинания.</div>
+      <div class="note"><b>Озвучка</b>Кнопка-динамик читает рассказ и ведёт маркер по предложениям. Когда озвучки нет, маркер ставит взрослый нажатием.</div>
+      <div class="note"><b>Точки внизу</b>Где мы в сборнике: 11 из 15. Цифр нет; номер видит взрослый в своём слое.</div>
+    </div>
+  </section>
+
+  <!-- C. Вопрос -->
+  <section class="screen-block">
+    <h2>C. Вопрос на понимание</h2>
+    <p class="why">Вопрос — <b>реплика героя</b> в пузыре, озвучивается сам. Над ним дорожка вопросов: кружки — поиск, ромбы — понимание, «облачко» — разговор. Все слова текста одинаковые; выбранное слово ложится в рамку внизу, «Ответить» — большая кнопка. Длинных подсказок на экране нет. Значок картинки в углу открывает кадр как помощь.</p>
+    <div class="row">
+      <div class="ipad">
+        <div class="bar">
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <h3><span class="qtrack"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><span class="sep"></span><i class="gist now"></i><i class="gist"></i><span class="sep"></span><i class="talk"></i></span></h3>
+          <button class="icon-btn quiet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+        </div>
+        <div class="ask">
+          <span class="avatar lg p">П</span>
+          <div class="bubble"><span class="kind">Подумай</span><p>Что Петя увидел в начале?</p>
+            <button class="icon-btn say"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button></div>
+        </div>
+        <div class="textcard">
+          <button class="icon-btn pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M20.5 16l-5-5-8 8"/></svg></button>
+          <p class="ln"><span class="w">Петя</span> <span class="w">увидел,</span> <span class="w">что</span> <span class="w">у</span> <span class="w">кота</span> <span class="w">в</span> <span class="w">миске</span> <span class="w">нет</span> <span class="w pick">воды</span>.</p>
+          <p class="ln"><span class="w">Петя</span> <span class="w">взял</span> <span class="w">стакан</span>.</p>
+          <p class="ln"><span class="w">Петя</span> <span class="w">налил</span> <span class="w">в</span> <span class="w">стакан</span> <span class="w">воду</span> <span class="w">из</span> <span class="w">крана</span>.</p>
+          <p class="ln"><span class="w">Петя</span> <span class="w">вылил</span> <span class="w">воду</span> <span class="w">из</span> <span class="w">стакана</span> <span class="w">в</span> <span class="w">миску</span>.</p>
+          <p class="ln"><span class="w">Кот</span> <span class="w">стал</span> <span class="w">пить</span> <span class="w">воду</span> <span class="w">из</span> <span class="w">миски</span>.</p>
+        </div>
+        <div class="answerbar">
+          <div class="slot filled">воды</div>
+          <button class="btn">Ответить</button>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><b>Поиск и понимание</b>Различаются только меткой в пузыре («Подумай») и формой точки на дорожке. Механика одна: нажать слово.</div>
+      <div class="note"><b>Ошибка</b>Неверное слово мягко возвращается, рамка пустеет — без красного и без текста. После двух ошибок слабо подсвечивается нужное предложение; это помощь, она записывается.</div>
+      <div class="note"><b>«Ты рядом»</b>Предлог из ответа подсвечивается тёплым цветом, без слов на экране — подсказку «Ты рядом» произносит голос.</div>
+    </div>
+  </section>
+
+  <!-- D. Ответ найден -->
+  <section class="screen-block">
+    <h2>D. Ответ найден</h2>
+    <p class="why">Вся фраза-ответ становится зелёной и в тексте, и в рамке. Кнопка меняется на «Дальше». Голос: «Верно! Нет воды».</p>
+    <div class="ipad" style="height:520px">
+      <div class="bar">
+        <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <h3><span class="qtrack"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><span class="sep"></span><i class="gist done"></i><i class="gist"></i><span class="sep"></span><i class="talk"></i></span></h3>
+      </div>
+      <div class="ask"><span class="avatar lg p">П</span><div class="bubble"><span class="kind">Подумай</span><p>Что Петя увидел в начале?</p></div></div>
+      <div class="textcard">
+        <p class="ln"><span class="w">Петя</span> <span class="w">увидел,</span> <span class="w">что</span> <span class="w">у</span> <span class="w">кота</span> <span class="w">в</span> <span class="w">миске</span> <span class="w ok">нет</span><span class="gap ok"> </span><span class="w ok">воды</span>.</p>
+        <p class="ln" style="opacity:.5"><span class="w">Петя</span> <span class="w">взял</span> <span class="w">стакан</span>.</p>
+      </div>
+      <div class="answerbar">
+        <div class="slot ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>нет воды</div>
+        <button class="btn">Дальше <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- E. Финал -->
+  <section class="screen-block">
+    <h2>E. Конец рассказа — лента</h2>
+    <p class="why">Оба кадра и под ними найденные ответы цепочкой — <b>готовая опора для пересказа</b>: взрослый проводит пальцем, ребёнок называет или показывает. Ответы на понимание выделены бирюзовым. Дальше — обложка следующего рассказа.</p>
+    <div class="ipad">
+      <div class="bar"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h3></h3></div>
+      <div class="final">
+        <h4>Вода для кота</h4>
+        <div class="pair"><img src="img/micro_cat_1.webp" alt=""><img src="img/micro_cat_2.webp" alt=""></div>
+        <div class="chain">
+          <span class="chip">Петя</span><span class="arrow">→</span>
+          <span class="chip g">нет воды</span><span class="arrow">→</span>
+          <span class="chip">стакан</span><span class="arrow">→</span>
+          <span class="chip">из крана</span><span class="arrow">→</span>
+          <span class="chip">в миску</span><span class="arrow">→</span>
+          <span class="chip">пить воду</span>
+        </div>
+      </div>
+      <div class="foot" style="justify-content:center;gap:22px;padding-bottom:30px">
+        <button class="btn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>Ещё раз</button>
+        <button class="btn"><span class="next-cover"><img src="img/micro_pass_1.webp" alt="">Игра с папой</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- F. Слой взрослого -->
+  <section class="screen-block">
+    <h2>F. Слой взрослого</h2>
+    <p class="why">Всё, что сейчас написано на детском экране мелким шрифтом, уезжает сюда: попытки, первый ответ, помощь картинкой, вопрос для разговора с примером ответа, переключатель вопросов на понимание. Открывается замком (долгое нажатие или PIN — как в остальном приложении).</p>
+    <div class="ipad">
+      <div class="bar"><h3><span class="qtrack"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><span class="sep"></span><i class="gist done"></i><i class="gist now"></i><span class="sep"></span><i class="talk"></i></span></h3></div>
+      <div class="ask"><span class="avatar lg p">П</span><div class="bubble"><span class="kind">Подумай</span><p>Для кого Петя налил воду?</p></div></div>
+      <div class="textcard"><p class="ln">Петя увидел, что у кота в миске нет воды.</p><p class="ln">Петя взял стакан.</p></div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <h5>Вода для кота</h5>
+        <p class="sub">Уровень 2 · Что-то случилось · рассказ 11 из 15</p>
+        <div class="qa"><span class="q">Как зовут мальчика?</span><span class="ans">Петя</span><span class="tag first">С первой попытки</span></div>
+        <div class="qa"><span class="q">Откуда Петя налил воду в стакан?</span><span class="ans">из крана</span><span class="tag">2 попытки · «стакан»</span></div>
+        <div class="qa"><span class="q">Куда Петя вылил воду из стакана?</span><span class="ans">в миску</span><span class="tag help">С картинкой</span></div>
+        <div class="qa"><span class="q"><span class="tag kind">Понимание</span> Что Петя увидел в начале?</span><span class="ans">нет воды</span><span class="tag first">С первой попытки</span></div>
+        <div class="talkbox"><b>Для разговора: «Почему Петя взял стакан?»</b><span>Пример ответа: Потому что у кота не было воды. Петя хотел, чтобы кот попил. Ответ словом, жестом или показом.</span></div>
+        <div class="toggle">Вопросы на понимание<span class="sw"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- G. Телефон -->
+  <section class="screen-block">
+    <h2>G. Телефон</h2>
+    <p class="why">Те же экраны в столбик: кадр сверху на всю ширину, под ним текст; в вопросе — пузырь, текст, рамка ответа над полосой «домой» (место под неё заложено).</p>
+    <div class="row">
+      <div class="phone">
+        <div class="status"></div>
+        <div class="bar" style="padding:6px 16px 8px"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h3></h3><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button></div>
+        <div style="padding:0 16px"><div class="frame"><img src="img/micro_cat_1.webp" alt=""><div class="dots"><span class="dot on"></span><span class="dot"></span></div></div></div>
+        <div class="page" style="padding:10px 20px 0;flex:1">
+          <h4>Вода для кота</h4>
+          <p class="sent"><span class="sent now">Петя увидел, что у кота в миске нет воды.</span></p>
+          <p class="sent faded">Петя взял стакан.</p>
+          <p class="sent faded">Петя налил в стакан воду из крана.</p>
+        </div>
+        <div class="foot" style="padding:10px 16px calc(14px + 34px)"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="grow"></div><button class="btn">Вопросы</button></div>
+      </div>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="bar" style="padding:6px 16px 8px"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><h3><span class="qtrack"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><span class="sep"></span><i class="gist now"></i><i class="gist"></i><span class="sep"></span><i class="talk"></i></span></h3></div>
+        <div class="ask"><span class="avatar p">П</span><div class="bubble"><span class="kind">Подумай</span><p>Что Петя увидел в начале?</p></div></div>
+        <div class="textcard">
+          <p class="ln"><span class="w">Петя</span> <span class="w">увидел,</span> <span class="w">что</span> <span class="w">у</span> <span class="w">кота</span> <span class="w">в</span> <span class="w">миске</span> <span class="w">нет</span> <span class="w pick">воды</span>.</p>
+          <p class="ln"><span class="w">Петя</span> <span class="w">взял</span> <span class="w">стакан</span>.</p>
+          <p class="ln"><span class="w">Петя</span> <span class="w">налил</span> <span class="w">в</span> <span class="w">стакан</span> <span class="w">воду</span> <span class="w">из</span> <span class="w">крана</span>.</p>
+          <p class="ln"><span class="w">Петя</span> <span class="w">вылил</span> <span class="w">воду</span> <span class="w">из</span> <span class="w">стакана</span> <span class="w">в</span> <span class="w">миску</span>.</p>
+          <p class="ln"><span class="w">Кот</span> <span class="w">стал</span> <span class="w">пить</span> <span class="w">воду</span> <span class="w">из</span> <span class="w">миски</span>.</p>
+        </div>
+        <div class="answerbar"><div class="slot filled">воды</div><button class="btn">Ответить</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

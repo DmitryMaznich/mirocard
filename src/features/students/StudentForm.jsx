@@ -1,7 +1,5 @@
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState, useRef } from "react";
-import { LANGUAGES } from "../../../shared/languages.mjs";
-import LessonLanguagePicker from "@/shared/components/LessonLanguagePicker.jsx";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
@@ -76,8 +74,6 @@ export default function StudentForm({ initial, onSave, onCancel }) {
   const { t } = useUiTranslation();
   const [name,       setName]       = useState(initial?.name    ?? "");
   const [comment,    setComment]    = useState(initial?.comment ?? "");
-  const [lang,       setLang]       = useState(initial?.primaryLanguage ?? "");
-  const [lessonLanguage, setLessonLanguage] = useState(initial?.preferredLessonLanguage ?? null);
   const [videos,     setVideos]     = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput, setVideoInput] = useState("");
   const [videoError, setVideoError] = useState("");
@@ -96,8 +92,6 @@ export default function StudentForm({ initial, onSave, onCancel }) {
     onSave({
       name:            name.trim(),
       comment:         comment.trim(),
-      primaryLanguage: lang || null,
-      preferredLessonLanguage: lessonLanguage,
       rewardVideos:    videos,
       closeAdults:     adults,
     });
@@ -162,27 +156,6 @@ export default function StudentForm({ initial, onSave, onCancel }) {
         placeholder={t("students.comment")}
         rows={3}
       />
-      <div className="student-form__lang-label">{t("students.primaryLanguage")}</div>
-      <div className="student-form__lang-group">
-        <button
-          type="button"
-          className={`lang-btn ${lang === "" ? "lang-btn--active" : ""}`}
-          onClick={() => setLang("")}
-        >{t("students.unset")}</button>
-        {LANGUAGES.map((l) => (
-          <button
-            key={l.code}
-            type="button"
-            className={`lang-btn ${lang === l.code ? "lang-btn--active" : ""}`}
-            onClick={() => setLang(l.code)}
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
-
-      <LessonLanguagePicker value={lessonLanguage} onChange={setLessonLanguage} inherit />
-
       {/* ── Близкие взрослые ── */}
       <div className="student-form__section-label">{t("students.adults")}</div>
       <div className="student-form__section-hint">{t("students.adultsHelp")}</div>

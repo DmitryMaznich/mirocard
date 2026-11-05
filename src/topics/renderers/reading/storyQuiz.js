@@ -6,13 +6,76 @@
  *   + один мяч
  *   * Как ты думаешь, почему мама попросила катать мяч по очереди?
  *
- * `?` is the prompt, `+` the exact word or phrase the child finds and taps
- * in the story — five of this pair are required per story. `*` is an
+ * `?` is the prompt, `+` the exact word or phrase the child finds and taps.
+ * `??` is a comprehension question: the answer is still a fragment the child
+ * taps in the text, but the question does not repeat the sentence's words —
+ * it asks about the problem, a cause or a purpose of the same event (e.g.
+ * «Что Петя увидел в начале?» → «у кота в миске нет воды»). These come after
+ * the plain search questions and can be switched off per session.
+ * Additional `+` lines under the same prompt specify accepted alternatives
+ * in the story — the minimum is authored per story (five by default). `*` is an
  * optional, unscored discussion question with no located phrase: a "why" or
  * "what would you do" prompt meant for the child to answer out loud to the
  * adult, not by tapping the text. Keeping the source as plain text makes a
  * per-child correction far less cumbersome than a form.
  */
+export function getMinimumStoryFindQuestions(story) {
+  return Number.isInteger(story?.minimumFindQuestions) && story.minimumFindQuestions > 0
+    ? story.minimumFindQuestions
+    : 5;
+}
+
+// Plain search questions, i.e. not comprehension (`??`) or discussion (`*`).
+export function countStoryFindQuestions(questions) {
+  return (questions ?? []).filter((question) => question.kind === "find").length;
+}
+
+// Shared by the task engine and settings validation. An unconfigured legacy
+// deck still means all stories; the revised deck starts with micro-stories.
+export function getSelectedReadingStories(topicRecord, sessionParams = {}) {
+  const stage = sessionParams?.storyStage ?? topicRecord?.meta?.defaultStoryStage;
+  const stories = (topicRecord?.texts ?? []).filter((story) => story.kind === "story"
+    && (!stage || story.storyStage === stage));
+  const selectedIds = stage === "micro"
+    ? sessionParams?.selectedMicroStories
+    : sessionParams?.selectedStories;
+  return selectedIds?.length ? stories.filter((story) => selectedIds.includes(story.id)) : stories;
+}
+
+// Keep a child's edited blocks while adding new stories from deck updates.
+// Invalid edits stay visible to validation instead of silently falling back.
+export function mergeStoryQuizText(defaultText, customText, previousDefaultTexts = []) {
+  if (!customText?.trim()) return defaultText ?? "";
+  const base = parseStoryQuizText(defaultText);
+  const custom = parseStoryQuizText(customText);
+  if (!base.valid || !custom.valid) return customText;
+  const overrides = new Map(custom.groups.map((group) => [group.title, group]));
+  // A saved editor value contains the full collection. Refresh blocks that
+  // still equal a published default; retain actual per-child edits, including
+  // invalid ones, so validation can explain what needs the adult's attention.
+  const signature = (group) => JSON.stringify(group.questions.map(({ kind, prompt, target, targets }) => [kind, prompt, targets ?? (target ? [target] : null)]));
+  const obsoleteDefaults = new Set();
+  for (const previousText of Array.isArray(previousDefaultTexts) ? previousDefaultTexts : []) {
+    const previous = parseStoryQuizText(previousText);
+    if (!previous.valid) continue;
+    for (const group of previous.groups) {
+      const override = overrides.get(group.title);
+      if (override && signature(override) === signature(group)) {
+        overrides.delete(group.title);
+        obsoleteDefaults.add(group.title);
+      }
+    }
+  }
+  const baseTitles = new Set(base.groups.map((group) => group.title));
+  const groups = [
+    ...base.groups.map((group) => overrides.get(group.title) ?? group),
+    ...custom.groups.filter((group) => !baseTitles.has(group.title) && !obsoleteDefaults.has(group.title)),
+  ];
+  return groups.map((group) => `# ${group.title}\n\n${group.questions.map((question) => (
+    question.kind === "discuss" ? `* ${question.prompt}` : `${question.kind === "gist" ? "??" : "?"} ${question.prompt}\n${(question.targets ?? [question.target]).map((target) => `+ ${target}`).join("\n")}`
+  )).join("\n\n")}`).join("\n\n");
+}
+
 export function normalizeStoryQuizText(value) {
   return String(value ?? "")
     .toLocaleLowerCase("ru-RU")
@@ -43,6 +106,17 @@ export function tokenizeStoryQuizWords(lineText) {
  * syllable-reading variant, so the renderer can make them accessible targets.
  */
 export function getStoryQuizTargetMatches(lineText, target) {
+  if (Array.isArray(target)) {
+    // Keep accepted alternatives as separate candidates where possible.
+    // For nested phrases the shorter accepted answer remains tappable.
+    const candidates = target.flatMap((value) => getStoryQuizTargetMatches(lineText, value))
+      .sort((a, b) => (a.end - a.start) - (b.end - b.start) || a.start - b.start);
+    const chosen = [];
+    for (const candidate of candidates) {
+      if (!chosen.some((range) => candidate.start < range.end && range.start < candidate.end)) chosen.push(candidate);
+    }
+    return chosen.sort((a, b) => a.start - b.start);
+  }
   const wanted = normalizeStoryQuizText(target);
   if (!wanted.length) return [];
 
@@ -58,6 +132,15 @@ export function getStoryQuizTargetMatches(lineText, target) {
     }
   }
   return matches;
+}
+
+// Every word of the story is its own, identical tap target, so the layout
+// never shows where an answer begins or ends. A tap on any meaningful word
+// inside an accepted answer counts («стул» for «под стул»); a tap on one of
+// these function words inside it only earns a "you're close" hint.
+const STORY_QUIZ_FUNCTION_WORDS = new Set(["и", "а", "в", "во", "на", "с", "со", "из", "под", "к", "ко", "по", "перед", "у", "для", "от", "до", "за", "о", "об", "что"]);
+export function isStoryQuizFunctionWord(word) {
+  return STORY_QUIZ_FUNCTION_WORDS.has(normalizeStoryQuizText(word).join(" "));
 }
 
 export function storyQuizTargetExists(story, target) {
@@ -87,9 +170,10 @@ export function parseStoryQuizText(source) {
     } else {
       group.questions.push({
         id: `q${group.questions.length + 1}`,
-        kind: "find",
+        kind: question.kind,
         prompt: question.prompt,
         target: question.target,
+        ...(question.targets.length > 1 ? { targets: question.targets } : {}),
         targetLine: question.targetLine,
       });
     }
@@ -125,13 +209,14 @@ export function parseStoryQuizText(source) {
 
     if (line.startsWith("?")) {
       finishQuestion();
-      const prompt = line.slice(1).trim();
+      const kind = line.startsWith("??") ? "gist" : "find";
+      const prompt = line.slice(kind === "gist" ? 2 : 1).trim();
       if (!prompt) {
         fail(lineNumber, "После ? напишите вопрос.");
         return;
       }
       questionNumber += 1;
-      question = { line: lineNumber, prompt, target: "", targetLine: null };
+      question = { line: lineNumber, kind, prompt, target: "", targets: [], targetLine: null };
       return;
     }
 
@@ -145,12 +230,11 @@ export function parseStoryQuizText(source) {
         fail(lineNumber, "После знака + напишите слово или фразу из рассказа.");
         return;
       }
-      if (question.target) {
-        fail(lineNumber, "У вопроса может быть только один фрагмент для поиска.");
-        return;
+      if (!question.target) {
+        question.target = target;
+        question.targetLine = lineNumber;
       }
-      question.target = target;
-      question.targetLine = lineNumber;
+      if (!question.targets.includes(target)) question.targets.push(target);
       return;
     }
 
@@ -178,7 +262,7 @@ export function parseStoryQuizText(source) {
       return;
     }
 
-    fail(lineNumber, "Используйте # для рассказа, ? для вопроса, + для фрагмента в тексте и * для вопроса на обсуждение.");
+    fail(lineNumber, "Используйте # для рассказа, ? для вопроса на поиск, ?? для вопроса на понимание, + для фрагмента в тексте и * для вопроса на обсуждение.");
   });
 
   finishGroup();
@@ -207,11 +291,13 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
     }
     for (const question of group.questions) {
       if (question.kind === "discuss") continue;
-      if (question.target && !storyQuizTargetExists(story, question.target)) {
-        errors.push({
-          line: question.targetLine,
-          message: `Фрагмент «${question.target}» не найден в рассказе «${group.title}».`,
-        });
+      for (const target of question.targets ?? [question.target]) {
+        if (target && !storyQuizTargetExists(story, target)) {
+          errors.push({
+            line: question.targetLine,
+            message: `Фрагмент «${target}» не найден в рассказе «${group.title}».`,
+          });
+        }
       }
     }
   }
@@ -222,12 +308,15 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
       errors.push({ line: null, message: `Нет вопросов к рассказу «${story.title}».` });
       continue;
     }
-    // Only questions with a located phrase count toward the minimum — the
-    // discussion question (*) is optional and unscored, so it shouldn't let
-    // an author satisfy the "5 find-questions" requirement with fewer.
-    const findCount = group.questions.filter((question) => question.kind !== "discuss").length;
-    if (findCount < 5) {
-      errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше 5 вопросов со знаком + (сейчас ${findCount}).` });
+    // Neither an oral nor a comprehension question substitutes for a
+    // required plain search question.
+    const findCount = countStoryFindQuestions(group.questions);
+    const minimum = getMinimumStoryFindQuestions(story);
+    if (findCount < minimum) {
+      errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше ${minimum} вопросов со знаком + (сейчас ${findCount}).` });
+    }
+    if (story.character && normalizeStoryQuizText(group.questions[0]?.target).join(" ") !== normalizeStoryQuizText(story.character).join(" ")) {
+      errors.push({ line: null, message: `Первым в рассказе «${story.title}» должен быть вопрос об имени: ${story.character}.` });
     }
   }
 

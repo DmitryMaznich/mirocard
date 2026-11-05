@@ -1,0 +1,89 @@
+[
+  {
+    "file": "docs/mockups/my-people-2026-11-04/my-people-v06.html",
+    "originalSha256": "19f8713c77fff1eccfcbfe580e6cc5537d3ad2638679b80fad8332f127db87fb",
+    "packagedSha256": "72409e8bb3cc264b97d842fd40a2fb97ab127f1d7d801d42de2a2a7e4c825836",
+    "bytes": 113288
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/my-people-v07.html",
+    "originalSha256": "92f2caa7890ca6ab59a9ed89bfe221f65ac76c2cd136c25737ed395da94ff43c",
+    "packagedSha256": "7173061d1aa09449b5342dffb61d805de5cedcb02772dbd291214deda7ca8906",
+    "bytes": 119203
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/04e05ac64519d99a.jpg",
+    "sha256": "04e05ac64519d99a868c1d3a522077f7be74abee5250a9f0aaa64cd6275020b0",
+    "bytes": 57549
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/05d9baf4a84eef78.jpg",
+    "sha256": "05d9baf4a84eef7837ddc925d47b06838a9f9dc852a24951cfbc5f7f279cca17",
+    "bytes": 56206
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/1506fc96971e84d1.ttf",
+    "sha256": "1506fc96971e84d1a4ca89f0d1157a881b9ce217bbfa05d2b3c9e3c8f6723091",
+    "bytes": 125536
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/1a025dfce6e6e03b.ttf",
+    "sha256": "1a025dfce6e6e03bbe31ba82277ec5ed96df8b8dd58b3df6267269490b90b1dc",
+    "bytes": 125464
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/3453cb8c16324673.jpg",
+    "sha256": "3453cb8c16324673fde7c14d14499b96426fe7b1d5b6486cd13ff1e504269794",
+    "bytes": 113354
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/867f9507fe939f4b.jpg",
+    "sha256": "867f9507fe939f4b6cd4f9150e63896f778aa6968271f6cb39c3f93b1e1f142c",
+    "bytes": 84247
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/9caa6d5464d4438c.ttf",
+    "sha256": "9caa6d5464d4438c3092a05d47952099e208862cacd5f655acb64012a1a15e78",
+    "bytes": 125376
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/9ecbdba35fa74f10.ttf",
+    "sha256": "9ecbdba35fa74f10a1a916c31649b802a12deb9e66c7b1fe4650afcfd4d16971",
+    "bytes": 125528
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/OFL.txt",
+    "sha256": "f3db92cc37279043d77b710b570f0bb575d1d42279dd1a182e1530bb7563a25d",
+    "bytes": 4386
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/a5855a041da65d63.jpg",
+    "sha256": "a5855a041da65d6327d00f4261f3006d20fc8a78b8e832b55dcb3f02c6a341ba",
+    "bytes": 84177
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/bec48be845e774e2.jpg",
+    "sha256": "bec48be845e774e2a76ff3203447cfac150ef0a18a4accdcd666bd7c5ae1888b",
+    "bytes": 75449
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/c5776505c7b3df3c.ttf",
+    "sha256": "c5776505c7b3df3c3ca763477b795d6bbc6517760bede0462ab77d1fb44954a6",
+    "bytes": 125416
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/ceb6eec0a584cae8.ttf",
+    "sha256": "ceb6eec0a584cae83e8f3ab868e2f03977b38ff6e78632bc8a7ec69dcf9f7c18",
+    "bytes": 125652
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/d11cabcc7383c3d5.jpg",
+    "sha256": "d11cabcc7383c3d5e1cf88d3081bb07f41ce3f7072f0f9f49109c3f0bd6fd63f",
+    "bytes": 49569
+  },
+  {
+    "file": "docs/mockups/my-people-2026-11-04/assets/f8109165043a6e14.jpg",
+    "sha256": "f8109165043a6e14ea3515154d8a56f2dc1dd3e6859b9471652dd9b0e016ccf3",
+    "bytes": 85078
+  }
+]

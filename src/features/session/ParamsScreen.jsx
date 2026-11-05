@@ -1,8 +1,7 @@
 import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
-import { RewardRulesSummary } from "@/features/rewards/RewardSettingsSection.jsx";
-import { rewardText } from "@/features/rewards/rewardText.js";
+import VideoPrizeCard from "@/features/rewards/VideoPrizeCard.jsx";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
-import { availableContentLanguages, initialContentLanguage, contentLanguageParam } from "../../../shared/topic-language-contract.mjs";
+import { availableContentLanguages, initialContentLanguage } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -22,14 +21,16 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, sessionEndsOnItsOwn, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_OPTIONS, normalizeEnoughOption, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
+import { DOT_LAYOUTS } from "@/topics/renderers/comparison/dotLayout.js";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
+import MicroStoryShelf from "@/features/reading/MicroStoryShelf";
 import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS, scalePortionQty } from "@/features/planner/recipeParser.js";
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
@@ -44,7 +45,7 @@ import {
   LINE_MM, NATIVE_L1, NATIVE_L4, INK_COLOR,
   buildRowGuideLines, buildDiagonalLines,
 } from "@/topics/renderers/propis/propisRuling.js";
-import { validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
+import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
@@ -710,11 +711,11 @@ function StorySelectionParam({ options, labels, value, onChange, info, onShowInf
   );
 }
 
-function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, onChange }) {
+function StoryQuizEditorParam({ value, defaultText, previousDefaultTexts, stories, selectedStoryIds, onChange }) {
   const { t: tr } = useUiTranslation();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const effectiveText = value?.trim() ? value : defaultText;
+  const effectiveText = mergeStoryQuizText(defaultText, value, previousDefaultTexts);
   const validation = validateStoryQuizText(effectiveText, stories, selectedStoryIds);
   const edited = Boolean(value?.trim());
 
@@ -1618,6 +1619,50 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
+      {/* «Сравни в жизни»: the verdict as a speech ladder — short → with the
+          item → full (default, the step's target). The short ones are for a
+          child who struggles to repeat the long sentence. */}
+      {isRealLifeMode && (
+        <EnumParam
+          label={tr("setup.phrase")}
+          options={REAL_LIFE_PHRASES}
+          labels={Object.fromEntries(REAL_LIFE_PHRASES.map((v) => [v, tr(`setup.phrase.${v}`)]))}
+          value={params.phrase ?? "full"}
+          ordered
+          hint={tr(`setup.phraseHint.${params.phrase ?? "full"}`)}
+          onChange={(v) => onChange({ ...params, phrase: v })}
+        />
+      )}
+
+      {/* «Всем хватает?» cards in turn with the scenes: «Всем детям хватает
+          стульев?», then «Почему…?»; matching one to one only after a wrong
+          answer. The hardest part of the mode for now, off by default. */}
+      {isRealLifeMode && (
+        <EnumParam
+          label={tr("setup.enough")}
+          options={ENOUGH_OPTIONS}
+          labels={Object.fromEntries(ENOUGH_OPTIONS.map((v) => [v, tr(`setup.enough.${v}`)]))}
+          value={normalizeEnoughOption(params.enough)}
+          hint={tr(`setup.enoughHint.${normalizeEnoughOption(params.enough)}`)}
+          onChange={(v) => onChange({ ...params, enough: v })}
+        />
+      )}
+
+      {/* «Как лежат точки»: rows → scatter → lure, only where there is a pile
+          of dots to judge (not pairs, not numbers). The lure brings «поровну»
+          with it: its strongest task is an equal pair that looks unequal. */}
+      {isVisualMode && DOT_LAYOUT_VIEWS.includes(currentVisualMode) && (
+        <EnumParam
+          label={tr("setup.dotLayout")}
+          options={DOT_LAYOUTS}
+          labels={Object.fromEntries(DOT_LAYOUTS.map((v) => [v, tr(`setup.dotLayout.${v}`)]))}
+          value={params.dotLayout ?? "rows"}
+          ordered
+          hint={tr(`setup.dotLayoutHint.${params.dotLayout ?? "rows"}`)}
+          onChange={(v) => onChange({ ...params, dotLayout: v, showEqual: v === "lure" ? true : params.showEqual })}
+        />
+      )}
+
       {!isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
         // compare_first_number's own verdict is always spoken as words by
         // design ("Три меньше семи"), compare_apply has no left/right
@@ -1652,7 +1697,6 @@ export default function ParamsScreen() {
   const studentTopicLinks      = useAppStore((s) => s.studentTopicLinks);
   const sessions               = useAppStore((s) => s.sessions);
   const adultPinHash           = useAppStore((s) => s.settings.adultPinHash);
-  const settings               = useAppStore((s) => s.settings);
   const patchSettings          = useAppStore((s) => s.patchSettings);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
 
@@ -1685,7 +1729,7 @@ export default function ParamsScreen() {
 
   const storyQuizStories = (topicRecord?.texts ?? [])
     .filter((text) => text.kind === "story")
-    .map((text) => ({ id: text.id, title: getTopicTitle(text.title), lines: text.lines ?? [] }));
+    .map((text) => ({ ...text, title: getTopicTitle(text.title), lines: text.lines ?? [] }));
 
   if (isReadingInstruction) {
     return (
@@ -1779,6 +1823,9 @@ export default function ParamsScreen() {
         showEqual:     saved.showEqual     ?? (isVisualMode && visualMode === "pairing"),
         wordsVerdict:  saved.wordsVerdict  ?? false,
         visualMode,
+        dotLayout:     DOT_LAYOUTS.includes(saved.dotLayout) ? saved.dotLayout : "rows",
+        phrase:        REAL_LIFE_PHRASES.includes(saved.phrase) ? saved.phrase : "full",
+        enough:        normalizeEnoughOption(saved.enough),
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",
@@ -1797,7 +1844,7 @@ export default function ParamsScreen() {
       : {};
     for (const [key, def] of Object.entries(modeParams)) {
       if (def.type === "content_language") {
-        out[key] = initialContentLanguage(topicRecord, mode.id, saved[key], student?.preferredLessonLanguage, settings.cardLanguage);
+        out[key] = initialContentLanguage(topicRecord, mode.id, saved[key]);
         continue;
       }
       if (def.type === "concept_selector") continue;
@@ -1831,18 +1878,24 @@ export default function ParamsScreen() {
       }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
     }
+    // «Видео в конце занятия» is not a declared mode option: kept with the params like figureFilters
+    if (saved.videoAtEnd === true) out.videoAtEnd = true;
     return out;
   }
 
   const [params,         setParams]        = useState(getInitialParams);
+  const selectedStoryQuizIds = getSelectedReadingStories(topicRecord, params).map((story) => story.id);
   const [videoReward,   setVideoReward]   = useState(hideVideoReward ? false : (link.videoRewardEnabled ?? true));
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
+  // «Видео в конце занятия» (owner, 2026-11-04): on top of the series videos, a session that ends on
+  // its own offers «Смотреть видео» on the summary when it was gone through to the end. Kept with the
+  // mode's params (link.params), so it rides the existing sync and lands in the session's paramsSnapshot.
+  const endsOnItsOwn = sessionEndsOnItsOwn(mode, topicRecord?.meta.renderer);
   const studentRewardSettings = effectiveRewardSettings(student?.rewardSettings);
-  const flexibleRewards = studentRewardSettings.algorithm === "flexible";
-  const rewardLossMode = flexibleRewards ? studentRewardSettings.lossMode : (readModeParams(link.params, mode).rewardLossMode === "all" ? "all" : "one");
-  const forceStrictStars = !flexibleRewards && mode?.rewardDefaults?.forceStrictStars === true;
-  const [strictStarsSetting, setStrictStars] = useState(link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true);
-  const strictStars = flexibleRewards ? studentRewardSettings.strictStars : forceStrictStars ? true : strictStarsSetting;
+  const rewardLossMode = studentRewardSettings.lossMode;
+  // «Строгий подсчёт» — per topic, before the lesson, on the «Видеоприз» plate (owner, 2026-11-04): on —
+  // stars burn by the student's rule (one / all), off — they do not burn. On unless switched off.
+  const [strictStars, setStrictStars] = useState(link.strictStars ?? true);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
@@ -1948,7 +2001,7 @@ export default function ParamsScreen() {
       videoRewardEnabled: hideVideoReward ? false : (link.videoRewardEnabled ?? true),
       rewardLossMode,
       answersPerStar: link.answersPerStar ?? 1,
-      strictStars: flexibleRewards ? studentRewardSettings.strictStars : forceStrictStars ? true : (link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true),
+      strictStars: link.strictStars ?? true,
     };
     const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars, rewardLossMode };
     if (sessionSettingsChanged(current, baseline)) {
@@ -1957,10 +2010,10 @@ export default function ParamsScreen() {
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, { ...params, ...(!flexibleRewards && readModeParams(link.params, mode).rewardLossMode ? { rewardLossMode } : {}) }),
+      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, params),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
-      strictStars: flexibleRewards ? link.strictStars : strictStars,
+      strictStars,
     });
     setScreen("session");
     setSessionReturnScreen(null);
@@ -2025,20 +2078,36 @@ export default function ParamsScreen() {
         />
       )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        if (def.showWhen && !Object.entries(def.showWhen).every(([condition, expected]) => (
+          params[condition] ?? mode.params[condition]?.default
+        ) === expected)) return null;
         if (def.type === "story_quiz") {
           return (
             <StoryQuizEditorParam
               key={key}
               value={params[key] ?? ""}
               defaultText={topicRecord?.storyQuiz?.defaultText ?? ""}
+              previousDefaultTexts={topicRecord?.storyQuiz?.previousDefaultTexts}
               stories={storyQuizStories}
-              selectedStoryIds={params.selectedStories ?? []}
+              selectedStoryIds={selectedStoryQuizIds}
               onChange={(value) => setParams((current) => ({ ...current, [key]: value }))}
             />
           );
         }
         if (def.type === "enum_multi") {
-          if (isShortStories && key === "selectedStories") {
+          if (isShortStories && key === "selectedMicroStories") {
+            return (
+              <MicroStoryShelf
+                key={key}
+                topicId={activeTopicId}
+                stories={topicRecord?.texts ?? []}
+                options={def.values}
+                value={params[key] ?? def.default ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (isShortStories && ["selectedStories", "selectedMicroStories"].includes(key)) {
             return (
               <StorySelectionParam
                 key={key}
@@ -2174,7 +2243,7 @@ export default function ParamsScreen() {
     </>
   ) : (
     <>
-      {!modeHasCategoryParam && !mode?.hideConceptPicker && (
+      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.concepts")}</div>
           <div className="param-concept-col">
@@ -2428,9 +2497,9 @@ export default function ParamsScreen() {
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
   const storyQuizValidation = mode?.type === "story_quiz"
     ? validateStoryQuizText(
-        params.storyQuizText?.trim() ? params.storyQuizText : (topicRecord?.storyQuiz?.defaultText ?? ""),
+        mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, params.storyQuizText, topicRecord?.storyQuiz?.previousDefaultTexts),
         storyQuizStories,
-        params.selectedStories ?? [],
+        selectedStoryQuizIds,
       )
     : null;
   const isManualFigureSetTooSmall = topicRecord?.meta?.id === "symmetry_draw"
@@ -2521,79 +2590,22 @@ export default function ParamsScreen() {
 
           {hasVideos && !hideVideoReward && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
             <div className="param-section">
-              <div className="param-section__header">{tr("setup.reward")}</div>
-
-              <div className="param-row">
-                <ParamLabel
-                  label={tr("setup.videoReward")}
-                  info={{
-                    text: tr("setup.videoRewardInfo"),
-                    tip: tr("setup.videoRewardTip"),
-                  }}
-                  onShowInfo={setActiveInfo}
-                />
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={videoReward}
-                  aria-label={tr("setup.videoReward")}
-                  className={`param-toggle ${videoReward ? "param-toggle--on" : ""}`}
-                  onClick={() => setVideoReward((v) => !v)}
-                />
-              </div>
-
-              {mode.evaluation !== "none" && (
-                <>
-                  <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
-                    <ParamLabel
-                      label={flexibleRewards ? rewardText("series") : tr("setup.rewardSeries")}
-                      info={{
-                        text: flexibleRewards ? rewardText("seriesInfo") : tr("setup.rewardSeriesInfo"),
-                        tip: tr("setup.rewardSeriesTip"),
-                      }}
-                      onShowInfo={setActiveInfo}
-                    />
-                    <div className="param-enum-group">
-                      {[1, 2, 3].map((n) => (
-                        <button
-                          key={n}
-                          className={`enum-btn ${answersPerStar === n ? "enum-btn--active" : ""}`}
-                          disabled={!videoReward}
-                          onClick={() => setAnswersPerStar(n)}
-                        >
-                          {5 * n}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {!flexibleRewards && <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
-                    <ParamLabel
-                      label={forceStrictStars ? tr("setup.strictRequired") : tr("setup.strict")}
-                      info={{
-                        text: flexibleRewards ? rewardText("strictInfo") : forceStrictStars
-                          ? tr("setup.strictCoordinatesInfo")
-                          : tr("setup.strictInfo"),
-                        tip: flexibleRewards ? rewardText("attempt") : forceStrictStars
-                          ? tr("setup.strictCoordinatesTip")
-                          : tr("setup.strictTip"),
-                      }}
-                      onShowInfo={setActiveInfo}
-                    />
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={strictStars}
-                      aria-label={tr("setup.strict")}
-                      className={`param-toggle ${strictStars ? "param-toggle--on" : ""}`}
-                      disabled={!videoReward || forceStrictStars}
-                      onClick={() => setStrictStars((v) => !v)}
-                    />
-                  </div>}
-                  {flexibleRewards ? <RewardRulesSummary settings={studentRewardSettings} />
-                    : <p className="param-hint">{rewardText("legacyLesson")}</p>}
-                </>
-              )}
+              {/* «Видеоприз» — the standard prize block (src/features/rewards/VideoPrizeCard.jsx) */}
+              <VideoPrizeCard
+                enabled={videoReward}
+                onEnabled={setVideoReward}
+                showSeries={mode.evaluation !== "none"}
+                answersPerStar={answersPerStar}
+                onAnswersPerStar={setAnswersPerStar}
+                showAtEnd={mode.evaluation !== "none" && endsOnItsOwn}
+                atEnd={params.videoAtEnd === true}
+                onAtEnd={(on) => setParams((p) => ({ ...p, videoAtEnd: on }))}
+                showStrict={mode.evaluation !== "none"}
+                strict={strictStars}
+                onStrict={setStrictStars}
+                rules={mode.evaluation !== "none" ? studentRewardSettings : null}
+                onShowInfo={setActiveInfo}
+              />
             </div>
           )}
 

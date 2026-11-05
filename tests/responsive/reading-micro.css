@@ -1,0 +1,41 @@
+html, body, #root { width: 100%; height: 100%; margin: 0; }
+.micro-preview { display: flex; flex-direction: column; height: 100dvh; background: #f3f4f0; font-family: "Nunito", sans-serif; }
+.micro-preview > .session-screen { position: relative; inset: auto; width: 100%; flex: 1; min-height: 0; height: auto; z-index: 0; }
+.micro-preview__toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 32px; border-bottom: 1px solid #e1e5dd; background: #fafbf8; flex: none; }
+.micro-preview__brand { display: flex; align-items: center; gap: 13px; flex: none; }
+.micro-preview__brand-icon { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #dde4d9; border-radius: 11px; color: #4a6956; background: #f1f5ed; }
+.micro-preview__brand strong { display: block; color: #2f4439; font-size: 16px; line-height: 1.4; font-weight: 600; letter-spacing: -0.02em; }
+.micro-preview__brand div > span { display: block; margin-top: 3px; color: #899187; font-size: 12px; line-height: 1.4; }
+.micro-preview__controls { display: flex; align-items: center; justify-content: flex-end; gap: 22px; min-width: 0; }
+.micro-preview__story-select { display: block; min-width: 0; }
+.micro-preview__story-select > span { display: none; }
+.micro-preview__story-select select { width: 250px; max-width: 100%; min-height: 40px; padding: 8px 30px 8px 12px; border: 1px solid #dfe4db; border-radius: 7px; background: #fff; color: #506454; font: inherit; font-size: 13px; cursor: pointer; }
+.micro-preview__modes { display: flex; gap: 3px; padding: 4px; border: 1px solid #e4e7e0; border-radius: 9px; background: #eff2ec; flex: none; }
+.micro-preview__modes button { min-height: 34px; padding: 8px 14px; border: 0; border-radius: 6px; background: transparent; color: #8a9388; font: inherit; font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+.micro-preview__modes button[aria-pressed="true"] { background: #fff; color: #46614d; box-shadow: 0 1px 3px #24382c0c; }
+.micro-preview__toolbar :is(button, select):focus-visible { outline: 2px solid #557663; outline-offset: 3px; }
+.micro-preview__result { display: none; }
+.micro-preview__result--visible { display: block; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 200; max-width: calc(100% - 32px); padding: 8px 14px; border: 1px solid #dfe6d9; border-radius: 8px; background: #f1f6ec; color: #5c7255; font-size: 12px; pointer-events: none; box-shadow: 0 3px 12px #24382c08; }
+@media (max-width: 1050px) {
+ .micro-preview__toolbar { padding: 18px 24px; gap: 16px; }
+ .micro-preview__controls { gap: 14px; }
+ .micro-preview__story-select select { width: 210px; }
+ .micro-preview__brand strong { font-size: 14px; }
+}
+@media (max-width: 780px) {
+ .micro-preview__toolbar { flex-wrap: wrap; padding: 16px 20px; gap: 16px; }
+ .micro-preview__controls { width: 100%; justify-content: space-between; }
+ .micro-preview__story-select { flex: 1; }
+ .micro-preview__story-select select { width: 100%; }
+}
+@media (max-width: 560px) {
+ .micro-preview__toolbar { padding: 14px 16px 12px; gap: 12px; }
+ .micro-preview__brand-icon { width: 34px; height: 34px; border-radius: 9px; }
+ .micro-preview__brand strong { font-size: 15px; }
+ .micro-preview__brand div > span { font-size: 11px; }
+ .micro-preview__controls { flex-wrap: wrap; gap: 10px; }
+ .micro-preview__story-select { flex-basis: 100%; }
+ .micro-preview__story-select select { font-size: 12px; min-height: 36px; }
+ .micro-preview__modes { width: 100%; }
+ .micro-preview__modes button { flex: 1; min-height: 32px; padding: 7px 10px; }
+}

@@ -1,3 +1,4 @@
+import { SETTINGS_MESSAGES } from "./settingsMessages.js";
 import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
@@ -83,6 +84,7 @@ export const UI_MESSAGES = {
     "pin.mismatch": "PIN не совпадает. Начните заново.",
     "pin.invalid": "Неверный PIN",
     "pin.erase": "Удалить последнюю цифру",
+    ...SETTINGS_MESSAGES.ru,
   },
   sl: {
     ...TOPIC_LANGUAGE_MESSAGES.sl,
@@ -163,5 +165,6 @@ export const UI_MESSAGES = {
     "pin.mismatch": "Kodi PIN se ne ujemata. Začnite znova.",
     "pin.invalid": "Napačna koda PIN",
     "pin.erase": "Izbriši zadnjo številko",
+    ...SETTINGS_MESSAGES.sl,
   },
 };

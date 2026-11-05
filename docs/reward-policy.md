@@ -1,27 +1,26 @@
 # Individual video reward rules
 
-Existing students retain the legacy algorithm. Enable **Ученик → Правила видеоприза → Новые правила**, save, and start a new lesson. Settings are captured when a session starts; an earned video keeps the promised duration.
+All students use the current reward policy, including profiles with no reward settings or a saved `algorithm: "legacy"`. There is no system selector. Adjust **Ученик → Правила видеоприза**, save, and start a new lesson. Settings are captured when a session starts; an earned video keeps the promised duration.
 
 ## Behavior contract
 
 - Student settings: 1/2/3 minutes (or earlier if the video ends), noticeable/mild star animation, optional sound. Loading and pauses do not spend viewing time; a natural video end closes the reward sooner.
-- Student settings also include strict counting and loss of one/all stars, shared across every topic and mode. Lesson settings display the current rules without local overrides. Under the new rules strict counting controls intermediate mistakes in every topic that reports them. A wrong final answer always incurs a penalty. Topic-specific assessment and completion awards remain intact.
+- Student settings also include the loss of one/all stars, shared across every topic and mode. «Строгий подсчёт» (owner, 2026-11-04) is switched per topic before the lesson on the «Видеоприз» plate (`src/features/rewards/VideoPrizeCard.jsx`), saved in the topic link (`link.strictStars`), on unless switched off there. On: a mistake — a final answer or a step inside the task — burns stars by the student's rule (one / all). Off: stars do not burn. Either way a right answer after a mistake on the same card earns no star (`applyRewardMistake` in `shared/reward-policy.mjs`). The student card no longer has a strict-counting box; it keeps what a mistake burns and the duration (the stored `strictStars` field is kept for older clients and ignored). Topic-specific assessment and completion awards remain intact.
 - Only one penalty per evaluated attempt. A penalized attempt cannot earn reward progress by correcting or guessing, including at zero balance. Moving to the next task starts a new attempt. All reported errors still enter statistics.
 - One star removes one `answersPerStar` group. The new 5-of-5 display always shows five stars for targets of 5, 10, or 15 successful answers. Prize exchange has no loss animation.
 - Genuine consecutive success statistics are separate from reward accumulation; softened penalties cannot unlock progression requiring consecutive independent successes.
-- Legacy mode keeps the former strict/soft scoring, presentation and two-minute video limit.
 
 ## Rollback
 
-For one student, select **Прежние правила**, save, and start a new lesson. New settings remain stored for a later retry. Other students are unaffected. Recovery rejects a saved session whose reward policy no longer matches the student's settings.
+Duration, strictness, loss, animation and sound remain individually configurable. The `algorithm` field is retained for compatibility but normalizes to `"flexible"`; saved choices in the other fields are preserved. Recovery rejects a saved session whose reward policy no longer matches the student's settings, including legacy sessions.
 
 Source baseline: `backup/rewards-before-flexible-20261023`, commit `472f9f83` (v1.0.2703). If a deployment rollback is needed, revert the reward feature commit on current main, resolve intervening changes, bump the application version in a separate commit, build and deploy normally. Do not reset/force-push main. Database additions are nullable/defaulted columns; keep them during rollback to preserve saved choices. No student, session or statistics deletion is needed.
 
 The retired `duration: "end"` choice normalizes to `"180"`, matching the three-minute limit.
 
-Settings missing the new strictness/loss fields default to strict counting and loss of one star. Old topic-specific choices are retained for legacy rollback and do not override the new student policy.
+Settings missing the new strictness/loss fields default to strict counting and loss of one star. Old topic-specific choices are retained for compatibility and do not override the new student policy.
 
-Settings use a dedicated sync operation and timestamp. Older clients saving unrelated student fields cannot erase the choice or undo an explicit rollback.
+Settings use a dedicated sync operation and timestamp. Older clients saving unrelated student fields cannot erase the choices or re-enable the legacy system.
 
 ## Verification
 

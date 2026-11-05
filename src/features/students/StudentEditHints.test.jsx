@@ -37,10 +37,10 @@ describe("Student settings hints", () => {
   }
   const title = () => document.querySelector(".screen-hints__card strong").textContent;
 
-  it("walks through all nine edit steps without changing or saving the profile", () => {
+  it("walks through all eight edit steps without changing or saving the profile", () => {
     mount(true);
     open();
-    const expected = ["Введите имя ученика", "Добавьте фото", "Запишите важное", "Укажите пол", "Выберите основной язык", "Добавьте окружение", "Добавьте важные даты", "Подберите видео-награды", "Сохраните настройки"];
+    const expected = ["Введите имя ученика", "Добавьте фото", "Запишите важное", "Укажите пол", "Добавьте окружение", "Добавьте важные даты", "Подберите видео для видеоприза", "Сохраните настройки"];
     for (const step of expected) { expect(title()).toBe(step); next(); }
     expect(document.querySelector(".screen-hints")).toBeNull();
     expect(container.querySelector(".se-name-input").value).toBe("Миша");
@@ -54,9 +54,9 @@ describe("Student settings hints", () => {
   it("skips dates for a new student and retains name validation when saving", () => {
     mount(false);
     open();
-    expect(document.querySelector(".screen-hints__eyebrow").textContent).toContain("1 ИЗ 8");
-    for (let i = 0; i < 6; i++) next();
-    expect(title()).toBe("Подберите видео-награды");
+    expect(document.querySelector(".screen-hints__eyebrow").textContent).toContain("1 ИЗ 7");
+    for (let i = 0; i < 5; i++) next();
+    expect(title()).toBe("Подберите видео для видеоприза");
     next();
     expect(title()).toBe("Сохраните настройки");
     act(() => container.querySelector(".se-save-btn").click());
@@ -76,16 +76,16 @@ describe("Student settings hints", () => {
     expect(document.querySelector(".screen-hints")).toBeNull();
     expect(useAppStore.getState().screen).toBe("important_dates_settings");
   });
-  it("saves the opt-in and duration in their own durable sync operation", async () => {
+  it("saves the reward settings and duration in their own durable sync operation", async () => {
     mocks.getDb.mockResolvedValue({});
     mount(true);
     const pick = label => [...container.querySelectorAll("button")].find(button => button.textContent === label);
-    await act(async () => pick("Новые правила").click());
     await act(async () => pick("1 минута").click());
     await act(async () => pick("Все звёзды").click());
-    await act(async () => [...container.querySelectorAll("label")].find(label => label.textContent === "Строгий подсчёт").querySelector("input").click());
+    // «Строгий подсчёт» is per topic now (the «Видеоприз» plate); the student card has no such box
+    expect([...container.querySelectorAll("label")].some(label => label.textContent === "Строгий подсчёт")).toBe(false);
     await act(async () => container.querySelector(".se-save-btn").click());
-    expect(mocks.pushOp).toHaveBeenCalledWith("student.reward_settings.upsert", expect.objectContaining({ studentId: "s1", settings: expect.objectContaining({ algorithm: "flexible", duration: "60", strictStars: false, lossMode: "all" }) }));
+    expect(mocks.pushOp).toHaveBeenCalledWith("student.reward_settings.upsert", expect.objectContaining({ studentId: "s1", settings: expect.objectContaining({ algorithm: "flexible", duration: "60", lossMode: "all" }) }));
     expect(useAppStore.getState().students[0].rewardSettings.duration).toBe("60");
   });
 
@@ -96,6 +96,19 @@ describe("Student settings hints", () => {
     await act(async () => container.querySelector(".se-save-btn").click());
     expect(mocks.pushOp.mock.calls.some(([type]) => type === "student.reward_settings.upsert")).toBe(false);
     expect(useAppStore.getState().students[0].rewardSettings.algorithm).toBe("flexible");
+  });
+
+  it("preserves other students and untouched remote flow, languages, photos and videos when saving the profile", async () => {
+    mocks.getDb.mockResolvedValue({});
+    mount(true);
+    await act(async () => useAppStore.setState({ students: [
+      { id: "s1", name: "Миша", primaryLanguage: "sl", preferredLessonLanguage: "en", photo: "remote-photo", rewardVideos: ["https://youtu.be/aaaaaaaaaaa"], lessonFlow: { advance: "auto", delaySeconds: 8 }, lessonFlowUpdatedAt: "2026-11-04T00:00:00Z" },
+      { id: "s2", name: "Аня", lessonFlow: { advance: "tap", delaySeconds: 3 } },
+    ] }));
+    await act(async () => container.querySelector(".se-save-btn").click());
+    expect(useAppStore.getState().students).toHaveLength(2);
+    expect(useAppStore.getState().students[0]).toMatchObject({ primaryLanguage: "sl", preferredLessonLanguage: "en", photo: "remote-photo", rewardVideos: ["https://youtu.be/aaaaaaaaaaa"], lessonFlow: { advance: "auto", delaySeconds: 8 } });
+    expect(mocks.pushOp.mock.calls.some(([type]) => type === "student.lesson_flow.upsert" || type === "student.videos.upsert" || type === "student.photo.upsert")).toBe(false);
   });
 
 });

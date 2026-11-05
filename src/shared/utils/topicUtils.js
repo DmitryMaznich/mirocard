@@ -209,3 +209,15 @@ export function writeModeParams(savedParams, mode, params) {
   const saved = savedParams ?? {};
   return { ...saved, byMode: { ...(saved.byMode ?? {}), [mode.id]: params } };
 }
+
+// Does a session of this mode end on its own (the last task done → summary), rather than going round
+// until the adult stops it? Decks (flashcards, function_cards) end on «Вы прошли все карточки»; a mode
+// marked `finite` ends after its tasks; any mode not scored at once (`evaluation` other than
+// "instant") ends after its last task unless it is marked `loop`. Instant-scored modes go round.
+// Used for «Видео в конце занятия» (ParamsScreen, SessionSummary) — offered only where there is an end.
+export function sessionEndsOnItsOwn(mode, renderer) {
+  if (!mode) return false;
+  if (renderer === "flashcards" || renderer === "function_cards") return true;
+  if (mode.finite) return true;
+  return mode.evaluation !== "instant" && !mode.loop;
+}

@@ -1,0 +1,50 @@
+import { test, after } from "node:test";
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+const dir = mkdtempSync(path.join(tmpdir(), "deletion-survey-http-"));
+const frontend = path.join(dir,"frontend");
+mkdirSync(path.join(frontend,"decks"),{recursive:true});
+writeFileSync(path.join(frontend,"index.html"),"<html></html>");
+writeFileSync(path.join(frontend,"decks","catalog.json"),'{"decks":[]}');
+Object.assign(process.env, { MIROCARD_DATA_DIR:path.join(dir,"data"), MIROCARD_DEPLOY_FRONTEND_DIR:frontend,
+  MIROCARD_ADMIN_TOKEN:"survey-admin-test", RAILWAY_ENVIRONMENT:"", RESEND_API_KEY:"", SERVE_STATIC:"1" });
+const { router, db } = await import("../server.mjs");
+const { createAccount, activateAccount } = await import("../lib/account-repository.mjs");
+const { createPasswordHash } = await import("../lib/security.mjs");
+const { deletionSurveyEmailHash } = await import("../lib/deletion-survey.mjs");
+const app=createServer(router);
+await new Promise(resolve=>app.listen(0,"127.0.0.1",resolve));
+const base=`http://127.0.0.1:${app.address().port}/api`;
+after(async()=>{ await new Promise(resolve=>app.close(resolve)); db.close(); rmSync(dir,{recursive:true,force:true}); });
+
+test("real self-delete HTTP flow queues a delayed email; admin status is protected and restore cancels it", async()=>{
+  const a=createAccount(db,{email:"real-flow@example.test",firstName:"Анна",passwordHash:createPasswordHash("test-password")});
+  activateAccount(db,a.id);
+  const login=await fetch(base+"/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:a.email,password:"test-password"})});
+  assert.equal(login.status,200);
+  const {token}=await login.json();
+  const before=Date.now();
+  const deletion=await fetch(base+"/account",{method:"DELETE",headers:{Authorization:`Bearer ${token}`}});
+  assert.equal(deletion.status,204);
+  const row=db.prepare("SELECT * FROM account_deletion_surveys WHERE email_hash=?").get(deletionSurveyEmailHash(a.email));
+  assert.equal(row.state,"pending");
+  assert.ok(row.due_at>=before+86400000&&row.due_at<=Date.now()+86400000);
+  assert.equal((await fetch(base+"/admin/deletion-surveys")).status,403);
+  const headers={Authorization:"Bearer survey-admin-test","Content-Type":"application/json"};
+  const status=await fetch(base+"/admin/deletion-surveys",{headers});
+  assert.equal(status.status,200);
+  const body=await status.json();
+  assert.equal(body.delayHours,24);
+  assert.equal(body.states.pending,1);
+  assert.equal(body.states.sent,41);
+  assert.equal(body.enabled,false,"importing server for tests does not start any sender");
+  assert.doesNotMatch(JSON.stringify(body),/real-flow|Анна|@/);
+  const restored=await fetch(base+`/admin/accounts/${a.id}/lifecycle`,{method:"POST",headers,body:JSON.stringify({action:"restore",reason:"Восстановление для теста"})});
+  assert.equal(restored.status,200);
+  assert.equal((await restored.json()).status,"active");
+  assert.equal(db.prepare("SELECT state FROM account_deletion_surveys WHERE email_hash=?").get(deletionSurveyEmailHash(a.email)).state,"cancelled");
+});

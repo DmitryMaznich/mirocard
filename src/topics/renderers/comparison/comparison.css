@@ -65,6 +65,16 @@
 .compare-side--number { width: clamp(90px, 26vw, 220px); height: clamp(90px, 26vw, 220px); }
 .compare-side--dots   { height: auto; min-height: clamp(90px, 26vw, 220px); justify-content: flex-start; padding-top: 14px; padding-bottom: 14px; }
 .compare-side--shake  { animation: shake 0.35s; }
+/* «Вразброс» / «Ловушка»: the dots lie in a square field filling the card;
+   positions and sizes are % of the field (dotLayout.js), so the same layout
+   fits a ~100px phone card and a 260px tablet one. */
+.compare-side--field { padding: 10px; gap: 6px; justify-content: center; }
+.compare-dot-field   { position: relative; width: 100%; aspect-ratio: 1; flex-shrink: 0; }
+.compare-field-dot   {
+  position: absolute; border-radius: 50%;
+  transition: left 0.6s cubic-bezier(.3,.8,.3,1), top 0.6s cubic-bezier(.3,.8,.3,1), width 0.6s, height 0.6s;
+}
+@media (prefers-reduced-motion: reduce) { .compare-field-dot { transition: none; } }
 
 .compare-big-number { font-size: clamp(48px, 14vw, 96px); font-weight: 900; line-height: 1; }
 .compare-number     { font-size: 1.8rem; font-weight: 700; }
@@ -387,8 +397,8 @@
 /* On-demand hint, shared between both compare_apply task types: for
    GenerateStage ("Выбери число") it turns each answer tile in place into
    its own tiny worked example (see .apply-hint-tile below); for OrderStage
-   ("Расставь по порядку") it reveals the draggable number line (see
-   .apply-order-scale below). Neither opens a separate screen — the actual
+   ("Расставь по порядку") it reveals the wedge scale (see .apply-wedge
+   below). Neither opens a separate screen — the actual
    task above stays visible and untouched throughout. */
 .apply-hint-btn {
   position: relative; z-index: 1;
@@ -406,6 +416,9 @@
    "Подсказка"/"Убрать подсказку" states, even though the label itself
    still changes width when toggled either way. */
 .apply-hint-btn-icon { font-size: 0.9em; line-height: 1; }
+/* «Выбери число»: the wedge is step 1 of the hint; «Ещё подсказка» under it
+   opens step 2 (draw the sign on each tile). */
+.apply-hint-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
 /* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
    CompareDrawSign as-is (same recognizer, same visual language). Same
@@ -420,7 +433,7 @@
 .apply-hint-tile {
   position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(8px, 3cqi, 16px); padding: 0 clamp(10px, 4cqi, 18px);
+  gap: clamp(6px, 2.5cqi, 16px); padding: 0 clamp(8px, 3cqi, 18px);
   border-radius: 18px; background: #fff;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
 }
@@ -444,14 +457,17 @@
    stays under .apply-ineq-value's 52px so the reference card above reads
    as the bigger, primary number. */
 .apply-hint-tile-num {
-  font-size: clamp(20px, 20cqi, 36px); font-weight: 900; color: #1e293b;
+  /* 15cqi, not 20: two-digit numbers (level «до 99») plus the canvas must
+     fit a ~176px phone cell — at 20cqi «46 [canvas] 46» overflowed the
+     tile and ran into the next one («4671»). */
+  font-size: clamp(18px, 15cqi, 36px); font-weight: 900; color: #1e293b;
   min-width: 0; flex-shrink: 0; text-align: center; line-height: 1;
 }
 /* As big as the tile's own height allows while staying square — a canvas
    stretched to the tile's 1.5:1 shape would distort stroke geometry in
    ways recognizeSign wasn't tuned for. */
 .apply-hint-tile .draw-sign-canvas {
-  width: clamp(60px, 50cqi, 104px); height: clamp(60px, 50cqi, 104px);
+  width: clamp(60px, 42cqi, 104px); height: clamp(60px, 42cqi, 104px);
 }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
@@ -537,46 +553,33 @@
   font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
 }
 
-/* "Расставь по порядку" hint: a hand-draggable number line spanning the
-   level's whole min–max range (not the task's own drawn numbers — see the
-   comment on OrderScaleHint in CompareApply.jsx). Deliberately plain: no
-   tick marks or tray-number callouts, since the point is just a felt sense
-   of "this direction = bigger", not a tool for solving the task. */
-.apply-order-scale {
+/* The wedge scale (WedgeScale.jsx): a number line that thickens toward the
+   bigger numbers, nearly as wide as the slot grid above it so a place on
+   the wedge lines up with a place in the slots. Drawn in a 360-wide SVG
+   viewBox, so everything in it scales with its width. */
+.apply-wedge {
   position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: 100%; max-width: min(94vw, 480px);
-  margin-top: 2px;
+  width: 100%; max-width: min(94vw, 600px);
+  touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.apply-order-scale-value {
-  font-size: clamp(32px, 10vw, 56px); font-weight: 900; color: #2563eb; line-height: 1;
-}
-.apply-order-scale-track {
-  position: relative; width: 100%; height: 14px; border-radius: 999px;
-  background: #e2e8f0; touch-action: none; cursor: pointer;
-}
-.apply-order-scale-fill {
-  position: absolute; top: 0; left: 0; height: 100%; border-radius: 999px;
-  background: #93c5fd; pointer-events: none;
-}
-/* Tracks the pointer 1:1 while dragging — no transition on `left`, or the
-   thumb would visibly lag behind a fast drag. Only the "picked up" state
-   (scale + shadow lift) animates, since that toggles just twice per drag
-   rather than continuously. */
-.apply-order-scale-thumb {
-  position: absolute; top: 50%; width: 34px; height: 34px; border-radius: 50%;
-  background: #2563eb; box-shadow: 0 4px 0 #1d4ed8, 0 4px 10px rgba(37,99,235,0.35);
-  transform: translate(-50%, -50%); pointer-events: none;
-  transition: box-shadow 0.1s, transform 0.1s;
-}
-.apply-order-scale-track--active .apply-order-scale-thumb {
-  box-shadow: 0 2px 0 #1d4ed8, 0 4px 14px rgba(37,99,235,0.45);
-  transform: translate(-50%, -50%) scale(1.12);
-}
-.apply-order-scale-ends {
-  display: flex; justify-content: space-between; width: 100%;
-  font-size: clamp(13px, 2vw, 16px); font-weight: 700; color: #93a5c4;
-}
+.apply-wedge:focus-visible { outline: 3px solid #93c5fd; outline-offset: 4px; border-radius: 12px; }
+.apply-wedge svg { display: block; width: 100%; height: auto; overflow: visible; }
+.apply-wedge-body  { stroke: #3b82f6; stroke-width: 1.5; stroke-linejoin: round; }
+.apply-wedge-tick  { stroke: #64748b; }
+.apply-wedge-label { fill: #64748b; font-size: 12px; font-weight: 700; }
+.apply-wedge-guide { stroke: #2563eb; stroke-width: 2; stroke-dasharray: 3 4; stroke-linecap: round; opacity: 0.7; }
+.apply-wedge-thumb { fill: #2563eb; stroke: #fff; stroke-width: 3; }
+.apply-wedge-value { fill: #2563eb; font-weight: 900; }
+.apply-wedge-flag line { stroke: #16a34a; stroke-width: 2; }
+.apply-wedge-flag rect { fill: #16a34a; }
+.apply-wedge-flag text { fill: #fff; font-size: 13px; font-weight: 800; }
+.apply-wedge-mark line { stroke: #1e293b; stroke-width: 3; stroke-linecap: round; }
+.apply-wedge-mark rect { fill: #1e293b; }
+.apply-wedge-mark text { fill: #fff; font-size: 13px; font-weight: 800; }
+.apply-wedge-flag { animation: apply-wedge-flag-in 0.3s ease-out; }
+@keyframes apply-wedge-flag-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .apply-wedge-flag { animation: none; } }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
 /* A single pre-illustrated scene (realLifeScenes.js — both children, both
@@ -599,6 +602,7 @@
   overflow: hidden;
 }
 .reallife-scene-img { display: block; width: 100%; height: auto; }
+.reallife-scene-img--mirror { transform: scaleX(-1); }
 /* Same box as the picture (900 × 604) while it loads from the installed topic. */
 .reallife-scene-img--loading { aspect-ratio: 900 / 604; background: #f1f5f9; }
 .reallife-overlay { position: absolute; inset: 0; display: flex; }
@@ -633,6 +637,63 @@
 
 .compare-body--reallife .cfn-options { flex-direction: row; max-width: 480px; }
 .compare-body--reallife .cfn-btn { min-height: 56px; flex: 1; font-size: clamp(14px, 3.6vw, 17px); font-weight: 800; padding: 0 6px; }
+
+/* «Всем хватает?» cards of «Сравни в жизни» (CompareEnough.jsx): characters in the top row, their
+   objects in the bottom row; a matched object sits inside its character's
+   box (left/top/width from ENOUGH_SETS.place via inline style). */
+.enough-body { gap: 14px; }
+.enough-board {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 560px; box-sizing: border-box;
+  background: #fff; border-radius: 24px; padding: 16px 10px 14px;
+  box-shadow: 0 6px 22px rgba(15,23,42,0.12);
+  display: flex; flex-direction: column; gap: clamp(14px, 4vw, 28px);
+}
+.enough-row { display: grid; gap: clamp(4px, 1.5vw, 12px); align-items: end; justify-items: center; }
+.enough-who { position: relative; width: 100%; max-width: 110px; aspect-ratio: 0.8; display: flex; align-items: flex-end; justify-content: center; }
+.enough-who-img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; pointer-events: none; user-select: none; }
+.enough-placed { position: absolute; height: auto; pointer-events: none; user-select: none; }
+.enough-who--without .enough-who-img { animation: enough-glow 0.8s ease-in-out infinite; }
+.enough-thing {
+  width: 100%; max-width: 92px; aspect-ratio: 1; padding: 4px; border: 0; background: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.enough-thing img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+/* Mover characters (cups, cars) are the buttons; their objects (saucers,
+   garages) stay put and hold them once paired. */
+.enough-thing--target { position: relative; }
+.enough-thing--target .enough-placed { max-width: none; max-height: none; }
+.enough-who--mover { padding: 0; border: 0; background: none; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.enough-who--mover:disabled { cursor: default; }
+.enough-thing:disabled { cursor: default; }
+.enough-thing--spare img { animation: enough-glow 0.8s ease-in-out infinite; }
+.enough-options { flex-direction: row; max-width: 480px; }
+/* «Сначала ответить»: a wrong guess by eye stays marked (no shake, no retry) —
+   the matching afterwards shows how it really is. */
+.cfn-btn--wrong-kept { border-color: #ef4444; background: #fef2f2; }
+.enough-options .cfn-btn { flex: 1; min-height: 56px; font-size: clamp(16px, 4vw, 20px); font-weight: 800; }
+/* «Почему …?»: the two «больше» side by side, «… и … поровну» across the
+   bottom. */
+.enough-because { position: relative; z-index: 1; width: 100%; max-width: 480px; text-align: left; font-size: clamp(18px, 4.6vw, 24px); font-weight: 800; color: #2d6fb5; }
+.enough-why-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 480px; }
+.enough-why-grid .cfn-btn { min-height: 52px; display: flex; align-items: center; justify-content: center; font-size: clamp(15px, 3.8vw, 19px); font-weight: 800; padding: 4px 8px; text-align: center; }
+.enough-why-grid .enough-why-same { grid-column: 1 / -1; }
+/* The topic's landscape rule caps every .cfn-btn at 150px (sized for the
+   three short answer buttons elsewhere); here the buttons fill their grid
+   cells, or «кроликов и морковок поровну» wraps into several lines. */
+.enough-why-grid .cfn-btn, .enough-options .cfn-btn { max-width: none; min-width: 0; }
+/* Right / kept-wrong stay visible under a hovering mouse too. */
+.enough-body .cfn-btn.cfn-btn--correct, .enough-body .cfn-btn.cfn-btn--correct:hover { border-color: #22c55e; background: #dcfce7; transform: none; box-shadow: none; }
+.enough-body .cfn-btn.cfn-btn--wrong-kept, .enough-body .cfn-btn.cfn-btn--wrong-kept:hover { border-color: #ef4444; background: #fef2f2; transform: none; box-shadow: none; }
+.enough-hint { font-size: clamp(15px, 3.6vw, 18px); font-weight: 700; color: #64748b; text-align: center; min-height: 1.4em; }
+@keyframes enough-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(245,158,11,0)); }
+  50%      { filter: drop-shadow(0 0 10px rgba(245,158,11,0.95)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enough-who--without .enough-who-img, .enough-thing--spare img { animation: none; filter: drop-shadow(0 0 6px rgba(245,158,11,0.95)); }
+}
 
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {
@@ -730,18 +791,15 @@
   .cfn-multi-row     { min-height: 24px; max-height: 100px; }
   .cfn-multi-divider { max-width: min(720px, 94vw); }
 
-  /* "Расставь по порядку"'s scale hint, sized down for a short landscape
+  /* "Расставь по порядку"'s wedge hint, sized down for a short landscape
      viewport — its portrait sizing (clamp ceilings driven by vw, which
      stays generous on a WIDE-but-short landscape phone) measured out to
      genuinely overflowing the card on an 844×390 phone with 5 tiles: the
      scale alone added ~110px on top of an already-full screen. Trimmed to
      what a landscape phone actually has spare, not what looks nice on a
      tall one. */
-  .apply-order-scale       { gap: 4px; margin-top: 0; }
-  .apply-order-scale-value { font-size: clamp(18px, 4.5vw, 22px); }
-  .apply-order-scale-track { height: 8px; }
-  .apply-order-scale-thumb { width: 24px; height: 24px; }
-  .apply-order-scale-ends  { font-size: clamp(11px, 2vw, 13px); }
+  .apply-wedge { max-width: min(46vw, 300px); }
+
 
   /* Even with the scale trimmed above, a 5-tile order task still overflows
      a short landscape phone (~390px tall): .apply-order-slots/-tray size
@@ -761,6 +819,21 @@
      screen), so trim it here too rather than shrinking the grid further
      and risking tap targets. */
   .apply-hint-btn { font-size: clamp(15px, 3.2vw, 18px); padding: 4px 8px; }
+}
+
+/* «Выбери число» on a short landscape phone (667×375 and the like): the
+   portrait layout measured ~516px of content — the task card and the
+   instruction were cut off at the top even before any hint. Compact card,
+   the four tiles in one row, tighter gaps; and if the wedge still doesn't
+   fit, the screen scrolls instead of cutting anything off. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .compare-body--apply:has(.apply-ineq) { justify-content: flex-start; gap: 10px; overflow-y: auto; padding-top: 8px; }
+  .compare-body--apply:has(.apply-ineq) .apply-kicker { font-size: clamp(18px, 3.2vw, 24px); }
+  .apply-ineq { padding: 8px 22px; border-radius: 20px; }
+  .apply-ineq-blank { width: 56px; height: 56px; font-size: 28px; border-radius: 14px; }
+  .apply-ineq-sign, .apply-ineq-value { font-size: 36px; }
+  .apply-choice-grid:not(.apply-choice-grid--hint) { grid-template-columns: repeat(4, 1fr); max-width: min(80vw, 520px); }
+  .apply-choice-btn { aspect-ratio: 1.7; }
 }
 
 /* Level 5 «По разрядам»: the numbers by places after a mistake (PlaceHint.jsx).
@@ -789,4 +862,29 @@
   .cmp-place-num { font-size: 30px; }
   .cmp-place-digit { min-width: 60px; font-size: 46px; }
   .cmp-place-say { font-size: 22px; max-width: 560px; }
+}
+
+/* «Всем хватает?» on a tablet: the phone caps (a 560px board, 110px
+   characters, 480px answer buttons) left a lot of empty screen around a
+   small scene. Bigger board, characters, objects and answers; landscape
+   tablets (~820px tall) still fit the board, «Потому что…» and five answers. */
+@media (min-width: 768px) and (min-height: 600px) {
+  .enough-body .enough-board { max-width: min(92vw, 900px); padding: 22px 16px 18px; border-radius: 28px; gap: clamp(18px, 3vh, 34px); }
+  .enough-body .enough-row { gap: clamp(8px, 1.6vw, 18px); }
+  .enough-body .enough-who { max-width: 176px; }
+  .enough-body .enough-thing { max-width: 148px; }
+  .enough-body .compare-instruction { font-size: clamp(30px, 3.6vw, 40px); }
+  .enough-body .enough-because { max-width: 760px; font-size: clamp(24px, 2.8vw, 32px); }
+  .enough-body .enough-why-grid { max-width: 760px; gap: 12px; }
+  .enough-body .enough-why-grid .cfn-btn { min-height: 68px; font-size: clamp(20px, 2.4vw, 26px); }
+  .enough-body .enough-options { max-width: 760px; gap: 14px; }
+  .enough-body .enough-options .cfn-btn { min-height: 72px; font-size: clamp(22px, 2.6vw, 28px); }
+  .enough-body .enough-hint { font-size: clamp(18px, 2.2vw, 24px); }
+}
+/* Landscape tablet: the session bar takes ~60px of its ~820px — a little
+   smaller scene keeps the five answers on screen with room to spare. */
+@media (min-width: 768px) and (min-height: 600px) and (max-height: 900px) and (orientation: landscape) {
+  .enough-body .enough-who { max-width: 150px; }
+  .enough-body .enough-thing { max-width: 120px; }
+  .enough-body .enough-board { gap: 14px; padding: 16px 14px 14px; }
 }

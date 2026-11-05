@@ -1,0 +1,123 @@
+/* «Пишу на экране» (print_letters, mode screen_write). Literacy palette (cream paper, teal UI,
+   pen-ink blue); correct = green; no error colour at all — a burnt stroke goes grey and fades.
+   Prefix plw-. One big grid board over the whole working area (owner, 2026-11-04), «Показать» on
+   the board itself, under it only the previous / next letter. Lives inside the session
+   (.session-stage); the nav row is the screen's bottom edge, so it keeps the home-indicator space. */
+.plw-root {
+  --plw-paper: #fffef5;
+  --plw-grid: #d6e7f2;
+  --plw-grid-cell: #aecfe4;
+  --plw-grid-row: #7fb3d5;
+  --plw-ink: #1d4ed8;
+  --plw-track: 59, 130, 246;
+  --plw-ok: #22c55e;
+  --plw-ok-dark: #16a34a;
+  --plw-teal: #4a9b8f;
+  --plw-teal-dark: #2a6b60;
+  --plw-line: #e2e8f0;
+
+  position: relative;
+  /* the grid starts right under the session header: the header keeps 58px (86px on a phone) of empty
+     space below it for the right/wrong badge — the board runs under it, the badge lies on the grid */
+  margin-top: -58px;
+  width: 100%;
+  height: calc(100% + 58px);
+  align-self: stretch;
+  min-height: 0;
+  box-sizing: border-box;
+  background: var(--plw-paper);
+  color: #1e293b;
+  font-family: "Nunito", sans-serif;
+}
+
+/* доска */
+.plw-board-wrap { position: absolute; inset: 0; overflow: hidden; background: var(--plw-paper); }
+.plw-board {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.plw-paper { fill: var(--plw-paper); }
+/* the ordinary notebook grid (a letter is 2 cells tall); red ruler ticks on the row's top and bottom lines: ½ long, ¼ ¾ short */
+.plw-grid-cell { stroke: var(--plw-grid-row); stroke-width: 1; }
+.plw-cell-own { fill: rgba(127, 179, 213, 0.07); }
+.plw-ruler line { stroke: #ef4444; stroke-width: 1.1; stroke-linecap: round; }
+
+.plw-track-band { fill: none; stroke: rgba(var(--plw-track), 0.06); stroke-linecap: round; stroke-linejoin: round; }
+.plw-track.is-current .plw-track-band { stroke: rgba(var(--plw-track), 0.16); }
+.plw-track-axis { fill: none; stroke: #cbd5e1; stroke-width: 1.2; stroke-dasharray: 3 4; stroke-linecap: round; }
+.plw-track.is-current .plw-track-axis { stroke: #93c5fd; }
+
+.plw-ink { fill: none; stroke: var(--plw-ink); stroke-linecap: round; stroke-linejoin: round; }
+.plw-ink.is-given { stroke: #94a3b8; }
+.plw-inks.is-done .plw-ink { stroke: var(--plw-ok-dark); transition: stroke 0.3s; }
+.plw-inks.is-done { filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.55)); }
+.plw-burn.is-burning {
+  stroke: #94a3b8; opacity: 0;
+  transition: stroke-dashoffset 0.6s ease-in, stroke 0.15s, opacity 0.6s ease-in;
+}
+
+.plw-start { fill: var(--plw-ok); }
+.plw-start.is-nudged { animation: plw-pulse 1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes plw-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.7); } }
+.plw-arrow { fill: none; stroke: var(--plw-ok-dark); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.plw-demo-trail { fill: none; stroke: #3b82f6; stroke-opacity: 0.45; stroke-linecap: round; stroke-linejoin: round; }
+.plw-demo-dot { fill: #3b82f6; }
+.plw-demo.is-watch .plw-demo-trail { stroke: var(--plw-ink); stroke-opacity: 1; }
+.plw-demo.is-watch .plw-demo-dot { fill: var(--plw-ink); }
+
+/* образец = задание + «Показать»: карточка в левом верхнем углу холста */
+.plw-sample {
+  position: absolute;
+  top: 12px;
+  left: calc(12px + var(--app-safe-left, 0px));
+  z-index: 2;
+  width: clamp(84px, 14vmin, 136px);
+  aspect-ratio: 5 / 6;
+  padding: 8px;
+  display: grid; place-items: center;
+  border: 2px solid var(--plw-line); border-radius: 20px;
+  background: #fff; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.plw-sample:active { transform: translateY(2px); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); }
+.plw-sample:disabled { cursor: default; }
+.plw-sample:disabled .plw-sample-play { opacity: 0.4; }
+.plw-sample-glyph { width: 100%; height: 100%; }
+.plw-sample-line { fill: none; stroke: #1e293b; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.plw-sample-play {
+  position: absolute; right: -10px; bottom: -10px;
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--plw-teal); box-shadow: 0 3px 0 var(--plw-teal-dark);
+}
+.plw-sample-play svg { width: 20px; height: 20px; fill: #fff; margin-left: 2px; }
+
+/* низ: только назад / заново / дальше */
+.plw-nav {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px calc(12px + var(--app-safe-right, 0px)) calc(10px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px));
+  pointer-events: none; /* the grid under the row stays writable between the buttons */
+}
+.plw-nav > * { pointer-events: auto; }
+.plw-nav-gap { width: 56px; }
+.plw-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-width: 56px; min-height: 52px; padding: 6px 16px;
+  border: 2px solid var(--plw-line); border-radius: 16px; background: #fff; color: #334155;
+  font: inherit; font-weight: 900; box-shadow: 0 3px 0 #cbd5e1;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.plw-nav-btn:active { transform: translateY(3px); box-shadow: none; }
+.plw-nav-btn:disabled { opacity: 0.4; cursor: default; }
+.plw-nav-arrow { font-size: 28px; line-height: 1; color: #94a3b8; }
+.plw-nav-letter { font-size: 22px; }
+.plw-nav-btn--quiet { font-size: 22px; color: #64748b; }
+.plw-nav-btn.is-ready { background: var(--plw-teal); border-color: var(--plw-teal); color: #fff; box-shadow: 0 3px 0 var(--plw-teal-dark); }
+.plw-nav-btn.is-ready .plw-nav-arrow { color: #fff; }
+
+@media (max-width: 560px) {
+  .plw-root { margin-top: -86px; height: calc(100% + 86px); }
+}

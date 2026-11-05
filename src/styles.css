@@ -13584,6 +13584,10 @@ kbd {
   margin-top: auto;
 }
 .summary-actions .btn { flex: 1; }
+/* «Видео в конце занятия» (SessionSummary): the prize button, centred above the actions */
+.summary-end-video { display: flex; justify-content: center; margin: 4px 0 16px; }
+.summary-end-video .reward-modal__btn { min-width: min(320px, 90%); min-height: 56px; font-size: 1.15rem; font-weight: 800; box-shadow: 0 4px 0 #b30000; }
+.summary-end-video .reward-modal__btn:active { transform: translateY(3px); box-shadow: none; }
 
 /* ── Hold-to-confirm button ─────────────────────────────────────────── */
 .hold-btn {

@@ -3,6 +3,7 @@ import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSens
 import { CSS } from "@dnd-kit/utilities";
 import DrawingSignPad from "./DrawingSignPad";
 import { getVerdict } from "./engine";
+import WedgeScale from "./WedgeScale";
 
 // Tap one of a few concrete number tiles that fits the spoken constraint —
 // a closed choice, not free number entry. See engine.js's
@@ -31,11 +32,16 @@ import { getVerdict } from "./engine";
 //
 // Some tasks have two fitting tiles (engine.js) — any one of them counts:
 // «больше 6» is not one number.
+//
+// The hint has two steps (owner's call, 2026-11-01): 💡 first shows the
+// wedge scale under the tiles, with the task's number marked and a flag for
+// every tile number the slider passes; «Ещё подсказка» then switches to the
+// draw-the-sign tiles described above. Never both at once.
 function GenerateStage({ task, answered, onAnswer, playFeedback }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
   const [isCorrectPick, setIsCorrectPick] = useState(false);
-  const [showHint, setShowHint] = useState(false);
+  const [hintStep, setHintStep] = useState(0); // 0 none · 1 wedge · 2 draw the sign
   const [hintDone, setHintDone] = useState(() => Array(task.options.length).fill(false));
   const [hintShakeIdx, setHintShakeIdx] = useState(-1);
 
@@ -74,7 +80,7 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
     setHintDone((prev) => prev.map((v, i) => (i === idx ? true : v)));
   }
 
-  const hintActive = showHint && !answered;
+  const hintActive = hintStep === 2 && !answered;
 
   return (
     <>
@@ -126,11 +132,30 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
           {getVerdict({ type: "compare_sign", left: task.options[pickedIdx], right: task.value })}
         </div>
       )}
+      {!answered && hintStep === 1 && (
+        <WedgeScale min={task.min} max={task.max} direction="asc" numbers={task.options} mark={task.value} />
+      )}
       {!answered && (
-        <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
-          <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
-          {showHint ? "Убрать подсказку" : "Подсказка"}
-        </button>
+        <div className="apply-hint-row">
+          {hintStep === 0 ? (
+            <button type="button" className="apply-hint-btn" onClick={() => setHintStep(1)}>
+              <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
+              Подсказка
+            </button>
+          ) : (
+            <>
+              {hintStep === 1 && (
+                <button type="button" className="apply-hint-btn" onClick={() => setHintStep(2)}>
+                  <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
+                  Ещё подсказка
+                </button>
+              )}
+              <button type="button" className="apply-hint-btn" onClick={() => setHintStep(0)}>
+                Убрать подсказку
+              </button>
+            </>
+          )}
+        </div>
       )}
     </>
   );
@@ -229,66 +254,6 @@ function OrderTile({ idx, value, disabled }) {
   );
 }
 
-// The "Расставь по порядку" hint: not a worked example like GenerateStage's
-// (there's no single sign to draw here), but a hand-draggable number line
-// spanning the level's whole min–max range. Dragging right = bigger,
-// dragging left = smaller — a felt, physical sense of magnitude to build
-// before the child tries to reason about where their own tray numbers
-// belong. Deliberately NOT wired to the task at all (no marks for the
-// tray's numbers, no feedback tied to placement): user's call — this is
-// pure orientation, kept fully separate from answering, same as
-// GenerateStage's hint never submits an answer either.
-function OrderScaleHint({ min, max }) {
-  const trackRef = useRef(null);
-  const [dragging, setDragging] = useState(false);
-  const [value, setValue] = useState(() => Math.round((min + max) / 2));
-
-  function setFromClientX(clientX) {
-    const track = trackRef.current;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    const ratio = rect.width ? Math.min(1, Math.max(0, (clientX - rect.left) / rect.width)) : 0;
-    setValue(Math.round(min + ratio * (max - min)));
-  }
-
-  function onPointerDown(e) {
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-    setDragging(true);
-    setFromClientX(e.clientX);
-  }
-  function onPointerMove(e) {
-    if (!dragging) return;
-    setFromClientX(e.clientX);
-  }
-  function onPointerUp(e) {
-    setDragging(false);
-    e.currentTarget.releasePointerCapture?.(e.pointerId);
-  }
-
-  const ratio = max > min ? (value - min) / (max - min) : 0;
-
-  return (
-    <div className="apply-order-scale">
-      <div className="apply-order-scale-value">{value}</div>
-      <div
-        ref={trackRef}
-        className={`apply-order-scale-track${dragging ? " apply-order-scale-track--active" : ""}`}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
-        <div className="apply-order-scale-fill" style={{ width: `${ratio * 100}%` }} />
-        <div className="apply-order-scale-thumb" style={{ left: `${ratio * 100}%` }} />
-      </div>
-      <div className="apply-order-scale-ends">
-        <span>{min}</span>
-        <span>{max}</span>
-      </div>
-    </div>
-  );
-}
-
 // Drag a tile from the tray into one of the labeled slots — a physical
 // sort, not a tap-in-order sequence. Any slot can be filled first; each
 // drop is checked against its own position in `task.sorted`, so the child
@@ -371,7 +336,7 @@ function OrderStage({ task, answered, onAnswer, onMistake }) {
       {(!showHint || answered) && <div className="apply-order-tray-caption">перетащи число в нужное место</div>}
       {!answered && (
         <>
-          {showHint && <OrderScaleHint min={task.min} max={task.max} />}
+          {showHint && <WedgeScale min={task.min} max={task.max} direction={task.direction} numbers={task.numbers} />}
           <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
             <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
             {showHint ? "Убрать подсказку" : "Подсказка"}

@@ -221,13 +221,32 @@ owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs
 pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
 ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
 
-## Мои люди (my_people) — разбор логопеда и редизайн
+## Мои люди (my_people) — согласованная механика и переделка
 
-Второй методический проход по теме (2026-10-20): оценка всех режимов глазами логопеда (РАС),
-пробелы (нет критерия перехода, нет ответа выбором для неговорящих, детская и взрослая зоны
-экрана смешаны) и предложение по редизайну. **Read `docs/my-people-methodology-review.md` first**
-before touching `my_people`; макеты — `docs/mockups/my-people-redesign.html`. История прошлых правок —
-`docs/my-people-review.md`.
+Последняя фиксация с владельцем — 2026-11-04, макеты 01–07. **Read
+`docs/my-people-design.md` first** before continuing `my_people`. План реализации:
+`docs/superpowers/plans/2026-11-04-my-people-redesign.md`. Основной путь:
+`docs/mockups/my-people-2026-11-04/my-people-v07.html`; лестница 2/3/4/6:
+`docs/mockups/my-people-2026-11-04/my-people-v06.html`.
+
+**Rollback required by owner:** read `docs/my-people-rollback.md` before implementation.
+Production baseline `1.0.2818`, SHA `9b7ca097983cd5cc2906563063deab45be7412c5`,
+reserved branch `backup/my-people-before-redesign-2026-11-04` (do not move/delete).
+Keep the old topic path behind a version switch; additive migrations must pass an
+old-client/new-data round trip. Before release, verify a restorable production DB
+and photo backup. The backup branch contains source code, not production data.
+
+Зафиксировано: две цели (имя / отношение), выбор фото и называние, самостоятельная
+работа и работа со взрослым, четыре компактные кнопки без поясняющего текста на
+детском экране, параметры каждого задания и результат с условиями. Подготовленный
+детский план меняется после подтверждения взрослого. Озвучка окончательно не
+принята и отложена отдельно. HTML — макет, не готовый исходник React.
+
+История: `docs/my-people-review.md` (2026-10-15) и
+`docs/my-people-methodology-review.md` (2026-10-20), старый макет
+`docs/mockups/my-people-redesign.html`. Старые предложения о едином результате
+называния человека, большой взрослой панели и автоматическом критерии «освоено»
+не заменяют последнюю спецификацию.
 
 ## Учим словенский — новая тема (started 2026-10-22)
 
@@ -236,6 +255,14 @@ listening mode «Одна вещь — два слова» (Russian word = home,
 faded out as a prompt). Not the app's Slovenian UI localization. **Read
 `docs/learn-slovene.md` first** — methodology, vocabulary, chosen voices, plan and status.
 
+## Короткие рассказы: микрорассказы (reading_short_stories)
+
+Шлифовка 15 микрорассказов для ребёнка, который ещё не умеет и не хочет искать в тексте (начата
+2026-11-04). Методика сделана в колоде 2.0.5: три вида вопросов (`?` поиск, `??` понимание,
+`*` разговор), три уровня сборника; дизайн экранов ещё впереди. **Read
+`docs/reading-micro-stories.md` first** — виды вопросов, правила их составления, сборка
+(базовые колоды в `test-fixtures/decks/`, исходных PNG в git нет), открытые пункты.
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
@@ -243,6 +270,27 @@ hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
 **Read the «Handoff» section of `docs/place-value.md` first** — menu, file map,
 the owner's rules learned the hard way, the work procedure and open items;
 per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
+
+## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
+
+Printed-letter worksheet/notebook constructor for preschoolers (4–6yo), not cursive — a separate
+topic from `propis2` (cursive) and from `letter_writing` (hidden/paid, **independent — don't touch**).
+The method's primary source is V. A. Ilyukhina's workbooks «Волшебные линии» №1/№2 (`docs/references/ilyukhina/`,
+analysis in `docs/print-letters-ilyukhina.md`) — letter shape, proportions, stroke order follow them.
+**Read the «Handoff» section of `docs/print-letters.md` first** (current branch, what's built, the
+owner's decisions, the screenshot harness, past process mistakes), then its «Разворот» sections for
+why each earlier shape was replaced. Key facts: glyphs live in notebook-cell coordinates in
+`tools/print_letters/topic.json` (1 cell = 50 units, letters 2 cells tall; width per Ilyukhina — half a
+letter-cell = 1 cell, or two thirds (`wide`: Т Ш … = 4/3 cells); one copy per letter-cell = 2 cells), so
+strokes on cell boundaries print exactly on grid lines — never stretch or crop them;
+every length in a block is a whole number of 5mm cells (`model.js`); format А4/А5 is notebook-wide
+and the sheet is drawn at real printable size; rows are `{elements, support}` picked in the row
+panel (`RowInspector.jsx`, right side; bottom sheet on phones). UI copies `propis2`'s editor
+model, palette and icons (copied, not imported from `src/features/propis2/`). Opens on «Мои тетради»
+(`PrintLettersHome.jsx`): notebooks saved on the device and in the account (`print_letters:nb:<id>` kv
+documents via the `accountKv` prop that `SessionScreen` passes to renderers — `src/topics/accountKv.js`),
+plus ready notebooks defined in `library.js`. Screens use the device's full width (owner's rule). Since deck 0.2.1 the topic opens full-screen like `propis2` (`ParamsRoute` → `src/features/printLetters/PrintLettersScreen.jsx`, no session header) and its whole UI is a renamed copy of propis2's stylesheet/editor layout (`propis2-style.css`, `plb-`/`pl2-` prefixes). Since deck 0.2.5 a block can also be a syllable or word (`words.js`, `WordBlock.jsx`, «Блок» picker) — see «Слоги и слова» in the handoff. Registered in
+`engineRegistry.js`/`registry.js`; deck ZIP built by `node tools/print_letters/build.mjs`, catalog status `beta`. Since deck 0.3.0 there is a second mode, «Пишу на экране» (`screen_write`): the child writes the letter with a finger on screen (levels «Обвожу»/«Сам» — «Смотрю» removed in 0.3.12; a stroke lifted too early or leaving the track burns), an ordinary session, not the full-screen constructor (since 0.3.1: one full-screen grid board, «Показать» writes the letter on the board itself, only prev/next letter under it, looping session with the usual star series and video reward; since 0.3.6 the board is the ordinary notebook grid, a letter 2 cells tall, wide letters 1½ cells on screen only (`screenGlyph`; printed sheets keep ⅔), red ruler ticks on the top and bottom lines of the letter's own cells only (½ long, ¼ ¾ short) mark where strokes start; since 0.3.9 a sample card in the board's corner shows the letter to write and is the «Показать» button, and the grid fills the whole working area (the renderer runs under the session header's empty badge space); since 0.3.10 the lesson ends on «Мои буквы» — the child's written letters (renderer → `onCorrect(…, {work})` → `session.works`, `mode.summaryOnFinish`), saveable as an A4 PDF (`src/features/session/PrintLettersWorks.jsx`); since 0.3.11 the set (letters × copies) is the lesson again (`finite`), the summary shows no «Молодец», and the app-wide «Видео в конце занятия» switch (mode params `videoAtEnd`, `sessionEndsOnItsOwn`, `endVideo.js`) offers «Смотреть видео» on the summary of a session gone through to the end); since 0.3.13 «Лист для тетради» on «Мои буквы» saves the lesson's letters as a notebook (a 4-row block per letter) and opens it in the constructor, and «Спрятанная буква» is gone — read `docs/print-letters-screen-writing.md` first (owner's decisions, what's done, what isn't); code in `src/topics/renderers/print_letters/screenWrite/`. Since deck 0.4.0 a third mode, «Почини букву» (`fix_letter`): a game of cards — a big letter with strokes shifted / tilted (one end) / a half-oval mirrored, the child drags them back (every part moves, a straight stroke by the middle or by either end, a magnet snaps it in), then the next letter; since 0.4.1 the letter is checked by its shape — a part snaps into any free place it matches (Е's bars are interchangeable); since 0.4.2 few settings (owner: no pile of settings) — «Сложность» (Легко / Средне / Трудно); since 0.4.3 the ovals of О Ю С Э are cut into a top and a bottom arc (О/Ю arcs mirror upside down, С/Э sideways, one mirrored half at most); since 0.4.4 no letter choice — all 33 letters in random order, «Сложность» is the only setting; read `docs/print-letters-fix-letter.md` first; code in `src/topics/renderers/print_letters/fixLetter/` (the breaking rules that keep the letter recognisable are in `breakLetter.js`, tested on all 33 letters); the board is shared with `screen_write` (`screenWrite/board.jsx`, `boardGeometry.js`). Since deck 0.5.0 a letter row in the constructor is one of three tasks (`row.task`, `tasks.js`): «Пишем букву», «Допиши штрих» (the letter without one stroke, hints only «точка начала» / none) and «Найди и обведи» (the block's letter among light lookalikes); the target is always the plate's letter, and «Готовые тетради → Задания → Спрятанные буквы» is a 2-page set (Г → П, Л → А, И → Й, Ь → Б, Ь → В) — see the top of the «Handoff» in `docs/print-letters.md`.
 
 ## Important
 
@@ -287,3 +335,4 @@ absolute-positioned element, not as a follow-up:**
   ```
   then screenshot the screen — anything now cramped or overlapping the top/bottom edge
   needs the fix above.
+

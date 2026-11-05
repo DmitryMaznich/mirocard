@@ -141,6 +141,19 @@ describe("importTopic — valid cases", () => {
     ]);
   });
 
+  it("keeps the ui of a mode whose id is an Object.prototype key (print_letters «constructor»)", async () => {
+    const zip = new JSZip();
+    zip.file("topic.json", JSON.stringify({
+      meta: { id: "test_proto_mode", version: "1.0.0", renderer: "print_letters", title: "Test" },
+      modes: [{ id: "constructor", type: "constructor", ui: { icon: "media/icons/x.svg", title: "Тетрадь", instruction: "Собери" } }],
+      cards: [{ id: "a", conceptId: "a", label: "А" }],
+    }));
+    const db = await freshDb();
+    await importTopic(db, await zip.generateAsync({ type: "arraybuffer" }), "2.0.0");
+    const record = await getTopicRecord(db, "test_proto_mode");
+    expect(record.modes[0].ui).toMatchObject({ icon: "media/icons/x.svg", title: "Тетрадь", instruction: "Собери" });
+  });
+
   it("imports a valid object topic and returns a record", async () => {
     const db = await freshDb();
     const buf = await makeObjectTopicZip();

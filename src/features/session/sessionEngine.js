@@ -275,7 +275,12 @@ export function handleAdvance(state) {
     }
     return { ...rewardAttemptComplete(state), status: state.isDeckMode ? "deck_exhausted" : "completed" };
   }
-  return { ...rewardAttemptComplete(state), status: "task_active", taskIndex: nextIndex };
+  // taskRetry counts the retries of THIS task (SessionScreen's remount key,
+  // and renderers show their after-a-mistake help by it: comparison's dots in
+  // rows, the crocodile reminder, the place-value table). It must start over
+  // on the next task — kept, every task after a first mistake looked like a
+  // retry (owner, 2026-11-03: «одинаковые точки рядами 5 раз подряд»).
+  return { ...rewardAttemptComplete(state), status: "task_active", taskIndex: nextIndex, taskRetry: 0 };
 }
 
 function collapseOutcomes(items, keys) {
@@ -287,6 +292,16 @@ function collapseOutcomes(items, keys) {
     else groups.set(key, { ...Object.fromEntries(keys.map(field => [field, item[field]])), count: item.count ?? 1 });
   }
   return [...groups.values()];
+}
+
+// What the child made in the lesson, as a renderer hands it with a right answer (`onCorrect(…,
+// { work })`) — «Печатные буквы»: each letter written on the screen, shown at the end of the lesson
+// («Мои буквы», SessionSummary) and saved to PDF there. Kept in the record on this device only (the
+// server stores its own session columns). The newest MAX_WORKS are kept.
+export const MAX_WORKS = 60;
+export function withWork(state, work) {
+  if (!state || !work || typeof work !== "object") return state;
+  return { ...state, works: [...(state.works ?? []), work].slice(-MAX_WORKS) };
 }
 
 export function computeSessionRecord(state, studentId, topicId, topicVersion, cardEvents = [], telemetry = {}) {
@@ -337,6 +352,7 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
     mistakes:       collapseOutcomes(state.mistakes, ["conceptId", "cardId"]),
     assessments:    state.assessments?.length ? collapseOutcomes(state.assessments, ["quality", "conceptId", "cardId"]) : undefined,
     cardEvents:     cardEvents.length ? cardEvents : undefined,
+    works:          state.works?.length ? state.works : undefined,
   };
   if (!record.textId) delete record.textId;
   return record;

@@ -481,6 +481,8 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
     const guides = Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / BG_GUIDE_STEP) + 1 }, (_, k) => mmToNativeUnits(10) + k * BG_GUIDE_STEP);
     return (
       <g data-simple-grid="bg">
+        {/* `propis2` «Подсветка» on the Bulgarian ruling: the x-height band of every row (thin line to baseline), under the guides and lines */}
+        {bandFill && rows.map((r) => <rect key={`fill${r}`} x={0} y={base(r) - mmToNativeUnits(BG_X_MM)} width={PAGE_W_UNITS} height={mmToNativeUnits(BG_X_MM)} fill={bandFill} data-band-fill={r} />)}
         {onlyRow === null && !noSlant && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
         {rows.map((r) => {
           const y = base(r);

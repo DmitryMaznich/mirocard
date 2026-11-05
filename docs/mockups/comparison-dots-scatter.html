@@ -1,0 +1,401 @@
+<title>Точки вразброс</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: a working sheet for the owner. A settings row on top drives a live
+   preview, then a wall of app screens (one per case), then the rules and the
+   open questions. App frames keep the app's own light colours; only the
+   sheet around them follows the viewer's theme. */
+:root {
+  --sheet-bg: #eef3f2;
+  --sheet-fg: #1a2e2b;
+  --sheet-muted: #557a74;
+  --sheet-card: #ffffff;
+  --sheet-line: #c8d4d2;
+  --sheet-accent: #1c7a6e;
+  --sheet-note-bg: #fff7e6;
+  --sheet-note-fg: #7a4b00;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+
+  /* App colours (the frames are pictures of the app; the app is light-only) */
+  --app-bg: #f0f6ff;
+  --app-card: #ffffff;
+  --app-border: #e0e0e0;
+  --app-text: #263131;
+  --app-blue: #3b82f6;
+  --app-orange: #f97316;
+  --app-amber-bg: #fef3c7;
+  --app-amber: #f59e0b;
+  --app-amber-ink: #b45309;
+  --app-green: #22c55e;
+  --app-green-bg: #f0fdf4;
+  --app-red: #ef4444;
+  --app-verdict: #2d6fb5;
+  --app-topbar: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad;
+    --sheet-card: #1a2624; --sheet-line: #2f4441; --sheet-accent: #4fb3a5;
+    --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad;
+  --sheet-card: #1a2624; --sheet-line: #2f4441; --sheet-accent: #4fb3a5;
+  --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--sheet-bg); color: var(--sheet-fg); font-family: var(--font);
+  font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 900; margin: 0; text-wrap: balance; }
+h2 { font-size: 22px; font-weight: 800; margin: 0 0 12px; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: var(--sheet-muted); font-size: 17px; margin-top: 8px; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sheet-accent); }
+
+/* ── Settings mock (same shape as ParamsScreen .param-row / .enum-btn) ── */
+.params { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; overflow: hidden; max-width: 760px; }
+.param-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 14px 16px; border-top: 1.5px solid var(--sheet-line); }
+.param-row:first-child { border-top: 0; }
+.param-row--new { background: color-mix(in srgb, var(--sheet-accent) 9%, transparent); }
+.param-label { font-weight: 700; font-size: .95rem; flex: 1; min-width: 140px; display: flex; align-items: center; gap: 8px; }
+.badge-new { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; background: var(--sheet-accent); color: #fff; border-radius: 6px; padding: 2px 6px; }
+.param-enum-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.param-enum-arrow { color: #94a3b8; font-weight: 800; padding: 0 1px; }
+.enum-btn {
+  font: inherit; font-size: .92rem; padding: 8px 14px; min-height: 40px; border: 1.5px solid var(--sheet-line);
+  border-radius: 10px; background: color-mix(in srgb, var(--sheet-line) 30%, var(--sheet-card)); color: var(--sheet-fg); cursor: pointer;
+}
+.enum-btn:hover { filter: brightness(.97); }
+.enum-btn:focus-visible, .side:focus-visible, .eq:focus-visible, .tool-btn:focus-visible { outline: 3px solid var(--sheet-accent); outline-offset: 2px; }
+.enum-btn--active { border-color: var(--sheet-accent); background: var(--sheet-accent); color: #fff; font-weight: 700; box-shadow: 0 2px 8px rgba(28,122,110,.35); }
+.param-hint { flex-basis: 100%; font-size: .82rem; color: var(--sheet-muted); line-height: 1.4; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tool-btn { font: inherit; font-weight: 800; font-size: 15px; border: 0; border-radius: 12px; padding: 10px 16px; cursor: pointer; background: var(--sheet-accent); color: #fff; box-shadow: 0 3px 0 #145a51; }
+.tool-btn:active { transform: translateY(3px); box-shadow: none; }
+.tool-btn--ghost { background: var(--sheet-card); color: var(--sheet-fg); border: 1.5px solid var(--sheet-line); box-shadow: none; }
+.tool-btn--ghost[aria-pressed="true"] { border-color: var(--sheet-accent); color: var(--sheet-accent); }
+
+/* ── Frames wall ─────────────────────────────────────────────────── */
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 28px 20px; align-items: start; }
+.wall--tablet { grid-template-columns: 1fr; }
+.shot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.shot h3 { margin: 0; font-size: 17px; font-weight: 800; }
+.shot p { font-size: 14px; color: var(--sheet-muted); }
+.shot .tag { font-size: 12px; font-weight: 800; color: var(--sheet-accent); letter-spacing: .04em; text-transform: uppercase; }
+
+.frame {
+  width: 100%; max-width: 390px; container-type: inline-size;
+  background: var(--app-bg); color: var(--app-text); border-radius: 26px; overflow: hidden;
+  border: 6px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.wall--tablet .frame { max-width: 820px; border-radius: 22px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; background: var(--app-topbar); border-bottom: 1px solid #e5edf5; font-weight: 800; font-size: 14px; }
+.stars { color: #f6b100; letter-spacing: 2px; }
+.stars .off { color: #d7dee8; }
+.finish { font-size: 13px; color: #64748b; border: 1.5px solid #cbd5e1; border-radius: 9px; padding: 3px 9px; }
+
+.body { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 12px 20px; min-height: 360px; justify-content: center; }
+.instr { font-size: clamp(20px, 6cqw, 30px); font-weight: 800; text-align: center; }
+.instr-hint { font-size: clamp(14px, 4cqw, 20px); font-weight: 500; color: #718096; margin-top: 4px; }
+
+/* As in the app: card · «поровну» · card in one row, each clamp(90px, 26vw, 220px);
+   tablet 240 · 200 · 240. */
+.sides { display: flex; gap: 16px; justify-content: center; align-items: center; width: 100%; }
+.side, .eq { width: clamp(90px, 26cqw, 220px); flex-shrink: 0; }
+.wall--tablet .sides { gap: 24px; }
+.wall--tablet .side { width: 240px; }
+.wall--tablet .eq { width: 200px; }
+
+.side {
+  appearance: none; font: inherit; color: inherit; padding: 10px; cursor: pointer;
+  background: var(--app-card); border: 3px solid var(--app-border); border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.10); display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transition: border-color .25s, background .25s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.side.ok { border-color: var(--app-green); background: var(--app-green-bg); }
+.side.bad { border-color: var(--app-red); animation: shake .35s; }
+.field { position: relative; width: 100%; aspect-ratio: 1; max-width: 100%; }
+.dot { position: absolute; border-radius: 50%; transition: left .6s cubic-bezier(.3,.8,.3,1), top .6s cubic-bezier(.3,.8,.3,1), width .6s, height .6s; }
+.num { font-size: clamp(22px, 7cqw, 34px); font-weight: 800; line-height: 1; }
+
+/* The owner's empty amber square (compare-equal-btn--empty --hint): no sign,
+   no caption, on purpose. */
+.eq {
+  appearance: none; font: inherit; cursor: pointer; aspect-ratio: 1; padding: 0;
+  background: var(--app-amber-bg); border: 3px dashed var(--app-amber); border-radius: 20px;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.eq.ok { border-style: solid; border-color: var(--app-green); background: var(--app-green-bg); }
+.eq.bad { border-style: solid; border-color: var(--app-red); animation: shake .35s; }
+
+.verdict { min-height: 1.4em; font-size: clamp(20px, 6cqw, 30px); font-weight: 800; color: var(--app-verdict); text-align: center; }
+.hint-note { min-height: 1.3em; font-size: 14px; font-weight: 700; color: #64748b; text-align: center; }
+
+@keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) { .dot { transition: none; } .side.bad, .eq.bad { animation: none; } }
+
+/* ── Rules / questions ───────────────────────────────────────────── */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.panel { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; padding: 18px 20px; min-width: 0; }
+.panel ul, .panel ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.panel li { max-width: 68ch; }
+.panel--q { background: var(--sheet-note-bg); color: var(--sheet-note-fg); border-color: transparent; }
+.panel--q strong { color: inherit; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Сравнение · режим 1 «Сравни и нажми» · макет</div>
+    <h1>Точки вразброс и ловушка</h1>
+    <p class="lead">Новая настройка «Как лежат точки»: рядами, как сейчас, вразброс или ловушка. В ловушке на одной стороне меньше точек, но они крупнее и занимают больше места. Так видно, сравнивает ребёнок количество или просто выбирает, где «больше краски». По всем экранам можно нажимать: верный ответ, ошибка и подсказка работают как в приложении.</p>
+  </header>
+
+  <section aria-labelledby="h-params">
+    <h2 id="h-params">Настройка</h2>
+    <div class="params">
+      <div class="param-row">
+        <div class="param-label">Вид</div>
+        <div class="param-enum-group" id="p-view"></div>
+      </div>
+      <div class="param-row param-row--new">
+        <div class="param-label">Как лежат точки <span class="badge-new">новое</span></div>
+        <div class="param-enum-group" id="p-layout"></div>
+        <div class="param-hint" id="p-layout-hint"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-preview">
+    <h2 id="h-preview">Как это видит ребёнок</h2>
+    <div class="toolbar">
+      <button class="tool-btn" id="reshuffle" type="button">Новые точки</button>
+      <button class="tool-btn tool-btn--ghost" id="dev-phone" type="button" aria-pressed="true">Телефон</button>
+      <button class="tool-btn tool-btn--ghost" id="dev-tablet" type="button" aria-pressed="false">Планшет</button>
+    </div>
+    <div class="wall" id="wall" style="margin-top:18px"></div>
+  </section>
+
+  <section class="cols" aria-label="Правила и вопросы">
+    <div class="panel">
+      <h2>Как это работает</h2>
+      <ul>
+        <li><strong>Три шага по порядку.</strong> Рядами → Вразброс → Ловушка. Это одна настройка со стрелками, как «Вид»: каждый шаг труднее предыдущего.</li>
+        <li><strong>Вразброс.</strong> Точки лежат по всей карточке без порядка и не касаются друг друга. Размер одинаковый на обеих сторонах. Узором «как на кубике» уже не угадать, нужно сравнивать или считать.</li>
+        <li><strong>Ловушка.</strong> Половина заданий с подвохом: где меньше точек, там они крупные и разбросаны по всей карточке, а где больше — мелкие и лежат кучкой. В остальных заданиях вид честный, иначе ребёнок выучит правило «выбирай мелкие».</li>
+        <li><strong>Ловушка на «поровну».</strong> Поровну, но одна сторона выглядит больше. Это классическая проба на сохранение количества. Поэтому в ловушке кнопка «поровну» включается сама, как в «Парах».</li>
+        <li><strong>После ошибки</strong> точки обеих сторон съезжаются в ряды одного размера, и в повторе задание остаётся рядами. Ребёнок видит, что правда больше, и не ошибается второй раз на том же обмане.</li>
+        <li><strong>Где доступно.</strong> «Точки» и «Точки + цифра». В «Парах» точки остаются столбиками: там важно видеть лишние. В «Только цифры» точек нет.</li>
+        <li><strong>Кнопка «поровну»</strong> остаётся как есть: пустой жёлтый квадрат между карточками.</li>
+        <li><strong>Телефон.</strong> Карточка там шириной около 100 px, поэтому мелкие точки ловушки получаются примерно 8 px. Посмотрите вид «Телефон». Если это слишком мелко, на телефоне можно делать кучку чуть просторнее, а разницу в размере меньше.</li>
+      </ul>
+    </div>
+    <div class="panel panel--q">
+      <h2>Нужно ваше решение</h2>
+      <ol>
+        <li><strong>Одна настройка из трёх шагов</strong> (как в макете) или две отдельные: «Вразброс» и «Разный размер»? Я за одну: меньше кнопок, и порядок шагов виден сразу.</li>
+        <li><strong>Доля подвохов в ловушке</strong> — половина заданий. Больше или меньше?</li>
+        <li><strong>После ошибки съезжаться в ряды?</strong> Или только трясти карточку, как сейчас, без подсказки?</li>
+        <li><strong>Ловушка на телефоне</strong>: мелкие точки около 8 px, это нормально? Посмотрите вид «Телефон».</li>
+        <li><strong>Цвет.</strong> В ловушке обе стороны остаются синей и оранжевой. Можно сделать обе одного цвета, чтобы цвет вообще не подсказывал. Я бы оставил два цвета: так понятнее, где чья кучка.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // ── Seeded random so «Новые точки» gives a fresh but reproducible set ──
+  let seed = 7;
+  const rand = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+
+  // Positions are fractions of a square field: {x, y} = centre, d = diameter.
+  function rowsLayout(n, d) {
+    const perRow = Math.min(5, n);
+    const rows = Math.ceil(n / perRow);
+    const size = Math.min(d, 0.86 / (perRow + (perRow - 1) * 0.3), 0.86 / (rows + (rows - 1) * 0.3));
+    const step = size * 1.3;
+    const totalH = rows * size + (rows - 1) * size * 0.3;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / perRow), inRow = Math.min(perRow, n - r * perRow), c = i % perRow;
+      const rowW = inRow * size + (inRow - 1) * size * 0.3;
+      out.push({ x: 0.5 - rowW / 2 + size / 2 + c * step, y: 0.5 - totalH / 2 + size / 2 + r * step, d: size });
+    }
+    return out;
+  }
+
+  function scatterLayout(n, d, region = { x: 0, y: 0, s: 1 }) {
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const pts = [];
+      let tries = 0;
+      while (pts.length < n && tries < 4000) {
+        tries++;
+        const x = region.x + d / 2 + rand() * (region.s - d);
+        const y = region.y + d / 2 + rand() * (region.s - d);
+        if (pts.every((p) => Math.hypot(p.x - x, p.y - y) >= d * 1.22)) pts.push({ x, y, d });
+      }
+      if (pts.length === n) return pts;
+      d *= 0.93;
+    }
+    return rowsLayout(n, d);
+  }
+
+  const baseSize = (n) => Math.min(0.2, 0.62 / Math.sqrt(n));
+
+  // Builds both sides for one task. `lure`: the side with fewer dots is drawn
+  // big and spread, the side with more is small and huddled.
+  function buildTask(left, right, layout, lure) {
+    const d = baseSize(Math.max(left, right));
+    if (layout === "rows") return { L: rowsLayout(left, d), R: rowsLayout(right, d) };
+    if (layout === "scatter" || !lure) return { L: scatterLayout(left, d), R: scatterLayout(right, d) };
+    const bigSide = left === right ? (rand() < 0.5 ? "L" : "R") : (left < right ? "L" : "R");
+    const nBig = bigSide === "L" ? left : right, nSmall = bigSide === "L" ? right : left;
+    const big = scatterLayout(nBig, Math.min(0.26, 0.7 / Math.sqrt(nBig)));
+    const s = nSmall > 10 ? 0.62 : 0.5;
+    const region = { x: rand() * (1 - s), y: rand() * (1 - s), s };
+    const small = scatterLayout(nSmall, nSmall > 10 ? 0.075 : 0.085, region);
+    return bigSide === "L" ? { L: big, R: small } : { L: small, R: big };
+  }
+
+  // ── State ──
+  const VIEWS = [["pairing", "Пары"], ["dots", "Точки"], ["dots_numbers", "Точки + цифра"], ["numbers", "Только цифры"]];
+  const LAYOUTS = [["rows", "Рядами"], ["scatter", "Вразброс"], ["lure", "Ловушка"]];
+  const HINTS = {
+    rows: "Как сейчас: ровные ряды по пять.",
+    scatter: "Точки лежат без порядка по всей карточке, размер одинаковый.",
+    lure: "Вразброс, и в половине заданий где меньше — там крупнее и шире. «Поровну» включается само.",
+  };
+  const state = { view: "dots", layout: "lure", device: "phone" };
+
+  function enumGroup(el, items, current, onPick, disabled = []) {
+    el.innerHTML = "";
+    items.forEach(([v, label], i) => {
+      if (i) { const a = document.createElement("span"); a.className = "param-enum-arrow"; a.textContent = "→"; a.setAttribute("aria-hidden", "true"); el.append(a); }
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "enum-btn" + (v === current ? " enum-btn--active" : ""); b.textContent = label;
+      b.disabled = disabled.includes(v); if (b.disabled) b.style.opacity = ".45";
+      b.addEventListener("click", () => onPick(v));
+      el.append(b);
+    });
+  }
+
+  // ── The screens on the wall ──
+  // First one follows the settings; the rest pin one case each so the owner
+  // can see every situation without clicking through settings.
+  function shots() {
+    const live = state.view === "pairing" || state.view === "numbers" ? "dots" : state.view;
+    return [
+      { title: "По вашей настройке", tag: "живой", text: "Меняется вместе с настройкой выше.", view: live, layout: state.layout, left: 4, right: 7, lure: state.layout === "lure" },
+      { title: "Рядами (как сейчас)", tag: "было", text: "Ровные ряды по пять. Количество видно по длине рядов.", view: "dots", layout: "rows", left: 3, right: 8 },
+      { title: "Вразброс", tag: "шаг 2", text: "Порядка нет, размер одинаковый. Приходится сравнивать по-настоящему.", view: "dots", layout: "scatter", left: 6, right: 9 },
+      { title: "Ловушка: меньше, но крупнее", tag: "шаг 3", text: "Слева 4 крупные, справа 7 мелких кучкой. Верно — справа.", view: "dots", layout: "lure", left: 4, right: 7, lure: true },
+      { title: "Ловушка на «поровну»", tag: "шаг 3", text: "По 5 точек. Одна сторона кажется больше. Верно — «поровну».", view: "dots", layout: "lure", left: 5, right: 5, lure: true },
+      { title: "Ловушка с цифрой", tag: "Точки + цифра", text: "Цифра под точками подсказывает правду, а картинка обманывает.", view: "dots_numbers", layout: "lure", left: 8, right: 12, lure: true },
+    ];
+  }
+
+  function dotEls(field, pts, color) {
+    field.innerHTML = "";
+    pts.forEach((p) => {
+      const el = document.createElement("div");
+      el.className = "dot"; el.style.background = color;
+      place(el, p);
+      field.append(el);
+    });
+  }
+  function place(el, p) {
+    el.style.width = el.style.height = (p.d * 100) + "%";
+    el.style.left = ((p.x - p.d / 2) * 100) + "%";
+    el.style.top = ((p.y - p.d / 2) * 100) + "%";
+  }
+
+  function renderShot(cfg) {
+    const shot = document.createElement("article");
+    shot.className = "shot";
+    shot.innerHTML = `<div class="tag">${cfg.tag}</div><h3>${cfg.title}</h3><p>${cfg.text}</p>`;
+    const frame = document.createElement("div");
+    frame.className = "frame";
+    frame.innerHTML = `
+      <div class="topbar"><span class="stars">★★★<span class="off">★★</span></span><span>3 / 10</span><span class="finish">Закончить</span></div>
+      <div class="body">
+        <div class="instr">Где больше точек?<div class="instr-hint">Если поровну — нажми на жёлтый квадрат</div></div>
+        <div class="sides">
+          <button type="button" class="side" data-side="L"><div class="field"></div>${cfg.view === "dots_numbers" ? `<div class="num">${cfg.left}</div>` : ""}</button>
+          <button type="button" class="eq" aria-label="Поровну"></button>
+          <button type="button" class="side" data-side="R"><div class="field"></div>${cfg.view === "dots_numbers" ? `<div class="num">${cfg.right}</div>` : ""}</button>
+        </div>
+        <div class="verdict"></div>
+        <div class="hint-note"></div>
+      </div>`;
+    shot.append(frame);
+
+    const fields = frame.querySelectorAll(".field");
+    const sideL = frame.querySelector('[data-side="L"]'), sideR = frame.querySelector('[data-side="R"]');
+    sideL.setAttribute("aria-label", `Слева точек: ${cfg.left}`);
+    sideR.setAttribute("aria-label", `Справа точек: ${cfg.right}`);
+    const eq = frame.querySelector(".eq");
+    const verdict = frame.querySelector(".verdict"), note = frame.querySelector(".hint-note");
+    const task = buildTask(cfg.left, cfg.right, cfg.layout, cfg.lure);
+    dotEls(fields[0], task.L, "var(--app-blue)");
+    dotEls(fields[1], task.R, "var(--app-orange)");
+
+    let done = false;
+    const correct = cfg.left === cfg.right ? "E" : cfg.left > cfg.right ? "L" : "R";
+    function toRows() {
+      const d = baseSize(Math.max(cfg.left, cfg.right));
+      [[fields[0], cfg.left], [fields[1], cfg.right]].forEach(([f, n]) => {
+        const pts = rowsLayout(n, d);
+        [...f.children].forEach((el, i) => place(el, pts[i]));
+      });
+      note.textContent = "Подсказка: точки встали рядами одного размера";
+    }
+    function answer(pick, el) {
+      if (done) return;
+      [sideL, sideR, eq].forEach((b) => b.classList.remove("bad"));
+      if (pick === correct) {
+        done = true; el.classList.add("ok");
+        verdict.textContent = correct === "E" ? `${cfg.left} равно ${cfg.right}` : `${Math.max(cfg.left, cfg.right)} больше ${Math.min(cfg.left, cfg.right)}`;
+      } else {
+        void el.offsetWidth; el.classList.add("bad");
+        if (cfg.layout !== "rows") setTimeout(toRows, 380);
+      }
+    }
+    sideL.addEventListener("click", () => answer("L", sideL));
+    sideR.addEventListener("click", () => answer("R", sideR));
+    eq.addEventListener("click", () => answer("E", eq));
+    return shot;
+  }
+
+  const wall = document.getElementById("wall");
+  function render() {
+    enumGroup(document.getElementById("p-view"), VIEWS, state.view, (v) => { state.view = v; render(); });
+    const layoutOff = state.view === "pairing" || state.view === "numbers";
+    enumGroup(document.getElementById("p-layout"), LAYOUTS, state.layout, (v) => { state.layout = v; render(); }, layoutOff ? LAYOUTS.map((l) => l[0]) : []);
+    document.getElementById("p-layout-hint").textContent = layoutOff
+      ? (state.view === "pairing" ? "В «Парах» точки всегда столбиками: важно видеть лишние." : "В «Только цифры» точек нет.")
+      : HINTS[state.layout];
+    wall.className = "wall" + (state.device === "tablet" ? " wall--tablet" : "");
+    wall.innerHTML = "";
+    shots().forEach((cfg) => wall.append(renderShot(cfg)));
+    document.getElementById("dev-phone").setAttribute("aria-pressed", String(state.device === "phone"));
+    document.getElementById("dev-tablet").setAttribute("aria-pressed", String(state.device === "tablet"));
+  }
+
+  document.getElementById("reshuffle").addEventListener("click", () => { seed = Math.floor(Math.random() * 1e9); render(); });
+  document.getElementById("dev-phone").addEventListener("click", () => { state.device = "phone"; render(); });
+  document.getElementById("dev-tablet").addEventListener("click", () => { state.device = "tablet"; render(); });
+  render();
+})();
+</script>

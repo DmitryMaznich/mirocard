@@ -1,0 +1,306 @@
+<title>Сравни в жизни 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: a working sheet for the owner — part 1 (answer on the picture),
+   part 2 («Всем хватает?» built by the scene constructor), then the decisions.
+   App frames keep the app's own light colours. */
+:root {
+  --sheet-bg: #eef3f2; --sheet-fg: #1a2e2b; --sheet-muted: #557a74; --sheet-card: #ffffff;
+  --sheet-line: #c8d4d2; --sheet-accent: #1c7a6e; --sheet-note-bg: #fff7e6; --sheet-note-fg: #7a4b00;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --app-bg: #f0f6ff; --app-ink: #263131; --app-green: #22c55e; --app-green-bg: rgba(34,197,94,.16);
+  --app-red: #ef4444; --app-amber-bg: #fef3c7; --app-amber: #f59e0b; --app-verdict: #2d6fb5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad; --sheet-card: #1a2624; --sheet-line: #2f4441; --sheet-accent: #4fb3a5; --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad; --sheet-card: #1a2624; --sheet-line: #2f4441; --sheet-accent: #4fb3a5; --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--sheet-bg); color: var(--sheet-fg); font-family: var(--font); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 900; margin: 0; text-wrap: balance; }
+h2 { font-size: 24px; font-weight: 900; margin: 0 0 6px; text-wrap: balance; }
+h3 { margin: 0; font-size: 17px; font-weight: 800; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: var(--sheet-muted); font-size: 17px; margin-top: 8px; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sheet-accent); }
+.sec-lead { color: var(--sheet-muted); margin-bottom: 14px; }
+
+.params { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; overflow: hidden; max-width: 760px; margin-bottom: 18px; }
+.param-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 12px 16px; border-top: 1.5px solid var(--sheet-line); }
+.param-row:first-child { border-top: 0; }
+.param-label { font-weight: 700; font-size: .95rem; flex: 1; min-width: 140px; }
+.group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.enum-btn { font: inherit; font-size: .9rem; padding: 7px 12px; min-height: 40px; border: 1.5px solid var(--sheet-line); border-radius: 10px; background: color-mix(in srgb, var(--sheet-line) 30%, var(--sheet-card)); color: var(--sheet-fg); cursor: pointer; }
+.enum-btn--active { border-color: var(--sheet-accent); background: var(--sheet-accent); color: #fff; font-weight: 700; }
+.enum-btn:focus-visible, .tool-btn:focus-visible, .tbtn:focus-visible { outline: 3px solid var(--sheet-accent); outline-offset: 2px; }
+.param-hint { flex-basis: 100%; font-size: .82rem; color: var(--sheet-muted); }
+.tool-btn { font: inherit; font-weight: 800; font-size: 15px; border: 0; border-radius: 12px; padding: 10px 16px; cursor: pointer; background: var(--sheet-accent); color: #fff; box-shadow: 0 3px 0 #145a51; }
+.tool-btn:active { transform: translateY(3px); box-shadow: none; }
+
+.wall { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 28px 24px; align-items: start; }
+.shot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.shot p { font-size: 14px; color: var(--sheet-muted); }
+.tag { font-size: 12px; font-weight: 800; color: var(--sheet-accent); letter-spacing: .04em; text-transform: uppercase; }
+
+.frame { width: 100%; max-width: 390px; container-type: inline-size; background: var(--app-bg); color: var(--app-ink); border-radius: 26px; overflow: hidden; border: 6px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.topbar { display: flex; justify-content: space-between; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e5edf5; font-weight: 800; font-size: 14px; }
+.stars { color: #f6b100; letter-spacing: 2px; } .stars .off { color: #d7dee8; }
+.body { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px 14px 22px; min-height: 470px; }
+.instr { font-size: clamp(22px, 6.5cqw, 30px); font-weight: 800; text-align: center; }
+.instr-hint { font-size: clamp(14px, 4cqw, 18px); font-weight: 500; color: #718096; margin-top: 2px; }
+
+/* the picture */
+.scene { position: relative; width: 100%; border-radius: 24px; overflow: hidden; box-shadow: 0 6px 22px rgba(15,23,42,.12); }
+.scene img { display: block; width: 100%; height: auto; transition: transform .3s; }
+.scene img.mirror { transform: scaleX(-1); }
+.overlay { position: absolute; inset: 0; display: flex; }
+.side { position: relative; flex: 1; border: 0; background: transparent; padding: 0; cursor: default; font: inherit; }
+.side.pick { cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.side.ok::after { content: ""; position: absolute; inset: 0; background: var(--app-green-bg); }
+.side.bad { animation: shake .35s; }
+.side.bad::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 4px var(--app-red); }
+.side:first-child.ok::after, .side:first-child.bad::after { border-radius: 24px 0 0 24px; }
+.side:last-child.ok::after, .side:last-child.bad::after { border-radius: 0 24px 24px 0; }
+.name { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,.9); border: 2px solid rgba(226,232,240,.9); border-radius: 999px; padding: 2px 12px; font-weight: 800; font-size: 15px; white-space: nowrap; }
+.side.ok .name { background: var(--app-green); border-color: #16a34a; color: #fff; }
+
+.btns { display: flex; gap: 8px; width: 100%; }
+.tbtn { flex: 1; min-height: 56px; border: 3px solid #e2e8f0; border-radius: 18px; background: #fff; font: inherit; font-weight: 800; font-size: 15px; color: var(--app-ink); cursor: pointer; }
+.tbtn.ok { border-color: var(--app-green); background: #dcfce7; }
+.tbtn.bad { border-color: var(--app-red); animation: shake .35s; }
+.verdict { min-height: 2.6em; font-size: clamp(19px, 5.6cqw, 26px); font-weight: 800; color: var(--app-verdict); text-align: center; text-wrap: balance; }
+.tapnext { font-size: 13px; font-weight: 700; color: #94a3b8; }
+
+/* «Всем хватает?» */
+.board { width: 100%; background: #fff; border-radius: 24px; box-shadow: 0 6px 22px rgba(15,23,42,.12); padding: 14px 8px; display: flex; flex-direction: column; gap: 6px; }
+.row { display: grid; justify-items: center; align-items: end; }
+.who svg, .thing svg { width: 100%; height: auto; display: block; }
+.who { width: 100%; max-width: 74px; transition: transform .3s; }
+.who.left-out { animation: pulse 0.7s ease-in-out infinite; }
+.thing { width: 100%; max-width: 64px; border: 0; background: none; padding: 0; cursor: pointer; transition: transform .45s cubic-bezier(.3,.8,.3,1), opacity .3s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.thing:disabled { cursor: default; }
+.thing.extra { animation: pulse 0.7s ease-in-out infinite; }
+.slot { height: 0; }
+.choice { display: flex; gap: 10px; width: 100%; }
+.choice button { flex: 1; min-height: 74px; border: 3px solid #e2e8f0; border-radius: 18px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font: inherit; font-weight: 800; font-size: 16px; color: var(--app-ink); }
+.choice button svg { width: 40px; height: 40px; }
+.choice button.ok { border-color: var(--app-green); background: #f0fdf4; }
+.choice button.bad { border-color: var(--app-red); animation: shake .35s; }
+.helper { font-size: 14px; font-weight: 700; color: #64748b; text-align: center; min-height: 1.4em; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+@keyframes pulse { 0%,100% { filter: drop-shadow(0 0 0 rgba(245,158,11,0)); } 50% { filter: drop-shadow(0 0 8px rgba(245,158,11,.95)); } }
+@media (prefers-reduced-motion: reduce) { .who.left-out, .thing.extra { animation: none; outline: 3px solid var(--app-amber); border-radius: 12px; } .thing { transition: none; } }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.panel { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; padding: 18px 20px; min-width: 0; }
+.panel ul, .panel ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.panel--q { background: var(--sheet-note-bg); color: var(--sheet-note-fg); border-color: transparent; }
+.stub { font-size: 13px; font-weight: 700; color: var(--sheet-note-fg); background: var(--sheet-note-bg); border-radius: 10px; padding: 6px 10px; display: inline-block; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Сравнение · режим 8 «Сравни в жизни» · макет</div>
+    <h1>Сравни в жизни: зеркало, фраза и «Всем хватает?»</h1>
+    <p class="lead">Две части. Первая — быстрые правки на нынешних картинках: зеркальные показы и ступеньки фразы, ответ по-прежнему кнопками с текстом. Вторая — новый тип сюжета, который соберёт конструктор. По всем экранам можно нажимать.</p>
+  </header>
+
+  <section aria-labelledby="h1s">
+    <h2 id="h1s">1. Зеркало и ступеньки фразы</h2>
+    <p class="sec-lead">Экран и кнопки «У Пети» / «Поровну» / «У Маши» остаются как есть: к этой ступени ребёнок читает. Меняется то, что показывается: половина показов зеркальная, а фраза после ответа идёт ступеньками.</p>
+    <div class="params">
+      <div class="param-row"><div class="param-label">Сюжет</div><div class="group" id="o-scene"></div></div>
+      <div class="param-row"><div class="param-label">Зеркально</div><div class="group" id="o-mirror"></div>
+        <div class="param-hint">В приложении половина показов будет зеркальной сама: картинки фактически удваиваются, а мальчик не всегда слева.</div></div>
+      <div class="param-row"><div class="param-label">Фраза после ответа</div><div class="group" id="o-phrase"></div>
+        <div class="param-hint">Ступеньки речи: короткая → с предметом → полная. Выбирает взрослый в настройках.</div></div>
+    </div>
+    <div class="wall" id="wall1"></div>
+  </section>
+
+  <section aria-labelledby="h2s">
+    <h2 id="h2s">2. «Всем хватает?»</h2>
+    <p class="sec-lead">Бытовое сравнение «один к одному»: всем ли хватает стульев, блюдец, косточек. Это продолжение «Пар» из режима 1, только в жизни. Сцену собирает код из отдельных рисунков, поэтому количество всегда точное. <span class="stub">Рисунки здесь — заглушки. Настоящие нарисует Gemini по списку заготовок.</span></p>
+    <div class="params">
+      <div class="param-row"><div class="param-label">Предметы</div><div class="group" id="o-set"></div></div>
+      <div class="param-row"><div class="param-label">Порядок</div><div class="group" id="o-order"></div>
+        <div class="param-hint" id="o-order-hint"></div></div>
+    </div>
+    <div style="margin-bottom:16px"><button class="tool-btn" type="button" id="again">Новое задание</button></div>
+    <div class="wall" id="wall2"></div>
+  </section>
+
+  <section class="cols" aria-label="Решения">
+    <div class="panel">
+      <h2>Как это работает</h2>
+      <ul>
+        <li><strong>Ответ — кнопками с текстом, как сейчас.</strong> К этой ступени ребёнок читает, поэтому экран под нечитающих не перестраиваем.</li>
+        <li><strong>Зеркало.</strong> Картинка отражается, а числа и имена меняются местами в данных. Перерисовывать ничего не надо.</li>
+        <li><strong>«Всем хватает?», сначала проверка.</strong> Ребёнок нажимает на предметы, и каждый встаёт к своему персонажу. Кому не хватает — тот подсвечивается, лишний предмет тоже. Потом фраза: «Стульев не хватает. Одному не хватает стула».</li>
+        <li><strong>«Всем хватает?», сначала ответ.</strong> Труднее: ребёнок сначала отвечает «хватает» или «не хватает» на глаз, потом проверяет, расставляя предметы. Неверный ответ не штрафуется до проверки: проверка сама покажет.</li>
+        <li><strong>Три исхода:</strong> не хватает, хватает ровно (поровну), хватает и есть лишние. Количество 3–6 персонажей, разница 0–2.</li>
+      </ul>
+    </div>
+    <div class="panel panel--q">
+      <h2>Нужно ваше решение</h2>
+      <ol>
+        <li><strong>Фраза по умолчанию:</strong> короткая, с предметом или полная?</li>
+        <li><strong>«Всем хватает?»:</strong> оба порядка как две ступени (сначала проверка, потом ответ), или только один?</li>
+        <li><strong>Набор бытовых пар</strong> для заготовок: дети и стулья, чашки и блюдца, собаки и косточки. Что добавить? Я бы взял ещё дети и шапки, куклы и кроватки, тарелки и ложки.</li>
+        <li><strong>Где «Всем хватает?» в теме:</strong> вариантом внутри «Сравни в жизни» или отдельной ступенью?</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const IMAGES = { apples: "__IMG_APPLES__", candies: "__IMG_CANDIES__" };
+  const SCENES = {
+    apples: { img: "apples", item: "яблок", A: ["Петя", "Пети"], B: ["Маша", "Маши"], left: 2, right: 7 },
+    candies: { img: "candies", item: "конфет", A: ["Миша", "Миши"], B: ["Юля", "Юли"], left: 7, right: 7 },
+  };
+  const st = { scene: "apples", mirror: false, phrase: "full", set: "chairs", order: "check", seed: 1 };
+  function group(id, items, cur, pick) {
+    const el = document.getElementById(id); el.innerHTML = "";
+    for (const [v, label] of items) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "enum-btn" + (v === cur ? " enum-btn--active" : "");
+      b.textContent = label; b.addEventListener("click", () => pick(v)); el.append(b);
+    }
+  }
+  function frame(inner) {
+    return `<div class="frame"><div class="topbar"><span class="stars">★★★<span class="off">★★</span></span><span>4 / 10</span><span style="color:#64748b">Закончить</span></div><div class="body">${inner}</div></div>`;
+  }
+
+  // ── Part 1 ──
+  function sceneData() {
+    const s = SCENES[st.scene];
+    // mirrored picture: the people swap sides, and so do their counts
+    return st.mirror ? { ...s, A: s.B, B: s.A, left: s.right, right: s.left } : s;
+  }
+  function verdict(s, who) {
+    if (who === "eq") return { short: "Поровну", item: `Поровну ${s.item}`, full: `У ${s.A[1]} и ${s.B[1]} ${s.item} поровну` }[st.phrase];
+    const [w, o] = who === "a" ? [s.A, s.B] : [s.B, s.A];
+    return { short: `У ${w[1]} больше`, item: `У ${w[1]} больше ${s.item}`, full: `У ${w[1]} больше ${s.item}, чем у ${o[1]}` }[st.phrase];
+  }
+  function renderPart1() {
+    group("o-scene", [["apples", "Яблоки 2 и 7"], ["candies", "Конфеты 7 и 7"]], st.scene, (v) => { st.scene = v; renderPart1(); });
+    group("o-mirror", [[false, "Нет"], [true, "Да"]], st.mirror, (v) => { st.mirror = v; renderPart1(); });
+    group("o-phrase", [["short", "У Маши больше"], ["item", "…больше яблок"], ["full", "…, чем у Пети"]], st.phrase, (v) => { st.phrase = v; renderPart1(); });
+    const s = sceneData();
+    const correct = s.left === s.right ? "eq" : s.left > s.right ? "a" : "b";
+    const wall = document.getElementById("wall1"); wall.innerHTML = "";
+    const img = `<img src="${IMAGES[s.img]}" alt="" class="${st.mirror ? "mirror" : ""}">`;
+
+    const nw = document.createElement("article"); nw.className = "shot";
+    nw.innerHTML = `<div class="tag">${st.mirror ? "зеркальный показ" : "обычный показ"}</div><h3>Ответ кнопками, как сейчас</h3><p>Нажмите на кнопку: после верного ответа появится фраза выбранной ступеньки.</p>` + frame(`
+      <div class="instr">У кого больше ${s.item}?</div>
+      <div class="scene">${img}<div class="overlay"><div class="side" data-side="a"><span class="name">${s.A[0]}</span></div><div class="side" data-side="b"><span class="name">${s.B[0]}</span></div></div></div>
+      <div class="btns"><button class="tbtn" type="button" data-v="a">У ${s.A[1]}</button><button class="tbtn" type="button" data-v="eq">Поровну</button><button class="tbtn" type="button" data-v="b">У ${s.B[1]}</button></div>
+      <div class="verdict"></div><div class="tapnext"></div>`);
+    wall.append(nw);
+    let done = false;
+    nw.querySelectorAll("[data-v]").forEach((b) => b.addEventListener("click", () => {
+      if (done) return;
+      nw.querySelectorAll(".bad").forEach((x) => x.classList.remove("bad"));
+      if (b.dataset.v === correct) {
+        done = true; b.classList.add("ok");
+        nw.querySelectorAll(".side").forEach((sd) => { if (sd.dataset.side === correct) sd.classList.add("ok"); });
+        nw.querySelector(".verdict").textContent = verdict(s, correct) + ".";
+        nw.querySelector(".tapnext").textContent = "Нажми, чтобы дальше";
+      } else { void b.offsetWidth; b.classList.add("bad"); }
+    }));
+  }
+
+  // ── Part 2: stand-in drawings (the real ones come from Gemini) ──
+  const COLORS = ["#f97316", "#3b82f6", "#a855f7", "#16a34a", "#e11d48", "#0ea5e9"];
+  const draw = {
+    kid: (i) => `<svg viewBox="0 0 60 80" aria-hidden="true"><circle cx="30" cy="20" r="14" fill="#fcd9b6" stroke="#7c4a2d" stroke-width="2"/><path d="M16 14 q14 -14 28 0" fill="#7c4a2d"/><rect x="14" y="36" width="32" height="38" rx="12" fill="${COLORS[i % 6]}" stroke="#334155" stroke-width="2"/></svg>`,
+    chair: () => `<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="14" y="4" width="32" height="24" rx="5" fill="#b45309" stroke="#5b2d0c" stroke-width="2"/><rect x="10" y="28" width="40" height="8" rx="3" fill="#d97706" stroke="#5b2d0c" stroke-width="2"/><path d="M14 36 v20 M46 36 v20" stroke="#5b2d0c" stroke-width="4" stroke-linecap="round"/></svg>`,
+    saucer: () => `<svg viewBox="0 0 60 30" aria-hidden="true"><ellipse cx="30" cy="16" rx="27" ry="9" fill="#e0f2fe" stroke="#0369a1" stroke-width="2"/></svg>`,
+    cup: (i) => `<svg viewBox="0 0 60 60" aria-hidden="true"><path d="M12 14 h32 l-4 36 h-24 z" fill="${COLORS[i % 6]}" stroke="#334155" stroke-width="2"/><path d="M44 22 q12 2 2 16" fill="none" stroke="#334155" stroke-width="3"/></svg>`,
+    dog: (i) => `<svg viewBox="0 0 70 60" aria-hidden="true"><ellipse cx="38" cy="38" rx="22" ry="13" fill="${["#d6a26b", "#a16207", "#f5f5f4", "#78716c"][i % 4]}" stroke="#44403c" stroke-width="2"/><circle cx="16" cy="24" r="11" fill="${["#d6a26b", "#a16207", "#f5f5f4", "#78716c"][i % 4]}" stroke="#44403c" stroke-width="2"/><circle cx="13" cy="22" r="2" fill="#1c1917"/><path d="M20 50 v8 M52 50 v8" stroke="#44403c" stroke-width="4" stroke-linecap="round"/></svg>`,
+    bone: () => `<svg viewBox="0 0 60 30" aria-hidden="true"><path d="M14 11 h32 M14 19 h32" stroke="#a8a29e" stroke-width="2"/><rect x="12" y="10" width="36" height="10" fill="#fafaf9"/><circle cx="10" cy="10" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/><circle cx="10" cy="20" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/><circle cx="50" cy="10" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/><circle cx="50" cy="20" r="6" fill="#fafaf9" stroke="#a8a29e" stroke-width="2"/></svg>`,
+  };
+  const SETS = {
+    chairs: { who: "kid", thing: "chair", q: "Всем хватает стульев?", things: "стульев", label: "Дети и стулья",
+      lack: ["Одному не хватает стула.", "Двоим не хватает стульев."], spare: ["Один стул лишний.", "Два стула лишних."] },
+    cups: { who: "cup", thing: "saucer", q: "Всем чашкам хватает блюдец?", things: "блюдец", label: "Чашки и блюдца",
+      lack: ["Одной чашке не хватает блюдца.", "Двум чашкам не хватает блюдец."], spare: ["Одно блюдце лишнее.", "Два блюдца лишних."] },
+    dogs: { who: "dog", thing: "bone", q: "Всем собакам хватает косточек?", things: "косточек", label: "Собаки и косточки",
+      lack: ["Одной собаке не хватает косточки.", "Двум собакам не хватает косточек."], spare: ["Одна косточка лишняя.", "Две косточки лишние."] },
+  };
+  let rnd = (n) => Math.floor(Math.random() * n);
+  function newTask() { const who = 3 + rnd(4); const d = [-2, -1, -1, 0, 1][rnd(5)]; st.task = { who, things: Math.max(2, who + d) }; }
+
+  function renderPart2() {
+    group("o-set", Object.entries(SETS).map(([k, v]) => [k, v.label]), st.set, (v) => { st.set = v; newTask(); renderPart2(); });
+    group("o-order", [["check", "Сначала проверить"], ["answer", "Сначала ответить"]], st.order, (v) => { st.order = v; renderPart2(); });
+    document.getElementById("o-order-hint").textContent = st.order === "check"
+      ? "Ребёнок расставляет предметы, и ответ виден сам. Ступень полегче."
+      : "Ребёнок сначала отвечает на глаз, потом проверяет. Ступень потруднее.";
+    const set = SETS[st.set], { who, things } = st.task;
+    const cols = Math.max(who, things);
+    const wall = document.getElementById("wall2"); wall.innerHTML = "";
+    const shot = document.createElement("article"); shot.className = "shot";
+    shot.innerHTML = `<div class="tag">новый сюжет</div><h3>${set.label}: ${who} и ${things}</h3><p>${st.order === "check" ? "Нажимайте на предметы внизу: каждый встанет к своему." : "Сначала ответьте кнопкой, потом нажимайте на предметы."}</p>` + frame(`
+      <div class="instr">${set.q}</div>
+      <div class="board">
+        <div class="row whos" style="grid-template-columns:repeat(${cols},1fr)">${Array.from({ length: who }, (_, i) => `<div class="who" data-i="${i}">${draw[set.who](i)}</div>`).join("")}</div>
+        <div class="row things" style="grid-template-columns:repeat(${cols},1fr);margin-top:18px">${Array.from({ length: things }, (_, i) => `<button type="button" class="thing" data-i="${i}" aria-label="Предмет ${i + 1}">${draw[set.thing](i)}</button>`).join("")}</div>
+      </div>
+      ${st.order === "answer" ? `<div class="choice"><button type="button" data-a="yes">Хватает</button><button type="button" data-a="no">Не хватает</button></div>` : ""}
+      <div class="helper"></div>
+      <div class="verdict"></div>`);
+    wall.append(shot);
+
+    const enough = things >= who;
+    const helper = shot.querySelector(".helper"), verdictEl = shot.querySelector(".verdict");
+    let answered = st.order === "check", placed = 0;
+    const thingsEls = [...shot.querySelectorAll(".thing")], whoEls = [...shot.querySelectorAll(".who")];
+    if (!answered) thingsEls.forEach((t) => { t.disabled = true; });
+    helper.textContent = answered ? "Нажимай на предметы" : "Как думаешь? Ответь, потом проверим";
+
+    shot.querySelectorAll("[data-a]").forEach((b) => b.addEventListener("click", () => {
+      if (answered) return;
+      const ok = (b.dataset.a === "yes") === enough;
+      b.classList.add(ok ? "ok" : "bad");
+      answered = true;
+      thingsEls.forEach((t) => { t.disabled = false; });
+      helper.textContent = ok ? "Верно! Теперь проверь: нажимай на предметы" : "Проверим: нажимай на предметы";
+    }));
+
+    // each tap puts the next thing under the next free one (or beside it)
+    thingsEls.forEach((t) => t.addEventListener("click", () => {
+      if (!answered || t.dataset.placed || placed >= who) return;
+      const target = whoEls[placed];
+      const tr = t.getBoundingClientRect(), wr = target.getBoundingClientRect();
+      t.style.transform = `translate(${wr.left + wr.width / 2 - (tr.left + tr.width / 2)}px, ${wr.bottom - tr.top - tr.height * 0.35}px)`;
+      t.dataset.placed = "1"; t.disabled = true; placed++;
+      const allTried = placed === Math.min(who, things);
+      if (allTried) finish();
+    }));
+    function finish() {
+      helper.textContent = "";
+      if (things < who) {
+        whoEls.slice(things).forEach((w) => w.classList.add("left-out"));
+        const n = who - things;
+        verdictEl.textContent = `${cap(set.things)} не хватает. ${set.lack[n === 1 ? 0 : 1]}`;
+      } else if (things === who) {
+        verdictEl.textContent = `${cap(set.things)} хватает всем. Поровну.`;
+      } else {
+        thingsEls.filter((t) => !t.dataset.placed).forEach((t) => { t.classList.add("extra"); t.disabled = true; });
+        verdictEl.textContent = `${cap(set.things)} хватает всем. ${set.spare[things - who === 1 ? 0 : 1]}`;
+      }
+    }
+  }
+  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+  document.getElementById("again").addEventListener("click", () => { newTask(); renderPart2(); });
+
+  newTask(); renderPart1(); renderPart2();
+})();
+</script>

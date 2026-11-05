@@ -1,5 +1,5 @@
 
-import { parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
+import { countStoryFindQuestions, getMinimumStoryFindQuestions, getSelectedReadingStories, mergeStoryQuizText, parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
 
 export function getReadingText(topicRecord, textId, textOverride = null) {
   if (textOverride?.id === textId) return textOverride;
@@ -35,12 +35,16 @@ function buildReadTextTask(text) {
 // ParamsScreen.jsx) empty/missing means "all", matching that component's own
 // "[] = all" convention; deck order is preserved regardless of pick order.
 // Scoped to this one deck for now, not the "reading" renderer generally.
-function buildAllStoriesTasks(topicRecord, selectedStoryIds) {
-  const stories = (topicRecord.texts ?? []).filter((t) => t.kind === "story");
-  const selected = selectedStoryIds?.length
-    ? stories.filter((t) => selectedStoryIds.includes(t.id))
-    : stories;
-  return selected.map((t) => buildReadTextTask(t));
+function buildAllStoriesTasks(topicRecord, sessionParams) {
+  const selected = getSelectedReadingStories(topicRecord, sessionParams);
+  const questions = selected.some((story) => story.sentenceLayout)
+    ? buildStoryQuizTasks(topicRecord, sessionParams)
+    : [];
+  return selected.map((text, storyIndex, stories) => ({
+    ...buildReadTextTask(text), storyIndex, storyCount: stories.length,
+    ...(text.sentenceLayout ? { storyQuestions: questions.filter((task) => task.textId === text.id)
+      .map(({ question, expectedAnswer }) => ({ ...question, expectedAnswer })) } : {}),
+  }));
 }
 
 function getStoryTitle(story) {
@@ -49,13 +53,10 @@ function getStoryTitle(story) {
     : story?.title?.ru ?? story?.title?.en ?? story?.id ?? "";
 }
 
-// The trainer keeps one story visible while its five comprehension questions
-// follow below. Tasks are still individual questions so the existing graded
-// session and video-reward machinery counts every answer normally.
+// The full text stays available through the story's questions. Text-search
+// responses are graded; oral responses are assessed separately by the adult.
 function buildStoryQuizTasks(topicRecord, sessionParams) {
-  const rawText = sessionParams?.storyQuizText?.trim()
-    ? sessionParams.storyQuizText
-    : topicRecord?.storyQuiz?.defaultText;
+  const rawText = mergeStoryQuizText(topicRecord?.storyQuiz?.defaultText, sessionParams?.storyQuizText, topicRecord?.storyQuiz?.previousDefaultTexts);
   const parsed = parseStoryQuizText(rawText);
   if (!parsed.valid) return [];
 
@@ -63,23 +64,23 @@ function buildStoryQuizTasks(topicRecord, sessionParams) {
     .filter((text) => text.kind === "story")
     .map((text) => ({ ...text, title: getStoryTitle(text) }));
   const questionsByStoryId = quizGroupsByStoryId(parsed, stories);
-  const selectedStoryIds = sessionParams?.selectedStories;
-  const selectedStories = selectedStoryIds?.length
-    ? stories.filter((story) => selectedStoryIds.includes(story.id))
-    : stories;
-  // The optional discussion question (kind "discuss") doesn't count toward
-  // the 5 find-questions a story needs to be included — see the matching
-  // check in storyQuiz.js's validateStoryQuizText.
-  const readyStories = selectedStories.filter((story) => (questionsByStoryId[story.id] ?? [])
-    .filter((question) => question.kind !== "discuss").length >= 5);
+  const selectedStoryIds = new Set(getSelectedReadingStories(topicRecord, sessionParams).map((story) => story.id));
+  const selectedStories = stories.filter((story) => selectedStoryIds.has(story.id));
+  const readyStories = selectedStories.filter((story) => countStoryFindQuestions(questionsByStoryId[story.id])
+    >= getMinimumStoryFindQuestions(story));
+  // "find" keeps only the plain search questions plus the adult's talking
+  // point: for a child who is still learning to search the text at all,
+  // the comprehension questions can wait.
+  const includeGist = sessionParams?.questionSet !== "find";
 
   return readyStories.flatMap((story, storyIndex) => {
     const allQuestions = questionsByStoryId[story.id] ?? [];
-    // Discussion questions are unscored, so they're appended after the
-    // graded find-questions rather than interleaved — the child finishes
-    // the scored part of the story before the adult opens the talking point.
+    // Easy search questions first (they build momentum), then the
+    // comprehension questions about the same event, then the unscored
+    // discussion point for the adult.
     const orderedQuestions = [
-      ...allQuestions.filter((question) => question.kind !== "discuss"),
+      ...allQuestions.filter((question) => question.kind === "find"),
+      ...(includeGist ? allQuestions.filter((question) => question.kind === "gist") : []),
       ...allQuestions.filter((question) => question.kind === "discuss"),
     ];
     return orderedQuestions.map((question, questionIndex) => ({
@@ -87,6 +88,7 @@ function buildStoryQuizTasks(topicRecord, sessionParams) {
       textId: story.id,
       text: story,
       question,
+      expectedAnswer: question.prompt === story.discussionPrompt ? story.discussionAnswer : undefined,
       storyIndex,
       storyCount: readyStories.length,
       questionIndex,
@@ -193,7 +195,7 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
   switch (mode.type) {
     case "read_text":
       return topicRecord?.meta?.id === "reading_short_stories"
-        ? buildAllStoriesTasks(topicRecord, sessionParams?.selectedStories)
+        ? buildAllStoriesTasks(topicRecord, sessionParams)
         : [buildReadTextTask(text)];
     case "story_quiz":
       return topicRecord?.meta?.id === "reading_short_stories"

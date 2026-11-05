@@ -1,3 +1,4 @@
+import { normalizeLessonFlow } from "../../../shared/lesson-flow.mjs";
 import { effectiveRewardSettings, rewardPolicy, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { selectedTopicLanguage } from "../../../shared/topic-language-contract.mjs";
 import { createContentContext } from "../../../shared/topic-language-contract.mjs";
@@ -10,7 +11,7 @@ import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
-import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord, withWork } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
@@ -24,14 +25,6 @@ import {
 
 const INCORRECT_FEEDBACK_MS = 1500;
 const ignoreCardEvent = () => {};
-
-function resolveStrictStars(mode, savedValue, flexible = false) {
-  // Some reaction drills are a true "correct answers in a row" exercise.
-  // Their progression must not inherit a soft-count setting saved in another
-  // mode of the same topic.
-  if (mode?.rewardDefaults?.forceStrictStars && !flexible) return true;
-  return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
-}
 
 // Shared between the initial mode lookup and the loopModes auto-advance
 // effect below, so both resolve a mode id the exact same way.
@@ -55,18 +48,12 @@ function resolveMode(topicRecord, modeId) {
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
   const selectedStudent = useAppStore.getState().students.find(s => s.id === useAppStore.getState().activeStudentId);
-  const flexible = effectiveRewardSettings(selectedStudent?.rewardSettings).algorithm === "flexible";
-  // Legacy ZIP renderers use this field only to forward intermediate mistakes.
-  // In the new policy always collect them; the engine decides whether to penalize.
-  const sessionParams = { ...readModeParams(link.params, mode), strictStars: flexible || resolveStrictStars(mode, link.strictStars) };
-  if (flexible) {
-    sessionParams.rewardPolicyVersion = 2;
-    sessionParams.rewardLossMode = effectiveRewardSettings(selectedStudent.rewardSettings).lossMode;
-  }
+  const settings = effectiveRewardSettings(selectedStudent?.rewardSettings);
+  // ZIP renderers forward intermediate mistakes; the engine applies strictness.
+  const sessionParams = { ...readModeParams(link.params, mode), strictStars: true,
+    rewardPolicyVersion: 2, rewardLossMode: settings.lossMode };
   if (topicRecord?.languageContract) {
-    const state = useAppStore.getState();
-    const student = state.students.find((s) => s.id === state.activeStudentId);
-    sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params, student?.preferredLessonLanguage, state.settings.cardLanguage);
+    sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params);
   }
   const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
     && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
@@ -239,9 +226,11 @@ export function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? effectiveRewardSettings(activeStudent.rewardSettings).strictStars : resolveStrictStars(mode, link.strictStars),
-    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible"
-      ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), effectiveRewardSettings(activeStudent.rewardSettings).lossMode) : undefined,
+    // «Строгий подсчёт» is set before the lesson on the «Видеоприз» plate (owner, 2026-11-04), kept per
+    // topic in link.strictStars, on unless switched off there: on — a mistake burns stars by the
+    // student's rule (one / all), off — stars do not burn (shared/reward-policy.mjs applyRewardMistake).
+    link.strictStars ?? true,
+    rewardPolicy(effectiveRewardSettings(activeStudent?.rewardSettings), effectiveRewardSettings(activeStudent?.rewardSettings).lossMode),
   );
 
   baseState.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
@@ -273,9 +262,11 @@ export function useSessionEngine() {
   const activeSessionSnapshot = useAppStore((s) => s.activeSessionSnapshot);
   const setActiveSessionSnapshot = useAppStore((s) => s.setActiveSessionSnapshot);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
-  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
-  const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
-  const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
+  // Legacy confirmation handlers remain dormant; pacing belongs to this student.
+  const adultConfirmAdvance = false;
+  const flow = normalizeLessonFlow(students.find(s => s.id === activeStudentId)?.lessonFlow);
+  const tapToAdvance = flow.advance === "tap";
+  const autoAdvanceDelay = flow.delaySeconds;
 
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
@@ -351,8 +342,8 @@ export function useSessionEngine() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionState(() => {
       const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null, false, link.answersPerStar ?? 1,
-        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? effectiveRewardSettings(activeStudent.rewardSettings).strictStars : resolveStrictStars(mode, link.strictStars),
-        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), effectiveRewardSettings(activeStudent.rewardSettings).lossMode) : undefined);
+        link.strictStars ?? true,
+        rewardPolicy(effectiveRewardSettings(activeStudent?.rewardSettings), effectiveRewardSettings(activeStudent?.rewardSettings).lossMode));
       rebuilt.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
       rebuilt.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: rebuilt.strictStars }, tasks, selectedConceptIds, null);
       return rebuilt;
@@ -649,14 +640,15 @@ export function useSessionEngine() {
   const onCorrect = useCallback((conceptId, cardId, options = {}) => {
     if (options.assisted) {
       setSessionState((s) => {
-        const next = advanceTask(recordResponse(markSessionAction(s), "assisted"));
+        const next = advanceTask(recordResponse(markSessionAction(withWork(s, options.work)), "assisted"));
         if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
         if (next.status === "completed") finishSession(next);
         return next;
       });
       return;
     }
-    setSessionState((s) => {
+    setSessionState((prev) => {
+      const s = withWork(prev, options.work);
       if (s.mode?.evaluation === "instant") {
         const next = handleInstantCorrect(s, conceptId, cardId);
         if (next.status === "completed") finishSession(next);

@@ -3,9 +3,8 @@ import { selectedTopicLanguage } from "../../../shared/topic-language-contract.m
 
 let sequence = 0;
 export function topicLanguageForStudent(topic, state = useAppStore.getState()) {
-  const student = state.students.find((s) => s.id === state.activeStudentId);
   const params = state.studentTopicLinks[`${state.activeStudentId}_${topic.meta.id}`]?.params ?? {};
-  return selectedTopicLanguage(topic, params, student?.preferredLessonLanguage, state.settings.cardLanguage);
+  return selectedTopicLanguage(topic, params);
 }
 
 export function requestTopicLanguage({ entry, record, coreBuffer } = {}) {

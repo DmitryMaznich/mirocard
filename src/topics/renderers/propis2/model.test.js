@@ -928,6 +928,16 @@ describe("«Подсветка» of the narrow rows (owner, 2026-11-01)", () => 
     expect(pageBandFill(newPage("p", { bandFill: "grey", ruling: "wide" }))).toBe(null);
     expect(pageBandFill(newPage("p", { bandFill: "grey", gridKind: "square" }))).toBe(null);
   });
+  it("on the Bulgarian paper too, whatever ruling the page keeps (2026-11-02: it was unavailable there)", () => {
+    expect(pageBandFill(newPage("p", { bandFill: "green", gridKind: "bg" }))).toBe("#e1f1de");
+    expect(pageBandFill(newPage("p", { bandFill: "green", gridKind: "bg", ruling: "wide" }))).toBe("#e1f1de");
+    expect(pageBandFill(newPage("p", { gridKind: "bg" }))).toBe(null);
+    const a = newPage("a", { gridKind: "bg" }), b = newPage("b", { gridKind: "bg", bandFill: "grey" });
+    const set = { ...newSet("t"), pageIds: [a.id, b.id] };
+    const byId = new Map([[a.id, a], [b.id, b]]);
+    expect(mixedSettings(set, byId).bandFill).toBe(true);
+    expect(othersDiffer(set, byId, b.id, "bandFill", "grey")).toBe(true);
+  });
   it("is part of the paper (a run of the notebook), is offered for the other pages and shows the «differs» dot", () => {
     const a = newPage("a"), b = newPage("b", { bandFill: "grey" });
     expect(paperKey(a)).not.toBe(paperKey(b));

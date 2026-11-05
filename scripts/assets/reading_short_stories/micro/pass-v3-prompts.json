@@ -1,0 +1,18 @@
+{
+  "tool": "OpenAI built-in image_gen",
+  "useCase": "identity-preserve / illustration-story",
+  "date": "2026-11-03",
+  "storyId": "micro_pass",
+  "title": "Игра с папой",
+  "reference": {
+    "role": "edit target and character/style reference",
+    "file": "scripts/assets/reading_short_stories/micro/micro_pass-square-v2.png"
+  },
+  "destination": "scripts/assets/reading_short_stories/micro/micro_pass-throw-square-v3.png",
+  "generatedSource": "C:/Users/dmazn/.codex/generated_images/01a19897-63f8-7732-9ad1-7dffb6f41e28/exec-c31a2edf-0e70-4de2-abe3-a694a7e4c07d.png",
+  "frames": [
+    "Вова бросил мяч папе: мяч в воздухе, папа готовится поймать.",
+    "Вова поймал мяч, который бросил папа."
+  ],
+  "prompt": "Use case: identity-preserve / illustration-story.\nAsset type: two paired educational story illustrations.\nInput image 1 is the edit target and the identity, clothes, red ball, room and style reference.\nPrimary edit: replace ROLLING a ball along the floor with THROWING and CATCHING the ball in the air. This distinction must be unmistakable.\n\nStory for guidance only; render NO text:\nВова играл с папой в мяч.\nВова бросил мяч папе.\nПапа поймал мяч.\nПапа бросил мяч Вове.\nВова поймал мяч.\n\nOne opaque 2:1 landscape canvas split exactly at the midpoint into TWO EQUAL SQUARE scenes. Each square is a complete self-contained scene, suitable for separate use. No gutter, dividing line, captions, arrows, speed lines, speech bubbles, words, numbers, borders or watermark. Keep all essential content safely within the central 90% of each square. Match the warm polished softly shaded children's book illustration style.\n\nPreserve Vova: same blond hair, blue eyes, bright blue short-sleeved T-shirt, navy trousers, red sneakers with white laces and soles. Preserve Dad: same brown hair, blue long-sleeved shirt with sleeves rolled back, dark grey trousers. Preserve the SAME plain small bright red ball across the panels. Same cream wall, light wooden floor and pale cream rug, sparse background.\n\nBoth characters stand comfortably a short distance apart, Vova on the LEFT and Dad on the RIGHT in BOTH scenes. Show both characters head to toe inside each square. The father bends his knees slightly to bring his receiving hands to the child's chest height.\n\nLEFT SQUARE: Vova has just thrown the red ball to Dad with a gentle two-handed chest-height pass. The ONE red ball is clearly IN MID-AIR between them, entirely above the floor with visible space below it. Vova's hands are extended forward after releasing it; Dad's open hands are ready to catch it. Both look at the ball. Their arm poses clearly establish child-to-father direction without any graphic arrows or trail marks. Natural friendly calm expressions.\n\nRIGHT SQUARE: show the result of the return throw: Vova has just CAUGHT the SAME single red ball securely in BOTH hands at his chest. Dad is finishing a gentle throwing motion toward Vova, palms extended naturally toward the child. Both look at the caught ball. SAME left/right positions and SAME distance, clothes and room; do not mirror the scene.\n\nCritical: no rolling, no ball on the floor, no bounce, no duplicate balls, no detached hands or fingers. Exactly one boy, one father and one ball per square. One instant per scene. The ball is airborne on the left and securely caught by the child on the right. Preserve recognizable faces and clothes from the reference."
+}

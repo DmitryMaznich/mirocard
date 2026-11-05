@@ -456,7 +456,7 @@ describe("bootstrap helpers", () => {
     const bootstrap = await loadLocalBootstrap(db);
     expect(bootstrap.token).toBe("token-2");
     expect(bootstrap.account).toEqual({ email: "user@test.dev" });
-    expect(bootstrap.students).toEqual([{ id: "s2" }]);
+    expect(bootstrap.students).toEqual([expect.objectContaining({ id: "s2", lessonFlow: { advance: "tap", delaySeconds: 3 } })]);
     expect(bootstrap.ownedTopics).toEqual([{ topicId: "topic-1" }]);
     expect(bootstrap.studentTopicLinks["s2_topic-1"].id).toBe("link-1");
     expect(bootstrap.conceptProgress["s2_topic-1_c2"].level).toBe(1);

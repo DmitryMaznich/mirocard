@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset } from "./sessionEngine.js";
-import { normalizeRewardSettings, effectiveRewardSettings, rewardVideoSeconds } from "../../../shared/reward-policy.mjs";
+import { normalizeRewardSettings, effectiveRewardSettings, rewardVideoSeconds, rewardPolicy } from "../../../shared/reward-policy.mjs";
 import { createActiveSessionSnapshot, restoreActiveSessionState } from "./activeSession.js";
 
 const tasks = Array.from({ length: 20 }, (_, i) => ({ type: "streak", cardId: String(i), conceptId: "c" }));
@@ -10,14 +10,16 @@ function start({ strict = true, loss = "one", perStar = 1, instant = false, lega
 }
 
 describe("individual reward policy", () => {
-  it("requires explicit opt-in and restores the entire legacy policy without forgetting new choices", () => {
-    expect(effectiveRewardSettings()).toEqual({ algorithm: "legacy", duration: "120", animation: "normal", sound: false, strictStars: true, lossMode: "one" });
-    const chosen = { algorithm: "legacy", duration: "180", animation: "soft", sound: true, strictStars: false, lossMode: "all" };
-    expect(normalizeRewardSettings(chosen)).toEqual(chosen);
-    expect(effectiveRewardSettings(chosen).duration).toBe("120");
-    expect(effectiveRewardSettings({ ...chosen, algorithm: "flexible" }).duration).toBe("180");
+  it("always uses the current policy and preserves choices from legacy profiles", () => {
+    expect(effectiveRewardSettings()).toEqual({ algorithm: "flexible", duration: "120", animation: "normal", sound: false, strictStars: true, lossMode: "one" });
+    for (const algorithm of [undefined, "legacy", "flexible", "unknown"]) {
+      const chosen = { algorithm, duration: "180", animation: "soft", sound: true, strictStars: false, lossMode: "all" };
+      expect(normalizeRewardSettings(chosen)).toEqual({ ...chosen, algorithm: "flexible" });
+      expect(effectiveRewardSettings(chosen)).toEqual({ ...chosen, algorithm: "flexible" });
+      expect(rewardPolicy(chosen, chosen.lossMode)).toEqual({ version: 2, lossMode: "all" });
+    }
     expect(normalizeRewardSettings({ duration: "end" }).duration).toBe("180");
-    for (const duration of ["60", "120", "180", "end"]) expect(rewardVideoSeconds(effectiveRewardSettings({ algorithm: "flexible", duration }))).toBeLessThanOrEqual(180);
+    for (const duration of ["60", "120", "180", "end"]) expect(rewardVideoSeconds(effectiveRewardSettings({ duration }))).toBeLessThanOrEqual(180);
   });
   for (const perStar of [1, 2, 3]) for (const loss of ["one", "all"]) {
     it(`${loss}: one penalty per trial, grouped by ${perStar} answers per star`, () => {
@@ -51,14 +53,14 @@ describe("individual reward policy", () => {
     expect(state.streakCount).toBe(1);
     expect(handleAnswer(state, true).streakCount).toBe(1);
   });
-  it("soft mode records internal errors, while a final wrong answer always applies a penalty", () => {
+  it("strict counting off: stars never burn, but a right answer after a mistake on the same card earns none", () => {
     let state = handleInPlaceIncorrect(start({ strict: false }), "c", "0");
     expect(state.streakCount).toBe(3);
     expect(state.incorrectCount).toBe(1);
-    expect(handleAnswer(state, true).streakCount).toBe(4);
+    expect(handleAnswer(state, true).streakCount).toBe(3);
     state = handleAnswer(start({ strict: false }), false);
-    expect(state.streakCount).toBe(2);
-    expect(handleAnswer(state, true).streakCount).toBe(2);
+    expect(state.streakCount).toBe(3);
+    expect(handleAnswer(state, true).streakCount).toBe(3);
   });
   it("instant modes clear the trial only when moving to the next task", () => {
     let state = handleInPlaceIncorrect(start({ instant: true }));

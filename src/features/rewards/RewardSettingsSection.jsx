@@ -6,17 +6,11 @@ import "./rewards.css";
 export default function RewardSettingsSection({ value, onChange }) {
   useUiTranslation();
   const settings = normalizeRewardSettings(value);
-  const flexible = settings.algorithm === "flexible";
   const change = patch => onChange({ ...settings, ...patch });
   return <section className="reward-settings" aria-label={text("title")}>
     <h3>{text("title")}</h3>
     <p>{text("rollout")}</p>
-    <div className="reward-settings__choices" role="group" aria-label={text("title")}>
-      {["legacy", "flexible"].map(algorithm => <button type="button" key={algorithm}
-        aria-pressed={settings.algorithm === algorithm} onClick={() => change({ algorithm })}>{text(algorithm)}</button>)}
-    </div>
-    <p className="reward-settings__notice">{flexible ? text("rollback") : text("legacyHint")}</p>
-    <fieldset disabled={!flexible}>
+    <fieldset>
       <legend>{text("duration")}</legend>
       <div className="reward-settings__choices reward-settings__choices--wrap">
         {[["60", "minute"], ["120", "two"], ["180", "three"]].map(([duration, label]) =>
@@ -24,9 +18,8 @@ export default function RewardSettingsSection({ value, onChange }) {
       </div>
       <p>{text("timing")}</p>
       <p>{text("scope")}</p>
-      <label className="reward-settings__check"><input type="checkbox" checked={settings.strictStars}
-        onChange={event => change({ strictStars: event.target.checked })} />{text("strict")}</label>
-      <p>{text("strictInfo")}</p>
+      {/* «Строгий подсчёт» is switched on or off per topic, before the lesson (the «Видеоприз» plate);
+          here only how it burns — one star or all (owner, 2026-11-04) */}
       <RewardLossControl value={settings.lossMode} onChange={lossMode => change({ lossMode })} />
       <h4>{text("animation")}</h4>
       <div className="reward-settings__choices">
@@ -55,7 +48,6 @@ export function RewardRulesSummary({ settings }) {
   useUiTranslation();
   return <div className="reward-settings" aria-label={text("title")}>
     <p className="reward-settings__notice">{text("scope")} {text("editProfile")}</p>
-    <p>{text("strict")}: <strong>{text(settings.strictStars ? "on" : "off")}</strong></p>
     <p>{text("loss")}: <strong>{text(settings.lossMode === "all" ? "all" : "one")}</strong></p>
   </div>;
 }

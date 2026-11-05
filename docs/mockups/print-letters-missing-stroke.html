@@ -1,0 +1,172 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<title>Печатные буквы — допиши штрих</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#28323c;--muted:#8b93a1;--line:#e3dccb;--strip:#f6f1e4;--bg:#fdfcf9;--teal:#4a9b8f;--tealD:#2a6b60;--tealS:#e5f2ef;--blue:#eef3fb;--head:#1c3634;--board:#cfc4ad}
+*{box-sizing:border-box}body{margin:0;font-family:Nunito,sans-serif;color:var(--ink);background:#e9e4d8}
+.frame{width:1440px;padding:28px 32px;display:flex;flex-direction:column;gap:26px}
+h1{margin:0;font-size:26px;font-weight:900}h2{margin:0 0 8px;font-size:18px;font-weight:900}
+.cap{font-size:14px;color:#4b5563;line-height:1.5;max-width:1320px}
+.row{display:flex;gap:26px;align-items:flex-start}
+.card{background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:18px 20px}
+.num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--head);color:#fff;font-weight:900;font-size:14px;margin-right:8px}
+.prio{display:inline-block;border-radius:8px;padding:2px 9px;font-weight:900;font-size:12px;margin-left:8px;vertical-align:2px}
+.p1{background:#dcf2e8;color:#14613f}.p2{background:#fdf0d5;color:#8a5a00}
+.board{background:var(--board);padding:22px;border-radius:14px}
+.sheet{background:#fffdf8;border-radius:3px;box-shadow:0 4px 16px rgba(0,0,0,.18);position:relative;
+ background-image:linear-gradient(to right,#cfe0ef 1px,transparent 1px),linear-gradient(to bottom,#cfe0ef 1px,transparent 1px);background-size:var(--c) var(--c)}
+.blk{position:absolute;border:2px solid;border-radius:8px}
+.plate{position:absolute;left:-2px;top:-2px;border-radius:8px 0 8px 0;display:flex;align-items:center;justify-content:center;gap:2px}
+.hdr{position:absolute;font-weight:800;color:#5b6472;font-size:13px;white-space:nowrap}
+.side{width:560px;display:flex;flex-direction:column;gap:16px}
+.note{font-size:13.5px;line-height:1.5;color:#374151}
+.note b{color:var(--ink)}
+.call{position:absolute;background:#1c3634;color:#fff;font-size:12px;font-weight:800;border-radius:7px;padding:3px 8px;white-space:nowrap}
+.call:before{content:"";position:absolute;left:-6px;top:50%;margin-top:-5px;border:5px solid transparent;border-right-color:#1c3634;border-left:0}
+/* phone */
+.phone{width:390px;border-radius:34px;background:#f3efe6;box-shadow:0 6px 24px rgba(0,0,0,.2);overflow:hidden;border:8px solid #111}
+.ph-sheet{height:300px;position:relative;overflow:hidden}
+.dock{background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -4px 14px rgba(0,0,0,.12);padding:8px 14px 26px;display:flex;flex-direction:column;gap:12px}
+.grab{width:40px;height:5px;border-radius:3px;background:#d1d5db;margin:0 auto 2px}
+.dhead{display:flex;align-items:center;gap:8px;font-weight:900;font-size:15px}
+.lbl{font-size:11px;font-weight:800;color:#5b6472;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.picks{display:flex;gap:6px;padding:4px;border-radius:14px;background:var(--strip)}
+.picks>div{flex:1;height:70px;background:#fff;border:1.5px solid var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:800;gap:5px;color:#4b5563;text-align:center;line-height:1.1}
+.picks>div.on{border-color:var(--tealD);background:var(--tealS);color:var(--tealD)}
+.new{position:relative}.new:after{content:"новое";position:absolute;top:-8px;right:-4px;background:#16a34a;color:#fff;font-size:9px;font-weight:900;border-radius:6px;padding:1px 5px}
+.seg2{display:flex;gap:6px}.seg2 b{flex:1;text-align:center;border:1.5px solid var(--line);border-radius:10px;padding:9px 0 7px;font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:3px}.seg2 b.on{border-color:var(--tealD);background:var(--tealS);color:var(--tealD)}
+.dim{opacity:.45}
+table.rules{border-collapse:collapse;font-size:13px;width:100%}
+table.rules td{border-top:1px solid #ece7da;padding:7px 8px;vertical-align:top;line-height:1.4}
+table.rules td:first-child{font-weight:800;white-space:nowrap;width:150px}
+.pairs{display:flex;flex-wrap:wrap;gap:10px}
+.pair{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:900;color:#5b6472}
+</style></head><body><div class="frame" id="f"></div>
+<script>
+const G={"Г":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,0 L 50,0","n":"верхняя черта"}]},"Т":{"w":1.3333,"s":[{"d":"M 0,0 L 66.665,0","n":"верхняя черта"},{"d":"M 33.333,0 L 33.333,100","n":"палочка"}]},"П":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 0,0 L 50,0","n":"верхняя черта"},{"d":"M 50,0 L 50,100","n":"правая палочка"}]},"Н":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 50,0 L 50,100","n":"правая палочка"},{"d":"M 0,50 L 50,50","n":"перекладина"}]},"И":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 0,100 L 50,0","n":"наклонная"},{"d":"M 50,0 L 50,100","n":"правая палочка"}]},"Ш":{"w":1.3333,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 33.333,0 L 33.333,100","n":"средняя палочка"},{"d":"M 66.665,0 L 66.665,100","n":"правая палочка"},{"d":"M 0,100 L 66.665,100","n":"нижняя черта"}]},"Е":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,0 L 50,0","n":"верхняя черта"},{"d":"M 0,50 L 50,50","n":"средняя черта"},{"d":"M 0,100 L 50,100","n":"нижняя черта"}]},"Ё":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,0 L 50,0","n":"верхняя черта"},{"d":"M 0,50 L 50,50","n":"средняя черта"},{"d":"M 0,100 L 50,100","n":"нижняя черта"},{"d":"M 14,-16 L 15,-16","n":"левая точка"},{"d":"M 35,-16 L 36,-16","n":"правая точка"}]},"Ч":{"w":1,"s":[{"d":"M 0,0 L 0,50","n":"левая палочка"},{"d":"M 0,50 L 50,50","n":"перекладина"},{"d":"M 50,0 L 50,100","n":"правая палочка"}]},"Л":{"w":1.3333,"s":[{"d":"M 0,100 L 33.333,0","n":"левая наклонная"},{"d":"M 33.333,0 L 66.665,100","n":"правая наклонная"}]},"А":{"w":1.3333,"s":[{"d":"M 0,100 L 33.333,0","n":"левая наклонная"},{"d":"M 33.333,0 L 66.665,100","n":"правая наклонная"},{"d":"M 13.333,60 L 53.332,60","n":"перекладина"}]},"Й":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 0,100 L 50,0","n":"наклонная"},{"d":"M 50,0 L 50,100","n":"правая палочка"},{"d":"M 13,-20 C 17,-11 33,-11 37,-20","n":"краткая"}]},"Д":{"w":1.3333,"s":[{"d":"M 6,100 L 33.333,0","n":"левая наклонная"},{"d":"M 33.333,0 L 60.665,100","n":"правая наклонная"},{"d":"M 0,100 L 66.665,100","n":"основание"},{"d":"M 0,100 L 0,118","n":"левая ножка"},{"d":"M 66.665,100 L 66.665,118","n":"правая ножка"}]},"Ц":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 0,100 L 58,100","n":"нижняя черта"},{"d":"M 50,0 L 50,100","n":"правая палочка"},{"d":"M 58,100 L 58,118","n":"хвостик"}]},"Щ":{"w":1.3333,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 33.333,0 L 33.333,100","n":"средняя палочка"},{"d":"M 66.665,0 L 66.665,100","n":"правая палочка"},{"d":"M 0,100 L 74,100","n":"нижняя черта"},{"d":"M 74,100 L 74,118","n":"хвостик"}]},"У":{"w":1,"s":[{"d":"M 0,0 L 25,60","n":"короткая наклонная"},{"d":"M 50,0 L 8,100","n":"длинная наклонная"}]},"Х":{"w":1,"s":[{"d":"M 0,0 L 50,100","n":"наклонная слева направо"},{"d":"M 50,0 L 0,100","n":"наклонная справа налево"}]},"К":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 50,0 L 0,50 L 50,100","n":"уголок"}]},"Ж":{"w":1.3333,"s":[{"d":"M 33.333,0 L 33.333,100","n":"палочка"},{"d":"M 0,0 L 66.665,100","n":"наклонная слева направо"},{"d":"M 66.665,0 L 0,100","n":"наклонная справа налево"}]},"М":{"w":1.3333,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 0,0 L 33.333,66.665","n":"наклонная вниз"},{"d":"M 33.333,66.665 L 66.665,0","n":"наклонная вверх"},{"d":"M 66.665,0 L 66.665,100","n":"правая палочка"}]},"Ь":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","n":"полуовал"}]},"Ъ":{"w":1.3333,"s":[{"d":"M 0,0 L 16.665,0","n":"верхняя черта"},{"d":"M 16.665,0 L 16.665,100","n":"палочка"},{"d":"M 16.665,50 L 38,50 C 53.832,50 66.665,61.192 66.665,75 C 66.665,88.808 53.832,100 38,100 L 16.665,100","n":"полуовал"}]},"Ы":{"w":1.3333,"s":[{"d":"M 0,0 L 0,100","n":"левая палочка"},{"d":"M 0,50 L 16,50 C 29.255,50 40,61.192 40,75 C 40,88.808 29.255,100 16,100 L 0,100","n":"полуовал"},{"d":"M 66.665,0 L 66.665,100","n":"правая палочка"}]},"Р":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,0 L 22,0 C 37.464,0 50,11.192 50,25 C 50,38.808 37.464,50 22,50 L 0,50","n":"полуовал"}]},"Б":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","n":"полуовал"},{"d":"M 0,0 L 48,0","n":"верхняя черта"}]},"Ф":{"w":1.3333,"s":[{"d":"M 33.333,0 L 33.333,100","n":"палочка"},{"d":"M 33.333,0 C 14.923,0 0,13.431 0,30 C 0,46.569 14.923,60 33.333,60","n":"левый полуовал"},{"d":"M 33.333,0 C 51.742,0 66.665,13.431 66.665,30 C 66.665,46.569 51.742,60 33.333,60","n":"правый полуовал"}]},"Я":{"w":1,"s":[{"d":"M 50,0 L 28,0 C 12.536,0 0,11.192 0,25 C 0,38.808 12.536,50 28,50 L 50,50","n":"полуовал"},{"d":"M 50,0 L 50,100","n":"палочка"},{"d":"M 28,50 L 0,100","n":"наклонная"}]},"В":{"w":1,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,0 L 20,0 C 33.255,0 44,11.192 44,25 C 44,38.808 33.255,50 20,50 L 0,50","n":"верхний полуовал"},{"d":"M 0,50 L 22,50 C 37.464,50 50,61.192 50,75 C 50,88.808 37.464,100 22,100 L 0,100","n":"нижний полуовал"}]},"З":{"w":1,"s":[{"d":"M 3,14 C 7,5 15,0 24,0 C 37,0 46,10 46,24 C 46,39 35,50 20,50","n":"верхний полуовал"},{"d":"M 20,50 C 37,50 50,60 50,75 C 50,90 39,100 25,100 C 15,100 7,95 2,86","n":"нижний полуовал"}]},"О":{"w":1,"s":[{"d":"M 25,0 C 11.192,0 0,22.385 0,50 C 0,77.615 11.192,100 25,100 C 38.808,100 50,77.615 50,50 C 50,22.385 38.808,0 25,0","n":"овал"}]},"Ю":{"w":1.3333,"s":[{"d":"M 0,0 L 0,100","n":"палочка"},{"d":"M 0,50 L 20,50","n":"перекладина"},{"d":"M 43.333,0 C 30.447,0 20.001,22.385 20.001,50 C 20.001,77.615 30.447,100 43.333,100 C 56.219,100 66.665,77.615 66.665,50 C 66.665,22.385 56.219,0 43.333,0","n":"овал"}]},"С":{"w":1,"s":[{"d":"M 46,15 C 41.5,5.7 33.9,0 25,0 C 11.19,0 0,22.39 0,50 C 0,77.61 11.19,100 25,100 C 33.9,100 41.5,94.3 46,85","n":"полуовал"}]},"Э":{"w":1,"s":[{"d":"M 4,15 C 8.5,5.7 16.1,0 25,0 C 38.81,0 50,22.39 50,50 C 50,77.61 38.81,100 25,100 C 16.1,100 8.5,94.3 4,85","n":"полуовал"},{"d":"M 18,50 L 50,50","n":"перекладина"}]}};
+// О: the oval cut at half height into a top and a bottom arc (as in «Почини букву»), so it has two parts
+G["О"].s=[{d:"M 0,50 C 0,22.385 11.192,0 25,0 C 38.808,0 50,22.385 50,50",n:"верх овала"},{d:"M 0,50 C 0,77.615 11.192,100 25,100 C 38.808,100 50,77.615 50,50",n:"низ овала"}];
+const INK="#1f3a8a",GUIDE="#8fa3c8",DOT="#15803d",ARR="#dc2626";
+const start=d=>{const m=/M\s*([-\d.]+)[ ,]+([-\d.]+)/.exec(d);return[+m[1],+m[2]]};
+const path=(d,col,sw,dash)=>'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"'+(dash?' stroke-dasharray="1 10"':'')+'/>';
+const dot=(d,r)=>{const[x,y]=start(d);return '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+DOT+'" stroke="#fff" stroke-width="2"/>'};
+/* one letter at cell size c.
+   mode: sample (ink + dots) | dash (dotted contour, dots) | tone (half-tone) | ink (solid, no dots)
+   miss: index of the left-out stroke; hint for it: "dash" | "dot" | "none"
+   giv: how the given strokes are drawn ("ink" — printed, as in a workbook) */
+function L(ch,c,o={}){const g=G[ch];if(!g)return"";const w=g.w*50;const mode=o.mode||"ink";let p="";
+ g.s.forEach((s,i)=>{
+  if(i===o.miss){ if(o.hint==="dash")p+=path(s.d,GUIDE,7,true)+dot(s.d,7); else if(o.hint==="dot")p+=dot(s.d,7); return;}
+  if(mode==="dash")p+=path(s.d,GUIDE,7,true);
+  else if(mode==="tone")p+=path(s.d,GUIDE,9);
+  else if(mode==="light")p+=path(s.d,"#b9c6dc",8);
+  else p+=path(s.d,o.color||INK,o.sw||9);
+ });
+ if(mode==="sample"||mode==="dash")g.s.forEach((s,i)=>{if(i!==o.miss)p+=dot(s.d,mode==="sample"?8:6)});
+ return '<svg viewBox="-6 -6 '+(w+12)+' 112" width="'+(g.w*c+c*12/50)+'" height="'+(2*c+c*12/50)+'" style="overflow:visible;display:block;position:absolute;left:'+(-c*6/50)+'px;top:'+(-c*6/50)+'px">'+p+'</svg>';}
+// a letter placed on the sheet at cell (x,y), top-left of its 2-cell letter-cell
+const put=(ch,c,x,y,o)=>'<div style="position:absolute;left:'+(x*c)+'px;top:'+(y*c)+'px;width:'+(G[ch].w*c)+'px;height:'+(2*c)+'px">'+L(ch,c,o)+'</div>';
+const big=(ch,o={})=>{const g=G[ch];return '<div style="position:relative;width:'+(g.w*o.c)+'px;height:'+(2*o.c)+'px;flex:none">'+L(ch,o.c,o)+'</div>'};
+// a block: x,y,w,h in cells; plate letters; rows = functions(cx0,cy) placing letters
+const COLS=38;
+function block(c,y,rows,color,plate,label){
+ const h=rows.length*3+1;let s='<div class="blk" style="left:'+c+'px;top:'+(y*c)+'px;width:'+(COLS*c)+'px;height:'+(h*c)+'px;border-color:'+color+'">';
+ const ph=Math.max(4,Math.min(rows.length,2)*3);
+ s+='<div class="plate" style="width:'+(4*c+2)+'px;height:'+(ph*c+2)+'px;background:'+color+'">'+plate.map(ch=>big(ch,{c:c*0.75,color:"#fff",sw:11})).join('<span style="color:#fff;font-weight:900;font-size:13px">→</span>')+'</div>';
+ rows.forEach((r,i)=>{const beside=i*3+1<5;const x0=beside?5:1;s+=r(x0,i*3+1,COLS-x0-1)});
+ return s+'</div>'+(label?'<div class="call" style="left:'+((COLS+2)*c+8)+'px;top:'+(y*c+6)+'px">'+label+'</div>':'');
+}
+// fill a row with copies: each copy in its own 2-cell letter-cell
+function fill(seq,c,x0,y,width,optsFor){let s="",x=x0,k=0;while(true){const ch=seq[k%seq.length];if(x+G[ch].w>x0+width)break;s+=put(ch,c,x,y,optsFor(k,ch));x+=2;k++}return s}
+const strokesOf=ch=>G[ch].s.map((s,i)=>i);
+// which stroke is left out in copy k: in turn, skipping the tiny ones (Ё dots, Й breve, Ц tail)
+const LEN_OK=(ch,i)=>{const d=G[ch].s[i].d;const n=d.match(/-?[\d.]+/g).map(Number);const span=Math.hypot(n[n.length-2]-n[0],n[n.length-1]-n[1]);return /C/.test(d)||span>=30};
+const turn=(ch,k)=>{const ok=strokesOf(ch).filter(i=>LEN_OK(ch,i));return ok[k%ok.length]};
+
+const f=document.getElementById("f");let h="";
+h+='<h1>«Печатные буквы»: какие задания добавить — макеты</h1>';
+h+='<div class="cap">Основное новое задание — <b>«Допиши штрих»</b>: буква напечатана без одного штриха, ребёнок дописывает его по клеткам (у Илюхиной в №2 — «впиши недостающий элемент» рядом с группировкой букв по элементам). Это тот же блок буквы и те же строки, просто у строки появляется ещё один вариант. Второй очередью — <b>«Найди и обведи»</b>: среди похожих букв обвести только нужную; это скорее узнавание, но выполняется письмом. Обводку слова и «впиши пропущенную» при образце не трогаем — они уже есть в блоке слова. «Пропущенная буква без образца» (по звуку, с картинкой) — сюда не входит, это чтение и грамота.</div>';
+
+// ---------- screen 1: sheet ----------
+const c=16, SH_W=(COLS+2)*c;
+let sh='';
+sh+='<div class="hdr" style="left:'+c+'px;top:'+(c*0.4)+'px">Имя ____________&nbsp;&nbsp;&nbsp;Пишем П, Н, О, Г → П, Л → А, Ь → Б</div>';
+// block A: ladder for П
+sh+=block(c,3,[
+ (x0,y,w)=>put("П",c,x0,y,{mode:"sample"})+fill(["П"],c,x0+2,y,w-2,()=>({mode:"dash"})),
+ (x0,y,w)=>fill(["П"],c,x0,y,w,(k)=>({mode:"ink",miss:turn("П",k),hint:"dash"})),
+ (x0,y,w)=>fill(["П"],c,x0,y,w,(k)=>({mode:"ink",miss:turn("П",k),hint:"dot"})),
+ (x0,y,w)=>fill(["П"],c,x0,y,w,(k)=>({mode:"ink",miss:turn("П",k),hint:"none"})),
+],"#2563eb",["П"]);
+// callouts for block A rows
+const ca=(y,t)=>'<div class="call" style="left:'+(SH_W+8)+'px;top:'+(y*c+6)+'px">'+t+'</div>';
+sh+=ca(4,"как сейчас: образец + пунктир")+ca(7,"новое: недостающий штрих пунктиром")+ca(10,"новое: только точка начала")+ca(13,"новое: без подсказки");
+// block B: review row of a family
+sh+=block(c,18,[
+ (x0,y,w)=>put("Н",c,x0,y,{mode:"sample"})+fill(["Н"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:turn("Н",k),hint:"dot"})),
+ (x0,y,w)=>fill(["Н"],c,x0,y,w,(k)=>({mode:"ink",miss:turn("Н",k),hint:"none"})),
+],"#0f766e",["Н"]);
+sh+=ca(19,"образец Н, дальше — только Н")+ca(22,"та же буква, без подсказки");
+// block C: hidden letter pairs — one block per pair, the plate names it
+const arrow=(x0,y,dx)=>'<div style="position:absolute;left:'+((x0+dx)*c)+'px;top:'+((y+0.45)*c)+'px;font-weight:900;color:#9ca3af;font-size:15px">→</div>';
+[["Г","П",1.25,26],["Л","А",1.55,31],["Ь","Б",1.25,36]].forEach(([from,to,dx,y])=>{
+ sh+=block(c,y,[(x0,yy,w)=>put(from,c,x0,yy,{mode:"ink"})+arrow(x0,yy,dx)+fill([to],c,x0+2,yy,w-2,(k)=>({mode:"ink",miss:2,hint:k<3?"dash":"dot"}))],"#c2410c",[from,to]);
+ sh+=ca(y+1,"«спрятанная буква»: "+from+" → "+to);
+});
+// block D: О — one-stroke letter cut in half
+sh+=block(c,41,[
+ (x0,y,w)=>put("О",c,x0,y,{mode:"sample"})+fill(["О"],c,x0+2,y,w-2,(k)=>({mode:"ink",miss:k%2,hint:"dot"})),
+],"#7c3aed",["О"]);
+sh+=ca(42,"овалы: у О — верх или низ");
+let H1='<div class="row"><div><h2><span class="num">1</span>На листе (А4, фрагмент): «Допиши штрих» <span class="prio p1">первая очередь</span></h2><div class="board"><div class="sheet" style="--c:'+c+'px;width:'+SH_W+'px;height:'+(46*c)+'px">'+sh+'</div></div></div>';
+// zoom + rules
+H1+='<div class="side" style="margin-top:34px;margin-left:200px;width:480px"><div class="card"><h2>Крупно: одна буква, три подсказки</h2><div style="display:flex;gap:26px;align-items:flex-end;padding:8px 4px 4px">';
+[["dash","пунктир"],["dot","точка начала"],["none","ничего"]].forEach(([hn,t])=>{H1+='<div style="display:flex;flex-direction:column;align-items:center;gap:10px"><div style="padding:10px;background:#fffdf8;background-image:linear-gradient(to right,#cfe0ef 1px,transparent 1px),linear-gradient(to bottom,#cfe0ef 1px,transparent 1px);background-size:40px 40px;border-radius:6px">'+big("Н",{c:40,mode:"ink",miss:2,hint:hn})+'</div><b style="font-size:13px">'+t+'</b></div>'});
+H1+='</div><div class="note" style="margin-top:10px">Данный штрих напечатан <b>сплошным</b> — как в тетради, ребёнок пишет только недостающий. Пунктир — тот же, что у контуров, точка начала — зелёная, как везде.</div></div>';
+H1+='<div class="card"><h2>Правила, которые прячут в код</h2><table class="rules">';
+H1+='<tr><td>Какую букву дописываем</td><td>Только букву с плашки блока, в строке — она одна. Если пропуск даёт другую букву (П → Г), это всё равно П: цель известна по плашке и образцу.</td></tr><tr><td>Какой штрих пропущен</td><td>По очереди у каждой копии: в П — левая палочка, черта, правая палочка, снова левая… Ребёнок видит, что пропуск каждый раз в новом месте. Настройки «какой штрих» нет.</td></tr>';
+H1+='<tr><td>Что не пропускаем</td><td>Мелочь, которую почти не видно: точки Ё, краткая Й, хвостик Ц и Щ, ножки Д — кроме пар «спрятанная буква» (И → Й).</td></tr>';
+H1+='<tr><td>Буквы из одного штриха</td><td>О режем по горизонтали пополам (как в «Почини букву»). С — пропускаем, в строке остаётся целой.</td></tr>';
+H1+='<tr><td>Порядок в лесенке</td><td>Образец + пунктир → недостающий пунктиром → точка → без подсказки. Новые строки встают в лесенку буквы после контуров.</td></tr>';
+H1+='</table></div></div></div>';
+h+=H1;
+
+// ---------- screen 2: panel ----------
+let ph='<div class="phone"><div class="ph-sheet" style="background:#fffdf8;background-image:linear-gradient(to right,#cfe0ef 1px,transparent 1px),linear-gradient(to bottom,#cfe0ef 1px,transparent 1px);background-size:14px 14px">';
+ph+='<div style="position:absolute;left:14px;top:84px;width:346px;height:46px;border:2.5px solid #16a34a;border-radius:6px;background:rgba(22,163,74,.06)"></div>';
+for(let k=0;k<12;k++)ph+=put("П",14,1.5+k*2,6.5,{mode:"ink",miss:turn("П",k),hint:"dash"});
+for(let k=0;k<12;k++)ph+=put("П",14,1.5+k*2,2.5,{mode:"dash"});
+for(let k=0;k<12;k++)ph+=put("П",14,1.5+k*2,10.5,{mode:"ink",miss:turn("П",k),hint:"dot"});
+ph+='</div><div class="dock"><div class="grab"></div><div class="dhead"><span style="background:#2563eb;border-radius:6px 0 6px 0;padding:3px 7px;display:flex">'+big("П",{c:11,color:"#fff",sw:12})+'</span>Строка 2</div>';
+ph+='<div><div class="lbl">Что пишем в строке</div><div class="picks">';
+ph+='<div>'+'<div style="display:flex;gap:9px">'+big("П",{c:15,mode:"dash"})+big("П",{c:15,mode:"dash"})+'</div>Буква</div>';
+ph+='<div class="on new"><div style="display:flex;gap:9px">'+big("П",{c:15,mode:"ink",miss:2,hint:"dash"})+big("П",{c:15,mode:"ink",miss:0,hint:"dash"})+'</div>Допиши штрих</div>';
+ph+='<div><div style="display:flex;gap:4px;opacity:.9"><span style="width:13px;height:26px;border-bottom:2px solid #8fa3c8"></span><span style="width:13px;height:26px;border-bottom:2px solid #8fa3c8"></span></div>Элементы</div></div></div>';
+ph+='<div><div class="lbl">Подсказка к пропущенному штриху</div><div class="seg2">';
+ph+='<b class="on">'+big("П",{c:11,mode:"ink",miss:2,hint:"dash"})+'Пунктир</b><b>'+big("П",{c:11,mode:"ink",miss:2,hint:"dot"})+'Точка</b><b>'+big("П",{c:11,mode:"ink",miss:2,hint:"none"})+'Ничего</b></div></div>';
+ph+='<div class="dim"><div class="lbl">Линия контура · Контуры после образца</div><div style="font-size:12px;color:#6b7280">для этой строки не нужны — скрыты</div></div>';
+ph+='</div></div>';
+let H2='<div class="row"><div><h2><span class="num">2</span>Панель строки (телефон): один новый вариант и одна настройка</h2>'+ph+'</div>';
+H2+='<div class="side" style="margin-top:34px;width:620px"><div class="card"><div class="note">';
+H2+='<b>Без новой кучи настроек.</b> В выборе «Что пишем в строке» появляется плитка <b>«Допиши штрих»</b>. У неё одна своя настройка — <b>подсказка</b>: пунктир / точка / ничего. «Линия контура» и «Контуры после образца» для такой строки не имеют смысла и прячутся; «Точки начала» заменяет сама подсказка.<br><br>';
+H2+='<b>В лесенке буквы</b> (кнопка «Лесенка» блока) две новые строки встают после контуров: «пунктиром» и «без подсказки». Существующие тетради не меняются — строка по-прежнему <code>{elements, line, guide, dots}</code>, новый вид — дополнительное поле, например <code>miss: "dash" | "dot" | "none"</code>.<br><br>';
+H2+='<b>Строки вперемешку — нет.</b> Буква без штриха часто становится другой буквой (П без правой палочки — Г, Ь без полуовала — палочка), поэтому в строке «Допиши штрих» только буква с плашки блока: цель задаёт плашка. Повторять несколько букв — несколько блоков на листе.</div></div>';
+H2+='<div class="card"><h2>«Спрятанная буква» — готовая тетрадь, не настройка</h2><div class="note" style="margin-bottom:10px">Пары, где новая буква = знакомая + один штрих. Нашлись по самим штрихам из <code>topic.json</code> (точное совпадение остальных штрихов):</div><div class="pairs">';
+[["Г","П","правая палочка"],["Л","А","перекладина"],["Ь","Б","верхняя черта"],["Ь","В","верхний полуовал"],["И","Й","краткая"]].forEach(([a,b,n])=>{H2+='<div class="pair">'+big(a,{c:14})+'→'+big(b,{c:14})+'<span style="font-size:11px;font-weight:700">+ '+n+'</span></div>'});
+H2+='</div><div class="note" style="margin-top:10px">У Илюхиной ещё Л → Д, Ш → Щ, Е → Ё, Ф+Ж → Я; у нас Д и Щ нарисованы не «знакомая + штрих» (другая геометрия), поэтому в список не попали. Предлагаю одну готовую тетрадь «Спрятанные буквы» в «Готовых тетрадях», а не отдельный вид блока.</div></div></div></div>';
+h+=H2;
+
+// ---------- screen 3: find and trace ----------
+const c3=16;let s3='';
+s3+='<div class="hdr" style="left:'+c3+'px;top:'+(c3*0.4)+'px">Обведи только букву на плашке</div>';
+const findRow=(seq)=>(x0,y,w)=>{let s="",x=x0,k=0;while(x+G[seq[k%seq.length]].w<=x0+w){const ch=seq[k%seq.length];s+=put(ch,c3,x,y,{mode:"light"});x+=2;k++}return s};
+s3+=block(c3,3,[findRow(["Н","П","И","П","Г","Н","П","И","Т","П","Н","П","Г","П","И","Н"]),findRow(["П","Н","Н","П","И","Ш","П","Г","П","Н","И","П","Т","Н","П","Ш"])],"#2563eb",["П"]);
+s3+=block(c3,11,[findRow(["Ь","Б","Р","Ь","В","Ь","Ъ","Р","Ь","Б","Ы","Ь","В","Р","Ь","Б"])],"#7c3aed",["Ь"]);
+let H3='<div class="row"><div><h2><span class="num">3</span>«Найди и обведи» <span class="prio p2">вторая очередь</span></h2><div class="board"><div class="sheet" style="--c:'+c3+'px;width:'+((COLS+2)*c3)+'px;height:'+(16*c3)+'px">'+s3+'</div></div></div>';
+H3+='<div class="side" style="margin-top:34px;width:560px"><div class="card"><div class="note">';
+H3+='Все буквы строки напечатаны одинаково светлым — пунктир или точки выдали бы ответ. Ребёнок находит нужную и <b>обводит только её</b> — то есть различение выполняется письмом, поэтому оно здесь уместно (у Илюхиной — «раздели буквы на группы», «найди буквы из двух элементов»).<br><br>';
+H3+='Похожие буквы подбираются автоматически: из той же семьи и с общими штрихами (П — Н, И, Г, Т; Ь — Б, Р, В, Ъ, Ы), нужная — примерно каждая третья.<br><br>';
+H3+='<b>Почему вторая очередь:</b> в первую очередь это задание на узнавание, а не на написание буквы. Полезно, но «Допиши штрих» ближе к сути темы — строению буквы и тому, как её писать.</div></div></div></div>';
+h+=H3;
+f.innerHTML=h;
+</script></body></html>

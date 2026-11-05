@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { DB_PATH } from "./config.mjs";
+import { initDeletionSurveySchema } from "./deletion-survey.mjs";
 
 let _db = null;
 
@@ -279,6 +280,12 @@ export function initDb(dbPath = DB_PATH) {
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
   if (!studentColumns.some(c => c.name === "preferred_lesson_language")) {
     db.exec("ALTER TABLE students ADD COLUMN preferred_lesson_language TEXT");
+  }
+  if (!studentColumns.some(c => c.name === "lesson_flow")) {
+    db.exec("ALTER TABLE students ADD COLUMN lesson_flow TEXT DEFAULT '{}'");
+  }
+  if (!studentColumns.some(c => c.name === "lesson_flow_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN lesson_flow_updated_at TEXT");
   }
   if (!studentColumns.some(c => c.name === "reward_settings")) {
     db.exec("ALTER TABLE students ADD COLUMN reward_settings TEXT DEFAULT '{}'");
@@ -612,6 +619,8 @@ export function initDb(dbPath = DB_PATH) {
 
   backfillOrdersAndEntitlementsFromLegacySubscriptions(db);
   grantAllAccessToExistingAccounts(db);
+
+  initDeletionSurveySchema(db);
 
   return db;
 }

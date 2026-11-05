@@ -1,0 +1,153 @@
+<title>Всем хватает: карточки</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: a review sheet. The question proposal on top, then one row per card
+   (scene before / after + the current and the proposed wording side by side),
+   grouped by set, then all 36 pictures. Scenes keep the app's light colours. */
+:root {
+  --sheet-bg: #eef3f2; --sheet-fg: #1a2e2b; --sheet-muted: #557a74; --sheet-card: #ffffff;
+  --sheet-line: #c8d4d2; --sheet-accent: #1c7a6e; --sheet-note-bg: #fff7e6; --sheet-note-fg: #7a4b00;
+  --sheet-new-bg: #e8f4f1;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --app-ink: #263131; --app-verdict: #2d6fb5; --app-btn-line: #e2e8f0; --app-green: #22c55e; --app-green-bg: #dcfce7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad; --sheet-card: #1a2624; --sheet-line: #2f4441; --sheet-accent: #4fb3a5; --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; --sheet-new-bg: #16302b; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad; --sheet-card: #1a2624; --sheet-line: #2f4441; --sheet-accent: #4fb3a5; --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; --sheet-new-bg: #16302b; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--sheet-bg); color: var(--sheet-fg); font-family: var(--font); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 900; margin: 0; text-wrap: balance; }
+h2 { font-size: 24px; font-weight: 900; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--sheet-muted); font-size: 17px; margin-top: 8px; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sheet-accent); }
+.panel { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; padding: 18px 20px; }
+.panel ul, .panel ol { margin: 8px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.panel--q { background: var(--sheet-note-bg); color: var(--sheet-note-fg); border-color: transparent; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; }
+
+.set { display: flex; flex-direction: column; gap: 12px; }
+.card { display: grid; grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; align-items: start;
+  background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; padding: 14px; }
+.num { font-size: 20px; font-weight: 900; color: var(--sheet-accent); font-variant-numeric: tabular-nums; }
+.scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
+.scene-cap { font-size: 12px; font-weight: 800; color: var(--sheet-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.text { min-width: 0; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.text--cur { background: color-mix(in srgb, var(--sheet-line) 25%, transparent); }
+.text--new { background: var(--sheet-new-bg); }
+.tlabel { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--sheet-muted); }
+.q { font-weight: 800; font-size: 17px; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn { border: 2.5px solid var(--app-btn-line); background: #fff; color: var(--app-ink); border-radius: 12px; padding: 4px 10px; font-weight: 800; font-size: 14px; }
+.btn.right { border-color: var(--app-green); background: var(--app-green-bg); }
+.verdict { color: var(--app-verdict); font-weight: 800; font-size: 15px; }
+.why { color: var(--sheet-muted); font-weight: 600; font-size: 14px; }
+.because { color: var(--app-verdict); font-weight: 800; font-size: 15px; }
+.step { font-size: 13px; color: var(--sheet-muted); font-weight: 700; }
+@media (max-width: 860px) { .card { grid-template-columns: 30px minmax(0, 1fr); } .text { grid-column: 2; } }
+
+/* scene: same geometry as CompareEnough.jsx / comparison.css .enough-* */
+.board { background: #fff; border-radius: 14px; box-shadow: 0 3px 12px rgba(15,23,42,.12); padding: 8px 5px 7px; display: flex; flex-direction: column; gap: 10px; }
+.row { display: grid; gap: 3px; align-items: end; justify-items: center; }
+.who { position: relative; width: 100%; aspect-ratio: .8; display: flex; align-items: flex-end; justify-content: center; }
+.who > img.w { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; }
+.who > img.p { position: absolute; height: auto; }
+.who.without > img.w, .thing.spare img { filter: drop-shadow(0 0 5px rgba(245,158,11,.95)) drop-shadow(0 0 2px rgba(245,158,11,.95)); }
+.thing { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; padding: 2px; }
+.thing img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.thing.gone { visibility: hidden; }
+.thing.target { position: relative; }
+.thing.target > img.p { position: absolute; max-width: none; max-height: none; height: auto; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.g { background: #fff; border-radius: 12px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 1.5px solid var(--sheet-line); }
+.g img { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.g span { font-size: 12px; font-weight: 700; color: #475569; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Сравнение · ступень 9 · проверка каждой карточки</div>
+    <h1>«Всем хватает?»: все карточки</h1>
+    <p class="lead">Опция «Всем хватает?» режима «Сравни в жизни». Шесть наборов, в каждом пять исходов: не хватает одного, не хватает двух, хватает ровно, один лишний, два лишних. Слева сцена до расстановки и после, справа что видит ребёнок: действие, вопрос «хватает?», потом «почему?» (верная кнопка — зелёная, она всегда одна). Текста-вывода на экране нет. Отметьте номера карточек, которые надо поправить.</p>
+  </header>
+
+  <section class="cols" aria-label="Как устроено">
+    <div class="panel">
+      <h2>Как устроена карточка</h2>
+      <ul>
+        <li><strong>Ребёнок отвечает на один вопрос:</strong> «Всем кроликам хватает морковок?» — «Хватает / Не хватает». Без «Чего больше?» и без «поровну».</li>
+        <li><strong>Проверка — только после неверного ответа:</strong> «Проверь: дай каждому кролику морковку». Кому не хватило и что лишнее — подсвечивается, и вопрос задаётся ещё раз. Верный ответ сразу ведёт к «почему».</li>
+        <li><strong>Потом «почему?»</strong> — пять кнопок: «Потому что…» и три продолжения: «кроликов больше / морковок больше / кроликов и морковок поровну». Верный ответ всегда один. Текста-вывода нет, полную фразу говорит взрослый.</li>
+      </ul>
+    </div>
+    <div class="panel panel--q">
+      <h2>Что нужно от вас</h2>
+      <ol>
+        <li>Номера карточек, где не так картинка, вопрос, фраза или строка для взрослого.</li>
+        <li>Номера рисунков в самом низу, которые надо перерисовать.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="cards" aria-label="Карточки"></section>
+
+  <section aria-labelledby="hg">
+    <h2 id="hg">Все рисунки (36)</h2>
+    <div class="gallery" id="gallery"></div>
+  </section>
+</div>
+
+<script>
+const SPRITES = __SPRITES__;
+const CARDS = __CARDS__;
+const SET_TITLES = { chairs: "Дети и стулья", cups: "Чашки и блюдца", dogs: "Собаки и косточки", rabbits: "Кролики и морковки", cars: "Машинки и гаражи", hats: "Дети и шапки" };
+
+function placedStyle(p) {
+  const st = [`width:${p.size * 100}%`, `left:${50 - p.size * 50}%`, `z-index:${p.front ? 2 : 0}`];
+  if (p.anchor === "top") st.push(`top:${p.dy * 100}%`);
+  else if (p.anchor === "center") st.push("top:50%", `transform:translateY(calc(-50% + ${p.dy * 100}%))`);
+  else st.push(`bottom:${-p.dy * 100}%`);
+  return st.join(";");
+}
+function board(c, after) {
+  const cols = Math.max(c.who, c.things);
+  const pairs = after ? Math.min(c.who, c.things) : 0;
+  const moverWho = c.mover === "who";
+  const who = c.whoSp.map((sp, w) => {
+    const paired = w < pairs;
+    const hidden = moverWho && paired;
+    const holds = !moverWho && paired;
+    return `<div class="who${after && !paired ? " without" : ""}" style="${hidden ? "visibility:hidden" : ""}"><img class="w" src="${SPRITES[sp]}" alt="">${holds ? `<img class="p" src="${SPRITES[c.thingSp]}" style="${placedStyle(c.place)}" alt="">` : ""}</div>`;
+  }).join("");
+  const things = Array.from({ length: c.things }, (_, i) => {
+    const paired = i < pairs;
+    if (moverWho) return `<div class="thing target${after && !paired ? " spare" : ""}"><img src="${SPRITES[c.thingSp]}" alt="">${paired ? `<img class="p" src="${SPRITES[c.whoSp[i]]}" style="${placedStyle(c.place)}" alt="">` : ""}</div>`;
+    return `<div class="thing${paired ? " gone" : ""}${after && !paired ? " spare" : ""}"><img src="${SPRITES[c.thingSp]}" alt=""></div>`;
+  }).join("");
+  return `<div class="board"><div class="row" style="grid-template-columns:repeat(${cols},1fr)">${who}</div><div class="row" style="grid-template-columns:repeat(${cols},1fr)">${things}</div></div>`;
+}
+const host = document.getElementById("cards");
+let currentSet = null, setEl = null;
+for (const c of CARDS) {
+  if (c.set !== currentSet) {
+    currentSet = c.set;
+    setEl = document.createElement("div"); setEl.className = "set";
+    setEl.innerHTML = `<h2>${SET_TITLES[c.set]}</h2>`;
+    host.append(setEl);
+    host.style.display = "flex"; host.style.flexDirection = "column"; host.style.gap = "28px";
+  }
+  const el = document.createElement("article"); el.className = "card";
+  const btn = (b) => `<span class="btn${b === c.right ? " right" : ""}">${b}</span>`;
+  el.innerHTML = `<div class="num">${c.n}</div>
+    <div class="scenes"><div><div class="scene-cap">до · ${c.who} и ${c.things}</div>${board(c, false)}</div><div><div class="scene-cap">после</div>${board(c, true)}</div></div>
+    <div class="text text--new"><div class="step">После неверного ответа — проверка: ${c.match}</div><div class="q">${c.q}</div><div class="btns">${btn("Хватает")}${btn("Не хватает")}</div><div class="q">${c.whyQ}</div><div class="because">Потому что…</div><div class="btns">${c.whyOpts.map((o) => `<span class="btn${o.ok ? " right" : ""}">${o.label}</span>`).join("")}</div></div>`;
+  setEl.append(el);
+}
+document.getElementById("gallery").innerHTML = Object.entries(SPRITES).map(([k, v]) => `<div class="g"><img src="${v}" alt=""><span>${k}</span></div>`).join("");
+</script>

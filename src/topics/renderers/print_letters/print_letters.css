@@ -1,0 +1,880 @@
+/* Palette borrowed from propis2's own design system (src/features/propis2/propis2.css
+   --p2-* variables) — this topic's UI chrome should read as the same app, not a
+   different one. Letter colors (the block palette in ConstructorView.jsx) and the
+   pen-ink blue in LetterGlyph.jsx are content colors, not UI chrome, and stay as-is. */
+.pl-constructor {
+  --pl-bg: #fdfcf9;
+  --pl-strip: #f6f1e4;
+  --pl-line: #e3dccb;
+  --pl-ink: #28323c;
+  --pl-muted: #8b93a1;
+  --pl-teal: #4a9b8f;
+  --pl-teal-dark: #2a6b60;
+  --pl-teal-soft: #e5f2ef;
+  --pl-header: #1c3634;
+  --pl-canvas: #e2ddd0;
+  --pl-red: #b91c1c;
+  --pl-red-soft: #fee2e2;
+
+  /* Fills the whole screen width, like propis2's own editor
+     (.propis2-editor2). The session wrapper centres its child and would
+     otherwise shrink it to its content (1236px wide in a 1920px window);
+     the page preview keeps its real paper size and stays centred. */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-self: stretch;
+  height: 100%;
+  color: var(--pl-ink);
+}
+
+/* Dark title bar, cosmetic only — propis2's own editor replaces the whole
+   session screen so its header also carries back/save/show-to-student; this
+   topic is a normal session task (the standard session header above it
+   already has a close button), so this bar is just the matching top tier. */
+.pl-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--pl-header);
+}
+
+.pl-header-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+/* Narrow tool strip above the canvas — propis2's layout, not a side panel
+   that permanently shows every option. Not pinned to a screen edge (it
+   scrolls with the canvas below it), so it needs no iOS safe-area inset. */
+.pl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--pl-line);
+  background: var(--pl-strip);
+  flex-wrap: wrap;
+}
+
+.pl-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 56px;
+  height: 52px;
+  padding: 5px 7px 4px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--pl-ink);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.pl-tool-ico { display: flex; align-items: center; justify-content: center; }
+.pl-tool-cap { font-size: 10px; font-weight: 700; }
+
+.pl-tool.is-open,
+.pl-tool:hover:not(:disabled) { background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
+
+.pl-tool--muted { color: var(--pl-muted); }
+
+/* Delete actions are red AT REST, like propis2's own .p2-ib--danger
+   (color: var(--p2-red), not just on :hover) — a resting-state-only teal vs.
+   red difference was never visible without first hovering, which is why the
+   earlier hover-only version still read as identical to the add buttons. */
+.pl-tool--danger { color: var(--pl-red); }
+.pl-tool--danger:hover:not(:disabled) { background: var(--pl-red-soft); }
+
+.pl-tool:disabled { opacity: 0.35; cursor: default; }
+
+.pl-tool-group { display: flex; align-items: center; gap: 2px; }
+
+.pl-sep { width: 1px; align-self: stretch; background: var(--pl-line); margin: 6px 6px; }
+.pl-toolbar-fill { flex: 1; }
+
+.pl-pick { position: relative; }
+
+.pl-letters-panel {
+  background: #fff;
+  border: 1px solid var(--pl-line);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(28, 54, 52, 0.18);
+  padding: 10px;
+  z-index: 50;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.pl-el-group {
+  font-size: 11px;
+  color: var(--pl-muted);
+  margin: 4px 0 6px;
+}
+
+.pl-letters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.pl-letters-cell {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--pl-line);
+  background: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--pl-ink);
+  cursor: pointer;
+}
+
+.pl-letters-cell:hover { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
+
+/* Page sidebar + canvas, side by side — propis2's own desktop layout
+   (Propis2Thumbs on the left, the sheet in the middle). */
+.pl-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.pl-pages-rail {
+  width: 108px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+  background: var(--pl-strip);
+  border-right: 1px solid var(--pl-line);
+  overflow-y: auto;
+}
+
+.pl-pages-list { display: flex; flex-direction: column; gap: 8px; }
+
+.pl-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pl-thumb-num { font-size: 11px; color: var(--pl-muted); }
+
+.pl-thumb-sheet {
+  display: block;
+  box-sizing: content-box;
+  background: var(--pl-bg);
+  border: 2px solid var(--pl-line);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pl-thumb.is-active .pl-thumb-sheet { border-color: var(--pl-teal); }
+
+.pl-thumb-scale {
+  display: block;
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.pl-sheet--thumb { border: none; box-shadow: none; border-radius: 0; }
+
+.pl-page-add {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--pl-line);
+  background: transparent;
+  color: var(--pl-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.pl-page-add svg { width: 15px; height: 15px; }
+.pl-page-add:hover { background: var(--pl-teal-soft); color: var(--pl-teal-dark); border-color: var(--pl-teal); }
+
+.pl-page-actions {
+  margin-top: auto;
+  padding-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 36px);
+  gap: 4px;
+  justify-content: center;
+}
+
+.pl-page-actions button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--pl-muted);
+  cursor: pointer;
+  border-radius: 9px;
+}
+
+.pl-page-actions button svg { width: 17px; height: 17px; }
+.pl-page-actions button:hover:not(:disabled) { background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
+.pl-page-actions button:disabled { opacity: 0.35; cursor: default; }
+.pl-page-actions-danger:hover:not(:disabled) { background: var(--pl-red-soft) !important; color: var(--pl-red) !important; }
+
+.pl-canvas {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  background: var(--pl-canvas);
+}
+
+.pl-preview-empty {
+  color: var(--pl-muted);
+  font-size: 14px;
+  padding: 24px 0;
+  text-align: center;
+  max-width: 340px;
+}
+
+/* The page itself, at its real printed size (Sheet.jsx sets width/height in
+   mm from the format: paper minus the @page printer margin). The grid is
+   drawn once, here, for the WHOLE page: a real sheet of squared paper.
+   Letter blocks have no fill, so the grid shows straight through them. Real
+   mm throughout (5mm = a notebook cell, Ruling.jsx's FINE_MM); padding and
+   gaps are whole cells so every edge lands on a grid line. On narrow screens
+   ConstructorView shrinks the sheet with CSS zoom, never the mm values. */
+.pl-sheet {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  /* The grid is a background — without this, browsers drop it when
+     printing (their default "no background graphics"). */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  background-color: var(--pl-bg);
+  border: 1px solid var(--pl-line);
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(28, 54, 52, 0.12);
+  padding: 5mm;
+  display: flex;
+  flex-direction: column;
+  gap: 5mm;
+}
+
+/* Клетка: both axes ruled, so a letter's 2×2-cell box sits flush inside one
+   grid square — snapped to the horizontal AND vertical lines around it. */
+.pl-sheet--cell { background-image: none; }
+
+/* Линейка (3 or 2 lines): a plain sheet — every row draws its own lines
+   for its block's size (.pl-ruling below), as in printed-letter copybooks;
+   one page-wide ruling every 5mm told the child nothing about which lines
+   bound the letter. */
+.pl-sheet--line {
+  background-image: none;
+}
+
+/* Крупная клетка: Ilyukhina's 1cm cell. Lines every 10mm, offset by the
+   sheet's 5mm padding so the block edges, the plate and every letter's
+   left side, top and bottom fall on them; blocks and the header are a whole
+   big cell apart (model.js paperGap/headerCells). */
+.pl-sheet--bigcell { background-image: none; gap: 10mm; }
+
+/* Only rendered under @media print — see below. */
+.pl-print-pages { display: none; }
+
+.pl-row-wrap { display: flex; flex-direction: column; position: relative; }
+
+/* A row's own ruling on линейка: the solid baseline the letter stands on
+   and a dashed line at its height; the blank space between rows is the gap
+   above the next row. Borders print without "background graphics". */
+.pl-ruling {
+  position: absolute;
+  box-sizing: border-box;
+  border-top: 0.3mm dashed #8aa2c4;
+  border-bottom: 0.4mm solid #5f7fa8;
+  pointer-events: none;
+}
+.pl-row { position: relative; }
+
+/* One row of copies: sizes come inline from LetterBlock.jsx, in whole cells. */
+.pl-row { display: flex; }
+
+.pl-cell {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.pl-glyph--tappable:active { opacity: 0.85; }
+
+/* One letter's printable practice block — naborny: the teacher adds/removes
+   rows and picks each row's content (whole letter / one stroke element /
+   blank), so the block's height is whatever they build it to be. No fill, no
+   padding, square corners: it sits flush on the page's own grid rather than
+   floating as a card on top of it — a thin colored outline groups the rows
+   as "this letter," nothing more. */
+/* The colored frame is an outline, not a border: a border would push the
+   rows 2px off the page grid; an outline takes no space. */
+.pl-block {
+  position: relative;
+  align-self: flex-start;
+  outline: 1.5px solid;
+  outline-offset: -0.75px;
+  /* One corner radius for the block and its letter plate (owner, 2026-11-03). */
+  --pl-block-radius: 3mm;
+  border-radius: var(--pl-block-radius);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  break-inside: avoid;
+  cursor: pointer;
+}
+
+.pl-block.is-selected { box-shadow: 0 0 0 3px var(--pl-teal-soft), 0 0 0 1px var(--pl-teal); }
+
+/* Letter plate (owner, 2026-11-03): a square in the block colour, 4×4 cells,
+   its left and top edges on the block's own edges, nothing on it but the
+   letter (white, same strokes as in the rows). */
+.pl-block-tile,
+.pl-insp-tile {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  background: var(--pl-block-color, #8b93a1);
+}
+
+/* Top-left follows the block's rounded corner it sits in; bottom-right is
+   rounded the same way; the other two corners stay square. */
+.pl-block-tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--pl-block-radius) 0 var(--pl-block-radius) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pl-row-wrap.is-selected { background: var(--pl-teal-soft); border-radius: 8px; }
+
+.pl-row-pick-list {
+  background: #fff;
+  border: 1px solid var(--pl-line);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(28, 54, 52, 0.18);
+  padding: 4px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.pl-row-pick-list button {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--pl-ink);
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pl-row-pick-list button.is-on { background: var(--pl-teal-soft); color: var(--pl-teal-dark); font-weight: 700; }
+.pl-row-pick-list button:hover { background: #f1efe9; }
+
+.pl-paper-opt { display: flex; align-items: center; gap: 8px; }
+.pl-paper-opt .pl-tool-ico { flex-shrink: 0; }
+
+@media print {
+  .pl-header,
+  .pl-toolbar,
+  .pl-preview-empty,
+  .pl-pages-rail,
+  .pl-body,
+  .no-print { display: none !important; }
+
+  .pl-constructor { max-width: none; height: auto; }
+
+  .pl-block.is-selected { box-shadow: none; }
+  .pl-row-wrap.is-selected { background: none; }
+
+  /* The screen-only single-page view (.pl-body/.pl-sheet) is hidden; every
+     page prints instead, each as its own physical sheet. */
+  .pl-print-pages { display: block; }
+
+  .pl-sheet--print {
+    overflow: hidden;
+    background-color: #ffffff;
+    /* Keep background-color/background-image (the grid) — on paper that
+       grid IS the writing surface, not screen-only chrome. Only the on-screen
+       "card" framing (border/shadow/rounding) is page furniture to drop. */
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    break-after: page;
+  }
+
+  .pl-sheet--print:last-child { break-after: auto; }
+
+
+}
+
+.pl-sheet--screen { margin: 0 auto; }
+
+.pl-overflow {
+  max-width: 560px;
+  margin: 0 auto 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--pl-red-soft);
+  color: var(--pl-red);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---- Row panel (RowInspector): right column on wide screens ---- */
+.pl-inspector {
+  width: 340px;
+  flex-shrink: 0;
+  background: #fff;
+  border-left: 1px solid var(--pl-line);
+  overflow-y: auto;
+}
+
+.pl-insp { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+.pl-insp--empty { color: var(--pl-muted); font-size: 14px; line-height: 1.45; }
+.pl-insp--empty p { margin: 0; }
+
+.pl-insp-head { display: flex; flex-direction: column; gap: 10px; }
+.pl-insp-head-line { display: flex; align-items: center; gap: 10px; }
+.pl-insp-tile { width: 32px; height: 32px; border-radius: 8px 0 8px 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pl-insp-title { flex: 1; font-weight: 800; font-size: 15px; }
+/* the row's own tools: add · up · down · delete, captioned like the strip tools */
+.pl-insp-acts { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: #eef3fb; }
+.pl-insp-acts button {
+  flex: 1 1 0; min-width: 0; height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: none; border-radius: 10px; background: transparent; color: var(--pl-ink);
+  font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.pl-insp-acts button svg { width: 22px; height: 22px; }
+.pl-insp-acts button:hover:not(:disabled) { background: #fff; }
+.pl-insp-acts button:disabled { opacity: 0.35; cursor: default; }
+.pl-insp-acts button.is-danger { color: var(--pl-red); }
+
+.pl-insp-sec { display: flex; flex-direction: column; gap: 8px; }
+.pl-insp-sec--block { border-top: 1px solid var(--pl-line); padding-top: 14px; }
+.pl-insp-lbl { font-size: 11px; font-weight: 800; color: #5b6472; text-transform: uppercase; letter-spacing: 0.04em; }
+.pl-insp-hint { font-size: 12px; color: #5b6472; line-height: 1.4; margin: 0; }
+
+.pl-insp-els { display: flex; justify-content: center; }
+.pl-insp-row { display: flex; gap: 8px; }
+
+.pl-elpad {
+  position: relative;
+  flex-shrink: 0;
+  border: 1px solid var(--pl-line);
+  border-radius: 8px;
+  background-color: var(--pl-bg);
+  background-image:
+    linear-gradient(to right, #bcd4e8 1px, transparent 1px),
+    linear-gradient(to bottom, #bcd4e8 1px, transparent 1px);
+}
+.pl-elpad-hit { cursor: pointer; outline: none; }
+.pl-elpad-hit:focus-visible { stroke: rgba(74, 155, 143, 0.25); }
+
+.pl-el {
+  display: flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 10px;
+  border: 1.5px solid var(--pl-line); border-radius: 10px;
+  background: #fff; color: var(--pl-ink);
+  font: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; text-align: left;
+}
+.pl-el.is-on { border-color: var(--pl-teal-dark); background: var(--pl-teal-soft); color: var(--pl-teal-dark); }
+.pl-el--wide { width: 100%; }
+.pl-el--grow { flex: 1; justify-content: center; }
+
+.pl-seg { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--pl-strip); }
+.pl-seg button {
+  flex: 1; min-height: 40px; border: none; border-radius: 8px;
+  background: transparent; color: var(--pl-ink);
+  font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.pl-seg button.is-on { background: #fff; color: var(--pl-teal-dark); box-shadow: 0 1px 3px rgba(28, 54, 52, 0.18); }
+.pl-seg button:disabled { opacity: 0.4; cursor: default; }
+
+.pl-ladder {
+  display: flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 0 12px;
+  border: 1px solid var(--pl-teal); border-radius: 10px;
+  background: var(--pl-teal-soft); color: var(--pl-teal-dark);
+  font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; text-align: left;
+}
+.pl-ladder svg { width: 20px; height: 20px; flex-shrink: 0; }
+.pl-ladder-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+.pl-ladder-ask span { flex-basis: 100%; color: var(--pl-ink); }
+.pl-ladder-ask button {
+  min-height: 40px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+.pl-ladder-yes { border: none; background: var(--pl-teal-dark); color: #fff; }
+.pl-ladder-no { border: 1px solid var(--pl-line); background: #fff; color: var(--pl-ink); }
+
+/* ---- Bottom sheet (phones). Pinned to the bottom and side edges of the
+   screen, so it reserves the iOS safe areas (CLAUDE.md). ---- */
+
+/* ---- Narrow screens: page strip on top, toolbar scrolls sideways ---- */
+.pl-constructor.is-narrow .pl-toolbar { flex-wrap: nowrap; overflow-x: auto; }
+.pl-constructor.is-narrow .pl-tool { flex-shrink: 0; min-height: 48px; }
+.pl-constructor.is-narrow .pl-body { flex-direction: column; }
+.pl-constructor.is-narrow .pl-pages-rail {
+  width: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-right: none;
+  border-bottom: 1px solid var(--pl-line);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.pl-constructor.is-narrow .pl-pages-list { flex-direction: row; }
+.pl-constructor.is-narrow .pl-page-add { margin-top: 0; min-width: 44px; min-height: 44px; }
+.pl-constructor.is-narrow .pl-page-actions { display: flex; margin-top: 0; padding-top: 0; margin-left: auto; }
+.pl-constructor.is-narrow .pl-page-actions button { width: 40px; height: 40px; }
+.pl-constructor.is-narrow .pl-canvas { padding: 12px 16px; }
+
+/* Sheet header: «Имя ____ Дата ____» to fill in and which letters the page
+   drills. Exactly 2 cells tall (the sheet's flex gap adds the blank cell
+   under it — model.js HEADER_CELLS), on white so the lines to write on read
+   clearly over the grid. Print sizes in pt/mm. */
+.pl-sheet-head {
+  flex-shrink: 0;
+  height: 10mm;
+  display: flex;
+  align-items: flex-end;
+  gap: 3mm;
+  padding: 0 1mm 1.5mm;
+  box-sizing: border-box;
+  background: transparent; /* on the sheet's own grid, like everything else (owner, 2026-11-03) */
+  color: #4b5563;
+  font-size: 10.5pt;
+  font-weight: 600;
+}
+.pl-sheet-head-line { border-bottom: 0.3mm solid #4b5563; height: 4mm; }
+.pl-sheet-head-line--name { width: 55mm; }
+.pl-sheet-head-line--date { width: 28mm; }
+.pl-sheet-head-fill { flex: 1; }
+.pl-sheet-head-title { display: flex; align-items: flex-end; gap: 2mm; color: #1f3a8a; font-weight: 800; font-size: 12pt; }
+.pl-sheet-head-letters { display: flex; gap: 2mm; align-items: flex-end; padding-bottom: 0.3mm; }
+
+/* ---- Editor header: back · notebook name · unsaved · save ---- */
+.pl-header { gap: 8px; }
+.pl-header-back,
+.pl-header-btn {
+  min-width: 44px; height: 44px; border: none; background: transparent; color: #fff;
+  display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; border-radius: 10px;
+  font: inherit; font-size: 13px; font-weight: 700;
+}
+.pl-header-back svg, .pl-header-btn svg { width: 22px; height: 22px; }
+.pl-header-btn:hover, .pl-header-back:hover { background: rgba(255, 255, 255, 0.1); }
+.pl-header-fill { flex: 1; }
+.pl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pl-title-field { flex: 0 1 460px; min-width: 0; display: flex; }
+.pl-title-input {
+  flex: 1; min-width: 0; height: 36px; padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08); color: #fff; font: inherit; font-size: 15px; font-weight: 800;
+}
+.pl-title-input::placeholder { color: rgba(255, 255, 255, 0.55); }
+.pl-dirty { color: #f3d18a; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.pl-save {
+  display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px;
+  border: none; border-radius: 10px; background: var(--pl-teal); color: #fff;
+  font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.pl-save svg { width: 18px; height: 18px; }
+.pl-save:disabled { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.7); cursor: default; }
+.pl-constructor.is-narrow .pl-dirty { display: none; }
+
+/* ---- «Мои тетради»: the whole width of the device (owner's rule), cards in
+   a grid that adds columns as the screen widens ---- */
+.pl-lib {
+  --pl-bg: #fdfcf9; --pl-strip: #f6f1e4; --pl-line: #e3dccb; --pl-ink: #28323c; --pl-muted: #8b93a1;
+  --pl-teal: #4a9b8f; --pl-teal-dark: #2a6b60; --pl-teal-soft: #e5f2ef; --pl-header: #1c3634;
+  --pl-red: #b91c1c; --pl-red-soft: #fee2e2;
+  width: 100%; align-self: stretch; height: 100%;
+  display: flex; flex-direction: column; color: var(--pl-ink); background: var(--pl-strip);
+}
+.pl-lib-body { flex: 1; overflow-y: auto; padding: 20px clamp(16px, 2.5vw, 32px) 32px; display: flex; flex-direction: column; gap: 14px; }
+.pl-banner {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: #fff7e6; border: 1px solid #f1d39a; border-radius: 12px; padding: 10px 14px; font-size: 14px;
+}
+.pl-banner span { flex: 1; min-width: 200px; }
+.pl-banner button { min-height: 40px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.pl-banner-go { border: none; background: var(--pl-teal-dark); color: #fff; }
+.pl-banner-drop { border: 1px solid var(--pl-line); background: #fff; color: var(--pl-ink); }
+.pl-lib-new {
+  display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 20px;
+  border: none; border-radius: 16px; background: var(--pl-teal); color: #fff;
+  box-shadow: 0 3px 0 var(--pl-teal-dark); font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; text-align: left;
+}
+.pl-lib-new svg { width: 28px; height: 28px; }
+.pl-lib-new:active { transform: translateY(3px); box-shadow: none; }
+.pl-lib-h2 { margin: 6px 0 0; font-size: 18px; font-weight: 800; }
+.pl-lib-h2row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.pl-lib-meta { font-size: 12px; color: #5b6472; }
+.pl-lib-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.pl-lib-grid--ready { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.pl-lib-card { background: #fff; border: 1px solid var(--pl-line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.pl-lib-card.is-ready { background: var(--pl-bg); }
+.pl-lib-card-main { display: flex; gap: 12px; align-items: flex-start; }
+.pl-lib-card-main .pl-thumb { flex-shrink: 0; }
+.pl-lib-card-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pl-lib-card-title { font-weight: 800; font-size: 15px; overflow-wrap: anywhere; }
+.pl-lib-desc { margin: 0; font-size: 12px; line-height: 1.4; color: #4b5563; flex: 1; }
+.pl-lib-tools { display: flex; gap: 4px; justify-content: space-between; border-top: 1px solid #efe9db; padding-top: 6px; }
+.pl-lib-tool {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-width: 48px; min-height: 44px; padding: 4px 6px; border: none; border-radius: 8px; background: transparent;
+  color: var(--pl-ink); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.pl-lib-tool svg { width: 20px; height: 20px; }
+.pl-lib-tool:hover { background: var(--pl-teal-soft); }
+.pl-lib-tool.is-go { color: var(--pl-teal-dark); }
+.pl-lib-tool.is-danger { color: var(--pl-red); }
+.pl-lib-tool.is-danger:hover { background: var(--pl-red-soft); }
+.pl-lib-take {
+  flex: 1; min-height: 44px; border: none; border-radius: 10px; background: var(--pl-teal-soft); color: var(--pl-teal-dark);
+  font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+
+/* ---- The question when leaving with unsaved edits (centred, not pinned to an edge) ---- */
+.pl-modal { position: fixed; inset: 0; z-index: 60; background: rgba(28, 54, 52, 0.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.pl-dialog {
+  width: min(440px, 100%); background: #fff; border-radius: 18px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  padding: 22px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; color: #28323c;
+}
+.pl-dialog h2 { margin: 0; font-size: 19px; font-weight: 800; }
+.pl-dialog p { margin: 0 0 4px; font-size: 14px; line-height: 1.5; color: #4b5563; }
+.pl-dialog button { min-height: 48px; border-radius: 12px; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+.pl-dialog-primary { border: none; background: #4a9b8f; color: #fff; box-shadow: 0 3px 0 #2a6b60; }
+.pl-dialog-danger { border: 1px solid #f3c4c4; background: #fff; color: #b91c1c; }
+.pl-dialog-plain { border: none; background: transparent; color: #5b6472; font-weight: 700 !important; }
+
+@media print {
+  .pl-lib { height: auto; background: none; }
+}
+
+/* ===== 2026-11-03: the editor and the library are propis2's own (propis2-style.css); below
+   only what this topic adds to them: its colour tokens for the sheet/row panel, the row panel
+   column, the thumbnails (a live Sheet scaled down, not an SVG) and print. ===== */
+.pl-editor, .pl-lib2 {
+  --pl-bg: #fdfcf9; --pl-strip: #f6f1e4; --pl-line: #e3dccb; --pl-ink: #28323c; --pl-muted: #8b93a1;
+  --pl-teal: #4a9b8f; --pl-teal-dark: #2a6b60; --pl-teal-soft: #e5f2ef; --pl-header: #1c3634;
+  --pl-red: #b91c1c; --pl-red-soft: #fee2e2;
+  width: 100%; align-self: stretch;
+}
+.pl2-desk-body > .pl-inspector { min-height: 0; padding-right: var(--app-safe-right, 0px); }
+.pl2-thumb-sheet.pl-thumb-sheet2 { flex: 0 0 auto; position: relative; }
+.plb-editor2--desk .pl2-thumb { align-items: flex-start; }
+.pl2-status-hint { margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-editor .plb-page-box .pl-overflow { margin-bottom: 12px; }
+/* phone: the row panel docked at the bottom — a fixed share of the screen, its insides scroll.
+   propis2's dock pins its content to the bottom (justify-content: flex-end, for its text field):
+   a taller panel then overflows at the TOP, where no scroll reaches — the 0.2.1 bug (owner,
+   2026-11-03: «не скроллится и занимает слишком много места»). Here it starts at the top. */
+.plb-editor2--phone .plb-dock.pl-dock {
+  display: flex; flex-direction: column; gap: 0; height: 38dvh; max-height: 38dvh; padding-top: 0; overflow: hidden;
+}
+.pl-dock-body { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+/* folded: only the bar is left, the sheet gets the rest of the screen */
+.plb-editor2--phone .plb-dock.pl-dock.is-folded { height: auto; max-height: none; }
+/* the fold bar: a grip, what is selected, a chevron — the whole bar is the button */
+.pl-dock-toggle {
+  flex: 0 0 auto; position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px;
+  padding: 8px 2px; border: none; border-bottom: 1px solid var(--pl-line); background: transparent; color: var(--pl-ink);
+  font: inherit; font-size: 15px; text-align: left; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.pl-dock.is-folded .pl-dock-toggle { border-bottom: none; }
+/* open: the row's own header just below says what is selected, so the bar is only the grip and the chevron */
+.pl-dock:not(.is-folded) .pl-dock-toggle { min-height: 30px; padding: 2px 0 0; justify-content: center; border-bottom: none; }
+.pl-dock:not(.is-folded) .pl-dock-sum { display: none; }
+.pl-dock:not(.is-folded) .pl-dock-chev { width: 56px; height: 26px; border-radius: 13px; background: var(--pl-strip); color: #8b93a1; }
+.pl-dock-sum { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pl-dock-sum b { font-weight: 800; }
+.pl-dock-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pl-dock-tile { flex: 0 0 auto; min-width: 26px; padding: 0 5px; height: 26px; white-space: nowrap; display: grid; place-items: center; border-radius: 6px 0 6px 0; background: var(--pl-block-color); color: #fff; font-weight: 900; font-size: 15px; }
+.pl-dock-chev { flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--pl-strip); color: var(--pl-teal-dark); }
+.pl-dock-chev svg { width: 20px; height: 20px; }
+.plb-dock .pl-insp { padding: 0 0 8px; gap: 12px; }
+/* the row's title and its ↑ ↓ stay in sight while the panel scrolls */
+.plb-dock .pl-insp-head { position: sticky; top: 0; z-index: 2; background: var(--pl2-surface, #fff); padding: 6px 0 8px; margin-bottom: -4px; gap: 6px; }
+.plb-dock .pl-insp-acts button { height: 48px; }
+.plb-dock .pl-insp--empty { padding-top: 12px; }
+
+/* phone: undo / redo in the header beside «save» (not over the sheet in the zoom pill) */
+.pl2-hist { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border: none; border-radius: 12px; background: rgba(255, 255, 255, .1); color: #fff; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pl2-hist svg { width: 22px; height: 22px; }
+.pl2-hist:disabled { opacity: .35; cursor: default; }
+.pl2-hist:not(:disabled):active { background: rgba(255, 255, 255, .22); }
+.plb-editor2--phone .screen-header .plb-title-input { min-width: 0; flex: 1 1 auto; }
+
+/* «Мои тетради»: propis2's library markup, but the whole width of the device (owner's rule) —
+   the cards go into a grid that adds columns as the screen widens. */
+.pl-lib2 { display: flex; flex-direction: column; min-height: 100dvh; background: var(--pl-bg); }
+.pl-lib2 .plb-body { max-width: none; padding: 16px clamp(16px, 2.5vw, 32px) calc(32px + var(--app-safe-bottom, 0px)); }
+.pl-lib2 .plb-pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+
+@media print {
+  .plb-editor2, .plb-editor2--desk, .pl-lib2 { height: auto !important; min-height: 0 !important; overflow: visible !important; background: none !important; display: block !important; }
+}
+/* phone dock: the same panel, tighter — the letter pad smaller, the explanations left to the computer */
+.plb-dock .pl-elpad { zoom: 0.8; }
+.plb-dock .pl-insp-sec { gap: 6px; }
+.plb-dock .pl-insp-hint { display: none; }
+.plb-dock .pl-insp-sec--block { padding-top: 10px; }
+.plb-dock .pl-el { min-height: 40px; }
+
+/* phone, first strip: the block's two tools on their own blue tier, before the page settings */
+.pl2-blockgrp { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 14px; background: #eef3fb; flex: 0 0 auto; }
+/* phone: the row's title and its four tools on one line (icons only — the computer keeps the
+   captions), so the sticky top of the panel stays low and the panel shows its settings */
+.plb-dock .pl-insp-head { flex-direction: row; align-items: center; gap: 8px; }
+.plb-dock .pl-insp-head-line { flex: 1 1 auto; min-width: 0; }
+.plb-dock .pl-insp-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plb-dock .pl-insp-acts { flex: 0 0 auto; gap: 2px; padding: 2px; }
+.plb-dock .pl-insp-acts button { flex: 0 0 auto; width: 42px; height: 42px; }
+.plb-dock .pl-insp-acts button span { display: none; }
+/* the row's three look pickers: a strip of propis2-style tools inside the panel */
+.pl-insp-picks { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: var(--pl-strip); }
+.pl-insp-picks .pl2-pick { flex: 1 1 0; display: flex; }
+.pl-insp-picks .pl2-pick-btn { flex: 1 1 auto; width: 100%; }
+.pl-insp-picks .pl2-pick-btn:disabled { opacity: 0.35; cursor: default; }
+.pl-insp-picks .pl2-pick-btn { height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 6px; border-radius: 12px; background: #fff; border: 1px solid var(--pl-line); box-shadow: none; }
+.pl-insp-picks .pl2-pick-btn.is-open { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
+.pl-insp-picks .pl2-tool-ico { display: flex; align-items: center; gap: 2px; height: 26px; }
+.pl-insp-picks .pl2-tool-ico svg:first-child { width: 26px; height: 26px; }
+.pl-insp-picks .pl2-cap { font-size: 11px; font-weight: 700; color: var(--pl-ink); line-height: 1.1; }
+
+/* ---- syllable and word blocks (WordBlock.jsx) ---- */
+.pl-cell { position: relative; }
+.pl-plate-words { display: flex; align-items: center; }
+.pl-plate-word { display: flex; align-items: center; }
+/* «Блок» picker: tabs Буква · Слог · Слово, letter tiles, ready lists */
+.pl-blockpick { max-height: min(78dvh, 640px); display: flex; flex-direction: column; gap: 10px; max-width: calc(100vw - 16px); z-index: 710; }
+.pl-bp-tabs { display: flex; gap: 3px; padding: 3px; border-radius: 12px; background: var(--pl-strip); flex: 0 0 auto; }
+.pl-bp-tabs button { flex: 1; min-height: 38px; border: none; border-radius: 9px; background: transparent; font: inherit; font-size: 14px; font-weight: 800; color: #5b6472; cursor: pointer; }
+.pl-bp-tabs button.is-on { background: #fff; color: var(--pl-teal-dark); box-shadow: 0 1px 3px rgba(28, 54, 52, .18); }
+.pl-bp-compose { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 12px; min-height: 58px; border: 1.5px solid var(--pl-teal); border-radius: 14px; background: var(--pl-bg); }
+.pl-bp-draft { flex: 1; min-width: 0; display: flex; align-items: center; overflow: hidden; }
+.pl-bp-ph { color: var(--pl-muted); font-size: 13px; }
+.pl-bp-back, .pl-bp-take { flex: 0 0 auto; width: 42px; height: 42px; border: none; border-radius: 10px; background: var(--pl-strip); font: inherit; font-size: 20px; font-weight: 800; color: var(--pl-ink); cursor: pointer; }
+.pl-bp-take { background: var(--pl-teal); color: #fff; }
+.pl-bp-back:disabled, .pl-bp-take:disabled { opacity: .35; cursor: default; }
+.pl-bp-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 4px; }
+.pl-bp-key { height: 40px; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--pl-line); border-radius: 9px; background: #fff; font: inherit; font-size: 15px; font-weight: 800; color: #b8c0cc; cursor: pointer; }
+.pl-bp-key.is-vowel { background: #fff5e6; border-color: #f0c98a; }
+.pl-bp-key.is-off { border-style: dashed; background: #fff; opacity: .55; cursor: default; }
+.pl-bp-key:not(.is-off):disabled { opacity: .5; }
+.pl-bp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl-bp-chip { min-height: 38px; padding: 4px 10px; display: flex; align-items: center; border: 1.5px solid var(--pl-line); border-radius: 10px; background: #fff; cursor: pointer; }
+.pl-bp-chip.is-on { border-color: var(--pl-teal-dark); background: var(--pl-teal-soft); }
+.pl-bp-none { margin: 0; font-size: 12px; color: #5b6472; }
+.pl-bp-add { flex: 0 0 auto; min-height: 46px; border: none; border-radius: 12px; background: var(--pl-teal); color: #fff; font: inherit; font-size: 15px; font-weight: 900; box-shadow: 0 3px 0 var(--pl-teal-dark); cursor: pointer; }
+.pl-bp-add:disabled { opacity: .4; box-shadow: none; cursor: default; }
+/* the word drawn large in the row panel */
+.pl-wordpad { display: flex; justify-content: center; gap: 8px; padding: 10px; border: 1px solid var(--pl-line); border-radius: 12px; background: var(--pl-bg); }
+.pl-wordpad-l { padding: 6px 8px 4px; border: 1.5px dashed #b8c0cc; border-radius: 10px; background: #fff; cursor: pointer; }
+.pl-wordpad-l.is-on { border-style: solid; border-color: var(--pl-teal-dark); background: var(--pl-teal-soft); }
+.pl-insp-tile--word { width: auto; padding: 0 6px; }
+/* a picker open in the top strip stands above the docked row panel (propis2 does the same for its
+   own lists, `.plb-settings:has(.pl2-pick-list)`) */
+.plb-editor2 .plb-main > .plb-settings:has(.pl-blockpick),
+.plb-editor2 .plb-main > .plb-settings:has(.pl-row-pick-list) { position: relative; z-index: 20; }
+/* the plate stays above a selected row's highlight */
+.pl-block-tile { z-index: 1; box-sizing: border-box; align-items: flex-start; } /* the letter stands from paddingTop, on a grid line */
+
+/* The grid (Sheet.jsx SheetGrid): vector lines under everything, from the sheet's padding-box
+   corner — where the old background tile started. */
+.pl-sheet { position: relative; overflow: hidden; }
+.pl-sheet-grid { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.pl-sheet > :not(.pl-sheet-grid) { position: relative; z-index: 1; }
+/* the «Стрелки» on/off switch among the row's look pickers: lit when on */
+.pl-insp-picks .pl-toggle { position: relative; }
+.pl-insp-picks .pl-toggle:not(.is-on) .pl2-tool-ico svg { opacity: .35; }
+.pl-insp-picks .pl-toggle.is-on { border-color: var(--pl-teal); background: var(--pl-teal-soft); }
+.pl-insp-picks .pl-toggle::after { content: ""; position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #c4cad3; }
+.pl-insp-picks .pl-toggle.is-on::after { background: var(--pl-teal); }
+/* «Готовые тетради»: the course, by sections */
+.pl-ready-intro { margin: -4px 0 4px; font-size: 13px; color: #5b6472; line-height: 1.45; }
+.pl-ready-sec { display: flex; flex-direction: column; gap: 8px; }
+.pl-ready-h3 { margin: 8px 0 0; font-size: 14px; font-weight: 900; color: var(--pl-teal-dark); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ---- PDF (usePdfExport.jsx): the sheets laid out off screen, and the progress / «Сохранить» panel ---- */
+.pl-print-pages--export { display: block !important; position: fixed; left: -20000px; top: 0; zoom: 1; pointer-events: none; }
+.pl-print-pages--export .pl-sheet { margin-bottom: 10mm; }
+.pl-pdf-toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + var(--app-safe-bottom, 0px)); z-index: 900;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px - var(--app-safe-left, 0px) - var(--app-safe-right, 0px));
+  padding: 10px 10px 10px 16px; border-radius: 16px; background: #1c3634; color: #fff; box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
+  font-size: 14px; font-weight: 700;
+}
+.pl-pdf-msg { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-pdf-save { flex: 0 0 auto; min-height: 40px; padding: 0 16px; border: none; border-radius: 12px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
+.pl-pdf-close { flex: 0 0 auto; width: 36px; height: 36px; border: none; border-radius: 10px; background: rgba(255, 255, 255, .12); color: #fff; font: inherit; font-size: 20px; cursor: pointer; }
+/* the header's «Пишем А, Б, МАМА»: items with commas */
+.pl-sheet-head-item { display: flex; align-items: flex-end; }
+.pl-sheet-head-comma { color: #1f3a8a; font-weight: 800; font-size: 12pt; line-height: 1; margin-left: 0.3mm; }
+
+/* ---- PDF (PdfPages.jsx): page numbers and the cover ---- */
+.pl-sheet-pageno { font-size: 10pt; font-weight: 700; color: #6b7280; line-height: 1; }
+.pl-sheet--cover { background: #ffffff !important; display: flex !important; flex-direction: column; align-items: center; gap: 8mm; box-sizing: border-box; }
+.pl-sheet--cover > * { position: static !important; }
+.pl-cover-kicker { font-weight: 800; color: #2a6b60; }
+.pl-cover-plate { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #4a9b8f; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-self: stretch; box-sizing: border-box; }
+.pl-cover-title { font-weight: 800; color: #28323c; text-align: center; line-height: 1.2; }
+.pl-cover-fill { flex: 1; }
+.pl-cover-name { display: flex; align-items: flex-end; font-weight: 700; color: #4b5563; }
+.pl-cover-line { border-bottom: 0.4mm solid #4b5563; height: 6mm; }
+.pl-pdf-page { margin-bottom: 10mm; }
+.pl-pdf-slot { margin-bottom: 4mm; }
+/* the cover's template (PdfPages.jsx CoverFront / CoverBack) */
+.pl-cv-kicker { font-weight: 900; color: #2a6b60; }
+.pl-cv-title { font-weight: 900; color: #1c3634; line-height: 1.05; }
+.pl-cv-sub { font-weight: 800; color: #4a9b8f; }
+.pl-sheet--cover .pl-cv-hero { position: relative !important; }
+.pl-sheet--cover .pl-cv-hero > * { position: absolute !important; }
+.pl-cv-plate { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; display: flex; justify-content: center; align-items: flex-start; }
+.pl-cv-fields { background: #f6f1e4; display: flex; flex-direction: column; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-cv-field { display: flex; align-items: flex-end; font-weight: 700; color: #4b5563; }
+.pl-cv-field > span:first-child:not(.pl-cv-line) { width: 22mm; flex: none; }
+.pl-cv-line { flex: 1; border-bottom: 0.4mm solid #4b5563; height: 6mm; }
+.pl-cv-stripes { display: flex; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-cv-legend { display: flex; justify-content: center; color: #4b5563; font-weight: 700; }
+.pl-cv-legend-item { display: inline-flex; align-items: center; }
+.pl-cv-dot { display: inline-block; border-radius: 50%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-cv-brand { display: flex; align-items: center; justify-content: center; }
+.pl-cv-brand-name { font-family: "DM Serif Display", Georgia, serif; color: #1c3634; }
+.pl-cv-brand-url { font-weight: 700; color: #8b93a1; margin-left: 2mm; }
+
+/* the Mironium mark at the foot of a PDF sheet (Sheet.jsx `brand`) */
+.pl-sheet-brand { display: inline-flex; align-items: center; gap: 1mm; padding: 0.4mm 1.2mm; background: #ffffff; line-height: 1; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-sheet-brand-url { font-size: 7pt; font-weight: 700; color: #aab2ba; letter-spacing: 0.05mm; }

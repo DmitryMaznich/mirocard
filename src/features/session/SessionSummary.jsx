@@ -7,6 +7,11 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 import { useTimer } from "@/features/timer/TimerContext";
 import PlaceValueCheckResult from "./PlaceValueCheckResult.jsx";
+import PrintLettersWorks from "./PrintLettersWorks.jsx";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
+import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
+import { letterWorks } from "./printLettersWorks.js";
+import { endVideoAvailable } from "./endVideo.js";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -45,7 +50,11 @@ export default function SessionSummary() {
   const setActiveModeId   = useAppStore((s) => s.setActiveModeId);
   const { markSessionStart } = useTimer();
 
-  const session = sessions[sessions.length - 1];
+  // The summary is for the session that just ended: pinned by id on opening. The sessions list is
+  // replaced on every sync with the server (every 20 s); taking «the last one» again each time made
+  // the summary switch records and its spoken praise start over (2026-11-04).
+  const [sessionId] = useState(() => sessions[sessions.length - 1]?.id ?? null);
+  const session = sessions.find((s) => s.id === sessionId) ?? sessions[sessions.length - 1];
 
   const topicRecord = topicRecords.find((r) => r.meta.id === session?.topicId);
   const sessionText = topicRecord?.texts?.find((text) => text.id === session?.textId);
@@ -61,15 +70,25 @@ export default function SessionSummary() {
 
   // A mode run with "Озвучка" off stays silent here too.
   const voiceOff = session?.paramsSnapshot?.voice === false;
+  // «Пишу на экране»: the end of the lesson is «Мои буквы» alone — no «Молодец, ты справился» and no
+  // spoken praise (owner, 2026-11-04: «он, получается, нам не нужен»)
+  const lettersOnly = letterWorks(session).length > 0;
+  const hasSession = Boolean(session);
+
+  // «Видео в конце занятия» (ParamsScreen): the session was gone through to the end (not stopped with
+  // ✕), the setting was on, video rewards are on and the student has videos → «Смотреть видео».
+  const student = students.find((st) => st.id === session?.studentId) ?? null;
+  const showEndVideo = endVideoAvailable(session, student);
+  const [endVideo, setEndVideo] = useState("offered"); // offered → open → watched
 
   useEffect(() => {
-    if (!session || voiceOff) return;
+    if (!hasSession || voiceOff || lettersOnly) return;
     const timer = setTimeout(() => speak(praiseText), 600);
     return () => {
       clearTimeout(timer);
       window.speechSynthesis?.cancel();
     };
-  }, [praiseText, session, voiceOff]);
+  }, [praiseText, hasSession, voiceOff, lettersOnly]); // once per opened summary, not on every sync
 
   if (!session) {
     return (
@@ -132,7 +151,7 @@ export default function SessionSummary() {
     <div className="screen summary-screen">
 
       {/* Celebration block */}
-      <div className="summary-celebration">
+      {!lettersOnly && <div className="summary-celebration">
         <div className="summary-topic-label">
           {getTopicTitle(topicRecord?.meta.title) || session.topicId}
           {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
@@ -146,7 +165,30 @@ export default function SessionSummary() {
         <div className="summary-check">✓</div>
 
         <div className="summary-praise">{praiseText}</div>
-      </div>
+      </div>}
+
+      {/* «Печатные буквы» → «Пишу на экране»: the letters the child wrote, with «Сохранить в PDF» */}
+      {letterWorks(session).length > 0 && (
+        <PrintLettersWorks session={session} studentName={students.find((st) => st.id === session.studentId)?.name ?? ""} />
+      )}
+
+      {showEndVideo && endVideo !== "watched" && (
+        <div className="summary-end-video">
+          <button type="button" className="reward-modal__btn reward-modal__btn--watch" onClick={() => setEndVideo("open")}>
+            🎬 Смотреть видео
+          </button>
+        </div>
+      )}
+      {endVideo === "open" && student && (
+        <RewardVideoModal
+          rewardVideos={student.rewardVideos ?? []}
+          studentId={student.id}
+          settingsOverride={effectiveRewardSettings(student.rewardSettings)}
+          onDismiss={() => setEndVideo("watched")}
+          title="Всё занятие пройдено!"
+          continueLabel="Закрыть"
+        />
+      )}
 
       {/* Actions */}
       <div className="summary-actions">

@@ -8,7 +8,7 @@ const BUDGET_EXEMPT_KINDS = new Set(["purchase_confirmation"]);
 let budget = null;
 export function setEmailBudget(b) { budget = b; }
 
-async function sendEmail({ to, subject, text, html, kind }) {
+async function sendEmail({ to, subject, text, html, kind, from = SMTP_FROM, replyTo, idempotencyKey }) {
   if (!RESEND_API_KEY) {
     console.log("[mailer] (dev) email:", subject, "→", to);
     return;
@@ -20,8 +20,10 @@ async function sendEmail({ to, subject, text, html, kind }) {
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
-    body: JSON.stringify({ from: SMTP_FROM, to, subject, text, html }),
+    body: JSON.stringify({ from, to, subject, text, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!res.ok) {
@@ -37,6 +39,13 @@ async function sendEmail({ to, subject, text, html, kind }) {
     throw err;
   }
   budget?.record(kind);
+  const result = typeof res.json === "function" ? await res.json().catch(() => ({})) : {};
+  return result.id ?? null;
+}
+
+export async function sendDeletionSurveyEmail(payload, idempotencyKey) {
+  if (!RESEND_API_KEY) throw new Error("Deletion survey email requires a configured sender");
+  return sendEmail({ ...payload, kind: "deletion_survey", idempotencyKey });
 }
 
 export async function sendPasswordResetEmail(email, resetToken) {

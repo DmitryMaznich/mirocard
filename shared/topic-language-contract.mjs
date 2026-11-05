@@ -160,11 +160,11 @@ export function contentMessage(pack, key, values = {}) {
 
 // Topic choice belongs to the student-topic link, never the global UI locale.
 // Conflicting legacy per-mode choices require an explicit one-time selection.
-export function selectedTopicLanguage(topic, params = {}, ...preferences) {
+export function selectedTopicLanguage(topic, params = {}) {
   const declared = topic?.languageContract?.packages ?? {};
   if (params.topicContentLanguage) return Object.hasOwn(declared, params.topicContentLanguage) ? params.topicContentLanguage : null;
   const legacy = [...new Set([params.contentLanguage, ...Object.values(params.byMode ?? {}).map((p) => p.contentLanguage)].filter(Boolean))];
   if (legacy.length > 1) return null;
-  const language = legacy[0] ?? preferences.find((value) => typeof value === "string" && value);
+  const language = legacy[0] ?? (Object.keys(declared).length === 1 ? Object.keys(declared)[0] : null);
   return Object.hasOwn(declared, language) ? language : null;
 }

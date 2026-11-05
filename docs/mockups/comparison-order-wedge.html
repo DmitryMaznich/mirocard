@@ -1,0 +1,298 @@
+<title>Шкала-клин</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: a working sheet for the owner. Settings on top drive two app
+   screens side by side (today's hint and the wedge), then the reasoning and
+   the open questions. Frames keep the app's light colours. */
+:root {
+  --sheet-bg: #eef3f2; --sheet-fg: #1a2e2b; --sheet-muted: #557a74; --sheet-card: #ffffff;
+  --sheet-line: #c8d4d2; --sheet-accent: #1c7a6e; --sheet-note-bg: #fff7e6; --sheet-note-fg: #7a4b00;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  /* app (light-only) */
+  --app-bg: #f0f6ff; --app-ink: #1e293b; --app-blue: #2563eb; --app-blue-soft: #93c5fd;
+  --app-track: #e2e8f0; --app-slot: #c7d4ea; --app-green: #16a34a; --app-green-bg: #f0fdf4;
+  --app-wedge-a: #dbeafe; --app-wedge-b: #60a5fa; --app-tick: #64748b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad; --sheet-card: #1a2624;
+    --sheet-line: #2f4441; --sheet-accent: #4fb3a5; --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sheet-bg: #111a19; --sheet-fg: #e3eeec; --sheet-muted: #8fb3ad; --sheet-card: #1a2624;
+  --sheet-line: #2f4441; --sheet-accent: #4fb3a5; --sheet-note-bg: #2b2210; --sheet-note-fg: #f2cf8a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--sheet-bg); color: var(--sheet-fg); font-family: var(--font); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 900; margin: 0; text-wrap: balance; }
+h2 { font-size: 22px; font-weight: 800; margin: 0 0 12px; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: var(--sheet-muted); font-size: 17px; margin-top: 8px; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sheet-accent); }
+
+.params { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; overflow: hidden; max-width: 760px; }
+.param-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 12px 16px; border-top: 1.5px solid var(--sheet-line); }
+.param-row:first-child { border-top: 0; }
+.param-label { font-weight: 700; font-size: .95rem; flex: 1; min-width: 140px; }
+.group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.enum-btn { font: inherit; font-size: .92rem; padding: 8px 14px; min-height: 40px; border: 1.5px solid var(--sheet-line); border-radius: 10px; background: color-mix(in srgb, var(--sheet-line) 30%, var(--sheet-card)); color: var(--sheet-fg); cursor: pointer; }
+.enum-btn--active { border-color: var(--sheet-accent); background: var(--sheet-accent); color: #fff; font-weight: 700; }
+.enum-btn:focus-visible, .tool-btn:focus-visible { outline: 3px solid var(--sheet-accent); outline-offset: 2px; }
+.param-hint { flex-basis: 100%; font-size: .82rem; color: var(--sheet-muted); }
+.tool-btn { font: inherit; font-weight: 800; font-size: 15px; border: 0; border-radius: 12px; padding: 10px 16px; cursor: pointer; background: var(--sheet-accent); color: #fff; box-shadow: 0 3px 0 #145a51; }
+.tool-btn:active { transform: translateY(3px); box-shadow: none; }
+
+.wall { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 28px 24px; align-items: start; }
+.shot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.shot h3 { margin: 0; font-size: 17px; font-weight: 800; }
+.shot p { font-size: 14px; color: var(--sheet-muted); }
+.tag { font-size: 12px; font-weight: 800; color: var(--sheet-accent); letter-spacing: .04em; text-transform: uppercase; }
+
+.frame { width: 100%; max-width: 390px; container-type: inline-size; background: var(--app-bg); color: var(--app-ink); border-radius: 26px; overflow: hidden; border: 6px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.topbar { display: flex; justify-content: space-between; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e5edf5; font-weight: 800; font-size: 14px; }
+.stars { color: #f6b100; letter-spacing: 2px; } .stars .off { color: #d7dee8; }
+.body { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px 14px 22px; }
+.kicker { font-size: clamp(22px, 6.5cqw, 30px); font-weight: 800; text-align: center; }
+.slots, .tray { display: grid; gap: 10px; width: 100%; align-items: end; justify-items: center; }
+.cell { container-type: inline-size; width: 100%; display: flex; justify-content: center; }
+.slot { aspect-ratio: 1; border: 2.5px dashed var(--app-slot); border-radius: 16px; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #c2cee2; }
+.slot--ok { border-style: solid; border-color: var(--app-green); background: var(--app-green-bg); color: #166534; }
+.tile { width: 100%; aspect-ratio: 1; border-radius: 18px; background: #fff; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,.06); font-size: clamp(18px, 34cqi, 60px); }
+.caption { font-size: 15px; font-weight: 700; color: #64748b; }
+.hint-btn { font: inherit; font-weight: 800; color: var(--app-blue); font-size: 18px; background: none; border: 0; }
+
+/* today's hint */
+.old { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.old-value { font-size: 40px; font-weight: 900; color: var(--app-blue); line-height: 1; }
+.old-track { position: relative; width: 100%; height: 14px; border-radius: 999px; background: var(--app-track); touch-action: none; cursor: pointer; }
+.old-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--app-blue-soft); }
+.old-thumb { position: absolute; top: 50%; width: 34px; height: 34px; border-radius: 50%; background: var(--app-blue); transform: translate(-50%, -50%); box-shadow: 0 4px 0 #1d4ed8; }
+.old-ends { display: flex; justify-content: space-between; width: 100%; font-weight: 700; color: #93a5c4; font-size: 14px; }
+
+/* the wedge */
+.wedge { width: 100%; touch-action: none; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.wedge svg { display: block; width: 100%; height: auto; overflow: visible; }
+.wedge text { font-family: var(--font); }
+@media (prefers-reduced-motion: reduce) { .flag { transition: none !important; } }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.panel { background: var(--sheet-card); border: 1.5px solid var(--sheet-line); border-radius: 16px; padding: 18px 20px; min-width: 0; }
+.panel ul, .panel ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.panel--q { background: var(--sheet-note-bg); color: var(--sheet-note-fg); border-color: transparent; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Сравнение · режим 6 «Применяем сравнение» · «Расставь по порядку» · макет</div>
+    <h1>Подсказка-клин</h1>
+    <p class="lead">Ваша идея, доведённая до экрана: шкала сужается к меньшим числам и расширяется к большим, а число над ползунком растёт вместе с величиной. Клин лежит прямо под ячейками и повёрнут так же, как они. Двигайте ползунок пальцем или мышью.</p>
+  </header>
+
+  <section aria-labelledby="h-set">
+    <h2 id="h-set">Настройки макета</h2>
+    <div class="params">
+      <div class="param-row"><div class="param-label">Порядок</div><div class="group" id="o-dir"></div></div>
+      <div class="param-row"><div class="param-label">Уровень</div><div class="group" id="o-range"></div></div>
+      <div class="param-row"><div class="param-label">Флажки чисел задания</div><div class="group" id="o-flags"></div>
+        <div class="param-hint">Ползунок проходит над числом из лотка, и над клином остаётся флажок с этим числом. Ребёнок находит место числа сам, программа его не показывает.</div></div>
+    </div>
+    <div style="margin-top:14px"><button class="tool-btn" id="shuffle" type="button">Новые числа</button></div>
+  </section>
+
+  <section class="wall" id="wall" aria-label="Экраны"></section>
+
+  <section class="cols" aria-label="Оценка">
+    <div class="panel">
+      <h2>Почему сейчас не помогает</h2>
+      <ul>
+        <li>Полоса прямая и одинаковой толщины. Она показывает только «где», а «сколько» не показывает, хотя ячейки над ней уже растут.</li>
+        <li>Число над ползунком всегда одного размера, и 3 выглядит так же, как 97.</li>
+        <li>Концы подписаны границами уровня (1 и 99), а не числами задания. Чтобы найти 37, ребёнок должен двигать ползунок и сам запомнить, где оно было, а потом ещё где было 52. Это нагрузка на рабочую память, а не подсказка.</li>
+        <li>Полоса всегда возрастает слева направо, даже когда ячейки идут от большего к меньшему. Шкала и ячейки спорят.</li>
+        <li>Делений нет, поэтому нельзя прикинуть: 37 — это «чуть меньше середины».</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Что меняет клин</h2>
+      <ul>
+        <li><strong>Величина видна три раза:</strong> по месту на шкале, по толщине клина и по размеру числа. Ребёнку, который ещё не читает «правее — больше», хватит толщины и размера.</li>
+        <li><strong>Клин повёрнут как ячейки.</strong> «От меньшего к большему» — узкий конец слева, «от большего к меньшему» — справа. Лежит он прямо под ячейками, поэтому где на клине, там и в ячейках.</li>
+        <li><strong>Деления по уровню:</strong> до 10 — каждое число; до 20 — каждое, подписи через 5; до 99 — десятки. Это опора для прикидки и мостик к числовому лучу.</li>
+        <li><strong>Флажки (по желанию):</strong> ребёнок ведёт ползунок, встречает свои числа, и они остаются над клином. Дальше видно, в каком порядке они стоят. Ответ программа не даёт: перетаскивать в ячейки всё равно нужно самому.</li>
+        <li><strong>Удобство:</strong> ползунок можно взять в любом месте клина, а не только за кружок. Шкала занимает ширину ячеек, а не всего экрана, поэтому больше не мешает перетаскивать.</li>
+      </ul>
+    </div>
+    <div class="panel panel--q">
+      <h2>Нужно ваше решение</h2>
+      <ol>
+        <li><strong>Флажки чисел задания.</strong> Раньше вы решили, что подсказка не связана с заданием. Флажки связывают, но только через действие ребёнка. Я за флажки: без них ребёнку с РАС трудно удержать в голове место трёх-пяти чисел. Включить их сразу, сделать второй ступенью подсказки или не делать?</li>
+        <li><strong>Цвет клина:</strong> от бледного к насыщенному синему, как в макете, или одним цветом, а растёт только толщина?</li>
+        <li><strong>Такой же клин в «Выбери число»</strong> («? &gt; 6»): на клине отмечено 6, ребёнок видит, что «больше 6» — вся толстая часть. Делать сейчас или потом?</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const RANGES = { 2: [1, 10], 3: [1, 20], 4: [10, 99] };
+  const state = { dir: "asc", level: 4, flags: true, nums: [] };
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function newNums() {
+    const [lo, hi] = RANGES[state.level]; const s = new Set();
+    while (s.size < 4) s.add(rnd(lo, hi));
+    state.nums = [...s];
+  }
+  function group(id, items, cur, pick) {
+    const el = document.getElementById(id); el.innerHTML = "";
+    for (const [v, label] of items) {
+      const b = document.createElement("button"); b.type = "button";
+      b.className = "enum-btn" + (v === cur ? " enum-btn--active" : ""); b.textContent = label;
+      b.addEventListener("click", () => pick(v)); el.append(b);
+    }
+  }
+
+  function frameShell(title, tag, text) {
+    const shot = document.createElement("article"); shot.className = "shot";
+    shot.innerHTML = `<div class="tag">${tag}</div><h3>${title}</h3><p>${text}</p>`;
+    const f = document.createElement("div"); f.className = "frame";
+    const sorted = [...state.nums].sort((a, b) => state.dir === "asc" ? a - b : b - a);
+    const n = sorted.length;
+    const cols = `repeat(${n}, 1fr)`;
+    // two slots already filled correctly, to show the moment mid-task
+    const filled = new Set([sorted[0]]);
+    const slots = sorted.map((v, i) => {
+      const raw = n > 1 ? i / (n - 1) : 0; const t = state.dir === "desc" ? 1 - raw : raw;
+      const w = 52 + 40 * t, fs = 40 + 22 * t;
+      const ok = filled.has(v);
+      return `<div class="cell"><div class="slot${ok ? " slot--ok" : ""}" style="width:${w}cqi;font-size:${fs * 0.5}cqi">${ok ? v : "?"}</div></div>`;
+    }).join("");
+    const tray = state.nums.map((v) => filled.has(v) ? `<div class="cell"></div>` : `<div class="cell"><div class="tile" style="width:52cqi">${v}</div></div>`).join("");
+    f.innerHTML = `
+      <div class="topbar"><span class="stars">★★<span class="off">★★★</span></span><span>2 / 10</span><span style="color:#64748b">Закончить</span></div>
+      <div class="body">
+        <div class="kicker">Расставь числа по порядку</div>
+        <div class="slots" style="grid-template-columns:${cols}">${slots}</div>
+        <div class="tray" style="grid-template-columns:${cols}">${tray}</div>
+        <div class="hint-host" style="width:100%"></div>
+        <button class="hint-btn" type="button"><span aria-hidden="true">💡</span> Убрать подсказку</button>
+      </div>`;
+    shot.append(f);
+    return [shot, f.querySelector(".hint-host")];
+  }
+
+  // ── Today's hint (copy of OrderScaleHint) ──
+  function oldHint(host) {
+    const [lo, hi] = RANGES[state.level];
+    let v = Math.round((lo + hi) / 2);
+    host.innerHTML = `<div class="old"><div class="old-value"></div><div class="old-track"><div class="old-fill"></div><div class="old-thumb"></div></div><div class="old-ends"><span>${lo}</span><span>${hi}</span></div></div>`;
+    const track = host.querySelector(".old-track");
+    const draw = () => { const r = (v - lo) / (hi - lo); host.querySelector(".old-value").textContent = v; host.querySelector(".old-fill").style.width = r * 100 + "%"; host.querySelector(".old-thumb").style.left = r * 100 + "%"; };
+    drag(track, (ratio) => { v = Math.round(lo + ratio * (hi - lo)); draw(); });
+    draw();
+  }
+
+  // ── The wedge ──
+  function wedgeHint(host) {
+    const [lo, hi] = RANGES[state.level];
+    const asc = state.dir === "asc";
+    const W = 360, padX = 16, top = 130, thin = 4, thick = 30, base = top + thick, numY = 50;
+    const x0 = padX, x1 = W - padX;
+    const xOf = (v) => { const r = (v - lo) / (hi - lo); return asc ? x0 + r * (x1 - x0) : x1 - r * (x1 - x0); };
+    const hOf = (v) => thin + (thick - thin) * (v - lo) / (hi - lo);
+    const step = hi - lo <= 10 ? 1 : hi - lo <= 20 ? 1 : 10;
+    const labelEvery = hi - lo <= 10 ? 1 : hi - lo <= 20 ? 5 : 10;
+    const ticks = [];
+    for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+      const x = xOf(v), major = v % labelEvery === 0 || v === lo || v === hi;
+      ticks.push(`<line x1="${x}" x2="${x}" y1="${base + 2}" y2="${base + (major ? 10 : 6)}" stroke="var(--app-tick)" stroke-width="${major ? 1.6 : 1}"/>`);
+      if (major && (labelEvery > 1 || v === lo || v === hi || hi - lo <= 10)) ticks.push(`<text x="${x}" y="${base + 24}" font-size="12" font-weight="700" fill="var(--app-tick)" text-anchor="middle">${v}</text>`);
+    }
+    const narrowX = asc ? x0 : x1, wideX = asc ? x1 : x0;
+    const gid = "g" + Math.random().toString(36).slice(2);
+    host.innerHTML = `<div class="wedge" role="slider" aria-valuemin="${lo}" aria-valuemax="${hi}" aria-label="Шкала чисел" tabindex="0">
+      <svg viewBox="0 0 ${W} ${base + 30}">
+        <defs><linearGradient id="${gid}" x1="${asc ? 0 : 1}" x2="${asc ? 1 : 0}" y1="0" y2="0"><stop offset="0" stop-color="var(--app-wedge-a)"/><stop offset="1" stop-color="var(--app-wedge-b)"/></linearGradient></defs>
+        <polygon points="${narrowX},${base - thin} ${wideX},${base - thick} ${wideX},${base} ${narrowX},${base}" fill="url(#${gid})" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/>
+        ${ticks.join("")}
+        <g class="flags"></g>
+        <g class="cursor">
+          <line class="c-line" stroke="var(--app-blue)" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round" opacity=".7"/>
+          <circle class="c-dot" r="13" fill="var(--app-blue)" stroke="#fff" stroke-width="3"/>
+          <text class="c-num" text-anchor="middle" font-weight="900" fill="var(--app-blue)"></text>
+        </g>
+      </svg></div>`;
+    const el = host.querySelector(".wedge"), svg = el.querySelector("svg");
+    const flagsG = svg.querySelector(".flags"), seen = new Set(), placed = [];
+    let v = asc ? lo : hi, prev = v;
+    // A flag for every task number the slider passed over — a quick finger
+    // skips values, so everything between the last and the new value counts.
+    // Flags of close numbers stack one row higher instead of overlapping.
+    function addFlag(n) {
+      seen.add(n);
+      const fx = xOf(n), fh = hOf(n);
+      let row = 0;
+      while (placed.some((p) => p.row === row && Math.abs(p.x - fx) < 32)) row++;
+      placed.push({ x: fx, row });
+      const lift = row * 24;
+      flagsG.insertAdjacentHTML("beforeend", `<g class="flag" style="transition:opacity .3s" opacity="0"><line x1="${fx}" x2="${fx}" y1="${base - fh}" y2="${base - fh - 12 - lift}" stroke="#16a34a" stroke-width="2"/><rect x="${fx - 15}" y="${base - fh - 30 - lift}" width="30" height="20" rx="6" fill="#16a34a"/><text x="${fx}" y="${base - fh - 15 - lift}" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">${n}</text></g>`);
+      const g = flagsG.lastElementChild; requestAnimationFrame(() => g.setAttribute("opacity", "1"));
+    }
+    function draw() {
+      const x = xOf(v), h = hOf(v);
+      svg.querySelector(".c-line").setAttribute("x1", x); svg.querySelector(".c-line").setAttribute("x2", x);
+      svg.querySelector(".c-line").setAttribute("y1", numY + 6); svg.querySelector(".c-line").setAttribute("y2", base);
+      const dot = svg.querySelector(".c-dot"); dot.setAttribute("cx", x); dot.setAttribute("cy", base - h / 2);
+      const num = svg.querySelector(".c-num");
+      const size = 18 + 30 * (v - lo) / (hi - lo);          // 18 → 48: bigger number, bigger digits
+      num.setAttribute("x", Math.min(W - 10, Math.max(10, x))); num.setAttribute("y", numY); num.setAttribute("font-size", size.toFixed(1));
+      num.textContent = v;
+      el.setAttribute("aria-valuenow", v);
+      if (state.flags) {
+        const a = Math.min(prev, v), b = Math.max(prev, v);
+        state.nums.filter((n) => n >= a && n <= b && !seen.has(n)).sort((x, y) => x - y).forEach(addFlag);
+      }
+      prev = v;
+    }
+    drag(el, (ratio) => {
+      const r = Math.min(1, Math.max(0, (ratio * W - x0) / (x1 - x0)));   // pointer → 0..1 along the wedge
+      v = Math.round(lo + (asc ? r : 1 - r) * (hi - lo)); draw();
+    });
+    el.addEventListener("keydown", (e) => {
+      const d = (e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0) * (asc ? 1 : -1);
+      if (d) { v = Math.min(hi, Math.max(lo, v + d)); draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+
+  function drag(el, onRatio) {
+    let on = false;
+    const at = (e) => { const r = el.getBoundingClientRect(); onRatio(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width))); };
+    el.addEventListener("pointerdown", (e) => { on = true; el.setPointerCapture?.(e.pointerId); at(e); });
+    el.addEventListener("pointermove", (e) => on && at(e));
+    const up = () => { on = false; };
+    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+  }
+
+  function render() {
+    group("o-dir", [["asc", "От меньшего к большему"], ["desc", "От большего к меньшему"]], state.dir, (v) => { state.dir = v; render(); });
+    group("o-range", [[2, "До 10"], [3, "До 20"], [4, "До 99"]], state.level, (v) => { state.level = v; newNums(); render(); });
+    group("o-flags", [[true, "Да"], [false, "Нет"]], state.flags, (v) => { state.flags = v; render(); });
+    const wall = document.getElementById("wall"); wall.innerHTML = "";
+    const [a, ha] = frameShell("Сейчас", "было", "Прямая полоса от границы до границы уровня, число всегда одного размера.");
+    oldHint(ha); wall.append(a);
+    const [b, hb] = frameShell("Клин", "предложение", "Узкий конец у меньших чисел, число над ползунком растёт. Проведите ползунок по клину: числа из лотка оставят флажки.");
+    wedgeHint(hb); wall.append(b);
+  }
+  document.getElementById("shuffle").addEventListener("click", () => { newNums(); render(); });
+  newNums(); render();
+})();
+</script>

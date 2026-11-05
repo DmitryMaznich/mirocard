@@ -1,0 +1,13 @@
+/* «Почини букву» (print_letters, mode fix_letter). Board, sample card and the nav row come from
+   «Пишу на экране» (.plw-*, screen_write.css); here only the parts. Prefix plf-. No error colour:
+   all parts are the same ink until the letter is whole, then it turns green. */
+.plf-hit { fill: none; stroke: transparent; stroke-linecap: round; stroke-linejoin: round; cursor: grab; }
+.plf-part { fill: none; stroke: var(--plw-ink); stroke-linecap: round; stroke-linejoin: round; pointer-events: none; transition: stroke 0.3s; }
+.plf-part.is-drag { stroke: #2563eb; }
+.plf-end { fill: #fff; stroke: var(--plw-ink); stroke-width: 1.8; cursor: grab; }
+.plf-parts.is-done .plf-part { stroke: var(--plw-ok-dark); }
+.plf-parts.is-done { filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.55)); }
+.plf-hint { fill: none; stroke: #86efac; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; animation: plf-hint 1.4s ease-in-out infinite; }
+@keyframes plf-hint { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.35; } }
+/* the sample here is only a picture of the letter, not a button */
+.plf-sample { cursor: default; pointer-events: none; }

@@ -13,10 +13,21 @@ for (const [language, descriptor] of Object.entries(manifest.languageContract.pa
   const pack = JSON.parse(await readFile(new URL(descriptor.file, base), "utf8"));
   const zip = new JSZip();
   for (const path of [descriptor.file, ...(pack.assets ?? []).map((a) => a.path)]) zip.file(path, await readFile(new URL(path, base)));
-  const bytes = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+  let bytes = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
   const relative = `languages/${manifest.meta.id}/${language}_v${pack.version}.zip`;
   const output = new URL(`../../public/decks/${relative}`, base);
   await mkdir(new URL("./", output), { recursive: true });
+  // Rebuilding the core must not invalidate unchanged language downloads.
+  try {
+    const previous = await readFile(output);
+    const installed = await JSZip.loadAsync(previous);
+    const paths = Object.keys(zip.files).filter(path => !zip.files[path].dir);
+    const oldPaths = Object.keys(installed.files).filter(path => !installed.files[path].dir);
+    if (paths.length === oldPaths.length && (await Promise.all(paths.map(async path => {
+      const old = await installed.file(path)?.async("nodebuffer");
+      return old?.equals(await zip.file(path).async("nodebuffer"));
+    }))).every(Boolean)) bytes = previous;
+  } catch (error) { if (error.code !== "ENOENT") throw error; }
   await writeFile(output, bytes);
   descriptor.download = { url: `./decks/${relative}`, bytes: bytes.length, sha256: await sha256Bytes(bytes) };
   languages[language] = { ...descriptor.download, language, packageId: pack.packageId, version: pack.version, modeIds: descriptor.modeIds, audio: pack.audio, ...(pack.audioScope ? { audioScope: pack.audioScope } : {}) };

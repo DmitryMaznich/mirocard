@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
+import { accountKv } from "@/topics/accountKv";
 import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
@@ -56,7 +57,7 @@ export default function SessionScreen() {
   const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
   const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance) ?? true;
+  const adultConfirmAdvance = false; // Legacy gate retained, hidden confirmation retired.
   const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
 
   const {
@@ -87,12 +88,19 @@ export default function SessionScreen() {
   }
 
   async function handleFinishSession() {
-    await finishCurrentSession();
+    const record = await finishCurrentSession();
     if (activeLessonPlanItemId) {
       await lessonPlan?.markItemDone(activeLessonPlanItemId, true);
       setActiveLessonPlanItemId(null);
     }
     closeSessionExitPrompt();
+    // A looping mode that collects the child's work (mode.summaryOnFinish — «Пишу на экране») ends on
+    // the summary with that work («Мои буквы»), not straight on the home screen.
+    if (mode?.summaryOnFinish && record?.works?.length) {
+      setSessionReturnScreen(null);
+      setScreen("summary");
+      return;
+    }
     setScreen(sessionReturnScreen ?? "home");
     setSessionReturnScreen(null);
   }
@@ -132,6 +140,11 @@ export default function SessionScreen() {
     // «Учим словенский»: a wrong tap only fades that option and shows the
     // right one — no buzz (docs/learn-slovene.md); a word plays its own recording.
     "lb_pair", "lb_find", "lb_trap", "lb_syll", "lb_word", "lb_build", "lb_listen", "lb_block_end",
+    // «Печатные буквы» → «Пишу на экране»: its own quiet tone per stroke, no chime and no error sound
+    // (a burnt stroke just fades, docs/print-letters-screen-writing.md)
+    "pl_screen_write",
+    // «Почини букву»: its own soft click when a part snaps in, no error sound (docs/print-letters-fix-letter.md)
+    "pl_fix_letter",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 
@@ -298,7 +311,9 @@ export default function SessionScreen() {
   // tile of «Расставь по порядку») must not wipe the rows and tiles already done.
   const keepsComparisonProgressOnMistake = topicRecord.meta.renderer === "comparison"
     && (Array.isArray(currentTask?.items) || currentTask?.taskType === "order");
-  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake
+  // A retry must retain whether the picture was opened for this question.
+  const keepsStorySupportOnMistake = currentTask?.type === "story_quiz";
+  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
   const showStreak = shouldShowSessionStreak({
@@ -323,7 +338,7 @@ export default function SessionScreen() {
   const isDailyOrientation = topicRecord.meta.renderer === "daily_orientation";
 
   return (
-    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}`}>
+    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}`}>
       {sessionExitPromptOpen && (
         <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
       )}
@@ -364,6 +379,7 @@ export default function SessionScreen() {
             sessionStatus={status}
             topicId={topicRecord.meta.id}
             topicRecord={topicRecord}
+            accountKv={accountKv}
             sessionParams={sessionParams}
             uiLanguage={uiLanguage}
             languageContext={sessionState.languageContext}

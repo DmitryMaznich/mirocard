@@ -1,4 +1,5 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { DOT_LAYOUTS } from "./dotLayout.js";
 import { REAL_LIFE_SCENES } from "./realLifeScenes.js";
 
 const MAX_ATTEMPTS = 100;
@@ -45,6 +46,15 @@ export const VISUAL_MODES = [
   { value: "dots_numbers", maxLevel: 3 },
   { value: "numbers",      maxLevel: 4 },
 ];
+
+// «Как лежат точки» applies to the views with a pile of dots to judge by eye.
+// Pairs keep their columns (the leftovers must be visible), numbers have no dots.
+export const DOT_LAYOUT_VIEWS = ["dots", "dots_numbers"];
+
+export function dotLayoutFor(visualMode, dotLayout) {
+  if (!DOT_LAYOUT_VIEWS.includes(visualMode)) return "rows";
+  return DOT_LAYOUTS.includes(dotLayout) ? dotLayout : "rows";
+}
 
 export function visualModeLevel(visualMode, level) {
   const maxLevel = VISUAL_MODES.find((v) => v.value === visualMode)?.maxLevel ?? 1;
@@ -320,7 +330,26 @@ function generateApplyOrderTask(min, max, count, direction) {
 // has more. Before this, the question was always "больше" and the two
 // happened to coincide; correctAnswer is the one place that separates them,
 // so CompareRealLife.jsx never has to re-derive "more" vs "less" itself.
-function realLifeTaskFromScene(scene, askDirection) {
+//
+// mirror: the picture is shown flipped (CompareRealLife.jsx), so the two
+// sides swap — names, counts and every per-side field — before anything
+// else is derived; the bank doubles without a new picture, and the boy is
+// not always on the left.
+//
+// phrase: the verdict's step on the speech ladder — "short" («У Маши
+// больше»), "item" («У Маши больше яблок») or "full" (default, «У Маши
+// больше яблок, чем у Пети»).
+const REAL_LIFE_SIDE_FIELDS = [["left", "right"], ["nameA", "nameB"], ["nameANom", "nameBNom"], ["genderA", "genderB"], ["nameALoc", "nameBLoc"]];
+export const REAL_LIFE_PHRASES = ["short", "item", "full"];
+
+function mirrorScene(scene) {
+  const out = { ...scene };
+  for (const [a, b] of REAL_LIFE_SIDE_FIELDS) { out[a] = scene[b]; out[b] = scene[a]; }
+  return out;
+}
+
+function realLifeTaskFromScene(sourceScene, askDirection, { mirror = false, phrase = "full" } = {}) {
+  const scene = mirror ? mirrorScene(sourceScene) : sourceScene;
   const dataFact = scene.left === scene.right ? "equal" : scene.left > scene.right ? "more" : "less";
   // Most scenes count discrete objects ("больше яблок?"); a few compare a
   // continuous amount inside a container instead (water in a glass, porridge
@@ -356,21 +385,23 @@ function realLifeTaskFromScene(scene, askDirection) {
     instruction = `Где ${where}${askWord} ${scene.item}?`;
     labelA = `${cap(prep)} ${scene.nameALoc}`;
     labelB = `${cap(prep)} ${scene.nameBLoc}`;
+    const [winLoc, loseLoc] = correctAnswer === "a" ? [scene.nameALoc, scene.nameBLoc] : [scene.nameBLoc, scene.nameALoc];
     verdictText = dataFact === "equal"
-      ? `${cap(prep)} ${scene.nameALoc} и ${prep} ${scene.nameBLoc} ${where}${scene.item} поровну.`
-      : correctAnswer === "a"
-        ? `${cap(prep)} ${scene.nameALoc} ${where}${askWord} ${scene.item}, чем ${prep} ${scene.nameBLoc}.`
-        : `${cap(prep)} ${scene.nameBLoc} ${where}${askWord} ${scene.item}, чем ${prep} ${scene.nameALoc}.`;
+      ? { short: "Поровну.", item: `${cap(scene.item)} ${where}поровну.`,
+          full: `${cap(prep)} ${scene.nameALoc} и ${prep} ${scene.nameBLoc} ${where}${scene.item} поровну.` }[phrase]
+      : { short: `${cap(prep)} ${winLoc} ${askWord}.`, item: `${cap(prep)} ${winLoc} ${where}${askWord} ${scene.item}.`,
+          full: `${cap(prep)} ${winLoc} ${where}${askWord} ${scene.item}, чем ${prep} ${loseLoc}.` }[phrase];
   } else {
     const interrogative = askKind === "what" ? "чего" : "кого";
     instruction = `У ${interrogative} ${where}${askWord} ${scene.item}?`;
     labelA = `У ${scene.nameA}`;
     labelB = `У ${scene.nameB}`;
+    const [win, lose] = correctAnswer === "a" ? [scene.nameA, scene.nameB] : [scene.nameB, scene.nameA];
     verdictText = dataFact === "equal"
-      ? `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.`
-      : correctAnswer === "a"
-        ? `У ${scene.nameA} ${where}${askWord} ${scene.item}, чем у ${scene.nameB}.`
-        : `У ${scene.nameB} ${where}${askWord} ${scene.item}, чем у ${scene.nameA}.`;
+      ? { short: "Поровну.", item: `${cap(scene.item)} ${where}поровну.`,
+          full: `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.` }[phrase]
+      : { short: `У ${win} ${askWord}.`, item: `У ${win} ${where}${askWord} ${scene.item}.`,
+          full: `У ${win} ${where}${askWord} ${scene.item}, чем у ${lose}.` }[phrase];
   }
 
   return {
@@ -387,8 +418,100 @@ function realLifeTaskFromScene(scene, askDirection) {
     genderA: scene.genderA, genderB: scene.genderB,
     item: scene.item, containerPhrase: scene.containerPhrase, askKind,
     prep: scene.prep, nameALoc: scene.nameALoc, nameBLoc: scene.nameBLoc,
-    correctAnswer, instruction, verdictText, labelA, labelB, image: scene.image,
+    correctAnswer, instruction, verdictText, labelA, labelB, image: scene.image, mirror,
   };
+}
+
+// «Всем хватает?»: an option of «Сравни в жизни» (owner's call, 2026-11-02 —
+// not a step of its own), its hardest part for now. Everyday one-to-one —
+// children and chairs, cups and saucers... — built from separate sprites
+// (tools/comparison/media/enough/*.webp, scripts/generate-enough-sprites.mjs),
+// so the count on screen is always the task's count.
+//
+// The child answers the everyday question — «Всем детям хватает стульев?»,
+// Хватает / Не хватает — and then why: «Потому что…» with three endings,
+// «детей больше / стульев больше / детей и стульев поровну». Exactly one
+// is right on every card (owner's calls, 2026-11-02: no synonyms like
+// «детей больше» = «стульев меньше» — two right answers confuse a child
+// with ASD; «поровну» runs through the whole topic, so the equal case is
+// «детей и стульев поровну», not «сколько…, столько и…»; no sentences on
+// the screen — too much text).
+//
+// Each set carries its Russian (genitive plural of both sides, the dative of
+// the characters, the action), `mover` — what the action moves:
+// the object by default («Дай каждому ребёнку стул»), the character when the
+// action is about it («Поставь каждую чашку на блюдце», «…машинку в гараж»:
+// owner's catch, 2026-11-02 — the garage must not drive onto the car) — and
+// `place`: where the moved picture goes inside its partner's box (anchor,
+// offset in box heights, size as a share of the box, in front or behind).
+export const ENOUGH_SETS = [
+  { id: "chairs", who: "kid", thing: "chair", whoGen: "детей", thingGen: "стульев", whoDat: "детям",
+    matchHint: "Дай каждому ребёнку стул",
+    place: { anchor: "bottom", dy: 0.08, size: 0.62, front: true } },
+  { id: "cups", who: "cup", thing: "saucer", whoGen: "чашек", thingGen: "блюдец", whoDat: "чашкам",
+    matchHint: "Поставь каждую чашку на блюдце",
+    mover: "who", place: { anchor: "bottom", dy: -0.4, size: 0.8, front: true } },
+  { id: "dogs", who: "dog", thing: "bone", whoGen: "собак", thingGen: "косточек", whoDat: "собакам",
+    matchHint: "Дай каждой собаке косточку",
+    place: { anchor: "bottom", dy: 0.12, size: 0.6, front: true } },
+  { id: "rabbits", who: "rabbit", thing: "carrot", whoGen: "кроликов", thingGen: "морковок", whoDat: "кроликам",
+    matchHint: "Дай каждому кролику морковку",
+    place: { anchor: "bottom", dy: 0.12, size: 0.55, front: true } },
+  { id: "cars", who: "car", thing: "garage", whoGen: "машинок", thingGen: "гаражей", whoDat: "машинкам",
+    matchHint: "Поставь каждую машинку в гараж",
+    mover: "who", place: { anchor: "bottom", dy: -0.15, size: 0.72, front: true } },
+  { id: "hats", who: "kid", thing: "hat", whoGen: "детей", thingGen: "шапок", whoDat: "детям",
+    matchHint: "Надень каждому ребёнку шапку",
+    place: { anchor: "top", dy: -0.14, size: 0.3, front: true } },
+];
+// «Всем хватает?» in «Сравни в жизни»: off or on. The matching (each one
+// gets its object) is the check after a wrong answer only (owner's call,
+// 2026-11-02 — a child who answered right has nothing to check). The old
+// "check" / "answer" orders of 2.51–2.55 both read as on.
+export const ENOUGH_OPTIONS = ["off", "on"];
+export function normalizeEnoughOption(value) {
+  if (value === "check" || value === "answer") return "on";
+  return ENOUGH_OPTIONS.includes(value) ? value : "off";
+}
+const ENOUGH_SPRITE_VARIANTS = 6;
+
+// One card: 3–6 characters; the outcome is given by the caller, which cycles
+// evenly through «не хватает» (1 or 2 short), «поровну» and «лишние» (1 or 2
+// extra), so no answer is the safe guess.
+function generateEnoughTask(set, outcome) {
+  const who = 3 + Math.floor(Math.random() * 4);
+  const diff = outcome === "equal" ? 0 : (Math.random() < 0.5 ? 1 : 2) * (outcome === "lack" ? -1 : 1);
+  const things = Math.min(7, Math.max(2, who + diff));
+  const variants = shuffle(Array.from({ length: ENOUGH_SPRITE_VARIANTS }, (_, i) => i + 1));
+  const whoSprites = Array.from({ length: who }, (_, i) => `media/enough/${set.who}_${variants[i % variants.length]}.webp`);
+  const cap = (w) => w[0].toUpperCase() + w.slice(1);
+  const short = who - things, extra = things - who;
+  const whyQuestion = `Почему ${set.thingGen} ${short > 0 ? "не хватает" : "хватает"}?`;
+  const whyOptions = [
+    { id: "whoMore", label: `${set.whoGen} больше` },
+    { id: "thingMore", label: `${set.thingGen} больше` },
+    { id: "same", label: `${set.whoGen} и ${set.thingGen} поровну` },
+  ];
+  const whyRight = [short > 0 ? "whoMore" : extra > 0 ? "thingMore" : "same"];
+  return {
+    set: set.id, who, things, enough: things >= who,
+    whoSprites, thingSprite: `media/enough/${set.thing}.webp`, mover: set.mover ?? "thing", place: set.place,
+    enoughQuestion: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
+    matchHint: set.matchHint,
+    instruction: `Всем ${set.whoDat} хватает ${set.thingGen}?`,
+    whyQuestion, whyOptions, whyRight,
+  };
+}
+
+// The «Всем хватает?» cards of a «Сравни в жизни» session: sets and outcomes
+// each cycle through their own shuffled bag.
+function* enoughTaskCycle(conceptId) {
+  let sets = [], outcomes = [];
+  for (;;) {
+    if (!sets.length) sets = shuffle(ENOUGH_SETS);
+    if (!outcomes.length) outcomes = shuffle(["lack", "equal", "spare"]);
+    yield { type: "compare_enough", conceptId, ...generateEnoughTask(sets.pop(), outcomes.pop()) };
+  }
 }
 
 // Cycles through the whole bank in a fresh shuffled order before repeating —
@@ -458,7 +581,7 @@ export function generateTestSheet(range, count) {
   return shuffle(rows).map(({ left, right }) => ({ left, right, question: getFirstNumberRelation(left, right) }));
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", dotLayout?: "rows"|"scatter"|"lure" (compare_visual, dots views only), examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only), phrase?: "short"|"item"|"full" (compare_real_life), enough?: "off"|"on" (compare_real_life: «Всем хватает?» cards; old "check"/"answer" = on) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
 
@@ -466,11 +589,16 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const card = resolveComparisonCard(mode, cards, sessionParams);
     if (!card) return [];
     const questionMode = sessionParams.question ?? "more";
+    const phrase = REAL_LIFE_PHRASES.includes(sessionParams.phrase) ? sessionParams.phrase : "full";
     const cycle = shuffledSceneCycle();
+    // «Всем хватает?» on: its cards go in turn with the picture scenes.
+    const enoughCycle = normalizeEnoughOption(sessionParams.enough) === "on" ? enoughTaskCycle(card.conceptId) : null;
     const tasks = [];
     for (let i = 0; i < count; i++) {
+      if (enoughCycle && i % 2 === 1) { tasks.push(enoughCycle.next().value); continue; }
       const askDirection = questionMode === "mix" ? (Math.random() < 0.5 ? "more" : "less") : questionMode;
-      const t = realLifeTaskFromScene(cycle.next().value, askDirection);
+      // Half of the showings are mirrored — always on, nothing to set.
+      const t = realLifeTaskFromScene(cycle.next().value, askDirection, { mirror: Math.random() < 0.5, phrase });
       tasks.push({ type: mode.type, conceptId: card.conceptId, allowEqual: true, ...t });
     }
     return tasks;
@@ -526,7 +654,11 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     }));
   }
 
-  const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
+  const { question = "more", level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
+  const dotLayout = mode.type === "compare_visual" ? dotLayoutFor(visualMode, sessionParams.dotLayout) : "rows";
+  // The lure's strongest task is «поровну» that looks unequal, so it comes
+  // with the = square, like pairs do.
+  const showEqual = dotLayout === "lure" ? true : (sessionParams.showEqual ?? false);
 
   const isFirstNumber = mode.type === "compare_first_number";
   const isEvaluate    = mode.type === "compare_evaluate";
@@ -610,7 +742,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
           : question;
 
     const equalHint = showEqual
-      ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если одинаково — нажми посередине")
+      ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если поровну — нажми на жёлтый квадрат")
       : null;
 
     // Level 5: after a mistake the renderer shows both numbers by places
@@ -619,7 +751,12 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     // What the crocodile step asks to tap. An equal pair asks the same as the
     // others, so the wording never gives away that this pair is the equal one.
     const ask = taskQuestion === "equal" ? (question === "less" ? "less" : "more") : taskQuestion;
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, ask, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
+    // Lure: every other task in each group (equal pairs first, then the rest)
+    // is drawn to mislead, the others honestly — always misleading would just
+    // teach «pick the small dots».
+    const lure = dotLayout === "lure" && (isEqual ? i : i - equalTarget) % 2 === 0;
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, ask, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint,
+      ...(mode.type === "compare_visual" ? { dotLayout, lure } : {}) });
   }
 
   if ((isFirstNumber || isEvaluate) && examplesCount > 1) {

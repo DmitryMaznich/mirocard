@@ -141,7 +141,7 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "conceptProgress", progress);
   await kv.set(db, "sessions", history);
-  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.5.0.zip"));
+  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.5.1.zip"));
   await importTopic(db, bytes, "1.0.2676");
   const installed = await getTopicRecord(db, topic.meta.id);
   expect(installed.modes).toHaveLength(3);
@@ -274,7 +274,7 @@ it("upgrades the actual 0.1 ZIP without losing visual settings or sharing them w
   const history = [{ id: "previous", topicId: topic.meta.id, modeId: "compare_visual", conceptIds: ["pilot_visual"] }];
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "sessions", history);
-  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.5.0.zip")), "1.0.2676");
+  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.5.1.zip")), "1.0.2676");
   expect(await kv.get(db, "studentTopicLinks")).toEqual(links);
   expect(await kv.get(db, "sessions")).toEqual(history);
   const { contentLanguage: ignoredLanguage, ...visualSettings } = legacy;
