@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-export const NARROW_QUERY = "(max-width: 760px)";
+// The phone layout (sheet on the whole width, row panel docked at the bottom): phones, and tablets held
+// upright — there the right-hand panel took too much of the narrow width (owner, 2026-11-05). Up to
+// 1100px covers every iPad in portrait (12.9" Pro: 1024px).
+export const NARROW_QUERY = "(max-width: 760px), (orientation: portrait) and (max-width: 1100px)";
 const PX_PER_MM = 96 / 25.4;
 const CANVAS_PAD_PX = 32;
 
