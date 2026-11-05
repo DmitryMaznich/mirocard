@@ -904,8 +904,8 @@ describe("propis2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     await act(async () => { byLabel(host, "Новая тетрадь").click(); await tick(); });
-    // a new notebook is A5: no format to pick (owner, 2026-10-14: A4 only as the sheet an A5 notebook is printed on)
-    expect(host.querySelector('button[aria-label="Формат"]')).toBeNull();
+    // a new notebook is A5, and the format can be picked (owner, 2026-11-05: A4 is a whole sheet per page)
+    expect(host.querySelector('button[aria-label="Формат"]').dataset.value).toBe("a5");
     const fmt = host.querySelector('button[aria-label="Тип бумаги"]');
     expect(fmt.getAttribute("title")).toBe("Тип бумаги");
     expect(host.querySelector(".p2-tip")).toBeNull();
@@ -914,6 +914,26 @@ describe("propis2 (zip topic)", () => {
     // the press that showed the bubble does not open the list
     await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerup", { bubbles: true })); fmt.click(); await tick(); });
     expect(host.querySelector('[role="listbox"]')).toBeNull();
+    await act(async () => { root.unmount(); await tick(300); });
+    host.remove();
+  }, 20000);
+
+  it("the format is the notebook's: A4 picked on one page is the format of every page", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
+    await click(byLabel(host, "Новая тетрадь"));
+    await click(host.querySelector('[aria-label="Копия страницы"]'));
+    const fmt = () => host.querySelector('button[aria-label="Формат"]');
+    expect(fmt().dataset.value).toBe("a5");
+    await click(fmt());
+    await click([...host.querySelectorAll('[role="listbox"][aria-label="Формат"] button')].find((b) => b.getAttribute("aria-label")?.startsWith("А4")));
+    expect(fmt().dataset.value).toBe("a4");
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(fmt().dataset.value).toBe("a4");
     await act(async () => { root.unmount(); await tick(300); });
     host.remove();
   }, 20000);

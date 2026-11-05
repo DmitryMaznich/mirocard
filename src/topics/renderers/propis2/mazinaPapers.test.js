@@ -13,6 +13,10 @@ describe("Mazina step 1 / 2 papers", () => {
     expect(ownRowsPerPage("a5", "m1")).toBe(9);
     expect(ownRowsPerPage("a5", "m2")).toBe(13);
     expect(rowsPerPage(newPage("x", { gridKind: "m1" }))).toBe(9);
+    // a whole A4 sheet (the format is the notebook's, one page per sheet): the same rows, more of them
+    expect(ownRowsPerPage("a4", "m1")).toBe(13);
+    expect(ownRowsPerPage("a4", "m2")).toBe(19);
+    expect(rowsPerPage(newPage("x", { gridKind: "m1", format: "a4" }))).toBe(13);
     expect(taskGrid(newPage("x", { gridKind: "m2" }))).toBe("m2");
   });
   it("lay the letters out at the band's own size: lowercase 8 mm (scale 1) and 5 mm (0.625), on drawn slants", () => {

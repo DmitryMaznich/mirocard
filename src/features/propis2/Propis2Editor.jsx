@@ -427,9 +427,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       </div>
   );
   const paperEls = <>
-          {/* the notebook is A5 (owner, 2026-10-14: an A4 notebook needs another printer; A4 stays only as the sheet an A5 notebook is
-              printed on): the format shows only on a page already made A4, to take it back to A5 */}
-          {pageFormat(page) === "a4" && <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />}
+          {/* the format is the whole notebook's (Propis2Home.onChange puts it onto every page); A4 is a whole sheet per page when printed (owner, 2026-11-05;
+              before that the picker showed only on a page already made A4) */}
+          <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
