@@ -2,6 +2,7 @@ import Sheet from "./Sheet";
 import LetterGlyph from "./LetterGlyph";
 import { isWordBlock } from "./words";
 import { FORMATS, PAGE_MARGIN_MM, sheetSizeMm } from "./model";
+import { MIRONIUM_HEAD } from "./brand";
 import { bookletBlocked, bookletPageCount, bookletSheets } from "./booklet";
 
 // The notebook laid out on the PAPER of the PDF (owner, 2026-11-03: «модалку… номера страниц,
@@ -24,7 +25,7 @@ export default function PdfPages({ notebook, byId, opts, containerRef }) {
   // content page k (0-based): a notebook page, or a padding page of «Тетрадью»
   const pageNode = (k) => {
     const p = notebook.pages[k] ?? { id: `pad-${k}`, paper: lastPaper, blocks: [] };
-    return <Sheet key={p.id} page={p} format={format} byId={byId} className="pl-sheet--print" nameLine={nameLine} pageNo={opts.numbers ? k + 1 : null} />;
+    return <Sheet key={p.id} page={p} format={format} byId={byId} className="pl-sheet--print" nameLine={nameLine} pageNo={opts.numbers ? k + 1 : null} brand />;
   };
   const cover = opts.cover ? <CoverFront notebook={notebook} byId={byId} format={format} /> : null;
   const back = opts.cover ? <CoverBack byId={byId} format={format} /> : null;
@@ -68,8 +69,6 @@ const COVER_COLORS = ["#e8702a", "#2f8fd1", "#b5257a", "#3aa655", "#d1a62f", "#7
 const FAMILY_COLORS = { straight: "#2a6b60", slant: "#2f6fb8", oval: "#a3245f" };
 const FAMILY_NAMES = { straight: "прямые линии", slant: "наклонные", oval: "овалы" };
 const INK = "#1f3a8a";
-// The Mironium head (public/brand/mironium-logo.svg, the same path as propis's brandMarks.jsx): 440 high.
-const MIRONIUM_HEAD = "M 98.0 0.0 L 376.0 0.0 L 401.0 5.0 L 401.0 7.0 L 388.0 12.0 L 382.0 20.0 L 379.0 17.0 L 369.0 15.0 L 342.0 24.0 L 319.0 23.0 L 291.0 29.0 L 291.0 31.0 L 297.0 29.0 L 313.0 29.0 L 313.0 31.0 L 279.0 41.0 L 229.0 67.0 L 219.0 67.0 L 209.0 61.0 L 215.0 69.0 L 233.0 71.0 L 245.0 67.0 L 265.0 55.0 L 268.0 56.0 L 247.0 71.0 L 204.0 88.0 L 198.0 96.0 L 196.0 112.0 L 200.0 102.0 L 209.0 93.0 L 219.0 91.0 L 206.0 102.0 L 199.0 125.0 L 188.0 136.0 L 200.0 132.0 L 194.0 142.0 L 193.0 151.0 L 201.0 143.0 L 198.0 156.0 L 203.0 167.0 L 206.0 148.0 L 209.0 147.0 L 207.0 151.0 L 209.0 155.0 L 216.0 150.0 L 213.0 159.0 L 214.0 200.0 L 212.0 206.0 L 196.0 224.0 L 176.0 236.0 L 171.0 245.0 L 173.0 255.0 L 191.0 273.0 L 190.0 284.0 L 185.0 289.0 L 186.0 296.0 L 197.0 303.0 L 198.0 310.0 L 209.0 311.0 L 213.0 309.0 L 215.0 311.0 L 212.0 316.0 L 199.0 317.0 L 194.0 322.0 L 195.0 331.0 L 202.0 338.0 L 204.0 344.0 L 203.0 365.0 L 205.0 375.0 L 214.0 386.0 L 224.0 390.0 L 274.0 390.0 L 294.0 396.0 L 304.0 406.0 L 311.0 421.0 L 316.0 440.0 L 92.0 440.0 L 75.0 435.0 L 54.0 422.0 L 42.0 408.0 L 35.0 395.0 L 30.0 374.0 L 31.0 61.0 L 40.0 36.0 L 59.0 15.0 L 77.0 5.0 Z";
 
 const scaleOf = (format) => (format === "a5" ? 0.7 : 1);
 
@@ -120,13 +119,20 @@ function CoverFront({ notebook, byId, format }) {
         ))}
       </div>
       <div className="pl-cover-fill" />
-      <div className="pl-cv-fields" style={{ marginBottom: u(10), padding: `${u(6)} ${u(8)}`, gap: u(6), borderRadius: u(4) }}>
+      <div className="pl-cv-fields" style={{ marginBottom: u(6), padding: `${u(6)} ${u(8)}`, gap: u(6), borderRadius: u(4) }}>
         {/* two blank write-in lines, no labels (owner, 2026-11-03) */}
         {[0, 1].map((i) => (
           <div key={i} className="pl-cv-field" style={{ height: u(9) }}>
             <span className="pl-cv-line" />
           </div>
         ))}
+      </div>
+      {/* the logo, small, centred at the foot of the front (owner, 2026-11-05; as propis2's cover) */}
+      <div className="pl-cv-brand" style={{ gap: u(2), marginBottom: u(5) }}>
+        <svg viewBox="0 0 420 440" width={u(6)} height={u(6.3)} style={{ width: u(6), height: u(6.3) }} aria-hidden="true">
+          <path d={MIRONIUM_HEAD} fill="#2a6b60" />
+        </svg>
+        <span className="pl-cv-brand-name" style={{ fontSize: `${12 * k}pt` }}>Mironium</span>
       </div>
       <div className="pl-cv-stripes" style={{ height: u(5), marginLeft: `-${u(14)}`, marginRight: `-${u(14)}` }}>
         {COVER_COLORS.map((c) => <div key={c} style={{ flex: 1, background: c }} />)}

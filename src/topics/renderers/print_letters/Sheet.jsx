@@ -4,6 +4,7 @@ import { isWordBlock } from "./words";
 import LetterGlyph from "./LetterGlyph";
 import { GAP, blockCells, blockHeightCells, drawnSize, headerCells, paperGap, paperOf, sheetSizeMm } from "./model";
 import { FINE_MM } from "./Ruling";
+import { MIRONIUM_HEAD } from "./brand";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -11,7 +12,7 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // margin (@page). The same component draws the page on the canvas, inside a
 // thumbnail (scaled) and in the print run, so the three never disagree.
 // `nameLine`: the «Имя ____ Дата ____» lines of the header (the notebook's toolbar option).
-export default function Sheet({ page, format, byId, className = "", style, selectedBlockId = null, selectedRowId = null, onSelectBlock, onSelectRow, nameLine = true, pageNo = null }) {
+export default function Sheet({ page, format, byId, className = "", style, selectedBlockId = null, selectedRowId = null, onSelectBlock, onSelectRow, nameLine = true, pageNo = null, brand = false }) {
   const { w, h } = sheetSizeMm(format);
   // On paper, 1mm less than the exact printable height: an exact fit can
   // round over and push a blank sheet out after every page.
@@ -35,6 +36,17 @@ export default function Sheet({ page, format, byId, className = "", style, selec
           left on even ones, as in a notebook */}
       {pageNo != null && (
         <span className="pl-sheet-pageno" style={{ position: "absolute", bottom: "1.5mm", [pageNo % 2 ? "right" : "left"]: mm(GAP) }}>{pageNo}</span>
+      )}
+      {/* the quiet Mironium mark of the PDF (PdfPages.jsx; owner, 2026-11-05: «чтобы в PDF был брендированный
+          лист»): bottom centre, in the blank GAP cell under the last row — the strip of the page number, where
+          no block ever reaches — on a white backing over the grid, light grey, as propis2's mark on its pages */}
+      {brand && (
+        <span className="pl-sheet-brand" style={{ position: "absolute", bottom: "1.2mm", left: "50%", transform: "translateX(-50%)" }}>
+          <svg viewBox="0 0 420 440" width="3mm" height="3.1mm" style={{ width: "3mm", height: "3.1mm" }} aria-hidden="true">
+            <path d={MIRONIUM_HEAD} fill="#aab2ba" />
+          </svg>
+          <span className="pl-sheet-brand-url">mironium.com</span>
+        </span>
       )}
       {page.blocks.length > 0 && (
         <div className="pl-sheet-head-at" style={{ position: "absolute", top: mm(GAP), left: mm(GAP), width: mm(blockCells(format)) }}>

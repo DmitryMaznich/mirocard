@@ -874,3 +874,7 @@
 .pl-cv-brand { display: flex; align-items: center; justify-content: center; }
 .pl-cv-brand-name { font-family: "DM Serif Display", Georgia, serif; color: #1c3634; }
 .pl-cv-brand-url { font-weight: 700; color: #8b93a1; margin-left: 2mm; }
+
+/* the Mironium mark at the foot of a PDF sheet (Sheet.jsx `brand`) */
+.pl-sheet-brand { display: inline-flex; align-items: center; gap: 1mm; padding: 0.4mm 1.2mm; background: #ffffff; line-height: 1; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pl-sheet-brand-url { font-size: 7pt; font-weight: 700; color: #aab2ba; letter-spacing: 0.05mm; }
