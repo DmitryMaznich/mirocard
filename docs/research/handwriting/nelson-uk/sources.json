@@ -1,0 +1,97 @@
+{
+  "profile": "nelson-uk",
+  "updated": "2026-11-05",
+  "copyright": "External originals are link-only; verify local use and redistribution rights",
+  "sources": [
+    {
+      "id": "nelson-ready-reference",
+      "title": "Nelson Handwriting Ready Reference Guide",
+      "section": "official-glyphs-and-joins",
+      "url": "https://cdn.oxfordowl.co.uk/2016/03/18/16/30/35/803/NH_TB_ready_ref_guide_FM.pdf",
+      "verification": "verified-open",
+      "format": "pdf",
+      "notes": "2 pages with letter forms, joining groups, break letters and x-height",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-parent-guide",
+      "title": "Nelson Handwriting Parent Guide",
+      "section": "publisher-index",
+      "url": "https://home.oxfordowl.co.uk/english/nelson-guide-for-parents/",
+      "verification": "link-collected",
+      "format": "webpage",
+      "notes": "official resource index",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-letter-families",
+      "title": "Patterns and Letters Year 1",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31446",
+      "verification": "verified-open",
+      "format": "pdf",
+      "notes": "lowercase Set 1, trace and write",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-break-letters",
+      "title": "Break Letters Year 1",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31447",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "no joining after break letters",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-size",
+      "title": "Correct Height and Size Year 2",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31444",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "letter proportions",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-top-join",
+      "title": "Joining to the Top Year 2",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31448",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "join categories",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-diagonal-joins",
+      "title": "Diagonal Joins Year 2",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31449",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "join categories",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-descenders",
+      "title": "Descenders Year 3",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31450",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "descender letter forms",
+      "commit_original": false
+    },
+    {
+      "id": "nelson-double-letters",
+      "title": "Double Letters Year 3",
+      "section": "worksheets",
+      "url": "https://www.oxfordowl.co.uk/contents/31451",
+      "verification": "link-collected",
+      "format": "pdf",
+      "notes": "doubled-letter joins",
+      "commit_original": false
+    }
+  ]
+}
