@@ -48,14 +48,13 @@ export function screenWriteTasks(letters, params = {}) {
   return tasks;
 }
 
-// «Почини букву»: one card per chosen letter, in the order of the deck (by family); the session goes
-// round them like any game of cards (owner, 2026-11-04: «просто выполняет карточки, это больше как
-// игра») — a fixed letter is a right answer in the usual star series, a letter fixed after the idle
-// prompt is «с помощью». How the letter breaks is decided on the screen (fixLetter/breakLetter.js).
-export function fixLetterTasks(letters, params = {}) {
-  const chosen = Array.isArray(params.letters) && params.letters.length ? new Set(params.letters) : null;
-  const pool = letters.filter((c) => (chosen ? chosen.has(c.id) : true));
-  const list = pool.length ? pool : letters.slice(0, 1);
+// «Почини букву»: a card for every letter of the deck, in random order (owner, 2026-11-05: «можно убрать
+// выбор букв, это же игра. И показывать карточки в случайном порядке»); the session goes round them like
+// any game of cards — a fixed letter is a right answer in the usual star series, a letter fixed after the
+// idle prompt is «с помощью». How the letter breaks is decided on the screen (fixLetter/breakLetter.js).
+export function fixLetterTasks(letters, params = {}, rand = Math.random) {
+  const list = letters.slice();
+  for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
   // one setting for the adult (owner, 2026-11-04: «нереальное количество настроек… не стоит столько»):
   // «Легко» — one part shifted; «Средне» — two, one may be tilted; «Трудно» — all, a tilt and a mirrored
   // half-oval may come. The magnet is always the strong one, the sample is always in the corner, the

@@ -482,7 +482,7 @@
     },
     {
       "id": "learn_slovene",
-      "version": "0.4.3",
+      "version": "0.4.4",
       "title": {
         "ru": "Учим словенский",
         "en": "Learning Slovenian"
@@ -639,8 +639,8 @@
     },
     {
       "id": "print_letters",
-      "version": "0.4.3",
-      "url": "./decks/print_letters_v0.4.3.zip",
+      "version": "0.4.4",
+      "url": "./decks/print_letters_v0.4.4.zip",
       "title": {
         "ru": "Печатные буквы",
         "en": "Block Letters"
