@@ -4,6 +4,7 @@ import { SIZES, LINES, GUIDES, DOTS, rowStyle, describeStyle, allElements, eleme
 import OptionPicker from "./OptionPicker";
 import { PlateWords } from "./WordBlock";
 import { allLetterIdx, plateWords } from "./words";
+import { TASKS, MISS_HINTS, rowTask, missHint, missParts, canMiss, similarTo } from "./tasks";
 import {
   IconUp, IconDown, IconLadder, IconAddRow, IconTrash,
   IconLineTone, IconLineDash, IconGuideFull, IconGuideFade, IconGuideNone, IconDotsSample, IconDotsAll, IconDotsNone, IconArrows, IconSampleToggle,
@@ -58,6 +59,43 @@ function ElementPad({ letter, elements, onToggle }) {
           />
         ))}
       </svg>
+    </div>
+  );
+}
+
+// «Допиши штрих»: the letter large, its parts as tap targets. No part chosen — the missing stroke goes
+// in turn; a tapped part is always the missing one (grey dotted), a second tap goes back to «in turn».
+function MissPad({ letter, fixed, onFix }) {
+  const [x, y, vw, vh] = letterFrame(letter);
+  const w = letterCells(letter);
+  const parts = missParts(letter);
+  return (
+    <div className="pl-elpad" style={{ width: (w + 2) * PAD_CELL, height: 4 * PAD_CELL, backgroundSize: `${PAD_CELL}px ${PAD_CELL}px` }}>
+      <svg viewBox={`${x} ${y} ${vw} ${vh}`} width={w * PAD_CELL} height={2 * PAD_CELL}
+        style={{ position: "absolute", left: PAD_CELL, top: PAD_CELL, overflow: "visible" }} aria-label={`Штрихи буквы ${letter.label}`}>
+        {parts.map((p, i) => (
+          <path key={`v${i}`} d={p.d} fill="none" stroke={i === fixed ? IDLE : INK} strokeWidth={i === fixed ? 6 : 9}
+            strokeDasharray={i === fixed ? "1 8" : undefined} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
+        ))}
+        {parts.map((p, i) => (
+          <path key={`h${i}`} d={p.d} fill="none" stroke="transparent" strokeWidth={30} strokeLinecap="butt" strokeLinejoin="round"
+            className="pl-elpad-hit" role="button" tabIndex={0} aria-pressed={i === fixed}
+            aria-label={`${p.name}: ${i === fixed ? "всегда пропущен" : "пропускать всегда его"}`}
+            onClick={() => onFix(i === fixed ? undefined : i)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onFix(i === fixed ? undefined : i); } }} />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function Seg({ label, options, value, onChange, disabledIds = [] }) {
+  return (
+    <div className="pl-seg" role="radiogroup" aria-label={label}>
+      {options.map((o) => (
+        <button key={o.id} type="button" role="radio" aria-checked={value === o.id} className={value === o.id ? "is-on" : ""}
+          disabled={disabledIds.includes(o.id)} onClick={() => onChange(o.id)}>{o.label}</button>
+      ))}
     </div>
   );
 }
@@ -177,7 +215,7 @@ function BlockSection({ size, onSetSize, paper, onLadder, word }) {
       <LadderButton onLadder={onLadder} word={word} />
       <span className="pl-insp-hint">{word
         ? "Слово по пунктиру → пропущена гласная → затухает → только образец → пусто."
-        : "1 → 1+2 → … → вся буква → затухают → только образец → пусто. Потом любую строку можно поменять."}</span>
+        : "1 → 1+2 → … → вся буква → затухают → допиши штрих (с точкой, без) → только образец → пусто. Потом любую строку можно поменять."}</span>
     </section>
   );
 }
@@ -256,7 +294,7 @@ function WordInspector({ block, byId, color, row, rowIndex, rowCount, size, pape
 // docked panel at the bottom on a phone. Elements are picked only on the big
 // letter (ElementPad) — no duplicate list beside it (owner, 2026-11-03).
 export default function RowInspector(props) {
-  const { letter, wordBlock, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetStyle, onMoveRow, onAddRow, onRemoveRow, onLadder } = props;
+  const { letter, wordBlock, byId, color, row, rowIndex, rowCount, size = 2, paper = "cell", onSetSize, onSetElements, onSetStyle, onPatchRow, onMoveRow, onAddRow, onRemoveRow, onLadder } = props;
   if (wordBlock) return <WordInspector {...props} block={wordBlock} size={size} paper={paper} />;
   if (!letter) {
     return (
@@ -281,11 +319,76 @@ export default function RowInspector(props) {
   const blank = elements.length === 0;
   const full = isFull(letter, elements);
   const toggle = (i) => onSetElements(toggleElement(elements, i));
+  const task = rowTask(row);
+  const all = allElements(letter);
+  const setTask = (t) => {
+    if (t === task) return;
+    if (t === "write") onPatchRow({ task: undefined, hint: undefined, stroke: undefined, seed: undefined, elements: all });
+    else if (t === "miss") onPatchRow({ task: "miss", hint: missHint(row), seed: undefined, elements: all });
+    else onPatchRow({ task: "find", hint: undefined, stroke: undefined, elements: all, seed: Math.random().toString(36).slice(2, 8) });
+  };
+  const head = (
+    <Head letter={letter} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`}
+      rowActions={{ onAdd: onAddRow, onMove: onMoveRow, onRemove: onRemoveRow, canUp: rowIndex > 0, canDown: rowIndex < rowCount - 1 }} />
+  );
+  const taskSec = (
+    <section className="pl-insp-sec" aria-label="Задание строки">
+      <span className="pl-insp-lbl">Задание</span>
+      <Seg label="Задание строки" options={TASKS} value={task} onChange={setTask}
+        disabledIds={[...(canMiss(letter) ? [] : ["miss"]), ...(similarTo(letter, byId).length ? [] : ["find"])]} />
+    </section>
+  );
+
+  if (task === "miss") {
+    const fixed = Number.isInteger(row.stroke) ? row.stroke : undefined;
+    return (
+      <div className="pl-insp">
+        {head}
+        {taskSec}
+        <section className="pl-insp-sec" aria-label="Подсказка">
+          <span className="pl-insp-lbl">Подсказка к пропущенному штриху</span>
+          <Seg label="Подсказка к пропущенному штриху" options={MISS_HINTS} value={missHint(row)} onChange={(hint) => onPatchRow({ hint })} />
+          <span className="pl-insp-hint">{missHint(row) === "dot"
+            ? "Зелёная точка там, где начинается пропущенный штрих. Сам штрих ребёнок пишет без контура."
+            : "Без подсказки: ребёнок сам видит, какого штриха не хватает и где он начинается."}</span>
+        </section>
+        <section className="pl-insp-sec" aria-label="Какой штрих пропущен">
+          <span className="pl-insp-lbl">Какой штрих пропущен</span>
+          <div className="pl-insp-els"><MissPad letter={letter} fixed={fixed} onFix={(stroke) => onPatchRow({ stroke })} /></div>
+          <div className="pl-insp-row">
+            <button type="button" className={`pl-el pl-el--grow${fixed === undefined ? " is-on" : ""}`} onClick={() => onPatchRow({ stroke: undefined })}>По очереди</button>
+          </div>
+          <span className="pl-insp-hint">{fixed === undefined
+            ? "У каждой копии пропущен следующий штрих. Нажмите штрих на букве, чтобы пропускать всегда его."
+            : `Всегда пропущен: ${missParts(letter)[fixed]?.name ?? ""}.`}</span>
+        </section>
+        <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word={false} />
+      </div>
+    );
+  }
+
+  if (task === "find") {
+    const others = similarTo(letter, byId).map((l) => l.label).join(", ");
+    return (
+      <div className="pl-insp">
+        {head}
+        {taskSec}
+        <section className="pl-insp-sec" aria-label="Найди и обведи">
+          <span className="pl-insp-lbl">Буквы строки</span>
+          <span className="pl-insp-hint">{`${letter.label} среди похожих: ${others}. Все напечатаны одинаково светлыми, без точек — ребёнок находит и обводит только ${letter.label}.`}</span>
+          <div className="pl-insp-row">
+            <button type="button" className="pl-el pl-el--grow" onClick={() => onPatchRow({ seed: Math.random().toString(36).slice(2, 8) })}>Перемешать</button>
+          </div>
+        </section>
+        <BlockSection size={size} onSetSize={onSetSize} paper={paper} onLadder={onLadder} word={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="pl-insp">
-      <Head letter={letter} color={color} title={`Строка ${rowIndex + 1} из ${rowCount}`}
-        rowActions={{ onAdd: onAddRow, onMove: onMoveRow, onRemove: onRemoveRow, canUp: rowIndex > 0, canDown: rowIndex < rowCount - 1 }} />
+      {head}
+      {taskSec}
 
       <section className="pl-insp-sec" aria-label="Элементы">
         <span className="pl-insp-lbl">Элементы — нажмите на штрих буквы</span>

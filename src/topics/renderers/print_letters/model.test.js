@@ -39,7 +39,7 @@ describe("print_letters model", () => {
     expect(copiesPerRow(letter("Ш"), "a4", false, 4)).toBe(9);
     // only the first row stands beside the 4-cell plate
     expect([0, 1].map((i) => rowBesidePlate(i, 4))).toEqual([true, false]);
-    const rows = ladderRows(letter("Н")); // 6 rows
+    const rows = Array(6).fill({ elements: [0] }); // 6 rows
     expect(blockHeightCells({ rows })).toBe(19);
     expect(blockHeightCells({ rows, size: 4 })).toBe(31);
     // on линейка the ruling sets the size: a large block is drawn at the normal size
@@ -61,7 +61,7 @@ describe("print_letters model", () => {
     expect(rowCells("a4", false, "bigcell")).toBe(34);
     expect(copiesPerRow(letter("Н"), "a4", false, 2, "bigcell")).toBe(17);
     // rows every other big row: 2 blank + 2 letter per row, 2 blank under the block
-    const rows = ladderRows(letter("Н")); // 6 rows
+    const rows = Array(6).fill({ elements: [0] }); // 6 rows
     expect(blockHeightCells({ rows }, "bigcell")).toBe(26);
     expect(blockHeightCells({ rows, size: 4 }, "bigcell")).toBe(26); // one letter = one big cell, always
     expect([0, 1].map((i) => rowBesidePlate(i, 2, "bigcell"))).toEqual([true, false]);
@@ -88,13 +88,16 @@ describe("print_letters model", () => {
     expect([letter("Т").wide, letter("Ш").wide, letter("Н").wide]).toEqual([true, true, undefined]);
   });
 
-  it("builds the ladder: elements add up, then the contours fade, then the sample only, then blank", () => {
+  it("builds the ladder: elements add up, then the contours fade, «допиши штрих» twice, the sample only, then blank", () => {
     const rows = ladderRows(letter("Н"));
+    expect(rows.map((r) => r.task ?? "write")).toEqual(["write", "write", "write", "write", "miss", "miss", "write", "write"]);
     expect(rows.map((r) => [r.elements.join(""), r.line, r.guide, r.dots])).toEqual([
       ["0", "dash", "full", "all"],
       ["01", "dash", "full", "all"],
       ["012", "dash", "full", "all"],
       ["012", "tone", "fade", "all"],
+      ["012", "dash", "full", "all"],
+      ["012", "dash", "full", "all"],
       ["012", "tone", "none", "sample"],
       ["", "dash", "full", "all"],
     ]);
@@ -132,7 +135,7 @@ describe("print_letters model", () => {
   });
 
   it("detects a page that no longer fits the sheet", () => {
-    const block = { rows: ladderRows(letter("Н")) }; // 6 rows → 19 cells tall
+    const block = { rows: ladderRows(letter("Н")) }; // 8 rows → 25 cells tall
     expect(pageOverflows({ blocks: [block, block] }, "a4")).toBe(false);
     expect(pageOverflows({ blocks: [block, block] }, "a5")).toBe(true);
   });;

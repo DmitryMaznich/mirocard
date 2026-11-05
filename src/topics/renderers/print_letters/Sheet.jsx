@@ -66,6 +66,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
             key={b.id}
             style={at(i)}
             letter={letter}
+            byId={byId}
             color={b.color}
             rows={b.rows}
             format={format}

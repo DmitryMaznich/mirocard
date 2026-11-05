@@ -1,4 +1,5 @@
 import { FINE_MM } from "./Ruling";
+import { canMiss, describeTask } from "./tasks";
 
 // ---- Page formats -------------------------------------------------------
 // A notebook-wide setting (one physical paper size per print job). The sheet
@@ -228,6 +229,8 @@ export function withStyle(row, patch) {
 }
 // Short words for a status line: «пунктир · затухают · точки на всех».
 export function describeStyle(row) {
+  const task = describeTask(row);
+  if (task) return task;
   if (!row.elements.length) return "пустая строка";
   const st = rowStyle(row);
   const parts = [];
@@ -258,8 +261,9 @@ export function elementName(letter, index) {
 }
 
 // «Лесенка»: the letter assembled one element at a time (1, 1+2, … whole,
-// all dotted), then the support fades (whole letter fading, one sample and
-// write on), then a blank row. Matches the printed workbook the owner sent
+// all dotted), then the support fades (whole letter fading), then «допиши штрих» with a start dot and
+// without (tasks.js; owner, 2026-11-05 — after the contours, where the child has traced the letter),
+// one sample and write on, then a blank row. Matches the printed workbook the owner sent
 // (first row one stroke, then strokes add up, last row the whole letter)
 // plus the most-to-least prompting ladder from docs/print-letters.md.
 export function ladderRows(letter) {
@@ -268,6 +272,10 @@ export function ladderRows(letter) {
   const rows = [];
   for (let k = 1; k <= n; k++) rows.push({ elements: all.slice(0, k), ...DEFAULT_STYLE });
   rows.push({ elements: all, line: "tone", guide: "fade", dots: "all" });
+  if (canMiss(letter)) {
+    rows.push({ elements: all, ...DEFAULT_STYLE, task: "miss", hint: "dot" });
+    rows.push({ elements: all, ...DEFAULT_STYLE, task: "miss", hint: "none" });
+  }
   rows.push({ elements: all, line: "tone", guide: "none", dots: "sample" });
   rows.push({ elements: [], ...DEFAULT_STYLE });
   return rows;

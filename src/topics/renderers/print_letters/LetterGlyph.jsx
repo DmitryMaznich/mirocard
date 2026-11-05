@@ -244,6 +244,7 @@ export default function LetterGlyph({
   dots,           // start dots on/off; default: on for sample and starts, off for contours
   arrows = true,  // the sample's red direction arrows (the row's «Стрелки» option)
   numbers = NUMBERS_BY_ARROWS, // the strokes' numbers beside their arrows (variant B) or none (A, as in Ilyukhina)
+  hintStart = null, // [x, y]: a green dot where a stroke that is NOT drawn starts («Допиши штрих», tasks.js)
 }) {
   const { strokes = [] } = letter;
   const [vbX, vbY, vbW, vbH] = frame ?? letterFrame(letter);
@@ -430,6 +431,8 @@ export default function LetterGlyph({
           ? <circle key={`d${k}`} cx={mx} cy={my} r={SAMPLE_DOT} fill={START} stroke={on ? INK : "#ffffff"} strokeWidth={on ? 3 : 1.5} style={{ pointerEvents: "none" }} />
           : <circle key={`d${k}`} cx={mx} cy={my} r={SAMPLE_DOT} fill={START} />;
       })}
+
+      {hintStart && <circle cx={hintStart[0]} cy={hintStart[1]} r={SAMPLE_DOT} fill={START} style={{ pointerEvents: "none" }} />}
 
       {tipPos && <circle cx={tipPos.x} cy={tipPos.y} r={TIP_R} fill={START} />}
     </svg>

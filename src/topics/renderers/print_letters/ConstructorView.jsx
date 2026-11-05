@@ -245,6 +245,11 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
       onSetElements={(elements) => updateSelectedRow((r) => ({ ...r, elements }))}
       onSetText={(text) => updateSelectedRow((r) => ({ ...r, text, elements: r.elements.length ? allLetterIdx(text) : [] }))}
       onSetStyle={(patch) => updateSelectedRow((r) => withStyle(r, patch))}
+      onPatchRow={(patch) => updateSelectedRow((r) => {
+        const next = { ...r, ...patch };
+        for (const k of Object.keys(patch)) if (patch[k] === undefined) delete next[k];
+        return next;
+      })}
       onMoveRow={moveSelectedRow}
       onAddRow={addRow}
       onRemoveRow={removeSelectedRow}

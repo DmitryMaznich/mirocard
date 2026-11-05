@@ -261,7 +261,7 @@ export function reflowNotebook(nb) {
 //  - after each family a review on «линейка», where the skill leaves the grid.
 // `section` groups them on the «Мои тетради» screen.
 
-export const READY_SECTIONS = ["Подготовка руки", "Прямые линии", "Наклонные линии", "Овалы и полуовалы"];
+export const READY_SECTIONS = ["Подготовка руки", "Прямые линии", "Наклонные линии", "Овалы и полуовалы", "Задания"];
 
 let seq = 0;
 const rid = (p) => `ready-${p}-${++seq}`;
@@ -335,6 +335,19 @@ const FAMILY_REVIEW = [
   { id: "review-oval", section: 3, title: "Повторяем овалы", letters: ["Ь", "Ъ", "Ы", "Р", "Б", "Ф", "Я", "В", "З", "О", "Ю", "С", "Э"] },
 ];
 
+// «Спрятанные буквы» (owner, 2026-11-05: a short set of sheets, not a long notebook): a new letter is
+// a known one plus one stroke — Ilyukhina's «в букве П спряталась Г». The pairs are the ones where the
+// strokes match exactly in topic.json (Л → Д, Ш → Щ, Е → Ё are drawn differently there). Per pair: the
+// known letter (a sample and contours), then the new one — «допиши штрих» where the missing stroke is
+// always the added one, with a start dot and without, then the new letter written whole.
+export const HIDDEN_PAIRS = [
+  { from: "Г", to: "П", stroke: 2 },
+  { from: "Л", to: "А", stroke: 2 },
+  { from: "И", to: "Й", stroke: 3 },
+  { from: "Ь", to: "Б", stroke: 2 },
+  { from: "Ь", to: "В", stroke: 1 },
+];
+
 export function readyNotebooks(byId) {
   const L = (id) => byId[id];
   const have = (...ids) => ids.every((id) => L(id));
@@ -395,5 +408,20 @@ export function readyNotebooks(byId) {
         packEven(fam.letters.map((id, k) => reviewBlock(L(id), color(k))), "line")));
     }
   });
+  const pairs = HIDDEN_PAIRS.filter((p) => have(p.from, p.to));
+  if (pairs.length) {
+    const blocks = [];
+    pairs.forEach((p, k) => {
+      const from = L(p.from), to = L(p.to);
+      blocks.push({ id: rid("b"), letterId: from.id, color: "#8b93a1", size: 2, rows: rowsOf([{ elements: allElements(from), ...DEFAULT_STYLE }]) });
+      blocks.push({ id: rid("b"), letterId: to.id, color: color(k), size: 2, rows: rowsOf([
+        { elements: allElements(to), ...DEFAULT_STYLE, task: "miss", hint: "dot", stroke: p.stroke },
+        { elements: allElements(to), ...DEFAULT_STYLE, task: "miss", hint: "none", stroke: p.stroke },
+        { elements: allElements(to), ...DEFAULT_STYLE },
+      ]) });
+    });
+    out.push(nb("hidden-letters", 4, "Спрятанные буквы", `Новая буква — знакомая плюс один штрих: ${pairs.map((p) => `${p.from} → ${p.to}`).join(", ")}. Сначала знакомая буква, потом новая без этого штриха — ребёнок дописывает его (с точкой начала, затем без), потом пишет новую букву целиком.`,
+      pack(blocks, "cell")));
+  }
   return out;
 }

@@ -1,6 +1,7 @@
 import LetterGlyph, { letterFrame } from "./LetterGlyph";
 import { FINE_MM } from "./Ruling";
-import { TILE, LETTER_H, plateHeightCells, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled } from "./model";
+import { TILE, LETTER_H, plateHeightCells, paperGap, blockCells, rowCells, rowBesidePlate, rowStartCells, copiesPerRow, copyPitch, copyPlan, letterH, letterW, isRuled, rowStyle } from "./model";
+import { rowTask, missHint, missCopy, findSequence, findWidest } from "./tasks";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
 
@@ -14,7 +15,34 @@ const mm = (cells) => `${cells * FINE_MM}mm`;
 // sits in the full letter, and the label tile shows that same stroke shape.
 // What each copy draws comes from the row's three options (line, contours,
 // dots) via copyPlan().
-export default function LetterBlock({ letter, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow, style }) {
+// What each copy of a row draws, as LetterGlyph props (null — a blank letter-cell). Besides the
+// ordinary row (copyPlan) a row can be «Допиши штрих» or «Найди и обведи» (tasks.js).
+function rowCopies(row, letter, byId, format, beside, size, paper) {
+  const frame = letterFrame(letter);
+  const task = rowTask(row);
+  if (task === "find") {
+    const copies = copiesPerRow(findWidest(letter, byId), format, beside, size, paper);
+    return findSequence(letter, copies, row.seed ?? row.id, byId).map((l) => ({
+      letter: l, frame: letterFrame(l), w: letterW(l, size), variant: "trace", dots: false,
+    }));
+  }
+  const copies = copiesPerRow(letter, format, beside, size, paper);
+  const w = letterW(letter, size);
+  if (task === "miss") {
+    const st = rowStyle(row);
+    const hint = missHint(row);
+    return Array.from({ length: copies }, (_, i) => {
+      if (i === 0) return { letter, frame, w, variant: "sample", dots: st.dots !== "none", arrows: st.arrows, tappable: true };
+      const c = missCopy(letter, i - 1, row.stroke);
+      return { letter: c.letter, frame, w, variant: "plain", hintStart: hint === "dot" ? c.start : null, key: `m${c.gone}` };
+    });
+  }
+  const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
+  const miniLetter = { ...letter, strokes };
+  return copyPlan(row, copies).map((p) => p && ({ letter: miniLetter, frame, w, ...p, tappable: p.variant === "sample" }));
+}
+
+export default function LetterBlock({ letter, byId = {}, color, rows, format, size = 2, paper = "cell", selected, selectedRowId, onSelectBlock, onSelectRow, style }) {
   const frame = letterFrame(letter);
   const w = letterW(letter, size);
   const h = letterH(size);
@@ -38,12 +66,9 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
 
       {rows.map((row, index) => {
         const beside = rowBesidePlate(index, size, paper);
-        const copies = copiesPerRow(letter, format, beside, size, paper);
         const start = rowStartCells(beside, paper);
         const width = rowCells(format, beside, paper);
-        const strokes = row.elements.map((i) => ({ ...letter.strokes[i], n: i + 1 })).filter((s) => s.d);
-        const miniLetter = { ...letter, strokes };
-        const plan = copyPlan(row, copies);
+        const plan = rowCopies(row, letter, byId, format, beside, size, paper);
         return (
           <div
             key={row.id}
@@ -60,19 +85,20 @@ export default function LetterBlock({ letter, color, rows, format, size = 2, pap
             )}
             <div className="pl-row" style={{ height: mm(h), width: mm(width) }}>
               {plan.map((p, i) => (
-                <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? w : copyPitch(size)), height: mm(h) }}>
+                <div key={i} className="pl-cell" style={{ width: mm(i === plan.length - 1 ? (p?.w ?? w) : copyPitch(size)), height: mm(h) }}>
                   {p && (
                     <LetterGlyph
-                      key={`${row.elements.join(",")}-${p.variant}-${p.dots ? 1 : 0}-${p.arrows === false ? 0 : 1}`}
-                      letter={miniLetter}
-                      frame={frame}
+                      key={`${p.letter.id}-${row.elements.join(",")}-${p.variant}-${p.dots ? 1 : 0}-${p.arrows === false ? 0 : 1}-${p.key ?? ""}`}
+                      letter={p.letter}
+                      frame={p.frame}
                       heightMm={h * FINE_MM}
-                      widthMm={w * FINE_MM}
+                      widthMm={p.w * FINE_MM}
                       variant={p.variant}
-                      opacity={p.opacity}
-                      tappable={p.variant === "sample"}
+                      opacity={p.opacity ?? 1}
+                      tappable={!!p.tappable}
                       dots={p.dots}
                       arrows={p.arrows !== false}
+                      hintStart={p.hintStart ?? null}
                     />
                   )}
                 </div>
