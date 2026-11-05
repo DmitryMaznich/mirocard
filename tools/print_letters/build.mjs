@@ -27,6 +27,8 @@ zip.file("renderer", readFileSync(join(dist, "renderer")));
 if (existsSync(join(dist, "mirocard2.css"))) zip.file("mirocard2.css", readFileSync(join(dist, "mirocard2.css")));
 // The avatar lives with the renderer (it is also the bundled fallback's).
 zip.file(topic.meta.avatar, readFileSync(join(RENDERER_DIR, topic.meta.avatar)));
+// The modes' icons (topic.json modes[].ui.icon) live there too.
+for (const icon of new Set(topic.modes.map((m) => m.ui?.icon).filter(Boolean))) zip.file(icon, readFileSync(join(RENDERER_DIR, icon)));
 
 const out = join(DIR, "print_letters.zip");
 writeFileSync(out, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
