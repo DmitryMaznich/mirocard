@@ -81,7 +81,7 @@ describe("propis2 variant: Bulgarian", () => {
   it("writes on the Bulgarian ruling: its own paper first, no Russian slant paper; 11 rows of four lines on A5, guides at 76deg", async () => {
     const rec = await installed();
     expect(deckPapers(rec).map((g) => g.id)).toEqual(["bg", "square", "ruled"]);
-    expect(deckPapers({ meta: {} }).map((g) => g.id)).toEqual(["propis", "square", "ruled"]);
+    expect(deckPapers({ meta: {} }).map((g) => g.id)).toEqual(["propis", "m1", "m2", "square", "ruled"]);
     expect(rowsPerPage(newPage("т", { gridKind: "bg" }))).toBe(11);
     const html = renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines: ["Ана", "на мене е"], grid: "bg" })} bare />);
     expect(html).toContain('data-simple-grid="bg"');

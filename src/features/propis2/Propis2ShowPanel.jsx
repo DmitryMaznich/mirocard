@@ -35,9 +35,9 @@ export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, 
   }, []);
   // the fragment is moved to the middle of its row (an indent in slant cells), so the ruling runs on at both sides of it
   const task = useMemo(() => {
-    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled" || grid === "bg";
+    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled" || grid === "bg" || grid === "m1" || grid === "m2";
     const snap = snapXFor({ narrowRows: narrow, simpleGrid: grid, narrow17: narrow });
-    const scale = snap.cell?.scale ?? (narrow ? 0.5 : 1);
+    const scale = snap.cell?.scale ?? snap.letterScale ?? (narrow ? 0.5 : 1);
     const w = lineWidth(fragment, buildGlyphMap(topicRecord), narrow ? "narrow" : "wide", snap);
     const indent = Math.max(0, Math.floor((WIDE_ROW_MAX_X / 2 - w / 2) / (TEXT_ROW_WIDE_DIAGONAL_SPACING * scale)));
     return buildPageTask({ topicRecord, lines: [`${fragment}#1${indent ? `#i${indent}` : ""}`], narrowRows: ruling === "narrow", grid, midDash, bandFill });

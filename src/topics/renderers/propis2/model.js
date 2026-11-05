@@ -47,11 +47,15 @@ export const GRID_KINDS = [
   { id: "square", label: "Клетка" },
   { id: "ruled", label: "Линейка" },
   { id: "bg", label: "Болгарская строка" },
+  // the first two steps of the Mazina method (PrintPageView MZ): our ordinary «Прописи» is the third step
+  { id: "m1", label: "Ступень 1 (строка 8 мм)" },
+  { id: "m2", label: "Ступень 2 (строка 5 мм)" },
 ];
 // Papers with rows of their own (not the 12 mm cycle of the Russian copybook): always on the narrow size, no ruling to choose.
-export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || grid === "bg";
+export const MAZINA_PAPERS = new Set(["m1", "m2"]);
+export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || grid === "bg" || MAZINA_PAPERS.has(grid);
 // The papers a deck offers, in order (the first is the paper of a new notebook): meta.papers of a variant deck; the Russian ones else.
-const RU_PAPERS = ["propis", "square", "ruled"];
+const RU_PAPERS = ["propis", "m1", "m2", "square", "ruled"];
 export const deckPapers = (topicRecord) => {
   const ids = topicRecord?.meta?.papers;
   return GRID_KINDS.filter((g) => (Array.isArray(ids) ? ids : RU_PAPERS).includes(g.id)).sort((a, b) => (ids ?? RU_PAPERS).indexOf(a.id) - (ids ?? RU_PAPERS).indexOf(b.id));
@@ -647,8 +651,8 @@ const SETTING_OF = {
   writeAfter: (p) => Boolean(p?.writeAfter),
 };
 const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash", "bandFill"]);
-export const SLANT_PAPERS = new Set(["propis", "bg"]);
-const countsFor = (key, page) => (key === "bgDash" ? pageGridKind(page) === "bg" : !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : new Set(["propis"])).has(pageGridKind(page)));
+export const SLANT_PAPERS = new Set(["propis", "bg", "m1", "m2"]);
+const countsFor = (key, page) => (key === "bgDash" ? pageGridKind(page) === "bg" : !COPYBOOK_ONLY.has(key) || (key === "grid" ? SLANT_PAPERS : key === "midDash" ? new Set(["propis", "m1", "m2"]) : new Set(["propis"])).has(pageGridKind(page)));
 
 // Which settings differ between the pages of the notebook (the dot on a strip button, owner 2026-10-15): { key: true }.
 export function mixedSettings(set, pagesById) {

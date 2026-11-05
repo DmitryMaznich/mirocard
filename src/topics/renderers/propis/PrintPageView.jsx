@@ -163,6 +163,21 @@ const narrowLineX = (k, yAbs) => NARROW_FIRST_X + k * NARROW_CELL + (narrowYRef(
 // `propis2` page formats. "a5" is the page of the finished copybooks (148.5 x 210 mm, two of them on an A4 landscape
 // sheet, the diagonal grid runs on across the pair); "a4" is a whole A4 portrait sheet (210 x 297 mm), one page per sheet.
 // Same row cycle, so an A4 page simply has more rows and a wider line.
+// `propis2`, the two first steps of the Mazina method ("Начинаю писать красиво!" №1 and №2, "m1" / "m2", owner 2026-11-05; the
+// third step is our ordinary copybook ruling). Measured off the notebook's own ruling pictures: a working band 8 mm (step 1) / 5 mm
+// (step 2) with a thin line above, a bold baseline below and a dash in its middle; between the bands a free strip (14 / 9.8 mm,
+// room for ascenders and descenders, a dash in its middle too); the 65deg slants run through the whole ruled part of the page. A
+// lowercase letter is exactly the band tall (the copybook's own letter, scaled: 8 mm = the wide row, scale 1); the slants are drawn
+// a letter's own cell apart (TEXT_ROW_WIDE_DIAGONAL_SPACING * scale: 5 / 3.125 mm; the notebooks have 4.4 / 3.0 mm) so that every
+// stem of every letter stands on a drawn line, as on the dense copybook grid.
+const MZ = {
+  m1: { bandMm: 8, gapMm: 14, topMm: 22, footMm: 10 },
+  m2: { bandMm: 5, gapMm: 9.8, topMm: 14.8, footMm: 6 },
+};
+for (const mz of Object.values(MZ)) {
+  mz.scale = mmToNativeUnits(mz.bandMm) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
+  mz.step = TEXT_ROW_WIDE_DIAGONAL_SPACING * mz.scale;
+}
 const PAGE_ROW_CYCLE_MM = 12;
 function makeGeom(format) {
   const a4 = format === "a4";
@@ -181,6 +196,8 @@ function makeGeom(format) {
       dense: buildDiagonalLines(h, sheetW, TEXT_ROW_ELEMENT_DIAGONAL_SPACING),
       wideDense: buildDiagonalLines(h, sheetW, TEXT_ROW_WIDE_DIAGONAL_SPACING),
       narrowDense: buildDiagonalLines(h, sheetW, NARROW_CELL),
+      m1: buildDiagonalLines(h, sheetW, MZ.m1.step),
+      m2: buildDiagonalLines(h, sheetW, MZ.m2.step),
     },
   };
 }
@@ -221,11 +238,12 @@ const BG_PITCH = mmToNativeUnits(BG_UP_MM + BG_X_MM + BG_DOWN_MM);
 const BG_LETTER_SCALE = mmToNativeUnits(BG_X_MM) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
 const BG_GUIDE_STEP = mmToNativeUnits(35);
 const BG_GUIDE_TAN = 1 / 4; // horizontal run per unit of height of the guides (76deg from the horizontal)
-// Papers with rows of their own (`ownRows`: "square" | "ruled" | "bg"): pitch, first baseline, the room kept under the last row, letter scale.
+// Papers with rows of their own (`ownRows`: "square" | "ruled" | "bg" | "m1" | "m2"): pitch, first baseline, the room kept under the last row, letter scale.
 const OWN_ROWS = {
   square: { pitch: SQUARE_PITCH, first: SQUARE_FIRST_BASELINE, foot: SQUARE_CELL, scale: SQUARE_LETTER_SCALE },
   ruled: { pitch: RULED_PITCH, first: 2 * RULED_PITCH, foot: RULED_PITCH, scale: RULED_LETTER_SCALE },
   bg: { pitch: BG_PITCH, first: mmToNativeUnits(10 + BG_UP_MM + BG_X_MM), foot: mmToNativeUnits(BG_DOWN_MM + 5), scale: BG_LETTER_SCALE },
+  ...Object.fromEntries(Object.entries(MZ).map(([k, m]) => [k, { pitch: mmToNativeUnits(m.bandMm + m.gapMm), first: mmToNativeUnits(m.topMm), foot: mmToNativeUnits(m.footMm), scale: m.scale }])),
 };
 const ownOf = (kind) => OWN_ROWS[kind === true ? "square" : kind] ?? null;
 const ownRowsOf = (geom, kind) => { const o = ownOf(kind); return Math.floor((geom.h - o.foot - o.first) / o.pitch) + 1; };
@@ -424,7 +442,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
-  const plain = simpleGrid === "square" || simpleGrid === "ruled" || simpleGrid === "bg";
+  const plain = simpleGrid === "square" || simpleGrid === "ruled" || simpleGrid === "bg" || Boolean(MZ[simpleGrid]);
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
   // dashed guide lines are slightly red on the `propis2` pages (the `propis` sheets keep the grid colour)
   const dashColor = simpleGrid ? "#e57d7a" : guideColor;
@@ -479,7 +497,37 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
       </g>
     );
   })() : null;
-  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" && simpleGrid !== "none" ? (
+  // "m1" / "m2": the Mazina ruling (MZ above): per row a thin line, the dash in the middle of the band, the bold baseline, and the dash in the
+  // middle of the free strip above the band; the slants over the whole ruled part of the page
+  const mzEls = MZ[ownRows] ? (() => {
+    const mz = MZ[ownRows];
+    const band = mmToNativeUnits(mz.bandMm);
+    const gap = mmToNativeUnits(mz.gapMm);
+    const rows = Array.from({ length: ownRowsOf(geom, ownRows) }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
+    const base = (r) => ownRowY(r, ownRows) + WIDE_BAND_BOTTOM_LOCAL;
+    const top = base(rows[0] ?? 0) - band - gap / 2;
+    const bottom = base(rows[rows.length - 1] ?? 0) + gap / 2;
+    const at = (l, y) => l.x1 + ((l.x2 - l.x1) * y) / PAGE_H_UNITS + diagonalShiftX;
+    const dash = (y, key) => (midDash ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-mz-dash="1" /> : null);
+    return (
+      <g data-simple-grid={ownRows}>
+        {onlyRow === null && !noSlant && geom.lines[ownRows].map((l, i) => <line key={`s${i}`} x1={at(l, bottom)} y1={bottom} x2={at(l, top)} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
+        {rows.map((r) => {
+          const y = base(r);
+          return (
+            <g key={r} data-mz-row={r}>
+              {dash(y - band - gap / 2, "g")}
+              <line x1={0} y1={y - band} x2={PAGE_W_UNITS} y2={y - band} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              {dash(y - band / 2, "m")}
+              <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />
+              {(onlyRow !== null || r === rows[rows.length - 1]) && dash(y + gap / 2, "f")}
+            </g>
+          );
+        })}
+      </g>
+    );
+  })() : null;
+  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? mzEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" && simpleGrid !== "none" ? (
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
@@ -901,6 +949,24 @@ function ruledSnapFor(scale = RULED_LETTER_SCALE) {
   return snap;
 }
 
+// "m1" / "m2" (MZ): the letters stand on the slants that are drawn (the dense-grid rule: line n of a page stands at n*step - y*tan, every
+// odd page of a sheet is shifted by a page width), their rows are the paper's own (ownRowY)
+function mazinaSnapFor(kind, margin, geom) {
+  const { step, scale } = MZ[kind];
+  const perPage = ownRowsOf(geom, kind);
+  const snap = (rowIndex, x, y) => {
+    const pageIdx = Math.floor(rowIndex / perPage);
+    const contentXUnits = slotGeometry(pageIdx, true, margin, geom).contentXUnits;
+    const yAbs = ownRowY(rowIndex % perPage, kind) + y;
+    const shift = pageIdx % 2 === 0 || !geom.pairedSlots ? 0 : -geom.w;
+    const base = shift - yAbs * WIDE_SLANT_TAN;
+    return base + Math.round((contentXUnits + x - base) / step) * step - contentXUnits;
+  };
+  snap.letterScale = scale;
+  snap.drawn = true;
+  return snap;
+}
+
 const narrowSnapFor = (margin, geom, narrow17) => (rowIndex, x, y) => {
   const contentXUnits = rowContentX(rowIndex, margin, geom, narrow17);
   const yAbs = rowOriginY(rowIndex + (narrow17 ? 0 : 1)) + n17Shift(narrow17) + y;
@@ -977,6 +1043,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   if (simpleGrid === "square") return squareSnapFor(margin, geom);
   if (simpleGrid === "ruled") return ruledSnapFor();
   if (simpleGrid === "bg") return ruledSnapFor(BG_LETTER_SCALE);
+  if (MZ[simpleGrid]) return mazinaSnapFor(simpleGrid, margin, geom);
   const dense = simpleGrid === "dense";
   if (dense) {
     const drawn = narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);

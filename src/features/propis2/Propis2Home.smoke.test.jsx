@@ -400,7 +400,7 @@ describe("propis2 (zip topic)", () => {
     const before = kindBtn().getAttribute("data-value");
     expect(dotOn(kindBtn())).toBe(false); // both pages on the same paper
     await click(kindBtn());
-    await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on") && o.getAttribute("aria-label") === "Клетка")); // squared paper (the back cover below shows its digits)
     const kind = kindBtn().getAttribute("data-value");
     expect(kind).not.toBe(before);
     // the pages differ now: the dot; and the change is offered for the whole notebook
