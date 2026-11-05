@@ -703,6 +703,12 @@ describe("propis2 (zip topic)", () => {
     expect(slant().every((b) => !b.disabled)).toBe(true);
     expect(dash().disabled).toBe(false);
     expect(preview().querySelector("line[stroke-dasharray]").getAttribute("stroke")).toBe("#e57d7a");
+    // the sparse slant does not apply to the Mazina steps: it stays in the list, greyed out and not pickable
+    await click(pickBtn("Косая линейка"));
+    const sparse = host.querySelector('[role="listbox"][aria-label="Косая линейка"] button[aria-label="Редкая"]');
+    expect(sparse.disabled).toBe(true);
+    expect(host.querySelector('[role="listbox"][aria-label="Косая линейка"] button[aria-label="Частая"]').disabled).toBe(false);
+    await click(pickBtn("Косая линейка"));
     await pick("Тип бумаги", "Ступень 2 (строка 5 мм)");
     await act(async () => { await tick(60); });
     expect(preview().querySelectorAll("[data-mz-row]").length).toBe(13);
