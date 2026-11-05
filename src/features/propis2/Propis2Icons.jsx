@@ -27,8 +27,31 @@ export const IconPaperBg = () => S(<><path d="M14 4L10 20" stroke={GRAY} strokeW
 export const IconPaperRuled = () => S(<>{rule(7, 3, 21)}{rule(12, 3, 21)}{rule(17, 3, 21)}<path d="M6 3.5v17" stroke={RED} strokeWidth={1.3} /></>);
 
 // ---- row size (the letter «а» on its ruling), slant density, dashes, writing space ---------------------------------------
-export const IconRowNarrow = () => S(<>{guide(3.5)}{rule(8)}{guide(12)}{baseRule(16)}{shape("a_narrow", 12 - SH.a_narrow.w / 2)}</>);
-export const IconRowWide = () => S(<>{rule(6)}{guide(12)}{baseRule(18)}{shape("a_wide", 12 - SH.a_wide.w / 2)}</>);
+// A row ruling as a teacher knows it, at one scale for all of them (1 px = 1 mm of the printed notebook): the band the lowercase «а» fills
+// (thin line above, bold baseline), the free strip above and below it (the dashed limits of the ascenders and descenders),
+// the band's height with a dimension arrow and its size in mm in figures. Narrow: 4 mm band, wide: 8 mm band in tight strips, the first
+// two steps of the Mazina method: 8 / 5 mm bands in free strips (PrintPageView MZ).
+const mmRow = (bandMm, gapMm) => function MmRowIcon() {
+  const total = bandMm + gapMm;
+  const topLimit = (24 - total) / 2;
+  const top = topLimit + gapMm / 2;
+  const base = top + bandMm;
+  const k = bandMm / 12; // the glyph of the icon is 12 px tall (a_wide)
+  const head = Math.min(1.5, bandMm / 3);
+  return S(<>
+    {guide(topLimit, 2.5, 13.5)}
+    {rule(top, 2.5, 13.5)}
+    {baseRule(base, 2.5, 13.5)}
+    {guide(base + gapMm / 2, 2.5, 13.5)}
+    <g transform={`translate(${8 - (SH.a_wide.w * k) / 2} ${base}) scale(${k}) translate(0 -18)`} strokeWidth={1.05 / k}>{SH.a_wide.d.map((d, i) => <path key={i} d={d} />)}</g>
+    <path d={`M16 ${top}V${base}M${16 - head * 0.8} ${top + head}L16 ${top}L${16 + head * 0.8} ${top + head}M${16 - head * 0.8} ${base - head}L16 ${base}L${16 + head * 0.8} ${base - head}`} stroke={DARK} strokeWidth={1} />
+    <text x="20.6" y={top + bandMm / 2 + 3.4} textAnchor="middle" fontSize="10" fontWeight="700" fontFamily="system-ui, sans-serif" fill={DARK} stroke="none">{bandMm}</text>
+  </>);
+};
+export const IconRowNarrow = mmRow(4, 8);
+export const IconRowWide = mmRow(8, 4);
+export const IconPaperM1 = mmRow(8, 14);
+export const IconPaperM2 = mmRow(5, 9.8);
 export const IconSlantSparse = () => S(<>{slants([11, 21], 4, 20)}{baseRule(20)}</>);
 export const IconSlantNone = () => S(<>{slants([15], 4, 20)}{baseRule(20)}<path d="M5 5L19 19" stroke={DARK} strokeWidth={1.4} /></>);
 export const IconSlantDense = () => S(<>{slants([7, 11, 15, 19, 23], 4, 20)}{baseRule(20)}</>);

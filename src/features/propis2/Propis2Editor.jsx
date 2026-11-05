@@ -65,7 +65,7 @@ const SETTING_SAYS = {
 };
 
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
-const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperPropis, m2: I.IconPaperPropis };
+const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperM1, m2: I.IconPaperM2 };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense, none: I.IconSlantNone };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
