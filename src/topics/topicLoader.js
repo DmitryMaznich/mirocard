@@ -2158,15 +2158,21 @@ function ensureModeIcons(modes = [], renderer) {
 // changed values (renamed labels, new icon paths, a param's widget type changing) and
 // to drop keys that no longer exist (e.g. the old `level` param renamed to `maxOnes`).
 // (methodology text is handled the same way, separately, in normalizeModeMethodology.)
+// Mode ids index plain objects, so a lookup must ignore Object.prototype: print_letters's mode
+// "constructor" otherwise found Object itself and lost its ui (title, icon) on install.
+function modesById(modes = []) {
+  return new Map(modes.map((mode) => [mode.id, mode]));
+}
+
 function preferCurrentDefault(defValue) {
   return defValue ?? {};
 }
 
 function mergeDefaultModes(existingModes = [], defaultModes = []) {
-  const existingById = Object.fromEntries(existingModes.map((mode) => [mode.id, mode]));
+  const existingById = modesById(existingModes);
   const defaultIds = new Set(defaultModes.map((mode) => mode.id));
   const mergedDefaults = defaultModes.map((def) => {
-    const existing = existingById[def.id];
+    const existing = existingById.get(def.id);
     if (!existing) return def;
     return {
       ...def,
@@ -2223,10 +2229,10 @@ function orderAdditionSubtractionModes(modes) {
 
 // Preserves manifest mode order; only appends default modes absent from manifest
 function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
-  const defaultById = Object.fromEntries(defaultModes.map((m) => [m.id, m]));
+  const defaultById = modesById(defaultModes);
   const manifestIds = new Set(manifestModes.map((m) => m.id));
   const merged = manifestModes.map((mode) => {
-    const def = defaultById[mode.id];
+    const def = defaultById.get(mode.id);
     if (!def) return mode;
     return {
       ...def,
@@ -2575,9 +2581,9 @@ function migrateRecord(record) {
     }
     const existingIds  = new Set(record.modes?.map((m) => m.id) ?? []);
     const missing      = DEFAULT_FLASHCARD_MODES.filter((m) => !existingIds.has(m.id));
-    const defaultById  = Object.fromEntries(DEFAULT_FLASHCARD_MODES.map((m) => [m.id, m]));
+    const defaultById  = modesById(DEFAULT_FLASHCARD_MODES);
     const patchedModes = (record.modes ?? []).map((m) => {
-      const def = defaultById[m.id];
+      const def = defaultById.get(m.id);
       if (!def?.params) return m;
       // backfill individual missing param keys (not just the whole params object)
       const missingKeys = Object.keys(def.params).filter((k) => !m.params?.[k]);
