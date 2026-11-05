@@ -185,13 +185,13 @@ export function presetFromLines(id, title, lines, ruling, elementLabels) {
   return { id, title, ruling: page.ruling, rows: page.rows, builtin: true };
 }
 
-// The methodology workbook (wide.json `sheets`) as ready notebooks in the shape of a kit: part 1 on the WIDE ruling, part 2 on the NARROW one.
+// The methodology workbook (wide.json `sheets`) as ready notebooks in the shape of a kit: part 1 on the first step of the Mazina method (paper m1; formerly the wide ruling), part 2 on the NARROW one.
 export function methodNotebooks(sheets, elementLabels) {
   return PROPIS2_METHOD_NOTEBOOKS.map((m) => ({
     id: m.id,
     title: m.title,
     description: m.description,
-    page: { ruling: m.ruling, grid: "dense", midDash: true },
+    page: { ruling: m.ruling, ...(m.paper ? { gridKind: m.paper } : {}), grid: "dense", midDash: true },
     pages: m.sheets.filter(([id]) => sheets?.[id]).map(([id, title]) => ({ title, rows: pageFromLines(title, sheets[id], m.ruling, elementLabels).rows })),
   }));
 }

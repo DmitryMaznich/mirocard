@@ -263,9 +263,9 @@ describe("propis2 (zip topic)", () => {
     expect(bands()).toHaveLength(17);
     await pick("Сиреневая");
     expect(bands()[0].getAttribute("fill")).toBe("#ebe5f6");
-    // the wide ruling has no narrow row: the button is off there
-    await click(host.querySelector('button[aria-label="Разлиновка"]'));
-    await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
+    // the Mazina steps have no narrow row: the button is off there
+    await click(host.querySelector('button[aria-label="Тип бумаги"]'));
+    await click(host.querySelector('[role="option"][aria-label="Ступень 1 (строка 8 мм)"]'));
     expect(fill().disabled).toBe(true);
     expect(bands()).toHaveLength(0);
     await click(btn("Отменить"));
@@ -293,7 +293,7 @@ describe("propis2 (zip topic)", () => {
       expect(editor.classList.contains("propis2-editor2--desk")).toBe(true);
       // the tools in one bar: undo, the paper, the row's tools, the zoom; no floating undo / zoom over the sheet
       const bar = host.querySelector(".p2-desk-bar");
-      for (const name of ["Отменить", "Тип бумаги", "Разлиновка", "Повтор", "Элементы", "Удалить строку", "Увеличить"]) expect(bar.querySelector(`[aria-label="${name}"]`), name).not.toBeNull();
+      for (const name of ["Отменить", "Тип бумаги", "Повтор", "Элементы", "Удалить строку", "Увеличить"]) expect(bar.querySelector(`[aria-label="${name}"]`), name).not.toBeNull();
       expect(host.querySelector(".p2-history")).toBeNull();
       // the pages as thumbnails, the open one marked; a click on another opens it
       const thumbs = host.querySelectorAll(".p2-thumb");
@@ -657,7 +657,7 @@ describe("propis2 (zip topic)", () => {
     const dash = () => host.querySelector('[aria-label="Пунктир в серединных линиях"]');
     // the default: прописи / узкая / частая
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
-    expect(pickBtn("Разлиновка").dataset.value).toBe("narrow");
+    expect(host.querySelector('[aria-label="Разлиновка"]')).toBeNull(); // the wide row is gone from the choice
     expect(slant().every((b) => !b.disabled)).toBe(true);
     const dense = preview().querySelectorAll("[data-simple-grid] line").length;
     await pick("Косая линейка", "Редкая");
@@ -689,14 +689,18 @@ describe("propis2 (zip topic)", () => {
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
     expect(slant().every((b) => !b.disabled)).toBe(true);
 
-    // wide ruling: the slants are clipped to the wide bands (none in the narrow strips between them); the dashes are slightly red
-    await pick("Разлиновка", "Широкая");
+    // the Mazina steps (own rows: 9 rows of 22 mm on A5, slants on the whole ruled part, the dashes slightly red): the slant and dash buttons work
+    await pick("Тип бумаги", "Ступень 1 (строка 8 мм)");
     await act(async () => { await tick(60); });
-    const grid = preview().querySelector("[data-simple-grid]");
-    expect(grid.getAttribute("clip-path")).toMatch(/^url\(#p2c/);
-    expect([...preview().querySelectorAll("rect")].filter((r) => r.parentElement.tagName.toLowerCase() === "clippath").length).toBe(16);
+    expect(preview().querySelector('[data-simple-grid="m1"]')).not.toBeNull();
+    expect(preview().querySelectorAll("[data-mz-row]").length).toBe(9);
+    expect(slant().every((b) => !b.disabled)).toBe(true);
+    expect(dash().disabled).toBe(false);
     expect(preview().querySelector("line[stroke-dasharray]").getAttribute("stroke")).toBe("#e57d7a");
-    await pick("Разлиновка", "Узкая");
+    await pick("Тип бумаги", "Ступень 2 (строка 5 мм)");
+    await act(async () => { await tick(60); });
+    expect(preview().querySelectorAll("[data-mz-row]").length).toBe(13);
+    await pick("Тип бумаги", "Прописи");
     await act(async () => { await tick(60); });
     expect(preview().querySelector("[data-simple-grid]").getAttribute("clip-path")).toBeNull();
 
@@ -822,7 +826,6 @@ describe("propis2 (zip topic)", () => {
     await click(lbl("Изменить тетрадь 9. Буквы б в ф и весь алфавит"));
     expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
     expect(lbl("Тип бумаги").disabled).toBe(false);
-    expect(lbl("Разлиновка").disabled).toBe(false);
     expect(lbl("Строка для письма после каждой строки").disabled).toBe(false);
     expect(lbl("Текст страницы").disabled).toBe(false);
     await act(async () => { root.unmount(); await tick(400); });

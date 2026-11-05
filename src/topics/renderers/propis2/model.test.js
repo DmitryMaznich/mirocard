@@ -607,11 +607,11 @@ describe("fade copies", () => {
     expect(copies.slice(-3).every((s) => s.opacity === 0)).toBe(true);
   });
 
-  it("the methodology workbook: part 1 (part1, page3..7) is on the WIDE ruling, part 2 (part2, page8..18) on the NARROW one, every sheet is there", () => {
+  it("the methodology workbook: part 1 (part1, page3..7) is on the first Mazina step (paper m1; it was the WIDE ruling), part 2 (part2, page8..18) on the NARROW one, every sheet is there", () => {
     const rec = record();
     const labels = new Set([...rec.elements.map((e) => e.id), ...rec.wide.filter((g) => g.kind === "element").map((g) => g.label)]);
     const [one, two] = methodNotebooks(rec.wideSheets, labels);
-    expect(one.page.ruling).toBe("wide");
+    expect(one.page.gridKind).toBe("m1");
     expect(two.page.ruling).toBe("narrow");
     expect(one.pages.map((p) => p.title)).toEqual(["Лист 1", "Лист с л, м, я", "Лист с о", "Лист с а, ю, с", "Лист с е, ё, э, х, ж", "Лист с ч, ь, ы, ъ"]);
     expect(two.pages).toHaveLength(12);
@@ -619,8 +619,7 @@ describe("fade copies", () => {
     // the rows are the transcribed workbook rows: nothing lost
     expect(one.pages[1].rows.map((r) => r.text)).toEqual(rec.wideSheets.page3.map((l) => l.replace(/#[dc]$/, "")));
     const { set, pages } = kitToLibraryItems(one);
-    expect(set.ruling).toBe("wide");
-    expect(pages.every((p) => p.ruling === "wide" && !p.locked)).toBe(true);
+    expect(pages.every((p) => p.gridKind === "m1" && taskGrid(p) === "m1" && !p.locked)).toBe(true);
   });
 
 describe("words never touch", () => {

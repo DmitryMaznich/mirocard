@@ -7,9 +7,10 @@
 export const PROPIS2_METHOD_NOTEBOOKS = [
   {
     id: "method-1",
-    title: "Листы методики, часть 1 (широкая строка)",
-    description: "Широкая строка. Элементы (заборчик, палочки, петли), затем строчные из них: и й ш н г п т к л м я о а ю с е ё э х ж ч ь ы ъ — сразу в слогах и коротких словах.",
-    ruling: "wide",
+    title: "Листы методики, часть 1 (ступень 1, строка 8 мм)",
+    description: "Ступень 1, строка 8 мм. Элементы (заборчик, палочки, петли), затем строчные из них: и й ш н г п т к л м я о а ю с е ё э х ж ч ь ы ъ — сразу в слогах и коротких словах.",
+    ruling: "narrow",
+    paper: "m1", // the first step of the Mazina method (was the wide row: the sheets are the same, the page holds 9 rows instead of 16)
     sheets: [
       ["part1", "Лист 1"],
       ["page3", "Лист с л, м, я"],
