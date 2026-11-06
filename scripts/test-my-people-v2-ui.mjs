@@ -82,6 +82,7 @@ await page.waitForTimeout(100);
 await page.screenshot({path:output+'/'+'recall-hint-320.png'});
 const bounds=await page.locator('.pl-controls').boundingBox();if(bounds.y+bounds.height>640)throw Error('controls offscreen');
 for(let i=0;i<14;i++){
+ await page.waitForFunction(()=>[...document.querySelectorAll('h1')].some(h=>h.textContent==='Готово!') || [...document.querySelectorAll('.pl-controls button')].some(b=>b.textContent==='С подсказкой' && !b.disabled));
  if(await page.getByRole('heading',{name:'Готово!',exact:true}).count())break;
  const grade=page.getByRole('button',{name:'С подсказкой',exact:true});
  await grade.click();
