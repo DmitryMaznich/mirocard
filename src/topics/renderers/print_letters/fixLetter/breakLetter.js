@@ -9,6 +9,11 @@ import { strokeGeometry } from "../screenWrite/traceEngine";
 // экране» use). PARTS are what the child moves:
 //  - a straight part (`M x,y L x,y`) is just its two ends (pa, pb): the middle drags both, near an end
 //    drags that end (owner, 2026-11-04: «все части должны двигаться и передвигаться концы»);
+//  - a SLANTED straight part can be mirrored too, like a half-oval (owner, 2026-11-06: «tap… зеркалило по
+//    вертикали и штрихи, которые прямые… для буквы И самая частая ошибка — наклон в другую сторону»): a tap
+//    flips it about the vertical through its middle («/» ↔ «\»); broken that way only where the flipped
+//    stroke still touches the other strokes with both ends, as the right one does — И's diagonal becomes
+//    the child's «N», while Л's or К's leg would hang in the air (see `slantMirrorable`);
 //  - any other part (a half-oval, К's corner) is a shape moved whole (off) and maybe mirrored (a tap
 //    turns a half-oval round). The ovals of О Ю С Э are cut in two at half height (owner, 2026-11-04:
 //    «овалы О, Ю, С, Э разрезать пополам по горизонтали и зеркалить половинки»): a top and a bottom arc.
@@ -136,7 +141,7 @@ export function letterTargets(card) {
 /** A part standing on target t. */
 function partOn(t, i = t.i) {
   return t.line
-    ? { i, line: true, pa: { ...t.line.a }, pb: { ...t.line.b }, len: t.len, name: t.name }
+    ? { i, line: true, pa: { ...t.line.a }, pb: { ...t.line.b }, len: t.len, name: t.name, slant: isSlanted({ line: true, pa: t.line.a, pb: t.line.b }) }
     : { i, line: false, pts: t.pts, key: t.key, cx: t.cx, cy: t.cy, half: t.half, flip: t.flip, len: t.len, name: t.name, off: Z(), mirror: false };
 }
 
@@ -218,7 +223,7 @@ export function breakLetter(card, opts = {}, rand = Math.random, tries = 0) {
     const p = parts[t.i];
     const kinds = ["shift"];
     if (opts.tilt && t.line && !tilted) kinds.push("tilt");
-    if (opts.mirror && t.half && !mirrored) kinds.push("mirror");
+    if (opts.mirror && !mirrored && (t.half || slantMirrorable(t, targets))) kinds.push("mirror");
     const kind = pick(kinds);
     if (kind === "tilt") {
       const { a, b } = t.line;
@@ -235,7 +240,7 @@ export function breakLetter(card, opts = {}, rand = Math.random, tries = 0) {
       p.broke = "tilt"; p.moved = { x: Math.round(nx * m), y: Math.round(ny * m) };
       tilted++;
     } else if (kind === "mirror") {
-      p.mirror = true;
+      if (p.line) Object.assign(p, mirrorLine(p)); else p.mirror = true;
       p.broke = "mirror";
       mirrored++;
     } else {
@@ -256,6 +261,46 @@ export function breakLetter(card, opts = {}, rand = Math.random, tries = 0) {
   // still look broken — otherwise the letter would come out whole, or with a hole the child can't see.
   if (looseParts(parts, targets).length < chosen.length && tries < 20) return breakLetter(card, opts, rand, tries + 1);
   return parts;
+}
+
+/** A straight part that is neither vertical nor horizontal. */
+export function isSlanted(p) {
+  return Boolean(p?.line) && Math.abs(p.pa.x - p.pb.x) > 1 && Math.abs(p.pa.y - p.pb.y) > 1;
+}
+
+/** Does a tap mirror this part? A half-oval, or a straight stroke slanted in the letter itself (И's
+ *  diagonal, Л's legs) — not a stick or bar that only stands slanted because it was tilted. */
+export function tapMirrors(p) {
+  return Boolean(p?.half) || (Boolean(p?.slant) && isSlanted(p));
+}
+
+/** Straight part p mirrored about the vertical through its middle: «/» ↔ «\». A new object. */
+export function mirrorLine(p) {
+  const mx = (p.pa.x + p.pb.x) / 2;
+  return { ...p, pa: { x: 2 * mx - p.pa.x, y: p.pa.y }, pb: { x: 2 * mx - p.pb.x, y: p.pb.y } };
+}
+
+const onStroke = (q, targets, self) =>
+  targets.some((o) => o.i !== self && o.pts.some((r, k) => k > 0 && segDist(q, o.pts[k - 1], r) <= 1.5));
+function segDist(q, a, b) {
+  const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1;
+  const f = Math.max(0, Math.min(1, ((q.x - a.x) * vx + (q.y - a.y) * vy) / L2));
+  return Math.hypot(q.x - (a.x + f * vx), q.y - (a.y + f * vy));
+}
+
+/**
+ * Can target t be broken by mirroring its slant? Only a slanted straight stroke whose mirrored copy keeps
+ * BOTH ends on the other strokes, as the stroke itself does (И, Й: the diagonal between the two sticks),
+ * and is not the place of another stroke (Х's diagonals are each other's mirror — that would be no break).
+ */
+export function slantMirrorable(t, targets) {
+  if (!t.line) return false;
+  const p = { line: true, pa: t.line.a, pb: t.line.b };
+  if (!isSlanted(p)) return false;
+  const f = mirrorLine(p);
+  if (!onStroke(f.pa, targets, t.i) || !onStroke(f.pb, targets, t.i)) return false;
+  const fp = { ...f, line: true };
+  return !targets.some((o) => o.line && matchDistance(fp, o) <= EXACT);
 }
 
 /** Where a straight part's ends are now. */

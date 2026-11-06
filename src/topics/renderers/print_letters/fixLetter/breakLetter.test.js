@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import topic from "../../../../../tools/print_letters/topic.json";
 import { screenGlyph } from "../screenWrite/traceEngine";
 import {
-  MAGNETS, breakLetter, glyphWidthOf, grabRole, isSolved, letterParts, letterTargets, looseParts, matchDistance, moved,
-  partEnds, snapTarget, vlen,
+  MAGNETS, breakLetter, glyphWidthOf, grabRole, isSlanted, isSolved, letterParts, letterTargets, looseParts, matchDistance,
+  mirrorLine, moved, partEnds, slantMirrorable, snapTarget, tapMirrors, vlen,
 } from "./breakLetter";
 
 // a repeatable random source
@@ -60,16 +60,64 @@ describe("«Почини букву»: breaking a letter", () => {
     }
   });
 
-  it("only tilts straight strokes and only mirrors half-ovals; neither when they are off", () => {
+  it("only tilts straight strokes and only mirrors half-ovals and И's / Й's diagonal; neither when they are off", () => {
     for (const card of letters) {
       const targets = letterTargets(card);
       for (let seed = 1; seed <= 20; seed++) {
         for (const p of breakLetter(card, { broken: "all", tilt: true, mirror: true }, seeded(seed))) {
           if (p.broke === "tilt") expect(p.line).toBe(true);
-          if (p.broke === "mirror") expect(targets[p.i].half).toBe(true);
+          if (p.broke === "mirror") expect(targets[p.i].half || slantMirrorable(targets[p.i], targets), `${card.id} ${p.name}`).toBe(true);
         }
       }
       for (const p of breakLetter(card, { broken: "all" }, seeded(7))) expect(["shift", undefined]).toContain(p.broke);
+    }
+  });
+});
+
+describe("«Почини букву»: a slant the wrong way (owner, 2026-11-06)", () => {
+  it("breaks by mirroring a slant only where the flipped stroke still joins the letter at both ends: И and Й", () => {
+    const able = letters.filter((card) => { const ts = letterTargets(card); return ts.some((t) => slantMirrorable(t, ts)); });
+    expect(able.map((c) => c.id).sort()).toEqual(["И", "Й"]);
+  });
+
+  it("И can come with its diagonal the wrong way («N»): loose until a tap mirrors it back", () => {
+    const card = glyph("И");
+    const targets = letterTargets(card);
+    let parts = null;
+    for (let seed = 1; seed <= 200 && !parts; seed++) {
+      const ps = breakLetter(card, { broken: 1, tilt: false, mirror: true }, seeded(seed));
+      if (ps.some((p) => p.broke === "mirror")) parts = ps;
+    }
+    expect(parts).not.toBeNull();
+    const i = parts.findIndex((p) => p.broke === "mirror");
+    expect(isSlanted(parts[i])).toBe(true);
+    expect(looseParts(parts, targets)).toEqual([i]);
+    const fixed = parts.map((p, k) => (k === i ? mirrorLine(p) : p));
+    expect(isSolved(fixed, targets)).toBe(true);
+  });
+
+  it("a tap mirrors a stroke slanted in the letter, not a stick that was only tilted", () => {
+    const card = glyph("Н");
+    const targets = letterTargets(card);
+    for (let seed = 1; seed <= 30; seed++) {
+      for (const p of breakLetter(card, { broken: "all", tilt: true, mirror: true }, seeded(seed))) {
+        expect(tapMirrors(p), `${p.name} ${p.broke}`).toBe(false);
+      }
+    }
+    expect(letterParts(glyph("И")).filter(tapMirrors).map((p) => p.name)).toEqual(["наклонная"]);
+    expect(targets.length).toBeGreaterThan(0);
+  });
+
+  it("a tap mirrors any slanted straight stroke and twice gives it back; sticks and bars are not slanted", () => {
+    for (const card of letters) {
+      for (const p of letterParts(card).filter((q) => q.line)) {
+        const flat = Math.abs(p.pa.x - p.pb.x) <= 1 || Math.abs(p.pa.y - p.pb.y) <= 1;
+        expect(isSlanted(p), `${card.id} ${p.name}`).toBe(!flat);
+        if (!flat) {
+          const back = mirrorLine(mirrorLine(p));
+          expect([back.pa, back.pb]).toEqual([p.pa, p.pb]);
+        }
+      }
     }
   });
 });
