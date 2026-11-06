@@ -118,7 +118,7 @@ function LegacySessionSummary() {
     }
     if (String(conceptId).startsWith("point:")) {
       const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("point:".length));
-      return person ? `Где ${mainWord(person)}?` : "Покажи";
+      return person ? `Покажи: ${person.name?.trim() || mainWord(person)}` : "Покажи";
     }
     if (String(conceptId).startsWith("match:")) {
       const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("match:".length));
