@@ -1,11 +1,32 @@
 import { describe, it, expect } from 'vitest';
-import { defaultPlan, planReadiness, generateLearningTasks, trialResult, learningSummary, insertLearningRetry, exposureKey, learningPhotoReferences } from './peopleLearning';
+import { defaultPlan, planReadiness, generateLearningTasks, trialResult, learningSummary, insertLearningRetry, exposureKey, learningPhotoReferences, categoryPeople, chooseCategory, normalizePlan } from './peopleLearning';
 import { personRelations, comparePeopleDocuments } from '../../../shared/my-people-v2.mjs';
 import { mergePeopleCards, mergePeopleRecords } from '../../../shared/student-people.mjs';
 const names = ['Анна', 'Иван', 'Саша', 'Ольга', 'Маша', 'Барсик'];
 export const student = { id: 'kid', myPeople: names.map((name, i) => ({ id: `p${i}`, name, relation: ['мама', 'папа', 'подруга', 'учительница', 'сестра', 'кот'][i], type: i === 5 ? 'pet' : 'person', photos: [`photo${i}`, `photo${i}b`], enabled: true })) };
 const plan = patch => ({ ...defaultPlan(student), introMode: 'off', ...patch });
 describe('personal learning contracts', () => {
+  it('filters target categories without restricting the separate distractor pool', () => {
+    const s = structuredClone(student);
+    s.myPeople.forEach((p, i) => { p.contexts = [i < 2 ? 'family' : i < 4 ? 'school' : 'friends']; });
+    const original = plan({ fieldSize: 6 });
+    const school = chooseCategory(s, original, 'school');
+    expect(school.targetPersonIds).toEqual(['p2', 'p3']);
+    expect(school.distractorPoolIds).toEqual(original.distractorPoolIds);
+    const tasks = generateLearningTasks(s, school);
+    expect(tasks).toHaveLength(6);
+    expect(tasks.every(t => ['p2', 'p3'].includes(t.targetPersonId) && t.choices.length === 6)).toBe(true);
+    expect(categoryPeople(s, 'pets').map(p => p.id)).toEqual(['p5']);
+    expect(categoryPeople(s, 'pets', 'relation')).toEqual([]);
+  });
+  it('keeps old plan selections and refuses empty or stale category membership', () => {
+    const old = plan({ targetPersonIds: ['p0'] });
+    expect(normalizePlan(old, student)).toMatchObject({ category: 'all', targetPersonIds: ['p0'] });
+    expect(planReadiness(student, { ...old, category: 'school' }).ready).toBe(false);
+    expect(chooseCategory(student, old, 'school').targetPersonIds).toEqual([]);
+    expect(generateLearningTasks(student, chooseCategory(student, old, 'school'))).toEqual([]);
+  });
+
   it.each([2, 3, 4, 6])('generates exactly %i distinct choices for every target', fieldSize => {
     const tasks = generateLearningTasks(student, plan({ fieldSize, questionCount: 8 }));
     expect(tasks).toHaveLength(8);

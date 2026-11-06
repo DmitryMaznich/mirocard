@@ -3,6 +3,15 @@ import { personRelations, wordKey } from '../../../shared/my-people-v2.mjs';
 export const PEOPLE_MODE_ID = 'people_learning_v2';
 export const newId = () => crypto.randomUUID();
 export const scopeKey = p => `${p.goal}:${p.activity}:${p.context}`;
+export const PEOPLE_CATEGORIES = [['all', 'Все категории'], ['family', 'Семья'], ['school', 'Школа'], ['friends', 'Друзья'], ['home', 'Дома'], ['pets', 'Питомцы']];
+export function categoryPeople(student, category = 'all', goal = 'name') {
+  return learningPeople(student).filter(person => (goal !== 'relation' || person.type !== 'pet' && personRelations(person).length)
+    && (category === 'all' || category === 'pets' ? category !== 'pets' || person.type === 'pet' : person.contexts?.includes(category)));
+}
+export function chooseCategory(student, plan, category) {
+  return normalizePlan({ ...plan, category, targetPersonIds: categoryPeople(student, category, plan.goal).map(p => p.id) }, student);
+}
+
 export function learningPeople(student) {
   return studentPeople(student).filter(p => !p.deletedAt && !p.mergedInto && p.enabled !== false && p.name?.trim() && p.photos?.some(Boolean));
 }
@@ -16,7 +25,7 @@ export async function learningPhotoReferences(student) {
 }
 export function defaultPlan(student, scope = {}) {
   const people = learningPeople(student);
-  return { schemaVersion: 2, studentId: student?.id, goal: 'name', activity: 'select', context: 'self',
+  return { schemaVersion: 2, studentId: student?.id, goal: 'name', activity: 'select', context: 'self', category: 'all',
     targetPersonIds: people.slice(0, 3).map(p => p.id), distractorPoolIds: people.map(p => p.id),
     fieldSize: 2, initialHint: 'none', photoMode: 'primary', questionCount: 6, introMode: 'new', voice: true, ...scope };
 }
@@ -26,6 +35,7 @@ export function normalizePlan(raw, student) {
   p.goal = p.goal === 'relation' ? 'relation' : 'name';
   p.activity = p.activity === 'recall' ? 'recall' : 'select';
   p.context = p.context === 'adult' ? 'adult' : 'self';
+  p.category = PEOPLE_CATEGORIES.some(([key]) => key === p.category) ? p.category : 'all';
   p.fieldSize = [2, 3, 4, 6].includes(Number(p.fieldSize)) ? Number(p.fieldSize) : 2;
   p.questionCount = [4, 6, 8].includes(Number(p.questionCount)) ? Number(p.questionCount) : 6;
   p.initialHint = ['model', 'prefix'].includes(p.initialHint) ? p.initialHint : 'none';
@@ -49,6 +59,7 @@ export function planReadiness(student, raw) {
   for (const id of plan.targetPersonIds) {
     const p = byId.get(id);
     if (!p) { errors.push('Одна из выбранных карточек выключена, удалена или без фото.'); continue; }
+    if (!categoryPeople(student, plan.category, 'name').some(person => person.id === id)) { errors.push(`${p.name}: карточка не входит в выбранную категорию.`); continue; }
     if (plan.goal === 'relation' && (p.type === 'pet' || !personRelations(p).length)) { errors.push(`${p.name}: выберите человека и укажите отношение к ребёнку.`); continue; }
     if (plan.activity === 'select') {
       for (const role of plan.goal === 'relation' ? personRelations(p) : [null]) {
@@ -90,7 +101,7 @@ export function generateLearningTasks(student, raw, exposures = {}, random = Mat
       prefix: wordPrefix(model, plan.goal === 'name' ? person.nameHint : role?.hintPrefix),
       prompt: plan.activity === 'recall' ? plan.goal === 'name' ? 'Как зовут?' : 'Кто это тебе?' :
         plan.goal === 'name' ? `Где ${model}?` : role.questionForm ? `Покажи ${role.questionForm}.` : `Кто тебе «${model}»?`,
-      conditionsFingerprint: JSON.stringify({ goal: plan.goal, activity: plan.activity, context: plan.context, fieldSize: plan.activity === 'select' ? plan.fieldSize : null, initialHint: plan.initialHint, photoMode: plan.photoMode }),
+      conditionsFingerprint: JSON.stringify({ category: plan.category, goal: plan.goal, activity: plan.activity, context: plan.context, fieldSize: plan.activity === 'select' ? plan.fieldSize : null, initialHint: plan.initialHint, photoMode: plan.photoMode }),
     };
     if (plan.activity === 'select') {
       const pool = plan.distractorPoolIds.map(id => people.find(p => p.id === id)).filter(Boolean);
@@ -154,5 +165,5 @@ export function nextLearningPlan(plan, trials) {
 }
 
 export function planDescription(plan) {
-  return `${plan.goal === 'name' ? 'Имена' : 'Кто он мне'} · ${plan.activity === 'select' ? `Выбрать фото · ${plan.fieldSize} ${plan.fieldSize === 6 ? "карточек" : "карточки"}` : `Назвать самому · ${{ none: 'без начальной подсказки', prefix: 'начало слова', model: 'полный образец' }[plan.initialHint]}`} · ${plan.questionCount} ${plan.questionCount === 4 ? "вопроса" : "вопросов"} · ${plan.photoMode === 'available' ? 'доступные фото' : 'основные фото'}`;
+  return `${PEOPLE_CATEGORIES.find(([key]) => key === (plan.category ?? 'all'))?.[1] ?? 'Все категории'} · ${plan.goal === 'name' ? 'Имена' : 'Кто он мне'} · ${plan.activity === 'select' ? `Выбрать фото · ${plan.fieldSize} ${plan.fieldSize === 6 ? "карточек" : "карточки"}` : `Назвать самому · ${{ none: 'без начальной подсказки', prefix: 'начало слова', model: 'полный образец' }[plan.initialHint]}`} · ${plan.questionCount} ${plan.questionCount === 4 ? "вопроса" : "вопросов"} · ${plan.photoMode === 'available' ? 'доступные фото' : 'основные фото'}`;
 }

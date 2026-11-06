@@ -1,4 +1,3 @@
-import { personRelations } from '../../../shared/my-people-v2.mjs';
 import VideoPrizeCard from '@/features/rewards/VideoPrizeCard';
 import { persistStudentTopicLink } from '@/core/linkUtils';
 import { effectiveRewardSettings } from '../../../shared/reward-policy.mjs';
@@ -10,7 +9,7 @@ import { useTimer } from '@/features/timer/TimerContext';
 import PinGateModal from '@/shared/components/PinGateModal';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import { openMyPeopleSettings } from './myPeopleReadiness';
-import { defaultPlan, normalizePlan, planReadiness, learningPeople, scopeKey, PEOPLE_MODE_ID, planDescription, learningPhotoReferences } from './peopleLearning';
+import { defaultPlan, normalizePlan, planReadiness, learningPeople, scopeKey, PEOPLE_MODE_ID, planDescription, learningPhotoReferences, PEOPLE_CATEGORIES, categoryPeople, chooseCategory } from './peopleLearning';
 import { loadLearningDocuments, loadLearningLocal, saveLearningDocument, learningDocKey } from './peopleLearningStore';
 import { LearningPhoto } from './PeopleLearningTask';
 import './peopleLearning.css';
@@ -71,8 +70,9 @@ function PeopleLearningHomeContent({ legacy }) {
   function changeScope(patch) {
     const next = { ...draft, ...patch };
     const saved = docs?.[learningDocKey(student.id, 'draft', scopeKey(next))];
-    const p = saved ?? defaultPlan(student, { goal: next.goal, activity: next.activity, context: next.context,
-      targetPersonIds: people.filter(p => next.goal !== 'relation' || p.type !== 'pet' && personRelations(p).length).slice(0, 3).map(p => p.id) });
+    const category = next.goal === 'relation' && next.category === 'pets' ? 'all' : next.category;
+    const p = saved ?? defaultPlan(student, { goal: next.goal, activity: next.activity, context: next.context, category,
+      targetPersonIds: categoryPeople(student, category, next.goal).slice(0, category === 'all' ? 3 : undefined).map(p => p.id) });
     setDraft(normalizePlan(p, student));
   }
   async function launch(raw) {
@@ -125,6 +125,7 @@ function PeopleLearningHomeContent({ legacy }) {
       <h2>Подготовка занятия · {student.name}</h2>
       <div className="pl-card">
         <Options label="Что учим" value={draft.goal} values={[[ 'name', 'Имена' ], [ 'relation', 'Кто он мне' ]]} onChange={goal => changeScope({ goal })} />
+        <Options label="Кого отрабатываем" value={draft.category} values={PEOPLE_CATEGORIES.filter(([key]) => (key !== 'pets' || draft.goal === 'name') && (key !== 'home' || people.some(p => p.contexts?.includes('home'))))} onChange={category => setDraft(chooseCategory(student, draft, category))} />
         <Options label="Как занимаемся" value={draft.context} values={[[ 'self', 'Самостоятельно' ], [ 'adult', 'Со взрослым' ]]} onChange={context => changeScope({ context })} />
         <Options label="Задание" value={draft.activity} values={[[ 'select', 'Выбрать фото' ], [ 'recall', 'Назвать самому' ]]} onChange={activity => changeScope({ activity })} />
       </div>
@@ -145,7 +146,7 @@ function PeopleLearningHomeContent({ legacy }) {
           showSeries={draft.activity !== 'recall' || draft.context === 'adult'} answersPerStar={prize.answersPerStar} onAnswersPerStar={answersPerStar => changePrize({ answersPerStar })}
           showAtEnd atEnd={draft.videoAtEnd === true} onAtEnd={videoAtEnd => update({ videoAtEnd })}
           showStrict={draft.activity !== 'recall' || draft.context === 'adult'} strict={prize.strictStars} onStrict={strictStars => changePrize({ strictStars })} rules={effectiveRewardSettings(student.rewardSettings)} />}
-        <PeopleSet label="Кого учим" value={draft.targetPersonIds} people={people.filter(p => draft.goal !== 'relation' || p.type !== 'pet')} onChange={targetPersonIds => update({ targetPersonIds })} />
+        <PeopleSet label="Кого учим" value={draft.targetPersonIds} people={categoryPeople(student, draft.category, draft.goal)} onChange={targetPersonIds => update({ targetPersonIds })} />
         {draft.activity === 'select' && <PeopleSet label="Откуда брать отвлекающие варианты" value={draft.distractorPoolIds} people={people} onChange={distractorPoolIds => update({ distractorPoolIds })} />}
         <button type="button" className="pl-option" disabled={busy} onClick={async () => { setBusy(true); try { await save('draft', scopeKey(draft), draft); setPage('adult'); } catch (e) { setError(e.message); } finally { setBusy(false); } }}>Сохранить черновик</button>
       </section>}
