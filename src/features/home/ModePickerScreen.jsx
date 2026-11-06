@@ -73,7 +73,10 @@ export default function ModePickerScreen() {
   return isPeople ? <PeopleLearningHome key={studentId} legacy={<LegacyModePickerScreen />} /> : <LegacyModePickerScreen />;
 }
 
-export function LegacyModePickerScreen() {
+// `hiddenModeIds` / `onBack`: «Мои люди» shows this list as «Другие упражнения»
+// inside the plan route, without the modes the plan itself covers and with
+// «back» leading to the plan, not home.
+export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null }) {
   const { t } = useUiTranslation();
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
@@ -111,7 +114,7 @@ export function LegacyModePickerScreen() {
   // old album modes) stay out of the list.
   useAppStore((s) => s.studentTopicLinks);
   const topicLanguage = topicRecord?.languageContract ? topicLanguageForStudent(topicRecord) : null;
-  const modes = rawModes.filter(isPickableMode).filter((mode) => !topicLanguage || topicRecord.languageContract.packages[topicLanguage]?.modeIds.includes(mode.id));
+  const modes = rawModes.filter(isPickableMode).filter((mode) => !hiddenModeIds.includes(mode.id)).filter((mode) => !topicLanguage || topicRecord.languageContract.packages[topicLanguage]?.modeIds.includes(mode.id));
 
   // Short stories deliberately keep their picker instead of auto-opening
   // settings: the parent chooses between reading together and comprehension
@@ -174,7 +177,7 @@ export function LegacyModePickerScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home")}><BackArrowIcon /></button>
+        <button className="back-btn" onClick={() => (onBack ? onBack() : setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home"))}><BackArrowIcon /></button>
         <h1 className="screen-title">{isShortStories ? getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title) : isReading ? getTextTitle(activeText) : getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}</h1>
         <button
           className="header-info-btn"

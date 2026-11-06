@@ -620,6 +620,17 @@ describe("«Подпиши фото»", () => {
   };
   const albums = (params) => generateTasks(labelPhotos, student, params).filter((task) => task.type === "people_album");
 
+  it("signs a pet by its name, not by the kind of animal", () => {
+    const withPet = { id: "sp", myPeople: [
+      { id: "mum", type: "person", name: "Анна", relation: "мама", contexts: ["family"], photos: ["/m"], enabled: true },
+      { id: "cat", type: "pet", name: "Мурка", relation: "наша кошка", contexts: ["family"], photos: ["/c"], enabled: true },
+    ] };
+    const labels = generateTasks(labelPhotos, withPet, { labelKind: "relation", peopleCount: 2 })
+      .flatMap((task) => task.entries ?? [{ label: task.label, personId: task.personId }]);
+    expect(labels.find((entry) => entry.personId === "cat")?.label).toBe("Мурка");
+    expect(labels.find((entry) => entry.personId === "mum")?.label).toBe("мама");
+  });
+
   it("takes the circle and the words from the params", () => {
     const [family] = albums({ circle: "family", labelKind: "relation" });
     expect(family.axis).toBe("relation");

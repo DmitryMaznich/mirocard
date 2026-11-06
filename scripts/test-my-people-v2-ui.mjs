@@ -23,7 +23,7 @@ await page.evaluate(images=>{
  const student={id:'qa-kid',name:'Мирон',lessonFlow:{advance:'tap',delaySeconds:1},myPeople:['Анна','Иван','Саша','Ольга','Маша','Барсик'].map((name,i)=>({id:'p'+i,type:i===5?'pet':'person',name,relation:['мама','папа','подруга','учительница','сестра','кот'][i],contexts:[i<2?'family':'friends'],photos:[images[i]],enabled:true}))};
  const s=window.__store.getState();s.setAccount({id:'qa-account',displayName:'Тест'});s.setStudents([student]);s.setActiveStudentId(student.id);s.setActiveTopicId('my_people');s.patchSettings({adultPinHash:null});s.setScreen('modes');
 },images);
-await page.getByRole('button',{name:'Новая механика',exact:true}).click();
+await page.getByRole('button',{name:'Занятия по плану',exact:true}).click();
 await page.getByRole('button',{name:'Для взрослого',exact:true}).click();
 await page.getByRole('button',{name:'Все параметры',exact:true}).click();
 await page.getByRole('button',{name:'6 фото · 5 отвлекающих',exact:true}).click();

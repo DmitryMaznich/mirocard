@@ -10,6 +10,9 @@ vi.mock('@/core/syncApi', () => ({ flushQueue: sync.flushQueue }));
 vi.mock('@/features/timer/TimerContext', () => ({ useTimer: () => ({ markSessionStart() {} }) }));
 vi.mock('./PeopleLearningTask', () => ({ LearningPhoto: ({ src }) => <img src={src} alt="" /> }));
 let root, container;
+function LegacyList({ hiddenModeIds = [], onBack }) {
+  return <div>Старые упражнения {['match_same', 'show_me', 'who_is_this'].filter(id => !hiddenModeIds.includes(id)).join(' ')}{onBack && <button onClick={onBack}>К плану</button>}</div>;
+}
 const button = text => [...container.querySelectorAll('button')].find(b => b.textContent === text);
 const waitFor = async predicate => vi.waitFor(async () => { await act(async () => { await new Promise(resolve => setTimeout(resolve, 2)); }); expect(predicate()).toBeTruthy(); });
 const click = async text => { await waitFor(() => button(text)); await act(async () => { button(text).click(); }); };
@@ -21,18 +24,18 @@ beforeEach(async () => {
   s.setActiveStudentId('kid'); s.setActiveTopicId('my_people'); s.patchSettings({ adultPinHash: null });
   s.setMyPeopleLaunchPlan(null); s.setActiveSessionSnapshot(null);
   container = document.createElement('div'); document.body.append(container); root = createRoot(container);
-  await act(async () => { root.render(<PeopleLearningHome legacy={<div>Старые упражнения</div>} />); });
-  await waitFor(() => button('Новая механика'));
+  await act(async () => { root.render(<PeopleLearningHome legacy={<LegacyList />} />); });
+  await waitFor(() => button('Занятия по плану'));
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
 it('keeps the original route until an adult selects the new mechanics', async () => {
   expect(container.textContent).toContain('Старые упражнения');
-  await click('Новая механика');
+  await click('Занятия по плану');
   await waitFor(() => container.textContent.includes('Здесь будут твои люди'));
   expect(button('Начать')).toBeUndefined();
 });
 it('launches the confirmed plan and an unconfirmed draft cannot alter it', async () => {
-  await click('Новая механика'); await click('Для взрослого'); await click('Все параметры');
+  await click('Занятия по плану'); await click('Для взрослого'); await click('Все параметры');
   await click('4 фото · 3 отвлекающих'); await click('Подготовить ребёнку');
   await click('Для взрослого'); await click('Все параметры'); await click('6 фото · 5 отвлекающих');
   await click('Сохранить черновик');
@@ -44,7 +47,7 @@ it('launches the confirmed plan and an unconfirmed draft cannot alter it', async
   expect(useAppStore.getState().myPeopleLaunchPlan.fieldSize).toBe(4);
 });
 it('preserves scoped field size while changing goal and activity', async () => {
-  await click('Новая механика'); await click('Для взрослого'); await click('Все параметры');
+  await click('Занятия по плану'); await click('Для взрослого'); await click('Все параметры');
   await click('6 фото · 5 отвлекающих'); await click('Сохранить черновик');
   await click('Кто он мне'); await click('Все параметры');
   expect(button('2 фото · 1 отвлекающих').getAttribute('aria-pressed')).toBe('true');
@@ -53,7 +56,7 @@ it('preserves scoped field size while changing goal and activity', async () => {
 });
 
 it('saves category in the confirmed plan while keeping all distractors available', async () => {
-  await click('Новая механика'); await click('Для взрослого'); await click('Школа'); await click('Все параметры');
+  await click('Занятия по плану'); await click('Для взрослого'); await click('Школа'); await click('Все параметры');
   const targets = [...container.querySelectorAll('fieldset')].find(f => f.querySelector('legend')?.textContent === 'Кого учим');
   expect([...targets.querySelectorAll('input')]).toHaveLength(1);
   const pool = [...container.querySelectorAll('fieldset')].find(f => f.querySelector('legend')?.textContent === 'Откуда брать отвлекающие варианты');
@@ -64,4 +67,16 @@ it('saves category in the confirmed plan while keeping all distractors available
   await act(async () => { container.querySelector('[aria-label="Назад"]').click(); });
   await click('Начать'); await waitFor(() => useAppStore.getState().screen === 'session');
   expect(useAppStore.getState().myPeopleLaunchPlan).toMatchObject({ category: 'school', targetPersonIds: ['p2'] });
+});
+
+it('shows «Другие упражнения» without the modes the plan covers, and goes back to the plan', async () => {
+  expect(container.textContent).toContain('match_same show_me who_is_this');
+  await click('Занятия по плану'); await click('Для взрослого'); await click('Другие упражнения');
+  await waitFor(() => container.textContent.includes('Старые упражнения'));
+  expect(container.textContent).toContain('match_same');
+  expect(container.textContent).not.toContain('show_me');
+  expect(container.textContent).not.toContain('who_is_this');
+  expect(button('Занятия по плану')).toBeUndefined();
+  await click('К плану');
+  await waitFor(() => button('Все параметры'));
 });

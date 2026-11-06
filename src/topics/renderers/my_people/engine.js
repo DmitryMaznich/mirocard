@@ -597,12 +597,18 @@ function createPhotoPlanner(previousImages) {
   };
 }
 
+// A pet is signed by its name on every page: "кот" or "наша кошка" is the
+// kind of animal, not what the child calls it.
+function albumLabel(person, axis) {
+  return axis === "relation" && person.type !== "pet" ? person.relation.trim() : person.name.trim();
+}
+
 function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
   const entries = shuffle(group).map((person) => ({
     personId: person.id,
     conceptId: `${person.id}:${axis}`,
     image: photoPlanner.imageFor(person, axis, preferDifferentPhoto),
-    label: axis === "relation" ? person.relation.trim() : person.name.trim(),
+    label: albumLabel(person, axis),
   }));
   const axisText = axis === "name" ? "имена" : "кто это";
   const ids = entries.map((entry) => entry.personId).sort().join("_");
@@ -624,7 +630,7 @@ function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
 }
 
 function introTaskForPerson(person, axis, modeId, photoPlanner, preferDifferentPhoto = false) {
-  const label = axis === "relation" ? person.relation.trim() : person.name.trim();
+  const label = albumLabel(person, axis);
   return {
     type: "person_intro",
     conceptId: `intro:${modeId}:${person.id}:${axis}`,
