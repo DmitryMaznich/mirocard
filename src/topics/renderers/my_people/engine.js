@@ -285,6 +285,21 @@ const POINT_FIELD_SIZES = [2, 3, 4];
 export const MIN_POINT_TRIALS_PER_ROUND = 6;
 export const MAX_POINT_TRIALS_PER_ROUND = 8;
 
+// «Подпись» in «Покажи» and «Найди лицо»: which of the person's two fields
+// the question uses -- «Кто это для ребёнка» (the relation as typed: мама,
+// учительница, подруга; the name when it is empty) or the name. A pet is
+// always asked by name. Never the two glued together ("папа Дима" is not
+// what anyone says at home, and name and relation are separate goals), and
+// never the sentence-builder label: only the two fields the adult sees.
+// The relation goes mid-sentence, so "Мама" is asked as "мама".
+export function labelWord(person, params) {
+  const name = person?.name?.trim() ?? "";
+  if (person?.type === "pet" || params?.label === "name") return name;
+  const relation = person?.relation?.trim() ?? "";
+  return relation ? relation[0].toLowerCase() + relation.slice(1) : name;
+}
+
+// The word «Кто это?» and the summaries name a person by.
 export function mainWord(person) {
   const label = person?.type !== "pet" ? person?.sentenceLabel?.trim() : "";
   if (label) return label;
@@ -322,10 +337,11 @@ function pointTasks(people, params, photoPlanner, sessionIntroduced = {}, round 
 
   const positions = [];
   return pointTargetSequence(targets).map((target, trialIndex) => {
-    const word = mainWord(target);
-    // Two people answering to the same word (two "Маша") would make the
-    // question ambiguous, so they never share a screen.
-    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round);
+    const wordOf = (person) => labelWord(person, params);
+    const word = wordOf(target);
+    // Two people answering to the same word (two "Маша", two grandmothers)
+    // would make the question ambiguous, so they never share a screen.
+    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round, wordOf);
     const order = shuffle(distractors);
     const position = pickTargetPosition(order.length + 1, positions);
     positions.push(position);
@@ -398,11 +414,7 @@ function pickTargetPosition(slots, previous) {
 // the same words. Also direct practice in recognising someone across
 // photos rather than by one detail (glasses, a jumper, the kitchen).
 // "Где …?" rather than "Найди …": no accusative to build from a name.
-// «Подпись» picks which of the person's two fields is on screen: «Кто это
-// для ребёнка» (the relation as typed -- мама, учительница, подруга) or the
-// name. Never both glued together ("папа Дима" is not what anyone says at
-// home, and name and relation are separate goals), and never the
-// sentence-builder label: only the two fields the adult sees here.
+// «Подпись» picks the word, as in «Покажи» (labelWord).
 // Only people with two or more photos can be targets -- with one photo it
 // would be matching identical pictures, a different and easier skill.
 const MATCH_FIELD_SIZES = [2, 3, 4];
@@ -414,11 +426,6 @@ export function hasTwoPhotos(person) {
 // «Образец»: "same" is the step below -- the very photo on top is among the
 // choices (identical matching), so one photo per person is enough; "other"
 // (the default) is the same person on a different photo.
-export function matchWord(person, params) {
-  const name = person?.name?.trim() ?? "";
-  if (person?.type === "pet" || params?.label === "name") return name;
-  return person?.relation?.trim() || name;
-}
 
 export function matchUsesSamePhoto(params) {
   return params?.sample === "same";
@@ -447,7 +454,7 @@ function matchTasks(people, params, round) {
     const match = samePhoto ? sample : photos[1];
     // The question names the person, so two "Маша" never share a screen --
     // as in «Покажи».
-    const wordOf = (person) => matchWord(person, params);
+    const wordOf = (person) => labelWord(person, params);
     const word = wordOf(target);
     const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round, wordOf);
     const order = shuffle(distractors);
@@ -482,7 +489,7 @@ function matchTasks(people, params, round) {
 // pet is set against people and people against a pet when the album has
 // both, so the very first choices are the most different ones. Later
 // rounds draw from everyone.
-function pickPointDistractors(target, people, word, count, round, wordOf = mainWord) {
+function pickPointDistractors(target, people, word, count, round, wordOf) {
   if (count <= 0) return [];
   const eligible = shuffle(people.filter((person) => person.id !== target.id
     && wordOf(person).toLowerCase() !== word.toLowerCase()));

@@ -103,6 +103,17 @@ const labelPhotosMode = {
 // sample ("Это мама. Где мама?"). The first step, before «Покажи», which
 // asks the same question without the sample. Needs people with at least
 // two photos (or «Одинаковое фото»).
+// «Подпись» in «Покажи» and «Найди лицо»: the relation or the name, the
+// same choice in both so the ladder keeps its words (engine labelWord).
+const labelParam = {
+  type: "enum",
+  label: { ru: "Подпись" },
+  values: ["relation", "name"],
+  labels: { ru: { relation: "Кто это для ребёнка", name: "Имя" } },
+  hint: { ru: "Какое поле из карточки человека написать и произнести: «Где мама?» или «Где Надя?». У питомцев всегда имя." },
+  default: "relation",
+};
+
 const matchSameMode = {
   id: "match_same",
   type: "person_match",
@@ -119,14 +130,7 @@ const matchSameMode = {
       hint: { ru: "«Одинаковое фото» — ступень проще: среди фото внизу то же самое, что сверху." },
       default: "other",
     },
-    label: {
-      type: "enum",
-      label: { ru: "Подпись" },
-      values: ["relation", "name"],
-      labels: { ru: { relation: "Кто это для ребёнка", name: "Имя" } },
-      hint: { ru: "Какое поле из карточки человека написать и произнести: «Это мама. Где мама?» или «Это Надя. Где Надя?». У питомцев всегда имя." },
-      default: "relation",
-    },
+    label: labelParam,
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на выбор" },
@@ -151,6 +155,7 @@ const showMeMode = {
   regenerateOnLoop: true,
   hideConceptPicker: true,
   params: {
+    label: labelParam,
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на экране" },

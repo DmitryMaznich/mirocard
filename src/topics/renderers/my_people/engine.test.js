@@ -512,7 +512,7 @@ describe("«Покажи»", () => {
 
   it("never puts two people with the same word on one screen", () => {
     for (let i = 0; i < 20; i += 1) {
-      const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 4 });
+      const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 4, label: "name" });
       for (const task of tasks.filter((t) => t.word === "Маша")) {
         const ids = task.choices.map((choice) => choice.personId);
         expect(ids.includes("masha1") && ids.includes("masha2")).toBe(false);
@@ -528,8 +528,21 @@ describe("«Покажи»", () => {
     expect(Object.keys(byId).sort()).toEqual(["anna", "cat", "elena", "masha1", "masha2", "pavel"]);
     expect(byId.anna.introduces).toBe(false);
     expect(byId.elena.introduces).toBe(true);
-    expect(byId.elena.axis).toBe("name");
+    expect(byId.elena.axis).toBe("relation");
     expect(byId.anna.axis).toBe("relation");
+    expect(byId.cat.axis).toBe("name");
+    const byName = Object.fromEntries(generateTasks({ id: "show_me", type: "person_point" }, partly, { label: "name" }).map((task) => [task.personId, task]));
+    expect(byName.elena.axis).toBe("name");
+    expect(byName.anna.axis).toBe("name");
+  });
+
+  it("«Подпись»: the relation as typed by default, the name on request, a pet by name", () => {
+    const words = (params) => Object.fromEntries(generateTasks({ id: "show_me", type: "person_point" }, family, params).map((task) => [task.personId, task.prompt]));
+    expect(words({})).toMatchObject({ anna: "Где мама?", elena: "Где воспитательница?", cat: "Где Барсик?", masha1: "Где подруга?" });
+    expect(words({ label: "name" })).toMatchObject({ anna: "Где Анна?", elena: "Где Елена Петровна?", cat: "Где Барсик?", masha1: "Где Маша?" });
+    // The sentence-builder label does not reach the question.
+    const labelled = { ...family, myPeople: family.myPeople.map((p) => ({ ...p, sentenceLabel: "дядя Коля" })) };
+    for (const task of generateTasks({ id: "show_me", type: "person_point" }, labelled, {})) expect(task.prompt).not.toMatch(/Коля/);
   });
 
   it("counts this lesson's earlier introductions against the newcomer budget", () => {
