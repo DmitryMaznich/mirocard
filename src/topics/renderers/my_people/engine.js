@@ -391,10 +391,13 @@ function pickTargetPosition(slots, previous) {
 }
 
 // ── «Найди такого же»: matching two different photos of one person ─────
-// No words at all: a photo on top, the same person on another photo among
-// 2–4 below. The step before «Покажи» for a child who does not yet link
-// "Где мама?" to mum, and direct practice in recognising someone across
+// A named photo on top ("Это Ула"), the same person on another photo among
+// 2–4 below, and the very question of «Покажи» -- "Где Ула?". The step
+// before «Покажи» for a child who does not yet link "Где мама?" to mum: the
+// sample carries the answer, and fading it out later leaves «Покажи» with
+// the same words. Also direct practice in recognising someone across
 // photos rather than by one detail (glasses, a jumper, the kitchen).
+// "Где …?" rather than "Найди …": no accusative to build from a name.
 // Only people with two or more photos can be targets -- with one photo it
 // would be matching identical pictures, a different and easier skill.
 const MATCH_FIELD_SIZES = [2, 3, 4];
@@ -431,9 +434,10 @@ function matchTasks(people, params, round) {
     const photos = shuffle([...new Set(target.photos.filter(Boolean))]);
     const sample = photos[0];
     const match = samePhoto ? sample : photos[1];
-    // Distractors are chosen by person, not by word: two "Маша" are two
-    // different faces here, so they may share a screen.
-    const distractors = pickPointDistractors(target, people, null, fieldSize - 1, round);
+    // The question names the person, so two "Маша" never share a screen --
+    // as in «Покажи».
+    const word = mainWord(target);
+    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round);
     const order = shuffle(distractors);
     const position = pickTargetPosition(order.length + 1, positions);
     positions.push(position);
@@ -446,11 +450,14 @@ function matchTasks(people, params, round) {
       progressConceptIds: [conceptId],
       trialIndex,
       personId: target.id,
+      word,
       sample,
-      prompt: "Найди такого же",
-      promptSpeech: "Найди такого же.",
-      correctSpeech: "Правильно!",
-      missSpeech: "Смотри, вот.",
+      sampleLabel: `Это ${word}`,
+      prompt: `Где ${word}?`,
+      promptSpeech: `Это ${word}. Где ${word}?`,
+      correctPrompt: `Да, это ${word}!`,
+      correctSpeech: `Да, это ${word}!`,
+      missSpeech: `Вот ${word}.`,
       choices: order.map((person) => ({
         personId: person.id,
         image: person.id === target.id ? match : randomPhoto(person),
@@ -465,9 +472,8 @@ function matchTasks(people, params, round) {
 // rounds draw from everyone.
 function pickPointDistractors(target, people, word, count, round) {
   if (count <= 0) return [];
-  // `word` null: no word on screen (matching), so any other person will do.
   const eligible = shuffle(people.filter((person) => person.id !== target.id
-    && (word == null || mainWord(person).toLowerCase() !== word.toLowerCase())));
+    && mainWord(person).toLowerCase() !== word.toLowerCase()));
   if (round > 0) return eligible.slice(0, count);
   const isPet = (person) => person.type === "pet";
   const contrasting = eligible.filter((person) => isPet(person) !== isPet(target));

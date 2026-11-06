@@ -677,7 +677,11 @@ describe("«Найди такого же»", () => {
         // Never the same picture twice: that would be matching identical images.
         expect(found.image).not.toBe(task.sample);
         expect(task.choices).toHaveLength(3);
-        expect(JSON.stringify(task)).not.toMatch(/Где|anna\?/);
+        // The sample names the person; the question is the one of «Покажи».
+        expect(task.sampleLabel).toBe(`Это ${task.personId}`);
+        expect(task.prompt).toBe(`Где ${task.personId}?`);
+        expect(task.promptSpeech).toBe(`Это ${task.personId}. Где ${task.personId}?`);
+        expect(task.correctPrompt).toBe(`Да, это ${task.personId}!`);
       }
     }
   });
@@ -689,6 +693,20 @@ describe("«Найди такого же»", () => {
     expect(tasks.length).toBeGreaterThanOrEqual(MIN_POINT_TRIALS_PER_ROUND);
     for (const task of tasks) {
       expect(task.choices.find((choice) => choice.personId === task.personId).image).toBe(task.sample);
+    }
+  });
+
+  it("never shows another person answering to the asked word", () => {
+    const twoMashas = { id: "s2", myPeople: [
+      person("m1", ["/m1a", "/m1b"], { name: "Маша" }),
+      person("m2", ["/m2a", "/m2b"], { name: "Маша" }),
+      person("ivan", ["/i1", "/i2"], { name: "Ваня" }),
+    ] };
+    for (let i = 0; i < 20; i += 1) {
+      for (const task of generateTasks(matchSame, twoMashas, { fieldSize: 3 })) {
+        const words = task.choices.map((choice) => twoMashas.myPeople.find((p) => p.id === choice.personId).name);
+        expect(words.filter((word) => word === task.word)).toHaveLength(1);
+      }
     }
   });
 
