@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useRewardSettings } from "@/features/rewards/useRewardSettings";
 import { normalizeRewardVideoIds } from "@/shared/utils/rewardVideoPicker";
@@ -8,6 +8,8 @@ import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
 import { FINISH, comparisonAnswer, createRace, raceReducer } from "./raceEngine";
 import { DiceFace, RaceCar } from "./RaceArt";
 import RollingDice from "./RollingDice";
+import TowerScene from "./TowerScene";
+import { MAX_FLOORS } from "./towerGeometry";
 import "./games.css";
 
 function RaceLane({ name, player, position }) {
@@ -34,14 +36,15 @@ export default function GamesScreen() {
   const studentId = useAppStore(s => s.activeStudentId);
   const student = useAppStore(s => s.students.find(item => item.id === s.activeStudentId));
   const setScreen = useAppStore(s => s.setScreen);
+  const modeId = useAppStore(s => s.activeModeId);
   const [gameNumber, setGameNumber] = useState(0);
   const [adultName, setAdultName] = useState("Папа");
   if (!student) return <main className="games-home"><h1>Выберите ученика</h1><button className="games-primary" onClick={() => setScreen("home")}>На главный экран</button></main>;
-  return <DiceRace key={`${studentId}-${gameNumber}`} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
+  return <DiceRace key={`${studentId}-${modeId}-${gameNumber}`} isTower={modeId === "skyscrapers"} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
 }
 
-function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay }) {
-  const [race, dispatch] = useReducer(raceReducer, undefined, createRace);
+function DiceRace({ student, isTower, initialAdultName, onNameChange, onBack, onReplay }) {
+  const [race, dispatch] = useReducer(raceReducer, undefined, () => createRace(isTower ? MAX_FLOORS : FINISH));
   const [started, setStarted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [adultName, setAdultName] = useState(initialAdultName);
@@ -50,19 +53,28 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
   const [rewardSettings] = useState(() => settings);
   const [rewardVideos] = useState(() => student.rewardVideos ?? []);
   const [rewardClaimed, setRewardClaimed] = useState(false);
+  const [celebrated, setCelebrated] = useState(false);
   const childName = student.name || "Игрок";
   const adult = adultName.trim() || "Взрослый";
   const canCompare = comparisonAnswer(race.dice) !== null;
   const hasVideo = normalizeRewardVideoIds(rewardVideos).length > 0;
   const earnedVideo = race.result === "child" || race.result === "tie";
-  const rewardOpen = race.phase === "finished" && earnedVideo && hasVideo && !rewardClaimed;
+  const showResult = race.phase === "finished" && (!isTower || celebrated);
+  const rewardOpen = showResult && earnedVideo && hasVideo && !rewardClaimed;
   const resultTitle = race.result === "tie" ? "Ничья!" : race.result === "child" ? `${childName} — победитель!` : `${adult} — победитель!`;
+  const onFloorPlaced = useCallback(() => dispatch({type:"tick"}), []);
 
   useEffect(() => {
-    if (race.phase !== "moving" || paused) return undefined;
+    if (!isTower || race.phase !== "finished" || paused) return undefined;
+    const timer = setTimeout(() => setCelebrated(true),1000);
+    return () => clearTimeout(timer);
+  },[isTower,race.phase,paused]);
+
+  useEffect(() => {
+    if (isTower || race.phase !== "moving" || paused) return undefined;
     const timer = setTimeout(() => dispatch({ type: "tick" }), 320);
     return () => clearTimeout(timer);
-  }, [race.phase, race.step, paused]);
+  }, [isTower,race.phase, race.step, paused]);
 
   useEffect(() => {
     if (paused) return undefined;
@@ -84,25 +96,26 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
   }, [rewardOpen, paused, started, race.phase, onBack]);
 
   const rolling = race.phase === "rolling" || race.phase === "settling";
-  const status = race.phase === "moving" || race.phase === "arriving" ? "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : "Кто едет дальше?";
+  const question = isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
+  const status = race.phase === "moving" || race.phase === "arriving" ? isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
 
-  return <main className="dice-race">
+  return <main className={`dice-race${isTower ? " dice-race--tower" : ""}`}>
     <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
     <header className="games-header race-header">
       <button className="games-icon" aria-label="К списку игр" onClick={() => started && race.phase !== "finished" ? setPaused(true) : onBack()}><BackArrowIcon /></button>
-      <h1>Гонки</h1><span className="race-round">Раунд {race.round}</span>
+      <h1>{isTower ? "До облаков" : "Гонки"}</h1><span className="race-round">Раунд {race.round}</span>
       <button className="games-icon race-pause" aria-label="Пауза" disabled={!started || race.phase === "finished"} onClick={() => setPaused(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg></button>
     </header>
-    <div className="race-course">
+    {isTower ? <TowerScene race={race} names={[childName,adult]} paused={paused} onPlaced={onFloorPlaced} /> : <div className="race-course">
       <RaceLane name={childName} player="child" position={race.positions[0]} />
       <RaceLane name={adult} player="adult" position={race.positions[1]} />
-    </div>
+    </div>}
     <div className="race-controls">
       {[childName, adult].map((name, i) => <PlayerCard key={i} name={name} player={i === 0 ? "child" : "adult"} value={race.dice[i]} disabled={!started || race.phase !== "input" || paused} onDice={value => dispatch({ type: "dice", player: i, value })} />)}
     </div>
     <footer className="race-footer">
       <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>
-      <div className="race-options" role="group" aria-label="Кто едет дальше?">
+      <div className="race-options" role="group" aria-label={question}>
         {[["child", "Я"], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
       </div>
     </footer>
@@ -111,20 +124,20 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
     {started && rolling && <RollingDice key={race.round} childName={childName} adultName={adult} round={race.round} settling={race.phase === "settling"} paused={paused} onReady={() => dispatch({ type: "ready" })} onPause={() => setPaused(true)} />}
 
     {!started && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-start-title">
-      <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">Кто первым до финиша?</h2>
-      <p>Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки.</p>
+      <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">{isTower ? "Чья башня дорастёт до облаков?" : "Кто первым до финиша?"}</h2>
+      <p>{isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
       <label className="race-adult-name">Второй игрок<input maxLength={24} value={adultName} onChange={e => setAdultName(e.target.value)} /></label>
-      <p className="games-prize-rule">{hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
+      <p className="games-prize-rule">{hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
       <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" autoFocus onClick={() => { setAdultName(adult); onNameChange(adult); setStarted(true); }}>На старт!</button></div>
     </section></div>}
 
-    {paused && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-pause-title"><h2 id="race-pause-title">Пауза</h2><p>Машинки подождут.</p><div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>Закончить игру</button><button className="games-primary" autoFocus onClick={() => setPaused(false)}>Продолжить</button></div></section></div>}
+    {paused && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-pause-title"><h2 id="race-pause-title">Пауза</h2><p>{isTower ? "Краны подождут." : "Машинки подождут."}</p><div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>Закончить игру</button><button className="games-primary" autoFocus onClick={() => setPaused(false)}>Продолжить</button></div></section></div>}
 
-    {race.phase === "finished" && !rewardOpen && <div className="games-overlay"><section className="games-dialog games-result" role="dialog" aria-modal="true" aria-labelledby="race-result-title">
+    {showResult && !rewardOpen && <div className="games-overlay"><section className="games-dialog games-result" role="dialog" aria-modal="true" aria-labelledby="race-result-title">
       <span className="games-result-flag" aria-hidden="true">⚑</span><h2 id="race-result-title">{resultTitle}</h2>
-      <p>{race.result === "tie" ? "Обе машинки добрались до финиша в одном раунде." : "Первым до финиша добрался " + (race.result === "child" ? childName : adult) + "."}</p>
-      <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" onClick={onReplay}>Ещё гонка</button></div>
+      <p>{isTower ? race.result === "tie" ? "Оба небоскрёба доросли до облаков в одном раунде." : "Небоскрёб до облаков построен!" : race.result === "tie" ? "Обе машинки добрались до финиша в одном раунде." : "Первым до финиша добрался " + (race.result === "child" ? childName : adult) + "."}</p>
+      <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" onClick={onReplay}>{isTower ? "Строить ещё" : "Ещё гонка"}</button></div>
     </section></div>}
-    {rewardOpen && <RewardVideoModal studentId={student.id} rewardVideos={rewardVideos} settingsOverride={rewardSettings} title={resultTitle} continueLabel="Вернуться к гонке" onDismiss={() => setRewardClaimed(true)} />}
+    {rewardOpen && <RewardVideoModal studentId={student.id} rewardVideos={rewardVideos} settingsOverride={rewardSettings} title={resultTitle} continueLabel={isTower ? "Вернуться к стройке" : "Вернуться к гонке"} onDismiss={() => setRewardClaimed(true)} />}
   </main>;
 }

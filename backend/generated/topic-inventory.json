@@ -423,7 +423,7 @@
     {
       "id": "games",
       "title": "Игры",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "renderer": null,
       "sources": [
         "src/topics/builtinGamesTopic.js"

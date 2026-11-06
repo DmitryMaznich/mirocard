@@ -1,7 +1,7 @@
 export const FINISH = 19;
 
-export function createRace() {
-  return { positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
+export function createRace(finish = FINISH) {
+  return { finish, positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
 }
 
 export function comparisonAnswer(dice) {
@@ -10,7 +10,7 @@ export function comparisonAnswer(dice) {
 }
 
 export function raceReducer(state, action) {
-  if (action.type === "reset") return createRace();
+  if (action.type === "reset") return createRace(state.finish);
   if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
   if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
   if (action.type === "arrived" && state.phase === "arriving") {
@@ -30,11 +30,12 @@ export function raceReducer(state, action) {
   }
   if (action.type !== "tick" || state.phase !== "moving") return state;
   const step = state.step + 1;
-  const positions = state.positions.map((position, i) => Math.min(FINISH, position + (step <= state.dice[i] ? 1 : 0)));
+  const finish = state.finish ?? FINISH;
+  const positions = state.positions.map((position, i) => Math.min(finish, position + (step <= state.dice[i] ? 1 : 0)));
   // Resolve only after BOTH throws have been played, regardless of who crossed first.
-  if (step >= Math.max(...state.dice)) {
-    const childFinished = positions[0] >= FINISH;
-    const adultFinished = positions[1] >= FINISH;
+  if (positions.every((position,i) => step >= state.dice[i] || position >= finish)) {
+    const childFinished = positions[0] >= finish;
+    const adultFinished = positions[1] >= finish;
     if (childFinished || adultFinished) {
       return { ...state, positions, step, phase: "finished", result: childFinished && adultFinished ? "tie" : childFinished ? "child" : "adult" };
     }
