@@ -4,7 +4,7 @@ export function buildGamesTopicRecord() {
     meta: {
       id: "games",
       renderer: "games",
-      version: "1.2.0",
+      version: "1.3.0",
       title: { ru: "Игры", sl: "Igre" },
       avatar: "media/avatar_games.svg",
       builtin: true,
@@ -27,10 +27,10 @@ export function buildGamesTopicRecord() {
       evaluation: "none",
       hideVideoReward: true,
       hideConceptPicker: true,
-      ui: { title: { ru: "До облаков" }, instruction: { ru: "Строим небоскрёбы до 20 этажей" } },
+      ui: { title: { ru: "Дом до облаков" }, instruction: { ru: "Строим небоскрёбы до 20 этажей" } },
     }, {
       id: "water_fill", type: "water_fill", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
-      ui: { title: { ru: "Налей до верха" }, instruction: { ru: "Наполняем стаканы водой" } },
+      ui: { title: { ru: "Наливаем" }, instruction: { ru: "У кого вода первой польётся через край?" } },
     }],
     cards: [],
     installedAt: "builtin",

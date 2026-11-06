@@ -13,3 +13,13 @@
 @media(prefers-reduced-motion:reduce){.water-scene *{animation:none!important}}
 
 .water-character-portrait{overflow:hidden;border-radius:50%}.water-character-sprite image{pointer-events:none}
+
+.water-spill-shine{animation:water-spill-shine .55s linear infinite}
+.water-spill-drop{animation:water-spill-drop .8s linear infinite}
+.water-puddle{transform-box:fill-box;transform-origin:center;animation:water-puddle .6s ease-out both}
+.water-spill-splash{transform-box:fill-box;transform-origin:bottom;animation:water-spill-splash .45s ease-in-out infinite alternate}
+@keyframes water-spill-shine{to{stroke-dashoffset:-60}}
+@keyframes water-spill-drop{from{transform:translateY(0);opacity:0}15%{opacity:1}to{transform:translateY(213px);opacity:0}}
+@keyframes water-puddle{from{transform:scaleX(.2)}to{transform:scaleX(1)}}
+@keyframes water-spill-splash{from{transform:scale(.8);opacity:.7}to{transform:scale(1.1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.water-scene .water-overflow *{animation:none!important}}

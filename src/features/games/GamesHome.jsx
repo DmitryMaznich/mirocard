@@ -22,13 +22,13 @@ export default function GamesHome() {
       </button>
       <button className="games-tile" onClick={() => { setActiveModeId("skyscrapers"); setScreen("params"); }}>
         <span className="games-tile__art games-tile__art--tower"><TowerPreview /></span>
-        <strong>До облаков</strong>
+        <strong>Дом до облаков</strong>
         <span>Строим небоскрёбы до 20 этажей</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
       </button>
       <button className="games-tile" onClick={() => { setActiveModeId("water_fill"); setScreen("params"); }}>
         <span className="games-tile__art games-tile__art--water"><WaterPreview /></span>
-        <strong>Налей до верха</strong>
+        <strong>Наливаем</strong>
         <span>Персонажи, краны и два стакана воды</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
       </button>

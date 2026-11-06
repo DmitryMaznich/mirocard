@@ -7,7 +7,7 @@ async function input(page) {
 async function start(page,reduced=true) {
   if(reduced) await page.emulateMedia({reducedMotion:"reduce"});
   await page.goto("/tests/responsive/games.html");
-  await page.getByRole("button",{name:/До облаков/}).click();
+  await page.getByRole("button",{name:/Дом до облаков/}).click();
   await page.getByRole("textbox",{name:"Второй игрок"}).fill("Мама");
   await page.getByRole("button",{name:"На старт!"}).click();
   await input(page);

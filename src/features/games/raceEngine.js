@@ -1,7 +1,7 @@
 export const FINISH = 19;
 
-export function createRace(finish = FINISH, capacity = finish, deferResult = false) {
-  return { finish, capacity, deferResult, positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
+export function createRace(finish = FINISH, capacity = finish, deferResult = false, firstToFinish = false) {
+  return { finish, capacity, deferResult, firstToFinish, positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
 }
 
 export function comparisonAnswer(dice) {
@@ -10,7 +10,7 @@ export function comparisonAnswer(dice) {
 }
 
 export function raceReducer(state, action) {
-  if (action.type === "reset") return createRace(state.finish, state.capacity, state.deferResult);
+  if (action.type === "reset") return createRace(state.finish, state.capacity, state.deferResult, state.firstToFinish);
   if (action.type === "nextThrow" && state.phase === "between") return { ...state, phase: "rolling", dice: [null, null], answer: null, mistake: false };
   if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
   if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
@@ -35,7 +35,11 @@ export function raceReducer(state, action) {
   const finish = state.finish ?? FINISH;
   const capacity = state.capacity ?? finish;
   const positions = state.positions.map((position, i) => Math.min(capacity, position + (step <= state.dice[i] ? 1 : 0)));
-  // Resolve only after BOTH throws have been played, regardless of who crossed first.
+  // Water stops at the first overflow; cars and buildings resolve the whole round.
+  if (state.firstToFinish && positions.some(position=>position>=finish)) {
+    const result=positions.every(position=>position>=finish) ? "tie" : positions[0]>=finish ? "child" : "adult";
+    return {...state,positions,step,result,phase:state.deferResult ? "arriving" : "finished"};
+  }
   if (positions.every((position,i) => step >= state.dice[i] || position >= capacity)) {
     const childFinished = positions[0] >= finish;
     const adultFinished = positions[1] >= finish;
