@@ -99,9 +99,10 @@ const labelPhotosMode = {
   },
 };
 
-// «Найди такого же»: match two different photos of one person, no words.
-// The first step, before «Покажи»: recognising a face across photos, apart
-// from understanding "мама". Needs people with at least two photos.
+// «Найди такого же»: match two different photos of one person by a named
+// sample ("Это мама. Где мама?"). The first step, before «Покажи», which
+// asks the same question without the sample. Needs people with at least
+// two photos (or «Одинаковое фото»).
 const matchSameMode = {
   id: "match_same",
   type: "person_match",
@@ -128,7 +129,7 @@ const matchSameMode = {
   },
   ui: {
     title: { ru: "Найди такого же" },
-    instruction: { ru: "Без слов: найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
+    instruction: { ru: "Сверху фото с подписью «Это мама», вопрос «Где мама?» — найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
   },
 };
 
@@ -261,7 +262,7 @@ export function buildMyPeopleTopicRecord() {
         finalGoal: "Ребёнок уверенно узнаёт значимых людей и понимает, кто они для него.",
         flow: [
           "Заполните «Окружение ребёнка»: близкие с фотографиями, для «Обо мне» — личные данные.",
-          "«Найди такого же»: без слов найти того же человека на другом фото — для тех, кто ещё не понимает «Где мама?».",
+          "«Найди такого же»: «Это мама. Где мама?» — найти того же человека на другом фото по образцу. Для тех, кто ещё не понимает «Где мама?» без подсказки.",
           "«Покажи»: ребёнок находит человека по слову «Где мама?». Здесь же он знакомится с новыми людьми.",
           "«Кто это?»: ребёнок сам называет тех, кого уже находил.",
           "«Обо мне»: короткие вопросы о себе с подсказками по шагам.",

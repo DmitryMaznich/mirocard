@@ -765,14 +765,41 @@
   flex: 0 1 min(44vw, 300px, 38vh);
 }
 
-/* «Найди такого же»: the sample sits above the choices in a dashed frame
-   on a tinted ground -- clearly "look at this", not one of the options. */
+/* «Найди такого же»: the sample is a name card -- a bigger photo in a
+   solid teal frame with the caption "Это Ула" under it and a flat bottom
+   edge instead of a lift, so it reads as "look at this", not as one more
+   photo to tap. (No dashed border: dashed means a drop zone elsewhere in
+   the app.) Then the question, then the choices. */
+/* Every size below comes from the screen's own box (cqw/cqh), so the card,
+   the question and two rows of photos fit the height left under the
+   session header on a small phone as on a tablet. */
+.people-point--match {
+  --mp-gap: clamp(8px, 2vh, 22px);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  padding: 10px 16px 16px;
+  justify-content: center;
+  gap: var(--mp-gap);
+  container-type: size;
+}
+
+/* The sizes are declared on the children, not on the container itself:
+   there cq units would resolve against the viewport. */
+.people-match__sample { --mp-sample: min(64cqw, 28cqh, 320px); }
+.people-match__photos { --mp-card: min(44cqw, 32cqh, 260px); }
+.people-match__photos--3 { --mp-card: min(29cqw, 30cqh, 240px); }
+.people-match__photos--4 { --mp-card: min(44cqw, 20cqh, 230px); }
+
 .people-match__sample {
-  width: min(40vw, 220px, 26vh);
-  padding: clamp(5px, 1.4vw, 8px);
-  border: 3px dashed #9cc6bd;
-  border-radius: 24px;
-  background: #eef6f3;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: var(--mp-sample);
+  margin: 0;
+  padding: 7px 7px 0;
+  border-radius: 26px;
+  background: #4a9b8f;
+  box-shadow: 0 5px 0 #2a6b60;
 }
 
 .people-match__sample > img,
@@ -780,17 +807,167 @@
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 17px;
+  border-radius: 20px;
   object-fit: cover;
 }
 
-/* With the sample on top the choices give up some height. */
-.people-point--match .people-point__photos > .people-point-photo {
-  flex-basis: min(40vw, 240px, 30vh);
+.people-match__sample > .people-point-photo__loading {
+  background: linear-gradient(135deg, #e9f3f0, #d6e7e3);
+}
+
+.people-match__label {
+  padding: 4px 8px 8px;
+  color: #fff;
+  font-size: clamp(18px, min(6.4cqw, 3.2cqh), 32px);
+  font-weight: 900;
+  line-height: 1.12;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.people-match__choose {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mp-gap);
+  width: 100%;
+}
+
+.people-point--match .people-point__question {
+  font-size: clamp(22px, min(6.4cqw, 4.4cqh), 38px);
+}
+
+/* The question row keeps its height when it turns into "Да, это Ула!". */
+.people-point--match .people-point__prompt { min-height: 52px; }
+.people-point__prompt--solved .people-point__question { color: #16a34a; }
+
+.people-speaker--filled {
+  width: 52px;
+  height: 52px;
+  color: #2f6b62;
+  background: #e3f1ed;
+}
+
+.people-speaker--filled:hover { background: #d4eae4; }
+
+/* The choices: a fixed-size grid, 2×2 at four, one row otherwise. */
+.people-point--match .people-match__photos {
+  display: grid;
+  grid-template-columns: repeat(2, var(--mp-card));
+  gap: 12px;
+  width: auto;
+  max-width: none;
+}
+
+.people-point--match .people-match__photos--3 { grid-template-columns: repeat(3, var(--mp-card)); }
+
+.people-point--match .people-match__photos > .people-point-photo {
+  box-sizing: border-box;
+  width: var(--mp-card);
+  max-width: none;
+  padding: clamp(4px, 1.2cqw, 7px);
+  border-color: #fff;
+  box-shadow: 0 6px 16px rgba(40, 84, 76, .16), 0 3px 0 #d8e6e2;
+}
+
+.people-point--match .people-point-photo--correct {
+  position: relative;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, .22);
+}
+
+.people-point--match .people-point-photo--correct::after {
+  content: "✓";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  background: #22c55e;
+  box-shadow: 0 2px 0 #16a34a;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.people-point--match .people-match__photos > .people-point-photo--hint { border-color: #4a9b8f; }
+.people-point--match .people-point-photo--faded { opacity: .3; }
+
+/* Landscape: the name card on the left, the question and choices on the
+   right -- in a column the photos would have to shrink to fit. */
+@media (orientation: landscape) {
+  .people-point--match {
+    flex-direction: row;
+    gap: clamp(20px, 5vw, 64px);
+  }
+
+  .people-match__sample { --mp-sample: min(36cqw, 64cqh, 380px); }
+  .people-match__photos { --mp-card: min(26cqw, 66cqh, 280px); }
+  .people-match__photos--3 { --mp-card: min(17cqw, 60cqh, 240px); }
+  .people-match__photos--4 { --mp-card: min(22cqw, 36cqh, 240px); }
+  .people-point--match .people-match__choose { width: auto; }
+  .people-match__label { font-size: clamp(20px, 5cqh, 36px); }
+}
+
+.people-point__photos--grid {
+  max-width: min(100%, 440px, 46vh);
+  gap: 12px;
 }
 
 .people-point--match .people-point__photos--grid > .people-point-photo {
-  max-width: min(38vw, 200px, 21vh);
+  flex-basis: calc(50% - 6px);
+  max-width: none;
+}
+
+/* Choices are buttons: a white card with a lift. */
+.people-point--match .people-point-photo {
+  border-color: #fff;
+  box-shadow: 0 6px 16px rgba(40, 84, 76, .16), 0 3px 0 #d8e6e2;
+}
+
+.people-point--match .people-point-photo--correct {
+  position: relative;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, .22);
+}
+
+.people-point--match .people-point-photo--correct::after {
+  content: "✓";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  background: #22c55e;
+  box-shadow: 0 2px 0 #16a34a;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.people-point--match .people-point-photo--hint { border-color: #4a9b8f; }
+.people-point--match .people-point-photo--faded { opacity: .3; }
+
+/* Landscape tablet: the name card on the left, the question and choices on
+   the right -- in a column the photos would have to shrink to fit. */
+@media (orientation: landscape) and (min-width: 700px) {
+  .people-point--match {
+    width: min(100%, 1100px);
+    flex-direction: row;
+    gap: clamp(24px, 5vw, 56px);
+    padding: 16px clamp(20px, 4vw, 40px);
+  }
+
+  .people-point--match .people-match__sample { width: min(36vw, 340px, 60vh); }
+  .people-point--match .people-match__choose { width: auto; flex: 0 1 auto; }
+  .people-point--match .people-point__photos > .people-point-photo { flex-basis: min(24vw, 240px, 52vh); }
+  .people-point--match .people-point__photos--grid { width: min(48vw, 70vh, 480px); max-width: none; }
 }
 
 .people-point__photos--grid {
