@@ -16,6 +16,26 @@ const student = {
 };
 
 describe("my_people album engine", () => {
+  it.each(['show_me', 'match_same', 'who_is_this'])('exposes and applies category settings in %s', id => {
+    const mode = buildMyPeopleTopicRecord().modes.find(m => m.id === id);
+    expect(mode.params.circle.values).toEqual(expect.arrayContaining(['all', 'family', 'school', 'friends', 'home', 'pets']));
+    expect(mode.params.circle.default).toBe('all');
+    const pupil = { ...student, myPeople: student.myPeople.map(p => ({ ...p, photos: [...p.photos, `${p.photos[0]}-alternate`] })) };
+    const tasks = generateTasks(mode, pupil, { circle: 'school', sample: 'same' });
+    expect(tasks.length).toBeGreaterThan(0);
+    expect(tasks.every(t => ['elena', 'maks'].includes(t.personId))).toBe(true);
+    expect(tasks.flatMap(t => t.choices ?? []).every(c => ['elena', 'maks'].includes(c.personId))).toBe(true);
+    expect(generateTasks(mode, pupil, { circle: 'friends' })).toEqual([]);
+  });
+  it('keeps independent category choices for ordinary modes', () => {
+    const modes = buildMyPeopleTopicRecord().modes;
+    const show = modes.find(m => m.id === 'show_me'), naming = modes.find(m => m.id === 'who_is_this');
+    let saved = writeModeParams({}, show, { circle: 'school' });
+    saved = writeModeParams(saved, naming, { circle: 'family' });
+    expect(readModeParams(saved, show).circle).toBe('school');
+    expect(readModeParams(saved, naming).circle).toBe('family');
+  });
+
   it("offers one «Подпиши фото» mode with 2–6 photos and keeps every mode in a renewable loop", () => {
     const topic = buildMyPeopleTopicRecord();
     const labelPhotos = topic.modes.find((mode) => mode.id === "label_photos");
@@ -24,7 +44,7 @@ describe("my_people album engine", () => {
 
     expect(labelPhotos.params.peopleCount.values).toEqual([2, 3, 4, 6]);
     expect(labelPhotos.params.peopleCount.default).toBe(2);
-    expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "all"]);
+    expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "friends", "pets", "all"]);
     expect(topic.modes.filter(mode => mode.id !== "people_learning_v2").every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
     expect(whoIsThis).toEqual(expect.objectContaining({ type: "person_naming", evaluation: "adult", hideConceptPicker: true }));

@@ -11,6 +11,8 @@ const CIRCLES = {
   family: "Семья и питомцы",
   home: "Люди дома",
   school: "Школа",
+  friends: "Друзья",
+  pets: "Питомцы",
 };
 
 export function activeMyPeople(student) {
@@ -32,7 +34,9 @@ const ready = { ready: true, reason: "", tab: null };
 // list) it only needs two people somewhere.
 export function myPeopleModeReadiness(mode, student, params = null) {
   if (!student) return { ready: false, reason: "Выберите ученика: задания строятся из его окружения.", tab: null };
-  const people = activeMyPeople(student);
+  const photoMode = ["match_same", "show_me", "who_is_this"].includes(mode.id);
+  const circle = photoMode ? params?.circle ?? "all" : "all";
+  const people = photoMode && circle !== "all" ? peopleInCircle(student, circle) : activeMyPeople(student);
 
   if (mode.id === "about_me") {
     if (hasEnoughAboutMeQuestions(student, params)) return ready;
@@ -58,8 +62,13 @@ export function myPeopleModeReadiness(mode, student, params = null) {
     };
   }
 
-  if (people.length < 2) {
-    return { ready: false, reason: "Нужно хотя бы 2 человека с фото.", tab: "family" };
+  const required = mode.id === "who_is_this" && params ? 1 : 2;
+  if (people.length < required) {
+    const where = CIRCLES[circle] ? `В категории «${CIRCLES[circle]}»` : "В окружении";
+    return { ready: false, reason: `${where} нужно хотя бы ${required} ${required === 1 ? 'карточку' : 'карточки'} с фото.`, tab: circle === 'pets' ? 'family' : CIRCLES[circle] ? circle : 'family' };
+  }
+  if (["match_same", "show_me"].includes(mode.id) && [2, 3, 4].includes(Number(params?.fieldSize)) && people.length < Number(params.fieldSize)) {
+    return { ready: false, reason: `В выбранной категории ${people.length} карточки с фото, для этого поля нужно ${params.fieldSize}. Добавьте карточки или уменьшите поле.`, tab: circle === 'pets' ? 'family' : CIRCLES[circle] ? circle : 'family' };
   }
 
   // On the list (no params) the identical-photo step is always possible
@@ -84,13 +93,13 @@ export function myPeopleModeReadiness(mode, student, params = null) {
       return {
         ready: false,
         reason: `${where} нужно хотя бы 2 человека с фото${firstAxis === "relation" ? " и подписью «кто это»" : ""}.`,
-        tab: CIRCLES[circle] ? circle : "family",
+        tab: circle === "pets" ? "family" : CIRCLES[circle] ? circle : "family",
       };
     }
     return ready;
   }
 
-  if (mode.id === "who_is_this" && !generateTasks(mode, student).length) {
+  if (mode.id === "who_is_this" && !generateTasks(mode, student, params ?? {}).length) {
     // Not a profile gap: «Кто это?» asks only about people already met.
     return { ready: false, reason: "Сначала пройдите «Покажи»: здесь спрашиваем только о людях, которых ребёнок уже находил.", tab: null };
   }
