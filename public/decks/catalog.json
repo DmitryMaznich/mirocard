@@ -649,7 +649,7 @@
         "ru": "Конструктор листов и тетрадей для печати: печатные заглавные буквы для дошкольников. Блок буквы собирается лесенкой — элемент за элементом, потом опора убывает; в каждой строке взрослый сам выбирает элементы буквы и опору (пунктир, точки начала, бледнеющий след, образец). Задания «Допиши штрих» и «Найди и обведи». Клетка или линейка, формат А4 или А5.",
         "en": "Printable worksheet and notebook builder for block capital letters: each letter built step by step on a grid or ruled paper, with fading support, A4 or A5."
       },
-      "status": "beta",
+      "status": "release",
       "access": "paid",
       "materialLanguages": [
         "ru"
