@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FINISH, comparisonAnswer, createRace, raceReducer } from "./raceEngine";
 
 function input(state = createRace()) {
+  if (state.phase === "between") state = raceReducer(state, {type:"nextThrow"});
   return raceReducer(raceReducer(state, { type:"ready" }), { type:"settled" });
 }
 
@@ -80,7 +81,7 @@ describe("physical dice race", () => {
     race = raceReducer(race, { type:"settled" });
     expect(race.phase).toBe("input");
     expect(race.dice).toEqual([null,null]);
-    expect(play(race,2,1)).toMatchObject({phase:"rolling",round:2,dice:[null,null],positions:[2,1]});
+    expect(play(race,2,1)).toMatchObject({phase:"between",round:2,dice:[2,1],positions:[2,1]});
   });
   it("finishes the last car step before starting the next throw", () => {
     let race = input();
@@ -90,6 +91,11 @@ describe("physical dice race", () => {
     race = raceReducer(race, { type:"tick" });
     expect(race).toMatchObject({phase:"arriving",round:1,positions:[1,1]});
     expect(raceReducer(race, { type:"ready" })).toBe(race);
-    expect(raceReducer(race, { type:"arrived" })).toMatchObject({phase:"rolling",round:2,dice:[null,null]});
+    race = raceReducer(race, { type:"arrived" });
+    expect(race).toMatchObject({phase:"between",round:2,dice:[1,1],positions:[1,1]});
+    for (const type of ["tick","arrived","ready","settled","compare","dice"]) expect(raceReducer(race,{type,player:0,value:6,answer:"equal"})).toBe(race);
+    race = raceReducer(race,{type:"nextThrow"});
+    expect(race).toMatchObject({phase:"rolling",round:2,dice:[null,null],answer:null});
+    expect(raceReducer(race,{type:"nextThrow"})).toBe(race);
   });
 });

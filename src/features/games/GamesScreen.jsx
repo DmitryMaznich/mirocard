@@ -102,7 +102,7 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
 
   const rolling = race.phase === "rolling" || race.phase === "settling";
   const question = isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
-  const status = race.phase === "moving" || race.phase === "arriving" ? isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
+  const status = race.phase === "between" ? "Рассмотрите, что получилось" : race.phase === "moving" || race.phase === "arriving" ? isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
 
   return <main className={`dice-race${isTower ? " dice-race--tower" : ""}${isWater ? " dice-race--water" : ""}${isTower || isWater ? " dice-race--compact" : ""}`}>
     <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
@@ -120,9 +120,9 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
     </div>
     <footer className="race-footer">
       <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>
-      <div className="race-options" role="group" aria-label={question}>
+      {race.phase === "between" ? <button className="games-primary race-next-throw" disabled={paused} onClick={() => dispatch({type:"nextThrow"})}>Бросить кубики</button> : <div className="race-options" role="group" aria-label={question}>
         {[["child", "Я"], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
-      </div>
+      </div>}
     </footer>
     </div>
 

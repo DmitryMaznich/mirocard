@@ -1,5 +1,6 @@
 import {test,expect} from "@playwright/test";
 async function input(page) {
+  if(await page.getByRole("button",{name:"Бросить кубики",exact:true}).isVisible()) await page.getByRole("button",{name:"Бросить кубики",exact:true}).click();
   await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();
   await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);
 }
@@ -41,6 +42,9 @@ test("builds floors after comparison, alternates inhabited balconies and freezes
   await page.getByRole("button",{name:"Продолжить",exact:true}).click();
   await expect(page.locator(".race-round")).toHaveText("Раунд 2",{timeout:12000});
   expect(await counts(page)).toEqual([4,2]);
+  await page.waitForTimeout(1000);
+  await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+  await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);
   await input(page);
   const child=page.locator(".tower-building--0");
   expect(await child.locator(".tower-balcony").evaluateAll(nodes=>nodes.map(n=>n.dataset.side))).toEqual(["left","right"]);

@@ -11,11 +11,12 @@ export function comparisonAnswer(dice) {
 
 export function raceReducer(state, action) {
   if (action.type === "reset") return createRace(state.finish, state.capacity, state.deferResult);
+  if (action.type === "nextThrow" && state.phase === "between") return { ...state, phase: "rolling", dice: [null, null], answer: null, mistake: false };
   if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
   if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
   if (action.type === "arrived" && state.phase === "arriving") {
     if (state.result) return { ...state, phase: "finished" };
-    return { ...state, round: state.round + 1, phase: "rolling", dice: [null, null], answer: null, mistake: false };
+    return { ...state, round: state.round + 1, phase: "between" };
   }
   if (action.type === "dice" && state.phase === "input") {
     if (![0, 1].includes(action.player) || !Number.isInteger(action.value) || action.value < 1 || action.value > 6) return state;
@@ -41,7 +42,7 @@ export function raceReducer(state, action) {
     if (childFinished || adultFinished) {
       return { ...state, positions, step, phase: state.deferResult ? "arriving" : "finished", result: childFinished && adultFinished ? "tie" : childFinished ? "child" : "adult" };
     }
-    // Let the final CSS step finish before bringing the rolling dice back.
+    // Let the final CSS step finish before offering the next throw.
     return { ...state, positions, step, phase: "arriving" };
   }
   return { ...state, positions, step };

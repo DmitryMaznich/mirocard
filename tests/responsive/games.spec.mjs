@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 async function enterNumbers(page) {
+  if(await page.getByRole("button",{name:"Бросить кубики",exact:true}).isVisible()) await page.getByRole("button",{name:"Бросить кубики",exact:true}).click();
   await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();
   await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);
 }
@@ -148,6 +149,11 @@ test("dice keep rolling until stopped, pause safely, and return after a complete
   await expect(rolling).toHaveCount(0);
   await expect(page.locator(".race-numbers button[aria-pressed=true]")).toHaveCount(0);
   await dice(page,2,1);
+  await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+  await page.waitForTimeout(1000);
+  await expect(rolling).toHaveCount(0);
+  await expect(page.locator('.race-numbers button[aria-pressed=true]')).toHaveCount(2);
+  await page.getByRole("button",{name:"Бросить кубики",exact:true}).click();
   await expect(rolling).toBeVisible();
   expect(await page.locator(".race-car>span").allTextContents()).toEqual(["2","1"]);
   await enterNumbers(page);

@@ -1,5 +1,5 @@
 import {test,expect} from "@playwright/test";
-async function input(page){await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);}
+async function input(page){if(await page.getByRole("button",{name:"Бросить кубики",exact:true}).isVisible()) await page.getByRole("button",{name:"Бросить кубики",exact:true}).click();await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);}
 async function start(page,reduced=true){
   if(reduced) await page.emulateMedia({reducedMotion:"reduce"});
   await page.goto("/tests/responsive/games.html");await page.getByRole("button",{name:/Налей до верха/}).click();
@@ -21,7 +21,11 @@ test("characters, comparison, exact volumes and paused pouring",async({page})=>{
   await choices.getByRole("button",{name:"Я",exact:true}).click();await expect(page.locator(".water-flow")).toHaveCount(2);
   await page.waitForTimeout(180);await page.getByRole("button",{name:"Пауза",exact:true}).click();
   const levels=await amounts(page);await page.waitForTimeout(500);expect(await amounts(page)).toEqual(levels);
-  await page.getByRole("button",{name:"Продолжить",exact:true}).click();await expect(page.locator(".race-round")).toHaveText("Раунд 2");await input(page);
+  await page.getByRole("button",{name:"Продолжить",exact:true}).click();await expect(page.locator(".race-round")).toHaveText("Раунд 2");
+  await page.waitForTimeout(1000);
+  await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+  await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);
+  await input(page);
   expect(await amounts(page)).toEqual([5,3]);await expect(page.locator(".water-flow")).toHaveCount(0);
   expect(await page.locator(".water-faucet").evaluateAll(nodes=>nodes.map(n=>Number(n.dataset.open)))).toEqual([0,0]);
 });
