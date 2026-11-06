@@ -1,0 +1,43 @@
+.race-roll{--die-edge:clamp(68px,11vw,112px);--roll-x:clamp(54px,25vw,340px);--roll-y:clamp(22px,8vh,90px);position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;align-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#fffef9,#fff7ee 72%);padding:calc(20px + var(--app-safe-top,0px)) calc(28px + var(--app-safe-right,0px)) calc(20px + var(--app-safe-bottom,0px)) calc(28px + var(--app-safe-left,0px));animation:race-roll-in .3s ease-out both}
+.race-roll-header{display:flex;align-items:center;justify-content:space-between;width:100%;flex-shrink:0}
+.race-roll-round{font-size:18px;font-weight:900;color:#7b685b;background:#f7e7d5;padding:8px 20px;border-radius:24px}
+.race-roll h2{font-size:clamp(25px,4vw,46px);font-weight:900;line-height:1.15;text-align:center;margin:16px 0 12px}
+.race-roll-players{display:flex;gap:24px;max-width:100%;flex-shrink:0;font-size:clamp(15px,2vw,21px);font-weight:800}
+.race-roll-players>span{display:flex;align-items:center;gap:8px;min-width:0;overflow-wrap:anywhere}
+.race-roll-players>span::before{content:"";display:block;width:11px;height:11px;border-radius:50%;background:currentColor;flex-shrink:0}
+.race-roll-player--child{color:#cc5e52}.race-roll-player--adult{color:#168f94}
+.race-roll-stage{position:relative;width:100%;flex:1;min-height:160px;display:block;border:0;background:transparent;padding:0;border-radius:30px;perspective:900px;-webkit-tap-highlight-color:transparent}
+.race-roll-floor{position:absolute;inset:0;pointer-events:none}
+.race-roll-orbit{position:absolute;left:50%;top:50%;width:min(80vw,900px);height:60%;transform:translate(-50%,-50%);border:2px dashed #ead9c45c;border-radius:50%;background:radial-gradient(ellipse,#f5e4cf24,transparent 70%)}
+.race-rolling-die{position:absolute;left:50%;top:50%;width:var(--die-edge);height:var(--die-edge);margin:calc(var(--die-edge) / -2);perspective:700px;will-change:transform}
+.race-rolling-die--child{color:#ed796a;animation:race-roll-path-child 6.4s ease-in-out infinite}
+.race-rolling-die--adult{color:#168f94;animation:race-roll-path-adult 7.2s ease-in-out infinite}
+.race-roll-shadow{position:absolute;width:110%;height:22%;left:-5%;bottom:-22%;border-radius:50%;background:currentColor;opacity:.14;filter:blur(8px);animation:race-die-shadow 1.6s ease-in-out infinite}
+.race-die-hop{position:relative;display:block;width:100%;height:100%;animation:race-die-hop 1.6s ease-in-out infinite;transform-style:preserve-3d}
+.race-cube{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;animation:race-die-tumble 3.8s linear infinite}
+.race-rolling-die--adult .race-cube{animation-duration:4.6s;animation-direction:reverse}
+.race-rolling-die--adult .race-die-hop,.race-rolling-die--adult .race-roll-shadow{animation-delay:-.8s}
+.race-cube-face{position:absolute;inset:0;display:block;border-radius:2px;background:linear-gradient(145deg,#fffefb,#f4eadc);backface-visibility:hidden;box-shadow:inset 0 0 12px #b6a38b18}
+.race-cube-face .race-die{display:block;width:100%;height:100%}
+.race-cube-face--1{transform:translateZ(calc(var(--die-edge) / 2))}
+.race-cube-face--2{transform:rotateY(90deg) translateZ(calc(var(--die-edge) / 2));filter:brightness(.94)}
+.race-cube-face--3{transform:rotateX(90deg) translateZ(calc(var(--die-edge) / 2))}
+.race-cube-face--4{transform:rotateX(-90deg) translateZ(calc(var(--die-edge) / 2));filter:brightness(.94)}
+.race-cube-face--5{transform:rotateY(-90deg) translateZ(calc(var(--die-edge) / 2));filter:brightness(.97)}
+.race-cube-face--6{transform:rotateY(180deg) translateZ(calc(var(--die-edge) / 2))}
+.race-roll-footer{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0;text-align:center;position:relative;z-index:1}
+.dice-race .race-roll-ready{min-height:60px;min-width:260px;font-size:22px;font-weight:900;padding:14px 30px;border-radius:20px;box-shadow:0 6px 0 #12223a1a}
+.race-roll-footer p{font-size:clamp(13px,1.5vw,17px);color:#7b7168;margin:0;line-height:1.3}
+.race-roll--settling{animation:race-roll-away .36s ease-in both;pointer-events:none}
+.race-roll--settling .race-rolling-die,.race-roll--settling .race-cube,.race-roll--settling .race-die-hop,.race-roll--settling .race-roll-shadow,.race-roll--paused,.race-roll--paused *{animation-play-state:paused}
+.race-roll--paused{visibility:hidden}
+@keyframes race-roll-in{from{opacity:0}to{opacity:1}}
+@keyframes race-roll-away{to{opacity:0;transform:scale(.98)}}
+@keyframes race-die-tumble{from{transform:rotateX(-20deg) rotateY(20deg) rotateZ(0)}to{transform:rotateX(700deg) rotateY(740deg) rotateZ(360deg)}}
+@keyframes race-die-hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+@keyframes race-die-shadow{0%,100%{transform:scale(1);opacity:.17}50%{transform:scale(.7);opacity:.08}}
+@keyframes race-roll-path-child{0%,100%{transform:translate(calc(var(--roll-x) * -1),calc(var(--roll-y) * -.4))}25%{transform:translate(calc(var(--roll-x) * -.2),calc(var(--roll-y) * -1))}50%{transform:translate(var(--roll-x),calc(var(--roll-y) * .2))}75%{transform:translate(calc(var(--roll-x) * .15),var(--roll-y))}}
+@keyframes race-roll-path-adult{0%,100%{transform:translate(var(--roll-x),calc(var(--roll-y) * .65))}25%{transform:translate(calc(var(--roll-x) * .2),var(--roll-y))}50%{transform:translate(calc(var(--roll-x) * -1),calc(var(--roll-y) * -.2))}75%{transform:translate(calc(var(--roll-x) * -.15),calc(var(--roll-y) * -1))}}
+@media(max-width:600px){.race-roll{--die-edge:76px;--roll-x:24vw;--roll-y:10vh;padding-left:calc(16px + var(--app-safe-left,0px));padding-right:calc(16px + var(--app-safe-right,0px))}.race-roll-players{gap:18px}.race-roll h2{margin-top:24px}.dice-race .race-roll-ready{min-width:230px;min-height:56px;font-size:20px}}
+@media(orientation:landscape) and (max-height:530px){.race-roll{--die-edge:62px;--roll-x:25vw;--roll-y:20px;padding-top:calc(6px + var(--app-safe-top,0px));padding-bottom:calc(8px + var(--app-safe-bottom,0px))}.race-roll h2{font-size:25px;margin:4px 0}.race-roll-round{font-size:15px;padding:6px 15px}.race-roll-players{font-size:14px}.race-roll-stage{min-height:105px}.race-roll-footer{gap:6px}.dice-race .race-roll-ready{min-height:44px;font-size:18px;padding:8px 24px;border-radius:15px}.race-roll-footer p{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.race-roll,.race-roll *{animation:none!important;will-change:auto}.race-rolling-die--child{transform:translateX(calc(var(--roll-x) * -1))}.race-rolling-die--adult{transform:translateX(var(--roll-x))}.race-cube{transform:rotateX(-18deg) rotateY(24deg)}}

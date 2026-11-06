@@ -1,9 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-async function start(page) {
+async function enterNumbers(page) {
+  await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();
+  await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);
+}
+async function start(page, stopDice = true) {
   await page.goto("/tests/responsive/games.html");
   await page.getByRole("button",{name:/Гонки/}).click();
   await page.getByRole("button",{name:"На старт!"}).click();
+  if (stopDice) await enterNumbers(page);
 }
 async function dice(page, child, adult) {
   await page.getByRole("button",{name:`Мирон: выпало ${child}`,exact:true}).click();
@@ -12,7 +17,10 @@ async function dice(page, child, adult) {
 }
 async function round(page, child, adult, nextRound) {
   await dice(page, child, adult);
-  if (nextRound) await expect(page.locator(".race-round")).toHaveText(`Раунд ${nextRound}`);
+  if (nextRound) {
+    await expect(page.locator(".race-round")).toHaveText(`Раунд ${nextRound}`);
+    await enterNumbers(page);
+  }
 }
 
 test("physical input, comparison, pause, and return to games",async ({page}) => {
@@ -38,6 +46,7 @@ test("physical input, comparison, pause, and return to games",async ({page}) => 
   expect(await page.locator(".race-car>span").allTextContents()).toEqual(positions);
   await page.getByRole("button",{name:"Продолжить",exact:true}).click();
   await expect(page.locator(".race-round")).toHaveText("Раунд 2");
+  await enterNumbers(page);
   await expect(page.getByRole("img",{name:"Мирон: 2 из 19"})).toBeVisible();
   await expect(page.getByRole("img",{name:"Папа: 3 из 19"})).toBeVisible();
   await page.getByRole("button",{name:"К списку игр"}).click();
@@ -54,6 +63,7 @@ test("adult victory gives no child video",async ({page}) => {
   await expect(page.getByText("Смотреть видео",{exact:true})).toHaveCount(0);
   await page.getByRole("button",{name:"Ещё гонка"}).click();
   await page.getByRole("button",{name:"На старт!"}).click();
+  await enterNumbers(page);
   await expect(page.getByRole("img",{name:"Мирон: 0 из 19"})).toBeVisible();
 });
 
@@ -71,13 +81,20 @@ for(const result of ["win","tie"]) test(`${result} uses existing student reward 
 
 for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:844,height:390},{width:390,height:844}]) test(`layout ${viewport.width}x${viewport.height} with safe areas`,async ({page}) => {
   await page.setViewportSize(viewport);
-  await start(page);
+  await start(page, false);
   await page.evaluate(() => {
     document.documentElement.style.setProperty("--app-safe-top","20px");
     document.documentElement.style.setProperty("--app-safe-bottom","21px");
     document.documentElement.style.setProperty("--app-safe-left","20px");
     document.documentElement.style.setProperty("--app-safe-right","20px");
   });
+  const ready = await page.getByRole("button",{name:"Кубики брошены",exact:true}).boundingBox();
+  expect(ready.y + ready.height).toBeLessThanOrEqual(viewport.height - 21);
+  expect(ready.x).toBeGreaterThanOrEqual(20);
+  expect(ready.x + ready.width).toBeLessThanOrEqual(viewport.width - 20);
+  await expect(page.locator(".race-roll")).toHaveCSS("opacity", "1");
+  await page.screenshot({path:`.cache/games-results/rolling-${viewport.width}x${viewport.height}.png`,fullPage:true});
+  await enterNumbers(page);
   await round(page,5,3,2);
   await round(page,5,5,3);
   await page.getByRole("button",{name:"Мирон: выпало 5",exact:true}).click();
@@ -100,11 +117,47 @@ test("answer uses the adult name chosen before the race",async ({page}) => {
   await page.getByRole("button",{name:/Гонки/}).click();
   await page.getByRole("textbox",{name:"Второй игрок"}).fill("Мама");
   await page.getByRole("button",{name:"На старт!"}).click();
+  await enterNumbers(page);
   const answers = page.getByRole("group",{name:"Кто едет дальше?",exact:true});
   await expect(answers.getByRole("button",{name:"Мама",exact:true})).toBeVisible();
   await page.getByRole("button",{name:"Мирон: выпало 1",exact:true}).click();
   await page.getByRole("button",{name:"Мама: выпало 3",exact:true}).click();
   await answers.getByRole("button",{name:"Мама",exact:true}).click();
   await expect(page.locator(".race-round")).toHaveText("Раунд 2");
+  await enterNumbers(page);
   await expect(page.getByRole("img",{name:"Мама: 3 из 19"})).toBeVisible();
+});
+
+test("dice keep rolling until stopped, pause safely, and return after a completed move",async ({page}) => {
+  await start(page, false);
+  const rolling = page.getByRole("dialog",{name:"Бросайте кубики!",exact:true});
+  await expect(rolling).toBeVisible();
+  await expect(rolling.getByText("Мирон",{exact:true})).toBeVisible();
+  const cube = page.locator(".race-cube").first();
+  const before = await cube.evaluate(el => getComputedStyle(el).transform);
+  await page.waitForTimeout(400);
+  expect(await cube.evaluate(el => getComputedStyle(el).transform)).not.toBe(before);
+  expect(await page.locator(".race-car>span").allTextContents()).toEqual(["0","0"]);
+  await expect(page.locator(".race-numbers button[aria-pressed=true]")).toHaveCount(0);
+  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"Пауза",exact:true})).toBeVisible();
+  expect(await cube.evaluate(el => getComputedStyle(el).animationPlayState)).toBe("paused");
+  await page.getByRole("button",{name:"Продолжить",exact:true}).click();
+  await expect(rolling).toBeVisible();
+  await page.getByRole("button",{name:"Остановить анимацию и ввести числа",exact:true}).click();
+  await expect(rolling).toHaveCount(0);
+  await expect(page.locator(".race-numbers button[aria-pressed=true]")).toHaveCount(0);
+  await dice(page,2,1);
+  await expect(rolling).toBeVisible();
+  expect(await page.locator(".race-car>span").allTextContents()).toEqual(["2","1"]);
+  await enterNumbers(page);
+  await expect(page.getByRole("img",{name:"Мирон: 2 из 19"})).toBeVisible();
+});
+
+test("reduced motion keeps the same stop and manual input flow",async ({page}) => {
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await start(page,false);
+  expect(await page.locator(".race-cube").first().evaluate(el => getComputedStyle(el).animationName)).toBe("none");
+  await enterNumbers(page);
+  await expect(page.getByRole("button",{name:"Мирон: выпало 1",exact:true})).toBeEnabled();
 });

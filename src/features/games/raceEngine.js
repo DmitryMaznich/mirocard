@@ -1,7 +1,7 @@
 export const FINISH = 19;
 
 export function createRace() {
-  return { positions: [0, 0], dice: [null, null], round: 1, phase: "input", answer: null, mistake: false, step: 0, result: null };
+  return { positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
 }
 
 export function comparisonAnswer(dice) {
@@ -11,6 +11,11 @@ export function comparisonAnswer(dice) {
 
 export function raceReducer(state, action) {
   if (action.type === "reset") return createRace();
+  if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
+  if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
+  if (action.type === "arrived" && state.phase === "arriving") {
+    return { ...state, round: state.round + 1, phase: "rolling", dice: [null, null], answer: null, mistake: false };
+  }
   if (action.type === "dice" && state.phase === "input") {
     if (![0, 1].includes(action.player) || !Number.isInteger(action.value) || action.value < 1 || action.value > 6) return state;
     const dice = [...state.dice];
@@ -33,7 +38,8 @@ export function raceReducer(state, action) {
     if (childFinished || adultFinished) {
       return { ...state, positions, step, phase: "finished", result: childFinished && adultFinished ? "tie" : childFinished ? "child" : "adult" };
     }
-    return { ...state, positions, step, round: state.round + 1, phase: "input", dice: [null, null], answer: null, mistake: false };
+    // Let the final CSS step finish before bringing the rolling dice back.
+    return { ...state, positions, step, phase: "arriving" };
   }
   return { ...state, positions, step };
 }

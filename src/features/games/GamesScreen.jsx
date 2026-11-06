@@ -7,6 +7,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
 import { FINISH, comparisonAnswer, createRace, raceReducer } from "./raceEngine";
 import { DiceFace, RaceCar } from "./RaceArt";
+import RollingDice from "./RollingDice";
 import "./games.css";
 
 function RaceLane({ name, player, position }) {
@@ -64,6 +65,14 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
   }, [race.phase, race.step, paused]);
 
   useEffect(() => {
+    if (paused) return undefined;
+    const action = race.phase === "settling" ? "settled" : race.phase === "arriving" ? "arrived" : null;
+    if (!action) return undefined;
+    const timer = setTimeout(() => dispatch({ type: action }), race.phase === "settling" ? 360 : 320);
+    return () => clearTimeout(timer);
+  }, [race.phase, paused]);
+
+  useEffect(() => {
     setBackInterceptor(() => {
       if (rewardOpen) setRewardClaimed(true);
       else if (paused) setPaused(false);
@@ -74,10 +83,11 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
     return () => setBackInterceptor(null);
   }, [rewardOpen, paused, started, race.phase, onBack]);
 
-  const status = race.phase === "moving" ? "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : "Кто едет дальше?";
+  const rolling = race.phase === "rolling" || race.phase === "settling";
+  const status = race.phase === "moving" || race.phase === "arriving" ? "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : "Кто едет дальше?";
 
   return <main className="dice-race">
-    <div className="race-board" inert={!started || paused || race.phase === "finished"}>
+    <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
     <header className="games-header race-header">
       <button className="games-icon" aria-label="К списку игр" onClick={() => started && race.phase !== "finished" ? setPaused(true) : onBack()}><BackArrowIcon /></button>
       <h1>Гонки</h1><span className="race-round">Раунд {race.round}</span>
@@ -97,6 +107,8 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
       </div>
     </footer>
     </div>
+
+    {started && rolling && <RollingDice key={race.round} childName={childName} adultName={adult} round={race.round} settling={race.phase === "settling"} paused={paused} onReady={() => dispatch({ type: "ready" })} onPause={() => setPaused(true)} />}
 
     {!started && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-start-title">
       <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">Кто первым до финиша?</h2>
