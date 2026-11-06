@@ -1,3 +1,4 @@
+import { applyLearningEvent } from '@/features/myPeople/peopleLearningSession';
 import { expect, it } from "vitest";
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
@@ -31,10 +32,14 @@ it("inventories all shipped modes without claiming unreviewed renderer callbacks
       for (const declaredMode of topic.modes ?? []) {
         const evaluation = getDefaultModeSettings(topic.meta?.renderer, declaredMode.id)?.evaluation ?? declaredMode.evaluation;
         const mode = { ...declaredMode, evaluation };
-        const tasks = [{ type: mode.type, conceptId: "audit" }];
+        const tasks = [mode.type === 'people_learning_v2'
+          ? { type: mode.type, trialId: 'audit-trial', conceptId: 'audit', kind: 'main', goal: 'name', activity: 'recall', context: 'adult', targetPersonId: 'audit-person', initialHint: 'none', photoRef: '/api/photos/audit' }
+          : { type: mode.type, conceptId: "audit" }];
         let state = createSessionState(tasks, mode, "audit-student", topic.meta.id, topic.meta.version, ["audit"]);
         state.statistics.conditions = captureConditions(topic, mode, {}, tasks, ["audit"], null);
-        state = evaluation === "none" ? handleAdvance(state) : handleAnswer(state, true);
+        state = mode.type === 'people_learning_v2'
+          ? applyLearningEvent(state, { trialId: 'audit-trial', type: 'complete', outcome: 'independent' })
+          : evaluation === "none" ? handleAdvance(state) : handleAnswer(state, true);
         const record = computeSessionRecord(state, "audit-student", topic.meta.id, topic.meta.version, [], { recordState: "checkpoint", completionReason: "checkpoint" });
         const saved = await persistSessionRecord(db, record);
         expect(saved.modeId).toBe(mode.id);
@@ -45,7 +50,7 @@ it("inventories all shipped modes without claiming unreviewed renderer callbacks
         db.transaction("syncQueue", "readwrite").objectStore("syncQueue").clear();
         modes.set(`${topic.meta.id}:${mode.id}`, {
           topicId: topic.meta.id, renderer: topic.meta.renderer, modeId: mode.id, type: mode.type, evaluation,
-          storage: "shared_engine_checkpoint", sharedEngineVerification: "answer_or_advance_to_indexeddb",
+          storage: "shared_engine_checkpoint", sharedEngineVerification: mode.type === "people_learning_v2" ? "typed_trial_to_indexeddb" : "answer_or_advance_to_indexeddb",
           firstResponse: SINGLE_RESPONSE_TYPES.has(mode.type) ? "enabled" : "not_inferred",
           rendererVerification: topic.meta.renderer === "addition_subtraction" && mode.type === "operation_audio" ? "keypad_to_persistence_regression" : "requires_mode_review",
           scoring: evaluation === "none" ? "practice_without_accuracy" : SINGLE_RESPONSE_TYPES.has(mode.type) ? "first_response_and_action_counts" : "action_counts_or_explicit_adult_quality",

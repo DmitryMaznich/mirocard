@@ -240,7 +240,7 @@ export function buildMyPeopleTopicRecord() {
     meta: {
       id: "my_people",
       renderer: "my_people",
-      version: "1.4.0",
+      version: "2.0.0",
       title: { ru: "Мои люди" },
       avatar: "media/avatar_my_people.svg",
       builtin: true,
@@ -268,6 +268,9 @@ export function buildMyPeopleTopicRecord() {
     // answer about yourself → label photos (needs reading) → introduce
     // yourself. Mode pickers keep this order.
     modes: [
+      { id: "people_learning_v2", type: "people_learning_v2", evaluation: "adult", retired: true,
+        finite: true, excludeFromLoop: true, hideConceptPicker: true,
+        ui: { title: { ru: "Мои люди" }, instruction: { ru: "Имена и отношения" } } },
       matchSameMode,
       showMeMode,
       whoIsThisMode,

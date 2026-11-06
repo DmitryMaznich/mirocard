@@ -1,3 +1,4 @@
+import PeopleLearningHome from '@/features/myPeople/PeopleLearningHome';
 import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { setupText } from "@/shared/i18n/setupText.js";
@@ -64,6 +65,12 @@ function getModeInstruction(mode) {
 }
 
 export default function ModePickerScreen() {
+  const isPeople = useAppStore(s => s.activeTopicId === 'my_people');
+  const studentId = useAppStore(s => s.activeStudentId);
+  return isPeople ? <PeopleLearningHome key={studentId} legacy={<LegacyModePickerScreen />} /> : <LegacyModePickerScreen />;
+}
+
+export function LegacyModePickerScreen() {
   const { t } = useUiTranslation();
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);

@@ -62,7 +62,7 @@ export function captureConditions(topic, mode, params, tasks, conceptIds, textId
   // This engine explicitly overrides these settings for transfer material.
   if (topic.meta.renderer === "word_formation" && params.materialSet === "transfer") Object.assign(effectiveParams, { introStage: "answer", showImage: false, hintMode: "phrase", activityStage: "check", questionHint: false });
   return { renderer: topic.meta.renderer, evaluation: mode.evaluation, params: effectiveParams, conceptIds: [...new Set(conceptIds ?? [])].sort(), textId: textId ?? null,
-    optionCounts: [...new Set(tasks.filter(task => Array.isArray(task.options)).map(task => task.options.length))].sort((a, b) => a - b),
+    optionCounts: [...new Set(tasks.filter(task => Array.isArray(task.options) || task.type === "people_learning_v2" && Array.isArray(task.choices)).map(task => (task.options ?? task.choices).length))].sort((a, b) => a - b),
     taskTypes: [...new Set(tasks.map(task => task.type))].sort(),
   };
 }

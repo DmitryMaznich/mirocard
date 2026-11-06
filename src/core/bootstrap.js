@@ -1,3 +1,4 @@
+import { erasePeopleLearningCache } from './peopleLearningCache';
 import { migrateSettings } from "./settingsMigration.js";
 import { kv } from "@/core/db";
 import { getUiLanguage, hydrateUiLanguage } from "@/shared/i18n/uiLanguage.js";
@@ -516,6 +517,7 @@ export async function persistBootstrap(db, raw) {
 
   await Promise.all(writes);
   if (bootstrap.erasedStudentIds.length) {
+    await erasePeopleLearningCache(db, bootstrap.erasedStudentIds);
     for (const key of ["lastContext", "activeSession"]) {
       const value = await kv.get(db, key);
       const studentId = value?.context?.studentId ?? value?.studentId;

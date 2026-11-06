@@ -1,3 +1,4 @@
+import { personRelations, relationEntry } from '../../../shared/my-people-v2.mjs';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { studentPeople, legacyAdults, personLabel, mergePeopleCards, mergePeopleRecords } from "../../../shared/student-people.mjs";
 import { useAppStore } from "@/core/store";
@@ -15,6 +16,7 @@ const TABS = [
   ["family", "Семья и питомцы"],
   ["home", "Люди дома"],
   ["school", "Школа"],
+  ["friends", "Друзья"],
   ["personal", "Личные данные"],
 ];
 
@@ -22,6 +24,7 @@ const CONTEXT_LABELS = {
   family: "Семья",
   home: "Дома",
   school: "Школа",
+  friends: "Друзья",
 };
 
 function makeId() {
@@ -251,10 +254,22 @@ function PersonEditor({ person, people, activeContext, canEnable, onChange, onPh
           </label>
           <label className="mp-field mp-field--wide">
             <span>Кто это для ребёнка?</span>
-            <input value={person.relation} onChange={(event) => update({ relation: event.target.value })} placeholder={person.type === "pet" ? "Например, наша кошка" : "Например, мама"} />
+            <input value={person.relation} onChange={(event) => update({ relation: event.target.value, relations: [relationEntry(event.target.value), ...personRelations(person).filter(r => r.key !== personRelations(person)[0]?.key)] })} placeholder={person.type === "pet" ? "Например, наша кошка" : "Например, мама"} />
           </label>
         </div>
 
+        {person.type !== 'pet' && <label className="mp-field">
+          <span>Другие отношения (через точку с запятой)</span>
+          <input defaultValue={personRelations(person).filter(r => r.label !== person.relation).map(r => r.label).join('; ')}
+            onBlur={event => update({ relations: [relationEntry(person.relation), ...event.target.value.split(';').map(relationEntry)] })}
+            placeholder="Например, подруга; одноклассница" />
+        </label>}
+        <label className="mp-field"><span>Допустимые варианты имени (через точку с запятой)</span>
+          <input value={(person.nameVariants ?? []).join('; ')} onChange={event => update({ nameVariants: event.target.value.split(';') })} />
+        </label>
+        <label className="mp-field"><span>Начало имени для подсказки (необязательно)</span>
+          <input value={person.nameHint ?? ''} onChange={event => update({ nameHint: event.target.value })} placeholder="Например, Ми" />
+        </label>
         <fieldset className="mp-contexts">
           <legend>Где ребёнок встречает этого человека?</legend>
           <p>Можно отметить несколько мест — это определит, в каких режимах появится карточка.</p>

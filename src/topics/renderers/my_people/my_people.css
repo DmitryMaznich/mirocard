@@ -850,3 +850,8 @@
 @media (prefers-reduced-motion: reduce) {
   .people-point-photo--hint { animation: none; box-shadow: 0 0 0 5px rgba(74, 155, 143, .3); }
 }
+
+/* Compact legacy controls while its original data/route remains available. */
+.people-grade-row--compact { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.people-grade-row--compact .people-grade { min-width: 0; min-height: 46px; padding: 10px 6px; }
+@media (max-width: 480px) { .people-grade-row--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

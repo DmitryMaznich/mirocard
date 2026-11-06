@@ -978,6 +978,7 @@ export default function HomeScreen() {
   }
 
   function startOrContinue() {
+    if (topic?.meta?.id === "my_people") { setScreen("modes"); return; }
     if (isChatPractice) { setScreen(topic?.modes?.length > 0 ? "modes" : "chat_params"); return; }
     if (!isReading) { setScreen("params"); return; }
     if (!activeText) { setScreen("texts"); return; }

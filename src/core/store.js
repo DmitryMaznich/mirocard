@@ -91,6 +91,8 @@ export const useAppStore = create((set) => ({
       token: null,
       loginRecovery: null,
       students: [],
+      myPeoplePreparationScope: null,
+      myPeopleLaunchPlan: null,
       ownedTopics: [],
       activeSessionSnapshot: null,
       screen: "login",
@@ -131,6 +133,10 @@ export const useAppStore = create((set) => ({
   setStudentEditReturnScreen: (studentEditReturnScreen) => set({ studentEditReturnScreen }),
   // Where "Мои люди" settings go back to: the mode list when opened from
   // there, otherwise the student card it has always returned to.
+  myPeoplePreparationScope: null,
+  setMyPeoplePreparationScope: (myPeoplePreparationScope) => set({ myPeoplePreparationScope }),
+  myPeopleLaunchPlan: null,
+  setMyPeopleLaunchPlan: (myPeopleLaunchPlan) => set({ myPeopleLaunchPlan }),
   myPeopleReturnScreen: null,
   setMyPeopleReturnScreen: (myPeopleReturnScreen) => set({ myPeopleReturnScreen }),
   // The tab "Мои люди" settings open on when a link names what's missing

@@ -680,7 +680,7 @@
     {
       "id": "my_people",
       "title": "Мои люди",
-      "version": "1.4.0",
+      "version": "2.0.0",
       "renderer": null,
       "sources": [
         "src/topics/builtinMyPeopleTopic.js",
