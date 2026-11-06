@@ -27,11 +27,13 @@ function RulerLines({ width }) {
   return <g>{lines}</g>;
 }
 
-// `frame` (the modes' «Рамка и риски», on by default; owner, 2026-11-06: «тонкий контур пространства для
+// `frame` (the modes' «Рамка», on by default; owner, 2026-11-06: «тонкий контур пространства для
 // буквы, чтобы было видно какая ширина буквы ожидается… обозначить где должна буква начинаться»): a thin
 // outline of the letter's place — its width × 2 cells — in the ticks' red, paler, so the outline and the
 // ticks read as one ruler, not as a path to trace; the place inside lightly tinted. Off: the bare grid.
-export function Grid({ box, card, frame = true }) {
+// `guides` («Вспомогательные линии», on by default, owner 2026-11-06): the dashed lines inside the letter's
+// place, a setting of its own beside «Рамка».
+export function Grid({ box, card, frame = true, guides = true }) {
   const w = glyphWidth(card);
   const lines = [];
   const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
@@ -47,7 +49,7 @@ export function Grid({ box, card, frame = true }) {
       {frame && <rect x={0} y={0} width={w} height={2 * CELL} className="plw-cell-own" />}
       {lines}
       {frame && <rect x={0} y={0} width={w} height={2 * CELL} className="plw-frame" />}
-      {frame && <RulerLines width={w} />}
+      {guides && <RulerLines width={w} />}
     </g>
   );
 }
