@@ -17,7 +17,7 @@ beforeEach(async () => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   await kv.del(await getDb(), 'peopleLearning:owner:kid');
   const s = useAppStore.getState();
-  s.setAccount({ id: 'owner' }); s.setStudents([{ id: 'kid', name: 'Мирон', myPeople: ['Анна', 'Иван', 'Саша', 'Маша', 'Ольга', 'Барсик'].map((name, i) => ({ id: `p${i}`, name, relation: i === 0 ? 'мама' : 'друг', photos: [`photo${i}`] })) }]);
+  s.setAccount({ id: 'owner' }); s.setStudents([{ id: 'kid', name: 'Мирон', myPeople: ['Анна', 'Иван', 'Саша', 'Маша', 'Ольга', 'Барсик'].map((name, i) => ({ id: `p${i}`, name, relation: i === 0 ? 'мама' : 'друг', type: i === 5 ? 'pet' : 'person', contexts: [i < 2 ? 'family' : i === 2 ? 'school' : i === 4 ? 'home' : 'friends'], photos: [`photo${i}`] })) }]);
   s.setActiveStudentId('kid'); s.setActiveTopicId('my_people'); s.patchSettings({ adultPinHash: null });
   s.setMyPeopleLaunchPlan(null); s.setActiveSessionSnapshot(null);
   container = document.createElement('div'); document.body.append(container); root = createRoot(container);
@@ -50,4 +50,18 @@ it('preserves scoped field size while changing goal and activity', async () => {
   expect(button('2 фото · 1 отвлекающих').getAttribute('aria-pressed')).toBe('true');
   await click('Имена');
   expect(button('6 фото · 5 отвлекающих').getAttribute('aria-pressed')).toBe('true');
+});
+
+it('saves category in the confirmed plan while keeping all distractors available', async () => {
+  await click('Новая механика'); await click('Для взрослого'); await click('Школа'); await click('Все параметры');
+  const targets = [...container.querySelectorAll('fieldset')].find(f => f.querySelector('legend')?.textContent === 'Кого учим');
+  expect([...targets.querySelectorAll('input')]).toHaveLength(1);
+  const pool = [...container.querySelectorAll('fieldset')].find(f => f.querySelector('legend')?.textContent === 'Откуда брать отвлекающие варианты');
+  expect(pool.querySelectorAll('input:checked')).toHaveLength(6);
+  await click('Подготовить ребёнку'); await click('Для взрослого');
+  expect(button('Школа').getAttribute('aria-pressed')).toBe('true');
+  await click('Семья');
+  await act(async () => { container.querySelector('[aria-label="Назад"]').click(); });
+  await click('Начать'); await waitFor(() => useAppStore.getState().screen === 'session');
+  expect(useAppStore.getState().myPeopleLaunchPlan).toMatchObject({ category: 'school', targetPersonIds: ['p2'] });
 });

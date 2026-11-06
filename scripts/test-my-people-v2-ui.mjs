@@ -122,6 +122,28 @@ for(const goal of ['Имена','Кто он мне'])for(const context of ['С�
  if(overflow)throw Error('horizontal overflow');
  console.log('PASS',goal,context,activity);
 }
+await page.evaluate(()=>window.__store.getState().setScreen('modes'));
+await page.getByRole('button',{name:'Для взрослого',exact:true}).click();
+await page.getByRole('button',{name:'Имена',exact:true}).click();
+await page.getByRole('button',{name:'Самостоятельно',exact:true}).click();
+await page.getByRole('button',{name:'Выбрать фото',exact:true}).click();
+await page.getByRole('button',{name:'Семья',exact:true}).click();
+await page.getByRole('button',{name:'Все параметры',exact:true}).click();
+await page.getByRole('button',{name:'6 фото · 5 отвлекающих',exact:true}).click();
+const targets=page.locator('fieldset').filter({has:page.locator('legend',{hasText:'Кого учим'})});
+if(await targets.locator('input:checked').count()!==2)throw Error('family targets not filtered');
+await page.screenshot({path:output+'/category-family-320.png',fullPage:true});
+await page.getByRole('button',{name:'Подготовить ребёнку',exact:true}).click();
+await page.getByRole('button',{name:'Начать',exact:true}).click();
+await page.waitForFunction(()=>document.querySelector('.pl-choice__hit:not([disabled])'));
+const selected=await page.evaluate(()=>{const s=window.__store.getState();return {category:s.myPeopleLaunchPlan.category,ids:s.myPeopleLaunchPlan.targetPersonIds};});
+if(selected.category!=='family'||selected.ids.join(',')!=='p0,p1')throw Error('category not saved in launch');
+if(await page.locator('.pl-choice__hit').count()!==6)throw Error('category narrowed distractors');
+await page.evaluate(()=>window.__store.getState().setScreen('modes'));
+await page.getByRole('button',{name:'Для взрослого',exact:true}).click();
+await page.getByRole('button',{name:'Школа',exact:true}).click();
+if(!await page.getByRole('button',{name:'Подготовить ребёнку',exact:true}).isDisabled())throw Error('empty category silently replaced');
+console.log('PASS category selection, saved plan, independent distractors and empty category');
 console.log('errors',errors);
 if(errors.length)throw Error('browser errors');
 await browser.close();
