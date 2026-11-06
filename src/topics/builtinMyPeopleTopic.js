@@ -26,6 +26,13 @@ const promptDelayParam = {
   default: 5,
 };
 
+const peopleCategoryParam = {
+  type: "enum", label: { ru: "Категория людей" },
+  values: ["all", "family", "school", "friends", "home", "pets"],
+  labels: { ru: { all: "Все категории", family: "Семья и питомцы", school: "Школа", friends: "Друзья", home: "Дома", pets: "Питомцы" } },
+  default: "all",
+};
+
 // The seven old album modes (a circle × names/relations, plus «Все люди»).
 // Replaced by «Подпиши фото» with the same two choices as parameters; kept
 // as `retired` so session history and saved lesson plans that name them
@@ -57,9 +64,9 @@ const labelPhotosMode = {
   params: {
     circle: {
       type: "enum",
-      label: { ru: "Чьи фото" },
-      values: ["family", "home", "school", "all"],
-      labels: { ru: { family: "Семья и питомцы", home: "Люди дома", school: "Школа", all: "Все" } },
+      label: { ru: "Категория людей" },
+      values: ["family", "home", "school", "friends", "pets", "all"],
+      labels: { ru: { family: "Семья и питомцы", home: "Люди дома", school: "Школа", friends: "Друзья", pets: "Питомцы", all: "Все" } },
       default: "family",
     },
     labelKind: {
@@ -232,7 +239,7 @@ const withVoice = (mode) => ({
   ...mode,
   paramsScope: "mode",
   legacyParamsScope: "topic",
-  params: { ...(mode.params ?? {}), ...voiceParam },
+  params: { ...(["match_same", "show_me", "who_is_this"].includes(mode.id) ? { circle: peopleCategoryParam } : {}), ...(mode.params ?? {}), ...voiceParam },
 });
 
 export function buildMyPeopleTopicRecord() {
@@ -240,7 +247,7 @@ export function buildMyPeopleTopicRecord() {
     meta: {
       id: "my_people",
       renderer: "my_people",
-      version: "2.0.0",
+      version: "2.0.1",
       title: { ru: "Мои люди" },
       avatar: "media/avatar_my_people.svg",
       builtin: true,

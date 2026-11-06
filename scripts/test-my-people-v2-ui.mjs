@@ -144,6 +144,25 @@ await page.getByRole('button',{name:'Для взрослого',exact:true}).cli
 await page.getByRole('button',{name:'Школа',exact:true}).click();
 if(!await page.getByRole('button',{name:'Подготовить ребёнку',exact:true}).isDisabled())throw Error('empty category silently replaced');
 console.log('PASS category selection, saved plan, independent distractors and empty category');
+// The ordinary mode settings must expose the category as well as the v2 hub.
+await page.evaluate(()=>{
+ const s=window.__store.getState();
+ s.setStudents(s.students.map(student=>({...student,myPeople:student.myPeople.map((person,i)=>({...person,introducedAxes:['name','relation'],contexts:[i<2?'family':i<4?'school':'friends']}))})));
+ s.upsertStudentTopicLink('qa-kid','my_people',{videoRewardEnabled:false,params:{}});
+});
+for(const id of ['who_is_this','show_me','match_same','label_photos']){
+ await page.evaluate(id=>{const s=window.__store.getState();s.setActiveTopicId('my_people');s.setActiveModeId(id);s.setMyPeopleLaunchPlan(null);s.clearActiveSessionSnapshot();s.setSessionReturnScreen(null);s.setScreen('params');},id);
+ await page.getByText('Категория людей',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Школа',exact:true}).click();
+ if(id==='match_same')await page.getByRole('button',{name:'Одинаковое фото',exact:true}).click();
+ if(id==='label_photos')await page.getByRole('button',{name:'Имена',exact:true}).click();
+ await page.screenshot({path:output+'/mode-'+id+'-category.png',fullPage:true});
+ await page.getByRole('button',{name:'Начать занятие',exact:true}).click();
+ await page.waitForFunction(()=>window.__store.getState().activeSessionSnapshot?.sessionState?.tasks?.length>0);
+ const result=await page.evaluate(()=>{const ss=window.__store.getState().activeSessionSnapshot.sessionState;return {circle:ss.statistics.conditions.params.circle,ids:ss.tasks.flatMap(t=>t.personId?[t.personId]:(t.entries??[]).map(e=>e.personId))};});
+ if(result.circle!=='school'||result.ids.some(id=>!['p2','p3'].includes(id)))throw Error('ordinary mode ignored category '+id);
+ console.log('PASS ordinary mode category settings and generated tasks',id);
+}
 console.log('errors',errors);
 if(errors.length)throw Error('browser errors');
 await browser.close();
