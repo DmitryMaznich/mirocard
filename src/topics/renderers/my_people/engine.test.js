@@ -650,7 +650,7 @@ describe("«Кто это?» first-syllable prompt", () => {
 
 });
 
-describe("«Найди такого же»", () => {
+describe("«Найди лицо»", () => {
   const matchSame = { id: "match_same", type: "person_match" };
   const person = (id, photos, extra = {}) => ({ id, name: id, relation: "", type: "person", contexts: ["family"], photos, enabled: true, ...extra });
   const student = {
@@ -708,6 +708,49 @@ describe("«Найди такого же»", () => {
         expect(words.filter((word) => word === task.word)).toHaveLength(1);
       }
     }
+  });
+
+  it("«Подпись»: the relation as typed by default, the name on request, a pet always by name", () => {
+    const family = { id: "s3", myPeople: [
+      person("nadya", ["/n1", "/n2"], { name: "Надя", relation: "бабушка" }),
+      person("olga", ["/o1", "/o2"], { name: "Ольга", relation: "учительница" }),
+      person("kolya", ["/k1", "/k2"], { name: "Коля", relation: "" }),
+      person("murka", ["/c1", "/c2"], { name: "Мурка", relation: "наша кошка", type: "pet" }),
+    ] };
+    const byRelation = { nadya: "бабушка", olga: "учительница", kolya: "Коля", murka: "Мурка" };
+    const byName = { nadya: "Надя", olga: "Ольга", kolya: "Коля", murka: "Мурка" };
+    for (const [params, words] of [[{}, byRelation], [{ label: "relation" }, byRelation], [{ label: "name" }, byName]]) {
+      for (const task of generateTasks(matchSame, family, params)) {
+        const word = words[task.personId];
+        expect(task.sampleLabel).toBe(`Это ${word}`);
+        expect(task.prompt).toBe(`Где ${word}?`);
+      }
+    }
+    // Never the two glued together, nor the sentence-builder label.
+    const labelled = { id: "s4", myPeople: family.myPeople.map((p) => ({ ...p, sentenceLabel: "баба Надя" })) };
+    for (const task of generateTasks(matchSame, labelled, { label: "name" })) {
+      expect(task.prompt).not.toMatch(/баба|бабушка Надя/);
+    }
+  });
+
+  it("keeps two grandmothers apart when the relation is asked, not when the name is", () => {
+    const grans = { id: "s5", myPeople: [
+      person("nadya", ["/n1", "/n2"], { name: "Надя", relation: "бабушка" }),
+      person("vera", ["/v1", "/v2"], { name: "Вера", relation: "бабушка" }),
+      person("ivan", ["/i1", "/i2"], { name: "Иван", relation: "дедушка" }),
+    ] };
+    let together = false;
+    for (let i = 0; i < 20; i += 1) {
+      for (const task of generateTasks(matchSame, grans, { fieldSize: 3 })) {
+        const ids = task.choices.map((choice) => choice.personId);
+        if (task.word === "бабушка") expect(ids.includes("nadya") && ids.includes("vera")).toBe(false);
+      }
+      for (const task of generateTasks(matchSame, grans, { fieldSize: 3, label: "name" })) {
+        const ids = task.choices.map((choice) => choice.personId);
+        if (ids.includes("nadya") && ids.includes("vera")) together = true;
+      }
+    }
+    expect(together).toBe(true);
   });
 
   it("lets a one-photo person be a distractor but never the one to find", () => {

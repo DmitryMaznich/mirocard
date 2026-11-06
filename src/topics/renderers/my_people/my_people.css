@@ -765,7 +765,7 @@
   flex: 0 1 min(44vw, 300px, 38vh);
 }
 
-/* «Найди такого же»: the sample is a name card -- a bigger photo in a
+/* «Найди лицо»: the sample is a name card -- a bigger photo in a
    solid teal frame with the caption "Это Ула" under it and a flat bottom
    edge instead of a lift, so it reads as "look at this", not as one more
    photo to tap. (No dashed border: dashed means a drop zone elsewhere in
