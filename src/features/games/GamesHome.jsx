@@ -28,7 +28,7 @@ export default function GamesHome() {
       </button>
       <button className="games-tile" onClick={() => { setActiveModeId("water_fill"); setScreen("params"); }}>
         <span className="games-tile__art games-tile__art--water"><WaterPreview /></span>
-        <strong>Налей до отметки</strong>
+        <strong>Налей до верха</strong>
         <span>Персонажи, краны и два стакана воды</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
       </button>

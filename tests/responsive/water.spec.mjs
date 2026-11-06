@@ -2,7 +2,7 @@ import {test,expect} from "@playwright/test";
 async function input(page){await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);}
 async function start(page,reduced=true){
   if(reduced) await page.emulateMedia({reducedMotion:"reduce"});
-  await page.goto("/tests/responsive/games.html");await page.getByRole("button",{name:/Налей до отметки/}).click();
+  await page.goto("/tests/responsive/games.html");await page.getByRole("button",{name:/Налей до верха/}).click();
   await page.getByRole("textbox",{name:"Второй игрок"}).fill("Мама");
   await page.getByRole("group",{name:"Персонаж ученика",exact:true}).getByRole("button",{name:"Девочка",exact:true}).click();
   await page.getByRole("group",{name:"Персонаж второго игрока",exact:true}).getByRole("button",{name:"Женщина",exact:true}).click();

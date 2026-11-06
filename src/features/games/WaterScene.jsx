@@ -95,7 +95,7 @@ function WaterWorld({race,names,characters,progress,paused}) {
       {Array.from({length:12},(_,i)=><path key={i} d={`M${i*110} 305v35m55 0v35`} stroke="#fffdf5" strokeWidth="2" opacity=".7" />)}
       <rect x="0" y="389" width="1200" height="19" fill="#dcb78b" /><path d="M0 391H1200M0 407H1200" stroke="#bd976e" strokeWidth="2" />
       <rect x="0" y="409" width="1200" height="131" fill="#c7dbcc" opacity=".55" />
-      <rect x="450" y="30" width="300" height="50" rx="25" fill="#fff8e8" /><text x="600" y="63" textAnchor="middle" className="water-goal-title">Налей до линии</text>
+      <rect x="450" y="30" width="300" height="50" rx="25" fill="#fff8e8" /><text x="600" y="63" textAnchor="middle" className="water-goal-title">Налей до верха</text>
       {frames.map((frame,player)=><Faucet key={player} player={player} open={ease(frame.open)} metal={`url(#${uid}-metal)`} />)}
       {frames.map((frame,player)=><Glass key={player} frame={frame} player={player} uid={uid} name={names[player]} celebrating={race.phase==="finished"} />)}
       {frames.map((frame,player)=><WaterPerson key={player} type={characters[player]} player={player} open={ease(frame.open)} nod={race.phase==="arriving" || race.phase==="finished"} />)}
