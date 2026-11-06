@@ -2,7 +2,7 @@ import { CELL, glyphWidth } from "./boardGeometry";
 
 // The board shared by the screen modes of print_letters — «Пишу на экране» (ScreenWriteView) and
 // «Почини букву» (../fixLetter/FixLetterView): the ordinary notebook grid edge to edge, the letter's own
-// cells lightly tinted, red ruler ticks on their top and bottom lines, and a quiet tone.
+// cells lightly tinted inside a thin dashed frame with dashed guide lines, and a quiet tone.
 
 // Red ruler ticks on the top and bottom lines of the letter's own cells only (owner: «рисками только ту
 // зону, где мы рисуем букву»), in each of those cells: a long one at the
@@ -10,19 +10,21 @@ import { CELL, glyphWidth } from "./boardGeometry";
 // красного цвета»). Red, so they are read neither as the grid nor as a path to trace; they mark where
 // a stroke starts (Т's stick at ¾, О's top at ½) without lines through the cell. Earlier tries: dashed
 // lines across the board (read as «trace me»), Ilyukhina's big cell (thirds — too hard to see).
-// Only inside the letter's own width (a wide letter is 1½ cells on screen: its second cell gets only
-// the tick at ¼ — the rest of that cell is not the letter's).
-const TICK_LONG = 9, TICK_SHORT = 5;
-function RulerTicks({ width }) {
-  const ticks = [];
+// Replaced 2026-11-06 by guide lines, the ticks' places kept:
+// Guide lines instead of ticks (owner, 2026-11-06: «риски выглядят инородно… такие же тонкие пунктирные
+// линии вместо рисок»): inside the letter's frame only, top to bottom, in the frame's thin dashes — at the
+// middle of each cell as the frame, at ¼ and ¾ paler (the old long and short ticks). Only inside the
+// letter's own width (a wide letter's second cell gets only the ¼ line).
+function RulerLines({ width }) {
+  const lines = [];
   for (let c = 0; c < width; c += CELL) {
-    for (const [dx, len] of [[CELL / 4, TICK_SHORT], [CELL / 2, TICK_LONG], [(3 * CELL) / 4, TICK_SHORT]]) {
+    for (const [dx, cls] of [[CELL / 4, "plw-guide plw-guide--q"], [CELL / 2, "plw-guide"], [(3 * CELL) / 4, "plw-guide plw-guide--q"]]) {
       const x = c + dx;
       if (x > width - 1) continue;
-      ticks.push(<line key={`t${x}`} x1={x} y1={0} x2={x} y2={len} />, <line key={`b${x}`} x1={x} y1={2 * CELL - len} x2={x} y2={2 * CELL} />);
+      lines.push(<line key={`g${x}`} x1={x} y1={0} x2={x} y2={2 * CELL} className={cls} />);
     }
   }
-  return <g className="plw-ruler">{ticks}</g>;
+  return <g>{lines}</g>;
 }
 
 // `frame` (the modes' «Рамка и риски», on by default; owner, 2026-11-06: «тонкий контур пространства для
@@ -45,7 +47,7 @@ export function Grid({ box, card, frame = true }) {
       {frame && <rect x={0} y={0} width={w} height={2 * CELL} className="plw-cell-own" />}
       {lines}
       {frame && <rect x={0} y={0} width={w} height={2 * CELL} className="plw-frame" />}
-      {frame && <RulerTicks width={w} />}
+      {frame && <RulerLines width={w} />}
     </g>
   );
 }
