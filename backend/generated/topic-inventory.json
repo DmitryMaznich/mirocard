@@ -421,6 +421,18 @@
       "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
     },
     {
+      "id": "games",
+      "title": "Игры",
+      "version": "1.2.0",
+      "renderer": null,
+      "sources": [
+        "src/topics/builtinGamesTopic.js"
+      ],
+      "bundle": null,
+      "builtin": true,
+      "sourceUpdatedAt": null
+    },
+    {
       "id": "good_night",
       "title": "Спокойной ночи",
       "version": "1.0.1",

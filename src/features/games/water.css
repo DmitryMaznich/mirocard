@@ -1,0 +1,15 @@
+.water-scene-wrap,.water-frame,.water-scene{display:flex;flex:1;min-height:0;min-width:0}
+.water-scene-wrap{min-height:200px;border-radius:22px;overflow:hidden;background:linear-gradient(#d1e8dd,#f9f4e6)}
+.water-scene{justify-content:center}
+.water-scene>svg{display:block;width:100%;height:100%;max-height:100%;min-height:0;font-family:Nunito,system-ui,sans-serif}
+.water-goal-title{font-size:27px;font-weight:900;fill:#20324e}.water-scale{font-size:18px;font-weight:900;fill:#20324e}.water-count{font-size:28px;font-weight:900;fill:#20324e}.water-player-name{font-size:24px;font-weight:900;fill:#20324e}
+.water-flow-shine{animation:water-flow-shine .45s linear infinite}.water-bubble{animation:water-bubble .7s ease-out infinite}.water-ripple--active{animation:water-ripple .6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.water-celebration{animation:water-celebrate .5s ease-out both}.water-scene--paused *{animation-play-state:paused!important}
+.water-character-pickers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}.water-character-picker{border:0;padding:0;margin:0;min-width:0}.water-character-picker legend{font-size:14px;font-weight:800;margin-bottom:8px;color:#596a77}.water-character-picker>div{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.dice-race .water-character-picker button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 3px;border:2px solid #e1e5e6;border-radius:12px;background:#fffdf8;font-size:11px;font-weight:800;color:#35475c;min-width:0}.water-character-picker button svg{width:48px;height:48px;max-width:100%}.dice-race .water-character-picker button[aria-pressed=true]{border-color:#379d9a;background:#e6f4ef;box-shadow:0 0 0 1px #379d9a}
+.games-dialog--water{max-width:660px}.games-tile__art--water{background:#e3f1ec}
+@keyframes water-flow-shine{to{stroke-dashoffset:-34}}@keyframes water-bubble{from{opacity:.75;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}@keyframes water-ripple{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.96)}}@keyframes water-celebrate{from{opacity:0}to{opacity:1}}
+@media(orientation:landscape) and (max-height:530px){.water-scene-wrap{min-height:155px}}
+@media(orientation:portrait) and (max-width:600px){.water-scene-wrap{flex:none;height:210px;min-height:210px}.dice-race--water .race-header h1{font-size:20px}.water-character-pickers{grid-template-columns:1fr}.dice-race .water-character-picker button{font-size:12px}.water-character-picker button svg{width:44px;height:44px}}
+@media(prefers-reduced-motion:reduce){.water-scene *{animation:none!important}}
+
+.water-character-portrait{overflow:hidden;border-radius:50%}.water-character-sprite image{pointer-events:none}

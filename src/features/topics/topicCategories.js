@@ -30,6 +30,7 @@ export const CATALOG_CATEGORIES = {
   chat_with_mom:            "Практика",
   my_people:                "Практика",
   daily_orientation:        "Практика",
+  games:                    "Практика",
 };
 
 export const OTHER_CATEGORY = "Другое";

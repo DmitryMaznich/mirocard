@@ -36,6 +36,7 @@ import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "@/features/session/ParamsScreen";
 import Propis2Home from "@/features/propis2/Propis2Home";
 import PrintLettersScreen from "@/features/printLetters/PrintLettersScreen";
+import GamesScreen from "@/features/games/GamesScreen";
 import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
@@ -88,6 +89,7 @@ function ParamsRoute() {
   const topicRecords = useAppStore((s) => s.topicRecords);
   const record = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode = record?.modes?.find((m) => m.id === activeModeId);
+  if (record?.meta.renderer === "games") return <GamesScreen key={activeTopicId} />;
   if (record?.meta.renderer === "propis2" && (!mode || mode.type === "builder")) return <Propis2Home />;
   // «Печатные буквы»: its notebook constructor is a full screen too (owner, 2026-11-03); «Пишу на
   // экране» (screen_write) and «Почини букву» (fix_letter) are ordinary sessions with the generic settings screen

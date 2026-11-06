@@ -1,0 +1,31 @@
+.tower-scene{flex:1;min-height:200px;min-width:0;display:flex;justify-content:center;background:linear-gradient(#c3e8f7,#fff7e9);border-radius:22px;overflow:hidden}
+.tower-scene>svg{display:block;width:100%;height:100%;min-height:0;max-height:100%;font-family:Nunito,system-ui,sans-serif}
+.tower-goal-title{font-size:22px;font-weight:900;fill:#20324e}
+.tower-player-name{font-size:24px;font-weight:900;fill:#20324e}
+.tower-counter text{font-size:18px;font-weight:900;fill:#fff}
+.tower-floor--built{animation:tower-floor-appear .25s ease-out both}
+.tower-floor--built .tower-window--lit{animation:tower-window-light .7s ease-out both}
+.tower-resident-arm{transform-origin:0 0;animation:tower-wave .65s ease-in-out 2}
+.tower-scene--paused *{animation-play-state:paused!important}
+.tower-rainbow{animation:tower-rainbow-appear .7s ease-out both}
+.tower-win-flag{animation:tower-floor-appear .5s ease-out both}
+.dice-race--compact .race-controls{flex:0;min-height:70px;gap:16px}
+.dice-race--compact .race-card{display:grid;grid-template-columns:minmax(55px,.65fr) 48px minmax(150px,2.8fr);align-items:center;gap:12px;padding:12px 16px;min-height:76px;border-radius:22px}
+.dice-race--compact .race-card h2{font-size:clamp(15px,2vw,24px);text-align:left}
+.dice-race--compact .race-numbers{grid-column:3;grid-row:1;gap:6px}
+.dice-race--compact .race-numbers button{height:46px;min-height:44px;font-size:clamp(19px,2.3vw,30px);border-radius:12px}
+.dice-race--compact .race-dice-value{grid-column:2;grid-row:1;min-width:0;min-height:0;padding:0;border:0}
+.dice-race--compact .race-dice-value>span{display:none}
+.dice-race--compact .race-die{width:44px}
+.dice-race--compact .race-round{position:static;transform:none;margin-left:auto;margin-right:auto}
+.dice-race--compact .race-header h1{flex:0 0 auto;white-space:nowrap}
+.games-tile__art--tower{background:#e6f1ef;color:#168f94}
+@keyframes tower-floor-appear{from{opacity:.65}to{opacity:1}}
+@keyframes tower-window-light{from{opacity:.35}to{opacity:1}}
+@keyframes tower-wave{0%,100%{transform:rotate(0)}50%{transform:rotate(-28deg)}}
+@keyframes tower-rainbow-appear{from{opacity:0}to{opacity:.65}}
+@media(orientation:landscape) and (max-height:530px){.dice-race--compact .tower-scene{min-height:155px}.dice-race--compact .race-controls{min-height:54px;gap:10px}.dice-race--compact .race-card{min-height:54px;grid-template-columns:minmax(45px,.6fr) 30px minmax(135px,3fr);padding:5px 8px;gap:7px;border-radius:16px}.dice-race--compact .race-card h2{font-size:14px}.dice-race--compact .race-die{width:28px}.dice-race--compact .race-numbers{gap:4px}.dice-race--compact .race-numbers button{height:38px;min-height:38px;font-size:22px;border-radius:9px}.dice-race--compact .race-header h1{font-size:22px}.dice-race--compact .race-round{font-size:16px}}
+@media(orientation:portrait) and (max-width:600px){.dice-race--compact{height:auto;min-height:100dvh}.dice-race--compact .tower-scene{flex:none;height:210px;overflow:hidden;justify-content:center}.dice-race--compact .tower-scene>svg{min-width:0;height:100%}.dice-race--compact .race-header h1{font-size:24px}.dice-race--compact .race-round{padding:6px 10px;font-size:14px;margin-right:0}.dice-race--compact .race-card{display:flex;gap:8px;padding:10px 8px;min-height:0}.dice-race--compact .race-numbers{width:100%;grid-template-columns:repeat(3,1fr)}.dice-race--compact .race-dice-value{flex:none}.dice-race--compact .race-card h2{text-align:center;font-size:20px}.dice-race--compact .race-die{width:40px}}
+@media(prefers-reduced-motion:reduce){.tower-scene *{animation:none!important}}
+
+@media(orientation:portrait) and (max-width:600px){.dice-race--compact .race-header{flex-wrap:wrap;gap:8px}.dice-race--compact .race-header h1{flex:1;font-size:22px}.dice-race--compact .race-round{order:4;flex-basis:100%;max-width:120px;text-align:center;margin:0 auto}}

@@ -1,0 +1,76 @@
+.games-home,.dice-race{--race-ink:#20324e;--race-coral:#ec7568;--race-teal:#168f94;color:var(--race-ink);background:#fffaf3;font-family:Nunito,system-ui,sans-serif;min-height:100dvh;box-sizing:border-box;padding:calc(20px + var(--app-safe-top,0px)) calc(28px + var(--app-safe-right,0px)) calc(20px + var(--app-safe-bottom,0px)) calc(28px + var(--app-safe-left,0px))}
+.games-home *,.dice-race *{box-sizing:border-box}
+.games-home button,.dice-race button,.dice-race input{font:inherit}
+.games-home button,.dice-race button{cursor:pointer;touch-action:manipulation}
+.games-home button:focus-visible,.dice-race button:focus-visible,.dice-race input:focus-visible{outline:3px solid #254f91;outline-offset:4px}
+.games-home button:disabled,.dice-race button:disabled{cursor:default}
+.games-header{display:flex;align-items:center;gap:18px;min-height:54px}
+.games-header h1{font-size:clamp(25px,3.5vw,44px);font-weight:900;line-height:1.1;margin:0}
+.games-icon{width:52px;height:52px;border:0;border-radius:50%;display:grid;place-items:center;background:#f9e8d6;color:var(--race-ink);flex-shrink:0}
+.games-icon svg{width:26px;height:26px}
+.games-icon:disabled{opacity:.35}
+.games-library{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,350px));gap:24px;padding:40px 0}
+.games-tile{display:flex;flex-direction:column;align-items:flex-start;gap:10px;border:2px solid #eedfce;background:#fffefa;border-radius:28px;padding:22px;text-align:left;color:var(--race-ink);box-shadow:0 9px 28px #45321b08}
+.games-tile:hover{border-color:var(--race-coral);transform:translateY(-2px)}
+.games-tile__art{display:flex;align-items:center;justify-content:center;width:100%;height:165px;border-radius:20px;background:#fce9db;color:var(--race-coral)}
+.games-tile__art svg{width:180px}.games-tile__flag{font-size:68px;color:var(--race-ink)}
+.games-tile>strong{font-size:30px;font-weight:900}.games-tile>span:not(.games-tile__art){font-size:17px}
+.games-tile__play{margin-top:14px;width:100%;display:flex;justify-content:space-between;font-weight:900;color:#a93d35}
+.dice-race{display:flex;flex-direction:column;gap:clamp(14px,2.4vh,28px);height:100dvh;min-height:540px}
+.race-board{display:contents}.race-header h1{flex:1}.race-round{font-size:clamp(18px,2.1vw,27px);font-weight:900;padding:8px 24px;border-radius:30px;background:#fae9d7;position:absolute;left:50%;transform:translateX(-50%)}
+.race-course{display:flex;flex-direction:column;justify-content:space-around;flex:1.2;min-height:180px;padding:5px 65px 0 0;gap:24px}
+.race-player--child{--player-color:var(--race-coral);--player-bg:#fff0eb;--player-border:#efa494}
+.race-player--adult{--player-color:var(--race-teal);--player-bg:#eaf6f3;--player-border:#6bb8b5}
+.race-lane{display:grid;grid-template-columns:minmax(100px,15%) 1fr;align-items:center;gap:45px;color:var(--player-color)}
+.race-player-label{display:flex;align-items:center;gap:10px;min-width:0}.race-player-label strong{font-size:clamp(16px,2.4vw,29px);color:var(--race-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.race-avatar{width:48px;height:48px;border-radius:50%;background:var(--player-bg);border:2px solid var(--player-border);display:grid;place-items:center;font-size:24px;font-weight:900;flex-shrink:0}
+.race-track-wrap{min-width:0;padding-top:30px}
+.race-track{height:34px;background:#bcbdbb;border-radius:20px;position:relative;background-image:repeating-linear-gradient(90deg,transparent 0 14px,#ffffffbf 14px 32px,transparent 32px 49px);background-size:100% 3px;background-repeat:no-repeat;background-position:center}
+.race-car{position:absolute;bottom:0;width:clamp(64px,8.5vw,130px);transform:translateX(-50%);transition:left 290ms linear;z-index:1;line-height:0}
+.race-car>svg{display:block;width:100%;height:auto}
+.race-car>span{position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);width:clamp(20px,2.4vw,32px);height:clamp(20px,2.4vw,32px);border-radius:50%;display:grid;place-items:center;background:#fffdf9;color:var(--race-ink);font-size:clamp(13px,1.7vw,23px);font-weight:900;line-height:1}
+.race-finish{position:absolute;right:-7px;top:-15px;bottom:0;width:13px;background:conic-gradient(#25334a 25%,#fff 0 50%,#25334a 0 75%,#fff 0) 0 0/12px 12px;box-shadow:0 0 0 1px #25334a30}
+.race-finish>b{position:absolute;left:-9px;bottom:calc(100% + 5px);background:#ed7767;color:white;border-radius:5px 10px 10px 0;font-size:10px;letter-spacing:.5px;padding:4px 7px;white-space:nowrap}
+.race-ticks{display:flex;justify-content:space-between;padding-top:8px;height:35px;color:var(--race-ink)}
+.race-ticks>span{position:relative;width:0;display:flex;flex-direction:column;align-items:center;gap:1px}
+.race-ticks i{display:block;height:8px;width:1px;background:#697281}.race-ticks .race-tick--major i{height:12px;width:2px;background:var(--race-ink)}.race-ticks b{font-size:clamp(12px,1.6vw,19px);font-weight:800}
+.race-controls{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;min-height:170px}
+.race-card{border:2px solid var(--player-border);background:var(--player-bg);border-radius:26px;padding:12px 20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.race-card h2{font-size:clamp(19px,2.8vw,32px);line-height:1.15;text-align:center;margin:0;color:var(--race-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.race-numbers{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
+.race-numbers button{min-height:44px;height:clamp(44px,7vh,66px);border:1.5px solid #ccc6c0;background:#fffdf9;border-radius:14px;font-size:clamp(22px,3vw,38px);font-weight:900;color:var(--race-ink);padding:0}
+.race-numbers button[aria-pressed=true]{background:var(--player-color);border-color:var(--player-color);color:#fff}
+.race-numbers button:disabled{opacity:.65}
+.race-dice-value{align-self:center;display:flex;justify-content:center;align-items:center;gap:22px;flex:1;min-height:60px;min-width:60%;background:transparent;border:2px solid transparent;border-radius:18px;color:var(--race-ink);padding:4px 16px}
+.race-dice-value>span{font-size:clamp(34px,6vh,70px);font-weight:900;line-height:1}
+.race-die{width:clamp(48px,8vh,88px);height:auto}
+.race-footer{display:flex;flex-direction:column;align-items:center;gap:12px;min-height:110px;flex-shrink:0;text-align:center}
+.race-prompt{display:flex;flex-direction:column;gap:4px;min-width:0}.race-prompt strong{font-size:clamp(18px,2.6vw,32px);font-weight:900;line-height:1.15}.race-prompt>span{font-size:clamp(12px,1.5vw,17px);color:#677181}
+.games-dialog-actions{display:flex;gap:12px;align-items:center}
+.games-primary,.games-secondary{border:0;min-height:48px;border-radius:17px;padding:12px 24px;font-size:19px;font-weight:900;white-space:nowrap}
+.games-primary{background:var(--race-ink);color:#fff}.games-primary:not(:disabled):hover{background:#334e70}.games-primary:disabled{background:#e2e1df;color:#929496}
+.games-secondary{background:#eee7dd;color:var(--race-ink)}.games-secondary:disabled{opacity:.45}
+.games-overlay{position:fixed;inset:0;z-index:200;background:#27334a66;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:calc(16px + var(--app-safe-top,0px)) calc(16px + var(--app-safe-right,0px)) calc(16px + var(--app-safe-bottom,0px)) calc(16px + var(--app-safe-left,0px));overflow-y:auto}
+.games-dialog{background:#fffcf6;border:1px solid #f1e6d8;border-radius:30px;padding:30px;max-width:530px;width:100%;max-height:100%;overflow-y:auto;box-shadow:0 24px 80px #1424372b}
+.games-dialog h2{font-size:clamp(25px,3vw,34px);line-height:1.15;font-weight:900;margin:12px 0 14px;overflow-wrap:anywhere}.games-dialog p{font-size:17px;line-height:1.5;margin:12px 0 20px}
+.games-eyebrow{font-size:12px;letter-spacing:2px;font-weight:900;color:#a54d3e}
+.games-dialog-actions{margin-top:22px;justify-content:flex-end;flex-wrap:wrap}
+.race-adult-name{display:flex;flex-direction:column;gap:6px;font-size:15px;font-weight:800}.race-adult-name input{border:1px solid #d5ccbf;background:white;min-height:46px;padding:8px 14px;border-radius:12px;color:var(--race-ink);width:100%;font-size:20px}
+.games-prize-rule{background:#f5ecdf;padding:12px 15px;border-radius:14px;font-size:15px!important}
+.games-result{text-align:center}.games-result-flag{font-size:64px;color:var(--race-teal);line-height:1}.games-result .games-dialog-actions{justify-content:center}.games-watch{width:100%;background:var(--race-teal)}
+@media(min-width:1600px){.dice-race{padding-left:calc(5vw + var(--app-safe-left,0px));padding-right:calc(5vw + var(--app-safe-right,0px))}}
+@media(max-width:850px){.games-home,.dice-race{padding:calc(12px + var(--app-safe-top,0px)) calc(16px + var(--app-safe-right,0px)) calc(12px + var(--app-safe-bottom,0px)) calc(16px + var(--app-safe-left,0px))}.dice-race{gap:12px;min-height:480px}.games-header{min-height:44px;gap:12px}.games-icon{width:44px;height:44px}.race-round{padding:6px 15px;font-size:18px}.race-course{padding-right:42px;gap:18px;min-height:150px}.race-lane{grid-template-columns:100px 1fr;gap:30px}.race-avatar{width:32px;height:32px;font-size:18px}.race-player-label{gap:6px}.race-controls{gap:12px;min-height:156px}.race-card{padding:10px 12px;border-radius:20px;gap:7px}.race-numbers{gap:5px}.race-numbers button{border-radius:10px}.games-dialog{padding:22px}}
+@media(orientation:portrait) and (max-width:600px){.dice-race{height:auto;min-height:100dvh}.race-round{position:static;transform:none;margin-left:auto}.race-header h1{flex:0}.race-course{min-height:260px;gap:40px;padding-right:30px}.race-lane{grid-template-columns:60px 1fr;gap:28px}.race-player-label{flex-direction:column;gap:4px}.race-player-label strong{max-width:68px;font-size:14px}.race-controls{gap:8px}.race-card{padding:10px 7px;gap:10px}.race-numbers{grid-template-columns:repeat(3,1fr);gap:6px}.race-numbers button{min-height:44px}.race-dice-value{min-width:0;width:100%;gap:10px;padding:6px}.race-dice-value>span{font-size:36px}.race-die{width:46px}.race-footer{padding-top:10px}}
+@media(orientation:landscape) and (max-height:530px){.dice-race{min-height:100dvh;gap:4px;padding-top:calc(4px + var(--app-safe-top,0px));padding-bottom:calc(4px + var(--app-safe-bottom,0px))}.race-course{min-height:104px;gap:0;padding-top:0}.race-track-wrap{padding-top:7px}.race-track{height:25px}.race-car{width:72px}.race-ticks{height:20px;padding-top:3px}.race-ticks i{height:5px}.race-ticks .race-tick--major i{height:5px}.race-ticks b{font-size:11px;line-height:1}.race-card{padding:4px 10px;gap:2px}.race-card h2{font-size:18px}.race-controls{min-height:110px}.race-numbers button{height:40px;min-height:40px;font-size:24px}.race-dice-value{min-height:36px;padding:0 8px;gap:14px;border:0}.race-dice-value>span{font-size:32px}.race-die{width:36px}.race-footer{min-height:72px;gap:6px}.race-prompt strong{font-size:18px}.games-header h1{font-size:25px}.games-icon{width:36px;height:36px}.games-header{min-height:36px}.race-player-label strong{font-size:16px}.race-finish>b{display:none}.dice-race .race-option{min-height:44px;font-size:16px;border-radius:14px}}
+@media(prefers-reduced-motion:reduce){.race-car,.games-tile{transition:none}.games-overlay{backdrop-filter:none}}
+.race-options{width:100%;max-width:480px;display:flex;gap:10px;flex-shrink:0}
+.dice-race .race-option{flex:1;min-width:0;min-height:56px;padding:6px 6px;border:3px solid #e2e8f0;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:clamp(14px,2vw,20px);font-weight:800;color:#334155;overflow-wrap:anywhere;transition:transform .15s,border-color .15s,background .15s,box-shadow .15s}
+.dice-race .race-option:hover:not(:disabled){transform:translateY(-2px);border-color:#3b82f6;background:#eff6ff;box-shadow:0 6px 18px #3b82f626}
+.dice-race .race-option:active:not(:disabled){transform:scale(.97)}
+.dice-race .race-option:disabled{opacity:.5}
+.dice-race .race-option--wrong,.dice-race .race-option--wrong:hover:not(:disabled){border-color:#ef4444;background:#fef2f2}
+.dice-race .race-option--correct:disabled{border-color:#22c55e;background:#dcfce7;opacity:1}
+@media(orientation:landscape) and (max-height:530px){.dice-race .race-option{min-height:44px;font-size:16px;border-radius:14px}}
+@media(prefers-reduced-motion:reduce){.dice-race .race-option{transition:none}.dice-race .race-option:hover:not(:disabled),.dice-race .race-option:active:not(:disabled){transform:none}}
+
+.race-option:last-child{white-space:nowrap}

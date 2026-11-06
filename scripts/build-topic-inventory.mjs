@@ -107,6 +107,7 @@ for (const { source } of latest.values()) {
 for (const source of [
   "src/topics/builtinTopics.js",
   "src/topics/builtinDailyOrientationTopic.js",
+  "src/topics/builtinGamesTopic.js",
   "src/topics/builtinMyPeopleTopic.js",
   "src/topics/builtinRecipesTopic.js",
 ]) {
