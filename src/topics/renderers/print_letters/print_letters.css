@@ -578,11 +578,22 @@
   font-weight: 600;
 }
 .pl-sheet-head-line { border-bottom: 0.3mm solid #4b5563; height: 4mm; }
-.pl-sheet-head-line--name { width: 55mm; }
-.pl-sheet-head-line--date { width: 28mm; }
+.pl-sheet-head-line--name { width: 55mm; min-width: 30mm; }
+.pl-sheet-head-line--date { width: 28mm; min-width: 18mm; }
 .pl-sheet-head-fill { flex: 1; }
-.pl-sheet-head-title { display: flex; align-items: flex-end; gap: 2mm; color: #1f3a8a; font-weight: 800; font-size: 12pt; }
-.pl-sheet-head-letters { display: flex; gap: 2mm; align-items: flex-end; padding-bottom: 0.3mm; }
+/* «ПИШЕМ» + the page's letters on mini plates (Sheet.jsx SheetHeader): the plates fill the header's
+   2 cells, flush with its top, bottom and right edge, so each plate sits exactly on grid cells. */
+.pl-sheet-head-title { align-self: stretch; display: flex; align-items: center; gap: 2.5mm; margin: 0 -1mm -1.5mm 0; }
+.pl-sheet-head-kicker { font-size: 7.5pt; font-weight: 800; letter-spacing: 0.14em; text-transform: none; color: #2a6b60; }
+.pl-sheet-head-plates { display: flex; align-self: stretch; }
+.pl-sheet-head-plate {
+  display: flex; align-items: center; justify-content: center; height: 100%; box-sizing: border-box;
+  border-radius: 1.6mm 0 1.6mm 0;
+  border-right: 0.5mm solid #ffffff; /* a hairline of paper between plates: same-colour ones stay apart */
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.pl-sheet-head-plate:last-child { border-right: 0; }
+.pl-sheet-head-more { font-size: 9pt; font-weight: 800; color: #64748b; margin-left: -1mm; }
 
 /* ---- Editor header: back · notebook name · unsaved · save ---- */
 .pl-header { gap: 8px; }
@@ -841,8 +852,6 @@
 .pl-pdf-save { flex: 0 0 auto; min-height: 40px; padding: 0 16px; border: none; border-radius: 12px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
 .pl-pdf-close { flex: 0 0 auto; width: 36px; height: 36px; border: none; border-radius: 10px; background: rgba(255, 255, 255, .12); color: #fff; font: inherit; font-size: 20px; cursor: pointer; }
 /* the header's «Пишем А, Б, МАМА»: items with commas */
-.pl-sheet-head-item { display: flex; align-items: flex-end; }
-.pl-sheet-head-comma { color: #1f3a8a; font-weight: 800; font-size: 12pt; line-height: 1; margin-left: 0.3mm; }
 
 /* ---- PDF (PdfPages.jsx): page numbers and the cover ---- */
 .pl-sheet-pageno { font-size: 10pt; font-weight: 700; color: #6b7280; line-height: 1; }

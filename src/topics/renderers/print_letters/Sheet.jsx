@@ -1,12 +1,15 @@
 import LetterBlock from "./LetterBlock";
 import WordBlock, { PlateWords } from "./WordBlock";
-import { isWordBlock } from "./words";
+import { isWordBlock, wordLetters } from "./words";
 import LetterGlyph from "./LetterGlyph";
-import { GAP, blockCells, blockHeightCells, drawnSize, headerCells, paperGap, paperOf, sheetSizeMm } from "./model";
+import { GAP, letterCells, blockCells, blockHeightCells, drawnSize, headerCells, paperGap, paperOf, sheetSizeMm } from "./model";
 import { FINE_MM } from "./Ruling";
 import { MIRONIUM_HEAD } from "./brand";
 
 const mm = (cells) => `${cells * FINE_MM}mm`;
+const HEAD_GLYPH_MM = 5.6;     // the header plates' white letters (the page's letters are 10mm)
+const HEAD_PLATE_PAD_MM = 1.8; // a plate's margin either side of its letters
+const HEAD_INK_MM = 0.8;       // a glyph's ink past its box: the stroke's own width
 
 // One printable sheet at its real size: the paper format minus the printer
 // margin (@page). The same component draws the page on the canvas, inside a
@@ -50,7 +53,7 @@ export default function Sheet({ page, format, byId, className = "", style, selec
       )}
       {page.blocks.length > 0 && (
         <div className="pl-sheet-head-at" style={{ position: "absolute", top: mm(GAP), left: mm(GAP), width: mm(blockCells(format)) }}>
-          <SheetHeader page={page} byId={byId} nameLine={nameLine} />
+          <SheetHeader page={page} byId={byId} nameLine={nameLine} format={format} />
         </div>
       )}
       {page.blocks.map((b, i) => {
@@ -125,14 +128,40 @@ function SheetGrid({ paper, w, h }) {
 // On the right: «Пишем» and the page's letters and words, drawn with the same strokes as in the
 // blocks, not typed in a font.
 // Syllables and words are listed after the letters, the heading becomes «Пишем».
-function SheetHeader({ page, byId, nameLine }) {
-  const ids = [...new Set(page.blocks.filter((b) => !isWordBlock(b)).map((b) => b.letterId))].filter((id) => byId[id]);
-  const words = [...new Set(page.blocks.filter(isWordBlock).flatMap((b) => b.words ?? []))];
-  // «Пишем А, Б, В, МАМА» (owner, 2026-11-03): the letters, then the syllables and words, comma-separated
-  const items = [
-    ...ids.map((id) => <LetterGlyph key={`l${id}`} letter={byId[id]} heightMm={5} variant="plain" label={byId[id].label} />),
-    ...words.map((w) => <PlateWords key={`w${w}`} words={[w]} byId={byId} heightMm={5} color="#1f3a8a" weight={9} />),
-  ];
+function SheetHeader({ page, byId, nameLine, format }) {
+  // «Пишем» as a table of contents of the sheet (owner, 2026-11-06: «непропорциональна маленькая…
+  // запятая посредине строки выглядит плохо… сделай органичным и современным»): a small caps kicker,
+  // then each letter / syllable / word of the page on a mini plate in its block's colour — the block
+  // plate's own shape (leaf corners), 2 cells tall like the header, whole cells wide, flush right on
+  // the grid, no commas. A letter in several blocks takes its first block's colour.
+  const seen = new Set();
+  const items = [];
+  for (const b of page.blocks) {
+    const word = isWordBlock(b);
+    const keys = word ? (b.words ?? []) : [b.letterId];
+    for (const key of keys) {
+      if (!key || seen.has(`${word}${key}`) || (!word && !byId[key])) continue;
+      seen.add(`${word}${key}`);
+      const letters = word ? wordLetters(key, byId) : [byId[key]];
+      if (!letters.length) continue;
+      // the drawn width: each letter its own cells at HEAD_GLYPH_MM (2 cells = the glyph's height), a
+      // 0.4-height gap between a word's letters; the plate is that plus the margins, rounded up to cells
+      const w = letters.reduce((a, l) => a + (letterCells(l) / 2) * HEAD_GLYPH_MM + HEAD_INK_MM, 0) + (letters.length - 1) * HEAD_GLYPH_MM * 0.4;
+      items.push({ key: `${word ? "w" : "l"}${key}`, word, key, color: b.color ?? "#8b93a1", cells: Math.max(2, Math.ceil((w + 2 * HEAD_PLATE_PAD_MM) / FINE_MM)) });
+    }
+  }
+  // never over «Имя / Дата»: the plates that do not fit fold into «+N»
+  // the cells left by «Имя ___ Дата ___» at their narrowest (labels + 30mm + 18mm + gaps ≈ 80mm), «ПИШЕМ» and «+N»
+  // (≈ 25mm) — measured on the PDF
+  const budget = blockCells(format) - (nameLine ? 22 : 6);
+  let used = 0;
+  const shown = [];
+  for (const it of items) {
+    if (used + it.cells > budget && shown.length) break;
+    used += it.cells;
+    shown.push(it);
+  }
+  const more = items.length - shown.length;
   return (
     <div className="pl-sheet-head">
       {nameLine && <>
@@ -140,14 +169,22 @@ function SheetHeader({ page, byId, nameLine }) {
         <span>Дата</span><span className="pl-sheet-head-line pl-sheet-head-line--date" />
       </>}
       <span className="pl-sheet-head-fill" />
-      <span className="pl-sheet-head-title">
-        Пишем
-        <span className="pl-sheet-head-letters">
-          {items.map((item, k) => (
-            <span key={k} className="pl-sheet-head-item">{item}{k < items.length - 1 && <span className="pl-sheet-head-comma">,</span>}</span>
-          ))}
+      {items.length > 0 && (
+        <span className="pl-sheet-head-title">
+          <span className="pl-sheet-head-kicker">ПИШЕМ</span>
+          {more > 0 && <span className="pl-sheet-head-more">+{more}</span>}
+          <span className="pl-sheet-head-plates">
+            {shown.map((it) => (
+              <span key={it.key} className="pl-sheet-head-plate" style={{ width: mm(it.cells), background: it.color }} aria-label={it.key}>
+                {it.word
+                  ? <PlateWords words={[it.key]} byId={byId} heightMm={HEAD_GLYPH_MM} color="#ffffff" weight={14} />
+                  : <LetterGlyph letter={byId[it.key]} heightMm={HEAD_GLYPH_MM} variant="plain" color="#ffffff" weight={14} />}
+              </span>
+            ))}
+          </span>
         </span>
-      </span>
+      )}
     </div>
   );
 }
+
