@@ -201,7 +201,7 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious, 
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} card={card} frame={task.frame !== false} />
+          <Grid box={box} card={card} frame={task.frame !== false} guides={task.guides !== false} />
           {hint != null && <path d={polyD(targets[hint].pts)} strokeWidth={INK_W + 6} className="plf-hint" />}
           <g className={done ? "plf-parts is-done" : "plf-parts"}>
             {order.map((i) => {
