@@ -84,10 +84,17 @@ const nearPolyline = (p, pts, tol) => distPolyline(p, pts) < tol;
 // 30% to 70% of it) or near the start of an arc (8–40%, where the direction is decided), and ends
 // in a small open «V» head.
 const ARROW = "#dc2626";
-const ARROW_GAP = 9;
+// Off the stroke's axis: half the sample's width (9 → 4.5) + a clear gap of about one stroke width
+// (owner, 2026-11-06: in the PDF the arrows and numbers sat too close, ARROW_GAP was 9). Where the far
+// arrow or its number would come near another stroke (Ё's dots, М's middle, Ж's slants), the letter
+// steps down through ARROW_GAPS, the last one being the old distance.
+const ARROW_GAP = 18;
+const ARROW_GAPS = [18, 14, 9];
+const ARROW_CLEAR = 8.5; // arrow line to another stroke's axis: its half width 4.5 + the arrow's 1.2 + air
+const NUM_CLEAR = 13;    // a number's centre to another stroke's axis (the digit is ~10 units across)
 const ARROW_HEAD = 5.5;
 const ARROW_MIN = 30; // shorter strokes (Ц's tail, Д's feet, Ё's dots, Й's breve) get none
-function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others = [], win = null) {
+function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others = [], win = null, gap = ARROW_GAP) {
   const { pts } = g;
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -131,7 +138,7 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
   // from the other strokes
   if (!ac && Math.abs(away) < 0.5 && others.length) {
     const room = (sg) => {
-      const q = [mid.p[0] + sg * n[0] * ARROW_GAP, mid.p[1] + sg * n[1] * ARROW_GAP];
+      const q = [mid.p[0] + sg * n[0] * gap, mid.p[1] + sg * n[1] * gap];
       return Math.min(...others.map((pts) => distPolyline(q, pts)));
     };
     if (room(-1) > room(1)) n = [-n[0], -n[1]];
@@ -152,13 +159,13 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
       segN.push(m);
     }
     const off = verts.map((v, k) => {
-      if (k === 0) return [v[0] + segN[0][0] * ARROW_GAP, v[1] + segN[0][1] * ARROW_GAP];
-      if (k === verts.length - 1) { const m = segN[segN.length - 1]; return [v[0] + m[0] * ARROW_GAP, v[1] + m[1] * ARROW_GAP]; }
+      if (k === 0) return [v[0] + segN[0][0] * gap, v[1] + segN[0][1] * gap];
+      if (k === verts.length - 1) { const m = segN[segN.length - 1]; return [v[0] + m[0] * gap, v[1] + m[1] * gap]; }
       const [a, b] = [segN[k - 1], segN[k]];
       const bis = [a[0] + b[0], a[1] + b[1]];
       const bl = Math.hypot(bis[0], bis[1]) || 1;
       const u = [bis[0] / bl, bis[1] / bl];
-      const scale = ARROW_GAP / Math.max(0.3, u[0] * a[0] + u[1] * a[1]);
+      const scale = gap / Math.max(0.3, u[0] * a[0] + u[1] * a[1]);
       return [v[0] + u[0] * scale, v[1] + u[1] * scale];
     });
     const [ex, ey] = off[off.length - 1];
@@ -173,8 +180,8 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
     const f = (v) => Math.round(v * 100) / 100;
     const [h1, h2] = [head(1), head(-1)];
     const nq = at(Math.max(0, s0 - numRoom * 0.55));
-    const num = [nq.p[0] + segN[0][0] * ARROW_GAP, nq.p[1] + segN[0][1] * ARROW_GAP];
-    return { d: `M${off.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num };
+    const num = [nq.p[0] + segN[0][0] * gap, nq.p[1] + segN[0][1] * gap];
+    return { d: `M${off.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num, line: off };
   }
   const steps = arc ? 10 : 1;
   const line = [];
@@ -188,7 +195,7 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
       const out = (q.p[0] + m[0] - ox) ** 2 + (q.p[1] + m[1] - oy) ** 2 >= (q.p[0] - m[0] - ox) ** 2 + (q.p[1] - m[1] - oy) ** 2;
       return out ? m : [-m[0], -m[1]];
     })() : n;
-    line.push([q.p[0] + nn[0] * ARROW_GAP, q.p[1] + nn[1] * ARROW_GAP]);
+    line.push([q.p[0] + nn[0] * gap, q.p[1] + nn[1] * gap]);
   }
   const [ex, ey] = line[line.length - 1];
   const [px, py] = line[line.length - 2];
@@ -203,7 +210,7 @@ function guideArrow(g, cx, cy, arc, skip = 0, numRoom = 0, early = false, others
   const [h1, h2] = [head(1), head(-1)];
   // the stroke's number, if wanted, stands just before the arrow's tail, on the same side
   const nq = at(Math.max(0, s0 - numRoom * 0.55));
-  const num = [nq.p[0] + n[0] * ARROW_GAP, nq.p[1] + n[1] * ARROW_GAP];
+  const num = [nq.p[0] + n[0] * gap, nq.p[1] + n[1] * gap];
   return { d: `M${line.map(([x, y]) => `${f(x)} ${f(y)}`).join("L")}M${f(h1[0])} ${f(h1[1])}L${f(ex)} ${f(ey)}L${f(h2[0])} ${f(h2[1])}`, num, line };
 }
 
@@ -287,23 +294,31 @@ export default function LetterGlyph({
     const crossed = mid && geoms.some((o, j) => j !== i && nearPolyline(mid, o.pts, 4));
     const others = geoms.filter((_, j) => j !== i).map((o) => o.pts);
     const isArc = /C/.test(strokes[i].d);
-    const first = guideArrow(g, cx, cy, isArc, skip, showNumbers ? NUM_ROOM : 0, crossed, others);
     // an arrow that touches another stroke (Ф's stick runs through the oval) looks for a clear stretch
     // of its own stroke — nearer the end, then nearer the start
-    const clear = (gd) => {
+    const clear = (gd, near = 4.5) => {
       if (!gd?.line) return true;
       for (let k = 1; k < gd.line.length; k++) {
         const [a, b] = [gd.line[k - 1], gd.line[k]];
         for (let t = 0; t <= 1.0001; t += 0.1) {
           const q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-          if (others.some((pts) => distPolyline(q, pts) <= 4.5)) return false;
+          if (others.some((pts) => distPolyline(q, pts) <= near)) return false;
         }
       }
       return true;
     };
+    // the far gap only where the arrow and its number keep clear of the other strokes; else the next
+    const roomy = (gd) => clear(gd, ARROW_CLEAR) && (!showNumbers || others.every((pts) => distPolyline(gd.num, pts) >= NUM_CLEAR));
+    const room = showNumbers ? NUM_ROOM : 0;
+    for (const gap of ARROW_GAPS.slice(0, -1)) {
+      const gd = guideArrow(g, cx, cy, isArc, skip, room, crossed, others, null, gap);
+      if (roomy(gd)) return gd;
+    }
+    const last = ARROW_GAPS[ARROW_GAPS.length - 1];
+    const first = guideArrow(g, cx, cy, isArc, skip, room, crossed, others, null, last);
     if (isArc || clear(first)) return first;
     for (const w of [[0.62, 0.94], [0.08, 0.38]]) {
-      const alt = guideArrow(g, cx, cy, false, skip, showNumbers ? NUM_ROOM : 0, false, others, w);
+      const alt = guideArrow(g, cx, cy, false, skip, room, false, others, w, last);
       if (clear(alt)) return alt;
     }
     return first;

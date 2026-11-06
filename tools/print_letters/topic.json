@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_letters",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "renderer": "print_letters",
     "title": { "ru": "Печатные буквы", "en": "Block Letters" },
     "avatar": "media/avatar.svg",
@@ -44,7 +44,7 @@
       "evaluation": "none",
       "ui": {
         "icon": "media/icons/print_letters_notebook.svg",
-        "title": "Тетрадь",
+        "title": "Конструктор",
         "instruction": "Собери страницы и распечатай — ребёнок пишет на бумаге, нажми на букву, чтобы увидеть, как её писать"
       },
       "methodology": {
