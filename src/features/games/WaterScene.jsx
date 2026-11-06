@@ -131,5 +131,5 @@ export default function WaterScene({race,names,characters,paused,onPortion}) {
 }
 
 export function WaterPreview() {
-  return <svg viewBox="0 0 240 160" aria-hidden="true"><rect width="240" height="160" rx="20" fill="#e2efe7" />{[0,1].map(p=><g key={p}><path d={`M${40+p*105} 128V44q0-34 29-34q27 0 27 23`} stroke="#9aafb4" strokeWidth="8" fill="none" /><rect x={52+p*95} y="50" width="50" height="80" rx="6" fill="#f4fdff" stroke="#9ab9bf" strokeWidth="2" /><path d={`M${55+p*95} ${p ? 100 : 83}h44v44h-44z`} fill="#74cceb" /><path d={`M${56+p*95} 69h42`} stroke={PLAYER_COLORS[p]} strokeWidth="2" strokeDasharray="4 3" /></g>)}</svg>;
+  return <svg viewBox="0 0 240 160" aria-hidden="true"><rect width="240" height="160" rx="20" fill="#e2efe7" />{[0,1].map(p=><g key={p}><path d={`M${40+p*95} 128V45C${40+p*95} 10 ${77+p*95} 10 ${77+p*95} 35`} stroke="#9aafb4" strokeWidth="8" fill="none" /><rect x={52+p*95} y="50" width="50" height="80" rx="6" fill="#f4fdff" stroke="#9ab9bf" strokeWidth="2" /><path d={`M${55+p*95} ${p ? 100 : 83}h44v${p ? 27 : 44}h-44z`} fill="#74cceb" /><path d={`M${56+p*95} 69h42`} stroke={PLAYER_COLORS[p]} strokeWidth="2" strokeDasharray="4 3" /></g>)}</svg>;
 }
