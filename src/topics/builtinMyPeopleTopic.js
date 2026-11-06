@@ -13,7 +13,7 @@ const voiceParam = {
   },
 };
 
-// Time delay for «Покажи» and «Найди такого же»: when the child doesn't
+// Time delay for «Покажи» and «Найди лицо»: when the child doesn't
 // answer, the right photo lights up after this many seconds. A trial
 // answered after the light counts like a corrected miss and comes back a
 // little later without it. 0 -- no light, wait.
@@ -99,7 +99,7 @@ const labelPhotosMode = {
   },
 };
 
-// «Найди такого же»: match two different photos of one person by a named
+// «Найди лицо»: match two different photos of one person by a named
 // sample ("Это мама. Где мама?"). The first step, before «Покажи», which
 // asks the same question without the sample. Needs people with at least
 // two photos (or «Одинаковое фото»).
@@ -119,6 +119,14 @@ const matchSameMode = {
       hint: { ru: "«Одинаковое фото» — ступень проще: среди фото внизу то же самое, что сверху." },
       default: "other",
     },
+    label: {
+      type: "enum",
+      label: { ru: "Подпись" },
+      values: ["relation", "name"],
+      labels: { ru: { relation: "Кто это для ребёнка", name: "Имя" } },
+      hint: { ru: "Какое поле из карточки человека написать и произнести: «Это мама. Где мама?» или «Это Надя. Где Надя?». У питомцев всегда имя." },
+      default: "relation",
+    },
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на выбор" },
@@ -128,7 +136,7 @@ const matchSameMode = {
     promptDelay: promptDelayParam,
   },
   ui: {
-    title: { ru: "Найди такого же" },
+    title: { ru: "Найди лицо" },
     instruction: { ru: "Сверху фото с подписью «Это мама», вопрос «Где мама?» — найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
   },
 };
@@ -233,7 +241,7 @@ const whoIsThisMode = {
 };
 
 // "Озвучка" goes last in every mode's settings. Each mode keeps its own
-// settings (readModeParams): «Образец» chosen in «Найди такого же» survives a
+// settings (readModeParams): «Образец» chosen in «Найди лицо» survives a
 // lesson of «Покажи», and the two modes' «Фото на экране» stay apart. Values
 // saved before, in the shared topic object, are carried over on first open.
 const withVoice = (mode) => ({
@@ -262,7 +270,7 @@ export function buildMyPeopleTopicRecord() {
         finalGoal: "Ребёнок уверенно узнаёт значимых людей и понимает, кто они для него.",
         flow: [
           "Заполните «Окружение ребёнка»: близкие с фотографиями, для «Обо мне» — личные данные.",
-          "«Найди такого же»: «Это мама. Где мама?» — найти того же человека на другом фото по образцу. Для тех, кто ещё не понимает «Где мама?» без подсказки.",
+          "«Найди лицо»: «Это мама. Где мама?» — найти того же человека на другом фото по образцу. Для тех, кто ещё не понимает «Где мама?» без подсказки.",
           "«Покажи»: ребёнок находит человека по слову «Где мама?». Здесь же он знакомится с новыми людьми.",
           "«Кто это?»: ребёнок сам называет тех, кого уже находил.",
           "«Обо мне»: короткие вопросы о себе с подсказками по шагам.",
@@ -271,7 +279,7 @@ export function buildMyPeopleTopicRecord() {
         ],
       },
     },
-    // The teaching ladder: match («Найди такого же») → recognise by the
+    // The teaching ladder: match («Найди лицо») → recognise by the
     // word («Покажи») → name («Кто это?») →
     // answer about yourself → label photos (needs reading) → introduce
     // yourself. Mode pickers keep this order.

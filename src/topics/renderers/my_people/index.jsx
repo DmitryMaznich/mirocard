@@ -584,7 +584,7 @@ function AboutMeQuestionTask(props) {
   );
 }
 
-// «Найди такого же»: the photo to match as a name card ("Это Ула") -- a
+// «Найди лицо»: the photo to match as a name card ("Это Ула") -- a
 // solid frame with no lift, so it reads as "look at this", not as one more
 // photo to tap.
 function MatchSample({ topicId, image, label }) {
@@ -721,7 +721,7 @@ function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, 
   );
   if (isMatch) {
     return (
-      <div className="session-body people-point people-point--match" aria-label="Найди такого же">
+      <div className="session-body people-point people-point--match" aria-label="Найди лицо">
         <MatchSample topicId={topicId} image={task.sample} label={task.sampleLabel} />
         <div className="people-match__choose">
           {prompt}

@@ -122,7 +122,7 @@ function LegacySessionSummary() {
     }
     if (String(conceptId).startsWith("match:")) {
       const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("match:".length));
-      return person ? `Найди такого же: ${mainWord(person)}` : "Найди такого же";
+      return person ? `Найди лицо: ${person.name?.trim() || mainWord(person)}` : "Найди лицо";
     }
     if (String(conceptId).startsWith("person_naming:")) {
       const [, personId] = String(conceptId).split(":");

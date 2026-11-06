@@ -471,7 +471,7 @@ describe("«Представься» renderer", () => {
   });
 });
 
-describe("«Найди такого же» renderer", () => {
+describe("«Найди лицо» renderer", () => {
   it("shows the sample apart from the choices and counts the right one", () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

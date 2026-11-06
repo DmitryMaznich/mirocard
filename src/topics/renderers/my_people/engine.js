@@ -390,7 +390,7 @@ function pickTargetPosition(slots, previous) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-// ── «Найди такого же»: matching two different photos of one person ─────
+// ── «Найди лицо» (id match_same): two different photos of one person ──
 // A named photo on top ("Это Ула"), the same person on another photo among
 // 2–4 below, and the very question of «Покажи» -- "Где Ула?". The step
 // before «Покажи» for a child who does not yet link "Где мама?" to mum: the
@@ -398,6 +398,11 @@ function pickTargetPosition(slots, previous) {
 // the same words. Also direct practice in recognising someone across
 // photos rather than by one detail (glasses, a jumper, the kitchen).
 // "Где …?" rather than "Найди …": no accusative to build from a name.
+// «Подпись» picks which of the person's two fields is on screen: «Кто это
+// для ребёнка» (the relation as typed -- мама, учительница, подруга) or the
+// name. Never both glued together ("папа Дима" is not what anyone says at
+// home, and name and relation are separate goals), and never the
+// sentence-builder label: only the two fields the adult sees here.
 // Only people with two or more photos can be targets -- with one photo it
 // would be matching identical pictures, a different and easier skill.
 const MATCH_FIELD_SIZES = [2, 3, 4];
@@ -409,6 +414,12 @@ export function hasTwoPhotos(person) {
 // «Образец»: "same" is the step below -- the very photo on top is among the
 // choices (identical matching), so one photo per person is enough; "other"
 // (the default) is the same person on a different photo.
+export function matchWord(person, params) {
+  const name = person?.name?.trim() ?? "";
+  if (person?.type === "pet" || params?.label === "name") return name;
+  return person?.relation?.trim() || name;
+}
+
 export function matchUsesSamePhoto(params) {
   return params?.sample === "same";
 }
@@ -436,8 +447,9 @@ function matchTasks(people, params, round) {
     const match = samePhoto ? sample : photos[1];
     // The question names the person, so two "Маша" never share a screen --
     // as in «Покажи».
-    const word = mainWord(target);
-    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round);
+    const wordOf = (person) => matchWord(person, params);
+    const word = wordOf(target);
+    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round, wordOf);
     const order = shuffle(distractors);
     const position = pickTargetPosition(order.length + 1, positions);
     positions.push(position);
@@ -470,10 +482,10 @@ function matchTasks(people, params, round) {
 // pet is set against people and people against a pet when the album has
 // both, so the very first choices are the most different ones. Later
 // rounds draw from everyone.
-function pickPointDistractors(target, people, word, count, round) {
+function pickPointDistractors(target, people, word, count, round, wordOf = mainWord) {
   if (count <= 0) return [];
   const eligible = shuffle(people.filter((person) => person.id !== target.id
-    && mainWord(person).toLowerCase() !== word.toLowerCase()));
+    && wordOf(person).toLowerCase() !== word.toLowerCase()));
   if (round > 0) return eligible.slice(0, count);
   const isPet = (person) => person.type === "pet";
   const contrasting = eligible.filter((person) => isPet(person) !== isPet(target));
@@ -766,7 +778,7 @@ export function firstSyllable(word) {
   return text.slice(0, vowelIndex + 1);
 }
 
-// Error correction in «Покажи» and «Найди такого же»: a trial the child got
+// Error correction in «Покажи» and «Найди лицо»: a trial the child got
 // only with help (a miss, or the light after a pause) comes back once, after
 // one or two other trials, now without the light -- the "transfer trial"
 // that checks the correction took. The photos swap places; a repeat is not
