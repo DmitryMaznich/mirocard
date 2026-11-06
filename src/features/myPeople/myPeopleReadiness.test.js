@@ -51,3 +51,13 @@ describe("«Мои люди» readiness", () => {
     expect(myPeopleModeReadiness(mode, onePhoto).ready).toBe(true);
   });
 });
+
+it('checks the selected category rather than unrelated people in ordinary modes', () => {
+  const pupil = { myPeople: [person('mum', { introducedAxes: ['name'] }), person('dad'), person('teacher', { contexts: ['school'] })] };
+  expect(myPeopleModeReadiness({ id: 'who_is_this' }, pupil, { circle: 'school' }).ready).toBe(false);
+  expect(myPeopleModeReadiness({ id: 'show_me' }, pupil, { circle: 'school' })).toMatchObject({ ready: false, tab: 'school' });
+  expect(myPeopleModeReadiness({ id: 'show_me' }, pupil, { circle: 'friends' })).toMatchObject({ ready: false, tab: 'friends' });
+  expect(myPeopleModeReadiness({ id: 'show_me' }, pupil, { circle: 'family', fieldSize: 4 }).ready).toBe(false);
+  pupil.myPeople[2].introducedAxes = ['name'];
+  expect(myPeopleModeReadiness({ id: 'who_is_this' }, pupil, { circle: 'school' }).ready).toBe(true);
+});

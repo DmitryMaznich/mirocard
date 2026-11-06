@@ -479,7 +479,7 @@ function isActive(person) {
   return !person?.deletedAt && person?.enabled !== false && person?.name?.trim() && person?.photos?.some(Boolean);
 }
 
-export const LABEL_CIRCLES = ["family", "home", "school", "all"];
+export const LABEL_CIRCLES = ["family", "home", "school", "friends", "pets", "all"];
 
 // «Подпиши фото» takes its circle from the params; the retired album modes
 // carried it in their id ("school_names").
@@ -490,11 +490,12 @@ function circleFor(mode, params) {
 
 export function peopleInCircle(student, circle) {
   const people = (student?.myPeople ?? []).filter(isActive);
+  if (circle === "pets") return people.filter(person => person.type === "pet");
   return circle && circle !== "all" ? people.filter((person) => person.contexts?.includes(circle)) : people;
 }
 
 function peopleForMode(mode, student, params) {
-  if (mode.id === "who_is_this" || mode.id === "show_me" || mode.id === "match_same") return peopleInCircle(student, "all");
+  if (mode.id === "who_is_this" || mode.id === "show_me" || mode.id === "match_same") return peopleInCircle(student, LABEL_CIRCLES.includes(params?.circle) ? params.circle : "all");
   return peopleInCircle(student, circleFor(mode, params));
 }
 
