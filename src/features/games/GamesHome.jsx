@@ -2,6 +2,7 @@ import { useAppStore } from "@/core/store";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { RaceCar } from "./RaceArt";
 import { TowerPreview } from "./TowerScene";
+import { WaterPreview } from "./WaterScene";
 import "./games.css";
 
 export default function GamesHome() {
@@ -23,6 +24,12 @@ export default function GamesHome() {
         <span className="games-tile__art games-tile__art--tower"><TowerPreview /></span>
         <strong>До облаков</strong>
         <span>Строим небоскрёбы до 20 этажей</span>
+        <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
+      </button>
+      <button className="games-tile" onClick={() => { setActiveModeId("water_fill"); setScreen("params"); }}>
+        <span className="games-tile__art games-tile__art--water"><WaterPreview /></span>
+        <strong>Налей до отметки</strong>
+        <span>Персонажи, краны и два стакана воды</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
       </button>
     </div>

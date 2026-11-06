@@ -4,14 +4,14 @@ export function buildGamesTopicRecord() {
     meta: {
       id: "games",
       renderer: "games",
-      version: "1.1.0",
+      version: "1.2.0",
       title: { ru: "Игры", sl: "Igre" },
       avatar: "media/avatar_games.svg",
       builtin: true,
       about: {
-        description: "Играйте вместе с ребёнком: гонки и строительство небоскрёбов с настоящими кубиками.",
+        description: "Играйте вместе с ребёнком: гонки, строительство небоскрёбов и наполнение стаканов с настоящими кубиками.",
         goals: ["Сравнивать числа от 1 до 6.", "Соблюдать правила совместной игры."],
-        flow: ["Бросьте по кубику и отметьте числа.", "Сравните результаты: машинки поедут, а краны построят этажи."],
+        flow: ["Бросьте по кубику и отметьте числа.", "Сравните результаты: машинки поедут, краны построят этажи, а стаканы наполнятся водой."],
       },
     },
     modes: [{
@@ -28,6 +28,9 @@ export function buildGamesTopicRecord() {
       hideVideoReward: true,
       hideConceptPicker: true,
       ui: { title: { ru: "До облаков" }, instruction: { ru: "Строим небоскрёбы до 20 этажей" } },
+    }, {
+      id: "water_fill", type: "water_fill", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
+      ui: { title: { ru: "Налей до отметки" }, instruction: { ru: "Наливаем воду до линии" } },
     }],
     cards: [],
     installedAt: "builtin",
