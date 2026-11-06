@@ -580,6 +580,8 @@
 .pl-sheet-head-line { border-bottom: 0.3mm solid #4b5563; height: 4mm; }
 .pl-sheet-head-line--name { width: 55mm; min-width: 30mm; }
 .pl-sheet-head-line--date { width: 28mm; min-width: 18mm; }
+.pl-sheet-head--a5 .pl-sheet-head-line--name { width: 36mm; min-width: 22mm; }
+.pl-sheet-head--a5 .pl-sheet-head-line--date { width: 18mm; min-width: 12mm; }
 .pl-sheet-head-fill { flex: 1; }
 /* «ПИШЕМ» + the page's letters on mini plates (Sheet.jsx SheetHeader): the plates fill the header's
    2 cells, flush with its top, bottom and right edge, so each plate sits exactly on grid cells. */

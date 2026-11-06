@@ -134,11 +134,15 @@ function SheetHeader({ page, byId, nameLine, format }) {
   // then each letter / syllable / word of the page on a mini plate in its block's colour — the block
   // plate's own shape (leaf corners), 2 cells tall like the header, whole cells wide, flush right on
   // the grid, no commas. A letter in several blocks takes its first block's colour.
+  // А5 (owner, 2026-11-06: «в А5 только буквы»): no syllable / word plates, only letters — a word block
+  // gives its letters, each one plate, so a page of words still shows what it drills
+  const lettersOnly = format === "a5";
   const seen = new Set();
   const items = [];
   for (const b of page.blocks) {
-    const word = isWordBlock(b);
-    const keys = word ? (b.words ?? []) : [b.letterId];
+    const isWord = isWordBlock(b);
+    const word = isWord && !lettersOnly;
+    const keys = !isWord ? [b.letterId] : word ? (b.words ?? []) : wordLetters((b.words ?? []).join(""), byId).map((l) => l.id);
     for (const key of keys) {
       if (!key || seen.has(`${word}${key}`) || (!word && !byId[key])) continue;
       seen.add(`${word}${key}`);
@@ -153,7 +157,8 @@ function SheetHeader({ page, byId, nameLine, format }) {
   // never over «Имя / Дата»: the plates that do not fit fold into «+N»
   // the cells left by «Имя ___ Дата ___» at their narrowest (labels + 30mm + 18mm + gaps ≈ 80mm), «ПИШЕМ» and «+N»
   // (≈ 25mm) — measured on the PDF
-  const budget = blockCells(format) - (nameLine ? 22 : 6);
+  // А5: its name and date lines are shorter (CSS .pl-sheet-head--a5), so it leaves 7 cells of its 25
+  const budget = blockCells(format) - (nameLine ? (lettersOnly ? 18 : 22) : 6);
   let used = 0;
   const shown = [];
   for (const it of items) {
@@ -163,7 +168,7 @@ function SheetHeader({ page, byId, nameLine, format }) {
   }
   const more = items.length - shown.length;
   return (
-    <div className="pl-sheet-head">
+    <div className={`pl-sheet-head${lettersOnly ? " pl-sheet-head--a5" : ""}`}>
       {nameLine && <>
         <span>Имя</span><span className="pl-sheet-head-line pl-sheet-head-line--name" />
         <span>Дата</span><span className="pl-sheet-head-line pl-sheet-head-line--date" />
