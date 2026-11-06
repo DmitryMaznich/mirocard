@@ -40,7 +40,7 @@
 /* the ordinary notebook grid (a letter is 2 cells tall); red ruler ticks on the row's top and bottom lines: ½ long, ¼ ¾ short */
 .plw-grid-cell { stroke: var(--plw-grid-row); stroke-width: 1; }
 .plw-cell-own { fill: rgba(127, 179, 213, 0.12); }
-.plw-frame { fill: none; stroke: #ef4444; stroke-opacity: 0.75; stroke-width: 1.3; }
+.plw-frame { fill: none; stroke: #ef4444; stroke-opacity: 0.75; stroke-width: 0.65; stroke-dasharray: 3 2.5; }
 .plw-ruler line { stroke: #ef4444; stroke-width: 1.1; stroke-linecap: round; }
 
 .plw-track-band { fill: none; stroke: rgba(var(--plw-track), 0.06); stroke-linecap: round; stroke-linejoin: round; }
