@@ -19,6 +19,8 @@ test("characters, comparison, exact volumes and paused pouring",async({page})=>{
   const choices=page.getByRole("group",{name:"Кто нальёт больше воды?",exact:true});
   await choices.getByRole("button",{name:"Мама",exact:true}).click();expect(await amounts(page)).toEqual([0,0]);
   await choices.getByRole("button",{name:"Я",exact:true}).click();await expect(page.locator(".water-flow")).toHaveCount(2);
+  await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
+  await expect(page.locator('.water-faucet[data-pose="open"]')).toHaveCount(2);
   await page.waitForTimeout(180);await page.getByRole("button",{name:"Пауза",exact:true}).click();
   const levels=await amounts(page);await page.waitForTimeout(500);expect(await amounts(page)).toEqual(levels);
   await page.getByRole("button",{name:"Продолжить",exact:true}).click();await expect(page.locator(".race-round")).toHaveText("Раунд 2");
@@ -26,6 +28,8 @@ test("characters, comparison, exact volumes and paused pouring",async({page})=>{
   await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
   await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);
   await input(page);
+  await expect(page.locator('.water-person[data-pose="closed"]')).toHaveCount(2);
+  await expect(page.locator('.water-faucet[data-pose="closed"]')).toHaveCount(2);
   expect(await amounts(page)).toEqual([5,3]);await expect(page.locator(".water-flow")).toHaveCount(0);
   expect(await page.locator(".water-faucet").evaluateAll(nodes=>nodes.map(n=>Number(n.dataset.open)))).toEqual([0,0]);
 });
@@ -78,4 +82,27 @@ test("full glasses wait for a tap; first overflow wins and pauses with the scene
   await expect(page.locator(".reward-modal__title")).toHaveText("Мирон — победитель!");
   expect(await amounts(page)).toEqual([21,20]);
   await expect(page.locator(".water-overflow")).toHaveCount(1);
+});
+
+test("boy and man lift their faucet hands, pause, and return to the closed pose",async({page})=>{
+  await page.setViewportSize({width:1280,height:800});
+  await page.goto("/tests/responsive/games.html");
+  await page.getByRole("button",{name:/Наливаем/}).click();
+  await page.getByRole("button",{name:"На старт!",exact:true}).click();await input(page);
+  await page.evaluate(async()=>{const img=new Image();img.src="/game-art/water-people-open-v1.png";await img.decode();});
+  await expect(page.locator('.water-person[data-pose="closed"]')).toHaveCount(2);
+  await page.screenshot({path:".cache/water-results/poses-closed.png"});
+  await page.getByRole("button",{name:"Мирон: выпало 6",exact:true}).click();
+  await page.getByRole("button",{name:"Папа: выпало 6",exact:true}).click();
+  await page.getByRole("button",{name:"Одинаково",exact:true}).click();
+  await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
+  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.waitForTimeout(250);
+  await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
+  await page.getByRole("button",{name:"Продолжить",exact:true}).click();
+  await page.screenshot({path:".cache/water-results/poses-open.png"});
+  expect(await page.locator(".water-person-pose--open").evaluateAll(nodes=>nodes.every(n=>n.getAttribute("opacity")==="1"))).toBe(true);
+  await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+  await expect(page.locator('.water-person[data-pose="closed"]')).toHaveCount(2);
+  await expect(page.locator('.water-faucet[data-pose="closed"]')).toHaveCount(2);
 });

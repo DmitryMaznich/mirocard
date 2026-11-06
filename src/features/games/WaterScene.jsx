@@ -1,6 +1,6 @@
 import { useEffect,useId,useRef,useState } from "react";
 import { POUR_PORTION_MS,WATER_GOAL,WATER_SCENE,pourFrame,waterLevel } from "./waterGeometry";
-import {ART_SIZE,WATER_PEOPLE_ART,waterCharacterPlacement} from "./waterCharacterArt";
+import {ART_SIZE,WATER_PEOPLE_ART,WATER_PEOPLE_OPEN_ART,isWaterTapOpen,waterCharacterPlacement} from "./waterCharacterArt";
 import "./water.css";
 
 const PLAYER_COLORS=["#e98373","#4da6a1"];
@@ -11,27 +11,31 @@ const GLASS_Y=178;
 const glassX=player=>player===0 ? 310-310*GLASS_SCALE : 890-890*GLASS_SCALE;
 const glassCenter=player=>glassX(player)+WATER_SCENE.glassCenters[player]*GLASS_SCALE;
 
-function WaterPerson({type,player}) {
+function WaterPerson({type,player,open}) {
   const {art,scale,x,y,child,footX}=waterCharacterPlacement(type);
-  return <g className="water-person" data-character={type} data-player={player} transform={player===1 ? "translate(1200 0) scale(-1 1)" : undefined}>
+  const tapOpen=isWaterTapOpen(open);
+  return <g className="water-person" data-character={type} data-player={player} data-pose={tapOpen ? "open" : "closed"} transform={player===1 ? "translate(1200 0) scale(-1 1)" : undefined}>
     {child && <g className="water-stool"><rect x={footX-62} y="445" width="124" height="12" rx="4" fill="#d6a770" stroke="#b48759" strokeWidth="2" /><path d={`M${footX-45} 457l-10 48m100-48 10 48M${footX-51} 486h102`} fill="none" stroke="#bd8d58" strokeWidth="10" /></g>}
     <svg className="water-character-sprite" x={x+art.column*ART_SIZE.columnWidth*scale} y={y} width={ART_SIZE.columnWidth*scale} height={ART_SIZE.height*scale} viewBox={`${art.column*ART_SIZE.columnWidth} 0 ${ART_SIZE.columnWidth} ${ART_SIZE.height}`} overflow="hidden">
-      <image href={WATER_PEOPLE_ART} width={ART_SIZE.width} height={ART_SIZE.height} />
+      <image className="water-person-pose--closed" href={WATER_PEOPLE_ART} width={ART_SIZE.width} height={ART_SIZE.height} opacity={tapOpen ? 0 : 1} />
+      <image className="water-person-pose--open" href={WATER_PEOPLE_OPEN_ART} width={ART_SIZE.width} height={ART_SIZE.height} opacity={tapOpen ? 1 : 0} />
     </svg>
   </g>;
 }
 
 function Faucet({player,open,metal,type}) {
-  const {tapX,tapY}=waterCharacterPlacement(type);
+  const {tapX,tapY,openTapX,openTapY}=waterCharacterPlacement(type);
   const stem=tapX-18, pivotY=tapY+12;
   const spout=glassCenter(0);
-  return <g className="water-faucet" data-player={player} data-open={open} transform={player===1 ? "translate(1200 0) scale(-1 1)" : undefined}>
+  const tapOpen=isWaterTapOpen(open);
+  const tipX=tapOpen ? openTapX-stem : 18, tipY=tapOpen ? openTapY-pivotY : -12;
+  return <g className="water-faucet" data-player={player} data-open={open} data-pose={tapOpen ? "open" : "closed"} transform={player===1 ? "translate(1200 0) scale(-1 1)" : undefined}>
     <rect x={stem-23} y="380" width="48" height="12" rx="5" fill="#a8b7bd" stroke="#7f939e" strokeWidth="2" />
     <path d={`M${stem} 382V246C${stem} 187 ${spout} 187 ${spout} 230`} fill="none" stroke="#8296a1" strokeWidth="23" />
     <path d={`M${stem} 382V246C${stem} 187 ${spout} 187 ${spout} 230`} fill="none" stroke={metal} strokeWidth="18" />
     <path d={`M${stem-5} 377V246C${stem-5} 195 ${spout-14} 195 ${spout-4} 226`} fill="none" stroke="#f7faf7" strokeWidth="4" opacity=".8" />
     <rect x={spout-11} y="224" width="22" height="11" rx="3" fill="#b2c0c4" stroke="#7e939c" strokeWidth="1.5" />
-    <g transform={`translate(${stem} ${pivotY})`}><g transform={`rotate(${-16*open})`}><path d="M0 0 18-12" stroke="#7f939e" strokeWidth="13" strokeLinecap="round" /><path d="M-1-2 18-14" stroke="#d7dfe0" strokeWidth="8" strokeLinecap="round" /><circle r="12" fill="#dce2e2" stroke="#8ba0a7" strokeWidth="2" /><circle r="8" fill={PLAYER_COLORS[player]} /></g></g>
+    <g transform={`translate(${stem} ${pivotY})`}><g className="water-tap-lever" data-tip-x={tipX} data-tip-y={tipY}><path d={`M0 0 ${tipX} ${tipY}`} stroke="#7f939e" strokeWidth="13" strokeLinecap="round" /><path d={`M-1-2 ${tipX} ${tipY-2}`} stroke="#d7dfe0" strokeWidth="8" strokeLinecap="round" /><circle r="12" fill="#dce2e2" stroke="#8ba0a7" strokeWidth="2" /><circle r="8" fill={PLAYER_COLORS[player]} /></g></g>
   </g>;
 }
 
@@ -94,7 +98,7 @@ function WaterWorld({race,names,characters,progress,paused}) {
       <rect x="0" y="402" width="1200" height="138" fill="#c7dbcc" opacity=".55" />
       {frames.map((frame,player)=><Faucet key={player} player={player} type={characters[player]} open={ease(frame.open)} metal={`url(#${uid}-metal)`} />)}
       {frames.map((frame,player)=><Glass key={player} frame={frame} player={player} uid={uid} name={names[player]} celebrating={race.phase==="finished"} />)}
-      {frames.map((frame,player)=><WaterPerson key={player} type={characters[player]} player={player} />)}
+      {frames.map((frame,player)=><WaterPerson key={player} type={characters[player]} player={player} open={frame.open} />)}
     </svg>
   </div>;
 }
