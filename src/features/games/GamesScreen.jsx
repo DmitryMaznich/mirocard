@@ -26,7 +26,7 @@ function PlayerCard({ name, player, value, disabled, canCompare, compared, onDic
       {[1,2,3,4,5,6].map(n => <button key={n} disabled={disabled} aria-label={`${name}: выпало ${n}`} aria-pressed={value === n} onClick={() => onDice(n)}>{n}</button>)}
     </div>
     <button className="race-answer" disabled={!canCompare || disabled || compared} aria-label={`Больше у игрока ${name}`} onClick={onCompare}>
-      <span>{value ?? "—"}</span><DiceFace value={value} />
+      <span>{value ?? "—"}</span><DiceFace value={value} /><span className="race-choice-label">У меня больше</span>
     </button>
   </section>;
 }
@@ -93,7 +93,7 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
       {[childName, adult].map((name, i) => <PlayerCard key={i} name={name} player={i === 0 ? "child" : "adult"} value={race.dice[i]} disabled={!started || race.phase !== "input" || paused} canCompare={canCompare} compared={race.compared} onDice={value => dispatch({ type: "dice", player: i, value })} onCompare={() => dispatch({ type: "compare", answer: i === 0 ? "child" : "adult" })} />)}
     </div>
     <footer className="race-footer">
-      <div className="race-prompt"><strong role="status" aria-live="polite">{status}</strong><span>{canCompare && !race.compared && race.phase === "input" ? "Нажми на большой кубик игрока или выбери «Поровну»" : "Каждая машинка едет на выпавшее число шагов"}</span></div>
+      <div className="race-prompt"><strong role="status" aria-live="polite">{status}</strong><span>{canCompare && !race.compared && race.phase === "input" ? "Сначала нажми «У меня больше» или «Поровну»" : race.compared && race.phase === "input" ? "Теперь нажми «Поехали»" : "Каждая машинка едет на выпавшее число шагов"}</span></div>
       <div className="race-actions"><button className="games-secondary" disabled={!started || !canCompare || race.compared || race.phase !== "input" || paused} onClick={() => dispatch({ type: "compare", answer: "equal" })}>Поровну</button><button className="games-primary" disabled={!started || !race.compared || race.phase !== "input" || paused} onClick={() => dispatch({ type: "move" })}>Поехали <span aria-hidden="true">→</span></button></div>
     </footer>
     </div>

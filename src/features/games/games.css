@@ -44,6 +44,8 @@
 .race-answer{align-self:center;display:flex;justify-content:center;align-items:center;gap:22px;flex:1;min-height:60px;min-width:60%;background:transparent;border:2px solid transparent;border-radius:18px;color:var(--race-ink);padding:4px 16px}
 .race-answer:not(:disabled):hover{background:#fff8;border-color:var(--player-border)}
 .race-answer>span{font-size:clamp(34px,6vh,70px);font-weight:900;line-height:1}
+.race-answer>.race-choice-label{font-size:clamp(13px,1.5vw,18px);line-height:1.15;max-width:115px;background:var(--player-color);color:white;border-radius:12px;padding:12px 14px;box-shadow:0 3px 0 #20324e15}
+.race-answer:disabled>.race-choice-label{opacity:.45;box-shadow:none}
 .race-die{width:clamp(48px,8vh,88px);height:auto}
 .race-footer{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:72px}
 .race-prompt{display:flex;flex-direction:column;gap:4px;min-width:0}.race-prompt strong{font-size:clamp(18px,2.6vw,32px);font-weight:900;line-height:1.15}.race-prompt>span{font-size:clamp(12px,1.5vw,17px);color:#677181}
@@ -65,3 +67,5 @@
 @media(orientation:portrait) and (max-width:600px){.dice-race{height:auto;min-height:100dvh}.race-round{position:static;transform:none;margin-left:auto}.race-header h1{flex:0}.race-course{min-height:260px;gap:40px;padding-right:30px}.race-lane{grid-template-columns:60px 1fr;gap:28px}.race-player-label{flex-direction:column;gap:4px}.race-player-label strong{max-width:68px;font-size:14px}.race-controls{gap:8px}.race-card{padding:10px 7px;gap:10px}.race-numbers{grid-template-columns:repeat(3,1fr);gap:6px}.race-numbers button{min-height:44px}.race-answer{min-width:0;width:100%;gap:10px;padding:6px}.race-answer>span{font-size:36px}.race-die{width:46px}.race-footer{flex-direction:column;text-align:center;padding-top:10px}.race-actions{width:100%}.race-actions>button{flex:1}.race-prompt>span{max-width:none}}
 @media(orientation:landscape) and (max-height:530px){.dice-race{padding-top:calc(6px + var(--app-safe-top,0px));padding-bottom:calc(6px + var(--app-safe-bottom,0px))}.race-course{min-height:110px}.race-controls{min-height:124px}.race-footer{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.race-car,.games-tile{transition:none}.games-overlay{backdrop-filter:none}}
+@media(orientation:portrait) and (max-width:600px){.race-answer{flex-wrap:wrap}.race-answer>.race-choice-label{flex-basis:100%;max-width:none;padding:10px 6px;font-size:14px}}
+@media(orientation:landscape) and (max-height:530px){.race-course{min-height:104px;gap:0}.race-track-wrap{padding-top:7px}.race-ticks{height:20px}.race-ticks .race-tick--major i{height:5px}.race-ticks b{line-height:1}.race-controls{min-height:128px}.race-card{padding:4px 10px;gap:3px}.race-player-label strong{font-size:16px}.race-finish>b{display:none}.race-answer>.race-choice-label{padding:6px 8px;font-size:12px;max-width:80px;box-shadow:none}}

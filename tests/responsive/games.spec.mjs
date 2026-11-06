@@ -22,12 +22,14 @@ test("physical input, comparison, pause, and return to games",async ({page}) => 
   const move = page.getByRole("button",{name:/Поехали/});
   await expect(move).toBeDisabled();
   await dice(page,5,3);
+  await expect(page.getByRole("button",{name:"Больше у игрока Мирон",exact:true})).toContainText("У меня больше");
   await page.getByRole("button",{name:"Мирон: выпало 2",exact:true}).click();
   await expect(move).toBeDisabled();
   await page.getByRole("button",{name:"Больше у игрока Мирон",exact:true}).click();
   await expect(page.getByRole("status")).toHaveText("Посмотри на кубики ещё раз");
   await expect(move).toBeDisabled();
   await page.getByRole("button",{name:"Больше у игрока Папа",exact:true}).click();
+  await expect(page.getByText("Теперь нажми «Поехали»",{exact:true})).toBeVisible();
   await move.click();
   await page.getByRole("button",{name:"Пауза",exact:true}).click();
   const positions = await page.locator(".race-car>span").allTextContents();
@@ -81,6 +83,9 @@ for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:84
   await page.getByRole("button",{name:"Папа: выпало 3",exact:true}).click();
   const sizes = await page.evaluate(() => ({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight}));
   expect(sizes.scrollWidth).toBeLessThanOrEqual(viewport.width);
+  const lastScale = await page.locator(".race-ticks").last().boundingBox();
+  const controls = await page.locator(".race-controls").boundingBox();
+  expect(lastScale.y + lastScale.height).toBeLessThanOrEqual(controls.y);
   if(viewport.width>viewport.height) expect(sizes.scrollHeight).toBeLessThanOrEqual(viewport.height);
   const rect = await page.getByRole("button",{name:/Поехали/}).boundingBox();
   expect(rect.x+rect.width).toBeLessThanOrEqual(viewport.width-20);
