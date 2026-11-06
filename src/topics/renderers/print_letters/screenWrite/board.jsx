@@ -10,19 +10,27 @@ import { CELL, glyphWidth } from "./boardGeometry";
 // красного цвета»). Red, so they are read neither as the grid nor as a path to trace; they mark where
 // a stroke starts (Т's stick at ¾, О's top at ½) without lines through the cell. Earlier tries: dashed
 // lines across the board (read as «trace me»), Ilyukhina's big cell (thirds — too hard to see).
+// Only inside the letter's own width (a wide letter is 1½ cells on screen: its second cell gets only
+// the tick at ¼ — the rest of that cell is not the letter's).
 const TICK_LONG = 9, TICK_SHORT = 5;
 function RulerTicks({ width }) {
   const ticks = [];
   for (let c = 0; c < width; c += CELL) {
     for (const [dx, len] of [[CELL / 4, TICK_SHORT], [CELL / 2, TICK_LONG], [(3 * CELL) / 4, TICK_SHORT]]) {
       const x = c + dx;
+      if (x > width - 1) continue;
       ticks.push(<line key={`t${x}`} x1={x} y1={0} x2={x} y2={len} />, <line key={`b${x}`} x1={x} y1={2 * CELL - len} x2={x} y2={2 * CELL} />);
     }
   }
   return <g className="plw-ruler">{ticks}</g>;
 }
 
-export function Grid({ box, card }) {
+// `frame` (the modes' «Рамка и риски», on by default; owner, 2026-11-06: «тонкий контур пространства для
+// буквы, чтобы было видно какая ширина буквы ожидается… обозначить где должна буква начинаться»): a thin
+// outline of the letter's place — its width × 2 cells — in the ticks' red, paler, so the outline and the
+// ticks read as one ruler, not as a path to trace; the place inside lightly tinted. Off: the bare grid.
+export function Grid({ box, card, frame = true }) {
+  const w = glyphWidth(card);
   const lines = [];
   const x1 = box.x0 + box.w, y1 = box.y0 + box.h;
   for (let x = Math.floor(box.x0 / CELL) * CELL; x <= x1; x += CELL) {
@@ -34,9 +42,10 @@ export function Grid({ box, card }) {
   return (
     <g>
       <rect x={box.x0} y={box.y0} width={box.w} height={box.h} className="plw-paper" />
-      <rect x={0} y={0} width={glyphWidth(card)} height={2 * CELL} className="plw-cell-own" />
+      {frame && <rect x={0} y={0} width={w} height={2 * CELL} className="plw-cell-own" />}
       {lines}
-      <RulerTicks width={Math.ceil(glyphWidth(card) / CELL) * CELL} />
+      {frame && <rect x={0} y={0} width={w} height={2 * CELL} className="plw-frame" />}
+      {frame && <RulerTicks width={w} />}
     </g>
   );
 }

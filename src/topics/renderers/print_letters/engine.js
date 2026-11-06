@@ -35,6 +35,7 @@ export function screenWriteTasks(letters, params = {}) {
         level,
         width: ["wide", "mid", "narrow"].includes(params.width) ? params.width : "wide",
         sound: params.sound !== false,
+        frame: params.frame !== false,
         copy: k,
         copies,
       });
@@ -72,6 +73,7 @@ export function fixLetterTasks(letters, params = {}, rand = Math.random) {
     card: { id: c.id, label: c.label ?? c.id, viewBox: c.viewBox, strokes: c.strokes },
     level,
     ...LEVELS[level],
+    frame: params.frame !== false,
   }));
   tasks.forEach((t, i) => {
     t.prevLabel = tasks.length > 1 ? tasks[(i - 1 + tasks.length) % tasks.length].card.label : null;
