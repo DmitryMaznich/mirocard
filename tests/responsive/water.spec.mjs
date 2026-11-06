@@ -50,6 +50,6 @@ for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:84
   const size=await page.evaluate(()=>({w:innerWidth,h:innerHeight,sw:document.documentElement.scrollWidth,sh:document.documentElement.scrollHeight}));
   expect(size.sw).toBeLessThanOrEqual(size.w);if(viewport.width>viewport.height)expect(size.sh).toBeLessThanOrEqual(size.h);
   const rect=await page.getByRole("button",{name:"Одинаково",exact:true}).boundingBox();expect(rect.x+rect.width).toBeLessThanOrEqual(viewport.width-20);if(viewport.width>viewport.height)expect(rect.y+rect.height).toBeLessThanOrEqual(viewport.height-20);
-  const jars=await page.locator(".water-glass>path:first-child").evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height));expect(jars[0]).toBeCloseTo(jars[1],1);
+  const jars=await page.locator(".water-glass-vessel>path:first-child").evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height));expect(jars[0]).toBeCloseTo(jars[1],1);
   await page.screenshot({path:`.cache/water-results/water-${viewport.width}.png`,fullPage:true});
 });
