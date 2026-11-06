@@ -103,10 +103,30 @@ export function TowerPreview() {
 }
 
 export default function TowerScene({ race, names, paused, onPlaced }) {
+  const sceneSvg=useRef(null);
+  const [textScale,setTextScale]=useState(1);
+  const [landscape,setLandscape]=useState(()=>window.matchMedia("(orientation:landscape)").matches);
+  useEffect(()=>{
+    const query=window.matchMedia("(orientation:landscape)");
+    const update=()=>setLandscape(query.matches);
+    query.addEventListener("change",update);
+    return()=>query.removeEventListener("change",update);
+  },[]);
+  useEffect(()=>{
+    if(!landscape) return undefined;
+    const svg=sceneSvg.current;
+    const update=()=>{
+      const {width,height}=svg.getBoundingClientRect();
+      if(height>0) setTextScale((width/SCENE.width)/(height/SCENE.height));
+    };
+    const observer=new ResizeObserver(update);
+    observer.observe(svg);update();
+    return()=>observer.disconnect();
+  },[landscape]);
   const uid = useId().replace(/:/g,"");
   const windows = `url(#${uid}-window)`;
   return <div className={`tower-scene${paused ? " tower-scene--paused" : ""}`}>
-    <svg viewBox={`0 0 ${SCENE.width} ${SCENE.height}`} preserveAspectRatio="xMidYMid meet" aria-label={`Стройка до 20 этажей. ${names[0]}: ${race.positions[0]}. ${names[1]}: ${race.positions[1]}.`} role="img">
+    <svg ref={sceneSvg} style={{"--tower-text-scale":landscape ? textScale : 1}} viewBox={`0 0 ${SCENE.width} ${SCENE.height}`} preserveAspectRatio={landscape ? "none" : "xMidYMid meet"} aria-label={`Стройка до 20 этажей. ${names[0]}: ${race.positions[0]}. ${names[1]}: ${race.positions[1]}.`} role="img">
       <defs><linearGradient id={`${uid}-sky`} x2="0" y2="1"><stop stopColor="#aee0f6" /><stop offset="1" stopColor="#fff5e5" /></linearGradient><linearGradient id={`${uid}-window`} x2="0" y2="1"><stop stopColor="#fff1b7" /><stop offset="1" stopColor="#b7e0e7" /></linearGradient></defs>
       <rect width="1200" height="540" fill={`url(#${uid}-sky)`} rx="20" />
       <g className="tower-clouds" fill="#fffefb" opacity=".92">{[280,360,445,550,650,755,850,930].map((x,i) => <ellipse key={x} cx={x} cy={145+(i%3)*3} rx="68" ry={15+(i%2)*8} />)}</g>

@@ -1,3 +1,4 @@
+import {expectSideDice} from "./gameLayout.mjs";
 import {test,expect} from "@playwright/test";
 async function input(page) {
   if(await page.getByRole("button",{name:"Бросить кубики",exact:true}).isVisible()) await page.getByRole("button",{name:"Бросить кубики",exact:true}).click();
@@ -103,5 +104,6 @@ for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:84
   if(viewport.width>viewport.height) expect(b.y+b.height).toBeLessThanOrEqual(viewport.height-20);
   const cranes=await page.locator(".tower-crane").evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().top));
   expect(cranes[0]).toBeCloseTo(cranes[1],1);
+  await expectSideDice(page,viewport);
   await page.screenshot({path:`.cache/towers-results/towers-${viewport.width}.png`,fullPage:true});
 });

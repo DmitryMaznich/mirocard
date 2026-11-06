@@ -1,3 +1,4 @@
+import {expectSideDice} from "./gameLayout.mjs";
 import {test,expect} from "@playwright/test";
 async function input(page){if(await page.getByRole("button",{name:"Бросить кубики",exact:true}).isVisible()) await page.getByRole("button",{name:"Бросить кубики",exact:true}).click();await page.getByRole("button",{name:"Кубики брошены",exact:true}).click();await expect(page.getByRole("dialog",{name:"Бросайте кубики!",exact:true})).toHaveCount(0);}
 async function start(page,reduced=true){
@@ -60,6 +61,7 @@ for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:84
   expect(size.sw).toBeLessThanOrEqual(size.w);if(viewport.width>viewport.height)expect(size.sh).toBeLessThanOrEqual(size.h);
   const rect=await page.getByRole("button",{name:"Одинаково",exact:true}).boundingBox();expect(rect.x+rect.width).toBeLessThanOrEqual(viewport.width-20);if(viewport.width>viewport.height)expect(rect.y+rect.height).toBeLessThanOrEqual(viewport.height-20);
   const jars=await page.locator(".water-glass-vessel>path:first-child").evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height));expect(jars[0]).toBeCloseTo(jars[1],1);
+  await expectSideDice(page,viewport);
   await page.screenshot({path:`.cache/water-results/water-${viewport.width}.png`,fullPage:true});
 });
 

@@ -14,6 +14,7 @@ import WaterScene from "./WaterScene";
 import WaterCharacters from "./WaterCharacters";
 import { WATER_CAPACITY,WATER_WIN } from "./waterGeometry";
 import "./games.css";
+import "./landscape.css";
 
 function RaceLane({ name, player, position }) {
   return <div className={`race-lane race-player--${player}`}>

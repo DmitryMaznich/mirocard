@@ -1,3 +1,4 @@
+import {expectSideDice} from "./gameLayout.mjs";
 import { test, expect } from "@playwright/test";
 
 async function enterNumbers(page) {
@@ -94,6 +95,7 @@ for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:84
   expect(ready.x).toBeGreaterThanOrEqual(20);
   expect(ready.x + ready.width).toBeLessThanOrEqual(viewport.width - 20);
   await expect(page.locator(".race-roll")).toHaveCSS("opacity", "1");
+  await expectSideDice(page,viewport);
   await page.screenshot({path:`.cache/games-results/rolling-${viewport.width}x${viewport.height}.png`,fullPage:true});
   await enterNumbers(page);
   await round(page,5,3,2);
@@ -105,11 +107,12 @@ for(const viewport of [{width:1280,height:800},{width:1024,height:768},{width:84
   expect(await page.locator(".race-option").evaluateAll(buttons => buttons.every(button => button.scrollWidth <= button.clientWidth))).toBe(true);
   const lastScale = await page.locator(".race-ticks").last().boundingBox();
   const controls = await page.locator(".race-controls").boundingBox();
-  expect(lastScale.y + lastScale.height).toBeLessThanOrEqual(controls.y);
+  if(viewport.width<viewport.height) expect(lastScale.y + lastScale.height).toBeLessThanOrEqual(controls.y);
   if(viewport.width>viewport.height) expect(sizes.scrollHeight).toBeLessThanOrEqual(viewport.height);
   const rect = await page.getByRole("button",{name:"Одинаково",exact:true}).boundingBox();
   expect(rect.x+rect.width).toBeLessThanOrEqual(viewport.width-20);
   if(viewport.width>viewport.height) expect(rect.y+rect.height).toBeLessThanOrEqual(viewport.height-21);
+  await expectSideDice(page,viewport);
   await page.screenshot({path:`.cache/games-results/race-${viewport.width}x${viewport.height}.png`,fullPage:true});
 });
 

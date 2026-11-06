@@ -29,3 +29,5 @@
 @media(prefers-reduced-motion:reduce){.tower-scene *{animation:none!important}}
 
 @media(orientation:portrait) and (max-width:600px){.dice-race--compact .race-header{flex-wrap:wrap;gap:8px}.dice-race--compact .race-header h1{flex:1;font-size:22px}.dice-race--compact .race-round{order:4;flex-basis:100%;max-width:120px;text-align:center;margin:0 auto}}
+
+.tower-scene text{transform-box:fill-box;transform-origin:center;transform:scaleY(var(--tower-text-scale,1))}
