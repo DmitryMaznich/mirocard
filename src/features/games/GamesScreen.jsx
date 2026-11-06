@@ -19,15 +19,13 @@ function RaceLane({ name, player, position }) {
   </div>;
 }
 
-function PlayerCard({ name, player, value, disabled, canCompare, compared, onDice, onCompare }) {
+function PlayerCard({ name, player, value, disabled, onDice }) {
   return <section className={`race-card race-player--${player}`} aria-label={`Кубик: ${name}`}>
     <h2>{name}</h2>
     <div className="race-numbers" role="group" aria-label={`Выпало у игрока ${name}`}>
       {[1,2,3,4,5,6].map(n => <button key={n} disabled={disabled} aria-label={`${name}: выпало ${n}`} aria-pressed={value === n} onClick={() => onDice(n)}>{n}</button>)}
     </div>
-    <button className="race-answer" disabled={!canCompare || disabled || compared} aria-label={`Больше у игрока ${name}`} onClick={onCompare}>
-      <span>{value ?? "—"}</span><DiceFace value={value} /><span className="race-choice-label">У меня больше</span>
-    </button>
+    <div className="race-dice-value"><span>{value ?? "—"}</span><DiceFace value={value} /></div>
   </section>;
 }
 
@@ -76,7 +74,7 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
     return () => setBackInterceptor(null);
   }, [rewardOpen, paused, started, race.phase, onBack]);
 
-  const status = race.phase === "moving" ? "Поехали!" : race.compared ? `${race.dice[0]} ${race.dice[0] === race.dice[1] ? "=" : race.dice[0] > race.dice[1] ? ">" : "<"} ${race.dice[1]}. Поехали!` : race.mistake ? "Посмотри на кубики ещё раз" : canCompare ? "У кого выпало больше?" : "Бросьте кубики и отметьте числа";
+  const status = race.phase === "moving" ? "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : "Кто едет дальше?";
 
   return <main className="dice-race">
     <div className="race-board" inert={!started || paused || race.phase === "finished"}>
@@ -90,11 +88,13 @@ function DiceRace({ student, initialAdultName, onNameChange, onBack, onReplay })
       <RaceLane name={adult} player="adult" position={race.positions[1]} />
     </div>
     <div className="race-controls">
-      {[childName, adult].map((name, i) => <PlayerCard key={i} name={name} player={i === 0 ? "child" : "adult"} value={race.dice[i]} disabled={!started || race.phase !== "input" || paused} canCompare={canCompare} compared={race.compared} onDice={value => dispatch({ type: "dice", player: i, value })} onCompare={() => dispatch({ type: "compare", answer: i === 0 ? "child" : "adult" })} />)}
+      {[childName, adult].map((name, i) => <PlayerCard key={i} name={name} player={i === 0 ? "child" : "adult"} value={race.dice[i]} disabled={!started || race.phase !== "input" || paused} onDice={value => dispatch({ type: "dice", player: i, value })} />)}
     </div>
     <footer className="race-footer">
-      <div className="race-prompt"><strong role="status" aria-live="polite">{status}</strong><span>{canCompare && !race.compared && race.phase === "input" ? "Сначала нажми «У меня больше» или «Поровну»" : race.compared && race.phase === "input" ? "Теперь нажми «Поехали»" : "Каждая машинка едет на выпавшее число шагов"}</span></div>
-      <div className="race-actions"><button className="games-secondary" disabled={!started || !canCompare || race.compared || race.phase !== "input" || paused} onClick={() => dispatch({ type: "compare", answer: "equal" })}>Поровну</button><button className="games-primary" disabled={!started || !race.compared || race.phase !== "input" || paused} onClick={() => dispatch({ type: "move" })}>Поехали <span aria-hidden="true">→</span></button></div>
+      <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>
+      <div className="race-options" role="group" aria-label="Кто едет дальше?">
+        {[["child", "Я"], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
+      </div>
     </footer>
     </div>
 
