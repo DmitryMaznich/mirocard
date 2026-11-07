@@ -324,6 +324,9 @@ export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
       }
       continue; // already past -- days5/days1 no longer meaningful
     }
+    // An auto-renewing subscription isn't "ending": no days5/days1 warning
+    // unless its cancellation is scheduled (cancel_at_period_end).
+    if (row.source === "subscription" && !row.cancel_at_period_end) continue;
     if (row.ends_at <= days1Cutoff && !row.reminder_1d_sent_at) {
       due.push({ kind: "days1", entitlement: row, email: account.email });
     } else if (row.ends_at <= days5Cutoff && !row.reminder_5d_sent_at) {

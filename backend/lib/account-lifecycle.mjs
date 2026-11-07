@@ -306,7 +306,7 @@ export function eraseAccount(db, id, now = Date.now()) {
         db.prepare(`DELETE FROM ${table} WHERE student_id=?`).run(s.id);
     }
     // Consents reference orders: delete children first, never disable FK checks.
-    const tables = ["checkout_consents", "orders", "subscriptions", "payment_events", "entitlements",
+    const tables = ["checkout_consents", "orders", "subscriptions", "provider_subscriptions", "payment_events", "entitlements",
       "promo_redemptions", "sessions", "student_topic_links", "students", "account_topics",
       "account_topic_assignments", "account_settings", "account_identities", "account_kv",
       "audio_overrides", "sync_revision", "usage_events", "erased_students", "account_lifecycle", "marketing_consent_events"];

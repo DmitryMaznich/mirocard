@@ -124,6 +124,20 @@ export const STRIPE_WEBHOOK_SECRET = CHECKOUT_ENABLED ? requiredInProduction("ST
 // can run on the Stripe rail alone. A production deploy without these set
 // just means the "МИР / СБП" payment method 502s if someone tries it,
 // rather than the whole service refusing to start over an optional rail.
+// Billing — Paddle (merchant of record, auto-renewing subscriptions; chosen
+// 2026-11-07, see docs/monetization-eu-plan.md). Sandbox unless PADDLE_ENV is
+// exactly "production". All empty until the Paddle account exists: checkout
+// answers 503 while any of key / client token / the plan's price id is missing.
+export const PADDLE_ENV            = readEnv("PADDLE_ENV") === "production" ? "production" : "sandbox";
+export const PADDLE_API_KEY        = readEnv("PADDLE_API_KEY");
+export const PADDLE_WEBHOOK_SECRET = readEnv("PADDLE_WEBHOOK_SECRET");
+export const PADDLE_CLIENT_TOKEN   = readEnv("PADDLE_CLIENT_TOKEN");
+export const PADDLE_PRICE_IDS = {
+  monthly:   readEnv("PADDLE_PRICE_MONTHLY"),
+  half_year: readEnv("PADDLE_PRICE_HALF_YEAR"),
+  annual:    readEnv("PADDLE_PRICE_ANNUAL"),
+};
+
 export const LAVA_TOP_API_KEY         = readEnv("LAVA_TOP_API_KEY");
 export const LAVA_TOP_WEBHOOK_SECRET  = readEnv("LAVA_TOP_WEBHOOK_SECRET");
 
