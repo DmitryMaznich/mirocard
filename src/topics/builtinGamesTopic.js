@@ -30,7 +30,7 @@ export function buildGamesTopicRecord() {
       ui: { title: { ru: "Дом до облаков" }, instruction: { ru: "Строим небоскрёбы до 20 этажей" } },
     }, {
       id: "water_fill", type: "water_fill", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
-      ui: { title: { ru: "Наливаем" }, instruction: { ru: "У кого вода первой польётся через край?" } },
+      ui: { title: { ru: "Наливаем до краёв" }, instruction: { ru: "У кого вода первой польётся через край?" } },
     }],
     cards: [],
     installedAt: "builtin",

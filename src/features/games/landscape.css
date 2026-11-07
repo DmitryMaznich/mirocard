@@ -23,7 +23,7 @@
   .dice-race .race-numbers button{height:auto;min-height:0;font-size:clamp(22px,3vw,36px);border-radius:12px}
   .dice-race .race-dice-value{order:1;flex:none;min-width:0;min-height:0;padding:0;gap:0;border:0}
   .dice-race .race-dice-value>span{display:none}
-  .dice-race .race-card .race-die{width:clamp(32px,5vh,48px)}
+  .dice-race .race-card .race-die{width:clamp(56px,8vh,80px)}
   .dice-race .tower-scene,.dice-race .water-scene-wrap,.dice-race .race-course{grid-column:2;grid-row:2;min-height:0;min-width:0}
   .dice-race .race-course{padding-right:52px;gap:24px}
   .dice-race .race-lane{grid-template-columns:minmax(70px,14%) minmax(0,1fr);gap:30px}
@@ -34,7 +34,8 @@
   .dice-race{column-gap:8px;row-gap:4px;grid-template-columns:76px minmax(0,1fr) 76px}
   .dice-race .race-card{padding:6px;gap:6px;border-radius:16px}
   .dice-race .race-card h2{font-size:14px}
-  .dice-race .race-dice-value{display:none}
+  .dice-race .race-dice-value{display:flex}
+  .dice-race .race-card .race-die{width:44px}
   .dice-race .race-numbers{gap:3px}
   .dice-race .race-numbers button{font-size:23px;border-radius:9px}
   .dice-race .race-footer{gap:4px}

@@ -22,7 +22,7 @@ test("characters, comparison, exact volumes and paused pouring",async({page})=>{
   await choices.getByRole("button",{name:"Я",exact:true}).click();await expect(page.locator(".water-flow")).toHaveCount(2);
   await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
   await expect(page.locator('.water-faucet[data-pose="open"]')).toHaveCount(2);
-  await page.waitForTimeout(180);await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.waitForTimeout(180);await page.getByRole("button",{name:"К списку игр",exact:true}).click();
   const levels=await amounts(page);await page.waitForTimeout(500);expect(await amounts(page)).toEqual(levels);
   await page.getByRole("button",{name:"Продолжить",exact:true}).click();await expect(page.locator(".race-round")).toHaveText("Раунд 2");
   await page.waitForTimeout(1000);
@@ -74,7 +74,7 @@ test("full glasses wait for a tap; first overflow wins and pauses with the scene
   await page.emulateMedia({reducedMotion:"no-preference"});
   await answer(page,6,6);
   await expect(page.locator(".water-overflow")).toHaveCount(1);
-  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.getByRole("button",{name:"К списку игр",exact:true}).click();
   const levels=await amounts(page);
   await page.waitForTimeout(350);expect(await amounts(page)).toEqual(levels);
   expect(await page.locator(".water-spill-drop").first().evaluate(el=>getComputedStyle(el).animationPlayState)).toBe("paused");
@@ -98,7 +98,7 @@ test("boy and man lift their faucet hands, pause, and return to the closed pose"
   await page.getByRole("button",{name:"Папа: выпало 6",exact:true}).click();
   await page.getByRole("button",{name:"Одинаково",exact:true}).click();
   await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
-  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.getByRole("button",{name:"К списку игр",exact:true}).click();
   await page.waitForTimeout(250);
   await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
   await page.getByRole("button",{name:"Продолжить",exact:true}).click();

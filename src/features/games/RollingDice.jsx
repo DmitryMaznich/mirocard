@@ -17,7 +17,6 @@ export default function RollingDice({ childName, adultName, round, settling, pau
     <header className="race-roll-header">
       <button className="games-icon" aria-label="К списку игр" onClick={onPause}><BackArrowIcon /></button>
       <span className="race-roll-round">Раунд {round}</span>
-      <button className="games-icon" aria-label="Пауза" onClick={onPause}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg></button>
     </header>
     <h2 id="race-roll-title">Бросайте кубики!</h2>
     <div className="race-roll-players"><span className="race-roll-player--child">{childName}</span><span className="race-roll-player--adult">{adultName}</span></div>
