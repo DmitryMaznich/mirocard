@@ -1,0 +1,127 @@
+// Print (manuscript) Latin glyphs, style "print" — family 1 in docs/latin-letters.md.
+//
+// Coordinates: the English four-line ruling with equal bands of 50 units (= one 5 mm notebook
+// cell, so the same glyphs sit on the cell grid too):
+//   y = 0   top line        (capitals, ascenders b d f h k l)
+//   y = 50  x-line          (top of a c e m n o …)
+//   y = 100 baseline
+//   y = 150 descender line  (g j p q y)
+// Each stroke's path runs in the writing direction (its first point is the start dot).
+// Paths use only M, L and C, like tools/print_letters/topic.json, so print_letters' glyph
+// renderer and on-screen tracing can draw them.
+//
+// Run: node tools/latin_letters/glyphs/print.mjs  → writes print.json next to this file.
+import { writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const r2 = (n) => Math.round(n * 100) / 100;
+const pt = (cx, cy, rx, ry, deg) => {
+  const a = (deg * Math.PI) / 180;
+  return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
+};
+
+// Elliptic arc from angle a0 to a1 (degrees, screen coordinates: 0 = right, 90 = down; a1 > a0
+// runs clockwise on screen, a1 < a0 counter-clockwise), as cubic segments of at most 90°.
+function arc(cx, cy, rx, ry, a0, a1, { move = true } = {}) {
+  const n = Math.max(1, Math.ceil(Math.abs(a1 - a0) / 90));
+  const step = (a1 - a0) / n;
+  const k = (4 / 3) * Math.tan((step * Math.PI) / 180 / 4);
+  const [sx, sy] = pt(cx, cy, rx, ry, a0);
+  let d = move ? `M ${r2(sx)},${r2(sy)}` : "";
+  for (let i = 0; i < n; i++) {
+    const t0 = ((a0 + step * i) * Math.PI) / 180;
+    const t1 = ((a0 + step * (i + 1)) * Math.PI) / 180;
+    const p0 = [cx + rx * Math.cos(t0), cy + ry * Math.sin(t0)];
+    const p1 = [cx + rx * Math.cos(t1), cy + ry * Math.sin(t1)];
+    const c1 = [p0[0] - k * rx * Math.sin(t0), p0[1] + k * ry * Math.cos(t0)];
+    const c2 = [p1[0] + k * rx * Math.sin(t1), p1[1] - k * ry * Math.cos(t1)];
+    d += ` C ${r2(c1[0])},${r2(c1[1])} ${r2(c2[0])},${r2(c2[1])} ${r2(p1[0])},${r2(p1[1])}`;
+  }
+  return d.trim();
+}
+const line = (...p) => p.map(([x, y], i) => `${i ? "L" : "M"} ${r2(x)},${r2(y)}`).join(" ");
+const dot = (x, y) => ({ d: `M ${x},${y} L ${x},${y + 0.5}`, name: "точка", dot: true });
+const s = (d, name) => ({ d, name });
+
+// x-band: circle centre y=75, radius 25. "Ball and stick": round part + straight stick.
+const BOWL_L = (cx = 25) => arc(cx, 75, 25, 25, -30, -390); // a d g q: start at 1 o'clock, back round
+const lower = {
+  a: [50, [s(BOWL_L(), "овал"), s(line([50, 50], [50, 100]), "палочка")]],
+  b: [50, [s(line([0, 0], [0, 100]), "палочка"), s(arc(25, 75, 25, 25, 180, 540), "овал")]],
+  c: [50, [s(arc(25, 75, 25, 25, -40, -320), "полуовал")]],
+  d: [50, [s(BOWL_L(), "овал"), s(line([50, 0], [50, 100]), "палочка")]],
+  e: [50, [s(`${line([0, 75], [50, 75])} ${arc(25, 75, 25, 25, 0, -320, { move: false })}`, "черта и полуовал")]],
+  f: [45, [s(`${arc(35, 20, 15, 15, -30, -180)} L 20,100`, "крючок и палочка"), s(line([5, 50], [40, 50]), "черта")]],
+  g: [50, [s(BOWL_L(), "овал"), s(`${line([50, 50], [50, 130])} ${arc(30, 130, 20, 20, 0, 160, { move: false })}`, "палочка с крючком")]],
+  h: [50, [s(line([0, 0], [0, 100]), "палочка"), s(`${arc(25, 75, 25, 25, 180, 360)} L 50,100`, "горка")]],
+  i: [10, [s(line([5, 50], [5, 100]), "палочка"), dot(5, 30)]],
+  j: [35, [s(`${line([30, 50], [30, 130])} ${arc(15, 130, 15, 20, 0, 170, { move: false })}`, "палочка с крючком"), dot(30, 30)]],
+  k: [40, [s(line([0, 0], [0, 100]), "палочка"), s(line([40, 50], [0, 75], [40, 100]), "уголок")]],
+  l: [10, [s(line([5, 0], [5, 100]), "палочка")]],
+  m: [70, [
+    s(line([0, 50], [0, 100]), "палочка"),
+    s(`${arc(17.5, 70, 17.5, 20, 180, 360)} L 35,100`, "горка"),
+    s(`${arc(52.5, 70, 17.5, 20, 180, 360)} L 70,100`, "горка"),
+  ]],
+  n: [50, [s(line([0, 50], [0, 100]), "палочка"), s(`${arc(25, 75, 25, 25, 180, 360)} L 50,100`, "горка")]],
+  o: [50, [s(arc(25, 75, 25, 25, -60, -420), "овал")]],
+  p: [50, [s(line([0, 50], [0, 150]), "палочка"), s(arc(25, 75, 25, 25, 180, 540), "овал")]],
+  q: [50, [s(BOWL_L(), "овал"), s(line([50, 50], [50, 150]), "палочка")]],
+  r: [40, [s(line([0, 50], [0, 100]), "палочка"), s(arc(22, 72, 22, 22, 180, 305), "дужка")]],
+  s: [45, [s("M 42,58 C 34,48 6,48 6,63 C 6,77 42,72 42,87 C 42,103 10,103 2,92", "змейка")]],
+  t: [35, [s(line([15, 15], [15, 100]), "палочка"), s(line([0, 50], [35, 50]), "черта")]],
+  u: [50, [s(`${line([0, 50], [0, 78])} ${arc(25, 78, 25, 22, 180, 0, { move: false })}`, "крючок"), s(line([50, 50], [50, 100]), "палочка")]],
+  v: [50, [s(line([0, 50], [25, 100], [50, 50]), "уголок")]],
+  w: [70, [s(line([0, 50], [17.5, 100], [35, 50], [52.5, 100], [70, 50]), "два уголка")]],
+  x: [50, [s(line([0, 50], [50, 100]), "наклонная"), s(line([50, 50], [0, 100]), "наклонная")]],
+  y: [50, [s(line([0, 50], [27.5, 100]), "наклонная"), s(line([50, 50], [5, 150]), "длинная наклонная")]],
+  z: [50, [s(line([0, 50], [50, 50], [0, 100], [50, 100]), "зигзаг")]],
+};
+
+const upper = {
+  A: [60, [s(line([30, 0], [0, 100]), "наклонная"), s(line([30, 0], [60, 100]), "наклонная"), s(line([12, 65], [48, 65]), "черта")]],
+  B: [50, [
+    s(line([0, 0], [0, 100]), "палочка"),
+    s(`M 0,0 L 20,0 ${arc(20, 25, 22, 25, -90, 90, { move: false })} L 0,50`, "верхняя дуга"),
+    s(`M 0,50 L 24,50 ${arc(24, 75, 26, 25, -90, 90, { move: false })} L 0,100`, "нижняя дуга"),
+  ]],
+  C: [80, [s(arc(40, 50, 40, 50, -40, -320), "полуовал")]],
+  D: [60, [s(line([0, 0], [0, 100]), "палочка"), s(`M 0,0 L 10,0 ${arc(10, 50, 50, 50, -90, 90, { move: false })} L 0,100`, "дуга")]],
+  E: [45, [s(line([0, 0], [0, 100]), "палочка"), s(line([0, 0], [45, 0]), "верхняя черта"), s(line([0, 50], [35, 50]), "средняя черта"), s(line([0, 100], [45, 100]), "нижняя черта")]],
+  F: [45, [s(line([0, 0], [0, 100]), "палочка"), s(line([0, 0], [45, 0]), "верхняя черта"), s(line([0, 50], [35, 50]), "средняя черта")]],
+  G: [80, [s(`${arc(40, 50, 40, 50, -40, -360)} L 45,50`, "полуовал и черта")]],
+  H: [50, [s(line([0, 0], [0, 100]), "палочка"), s(line([50, 0], [50, 100]), "палочка"), s(line([0, 50], [50, 50]), "черта")]],
+  I: [30, [s(line([15, 0], [15, 100]), "палочка"), s(line([0, 0], [30, 0]), "верхняя черта"), s(line([0, 100], [30, 100]), "нижняя черта")]],
+  J: [45, [s(`${line([45, 0], [45, 75])} ${arc(22.5, 75, 22.5, 25, 0, 180, { move: false })}`, "палочка с крючком")]],
+  K: [50, [s(line([0, 0], [0, 100]), "палочка"), s(line([50, 0], [0, 50], [50, 100]), "уголок")]],
+  L: [45, [s(line([0, 0], [0, 100], [45, 100]), "уголок")]],
+  M: [70, [s(line([0, 0], [0, 100]), "палочка"), s(line([0, 0], [35, 70], [70, 0], [70, 100]), "уголок и палочка")]],
+  N: [55, [s(line([0, 0], [0, 100]), "палочка"), s(line([0, 0], [55, 100], [55, 0]), "наклонная и палочка")]],
+  O: [80, [s(arc(40, 50, 40, 50, -90, -450), "овал")]],
+  P: [45, [s(line([0, 0], [0, 100]), "палочка"), s(`M 0,0 L 20,0 ${arc(20, 27.5, 25, 27.5, -90, 90, { move: false })} L 0,55`, "дуга")]],
+  Q: [80, [s(arc(40, 50, 40, 50, -90, -450), "овал"), s(line([50, 70], [80, 100]), "хвостик")]],
+  R: [50, [s(line([0, 0], [0, 100]), "палочка"), s(`M 0,0 L 20,0 ${arc(20, 27.5, 25, 27.5, -90, 90, { move: false })} L 0,55`, "дуга"), s(line([20, 55], [50, 100]), "наклонная")]],
+  S: [55, [s("M 52,14 C 42,-2 4,0 4,24 C 4,50 54,46 54,74 C 54,102 12,104 2,84", "змейка")]],
+  T: [60, [s(line([30, 0], [30, 100]), "палочка"), s(line([0, 0], [60, 0]), "черта")]],
+  U: [55, [s(`${line([0, 0], [0, 65])} ${arc(27.5, 65, 27.5, 35, 180, 0, { move: false })} L 55,0`, "дуга")]],
+  V: [60, [s(line([0, 0], [30, 100], [60, 0]), "уголок")]],
+  W: [80, [s(line([0, 0], [20, 100], [40, 0], [60, 100], [80, 0]), "два уголка")]],
+  X: [55, [s(line([0, 0], [55, 100]), "наклонная"), s(line([55, 0], [0, 100]), "наклонная")]],
+  Y: [56, [s(line([0, 0], [28, 50]), "наклонная"), s(line([56, 0], [28, 50]), "наклонная"), s(line([28, 50], [28, 100]), "палочка")]],
+  Z: [55, [s(line([0, 0], [55, 0], [0, 100], [55, 100]), "зигзаг")]],
+};
+
+const glyphs = {};
+for (const [set, kind] of [[upper, "upper"], [lower, "lower"]]) {
+  for (const [ch, [width, strokes]] of Object.entries(set)) glyphs[ch] = { case: kind, width, strokes };
+}
+
+const out = {
+  style: "print",
+  title: { ru: "Печатные", en: "Print" },
+  ruling: { units: 50, lines: { top: 0, x: 50, base: 100, bottom: 150 } },
+  glyphs,
+};
+const file = fileURLToPath(new URL("./print.json", import.meta.url));
+writeFileSync(file, JSON.stringify(out, null, 1) + "\n");
+console.log(`wrote ${Object.keys(glyphs).length} glyphs → ${file}`);
