@@ -75,8 +75,10 @@ export default function ModePickerScreen() {
 
 // `hiddenModeIds` / `onBack`: «Мои люди» shows this list as «Другие упражнения»
 // inside the plan route, without the modes the plan itself covers and with
-// «back» leading to the plan, not home.
-export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null }) {
+// «back» leading to the plan, not home. `topItem`: a row of its own at the
+// top of the list (the switch to «Занятия по плану") -- inside the screen,
+// under its header, so the page is no taller than the screen.
+export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topItem = null }) {
   const { t } = useUiTranslation();
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
@@ -190,6 +192,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null }) {
 
       <TopicLanguageBar topic={topicRecord} />
       <ul className="mode-list">
+        {topItem && <li className="mode-item-row">{topItem}</li>}
         {isMyPeople && activeStudent && isMyPeopleProfileEmpty(activeStudent) && (
           // Every photo mode is closed until there are two people with
           // photos: say so once, up front, instead of a list of grey rows.

@@ -113,7 +113,13 @@ function PeopleLearningHomeContent({ legacy }) {
   if (docs === null) return <div className="screen-center">Загрузка плана…</div>;
   if (!student) return <div className="pl-page"><h1>Мои люди</h1><p>Выберите ученика на главном экране.</p><button className="pl-primary" onClick={() => store.setScreen('home')}>На главную</button></div>;
   // The ordinary list of modes, with the switch to the plan route on top.
-  if (route === 'legacy') return <><div className="pl-page pl-switch"><button className="pl-option" onClick={() => setGate(true)}>Занятия по плану</button><p className="pl-conditions">Взрослый готовит план, ребёнок начинает одной кнопкой. Этот список останется в «Других упражнениях».</p>{error && <p role="alert">{error}</p>}</div>{legacy}{gate && <PeopleAdultGate onSuccess={() => { setGate(false); switchRoute('new'); }} onCancel={() => setGate(false)} />}</>;
+  if (route === 'legacy') return <>{cloneElement(legacy, { topItem: <button type="button" className="mode-item mode-item--flex my-people-setup-row" onClick={() => setGate(true)}>
+    <span className="my-people-setup-row__icon" aria-hidden="true">📋</span>
+    <span className="mode-item__body"><span className="mode-item__title">Занятия по плану</span>
+      <span className="mode-item__desc">Взрослый готовит план, ребёнок начинает одной кнопкой. Этот список останется в «Других упражнениях».</span>
+      {error && <span className="mode-item__desc" role="alert">{error}</span>}</span>
+    <span className="my-people-setup-row__arrow" aria-hidden="true">›</span>
+  </button> })}{gate && <PeopleAdultGate onSuccess={() => { setGate(false); switchRoute('new'); }} onCancel={() => setGate(false)} />}</>;
   // «Другие упражнения» inside the plan route: the plan already does
   // «Покажи» (choose the photo) and «Кто это?» (name it), so they are left
   // out here; «back» returns to the adult's page.

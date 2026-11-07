@@ -10,10 +10,10 @@ vi.mock('@/core/syncApi', () => ({ flushQueue: sync.flushQueue }));
 vi.mock('@/features/timer/TimerContext', () => ({ useTimer: () => ({ markSessionStart() {} }) }));
 vi.mock('./PeopleLearningTask', () => ({ LearningPhoto: ({ src }) => <img src={src} alt="" /> }));
 let root, container;
-function LegacyList({ hiddenModeIds = [], onBack }) {
-  return <div>Старые упражнения {['match_same', 'show_me', 'who_is_this'].filter(id => !hiddenModeIds.includes(id)).join(' ')}{onBack && <button onClick={onBack}>К плану</button>}</div>;
+function LegacyList({ hiddenModeIds = [], onBack, topItem }) {
+  return <div>{topItem}Старые упражнения {['match_same', 'show_me', 'who_is_this'].filter(id => !hiddenModeIds.includes(id)).join(' ')}{onBack && <button onClick={onBack}>К плану</button>}</div>;
 }
-const button = text => [...container.querySelectorAll('button')].find(b => b.textContent === text);
+const button = text => [...container.querySelectorAll('button')].find(b => b.textContent === text || b.querySelector('.mode-item__title')?.textContent === text);
 const waitFor = async predicate => vi.waitFor(async () => { await act(async () => { await new Promise(resolve => setTimeout(resolve, 2)); }); expect(predicate()).toBeTruthy(); });
 const click = async text => { await waitFor(() => button(text)); await act(async () => { button(text).click(); }); };
 beforeEach(async () => {

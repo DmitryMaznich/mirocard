@@ -23,7 +23,7 @@ await page.evaluate(images=>{
  const student={id:'qa-kid',name:'Мирон',lessonFlow:{advance:'tap',delaySeconds:1},myPeople:['Анна','Иван','Саша','Ольга','Маша','Барсик'].map((name,i)=>({id:'p'+i,type:i===5?'pet':'person',name,relation:['мама','папа','подруга','учительница','сестра','кот'][i],contexts:[i<2?'family':'friends'],photos:[images[i]],enabled:true}))};
  const s=window.__store.getState();s.setAccount({id:'qa-account',displayName:'Тест'});s.setStudents([student]);s.setActiveStudentId(student.id);s.setActiveTopicId('my_people');s.patchSettings({adultPinHash:null});s.setScreen('modes');
 },images);
-await page.getByRole('button',{name:'Занятия по плану',exact:true}).click();
+await page.getByRole('button',{name:/^Занятия по плану/}).click();
 await page.getByRole('button',{name:'Для взрослого',exact:true}).click();
 await page.getByRole('button',{name:'Все параметры',exact:true}).click();
 await page.getByRole('button',{name:'6 фото · 5 отвлекающих',exact:true}).click();
@@ -154,7 +154,7 @@ for(const id of ['who_is_this','show_me','match_same','label_photos']){
  await page.evaluate(id=>{const s=window.__store.getState();s.setActiveTopicId('my_people');s.setActiveModeId(id);s.setMyPeopleLaunchPlan(null);s.clearActiveSessionSnapshot();s.setSessionReturnScreen(null);s.setScreen('params');},id);
  await page.getByText('Категория людей',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Школа',exact:true}).click();
- if(id==='match_same')await page.getByRole('button',{name:'Одинаковое фото',exact:true}).click();
+ if(id==='match_same')await page.getByRole('button',{name:'То же фото (легче)',exact:true}).click();
  if(id==='label_photos')await page.getByRole('button',{name:'Имена',exact:true}).click();
  await page.screenshot({path:output+'/mode-'+id+'-category.png',fullPage:true});
  await page.getByRole('button',{name:'Начать занятие',exact:true}).click();
