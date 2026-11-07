@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Оплата Mironium — макеты v01 (2026-11-07)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Реальные правила из src/styles.css (Billing + .btn*), вставлены скриптом без изменений */
+.subscription-body { flex: 1; overflow-y: auto; padding: 6px 16px 0; }
+.subscription-status { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 18px; padding: 14px 16px; border-radius: 16px; background: #eef7f4; border: 1.5px solid #4a9b8f; }
+.subscription-status__label { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #4a9b8f; }
+.subscription-status__value { font-size: 15px; font-weight: 800; color: #1f2d2a; }
+.subscription-free-note { margin: 16px 4px 0; font-size: 15px; line-height: 1.5; color: #4b5b57; }
+.subscription-status__hint { font-size: 13px; font-weight: 600; color: #526562; }
+.subscription-status--none { background: #fff; border-color: #e4dccf; }
+.subscription-status--none .subscription-status__label { color: #8a938f; }
+.subscription-summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 6px 0 4px; padding: 14px 16px; border-radius: 16px; background: #eef7f4; border: 1.5px solid #4a9b8f; }
+.subscription-summary__plan { font-size: 15px; font-weight: 800; }
+.subscription-summary__price { font-size: 18px; font-weight: 900; }
+.subscription-summary__note { margin: 6px 2px 0; font-size: 12.5px; font-weight: 600; color: #6b7b78; }
+.subscription-lead { margin: 6px 0 18px; }
+.subscription-lead__eyebrow { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #4a9b8f; }
+.subscription-lead__title { margin-top: 6px; font-size: 22px; font-weight: 900; letter-spacing: -.01em; }
+
+.plan-list { display: flex; flex-direction: column; gap: 10px; }
+.plan { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 16px; background: #fff; border: 1.5px solid #e4dccf; text-align: left; font-family: inherit; cursor: pointer; }
+.plan--selected { border-color: #4a9b8f; background: #eef7f4; }
+.plan__radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #c8d4d2; flex-shrink: 0; }
+.plan--selected .plan__radio { border-color: #4a9b8f; background: #4a9b8f; }
+.plan__info { flex: 1; display: flex; flex-direction: column; }
+.plan__name { font-size: 15px; font-weight: 800; }
+.plan__hint { margin-top: 2px; font-size: 12.5px; font-weight: 600; color: #6b7b78; }
+.plan__price { font-size: 16px; font-weight: 900; white-space: nowrap; }
+
+.section-label { margin: 22px 0 10px; font-size: 13px; font-weight: 900; color: #526562; }
+.pay-methods { display: flex; gap: 10px; }
+.pay-chip { flex: 1; padding: 12px 8px; border-radius: 14px; background: #fff; border: 1.5px solid #e4dccf; font-size: 12.5px; font-weight: 800; color: #526562; cursor: pointer; }
+.pay-chip--selected { border-color: #4a9b8f; background: #eef7f4; color: #1c3634; }
+.pay-chip--disabled { border-style: dashed; color: #a3adaa; background: #f7f5f0; cursor: not-allowed; }
+.pay-chip__soon { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+
+.promo-toggle { margin-top: 18px; background: none; border: none; font: 700 13px "Nunito", sans-serif; color: #2f5b57; text-decoration: underline; cursor: pointer; padding: 0; }
+.promo-row { display: flex; gap: 8px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+.promo-input { flex: 1; min-width: 140px; height: 44px; padding: 0 14px; border: 1.5px solid #e4dccf; border-radius: 12px; font: 600 14px "Nunito", sans-serif; text-transform: uppercase; }
+.promo-apply { height: 44px; padding: 0 16px; border: none; border-radius: 12px; background: #4a9b8f; color: #fff; font-weight: 800; cursor: pointer; }
+.promo-error { font-size: 12.5px; color: #e05252; font-weight: 700; }
+.subscription-error { margin-top: 12px; font-size: 13px; color: #e05252; font-weight: 700; }
+
+.subscription-footer { flex-shrink: 0; padding: 14px 16px calc(16px + var(--app-safe-bottom, 0px)); }
+.subscription-disclaimer { margin: 0 0 10px; font-size: 12px; line-height: 1.4; color: #6b7573; text-align: center; }
+.subscription-consents { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.subscription-consent { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4; color: #4a5450; cursor: pointer; }
+.subscription-consent input { margin-top: 2px; flex-shrink: 0; }
+.subscription-consent a { color: #2f5b57; }
+.consent-lang { display: flex; gap: 6px; }
+.consent-lang__btn { font: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid #d6dedb; background: #fff; color: #6b7b78; cursor: pointer; }
+.consent-lang__btn--active { background: #2f5b57; border-color: #2f5b57; color: #fff; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 52px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s, opacity 0.15s;
+  white-space: nowrap;
+  position: relative;
+}
+.btn:active { transform: translateY(3px); }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+.btn-full { width: 100%; }
+.btn-primary {
+  background: #4a9b8f;
+  color: #fff;
+  box-shadow: 0 5px 0 #2a6b60, 0 8px 20px rgba(42,107,96,0.35);
+}
+.btn-primary:active { box-shadow: 0 2px 0 #2a6b60, 0 4px 10px rgba(42,107,96,0.25); }
+.btn-secondary {
+  background: #fff;
+  border: 1.5px solid #c8d4d2;
+  color: #2f4f4b;
+  box-shadow: 0 2px 0 #b0bfbd;
+}
+.btn-secondary:active { box-shadow: 0 1px 0 #b0bfbd; }
+.btn-danger {
+  background: #e05252;
+  color: #fff;
+  box-shadow: 0 4px 0 #a83535;
+}
+.btn-danger:active { box-shadow: 0 2px 0 #a83535; }
+
+
+/* Хром макета и общие правила .screen / .screen-header из styles.css (поздняя, действующая версия) */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px; font-family: "Nunito", sans-serif; background: #d9dedc; color: #1f2d2a; }
+h1.page { font-size: 22px; margin: 0 0 4px; }
+p.page { margin: 0 0 20px; color: #4b5b57; max-width: 1100px; }
+.grid { display: grid; grid-template-columns: repeat(4, 390px); gap: 28px 24px; }
+.frame-wrap { display: flex; flex-direction: column; gap: 8px; }
+.frame-cap { font-size: 13px; font-weight: 800; color: #263131; }
+.frame-cap span { display: block; font-weight: 600; color: #526562; }
+.phone { width: 390px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,.18); background: #eef0ef; }
+.screen { display: flex; flex-direction: column; height: 100%; background: #eef0ef; }
+.screen-header { display: flex; align-items: center; gap: 12px; padding: 0 14px; height: 56px; background: #1c3634; flex-shrink: 0; }
+.screen-title { flex: 1; font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.92); margin: 0; }
+.back-btn { width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.88); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.btn-full { width: 100%; }
+.subscription-body { overflow: visible; }
+.plan { flex-shrink: 0; width: 100%; }
+
+/* Новые элементы (предложение) */
+.plan__badge { position: absolute; top: -9px; right: 14px; padding: 2px 8px; border-radius: 999px; background: #4a9b8f; color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .03em; }
+.plan__sub { display: block; font-size: 12px; font-weight: 700; color: #6b7b78; text-align: right; }
+.renew-note { margin: 0 0 10px; font-size: 12.5px; line-height: 1.45; color: #526562; text-align: center; }
+.sub-rows { margin-top: 4px; background: #fff; border: 1.5px solid #e4dccf; border-radius: 16px; overflow: hidden; }
+.sub-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; font-size: 14px; font-weight: 700; color: #263131; border-top: 1px solid #efe9df; }
+.sub-row:first-child { border-top: none; }
+.sub-row small { font-weight: 600; color: #6b7b78; }
+.sub-row .chev { color: #a3adaa; font-weight: 900; }
+.subscription-status--warn { background: #fff7e6; border-color: #f59e0b; }
+.subscription-status--warn .subscription-status__label { color: #b45309; }
+.subscription-status--ended { background: #fff; border-color: #e4dccf; }
+.subscription-status--ended .subscription-status__label { color: #8a938f; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.link-btn { background: none; border: none; font: 700 13px "Nunito", sans-serif; color: #2f5b57; text-decoration: underline; padding: 0; }
+.center { text-align: center; }
+.success { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; gap: 10px; }
+.success__icon { width: 84px; height: 84px; border-radius: 50%; background: #dcfce7; border: 3px solid #22c55e; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #16a34a; font-weight: 900; }
+.success__title { font-size: 22px; font-weight: 900; margin: 8px 0 0; }
+.success__text { font-size: 15px; color: #4b5b57; line-height: 1.45; margin: 0; }
+/* Окно Paddle (схематично) */
+.dim { position: absolute; inset: 0; background: rgba(20,30,28,.55); }
+.overlay { position: absolute; left: 12px; right: 12px; top: 70px; bottom: 24px; background: #fff; border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; font-family: system-ui, sans-serif; }
+.ov-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: #333; }
+.ov-top b { font-size: 20px; }
+.ov-field { height: 44px; border: 1px solid #d0d5dd; border-radius: 8px; padding: 0 12px; display: flex; align-items: center; color: #98a2b3; font-size: 14px; }
+.ov-row { display: flex; gap: 8px; }
+.ov-row .ov-field { flex: 1; }
+.ov-wallet { height: 44px; border-radius: 8px; background: #111; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+.ov-pay { height: 48px; border-radius: 8px; background: #1a7f64; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-top: auto; }
+.ov-note { font-size: 11px; color: #667085; text-align: center; line-height: 1.4; }
+.ov-label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #667085; font-weight: 700; }
+.annot { position: absolute; left: 12px; right: 12px; bottom: 6px; font-size: 11px; color: #fff; text-align: center; font-weight: 700; }
+/* Главная (схематично) */
+.home-head { height: 56px; background: #1c3634; color: #fff; display: flex; align-items: center; padding: 0 16px; font-weight: 900; font-size: 18px; }
+.banner { margin: 12px 14px 4px; padding: 12px 14px; border-radius: 16px; background: #fff; border: 1.5px solid #4a9b8f; display: flex; gap: 12px; align-items: center; }
+.banner__text { flex: 1; font-size: 13.5px; font-weight: 700; color: #263131; line-height: 1.35; }
+.banner__text small { display: block; font-weight: 600; color: #6b7b78; }
+.banner__btn { height: 38px; padding: 0 14px; border-radius: 11px; background: #4a9b8f; color: #fff; border: none; font: 800 13px "Nunito", sans-serif; box-shadow: 0 3px 0 #2a6b60; white-space: nowrap; }
+.banner__x { color: #a3adaa; font-weight: 900; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 14px; }
+.tile { height: 132px; border-radius: 18px; background: #fff; border: 1.5px solid #e4dccf; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; font-weight: 800; font-size: 14px; color: #263131; position: relative; }
+.tile i { font-style: normal; font-size: 30px; }
+.tile--locked { background: #f7f5f0; color: #8a938f; }
+.tile--locked::after { content: "🔒"; position: absolute; top: 10px; right: 12px; font-size: 16px; }
+.ended-card { margin: 12px 14px 0; padding: 16px; border-radius: 18px; background: #fff; border: 1.5px solid #4a9b8f; }
+.ended-card h3 { margin: 0 0 6px; font-size: 17px; font-weight: 900; }
+.ended-card p { margin: 0 0 12px; font-size: 13.5px; color: #4b5b57; line-height: 1.45; }
+</style>
+</head>
+<body>
+<h1 class="page">Оплата Mironium — макеты v01</h1>
+<p class="page">Предложение к обсуждению: автопродляемая подписка через Paddle, окно оплаты поверх приложения, управление подпиской через портал Paddle. Цвета, шрифты и классы взяты из действующего <code>src/styles.css</code> (экран «Подписка»); новые элементы помечены в <code>docs/monetization-eu-plan.md</code>. Это макет, не исходник React.</p>
+
+<div class="grid">
+
+<!-- 1 -->
+<div class="frame-wrap">
+<div class="frame-cap">1. «Подписка» — идёт пробный период<span>Два плана вместо трёх, годовой выбран по умолчанию</span></div>
+<div class="phone"><div class="screen">
+  <div class="screen-header"><div class="back-btn">‹</div><h1 class="screen-title">Подписка</h1></div>
+  <div class="subscription-body">
+    <div class="subscription-status">
+      <span class="subscription-status__label">Доступ</span>
+      <span class="subscription-status__value">Пробный период до 19 ноября</span>
+      <span class="subscription-status__hint">Осталось 12 дней. Карта не нужна.</span>
+    </div>
+    <div class="subscription-lead">
+      <p class="subscription-lead__eyebrow">Подписка</p>
+      <h2 class="subscription-lead__title">Все темы и все ученики</h2>
+    </div>
+    <div class="plan-list">
+      <button class="plan plan--selected"><span class="plan__badge">2 месяца в подарок</span><span class="plan__radio"></span><span class="plan__info"><span class="plan__name">Год</span><span class="plan__hint">€ 7,49 в месяц</span></span><span class="plan__price">€ 89,90<span class="plan__sub">в год</span></span></button>
+      <button class="plan"><span class="plan__radio"></span><span class="plan__info"><span class="plan__name">Месяц</span><span class="plan__hint">Можно отменить в любой момент</span></span><span class="plan__price">€ 9,90<span class="plan__sub">в месяц</span></span></button>
+    </div>
+    <button class="promo-toggle">У меня есть промокод</button>
+  </div>
+  <div class="subscription-footer">
+    <p class="renew-note">Оплата начнётся после пробного периода — 19 ноября. Продлевается автоматически, напомним письмом за 7 дней. Отмена — в два нажатия.</p>
+    <button class="btn btn-primary btn-full">Оформить за € 89,90 в год</button>
+  </div>
+</div></div>
+</div>
+
+<!-- 2 -->
+<div class="frame-wrap">
+<div class="frame-cap">2. Окно оплаты Paddle поверх приложения<span>Схематично: внешний вид задаёт Paddle, мы — только цвет и язык</span></div>
+<div class="phone"><div class="screen">
+  <div class="screen-header"><div class="back-btn">‹</div><h1 class="screen-title">Подписка</h1></div>
+</div>
+  <div class="dim"></div>
+  <div class="overlay">
+    <div class="ov-top"><span>Mironium · Год</span><b>€ 89,90</b></div>
+    <div class="ov-note" style="text-align:left">Пробный период до 19 ноября · затем € 89,90 в год. НДС включён.</div>
+    <div class="ov-wallet"> Pay</div>
+    <div class="ov-label">или картой</div>
+    <div class="ov-field">parent@example.com</div>
+    <div class="ov-field">Номер карты</div>
+    <div class="ov-row"><div class="ov-field">ММ / ГГ</div><div class="ov-field">CVC</div></div>
+    <div class="ov-field">Страна: Словения</div>
+    <div class="ov-pay">Оформить подписку</div>
+    <div class="ov-note">Продавец и получатель платежа — Paddle.com, официальный реселлер Mironium. Условия Paddle для покупателей.</div>
+  </div>
+  <div class="annot">e-mail подставляется из аккаунта; страну Paddle определяет сам</div>
+</div>
+</div>
+
+<!-- 3 -->
+<div class="frame-wrap">
+<div class="frame-cap">3. Оплата прошла<span>Существующий CheckoutReturnScreen, новый текст</span></div>
+<div class="phone"><div class="screen">
+  <div class="screen-header"><h1 class="screen-title" style="padding-left:6px">Подписка</h1></div>
+  <div class="success">
+    <div class="success__icon">✓</div>
+    <h2 class="success__title">Подписка оформлена</h2>
+    <p class="success__text">Все темы открыты. Следующее списание — 19 ноября 2027, € 89,90.</p>
+    <p class="success__text" style="font-size:13px">Чек и счёт пришли на parent@example.com.</p>
+  </div>
+  <div class="subscription-footer"><button class="btn btn-primary btn-full">К темам</button></div>
+</div></div>
+</div>
+
+<!-- 4 -->
+<div class="frame-wrap">
+<div class="frame-cap">4. «Подписка» — активна<span>Управление — в портале Paddle (карта, отмена, счета)</span></div>
+<div class="phone"><div class="screen">
+  <div class="screen-header"><div class="back-btn">‹</div><h1 class="screen-title">Подписка</h1></div>
+  <div class="subscription-body stack">
+    <div class="subscription-status" style="margin-bottom:6px">
+      <span class="subscription-status__label">Подписка · Год</span>
+      <span class="subscription-status__value">Активна</span>
+      <span class="subscription-status__hint">Продлится 19 ноября 2027 · € 89,90</span>
+    </div>
+    <div class="sub-rows">
+      <div class="sub-row"><span>Способ оплаты<br><small>Visa •• 4242</small></span><span class="chev">›</span></div>
+      <div class="sub-row"><span>Сменить план<br><small>Месяц или год</small></span><span class="chev">›</span></div>
+      <div class="sub-row"><span>Счета и чеки</span><span class="chev">›</span></div>
+      <div class="sub-row"><span>Отменить подписку<br><small>Доступ останется до 19 ноября 2027</small></span><span class="chev">›</span></div>
+    </div>
+    <p class="subscription-summary__note">Все пункты открывают портал Paddle в новой вкладке.</p>
+  </div>
+</div></div>
+</div>
+
+<!-- 5 -->
+<div class="frame-wrap">
+<div class="frame-cap">5. Подписка отменена<span>Доступ до конца оплаченного периода</span></div>
+<div class="phone"><div class="screen">
+  <div class="screen-header"><div class="back-btn">‹</div><h1 class="screen-title">Подписка</h1></div>
+  <div class="subscription-body">
+    <div class="subscription-status subscription-status--ended">
+      <span class="subscription-status__label">Подписка · Год</span>
+      <span class="subscription-status__value">Отменена — доступ до 19 ноября 2027</span>
+      <span class="subscription-status__hint">Больше списаний не будет. Ученики и статистика сохранятся и после этой даты.</span>
+    </div>
+  </div>
+  <div class="subscription-footer"><button class="btn btn-primary btn-full">Возобновить подписку</button></div>
+</div></div>
+</div>
+
+<!-- 6 -->
+<div class="frame-wrap">
+<div class="frame-cap">6. Не удалось списать оплату<span>Льготные 7 дней: доступ не закрываем сразу</span></div>
+<div class="phone"><div class="screen">
+  <div class="screen-header"><div class="back-btn">‹</div><h1 class="screen-title">Подписка</h1></div>
+  <div class="subscription-body">
+    <div class="subscription-status subscription-status--warn">
+      <span class="subscription-status__label">Нужно действие</span>
+      <span class="subscription-status__value">Не удалось списать € 9,90</span>
+      <span class="subscription-status__hint">Мы попробуем ещё раз. Доступ сохранится до 26 ноября — обновите карту, чтобы не прерываться.</span>
+    </div>
+  </div>
+  <div class="subscription-footer"><button class="btn btn-primary btn-full">Обновить карту</button></div>
+</div></div>
+</div>
+
+<!-- 7 -->
+<div class="frame-wrap">
+<div class="frame-cap">7. Главная — пробный период заканчивается<span>Плашка за 7 дней, 3 дня и 1 день; закрывается крестиком</span></div>
+<div class="phone"><div class="screen">
+  <div class="home-head">Mironium</div>
+  <div class="banner">
+    <div class="banner__text">Пробный период: осталось 3 дня<small>Подписка — € 9,90 в месяц</small></div>
+    <button class="banner__btn">Выбрать</button>
+    <span class="banner__x">✕</span>
+  </div>
+  <div class="tiles">
+    <div class="tile"><i>✍️</i>Прописи</div>
+    <div class="tile"><i>➕</i>Плюс и минус</div>
+    <div class="tile"><i>🏃</i>Глаголы</div>
+    <div class="tile"><i>👨‍👩‍👧</i>Мои люди</div>
+  </div>
+</div></div>
+</div>
+
+<!-- 8 -->
+<div class="frame-wrap">
+<div class="frame-cap">8. Пробный период закончился<span>Ничего не удаляется; платные темы — под замком</span></div>
+<div class="phone"><div class="screen">
+  <div class="home-head">Mironium</div>
+  <div class="ended-card">
+    <h3>Пробный период закончился</h3>
+    <p>Ваши ученики, статистика и созданные материалы сохранены. Оформите подписку, чтобы продолжить занятия.</p>
+    <button class="btn btn-primary btn-full">Выбрать план</button>
+  </div>
+  <div class="tiles">
+    <div class="tile tile--locked"><i>✍️</i>Прописи</div>
+    <div class="tile tile--locked"><i>➕</i>Плюс и минус</div>
+    <div class="tile"><i>📅</i>Сегодня<small style="font-weight:600;color:#6b7b78">бесплатно</small></div>
+    <div class="tile tile--locked"><i>👨‍👩‍👧</i>Мои люди</div>
+  </div>
+</div></div>
+</div>
+
+</div>
+</body>
+</html>
