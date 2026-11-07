@@ -170,3 +170,13 @@ test("reduced motion keeps the same stop and manual input flow",async ({page}) =
   await enterNumbers(page);
   await expect(page.getByRole("button",{name:"Мирон: выпало 1",exact:true})).toBeEnabled();
 });
+
+for(const game of ["Гонки","Дом до облаков","Наливаем"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
+  await page.setViewportSize(viewport);
+  await page.goto("/tests/responsive/games.html");
+  await page.getByRole("button",{name:new RegExp(game)}).click();
+  await page.getByRole("button",{name:"На старт!",exact:true}).click();
+  await expect(page.locator(".race-cube-face")).toHaveCount(12);
+  const sizes=await page.locator(".race-cube-face").evaluateAll(nodes=>nodes.map(face=>({face:parseFloat(getComputedStyle(face).width),drawing:parseFloat(getComputedStyle(face.firstElementChild).width),h:parseFloat(getComputedStyle(face.firstElementChild).height)})));
+  for(const size of sizes){expect(size.drawing).toBeCloseTo(size.face,1);expect(size.h).toBeCloseTo(size.face,1);}
+});
