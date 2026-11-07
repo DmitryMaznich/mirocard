@@ -280,6 +280,13 @@ hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
 the owner's rules learned the hard way, the work procedure and open items;
 per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
+## Латиница (latin_letters) — новая тема, проектирование (started 2026-11-07)
+
+Separate topic (owner's decision — not a language/style inside `propis2` or `print_letters`) for
+teaching children to write Latin script: English first, then other school styles as data (one engine,
+style = glyphs + joins + ruling + slant). **Read `docs/latin-letters.md` first** — decisions, proposed
+style families/order, open questions. Source catalogue (links only): `docs/research/handwriting/`.
+
 ## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
 
 Printed-letter worksheet/notebook constructor for preschoolers (4–6yo), not cursive — a separate
