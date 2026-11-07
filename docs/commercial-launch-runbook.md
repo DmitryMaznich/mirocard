@@ -390,6 +390,7 @@ description), not a bug.
 | Variable | New in this branch? | Required in prod? | Default (non-prod) | Purpose |
 |---|---|---|---|---|
 | `LEGAL_DOCS_VERSION` | Yes | No (but checkout 503s while it's `"draft"`) | `"draft"` | Version tag shown on `/terms` etc. and stamped onto every `checkout_consents` row; gates whether `POST /billing/checkout` will create real orders at all. |
+| `PAYWALL_ENFORCED` | Yes (2026-11-07) | No | off | `1` turns paid access on: paid decks need an active entitlement and the expiry-reminder emails run. Off (anything but `1`) while paid plans are paused — every paid deck is open and no "access ended" emails go out. Turn on together with `PAID_PLANS_PAUSED = false` on the client. |
 | `CORS_ALLOWED_ORIGINS` | Yes | No | `https://app.mironium.com,http://localhost:5174,http://localhost:4173` | Comma-separated allowlist replacing the previous hardcoded `Access-Control-Allow-Origin: *`. Set explicitly in Railway only if the real production origin ever differs from the default. |
 | `ERROR_REPORTING_WEBHOOK_URL` | Yes | No | unset → `reportError` is a local-log-only no-op | POST target for error events (`backend/lib/observability.mjs`); point at a real vendor's HTTP ingest endpoint when one is chosen. Nothing is sent if unset. |
 | `ANALYTICS_WEBHOOK_URL` | Yes | No | unset → `trackEvent` is a local-log-only no-op | POST target for the funnel events listed in §5. Same no-op-if-unset behavior. |

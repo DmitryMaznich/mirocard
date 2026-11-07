@@ -76,6 +76,9 @@ process.env.AUTH_SECRET = "test-auth-secret";
 process.env.ACCOUNT_SECRET = "test-account-secret";
 process.env.MIROCARD_DEPLOY_TOKEN = "test-deploy-token";
 process.env.APP_BASE_URL = "http://localhost:5174";
+// These tests are about the paywall itself, so it must be on (off by default
+// while paid plans are paused -- see tests/paywall-paused.test.mjs).
+process.env.PAYWALL_ENFORCED = "1";
 
 const { router, db } = await import("../server.mjs");
 const { findAccountByEmailAny, activateAccount } = await import("../lib/account-repository.mjs");

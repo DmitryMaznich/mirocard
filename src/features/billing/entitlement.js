@@ -16,3 +16,10 @@ export function hasActiveEntitlement(account, subscription) {
 // account screen hides the subscription block and the subscription screen shows a short
 // "free for now" note instead of the plans. Flip back to false when paid plans return.
 export const PAID_PLANS_PAUSED = true;
+
+// What the topic library uses to lock/unlock paid topics: while paid plans
+// are paused nothing is locked, whatever the trial's end date says -- the
+// client half of PAYWALL_ENFORCED being off on the server.
+export function hasPaidAccess(account, subscription) {
+  return PAID_PLANS_PAUSED || hasActiveEntitlement(account, subscription);
+}
