@@ -16,7 +16,7 @@ async function start(page,reduced=true) {
 async function answer(page,child,adult) {
   await page.getByRole("button",{name:`Мирон: выпало ${child}`,exact:true}).click();
   await page.getByRole("button",{name:`Мама: выпало ${adult}`,exact:true}).click();
-  await page.getByRole("group",{name:"Кто построит больше этажей?",exact:true}).getByRole("button",{name:child===adult ? "Одинаково" : child>adult ? "Я" : "Мама",exact:true}).click();
+  await page.getByRole("group",{name:"Кто построит больше этажей?",exact:true}).getByRole("button",{name:child===adult ? "Одинаково" : child>adult ? "Мирон" : "Мама",exact:true}).click();
 }
 async function round(page,child,adult,next) {
   await answer(page,child,adult);
@@ -33,7 +33,7 @@ test("builds floors after comparison, alternates inhabited balconies and freezes
   await page.getByRole("button",{name:"Мама: выпало 2",exact:true}).click();
   await options.getByRole("button",{name:"Мама",exact:true}).click();
   expect(await counts(page)).toEqual([0,0]);
-  await options.getByRole("button",{name:"Я",exact:true}).click();
+  await options.getByRole("button",{name:"Мирон",exact:true}).click();
   await expect(page.locator(".tower-moving-floor")).toHaveCount(2);
   await page.waitForTimeout(350);
   await page.getByRole("button",{name:"К списку игр",exact:true}).click();

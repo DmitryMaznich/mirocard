@@ -121,7 +121,7 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
     <footer className="race-footer">
       {race.phase !== "between" && <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>}
       {race.phase === "between" ? <button className="games-primary race-next-throw" disabled={paused} onClick={() => dispatch({type:"nextThrow"})}>Бросить кубики</button> : <div className="race-options" role="group" aria-label={question}>
-        {[["child", "Я"], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
+        {[["child", childName], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
       </div>}
     </footer>
     </div>

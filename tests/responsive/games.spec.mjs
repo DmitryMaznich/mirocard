@@ -15,7 +15,7 @@ async function start(page, stopDice = true) {
 async function dice(page, child, adult) {
   await page.getByRole("button",{name:`Мирон: выпало ${child}`,exact:true}).click();
   await page.getByRole("button",{name:`Папа: выпало ${adult}`,exact:true}).click();
-  await page.getByRole("group",{name:"Кто едет дальше?",exact:true}).getByRole("button",{name:child===adult ? "Одинаково" : child>adult ? "Я" : "Папа",exact:true}).click();
+  await page.getByRole("group",{name:"Кто едет дальше?",exact:true}).getByRole("button",{name:child===adult ? "Одинаково" : child>adult ? "Мирон" : "Папа",exact:true}).click();
 }
 async function round(page, child, adult, nextRound) {
   await dice(page, child, adult);
@@ -30,13 +30,13 @@ test("physical input, comparison, pause, and return to games",async ({page}) => 
   await start(page);
   await expect(page.getByRole("button",{name:/Поехали/})).toHaveCount(0);
   const answers = page.getByRole("group",{name:"Кто едет дальше?",exact:true});
-  expect(await answers.getByRole("button").allTextContents()).toEqual(["Я","Папа","Одинаково"]);
-  await expect(answers.getByRole("button",{name:"Я",exact:true})).toBeDisabled();
+  expect(await answers.getByRole("button").allTextContents()).toEqual(["Мирон","Папа","Одинаково"]);
+  await expect(answers.getByRole("button",{name:"Мирон",exact:true})).toBeDisabled();
   await page.getByRole("button",{name:"Мирон: выпало 5",exact:true}).click();
-  await expect(answers.getByRole("button",{name:"Я",exact:true})).toBeDisabled();
+  await expect(answers.getByRole("button",{name:"Мирон",exact:true})).toBeDisabled();
   await page.getByRole("button",{name:"Папа: выпало 3",exact:true}).click();
   await page.getByRole("button",{name:"Мирон: выпало 2",exact:true}).click();
-  await answers.getByRole("button",{name:"Я",exact:true}).click();
+  await answers.getByRole("button",{name:"Мирон",exact:true}).click();
   await expect(page.getByRole("status")).toHaveText("Посмотри на кубики ещё раз");
   await expect(page.getByRole("img",{name:"Мирон: 0 из 19"})).toBeVisible();
   await expect(page.getByRole("img",{name:"Папа: 0 из 19"})).toBeVisible();

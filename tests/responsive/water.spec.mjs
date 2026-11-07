@@ -9,7 +9,7 @@ async function start(page,reduced=true){
   await page.getByRole("group",{name:"Персонаж второго игрока",exact:true}).getByRole("button",{name:"Женщина",exact:true}).click();
   await page.getByRole("button",{name:"На старт!"}).click();await input(page);
 }
-async function answer(page,a,b){await page.getByRole("button",{name:`Мирон: выпало ${a}`,exact:true}).click();await page.getByRole("button",{name:`Мама: выпало ${b}`,exact:true}).click();await page.getByRole("group",{name:"Кто нальёт больше воды?",exact:true}).getByRole("button",{name:a===b ? "Одинаково" : a>b ? "Я" : "Мама",exact:true}).click();}
+async function answer(page,a,b){await page.getByRole("button",{name:`Мирон: выпало ${a}`,exact:true}).click();await page.getByRole("button",{name:`Мама: выпало ${b}`,exact:true}).click();await page.getByRole("group",{name:"Кто нальёт больше воды?",exact:true}).getByRole("button",{name:a===b ? "Одинаково" : a>b ? "Мирон" : "Мама",exact:true}).click();}
 async function round(page,a,b,n){await answer(page,a,b);await expect(page.locator(".race-round")).toHaveText(`Раунд ${n}`);await input(page);}
 const amounts=page=>page.locator(".water-glass").evaluateAll(nodes=>nodes.map(n=>Number(n.dataset.amount)));
 
@@ -19,7 +19,7 @@ test("characters, comparison, exact volumes and paused pouring",async({page})=>{
   await page.getByRole("button",{name:"Мирон: выпало 5",exact:true}).click();await page.getByRole("button",{name:"Мама: выпало 3",exact:true}).click();
   const choices=page.getByRole("group",{name:"Кто нальёт больше воды?",exact:true});
   await choices.getByRole("button",{name:"Мама",exact:true}).click();expect(await amounts(page)).toEqual([0,0]);
-  await choices.getByRole("button",{name:"Я",exact:true}).click();await expect(page.locator(".water-flow")).toHaveCount(2);
+  await choices.getByRole("button",{name:"Мирон",exact:true}).click();await expect(page.locator(".water-flow")).toHaveCount(2);
   await expect(page.locator('.water-person[data-pose="open"]')).toHaveCount(2);
   await expect(page.locator('.water-faucet[data-pose="open"]')).toHaveCount(2);
   await page.waitForTimeout(180);await page.getByRole("button",{name:"К списку игр",exact:true}).click();
