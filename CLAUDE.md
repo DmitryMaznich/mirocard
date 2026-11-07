@@ -284,8 +284,9 @@ per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
 Separate topic (owner's decision — not a language/style inside `propis2` or `print_letters`) for
 teaching children to write Latin script: English first, then other school styles as data (one engine,
-style = glyphs + joins + ruling + slant). **Read `docs/latin-letters.md` first** — decisions, proposed
-style families/order, open questions. Source catalogue (links only): `docs/research/handwriting/`.
+style = glyphs + joins + ruling + slant; notebook = language + style). Stage 1 (deck 0.1.0, catalog
+`individual`): notebook constructor, print style, four-line or cell paper, the sheet is one mm-SVG reused
+by the app's PDF maker. **Read `docs/latin-letters.md` first** — decisions, file map, next steps, open questions. Source catalogue (links only): `docs/research/handwriting/`.
 
 ## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
 

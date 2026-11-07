@@ -654,6 +654,24 @@
       "materialLanguages": [
         "ru"
       ]
+    },
+    {
+      "id": "latin_letters",
+      "version": "0.1.0",
+      "url": "./decks/latin_letters_v0.1.0.zip",
+      "title": {
+        "ru": "Латиница",
+        "en": "Latin Letters"
+      },
+      "description": {
+        "ru": "Конструктор тетрадей для письма латиницей: английский алфавит, печатные буквы на четырёхлинейке или в клетку, блоки букв и слов, А4 или А5, PDF.",
+        "en": "Notebook builder for Latin handwriting: English alphabet, print letters on four-line or squared paper, letter and word blocks, A4 or A5, PDF."
+      },
+      "status": "individual",
+      "access": "paid",
+      "materialLanguages": [
+        "en"
+      ]
     }
   ]
 }

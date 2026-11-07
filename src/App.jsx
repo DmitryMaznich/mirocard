@@ -94,6 +94,8 @@ function ParamsRoute() {
   // «Печатные буквы»: its notebook constructor is a full screen too (owner, 2026-11-03); «Пишу на
   // экране» (screen_write) and «Почини букву» (fix_letter) are ordinary sessions with the generic settings screen
   if (record?.meta.renderer === "print_letters" && !["screen_write", "fix_letter"].includes(mode?.type)) return <PrintLettersScreen />;
+  // «Латиница» (latin_letters): its constructor is the same kind of full screen (docs/latin-letters.md)
+  if (record?.meta.renderer === "latin_letters" && (!mode || mode.type === "constructor")) return <PrintLettersScreen />;
   return <ParamsScreen />;
 }
 

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const style = process.argv[2] || "print";
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
-const data = JSON.parse(readFileSync(here(`./glyphs/${style}.json`), "utf8"));
+const data = JSON.parse(readFileSync(here(`../../src/topics/renderers/latin_letters/glyphs/${style}.json`), "utf8"));
 const G = data.glyphs;
 const GAP = 22;     // between letters of a pair
 const PAIR_GAP = 50;

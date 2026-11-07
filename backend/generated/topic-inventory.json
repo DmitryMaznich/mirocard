@@ -38,7 +38,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "can_i_watch_tv",
@@ -59,7 +59,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "chat_with_mom",
@@ -86,7 +86,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "clothes_basic",
@@ -131,7 +131,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "column_addition",
@@ -173,7 +173,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "comparison",
@@ -213,7 +213,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "comparison_language_pilot",
@@ -301,7 +301,7 @@
           "sl"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T08:28:09+01:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "daily_orientation",
@@ -314,7 +314,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "emotions_v2",
@@ -359,7 +359,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "feel_sick",
@@ -380,7 +380,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "first_then",
@@ -418,19 +418,19 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "games",
       "title": "Игры",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "renderer": null,
       "sources": [
         "src/topics/builtinGamesTopic.js"
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": null
+      "sourceUpdatedAt": "2026-11-07T07:08:54+01:00"
     },
     {
       "id": "good_night",
@@ -451,7 +451,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "help_me",
@@ -472,7 +472,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "im_hungry",
@@ -493,7 +493,53 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
+    },
+    {
+      "id": "latin_letters",
+      "title": {
+        "ru": "Латиница",
+        "en": "Latin Letters"
+      },
+      "version": "0.1.0",
+      "renderer": "latin_letters",
+      "sources": [
+        "public/decks/latin_letters_v0.1.0.zip",
+        "src/topics/renderers/latin_letters",
+        "tools/latin_letters/topic.json"
+      ],
+      "bundle": {
+        "version": "0.1.0",
+        "url": "./decks/latin_letters_v0.1.0.zip",
+        "title": {
+          "ru": "Латиница",
+          "en": "Latin Letters"
+        },
+        "description": "Конструктор тетрадей для письма латиницей: английский алфавит, печатные буквы на четырёхлинейке или в клетку, буквы и слова, А4 или А5, PDF.",
+        "renderer": "latin_letters",
+        "modes": 1,
+        "cards": 26
+      },
+      "builtin": false,
+      "catalogEntry": {
+        "id": "latin_letters",
+        "version": "0.1.0",
+        "url": "./decks/latin_letters_v0.1.0.zip",
+        "title": {
+          "ru": "Латиница",
+          "en": "Latin Letters"
+        },
+        "description": {
+          "ru": "Конструктор тетрадей для письма латиницей: английский алфавит, печатные буквы на четырёхлинейке или в клетку, блоки букв и слов, А4 или А5, PDF.",
+          "en": "Notebook builder for Latin handwriting: English alphabet, print letters on four-line or squared paper, letter and word blocks, A4 or A5, PDF."
+        },
+        "status": "individual",
+        "access": "paid",
+        "materialLanguages": [
+          "en"
+        ]
+      },
+      "sourceUpdatedAt": null
     },
     {
       "id": "learn_slovene",
@@ -540,7 +586,7 @@
           "sl"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "letter_writing",
@@ -581,7 +627,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "magnetic_alphabet",
@@ -621,7 +667,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "math_houses",
@@ -666,7 +712,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "morning_greeting",
@@ -687,7 +733,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "my_people",
@@ -700,7 +746,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-06T20:37:32+00:00"
     },
     {
       "id": "opposites",
@@ -737,7 +783,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "people_names",
@@ -783,7 +829,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "phonetic_analysis",
@@ -824,7 +870,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "place_value",
@@ -869,7 +915,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "print_letters",
@@ -915,7 +961,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-05T09:01:35+00:00"
+      "sourceUpdatedAt": "2026-11-06T10:50:22+00:00"
     },
     {
       "id": "print_materials",
@@ -960,7 +1006,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "propis",
@@ -1000,7 +1046,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
     },
     {
       "id": "propis2",
@@ -1042,7 +1088,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1081,7 +1127,7 @@
           "bg"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
     },
     {
       "id": "propis2_lang",
@@ -1122,7 +1168,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
     },
     {
       "id": "reading_dad_instructions",
@@ -1167,7 +1213,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T17:02:41+01:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "reading_dad_poems",
@@ -1215,7 +1261,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T17:02:41+01:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "reading_dad_texts",
@@ -1227,7 +1273,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "reading_short_stories",
@@ -1272,7 +1318,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T17:02:41+01:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "sentence_puzzle",
@@ -1312,7 +1358,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "spatial_prepositions_ru",
@@ -1357,7 +1403,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "streak_tracker",
@@ -1370,7 +1416,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-06T14:02:45+01:00"
     },
     {
       "id": "symmetry_draw",
@@ -1411,7 +1457,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "tools_functions",
@@ -1456,7 +1502,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "transport_photo",
@@ -1501,7 +1547,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "verbs_v2",
@@ -1546,7 +1592,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "vowel_consonant_ru",
@@ -1589,7 +1635,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "word_agreement_ru",
@@ -1633,7 +1679,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "word_formation_soup",
@@ -1678,7 +1724,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "written_letters",
@@ -1723,7 +1769,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-04T05:24:23+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     }
   ],
   "warnings": []

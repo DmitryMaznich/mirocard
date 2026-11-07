@@ -10,7 +10,7 @@
 // Paths use only M, L and C, like tools/print_letters/topic.json, so print_letters' glyph
 // renderer and on-screen tracing can draw them.
 //
-// Run: node tools/latin_letters/glyphs/print.mjs  → writes print.json next to this file.
+// Run: node tools/latin_letters/glyphs/print.mjs  → writes src/topics/renderers/latin_letters/glyphs/print.json.
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -122,6 +122,6 @@ const out = {
   ruling: { units: 50, lines: { top: 0, x: 50, base: 100, bottom: 150 } },
   glyphs,
 };
-const file = fileURLToPath(new URL("./print.json", import.meta.url));
+const file = fileURLToPath(new URL("../../../src/topics/renderers/latin_letters/glyphs/print.json", import.meta.url));
 writeFileSync(file, JSON.stringify(out, null, 1) + "\n");
 console.log(`wrote ${Object.keys(glyphs).length} glyphs → ${file}`);

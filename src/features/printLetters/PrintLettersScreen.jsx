@@ -9,7 +9,8 @@ import { makePrintLettersPdf } from "./printLettersPdf";
 // «Печатные буквы» owns a full screen, like propis2's Propis2Home (owner, 2026-11-03: the
 // constructor must not sit under the session header). App's ParamsRoute sends the topic here
 // instead of the settings screen; the renderer itself comes from the installed deck ZIP
-// (loadRenderer), the bundled copy until that has loaded or if it fails.
+// (loadRenderer), the bundled copy until that has loaded or if it fails. «Латиница» (latin_letters)
+// uses this screen too: the renderer and engine are looked up by the topic's own renderer id.
 export default function PrintLettersScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
@@ -17,7 +18,8 @@ export default function PrintLettersScreen() {
   const record = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === s.activeTopicId));
   const mode = record?.modes?.find((m) => m.id === activeModeId) ?? record?.modes?.[0];
 
-  const [Renderer, setRenderer] = useState(() => RENDERER_REGISTRY.print_letters ?? null);
+  const rendererId = record?.meta.renderer ?? "print_letters";
+  const [Renderer, setRenderer] = useState(() => RENDERER_REGISTRY[rendererId] ?? null);
   useEffect(() => {
     if (!activeTopicId) return undefined;
     let alive = true;
@@ -25,7 +27,7 @@ export default function PrintLettersScreen() {
     return () => { alive = false; };
   }, [activeTopicId]);
 
-  const task = useMemo(() => (record && mode ? ENGINE_REGISTRY.print_letters?.(mode, record.cards)?.[0] ?? null : null), [record, mode]);
+  const task = useMemo(() => (record && mode ? ENGINE_REGISTRY[rendererId]?.(mode, record.cards)?.[0] ?? null : null), [record, mode, rendererId]);
   const onBack = () => setScreen((record?.modes?.length ?? 0) > 1 ? "modes" : "home");
 
   if (!record || !Renderer || !task) return <div className="screen-center">Загрузка…</div>;
