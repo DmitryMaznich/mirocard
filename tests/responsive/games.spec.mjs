@@ -42,7 +42,7 @@ test("physical input, comparison, pause, and return to games",async ({page}) => 
   await expect(page.getByRole("img",{name:"Папа: 0 из 19"})).toBeVisible();
   await answers.getByRole("button",{name:"Папа",exact:true}).click();
   await expect(answers.getByRole("button",{name:"Папа",exact:true})).toBeDisabled();
-  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.getByRole("button",{name:"К списку игр",exact:true}).click();
   const positions = await page.locator(".race-car>span").allTextContents();
   await page.waitForTimeout(1000);
   expect(await page.locator(".race-car>span").allTextContents()).toEqual(positions);
@@ -143,7 +143,7 @@ test("dice keep rolling until stopped, pause safely, and return after a complete
   expect(await cube.evaluate(el => getComputedStyle(el).transform)).not.toBe(before);
   expect(await page.locator(".race-car>span").allTextContents()).toEqual(["0","0"]);
   await expect(page.locator(".race-numbers button[aria-pressed=true]")).toHaveCount(0);
-  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.getByRole("button",{name:"К списку игр",exact:true}).click();
   await expect(page.getByRole("heading",{name:"Пауза",exact:true})).toBeVisible();
   expect(await cube.evaluate(el => getComputedStyle(el).animationPlayState)).toBe("paused");
   await page.getByRole("button",{name:"Продолжить",exact:true}).click();
@@ -153,6 +153,7 @@ test("dice keep rolling until stopped, pause safely, and return after a complete
   await expect(page.locator(".race-numbers button[aria-pressed=true]")).toHaveCount(0);
   await dice(page,2,1);
   await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+  await expect(page.locator(".race-prompt")).toHaveCount(0);
   await page.waitForTimeout(1000);
   await expect(rolling).toHaveCount(0);
   await expect(page.locator('.race-numbers button[aria-pressed=true]')).toHaveCount(2);
@@ -171,7 +172,7 @@ test("reduced motion keeps the same stop and manual input flow",async ({page}) =
   await expect(page.getByRole("button",{name:"Мирон: выпало 1",exact:true})).toBeEnabled();
 });
 
-for(const game of ["Гонки","Дом до облаков","Наливаем"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
+for(const game of ["Гонки","Дом до облаков","Наливаем до краёв"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);
   await page.goto("/tests/responsive/games.html");
   await page.getByRole("button",{name:new RegExp(game)}).click();

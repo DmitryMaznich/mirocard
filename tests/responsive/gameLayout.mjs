@@ -3,6 +3,9 @@ import {expect} from "@playwright/test";
 export async function expectSideDice(page,viewport){
   if(viewport.width<=viewport.height) return;
   const cards=page.locator('.race-card');
+  await expect(page.getByRole("button",{name:"Пауза",exact:true})).toHaveCount(0);
+  const dice=page.locator(".race-card .race-die");
+  for(let i=0;i<2;i++){const box=await dice.nth(i).boundingBox();expect(box.width).toBeGreaterThanOrEqual(viewport.height<=530 ? 44 : 56);}
   const scene=await page.locator('.tower-scene,.water-scene-wrap,.race-course').boundingBox();
   const left=await cards.nth(0).boundingBox(),right=await cards.nth(1).boundingBox();
   expect(left.x+left.width).toBeLessThanOrEqual(scene.x);

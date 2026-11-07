@@ -103,14 +103,13 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
 
   const rolling = race.phase === "rolling" || race.phase === "settling";
   const question = isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
-  const status = race.phase === "between" ? "Рассмотрите, что получилось" : race.phase === "moving" || race.phase === "arriving" ? isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
+  const status = race.phase === "between" ? "" : race.phase === "moving" || race.phase === "arriving" ? isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
 
   return <main className={`dice-race${isTower ? " dice-race--tower" : ""}${isWater ? " dice-race--water" : ""}${isTower || isWater ? " dice-race--compact" : ""}`}>
     <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
     <header className="games-header race-header">
       <button className="games-icon" aria-label="К списку игр" onClick={() => started && race.phase !== "finished" ? setPaused(true) : onBack()}><BackArrowIcon /></button>
-      <h1>{isWater ? "Наливаем" : isTower ? "Дом до облаков" : "Гонки"}</h1><span className="race-round">Раунд {race.round}</span>
-      <button className="games-icon race-pause" aria-label="Пауза" disabled={!started || race.phase === "finished"} onClick={() => setPaused(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg></button>
+      <h1>{isWater ? "Наливаем до краёв" : isTower ? "Дом до облаков" : "Гонки"}</h1><span className="race-round">Раунд {race.round}</span>
     </header>
     {isWater ? <WaterScene race={race} names={[childName,adult]} characters={characters} paused={paused} onPortion={onFloorPlaced} /> : isTower ? <TowerScene race={race} names={[childName,adult]} paused={paused} onPlaced={onFloorPlaced} /> : <div className="race-course">
       <RaceLane name={childName} player="child" position={race.positions[0]} />
@@ -120,7 +119,7 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
       {[childName, adult].map((name, i) => <PlayerCard key={i} name={name} player={i === 0 ? "child" : "adult"} value={race.dice[i]} disabled={!started || race.phase !== "input" || paused} onDice={value => dispatch({ type: "dice", player: i, value })} />)}
     </div>
     <footer className="race-footer">
-      <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>
+      {race.phase !== "between" && <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>}
       {race.phase === "between" ? <button className="games-primary race-next-throw" disabled={paused} onClick={() => dispatch({type:"nextThrow"})}>Бросить кубики</button> : <div className="race-options" role="group" aria-label={question}>
         {[["child", "Я"], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
       </div>}

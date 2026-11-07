@@ -36,7 +36,7 @@ test("builds floors after comparison, alternates inhabited balconies and freezes
   await options.getByRole("button",{name:"Я",exact:true}).click();
   await expect(page.locator(".tower-moving-floor")).toHaveCount(2);
   await page.waitForTimeout(350);
-  await page.getByRole("button",{name:"Пауза",exact:true}).click();
+  await page.getByRole("button",{name:"К списку игр",exact:true}).click();
   const p=await page.locator(".tower-construction-step").getAttribute("data-progress");
   await page.waitForTimeout(500);
   expect(await page.locator(".tower-construction-step").getAttribute("data-progress")).toBe(p);
