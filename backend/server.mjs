@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
+  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION, PAYWALL_ENFORCED,
   CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, EMAIL_MATERIALS_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL, APP_BASE_URL,
 } from "./lib/config.mjs";
 import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
@@ -930,6 +930,12 @@ async function handleGetTopics(req, res) {
 // decides which specific topics stay free; add topic ids here later.
 export const FREE_TOPIC_IDS = [];
 
+// The one gate for paid catalog decks: an active entitlement, or no paywall
+// at all while paid plans are paused (PAYWALL_ENFORCED off).
+function hasPaidAccess(accountId) {
+  return !PAYWALL_ENFORCED || hasActiveEntitlement(db, accountId);
+}
+
 async function handleAcquireTopic(req, res) {
   const account = requireAuth(req);
   const body = await readJsonBody(req);
@@ -939,7 +945,7 @@ async function handleAcquireTopic(req, res) {
   if (getCatalogEntry(body.topicId)?.status === "archived") {
     return writeJson(res, 404, { error: "Deck not available for this account" });
   }
-  if (!FREE_TOPIC_IDS.includes(body.topicId) && !hasActiveEntitlement(db, account.id)) {
+  if (!FREE_TOPIC_IDS.includes(body.topicId) && !hasPaidAccess(account.id)) {
     return writeJson(res, 402, { error: "Subscription required" });
   }
   upsertAccountTopic(db, account.id, {
@@ -1020,7 +1026,7 @@ async function handleClaimDeck(req, res) {
     // client "granted" forever even after the subscription/trial/promo
     // period that justified it has expired. Any paid catalog deck, including
     // a beta or individual assignment, follows the same subscription rule.
-    if (access === "free" || hasActiveEntitlement(db, account.id)) {
+    if (access === "free" || hasPaidAccess(account.id)) {
       return writeJson(res, 200, { status: "granted", topicId });
     }
     return writeJson(res, 200, { status: "locked", topicId });
@@ -1037,7 +1043,7 @@ async function handleClaimDeck(req, res) {
   // paid — automatic grant for an entitled account, otherwise the caller
   // needs to subscribe. Replaces the older manual-approval "request" flow,
   // which was never exercised by any live catalog entry.
-  if (hasActiveEntitlement(db, account.id)) {
+  if (hasPaidAccess(account.id)) {
     const source = getTopicPublication(entry) === "individual" ? "assigned" : "paid";
     claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source });
     return writeJson(res, 200, { status: "granted", topicId });
@@ -1065,7 +1071,7 @@ async function handleDownloadDeck(req, res) {
   // A paid catalog deck is downloadable only while the entitlement is
   // active. Assignment affects visibility; it never becomes a separate,
   // permanent entitlement to a beta or individual topic.
-  if ((entry.access ?? "free") !== "free" && !hasActiveEntitlement(db, account.id)) {
+  if ((entry.access ?? "free") !== "free" && !hasPaidAccess(account.id)) {
     return writeJson(res, 403, { error: "Entitlement expired" });
   }
 
@@ -2203,8 +2209,11 @@ if (isMainModule) {
       .then(({ startPhotoGcLoop }) => startPhotoGcLoop(db))
       .catch((err) => console.error("[photo-gc] failed to start:", err));
 
-    import("../scripts/entitlement-reminder-loop.mjs")
-      .then(({ startReminderLoop }) => startReminderLoop())
-      .catch((err) => console.error("[entitlement-reminder] failed to start reminder loop:", err));
+    // No "your access is ending/ended" emails while access isn't enforced.
+    if (PAYWALL_ENFORCED) {
+      import("../scripts/entitlement-reminder-loop.mjs")
+        .then(({ startReminderLoop }) => startReminderLoop())
+        .catch((err) => console.error("[entitlement-reminder] failed to start reminder loop:", err));
+    }
   }
 }

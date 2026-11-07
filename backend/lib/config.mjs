@@ -98,6 +98,14 @@ export const PUSH_SUBJECT      = readEnv("PUSH_SUBJECT") || "mailto:hello@miroca
 // product/legal have signed off -- see docs/legal-launch-inputs.md.
 export const LEGAL_DOCS_VERSION = readEnv("LEGAL_DOCS_VERSION") || "draft";
 
+// Paid access is not enforced until this is "1". While it's off (the app is
+// free for everyone since 2026-10-14, see PAID_PLANS_PAUSED on the client),
+// every paid catalog deck can be claimed and downloaded without an active
+// entitlement, and the expiry-reminder emails are not sent: on 2026-11-06/07
+// production was emailing "your access has ended" to trial accounts while the
+// app itself said "nothing to pay". Turn on together with paid plans.
+export const PAYWALL_ENFORCED = readEnv("PAYWALL_ENFORCED") === "1";
+
 // Billing — Stripe (card rail), the only rail this launch relies on (see
 // docs/commercial-launch-runbook.md §5 on Lava Top being unverified).
 // Required in production only once checkout is enabled (LEGAL_DOCS_VERSION
