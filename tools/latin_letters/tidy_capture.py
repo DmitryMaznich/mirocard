@@ -50,7 +50,6 @@ MEET = 2.0           # ends of two strokes this close are one point (the apex of
 FRAG = 3.5            # a curve this short left between a line and the end of its piece is part of the line (b's stem began with a tick)
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
 BAR_SNAP = 1.2       # a bar this close to a ruling line stands on it
-STEM_BOWL = set("a")  # bowls that close on their stem (see tidy_stroke)
 FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
 STEM_MEET = 2.5      # a bar's end this close to a stem (a vertical line of another stroke) ends on it
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
@@ -425,22 +424,6 @@ def tidy_stroke(raw, dotted=True, ends=None):
                 fwd = -A[1]["dir"]
                 q = trim_past(q, pnt, -fwd, from_end=False)
             B[1] = np.vstack([pnt, q]) if np.linalg.norm(q[0] - pnt) > 1e-6 else q
-    # a bowl that closes ON its stem (owner, 2026-11-08, «a»: «перо по овалу поднимается вверх и потом без петли линия идёт вниз»): from
-    # the bowl's bottom the pen rounds up onto the stem, touching it halfway up the x band, runs up ALONG the stem to its top and comes
-    # down the same line -- no sliver between the bowl's rising side and the stem
-    if CUR in STEM_BOWL:
-        for k in range(len(parts) - 1):
-            A, B = parts[k][-1], parts[k + 1][0]
-            if A[0] != "curve" or B[0] != "line" or B[1]["kind"] != "v" or B[1]["dir"][1] <= 0: continue
-            q = A[1]; xs = B[1]["a"][0]; top = B[1]["a"].copy()
-            ib = int(np.argmax(q[:, 1])); bottom = q[ib].copy(); bottom[1] = snap_y(bottom[1], END_SNAP)
-            mid = np.array([xs, (X_LINE + BASE) / 2])
-            if not (bottom[0] < xs and mid[1] > top[1]): continue
-            t = np.linspace(0, np.pi / 2, 30)[1:]  # a quarter of an ellipse: bottom -> the stem halfway up
-            quarter = np.stack([bottom[0] + (xs - bottom[0]) * np.sin(t), mid[1] + (bottom[1] - mid[1]) * np.cos(t)], 1)
-            bowl = np.vstack([q[:ib], bottom, quarter])
-            up = {"type": "line", "a": mid.copy(), "b": top, "dir": np.array([0.0, -1.0]), "kind": "v"}
-            parts[k] = parts[k][:-1] + [["curve", bowl], ["line", up]]
     # into cubics, the curves fitted between their neighbours' ends with their directions
     segs = []
     for pk, items in enumerate(parts):
@@ -499,7 +482,8 @@ CUR = None  # the label being tidied
 WHOLE = False  # ... and whether it is a capital / digit
 
 
-def glyph(cap):
+def tidy_glyph(cap):
+    """The capture's strokes tidied, in the tool's units: [{"segs": [[p0, p1, p2, p3], ...]} | {"dot": c}]."""
     global CUR, WHOLE
     CUR = cap["label"]; WHOLE = not CUR.islower()
     dotted = cap["label"] in DOTTED
@@ -529,6 +513,42 @@ def glyph(cap):
             near = [x for x in stems if abs(x - seg[k][0]) <= STEM_MEET]
             if near: seg[k][0] = min(near, key=lambda x: abs(x - seg[k][0]))
         a, b = seg[0], seg[3]; seg[1] = a + (b - a) / 3; seg[2] = a + 2 * (b - a) / 3
+    return strokes
+
+
+# a d g q have ONE bowl (owner, 2026-11-08: «у g эта часть правильная и подходит и для a и для d и для q, отличия только в окончаниях»):
+# g's bowl -- from the pen's start round to the top of its stem, where it arrives almost upright -- is put into a, d, q at their stems;
+# each keeps its own ending: a the stem down and the flick, d up the stem to the ascender and down it, q the stem down and the tail right
+SHARED_BOWL, BOWL_FROM = set("adq"), "g"
+
+
+def first_stem_down(segs):
+    for k, sg in enumerate(segs):
+        if all(abs(pt[0] - sg[0][0]) < 1e-6 for pt in sg) and sg[3][1] - sg[0][1] > 8: return k
+    return None
+
+
+def share_bowl(tidied):
+    src = tidied.get(BOWL_FROM)
+    if not src: return
+    gs = src[0]["segs"]; kg = first_stem_down(gs)
+    bowl, joint = [[pt.copy() for pt in sg] for sg in gs[:kg]], gs[kg][0].copy()
+    for label in SHARED_BOWL:
+        if label not in tidied: continue
+        segs = tidied[label][0]["segs"]; k = first_stem_down(segs)
+        xs = segs[k][0][0]; dx = np.array([xs - joint[0], 0.0])
+        own = [[pt + dx for pt in sg] for sg in bowl]
+        top = np.array([xs, joint[1]])
+        start = segs[k][0]
+        if start[1] < joint[1] - 2:  # d: on up the stem to the ascender first
+            own.append([top, top + (start - top) / 3, top + 2 * (start - top) / 3, start.copy()])
+        else:  # a, q: the stem begins where the bowl ends
+            b = segs[k][3]; segs[k] = [top, top + (b - top) / 3, top + 2 * (b - top) / 3, b]
+        tidied[label][0]["segs"] = own + segs[k:]
+
+
+def render_glyph(cap, strokes):
+    whole = not cap["label"].islower()
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
     x0 = 0 if TOOL else min(xs)
     out = []
@@ -556,7 +576,9 @@ def main():
     for f in [a for a in sys.argv[1:] if not a.startswith("--")]:
         for c in json.load(open(f, encoding="utf-8")):
             caps[c["label"]] = c
-    res = [glyph(c) for c in caps.values()]
+    tidied = {l: tidy_glyph(c) for l, c in caps.items()}
+    share_bowl(tidied)
+    res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write("\n")
 

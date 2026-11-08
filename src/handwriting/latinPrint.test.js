@@ -98,15 +98,14 @@ describe("English print letters in the propis2 engine", () => {
       else if (g.label !== "f") expect(bottom, g.label).toBeLessThan(63); // round letters (G, O) may dip a little under it
     }
   });
-  it("British a: the bowl closes on its stem — the pen goes up along the stem and down the same line, no loop (owner, 2026-11-08)", () => {
-    const a = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "a");
-    const n = a.strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
-    const pts = []; for (let i = 0; i < n.length; i += 2) pts.push([n[i], n[i + 1]]);
-    const segs = []; for (let i = 0; i + 3 < pts.length; i += 3) segs.push(pts.slice(i, i + 4));
-    const vertical = (s) => s.every((p) => Math.abs(p[0] - s[0][0]) < 1e-6);
-    const k = segs.findIndex((s, i) => vertical(s) && s[3][1] < s[0][1] && segs[i + 1] && vertical(segs[i + 1]) && segs[i + 1][3][1] > s[3][1]);
-    expect(k, "an up-run along the stem followed by the stem down").toBeGreaterThan(0);
-    expect(segs[k + 1][0][0]).toBeCloseTo(segs[k][0][0], 6); // the same line
-    expect(segs[k][3][1]).toBeCloseTo(10, 0);                 // up to the x-line
+  it("British a d g q have one bowl — g's — and differ only in their endings (owner, 2026-11-08)", () => {
+    const glyphs = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs;
+    // the bowl relative to the pen's start (each glyph is moved to start its ink at x = 0, and g's tail reaches left of its bowl)
+    const bowl = (label) => {
+      const n = glyphs.find((g) => g.label === label).strokes[0].d.match(/-?\d*\.?\d+/g).map(Number).slice(0, 2 + 4 * 6);
+      return n.map((v, i) => v - n[i % 2]);
+    };
+    const g = bowl("g");
+    for (const label of "adq") bowl(label).forEach((v, i) => expect(v, `${label} [${i}]`).toBeCloseTo(g[i], 2));
   });
 });
