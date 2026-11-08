@@ -49,7 +49,7 @@ CLOSE = 3.0          # a stroke ending this close to its start is a closed oval
 MEET = 2.0           # ends of two strokes this close are one point (the apex of A)
 FRAG = 3.5            # a curve this short left between a line and the end of its piece is part of the line (b's stem began with a tick)
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
-BAR_SNAP = 1.2       # a bar this close to a ruling line stands on it
+BAR_SNAP = 1.3       # a bar this close to a ruling line stands on it (E's middle bar was traced 1.2 under the x-line)
 FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
 STEM_MEET = 2.5      # a bar's end this close to a stem (a vertical line of another stroke) ends on it
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
@@ -205,6 +205,10 @@ def line_runs(q):
         if best is not None: cands.append((best - i, i, best))
     taken = np.zeros(n, bool); runs = []
     cands = [c for c in cands if length(q[c[1]:c[2] + 1]) >= min_len]
+    # a level line only at a piece's end (the bars of B D P R Z z start or end a stroke or a turn back); a level stretch in the middle of
+    # a bow is the bow's round bottom or top, never a line (S, owner 2026-11-08: «не спрямлять круглые»)
+    edge = int(FRAG / STEP)
+    cands = [c for c in cands if kind_of(unit(q[c[2]] - q[c[1]])) != "h" or c[1] <= edge or c[2] >= n - 1 - edge]
     for _, i, j in sorted(cands, reverse=True):
         if taken[i:j + 1].any(): continue
         taken[i:j + 1] = True; runs.append((i, j))
@@ -232,10 +236,22 @@ def extrema(q):
                 if v[i] < v[max(0, i - w):i + w + 1].max() - 1e-9: continue
                 prom = PROM_WHOLE if WHOLE else PROM
                 if v[i] - v[:i].min() >= prom and v[i] - v[i + 1:].min() >= prom:
-                    if not any(abs(i - j) < int(1.5 / STEP) and a == ax for j, a in out): out.append((i, ax))
-    out.sort(); res = []
+                    if not any(abs(i - j) < int(1.5 / STEP) and a == ax for j, a, _ in out): out.append((i, ax, sgn))
+    out.sort()
+    # two bottoms (or two tops) in a row, with no top (bottom) between them, are one round bottom that the hand wobbled: keep the deeper
+    # one. Both would be put onto the line and the stretch between them drawn straight -- a round letter flattened (S, owner 2026-11-08:
+    # «не спрямлять круглые»)
+    merged = []
+    for e in out:
+        if e[1] == 1:
+            prev = next((m for m in reversed(merged) if m[1] == 1), None)
+            if prev is not None and prev[2] == e[2]:
+                if e[2] * q[e[0], 1] > prev[2] * q[prev[0], 1]: merged[merged.index(prev)] = e
+                continue
+        merged.append(e)
+    res = []
     gap = int(4.0 / STEP)
-    for i, ax in out:
+    for i, ax, _ in merged:
         if res and i - res[-1][0] < gap:
             if res[-1][1] == 0 and ax == 1: res[-1] = (i, ax)  # a top / bottom wins over a side next to it
             continue

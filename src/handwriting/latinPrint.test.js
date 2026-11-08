@@ -108,4 +108,16 @@ describe("English print letters in the propis2 engine", () => {
     const g = bowl("g");
     for (const label of "adq") bowl(label).forEach((v, i) => expect(v, `${label} [${i}]`).toBeCloseTo(g[i], 2));
   });
+  it("British: a round bottom is never drawn straight — a level line on the baseline only in B D E L Z z (owner, 2026-11-08)", () => {
+    const glyphs = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.filter((g) => g.sourceLabel.startsWith("british-capture-"));
+    const flat = [];
+    for (const g of glyphs) for (const st of g.strokes) {
+      const n = st.d.match(/-?\d*\.?\d+/g).map(Number);
+      for (let i = 0; i + 7 < n.length; i += 6) {
+        const ys = [n[i + 1], n[i + 3], n[i + 5], n[i + 7]];
+        if (ys.every((y) => Math.abs(y - 62) < 1e-6) && Math.abs(n[i + 6] - n[i]) > 1) flat.push(g.label);
+      }
+    }
+    expect([...new Set(flat)].sort().join("")).toBe("BDELZz");
+  });
 });
