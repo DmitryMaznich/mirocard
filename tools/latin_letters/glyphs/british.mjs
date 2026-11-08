@@ -25,9 +25,11 @@ const own = {
   d: [69, [s(BOWL, "овал"), s(stemFlick(50, 0), "палочка с хвостиком")]],
   h: [69, [s(line([0, 0], [0, 100]), "палочка"), s(`${arc(25, 75, 25, 25, 180, 360)} ${FLICK(50)}`, "горка с хвостиком")]],
   i: [24, [s(stemFlick(5, 50), "палочка с хвостиком"), dot(5, 30)]],
-  k: [44, [
+  k: [46, [
     s(line([0, 0], [0, 100]), "палочка"),
-    s("M 0,82 C 10,56 40,50 38,64 C 36,76 16,79 3,79 L 30,96 C 34,99 38,100 44,96", "петля и ножка"),
+    // measured on the Ready Reference Guide (2026-11-08): the loop's top ON the x-line (as the tops of m n), back to the stem halfway
+    // down the x band, the leg out to 0.8 of the x-height with the exit flick
+    s("M 0,86 C 6,62 17,50 26,50 C 34,50 38,56 38,62 C 38,71 25,75 3,75 L 27,92 C 30,97 33,100 37,100 C 40,100 42,98 44,95", "петля и ножка"),
   ]],
   l: [24, [s(stemFlick(5, 0), "палочка с хвостиком")]],
   m: [89, [

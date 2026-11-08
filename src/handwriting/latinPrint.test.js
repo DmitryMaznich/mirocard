@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "./wordEngine.js";
 import { snapXFor } from "./PrintPageView.jsx";
+import { samplePath, toCubicPathD } from "./pathGeometry.js";
 
 // The English print letters (tools/handwriting/latin/print.json, docs/latin-letters.md step 3.4) in the engine, as the page lays them
 // out: upright, apart, and not bent towards the next copy of the word.
@@ -81,5 +82,12 @@ describe("English print letters in the propis2 engine", () => {
     const ru = buildGlyphMap({ wide: JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs, meta: {} });
     expect(ru.get("№5").upright).toBeUndefined();
     expect(ru.get("№5").sourceLabel).toMatch(/захват/);
+  });
+  it("British k: the loop reaches the x-line, as in the Nelson reference (measured 2026-11-08)", () => {
+    const k = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "k");
+    const loop = samplePath(toCubicPathD(k.strokes[1].d), 200);
+    const top = Math.min(...loop.map((p) => p[1]));
+    expect(top).toBeCloseTo(10, 1); // the capture frame's x-line
+    expect(Math.max(...loop.map((p) => p[1]))).toBeCloseTo(62, 0); // the leg ends on the baseline
   });
 });
