@@ -22,6 +22,7 @@ import json
 import math
 import re
 import sys
+from pathlib import Path
 
 import numpy as np
 
@@ -291,7 +292,7 @@ def curve(q, t_start=None, t_end=None):
     sarc = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(sm, axis=0), axis=1))])
     taper = np.clip(np.minimum(sarc, sarc[-1] - sarc) / 2.0, 0, 1)  # the ends (joins) stay where they are
     for i, ax in extrema(sm):
-        if ax != 1: continue
+        if ax != 1 or ORIGINAL: continue  # a bow taken from the original stays exactly where Nelson drew it
         if CUR in SHORT_TAIL and sm[i][1] > BASE: continue
         dy = snap_y(sm[i][1], SNAP_EXT) - sm[i][1]
         if dy: sm[:, 1] += dy * np.exp(-0.5 * ((sarc - sarc[i]) / 3.0) ** 2) * taper
@@ -532,6 +533,79 @@ def tidy_glyph(cap):
     return strokes
 
 
+# bowls drawn after the ORIGINAL (owner, 2026-11-08, b: «аккуратно подтянуть овал к линии оригинала»): the bowl is the middle line of
+# the Nelson stroke on the underlay -- from the middle of the bowl's hole, rays outwards, halfway between the ink's inner and outer edge
+# -- put where the hand put the underlay (its stem onto the traced stem); the stem, the retrace and where the bowl leaves and rejoins the
+# stem stay the hand's. The points are then drawn like any bow (curve()).
+ORIGINAL_BOWL = set("b")
+ORIGINAL = False  # set while a bowl from the original is drawn
+UNDERLAYS = Path(__file__).resolve().parent / "underlays" / "british"
+UL_PX, UL_X = 8, 100.0  # the underlay: 8 px a unit, put at x = 100 in the tool
+HALF_INK = 3.25 * 26 / 44  # half the Nelson stroke, tool units
+MERGE_THICK = 1.5  # a ray crossing ink this much thicker than the pen has run into the stem
+
+
+def original_bowl_points(label, stem_x, start, end):
+    from PIL import Image
+    from collections import deque
+    a = np.array(Image.open(UNDERLAYS / f"lo_{label}.png"))[:, :, 3] > 128
+    h, w = a.shape
+    cols = np.nonzero(a.any(0))[0]; dx = stem_x - (UL_X + cols[0] / UL_PX + HALF_INK)  # the underlay's stem onto the traced one
+    out = np.zeros_like(a); q = deque()
+    for y in range(h):
+        for x in (0, w - 1): q.append((y, x))
+    for x in range(w):
+        for y in (0, h - 1): q.append((y, x))
+    while q:  # the paper reachable from the border; what is left of the paper is the bowl's hole
+        y, x = q.popleft()
+        if 0 <= y < h and 0 <= x < w and not a[y, x] and not out[y, x]:
+            out[y, x] = True; q.extend(((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)))
+    hy, hx = np.nonzero(~a & ~out)
+    cy, cx = hy.mean(), hx.mean()
+    to_px = lambda pnt: ((pnt[0] - dx - UL_X) * UL_PX, pnt[1] * UL_PX)
+    ang = lambda pnt: np.arctan2(to_px(pnt)[1] - cy, to_px(pnt)[0] - cx)
+    a0, a1 = ang(start), ang(end)
+    while a1 <= a0: a1 += 2 * np.pi  # clockwise on the page (y down): the angle grows
+    pts, thick = [], []
+    for t in np.linspace(a0, a1, 160)[1:-1]:
+        r, inner = 0.0, None
+        while r < 400:
+            x, y = int(round(cx + r * np.cos(t))), int(round(cy + r * np.sin(t)))
+            if not (0 <= x < w and 0 <= y < h): break
+            if a[y, x] and inner is None: inner = r
+            if inner is not None and not a[y, x]: break
+            r += 0.5
+        if inner is None: continue
+        m = (inner + r) / 2
+        pts.append((UL_X + (cx + m * np.cos(t)) / UL_PX + dx, (cy + m * np.sin(t)) / UL_PX)); thick.append((r - inner) / UL_PX)
+    pts, thick = np.array(pts), np.array(thick)
+    # where the bowl's ink runs into the stem's, the middle between the edges is no longer the pen's line: the middle line is taken only
+    # while the bowl's stroke is on its own (not much thicker than the pen); from there the bowl goes on its own way into the stem
+    pen = np.median(thick)
+    ib = int(np.argmax(pts[:, 1]))
+    merged = next((i for i in range(ib, len(pts)) if thick[i] > MERGE_THICK * pen), len(pts))
+    lead = next((i for i in range(len(pts)) if thick[i] <= MERGE_THICK * pen), 0)
+    pts = pts[lead:merged]
+    d = unit(pts[-1] - pts[-6])
+    if d[0] < -1e-6:
+        tt = (stem_x - pts[-1][0]) / d[0]
+        pts = np.vstack([pts, pts[-1] + d * tt])
+    return pts
+
+
+def original_bowl(label, strokes):
+    segs = strokes[0]["segs"]
+    k = next((i for i, sg in enumerate(segs) if all(abs(pt[0] - sg[0][0]) < 1e-6 for pt in sg) and sg[0][1] - sg[3][1] > 3), None)
+    if k is None: return
+    leave, end = segs[k][3].copy(), segs[-1][3].copy()
+    pts = original_bowl_points(label, segs[k][0][0], leave, end)
+    pts = resample(np.vstack([leave, pts]))  # it ends where the original rejoins the stem (original_bowl_points)
+    global ORIGINAL
+    ORIGINAL = True
+    try: strokes[0]["segs"] = segs[:k + 1] + curve(pts, np.array([0.0, -1.0]), None)
+    finally: ORIGINAL = False
+
+
 # a d g q have ONE bowl (owner, 2026-11-08: «у g эта часть правильная и подходит и для a и для d и для q, отличия только в окончаниях»):
 # g's bowl -- from the pen's start round to the top of its stem, where it arrives almost upright -- is put into a, d, q at their stems;
 # each keeps its own ending: a the stem down and the flick, d up the stem to the ascender and down it, q the stem down and the tail right
@@ -593,6 +667,10 @@ def main():
         for c in json.load(open(f, encoding="utf-8")):
             caps[c["label"]] = c
     tidied = {l: tidy_glyph(c) for l, c in caps.items()}
+    for l in ORIGINAL_BOWL & set(tidied):
+        global CUR, WHOLE
+        CUR, WHOLE = l, False
+        original_bowl(l, tidied[l])
     share_bowl(tidied)
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)

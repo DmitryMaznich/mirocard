@@ -42,7 +42,9 @@ def main():
             # the underlay was moved sideways in the tool while tracing: put its ink's left edge where the hand's is
             alpha = np.array(Image.open(png))[:, :, 3]
             ux = 100 + np.nonzero(alpha.max(0) > 128)[0][0] / 8 + 1.92  # + half the stroke: the hand traces its middle
-            dx = min(xs) - ux
+            # onto the tidied letter's leftmost ink (its stem), not the hand's: the hand wavers about the stem it traced
+            tx = [float(v) for st in tidy[l]["strokes"] for v in re.findall(r"-?\d+\.?\d*", st["d"])[0::2]]
+            dx = min(tx) - ux
             under = f'<image href="data:image/png;base64,{base64.b64encode(png.read_bytes()).decode()}" x="{100 + dx:.2f}" y="0" width="200" height="150" opacity="0.45" filter="url(#tint)"/>'
         lines = "".join(f'<line x1="{x0}" x2="{x0 + vw}" y1="{y}" y2="{y}" stroke="{col}" stroke-width="{w}"/>'
                         for y, col, w in ((36, "#cbd5e1", .2), (62, "#94a3b8", .25), (88, "#334155", .35), (110, "#cbd5e1", .2)))

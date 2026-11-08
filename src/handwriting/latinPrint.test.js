@@ -120,4 +120,15 @@ describe("English print letters in the propis2 engine", () => {
     }
     expect([...new Set(flat)].sort().join("")).toBe("BDELZz");
   });
+  it("British b: the bowl is the middle line of the Nelson stroke (owner, 2026-11-08: «подтянуть овал к линии оригинала»)", () => {
+    const b = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "b");
+    const pts = samplePath(toCubicPathD(b.strokes[0].d), 60);
+    const stem = pts[0][0];
+    const bowl = pts.filter((p) => p[1] > 9 && p[0] > stem + 1);
+    // measured on the underlay: the bowl's middle line reaches 18.1 tool units right of the stem (x 2 in the engine), its top 0.25 under
+    // the x-line (0.5 in the engine), its bottom 0.38 under the baseline -- Nelson's own, not pulled onto the lines
+    expect(Math.max(...bowl.map((p) => p[0])) - stem).toBeCloseTo(36.2, 0);
+    expect(Math.min(...bowl.map((p) => p[1]))).toBeCloseTo(10.5, 0);
+    expect(pts[pts.length - 1][0]).toBeCloseTo(stem, 1); // it ends in the stem
+  });
 });
