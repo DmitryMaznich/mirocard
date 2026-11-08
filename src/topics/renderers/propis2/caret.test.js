@@ -6,8 +6,8 @@ import { lineOwners, newPage, newRow, pageRuling, pageSnap, pageToLines, rowMaxX
 import { bracesIn, fieldFromRows } from "./fieldText.js";
 import { caretFromSheet, caretOnSheet } from "./caret.js";
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
 const map = buildGlyphMap({ wide: wide.glyphs, wideSheets: wide.sheets, elements, wideElementRepeat: wide.elementRepeat });
 
 const CODES = new Map([["заборчик", "э1"]]);

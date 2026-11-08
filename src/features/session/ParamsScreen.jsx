@@ -1193,7 +1193,7 @@ function ElementPreviewSvg({ element }) {
 
 // Grid picker for read_lines' "Элементы букв" mode -- opened per row from LineListParam below
 // instead of that row's plain text input. Deliberately a flat grid over topicRecord.elements
-// (whatever's captured so far, see tools/propis/elements.json/docs/propis.md for progress),
+// (whatever's captured so far, see tools/handwriting/cyrillic/elements.json/docs/propis.md for progress),
 // not grouped by category -- 11/27 captured as of 2026-09-17, too few yet for grouping to earn
 // its own UI weight; revisit once the set is closer to complete.
 function ElementPickerModal({ elements, onPick, onClose }) {

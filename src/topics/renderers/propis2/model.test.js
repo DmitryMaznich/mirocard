@@ -8,8 +8,8 @@ import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../../../handwriting/PrintPageView.jsx";
 
 function record() {
-  const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-  const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+  const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+  const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
   return { wide: wide.glyphs, wideSheets: wide.sheets, elements, wideElementRepeat: wide.elementRepeat };
 }
 const map = buildGlyphMap(record());

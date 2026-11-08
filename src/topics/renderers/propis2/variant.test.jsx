@@ -143,7 +143,7 @@ describe("Bulgarian joins (meta.script.exactJoins)", () => {
   it("the next letter starts exactly where the previous one's exit ends: no step, no bent tail", async () => {
     const { applyVariant } = await import("../../../../scripts/lib/propis2-variant.mjs");
     const topic = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8"));
-    topic.wide = JSON.parse(await readFile("tools/propis/wide.json", "utf-8")).glyphs;
+    topic.wide = JSON.parse(await readFile("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
     applyVariant(topic, JSON.parse(await readFile("tools/propis2/variants/bg/variant.json", "utf-8")));
     const map = buildGlyphMap(topic);
     for (const w of ["ии", "ни", "ки", "ик", "ми", "иш"]) {

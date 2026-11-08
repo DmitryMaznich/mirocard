@@ -6,7 +6,7 @@ import { buildPageTask } from "./pageTask.js";
 
 // The ruling runs to every edge of the sheet (owner, 2026-11-05: on an A4 PDF the grid had a white strip at the top / the bottom): the cycle
 // goes on above the first row and below the last one, the slants cover the whole sheet. A printer leaves out what it cannot reach by itself.
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
 const rec = { ...topic, wide: wide.glyphs, wideSheets: wide.sheets, elements: [], wideElementRepeat: wide.elementRepeat };
 const MM = 6; // native units per mm

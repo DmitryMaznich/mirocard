@@ -8,7 +8,7 @@ import { layoutWideLinesIntoRows, WIDE_SCALE, WIDE_ZONE_UNITS } from "../../../h
 import { toCubicPathD, getPathEndpoints, samplePath } from "../../../handwriting/pathGeometry.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const map = new Map(wide.map((g) => [g.label, g]));
 for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
 
@@ -100,8 +100,8 @@ describe("wideSheet preset", () => {
   it("replaces typed lines with the transcribed workbook pages (32 rows = 2 pages of 16)", () => {
     const topicRecord = {
       cards: [], wide,
-      wideSheets: JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets,
-      elements: JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements,
+      wideSheets: JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets,
+      elements: JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements,
     };
     const [task] = generateTasks({ type: "read_lines" }, topicRecord, 1, { wideRows: true, wideSheet: true, lines: ["ignored"] });
     expect(task.lines).toHaveLength(32);
@@ -312,7 +312,7 @@ describe("captured letters л, м, я", () => {
     }
   });
   it("the ready sheet for л, м, я is 16 rows and every token resolves", () => {
-    const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page3;
+    const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page3;
     expect(raw).toHaveLength(16);
     const { placed } = layoutWideLinesIntoRows(raw, map, snap);
     for (const row of placed) expect(row.segments.length).toBe(1);
@@ -391,7 +391,7 @@ it("о exists, fills the band, starts on the slant grid; the ready sheet for о 
   const [x, y] = seg.startPoints[0];
   const n = (x + y * T) / S;
   expect(Math.abs(n - Math.round(n))).toBeLessThan(0.02);
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page4;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page4;
   expect(raw).toHaveLength(16);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
 });
@@ -411,7 +411,7 @@ it("а, ю, с exist; а and с are entered from their left side (no overlap wit
   const nStart = getPathEndpoints(na.strokes[0].d).start[0];
   const aMinX = Math.min(...samplePath(na.strokes[1].d, 80).map((p) => p[0]));
   expect(aMinX).toBeGreaterThan(nStart + 20);
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page5;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page5;
   expect(raw).toHaveLength(15);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
 });
@@ -438,7 +438,7 @@ it("sheet 6 (э, х, ж) resolves: every row is one segment and the synthesized 
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 30;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page6;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page6;
   expect(raw).toHaveLength(15);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
   for (const w of ["э", "х", "ж", "е"]) {
@@ -470,7 +470,7 @@ it("sheet 7 (ч, ь, ы, ъ) resolves: one segment per row, ы is ь + a stem", 
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 30;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page7;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page7;
   expect(raw).toHaveLength(15);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
   const seg = layoutWideLinesIntoRows(["ы"], map, snap, false).placed[0].segments[0];
@@ -487,7 +487,7 @@ it("sheet 8 (б, narrow rows) resolves: one segment per row, б reaches the asce
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page8;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page8;
   expect(raw).toHaveLength(8);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
   const seg = layoutWideLinesIntoRows(["б"], map, snap, false, 0.5).placed[0].segments[0];
@@ -499,7 +499,7 @@ it("sheet 9 (ф, narrow rows) resolves: one segment per row, ф reaches the desc
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page9;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page9;
   expect(raw).toHaveLength(8);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
   const seg = layoutWideLinesIntoRows(["ф"], map, snap, false, 0.5).placed[0].segments[0];
@@ -512,7 +512,7 @@ it("sheet 10 (у, narrow rows) resolves and у descends below the baseline", () 
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page10;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page10;
   expect(raw).toHaveLength(7);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
   const seg = layoutWideLinesIntoRows(["у"], map, snap, false, 0.5).placed[0].segments[0];
@@ -524,7 +524,7 @@ it("sheet 11 (д, з, narrow rows) resolves, one segment per row", () => {
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page11;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page11;
   expect(raw).toHaveLength(7);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -533,7 +533,7 @@ it("sheet 12 (в, narrow rows) resolves, one segment per row", () => {
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page12;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page12;
   expect(raw).toHaveLength(8);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -542,7 +542,7 @@ it("sheet 13 (ц, щ, narrow rows) resolves, one segment per row", () => {
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page13;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page13;
   expect(raw).toHaveLength(8);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -551,7 +551,7 @@ it("sheet 14 (capitals И Ш Ц Щ У Ч, narrow rows) resolves, one segment per
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page14;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page14;
   expect(raw).toHaveLength(12);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -560,7 +560,7 @@ it("sheet 15 (capitals Г П Т Р Л А, narrow rows) resolves, one segment per
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page15;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page15;
   expect(raw).toHaveLength(12);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -569,7 +569,7 @@ it("sheet 16 (capitals М Я О Ф Б Д, narrow rows) resolves, one segment per
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page16;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page16;
   expect(raw).toHaveLength(12);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -578,7 +578,7 @@ it("sheet 17 (capitals З В Е С Э Х Ж, narrow rows) resolves, one segment 
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page17;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page17;
   expect(raw).toHaveLength(12);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
@@ -587,7 +587,7 @@ it("sheet 18 (capitals Н Ю К, narrow rows) resolves, one segment per row", ()
   const T = Math.tan((25 * Math.PI) / 180);
   const S = 15;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
-  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page18;
+  const raw = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets.page18;
   expect(raw.length).toBeGreaterThan(0);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });

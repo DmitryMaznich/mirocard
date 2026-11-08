@@ -4,8 +4,8 @@ import { join } from "node:path";
 
 const TOPIC_DIR = "tools/propis";
 const TOPIC_PATH = `${TOPIC_DIR}/topic.json`;
-const ELEMENTS_PATH = `${TOPIC_DIR}/elements.json`;
-const WIDE_PATH = `${TOPIC_DIR}/wide.json`;
+const ELEMENTS_PATH = "tools/handwriting/cyrillic/elements.json";
+const WIDE_PATH = "tools/handwriting/cyrillic/wide.json";
 const CATALOG_PATH = "public/decks/catalog.json";
 // Ready-made print PDFs (print/) + their card thumbnails (thumbnails/), migrated in from the
 // standalone print_materials topic (2026-09-15) for the new "print_materials"/"browse" mode.

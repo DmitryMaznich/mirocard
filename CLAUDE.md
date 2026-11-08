@@ -172,8 +172,9 @@ lives in `src/handwriting/`** (moved out of `src/topics/renderers/propis/` on 20
 built `propis2`/`print_letters` renderers stayed byte-identical): `wordEngine.js`, `PrintPageView.jsx`,
 `propisRuling.js`, `pathGeometry.js`, `printPdf.js`, `useLoopingStrokes.js`, `AnimatedStrokes.jsx`,
 `letters/*` card views, and their tests. `src/topics/renderers/propis/` now holds only the archived old
-topic's own screens. Glyph data still comes from `tools/propis/` (`wide.json`, `elements.json`,
-`captures/`) — never delete it; letter-shape edits still go into `tools/propis/`.
+topic's own screens. The Cyrillic glyph data moved the same day to `tools/handwriting/cyrillic/`
+(`wide.json`, `elements.json`, `captures/`) — letter-shape edits go there; `tools/propis/` keeps only the
+old topic's own `topic.json` (still read by the dictation-audio scripts and `build-audio-review-manifest`).
 `docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
 geometry, glyph capture) — still worth reading when touching the shared engine.
 

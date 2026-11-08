@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { applyVariant, variantKits } from "./lib/propis2-variant.mjs";
 import { simplifyGlyphs } from "./lib/simplify-path.mjs";
 
-// `propis2` deck: topic.json + glyph data merged from the shared tools/propis sources
+// `propis2` deck: topic.json + glyph data merged from the shared tools/handwriting/cyrillic sources
 // (wide.json, elements.json), exactly as build-propis-deck.mjs does for `propis` («Прописи старые»). No renderer bundle:
 // like `propis`, the renderer lives in the app (src/topics/renderers/propis2).
 //
@@ -16,8 +16,8 @@ import { simplifyGlyphs } from "./lib/simplify-path.mjs";
 // each its alphabet, writing, papers, cover words, letters and ready notebooks (taken from a variant.json with `from`). A notebook
 // remembers its language (src/topics/renderers/propis2/languages.js). The variant decks (`--variant`) carry one alphabet, no languages.
 const TOPIC_PATH = "tools/propis2/topic.json";
-const ELEMENTS_PATH = "tools/propis/elements.json";
-const WIDE_PATH = "tools/propis/wide.json";
+const ELEMENTS_PATH = "tools/handwriting/cyrillic/elements.json";
+const WIDE_PATH = "tools/handwriting/cyrillic/wide.json";
 // «части букв» from the owner's sheet (tools/propis2/parts/README.md): element glyphs of propis2 only, appended after the shared ones
 const PARTS_PATH = "tools/propis2/parts_elements.json";
 // stable numbers of the elements (tools/propis2/element_numbers.json): the badge on a tile of the element list and the field code {эN}

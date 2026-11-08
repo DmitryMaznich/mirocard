@@ -46,7 +46,7 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
   const wordBank = Array.isArray(cards) ? [] : (cards?.words ?? []);
   const textBank = Array.isArray(cards) ? [] : (cards?.texts ?? []);
   // Pre-writing elements (крючки, петли...) for read_lines' "Элементы букв" option -- bundled
-  // into the deck separately from `cards` (build-propis-deck.mjs merges tools/propis/elements.json
+  // into the deck separately from `cards` (build-propis-deck.mjs merges tools/handwriting/cyrillic/elements.json
   // into topic.json's own `elements` key), same reasoning as words/texts above.
   const elementBank = Array.isArray(cards) ? [] : (cards?.elements ?? []);
   const wideBank = Array.isArray(cards) ? [] : (cards?.wide ?? []);
@@ -155,7 +155,7 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // needs the element bank to resolve those ids into strokes, same as letters/connectors.
     const useElements = Boolean(sessionParams?.useElements);
     // "Широкая строка" (методика, часть 1): lines are typed text (glyph labels / words), drawn
-    // from the wide-zone captures in `wide` (tools/propis/wide.json) on wide-band-only ruling.
+    // from the wide-zone captures in `wide` (tools/handwriting/cyrillic/wide.json) on wide-band-only ruling.
     const wideRows = Boolean(sessionParams?.wideRows) || narrowRows; // narrow rows use the same captured glyphs, drawn at half size
     return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank, wideRows, narrowRows, wideGlyphs: wideBank, wideElementRepeat: Array.isArray(cards) ? {} : (cards?.wideElementRepeat ?? {}) }];
   }

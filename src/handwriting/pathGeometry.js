@@ -209,7 +209,7 @@ export function transformPathD(d, { scaleX = 1, scaleY = 1, translateX = 0, tran
 
 // Converts an absolute-coordinate path made of M / L / Q / C commands into the M + C-only form
 // every helper above (and wordEngine.js) assumes. Needed for the "Широкая строка" captures
-// (tools/propis/wide.json), which the capture tool exported with straight (L) and quadratic (Q)
+// (tools/handwriting/cyrillic/wide.json), which the capture tool exported with straight (L) and quadratic (Q)
 // segments. L becomes a degenerate cubic (control points at 1/3 and 2/3); Q is an exact
 // degree elevation, so the drawn curve is identical.
 export function toCubicPathD(d) {

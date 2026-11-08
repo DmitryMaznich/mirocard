@@ -35,8 +35,8 @@ window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEven
 // The installed record as the deck builder makes it (topic.json + merged tools/propis data).
 function deckRecord() {
   const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
-  const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-  topic.elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+  const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+  topic.elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
   topic.wide = wide.glyphs;
   topic.wideSheets = wide.sheets;
   topic.wideElementRepeat = wide.elementRepeat ?? {};

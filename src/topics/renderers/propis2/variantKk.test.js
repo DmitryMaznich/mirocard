@@ -9,7 +9,7 @@ import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 const loadTopic = async (variantFile = "tools/propis2/variants/kk/variant.json") => {
   const { applyVariant } = await import("../../../../scripts/lib/propis2-variant.mjs");
   const topic = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8"));
-  topic.wide = JSON.parse(await readFile("tools/propis/wide.json", "utf-8")).glyphs;
+  topic.wide = JSON.parse(await readFile("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
   applyVariant(topic, JSON.parse(await readFile(variantFile, "utf-8")));
   return topic;
 };

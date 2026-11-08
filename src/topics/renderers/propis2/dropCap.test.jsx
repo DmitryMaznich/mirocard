@@ -13,8 +13,8 @@ import { dropGeometry, dropLetters, suggestDrop, DROP_FRAME_MM, DROP_MAX_WIDTH, 
 import { mmToNativeUnits } from "../../../handwriting/propisRuling.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
 const topicRecord = { ...topic, wide: wide.glyphs, wideSheets: wide.sheets, elements, wideElementRepeat: wide.elementRepeat };
 const glyphMap = buildGlyphMap(topicRecord);

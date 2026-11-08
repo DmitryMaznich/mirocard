@@ -5,7 +5,7 @@ import { layoutWideLinesIntoRows, WIDE_ZONE_UNITS } from "./wordEngine.js";
 import { getPathEndpoints, samplePath } from "./pathGeometry.js";
 import { scriptKey, scriptPointMap } from "./scriptGeometry.js";
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
 const rec = (script) => ({ wide: wide.glyphs, meta: script ? { script } : {} });
 const BG = { slantDeg: 76 };
 const BASE = 64; // wordEngine WIDE_BASELINE_Y

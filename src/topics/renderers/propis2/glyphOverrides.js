@@ -1,4 +1,4 @@
-// `propis2` glyph facts that differ from the shared tools/propis/wide.json (which the archived `propis` («Прописи старые») also builds from).
+// `propis2` glyph facts that differ from the shared tools/handwriting/cyrillic/wide.json (which the archived `propis` («Прописи старые») also builds from).
 //
 // The exit rise that joins a letter to the next one is not part of every letter. For о б ю э ф в it is a canonical
 // connector appended to the letter (the very same curve on all of them), so the letter written ALONE has none and with it only when a
@@ -70,7 +70,7 @@ export const P2_GLYPH_OVERRIDES = {
   "ч": { joinAtStart: true, joinSmooth: true, joinToApex: true, joinArrive: 1 },
 };
 
-// Digits and signs (+ - = < >) captured on 2026-10-06 (tools/propis/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»
+// Digits and signs (+ - = < >) captured on 2026-10-06 (tools/handwriting/cyrillic/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»
 // (№5, №+): the wide.json already has ELEMENTS called 5 6 7 8, and «+» is the engine's chain operator, so a plain character cannot name them.
 // The text field shows and takes ordinary digits (fieldText.js turns them into these labels and back). Never joined to a neighbour.
 // Capitals Ё and Й were never captured (2026-10-10, needed by «Строчная и заглавная» / «Узнай букву»): they are made from Е and И with

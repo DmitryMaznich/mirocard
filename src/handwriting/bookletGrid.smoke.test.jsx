@@ -9,8 +9,8 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
 SVGElement.prototype.getTotalLength ??= () => 100;
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-const topicRecord = { wide: wide.glyphs, wideSheets: wide.sheets, elements: JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements, wideElementRepeat: wide.elementRepeat };
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+const topicRecord = { wide: wide.glyphs, wideSheets: wide.sheets, elements: JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements, wideElementRepeat: wide.elementRepeat };
 
 // «Тетрадью» (owner, 2026-10-24): the halves of a sheet hold pages 4|1, 2|3. A page's slant grid is shifted by a page width on an odd page
 // of the notebook, and its letters snap to it so; drawn by the half of the sheet instead, page 4 (left half) stood 1.5 mm off its letters

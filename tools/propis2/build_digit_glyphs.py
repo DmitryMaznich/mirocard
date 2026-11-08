@@ -3,7 +3,7 @@
 
   python3 tools/propis2/build_digit_glyphs.py
 
-Reads  tools/propis/captures/digits_signs_raw_2026-10-06.json   (handwriting capture tool, base y=88)
+Reads  tools/handwriting/cyrillic/captures/digits_signs_raw_2026-10-06.json   (handwriting capture tool, base y=88)
 Writes src/topics/renderers/propis2/digitGlyphs.json
 
 What it does to a capture (the hand shakes, the size is a guess):
@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-SRC = ROOT / "tools/propis/captures/digits_signs_raw_2026-10-06.json"
+SRC = ROOT / "tools/handwriting/cyrillic/captures/digits_signs_raw_2026-10-06.json"
 OUT = ROOT / "src/topics/renderers/propis2/digitGlyphs.json"
 
 BASE_CAPTURE = 88.0   # baseline of the capture tool for these captures

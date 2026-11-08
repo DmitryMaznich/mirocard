@@ -7,7 +7,7 @@
 // The capture tool's "Экспорт набора" button downloads ONE JSON file containing everything
 // in the artist's collection (letters + elements + connectors mixed, distinguished by their
 // own `type` field) — this script only picks out `type === "element"` entries, ignores the
-// rest, and merges them into tools/propis/elements.json by `id`.
+// rest, and merges them into tools/handwriting/cyrillic/elements.json by `id`.
 //
 // Source reference for the elements below: Н.С. Жукова, «Пропись 1» (из комплекта
 // «Прописи», 3 части), стр. 5–11 — see the reference sheet cut from that PDF this session.
@@ -71,7 +71,7 @@ const REGISTRY = {
 // Exports may label an element by its Russian name instead of its slug.
 const LABEL_TO_ID = Object.fromEntries(Object.entries(REGISTRY).map(([id, r]) => [r.labelRu, id]));
 
-const ELEMENTS_PATH = "tools/propis/elements.json";
+const ELEMENTS_PATH = "tools/handwriting/cyrillic/elements.json";
 const SOURCE_LABEL = "Н.С. Жукова, «Пропись 1» (комплект из 3 частей), стр. 5–11";
 
 function bboxOf(strokes) {

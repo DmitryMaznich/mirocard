@@ -4,7 +4,7 @@
   python3 tools/propis2/variants/kk/build_glyphs.py [--preview out.html]   # raw bank coordinates: proportions are NOT the notebook's
   tools/propis2/variants/kk/preview.sh out.png '["Г Ғ","Ғалым"]'            # the real page engine: use this to judge a letter
 
-Bank geometry (tools/propis/wide.json): baseline y=62, top of the lowercase (the narrow row's upper line) y=10,
+Bank geometry (tools/handwriting/cyrillic/wide.json): baseline y=62, top of the lowercase (the narrow row's upper line) y=10,
 capitals up to y=-42, 65deg slant. Each recipe names the source letter's strokes (1-based, as on the stroke
 catalog sheet) and adds the new strokes; the result goes to variant.json -> glyphs (TODO once the first letters are approved).
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path(__file__).resolve().parents[4]
-BANK = {g["label"]: g for g in json.loads((ROOT / "tools/propis/wide.json").read_text())["glyphs"]}
+BANK = {g["label"]: g for g in json.loads((ROOT / "tools/handwriting/cyrillic/wide.json").read_text())["glyphs"]}
 X_TOP, BASE = 10.0, 62.0
 
 

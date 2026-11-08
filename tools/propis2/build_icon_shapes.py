@@ -11,8 +11,8 @@ import json, math, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-wide = {g["label"]: g for g in json.loads((ROOT / "tools/propis/wide.json").read_text())["glyphs"]}
-elements = {e["id"]: e for e in json.loads((ROOT / "tools/propis/elements.json").read_text())["elements"]}
+wide = {g["label"]: g for g in json.loads((ROOT / "tools/handwriting/cyrillic/wide.json").read_text())["glyphs"]}
+elements = {e["id"]: e for e in json.loads((ROOT / "tools/handwriting/cyrillic/elements.json").read_text())["elements"]}
 OUT = ROOT / "src/features/propis2/iconShapes.json"
 T = math.tan(math.radians(25))
 

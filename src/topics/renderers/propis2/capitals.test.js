@@ -6,7 +6,7 @@ import { snapXFor } from "../../../handwriting/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../../../handwriting/propisRuling.js";
 import { samplePath } from "../../../handwriting/pathGeometry.js";
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
 const map = buildGlyphMap({ ...topic, wide: wide.glyphs, wideSheets: wide.sheets, elements: [], wideElementRepeat: wide.elementRepeat });
 const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * 0.5; // the narrow ruling

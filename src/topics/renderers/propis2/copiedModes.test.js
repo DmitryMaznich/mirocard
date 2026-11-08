@@ -6,9 +6,9 @@ import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { generateTasks } from "./engine.js";
 import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
-const rec = { ...topic, wide: wide.glyphs, elements: JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements };
+const rec = { ...topic, wide: wide.glyphs, elements: JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements };
 const map = buildGlyphMap(rec);
 const mode = (type) => topic.modes.find((m) => m.type === type);
 

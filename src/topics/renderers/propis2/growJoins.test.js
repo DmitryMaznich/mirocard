@@ -5,7 +5,7 @@ import { samplePath } from "../../../handwriting/pathGeometry.js";
 import { withGlyphOverrides } from "./glyphOverrides.js";
 
 // meta.script.growJoins (the Kazakh variant): what the grid nudges cannot close between a connector and the next letter is closed by a straight piece
-const wide = withGlyphOverrides(JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs);
+const wide = withGlyphOverrides(JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs);
 const mapOf = (script) => { const m = new Map(wide.map((g) => [g.label, g])); for (const g of wide) for (const a of g.aliases ?? []) m.set(a, g); if (script) m.script = script; return m; };
 const labels = [..."абвгдежзийклмнопрстуфхцчщъьэюя"].filter((c) => wide.find((g) => g.label === c && g.strokes) || wide.find((g) => g.aliases?.includes(c) && g.strokes));
 const gapBetween = (map, a, b) => {

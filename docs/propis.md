@@ -294,7 +294,7 @@ explicit design decision. Don't touch `letter_writing` while working on this.
     letters/elements/connectors mixed), keeps only `type==="element"`, validates
     each `label` against a hardcoded 21-entry `REGISTRY` (id → labelRu/category/
     sourcePage — typos get a warning + skip, not a silent bad write), and merges
-    into a new `tools/propis/elements.json` by `id` (idempotent re-run: same id
+    into a new `tools/handwriting/cyrillic/elements.json` by `id` (idempotent re-run: same id
     overwrites, doesn't duplicate). Reuses `pathGeometry.js`'s `samplePath`/
     `transformPathD` directly (pure functions, no DOM dep, importable from a Node
     script as-is) instead of reimplementing bbox/path math.
@@ -344,7 +344,7 @@ explicit design decision. Don't touch `letter_writing` while working on this.
   (same `02a`/`02b` lettered-suffix convention `07a`/`07b` already
   established for "two drills, one page") — kept in sync by hand between the
   two files per the existing comment there, total inventory now 23 (was 21).
-  **No capture data existed yet for this slug** (`tools/propis/elements.json`
+  **No capture data existed yet for this slug** (`tools/handwriting/cyrillic/elements.json`
   doesn't exist at all as of this fix — 0/21 was still true when the bug was
   reported), so this is a pure registry correction with nothing to migrate or
   re-ingest.
@@ -816,7 +816,7 @@ explicit design decision. Don't touch `letter_writing` while working on this.
     `up_а → "заглавная А"`, `lo_а → "строчная а"`, etc. — confirming the
     actual phrase Gemini will receive now, not just that the code compiles.
     Full propis test suite (100 tests) and `npm run build` still clean.
-- **First real captures ingested into `tools/propis/elements.json`, 2026-09-17
+- **First real captures ingested into `tools/handwriting/cyrillic/elements.json`, 2026-09-17
   — two rounds, now 12/27.** Round 1 (3 elements): `02a_naklonnaya_dlinnaya`,
   `02b_naklonnaya_korotkaya`, `03_zaborchik_ploskie` — verified by measuring
   each stroke's angle from vertical against the real scan (02a/02b/03's
@@ -902,7 +902,7 @@ explicit design decision. Don't touch `letter_writing` while working on this.
     matching `02a`/`02b`'s own diagonal slant almost exactly, not a
     vertical line at all. The user confirmed they hadn't actually drawn
     the vertical yet. Removed the `02c_vertikalnaya` entry from
-    `tools/propis/elements.json` entirely rather than keep bad data
+    `tools/handwriting/cyrillic/elements.json` entirely rather than keep bad data
     around — inventory is back to 11/27 until a real vertical capture
     comes in. `02c_vertikalnaya` stays in `REGISTRY`/the datalist, just
     uncaptured.
@@ -1062,7 +1062,7 @@ User decision: "Письменные буквы" (recognising cursive letters) a
 4. **Letters in букварь order** (а, у, о, и, ы, м, с…) and restricting every mode
    to letters already learned ("Мои буквы" as the source of truth).
 5. **Letter elements mode** (палочки, крючки, петли) before letters —
-   `tools/propis/elements.json` already has the Жукова elements.
+   `tools/handwriting/cyrillic/elements.json` already has the Жукова elements.
 6. **Letter joins** (верхнее/нижнее/среднее соединение) as a separate step.
 7. **"How is this letter written" step** between recognition and writing text —
    show only (direction, stroke order, start point), not on-screen finger
@@ -1847,7 +1847,7 @@ auto-repeated to fill it** (not a mix of several elements in one row), and
 per-row mixing) — "Один элемент повторяется на всю строку, как в книге. В
 одной строке только элементы."
 
-**Data pipeline**: elements live in `tools/propis/elements.json` (grown
+**Data pipeline**: elements live in `tools/handwriting/cyrillic/elements.json` (grown
 incrementally via `scripts/propis_ingest_elements.mjs`, see the ingestion
 sections above), kept separate from `topic.json` to avoid diff churn on every
 single capture. `scripts/build-propis-deck.mjs` now merges it into the
@@ -2614,7 +2614,7 @@ confirmed via two rounds of `AskUserQuestion` before implementing:
   the pattern without turning every row into a dense repeated strip.
 - Classification is per-element, stored as a new `"repeatMode":
   "joined" | "spaced"` field on each of the 11 objects in
-  `tools/propis/elements.json` (not derived from id/prefix — same
+  `tools/handwriting/cyrillic/elements.json` (not derived from id/prefix — same
   reasoning as `isNarrowElement`'s own data-based classifier, see above):
   `03_zaborchik_ploskie(_uzkaya)` and `04_zaborchik_ostrye(_uzkaya)` are
   `"joined"`; every other element (`01_pryamaya_liniya`,
@@ -2987,7 +2987,7 @@ the diagonal backing choice (`SHEET_DIAGONAL_LINES` vs. `SHEET_DIAGONAL_LINES_DE
 unaffected — only this one line is conditional.
 
 Verified via a throwaway `dev-elements.jsx`/`dev-elements.html` harness rendering a `print_page`
-task built directly from `tools/propis/elements.json` (bypassing the deck-ZIP/IndexedDB
+task built directly from `tools/handwriting/cyrillic/elements.json` (bypassing the deck-ZIP/IndexedDB
 pipeline entirely, same shortcut as this session's other Playwright rounds), with a `?mode=`
 query param toggling between an elements task and a plain-text task — screenshotted both: the
 elements task shows the dashed line once per row, above the thin line, inside the WIDE zone,
@@ -3127,7 +3127,7 @@ isn't covered by the vitest suite (plain-HTML dev tool, no exported functions to
 consistent with how the rest of `handwriting_capture.html`'s features have been verified this
 session (SPACING retune, etc.). Delivered the 9 final crops to the user directly (outside the
 repo — they're reference material for manual tracing, not app data) rather than committing them
-anywhere; nothing under `tools/propis/elements.json` or the deck ZIP changed.
+anywhere; nothing under `tools/handwriting/cyrillic/elements.json` or the deck ZIP changed.
 
 **Fullscreen D-pad silently moved the WRONG guide — fixed same day.** User report: "мне нужно
 чтобы подложку можно было двигать в полноэкранном режиме, сейчас там есть какие-то кнопки для

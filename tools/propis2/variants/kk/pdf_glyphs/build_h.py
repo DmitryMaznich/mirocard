@@ -87,7 +87,7 @@ F = np.array([T[0] - tan25 * (FOOT_Y - T[1]), FOOT_Y])         # the foot of the
 
 # our п (the bank's п1, stretched the way the engine stretches it: x' = S x - (S-1) tan25 (62 - y)); its part after the foot corner, moved so that its foot is F
 Sx = 1.806
-bank = json.load(open(HERE.parents[4] / "tools/propis/wide.json"))["glyphs"]
+bank = json.load(open(HERE.parents[4] / "tools/handwriting/cyrillic/wide.json"))["glyphs"]
 pd = next(g for g in bank if g["label"] == "п1")["strokes"][0]["d"]
 tail = pd[pd.index("L 113.95 60.18") + len("L 113.95 60.18"):]
 sx = lambda x, y: Sx * x - (Sx - 1) * tan25 * (62.0 - y)

@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { buildTiles } from "./Propis2Carousel.jsx";
 
 function record() {
-  const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-  const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+  const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+  const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
   return { wide: wide.glyphs, elements, wideElementRepeat: wide.elementRepeat };
 }
 

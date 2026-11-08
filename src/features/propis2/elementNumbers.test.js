@@ -14,9 +14,9 @@ const numbers = numbersFile.numbers;
 function deckRecord() {
   const topic = json("tools/propis2/topic.json");
   const dropped = new Set(json("tools/propis2/dropped_elements.json").ids);
-  const wide = json("tools/propis/wide.json");
+  const wide = json("tools/handwriting/cyrillic/wide.json");
   const parts = json("tools/propis2/parts_elements.json");
-  return { ...topic, wide: [...wide.glyphs, ...parts.glyphs], elements: json("tools/propis/elements.json").elements.filter((e) => !dropped.has(e.id)), elementNumbers: numbers, elementGroups: numbersFile.groups, elementRetired: numbersFile.retired };
+  return { ...topic, wide: [...wide.glyphs, ...parts.glyphs], elements: json("tools/handwriting/cyrillic/elements.json").elements.filter((e) => !dropped.has(e.id)), elementNumbers: numbers, elementGroups: numbersFile.groups, elementRetired: numbersFile.retired };
 }
 
 describe("stable element numbers", () => {
