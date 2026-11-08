@@ -1,3 +1,4 @@
+import { isFourLinePaper } from "@/handwriting/fourLinePapers.js";
 // The cover of a printed notebook as ONE template with options (docs/propis2-cover-template-spec.md, owner 2026-10-08): how the name
 // is set, a decoration, the fields to fill in, the accent colour, the logo, and the back (the back of the cover: an alphabet, the
 // digits, the signs... written in our own hand). The three designs of the first version are presets of it. The cover belongs to the
@@ -25,7 +26,7 @@ export const SPINE_PAPERS = [
 // `notebookPaper`: the grid kind of the notebook's first page ("propis" | "square" | "ruled")
 export const spinePaperOf = (cover, notebookPaper) => {
   const id = cover?.spine && cover.spine !== "auto" ? cover.spine : notebookPaper;
-  return ["propis", "square", "ruled", "bg"].includes(id) ? id : "propis";
+  return ["propis", "square", "ruled"].includes(id) || isFourLinePaper(id) ? id : "propis";
 };
 
 export const FIELDS = [

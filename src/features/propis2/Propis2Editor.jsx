@@ -67,6 +67,9 @@ const SETTING_SAYS = {
 
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
 const PAPER_ICONS = { propis: I.IconRowNarrow, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperM1, m2: I.IconPaperM2 };
+// every paper has an icon: a four-line paper without its own (the English ones, fourLinePapers.js) takes the four-line one of the
+// Bulgarian paper — a missing icon was an undefined component, React #130, the editor of an English notebook crashed (1.0.2868)
+const paperIcon = (id) => PAPER_ICONS[id] ?? (fourLinePaper(id) ? I.IconPaperBg : I.IconPaperRuled);
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense, none: I.IconSlantNone };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
@@ -432,7 +435,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           {/* the format is the whole notebook's (Propis2Home.onChange puts it onto every page); A4 is a whole sheet per page when printed (owner, 2026-11-05;
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
-          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id], disabled: (mazinaPaper && g.id === "regular") || (bgPaper && g.id === "dense") }))} />

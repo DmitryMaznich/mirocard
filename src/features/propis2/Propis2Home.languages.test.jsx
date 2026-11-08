@@ -195,4 +195,50 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
+  it("an English notebook (the test copy's draft language) opens in the editor on its own paper", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/test-copy.json", "utf-8"));
+    const tdb = await openDb("p2lang-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    const testCopy = await getTopicRecord(tdb, "propis2_lang");
+    useAppStore.setState({ topicRecords: [testCopy], activeTopicId: "propis2_lang" });
+    const db = await openDb("p2lang-en-" + Date.now());
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    await click(host.querySelector('[data-testid="propis2-new-lang"]'));
+    await sheetPick("English");
+    await click(btn(host, "Новая тетрадь"));
+    expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
+    const field = host.querySelector('[aria-label="Текст страницы"]');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "cat dog");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      await tick();
+    });
+    // the paper button shows the English four-line paper (its icon must exist: React #130 on 1.0.2868)
+    expect(host.textContent).not.toMatch(/Ошибка отображения/);
+    expect([...host.querySelectorAll("button")].some((b) => (b.getAttribute("aria-label") ?? "").includes("Тип бумаги"))).toBe(true);
+    // shown to the student, and the print dialog with its cover, back and spine — on the English paper, nothing missing
+    await click(btn(host, "Показать ученику"));
+    expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
+    await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
+    const dlg = () => document.querySelector('[data-testid="propis2-print-dialog"]');
+    expect(dlg()).not.toBeNull();
+    const preview = () => dlg().querySelector('[data-testid="propis2-cover-preview"]');
+    expect(preview()).not.toBeNull();
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent.startsWith("Настроить обложку")));
+    await click([...dlg().querySelectorAll('[aria-label="Украшение"] .p2-chip')].find((b) => b.textContent === "Корешок"));
+    expect(preview().querySelector('[data-testid="propis2-spine-front"] [data-simple-grid="en_us"]')).not.toBeNull(); // the spine on the notebook's own paper
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    await click([...dlg().querySelectorAll("button")].find((b) => /Отмена|Закрыть/.test(b.textContent) || b.getAttribute("aria-label") === "Закрыть"));
+    await click(host.querySelector(".propis-practice-close"));
+    await click(host.querySelector(".back-btn"));
+    await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+    await act(async () => { root.unmount(); await tick(400); });
+    const lib = await loadLibrary(db);
+    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", "print"]]);
+    expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_us"]);
+    host.remove();
+  });
 });

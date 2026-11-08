@@ -1,3 +1,4 @@
+import { FOUR_LINE_IDS } from "@/handwriting/fourLinePapers.js";
 import { useMemo } from "react";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { deckPapers, lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid, pageGridKind, pageNoSlant } from "@/topics/renderers/propis2/model.js";
@@ -22,7 +23,7 @@ export function centredLine(line, glyphMap, paper) {
   return `${line}#i${n}`;
 }
 // the spine's paper (coverConfig.js spinePaperOf) as the grid of an empty page
-const SPINE_GRID = { propis: "regular", square: "square", ruled: "ruled", bg: "bg" };
+const SPINE_GRID = { propis: "regular", square: "square", ruled: "ruled", ...Object.fromEntries(FOUR_LINE_IDS.map((id) => [id, id])) };
 
 // `side`: "front" | "back" | "both" — only that side's tasks are built
 // `spinePaper`: the spine's paper, resolved (coverConfig.js spinePaperOf); the spine is on both sides, so both build it.
