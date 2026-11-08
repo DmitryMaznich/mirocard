@@ -53,6 +53,7 @@ LOOP = 8.0            # a little loop of the hand (k's knot), at most this long 
 BAR_SNAP = 1.3       # a bar this close to a ruling line stands on it (E's middle bar was traced 1.2 under the x-line)
 FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
 STEM_MEET = 2.5      # a bar's end this close to a stem (a vertical line of another stroke) ends on it
+BOW_BAR = 2.0        # a bar whose hand sags this much in the middle is drawn as one arc (f), else straight
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
 K_ELL = 0.5523
 OVAL_TURN, OVAL_STEM = 250.0, 28.0  # see line_runs
@@ -352,6 +353,12 @@ def trim_past(q, pnt, direction, from_end):
     return q[:len(q) - k] if from_end else q[k:]
 
 
+def bowed(a, b, sag):
+    """One cubic from a to b sagging by `sag` in the middle (a parabola's: handles at the thirds, 4/3 of the sag off the chord)."""
+    off = np.array([0.0, sag * 4 / 3])
+    return [a, a + (b - a) / 3 + off, a + 2 * (b - a) / 3 + off, b]
+
+
 def is_bar(p):
     ch = p[-1] - p[0]; L = length(p)
     return kind_of(unit(ch)) == "h" and L >= 6 and chord_dev(p) <= BAR_DEV * L
@@ -370,7 +377,17 @@ def tidy_stroke(raw, dotted=True, ends=None):
     if is_bar(p):
         # bars stay where the hand put them (Nelson: t above the x-line by 0.17, f under it by 0.06) unless right at a line: the middle
         # bars of E F H are at 1.03 on the Nelson page and were traced at 60.9 / 61.8 / 61.2 -- all onto the x-line, the same height
-        y = float(np.median(resample(parse(raw))[:, 1])); y = snap_y(y, BAR_SNAP)
+        raw_p = resample(parse(raw))
+        # a bowed bar is ONE simple arc (f, owner 2026-11-08: «у f точно просто изогнутую траекторию перемычки»; Nelson's f bar sags
+        # 0.12 of the x-height in the middle, its ends on the x-line): its ends where the hand put them (onto a line when close), the
+        # hand's sag in the middle
+        ch = raw_p[-1] - raw_p[0]
+        sag = raw_p[:, 1] - (raw_p[0][1] + (raw_p[:, 0] - raw_p[0][0]) * ch[1] / ch[0])
+        s_mid = float(sag[np.argmax(np.abs(sag))])
+        if abs(s_mid) >= BOW_BAR:
+            a = np.array([raw_p[0][0], snap_y(raw_p[0][1], BAR_SNAP)]); b = np.array([raw_p[-1][0], snap_y(raw_p[-1][1], BAR_SNAP)])
+            return {"segs": [bowed(a, b, s_mid)], "bar": True, "sag": s_mid}
+        y = float(np.median(raw_p[:, 1])); y = snap_y(y, BAR_SNAP)
         a, b = np.array([p[0][0], y]), np.array([p[-1][0], y])
         return {"segs": [[a, a + (b - a) / 3, a + 2 * (b - a) / 3, b]], "bar": True}
     ps = pieces(p)
@@ -529,7 +546,7 @@ def tidy_glyph(cap):
         for k in (0, 3):
             near = [x for x in stems if abs(x - seg[k][0]) <= STEM_MEET]
             if near: seg[k][0] = min(near, key=lambda x: abs(x - seg[k][0]))
-        a, b = seg[0], seg[3]; seg[1] = a + (b - a) / 3; seg[2] = a + 2 * (b - a) / 3
+        st["segs"][0] = bowed(seg[0], seg[3], st.get("sag", 0.0))
     return strokes
 
 

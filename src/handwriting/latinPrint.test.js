@@ -146,4 +146,14 @@ describe("English print letters in the propis2 engine", () => {
     expect(bowl[0][1]).toBeCloseTo(29.2, 0);
     expect(bowl[bowl.length - 1][1]).toBeCloseTo(48.2, 0);
   });
+  it("British f: the bar is one simple arc, its ends on the x-line, sagging in the middle as Nelson's (owner, 2026-11-08)", () => {
+    const f = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "f");
+    const bar = f.strokes[1].d.match(/-?\d*\.?\d+/g).map(Number);
+    expect(bar.length).toBe(8);                 // one cubic
+    expect(bar[1]).toBeCloseTo(10, 1);          // the ends on the x-line
+    expect(bar[7]).toBeCloseTo(10, 1);
+    const mid = samplePath(toCubicPathD(f.strokes[1].d), 40)[20][1];
+    expect(mid - 10).toBeGreaterThan(5);        // a real sag (Nelson: 0.12 of the x-height = 6.2 here; the hand's 7.4)
+    expect(mid - 10).toBeLessThan(9);
+  });
 });
