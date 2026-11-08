@@ -130,19 +130,20 @@ describe("English print letters in the propis2 engine", () => {
     expect(Math.max(...bowl.map((p) => p[0])) - stem).toBeCloseTo(36.2, 0);
     expect(Math.min(...bowl.map((p) => p[1]))).toBeCloseTo(10.5, 0);
     expect(pts[pts.length - 1][0]).toBeCloseTo(stem, 1); // it ends in the stem
+    expect(pts[pts.length - 1][1]).toBeCloseTo(47.1, 0); // ... where the original's line comes back into it (as p's)
   });
   it("British p: the bowl is the middle line of the Nelson stroke, leaving and rejoining the stem where the original does (owner, 2026-11-08)", () => {
     const p = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "p");
     const stem = samplePath(toCubicPathD(p.strokes[0].d), 10)[0][0];
     const bowl = samplePath(toCubicPathD(p.strokes[1].d), 60);
     // measured on the underlay (tool units x 2): the middle line reaches 19.3 right of the stem, its top 0.4 under the x-line, its bottom
-    // 0.3 under the baseline; it leaves the stem 5.1 under the x-line and comes back 3.1 above the baseline
+    // 0.3 under the baseline; it leaves the stem 9.6 under the x-line and comes back 6.9 above the baseline (the variant the owner chose)
     expect(Math.max(...bowl.map((q) => q[0])) - stem).toBeCloseTo(38.6, 0);
     expect(Math.min(...bowl.map((q) => q[1]))).toBeCloseTo(10.8, 0);
     expect(Math.max(...bowl.map((q) => q[1]))).toBeCloseTo(62.6, 0);
     expect(bowl[0][0]).toBeCloseTo(stem, 1);
     expect(bowl[bowl.length - 1][0]).toBeCloseTo(stem, 1);
-    expect(bowl[0][1]).toBeCloseTo(20.3, 0);
-    expect(bowl[bowl.length - 1][1]).toBeCloseTo(55.9, 0);
+    expect(bowl[0][1]).toBeCloseTo(29.2, 0);
+    expect(bowl[bowl.length - 1][1]).toBeCloseTo(48.2, 0);
   });
 });

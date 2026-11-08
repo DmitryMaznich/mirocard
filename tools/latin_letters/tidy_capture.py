@@ -533,70 +533,16 @@ def tidy_glyph(cap):
     return strokes
 
 
-# bowls drawn after the ORIGINAL (owner, 2026-11-08, b: «аккуратно подтянуть овал к линии оригинала»): the bowl is the middle line of
-# the Nelson stroke on the underlay -- from the middle of the bowl's hole, rays outwards, halfway between the ink's inner and outer edge
-# -- put where the hand put the underlay (its stem onto the traced stem); the stem, the retrace and where the bowl leaves and rejoins the
-# stem stay the hand's. The points are then drawn like any bow (curve()).
+# bowls drawn after the ORIGINAL (owner, 2026-11-08: b «аккуратно подтянуть овал к линии оригинала», then p; of the variants shown
+# the owner chose this one for both): the bowl is the edge of the Nelson bowl's hole on the underlay moved out by half the pen -- the
+# middle of its stroke, reliable all round, landing on the stem's middle where the bowl's ink runs into the stem's -- put where the hand
+# put the underlay (its stem onto the traced stem). It leaves the stem and comes back into it where that line does; the stem (and b's
+# retrace up it) stay the hand's. Not pulled onto the lines: it is the original.
 ORIGINAL_BOWL = set("bp")
 ORIGINAL = False  # set while a bowl from the original is drawn
 UNDERLAYS = Path(__file__).resolve().parent / "underlays" / "british"
 UL_PX, UL_X = 8, 100.0  # the underlay: 8 px a unit, put at x = 100 in the tool
 HALF_INK = 3.25 * 26 / 44  # half the Nelson stroke, tool units
-JOINT_CLEAR = 4.0  # the ring nearer the stem than this is the corner: left out, the curve runs from the joint
-MERGE_THICK = 1.5  # a ray crossing ink this much thicker than the pen has run into the stem
-
-
-def original_bowl_points(label, stem_x, start, end, from_stem=False):
-    from PIL import Image
-    from collections import deque
-    a = np.array(Image.open(UNDERLAYS / f"lo_{label}.png"))[:, :, 3] > 128
-    h, w = a.shape
-    cols = np.nonzero(a.any(0))[0]; dx = stem_x - (UL_X + cols[0] / UL_PX + HALF_INK)  # the underlay's stem onto the traced one
-    out = np.zeros_like(a); q = deque()
-    for y in range(h):
-        for x in (0, w - 1): q.append((y, x))
-    for x in range(w):
-        for y in (0, h - 1): q.append((y, x))
-    while q:  # the paper reachable from the border; what is left of the paper is the bowl's hole
-        y, x = q.popleft()
-        if 0 <= y < h and 0 <= x < w and not a[y, x] and not out[y, x]:
-            out[y, x] = True; q.extend(((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)))
-    hy, hx = np.nonzero(~a & ~out)
-    cy, cx = hy.mean(), hx.mean()
-    to_px = lambda pnt: ((pnt[0] - dx - UL_X) * UL_PX, pnt[1] * UL_PX)
-    ang = lambda pnt: np.arctan2(to_px(pnt)[1] - cy, to_px(pnt)[0] - cx)
-    a0, a1 = ang(start), ang(end)
-    while a1 <= a0: a1 += 2 * np.pi  # clockwise on the page (y down): the angle grows
-    pts, thick = [], []
-    for t in np.linspace(a0, a1, 160)[1:-1]:
-        r, inner = 0.0, None
-        while r < 400:
-            x, y = int(round(cx + r * np.cos(t))), int(round(cy + r * np.sin(t)))
-            if not (0 <= x < w and 0 <= y < h): break
-            if a[y, x] and inner is None: inner = r
-            if inner is not None and not a[y, x]: break
-            r += 0.5
-        if inner is None: continue
-        m = (inner + r) / 2
-        pts.append((UL_X + (cx + m * np.cos(t)) / UL_PX + dx, (cy + m * np.sin(t)) / UL_PX)); thick.append((r - inner) / UL_PX)
-    pts, thick = np.array(pts), np.array(thick)
-    # where the bowl's ink runs into the stem's, the middle between the edges is no longer the pen's line: the middle line is taken only
-    # while the bowl's stroke is on its own (not much thicker than the pen); from there the bowl goes on its own way into the stem
-    pen = np.median(thick)
-    ib = int(np.argmax(pts[:, 1]))
-    merged = next((i for i in range(ib, len(pts)) if thick[i] > MERGE_THICK * pen), len(pts))
-    lead = next((i for i in range(len(pts)) if thick[i] <= MERGE_THICK * pen), 0)
-    pts = pts[lead:merged]
-    d = unit(pts[-1] - pts[-6])
-    if d[0] < -1e-6:
-        tt = (stem_x - pts[-1][0]) / d[0]
-        pts = np.vstack([pts, pts[-1] + d * tt])
-    if from_stem:  # p: the bowl also LEAVES the stem where the original does -- its own direction back to the stem
-        d = unit(pts[0] - pts[5])
-        if d[0] < -1e-6:
-            tt = (stem_x - pts[0][0]) / d[0]
-            pts = np.vstack([pts[0] + d * tt, pts])
-    return pts
 
 
 def original_bowl_from_hole(label, stem_x, start):
@@ -626,21 +572,6 @@ def original_bowl_from_hole(label, stem_x, start):
         m = r + half
         ring.append((UL_X + (cx + m * np.cos(t)) / UL_PX + dx, (cy + m * np.sin(t)) / UL_PX))
     ring = np.array(ring)
-    # where the bowl meets the stem, the pen's middle is halfway between where the ink's OUTER edge leaves the stem and where the hole
-    # (the inner edge) runs into it -- the hole's edge moved out alone lands too far into the bowl at that sharp corner
-    stem_r = cols[0] + int(round(2 * HALF_INK * UL_PX)) + 2  # just right of the stem's ink
-    rows_hole = sorted(set(hy[hx <= stem_r + 2]))
-    yc = int(round(cy))
-    col = a[:, stem_r + 2]
-    up = yc
-    while up > 0 and not col[up]: up -= 1
-    while up > 0 and col[up - 1]: up -= 1
-    dn = yc
-    while dn < h - 1 and not col[dn]: dn += 1
-    while dn < h - 1 and col[dn + 1]: dn += 1
-    joints = []
-    if rows_hole:
-        joints = [((up + rows_hole[0]) / 2) / UL_PX, ((dn + rows_hole[-1]) / 2) / UL_PX]
     off = ring[:, 0] > stem_x + 0.3  # off the stem
     # the longest run of the ring off the stem (going round, the ring wraps)
     n = len(ring); best = (0, 0); i = 0
@@ -651,13 +582,8 @@ def original_bowl_from_hole(label, stem_x, start):
             if j - i > best[1] - best[0]: best = (i, j)
             i = j + 1
         else: i += 1
-    bowl = np.array([ring[k % n] for k in range(best[0], best[1] + 1)])
-    if joints:  # the ring off the stem by more than the corner's reach, ended on the stem at the joints
-        bowl = bowl[bowl[:, 0] > stem_x + JOINT_CLEAR]
-        ends = sorted([np.array([stem_x, joints[0]]), np.array([stem_x, joints[1]])], key=lambda e: np.linalg.norm(e - bowl[0]))
-        bowl = np.vstack([ends[0], bowl, ends[1]])
-    else:
-        bowl[0][0] = bowl[-1][0] = stem_x
+    bowl = np.array([ring[k % n] for k in range(best[0] - 1, best[1] + 2)])
+    bowl[0][0] = bowl[-1][0] = stem_x
     # the way round the hand went: start at the end nearer the hand's start
     if np.linalg.norm(bowl[-1] - start) < np.linalg.norm(bowl[0] - start): bowl = bowl[::-1]
     return bowl
@@ -674,11 +600,11 @@ def original_bowl(label, strokes):
             if not segs: continue
             k = next((i for i, sg in enumerate(segs) if vertical(sg) and sg[0][1] - sg[3][1] > 3), None)  # a retrace up the stem
             if k is not None and k + 1 < len(segs):
-                # b: the bowl grows out of the retrace up the stem (as n's arch does: the original's ink fills the corner above, so
-                # the pen leaves the stem going up, not across it) -- the middle line between the ink's edges, from the hand's leave
-                leave = segs[k][3].copy()
-                pts = original_bowl_points(label, segs[k][0][0], leave, segs[-1][3])
-                st["segs"] = segs[:k + 1] + curve(resample(np.vstack([leave, pts])), np.array([0.0, -1.0]), None)
+                # b: the bowl as p's (owner, 2026-11-08, chose it from the two); the retrace up the stem runs to where it leaves
+                xs = segs[k][0][0]
+                pts = original_bowl_from_hole(label, xs, segs[k + 1][0])
+                a0 = segs[k][0]; top = np.array([xs, pts[0][1]])
+                st["segs"] = segs[:k] + [[a0, a0 + (top - a0) / 3, a0 + 2 * (top - a0) / 3, top]] + curve(resample(pts), None, None)
                 return
         stems = [sg[0][0] for st in strokes for sg in st.get("segs", []) if vertical(sg) and abs(sg[3][1] - sg[0][1]) > 15]
         if not stems: return
