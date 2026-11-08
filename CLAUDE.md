@@ -171,16 +171,20 @@ comments, name the topics by id (`propis2` / `propis`), not «Прописи 2»
 lives in `src/handwriting/`** (moved out of `src/topics/renderers/propis/` on 2026-11-08 — paths only, the
 built `propis2`/`print_letters` renderers stayed byte-identical): `wordEngine.js`, `PrintPageView.jsx`,
 `propisRuling.js`, `pathGeometry.js`, `printPdf.js`, `useLoopingStrokes.js`, `AnimatedStrokes.jsx`,
-`letters/*` card views, and their tests. `src/topics/renderers/propis/` now holds only the archived old
-topic's own screens. The Cyrillic glyph data moved the same day to `tools/handwriting/cyrillic/`
+`letters/*` card views, and their tests. The old topic's own screens, engine and deck builder were moved
+to `archive/propis/` the same day and unregistered (`archive/README.md`); its catalog entry stays
+`archived` — that is what keeps installed copies hidden, never delete it. The Cyrillic glyph data moved the same day to `tools/handwriting/cyrillic/`
 (`wide.json`, `elements.json`, `captures/`) — letter-shape edits go there; `tools/propis/` keeps only the
-old topic's own `topic.json` (still read by the dictation-audio scripts and `build-audio-review-manifest`).
+old topic's own `topic.json`, which only the Python print-workbook tools (`scripts/propis_worksheets/`,
+`digits_workbook/`, `punctuation_workbook/`, …) still read; the dictation scripts and
+`build-audio-review-manifest` read `tools/propis2/topic.json` now.
 `docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
 geometry, glyph capture) — still worth reading when touching the shared engine.
 
 Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
-**Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18.** A variant is its own
+**Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18; archived 2026-11-08 (Bulgarian
+is a language of `propis2` itself; `tools/propis2/variants/bg/` stays — the language is built from it).** A variant is its own
 ZIP topic with the same `propis2` renderer, built from data only
 (`tools/propis2/variants/<id>/variant.json`, `node scripts/build-propis2-deck.mjs --variant <id>`),
 shown to one account via catalog status `individual`. Never fork `propis2` code for a language: the
@@ -287,9 +291,10 @@ per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
 Separate topic (owner's decision — not a language/style inside `propis2` or `print_letters`) for
 teaching children to write Latin script: English first, then other school styles as data (one engine,
-style = glyphs + joins + ruling + slant; notebook = language + style). Stage 1 (deck 0.1.0, catalog
-`individual`): notebook constructor, print style, four-line or cell paper, the sheet is one mm-SVG reused
-by the app's PDF maker. **Read `docs/latin-letters.md` first** — decisions, file map, next steps, open questions. Source catalogue (links only): `docs/research/handwriting/`.
+style = glyphs + joins + ruling + slant; notebook = language + style). **Direction changed 2026-11-08:**
+Latin is to become languages (English, Slovenian) with styles **inside the `propis2` engine**, not a new
+constructor; the first standalone constructor (deck 0.1.0) is in `archive/latin_letters/`, catalog `archived`.
+The print-glyph draft and review stand live in `tools/latin_letters/`. **Read `docs/latin-letters.md` first.** Source catalogue (links only): `docs/research/handwriting/`.
 
 ## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
 

@@ -8,6 +8,7 @@ output
 docs
 landing
 test-fixtures
+archive
 *.md
 .env
 backend/.env

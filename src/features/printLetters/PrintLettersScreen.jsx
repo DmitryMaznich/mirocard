@@ -9,8 +9,8 @@ import { makePrintLettersPdf } from "./printLettersPdf";
 // «Печатные буквы» owns a full screen, like propis2's Propis2Home (owner, 2026-11-03: the
 // constructor must not sit under the session header). App's ParamsRoute sends the topic here
 // instead of the settings screen; the renderer itself comes from the installed deck ZIP
-// (loadRenderer), the bundled copy until that has loaded or if it fails. «Латиница» (latin_letters)
-// uses this screen too: the renderer and engine are looked up by the topic's own renderer id.
+// (loadRenderer), the bundled copy until that has loaded or if it fails. The renderer and engine
+// are looked up by the topic's own renderer id.
 export default function PrintLettersScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeTopicId = useAppStore((s) => s.activeTopicId);

@@ -192,7 +192,7 @@ export function buildGeneratedSessionState({
   } else if (renderer === "print_materials") {
     const generateTasks = ENGINE_REGISTRY.print_materials;
     tasks = generateTasks ? generateTasks(mode, topicRecord) : [];
-  } else if (renderer === "propis" || renderer === "propis2") {
+  } else if (renderer === "propis2") {
     // Own branch (not the generic `else` below) because "Диктант" needs the full word/text
     // banks (topicRecord.words/texts) to draw a random session from, not just topicRecord.cards
     // -- every other propis mode still only reads .cards off this same object, so passing the

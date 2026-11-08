@@ -2,12 +2,20 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
 import { readFileSync, writeFileSync } from "node:fs";
-import PrintPageView from "../../../handwriting/PrintPageView.jsx";
-import { generateTasks } from "./engine.js";
-import { layoutWideLinesIntoRows, WIDE_SCALE, WIDE_ZONE_UNITS } from "../../../handwriting/wordEngine.js";
-import { toCubicPathD, getPathEndpoints, samplePath } from "../../../handwriting/pathGeometry.js";
+import PrintPageView from "./PrintPageView.jsx";
+import { layoutWideLinesIntoRows, WIDE_SCALE, WIDE_ZONE_UNITS } from "./wordEngine.js";
+import { toCubicPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+// A wide-rows print page task, as the archived `propis` topic's read_lines mode built it
+// (archive/propis/src/engine.js) — only the fields PrintPageView reads for typed wide rows.
+const wideTask = (record, params) => [{
+  type: "print_page", letters: [], connectors: [], punctuation: [],
+  lines: (params.lines ?? []).map((l) => l.trim()).filter(Boolean),
+  useElements: false, elements: record.elements ?? [], wideRows: true, narrowRows: false,
+  wideGlyphs: record.wide ?? [], wideElementRepeat: record.wideElementRepeat ?? {},
+}];
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const map = new Map(wide.map((g) => [g.label, g]));
 for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
@@ -45,7 +53,7 @@ afterEach(() => { act(() => root?.unmount()); document.body.innerHTML = ""; });
 it("renders a wide-rows page (dumps SVG when WIDE_DUMP is set)", () => {
   if (!globalThis.ResizeObserver) globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
   if (!window.matchMedia) window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-  const [task] = generateTasks({ type: "read_lines" }, { cards: [], wide }, 1, {
+  const [task] = wideTask({ cards: [], wide }, {
     wideRows: true,
     lines: ["5", "6 6", "7 7", "8 8", "и и", "иии иии", "й й", "ш ш", "н н", "ини", "нии", "т т", "тит", "к к", "книи", "ниткии"],
   });
@@ -66,7 +74,7 @@ it("renders a wide-rows page (dumps SVG when WIDE_DUMP is set)", () => {
 
 describe("stretchKeepSlantPathD", () => {
   it("widens ink but keeps a straight 65deg stroke at 65deg", async () => {
-    const { stretchKeepSlantPathD } = await import("../../../handwriting/pathGeometry.js");
+    const { stretchKeepSlantPathD } = await import("./pathGeometry.js");
     const t = Math.tan((25 * Math.PI) / 180);
     // stroke "/" from (100,62) up to (100 + 40*t, 22)
     const d = toCubicPathD(`M 100 62 L ${100 + 40 * t} 22`);
@@ -96,22 +104,9 @@ describe("grid snapping", () => {
   });
 });
 
-describe("wideSheet preset", () => {
-  it("replaces typed lines with the transcribed workbook pages (32 rows = 2 pages of 16)", () => {
-    const topicRecord = {
-      cards: [], wide,
-      wideSheets: JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).sheets,
-      elements: JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements,
-    };
-    const [task] = generateTasks({ type: "read_lines" }, topicRecord, 1, { wideRows: true, wideSheet: true, lines: ["ignored"] });
-    expect(task.lines).toHaveLength(32);
-    expect(task.lines).not.toContain("ignored");
-  });
-});
-
 describe("letter joins", () => {
   it("lands each tail exactly on the next letter's stroke, with no connector stroke", async () => {
-    const { samplePath } = await import("../../../handwriting/pathGeometry.js");
+    const { samplePath } = await import("./pathGeometry.js");
     const S = 30;
     const t = Math.tan((25 * Math.PI) / 180);
     const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
@@ -156,7 +151,7 @@ it("tap on a wide row plays the pen animation", () => {
   SVGElement.prototype.getPointAtLength ??= () => ({ x: 0, y: 0 });
   globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
   window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-  const [task] = generateTasks({ type: "read_lines" }, { cards: [], wide }, 1, { wideRows: true, lines: ["ш"] });
+  const [task] = wideTask({ cards: [], wide }, { wideRows: true, lines: ["ш"] });
   const host = document.createElement("div");
   document.body.appendChild(host);
   root = createRoot(host);
@@ -189,7 +184,7 @@ describe("per-band slant grid", () => {
   it("first slant meets each band's bottom/top line at the same x in every row; glyph starts sit on those slants", () => {
     globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
     window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-    const [task] = generateTasks({ type: "read_lines" }, { cards: [], wide }, 1, { wideRows: true, lines: ["5 5", "6 6", "ш ш", "н н", "и и", "ини", "к к", "т т"] });
+    const [task] = wideTask({ cards: [], wide }, { wideRows: true, lines: ["5 5", "6 6", "ш ш", "н н", "и и", "ини", "к к", "т т"] });
     const host = document.createElement("div");
     document.body.appendChild(host);
     root = createRoot(host);

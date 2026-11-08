@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { NUMBER_WORDS } from "../src/topics/renderers/addition_subtraction/audioNumbers.js";
 import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
+import { LETTER_DATA } from "../src/handwriting/letters/letterData.js";
 import { letterDictationKey, splitIntoSentences, syllableDictationKey, textSentenceDictationKey, wordDictationKey } from "../src/handwriting/dictationAudio.js";
 import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
 import { PROPIS_NATURAL_PILOT } from "./lib/propis-natural-pilot-bank.mjs";
@@ -28,8 +29,13 @@ for (const [path, entry] of [...labels]) {
   }
 }
 for (const { key, text } of AUDIO_ENTRIES) setLabel(`audio/daily-orientation/${key}.mp3`, text, "Слова и фразы");
-const propis = JSON.parse(readFileSync(join(root, "tools/propis/topic.json"), "utf8"));
-for (const card of propis.cards.filter((c) => /^[А-Яа-яЁё]$/.test(c.label ?? ""))) {
+// The dictation recordings: one clip per letter (capital + small; ъ ь have only a small one — the
+// recording of capital Ы exists though propis2 never asks for it), then propis2's words and texts.
+// Read from propis2 since the old `propis` topic was archived (2026-11-08) — its words and texts
+// are a subset of propis2's.
+const propis = JSON.parse(readFileSync(join(root, "tools/propis2/topic.json"), "utf8"));
+const letterCards = LETTER_DATA.flatMap(({ params: p }) => [...(["ъ", "ь"].includes(p.printed_lower) ? [] : [{ label: p.printed_lower.toUpperCase() }]), { label: p.printed_lower }]);
+for (const card of letterCards) {
   const key = letterDictationKey(card);
   const label = key === "lo_ъ" ? "Твёрдый знак" : key === "lo_ь" ? "Мягкий знак" : `${key.startsWith("up_") ? "Заглавная" : "Строчная"} ${card.label}`;
   setLabel(`audio/propis-dictation/${key}.mp3`, label, "Буквы");

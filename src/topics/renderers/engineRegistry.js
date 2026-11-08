@@ -11,7 +11,6 @@ import { generateTasks as vowelConsonantEngine }       from "./vowel_consonant/e
 import { generateTasks as narrativeEngine }            from "./narrative/engine";
 import { generateTasks as letterWritingEngine }        from "./letter_writing/engine";
 import { generateTasks as printLettersEngine }         from "./print_letters/engine.js";
-import { generateTasks as latinLettersEngine }         from "./latin_letters/engine.js";
 import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
 import { generateTasks as columnAdditionEngine }       from "./column_addition/engine.js";
 import { generateTasks as placeValueEngine }           from "./place_value/engine.js";
@@ -21,7 +20,6 @@ import { generateTasks as wordFormationEngine }        from "./word_formation/en
 import { generateTasks as phoneticAnalysisEngine }     from "./phonetic_analysis/engine.js";
 import { generateTasks as wordAgreementEngine }        from "./word_agreement/engine.js";
 import { generateTasks as spatialPrepositionsEngine }  from "./spatial_prepositions/engine.js";
-import { generateTasks as propisEngine }               from "./propis/engine.js";
 import { generateTasks as propis2Engine }              from "./propis2/engine.js";
 import { generateTasks as myPeopleEngine }             from "./my_people/engine.js";
 import { generateTasks as dailyOrientationEngine }     from "./daily_orientation/engine.js";
@@ -44,7 +42,6 @@ export const ENGINE_REGISTRY = {
   narrative:             narrativeEngine,
   letter_writing:        letterWritingEngine,
   print_letters:         printLettersEngine,
-  latin_letters:         latinLettersEngine,
   streak_tracker:        streakTrackerEngine,
   column_addition:       columnAdditionEngine,
   place_value:           placeValueEngine,
@@ -54,7 +51,6 @@ export const ENGINE_REGISTRY = {
   phonetic_analysis:     phoneticAnalysisEngine,
   word_agreement:        wordAgreementEngine,
   spatial_prepositions:  spatialPrepositionsEngine,
-  propis:                propisEngine,
   propis2:               propis2Engine,
   my_people:             myPeopleEngine,
   daily_orientation:     dailyOrientationEngine,

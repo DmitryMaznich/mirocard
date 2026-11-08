@@ -504,9 +504,7 @@
       "version": "0.1.0",
       "renderer": "latin_letters",
       "sources": [
-        "public/decks/latin_letters_v0.1.0.zip",
-        "src/topics/renderers/latin_letters",
-        "tools/latin_letters/topic.json"
+        "public/decks/latin_letters_v0.1.0.zip"
       ],
       "bundle": {
         "version": "0.1.0",
@@ -533,7 +531,7 @@
           "ru": "Конструктор тетрадей для письма латиницей: английский алфавит, печатные буквы на четырёхлинейке или в клетку, блоки букв и слов, А4 или А5, PDF.",
           "en": "Notebook builder for Latin handwriting: English alphabet, print letters on four-line or squared paper, letter and word blocks, A4 or A5, PDF."
         },
-        "status": "individual",
+        "status": "archived",
         "access": "paid",
         "materialLanguages": [
           "en"
@@ -961,7 +959,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-06T10:50:22+00:00"
+      "sourceUpdatedAt": "2026-11-08T07:13:04+00:00"
     },
     {
       "id": "print_materials",
@@ -1015,7 +1013,6 @@
       "renderer": "propis",
       "sources": [
         "public/decks/propis_v1.32.244.zip",
-        "src/topics/renderers/propis",
         "tools/propis/topic.json"
       ],
       "bundle": {
@@ -1046,7 +1043,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
+      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     },
     {
       "id": "propis2",
@@ -1088,7 +1085,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
+      "sourceUpdatedAt": "2026-11-08T07:16:03+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1121,13 +1118,13 @@
           "en": "Handwriting notebook builder for Bulgarian Cyrillic: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case."
         },
         "url": "./decks/propis2_bg_v0.6.1.zip",
-        "status": "individual",
+        "status": "archived",
         "access": "paid",
         "materialLanguages": [
           "bg"
         ]
       },
-      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
+      "sourceUpdatedAt": "2026-11-08T07:16:03+00:00"
     },
     {
       "id": "propis2_lang",
@@ -1168,7 +1165,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-05T20:02:24+00:00"
+      "sourceUpdatedAt": "2026-11-08T07:16:03+00:00"
     },
     {
       "id": "reading_dad_instructions",

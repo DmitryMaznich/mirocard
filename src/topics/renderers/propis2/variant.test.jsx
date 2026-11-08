@@ -27,8 +27,9 @@ async function installed() {
 }
 
 describe("propis2 variant: Bulgarian", () => {
-  it("is in the catalog for one account at a time and installs with the propis2 renderer", async () => {
-    expect(entry.status).toBe("individual");
+  it("is archived (Bulgarian is a language of propis2 itself since 0.6.0) and still installs with the propis2 renderer", async () => {
+    // archived 2026-11-08 (archive/README.md): kept in the catalog so an installed copy stays hidden
+    expect(entry.status).toBe("archived");
     const rec = await installed();
     expect(rec.meta.renderer).toBe("propis2");
     expect(rec.meta.variantOf).toBe("propis2");

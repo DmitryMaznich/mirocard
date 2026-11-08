@@ -1718,8 +1718,7 @@ export default function ParamsScreen() {
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   // Letter-recognition modes merged into propis from "Письменные буквы" (2026-09-29).
-  const isLettersCase         = ["propis", "propis2"].includes(topicRecord?.meta.renderer) && mode?.type === "letters_case";
-  const isAlphabetPairs       = topicRecord?.meta.renderer === "propis" && mode?.type === "letters_alphabet";
+  const isLettersCase         = topicRecord?.meta.renderer === "propis2" && mode?.type === "letters_case";
   // Coordinate dictations need their own printable layout, so the print panel is
   // available for the directions variant only.
   const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && ["mirror_draw", "repeat_draw"].includes(mode?.type);
@@ -1913,7 +1912,7 @@ export default function ParamsScreen() {
   // surfaces correctly without touching this flag (confirmed via a live dev-preview render).
   // Scoped to the evaluation:"none" modes: the letter-recognition modes merged in from
   // "Письменные буквы" (2026-09-29) are auto-evaluated and keep the video reward they had there.
-  const isPropis = ["propis", "propis2"].includes(topicRecord?.meta.renderer) && mode?.evaluation === "none";
+  const isPropis = topicRecord?.meta.renderer === "propis2" && mode?.evaluation === "none";
 
   const allModes = topicRecord?.modes ?? [];
   // Shared reading is deliberately not a rewarded exercise. The separate
@@ -1979,7 +1978,7 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs || isPropis;
+    const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isPropis;
     if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward && !isNavigatorFlashCards, bypassPin })) {
       launchSession();
       return;
@@ -2588,7 +2587,7 @@ export default function ParamsScreen() {
             </div>
           )}
 
-          {hasVideos && !hideVideoReward && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
+          {hasVideos && !hideVideoReward && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
             <div className="param-section">
               {/* «Видеоприз» — the standard prize block (src/features/rewards/VideoPrizeCard.jsx) */}
               <VideoPrizeCard
