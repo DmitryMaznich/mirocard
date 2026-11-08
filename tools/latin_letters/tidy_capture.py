@@ -50,6 +50,7 @@ MEET = 2.0           # ends of two strokes this close are one point (the apex of
 FRAG = 3.5            # a curve this short left between a line and the end of its piece is part of the line (b's stem began with a tick)
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
 BAR_SNAP = 1.2       # a bar this close to a ruling line stands on it
+STEM_BOWL = set("a")  # bowls that close on their stem (see tidy_stroke)
 FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
 STEM_MEET = 2.5      # a bar's end this close to a stem (a vertical line of another stroke) ends on it
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
@@ -424,6 +425,22 @@ def tidy_stroke(raw, dotted=True, ends=None):
                 fwd = -A[1]["dir"]
                 q = trim_past(q, pnt, -fwd, from_end=False)
             B[1] = np.vstack([pnt, q]) if np.linalg.norm(q[0] - pnt) > 1e-6 else q
+    # a bowl that closes ON its stem (owner, 2026-11-08, «a»: «перо по овалу поднимается вверх и потом без петли линия идёт вниз»): from
+    # the bowl's bottom the pen rounds up onto the stem, touching it halfway up the x band, runs up ALONG the stem to its top and comes
+    # down the same line -- no sliver between the bowl's rising side and the stem
+    if CUR in STEM_BOWL:
+        for k in range(len(parts) - 1):
+            A, B = parts[k][-1], parts[k + 1][0]
+            if A[0] != "curve" or B[0] != "line" or B[1]["kind"] != "v" or B[1]["dir"][1] <= 0: continue
+            q = A[1]; xs = B[1]["a"][0]; top = B[1]["a"].copy()
+            ib = int(np.argmax(q[:, 1])); bottom = q[ib].copy(); bottom[1] = snap_y(bottom[1], END_SNAP)
+            mid = np.array([xs, (X_LINE + BASE) / 2])
+            if not (bottom[0] < xs and mid[1] > top[1]): continue
+            t = np.linspace(0, np.pi / 2, 30)[1:]  # a quarter of an ellipse: bottom -> the stem halfway up
+            quarter = np.stack([bottom[0] + (xs - bottom[0]) * np.sin(t), mid[1] + (bottom[1] - mid[1]) * np.cos(t)], 1)
+            bowl = np.vstack([q[:ib], bottom, quarter])
+            up = {"type": "line", "a": mid.copy(), "b": top, "dir": np.array([0.0, -1.0]), "kind": "v"}
+            parts[k] = parts[k][:-1] + [["curve", bowl], ["line", up]]
     # into cubics, the curves fitted between their neighbours' ends with their directions
     segs = []
     for pk, items in enumerate(parts):
