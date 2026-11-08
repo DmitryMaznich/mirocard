@@ -439,8 +439,12 @@ def tidy_stroke(raw, dotted=True, ends=None):
     cusp_tan = {}
     for k in range(len(parts) - 1):
         A, B = parts[k][-1], parts[k + 1][0]
-        if A[0] == "line": pnt = A[1]["b"].copy()
-        elif B[0] == "line": pnt = B[1]["a"].copy()
+        # a stem or a bar (upright / level line) holds the turn on itself; a SLANTING line does not: the turn is where the hand turned
+        # (k's loop turns 3.4 left of where its leg's line would start -- taking the line's start left a little hook there)
+        if A[0] == "line" and (A[1]["kind"] != "l" or B[0] == "line"): pnt = A[1]["b"].copy()
+        elif B[0] == "line" and (B[1]["kind"] != "l" or A[0] == "line"): pnt = B[1]["a"].copy()
+        elif A[0] == "line": pnt = B[1][0].copy()
+        elif B[0] == "line": pnt = A[1][-1].copy()
         else: pnt = (A[1][-1] + B[1][0]) / 2
         if CUR not in FREE_TURN: pnt[1] = snap_y(pnt[1], END_SNAP)  # a turn back on a line stands on it: the points of v and w, the tops of u and y
         if A[0] == "line": A[1]["b"] = pnt
@@ -637,45 +641,6 @@ def original_bowl(label, strokes):
         ORIGINAL = False
 
 
-# k (owner, 2026-11-08): «сверху вниз вертикальный штрих, потом снизу идёт вверх на петлю, петля закругляется вниз и доходит до
-# вертикальной стойки и потом идёт на заключительный крюк вниз вправо». The loop, from its right side, rounds down and comes back
-# INTO the stem -- where the middle of Nelson's stroke does (the loop's hole ends 73.75 down, half the pen under it: LOOP_JOIN) -- and
-# the leg starts from that point on the stem, straight down to the right, then the hand's hook.
-LOOP_TO_STEM, LOOP_JOIN, LOOP_ARRIVE, LEG_SLOPE, LEG_AT_78 = set("k"), 76.0, 0.5, 0.69, 4.58
-# Nelson's pen does not reach the stem's middle (its loop turns 3.6 right of it), so a leg from the stem can keep his slope OR end
-# in his leg, not both: "foot" (B, provisional, 2026-11-08) or "slope" (A) -- the owner is choosing
-K_LEG = "foot"
-
-
-def loop_to_stem(strokes):
-    segs = strokes[0]["segs"]
-    vertical = lambda sg: all(abs(pt[0] - sg[0][0]) < 1e-6 for pt in sg)
-    cross = lambda u, v: u[0] * v[1] - u[1] * v[0]
-    straight = lambda sg: all(abs(cross(sg[3] - sg[0], pt - sg[0])) < 1e-6 * max(1, np.linalg.norm(sg[3] - sg[0])) for pt in sg[1:3])
-    kr = next(i for i, sg in enumerate(segs) if vertical(sg) and sg[0][1] - sg[3][1] > 3)  # the retrace up the stem
-    xs = segs[kr][0][0]
-    loop = [i for i in range(kr + 1, len(segs)) if segs[i][3][1] < LOOP_JOIN - 4]
-    ir = max(loop, key=lambda i: segs[i][3][0])  # the loop's right side
-    il = next(i for i in range(ir + 1, len(segs)) if straight(segs[i]) and segs[i][3][0] > segs[i][0][0] and segs[i][3][1] > segs[i][0][1])
-    R, J, P0 = segs[ir][3], np.array([xs, LOOP_JOIN]), segs[il][3]
-    # into the stem a little downwards (the middle of Nelson's stroke under the loop's teardrop hole), rounding from the upright side
-    arrive = unit(np.array([-1.0, LOOP_ARRIVE]))
-    back = [R, R + np.array([0.0, K_ELL * (J[1] - R[1])]), J - arrive * K_ELL * (R[0] - J[0]), J]
-    # the leg: straight from that point at Nelson's slope (measured on the underlay: 0.69 to the right per unit down) to the height
-    # where the hand's hook begins; the hook moved along with it, its shape the hand's
-    if K_LEG == "slope":  # A: at Nelson's slope from the point on the stem (the leg lies ~3 units left of his, k narrower)
-        P = np.array([J[0] + LEG_SLOPE * (P0[1] - J[1]), P0[1]])
-    else:  # B: to where Nelson's leg is at that height (a little flatter, ~45 deg; the letter as wide as his)
-        P = np.array([J[0] + LEG_AT_78 + LEG_SLOPE * (P0[1] - 78.0), P0[1]])
-    leg = [J, J + (P - J) / 3, J + 2 * (P - J) / 3, P]
-    shift = P - P0
-    rest = [[pt + shift for pt in sg] for sg in segs[il + 1:]]
-    if rest:  # the hook rounds on from the leg's own direction into its level bottom (no break where the leg meets it)
-        B = rest[0][3]; L = K_ELL * np.linalg.norm(B - P)
-        rest[0] = [P, P + unit(P - J) * L, B - np.array([1.0, 0.0]) * L * 0.6, B]
-    strokes[0]["segs"] = segs[:ir + 1] + [back, leg] + rest
-
-
 # a d g q have ONE bowl (owner, 2026-11-08: «у g эта часть правильная и подходит и для a и для d и для q, отличия только в окончаниях»):
 # g's bowl -- from the pen's start round to the top of its stem, where it arrives almost upright -- is put into a, d, q at their stems;
 # each keeps its own ending: a the stem down and the flick, d up the stem to the ascender and down it, q the stem down and the tail right
@@ -742,7 +707,6 @@ def main():
         CUR, WHOLE = l, False
         original_bowl(l, tidied[l])
     share_bowl(tidied)
-    for l in LOOP_TO_STEM & set(tidied): loop_to_stem(tidied[l])
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write("\n")
