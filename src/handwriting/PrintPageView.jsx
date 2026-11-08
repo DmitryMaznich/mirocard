@@ -5,6 +5,7 @@ import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import { BrandMarks, FoldLine, StapleMarks } from "./brandMarks.jsx";
 import { bookletSheets } from "./booklet.js";
+import { FOUR_LINE_PAPERS, fourLinePaper, fourLinePitchMm, isFourLinePaper } from "./fourLinePapers.js";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
@@ -225,24 +226,15 @@ const SQUARE_LETTER_SCALE = (0.75 * SQUARE_CELL) / (TEXT_ROW_PITCH - TEXT_ROW_TH
 // notebook), the first 16 mm from the top; the letters smaller than on the copybook: a lowercase letter 3.2 mm, a capital 6.4 mm.
 const RULED_PITCH = mmToNativeUnits(8);
 const RULED_LETTER_SCALE = mmToNativeUnits(3.2) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
-// `propis2_bg`, the Bulgarian copybook ruling ("bg", docs/propis2-variants.md): a row of four lines, bold (top of capitals and
-// ascenders) 6.08 mm above a thin line, the 4.94 mm lowercase band down to a thin baseline, 5.98 mm down to the next bold line (the
-// top line of the next row: rows every 17 mm, 11 on an A5 page); no dashes; sparse slant guides at 1 : 4 (76deg) every 35 mm. The
-// bands as on a Bulgarian teacher's writing video (owner, 2026-10-19: 1.23 : 1 : 1.21, near even; «Тетрадка 1 клас» had 6.5 /
-// 4.26 / 6.24). The letters are the copybook's, a lowercase letter 4.94 mm tall; the deck's meta.script stretches their
-// ascenders and descenders to the bold lines (wordEngine / scriptGeometry.js).
-const BG_UP_MM = 6.08;
-const BG_X_MM = 4.94;
-const BG_DOWN_MM = 5.98;
-const BG_PITCH = mmToNativeUnits(BG_UP_MM + BG_X_MM + BG_DOWN_MM);
-const BG_LETTER_SCALE = mmToNativeUnits(BG_X_MM) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
-const BG_GUIDE_STEP = mmToNativeUnits(35);
-const BG_GUIDE_TAN = 1 / 4; // horizontal run per unit of height of the guides (76deg from the horizontal)
-// Papers with rows of their own (`ownRows`: "square" | "ruled" | "bg" | "m1" | "m2"): pitch, first baseline, the room kept under the last row, letter scale.
+// Four-line copybook papers — the Bulgarian ruling ("bg") and the English ones (src/handwriting/fourLinePapers.js): rows of their own,
+// the letter's lowercase height = the paper's x band; the deck's meta.script stretches ascenders and descenders to the outer lines
+// (wordEngine / scriptGeometry.js).
+const fourLineScale = (p) => mmToNativeUnits(p.xMm) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
+// Papers with rows of their own (`ownRows`: "square" | "ruled" | a four-line paper ("bg", "en_gb", …) | "m1" | "m2"): pitch, first baseline, the room kept under the last row, letter scale.
 const OWN_ROWS = {
   square: { pitch: SQUARE_PITCH, first: SQUARE_FIRST_BASELINE, foot: SQUARE_CELL, scale: SQUARE_LETTER_SCALE },
   ruled: { pitch: RULED_PITCH, first: 2 * RULED_PITCH, foot: RULED_PITCH, scale: RULED_LETTER_SCALE },
-  bg: { pitch: BG_PITCH, first: mmToNativeUnits(10 + BG_UP_MM + BG_X_MM), foot: mmToNativeUnits(BG_DOWN_MM + 5), scale: BG_LETTER_SCALE },
+  ...Object.fromEntries(Object.entries(FOUR_LINE_PAPERS).map(([k, p]) => [k, { pitch: mmToNativeUnits(fourLinePitchMm(p)), first: mmToNativeUnits(p.firstMm + p.upMm + p.xMm), foot: mmToNativeUnits(p.downMm + p.footMm), scale: fourLineScale(p) }])),
   ...Object.fromEntries(Object.entries(MZ).map(([k, m]) => [k, { pitch: mmToNativeUnits(m.bandMm + m.gapMm), first: mmToNativeUnits(m.topMm), foot: mmToNativeUnits(m.footMm), scale: m.scale }])),
 };
 const ownOf = (kind) => OWN_ROWS[kind === true ? "square" : kind] ?? null;
@@ -442,7 +434,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
-  const plain = simpleGrid === "square" || simpleGrid === "ruled" || simpleGrid === "bg" || Boolean(MZ[simpleGrid]);
+  const plain = simpleGrid === "square" || simpleGrid === "ruled" || isFourLinePaper(simpleGrid) || Boolean(MZ[simpleGrid]);
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
   // dashed guide lines are slightly red on the `propis2` pages (the `propis` sheets keep the grid colour)
   const dashColor = simpleGrid ? "#e57d7a" : guideColor;
@@ -477,38 +469,46 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
       </g>
     );
   })() : null;
-  // "bg": the Bulgarian copybook ruling (BG_* above): per row bold - thin - thin(baseline), the next row's bold line closing it, and the
-  // 76deg guides over the whole ruled part of the page
-  const bgEls = ownRows === "bg" ? (() => {
-    const count = ownRowsOf(geom, "bg");
+  // a four-line paper (fourLinePapers.js: "bg", "en_gb", "en_us"): per row its top line, x-line, baseline and — with a gap between rows, or
+  // a single row — its bottom line (with no gap the next row's top line closes it); the slant guides, if the paper has them, over the
+  // whole ruled part of the page. (Element keys and data-attributes as they were for the Bulgarian paper alone.)
+  const fourP = fourLinePaper(ownRows);
+  const bgEls = fourP ? (() => {
+    const count = ownRowsOf(geom, ownRows);
     const rows = Array.from({ length: count }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
-    const base = (r) => ownRowY(r, "bg") + WIDE_BAND_BOTTOM_LOCAL;
-    const up = mmToNativeUnits(BG_UP_MM + BG_X_MM);
+    const base = (r) => ownRowY(r, ownRows) + WIDE_BAND_BOTTOM_LOCAL;
+    const up = mmToNativeUnits(fourP.upMm + fourP.xMm);
     // the ruling runs to every edge of the sheet (owner, 2026-11-05): the cycle goes on above the first row and below the last one
-    const extra = Math.ceil(PAGE_H_UNITS / BG_PITCH);
+    const extra = fourP.edgeToEdge ? Math.ceil(PAGE_H_UNITS / ownOf(ownRows).pitch) : 0;
     const drawRows = onlyRow === null ? Array.from({ length: count + 2 * extra }, (_, i) => i - extra) : rows;
     const top = onlyRow === null ? 0 : base(rows[0] ?? 0) - up;
-    const bottom = onlyRow === null ? PAGE_H_UNITS : base(rows[rows.length - 1] ?? 0) + mmToNativeUnits(BG_DOWN_MM);
-    const run = (bottom - top) * BG_GUIDE_TAN;
-    const guides = Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / BG_GUIDE_STEP) + 1 }, (_, k) => mmToNativeUnits(10) + k * BG_GUIDE_STEP);
+    const bottom = onlyRow === null ? PAGE_H_UNITS : base(rows[rows.length - 1] ?? 0) + mmToNativeUnits(fourP.downMm);
+    const g = fourP.guides;
+    const run = g ? (bottom - top) * g.tan : 0;
+    const step = g ? mmToNativeUnits(g.stepMm) : 0;
+    const guides = g ? Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / step) + 1 }, (_, k) => mmToNativeUnits(g.startMm) + k * step) : [];
     const inside = (y) => y >= -0.01 && y <= PAGE_H_UNITS + 0.01;
     const hline = (y, key, w, extraProps = {}) => (inside(y) ? <line key={key} x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={w} {...extraProps} /> : null);
+    const line = (kind, y, key) => (kind === "none" ? null
+      : kind === "dash" ? hline(y, key, GUIDE_THIN_W, { strokeDasharray: GUIDE_WIDE_MID_DASH })
+      : hline(y, key, kind === "bold" ? GUIDE_BOLD_W : GUIDE_THIN_W));
+    const withBottom = onlyRow !== null || fourP.gapMm > 0;
     return (
-      <g data-simple-grid="bg">
-        {/* `propis2` «Подсветка» on the Bulgarian ruling: the x-height band of every row (thin line to baseline), under the guides and lines */}
-        {bandFill && rows.map((r) => <rect key={`fill${r}`} x={0} y={base(r) - mmToNativeUnits(BG_X_MM)} width={PAGE_W_UNITS} height={mmToNativeUnits(BG_X_MM)} fill={bandFill} data-band-fill={r} />)}
+      <g data-simple-grid={ownRows}>
+        {/* `propis2` «Подсветка» on a four-line paper: the x-height band of every row (x-line to baseline), under the guides and lines */}
+        {bandFill && rows.map((r) => <rect key={`fill${r}`} x={0} y={base(r) - mmToNativeUnits(fourP.xMm)} width={PAGE_W_UNITS} height={mmToNativeUnits(fourP.xMm)} fill={bandFill} data-band-fill={r} />)}
         {onlyRow === null && !noSlant && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
         {drawRows.map((r) => {
           const y = base(r);
           const content = r >= 0 && r < count;
-          const mid = y - mmToNativeUnits(BG_X_MM / 2);
+          const mid = y - mmToNativeUnits(fourP.xMm / 2);
           return (
             <g key={r} data-bg-row={content ? r : undefined}>
-              {hline(y - up, "u", GUIDE_BOLD_W)}
-              {hline(y - mmToNativeUnits(BG_X_MM), "x", GUIDE_THIN_W)}
-              {hline(y, "b", GUIDE_THIN_W)}
-              {midDash && inside(mid) && <line x1={0} y1={mid} x2={PAGE_W_UNITS} y2={mid} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-bg-dash="1" />}
-              {onlyRow !== null && hline(y + mmToNativeUnits(BG_DOWN_MM), "d", GUIDE_BOLD_W)}
+              {line(fourP.lines.top, y - up, "u")}
+              {line(fourP.lines.x, y - mmToNativeUnits(fourP.xMm), "x")}
+              {line(fourP.lines.base, y, "b")}
+              {fourP.midDash && midDash && inside(mid) && <line x1={0} y1={mid} x2={PAGE_W_UNITS} y2={mid} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} data-bg-dash="1" />}
+              {withBottom && line(fourP.lines.bottom, y + mmToNativeUnits(fourP.downMm), "d")}
             </g>
           );
         })}
@@ -555,7 +555,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
       </g>
     );
   })() : null;
-  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? mzEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" && simpleGrid !== "none" ? (
+  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? mzEls ?? (simpleGrid && simpleGrid !== "ruled" && !isFourLinePaper(simpleGrid) && simpleGrid !== "none" ? (
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
@@ -965,7 +965,7 @@ function squareSnapFor(margin, geom) {
   return snap;
 }
 
-// Ruled paper (and the Bulgarian ruling, `scale` BG_LETTER_SCALE): no cells; the letters smaller (`letterScale`), on the same undrawn
+// Ruled paper (and the four-line papers, `scale` their own): no cells; the letters smaller (`letterScale`), on the same undrawn
 // slant grid scaled with them (see squareSnapFor).
 function ruledSnapFor(scale = RULED_LETTER_SCALE) {
   const step = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
@@ -1070,7 +1070,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   const geom = geomOf(format);
   if (simpleGrid === "square") return squareSnapFor(margin, geom);
   if (simpleGrid === "ruled") return ruledSnapFor();
-  if (simpleGrid === "bg") return ruledSnapFor(BG_LETTER_SCALE);
+  if (isFourLinePaper(simpleGrid)) return ruledSnapFor(ownOf(simpleGrid).scale);
   if (MZ[simpleGrid]) return mazinaSnapFor(simpleGrid, margin, geom);
   const dense = simpleGrid === "dense";
   if (dense) {

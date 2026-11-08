@@ -1,3 +1,4 @@
+import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -155,7 +156,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
   const propisGrid = gridKind === "propis";
-  const bgPaper = gridKind === "bg";
+  const fourPaper = fourLinePaper(gridKind); // a four-line paper (fourLinePapers.js): no dense slant; its own dash, `bgDash`, if it has one
+  const bgPaper = Boolean(fourPaper);
   const mazinaPaper = gridKind === "m1" || gridKind === "m2"; // the Mazina steps: a drawn slant (own step) or none, the dash is `midDash`
   // the Bulgarian paper has no dense slant: only «Редкая» / «Без наклонных»
   const slantValue = page.grid === "none" ? "none" : mazinaPaper || (page.grid === "dense" && propisGrid) ? "dense" : "regular";
@@ -435,7 +437,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id], disabled: (mazinaPaper && g.id === "regular") || (bgPaper && g.id === "dense") }))} />
           <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
-          <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={pageMidDash(page)} disabled={locked || !(propisGrid || bgPaper || mazinaPaper)} mixed={bgPaper ? mx.bgDash : mx.midDash} onClick={() => setSetting(bgPaper ? "bgDash" : "midDash", !pageMidDash(page))} data-kind="dash"><I.IconDash /></IconBtn>
+          <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={pageMidDash(page)} disabled={locked || !(propisGrid || (bgPaper && fourPaper.midDash) || mazinaPaper)} mixed={bgPaper ? mx.bgDash : mx.midDash} onClick={() => setSetting(bgPaper ? "bgDash" : "midDash", !pageMidDash(page))} data-kind="dash"><I.IconDash /></IconBtn>
           <Propis2Picker label="Подсветка рабочей строки" caption="Подсветка" disabled={locked || !bandFillPaper(page)} mixed={mx.bandFill} value={bandFillId(page)} onChange={(id) => setSetting("bandFill", id)} options={BAND_FILL_OPTS} />
           <IconBtn label="Строка для письма после каждой строки" caption="Строка для письма" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           {locked && (
