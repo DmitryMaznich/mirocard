@@ -6,7 +6,7 @@ No printed text on the page at all (confirmed with the user 2026-09-24:
 instructions are the teacher's job, the notebook only carries models).
 
 Punctuation shapes are the user's own captured trajectories -- the
-`"type": "punctuation"` cards in tools/propis/topic.json, same native
+`"type": "punctuation"` cards in tools/handwriting/cyrillic/propis1-style.json, same native
 coordinate system as the letters (baseline y=88).
 
 Every function here assumes the canvas is in a scale(mm, mm) frame whose

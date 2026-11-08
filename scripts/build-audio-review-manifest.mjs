@@ -31,8 +31,8 @@ for (const [path, entry] of [...labels]) {
 for (const { key, text } of AUDIO_ENTRIES) setLabel(`audio/daily-orientation/${key}.mp3`, text, "Слова и фразы");
 // The dictation recordings: one clip per letter (capital + small; ъ ь have only a small one — the
 // recording of capital Ы exists though propis2 never asks for it), then propis2's words and texts.
-// Read from propis2 since the old `propis` topic was archived (2026-11-08) — its words and texts
-// are a subset of propis2's.
+// Read from propis2 since the old `propis` topic was archived (2026-11-08); its words and texts are
+// propis2's except two words, kept below.
 const propis = JSON.parse(readFileSync(join(root, "tools/propis2/topic.json"), "utf8"));
 const letterCards = LETTER_DATA.flatMap(({ params: p }) => [...(["ъ", "ь"].includes(p.printed_lower) ? [] : [{ label: p.printed_lower.toUpperCase() }]), { label: p.printed_lower }]);
 for (const card of letterCards) {
@@ -41,6 +41,9 @@ for (const card of letterCards) {
   setLabel(`audio/propis-dictation/${key}.mp3`, label, "Буквы");
 }
 for (const word of propis.words) setLabel(`audio/propis-dictation/${wordDictationKey(word)}.mp3`, word.word, "Слова");
+// Recorded for the old topic's dictation, dropped from propis2's bank (silent consonants, owner 2026-10-29):
+// the clips are still in public/audio, so they keep their words here.
+for (const word of [{ id: "w186", word: "солнце" }, { id: "w223", word: "сердце" }]) setLabel(`audio/propis-dictation/${wordDictationKey(word)}.mp3`, word.word, "Слова");
 for (const entry of propis.texts) {
   splitIntoSentences(entry.text).forEach((text, index) => setLabel(`audio/propis-dictation/${textSentenceDictationKey(entry, index)}.mp3`, text, "Предложения"));
 }

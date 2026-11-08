@@ -259,8 +259,8 @@ def g_schwa_upper():
 
 
 def old_card_stroke(label):
-    """The first version of the copybook (the archived topic `propis`, tools/propis/topic.json): the letter card's first stroke."""
-    cards = json.loads((ROOT / "tools/propis/topic.json").read_text())["cards"]
+    """The first version of the copybook (the archived topic `propis`; its style is tools/handwriting/cyrillic/propis1-style.json): the letter card's first stroke."""
+    cards = json.loads((ROOT / "tools/handwriting/cyrillic/propis1-style.json").read_text())["cards"]
     return next(c for c in cards if c.get("label") == label)["strokes"][0]["d"]
 
 

@@ -129,6 +129,8 @@ def reading_order_pdf(sheets_pdf, placement, out_path, cover_pdf=None):
         w.write(f)
 
 
+# stage_for_deck copies the finished PDF into the print folder of the `propis` deck, which is archived
+# since 2026-11-08 (archive/propis): that copy is no longer used by anything. The PDF itself is built as before.
 PROPIS_DIR = os.path.join(ROOT, "tools", "propis")
 DECK_PRINT = os.path.join(PROPIS_DIR, "print", "прописи_знаки_препинания.pdf")
 DECK_THUMB = os.path.join(PROPIS_DIR, "thumbnails", "propis_worksheets_punctuation.png")

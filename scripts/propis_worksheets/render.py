@@ -14,7 +14,7 @@ import os
 from svg_path import path_bounds, draw_path, sample_path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-TOPIC_JSON = os.path.join(ROOT, "tools", "propis", "topic.json")
+TOPIC_JSON = os.path.join(ROOT, "tools", "handwriting", "cyrillic", "propis1-style.json")  # the first propis style: cards only
 
 # UNIT_H is the native-unit height of one letter's design canvas (150).
 # ROW_MM is the mm a letter's own native-unit height maps onto. 25.0, not

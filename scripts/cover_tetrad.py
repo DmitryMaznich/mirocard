@@ -387,7 +387,7 @@ def left_page_alphabet_handwritten(cv):
 
 def _punctuation_ink():
     """The workbook's own Ink: captured cursive letters + the user's
-    captured punctuation marks (tools/propis/topic.json), same strokes the
+    captured punctuation marks (tools/handwriting/cyrillic/propis1-style.json), same strokes the
     notebook pages draw."""
     wb = os.path.join(SCRIPTS_DIR, "punctuation_workbook")
     if wb not in sys.path:
@@ -527,7 +527,7 @@ DIGITS_COVER_LINES = [
 
 def _digits_ink():
     """The digits workbook's DigitInk: captured letters + the user's
-    captured digits and signs (tools/propis/topic.json), at letter scale."""
+    captured digits and signs (tools/handwriting/cyrillic/propis1-style.json), at letter scale."""
     wb = os.path.join(SCRIPTS_DIR, "digits_workbook")
     if wb not in sys.path:
         sys.path.insert(0, wb)

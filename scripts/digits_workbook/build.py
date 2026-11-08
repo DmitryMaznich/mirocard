@@ -64,6 +64,8 @@ def build_cover():
     return os.path.join(ROOT, "cover_цифры_digits.pdf")
 
 
+# stage_for_deck copies the finished PDF into the print folder of the `propis` deck, which is archived
+# since 2026-11-08 (archive/propis): that copy is no longer used by anything. The PDF itself is built as before.
 PROPIS_DIR = os.path.join(ROOT, "tools", "propis")
 DECK_PRINT = os.path.join(PROPIS_DIR, "print", "прописи_цифры.pdf")
 DECK_THUMB = os.path.join(PROPIS_DIR, "thumbnails", "propis_worksheets_digits.png")

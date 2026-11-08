@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
 
-// Real captured stroke, first M-only-then-C path from tools/propis/topic.json ("Б", stroke 0)
+// Real captured stroke, first M-only-then-C path from tools/handwriting/cyrillic/propis1-style.json ("Б", stroke 0)
 const REAL_STROKE_D =
   "M 31.58 45.29 C 30.54 47.86 31.46 46.75 28.46 52.99 C 25.46 59.23 16.40 77.37 13.57 82.74 " +
   "C 10.75 88.12 12.10 84.72 11.50 85.23 C 10.90 85.74 10.50 85.77 9.97 85.82 " +
