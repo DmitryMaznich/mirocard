@@ -1008,22 +1008,14 @@
     },
     {
       "id": "propis",
-      "title": "Прописи старые",
-      "version": "1.32.244",
-      "renderer": "propis",
-      "sources": [
-        "public/decks/propis_v1.32.244.zip",
-        "tools/propis/topic.json"
-      ],
-      "bundle": {
-        "version": "1.32.244",
-        "url": "./decks/propis_v1.32.244.zip",
-        "title": "Прописи старые",
-        "description": "Письменные буквы от узнавания до письма: ребёнок сначала учится узнавать письменную букву и соотносить её с печатной, различать строчную и заглавную, затем видит, как буквы, слова и текст пишутся от руки на тетрадной строке, и переписывает их с экрана в свою бумажную тетрадь.",
-        "renderer": "propis",
-        "modes": 8,
-        "cards": 81
+      "title": {
+        "ru": "Прописи старые",
+        "en": "Copybook old"
       },
+      "version": "1.32.244",
+      "renderer": null,
+      "sources": [],
+      "bundle": null,
       "builtin": false,
       "catalogEntry": {
         "id": "propis",
@@ -1043,7 +1035,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
+      "sourceUpdatedAt": null
     },
     {
       "id": "propis2",
