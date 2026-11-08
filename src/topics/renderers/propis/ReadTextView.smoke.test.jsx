@@ -2,7 +2,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
 import ReadTextView from "./ReadTextView.jsx";
-import { UNIT_H, TEXT_ROW_PITCH } from "./propisRuling.js";
+import { UNIT_H, TEXT_ROW_PITCH } from "../../../handwriting/propisRuling.js";
 
 // jsdom has no ResizeObserver -- ReadTextView (like WriteTextView.jsx, same unmodified
 // pattern) uses one to size the grid to its real on-screen width. The stub never fires,

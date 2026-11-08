@@ -3,14 +3,14 @@ import { createRoot } from "react-dom/client";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "../propis/PrintPageView";
+import PrintPageView from "../../../handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 import { newRow, newPage, pageToLines, withRowDrop, pageHasDropRows, dropReserve, dropIndent, lineOwners, duplicateRow } from "./model.js";
 import { caretAtLineStart, caretAtLineEnd } from "./fieldText.js";
 import { caretOnSheet } from "./caret.js";
 import { dropGeometry, dropLetters, suggestDrop, DROP_FRAME_MM, DROP_MAX_WIDTH, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
-import { mmToNativeUnits } from "../propis/propisRuling.js";
+import { mmToNativeUnits } from "../../../handwriting/propisRuling.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));

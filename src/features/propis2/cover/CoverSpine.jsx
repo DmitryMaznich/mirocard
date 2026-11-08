@@ -1,4 +1,4 @@
-import { PrintPageTop } from "@/topics/renderers/propis/PrintPageView";
+import { PrintPageTop } from "@/handwriting/PrintPageView";
 
 // Half of the spine (coverConfig.js DECORS "spine"): the band is 40 mm of the notebook's paper centred on the fold of the cover's
 // sheet. The back is the left half of that sheet and the front the right one, so the back shows the first 20 mm of one page of that

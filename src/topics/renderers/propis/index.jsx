@@ -1,17 +1,17 @@
-import "./propis.css";
-import "./letters/letters.css";
+import "../../../handwriting/propis.css";
+import "../../../handwriting/letters/letters.css";
 import PropisPracticeView from "./PropisPracticeView";
 import PropisShowView from "./PropisShowView";
 import WriteWordsView from "./WriteWordsView";
 import WriteTextView from "./WriteTextView";
 import ReadTextView from "./ReadTextView";
-import PrintPageView from "./PrintPageView";
+import PrintPageView from "../../../handwriting/PrintPageView";
 import PrintMaterialsView from "./PrintMaterialsView";
 import DictationView from "./DictationView";
-import { LetterGlyphProvider } from "./letters/LetterGlyph";
-import MatchView from "./letters/MatchView";
-import MatchPairView from "./letters/MatchPairView";
-import SortCaseView from "./letters/SortCaseView";
+import { LetterGlyphProvider } from "../../../handwriting/letters/LetterGlyph";
+import MatchView from "../../../handwriting/letters/MatchView";
+import MatchPairView from "../../../handwriting/letters/MatchPairView";
+import SortCaseView from "../../../handwriting/letters/SortCaseView";
 import AlphabetPairsView from "./letters/AlphabetPairsView";
 
 // Letter-recognition views (merged in from "Письменные буквы", 2026-09-29) draw their letters

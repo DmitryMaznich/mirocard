@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 // Flags of variant-deck glyphs made from another source (tools/propis2/variants/bg/font_glyphs.py): `noOverrides` keeps this bank's
 // per-letter fixes (glyphOverrides.js) off them, `noExit` (the pen ends on the letter's left, Boyan's Ф) leaves the next letter unjoined.

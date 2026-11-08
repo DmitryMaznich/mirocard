@@ -1,6 +1,6 @@
 import { shuffle } from "@/shared/utils/shuffle";
-import { generateLetterTasks } from "../propis/letters/lettersEngine.js";
-import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey, syllableDictationKey } from "../propis/dictationAudio.js";
+import { generateLetterTasks } from "../../../handwriting/letters/lettersEngine.js";
+import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey, syllableDictationKey } from "../../../handwriting/dictationAudio.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { deckLanguages, languageView, pickLanguage } from "./languages.js";

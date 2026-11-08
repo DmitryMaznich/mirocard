@@ -1,6 +1,6 @@
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
-import { NARROW_CELL, snapXFor } from "@/topics/renderers/propis/PrintPageView.jsx";
+import { NARROW_CELL, snapXFor } from "@/handwriting/PrintPageView.jsx";
 import { RU_LOWER, topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
 
 // Tiles of the deck's symbols (elements, letters, marks), each drawn with its own captured strokes (not a font), so the

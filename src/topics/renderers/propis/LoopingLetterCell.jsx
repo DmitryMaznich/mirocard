@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { LINE_MM, UNIT_H, L2, L3, LETTER_BASELINE_UNIT, LETTER_XHEIGHT_UNIT_SPAN, INK_COLOR, NIB_COLOR, STROKE_W } from "./propisRuling.js";
-import { useLoopingStrokes } from "./useLoopingStrokes.js";
+import { LINE_MM, UNIT_H, L2, L3, LETTER_BASELINE_UNIT, LETTER_XHEIGHT_UNIT_SPAN, INK_COLOR, NIB_COLOR, STROKE_W } from "../../../handwriting/propisRuling.js";
+import { useLoopingStrokes } from "../../../handwriting/useLoopingStrokes.js";
 
 // One item's animated sample, looping forever until unmounted.
 export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 1400 }) {

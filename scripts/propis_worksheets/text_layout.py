@@ -1,4 +1,4 @@
-"""Ports src/topics/renderers/propis/wordEngine.js's buildWordSegments and
+"""Ports src/handwriting/wordEngine.js's buildWordSegments and
 layoutTextIntoRows to Python -- wraps arbitrary text (not just a single
 word) across multiple ruled rows, the same way the in-app "Пишем текст"
 mode (WriteTextView.jsx) does, for the print pipeline's text-copying

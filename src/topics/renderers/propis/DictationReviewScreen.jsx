@@ -4,11 +4,11 @@ import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import PinGateModal from "@/shared/components/PinGateModal";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
-import { layoutTextIntoRows } from "./wordEngine.js";
+import { layoutTextIntoRows } from "../../../handwriting/wordEngine.js";
 import {
   INK_COLOR, NATIVE_L3, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET,
   TEXT_ROW_DIAGONAL_SPACING, buildDiagonalLines,
-} from "./propisRuling.js";
+} from "../../../handwriting/propisRuling.js";
 
 // Same fixed on-screen row height ReadTextView.jsx uses (no tablet 2x here -- that was a
 // read_text-specific request, not part of "look like the real Тетрадный лист page").

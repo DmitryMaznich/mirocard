@@ -9,11 +9,11 @@ import { generateTasks } from "./engine.js";
 import { buildTiles } from "@/features/propis2/Propis2Carousel.jsx";
 import { backContent } from "@/features/propis2/cover/backContent.js";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 import { analyzePage, deckPapers, kitToLibraryItems, newPage, pageBandFill, rowsPerPage } from "./model.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 // The Bulgarian variant deck (docs/propis2-variants.md), installed from its built ZIP through the real importer: the same renderer,
 // its own alphabet (30 letters, no Ё Ы Э), its own modes, words on the cover in Bulgarian.

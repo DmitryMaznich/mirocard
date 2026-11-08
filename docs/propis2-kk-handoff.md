@@ -31,7 +31,7 @@
 - Известно: в вызовах bash `pkill -f vite` убивает и оболочку (код 144). Vite между вызовами умирает: запускать `(nohup npx vite --port 5199 --host 127.0.0.1 >/tmp/v.log 2>&1 &); sleep 8`.
 
 ## Что устроено в движке (то, что нужно понимать, чтобы рисовать правильно)
-- `src/topics/renderers/propis/wordEngine.js`, `layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply, scale, maxX)`: раскладка слов в строке. Всё считается в координатах русской
+- `src/handwriting/wordEngine.js`, `layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply, scale, maxX)`: раскладка слов в строке. Всё считается в координатах русской
   косой 65°; болгарский наклон (`meta.script.slantDeg`) переводится потом целиком (`scriptGeometry.js`). Единицы: клетка `CELL = 30·scale`, `WIDE_JOIN_TAN = tan 25°`,
   базовая линия строки y=64, средняя пунктирная y=40 (при scale 1), `u = x + tan25°·y` — координата вдоль косых.
 - `snapX` — привязка к линиям: «частая» бумага (`snapX.drawn`, линии нарисованы, шаг = клетка/2) и «редкая» (скрытая решётка `hidden`, видны только 20-мм косые). **Правила для них разные,

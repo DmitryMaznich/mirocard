@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/shared/components/ProgressBar";
 import ReviewScreen from "./DictationReviewScreen";
-import { dictationAudioUrl } from "./dictationAudio";
+import { dictationAudioUrl } from "../../../handwriting/dictationAudio";
 import { useDictationPlayer } from "./useDictationPlayer";
 
 // Gap after each sentence within a text, so the child has time to write it before the next

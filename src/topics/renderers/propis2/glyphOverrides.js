@@ -12,7 +12,7 @@
 //                letter is a stroke of its own from the LOWEST point of that stroke: the curve of `joinLike` (о), its end on the grid point where the exit of
 //                `joinEndLike` (Ч: the same start as У) arrives (the mid dashed line x the next slant line, the same for every connector)
 import DIGIT_GLYPHS from "./digitGlyphs.json";
-import { MISSING_GLYPH_LABEL } from "../propis/wordEngine.js";
+import { MISSING_GLYPH_LABEL } from "../../../handwriting/wordEngine.js";
 
 export const P2_GLYPH_OVERRIDES = {
   // steepExit: the connector runs a little along the bottom and then rises STRAIGHT at the angle of а's exit, into the same end point

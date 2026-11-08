@@ -1,8 +1,8 @@
 // How far a glyph reaches above and below the writing band on the NARROW row (the engine's own layout, so the
 // numbers are the ones the page shows). `propis2` uses it to keep the wide ruling to the letters that stay
 // inside the row, as in the methodology sheets (no capitals, no б в д з р у ф ц щ, no ! ?).
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "../propis/propisRuling.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "../../../handwriting/propisRuling.js";
 
 export const NARROW_SCALE = 0.5;
 export const ROW_BASE = NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // baseline of the narrow band (row-local 64)

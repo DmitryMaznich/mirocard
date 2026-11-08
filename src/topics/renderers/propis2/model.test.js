@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer, followingSameRows, rowSetting, mixedRowSettings, pageBandFill, bandFillId } from "./model.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 import { PROPIS2_LADDER, ladderIndex } from "./data.js";
 import { outsideRowLabels } from "./glyphReach.js";
 import { buildGlyphMap } from "./pageTask.js";
-import { rowAtSvgY } from "../propis/PrintPageView.jsx";
+import { rowAtSvgY } from "../../../handwriting/PrintPageView.jsx";
 
 function record() {
   const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
@@ -423,7 +423,7 @@ describe("extra spaces between words of running text", () => {
 
 describe("long text wraps by the grid the page is drawn with", () => {
   it("no wrapped line is wider than the row, whatever the slant frequency, ruling and margin", async () => {
-    const { snapXFor } = await import("../propis/PrintPageView.jsx");
+    const { snapXFor } = await import("../../../handwriting/PrintPageView.jsx");
     const text = "мама мыла раму и  пошла  гулять в лес  собирать грибы и ягоды, а потом пришла домой и стала варить кашу для всей большой семьи";
     for (const ruling of ["narrow", "wide"]) for (const grid of ["regular", "dense"]) for (const margin of ["off", "left"]) {
       const page = newPage("p", { ruling, grid, margin, rows: [newRow({ kind: "passage", text })] });
@@ -687,7 +687,7 @@ describe("running text writes a repeated word in full", () => {
 
 describe("layout cache (typing in one row lays out only that row)", () => {
   it("a page laid out with the cached rows is exactly the page laid out from scratch, on every grid; snapXFor is stable", async () => {
-    const { snapXFor } = await import("../propis/PrintPageView.jsx");
+    const { snapXFor } = await import("../../../handwriting/PrintPageView.jsx");
     const lines = ["мама мыла раму", "", "Жора#d", "№2№+№3№=№5", "и и и", "жуки#f", "уж#1#i2"];
     for (const args of [{ narrowRows: true, simpleGrid: "dense", narrow17: true }, { narrowRows: true, simpleGrid: "regular", narrow17: true }, { narrowRows: false, simpleGrid: "dense" }, { narrowRows: true, simpleGrid: "square", narrow17: true }]) {
       const snap = snapXFor(args);
@@ -809,7 +809,7 @@ describe("digits and signs (captured 2026-10-06)", () => {
   });
 
   it("on squared paper a word is the copybook's word, only smaller: the letters snap to an undrawn slant grid of their own cell (joins of э ж о as on the copybook)", async () => {
-    const { snapXFor } = await import("../propis/PrintPageView.jsx");
+    const { snapXFor } = await import("../../../handwriting/PrintPageView.jsx");
     const xs = (sg) => sg.strokes.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0));
     const width = (snap, w) => { const sg = layoutWideLinesIntoRows([w + "#1"], map, snap, false, 0.5).placed[0].segments[0]; return Math.max(...xs(sg)) - Math.min(...xs(sg)); };
     const slant = snapXFor({ narrowRows: true, simpleGrid: "dense", narrow17: true });

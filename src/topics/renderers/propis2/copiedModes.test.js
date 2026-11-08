@@ -4,7 +4,7 @@ import { buildGlyphMap } from "./pageTask.js";
 import { cardGlyphs } from "./letterCards.js";
 import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { generateTasks } from "./engine.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));

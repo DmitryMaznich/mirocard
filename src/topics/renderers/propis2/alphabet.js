@@ -2,7 +2,7 @@
 // scripts/build-propis2-deck.mjs --variant <id>) names its own in `meta.alphabet`: { lower, noCapital }. Everything that
 // lists "the letters" — the letter cards of «Узнай букву» / «Строчная и заглавная», the dictation of letters, the letter tiles of
 // the constructor, the alphabet on the back of the cover — reads it from here, never from a string of its own.
-import { LETTER_DATA } from "../propis/letters/letterData.js";
+import { LETTER_DATA } from "../../../handwriting/letters/letterData.js";
 
 export const RU_LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
 const RU_NO_CAPITAL = ["ъ", "ы", "ь"];

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import PrintPageView from "./PrintPageView.jsx";
-import { buildPageTask } from "../propis2/pageTask.js";
+import { buildPageTask } from "../topics/renderers/propis2/pageTask.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };

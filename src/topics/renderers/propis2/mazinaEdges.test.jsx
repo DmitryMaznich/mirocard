@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 
 // The ruling runs to every edge of the sheet (owner, 2026-11-05: on an A4 PDF the grid had a white strip at the top / the bottom): the cycle

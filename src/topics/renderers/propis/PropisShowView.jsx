@@ -1,4 +1,4 @@
-import { LINE_MM, buildRowGuideLines, buildDiagonalLines } from "./propisRuling.js";
+import { LINE_MM, buildRowGuideLines, buildDiagonalLines } from "../../../handwriting/propisRuling.js";
 import LoopingLetterCell from "./LoopingLetterCell.jsx";
 
 // Real A5 copybook page proportions — matches make_lined_paper_landscape_standard.py

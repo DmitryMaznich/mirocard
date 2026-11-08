@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from "react";
 import WordAnimatedCard from "./WordAnimatedCard.jsx";
-import { buildWordTrajectory } from "./wordEngine.js";
+import { buildWordTrajectory } from "../../../handwriting/wordEngine.js";
 
 // Same alphabetical grouping PropisPracticeView and the app's magnetic_alphabet
 // keyboard both use, for a consistent layout across topics.

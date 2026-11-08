@@ -1,5 +1,5 @@
-import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
-import AnimatedStrokes from "./AnimatedStrokes.jsx";
+import { GUIDE_LINES, NATIVE_L3 } from "../../../handwriting/propisRuling.js";
+import AnimatedStrokes from "../../../handwriting/AnimatedStrokes.jsx";
 
 const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;

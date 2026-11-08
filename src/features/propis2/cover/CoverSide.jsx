@@ -2,7 +2,7 @@ import CoverTemplate from "./CoverTemplate.jsx";
 import CoverBack from "./CoverBack.jsx";
 import { useCoverTasks } from "./coverTasks.js";
 import { coverStamp, spinePaperOf } from "./coverConfig.js";
-import { bookletPageCount } from "@/topics/renderers/propis/booklet.js";
+import { bookletPageCount } from "@/handwriting/booklet.js";
 
 // One side of a notebook's cover with the engine tasks it needs: the front or the back. `notebook`: {title, a4, topicRecord, paper,
 // pages, booklet} — `paper` the grid kind of its first page (the spine's paper when the cover says "as in the notebook"), `pages` its

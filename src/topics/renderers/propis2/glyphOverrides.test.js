@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
 import { markStem } from "./glyphOverrides.js";
-import { wideGlyphLocal, layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { wideGlyphLocal, layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
 const pts = (d) => (String(d).match(/-?\d*\.?\d+/g) ?? []).map(Number);

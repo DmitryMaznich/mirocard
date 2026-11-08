@@ -535,7 +535,7 @@ explicit design decision. Don't touch `letter_writing` while working on this.
     real (temporary, not committed) vitest file exercising all four dictation-param
     combinations *and* a `write_words` call through the new pathway, all 6 assertions
     green, alongside the existing 101 propis/session-engine tests still passing unmodified.
-  - **`src/topics/renderers/propis/dictationAudio.js`** (new) — the audio-key scheme.
+  - **`src/handwriting/dictationAudio.js`** (new) — the audio-key scheme.
     Letters: `up_<lowercase letter>` / `lo_<lowercase letter>` (e.g. `up_а`, `lo_а`) rather
     than the bare letter as the key — deliberately avoids relying on the Cyrillic
     character's own case at all, because the build machine is Windows (CLAUDE.md) and
@@ -1165,14 +1165,14 @@ connectors, or touching `wordEngine.js`.
 
 ### File map (write_words-specific, on top of the shared files above)
 
-- `src/topics/renderers/propis/wordEngine.js` — all the logic: line
+- `src/handwriting/wordEngine.js` — all the logic: line
   classification, connector/variant selection, trajectory assembly
   (`buildWordTrajectory`, the main export). No React in this file, pure data
   in/out — that's why it's unit-tested directly rather than through the view.
-- `src/topics/renderers/propis/wordEngine.test.js` — the spec, in practice.
+- `src/handwriting/wordEngine.test.js` — the spec, in practice.
   298 tests as of the last session (2026-08-13); when in doubt about intended behavior for
   an edge case, check here before asking or re-deriving it from scratch.
-- `src/topics/renderers/propis/pathGeometry.js` — generic SVG path helpers
+- `src/handwriting/pathGeometry.js` — generic SVG path helpers
   used by wordEngine.js: `getPathEndpoints`, `samplePath`, `transformPathD`,
   `findClosestApproach`. No propis-specific knowledge lives here.
 - `src/topics/renderers/propis/WriteWordsView.jsx` — the view: on-screen

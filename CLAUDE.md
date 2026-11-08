@@ -167,11 +167,13 @@ The old topic (id **`propis`**) is now titled **«Прописи старые»*
 status `"archived"` (`public/decks/catalog.json` + `backend/generated/topic-inventory.json`): the
 server sends `archivedTopicIds`, the app keeps archived topics off the home screen of every
 device, only the admin topic archive shows them. Archive only, no new work. In code
-comments, name the topics by id (`propis2` / `propis`), not «Прописи 2» / v1. **But its code and data are NOT dead:** `propis2` imports the shared
-engine from `src/topics/renderers/propis/` (`wordEngine.js`, `PrintPageView.jsx`,
-`useLoopingStrokes.js`, `AnimatedStrokes.jsx`, `letters/*` views) and glyph data from
-`tools/propis/` (`wide.json`, `elements.json`, `captures/`). Never delete those when
-cleaning up the old topic; letter-shape edits still go into `tools/propis/`.
+comments, name the topics by id (`propis2` / `propis`), not «Прописи 2» / v1. **The shared handwriting engine
+lives in `src/handwriting/`** (moved out of `src/topics/renderers/propis/` on 2026-11-08 — paths only, the
+built `propis2`/`print_letters` renderers stayed byte-identical): `wordEngine.js`, `PrintPageView.jsx`,
+`propisRuling.js`, `pathGeometry.js`, `printPdf.js`, `useLoopingStrokes.js`, `AnimatedStrokes.jsx`,
+`letters/*` card views, and their tests. `src/topics/renderers/propis/` now holds only the archived old
+topic's own screens. Glyph data still comes from `tools/propis/` (`wide.json`, `elements.json`,
+`captures/`) — never delete it; letter-shape edits still go into `tools/propis/`.
 `docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
 geometry, glyph capture) — still worth reading when touching the shared engine.
 

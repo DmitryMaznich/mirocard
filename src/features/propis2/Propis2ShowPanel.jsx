@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import PrintPageView, { snapXFor } from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView, { snapXFor } from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { lineWidth } from "@/topics/renderers/propis2/model.js";
-import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "@/topics/renderers/propis/propisRuling.js";
-import { WIDE_ROW_MAX_X } from "@/topics/renderers/propis/wordEngine.js";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "@/handwriting/propisRuling.js";
+import { WIDE_ROW_MAX_X } from "@/handwriting/wordEngine.js";
 
 // Show panel: the tapped fragment written large on its own ruling, the pen going over it, with repeat, slow motion and close.
 // The page behind stays mounted, so closing returns to the same page, zoom and scroll.

@@ -1,4 +1,4 @@
-"""Ports src/topics/renderers/propis/wordEngine.js's buildWordTrajectory
+"""Ports src/handwriting/wordEngine.js's buildWordTrajectory
 (the in-app word-trajectory builder) to Python, for rendering real
 connected letters -- both letter PAIRS ("слоги" / letter connections)
 and full multi-letter WORDS -- in the print pipeline, reusing the actual

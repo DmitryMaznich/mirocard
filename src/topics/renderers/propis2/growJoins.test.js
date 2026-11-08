@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { samplePath } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { samplePath } from "../../../handwriting/pathGeometry.js";
 import { withGlyphOverrides } from "./glyphOverrides.js";
 
 // meta.script.growJoins (the Kazakh variant): what the grid nudges cannot close between a connector and the next letter is closed by a straight piece
@@ -17,7 +17,7 @@ const gapBetween = (map, a, b) => {
   return best;
 };
 
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 const tailEndY = (map, word) => {
   const { placed } = layoutWideLinesIntoRows([word], map, undefined, false, 1);

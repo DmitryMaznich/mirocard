@@ -13,7 +13,7 @@
 // «Прописи», 3 части), стр. 5–11 — see the reference sheet cut from that PDF this session.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { samplePath, transformPathD } from "../src/topics/renderers/propis/pathGeometry.js";
+import { samplePath, transformPathD } from "../src/handwriting/pathGeometry.js";
 
 const VB_H = 150; // matches handwriting_capture.html's VB_H / propis's shared row height
 const PAD = 4; // horizontal breathing room so stroke-width doesn't clip at the viewBox edge

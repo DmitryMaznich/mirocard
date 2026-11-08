@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { snapXFor } from "../propis/PrintPageView.jsx";
-import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../propis/propisRuling.js";
-import { samplePath } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { snapXFor } from "../../../handwriting/PrintPageView.jsx";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../../../handwriting/propisRuling.js";
+import { samplePath } from "../../../handwriting/pathGeometry.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));

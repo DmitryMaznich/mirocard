@@ -5,9 +5,9 @@ import {
   textDictationKey,
   textSentenceDictationKey,
   splitIntoSentences,
-} from "./dictationAudio";
-import { generateLetterTasks } from "./letters/lettersEngine.js";
-import { LETTER_DATA } from "./letters/letterData.js";
+} from "../../../handwriting/dictationAudio";
+import { generateLetterTasks } from "../../../handwriting/letters/lettersEngine.js";
+import { LETTER_DATA } from "../../../handwriting/letters/letterData.js";
 
 // Plain shuffle can put "А" right next to "а" (same letter, different pool entries for case)
 // or, in principle, any two items that read as "the same thing twice in a row" -- reported

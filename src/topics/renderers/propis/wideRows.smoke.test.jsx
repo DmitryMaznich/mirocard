@@ -2,10 +2,10 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
 import { readFileSync, writeFileSync } from "node:fs";
-import PrintPageView from "./PrintPageView.jsx";
+import PrintPageView from "../../../handwriting/PrintPageView.jsx";
 import { generateTasks } from "./engine.js";
-import { layoutWideLinesIntoRows, WIDE_SCALE, WIDE_ZONE_UNITS } from "./wordEngine.js";
-import { toCubicPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
+import { layoutWideLinesIntoRows, WIDE_SCALE, WIDE_ZONE_UNITS } from "../../../handwriting/wordEngine.js";
+import { toCubicPathD, getPathEndpoints, samplePath } from "../../../handwriting/pathGeometry.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
@@ -66,7 +66,7 @@ it("renders a wide-rows page (dumps SVG when WIDE_DUMP is set)", () => {
 
 describe("stretchKeepSlantPathD", () => {
   it("widens ink but keeps a straight 65deg stroke at 65deg", async () => {
-    const { stretchKeepSlantPathD } = await import("./pathGeometry.js");
+    const { stretchKeepSlantPathD } = await import("../../../handwriting/pathGeometry.js");
     const t = Math.tan((25 * Math.PI) / 180);
     // stroke "/" from (100,62) up to (100 + 40*t, 22)
     const d = toCubicPathD(`M 100 62 L ${100 + 40 * t} 22`);
@@ -111,7 +111,7 @@ describe("wideSheet preset", () => {
 
 describe("letter joins", () => {
   it("lands each tail exactly on the next letter's stroke, with no connector stroke", async () => {
-    const { samplePath } = await import("./pathGeometry.js");
+    const { samplePath } = await import("../../../handwriting/pathGeometry.js");
     const S = 30;
     const t = Math.tan((25 * Math.PI) / 180);
     const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;

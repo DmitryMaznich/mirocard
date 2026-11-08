@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "../propis/PrintPageView";
+import PrintPageView from "../../../handwriting/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));

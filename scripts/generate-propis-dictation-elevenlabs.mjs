@@ -21,7 +21,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey, syllableDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey, syllableDictationKey } from "../src/handwriting/dictationAudio.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned

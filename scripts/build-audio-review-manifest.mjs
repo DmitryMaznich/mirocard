@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { NUMBER_WORDS } from "../src/topics/renderers/addition_subtraction/audioNumbers.js";
 import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
-import { letterDictationKey, splitIntoSentences, syllableDictationKey, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { letterDictationKey, splitIntoSentences, syllableDictationKey, textSentenceDictationKey, wordDictationKey } from "../src/handwriting/dictationAudio.js";
 import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
 import { PROPIS_NATURAL_PILOT } from "./lib/propis-natural-pilot-bank.mjs";
 import { PROPIS_ELEVENLABS_ALPHABET, PROPIS_ELEVENLABS_CASE_PILOT, PROPIS_ELEVENLABS_ENTRIES, PROPIS_ELEVENLABS_E_PILOT, PROPIS_ELEVENLABS_WORDS_PILOT } from "./lib/propis-elevenlabs-bank.mjs";

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { LINE_MM, buildRowGuideLines, buildDiagonalLines } from "./propisRuling.js";
+import { LINE_MM, buildRowGuideLines, buildDiagonalLines } from "../../../handwriting/propisRuling.js";
 import LoopingLetterCell from "./LoopingLetterCell.jsx";
 
 // Same alphabetical grouping the app's other custom keyboard (magnetic_alphabet) uses,

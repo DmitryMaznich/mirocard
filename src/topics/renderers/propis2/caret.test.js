@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { lineOwners, newPage, newRow, pageRuling, pageSnap, pageToLines, rowMaxX } from "./model.js";
 import { bracesIn, fieldFromRows } from "./fieldText.js";

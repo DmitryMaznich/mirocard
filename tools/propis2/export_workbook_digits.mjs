@@ -9,9 +9,9 @@
 //
 //   node tools/propis2/export_workbook_digits.mjs     -> scripts/digits_workbook/p2_digits.json
 import { readFileSync, writeFileSync } from "node:fs";
-import { cellGlyphLocal, wideGlyphLocal } from "../../src/topics/renderers/propis/wordEngine.js";
-import { transformPathD, samplePath } from "../../src/topics/renderers/propis/pathGeometry.js";
-import { mmToNativeUnits, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, NATIVE_L3 } from "../../src/topics/renderers/propis/propisRuling.js";
+import { cellGlyphLocal, wideGlyphLocal } from "../../src/handwriting/wordEngine.js";
+import { transformPathD, samplePath } from "../../src/handwriting/pathGeometry.js";
+import { mmToNativeUnits, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, NATIVE_L3 } from "../../src/handwriting/propisRuling.js";
 
 const GLYPHS = JSON.parse(readFileSync(new URL("../../src/topics/renderers/propis2/digitGlyphs.json", import.meta.url), "utf-8"));
 const OUT = new URL("../../scripts/digits_workbook/p2_digits.json", import.meta.url);

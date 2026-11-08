@@ -1,5 +1,5 @@
 import { useRef, useLayoutEffect } from "react";
-import LetterGlyph from "./LetterGlyph";
+import LetterGlyph from "../../../../handwriting/letters/LetterGlyph";
 
 const VBW = 100;
 const VBH = 150;

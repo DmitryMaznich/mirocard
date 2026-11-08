@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { renderToStaticMarkup } from "react-dom/server";
 import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { topicAlphabet } from "./alphabet.js";
 import { analyzePage, deckPapers, kitToLibraryItems, rowsPerPage } from "./model.js";

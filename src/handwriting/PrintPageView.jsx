@@ -1,4 +1,4 @@
-import { DROP_COLOR, DROP_FILL, dropGeometry } from "../propis2/dropCap.js";
+import { DROP_COLOR, DROP_FILL, dropGeometry } from "../topics/renderers/propis2/dropCap.js";
 import { memo, useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, WIDE_ROW_MAX_X, paginateRows } from "./wordEngine.js";

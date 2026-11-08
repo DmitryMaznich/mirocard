@@ -1,4 +1,4 @@
-import { PrintPageTop } from "@/topics/renderers/propis/PrintPageView";
+import { PrintPageTop } from "@/handwriting/PrintPageView";
 import { accentColor, coverStamp } from "./coverConfig.js";
 import MironiumLogo from "./MironiumLogo.jsx";
 import CoverSpine from "./CoverSpine.jsx";

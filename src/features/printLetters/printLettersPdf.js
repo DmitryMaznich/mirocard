@@ -1,6 +1,6 @@
 // «Печатные буквы»: the notebook as a VECTOR PDF made in the app, no print dialog (owner, 2026-11-03:
 // «мне нужно, чтобы просто был диалог сохранить в PDF»). The same technique as propis2's printPdf.js
-// (src/topics/renderers/propis/printPdf.js), copied for this topic's own markup: the print sheets
+// (src/handwriting/printPdf.js), copied for this topic's own markup: the print sheets
 // (PrintPages, one `.pl-sheet--print` per page) are laid out off screen at their real size, and each
 // becomes one SVG in millimetres — the grid, every letter's SVG (strokes, dots, arrows, numbers), the
 // block frames and colour plates, the ruling, the header — drawn into a PDF page by svg2pdf, at the

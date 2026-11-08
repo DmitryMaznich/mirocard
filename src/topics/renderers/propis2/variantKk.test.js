@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import { buildGlyphMap } from "./pageTask.js";
 import { topicAlphabet } from "./alphabet.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 // The Kazakh variant (propis2_kk, docs/propis2-variants.md): the variant laid over the base topic, as the build does it
 const loadTopic = async (variantFile = "tools/propis2/variants/kk/variant.json") => {

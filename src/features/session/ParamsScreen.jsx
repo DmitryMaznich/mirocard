@@ -35,8 +35,8 @@ import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS, scalePortionQty } from "@/features/planner/recipeParser.js";
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
 import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
-import LettersCaseParams from "@/topics/renderers/propis/letters/LettersCaseParams";
-import { LetterGlyphProvider } from "@/topics/renderers/propis/letters/LetterGlyph";
+import LettersCaseParams from "@/handwriting/letters/LettersCaseParams";
+import { LetterGlyphProvider } from "@/handwriting/letters/LetterGlyph";
 import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
@@ -44,7 +44,7 @@ import { getFigureDifficultyRecommendation } from "@/features/session/figureDiff
 import {
   LINE_MM, NATIVE_L1, NATIVE_L4, INK_COLOR,
   buildRowGuideLines, buildDiagonalLines,
-} from "@/topics/renderers/propis/propisRuling.js";
+} from "@/handwriting/propisRuling.js";
 import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 

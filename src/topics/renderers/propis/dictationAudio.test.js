@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { generateTasks } from "./engine.js";
-import { dictationAudioUrl } from "./dictationAudio.js";
+import { dictationAudioUrl } from "../../../handwriting/dictationAudio.js";
 
 // vitest runs from the repo root.
 const topic = JSON.parse(readFileSync(resolve("tools/propis/topic.json"), "utf8"));

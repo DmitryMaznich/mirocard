@@ -1,9 +1,9 @@
 // `propis2`: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
-import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
+import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../../../handwriting/wordEngine.js";
 import { dropFlag, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
-import { snapXFor, ownRowsPerPage } from "../propis/PrintPageView.jsx";
-import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
+import { snapXFor, ownRowsPerPage } from "../../../handwriting/PrintPageView.jsx";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../../../handwriting/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 import { PROPIS2_METHOD_NOTEBOOKS } from "./data.js";
 

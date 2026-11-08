@@ -124,7 +124,7 @@ to a class]`, голос владельца, `eleven_v4`, по одному ду
 Д, Е, И, У) — первые дубли пилота `propis-elevenlabs-case-pilot`, остальные 50
 сгенерированы тем же промптом. `DictationView` играет одну запись на букву;
 старые `case_upper`/`case_lower`/`sound_*` удалены (есть в истории git).
-Тест `src/topics/renderers/propis/dictationAudio.test.js` проверяет, что у
+Тест `src/handwriting/dictationAudio.test.js` проверяет, что у
 каждой карточки-буквы есть файл.
 
 Пересъёмка (10.10.2026): владелец забраковал `lo_ж` и `up_х`. Перезаписаны,

@@ -5,11 +5,11 @@
 //  - caretFromSheet: a point on a sheet row -> the offset in the line of the row that owns it, the nearest letter boundary.
 // x is measured the way the page draws the row: the text up to the caret is laid out by the engine on the SAME row of the page (the
 // slant grid's phase differs from row to row), so the caret stands right after the ink of the last letter typed.
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 import { bboxOf } from "./glyphReach.js";
 import { bracesOut } from "./fieldText.js";
 import { dropIndent, dropReserve, indentUnitsOf, leadingSpaces, pageRuling, pageSnap, rowMaxX, rowToLine, wrapPassage } from "./model.js";
-import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../propis/propisRuling.js";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../../../handwriting/propisRuling.js";
 
 const SPACE_UNITS = 14; // the caret after a typed space stands this far (× the row's scale) right of the last ink
 

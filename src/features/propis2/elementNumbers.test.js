@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildTiles } from "./Propis2Carousel.jsx";
-import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
-import { NARROW_CELL, snapXFor } from "@/topics/renderers/propis/PrintPageView.jsx";
+import { layoutWideLinesIntoRows } from "@/handwriting/wordEngine.js";
+import { NARROW_CELL, snapXFor } from "@/handwriting/PrintPageView.jsx";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE } from "@/topics/renderers/propis2/glyphReach.js";
 

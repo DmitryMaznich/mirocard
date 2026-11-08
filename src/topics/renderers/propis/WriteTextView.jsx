@@ -1,10 +1,10 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { layoutTextIntoRows } from "./wordEngine.js";
-import AnimatedStrokes from "./AnimatedStrokes.jsx";
+import { layoutTextIntoRows } from "../../../handwriting/wordEngine.js";
+import AnimatedStrokes from "../../../handwriting/AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3, NATIVE_NARROW_MID, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET,
   TEXT_ROW_DIAGONAL_SPACING, buildDiagonalLines,
-} from "./propisRuling.js";
+} from "../../../handwriting/propisRuling.js";
 
 // Word tap-hit rect: see ReadTextView.jsx's identical WORD_HIT_Y for the full derivation --
 // centers the hit rect on the row's own visual content instead of pinning it to y=0, which

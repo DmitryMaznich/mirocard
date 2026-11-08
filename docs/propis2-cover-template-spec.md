@@ -4,7 +4,7 @@
 
 ## 0. С чего начать (обязательно)
 
-- **Код, на котором строится задача, живёт в ветке `ccr-b821a143-miegjj`.** Если её уже слили в `main`, бери `main`. Проверка: в `main` есть `src/features/propis2/Propis2Cover.jsx`, `Propis2PrintDialog.jsx` и функция `PrintPageTop` в `src/topics/renderers/propis/PrintPageView.jsx`. Если их нет, работай от этой ветки.
+- **Код, на котором строится задача, живёт в ветке `ccr-b821a143-miegjj`.** Если её уже слили в `main`, бери `main`. Проверка: в `main` есть `src/features/propis2/Propis2Cover.jsx`, `Propis2PrintDialog.jsx` и функция `PrintPageTop` в `src/handwriting/PrintPageView.jsx`. Если их нет, работай от этой ветки.
 - Перед любыми правками экранов загрузи скилл `designing-mirocard-screens`.
 - Соблюдай правило iOS safe area из `CLAUDE.md`.
 - Деплой — только по слову владельца («Заливай»). Перед пушем в `main` повышай версию по правилам `CLAUDE.md`.
