@@ -46,6 +46,25 @@ export const FOUR_LINE_PAPERS = {
   },
 };
 
+// The English papers in more sizes (Nelson's x-height by year: Starter 8 mm, Book 1 6 mm, Book 2 5 mm, Books 3–4 4 mm; Zaner-Bloser
+// grade 2 is ¼ inch = 6.35 mm): the same paper scaled — every band and the gap between rows — as separate papers, the way the schemes
+// themselves give each year its own ruling. The 5 mm ones keep their old ids (en_gb, en_us).
+// `gapMm`: as measured where the source has it (Nelson Year 1 and 2: 6 mm between rows, Year 3: 3.8 mm), else scaled
+const sized = (id, xMm, label, gapMm = null) => {
+  const p = FOUR_LINE_PAPERS[id];
+  const k = xMm / p.xMm;
+  return { ...p, label, upMm: p.upMm * k, xMm, downMm: p.downMm * k, gapMm: gapMm ?? p.gapMm * k };
+};
+Object.assign(FOUR_LINE_PAPERS, {
+  en_gb_8: sized("en_gb", 8, "Британская строка · 8 мм"),
+  en_gb_6: sized("en_gb", 6, "Британская строка · 6 мм", 6),
+  en_gb_4: sized("en_gb", 4, "Британская строка · 4 мм", 3.8),
+  en_us_8: sized("en_us", 8, "Американская строка · 8 мм"),
+  en_us_6: sized("en_us", 6.35, "Американская строка · 6,35 мм (¼ дюйма)"),
+});
+FOUR_LINE_PAPERS.en_gb.label = "Британская строка · 5 мм";
+FOUR_LINE_PAPERS.en_us.label = "Американская строка · 5 мм";
+
 export const fourLinePaper = (kind) => (Object.hasOwn(FOUR_LINE_PAPERS, kind) ? FOUR_LINE_PAPERS[kind] : null);
 export const isFourLinePaper = (kind) => fourLinePaper(kind) !== null;
 export const FOUR_LINE_IDS = Object.keys(FOUR_LINE_PAPERS);

@@ -64,6 +64,18 @@ describe("four-line papers", () => {
     // the Russian deck (no meta.papers) and the Bulgarian one keep their lists
     expect(deckPapers({ meta: {} }).map((p) => p.id)).toEqual(["propis", "m1", "m2", "square", "ruled"]);
     expect(deckPapers({ meta: { papers: ["bg", "square", "ruled"] } }).map((p) => p.id)).toEqual(["bg", "square", "ruled"]);
-    expect(deckPapers({ meta: { papers: ["en_gb"] } }).map((p) => p.label)).toEqual(["Английская строка (британская)"]);
+    expect(deckPapers({ meta: { papers: ["en_gb"] } }).map((p) => p.label)).toEqual(["Британская строка · 5 мм"]);
+  });
+  it("the English papers come in the sizes of the schemes: same proportions, Nelson's own gaps between rows", () => {
+    const p = (id) => FOUR_LINE_PAPERS[id];
+    for (const id of ["en_gb_8", "en_gb_6", "en_gb_4"]) {
+      expect(p(id).upMm / p(id).xMm).toBeCloseTo(0.74, 5);
+      expect(p(id).downMm / p(id).xMm).toBeCloseTo(0.72, 5);
+    }
+    expect([p("en_gb_8").xMm, p("en_gb_6").xMm, p("en_gb").xMm, p("en_gb_4").xMm]).toEqual([8, 6, 5, 4]);
+    expect([p("en_gb_6").gapMm, p("en_gb").gapMm, p("en_gb_4").gapMm]).toEqual([6, 6, 3.8]); // measured, Year 1 / 2 / 3
+    expect(p("en_us_6").xMm).toBe(6.35); // Zaner-Bloser grade 2: ¼ inch
+    expect(p("en_us_6").upMm).toBe(6.35);
+    expect(p("bg").xMm).toBe(4.94); // the Bulgarian one untouched
   });
 });
