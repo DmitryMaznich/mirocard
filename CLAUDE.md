@@ -176,7 +176,7 @@ to `archive/propis/` the same day and unregistered (`archive/README.md`); its ca
 `archived` — that is what keeps installed copies hidden, never delete it. The Cyrillic glyph data moved the same day to `tools/handwriting/cyrillic/`
 (`wide.json`, `elements.json`, `captures/`) — letter-shape edits go there. **The old topic's own writing
 style is kept** (owner, 2026-11-08) as `tools/handwriting/cyrillic/propis1-style.json` (its 73 letters,
-4 joins, 4 signs, unchanged; picture `docs/mockups/handwriting/propis1-style.png`) — a candidate style for
+4 joins, 4 signs, unchanged; picture `docs/mockups/handwriting/propis1-style.html`) — a candidate style for
 the style axis; the Kazakh glyph builder and the Python print-sheet tools read it. `tools/propis/` is gone;
 the dictation scripts and `build-audio-review-manifest` read `tools/propis2/topic.json`.
 `docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
