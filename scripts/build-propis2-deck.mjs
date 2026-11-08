@@ -30,6 +30,11 @@ const variantId = (() => {
 })();
 if (variantId !== null && !/^[a-z]+$/.test(variantId ?? "")) throw new Error("--variant needs an id (tools/propis2/variants/<id>)");
 const LANGUAGES_PATH = variantId ? null : "tools/propis2/languages.json";
+// `--test-copy`: the test copy of the deck (id `propis2_lang`, catalog `individual`: the owner's account only) WITH the languages
+// still in the making (`status: "draft"`, docs/latin-letters.md). The ordinary build leaves the drafts out — users never see them.
+const testCopy = process.argv.includes("--test-copy");
+if (testCopy && variantId) throw new Error("--test-copy builds the languages deck, not a variant");
+const TEST_COPY_PATH = "tools/propis2/test-copy.json";
 const VARIANT_PATH = variantId && `tools/propis2/variants/${variantId}/variant.json`;
 const variant = variantId ? JSON.parse(readFileSync(VARIANT_PATH, "utf-8")) : null;
 
@@ -61,7 +66,9 @@ const langSpec = LANGUAGES_PATH ? JSON.parse(readFileSync(LANGUAGES_PATH, "utf-8
 if (langSpec) {
   // (the dictation stays: Russian only — its words, texts and recordings are Russian; engine.js makes it in the deck's first language)
   const baseKits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
-  topic.languages = langSpec.languages.map((spec) => {
+  const skipped = langSpec.languages.filter((l) => l.status === "draft" && !testCopy).map((l) => l.id);
+  if (skipped.length) console.log(`  (draft languages left out: ${skipped.join(", ")} — they go into the --test-copy deck)`);
+  topic.languages = langSpec.languages.filter((l) => testCopy || l.status !== "draft").map((spec) => {
     const { from, glyphsFrom, ...lang } = spec;
     if (from) {
       const v = JSON.parse(readFileSync(from, "utf-8"));
@@ -70,8 +77,11 @@ if (langSpec) {
       Object.assign(lang, { alphabet, script, papers, coverWords, methodology, glyphs, kits: v.kits?.length ? variantKits(v, baseKits) : undefined }, Object.fromEntries(Object.entries(lang).filter(([k]) => !["id", "title", "status"].includes(k))));
     }
     if (glyphsFrom) lang.glyphs = JSON.parse(execFileSync(glyphsFrom[0], glyphsFrom.slice(1), { encoding: "utf-8", maxBuffer: 64 << 20 }));
+    // a writing style's letters from their own file (`glyphsFile`, e.g. the English print letters, tools/handwriting/latin/print.json)
+    if (Array.isArray(lang.styles)) lang.styles = lang.styles.map(({ glyphsFile, ...st }) => (glyphsFile ? { ...st, glyphs: JSON.parse(readFileSync(glyphsFile, "utf-8")).glyphs } : st));
     const lower = lang.alphabet?.lower;
-    const missing = lower ? [...lower].filter((ch) => !topic.wide.some((g) => g.label === ch || g.aliases?.includes(ch)) && !lang.glyphs?.some((g) => g.label === ch)) : [];
+    const styleGlyphs = (lang.styles ?? []).flatMap((st) => st.glyphs ?? []);
+    const missing = lower ? [...lower].filter((ch) => !topic.wide.some((g) => g.label === ch || g.aliases?.includes(ch)) && !lang.glyphs?.some((g) => g.label === ch) && !styleGlyphs.some((g) => g.label === ch)) : [];
     console.log(`  ${lang.id} ${lang.title} (${lang.status}): ${lang.glyphs?.length ?? 0} own glyphs${missing.length ? `, no letter yet: ${missing.join(" ")}` : ""}`);
     return lang;
   });
@@ -94,11 +104,15 @@ if (langSpec) {
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
 
+if (testCopy) {
+  const tc = JSON.parse(readFileSync(TEST_COPY_PATH, "utf-8"));
+  topic.meta = { ...topic.meta, id: "propis2_lang", version: tc.version, title: tc.title.ru };
+}
 const ID = topic.meta.id;
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/${ID}_v${VERSION}.zip`;
 if (existsSync(ZIP_PATH)) {
-  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? TOPIC_PATH} before building again.`);
+  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? (testCopy ? TEST_COPY_PATH : TOPIC_PATH)} before building again.`);
 }
 
 const zip = new JSZip();
@@ -108,9 +122,9 @@ writeFileSync(ZIP_PATH, buffer);
 console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024).toFixed(0)} KB, ${topic.wide?.length ?? 0} glyphs, ${Object.keys(topic.wideSheets ?? {}).length} sheets, ${topic.elements?.length ?? 0} elements)`);
 
 const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
-const own = variant;
+const own = variant ?? (testCopy ? JSON.parse(readFileSync(TEST_COPY_PATH, "utf-8")) : null);
 const entry = own
-  ? { id: ID, version: VERSION, title: own.catalog.title, description: own.catalog.description, url: `./decks/${ID}_v${VERSION}.zip`, status: own.catalog.status, access: own.catalog.access }
+  ? { id: ID, version: VERSION, title: (own.catalog ?? own).title, description: (own.catalog ?? own).description, url: `./decks/${ID}_v${VERSION}.zip`, status: (own.catalog ?? own).status, access: (own.catalog ?? own).access }
   : {
     id: "propis2",
     version: VERSION,

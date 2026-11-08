@@ -38,16 +38,18 @@ describe("writing without joins (script.joins === false)", () => {
     }
   });
 
-  it("a composed letter stays whole: ш (three hooks) is one letter, written joined inside", () => {
-    const glyph = wide.glyphs.find((g) => g.label === "ш");
-    const whole = strokesOf(row(map({ joins: false, letterGap: 20 }), "ш"));
-    const joined = strokesOf(row(map(), "ш"));
-    expect(whole.length).toBe(joined.length);
-    expect(JSON.stringify(whole)).toBe(JSON.stringify(joined)); // alone in a word: exactly as in cursive
-    // and in a word its pieces keep touching while the letters around it stand apart
-    const st = strokesOf(row(map({ joins: false, letterGap: 20 }), "иши"));
-    expect(glyph).toBeTruthy();
-    expect(st.length).toBe(joined.length + 2 * own("и"));
+  it("a composed letter stays whole: the hooks of ш keep touching, the letters around it stand apart", () => {
+    const scale = 0.5;
+    const apartMap = map({ joins: false, letterGap: 20 });
+    const gapsOf = (st) => st.slice(1).map((sx, i) => Math.min(...inkX(sx)) - Math.max(...inkX(st[i])));
+    const sh = strokesOf(row(apartMap, "ш", scale));
+    expect(sh.length).toBe(strokesOf(row(map(), "ш", scale)).length);
+    for (const g of gapsOf(sh)) expect(g).toBeLessThan(1); // its pieces join
+    const word = strokesOf(row(apartMap, "иши", scale));
+    expect(word.length).toBe(sh.length + 2 * own("и"));
+    const g = gapsOf(word);
+    expect(g[0]).toBeCloseTo(20 * scale, 0); // и | ш
+    expect(g[g.length - 1]).toBeCloseTo(20 * scale, 0); // ш | и
   });
 
   it("without the flag the cursive layout is untouched", () => {

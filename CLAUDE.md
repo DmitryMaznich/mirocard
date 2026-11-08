@@ -192,7 +192,7 @@ shown to one account via catalog status `individual`. Never fork `propis2` code 
 alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
 hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 
-**Языки письма в «Прописях» (с 2026-11-01, колода `propis2` 0.6.0).** Русский, болгарский и казахский в самой теме `propis2` (`tools/propis2/languages.json`); язык — у тетради (не у ученика), у карточек — параметр режима; диктант только русский. Тестовая копия `propis2_lang` в архиве. Read `docs/propis2-languages.md` before continuing.
+**Языки письма в «Прописях» (с 2026-11-01, колода `propis2` 0.6.0).** Русский, болгарский и казахский в самой теме `propis2` (`tools/propis2/languages.json`); язык — у тетради (не у ученика), у карточек — параметр режима; диктант только русский. Языки в работе (`status: "draft"`, с 2026-11-08 — английский печатный) — только в тестовой копии `propis2_lang` (`--test-copy`, каталог `individual`), боевая колода их не содержит. Read `docs/propis2-languages.md` before continuing.
 
 **Казахские прописи (`propis2_kk`), планируется (2026-10-29).** Тот же приём, что у болгарских: вариант-колода на тех же движке и рендерере, 9 особых букв (Ә Ғ Қ Ң Ө Ұ Ү Һ І). Всё, что
 узнали в сессии русских прописей (движок, соединения, пробел, стенд для картинок, правила работы с владельцем), собрано в **`docs/propis2-kk-handoff.md`: читать первым.**

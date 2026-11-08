@@ -1,0 +1,14 @@
+{
+  "note": "The test copy of «Прописи» with the languages still in the making (languages.json status \"draft\"): node scripts/build-propis2-deck.mjs --test-copy → public/decks/propis2_lang_v<version>.zip. Catalog `individual`: only an account it is given to in the admin sees it. docs/latin-letters.md.",
+  "version": "0.2.3",
+  "title": {
+    "ru": "Прописи (тест: латиница)",
+    "en": "Copybook (test: Latin)"
+  },
+  "description": {
+    "ru": "Испытание: «Прописи» с языками, которые ещё в работе — английский (печатные буквы). Только для проверки.",
+    "en": "Trial: the copybook with the languages still in the making — English (print letters). For testing only."
+  },
+  "status": "individual",
+  "access": "paid"
+}

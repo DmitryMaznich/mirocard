@@ -200,12 +200,15 @@ export default function Propis2Home({ db }) {
   };
   // the list with languages: one list of every notebook, each with its language's mark, and a filter — both only when the list holds
   // more than one language (the notebooks', the new notebook's, the ready ones'). The filter narrows the notebooks and the ready ones.
-  const usedLangs = useMemo(() => (languages ? new Set([...library.sets.map(langOf), newLang]) : null), [languages, library.sets, newLang]);
+  // notebooks of a language this deck does not have (an English notebook made in the test copy `propis2_lang`, whose library is this
+  // same one, docs/latin-letters.md) are not listed here — kept, never deleted, waiting for their language
+  const knownSets = useMemo(() => (languages ? library.sets.filter((st) => languages.some((l) => l.id === langOf(st))) : library.sets), [languages, library.sets]);
+  const usedLangs = useMemo(() => (languages ? new Set([...knownSets.map(langOf), newLang]) : null), [languages, knownSets, newLang]);
   // the ready notebooks of every language are always offered (owner, 2026-11-02: the Kazakh ones were hidden until Kazakh was in use),
   // so their languages count for the marks and the filter too
   const shownLangs = useMemo(() => (languages ? new Set([...usedLangs, ...ready.map((r) => r.lang)]) : null), [languages, usedLangs, ready]);
   const multiLang = Boolean(shownLangs && shownLangs.size > 1);
-  const shownSets = useMemo(() => (languages && langFilter !== "all" ? library.sets.filter((st) => langOf(st) === langFilter) : library.sets), [languages, langFilter, library.sets]);
+  const shownSets = useMemo(() => (languages && langFilter !== "all" ? knownSets.filter((st) => langOf(st) === langFilter) : knownSets), [languages, langFilter, knownSets]);
   const shownReady = useMemo(() => (!languages ? ready : ready.filter((r) => langFilter === "all" || r.lang === langFilter)), [languages, ready, langFilter]);
   const markOf = (id) => { const i = languages?.findIndex((l) => l.id === id) ?? -1; const l = languages?.[i]; return { short: l?.short ?? id?.toUpperCase(), title: l?.title ?? id, tone: Math.max(i, 0) % 4 }; };
   const langCounts = useMemo(() => (languages ? Object.fromEntries(languages.map((l) => [l.id, library.sets.filter((st) => langOf(st) === l.id).length])) : {}), [languages, library.sets]);

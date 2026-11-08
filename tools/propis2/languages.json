@@ -1,5 +1,5 @@
 {
-  "note": "Языки письма темы «Прописи» (propis2), docs/propis2-languages.md. Собираются в колоду propis2: node scripts/build-propis2-deck.mjs. Язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json. Первый язык — русский банк букв, он же язык диктанта и тетрадей без пометки.",
+  "note": "Языки письма темы «Прописи» (propis2), docs/propis2-languages.md. Собираются в колоду propis2: node scripts/build-propis2-deck.mjs. Язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json. Первый язык — русский банк букв, он же язык диктанта и тетрадей без пометки. Язык со status \"draft\" в боевую колоду не попадает — только в тестовую копию propis2_lang (node scripts/build-propis2-deck.mjs --test-copy), docs/latin-letters.md.",
   "languages": [
     {
       "id": "ru",
@@ -20,6 +20,76 @@
       "short": "ҚАЗ",
       "status": "ready",
       "from": "tools/propis2/variants/kk/variant.json"
+    },
+    {
+      "id": "en",
+      "title": "English",
+      "short": "ENG",
+      "status": "draft",
+      "alphabet": {
+        "lower": "abcdefghijklmnopqrstuvwxyz"
+      },
+      "papers": [
+        "en_us",
+        "square",
+        "ruled"
+      ],
+      "methodology": false,
+      "coverWords": {
+        "headings": {
+          "alphabet": "Alphabet",
+          "digits": "Numbers",
+          "signs": "Signs",
+          "digits-signs": "Numbers and signs",
+          "punctuation": "Punctuation"
+        },
+        "signs": {
+          "+": "plus",
+          "-": "minus",
+          "=": "equals",
+          ">": "greater than",
+          "<": "less than"
+        },
+        "punctuation": {
+          ".": "full stop",
+          ",": "comma",
+          "?": "question mark",
+          "!": "exclamation mark"
+        },
+        "stamp": {
+          "kicker": "COPYBOOK",
+          "fields": {
+            "name": "Name",
+            "surname": "Surname",
+            "class": "Class",
+            "school": "School",
+            "started": "Started",
+            "finished": "Finished"
+          },
+          "leaves": {
+            "one": "sheet",
+            "many": "sheets"
+          },
+          "price": ""
+        }
+      },
+      "styles": [
+        {
+          "id": "print",
+          "title": "Печатные",
+          "glyphsFile": "tools/handwriting/latin/print.json",
+          "script": {
+            "joins": false,
+            "letterGap": 14,
+            "wordGap": 56
+          },
+          "papers": [
+            "en_us",
+            "square",
+            "ruled"
+          ]
+        }
+      ]
     }
   ]
 }

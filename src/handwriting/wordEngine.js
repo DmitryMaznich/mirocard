@@ -1954,8 +1954,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // after it (и п р т …) stands n cells further right, so that the connector comes up to the right of the end of the bar
         const prevGlyph = prevLabel ? glyphsByLabel.get(prevLabel) : null;
         const pushNext = prevExit && prevGlyph?.pushNextCells && !glyph.joinLeft && local.start[1] < prevExit[1] - 18 * scale ? prevGlyph.pushNextCells * CELL : 0;
+        // script.joins === false: a new word starts after the ink of the word before at `script.wordGap` (row units at full scale), not
+        // on the slant grid — the grid's lean would pull a word that starts high (D, L, M) back over the one before it
+        const freeWord = unjoined && !loose && !prevExit && Boolean(prevToken) && tokenStartX === null && Number.isFinite(prevToken?.inkMaxX);
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
-        const wantStartX = loose
+        const wantStartX = freeWord
+          ? prevToken.inkMaxX + (glyphsByLabel.script.wordGap ?? WIDE_WORD_SPACE) * scale + pendingGap * CELL - local.minX + local.start[0]
+          : loose
           ? cursorX + (apart && !glyph.noJoin ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx + pushNext
@@ -1984,7 +1989,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const snapStart = (x) => snapX(rowIndex, x - tokenPhase + (local.stemDx ?? 0) + notRight, local.start[1]) + tokenPhase - (local.stemDx ?? 0);
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
-          : loose ? wantStartX : snapStart(wantStartX);
+          : loose || freeWord ? wantStartX : snapStart(wantStartX);
         // `#v` on a DRAWN slant grid (`propis2`, the dense paper: snapX.drawn): the letter still stands a fixed gap after the ink before it, but
         // on the nearest line — the stems of a letter lie on the lines (the capture was made on the grid), so a letter set between two lines
         // by the gap alone has all its stems between them (owner, 2026-10-28: «к» and «у» of the pairs «К к» / «У у» off the grid, tetrad 10).
@@ -2260,6 +2265,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         curNoAlign = false;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
+        // written apart (script.joins === false): no exit to join or to pull towards the next letter or word — unless the next glyph is the
+        // next piece of this same composed letter (ш, ы), which is written joined
+        if (unjoined && !innerPiece.has(pieceIndex + 1)) { prevExit = null; prevExitStroke = -1; }
         afterNoExit = Boolean(glyph.noExit);
         afterSign = Boolean(glyph.noJoin);
         prevCapital = isCap;

@@ -174,4 +174,25 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
+  it("a notebook of a language this deck lacks (made in the test copy, same library) is kept but not listed", async () => {
+    const pg = newPage({ lines: ["cat"] });
+    const pgRu = newPage({ lines: ["кот"] });
+    let lib = upsertPage(upsertPage(emptyLibrary(), pg), pgRu);
+    lib = upsertSet(lib, newSet("English one", { id: "st_en", pageIds: [pg.id], lang: "en", style: "print" }));
+    lib = upsertSet(lib, newSet("Русская", { id: "st_ru", pageIds: [pgRu.id], lang: "ru" }));
+    const withEn = { ...record, languages: [...record.languages, { id: "en", title: "English", short: "ENG", status: "draft", alphabet: { lower: "abcdefghijklmnopqrstuvwxyz" }, methodology: false }] };
+    for (const [rec, titles] of [[record, ["Русская"]], [withEn, ["English one", "Русская"]]]) {
+      useAppStore.setState({ topicRecords: [rec] });
+      const db = await openDb("p2lang-unknown-" + Date.now() + Math.random());
+      await saveLibrary(lib, db);
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+      expect(cards(host, "propis2-set-card").map((c) => ["English one", "Русская"].find((t) => c.textContent.includes(t))).sort()).toEqual(titles);
+      await act(async () => { root.unmount(); await tick(400); });
+      expect((await loadLibrary(db)).sets.map((st) => st.id).sort()).toEqual(["st_en", "st_ru"]); // nothing deleted
+      host.remove();
+    }
+  });
 });

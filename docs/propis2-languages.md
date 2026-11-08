@@ -59,6 +59,9 @@
 казахский пока без стилей. Выбора стиля в интерфейсе ещё нет — появится, когда у языка будет второй стиль. Тесты: `styles.test.jsx`,
 `Propis2Home.languages.test.jsx` (новая тетрадь хранит стиль).
 
+Черновой язык (`status: "draft"`) в боевую колоду не попадает: только в тестовую копию `propis2_lang`
+(`node scripts/build-propis2-deck.mjs --test-copy`, `tools/propis2/test-copy.json`, каталог `individual`). Тетради языка, которого
+в колоде нет, `Propis2Home` не показывает (библиотека у копии и у «Прописей» общая), но и не удаляет.
 Письмо без соединений: `script: { joins: false, letterGap }` у стиля — печатный стиль (буквы раздельно, `wordEngine.js`).
 Бумаги стиля: четырёхлинейные — из `src/handwriting/fourLinePapers.js` (`bg`, `en_gb`, `en_us`); стиль или язык называет их в `papers`.
 
