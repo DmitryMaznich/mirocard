@@ -180,4 +180,15 @@ describe("English print letters in the propis2 engine", () => {
     const dev = (q) => Math.abs((p1[0] - p0[0]) * (q[1] - p0[1]) - (p1[1] - p0[1]) * (q[0] - p0[0])) / Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
     expect(Math.max(...rise.map(dev))).toBeGreaterThan(2);
   });
+  it("British g and y end with j's hook (owner, 2026-11-08)", () => {
+    const glyphs = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs;
+    // the hook: the last two cubics, relative to where the pen leaves the upright stem
+    const hook = (label) => {
+      const n = glyphs.find((g) => g.label === label).strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
+      const tail = n.slice(n.length - 14); // the start point of the hook + 2 cubics
+      return tail.map((v, i) => v - tail[i % 2]);
+    };
+    const j = hook("j");
+    for (const label of "gy") hook(label).forEach((v, i) => expect(v, `${label} [${i}]`).toBeCloseTo(j[i], 1));
+  });
 });

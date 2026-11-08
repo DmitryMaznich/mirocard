@@ -676,6 +676,27 @@ def share_bowl(tidied):
         tidied[label][0]["segs"] = own + segs[k:]
 
 
+# g and y end with j's hook (owner, 2026-11-08: «нижний крюк влево удался только у j, примени такой же к g и y»): j's stem turns into
+# its hook at the same height and the hook is j's, moved to the letter's own stem (made upright: y's leant a little)
+SHARED_TAIL, TAIL_FROM = set("gy"), "j"
+
+
+def share_tail(tidied):
+    src = tidied.get(TAIL_FROM)
+    if not src: return
+    js = src[0]["segs"]; kj = first_stem_down(js)
+    turn = js[kj][3].copy(); hook = [[pt.copy() for pt in sg] for sg in js[kj + 1:]]
+    for label in SHARED_TAIL:
+        if label not in tidied: continue
+        segs = tidied[label][0]["segs"]
+        # the descender: the long way down from the x-line (not necessarily exactly upright: y's)
+        k = next((i for i, sg in enumerate(segs) if sg[3][1] - sg[0][1] > 25 and abs(sg[3][0] - sg[0][0]) < 2), None)
+        if k is None: continue
+        top = segs[k][0].copy(); xs = top[0]; bend = np.array([xs, turn[1]])
+        dx = np.array([xs - turn[0], 0.0])
+        tidied[label][0]["segs"] = segs[:k] + [[top, top + (bend - top) / 3, top + 2 * (bend - top) / 3, bend]] + [[pt + dx for pt in sg] for sg in hook]
+
+
 def render_glyph(cap, strokes):
     whole = not cap["label"].islower()
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
@@ -711,6 +732,7 @@ def main():
         CUR, WHOLE = l, False
         original_bowl(l, tidied[l])
     share_bowl(tidied)
+    share_tail(tidied)
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write("\n")
