@@ -11,7 +11,7 @@ import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } f
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import { Propis2LangSheet } from "./Propis2LangPicker";
-import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, mostUsedLang, pickLanguage } from "@/topics/renderers/propis2/languages.js";
+import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, mostUsedLang, pickLanguage, pickStyle, styleOf } from "@/topics/renderers/propis2/languages.js";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
 import Propis2SaveDialog from "./Propis2SaveDialog";
@@ -74,7 +74,9 @@ export default function Propis2Home({ db }) {
   const working = session ? session.lib : library;
   const sessionSet = session ? session.lib.sets.find((st) => st.id === session.sid) : null; // the notebook being worked on
   const lang = languages ? (sessionSet ? pickLanguage(deckRecord, langOf(sessionSet)) : newLang) : null;
-  const topicRecord = languages ? languageView(deckRecord, lang) : deckRecord;
+  // the writing style (docs/latin-letters.md): the notebook's, a new notebook gets its language's first one; null when the language has none
+  const writingStyle = languages ? pickStyle(deckRecord, lang, sessionSet ? styleOf(sessionSet) : null) : null;
+  const topicRecord = languages ? languageView(deckRecord, lang, writingStyle) : deckRecord;
   const dirty = Boolean(session && session.lib !== session.base);
   const isNewNb = Boolean(session && !library.sets.some((st) => st.id === session.sid));
 
@@ -318,7 +320,7 @@ export default function Propis2Home({ db }) {
   const editReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps, r.lang); startSession(st.id, lib); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); };
   // a new page is a notebook of one page (there is no page outside a notebook); it is not in the list until it is confirmed
   const createPage = (p) => {
-    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang } : {}) });
+    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang, ...(writingStyle ? { style: writingStyle } : {}) } : {}) });
     startSession(nb.id, upsertSet(upsertPage(library, p), nb));
     setView({ name: "editor", pageId: p.id, backTo: { name: "library" } });
   };

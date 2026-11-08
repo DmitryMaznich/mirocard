@@ -145,4 +145,33 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
+  it("a new notebook keeps its language's style (docs/latin-letters.md); a language without styles stores none", async () => {
+    // the real deck, its Bulgarian given two styles: a new Bulgarian notebook takes the first and keeps it
+    const styled = { ...record, languages: record.languages.map((l) => (l.id === "bg" ? { ...l, styles: [{ id: "school", title: "Школьный" }, { id: "other", title: "Другой" }] } : l)) };
+    useAppStore.setState({ topicRecords: [styled] });
+    for (const [lang, title, style] of [["bg", "Български", "school"], ["ru", "Русский", undefined]]) {
+      localStorage.clear();
+      const db = await openDb("p2style-new-" + Date.now() + Math.random());
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+      if (lang !== "ru") { await click(host.querySelector('[data-testid="propis2-new-lang"]')); await sheetPick(title); }
+      await click(btn(host, "Новая тетрадь"));
+      const field = host.querySelector('[aria-label="Текст страницы"]');
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "мама");
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        await tick();
+      });
+      await click(host.querySelector(".back-btn"));
+      await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+      await act(async () => { root.unmount(); await tick(400); });
+      const [set] = (await loadLibrary(db)).sets;
+      expect(set.lang).toBe(lang);
+      expect(set.style).toBe(style);
+      expect("style" in set).toBe(style !== undefined);
+      host.remove();
+    }
+  });
 });

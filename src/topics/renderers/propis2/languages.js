@@ -39,32 +39,52 @@ export function pickLanguage(record, wanted) {
   return (langs.find((l) => l.id === wanted) ?? langs[0]).id;
 }
 
-const views = new WeakMap(); // record -> Map(lang id -> view)
-export function languageView(record, langId) {
+// Writing styles of a language (docs/latin-letters.md, step 3.1): a language may list `styles` — [{ id, title, glyphs?, script?, papers? }],
+// e.g. English print and English cursive. A style lays its own letters over the language's, and its script (slant, proportions) and papers
+// replace the language's. The STYLE belongs to the notebook, like the language (`style` next to `lang`); a notebook without one, or a
+// language without styles, writes in the language's first style — and a language without `styles` is exactly as before.
+export const langStyles = (lang) => (Array.isArray(lang?.styles) && lang.styles.length ? lang.styles : null);
+const langOfDeck = (record, langId) => { const langs = deckLanguages(record); return langs ? langs.find((l) => l.id === langId) ?? langs[0] : null; };
+// the style a notebook of this language writes in: the wanted one when the language has it, else its first; null without styles
+export function pickStyle(record, langId, wanted) {
+  const styles = langStyles(langOfDeck(record, langId));
+  if (!styles) return null;
+  return (styles.find((st) => st.id === wanted) ?? styles[0]).id;
+}
+export const styleOf = (item) => item?.style ?? null;
+
+const views = new WeakMap(); // record -> Map(lang id [| style id] -> view)
+export function languageView(record, langId, styleId = null) {
   const langs = deckLanguages(record);
   if (!langs) return record;
   const lang = langs.find((l) => l.id === langId) ?? langs[0];
+  const styles = langStyles(lang);
+  const style = styles ? styles.find((st) => st.id === styleId) ?? styles[0] : null;
+  const key = style ? `${lang.id}|${style.id}` : lang.id;
   let byLang = views.get(record);
   if (!byLang) { byLang = new Map(); views.set(record, byLang); }
-  if (byLang.has(lang.id)) return byLang.get(lang.id);
+  if (byLang.has(key)) return byLang.get(key);
   const methodology = lang.methodology !== false;
+  const lower = lang.alphabet?.lower ?? null;
+  const langWide = mergeGlyphs(record.wide ?? [], lang.glyphs ?? [], lower);
   const view = {
     ...record,
-    wide: mergeGlyphs(record.wide ?? [], lang.glyphs ?? [], lang.alphabet?.lower ?? null),
+    wide: style?.glyphs?.length ? mergeGlyphs(langWide, style.glyphs, lower) : langWide,
     // the methodology sheets and ready notebooks are Russian letters and words: a language without them has only its own kits
     wideSheets: methodology ? record.wideSheets : {},
     kits: lang.kits?.length ? lang.kits : methodology ? record.kits : undefined,
     meta: {
       ...record.meta,
       alphabet: lang.alphabet,
-      script: lang.script,
-      papers: lang.papers,
+      script: style?.script ?? lang.script,
+      papers: style?.papers ?? lang.papers,
       coverWords: lang.coverWords,
       methodology: methodology ? record.meta?.methodology : false,
       writingLang: lang.id,
+      ...(style ? { writingStyle: style.id } : {}),
     },
   };
-  byLang.set(lang.id, view);
+  byLang.set(key, view);
   return view;
 }
 
