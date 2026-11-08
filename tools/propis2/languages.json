@@ -87,6 +87,23 @@
             "en_us",
             "square",
             "ruled"
+          ],
+          "note": "прямые печатные, как в американских прописях"
+        },
+        {
+          "id": "british",
+          "title": "Британские",
+          "note": "печатные с хвостиками, как в британских прописях; пока без соединений",
+          "glyphsFile": "tools/handwriting/latin/british.json",
+          "script": {
+            "joins": false,
+            "letterGap": 12,
+            "wordGap": 56
+          },
+          "papers": [
+            "en_gb",
+            "square",
+            "ruled"
           ]
         }
       ]

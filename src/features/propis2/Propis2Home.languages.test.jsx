@@ -241,4 +241,40 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_us"]);
     host.remove();
   });
+  it("the style of a new English notebook is chosen in the language sheet and kept (British: its own paper)", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/test-copy.json", "utf-8"));
+    const tdb = await openDb("p2style-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
+    const db = await openDb("p2style-gb-" + Date.now());
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    await click(host.querySelector('[data-testid="propis2-new-lang"]'));
+    const sheet = () => document.querySelector('[data-testid="propis2-lang-sheet"]');
+    expect(sheet().querySelector('[data-testid="propis2-style-list"]')).toBeNull(); // Russian: one style, nothing to choose
+    await click([...sheet().querySelectorAll('[role="radio"]')].find((b) => b.textContent.includes("English")));
+    const styleRadios = () => [...sheet().querySelectorAll('[data-testid="propis2-style-list"] [role="radio"]')];
+    expect(styleRadios().map((b) => b.querySelector(".p2-lang-name").textContent)).toEqual(["Печатные", "Британские"]);
+    expect(styleRadios()[0].getAttribute("aria-checked")).toBe("true");
+    await click(styleRadios()[1]);
+    await click(btn(sheet(), "Готово"));
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("English · Британские");
+    await click(btn(host, "Новая тетрадь"));
+    const field = host.querySelector('[aria-label="Текст страницы"]');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "little kitten");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      await tick();
+    });
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    await click(host.querySelector(".back-btn"));
+    await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+    await act(async () => { root.unmount(); await tick(400); });
+    const lib = await loadLibrary(db);
+    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", "british"]]);
+    expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_gb"]);
+    host.remove();
+  });
 });

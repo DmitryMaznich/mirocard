@@ -56,5 +56,19 @@ describe("English print letters in the propis2 engine", () => {
     const en = test.topic.languages.find((l) => l.id === "en");
     expect(en.status).toBe("draft");
     expect(en.styles.find((s) => s.id === "print").glyphs).toHaveLength(52);
+    expect(en.styles.find((s) => s.id === "british").glyphs).toHaveLength(52);
+  });
+  it("British letters: the Nelson proportions — ascenders 0.74, descenders 0.72 of the x-height, capitals as tall as the ascenders", () => {
+    const gb = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs;
+    const ys = (ch) => gb.find((g) => g.label === ch).strokes.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 1));
+    const top = (ch) => Math.min(...ys(ch)), bottom = (ch) => Math.max(...ys(ch));
+    const X = 52, BASE = 62; // the capture frame: x-height, baseline
+    expect((BASE - X - top("l")) / X).toBeCloseTo(0.74, 2); // the ascender above the x-line
+    expect((bottom("p") - BASE) / X).toBeCloseTo(0.72, 2);  // the descender below the baseline
+    expect(top("H")).toBeCloseTo(top("l"), 1);              // a capital as tall as an ascender
+    // the exit flick: l ends to the right of its stem, rising
+    const l = gb.find((g) => g.label === "l").strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
+    expect(l[l.length - 2]).toBeGreaterThan(l[0] + 10);
+    expect(l[l.length - 1]).toBeLessThan(BASE);
   });
 });

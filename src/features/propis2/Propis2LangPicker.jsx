@@ -19,8 +19,14 @@ function notebooksNote(n) {
   return `${n} ${w}`;
 }
 
-export function Propis2LangSheet({ title = "Язык письма", languages, lang, counts = {}, onPick, onClose }) {
+// A language with several writing styles (languages.js `styles`, e.g. English print and British): its styles are offered under the
+// list, and `onPick(language, style)` gets both.
+export function Propis2LangSheet({ title = "Язык письма", languages, lang, style = null, counts = {}, onPick, onClose }) {
   const [picked, setPicked] = useState(lang);
+  const stylesOf = (id) => { const st = languages.find((l) => l.id === id)?.styles; return st?.length > 1 ? st : null; };
+  const [pickedStyle, setPickedStyle] = useState(style);
+  const styles = stylesOf(picked);
+  const shownStyle = styles ? (styles.find((x) => x.id === pickedStyle) ?? styles[0]).id : null;
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -35,7 +41,7 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
         <p className="p2-lang-sub">От языка зависят буквы, наклон и бумага тетради. Язык готовой тетради не меняется.</p>
         <div className="p2-lang-list" role="radiogroup" aria-label="Язык письма">
           {languages.map((l) => (
-            <button key={l.id} type="button" role="radio" aria-checked={picked === l.id} className={`p2-lang-opt${picked === l.id ? " is-on" : ""}`} onClick={() => setPicked(l.id)}>
+            <button key={l.id} type="button" role="radio" aria-checked={picked === l.id} className={`p2-lang-opt${picked === l.id ? " is-on" : ""}`} onClick={() => { setPicked(l.id); if (l.id !== picked) setPickedStyle(null); }}>
               <span className="p2-lang-radio" aria-hidden="true" />
               <span className="p2-lang-text">
                 <span className="p2-lang-name">{l.title}</span>
@@ -45,7 +51,20 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
             </button>
           ))}
         </div>
-        <button type="button" className="p2-lang-done" onClick={() => { if (picked !== lang) onPick(picked); onClose(); }}>Готово</button>
+        {styles && (
+          <>
+            <h3 className="p2-lang-styles-title">Стиль письма</h3>
+            <div className="p2-lang-list" role="radiogroup" aria-label="Стиль письма" data-testid="propis2-style-list">
+              {styles.map((st) => (
+                <button key={st.id} type="button" role="radio" aria-checked={shownStyle === st.id} className={`p2-lang-opt${shownStyle === st.id ? " is-on" : ""}`} onClick={() => setPickedStyle(st.id)}>
+                  <span className="p2-lang-radio" aria-hidden="true" />
+                  <span className="p2-lang-text"><span className="p2-lang-name">{st.title}</span>{st.note && <span className="p2-lang-note">{st.note}</span>}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        <button type="button" className="p2-lang-done" onClick={() => { if (picked !== lang || shownStyle !== style) onPick(picked, shownStyle); onClose(); }}>Готово</button>
       </div>
     </div>
   );

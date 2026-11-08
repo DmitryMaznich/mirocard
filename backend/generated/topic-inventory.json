@@ -1120,35 +1120,27 @@
     },
     {
       "id": "propis2_lang",
-      "title": "Прописи (тест: латиница)",
-      "version": "0.2.3",
-      "renderer": "propis2",
-      "sources": [
-        "public/decks/propis2_lang_v0.2.3.zip",
-        "src/topics/renderers/propis2"
-      ],
-      "bundle": {
-        "version": "0.2.3",
-        "url": "./decks/propis2_lang_v0.2.3.zip",
-        "title": "Прописи (тест: латиница)",
-        "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
-        "renderer": "propis2",
-        "modes": 4,
-        "cards": 1
+      "title": {
+        "ru": "Прописи (тест: латиница)",
+        "en": "Copybook (test: Latin)"
       },
+      "version": "0.2.4",
+      "renderer": null,
+      "sources": [],
+      "bundle": null,
       "builtin": false,
       "catalogEntry": {
         "id": "propis2_lang",
-        "version": "0.2.3",
+        "version": "0.2.4",
         "title": {
           "ru": "Прописи (тест: латиница)",
           "en": "Copybook (test: Latin)"
         },
         "description": {
-          "ru": "Испытание: «Прописи» с языками, которые ещё в работе — английский (печатные буквы). Только для проверки.",
-          "en": "Trial: the copybook with the languages still in the making — English (print letters). For testing only."
+          "ru": "Испытание: «Прописи» с языками, которые ещё в работе — английский: печатные и британские буквы. Только для проверки.",
+          "en": "Trial: the copybook with the languages still in the making — English: print and British letters. For testing only."
         },
-        "url": "./decks/propis2_lang_v0.2.3.zip",
+        "url": "./decks/propis2_lang_v0.2.4.zip",
         "status": "individual",
         "access": "paid",
         "materialLanguages": [
@@ -1158,7 +1150,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-08T09:59:18+00:00"
+      "sourceUpdatedAt": null
     },
     {
       "id": "reading_dad_instructions",
@@ -1762,5 +1754,7 @@
       "sourceUpdatedAt": "2026-11-05T17:17:12+00:00"
     }
   ],
-  "warnings": []
+  "warnings": [
+    "public/decks/propis2_lang_v0.2.3.zip: ENOENT: no such file or directory, open '/home/user/mirocard/public/decks/propis2_lang_v0.2.3.zip'"
+  ]
 }
