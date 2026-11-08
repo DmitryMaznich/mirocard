@@ -51,6 +51,9 @@ MEET = 2.0           # ends of two strokes this close are one point (the apex of
 FRAG = 3.5            # a curve this short left between a line and the end of its piece is part of the line (b's stem began with a tick)
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
 BAR_SNAP = 1.3       # a bar this close to a ruling line stands on it (E's middle bar was traced 1.2 under the x-line)
+BOWED_SLANTS = set("k")  # no slanting lines: k's rise from the stem's foot is a gentle arc and its leg starts level and bends down
+#                         (owner, 2026-11-08: «от низа стойки идёт слегка по параболе; заключительный элемент сначала чуть выше,
+#                         потом плавно загибается вниз»)
 FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
 STEM_MEET = 2.5      # a bar's end this close to a stem (a vertical line of another stroke) ends on it
 BOW_BAR = 2.0        # a bar whose hand sags this much in the middle is drawn as one arc (f), else straight
@@ -180,6 +183,7 @@ def run_ok(seg):
     L = length(seg)
     if L < min(STEM_MIN, BAR_MIN): return False
     k = kind_of(unit(seg[-1] - seg[0]))
+    if k == "l" and CUR in BOWED_SLANTS: return False
     tol, mn = {"v": (STEM_TOL, STEM_MIN), "h": (LONG_TOL if L >= LONG_MIN else BAR_TOL, BAR_MIN), "l": (LONG_TOL if L >= LONG_MIN else LINE_TOL, LINE_MIN)}[k]
     return L >= mn and chord_dev(seg) <= tol
 

@@ -444,7 +444,7 @@
     },
     {
       "id": "propis2_lang",
-      "version": "0.2.20",
+      "version": "0.2.21",
       "title": {
         "ru": "Прописи (тест: латиница)",
         "en": "Copybook (test: Latin)"
@@ -453,7 +453,7 @@
         "ru": "Испытание: «Прописи» с языками, которые ещё в работе — английский: печатные и британские буквы. Только для проверки.",
         "en": "Trial: the copybook with the languages still in the making — English: print and British letters. For testing only."
       },
-      "url": "./decks/propis2_lang_v0.2.20.zip",
+      "url": "./decks/propis2_lang_v0.2.21.zip",
       "status": "individual",
       "access": "paid",
       "materialLanguages": [

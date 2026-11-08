@@ -6,6 +6,8 @@ import { layoutWideLinesIntoRows } from "./wordEngine.js";
 import { snapXFor } from "./PrintPageView.jsx";
 import { samplePath, toCubicPathD } from "./pathGeometry.js";
 
+const segsFrom = (pts) => { const out = []; for (let i = 0; i + 3 < pts.length; i += 3) out.push(pts.slice(i, i + 4)); return out; };
+
 // The English print letters (tools/handwriting/latin/print.json, docs/latin-letters.md step 3.4) in the engine, as the page lays them
 // out: upright, apart, and not bent towards the next copy of the word.
 const glyphs = JSON.parse(readFileSync("tools/handwriting/latin/print.json", "utf-8")).glyphs;
@@ -167,5 +169,15 @@ describe("English print letters in the propis2 engine", () => {
     expect(t, "the loop's turn").toBeDefined();
     expect(pts[t][0] - stem).toBeCloseTo(7, 0);   // 3.5 tool units right of the stem (Nelson's: 3.6)
     expect(pts[t + 1][0]).toBeGreaterThan(pts[t][0]); // no hook: the leg leaves the turn straight away to the right
+    // «заключительный элемент сначала чуть выше, потом плавно загибается вниз»: the leg leaves the turn nearly level
+    expect((pts[t + 1][1] - pts[t][1]) / (pts[t + 1][0] - pts[t][0])).toBeLessThan(0.5);
+    // «от низа стойки идёт слегка по параболе»: the rise from the stem's foot to the loop's top bends -- not a straight line
+    const segs = segsFrom(pts);
+    const f0 = segs.findIndex((sg) => Math.abs(sg[0][0] - stem) < 1e-6 && Math.abs(sg[0][1] - 62) < 1e-6 && sg[3][1] < 62);
+    const top = segs.findIndex((sg, i) => i > f0 && Math.abs(sg[3][1] - 10) < 0.5);
+    const rise = segs.slice(f0, top + 1).flatMap((sg) => samplePath(toCubicPathD(`M ${sg[0].join(" ")} C ${sg.slice(1).flat().join(" ")}`), 20));
+    const [p0, p1] = [rise[0], rise[rise.length - 1]];
+    const dev = (q) => Math.abs((p1[0] - p0[0]) * (q[1] - p0[1]) - (p1[1] - p0[1]) * (q[0] - p0[0])) / Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+    expect(Math.max(...rise.map(dev))).toBeGreaterThan(2);
   });
 });
