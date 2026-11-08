@@ -29,7 +29,7 @@ STEP = 0.2            # resampling step, tool units (x-height 26)
 CUSP_DEG = 110.0      # the direction turns this much within CUSP_W: the pen turned back
 CUSP_W = 1.2
 KNOT = 3.5            # a piece shorter than this between two turns is a knot of the hand
-LINE_TOL, LINE_MIN = 0.0, 1e9          # slanting runs stay curves (a cubic follows a straight run well enough)
+LINE_TOL, LINE_MIN = 0.9, 15.0         # a long slanting run this close to its chord is a line (A, v, w, x, z, k's leg)
 STEM_TOL, STEM_MIN = 0.9, 15.0         # a near-vertical run this long: a stem (the side of a bowl is shorter)
 BAR_TOL, BAR_MIN = 0.8, 12.0          # a near-horizontal run this long: a bar of t or f (the flat top of a bowl is shorter)
 VERT_DEG, HORIZ_DEG = 10.0, 10.0
@@ -37,9 +37,13 @@ SMOOTH = 1.2          # gaussian along the curve, tool units
 PROM = 1.2            # an extremum must stand out this much from both sides (else it is the shake)
 FIT_TOL = 0.6         # a cubic strays at most this far from the smoothed hand, else the piece is split
 SNAP = 4.0            # a stem's end this close to a ruling line stands on it (b, k were traced up to the tool's line 2, 36: the ascender is 39.6)
-SNAP_EXT = 1.5       # a bow's top / bottom: only this close (f's tail stays 1.65 short, as on the Nelson page: 0.77 against 0.86)
+SNAP_EXT = 2.0       # a bow's top / bottom this close to a line stands on it (y's tail was 1.53 deep)
+SHORT_TAIL = set("f")  # ... except these: f's tail is shorter on the Nelson page (0.77 of the x-height against 0.86), the hand kept it
 TRIM, TRIM_PART = 3.0, 0.2  # a line gives this much of its end (at most this part of it) to the curve it turns into: room to turn
 DOT = 3.0
+DOTTED = set("ij")    # letters whose tiny strokes are dots; elsewhere a tiny stroke is a touch of the pen and goes
+END_SNAP = 2.0       # a stroke's end (or a sharp turn) this close to a ruling line stands on it (v's point: 1.9 under after the line fit)
+MEET = 2.0           # ends of two strokes this close are one point (the apex of A)
 FRAG = 2.0            # a curve this short left between a line and the end of its piece is part of the line
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
@@ -253,6 +257,7 @@ def curve(q, t_start=None, t_end=None):
     taper = np.clip(np.minimum(sarc, sarc[-1] - sarc) / 2.0, 0, 1)  # the ends (joins) stay where they are
     for i, ax in extrema(sm):
         if ax != 1: continue
+        if CUR in SHORT_TAIL and sm[i][1] > BASE: continue
         dy = snap_y(sm[i][1], SNAP_EXT) - sm[i][1]
         if dy: sm[:, 1] += dy * np.exp(-0.5 * ((sarc - sarc[i]) / 3.0) ** 2) * taper
     anchors = [(0, None)] + [(i, ax) for i, ax in extrema(sm)] + [(len(sm) - 1, None)]
@@ -294,17 +299,20 @@ def fit_span(pts, p0, p3, t0, t1, ax0, ax1, depth=0):
 
 
 # ---------- a whole stroke
-def tidy_stroke(raw):
+def tidy_stroke(raw, dotted=True, ends=None):
     p = resample(parse(raw))
     ext = p.max(0) - p.min(0)
     if max(ext) < DOT:
+        if not dotted: return None  # a touch of the pen, not a dot (A came with one)
         c = (p.max(0) + p.min(0)) / 2
         return {"dot": c}
+    if ends is not None:  # ends moved onto a ruling line / onto another stroke's end (glyph())
+        p = p.copy(); p[0], p[-1] = ends
     ch = p[-1] - p[0]; L = length(p)
     if kind_of(unit(ch)) == "h" and L >= 6 and chord_dev(p) <= BAR_DEV * L:
-        y = float(np.median(p[:, 1])); y = snap_y(y, 1.0)  # bars stay where the hand put them (Nelson: t above the x-line, f just under)
+        y = float(np.median(resample(parse(raw))[:, 1])); y = snap_y(y, 1.0)  # bars stay where the hand put them (Nelson: t above the x-line, f just under)
         a, b = np.array([p[0][0], y]), np.array([p[-1][0], y])
-        return {"segs": [[a, a + (b - a) / 3, a + 2 * (b - a) / 3, b]]}
+        return {"segs": [[a, a + (b - a) / 3, a + 2 * (b - a) / 3, b]], "bar": True}
     ps = pieces(p)
     # lines of every piece
     parts = []  # per piece: list of ("line", dict) / ("curve", points)
@@ -355,6 +363,7 @@ def tidy_stroke(raw):
         if A[0] == "line": pnt = A[1]["b"].copy()
         elif B[0] == "line": pnt = B[1]["a"].copy()
         else: pnt = (A[1][-1] + B[1][0]) / 2
+        pnt[1] = snap_y(pnt[1], END_SNAP)  # a turn back on a line stands on it: the points of v and w, the tops of u and y
         if A[0] == "line": A[1]["b"] = pnt
         else:
             q = A[1]
@@ -389,8 +398,12 @@ def tidy_stroke(raw):
 TOOL = False  # --tool: stay in the capture tool's units (for the review sheet)
 
 
-def to_engine(x, y):
+CAP_K = 2 * (1 + UPPER) / (1 + NELSON)  # a capital / digit: whole, its top (the Nelson ascender) onto the pupil books' ascender
+
+
+def to_engine(x, y, whole=False):
     if TOOL: return x, y
+    if whole: return x * CAP_K, 62 + (y - BASE) * CAP_K
     y2 = (y - BASE) * 2 + 62
     if y < X_LINE: y2 = 10 - (X_LINE - y) * 2 * UPPER / NELSON
     if y > BASE: y2 = 62 + (y - BASE) * 2 * LOWER / NELSON
@@ -400,20 +413,53 @@ def to_engine(x, y):
 def fmt(n): return f"{round(n, 2):g}"
 
 
+def stroke_ends(cap):
+    """The ends of every stroke, moved: onto a ruling line when close, and ends of different strokes close together onto one point."""
+    ends = []
+    for s in cap["strokes"]:
+        p = resample(parse(s["d"])); ends.append([p[0].copy(), p[-1].copy()] if max(p.max(0) - p.min(0)) >= DOT else None)
+    flat = [(i, j) for i, e in enumerate(ends) if e for j in (0, 1)]
+    for a in range(len(flat)):
+        for b in range(a + 1, len(flat)):
+            (i, j), (k, m) = flat[a], flat[b]
+            if i != k and np.linalg.norm(ends[i][j] - ends[k][m]) <= MEET:
+                mid = (ends[i][j] + ends[k][m]) / 2; ends[i][j] = mid.copy(); ends[k][m] = mid.copy()
+    for e in ends:
+        if e:
+            for pnt in e:
+                pnt[1] = LINES[0] if abs(pnt[1] - LINES[0]) <= SNAP else snap_y(pnt[1], END_SNAP)  # b, k were traced up to the tool's line 2
+    return ends
+
+
+CUR = None  # the label being tidied
+
+
 def glyph(cap):
-    strokes = [tidy_stroke(s["d"]) for s in cap["strokes"]]
+    global CUR
+    CUR = cap["label"]
+    dotted = cap["label"] in DOTTED
+    whole = not cap["label"].islower()
+    ends = stroke_ends(cap)
+    strokes = []
+    for i, s in enumerate(cap["strokes"]):
+        st = tidy_stroke(s["d"], dotted, ends[i])
+        if st is None: continue
+        if "segs" in st and ends[i] and not st.get("bar"):  # the ends where they were put (a knot cut at the very start would move them): the next handle moves along
+            for seg, k, h in ((st["segs"][0], 0, 1), (st["segs"][-1], 3, 2)):
+                d = ends[i][0 if k == 0 else 1] - seg[k]; seg[k] = seg[k] + d; seg[h] = seg[h] + d
+        strokes.append(st)
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
     x0 = 0 if TOOL else min(xs)
     out = []
     for s in strokes:
         if "dot" in s:
-            cx, cy = to_engine(s["dot"][0] - x0, s["dot"][1]); r = 2.6; k = 0.5523 * r
+            cx, cy = to_engine(s["dot"][0] - x0, s["dot"][1], whole); r = 2.6; k = 0.5523 * r
             d = (f"M {fmt(cx)} {fmt(cy - r)} C {fmt(cx + k)} {fmt(cy - r)} {fmt(cx + r)} {fmt(cy - k)} {fmt(cx + r)} {fmt(cy)} "
                  f"C {fmt(cx + r)} {fmt(cy + k)} {fmt(cx + k)} {fmt(cy + r)} {fmt(cx)} {fmt(cy + r)} "
                  f"C {fmt(cx - k)} {fmt(cy + r)} {fmt(cx - r)} {fmt(cy + k)} {fmt(cx - r)} {fmt(cy)} "
                  f"C {fmt(cx - r)} {fmt(cy - k)} {fmt(cx - k)} {fmt(cy - r)} {fmt(cx)} {fmt(cy - r)}")
             out.append({"d": d, "name": "точка"}); continue
-        segs = s["segs"]; e = lambda pnt: to_engine(pnt[0] - x0, pnt[1])
+        segs = s["segs"]; e = lambda pnt: to_engine(pnt[0] - x0, pnt[1], whole)
         d = "M " + " ".join(fmt(v) for v in e(segs[0][0]))
         for seg in segs:
             d += " C " + " ".join(fmt(v) for pnt in seg[1:] for v in e(pnt))
