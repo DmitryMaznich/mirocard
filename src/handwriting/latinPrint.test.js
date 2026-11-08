@@ -83,11 +83,18 @@ describe("English print letters in the propis2 engine", () => {
     expect(ru.get("№5").upright).toBeUndefined();
     expect(ru.get("№5").sourceLabel).toMatch(/захват/);
   });
-  it("British k: the loop reaches the x-line, as in the Nelson reference (measured 2026-11-08)", () => {
-    const k = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "k");
-    const loop = samplePath(toCubicPathD(k.strokes[1].d), 200);
-    const top = Math.min(...loop.map((p) => p[1]));
-    expect(top).toBeCloseTo(10, 1); // the capture frame's x-line
-    expect(Math.max(...loop.map((p) => p[1]))).toBeCloseTo(62, 0); // the leg ends on the baseline
+  it("British letters traced by the owner stand on the lines (tidy_capture.py, 2026-11-08)", () => {
+    const traced = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.filter((g) => g.sourceLabel.startsWith("british-capture-"));
+    expect(traced.map((g) => g.label).sort().join("")).toBe("abcdefghijklmnpqrstu");
+    const ys = (g) => g.strokes.filter((st) => st.name !== "точка").flatMap((st) => samplePath(toCubicPathD(st.d), 60).map((p) => p[1]));
+    for (const g of traced) {
+      const [top, bottom] = [Math.min(...ys(g)), Math.max(...ys(g))];
+      // x-line 10, baseline 62, ascenders 0.74 and descenders 0.72 of the x-height (52) in the pupil books' proportions
+      if ("bdhkl".includes(g.label)) expect(top, g.label).toBeCloseTo(10 - 52 * 0.74, 0);
+      else if (g.label === "t") expect(top).toBeLessThan(0);
+      else if (g.label !== "f") expect(top, g.label).toBeCloseTo(10, 0);
+      if ("gjpq".includes(g.label)) expect(bottom, g.label).toBeCloseTo(62 + 52 * 0.72, 0);
+      else if (g.label !== "f") expect(bottom, g.label).toBeLessThan(62.5);
+    }
   });
 });

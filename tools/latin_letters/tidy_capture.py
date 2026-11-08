@@ -1,0 +1,438 @@
+#!/usr/bin/env python3
+"""British letters traced by hand in the capture tool (tools/letter_capture, over tools/latin_letters/underlays/british) -> the same pen
+path, tidied, in the engine's capture frame (docs/latin-letters.md).
+
+  python3 tools/latin_letters/tidy_capture.py <captures.json>... > tools/latin_letters/captures/british.tidy.json
+
+Several files may be given; a later capture of a letter replaces an earlier one. The hand's own path stays: its strokes, their order and
+direction, where the pen lifts and where it turns back (the stem of a d, the retrace of an h). Only the shake goes:
+- the stroke is cut where the pen turns back (a cusp); tiny pieces between two turns (a knot of the hand) are dropped;
+- a run that stays close to a line is that line: within VERT_DEG of the vertical it is vertical (a stem), within HORIZ_DEG of the
+  horizontal horizontal (t's and f's bar); a retrace runs exactly along the stem it goes back up;
+- what is left is curves, drawn through ANCHORS -- the ends and every top, bottom, leftmost and rightmost point of a bow -- with the
+  tangent horizontal at a top or bottom and vertical at a side, so a bowl is an oval; a quarter between a side and a top / bottom is a
+  quarter of an ellipse (handles 0.5523 of its axes), anything else one cubic fitted to the smoothed hand with the anchors' tangents;
+- a top, bottom or stem end this close (SNAP) to a ruling line stands on it: x-line 62, baseline 88, and where the Nelson page puts the
+  ascenders (39.6) and descenders (110.4) -- 0.86 of the x-height, as the underlays.
+Then into the engine's frame: x 2 (the tool's x-height 26 -> 52, baseline 88 -> 62, ink from x = 0), and the zones above the x-line /
+below the baseline squeezed from the page's 0.86 to the pupil books' 0.74 / 0.72 (tools/handwriting/latin/build-print.mjs, british).
+Dots (a stroke smaller than DOT) become the same small ring as the drawn letters'.
+"""
+import json
+import math
+import re
+import sys
+
+import numpy as np
+
+STEP = 0.2            # resampling step, tool units (x-height 26)
+CUSP_DEG = 110.0      # the direction turns this much within CUSP_W: the pen turned back
+CUSP_W = 1.2
+KNOT = 3.5            # a piece shorter than this between two turns is a knot of the hand
+LINE_TOL, LINE_MIN = 0.0, 1e9          # slanting runs stay curves (a cubic follows a straight run well enough)
+STEM_TOL, STEM_MIN = 0.9, 15.0         # a near-vertical run this long: a stem (the side of a bowl is shorter)
+BAR_TOL, BAR_MIN = 0.8, 12.0          # a near-horizontal run this long: a bar of t or f (the flat top of a bowl is shorter)
+VERT_DEG, HORIZ_DEG = 10.0, 10.0
+SMOOTH = 1.2          # gaussian along the curve, tool units
+PROM = 1.2            # an extremum must stand out this much from both sides (else it is the shake)
+FIT_TOL = 0.6         # a cubic strays at most this far from the smoothed hand, else the piece is split
+SNAP = 4.0            # a stem's end this close to a ruling line stands on it (b, k were traced up to the tool's line 2, 36: the ascender is 39.6)
+SNAP_EXT = 1.5       # a bow's top / bottom: only this close (f's tail stays 1.65 short, as on the Nelson page: 0.77 against 0.86)
+TRIM, TRIM_PART = 3.0, 0.2  # a line gives this much of its end (at most this part of it) to the curve it turns into: room to turn
+DOT = 3.0
+FRAG = 2.0            # a curve this short left between a line and the end of its piece is part of the line
+LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
+BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
+K_ELL = 0.5523
+X_LINE, BASE, NELSON = 62.0, 88.0, 0.86
+LINES = [BASE - (BASE - X_LINE) * (1 + NELSON), X_LINE, BASE, BASE + (BASE - X_LINE) * NELSON]  # 39.64, 62, 88, 110.36
+UPPER, LOWER = 0.74, 0.72
+
+
+# ---------- geometry helpers
+def parse(d):
+    toks = re.findall(r"[MLC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?", d)
+    pts, i, cmd, cur = [], 0, None, None
+    while i < len(toks):
+        t = toks[i]
+        if t in "MLC": cmd = t; i += 1; continue
+        if cmd == "M":
+            cur = np.array([float(toks[i]), float(toks[i + 1])]); pts.append(cur); i += 2; cmd = "L"
+        elif cmd == "L":
+            cur = np.array([float(toks[i]), float(toks[i + 1])]); pts.append(cur); i += 2
+        else:
+            p = [cur] + [np.array([float(toks[i + 2 * j]), float(toks[i + 2 * j + 1])]) for j in range(3)]
+            for s in np.linspace(0, 1, 41)[1:]:
+                pts.append(bez(p, s))
+            cur = p[3]; i += 6
+    return np.array(pts)
+
+
+def bez(p, t):
+    u = 1 - t
+    return u ** 3 * p[0] + 3 * u * u * t * p[1] + 3 * u * t * t * p[2] + t ** 3 * p[3]
+
+
+def resample(pts, step=STEP):
+    seg = np.linalg.norm(np.diff(pts, axis=0), axis=1)
+    s = np.concatenate([[0], np.cumsum(seg)])
+    if s[-1] < 1e-6: return pts[:1]
+    n = max(2, int(round(s[-1] / step)) + 1)
+    ss = np.linspace(0, s[-1], n)
+    return np.stack([np.interp(ss, s, pts[:, 0]), np.interp(ss, s, pts[:, 1])], 1)
+
+
+def length(p): return float(np.linalg.norm(np.diff(p, axis=0), axis=1).sum()) if len(p) > 1 else 0.0
+
+
+def smooth(p, sigma=SMOOTH):
+    n = len(p); r = int(3 * sigma / STEP)
+    if n < 5 or r < 1: return p.copy()
+    k = np.exp(-0.5 * (np.arange(-r, r + 1) * STEP / sigma) ** 2); k /= k.sum()
+    pad = np.concatenate([2 * p[0] - p[r:0:-1], p, 2 * p[-1] - p[-2:-r - 2:-1]])  # odd reflection keeps the ends and their direction
+    out = np.stack([np.convolve(pad[:, j], k, "valid") for j in range(2)], 1)
+    out[0], out[-1] = p[0], p[-1]
+    return out
+
+
+def unit(v):
+    n = np.linalg.norm(v); return v / n if n > 1e-9 else v
+
+
+# ---------- 1. cut at the turns back
+def cusps(p):
+    w = max(1, int(CUSP_W / STEP)); out = []
+    ang = np.zeros(len(p))
+    for i in range(w, len(p) - w):
+        a, b = p[i] - p[i - w], p[i + w] - p[i]
+        if np.linalg.norm(a) < 1e-6 or np.linalg.norm(b) < 1e-6: continue
+        ang[i] = math.degrees(math.acos(np.clip(np.dot(unit(a), unit(b)), -1, 1)))
+    i = 0
+    while i < len(p):
+        if ang[i] >= CUSP_DEG:
+            j = i
+            while j + 1 < len(p) and ang[j + 1] >= CUSP_DEG * 0.6: j += 1
+            out.append(i + int(np.argmax(ang[i:j + 1]))); i = j + 1
+        else: i += 1
+    return out
+
+
+def cut_loops(p):
+    n = len(p); i = 0; keep = []
+    w = int(1.0 / STEP); lmax = int(LOOP / STEP)
+    while i < n:
+        keep.append(i)
+        jj = None
+        for j in range(i + w * 2, min(n, i + lmax)):
+            if np.linalg.norm(p[j] - p[i]) < 0.35:
+                q = p[i:j + 1]; area = 0.5 * abs(np.dot(q[:, 0], np.roll(q[:, 1], 1)) - np.dot(q[:, 1], np.roll(q[:, 0], 1)))
+                if area > 1.5: jj = j  # a real loop encloses something; going back along the same line (a retrace) does not
+        i = jj if jj is not None else i + 1
+    return p[keep]
+
+
+def pieces(p):
+    p = cut_loops(p)
+    cuts = [0] + cusps(p) + [len(p) - 1]
+    ps = [p[a:b + 1] for a, b in zip(cuts, cuts[1:]) if b > a]
+    # knots: a short piece between two others goes; its neighbours meet halfway between where they stopped
+    changed = True
+    while changed and len(ps) > 1:
+        changed = False
+        for k, q in enumerate(ps):
+            if length(q) < KNOT:
+                if 0 < k < len(ps) - 1:
+                    m = (ps[k - 1][-1] + ps[k + 1][0]) / 2
+                    ps[k - 1] = np.vstack([ps[k - 1][:-1], m]); ps[k + 1] = np.vstack([m, ps[k + 1][1:]])
+                del ps[k]; changed = True; break
+    return [resample(q) for q in ps]
+
+
+# ---------- 2. lines inside a piece
+def chord_dev(q):
+    a, b = q[0], q[-1]; d = unit(b - a)
+    if np.linalg.norm(b - a) < 1e-6: return 1e9
+    v = q - a; return float(np.abs(v[:, 0] * d[1] - v[:, 1] * d[0]).max())
+
+
+def kind_of(d):
+    ang = abs(math.degrees(math.atan2(d[1], d[0]))) % 180
+    if abs(ang - 90) <= VERT_DEG: return "v"
+    if min(ang, 180 - ang) <= HORIZ_DEG: return "h"
+    return "l"
+
+
+def run_ok(seg):
+    L = length(seg)
+    if L < min(STEM_MIN, BAR_MIN): return False
+    k = kind_of(unit(seg[-1] - seg[0]))
+    tol, mn = {"v": (STEM_TOL, STEM_MIN), "h": (BAR_TOL, BAR_MIN), "l": (LINE_TOL, LINE_MIN)}[k]
+    return L >= mn and chord_dev(seg) <= tol
+
+
+def line_runs(q):
+    """Maximal straight runs (index ranges) in a piece, the longest first."""
+    n = len(q); cands = []
+    lo = int(min(STEM_MIN, BAR_MIN) / STEP)
+    for i in range(0, n - lo, 2):
+        best = None; j = i + lo
+        while j < n:
+            seg = q[i:j + 1]
+            if run_ok(seg): best = j
+            elif chord_dev(seg) > 2 * STEM_TOL: break
+            j += 2
+        if best is not None: cands.append((best - i, i, best))
+    taken = np.zeros(n, bool); runs = []
+    for _, i, j in sorted(cands, reverse=True):
+        if taken[i:j + 1].any(): continue
+        taken[i:j + 1] = True; runs.append((i, j))
+    return sorted(runs)
+
+
+def fit_line(seg):
+    c = seg.mean(0); u, s, vt = np.linalg.svd(seg - c); d = vt[0]
+    if np.dot(d, seg[-1] - seg[0]) < 0: d = -d
+    k = kind_of(d)
+    if k == "v": d = np.array([0.0, math.copysign(1, d[1])]); c = np.array([np.median(seg[:, 0]), c[1]])
+    if k == "h": d = np.array([math.copysign(1, d[0]), 0.0]); c = np.array([c[0], np.median(seg[:, 1])])
+    proj = lambda pnt: c + d * np.dot(pnt - c, d)
+    return {"type": "line", "a": proj(seg[0]), "b": proj(seg[-1]), "dir": d, "kind": k}
+
+
+# ---------- 3. curves through anchors
+def extrema(q):
+    """Indices of tops / bottoms (axis 1) and sides (axis 0) that stand out by PROM, away from the ends."""
+    out = []; n = len(q); w = int(2.0 / STEP); edge = int(1.5 / STEP)
+    for ax in (0, 1):
+        for sgn in (1, -1):
+            v = sgn * q[:, ax]
+            for i in range(edge, n - edge):
+                if v[i] < v[max(0, i - w):i + w + 1].max() - 1e-9: continue
+                if v[i] - v[:i].min() >= PROM and v[i] - v[i + 1:].min() >= PROM:
+                    if not any(abs(i - j) < int(1.5 / STEP) and a == ax for j, a in out): out.append((i, ax))
+    out.sort(); res = []
+    gap = int(4.0 / STEP)
+    for i, ax in out:
+        if res and i - res[-1][0] < gap:
+            if res[-1][1] == 0 and ax == 1: res[-1] = (i, ax)  # a top / bottom wins over a side next to it
+            continue
+        res.append((i, ax))
+    return res
+
+
+def fit_cubic(pts, p0, p3, t0, t1):
+    """Least-squares handle lengths along fixed tangents (t1 points back from p3), chord-length parameters, handles clamped."""
+    s = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]); u = s / max(s[-1], 1e-9)
+    b0, b1, b2, b3 = (1 - u) ** 3, 3 * u * (1 - u) ** 2, 3 * u * u * (1 - u), u ** 3
+    A1, A2 = np.outer(b1, t0), np.outer(b2, t1)
+    C = np.array([[np.sum(A1 * A1), np.sum(A1 * A2)], [np.sum(A1 * A2), np.sum(A2 * A2)]])
+    tmp = pts - np.outer(b0 + b1, p0) - np.outer(b2 + b3, p3)
+    X = np.array([np.sum(A1 * tmp), np.sum(A2 * tmp)])
+    dist = np.linalg.norm(p3 - p0)
+    try: a0, a1 = np.linalg.solve(C, X)
+    except np.linalg.LinAlgError: a0 = a1 = dist / 3
+    lo, hi = 0.05 * dist, 1.2 * dist
+    a0, a1 = float(np.clip(a0, lo, hi)), float(np.clip(a1, lo, hi))
+    ctrl = [p0, p0 + a0 * t0, p3 + a1 * t1, p3]
+    curve_pts = np.array([bez(ctrl, t) for t in np.linspace(0, 1, 80)])
+    err = max(np.min(np.linalg.norm(curve_pts - x, axis=1)) for x in pts[::2])
+    return ctrl, err
+
+
+def snap_y(y, tol=SNAP):
+    for L in LINES:
+        if abs(y - L) <= tol: return L
+    return y
+
+
+def curve(q, t_start=None, t_end=None):
+    """Cubics for one curved run q (ends fixed). t_start / t_end: tangents forced by an adjoining line."""
+    sm = smooth(q)
+    # a top / bottom near a ruling line is brought onto it by moving its whole neighbourhood smoothly (moving one point makes a notch)
+    sarc = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(sm, axis=0), axis=1))])
+    taper = np.clip(np.minimum(sarc, sarc[-1] - sarc) / 2.0, 0, 1)  # the ends (joins) stay where they are
+    for i, ax in extrema(sm):
+        if ax != 1: continue
+        dy = snap_y(sm[i][1], SNAP_EXT) - sm[i][1]
+        if dy: sm[:, 1] += dy * np.exp(-0.5 * ((sarc - sarc[i]) / 3.0) ** 2) * taper
+    anchors = [(0, None)] + [(i, ax) for i, ax in extrema(sm)] + [(len(sm) - 1, None)]
+    pos, tan = [], []
+    for k, (i, ax) in enumerate(anchors):
+        p = sm[i].copy()
+        if ax is None:
+            t = t_start if (k == 0 and t_start is not None) else t_end if (k == len(anchors) - 1 and t_end is not None) else None
+            if t is None:
+                w = int(1.5 / STEP)
+                t = unit(sm[min(i + w, len(sm) - 1)] - sm[i]) if k == 0 else unit(sm[i] - sm[max(i - w, 0)])
+        else:
+            mv = sm[min(i + 2, len(sm) - 1)] - sm[max(i - 2, 0)]
+            if ax == 1: t = np.array([math.copysign(1, mv[0]), 0.0])
+            else: t = np.array([0.0, math.copysign(1, mv[1])])
+        pos.append(p); tan.append(unit(t))
+    pos[0], pos[-1] = q[0].copy(), q[-1].copy()
+    segs = []
+    for k in range(len(anchors) - 1):
+        i0, i1 = anchors[k][0], anchors[k + 1][0]
+        segs += fit_span(sm[i0:i1 + 1], pos[k], pos[k + 1], tan[k], tan[k + 1], anchors[k][1], anchors[k + 1][1])
+    return segs
+
+
+def fit_span(pts, p0, p3, t0, t1, ax0, ax1, depth=0):
+    # a quarter of an oval: from a side to a top / bottom (or back) -> a quarter of an ellipse
+    if ax0 is not None and ax1 is not None and ax0 != ax1:
+        dx, dy = abs(p3[0] - p0[0]), abs(p3[1] - p0[1])
+        h0 = K_ELL * (dx if abs(t0[0]) > 0.5 else dy); h1 = K_ELL * (dx if abs(t1[0]) > 0.5 else dy)
+        ctrl = [p0, p0 + h0 * t0, p3 - h1 * t1, p3]
+        err = max(min(np.linalg.norm(bez(ctrl, t) - x) for t in np.linspace(0, 1, 60)) for x in pts[::3])
+        if err <= 2 * FIT_TOL: return [ctrl]
+    ctrl, err = fit_cubic(pts, p0, p3, t0, -t1)
+    ctrl = [ctrl[0], ctrl[1], ctrl[2], ctrl[3]]
+    if err <= FIT_TOL or len(pts) < 12 or depth > 3: return [ctrl]
+    m = len(pts) // 2
+    tm = unit(pts[min(m + 3, len(pts) - 1)] - pts[max(m - 3, 0)])
+    return fit_span(pts[:m + 1], p0, pts[m], t0, tm, None, None, depth + 1) + fit_span(pts[m:], pts[m], p3, tm, t1, None, None, depth + 1)
+
+
+# ---------- a whole stroke
+def tidy_stroke(raw):
+    p = resample(parse(raw))
+    ext = p.max(0) - p.min(0)
+    if max(ext) < DOT:
+        c = (p.max(0) + p.min(0)) / 2
+        return {"dot": c}
+    ch = p[-1] - p[0]; L = length(p)
+    if kind_of(unit(ch)) == "h" and L >= 6 and chord_dev(p) <= BAR_DEV * L:
+        y = float(np.median(p[:, 1])); y = snap_y(y, 1.0)  # bars stay where the hand put them (Nelson: t above the x-line, f just under)
+        a, b = np.array([p[0][0], y]), np.array([p[-1][0], y])
+        return {"segs": [[a, a + (b - a) / 3, a + 2 * (b - a) / 3, b]]}
+    ps = pieces(p)
+    # lines of every piece
+    parts = []  # per piece: list of ("line", dict) / ("curve", points)
+    for q in ps:
+        runs = line_runs(q); items = []; last = 0
+        frag = int(FRAG / STEP)
+        runs = [(0 if i <= frag else i, len(q) - 1 if len(q) - 1 - j <= frag else j) for i, j in runs]
+        for i, j in runs:
+            if i > last: items.append(["curve", q[last:i + 1]])
+            items.append(["line", fit_line(q[i:j + 1])]); last = j
+        if last < len(q) - 1: items.append(["curve", q[last:]])
+        if not items: items = [["curve", q]]
+        parts.append(items)
+    for k in range(1, len(parts)):
+        prev = parts[k - 1][-1]; first = parts[k][0]
+        if prev[0] == "line" and prev[1]["kind"] == "v" and first[0] == "curve":
+            q = first[1]; x = prev[1]["b"][0]; m = 0
+            while m + 1 < len(q) and abs(q[m + 1][0] - x) <= 0.8 and (q[m + 1][1] - q[0][1]) * prev[1]["dir"][1] <= 0: m += 1
+            if m * STEP >= 2.0:
+                ln = {"type": "line", "a": np.array([x, q[0][1]]), "b": np.array([x, q[m][1]]), "dir": -prev[1]["dir"], "kind": "v"}
+                parts[k] = [["line", ln]] + ([["curve", q[m:]]] if m < len(q) - 1 else []) + parts[k][1:]
+    # stems: a vertical line close to another one (the retrace) takes its x; ends near a ruling line stand on it
+    verts = [it[1] for items in parts for it in items if it[0] == "line" and it[1]["kind"] == "v"]
+    for k, a in enumerate(verts):
+        for b in verts[:k]:
+            if abs(a["a"][0] - b["a"][0]) <= 1.5: a["a"][0] = a["b"][0] = b["a"][0]
+    for items in parts:
+        for idx, (typ, it) in enumerate(items):
+            if typ != "line": continue
+            if it["kind"] == "v":
+                if idx == 0: it["a"][1] = snap_y(it["a"][1])
+                if idx == len(items) - 1: it["b"][1] = snap_y(it["b"][1])
+            if it["kind"] == "h": it["a"][1] = it["b"][1] = snap_y(it["a"][1]) if abs(snap_y(it["a"][1]) - it["a"][1]) <= 1.5 else it["a"][1]
+    for items in parts:
+        for idx, (typ, it) in enumerate(items):
+            if typ != "line": continue
+            Lline = np.linalg.norm(it["b"] - it["a"]); t = min(TRIM, TRIM_PART * Lline)
+            if idx > 0 and items[idx - 1][0] == "curve":
+                na = it["a"] + it["dir"] * t
+                items[idx - 1][1] = np.vstack([items[idx - 1][1], na]); it["a"] = na
+            if idx < len(items) - 1 and items[idx + 1][0] == "curve":
+                nb = it["b"] - it["dir"] * t
+                items[idx + 1][1] = np.vstack([nb, items[idx + 1][1]]); it["b"] = nb
+    # where two pieces meet (a turn back), one point: a line's end wins; a curve there runs along that line
+    cusp_tan = {}
+    for k in range(len(parts) - 1):
+        A, B = parts[k][-1], parts[k + 1][0]
+        if A[0] == "line": pnt = A[1]["b"].copy()
+        elif B[0] == "line": pnt = B[1]["a"].copy()
+        else: pnt = (A[1][-1] + B[1][0]) / 2
+        if A[0] == "line": A[1]["b"] = pnt
+        else:
+            q = A[1]
+            if B[0] == "line":
+                back = -B[1]["dir"]
+                q = q[np.dot(q - pnt, back) <= 0] if np.any(np.dot(q - pnt, back) <= 0) else q
+            A[1] = np.vstack([q, pnt]) if np.linalg.norm(q[-1] - pnt) > 1e-6 else q
+        if B[0] == "line":
+            B[1]["a"] = pnt
+        else:
+            q = B[1]
+            if A[0] == "line":
+                fwd = -A[1]["dir"]
+                q = q[np.dot(q - pnt, -fwd) <= 0] if np.any(np.dot(q - pnt, -fwd) <= 0) else q
+            B[1] = np.vstack([pnt, q]) if np.linalg.norm(q[0] - pnt) > 1e-6 else q
+    # into cubics, the curves fitted between their neighbours' ends with their directions
+    segs = []
+    for pk, items in enumerate(parts):
+        for idx, (typ, it) in enumerate(items):
+            if typ == "line":
+                a, b = it["a"], it["b"]; segs.append([a, a + (b - a) / 3, a + 2 * (b - a) / 3, b]); continue
+            q = it.copy(); ts = te = None
+            if idx > 0 and items[idx - 1][0] == "line": q[0] = items[idx - 1][1]["b"]; ts = items[idx - 1][1]["dir"]
+            if idx < len(items) - 1 and items[idx + 1][0] == "line": q[-1] = items[idx + 1][1]["a"]; te = items[idx + 1][1]["dir"]
+            if idx == 0 and (pk, "start") in cusp_tan: ts = cusp_tan[(pk, "start")]
+            if idx == len(items) - 1 and (pk, "end") in cusp_tan: te = cusp_tan[(pk, "end")]
+            segs += curve(resample(q), ts, te)
+    return {"segs": segs}
+
+
+# ---------- into the engine's frame
+TOOL = False  # --tool: stay in the capture tool's units (for the review sheet)
+
+
+def to_engine(x, y):
+    if TOOL: return x, y
+    y2 = (y - BASE) * 2 + 62
+    if y < X_LINE: y2 = 10 - (X_LINE - y) * 2 * UPPER / NELSON
+    if y > BASE: y2 = 62 + (y - BASE) * 2 * LOWER / NELSON
+    return x * 2, y2
+
+
+def fmt(n): return f"{round(n, 2):g}"
+
+
+def glyph(cap):
+    strokes = [tidy_stroke(s["d"]) for s in cap["strokes"]]
+    xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
+    x0 = 0 if TOOL else min(xs)
+    out = []
+    for s in strokes:
+        if "dot" in s:
+            cx, cy = to_engine(s["dot"][0] - x0, s["dot"][1]); r = 2.6; k = 0.5523 * r
+            d = (f"M {fmt(cx)} {fmt(cy - r)} C {fmt(cx + k)} {fmt(cy - r)} {fmt(cx + r)} {fmt(cy - k)} {fmt(cx + r)} {fmt(cy)} "
+                 f"C {fmt(cx + r)} {fmt(cy + k)} {fmt(cx + k)} {fmt(cy + r)} {fmt(cx)} {fmt(cy + r)} "
+                 f"C {fmt(cx - k)} {fmt(cy + r)} {fmt(cx - r)} {fmt(cy + k)} {fmt(cx - r)} {fmt(cy)} "
+                 f"C {fmt(cx - r)} {fmt(cy - k)} {fmt(cx - k)} {fmt(cy - r)} {fmt(cx)} {fmt(cy - r)}")
+            out.append({"d": d, "name": "точка"}); continue
+        segs = s["segs"]; e = lambda pnt: to_engine(pnt[0] - x0, pnt[1])
+        d = "M " + " ".join(fmt(v) for v in e(segs[0][0]))
+        for seg in segs:
+            d += " C " + " ".join(fmt(v) for pnt in seg[1:] for v in e(pnt))
+        out.append({"d": d, "name": "штрих"})
+    return {"label": cap["label"], "kind": "letter", "sourceLabel": f"british-capture-{cap['label']}", "strokes": out,
+            "stretch": 1, "noNormalize": True, "upright": True}
+
+
+def main():
+    global TOOL
+    TOOL = "--tool" in sys.argv
+    caps = {}
+    for f in [a for a in sys.argv[1:] if not a.startswith("--")]:
+        for c in json.load(open(f, encoding="utf-8")):
+            caps[c["label"]] = c
+    res = [glyph(c) for c in caps.values()]
+    json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()
