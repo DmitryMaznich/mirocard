@@ -85,17 +85,17 @@ describe("English print letters in the propis2 engine", () => {
   });
   it("British letters traced by the owner stand on the lines (tidy_capture.py, 2026-11-08)", () => {
     const traced = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.filter((g) => g.sourceLabel.startsWith("british-capture-"));
-    expect(traced.map((g) => g.label).sort().join("")).toBe("ACabcdefghijklmnopqrstuvwxyz");
+    expect(traced.map((g) => g.label).sort().join("")).toBe("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
     const ys = (g) => g.strokes.filter((st) => st.name !== "точка").flatMap((st) => samplePath(toCubicPathD(st.d), 60).map((p) => p[1]));
     for (const g of traced) {
       const [top, bottom] = [Math.min(...ys(g)), Math.max(...ys(g))];
       // x-line 10, baseline 62, ascenders 0.74 and descenders 0.72 of the x-height (52) in the pupil books' proportions
       // capitals as tall as the ascenders, scaled whole
-      if ("bdhklAC".includes(g.label)) expect(top, g.label).toBeCloseTo(10 - 52 * 0.74, 0);
+      if ("bdhkl".includes(g.label) || /[A-Z]/.test(g.label)) expect(top, g.label).toBeCloseTo(10 - 52 * 0.74, 0);
       else if (g.label === "t") expect(top).toBeLessThan(0);
       else if (g.label !== "f") expect(top, g.label).toBeCloseTo(10, 0);
       if ("gjpqy".includes(g.label)) expect(bottom, g.label).toBeCloseTo(62 + 52 * 0.72, 0);
-      else if (g.label !== "f") expect(bottom, g.label).toBeLessThan(62.5);
+      else if (g.label !== "f") expect(bottom, g.label).toBeLessThan(63); // round letters (G, O) may dip a little under it
     }
   });
 });

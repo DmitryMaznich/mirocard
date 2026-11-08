@@ -31,9 +31,11 @@ CUSP_W = 1.2
 KNOT = 3.5            # a piece shorter than this between two turns is a knot of the hand
 LINE_TOL, LINE_MIN = 0.9, 15.0         # a long slanting run this close to its chord is a line (A, v, w, x, z, k's leg)
 STEM_TOL, STEM_MIN = 0.9, 15.0         # a near-vertical run this long: a stem (the side of a bowl is shorter)
+LONG_TOL, LONG_MIN = 1.4, 25.0         # a slanting or level run this long may waver more (the legs of W, V, M, N; the bars of Z)
 BAR_TOL, BAR_MIN = 0.8, 12.0          # a near-horizontal run this long: a bar of t or f (the flat top of a bowl is shorter)
 VERT_DEG, HORIZ_DEG = 10.0, 10.0
 SMOOTH = 1.2          # gaussian along the curve, tool units
+PROM_WHOLE = 2.0     # ... on a capital (its bows are about twice as big, the shake of the hand the same: G's and Q's bumps)
 PROM = 1.2            # an extremum must stand out this much from both sides (else it is the shake)
 FIT_TOL = 0.6         # a cubic strays at most this far from the smoothed hand, else the piece is split
 SNAP = 4.0            # a stem's end this close to a ruling line stands on it (b, k were traced up to the tool's line 2, 36: the ascender is 39.6)
@@ -43,11 +45,17 @@ TRIM, TRIM_PART = 3.0, 0.2  # a line gives this much of its end (at most this pa
 DOT = 3.0
 DOTTED = set("ij")    # letters whose tiny strokes are dots; elsewhere a tiny stroke is a touch of the pen and goes
 END_SNAP = 2.0       # a stroke's end (or a sharp turn) this close to a ruling line stands on it (v's point: 1.9 under after the line fit)
+CLOSE = 3.0          # a stroke ending this close to its start is a closed oval
 MEET = 2.0           # ends of two strokes this close are one point (the apex of A)
-FRAG = 2.0            # a curve this short left between a line and the end of its piece is part of the line
+FRAG = 3.5            # a curve this short left between a line and the end of its piece is part of the line (b's stem began with a tick)
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
+BAR_SNAP = 1.2       # a bar this close to a ruling line stands on it
+FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
+STEM_MEET = 2.5      # a bar's end this close to a stem (a vertical line of another stroke) ends on it
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
 K_ELL = 0.5523
+OVAL_TURN, OVAL_STEM = 250.0, 28.0  # see line_runs
+QUARTER_TOL = 3.0     # a quarter of an oval is an ellipse even this far from the hand (the hand drew D's side as a broken line)
 X_LINE, BASE, NELSON = 62.0, 88.0, 0.86
 LINES = [BASE - (BASE - X_LINE) * (1 + NELSON), X_LINE, BASE, BASE + (BASE - X_LINE) * NELSON]  # 39.64, 62, 88, 110.36
 UPPER, LOWER = 0.74, 0.72
@@ -170,13 +178,22 @@ def run_ok(seg):
     L = length(seg)
     if L < min(STEM_MIN, BAR_MIN): return False
     k = kind_of(unit(seg[-1] - seg[0]))
-    tol, mn = {"v": (STEM_TOL, STEM_MIN), "h": (BAR_TOL, BAR_MIN), "l": (LINE_TOL, LINE_MIN)}[k]
+    tol, mn = {"v": (STEM_TOL, STEM_MIN), "h": (LONG_TOL if L >= LONG_MIN else BAR_TOL, BAR_MIN), "l": (LONG_TOL if L >= LONG_MIN else LINE_TOL, LINE_MIN)}[k]
     return L >= mn and chord_dev(seg) <= tol
 
 
+def turning(q):
+    """Total signed turn of a piece, degrees (an oval: about 360)."""
+    sm = smooth(q, 2.0); d = np.diff(sm[::5], axis=0)
+    a = np.unwrap(np.arctan2(d[:, 1], d[:, 0]))
+    return float(np.degrees(a[-1] - a[0])) if len(a) > 1 else 0.0
+
+
 def line_runs(q):
-    """Maximal straight runs (index ranges) in a piece, the longest first."""
+    """Maximal straight runs (index ranges) in a piece, the longest first. In an oval (the piece turns OVAL_TURN or more: O Q C G o) a
+    flat stretch of the hand is still the oval's side: only a real stem (OVAL_STEM long, d's) is a line there."""
     n = len(q); cands = []
+    min_len = OVAL_STEM if abs(turning(q)) >= OVAL_TURN else 0
     lo = int(min(STEM_MIN, BAR_MIN) / STEP)
     for i in range(0, n - lo, 2):
         best = None; j = i + lo
@@ -187,6 +204,7 @@ def line_runs(q):
             j += 2
         if best is not None: cands.append((best - i, i, best))
     taken = np.zeros(n, bool); runs = []
+    cands = [c for c in cands if length(q[c[1]:c[2] + 1]) >= min_len]
     for _, i, j in sorted(cands, reverse=True):
         if taken[i:j + 1].any(): continue
         taken[i:j + 1] = True; runs.append((i, j))
@@ -212,7 +230,8 @@ def extrema(q):
             v = sgn * q[:, ax]
             for i in range(edge, n - edge):
                 if v[i] < v[max(0, i - w):i + w + 1].max() - 1e-9: continue
-                if v[i] - v[:i].min() >= PROM and v[i] - v[i + 1:].min() >= PROM:
+                prom = PROM_WHOLE if WHOLE else PROM
+                if v[i] - v[:i].min() >= prom and v[i] - v[i + 1:].min() >= prom:
                     if not any(abs(i - j) < int(1.5 / STEP) and a == ax for j, a in out): out.append((i, ax))
     out.sort(); res = []
     gap = int(4.0 / STEP)
@@ -275,10 +294,14 @@ def curve(q, t_start=None, t_end=None):
             else: t = np.array([0.0, math.copysign(1, mv[1])])
         pos.append(p); tan.append(unit(t))
     pos[0], pos[-1] = q[0].copy(), q[-1].copy()
+    # an end leaving a stem or a bar (its tangent forced along it) is like a side / a top of an oval: D's bow from its top bar is a quarter
+    axes = [a for _, a in anchors]
+    for k, t in ((0, t_start), (len(anchors) - 1, t_end)):
+        if t is not None: axes[k] = 0 if abs(t[0]) < 1e-6 else 1 if abs(t[1]) < 1e-6 else None
     segs = []
     for k in range(len(anchors) - 1):
         i0, i1 = anchors[k][0], anchors[k + 1][0]
-        segs += fit_span(sm[i0:i1 + 1], pos[k], pos[k + 1], tan[k], tan[k + 1], anchors[k][1], anchors[k + 1][1])
+        segs += fit_span(sm[i0:i1 + 1], pos[k], pos[k + 1], tan[k], tan[k + 1], axes[k], axes[k + 1])
     return segs
 
 
@@ -289,7 +312,7 @@ def fit_span(pts, p0, p3, t0, t1, ax0, ax1, depth=0):
         h0 = K_ELL * (dx if abs(t0[0]) > 0.5 else dy); h1 = K_ELL * (dx if abs(t1[0]) > 0.5 else dy)
         ctrl = [p0, p0 + h0 * t0, p3 - h1 * t1, p3]
         err = max(min(np.linalg.norm(bez(ctrl, t) - x) for t in np.linspace(0, 1, 60)) for x in pts[::3])
-        if err <= 2 * FIT_TOL: return [ctrl]
+        if err <= QUARTER_TOL: return [ctrl]
     ctrl, err = fit_cubic(pts, p0, p3, t0, -t1)
     ctrl = [ctrl[0], ctrl[1], ctrl[2], ctrl[3]]
     if err <= FIT_TOL or len(pts) < 12 or depth > 3: return [ctrl]
@@ -299,6 +322,24 @@ def fit_span(pts, p0, p3, t0, t1, ax0, ax1, depth=0):
 
 
 # ---------- a whole stroke
+def trim_past(q, pnt, direction, from_end):
+    """Drop the hand's overshoot past a turn back: only the run of points at the end (or start) that lies beyond `pnt` along
+    `direction` (a curve may well go beyond it earlier on: G's arc rises far above its spur's top)."""
+    past = np.dot(q - pnt, direction) > 0
+    idx = range(len(q) - 1, -1, -1) if from_end else range(len(q))
+    k = 0
+    for i in idx:
+        if not past[i]: break
+        k += 1
+    if k == 0 or k >= len(q) - 1: return q
+    return q[:len(q) - k] if from_end else q[k:]
+
+
+def is_bar(p):
+    ch = p[-1] - p[0]; L = length(p)
+    return kind_of(unit(ch)) == "h" and L >= 6 and chord_dev(p) <= BAR_DEV * L
+
+
 def tidy_stroke(raw, dotted=True, ends=None):
     p = resample(parse(raw))
     ext = p.max(0) - p.min(0)
@@ -306,11 +347,13 @@ def tidy_stroke(raw, dotted=True, ends=None):
         if not dotted: return None  # a touch of the pen, not a dot (A came with one)
         c = (p.max(0) + p.min(0)) / 2
         return {"dot": c}
-    if ends is not None:  # ends moved onto a ruling line / onto another stroke's end (glyph())
-        p = p.copy(); p[0], p[-1] = ends
+    # the ends moved onto a line / onto another stroke's end (stroke_ends) are put in AFTER the tidying (glyph()): moving them in the
+    # hand's path first makes a jump there that the cutting at turns back reads as a turn (B's last bowl lost its bottom line)
     ch = p[-1] - p[0]; L = length(p)
-    if kind_of(unit(ch)) == "h" and L >= 6 and chord_dev(p) <= BAR_DEV * L:
-        y = float(np.median(resample(parse(raw))[:, 1])); y = snap_y(y, 1.0)  # bars stay where the hand put them (Nelson: t above the x-line, f just under)
+    if is_bar(p):
+        # bars stay where the hand put them (Nelson: t above the x-line by 0.17, f under it by 0.06) unless right at a line: the middle
+        # bars of E F H are at 1.03 on the Nelson page and were traced at 60.9 / 61.8 / 61.2 -- all onto the x-line, the same height
+        y = float(np.median(resample(parse(raw))[:, 1])); y = snap_y(y, BAR_SNAP)
         a, b = np.array([p[0][0], y]), np.array([p[-1][0], y])
         return {"segs": [[a, a + (b - a) / 3, a + 2 * (b - a) / 3, b]], "bar": True}
     ps = pieces(p)
@@ -345,7 +388,9 @@ def tidy_stroke(raw, dotted=True, ends=None):
             if it["kind"] == "v":
                 if idx == 0: it["a"][1] = snap_y(it["a"][1])
                 if idx == len(items) - 1: it["b"][1] = snap_y(it["b"][1])
-            if it["kind"] == "h": it["a"][1] = it["b"][1] = snap_y(it["a"][1]) if abs(snap_y(it["a"][1]) - it["a"][1]) <= 1.5 else it["a"][1]
+            if it["kind"] == "h":  # onto the baseline / the top line from a little farther (D's bottom: 1.9), onto the x-line only when right at it (R)
+                y = snap_y(it["a"][1], END_SNAP); y = y if y != X_LINE or abs(it["a"][1] - X_LINE) <= BAR_SNAP else it["a"][1]
+                it["a"][1] = it["b"][1] = y
     for items in parts:
         for idx, (typ, it) in enumerate(items):
             if typ != "line": continue
@@ -363,13 +408,13 @@ def tidy_stroke(raw, dotted=True, ends=None):
         if A[0] == "line": pnt = A[1]["b"].copy()
         elif B[0] == "line": pnt = B[1]["a"].copy()
         else: pnt = (A[1][-1] + B[1][0]) / 2
-        pnt[1] = snap_y(pnt[1], END_SNAP)  # a turn back on a line stands on it: the points of v and w, the tops of u and y
+        if CUR not in FREE_TURN: pnt[1] = snap_y(pnt[1], END_SNAP)  # a turn back on a line stands on it: the points of v and w, the tops of u and y
         if A[0] == "line": A[1]["b"] = pnt
         else:
             q = A[1]
             if B[0] == "line":
                 back = -B[1]["dir"]
-                q = q[np.dot(q - pnt, back) <= 0] if np.any(np.dot(q - pnt, back) <= 0) else q
+                q = trim_past(q, pnt, back, from_end=True)
             A[1] = np.vstack([q, pnt]) if np.linalg.norm(q[-1] - pnt) > 1e-6 else q
         if B[0] == "line":
             B[1]["a"] = pnt
@@ -377,7 +422,7 @@ def tidy_stroke(raw, dotted=True, ends=None):
             q = B[1]
             if A[0] == "line":
                 fwd = -A[1]["dir"]
-                q = q[np.dot(q - pnt, -fwd) <= 0] if np.any(np.dot(q - pnt, -fwd) <= 0) else q
+                q = trim_past(q, pnt, -fwd, from_end=False)
             B[1] = np.vstack([pnt, q]) if np.linalg.norm(q[0] - pnt) > 1e-6 else q
     # into cubics, the curves fitted between their neighbours' ends with their directions
     segs = []
@@ -415,10 +460,12 @@ def fmt(n): return f"{round(n, 2):g}"
 
 def stroke_ends(cap):
     """The ends of every stroke, moved: onto a ruling line when close, and ends of different strokes close together onto one point."""
-    ends = []
-    for s in cap["strokes"]:
+    ends, bars = [], set()
+    for i, s in enumerate(cap["strokes"]):
         p = resample(parse(s["d"])); ends.append([p[0].copy(), p[-1].copy()] if max(p.max(0) - p.min(0)) >= DOT else None)
-    flat = [(i, j) for i, e in enumerate(ends) if e for j in (0, 1)]
+        if ends[-1] and is_bar(p): bars.add(i)
+    # a bar does not pull a stem's end to itself (E, F, H): it is put onto the stem after (glyph())
+    flat = [(i, j) for i, e in enumerate(ends) if e and i not in bars for j in (0, 1)]
     for a in range(len(flat)):
         for b in range(a + 1, len(flat)):
             (i, j), (k, m) = flat[a], flat[b]
@@ -432,11 +479,12 @@ def stroke_ends(cap):
 
 
 CUR = None  # the label being tidied
+WHOLE = False  # ... and whether it is a capital / digit
 
 
 def glyph(cap):
-    global CUR
-    CUR = cap["label"]
+    global CUR, WHOLE
+    CUR = cap["label"]; WHOLE = not CUR.islower()
     dotted = cap["label"] in DOTTED
     whole = not cap["label"].islower()
     ends = stroke_ends(cap)
@@ -446,8 +494,24 @@ def glyph(cap):
         if st is None: continue
         if "segs" in st and ends[i] and not st.get("bar"):  # the ends where they were put (a knot cut at the very start would move them): the next handle moves along
             for seg, k, h in ((st["segs"][0], 0, 1), (st["segs"][-1], 3, 2)):
-                d = ends[i][0 if k == 0 else 1] - seg[k]; seg[k] = seg[k] + d; seg[h] = seg[h] + d
+                d = ends[i][0 if k == 0 else 1] - seg[k]
+                if abs(seg[0][1] - seg[3][1]) < 1e-6 and abs(seg[1][1] - seg[0][1]) < 1e-6: d[1] = 0  # a horizontal line moves only along itself
+                if abs(seg[0][0] - seg[3][0]) < 1e-6 and abs(seg[1][0] - seg[0][0]) < 1e-6: d[0] = 0  # ... a vertical one too
+                seg[k] = seg[k] + d; seg[h] = seg[h] + d
+        # a closed oval (O o Q): the hand overshoots its start a little; the end is put onto the start, going on the way it began
+        if "segs" in st and not st.get("bar") and len(st["segs"]) > 2:
+            a, z = st["segs"][0], st["segs"][-1]
+            if np.linalg.norm(z[3] - a[0]) <= CLOSE:
+                z[2] = a[0] - (a[1] - a[0]) * (np.linalg.norm(z[2] - z[3]) / max(np.linalg.norm(a[1] - a[0]), 1e-6)); z[3] = a[0].copy()
         strokes.append(st)
+    stems = [seg[0][0] for st in strokes for seg in st.get("segs", []) if not st.get("bar") and abs(seg[0][0] - seg[3][0]) < 1e-6 and abs(seg[3][1] - seg[0][1]) > 8]
+    for st in strokes:
+        if not st.get("bar"): continue
+        seg = st["segs"][0]
+        for k in (0, 3):
+            near = [x for x in stems if abs(x - seg[k][0]) <= STEM_MEET]
+            if near: seg[k][0] = min(near, key=lambda x: abs(x - seg[k][0]))
+        a, b = seg[0], seg[3]; seg[1] = a + (b - a) / 3; seg[2] = a + 2 * (b - a) / 3
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
     x0 = 0 if TOOL else min(xs)
     out = []

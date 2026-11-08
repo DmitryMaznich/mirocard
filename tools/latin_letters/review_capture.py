@@ -34,6 +34,7 @@ def main():
         c = caps[l]
         xs = [float(v) for s in c["strokes"] for v in re.findall(r"-?\d+\.?\d*", s["d"])[0::2]]
         x0 = min(xs) - 8
+        vw = max(56, max(xs) - min(xs) + 16)  # wide letters (W, M) get a wider cell
         pre = "lo" if l.islower() else "up" if l.isalpha() else "num"
         png = UNDER / f"{pre}_{l}.png"
         under = ""
@@ -43,11 +44,11 @@ def main():
             ux = 100 + np.nonzero(alpha.max(0) > 128)[0][0] / 8 + 1.92  # + half the stroke: the hand traces its middle
             dx = min(xs) - ux
             under = f'<image href="data:image/png;base64,{base64.b64encode(png.read_bytes()).decode()}" x="{100 + dx:.2f}" y="0" width="200" height="150" opacity="0.45" filter="url(#tint)"/>'
-        lines = "".join(f'<line x1="{x0}" x2="{x0 + 56}" y1="{y}" y2="{y}" stroke="{col}" stroke-width="{w}"/>'
+        lines = "".join(f'<line x1="{x0}" x2="{x0 + vw}" y1="{y}" y2="{y}" stroke="{col}" stroke-width="{w}"/>'
                         for y, col, w in ((36, "#cbd5e1", .2), (62, "#94a3b8", .25), (88, "#334155", .35), (110, "#cbd5e1", .2)))
         raw = "".join(f'<path d="{s["d"]}" stroke="#9ca3af" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.7"/>' for s in c["strokes"])
         neat = "".join(f'<path d="{s["d"]}" stroke="#1d4ed8" stroke-width="0.7" fill="none" stroke-linecap="round"/>' for s in tidy[l]["strokes"])
-        cells.append(f'<figure><svg viewBox="{x0} 30 56 86" width="210" height="322"><defs><filter id="tint"><feColorMatrix type="matrix" values="0 0 0 0 0.98  0 0 0 0 0.6  0 0 0 0 0.2  0 0 0 1 0"/></filter></defs>{under}{lines}{raw}{neat}</svg><figcaption>{l}</figcaption></figure>')
+        cells.append(f'<figure><svg viewBox="{x0} 30 {vw} 86" width="{210 * vw / 56:.0f}" height="322"><defs><filter id="tint"><feColorMatrix type="matrix" values="0 0 0 0 0.98  0 0 0 0 0.6  0 0 0 0 0.2  0 0 0 1 0"/></filter></defs>{under}{lines}{raw}{neat}</svg><figcaption>{l}</figcaption></figure>')
     html = ('<!doctype html><meta charset="utf-8"><title>Британские буквы: обводка и выравнивание</title>'
             '<style>body{font:14px/1.45 system-ui,sans-serif;margin:24px;color:#1e293b}figure{display:inline-block;margin:4px;text-align:center}'
             'svg{background:#fff;border:1px solid #e2e8f0}figcaption{font-size:18px}.page svg{width:720px;height:auto;border:0}.propis-paper{fill:#fffdf6}</style>'
