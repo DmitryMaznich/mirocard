@@ -156,4 +156,16 @@ describe("English print letters in the propis2 engine", () => {
     expect(mid - 10).toBeGreaterThan(5);        // a real sag (Nelson: 0.12 of the x-height = 6.2 here; the hand's 7.4)
     expect(mid - 10).toBeLessThan(9);
   });
+  it("British k: the loop comes back INTO the stem and the leg starts from there (owner, 2026-11-08)", () => {
+    const k = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "k");
+    const n = k.strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
+    const pts = []; for (let i = 0; i < n.length; i += 2) pts.push([n[i], n[i + 1]]);
+    const stem = pts[0][0];
+    // the joint: a segment end on the stem below the loop's start, then a segment going down to the right (the leg)
+    const ends = []; for (let i = 3; i < pts.length; i += 3) ends.push(i);
+    const j = ends.find((i) => Math.abs(pts[i][0] - stem) < 1e-6 && pts[i][1] > 20 && pts[i][1] < 50 && pts[i + 3] && pts[i + 3][0] > stem + 5 && pts[i + 3][1] > pts[i][1]);
+    expect(j, "the loop's end on the stem").toBeDefined();
+    expect(pts[j][1]).toBeCloseTo(62 + (76 - 88) * 2, 0); // 76 in the tool = 38 here
+    expect(pts[j + 3][1]).toBeGreaterThan(pts[j][1]); // the leg goes down
+  });
 });
