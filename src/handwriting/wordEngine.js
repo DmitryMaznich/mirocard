@@ -1902,6 +1902,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       // after its ink with the small gap of a sign, not where a new token would start (it was drawn over the start of the word)
       let afterSign = false;
       let prevGlyphStrokes = null; // the last glyph's strokes as placed (meta.script.exactJoins: the gap after a noExit capital)
+      // meta.script.joins === false (a print style, docs/latin-letters.md step 3.3): the letters of a word are written apart — every one
+      // stands after the ink of the one before at `script.letterGap` (row units at full scale), no connector is drawn, nothing joins.
+      // Absent / true: the cursive engine exactly as before.
+      const unjoined = glyphsByLabel?.script?.joins === false;
       // the pieces of ONE composed letter (ш = three hooks, ы = ь + ы2, ии): they are written as the letter itself, never joined by a variant's own connector (`topJoins`)
       const innerPiece = new Set();
       { let at = 0; for (const raw of wideTokenToLabelsRaw(token, glyphsByLabel)) { const n = glyphsByLabel.get(raw)?.compose?.length ?? 1; for (let k = 1; k < n; k += 1) innerPiece.add(at + k); at += n; } }
@@ -1919,6 +1923,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // meta.script.exactJoins (the Bulgarian о б в ю): the connector is drawn only before a letter that starts on its oval; a
         // letter with a lead-in hook from the middle starts right on the oval's side there, the pen lifted, no connector
         let liftJoin = false;
+        // apart: this glyph starts a new letter (the pieces of ONE composed letter — ш, ы — stay joined as the letter is written)
+        const apart = unjoined && !innerPiece.has(pieceIndex);
+        if (apart) pendingTail = null;
         if (pendingTail && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && pendingTouchX !== null && !inCell) {
           const te = getPathEndpoints(pendingTail.d).end;
           // a lead-in HOOK (rising steeply, as every exit: 55°), not a start on an arc (е starts on its loop, flat: it gets the connector)
@@ -1941,7 +1948,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           curNoAlign = pendingNoAlign;
           pendingTail = null;
         }
-        const loose = (Boolean(glyph.noJoin) || afterNoExit || afterSign) && tokenStartX !== null; // punctuation inside a word: after the ink so far
+        const loose = (Boolean(glyph.noJoin) || afterNoExit || afterSign || apart) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // `pushNextCells: n` (Ғ, owner 2026-11-01: its bar ends on the upper line of the narrow row, exactly where the connector climbs to the top of the next stem, the two and the top of the stem fused): a letter that STARTS AT THE TOP
         // after it (и п р т …) stands n cells further right, so that the connector comes up to the right of the end of the bar
@@ -1949,7 +1956,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const pushNext = prevExit && prevGlyph?.pushNextCells && !glyph.joinLeft && local.start[1] < prevExit[1] - 18 * scale ? prevGlyph.pushNextCells * CELL : 0;
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = loose
-          ? cursorX + (afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
+          ? cursorX + (apart && !glyph.noJoin ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx + pushNext
           : prevToken
@@ -2277,6 +2284,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
       }
       // tailAlways glyphs (П, Т: the connector is drawn after the bar) keep their tail when nothing follows
+      if (unjoined) pendingTail = null;
       if (pendingTail?.always) {
         delete pendingTail.always;
         strokes.push(pendingTail);
