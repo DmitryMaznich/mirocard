@@ -2005,6 +2005,22 @@ export default function ParamsScreen() {
           onChange={(v) => setParams((p) => ({ ...p, writingLang: v }))}
         />
       )}
+      {/* …and its writing style, when that language has several (English: print / British, docs/latin-letters.md) */}
+      {mode?.params?.writingStyle?.type === "enum" && (() => {
+        const langId = params.writingLang ?? mode.params.writingLang?.default;
+        const styles = (topicRecord?.languages ?? []).find((l) => l.id === langId)?.styles ?? [];
+        if (styles.length < 2) return null;
+        const ids = styles.map((st) => st.id);
+        return (
+          <EnumParam
+            label={setupText(mode.params.writingStyle.label) || "Стиль письма"}
+            options={ids}
+            labels={Object.fromEntries(styles.map((st) => [st.id, st.title]))}
+            value={ids.includes(params.writingStyle) ? params.writingStyle : ids[0]}
+            onChange={(v) => setParams((p) => ({ ...p, writingStyle: v }))}
+          />
+        );
+      })()}
       <LetterGlyphProvider cards={topicRecord.cards}>
         <LettersCaseParams params={params} onChange={setParams} />
       </LetterGlyphProvider>

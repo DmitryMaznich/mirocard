@@ -100,6 +100,18 @@ if (langSpec) {
       ...(m.params ?? {}),
     };
   }
+  // a language with several writing styles (docs/latin-letters.md: English print / British): the cards' style, `writingStyle`
+  // (engine.js passes it to languageView); offered only when some language of this deck has more than one
+  const styled = topic.languages.filter((l) => (l.styles?.length ?? 0) > 1);
+  if (styled.length) {
+    const opts = styled.flatMap((l) => l.styles.map((st) => [st.id, `${st.title} (${l.title})`]));
+    for (const m of topic.modes) {
+      if (!["letters_recognize", "letters_case"].includes(m.type)) continue;
+      const params = { ...m.params };
+      const { writingLang, ...rest } = params;
+      m.params = { writingLang, writingStyle: { type: "enum", label: { ru: "Стиль письма" }, values: opts.map(([id]) => id), labels: { ru: Object.fromEntries(opts) }, default: opts[0][0] }, ...rest };
+    }
+  }
 }
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
