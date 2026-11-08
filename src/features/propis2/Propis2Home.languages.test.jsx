@@ -269,6 +269,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       await tick();
     });
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские"); // the editor says which style
     await click(host.querySelector(".back-btn"));
     await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
     await act(async () => { root.unmount(); await tick(400); });

@@ -571,7 +571,7 @@ export default function Propis2Home({ db }) {
         title={navSet ? navSet.title : undefined}
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={topicRecord}
-        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone } : null}
+        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone, styleTitle: styleTitleOf(languages.find((l) => l.id === lang), writingStyle) } : null}
         onChange={(next, how) => {
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
           const change = navSet ? layoutChange(shown, next) : {};
@@ -657,6 +657,10 @@ function readNewLang(topicId, key = NEW_LANG_KEY) {
 }
 function writeNewLang(topicId, id, key = NEW_LANG_KEY) {
   try { const all = JSON.parse(localStorage.getItem(key) ?? "{}") ?? {}; localStorage.setItem(key, JSON.stringify({ ...all, [topicId]: id })); } catch { /* private mode: not remembered */ }
+}
+// the title of a style of a language that has several; null otherwise (one style: nothing to tell apart)
+function styleTitleOf(lang, styleId) {
+  return lang?.styles?.length > 1 ? lang.styles.find((x) => x.id === styleId)?.title ?? null : null;
 }
 // the chip next to «Новая тетрадь»: the language, and its style when it has several («English · Британские»)
 function newLangTitle(lang, styleId) {

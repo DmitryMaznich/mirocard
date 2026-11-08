@@ -427,6 +427,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }, { typing: true }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
         {/* a deck with several writing languages: the notebook's language (it never changes, docs/propis2-languages.md) */}
         {language && <span className={`p2-lang-badge p2-lang-tone-${language.tone ?? 0}`} title={`Язык тетради: ${language.title}`} aria-label={`Язык тетради: ${language.title}`} data-testid="propis2-notebook-lang">{language.short ?? language.title}</span>}
+        {/* the notebook's writing style, when its language has several (English: «Печатные» / «Британские»), fixed like the language */}
+        {language?.styleTitle && <span className={`p2-lang-badge p2-style-badge p2-lang-tone-${language.tone ?? 0}`} title={`Стиль письма: ${language.styleTitle}`} aria-label={`Стиль письма: ${language.styleTitle}`} data-testid="propis2-notebook-style">{language.styleTitle}</span>}
         {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
