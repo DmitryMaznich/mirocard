@@ -26,5 +26,6 @@ export function arc(cx, cy, rx, ry, a0, a1, { move = true } = {}) {
   return d.trim();
 }
 export const line = (...p) => p.map(([x, y], i) => `${i ? "L" : "M"} ${r2(x)},${r2(y)}`).join(" ");
-export const dot = (x, y) => ({ d: `M ${x},${y} L ${x},${y + 0.5}`, name: "точка", dot: true });
+// a dot (i, j, the full stop): a small ring the pen goes round — a visible blot at the stroke width, not a hair-thin tick
+export const dot = (x, y, r = 2.5) => ({ d: arc(x, y, r, r, -90, 270), name: "точка", dot: true });
 export const s = (d, name) => ({ d, name });

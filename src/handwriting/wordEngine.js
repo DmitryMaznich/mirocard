@@ -1517,11 +1517,12 @@ export function cellGlyphLocal(glyph, scale, cellSize) {
   const key = `${scale}|${cellSize}`;
   if (!byKey.has(key)) {
     const base = wideGlyphLocal(glyph, scale);
-    const t0 = Math.tan((25 * Math.PI) / 180);
+    // `upright` (the English print digits and signs, tools/latin_letters/glyphs): drawn upright, they are not unslanted and leaned again
+    const t0 = glyph.upright ? 0 : Math.tan((25 * Math.PI) / 180);
     const ky = cellSize / ((WIDE_CAPTURE_BASELINE - WIDE_CAPTURE_CAP_TOP) * WIDE_SCALE * scale);
     const mapWith = (k) => (x, y) => { const h = WIDE_BASELINE_Y - y; return [k * (x - h * t0) + ky * h * t0, WIDE_BASELINE_Y - ky * h]; };
     let kx;
-    if (isCellSign(glyph.label)) {
+    if (isCellSign(glyph.label) && !glyph.upright) {
       // the bars of the signs are two cells of the slant grid long in the glyph data (build_digit_glyphs.py), 60 units at scale 1
       kx = (CELL_SIGN_BAR * cellSize) / (2 * TEXT_ROW_WIDE_DIAGONAL_SPACING * scale);
     } else {
@@ -1961,7 +1962,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const wantStartX = freeWord
           ? prevToken.inkMaxX + (glyphsByLabel.script.wordGap ?? WIDE_WORD_SPACE) * scale + pendingGap * CELL - local.minX + local.start[0]
           : loose
-          ? cursorX + (apart && !glyph.noJoin ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
+          ? cursorX + (apart ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx + pushNext
           : prevToken

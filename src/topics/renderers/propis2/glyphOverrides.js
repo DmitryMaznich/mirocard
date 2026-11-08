@@ -405,7 +405,9 @@ const MISSING_GLYPH = { label: MISSING_GLYPH_LABEL, kind: "punct", stretch: 1, n
 export const withGlyphOverrides = (glyphs) => {
   const raw = new Map((glyphs ?? []).map((g) => [g.label, g]));
   const belly = (g) => (g.bellyFrom && raw.get(g.bellyFrom.label) ? yerBelly(g, raw.get(g.bellyFrom.label), g.bellyFrom) : g);
-  const own = glyphs?.length ? [...DIGIT_GLYPHS, ...(raw.has("-") ? [] : [HYPHEN_GLYPH]), MISSING_GLYPH] : [];
+  // the bank's digits and signs (cursive) — unless the deck's language / style brings its own under the same «№» label (the English
+  // print ones, tools/handwriting/latin): those win, the cursive ones are not laid over them
+  const own = glyphs?.length ? [...DIGIT_GLYPHS.filter((g) => !raw.has(g.label)), ...(raw.has("-") ? [] : [HYPHEN_GLYPH]), MISSING_GLYPH] : [];
   const patched = [...withMarkedCapitals((glyphs ?? []).flatMap(withOverride).map(belly)), ...own];
   // ы = ы1 + ы2: its left part is built from the patched ь (see yerLoop)
   const loop = yerLoop(patched.find((g) => g.label === "ь"));

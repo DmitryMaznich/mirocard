@@ -55,8 +55,12 @@ describe("English print letters in the propis2 engine", () => {
     expect(test.entry.status).toBe("individual");
     const en = test.topic.languages.find((l) => l.id === "en");
     expect(en.status).toBe("draft");
-    expect(en.styles.find((s) => s.id === "print").glyphs).toHaveLength(52);
-    expect(en.styles.find((s) => s.id === "british").glyphs).toHaveLength(52);
+    // 52 letters + 0–9 and + − = < > (as «№…») + the hyphen + . , ? ! — all upright, none borrowed from the Russian cursive
+    for (const id of ["print", "british"]) {
+      const g = en.styles.find((s) => s.id === id).glyphs;
+      expect(g).toHaveLength(72);
+      for (const label of ["№0", "№9", "№+", "№=", "-", ".", "?", "!"]) expect(g.find((x) => x.label === label)?.upright, `${id} ${label}`).toBe(true);
+    }
   });
   it("British letters: the Nelson proportions — ascenders 0.74, descenders 0.72 of the x-height, capitals as tall as the ascenders", () => {
     const gb = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs;
@@ -70,5 +74,12 @@ describe("English print letters in the propis2 engine", () => {
     const l = gb.find((g) => g.label === "l").strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
     expect(l[l.length - 2]).toBeGreaterThan(l[0] + 10);
     expect(l[l.length - 1]).toBeLessThan(BASE);
+  });
+  it("the style's own digits win over the bank's cursive ones; Russian keeps the cursive", () => {
+    expect(map.get("№5").sourceLabel).toBe("print-5");
+    expect(map.get("№+").upright).toBe(true);
+    const ru = buildGlyphMap({ wide: JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs, meta: {} });
+    expect(ru.get("№5").upright).toBeUndefined();
+    expect(ru.get("№5").sourceLabel).toMatch(/захват/);
   });
 });
