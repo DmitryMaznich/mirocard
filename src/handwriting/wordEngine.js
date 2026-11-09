@@ -1724,6 +1724,9 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //   toTop:        letters a join comes to at their top, not at their start
 //   exitStroke:   { letter: stroke index } the join leaves from the end of that stroke (f: its bar); default the first stroke
 //   exitFromBottom: letters the join leaves from the bottom of their first stroke, going right (s: it ends low on the left)
+//   exitCut:      { letter: k } before a join the exit stroke ends `k` (of the x-height) past where the letter's first stroke crosses the
+//                 x-line (f: its bar stops just past the stem and the join goes on from there into the next letter, which stands close —
+//                 Nelson's «football», «fantastic»; owner, 2026-11-09: «эти соединения все неправильные» on fi fo fa fe)
 //   exitTrim:     { letter: n } before a join the letter's last n cubics are not written (r: its little wave after the arch — the
 //                 join's own sag takes its place)
 //   run:          horizontal run of a join per unit of its rise (0.45: the Nelson angle)
@@ -1731,6 +1734,8 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //                 units at full scale); levelGap: the gap a level join leaves between the letters (of the x-height);
 //                 levelSag: how deep (of the x-height) a level join to a letter of the x-height sags between the two tops;
 //                 levelEntry: the slope (rise per run) at which a level join comes up out of its sag into an oval's arc;
+//                 levelReachFrom: { letter: reach } (with exitCut) the next letter of the x-height stands where its join's entry is `reach`
+//                 (of the x-height) after the stem (f: 0.7, Nelson's «from» 0.76 to r's stem top);
 //                 levelSagFrom: { letter: sag } its own levelSag (f: its bar already lies on the x-line and runs on into the next letter
 //                 level — Nelson's «from», owner 2026-11-09: «ошибка соединения в fr»);
 //                 levelGapFrom: { letter: gap } its own levelGap before a letter of the x-height (r: its arch is short, Nelson's r–r stems
@@ -1748,10 +1753,10 @@ function nelsonRules(rules) {
   if (!NLS_CACHE.has(rules)) {
     NLS_CACHE.set(rules, {
       diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop), ascender: nlsSet(rules.ascender),
-      exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {},
+      exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1762,7 +1767,7 @@ function nelsonJoinKind(R, a, b) {
 }
 const nlsUnit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
 // where a join leaves the letter (placed strokes) and the direction it goes on in
-function nelsonExit(R, label, strokes, extraTrim = 0) {
+function nelsonExit(R, label, strokes, extraTrim = 0, scale = 1) {
   const first = strokes[0]?.d;
   if (!first) return null;
   if (R.fromBottom.has(label)) {
@@ -1784,6 +1789,28 @@ function nelsonExit(R, label, strokes, extraTrim = 0) {
       const keep = 3 + (cs - kt) * 7; // "M x y" + 7 tokens per "C …"
       st = tok.slice(0, keep).join(" ");
       trim = { si, d: st };
+    }
+  }
+  if (R.exitCut[label] != null && !trim) {
+    // cut the exit stroke (one cubic: f's bar) where x reaches the stem's x-line crossing + exitCut
+    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
+    const p0 = samplePath(first, 160);
+    let sx = null;
+    for (let i = 1; i < p0.length; i += 1) if ((p0[i - 1][1] - xLine) * (p0[i][1] - xLine) <= 0) { sx = p0[i][0]; break; }
+    const nb = st.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
+    if (sx != null && nb.length === 8) {
+      const c = [[nb[0], nb[1]], [nb[2], nb[3]], [nb[4], nb[5]], [nb[6], nb[7]]];
+      const xc = sx + R.exitCut[label] * WIDE_ZONE_UNITS * scale;
+      const at = (t) => { const u = 1 - t; return [0, 1].map((q) => u * u * u * c[0][q] + 3 * u * u * t * c[1][q] + 3 * u * t * t * c[2][q] + t * t * t * c[3][q]); };
+      if (at(0)[0] < xc && at(1)[0] > xc) {
+        let lo = 0, hi = 1;
+        for (let q = 0; q < 40; q += 1) { const m = (lo + hi) / 2; if (at(m)[0] < xc) lo = m; else hi = m; }
+        const t = (lo + hi) / 2, lerp = (a, b) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        const p01 = lerp(c[0], c[1]), p12 = lerp(c[1], c[2]), p012 = lerp(p01, p12), p123 = lerp(p12, lerp(c[2], c[3])), m = lerp(p012, p123);
+        const f3 = (v) => v.toFixed(3);
+        st = `M ${f3(c[0][0])} ${f3(c[0][1])} C ${f3(p01[0])} ${f3(p01[1])} ${f3(p012[0])} ${f3(p012[1])} ${f3(m[0])} ${f3(m[1])}`;
+        trim = { si, d: st };
+      }
     }
   }
   const n = st.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
@@ -2162,7 +2189,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // (into e's loop: the letter's own short flick is not written — the join leaves its foot and RISES at once, one smooth line up
           // to the loop's right side, never laid along the line: owner, 2026-11-09, drawing over our «candle», and Nelson's «lelele»)
           const intoLoop = kind === "d" && nelson.diagInto[label] != null;
-          const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes, intoLoop ? 1 : 0) : null;
+          const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes, intoLoop ? 1 : 0, scale) : null;
 
           if (ex) {
             const tg = nelsonTarget(nelson, label, kind, local.strokes, scale);
@@ -2172,15 +2199,20 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // ink before (measured on the guide, centre lines: o–a 0.52, w–o 0.77, w–h 0.73, o–b 0.61 — owner, 2026-11-09: «oa и wo —
             // соединения слишком короткие, буквы слишком близко», then «слишком длинное»: 0.5)
             // (a trimmed letter, r: the gap counts from what is left of it)
-            const prevRight = ex.trim ? Math.max(...prevGlyphStrokes.flatMap((m, i) => samplePath(i === ex.trim.si ? ex.trim.d : m.d, 40).map((q) => q[0]))) : cursorX;
+            // (f, its bar cut past the stem: the gap counts from the cut — its hook stands out above, the next letter goes under it)
+            const prevRight = nelson.exitCut[prevLabel] != null && ex.trim ? ex.p[0] : ex.trim ? Math.max(...prevGlyphStrokes.flatMap((m, i) => samplePath(i === ex.trim.si ? ex.trim.d : m.d, 40).map((q) => q[0]))) : cursorX;
             // (into e's loop: its left side where the flick ends — the line from there up to its right side is e's bar, as in Nelson's
             // «lelele» and the owner's drawing)
-            const need = tg.intoLoop
+            // f: its bar (cut past the stem) reaches the next letter's entry `levelReachFrom` (of the x-height) after the stem — Nelson's
+            // «from»: to the top of r's stem 0.76, «football»: to the top of o, o itself tucked close to f's stem
+            const reach = kind === "h" && nelson.levelReachFrom[prevLabel] != null && nelson.exitCut[prevLabel] != null && ex.trim && !nelson.ascender.has(label)
+              ? ex.p[0] - nelson.exitCut[prevLabel] * WIDE_ZONE_UNITS * scale + nelson.levelReachFrom[prevLabel] * WIDE_ZONE_UNITS * scale - tg.p[0] : null;
+            const need = reach != null ? reach : tg.intoLoop
               ? ex.p[0] + tg.gap * WIDE_ZONE_UNITS * scale - left
               : kind === "h"
               ? prevRight + ((nelson.ascender.has(label) ? null : nelson.levelGapFrom[prevLabel]) ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
               : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
-            const dxJ = Math.max(cursorX + nelson.edge * scale - left, need);
+            const dxJ = Math.max(prevRight + nelson.edge * scale - left, need);
             wantStartX = dxJ + local.start[0];
             nelsonJoin = { kind, ex, tg };
           }

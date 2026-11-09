@@ -100,7 +100,19 @@ describe("Nelson joins (script.joinRules)", () => {
     const j = row("british_joined", "fr").find((s) => s.join);
     const n = j.d.match(/-?\d*\.?\d+/g).map(Number);
     expect(Math.max(n[3], n[5])).toBeLessThanOrEqual(Math.max(n[1], n[7]) + 0.01); // no control under the ends: no sag
-    expect(n[6] - n[0]).toBeLessThan(10); // short
+    // from the cut (0.1 of the x-height past f's stem) to r's stem top 0.7 past it (Nelson's «from»: 0.76)
+    expect((n[6] - n[0]) / 24).toBeCloseTo(0.6, 1);
+  });
+
+  it("f's bar stops just past its stem before a join, the next letter close by (Nelson's «football», «fantastic»)", () => {
+    const fOwn = glyphs.find((g) => g.label === "f").strokes[1].d;
+    const fo = row("british_joined", "fo");
+    const bar = fo[1], join = fo.find((s) => s.join);
+    const barEnd = getPathEndpoints(bar.d).end, stemX = getPathEndpoints(fo[0].d).start[0];
+    expect(getPathEndpoints(join.d).start).toEqual(barEnd);
+    const xs = (d) => d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 0);
+    expect(Math.max(...xs(bar.d)) - Math.min(...xs(bar.d))).toBeLessThan(Math.max(...xs(fOwn)) - Math.min(...xs(fOwn))); // shorter than alone
+    expect(barEnd[0]).toBeLessThan(stemX); // (the stem of f is on the left of its hook's start)
   });
 
   it("f joins from its bar, s from the bottom of its curve", () => {
