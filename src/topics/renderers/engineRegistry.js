@@ -1,3 +1,4 @@
+import { generateTasks as drawingEngine } from "./drawing/engine.js";
 import { generateTasks as flashcardsEngine }          from "./flashcards/engine";
 import { generateTasks as oppositeEngine }            from "./opposites/engine";
 import { generateTasks as comparisonEngine }           from "./comparison/engine";
@@ -28,6 +29,7 @@ import { generateTasks as letterBridgeEngine }         from "./letter_bridge/eng
 import { generateTasks as comparisonLanguagePilotEngine } from "./comparison_language_pilot/engine.js";
 
 export const ENGINE_REGISTRY = {
+  drawing: drawingEngine,
   comparison_language_pilot: comparisonLanguagePilotEngine,
   flashcards:            flashcardsEngine,
   comparison:            comparisonEngine,
