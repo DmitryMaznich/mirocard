@@ -51,7 +51,7 @@ MEET = 2.0           # ends of two strokes this close are one point (the apex of
 FRAG = 3.5            # a curve this short left between a line and the end of its piece is part of the line (b's stem began with a tick)
 LOOP = 8.0            # a little loop of the hand (k's knot), at most this long around, is cut out
 BAR_SNAP = 1.3       # a bar this close to a ruling line stands on it (E's middle bar was traced 1.2 under the x-line)
-BOWED_SLANTS = set("kmn")  # no slanting lines: k's rise from the stem's foot is a gentle arc and its leg starts level and bends down
+BOWED_SLANTS = set("kmnh")  # no slanting lines: k's rise from the stem's foot is a gentle arc and its leg starts level and bends down
 #                         (owner, 2026-11-08: «от низа стойки идёт слегка по параболе; заключительный элемент сначала чуть выше,
 #                         потом плавно загибается вниз»)
 FREE_TURN = set("M")  # turns left where the hand put them: M's middle stops 0.07 of the x-height above the baseline on the Nelson page
@@ -626,6 +626,43 @@ def original_bowl_from_hole(label, stem_x, start):
     return bowl
 
 
+def bowl_ring_from_hole(label, stem_x):
+    """The middle line all round a bowl whose stem is on its RIGHT (g): the hole's edge moved out by half the pen, the underlay put
+    with its stem (the longest upright ink) on the traced stem. Returns ring points in the tool's units, or None."""
+    from PIL import Image
+    from collections import deque
+    path = UNDERLAYS / f"lo_{label}.png"
+    if not path.exists(): return None
+    a = np.array(Image.open(path))[:, :, 3] > 128
+    h, w = a.shape
+    stem_col = int(np.argmax(a.sum(0)))
+    run = np.nonzero(a[:, stem_col])[0]
+    cols = [c for c in range(w) if a[run.mean().astype(int), c]]
+    left = stem_col
+    while left > 0 and a[int(run.mean()), left - 1]: left -= 1
+    right = stem_col
+    while right < w - 1 and a[int(run.mean()), right + 1]: right += 1
+    dx = stem_x - (UL_X + (left + right) / 2 / UL_PX)
+    out = np.zeros_like(a); q = deque((y, x) for y in range(h) for x in (0, w - 1))
+    q.extend((y, x) for x in range(w) for y in (0, h - 1))
+    while q:
+        y, x = q.popleft()
+        if 0 <= y < h and 0 <= x < w and not a[y, x] and not out[y, x]:
+            out[y, x] = True; q.extend(((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)))
+    hy, hx = np.nonzero(~a & ~out)
+    if not len(hy): return None
+    cy, cx = hy.mean(), hx.mean(); half = HALF_INK * UL_PX; ring = []
+    for t in np.linspace(-np.pi, np.pi, 721)[:-1]:
+        r = 0.0
+        while r < 400:
+            x, y = int(round(cx + r * np.cos(t))), int(round(cy + r * np.sin(t)))
+            if a[y, x]: break
+            r += 0.25
+        m = r + half
+        ring.append((UL_X + (cx + m * np.cos(t)) / UL_PX + dx, (cy + m * np.sin(t)) / UL_PX))
+    return np.array(ring)
+
+
 def original_bowl(label, strokes):
     """b: the bowl goes on from the retrace up the stem (one stroke); p: the bowl is its own stroke starting on the stem."""
     vertical = lambda sg: all(abs(pt[0] - sg[0][0]) < 1e-6 for pt in sg)
@@ -661,6 +698,7 @@ def original_bowl(label, strokes):
 # g's bowl -- from the pen's start round to the top of its stem, where it arrives almost upright -- is put into a, d, q at their stems;
 # each keeps its own ending: a the stem down and the flick, d up the stem to the ascender and down it, q the stem down and the tail right
 SHARED_BOWL, BOWL_FROM = set("adq"), "g"
+STEM_TOUCH = 0.6  # the bowl's right side has run into the stem this close to its middle
 
 
 def first_stem_down(segs):
@@ -674,6 +712,27 @@ def share_bowl(tidied):
     if not src: return
     gs = src[0]["segs"]; kg = first_stem_down(gs)
     bowl, joint = [[pt.copy() for pt in sg] for sg in gs[:kg]], gs[kg][0].copy()
+    # the bowl after the original (owner, 2026-11-09: «у a, d, g, q правую сторону овала сделай точнее по линии оригинала»): the
+    # middle of Nelson's g bowl -- its hole's edge moved out by half the pen -- from where the hand started, round, up the right side
+    # until it runs into the stem, then up the stem to the joint
+    global CUR, WHOLE, ORIGINAL
+    CUR, WHOLE = BOWL_FROM, False
+    ring = bowl_ring_from_hole(BOWL_FROM, joint[0])
+    if ring is not None:
+        start = gs[0][0]
+        c = ring.mean(0)
+        ang = np.arctan2(ring[:, 1] - c[1], ring[:, 0] - c[0])
+        i0 = int(np.argmin(np.abs(np.angle(np.exp(1j * (ang - np.arctan2(start[1] - c[1], start[0] - c[0])))))))
+        n = len(ring); path = []
+        for k in range(n):  # the way the hand went: over the top to the left (the angle falling, y down)
+            q = ring[(i0 - k) % n]
+            if k > n // 4 and q[0] >= joint[0] - STEM_TOUCH: break
+            path.append(q)
+        path.append(np.array([joint[0], path[-1][1]])); path.append(joint.copy())
+        ORIGINAL = True
+        try: bowl = curve(resample(np.array(path)), None, np.array([0.0, -1.0]))
+        finally: ORIGINAL = False
+    src[0]["segs"] = [[pt.copy() for pt in sg] for sg in bowl] + gs[kg:]  # g itself
     for label in SHARED_BOWL:
         if label not in tidied: continue
         segs = tidied[label][0]["segs"]; k = first_stem_down(segs)
@@ -749,7 +808,7 @@ def bellies_from_original(label, strokes):
 # the stem for the arch (retrace end), the foot of m's middle stem, the end -- and between a waypoint where the pen leaves a stem and
 # the next one the path is the original's middle line (the shortest way along the thinned ink). The stems stay the hand's; the whole
 # path is then tidied like any capture.
-ARCHES_FROM_ORIGINAL = set("nm")
+ARCHES_FROM_ORIGINAL = set("nmh")
 ANGLED_LEAVE = ARCHES_FROM_ORIGINAL  # the arch leaves the stem at an angle, as Nelson's ink shows, not along it
 FOOT_LEAN, FOOT_BOW_H = 0.15, 0.35  # the bow leaves the foot leaning a little right and bends evenly (not upright for long)
 ARCH_CLEAR = 5.0  # how far from the stem the bow from the foot meets the original's arch (where the owner's drawn line joins it)
@@ -809,6 +868,8 @@ def arches_from_original(cap, tidied_strokes):
         if nxt is None: way.append(("end", sg[3]))
         elif vertical(sg) and sg[3][1] < sg[0][1] - 3 and not vertical(nxt): way.append(("leave", sg[3]))  # retrace up -> arch
         elif vertical(sg) and sg[3][1] > sg[0][1] and vertical(nxt) and nxt[3][1] < nxt[0][1]: way.append(("pt", sg[3]))  # a foot
+        elif vertical(sg) and sg[3][1] > sg[0][1] and nxt[3][1] < nxt[0][1] - 3:  # a foot the hand left straight for the arch (h)
+            way.append(("pt", sg[3])); way.append(("leave", sg[3]))
     pts = [way[0][1]]
     for (k0, p0), (k1, p1) in zip(way, way[1:]):
         if k0 == "leave":
