@@ -53,14 +53,12 @@ describe("Nelson joins (script.joinRules)", () => {
     for (const [tall, short] of [["wh", "wn"], ["ob", "on"], ["ol", "on"]]) expect(end(tall)[1], tall).toBeLessThan(end(short)[1] - 10);
   });
 
-  it("a level join is as long as Nelson's (the guide: o–a and w–o about half the x-height) and comes into an oval at its left side", () => {
-    const xh = 52 * 0.5 * (62 - 10) / 52; // the x-height of the row at scale 0.5, row units
-    for (const w of ["oa", "wo"]) {
-      const st = row("british_joined", w);
-      const j = st.find((s) => s.join);
-      const [a, b] = [getPathEndpoints(j.d).start, getPathEndpoints(j.d).end];
-      expect((b[0] - a[0]) / xh, w).toBeGreaterThan(0.55); // (the gap between the letters: levelGap 0.6, measured on the guide 0.52 – 0.77)
-      expect(Math.abs(b[1] - a[1]) / xh, w).toBeLessThan(0.3); // level
+  it("a level join to a letter of the x-height sags between the two tops, the letters half the x-height apart (Nelson's o–a, w–o)", () => {
+    for (const w of ["oa", "wo", "ri", "on", "fo"]) {
+      const j = row("british_joined", w).find((s) => s.join);
+      const n = j.d.match(/-?\d*\.?\d+/g).map(Number); // M p0 C c1 c2 p3
+      const [y0, y1, y2, y3] = [n[1], n[3], n[5], n[7]];
+      expect(Math.min(y1, y2), w).toBeGreaterThan(Math.max(y0, y3)); // both controls under both ends: a sag
     }
   });
 

@@ -1727,7 +1727,7 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //   run:          horizontal run of a join per unit of its rise (0.45: the Nelson angle)
 //   minRun:       the least run of a diagonal join; edge: the least gap between the ink before and the next letter's left side (row
 //                 units at full scale); levelGap: the gap a level join leaves between the letters (of the x-height);
-//                 levelDrop: how far under the x-line (of the x-height) a level join comes into an oval letter
+//                 levelSag: how deep (of the x-height) a level join to a letter of the x-height sags between the two tops
 const nlsSet = (s) => new Set([...(s ?? "")]);
 const NLS_CACHE = new WeakMap();
 function nelsonRules(rules) {
@@ -1737,7 +1737,7 @@ function nelsonRules(rules) {
       diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop), ascender: nlsSet(rules.ascender),
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom),
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
-      levelGap: rules.levelGap ?? 0.6, levelDrop: rules.levelDrop ?? 0.18,
+      levelGap: rules.levelGap ?? 0.5, levelSag: rules.levelSag ?? 0.18,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1796,20 +1796,6 @@ function nelsonTarget(R, label, kind, strokes, scale) {
       if (dot > best) { best = dot; bi = i; bt = r; }
     }
     return { p: p[bi], t: bt };
-  }
-  if (kind === "h" && R.oval.has(label)) {
-    // a level join into an oval letter (oa, wo) comes to its LEFT side a little under the x-line (the guide: 0.1 of the x-height
-    // under it), not over its top: the point of the upper left arc at that height
-    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
-    const y = xLine + R.levelDrop * WIDE_ZONE_UNITS * scale;
-    let iLeft = 0;
-    for (let i = 0; i < p.length / 2; i += 1) if (p[i][0] < p[iLeft][0]) iLeft = i;
-    for (let i = iLeft; i > 0; i -= 1) {
-      if ((p[i][1] - y) * (p[i - 1][1] - y) <= 0) {
-        const t = (y - p[i][1]) / ((p[i - 1][1] - p[i][1]) || 1);
-        return { p: [p[i][0] + t * (p[i - 1][0] - p[i][0]), y], t: null };
-      }
-    }
   }
   if (R.oval.has(label) || R.toTop.has(label)) {
     let top = p[0];
@@ -2098,7 +2084,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const left = local.apartMinX ?? local.minX;
             // a diagonal join: the letter where the join rises at `run`; a level join: the letter `levelGap` (of the x-height) after the
             // ink before (measured on the guide, centre lines: o–a 0.52, w–o 0.77, w–h 0.73, o–b 0.61 — owner, 2026-11-09: «oa и wo —
-            // соединения слишком короткие, буквы слишком близко»)
+            // соединения слишком короткие, буквы слишком близко», then «слишком длинное»: 0.5)
             const need = kind === "h"
               ? cursorX + nelson.levelGap * WIDE_ZONE_UNITS * scale - left
               : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
@@ -2387,8 +2373,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const L = Math.hypot(ns[0] - pe[0], ns[1] - pe[1]);
           const ch = nlsUnit(ns[0] - pe[0], ns[1] - pe[1]);
           let c1, c2;
-          if (kind === "h" && Math.abs(ns[1] - pe[1]) < 12 * scale) { c1 = [pe[0] + L / 3, pe[1]]; c2 = [ns[0] - L / 3, ns[1]]; }
-          else if (kind === "h") { c1 = [pe[0] + L / 2.5, pe[1]]; c2 = [ns[0], ns[1] + L / 3]; } // up to an ascender: leaves level, arrives rising
+          // a level join to a letter of the x-height SAGS: it leaves the top of the letter, dips under the x-line and comes up to the next
+          // letter's top (owner, 2026-11-09: «третье соединение … нет прогиба, как в оригинале»; the guide's o–a, w–o: 0.18 of the
+          // x-height deep, a Bézier's middle is 3/4 of its control points' offset)
+          if (kind === "h" && Math.abs(ns[1] - pe[1]) < 12 * scale) {
+            const sag = (nelson.levelSag * WIDE_ZONE_UNITS * scale) / 0.75;
+            c1 = [pe[0] + L / 3, pe[1] + sag]; c2 = [ns[0] - L / 3, ns[1] + sag];
+          }
+          else if (kind === "h" && ns[1] < pe[1]) { c1 = [pe[0] + L / 2.5, pe[1]]; c2 = [ns[0], ns[1] + L / 3]; } // up to an ascender: leaves level, arrives rising
+          else if (kind === "h") { c1 = [pe[0] + L / 3, pe[1]]; c2 = [ns[0] - ch[0] * L / 3, ns[1] - ch[1] * L / 3]; } // down to a low start (e): leaves level, goes down to it
           else { const a = tg.t ?? ch; c1 = [pe[0] + ex.t[0] * L / 3, pe[1] + ex.t[1] * L / 3]; c2 = [ns[0] - a[0] * L / 3, ns[1] - a[1] * L / 3]; }
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });

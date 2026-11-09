@@ -137,8 +137,8 @@
               "exitFromBottom": "s",
               "run": 0.45,
               "minRun": 6,
-              "levelGap": 0.6,
-              "levelDrop": 0.18,
+              "levelGap": 0.5,
+              "levelSag": 0.18,
               "edge": 3
             }
           },
