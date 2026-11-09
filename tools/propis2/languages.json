@@ -135,11 +135,14 @@
               "toTop": "f",
               "exitStroke": { "f": 1 },
               "exitFromBottom": "s",
+              "exitTrim": { "r": 2 },
               "run": 0.45,
               "minRun": 6,
               "levelGap": 0.4,
               "levelSag": 0.18,
               "levelEntry": 0.6,
+              "levelGapFrom": { "r": 0.55 },
+              "levelInto": { "e": 0.5 },
               "edge": 3
             }
           },

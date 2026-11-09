@@ -62,6 +62,21 @@ describe("Nelson joins (script.joinRules)", () => {
     }
   });
 
+  it("r joins from the end of its arch (its little wave is not written before a join), into e at the middle of its bar (Nelson's grey)", () => {
+    const rOwn = glyphs.find((g) => g.label === "r").strokes[0].d.match(/C/g).length;
+    const ro = row("british_joined", "ro");
+    expect(ro[0].d.match(/C/g)).toHaveLength(rOwn - 2); // the wave after the arch: gone
+    expect(row("british_joined", "r")[0].d.match(/C/g)).toHaveLength(rOwn); // alone, r keeps it
+    const re = row("british_joined", "re");
+    const join = re.find((s) => s.join), e = re[re.indexOf(join) + 1];
+    const nRow = row("british_joined", "n")[0];
+    const ys = nRow.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 1);
+    const [top, base] = [Math.min(...ys), Math.max(...ys)];
+    const end = getPathEndpoints(join.d).end;
+    expect((end[1] - top) / (base - top)).toBeCloseTo(0.5, 1); // into the middle of the x-height
+    expect(getPathEndpoints(e.d).start).toEqual(end); // e goes on from there: its start below is not written
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
