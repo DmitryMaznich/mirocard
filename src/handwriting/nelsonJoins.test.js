@@ -200,6 +200,16 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(cs(ps[ps.length - 1].d)).toBe(own);
   });
 
+  it("a diagonal join into the joined s comes in at the slant of its first piece: one straight line up to the point and back (owner's drawing over Nelson's «is»)", () => {
+    for (const w of ["is", "as", "us"]) {
+      const r = row("british_joined", w), j = r.findIndex((x) => x.join);
+      const n = r[j].d.match(/-?\d*\.?\d+/g).map(Number), m = r[j + 1].d.match(/-?\d*\.?\d+/g).map(Number);
+      const slant = (n[6] - n[0]) / (n[1] - n[7]); // the join: run per rise
+      const piece = (m[0] - m[2]) / (m[3] - m[1]); // s's first piece at its point, gone backwards
+      expect(slant, w).toBeCloseTo(piece, 1);
+    }
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);

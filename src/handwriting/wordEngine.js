@@ -1874,7 +1874,10 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null, meet = null)
   const jf = R.joinedForm[label];
   if (jf && strokes[0]) {
     const d = nelsonJoinedForm(jf, strokes[0].d);
-    return { p: getPathEndpoints(d).start, t: null, joinedForm: d };
+    // (the join comes in along the s's own first piece, gone backwards: one straight line up to the point — owner, 2026-11-09: «s чуть
+    // дальше от предыдущей буквы, и поэтому соединение подходит к ней под тем же углом, что и верхний кусочек короткой s»)
+    const n = d.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
+    return { p: [n[0], n[1]], t: nlsUnit(n[0] - n[2], n[1] - n[3]), joinedForm: d };
   }
   const first = strokes[0]?.d;
   const p = samplePath(first, 160);
@@ -2262,7 +2265,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const toStem = kind === "h" && stemLeft != null && nelson.levelToStem != null ? prevRight + (nelson.levelToStemFrom[prevLabel] ?? nelson.levelToStem) * WIDE_ZONE_UNITS * scale - left : null;
             // (from under s into a tall letter: its stem `ascFrom.gap` (of the x-height) after s's ink — Nelson's upright «she» 0.5, «past» 0.65)
             const ascNeed = ascFrom ? prevRight + ascFrom.gap * WIDE_ZONE_UNITS * scale - tg.p[0] : null;
-            const need = ascNeed != null ? ascNeed : toStem != null ? toStem : ovalReach != null ? ovalReach : reach != null ? reach : tg.intoLoop
+            // (into the joined s along its first piece: s stands where the join, at that slant, reaches its point)
+            const formNeed = kind === "d" && tg.joinedForm && tg.t[1] < 0 ? ex.p[0] + (ex.p[1] - tg.p[1]) * (tg.t[0] / -tg.t[1]) - tg.p[0] : null;
+            const need = formNeed != null ? formNeed : ascNeed != null ? ascNeed : toStem != null ? toStem : ovalReach != null ? ovalReach : reach != null ? reach : tg.intoLoop
               ? ex.p[0] + tg.gap * WIDE_ZONE_UNITS * scale - left
               : kind === "h"
               ? prevRight + ((nelson.ascender.has(label) ? null : nelson.levelGapFrom[prevLabel]) ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
