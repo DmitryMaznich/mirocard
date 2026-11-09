@@ -44,6 +44,13 @@ describe("Nelson joins (script.joinRules)", () => {
     expect((b[0] - a[0]) / (a[1] - b[1])).toBeGreaterThanOrEqual(style("british_joined").script.joinRules.run - 1e-3);
   });
 
+  it("a join to a tall letter comes to its stem's middle, at the x-line, as to a letter of the x-height (ab as an, ch as cn, wh as wn)", () => {
+    const end = (w) => getPathEndpoints(row("british_joined", w).find((s) => s.join).d).end;
+    for (const [tall, short] of [["ab", "an"], ["ch", "cn"], ["wh", "wn"], ["ol", "on"], ["it", "in"], ["af", "an"]]) {
+      expect(end(tall)[1], tall).toBeCloseTo(end(short)[1], 1);
+    }
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);

@@ -1720,7 +1720,8 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //   noJoinTo:     letters never joined TO (z)
 //   oval:         letters starting at the top right of their oval (a c d g o q s): a diagonal join merges with their upper left arc,
 //                 a level one comes to their top
-//   toTop:        letters a join comes to at their top, not at their start (f: the top of its hook)
+//   ascender:     tall letters (b f h k l t): a join comes to their stem where it crosses the x-line, not up to its top
+//   toTop:        letters a join comes to at their top, not at their start
 //   exitStroke:   { letter: stroke index } the join leaves from the end of that stroke (f: its bar); default the first stroke
 //   exitFromBottom: letters the join leaves from the bottom of their first stroke, going right (s: it ends low on the left)
 //   run:          horizontal run of a join per unit of its rise (0.45: the Nelson angle)
@@ -1732,7 +1733,7 @@ function nelsonRules(rules) {
   if (!rules) return null;
   if (!NLS_CACHE.has(rules)) {
     NLS_CACHE.set(rules, {
-      diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop),
+      diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop), ascender: nlsSet(rules.ascender),
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom),
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, levelRun: rules.levelRun ?? 10, edge: rules.edge ?? 3,
     });
@@ -1763,9 +1764,20 @@ function nelsonExit(R, label, strokes) {
   return { p: [n[k - 2], n[k - 1]], t };
 }
 // where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
-function nelsonTarget(R, label, kind, strokes) {
+function nelsonTarget(R, label, kind, strokes, scale) {
   const first = strokes[0]?.d;
   const p = samplePath(first, 160);
+  // a tall letter (b f h k l t) is joined at its stem's MIDDLE, where the stem crosses the x-line, as a letter of the x-height is (owner,
+  // 2026-11-09, on Nelson's own lines: «соединения типа ab, ch идут так, как будто это an — до середины стойки»)
+  if (R.ascender.has(label)) {
+    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
+    for (let i = 1; i < p.length; i += 1) {
+      if ((p[i - 1][1] - xLine) * (p[i][1] - xLine) <= 0 && p[i][1] > p[i - 1][1]) { // going down through the x-line
+        const t = (xLine - p[i - 1][1]) / ((p[i][1] - p[i - 1][1]) || 1);
+        return { p: [p[i - 1][0] + t * (p[i][0] - p[i - 1][0]), xLine], t: null };
+      }
+    }
+  }
   if (kind === "d" && R.oval.has(label)) {
     // the point of the upper left arc (between its top and its left side) where the arc, gone backwards, rises at the join's angle
     let iLeft = 0;
@@ -2063,7 +2075,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const kind = nelsonJoinKind(nelson, prevLabel, label);
           const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes) : null;
           if (ex) {
-            const tg = nelsonTarget(nelson, label, kind, local.strokes);
+            const tg = nelsonTarget(nelson, label, kind, local.strokes, scale);
             const rise = Math.abs(ex.p[1] - tg.p[1]);
             const need = ex.p[0] + Math.max((kind === "h" ? nelson.levelRun : nelson.minRun) * scale, nelson.run * rise) - tg.p[0];
             const dxJ = Math.max(cursorX + nelson.edge * scale - (local.apartMinX ?? local.minX), need);
