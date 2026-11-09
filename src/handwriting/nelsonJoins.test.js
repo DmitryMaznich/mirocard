@@ -151,6 +151,18 @@ describe("Nelson joins (script.joinRules)", () => {
     }
   });
 
+  it("level joins into f (o–f, f–f) run into its stem just above the x-line, not up to its top; the two f's tails clear (Nelson's «offer»)", () => {
+    const r = row("british_joined", "off"), js = r.filter((s) => s.join);
+    expect(js).toHaveLength(2);
+    for (const j of js) {
+      const e = getPathEndpoints(j.d).end;
+      expect(e[1]).toBeLessThan(40); // above the x-line (40 at this scale) …
+      expect(e[1]).toBeGreaterThan(40 - 0.25 * 24); // … only just: not up to f's top
+    }
+    const stems = js.map((j) => getPathEndpoints(j.d).end[0]);
+    expect((stems[1] - stems[0]) / 24).toBeGreaterThan(0.8); // stem to stem: f's tail (0.7 wide) clear of the f before
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);

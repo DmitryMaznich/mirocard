@@ -1759,7 +1759,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1860,7 +1860,9 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null) {
   // x-height (owner, 2026-11-09, on Nelson's own lines: «соединения типа ab, ch идут так, как будто это an — до середины стойки»;
   // measured on the guide: a–b meets the stem just under the x-line). A LEVEL join (wh, ob) rises to the stem's top (the guide: w's top,
   // then up to the top of h).
-  if (kind === "d" && R.ascender.has(label)) {
+  // (a level join into f too, Nelson's «offer»: o–f and f–f run into f's stem just above the x-line, as i–f does — not up to its top,
+  // across the letter; owner, 2026-11-09: «вижу ужас соединения off»)
+  if ((kind === "d" || R.diagUpInto[label] != null) && R.ascender.has(label)) {
     // (`diagUpInto` { letter: k }: the join flows into the stem k of the x-height ABOVE the x-line, arriving up along it — Nelson's
     // «if», «ef»: the line curves up into f's stem, no corner; owner, 2026-11-09: «плавно вливаться чуть выше линии строки»)
     const up = R.diagUpInto[label];
@@ -2207,7 +2209,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // (a diagonal join into a tall letter goes in at its stem: f's bar, sticking out on the left, is crossed by the join, as in
             // Nelson's «if», «ef» — the letter stands by its stem, as l does in «el»: owner, 2026-11-09)
             // (where the stem crosses the x-line: f's hook below sticks out on the left too)
-            const stemLeft = kind === "d" && nelson.ascender.has(label) ? tg.p[0] : null;
+            const stemLeft = (kind === "d" || nelson.diagUpInto[label] != null) && nelson.ascender.has(label) ? tg.p[0] : null;
             const left = stemLeft ?? local.apartMinX ?? local.minX;
             // a diagonal join: the letter where the join rises at `run`; a level join: the letter `levelGap` (of the x-height) after the
             // ink before (measured on the guide, centre lines: o–a 0.52, w–o 0.77, w–h 0.73, o–b 0.61 — owner, 2026-11-09: «oa и wo —
@@ -2226,7 +2228,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // its top (owner, 2026-11-09: «a подлазит ближе к f, перемычка, выходя из прогиба, плавно входит в траекторию a»)
             const ovalIn = ovalNext && ex.trim && tg.t;
             const ovalReach = ovalIn ? ex.p[0] + nelson.ovalReachFrom[prevLabel] * WIDE_ZONE_UNITS * scale - local.minX : null;
-            const need = ovalReach != null ? ovalReach : reach != null ? reach : tg.intoLoop
+            // (a level join into f's stem: its stem `levelToStem` (of the x-height) after the ink before — Nelson's «offer»: o's right side
+            // to f's stem 0.6; from f, `levelToStemFrom` — its cut bar to the next f's stem: upright, the two tails must not touch)
+            const toStem = kind === "h" && stemLeft != null && nelson.levelToStem != null ? prevRight + (nelson.levelToStemFrom[prevLabel] ?? nelson.levelToStem) * WIDE_ZONE_UNITS * scale - left : null;
+            const need = toStem != null ? toStem : ovalReach != null ? ovalReach : reach != null ? reach : tg.intoLoop
               ? ex.p[0] + tg.gap * WIDE_ZONE_UNITS * scale - left
               : kind === "h"
               ? prevRight + ((nelson.ascender.has(label) ? null : nelson.levelGapFrom[prevLabel]) ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)

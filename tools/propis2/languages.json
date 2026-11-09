@@ -148,6 +148,8 @@
               "ovalReachFrom": { "f": 0.3 },
               "edgeFrom": { "s": 0.35 },
               "bowlArc": 0.8,
+              "levelToStem": 0.6,
+              "levelToStemFrom": { "f": 0.78 },
               "ovalSag": 0.06,
               "ovalEntry": 0.25,
               "diagUpInto": { "f": 0.12 },
