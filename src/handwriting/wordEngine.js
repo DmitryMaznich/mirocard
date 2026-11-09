@@ -1759,7 +1759,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ascFrom: rules.ascFrom ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1853,7 +1853,7 @@ function nelsonLoopRound(d, m, t, top, left) {
     `C ${f(top[0] - lx * K)} ${f(top[1])} ${f(left[0])} ${f(left[1] - ly * K)} ${f(left[0])} ${f(left[1])} ` + tok.slice(24).join(" ");
 }
 // where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
-function nelsonTarget(R, label, kind, strokes, scale, entry = null) {
+function nelsonTarget(R, label, kind, strokes, scale, entry = null, meet = null) {
   const first = strokes[0]?.d;
   const p = samplePath(first, 160);
   // a DIAGONAL join to a tall letter (b f h k l t) comes to its stem's middle, where the stem crosses the x-line, as to a letter of the
@@ -1866,12 +1866,14 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null) {
     // (`diagUpInto` { letter: k }: the join flows into the stem k of the x-height ABOVE the x-line, arriving up along it — Nelson's
     // «if», «ef»: the line curves up into f's stem, no corner; owner, 2026-11-09: «плавно вливаться чуть выше линии строки»)
     const up = R.diagUpInto[label];
-    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale - (up ?? 0) * WIDE_ZONE_UNITS * scale;
+    // (`meet`: from under s into a tall letter, its stem `meet` of the x-height above the baseline, arriving up along it — Nelson's
+    // upright «she», «slowly», «past», «stairs»: half way up, not at the x-line)
+    const xLine = meet != null ? WIDE_BASELINE_Y - meet * WIDE_ZONE_UNITS * scale : WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale - (up ?? 0) * WIDE_ZONE_UNITS * scale;
     for (let i = 1; i < p.length; i += 1) {
       if ((p[i - 1][1] - xLine) * (p[i][1] - xLine) <= 0 && p[i][1] > p[i - 1][1]) { // going down through the x-line
         const t = (xLine - p[i - 1][1]) / ((p[i][1] - p[i - 1][1]) || 1);
         const j = Math.min(p.length - 1, i + 3), h = Math.max(0, i - 4);
-        return { p: [p[i - 1][0] + t * (p[i][0] - p[i - 1][0]), xLine], t: up != null ? nlsUnit(p[h][0] - p[j][0], p[h][1] - p[j][1]) : null };
+        return { p: [p[i - 1][0] + t * (p[i][0] - p[i - 1][0]), xLine], t: up != null || meet != null ? nlsUnit(p[h][0] - p[j][0], p[h][1] - p[j][1]) : null };
       }
     }
   }
@@ -2204,7 +2206,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes, intoLoop ? 1 : 0, scale, cutK) : null;
 
           if (ex) {
-            const tg = nelsonTarget(nelson, label, kind, local.strokes, scale, ovalNext ? nelson.ovalEntry : null);
+            const ascFrom = kind === "d" && nelson.ascender.has(label) ? nelson.ascFrom[prevLabel] ?? null : null;
+            const tg = nelsonTarget(nelson, label, kind, local.strokes, scale, ovalNext ? nelson.ovalEntry : null, ascFrom?.meet ?? null);
             const rise = Math.abs(ex.p[1] - tg.p[1]);
             // (a diagonal join into a tall letter goes in at its stem: f's bar, sticking out on the left, is crossed by the join, as in
             // Nelson's «if», «ef» — the letter stands by its stem, as l does in «el»: owner, 2026-11-09)
@@ -2231,7 +2234,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // (a level join into f's stem: its stem `levelToStem` (of the x-height) after the ink before — Nelson's «offer»: o's right side
             // to f's stem 0.6; from f, `levelToStemFrom` — its cut bar to the next f's stem: upright, the two tails must not touch)
             const toStem = kind === "h" && stemLeft != null && nelson.levelToStem != null ? prevRight + (nelson.levelToStemFrom[prevLabel] ?? nelson.levelToStem) * WIDE_ZONE_UNITS * scale - left : null;
-            const need = toStem != null ? toStem : ovalReach != null ? ovalReach : reach != null ? reach : tg.intoLoop
+            // (from under s into a tall letter: its stem `ascFrom.gap` (of the x-height) after s's ink — Nelson's upright «she» 0.5, «past» 0.65)
+            const ascNeed = ascFrom ? prevRight + ascFrom.gap * WIDE_ZONE_UNITS * scale - tg.p[0] : null;
+            const need = ascNeed != null ? ascNeed : toStem != null ? toStem : ovalReach != null ? ovalReach : reach != null ? reach : tg.intoLoop
               ? ex.p[0] + tg.gap * WIDE_ZONE_UNITS * scale - left
               : kind === "h"
               ? prevRight + ((nelson.ascender.has(label) ? null : nelson.levelGapFrom[prevLabel]) ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
@@ -2245,7 +2250,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // bends up to the next letter's top, Nelson's «spin», «spill»; owner, 2026-11-09: «выходит из-под s и идёт немного по
             // параболической траектории к верху p»)
             const bowlArc = kind === "d" && nelson.fromBottom.has(prevLabel) && !nelson.oval.has(label) && nelson.bowlArc != null;
-            nelsonJoin = { kind, ex, tg, ovalIn, bowlArc };
+            nelsonJoin = { kind, ex, tg, ovalIn, bowlArc: bowlArc && !ascFrom, ascIn: Boolean(ascFrom) };
           }
         }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
@@ -2538,7 +2543,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // down from the arch in one S, level into e's bar; from a letter that ends going UP (v w o: Nelson's «over»), first on up and over
           // in a little hook, then the S
           // (from under s: leaving level, its first handle `bowlArc` of the way along, arriving steep — one parabola up to the letter's top)
-          if (nelsonJoin.bowlArc) { const up = nlsUnit(0.3, -1); c1 = [pe[0] + (ns[0] - pe[0]) * nelson.bowlArc, pe[1]]; c2 = [ns[0] - up[0] * L * 0.35, ns[1] - up[1] * L * 0.35]; }
+          // (from under s into a tall letter's stem: leaving level, rising at once on a slant and running into the stem from the left)
+          if (nelsonJoin.ascIn) { const a = nlsUnit(0.7, -1); c1 = [pe[0] + L * 0.3, pe[1]]; c2 = [ns[0] - a[0] * L * 0.3, ns[1] - a[1] * L * 0.3]; }
+          else if (nelsonJoin.bowlArc) { const up = nlsUnit(0.3, -1); c1 = [pe[0] + (ns[0] - pe[0]) * nelson.bowlArc, pe[1]]; c2 = [ns[0] - up[0] * L * 0.35, ns[1] - up[1] * L * 0.35]; }
           // (f into an oval: on along the bar's own curve, rising out of its sag, and along the oval's arc into it; leaving level, as the
           // bar was going at its lowest point; `ovalSag` of the x-height more under the oval's left side, as Nelson's)
           else if (nelsonJoin.ovalIn) { const sg = (nelson.ovalSag * WIDE_ZONE_UNITS * scale) / 0.75; c1 = [pe[0] + L * 0.4, pe[1]]; c2 = [ns[0] - tg.t[0] * L * 0.4, ns[1] - tg.t[1] * L * 0.4 + sg]; }
