@@ -1734,9 +1734,9 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //                 levelGapFrom: { letter: gap } its own levelGap (r: its arch is short, Nelson's r–r stems are a whole x-height apart);
 //                 levelInto: { letter: depth } a level join comes into the letter's first stroke that far (of the x-height) under the
 //                 x-line, its bar rebuilt from there (e: into the middle of its bar, as Nelson's «grey», «cream»)
-//   diagInto:     { letter: gap } a DIAGONAL join runs on as the letter's first cubic (e: one long diagonal from the flick that is e's
-//                 bar, up to its loop — Nelson's «lelele», «candle»); that cubic is not written, the letter stands `gap` (of the
-//                 x-height) after the ink before
+//   diagInto:     { letter: gap } a DIAGONAL join leaves from the bottom of the letter before (its flick not written) and runs along
+//                 the baseline into the letter's start, along its first stroke (e: into its bar — Nelson's «lelele», «candle»); the
+//                 letter stands `gap` (of the x-height) after the ink before
 const nlsSet = (s) => new Set([...(s ?? "")]);
 const NLS_CACHE = new WeakMap();
 function nelsonRules(rules) {
@@ -1747,7 +1747,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.35,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {},
     });
   }
   return NLS_CACHE.get(rules);
@@ -1807,19 +1807,6 @@ function nelsonRebuildStart(d, m, n) {
   return `M ${f(m[0])} ${f(m[1])} ` + [first, ...segs.slice(n)].map((sg) => `C ${sg.map((q) => `${f(q[0])} ${f(q[1])}`).join(" ")}`).join(" ");
 }
 // The path without its first cubic (it starts where that cubic ended): the join has drawn it.
-// e after a diagonal join (Nelson's «lelele»): its bar and its turn at the top right are not written; from where the join meets the
-// loop's right side (`r`, arriving along `a`) the loop goes on round over the top in ONE wide arc to the top of e (the end of its second
-// cubic) and on as drawn (owner, 2026-11-09: «сгладить петлю у e справа, когда перед ней буква с соединением снизу, типа le» — our e
-// turns tightly at its top right, the join made that a corner).
-function nelsonLoopFrom(d, r, a) {
-  const tok = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g);
-  if (!tok || tok[0] !== "M" || tok[3] !== "C" || tok[10] !== "C" || tok.length < 17) return d;
-  const top = [Number(tok[15]), Number(tok[16])];
-  const K = 0.5523, f = (v) => v.toFixed(3);
-  const k1 = (Math.abs(r[1] - top[1]) * K) / Math.max(0.3, Math.abs(a[1])), k2 = Math.abs(r[0] - top[0]) * K;
-  return `M ${f(r[0])} ${f(r[1])} C ${f(r[0] + a[0] * k1 * 0.6)} ${f(r[1] + a[1] * k1 * 0.6)} ${f(top[0] + k2)} ${f(top[1])} ${f(top[0])} ${f(top[1])} ` + tok.slice(17).join(" ");
-}
-const NLS_E_BULGE = 0.06; // how far (of the x-height) the loop's right side stands out past the end of e's own bar
 // where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
 function nelsonTarget(R, label, kind, strokes, scale) {
   const first = strokes[0]?.d;
@@ -1838,15 +1825,10 @@ function nelsonTarget(R, label, kind, strokes, scale) {
     }
   }
   if (kind === "d" && R.diagInto[label] != null) {
-    // into e as its bar: the line runs up to the loop's RIGHT side, `diagMeet` of the x-height under the x-line, and the loop goes on
-    // from there round over the top (Nelson's «lelele»: the line meets the loop at its right, the loop's top right is wide)
-    const n = first.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number); // M x y C c1 c2 B C c1 c2 top …
-    if (n.length >= 14) {
-      const B = [n[6], n[7]], top = [n[12], n[13]];
-      const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
-      const Rp = [B[0] + NLS_E_BULGE * WIDE_ZONE_UNITS * scale, xLine + R.diagMeet * WIDE_ZONE_UNITS * scale];
-      return { p: Rp, t: null, dropFirst: true, gap: R.diagInto[label], eTop: top };
-    }
+    // into e from below (Nelson's «lelele»): the line from the bottom of the letter before runs into the start of e's bar, along it —
+    // the letter itself as drawn (e is the middle line of Nelson's own, its bar starting on the loop's left side)
+    const n = first.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
+    if (n.length >= 4) return { p: [n[0], n[1]], t: nlsUnit(n[2] - n[0], n[3] - n[1]), intoStart: true, gap: R.diagInto[label] };
   }
   if (kind === "h" && R.levelInto[label] != null) {
     // a level join into e (Nelson's «cream», «grey»): it comes down from the arch in one smooth S and runs into e's bar at the LEFT of
@@ -2167,8 +2149,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // соединения слишком короткие, буквы слишком близко», then «слишком длинное»: 0.5)
             // (a trimmed letter, r: the gap counts from what is left of it)
             const prevRight = ex.trim ? Math.max(...prevGlyphStrokes.flatMap((m, i) => samplePath(i === ex.trim.si ? ex.trim.d : m.d, 40).map((q) => q[0]))) : cursorX;
-            const need = tg.dropFirst
-              ? cursorX + tg.gap * WIDE_ZONE_UNITS * scale - left
+            const need = tg.intoStart
+              ? prevRight + tg.gap * WIDE_ZONE_UNITS * scale - left
               : kind === "h"
               ? prevRight + (nelson.levelGapFrom[prevLabel] ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
               : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
@@ -2477,13 +2459,12 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           else if (kind === "h") { c1 = [pe[0] + L / 3, pe[1]]; c2 = [ns[0] - ch[0] * L / 3, ns[1] - ch[1] * L / 3]; } // down to a low start (e): leaves level, goes down to it
           // (into e as its bar: one long diagonal — it arrives at the loop half along its own chord, half as e's bar did, so it neither
           // waves on the way nor turns hard at the loop)
-          else if (tg.dropFirst) { const a = nlsUnit(ch[0] * 0.5, -1); nelsonJoin.along = a; c1 = [pe[0] + ex.t[0] * L * 0.45, pe[1] + ex.t[1] * L * 0.45]; c2 = [ns[0] - a[0] * L * 0.3, ns[1] - a[1] * L * 0.3]; }
+          else if (tg.intoStart) { c1 = [pe[0] + ex.t[0] * L * 0.45, pe[1] + ex.t[1] * L * 0.45]; c2 = [ns[0] - tg.t[0] * L * 0.4, ns[1] - tg.t[1] * L * 0.4]; } // along the baseline, then into e's bar along it
           else { const a = tg.t ?? ch; c1 = [pe[0] + ex.t[0] * L / 3, pe[1] + ex.t[1] * L / 3]; c2 = [ns[0] - a[0] * L / 3, ns[1] - a[1] * L / 3]; }
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
         if (nelsonJoin?.tg.rebuild && moved[0]) moved[0] = { ...moved[0], d: nelsonRebuildStart(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.rebuild) };
-        if (nelsonJoin?.tg.dropFirst && moved[0]) moved[0] = { ...moved[0], d: nelsonLoopFrom(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.along) };
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;

@@ -1000,7 +1000,8 @@ def arches_from_original(cap, tidied_strokes):
 # the thinned ink (as n m's arches). The underlay is put centre on centre of the hand's letter; the pen goes along the thinned ink from
 # the hand's start to its end, the ends brought back to half a pen from the ink's tips. G: round to the right side and up it, into its
 # stem (STEM_TOUCH), up the stem to its top and straight down it to the baseline, as the hand went.
-OPEN_FROM_ORIGINAL = set("CGSJUs")  # s: owner, 2026-11-09 «шлифануть s — подогнать к оригиналу»
+OPEN_FROM_ORIGINAL = set("CGSJUse")
+ROUTE_WAYPOINTS = set("e")  # s: owner, 2026-11-09 «шлифануть s — подогнать к оригиналу»
 STEM_LEAVE = 0.35  # J U: the thinned ink has left the stem's line by this much: the bow begins
 
 
@@ -1040,7 +1041,20 @@ def open_from_original(label, strokes):
     start = segs[0][0]
     global ORIGINAL
     if label != "G":
-        route = [to_tool(yx) for yx in skeleton_route(sk, nearest(start), nearest(segs[-1][3]))]
+        if label in ROUTE_WAYPOINTS:
+            # a letter whose path crosses itself (e: its bar starts on the loop's left side): the shortest way along the thinned ink
+            # would skip the loop, so the route goes through the hand's own extremes in turn -- the bar's right end, the top, the left
+            # side, the bottom (owner, 2026-11-09: our e was narrower than Nelson's, tight at its top right; every join into it showed it)
+            hand_p = np.array([bez(sg, t) for sg in segs for t in np.linspace(0, 1, 30)])
+            n = len(hand_p); i_r = int(np.argmax(hand_p[: n // 2, 0])); i_t = i_r + int(np.argmin(hand_p[i_r:, 1]))
+            i_l = i_t + int(np.argmin(hand_p[i_t:, 0])); i_b = i_l + int(np.argmax(hand_p[i_l:, 1]))
+            way = [start, hand_p[i_r], hand_p[i_t], hand_p[i_l], hand_p[i_b], segs[-1][3]]
+            route = []
+            for a0, a1 in zip(way, way[1:]):
+                part = [to_tool(yx) for yx in skeleton_route(sk, nearest(a0), nearest(a1))]
+                route += part if not route else part[1:]
+        else:
+            route = [to_tool(yx) for yx in skeleton_route(sk, nearest(start), nearest(segs[-1][3]))]
         route = trim_tip(trim_tip(route[::-1], a, to_px)[::-1], a, to_px)
         # J U: an end that runs straight up and down is a stem -- upright, at the middle of its ink, its tip on the ruling line;
         # the bow leaves it upright where the thinned ink leaves its line (owner, 2026-11-09: «S, J и U по такому же принципу»)

@@ -80,15 +80,20 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(eN[0]).toBeLessThanOrEqual(Math.min(...samplePath(e.d, 80).map((q) => q[0])) + 0.5); // ...from the left side of the letter
   });
 
-  it("a diagonal join into e runs on as e's bar: from the bottom of the letter before (its flick not written) up to e's loop (Nelson's lelele)", () => {
+  it("a diagonal join into e leaves from the bottom of the letter before (its flick not written) and runs into e's bar along it (lelele)", () => {
     const lOwn = glyphs.find((g) => g.label === "l").strokes[0].d.match(/C/g).length;
     const eOwn = glyphs.find((g) => g.label === "e").strokes[0].d.match(/C/g).length;
     const le = row("british_joined", "le");
     const join = le.find((s) => s.join), l = le[0], e = le[le.indexOf(join) + 1];
     expect(l.d.match(/C/g)).toHaveLength(lOwn - 1); // l's flick
-    expect(e.d.match(/C/g)).toHaveLength(eOwn - 1); // e's own bar
+    expect(e.d.match(/C/g)).toHaveLength(eOwn); // e as drawn
     expect(getPathEndpoints(join.d).start).toEqual(getPathEndpoints(l.d).end);
-    expect(getPathEndpoints(e.d).start).toEqual(getPathEndpoints(join.d).end);
+    const [je, es] = [getPathEndpoints(join.d).end, getPathEndpoints(e.d).start];
+    expect(Math.hypot(je[0] - es[0], je[1] - es[1])).toBeLessThan(0.01);
+    // smooth: the join arrives in the direction e's bar leaves
+    const jn = join.d.match(/-?\d*\.?\d+/g).map(Number), en2 = e.d.match(/-?\d*\.?\d+/g).map(Number);
+    const a = Math.atan2(jn[7] - jn[5], jn[6] - jn[4]), b = Math.atan2(en2[3] - en2[1], en2[2] - en2[0]);
+    expect(Math.abs(a - b)).toBeLessThan(0.05);
   });
 
   it("f joins from its bar, s from the bottom of its curve", () => {
