@@ -1,5 +1,5 @@
 import { useTopicUiPreview } from "@/core/topicUiPreview";
-import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
+import HomePreview from "./HomePreview";
 import { setupText } from "@/shared/i18n/setupText.js";
 import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
@@ -18,7 +18,7 @@ import { deriveConcepts, isPickableMode } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
-import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
+import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan, loadAllRecipes, savePlan, resetShoppingData, archiveCycle } from "@/features/planner/plannerApi";
 import { isMenuFullyDecided, isReadyToCook, needsShopping, resetPlan, isRecipeCookedThisCycle } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
@@ -276,7 +276,7 @@ function SessionTab({
   if (!student) {
     return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
-  if (preview) return <TopicLibraryScreen embedded />;
+  if (preview) return <HomePreview />;
 
   return (
     <section className="home-section">
@@ -901,7 +901,11 @@ export default function HomeScreen() {
     : !statisticsContextReady ? t("home.selectTopic")
     : statisticsChecking ? t("home.checkResults")
     : t("home.noResults");
-  const visibleTab = activeTab === 'statistics' && !statisticsAvailable ? 'session' : activeTab;
+  // The preview has no bottom tab bar: statistics live in the menu and on the
+  // topic's exercise screen; the account-flag tabs open from the menu.
+  const visibleTab = preview
+    ? (["planner", "instructions", "lesson_plan"].includes(activeTab) ? activeTab : "session")
+    : activeTab === 'statistics' && !statisticsAvailable ? 'session' : activeTab;
 
   const s2Raw = stepState(!!topic, !!student);
   const s3Raw = isChatPractice
@@ -1035,6 +1039,11 @@ export default function HomeScreen() {
 
       <div className="home-main">
         {visibleTab === "session" && !preview && <TopicLanguageBar topic={topic} />}
+        {preview && visibleTab !== "session" && (
+          <button type="button" className="topic-ui-tab-back" onClick={() => changeTab("session")}>
+            <BackArrowIcon size={16} />{t("preview.backTopics")}
+          </button>
+        )}
         <div className="home-tab-content">
           {visibleTab !== 'statistics' && <MarketingPromptCard />}
           {visibleTab === 'statistics' ? (
@@ -1074,7 +1083,7 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <HomeTabs active={visibleTab} onChange={changeTab} statisticsAvailable={statisticsAvailable} statisticsDisabledReason={statisticsDisabledReason} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />
+      {!preview && <HomeTabs active={visibleTab} onChange={changeTab} statisticsAvailable={statisticsAvailable} statisticsDisabledReason={statisticsDisabledReason} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />}
       {hintsOpen && student && <ScreenHints steps={homeHintSteps} onClose={closeHints} />}
 
       {menuOpen && (
@@ -1085,6 +1094,11 @@ export default function HomeScreen() {
           onOpenStatistics={() => setScreen("history")}
           onOpenSettings={() => setScreen("settings")}
           onOpenHelp={() => setScreen("help")}
+          extraItems={preview ? [
+            hasLessonPlanAccess && { id: "lesson_plan", label: t("home.lessonPlan"), onClick: () => changeTab("lesson_plan") },
+            hasPlannerAccess && { id: "planner", label: t("home.shopping"), onClick: () => changeTab("planner") },
+            hasInstructionsAccess && { id: "instructions", label: t("home.instructions"), onClick: () => changeTab("instructions") },
+          ].filter(Boolean) : []}
         />
       )}
     </div>

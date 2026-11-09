@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { previewTopicDestination, recentTopicContext } from "./topicUiPreviewModel";
+import { continueContext, continueDestination, lastActivityParts, previewTopicDestination, recentTopicContext } from "./topicUiPreviewModel";
 
 describe("preview topic routes and recent activity", () => {
   it("preserves renderer-specific entry points", () => {
@@ -22,5 +22,31 @@ describe("preview topic routes and recent activity", () => {
     expect(recentTopicContext(sessions, null, snapshot)).toBeNull();
     expect(recentTopicContext([], "b", snapshot)).toBeNull();
     expect(sessions[0].topicId).toBe("math"); // No in-place sorting/mutation.
+  });
+  it("continues the latest visible topic with its still-pickable mode", () => {
+    const records = [
+      { meta: { id: "math", renderer: "comparison" }, modes: [{ id: "first" }, { id: "second" }] },
+      { meta: { id: "secret", renderer: "comparison", hidden: true }, modes: [{ id: "first" }] },
+    ];
+    expect(continueContext({ topicId: "math", modeId: "second", time: 1 }, records).mode.id).toBe("second");
+    expect(continueContext({ topicId: "math", modeId: "retired", time: 1 }, records).mode).toBeNull();
+    expect(continueContext({ topicId: "secret", modeId: "first", time: 1 }, records)).toBeNull();
+    expect(continueContext({ topicId: "gone", time: 1 }, records)).toBeNull();
+  });
+  it("starts through the same routes as the legacy Home button", () => {
+    const mode = { id: "m" };
+    expect(continueDestination({ meta: { id: "x", renderer: "comparison" }, modes: [mode] }, mode, null)).toBe("params");
+    expect(continueDestination({ meta: { id: "x", renderer: "comparison" }, modes: [mode] }, null, null)).toBe("modes");
+    expect(continueDestination({ meta: { id: "games", renderer: "games" }, modes: [mode] }, mode, null)).toBe("modes");
+    expect(continueDestination({ meta: { id: "r", renderer: "reading" }, modes: [mode] }, mode, null)).toBe("texts");
+    expect(continueDestination({ meta: { id: "r", renderer: "reading" }, modes: [mode] }, mode, "t1")).toBe("params");
+  });
+  it("shows time only for today", () => {
+    const now = new Date(2026, 10, 9, 21, 0);
+    expect(lastActivityParts(new Date(2026, 10, 9, 10, 15), now).kind).toBe("today");
+    expect(lastActivityParts(new Date(2026, 10, 8, 23, 59), now).kind).toBe("yesterday");
+    expect(lastActivityParts(new Date(2026, 10, 5), now)).toMatchObject({ kind: "date", withYear: false });
+    expect(lastActivityParts(new Date(2025, 10, 5), now).withYear).toBe(true);
+    expect(lastActivityParts(NaN, now)).toBeNull();
   });
 });

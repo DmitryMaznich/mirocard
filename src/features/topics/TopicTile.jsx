@@ -9,6 +9,7 @@ import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, LockSmallIcon, Clo
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import TopicTilePreview from "./TopicTilePreview";
+import { getTopicShortDescription } from "./topicShortDescriptions";
 import { setupText } from "@/shared/i18n/setupText";
 import { isPickableMode } from "@/shared/utils/topicUtils";
 import { topicLanguageForStudent } from "./topicLanguageChoice";
@@ -61,7 +62,6 @@ export default function TopicTile({
   onSelect,
   onMenu,
   onInfo,
-  onPreviewInfo,
   onLockedTap,
   disabled = false,
 }) {
@@ -139,6 +139,13 @@ export default function TopicTile({
     else if (status !== "pending") requestAction();
   }
 
+  // Preview: the row's download arrow and the sheet's «Добавить в мои темы»
+  // are themselves the consent the legacy «Установить тему?» dialog asks for.
+  function handlePreviewAction() {
+    if (status === "install" && !entry?.languageDownload) handleAction();
+    else requestAction();
+  }
+
   function confirmInstall() {
     setConfirmingInstall(false);
     handleAction();
@@ -175,14 +182,14 @@ export default function TopicTile({
 
   return (
     <>
-    {presentation !== "legacy" ? <TopicTilePreview title={title} topicId={topicId} avatarPath={avatarPath}
-      version={installedRecord?.meta.version ?? entry?.version ?? "—"} availableVersion={entry?.version} categoryLabel={category}
+    {presentation !== "legacy" ? <TopicTilePreview title={title} topicId={topicId} avatarPath={avatarPath} categoryLabel={category}
+      shortDescription={getTopicShortDescription(topicId)}
       description={setupText(entry?.description) || setupText(installedRecord?.meta.about?.description)}
       modeCount={previewModes?.length} recent={recent} installed={Boolean(installedRecord)} isBuiltin={isBuiltin}
-      presentation={presentation} status={status} badgeLabel={badgeLabel} canOpen={canOpen}
+      access={access} presentation={presentation} status={status} badgeLabel={badgeLabel} canOpen={canOpen}
       loading={loading} progress={progress} error={error} disabled={disabled}
-      onOpen={handleTileClick} onAction={handleBadgeClick}
-      onMenu={() => onMenu?.(installedRecord)} onInfo={onPreviewInfo} /> : <>
+      onOpen={handleTileClick} onAction={handlePreviewAction}
+      onMenu={() => onMenu?.(installedRecord)} /> : <>
     <article
       className={`topic-tile-row${canOpen ? " topic-tile-row--open" : ""}${isSoon ? " topic-tile-row--soon" : ""}`}
       onClick={handleTileClick}

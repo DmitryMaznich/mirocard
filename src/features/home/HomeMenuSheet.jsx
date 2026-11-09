@@ -1,5 +1,5 @@
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
-export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, onOpenSettings, onOpenHelp, onOpenStatistics }) {
+export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, onOpenSettings, onOpenHelp, onOpenStatistics, extraItems = [] }) {
   const { t } = useUiTranslation();
   function handleOverlay(e) {
     if (e.target === e.currentTarget) onClose();
@@ -19,6 +19,10 @@ export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, 
         >{t("nav.students")}</button>
 
         {onOpenStatistics && <button className="action-sheet__item" onClick={() => { onOpenStatistics(); onClose(); }}>{t("nav.studentStatistics")}</button>}
+
+        {extraItems.map((item) => (
+          <button key={item.id} className="action-sheet__item" onClick={() => { item.onClick(); onClose(); }}>{item.label}</button>
+        ))}
 
         <div className="action-sheet__title action-sheet__title--divided">{t("nav.application")}</div>
         <button

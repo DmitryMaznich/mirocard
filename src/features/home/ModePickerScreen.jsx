@@ -1,5 +1,6 @@
 import { useTopicUiPreview } from "@/core/topicUiPreview";
-import { recentTopicContext, rememberPreviewChoice } from "@/features/topics/topicUiPreviewModel";
+import { formatLastActivity, recentTopicContext, rememberPreviewChoice } from "@/features/topics/topicUiPreviewModel";
+import StatisticsScreen from "@/features/analytics/StatisticsScreen";
 import { ModePickerPreviewHeader, ModePickerPreviewRow } from "./ModePickerPreview";
 import "@/features/topics/topicUiPreview.css";
 import PeopleLearningHome from '@/features/myPeople/PeopleLearningHome';
@@ -83,8 +84,9 @@ export default function ModePickerScreen() {
 // top of the list (the switch to «Занятия по плану") -- inside the screen,
 // under its header, so the page is no taller than the screen.
 export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topItem = null }) {
-  const { t } = useUiTranslation();
+  const { t, language } = useUiTranslation();
   const { enabled: preview } = useTopicUiPreview();
+  const [statisticsOpen, setStatisticsOpen] = useState(false);
   const activeSessionSnapshot = useAppStore((state) => state.activeSessionSnapshot);
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
@@ -183,6 +185,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
   }
 
   if (hasSingleMode) return null;
+  if (statisticsOpen) return <StatisticsScreen initialTopicId={activeTopicId} onClose={() => setStatisticsOpen(false)} />;
   const recent = recentTopicContext(sessions.filter((session) => session.topicId === activeTopicId),
     activeStudentId, activeSessionSnapshot?.context?.topicId === activeTopicId ? activeSessionSnapshot : null);
 
@@ -191,7 +194,8 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
       {preview ? <ModePickerPreviewHeader topic={topicRecord} count={modes.length}
         title={isShortStories ? getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title) : isReading ? getTextTitle(activeText) : getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}
         onBack={() => (onBack ? onBack() : setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home"))}
-        onAbout={() => setTopicAbout(true)} /> : <div className="screen-header">
+        onAbout={() => setTopicAbout(true)}
+        onStatistics={sessions.some((session) => session.studentId === activeStudentId && session.topicId === activeTopicId) ? () => setStatisticsOpen(true) : null} /> : <div className="screen-header">
         <button className="back-btn" onClick={() => (onBack ? onBack() : setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home"))}><BackArrowIcon /></button>
         <h1 className="screen-title">{isShortStories ? getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title) : isReading ? getTextTitle(activeText) : getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}</h1>
         <button
@@ -255,10 +259,11 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
           return (
             <li key={mode.id} className={`mode-item-row${isMyPeople && !myPeopleModeAvailable(mode) ? " mode-item-row--disabled" : ""}`}>
               {preview ? <ModePickerPreviewRow topicId={activeTopicId} mode={mode}
-                title={getModeTitle(mode)} instruction={getModeInstruction(mode)} index={index}
+                title={getModeTitle(mode)} index={index}
+                test={Boolean(mode.finite || /Контрольная работа/.test(getTopicTitle(mode?.ui?.title)))}
                 disabled={!myPeopleModeAvailable(mode)} recent={recent?.modeId === mode.id}
                 onSelect={() => pickMode(mode)} onInfo={() => setMethodology(mode)}
-                result={lastSession ? <LastResultBadge session={lastSession} /> : null}
+                lastTime={lastSession ? formatLastActivity(Date.parse(lastSession.completedAt), t, language) : null}
                 readiness={isMyPeople && !myPeopleModeAvailable(mode) ? <div className="my-people-mode-gap">
                   <span>{readinessByMode[mode.id].reason}</span>
                   {readinessByMode[mode.id].tab && activeStudent && !isMyPeopleProfileEmpty(activeStudent) && <button className="link-btn" onClick={() => openMyPeopleSetup(readinessByMode[mode.id].tab)}>{t("mode.fill")}</button>}

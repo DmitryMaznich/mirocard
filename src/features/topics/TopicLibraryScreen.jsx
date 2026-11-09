@@ -257,9 +257,6 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
         category={preview ? t(CATEGORY_LABEL_KEYS[item.category]) : item.category}
         presentation={preview ? (embedded ? "installed" : "catalog") : "legacy"}
         recent={item.id === recent?.topicId}
-        onPreviewInfo={() => setInfoTopic(item.installedRecord ?? {
-          meta: { id: item.id, title: item.entry.title, about: { description: item.entry.description } },
-        })}
         entry={item.entry}
         installedRecord={item.installedRecord}
         isActive={item.installedRecord?.meta.id === activeTopicId}
@@ -284,7 +281,7 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
   return (
     <div className={preview ? `topic-ui-library${embedded ? " topic-ui-library--embedded" : " screen topic-ui-library--catalog"}` : "screen"}>
       {preview ? <TopicLibraryPreview embedded={embedded} items={allItems} renderItem={renderItem}
-        query={query} onQuery={setQuery} filter={filter} onFilter={setFilter} recentTopicId={recent?.topicId}
+        query={query} onQuery={setQuery} filter={filter} onFilter={setFilter}
         loading={!catalog && !catalogError} error={catalogError} onRetry={loadCatalog}
         onHome={() => setScreen("home")} onCatalog={() => setScreen("topics")} /> : <>
       <div className="screen-header">

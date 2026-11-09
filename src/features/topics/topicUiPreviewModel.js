@@ -17,6 +17,53 @@ export function recentTopicContext(sessions, studentId, snapshot) {
     .sort((a, b) => b.time - a.time)[0] ?? null;
 }
 
+// What the «Продолжить» card offers: the student's latest topic that is still
+// on the device and visible, with its mode when that mode can still be picked.
+// Reading keeps the text the lesson was on, so «Начать» lands on the same text.
+export function continueContext(recent, records) {
+  if (!recent) return null;
+  const record = records.find((item) => item.meta.id === recent.topicId && !item.meta.hidden);
+  if (!record) return null;
+  const mode = record.modes?.filter(isPickableMode).find((item) => item.id === recent.modeId) ?? null;
+  return { record, mode, textId: recent.textId ?? null, time: recent.time };
+}
+
+// Where «Начать занятие» goes — the same routes as the legacy Home button
+// (startOrContinue): topics with their own home go to their picker, the rest
+// open lesson settings first. Without a remembered mode the picker decides.
+export function continueDestination(record, mode, textId) {
+  const id = record.meta.id;
+  if (id === "games" || id === "my_people") return "modes";
+  if (record.meta.renderer === "chat_practice") return record.modes?.length > 0 ? "modes" : "chat_params";
+  if (record.meta.renderer === "reading" && !textId) return "texts";
+  return mode ? "params" : previewTopicDestination(record);
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+function dayStart(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime(); }
+
+// «сегодня, 10:15» / «вчера» / «5 ноября» (year added when it differs).
+// Time only for today: for older lessons the day is what an adult needs.
+export function lastActivityParts(time, now = new Date()) {
+  const date = new Date(time);
+  if (!Number.isFinite(date.getTime())) return null;
+  const days = Math.round((dayStart(now) - dayStart(date)) / DAY);
+  if (days <= 0) return { kind: "today", date };
+  if (days === 1) return { kind: "yesterday", date };
+  return { kind: "date", date, withYear: date.getFullYear() !== now.getFullYear() };
+}
+
+export function formatLastActivity(time, t, language, now = new Date()) {
+  const parts = lastActivityParts(time, now);
+  if (!parts) return "";
+  const locale = language === "sl" ? "sl-SI" : "ru-RU";
+  if (parts.kind === "today") {
+    return t("preview.today", { time: parts.date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) });
+  }
+  if (parts.kind === "yesterday") return t("preview.yesterday");
+  return parts.date.toLocaleDateString(locale, { day: "numeric", month: "long", ...(parts.withYear ? { year: "numeric" } : {}) });
+}
+
 export function rememberPreviewChoice(studentId, kind) {
   if (!studentId) return;
   try {

@@ -55,7 +55,23 @@ describe("preview library preserves selection and visibility rules", () => {
     expect(host.querySelector('[data-topic-id="private-other-account"]')).toBeNull();
     expect(host.querySelector('[data-topic-id="hidden"]')).toBeNull();
     expect(host.querySelector(".topic-ui-tile--recent").dataset.topicId).toBe("ordinary");
-    expect(host.querySelector(".topic-ui-installed-grid article").dataset.topicId).toBe("ordinary");
+    // Marked, not moved: a topic keeps its alphabetical place in the grid.
+    const order = [...host.querySelectorAll(".topic-ui-installed-grid article")].map((tile) => tile.dataset.topicId);
+    expect(order).toEqual([...order].sort((x, y) => host.querySelector(`[data-topic-id="${x}"] strong`).textContent
+      .localeCompare(host.querySelector(`[data-topic-id="${y}"] strong`).textContent, "ru")));
+    expect(host.querySelector(".topic-ui-add-tile")).not.toBeNull();
+  });
+
+  it("lists only topics not added yet in the catalog, the rest one tap away", async () => {
+    writeTopicUiPreview(scope, true);
+    useAppStore.setState({ topicRecords: [topic("ordinary")], ownedTopics: [{ topicId: "ordinary", source: "free" }] });
+    await mount();
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    const listed = () => [...host.querySelectorAll(".topic-ui-catalog-list article")].map((row) => row.dataset.topicId);
+    expect(listed()).toContain("reading");
+    expect(listed()).not.toContain("ordinary");
+    await act(async () => host.querySelector(".topic-ui-show-installed").click());
+    expect(listed()).toContain("ordinary");
   });
 
   it("does not navigate into a language package that was not installed", async () => {

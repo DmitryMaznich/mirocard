@@ -8,25 +8,33 @@ describe("preview tile uses existing download and access handlers", () => {
   function mount(props) {
     host = document.createElement("div"); document.body.append(host); root = createRoot(host);
     act(() => root.render(<TopicTile presentation="catalog" title="Тестовая тема" category="Математика"
-      onSelect={vi.fn()} onMenu={vi.fn()} onPreviewInfo={vi.fn()} {...props} />));
+      onSelect={vi.fn()} onMenu={vi.fn()} {...props} />));
   }
   afterEach(() => { if (root) act(() => root.unmount()); host?.remove(); vi.restoreAllMocks(); });
 
-  it("shows real fractional progress and opens only after a successful install", async () => {
+  it("downloads from the explicit arrow with real fractional progress", async () => {
     let finish, progress;
     const onInstall = vi.fn((entry, options) => {
       progress = options.onProgress;
       return new Promise((resolve) => { finish = resolve; });
     });
     mount({ entry: { id: "test", version: "1", access: "free" }, onInstall });
-    act(() => host.querySelector(".topic-ui-primary").click());
-    expect(onInstall).not.toHaveBeenCalled(); // Existing confirmation is preserved.
-    await act(async () => host.querySelector(".btn-primary").click());
+    await act(async () => host.querySelector(".topic-ui-get").click());
+    expect(onInstall).toHaveBeenCalledTimes(1); // The download arrow is itself the consent.
     act(() => progress(.42));
     expect(host.querySelector('[role="progressbar"]').getAttribute("aria-valuenow")).toBe("42");
-    expect(host.querySelector(".topic-ui-primary").disabled).toBe(true);
+    expect(host.querySelector(".topic-ui-get").disabled).toBe(true);
     await act(async () => finish());
     expect(host.querySelector('[role="progressbar"]')).toBeNull();
+  });
+
+  it("describes the topic in a sheet before adding it", async () => {
+    const onInstall = vi.fn().mockResolvedValue(undefined);
+    mount({ entry: { id: "test", version: "1", access: "free", description: "Длинное описание темы." }, onInstall });
+    act(() => host.querySelector(".topic-ui-catalog-open").click());
+    expect(host.querySelector('[role="dialog"]').textContent).toContain("Длинное описание темы.");
+    expect(onInstall).not.toHaveBeenCalled();
+    await act(async () => host.querySelector(".topic-ui-sheet-primary").click());
     expect(onInstall).toHaveBeenCalledTimes(1);
   });
 
@@ -36,8 +44,7 @@ describe("preview tile uses existing download and access handlers", () => {
       progress = options.onProgress;
       return new Promise((resolve, fail) => { reject = fail; });
     } });
-    act(() => host.querySelector(".topic-ui-primary").click());
-    await act(async () => host.querySelector(".btn-primary").click());
+    await act(async () => host.querySelector(".topic-ui-get").click());
     act(() => progress(null));
     expect(host.querySelector('[role="progressbar"]').hasAttribute("aria-valuenow")).toBe(false);
     await act(async () => reject(new Error("Соединение потеряно")));
@@ -45,22 +52,21 @@ describe("preview tile uses existing download and access handlers", () => {
     expect(host.querySelector(".topic-ui-download-error button").disabled).toBe(false);
   });
 
-  it("opens the installed copy separately from updating it", async () => {
+  it("opens an installed copy from the row and updates only from the update button", async () => {
     const record = { meta: { id: "test", version: "1" } };
     const onSelect = vi.fn(); const onInstall = vi.fn().mockResolvedValue(record);
     mount({ installedRecord: record, entry: { id: "test", version: "2" }, onSelect, onInstall });
-    expect(host.querySelector(".topic-ui-primary").textContent).toContain("2");
-    act(() => host.querySelectorAll(".topic-ui-details")[1].click());
-    expect(onSelect).toHaveBeenCalledWith(record);
-    expect(onInstall).not.toHaveBeenCalled();
-    await act(async () => host.querySelector(".topic-ui-primary").click());
+    act(() => host.querySelector(".topic-ui-catalog-open").click());
+    await act(async () => host.querySelector(".topic-ui-get--update").click());
     expect(onInstall).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ force: true }));
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("does not open an expired paid copy from a home card", () => {
+  it("shows the short description on a home tile and does not open an expired paid copy", () => {
     const onSelect = vi.fn(); const onLockedTap = vi.fn(); const onInstall = vi.fn();
-    mount({ presentation: "installed", installedRecord: { meta: { id: "test", version: "1" } },
+    mount({ presentation: "installed", installedRecord: { meta: { id: "verbs_v2", version: "1" } },
       entitlementExpired: true, onSelect, onLockedTap, onInstall });
+    expect(host.querySelector(".topic-ui-short").textContent).toContain("Действия на фото");
     act(() => host.querySelector(".topic-ui-topic-open").click());
     expect(onLockedTap).toHaveBeenCalledOnce();
     expect(onSelect).not.toHaveBeenCalled();
