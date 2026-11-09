@@ -146,6 +146,7 @@
               "levelSagFrom": { "f": 0 },
               "levelReachFrom": { "f": 0.7 },
               "ovalReachFrom": { "f": 0.3 },
+              "edgeFrom": { "s": 0.35 },
               "ovalSag": 0.06,
               "ovalEntry": 0.25,
               "diagUpInto": { "f": 0.12 },

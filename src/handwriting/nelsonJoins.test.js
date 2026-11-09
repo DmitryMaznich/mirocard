@@ -134,6 +134,17 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(getPathEndpoints(join.d).end[0]).toBeLessThan(getPathEndpoints(fr.find((s) => s.join).d).end[0]); // closer than r
   });
 
+  it("after s the next letter stands clear of it, the join from s's foot long and slanting (Nelson's «spin»)", () => {
+    const xs = (d) => d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 0);
+    for (const w of ["sp", "sa", "sn"]) {
+      const r = row("british_joined", w), j = r.findIndex((s) => s.join);
+      const gap = Math.min(...r.slice(j + 1).flatMap((s) => xs(s.d))) - Math.max(...r.slice(0, j).flatMap((s) => xs(s.d)));
+      expect(gap / 24, w).toBeCloseTo(style("british_joined").script.joinRules.edgeFrom.s, 1); // (x-height 24 at this scale)
+      const [a, b] = [getPathEndpoints(r[j].d).start, getPathEndpoints(r[j].d).end];
+      expect((b[0] - a[0]) / (a[1] - b[1]), w).toBeGreaterThan(0.55); // slanting, not steep (Nelson ~0.63)
+    }
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
