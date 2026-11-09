@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Главный экран — макет v02 (2026-11-09)</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap");
+  :root {
+    --bg: #f5f2eb;
+    --card: #fffdf9;
+    --line: #e4e0d5;
+    --ink: #263b31;
+    --muted: #6f8273;
+    --soft: #e8eee2;
+    --teal: #4a9b8f;
+    --teal-dark: #2a6b60;
+    --deep: #2f5b57;
+    --head: linear-gradient(180deg, #2f5f57, #284f49);
+    --gold: #f0b429;
+    --test-bg: #fdf8e8; --test-line: #ead9a9;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Nunito, sans-serif; background: #d9ddd8; color: var(--ink); }
+  .page { padding: 32px 24px 64px; }
+  .page > h1 { margin: 0 0 6px; font-size: 26px; }
+  .page > p.lead { margin: 0 0 28px; max-width: 900px; color: #44574b; line-height: 1.5; }
+  .row { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; margin-bottom: 48px; }
+  .shot { width: 390px; }
+  .shot > h2 { font-size: 17px; margin: 0 0 4px; }
+  .shot > .tag { font-size: 12px; color: #546a5c; margin-bottom: 10px; }
+  .notes { margin: 12px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: #33463a; }
+  .notes li { margin-bottom: 5px; }
+  .notes b { color: #1f3329; }
+
+  /* ── phone frame ── */
+  .phone { width: 390px; height: 844px; background: var(--bg); border-radius: 34px; overflow: hidden;
+    box-shadow: 0 0 0 9px #1d2622, 0 20px 50px rgba(0,0,0,.25); position: relative; display: flex; flex-direction: column; }
+  .phone.tablet { width: 1024px; height: 768px; border-radius: 22px; }
+  .status { height: 47px; flex-shrink: 0; }
+  .scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* app header (existing .home-header, unchanged) */
+  .home-header { background: var(--head); color: #fff; display: flex; align-items: center; gap: 12px; padding: 12px 18px 14px; }
+  .phone > .home-header { padding-top: 47px; }
+  .avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(160deg,#79b3a8,#3f8075); display: grid; place-items: center; font-weight: 800; }
+  .home-header small { display: block; color: #f6c46b; font-size: 12px; font-weight: 700; }
+  .home-header strong { font-size: 20px; }
+  .home-header .sp { flex: 1; }
+  .burger { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.55); display: grid; place-items: center; }
+  .burger i { display: block; width: 16px; height: 2px; background: #fff; box-shadow: 0 -5px #fff, 0 5px #fff; }
+
+  /* bottom tabs (existing) */
+  .tabs { flex-shrink: 0; display: flex; background: #faf7f1; border-top: 1px solid var(--line); padding: 8px 0 26px; }
+  .tabs div { flex: 1; text-align: center; font-size: 12px; font-weight: 700; color: #a6b0a8; }
+  .tabs div.on { color: var(--deep); }
+  .tabs svg { display: block; margin: 0 auto 3px; }
+
+  .pad { padding: 18px 16px 24px; }
+  .cover { width: 56px; height: 56px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: #fff; }
+  .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* ── continue card ── */
+  .cont { background: var(--card); border: 1px solid #cfe0cb; border-radius: 22px; padding: 16px; box-shadow: 0 6px 18px rgba(47,91,87,.08); }
+  .cont-label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5b8a6c; margin-bottom: 12px; }
+  .cont-top { display: flex; gap: 14px; align-items: center; }
+  .cont-top .cover { width: 72px; height: 72px; border-radius: 18px; }
+  .cont-top h3 { margin: 0; font-size: 21px; line-height: 1.2; }
+  .cont-top p { margin: 4px 0 0; font-size: 15px; color: #3f5a49; font-weight: 700; }
+  .meter { margin: 14px 0 4px; height: 8px; border-radius: 8px; background: #e3eadc; overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--teal); border-radius: 8px; }
+  .meter-cap { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; border: 0; border-radius: 16px;
+    background: var(--teal); color: #fff; font: 800 18px Nunito, sans-serif; box-shadow: 0 4px 0 var(--teal-dark); margin-top: 16px; }
+  .btn svg { width: 18px; height: 18px; }
+  .link-row { display: flex; justify-content: space-between; margin-top: 12px; }
+  .link { min-height: 40px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: #3d6c58; }
+
+  .sec { display: flex; align-items: baseline; justify-content: space-between; margin: 24px 2px 12px; }
+  .sec h2 { margin: 0; font-size: 17px; }
+  .sec span { font-size: 13px; color: var(--muted); }
+
+  /* ── compact topic grid ── */
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+  .last { margin-top: 12px; font-size: 13.5px; color: var(--muted); }
+  .tile { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px 8px 10px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; min-height: 118px; }
+  .tile .cover { width: 60px; height: 60px; border-radius: 15px; }
+  .tile b { margin-top: 8px; font-size: 13.5px; line-height: 1.2; text-wrap: balance; }
+  .tile .mini { width: 70%; height: 5px; border-radius: 5px; background: #e6ebe0; margin-top: auto; overflow: hidden; }
+  .tile .mini span { display: block; height: 100%; background: var(--teal); }
+  .tile .none { margin-top: auto; font-size: 11px; color: #9aa69c; }
+  .tile.cur { border-color: #a9cdb9; background: #eef5ea; }
+  .tile.cur::after { content: ""; position: absolute; top: 8px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: var(--teal); }
+  .tile.add { border: 2px dashed #bfd0bf; background: transparent; justify-content: center; color: #3d6c58; font-weight: 800; font-size: 13.5px; gap: 6px; }
+  .tile.add .plus { width: 44px; height: 44px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 26px; font-weight: 600; line-height: 1; }
+  .tile .lock { position: absolute; top: 8px; right: 8px; font-size: 12px; }
+  .tile .badge-up { position: absolute; top: 7px; right: 7px; background: #f6e3c2; color: #8a5a17; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 8px; }
+
+  /* variant B tile with quick start */
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .tile2 { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .tile2 .h { display: flex; gap: 10px; align-items: center; }
+  .tile2 .cover { width: 48px; height: 48px; border-radius: 12px; }
+  .tile2 b { font-size: 14.5px; line-height: 1.2; }
+  .tile2 .mini { height: 5px; border-radius: 5px; background: #e6ebe0; overflow: hidden; }
+  .tile2 .mini span { display: block; height: 100%; background: var(--teal); }
+  .tile2 .cap { font-size: 11.5px; color: var(--muted); }
+  .tile2.cur { grid-column: 1 / -1; border-color: #a9cdb9; background: #eef5ea; }
+  .tile2.cur .cover { width: 64px; height: 64px; border-radius: 16px; }
+  .tile2.cur b { font-size: 18px; }
+  .quick { display: flex; gap: 8px; align-items: center; }
+  .quick .btn { margin: 0; min-height: 48px; font-size: 16px; flex: 1; }
+  .quick .alt { min-height: 48px; padding: 0 14px; border-radius: 14px; background: #fff; border: 1px solid #c9d9c6; font: 700 14px Nunito; color: #3d6c58; display: grid; place-items: center; }
+  .add-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; min-height: 52px; border: 2px dashed #bfd0bf; border-radius: 16px; color: #3d6c58; font-weight: 800; font-size: 15px; }
+
+  /* ── catalog ── */
+  .sub-head { display: flex; align-items: center; gap: 10px; padding: 8px 12px 6px; }
+  .back { width: 44px; height: 44px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; color: var(--deep); flex-shrink: 0; }
+  .sub-head h1 { margin: 0; font-size: 22px; flex: 1; }
+  .search { margin: 6px 16px 10px; position: relative; }
+  .search div { min-height: 48px; border: 1px solid #c9d6c4; background: #fff; border-radius: 14px; padding: 12px 14px 12px 44px; color: #8c9a8f; font-size: 15px; }
+  .search svg { position: absolute; left: 14px; top: 13px; }
+  .chips { display: flex; gap: 8px; overflow: hidden; padding: 0 16px 8px; }
+  .chips span { flex-shrink: 0; min-height: 38px; display: grid; place-items: center; padding: 0 14px; border-radius: 20px; background: #ebece2; color: #5e7464; font-size: 13.5px; font-weight: 700; }
+  .chips span.on { background: var(--deep); color: #fff; }
+  .clist { padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .citem { display: flex; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px; }
+  .citem .txt { flex: 1; min-width: 0; }
+  .citem small { display: block; font-size: 11.5px; color: #7a8c7e; font-weight: 700; }
+  .citem b { display: block; font-size: 15.5px; line-height: 1.25; margin: 1px 0 3px; }
+  .citem p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .get { flex-shrink: 0; min-width: 44px; height: 44px; border-radius: 50%; background: var(--soft); color: var(--deep); display: grid; place-items: center; }
+  .get.paid { width: auto; border-radius: 12px; padding: 0 10px; font-size: 12px; font-weight: 800; background: #f1e9f3; color: #7d6684; }
+  .cfoot { text-align: center; font-size: 13.5px; font-weight: 700; color: #3d6c58; padding: 6px 0 4px; }
+  .cfoot span { color: var(--muted); font-weight: 600; }
+
+  /* ── topic sheet ── */
+  .dim { position: absolute; inset: 0; background: rgba(23,36,30,.42); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--card); border-radius: 24px 24px 0 0; padding: 10px 18px 34px; }
+  .grab { width: 40px; height: 5px; border-radius: 4px; background: #d3d8cf; margin: 0 auto 14px; }
+  .sheet .cont-top .cover { width: 76px; height: 76px; }
+  .sheet .desc { font-size: 14px; line-height: 1.5; color: #44584a; margin: 14px 0 6px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
+  .facts span { font-size: 12.5px; font-weight: 700; background: #eef1e8; color: #4d6555; padding: 6px 10px; border-radius: 10px; }
+  .modes-peek { margin: 14px 0 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .modes-peek b { color: var(--ink); }
+
+  /* ── exercise picker ── */
+  .t-head { display: flex; gap: 12px; align-items: center; padding: 6px 16px 4px; }
+  .t-head .cover { width: 56px; height: 56px; }
+  .t-head h1 { margin: 0; font-size: 22px; line-height: 1.15; }
+  .t-head p { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+  .about { margin-left: auto; min-height: 40px; padding: 0 12px; border-radius: 12px; background: var(--soft); font-size: 13.5px; font-weight: 700; color: var(--deep); display: grid; place-items: center; }
+  .ex-list { padding: 10px 16px 24px; display: flex; flex-direction: column; gap: 8px; }
+  .ex { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px 6px 10px 10px; min-height: 72px; }
+  .ex img { width: 46px; height: 46px; flex-shrink: 0; }
+  .ex .txt { flex: 1; min-width: 0; }
+  .ex b { display: block; font-size: 15.5px; line-height: 1.25; }
+  .ex .r { display: block; margin-top: 3px; font-size: 12.5px; color: var(--muted); }
+  .ex .r em { font-style: normal; font-weight: 800; color: #3f7d4d; }
+  .ex .chev { color: #8aa08d; }
+  .ex .info { width: 40px; height: 44px; display: grid; place-items: center; }
+  .ex .info span { width: 24px; height: 24px; border: 1px solid #cbd6c4; border-radius: 50%; display: grid; place-items: center; font: italic 14px Georgia, serif; color: #7d927d; }
+  .ex.cur { background: #eef5ea; border-color: #a9cdb9; }
+  .ex.cur .pill { display: inline-block; font-size: 11px; font-weight: 800; color: #fff; background: var(--teal); border-radius: 8px; padding: 1px 7px; margin-bottom: 3px; }
+  .ex.test { background: var(--test-bg); border-color: var(--test-line); }
+  .group { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #7b8f80; margin: 10px 2px 2px; }
+
+  /* tablet layout for A */
+  .tablet .pad { padding: 24px 28px; }
+  .tablet .split { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+  .tablet .grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+  .tablet .sec { margin-top: 0; }
+  .tablet .tabs { padding-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Главный экран — макет v02</h1>
+  <p class="lead">Развитие варианта А из <a href="home-v01.html">v01</a>. Изменения: вариант Б убран; прогресса по темам нет — ни полосы, ни «знает N из M» на плитках и в шапке темы. Осталась только история: когда и с каким результатом прошло последнее занятие. Шапка и нижние вкладки — существующие. Цифры результатов, возраст и бесплатность в карточке темы выдуманы; обложки, иконки и названия упражнений настоящие.</p>
+
+  <!-- ═════════ ROW 1: home variants ═════════ -->
+  <div class="row">
+
+    <!-- A -->
+    <section class="shot">
+      <h2>Главный экран</h2>
+      <div class="tag">Решено (2026-11-09): вариант А, без прогресса на плитках тем</div>
+      <div class="phone">
+        <div class="home-header"><div class="avatar">М</div><div><small>Добрый вечер,</small><strong>Миша</strong></div><div class="sp"></div><div class="burger"><i></i></div></div>
+        <div class="scroll"><div class="pad">
+          <div class="cont">
+            <div class="cont-label">Продолжить</div>
+            <div class="cont-top">
+              <div class="cover"><img src="covers/topic_verbs_v2.svg" alt=""></div>
+              <div><h3>Глаголы</h3><p>Покажи — 3-е упражнение</p></div>
+            </div>
+            <div class="last">В прошлый раз: вчера, 8 из 10</div>
+            <div class="btn"><svg viewBox="0 0 20 20" fill="#fff"><path d="M5 3l12 7-12 7z"/></svg>Начать «Покажи»</div>
+            <div class="link-row"><span class="link">Другое упражнение</span><span class="link">Настроить</span></div>
+          </div>
+
+          <div class="sec"><h2>Мои темы</h2><span>7</span></div>
+          <div class="grid">
+            <div class="tile cur"><div class="cover"><img src="covers/topic_verbs_v2.svg" alt=""></div><b>Глаголы</b></div>
+            <div class="tile"><div class="cover"><img src="covers/topic_comparison.svg" alt=""></div><b>Сравнение</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_propis.svg" alt=""></div><b>Прописи</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_operations.svg" alt=""></div><b>Плюс и минус</b><span class="badge-up">новое</span></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_my_people.svg" alt=""></div><b>Мои люди</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_games.svg" alt=""></div><b>Игры</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_streak_tracker.svg" alt=""></div><b>5 из 5</b></div>
+            <div class="tile add"><div class="plus">+</div>Добавить тему</div>
+          </div>
+        </div></div>
+        <div class="tabs"><div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor"/></svg>Занятие</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V12M12 20V5M18 20v-9"/></svg>Статистика</div></div>
+      </div>
+      <ul class="notes">
+        <li><b>Одно нажатие до занятия.</b> Карточка «Продолжить» берёт последнюю тему и упражнение этого ученика (`recentTopicContext` уже есть в коде).</li>
+        <li><b>Прогресса по темам нет.</b> Плитка — только обложка и название. На карточке «Продолжить» — один факт без оценки: когда и с каким результатом было последнее занятие.</li>
+        <li>Сетка в 3 колонки, плитка ~120px: на экране телефона 6–9 тем вместо 4. Точка в углу — тема из «Продолжить».</li>
+        <li>«Добавить тему» стоит последней плиткой: действие редкое и не должно занимать верх экрана.</li>
+        <li>Метка «новое» — у темы вышло обновление (вместо строки «Доступно обновление»).</li>
+      </ul>
+    </section>
+
+    <!-- A empty -->
+    <section class="shot">
+      <h2>Пустое состояние</h2>
+      <div class="tag">Новый аккаунт: только встроенные темы, занятий ещё не было</div>
+      <div class="phone">
+        <div class="home-header"><div class="avatar">М</div><div><small>Добрый день,</small><strong>Миша</strong></div><div class="sp"></div><div class="burger"><i></i></div></div>
+        <div class="scroll"><div class="pad">
+          <div class="cont">
+            <div class="cont-label">Первое занятие</div>
+            <p style="margin:0 0 12px;font-size:15px;line-height:1.45;color:#3f5a49">Выберите тему ниже или добавьте новую из каталога. После первого занятия здесь появится кнопка «Продолжить».</p>
+            <div class="btn" style="margin-top:4px">+ Добавить тему</div>
+          </div>
+          <div class="sec"><h2>Мои темы</h2><span>4</span></div>
+          <div class="grid">
+            <div class="tile"><div class="cover"><img src="covers/avatar_my_people.svg" alt=""></div><b>Мои люди</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_flashcards.svg" alt=""></div><b>Сегодня</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_games.svg" alt=""></div><b>Игры</b></div>
+            <div class="tile"><div class="cover"><img src="covers/avatar_streak_tracker.svg" alt=""></div><b>5 из 5</b></div>
+          </div>
+        </div></div>
+        <div class="tabs"><div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor"/></svg>Занятие</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V12M12 20V5M18 20v-9"/></svg>Статистика</div></div>
+      </div>
+      <ul class="notes">
+        <li>Только здесь «Добавить тему» — главная кнопка: продолжать пока нечего.</li>
+        <li>Нет пустого экрана с одной фразой «Пока нет установленных тем»: встроенные темы есть всегда.</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- ═════════ ROW 2: catalog, sheet, exercises ═════════ -->
+  <div class="row">
+
+    <section class="shot">
+      <h2>Каталог «Добавить тему»</h2>
+      <div class="tag">Открывается из плитки «Добавить тему»</div>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="sub-head"><div class="back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></div><h1>Добавить тему</h1></div>
+        <div class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5e7b64" stroke-width="1.8"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg><div>Найти тему</div></div>
+        <div class="chips"><span class="on">Все</span><span>Словарь</span><span>Чтение</span><span>Математика</span><span>Письмо</span></div>
+        <div class="scroll"><div class="clist">
+          <div class="citem"><div class="cover"><img src="covers/print_letters.svg" alt=""></div><div class="txt"><small>Письмо</small><b>Печатные буквы</b><p>Конструктор тетрадей и письмо пальцем на экране для 4–6 лет.</p></div><div class="get paid">По подписке</div></div>
+          <div class="citem"><div class="cover"><img src="covers/opposites.svg" alt=""></div><div class="txt"><small>Словарь</small><b>Противоположности</b><p>Большой — маленький, горячий — холодный: пары картинок и сортировка.</p></div><div class="get"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg></div></div>
+          <div class="citem"><div class="cover"><img src="covers/avatar_reading.svg" alt=""></div><div class="txt"><small>Чтение</small><b>Короткие рассказы</b><p>Пятнадцать микрорассказов с вопросами трёх видов.</p></div><div class="get"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg></div></div>
+          <div class="citem"><div class="cover"><img src="covers/avatar_place_value.svg" alt=""></div><div class="txt"><small>Математика</small><b>Разряды числа</b><p>Десятки и сотни: собрать, узнать, разменять.</p></div><div class="get"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg></div></div>
+          <div class="citem"><div class="cover"><img src="covers/avatar_sentence_puzzle.svg" alt=""></div><div class="txt"><small>Чтение</small><b>Собери предложение</b><p>Слова-карточки по порядку, с озвучкой.</p></div><div class="get"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg></div></div>
+          <div class="cfoot">Показать установленные <span>(7)</span></div>
+        </div></div>
+      </div>
+      <ul class="notes">
+        <li>По умолчанию показаны <b>только неустановленные</b> темы: экран называется «Добавить тему», и уже добавленные здесь лишние. Флажок заменён ссылкой внизу.</li>
+        <li>Тема — одна строка ~90px вместо карточки ~300px: обложка, раздел, название, 2 строки описания и кнопка скачивания справа. Кнопка всегда на одном месте — нет проблемы с выравниванием, как у «Открыть тему» сейчас.</li>
+        <li>Нажатие на строку открывает карточку темы (следующий экран), нажатие на стрелку сразу скачивает.</li>
+      </ul>
+    </section>
+
+    <section class="shot">
+      <h2>Карточка темы</h2>
+      <div class="tag">Нижняя панель вместо «Что внутри» + диалога «Установить тему?»</div>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="sub-head"><div class="back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></div><h1>Добавить тему</h1></div>
+        <div class="clist" style="opacity:.9">
+          <div class="citem"><div class="cover"><img src="covers/print_letters.svg" alt=""></div><div class="txt"><small>Письмо</small><b>Печатные буквы</b><p>Конструктор тетрадей…</p></div></div>
+          <div class="citem"><div class="cover"><img src="covers/opposites.svg" alt=""></div><div class="txt"><small>Словарь</small><b>Противоположности</b><p>Большой — маленький…</p></div></div>
+        </div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="cont-top"><div class="cover"><img src="covers/opposites.svg" alt=""></div><div><h3>Противоположности</h3><p style="font-weight:600;color:#6f8273;font-size:13.5px">Словарь · 6 упражнений</p></div></div>
+          <p class="desc">Пары понятий на картинках: большой — маленький, горячий — холодный, открыто — закрыто. От узнавания пары до сортировки по признаку.</p>
+          <div class="facts"><span>с озвучкой</span><span>от 4 лет</span><span>5 МБ</span><span>бесплатно</span></div>
+          <p class="modes-peek"><b>Упражнения:</b> Знакомство · Сравниваем · Покажи · Сортировка · Найди все · Найди пару</p>
+          <div class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Добавить в мои темы</div>
+        </div>
+      </div>
+      <ul class="notes">
+        <li>Одно место, где описана тема и принимается решение. Подтверждающий диалог «Установить тему?» больше не нужен: кнопка и так называет действие.</li>
+        <li>Размер скачивания указан заранее: для телефона с мобильным интернетом это важно.</li>
+        <li>Во время скачивания кнопка превращается в полосу прогресса, после — в «Открыть».</li>
+      </ul>
+    </section>
+
+    <section class="shot">
+      <h2>Выбор упражнения</h2>
+      <div class="tag">После нажатия на плитку темы (или «Другое упражнение»)</div>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="sub-head"><div class="back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></div><div style="flex:1"></div><div class="about">О теме</div></div>
+        <div class="t-head"><div class="cover"><img src="covers/topic_verbs_v2.svg" alt=""></div><div><h1>Глаголы</h1><p>6 упражнений</p></div></div>
+        <div class="scroll"><div class="ex-list">
+          <div class="ex"><img src="covers/icons_flashcards_intro.svg" alt=""><div class="txt"><b>Знакомство</b><span class="r">Посмотри и послушай</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+          <div class="ex"><img src="covers/icons_flashcards_question_answer.svg" alt=""><div class="txt"><b>Сделай</b><span class="r"><em>9 из 10</em> · 3 дня назад</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+          <div class="ex cur"><img src="covers/icons_flashcards_find_n.svg" alt=""><div class="txt"><span class="pill">в прошлый раз</span><b>Покажи</b><span class="r"><em>8 из 10</em> · вчера</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+          <div class="ex"><img src="covers/icons_flashcards_choose_all.svg" alt=""><div class="txt"><b>Найди все картинки</b><span class="r">ещё не было</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+          <div class="ex"><img src="covers/icons_flashcards_question_answer.svg" alt=""><div class="txt"><b>Что делает?</b><span class="r">ещё не было</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+          <div class="ex"><img src="covers/icons_flashcards_choose_word.svg" alt=""><div class="txt"><b>Выбери слово</b><span class="r">ещё не было</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+          <div class="group">Проверка <span style="text-transform:none;letter-spacing:0;font-weight:600">(у «Глаголов» её нет — так она выглядит в темах, где есть)</span></div>
+          <div class="ex test"><img src="covers/icons_comparison_test.svg" alt=""><div class="txt"><b>Контрольная</b><span class="r">10 заданий без подсказок</span></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg><div class="info"><span>i</span></div></div>
+        </div></div>
+      </div>
+      <ul class="notes">
+        <li>Под названием упражнения — <b>последний результат</b> («8 из 10 · вчера») или «ещё не было». Это факт из журнала, а не оценка «освоено». Инструкция, дословно повторяющая название, не показывается.</li>
+        <li>Строка 72px вместо 94–110: 7 упражнений помещаются без прокрутки.</li>
+        <li>Контрольные вынесены в отдельную группу по признаку режима (`finite`), а не по слову «Контрольная работа» в названии — так работает и в словенском интерфейсе.</li>
+        <li>Кнопка «назад» такая же, как в каталоге (круг 44px). Версия темы ушла в «О теме».</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- ═════════ ROW 3: tablet ═════════ -->
+  <div class="row">
+    <section class="shot" style="width:1024px">
+      <h2>А на планшете (1024×768)</h2>
+      <div class="tag">«Продолжить» слева, сетка справа — всё на одном экране без прокрутки</div>
+      <div class="phone tablet">
+        <div class="home-header" style="padding-top:14px"><div class="avatar">М</div><div><small>Добрый вечер,</small><strong>Миша</strong></div><div class="sp"></div><div class="burger"><i></i></div></div>
+        <div class="scroll"><div class="pad"><div class="split">
+          <div class="cont">
+            <div class="cont-label">Продолжить</div>
+            <div class="cont-top"><div class="cover"><img src="covers/topic_verbs_v2.svg" alt=""></div><div><h3>Глаголы</h3><p>Покажи — 3-е упражнение</p></div></div>
+            <div class="last">В прошлый раз: вчера, 8 из 10</div>
+            <div class="btn"><svg viewBox="0 0 20 20" fill="#fff"><path d="M5 3l12 7-12 7z"/></svg>Начать «Покажи»</div>
+            <div class="link-row"><span class="link">Другое упражнение</span><span class="link">Настроить</span></div>
+          </div>
+          <div>
+            <div class="sec"><h2>Мои темы</h2><span>7</span></div>
+            <div class="grid">
+              <div class="tile cur"><div class="cover"><img src="covers/topic_verbs_v2.svg" alt=""></div><b>Глаголы</b></div>
+              <div class="tile"><div class="cover"><img src="covers/topic_comparison.svg" alt=""></div><b>Сравнение</b></div>
+              <div class="tile"><div class="cover"><img src="covers/avatar_propis.svg" alt=""></div><b>Прописи</b></div>
+              <div class="tile"><div class="cover"><img src="covers/avatar_operations.svg" alt=""></div><b>Плюс и минус</b><span class="badge-up">новое</span></div>
+              <div class="tile"><div class="cover"><img src="covers/avatar_my_people.svg" alt=""></div><b>Мои люди</b></div>
+              <div class="tile"><div class="cover"><img src="covers/avatar_games.svg" alt=""></div><b>Игры</b></div>
+              <div class="tile"><div class="cover"><img src="covers/avatar_streak_tracker.svg" alt=""></div><b>5 из 5</b></div>
+              <div class="tile add"><div class="plus">+</div>Добавить тему</div>
+            </div>
+          </div>
+        </div></div></div>
+        <div class="tabs"><div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5l5 3.5-5 3.5z" fill="currentColor"/></svg>Занятие</div><div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V12M12 20V5M18 20v-9"/></svg>Статистика</div></div>
+      </div>
+    </section>
+  </div>
+
+  <h2 style="font-size:18px">Открытые вопросы к владельцу</h2>
+  <ol class="notes" style="font-size:14px;max-width:900px">
+    <li>Последний результат у упражнений (экран «Выбор упражнения») и на карточке «Продолжить» — оставить? Это не прогресс темы, а одна строка из журнала; без неё взрослый не видит, что делали в прошлый раз.</li>
+    <li>«Настроить» на карточке «Продолжить» — открывать параметры того же упражнения перед запуском. Нужно, или хватит «Другое упражнение»?</li>
+    <li>Вкладка внизу «Занятие» — оставить название или переименовать в «Темы»?</li>
+  </ol>
+</div>
+</body>
+</html>
