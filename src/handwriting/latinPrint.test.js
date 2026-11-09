@@ -264,6 +264,16 @@ describe("English print letters in the propis2 engine", () => {
     const tail = (l) => gb[l].strokes[0].d.split("C").slice(-2).join("C").trim();
     expect(tail("d")).toBe(tail("a"));
   });
+  it("British l ends as a does: the same foot and flick, moved onto its stem (owner, 2026-11-09: «после l так же, как после d»)", () => {
+    const gb = Object.fromEntries(JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.map((g) => [g.label, g]));
+    const tail = (l) => {
+      const n = gb[l].strokes[0].d.split("C").slice(-2).join(" ").match(/-?\d*\.?\d+/g).map(Number);
+      return n.map((v, k) => v - n[k % 2]); // relative to its own first point
+    };
+    const [l, a] = [tail("l"), tail("a")];
+    expect(l).toHaveLength(a.length);
+    l.forEach((v, k) => expect(v).toBeCloseTo(a[k], 1)); // (the glyph file rounds to 0.01)
+  });
   it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
     const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
     const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];

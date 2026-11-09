@@ -788,7 +788,9 @@ SHARED_TAIL, TAIL_FROM = set("gy"), "j"
 # d ends as a does (owner, 2026-11-09: «у d сделай исходящий крюк так же гладко переходящим в соединение, как у a»): d's own flick
 # flattened at its end, and the join going on steeper from it made a wave; d's stem foot and flick are now a's (its last two cubics, put on
 # d's stem), its stem running down to where a's turns into the foot
-SHARED_EXIT = {"d": "a"}
+# (and l, owner, 2026-11-09: «соединение после l нужно поправить так же, как мы сделали после d» -- l's own foot turned in a tight corner
+# and its flick flattened out the same way)
+SHARED_EXIT = {"d": "a", "l": "a"}
 
 
 def share_exit(tidied):
