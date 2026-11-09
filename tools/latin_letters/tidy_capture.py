@@ -983,7 +983,8 @@ def arches_from_original(cap, tidied_strokes):
 # the thinned ink (as n m's arches). The underlay is put centre on centre of the hand's letter; the pen goes along the thinned ink from
 # the hand's start to its end, the ends brought back to half a pen from the ink's tips. G: round to the right side and up it, into its
 # stem (STEM_TOUCH), up the stem to its top and straight down it to the baseline, as the hand went.
-OPEN_FROM_ORIGINAL = set("CG")
+OPEN_FROM_ORIGINAL = set("CGSJU")
+STEM_LEAVE = 0.35  # J U: the thinned ink has left the stem's line by this much: the bow begins
 
 
 def underlay_frame(label, hand):
@@ -1021,12 +1022,30 @@ def open_from_original(label, strokes):
     nearest = lambda pnt: tuple(skp[np.argmin(((skp - to_px(pnt)) ** 2).sum(1))])
     start = segs[0][0]
     global ORIGINAL
-    if label == "C":
+    if label != "G":
         route = [to_tool(yx) for yx in skeleton_route(sk, nearest(start), nearest(segs[-1][3]))]
         route = trim_tip(trim_tip(route[::-1], a, to_px)[::-1], a, to_px)
+        # J U: an end that runs straight up and down is a stem -- upright, at the middle of its ink, its tip on the ruling line;
+        # the bow leaves it upright where the thinned ink leaves its line (owner, 2026-11-09: «S, J и U по такому же принципу»)
+        stems = []
+        for r in (route, route[::-1]):
+            head = np.array(r[:int(8 / 0.125)])
+            if abs(head[-1][0] - head[0][0]) > 0.8 or abs(head[-1][1] - head[0][1]) < 6: stems.append(None); continue
+            sx = float(np.median(head[:, 0]))
+            k = next(i for i, q in enumerate(r) if abs(q[0] - sx) > STEM_LEAVE)
+            stems.append((np.array([sx, snap_y(r[0][1], END_SNAP)]), np.array([sx, r[k][1]]), k))
+        lo, hi = (stems[0][2] if stems[0] else 0), len(route) - (stems[1][2] if stems[1] else 0)
+        mid = route[lo:hi]
+        if stems[0]: mid = [stems[0][1]] + mid[1:]
+        if stems[1]: mid = mid[:-1] + [stems[1][1]]
+        down = lambda st: np.array([0.0, 1.0]) if st[1][1] > st[0][1] else np.array([0.0, -1.0])
+        line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
         ORIGINAL = True
-        try: strokes[0]["segs"] = curve(resample(np.array(route)), None, None)
+        try:
+            bow = curve(resample(np.array(mid)), down(stems[0]) if stems[0] else None, -down(stems[1]) if stems[1] else None)
         finally: ORIGINAL = False
+        strokes[0]["segs"] = ([line(stems[0][0], stems[0][1])] if stems[0] else []) + bow + \
+                             ([line(stems[1][1], stems[1][0])] if stems[1] else [])
         return
     # G: the stem is the hand's last (straight down) piece
     top, foot = segs[-1][0], segs[-1][3]

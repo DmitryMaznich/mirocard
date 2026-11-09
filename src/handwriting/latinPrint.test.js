@@ -234,6 +234,16 @@ describe("English print letters in the propis2 engine", () => {
     expect(leg[1]).toBeCloseTo(bar[1], 6); // the leg starts on the bar
     expect(leg.at(-2)).toBeGreaterThan(leg[0]); // down to the right
   });
+  it("British S J U: drawn on the middle line of Nelson's stroke — J's and U's stems upright from the capital line (owner, 2026-11-09)", () => {
+    const gb = Object.fromEntries(JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.map((g) => [g.label, g]));
+    const segs = (l) => { const n = gb[l].strokes[0].d.match(/-?\d*\.?\d+/g).map(Number); return segsFrom(Array.from({ length: n.length / 2 }, (_, i) => n.slice(2 * i, 2 * i + 2))); };
+    const upright = (sg) => sg.every((q) => Math.abs(q[0] - sg[0][0]) < 1e-6);
+    const J = segs("J"), U = segs("U");
+    expect(upright(J[0]) && J[0][3][1] > J[0][0][1]).toBe(true); // J: down its stem first
+    expect(upright(U[0]) && upright(U.at(-1))).toBe(true); // U: down the left stem, up the right one
+    expect(U[0][0][1]).toBeCloseTo(U.at(-1)[3][1], 6); // both from the same line
+    expect(segs("S").some(upright)).toBe(false); // S: no straight piece
+  });
   it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
     const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
     const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];
