@@ -575,7 +575,7 @@ def tidy_glyph(cap):
 # middle of its stroke, reliable all round, landing on the stem's middle where the bowl's ink runs into the stem's -- put where the hand
 # put the underlay (its stem onto the traced stem). It leaves the stem and comes back into it where that line does; the stem (and b's
 # retrace up it) stay the hand's. Not pulled onto the lines: it is the original.
-ORIGINAL_BOWL = set("bpP")  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
+ORIGINAL_BOWL = set("bpPR")  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
 ORIGINAL = False  # set while a bowl from the original is drawn
 UNDERLAYS = Path(__file__).resolve().parent / "underlays" / "british"
 UL_PX, UL_X = 8, 100.0  # the underlay: 8 px a unit, put at x = 100 in the tool
@@ -980,6 +980,91 @@ def arches_from_original(cap, tidied_strokes):
     return {**cap, "strokes": [{"d": d}]}
 
 
+# C and G after the ORIGINAL (owner, 2026-11-09: «да, сделай C, G и R», after O Q P): open bows have no hole, so their middle line is
+# the thinned ink (as n m's arches). The underlay is put centre on centre of the hand's letter; the pen goes along the thinned ink from
+# the hand's start to its end, the ends brought back to half a pen from the ink's tips. G: round to the right side and up it, into its
+# stem (STEM_TOUCH), up the stem to its top and straight down it to the baseline, as the hand went.
+OPEN_FROM_ORIGINAL = set("CG")
+
+
+def underlay_frame(label, hand):
+    """The capital's underlay, its thinned ink and the maps tool <-> underlay px, put centre on centre of the hand's points."""
+    from PIL import Image
+    a = np.array(Image.open(UNDERLAYS / f"up_{label}.png"))[:, :, 3] > 128
+    cols = np.nonzero(a.any(0))[0]
+    dx = (hand[:, 0].min() + hand[:, 0].max()) / 2 - (UL_X + (cols[0] + cols[-1]) / 2 / UL_PX)
+    to_px = lambda pnt: np.array([pnt[1] * UL_PX, (pnt[0] - dx - UL_X) * UL_PX])
+    to_tool = lambda yx: np.array([UL_X + yx[1] / UL_PX + dx, yx[0] / UL_PX])
+    return a, dx, to_px, to_tool
+
+
+def trim_tip(route, a, to_px):
+    """The route's last point onto the stroke's middle end: half a pen back from the ink's tip along the way it goes."""
+    t = unit(route[-1] - route[-min(8, len(route))])
+    d = 0.0
+    while True:
+        y, x = to_px(route[-1] + t * d).round().astype(int)
+        if not (0 <= y < a.shape[0] and 0 <= x < a.shape[1]) or not a[y, x]: break
+        d += 0.05
+    cut = HALF_INK - d  # the skeleton ran this much too far towards the tip
+    while cut > 0 and len(route) > 2:
+        step = np.linalg.norm(route[-1] - route[-2])
+        if step > cut: route[-1] = route[-1] + unit(route[-2] - route[-1]) * cut; break
+        route.pop(); cut -= step
+    return route
+
+
+def open_from_original(label, strokes):
+    segs = strokes[0]["segs"]
+    hand = np.array([pt for sg in segs for pt in sg])
+    a, dx, to_px, to_tool = underlay_frame(label, hand)
+    sk = thin(a); skp = np.argwhere(sk)
+    nearest = lambda pnt: tuple(skp[np.argmin(((skp - to_px(pnt)) ** 2).sum(1))])
+    start = segs[0][0]
+    global ORIGINAL
+    if label == "C":
+        route = [to_tool(yx) for yx in skeleton_route(sk, nearest(start), nearest(segs[-1][3]))]
+        route = trim_tip(trim_tip(route[::-1], a, to_px)[::-1], a, to_px)
+        ORIGINAL = True
+        try: strokes[0]["segs"] = curve(resample(np.array(route)), None, None)
+        finally: ORIGINAL = False
+        return
+    # G: the stem is the hand's last (straight down) piece
+    top, foot = segs[-1][0], segs[-1][3]
+    up = [to_tool(yx) for yx in skeleton_route(sk, nearest(start), nearest(top))]
+    down = [to_tool(yx) for yx in skeleton_route(sk, nearest(top), nearest(foot))]
+    stem_x = float(np.median([q[0] for q in down]))
+    up = trim_tip(up[::-1], a, to_px)[::-1]
+    k = next(i for i, q in enumerate(up) if i > len(up) // 2 and q[0] >= stem_x - STEM_TOUCH)
+    y_top, y_foot = snap_y(up[-1][1], END_SNAP), snap_y(max(q[1] for q in down), END_SNAP)
+    path = up[:k] + [np.array([stem_x, up[k][1]]), np.array([stem_x, y_top])]
+    ORIGINAL = True
+    try: bow = curve(resample(np.array(path)), None, np.array([0.0, -1.0]))
+    finally: ORIGINAL = False
+    p0, p1 = np.array([stem_x, y_top]), np.array([stem_x, y_foot])
+    strokes[0]["segs"] = bow + [[p0, p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1]]
+
+
+# R's leg after the ORIGINAL (with its bowl -- P's, ORIGINAL_BOWL): a straight line through the middle of the leg's ink, from the
+# bowl's lower bar to half a pen short of the ink's foot (on the baseline when near)
+def leg_from_original(label, strokes):
+    from PIL import Image
+    stem_x = strokes[0]["segs"][0][0][0]
+    a = np.array(Image.open(UNDERLAYS / f"up_{label}.png"))[:, :, 3] > 128
+    cols = np.nonzero(a.any(0))[0]; dx = stem_x - (UL_X + cols[0] / UL_PX + HALF_INK)
+    bar_y = strokes[1]["segs"][-1][3][1]
+    ys, xs = np.nonzero(a)
+    tx, ty = UL_X + xs / UL_PX + dx, ys / UL_PX
+    leg = np.stack([tx, ty], 1)[(ty > bar_y + HALF_INK + 1) & (tx > stem_x + 2 * HALF_INK + 1)]
+    m = leg.mean(0); u = np.linalg.svd(leg - m)[2][0]
+    if u[1] < 0: u = -u
+    pr = (leg - m) @ u
+    p1 = m + u * (pr.max() - HALF_INK)
+    p1 = m + u * ((snap_y(p1[1], END_SNAP) - m[1]) / u[1])
+    p0 = m + u * ((bar_y - m[1]) / u[1])
+    strokes[2]["segs"] = [[p0, p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1]]
+
+
 def render_glyph(cap, strokes):
     whole = not cap["label"].islower()
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
@@ -1017,6 +1102,10 @@ def main():
         CUR, WHOLE = l, not l.islower()
         original_bowl(l, tidied[l])
     for l in OVALS_FROM_ORIGINAL & set(tidied): oval_from_original(l, tidied[l])
+    for l in OPEN_FROM_ORIGINAL & set(tidied):
+        CUR, WHOLE = l, True
+        open_from_original(l, tidied[l])
+    if "R" in tidied and len(tidied["R"]) == 3: leg_from_original("R", tidied["R"])
     share_bowl(tidied)
     share_tail(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])

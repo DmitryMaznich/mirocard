@@ -222,6 +222,18 @@ describe("English print letters in the propis2 engine", () => {
     expect(segs[0][0]).toEqual([stem[0], stem[1]]); // the top bar from the stem's top
     expect(segs.at(-1)[3][0]).toBeCloseTo(stem[0], 6); // the lower bar back into the stem
   });
+  it("British C G R: drawn on the middle line of Nelson's stroke — G's stem upright, R's leg straight from the bowl's bar (owner, 2026-11-09)", () => {
+    const gb = Object.fromEntries(JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.map((g) => [g.label, g]));
+    const nums = (d) => d.match(/-?\d*\.?\d+/g).map(Number);
+    const G = segsFrom(Array.from({ length: nums(gb.G.strokes[0].d).length / 2 }, (_, i) => nums(gb.G.strokes[0].d).slice(2 * i, 2 * i + 2)));
+    const stem = G.at(-1);
+    expect(stem.every((q) => Math.abs(q[0] - stem[0][0]) < 1e-6)).toBe(true); // straight down
+    expect(stem[3][1]).toBeGreaterThan(stem[0][1]);
+    const bar = nums(gb.R.strokes[1].d).slice(-2); // the bowl's lower bar ends on the stem
+    const leg = nums(gb.R.strokes[2].d);
+    expect(leg[1]).toBeCloseTo(bar[1], 6); // the leg starts on the bar
+    expect(leg.at(-2)).toBeGreaterThan(leg[0]); // down to the right
+  });
   it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
     const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
     const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];
