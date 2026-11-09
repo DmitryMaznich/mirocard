@@ -28,9 +28,9 @@ describe("carousel tiles", () => {
     expect(t.upper.map((x) => x.text).join("")).toBe("АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ");
   });
 
-  it("punctuation tab: . , ! ? from the `propis` captures, drawn with strokes", () => {
+  it("punctuation tab: . , ! ? from the `propis` captures and : ; – made from them, drawn with strokes", () => {
     const t = buildTiles(record());
-    expect(t.marks.map((x) => x.text).join("")).toBe(".,!?");
+    expect(t.marks.map((x) => x.text).join("")).toBe(".,:;–!?");
     for (const m of t.marks) expect(m.strokes.length).toBeGreaterThan(0);
   });
 
@@ -47,6 +47,6 @@ describe("carousel tiles", () => {
     const inRow = (list) => list.filter((x) => x.inRow).map((x) => x.text).join("");
     expect(inRow(t.lower)).toBe("агеёжийклмнопстхчшъыьэюя");
     expect(inRow(t.upper)).toBe("");
-    expect(inRow(t.marks)).toBe(".,");
+    expect(inRow(t.marks)).toBe(".,:;–");
   });
 });

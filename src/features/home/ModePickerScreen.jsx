@@ -1,3 +1,7 @@
+import { useTopicUiPreview } from "@/core/topicUiPreview";
+import { recentTopicContext, rememberPreviewChoice } from "@/features/topics/topicUiPreviewModel";
+import { ModePickerPreviewHeader, ModePickerPreviewRow } from "./ModePickerPreview";
+import "@/features/topics/topicUiPreview.css";
 import PeopleLearningHome from '@/features/myPeople/PeopleLearningHome';
 import GamesHome from '@/features/games/GamesHome';
 import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
@@ -80,6 +84,8 @@ export default function ModePickerScreen() {
 // under its header, so the page is no taller than the screen.
 export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topItem = null }) {
   const { t } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
+  const activeSessionSnapshot = useAppStore((state) => state.activeSessionSnapshot);
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
   const activeTextId    = useAppStore((s) => s.activeTextId);
@@ -125,6 +131,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
 
   useEffect(() => {
     if (hasSingleMode) {
+      if (preview) rememberPreviewChoice(activeStudentId, "mode");
       setActiveModeId(modes[0].id);
       setScreen("params");
     }
@@ -161,6 +168,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
   }
 
   function navigateToMode(mode) {
+    if (preview) rememberPreviewChoice(activeStudentId, "mode");
     setActiveModeId(mode.id);
     setScreen(topicRecord?.meta?.renderer === "chat_practice" ? "chat_params" : "params");
   }
@@ -175,10 +183,15 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
   }
 
   if (hasSingleMode) return null;
+  const recent = recentTopicContext(sessions.filter((session) => session.topicId === activeTopicId),
+    activeStudentId, activeSessionSnapshot?.context?.topicId === activeTopicId ? activeSessionSnapshot : null);
 
   return (
-    <div className="screen">
-      <div className="screen-header">
+    <div className={preview ? "screen topic-ui-modes" : "screen"}>
+      {preview ? <ModePickerPreviewHeader topic={topicRecord} count={modes.length}
+        title={isShortStories ? getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title) : isReading ? getTextTitle(activeText) : getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}
+        onBack={() => (onBack ? onBack() : setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home"))}
+        onAbout={() => setTopicAbout(true)} /> : <div className="screen-header">
         <button className="back-btn" onClick={() => (onBack ? onBack() : setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home"))}><BackArrowIcon /></button>
         <h1 className="screen-title">{isShortStories ? getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title) : isReading ? getTextTitle(activeText) : getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}</h1>
         <button
@@ -188,7 +201,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
         >
           i
         </button>
-      </div>
+      </div>}
 
       <TopicLanguageBar topic={topicRecord} />
       <ul className="mode-list">
@@ -237,11 +250,19 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
             </div>
           </li>
         )}
-        {modes.map((mode) => {
+        {modes.map((mode, index) => {
           const lastSession = getLastModeSession(sessions, activeStudentId, activeTopicId, mode.id, isReading ? activeTextId : null);
           return (
             <li key={mode.id} className={`mode-item-row${isMyPeople && !myPeopleModeAvailable(mode) ? " mode-item-row--disabled" : ""}`}>
-              <div
+              {preview ? <ModePickerPreviewRow topicId={activeTopicId} mode={mode}
+                title={getModeTitle(mode)} instruction={getModeInstruction(mode)} index={index}
+                disabled={!myPeopleModeAvailable(mode)} recent={recent?.modeId === mode.id}
+                onSelect={() => pickMode(mode)} onInfo={() => setMethodology(mode)}
+                result={lastSession ? <LastResultBadge session={lastSession} /> : null}
+                readiness={isMyPeople && !myPeopleModeAvailable(mode) ? <div className="my-people-mode-gap">
+                  <span>{readinessByMode[mode.id].reason}</span>
+                  {readinessByMode[mode.id].tab && activeStudent && !isMyPeopleProfileEmpty(activeStudent) && <button className="link-btn" onClick={() => openMyPeopleSetup(readinessByMode[mode.id].tab)}>{t("mode.fill")}</button>}
+                </div> : null} /> : <div
                 // «Контрольная работа» stands out on a light tint — by `finite`
                 // (place_value) or by its title (comparison, the other math topics).
                 className={`mode-item mode-item--flex${mode.finite || /Контрольная работа/.test(getTopicTitle(mode?.ui?.title)) ? " mode-item--test" : ""}`}
@@ -279,7 +300,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
                 >
                   ?
                 </button>
-              </div>
+              </div>}
             </li>
           );
         })}
