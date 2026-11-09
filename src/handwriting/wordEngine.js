@@ -1759,7 +1759,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ascFrom: rules.ascFrom ?? {}, entryStroke: rules.entryStroke ?? {}, joinedTop: rules.joinedTop ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ascFrom: rules.ascFrom ?? {}, entryStroke: rules.entryStroke ?? {}, joinedForm: rules.joinedForm ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1853,26 +1853,28 @@ function nelsonLoopRound(d, m, t, top, left) {
     `C ${f(top[0] - lx * K)} ${f(top[1])} ${f(left[0])} ${f(left[1] - ly * K)} ${f(left[0])} ${f(left[1])} ` + tok.slice(24).join(" ");
 }
 // where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
-function nelsonJoinedTop(d, jt, scale) {
-  const tok = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g);
-  const cs = tok ? tok.filter((t) => t === "C").length : 0;
-  if (!tok || tok[0] !== "M" || cs <= jt.keep) return null;
-  const at = 3 + (cs - jt.keep - 1) * 7; // the cubic before the kept ones: its end is where they start
-  const K = [Number(tok[at + 5]), Number(tok[at + 6])];
-  const XH = WIDE_ZONE_UNITS * scale;
-  const P = [K[0] - jt.top * XH, WIDE_BASELINE_Y - XH];
-  const L = Math.hypot(K[0] - P[0], K[1] - P[1]), t0 = nlsUnit(0.45, 1), f = (v) => v.toFixed(3);
-  return `M ${f(P[0])} ${f(P[1])} C ${f(P[0] + t0[0] * L * 0.35)} ${f(P[1] + t0[1] * L * 0.35)} ${f(K[0])} ${f(K[1] - L * 0.35)} ${f(K[0])} ${f(K[1])} ` + tok.slice(at + 7).join(" ");
+// `joinedForm` { letter: path }: the letter as it is written when a join comes into it, in the glyph's own units (x-line 10, baseline 62),
+// put where the letter's own stroke is (tail end on tail end, x-line on x-line, scaled as the letter is)
+function nelsonJoinedForm(form, own) {
+  const ys = samplePath(own, 80).map((q) => q[1]);
+  const k = (Math.max(...ys) - Math.min(...ys)) / 52, top = Math.min(...ys);
+  const ex = getPathEndpoints(own).end[0], fe = getPathEndpoints(form).end;
+  const n = form.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g);
+  let xy = 0;
+  return n.map((t) => {
+    if (t === "M" || t === "C") return t;
+    const v = Number(t), isX = xy++ % 2 === 0;
+    return (isX ? ex + (v - fe[0]) * k : top + (v - 10) * k).toFixed(3);
+  }).join(" ");
 }
 function nelsonTarget(R, label, kind, strokes, scale, entry = null, meet = null) {
-  // (`joinedTop` { letter: { keep, top } }: joined into, the letter's whole top is rebuilt: its last `keep` cubics stay, and before them
-  // one line from a point on the x-line `top` (of the x-height) left of where they start, down along a slight curve into them — s: from
-  // the point straight down to the right side of its bowl, no upper bow at all (Nelson's upright «is», «past», «house»; owner:
-  // «изменяется вся верхняя часть буквы, не просто укорачивается верхний крюк»)
-  const jt = R.joinedTop[label];
-  if (jt && strokes[0]) {
-    const d = nelsonJoinedTop(strokes[0].d, jt, scale);
-    if (d) return { p: getPathEndpoints(d).start, t: null, joinedTop: d };
+  // (joined into, s is another letter — Nelson's joined s, scanned off the vector font of his upright «is» (Book 1B): the join comes up to
+  // a point on the x-line, the pen comes back down along it a little and turns down to the right side of the bowl, no upper bow; first in
+  // a word, or after a letter that does not join, s is whole; owner, 2026-11-09: «изменяется вся верхняя часть буквы»)
+  const jf = R.joinedForm[label];
+  if (jf && strokes[0]) {
+    const d = nelsonJoinedForm(jf, strokes[0].d);
+    return { p: getPathEndpoints(d).start, t: null, joinedForm: d };
   }
   const first = strokes[0]?.d;
   const p = samplePath(first, 160);
@@ -2592,7 +2594,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
-        if (nelsonJoin?.tg.joinedTop && moved[0]) moved[0] = { ...moved[0], d: transformPathD(nelsonJoin.tg.joinedTop, { translateX: dx }) };
+        if (nelsonJoin?.tg.joinedForm && moved[0]) moved[0] = { ...moved[0], d: transformPathD(nelsonJoin.tg.joinedForm, { translateX: dx }) };
         if (nelsonJoin?.tg.entry && moved[nelsonJoin.tg.entry]) moved.unshift(...moved.splice(nelsonJoin.tg.entry, 1)); // (that stroke first)
         if (nelsonJoin?.tg.rebuild && moved[0]) moved[0] = { ...moved[0], d: nelsonRebuildStart(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.rebuild) };
         if (nelsonJoin?.tg.intoLoop && moved[0]) {

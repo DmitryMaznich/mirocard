@@ -187,9 +187,10 @@ describe("Nelson joins (script.joinRules)", () => {
     const own = cs(row("british_joined", "s")[0].d);
     for (const w of ["is", "as", "us"]) {
       const r = row("british_joined", w), j = r.findIndex((x) => x.join), sj = r[j + 1];
-      expect(cs(sj.d), w).toBe(3); // the new top, then the bowl and the tail as s's own
-      const xs = samplePath(sj.d, 60).map((q) => q[0]);
-      expect(Math.min(...xs.slice(0, 20)), w).toBeGreaterThanOrEqual(xs[0] - 0.01); // from the point it goes right, never left (no upper bow)
+      expect(cs(sj.d), w).toBe(5); // Nelson's joined s, scanned off «is»
+      const q = samplePath(sj.d, 100), x0 = q[0][0], xs = q.map((p) => p[0]);
+      expect(x0 - Math.min(...xs.slice(0, 40)), w).toBeLessThan(0.15 * 24); // back down along the join a little only: no upper bow
+      expect(Math.max(...xs) - x0, w).toBeGreaterThan(0.2 * 24); // then down to the right side of its bowl
       expect(getPathEndpoints(sj.d).start, w).toEqual(getPathEndpoints(r[j].d).end);
       expect(getPathEndpoints(sj.d).start[1], w).toBeCloseTo(40, 0); // its top, on the x-line (40 at this scale)
     }
