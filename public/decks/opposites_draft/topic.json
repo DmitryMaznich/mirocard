@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.13.0",
+    "version": "2.14.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -610,7 +610,7 @@
       "nominativeLabel": "широкая",
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
-      "primary": true,
+      "primary": false,
       "image": "media/wide_river_2.webp",
       "poleLabelNeutral": "широкое"
     },
@@ -624,7 +624,7 @@
       "nominativeLabel": "узкая",
       "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
-      "primary": true,
+      "primary": false,
       "image": "media/narrow_stream_2.webp",
       "poleLabelNeutral": "узкое"
     },
@@ -638,7 +638,7 @@
       "nominativeLabel": "широкая",
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
-      "primary": false,
+      "primary": true,
       "image": "media/wide_door_1.webp",
       "poleLabelNeutral": "широкое"
     },
@@ -652,7 +652,7 @@
       "nominativeLabel": "узкая",
       "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
-      "primary": false,
+      "primary": true,
       "image": "media/narrow_door_1.webp",
       "poleLabelNeutral": "узкое"
     },

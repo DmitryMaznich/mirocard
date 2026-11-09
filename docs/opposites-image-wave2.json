@@ -1,0 +1,64 @@
+{
+  "deckVersion": "2.14.0",
+  "date": "2026-11-09",
+  "generation": "image_gen; one matched 2x4 sheet, extracted into eight cells without automatic subject cropping",
+  "sourceImage": "exec-89689e05-a94c-48a3-9340-a6e57f4493c0.png",
+  "cards": [
+    {
+      "cardId": "wide_door",
+      "image": "media/wide_door_1.webp",
+      "sheetRow": 1,
+      "sheetColumn": 1,
+      "sha256": "7d04c167ffb40f06c2ed2e11b72f2055cf5659396e70db70a8ee362b98d31648"
+    },
+    {
+      "cardId": "narrow_door",
+      "image": "media/narrow_door_1.webp",
+      "sheetRow": 1,
+      "sheetColumn": 2,
+      "sha256": "375a3f411541df0a980fe64c7d92cea78897cd0e5b9748d23128ed8452f6d7de"
+    },
+    {
+      "cardId": "wet_grass",
+      "image": "media/wet_grass_1.webp",
+      "sheetRow": 2,
+      "sheetColumn": 1,
+      "sha256": "d0ed613d0631d25671308dda9e3f77b6dabbb961ec68737f112b713bf949ddf5"
+    },
+    {
+      "cardId": "dry_grass",
+      "image": "media/dry_grass_1.webp",
+      "sheetRow": 2,
+      "sheetColumn": 2,
+      "sha256": "096ebcc46f0da3197738e6c7ce73cc9c5f6c68fb8a1e049b7f0f1d39245a1db3"
+    },
+    {
+      "cardId": "wet_stone",
+      "image": "media/wet_stone_1.webp",
+      "sheetRow": 3,
+      "sheetColumn": 1,
+      "sha256": "acb15e8a159105765374530a1ed4c7e30900640f418c31cc06f88869a1da5bad"
+    },
+    {
+      "cardId": "dry_stone",
+      "image": "media/dry_stone_1.webp",
+      "sheetRow": 3,
+      "sheetColumn": 2,
+      "sha256": "1448a51b71784ea1d0844551bdc722f08d7a0124b887108a72fe05ca4bbefc64"
+    },
+    {
+      "cardId": "wet_towel",
+      "image": "media/wet_towel_1.webp",
+      "sheetRow": 4,
+      "sheetColumn": 1,
+      "sha256": "cc52f93ad12af1aa3830ea4e0428d33b2cc10c9a0f0e6b56219ea1c726cb1fcb"
+    },
+    {
+      "cardId": "dry_towel",
+      "image": "media/dry_towel_1.webp",
+      "sheetRow": 4,
+      "sheetColumn": 2,
+      "sha256": "8b1648cf6d7185138f9b3cd2e63f04fd7aa3ecb24d47176641dc5c193d659519"
+    }
+  ]
+}
