@@ -7,6 +7,8 @@ import { NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "../../../handwr
 export const NARROW_SCALE = 0.5;
 export const ROW_BASE = NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // baseline of the narrow band (row-local 64)
 export const ROW_TOP = ROW_BASE - (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE; // thin top line (40)
+// the marks written inside the band (on the baseline or the middle line); ! and ? are as tall as a capital
+export const IN_ROW_MARKS = new Set([".", ",", ":", ";", "–", "—", "-"]);
 const TOLERANCE = 4; // a loop or a dot may stand a few units outside (г, т, ё, й, ч…); a whole ascender/tail may not
 
 export function bboxOf(strokes) {
@@ -48,7 +50,7 @@ export function outsideRowLabels(glyphMap) {
     if (!isLetter && g.kind !== "letter" && g.kind !== "punct" && g.kind !== "digit") continue; // digits are as tall as capitals
     // marks: the full stop and the comma stand on the baseline (the comma's tail dips a little, as in a notebook);
     // ! and ? are as tall as a capital and do not belong on the wide ruling
-    if (g.kind === "punct") { if (!".,".includes(label)) out.add(label); continue; }
+    if (g.kind === "punct") { if (!IN_ROW_MARKS.has(label)) out.add(label); continue; }
     if (!staysInRow(bboxOf(narrowStrokes(glyphMap, label)))) out.add(label);
   }
   cache.set(glyphMap, out);

@@ -402,6 +402,43 @@ const minusLen = MINUS ? (() => { const n = MINUS.strokes[0].d.match(/-?\d*\.?\d
 const HYPHEN_GLYPH = { label: "-", kind: "punct", stretch: 1, noNormalize: true, noJoin: true, sourceLabel: "дефис: штрих минуса («№-») на середине строчных букв", strokes: [{ d: `M 10 36 L ${(10 + minusLen * 0.6).toFixed(2)} 36` }] };
 const MISSING_GLYPH = { label: MISSING_GLYPH_LABEL, kind: "punct", stretch: 1, noNormalize: true, noJoin: true, missing: true, sourceLabel: "нет начертания: красная рамка на месте символа", strokes: [{ d: "M 2 62 L 30 62 L 54.2 10 L 26.2 10 L 2 62" }] };
 
+// : ; – (2026-11-09, owner: «во все алфавиты»): no hand has them captured; made for every language / style from ITS OWN «.» and «,» (the
+// patched ones, after punctDots). The upper dot of : and ; is that full stop raised to UPPER_DOT_Y (two thirds of the lowercase height:
+// baseline 62, x-height line 10) and moved along the hand's slant, read off its «!» stem (an upright print hand: no shift; no «!»: the
+// school slant). The dash is one straight stroke on the middle of the lowercase letters (y 36), a little longer than the hyphen; «—» is
+// the same glyph. A hand that brings its own : ; – keeps them.
+const UPPER_DOT_Y = 26;
+const MID_Y = 36;
+const DASH_LEN = Math.round(minusLen * 0.9);
+const PUNCT_MADE = { kind: "punct", stretch: 1, noNormalize: true, noJoin: true };
+const boxCentre = (pts) => [(Math.min(...pts.map((q) => q[0])) + Math.max(...pts.map((q) => q[0]))) / 2, (Math.min(...pts.map((q) => q[1])) + Math.max(...pts.map((q) => q[1]))) / 2];
+const handSlant = (bang) => {
+  const n = (String(bang?.strokes?.[0]?.d ?? "").match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number);
+  if (n.length < 4) return SLANT;
+  const [x0, y0] = n.slice(0, 2), [x1, y1] = n.slice(-2);
+  return Math.abs(y1 - y0) > 20 ? (x0 - x1) / (y1 - y0) : SLANT;
+};
+export function extraPunctGlyphs(byLabel) {
+  const dot = byLabel.get(".");
+  const comma = byLabel.get(",");
+  const slant = handSlant(byLabel.get("!"));
+  const out = [];
+  if (dot?.strokes?.length) {
+    const [dx0, dy0] = boxCentre(pointsOf(dot.strokes));
+    // the upper dot over a mark whose head is at (hx, hy)
+    const upperDot = (hx, hy) => dot.strokes.map((st) => ({ ...st, d: mapPoints(st.d, (x, y) => [x - dx0 + hx + slant * (hy - UPPER_DOT_Y), y - dy0 + UPPER_DOT_Y]) }));
+    out.push({ ...PUNCT_MADE, label: ":", strokes: [...upperDot(dx0, dy0), ...dot.strokes], sourceLabel: "«:» = «.» + «.», поднятая по наклону почерка" });
+    if (comma?.strokes?.length) {
+      // the comma's head: the part of it above the baseline (its tail goes on down)
+      const head = pointsOf(comma.strokes).filter((q) => q[1] <= 63);
+      const [hx, hy] = boxCentre(head.length ? head : pointsOf(comma.strokes));
+      out.push({ ...PUNCT_MADE, label: ";", strokes: [...upperDot(hx, hy), ...comma.strokes], sourceLabel: "«;» = «.», поднятая по наклону почерка, + «,»" });
+    }
+  }
+  out.push({ ...PUNCT_MADE, label: "–", aliases: ["—"], strokes: [{ d: `M 10 ${MID_Y} L ${10 + DASH_LEN} ${MID_Y}` }], sourceLabel: "тире: прямая на середине строчных букв" });
+  return out.filter((g) => !byLabel.has(g.label) && !(g.aliases ?? []).some((a) => byLabel.has(a)));
+}
+
 export const withGlyphOverrides = (glyphs) => {
   const raw = new Map((glyphs ?? []).map((g) => [g.label, g]));
   const belly = (g) => (g.bellyFrom && raw.get(g.bellyFrom.label) ? yerBelly(g, raw.get(g.bellyFrom.label), g.bellyFrom) : g);
@@ -409,6 +446,7 @@ export const withGlyphOverrides = (glyphs) => {
   // print ones, tools/handwriting/latin): those win, the cursive ones are not laid over them
   const own = glyphs?.length ? [...DIGIT_GLYPHS.filter((g) => !raw.has(g.label)), ...(raw.has("-") ? [] : [HYPHEN_GLYPH]), MISSING_GLYPH] : [];
   const patched = [...withMarkedCapitals((glyphs ?? []).flatMap(withOverride).map(belly)), ...own];
+  if (glyphs?.length) patched.push(...extraPunctGlyphs(new Map(patched.flatMap((g) => [[g.label, g], ...(g.aliases ?? []).map((a) => [a, g])]))));
   // ы = ы1 + ы2: its left part is built from the patched ь (see yerLoop)
   const loop = yerLoop(patched.find((g) => g.label === "ь"));
   if (loop) patched.push(loop);

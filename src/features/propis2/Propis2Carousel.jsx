@@ -1,5 +1,5 @@
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
-import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
+import { IN_ROW_MARKS, ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
 import { NARROW_CELL, snapXFor } from "@/handwriting/PrintPageView.jsx";
 import { RU_LOWER, topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
 
@@ -62,8 +62,8 @@ export function buildTiles(topicRecord) {
     t.group = gi === undefined ? (groups.length ? "Другие" : "") : groups[gi].title;
   }
   elements.sort((a, b) => a.groupIndex - b.groupIndex || a.no - b.no);
-  // punctuation marks of the deck (wide.json kind "punct"), in the order of a sentence
-  const marks = [".", ",", "!", "?"].filter((m) => byLabel.get(m)?.kind === "punct").map((m) => make("text", m, m));
+  // punctuation marks (wide.json kind "punct", and : ; – made in glyphOverrides.js), in the order of a sentence
+  const marks = [".", ",", ":", ";", "–", "!", "?"].filter((m) => glyphMap.get(m)?.kind === "punct").map((m) => make("text", m, m));
   // the deck's own alphabet (alphabet.js: a variant deck has its own), capitals only of the letters that have one
   const alphabet = topicAlphabet(topicRecord);
   const lower = alphabet.lower.join("");
@@ -76,7 +76,7 @@ export function buildTiles(topicRecord) {
   let top = ROW_TOP - 4, bottom = ROW_BASE + 6, width = 40;
   for (const t of all) {
     t.box = bboxOf(t.strokes);
-    t.inRow = out.marks.includes(t) ? ".,".includes(t.text) : staysInRow(t.box);
+    t.inRow = out.marks.includes(t) ? IN_ROW_MARKS.has(t.text) : staysInRow(t.box);
     if (!t.box) continue;
     top = Math.min(top, t.box.minY - 3); bottom = Math.max(bottom, t.box.maxY + 3);
     // very long elements (the picket fence) do not set the width: they are shown from their start and cut off
