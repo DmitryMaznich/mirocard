@@ -92,7 +92,7 @@ describe("English print letters in the propis2 engine", () => {
     for (const g of traced) {
       const [top, bottom] = [Math.min(...ys(g)), Math.max(...ys(g))];
       // x-line 10, baseline 62, ascenders 0.74 and descenders 0.72 of the x-height (52) in the pupil books' proportions
-      // capitals as tall as the ascenders, scaled whole
+      // capitals as tall as the ascenders (only their height squeezed: their width is Nelson's, owner 2026-11-09)
       if ("bdhkl".includes(g.label) || /[A-Z]/.test(g.label)) expect(top, g.label).toBeCloseTo(10 - 52 * 0.74, 0);
       else if (g.label === "t") expect(top).toBeLessThan(0);
       else if (g.label !== "f") expect(top, g.label).toBeCloseTo(10, 0);

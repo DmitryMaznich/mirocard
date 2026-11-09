@@ -497,12 +497,14 @@ def tidy_stroke(raw, dotted=True, ends=None):
 TOOL = False  # --tool: stay in the capture tool's units (for the review sheet)
 
 
-CAP_K = 2 * (1 + UPPER) / (1 + NELSON)  # a capital / digit: whole, its top (the Nelson ascender) onto the pupil books' ascender
+CAP_K = 2 * (1 + UPPER) / (1 + NELSON)  # a capital: its top (the Nelson ascender) onto the pupil books' ascender
 
 
 def to_engine(x, y, whole=False):
     if TOOL: return x, y
-    if whole: return x * CAP_K, 62 + (y - BASE) * CAP_K
+    # a capital: its height onto the pupil books' ascender (CAP_K), its width as Nelson's to the x-height (x2 like a small letter; owner,
+    # 2026-11-09: «ширину заглавных верни как у оригинала» -- scaled whole they were 6% narrower)
+    if whole: return x * 2, 62 + (y - BASE) * CAP_K
     y2 = (y - BASE) * 2 + 62
     if y < X_LINE: y2 = 10 - (X_LINE - y) * 2 * UPPER / NELSON
     if y > BASE: y2 = 62 + (y - BASE) * 2 * LOWER / NELSON
