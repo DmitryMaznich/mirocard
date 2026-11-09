@@ -143,8 +143,9 @@
               "levelEntry": 0.6,
               "levelGapFrom": { "r": 0.55 },
               "levelInto": { "e": 0.5 },
-              "diagInto": { "e": 0.4 },
-              "diagMeet": 0.42,
+              "diagInto": { "e": 0.39 },
+              "diagMeet": 0.3,
+              "diagLeave": 0.15,
               "edge": 3
             }
           },
