@@ -1785,36 +1785,23 @@ function nelsonExit(R, label, strokes) {
   if (!Number.isFinite(t[0]) || (n[k - 2] === n[k - 4] && n[k - 1] === n[k - 3])) t = nlsUnit(n[k - 2] - n[k - 6], n[k - 1] - n[k - 5]);
   return { p: [n[k - 2], n[k - 1]], t, trim };
 }
-// The path from where it first rises through height `y` on (its start before that is not written): the cubic it happens in is split there.
-function nelsonCutStart(d, y) {
+// The path with its first `n` cubics replaced by one from `m`: leaving level (to the right), arriving at the end of the n-th cubic as that
+// cubic did (the rest of the letter goes on unchanged) — e's bar when a level join runs into it.
+function nelsonRebuildStart(d, m, n) {
   const tok = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g);
   if (!tok || tok[0] !== "M") return d;
-  let cur = [Number(tok[1]), Number(tok[2])];
   const segs = [];
   for (let i = 3; i + 6 < tok.length; i += 7) {
     if (tok[i] !== "C") return d;
-    const c = [cur, [Number(tok[i + 1]), Number(tok[i + 2])], [Number(tok[i + 3]), Number(tok[i + 4])], [Number(tok[i + 5]), Number(tok[i + 6])]];
-    segs.push(c); cur = c[3];
+    segs.push([[Number(tok[i + 1]), Number(tok[i + 2])], [Number(tok[i + 3]), Number(tok[i + 4])], [Number(tok[i + 5]), Number(tok[i + 6])]]);
   }
-  const at = (c, t) => { const u = 1 - t; return [0, 1].map((k) => u * u * u * c[0][k] + 3 * u * u * t * c[1][k] + 3 * u * t * t * c[2][k] + t * t * t * c[3][k]); };
-  for (let si = 0; si < segs.length; si += 1) {
-    const c = segs[si];
-    let prev = at(c, 0), tPrev = 0;
-    for (let n = 1; n <= 60; n += 1) {
-      const t = n / 60, q = at(c, t);
-      if (q[1] <= y && prev[1] > y) {
-        let lo = tPrev, hi = t;
-        for (let k = 0; k < 30; k += 1) { const m = (lo + hi) / 2; if (at(c, m)[1] > y) lo = m; else hi = m; }
-        const tt = (lo + hi) / 2, lerp = (a, b) => [a[0] + (b[0] - a[0]) * tt, a[1] + (b[1] - a[1]) * tt];
-        const p01 = lerp(c[0], c[1]), p12 = lerp(c[1], c[2]), p23 = lerp(c[2], c[3]), p012 = lerp(p01, p12), p123 = lerp(p12, p23), mid = lerp(p012, p123);
-        const f = (v) => v.toFixed(3);
-        const rest = [[p123, p23, c[3]], ...segs.slice(si + 1).map((s2) => s2.slice(1))];
-        return `M ${f(mid[0])} ${f(mid[1])} ` + rest.map((r) => `C ${r.map((pt) => `${f(pt[0])} ${f(pt[1])}`).join(" ")}`).join(" ");
-      }
-      prev = q; tPrev = t;
-    }
-  }
-  return d;
+  if (segs.length <= n) return d;
+  const [, c2, e] = segs[n - 1];
+  const len = Math.hypot(e[0] - m[0], e[1] - m[1]);
+  const tIn = nlsUnit(e[0] - c2[0], e[1] - c2[1]);
+  const f = (v) => v.toFixed(3);
+  const first = [[m[0] + len * 0.45, m[1]], [e[0] - tIn[0] * len * 0.45, e[1] - tIn[1] * len * 0.45], e];
+  return `M ${f(m[0])} ${f(m[1])} ` + [first, ...segs.slice(n)].map((sg) => `C ${sg.map((q) => `${f(q[0])} ${f(q[1])}`).join(" ")}`).join(" ");
 }
 // where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
 function nelsonTarget(R, label, kind, strokes, scale) {
@@ -1834,13 +1821,14 @@ function nelsonTarget(R, label, kind, strokes, scale) {
     }
   }
   if (kind === "h" && R.levelInto[label] != null) {
+    // a level join into e (Nelson's «cream», «grey»): it comes down from the arch in one smooth S and runs into e's bar at the LEFT of
+    // the letter, half way down the x-height, going right; the bar there is rebuilt (nelsonRebuildStart): from that point, leaving level,
+    // up into the loop as the letter's own bar arrives there
     const yT = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale + R.levelInto[label] * WIDE_ZONE_UNITS * scale;
-    for (let i = 1; i < p.length; i += 1) {
-      if (p[i][1] <= yT && p[i - 1][1] > yT) { // the first stroke rising through that height
-        const t = (p[i - 1][1] - yT) / ((p[i - 1][1] - p[i][1]) || 1);
-        return { p: [p[i - 1][0] + t * (p[i][0] - p[i - 1][0]), yT], t: null, cutY: yT, straight: true };
-      }
-    }
+    const all = strokes.flatMap((st) => samplePath(st.d, 120));
+    const near = all.filter((q) => Math.abs(q[1] - yT) < 3 * scale);
+    const x = near.length ? Math.min(...near.map((q) => q[0])) : Math.min(...all.map((q) => q[0]));
+    return { p: [x, yT], t: [1, 0], rebuild: 1 };
   }
   if (R.oval.has(label) && (kind === "d" || !R.toTop.has(label))) {
     // the point of the upper left arc (between its top and its left side) where the arc, gone backwards, rises at the join's angle:
@@ -2150,7 +2138,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // (a trimmed letter, r: the gap counts from what is left of it)
             const prevRight = ex.trim ? Math.max(...prevGlyphStrokes.flatMap((m, i) => samplePath(i === ex.trim.si ? ex.trim.d : m.d, 40).map((q) => q[0]))) : cursorX;
             const need = kind === "h"
-              ? prevRight + (nelson.levelGapFrom[prevLabel] ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.cutY != null ? tg.p[0] : left)
+              ? prevRight + (nelson.levelGapFrom[prevLabel] ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
               : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
             const dxJ = Math.max(cursorX + nelson.edge * scale - left, need);
             wantStartX = dxJ + local.start[0];
@@ -2444,7 +2432,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // a level join to a letter of the x-height SAGS: it leaves the top of the letter, dips under the x-line and comes up to the next
           // letter's top (owner, 2026-11-09: «третье соединение … нет прогиба, как в оригинале»; the guide's o–a, w–o: 0.18 of the
           // x-height deep, a Bézier's middle is 3/4 of its control points' offset)
-          if (tg.straight) { c1 = [pe[0] + ch[0] * L / 3, pe[1] + ch[1] * L / 3]; c2 = [ns[0] - ch[0] * L / 3, ns[1] - ch[1] * L / 3]; } // straight down into e's bar
+          if (tg.rebuild) { c1 = [pe[0] + L * 0.45, pe[1]]; c2 = [ns[0] - L * 0.45, ns[1]]; } // down from the arch in one S, level into e's bar
           else if (kind === "h" && Math.abs(ns[1] - pe[1]) < 12 * scale) {
             const sag = (nelson.levelSag * WIDE_ZONE_UNITS * scale) / 0.75;
             c1 = [pe[0] + L / 3, pe[1] + sag];
@@ -2457,7 +2445,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
-        if (nelsonJoin?.tg.cutY != null && moved[0]) moved[0] = { ...moved[0], d: nelsonCutStart(moved[0].d, nelsonJoin.tg.cutY) };
+        if (nelsonJoin?.tg.rebuild && moved[0]) moved[0] = { ...moved[0], d: nelsonRebuildStart(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.rebuild) };
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "./wordEngine.js";
-import { getPathEndpoints } from "./pathGeometry.js";
+import { getPathEndpoints, samplePath } from "./pathGeometry.js";
 
 // The Nelson joins (docs/latin-letters.md, owner 2026-11-09): the style «Британские соединённые» of «Прописи: латиница» writes the
 // British letters as drawn and joins them by script.joinRules — a stroke of its own from the end of one letter to the next.
@@ -74,7 +74,10 @@ describe("Nelson joins (script.joinRules)", () => {
     const [top, base] = [Math.min(...ys), Math.max(...ys)];
     const end = getPathEndpoints(join.d).end;
     expect((end[1] - top) / (base - top)).toBeCloseTo(0.5, 1); // into the middle of the x-height
-    expect(getPathEndpoints(e.d).start).toEqual(end); // e goes on from there: its start below is not written
+    expect(getPathEndpoints(e.d).start).toEqual(end); // e goes on from there: its bar rebuilt from the join, level (Nelson's «cream», «grey»)
+    const eN = e.d.match(/-?\d*\.?\d+/g).map(Number);
+    expect(eN[3]).toBeCloseTo(eN[1], 6); // its bar leaves level
+    expect(eN[0]).toBeLessThanOrEqual(Math.min(...samplePath(e.d, 80).map((q) => q[0])) + 0.5); // ...from the left side of the letter
   });
 
   it("f joins from its bar, s from the bottom of its curve", () => {
