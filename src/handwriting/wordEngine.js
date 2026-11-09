@@ -1731,7 +1731,10 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //                 units at full scale); levelGap: the gap a level join leaves between the letters (of the x-height);
 //                 levelSag: how deep (of the x-height) a level join to a letter of the x-height sags between the two tops;
 //                 levelEntry: the slope (rise per run) at which a level join comes up out of its sag into an oval's arc;
-//                 levelGapFrom: { letter: gap } its own levelGap (r: its arch is short, Nelson's r–r stems are a whole x-height apart);
+//                 levelSagFrom: { letter: sag } its own levelSag (f: its bar already lies on the x-line and runs on into the next letter
+//                 level — Nelson's «from», owner 2026-11-09: «ошибка соединения в fr»);
+//                 levelGapFrom: { letter: gap } its own levelGap before a letter of the x-height (r: its arch is short, Nelson's r–r stems
+//                 are a whole x-height apart; f: its bar runs on into the next letter, Nelson's «from»);
 //                 levelInto: { letter: depth } a level join comes into the letter's first stroke that far (of the x-height) under the
 //                 x-line, its bar rebuilt from there (e: into the middle of its bar, as Nelson's «grey», «cream»)
 //   diagInto:     { letter: gap } a DIAGONAL join leaves the foot of the letter before (its flick not written) rising at once (it goes
@@ -1748,7 +1751,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -2175,7 +2178,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const need = tg.intoLoop
               ? ex.p[0] + tg.gap * WIDE_ZONE_UNITS * scale - left
               : kind === "h"
-              ? prevRight + (nelson.levelGapFrom[prevLabel] ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
+              ? prevRight + ((nelson.ascender.has(label) ? null : nelson.levelGapFrom[prevLabel]) ?? nelson.levelGap) * WIDE_ZONE_UNITS * scale - (tg.rebuild ? tg.p[0] : left)
               : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
             const dxJ = Math.max(cursorX + nelson.edge * scale - left, need);
             wantStartX = dxJ + local.start[0];
@@ -2473,7 +2476,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // in a little hook, then the S
           if (tg.rebuild) { c1 = ex.t[1] < -0.3 ? [pe[0] + ex.t[0] * L * 0.35, pe[1] + ex.t[1] * L * 0.35] : [pe[0] + L * 0.45, pe[1]]; c2 = [ns[0] - L * 0.45, ns[1]]; }
           else if (kind === "h" && Math.abs(ns[1] - pe[1]) < 12 * scale) {
-            const sag = (nelson.levelSag * WIDE_ZONE_UNITS * scale) / 0.75;
+            const sag = ((nelson.levelSagFrom[prevLabel] ?? nelson.levelSag) * WIDE_ZONE_UNITS * scale) / 0.75;
             c1 = [pe[0] + L / 3, pe[1] + sag];
             // into an oval: along its arc (tg.t, rising out of the sag); into a letter starting at the top left (n i r …): level
             c2 = tg.t ? [ns[0] - tg.t[0] * L / 3, ns[1] - tg.t[1] * L / 3] : [ns[0] - L / 3, ns[1] + sag];

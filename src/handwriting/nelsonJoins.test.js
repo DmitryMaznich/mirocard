@@ -96,6 +96,13 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(en2[3]).toBeLessThan(en2[1]); // going up there
   });
 
+  it("f's bar runs on level into the next letter, no sag, the letters close (Nelson's «from»)", () => {
+    const j = row("british_joined", "fr").find((s) => s.join);
+    const n = j.d.match(/-?\d*\.?\d+/g).map(Number);
+    expect(Math.max(n[3], n[5])).toBeLessThanOrEqual(Math.max(n[1], n[7]) + 0.01); // no control under the ends: no sag
+    expect(n[6] - n[0]).toBeLessThan(10); // short
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
