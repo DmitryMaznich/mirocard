@@ -38,6 +38,24 @@ describe("writing without joins (script.joins === false)", () => {
     }
   });
 
+  it("`spaceAboveBase` (the British f): the gap before the letter is measured from its ink above the baseline, not from a tail under it", () => {
+    const scale = 0.5;
+    const gap = 20;
+    // у: its tail reaches left under the line; flagged, the gap is from the left of its cup instead
+    const plain = map({ joins: false, letterGap: gap });
+    const flagged = buildGlyphMap({ wide: wide.glyphs.map((g) => (g.label === "у" ? { ...g, spaceAboveBase: true } : g)), meta: { script: { joins: false, letterGap: gap } } });
+    const leftOf = (m, below) => {
+      const st = strokesOf(row(m, "ау", scale));
+      const right = Math.max(...st.slice(0, own("а")).flatMap(inkX));
+      const pts = st.slice(own("а")).flatMap((s) => samplePath(s.d, 60));
+      const base = Math.max(...st.slice(0, own("а")).flatMap((s) => samplePath(s.d, 60).map((p) => p[1])));
+      return Math.min(...pts.filter((p) => below || p[1] <= base + 0.5).map((p) => p[0])) - right;
+    };
+    expect(leftOf(plain, true)).toBeCloseTo(gap * scale, 0); // the whole ink
+    expect(leftOf(flagged, false)).toBeCloseTo(gap * scale, 0); // the ink above the line
+    expect(leftOf(flagged, true)).toBeLessThan(gap * scale); // ...its tail closer
+  });
+
   it("a composed letter stays whole: the hooks of ш keep touching, the letters around it stand apart", () => {
     const scale = 0.5;
     const apartMap = map({ joins: false, letterGap: 20 });

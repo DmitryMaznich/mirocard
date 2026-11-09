@@ -68,6 +68,7 @@ const glyphs = Object.entries(src.glyphs).flatMap(([ch, g]) => {
 });
 
 // British letters traced by the owner (tools/latin_letters/tidy_capture.py → captures/british.tidy.json) replace the drawn ones
+const SPACE_ABOVE_BASE = new Set(["f"]);
 const TRACED = here("../../latin_letters/captures/british.tidy.json");
 let traced = [];
 if (STYLE === "british" && existsSync(TRACED)) {
@@ -75,6 +76,8 @@ if (STYLE === "british" && existsSync(TRACED)) {
   for (const t of traced) {
     const i = glyphs.findIndex((g) => g.label === t.label);
     const g = { label: t.label, kind: "letter", sourceLabel: t.sourceLabel, strokes: t.strokes.map(({ d, name }) => ({ d, name })), stretch: 1, noNormalize: true, upright: true };
+    // f: the gap before it from its bar, not from its tail under the line (owner, 2026-11-09; wordEngine.js `spaceAboveBase`)
+    if (SPACE_ABOVE_BASE.has(t.label)) g.spaceAboveBase = true;
     if (i >= 0) glyphs[i] = g; else glyphs.push(g);
   }
 }

@@ -1642,7 +1642,14 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     const a = getPathEndpoints(scale === 1 ? t : transformPathD(t, { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) })).start;
     stemDx = a[0] + (a[1] - start[1]) * WIDE_JOIN_TAN - start[0];
   }
-  return { strokes, tail, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs), stemDx };
+  // `spaceAboveBase` (the British f, owner 2026-11-09): written apart, the gap before it is measured from its ink above the baseline
+  // (the left end of its bar), not from its tail, which reaches far left under the line and left the letter standing off on its own
+  let apartMinX;
+  if (glyph.spaceAboveBase) {
+    const above = strokes.flatMap((s) => samplePath(s.d)).filter((p) => p[1] <= WIDE_BASELINE_Y + 0.5 * scale).map((p) => p[0]);
+    if (above.length) apartMinX = Math.min(...above);
+  }
+  return { strokes, tail, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs), stemDx, apartMinX };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1962,7 +1969,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const wantStartX = freeWord
           ? prevToken.inkMaxX + (glyphsByLabel.script.wordGap ?? WIDE_WORD_SPACE) * scale + pendingGap * CELL - local.minX + local.start[0]
           : loose
-          ? cursorX + (apart ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - local.minX + local.start[0]
+          ? cursorX + (apart ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - (apart ? local.apartMinX ?? local.minX : local.minX) + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx + pushNext
           : prevToken
