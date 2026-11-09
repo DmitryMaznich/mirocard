@@ -202,6 +202,26 @@ describe("English print letters in the propis2 engine", () => {
     expect(q2[1][0]).toBeCloseTo(q2[0][0], 6);   // ... going on upright
     expect(q2[2][1]).toBeCloseTo(q2[3][1], 6);   // into the bottom bar level
   });
+  it("British O Q P: drawn on the middle line of Nelson's stroke — closed ovals, Q's tail straight, P's bars level (owner, 2026-11-09)", () => {
+    const gb = Object.fromEntries(JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.map((g) => [g.label, g]));
+    const nums = (d) => d.match(/-?\d*\.?\d+/g).map(Number);
+    for (const l of ["O", "Q"]) {
+      const n = nums(gb[l].strokes[0].d);
+      expect(n.at(-2)).toBeCloseTo(n[0], 6); // the pen comes back to where it started
+      expect(n.at(-1)).toBeCloseTo(n[1], 6);
+    }
+    const t = nums(gb.Q.strokes[1].d); // the tail: one straight cubic, down to the right
+    expect(t.length).toBe(8);
+    const off = (x, y) => Math.abs((y - t[1]) * (t[6] - t[0]) - (x - t[0]) * (t[7] - t[1])) / Math.hypot(t[6] - t[0], t[7] - t[1]);
+    expect(Math.max(off(t[2], t[3]), off(t[4], t[5]))).toBeLessThan(0.02); // control points on the chord
+    expect(t[7]).toBeGreaterThan(t[1]);
+    const P = nums(gb.P.strokes[1].d);
+    const segs = segsFrom(Array.from({ length: P.length / 2 }, (_, i) => [P[2 * i], P[2 * i + 1]]));
+    const stem = nums(gb.P.strokes[0].d);
+    for (const sg of [segs[0], segs.at(-1)]) expect(sg.every((q) => Math.abs(q[1] - sg[0][1]) < 1e-6)).toBe(true); // level bars
+    expect(segs[0][0]).toEqual([stem[0], stem[1]]); // the top bar from the stem's top
+    expect(segs.at(-1)[3][0]).toBeCloseTo(stem[0], 6); // the lower bar back into the stem
+  });
   it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
     const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
     const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];

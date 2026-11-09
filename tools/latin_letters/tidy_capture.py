@@ -575,20 +575,20 @@ def tidy_glyph(cap):
 # middle of its stroke, reliable all round, landing on the stem's middle where the bowl's ink runs into the stem's -- put where the hand
 # put the underlay (its stem onto the traced stem). It leaves the stem and comes back into it where that line does; the stem (and b's
 # retrace up it) stay the hand's. Not pulled onto the lines: it is the original.
-ORIGINAL_BOWL = set("bp")
+ORIGINAL_BOWL = set("bpP")  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
 ORIGINAL = False  # set while a bowl from the original is drawn
 UNDERLAYS = Path(__file__).resolve().parent / "underlays" / "british"
 UL_PX, UL_X = 8, 100.0  # the underlay: 8 px a unit, put at x = 100 in the tool
 HALF_INK = 3.25 * 26 / 44  # half the Nelson stroke, tool units
 
 
-def original_bowl_from_hole(label, stem_x, start):
+def original_bowl_from_hole(label, stem_x, start, prefix="lo", clear=0.3):
     """The bowl's middle line as the hole's edge moved out by half the pen: reliable all round, also where the bowl's ink runs into the
     stem's (there it lands on the stem's middle). The bowl is the part of it off the stem, from where it leaves the stem to where it
     comes back, in the direction the hand went (`start`: the hand's first point of the bowl)."""
     from PIL import Image
     from collections import deque
-    a = np.array(Image.open(UNDERLAYS / f"lo_{label}.png"))[:, :, 3] > 128
+    a = np.array(Image.open(UNDERLAYS / f"{prefix}_{label}.png"))[:, :, 3] > 128
     h, w = a.shape
     cols = np.nonzero(a.any(0))[0]; dx = stem_x - (UL_X + cols[0] / UL_PX + HALF_INK)
     out = np.zeros_like(a); q = deque((y, x) for y in range(h) for x in (0, w - 1))
@@ -609,7 +609,7 @@ def original_bowl_from_hole(label, stem_x, start):
         m = r + half
         ring.append((UL_X + (cx + m * np.cos(t)) / UL_PX + dx, (cy + m * np.sin(t)) / UL_PX))
     ring = np.array(ring)
-    off = ring[:, 0] > stem_x + 0.3  # off the stem
+    off = ring[:, 0] > stem_x + clear  # off the stem (P: its hole has round inner corners -- off it only past the stem's ink)
     # the longest run of the ring off the stem (going round, the ring wraps)
     n = len(ring); best = (0, 0); i = 0
     while i < n:
@@ -687,8 +687,25 @@ def original_bowl(label, strokes):
             segs = st.get("segs")
             if not segs or any(vertical(sg) and abs(sg[3][1] - sg[0][1]) > 15 for sg in segs): continue
             # the hand's start only tells which way round the bowl goes; where it leaves the stem is the original's
-            pts = original_bowl_from_hole(label, stem_x, segs[0][0])
-            st["segs"] = curve(resample(pts), None, None)
+            pts = original_bowl_from_hole(label, stem_x, segs[0][0], *(("lo",) if label.islower() else ("up", HALF_INK)))
+            if label.islower():
+                st["segs"] = curve(resample(pts), None, None)
+                return
+            # P: its bars are straight (the hole's round inner corners would bend them): each bar at the height of the original's
+            # bar (on a ruling line if near), from the stem to where the original's bowl leaves that height
+            bars = []
+            for part in (pts, pts[::-1]):
+                lead = part[:next(i for i, q in enumerate(part) if q[0] > stem_x + 8)]  # from the stem to 8 off it
+                near = lead[lead[:, 0] > stem_x + 3]
+                y = snap_y(float(np.median(near[:, 1])), BAR_SNAP)
+                i = next(i for i, q in enumerate(part) if q[0] > stem_x + 8 and abs(q[1] - y) > 0.4)
+                bars.append((y, i))
+            (y0, i0), (y1, i1) = bars
+            arc = pts[i0:len(pts) - i1]
+            arc[0][1], arc[-1][1] = y0, y1
+            a0, a1 = np.array([stem_x, y0]), np.array([stem_x, y1])
+            line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
+            st["segs"] = [line(a0, arc[0])] + curve(resample(arc), np.array([1.0, 0]), np.array([-1.0, 0])) + [line(arc[-1], a1)]
             return
     finally:
         ORIGINAL = False
@@ -801,6 +818,79 @@ def bellies_from_original(label, strokes):
     line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
     strokes[1]["segs"] = [segs[0], quarter(a, ru, R, D), quarter(ru, b, D, L), line(b, c), line(c, d),
                           quarter(d, rl, R, D), quarter(rl, e, D, L), segs[7]]
+
+
+# whole ovals after the ORIGINAL (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу» -- as a d g q): the middle line of
+# Nelson's stroke all round, from the hole's edge out by half the pen and the outside edge in by half the pen (where the two disagree --
+# Q's tail crosses the ring -- the radius is carried over from both sides). The underlay is put on the hand's oval (centre on centre:
+# the owner moved it sideways while tracing); the pen starts where the hand started and goes round the way the hand went, back to the
+# start. Q's tail: the ink off the ring, a straight line through its middle, ending half a pen short of the ink's ends.
+OVALS_FROM_ORIGINAL = set("OQ")
+
+
+def ink_ring(a):
+    """Middle line of a ring of ink (alpha mask a) in underlay px: (centre, angles, radii)."""
+    from collections import deque
+    h, w = a.shape
+    out = np.zeros_like(a); q = deque((y, x) for y in range(h) for x in (0, w - 1))
+    q.extend((y, x) for x in range(w) for y in (0, h - 1))
+    while q:
+        y, x = q.popleft()
+        if 0 <= y < h and 0 <= x < w and not a[y, x] and not out[y, x]:
+            out[y, x] = True; q.extend(((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)))
+    hy, hx = np.nonzero(~a & ~out)
+    cy, cx = hy.mean(), hx.mean(); half = HALF_INK * UL_PX
+    ts = np.linspace(-np.pi, np.pi, 721)[:-1]; rin, rout = [], []
+    for t in ts:
+        c, s_ = np.cos(t), np.sin(t)
+        r = 0.0
+        while not a[int(round(cy + r * s_)), int(round(cx + r * c))]: r += 0.25
+        rin.append(r)
+        r = 0.0
+        while True:  # the last ink along the ray
+            x, y = int(round(cx + r * c)), int(round(cy + r * s_))
+            if not (0 <= x < w and 0 <= y < h): break
+            if a[y, x]: last = r
+            r += 0.25
+        rout.append(last)
+    rin, rout = np.array(rin), np.array(rout)
+    good = np.abs((rout - rin) - 2 * half) < 0.35 * 2 * half  # one stroke across: else the tail crosses here
+    mid = (rin + rout) / 2
+    idx = np.arange(len(ts))
+    r = np.interp(idx, np.concatenate([idx[good] - len(ts), idx[good], idx[good] + len(ts)]), np.tile(mid[good], 3))
+    return np.array([cx, cy]), ts, r, good
+
+
+def oval_from_original(label, strokes):
+    from PIL import Image
+    a = np.array(Image.open(UNDERLAYS / f"up_{label}.png"))[:, :, 3] > 128
+    (cx, cy), ts, r, good = ink_ring(a)
+    ring_px = np.stack([cx + r * np.cos(ts), cy + r * np.sin(ts)], 1)
+    hand = np.array([pt for sg in strokes[0]["segs"] for pt in sg])
+    dx = (hand[:, 0].min() + hand[:, 0].max()) / 2 - (UL_X + (ring_px[:, 0].min() + ring_px[:, 0].max()) / 2 / UL_PX)
+    ring = np.stack([UL_X + ring_px[:, 0] / UL_PX + dx, ring_px[:, 1] / UL_PX], 1)
+    start = strokes[0]["segs"][0][0]; nxt = strokes[0]["segs"][0][3]
+    c = ring.mean(0); ang = lambda p: np.arctan2(p[1] - c[1], p[0] - c[0])
+    i0 = int(np.argmin(np.abs(np.angle(np.exp(1j * (ts - ang(start)))))))
+    step = 1 if np.angle(np.exp(1j * (ang(nxt) - ang(start)))) > 0 else -1
+    n = len(ring); path = [ring[(i0 + step * k) % n] for k in range(n + 1)]
+    global ORIGINAL
+    ORIGINAL = True
+    try: strokes[0]["segs"] = curve(resample(np.array(path)), None, None)
+    finally: ORIGINAL = False
+    if label == "Q" and len(strokes) > 1:
+        # the tail: ink farther than the pen from the ring's middle line
+        ys, xs = np.nonzero(a)
+        pr = np.hypot(xs - cx, ys - cy); pt_ = np.arctan2(ys - cy, xs - cx)
+        rr = np.interp(pt_, ts, r, period=2 * np.pi)
+        tail = np.stack([xs, ys], 1)[np.abs(pr - rr) > HALF_INK * UL_PX + 2].astype(float)
+        m = tail.mean(0); u = np.linalg.svd(tail - m)[2][0]
+        if u[1] < 0: u = -u  # down the tail
+        pr_ = (tail - m) @ u
+        e0, e1 = m + u * (pr_.min() + HALF_INK * UL_PX), m + u * (pr_.max() - HALF_INK * UL_PX)
+        P = lambda q: np.array([UL_X + q[0] / UL_PX + dx, q[1] / UL_PX])
+        p0, p1 = P(e0), P(e1)
+        strokes[1]["segs"] = [[p0, p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1]]
 
 
 # arches after the ORIGINAL (owner, 2026-11-09: «подогнать к оригиналу n и m»): the middle line of Nelson's stroke is the underlay's
@@ -924,8 +1014,9 @@ def main():
         tidied[l] = tidy_glyph(arches_from_original(caps[l], tidied[l]))
     for l in ORIGINAL_BOWL & set(tidied):
         global CUR, WHOLE
-        CUR, WHOLE = l, False
+        CUR, WHOLE = l, not l.islower()
         original_bowl(l, tidied[l])
+    for l in OVALS_FROM_ORIGINAL & set(tidied): oval_from_original(l, tidied[l])
     share_bowl(tidied)
     share_tail(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])
