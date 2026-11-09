@@ -185,6 +185,7 @@ def run_ok(seg):
     if L < min(STEM_MIN, BAR_MIN): return False
     k = kind_of(unit(seg[-1] - seg[0]))
     if k == "l" and (CUR in BOWED_SLANTS or CUR in ELLIPSE_BOWS): return False
+    if k == "v" and CUR in ANGLED_LEAVE and seg[-1][1] < seg[0][1]: return False  # n m: nothing goes back up a stem -- the way up is the bow from the foot
     if k == "v" and CUR in ELLIPSE_BOWS and L < 30: return False  # D's belly has no upright stretch: one arc (the stem is its own stroke)
     tol, mn = {"v": (STEM_TOL, STEM_MIN), "h": (LONG_TOL if L >= LONG_MIN else BAR_TOL, BAR_MIN), "l": (LONG_TOL if L >= LONG_MIN else LINE_TOL, LINE_MIN)}[k]
     return L >= mn and chord_dev(seg) <= tol
@@ -417,7 +418,7 @@ def tidy_stroke(raw, dotted=True, ends=None):
             s0 = 0
             while s0 + 1 < len(q) and s0 * STEP < CUSP_W and (q[s0 + 1][1] - q[s0][1]) * prev[1]["dir"][1] > 0: s0 += 1
             m = s0
-            on = 0.3 if CUR in ANGLED_LEAVE and k == 1 else 0.8  # n m, the left stem: the retrace is exact; the arch leaves at an angle
+            on = 0.3 if CUR in ANGLED_LEAVE else 0.8  # n m: the arch grows from the stem's foot -- no retrace hugging the stem
             while m + 1 < len(q) and abs(q[m + 1][0] - x) <= on and (q[m + 1][1] - q[s0][1]) * prev[1]["dir"][1] <= 0: m += 1
             if m * STEP >= 2.0:
                 ln = {"type": "line", "a": np.array([x, q[0][1]]), "b": np.array([x, q[m][1]]), "dir": -prev[1]["dir"], "kind": "v"}
@@ -436,8 +437,6 @@ def tidy_stroke(raw, dotted=True, ends=None):
             if it["kind"] == "h":  # onto the baseline / the top line from a little farther (D's bottom: 1.9), onto the x-line only when right at it (R)
                 y = snap_y(it["a"][1], END_SNAP); y = y if y != X_LINE or abs(it["a"][1] - X_LINE) <= BAR_SNAP else it["a"][1]
                 it["a"][1] = it["b"][1] = y
-    first = parts[0][0]
-    left_x = first[1]["a"][0] if first[0] == "line" and first[1]["kind"] == "v" else -1e9  # the stroke's first stem
     for items in parts:
         for idx, (typ, it) in enumerate(items):
             if typ != "line": continue
@@ -445,7 +444,7 @@ def tidy_stroke(raw, dotted=True, ends=None):
             if idx > 0 and items[idx - 1][0] == "curve":
                 na = it["a"] + it["dir"] * t
                 items[idx - 1][1] = np.vstack([items[idx - 1][1], na]); it["a"] = na
-            angled = CUR in ANGLED_LEAVE and it["kind"] == "v" and it["dir"][1] < 0 and abs(it["a"][0] - left_x) < 0.5  # n m: the arch leaves the LEFT stem at an angle
+            angled = CUR in ANGLED_LEAVE and it["kind"] == "v" and it["dir"][1] < 0  # n m: the arch leaves the stem on its own way
             if idx < len(items) - 1 and items[idx + 1][0] == "curve" and not angled:
                 nb = it["b"] - it["dir"] * t
                 items[idx + 1][1] = np.vstack([nb, items[idx + 1][1]]); it["b"] = nb
@@ -486,7 +485,7 @@ def tidy_stroke(raw, dotted=True, ends=None):
             if idx > 0 and items[idx - 1][0] == "line":
                 q[0] = items[idx - 1][1]["b"]
                 prev = items[idx - 1][1]
-                if not (CUR in ANGLED_LEAVE and prev["kind"] == "v" and prev["dir"][1] < 0 and abs(prev["a"][0] - left_x) < 0.5): ts = prev["dir"]
+                if not (CUR in ANGLED_LEAVE and prev["kind"] == "v" and prev["dir"][1] < 0): ts = prev["dir"]
             if idx < len(items) - 1 and items[idx + 1][0] == "line": q[-1] = items[idx + 1][1]["a"]; te = items[idx + 1][1]["dir"]
             if idx == 0 and (pk, "start") in cusp_tan: ts = cusp_tan[(pk, "start")]
             if idx == len(items) - 1 and (pk, "end") in cusp_tan: te = cusp_tan[(pk, "end")]
@@ -752,7 +751,8 @@ def bellies_from_original(label, strokes):
 # path is then tidied like any capture.
 ARCHES_FROM_ORIGINAL = set("nm")
 ANGLED_LEAVE = ARCHES_FROM_ORIGINAL  # the arch leaves the stem at an angle, as Nelson's ink shows, not along it
-LEAVE_AT, ARCH_CLEAR = 2.1, 7.0  # where the arch's middle is read next to the stem; how far out the arch is clear of the stem
+FOOT_LEAN, FOOT_BOW_H = 0.15, 0.35  # the bow leaves the foot leaning a little right and bends evenly (not upright for long)
+ARCH_CLEAR = 5.0  # how far from the stem the bow from the foot meets the original's arch (where the owner's drawn line joins it)
 
 
 def thin(img):
@@ -811,29 +811,20 @@ def arches_from_original(cap, tidied_strokes):
         elif vertical(sg) and sg[3][1] > sg[0][1] and vertical(nxt) and nxt[3][1] < nxt[0][1]: way.append(("pt", sg[3]))  # a foot
     pts = [way[0][1]]
     for (k0, p0), (k1, p1) in zip(way, way[1:]):
-        if k0 == "leave" and p0[0] > stem_x + 1:  # a later stem (m's middle one): along the original's line as it is
-            route = skeleton_route(sk, nearest(p0), nearest(p1))
-            pts += [to_tool(yx) for yx in route]
-        elif k0 == "leave":
-            # next to the stem the thinned line is off (it runs through the ink where the arch merges with the stem). Where the pen
-            # leaves the stem: the middle of the arch's stroke just right of the stem's ink (owner, 2026-11-09: «отрыв от левой
-            # вертикальной чуть раньше» -- Nelson's pen leaves ~1.5 lower than the hand did); from there one smooth bow -- up along
-            # the stem at first, into the original's middle line where the arch is clear of the stem (ARCH_CLEAR) -- then that line
-            c = int(round((p0[0] + LEAVE_AT - dx - UL_X) * UL_PX))
-            col = a[int(X_LINE - 2) * UL_PX:int(BASE) * UL_PX, c]; ys = np.nonzero(col)[0]
-            end = ys[0]
-            while end + 1 < len(col) and col[end + 1]: end += 1
-            L = np.array([p0[0], X_LINE - 2 + (ys[0] + end) / 2 / UL_PX])
+        if k0 == "leave":
+            # owner, 2026-11-09 (drawn over n and m): the arch grows from the stem's FOOT -- from the bottom one gentle bow, upright at
+            # first and bending more and more to the right, into the original's middle line where the arch is clear of the stem
+            # (ARCH_CLEAR); the same for m's second arch from the foot of its middle stem. No retrace up the stem any more.
+            pts.pop()  # the hand's leave point on the stem: not used -- the bow starts at the foot (the previous waypoint)
+            F = pts[-1]
             route = [to_tool(yx) for yx in skeleton_route(sk, nearest(p0), nearest(p1))]
-            r0 = next(i for i, q in enumerate(route) if q[0] >= p0[0] + ARCH_CLEAR)
+            r0 = next(i for i, q in enumerate(route) if q[0] >= p0[0] + ARCH_CLEAR and q[1] < X_LINE + 8)
             R0, tR = route[r0], unit(route[min(r0 + 8, len(route) - 1)] - route[r0])
-            h = 0.45 * np.linalg.norm(R0 - L)
-            tL = unit(R0 - L)  # straight at the arch: off the stem at once, as the original's ink does
-            bow = [L, L + tL * h, R0 - tR * h, R0]
-            pts[-1] = L  # the retrace up the stem ends there
-            pts += [bez(bow, t) for t in np.linspace(0, 1, 12)[1:]] + route[r0 + 1:]
+            h = FOOT_BOW_H * np.linalg.norm(R0 - F)
+            bow = [F, F + unit(np.array([FOOT_LEAN, -1.0])) * h, R0 - tR * h, R0]
+            pts += [bez(bow, t) for t in np.linspace(0, 1, 24)[1:]] + route[r0 + 1:]
         else:
-            pts.append(p1 if k1 != "leave" else np.array([p1[0], to_tool(nearest(p1))[1]]))
+            pts.append(p1)
     d = "M " + " L ".join(f"{x:.2f} {y:.2f}" for x, y in pts)
     return {**cap, "strokes": [{"d": d}]}
 

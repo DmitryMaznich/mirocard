@@ -224,14 +224,17 @@ describe("English print letters in the propis2 engine", () => {
     const near = (got, want) => { expect(got.length).toBe(want.length); got.forEach((v, i) => expect(v).toBeCloseTo(want[i], 0)); };
     near(uprights("n"), [0, 35.6]);
     near(uprights("m"), [0, 35.8, 70.2]);
-    // «отрыв от левой вертикальной чуть раньше»: the arch leaves the left stem where Nelson's does -- the middle of the arch's stroke
-    // next to the stem, ~76 in the tool (the hand left at 74.5) = 62 + (76 - 88) * 2 here -- and at an angle, not along the stem
+    // the owner's drawing (2026-11-09): every arch grows from its stem's FOOT -- one gentle bow, upright at first, bending more and
+    // more to the right, into the arch; nothing runs back up a stem
     for (const label of "nm") {
       const n = glyphs.find((g) => g.label === label).strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
       const segs = segsFrom(Array.from({ length: n.length / 2 }, (_, i) => [n[2 * i], n[2 * i + 1]]));
-      const up = segs[1], arch = segs[2]; // the retrace up the left stem, then the arch
-      expect(up[3][1], label).toBeGreaterThan(36); expect(up[3][1], label).toBeLessThan(40);
-      expect(arch[1][0] - arch[0][0], label).toBeGreaterThan(2); // leaves at an angle: the first handle already off the stem
+      const ups = segs.filter((sg) => sg[3][1] < sg[0][1] - 15); // the long ways up (not the end flick)
+      for (const sg of ups) {
+        expect(sg[0][1], label).toBeGreaterThan(55);                    // from the foot (within 3.5 of the baseline in the tool)
+        expect(sg.every((q) => Math.abs(q[0] - sg[0][0]) < 1e-6), label).toBe(false); // a bow, not a stem
+      }
+      expect(ups.length, label).toBe(label === "m" ? 2 : 1);
     }
   });
 });

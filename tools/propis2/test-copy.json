@@ -1,6 +1,6 @@
 {
   "note": "The test copy of «Прописи» with the languages still in the making (languages.json status \"draft\"): node scripts/build-propis2-deck.mjs --test-copy → public/decks/propis2_lang_v<version>.zip. Catalog `individual`: only an account it is given to in the admin sees it. docs/latin-letters.md.",
-  "version": "0.2.26",
+  "version": "0.2.27",
   "title": {
     "ru": "Прописи (тест: латиница)",
     "en": "Copybook (test: Latin)"
