@@ -1,174 +1,185 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<title>Opposites — просмотр картинок</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-  h2 { margin: 32px 0 10px; font-size: 1rem; color: #555; text-transform: uppercase; letter-spacing: .05em; border-top: 2px solid #ddd; padding-top: 12px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-  .card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-  .card img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; background: #fafafa; }
-  .card .name { padding: 6px 8px; font-size: .7rem; color: #777; word-break: break-all; }
-  .card .label { padding: 0 8px 8px; font-size: .85rem; font-weight: 600; color: #333; }
-  .missing img { background: #fee; }
-  .missing .name { color: #c00; }
-  .badge { display: inline-block; font-size: .6rem; padding: 1px 5px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
-  .badge--left { background: #e3f2fd; color: #1565c0; }
-  .badge--right { background: #fff3e0; color: #e65100; }
-</style>
-</head>
-<body>
-<script>
-const concepts = [
-  { id: "big_small", label: "Большой / Маленький", cards: [
-    { pole:"left",  id:"big_cat_1",      label:"большая кошка",    file:"media/big_cat_1.webp" },
-    { pole:"right", id:"small_cat_1",    label:"маленькая кошка",  file:"media/small_cat_1.webp" },
-    { pole:"left",  id:"big_ball_1",     label:"большой мяч",      file:"media/big_ball_1.webp" },
-    { pole:"right", id:"small_ball_1",   label:"маленький мяч",    file:"media/small_ball_1.webp" },
-    { pole:"left",  id:"big_car_1",      label:"большая машина",   file:"media/big_car_1.webp" },
-    { pole:"right", id:"small_car_1",    label:"маленькая машина", file:"media/small_car_1.webp" },
-    { pole:"left",  id:"big_cake_1",     label:"большой торт",     file:"media/big_cake_1.webp" },
-    { pole:"right", id:"small_cake_1",   label:"маленький торт",   file:"media/small_cake_1.webp" },
-    { pole:"left",  id:"big_cup_1",      label:"большая чашка",    file:"media/big_cup_1.webp" },
-    { pole:"right", id:"small_cup_1",    label:"маленькая чашка",  file:"media/small_cup_1.webp" },
-  ]},
-  { id: "tall_short", label: "Высокий / Низкий", cards: [
-    { pole:"left",  id:"tall_dog_1",      label:"высокая собака",   file:"media/tall_dog_1.webp" },
-    { pole:"right", id:"short_dog_1",     label:"низкая собака",    file:"media/short_dog_1.webp" },
-    { pole:"left",  id:"tall_person_1",   label:"высокий человек",  file:"media/tall_person_1.webp" },
-    { pole:"right", id:"short_person_1",  label:"низкий человек",   file:"media/short_person_1.webp" },
-    { pole:"left",  id:"tall_tree_1",     label:"высокое дерево",   file:"media/tall_tree_1.webp" },
-    { pole:"right", id:"short_bush_1",    label:"низкий куст",      file:"media/short_bush_1.webp" },
-    { pole:"left",  id:"tall_building_1", label:"высокий дом",      file:"media/tall_building_1.webp" },
-    { pole:"right", id:"short_house_1",   label:"низкий дом",       file:"media/short_house_1.webp" },
-    { pole:"left",  id:"tall_mountain_1", label:"высокая гора",     file:"media/tall_mountain_1.webp" },
-    { pole:"right", id:"short_hill_1",    label:"низкий холм",      file:"media/short_hill_1.webp" },
-  ]},
-  { id: "long_short", label: "Длинный / Короткий", cards: [
-    { pole:"left",  id:"long_pencil_1",   label:"длинный карандаш",  file:"media/long_pencil_1.webp" },
-    { pole:"right", id:"short_pencil_1",  label:"короткий карандаш", file:"media/short_pencil_1.webp" },
-    { pole:"left",  id:"long_scarf_1",    label:"длинный шарф",      file:"media/long_scarf_1.webp" },
-    { pole:"right", id:"short_scarf_1",   label:"короткий шарф",     file:"media/short_scarf_1.webp" },
-    { pole:"left",  id:"long_hair_1",     label:"длинные волосы",    file:"media/long_hair_1.webp" },
-    { pole:"right", id:"short_hair_1",    label:"короткие волосы",   file:"media/short_hair_1.webp" },
-    { pole:"left",  id:"long_road_1",     label:"длинная дорога",    file:"media/long_road_1.webp" },
-    { pole:"right", id:"short_road_1",    label:"короткая дорога",   file:"media/short_road_1.webp" },
-    { pole:"left",  id:"long_rope_1",     label:"длинная верёвка",   file:"media/long_rope_1.webp" },
-    { pole:"right", id:"short_rope_1",    label:"короткая верёвка",  file:"media/short_rope_1.webp" },
-  ]},
-  { id: "wide_narrow", label: "Широкий / Узкий", cards: [
-    { pole:"left",  id:"wide_river_1",    label:"широкая река",      file:"media/wide_river_1.webp" },
-    { pole:"right", id:"narrow_stream_1", label:"узкий ручей",       file:"media/narrow_stream_1.webp" },
-    { pole:"left",  id:"wide_door_1",     label:"широкая дверь",     file:"media/wide_door_1.webp" },
-    { pole:"right", id:"narrow_door_1",   label:"узкая дверь",       file:"media/narrow_door_1.webp" },
-    { pole:"left",  id:"wide_street_1",   label:"широкая улица",     file:"media/wide_street_1.webp" },
-    { pole:"right", id:"narrow_alley_1",  label:"узкая улица",       file:"media/narrow_alley_1.webp" },
-    { pole:"left",  id:"wide_belt_1",     label:"широкий ремень",    file:"media/wide_belt_1.webp" },
-    { pole:"right", id:"narrow_belt_1",   label:"узкий ремень",      file:"media/narrow_belt_1.webp" },
-    { pole:"left",  id:"wide_table_1",    label:"широкий стол",      file:"media/wide_table_1.webp" },
-    { pole:"right", id:"narrow_table_1",  label:"узкий стол",        file:"media/narrow_table_1.webp" },
-  ]},
-  { id: "full_empty", label: "Полный / Пустой", cards: [
-    { pole:"left",  id:"full_bottle_1",   label:"полная бутылка",    file:"media/full_bottle_1.webp" },
-    { pole:"right", id:"empty_bottle_1",  label:"пустая бутылка",    file:"media/empty_bottle_1.webp" },
-    { pole:"left",  id:"full_bucket_1",   label:"полное ведро",      file:"media/full_bucket_1.webp" },
-    { pole:"right", id:"empty_bucket_1",  label:"пустое ведро",      file:"media/empty_bucket_1.webp" },
-    { pole:"left",  id:"full_backpack_1", label:"полный рюкзак",     file:"media/full_backpack_1.webp" },
-    { pole:"right", id:"empty_backpack_1",label:"пустой рюкзак",     file:"media/empty_backpack_1.webp" },
-    { pole:"left",  id:"full_plate_1",    label:"полная тарелка",    file:"media/full_plate_1.webp" },
-    { pole:"right", id:"empty_plate_1",   label:"пустая тарелка",    file:"media/empty_plate_1.webp" },
-    { pole:"left",  id:"full_basket_1",   label:"полная корзина",    file:"media/full_basket_1.webp" },
-    { pole:"right", id:"empty_basket_1",  label:"пустая корзина",    file:"media/empty_basket_1.webp" },
-  ]},
-  { id: "clean_dirty", label: "Чистый / Грязный", cards: [
-    { pole:"left",  id:"clean_hands_1",   label:"чистые руки",       file:"media/clean_hands_1.webp" },
-    { pole:"right", id:"dirty_hands_1",   label:"грязные руки",      file:"media/dirty_hands_1.webp" },
-    { pole:"left",  id:"clean_face_1",    label:"чистое лицо",       file:"media/clean_face_1.webp" },
-    { pole:"right", id:"dirty_face_1",    label:"грязное лицо",      file:"media/dirty_face_1.webp" },
-    { pole:"left",  id:"clean_shirt_1",   label:"чистая футболка",   file:"media/clean_shirt_1.webp" },
-    { pole:"right", id:"dirty_shirt_1",   label:"грязная футболка",  file:"media/dirty_shirt_1.webp" },
-    { pole:"left",  id:"clean_shoes_1",   label:"чистая обувь",      file:"media/clean_shoes_1.webp" },
-    { pole:"right", id:"dirty_shoes_1",   label:"грязная обувь",     file:"media/dirty_shoes_1.webp" },
-    { pole:"left",  id:"clean_car_1",     label:"чистая машина",     file:"media/clean_car_1.webp" },
-    { pole:"right", id:"dirty_car_1",     label:"грязная машина",    file:"media/dirty_car_1.webp" },
-  ]},
-  { id: "hot_cold", label: "Горячий / Холодный", cards: [
-    { pole:"left",  id:"hot_kettle_1",    label:"горячий чайник",    file:"media/hot_kettle_1.webp" },
-    { pole:"right", id:"cold_drink_1",    label:"холодный напиток",  file:"media/cold_drink_1.webp" },
-    { pole:"left",  id:"hot_soup_1",      label:"горячий суп",       file:"media/hot_soup_1.webp" },
-    { pole:"right", id:"cold_icecream_1", label:"холодное мороженое",file:"media/cold_icecream_1.webp" },
-    { pole:"left",  id:"hot_sand_1",      label:"горячий песок",     file:"media/hot_sand_1.webp" },
-    { pole:"right", id:"cold_snow_1",     label:"холодный снег",     file:"media/cold_snow_1.webp" },
-    { pole:"left",  id:"hot_fire_1",      label:"горячий огонь",     file:"media/hot_fire_1.webp" },
-    { pole:"right", id:"cold_ice_1",      label:"холодный лёд",      file:"media/cold_ice_1.webp" },
-    { pole:"left",  id:"hot_pan_1",       label:"горячая сковородка",file:"media/hot_pan_1.webp" },
-    { pole:"right", id:"cold_pitcher_1",  label:"холодный кувшин",   file:"media/cold_pitcher_1.webp" },
-  ]},
-  { id: "wet_dry", label: "Мокрый / Сухой", cards: [
-    { pole:"left",  id:"wet_towel_1",    label:"мокрое полотенце",  file:"media/wet_towel_1.webp" },
-    { pole:"right", id:"dry_towel_1",    label:"сухое полотенце",   file:"media/dry_towel_1.webp" },
-    { pole:"left",  id:"wet_umbrella_1", label:"мокрый зонт",       file:"media/wet_umbrella_1.webp" },
-    { pole:"right", id:"dry_umbrella_1", label:"сухой зонт",        file:"media/dry_umbrella_1.webp" },
-    { pole:"left",  id:"wet_grass_1",    label:"мокрая трава",      file:"media/wet_grass_1.webp" },
-    { pole:"right", id:"dry_grass_1",    label:"сухая трава",       file:"media/dry_grass_1.webp" },
-    { pole:"left",  id:"wet_stone_1",    label:"мокрый камень",     file:"media/wet_stone_1.webp" },
-    { pole:"right", id:"dry_stone_1",    label:"сухой камень",      file:"media/dry_stone_1.webp" },
-    { pole:"left",  id:"wet_socks_1",    label:"мокрые носки",      file:"media/wet_socks_1.webp" },
-    { pole:"right", id:"dry_socks_1",    label:"сухие носки",       file:"media/dry_socks_1.webp" },
-  ]},
-  { id: "new_old", label: "Новый / Старый", cards: [
-    { pole:"left",  id:"new_bicycle_1",  label:"новый велосипед",   file:"media/new_bicycle_1.webp" },
-    { pole:"right", id:"old_bicycle_1",  label:"старый велосипед",  file:"media/old_bicycle_1.webp" },
-    { pole:"left",  id:"new_book_1",     label:"новая книга",       file:"media/new_book_1.webp" },
-    { pole:"right", id:"old_book_1",     label:"старая книга",      file:"media/old_book_1.webp" },
-    { pole:"left",  id:"new_doll_1",     label:"новая кукла",       file:"media/new_doll_1.webp" },
-    { pole:"right", id:"old_doll_1",     label:"старая кукла",      file:"media/old_doll_1.webp" },
-    { pole:"left",  id:"new_jacket_1",   label:"новая куртка",      file:"media/new_jacket_1.webp" },
-    { pole:"right", id:"old_jacket_1",   label:"старая куртка",     file:"media/old_jacket_1.webp" },
-    { pole:"left",  id:"new_fence_1",    label:"новый забор",       file:"media/new_fence_1.webp" },
-    { pole:"right", id:"old_fence_1",    label:"старый забор",      file:"media/old_fence_1.webp" },
-  ]},
-];
-
-concepts.forEach(concept => {
-  const h = document.createElement("h2");
-  h.textContent = concept.label;
-  document.body.appendChild(h);
-
-  const grid = document.createElement("div");
-  grid.className = "grid";
-
-  concept.cards.forEach(card => {
-    const div = document.createElement("div");
-    div.className = "card";
-
-    const img = document.createElement("img");
-    img.src = card.file;
-    img.alt = card.label;
-    img.onerror = () => { div.classList.add("missing"); img.src = ""; img.style.minHeight="140px"; };
-
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = card.file.replace("media/","");
-
-    const label = document.createElement("div");
-    label.className = "label";
-    label.textContent = card.label;
-    const badge = document.createElement("span");
-    badge.className = "badge badge--" + card.pole;
-    badge.textContent = card.pole === "left" ? "◀" : "▶";
-    label.appendChild(badge);
-
-    div.appendChild(img);
-    div.appendChild(name);
-    div.appendChild(label);
-    grid.appendChild(div);
-  });
-
-  document.body.appendChild(grid);
-});
-</script>
-</body>
-</html>
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Противоположности — проверка изображений</title><style>
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;background:#f4f3ef;color:#252a2d;padding:24px}main{max-width:980px;margin:auto}h1{font-size:26px}p{line-height:1.6}section{margin:24px 0;padding:16px;background:white;border-radius:12px}h2{font-size:18px;margin:0 0 12px}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}figure{margin:0}img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:#eee}figcaption{padding:8px 0;overflow-wrap:anywhere}.new{border:2px solid #397c65}.badge{font-size:13px;font-weight:normal;color:#29624d}code{font-size:12px;color:#657078}a{color:#25654b}nav{display:flex;gap:20px;flex-wrap:wrap}@media(max-width:480px){body{padding:12px}section{padding:10px}.pair{gap:8px}h1{font-size:22px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style><main><h1>Противоположности: проверка изображений</h1><p>Колода 2.13.0. Обновлены первые четыре предметные пары — восемь карточек. Остальные изображения требуют отдельной проверки. Эта страница служит для просмотра материала взрослым.</p><nav><a href="#new-pairs">Новые пары</a><a href="#other-pairs">Остальной набор</a></nav><div id="new-pairs">
+<section class="new"><h2>мяч <span class="badge">Обновлено</span></h2><div class="pair">
+<figure><img src="media/big_ball_1.webp" alt="большой мяч" loading="lazy"><figcaption>большой мяч<br><code>big_ball</code></figcaption></figure>
+<figure><img src="media/small_ball_1.webp" alt="маленький мяч" loading="lazy"><figcaption>маленький мяч<br><code>small_ball</code></figcaption></figure>
+</div></section>
+<section class="new"><h2>карандаш <span class="badge">Обновлено</span></h2><div class="pair">
+<figure><img src="media/long_pencil_1.webp" alt="длинный карандаш" loading="lazy"><figcaption>длинный карандаш<br><code>long_pencil</code></figcaption></figure>
+<figure><img src="media/short_pencil_1.webp" alt="короткий карандаш" loading="lazy"><figcaption>короткий карандаш<br><code>short_pencil</code></figcaption></figure>
+</div></section>
+<section class="new"><h2>бутылка <span class="badge">Обновлено</span></h2><div class="pair">
+<figure><img src="media/full_bottle_1.webp" alt="полная бутылка" loading="lazy"><figcaption>полная бутылка<br><code>full_bottle</code></figcaption></figure>
+<figure><img src="media/empty_bottle_1.webp" alt="пустая бутылка" loading="lazy"><figcaption>пустая бутылка<br><code>empty_bottle</code></figcaption></figure>
+</div></section>
+<section class="new"><h2>обувь <span class="badge">Обновлено</span></h2><div class="pair">
+<figure><img src="media/clean_shoes_1.webp" alt="чистая обувь" loading="lazy"><figcaption>чистая обувь<br><code>clean_shoes</code></figcaption></figure>
+<figure><img src="media/dirty_shoes_1.webp" alt="грязная обувь" loading="lazy"><figcaption>грязная обувь<br><code>dirty_shoes</code></figcaption></figure>
+</div></section>
+</div><div id="other-pairs"><h2>Остальные пары — ещё не переработаны в этом этапе</h2>
+<section class="pending"><h2>кошка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/big_cat_1.webp" alt="большая кошка" loading="lazy"><figcaption>большая кошка<br><code>big_cat</code></figcaption></figure>
+<figure><img src="media/small_cat_1.webp" alt="маленькая кошка" loading="lazy"><figcaption>маленькая кошка<br><code>small_cat</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>машина <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/big_car_1.webp" alt="большая машина" loading="lazy"><figcaption>большая машина<br><code>big_car</code></figcaption></figure>
+<figure><img src="media/small_car_1.webp" alt="маленькая машина" loading="lazy"><figcaption>маленькая машина<br><code>small_car</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>торт <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/big_cake_1.webp" alt="большой торт" loading="lazy"><figcaption>большой торт<br><code>big_cake</code></figcaption></figure>
+<figure><img src="media/small_cake_1.webp" alt="маленький торт" loading="lazy"><figcaption>маленький торт<br><code>small_cake</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>чашка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/big_cup_1.webp" alt="большая чашка" loading="lazy"><figcaption>большая чашка<br><code>big_cup</code></figcaption></figure>
+<figure><img src="media/small_cup_1.webp" alt="маленькая чашка" loading="lazy"><figcaption>маленькая чашка<br><code>small_cup</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>стакан <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/tall_glass_1.webp" alt="высокий стакан" loading="lazy"><figcaption>высокий стакан<br><code>tall_glass</code></figcaption></figure>
+<figure><img src="media/short_glass_1.webp" alt="низкий стакан" loading="lazy"><figcaption>низкий стакан<br><code>short_glass</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>человек <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/tall_person_1.webp" alt="высокий человек" loading="lazy"><figcaption>высокий человек<br><code>tall_person</code></figcaption></figure>
+<figure><img src="media/short_person_1.webp" alt="низкий человек" loading="lazy"><figcaption>низкий человек<br><code>short_person</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>дерево <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/tall_tree_1.webp" alt="высокое дерево" loading="lazy"><figcaption>высокое дерево<br><code>tall_tree</code></figcaption></figure>
+<figure><img src="media/short_tree_1.webp" alt="низкое дерево" loading="lazy"><figcaption>низкое дерево<br><code>short_tree</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>забор <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/tall_fence_1.webp" alt="высокий забор" loading="lazy"><figcaption>высокий забор<br><code>tall_fence</code></figcaption></figure>
+<figure><img src="media/short_fence_1.webp" alt="низкий забор" loading="lazy"><figcaption>низкий забор<br><code>short_fence</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>маяк <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/tall_lighthouse_1.webp" alt="высокий маяк" loading="lazy"><figcaption>высокий маяк<br><code>tall_lighthouse</code></figcaption></figure>
+<figure><img src="media/short_lighthouse_1.webp" alt="низкий маяк" loading="lazy"><figcaption>низкий маяк<br><code>short_lighthouse</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>шарф <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/long_scarf_1.webp" alt="длинный шарф" loading="lazy"><figcaption>длинный шарф<br><code>long_scarf</code></figcaption></figure>
+<figure><img src="media/short_scarf_1.webp" alt="короткий шарф" loading="lazy"><figcaption>короткий шарф<br><code>short_scarf</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>волосы <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/long_hair_1.webp" alt="длинные волосы" loading="lazy"><figcaption>длинные волосы<br><code>long_hair</code></figcaption></figure>
+<figure><img src="media/short_hair_1.webp" alt="короткие волосы" loading="lazy"><figcaption>короткие волосы<br><code>short_hair</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>дорога <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/long_road_1.webp" alt="длинная дорога" loading="lazy"><figcaption>длинная дорога<br><code>long_road</code></figcaption></figure>
+<figure><img src="media/short_road_1.webp" alt="короткая дорога" loading="lazy"><figcaption>короткая дорога<br><code>short_road</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>верёвка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/long_rope_1.webp" alt="длинная верёвка" loading="lazy"><figcaption>длинная верёвка<br><code>long_rope</code></figcaption></figure>
+<figure><img src="media/short_rope_1.webp" alt="короткая верёвка" loading="lazy"><figcaption>короткая верёвка<br><code>short_rope</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>река <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wide_river_2.webp" alt="широкая река" loading="lazy"><figcaption>широкая река<br><code>wide_river</code></figcaption></figure>
+<figure><img src="media/narrow_stream_2.webp" alt="узкая река" loading="lazy"><figcaption>узкая река<br><code>narrow_stream</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>дверь <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wide_door_1.webp" alt="широкая дверь" loading="lazy"><figcaption>широкая дверь<br><code>wide_door</code></figcaption></figure>
+<figure><img src="media/narrow_door_1.webp" alt="узкая дверь" loading="lazy"><figcaption>узкая дверь<br><code>narrow_door</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>улица <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wide_street_2.webp" alt="широкая улица" loading="lazy"><figcaption>широкая улица<br><code>wide_street</code></figcaption></figure>
+<figure><img src="media/narrow_street_2.webp" alt="узкая улица" loading="lazy"><figcaption>узкая улица<br><code>narrow_street</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>ремень <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wide_belt_1.webp" alt="широкий ремень" loading="lazy"><figcaption>широкий ремень<br><code>wide_belt</code></figcaption></figure>
+<figure><img src="media/narrow_belt_1.webp" alt="узкий ремень" loading="lazy"><figcaption>узкий ремень<br><code>narrow_belt</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>стол <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wide_table_1.webp" alt="широкий стол" loading="lazy"><figcaption>широкий стол<br><code>wide_table</code></figcaption></figure>
+<figure><img src="media/narrow_table_1.webp" alt="узкий стол" loading="lazy"><figcaption>узкий стол<br><code>narrow_table</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>ведро <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/full_bucket_1.webp" alt="полное ведро" loading="lazy"><figcaption>полное ведро<br><code>full_bucket</code></figcaption></figure>
+<figure><img src="media/empty_bucket_1.webp" alt="пустое ведро" loading="lazy"><figcaption>пустое ведро<br><code>empty_bucket</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>рюкзак <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/full_backpack_1.webp" alt="полный рюкзак" loading="lazy"><figcaption>полный рюкзак<br><code>full_backpack</code></figcaption></figure>
+<figure><img src="media/empty_backpack_2.webp" alt="пустой рюкзак" loading="lazy"><figcaption>пустой рюкзак<br><code>empty_backpack</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>тарелка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/full_plate_1.webp" alt="полная тарелка" loading="lazy"><figcaption>полная тарелка<br><code>full_plate</code></figcaption></figure>
+<figure><img src="media/empty_plate_1.webp" alt="пустая тарелка" loading="lazy"><figcaption>пустая тарелка<br><code>empty_plate</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>корзина <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/full_basket_1.webp" alt="полная корзина" loading="lazy"><figcaption>полная корзина<br><code>full_basket</code></figcaption></figure>
+<figure><img src="media/empty_basket_1.webp" alt="пустая корзина" loading="lazy"><figcaption>пустая корзина<br><code>empty_basket</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>руки <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/clean_hands_1.webp" alt="чистые руки" loading="lazy"><figcaption>чистые руки<br><code>clean_hands</code></figcaption></figure>
+<figure><img src="media/dirty_hands_1.webp" alt="грязные руки" loading="lazy"><figcaption>грязные руки<br><code>dirty_hands</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>лицо <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/clean_face_1.webp" alt="чистое лицо" loading="lazy"><figcaption>чистое лицо<br><code>clean_face</code></figcaption></figure>
+<figure><img src="media/dirty_face_1.webp" alt="грязное лицо" loading="lazy"><figcaption>грязное лицо<br><code>dirty_face</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>футболка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/clean_shirt_1.webp" alt="чистая футболка" loading="lazy"><figcaption>чистая футболка<br><code>clean_shirt</code></figcaption></figure>
+<figure><img src="media/dirty_shirt_1.webp" alt="грязная футболка" loading="lazy"><figcaption>грязная футболка<br><code>dirty_shirt</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>машина <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/clean_car_1.webp" alt="чистая машина" loading="lazy"><figcaption>чистая машина<br><code>clean_car</code></figcaption></figure>
+<figure><img src="media/dirty_car_1.webp" alt="грязная машина" loading="lazy"><figcaption>грязная машина<br><code>dirty_car</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>велосипед <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/new_bicycle_1.webp" alt="новый велосипед" loading="lazy"><figcaption>новый велосипед<br><code>new_bicycle</code></figcaption></figure>
+<figure><img src="media/old_bicycle_1.webp" alt="старый велосипед" loading="lazy"><figcaption>старый велосипед<br><code>old_bicycle</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>книга <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/new_book_1.webp" alt="новая книга" loading="lazy"><figcaption>новая книга<br><code>new_book</code></figcaption></figure>
+<figure><img src="media/old_book_1.webp" alt="старая книга" loading="lazy"><figcaption>старая книга<br><code>old_book</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>кукла <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/new_doll_1.webp" alt="новая кукла" loading="lazy"><figcaption>новая кукла<br><code>new_doll</code></figcaption></figure>
+<figure><img src="media/old_doll_1.webp" alt="старая кукла" loading="lazy"><figcaption>старая кукла<br><code>old_doll</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>куртка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/new_jacket_1.webp" alt="новая куртка" loading="lazy"><figcaption>новая куртка<br><code>new_jacket</code></figcaption></figure>
+<figure><img src="media/old_jacket_1.webp" alt="старая куртка" loading="lazy"><figcaption>старая куртка<br><code>old_jacket</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>забор <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/new_fence_1.webp" alt="новый забор" loading="lazy"><figcaption>новый забор<br><code>new_fence</code></figcaption></figure>
+<figure><img src="media/old_fence_1.webp" alt="старый забор" loading="lazy"><figcaption>старый забор<br><code>old_fence</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>полотенце <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wet_towel_1.webp" alt="мокрое полотенце" loading="lazy"><figcaption>мокрое полотенце<br><code>wet_towel</code></figcaption></figure>
+<figure><img src="media/dry_towel_1.webp" alt="сухое полотенце" loading="lazy"><figcaption>сухое полотенце<br><code>dry_towel</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>зонт <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wet_umbrella_1.webp" alt="мокрый зонт" loading="lazy"><figcaption>мокрый зонт<br><code>wet_umbrella</code></figcaption></figure>
+<figure><img src="media/dry_umbrella_1.webp" alt="сухой зонт" loading="lazy"><figcaption>сухой зонт<br><code>dry_umbrella</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>трава <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wet_grass_1.webp" alt="мокрая трава" loading="lazy"><figcaption>мокрая трава<br><code>wet_grass</code></figcaption></figure>
+<figure><img src="media/dry_grass_1.webp" alt="сухая трава" loading="lazy"><figcaption>сухая трава<br><code>dry_grass</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>камень <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wet_stone_1.webp" alt="мокрый камень" loading="lazy"><figcaption>мокрый камень<br><code>wet_stone</code></figcaption></figure>
+<figure><img src="media/dry_stone_1.webp" alt="сухой камень" loading="lazy"><figcaption>сухой камень<br><code>dry_stone</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>носки <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/wet_socks_1.webp" alt="мокрые носки" loading="lazy"><figcaption>мокрые носки<br><code>wet_socks</code></figcaption></figure>
+<figure><img src="media/dry_socks_1.webp" alt="сухие носки" loading="lazy"><figcaption>сухие носки<br><code>dry_socks</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>скамейка <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/hot_bench_1.webp" alt="горячая скамейка" loading="lazy"><figcaption>горячая скамейка<br><code>hot_bench</code></figcaption></figure>
+<figure><img src="media/cold_bench_1.webp" alt="холодная скамейка" loading="lazy"><figcaption>холодная скамейка<br><code>cold_bench</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>чай <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/hot_tea_1.webp" alt="горячий чай" loading="lazy"><figcaption>горячий чай<br><code>hot_tea</code></figcaption></figure>
+<figure><img src="media/cold_tea_1.webp" alt="холодный чай" loading="lazy"><figcaption>холодный чай<br><code>cold_tea</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>камень <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/hot_rock_2.webp" alt="горячий камень" loading="lazy"><figcaption>горячий камень<br><code>hot_rock</code></figcaption></figure>
+<figure><img src="media/cold_rock_1.webp" alt="холодный камень" loading="lazy"><figcaption>холодный камень<br><code>cold_rock</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>суп <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/hot_soup_3.webp" alt="горячий суп" loading="lazy"><figcaption>горячий суп<br><code>hot_soup</code></figcaption></figure>
+<figure><img src="media/cold_soup_2.webp" alt="холодный суп" loading="lazy"><figcaption>холодный суп<br><code>cold_soup</code></figcaption></figure>
+</div></section>
+<section class="pending"><h2>дорога <span class="badge">Без изменений</span></h2><div class="pair">
+<figure><img src="media/hot_pavement_2.webp" alt="горячая дорога" loading="lazy"><figcaption>горячая дорога<br><code>hot_pavement</code></figcaption></figure>
+<figure><img src="media/cold_pavement_1.webp" alt="холодная дорога" loading="lazy"><figcaption>холодная дорога<br><code>cold_pavement</code></figcaption></figure>
+</div></section>
+</div></main></html>

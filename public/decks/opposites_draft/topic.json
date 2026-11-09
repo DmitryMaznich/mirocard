@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.12.0",
+    "version": "2.13.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -190,7 +190,7 @@
       "nominativeLabel": "большая",
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
-      "primary": true,
+      "primary": false,
       "image": "media/big_cat_1.webp",
       "poleLabelNeutral": "большое"
     },
@@ -204,7 +204,7 @@
       "nominativeLabel": "маленькая",
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
-      "primary": true,
+      "primary": false,
       "image": "media/small_cat_1.webp",
       "poleLabelNeutral": "маленькое"
     },
@@ -218,7 +218,7 @@
       "nominativeLabel": "большой",
       "instructionLabel": "большой",
       "poleLabelPlural": "большие",
-      "primary": false,
+      "primary": true,
       "image": "media/big_ball_1.webp",
       "poleLabelNeutral": "большое"
     },
@@ -232,7 +232,7 @@
       "nominativeLabel": "маленький",
       "instructionLabel": "маленький",
       "poleLabelPlural": "маленькие",
-      "primary": false,
+      "primary": true,
       "image": "media/small_ball_1.webp",
       "poleLabelNeutral": "маленькое"
     },
@@ -890,7 +890,7 @@
       "nominativeLabel": "чистые",
       "instructionLabel": "чистые",
       "poleLabelPlural": "чистые",
-      "primary": true,
+      "primary": false,
       "image": "media/clean_hands_1.webp",
       "poleLabelNeutral": "чистое"
     },
@@ -904,7 +904,7 @@
       "nominativeLabel": "грязные",
       "instructionLabel": "грязные",
       "poleLabelPlural": "грязные",
-      "primary": true,
+      "primary": false,
       "image": "media/dirty_hands_1.webp",
       "poleLabelNeutral": "грязное"
     },
@@ -974,7 +974,7 @@
       "nominativeLabel": "чистая",
       "instructionLabel": "чистую",
       "poleLabelPlural": "чистые",
-      "primary": false,
+      "primary": true,
       "image": "media/clean_shoes_1.webp",
       "poleLabelNeutral": "чистое"
     },
@@ -988,7 +988,7 @@
       "nominativeLabel": "грязная",
       "instructionLabel": "грязную",
       "poleLabelPlural": "грязные",
-      "primary": false,
+      "primary": true,
       "image": "media/dirty_shoes_1.webp",
       "poleLabelNeutral": "грязное"
     },
