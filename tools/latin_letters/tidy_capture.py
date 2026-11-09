@@ -734,6 +734,79 @@ def bellies_from_original(label, strokes):
                           quarter(d, rl, R, D), quarter(rl, e, D, L), segs[7]]
 
 
+# arches after the ORIGINAL (owner, 2026-11-09: «подогнать к оригиналу n и m»): the middle line of Nelson's stroke is the underlay's
+# ink thinned to one pixel (Zhang-Suen); the hand's path gives the order and the waypoints -- the stem's top and foot, where it leaves
+# the stem for the arch (retrace end), the foot of m's middle stem, the end -- and between a waypoint where the pen leaves a stem and
+# the next one the path is the original's middle line (the shortest way along the thinned ink). The stems stay the hand's; the whole
+# path is then tidied like any capture.
+ARCHES_FROM_ORIGINAL = set("nm")
+
+
+def thin(img):
+    """Zhang-Suen thinning (vectorised): the ink -> its one-pixel middle line."""
+    a = np.pad(img.astype(np.uint8), 1)
+    while True:
+        changed = False
+        for step in (0, 1):
+            p2, p3, p4, p5, p6, p7, p8, p9 = [np.roll(np.roll(a, dy, 0), dx, 1) for dy, dx in
+                                              ((1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1))]
+            nb = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
+            seq = [p2, p3, p4, p5, p6, p7, p8, p9, p2]
+            trans = sum(((seq[i] == 0) & (seq[i + 1] == 1)).astype(np.uint8) for i in range(8))
+            c1, c2 = (p2 * p4 * p6, p4 * p6 * p8) if step == 0 else (p2 * p4 * p8, p2 * p6 * p8)
+            m = (a == 1) & (nb >= 2) & (nb <= 6) & (trans == 1) & (c1 == 0) & (c2 == 0)
+            if m.any(): a[m] = 0; changed = True
+        if not changed: break
+    return a[1:-1, 1:-1].astype(bool)
+
+
+def skeleton_route(sk, a_px, b_px):
+    """The shortest way along the one-pixel line between two of its pixels (8-connected BFS)."""
+    from collections import deque
+    prev = {a_px: None}; q = deque([a_px])
+    while q:
+        y, x = q.popleft()
+        if (y, x) == b_px: break
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                n = (y + dy, x + dx)
+                if n not in prev and 0 <= n[0] < sk.shape[0] and 0 <= n[1] < sk.shape[1] and sk[n]:
+                    prev[n] = (y, x); q.append(n)
+    path, c = [], b_px
+    while c is not None: path.append(c); c = prev.get(c)
+    return path[::-1]
+
+
+def arches_from_original(cap, tidied_strokes):
+    from PIL import Image
+    a = np.array(Image.open(UNDERLAYS / f"lo_{cap['label']}.png"))[:, :, 3] > 128
+    sk = thin(a)
+    segs = tidied_strokes[0]["segs"]
+    vertical = lambda sg: all(abs(pt[0] - sg[0][0]) < 1e-6 for pt in sg)
+    stem_x = segs[0][0][0]
+    cols = np.nonzero(a.any(0))[0]; dx = stem_x - (UL_X + cols[0] / UL_PX + HALF_INK)
+    to_px = lambda pnt: ((pnt[1]) * UL_PX, (pnt[0] - dx - UL_X) * UL_PX)
+    to_tool = lambda yx: np.array([UL_X + yx[1] / UL_PX + dx, yx[0] / UL_PX])
+    skp = np.argwhere(sk)
+    nearest = lambda pnt: tuple(skp[np.argmin(((skp - np.array(to_px(pnt))) ** 2).sum(1))])
+    # waypoints of the hand: the start, every turn back, every end of a retrace up a stem, the end
+    way = [("pt", segs[0][0])]
+    for i, sg in enumerate(segs):
+        nxt = segs[i + 1] if i + 1 < len(segs) else None
+        if nxt is None: way.append(("end", sg[3]))
+        elif vertical(sg) and sg[3][1] < sg[0][1] - 3 and not vertical(nxt): way.append(("leave", sg[3]))  # retrace up -> arch
+        elif vertical(sg) and sg[3][1] > sg[0][1] and vertical(nxt) and nxt[3][1] < nxt[0][1]: way.append(("pt", sg[3]))  # a foot
+    pts = [way[0][1]]
+    for (k0, p0), (k1, p1) in zip(way, way[1:]):
+        if k0 == "leave":  # from where the original leaves the stem near here, along its middle line, to the next waypoint
+            route = skeleton_route(sk, nearest(p0), nearest(p1))
+            pts += [to_tool(yx) for yx in route]
+        else:
+            pts.append(p1 if k1 != "leave" else np.array([p1[0], to_tool(nearest(p1))[1]]))
+    d = "M " + " L ".join(f"{x:.2f} {y:.2f}" for x, y in pts)
+    return {**cap, "strokes": [{"d": d}]}
+
+
 def render_glyph(cap, strokes):
     whole = not cap["label"].islower()
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
@@ -764,6 +837,8 @@ def main():
         for c in json.load(open(f, encoding="utf-8")):
             caps[c["label"]] = c
     tidied = {l: tidy_glyph(c) for l, c in caps.items()}
+    for l in ARCHES_FROM_ORIGINAL & set(tidied):  # the original's arches along the hand's path, tidied again
+        tidied[l] = tidy_glyph(arches_from_original(caps[l], tidied[l]))
     for l in ORIGINAL_BOWL & set(tidied):
         global CUR, WHOLE
         CUR, WHOLE = l, False

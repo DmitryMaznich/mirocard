@@ -212,4 +212,17 @@ describe("English print letters in the propis2 engine", () => {
     expect(bar).toBeLessThan(62 + (62 - 88) * 2 * (1 + 0.74) / (1 + 0.86)); // above the x-line as a capital is scaled (13.35)
     expect(right(bar + 1, 62) - right(-30, bar - 1)).toBeGreaterThan(2.5);
   });
+  it("British n and m: the arches are the middle line of Nelson's stroke (owner, 2026-11-09)", () => {
+    const glyphs = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs;
+    // the upright stretches of the path (the stems) relative to the first: Nelson's, measured on the thinned underlay (x 2)
+    const uprights = (label) => {
+      const n = glyphs.find((g) => g.label === label).strokes[0].d.match(/-?\d*\.?\d+/g).map(Number);
+      const pts = Array.from({ length: n.length / 2 }, (_, i) => [n[2 * i], n[2 * i + 1]]);
+      const xs = segsFrom(pts).filter((sg) => sg.every((q) => Math.abs(q[0] - sg[0][0]) < 1e-6) && Math.abs(sg[3][1] - sg[0][1]) > 8).map((sg) => sg[0][0]);
+      return [...new Set(xs.map((x) => Math.round((x - xs[0]) * 10) / 10))];
+    };
+    const near = (got, want) => { expect(got.length).toBe(want.length); got.forEach((v, i) => expect(v).toBeCloseTo(want[i], 0)); };
+    near(uprights("n"), [0, 35.6]);
+    near(uprights("m"), [0, 35.8, 70.2]);
+  });
 });
