@@ -23,7 +23,7 @@ import {
   isLocalModeProfile,
   isFreeStaticInstall,
 } from "./catalogService";
-import { hasActiveEntitlement } from "@/features/billing/entitlement";
+import { hasPaidAccess } from "@/features/billing/entitlement";
 import { CATEGORY_ORDER, CATEGORY_LABEL_KEYS, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -84,7 +84,7 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
     const isGranted = owned != null && owned.source !== "request";
     const isFreeStaticDeck = isFreeStaticInstall(entry);
     if (entry.languageDownload) {
-      if ((entry.access ?? "free") !== "free" && !hasActiveEntitlement(account, subscription)) { setScreen("subscription"); return; }
+      if ((entry.access ?? "free") !== "free" && !hasPaidAccess(account, subscription)) { setScreen("subscription"); return; }
       return requestTopicLanguage({ entry, record: topicRecords.find((r) => r.meta.id === entry.id) });
     }
 
@@ -246,7 +246,7 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
     // the UI still offers to open an already-downloaded copy or shows it
     // locked instead.
     const entitlementExpired = ["paid", "assigned", "grant"].includes(owned?.source)
-      && !hasActiveEntitlement(account, subscription);
+      && !hasPaidAccess(account, subscription);
     const personalCaption = item.installedRecord
       ? getPersonalTopicCaption(item.installedRecord.meta, ownedTopics)
       : null;
@@ -266,7 +266,7 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
         access={item.entry?.access ?? "free"}
         claimSource={owned?.source ?? null}
         entitlementExpired={entitlementExpired}
-        hasAccess={hasActiveEntitlement(account, subscription)}
+        hasAccess={hasPaidAccess(account, subscription)}
         onLockedTap={() => setScreen("subscription")}
         materialLanguages={item.entry?.materialLanguages ?? (item.installedRecord?.meta.language ? [item.installedRecord.meta.language] : null)}
         materialLanguage={item.installedRecord?.languageContract ? topicLanguageForStudent(item.installedRecord, { activeStudentId, studentTopicLinks }) : null}
