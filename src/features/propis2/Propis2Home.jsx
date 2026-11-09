@@ -191,7 +191,8 @@ export default function Propis2Home({ db }) {
     const key = rLang ? `${rLang}|${ps.id}` : ps.id;
     const existing = library.sets.find((st) => sourceOf(st) && takenKey(st) === key);
     if (existing) return { lib: library, set: existing };
-    const tag = (st) => (rLang ? { ...st, lang: rLang } : st);
+    // (a kit with its own writing style, the Latin series «Британские соединённые»: its copy is written in that style)
+    const tag = (st) => (rLang ? { ...st, lang: rLang, ...(ps.kit?.style ? { style: ps.kit.style } : {}) } : st);
     if (ps.kit) {
       const { set: kitSet, pages: nps } = kitToLibraryItems(ps.kit);
       const ns = tag(kitSet);

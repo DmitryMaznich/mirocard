@@ -281,4 +281,24 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_gb"]);
     host.remove();
   });
+  it("a ready Latin notebook (the Nelson joins) opens as a copy in its own style, «Британские соединённые»", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tdb = await openDb("p2kit-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
+    const db = await openDb("p2kit-en-" + Date.now());
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const readyCards = () => cards(host, "propis2-ready-card");
+    expect(readyCards().map((c) => c.textContent).some((t) => t.includes("Соединение 1"))).toBe(true);
+    const card = readyCards().find((c) => c.textContent.includes("Соединение 1"));
+    await click([...card.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? "").startsWith("Изменить тетрадь")));
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские соединённые"); // the editor says which style
+    expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  });
 });

@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
+import { buildLatinKits } from "./lib/propis2-latin-kits.mjs";
 import { applyVariant, variantKits } from "./lib/propis2-variant.mjs";
 import { simplifyGlyphs } from "./lib/simplify-path.mjs";
 
@@ -72,7 +73,9 @@ if (langSpec) {
   const skipped = langSpec.languages.filter((l) => !inDeck(l)).map((l) => l.id);
   if (skipped.length) console.log(`  (languages left out of this deck: ${skipped.join(", ")})`);
   topic.languages = langSpec.languages.filter(inDeck).map((spec) => {
-    const { from, glyphsFrom, deck: _deck, ...lang } = spec;
+    const { from, glyphsFrom, deck: _deck, kitsFile, ...lang } = spec;
+    // a language's own ready notebooks from their content list (`kitsFile`, the Latin series: scripts/lib/propis2-latin-kits.mjs)
+    if (kitsFile) lang.kits = buildLatinKits(JSON.parse(readFileSync(kitsFile, "utf-8")));
     if (from) {
       const v = JSON.parse(readFileSync(from, "utf-8"));
       const glyphs = v.simplifyGlyphs ? simplifyGlyphs(v.glyphs ?? [], v.simplifyGlyphs).glyphs : v.glyphs ?? [];

@@ -27,6 +27,7 @@
       "short": "ENG",
       "status": "ready",
       "deck": "latin",
+      "kitsFile": "tools/propis2/latin-kits.json",
       "alphabet": {
         "lower": "abcdefghijklmnopqrstuvwxyz"
       },

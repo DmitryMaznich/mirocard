@@ -1,0 +1,106 @@
+{
+  "note": "Готовые тетради «Прописей: латиница» (docs/latin-letters.md, владелец 2026-11-09: серия по ступеням Нельсона, слова из учебников английского 2-го класса СНГ, 16 страниц, для печатных — нет). Страница пары (scripts/lib/propis2-latin-kits.mjs): узор из пары, пара обвести / с затуханием / сам, три слова — с затуханием и сам; последняя страница — повторение (слова с затуханием и сам). Соединения: тетрадь 1 — косое к строчной (группа 1 → 2), 2 — косое к высокой (1 → 3), 3 — ровное к строчной (4 → 2), 4 — ровное к высокой (4 → 3).",
+  "page": { "gridKind": "en_gb", "format": "a5" },
+  "kits": [
+    {
+      "id": "en-join-1",
+      "title": "Соединение 1: косое к строчной",
+      "group": "Соединения",
+      "style": "british_joined",
+      "description": "От буквы с хвостиком (a c d e h i k l m n s t u) косое соединение к букве, которая начинается у верха строчной: in im un ai ay an am ea ee en er ir ic do.",
+      "pages": [
+        { "pair": "in", "words": ["pink", "pin", "wind"] },
+        { "pair": "im", "words": ["swim", "him", "animal"] },
+        { "pair": "un", "words": ["sun", "run", "bunny"] },
+        { "pair": "um", "words": ["mum", "drum", "plum"] },
+        { "pair": "ai", "words": ["rain", "train", "paint"] },
+        { "pair": "ay", "words": ["play", "day", "say"] },
+        { "pair": "an", "words": ["can", "man", "banana"] },
+        { "pair": "am", "words": ["jam", "ham", "camel"] },
+        { "pair": "ea", "words": ["sea", "tea", "read"] },
+        { "pair": "ee", "words": ["tree", "green", "three"] },
+        { "pair": "en", "words": ["pen", "hen", "ten"] },
+        { "pair": "er", "words": ["sister", "ruler", "tiger"] },
+        { "pair": "ir", "words": ["bird", "girl", "skirt"] },
+        { "pair": "ic", "words": ["nice", "rice", "mice"] },
+        { "pair": "do", "words": ["dog", "doll", "door"] },
+        { "review": ["sunny", "rainy", "summer", "monkey", "dinner"] }
+      ]
+    },
+    {
+      "id": "en-join-2",
+      "title": "Соединение 2: косое к высокой",
+      "group": "Соединения",
+      "style": "british_joined",
+      "description": "От буквы с хвостиком косое соединение к высокой букве (b f h k l t): ch sh th ck ab al el il at it ut et nk sk lk.",
+      "pages": [
+        { "pair": "ch", "words": ["chick", "chips", "chair"] },
+        { "pair": "sh", "words": ["sheep", "fish", "shop"] },
+        { "pair": "th", "words": ["three", "bath", "the"] },
+        { "pair": "ck", "words": ["duck", "black", "sock"] },
+        { "pair": "ab", "words": ["table", "rabbit", "crab"] },
+        { "pair": "al", "words": ["ball", "small", "tall"] },
+        { "pair": "el", "words": ["yellow", "hello", "bell"] },
+        { "pair": "il", "words": ["pencil", "hill", "milk"] },
+        { "pair": "at", "words": ["cat", "hat", "bat"] },
+        { "pair": "it", "words": ["kite", "white", "sit"] },
+        { "pair": "ut", "words": ["nut", "cut", "but"] },
+        { "pair": "et", "words": ["pet", "jacket", "wet"] },
+        { "pair": "nk", "words": ["pink", "thank", "drink"] },
+        { "pair": "sk", "words": ["desk", "skirt", "ask"] },
+        { "pair": "lk", "words": ["milk", "walk", "talk"] },
+        { "review": ["chicken", "kitchen", "little", "elephant", "kitten"] }
+      ]
+    },
+    {
+      "id": "en-join-3",
+      "title": "Соединение 3: ровное к строчной",
+      "group": "Соединения",
+      "style": "british_joined",
+      "description": "От буквы, которая кончается у верха строчной (f o r v w), ровное соединение к букве, которая начинается там же: oa oo ow on or oy re ri ra ru ve wa wi fi fr.",
+      "pages": [
+        { "pair": "oa", "words": ["boat", "coat", "goat"] },
+        { "pair": "oo", "words": ["book", "look", "moon"] },
+        { "pair": "ow", "words": ["cow", "brown", "window"] },
+        { "pair": "on", "words": ["lemon", "monkey", "one"] },
+        { "pair": "or", "words": ["orange", "horse", "door"] },
+        { "pair": "oy", "words": ["toy", "boy", "enjoy"] },
+        { "pair": "re", "words": ["red", "green", "tree"] },
+        { "pair": "ri", "words": ["rice", "ride", "bring"] },
+        { "pair": "ra", "words": ["train", "giraffe", "crab"] },
+        { "pair": "ru", "words": ["fruit", "brush", "drum"] },
+        { "pair": "ve", "words": ["seven", "eleven", "have"] },
+        { "pair": "wa", "words": ["water", "want", "swan"] },
+        { "pair": "wi", "words": ["wind", "swim", "window"] },
+        { "pair": "fi", "words": ["fish", "five", "finger"] },
+        { "pair": "fr", "words": ["frog", "friend", "fruit"] },
+        { "review": ["rainbow", "tomato", "seven", "water", "orange"] }
+      ]
+    },
+    {
+      "id": "en-join-4",
+      "title": "Соединение 4: ровное к высокой",
+      "group": "Соединения",
+      "style": "british_joined",
+      "description": "От буквы, которая кончается у верха строчной (f o r v w), ровное соединение к высокой букве: ol ok ot ob rt rl rk rf wh wl ft fl ff of.",
+      "pages": [
+        { "pair": "ol", "words": ["old", "cold", "doll"] },
+        { "pair": "ok", "words": ["book", "look", "cook"] },
+        { "pair": "ot", "words": ["hot", "not", "robot"] },
+        { "pair": "oth", "words": ["mother", "brother", "other"] },
+        { "pair": "ob", "words": ["robot", "hobby", "lobster"] },
+        { "pair": "rt", "words": ["shirt", "skirt", "short"] },
+        { "pair": "rl", "words": ["girl", "curly", "world"] },
+        { "pair": "rk", "words": ["park", "dark", "fork"] },
+        { "pair": "rf", "words": ["scarf", "surf", "perfect"] },
+        { "pair": "wh", "words": ["white", "when", "what"] },
+        { "pair": "wl", "words": ["owl", "bowl", "slowly"] },
+        { "pair": "ft", "words": ["soft", "left", "gift"] },
+        { "pair": "fl", "words": ["flower", "fly", "flag"] },
+        { "pair": "ff", "words": ["giraffe", "off", "coffee"] },
+        { "pair": "of", "words": ["of", "sofa", "roof"] },
+        { "review": ["flower", "football", "white", "shirt", "brother"] }
+      ]
+    }
+  ]
+}
