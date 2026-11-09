@@ -1190,6 +1190,35 @@ def leg_from_original(label, strokes):
     strokes[2]["segs"] = [[p0, p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1]]
 
 
+# f after Nelson's own lines (owner, 2026-11-09: «перемычка чуть длиннее и сверху у нас недостаточный загиб»). The underlay lo_f.png is cut
+# off on the right (its hook's end and its bar's right end missing), so the hand guessed there; and the pupil books' ascender (UPPER)
+# squeezes the top down while leaving it as wide. Measured on Book 1B Unit 19 («if», «ef», 300 dpi, ink middles, in x-heights from the
+# stem's middle and the x-line): the stem straight up to 0.61, then one tight bend to the top 0.86 (the Nelson ascender) 0.31 right of
+# the stem, then over and a little down to the end 0.51 right, 0.05 lower; the bar from 0.53 left to 0.54 right, sagging 0.12 (as
+# measured before, 2026-11-08). Every width of the letter is scaled as its height is (UPPER / NELSON): f is Nelson's f made smaller,
+# not squashed.
+F_HOOK = dict(stem_top=0.61, top=(0.31, NELSON), end=(0.51, NELSON - 0.05), bar=(-0.53, 0.54), sag=0.12)
+
+
+def f_from_nelson(strokes):
+    segs = strokes[0]["segs"]
+    k_stem = next((i for i, sg in enumerate(segs) if sg[3][1] - sg[0][1] > 25 and abs(sg[3][0] - sg[0][0]) < 2), None)
+    if k_stem is None or len(strokes) < 2: return
+    xs, foot = segs[k_stem][0][0], segs[k_stem][3].copy()
+    XH = BASE - X_LINE; k = UPPER / NELSON; F = F_HOOK
+    at = lambda u, v: np.array([xs + u * XH * k, X_LINE - v * XH])
+    T, P, S = at(*F["end"]), at(*F["top"]), at(0.0, F["stem_top"])
+    rx, ry = (P - S)[0], (S - P)[1]
+    hook = [[T, T + np.array([-0.07 * XH * k, -0.035 * XH]), P + np.array([0.08 * XH * k, 0.0]), P],
+            [P, P - np.array([rx * K_ELL, 0.0]), S - np.array([0.0, ry * K_ELL]), S]]
+    stem = [S, S + (foot - S) / 3, S + 2 * (foot - S) / 3, foot]
+    strokes[0]["segs"] = hook + [stem] + segs[k_stem + 1:]
+    bar = strokes[1]["segs"]
+    A, B = at(F["bar"][0], 0.0), at(F["bar"][1], 0.0)
+    if bar[0][0][0] > bar[-1][3][0]: A, B = B, A  # the way the hand went
+    strokes[1]["segs"] = [bowed(A, B, F["sag"] * XH)]
+
+
 def render_glyph(cap, strokes):
     whole = not cap["label"].islower()
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
@@ -1238,6 +1267,7 @@ def main():
     share_tail(tidied)
     share_exit(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])
+    if "f" in tidied: f_from_nelson(tidied["f"])
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write("\n")
