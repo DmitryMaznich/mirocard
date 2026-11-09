@@ -134,14 +134,19 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(getPathEndpoints(join.d).end[0]).toBeLessThan(getPathEndpoints(fr.find((s) => s.join).d).end[0]); // closer than r
   });
 
-  it("after s the next letter stands clear of it, the join from s's foot long and slanting (Nelson's «spin»)", () => {
+  it("after s the next letter stands clear of it; a join rising to the x-line leaves s's bowl round its right side, along it (sp as sa)", () => {
     const xs = (d) => d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 0);
-    for (const w of ["sp", "sa", "sn"]) {
+    const lowest = (d) => samplePath(d, 160).reduce((m, q) => (q[1] > m[1] ? q : m));
+    for (const w of ["sp", "sa", "sn", "si"]) {
       const r = row("british_joined", w), j = r.findIndex((s) => s.join);
       const gap = Math.min(...r.slice(j + 1).flatMap((s) => xs(s.d))) - Math.max(...r.slice(0, j).flatMap((s) => xs(s.d)));
       expect(gap / 24, w).toBeCloseTo(style("british_joined").script.joinRules.edgeFrom.s, 1); // (x-height 24 at this scale)
-      const [a, b] = [getPathEndpoints(r[j].d).start, getPathEndpoints(r[j].d).end];
-      expect((b[0] - a[0]) / (a[1] - b[1]), w).toBeGreaterThan(0.55); // slanting, not steep (Nelson ~0.63)
+      const start = getPathEndpoints(r[j].d).start, low = lowest(r[0].d);
+      if (w === "sa") { expect(start[1], w).toBeCloseTo(low[1], 1); continue; } // into an oval: from the foot, as before
+      expect(start[0], w).toBeGreaterThan(low[0] + 2); // round the bowl's right side…
+      expect(start[1], w).toBeLessThan(low[1] - 1); // …up from the foot
+      const n = r[j].d.match(/-?\d*\.?\d+/g).map(Number);
+      expect(n[3] - n[1], w).toBeLessThan(0); // leaving upwards, along the bowl: never back across it
     }
   });
 

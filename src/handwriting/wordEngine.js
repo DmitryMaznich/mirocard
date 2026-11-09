@@ -1759,7 +1759,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlExit: rules.bowlExit ?? null, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1770,14 +1770,27 @@ function nelsonJoinKind(R, a, b) {
 }
 const nlsUnit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
 // where a join leaves the letter (placed strokes) and the direction it goes on in
-function nelsonExit(R, label, strokes, extraTrim = 0, scale = 1, cutK = null) {
+function nelsonExit(R, label, strokes, extraTrim = 0, scale = 1, cutK = null, bowl = null) {
   const first = strokes[0]?.d;
   if (!first) return null;
   if (R.fromBottom.has(label)) {
-    const p = samplePath(first, 120);
-    let best = p[0];
-    for (const q of p) if (q[1] > best[1]) best = q;
-    return { p: best, t: [1, 0] };
+    const p = samplePath(first, 160);
+    let ib = 0;
+    for (let i = 0; i < p.length; i += 1) if (p[i][1] > p[ib][1]) ib = i;
+    // (`bowl`: a join rising high (to the x-line: s–p, s–i, s–t) leaves s's lower bowl further round its right side, where the bowl,
+    // gone backwards, rises along `bowl` — the join then goes on along the bowl and up outside it, as s–a, s–o do, never across it:
+    // owner, 2026-11-09: «sa и so соединение верное, нужно такое же делать у sp и подобных»)
+    if (bowl) {
+      let best = -2, bi = ib, bt = [1, 0];
+      for (let i = ib - 1; i > 1; i -= 1) {
+        const r = nlsUnit(p[i - 1][0] - p[i + 1][0], p[i - 1][1] - p[i + 1][1]);
+        if (r[0] < 0) break;
+        const dot = r[0] * bowl[0] + r[1] * bowl[1];
+        if (dot > best) { best = dot; bi = i; bt = r; }
+      }
+      return { p: p[bi], t: bt };
+    }
+    return { p: p[ib], t: [1, 0] };
   }
   const si = R.exitStroke[label] ?? 0;
   let st = strokes[si]?.d;
@@ -2199,7 +2212,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // (f before an oval: its bar cut at its lowest point, under the stem — the join goes on from there, level, sagging on)
           const ovalNext = kind === "h" && nelson.ovalReachFrom[prevLabel] != null && nelson.oval.has(label);
           const cutK = ovalNext ? 0 : null;
-          const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes, intoLoop ? 1 : 0, scale, cutK) : null;
+          const bowl = kind === "d" && nelson.fromBottom.has(prevLabel) && !nelson.oval.has(label) && nelson.bowlExit != null ? nlsUnit(nelson.bowlExit, -1) : null;
+          const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes, intoLoop ? 1 : 0, scale, cutK, bowl) : null;
 
           if (ex) {
             const tg = nelsonTarget(nelson, label, kind, local.strokes, scale, ovalNext ? nelson.ovalEntry : null);
