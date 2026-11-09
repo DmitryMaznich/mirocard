@@ -1748,7 +1748,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.3, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);

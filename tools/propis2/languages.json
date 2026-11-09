@@ -144,7 +144,7 @@
               "levelGapFrom": { "r": 0.55 },
               "levelInto": { "e": 0.5 },
               "diagInto": { "e": 0.39 },
-              "diagMeet": 0.3,
+              "diagMeet": 0.2,
               "diagLeave": 0.15,
               "edge": 3
             }
