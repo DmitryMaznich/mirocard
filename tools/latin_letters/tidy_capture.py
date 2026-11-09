@@ -60,6 +60,7 @@ BOW_BAR = 2.0        # a bar whose hand sags this much in the middle is drawn as
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
 K_ELL = 0.5523
 OVAL_TURN, OVAL_STEM = 250.0, 28.0  # see line_runs
+FLAT_SPINE = set("s")  # owner, 2026-11-09: «у s в середине должен быть очень небольшой горизонтальный кусочек»
 ELLIPSE_BOWS = set("D")  # bows drawn as ellipse quarters however the hand went (owner, 2026-11-09: D «пузо сделай плавной дугой»)
 QUARTER_TOL = 3.0     # a quarter of an oval is an ellipse even this far from the hand (the hand drew D's side as a broken line)
 X_LINE, BASE, NELSON = 62.0, 88.0, 0.86
@@ -305,6 +306,16 @@ def curve(q, t_start=None, t_end=None):
         dy = snap_y(sm[i][1], SNAP_EXT) - sm[i][1]
         if dy: sm[:, 1] += dy * np.exp(-0.5 * ((sarc - sarc[i]) / 3.0) ** 2) * taper
     anchors = [(0, None)] + [(i, ax) for i, ax in extrema(sm)] + [(len(sm) - 1, None)]
+    if CUR in FLAT_SPINE:
+        # s: its spine, between the left and the right side, runs almost level for a short way (Nelson's middle line: 6 units at a
+        # slope of 0.2) -- one more point there, at the levellest place, with the direction the line has there
+        for k in range(len(anchors) - 1):
+            (i0, a0), (i1, a1) = anchors[k], anchors[k + 1]
+            if a0 == 0 and a1 == 0 and abs(sm[i1][0] - sm[i0][0]) > 5:
+                d = np.gradient(sm[i0:i1 + 1], axis=0)
+                j = i0 + 3 + int(np.argmin(np.abs(d[3:-3, 1]) / (np.abs(d[3:-3, 0]) + 1e-9)))
+                anchors.insert(k + 1, (j, "spine"))
+                break
     pos, tan = [], []
     for k, (i, ax) in enumerate(anchors):
         p = sm[i].copy()
@@ -313,6 +324,9 @@ def curve(q, t_start=None, t_end=None):
             if t is None:
                 w = int(1.5 / STEP)
                 t = unit(sm[min(i + w, len(sm) - 1)] - sm[i]) if k == 0 else unit(sm[i] - sm[max(i - w, 0)])
+        elif ax == "spine":
+            w = int(1.5 / STEP)
+            t = unit(sm[min(i + w, len(sm) - 1)] - sm[max(i - w, 0)])
         else:
             mv = sm[min(i + 2, len(sm) - 1)] - sm[max(i - 2, 0)]
             if ax == 1: t = np.array([math.copysign(1, mv[0]), 0.0])
@@ -320,7 +334,7 @@ def curve(q, t_start=None, t_end=None):
         pos.append(p); tan.append(unit(t))
     pos[0], pos[-1] = q[0].copy(), q[-1].copy()
     # an end leaving a stem or a bar (its tangent forced along it) is like a side / a top of an oval: D's bow from its top bar is a quarter
-    axes = [a for _, a in anchors]
+    axes = [None if a == "spine" else a for _, a in anchors]
     for k, t in ((0, t_start), (len(anchors) - 1, t_end)):
         if t is not None: axes[k] = 0 if abs(t[0]) < 1e-6 else 1 if abs(t[1]) < 1e-6 else None
     segs = []
