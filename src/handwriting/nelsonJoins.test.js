@@ -182,6 +182,21 @@ describe("Nelson joins (script.joinRules)", () => {
     }
   });
 
+  it("s joined into loses the hook over its top: the join comes up to its top in a point; first in a word, or after p, s keeps it (Nelson's upright «is», «past» / «she», «jumps»)", () => {
+    const cs = (d) => d.match(/C/g).length;
+    const own = cs(row("british_joined", "s")[0].d);
+    for (const w of ["is", "as", "us"]) {
+      const r = row("british_joined", w), j = r.findIndex((x) => x.join), sj = r[j + 1];
+      expect(cs(sj.d), w).toBe(own - 1);
+      expect(getPathEndpoints(sj.d).start, w).toEqual(getPathEndpoints(r[j].d).end);
+      expect(getPathEndpoints(sj.d).start[1], w).toBeCloseTo(40, 0); // its top, on the x-line (40 at this scale)
+    }
+    expect(cs(row("british_joined", "she")[0].d)).toBe(own);
+    const ps = row("british_joined", "ps");
+    expect(ps.some((x) => x.join)).toBe(false);
+    expect(cs(ps[ps.length - 1].d)).toBe(own);
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);

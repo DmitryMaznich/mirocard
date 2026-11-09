@@ -1759,7 +1759,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ascFrom: rules.ascFrom ?? {}, entryStroke: rules.entryStroke ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ascFrom: rules.ascFrom ?? {}, entryStroke: rules.entryStroke ?? {}, startTrim: rules.startTrim ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1853,7 +1853,22 @@ function nelsonLoopRound(d, m, t, top, left) {
     `C ${f(top[0] - lx * K)} ${f(top[1])} ${f(left[0])} ${f(left[1] - ly * K)} ${f(left[0])} ${f(left[1])} ` + tok.slice(24).join(" ");
 }
 // where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
+// The path without its first `k` cubics: it starts where the k-th ended.
+function nelsonDropStart(d, k) {
+  const tok = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g);
+  if (!tok || tok[0] !== "M" || tok.filter((t) => t === "C").length <= k) return d;
+  const at = 3 + (k - 1) * 7; // the k-th "C": its end is tokens at+5, at+6
+  return `M ${tok[at + 5]} ${tok[at + 6]} ` + tok.slice(3 + k * 7).join(" ");
+}
 function nelsonTarget(R, label, kind, strokes, scale, entry = null, meet = null) {
+  // (`startTrim` { letter: k }: joined into, the letter is written without its first k cubics — s without the hook over its top: the
+  // join comes up to the top in a point and s goes on down from there; at the start of a word, or after a letter that does not join, s
+  // keeps it — Nelson's upright «is», «past», «house», «because» against «she», «stairs», «jumps»; owner, 2026-11-09)
+  const kTrim = R.startTrim[label];
+  if (kTrim && strokes[0]) {
+    const d = nelsonDropStart(strokes[0].d, kTrim);
+    return { p: getPathEndpoints(d).start, t: null, startTrim: kTrim };
+  }
   const first = strokes[0]?.d;
   const p = samplePath(first, 160);
   // a DIAGONAL join to a tall letter (b f h k l t) comes to its stem's middle, where the stem crosses the x-line, as to a letter of the
@@ -2247,13 +2262,14 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
             // (from the bottom of s: the next letter stands `edgeFrom` (of the x-height) clear of the letter before — the join from s's
             // foot then runs up long and slanting, as Nelson's «spin», «guess», not steep into a letter crowding the s: owner, 2026-11-09)
-            const edge = nelson.edgeFrom[prevLabel] != null ? nelson.edgeFrom[prevLabel] * WIDE_ZONE_UNITS * scale : nelson.edge * scale;
+            // (not before e's loop: s–e rises from s's foot straight into it, e close by — Nelson's upright «house», «because»)
+            const edge = nelson.edgeFrom[prevLabel] != null && !tg.intoLoop ? nelson.edgeFrom[prevLabel] * WIDE_ZONE_UNITS * scale : nelson.edge * scale;
             const dxJ = Math.max(prevRight + edge - left, need);
             wantStartX = dxJ + local.start[0];
             // (from under s up to the x-line (s–p, s–i, s–t …): one parabola-like arc — it leaves s's foot level, under the bowl, and
             // bends up to the next letter's top, Nelson's «spin», «spill»; owner, 2026-11-09: «выходит из-под s и идёт немного по
             // параболической траектории к верху p»)
-            const bowlArc = kind === "d" && nelson.fromBottom.has(prevLabel) && !nelson.oval.has(label) && nelson.bowlArc != null;
+            const bowlArc = kind === "d" && nelson.fromBottom.has(prevLabel) && !nelson.oval.has(label) && !tg.intoLoop && nelson.bowlArc != null;
             nelsonJoin = { kind, ex, tg, ovalIn, bowlArc: bowlArc && !ascFrom, ascIn: Boolean(ascFrom) };
           }
         }
@@ -2571,6 +2587,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
+        if (nelsonJoin?.tg.startTrim && moved[0]) moved[0] = { ...moved[0], d: nelsonDropStart(moved[0].d, nelsonJoin.tg.startTrim) };
         if (nelsonJoin?.tg.entry && moved[nelsonJoin.tg.entry]) moved.unshift(...moved.splice(nelsonJoin.tg.entry, 1)); // (that stroke first)
         if (nelsonJoin?.tg.rebuild && moved[0]) moved[0] = { ...moved[0], d: nelsonRebuildStart(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.rebuild) };
         if (nelsonJoin?.tg.intoLoop && moved[0]) {
