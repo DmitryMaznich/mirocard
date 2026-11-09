@@ -699,6 +699,41 @@ def share_tail(tidied):
         tidied[label][0]["segs"] = segs[:k] + [[top, top + (bend - top) / 3, top + 2 * (bend - top) / 3, bend]] + [[pt + dx for pt in sg] for sg in hook]
 
 
+# B's two bellies after the original (owner, 2026-11-09: «B нижнее пузо должно быть чуть больше, проверь по оригиналу»). Measured on
+# the underlay: the middle bar's middle at 61.3 (above the x-line: the lower belly is the taller), the bellies' right sides (the middle
+# of the stroke) 24.4 and 26.2 right of the stem's middle. The hand's bars keep their lengths; each belly is two ellipse quarters.
+BELLIES_FROM_ORIGINAL = set("B")
+
+
+def original_bellies(label):
+    from PIL import Image
+    a = np.array(Image.open(UNDERLAYS / f"up_{label}.png"))[:, :, 3] > 128
+    cols = np.nonzero(a.any(0))[0]; c0 = cols[0]; stem_c = UL_X + c0 / UL_PX + HALF_INK
+    right = lambda y0, y1: max(np.nonzero(a[y, :])[0].max() for y in range(int(y0 * UL_PX), int(y1 * UL_PX)) if a[y, :].any())
+    upper = UL_X + right(BASE - 52, X_LINE) / UL_PX - HALF_INK - stem_c
+    lower = UL_X + right(X_LINE, BASE + 2) / UL_PX - HALF_INK - stem_c
+    span = slice(c0 + int(6 * UL_PX), c0 + int(12 * UL_PX))
+    rows = [y / UL_PX for y in range(int(50 * UL_PX), int(75 * UL_PX)) if a[y, span].all()]
+    return upper, lower, (min(rows) + max(rows)) / 2
+
+
+def bellies_from_original(label, strokes):
+    upper, lower, mid = original_bellies(label)
+    stem = strokes[0]["segs"][0][0][0]
+    segs = strokes[1]["segs"]
+    if len(segs) != 8: return  # top bar, 2 quarters, bar in, bar out, 2 quarters, bottom bar
+    quarter = lambda p0, p3, t0, t1: [p0, p0 + t0 * K_ELL * (abs(p3[0] - p0[0]) if abs(t0[0]) > 0.5 else abs(p3[1] - p0[1])),
+                                      p3 - t1 * K_ELL * (abs(p3[0] - p0[0]) if abs(t1[0]) > 0.5 else abs(p3[1] - p0[1])), p3]
+    top, bot = segs[0][0][1], segs[7][3][1]
+    a = segs[0][3]; b = np.array([segs[2][3][0], mid]); c = np.array([segs[3][3][0], mid]); d = np.array([segs[4][3][0], mid])
+    e = segs[7][0]
+    ru = np.array([stem + upper, (top + mid) / 2]); rl = np.array([stem + lower, (mid + bot) / 2])
+    L, R, U, D = np.array([-1.0, 0]), np.array([1.0, 0]), np.array([0, -1.0]), np.array([0, 1.0])
+    line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
+    strokes[1]["segs"] = [segs[0], quarter(a, ru, R, D), quarter(ru, b, D, L), line(b, c), line(c, d),
+                          quarter(d, rl, R, D), quarter(rl, e, D, L), segs[7]]
+
+
 def render_glyph(cap, strokes):
     whole = not cap["label"].islower()
     xs = [pt[0] for s in strokes for seg in s.get("segs", []) for pt in seg] + [s["dot"][0] for s in strokes if "dot" in s]
@@ -735,6 +770,7 @@ def main():
         original_bowl(l, tidied[l])
     share_bowl(tidied)
     share_tail(tidied)
+    for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write("\n")

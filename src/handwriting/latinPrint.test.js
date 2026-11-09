@@ -202,4 +202,14 @@ describe("English print letters in the propis2 engine", () => {
     expect(q2[1][0]).toBeCloseTo(q2[0][0], 6);   // ... going on upright
     expect(q2[2][1]).toBeCloseTo(q2[3][1], 6);   // into the bottom bar level
   });
+  it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
+    const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
+    const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];
+    const pts = samplePath(toCubicPathD(B.strokes[1].d), 40);
+    const bar = pts.filter((q) => q[0] < stem + 6 && q[1] > 0 && q[1] < 40)[0][1]; // the middle bar near the stem
+    const right = (lo, hi) => Math.max(...pts.filter((q) => q[1] > lo && q[1] < hi).map((q) => q[0])) - stem;
+    // measured on the underlay (tool units x the capital scale 1.871): the middle bar 0.7 above the x-line, bellies 24.4 / 26.2 wide
+    expect(bar).toBeLessThan(62 + (62 - 88) * 2 * (1 + 0.74) / (1 + 0.86)); // above the x-line as a capital is scaled (13.35)
+    expect(right(bar + 1, 62) - right(-30, bar - 1)).toBeGreaterThan(2.5);
+  });
 });
