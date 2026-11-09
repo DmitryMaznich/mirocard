@@ -1711,6 +1711,84 @@ const WIDE_ROW_CACHE = new WeakMap(); // glyphsByLabel -> WeakMap(snapX) -> Map(
 const WIDE_ROW_CACHE_MAX = 4000;
 // A glyph bank with a writing geometry of its own (`glyphsByLabel.script`, a variant deck's meta.script: another slant, other heights
 // above and below the lowercase band — scriptGeometry.js) gets every finished row mapped to it; the layout itself is the Russian one.
+// Joins of a print style written apart (docs/latin-letters.md, the Nelson joins, owner 2026-11-09): `script.joinRules` of the style says
+// which letters join and how; the letters themselves stay as drawn (the style's own glyphs, with their exit flicks), the join is a
+// stroke of its own from the end of one letter to the next one, and the next letter stands where that join rises at the style's angle.
+//   diagonalFrom: letters joined FROM with a diagonal join (their exit flick, Nelson's groups 1: a c d e h i k l m n s t u)
+//   levelFrom:    letters joined FROM with a level join (they end at the top of the x-height, group 4: f o r v w); any other letter
+//                 (b g j p q x y z, the capitals, the signs) is never joined from
+//   noJoinTo:     letters never joined TO (z)
+//   oval:         letters starting at the top right of their oval (a c d g o q s): a diagonal join merges with their upper left arc,
+//                 a level one comes to their top
+//   toTop:        letters a join comes to at their top, not at their start (f: the top of its hook)
+//   exitStroke:   { letter: stroke index } the join leaves from the end of that stroke (f: its bar); default the first stroke
+//   exitFromBottom: letters the join leaves from the bottom of their first stroke, going right (s: it ends low on the left)
+//   run:          horizontal run of a join per unit of its rise (0.45: the Nelson angle)
+//   minRun / levelRun: the least run of a diagonal / level join; edge: the least gap between the ink before and the next letter's
+//                 left side (row units at full scale)
+const nlsSet = (s) => new Set([...(s ?? "")]);
+const NLS_CACHE = new WeakMap();
+function nelsonRules(rules) {
+  if (!rules) return null;
+  if (!NLS_CACHE.has(rules)) {
+    NLS_CACHE.set(rules, {
+      diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop),
+      exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom),
+      run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, levelRun: rules.levelRun ?? 10, edge: rules.edge ?? 3,
+    });
+  }
+  return NLS_CACHE.get(rules);
+}
+function nelsonJoinKind(R, a, b) {
+  if (!R || !a || !b || R.noTo.has(b) || R.noTo.has(a)) return null;
+  return R.diag.has(a) ? "d" : R.level.has(a) ? "h" : null;
+}
+const nlsUnit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+// where a join leaves the letter (placed strokes) and the direction it goes on in
+function nelsonExit(R, label, strokes) {
+  const first = strokes[0]?.d;
+  if (!first) return null;
+  if (R.fromBottom.has(label)) {
+    const p = samplePath(first, 120);
+    let best = p[0];
+    for (const q of p) if (q[1] > best[1]) best = q;
+    return { p: best, t: [1, 0] };
+  }
+  const st = strokes[R.exitStroke[label] ?? 0]?.d;
+  if (!st) return null;
+  const n = st.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g).map(Number);
+  const k = n.length;
+  let t = nlsUnit(n[k - 2] - n[k - 4], n[k - 1] - n[k - 3]);
+  if (!Number.isFinite(t[0]) || (n[k - 2] === n[k - 4] && n[k - 1] === n[k - 3])) t = nlsUnit(n[k - 2] - n[k - 6], n[k - 1] - n[k - 5]);
+  return { p: [n[k - 2], n[k - 1]], t };
+}
+// where a join comes into the next letter (local strokes) and the direction it arrives in (null: along its own chord)
+function nelsonTarget(R, label, kind, strokes) {
+  const first = strokes[0]?.d;
+  const p = samplePath(first, 160);
+  if (kind === "d" && R.oval.has(label)) {
+    // the point of the upper left arc (between its top and its left side) where the arc, gone backwards, rises at the join's angle
+    let iLeft = 0;
+    for (let i = 0; i < p.length / 2; i += 1) if (p[i][0] < p[iLeft][0]) iLeft = i;
+    let iTop = 0;
+    for (let i = 0; i <= iLeft; i += 1) if (p[i][1] < p[iTop][1]) iTop = i;
+    const want = nlsUnit(R.run, -1);
+    let best = -2, bi = iTop, bt = null;
+    for (let i = iTop + 1; i < iLeft; i += 1) {
+      const r = nlsUnit(p[i - 1][0] - p[i + 1][0], p[i - 1][1] - p[i + 1][1]);
+      const dot = r[0] * want[0] + r[1] * want[1];
+      if (dot > best) { best = dot; bi = i; bt = r; }
+    }
+    return { p: p[bi], t: bt };
+  }
+  if (R.oval.has(label) || R.toTop.has(label)) {
+    let top = p[0];
+    for (let i = 0; i < p.length / 4; i += 1) if (p[i][1] < top[1]) top = p[i];
+    return { p: top, t: null };
+  }
+  return { p: getPathEndpoints(first).start, t: null };
+}
+
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   const key = scriptKey(glyphsByLabel?.script);
   if (key === null) return layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);
@@ -1914,6 +1992,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       // stands after the ink of the one before at `script.letterGap` (row units at full scale), no connector is drawn, nothing joins.
       // Absent / true: the cursive engine exactly as before.
       const unjoined = glyphsByLabel?.script?.joins === false;
+      // ...and joined after all by the style's own rules (script.joinRules, the Nelson joins)
+      const nelson = unjoined ? nelsonRules(glyphsByLabel?.script?.joinRules) : null;
       // the pieces of ONE composed letter (ш = three hooks, ы = ь + ы2, ии): they are written as the letter itself, never joined by a variant's own connector (`topJoins`)
       const innerPiece = new Set();
       { let at = 0; for (const raw of wideTokenToLabelsRaw(token, glyphsByLabel)) { const n = glyphsByLabel.get(raw)?.compose?.length ?? 1; for (let k = 1; k < n; k += 1) innerPiece.add(at + k); at += n; } }
@@ -1966,7 +2046,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // on the slant grid — the grid's lean would pull a word that starts high (D, L, M) back over the one before it
         const freeWord = unjoined && !loose && !prevExit && Boolean(prevToken) && tokenStartX === null && Number.isFinite(prevToken?.inkMaxX);
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
-        const wantStartX = freeWord
+        let wantStartX = freeWord
           ? prevToken.inkMaxX + (glyphsByLabel.script.wordGap ?? WIDE_WORD_SPACE) * scale + pendingGap * CELL - local.minX + local.start[0]
           : loose
           ? cursorX + (apart ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - (apart ? local.apartMinX ?? local.minX : local.minX) + local.start[0]
@@ -1976,6 +2056,21 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
+        // a Nelson join from the letter before (script.joinRules): the next letter stands a little after the ink before it (`edge`) and
+        // far enough on that the join rises at the style's angle (`run` per unit of rise); the join itself is drawn below, once placed
+        let nelsonJoin = null;
+        if (nelson && apart && loose && !afterSign && !inCell && prevGlyphStrokes && glyph.kind === "letter") {
+          const kind = nelsonJoinKind(nelson, prevLabel, label);
+          const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes) : null;
+          if (ex) {
+            const tg = nelsonTarget(nelson, label, kind, local.strokes);
+            const rise = Math.abs(ex.p[1] - tg.p[1]);
+            const need = ex.p[0] + Math.max((kind === "h" ? nelson.levelRun : nelson.minRun) * scale, nelson.run * rise) - tg.p[0];
+            const dxJ = Math.max(cursorX + nelson.edge * scale - (local.apartMinX ?? local.minX), need);
+            wantStartX = dxJ + local.start[0];
+            nelsonJoin = { kind, ex, tg };
+          }
+        }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
         // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
         // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
@@ -2249,6 +2344,18 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: `${strokes[prevExitStroke].d} C ${f2(tailEnd[0] + (tdx / tl) * k1)} ${f2(tailEnd[1] + (tdy / tl) * k1)} ${f2(target[0] - (adx / al) * k2)} ${f2(target[1] - (ady / al) * k2)} ${f2(target[0])} ${f2(target[1])}` };
             }
           }
+        }
+        if (nelsonJoin) {
+          const { kind, ex, tg } = nelsonJoin;
+          const pe = ex.p, ns = [tg.p[0] + dx, tg.p[1]];
+          const L = Math.hypot(ns[0] - pe[0], ns[1] - pe[1]);
+          const ch = nlsUnit(ns[0] - pe[0], ns[1] - pe[1]);
+          let c1, c2;
+          if (kind === "h" && Math.abs(ns[1] - pe[1]) < 12 * scale) { c1 = [pe[0] + L / 3, pe[1]]; c2 = [ns[0] - L / 3, ns[1]]; }
+          else if (kind === "h") { c1 = [pe[0] + L / 2.5, pe[1]]; c2 = [ns[0], ns[1] + L / 3]; } // up to an ascender: leaves level, arrives rising
+          else { const a = tg.t ?? ch; c1 = [pe[0] + ex.t[0] * L / 3, pe[1] + ex.t[1] * L / 3]; c2 = [ns[0] - a[0] * L / 3, ns[1] - a[1] * L / 3]; }
+          const f3 = (v) => v.toFixed(3);
+          strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);

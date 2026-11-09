@@ -100,12 +100,44 @@
         {
           "id": "british",
           "title": "Британские раздельные",
-          "note": "Нельсон: печатные с хвостиками, буквы раздельно; соединённые — отдельным стилем (в работе)",
+          "note": "Нельсон: печатные с хвостиками, буквы раздельно",
           "glyphsFile": "tools/handwriting/latin/british.json",
           "script": {
             "joins": false,
             "letterGap": 12,
             "wordGap": 56
+          },
+          "papers": [
+            "en_gb",
+            "en_gb_8",
+            "en_gb_6",
+            "en_gb_4",
+            "square",
+            "ruled"
+          ]
+        },
+        {
+          "id": "british_joined",
+          "title": "Британские соединённые",
+          "note": "Нельсон: те же буквы, соединения по его правилам (4 группы букв, 4 вида соединений, после b g j p q x y z — без соединения)",
+          "glyphsFile": "tools/handwriting/latin/british.json",
+          "script": {
+            "joins": false,
+            "letterGap": 12,
+            "wordGap": 56,
+            "joinRules": {
+              "diagonalFrom": "acdehiklmnstu",
+              "levelFrom": "forvw",
+              "noJoinTo": "z",
+              "oval": "acdgoqs",
+              "toTop": "f",
+              "exitStroke": { "f": 1 },
+              "exitFromBottom": "s",
+              "run": 0.45,
+              "minRun": 6,
+              "levelRun": 10,
+              "edge": 3
+            }
           },
           "papers": [
             "en_gb",

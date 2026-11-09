@@ -259,7 +259,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(sheet().querySelector('[aria-label="Язык письма"]')).toBeNull();
     expect(sheet().querySelector("h2").textContent).toBe("Стиль новой тетради");
     const styleRadios = () => [...sheet().querySelectorAll('[data-testid="propis2-style-list"] [role="radio"]')];
-    expect(styleRadios().map((b) => b.querySelector(".p2-lang-name").textContent)).toEqual(["Печатные", "Британские раздельные"]);
+    expect(styleRadios().map((b) => b.querySelector(".p2-lang-name").textContent)).toEqual(["Печатные", "Британские раздельные", "Британские соединённые"]);
     expect(styleRadios()[0].getAttribute("aria-checked")).toBe("true");
     await click(styleRadios()[1]);
     await click(btn(sheet(), "Готово"));
