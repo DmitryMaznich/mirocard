@@ -151,6 +151,7 @@
               "levelToStem": 0.6,
               "levelToStemFrom": { "f": 0.78 },
               "ascFrom": { "s": { "meet": 0.55, "gap": 0.55 } },
+              "entryStroke": { "x": 1 },
               "ovalSag": 0.06,
               "ovalEntry": 0.25,
               "diagUpInto": { "f": 0.12 },

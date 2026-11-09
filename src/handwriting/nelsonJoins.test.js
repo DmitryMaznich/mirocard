@@ -172,6 +172,16 @@ describe("Nelson joins (script.joinRules)", () => {
     }
   });
 
+  it("a join into x comes to the top of its left arm, and x is written from there (Nelson's upright «fox»)", () => {
+    for (const w of ["ox", "ax"]) {
+      const r = row("british_joined", w), j = r.findIndex((s) => s.join);
+      const arms = r.slice(j + 1);
+      const end = getPathEndpoints(r[j].d).end;
+      expect(getPathEndpoints(arms[0].d).start, w).toEqual(end); // the left arm, from the join's end, first
+      expect(getPathEndpoints(arms[1].d).start[0], w).toBeGreaterThan(end[0] + 5); // then the right arm, from its top right
+    }
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
