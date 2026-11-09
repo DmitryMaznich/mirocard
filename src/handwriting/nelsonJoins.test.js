@@ -162,13 +162,13 @@ describe("Nelson joins (script.joinRules)", () => {
     expect((stems[1] - stems[0]) / 24).toBeGreaterThan(0.8); // stem to stem: f's tail (0.7 wide) clear of the f before
   });
 
-  it("from under s into a tall letter: the join runs into its stem half way up, the stem 0.55 after s (Nelson's upright «she», «slowly», «past»)", () => {
-    const xs = (d) => d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 0);
-    for (const w of ["sh", "sl", "st"]) {
-      const r = row("british_joined", w), j = r.findIndex((s) => s.join);
-      const end = getPathEndpoints(r[j].d).end;
-      expect((64 - end[1]) / 24, w).toBeCloseTo(0.55, 1); // (baseline 64, x-height 24 at this scale)
-      expect((end[0] - Math.max(...r.slice(0, j).flatMap((s) => xs(s.d)))) / 24, w).toBeCloseTo(0.55, 1);
+  it("from under s (whole or short) to a tall letter too: one parabola up to the x-line, as to a letter of the x-height (owner, 2026-11-09)", () => {
+    for (const w of ["sh", "sl", "st", "ish", "ist"]) {
+      const r = row("british_joined", w), j = r.findIndex((x) => x.join && getPathEndpoints(x.d).start[1] > 60);
+      const n = r[j].d.match(/-?\d*\.?\d+/g).map(Number);
+      expect(n[7], w).toBeCloseTo(40, 0); // up to the x-line (40 at this scale)
+      expect(n[3], w).toBeCloseTo(n[1], 6); // leaving level, from under s
+      expect((n[2] - n[0]) / (n[6] - n[0]), w).toBeGreaterThan(0.6); // a parabola: its first handle far along
     }
   });
 
