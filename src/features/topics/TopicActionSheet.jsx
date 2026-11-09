@@ -2,7 +2,7 @@ import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 
-export default function TopicActionSheet({ record, onClose, onInfo, onDelete, onStatistics, onLanguage }) {
+export default function TopicActionSheet({ record, onClose, onInfo, onDelete, onStatistics, onLanguage, showVersion = false }) {
   const { t } = useUiTranslation();
   const isBuiltin    = Boolean(record.meta.builtin);
   const isFirstParty = FIRST_PARTY_DECK_IDS.has(record.meta.id);
@@ -16,6 +16,7 @@ export default function TopicActionSheet({ record, onClose, onInfo, onDelete, on
     <div className="action-sheet-overlay" onClick={handleOverlay}>
       <div className="action-sheet" role="dialog" aria-modal="true">
         <div className="action-sheet__title">{getInterfaceTopicTitle(record.meta.id, record.meta.title)}</div>
+        {showVersion && <div className="action-sheet__title">{t("preview.version", { version: record.meta.version })}</div>}
         {record.languageContract && onLanguage && <button className="action-sheet__item" onClick={() => { onLanguage(record); onClose(); }}>{t("topicLanguage.change")}</button>}
         {onStatistics && <button className="action-sheet__item" onClick={() => { onStatistics(record); onClose(); }}>{t("nav.statistics")}</button>}
         <button

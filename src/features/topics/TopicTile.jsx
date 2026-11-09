@@ -8,6 +8,10 @@ import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, LockSmallIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
+import TopicTilePreview from "./TopicTilePreview";
+import { setupText } from "@/shared/i18n/setupText";
+import { isPickableMode } from "@/shared/utils/topicUtils";
+import { topicLanguageForStudent } from "./topicLanguageChoice";
 
 // One row in the "Темы" list — a neutral bordered card (Claude Desktop
 // connector-catalog look), not the earlier colored-pill fill. Covers both a
@@ -30,6 +34,9 @@ import Button from "@/shared/components/Button";
 // itself is a plain white row now, and color is reserved for the status
 // badge only.
 export default function TopicTile({
+  presentation = "legacy",
+  recent = false,
+  category,
   title,
   entry,             // catalog descriptor, or null if not in the shared catalog (builtin / imported)
   installedRecord,   // local topic record, or null if not installed
@@ -54,6 +61,7 @@ export default function TopicTile({
   onSelect,
   onMenu,
   onInfo,
+  onPreviewInfo,
   onLockedTap,
   disabled = false,
 }) {
@@ -160,8 +168,21 @@ export default function TopicTile({
     : status === "soon"    ? t("topics.soon")
     : t("topics.requestSent");
 
+  const contentLanguage = installedRecord?.languageContract ? (materialLanguage ?? topicLanguageForStudent(installedRecord)) : null;
+  const languageModeIds = installedRecord?.languageContract?.packages?.[contentLanguage]?.modeIds;
+  const previewModes = installedRecord?.modes?.filter(isPickableMode)
+    .filter((mode) => !languageModeIds || languageModeIds.includes(mode.id));
+
   return (
     <>
+    {presentation !== "legacy" ? <TopicTilePreview title={title} topicId={topicId} avatarPath={avatarPath}
+      version={installedRecord?.meta.version ?? entry?.version ?? "—"} availableVersion={entry?.version} categoryLabel={category}
+      description={setupText(entry?.description) || setupText(installedRecord?.meta.about?.description)}
+      modeCount={previewModes?.length} recent={recent} installed={Boolean(installedRecord)} isBuiltin={isBuiltin}
+      presentation={presentation} status={status} badgeLabel={badgeLabel} canOpen={canOpen}
+      loading={loading} progress={progress} error={error} disabled={disabled}
+      onOpen={handleTileClick} onAction={handleBadgeClick}
+      onMenu={() => onMenu?.(installedRecord)} onInfo={onPreviewInfo} /> : <>
     <article
       className={`topic-tile-row${canOpen ? " topic-tile-row--open" : ""}${isSoon ? " topic-tile-row--soon" : ""}`}
       onClick={handleTileClick}
@@ -223,6 +244,7 @@ export default function TopicTile({
       )}
     </article>
     {error && <div className="topic-tile-row__error" role="alert">{error}</div>}
+    </>}
     {showingSoon && (
       <Modal
         title={t("topics.soonTitle")}
