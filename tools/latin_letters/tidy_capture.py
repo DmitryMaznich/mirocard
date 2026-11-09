@@ -1000,7 +1000,8 @@ def arches_from_original(cap, tidied_strokes):
 # the thinned ink (as n m's arches). The underlay is put centre on centre of the hand's letter; the pen goes along the thinned ink from
 # the hand's start to its end, the ends brought back to half a pen from the ink's tips. G: round to the right side and up it, into its
 # stem (STEM_TOUCH), up the stem to its top and straight down it to the baseline, as the hand went.
-OPEN_FROM_ORIGINAL = set("CGSJUse")
+OPEN_FROM_ORIGINAL = set("CGSJUs")  # (e was taken from the original too on 2026-11-09 and put back the same day: the owner had approved
+# «re» with the traced e — the join from below into e is Nelson's own path instead, wordEngine `diagIntoPath`)
 ROUTE_WAYPOINTS = set("e")  # s: owner, 2026-11-09 «шлифануть s — подогнать к оригиналу»
 STEM_LEAVE = 0.35  # J U: the thinned ink has left the stem's line by this much: the bow begins
 
