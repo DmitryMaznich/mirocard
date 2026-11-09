@@ -1727,7 +1727,8 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //   run:          horizontal run of a join per unit of its rise (0.45: the Nelson angle)
 //   minRun:       the least run of a diagonal join; edge: the least gap between the ink before and the next letter's left side (row
 //                 units at full scale); levelGap: the gap a level join leaves between the letters (of the x-height);
-//                 levelSag: how deep (of the x-height) a level join to a letter of the x-height sags between the two tops
+//                 levelSag: how deep (of the x-height) a level join to a letter of the x-height sags between the two tops;
+//                 levelEntry: the slope (rise per run) at which a level join comes up out of its sag into an oval's arc
 const nlsSet = (s) => new Set([...(s ?? "")]);
 const NLS_CACHE = new WeakMap();
 function nelsonRules(rules) {
@@ -1737,7 +1738,7 @@ function nelsonRules(rules) {
       diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop), ascender: nlsSet(rules.ascender),
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom),
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
-      levelGap: rules.levelGap ?? 0.5, levelSag: rules.levelSag ?? 0.18,
+      levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1782,13 +1783,15 @@ function nelsonTarget(R, label, kind, strokes, scale) {
       }
     }
   }
-  if (kind === "d" && R.oval.has(label)) {
-    // the point of the upper left arc (between its top and its left side) where the arc, gone backwards, rises at the join's angle
+  if (R.oval.has(label) && (kind === "d" || !R.toTop.has(label))) {
+    // the point of the upper left arc (between its top and its left side) where the arc, gone backwards, rises at the join's angle:
+    // the join merges into the arc there and goes on along it (a level join, after its sag, comes up into it at `levelEntry` —
+    // owner, 2026-11-09: «соединение заходит в следующую букву и не идёт по её траектории, а немножко пересекает»)
     let iLeft = 0;
     for (let i = 0; i < p.length / 2; i += 1) if (p[i][0] < p[iLeft][0]) iLeft = i;
     let iTop = 0;
     for (let i = 0; i <= iLeft; i += 1) if (p[i][1] < p[iTop][1]) iTop = i;
-    const want = nlsUnit(R.run, -1);
+    const want = kind === "d" ? nlsUnit(R.run, -1) : nlsUnit(1, -R.levelEntry);
     let best = -2, bi = iTop, bt = null;
     for (let i = iTop + 1; i < iLeft; i += 1) {
       const r = nlsUnit(p[i - 1][0] - p[i + 1][0], p[i - 1][1] - p[i + 1][1]);
@@ -2378,7 +2381,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // x-height deep, a Bézier's middle is 3/4 of its control points' offset)
           if (kind === "h" && Math.abs(ns[1] - pe[1]) < 12 * scale) {
             const sag = (nelson.levelSag * WIDE_ZONE_UNITS * scale) / 0.75;
-            c1 = [pe[0] + L / 3, pe[1] + sag]; c2 = [ns[0] - L / 3, ns[1] + sag];
+            c1 = [pe[0] + L / 3, pe[1] + sag];
+            // into an oval: along its arc (tg.t, rising out of the sag); into a letter starting at the top left (n i r …): level
+            c2 = tg.t ? [ns[0] - tg.t[0] * L / 3, ns[1] - tg.t[1] * L / 3] : [ns[0] - L / 3, ns[1] + sag];
           }
           else if (kind === "h" && ns[1] < pe[1]) { c1 = [pe[0] + L / 2.5, pe[1]]; c2 = [ns[0], ns[1] + L / 3]; } // up to an ascender: leaves level, arrives rising
           else if (kind === "h") { c1 = [pe[0] + L / 3, pe[1]]; c2 = [ns[0] - ch[0] * L / 3, ns[1] - ch[1] * L / 3]; } // down to a low start (e): leaves level, goes down to it
