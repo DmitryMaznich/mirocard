@@ -1270,6 +1270,10 @@ def main():
     share_exit(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])
     if "f" in tidied: f_from_nelson(tidied["f"])
+    # x from the top of its left arm (owner, 2026-11-09, after Nelson's «fox»: the join comes into the left arm's top, and x is written
+    # from there, apart as joined): the hand traced the right arm first
+    if "x" in tidied and len(tidied["x"]) == 2 and tidied["x"][0]["segs"][0][0][0] > tidied["x"][1]["segs"][0][0][0]:
+        tidied["x"].reverse()
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
     sys.stdout.write("\n")

@@ -1922,8 +1922,8 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null, meet = null)
     for (let i = 0; i < p.length / 4; i += 1) if (p[i][1] < top[1]) top = p[i];
     return { p: top, t: null };
   }
-  // (`entryStroke` { letter: k }: a join comes to the start of its k-th stroke, which is then written first — x: into the top of its left
-  // arm, Nelson's upright «fox»; owner, 2026-11-09)
+  // (`entryStroke` { letter: k }: a join comes to the start of its k-th stroke, which is then written first; x had it until its own
+  // stroke order became the left arm first, 2026-11-09)
   const k = R.entryStroke[label];
   if (k != null && strokes[k]) return { p: getPathEndpoints(strokes[k].d).start, t: null, entry: k };
   return { p: getPathEndpoints(first).start, t: null };
