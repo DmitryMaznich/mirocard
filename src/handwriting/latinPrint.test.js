@@ -259,6 +259,11 @@ describe("English print letters in the propis2 engine", () => {
     expect(stem - T[0]).toBeCloseTo(38.2, 0);
     expect(T.at(-2) - stem).toBeCloseTo(39.1, 0);
   });
+  it("British d ends as a does: the same stem foot and flick, so it goes on into a join as smoothly (owner, 2026-11-09)", () => {
+    const gb = Object.fromEntries(JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.map((g) => [g.label, g]));
+    const tail = (l) => gb[l].strokes[0].d.split("C").slice(-2).join("C").trim();
+    expect(tail("d")).toBe(tail("a"));
+  });
   it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
     const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
     const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];

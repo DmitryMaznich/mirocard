@@ -785,6 +785,25 @@ def share_bowl(tidied):
 SHARED_TAIL, TAIL_FROM = set("gy"), "j"
 
 
+# d ends as a does (owner, 2026-11-09: «у d сделай исходящий крюк так же гладко переходящим в соединение, как у a»): d's own flick
+# flattened at its end, and the join going on steeper from it made a wave; d's stem foot and flick are now a's (its last two cubics, put on
+# d's stem), its stem running down to where a's turns into the foot
+SHARED_EXIT = {"d": "a"}
+
+
+def share_exit(tidied):
+    for dst, src in SHARED_EXIT.items():
+        if dst not in tidied or src not in tidied: continue
+        a, d = tidied[src][0]["segs"], tidied[dst][0]["segs"]
+        tail = [[pt.copy() for pt in sg] for sg in a[-2:]]
+        dx = np.array([d[-3][3][0] - a[-3][3][0], 0.0])
+        tail = [[pt + dx for pt in sg] for sg in tail]
+        stem = d[-3]  # the stem down
+        p0, p3 = stem[0], tail[0][0]
+        d[-3] = [p0, p0 + (p3 - p0) / 3, p0 + 2 * (p3 - p0) / 3, p3]
+        tidied[dst][0]["segs"] = d[:-2] + tail
+
+
 def share_tail(tidied):
     src = tidied.get(TAIL_FROM)
     if not src: return
@@ -1217,6 +1236,7 @@ def main():
     if "Z" in tidied and len(tidied["Z"]) == 1: bars_from_original("Z", tidied["Z"])
     share_bowl(tidied)
     share_tail(tidied)
+    share_exit(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])
     res = [render_glyph(caps[l], tidied[l]) for l in caps]
     json.dump({"glyphs": res}, sys.stdout, ensure_ascii=False, indent=1)
