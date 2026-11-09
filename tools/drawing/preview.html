@@ -1,0 +1,8 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>body{margin:0;font-family:system-ui;background:#f3f1eb}*{box-sizing:border-box}.preview-header{padding:calc(12px + var(--app-safe-top,0px)) 16px 12px;background:white}button,select{font:inherit}</style><div class="preview-header">Рисование · Рисуем по шагам</div><div id="root"></div><script type="module">
+import * as React from 'react';import * as ReactDOM from 'react-dom/client';import * as jsxRuntime from 'react/jsx-runtime';import JSZip from 'jszip';
+const zip=await JSZip.loadAsync(await(await fetch('/decks/drawing_v0.1.0.zip')).arrayBuffer());const manifest=JSON.parse(await zip.file('topic.json').async('string'));
+window.__Mirocard={React,ReactDOM,jsxRuntime};(0,eval)(await zip.file('renderer').async('string'));const style=document.createElement('style');style.textContent=await zip.file('mirocard2.css').async('string');document.head.append(style);
+window.lesson=manifest.cards[0].lesson;window.finishCount=0;
+const Renderer=window.__MirocardRenderer.default??window.__MirocardRenderer;window.root=ReactDOM.createRoot(document.getElementById('root'));
+window.root.render(React.createElement(Renderer,{task:{type:'drawing_lesson',lesson:window.lesson},sessionParams:{speed:'fast'},onAdvance:()=>{window.finishCount++}}));
+</script></html>

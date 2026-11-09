@@ -1,3 +1,4 @@
+import DrawingRenderer from "./renderers/drawing/index.jsx";
 import FlashcardsRenderer          from "./renderers/flashcards/index.jsx";
 import OppositeRenderer            from "./renderers/opposites/index.jsx";
 import ComparisonRenderer          from "./renderers/comparison/index.jsx";
@@ -26,6 +27,7 @@ import LetterBridgeRenderer         from "./renderers/letter_bridge/index.jsx";
 import ComparisonLanguagePilotRenderer from "./renderers/comparison_language_pilot/index.jsx";
 
 export const RENDERER_REGISTRY = {
+  drawing: DrawingRenderer,
   comparison_language_pilot: ComparisonLanguagePilotRenderer,
   flashcards:            FlashcardsRenderer,
   comparison:            ComparisonRenderer,
