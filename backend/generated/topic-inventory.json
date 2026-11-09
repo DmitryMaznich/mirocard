@@ -1077,7 +1077,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-09T07:42:55+01:00"
+      "sourceUpdatedAt": "2026-11-09T10:23:15+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1116,18 +1116,26 @@
           "bg"
         ]
       },
-      "sourceUpdatedAt": "2026-11-09T07:42:55+01:00"
+      "sourceUpdatedAt": "2026-11-09T10:23:15+00:00"
     },
     {
       "id": "propis2_lang",
-      "title": {
-        "ru": "Прописи: латиница",
-        "en": "Copybook: Latin script"
-      },
+      "title": "Прописи: латиница",
       "version": "0.3.0",
-      "renderer": null,
-      "sources": [],
-      "bundle": null,
+      "renderer": "propis2",
+      "sources": [
+        "public/decks/propis2_lang_v0.3.0.zip",
+        "src/topics/renderers/propis2"
+      ],
+      "bundle": {
+        "version": "0.3.0",
+        "url": "./decks/propis2_lang_v0.3.0.zip",
+        "title": "Прописи: латиница",
+        "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
+        "renderer": "propis2",
+        "modes": 3,
+        "cards": 1
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "propis2_lang",
@@ -1150,7 +1158,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": null
+      "sourceUpdatedAt": "2026-11-09T10:23:15+00:00"
     },
     {
       "id": "reading_dad_instructions",
