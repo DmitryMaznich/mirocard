@@ -1,3 +1,4 @@
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { translateUi as tr } from "@/shared/i18n/uiLanguage.js";
 import { useState, useEffect } from "react";
@@ -45,6 +46,7 @@ function ReadingTextThumb({ topicId, text }) {
 }
 
 export default function TextPickerScreen() {
+  const { enabled: preview } = useTopicUiPreview();
   const { t: tr } = useUiTranslation();
   const setScreen        = useAppStore((s) => s.setScreen);
   const activeTopicId    = useAppStore((s) => s.activeTopicId);
@@ -90,16 +92,16 @@ export default function TextPickerScreen() {
     setActiveText(text);
     if (text.kind === "instruction") {
       setActiveModeId("follow_instruction");
-      setScreen("home");
+      setScreen(preview ? "params" : "home");
     } else if (text.kind === "shopping_list") {
       setActiveModeId("shopping_list");
-      setScreen("home");
+      setScreen(preview ? "params" : "home");
     } else if (text.kind === "safe_code") {
       setActiveModeId("safe_code");
-      setScreen("home");
+      setScreen(preview ? "params" : "home");
     } else if (text.kind === "poem_book") {
       setActiveModeId("read_poem_book");
-      setScreen("home");
+      setScreen(preview ? "params" : "home");
     } else {
       setScreen("modes");
     }

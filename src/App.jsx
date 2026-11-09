@@ -1,3 +1,4 @@
+import TopicUiPreviewContext from "@/features/topics/TopicUiPreviewContext";
 import TopicLanguageDialog from "@/features/topics/TopicLanguageDialog.jsx";
 import { useCallback, useEffect, useRef, Component } from "react";
 import { useAppStore } from "@/core/store";
@@ -405,6 +406,7 @@ export default function App() {
       <ErrorBoundary key={screen}>
         <Screen />
       </ErrorBoundary>
+      <TopicUiPreviewContext />
       <TopicLanguageDialog />
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}

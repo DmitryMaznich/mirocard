@@ -100,10 +100,13 @@ test("pre-React HTML bootstrap uses the same key and validation, including block
 test("Slovenian counts use CLDR dual and few forms, Russian keeps its own rules", () => {
   const counts = [0, 1, 2, 3, 4, 5, 11, 12, 101, 102];
   const sl = ["video nagrad", "video nagrada", "video nagradi", "video nagrade", "video nagrade", "video nagrad", "video nagrad", "video nagrad", "video nagrada", "video nagradi"];
-  const ru = ["видео-наград", "видео-награда", "видео-награды", "видео-награды", "видео-награды", "видео-наград", "видео-наград", "видео-наград", "видео-награда", "видео-награды"];
+  const ru = ["упражнений", "упражнение", "упражнения", "упражнения", "упражнения", "упражнений", "упражнений", "упражнений", "упражнение", "упражнения"];
   counts.forEach((count, i) => {
     assert.equal(translateUiMessage("sl", "students.videoCount", { count }), `${count} ${sl[i]}`);
-    assert.equal(translateUiMessage("ru", "students.videoCount", { count }), `${count} ${ru[i]}`);
+    // The approved Russian reward copy is invariant; exercise counts retain
+    // the Russian CLDR coverage that this test originally got from rewards.
+    assert.equal(translateUiMessage("ru", "students.videoCount", { count }), `${count} видео для приза`);
+    assert.equal(translateUiMessage("ru", "preview.exerciseCount", { count }), `${count} ${ru[i]}`);
   });
   assert.equal(translateUiMessage("sl", "students.videoCount", { count: 1.5 }), "1.5 video nagrade");
 });
