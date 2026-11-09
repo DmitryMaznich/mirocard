@@ -54,7 +54,7 @@ describe("Nelson joins (script.joinRules)", () => {
   });
 
   it("a level join to a letter of the x-height sags between the two tops, the letters half the x-height apart (Nelson's o–a, w–o)", () => {
-    for (const w of ["oa", "wo", "ri", "on", "fo"]) {
+    for (const w of ["oa", "wo", "ri", "on"]) { // (not from f: its bar lies on the x-line, levelSagFrom f 0)
       const j = row("british_joined", w).find((s) => s.join);
       const n = j.d.match(/-?\d*\.?\d+/g).map(Number); // M p0 C c1 c2 p3
       const [y0, y1, y2, y3] = [n[1], n[3], n[5], n[7]];
