@@ -150,7 +150,6 @@
               "bowlArc": 0.8,
               "levelToStem": 0.6,
               "levelToStemFrom": { "f": 0.78 },
-              "sharedBar": { "f": { "to": "t", "k": 0.6 } },
               "ovalSag": 0.06,
               "ovalEntry": 0.25,
               "diagUpInto": { "f": 0.12 },

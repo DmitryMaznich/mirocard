@@ -1759,7 +1759,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, sharedBar: rules.sharedBar ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, ovalReachFrom: rules.ovalReachFrom ?? {}, edgeFrom: rules.edgeFrom ?? {}, bowlArc: rules.bowlArc ?? null, levelToStem: rules.levelToStem ?? null, levelToStemFrom: rules.levelToStemFrom ?? {}, ovalSag: rules.ovalSag ?? 0, ovalEntry: rules.ovalEntry ?? null, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -2203,18 +2203,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const cutK = ovalNext ? 0 : null;
           const ex = kind ? nelsonExit(nelson, prevLabel, prevGlyphStrokes, intoLoop ? 1 : 0, scale, cutK) : null;
 
-          // f–t: one bar for both (Nelson's «fifteen», «after»): f's bar runs on through t's stem to the end of t's bar, t's own bar is not
-          // written, t stands `sharedBar` (of the x-height) after f's stem (owner, 2026-11-09: «поищи примеры wf rf tf ft …»)
-          const shared = ex && nelson.sharedBar[prevLabel]?.k != null && nelson.sharedBar[prevLabel].to.includes(label) && ex.trim && local.strokes[1];
-          if (shared) {
-            const XH = WIDE_ZONE_UNITS * scale;
-            const stemF = ex.p[0] - (nelson.exitCut[prevLabel] ?? 0) * XH;
-            const tStem = getPathEndpoints(local.strokes[0].d).start[0];
-            const barEnd = getPathEndpoints(local.strokes[1].d).end;
-            const dxJ = stemF + nelson.sharedBar[prevLabel].k * XH - tStem;
-            wantStartX = dxJ + local.start[0];
-            nelsonJoin = { kind: "h", ex, tg: { p: barEnd, t: [1, 0] }, shared: true };
-          } else if (ex) {
+          if (ex) {
             const tg = nelsonTarget(nelson, label, kind, local.strokes, scale, ovalNext ? nelson.ovalEntry : null);
             const rise = Math.abs(ex.p[1] - tg.p[1]);
             // (a diagonal join into a tall letter goes in at its stem: f's bar, sticking out on the left, is crossed by the join, as in
@@ -2549,8 +2538,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // down from the arch in one S, level into e's bar; from a letter that ends going UP (v w o: Nelson's «over»), first on up and over
           // in a little hook, then the S
           // (from under s: leaving level, its first handle `bowlArc` of the way along, arriving steep — one parabola up to the letter's top)
-          if (nelsonJoin.shared) { c1 = [pe[0] + ex.t[0] * L / 3, pe[1] + ex.t[1] * L / 3]; c2 = [ns[0] - L / 3, ns[1]]; }
-          else if (nelsonJoin.bowlArc) { const up = nlsUnit(0.3, -1); c1 = [pe[0] + (ns[0] - pe[0]) * nelson.bowlArc, pe[1]]; c2 = [ns[0] - up[0] * L * 0.35, ns[1] - up[1] * L * 0.35]; }
+          if (nelsonJoin.bowlArc) { const up = nlsUnit(0.3, -1); c1 = [pe[0] + (ns[0] - pe[0]) * nelson.bowlArc, pe[1]]; c2 = [ns[0] - up[0] * L * 0.35, ns[1] - up[1] * L * 0.35]; }
           // (f into an oval: on along the bar's own curve, rising out of its sag, and along the oval's arc into it; leaving level, as the
           // bar was going at its lowest point; `ovalSag` of the x-height more under the oval's left side, as Nelson's)
           else if (nelsonJoin.ovalIn) { const sg = (nelson.ovalSag * WIDE_ZONE_UNITS * scale) / 0.75; c1 = [pe[0] + L * 0.4, pe[1]]; c2 = [ns[0] - tg.t[0] * L * 0.4, ns[1] - tg.t[1] * L * 0.4 + sg]; }
@@ -2572,7 +2560,6 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
-        if (nelsonJoin?.shared) moved.splice(1, 1); // (t's bar: the join from f's bar is it)
         if (nelsonJoin?.tg.rebuild && moved[0]) moved[0] = { ...moved[0], d: nelsonRebuildStart(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.rebuild) };
         if (nelsonJoin?.tg.intoLoop && moved[0]) {
           const { top: T, left: Lp } = nelsonJoin.tg.intoLoop;

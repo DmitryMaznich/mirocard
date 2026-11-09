@@ -163,17 +163,6 @@ describe("Nelson joins (script.joinRules)", () => {
     expect((stems[1] - stems[0]) / 24).toBeGreaterThan(0.8); // stem to stem: f's tail (0.7 wide) clear of the f before
   });
 
-  it("f–t share one bar: f's bar runs on through t's stem to the end of t's bar, t's own bar not written (Nelson's «fifteen»)", () => {
-    const ft = row("british_joined", "ft"), t = row("british_joined", "t");
-    const join = ft.find((s) => s.join);
-    expect(ft.length).toBe(row("british_joined", "f").length + t.length - 1 + 1); // t without its bar, plus the join
-    const tStem = ft[ft.indexOf(join) + 1], e = getPathEndpoints(join.d);
-    const sx = getPathEndpoints(tStem.d).start[0];
-    expect(e.start[0]).toBeLessThan(sx);
-    expect(e.end[0]).toBeGreaterThan(sx + 5); // through t's stem, on to the bar's right end
-    expect((sx - (e.start[0] - 0.1 * 24)) / 24).toBeCloseTo(0.6, 1); // t's stem 0.6 of the x-height after f's
-  });
-
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
