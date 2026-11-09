@@ -51,9 +51,9 @@ def main():
         raw = "".join(f'<path d="{s["d"]}" stroke="#9ca3af" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.7"/>' for s in c["strokes"])
         neat = "".join(f'<path d="{s["d"]}" stroke="#1d4ed8" stroke-width="0.7" fill="none" stroke-linecap="round"/>' for s in tidy[l]["strokes"])
         cells.append(f'<figure><svg viewBox="{x0} 30 {vw} 86" width="{210 * vw / 56:.0f}" height="322"><defs><filter id="tint"><feColorMatrix type="matrix" values="0 0 0 0 0.98  0 0 0 0 0.6  0 0 0 0 0.2  0 0 0 1 0"/></filter></defs>{under}{lines}{raw}{neat}</svg><figcaption>{l}</figcaption></figure>')
-    html = ('<!doctype html><meta charset="utf-8"><title>Британские буквы: обводка и выравнивание</title>'
-            '<style>body{font:14px/1.45 system-ui,sans-serif;margin:24px;color:#1e293b}figure{display:inline-block;margin:4px;text-align:center}'
-            'svg{background:#fff;border:1px solid #e2e8f0}figcaption{font-size:18px}.page svg{width:720px;height:auto;border:0}.propis-paper{fill:#fffdf6}</style>'
+    html = ('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Британские буквы: обводка и выравнивание</title>'
+            '<style>body{font:14px/1.45 system-ui,sans-serif;margin:12px;color:#1e293b}figure{display:inline-block;margin:4px;text-align:center}'
+            'svg{background:#fff;border:1px solid #e2e8f0}figcaption{font-size:18px}.page svg{width:100%;max-width:720px;height:auto;border:0}.propis-paper{fill:#fffdf6}</style>'
             '<h1>Британские буквы: обводка и выравнивание</h1>'
             '<p>Бледно-оранжевое — подложка Нельсона, серое — путь руки в мастерской, синее — буква после выравнивания '
             '(<code>tools/latin_letters/tidy_capture.py</code>). Линии мастерской: 36, линия строчных 62, строка 88, 110.</p>'
