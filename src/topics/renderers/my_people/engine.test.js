@@ -512,7 +512,7 @@ describe("«Покажи»", () => {
 
   it("never puts two people with the same word on one screen", () => {
     for (let i = 0; i < 20; i += 1) {
-      const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 4 });
+      const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 4, label: "name" });
       for (const task of tasks.filter((t) => t.word === "Маша")) {
         const ids = task.choices.map((choice) => choice.personId);
         expect(ids.includes("masha1") && ids.includes("masha2")).toBe(false);
@@ -528,8 +528,21 @@ describe("«Покажи»", () => {
     expect(Object.keys(byId).sort()).toEqual(["anna", "cat", "elena", "masha1", "masha2", "pavel"]);
     expect(byId.anna.introduces).toBe(false);
     expect(byId.elena.introduces).toBe(true);
-    expect(byId.elena.axis).toBe("name");
+    expect(byId.elena.axis).toBe("relation");
     expect(byId.anna.axis).toBe("relation");
+    expect(byId.cat.axis).toBe("name");
+    const byName = Object.fromEntries(generateTasks({ id: "show_me", type: "person_point" }, partly, { label: "name" }).map((task) => [task.personId, task]));
+    expect(byName.elena.axis).toBe("name");
+    expect(byName.anna.axis).toBe("name");
+  });
+
+  it("«Подпись»: the relation as typed by default, the name on request, a pet by name", () => {
+    const words = (params) => Object.fromEntries(generateTasks({ id: "show_me", type: "person_point" }, family, params).map((task) => [task.personId, task.prompt]));
+    expect(words({})).toMatchObject({ anna: "Где мама?", elena: "Где воспитательница?", cat: "Где Барсик?", masha1: "Где подруга?" });
+    expect(words({ label: "name" })).toMatchObject({ anna: "Где Анна?", elena: "Где Елена Петровна?", cat: "Где Барсик?", masha1: "Где Маша?" });
+    // The sentence-builder label does not reach the question.
+    const labelled = { ...family, myPeople: family.myPeople.map((p) => ({ ...p, sentenceLabel: "дядя Коля" })) };
+    for (const task of generateTasks({ id: "show_me", type: "person_point" }, labelled, {})) expect(task.prompt).not.toMatch(/Коля/);
   });
 
   it("counts this lesson's earlier introductions against the newcomer budget", () => {
@@ -607,6 +620,17 @@ describe("«Подпиши фото»", () => {
   };
   const albums = (params) => generateTasks(labelPhotos, student, params).filter((task) => task.type === "people_album");
 
+  it("signs a pet by its name, not by the kind of animal", () => {
+    const withPet = { id: "sp", myPeople: [
+      { id: "mum", type: "person", name: "Анна", relation: "мама", contexts: ["family"], photos: ["/m"], enabled: true },
+      { id: "cat", type: "pet", name: "Мурка", relation: "наша кошка", contexts: ["family"], photos: ["/c"], enabled: true },
+    ] };
+    const labels = generateTasks(labelPhotos, withPet, { labelKind: "relation", peopleCount: 2 })
+      .flatMap((task) => task.entries ?? [{ label: task.label, personId: task.personId }]);
+    expect(labels.find((entry) => entry.personId === "cat")?.label).toBe("Мурка");
+    expect(labels.find((entry) => entry.personId === "mum")?.label).toBe("мама");
+  });
+
   it("takes the circle and the words from the params", () => {
     const [family] = albums({ circle: "family", labelKind: "relation" });
     expect(family.axis).toBe("relation");
@@ -650,7 +674,7 @@ describe("«Кто это?» first-syllable prompt", () => {
 
 });
 
-describe("«Найди такого же»", () => {
+describe("«Найди лицо»", () => {
   const matchSame = { id: "match_same", type: "person_match" };
   const person = (id, photos, extra = {}) => ({ id, name: id, relation: "", type: "person", contexts: ["family"], photos, enabled: true, ...extra });
   const student = {
@@ -677,7 +701,11 @@ describe("«Найди такого же»", () => {
         // Never the same picture twice: that would be matching identical images.
         expect(found.image).not.toBe(task.sample);
         expect(task.choices).toHaveLength(3);
-        expect(JSON.stringify(task)).not.toMatch(/Где|anna\?/);
+        // The sample names the person; the question is the one of «Покажи».
+        expect(task.sampleLabel).toBe(`Это ${task.personId}`);
+        expect(task.prompt).toBe(`Где ${task.personId}?`);
+        expect(task.promptSpeech).toBe(`Это ${task.personId}. Где ${task.personId}?`);
+        expect(task.correctPrompt).toBe(`Да, это ${task.personId}!`);
       }
     }
   });
@@ -690,6 +718,63 @@ describe("«Найди такого же»", () => {
     for (const task of tasks) {
       expect(task.choices.find((choice) => choice.personId === task.personId).image).toBe(task.sample);
     }
+  });
+
+  it("never shows another person answering to the asked word", () => {
+    const twoMashas = { id: "s2", myPeople: [
+      person("m1", ["/m1a", "/m1b"], { name: "Маша" }),
+      person("m2", ["/m2a", "/m2b"], { name: "Маша" }),
+      person("ivan", ["/i1", "/i2"], { name: "Ваня" }),
+    ] };
+    for (let i = 0; i < 20; i += 1) {
+      for (const task of generateTasks(matchSame, twoMashas, { fieldSize: 3 })) {
+        const words = task.choices.map((choice) => twoMashas.myPeople.find((p) => p.id === choice.personId).name);
+        expect(words.filter((word) => word === task.word)).toHaveLength(1);
+      }
+    }
+  });
+
+  it("«Подпись»: the relation as typed by default, the name on request, a pet always by name", () => {
+    const family = { id: "s3", myPeople: [
+      person("nadya", ["/n1", "/n2"], { name: "Надя", relation: "бабушка" }),
+      person("olga", ["/o1", "/o2"], { name: "Ольга", relation: "учительница" }),
+      person("kolya", ["/k1", "/k2"], { name: "Коля", relation: "" }),
+      person("murka", ["/c1", "/c2"], { name: "Мурка", relation: "наша кошка", type: "pet" }),
+    ] };
+    const byRelation = { nadya: "бабушка", olga: "учительница", kolya: "Коля", murka: "Мурка" };
+    const byName = { nadya: "Надя", olga: "Ольга", kolya: "Коля", murka: "Мурка" };
+    for (const [params, words] of [[{}, byRelation], [{ label: "relation" }, byRelation], [{ label: "name" }, byName]]) {
+      for (const task of generateTasks(matchSame, family, params)) {
+        const word = words[task.personId];
+        expect(task.sampleLabel).toBe(`Это ${word}`);
+        expect(task.prompt).toBe(`Где ${word}?`);
+      }
+    }
+    // Never the two glued together, nor the sentence-builder label.
+    const labelled = { id: "s4", myPeople: family.myPeople.map((p) => ({ ...p, sentenceLabel: "баба Надя" })) };
+    for (const task of generateTasks(matchSame, labelled, { label: "name" })) {
+      expect(task.prompt).not.toMatch(/баба|бабушка Надя/);
+    }
+  });
+
+  it("keeps two grandmothers apart when the relation is asked, not when the name is", () => {
+    const grans = { id: "s5", myPeople: [
+      person("nadya", ["/n1", "/n2"], { name: "Надя", relation: "бабушка" }),
+      person("vera", ["/v1", "/v2"], { name: "Вера", relation: "бабушка" }),
+      person("ivan", ["/i1", "/i2"], { name: "Иван", relation: "дедушка" }),
+    ] };
+    let together = false;
+    for (let i = 0; i < 20; i += 1) {
+      for (const task of generateTasks(matchSame, grans, { fieldSize: 3 })) {
+        const ids = task.choices.map((choice) => choice.personId);
+        if (task.word === "бабушка") expect(ids.includes("nadya") && ids.includes("vera")).toBe(false);
+      }
+      for (const task of generateTasks(matchSame, grans, { fieldSize: 3, label: "name" })) {
+        const ids = task.choices.map((choice) => choice.personId);
+        if (ids.includes("nadya") && ids.includes("vera")) together = true;
+      }
+    }
+    expect(together).toBe(true);
   });
 
   it("lets a one-photo person be a distractor but never the one to find", () => {

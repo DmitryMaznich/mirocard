@@ -1,9 +1,10 @@
 // `propis2`: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
-import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
+import { FOUR_LINE_IDS, fourLinePaper, isFourLinePaper } from "../../../handwriting/fourLinePapers.js";
+import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../../../handwriting/wordEngine.js";
 import { dropFlag, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
-import { snapXFor, ownRowsPerPage } from "../propis/PrintPageView.jsx";
-import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
+import { snapXFor, ownRowsPerPage } from "../../../handwriting/PrintPageView.jsx";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../../../handwriting/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 import { PROPIS2_METHOD_NOTEBOOKS } from "./data.js";
 
@@ -46,14 +47,15 @@ export const GRID_KINDS = [
   { id: "propis", label: "Прописи" },
   { id: "square", label: "Клетка" },
   { id: "ruled", label: "Линейка" },
-  { id: "bg", label: "Болгарская строка" },
+  // the four-line papers (src/handwriting/fourLinePapers.js): the Bulgarian ruling and the English ones
+  ...FOUR_LINE_IDS.map((id) => ({ id, label: fourLinePaper(id).label })),
   // the first two steps of the Mazina method (PrintPageView MZ): our ordinary «Прописи» is the third step
   { id: "m1", label: "Ступень 1 (строка 8 мм)" },
   { id: "m2", label: "Ступень 2 (строка 5 мм)" },
 ];
 // Papers with rows of their own (not the 12 mm cycle of the Russian copybook): always on the narrow size, no ruling to choose.
 export const MAZINA_PAPERS = new Set(["m1", "m2"]);
-export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || grid === "bg" || MAZINA_PAPERS.has(grid);
+export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || isFourLinePaper(grid) || MAZINA_PAPERS.has(grid);
 // The papers a deck offers, in order (the first is the paper of a new notebook): meta.papers of a variant deck; the Russian ones else.
 const RU_PAPERS = ["propis", "m1", "m2", "square", "ruled"];
 export const deckPapers = (topicRecord) => {
@@ -87,13 +89,13 @@ export const bandFillId = (page) => (page?.bandFill === true ? "grey" : BAND_FIL
 // On the Bulgarian paper the tinted band is the x-height band of every row (between the thin line and the baseline), whatever
 // `ruling` the page keeps from the copybook paper (owner, 2026-11-02: it was missing there). The same on the Mazina steps: the working
 // band of 8 / 5 mm (owner, 2026-11-05: «подсветка для всех вариантов прописной сетки»).
-export const bandFillPaper = (page) => pageGridKind(page) === "bg" || MAZINA_PAPERS.has(pageGridKind(page)) || (pageGridKind(page) === "propis" && page?.ruling !== "wide");
+export const bandFillPaper = (page) => isFourLinePaper(pageGridKind(page)) || MAZINA_PAPERS.has(pageGridKind(page)) || (pageGridKind(page) === "propis" && page?.ruling !== "wide");
 // the tint the sheet is drawn with, or null (none, or not the narrow copybook row / the Bulgarian row)
 export const pageBandFill = (page) => {
   const id = bandFillId(page);
   return id !== "none" && bandFillPaper(page) ? BAND_FILLS.find((f) => f.id === id).color : null;
 };
-export const pageMidDash = (page) => (pageGridKind(page) === "bg" ? Boolean(page?.bgDash) : page?.midDash !== false);
+export const pageMidDash = (page) => (isFourLinePaper(pageGridKind(page)) ? Boolean(page?.bgDash) : page?.midDash !== false);
 
 export const ROW_KINDS = [
   { id: "text", label: "Буквы, слоги, слова" },
@@ -655,15 +657,15 @@ const SETTING_OF = {
   writeAfter: (p) => Boolean(p?.writeAfter),
 };
 const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash", "bandFill"]);
-export const SLANT_PAPERS = new Set(["propis", "bg", "m1", "m2"]);
+export const SLANT_PAPERS = new Set(["propis", ...FOUR_LINE_IDS.filter((id) => fourLinePaper(id).guides), "m1", "m2"]);
 // which settings mean something on which paper (the copybook ones only on the copybook; the tint of the band on every copybook ruling:
 // «Прописи», the Mazina steps, the Bulgarian one)
 const countsFor = (key, page) => {
   const kind = pageGridKind(page);
-  if (key === "bgDash") return kind === "bg";
+  if (key === "bgDash") return Boolean(fourLinePaper(kind)?.midDash);
   if (!COPYBOOK_ONLY.has(key)) return true;
   if (key === "grid") return SLANT_PAPERS.has(kind);
-  if (key === "bandFill") return kind === "propis" || kind === "bg" || kind === "m1" || kind === "m2";
+  if (key === "bandFill") return kind === "propis" || isFourLinePaper(kind) || kind === "m1" || kind === "m2";
   if (key === "midDash") return kind === "propis" || kind === "m1" || kind === "m2";
   return kind === "propis";
 };

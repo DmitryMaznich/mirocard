@@ -1,4 +1,4 @@
-// One-off cleaner for the bottom hook of the "Широкая строка" glyphs (tools/propis/wide.json).
+// One-off cleaner for the bottom hook of the "Широкая строка" glyphs (tools/handwriting/cyrillic/wide.json).
 //
 // The captured hook is a straight stem, a bottom arc made of many short quadratic pieces, and a
 // straight closing rise. The stem and the rise meet at a narrow V (~17deg), so the capture's arc is
@@ -11,7 +11,7 @@
 // Usage: node scripts/propis-smooth-hook.mjs 6 г1
 import { readFileSync, writeFileSync } from "node:fs";
 
-const PATH = "tools/propis/wide.json";
+const PATH = "tools/handwriting/cyrillic/wide.json";
 const labels = process.argv.slice(2);
 if (!labels.length) { console.error("usage: node scripts/propis-smooth-hook.mjs <label>..."); process.exit(1); }
 

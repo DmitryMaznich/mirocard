@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_letters",
-    "version": "0.5.4",
+    "version": "0.5.6",
     "renderer": "print_letters",
     "title": { "ru": "Печатные буквы", "en": "Block Letters" },
     "avatar": "media/avatar.svg",
@@ -119,7 +119,7 @@
           "type": "boolean",
           "default": true,
           "label": { "ru": "Тихий звук на каждый штрих" }
-        }
+        }, "frame": { "type": "boolean", "default": true, "label": { "ru": "Рамка" } }, "guides": { "type": "boolean", "default": true, "label": { "ru": "Вспомогательные линии" } }
       }
     },
     {
@@ -152,7 +152,7 @@
           },
           "default": "easy",
           "ordered": true
-        }
+        }, "frame": { "type": "boolean", "default": true, "label": { "ru": "Рамка" } }, "guides": { "type": "boolean", "default": true, "label": { "ru": "Вспомогательные линии" } }
       }
     }
   ],

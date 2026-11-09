@@ -471,7 +471,7 @@ describe("«Представься» renderer", () => {
   });
 });
 
-describe("«Найди такого же» renderer", () => {
+describe("«Найди лицо» renderer", () => {
   it("shows the sample apart from the choices and counts the right one", () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -480,7 +480,7 @@ describe("«Найди такого же» renderer", () => {
     act(() => {
       root.render(
         <MyPeopleRenderer
-          task={{ type: "person_match", conceptId: "match:anna", personId: "anna", sample: "data:image/png;base64,S", prompt: "Найди такого же", promptSpeech: "Найди такого же.", correctSpeech: "Правильно!", missSpeech: "Смотри, вот.", choices: [{ personId: "pavel", image: "data:image/png;base64,P" }, { personId: "anna", image: "data:image/png;base64,A" }] }}
+          task={{ type: "person_match", conceptId: "match:anna", personId: "anna", sample: "data:image/png;base64,S", sampleLabel: "Это Аня", prompt: "Где Аня?", promptSpeech: "Это Аня. Где Аня?", correctPrompt: "Да, это Аня!", correctSpeech: "Да, это Аня!", missSpeech: "Вот Аня.", choices: [{ personId: "pavel", image: "data:image/png;base64,P" }, { personId: "anna", image: "data:image/png;base64,A" }] }}
           topicId="my_people"
           soundEnabled={false}
           onCorrect={onCorrect}
@@ -489,10 +489,15 @@ describe("«Найди такого же» renderer", () => {
       );
     });
     expect(container.querySelector(".people-match__sample img")?.getAttribute("src")).toBe("data:image/png;base64,S");
+    expect(container.querySelector(".people-match__label")?.textContent).toBe("Это Аня");
+    expect(container.querySelector(".people-point__question")?.textContent).toBe("Где Аня?");
     const photos = container.querySelectorAll(".people-point-photo");
     expect(photos).toHaveLength(2);
     act(() => photos[1].click());
     expect(onCorrect).toHaveBeenCalledWith("match:anna", "anna", expect.objectContaining({ autoAdvance: true }));
+    // The question turns into the answer; the other photo fades.
+    expect(container.querySelector(".people-point__question")?.textContent).toBe("Да, это Аня!");
+    expect(photos[0].classList.contains("people-point-photo--faded")).toBe(true);
     act(() => root.unmount());
     container.remove();
   });

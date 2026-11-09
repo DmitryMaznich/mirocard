@@ -1,4 +1,4 @@
-// Fits the hook-type glyphs of tools/propis/wide.json ("г", "п", "т": stems joined by rises, with
+// Fits the hook-type glyphs of tools/handwriting/cyrillic/wide.json ("г", "п", "т": stems joined by rises, with
 // top and bottom arcs and a closing rise) to the workshop's grid and smooths every arc:
 //  * every stem (and the retrace that goes back up along it) lies EXACTLY on a 65deg slant line of the
 //    workshop grid (spacing 9, anchored on the baseline y=88, see handwriting_capture.html drawRuling);
@@ -12,7 +12,7 @@
 // Usage: node scripts/propis-fit-hook.mjs г1 п1 т
 import { readFileSync, writeFileSync } from "node:fs";
 
-const PATH = "tools/propis/wide.json";
+const PATH = "tools/handwriting/cyrillic/wide.json";
 const labels = process.argv.slice(2);
 if (!labels.length) { console.error("usage: node scripts/propis-fit-hook.mjs <label>..."); process.exit(1); }
 

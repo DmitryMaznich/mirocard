@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildTiles } from "./Propis2Carousel.jsx";
-import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
-import { NARROW_CELL, snapXFor } from "@/topics/renderers/propis/PrintPageView.jsx";
+import { layoutWideLinesIntoRows } from "@/handwriting/wordEngine.js";
+import { NARROW_CELL, snapXFor } from "@/handwriting/PrintPageView.jsx";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE } from "@/topics/renderers/propis2/glyphReach.js";
 
@@ -14,9 +14,9 @@ const numbers = numbersFile.numbers;
 function deckRecord() {
   const topic = json("tools/propis2/topic.json");
   const dropped = new Set(json("tools/propis2/dropped_elements.json").ids);
-  const wide = json("tools/propis/wide.json");
+  const wide = json("tools/handwriting/cyrillic/wide.json");
   const parts = json("tools/propis2/parts_elements.json");
-  return { ...topic, wide: [...wide.glyphs, ...parts.glyphs], elements: json("tools/propis/elements.json").elements.filter((e) => !dropped.has(e.id)), elementNumbers: numbers, elementGroups: numbersFile.groups, elementRetired: numbersFile.retired };
+  return { ...topic, wide: [...wide.glyphs, ...parts.glyphs], elements: json("tools/handwriting/cyrillic/elements.json").elements.filter((e) => !dropped.has(e.id)), elementNumbers: numbers, elementGroups: numbersFile.groups, elementRetired: numbersFile.retired };
 }
 
 describe("stable element numbers", () => {

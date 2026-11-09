@@ -40,7 +40,7 @@ describe("«Мои люди» readiness", () => {
     expect(myPeopleModeReadiness({ id: "who_is_this" }, met).ready).toBe(true);
   });
 
-  it("opens «Найди такого же» on a different photo only with two people who have two photos each", () => {
+  it("opens «Найди лицо» on a different photo only with two people who have two photos each", () => {
     const mode = { id: "match_same", type: "person_match" };
     const onePhoto = { myPeople: [person("a"), person("b")] };
     expect(myPeopleModeReadiness(mode, onePhoto, { sample: "other" })).toMatchObject({ ready: false, tab: "family" });

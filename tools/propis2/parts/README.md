@@ -33,7 +33,7 @@
 // временный vitest в src/: dump.test.js
 import { it } from "vitest"; import { readFileSync, writeFileSync } from "node:fs";
 import { buildGlyphMap } from "./topics/renderers/propis2/pageTask.js";
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 it("dump", () => { const map = buildGlyphMap({ wide }); const out = {};
   for (const l of "ПРВБГЛлУИЭХЖэхжбаЦЩФНКпрвг".split("")) { const g = map.get(l); if (g) out[l] = g.strokes.map((s) => s.d); }
   writeFileSync("/tmp/glyph_strokes.json", JSON.stringify(out)); });

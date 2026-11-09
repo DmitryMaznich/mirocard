@@ -13,13 +13,13 @@ import { BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
-import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { printPdf, openPdf, pdfTab } from "@/topics/renderers/propis/printPdf.js";
+import { layoutWideLinesIntoRows } from "@/handwriting/wordEngine.js";
+import { rowAtSvgY } from "@/handwriting/PrintPageView";
+import { printPdf, openPdf, pdfTab } from "@/handwriting/printPdf.js";
 
 vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
 // the PDF itself needs a real layout engine (printPdf.js is checked in a browser); here: that it is asked for, from the print sheets
-vi.mock("@/topics/renderers/propis/printPdf.js", async (orig) => ({
+vi.mock("@/handwriting/printPdf.js", async (orig) => ({
   ...(await orig()),
   printPdf: vi.fn(async (container) => (container?.querySelector(".propis-print-all__sheet") ? new Blob(["%PDF-1.3"], { type: "application/pdf" }) : null)),
   openPdf: vi.fn(() => "tab"),
@@ -35,8 +35,8 @@ window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEven
 // The installed record as the deck builder makes it (topic.json + merged tools/propis data).
 function deckRecord() {
   const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
-  const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-  topic.elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+  const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+  topic.elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
   topic.wide = wide.glyphs;
   topic.wideSheets = wide.sheets;
   topic.wideElementRepeat = wide.elementRepeat ?? {};

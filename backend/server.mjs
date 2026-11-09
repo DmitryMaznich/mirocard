@@ -2304,7 +2304,6 @@ if (isMainModule) {
       .then(({ startPhotoGcLoop }) => startPhotoGcLoop(db))
       .catch((err) => console.error("[photo-gc] failed to start:", err));
 
-    // No "your access is ending/ended" emails while access isn't enforced.
     // Daily: re-read live Paddle subscriptions in case a webhook was lost.
     if (PADDLE_API_KEY) {
       const reconcile = () => reconcileProviderSubscriptions(db, getPaddleSubscription)
@@ -2313,6 +2312,7 @@ if (isMainModule) {
       setTimeout(reconcile, 60 * 1000);
       setInterval(reconcile, 24 * HOUR_MS);
     }
+    // No "your access is ending/ended" emails while access isn't enforced.
     if (PAYWALL_ENFORCED) {
       import("../scripts/entitlement-reminder-loop.mjs")
         .then(({ startReminderLoop }) => startReminderLoop())

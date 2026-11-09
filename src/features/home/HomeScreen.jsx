@@ -1,3 +1,5 @@
+import { useTopicUiPreview } from "@/core/topicUiPreview";
+import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
 import { setupText } from "@/shared/i18n/setupText.js";
 import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
@@ -270,9 +272,11 @@ function SessionTab({
   topicHintRef, modeHintRef, onShowHints, hintsOpen,
 }) {
   const { t } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
   if (!student) {
     return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
+  if (preview) return <TopicLibraryScreen embedded />;
 
   return (
     <section className="home-section">
@@ -744,6 +748,7 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const { enabled: preview } = useTopicUiPreview();
   const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
@@ -844,8 +849,8 @@ export default function HomeScreen() {
   }, [topic?.meta.id]);
 
   useEffect(() => {
-    if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
-  }, [mode?.id]);
+    if (!preview && mode && mode.id !== activeModeId) setActiveModeId(mode.id);
+  }, [mode?.id, preview]);
 
   // Bootstrap only ever restores activeTopicId/activeModeId from the
   // "lastContext" IndexedDB key (see core/bootstrap.js), which used to be
@@ -854,7 +859,7 @@ export default function HomeScreen() {
   // before ever starting a session lost that choice and fell back to
   // whichever topic happens to sort first. Keep it current on every change.
   useEffect(() => {
-    if (!student || !topic) return;
+    if (preview || !student || !topic) return;
     let cancelled = false;
     (async () => {
       const db = await getDb();
@@ -867,7 +872,7 @@ export default function HomeScreen() {
       });
     })();
     return () => { cancelled = true; };
-  }, [student?.id, topic?.meta.id, activeText?.id, mode?.id]);
+  }, [student?.id, topic?.meta.id, activeText?.id, mode?.id, preview]);
 
   useEffect(() => {
     setPickerConfirmed(loadPickerConfirmed(student?.id));
@@ -978,6 +983,7 @@ export default function HomeScreen() {
   }
 
   function startOrContinue() {
+    if (topic?.meta?.id === "games") { setScreen("modes"); return; }
     if (topic?.meta?.id === "my_people") { setScreen("modes"); return; }
     if (isChatPractice) { setScreen(topic?.modes?.length > 0 ? "modes" : "chat_params"); return; }
     if (!isReading) { setScreen("params"); return; }
@@ -1014,7 +1020,7 @@ export default function HomeScreen() {
       : t("home.update");
 
   return (
-    <div className={`screen home-screen-v2${visibleTab === 'statistics' ? ' home-screen-v2--statistics' : ''}`}>
+    <div className={`screen home-screen-v2${preview ? ' topic-ui-home' : ''}${visibleTab === 'statistics' ? ' home-screen-v2--statistics' : ''}`}>
       <HomeHeader
         student={student}
         buildInfo={buildInfo}
@@ -1028,7 +1034,7 @@ export default function HomeScreen() {
       />
 
       <div className="home-main">
-        {visibleTab === "session" && <TopicLanguageBar topic={topic} />}
+        {visibleTab === "session" && !preview && <TopicLanguageBar topic={topic} />}
         <div className="home-tab-content">
           {visibleTab !== 'statistics' && <MarketingPromptCard />}
           {visibleTab === 'statistics' ? (

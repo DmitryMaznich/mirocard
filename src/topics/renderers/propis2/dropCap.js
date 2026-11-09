@@ -4,7 +4,7 @@
 // written capital on the narrow ruling (8 mm: from the wide row's dashed top line to the baseline), square, in the page margin; Nunito
 // Bold, one colour (the app's teal, not the pupil's ink blue). Drawn by PrintPageView (the row line carries it as the flag `#bИ`).
 import { topicAlphabet } from "./alphabet.js";
-import { mmToNativeUnits } from "../propis/propisRuling.js";
+import { mmToNativeUnits } from "../../../handwriting/propisRuling.js";
 
 export const DROP_FRAME_MM = 8;
 export const DROP_CAP_MM = 4.4; // height of the capital

@@ -6,9 +6,9 @@ import { buildGlyphMap } from "./pageTask.js";
 import { deckPapers } from "./model.js";
 import { languageView } from "./languages.js";
 import { topicAlphabet, cardLetters } from "./alphabet.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { snapXFor } from "../propis/PrintPageView.jsx";
-import { samplePath } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { snapXFor } from "../../../handwriting/PrintPageView.jsx";
+import { samplePath } from "../../../handwriting/pathGeometry.js";
 
 // The Mazina steps (m1 / m2) for the Kazakh alphabet (owner, 2026-11-05): offered by the Kazakh view, and no Kazakh letter reaches
 // further above or below the baseline than the Russian ones do (the free strip between the bands is sized for those)

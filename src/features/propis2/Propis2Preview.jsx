@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo } from "react";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { pageFormat, pageMargin, pageToLines, taskGrid, pageMidDash, pageNoSlant, pageBandFill } from "@/topics/renderers/propis2/model.js";
 

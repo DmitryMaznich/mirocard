@@ -9,6 +9,25 @@ describe("print_letters engine — «Пишу на экране»", () => {
     expect(mode.params.level.values).toEqual(["trace", "free"]);
   });
 
+  it("«Вспомогательные линии» is on unless switched off, apart from «Рамка», in both screen modes", () => {
+    const fix = topic.modes.find((m) => m.id === "fix_letter");
+    expect(mode.params.guides.default).toBe(true);
+    expect(fix.params.guides.default).toBe(true);
+    const [t] = generateTasks(mode, topic, 500, { letters: ["Г"], copies: 1, guides: false });
+    expect([t.frame, t.guides]).toEqual([true, false]);
+    expect(generateTasks(fix, topic, 500, { frame: false }).every((x) => x.frame === false && x.guides === true)).toBe(true);
+  });
+
+  it("«Рамка» is on unless switched off, in both screen modes", () => {
+    const fix = topic.modes.find((m) => m.id === "fix_letter");
+    expect(mode.params.frame.default).toBe(true);
+    expect(fix.params.frame.default).toBe(true);
+    expect(generateTasks(mode, topic, 500, { letters: ["Г"], copies: 1 })[0].frame).toBe(true);
+    expect(generateTasks(mode, topic, 500, { letters: ["Г"], copies: 1, frame: false })[0].frame).toBe(false);
+    expect(generateTasks(fix, topic, 500, {}).every((t) => t.frame === true)).toBe(true);
+    expect(generateTasks(fix, topic, 500, { frame: false }).every((t) => t.frame === false)).toBe(true);
+  });
+
   it("gives every chosen letter `copies` times in a row, in deck order", () => {
     const tasks = generateTasks(mode, topic, 500, { letters: ["Т", "Г"], level: "trace", copies: 3 });
     expect(tasks.map((t) => t.card.id)).toEqual(["Г", "Г", "Г", "Т", "Т", "Т"]);

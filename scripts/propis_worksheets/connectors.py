@@ -1,8 +1,8 @@
-"""Ports src/topics/renderers/propis/wordEngine.js's buildWordTrajectory
+"""Ports src/handwriting/wordEngine.js's buildWordTrajectory
 (the in-app word-trajectory builder) to Python, for rendering real
 connected letters -- both letter PAIRS ("слоги" / letter connections)
 and full multi-letter WORDS -- in the print pipeline, reusing the actual
-captured connector strokes from tools/propis/topic.json instead of just
+captured connector strokes from tools/handwriting/cyrillic/propis1-style.json instead of just
 placing letters side by side (confirmed with the user 2026-08-19: the
 whole point of both notebooks is teaching the real connecting motion).
 

@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { buildTiles } from "./Propis2Carousel.jsx";
 
 function record() {
-  const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-  const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+  const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+  const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
   return { wide: wide.glyphs, elements, wideElementRepeat: wide.elementRepeat };
 }
 
@@ -28,9 +28,9 @@ describe("carousel tiles", () => {
     expect(t.upper.map((x) => x.text).join("")).toBe("АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ");
   });
 
-  it("punctuation tab: . , ! ? from the `propis` captures, drawn with strokes", () => {
+  it("punctuation tab: . , ! ? from the `propis` captures and : ; – made from them, drawn with strokes", () => {
     const t = buildTiles(record());
-    expect(t.marks.map((x) => x.text).join("")).toBe(".,!?");
+    expect(t.marks.map((x) => x.text).join("")).toBe(".,:;–!?");
     for (const m of t.marks) expect(m.strokes.length).toBeGreaterThan(0);
   });
 
@@ -47,6 +47,6 @@ describe("carousel tiles", () => {
     const inRow = (list) => list.filter((x) => x.inRow).map((x) => x.text).join("");
     expect(inRow(t.lower)).toBe("агеёжийклмнопстхчшъыьэюя");
     expect(inRow(t.upper)).toBe("");
-    expect(inRow(t.marks)).toBe(".,");
+    expect(inRow(t.marks)).toBe(".,:;–");
   });
 });

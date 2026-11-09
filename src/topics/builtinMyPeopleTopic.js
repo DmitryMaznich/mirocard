@@ -13,7 +13,7 @@ const voiceParam = {
   },
 };
 
-// Time delay for «Покажи» and «Найди такого же»: when the child doesn't
+// Time delay for «Покажи» and «Найди лицо»: when the child doesn't
 // answer, the right photo lights up after this many seconds. A trial
 // answered after the light counts like a corrected miss and comes back a
 // little later without it. 0 -- no light, wait.
@@ -72,8 +72,10 @@ const labelPhotosMode = {
     labelKind: {
       type: "enum",
       label: { ru: "Что подписываем" },
-      values: ["relation", "name", "both"],
-      labels: { ru: { relation: "Мама, папа…", name: "Имена", both: "И то и другое" } },
+      // One kind of word per lesson: "both" mixed the name and the relation
+      // goals; a value saved before is still read by the engine.
+      values: ["relation", "name"],
+      labels: { ru: { relation: "Мама, папа…", name: "Имена" } },
       default: "relation",
     },
     // On while the words are new (the word is heard as it's picked); off to
@@ -99,9 +101,21 @@ const labelPhotosMode = {
   },
 };
 
-// «Найди такого же»: match two different photos of one person, no words.
-// The first step, before «Покажи»: recognising a face across photos, apart
-// from understanding "мама". Needs people with at least two photos.
+// «Найди лицо»: match two different photos of one person by a named
+// sample ("Это мама. Где мама?"). The first step, before «Покажи», which
+// asks the same question without the sample. Needs people with at least
+// two photos (or «Одинаковое фото»).
+// «Подпись» in «Покажи» and «Найди лицо»: the relation or the name, the
+// same choice in both so the ladder keeps its words (engine labelWord).
+const labelParam = {
+  type: "enum",
+  label: { ru: "Подпись" },
+  values: ["relation", "name"],
+  labels: { ru: { relation: "Кто это для ребёнка", name: "Имя" } },
+  hint: { ru: "Какое поле из карточки человека написать и произнести: «Где мама?» или «Где Надя?». У питомцев всегда имя." },
+  default: "relation",
+};
+
 const matchSameMode = {
   id: "match_same",
   type: "person_match",
@@ -112,12 +126,13 @@ const matchSameMode = {
   params: {
     sample: {
       type: "enum",
-      label: { ru: "Образец" },
-      values: ["same", "other"],
-      labels: { ru: { same: "Одинаковое фото", other: "Другое фото" } },
-      hint: { ru: "«Одинаковое фото» — ступень проще: среди фото внизу то же самое, что сверху." },
+      label: { ru: "Фото для поиска" },
+      values: ["other", "same"],
+      labels: { ru: { other: "Другое фото (обычно)", same: "То же фото (легче)" } },
+      hint: { ru: "«То же фото» — если ребёнок пока не находит человека на другом фото: внизу та же картинка, что сверху." },
       default: "other",
     },
+    label: labelParam,
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на выбор" },
@@ -127,8 +142,8 @@ const matchSameMode = {
     promptDelay: promptDelayParam,
   },
   ui: {
-    title: { ru: "Найди такого же" },
-    instruction: { ru: "Без слов: найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
+    title: { ru: "Найди лицо" },
+    instruction: { ru: "Сверху фото с подписью «Это мама», вопрос «Где мама?» — найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
   },
 };
 
@@ -142,6 +157,7 @@ const showMeMode = {
   regenerateOnLoop: true,
   hideConceptPicker: true,
   params: {
+    label: labelParam,
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на экране" },
@@ -232,7 +248,7 @@ const whoIsThisMode = {
 };
 
 // "Озвучка" goes last in every mode's settings. Each mode keeps its own
-// settings (readModeParams): «Образец» chosen in «Найди такого же» survives a
+// settings (readModeParams): «Образец» chosen in «Найди лицо» survives a
 // lesson of «Покажи», and the two modes' «Фото на экране» stay apart. Values
 // saved before, in the shared topic object, are carried over on first open.
 const withVoice = (mode) => ({
@@ -260,24 +276,25 @@ export function buildMyPeopleTopicRecord() {
         ],
         finalGoal: "Ребёнок уверенно узнаёт значимых людей и понимает, кто они для него.",
         flow: [
-          "Заполните «Окружение ребёнка»: близкие с фотографиями, для «Обо мне» — личные данные.",
-          "«Найди такого же»: без слов найти того же человека на другом фото — для тех, кто ещё не понимает «Где мама?».",
-          "«Покажи»: ребёнок находит человека по слову «Где мама?». Здесь же он знакомится с новыми людьми.",
-          "«Кто это?»: ребёнок сам называет тех, кого уже находил.",
-          "«Обо мне»: короткие вопросы о себе с подсказками по шагам.",
-          "«Подпиши фото» — когда ребёнок читает: сначала семья и слова «мама», «папа», потом имена и другие круги.",
-          "«Представься» — продвинутый уровень, когда короткие ответы уже уверенные.",
+          "Заполните «Окружение ребёнка»: люди и питомцы с фотографиями (лучше по 2–3 фото на человека), у каждого имя и «кто это для ребёнка».",
+          "Идите по кругам: семья и питомцы → кто бывает дома и к кому ездите в гости → школа и друзья. С новым кругом — снова с первого шага.",
+          "1. «Найди лицо»: «Это мама. Где мама?» — найти того же человека на другом фото. Если пока не получается — «Фото для поиска: То же фото (легче)», потом снова другое.",
+          "2. Выбрать фото по слову: «Где мама?», потом «Где Саша?». В «Занятиях по плану» — «Кто он мне» и «Имена» · «Выбрать фото»; в списке режимов — «Покажи».",
+          "3. Назвать самому со взрослым: сначала с полным образцом, потом с началом слова, потом без подсказки. В «Занятиях по плану» — «Назвать самому»; в списке — «Кто это?».",
+          "Дальше по шагу, когда ребёнок 8 раз из 10 справляется без подсказки два занятия подряд: больше фото на экране, другие фото, следующий шаг.",
+          "Для семьи обычно сначала «кто он мне» (мама, бабушка), для школы и друзей — имена. Одного человека учим одним словом, пока оно не закрепится.",
+          "«Подпиши фото» — когда ребёнок читает. «Обо мне» и «Представься» — вопросы о самом ребёнке, вне этой лесенки.",
         ],
       },
     },
-    // The teaching ladder: match («Найди такого же») → recognise by the
+    // The teaching ladder: match («Найди лицо») → recognise by the
     // word («Покажи») → name («Кто это?») →
     // answer about yourself → label photos (needs reading) → introduce
     // yourself. Mode pickers keep this order.
     modes: [
       { id: "people_learning_v2", type: "people_learning_v2", evaluation: "adult", retired: true,
         finite: true, excludeFromLoop: true, hideConceptPicker: true,
-        ui: { title: { ru: "Мои люди" }, instruction: { ru: "Имена и отношения" } } },
+        ui: { title: { ru: "Занятие по плану" }, instruction: { ru: "Имена и «кто он мне» по плану взрослого" } } },
       matchSameMode,
       showMeMode,
       whoIsThisMode,

@@ -76,7 +76,7 @@ export function myPeopleModeReadiness(mode, student, params = null) {
   if (mode.id === "match_same" && params && !matchUsesSamePhoto(params) && people.filter(hasTwoPhotos).length < 2) {
     return {
       ready: false,
-      reason: "Для «Другое фото» нужно хотя бы 2 человека, у которых по 2 разных фото: добавьте второе фото или выберите «Одинаковое фото».",
+      reason: "Для поиска на другом фото нужно хотя бы 2 человека, у которых по 2 разных фото: добавьте второе фото или выберите «То же фото (легче)».",
       tab: "family",
     };
   }

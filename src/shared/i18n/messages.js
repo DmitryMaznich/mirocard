@@ -2,10 +2,12 @@ import { SETTINGS_MESSAGES } from "./settingsMessages.js";
 import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
+import { TOPIC_PREVIEW_MESSAGES } from "./topicPreviewMessages.js";
 
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
   ru: {
+    ...TOPIC_PREVIEW_MESSAGES.ru,
     ...TOPIC_LANGUAGE_MESSAGES.ru,
     ...ADULT_MESSAGES.ru,
     ...LESSON_SETUP_MESSAGES.ru,
@@ -87,6 +89,7 @@ export const UI_MESSAGES = {
     ...SETTINGS_MESSAGES.ru,
   },
   sl: {
+    ...TOPIC_PREVIEW_MESSAGES.sl,
     ...TOPIC_LANGUAGE_MESSAGES.sl,
     ...ADULT_MESSAGES.sl,
     ...LESSON_SETUP_MESSAGES.sl,

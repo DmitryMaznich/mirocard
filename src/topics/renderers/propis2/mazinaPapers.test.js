@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { deckPapers, ownRowGrid, taskGrid, newPage, newSet, newRow, rowsPerPage, notebookSections, paperKey } from "./model.js";
-import { ownRowsPerPage, snapXFor } from "../propis/PrintPageView.jsx";
+import { ownRowsPerPage, snapXFor } from "../../../handwriting/PrintPageView.jsx";
 
 // The first two steps of the Mazina method ("Начинаю писать красиво!" №1, №2): papers of the Russian deck (owner, 2026-11-05)
 describe("Mazina step 1 / 2 papers", () => {

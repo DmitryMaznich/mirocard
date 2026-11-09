@@ -26,14 +26,4 @@ describe("propis2 deck install", () => {
     expect(rec.words.length).toBe(247);
     expect(rec.texts.length).toBeGreaterThan(0);
   });
-
-  it("the `propis` deck («Прописи старые») keeps its wide-row data through the same installer", async () => {
-    const file = readdirSync("public/decks").filter((n) => /^propis_v[0-9.]+\.zip$/.test(n)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).pop();
-    const db = await openDb("test-p1-" + Date.now());
-    await importTopic(db, await readFile(`public/decks/${file}`), "999.0.0");
-    const rec = await getTopicRecord(db, "propis");
-    expect(rec.wide.length).toBeGreaterThan(50);
-    expect(rec.wideSheets.page18).toBeTruthy();
-    expect(rec.words.length).toBe(249);
-  });
 });

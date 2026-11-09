@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { renderToStaticMarkup } from "react-dom/server";
 import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { topicAlphabet } from "./alphabet.js";
 import { analyzePage, deckPapers, kitToLibraryItems, rowsPerPage } from "./model.js";
@@ -52,9 +52,10 @@ describe("propis2 writing languages", () => {
     expect(pickLanguage(ru, "bg")).toBeNull();
   });
 
-  it("«Прописи» carry Russian, Bulgarian and Kazakh, for everyone, the dictation kept; the test copy is archived", () => {
+  it("«Прописи» carry Russian, Bulgarian and Kazakh, for everyone, the dictation kept — no draft language; the test copy is one account's", () => {
     expect(catalog.decks.find((d) => d.id === "propis2").status).toBe("release");
-    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("archived");
+    // the test copy carries the languages still in the making (English, 2026-11-08, docs/latin-letters.md): given to one account only
+    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("individual");
     expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "ready"]]);
     expect(multi.modes.map((m) => m.type)).toEqual(ru.modes.map((m) => m.type));
     expect(multi.modes.map((m) => m.type)).toContain("dictation");

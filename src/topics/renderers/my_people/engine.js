@@ -285,6 +285,21 @@ const POINT_FIELD_SIZES = [2, 3, 4];
 export const MIN_POINT_TRIALS_PER_ROUND = 6;
 export const MAX_POINT_TRIALS_PER_ROUND = 8;
 
+// «Подпись» in «Покажи» and «Найди лицо»: which of the person's two fields
+// the question uses -- «Кто это для ребёнка» (the relation as typed: мама,
+// учительница, подруга; the name when it is empty) or the name. A pet is
+// always asked by name. Never the two glued together ("папа Дима" is not
+// what anyone says at home, and name and relation are separate goals), and
+// never the sentence-builder label: only the two fields the adult sees.
+// The relation goes mid-sentence, so "Мама" is asked as "мама".
+export function labelWord(person, params) {
+  const name = person?.name?.trim() ?? "";
+  if (person?.type === "pet" || params?.label === "name") return name;
+  const relation = person?.relation?.trim() ?? "";
+  return relation ? relation[0].toLowerCase() + relation.slice(1) : name;
+}
+
+// The word «Кто это?» and the summaries name a person by.
 export function mainWord(person) {
   const label = person?.type !== "pet" ? person?.sentenceLabel?.trim() : "";
   if (label) return label;
@@ -322,10 +337,11 @@ function pointTasks(people, params, photoPlanner, sessionIntroduced = {}, round 
 
   const positions = [];
   return pointTargetSequence(targets).map((target, trialIndex) => {
-    const word = mainWord(target);
-    // Two people answering to the same word (two "Маша") would make the
-    // question ambiguous, so they never share a screen.
-    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round);
+    const wordOf = (person) => labelWord(person, params);
+    const word = wordOf(target);
+    // Two people answering to the same word (two "Маша", two grandmothers)
+    // would make the question ambiguous, so they never share a screen.
+    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round, wordOf);
     const order = shuffle(distractors);
     const position = pickTargetPosition(order.length + 1, positions);
     positions.push(position);
@@ -390,11 +406,15 @@ function pickTargetPosition(slots, previous) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
-// ── «Найди такого же»: matching two different photos of one person ─────
-// No words at all: a photo on top, the same person on another photo among
-// 2–4 below. The step before «Покажи» for a child who does not yet link
-// "Где мама?" to mum, and direct practice in recognising someone across
+// ── «Найди лицо» (id match_same): two different photos of one person ──
+// A named photo on top ("Это Ула"), the same person on another photo among
+// 2–4 below, and the very question of «Покажи» -- "Где Ула?". The step
+// before «Покажи» for a child who does not yet link "Где мама?" to mum: the
+// sample carries the answer, and fading it out later leaves «Покажи» with
+// the same words. Also direct practice in recognising someone across
 // photos rather than by one detail (glasses, a jumper, the kitchen).
+// "Где …?" rather than "Найди …": no accusative to build from a name.
+// «Подпись» picks the word, as in «Покажи» (labelWord).
 // Only people with two or more photos can be targets -- with one photo it
 // would be matching identical pictures, a different and easier skill.
 const MATCH_FIELD_SIZES = [2, 3, 4];
@@ -406,6 +426,7 @@ export function hasTwoPhotos(person) {
 // «Образец»: "same" is the step below -- the very photo on top is among the
 // choices (identical matching), so one photo per person is enough; "other"
 // (the default) is the same person on a different photo.
+
 export function matchUsesSamePhoto(params) {
   return params?.sample === "same";
 }
@@ -431,9 +452,11 @@ function matchTasks(people, params, round) {
     const photos = shuffle([...new Set(target.photos.filter(Boolean))]);
     const sample = photos[0];
     const match = samePhoto ? sample : photos[1];
-    // Distractors are chosen by person, not by word: two "Маша" are two
-    // different faces here, so they may share a screen.
-    const distractors = pickPointDistractors(target, people, null, fieldSize - 1, round);
+    // The question names the person, so two "Маша" never share a screen --
+    // as in «Покажи».
+    const wordOf = (person) => labelWord(person, params);
+    const word = wordOf(target);
+    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round, wordOf);
     const order = shuffle(distractors);
     const position = pickTargetPosition(order.length + 1, positions);
     positions.push(position);
@@ -446,11 +469,14 @@ function matchTasks(people, params, round) {
       progressConceptIds: [conceptId],
       trialIndex,
       personId: target.id,
+      word,
       sample,
-      prompt: "Найди такого же",
-      promptSpeech: "Найди такого же.",
-      correctSpeech: "Правильно!",
-      missSpeech: "Смотри, вот.",
+      sampleLabel: `Это ${word}`,
+      prompt: `Где ${word}?`,
+      promptSpeech: `Это ${word}. Где ${word}?`,
+      correctPrompt: `Да, это ${word}!`,
+      correctSpeech: `Да, это ${word}!`,
+      missSpeech: `Вот ${word}.`,
       choices: order.map((person) => ({
         personId: person.id,
         image: person.id === target.id ? match : randomPhoto(person),
@@ -463,11 +489,10 @@ function matchTasks(people, params, round) {
 // pet is set against people and people against a pet when the album has
 // both, so the very first choices are the most different ones. Later
 // rounds draw from everyone.
-function pickPointDistractors(target, people, word, count, round) {
+function pickPointDistractors(target, people, word, count, round, wordOf) {
   if (count <= 0) return [];
-  // `word` null: no word on screen (matching), so any other person will do.
   const eligible = shuffle(people.filter((person) => person.id !== target.id
-    && (word == null || mainWord(person).toLowerCase() !== word.toLowerCase())));
+    && wordOf(person).toLowerCase() !== word.toLowerCase()));
   if (round > 0) return eligible.slice(0, count);
   const isPet = (person) => person.type === "pet";
   const contrasting = eligible.filter((person) => isPet(person) !== isPet(target));
@@ -572,12 +597,18 @@ function createPhotoPlanner(previousImages) {
   };
 }
 
+// A pet is signed by its name on every page: "кот" or "наша кошка" is the
+// kind of animal, not what the child calls it.
+function albumLabel(person, axis) {
+  return axis === "relation" && person.type !== "pet" ? person.relation.trim() : person.name.trim();
+}
+
 function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
   const entries = shuffle(group).map((person) => ({
     personId: person.id,
     conceptId: `${person.id}:${axis}`,
     image: photoPlanner.imageFor(person, axis, preferDifferentPhoto),
-    label: axis === "relation" ? person.relation.trim() : person.name.trim(),
+    label: albumLabel(person, axis),
   }));
   const axisText = axis === "name" ? "имена" : "кто это";
   const ids = entries.map((entry) => entry.personId).sort().join("_");
@@ -599,7 +630,7 @@ function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
 }
 
 function introTaskForPerson(person, axis, modeId, photoPlanner, preferDifferentPhoto = false) {
-  const label = axis === "relation" ? person.relation.trim() : person.name.trim();
+  const label = albumLabel(person, axis);
   return {
     type: "person_intro",
     conceptId: `intro:${modeId}:${person.id}:${axis}`,
@@ -760,7 +791,7 @@ export function firstSyllable(word) {
   return text.slice(0, vowelIndex + 1);
 }
 
-// Error correction in «Покажи» and «Найди такого же»: a trial the child got
+// Error correction in «Покажи» and «Найди лицо»: a trial the child got
 // only with help (a miss, or the light after a pause) comes back once, after
 // one or two other trials, now without the light -- the "transfer trial"
 // that checks the correction took. The photos swap places; a repeat is not

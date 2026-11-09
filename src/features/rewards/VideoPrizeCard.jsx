@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { rewardText as text } from "./rewardText.js";
 import "./rewards.css";
@@ -28,13 +29,14 @@ function Label({ label, info, onShowInfo }) {
   );
 }
 
-function Switch({ on, onChange, label, disabled }) {
+function Switch({ on, onChange, label, disabled, controls }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={label}
+      aria-controls={controls}
       className={`param-toggle ${on ? "param-toggle--on" : ""}`}
       disabled={disabled}
       onClick={() => onChange(!on)}
@@ -50,52 +52,56 @@ export default function VideoPrizeCard({
   rules = null, note = null, onShowInfo,
 }) {
   useUiTranslation();
+  const settingsId = useId();
   const off = !enabled;
   return (
     <div className="param-plate video-prize-card" aria-label={text("prize")}>
       <div className="param-row video-prize-card__head">
         <Label label={text("prize")} info={text("prizeInfo")} onShowInfo={onShowInfo} />
-        <Switch on={enabled} onChange={onEnabled} label={text("prize")} />
+        <Switch on={enabled} onChange={onEnabled} label={text("prize")} controls={settingsId} />
       </div>
 
-      {showSeries && (
-        <div className={`param-row${off ? " param-row--disabled" : ""}`}>
-          <Label label={text("series")} info={text("seriesInfo")} onShowInfo={onShowInfo} />
-          <div className="param-enum-group">
-            {[1, 2, 3].map((n) => (
-              <button key={n} type="button" className={`enum-btn ${answersPerStar === n ? "enum-btn--active" : ""}`} disabled={off} onClick={() => onAnswersPerStar?.(n)}>
-                {5 * n}
-              </button>
-            ))}
+      {/* Keep controls mounted: folding the settings never resets their values. */}
+      <div id={settingsId} className="video-prize-card__settings" hidden={off}>
+        {showSeries && (
+          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
+            <Label label={text("series")} info={text("seriesInfo")} onShowInfo={onShowInfo} />
+            <div className="param-enum-group">
+              {[1, 2, 3].map((n) => (
+                <button key={n} type="button" className={`enum-btn ${answersPerStar === n ? "enum-btn--active" : ""}`} disabled={off} onClick={() => onAnswersPerStar?.(n)}>
+                  {5 * n}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showAtEnd && (
-        <div className={`param-row${off ? " param-row--disabled" : ""}`}>
-          <Label label={text("atEnd")} info={text("atEndInfo")} onShowInfo={onShowInfo} />
-          <Switch on={atEnd} onChange={onAtEnd} label={text("atEnd")} disabled={off} />
-        </div>
-      )}
+        {showAtEnd && (
+          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
+            <Label label={text("atEnd")} info={text("atEndInfo")} onShowInfo={onShowInfo} />
+            <Switch on={atEnd} onChange={onAtEnd} label={text("atEnd")} disabled={off} />
+          </div>
+        )}
 
-      {showStrict && (
-        <div className={`param-row${off ? " param-row--disabled" : ""}`}>
-          <Label label={text("strict")} info={text("topicStrictInfo")} onShowInfo={onShowInfo} />
-          <Switch on={strict} onChange={onStrict} label={text("strict")} disabled={off} />
-        </div>
-      )}
+        {showStrict && (
+          <div className={`param-row${off ? " param-row--disabled" : ""}`}>
+            <Label label={text("strict")} info={text("topicStrictInfo")} onShowInfo={onShowInfo} />
+            <Switch on={strict} onChange={onStrict} label={text("strict")} disabled={off} />
+          </div>
+        )}
 
-      {(rules || note) && (
-        <div className="param-row video-prize-card__foot">
-          {note && <span>{note}</span>}
-          {rules && (
-            <span>
-              {text("loss")}: <strong>{text(rules.lossMode === "all" ? "all" : "one").toLowerCase()}</strong>
-              {". "}{text("lossWhere")}
-            </span>
-          )}
-        </div>
-      )}
+        {(rules || note) && (
+          <div className="param-row video-prize-card__foot">
+            {note && <span>{note}</span>}
+            {rules && (
+              <span>
+                {text("loss")}: <strong>{text(rules.lossMode === "all" ? "all" : "one").toLowerCase()}</strong>
+                {". "}{text("lossWhere")}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

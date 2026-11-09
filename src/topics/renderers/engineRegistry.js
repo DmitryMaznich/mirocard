@@ -20,7 +20,6 @@ import { generateTasks as wordFormationEngine }        from "./word_formation/en
 import { generateTasks as phoneticAnalysisEngine }     from "./phonetic_analysis/engine.js";
 import { generateTasks as wordAgreementEngine }        from "./word_agreement/engine.js";
 import { generateTasks as spatialPrepositionsEngine }  from "./spatial_prepositions/engine.js";
-import { generateTasks as propisEngine }               from "./propis/engine.js";
 import { generateTasks as propis2Engine }              from "./propis2/engine.js";
 import { generateTasks as myPeopleEngine }             from "./my_people/engine.js";
 import { generateTasks as dailyOrientationEngine }     from "./daily_orientation/engine.js";
@@ -52,7 +51,6 @@ export const ENGINE_REGISTRY = {
   phonetic_analysis:     phoneticAnalysisEngine,
   word_agreement:        wordAgreementEngine,
   spatial_prepositions:  spatialPrepositionsEngine,
-  propis:                propisEngine,
   propis2:               propis2Engine,
   my_people:             myPeopleEngine,
   daily_orientation:     dailyOrientationEngine,

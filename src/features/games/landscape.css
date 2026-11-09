@@ -1,0 +1,48 @@
+/* Landscape keeps the scene tall and puts each player's dice beside it. */
+@media (orientation:landscape) {
+  .dice-race {
+    display:grid;
+    grid-template-columns:clamp(88px,9vw,120px) minmax(0,1fr) clamp(88px,9vw,120px);
+    grid-template-rows:auto minmax(0,1fr) auto;
+    column-gap:clamp(10px,1.5vw,22px);
+    row-gap:clamp(8px,1.5vh,14px);
+    min-height:100dvh;
+  }
+  .dice-race .race-header{grid-column:1/-1;grid-row:1;min-width:0}
+  .dice-race .race-round{position:static;transform:none;margin-left:auto;margin-right:auto}
+  .dice-race .race-header h1{flex:0 1 auto;min-width:0}
+  .dice-race .race-controls{display:contents}
+  .dice-race .race-card{
+    grid-row:2/4;display:flex;flex-direction:column;align-items:stretch;
+    min-height:0;min-width:0;padding:10px 8px;gap:10px;border-radius:22px;
+  }
+  .dice-race .race-card.race-player--child{grid-column:1}
+  .dice-race .race-card.race-player--adult{grid-column:3}
+  .dice-race .race-card h2{flex:none;text-align:center;font-size:clamp(15px,1.8vw,23px);line-height:1.2}
+  .dice-race .race-numbers{order:2;display:grid;grid-template-columns:1fr;grid-template-rows:repeat(6,minmax(0,1fr));flex:1;min-height:0;width:100%;gap:6px}
+  .dice-race .race-numbers button{height:auto;min-height:0;font-size:clamp(22px,3vw,36px);border-radius:12px}
+  .dice-race .race-dice-value{order:1;flex:none;min-width:0;min-height:0;padding:0;gap:0;border:0}
+  .dice-race .race-dice-value>span{display:none}
+  .dice-race .race-card .race-die{width:clamp(56px,8vh,80px)}
+  .dice-race .tower-scene,.dice-race .water-scene-wrap,.dice-race .race-course{grid-column:2;grid-row:2;min-height:0;min-width:0}
+  .dice-race .race-course{padding-right:52px;gap:24px}
+  .dice-race .race-lane{grid-template-columns:minmax(70px,14%) minmax(0,1fr);gap:30px}
+  .dice-race .race-footer{grid-column:2;grid-row:3;min-width:0;min-height:0;gap:8px}
+  .dice-race .race-prompt strong{font-size:clamp(18px,2.1vw,28px)}
+}
+@media (orientation:landscape) and (max-height:530px) {
+  .dice-race{column-gap:8px;row-gap:4px;grid-template-columns:76px minmax(0,1fr) 76px}
+  .dice-race .race-card{padding:6px;gap:6px;border-radius:16px}
+  .dice-race .race-card h2{font-size:14px}
+  .dice-race .race-dice-value{display:flex}
+  .dice-race .race-card .race-die{width:44px}
+  .dice-race .race-numbers{gap:3px}
+  .dice-race .race-numbers button{font-size:23px;border-radius:9px}
+  .dice-race .race-footer{gap:4px}
+  .dice-race .race-prompt strong{font-size:17px}
+  .dice-race .race-course{padding-right:36px;gap:12px}
+  .dice-race .race-lane{grid-template-columns:62px minmax(0,1fr);gap:22px}
+  .dice-race .race-player-label{flex-direction:column;gap:4px}
+  .dice-race .race-player-label strong{font-size:14px;max-width:62px}
+  .dice-race .race-avatar{width:28px;height:28px;font-size:16px}
+}

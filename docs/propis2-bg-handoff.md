@@ -51,7 +51,7 @@ python3 tools/propis2/variants/bg/compare_font.py <ttf> out.png --built   # ли
 python3 tools/propis2/variants/bg/compare_font.py <ttf> out.png           # обведённые: шрифт, рука, результат
 python3 tools/propis2/variants/bg/review_sheet.py out.png [буквы] [--font <ttf>]  # буквы поверх настоящего контура шрифта
 python3 tools/propis2/variants/bg/font_flags.py <ttf>        # точные средние линии флажков и шляпы П -> font_flags.json
-npx vitest run src/topics/renderers/propis2 src/topics/renderers/propis/scriptGeometry.test.js
+npx vitest run src/topics/renderers/propis2 src/handwriting/scriptGeometry.test.js
 ```
 Проверка, что эталонная А не сдвинулась (ретушь, без `SHAPES`: у А там теперь подъём по шрифту): подравнять захват `captures/boyan_A_a_2026-10-18.json` и сравнить штрих 0 с
 `reference_hooks.json["letterA"][0]`. Должно совпасть побитно.

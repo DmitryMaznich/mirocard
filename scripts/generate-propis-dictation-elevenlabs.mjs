@@ -6,8 +6,8 @@
 //
 // One utterance per file ("Мама.") — the dictation screen's repeat button
 // replays it. Keys come from dictationAudio.js, so files drop into
-// public/audio/propis-dictation as is. Content: tools/propis/topic.json (the
-// same words/texts as propis2's topic.json).
+// public/audio/propis-dictation as is. Content: tools/propis2/topic.json (the
+// archived `propis` topic had a subset of these words/texts).
 //
 // Auth: ELEVENLABS_API_KEY from the environment, sent as `xi-api-key`. Without it
 // the request goes out bare (in case a network secret injects the header).
@@ -21,7 +21,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey, syllableDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey, syllableDictationKey } from "../src/handwriting/dictationAudio.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned
@@ -48,7 +48,7 @@ const sayable = (s) => (/[.!?,]$/.test(s) ? s : `${s}.`);
 const PUNCT_SPEECH = { ",": "Запятая.", ".": "Точка.", "!": "Восклицательный знак.", "?": "Вопросительный знак." };
 
 function buildEntries() {
-  const topic = JSON.parse(readFileSync(join(ROOT, args.topic ?? "tools/propis/topic.json"), "utf8"));
+  const topic = JSON.parse(readFileSync(join(ROOT, args.topic ?? "tools/propis2/topic.json"), "utf8"));
   const entries = [];
   if (!args.only || args.only === "words") {
     for (const w of topic.words) {

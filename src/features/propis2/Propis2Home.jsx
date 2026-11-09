@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
-import { openPdf, pdfFileName, pdfSavesOnDevice, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
+import PrintPageView from "@/handwriting/PrintPageView";
+import { openPdf, pdfFileName, pdfSavesOnDevice, pdfTab, printPdf } from "@/handwriting/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, screenPagesOf as screenPagesOfPage, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageBandFill, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { ladderIndex } from "@/topics/renderers/propis2/data.js";
@@ -11,7 +11,7 @@ import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } f
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import { Propis2LangSheet } from "./Propis2LangPicker";
-import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, mostUsedLang, pickLanguage } from "@/topics/renderers/propis2/languages.js";
+import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, mostUsedLang, pickLanguage, pickStyle, styleOf } from "@/topics/renderers/propis2/languages.js";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
 import Propis2SaveDialog from "./Propis2SaveDialog";
@@ -37,7 +37,10 @@ export default function Propis2Home({ db }) {
   const languages = deckLanguages(deckRecord);
   // (until one is picked on this device: the language most of the library is in, once it is loaded — Bulgarian for the Bulgarian customer)
   const [newLang, setNewLangState] = useState(() => (languages ? pickLanguage(deckRecord, readNewLang(activeTopicId)) : null));
-  const setNewLang = (id) => { setNewLangState(id); writeNewLang(activeTopicId, id); };
+  // the writing style a new notebook gets (languages.js styles, docs/latin-letters.md): chosen in the same sheet as the language, when the
+  // language has more than one; remembered on this device with the language
+  const [newStyle, setNewStyleState] = useState(() => readNewLang(activeTopicId, NEW_STYLE_KEY));
+  const setNewLang = (id, style = null) => { setNewLangState(id); writeNewLang(activeTopicId, id); setNewStyleState(style); writeNewLang(activeTopicId, style, NEW_STYLE_KEY); };
   const [langSheet, setLangSheet] = useState(false);
   const [langFilter, setLangFilter] = useState("all");
   const [library, setLibrary] = useState(emptyLibrary);
@@ -74,7 +77,9 @@ export default function Propis2Home({ db }) {
   const working = session ? session.lib : library;
   const sessionSet = session ? session.lib.sets.find((st) => st.id === session.sid) : null; // the notebook being worked on
   const lang = languages ? (sessionSet ? pickLanguage(deckRecord, langOf(sessionSet)) : newLang) : null;
-  const topicRecord = languages ? languageView(deckRecord, lang) : deckRecord;
+  // the writing style (docs/latin-letters.md): the notebook's, a new notebook gets its language's first one; null when the language has none
+  const writingStyle = languages ? pickStyle(deckRecord, lang, sessionSet ? styleOf(sessionSet) : newStyle) : null;
+  const topicRecord = languages ? languageView(deckRecord, lang, writingStyle) : deckRecord;
   const dirty = Boolean(session && session.lib !== session.base);
   const isNewNb = Boolean(session && !library.sets.some((st) => st.id === session.sid));
 
@@ -198,12 +203,15 @@ export default function Propis2Home({ db }) {
   };
   // the list with languages: one list of every notebook, each with its language's mark, and a filter — both only when the list holds
   // more than one language (the notebooks', the new notebook's, the ready ones'). The filter narrows the notebooks and the ready ones.
-  const usedLangs = useMemo(() => (languages ? new Set([...library.sets.map(langOf), newLang]) : null), [languages, library.sets, newLang]);
+  // notebooks of a language this deck does not have (an English notebook made in the test copy `propis2_lang`, whose library is this
+  // same one, docs/latin-letters.md) are not listed here — kept, never deleted, waiting for their language
+  const knownSets = useMemo(() => (languages ? library.sets.filter((st) => languages.some((l) => l.id === langOf(st))) : library.sets), [languages, library.sets]);
+  const usedLangs = useMemo(() => (languages ? new Set([...knownSets.map(langOf), newLang]) : null), [languages, knownSets, newLang]);
   // the ready notebooks of every language are always offered (owner, 2026-11-02: the Kazakh ones were hidden until Kazakh was in use),
   // so their languages count for the marks and the filter too
   const shownLangs = useMemo(() => (languages ? new Set([...usedLangs, ...ready.map((r) => r.lang)]) : null), [languages, usedLangs, ready]);
   const multiLang = Boolean(shownLangs && shownLangs.size > 1);
-  const shownSets = useMemo(() => (languages && langFilter !== "all" ? library.sets.filter((st) => langOf(st) === langFilter) : library.sets), [languages, langFilter, library.sets]);
+  const shownSets = useMemo(() => (languages && langFilter !== "all" ? knownSets.filter((st) => langOf(st) === langFilter) : knownSets), [languages, langFilter, knownSets]);
   const shownReady = useMemo(() => (!languages ? ready : ready.filter((r) => langFilter === "all" || r.lang === langFilter)), [languages, ready, langFilter]);
   const markOf = (id) => { const i = languages?.findIndex((l) => l.id === id) ?? -1; const l = languages?.[i]; return { short: l?.short ?? id?.toUpperCase(), title: l?.title ?? id, tone: Math.max(i, 0) % 4 }; };
   const langCounts = useMemo(() => (languages ? Object.fromEntries(languages.map((l) => [l.id, library.sets.filter((st) => langOf(st) === l.id).length])) : {}), [languages, library.sets]);
@@ -318,7 +326,7 @@ export default function Propis2Home({ db }) {
   const editReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps, r.lang); startSession(st.id, lib); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); };
   // a new page is a notebook of one page (there is no page outside a notebook); it is not in the list until it is confirmed
   const createPage = (p) => {
-    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang } : {}) });
+    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang, ...(writingStyle ? { style: writingStyle } : {}) } : {}) });
     startSession(nb.id, upsertSet(upsertPage(library, p), nb));
     setView({ name: "editor", pageId: p.id, backTo: { name: "library" } });
   };
@@ -563,7 +571,7 @@ export default function Propis2Home({ db }) {
         title={navSet ? navSet.title : undefined}
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={topicRecord}
-        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone } : null}
+        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone, styleTitle: styleTitleOf(languages.find((l) => l.id === lang), writingStyle) } : null}
         onChange={(next, how) => {
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
           const change = navSet ? layoutChange(shown, next) : {};
@@ -598,7 +606,8 @@ export default function Propis2Home({ db }) {
     <Propis2Library
       sets={shownSets}
       langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
-      newLang={languages ? { title: languages.find((l) => l.id === newLang)?.title, onOpen: () => setLangSheet(true) } : null}
+      newLang={languages ? { title: newLangTitle(languages.find((l) => l.id === newLang), pickStyle(deckRecord, newLang, newStyle), languages.length === 1), onOpen: () => setLangSheet(true) } : null}
+      title={topicRecord?.meta?.title}
       filterBar={multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
       blankCount={blankIds.length}
@@ -625,7 +634,7 @@ export default function Propis2Home({ db }) {
       }}
       onDeleteSet={(id) => persist(removeSet(library, id))}
     />
-    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={languages} lang={newLang} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
+    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={languages} lang={newLang} style={pickStyle(deckRecord, newLang, newStyle)} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
     </>
   );
 }
@@ -643,11 +652,23 @@ function LangFilter({ languages, value, onChange }) {
 
 // the language a new notebook gets, remembered on this device per topic (a teacher preparing a Kazakh class keeps it for a while)
 const NEW_LANG_KEY = "propis2:newLang";
-function readNewLang(topicId) {
-  try { return JSON.parse(localStorage.getItem(NEW_LANG_KEY) ?? "{}")?.[topicId] ?? null; } catch { return null; }
+const NEW_STYLE_KEY = "propis2:newStyle"; // and its writing style, the same way
+function readNewLang(topicId, key = NEW_LANG_KEY) {
+  try { return JSON.parse(localStorage.getItem(key) ?? "{}")?.[topicId] ?? null; } catch { return null; }
 }
-function writeNewLang(topicId, id) {
-  try { const all = JSON.parse(localStorage.getItem(NEW_LANG_KEY) ?? "{}") ?? {}; localStorage.setItem(NEW_LANG_KEY, JSON.stringify({ ...all, [topicId]: id })); } catch { /* private mode: not remembered */ }
+function writeNewLang(topicId, id, key = NEW_LANG_KEY) {
+  try { const all = JSON.parse(localStorage.getItem(key) ?? "{}") ?? {}; localStorage.setItem(key, JSON.stringify({ ...all, [topicId]: id })); } catch { /* private mode: not remembered */ }
+}
+// the title of a style of a language that has several; null otherwise (one style: nothing to tell apart)
+function styleTitleOf(lang, styleId) {
+  return lang?.styles?.length > 1 ? lang.styles.find((x) => x.id === styleId)?.title ?? null : null;
+}
+// the chip next to «Новая тетрадь»: the language, and its style when it has several («English · Британские»)
+// (a deck with one language, «Прописи: латиница»: only the style)
+function newLangTitle(lang, styleId, single = false) {
+  const styles = lang?.styles?.length > 1 ? lang.styles : null;
+  const st = styles?.find((x) => x.id === styleId);
+  return st ? (single ? st.title : `${lang.title} · ${st.title}`) : lang?.title;
 }
 
 // page numbers per notebook: a convenience of this device, not part of the notebook (the cover is the notebook's: `set.cover`;

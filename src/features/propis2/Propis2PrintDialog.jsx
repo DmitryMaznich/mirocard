@@ -1,6 +1,6 @@
 import { useState } from "react";
 import CoverSide from "./cover/CoverSide.jsx";
-import { BOOKLET_MAX_PAGES, bookletPageCount } from "@/topics/renderers/propis/booklet.js";
+import { BOOKLET_MAX_PAGES, bookletPageCount } from "@/handwriting/booklet.js";
 import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, SPINE_PAPERS, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
 
 // Asked before a notebook is printed (owner, 2026-10-08). The cover is one template (cover/coverConfig.js): a ready design picked in

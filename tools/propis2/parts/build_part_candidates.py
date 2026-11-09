@@ -12,7 +12,7 @@ new_elements.json: wide.json-style glyphs { label, kind: "element", strokes: [{d
 import json, re, sys
 
 d = json.load(open(sys.argv[1]))
-wide = json.load(open("tools/propis/wide.json"))["glyphs"]
+wide = json.load(open("tools/handwriting/cyrillic/wide.json"))["glyphs"]
 
 
 def segs(p):

@@ -1,7 +1,7 @@
 """Minimal SVG path `d`-string parser for propis captured strokes.
 
 Only M (move), L (line), C (cubic bezier) ever appear in
-tools/propis/topic.json's stroke data (verified 2026-08-14 by scanning
+tools/handwriting/cyrillic/propis1-style.json's stroke data (verified 2026-08-14 by scanning
 every captured card) -- this parser intentionally does not support
 anything else, and raises loudly if it ever sees something new (a future
 capture using an unexpected command should fail the build, not silently

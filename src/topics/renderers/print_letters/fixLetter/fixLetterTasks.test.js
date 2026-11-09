@@ -10,11 +10,11 @@ function seeded(seed) {
 }
 
 describe("print_letters engine — «Почини букву»", () => {
-  it("is a game of cards with one setting only — the difficulty (owner, 2026-11-04/05)", () => {
+  it("is a game of cards with three settings — the difficulty, «Рамка», «Вспомогательные линии» (owner, 2026-11-04/05/06)", () => {
     expect(mode.type).toBe("fix_letter");
     expect(mode.finite).toBeUndefined();
     expect(mode.summaryOnFinish).toBeUndefined();
-    expect(Object.keys(mode.params)).toEqual(["level"]);
+    expect(Object.keys(mode.params)).toEqual(["level", "frame", "guides"]);
     expect(mode.params.level.values).toEqual(["easy", "mid", "hard"]);
     expect(mode.params.level.default).toBe("easy");
   });

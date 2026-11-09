@@ -1,4 +1,4 @@
-"""Glyph outlines for the PDF the app makes (src/topics/renderers/propis/printPdf.js): every text of a printed notebook (the cover,
+"""Glyph outlines for the PDF the app makes (src/handwriting/printPdf.js): every text of a printed notebook (the cover,
 the logo, the page numbers, the Mironium marks) goes into the PDF as vector OUTLINES, not as embedded fonts — nothing for a PDF viewer
 to get wrong (owner, 2026-10-15: the first PDFs showed no Cyrillic and a wrong logo — the font files had never reached the server).
 

@@ -1,4 +1,4 @@
-import { MIRONIUM_HEAD } from "@/topics/renderers/propis/brandMarks.jsx";
+import { MIRONIUM_HEAD } from "@/handwriting/brandMarks.jsx";
 
 // The Mironium logo (public/brand/mironium-logo.svg: the head and the word, the «u» in gold), inlined so a print never waits for it.
 export default function MironiumLogo({ className = "" }) {

@@ -2,7 +2,7 @@
 // Gemini's native TTS. Since 2026-10-11 the WORDS are voiced in the owner's
 // ElevenLabs voice by generate-propis-dictation-elevenlabs.mjs instead — don't
 // run --only=words here, it would overwrite them with Gemini takes. Output feeds dictationAudioUrl() in
-// src/topics/renderers/propis/dictationAudio.js -- these are static assets
+// src/handwriting/dictationAudio.js -- these are static assets
 // shipped with the app itself (like addition_subtraction's number words),
 // NOT part of propis's deck zip, so nothing here touches build-propis-deck.mjs.
 //
@@ -26,7 +26,7 @@
 ("Заглавная Б." / "Строчная б.", public/audio/propis-dictation/{up,lo}_<letter>.mp3)
 in the owner's ElevenLabs voice -- see scripts/lib/propis-elevenlabs-bank.mjs.
 //
-// Content is read straight from tools/propis/topic.json -- the same source
+// Content is read straight from tools/propis2/topic.json -- the same source
 // dictationAudio.js's key functions and engine.js's dictation branch use, so
 // there's no separate content list to keep in sync:
 //   - words: every `words[]` entry (249), spoken as-is.
@@ -45,12 +45,12 @@ import {
   wordDictationKey,
   textSentenceDictationKey,
   splitIntoSentences,
-} from "../src/topics/renderers/propis/dictationAudio.js";
+} from "../src/handwriting/dictationAudio.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT     = join(__dirname, "..");
 const OUT_DIR  = join(ROOT, "public/audio/propis-dictation");
-const TOPIC_JSON_PATH = join(ROOT, "tools/propis/topic.json");
+const TOPIC_JSON_PATH = join(ROOT, "tools/propis2/topic.json");
 const MODEL    = "gemini-2.5-flash-preview-tts";
 const SAMPLE_RATE = 24000;
 const MP3_KBPS = 64;

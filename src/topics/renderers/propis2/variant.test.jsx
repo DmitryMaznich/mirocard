@@ -9,11 +9,11 @@ import { generateTasks } from "./engine.js";
 import { buildTiles } from "@/features/propis2/Propis2Carousel.jsx";
 import { backContent } from "@/features/propis2/cover/backContent.js";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 import { analyzePage, deckPapers, kitToLibraryItems, newPage, pageBandFill, rowsPerPage } from "./model.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 // The Bulgarian variant deck (docs/propis2-variants.md), installed from its built ZIP through the real importer: the same renderer,
 // its own alphabet (30 letters, no Ё Ы Э), its own modes, words on the cover in Bulgarian.
@@ -27,8 +27,9 @@ async function installed() {
 }
 
 describe("propis2 variant: Bulgarian", () => {
-  it("is in the catalog for one account at a time and installs with the propis2 renderer", async () => {
-    expect(entry.status).toBe("individual");
+  it("is archived (Bulgarian is a language of propis2 itself since 0.6.0) and still installs with the propis2 renderer", async () => {
+    // archived 2026-11-08 (archive/README.md): kept in the catalog so an installed copy stays hidden
+    expect(entry.status).toBe("archived");
     const rec = await installed();
     expect(rec.meta.renderer).toBe("propis2");
     expect(rec.meta.variantOf).toBe("propis2");
@@ -143,7 +144,7 @@ describe("Bulgarian joins (meta.script.exactJoins)", () => {
   it("the next letter starts exactly where the previous one's exit ends: no step, no bent tail", async () => {
     const { applyVariant } = await import("../../../../scripts/lib/propis2-variant.mjs");
     const topic = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8"));
-    topic.wide = JSON.parse(await readFile("tools/propis/wide.json", "utf-8")).glyphs;
+    topic.wide = JSON.parse(await readFile("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
     applyVariant(topic, JSON.parse(await readFile("tools/propis2/variants/bg/variant.json", "utf-8")));
     const map = buildGlyphMap(topic);
     for (const w of ["ии", "ни", "ки", "ик", "ми", "иш"]) {

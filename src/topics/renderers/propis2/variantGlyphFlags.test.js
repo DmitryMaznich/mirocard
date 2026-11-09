@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 // Flags of variant-deck glyphs made from another source (tools/propis2/variants/bg/font_glyphs.py): `noOverrides` keeps this bank's
 // per-letter fixes (glyphOverrides.js) off them, `noExit` (the pen ends on the letter's left, Boyan's Ф) leaves the next letter unjoined.
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const д = wide.find((g) => g.label === "д");
 const ink = (map, text) => layoutWideLinesIntoRows([text], map, undefined, false, 1).placed[0].segments.flatMap((s) => s.trajectory?.strokes ?? []);
 

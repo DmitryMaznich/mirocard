@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import DictationReview from "./DictationReview";
-import { dictationAudioUrl } from "../propis/dictationAudio";
+import { dictationAudioUrl } from "../../../handwriting/dictationAudio";
 import { useDictationVoice } from "./useDictationVoice";
 
 // «Диктант» in `propis2` (2026-10-29; until then the screen of `propis`, `propis/DictationView.jsx`). Same flow and audio, laid out for

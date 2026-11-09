@@ -1,5 +1,5 @@
 // Saddle-stitch booklet order for «Тетрадью» (PdfPages.jsx) — the same as propis2's
-// src/topics/renderers/propis/booklet.js, copied for this topic: the A5 pages two to a side of an A4
+// src/handwriting/booklet.js, copied for this topic: the A5 pages two to a side of an A4
 // landscape sheet, printed on both sides (flip on the short edge), folded and stapled on the fold;
 // padded to a multiple of 4. Each sheet: `front` and `back` = [left, right] 0-based page indices.
 export const BOOKLET_MAX_PAGES = 24;

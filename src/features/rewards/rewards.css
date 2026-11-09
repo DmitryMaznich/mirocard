@@ -22,5 +22,8 @@
 
 /* «Видеоприз» — the standard prize block on lesson settings screens (VideoPrizeCard.jsx) */
 .video-prize-card__head .param-label { font-weight: 900; }
+.video-prize-card__settings { display: flex; flex-direction: column; border-top: 1px solid #eef2f1; }
+.video-prize-card__settings[hidden] { display: none; }
+.video-prize-card__settings:empty { border-top: 0; }
 .video-prize-card__foot { font-size: 0.78rem; color: #7a9e9a; line-height: 1.4; display: block; }
 .video-prize-card__foot strong { color: #537b75; }

@@ -1,9 +1,10 @@
+import { isFourLinePaper } from "@/handwriting/fourLinePapers.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import PrintPageView, { snapXFor } from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView, { snapXFor } from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { lineWidth } from "@/topics/renderers/propis2/model.js";
-import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "@/topics/renderers/propis/propisRuling.js";
-import { WIDE_ROW_MAX_X } from "@/topics/renderers/propis/wordEngine.js";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "@/handwriting/propisRuling.js";
+import { WIDE_ROW_MAX_X } from "@/handwriting/wordEngine.js";
 
 // Show panel: the tapped fragment written large on its own ruling, the pen going over it, with repeat, slow motion and close.
 // The page behind stays mounted, so closing returns to the same page, zoom and scroll.
@@ -35,7 +36,7 @@ export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, 
   }, []);
   // the fragment is moved to the middle of its row (an indent in slant cells), so the ruling runs on at both sides of it
   const task = useMemo(() => {
-    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled" || grid === "bg" || grid === "m1" || grid === "m2";
+    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled" || isFourLinePaper(grid) || grid === "m1" || grid === "m2";
     const snap = snapXFor({ narrowRows: narrow, simpleGrid: grid, narrow17: narrow });
     const scale = snap.cell?.scale ?? snap.letterScale ?? (narrow ? 0.5 : 1);
     const w = lineWidth(fragment, buildGlyphMap(topicRecord), narrow ? "narrow" : "wide", snap);

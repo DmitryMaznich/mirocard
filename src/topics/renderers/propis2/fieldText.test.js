@@ -4,8 +4,8 @@ import { buildGlyphMap } from "./pageTask.js";
 import { newPage, newRow, pageToLines } from "./model.js";
 import { cleanPastedText, fieldFromRows, insertToken, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
 const map = buildGlyphMap({ wide: wide.glyphs, elements, wideElementRepeat: wide.elementRepeat ?? {} });
 const page = newPage("p");
 

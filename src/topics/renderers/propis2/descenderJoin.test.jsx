@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "../propis/PrintPageView";
+import PrintPageView from "../../../handwriting/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 
-const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
-const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
+const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8"));
+const elements = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
 const topicRecord = { ...topic, wide: wide.glyphs, wideSheets: wide.sheets, elements, wideElementRepeat: wide.elementRepeat };
 

@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
-import { samplePath } from "../propis/pathGeometry.js";
+import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
+import { samplePath } from "../../../handwriting/pathGeometry.js";
 import { withGlyphOverrides } from "./glyphOverrides.js";
 
 // meta.script.growJoins (the Kazakh variant): what the grid nudges cannot close between a connector and the next letter is closed by a straight piece
-const wide = withGlyphOverrides(JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs);
+const wide = withGlyphOverrides(JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs);
 const mapOf = (script) => { const m = new Map(wide.map((g) => [g.label, g])); for (const g of wide) for (const a of g.aliases ?? []) m.set(a, g); if (script) m.script = script; return m; };
 const labels = [..."абвгдежзийклмнопрстуфхцчщъьэюя"].filter((c) => wide.find((g) => g.label === c && g.strokes) || wide.find((g) => g.aliases?.includes(c) && g.strokes));
 const gapBetween = (map, a, b) => {
@@ -17,7 +17,7 @@ const gapBetween = (map, a, b) => {
   return best;
 };
 
-import { getPathEndpoints } from "../propis/pathGeometry.js";
+import { getPathEndpoints } from "../../../handwriting/pathGeometry.js";
 
 const tailEndY = (map, word) => {
   const { placed } = layoutWideLinesIntoRows([word], map, undefined, false, 1);

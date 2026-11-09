@@ -1,0 +1,285 @@
+// Minimal SVG path helpers for propis stroke data — only M (moveto) and C (cubic bezier)
+// commands ever appear in captured strokes (see handwriting_capture.html's pipeline
+// comment: EMA -> RDP -> Hermite -> cubic Bézier -> strokes:[{d}]).
+
+const TOKEN_RE = /[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g;
+
+export function getPathEndpoints(d) {
+  const tokens = d.match(TOKEN_RE) || [];
+  let i = 0;
+  let cmd = null;
+  let start = null;
+  let end = null;
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t === "M" || t === "C") {
+      cmd = t;
+      i += 1;
+      continue;
+    }
+    if (cmd === "M") {
+      const x = parseFloat(tokens[i]);
+      const y = parseFloat(tokens[i + 1]);
+      i += 2;
+      if (!start) start = [x, y];
+      end = [x, y];
+    } else if (cmd === "C") {
+      const x = parseFloat(tokens[i + 4]);
+      const y = parseFloat(tokens[i + 5]);
+      i += 6;
+      end = [x, y];
+    } else {
+      i += 1;
+    }
+  }
+
+  return { start, end };
+}
+
+function bezierPoint(p0, p1, p2, p3, t) {
+  const mt = 1 - t;
+  const x = mt * mt * mt * p0[0] + 3 * mt * mt * t * p1[0] + 3 * mt * t * t * p2[0] + t * t * t * p3[0];
+  const y = mt * mt * mt * p0[1] + 3 * mt * mt * t * p1[1] + 3 * mt * t * t * p2[1] + t * t * t * p3[1];
+  return [x, y];
+}
+
+// Flattens a path into an ordered list of points (including the M point), by sampling
+// each C segment at `samplesPerSegment` steps. Used to find where a curve passes near a
+// given y (e.g. a baseline), which the path's own M/C endpoints don't reliably tell you —
+// a stroke can dip close to a line in the middle of a segment without either endpoint
+// landing there.
+export function samplePath(d, samplesPerSegment = 100) {
+  const tokens = d.match(TOKEN_RE) || [];
+  let i = 0;
+  let cmd = null;
+  let cur = null;
+  const points = [];
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t === "M" || t === "C") {
+      cmd = t;
+      i += 1;
+      continue;
+    }
+    if (cmd === "M") {
+      cur = [parseFloat(tokens[i]), parseFloat(tokens[i + 1])];
+      i += 2;
+      points.push(cur);
+    } else if (cmd === "C") {
+      const p1 = [parseFloat(tokens[i]), parseFloat(tokens[i + 1])];
+      const p2 = [parseFloat(tokens[i + 2]), parseFloat(tokens[i + 3])];
+      const p3 = [parseFloat(tokens[i + 4]), parseFloat(tokens[i + 5])];
+      for (let k = 1; k <= samplesPerSegment; k += 1) {
+        points.push(bezierPoint(cur, p1, p2, p3, k / samplesPerSegment));
+      }
+      cur = p3;
+      i += 6;
+    } else {
+      i += 1;
+    }
+  }
+
+  return points;
+}
+
+// Among a list of [x,y] points, finds the first and last ones within `toleranceMargin` of
+// the closest approach to targetY. Generalizes "does this trajectory touch targetY" (exact
+// touch = distance 0, always within any positive tolerance) to trajectories that only come
+// near it without ever crossing exactly.
+//
+// `last` is the trajectory's own LAST genuine local minimum of distance-to-targetY — a real
+// valley, strictly closer than both its immediate neighbors — not simply "closest point
+// anywhere" (global-minimum tolerance band) and not simply "the stroke's raw final point"
+// either. ф is why both simpler approaches fail: its stroke is a loop, then a descender
+// dipping well past the baseline, then a second loop — the descender's own ascent happens to
+// swing closer to the baseline than the second loop's true bottom does, so a global-minimum
+// band picks a point mid-descender instead of where the pen actually finishes (confirmed
+// 2026-08-12 on "фото": exit connector anchored on the descender's ascent instead of the
+// second loop, producing a stray flick and a gap). But the raw final point is ALSO wrong:
+// ф's stroke keeps trending toward the baseline right up to where it's captured stopping,
+// without ever truly turning around after the second loop's own bottom — so "last point,
+// period" just re-lands past that bottom, on the loop's far/rising side, too close to line 4
+// for the connector's own rescale math (produces a squished, curled stub instead of a loop).
+// The real "last local minimum" is that second loop's own bottom: strictly requiring a
+// right-hand neighbor to compare against (so the trajectory's raw endpoint can never
+// trivially "win" just because it has no successor) finds exactly that point instead.
+export function findClosestApproach(points, targetY, toleranceMargin = 1.5) {
+  let minDist = Infinity;
+  for (const p of points) minDist = Math.min(minDist, Math.abs(p[1] - targetY));
+  const tol = minDist + toleranceMargin;
+  const near = points.filter((p) => Math.abs(p[1] - targetY) <= tol);
+
+  // A local minimum only counts as THIS approach if it's still within the caller's own
+  // tolerance band — not some unrelated excursion toward a different guide line entirely
+  // (б's own stroke swings back up near the TOP of the letter box after its baseline touch;
+  // an unbounded search would find that far excursion's own local minimum and call it
+  // "closest approach to the baseline", which it isn't).
+  const dist = (i) => Math.abs(points[i][1] - targetY);
+  let lastLocalMinIdx = null;
+  for (let i = points.length - 2; i >= 1; i--) {
+    if (dist(i) > tol) continue;
+    if (dist(i) <= dist(i - 1) && dist(i) <= dist(i + 1)) {
+      lastLocalMinIdx = i;
+      break;
+    }
+  }
+  // No interior local minimum near targetY at all (the trajectory approaches targetY
+  // monotonically the whole way, e.g. every simple single-loop letter) — the raw endpoint is
+  // genuinely correct in that case, same as the old behavior.
+  if (lastLocalMinIdx === null) lastLocalMinIdx = points.length - 1;
+
+  return { first: near[0], last: points[lastLocalMinIdx] };
+}
+
+// The point at the middle of a stroke BY ARC LENGTH (not by sample index — samplePath
+// only subdivides `C` segments, so a straight `M`-only polyline like
+// 01_pryamaya_liniya's "M 5.1 9.9 34.1 9.8" samples to just its 2 raw endpoints, and
+// indexing into that would land on an endpoint instead of a real midpoint) and the
+// tangent direction the pen is moving there — used for a small "which way does this go"
+// direction-arrow marker (propis "Элементы букв", PrintPageView.jsx). Placed at the
+// MIDPOINT rather than either endpoint so it never collides with a stroke's own start-dot
+// landmark (drawn at its `M` point). Returns null for a degenerate stroke with zero total
+// length (can't have a direction).
+export function getMidpointTangent(d, samplesPerSegment = 100) {
+  const points = samplePath(d, samplesPerSegment);
+  if (points.length < 2) return null;
+
+  const dist = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1]);
+  const segLens = [];
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    const len = dist(points[i - 1], points[i]);
+    segLens.push(len);
+    total += len;
+  }
+  if (total === 0) return null;
+
+  const half = total / 2;
+  let acc = 0;
+  for (let i = 0; i < segLens.length; i++) {
+    const segLen = segLens[i];
+    if (acc + segLen >= half || i === segLens.length - 1) {
+      const a = points[i];
+      const b = points[i + 1];
+      const t = segLen > 0 ? (half - acc) / segLen : 0;
+      const point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      const angleDeg = (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI;
+      return { point, angleDeg };
+    }
+    acc += segLen;
+  }
+  return null;
+}
+
+export function transformPathD(d, { scaleX = 1, scaleY = 1, translateX = 0, translateY = 0 } = {}) {
+  const tokens = d.match(TOKEN_RE) || [];
+  const tx = (x) => (x * scaleX + translateX).toFixed(3);
+  const ty = (y) => (y * scaleY + translateY).toFixed(3);
+
+  let out = "";
+  let i = 0;
+  let cmd = null;
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t === "M" || t === "C") {
+      cmd = t;
+      out += (out ? " " : "") + t;
+      i += 1;
+      continue;
+    }
+    if (cmd === "M") {
+      out += " " + tx(parseFloat(tokens[i])) + " " + ty(parseFloat(tokens[i + 1]));
+      i += 2;
+    } else if (cmd === "C") {
+      out +=
+        " " + tx(parseFloat(tokens[i])) + " " + ty(parseFloat(tokens[i + 1])) +
+        " " + tx(parseFloat(tokens[i + 2])) + " " + ty(parseFloat(tokens[i + 3])) +
+        " " + tx(parseFloat(tokens[i + 4])) + " " + ty(parseFloat(tokens[i + 5]));
+      i += 6;
+    } else {
+      i += 1;
+    }
+  }
+
+  return out;
+}
+
+// Converts an absolute-coordinate path made of M / L / Q / C commands into the M + C-only form
+// every helper above (and wordEngine.js) assumes. Needed for the "Широкая строка" captures
+// (tools/handwriting/cyrillic/wide.json), which the capture tool exported with straight (L) and quadratic (Q)
+// segments. L becomes a degenerate cubic (control points at 1/3 and 2/3); Q is an exact
+// degree elevation, so the drawn curve is identical.
+export function toCubicPathD(d) {
+  const tokens = d.match(/[MLQC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const f = (n) => Number(n.toFixed(3));
+  let out = [];
+  let cmd = null;
+  let cx = 0;
+  let cy = 0;
+  let i = 0;
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (/[MLQC]/.test(t)) { cmd = t; i += 1; continue; }
+    if (cmd === "M") {
+      cx = parseFloat(tokens[i]); cy = parseFloat(tokens[i + 1]); i += 2;
+      out.push("M", f(cx), f(cy));
+      cmd = "L"; // a coordinate pair after M is an implicit lineto
+    } else if (cmd === "L") {
+      const x = parseFloat(tokens[i]); const y = parseFloat(tokens[i + 1]); i += 2;
+      out.push("C", f(cx + (x - cx) / 3), f(cy + (y - cy) / 3), f(cx + (2 * (x - cx)) / 3), f(cy + (2 * (y - cy)) / 3), f(x), f(y));
+      cx = x; cy = y;
+    } else if (cmd === "Q") {
+      const qx = parseFloat(tokens[i]); const qy = parseFloat(tokens[i + 1]);
+      const x = parseFloat(tokens[i + 2]); const y = parseFloat(tokens[i + 3]); i += 4;
+      out.push("C",
+        f(cx + (2 * (qx - cx)) / 3), f(cy + (2 * (qy - cy)) / 3),
+        f(x + (2 * (qx - x)) / 3), f(y + (2 * (qy - y)) / 3),
+        f(x), f(y));
+      cx = x; cy = y;
+    } else if (cmd === "C") {
+      const v = tokens.slice(i, i + 6).map(parseFloat); i += 6;
+      out.push("C", ...v.map(f));
+      cx = v[4]; cy = v[5];
+    } else { i += 1; }
+  }
+  return out.join(" ");
+}
+
+// Widens a path horizontally by `stretch` while keeping straight strokes at their original slant:
+// a plain x-scale would flatten the 65-degree strokes, so the stretch is followed by a shear about
+// the baseline (x' = a*x - (a-1)*tan(slantFromVertical)*(yBase - y)). Straight "/" strokes keep
+// their angle exactly; arches/loops get wider, which is what a wider letter looks like.
+// Expects the M + C form (see toCubicPathD).
+export function stretchKeepSlantPathD(d, stretch, slantFromVerticalDeg, yBase) {
+  if (stretch === 1) return d;
+  const t = Math.tan((slantFromVerticalDeg * Math.PI) / 180);
+  const tokens = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const out = [];
+  let i = 0;
+  while (i < tokens.length) {
+    const tk = tokens[i];
+    if (tk === "M" || tk === "C") { out.push(tk); i += 1; continue; }
+    const x = parseFloat(tokens[i]);
+    const y = parseFloat(tokens[i + 1]);
+    out.push(Number((stretch * x - (stretch - 1) * t * (yBase - y)).toFixed(3)), Number(y.toFixed(3)));
+    i += 2;
+  }
+  return out.join(" ");
+}
+
+// Shifts the END of an M + C path horizontally by dx: the last cubic's end point moves by dx and
+// its second control point moves with it, so the final approach keeps its direction. Used to land
+// a letter's exit tail exactly on the next letter's stroke (a sub-millimetre nudge, never a redraw).
+export function shiftPathEndXD(d, dx) {
+  const tokens = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  let lastC = -1;
+  for (let i = 0; i < tokens.length; i += 1) if (tokens[i] === "C") lastC = i;
+  if (lastC < 0) return d;
+  const n = tokens.map((t) => (t === "M" || t === "C" ? t : parseFloat(t)));
+  n[lastC + 3] = Number((n[lastC + 3] + dx).toFixed(3)); // control point 2, x
+  n[lastC + 5] = Number((n[lastC + 5] + dx).toFixed(3)); // end point, x
+  return n.join(" ");
+}

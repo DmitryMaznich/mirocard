@@ -1,6 +1,6 @@
 // Ready sheets (methodology pages) usable as templates, in page order. The glyph bank, sheets
 // and elements themselves come from the installed deck (topicRecord.wide / wideSheets /
-// elements / wideElementRepeat), merged from tools/propis by scripts/build-propis2-deck.mjs.
+// elements / wideElementRepeat), merged from tools/handwriting/cyrillic by scripts/build-propis2-deck.mjs.
 // The workbook of the methodology (wide.json `sheets`): the first part is written on the WIDE ruling, the second on the NARROW one
 // (the same split as the `propis` «Листы методики»: part 1 = part1 + page3..page7, part 2 = part2 + page8..page18). Each part is one ready notebook,
 // so a notebook keeps one ruling. [sheet id, page title].

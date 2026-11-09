@@ -128,10 +128,20 @@ export function bracesOut(text, codes) {
 // Digits and signs: the field holds ordinary characters (what the keyboard types), the rows hold glyph labels «№5», «№+»
 // (see glyphOverrides.js). A word made only of digits and + - = < > is a number / a sum; a lone 5 6 7 8 typed bare is the digit
 // (the ELEMENTS with those names are the ones shown in braces, {э1}...). Words with letters are never touched ("п+и", "кое-что").
+// A lone - – — between words is the DASH (the «–» glyph, «мама – папа»), unless a number stands next to it: then it is the
+// minus («5 - 3», «- 2»). A hyphen typed alone becomes «–», so the row keeps the dash; «—» stays as typed (an alias of «–»).
 const MATH_WORD = /^[0-9+\-=<>−–]+$/;
+const DASH_WORD = /^[-–—]$/;
+const NUMBER_WORD = /^[0-9+\-=<>−–]*[0-9][0-9+\-=<>−–]*$/;
 const SIGN = { "−": "-", "–": "-" };
 export function digitsOut(text) {
-  return String(text ?? "").replace(/(^|\s)(\S+)/g, (m, pre, word) => (MATH_WORD.test(word) ? `${pre}${[...word].map((c) => `№${SIGN[c] ?? c}`).join("")}` : m));
+  const parts = String(text ?? "").split(/(\s+)/);
+  const near = (i, step) => { for (let j = i + step; j >= 0 && j < parts.length; j += step) if (parts[j]) return parts[j]; return ""; };
+  return parts.map((w, i) => {
+    if (i % 2 === 1 || !w) return w;
+    if (DASH_WORD.test(w) && !NUMBER_WORD.test(near(i, -2)) && !NUMBER_WORD.test(near(i, 2))) return w === "—" ? w : "–";
+    return MATH_WORD.test(w) ? [...w].map((c) => `№${SIGN[c] ?? c}`).join("") : w;
+  }).join("");
 }
 export function digitsIn(text) {
   return String(text ?? "").replace(/(^|\s)((?:№[0-9+\-=<>])+)(?=\s|$)/g, (_m, pre, word) => `${pre}${word.replace(/№/g, "")}`);

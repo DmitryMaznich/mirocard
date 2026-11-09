@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useRef, useState } from "react";
-import { PrintPageTop } from "@/topics/renderers/propis/PrintPageView";
+import { PrintPageTop } from "@/handwriting/PrintPageView";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { pageFormat, pageMargin, pageToLines, taskGrid, pageMidDash, pageNoSlant, pageBandFill } from "@/topics/renderers/propis2/model.js";
 import * as I from "./Propis2Icons";

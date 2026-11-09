@@ -29,8 +29,18 @@ import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { isPickableMode } from "@/shared/utils/topicUtils";
 
-export default function TopicLibraryScreen() {
+import { useTopicUiPreview } from "@/core/topicUiPreview";
+import { previewTopicDestination, recentTopicContext, rememberPreviewChoice } from "./topicUiPreviewModel";
+import TopicLibraryPreview from "./TopicLibraryPreview";
+import "./topicUiPreview.css";
+
+export default function TopicLibraryScreen({ embedded = false } = {}) {
   const { t, language } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
+  const sessions = useAppStore((state) => state.sessions);
+  const activeStudentId = useAppStore((state) => state.activeStudentId);
+  const activeSessionSnapshot = useAppStore((state) => state.activeSessionSnapshot);
+  const recent = recentTopicContext(sessions, activeStudentId, activeSessionSnapshot);
   const setScreen         = useAppStore((s) => s.setScreen);
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const setTopicRecords   = useAppStore((s) => s.setTopicRecords);
@@ -43,10 +53,11 @@ export default function TopicLibraryScreen() {
   const account           = useAppStore((s) => s.account);
   const token             = useAppStore((s) => s.token);
   const subscription      = useAppStore((s) => s.subscription);
+  const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
 
   const [catalog,           setCatalog]           = useState(null);
   const [catalogError,      setCatalogError]      = useState(false);
-  const [filter,             setFilter]           = useState("mine");
+  const [filter,             setFilter]           = useState(preview ? "all" : "mine");
   const [query,              setQuery]            = useState("");
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
@@ -142,7 +153,8 @@ export default function TopicLibraryScreen() {
       }
     }
     setActiveTopicId(record.meta.id);
-    setScreen("home");
+    if (preview) rememberPreviewChoice(activeStudentId, "topic");
+    setScreen(preview ? previewTopicDestination(record) : "home");
   }
 
   async function handleDelete() {
@@ -242,7 +254,12 @@ export default function TopicLibraryScreen() {
       <TopicTile
         key={item.id}
         title={item.title}
-        category={item.category}
+        category={preview ? t(CATEGORY_LABEL_KEYS[item.category]) : item.category}
+        presentation={preview ? (embedded ? "installed" : "catalog") : "legacy"}
+        recent={item.id === recent?.topicId}
+        onPreviewInfo={() => setInfoTopic(item.installedRecord ?? {
+          meta: { id: item.id, title: item.entry.title, about: { description: item.entry.description } },
+        })}
         entry={item.entry}
         installedRecord={item.installedRecord}
         isActive={item.installedRecord?.meta.id === activeTopicId}
@@ -252,7 +269,7 @@ export default function TopicLibraryScreen() {
         hasAccess={hasPaidAccess(account, subscription)}
         onLockedTap={() => setScreen("subscription")}
         materialLanguages={item.entry?.materialLanguages ?? (item.installedRecord?.meta.language ? [item.installedRecord.meta.language] : null)}
-        materialLanguage={item.installedRecord?.languageContract ? topicLanguageForStudent(item.installedRecord) : null}
+        materialLanguage={item.installedRecord?.languageContract ? topicLanguageForStudent(item.installedRecord, { activeStudentId, studentTopicLinks }) : null}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}
         onSelect={handleSelectTopic}
@@ -265,7 +282,11 @@ export default function TopicLibraryScreen() {
   if (statisticsTopic) return <StatisticsScreen initialTopicId={statisticsTopic.meta.id} onClose={() => setStatisticsTopic(null)} />;
 
   return (
-    <div className="screen">
+    <div className={preview ? `topic-ui-library${embedded ? " topic-ui-library--embedded" : " screen topic-ui-library--catalog"}` : "screen"}>
+      {preview ? <TopicLibraryPreview embedded={embedded} items={allItems} renderItem={renderItem}
+        query={query} onQuery={setQuery} filter={filter} onFilter={setFilter} recentTopicId={recent?.topicId}
+        loading={!catalog && !catalogError} error={catalogError} onRetry={loadCatalog}
+        onHome={() => setScreen("home")} onCatalog={() => setScreen("topics")} /> : <>
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
         <h1 className="screen-title">{t("topics.title")}</h1>
@@ -341,9 +362,11 @@ export default function TopicLibraryScreen() {
         )}
       </div>
 
+      </>}
       {/* Overlays */}
       {actionSheetRecord && (
         <TopicActionSheet
+          showVersion={preview}
           record={actionSheetRecord}
           onClose={() => setActionSheetRecord(null)}
           onInfo={(r) => { setInfoTopic(r); }}

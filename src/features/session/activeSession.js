@@ -63,7 +63,7 @@ export function restoreActiveSessionState(snapshot, context) {
   // picker show the new selection while the child still sees the old cards.
   if (Array.isArray(context.conceptIds) && !sameConceptIds(normalized.sessionState.conceptIds, context.conceptIds)) return null;
   // Nor one built with other settings: the tasks were generated from them
-  // («Найди такого же» resumed on «Одинаковое фото» while «Другое фото» was
+  // («Найди лицо» resumed on «Одинаковое фото» while «Другое фото» was
   // chosen). Snapshots from before conditions were recorded still resume.
   const savedParams = normalized.sessionState.statistics?.conditions?.params;
   if (context.params && savedParams && !sameParams(savedParams, context.params)) return null;

@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { screenGlyph, polyD } from "../screenWrite/traceEngine";
 import { Grid } from "../screenWrite/board";
 import { boardBox, glyphWidth, useTone } from "../screenWrite/boardGeometry";
-import { breakLetter, coverage, grabRole, isSolved, letterTargets, looseParts, moved, partEnds, snapTarget } from "./breakLetter";
+import { breakLetter, coverage, grabRole, isSolved, letterTargets, looseParts, mirrorLine, moved, partEnds, snapTarget, tapMirrors } from "./breakLetter";
 
 // «Почини букву» (mode fix_letter): a big letter on the notebook grid with some strokes knocked out of
 // place — shifted, tilted (one end moved), a half-oval mirrored; the child puts them back. A game of
@@ -128,9 +128,10 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious, 
     if (!d || e.pointerId !== d.id) return;
     dragRef.current = null; setDrag(null);
     let p = partsRef.current[d.i];
-    // a tap on a half-oval turns it round (only when the adult switched «зеркально» on)
-    if (d.moved < 3 && p.half && task.mirror) {
-      p = { ...p, mirror: !p.mirror };
+    // a tap on a half-oval turns it round, on a slanted straight stroke mirrors its slant (only on the
+    // level that mirrors, «Трудно»)
+    if (d.moved < 3 && task.mirror && tapMirrors(p)) {
+      p = p.line ? mirrorLine(p) : { ...p, mirror: !p.mirror };
       setPartsLive(partsRef.current.map((q, j) => (j === d.i ? p : q)));
       tone([660]);
     }
@@ -200,7 +201,7 @@ export default function FixLetterView({ task, onCorrect, onAdvance, onPrevious, 
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} card={card} />
+          <Grid box={box} card={card} frame={task.frame !== false} guides={task.guides !== false} />
           {hint != null && <path d={polyD(targets[hint].pts)} strokeWidth={INK_W + 6} className="plf-hint" />}
           <g className={done ? "plf-parts is-done" : "plf-parts"}>
             {order.map((i) => {

@@ -2,7 +2,7 @@ import VideoPrizeCard from '@/features/rewards/VideoPrizeCard';
 import { persistStudentTopicLink } from '@/core/linkUtils';
 import { effectiveRewardSettings } from '../../../shared/reward-policy.mjs';
 import { getDb, kv } from '@/core/db';
-import { useEffect, useState } from 'react';
+import { cloneElement, useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { flushQueue } from '@/core/syncApi';
 import { useTimer } from '@/features/timer/TimerContext';
@@ -27,6 +27,7 @@ function PeopleSet({ label, value, people, onChange }) {
     <span>{person.name}<small>{person.type === 'pet' ? 'Питомец' : person.relation}</small></span>
   </label>)}</div></fieldset>;
 }
+const PLAN_COVERED_MODE_IDS = ['show_me', 'who_is_this'];
 export default function PeopleLearningHome({ legacy }) {
   const identity = useAppStore(s => `${s.account?.id}:${s.activeStudentId}`);
   return <PeopleLearningHomeContent key={identity} legacy={legacy} />;
@@ -111,7 +112,18 @@ function PeopleLearningHomeContent({ legacy }) {
   }
   if (docs === null) return <div className="screen-center">Загрузка плана…</div>;
   if (!student) return <div className="pl-page"><h1>Мои люди</h1><p>Выберите ученика на главном экране.</p><button className="pl-primary" onClick={() => store.setScreen('home')}>На главную</button></div>;
-  if (route === 'legacy' || page === 'legacy') return <><div className="pl-page"><button className="pl-option" onClick={() => setGate(true)}>Новая механика</button>{error && <p role="alert">{error}</p>}</div>{legacy}{gate && <PeopleAdultGate onSuccess={() => { setGate(false); switchRoute('new'); }} onCancel={() => setGate(false)} />}</>;
+  // The ordinary list of modes, with the switch to the plan route on top.
+  if (route === 'legacy') return <>{cloneElement(legacy, { topItem: <button type="button" className="mode-item mode-item--flex my-people-setup-row" onClick={() => setGate(true)}>
+    <span className="my-people-setup-row__icon" aria-hidden="true">📋</span>
+    <span className="mode-item__body"><span className="mode-item__title">Занятия по плану</span>
+      <span className="mode-item__desc">Взрослый готовит план, ребёнок начинает одной кнопкой. Этот список останется в «Других упражнениях».</span>
+      {error && <span className="mode-item__desc" role="alert">{error}</span>}</span>
+    <span className="my-people-setup-row__arrow" aria-hidden="true">›</span>
+  </button> })}{gate && <PeopleAdultGate onSuccess={() => { setGate(false); switchRoute('new'); }} onCancel={() => setGate(false)} />}</>;
+  // «Другие упражнения» inside the plan route: the plan already does
+  // «Покажи» (choose the photo) and «Кто это?» (name it), so they are left
+  // out here; «back» returns to the adult's page.
+  if (page === 'legacy') return cloneElement(legacy, { hiddenModeIds: PLAN_COVERED_MODE_IDS, onBack: () => setPage('adult') });
   return <div className="screen"><main className="pl-page">
     <header className="pl-page__head"><button type="button" aria-label="Назад" onClick={() => page === 'child' ? store.setScreen('home') : setPage(page === 'settings' ? 'adult' : 'child')}><BackArrowIcon /></button><h1>Мои люди</h1></header>
     {error && <p className="pl-errors" role="alert">{error}</p>}
@@ -154,7 +166,7 @@ function PeopleLearningHomeContent({ legacy }) {
       {store.activeSessionSnapshot?.context?.studentId === student.id && store.activeSessionSnapshot?.context?.modeId === PEOPLE_MODE_ID && store.activeSessionSnapshot.sessionState.statistics?.conditions?.params?.context === 'adult' && <button type="button" className="pl-option" onClick={() => launch(store.activeSessionSnapshot.sessionState.statistics.conditions.params)}>Продолжить занятие со взрослым</button>}
       <div className="pl-actions"><button type="button" className="pl-primary" disabled={!check.ready || busy} onClick={confirm}>{draft.context === 'self' ? 'Подготовить ребёнку' : 'Начать вместе'}</button></div>
       {prepared && <p className="pl-conditions">Сейчас ребёнку подготовлено: {planDescription(prepared)}. Черновик изменит этот план только после подтверждения.</p>}
-      <div className="pl-actions"><button type="button" className="pl-link" onClick={() => setPage('legacy')}>Дополнительные упражнения</button><button type="button" className="pl-link" disabled={busy} onClick={() => switchRoute('legacy')}>Вернуться к прежней механике</button></div>
+      <div className="pl-actions"><button type="button" className="pl-link" onClick={() => setPage('legacy')}>Другие упражнения</button><button type="button" className="pl-link" disabled={busy} onClick={() => switchRoute('legacy')}>Выключить занятия по плану</button></div>
     </>}
     {gate && <PeopleAdultGate onSuccess={() => { setGate(false); prepare(); }} onCancel={() => setGate(false)} />}
   </main></div>;

@@ -167,24 +167,32 @@ The old topic (id **`propis`**) is now titled **«Прописи старые»*
 status `"archived"` (`public/decks/catalog.json` + `backend/generated/topic-inventory.json`): the
 server sends `archivedTopicIds`, the app keeps archived topics off the home screen of every
 device, only the admin topic archive shows them. Archive only, no new work. In code
-comments, name the topics by id (`propis2` / `propis`), not «Прописи 2» / v1. **But its code and data are NOT dead:** `propis2` imports the shared
-engine from `src/topics/renderers/propis/` (`wordEngine.js`, `PrintPageView.jsx`,
-`useLoopingStrokes.js`, `AnimatedStrokes.jsx`, `letters/*` views) and glyph data from
-`tools/propis/` (`wide.json`, `elements.json`, `captures/`). Never delete those when
-cleaning up the old topic; letter-shape edits still go into `tools/propis/`.
+comments, name the topics by id (`propis2` / `propis`), not «Прописи 2» / v1. **The shared handwriting engine
+lives in `src/handwriting/`** (moved out of `src/topics/renderers/propis/` on 2026-11-08 — paths only, the
+built `propis2`/`print_letters` renderers stayed byte-identical): `wordEngine.js`, `PrintPageView.jsx`,
+`propisRuling.js`, `pathGeometry.js`, `printPdf.js`, `useLoopingStrokes.js`, `AnimatedStrokes.jsx`,
+`letters/*` card views, and their tests. The old topic's own screens, engine and deck builder were moved
+to `archive/propis/` the same day and unregistered (`archive/README.md`); its catalog entry stays
+`archived` — that is what keeps installed copies hidden, never delete it. The Cyrillic glyph data moved the same day to `tools/handwriting/cyrillic/`
+(`wide.json`, `elements.json`, `captures/`) — letter-shape edits go there. **The old topic's own writing
+style is kept** (owner, 2026-11-08) as `tools/handwriting/cyrillic/propis1-style.json` (its 73 letters,
+4 joins, 4 signs, unchanged; picture `docs/mockups/handwriting/propis1-style.html`) — a candidate style for
+the style axis; the Kazakh glyph builder and the Python print-sheet tools read it. `tools/propis/` is gone;
+the dictation scripts and `build-audio-review-manifest` read `tools/propis2/topic.json`.
 `docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
 geometry, glyph capture) — still worth reading when touching the shared engine.
 
 Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
-**Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18.** A variant is its own
+**Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18; archived 2026-11-08 (Bulgarian
+is a language of `propis2` itself; `tools/propis2/variants/bg/` stays — the language is built from it).** A variant is its own
 ZIP topic with the same `propis2` renderer, built from data only
 (`tools/propis2/variants/<id>/variant.json`, `node scripts/build-propis2-deck.mjs --variant <id>`),
 shown to one account via catalog status `individual`. Never fork `propis2` code for a language: the
 alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
 hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 
-**Языки письма в «Прописях» (с 2026-11-01, колода `propis2` 0.6.0).** Русский, болгарский и казахский в самой теме `propis2` (`tools/propis2/languages.json`); язык — у тетради (не у ученика), у карточек — параметр режима; диктант только русский. Тестовая копия `propis2_lang` в архиве. Read `docs/propis2-languages.md` before continuing.
+**Языки письма в «Прописях» (с 2026-11-01, колода `propis2` 0.6.0).** Русский, болгарский и казахский в самой теме `propis2` (`tools/propis2/languages.json`); язык — у тетради (не у ученика), у карточек — параметр режима; диктант только русский. Языки в работе (`status: "draft"`) в боевую колоду не попадают. **Латиница — отдельная колода «Прописи: латиница»** (с 2026-11-09, id `propis2_lang`, `node scripts/build-propis2-deck.mjs --latin`, `tools/propis2/latin.json`, каталог `individual` до выпуска, доступ платный как у `propis2`): только языки `deck: "latin"` (английский: «Печатные», «Британские раздельные»; соединённые Нельсона в работе), без диктанта, на британской строке `en_gb` (американской в латинице нет). Read `docs/propis2-languages.md` before continuing.
 
 **Казахские прописи (`propis2_kk`), планируется (2026-10-29).** Тот же приём, что у болгарских: вариант-колода на тех же движке и рендерере, 9 особых букв (Ә Ғ Қ Ң Ө Ұ Ү Һ І). Всё, что
 узнали в сессии русских прописей (движок, соединения, пробел, стенд для картинок, правила работы с владельцем), собрано в **`docs/propis2-kk-handoff.md`: читать первым.**
@@ -223,9 +231,11 @@ ids — without them `topicLoader` silently replaces generic flashcards modes' u
 
 ## Мои люди (my_people) — согласованная механика и переделка
 
+**Сводка и порядок занятий — `docs/my-people-status.md`: читать первым** (два входа, лестница, что сделано 2026-11-06, план шлифовки).
+
 Рабочая v2 реализована как включаемый взрослым пилот: сначала прочитать
 `docs/my-people-implementation.md`. Без явного выбора остаётся старый маршрут;
-«Новая механика» включает новый вход для ученика. Возврат — из подготовки.
+«Занятия по плану» (бывшая «Новая механика») включают новый вход для ученика. Возврат — «Выключить занятия по плану» в подготовке.
 Новый журнал `statistics.myPeople` не смешивать с legacy-оценками имени/роли.
 SQLite schema не менялась; полный аварийный restore production вне volume ещё
 не проверен — до глобального переключения по умолчанию выполнить план отката.
@@ -277,6 +287,15 @@ hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
 **Read the «Handoff» section of `docs/place-value.md` first** — menu, file map,
 the owner's rules learned the hard way, the work procedure and open items;
 per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
+
+## Латиница (latin_letters) — новая тема, проектирование (started 2026-11-07)
+
+Separate topic (owner's decision — not a language/style inside `propis2` or `print_letters`) for
+teaching children to write Latin script: English first, then other school styles as data (one engine,
+style = glyphs + joins + ruling + slant; notebook = language + style). **Direction changed 2026-11-08:**
+Latin is to become languages (English, Slovenian) with styles **inside the `propis2` engine**, not a new
+constructor; the first standalone constructor (deck 0.1.0) is in `archive/latin_letters/`, catalog `archived`.
+The print-glyph draft and review stand live in `tools/latin_letters/`. **Read `docs/latin-letters.md` first.** Source catalogue (links only): `docs/research/handwriting/`.
 
 ## Печатные буквы (print_letters) — new topic, prototype (started 2026-11-01)
 

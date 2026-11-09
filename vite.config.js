@@ -57,7 +57,7 @@ export default defineConfig({
     // .gitignore) would get swept in the same way if it ever exists here.
     exclude: [
       "**/node_modules/**", "**/dist/**", "runtime/**", ".superpowers/**",
-      "backend/**", "tools/**", "tests/**", ".worktrees/**", ".claude/worktrees/**", ".pytest_cache/**",
+      "backend/**", "tools/**", "tests/**", "archive/**", ".worktrees/**", ".claude/worktrees/**", ".pytest_cache/**",
     ],
     pool: "vmForks",
   },

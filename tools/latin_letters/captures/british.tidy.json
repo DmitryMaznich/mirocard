@@ -1,0 +1,856 @@
+{
+ "glyphs": [
+  {
+   "label": "a",
+   "kind": "letter",
+   "sourceLabel": "british-capture-a",
+   "strokes": [
+    {
+     "d": "M 38.06 15.62 C 33.03 13.2 28.93 10.84 23.19 10.84 C 10.38 10.84 0 24.14 0 40.56 C 0 52.7 6.3 62.46 14.07 62.46 C 28.41 62.46 40.04 39.02 40.04 10 C 40.04 21.12 40.04 32.24 40.04 43.36 C 40.04 53.65 42.86 62 46.34 62 C 52.18 62 56.36 56.18 59.41 52",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "k",
+   "kind": "letter",
+   "sourceLabel": "british-capture-k",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 -0.74 0 29.76 0 62 C 1.53 52.31 3.05 42.63 4.58 32.94 C 6.11 25.01 9.54 10 20.21 10 C 23.38 10 25.95 13.91 25.95 18.74 C 25.95 28.5 14.63 35.15 7.08 38.66 C 18.7 41.9 17.96 62 31.37 62 C 36.62 62 41.89 55.04 45.46 51.78",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "e",
+   "kind": "letter",
+   "sourceLabel": "british-capture-e",
+   "strokes": [
+    {
+     "d": "M 0.65 49.98 C 8.54 43.05 25.49 31.08 25.49 19.2 C 25.49 14.12 21.56 10 16.71 10 C 7.48 10 0 22.22 0 37.29 C 0 50.94 6.92 62 15.45 62 C 24.7 62 32.08 56.92 38.17 50.56",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "b",
+   "kind": "letter",
+   "sourceLabel": "british-capture-b",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 -0.74 0 29.76 0 62 C 0 50.92 0 39.84 0 28.76 C 3.76 19.79 7.88 10.78 19.08 10.78 C 28.61 10.78 36.35 22.03 36.35 35.91 C 36.35 50.72 27.78 62.61 17.22 62.61 C 7.46 62.61 3.92 54.44 0 47.07",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "c",
+   "kind": "letter",
+   "sourceLabel": "british-capture-c",
+   "strokes": [
+    {
+     "d": "M 34.07 15.16 C 30.78 12.13 27.53 10 22.88 10 C 10.24 10 0 23.66 0 40.52 C 0 52.5 7.39 62.17 16.5 62.17 C 21.08 62.17 27.41 62.86 31.65 61.14 C 36.16 59.14 39.83 54.67 43.37 51.36",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "f",
+   "kind": "letter",
+   "sourceLabel": "british-capture-f",
+   "strokes": [
+    {
+     "d": "M 64.66 -28.48 C 50.94 -30.87 37.07 -26.39 37.07 -11.69 C 37.07 16.05 37.07 47.31 37.07 75.87 C 37.07 87.29 26.9 96.55 14.35 96.55 C 8.53 96.55 3.93 93.61 0 90.35",
+     "name": "штрих"
+    },
+    {
+     "d": "M 9.82 10 C 27.79 19.87 45.75 19.87 63.72 10",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "d",
+   "kind": "letter",
+   "sourceLabel": "british-capture-d",
+   "strokes": [
+    {
+     "d": "M 38.06 15.62 C 33.03 13.2 28.93 10.84 23.19 10.84 C 10.38 10.84 0 24.14 0 40.56 C 0 52.7 6.3 62.46 14.07 62.46 C 28.41 62.46 40.04 39.02 40.04 10 C 40.04 -2.83 40.04 -15.65 40.04 -28.48 C 40.04 -3.72 40.04 22.84 40.04 51.62 C 40.04 57.35 42.11 62 44.67 62 C 49.99 62 54.3 56.02 58.29 53.16",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "j",
+   "kind": "letter",
+   "sourceLabel": "british-capture-j",
+   "strokes": [
+    {
+     "d": "M 41.82 10 C 41.82 32.27 41.82 54.53 41.82 74.39 C 41.82 88.22 31.37 99.44 18.47 99.44 C 11.35 99.44 6.14 96.92 0 94.45",
+     "name": "штрих"
+    },
+    {
+     "d": "M 40.29 -11.73 C 41.72 -11.73 42.89 -10.57 42.89 -9.13 C 42.89 -7.7 41.72 -6.53 40.29 -6.53 C 38.85 -6.53 37.69 -7.7 37.69 -9.13 C 37.69 -10.57 38.85 -11.73 40.29 -11.73",
+     "name": "точка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "g",
+   "kind": "letter",
+   "sourceLabel": "british-capture-g",
+   "strokes": [
+    {
+     "d": "M 39.84 15.62 C 34.82 13.2 30.72 10.84 24.98 10.84 C 12.17 10.84 1.78 24.14 1.78 40.56 C 1.78 52.7 8.08 62.46 15.85 62.46 C 30.2 62.46 41.82 39.02 41.82 10 C 41.82 32.27 41.82 54.53 41.82 74.39 C 41.82 88.22 31.37 99.44 18.47 99.44 C 11.35 99.44 6.14 96.92 0 94.45",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "i",
+   "kind": "letter",
+   "sourceLabel": "british-capture-i",
+   "strokes": [
+    {
+     "d": "M 0.19 10 C 0.19 24.51 0.19 39.02 0.19 53.52 C 0.19 58.2 3.1 62 6.69 62 C 12.33 62 17.38 54.88 20.55 50.98",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -11.21 C 1.44 -11.21 2.6 -10.05 2.6 -8.61 C 2.6 -7.17 1.44 -6.01 0 -6.01 C -1.44 -6.01 -2.6 -7.17 -2.6 -8.61 C -2.6 -10.05 -1.44 -11.21 0 -11.21",
+     "name": "точка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "h",
+   "kind": "letter",
+   "sourceLabel": "british-capture-h",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 -0.74 0 29.76 0 62 C 0 60.67 0 59.35 0 58.02 C 2.98 48.51 3.08 38.56 7.35 29.34 C 10.97 21.52 18.09 10 27.9 10 C 33.56 10 38.16 14.4 38.16 19.83 C 38.16 31.51 38.16 43.2 38.16 54.88 C 38.16 58.81 41.04 62 44.59 62 C 50.13 62 53.18 56.36 56.16 52.5",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "l",
+   "kind": "letter",
+   "sourceLabel": "british-capture-l",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 -3.12 0 24.22 0 53.7 C 0 58.28 2.42 62 5.42 62 C 11.23 62 15.46 53.42 19.49 50.04",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "m",
+   "kind": "letter",
+   "sourceLabel": "british-capture-m",
+   "strokes": [
+    {
+     "d": "M 0 10 C 0 27.33 0 44.67 0 62 C 0 60.68 0 59.35 0 58.03 C 3.83 44.77 3.5 10 24.39 10 C 30.79 10 35.98 18.92 35.98 29.92 C 35.98 40.61 35.98 51.31 35.98 62 C 35.98 60.05 35.98 58.1 35.98 56.16 C 39.31 42.92 36.3 10 57.86 10 C 64.65 10 70.16 15.14 70.16 21.48 C 70.16 32.69 70.16 43.9 70.16 55.1 C 70.16 58.91 72.92 62 76.32 62 C 81.93 62 84.81 56.31 87.92 52.5",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "r",
+   "kind": "letter",
+   "sourceLabel": "british-capture-r",
+   "strokes": [
+    {
+     "d": "M 0 10 C 0 27.33 0 44.67 0 62 C 2.18 51.06 4.36 40.12 6.53 29.18 C 7.8 23.73 15.73 10 22.07 10 C 27.08 10 26.66 18.68 32.09 18.68 C 35.62 18.68 39.18 16.07 42.19 14.48",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "s",
+   "kind": "letter",
+   "sourceLabel": "british-capture-s",
+   "strokes": [
+    {
+     "d": "M 26.9 15.9 C 23.5 12.86 20.36 10 15.52 10 C 8.61 10 3.01 15.85 3.01 23.06 C 3.01 29.71 6.95 33.35 13.12 34.79 C 21.26 36.7 28.12 39.57 28.12 49.18 C 28.12 56.26 21.93 62 14.29 62 C 8.41 62 4.09 59.79 0 55.75",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "n",
+   "kind": "letter",
+   "sourceLabel": "british-capture-n",
+   "strokes": [
+    {
+     "d": "M 0 10 C 0 27.33 0 44.67 0 62 C 0 60.54 0 59.09 0 57.63 C 3.99 44.21 2.81 10 24.06 10 C 30.47 10 35.66 14.85 35.66 20.83 C 35.66 32.23 35.66 43.63 35.66 55.03 C 35.66 58.88 38.61 62 42.25 62 C 47.52 62 50.64 56.74 53.42 53",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "u",
+   "kind": "letter",
+   "sourceLabel": "british-capture-u",
+   "strokes": [
+    {
+     "d": "M 0 10 C 0 23.83 0 37.66 0 51.49 C 0 57.29 5.31 62 11.85 62 C 20.39 62 29.18 52.1 31.07 44.17 C 33.86 32.78 36.65 21.39 39.44 10 C 39.26 24.84 39.08 39.67 38.9 54.51 C 38.9 58.65 41.34 62 44.34 62 C 49.4 62 55.62 53.55 58.93 50.3",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "p",
+   "kind": "letter",
+   "sourceLabel": "british-capture-p",
+   "strokes": [
+    {
+     "d": "M 0 10 C 0 42.24 0 72.45 0 99.44",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 29.18 C 3.78 19.99 8.6 10.78 19.94 10.78 C 30.23 10.78 38.57 22.17 38.57 36.22 C 38.57 50.87 29.2 62.63 17.64 62.63 C 8.11 62.63 4.06 55.48 0 48.18",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "t",
+   "kind": "letter",
+   "sourceLabel": "british-capture-t",
+   "strokes": [
+    {
+     "d": "M 15.59 -16.02 C 15.59 4.43 15.59 27.28 15.59 51.05 C 15.59 57.1 18.42 62 21.92 62 C 28.59 62 33.24 54.93 36.42 50.06",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 2.93 C 11.25 2.93 22.51 2.93 33.76 2.93",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "q",
+   "kind": "letter",
+   "sourceLabel": "british-capture-q",
+   "strokes": [
+    {
+     "d": "M 38.06 15.62 C 33.03 13.2 28.93 10.84 23.19 10.84 C 10.38 10.84 0 24.14 0 40.56 C 0 52.7 6.3 62.46 14.07 62.46 C 28.41 62.46 40.04 39.02 40.04 10 C 40.04 35.98 40.04 61.96 40.04 83.72 C 40.04 92.4 43.98 99.44 48.84 99.44 C 55.22 99.44 59.65 97.06 63.13 92.76",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "o",
+   "kind": "letter",
+   "sourceLabel": "british-capture-o",
+   "strokes": [
+    {
+     "d": "M 31.19 18.28 C 28.78 12.53 24.36 10 18.18 10 C 8.14 10 0 21.08 0 34.74 C 0 49.8 7.09 62 15.84 62 C 26.45 62 35.05 49.16 35.05 33.32 C 35.05 27.62 33.38 23.52 31.19 18.28",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "C",
+   "kind": "letter",
+   "sourceLabel": "british-capture-C",
+   "strokes": [
+    {
+     "d": "M 71 -18.69 C 63.84 -25.09 56.22 -28.97 46.13 -28.97 C 20.65 -28.97 0 -6.65 0 20.88 C 0 44.09 19.64 62.9 43.88 62.9 C 56.23 62.9 65.31 58.26 72.65 49.23",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "v",
+   "kind": "letter",
+   "sourceLabel": "british-capture-v",
+   "strokes": [
+    {
+     "d": "M 0 10 C 7.53 27.33 15.07 44.67 22.6 62 C 30.94 44.67 39.27 27.33 47.6 10",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "x",
+   "kind": "letter",
+   "sourceLabel": "british-capture-x",
+   "strokes": [
+    {
+     "d": "M 37.98 10 C 25.19 27.67 12.79 44.33 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0.48 10 C 13.53 28.27 25.69 43.73 38.74 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "w",
+   "kind": "letter",
+   "sourceLabel": "british-capture-w",
+   "strokes": [
+    {
+     "d": "M 0 10 C 5.66 26.98 10.8 45.02 16.46 62 C 23.29 44.67 30.13 27.33 36.96 10 C 42.3 27.33 47.64 44.67 52.98 62 C 59.12 44.07 65.96 27.93 72.1 10",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "y",
+   "kind": "letter",
+   "sourceLabel": "british-capture-y",
+   "strokes": [
+    {
+     "d": "M 1.77 10 C 1.77 21.57 1.77 33.13 1.77 44.7 C 1.77 54.25 7.9 62 15.46 62 C 23.1 62 30.89 48.89 32.69 42.3 C 35.73 31.53 38.78 20.77 41.82 10 C 41.82 32.27 41.82 54.53 41.82 74.39 C 41.82 88.22 31.37 99.44 18.47 99.44 C 11.35 99.44 6.14 96.92 0 94.45",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "z",
+   "kind": "letter",
+   "sourceLabel": "british-capture-z",
+   "strokes": [
+    {
+     "d": "M 0.97 10 C 13.31 10 25.65 10 37.99 10 C 26.78 26.04 15.56 42.08 4.35 58.12 C 0 63.9 6.65 62 9.29 62 C 18.59 62 27.9 62 37.21 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "A",
+   "kind": "letter",
+   "sourceLabel": "british-capture-A",
+   "strokes": [
+    {
+     "d": "M 41.6 -28.48 C 27.11 2.75 14.49 30.77 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 41.6 -28.48 C 54.47 2.5 65.45 31.02 78.32 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 21.1 23.37 C 34.11 23.37 47.11 23.37 60.12 23.37",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "B",
+   "kind": "letter",
+   "sourceLabel": "british-capture-B",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0.14 -28.48 C 10.14 -28.48 20.51 -28.48 30.51 -28.48 C 40.62 -28.48 48.82 -19.4 48.82 -8.21 C 48.82 2.99 41.94 12.07 33.45 12.07 C 23.62 12.07 13.78 12.07 3.95 12.07 C 13.72 12.07 23.49 12.07 33.25 12.07 C 43.78 12.07 52.32 23.25 52.32 37.03 C 52.32 50.82 42.96 62 31.41 62 C 20.94 62 10.51 62 0.04 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "M",
+   "kind": "letter",
+   "sourceLabel": "british-capture-M",
+   "strokes": [
+    {
+     "d": "M 0.89 -28.48 C 0.89 1.68 0.89 31.84 0.89 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 14.05 1.44 27.87 29.7 41.92 59.62 C 55.56 30.16 68.66 0.98 82.3 -28.48",
+     "name": "штрих"
+    },
+    {
+     "d": "M 82.94 -28.48 C 82.94 1.68 82.94 31.84 82.94 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "L",
+   "kind": "letter",
+   "sourceLabel": "british-capture-L",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 62 C 19.43 62 38.86 62 58.29 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "F",
+   "kind": "letter",
+   "sourceLabel": "british-capture-F",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 17.94 -28.48 35.89 -28.48 53.83 -28.48",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 13.35 C 14.73 13.35 29.46 13.35 44.19 13.35",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "J",
+   "kind": "letter",
+   "sourceLabel": "british-capture-J",
+   "strokes": [
+    {
+     "d": "M 50.76 -28.48 C 50.76 -4.48 50.76 19.52 50.76 43.52 C 50.76 54.19 38.05 62.84 22.37 62.84 C 12.31 62.84 5.41 58.06 0 50.54",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "G",
+   "kind": "letter",
+   "sourceLabel": "british-capture-G",
+   "strokes": [
+    {
+     "d": "M 71.86 -18.45 C 63.76 -25.89 53.83 -28.97 42.53 -28.97 C 19.04 -28.97 0 -7.43 0 19.14 C 0 43.29 18.81 62.87 42.02 62.87 C 62.51 62.87 79.11 40.7 79.11 13.35 C 79.11 29.57 79.11 45.78 79.11 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "E",
+   "kind": "letter",
+   "sourceLabel": "british-capture-E",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 18.64 -28.48 37.28 -28.48 55.91 -28.48",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 13.35 C 15.48 13.35 30.97 13.35 46.45 13.35",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 62 C 18.58 62 37.17 62 55.75 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "D",
+   "kind": "letter",
+   "sourceLabel": "british-capture-D",
+   "strokes": [
+    {
+     "d": "M 0.01 -28.48 C 0.01 1.68 0.01 31.84 0.01 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 9.6 -28.48 19.17 -28.48 28.77 -28.48 C 49.35 -28.48 66.03 -8.58 66.03 15.98 C 66.03 41.4 52.22 62 35.18 62 C 23.57 62 11.82 62 0.21 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "K",
+   "kind": "letter",
+   "sourceLabel": "british-capture-K",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 52.76 -28.48 C 36.33 -11.11 20.61 4.66 4.19 22.03",
+     "name": "штрих"
+    },
+    {
+     "d": "M 4.19 22.03 C 21.57 35.65 39.04 48.38 56.42 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "H",
+   "kind": "letter",
+   "sourceLabel": "british-capture-H",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 68.57 -28.48 C 68.57 1.68 68.57 31.84 68.57 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 13.35 C 22.86 13.35 45.72 13.35 68.57 13.35",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "I",
+   "kind": "letter",
+   "sourceLabel": "british-capture-I",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "P",
+   "kind": "letter",
+   "sourceLabel": "british-capture-P",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 11.09 -28.48 22.17 -28.48 33.26 -28.48 C 45.5 -28.48 55.43 -16.5 55.43 -1.72 C 55.43 14.32 45.5 27.33 33.26 27.33 C 22.17 27.33 11.09 27.33 0 27.33",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "N",
+   "kind": "letter",
+   "sourceLabel": "british-capture-N",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0.7 -28.48 C 24.71 1.61 49.1 31.91 73.12 62 C 71.18 58.18 71.62 54.58 71.62 50.47 C 71.62 24.15 71.62 -2.16 71.62 -28.48",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "T",
+   "kind": "letter",
+   "sourceLabel": "british-capture-T",
+   "strokes": [
+    {
+     "d": "M 38.16 -28.48 C 38.16 1.68 38.16 31.84 38.16 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 25.77 -28.48 51.55 -28.48 77.32 -28.48",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "Q",
+   "kind": "letter",
+   "sourceLabel": "british-capture-Q",
+   "strokes": [
+    {
+     "d": "M 66.25 -20.19 C 58.89 -26.13 50.38 -28.86 40.66 -28.86 C 18.2 -28.86 0 -8.28 0 17.11 C 0 42.41 17.42 62.93 38.92 62.93 C 61.38 62.93 79.58 42.28 79.58 16.8 C 79.58 3.46 76.34 -10.34 66.25 -20.19",
+     "name": "штрих"
+    },
+    {
+     "d": "M 55.01 44.49 C 60.96 50.62 66.91 56.75 72.86 62.88",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "S",
+   "kind": "letter",
+   "sourceLabel": "british-capture-S",
+   "strokes": [
+    {
+     "d": "M 51.4 -19.62 C 45.24 -24.95 38.34 -28.93 29.67 -28.93 C 15.88 -28.93 4.7 -18.9 4.7 -6.52 C 4.7 8.1 17.44 13.36 30.77 15.03 C 44.49 16.75 55.32 24.31 55.32 38.34 C 55.32 51.87 42.94 62.83 27.67 62.83 C 16.72 62.83 6.88 57.89 0 50.17",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "R",
+   "kind": "letter",
+   "sourceLabel": "british-capture-R",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 1.68 0 31.84 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 11.79 -28.48 23.58 -28.48 35.38 -28.48 C 45.9 -28.48 54.43 -18.47 54.43 -6.11 C 54.43 6.2 45.9 16.19 35.38 16.19 C 23.58 16.19 11.79 16.19 0 16.19",
+     "name": "штрих"
+    },
+    {
+     "d": "M 28.77 16.19 C 37.21 31.46 45.65 46.73 54.09 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "U",
+   "kind": "letter",
+   "sourceLabel": "british-capture-U",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 0 -7.52 0 13.44 0 34.4 C 0 50.12 16.49 62.87 36.84 62.87 C 56.67 62.87 72.75 48.97 72.75 31.83 C 72.75 11.73 72.75 -8.38 72.75 -28.48",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "Z",
+   "kind": "letter",
+   "sourceLabel": "british-capture-Z",
+   "strokes": [
+    {
+     "d": "M 1 -28.48 C 24.36 -28.48 47.71 -28.48 71.07 -28.48 C 47.38 1.68 23.69 31.84 0 62 C 23.44 62 46.88 62 70.32 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "X",
+   "kind": "letter",
+   "sourceLabel": "british-capture-X",
+   "strokes": [
+    {
+     "d": "M 70.74 -28.48 C 46.9 2.78 23.84 30.74 0 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 1.2 -28.48 C 25.54 2.39 47.64 31.13 71.98 62",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "W",
+   "kind": "letter",
+   "sourceLabel": "british-capture-W",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 10.42 1.89 19.83 31.63 30.25 62 C 40.22 31.33 51 2.19 60.96 -28.48",
+     "name": "штрих"
+    },
+    {
+     "d": "M 60.96 -28.48 C 70.04 2.06 79.38 31.46 88.46 62 C 101.56 31.67 113.12 1.85 126.22 -28.48",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "V",
+   "kind": "letter",
+   "sourceLabel": "british-capture-V",
+   "strokes": [
+    {
+     "d": "M 0 -28.48 C 14.28 2.17 26.84 31.35 41.13 62 C 56.27 31.48 70.05 2.04 85.2 -28.48",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "Y",
+   "kind": "letter",
+   "sourceLabel": "british-capture-Y",
+   "strokes": [
+    {
+     "d": "M 71.3 -28.48 C 52.7 2.73 33.5 30.79 14.9 62",
+     "name": "штрих"
+    },
+    {
+     "d": "M 0 -28.48 C 12.35 -11.1 24.25 3.9 36.6 21.29",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "O",
+   "kind": "letter",
+   "sourceLabel": "british-capture-O",
+   "strokes": [
+    {
+     "d": "M 68.51 -18.09 C 61.07 -25.52 51.35 -28.85 40.54 -28.85 C 18.15 -28.85 0 -8.26 0 17.13 C 0 42.43 17.46 62.94 39 62.94 C 61.33 62.94 79.44 42.36 79.44 16.98 C 79.44 4.37 76.85 -7.93 68.51 -18.09",
+     "name": "штрих"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  }
+ ]
+}

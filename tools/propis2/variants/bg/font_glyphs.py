@@ -377,7 +377,7 @@ def main():
     font, letters, out = sys.argv[1], sys.argv[2], sys.argv[3]
     f = TTFont(font); gs = f.getGlyphSet(); cm = f.getBestCmap()
     old = {}
-    for g in json.loads((ROOT / "tools/propis/wide.json").read_text())["glyphs"]:
+    for g in json.loads((ROOT / "tools/handwriting/cyrillic/wide.json").read_text())["glyphs"]:
         old[g["label"]] = g
         for a in g.get("aliases", []): old.setdefault(a, g)
     for g in json.loads((ROOT / "tools/propis2/variants/bg/variant.json").read_text()).get("glyphs", []): old[g["label"]] = g

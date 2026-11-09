@@ -1,14 +1,14 @@
 import { useMemo } from "react";
-import "../propis/propis.css";
-import "../propis/letters/letters.css";
+import "../../../handwriting/propis.css";
+import "../../../handwriting/letters/letters.css";
 import "./dictation.css";
 import "./letters.css";
-import PrintPageView, { PrintPageTop, printPageRows } from "../propis/PrintPageView";
+import PrintPageView, { PrintPageTop, printPageRows } from "../../../handwriting/PrintPageView";
 import DictationScreen from "./DictationScreen";
-import { GlyphContext } from "../propis/letters/glyphs.js";
-import MatchView from "../propis/letters/MatchView";
-import MatchPairView from "../propis/letters/MatchPairView";
-import SortCaseView from "../propis/letters/SortCaseView";
+import { GlyphContext } from "../../../handwriting/letters/glyphs.js";
+import MatchView from "../../../handwriting/letters/MatchView";
+import MatchPairView from "../../../handwriting/letters/MatchPairView";
+import SortCaseView from "../../../handwriting/letters/SortCaseView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { languageView } from "./languages.js";
 import { cardGlyphs } from "./letterCards.js";
@@ -21,7 +21,7 @@ import GradeStamp from "./GradeStamp.jsx";
 // topic's letters: the cards get them through the same glyph context, the dictation's answer sheet is written by this topic's engine.
 export default function Propis2Renderer({ task, topicRecord: deckRecord, onAdvance, onClose, onCorrect, onMistake }) {
   // a deck with several writing languages: the task says which one it was made in (engine.js)
-  const topicRecord = languageView(deckRecord, task?.writingLang);
+  const topicRecord = languageView(deckRecord, task?.writingLang, task?.writingStyle);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const cards = useMemo(() => cardGlyphs(glyphMap, cardLetters(topicAlphabet(topicRecord, glyphMap))), [topicRecord, glyphMap]);
   const Answers = useMemo(() => function Propis2DictationAnswers({ items, level, grade }) {

@@ -8,7 +8,7 @@ import { readFile } from "node:fs/promises";
 import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { renderToStaticMarkup } from "react-dom/server";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 
 const catalog = JSON.parse(await readFile("public/decks/catalog.json", "utf-8"));

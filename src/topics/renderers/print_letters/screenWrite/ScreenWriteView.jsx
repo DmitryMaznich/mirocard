@@ -355,7 +355,7 @@ export default function ScreenWriteView({ task, onCorrect, onAdvance, onPrevious
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          <Grid box={box} card={card} />
+          <Grid box={box} card={card} frame={task.frame !== false} guides={task.guides !== false} />
           {showTrack && geo.map((g, i) => (i < cur ? null : (
             <g key={`t${i}`} className={i === cur ? "plw-track is-current" : "plw-track"}>
               <path d={polyD(g.pts)} className="plw-track-band" strokeWidth={t * 2} />

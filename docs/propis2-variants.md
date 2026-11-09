@@ -12,7 +12,7 @@
 - **Кому видна:** статус `individual` в `public/decks/catalog.json`. Тему выдаёт на аккаунт администратор (выдача
   `beta`/`individual` тем, `backend/server.mjs`). Остальные её не видят.
 - **Данные варианта:** `tools/propis2/variants/<id>/variant.json`. Сборка: `node scripts/build-propis2-deck.mjs --variant <id>`
-  накладывает его на `tools/propis2/topic.json` + `tools/propis/wide.json` (`scripts/lib/propis2-variant.mjs`):
+  накладывает его на `tools/propis2/topic.json` + `tools/handwriting/cyrillic/wide.json` (`scripts/lib/propis2-variant.mjs`):
   - `meta` заменяет поля базы (renderer остаётся, добавляется `variantOf: "propis2"`);
   - `modes` — какие режимы базы оставить (по id);
   - `words` / `texts` — свои слова и тексты для диктанта (базовые русские не берутся; пустые не пишутся вовсе: пустой массив
@@ -120,7 +120,7 @@ Boyan Maga (78°) был близок к правде. Болгарский шк
 
 ### Этап 1 сделан: наклон и высоты — параметр темы (2026-10-18)
 
-`meta.script = { slantDeg, upper, lower }` (`src/topics/renderers/propis/scriptGeometry.js`). Вопреки плану выше («сделать
+`meta.script = { slantDeg, upper, lower }` (`src/handwriting/scriptGeometry.js`). Вопреки плану выше («сделать
 угол параметром в ~20 местах движка»), движок **не трогали**: строка раскладывается, привязывается к сетке и соединяется
 как русская, а готовые чернила строки преобразуются целиком относительно её базовой линии. Сначала строка выпрямляется
 (снимается наклон 65°), затем зона выше строчных растягивается на `upper`, ниже — на `lower`, затем строка наклоняется на

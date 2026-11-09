@@ -584,16 +584,18 @@ function AboutMeQuestionTask(props) {
   );
 }
 
-// «Найди такого же»: the photo to match, set apart from the choices by a
-// frame, not shown as one more thing to tap.
-function MatchSample({ topicId, image }) {
+// «Найди лицо»: the photo to match as a name card ("Это Ула") -- a
+// solid frame with no lift, so it reads as "look at this", not as one more
+// photo to tap.
+function MatchSample({ topicId, image, label }) {
   const url = useTopicFile(topicId, image);
   return (
-    <div className="people-match__sample" aria-label="Образец">
+    <figure className="people-match__sample" aria-label={label || "Образец"}>
       {url
         ? <img src={url} alt="" draggable={false} />
         : <span className="people-point-photo__loading" aria-hidden="true" />}
-    </div>
+      {label && <figcaption className="people-match__label">{label}</figcaption>}
+    </figure>
   );
 }
 
@@ -686,32 +688,52 @@ function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, 
   }
 
   const columns = task.choices.length === 4 ? " people-point__photos--grid" : "";
-  return (
-    <div className={`session-body people-point${task.sample ? " people-point--match" : ""}`} aria-label={task.sample ? "Найди такого же" : "Покажи человека"}>
-      <div className="people-point__prompt">
-        <div className="people-point__question">{task.prompt}</div>
-        <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
-      </div>
-      {task.sample && <MatchSample topicId={topicId} image={task.sample} />}
-      <div className={`people-point__photos${columns}`}>
-        {task.choices.map((choice) => {
-          const isTarget = choice.personId === task.personId;
-          const state = current.done && isTarget ? "correct"
+  const isMatch = Boolean(task.sample);
+  // After the right tap the question turns into the answer ("Да, это Ула!").
+  const solved = current.done && isMatch && task.correctPrompt;
+  const prompt = (
+    <div className={`people-point__prompt${solved ? " people-point__prompt--solved" : ""}`} aria-live="polite">
+      <div className="people-point__question">{solved ? task.correctPrompt : task.prompt}</div>
+      {!solved && <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" className="people-speaker--filled" />}
+    </div>
+  );
+  const photos = (
+    <div className={`people-point__photos${columns}${isMatch ? ` people-match__photos people-match__photos--${task.choices.length}` : ""}`}>
+      {task.choices.map((choice) => {
+        const isTarget = choice.personId === task.personId;
+        const state = current.done && isTarget ? "correct"
+          : current.done && isMatch ? "faded"
             : helped && isTarget ? "hint"
               : helped && !isTarget ? "faded"
                 : "";
-          return (
-            <PointPhoto
-              key={choice.personId}
-              choice={choice}
-              topicId={topicId}
-              state={state}
-              disabled={current.done || (helped && !isTarget)}
-              onChoose={choose}
-            />
-          );
-        })}
+        return (
+          <PointPhoto
+            key={choice.personId}
+            choice={choice}
+            topicId={topicId}
+            state={state}
+            disabled={current.done || (helped && !isTarget)}
+            onChoose={choose}
+          />
+        );
+      })}
+    </div>
+  );
+  if (isMatch) {
+    return (
+      <div className="session-body people-point people-point--match" aria-label="Найди лицо">
+        <MatchSample topicId={topicId} image={task.sample} label={task.sampleLabel} />
+        <div className="people-match__choose">
+          {prompt}
+          {photos}
+        </div>
       </div>
+    );
+  }
+  return (
+    <div className="session-body people-point" aria-label="Покажи человека">
+      {prompt}
+      {photos}
     </div>
   );
 }

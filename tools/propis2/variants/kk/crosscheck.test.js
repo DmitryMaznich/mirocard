@@ -10,7 +10,7 @@ const seg = (a, b, c, d) => {
 };
 const crossings = (A, B) => { let n = 0; for (let i = 0; i < A.length - 1; i += 1) for (let j = 0; j < B.length - 1; j += 1) if (seg(A[i], A[i + 1], B[j], B[j + 1])) n += 1; return n; };
 it("cross", () => {
-  const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
+  const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
   const kk = JSON.parse(readFileSync(process.env.KK_GLYPHS, "utf-8"));
   const labels = new Set(kk.map((g) => g.label));
   const g = withGlyphOverrides([...wide.filter((x) => !labels.has(x.label)), ...kk]);

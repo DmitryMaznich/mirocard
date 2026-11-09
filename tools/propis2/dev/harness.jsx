@@ -5,12 +5,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "@/styles.css";
-import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import PrintPageView from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { kitToLibraryItems, notebookSections, setToLines, taskGrid, pageNoSlant, pageMidDash, pageMargin, pageFormat } from "@/topics/renderers/propis2/model.js";
 import kitsJson from "@/topics/renderers/propis2/kits.json";
-import wide from "./tools/propis/wide.json";
-import elements from "./tools/propis/elements.json";
+import wide from "./tools/handwriting/cyrillic/wide.json";
+import elements from "./tools/handwriting/cyrillic/elements.json";
 import topic from "./tools/propis2/topic.json";
 const topicRecord = { ...topic, wide: wide.glyphs /* + extra glyphs for experiments: [...wide.glyphs, ...extra] */, wideSheets: wide.sheets, elements: elements.elements, wideElementRepeat: wide.elementRepeat };
 const glyphMap = buildGlyphMap(topicRecord);
