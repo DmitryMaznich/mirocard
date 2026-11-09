@@ -575,7 +575,8 @@ def tidy_glyph(cap):
 # middle of its stroke, reliable all round, landing on the stem's middle where the bowl's ink runs into the stem's -- put where the hand
 # put the underlay (its stem onto the traced stem). It leaves the stem and comes back into it where that line does; the stem (and b's
 # retrace up it) stay the hand's. Not pulled onto the lines: it is the original.
-ORIGINAL_BOWL = set("bpPR")  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
+ORIGINAL_BOWL = set("bpPR")
+BAR_END = 0.65  # P, R: where the bars end and the belly starts turning, of the belly's width  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
 ORIGINAL = False  # set while a bowl from the original is drawn
 UNDERLAYS = Path(__file__).resolve().parent / "underlays" / "british"
 UL_PX, UL_X = 8, 100.0  # the underlay: 8 px a unit, put at x = 100 in the tool
@@ -691,21 +692,19 @@ def original_bowl(label, strokes):
             if label.islower():
                 st["segs"] = curve(resample(pts), None, None)
                 return
-            # P: its bars are straight (the hole's round inner corners would bend them): each bar at the height of the original's
-            # bar (on a ruling line if near), from the stem to where the original's bowl leaves that height
-            bars = []
-            for part in (pts, pts[::-1]):
-                lead = part[:next(i for i, q in enumerate(part) if q[0] > stem_x + 8)]  # from the stem to 8 off it
-                near = lead[lead[:, 0] > stem_x + 3]
-                y = snap_y(float(np.median(near[:, 1])), BAR_SNAP)
-                i = next(i for i, q in enumerate(part) if q[0] > stem_x + 8 and abs(q[1] - y) > 0.4)
-                bars.append((y, i))
-            (y0, i0), (y1, i1) = bars
-            arc = pts[i0:len(pts) - i1]
-            arc[0][1], arc[-1][1] = y0, y1
-            a0, a1 = np.array([stem_x, y0]), np.array([stem_x, y1])
+            # P, R: straight bars at the original's heights (the top one on the ascender line), then the belly as two ellipse quarters
+            # through the original's rightmost point. The bars end at BAR_END of the belly's width (owner, 2026-11-09: «пуза у R и P
+            # закругляешь поздно, нужно раньше начинать» -- the original's middle line stays level to about 0.6 of it; of 0.65 / 0.6 /
+            # 0.55 / 0.5 / 0.45 / 0.3, 0.45 «слишком рано», «чуть-чуть надо подвинуть назад»: 0.65)
+            n = max(3, len(pts) // 20)
+            y0 = snap_y(float(np.median(pts[:n, 1])), BAR_SNAP); y1 = float(np.median(pts[-n:, 1]))
+            R = pts[int(np.argmax(pts[:, 0]))]
+            xb = stem_x + BAR_END * (R[0] - stem_x)
+            a0, a1, b0, b1 = np.array([stem_x, y0]), np.array([xb, y0]), np.array([xb, y1]), np.array([stem_x, y1])
             line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
-            st["segs"] = [line(a0, arc[0])] + curve(resample(arc), np.array([1.0, 0]), np.array([-1.0, 0])) + [line(arc[-1], a1)]
+            q1 = [a1, a1 + [K_ELL * (R[0] - xb), 0], R - [0, K_ELL * (R[1] - y0)], R.copy()]
+            q2 = [R.copy(), R + [0, K_ELL * (y1 - R[1])], b0 + [K_ELL * (R[0] - xb), 0], b0]
+            st["segs"] = [line(a0, a1), q1, q2, line(b0, b1)]
             return
     finally:
         ORIGINAL = False
