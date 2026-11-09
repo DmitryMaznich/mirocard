@@ -986,14 +986,14 @@ def arches_from_original(cap, tidied_strokes):
 # the thinned ink (as n m's arches). The underlay is put centre on centre of the hand's letter; the pen goes along the thinned ink from
 # the hand's start to its end, the ends brought back to half a pen from the ink's tips. G: round to the right side and up it, into its
 # stem (STEM_TOUCH), up the stem to its top and straight down it to the baseline, as the hand went.
-OPEN_FROM_ORIGINAL = set("CGSJU")
+OPEN_FROM_ORIGINAL = set("CGSJUs")  # s: owner, 2026-11-09 «шлифануть s — подогнать к оригиналу»
 STEM_LEAVE = 0.35  # J U: the thinned ink has left the stem's line by this much: the bow begins
 
 
 def underlay_frame(label, hand):
     """The capital's underlay, its thinned ink and the maps tool <-> underlay px, put centre on centre of the hand's points."""
     from PIL import Image
-    a = np.array(Image.open(UNDERLAYS / f"up_{label}.png"))[:, :, 3] > 128
+    a = np.array(Image.open(UNDERLAYS / f"{'lo' if label.islower() else 'up'}_{label}.png"))[:, :, 3] > 128
     cols = np.nonzero(a.any(0))[0]
     dx = (hand[:, 0].min() + hand[:, 0].max()) / 2 - (UL_X + (cols[0] + cols[-1]) / 2 / UL_PX)
     to_px = lambda pnt: np.array([pnt[1] * UL_PX, (pnt[0] - dx - UL_X) * UL_PX])
@@ -1043,7 +1043,7 @@ def open_from_original(label, strokes):
         if stems[1]: mid = mid[:-1] + [stems[1][1]]
         down = lambda st: np.array([0.0, 1.0]) if st[1][1] > st[0][1] else np.array([0.0, -1.0])
         line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
-        ORIGINAL = True
+        ORIGINAL = not label.islower()  # s: its top and bottom brought onto the x-line and the baseline, as every small letter's
         try:
             bow = curve(resample(np.array(mid)), down(stems[0]) if stems[0] else None, -down(stems[1]) if stems[1] else None)
         finally: ORIGINAL = False
@@ -1087,6 +1087,39 @@ def v_from_original(label, strokes):
     A, B, C = np.array([l0 + dx, X_LINE]), np.array([apex + dx, BASE]), np.array([r0 + dx, X_LINE])
     line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
     strokes[0]["segs"] = [line(A, B), line(B, C)]
+
+
+# T and Z after the ORIGINAL (owner, 2026-11-09: «T чуть получился шире», «у Z вверху справа изгиб, выровняй»): their bars are as long
+# as Nelson's -- each end half a pen in from the ink's end (a round end, and a sharp corner drawn with a round pen, reach half a pen past
+# the middle line) -- on the ruling lines, joined at sharp corners. T is put by its stem (the stem's ink middle onto the hand's stem),
+# Z centre on centre of the hand's Z.
+def bar_span(a, y0, y1):
+    rows = a[int(y0 * UL_PX):int(y1 * UL_PX)]
+    cols = np.nonzero(rows.any(0))[0]
+    return UL_X + cols[0] / UL_PX + HALF_INK, UL_X + (cols[-1] + 1) / UL_PX - HALF_INK
+
+
+def bars_from_original(label, strokes):
+    from PIL import Image
+    a = np.array(Image.open(UNDERLAYS / f"up_{label}.png"))[:, :, 3] > 128
+    top = LINES[0]
+    line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
+    t0, t1 = bar_span(a, top - 3, top + 3)
+    if label == "T":
+        cols = np.nonzero(a[int(70 * UL_PX)])[0]
+        stem_ul = UL_X + (cols[0] + cols[-1] + 1) / 2 / UL_PX
+        stem = strokes[0]["segs"][0][0][0]
+        dx = stem - stem_ul
+        bar = strokes[1]["segs"]
+        A, B = np.array([t0 + dx, top]), np.array([t1 + dx, top])
+        if bar[0][0][0] > bar[-1][3][0]: A, B = B, A  # the way the hand went
+        strokes[1]["segs"] = [line(A, B)]
+        return
+    b0, b1 = bar_span(a, BASE - 3, BASE + 3)
+    hand = np.array([pt for sg in strokes[0]["segs"] for pt in sg])
+    dx = (hand[:, 0].min() + hand[:, 0].max()) / 2 - (min(t0, b0) + max(t1, b1)) / 2
+    P = [np.array([t0 + dx, top]), np.array([t1 + dx, top]), np.array([b0 + dx, BASE]), np.array([b1 + dx, BASE])]
+    strokes[0]["segs"] = [line(P[0], P[1]), line(P[1], P[2]), line(P[2], P[3])]
 
 
 # R's leg after the ORIGINAL (with its bowl -- P's, ORIGINAL_BOWL): a straight line through the middle of the leg's ink, from the
@@ -1147,10 +1180,12 @@ def main():
         original_bowl(l, tidied[l])
     for l in OVALS_FROM_ORIGINAL & set(tidied): oval_from_original(l, tidied[l])
     for l in OPEN_FROM_ORIGINAL & set(tidied):
-        CUR, WHOLE = l, True
+        CUR, WHOLE = l, not l.islower()
         open_from_original(l, tidied[l])
     if "R" in tidied and len(tidied["R"]) == 3: leg_from_original("R", tidied["R"])
     if "v" in tidied and len(tidied["v"][0]["segs"]) == 2: v_from_original("v", tidied["v"])
+    if "T" in tidied and len(tidied["T"]) == 2: bars_from_original("T", tidied["T"])
+    if "Z" in tidied and len(tidied["Z"]) == 1: bars_from_original("Z", tidied["Z"])
     share_bowl(tidied)
     share_tail(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])

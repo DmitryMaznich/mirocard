@@ -244,6 +244,16 @@ describe("English print letters in the propis2 engine", () => {
     expect(U[0][0][1]).toBeCloseTo(U.at(-1)[3][1], 6); // both from the same line
     expect(segs("S").some(upright)).toBe(false); // S: no straight piece
   });
+  it("British T Z: bars as long as Nelson's, Z's corners sharp (owner, 2026-11-09)", () => {
+    const gb = Object.fromEntries(JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.map((g) => [g.label, g]));
+    const nums = (d) => d.match(/-?\d*\.?\d+/g).map(Number);
+    const Z = nums(gb.Z.strokes[0].d);
+    expect(Z.length).toBe(2 + 3 * 6); // three straight pieces, nothing between them
+    const T = nums(gb.T.strokes[1].d), stem = nums(gb.T.strokes[0].d)[0];
+    // Nelson's bar, middle line: 19.1 tool units left of the stem's middle and 19.5 right (x2 in the engine)
+    expect(stem - T[0]).toBeCloseTo(38.2, 0);
+    expect(T.at(-2) - stem).toBeCloseTo(39.1, 0);
+  });
   it("British B: the lower belly is the bigger one, as Nelson's (owner, 2026-11-09)", () => {
     const B = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "B");
     const stem = samplePath(toCubicPathD(B.strokes[0].d), 4)[0][0];
