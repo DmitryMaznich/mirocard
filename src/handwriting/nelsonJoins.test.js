@@ -46,7 +46,7 @@ describe("Nelson joins (script.joinRules)", () => {
 
   it("a join to a tall letter comes to its stem's middle, at the x-line, as to a letter of the x-height (ab as an, ch as cn, wh as wn)", () => {
     const end = (w) => getPathEndpoints(row("british_joined", w).find((s) => s.join).d).end;
-    for (const [tall, short] of [["ab", "an"], ["ch", "cn"], ["it", "in"], ["af", "an"]]) {
+    for (const [tall, short] of [["ab", "an"], ["ch", "cn"], ["it", "in"]]) {
       expect(end(tall)[1], tall).toBeCloseTo(end(short)[1], 1);
     }
     // ...but a LEVEL join rises to the top of the tall letter (Nelson's guide: w's top, then up to the top of h)
@@ -113,6 +113,15 @@ describe("Nelson joins (script.joinRules)", () => {
     const xs = (d) => d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 0);
     expect(Math.max(...xs(bar.d)) - Math.min(...xs(bar.d))).toBeLessThan(Math.max(...xs(fOwn)) - Math.min(...xs(fOwn))); // shorter than alone
     expect(barEnd[0]).toBeLessThan(stemX); // (the stem of f is on the left of its hook's start)
+  });
+
+  it("a diagonal join into f flows up into its stem just above the x-line, f standing by its stem as l does (Nelson's «if», «ef»)", () => {
+    const stemX = (r) => getPathEndpoints(r.find((s) => s.join).d).end[0];
+    const ef = row("british_joined", "ef"), el = row("british_joined", "el");
+    const jf = ef.find((s) => s.join).d.match(/-?\d*\.?\d+/g).map(Number);
+    expect(jf[7]).toBeLessThan(getPathEndpoints(el.find((s) => s.join).d).end[1] - 1); // above where l's join meets
+    expect(Math.abs(jf[4] - jf[6])).toBeLessThan(1); // arrives upright, along the stem
+    expect(Math.abs(stemX(ef) - stemX(el))).toBeLessThan(2); // f's stem where l's is
   });
 
   it("f joins from its bar, s from the bottom of its curve", () => {

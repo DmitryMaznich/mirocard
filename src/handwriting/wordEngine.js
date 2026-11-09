@@ -1756,7 +1756,7 @@ function nelsonRules(rules) {
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom), exitTrim: rules.exitTrim ?? {}, exitCut: rules.exitCut ?? {},
       run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
       levelGap: rules.levelGap ?? 0.4, levelSag: rules.levelSag ?? 0.18, levelEntry: rules.levelEntry ?? 0.6,
-      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
+      levelGapFrom: rules.levelGapFrom ?? {}, levelReachFrom: rules.levelReachFrom ?? {}, diagUpInto: rules.diagUpInto ?? {}, levelSagFrom: rules.levelSagFrom ?? {}, levelInto: rules.levelInto ?? {}, diagInto: rules.diagInto ?? {}, diagMeet: rules.diagMeet ?? 0.2, diagLeave: rules.diagLeave ?? 0.15,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1858,11 +1858,15 @@ function nelsonTarget(R, label, kind, strokes, scale) {
   // measured on the guide: a–b meets the stem just under the x-line). A LEVEL join (wh, ob) rises to the stem's top (the guide: w's top,
   // then up to the top of h).
   if (kind === "d" && R.ascender.has(label)) {
-    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
+    // (`diagUpInto` { letter: k }: the join flows into the stem k of the x-height ABOVE the x-line, arriving up along it — Nelson's
+    // «if», «ef»: the line curves up into f's stem, no corner; owner, 2026-11-09: «плавно вливаться чуть выше линии строки»)
+    const up = R.diagUpInto[label];
+    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale - (up ?? 0) * WIDE_ZONE_UNITS * scale;
     for (let i = 1; i < p.length; i += 1) {
       if ((p[i - 1][1] - xLine) * (p[i][1] - xLine) <= 0 && p[i][1] > p[i - 1][1]) { // going down through the x-line
         const t = (xLine - p[i - 1][1]) / ((p[i][1] - p[i - 1][1]) || 1);
-        return { p: [p[i - 1][0] + t * (p[i][0] - p[i - 1][0]), xLine], t: null };
+        const j = Math.min(p.length - 1, i + 3), h = Math.max(0, i - 4);
+        return { p: [p[i - 1][0] + t * (p[i][0] - p[i - 1][0]), xLine], t: up != null ? nlsUnit(p[h][0] - p[j][0], p[h][1] - p[j][1]) : null };
       }
     }
   }
@@ -2194,7 +2198,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           if (ex) {
             const tg = nelsonTarget(nelson, label, kind, local.strokes, scale);
             const rise = Math.abs(ex.p[1] - tg.p[1]);
-            const left = local.apartMinX ?? local.minX;
+            // (a diagonal join into a tall letter goes in at its stem: f's bar, sticking out on the left, is crossed by the join, as in
+            // Nelson's «if», «ef» — the letter stands by its stem, as l does in «el»: owner, 2026-11-09)
+            // (where the stem crosses the x-line: f's hook below sticks out on the left too)
+            const stemLeft = kind === "d" && nelson.ascender.has(label) ? tg.p[0] : null;
+            const left = stemLeft ?? local.apartMinX ?? local.minX;
             // a diagonal join: the letter where the join rises at `run`; a level join: the letter `levelGap` (of the x-height) after the
             // ink before (measured on the guide, centre lines: o–a 0.52, w–o 0.77, w–h 0.73, o–b 0.61 — owner, 2026-11-09: «oa и wo —
             // соединения слишком короткие, буквы слишком близко», then «слишком длинное»: 0.5)
