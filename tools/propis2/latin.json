@@ -1,0 +1,14 @@
+{
+  "note": "«Прописи: латиница» — вторая колода прописей на том же движке и рендерере propis2, только с языками `deck: \"latin\"` из languages.json (английский: печатные, британские раздельные; соединённые в работе), без диктанта: node scripts/build-propis2-deck.mjs --latin → public/decks/propis2_lang_v<version>.zip. Id остался от тестовой копии (propis2_lang). Тетради — в той же библиотеке, что у propis2: каждая колода показывает тетради своих языков. Каталог `individual`, пока не выпущена; доступ как у propis2 (платный). docs/latin-letters.md.",
+  "version": "0.3.0",
+  "title": {
+    "ru": "Прописи: латиница",
+    "en": "Copybook: Latin script"
+  },
+  "description": {
+    "ru": "Английские прописи по британской строке: печатные буквы и британские (Нельсон) — раздельно, позже и соединённо. Конструктор тетрадей, карточки «Узнай букву» и «Строчная и заглавная».",
+    "en": "English copybook on the British four-line paper: print letters and the British (Nelson) style, written apart, later joined. A notebook builder, letter cards."
+  },
+  "status": "individual",
+  "access": "paid"
+}

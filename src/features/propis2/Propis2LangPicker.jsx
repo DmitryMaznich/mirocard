@@ -27,6 +27,7 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
   const [pickedStyle, setPickedStyle] = useState(style);
   const styles = stylesOf(picked);
   const shownStyle = styles ? (styles.find((x) => x.id === pickedStyle) ?? styles[0]).id : null;
+  const single = languages.length === 1;
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -37,9 +38,10 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
       <div className="p2-lang-scrim" onClick={onClose} />
       <div className="p2-lang-sheet" role="dialog" aria-modal="true" aria-labelledby="p2-lang-title">
         <div className="p2-lang-grab" aria-hidden="true" />
-        <h2 id="p2-lang-title">{title}</h2>
-        <p className="p2-lang-sub">От языка зависят буквы, наклон и бумага тетради. Язык готовой тетради не меняется.</p>
-        <div className="p2-lang-list" role="radiogroup" aria-label="Язык письма">
+        <h2 id="p2-lang-title">{single && styles ? "Стиль новой тетради" : title}</h2>
+        <p className="p2-lang-sub">{single && styles ? "От стиля зависят буквы и бумага тетради. Стиль готовой тетради не меняется." : "От языка зависят буквы, наклон и бумага тетради. Язык готовой тетради не меняется."}</p>
+        {/* a deck with one language («Прописи: латиница»): only its styles are offered */}
+        {!single && <div className="p2-lang-list" role="radiogroup" aria-label="Язык письма">
           {languages.map((l) => (
             <button key={l.id} type="button" role="radio" aria-checked={picked === l.id} className={`p2-lang-opt${picked === l.id ? " is-on" : ""}`} onClick={() => { setPicked(l.id); if (l.id !== picked) setPickedStyle(null); }}>
               <span className="p2-lang-radio" aria-hidden="true" />
@@ -50,10 +52,10 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
               {l.status === "draft" && <span className="p2-lang-draft">черновик</span>}
             </button>
           ))}
-        </div>
+        </div>}
         {styles && (
           <>
-            <h3 className="p2-lang-styles-title">Стиль письма</h3>
+            {!single && <h3 className="p2-lang-styles-title">Стиль письма</h3>}
             <div className="p2-lang-list" role="radiogroup" aria-label="Стиль письма" data-testid="propis2-style-list">
               {styles.map((st) => (
                 <button key={st.id} type="button" role="radio" aria-checked={shownStyle === st.id} className={`p2-lang-opt${shownStyle === st.id ? " is-on" : ""}`} onClick={() => setPickedStyle(st.id)}>

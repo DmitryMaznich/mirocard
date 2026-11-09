@@ -30,11 +30,13 @@ const variantId = (() => {
 })();
 if (variantId !== null && !/^[a-z]+$/.test(variantId ?? "")) throw new Error("--variant needs an id (tools/propis2/variants/<id>)");
 const LANGUAGES_PATH = variantId ? null : "tools/propis2/languages.json";
-// `--test-copy`: the test copy of the deck (id `propis2_lang`, catalog `individual`: the owner's account only) WITH the languages
-// still in the making (`status: "draft"`, docs/latin-letters.md). The ordinary build leaves the drafts out — users never see them.
-const testCopy = process.argv.includes("--test-copy");
-if (testCopy && variantId) throw new Error("--test-copy builds the languages deck, not a variant");
-const TEST_COPY_PATH = "tools/propis2/test-copy.json";
+// `--latin`: «Прописи: латиница» (id `propis2_lang`, tools/propis2/latin.json; owner, 2026-11-09: Cyrillic and Latin are two decks, too
+// many languages and styles in one) -- the same engine and renderer, built from data only, with ONLY the languages marked
+// `deck: "latin"` in languages.json (English), drafts included, and without the dictation (Russian only). The ordinary build never
+// takes a `deck: "latin"` language, nor a draft one.
+const latin = process.argv.includes("--latin");
+if (latin && variantId) throw new Error("--latin builds the Latin deck, not a variant");
+const LATIN_PATH = "tools/propis2/latin.json";
 const VARIANT_PATH = variantId && `tools/propis2/variants/${variantId}/variant.json`;
 const variant = variantId ? JSON.parse(readFileSync(VARIANT_PATH, "utf-8")) : null;
 
@@ -66,10 +68,11 @@ const langSpec = LANGUAGES_PATH ? JSON.parse(readFileSync(LANGUAGES_PATH, "utf-8
 if (langSpec) {
   // (the dictation stays: Russian only — its words, texts and recordings are Russian; engine.js makes it in the deck's first language)
   const baseKits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
-  const skipped = langSpec.languages.filter((l) => l.status === "draft" && !testCopy).map((l) => l.id);
-  if (skipped.length) console.log(`  (draft languages left out: ${skipped.join(", ")} — they go into the --test-copy deck)`);
-  topic.languages = langSpec.languages.filter((l) => testCopy || l.status !== "draft").map((spec) => {
-    const { from, glyphsFrom, ...lang } = spec;
+  const inDeck = (l) => (latin ? l.deck === "latin" : l.deck !== "latin" && l.status !== "draft");
+  const skipped = langSpec.languages.filter((l) => !inDeck(l)).map((l) => l.id);
+  if (skipped.length) console.log(`  (languages left out of this deck: ${skipped.join(", ")})`);
+  topic.languages = langSpec.languages.filter(inDeck).map((spec) => {
+    const { from, glyphsFrom, deck: _deck, ...lang } = spec;
     if (from) {
       const v = JSON.parse(readFileSync(from, "utf-8"));
       const glyphs = v.simplifyGlyphs ? simplifyGlyphs(v.glyphs ?? [], v.simplifyGlyphs).glyphs : v.glyphs ?? [];
@@ -89,6 +92,7 @@ if (langSpec) {
   // student's: one «student» may be a whole class, and a child may write in two languages
   for (const m of topic.modes) {
     if (!["letters_recognize", "letters_case"].includes(m.type)) continue;
+    if (topic.languages.length === 1) continue; // one language («Прописи: латиница»): nothing to choose
     m.params = {
       writingLang: {
         type: "enum",
@@ -104,27 +108,29 @@ if (langSpec) {
   // (engine.js passes it to languageView); offered only when some language of this deck has more than one
   const styled = topic.languages.filter((l) => (l.styles?.length ?? 0) > 1);
   if (styled.length) {
-    const opts = styled.flatMap((l) => l.styles.map((st) => [st.id, `${st.title} (${l.title})`]));
+    const opts = styled.flatMap((l) => l.styles.map((st) => [st.id, topic.languages.length === 1 ? st.title : `${st.title} (${l.title})`]));
     for (const m of topic.modes) {
       if (!["letters_recognize", "letters_case"].includes(m.type)) continue;
       const params = { ...m.params };
       const { writingLang, ...rest } = params;
-      m.params = { writingLang, writingStyle: { type: "enum", label: { ru: "Стиль письма" }, values: opts.map(([id]) => id), labels: { ru: Object.fromEntries(opts) }, default: opts[0][0] }, ...rest };
+      m.params = { ...(writingLang ? { writingLang } : {}), writingStyle: { type: "enum", label: { ru: "Стиль письма" }, values: opts.map(([id]) => id), labels: { ru: Object.fromEntries(opts) }, default: opts[0][0] }, ...rest };
     }
   }
 }
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
 
-if (testCopy) {
-  const tc = JSON.parse(readFileSync(TEST_COPY_PATH, "utf-8"));
+if (latin) {
+  const tc = JSON.parse(readFileSync(LATIN_PATH, "utf-8"));
   topic.meta = { ...topic.meta, id: "propis2_lang", version: tc.version, title: tc.title.ru };
+  // the dictation is Russian (its words, texts and recordings): not in the Latin deck
+  topic.modes = topic.modes.filter((m) => m.type !== "dictation");
 }
 const ID = topic.meta.id;
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/${ID}_v${VERSION}.zip`;
 if (existsSync(ZIP_PATH)) {
-  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? (testCopy ? TEST_COPY_PATH : TOPIC_PATH)} before building again.`);
+  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? (latin ? LATIN_PATH : TOPIC_PATH)} before building again.`);
 }
 
 const zip = new JSZip();
@@ -134,7 +140,7 @@ writeFileSync(ZIP_PATH, buffer);
 console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024).toFixed(0)} KB, ${topic.wide?.length ?? 0} glyphs, ${Object.keys(topic.wideSheets ?? {}).length} sheets, ${topic.elements?.length ?? 0} elements)`);
 
 const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
-const own = variant ?? (testCopy ? JSON.parse(readFileSync(TEST_COPY_PATH, "utf-8")) : null);
+const own = variant ?? (latin ? JSON.parse(readFileSync(LATIN_PATH, "utf-8")) : null);
 const entry = own
   ? { id: ID, version: VERSION, title: (own.catalog ?? own).title, description: (own.catalog ?? own).description, url: `./decks/${ID}_v${VERSION}.zip`, status: (own.catalog ?? own).status, access: (own.catalog ?? own).access }
   : {

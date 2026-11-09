@@ -1,5 +1,5 @@
 {
-  "note": "Языки письма темы «Прописи» (propis2), docs/propis2-languages.md. Собираются в колоду propis2: node scripts/build-propis2-deck.mjs. Язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json. Первый язык — русский банк букв, он же язык диктанта и тетрадей без пометки. Язык со status \"draft\" в боевую колоду не попадает — только в тестовую копию propis2_lang (node scripts/build-propis2-deck.mjs --test-copy), docs/latin-letters.md.",
+  "note": "Языки письма темы «Прописи» (propis2), docs/propis2-languages.md. Собираются в колоду propis2: node scripts/build-propis2-deck.mjs. Язык с `from` берёт алфавит, письмо, бумаги, обложку, буквы и готовые тетради из variant.json. Первый язык — русский банк букв, он же язык диктанта и тетрадей без пометки. Язык со status \"draft\" в боевую колоду не попадает. Язык с `deck: \"latin\"` (английский) живёт только в колоде «Прописи: латиница» (propis2_lang, node scripts/build-propis2-deck.mjs --latin, tools/propis2/latin.json), в колоду propis2 не попадает никогда; docs/latin-letters.md.",
   "languages": [
     {
       "id": "ru",
@@ -25,14 +25,16 @@
       "id": "en",
       "title": "English",
       "short": "ENG",
-      "status": "draft",
+      "status": "ready",
+      "deck": "latin",
       "alphabet": {
         "lower": "abcdefghijklmnopqrstuvwxyz"
       },
       "papers": [
-        "en_us",
-        "en_us_8",
-        "en_us_6",
+        "en_gb",
+        "en_gb_8",
+        "en_gb_6",
+        "en_gb_4",
         "square",
         "ruled"
       ],
@@ -79,25 +81,26 @@
         {
           "id": "print",
           "title": "Печатные",
-          "glyphsFile": "tools/handwriting/latin/print.json",
+          "glyphsFile": "tools/handwriting/latin/print_gb.json",
           "script": {
             "joins": false,
             "letterGap": 14,
             "wordGap": 56
           },
           "papers": [
-            "en_us",
-            "en_us_8",
-            "en_us_6",
+            "en_gb",
+            "en_gb_8",
+            "en_gb_6",
+            "en_gb_4",
             "square",
             "ruled"
           ],
-          "note": "прямые печатные, как в американских прописях"
+          "note": "прямые печатные без хвостиков, в пропорциях британской строки (выносные 0,74 / 0,72); американская строка в латинице не предлагается (владелец, 2026-11-09)"
         },
         {
           "id": "british",
-          "title": "Британские",
-          "note": "печатные с хвостиками, как в британских прописях; пока без соединений",
+          "title": "Британские раздельные",
+          "note": "Нельсон: печатные с хвостиками, буквы раздельно; соединённые — отдельным стилем (в работе)",
           "glyphsFile": "tools/handwriting/latin/british.json",
           "script": {
             "joins": false,

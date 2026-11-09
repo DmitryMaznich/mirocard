@@ -444,16 +444,16 @@
     },
     {
       "id": "propis2_lang",
-      "version": "0.2.38",
+      "version": "0.3.0",
       "title": {
-        "ru": "Прописи (тест: латиница)",
-        "en": "Copybook (test: Latin)"
+        "ru": "Прописи: латиница",
+        "en": "Copybook: Latin script"
       },
       "description": {
-        "ru": "Испытание: «Прописи» с языками, которые ещё в работе — английский: печатные и британские буквы. Только для проверки.",
-        "en": "Trial: the copybook with the languages still in the making — English: print and British letters. For testing only."
+        "ru": "Английские прописи по британской строке: печатные буквы и британские (Нельсон) — раздельно, позже и соединённо. Конструктор тетрадей, карточки «Узнай букву» и «Строчная и заглавная».",
+        "en": "English copybook on the British four-line paper: print letters and the British (Nelson) style, written apart, later joined. A notebook builder, letter cards."
       },
-      "url": "./decks/propis2_lang_v0.2.38.zip",
+      "url": "./decks/propis2_lang_v0.3.0.zip",
       "status": "individual",
       "access": "paid",
       "materialLanguages": [

@@ -26,10 +26,12 @@ describe("English print letters in the propis2 engine", () => {
     }
   });
 
-  it("the style writes apart, upright, on the American four-line paper", () => {
+  it("the style writes apart, upright, on the British four-line paper (no American paper in «Прописи: латиница», owner 2026-11-09)", () => {
     expect(style.script.joins).toBe(false);
     expect(style.script.slantDeg).toBeUndefined();
-    expect(style.papers[0]).toBe("en_us");
+    expect(style.papers[0]).toBe("en_gb");
+    expect(style.papers.some((p) => p.startsWith("en_us"))).toBe(false);
+    expect(style.glyphsFile).toBe("tools/handwriting/latin/print_gb.json");
   });
 
   it("the legs of n h m end straight down on the baseline, in every copy of the row", () => {
@@ -44,7 +46,7 @@ describe("English print letters in the propis2 engine", () => {
     }
   });
 
-  it("the draft English is in the test copy only, never in the deck everyone gets", async () => {
+  it("English is in «Прописи: латиница» only (two decks: Cyrillic and Latin, owner 2026-11-09), never in propis2", async () => {
     const catalog = JSON.parse(readFileSync("public/decks/catalog.json", "utf-8"));
     const deck = async (id) => {
       const e = catalog.decks.find((d) => d.id === id);
@@ -55,9 +57,12 @@ describe("English print letters in the propis2 engine", () => {
     expect(prod.entry.status).toBe("release");
     expect(prod.topic.languages.map((l) => l.id)).not.toContain("en");
     const test = await deck("propis2_lang");
-    expect(test.entry.status).toBe("individual");
+    expect(test.entry.status).toBe("individual"); // until it is released
+    expect(test.entry.access).toBe(prod.entry.access); // paid as propis2
+    expect(test.topic.meta.title).toBe("Прописи: латиница");
+    expect(test.topic.languages.map((l) => l.id)).toEqual(["en"]); // no Russian, Bulgarian, Kazakh
+    expect(test.topic.modes.map((m) => m.type)).not.toContain("dictation"); // the dictation is Russian
     const en = test.topic.languages.find((l) => l.id === "en");
-    expect(en.status).toBe("draft");
     // 52 letters + 0–9 and + − = < > (as «№…») + the hyphen + . , ? ! — all upright, none borrowed from the Russian cursive
     for (const id of ["print", "british"]) {
       const g = en.styles.find((s) => s.id === id).glyphs;

@@ -606,7 +606,8 @@ export default function Propis2Home({ db }) {
     <Propis2Library
       sets={shownSets}
       langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
-      newLang={languages ? { title: newLangTitle(languages.find((l) => l.id === newLang), pickStyle(deckRecord, newLang, newStyle)), onOpen: () => setLangSheet(true) } : null}
+      newLang={languages ? { title: newLangTitle(languages.find((l) => l.id === newLang), pickStyle(deckRecord, newLang, newStyle), languages.length === 1), onOpen: () => setLangSheet(true) } : null}
+      title={topicRecord?.meta?.title}
       filterBar={multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
       blankCount={blankIds.length}
@@ -663,10 +664,11 @@ function styleTitleOf(lang, styleId) {
   return lang?.styles?.length > 1 ? lang.styles.find((x) => x.id === styleId)?.title ?? null : null;
 }
 // the chip next to «Новая тетрадь»: the language, and its style when it has several («English · Британские»)
-function newLangTitle(lang, styleId) {
+// (a deck with one language, «Прописи: латиница»: only the style)
+function newLangTitle(lang, styleId, single = false) {
   const styles = lang?.styles?.length > 1 ? lang.styles : null;
   const st = styles?.find((x) => x.id === styleId);
-  return st ? `${lang.title} · ${st.title}` : lang?.title;
+  return st ? (single ? st.title : `${lang.title} · ${st.title}`) : lang?.title;
 }
 
 // page numbers per notebook: a convenience of this device, not part of the notebook (the cover is the notebook's: `set.cover`;

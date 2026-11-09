@@ -195,8 +195,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
-  it("an English notebook (the test copy's draft language) opens in the editor on its own paper", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/test-copy.json", "utf-8"));
+  it("an English notebook («Прописи: латиница») opens in the editor on its own paper", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2lang-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
     const testCopy = await getTopicRecord(tdb, "propis2_lang");
@@ -206,8 +206,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
-    await click(host.querySelector('[data-testid="propis2-new-lang"]'));
-    await sheetPick("English");
+    expect(host.querySelector(".screen-title").textContent).toBe("Прописи: латиница");
+    // one language: the chip and the sheet are about the style only
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Печатные");
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).not.toContain("English");
     await click(btn(host, "Новая тетрадь"));
     expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
     const field = host.querySelector('[aria-label="Текст страницы"]');
@@ -229,7 +231,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(preview()).not.toBeNull();
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent.startsWith("Настроить обложку")));
     await click([...dlg().querySelectorAll('[aria-label="Украшение"] .p2-chip')].find((b) => b.textContent === "Корешок"));
-    expect(preview().querySelector('[data-testid="propis2-spine-front"] [data-simple-grid="en_us"]')).not.toBeNull(); // the spine on the notebook's own paper
+    expect(preview().querySelector('[data-testid="propis2-spine-front"] [data-simple-grid="en_gb"]')).not.toBeNull(); // the spine on the notebook's own paper (British: no American paper there)
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     await click([...dlg().querySelectorAll("button")].find((b) => /Отмена|Закрыть/.test(b.textContent) || b.getAttribute("aria-label") === "Закрыть"));
     await click(host.querySelector(".propis-practice-close"));
@@ -238,11 +240,11 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { root.unmount(); await tick(400); });
     const lib = await loadLibrary(db);
     expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", "print"]]);
-    expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_us"]);
+    expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_gb"]);
     host.remove();
   });
   it("the style of a new English notebook is chosen in the language sheet and kept (British: its own paper)", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/test-copy.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2style-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
     useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
@@ -253,14 +255,15 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     await click(host.querySelector('[data-testid="propis2-new-lang"]'));
     const sheet = () => document.querySelector('[data-testid="propis2-lang-sheet"]');
-    expect(sheet().querySelector('[data-testid="propis2-style-list"]')).toBeNull(); // Russian: one style, nothing to choose
-    await click([...sheet().querySelectorAll('[role="radio"]')].find((b) => b.textContent.includes("English")));
+    // the deck's one language: no language list, its styles straight away
+    expect(sheet().querySelector('[aria-label="Язык письма"]')).toBeNull();
+    expect(sheet().querySelector("h2").textContent).toBe("Стиль новой тетради");
     const styleRadios = () => [...sheet().querySelectorAll('[data-testid="propis2-style-list"] [role="radio"]')];
-    expect(styleRadios().map((b) => b.querySelector(".p2-lang-name").textContent)).toEqual(["Печатные", "Британские"]);
+    expect(styleRadios().map((b) => b.querySelector(".p2-lang-name").textContent)).toEqual(["Печатные", "Британские раздельные"]);
     expect(styleRadios()[0].getAttribute("aria-checked")).toBe("true");
     await click(styleRadios()[1]);
     await click(btn(sheet(), "Готово"));
-    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("English · Британские");
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Британские раздельные");
     await click(btn(host, "Новая тетрадь"));
     const field = host.querySelector('[aria-label="Текст страницы"]');
     await act(async () => {
@@ -269,7 +272,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       await tick();
     });
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские"); // the editor says which style
+    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские раздельные"); // the editor says which style
     await click(host.querySelector(".back-btn"));
     await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
     await act(async () => { root.unmount(); await tick(400); });

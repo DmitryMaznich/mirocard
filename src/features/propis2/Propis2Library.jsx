@@ -51,12 +51,12 @@ function LangMark({ mark }) {
 
 // «Мои тетради»: the home of the topic. A notebook is the only thing the adult keeps: create one from scratch or from a ready one,
 // open it as the student sees it, edit, rename, copy, delete.
-export default function Propis2Library({ newLang = null, filterBar = null, langOf = null, sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
+export default function Propis2Library({ title = "Прописи", newLang = null, filterBar = null, langOf = null, sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
   return (
     <div className="screen propis2-home propis2-lib" data-testid="propis2-library">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
-        <h1 className="screen-title">Прописи</h1>
+        <h1 className="screen-title">{title || "Прописи"}</h1>
       </div>
       <div className="propis2-body">
         {draft && (
