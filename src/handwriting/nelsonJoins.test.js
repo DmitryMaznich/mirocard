@@ -124,6 +124,16 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(Math.abs(stemX(ef) - stemX(el))).toBeLessThan(2); // f's stem where l's is
   });
 
+  it("f before an oval: the oval tucks in close under the bar, the join leaves the bar level and runs into the oval's arc (Nelson's «fantastic»)", () => {
+    const fa = row("british_joined", "fa"), fr = row("british_joined", "fr");
+    const join = fa.find((s) => s.join), n = join.d.match(/-?\d*\.?\d+/g).map(Number);
+    expect(n[3]).toBeCloseTo(n[1], 6); // leaves level: on from the bar's lowest point
+    const a = fa[fa.indexOf(join) + 1];
+    const aLeft = Math.min(...a.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, k) => k % 2 === 0));
+    expect((aLeft - n[0]) / 24).toBeCloseTo(0.3, 1); // a's left side 0.3 of the x-height after f's stem
+    expect(getPathEndpoints(join.d).end[0]).toBeLessThan(getPathEndpoints(fr.find((s) => s.join).d).end[0]); // closer than r
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
