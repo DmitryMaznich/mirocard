@@ -182,12 +182,14 @@ describe("Nelson joins (script.joinRules)", () => {
     }
   });
 
-  it("s joined into loses the hook over its top: the join comes up to its top in a point; first in a word, or after p, s keeps it (Nelson's upright «is», «past» / «she», «jumps»)", () => {
+  it("s joined into has another top: from a point on the x-line straight down to its bowl, no upper bow; first in a word, or after p, s is whole (Nelson's upright «is», «past» / «she», «jumps»)", () => {
     const cs = (d) => d.match(/C/g).length;
     const own = cs(row("british_joined", "s")[0].d);
     for (const w of ["is", "as", "us"]) {
       const r = row("british_joined", w), j = r.findIndex((x) => x.join), sj = r[j + 1];
-      expect(cs(sj.d), w).toBe(own - 1);
+      expect(cs(sj.d), w).toBe(3); // the new top, then the bowl and the tail as s's own
+      const xs = samplePath(sj.d, 60).map((q) => q[0]);
+      expect(Math.min(...xs.slice(0, 20)), w).toBeGreaterThanOrEqual(xs[0] - 0.01); // from the point it goes right, never left (no upper bow)
       expect(getPathEndpoints(sj.d).start, w).toEqual(getPathEndpoints(r[j].d).end);
       expect(getPathEndpoints(sj.d).start[1], w).toBeCloseTo(40, 0); // its top, on the x-line (40 at this scale)
     }
