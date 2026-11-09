@@ -225,6 +225,20 @@ describe("Nelson joins (script.joinRules)", () => {
     for (const w of ["is", "as", "ss"]) expect(row("british", w).filter((x) => cs(x.d) === short)).toHaveLength(0); // apart: never short
   });
 
+  it("all 676 lowercase pairs: the inks of the two letters never touch (the pair check, owner, 2026-11-09; e's loop excepted — the flick before it is cut)", { timeout: 60000 }, () => {
+    const L = "abcdefghijklmnopqrstuvwxyz", one = Object.fromEntries([...L].map((c) => [c, row("british_joined", c).length]));
+    const bad = [];
+    for (const a of L) for (const b of L) {
+      if (b === "e") continue;
+      const st = row("british_joined", a + b), ji = st.findIndex((x) => x.join), nA = ji >= 0 ? ji : one[a];
+      const pa = st.slice(0, nA).flatMap((x) => samplePath(x.d, 50)), pb = st.slice(ji >= 0 ? ji + 1 : nA).flatMap((x) => samplePath(x.d, 50));
+      let gap = Infinity;
+      for (const p of pa) for (const q of pb) gap = Math.min(gap, Math.hypot(p[0] - q[0], p[1] - q[1]));
+      if (gap < 0.06 * 24) bad.push(`${a}${b} ${(gap / 24).toFixed(2)}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);

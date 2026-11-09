@@ -774,7 +774,8 @@
    ],
    "stretch": 1,
    "noNormalize": true,
-   "upright": true
+   "upright": true,
+   "spaceAboveBase": true
   },
   {
    "label": "k",

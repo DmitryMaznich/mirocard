@@ -1764,6 +1764,7 @@ function nelsonRules(rules) {
   }
   return NLS_CACHE.get(rules);
 }
+const CLEAR_INK = 0.08; // the least gap between the inks of two letters written apart or joined by the Nelson rules (of the x-height)
 function nelsonJoinKind(R, a, b) {
   if (!R || !a || !b || R.noTo.has(b) || R.noTo.has(a)) return null;
   return R.diag.has(a) ? "d" : R.level.has(a) ? "h" : null;
@@ -2322,6 +2323,20 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) - x);
           }
           if (Number.isFinite(need)) startX = need + WIDE_NO_EXIT_GAP * scale + local.start[0];
+        }
+        // written apart or by the Nelson joins: never closer than CLEAR_INK (of the x-height) to the ink of the letter before, whatever
+        // else placed it — f's tail under the line touched q's and s's (the pair check, owner, 2026-11-09: «как нам комплексно проверить
+        // все соединения»)
+        // (not before e's loop: the flick of the letter before is cut off there, e stands where it was)
+        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop) {
+          const rows = new Map();
+          for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 60)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
+          let need = -Infinity;
+          for (const m of local.strokes) for (const [x, y] of samplePath(m.d, 60)) {
+            for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) - x);
+          }
+          const least = need + CLEAR_INK * WIDE_ZONE_UNITS * scale + local.start[0];
+          if (Number.isFinite(need) && startX < least) startX = least;
         }
         // a capital after a capital: CAP_GAP_CELLS cells from the ink of the one before at the narrowest height (the same measure as after a capital
         // with no exit), then on the nearest slant line that keeps at least CAP_GAP_MIN of that gap
