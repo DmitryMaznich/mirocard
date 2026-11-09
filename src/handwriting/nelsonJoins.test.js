@@ -80,6 +80,17 @@ describe("Nelson joins (script.joinRules)", () => {
     expect(eN[0]).toBeLessThanOrEqual(Math.min(...samplePath(e.d, 80).map((q) => q[0])) + 0.5); // ...from the left side of the letter
   });
 
+  it("a diagonal join into e runs on as e's bar: from the bottom of the letter before (its flick not written) up to e's loop (Nelson's lelele)", () => {
+    const lOwn = glyphs.find((g) => g.label === "l").strokes[0].d.match(/C/g).length;
+    const eOwn = glyphs.find((g) => g.label === "e").strokes[0].d.match(/C/g).length;
+    const le = row("british_joined", "le");
+    const join = le.find((s) => s.join), l = le[0], e = le[le.indexOf(join) + 1];
+    expect(l.d.match(/C/g)).toHaveLength(lOwn - 1); // l's flick
+    expect(e.d.match(/C/g)).toHaveLength(eOwn - 1); // e's own bar
+    expect(getPathEndpoints(join.d).start).toEqual(getPathEndpoints(l.d).end);
+    expect(getPathEndpoints(e.d).start).toEqual(getPathEndpoints(join.d).end);
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
