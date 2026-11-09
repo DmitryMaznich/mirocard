@@ -132,11 +132,13 @@
               "noJoinTo": "z",
               "oval": "acdgoqs",
               "ascender": "bfhklt",
+              "toTop": "f",
               "exitStroke": { "f": 1 },
               "exitFromBottom": "s",
               "run": 0.45,
               "minRun": 6,
-              "levelRun": 10,
+              "levelGap": 0.6,
+              "levelDrop": 0.18,
               "edge": 3
             }
           },

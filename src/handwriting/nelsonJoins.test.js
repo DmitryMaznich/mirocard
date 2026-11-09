@@ -46,8 +46,21 @@ describe("Nelson joins (script.joinRules)", () => {
 
   it("a join to a tall letter comes to its stem's middle, at the x-line, as to a letter of the x-height (ab as an, ch as cn, wh as wn)", () => {
     const end = (w) => getPathEndpoints(row("british_joined", w).find((s) => s.join).d).end;
-    for (const [tall, short] of [["ab", "an"], ["ch", "cn"], ["wh", "wn"], ["ol", "on"], ["it", "in"], ["af", "an"]]) {
+    for (const [tall, short] of [["ab", "an"], ["ch", "cn"], ["it", "in"], ["af", "an"]]) {
       expect(end(tall)[1], tall).toBeCloseTo(end(short)[1], 1);
+    }
+    // ...but a LEVEL join rises to the top of the tall letter (Nelson's guide: w's top, then up to the top of h)
+    for (const [tall, short] of [["wh", "wn"], ["ob", "on"], ["ol", "on"]]) expect(end(tall)[1], tall).toBeLessThan(end(short)[1] - 10);
+  });
+
+  it("a level join is as long as Nelson's (the guide: o–a and w–o about half the x-height) and comes into an oval at its left side", () => {
+    const xh = 52 * 0.5 * (62 - 10) / 52; // the x-height of the row at scale 0.5, row units
+    for (const w of ["oa", "wo"]) {
+      const st = row("british_joined", w);
+      const j = st.find((s) => s.join);
+      const [a, b] = [getPathEndpoints(j.d).start, getPathEndpoints(j.d).end];
+      expect((b[0] - a[0]) / xh, w).toBeGreaterThan(0.55); // (the gap between the letters: levelGap 0.6, measured on the guide 0.52 – 0.77)
+      expect(Math.abs(b[1] - a[1]) / xh, w).toBeLessThan(0.3); // level
     }
   });
 

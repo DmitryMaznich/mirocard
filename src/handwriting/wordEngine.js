@@ -1725,8 +1725,9 @@ const WIDE_ROW_CACHE_MAX = 4000;
 //   exitStroke:   { letter: stroke index } the join leaves from the end of that stroke (f: its bar); default the first stroke
 //   exitFromBottom: letters the join leaves from the bottom of their first stroke, going right (s: it ends low on the left)
 //   run:          horizontal run of a join per unit of its rise (0.45: the Nelson angle)
-//   minRun / levelRun: the least run of a diagonal / level join; edge: the least gap between the ink before and the next letter's
-//                 left side (row units at full scale)
+//   minRun:       the least run of a diagonal join; edge: the least gap between the ink before and the next letter's left side (row
+//                 units at full scale); levelGap: the gap a level join leaves between the letters (of the x-height);
+//                 levelDrop: how far under the x-line (of the x-height) a level join comes into an oval letter
 const nlsSet = (s) => new Set([...(s ?? "")]);
 const NLS_CACHE = new WeakMap();
 function nelsonRules(rules) {
@@ -1735,7 +1736,8 @@ function nelsonRules(rules) {
     NLS_CACHE.set(rules, {
       diag: nlsSet(rules.diagonalFrom), level: nlsSet(rules.levelFrom), noTo: nlsSet(rules.noJoinTo), oval: nlsSet(rules.oval), toTop: nlsSet(rules.toTop), ascender: nlsSet(rules.ascender),
       exitStroke: rules.exitStroke ?? {}, fromBottom: nlsSet(rules.exitFromBottom),
-      run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, levelRun: rules.levelRun ?? 10, edge: rules.edge ?? 3,
+      run: rules.run ?? 0.45, minRun: rules.minRun ?? 6, edge: rules.edge ?? 3,
+      levelGap: rules.levelGap ?? 0.6, levelDrop: rules.levelDrop ?? 0.18,
     });
   }
   return NLS_CACHE.get(rules);
@@ -1767,9 +1769,11 @@ function nelsonExit(R, label, strokes) {
 function nelsonTarget(R, label, kind, strokes, scale) {
   const first = strokes[0]?.d;
   const p = samplePath(first, 160);
-  // a tall letter (b f h k l t) is joined at its stem's MIDDLE, where the stem crosses the x-line, as a letter of the x-height is (owner,
-  // 2026-11-09, on Nelson's own lines: «соединения типа ab, ch идут так, как будто это an — до середины стойки»)
-  if (R.ascender.has(label)) {
+  // a DIAGONAL join to a tall letter (b f h k l t) comes to its stem's middle, where the stem crosses the x-line, as to a letter of the
+  // x-height (owner, 2026-11-09, on Nelson's own lines: «соединения типа ab, ch идут так, как будто это an — до середины стойки»;
+  // measured on the guide: a–b meets the stem just under the x-line). A LEVEL join (wh, ob) rises to the stem's top (the guide: w's top,
+  // then up to the top of h).
+  if (kind === "d" && R.ascender.has(label)) {
     const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
     for (let i = 1; i < p.length; i += 1) {
       if ((p[i - 1][1] - xLine) * (p[i][1] - xLine) <= 0 && p[i][1] > p[i - 1][1]) { // going down through the x-line
@@ -1792,6 +1796,20 @@ function nelsonTarget(R, label, kind, strokes, scale) {
       if (dot > best) { best = dot; bi = i; bt = r; }
     }
     return { p: p[bi], t: bt };
+  }
+  if (kind === "h" && R.oval.has(label)) {
+    // a level join into an oval letter (oa, wo) comes to its LEFT side a little under the x-line (the guide: 0.1 of the x-height
+    // under it), not over its top: the point of the upper left arc at that height
+    const xLine = WIDE_BASELINE_Y - WIDE_ZONE_UNITS * scale;
+    const y = xLine + R.levelDrop * WIDE_ZONE_UNITS * scale;
+    let iLeft = 0;
+    for (let i = 0; i < p.length / 2; i += 1) if (p[i][0] < p[iLeft][0]) iLeft = i;
+    for (let i = iLeft; i > 0; i -= 1) {
+      if ((p[i][1] - y) * (p[i - 1][1] - y) <= 0) {
+        const t = (y - p[i][1]) / ((p[i - 1][1] - p[i][1]) || 1);
+        return { p: [p[i][0] + t * (p[i - 1][0] - p[i][0]), y], t: null };
+      }
+    }
   }
   if (R.oval.has(label) || R.toTop.has(label)) {
     let top = p[0];
@@ -2077,8 +2095,14 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           if (ex) {
             const tg = nelsonTarget(nelson, label, kind, local.strokes, scale);
             const rise = Math.abs(ex.p[1] - tg.p[1]);
-            const need = ex.p[0] + Math.max((kind === "h" ? nelson.levelRun : nelson.minRun) * scale, nelson.run * rise) - tg.p[0];
-            const dxJ = Math.max(cursorX + nelson.edge * scale - (local.apartMinX ?? local.minX), need);
+            const left = local.apartMinX ?? local.minX;
+            // a diagonal join: the letter where the join rises at `run`; a level join: the letter `levelGap` (of the x-height) after the
+            // ink before (measured on the guide, centre lines: o–a 0.52, w–o 0.77, w–h 0.73, o–b 0.61 — owner, 2026-11-09: «oa и wo —
+            // соединения слишком короткие, буквы слишком близко»)
+            const need = kind === "h"
+              ? cursorX + nelson.levelGap * WIDE_ZONE_UNITS * scale - left
+              : ex.p[0] + Math.max(nelson.minRun * scale, nelson.run * rise) - tg.p[0];
+            const dxJ = Math.max(cursorX + nelson.edge * scale - left, need);
             wantStartX = dxJ + local.start[0];
             nelsonJoin = { kind, ex, tg };
           }
