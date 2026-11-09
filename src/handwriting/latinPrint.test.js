@@ -191,4 +191,15 @@ describe("English print letters in the propis2 engine", () => {
     const j = hook("j");
     for (const label of "gy") hook(label).forEach((v, i) => expect(v, `${label} [${i}]`).toBeCloseTo(j[i], 1));
   });
+  it("British D: the belly is one smooth arc — two ellipse quarters between the top and bottom bars (owner, 2026-11-09)", () => {
+    const D = JSON.parse(readFileSync("tools/handwriting/latin/british.json", "utf-8")).glyphs.find((g) => g.label === "D");
+    const n = D.strokes[1].d.match(/-?\d*\.?\d+/g).map(Number);
+    const segs = segsFrom(Array.from({ length: n.length / 2 }, (_, i) => [n[2 * i], n[2 * i + 1]]));
+    expect(segs.length).toBe(4); // top bar, two quarters, bottom bar
+    const [q1, q2] = [segs[1], segs[2]];
+    expect(q1[1][1]).toBeCloseTo(q1[0][1], 6);   // leaves the top bar level
+    expect(q1[2][0]).toBeCloseTo(q1[3][0], 6);   // upright at the right side
+    expect(q2[1][0]).toBeCloseTo(q2[0][0], 6);   // ... going on upright
+    expect(q2[2][1]).toBeCloseTo(q2[3][1], 6);   // into the bottom bar level
+  });
 });

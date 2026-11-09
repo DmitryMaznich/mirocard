@@ -60,6 +60,7 @@ BOW_BAR = 2.0        # a bar whose hand sags this much in the middle is drawn as
 BAR_DEV = 0.2         # a whole stroke near-horizontal and within this part of its length from its chord is a bar
 K_ELL = 0.5523
 OVAL_TURN, OVAL_STEM = 250.0, 28.0  # see line_runs
+ELLIPSE_BOWS = set("D")  # bows drawn as ellipse quarters however the hand went (owner, 2026-11-09: D «пузо сделай плавной дугой»)
 QUARTER_TOL = 3.0     # a quarter of an oval is an ellipse even this far from the hand (the hand drew D's side as a broken line)
 X_LINE, BASE, NELSON = 62.0, 88.0, 0.86
 LINES = [BASE - (BASE - X_LINE) * (1 + NELSON), X_LINE, BASE, BASE + (BASE - X_LINE) * NELSON]  # 39.64, 62, 88, 110.36
@@ -183,7 +184,8 @@ def run_ok(seg):
     L = length(seg)
     if L < min(STEM_MIN, BAR_MIN): return False
     k = kind_of(unit(seg[-1] - seg[0]))
-    if k == "l" and CUR in BOWED_SLANTS: return False
+    if k == "l" and (CUR in BOWED_SLANTS or CUR in ELLIPSE_BOWS): return False
+    if k == "v" and CUR in ELLIPSE_BOWS and L < 30: return False  # D's belly has no upright stretch: one arc (the stem is its own stroke)
     tol, mn = {"v": (STEM_TOL, STEM_MIN), "h": (LONG_TOL if L >= LONG_MIN else BAR_TOL, BAR_MIN), "l": (LONG_TOL if L >= LONG_MIN else LINE_TOL, LINE_MIN)}[k]
     return L >= mn and chord_dev(seg) <= tol
 
@@ -334,7 +336,7 @@ def fit_span(pts, p0, p3, t0, t1, ax0, ax1, depth=0):
         h0 = K_ELL * (dx if abs(t0[0]) > 0.5 else dy); h1 = K_ELL * (dx if abs(t1[0]) > 0.5 else dy)
         ctrl = [p0, p0 + h0 * t0, p3 - h1 * t1, p3]
         err = max(min(np.linalg.norm(bez(ctrl, t) - x) for t in np.linspace(0, 1, 60)) for x in pts[::3])
-        if err <= QUARTER_TOL: return [ctrl]
+        if err <= QUARTER_TOL or CUR in ELLIPSE_BOWS: return [ctrl]
     ctrl, err = fit_cubic(pts, p0, p3, t0, -t1)
     ctrl = [ctrl[0], ctrl[1], ctrl[2], ctrl[3]]
     if err <= FIT_TOL or len(pts) < 12 or depth > 3: return [ctrl]
