@@ -210,6 +210,21 @@ describe("Nelson joins (script.joinRules)", () => {
     }
   });
 
+  it("the rule for s: short when a join comes into it, whole everywhere else — first in a word, after a letter that does not join, after a capital, alone, in the apart style", () => {
+    const cs = (d) => d.match(/C/g).length;
+    const whole = cs(row("british_joined", "s")[0].d), short = 5;
+    const lastS = (st) => st[st.length - 1];
+    for (const c of "abcdefghijklmnopqrstuvwxyz") {
+      const r = row("british_joined", `${c}s`), joined = r.some((x) => x.join);
+      expect(cs(lastS(r).d), `${c}s`).toBe(joined ? short : whole);
+    }
+    // which letters join into s (the Nelson table: all but the break letters b g j p q x y z; s after s too)
+    const joining = [..."abcdefghijklmnopqrstuvwxyz"].filter((c) => row("british_joined", `${c}s`).some((x) => x.join)).join("");
+    expect(joining).toBe("acdefhiklmnorstuvw");
+    for (const w of ["s", "sa", "As", "Ts"]) expect(cs(row("british_joined", w).find((x) => !x.join && x.d.match(/C/g)?.length >= 5).d), w).toBe(whole);
+    for (const w of ["is", "as", "ss"]) expect(row("british", w).filter((x) => cs(x.d) === short)).toHaveLength(0); // apart: never short
+  });
+
   it("f joins from its bar, s from the bottom of its curve", () => {
     const fo = row("british_joined", "fo");
     const bar = fo[1], join = fo.find((s) => s.join);
