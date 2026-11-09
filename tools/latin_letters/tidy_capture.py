@@ -576,7 +576,8 @@ def tidy_glyph(cap):
 # put the underlay (its stem onto the traced stem). It leaves the stem and comes back into it where that line does; the stem (and b's
 # retrace up it) stay the hand's. Not pulled onto the lines: it is the original.
 ORIGINAL_BOWL = set("bpPR")
-BAR_END = 0.65  # P, R: where the bars end and the belly starts turning, of the belly's width  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
+BAR_END = {"P": 0.6, "R": 0.65}  # where the bars end and the belly starts turning, of the belly's width (P: «ещё чуть укоротить
+# горизонтальные отрезки», owner, 2026-11-09)  # P (owner, 2026-11-09: «шлифуем O, Q и P по такому же принципу»): its bowl is p's, from the capital's underlay
 ORIGINAL = False  # set while a bowl from the original is drawn
 UNDERLAYS = Path(__file__).resolve().parent / "underlays" / "british"
 UL_PX, UL_X = 8, 100.0  # the underlay: 8 px a unit, put at x = 100 in the tool
@@ -699,7 +700,7 @@ def original_bowl(label, strokes):
             n = max(3, len(pts) // 20)
             y0 = snap_y(float(np.median(pts[:n, 1])), BAR_SNAP); y1 = float(np.median(pts[-n:, 1]))
             R = pts[int(np.argmax(pts[:, 0]))]
-            xb = stem_x + BAR_END * (R[0] - stem_x)
+            xb = stem_x + BAR_END[label] * (R[0] - stem_x)
             a0, a1, b0, b1 = np.array([stem_x, y0]), np.array([xb, y0]), np.array([xb, y1]), np.array([stem_x, y1])
             line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
             q1 = [a1, a1 + [K_ELL * (R[0] - xb), 0], R - [0, K_ELL * (R[1] - y0)], R.copy()]
@@ -1063,6 +1064,29 @@ def open_from_original(label, strokes):
     strokes[0]["segs"] = bow + [[p0, p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1]]
 
 
+# v after the ORIGINAL (owner, 2026-11-09: «v чуть шире оригинала»): each arm is a straight line through the middle of its ink (the
+# middles of the two runs of ink on each row between the lines), the tops on the x-line, the point where the arms meet put on the
+# baseline; put centre on centre of the hand's v
+def v_from_original(label, strokes):
+    from PIL import Image
+    a = np.array(Image.open(UNDERLAYS / f"lo_{label}.png"))[:, :, 3] > 128
+    L, R = [], []
+    for y8 in range(int((X_LINE + 2) * UL_PX), int((BASE - 6) * UL_PX)):
+        r = np.nonzero(a[y8])[0]
+        runs = np.split(r, np.nonzero(np.diff(r) > 1)[0] + 1)
+        if len(runs) == 2:
+            L.append((y8 / UL_PX, UL_X + runs[0].mean() / UL_PX)); R.append((y8 / UL_PX, UL_X + runs[1].mean() / UL_PX))
+    L, R = np.array(L), np.array(R)
+    pl, pr = np.polyfit(L[:, 0], L[:, 1], 1), np.polyfit(R[:, 0], R[:, 1], 1)
+    ya = (pr[1] - pl[1]) / (pl[0] - pr[0])
+    l0, r0, apex = np.polyval(pl, X_LINE), np.polyval(pr, X_LINE), np.polyval(pl, ya)
+    segs = strokes[0]["segs"]
+    dx = (segs[0][0][0] + segs[-1][3][0]) / 2 - (l0 + r0) / 2
+    A, B, C = np.array([l0 + dx, X_LINE]), np.array([apex + dx, BASE]), np.array([r0 + dx, X_LINE])
+    line = lambda p, q: [p, p + (q - p) / 3, p + 2 * (q - p) / 3, q]
+    strokes[0]["segs"] = [line(A, B), line(B, C)]
+
+
 # R's leg after the ORIGINAL (with its bowl -- P's, ORIGINAL_BOWL): a straight line through the middle of the leg's ink, from the
 # bowl's lower bar to half a pen short of the ink's foot (on the baseline when near)
 def leg_from_original(label, strokes):
@@ -1124,6 +1148,7 @@ def main():
         CUR, WHOLE = l, True
         open_from_original(l, tidied[l])
     if "R" in tidied and len(tidied["R"]) == 3: leg_from_original("R", tidied["R"])
+    if "v" in tidied and len(tidied["v"][0]["segs"]) == 2: v_from_original("v", tidied["v"])
     share_bowl(tidied)
     share_tail(tidied)
     for l in BELLIES_FROM_ORIGINAL & set(tidied): bellies_from_original(l, tidied[l])
