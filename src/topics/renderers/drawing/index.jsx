@@ -3,7 +3,7 @@ import { createDrawingPlayer } from "./player.js";
 import { toolForStep } from "./lessonPlan.js";
 import "./drawing.css";
 
-export default function DrawingRenderer({ task, sessionParams, onAdvance }) {
+export default function DrawingRenderer({ task, sessionParams, onAdvance, soundEnabled = true }) {
   const lesson = task?.lesson;
   const svgRef = useRef(null);
   const playerRef = useRef(null);
@@ -18,6 +18,9 @@ export default function DrawingRenderer({ task, sessionParams, onAdvance }) {
     return () => { player.dispose(); playerRef.current = null; };
   }, [lesson, prefix]);
   useEffect(() => { playerRef.current?.setSpeed(speed); }, [speed, lesson]);
+  useEffect(() => {
+    playerRef.current?.setSoundEnabled(soundEnabled && sessionParams?.pencilSound !== "off");
+  }, [soundEnabled, sessionParams?.pencilSound, lesson]);
 
   if (!lesson?.steps?.length) return <div className="drawing-lesson">Рисунок недоступен. Переустановите тему.</div>;
   const { index, busy, paused } = state;

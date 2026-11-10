@@ -1,3 +1,5 @@
+import { createPencilSound } from "./pencilSound.js";
+
 // This player only knows strokes and clipped pencil regions. Lessons arrive as
 // data from the topic ZIP; there is no dependency on the app store or routing.
 const ns = "http://www.w3.org/2000/svg";
@@ -9,7 +11,7 @@ function element(tag, attrs, parent) {
   return node;
 }
 
-export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "drawing") {
+export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "drawing", options = {}) {
   svg.replaceChildren();
   const colors = element("g", { "data-layer": "colors" }, svg);
   const drawing = element("g", { "data-layer": "drawing" }, svg);
@@ -21,6 +23,8 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
   element("path", { d: "M-1.3 -4 L0 0 L1.3 -4 Z", style: "fill:#514535;stroke:none" }, pencilBody);
   const tip = element("circle", { r: 4, fill: "#749b80", visibility: "hidden" }, svg);
   const steps = lesson.steps;
+  const sound = options.sound ?? createPencilSound();
+  sound.setEnabled(options.soundEnabled !== false);
   let index = 0, busy = false, paused = false, version = 0, speed = 1, disposed = false;
   let frameId = null, animationResolve = null;
   const emit = () => { if (!disposed) onChange({ index, busy, paused }); };
@@ -87,6 +91,7 @@ function revealRegion(region,distance){
  for(const line of current.layers)line.style.strokeDashoffset=current.length-local;
  const q=current.layers[0].getPointAtLength(local);
  pencil.setAttribute('transform',`translate(${q.x} ${q.y})`);
+ return q;
 }
 
 
@@ -101,6 +106,7 @@ function revealRegion(region,distance){
     pencil.setAttribute("visibility", "hidden"); tip.setAttribute("visibility", "hidden");
   }
   function stop() {
+    sound.stop();
     version++; if (frameId !== null) cancelAnimationFrame(frameId);
     frameId = null; animationResolve?.(); animationResolve = null;
     busy = false; paused = false;
@@ -122,27 +128,32 @@ function revealRegion(region,distance){
   }
   async function next() {
     if (disposed || busy || index >= steps.length) return;
+    sound.unlock();
     busy = true; paused = false; const token = ++version, step = steps[index], pace = speed; emit();
     if (step.kind === "stroke") {
       for (const item of step.paths) {
         if (token !== version || disposed) return;
+        sound.beginStroke();
         const node = path(item), length = node.getTotalLength();
         node.style.strokeDasharray = length; node.style.strokeDashoffset = length;
         tip.setAttribute("visibility", "visible");
         await animate(Math.max(550, Math.min(4800, length * 6)) * pace, token, t => {
           node.style.strokeDashoffset = length * (1-t);
           const point = node.getPointAtLength(length*t); tip.setAttribute("cx", point.x); tip.setAttribute("cy", point.y);
+          if (!paused) sound.move(point.x, point.y);
         });
         if (token !== version || disposed) return;
         node.style.strokeDasharray = "none"; if (node.dataset.fill) node.style.fill = node.dataset.fill;
       }
     } else {
+      sound.beginStroke();
       const region = buildRegion(step, index); pencil.setAttribute("visibility", "visible");
       pencil.querySelector("path").style.fill = region.fill;
-      await animate(Math.max(650, Math.min(7000, region.length * .36)) * pace, token, t => revealRegion(region, region.length*t));
+      await animate(Math.max(650, Math.min(7000, region.length * .36)) * pace, token, t => { const point = revealRegion(region, region.length*t); if (!paused) sound.move(point.x, point.y, region.cursor); });
     }
     if (token !== version || disposed) return;
     tip.setAttribute("visibility", "hidden"); pencil.setAttribute("visibility", "hidden");
+    sound.stop();
     busy = false; index++; emit();
   }
   emit();
@@ -151,8 +162,9 @@ function revealRegion(region,distance){
     back() { if (!disposed && !busy && index) { index--; redraw(); emit(); } },
     repeat() { if (!disposed && !busy && index) { index--; redraw(); return next(); } },
     reset() { if (!disposed) { stop(); index=0; redraw(); emit(); } },
-    togglePause() { if (!disposed && busy) { paused=!paused; emit(); } },
+    togglePause() { if (!disposed && busy) { paused=!paused; sound.stop(); if (!paused) sound.unlock(); emit(); } },
+    setSoundEnabled(value) { sound.setEnabled(value); },
     setSpeed(value) { speed = { slow: 1.65, normal: 1, fast: .6 }[value] ?? 1; },
-    dispose() { stop(); disposed=true; svg.replaceChildren(); },
+    dispose() { stop(); sound.dispose(); disposed=true; svg.replaceChildren(); },
   };
 }

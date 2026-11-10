@@ -59,6 +59,23 @@
               "fast": "Быстро"
             }
           }
+        },
+        "pencilSound": {
+          "type": "enum",
+          "label": {
+            "ru": "Шуршание карандаша"
+          },
+          "values": [
+            "on",
+            "off"
+          ],
+          "default": "on",
+          "labels": {
+            "ru": {
+              "on": "Включено",
+              "off": "Без звука"
+            }
+          }
         }
       }
     }
