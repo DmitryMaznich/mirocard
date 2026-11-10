@@ -29,7 +29,7 @@ try {
     if (scenario === 'colour' || scenario === 'done') {
       await page.evaluate(({ cards, indexes, scenario }) => {
         cards.forEach((card, i) => localStorage.setItem('drawing-ux:'+card.id,
-          JSON.stringify({ index: indexes[i], phase: scenario === 'done' ? 'done' : 'copy' })));
+          JSON.stringify({ index: indexes[i], revision: card.lesson.progressRevision ?? 0, phase: scenario === 'done' ? 'done' : 'copy' })));
       }, { cards, indexes, scenario });
       await page.reload();
     }
