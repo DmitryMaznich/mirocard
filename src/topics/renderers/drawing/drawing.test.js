@@ -16,7 +16,12 @@ describe("downloadable drawing topic", () => {
     expect(record.modes).toHaveLength(1);
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true });
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish"]));
+    const goldfish = tasks.find(task => task.cardId === "goldfish").lesson;
+    expect(goldfish.title).toBe("Золотая рыбка");
+    expect(goldfish.steps).toHaveLength(45);
+    expect(goldfish.steps.filter(step => step.kind === "stroke")).toHaveLength(22);
+    expect(goldfish.palette.map(tool => tool.id)).toEqual(["black", "yellow", "orange", "red", "light_blue"]);
     const korzhik = tasks.find(task => task.cardId === "korzhik").lesson;
     expect(korzhik.title).toBe("Коржик");
     expect(korzhik.steps).toHaveLength(54);

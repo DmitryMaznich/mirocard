@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.4.0",
+      "version": "0.5.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.4.0.zip",
+        "public/decks/drawing_v0.5.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.4.0",
-        "url": "./decks/drawing_v0.4.0.zip",
+        "version": "0.5.0",
+        "url": "./decks/drawing_v0.5.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по анимированному образцу. Каждый тап показывает один контур или постепенно закрашивает один участок карандашными штрихами.",
         "renderer": "drawing",
         "modes": 1,
-        "cards": 3
+        "cards": 4
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик и Коржик.",
-          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik and Korzhik."
+          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик и Золотая рыбка.",
+          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik and Goldfish."
         },
-        "url": "./decks/drawing_v0.4.0.zip",
+        "url": "./decks/drawing_v0.5.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-10T08:36:31+01:00"
+      "sourceUpdatedAt": "2026-11-10T08:56:27+01:00"
     },
     {
       "id": "emotions_v2",
