@@ -350,8 +350,8 @@
           "en": "Drawing"
         },
         "description": {
-          "ru": "Рисуем на бумаге по анимированному образцу: перед шагом выбираем нужный карандаш, последовательно закрашиваем все участки одним цветом. Компот и Гоня.",
-          "en": "Draw on paper with an animated model. Prepare the pencil before each step and finish all areas of one colour before changing pencils. Kompot and Gonya."
+          "ru": "Рисуем на бумаге по анимированному образцу: перед шагом выбираем нужный карандаш, последовательно закрашиваем все участки одним цветом. Компот и Нудик.",
+          "en": "Draw on paper with an animated model. Prepare the pencil before each step and finish all areas of one colour before changing pencils. Kompot and Nudik."
         },
         "url": "./decks/drawing_v0.3.0.zip",
         "status": "beta",
