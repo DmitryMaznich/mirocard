@@ -1,15 +1,15 @@
 {
-  "black": { "id": "black", "type": "pencil", "name": "Чёрный карандаш", "color": "#151917", "take": "Возьми чёрный карандаш", "continue": "Продолжаем чёрным карандашом" },
-  "orange": { "id": "orange", "type": "pencil", "name": "Жёлто-оранжевый карандаш", "color": "#efaa12", "take": "Возьми жёлто-оранжевый карандаш", "continue": "Продолжаем жёлто-оранжевым карандашом" },
-  "red": { "id": "red", "type": "pencil", "name": "Рыжий карандаш", "color": "#b73316", "take": "Возьми рыжий карандаш", "continue": "Продолжаем рыжим карандашом" },
-  "turquoise": { "id": "turquoise", "type": "pencil", "name": "Голубой карандаш", "color": "#009cbd", "take": "Возьми голубой карандаш", "continue": "Продолжаем голубым карандашом" },
-  "green": { "id": "green", "type": "pencil", "name": "Зелёный карандаш", "color": "#30bb05", "take": "Возьми зелёный карандаш", "continue": "Продолжаем зелёным карандашом" },
-  "beige": { "id": "beige", "type": "pencil", "name": "Бежевый карандаш", "color": "#f2d69a", "take": "Возьми бежевый карандаш", "continue": "Продолжаем бежевым карандашом" },
-  "gray": { "id": "gray", "type": "pencil", "name": "Серый карандаш", "color": "#777b7c", "take": "Возьми серый карандаш", "continue": "Продолжаем серым карандашом" },
-  "light_gray": { "id": "light_gray", "type": "pencil", "name": "Светло-серый карандаш", "color": "#c3c4bb", "take": "Возьми светло-серый карандаш", "continue": "Продолжаем светло-серым карандашом" },
-  "light_blue": { "id": "light_blue", "type": "pencil", "name": "Голубой карандаш", "color": "#34c6e8", "take": "Возьми голубой карандаш", "continue": "Продолжаем голубым карандашом" },
-  "blue": { "id": "blue", "type": "pencil", "name": "Синий карандаш", "color": "#0866d1", "take": "Возьми синий карандаш", "continue": "Продолжаем синим карандашом" },
-  "light_green": { "id": "light_green", "type": "pencil", "name": "Салатовый карандаш", "color": "#75d816", "take": "Возьми салатовый карандаш", "continue": "Продолжаем салатовым карандашом" },
-  "pink": { "id": "pink", "type": "pencil", "name": "Розовый карандаш", "color": "#de64a5", "take": "Возьми розовый карандаш", "continue": "Продолжаем розовым карандашом" },
-  "yellow": { "id": "yellow", "type": "pencil", "name": "Жёлтый карандаш", "color": "#efdd05", "take": "Возьми жёлтый карандаш", "continue": "Продолжаем жёлтым карандашом" }
+  "black": {"id": "black", "type": "pencil", "name": "Чёрный карандаш", "color": "#151917"},
+  "orange": {"id": "orange", "type": "pencil", "name": "Оранжевый карандаш", "color": "#efaa12"},
+  "red": {"id": "red", "type": "pencil", "name": "Красный карандаш", "color": "#b73316"},
+  "turquoise": {"id": "turquoise", "type": "pencil", "name": "Голубой карандаш", "color": "#009cbd"},
+  "green": {"id": "green", "type": "pencil", "name": "Зелёный карандаш", "color": "#30bb05"},
+  "beige": {"id": "beige", "type": "pencil", "name": "Бежевый карандаш", "color": "#f2d69a"},
+  "gray": {"id": "gray", "type": "pencil", "name": "Серый карандаш", "color": "#777b7c"},
+  "light_gray": {"id": "light_gray", "type": "pencil", "name": "Светло-серый карандаш", "color": "#c3c4bb"},
+  "light_blue": {"id": "light_blue", "type": "pencil", "name": "Голубой карандаш", "color": "#34c6e8"},
+  "blue": {"id": "blue", "type": "pencil", "name": "Синий карандаш", "color": "#0866d1"},
+  "light_green": {"id": "light_green", "type": "pencil", "name": "Салатовый карандаш", "color": "#75d816"},
+  "pink": {"id": "pink", "type": "pencil", "name": "Розовый карандаш", "color": "#de64a5"},
+  "yellow": {"id": "yellow", "type": "pencil", "name": "Жёлтый карандаш", "color": "#efdd05"}
 }

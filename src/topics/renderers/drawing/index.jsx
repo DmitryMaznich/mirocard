@@ -24,7 +24,6 @@ export default function DrawingRenderer({ task, sessionParams, onAdvance }) {
   const finished = index >= lesson.steps.length;
   const step = lesson.steps[index];
   const toolContext = toolForStep(lesson, index);
-  const changingPencil = toolContext?.first === index;
   const instruction = paused ? "Пауза. Продолжай, когда будешь готов."
     : busy ? step.title : finished ? `${lesson.title} готов!`
     : `${step.title}.`;
@@ -35,27 +34,25 @@ export default function DrawingRenderer({ task, sessionParams, onAdvance }) {
       <h2>{lesson.title}</h2>
       <span className="drawing-lesson__count">{index} / {lesson.steps.length}</span>
     </div>
-    {toolContext && <div className={`drawing-lesson__tool${changingPencil ? " drawing-lesson__tool--change" : ""}`}
-      style={{ "--drawing-pencil": toolContext.tool.color }} aria-live="polite" aria-atomic="true">
-      <svg className="drawing-lesson__pencil" viewBox="0 0 128 64" aria-hidden="true">
-        <ellipse cx="66" cy="52" rx="49" ry="4" fill="#26352d" opacity=".08" />
-        <g transform="rotate(-10 64 32)">
-          <path d="M7 32 28 18H109V46H28Z" fill="var(--drawing-pencil)" />
-          <path d="M28 18H109V27H28Z" fill="white" opacity=".25" />
-          <path d="M28 37H109V46H28Z" fill="black" opacity=".12" />
-          <path d="M7 32 28 18V46Z" fill="#edcda5" />
-          <path d="M7 32 15 27V37Z" fill="var(--drawing-pencil)" />
-          <path d="M109 18H115Q121 18 121 25V39Q121 46 115 46H109Z" fill="var(--drawing-pencil)" />
-          <path d="M106 18H110V46H106Z" fill="white" opacity=".35" />
+    {toolContext && <div className="drawing-lesson__tool" role="img" aria-label={toolContext.tool.name}
+      style={{ "--drawing-pencil": toolContext.tool.color }}>
+      <svg key={toolContext.tool.id} className="drawing-lesson__pencil" viewBox="0 0 268 80" aria-hidden="true">
+        <ellipse cx="132" cy="68" rx="100" ry="4" fill="#26352d" opacity=".08" />
+        <g transform="rotate(-5 134 38)">
+          <path d="M190 18 248 37 190 56Z" fill="#e9bf87" />
+          <path d="M190 18 248 37 194 35Z" fill="#f8dbad" />
+          <path d="M190 56 248 37 194 40Z" fill="#d9a56c" />
+          <path d="M30 18H190Q197 28 190 37Q197 47 190 56H30Q20 56 20 46V28Q20 18 30 18Z" fill="var(--drawing-pencil)" />
+          <path d="M30 18H190Q193 23 193 28H24V25Q24 18 30 18Z" fill="white" opacity=".28" />
+          <path d="M24 46H193Q194 51 190 56H30Q24 56 24 50Z" fill="black" opacity=".13" />
+          <path d="M232 31.8 248 37 232 42.2Z" fill="var(--drawing-pencil)" />
+          <path d="M36 24H165" stroke="white" strokeWidth="3" strokeLinecap="round" opacity=".32" />
+          <path d="M31 19V55" stroke="black" strokeWidth="2" opacity=".08" />
+          <path d="M204 29 226 36M204 46 222 39" stroke="#c9955d" strokeWidth="1.2" strokeLinecap="round" opacity=".45" />
         </g>
       </svg>
-      <div className="drawing-lesson__tool-copy">
-        <span className="drawing-lesson__tool-label">{changingPencil ? "Готовим карандаш" : "Карандаш для шага"}</span>
-        <strong>{busy ? toolContext.tool.name : toolContext.tool.take}</strong>
-        <span className="drawing-lesson__tool-progress">{step.kind === "color" ? "Участок" : "Шаг"} {toolContext.position} из {toolContext.total} этим карандашом</span>
-      </div>
     </div>}
-    <p className="drawing-lesson__instruction" aria-live="polite">{instruction}</p>
+    <span className="drawing-lesson__status" role="status" aria-live="polite">{instruction}</span>
     <div className="drawing-lesson__paper" role="button" tabIndex={0}
       aria-label="Показать следующий шаг" aria-disabled={busy || finished}
       onClick={next} onKeyDown={event => {
@@ -68,7 +65,7 @@ export default function DrawingRenderer({ task, sessionParams, onAdvance }) {
       <button type="button" disabled={busy || !index} onClick={() => playerRef.current?.back()}>Назад</button>
       <button type="button" disabled={busy || !index} onClick={() => playerRef.current?.repeat()}>Повторить</button>
       <button type="button" className="drawing-lesson__next" disabled={busy}
-        onClick={finished ? onAdvance : next}>{finished ? "Закончить рисунок" : changingPencil ? "Карандаш готов" : "Дальше"}</button>
+        onClick={finished ? onAdvance : next}>{finished ? "Закончить рисунок" : index ? "Дальше" : "Начать"}</button>
     </div>
     <div className="drawing-lesson__options">
       <label>Темп <select value={speed} onChange={event => setSpeed(event.target.value)}>
