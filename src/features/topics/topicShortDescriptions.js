@@ -46,6 +46,7 @@ const SHORT_DESCRIPTIONS = {
     symmetry_draw: "Рисуем по клеткам и графический диктант",
     print_materials: "Тетради и рабочие листы для печати",
     print_letters: "Печатные буквы: листы и письмо на экране",
+    drawing: "Рисуем на бумаге по шагам за образцом",
   },
   sl: {
     streak_tracker: "Štetje pravilnih odgovorov za vsako uro",
