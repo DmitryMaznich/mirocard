@@ -6,7 +6,7 @@ import PrintPageView from "@/handwriting/PrintPageView";
 import { openPdf, pdfFileName, pdfSavesOnDevice, pdfTab, printPdf } from "@/handwriting/printPdf.js";
 import { buildPageTask, glyphMapOf } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, screenPagesOf as screenPagesOfPage, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageBandFill, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
-import { ladderIndex } from "@/topics/renderers/propis2/data.js";
+import { LATIN_KIT_OLD_TITLES, ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -191,6 +191,13 @@ export default function Propis2Home({ db }) {
     const next = retitleKitCopies(library, Object.fromEntries(kits.map((k) => [k.id, k.title])));
     if (next !== library) persist(next);
   }, [languages, loaded, ownKits, kits, library, persist]);
+  // ...and so do the copies of a deck with languages (the Latin notebooks, Russian titles until 2026-11-10, now English for the cover)
+  useEffect(() => {
+    if (!languages || !loaded) return;
+    const titles = Object.fromEntries(languages.flatMap((l) => (l.kits ?? []).map((k) => [k.id, k.title])));
+    const next = retitleKitCopies(library, titles, LATIN_KIT_OLD_TITLES, Date.now(), []);
+    if (next !== library) persist(next);
+  }, [languages, loaded, library, persist]);
   // a copy of a ready notebook is known by its source (and, with languages, its language: the Bulgarian «Цифры» is not the Russian one)
   const sourceOf = (st) => st.sourceId ?? (st.kit ? `kit:${st.kit}` : null);
   const takenKey = (st) => (languages ? `${langOf(st)}|${sourceOf(st)}` : sourceOf(st));

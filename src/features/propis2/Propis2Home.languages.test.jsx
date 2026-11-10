@@ -332,8 +332,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const readyCards = () => cards(host, "propis2-ready-card");
-    expect(readyCards().map((c) => c.textContent).some((t) => t.includes("Соединение 1"))).toBe(true);
-    const card = readyCards().find((c) => c.textContent.includes("Соединение 1"));
+    expect(readyCards().map((c) => c.textContent).some((t) => t.includes("Join 1"))).toBe(true);
+    const card = readyCards().find((c) => c.textContent.includes("Join 1"));
     await click([...card.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? "").startsWith("Изменить тетрадь")));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские соединённые"); // the editor says which style

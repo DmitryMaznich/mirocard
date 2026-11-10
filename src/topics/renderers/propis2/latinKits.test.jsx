@@ -5,6 +5,8 @@ import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { analyzePage, kitToLibraryItems, newPage, rowsPerPage } from "./model.js";
 import { languageView } from "./languages.js";
 import { glyphMapOf } from "./pageTask.js";
+import { retitleKitCopies } from "./storage.js";
+import { LATIN_KIT_OLD_TITLES } from "./data.js";
 
 // The ready notebooks of «Прописи: латиница» (tools/propis2/latin-kits.json, scripts/lib/propis2-latin-kits.mjs, docs/latin-letters.md):
 // the Nelson joins, a page per pair, 16 pages a notebook, words from the CIS second-year English textbooks.
@@ -43,6 +45,16 @@ describe("Latin ready notebooks: the Nelson joins", () => {
     }
   });
 
+  it("the titles are English (they go on the cover), and a copy still called by its old Russian title takes the new one", () => {
+    for (const k of allKits) expect(k.title, k.id).toMatch(/^[A-Za-z0-9 ,:'-]+$/);
+    const lib = { pages: [], sets: [
+      { id: "a", title: "Соединение 1: косое к строчной", sourceId: "kit:en-join-1", pageIds: [] },
+      { id: "b", title: "Моя тетрадь", sourceId: "kit:en-join-2", pageIds: [] },
+    ] };
+    const next = retitleKitCopies(lib, Object.fromEntries(allKits.map((k) => [k.id, k.title])), LATIN_KIT_OLD_TITLES, 1, []);
+    expect(next.sets.map((st) => st.title)).toEqual(["Join 1: diagonal to a short letter", "Моя тетрадь"]); // a title the adult gave stays
+  });
+
   it("a copy of a ready notebook keeps the kit's pages", () => {
     const { set, pages } = kitToLibraryItems(kits[0]);
     expect(set.pageIds).toHaveLength(16);
@@ -52,7 +64,7 @@ describe("Latin ready notebooks: the Nelson joins", () => {
 
 describe("Latin ready notebooks: the steps after the New Nelson copymasters", () => {
   it("six notebooks: patterns and letters, joins in words, consonants, vowels, themed words, sentences and poems", () => {
-    expect(series.map((k) => k.title)).toEqual(["Узоры, буквы и цифры", "Соединения в словах", "Сочетания согласных", "Сочетания гласных", "Слова по темам", "Предложения и стихи"]);
+    expect(series.map((k) => k.title)).toEqual(["Patterns, Letters and Numbers", "Joins in Words", "Consonant Blends and Digraphs", "Vowel Sounds", "Themed Words", "Sentences and Poems"]);
     expect(allKits.map((k) => k.id)).toEqual(["en-join-1", "en-join-2", "en-join-3", "en-join-4", ...series.map((k) => k.id)]);
   });
 

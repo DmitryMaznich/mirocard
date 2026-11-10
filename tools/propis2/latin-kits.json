@@ -4,7 +4,7 @@
   "kits": [
     {
       "id": "en-join-1",
-      "title": "Соединение 1: косое к строчной",
+      "title": "Join 1: diagonal to a short letter",
       "group": "Соединения",
       "style": "british_joined",
       "description": "От буквы с хвостиком (a c d e h i k l m n s t u) косое соединение к букве, которая начинается у верха строчной: in im un ai ay an am ea ee en er ir ic do.",
@@ -29,7 +29,7 @@
     },
     {
       "id": "en-join-2",
-      "title": "Соединение 2: косое к высокой",
+      "title": "Join 2: diagonal to a tall letter",
       "group": "Соединения",
       "style": "british_joined",
       "description": "От буквы с хвостиком косое соединение к высокой букве (b f h k l t): ch sh th ck ab al el il at it ut et nk sk lk.",
@@ -54,7 +54,7 @@
     },
     {
       "id": "en-join-3",
-      "title": "Соединение 3: ровное к строчной",
+      "title": "Join 3: horizontal to a short letter",
       "group": "Соединения",
       "style": "british_joined",
       "description": "От буквы, которая кончается у верха строчной (f o r v w), ровное соединение к букве, которая начинается там же: oa oo ow on or oy re ri ra ru ve wa wi fi fr.",
@@ -79,7 +79,7 @@
     },
     {
       "id": "en-join-4",
-      "title": "Соединение 4: ровное к высокой",
+      "title": "Join 4: horizontal to a tall letter",
       "group": "Соединения",
       "style": "british_joined",
       "description": "От буквы, которая кончается у верха строчной (f o r v w), ровное соединение к высокой букве: ol ok ot ob rt rl rk rf wh wl ft fl ff of.",
@@ -104,7 +104,7 @@
     },
     {
       "id": "en-steps-1",
-      "title": "Узоры, буквы и цифры",
+      "title": "Patterns, Letters and Numbers",
       "group": "Ступени",
       "style": "british",
       "description": "Узоры для руки, строчные и заглавные буквы по алфавиту, цифры 0–9 — британские раздельные.",
@@ -121,7 +121,7 @@
     },
     {
       "id": "en-steps-2",
-      "title": "Соединения в словах",
+      "title": "Joins in Words",
       "group": "Ступени",
       "style": "british_joined",
       "description": "Четыре соединения в частых словах, буквы-разрывы, разные e и s: образец и строка для письма.",
@@ -137,7 +137,7 @@
     },
     {
       "id": "en-steps-3",
-      "title": "Сочетания согласных",
+      "title": "Consonant Blends and Digraphs",
       "group": "Ступени",
       "style": "british_joined",
       "description": "Немая e (cap — cape), двойные и тройные согласные, ch sh th ng nk, удвоенные буквы.",
@@ -161,7 +161,7 @@
     },
     {
       "id": "en-steps-4",
-      "title": "Сочетания гласных",
+      "title": "Vowel Sounds",
       "group": "Ступени",
       "style": "british_joined",
       "description": "Как пишутся долгие гласные: ee ea, ie igh, oa, oo ue ew, aw au or, ir ur er, ou ow, ar oi oy, air ear.",
@@ -180,7 +180,7 @@
     },
     {
       "id": "en-steps-5",
-      "title": "Слова по темам",
+      "title": "Themed Words",
       "group": "Ступени",
       "style": "british_joined",
       "description": "Тело, цвета, время и место, персонажи, семья, еда, частые слова, глаголы на -ing, противоположности.",
@@ -202,7 +202,7 @@
     },
     {
       "id": "en-steps-6",
-      "title": "Предложения и стихи",
+      "title": "Sentences and Poems",
       "group": "Ступени",
       "style": "british_joined",
       "description": "Предложения с немыми буквами, народные стихи и басня — образец и строка для письма.",

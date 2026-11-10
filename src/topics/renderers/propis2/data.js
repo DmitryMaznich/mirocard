@@ -55,6 +55,40 @@ export const ladderIndex = (id) => { const i = PROPIS2_LADDER.indexOf(id); retur
 
 // Titles ready notebooks had before: a copy the adult already took keeps the title it was given, so a copy that still has one of these
 // (never renamed) follows the ready notebook's current title (storage.js retitleKitCopies).
+// The Latin ready notebooks («Прописи: латиница») had Russian titles until 2026-11-10; on an English cover they read oddly (owner): a copy
+// still called by its Russian title takes the English one (Propis2Home, retitleKitCopies)
+export const LATIN_KIT_OLD_TITLES = {
+  "en-join-1": [
+    "Соединение 1: косое к строчной"
+  ],
+  "en-join-2": [
+    "Соединение 2: косое к высокой"
+  ],
+  "en-join-3": [
+    "Соединение 3: ровное к строчной"
+  ],
+  "en-join-4": [
+    "Соединение 4: ровное к высокой"
+  ],
+  "en-steps-1": [
+    "Узоры, буквы и цифры"
+  ],
+  "en-steps-2": [
+    "Соединения в словах"
+  ],
+  "en-steps-3": [
+    "Сочетания согласных"
+  ],
+  "en-steps-4": [
+    "Сочетания гласных"
+  ],
+  "en-steps-5": [
+    "Слова по темам"
+  ],
+  "en-steps-6": [
+    "Предложения и стихи"
+  ]
+};
 export const PROPIS2_OLD_TITLES = {
   texts: ["Тетрадь — тексты для переписывания", "11. Списываем текст"],
   punctuation: ["10. Знаки препинания"],
