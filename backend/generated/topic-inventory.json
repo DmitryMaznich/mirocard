@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.3.0",
+      "version": "0.4.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.3.0.zip",
+        "public/decks/drawing_v0.4.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.3.0",
-        "url": "./decks/drawing_v0.3.0.zip",
+        "version": "0.4.0",
+        "url": "./decks/drawing_v0.4.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по анимированному образцу. Каждый тап показывает один контур или постепенно закрашивает один участок карандашными штрихами.",
         "renderer": "drawing",
         "modes": 1,
-        "cards": 2
+        "cards": 3
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Рисуем на бумаге по анимированному образцу: перед шагом выбираем нужный карандаш, последовательно закрашиваем все участки одним цветом. Компот и Нудик.",
-          "en": "Draw on paper with an animated model. Prepare the pencil before each step and finish all areas of one colour before changing pencils. Kompot and Nudik."
+          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик и Коржик.",
+          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik and Korzhik."
         },
-        "url": "./decks/drawing_v0.3.0.zip",
+        "url": "./decks/drawing_v0.4.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-10T07:20:11+01:00"
+      "sourceUpdatedAt": "2026-11-10T08:36:31+01:00"
     },
     {
       "id": "emotions_v2",

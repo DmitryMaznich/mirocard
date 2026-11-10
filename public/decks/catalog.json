@@ -676,16 +676,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Рисуем на бумаге по анимированному образцу: перед шагом выбираем нужный карандаш, последовательно закрашиваем все участки одним цветом. Компот и Нудик.",
-        "en": "Draw on paper with an animated model. Prepare the pencil before each step and finish all areas of one colour before changing pencils. Kompot and Nudik."
+        "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик и Коржик.",
+        "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik and Korzhik."
       },
-      "url": "./decks/drawing_v0.3.0.zip",
+      "url": "./decks/drawing_v0.4.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

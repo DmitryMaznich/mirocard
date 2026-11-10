@@ -5,7 +5,7 @@ import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { generateTasks } from "./engine.js";
 
 describe("downloadable drawing topic", () => {
-  it("imports its own renderer and all 42 lesson steps without changing shared loaders", async () => {
+  it("imports its own renderer and every drawing without changing shared loaders", async () => {
     const manifest = JSON.parse(await readFile("tools/drawing/topic.json", "utf8"));
     const bytes = await readFile(`public/decks/drawing_v${manifest.meta.version}.zip`);
     const db = await openDb(`drawing-test-${Date.now()}`);
@@ -16,7 +16,11 @@ describe("downloadable drawing topic", () => {
     expect(record.modes).toHaveLength(1);
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true });
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik"]));
+    const korzhik = tasks.find(task => task.cardId === "korzhik").lesson;
+    expect(korzhik.title).toBe("Коржик");
+    expect(korzhik.steps).toHaveLength(54);
+    expect(korzhik.palette.map(tool => tool.id)).toEqual(["black", "orange", "brown", "light_blue", "beige"]);
     const gonya = tasks.find(task => task.cardId === "gonya").lesson;
     expect(gonya.steps).toHaveLength(42);
     expect(gonya.steps.slice(0, 21).every(step => step.kind === "stroke")).toBe(true);

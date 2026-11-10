@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -96,6 +96,14 @@
       "label": "Нудик",
       "image": "media/gonya.svg",
       "lessonFile": "lessons/gonya.json"
+    },
+    {
+      "id": "korzhik",
+      "conceptId": "korzhik",
+      "primary": true,
+      "label": "Коржик",
+      "image": "media/korzhik.svg",
+      "lessonFile": "lessons/korzhik.json"
     }
   ]
 }

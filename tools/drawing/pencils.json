@@ -11,5 +11,6 @@
   "blue": {"id": "blue", "type": "pencil", "name": "Синий карандаш", "color": "#0866d1"},
   "light_green": {"id": "light_green", "type": "pencil", "name": "Салатовый карандаш", "color": "#75d816"},
   "pink": {"id": "pink", "type": "pencil", "name": "Розовый карандаш", "color": "#de64a5"},
-  "yellow": {"id": "yellow", "type": "pencil", "name": "Жёлтый карандаш", "color": "#efdd05"}
+  "yellow": {"id": "yellow", "type": "pencil", "name": "Жёлтый карандаш", "color": "#efdd05"},
+  "brown": {"id": "brown", "type": "pencil", "name": "Коричневый карандаш", "color": "#6f3324"}
 }
