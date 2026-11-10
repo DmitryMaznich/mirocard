@@ -10,6 +10,7 @@ import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
 import { loadTopicFileUrl } from "@/shared/hooks/useTopicFile";
+import { useAdultVideoBonus } from "@/features/rewards/useAdultVideoBonus";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -68,6 +69,8 @@ export default function SessionScreen() {
     onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality, onPeopleEvent,
   } = useSessionEngine();
+
+  const adultVideoBonus = useAdultVideoBonus({ student: activeStudent, enabled: mode?.adultVideoReward === true });
 
   const sessionRewardSettings = sessionState?.rewardSettings ?? effectiveRewardSettings(null);
 
@@ -398,6 +401,7 @@ export default function SessionScreen() {
             onStreakReset={isAdvanceGateActive ? noop : handleStreakReset}
             onFlashIncorrect={isAdvanceGateActive ? noop : handleFlashIncorrect}
             onAdvance={requestAdvance}
+            onRequestVideoBonus={mode?.adultVideoReward === true ? adultVideoBonus.request : undefined}
             onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}
             onClose={openSessionExitPrompt}
             onCardShown={onCardShown}
@@ -444,6 +448,8 @@ export default function SessionScreen() {
           {isAdvanceReady && <span className="session-fb-overlay__hint">Нажмите, чтобы продолжить</span>}
         </div>
       )}
+
+      {adultVideoBonus.modal}
 
       {rewardPending && activeStudent && (
         <RewardVideoModal
