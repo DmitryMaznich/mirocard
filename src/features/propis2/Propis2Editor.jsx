@@ -2,7 +2,7 @@ import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
+import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -99,8 +99,9 @@ const DOT_OPTS = [
 const ROW_SAYS = {
   repeat: (v) => `Образец: ${optionName(REPEAT_OPTS, v)}`,
   dots: (v) => `Точки: ${optionName(DOT_OPTS, v)}`,
+  style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
 };
-const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }) };
+const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }), style: (v) => ({ style: v }) };
 const onRows = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "строке" : "строках"}`;
 
 
@@ -229,7 +230,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     if (!selected) return null;
     const p = rowParams(selected);
     // a row from a ready sheet follows the engine's own rule until a repeat is picked: show what it does
-    return p.repeat === "auto" ? { ...p, repeat: multipliesByDefault(selected.text, glyphMap) ? "all" : "one" } : p;
+    return p.repeat === "auto" ? { ...p, repeat: multipliesByDefault(selected.text, rowGlyphMap(glyphMap, selected)) ? "all" : "one" } : p;
   })();
 
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
@@ -445,7 +446,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           {/* the page's writing style (docs/propis2-languages.md «Стиль у страницы»): only a language with several styles */}
-          {styles && <Propis2Picker label="Стиль письма" caption="Стиль" disabled={locked} mixed={mx.style} value={styles.value} onChange={(id) => setSetting("style", id)} options={styleOptions} />}
+          {styles && <Propis2Picker label="Стиль страницы" caption="Стиль" disabled={locked} mixed={mx.style} value={styles.value} onChange={(id) => setSetting("style", id)} options={styleOptions} />}
           <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
@@ -490,6 +491,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const rowEls = <>
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
+          {/* the row's writing style (docs/propis2-languages.md «Стиль у строки»): a row of print letters, the next one joined */}
+          {styles && <Propis2Picker label="Стиль строки" caption="Стиль" value={selected ? rowSetting(selected, "style", glyphMap) ?? styles.value : styles.value} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={styleOptions} />}
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
           {/* keeps the field's focus (the keyboard stays open, the caret where it was) */}
           <IconBtn label="Вставить текст из буфера обмена" caption="Вставить" disabled={!canPaste} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}><I.IconPaste /></IconBtn>
@@ -539,7 +542,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const offerEl = offer && (rowOffer || notebook) && (
           <div className="p2-offer" role="status" data-testid="propis2-offer">
             <span className="p2-offer-msg">{rowOffer
-              ? `${ROW_SAYS[offer.key](offer.value)} — ${offer.done ? `ещё на ${onRows(offer.ids.length)} ниже` : `на строке ${offer.row}`}`
+              ? `${ROW_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? `ещё на ${onRows(offer.ids.length)} ниже` : `на строке ${offer.row}`}`
               : `${SETTING_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}`}</span>
             {offer.done
               ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>

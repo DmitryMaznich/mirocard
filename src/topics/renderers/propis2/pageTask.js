@@ -1,6 +1,7 @@
 // Glyph label -> glyph (aliases included) for a deck record, as the wide-row engine wants it.
 import { FOUR_LINE_IDS, isFourLinePaper } from "../../../handwriting/fourLinePapers.js";
 import { withGlyphOverrides } from "./glyphOverrides.js";
+import { styleViews } from "./languages.js";
 
 export function buildGlyphMap(topicRecord) {
   const map = new Map();
@@ -11,8 +12,20 @@ export function buildGlyphMap(topicRecord) {
   for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
   // the deck's own writing geometry (a variant's meta.script: slant, heights; wordEngine lays every row out with it)
   if (topicRecord?.meta?.script) map.script = topicRecord.meta.script;
+  attachStyles(map, topicRecord);
   return map;
 }
+
+// A language with several writing styles: a row may write in another style than its page (`row.style`). The map of the page's style then
+// knows the maps of all the styles of its language (`map.styles`, Map(id -> map), built when first asked) and its own (`map.styleId`).
+function attachStyles(map, topicRecord) {
+  const siblings = styleViews(topicRecord);
+  if (!siblings) return;
+  map.styleId = topicRecord.meta.writingStyle;
+  let styles = null;
+  Object.defineProperty(map, "styles", { get() { return (styles ??= new Map([...siblings].map(([id, v]) => [id, v === topicRecord ? map : glyphMapOf(v)]))); } });
+}
+
 
 // buildGlyphMap once per record: a notebook whose pages write in different styles (languageView gives one record per style, cached)
 // asks for the map of each style again and again
@@ -68,5 +81,17 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     wideGlyphs: withGlyphOverrides(topicRecord?.wide),
     script: topicRecord?.meta?.script ?? null,
     wideElementRepeat: topicRecord?.wideElementRepeat ?? {},
+    // rows in another style of the language (`#y<style>` on their line): the letters and geometry of every style
+    ...styleGlyphsOf(topicRecord),
   };
+}
+
+const STYLE_GLYPHS = new WeakMap();
+function styleGlyphsOf(topicRecord) {
+  const siblings = styleViews(topicRecord);
+  if (!siblings) return {};
+  if (!STYLE_GLYPHS.has(topicRecord)) {
+    STYLE_GLYPHS.set(topicRecord, { writingStyle: topicRecord.meta.writingStyle, styleGlyphs: Object.fromEntries([...siblings].map(([id, v]) => [id, { wideGlyphs: withGlyphOverrides(v.wide), script: v.meta?.script ?? null }])) });
+  }
+  return STYLE_GLYPHS.get(topicRecord);
 }

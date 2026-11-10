@@ -1953,7 +1953,25 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null) {
   return { p: getPathEndpoints(first).start, t: null };
 }
 
+// A row in another writing style than its page (`propis2`, docs/propis2-languages.md «Стиль у строки»): its line ends with `#y<style id>`
+// and `glyphsByLabel.styles` (Map(id -> glyph map with its own `.script`)) has that style's letters. Every style present is laid out on its
+// own copy of the page's lines — the lines of the other styles left blank, so each row keeps its place (rowIndex: the slant grid, the
+// cells) — and each row is taken from its style's layout (`row.style`). Without a `#y` flag nothing changes.
+const STYLE_FLAG = /#y([a-z0-9_]+)$/;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+  const styles = glyphsByLabel?.styles;
+  if (!styles || !lines.some((l) => STYLE_FLAG.test(l))) return layoutWideLinesIntoRowsOne(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  const own = lines.map((l) => { const m = STYLE_FLAG.exec(l); return m && styles.has(m[1]) && styles.get(m[1]) !== glyphsByLabel ? m[1] : null; });
+  const bare = lines.map((l) => l.replace(STYLE_FLAG, ""));
+  const base = layoutWideLinesIntoRowsOne(bare.map((l, i) => (own[i] ? "" : l)), glyphsByLabel, snapX, multiply, scale, maxX);
+  const placed = [...base.placed];
+  for (const id of new Set(own.filter(Boolean))) {
+    const res = layoutWideLinesIntoRowsOne(bare.map((l, i) => (own[i] === id ? l : "")), styles.get(id), snapX, multiply, scale, maxX);
+    own.forEach((o, i) => { if (o === id) placed[i] = { ...res.placed[i], style: id }; });
+  }
+  return { ...base, placed };
+}
+function layoutWideLinesIntoRowsOne(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   const key = scriptKey(glyphsByLabel?.script);
   if (key === null) return layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);
   const own = layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);

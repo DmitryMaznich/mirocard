@@ -164,7 +164,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
         field.dispatchEvent(new Event("input", { bubbles: true }));
         await tick();
       });
-      expect(Boolean(host.querySelector('button[aria-label="Стиль письма"]'))).toBe(lang === "bg");
+      expect(Boolean(host.querySelector('button[aria-label="Стиль страницы"]'))).toBe(lang === "bg");
       await click(host.querySelector(".back-btn"));
       await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
       await act(async () => { root.unmount(); await tick(400); });
@@ -263,7 +263,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
     const printInk = ink();
     expect(printInk.length).toBeGreaterThan(0);
-    await click(host.querySelector('button[aria-label="Стиль письма"]'));
+    await click(host.querySelector('button[aria-label="Стиль страницы"]'));
     await click(document.querySelector('[role="option"][aria-label="Британские раздельные"]'));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские раздельные");
@@ -279,6 +279,46 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const lib = await loadLibrary(db);
     expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", undefined]]); // the notebook itself has no style
     expect(lib.pages.map((pg) => [pg.style, pg.gridKind])).toEqual([["british", "en_gb"]]);
+    host.remove();
+  });
+  it("a row of an English page writes in a style of its own (row.style): print, then joined, on one page", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tdb = await openDb("p2rstyle-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
+    const db = await openDb("p2rstyle-en-" + Date.now());
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    await click(btn(host, "Новая тетрадь"));
+    const field = host.querySelector('[aria-label="Текст страницы"]');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "little kitten\nlittle kitten");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      await tick();
+    });
+    await act(async () => { await tick(50); });
+    const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
+    const before = ink();
+    const rowPicker = host.querySelector('button[aria-label="Стиль строки"]');
+    expect(rowPicker).not.toBeNull();
+    expect(rowPicker.disabled).toBe(false); // the row with the caret is selected
+    await click(rowPicker);
+    await click(document.querySelector('[role="option"][aria-label="Британские соединённые"]'));
+    await act(async () => { await tick(50); });
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    expect(ink()).not.toBe(before); // the second row is written with the joins now
+    await click(host.querySelector('[aria-label="Показать ученику"]'));
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    await click(host.querySelector(".propis-practice-close"));
+    await click(host.querySelector(".back-btn"));
+    await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+    await act(async () => { root.unmount(); await tick(400); });
+    const lib = await loadLibrary(db);
+    expect(lib.pages[0].style).toBeUndefined();
+    expect(lib.pages[0].rows.length).toBe(2);
+    expect(lib.pages[0].rows.map((r) => r.style).filter(Boolean)).toEqual(["british_joined"]); // the selected row only
     host.remove();
   });
   it("a ready Latin notebook (the Nelson joins) opens as a copy in its own style, «Британские соединённые»", async () => {

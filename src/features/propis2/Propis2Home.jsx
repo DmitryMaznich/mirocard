@@ -45,6 +45,7 @@ export default function Propis2Home({ db }) {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState({ name: "library" });
   const [fragment, setFragment] = useState(null);
+  const [fragmentStyle, setFragmentStyle] = useState(null); // the style of the row the tapped word is in (`row.style`), null: the part's
   const [shownPage, setShownPage] = useState(0); // the screen page the viewer shows (0-based, whole notebook), to edit exactly that page
   // the student view of a notebook shows one run of pages on the same paper at a time (model.js notebookSections): which run, and on
   // which of its pages it opens (a page index in the run, or "last" when coming back from the next run)
@@ -476,7 +477,7 @@ export default function Propis2Home({ db }) {
             onJump: (where) => { setFragment(null); setPart(where === "first" ? { index: 0, startAt: 0 } : { index: sections.list.length - 1, startAt: "last" }); },
           } : {})}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
-          onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, shownMap, ruling))}
+          onFragmentTap={({ row, localX }) => { const st = multiStyle ? row.style ?? null : null; setFragmentStyle(st); setFragment(pickFragment(row.word, localX, st ? glyphMapOf(recordOfStyle(st)) : shownMap, ruling)); }}
         />
         {editTarget && (
           <button type="button" className="propis-ctrl-btn propis2-view-edit" aria-label="Изменить эту страницу" title="Изменить эту страницу" onClick={() => { setFragment(null); setView({ name: "editor", pageId: editTarget, backTo: isSet ? { name: "showSet", setId: set.id, from: view.from } : view.backTo }); }}>✎</button>
@@ -526,7 +527,7 @@ export default function Propis2Home({ db }) {
           />
         )}
         {fragment && (
-          <Propis2ShowPanel fragment={fragment} topicRecord={shownRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} bandFill={gridSource ? pageBandFill(gridSource) : null} onClose={() => setFragment(null)} />
+          <Propis2ShowPanel fragment={fragment} topicRecord={fragmentStyle ? recordOfStyle(fragmentStyle) : shownRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} bandFill={gridSource ? pageBandFill(gridSource) : null} onClose={() => setFragment(null)} />
         )}
         {dialog}
       </div>
