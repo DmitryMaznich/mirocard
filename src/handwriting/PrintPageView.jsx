@@ -1119,6 +1119,19 @@ function layoutTaskPages(task) {
     for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
   }
   if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
+  // `propis2`, a language with several writing styles: a row of another style (`#y<style>` on its line) writes with that style's letters
+  if (task?.styleGlyphs) {
+    const styles = new Map();
+    for (const [id, st] of Object.entries(task.styleGlyphs)) {
+      if (id === task.writingStyle) { styles.set(id, wideGlyphsByLabel); continue; }
+      const map = new Map();
+      for (const el of task?.elements ?? []) map.set(el.id, wideGlyphsByLabel.get(el.id));
+      for (const item of st.wideGlyphs ?? []) { map.set(item.label, item); for (const alias of item.aliases ?? []) map.set(alias, item); }
+      if (st.script) map.script = st.script;
+      styles.set(id, map);
+    }
+    wideGlyphsByLabel.styles = styles;
+  }
   const layout = wideRows
     ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17, pageShift: (Number(task?.firstPage) || 0) % 2 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
     : useElements

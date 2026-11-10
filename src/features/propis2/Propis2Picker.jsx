@@ -19,7 +19,7 @@ function Option({ id, name, Icon, on, onPick, disabled = false }) {
   );
 }
 
-export default function Propis2Picker({ label, caption, value, options, onChange, disabled = false, mixed = false }) {
+export default function Propis2Picker({ label, caption, value, options, onChange, disabled = false, mixed = false, kind }) {
   const [openRaw, setOpen] = useState(false);
   const open = openRaw && !disabled;
   const ref = useRef(null);
@@ -40,7 +40,7 @@ export default function Propis2Picker({ label, caption, value, options, onChange
   const CurrentIcon = current.Icon;
   return (
     <div className="p2-pick" ref={ref}>
-      <button type="button" ref={btnRef} className={`p2-pick-btn p2-tool${open ? " is-open" : ""}`} aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-description={mixed ? "в тетради по-разному" : undefined} data-value={current.id} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
+      <button type="button" ref={btnRef} className={`p2-pick-btn p2-tool${open ? " is-open" : ""}`} aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-description={mixed ? "в тетради по-разному" : undefined} data-value={current.id} data-kind={kind} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
         {mixed && <span className="p2-mixed" aria-hidden="true" />}
         <span className="p2-tool-ico"><CurrentIcon /><Caret /></span>
         {caption && <span className="p2-cap">{caption}</span>}

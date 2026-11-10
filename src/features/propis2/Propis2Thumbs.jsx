@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { PrintPageTop } from "@/handwriting/PrintPageView";
-import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
+import { buildPageTask, glyphMapOf } from "@/topics/renderers/propis2/pageTask.js";
 import { pageFormat, pageMargin, pageToLines, taskGrid, pageMidDash, pageNoSlant, pageBandFill } from "@/topics/renderers/propis2/model.js";
 import * as I from "./Propis2Icons";
 
@@ -10,10 +10,12 @@ import * as I from "./Propis2Icons";
 const TASKS = new WeakMap(); // page object -> its task
 function taskOf(page, layout, topicRecord, glyphMap) {
   const key = JSON.stringify(layout ?? {});
-  if (TASKS.has(page) && TASKS.get(page).key === key) return TASKS.get(page).task;
+  const hit = TASKS.get(page);
+  // the record is part of the key: a page that writes in another style (`page.style`) is another task
+  if (hit && hit.key === key && hit.record === topicRecord) return hit.task;
   const p = { ...page, ...layout };
   const task = buildPageTask({ topicRecord, lines: pageToLines(p, glyphMap), narrowRows: p.ruling === "narrow", grid: taskGrid(p), noSlant: pageNoSlant(p), midDash: pageMidDash(p), bandFill: pageBandFill(p), margin: pageMargin(p), format: pageFormat(p) });
-  TASKS.set(page, { key, task });
+  TASKS.set(page, { key, record: topicRecord, task });
   return task;
 }
 
@@ -36,6 +38,13 @@ function Thumb({ page, index, current, layout, topicRecord, glyphMap, onGo }) {
   );
 }
 
+// a notebook whose pages write in different styles (`nav.recordOf`, Propis2Home): each thumbnail with its page's letters
+function thumbRecord(nav, page, topicRecord, glyphMap) {
+  if (!nav.recordOf) return { topicRecord, glyphMap };
+  const record = nav.recordOf(page);
+  return { topicRecord: record, glyphMap: record === topicRecord ? glyphMap : glyphMapOf(record) };
+}
+
 export default function Propis2Thumbs({ nav, live, topicRecord, glyphMap }) {
   // the open page is drawn from the page being edited (deferred: typing stays quick, its thumbnail follows a moment later)
   const shown = useDeferredValue(live);
@@ -43,7 +52,7 @@ export default function Propis2Thumbs({ nav, live, topicRecord, glyphMap }) {
     <nav className="p2-thumbs" aria-label="Страницы тетради">
       <div className="p2-thumbs-list">
         {nav.pages.map((p, i) => (
-          <Thumb key={p.id} page={i === nav.index ? shown : p} index={i} current={i === nav.index} layout={nav.layout} topicRecord={topicRecord} glyphMap={glyphMap} onGo={nav.onGo} />
+          <Thumb key={p.id} page={i === nav.index ? shown : p} index={i} current={i === nav.index} layout={nav.layout} {...thumbRecord(nav, i === nav.index ? shown : p, topicRecord, glyphMap)} onGo={nav.onGo} />
         ))}
       </div>
       <div className="p2-thumbs-foot">

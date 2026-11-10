@@ -122,6 +122,49 @@ describe("propis2 model", () => {
     expect(setPageStarts(set, byId, map)).toEqual([1, 2, 3, null]);
   });
 
+  it("a row in another style of its page (row.style) gets its style's letters: `#y<style>` on its line, the other lines as before", () => {
+    // two «styles» of one language: the page's (map) and another, written apart
+    const other = new Map(map);
+    other.script = { joins: false, letterGap: 12, wordGap: 56 };
+    const styled = new Map(map);
+    styled.styleId = "a";
+    styled.styles = new Map([["a", styled], ["b", other]]);
+    const page = newPage("P", { rows: [newRow({ text: "мама" }), newRow({ text: "мама", style: "b" }), newRow({ text: "мама", style: "a" }), newRow({ kind: "passage", text: "мама мыла раму", style: "b" })] });
+    const lines = pageToLines(page, styled);
+    const plain = pageToLines({ ...page, rows: page.rows.map(({ style: _s, ...r }) => r) }, map);
+    expect(lines[0]).toBe(plain[0]);
+    expect(lines[1]).toBe(`${plain[1]}#yb`);
+    expect(lines[2]).toBe(plain[2]); // the page's own style: no flag
+    expect(lines[3].endsWith("#yb")).toBe(true);
+    expect(pageToLines(page, map)).toEqual(plain); // a map without styles: row.style means nothing
+    expect(rowSetting(page.rows[1], "style", styled)).toBe("b");
+    expect(rowSetting(page.rows[0], "style", styled)).toBe("a");
+    expect(mixedRowSettings(page.rows, styled).style).toBe(true);
+    expect(mixedRowSettings(page.rows, map).style).toBeUndefined();
+    // the engine: the flagged rows with the other style's geometry, each in its place; the rest exactly as without them
+    const snap = (_r, x) => x;
+    const both = layoutWideLinesIntoRows(lines.slice(0, 3), styled, snap, true, 0.5);
+    const alone = layoutWideLinesIntoRows([plain[0], "", plain[2]], styled, snap, true, 0.5);
+    expect(both.placed.map((r) => r.style ?? null)).toEqual([null, "b", null]);
+    expect(JSON.stringify(both.placed[0])).toBe(JSON.stringify(alone.placed[0]));
+    expect(JSON.stringify(both.placed[2])).toBe(JSON.stringify(alone.placed[2]));
+    const asOther = layoutWideLinesIntoRows(["", plain[1], ""], other, snap, true, 0.5);
+    expect(JSON.stringify({ ...both.placed[1], style: undefined })).toBe(JSON.stringify(asOther.placed[1]));
+    expect(JSON.stringify(both.placed[1].pieces ?? both.placed[1])).not.toBe(JSON.stringify(both.placed[0].pieces ?? both.placed[0]));
+  });
+  it("a page in a writing style of its own starts a new run (page.style); without styleOf the runs are by paper only", () => {
+    const a = newPage("A", { gridKind: "en_gb", rows: [newRow({ text: "cat" })] });
+    const b = newPage("B", { gridKind: "en_gb", rows: [newRow({ text: "dog" })], style: "british" });
+    const c = newPage("C", { gridKind: "en_gb", rows: [newRow({ text: "pig" })], style: "print" });
+    const byId = new Map([a, b, c].map((p) => [p.id, p]));
+    const set = newSet("S", { pageIds: [a.id, b.id, c.id] });
+    expect(notebookSections(set, byId, map).map((x) => x.pageIds.length)).toEqual([3]); // as before
+    const asked = [];
+    const secs = notebookSections(set, byId, map, { styleOf: (p) => p.style ?? "print", glyphMapOf: (st) => { asked.push(st); return map; } });
+    expect(secs.map((x) => [x.style, x.pageIds])).toEqual([["print", [a.id]], ["british", [b.id]], ["print", [c.id]]]);
+    expect(secs.map((x) => x.start)).toEqual([0, 1, 2]);
+    expect(asked).toEqual(["print", "british", "print"]); // each run counted with its style's letters
+  });
   it("every page on its own paper: a page is padded to its own rows per page, runs of pages on the same paper", () => {
     const sq = newPage("Кл", { gridKind: "square", rows: [newRow({ text: "1" })] });
     const sq2 = newPage("Кл2", { gridKind: "square", rows: [newRow({ text: "2" })], writeAfter: true });

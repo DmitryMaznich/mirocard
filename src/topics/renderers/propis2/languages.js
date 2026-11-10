@@ -54,6 +54,7 @@ export function pickStyle(record, langId, wanted) {
 export const styleOf = (item) => item?.style ?? null;
 
 const views = new WeakMap(); // record -> Map(lang id [| style id] -> view)
+const ORIGIN = new WeakMap(); // view -> { record, langId }: the deck and language a view was made from (styleViews)
 export function languageView(record, langId, styleId = null) {
   const langs = deckLanguages(record);
   if (!langs) return record;
@@ -85,7 +86,20 @@ export function languageView(record, langId, styleId = null) {
     },
   };
   byLang.set(key, view);
+  ORIGIN.set(view, { record, langId: lang.id });
   return view;
+}
+
+// The other writing styles of a view's language, as views of their own: Map(style id -> view), the view's own style included; null when
+// the language has fewer than two styles (or the record is not a language view). A ROW of a page may write in another style than its
+// page (`row.style`, docs/propis2-languages.md «Стиль у строки»): the page's task carries the letters of every style of its language.
+export function styleViews(view) {
+  const origin = ORIGIN.get(view);
+  if (!origin) return null;
+  const lang = deckLanguages(origin.record)?.find((l) => l.id === origin.langId);
+  const styles = langStyles(lang);
+  if (!styles || styles.length < 2) return null;
+  return new Map(styles.map((st) => [st.id, languageView(origin.record, origin.langId, st.id)]));
 }
 
 // The language a notebook (or the draft of one) is written in: notebooks made before the deck had languages carry none and are Russian.

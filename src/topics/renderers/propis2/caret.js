@@ -8,7 +8,7 @@
 import { layoutWideLinesIntoRows } from "../../../handwriting/wordEngine.js";
 import { bboxOf } from "./glyphReach.js";
 import { bracesOut } from "./fieldText.js";
-import { dropIndent, dropReserve, indentUnitsOf, leadingSpaces, pageRuling, pageSnap, rowMaxX, rowToLine, wrapPassage } from "./model.js";
+import { dropIndent, dropReserve, indentUnitsOf, leadingSpaces, pageRuling, pageSnap, rowGlyphMap, rowMaxX, rowToLine, wrapPassage } from "./model.js";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING } from "../../../handwriting/propisRuling.js";
 
 const SPACE_UNITS = 14; // the caret after a typed space stands this far (× the row's scale) right of the last ink
@@ -71,6 +71,7 @@ function caretOnSheetBase({ page, glyphMap, owners, rowIndex, line, offset, code
   const first = firstLines(owners);
   const abs0 = first.get(rowIndex);
   if (!row || abs0 == null) return null;
+  glyphMap = rowGlyphMap(glyphMap, row); // a row in another writing style than its page (`row.style`): its own letters
   const k = scaleOf(page);
   if (row.kind === "blank" || !String(row.text ?? "").trim()) return { abs: abs0, x: startX(page, glyphMap, abs0) };
   if (row.kind !== "passage") {

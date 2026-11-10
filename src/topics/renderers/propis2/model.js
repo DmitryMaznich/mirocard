@@ -337,6 +337,14 @@ function wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap) {
 // sample rows, wrapped text lines (each written once, "#1"), blank writing rows ("" is a ruled
 // empty row for the engine; a row that has no text yet is one too) and, when page.writeAfter is on, a blank row after
 // every sample row.
+// A ROW may write in another style of its page's language (`row.style`, docs/propis2-languages.md «Стиль у строки»): the page's glyph map
+// knows the maps of all the styles (pageTask.js buildGlyphMap: `glyphMap.styles`, `glyphMap.styleId`). A row in its page's style, or with no
+// style, writes with the page's map and its line is exactly as before; a row in another style gets that style's map and its line ends with
+// `#y<style>` (wordEngine layoutWideLinesIntoRows lays it out with that style's letters).
+export const rowStyleOf = (row, glyphMap) => (row?.style && glyphMap?.styleId && row.style !== glyphMap.styleId && glyphMap.styles?.has(row.style) ? row.style : null);
+export const rowGlyphMap = (glyphMap, row) => { const st = rowStyleOf(row, glyphMap); return st ? glyphMap.styles.get(st) : glyphMap; };
+const styleTag = (row, glyphMap) => { const st = rowStyleOf(row, glyphMap); return st ? `#y${st}` : ""; };
+
 export function pageToLines(page, glyphMap) {
   const out = [];
   const rows = page?.rows ?? [];
@@ -351,16 +359,17 @@ export function pageToLines(page, glyphMap) {
     const cutTag = reserve && right ? `#w${reserve}` : "";
     if (row.kind === "blank") { out.push(tag); return; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropReserveUnits(page, ri), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, rowGlyphMap(glyphMap, row), pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropReserveUnits(page, ri), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(tag); return; }
       const indent = leadingSpaces(row.text) + (reserve && !right ? reserve : 0);
-      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}`); if (page?.writeAfter) out.push(""); });
+      const st = styleTag(row, glyphMap);
+      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}`); if (page?.writeAfter) out.push(""); });
       return;
     }
     const line = rowToLine(row);
     // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
     if (!line) { out.push(tag); return; }
-    out.push(`${line}${indentTag}${cutTag}${tag}`);
+    out.push(`${line}${indentTag}${cutTag}${tag}${styleTag(row, glyphMap)}`);
     if (page?.writeAfter) out.push("");
   });
   return out;
@@ -375,7 +384,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropReserveUnits(page, i), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, rowGlyphMap(glyphMap, row), pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)) + dropReserveUnits(page, i), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
@@ -441,17 +450,21 @@ export function tapSymbol(page, glyphMap, selectedId, tile) {
 
 // ---- the row strip's settings over several rows (owner, 2026-10-24) ----
 // The options a new row takes from the row above it (typed with Enter in fieldText.js, or a tap on an empty place of the sheet).
-export const INHERITED_ROW_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap"];
+export const INHERITED_ROW_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap", "style"];
 export const inheritedRowParams = (row) => Object.fromEntries(INHERITED_ROW_KEYS.filter((k) => row?.[k] !== undefined).map((k) => [k, row[k]]));
 // «Повтор бледной линией» in the strip = repeat "all" + copies "solid"
 export const SOLID_REPEAT = "all-solid";
 // A row with a sample: the rows the strip's «Образец» and «Точки» work on (blank rows and running text have neither).
 export const isSampleRow = (row) => (row?.kind === "text" || row?.kind === "element") && Boolean(String(row?.text ?? "").trim());
 // A row's setting as the strip shows it: `repeat` (a strip choice, the engine's own rule resolved) or `dots`.
+// `style` (a language with several writing styles): the style the row writes in — its own, else the page's.
+const isStyledRow = (row) => (row?.kind === "text" || row?.kind === "element" || row?.kind === "passage") && Boolean(String(row?.text ?? "").trim());
+const rowsFor = (key) => (key === "style" ? isStyledRow : isSampleRow);
 export function rowSetting(row, key, glyphMap) {
+  if (key === "style") return rowStyleOf(row, glyphMap) ?? glyphMap?.styleId ?? null;
   const p = rowParams(row);
   if (key === "dots") return p.dots;
-  const rep = p.repeat === "auto" ? (multipliesByDefault(row?.text, glyphMap) ? "all" : "one") : p.repeat;
+  const rep = p.repeat === "auto" ? (multipliesByDefault(row?.text, rowGlyphMap(glyphMap, row)) ? "all" : "one") : p.repeat;
   return rep === "all" && p.copies === "solid" ? SOLID_REPEAT : rep;
 }
 // The rows below row `index` that are set as it was (`old`): the sample rows down to the first one set otherwise — that one the
@@ -459,7 +472,7 @@ export function rowSetting(row, key, glyphMap) {
 export function followingSameRows(rows, index, key, old, glyphMap) {
   const out = [];
   for (let i = index + 1; i < rows.length; i += 1) {
-    if (!isSampleRow(rows[i])) continue;
+    if (!rowsFor(key)(rows[i])) continue;
     if (rowSetting(rows[i], key, glyphMap) !== old) break;
     out.push(rows[i].id);
   }
@@ -470,6 +483,7 @@ export function mixedRowSettings(rows, glyphMap) {
   const out = {};
   const samples = rows.filter(isSampleRow);
   for (const key of ["repeat", "dots"]) if (new Set(samples.map((r) => rowSetting(r, key, glyphMap))).size > 1) out[key] = true;
+  if (glyphMap?.styleId && new Set(rows.filter(isStyledRow).map((r) => rowSetting(r, "style", glyphMap))).size > 1) out.style = true;
   return out;
 }
 
@@ -603,7 +617,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX
 }
 
 export function analyzePage(page, glyphMap) {
-  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, pageRuling(page), rowMaxX(page), pageSnap(page)));
+  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, rowGlyphMap(glyphMap, row), pageRuling(page), rowMaxX(page), pageSnap(page)));
   return {
     rows,
     problems: rows.filter((r) => r.unsupported.length || r.outside?.length || r.overflow).length,
@@ -695,20 +709,26 @@ export function othersDiffer(set, pagesById, pageId, key, value) {
 // The notebook in runs of consecutive pages on the same paper («участки»). The student view lays out each run on its own paper;
 // a notebook on one paper is one run, laid out as one document exactly as before. `pages`: how many screen pages each run is
 // expected to take (from the line count, see setPageStarts), `start`: the screen page the run starts on (0-based).
-export function notebookSections(set, pagesById, glyphMap) {
+// A page may write in a writing style of its own (`page.style`, docs/propis2-languages.md «Стиль у страницы»): `styleOf(page)` gives the
+// style a page really writes in (its own, else the notebook's), and a change of style starts a new run too — each run is laid out with
+// its style's letters (`sec.style`); `glyphMapOf(style)` is the glyph map of a style (the screen pages a run takes are counted with it).
+// Without them (a language with one style) the runs are by paper only, exactly as before.
+export function notebookSections(set, pagesById, glyphMap, { styleOf = null, glyphMapOf = null } = {}) {
   const out = [];
   for (const id of set?.pageIds ?? []) {
     const page = pagesById.get(id);
     if (!page) continue;
-    const key = paperKey(page);
+    const style = styleOf ? styleOf(page) ?? null : null;
+    const key = style ? `${paperKey(page)}|${style}` : paperKey(page);
     const last = out[out.length - 1];
     if (last && last.key === key) last.pageIds.push(id);
-    else out.push({ key, paper: page, pageIds: [id] });
+    else out.push({ key, paper: page, pageIds: [id], ...(style ? { style } : {}) });
   }
   let start = 0;
   for (const sec of out) {
+    const map = sec.style && glyphMapOf ? glyphMapOf(sec.style) : glyphMap;
     sec.start = start;
-    sec.pages = sec.pageIds.reduce((n, id) => n + screenPagesOf(pagesById.get(id), glyphMap), 0);
+    sec.pages = sec.pageIds.reduce((n, id) => n + screenPagesOf(pagesById.get(id), map), 0);
     start += sec.pages;
   }
   return out;
