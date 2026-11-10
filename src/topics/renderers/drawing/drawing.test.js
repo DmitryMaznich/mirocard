@@ -9,12 +9,13 @@ describe("downloadable drawing topic", () => {
     const manifest = JSON.parse(await readFile("tools/drawing/topic.json", "utf8"));
     const bytes = await readFile(`public/decks/drawing_v${manifest.meta.version}.zip`);
     const db = await openDb(`drawing-test-${Date.now()}`);
-    await expect(importTopic(db, bytes, "1.1.6")).rejects.toThrow("1.1.7");
-    await importTopic(db, bytes, "1.1.7");
+    await expect(importTopic(db, bytes, "1.1.19")).rejects.toThrow("1.1.20");
+    await importTopic(db, bytes, "1.1.20");
     const record = await getTopicRecord(db, "drawing");
     expect(record.meta.renderer).toBe("drawing");
     expect(record.modes).toHaveLength(1);
-    expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true });
+    expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
+    expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish"]));
     const goldfish = tasks.find(task => task.cardId === "goldfish").lesson;
