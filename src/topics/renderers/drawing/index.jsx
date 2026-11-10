@@ -78,8 +78,16 @@ export default function DrawingRenderer({ task, topicRecord, topicId = 'drawing'
   const bonus = { enabled: bonusEnabled, available: bonusAvailable, setEnabled: setBonusEnabled, request: onRequestVideoBonus };
   const [progress, setProgress] = useState(() => new Map());
   const progressKey = id => `drawing-progress:${student?.id ?? 'local'}:${id}`;
-  const getProgress = id => progress.get(id) ?? readStored(progressKey(id), null);
-  const saveProgress = (id, snapshot) => { setProgress(previous => new Map(previous).set(id, snapshot)); store(progressKey(id), snapshot); };
+  const revisionFor = id => (cards.find(card => card.id === id) ?? fallback).lesson?.progressRevision;
+  const getProgress = id => {
+    const saved = progress.get(id) ?? readStored(progressKey(id), null);
+    const revision = revisionFor(id);
+    return revision !== undefined && saved?.revision !== revision ? null : saved;
+  };
+  const saveProgress = (id, snapshot) => {
+    const value = { ...snapshot, revision: revisionFor(id) ?? 0 };
+    setProgress(previous => new Map(previous).set(id, value)); store(progressKey(id), value);
+  };
   const changeChoice = (key, value) => setChoices(previous => { const next = { ...previous, [key]: value }; store('drawing-ui-options', next); return next; });
   const finishSession = () => { setMenu(null); (onClose ?? onAdvance)?.(); };
   if (selected?.lesson?.steps?.length) return <Lesson key={selected.id} card={selected} saved={getProgress(selected.id)} choices={choices} onChoice={changeChoice}

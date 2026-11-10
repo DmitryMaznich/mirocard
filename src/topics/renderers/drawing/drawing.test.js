@@ -36,7 +36,13 @@ describe("downloadable drawing topic", () => {
     expect(goldfish.palette.map(tool => tool.id)).toEqual(["black", "yellow", "orange", "red", "light_blue"]);
     const korzhik = tasks.find(task => task.cardId === "korzhik").lesson;
     expect(korzhik.title).toBe("Коржик");
-    expect(korzhik.steps).toHaveLength(54);
+    expect(korzhik.steps).toHaveLength(58);
+    expect(korzhik.progressRevision).toBe(2);
+    expect(korzhik.steps.slice(0, 4).map(step => step.title)).toEqual([
+      "Контур головы", "Овальный верх бескозырки", "Боковины и полоска бескозырки", "Помпон бескозырки",
+    ]);
+    expect(korzhik.steps.findIndex(step => step.title === "Левое ушко")).toBeGreaterThan(korzhik.steps.findIndex(step => step.title === "Боковины и полоска бескозырки"));
+    for (const step of korzhik.steps.filter(step => step.kind === "stroke")) expect(step.paths.every(path => typeof path === "string")).toBe(true);
     expect(korzhik.palette.map(tool => tool.id)).toEqual(["black", "orange", "brown", "light_blue", "beige"]);
     const gonya = tasks.find(task => task.cardId === "gonya").lesson;
     expect(gonya.steps).toHaveLength(42);
