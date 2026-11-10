@@ -19,8 +19,17 @@ describe("downloadable drawing topic", () => {
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish"]));
     const goldfish = tasks.find(task => task.cardId === "goldfish").lesson;
     expect(goldfish.title).toBe("Золотая рыбка");
-    expect(goldfish.steps).toHaveLength(45);
-    expect(goldfish.steps.filter(step => step.kind === "stroke")).toHaveLength(22);
+    expect(goldfish.steps).toHaveLength(65);
+    expect(goldfish.steps.filter(step => step.kind === "stroke")).toHaveLength(41);
+    // One contour step must model one movement; colour belongs in a later
+    // pencil step, never as an instant fill of an outlined object.
+    for (const step of goldfish.steps.filter(step => step.kind === "stroke")) {
+      expect(step.paths).toHaveLength(1);
+      expect(typeof step.paths[0]).toBe("string");
+      expect(step.paths[0].match(/M /g)).toHaveLength(1);
+      if (step.title.includes("плавник")) expect(step.paths[0]).not.toMatch(/Z/);
+    }
+    expect(goldfish.steps.find(step => step.title.includes("зрачок"))).toMatchObject({ kind: "color", tool: "black" });
     expect(goldfish.palette.map(tool => tool.id)).toEqual(["black", "yellow", "orange", "red", "light_blue"]);
     const korzhik = tasks.find(task => task.cardId === "korzhik").lesson;
     expect(korzhik.title).toBe("Коржик");
