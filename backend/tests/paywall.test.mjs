@@ -148,6 +148,15 @@ test("a genuinely free deck ZIP is still servable statically (local mode needs t
   assert.equal(await res.text(), "FREE-ZIP-BYTES");
 });
 
+test("HEAD tells a free deck's size without the body, and refuses a paid one", async () => {
+  const free = await fetch(`${base}/decks/free_deck_v1.zip`, { method: "HEAD" });
+  assert.equal(free.status, 200);
+  assert.equal(free.headers.get("content-length"), String("FREE-ZIP-BYTES".length));
+  assert.equal(await free.text(), "");
+  const paid = await fetch(`${base}/decks/paid_deck_v1.zip`, { method: "HEAD" });
+  assert.equal(paid.status, 404);
+});
+
 test("GET /api/decks/catalog works unauthenticated but never discloses a paid entry's url", async () => {
   const res = await fetch(`${base}/api/decks/catalog`);
   assert.equal(res.status, 200);

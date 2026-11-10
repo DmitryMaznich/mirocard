@@ -1905,7 +1905,7 @@ const STATIC_CONTENT_TYPES = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-function serveStaticFile(res, absPath) {
+function serveStaticFile(res, absPath, { headOnly = false } = {}) {
   const stat = statSync(absPath);
   const contentType = STATIC_CONTENT_TYPES[path.extname(absPath).toLowerCase()] || "application/octet-stream";
   // The app is built as a single index.html.  Letting a browser cache that
@@ -1930,6 +1930,7 @@ function serveStaticFile(res, absPath) {
     "Content-Length": stat.size,
     "Cache-Control": isAppShell || isDeckCatalog ? "no-store, no-cache, must-revalidate" : "public, max-age=86400",
   });
+  if (headOnly) { res.end(); return; }
   createReadStream(absPath).pipe(res);
 }
 
@@ -1973,7 +1974,10 @@ function isPubliclyServableDeckAsset(relative) {
 }
 
 function trySpaFallback(req, res, pathname) {
-  if (!SERVE_STATIC || req.method !== "GET") return false;
+  // HEAD gets the same answer as GET without the body: the topic catalog
+  // asks a free deck's size before the download. Same access rules below.
+  if (!SERVE_STATIC || (req.method !== "GET" && req.method !== "HEAD")) return false;
+  const headOnly = req.method === "HEAD";
 
   // url.pathname is percent-encoded (WHATWG URL never decodes it), so non-ASCII
   // filenames -- e.g. propis dictation audio named after Cyrillic letters --
@@ -1994,13 +1998,13 @@ function trySpaFallback(req, res, pathname) {
 
   const candidate = path.join(DEPLOY_FRONTEND_DIR, relative);
   if (candidate.startsWith(DEPLOY_FRONTEND_DIR) && existsSync(candidate) && statSync(candidate).isFile()) {
-    serveStaticFile(res, candidate);
+    serveStaticFile(res, candidate, { headOnly });
     return true;
   }
 
   const indexPath = path.join(DEPLOY_FRONTEND_DIR, "index.html");
   if (!existsSync(indexPath)) return false;
-  serveStaticFile(res, indexPath);
+  serveStaticFile(res, indexPath, { headOnly });
   return true;
 }
 

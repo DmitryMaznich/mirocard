@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { getDb, kv } from "@/core/db";
+import { endContinuePick } from "./topicUiPreviewModel";
 
 const PICKER_SCREENS = new Set(["home", "topics", "texts", "all_texts", "modes", "params", "chat_params"]);
 
@@ -16,6 +17,10 @@ export default function TopicUiPreviewContext() {
   const modeId = useAppStore((state) => state.activeModeId);
   const records = useAppStore((state) => state.topicRecords);
   const accountId = useAppStore((state) => state.account?.id);
+  // «Сменить» pick mode lasts only while the adult is in the pickers.
+  useEffect(() => {
+    if (!["modes", "texts", "all_texts"].includes(screen)) endContinuePick();
+  }, [screen]);
   useEffect(() => {
     if (!enabled || !PICKER_SCREENS.has(screen) || !studentId || !records.some((r) => r.meta.id === topicId && !r.meta.hidden)) return;
     let cancelled = false;

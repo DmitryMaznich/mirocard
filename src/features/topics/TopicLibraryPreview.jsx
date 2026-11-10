@@ -13,6 +13,12 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
   filter, onFilter, loading, error, onRetry, onHome, onCatalog }) {
   const { t, language } = useUiTranslation();
   const [showInstalled, setShowInstalled] = useState(false);
+  // A topic added on this visit stays in its row (now with «Открыть»), so its
+  // sheet does not vanish mid-download and the list does not jump.
+  const [offered, setOffered] = useState(() => new Set());
+  const unseen = items.filter((item) => !item.installedRecord && !offered.has(item.id));
+  if (unseen.length) setOffered(new Set([...offered, ...unseen.map((item) => item.id)]));
+  const isNew = (item) => !item.installedRecord || offered.has(item.id);
   const byTitle = (a, b) => a.title.localeCompare(b.title, language);
   const installed = items.filter((item) => item.installedRecord).sort(byTitle);
 
@@ -33,16 +39,17 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
   const needle = query.trim().toLocaleLowerCase(language);
   const inFilter = items.filter((item) => (filter === "all" || item.category === filter)
     && (!searching || item.title.toLocaleLowerCase(language).includes(needle)));
-  const notInstalled = inFilter.filter((item) => !item.installedRecord)
+  const notInstalled = inFilter.filter(isNew)
     .sort((a, b) => Number(Boolean(a.entry?.comingSoon)) - Number(Boolean(b.entry?.comingSoon)) || byTitle(a, b));
-  const installedInFilter = inFilter.filter((item) => item.installedRecord).sort(byTitle);
+  const installedInFilter = inFilter.filter((item) => !isNew(item)).sort(byTitle);
   const listed = searching || showInstalled ? [...notInstalled, ...installedInFilter] : notInstalled;
 
   return <>
-    <header className="topic-ui-catalog-header">
-      <button className="topic-ui-back" aria-label={t("preview.backTopics")} onClick={onHome}><BackArrowIcon /></button>
-      <h1>{t("preview.addTopic")}</h1>
-    </header>
+    <div className="screen-header topic-ui-screen-header">
+      <button className="back-btn" aria-label={t("preview.backTopics")} onClick={onHome}><BackArrowIcon /></button>
+      <h1 className="screen-title">{t("preview.addTopic")}</h1>
+    </div>
+    <div className="topic-ui-catalog-body">
     <label className="topic-ui-search">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10" cy="10" r="6.5" /><path d="m15 15 6 6" /></svg>
       <input type="search" aria-label={t("preview.search")} placeholder={t("preview.search")}
@@ -61,5 +68,6 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
     {loading && <p role="status">{t("topics.loading")}</p>}
     {error && <div className="topic-ui-catalog-error" role="status"><p>{t("topics.loadError")}</p><button onClick={onRetry}>{t("common.retry")}</button></div>}
     <TopicImport compact />
+    </div>
   </>;
 }

@@ -43,7 +43,8 @@ export const TOPIC_PREVIEW_MESSAGES = {
     "preview.notYet": "ещё не было",
     "preview.lastTimePill": "в прошлый раз",
     "preview.test": "проверка",
-    "preview.version": "Версия {{version}}",
+    "preview.testsSection": "Проверка",
+    "preview.version": "версия {{version}}",
   },
   sl: {
     "preview.settingsTitle": "Poskusni vmesnik",
@@ -89,6 +90,7 @@ export const TOPIC_PREVIEW_MESSAGES = {
     "preview.notYet": "še ni bilo",
     "preview.lastTimePill": "prejšnjič",
     "preview.test": "preverjanje",
-    "preview.version": "Različica {{version}}",
+    "preview.testsSection": "Preverjanje",
+    "preview.version": "različica {{version}}",
   },
 };

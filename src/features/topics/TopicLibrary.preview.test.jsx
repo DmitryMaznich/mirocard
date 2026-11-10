@@ -46,7 +46,7 @@ describe("preview library preserves selection and visibility rules", () => {
     expect(useAppStore.getState().activeTopicId).toBe("ordinary");
   });
 
-  it("does not expose unowned, hidden, or another student's recent theme", async () => {
+  it("does not expose unowned or hidden themes and keeps alphabetical order", async () => {
     writeTopicUiPreview(scope, true);
     useAppStore.setState({ topicRecords: [topic("ordinary"), topic("reading", "reading"), topic("private-other-account"), topic("hidden", "comparison", { hidden: true })],
       sessions: [{ studentId: "other", topicId: "reading", completedAt: "2026-11-09T00:00:00Z" },
@@ -54,8 +54,9 @@ describe("preview library preserves selection and visibility rules", () => {
     await mount({ embedded: true });
     expect(host.querySelector('[data-topic-id="private-other-account"]')).toBeNull();
     expect(host.querySelector('[data-topic-id="hidden"]')).toBeNull();
-    expect(host.querySelector(".topic-ui-tile--recent").dataset.topicId).toBe("ordinary");
-    // Marked, not moved: a topic keeps its alphabetical place in the grid.
+    // The latest topic is in the «Продолжить» card above; the grid does not
+    // mark or move it — a topic keeps its alphabetical place.
+    expect(host.querySelector(".topic-ui-tile--recent")).toBeNull();
     const order = [...host.querySelectorAll(".topic-ui-installed-grid article")].map((tile) => tile.dataset.topicId);
     expect(order).toEqual([...order].sort((x, y) => host.querySelector(`[data-topic-id="${x}"] strong`).textContent
       .localeCompare(host.querySelector(`[data-topic-id="${y}"] strong`).textContent, "ru")));

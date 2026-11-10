@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { continueContext, continueDestination, lastActivityParts, previewTopicDestination, recentTopicContext } from "./topicUiPreviewModel";
+import { continueContext, continueDestination, lastActivityParts, previewTopicDestination, readContinueChoice, recentTopicContext, saveContinueChoice } from "./topicUiPreviewModel";
 
 describe("preview topic routes and recent activity", () => {
   it("preserves renderer-specific entry points", () => {
@@ -32,6 +32,16 @@ describe("preview topic routes and recent activity", () => {
     expect(continueContext({ topicId: "math", modeId: "retired", time: 1 }, records).mode).toBeNull();
     expect(continueContext({ topicId: "secret", modeId: "first", time: 1 }, records)).toBeNull();
     expect(continueContext({ topicId: "gone", time: 1 }, records)).toBeNull();
+  });
+  it("puts the exercise picked with «Сменить» into the card until a newer lesson", () => {
+    const records = [{ meta: { id: "math", renderer: "comparison" }, modes: [{ id: "first" }, { id: "second" }] }];
+    const recent = { topicId: "math", modeId: "first", time: 100 };
+    expect(continueContext(recent, records, { topicId: "math", modeId: "second", at: 200 }).mode.id).toBe("second");
+    expect(continueContext(recent, records, { topicId: "math", modeId: "second", at: 50 }).mode.id).toBe("first");
+    expect(continueContext(recent, records, { topicId: "other", modeId: "second", at: 200 }).mode.id).toBe("first");
+    saveContinueChoice("s1", { topicId: "math", modeId: "second" }, 300);
+    expect(readContinueChoice("s1")).toEqual({ topicId: "math", modeId: "second", textId: null, at: 300 });
+    expect(readContinueChoice("s2")).toBeNull();
   });
   it("starts through the same routes as the legacy Home button", () => {
     const mode = { id: "m" };

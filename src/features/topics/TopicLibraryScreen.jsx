@@ -30,17 +30,14 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { isPickableMode } from "@/shared/utils/topicUtils";
 
 import { useTopicUiPreview } from "@/core/topicUiPreview";
-import { previewTopicDestination, recentTopicContext, rememberPreviewChoice } from "./topicUiPreviewModel";
+import { previewTopicDestination, rememberPreviewChoice } from "./topicUiPreviewModel";
 import TopicLibraryPreview from "./TopicLibraryPreview";
 import "./topicUiPreview.css";
 
 export default function TopicLibraryScreen({ embedded = false } = {}) {
   const { t, language } = useUiTranslation();
   const { enabled: preview } = useTopicUiPreview();
-  const sessions = useAppStore((state) => state.sessions);
   const activeStudentId = useAppStore((state) => state.activeStudentId);
-  const activeSessionSnapshot = useAppStore((state) => state.activeSessionSnapshot);
-  const recent = recentTopicContext(sessions, activeStudentId, activeSessionSnapshot);
   const setScreen         = useAppStore((s) => s.setScreen);
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const setTopicRecords   = useAppStore((s) => s.setTopicRecords);
@@ -256,7 +253,6 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
         title={item.title}
         category={preview ? t(CATEGORY_LABEL_KEYS[item.category]) : item.category}
         presentation={preview ? (embedded ? "installed" : "catalog") : "legacy"}
-        recent={item.id === recent?.topicId}
         entry={item.entry}
         installedRecord={item.installedRecord}
         isActive={item.installedRecord?.meta.id === activeTopicId}
