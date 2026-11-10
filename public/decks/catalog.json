@@ -676,16 +676,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Рисуем на бумаге по анимированному образцу: контур и карандашная раскраска, каждый шаг по отдельному тапу. Рисунки: Компот и Гоня.",
-        "en": "Draw on paper with an animated model, one outline or pencil-colouring step per tap. Drawings: Kompot and Gonya."
+        "ru": "Рисуем на бумаге по анимированному образцу: перед шагом выбираем нужный карандаш, последовательно закрашиваем все участки одним цветом. Компот и Гоня.",
+        "en": "Draw on paper with an animated model. Prepare the pencil before each step and finish all areas of one colour before changing pencils. Kompot and Gonya."
       },
-      "url": "./decks/drawing_v0.2.0.zip",
+      "url": "./decks/drawing_v0.3.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

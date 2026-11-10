@@ -21,12 +21,21 @@ describe("downloadable drawing topic", () => {
     expect(gonya.steps).toHaveLength(42);
     expect(gonya.steps.slice(0, 21).every(step => step.kind === "stroke")).toBe(true);
     expect(gonya.steps.slice(21).every(step => step.kind === "color")).toBe(true);
-    expect(gonya.steps.map(step => step.sourceTime)).toEqual([...gonya.steps.map(step => step.sourceTime)].sort((a, b) => a-b));
+    for (const task of tasks) {
+      const order = task.lesson.steps.map(step => step.tool);
+      const groups = order.filter((tool, i) => i===0 || order[i-1]!==tool);
+      expect(new Set(groups).size).toBe(groups.length);
+      expect(groups).toEqual(task.lesson.palette.map(tool => tool.id));
+      for (const step of task.lesson.steps.filter(step => step.kind === "color")) {
+        expect(step.fill).toBe(task.lesson.palette.find(tool => tool.id===step.tool).color);
+      }
+    }
+    expect(gonya.steps.findIndex(step => step.tool === "light_blue")).toBeLessThan(gonya.steps.findIndex(step => step.tool === "blue"));
     expect(tasks[0]).toMatchObject({ type: "drawing_lesson", cardId: "kompot", conceptId: "kompot" });
     expect(tasks[0].lesson.steps).toHaveLength(42);
-    expect(tasks[0].lesson.steps.slice(0, 18).every(step => step.kind === "stroke")).toBe(true);
-    expect(tasks[0].lesson.steps.slice(18, 38).every(step => step.kind === "color")).toBe(true);
-    expect(tasks[0].lesson.steps[38].title).toContain("уса слева");
+    expect(tasks[0].lesson.steps.slice(0, 20).every(step => step.kind === "stroke")).toBe(true);
+    expect(tasks[0].lesson.steps.slice(20).every(step => step.kind === "color")).toBe(true);
+    expect(tasks[0].lesson.steps[18].title).toContain("уса слева");
     expect(tasks[0].lesson.steps[41].title).toContain("правого ушка");
     db.close();
   });

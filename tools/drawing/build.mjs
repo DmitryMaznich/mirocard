@@ -3,11 +3,14 @@ import { execFileSync } from "node:child_process";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
+import { planLesson } from "../../src/topics/renderers/drawing/lessonPlan.js";
+
 const base = new URL("./", import.meta.url);
 const root = fileURLToPath(new URL("../../", base));
 const manifest = JSON.parse(await readFile(new URL("topic.json", base), "utf8"));
+const pencils = JSON.parse(await readFile(new URL("pencils.json", base), "utf8"));
 for (const card of manifest.cards) {
-  card.lesson = JSON.parse(await readFile(new URL(card.lessonFile, base), "utf8"));
+  card.lesson = planLesson(JSON.parse(await readFile(new URL(card.lessonFile, base), "utf8")), pencils);
   if (card.lesson.id !== card.id || !card.lesson.steps?.length) throw new Error(`Invalid drawing lesson: ${card.id}`);
   delete card.lessonFile;
 }
