@@ -1,26 +1,60 @@
-.drawing-lesson { width: 100%; min-width: 0; padding: 8px max(12px, var(--app-safe-right, 0px)) calc(16px + var(--app-safe-bottom, 0px)) max(12px, var(--app-safe-left, 0px)); color: #28372f; }
-.drawing-lesson__heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.drawing-lesson__heading h2 { margin: 0; font-size: 1.3rem; }
-.drawing-lesson__count { font-size: .9rem; font-variant-numeric: tabular-nums; }
-.drawing-lesson__paper { background: white; border: 1px solid #dedfd7; border-radius: 20px; overflow: hidden; touch-action: manipulation; cursor: pointer; }
-.drawing-lesson__paper svg { display: block; width: 100%; height: clamp(220px, calc(100dvh - 400px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px)), 650px); }
-.drawing-lesson__paper:focus-visible, .drawing-lesson button:focus-visible, .drawing-lesson select:focus-visible { outline: 3px solid #83a991; outline-offset: 3px; }
-.drawing-lesson__progress { display: block; width: 100%; height: 5px; margin: 10px 0 12px; border: none; border-radius: 4px; background: #e5e9e2; accent-color: #63896d; }
-.drawing-lesson__progress::-webkit-progress-bar { background: #e5e9e2; border-radius: 4px; }
-.drawing-lesson__progress::-webkit-progress-value { background: #63896d; border-radius: 4px; }
-.drawing-lesson__controls, .drawing-lesson__options { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.drawing-lesson__options { margin-top: 10px; justify-content: space-between; }
-.drawing-lesson button, .drawing-lesson select { font: inherit; border: 1px solid #cad4cc; border-radius: 13px; padding: 11px 12px; min-height: 48px; background: white; color: inherit; }
-.drawing-lesson button { cursor: pointer; }
-.drawing-lesson button:disabled { opacity: .45; cursor: default; }
-.drawing-lesson .drawing-lesson__next { flex: 1; background: #35664c; border-color: #35664c; color: white; }
-@media (max-width: 400px) { .drawing-lesson button, .drawing-lesson select { padding: 10px; font-size: .9rem; } }
-
-.drawing-lesson__tool { display: flex; justify-content: center; align-items: center; height: 80px; margin: 4px 0 0; }
-.drawing-lesson__pencil { display: block; width: min(268px, 78%); height: 80px; overflow: visible; animation: drawing-pencil-appear .36s ease-out both; }
-.drawing-lesson__status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@keyframes drawing-pencil-appear {
-  from { transform: translateY(-7px) rotate(-4deg) scale(.94); }
-  to { transform: translateY(0) rotate(0) scale(1); }
-}
-@media (prefers-reduced-motion: reduce) { .drawing-lesson__pencil { animation: none; } }
+/* The topic owns the child's navigation. Its adult menu retains onClose;
+   this scoped rule removes the competing shared header without changing it
+   for any other topic. All safe-area values come from the app shell. */
+.session-screen:has(.drawing-lesson) > .session-header-wrap { display: none; }
+.drawing-lesson { --drawing-ink:#274139; --drawing-accent:#28655a; --drawing-paper:#fffefa; box-sizing:border-box; width:100%; min-width:0; color:var(--drawing-ink); background:#f2f1e9; font:18px system-ui,sans-serif; }
+.drawing-lesson *, .drawing-dialog * { box-sizing:border-box; }
+.drawing-lesson button, .drawing-lesson select { font:inherit; color:inherit; }
+.drawing-lesson button { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.drawing-lesson button:disabled { cursor:default; opacity:.42; }
+.drawing-lesson button:focus-visible, .drawing-lesson select:focus-visible, .drawing-board:focus-visible { outline:4px solid #eab73b; outline-offset:3px; }
+.drawing-lesson button svg { pointer-events:none; }
+.drawing-lesson svg { display:block; }
+.drawing-shell { flex:1; min-height:0; height:100%; display:flex; flex-direction:column; max-width:980px; margin:0 auto; gap:8px; padding:calc(8px + var(--app-safe-top,0px)) calc(14px + var(--app-safe-right,0px)) calc(12px + var(--app-safe-bottom,0px)) calc(14px + var(--app-safe-left,0px)); }
+.drawing-top { height:48px; flex:none; display:flex; justify-content:space-between; align-items:center; }
+.drawing-top h2 { font-size:21px; font-weight:650; margin:0; letter-spacing:-.3px; }
+.drawing-lesson .drawing-adult { width:48px; height:48px; display:grid; place-items:center; background:transparent; border:0; border-radius:15px; color:#66756d; touch-action:none; user-select:none; -webkit-touch-callout:none; padding:0; }
+.drawing-adult svg { width:27px; height:27px; }
+.drawing-lesson .drawing-adult--holding { background:#e2e8dc; }
+.drawing-pencil-space { height:68px; display:flex; align-items:center; justify-content:center; flex:none; }
+.drawing-pencil-space svg { width:240px; max-width:70vw; height:68px; }
+.drawing-board { flex:1; min-height:0; background:var(--drawing-paper); border:1px solid #dedfd5; border-radius:25px; overflow:hidden; position:relative; touch-action:manipulation; }
+.drawing-board > svg { width:100%; height:100%; display:block; }
+.drawing-controls { display:grid; grid-template-columns:minmax(100px,1fr) 1.7fr; gap:12px; flex:none; padding-top:4px; }
+.drawing-lesson .drawing-control { height:82px; min-width:72px; border-radius:22px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px; border:1px solid #c8d3c9; background:var(--drawing-paper); color:var(--drawing-ink); box-shadow:0 3px 0 #243e3210; touch-action:manipulation; padding:0 8px; }
+.drawing-lesson .drawing-control--primary { background:var(--drawing-accent); border-color:var(--drawing-accent); color:white; box-shadow:0 3px 0 #193f37; }
+.drawing-control svg { height:38px; width:44px; flex:none; }
+.drawing-control-label { font-size:16px; line-height:20px; font-weight:600; }
+.drawing-icons-only .drawing-control-label { visibility:hidden; }
+.drawing-controls--done { grid-template-columns:1fr; }
+.drawing-controls--done .drawing-control { flex-direction:row; height:76px; gap:12px; }
+.drawing-controls--done .drawing-control svg { width:28px; height:28px; }
+.drawing-picker { flex:1; overflow:auto; min-height:0; padding:calc(24px + var(--app-safe-top,0px)) calc(20px + var(--app-safe-right,0px)) calc(20px + var(--app-safe-bottom,0px)) calc(20px + var(--app-safe-left,0px)); }
+.drawing-picker > h2, .drawing-picker > p, .drawing-cards { max-width:860px; margin-left:auto; margin-right:auto; }
+.drawing-picker h2 { font-size:28px; margin-top:8px; margin-bottom:6px; }
+.drawing-picker > p { margin-top:0; color:#65756b; font-size:17px; }
+.drawing-picker__adult { float:right; }
+.drawing-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:28px; }
+.drawing-lesson .drawing-card { background:var(--drawing-paper); border:1px solid #d9dfd3; padding:12px; border-radius:25px; color:var(--drawing-ink); display:flex; align-items:center; flex-direction:column; gap:8px; box-shadow:0 5px 0 #243e3208; min-width:0; }
+.drawing-card img, .drawing-card > svg { display:block; width:100%; height:clamp(130px,23dvh,240px); object-fit:contain; }
+.drawing-card > span { font-size:21px; font-weight:650; }
+.drawing-card small { font-size:14px; color:#65796b; min-height:18px; }
+.drawing-dialog { position:fixed; border:1px solid #d4ddd1; border-radius:25px; background:#fffefa; color:#274139; padding:22px; width:min(440px,calc(100vw - 28px - var(--app-safe-left,0px) - var(--app-safe-right,0px))); max-height:calc(100dvh - 36px - var(--app-safe-top,0px) - var(--app-safe-bottom,0px)); overflow:auto; margin:auto; font:18px system-ui,sans-serif; }
+.drawing-dialog::backdrop { background:#21352d77; }
+.drawing-dialog__heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.drawing-dialog h3 { margin:0; font-size:22px; }
+.drawing-dialog__heading button { border:0; background:transparent; border-radius:12px; min-height:48px; min-width:48px; font-size:27px; }
+.drawing-setting { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 0; border-bottom:1px solid #e4e8df; }
+.drawing-setting span { font-size:17px; }
+.drawing-setting input { width:25px; height:25px; accent-color:#28655a; flex:none; }
+.drawing-setting select { padding:10px; border:1px solid #c9d3c7; background:white; border-radius:12px; max-width:150px; color:inherit; }
+.drawing-parent-progress { font-size:15px; color:#69796c; margin:10px 0 6px; }
+.drawing-dialog__actions { display:grid; gap:10px; margin-top:18px; }
+.drawing-dialog__actions button { min-height:50px; background:white; border:1px solid #cbd5c9; border-radius:13px; padding:12px; color:inherit; text-align:left; }
+.drawing-dialog__actions .drawing-danger { color:#9c3b37; }
+.drawing-adult-note { font-size:14px; line-height:1.55; color:#69796c; margin-top:16px; }
+.drawing-pause-curtain { position:absolute; inset:0; background:#fffefa66; display:grid; place-items:center; pointer-events:none; }
+.drawing-pause-curtain svg { width:50px; height:50px; color:#64796d; }
+.drawing-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(min-width:760px) { .drawing-shell { max-width:760px; } .drawing-controls { max-width:570px; width:100%; align-self:center; } .drawing-control { height:86px; } .drawing-pencil-space { height:76px; } }
+@media(max-height:650px) { .drawing-pencil-space { height:45px; } .drawing-pencil-space svg { height:46px; } .drawing-top { height:40px; } .drawing-lesson .drawing-control { height:68px; } .drawing-shell { gap:5px; } .drawing-control svg { height:25px; } }

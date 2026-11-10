@@ -1,5 +1,5 @@
 // Build the self-contained design preview from the current topic ZIP.
-// The only player extension is restore(), used for preview navigation/progress.
+// Uses the same player, including restore(), as the app renderer.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -14,10 +14,7 @@ const compiled = JSON.parse(await zip.file('topic.json').async('string'));
 for (const card of compiled.cards) card.cover = await zip.file(card.image).async('string');
 await writeFile(new URL('data.json', staging), JSON.stringify(compiled.cards));
 await writeFile(new URL('index.html', staging), await readFile(new URL('tools/drawing/ux-preview.html', root)));
-let player = await readFile(new URL('src/topics/renderers/drawing/player.js', root), 'utf8');
-const marker = '    next,\n';
-if (player.split(marker).length !== 2) throw new Error('Preview restore insertion point changed');
-player = player.replace(marker, marker+'    restore(value) { stop(); index=Math.max(0,Math.min(steps.length,Number(value)||0)); redraw(); emit(); },\n');
+const player = await readFile(new URL('src/topics/renderers/drawing/player.js', root), 'utf8');
 await writeFile(new URL('previewPlayer.js', staging), player);
 await writeFile(new URL('finale.js', staging), await readFile(new URL('src/topics/renderers/drawing/finale.js', root)));
 await writeFile(new URL('pencilSound.js', staging), await readFile(new URL('src/topics/renderers/drawing/pencilSound.js', root)));

@@ -166,6 +166,7 @@ function revealRegion(region,distance){
   emit();
   return {
     next,
+    restore(value) { stop(); index = Math.max(0, Math.min(steps.length, Math.floor(Number(value) || 0))); redraw(); emit(); },
     playFinale() { return !disposed && !busy && index === steps.length ? finale.play() : false; },
     stopFinale() { finale.stop(); },
     back() { if (!disposed && !busy && index) { index--; redraw(); emit(); } },
