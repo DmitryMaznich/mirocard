@@ -10,6 +10,7 @@ import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import TopicTilePreview from "./TopicTilePreview";
 import { getTopicShortDescription } from "./topicShortDescriptions";
+import { catalogCoverPath } from "./catalogCovers";
 import { setupText } from "@/shared/i18n/setupText";
 import { isPickableMode } from "@/shared/utils/topicUtils";
 import { topicLanguageForStudent } from "./topicLanguageChoice";
@@ -36,7 +37,6 @@ import { topicLanguageForStudent } from "./topicLanguageChoice";
 // badge only.
 export default function TopicTile({
   presentation = "legacy",
-  recent = false,
   category,
   title,
   entry,             // catalog descriptor, or null if not in the shared catalog (builtin / imported)
@@ -182,12 +182,14 @@ export default function TopicTile({
 
   return (
     <>
-    {presentation !== "legacy" ? <TopicTilePreview title={title} topicId={topicId} avatarPath={avatarPath} categoryLabel={category}
+    {presentation !== "legacy" ? <TopicTilePreview title={title} topicId={topicId}
+      avatarPath={installedRecord?.meta.avatar ?? catalogCoverPath(topicId) ?? avatarPath} categoryLabel={category}
       shortDescription={getTopicShortDescription(topicId)}
       description={setupText(entry?.description) || setupText(installedRecord?.meta.about?.description)}
-      modeCount={previewModes?.length} recent={recent} installed={Boolean(installedRecord)} isBuiltin={isBuiltin}
+      modeCount={previewModes?.length} installed={Boolean(installedRecord)} isBuiltin={isBuiltin}
       access={access} presentation={presentation} status={status} badgeLabel={badgeLabel} canOpen={canOpen}
       loading={loading} progress={progress} error={error} disabled={disabled}
+      downloadUrl={(entry?.access ?? "free") === "free" && entry?.url && !entry.languageDownload ? entry.url.replace(/^\.\//, "/") : null}
       onOpen={handleTileClick} onAction={handlePreviewAction}
       onMenu={() => onMenu?.(installedRecord)} /> : <>
     <article

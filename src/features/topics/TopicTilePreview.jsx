@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TopicCover from "@/shared/components/TopicCover";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation";
@@ -11,13 +11,13 @@ import { useUiTranslation } from "@/shared/i18n/useUiTranslation";
 //               with the long description, which replaces both «Что внутри»
 //               and the «Установить тему?» dialog.
 export default function TopicTilePreview({ title, topicId, avatarPath, categoryLabel,
-  shortDescription, description, modeCount, recent, installed, isBuiltin, access, presentation, status, badgeLabel,
-  canOpen, loading, progress, error, disabled, onOpen, onAction, onMenu }) {
-  const { t } = useUiTranslation();
-  // Remembers whether the topic was installed when the sheet opened: once a
-  // download from the sheet finishes, the sheet closes by itself.
-  const [details, setDetails] = useState(null);
-  const sheetOpen = details != null && !(!details.wasInstalled && installed && !loading);
+  shortDescription, description, modeCount, installed, isBuiltin, access, presentation, status, badgeLabel,
+  canOpen, loading, progress, error, disabled, downloadUrl, onOpen, onAction, onMenu }) {
+  const { t, language } = useUiTranslation();
+  // The sheet stays open through the download: its button turns into
+  // «Открыть», so the adult sees the topic was added and can go straight in.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const downloadSize = useDownloadSize(sheetOpen && !installed ? downloadUrl : null);
   const canAct = !disabled && !loading && status !== "pending";
   const cover = <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} />;
   const download = loading && <div className="topic-ui-download" role="status">
@@ -32,7 +32,7 @@ export default function TopicTilePreview({ title, topicId, avatarPath, categoryL
     <button onClick={onAction} disabled={!canAct}>{t("common.retry")}</button></div>;
 
   if (presentation === "installed") {
-    return <article className={`topic-ui-tile topic-ui-tile--installed${recent ? " topic-ui-tile--recent" : ""}`} data-topic-id={topicId}>
+    return <article className="topic-ui-tile topic-ui-tile--installed" data-topic-id={topicId}>
       <button className="topic-ui-topic-open" disabled={!canAct} onClick={onOpen}>
         {cover}
         <strong>{title}{status === "update" && <span className="topic-ui-new">{t("preview.new")}</span>}</strong>
@@ -60,7 +60,7 @@ export default function TopicTilePreview({ title, topicId, avatarPath, categoryL
 
   return <article className="topic-ui-tile topic-ui-tile--catalog" data-topic-id={topicId}>
     <div className="topic-ui-catalog-row">
-      <button className="topic-ui-catalog-open" onClick={() => setDetails({ wasInstalled: installed })}>
+      <button className="topic-ui-catalog-open" onClick={() => setSheetOpen(true)}>
         {cover}
         <span className="topic-ui-catalog-text">
           {categoryLabel && <small>{categoryLabel}</small>}
@@ -75,23 +75,49 @@ export default function TopicTilePreview({ title, topicId, avatarPath, categoryL
       </button>
     </div>
     {download}{failure}
-    {sheetOpen && <div className="topic-ui-sheet-overlay" onClick={(event) => event.target === event.currentTarget && setDetails(null)}>
+    {sheetOpen && <div className="topic-ui-sheet-overlay" onClick={(event) => event.target === event.currentTarget && setSheetOpen(false)}>
       <div className="topic-ui-sheet" role="dialog" aria-modal="true" aria-label={title}>
         <div className="topic-ui-sheet-grab" aria-hidden="true" />
         <div className="topic-ui-sheet-head">{cover}<div><h2>{title}</h2>
           <p>{[categoryLabel, modeCount != null ? t("preview.exerciseCount", { count: modeCount }) : null].filter(Boolean).join(" · ")}</p></div></div>
         {description && <p className="topic-ui-sheet-description">{description}</p>}
         <div className="topic-ui-sheet-facts">
-          {installed && <span>{t("preview.installed")}</span>}
+          {installed && <span className="topic-ui-sheet-fact--done">{t("preview.installed")}</span>}
           {!installed && !isBuiltin && <span>{access === "paid" ? t("preview.subscription") : t("preview.free")}</span>}
+          {!installed && downloadSize && <span>{formatSize(downloadSize, language)}</span>}
         </div>
         {download}{failure}
         <button className="topic-ui-sheet-primary" disabled={!canAct}
-          onClick={() => { if (canOpen && status !== "update") { setDetails(null); onOpen(); } else onAction(); }}>
+          onClick={() => { if (canOpen && status !== "update") { setSheetOpen(false); onOpen(); } else onAction(); }}>
           {sheetLabel}
         </button>
-        <button className="topic-ui-sheet-close" onClick={() => setDetails(null)}>{t("common.cancel")}</button>
+        <button className="topic-ui-sheet-close" onClick={() => setSheetOpen(false)}>{installed ? t("common.close") : t("common.cancel")}</button>
       </div>
     </div>}
   </article>;
+}
+
+// The ZIP's size before the download — on mobile data it matters (mockup v06).
+// A HEAD request; nothing is shown when the server does not say.
+function useDownloadSize(url) {
+  const [size, setSize] = useState(null);
+  useEffect(() => {
+    if (!url || typeof fetch !== "function") return undefined;
+    let cancelled = false;
+    fetch(new URL(url, window.location.href), { method: "HEAD" })
+      .then((response) => {
+        const bytes = Number(response.headers.get("content-length"));
+        if (!cancelled && response.ok && bytes > 0) setSize(bytes);
+      })
+      .catch(() => { /* size stays unknown */ });
+    return () => { cancelled = true; };
+  }, [url]);
+  return size;
+}
+
+function formatSize(bytes, language) {
+  const mb = bytes / (1024 * 1024);
+  const unit = language === "sl" ? "MB" : "МБ";
+  if (mb < 1) return `< 1 ${unit}`;
+  return `${mb < 10 ? mb.toFixed(1).replace(".0", "") : Math.round(mb)} ${unit}`.replace(".", language === "sl" || language === "ru" ? "," : ".");
 }

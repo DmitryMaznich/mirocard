@@ -15,8 +15,7 @@ export default function TopicActionSheet({ record, onClose, onInfo, onDelete, on
   return (
     <div className="action-sheet-overlay" onClick={handleOverlay}>
       <div className="action-sheet" role="dialog" aria-modal="true">
-        <div className="action-sheet__title">{getInterfaceTopicTitle(record.meta.id, record.meta.title)}</div>
-        {showVersion && <div className="action-sheet__title">{t("preview.version", { version: record.meta.version })}</div>}
+        <div className="action-sheet__title">{getInterfaceTopicTitle(record.meta.id, record.meta.title)}{showVersion && record.meta.version ? ` · ${t("preview.version", { version: record.meta.version })}` : ""}</div>
         {record.languageContract && onLanguage && <button className="action-sheet__item" onClick={() => { onLanguage(record); onClose(); }}>{t("topicLanguage.change")}</button>}
         {onStatistics && <button className="action-sheet__item" onClick={() => { onStatistics(record); onClose(); }}>{t("nav.statistics")}</button>}
         <button

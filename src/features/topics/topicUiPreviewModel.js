@@ -20,12 +20,40 @@ export function recentTopicContext(sessions, studentId, snapshot) {
 // What the «Продолжить» card offers: the student's latest topic that is still
 // on the device and visible, with its mode when that mode can still be picked.
 // Reading keeps the text the lesson was on, so «Начать» lands on the same text.
-export function continueContext(recent, records) {
+// `choice` — an exercise picked with «Сменить» after that lesson: it replaces
+// the lesson's own exercise until a newer lesson happens.
+export function continueContext(recent, records, choice = null) {
   if (!recent) return null;
   const record = records.find((item) => item.meta.id === recent.topicId && !item.meta.hidden);
   if (!record) return null;
-  const mode = record.modes?.filter(isPickableMode).find((item) => item.id === recent.modeId) ?? null;
-  return { record, mode, textId: recent.textId ?? null, time: recent.time };
+  const chosen = choice && choice.topicId === recent.topicId && choice.at > recent.time ? choice : null;
+  const modeId = chosen ? chosen.modeId : recent.modeId;
+  const mode = record.modes?.filter(isPickableMode).find((item) => item.id === modeId) ?? null;
+  const textId = chosen && chosen.textId !== undefined ? chosen.textId : recent.textId ?? null;
+  return { record, mode, textId, time: recent.time };
+}
+
+// «Сменить» in the «Продолжить» card opens the exercise list in pick mode:
+// the tapped exercise goes back into the card instead of opening the lesson
+// settings. The flag lives only while the adult is in the pickers (cleared by
+// TopicUiPreviewContext on any other screen).
+let continuePick = false;
+export function startContinuePick() { continuePick = true; }
+export function endContinuePick() { continuePick = false; }
+export function isContinuePick() { return continuePick; }
+
+const CHOICE_PREFIX = "mirocard.topic-ui-preview.continue.v1:";
+export function saveContinueChoice(studentId, { topicId, modeId, textId = null }, now = Date.now()) {
+  if (!studentId) return;
+  try { localStorage.setItem(CHOICE_PREFIX + studentId, JSON.stringify({ topicId, modeId, textId, at: now })); }
+  catch { /* The card falls back to the last lesson's exercise. */ }
+}
+export function readContinueChoice(studentId) {
+  if (!studentId) return null;
+  try {
+    const value = JSON.parse(localStorage.getItem(CHOICE_PREFIX + studentId));
+    return value && typeof value.topicId === "string" && Number.isFinite(value.at) ? value : null;
+  } catch { return null; }
 }
 
 // Where «Начать занятие» goes — the same routes as the legacy Home button
