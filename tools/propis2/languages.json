@@ -169,6 +169,16 @@
             "square",
             "ruled"
           ]
+        },
+        {
+          "id": "british_slanted",
+          "title": "Британские наклонные",
+          "note": "Нельсон, Book 3 и дальше: соединённые с наклоном ~8° — буквы и соединения стиля british_joined (like), раскладка прямая, наклон после (scriptGeometry.js sourceSlantDeg 90 → slantDeg 82)",
+          "like": "british_joined",
+          "script": {
+            "sourceSlantDeg": 90,
+            "slantDeg": 82
+          }
         }
       ]
     }

@@ -4,7 +4,10 @@
 // joined exactly as for the Russian copybook, then the finished ink of the row is mapped as one piece about the row's own baseline:
 // unslanted to the vertical, the zone above the lowercase band stretched by `upper` and the one below it by `lower`, leaned again at
 // `slantDeg`. The lowercase band itself does not move vertically and the map is continuous, so every join stays joined.
-// `script` (a deck's meta.script): { slantDeg, upper, lower }, all optional; none / all defaults = the Russian copybook, nothing done.
+// `script` (a deck's meta.script): { slantDeg, upper, lower, sourceSlantDeg }, all optional; none / all defaults = the Russian copybook,
+// nothing done. `sourceSlantDeg`: the slant the bank's letters are drawn at (default the Russian 65deg; the Latin banks are upright, 90):
+// a slanted style made from an upright one (the Nelson slanted hand, docs/latin-letters.md) is its letters laid out upright and leaned
+// afterwards — spacing and joins are those of the upright hand, a shear keeps every horizontal gap, so nothing comes closer.
 // (`exactJoins`, read by wordEngine: the next letter starts exactly at the previous one's exit end, no grid snap, no tail nudging.)
 export const RU_SLANT_DEG = 65;
 
@@ -13,15 +16,17 @@ const tanFromVertical = (deg) => Math.tan(((90 - deg) * Math.PI) / 180);
 // null when the script changes nothing (no work at all for the Russian decks)
 export function scriptKey(script) {
   if (!script) return null;
-  const slant = script.slantDeg ?? RU_SLANT_DEG, upper = script.upper ?? 1, lower = script.lower ?? 1;
-  if (slant === RU_SLANT_DEG && upper === 1 && lower === 1) return null;
-  return `${slant}|${upper}|${lower}`;
+  const source = script.sourceSlantDeg ?? RU_SLANT_DEG;
+  const slant = script.slantDeg ?? source, upper = script.upper ?? 1, lower = script.lower ?? 1;
+  if (slant === source && upper === 1 && lower === 1) return null;
+  return source === RU_SLANT_DEG ? `${slant}|${upper}|${lower}` : `${slant}|${upper}|${lower}|${source}`;
 }
 
 // (x, y) -> [x, y] in row-local units: `baseline` and `xHeight` of the row as laid out (y grows downwards)
 export function scriptPointMap(script, { baseline, xHeight }) {
-  const t0 = tanFromVertical(RU_SLANT_DEG);
-  const t1 = tanFromVertical(script?.slantDeg ?? RU_SLANT_DEG);
+  const source = script?.sourceSlantDeg ?? RU_SLANT_DEG;
+  const t0 = tanFromVertical(source);
+  const t1 = tanFromVertical(script?.slantDeg ?? source);
   const upper = script?.upper ?? 1, lower = script?.lower ?? 1;
   const top = baseline - xHeight;
   return (x, y) => {
