@@ -43,25 +43,27 @@ try {
     join(end(top), start(bottom)); join(end(bottom), start(top));
     onCurve(start(tailTop), top); onCurve(end(tailBottom), bottom); join(end(tailTop), start(tailBottom));
     onCurve(start(divider), top); onCurve(end(divider), bottom);
-    for (let i = 1; i <= 5; i++) {
-      const fin = get(`Дуга верхнего плавника ${i}`);
-      onCurve(start(fin), top); onCurve(end(fin), top);
-      check(!fin.getAttribute('d').includes('Z'), 'Visible fin base closing line');
-      if (i < 5) join(end(fin), start(get(`Дуга верхнего плавника ${i+1}`)));
+    const dorsal = get('Волнистый верхний плавник');
+    const controls = p => [...p.getAttribute('d').matchAll(/C ([^MCZ]+)/g)].map(m => m[1].trim().split(/\s+/).map(Number));
+    const dorsalCurves = controls(dorsal);
+    check(dorsalCurves.length === 10, 'Five upper lobes must share one stroke');
+    onCurve(start(dorsal), top);
+    for (let i = 1; i < dorsalCurves.length; i += 2) {
+      const c = dorsalCurves[i]; onCurve({ x: c[4], y: c[5] }, top);
     }
-    const front = get('Верхняя дуга нижнего плавника');
-    onCurve(start(front), divider); onCurve(end(front), bottom);
-    let previous = end(front);
-    for (let i = 1; i <= 4; i++) {
-      const p = get(`Закругление нижнего плавника ${i}`); join(previous, start(p)); previous = end(p);
-    }
-    join(previous, end(divider));
-    const small1 = get('Первое закругление маленького плавника');
-    const small2 = get('Второе закругление маленького плавника');
-    onCurve(start(small1), bottom); join(end(small1), start(small2)); onCurve(end(small2), bottom);
+    check(!dorsal.getAttribute('d').includes('Z'), 'Visible fin base closing line');
+    const front = get('Большой нижний плавник');
+    onCurve(start(front), divider); join(end(front), end(divider));
+    const frontCurves = controls(front);
+    onCurve({ x: frontCurves[0][4], y: frontCurves[0][5] }, bottom);
+    check(frontCurves.length === 5, 'Front fin must include all four lobes in one stroke');
+    const small = get('Маленький нижний плавник');
+    onCurve(start(small), bottom); onCurve(end(small), bottom);
+    check(controls(small).length === 2, 'Small fin must contain both lobes');
     for (let column = 1; column <= 4; column++) {
-      const count = column === 4 ? 3 : 4;
-      for (let n = 1; n < count; n++) join(end(get(`Чешуйка ${n} в ряду ${column}`)), start(get(`Чешуйка ${n+1} в ряду ${column}`)));
+      const p = get(`Волнистая линия чешуи ${column}`);
+      check(controls(p).length === (column === 4 ? 3 : 4), 'Incomplete scale column');
+      check(p.getAttribute('d').split('M ').length === 2, 'Disconnected scale column');
     }
     const colors = new Map(lesson.steps.filter(s => s.kind === 'color').map(s => [s.title, node(s.d, 'evenodd')]));
     const inside = (name, x, y) => colors.get(name).isPointInFill(new DOMPoint(x*2, y*2));

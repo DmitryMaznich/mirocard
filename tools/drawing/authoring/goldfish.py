@@ -119,6 +119,7 @@ color('Чёрный зрачок с белым бликом', pupil, 'black', 65
 
 # Each dorsal lobe is an open arch whose two endpoints sit on upper_body.
 fins = []
+dorsal_outline = None
 for n, (start, end, apex) in enumerate([
         (.065, .22, (330, 91)), (.22, .37, (347, 98)),
         (.37, .52, (365, 103)), (.52, .67, (382, 111)),
@@ -129,10 +130,11 @@ for n, (start, end, apex) in enumerate([
     c2 = (peak, (peak[0]+9, peak[1]+1), (b[0]+4, b[1]-10), b)
     outline = path(c1) + curve(c2)
     fins.append(outline + curve(reverse(base)) + ' Z')
-    stroke(f'Дуга верхнего плавника {n+1}', outline, 70+n*2)
+    dorsal_outline = (dorsal_outline + curve(c1) + curve(c2)) if dorsal_outline else outline
+stroke('Волнистый верхний плавник', dorsal_outline, 70)
 
 # Fore-fin starts exactly on the divider and ends on the lower body. Its lower
-# scallops are four successive gestures; no diagonal Z strokes through it.
+# scallops form one continuous gesture; no diagonal Z strokes through it.
 f_divider = .72
 F = section(divider, 0, f_divider)[3]
 fin_end_t = .61
@@ -143,9 +145,7 @@ fin_lobes = [
     ((338, 249), (334, 269), (325, 270), (317, 252)),
     ((317, 252), (315, 266), (305, 266), (302, 253)),
     ((302, 253), (295, 270), (279, 259), B)]
-stroke('Верхняя дуга нижнего плавника', path(front_top), 84)
-for n, c in enumerate(fin_lobes):
-    stroke(f'Закругление нижнего плавника {n+1}', path(c), 88+n*2)
+stroke('Большой нижний плавник', path(front_top) + ''.join(curve(c) for c in fin_lobes), 84)
 front = path(front_top) + ''.join(curve(c) for c in fin_lobes)
 front += curve(reverse(section(divider, f_divider, 1))) + ' Z'
 # Small fin behind it, also rooted in an exact section of the body.
@@ -157,10 +157,9 @@ back_c1 = (ba, (ba[0]+4, ba[1]+16), (valley[0]+5, valley[1]+8), valley)
 back_c2 = (valley, (valley[0]-1, valley[1]+13), (bb[0]-2, bb[1]+14), bb)
 back_outline = path(back_c1) + curve(back_c2)
 back = back_outline + curve(reverse(back_base)) + ' Z'
-stroke('Первое закругление маленького плавника', path(back_c1), 98)
-stroke('Второе закругление маленького плавника', path(back_c2), 99)
+stroke('Маленький нижний плавник', back_outline, 98)
 
-# One curved scale per tap. Each following curve starts at the previous end;
+# One whole wavy column per tap. Each curve starts at the previous end;
 # the previous version's repeated x-offset produced zigzags and tiny hooks.
 scale_regions = []
 for column, (x, y, count, height) in enumerate([
@@ -172,8 +171,9 @@ for column, (x, y, count, height) in enumerate([
         b = (x+(n+1)*1.8, y+(n+1)*height)
         c = (a, (a[0]+11, a[1]+1), (b[0]+11, b[1]-2), b)
         curves.append(c)
-        stroke(f'Чешуйка {n+1} в ряду {column+1}', path(c), 104+column*4+n)
+
     stripe = path(curves[0]) + ''.join(curve(c) for c in curves[1:])
+    stroke(f'Волнистая линия чешуи {column+1}', stripe, 104+column*4)
     end = curves[-1][3]
     stripe += ' L ' + point((end[0]-4, end[1]))
     for c in reversed(curves):
