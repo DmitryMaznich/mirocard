@@ -81,7 +81,10 @@ export default function BlockPickerButton({ families, byId, onPickLetter, onPick
         <span className="pl2-tool-ico"><IconLetterA /><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
         <span className="pl2-cap">Блок</span>
       </button>
-      {open && (
+      {/* drawn only once its place is known: in the first frame, unplaced, the panel stood in the flow of the
+          wrapping phone strip, pushed the button down, and usePopupPos took that for a scroll and closed it
+          (a tablet held upright, owner 2026-11-10: «моргает… не фиксируется») */}
+      {open && panelStyle && (
         <div className="pl-letters-panel pl-blockpick" role="dialog" aria-label="Новый блок" style={{ ...panelStyle, width: PANEL_W, maxHeight: panelStyle?.top != null ? `calc(100dvh - ${panelStyle.top + 8}px)` : undefined }}>
           <div className="pl-bp-tabs" role="tablist">
             {TABS.map((t) => (

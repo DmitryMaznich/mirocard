@@ -76,3 +76,19 @@ describe("scriptGeometry: a deck's own slant and heights", () => {
     expect(slant(buildGlyphMap(rec(BG)))).toBeCloseTo(76, -0.5);
   });
 });
+
+describe("a slanted style made from an upright bank (sourceSlantDeg, the Nelson slanted hand)", () => {
+  it("leans upright ink by the asked slant about the baseline; same source and target is no map", () => {
+    expect(scriptKey({ sourceSlantDeg: 90 })).toBeNull();
+    expect(scriptKey({ sourceSlantDeg: 90, slantDeg: 90 })).toBeNull();
+    expect(scriptKey({ sourceSlantDeg: 90, slantDeg: 82 })).toBe("82|1|1|90");
+    expect(scriptKey({ slantDeg: 76 })).toBe("76|1|1"); // the Bulgarian key as before
+    const fn = scriptPointMap({ sourceSlantDeg: 90, slantDeg: 82 }, { baseline: 100, xHeight: 40 });
+    expect(fn(10, 100)).toEqual([10, 100]); // the baseline does not move
+    const [x, y] = fn(10, 60); // an upright stroke's top, one x-height up
+    expect(y).toBe(60);
+    expect(x - 10).toBeCloseTo(40 * Math.tan((8 * Math.PI) / 180), 6); // leaned 8deg to the right
+    const [xd] = fn(10, 130); // below the baseline: leaned to the left
+    expect(xd).toBeLessThan(10);
+  });
+});

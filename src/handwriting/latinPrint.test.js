@@ -63,11 +63,12 @@ describe("English print letters in the propis2 engine", () => {
     expect(test.topic.languages.map((l) => l.id)).toEqual(["en"]); // no Russian, Bulgarian, Kazakh
     expect(test.topic.modes.map((m) => m.type)).not.toContain("dictation"); // the dictation is Russian
     const en = test.topic.languages.find((l) => l.id === "en");
-    // 52 letters + 0–9 and + − = < > (as «№…») + the hyphen + . , ? ! — all upright, none borrowed from the Russian cursive
+    // 52 letters + 0–9 and + − = < > (as «№…») + the hyphen + . , ? ! + (2026-11-10, the copymasters' texts) : ; ' ’ " “ ” ( ) — all
+    // upright, none borrowed from the Russian cursive
     for (const id of ["print", "british"]) {
       const g = en.styles.find((s) => s.id === id).glyphs;
-      expect(g).toHaveLength(72);
-      for (const label of ["№0", "№9", "№+", "№=", "-", ".", "?", "!"]) expect(g.find((x) => x.label === label)?.upright, `${id} ${label}`).toBe(true);
+      expect(g).toHaveLength(81);
+      for (const label of ["№0", "№9", "№+", "№=", "-", ".", "?", "!", ":", ";", "'", "’", '"', "“", "”", "(", ")"]) expect(g.find((x) => x.label === label)?.upright, `${id} ${label}`).toBe(true);
     }
   });
   it("British letters: the Nelson proportions — ascenders 0.74, descenders 0.72 of the x-height, capitals as tall as the ascenders", () => {

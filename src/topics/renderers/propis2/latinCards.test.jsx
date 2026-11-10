@@ -18,12 +18,12 @@ describe("letter cards in English", () => {
   it("the card modes offer the English styles (one language in «Прописи: латиница»: no «Язык» to choose)", () => {
     for (const m of modes) {
       expect(m.params.writingLang).toBeUndefined();
-      expect(m.params.writingStyle.values).toEqual(["print", "british", "british_joined"]);
-      expect(m.params.writingStyle.labels.ru).toEqual({ print: "Печатные", british: "Британские раздельные", british_joined: "Британские соединённые" });
+      expect(m.params.writingStyle.values).toEqual(["print", "british", "british_joined", "british_slanted"]);
+      expect(m.params.writingStyle.labels.ru).toEqual({ print: "Печатные", british: "Британские раздельные", british_joined: "Британские соединённые", british_slanted: "Британские соединённые наклонные" });
     }
   });
 
-  for (const style of ["print", "british"]) {
+  for (const style of ["print", "british", "british_slanted"]) {
     it(`${style}: every kind of card task is Latin and draws`, () => {
       const kinds = new Set();
       for (const m of modes) {

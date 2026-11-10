@@ -84,6 +84,17 @@ if (langSpec) {
     }
     if (glyphsFrom) lang.glyphs = JSON.parse(execFileSync(glyphsFrom[0], glyphsFrom.slice(1), { encoding: "utf-8", maxBuffer: 64 << 20 }));
     // a writing style's letters from their own file (`glyphsFile`, e.g. the English print letters, tools/handwriting/latin/print.json)
+    // `like`: a style made from another one of the language (the Nelson slanted hand = the joined one leaned, docs/latin-letters.md): its
+    // letters file and script, the style's own `script` fields over them (`slantDeg`, `sourceSlantDeg`); the joins stay in one place
+    if (Array.isArray(lang.styles)) {
+      const byId = new Map(lang.styles.map((st) => [st.id, st]));
+      lang.styles = lang.styles.map(({ like, ...st }) => {
+        if (!like) return st;
+        const base = byId.get(like);
+        if (!base || base.like) throw new Error(`style ${st.id}: like "${like}" is not a style of ${lang.id} made from data of its own`);
+        return { glyphsFile: base.glyphsFile, papers: base.papers, ...st, script: { ...base.script, ...st.script } };
+      });
+    }
     if (Array.isArray(lang.styles)) lang.styles = lang.styles.map(({ glyphsFile, ...st }) => (glyphsFile ? { ...st, glyphs: JSON.parse(readFileSync(glyphsFile, "utf-8")).glyphs } : st));
     const lower = lang.alphabet?.lower;
     const styleGlyphs = (lang.styles ?? []).flatMap((st) => st.glyphs ?? []);
