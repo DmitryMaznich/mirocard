@@ -1,3 +1,4 @@
+import { createDrawingFinale } from "./finale.js";
 import { createPencilSound } from "./pencilSound.js";
 
 // This player only knows strokes and clipped pencil regions. Lessons arrive as
@@ -22,19 +23,22 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
   element("path", { d: "M-5 -14 L0 0 L5 -14 Z", style: "fill:#f1d7ad;stroke:#514535;stroke-width:1.2" }, pencilBody);
   element("path", { d: "M-1.3 -4 L0 0 L1.3 -4 Z", style: "fill:#514535;stroke:none" }, pencilBody);
   const tip = element("circle", { r: 4, fill: "#749b80", visibility: "hidden" }, svg);
+  const finale = createDrawingFinale(svg, lesson);
   const steps = lesson.steps;
   const sound = options.sound ?? createPencilSound();
   sound.setEnabled(options.soundEnabled !== false);
   let index = 0, busy = false, paused = false, version = 0, speed = 1, disposed = false;
   let frameId = null, animationResolve = null;
   const emit = () => { if (!disposed) onChange({ index, busy, paused }); };
-  const path = item => {
+  const path = (item, step) => {
     const node = element("path", { d: typeof item === "string" ? item : item.d }, drawing);
     if (item.fill) node.dataset.fill = item.fill;
+    if (step?.part) node.dataset.finishPart = step.part;
     return node;
   };
 function buildRegion(part,regionIndex){
  const container=element('g',{'data-region':regionIndex},part.overlay?accents:colors);
+ if(part.part)container.dataset.finishPart=part.part;
  const defs=element('defs',{},container);
  let seed=17;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
  const {fill,d}=part;const i=regionIndex;
@@ -96,16 +100,18 @@ function revealRegion(region,distance){
 
 
   function redraw() {
+    finale.stop();
     drawing.replaceChildren(); colors.replaceChildren(); accents.replaceChildren();
     for (let i = 0; i < index; i++) {
       const step = steps[i];
       if (step.kind === "stroke") for (const item of step.paths) {
-        const node = path(item); if (node.dataset.fill) node.style.fill = node.dataset.fill;
+        const node = path(item, step); if (node.dataset.fill) node.style.fill = node.dataset.fill;
       } else { const region = buildRegion(step, i); revealRegion(region, region.length); }
     }
     pencil.setAttribute("visibility", "hidden"); tip.setAttribute("visibility", "hidden");
   }
   function stop() {
+    finale.stop();
     sound.stop();
     version++; if (frameId !== null) cancelAnimationFrame(frameId);
     frameId = null; animationResolve?.(); animationResolve = null;
@@ -128,13 +134,14 @@ function revealRegion(region,distance){
   }
   async function next() {
     if (disposed || busy || index >= steps.length) return;
+    finale.stop();
     sound.unlock();
     busy = true; paused = false; const token = ++version, step = steps[index], pace = speed; emit();
     if (step.kind === "stroke") {
       for (const item of step.paths) {
         if (token !== version || disposed) return;
         sound.beginStroke();
-        const node = path(item), length = node.getTotalLength();
+        const node = path(item, step), length = node.getTotalLength();
         node.style.strokeDasharray = length; node.style.strokeDashoffset = length;
         tip.setAttribute("visibility", "visible");
         await animate(Math.max(550, Math.min(4800, length * 6)) * pace, token, t => {
@@ -159,12 +166,14 @@ function revealRegion(region,distance){
   emit();
   return {
     next,
+    playFinale() { return !disposed && !busy && index === steps.length ? finale.play() : false; },
+    stopFinale() { finale.stop(); },
     back() { if (!disposed && !busy && index) { index--; redraw(); emit(); } },
     repeat() { if (!disposed && !busy && index) { index--; redraw(); return next(); } },
     reset() { if (!disposed) { stop(); index=0; redraw(); emit(); } },
     togglePause() { if (!disposed && busy) { paused=!paused; sound.stop(); if (!paused) sound.unlock(); emit(); } },
     setSoundEnabled(value) { sound.setEnabled(value); },
     setSpeed(value) { speed = { slow: 1.65, normal: 1, fast: .6 }[value] ?? 1; },
-    dispose() { stop(); sound.dispose(); disposed=true; svg.replaceChildren(); },
+    dispose() { stop(); finale.dispose(); sound.dispose(); disposed=true; svg.replaceChildren(); },
   };
 }

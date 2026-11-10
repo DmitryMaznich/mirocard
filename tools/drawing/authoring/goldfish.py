@@ -215,6 +215,16 @@ for n, (x, y, r) in enumerate([(173, 115, 2.8), (271, 95, 3.2), (183, 166, 5.5),
         d += ' ' + oval(x, y, r-2.4, (r-2.4)*1.1)
     color(f'Маленький голубой пузырёк {n+3}', d, 'light_blue', 214+n)
 
+# Parts are shared by contour and hatching so the completed drawing itself
+# moves, rather than a replacement illustration.
+for step in STEPS:
+    if 'зрачок' in step['title']:
+        step['part'] = 'pupil'
+    elif step['title'] in ['Верхняя губа', 'Красная верхняя губа']:
+        step['part'] = 'upper-lip'
+    elif step['title'] in ['Нижняя губа', 'Красная нижняя губа']:
+        step['part'] = 'lower-lip'
+
 # Internal authoring assertions catch accidental disconnected gestures before
 # exporting; actual SVG clip coverage is checked in the browser as well.
 assert all(len(s['paths']) == 1 and s['paths'][0].count('M ') == 1
@@ -224,6 +234,7 @@ lesson = dict(id='goldfish', title='Золотая рыбка', viewBox='320 155
                           origin='Полное видео «Рисуем ЗОЛОТУЮ Рыбку - Урок рисования для детей» предоставлено владельцем приложения.',
                           durationSeconds=250.868,
                           note='Контуры восстановлены по кадрам; один шаг контура — одно непрерывное движение. Общие границы вычисляются из одних кривых, без повторной обводки. sourceTime — примерная отметка времени; порядок группируется по карандашам.'),
+              finale=dict(type='fish', mouth=[488, 368]),
               steps=STEPS, palette=['black', 'yellow', 'orange', 'red', 'light_blue'])
 (BASE / 'lessons/goldfish.json').write_text(json.dumps(lesson, ensure_ascii=False, indent=2)+'\n')
 print(f'{len(STEPS)} steps, {sum(s["kind"] == "stroke" for s in STEPS)} single-gesture outlines')

@@ -22,6 +22,10 @@ export default function DrawingRenderer({ task, sessionParams, onAdvance, soundE
     playerRef.current?.setSoundEnabled(soundEnabled && sessionParams?.pencilSound !== "off");
   }, [soundEnabled, sessionParams?.pencilSound, lesson]);
 
+  useEffect(() => {
+    if (lesson?.steps?.length && state.index === lesson.steps.length) playerRef.current?.playFinale();
+  }, [lesson, state.index]);
+
   if (!lesson?.steps?.length) return <div className="drawing-lesson">Рисунок недоступен. Переустановите тему.</div>;
   const { index, busy, paused } = state;
   const finished = index >= lesson.steps.length;
