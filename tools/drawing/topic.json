@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -71,6 +71,14 @@
       "label": "Компот",
       "image": "media/kompot.svg",
       "lessonFile": "lessons/kompot.json"
+    },
+    {
+      "id": "gonya",
+      "conceptId": "gonya",
+      "primary": true,
+      "label": "Гоня",
+      "image": "media/gonya.svg",
+      "lessonFile": "lessons/gonya.json"
     }
   ]
 }
