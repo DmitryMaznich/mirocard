@@ -145,11 +145,11 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
-  it("a new notebook keeps its language's style (docs/latin-letters.md); a language without styles stores none", async () => {
-    // the real deck, its Bulgarian given two styles: a new Bulgarian notebook takes the first and keeps it
+  it("a new notebook stores no style: its pages pick one in the editor, a language with one style offers no choice (owner 2026-11-10)", async () => {
+    // the real deck, its Bulgarian given two styles: the page strip offers them, the new notebook itself stores none
     const styled = { ...record, languages: record.languages.map((l) => (l.id === "bg" ? { ...l, styles: [{ id: "school", title: "Школьный" }, { id: "other", title: "Другой" }] } : l)) };
     useAppStore.setState({ topicRecords: [styled] });
-    for (const [lang, title, style] of [["bg", "Български", "school"], ["ru", "Русский", undefined]]) {
+    for (const [lang, title] of [["bg", "Български"], ["ru", "Русский"]]) {
       localStorage.clear();
       const db = await openDb("p2style-new-" + Date.now() + Math.random());
       const host = document.createElement("div");
@@ -164,13 +164,13 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
         field.dispatchEvent(new Event("input", { bubbles: true }));
         await tick();
       });
+      expect(Boolean(host.querySelector('button[aria-label="Стиль письма"]'))).toBe(lang === "bg");
       await click(host.querySelector(".back-btn"));
       await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
       await act(async () => { root.unmount(); await tick(400); });
       const [set] = (await loadLibrary(db)).sets;
       expect(set.lang).toBe(lang);
-      expect(set.style).toBe(style);
-      expect("style" in set).toBe(style !== undefined);
+      expect("style" in set).toBe(false);
       host.remove();
     }
   });
@@ -207,9 +207,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     expect(host.querySelector(".screen-title").textContent).toBe("Прописи: латиница");
-    // one language: the chip and the sheet are about the style only
-    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Печатные");
-    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).not.toContain("English");
+    // one language, and the style is the page's: nothing to choose for a new notebook
+    expect(host.querySelector('[data-testid="propis2-new-lang"]')).toBeNull();
     await click(btn(host, "Новая тетрадь"));
     expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
     const field = host.querySelector('[aria-label="Текст страницы"]');
@@ -239,49 +238,11 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
     await act(async () => { root.unmount(); await tick(400); });
     const lib = await loadLibrary(db);
-    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", "print"]]);
+    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", undefined]]);
     expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_gb"]);
     host.remove();
   });
-  it("the style of a new English notebook is chosen in the language sheet and kept (British: its own paper)", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
-    const tdb = await openDb("p2style-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
-    const db = await openDb("p2style-gb-" + Date.now());
-    const host = document.createElement("div");
-    document.body.appendChild(host);
-    const root = createRoot(host);
-    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
-    await click(host.querySelector('[data-testid="propis2-new-lang"]'));
-    const sheet = () => document.querySelector('[data-testid="propis2-lang-sheet"]');
-    // the deck's one language: no language list, its styles straight away
-    expect(sheet().querySelector('[aria-label="Язык письма"]')).toBeNull();
-    expect(sheet().querySelector("h2").textContent).toBe("Стиль новой тетради");
-    const styleRadios = () => [...sheet().querySelectorAll('[data-testid="propis2-style-list"] [role="radio"]')];
-    expect(styleRadios().map((b) => b.querySelector(".p2-lang-name").textContent)).toEqual(["Печатные", "Британские раздельные", "Британские соединённые"]);
-    expect(styleRadios()[0].getAttribute("aria-checked")).toBe("true");
-    await click(styleRadios()[1]);
-    await click(btn(sheet(), "Готово"));
-    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Британские раздельные");
-    await click(btn(host, "Новая тетрадь"));
-    const field = host.querySelector('[aria-label="Текст страницы"]');
-    await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "little kitten");
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-      await tick();
-    });
-    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские раздельные"); // the editor says which style
-    await click(host.querySelector(".back-btn"));
-    await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
-    await act(async () => { root.unmount(); await tick(400); });
-    const lib = await loadLibrary(db);
-    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", "british"]]);
-    expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_gb"]);
-    host.remove();
-  });
-  it("a page of an English notebook changes its writing style in the page strip; the notebook keeps its own (page.style)", async () => {
+  it("a page of an English notebook changes its writing style in the page strip (page.style); the notebook stores none", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2pstyle-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
@@ -316,7 +277,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
     await act(async () => { root.unmount(); await tick(400); });
     const lib = await loadLibrary(db);
-    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", "print"]]); // the notebook's style stays
+    expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", undefined]]); // the notebook itself has no style
     expect(lib.pages.map((pg) => [pg.style, pg.gridKind])).toEqual([["british", "en_gb"]]);
     host.remove();
   });

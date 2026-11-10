@@ -37,10 +37,8 @@ export default function Propis2Home({ db }) {
   const languages = deckLanguages(deckRecord);
   // (until one is picked on this device: the language most of the library is in, once it is loaded — Bulgarian for the Bulgarian customer)
   const [newLang, setNewLangState] = useState(() => (languages ? pickLanguage(deckRecord, readNewLang(activeTopicId)) : null));
-  // the writing style a new notebook gets (languages.js styles, docs/latin-letters.md): chosen in the same sheet as the language, when the
-  // language has more than one; remembered on this device with the language
-  const [newStyle, setNewStyleState] = useState(() => readNewLang(activeTopicId, NEW_STYLE_KEY));
-  const setNewLang = (id, style = null) => { setNewLangState(id); writeNewLang(activeTopicId, id); setNewStyleState(style); writeNewLang(activeTopicId, style, NEW_STYLE_KEY); };
+  // (the writing style is not chosen for a new notebook: each page picks its own in the editor, owner 2026-11-10)
+  const setNewLang = (id) => { setNewLangState(id); writeNewLang(activeTopicId, id); };
   const [langSheet, setLangSheet] = useState(false);
   const [langFilter, setLangFilter] = useState("all");
   const [library, setLibrary] = useState(emptyLibrary);
@@ -77,8 +75,9 @@ export default function Propis2Home({ db }) {
   const working = session ? session.lib : library;
   const sessionSet = session ? session.lib.sets.find((st) => st.id === session.sid) : null; // the notebook being worked on
   const lang = languages ? (sessionSet ? pickLanguage(deckRecord, langOf(sessionSet)) : newLang) : null;
-  // the writing style (docs/latin-letters.md): the notebook's, a new notebook gets its language's first one; null when the language has none
-  const writingStyle = languages ? pickStyle(deckRecord, lang, sessionSet ? styleOf(sessionSet) : newStyle) : null;
+  // the default writing style of the notebook's pages (docs/latin-letters.md): the language's first one — or `set.style` of a notebook that
+  // has one (made before styles moved to the pages, or a copy of a ready notebook in its style); null when the language has none
+  const writingStyle = languages ? pickStyle(deckRecord, lang, sessionSet ? styleOf(sessionSet) : null) : null;
   const topicRecord = languages ? languageView(deckRecord, lang, writingStyle) : deckRecord;
   // a PAGE may write in a style of its own (`page.style`, docs/propis2-languages.md «Стиль у страницы»): only when the notebook's language
   // has more than one style; a page without one writes in the notebook's. Everything that draws a page takes the record of its style.
@@ -331,12 +330,11 @@ export default function Propis2Home({ db }) {
     setShownPage(0);
     setView({ name: "showSet", setId: st.id, ...extra });
   };
-  const screenPagesOf = (pg) => screenPagesOfPage(pg, glyphMap);
   const openReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps, r.lang); startSession(st.id, lib); showNotebook(st, new Map(lib.pages.map((p) => [p.id, p])), { from: "library" }); };
   const editReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps, r.lang); startSession(st.id, lib); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); };
   // a new page is a notebook of one page (there is no page outside a notebook); it is not in the list until it is confirmed
   const createPage = (p) => {
-    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang, ...(writingStyle ? { style: writingStyle } : {}) } : {}) });
+    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang } : {}) });
     startSession(nb.id, upsertSet(upsertPage(library, p), nb));
     setView({ name: "editor", pageId: p.id, backTo: { name: "library" } });
   };
@@ -639,7 +637,8 @@ export default function Propis2Home({ db }) {
     <Propis2Library
       sets={shownSets}
       langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
-      newLang={languages ? { title: newLangTitle(languages.find((l) => l.id === newLang), pickStyle(deckRecord, newLang, newStyle), languages.length === 1), onOpen: () => setLangSheet(true) } : null}
+      // a deck with one language («Прописи: латиница») has nothing to choose for a new notebook
+      newLang={languages && languages.length > 1 ? { title: languages.find((l) => l.id === newLang)?.title, onOpen: () => setLangSheet(true) } : null}
       title={topicRecord?.meta?.title}
       filterBar={multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
@@ -667,7 +666,7 @@ export default function Propis2Home({ db }) {
       }}
       onDeleteSet={(id) => persist(removeSet(library, id))}
     />
-    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={languages} lang={newLang} style={pickStyle(deckRecord, newLang, newStyle)} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
+    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={languages} lang={newLang} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
     </>
   );
 }
@@ -685,7 +684,6 @@ function LangFilter({ languages, value, onChange }) {
 
 // the language a new notebook gets, remembered on this device per topic (a teacher preparing a Kazakh class keeps it for a while)
 const NEW_LANG_KEY = "propis2:newLang";
-const NEW_STYLE_KEY = "propis2:newStyle"; // and its writing style, the same way
 function readNewLang(topicId, key = NEW_LANG_KEY) {
   try { return JSON.parse(localStorage.getItem(key) ?? "{}")?.[topicId] ?? null; } catch { return null; }
 }
@@ -695,13 +693,6 @@ function writeNewLang(topicId, id, key = NEW_LANG_KEY) {
 // the title of a style of a language that has several; null otherwise (one style: nothing to tell apart)
 function styleTitleOf(lang, styleId) {
   return lang?.styles?.length > 1 ? lang.styles.find((x) => x.id === styleId)?.title ?? null : null;
-}
-// the chip next to «Новая тетрадь»: the language, and its style when it has several («English · Британские»)
-// (a deck with one language, «Прописи: латиница»: only the style)
-function newLangTitle(lang, styleId, single = false) {
-  const styles = lang?.styles?.length > 1 ? lang.styles : null;
-  const st = styles?.find((x) => x.id === styleId);
-  return st ? (single ? st.title : `${lang.title} · ${st.title}`) : lang?.title;
 }
 
 // page numbers per notebook: a convenience of this device, not part of the notebook (the cover is the notebook's: `set.cover`;
