@@ -19,7 +19,7 @@ describe("letter cards in English", () => {
     for (const m of modes) {
       expect(m.params.writingLang).toBeUndefined();
       expect(m.params.writingStyle.values).toEqual(["print", "british", "british_joined", "british_slanted"]);
-      expect(m.params.writingStyle.labels.ru).toEqual({ print: "Печатные", british: "Британские раздельные", british_joined: "Британские соединённые", british_slanted: "Британские наклонные" });
+      expect(m.params.writingStyle.labels.ru).toEqual({ print: "Печатные", british: "Британские раздельные", british_joined: "Британские соединённые", british_slanted: "Британские соединённые наклонные" });
     }
   });
 
