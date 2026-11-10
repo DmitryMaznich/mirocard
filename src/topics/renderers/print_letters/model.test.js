@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import topic from "../../../../tools/print_letters/topic.json";
 import {
-  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, rowStyle, withStyle, describeStyle, DEFAULT_STYLE, pageOverflows, rowCells, sheetCells, toggleElement, plateHeightCells,
+  paperOf, isRuled, rowBesidePlate, rowStartCells, blockHeightCells, blockCells, copiesPerRow, copyPlan, ladderRows, starterRows, rowStyle, withStyle, describeStyle, DEFAULT_STYLE, pageOverflows, rowCells, sheetCells, toggleElement, plateHeightCells,
 } from "./model";
 
 const letter = (id) => topic.cards.find((c) => c.id === id);
@@ -146,5 +146,21 @@ describe("print_letters model", () => {
     expect(plateHeightCells(7, 4, "cell")).toBe(5);   // large letters: 1 row beside it
     expect(plateHeightCells(7, 2, "bigcell")).toBe(4);
     for (const n of [1, 2, 3, 7]) expect(plateHeightCells(n, 2, "cell")).toBeLessThanOrEqual(blockHeightCells({ rows: Array(n).fill({}), size: 2 }, "cell"));
+  });
+
+  it("starts a new block short: 3–4 rows of strokes, the whole letter last (owner, 2026-11-10)", () => {
+    const els = (id) => starterRows(letter(id)).map((r) => r.elements.join(""));
+    expect(els("Г")).toEqual(["0", "1", "01"]);
+    expect(els("Н")).toEqual(["0", "01", "012"]);
+    expect(els("Ш")).toEqual(["0", "01", "012", "0123"]);
+    expect(els("Ё")).toEqual(["0", "01", "012", "012345"]);
+    expect(els("О")).toEqual(["0", "0", "0"]);
+    for (const c of topic.cards) {
+      const rows = starterRows(c);
+      expect(rows.length, c.id).toBeGreaterThanOrEqual(3);
+      expect(rows.length, c.id).toBeLessThanOrEqual(4);
+      expect(rows[rows.length - 1].elements, c.id).toEqual(c.strokes.map((_, i) => i));
+      expect(rows.every((r) => !r.task), c.id).toBe(true);
+    }
   });
 });

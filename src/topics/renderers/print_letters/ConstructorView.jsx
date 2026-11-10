@@ -6,7 +6,7 @@ import Sheet from "./Sheet";
 import RowInspector from "./RowInspector";
 import PrintPages from "./PrintPages";
 import { NARROW_QUERY, useFitZoom, useMediaQuery } from "./hooks";
-import { FORMATS, DEFAULT_STYLE, describeStyle, withStyle, paperOf, allElements, ladderRows, pageOverflows, sheetSizeMm } from "./model";
+import { FORMATS, DEFAULT_STYLE, describeStyle, withStyle, paperOf, allElements, ladderRows, starterRows, pageOverflows, sheetSizeMm } from "./model";
 import { PALETTE, blankPage, newId } from "./library";
 import { WORD_STYLE, allLetterIdx, isWordBlock, wordLadderRows } from "./words";
 import {
@@ -171,7 +171,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
     const letter = byId[letterId];
     if (!letter || !activePage) return;
     const id = newId();
-    const rows = withIds(ladderRows(letter));
+    const rows = withIds(starterRows(letter)); // a short start; «Лесенка» gives the full ladder
     updateActivePage((p) => ({ ...p, blocks: [...p.blocks, { id, letterId, color: PALETTE[p.blocks.length % PALETTE.length], size: 2, rows }] }));
     setSelectedBlockId(id);
     setSelectedRowId(rows[0].id);
@@ -367,7 +367,7 @@ export default function ConstructorView({ notebook, onChange, byId, families, di
         <div className="pl2-status no-print" role="status">
           <span>Стр. <b>{activePageIndex + 1}</b> из {pages.length}</span>
           {rowNo > 0 && <span>Строка <b>{rowNo}</b>{styleName ? ` · ${styleName}` : ""}</span>}
-          <span className="pl2-status-hint">{hasContent ? "Щёлкните по строке листа — справа её элементы и опора" : "«Блок» — буква, слог или слово: блок сразу собран лесенкой"}</span>
+          <span className="pl2-status-hint">{hasContent ? "Щёлкните по строке листа — справа её элементы и опора" : "«Блок» — буква, слог или слово: у буквы сразу 3–4 строки, внизу целая буква"}</span>
         </div>
         <PrintPages notebook={notebook} byId={byId} />
       </div>

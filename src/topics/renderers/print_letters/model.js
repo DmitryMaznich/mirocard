@@ -281,6 +281,28 @@ export function ladderRows(letter) {
   return rows;
 }
 
+// A NEW letter block (owner, 2026-11-10: «слишком много вариантов в каждый новый блок… ограничиться
+// 3-4 строками с разной комбинацией штрихов и обязательно внизу целая буква»): the letter assembled in a
+// few steps, the whole letter always last — the full ladder above stays on the block's «Лесенка» button
+// and in the ready notebooks.
+//   1 stroke (О, С): the whole letter dotted, fading, then after a sample only;
+//   2 strokes: the first, the second, the whole letter;
+//   3 strokes: the first, the first two, the whole letter;
+//   4 and more: the first, two, three, the whole letter.
+export function starterRows(letter) {
+  const n = letter.strokes.length;
+  const all = allElements(letter);
+  if (n <= 1) {
+    return [
+      { elements: all, ...DEFAULT_STYLE },
+      { elements: all, line: "tone", guide: "fade", dots: "all", arrows: true },
+      { elements: all, line: "tone", guide: "none", dots: "sample", arrows: true },
+    ];
+  }
+  const steps = n === 2 ? [[0], [1]] : all.slice(0, Math.min(n - 1, 3)).map((_, k) => all.slice(0, k + 1));
+  return [...steps, all].map((elements) => ({ elements, ...DEFAULT_STYLE }));
+}
+
 // What each copy in a row draws. The first copy of every non-blank row is the SAMPLE — solid, with
 // arrows and (unless dots are off) numbered start dots: the child first sees how the letter is
 // written, then practises. The others follow the row's options (rowStyle): a half-tone or dotted
