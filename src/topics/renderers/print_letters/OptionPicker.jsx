@@ -42,7 +42,7 @@ export default function OptionPicker({ options, value, onChange, label, caption,
         <span className="pl2-tool-ico"><current.Icon /><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
         <span className="pl2-cap">{caption ?? current.label}</span>
       </button>
-      {open && (
+      {open && panelStyle && (
         <div className="pl-row-pick-list" role="listbox" aria-label={label} style={{ ...panelStyle, width: PANEL_W }}>
           {options.map(({ id, label, Icon }) => (
             <button
