@@ -446,7 +446,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           {/* the page's writing style (docs/propis2-languages.md «Стиль у страницы»): only a language with several styles */}
-          {styles && <Propis2Picker label="Стиль страницы" caption="Стиль" disabled={locked} mixed={mx.style} value={styles.value} onChange={(id) => setSetting("style", id)} options={styleOptions} />}
+          {styles && <Propis2Picker label="Стиль страницы" caption="Стиль страницы" kind="style" disabled={locked} mixed={mx.style} value={styles.value} onChange={(id) => setSetting("style", id)} options={styleOptions} />}
           <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
@@ -492,7 +492,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           {/* the row's writing style (docs/propis2-languages.md «Стиль у строки»): a row of print letters, the next one joined */}
-          {styles && <Propis2Picker label="Стиль строки" caption="Стиль" value={selected ? rowSetting(selected, "style", glyphMap) ?? styles.value : styles.value} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={styleOptions} />}
+          {styles && <Propis2Picker label="Стиль строки" caption="Стиль строки" kind="style" value={selected ? rowSetting(selected, "style", glyphMap) ?? styles.value : styles.value} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={styleOptions} />}
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
           {/* keeps the field's focus (the keyboard stays open, the caret where it was) */}
           <IconBtn label="Вставить текст из буфера обмена" caption="Вставить" disabled={!canPaste} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}><I.IconPaste /></IconBtn>
