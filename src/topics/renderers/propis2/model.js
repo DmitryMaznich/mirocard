@@ -208,7 +208,8 @@ export function methodNotebooks(sheets, elementLabels) {
 export function kitToLibraryItems(kit) {
   const set = newSet(kit.title, { ruling: kit.page?.ruling ?? "narrow", kit: kit.id, sourceId: `kit:${kit.id}` });
   // a page of a kit may have its own paper (`paper`, over the kit's `page`): the digits kit is squared paper, then the copybook ruling
-  const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), ...(p.paper ?? {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], kitId: set.id }));
+  // ...and its own writing style (`style`, the Latin series: a page of print letters in a notebook of joined writing)
+  const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), ...(p.paper ?? {}), ...(p.style ? { style: p.style } : {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], kitId: set.id }));
   return { set: { ...set, pageIds: pages.map((x) => x.id) }, pages };
 }
 

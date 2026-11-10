@@ -101,6 +101,122 @@
         { "pair": "of", "words": ["of", "sofa", "roof"] },
         { "review": ["flower", "football", "white", "shirt", "brother"] }
       ]
+    },
+    {
+      "id": "en-steps-1",
+      "title": "Узоры, буквы и цифры",
+      "group": "Ступени",
+      "style": "british",
+      "description": "Узоры для руки, строчные и заглавные буквы по алфавиту, цифры 0–9 — британские раздельные.",
+      "pages": [
+        { "title": "Узоры", "style": "british_joined", "pattern": ["cccc", "nnnn", "uuuu", "vvvv", "llll"] },
+        { "title": "a b c d e", "trace": ["a A", "b B", "c C", "d D", "e E"] },
+        { "title": "f g h i j", "trace": ["f F", "g G", "h H", "i I", "j J"] },
+        { "title": "k l m n o", "trace": ["k K", "l L", "m M", "n N", "o O"] },
+        { "title": "p q r s t", "trace": ["p P", "q Q", "r R", "s S", "t T"] },
+        { "title": "u v w x y", "trace": ["u U", "v V", "w W", "x X", "y Y"] },
+        { "title": "z", "trace": ["z Z", "b d", "p q", "f t", "j y"] },
+        { "title": "Цифры", "fade": ["№0", "№1", "№2", "№3", "№4", "№5", "№6", "№7", "№8", "№9"] }
+      ]
+    },
+    {
+      "id": "en-steps-2",
+      "title": "Соединения в словах",
+      "group": "Ступени",
+      "style": "british_joined",
+      "description": "Четыре соединения в частых словах, буквы-разрывы, разные e и s: образец и строка для письма.",
+      "pages": [
+        { "title": "Соединение 1", "copy": ["am an and came can", "did end had he in", "keep made me my", "name no tame to up"] },
+        { "title": "Соединение 2", "copy": ["all at ate back bit", "but call cat get if", "it let like make", "put talk that them"] },
+        { "title": "Соединение 3", "copy": ["face five for four", "from on one or our", "out own ran red", "run two was way we"] },
+        { "title": "Соединение 4", "copy": ["girl got left lot", "not of off old", "owl told took what", "when where who why"] },
+        { "title": "Буквы-разрывы", "copy": ["again baby boxer", "green happy jigsaw", "joke pigs queen", "size sleep yes zebra"] },
+        { "title": "Буква e", "copy": ["one three five seven", "nine eleven thirteen", "Three little kittens,", "they lost their mittens."] },
+        { "title": "Буква s", "copy": ["so sea is as", "Six swans swam past.", "Princess Rose sewed", "stars on her best dress."] }
+      ]
+    },
+    {
+      "id": "en-steps-3",
+      "title": "Сочетания согласных",
+      "group": "Ступени",
+      "style": "british_joined",
+      "description": "Немая e (cap — cape), двойные и тройные согласные, ch sh th ng nk, удвоенные буквы.",
+      "pages": [
+        { "title": "Немая e: a", "copy": ["cap cape gap gape", "hat hate mad made", "mat mate pan pane", "rat rate tap tape"] },
+        { "title": "Немая e: i", "copy": ["bit bite fin fine", "hid hide kit kite", "pin pine pip pipe", "rid ride win wine"] },
+        { "title": "Немая e: o", "copy": ["cod code cot cote", "hop hope not note", "mop mope rod rode", "rob robe"] },
+        { "title": "Немая e: u", "copy": ["cub cube cut cute", "dun dune jut jute", "plum plume run rune", "tub tube"] },
+        { "title": "Двойные согласные", "copy": ["Hold my hand", "to cross the road.", "Act in a film.", "I like crisp crusty bread."] },
+        { "title": "Двойные согласные 2", "copy": ["Fly the flag on the mast.", "A pint of milk", "He slept in a tent.", "She swam swiftly."] },
+        { "title": "Двойные согласные 3", "copy": ["blue crabs from frost", "glad grand help jump", "kept left next plum pond", "pram snow spend trip"] },
+        { "title": "ch sh", "copy": ["Most children like", "fish and chips.", "Chat with a chimp.", "Shut the shop."] },
+        { "title": "th ng nk", "copy": ["bang bank bath bring", "brush cash chop chum", "dish drink fresh much", "pink plank rich ring"] },
+        { "title": "sh th", "copy": ["shed shin ship shot sink", "sting swing than that", "them then thin thing", "think this which with"] },
+        { "title": "Тройные согласные", "copy": ["Splash in the stream.", "Thread the string", "through the hole.", "Munch some lunch."] },
+        { "title": "Тройные согласные 2", "copy": ["Three thrushes singing", "in a shrub.", "Catch the witch", "in a ditch.", "Scream and shriek."] },
+        { "title": "tch nch scr spr", "copy": ["bunch crunch hutch", "match pinch scrape", "screw shrimp split", "spray spread spring"] },
+        { "title": "dd ff gg ll", "copy": ["add cliff off stuff", "egg bell dwell sell", "shall skill spell still", "doll dull gull skull"] },
+        { "title": "ss zz", "copy": ["dress fuss kiss less", "loss mass buzz whizz", "stitch street splutter", "grass glass cross"] }
+      ]
+    },
+    {
+      "id": "en-steps-4",
+      "title": "Сочетания гласных",
+      "group": "Ступени",
+      "style": "british_joined",
+      "description": "Как пишутся долгие гласные: ee ea, ie igh, oa, oo ue ew, aw au or, ir ur er, ou ow, ar oi oy, air ear.",
+      "pages": [
+        { "title": "ee ea", "copy": ["bee feet green heel keep", "meet need seed sheep", "weed week beak dream", "leaf leave read seat team"] },
+        { "title": "ie i-e y igh", "copy": ["die lie pie pied tie", "bike hide like line nine", "cry dry fly fry sky try", "high light might right"] },
+        { "title": "oa o-e oe", "copy": ["boat float loaf oak road", "soap toast bone hole", "hose mole nose rose", "doe hoe roe sloe toe"] },
+        { "title": "oo u-e ue ew", "copy": ["boot food moon spoon", "fuse huge June mule", "blue clue cue glue true", "chew crew flew screw"] },
+        { "title": "aw au or", "copy": ["claw dawn draw law", "fault pause sauce ball", "call fall tall born fork", "short core more shore"] },
+        { "title": "ir ur er", "copy": ["bird fir first girl shirt", "skirt third thirst burn", "fur hurt purr purse", "fern germ herb herd"] },
+        { "title": "ou ow", "copy": ["cloud count house", "mouth out round", "clown cow crowd fowl", "how now owl row town"] },
+        { "title": "ar oi oy", "copy": ["arm car park sharp star", "boil choice coin join", "noise oil point soil", "toil boy joy soya toy"] },
+        { "title": "oo are air", "copy": ["book cook good took", "bare care dare hare", "rare scare share spare", "chair fair hair pair"] },
+        { "title": "ear eer", "copy": ["beard clear dear ear", "fear hear spear beer", "cheer deer jeer peer", "sheer sneer steer veer"] }
+      ]
+    },
+    {
+      "id": "en-steps-5",
+      "title": "Слова по темам",
+      "group": "Ступени",
+      "style": "british_joined",
+      "description": "Тело, цвета, время и место, персонажи, семья, еда, частые слова, глаголы на -ing, противоположности.",
+      "pages": [
+        { "title": "Тело", "copy": ["head hair face eyes nose", "ears lips tongue teeth", "neck shoulders arms", "hands fingers legs feet", "knees ankles wrists"] },
+        { "title": "Цвета", "copy": ["black blue brown gold", "grey pink purple red", "silver white yellow", "Red and yellow — orange", "Blue and yellow — green"] },
+        { "title": "Время и место", "copy": ["today tomorrow soon", "yesterday once long ago", "Christmas birthday", "outside forest woods", "inside palace castle cave"] },
+        { "title": "Персонажи", "copy": ["Queen King Princess", "Prince wizard magician", "monster dragon giant", "pixie elf fairy dwarf", "gnome frog toad ghost"] },
+        { "title": "Семья и люди", "copy": ["family mother father", "sister girl grandmother", "brother boy grandfather", "aunt uncle lady man", "teacher doctor nurse"] },
+        { "title": "Еда", "copy": ["breakfast lunch tea", "hungry eat thirsty", "drink biscuits cake eggs", "meat sausages vegetables", "coffee juice lemonade"] },
+        { "title": "Частые слова 1", "copy": ["air another around", "balloon beanstalk boat", "brave by clothes creepy", "cup dark does each else", "enough ever football"] },
+        { "title": "Частые слова 2", "copy": ["fruit fun game golden", "grass ground happy has", "her him his just lived", "magic money nearly", "nothing only other"] },
+        { "title": "Частые слова 3", "copy": ["over paper party", "picture present reward", "road sad scared school", "seaside shop snowman so", "something soon strong"] },
+        { "title": "Частые слова 4", "copy": ["surprise tell than they", "though too toys treasure", "trees until upon want", "watch water wheel", "whole will wind world"] },
+        { "title": "Глаголы на -ing", "copy": ["buying coming doing", "giving going jumping", "living looking playing", "reading riding seeing", "sitting throwing writing"] },
+        { "title": "Противоположности", "copy": ["before after start finish", "first last front back", "good bad high low", "open close push pull", "near far buy sell"] },
+        { "title": "Сокращения", "copy": ["don't do not", "I'm I am it's it is", "I'll I will I'd I would", "won't will not", "you're you are"] }
+      ]
+    },
+    {
+      "id": "en-steps-6",
+      "title": "Предложения и стихи",
+      "group": "Ступени",
+      "style": "british_joined",
+      "description": "Предложения с немыми буквами, народные стихи и басня — образец и строка для письма.",
+      "pages": [
+        { "title": "Немые буквы", "copy": ["I hit my thumb.", "The choir sang a psalm.", "The knight wore armour.", "She broke her wrist.", "A gnome had treasure."] },
+        { "title": "Good, better, best", "copy": ["Good, better, best,", "Never let it rest,", "Till the good is the better,", "And the better is the best."] },
+        { "title": "A big turtle", "copy": ["A big turtle sat", "on the end of a log,", "Watching a tadpole", "turn into a frog."] },
+        { "title": "Three little kittens", "copy": ["Three little kittens", "they lost their mittens,", "and they began to cry:", "“Oh, mother dear,", "we sadly fear"] },
+        { "title": "Three little kittens 2", "copy": ["our mittens we have lost.”", "“What! Lost your mittens,", "you naughty kittens!", "Then you shall", "have no pie.”"] },
+        { "title": "The elephant", "copy": ["The elephant carries", "a great big trunk;", "He never packs it", "with clothes;"] },
+        { "title": "The elephant 2", "copy": ["It has no lock", "and it has no key,", "But he takes it", "wherever he goes."] },
+        { "title": "The hare and the hound", "copy": ["A dog found a hare", "under a bush.", "The hare ran off", "across the field.", "The dog ran after it,"] },
+        { "title": "The hare and the hound 2", "copy": ["but he soon gave up.", "A man said: “The hare", "was too fast for you.”", "“I ran for my dinner,", "the hare ran for its life.”"] }
+      ]
     }
   ]
 }

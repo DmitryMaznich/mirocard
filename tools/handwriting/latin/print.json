@@ -1228,6 +1228,161 @@
    "stretch": 1,
    "noNormalize": true,
    "upright": true
+  },
+  {
+   "label": ":",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-:",
+   "strokes": [
+    {
+     "d": "M 3.12 15.2 C 4.846 15.2 6.24 16.594 6.24 18.32 C 6.24 20.046 4.846 21.44 3.12 21.44 C 1.394 21.44 0 20.046 0 18.32 C 0 16.594 1.394 15.2 3.12 15.2",
+     "name": "точка"
+    },
+    {
+     "d": "M 3.12 55.76 C 4.846 55.76 6.24 57.154 6.24 58.88 C 6.24 60.606 4.846 62 3.12 62 C 1.394 62 0 60.606 0 58.88 C 0 57.154 1.394 55.76 3.12 55.76",
+     "name": "точка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": ";",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-;",
+   "strokes": [
+    {
+     "d": "M 5.2 15.2 C 6.926 15.2 8.32 16.594 8.32 18.32 C 8.32 20.046 6.926 21.44 5.2 21.44 C 3.474 21.44 2.08 20.046 2.08 18.32 C 2.08 16.594 3.474 15.2 5.2 15.2",
+     "name": "точка"
+    },
+    {
+     "d": "M 5.2 55.76 C 7.28 59.92 7.28 66.16 1.04 73.44",
+     "name": "запятая"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "'",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-'",
+   "strokes": [
+    {
+     "d": "M 4.16 -42 C 6.24 -37.84 6.24 -31.6 1.56 -24.32",
+     "name": "апостроф"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "’",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-’",
+   "strokes": [
+    {
+     "d": "M 4.16 -42 C 6.24 -37.84 6.24 -31.6 1.56 -24.32",
+     "name": "апостроф"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "\"",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-\"",
+   "strokes": [
+    {
+     "d": "M 3.12 -42 L 3.12 -25.36",
+     "name": "черта"
+    },
+    {
+     "d": "M 11.44 -42 L 11.44 -25.36",
+     "name": "черта"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "“",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-“",
+   "strokes": [
+    {
+     "d": "M 6.24 -42 C 2.08 -36.8 2.08 -30.56 4.68 -24.32",
+     "name": "кавычка"
+    },
+    {
+     "d": "M 14.56 -42 C 10.4 -36.8 10.4 -30.56 13 -24.32",
+     "name": "кавычка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "”",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-”",
+   "strokes": [
+    {
+     "d": "M 4.16 -42 C 6.24 -37.84 6.24 -31.6 1.56 -24.32",
+     "name": "кавычка"
+    },
+    {
+     "d": "M 12.48 -42 C 14.56 -37.84 14.56 -31.6 9.88 -24.32",
+     "name": "кавычка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "(",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-(",
+   "strokes": [
+    {
+     "d": "M 13.52 -42 C 1.04 -10.8 1.04 55.76 13.52 86.96",
+     "name": "скобка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": ")",
+   "kind": "punct",
+   "noJoin": true,
+   "sourceLabel": "print-)",
+   "strokes": [
+    {
+     "d": "M 1.04 -42 C 13.52 -10.8 13.52 55.76 1.04 86.96",
+     "name": "скобка"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
   }
  ]
 }
