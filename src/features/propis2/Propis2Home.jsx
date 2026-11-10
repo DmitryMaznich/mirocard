@@ -4,14 +4,14 @@ import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/handwriting/PrintPageView";
 import { openPdf, pdfFileName, pdfSavesOnDevice, pdfTab, printPdf } from "@/handwriting/printPdf.js";
-import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
+import { buildPageTask, glyphMapOf } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, screenPagesOf as screenPagesOfPage, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageBandFill, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import { Propis2LangSheet } from "./Propis2LangPicker";
-import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, mostUsedLang, pickLanguage, pickStyle, styleOf } from "@/topics/renderers/propis2/languages.js";
+import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, langStyles, mostUsedLang, pickLanguage, pickStyle, styleOf } from "@/topics/renderers/propis2/languages.js";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
 import Propis2SaveDialog from "./Propis2SaveDialog";
@@ -80,6 +80,15 @@ export default function Propis2Home({ db }) {
   // the writing style (docs/latin-letters.md): the notebook's, a new notebook gets its language's first one; null when the language has none
   const writingStyle = languages ? pickStyle(deckRecord, lang, sessionSet ? styleOf(sessionSet) : newStyle) : null;
   const topicRecord = languages ? languageView(deckRecord, lang, writingStyle) : deckRecord;
+  // a PAGE may write in a style of its own (`page.style`, docs/propis2-languages.md «Стиль у страницы»): only when the notebook's language
+  // has more than one style; a page without one writes in the notebook's. Everything that draws a page takes the record of its style.
+  const langStyleList = languages ? langStyles(languages.find((l) => l.id === lang)) : null;
+  const multiStyle = Boolean(langStyleList && langStyleList.length > 1);
+  const pageStyle = useCallback((p) => (multiStyle ? pickStyle(deckRecord, lang, p?.style ?? writingStyle) : writingStyle), [multiStyle, deckRecord, lang, writingStyle]);
+  const recordOfStyle = useCallback((st) => (languages ? languageView(deckRecord, lang, st) : deckRecord), [languages, deckRecord, lang]);
+  const recordOfPage = useCallback((p) => recordOfStyle(pageStyle(p)), [recordOfStyle, pageStyle]);
+  // runs of the notebook by paper AND style (model.js notebookSections)
+  const sectionOpts = useMemo(() => (multiStyle ? { styleOf: pageStyle, glyphMapOf: (st) => glyphMapOf(recordOfStyle(st)) } : undefined), [multiStyle, pageStyle, recordOfStyle]);
   const dirty = Boolean(session && session.lib !== session.base);
   const isNewNb = Boolean(session && !library.sets.some((st) => st.id === session.sid));
 
@@ -156,7 +165,7 @@ export default function Propis2Home({ db }) {
   }, [pullRemote]);
   useEffect(() => () => { clearTimeout(saveTimer.current); flush(); }, [flush]);
 
-  const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
+  const glyphMap = glyphMapOf(topicRecord);
   // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) does not take the Russian kits (Russian letters and
   // words): only the ready notebooks its deck carries (`topicRecord.kits`: the digits, with its own text pages)
   const ownKits = topicRecord?.meta?.methodology !== false || Boolean(topicRecord?.kits?.length);
@@ -313,10 +322,10 @@ export default function Propis2Home({ db }) {
 
   // the student view of a notebook, opened on its first page or on the page `pageId`
   const showNotebook = (st, pagesByIdNow, extra, pageId = null) => {
-    const secs = notebookSections(st, pagesByIdNow, glyphMap);
+    const secs = notebookSections(st, pagesByIdNow, glyphMap, sectionOpts);
     const at = Math.max(0, secs.findIndex((sec) => sec.pageIds.includes(pageId)));
     let startAt = 0;
-    if (pageId && secs[at]) for (const id of secs[at].pageIds) { if (id === pageId) break; startAt += screenPagesOf(pagesByIdNow.get(id)); }
+    if (pageId && secs[at]) for (const id of secs[at].pageIds) { if (id === pageId) break; const pg = pagesByIdNow.get(id); startAt += screenPagesOfPage(pg, glyphMapOf(recordOfPage(pg))); }
     setPart({ index: at, startAt });
     setPartPages({});
     setShownPage(0);
@@ -344,32 +353,35 @@ export default function Propis2Home({ db }) {
   // a time (each on its own paper); a notebook on one paper is one run, the whole notebook at once as before.
   const sections = useMemo(() => {
     if (!(view.name === "showSet" && set)) return null;
-    const secs = notebookSections(set, pagesById, glyphMap);
+    const secs = notebookSections(set, pagesById, glyphMap, sectionOpts);
     let start = 0;
     for (const sec of secs) { sec.start = start; start += partPages[sec.pageIds.join()] ?? sec.pages; }
     return { list: secs, total: start };
-  }, [view.name, set, pagesById, glyphMap, partPages]);
+  }, [view.name, set, pagesById, glyphMap, partPages, sectionOpts]);
   const partIndex = sections ? Math.min(part.index, Math.max(0, sections.list.length - 1)) : 0;
   const partSec = sections?.list[partIndex] ?? null;
   // the runs' pages and paper (not their page counts): the tasks are rebuilt only when these change
   const runsKey = sections ? sections.list.map((sec) => `${sec.key}|${sec.pageIds.join()}`).join("/") : "";
-  const taskOf = useCallback((paper, lines, minPages = 0, firstPage = 0) => buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), noSlant: pageNoSlant(paper), midDash: pageMidDash(paper), bandFill: pageBandFill(paper), margin: pageMargin(paper), format: pageFormat(paper), minPages, firstPage }), [topicRecord]);
+  const taskOf = useCallback((paper, lines, minPages = 0, firstPage = 0, record = topicRecord) => buildPageTask({ topicRecord: record, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), noSlant: pageNoSlant(paper), midDash: pageMidDash(paper), bandFill: pageBandFill(paper), margin: pageMargin(paper), format: pageFormat(paper), minPages, firstPage }), [topicRecord]);
   // one task per run: the viewer shows the open one, printing prints them all; a run has at least as many pages as it has pages of
   // the notebook (blank pages at its end, or a whole blank notebook, are printed too)
   const runTasks = useMemo(
-    () => (sections ? sections.list.map((sec) => taskOf(sec.paper, setToLines(set, pagesById, glyphMap, sec.pageIds), sec.pages, sec.start)) : null),
+    () => (sections ? sections.list.map((sec) => { const record = sec.style ? recordOfStyle(sec.style) : topicRecord; return taskOf(sec.paper, setToLines(set, pagesById, glyphMapOf(record), sec.pageIds), sec.pages, sec.start, record); }) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [runsKey, set, pagesById, glyphMap, taskOf],
+    [runsKey, set, pagesById, glyphMap, taskOf, recordOfStyle],
   );
   const showData = useMemo(() => {
     const isSet = view.name === "showSet" && set;
     if (!isSet && !(view.name === "show" && page)) return null;
     if (isSet && !partSec) return null;
     const paper = isSet ? partSec.paper : page;
-    const task = isSet ? runTasks[partIndex] : taskOf(page, pageToLines(page, glyphMap));
-    return { isSet, ruling: paper.ruling, gridSource: paper, task };
+    // the letters of the shown part: its style's (the panel of a tapped word writes it in that style too)
+    const record = isSet ? (partSec.style ? recordOfStyle(partSec.style) : topicRecord) : recordOfPage(page);
+    const map = glyphMapOf(record);
+    const task = isSet ? runTasks[partIndex] : taskOf(page, pageToLines(page, map), 0, 0, record);
+    return { isSet, ruling: paper.ruling, gridSource: paper, task, record, glyphMap: map };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view.name, page, set, runTasks, partIndex, glyphMap, taskOf]);
+  }, [view.name, page, set, runTasks, partIndex, glyphMap, taskOf, recordOfStyle, recordOfPage]);
   // the cover: the notebook's own (`set.cover`, synced with it; a notebook printed before keeps the design remembered on this device),
   // drawn with the notebook's name
   const printKey = view.name === "showSet" && set ? set.id : view.name === "show" && page ? page.id : null;
@@ -379,12 +391,14 @@ export default function Propis2Home({ db }) {
   const squaredFirst = Boolean(coverFirstPage) && taskGrid(coverFirstPage) === "square";
   const printCfg = { numbers: true, booklet: false, ...(printKey ? printCfgs[printKey] : null) };
   // the pages printed: the notebook's screen pages, or the one page's
-  const printPageCount = view.name === "showSet" && set ? sections?.total ?? 0 : page ? screenPagesOfPage(page, glyphMap) : 0;
+  const printPageCount = view.name === "showSet" && set ? sections?.total ?? 0 : page ? screenPagesOfPage(page, glyphMapOf(recordOfPage(page))) : 0;
+  // the cover writes (its back: the alphabet) in the style of the notebook's first page
+  const coverRecord = coverFirstPage ? recordOfPage(coverFirstPage) : topicRecord;
   // its first page gives the spine its paper (when the cover says "as in the notebook"); the pages and the print mode give the leaves
   const coverNotebook = useMemo(() => {
     if (!printKey || !coverFirstPage) return null;
-    return { title: printTitle, a4: pageFormat(coverFirstPage) === "a4", topicRecord, paper: pageGridKind(coverFirstPage), pages: printPageCount, booklet: Boolean(printCfg.booklet) };
-  }, [printKey, printTitle, coverFirstPage, topicRecord, printPageCount, printCfg.booklet]);
+    return { title: printTitle, a4: pageFormat(coverFirstPage) === "a4", topicRecord: coverRecord, paper: pageGridKind(coverFirstPage), pages: printPageCount, booklet: Boolean(printCfg.booklet) };
+  }, [printKey, printTitle, coverFirstPage, coverRecord, printPageCount, printCfg.booklet]);
   const cover = useMemo(
     () => normalizeCover(coverSet?.cover ?? migrateLegacy(printCfg.cover, { squared: squaredFirst }), { squared: squaredFirst }),
     [coverSet?.cover, printCfg.cover, squaredFirst],
@@ -436,10 +450,10 @@ export default function Propis2Home({ db }) {
 
   // Student view: one page, or a whole set as one booklet (pages padded to screen-page boundaries).
   if ((view.name === "show" && page) || (view.name === "showSet" && set)) {
-    const { isSet, ruling, gridSource, task } = showData;
+    const { isSet, ruling, gridSource, task, record: shownRecord, glyphMap: shownMap } = showData;
     // the page of the notebook on the screen page shown: within the run, by the screen pages each of its pages takes
     let editTarget = isSet ? partSec.pageIds[0] : page.id;
-    if (isSet) { let at = partSec.start; for (const id of partSec.pageIds) { if (at > shownPage) break; editTarget = id; at += screenPagesOf(pagesById.get(id)); } }
+    if (isSet) { let at = partSec.start; for (const id of partSec.pageIds) { if (at > shownPage) break; editTarget = id; at += screenPagesOfPage(pagesById.get(id), shownMap); } }
     if (view.from === "editor") editTarget = null;
     return (
       <div className="propis2-view" data-testid="propis2-view">
@@ -464,7 +478,7 @@ export default function Propis2Home({ db }) {
             onJump: (where) => { setFragment(null); setPart(where === "first" ? { index: 0, startAt: 0 } : { index: sections.list.length - 1, startAt: "last" }); },
           } : {})}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
-          onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}
+          onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, shownMap, ruling))}
         />
         {editTarget && (
           <button type="button" className="propis-ctrl-btn propis2-view-edit" aria-label="Изменить эту страницу" title="Изменить эту страницу" onClick={() => { setFragment(null); setView({ name: "editor", pageId: editTarget, backTo: isSet ? { name: "showSet", setId: set.id, from: view.from } : view.backTo }); }}>✎</button>
@@ -514,7 +528,7 @@ export default function Propis2Home({ db }) {
           />
         )}
         {fragment && (
-          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} bandFill={gridSource ? pageBandFill(gridSource) : null} onClose={() => setFragment(null)} />
+          <Propis2ShowPanel fragment={fragment} topicRecord={shownRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource ? pageMidDash(gridSource) : undefined} bandFill={gridSource ? pageBandFill(gridSource) : null} onClose={() => setFragment(null)} />
         )}
         {dialog}
       </div>
@@ -527,6 +541,14 @@ export default function Propis2Home({ db }) {
     const navIndex = navSet ? navSet.pageIds.indexOf(page.id) : -1;
     const goPage = (id) => id && setView({ ...view, pageId: id });
     const shown = navSet ? { ...page, ...notebookLayout(navSet, pagesById) } : page;
+    const shownStyle = pageStyle(shown);
+    const navPages = navSet ? navSet.pageIds.map((id) => (id === page.id ? page : pagesById.get(id))).filter(Boolean) : [];
+    // a page that changes its style keeps its paper when the new style has it, else takes the style's first paper
+    const fitPaper = (p) => {
+      const papers = deckPapers(recordOfPage(p)).map((g) => g.id);
+      if (!papers.length || papers.includes(pageGridKind(p))) return p;
+      return papers[0] === "propis" ? { ...p, gridKind: undefined } : { ...p, gridKind: papers[0] };
+    };
     const nav = navSet && navIndex >= 0 ? {
       index: navIndex,
       total: navSet.pageIds.length,
@@ -534,6 +556,8 @@ export default function Propis2Home({ db }) {
       // (the stored page objects themselves, so a thumbnail is laid out again only when its page changed; `layout`: what the notebook imposes)
       pages: navSet.pageIds.map((id) => (id === page.id ? page : pagesById.get(id))).filter(Boolean),
       layout: notebookLayout(navSet, pagesById),
+      // each page drawn in its own writing style (`page.style`)
+      ...(multiStyle ? { recordOf: recordOfPage } : {}),
       onGo: (i) => goPage(navSet.pageIds[i]),
       onPrev: () => goPage(navSet.pageIds[navIndex - 1]),
       onNext: () => goPage(navSet.pageIds[navIndex + 1]),
@@ -571,9 +595,12 @@ export default function Propis2Home({ db }) {
         page={shown}
         title={navSet ? navSet.title : undefined}
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
-        topicRecord={topicRecord}
-        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone, styleTitle: styleTitleOf(languages.find((l) => l.id === lang), writingStyle) } : null}
+        topicRecord={recordOfPage(shown)}
+        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone, styleTitle: styleTitleOf(languages.find((l) => l.id === lang), shownStyle) } : null}
+        // the page's writing style: picked in the page strip like its paper (a page of print letters, the next one in the British hand)
+        styles={multiStyle ? { options: langStyleList, value: shownStyle } : null}
         onChange={(next, how) => {
+          if (multiStyle && next.style !== shown.style) next = fitPaper(next);
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
           const change = navSet ? layoutChange(shown, next) : {};
           const patch = Object.fromEntries(Object.entries(change).filter(([k]) => NOTEBOOK_KEYS.includes(k)));
@@ -584,9 +611,14 @@ export default function Propis2Home({ db }) {
         }}
         notebook={navSet && navSet.pageIds.length > 1 ? {
           total: navSet.pageIds.length,
-          mixed: mixedSettings(navSet, pagesById),
-          othersDiffer: (key, value) => othersDiffer(navSet, pagesById, page.id, key, value),
-          applyAll: (key, value) => edit(applyLayout(working, navSet.id, { [key]: value })),
+          mixed: { ...mixedSettings(navSet, pagesById), ...(multiStyle && new Set(navPages.map(pageStyle)).size > 1 ? { style: true } : {}) },
+          othersDiffer: (key, value) => (key === "style" ? navPages.some((p) => p.id !== page.id && pageStyle(p) !== value) : othersDiffer(navSet, pagesById, page.id, key, value)),
+          applyAll: (key, value) => {
+            let lib = applyLayout(working, navSet.id, { [key]: value });
+            // every page in the new style: a paper it does not have is replaced on the pages that had it
+            if (key === "style") for (const id of navSet.pageIds) { const p = lib.pages.find((x) => x.id === id); const fit = p && fitPaper(p); if (fit && fit !== p) lib = upsertPage(lib, fit); }
+            edit(lib);
+          },
         } : null}
         onUndo={undo}
         onRedo={redo}

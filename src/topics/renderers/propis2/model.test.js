@@ -122,6 +122,19 @@ describe("propis2 model", () => {
     expect(setPageStarts(set, byId, map)).toEqual([1, 2, 3, null]);
   });
 
+  it("a page in a writing style of its own starts a new run (page.style); without styleOf the runs are by paper only", () => {
+    const a = newPage("A", { gridKind: "en_gb", rows: [newRow({ text: "cat" })] });
+    const b = newPage("B", { gridKind: "en_gb", rows: [newRow({ text: "dog" })], style: "british" });
+    const c = newPage("C", { gridKind: "en_gb", rows: [newRow({ text: "pig" })], style: "print" });
+    const byId = new Map([a, b, c].map((p) => [p.id, p]));
+    const set = newSet("S", { pageIds: [a.id, b.id, c.id] });
+    expect(notebookSections(set, byId, map).map((x) => x.pageIds.length)).toEqual([3]); // as before
+    const asked = [];
+    const secs = notebookSections(set, byId, map, { styleOf: (p) => p.style ?? "print", glyphMapOf: (st) => { asked.push(st); return map; } });
+    expect(secs.map((x) => [x.style, x.pageIds])).toEqual([["print", [a.id]], ["british", [b.id]], ["print", [c.id]]]);
+    expect(secs.map((x) => x.start)).toEqual([0, 1, 2]);
+    expect(asked).toEqual(["print", "british", "print"]); // each run counted with its style's letters
+  });
   it("every page on its own paper: a page is padded to its own rows per page, runs of pages on the same paper", () => {
     const sq = newPage("Кл", { gridKind: "square", rows: [newRow({ text: "1" })] });
     const sq2 = newPage("Кл2", { gridKind: "square", rows: [newRow({ text: "2" })], writeAfter: true });

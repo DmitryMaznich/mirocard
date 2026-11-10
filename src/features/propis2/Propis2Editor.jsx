@@ -63,6 +63,12 @@ const SETTING_SAYS = {
   bandFill: (v) => `Подсветка: ${BAND_FILL_OPTS.find((o) => o.id === v)?.label ?? "нет"}`,
   bgDash: (v) => (v ? "Пунктир включён" : "Пунктир выключен"),
   writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
+  style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
+};
+// a writing style in the page strip: its initials («Печатные» П, «Британские раздельные» БР), the full name is the option's label
+const styleIcon = (st) => {
+  const text = st.short ?? st.title.split(/\s+/).map((w) => w[0]).join("").slice(0, 3).toUpperCase();
+  return function StyleIcon() { return <span className="p2-style-ico" aria-hidden="true">{text}</span>; };
 };
 
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
@@ -110,7 +116,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, notebook = null, language = null }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, notebook = null, language = null, styles = null }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // The checks of the rows and the map of the sheet's rows are worked out on a deferred copy of the page (as the preview is): a key
   // typed shows in the field at once, the marks on the sheet follow a moment later.
@@ -158,6 +164,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const pageIndexRef = useRef(0);
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
+  const styleOptions = useMemo(() => (styles?.options ?? []).map((st) => ({ id: st.id, label: st.title, Icon: styleIcon(st) })), [styles?.options]);
   const propisGrid = gridKind === "propis";
   const fourPaper = fourLinePaper(gridKind); // a four-line paper (fourLinePapers.js): no dense slant; its own dash, `bgDash`, if it has one
   const bgPaper = Boolean(fourPaper);
@@ -427,7 +434,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }, { typing: true }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
         {/* a deck with several writing languages: the notebook's language (it never changes, docs/propis2-languages.md) */}
         {language && <span className={`p2-lang-badge p2-lang-tone-${language.tone ?? 0}`} title={`Язык тетради: ${language.title}`} aria-label={`Язык тетради: ${language.title}`} data-testid="propis2-notebook-lang">{language.short ?? language.title}</span>}
-        {/* the notebook's writing style, when its language has several (English: «Печатные» / «Британские»), fixed like the language */}
+        {/* the writing style of the open page, when its language has several (English: «Печатные» / «Британские»); changed in the page strip («Стиль») */}
         {language?.styleTitle && <span className={`p2-lang-badge p2-style-badge p2-lang-tone-${language.tone ?? 0}`} title={`Стиль письма: ${language.styleTitle}`} aria-label={`Стиль письма: ${language.styleTitle}`} data-testid="propis2-notebook-style">{language.styleTitle}</span>}
         {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
@@ -437,6 +444,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           {/* the format is the whole notebook's (Propis2Home.onChange puts it onto every page); A4 is a whole sheet per page when printed (owner, 2026-11-05;
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
+          {/* the page's writing style (docs/propis2-languages.md «Стиль у страницы»): only a language with several styles */}
+          {styles && <Propis2Picker label="Стиль письма" caption="Стиль" disabled={locked} mixed={mx.style} value={styles.value} onChange={(id) => setSetting("style", id)} options={styleOptions} />}
           <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
@@ -531,7 +540,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <div className="p2-offer" role="status" data-testid="propis2-offer">
             <span className="p2-offer-msg">{rowOffer
               ? `${ROW_SAYS[offer.key](offer.value)} — ${offer.done ? `ещё на ${onRows(offer.ids.length)} ниже` : `на строке ${offer.row}`}`
-              : `${SETTING_SAYS[offer.key](offer.value)} — ${offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}`}</span>
+              : `${SETTING_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}`}</span>
             {offer.done
               ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
               : rowOffer

@@ -14,6 +14,15 @@ export function buildGlyphMap(topicRecord) {
   return map;
 }
 
+// buildGlyphMap once per record: a notebook whose pages write in different styles (languageView gives one record per style, cached)
+// asks for the map of each style again and again
+const GLYPH_MAPS = new WeakMap();
+export function glyphMapOf(topicRecord) {
+  if (!topicRecord) return buildGlyphMap(topicRecord);
+  if (!GLYPH_MAPS.has(topicRecord)) GLYPH_MAPS.set(topicRecord, buildGlyphMap(topicRecord));
+  return GLYPH_MAPS.get(topicRecord);
+}
+
 // Elements the picker offers: [{ id, label }] from elements.json plus the wide-zone element glyphs.
 export function listElementChoices(topicRecord) {
   const out = (topicRecord?.elements ?? []).map((el) => ({ id: el.id, label: el.labelRu ?? el.id }));

@@ -695,20 +695,26 @@ export function othersDiffer(set, pagesById, pageId, key, value) {
 // The notebook in runs of consecutive pages on the same paper («участки»). The student view lays out each run on its own paper;
 // a notebook on one paper is one run, laid out as one document exactly as before. `pages`: how many screen pages each run is
 // expected to take (from the line count, see setPageStarts), `start`: the screen page the run starts on (0-based).
-export function notebookSections(set, pagesById, glyphMap) {
+// A page may write in a writing style of its own (`page.style`, docs/propis2-languages.md «Стиль у страницы»): `styleOf(page)` gives the
+// style a page really writes in (its own, else the notebook's), and a change of style starts a new run too — each run is laid out with
+// its style's letters (`sec.style`); `glyphMapOf(style)` is the glyph map of a style (the screen pages a run takes are counted with it).
+// Without them (a language with one style) the runs are by paper only, exactly as before.
+export function notebookSections(set, pagesById, glyphMap, { styleOf = null, glyphMapOf = null } = {}) {
   const out = [];
   for (const id of set?.pageIds ?? []) {
     const page = pagesById.get(id);
     if (!page) continue;
-    const key = paperKey(page);
+    const style = styleOf ? styleOf(page) ?? null : null;
+    const key = style ? `${paperKey(page)}|${style}` : paperKey(page);
     const last = out[out.length - 1];
     if (last && last.key === key) last.pageIds.push(id);
-    else out.push({ key, paper: page, pageIds: [id] });
+    else out.push({ key, paper: page, pageIds: [id], ...(style ? { style } : {}) });
   }
   let start = 0;
   for (const sec of out) {
+    const map = sec.style && glyphMapOf ? glyphMapOf(sec.style) : glyphMap;
     sec.start = start;
-    sec.pages = sec.pageIds.reduce((n, id) => n + screenPagesOf(pagesById.get(id), glyphMap), 0);
+    sec.pages = sec.pageIds.reduce((n, id) => n + screenPagesOf(pagesById.get(id), map), 0);
     start += sec.pages;
   }
   return out;
