@@ -771,29 +771,54 @@
    photo to tap. (No dashed border: dashed means a drop zone elsewhere in
    the app.) Then the question, then the choices. */
 /* Every size below comes from the screen's own box (cqw/cqh), so the card,
-   the question and two rows of photos fit the height left under the
+   the question and the rows of photos fit the height left under the
    session header on a small phone as on a tablet. */
+/* Sizing (2026-11-11): the name card gets whatever the choices leave.
+   First the height that is really free is worked out (--mp-free: the box
+   minus the caption, the question row and the gaps), then the choices take
+   a fixed share of it (or less, if the width runs out first), and the name
+   card takes the rest -- up to the screen's width. Before this the card
+   was a fixed share of the height with a 320/340px cap, which left it
+   small on phones and on tablets with half the screen empty. */
 /* Top to bottom: the name card at the top, the question with its photos at
-   the bottom, and whatever height is free between them -- "this is
-   Филипп" and "where is Филипп?" read as two steps, not one heap. On a
-   small phone there is little to spare, so it stays compact by itself. */
+   the bottom, and whatever height is still free between them -- "this is
+   Филипп" and "where is Филипп?" read as two steps, not one heap. */
 .people-point--match {
   --mp-gap: clamp(8px, 2vh, 22px);
+  --mp-row-gap: clamp(20px, 4vw, 56px);
   box-sizing: border-box;
   width: 100%;
   max-width: none;
-  padding: clamp(10px, 3vh, 36px) 16px clamp(16px, 4vh, 48px);
+  padding: clamp(8px, 2.4vh, 32px) calc(16px + var(--app-safe-right, 0px)) clamp(12px, 3vh, 40px) calc(16px + var(--app-safe-left, 0px));
   justify-content: space-between;
   gap: var(--mp-gap);
   container-type: size;
 }
 
 /* The sizes are declared on the children, not on the container itself:
-   there cq units would resolve against the viewport. */
-.people-match__sample { --mp-sample: min(64cqw, 28cqh, 320px); }
-.people-match__photos { --mp-card: min(44cqw, 32cqh, 260px); }
-.people-match__photos--3 { --mp-card: min(29cqw, 30cqh, 240px); }
-.people-match__photos--4 { --mp-card: min(44cqw, 20cqh, 230px); }
+   there cq units would resolve against the viewport. Both children get the
+   same set, because the card's size depends on the choices' and back. */
+.people-point--match > .people-match__sample,
+.people-point--match > .people-match__choose {
+  --mp-label-font: clamp(18px, min(6.4cqw, 3.2cqh), 34px);
+  /* Caption (one line + padding), frame, question row (52px), two gaps,
+     and 10px of slack for a caption that wraps. */
+  --mp-free: calc(100cqh - var(--mp-label-font) * 1.15 - 22px - 52px - 2 * var(--mp-gap) - 10px);
+  --mp-card: min(calc((100cqw - 12px) / 2), 300px, calc(var(--mp-free) * .36));
+  --mp-sample: min(90cqw, 640px, calc(var(--mp-free) - var(--mp-card)));
+}
+
+.people-point--match-3 > .people-match__sample,
+.people-point--match-3 > .people-match__choose {
+  --mp-card: min(calc((100cqw - 24px) / 3), 260px, calc(var(--mp-free) * .34));
+}
+
+/* Four: two rows of two. */
+.people-point--match-4 > .people-match__sample,
+.people-point--match-4 > .people-match__choose {
+  --mp-card: min(calc((100cqw - 12px) / 2), 260px, calc((var(--mp-free) - 12px) * .25));
+  --mp-sample: min(90cqw, 640px, calc(var(--mp-free) - 2 * var(--mp-card) - 12px));
+}
 
 .people-match__sample {
   flex: 0 0 auto;
@@ -820,9 +845,9 @@
 }
 
 .people-match__label {
-  padding: 4px 8px 8px;
+  padding: 3px 8px 8px;
   color: #fff;
-  font-size: clamp(18px, min(6.4cqw, 3.2cqh), 32px);
+  font-size: var(--mp-label-font, 24px);
   font-weight: 900;
   line-height: 1.12;
   text-align: center;
@@ -865,6 +890,7 @@
 
 .people-point--match .people-match__photos--3 { grid-template-columns: repeat(3, var(--mp-card)); }
 
+/* Choices are buttons: a white card with a lift. */
 .people-point--match .people-match__photos > .people-point-photo {
   box-sizing: border-box;
   width: var(--mp-card);
@@ -901,79 +927,44 @@
 .people-point--match .people-point-photo--faded { opacity: .3; }
 
 /* Landscape: the name card on the left, the question and choices on the
-   right -- in a column the photos would have to shrink to fit. */
+   right -- in a column the photos would have to shrink to fit. The card is
+   as tall as the box allows (up to half its width); the choices share the
+   width that is left. */
 @media (orientation: landscape) {
   .people-point--match {
     justify-content: center;
-    padding: 16px clamp(20px, 4vw, 40px);
+    padding: 12px calc(clamp(16px, 3vw, 40px) + var(--app-safe-right, 0px)) 16px calc(clamp(16px, 3vw, 40px) + var(--app-safe-left, 0px));
     flex-direction: row;
-    gap: clamp(20px, 5vw, 64px);
+    gap: var(--mp-row-gap);
   }
 
-  .people-match__sample { --mp-sample: min(36cqw, 64cqh, 380px); }
-  .people-match__photos { --mp-card: min(26cqw, 66cqh, 280px); }
-  .people-match__photos--3 { --mp-card: min(17cqw, 60cqh, 240px); }
-  .people-match__photos--4 { --mp-card: min(22cqw, 36cqh, 240px); }
+  .people-point--match > .people-match__sample,
+  .people-point--match > .people-match__choose {
+    --mp-label-font: clamp(18px, min(3.2cqw, 5cqh), 36px);
+    --mp-sample: min(calc(100cqh - var(--mp-label-font) * 1.15 - 22px), 50cqw, 640px);
+    /* Width and height left for the choices beside the card. */
+    --mp-side: calc(100cqw - var(--mp-sample) - var(--mp-row-gap));
+    --mp-side-h: calc(100cqh - 52px - var(--mp-gap));
+    --mp-card: min(calc((var(--mp-side) - 12px) / 2), var(--mp-side-h), calc(var(--mp-sample) * .8), 300px);
+  }
+
+  .people-point--match-3 > .people-match__sample,
+  .people-point--match-3 > .people-match__choose {
+    --mp-sample: min(calc(100cqh - var(--mp-label-font) * 1.15 - 22px), 44cqw, 640px);
+    --mp-card: min(calc((var(--mp-side) - 24px) / 3), var(--mp-side-h), calc(var(--mp-sample) * .7), 260px);
+  }
+
+  .people-point--match-4 > .people-match__sample,
+  .people-point--match-4 > .people-match__choose {
+    --mp-card: min(calc((var(--mp-side) - 12px) / 2), calc((var(--mp-side-h) - 12px) / 2), calc(var(--mp-sample) * .7), 260px);
+  }
+
   .people-point--match .people-match__choose { width: auto; }
-  .people-match__label { font-size: clamp(20px, 5cqh, 36px); }
 }
 
 .people-point__photos--grid {
   max-width: min(100%, 440px, 46vh);
   gap: 12px;
-}
-
-.people-point--match .people-point__photos--grid > .people-point-photo {
-  flex-basis: calc(50% - 6px);
-  max-width: none;
-}
-
-/* Choices are buttons: a white card with a lift. */
-.people-point--match .people-point-photo {
-  border-color: #fff;
-  box-shadow: 0 6px 16px rgba(40, 84, 76, .16), 0 3px 0 #d8e6e2;
-}
-
-.people-point--match .people-point-photo--correct {
-  position: relative;
-  border-color: #22c55e;
-  box-shadow: 0 0 0 6px rgba(34, 197, 94, .22);
-}
-
-.people-point--match .people-point-photo--correct::after {
-  content: "✓";
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  color: #fff;
-  background: #22c55e;
-  box-shadow: 0 2px 0 #16a34a;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.people-point--match .people-point-photo--hint { border-color: #4a9b8f; }
-.people-point--match .people-point-photo--faded { opacity: .3; }
-
-/* Landscape tablet: the name card on the left, the question and choices on
-   the right -- in a column the photos would have to shrink to fit. */
-@media (orientation: landscape) and (min-width: 700px) {
-  .people-point--match {
-    width: min(100%, 1100px);
-    flex-direction: row;
-    gap: clamp(24px, 5vw, 56px);
-    padding: 16px clamp(20px, 4vw, 40px);
-  }
-
-  .people-point--match .people-match__sample { width: min(36vw, 340px, 60vh); }
-  .people-point--match .people-match__choose { width: auto; flex: 0 1 auto; }
-  .people-point--match .people-point__photos > .people-point-photo { flex-basis: min(24vw, 240px, 52vh); }
-  .people-point--match .people-point__photos--grid { width: min(48vw, 70vh, 480px); max-width: none; }
 }
 
 .people-point__photos--grid {

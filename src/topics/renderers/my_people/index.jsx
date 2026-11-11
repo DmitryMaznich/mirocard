@@ -721,7 +721,7 @@ function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, 
   );
   if (isMatch) {
     return (
-      <div className="session-body people-point people-point--match" aria-label="Найди лицо">
+      <div className={`session-body people-point people-point--match people-point--match-${task.choices.length}`} aria-label="Найди лицо">
         <MatchSample topicId={topicId} image={task.sample} label={task.sampleLabel} />
         <div className="people-match__choose">
           {prompt}
