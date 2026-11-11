@@ -257,6 +257,43 @@ describe("operation_chain", () => {
   });
 });
 
+describe("operation_chain with several actions", () => {
+  it.each([2, 3, 4])("builds %i actions computed left to right, every partial inside the range", (steps) => {
+    for (const maxNumber of [5, 10, 20]) {
+      const tasks = generateTasks("operation_chain", CARDS, 40, { maxNumber, changeMax: 99, steps });
+      expect(tasks.length).toBeGreaterThan(0);
+      tasks.forEach((t) => {
+        expect(t.steps).toBe(steps);
+        expect(t.terms).toHaveLength(steps + 1);
+        expect(t.ops).toHaveLength(steps);
+        let value = t.terms[0];
+        t.ops.forEach((op, i) => {
+          value = op === "add" ? value + t.terms[i + 1] : value - t.terms[i + 1];
+          expect(t.partials[i]).toBe(value);
+          expect(value).toBeGreaterThanOrEqual(1);
+          expect(value).toBeLessThanOrEqual(maxNumber);
+        });
+        expect(t.result).toBe(value);
+      });
+    }
+  });
+
+  it("keeps each change within changeMax and never undoes the previous step", () => {
+    const tasks = generateTasks("operation_chain", CARDS, 60, { maxNumber: 10, changeMax: 3, steps: 4 });
+    tasks.forEach((t) => {
+      t.terms.slice(1).forEach((d) => expect(d).toBeLessThanOrEqual(3));
+      t.ops.forEach((op, i) => {
+        if (i > 0 && op !== t.ops[i - 1]) expect(t.terms[i + 1]).not.toBe(t.terms[i]);
+      });
+    });
+  });
+
+  it("defaults to two actions", () => {
+    const [t] = generateTasks("operation_chain", CARDS, 1, { maxNumber: 10 });
+    expect(t.steps).toBe(2);
+  });
+});
+
 describe("operation_missing_term", () => {
   it("generates tasks with operation_missing_term type", () => {
     const tasks = generateTasks("operation_missing_term", CARDS, 5, { operation: "add" });

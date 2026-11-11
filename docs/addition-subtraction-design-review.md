@@ -66,6 +66,30 @@ pale-yellow answer field. The rod is drawn only in «Сделай действи
 unchanged. Old `operations_*` icons removed except `operations_mode.svg` (column_addition's
 fallback).
 
+## 2026-11-11: «Цепочка» → «Пример в несколько действий» (operation_chain)
+
+Owner's asks, all done (deck 1.9.3):
+- **Number of actions 2 / 3 / 4** (`steps`). `buildChainTask` in `engine.js` is now a random
+  walk: every partial result stays in [min, maxNumber], each change ≤ changeMax, a step never
+  undoes the previous one (+3 then −3). Task carries `terms`, `ops`, `partials`; the old
+  A/B/C/opAB… fields stay for «Контрольная работа» (still two actions) and saved sessions.
+- **Name**: school term «пример (выражение) в несколько действий»; with + and − only they are
+  done in order, left to right — hence the child-facing caption «Считай по порядку». Not
+  «Порядок действий» (in school that means precedence rules).
+- **Hint «По шагам»** (`stepHint`, on by default): splits the example into its actions —
+  «5 + 2 = ?», the answer carries into «7 − 1 = ?» … The child computes every step (keypad or
+  4 choices, matching the mode's input type); a wrong step is just retried, no `onIncorrect`.
+  The finished task goes through `onCorrect(…, { assisted: true })` — counted as done with
+  help, no star (same path as reading / letter_bridge).
+- **Visual**: the example scales to its length (`--chain-tokens`), four actions fit one line on
+  360px; minus is red (the old class was `--subtract` but the CSS said `--sub`, so it never
+  was); the action being solved glows as one «sign + number» unit, solved ones fade; the stage
+  fills the session area and scrolls; the 🧮 button got its safe-area offset.
+- **Settings check (whole topic)**: `limitBy: "maxNumber"` on every `changeMax`
+  (`src/topics/paramLimits.js`). With numbers up to 5 only changes 1 / 3 / 5 are offered, up
+  to 10 also 10, «любое» only for up to 20; a saved value that no longer fits becomes the
+  largest that does — in the settings screen and when a session starts from saved settings.
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s

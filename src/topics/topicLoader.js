@@ -552,8 +552,8 @@ const DEFAULT_MODE_METHODOLOGY = {
       goal: "Ребёнок вычисляет результат полного примера.",
     },
     operation_chain: {
-      settings: ["Начинайте с maxNumber=10 и изменения на 1.", "Счётный помощник помогает удержать промежуточный результат."],
-      goal: "Ребёнок считает пример из двух последовательных действий (A ± B ± C).",
+      settings: ["Начинайте с двух действий, предела 10 и изменения на 1; три и четыре действия — когда два решаются уверенно.", "«По шагам» разбивает пример на действия; решение с подсказкой не даёт звезду."],
+      goal: "Ребёнок считает пример в несколько действий (2–4) по порядку слева направо, удерживая промежуточный результат.",
     },
     operation_missing_term: {
       settings: ["Начинайте с правого неизвестного и операции +.", "Счётный помощник (🧮) помогает отсчитать от результата назад."],
@@ -1108,7 +1108,7 @@ const DEFAULT_MODES = {
       ui: { title: "4. Сделай действие", instruction: "Покажи на палке и назови результат", icon: "media/icons/ops_do_action.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 1, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 1, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
         showInstruction: { type: "boolean", default: true, label: { ru: "Показывать инструкции" } },
       },
@@ -1127,7 +1127,7 @@ const DEFAULT_MODES = {
           label: { ru: "Направление" },
         },
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         showStickPhase: { type: "boolean", default: false, label: { ru: "Фаза со счётной палкой" }, hint: { ru: "После выбора слова — сдвинуть фишки в правильную сторону" } },
         showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" }, showWhen: { showStickPhase: true } },
         showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" }, showWhen: { showStickPhase: true } },
@@ -1140,7 +1140,7 @@ const DEFAULT_MODES = {
       ui: { title: "6. Найди знак", instruction: "Какой знак пропущен в примере?", icon: "media/icons/ops_find_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
         showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
         showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" } },
@@ -1175,7 +1175,7 @@ const DEFAULT_MODES = {
       ui: { title: "8. Сколько стало?", instruction: "Вычисли результат примера", icon: "media/icons/ops_result.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
         inputMode: {
           type: "enum",
@@ -1193,11 +1193,13 @@ const DEFAULT_MODES = {
       id: "operation_chain",
       type: "operation_chain",
       evaluation: "auto",
-      ui: { title: "9. Цепочка", instruction: "Посчитай пример из двух действий", icon: "media/icons/ops_chain.svg" },
+      ui: { title: "9. Пример в несколько действий", instruction: "Считай по порядку, слева направо", icon: "media/icons/ops_chain.svg" },
       params: {
+        steps: { type: "enum", values: [2, 3, 4], labels: { ru: { "2": "2", "3": "3", "4": "4" } }, default: 2, label: { ru: "Количество действий" } },
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
+        stepHint: { type: "boolean", default: true, label: { ru: "Подсказка «По шагам»" }, hint: { ru: "Разбивает пример на действия; решение с подсказкой не даёт звезду" } },
         inputMode: {
           type: "enum",
           values: ["choices", "pad"],
@@ -1218,7 +1220,7 @@ const DEFAULT_MODES = {
       ui: { title: "10. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/ops_worksheet.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
         groupCount: { type: "enum", values: [2, 3, 4, 6], default: 6, compact: true, label: { ru: "Количество групп" } },
         perGroup: { type: "enum", values: [4, 6, 8, 10], default: 6, compact: true, label: { ru: "Примеров в группе" } },
@@ -1245,7 +1247,7 @@ const DEFAULT_MODES = {
           label: { ru: "Позиция неизвестного" },
         },
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
-        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], limitBy: "maxNumber", anyValue: 99, labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         inputMode: {
           type: "enum",
           values: ["choices", "pad"],

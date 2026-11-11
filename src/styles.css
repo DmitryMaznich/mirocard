@@ -16625,8 +16625,8 @@ button.operation-dot {
 
 .helper-toggle-btn {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: calc(12px + var(--app-safe-bottom, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
   width: 44px;
   height: 44px;
   border-radius: 12px;
@@ -16722,121 +16722,170 @@ button.operation-dot {
 .operation-stage--chain {
   position: relative;
   justify-content: center;
-  gap: 24px;
+  align-items: center;
+  gap: clamp(14px, 3dvh, 24px);
 }
 
+/* Fills the session area (not 100dvh) and scrolls if 4 steps don't fit. */
+.operation-stage.operation-stage--chain {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: calc(16px + var(--app-safe-bottom, 0px));
+}
+
+/* «Пример в несколько действий» (operation_chain). The example scales with
+   its length (--chain-tokens: numbers + signs + «=» + answer) so four actions
+   still fit one line on a phone. Plus teal, minus red, as everywhere here. */
 .chain-expression {
+  --chain-font: min(clamp(2rem, 11vw, 5rem), calc((100vw - 40px) / (var(--chain-tokens, 7) * 0.72)));
   display: flex;
   align-items: center;
-  gap: clamp(4px, 2vw, 12px);
+  justify-content: center;
+  gap: calc(var(--chain-font) * 0.14);
   flex-wrap: nowrap;
+  max-width: 100%;
+  padding: calc(var(--chain-font) * 0.16) calc(var(--chain-font) * 0.3);
+  border: 1px solid #e7dccf;
+  border-radius: 18px;
+  background: #fff;
   font-variant-numeric: tabular-nums;
-}
-
-.chain-expression__group {
-  display: flex;
-  align-items: center;
-  gap: clamp(4px, 1.5vw, 10px);
-  background: #f0f9f6;
-  border-radius: 16px;
-  padding: 6px 12px;
-  border: 2px solid #1f7a6f33;
-}
-
-.chain-expression__group--active {
-  border-color: #1f7a6f;
-  background: #e8f7f3;
-}
-
-.chain-expression__num {
-  font-size: clamp(2rem, 10vw, 5rem);
-  font-weight: 800;
-  color: #1a1a1a;
-  line-height: 1.1;
-}
-
-.chain-expression__num--dim {
-  opacity: 0.38;
-}
-
-.chain-expression__num--unknown {
-  color: #888;
-  font-style: italic;
-}
-
-.chain-expression__sign {
-  font-size: clamp(1.8rem, 8vw, 4rem);
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1;
 }
 
-.chain-expression__sign--add  { color: #1f7a6f; }
-.chain-expression__sign--sub  { color: #c04040; }
-.chain-expression__sign--dim  { opacity: 0.3; }
+.chain-expression__num {
+  font-size: var(--chain-font);
+  color: #263131;
+  border-radius: 0.14em;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.chain-expression__sign {
+  font-size: calc(var(--chain-font) * 0.9);
+  border-radius: 0.14em;
+}
+
+.chain-expression__sign--add      { color: #1f7a6f; }
+.chain-expression__sign--subtract { color: #c04040; }
 
 .chain-expression__equals {
-  font-size: clamp(1.8rem, 8vw, 4rem);
-  color: #888;
-  font-weight: 700;
+  font-size: calc(var(--chain-font) * 0.9);
+  color: #7a8c88;
+}
+
+.chain-expression__group {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--chain-font) * 0.14);
+  padding: 0 0.06em;
+  border-radius: 0.2em;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.chain-expression__result { color: #1f4f8a; }
+
+/* Step-by-step hint: the action being solved glows, solved ones fade. */
+.chain-expression__part--active {
+  background: #fff3c4;
+  box-shadow: 0 0 0 calc(var(--chain-font) * 0.1) #fff3c4;
+}
+.chain-expression__part--done { opacity: 0.35; }
+
+.chain-expression__result--pop {
+  color: #1f7a6f;
+  animation: operation-answer-pop .38s ease both;
 }
 
 .chain-caption {
-  font-size: 0.95rem;
-  color: #666;
+  font-size: clamp(1.05rem, 4.2vw, 1.4rem);
+  font-weight: 800;
+  color: #536461;
   text-align: center;
 }
 
-.chain-choices {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.chain-choice {
-  min-width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  border: 2px solid #e0e0e0;
-  background: #fff;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
-  font-family: inherit;
-}
-
-.chain-choice:not(:disabled):active {
-  background: #f3f4f6;
-}
-
-.chain-choice--correct {
-  border-color: #1f7a6f;
-  background: #e8f7f3;
-  color: #1f5f57;
-}
-
-.chain-choice--wrong {
-  border-color: #ef6f5e;
-  background: #fff4ee;
-  color: #9f3029;
-}
-
-.chain-choice:disabled {
-  cursor: default;
-}
-
-.operation-stage--placeholder {
-  justify-content: center;
+.chain-hint-btn {
+  align-self: center;
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 2px solid #2563eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #bfd3fb;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.chain-hint-btn:active { transform: translateY(3px); box-shadow: none; }
+.chain-hint-btn:focus-visible { outline: 4px solid #2e7bff; outline-offset: 3px; }
+
+.chain-steps {
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
 }
 
-.operation-placeholder-text {
-  font-size: 2rem;
-  color: #ccc;
-  font-weight: 600;
+.chain-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: 2px solid #e3eae8;
+  background: #fff;
 }
+.chain-step--current { border-color: #e9c46a; background: #fffbea; }
+.chain-step--done { opacity: 0.75; }
+
+.chain-step__label {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eef2f1;
+  color: #536461;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+.chain-step--current .chain-step__label { background: #e9c46a; color: #5b4300; }
+
+.chain-step__expr {
+  display: flex;
+  align-items: center;
+  gap: 0.28em;
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  font-weight: 900;
+  color: #263131;
+  font-variant-numeric: tabular-nums;
+}
+/* The number carried from the previous step. */
+.chain-step__carry { color: #1f4f8a; }
+.chain-step__sign--add      { color: #1f7a6f; }
+.chain-step__sign--subtract { color: #c04040; }
+.chain-step__equals { color: #7a8c88; }
+.chain-step__answer { min-width: 1.3em; text-align: center; }
+.chain-step__answer--input { color: #1f4f8a; border-bottom: 0.07em solid #9fb4c9; }
+.chain-step__answer--done { color: #1f7a6f; }
+.chain-step__answer--wrong { color: #c04040; animation: operation-audio-shake 0.4s ease; }
+
+.chain-step-choices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.chain-step-choices .operation-number-choice { min-height: 64px; }
+
 
 /* ─── Mode 1: Manual session (physical stick) ──────────────────────────── */
 .operation-stage--manual {
@@ -17166,19 +17215,6 @@ button.operation-dot {
 .operation-manual__btn--wrong {
   background: #f44336;
   color: #fff;
-}
-
-@media (max-width: 520px) {
-  .chain-expression__group {
-    padding: 4px 8px;
-    border-radius: 12px;
-  }
-
-  .chain-choice {
-    min-width: 56px;
-    height: 56px;
-    font-size: 1.5rem;
-  }
 }
 
 /* ─── Settings ───────────────────────────────────────────────────────────── */

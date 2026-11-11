@@ -972,54 +972,174 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
+const CHAIN_SIGN = { add: "+", subtract: "−" };
+const CHAIN_ASSISTED_DELAY_MS = 1400;
+
+// Older two-action tasks (saved sessions) carry only A/B/C.
+function chainParts(task) {
+  if (Array.isArray(task.terms) && Array.isArray(task.ops)) return { terms: task.terms, ops: task.ops };
+  return { terms: [task.A, task.B, task.C], ops: [task.opAB, task.opBC] };
+}
+
+function chainPartials(terms, ops) {
+  const partials = [];
+  ops.reduce((value, op, i) => {
+    const next = op === "add" ? value + terms[i + 1] : value - terms[i + 1];
+    partials.push(next);
+    return next;
+  }, terms[0]);
+  return partials;
+}
+
+// Four answer buttons for one step of the step-by-step hint, around the answer.
+function stepChoices(answer, maxNumber) {
+  const pool = [answer - 1, answer + 1, answer - 2, answer + 2, answer + 3, answer - 3]
+    .filter((v) => v >= 0 && v <= maxNumber && v !== answer);
+  const picked = [answer, ...pool.slice(0, 3)];
+  return picked.sort((x, y) => x - y);
+}
+
+// «Пример в несколько действий» (operation_chain): A ± d1 ± d2 … = ?, 2–4
+// actions, computed left to right. The step-by-step hint («По шагам») splits
+// the example into its actions: the child solves «5 + 2 = ?», the answer
+// carries into «7 − 1 = ?», and so on — the child computes every step, the
+// hint only splits the example. A task finished with the hint is recorded as
+// assisted (no star); a wrong step is simply tried again.
 function ChainTask({ task, onCorrect, onIncorrect }) {
   const [selected, setSelected] = useState(null);
   const [helperOpen, setHelperOpen] = useState(false);
+  const [stepMode, setStepMode] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [stepWrong, setStepWrong] = useState(null);
+  const [stepsDone, setStepsDone] = useState(false);
+  const stepTimerRef = useRef(null);
   const answered = selected != null;
+  const { terms, ops } = chainParts(task);
+  const partials = task.partials ?? chainPartials(terms, ops);
+  const isPad = task.inputMode === "pad";
+
+  useEffect(() => () => clearTimeout(stepTimerRef.current), []);
 
   const handleAnswer = useCallback((value) => {
-    if (answered) return;
+    if (answered || stepMode) return;
     setSelected(value);
     if (value === task.result) {
       onCorrect(task.conceptId, task.cardId);
     } else {
       onIncorrect(task.conceptId, task.cardId);
     }
-  }, [answered, task, onCorrect, onIncorrect]);
-  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered, onSubmit: handleAnswer });
-  const isPad = task.inputMode === "pad";
-  const chainResultText = selected === task.result
-    ? task.result
-    : isPad ? ((answered && selected >= 0 ? String(selected) : entry.typed) || "?") : "?";
+  }, [answered, stepMode, task, onCorrect, onIncorrect]);
+  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered: answered || stepMode, onSubmit: handleAnswer });
+
+  function handleStepAnswer(value) {
+    if (stepsDone || stepWrong != null) return;
+    if (value !== partials[stepIndex]) {
+      setStepWrong(value);
+      stepTimerRef.current = setTimeout(() => { setStepWrong(null); stepEntry.clear(); }, 700);
+      return;
+    }
+    stepEntry.clear();
+    if (stepIndex + 1 < ops.length) {
+      setStepIndex(stepIndex + 1);
+      return;
+    }
+    setStepsDone(true);
+    stepTimerRef.current = setTimeout(() => onCorrect(task.conceptId, task.cardId, { assisted: true }), CHAIN_ASSISTED_DELAY_MS);
+  }
+  const stepEntry = useStepDigits({ maxNumber: task.maxNumber, locked: stepsDone || stepWrong != null, onSubmit: handleStepAnswer });
+
+  const solvedMain = answered && selected === task.result;
+  const resultText = solvedMain || stepsDone
+    ? String(task.result)
+    : isPad && !stepMode ? ((answered && selected >= 0 ? String(selected) : entry.typed) || "?") : "?";
+  const tokenCount = terms.length * 2 + 1;
 
   return (
     <div className="operation-stage operation-stage--chain">
-      <div className="chain-expression" aria-label="пример">
-        <span className="chain-expression__num">{task.A}</span>
-        <span className={`chain-expression__sign chain-expression__sign--${task.opAB}`}>{task.signAB}</span>
-        <span className="chain-expression__num">{task.B}</span>
-        <span className={`chain-expression__sign chain-expression__sign--${task.opBC}`}>{task.signBC}</span>
-        <span className="chain-expression__num">{task.C}</span>
+      <div className="chain-expression" style={{ "--chain-tokens": tokenCount }} aria-label="пример">
+        {terms.map((term, i) => {
+          // While solving by steps: the action being solved glows as one
+          // «sign + number» unit (the first number glows with the first
+          // action), the solved part fades; finished — all back in full.
+          const solving = stepMode && !stepsDone;
+          const done = solving && (i === 0 ? stepIndex > 0 : i <= stepIndex);
+          const active = solving && (i === stepIndex + 1 || (i === 0 && stepIndex === 0));
+          const cls = ["chain-expression__group", active ? "chain-expression__part--active" : "", done ? "chain-expression__part--done" : ""].filter(Boolean).join(" ");
+          return (
+            <span key={i} className={cls}>
+              {i > 0 && <span className={`chain-expression__sign chain-expression__sign--${ops[i - 1]}`}>{CHAIN_SIGN[ops[i - 1]]}</span>}
+              <span className="chain-expression__num">{term}</span>
+            </span>
+          );
+        })}
         <span className="chain-expression__equals">=</span>
         <span className={[
           "chain-expression__num",
           "chain-expression__result",
-          isPad && !answered ? "chain-expression__result--input" : "",
+          isPad && !answered && !stepMode ? "chain-expression__result--input" : "",
           isPad && answered && selected !== task.result ? "chain-expression__result--wrong" : "",
-          answered && selected === task.result ? "chain-expression__result--pop" : "",
+          solvedMain || stepsDone ? "chain-expression__result--pop" : "",
         ].filter(Boolean).join(" ")}>
-          {chainResultText}
+          {resultText}
         </span>
       </div>
-      <div className="chain-caption">Посчитай пример</div>
-      {isPad ? entry.pad : (
+
+      {!stepMode && <div className="chain-caption">Считай по порядку</div>}
+
+      {stepMode ? (
+        <div className="chain-steps" aria-label="Пример по шагам">
+          {ops.map((op, i) => {
+            if (i > stepIndex) return null;
+            const from = i === 0 ? terms[0] : partials[i - 1];
+            const isCurrent = i === stepIndex && !stepsDone;
+            const value = isCurrent ? (stepWrong != null ? String(stepWrong) : stepEntry.typed) : String(partials[i]);
+            return (
+              <div key={i} className={`chain-step${isCurrent ? " chain-step--current" : " chain-step--done"}`}>
+                <span className="chain-step__label">{i + 1}</span>
+                <span className="chain-step__expr">
+                  <span className={i > 0 ? "chain-step__carry" : ""}>{from}</span>
+                  <span className={`chain-step__sign chain-step__sign--${op}`}>{CHAIN_SIGN[op]}</span>
+                  <span>{terms[i + 1]}</span>
+                  <span className="chain-step__equals">=</span>
+                  <span className={[
+                    "chain-step__answer",
+                    isCurrent ? "chain-step__answer--input" : "chain-step__answer--done",
+                    isCurrent && stepWrong != null ? "chain-step__answer--wrong" : "",
+                  ].filter(Boolean).join(" ")}>{value || "?"}</span>
+                </span>
+              </div>
+            );
+          })}
+          {stepsDone ? null : isPad ? stepEntry.pad : (
+            <div className="chain-step-choices">
+              {stepChoices(partials[stepIndex], task.maxNumber).map((v) => (
+                <button
+                  key={`${stepIndex}-${v}`}
+                  type="button"
+                  className={`operation-number-choice${stepWrong === v ? " operation-number-choice--wrong" : ""}`}
+                  disabled={stepWrong != null}
+                  onClick={() => handleStepAnswer(v)}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : isPad ? entry.pad : (
         <NumberChoices
           task={task}
           selected={selected}
           onAnswer={handleAnswer}
         />
       )}
-      {task.timer > 0 && !answered && (
+
+      {task.stepHint !== false && !stepMode && !answered && (
+        <button type="button" className="chain-hint-btn" onClick={() => setStepMode(true)}>
+          <span aria-hidden="true">💡</span> По шагам
+        </button>
+      )}
+      {task.timer > 0 && !answered && !stepMode && (
         <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
       )}
       {task.showHelper && (
@@ -1037,6 +1157,28 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
       )}
     </div>
   );
+}
+
+// Digits for one step of the hint: the same keypad, cleared between steps.
+function useStepDigits({ maxNumber, locked, onSubmit }) {
+  const [digits, setDigits] = useState([]);
+  const maxDigits = Math.max(1, String(maxNumber).length);
+  return {
+    typed: digits.join(""),
+    clear: () => setDigits([]),
+    pad: (
+      <div className="operation-result-keypad">
+        <AudioAnswerPad
+          digits={digits}
+          disabled={locked}
+          maxDigits={maxDigits}
+          onDigit={(d) => { if (!locked && digits.length < maxDigits) setDigits((prev) => [...prev, d]); }}
+          onBackspace={() => { if (!locked) setDigits((prev) => prev.slice(0, -1)); }}
+          onCheck={() => { if (!locked && digits.length) onSubmit(Number(digits.join(""))); }}
+        />
+      </div>
+    ),
+  };
 }
 
 function MissingTermExpression({ task, answered }) {

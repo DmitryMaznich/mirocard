@@ -20,6 +20,7 @@ import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
+import { applyParamLimits } from "@/topics/paramLimits";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import {
   createActiveSessionSnapshot,
@@ -54,7 +55,7 @@ export function resolveModeSelection(topicRecord, mode, link, isReading, activeT
   const selectedStudent = useAppStore.getState().students.find(s => s.id === useAppStore.getState().activeStudentId);
   const settings = effectiveRewardSettings(selectedStudent?.rewardSettings);
   // ZIP renderers forward intermediate mistakes; the engine applies strictness.
-  let sessionParams = { ...readModeParams(link.params, mode), strictStars: true,
+  let sessionParams = { ...applyParamLimits(mode?.params, readModeParams(link.params, mode)), strictStars: true,
     rewardPolicyVersion: 2, rewardLossMode: settings.lossMode };
   if (mode?.id === PEOPLE_MODE_ID) {
     const store = useAppStore.getState();
