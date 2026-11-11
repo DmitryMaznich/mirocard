@@ -130,7 +130,6 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
   const Y = (r) => oy + r * cell;
   const out = [];
   const lw = Math.max(0.3, cell * 0.06);
-  const digit = cell * 0.78;
   // digits are the school hand of the column trainer (Primo): slanted, so a digit is put by the middle
   // of its ink (≈0.47 em from its origin), not of its advance; ink from the baseline up to 0.72 em.
   // Primo's line is thin for a 5 mm cell, so the digit is also stroked in its own colour (`outline`).
