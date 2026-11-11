@@ -179,7 +179,10 @@ function LiveBeadTool({ task, initialWorkCount = task.start, disabled, onAnswer,
   );
 }
 
-function OperationExpression({ task, missingSign = false, missingResult = false, answered = false, activeParts = [] }) {
+// `typedResult` (a string, "" while empty) turns the result slot into the
+// answer field of the digit keypad: the child's digits appear where the "?"
+// is, instead of in a second box under the example.
+function OperationExpression({ task, missingSign = false, missingResult = false, answered = false, activeParts = [], typedResult, typedWrong = false }) {
   const popCls = answered
     ? `operation-expression__result--pop${task.operation === "subtract" ? "-sub" : ""}`
     : "";
@@ -199,9 +202,16 @@ function OperationExpression({ task, missingSign = false, missingResult = false,
       <span className="operation-expression__equals">=</span>
       <span
         key={answered ? "ans" : "open"}
-        className={partClass("result", ["operation-expression__number", "operation-expression__result", popCls].filter(Boolean).join(" "))}
+        className={partClass("result", [
+          "operation-expression__number",
+          "operation-expression__result",
+          typedResult != null && !answered ? "operation-expression__result--input" : "",
+          typedResult && !answered ? "operation-expression__result--typed" : "",
+          typedWrong ? "operation-expression__result--wrong" : "",
+          popCls,
+        ].filter(Boolean).join(" "))}
       >
-        {missingResult ? "?" : task.result}
+        {typedResult != null && !answered ? (typedResult || "?") : missingResult ? "?" : task.result}
       </span>
     </div>
   );
@@ -378,34 +388,29 @@ function NumberChoices({ task, selected, onAnswer }) {
   );
 }
 
-function NumberPad({ maxNumber, answer, selected, onAnswer }) {
-  const values = Array.from({ length: maxNumber }, (_, index) => index + 1);
-  const answerValues = answer === 0 ? [0, ...values] : values;
-  return (
-    <div className={`operation-number-grid operation-number-grid--pad operation-number-grid--pad-${maxNumber}${answer === 0 ? " operation-number-grid--pad-has-zero" : ""}`}>
-      {answerValues.map((value) => {
-        const isSelected = selected === value;
-        const isCorrect = selected != null && value === answer;
-        const isWrong = isSelected && value !== answer;
-        return (
-          <button
-            key={value}
-            className={[
-              "operation-number-choice",
-              value === 1 ? "operation-number-choice--one" : "",
-              isCorrect ? "operation-number-choice--correct" : "",
-              isWrong ? "operation-number-choice--wrong" : "",
-            ].filter(Boolean).join(" ")}
-            type="button"
-            disabled={selected != null}
-            onClick={() => onAnswer(value)}
-          >
-            {value}
-          </button>
-        );
-      })}
-    </div>
-  );
+// Typed answer for the result: an empty field + the topic's digit keypad
+// (AudioAnswerPad: 1–9, 0, ⌫, ✓). Replaced a row of one button per possible
+// result (up to 20), which hinted the range and was noisy for 1 + 2.
+// One check per task, like the buttons it replaces.
+function useDigitAnswer({ maxNumber, answered, onSubmit }) {
+  const [digits, setDigits] = useState([]);
+  const maxDigits = Math.max(1, String(maxNumber).length);
+  return {
+    digits,
+    typed: digits.join(""),
+    pad: (
+      <div className="operation-result-keypad">
+        <AudioAnswerPad
+          digits={digits}
+          disabled={answered}
+          maxDigits={maxDigits}
+          onDigit={(d) => { if (!answered && digits.length < maxDigits) setDigits((prev) => [...prev, d]); }}
+          onBackspace={() => { if (!answered) setDigits((prev) => prev.slice(0, -1)); }}
+          onCheck={() => { if (!answered && digits.length) onSubmit(Number(digits.join(""))); }}
+        />
+      </div>
+    ),
+  };
 }
 
 // "Контрольная работа": the child computes each example on paper (or with
@@ -546,6 +551,7 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
   const setupTask = { ...task, operation: "add", result: task.start };
   const actionWord = task.operation === "add" ? "Прибавь" : "Убери";
   const isFinalAnswerCorrect = selectedResult === task.result;
+  const entry = useDigitAnswer({ maxNumber: beadCount, answered: selectedResult != null, onSubmit: handleResultAnswer });
 
   function handleSetupComplete() {
     setPhase("action");
@@ -569,7 +575,7 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
     ? `Покажи ${task.start} на палке`
     : phase === "action"
       ? `${actionWord} ${task.delta}`
-      : "Нажми сколько стало";
+      : "Напиши, сколько стало";
   const activeExpressionParts = phase === "setup"
     ? ["start"]
     : phase === "action"
@@ -586,6 +592,8 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
           missingResult={!isFinalAnswerCorrect}
           answered={isFinalAnswerCorrect}
           activeParts={activeExpressionParts}
+          typedResult={phase === "answer" ? (selectedResult != null ? String(selectedResult) : entry.typed) : undefined}
+          typedWrong={selectedResult != null && !isFinalAnswerCorrect}
         />
         {task.showInstruction !== false && (
           <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
@@ -623,14 +631,7 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
           />
         )}
       </div>
-      {phase === "answer" && (
-        <NumberPad
-          maxNumber={beadCount}
-          answer={task.result}
-          selected={selectedResult}
-          onAnswer={handleResultAnswer}
-        />
-      )}
+      {phase === "answer" && entry.pad}
     </div>
   );
 }
@@ -932,6 +933,8 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
       onIncorrect(task.conceptId, task.cardId);
     }
   }, [answered, task, onCorrect, onIncorrect]);
+  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered, onSubmit: handleAnswer });
+  const isPad = task.inputMode === "pad";
 
   return (
     <div className="operation-stage operation-stage--result">
@@ -939,15 +942,10 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
         task={task}
         missingResult={selected !== task.result}
         answered={selected === task.result}
+        typedResult={isPad ? (answered && selected >= 0 ? String(selected) : entry.typed) : undefined}
+        typedWrong={isPad && answered && selected !== task.result}
       />
-      {task.inputMode === "pad" ? (
-        <NumberPad
-          maxNumber={task.maxNumber}
-          answer={task.result}
-          selected={selected}
-          onAnswer={handleAnswer}
-        />
-      ) : (
+      {isPad ? entry.pad : (
         <NumberChoices
           task={task}
           selected={selected}
@@ -988,6 +986,11 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
       onIncorrect(task.conceptId, task.cardId);
     }
   }, [answered, task, onCorrect, onIncorrect]);
+  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered, onSubmit: handleAnswer });
+  const isPad = task.inputMode === "pad";
+  const chainResultText = selected === task.result
+    ? task.result
+    : isPad ? ((answered && selected >= 0 ? String(selected) : entry.typed) || "?") : "?";
 
   return (
     <div className="operation-stage operation-stage--chain">
@@ -998,19 +1001,18 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
         <span className={`chain-expression__sign chain-expression__sign--${task.opBC}`}>{task.signBC}</span>
         <span className="chain-expression__num">{task.C}</span>
         <span className="chain-expression__equals">=</span>
-        <span className={["chain-expression__num", "chain-expression__result", answered && selected === task.result ? "chain-expression__result--pop" : ""].filter(Boolean).join(" ")}>
-          {selected === task.result ? task.result : "?"}
+        <span className={[
+          "chain-expression__num",
+          "chain-expression__result",
+          isPad && !answered ? "chain-expression__result--input" : "",
+          isPad && answered && selected !== task.result ? "chain-expression__result--wrong" : "",
+          answered && selected === task.result ? "chain-expression__result--pop" : "",
+        ].filter(Boolean).join(" ")}>
+          {chainResultText}
         </span>
       </div>
       <div className="chain-caption">Посчитай пример</div>
-      {task.inputMode === "pad" ? (
-        <NumberPad
-          maxNumber={task.maxNumber}
-          answer={task.result}
-          selected={selected}
-          onAnswer={handleAnswer}
-        />
-      ) : (
+      {isPad ? entry.pad : (
         <NumberChoices
           task={task}
           selected={selected}

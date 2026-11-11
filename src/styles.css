@@ -15395,8 +15395,7 @@ kbd {
   padding-bottom: calc(16px + var(--app-safe-bottom, 0px));
 }
 
-.operation-stage--stick .operation-number-grid--pad {
-  margin-top: clamp(8px, 2dvh, 24px);
+.operation-stage--stick .operation-result-keypad {
   flex: none;
 }
 
@@ -15558,6 +15557,30 @@ kbd {
 
 .operation-expression__result {
   color: #1f4f8a;
+}
+
+/* The result slot as the keypad's answer field: a boxed blank while empty
+   (the "?" keeps its attention glow), the typed digits in ink, red + shake
+   on a wrong check. Min width = two digits, so typing doesn't jolt the line. */
+.operation-expression__result--input,
+.chain-expression__result--input {
+  min-width: 1.3em;
+  text-align: center;
+  border-bottom: 0.07em solid #9fb4c9;
+}
+.operation-expression__result--typed { color: #263131; }
+.operation-expression__result--wrong,
+.chain-expression__result--wrong {
+  color: #c04040;
+  animation: operation-audio-shake 0.4s ease;
+}
+
+/* Digit keypad under the example (AudioAnswerPad markup). */
+.operation-result-keypad {
+  width: min(360px, 100%);
+  margin: clamp(10px, 2.4dvh, 28px) auto 0;
+  display: flex;
+  justify-content: center;
 }
 
 .operation-action-card {
@@ -15978,28 +16001,7 @@ button.operation-dot {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* Number pad: rows of five (1–5, 6–10, …) like the counting stick's
-   groups, big keys. A wide landscape tablet gets rows of ten. When 0 is a
-   possible answer it sits alone on the first row, so the rows stay 1–5 / 6–10. */
-.operation-number-grid.operation-number-grid--pad {
-  --operation-pad-columns: 5;
-  width: min(520px, calc(100dvw - 24px));
-  grid-template-columns: repeat(var(--operation-pad-columns), minmax(0, 1fr));
-  gap: clamp(6px, 1.6vw, 12px);
-  margin: clamp(12px, 3dvh, 32px) auto 0;
-}
 
-.operation-number-grid--pad-has-zero .operation-number-choice--one {
-  grid-column-start: 1;
-}
-
-@media (min-width: 768px) and (orientation: landscape) {
-  .operation-number-grid.operation-number-grid--pad-10,
-  .operation-number-grid.operation-number-grid--pad-20 {
-    --operation-pad-columns: 10;
-    width: min(1120px, calc(100dvw - 24px));
-  }
-}
 
 .operation-choice,
 .operation-number-choice {
@@ -16049,14 +16051,6 @@ button.operation-dot {
 
 .operation-number-choice {
   font-size: 2rem;
-}
-
-.operation-number-grid--pad .operation-number-choice {
-  min-height: clamp(48px, 7.5dvh, 80px);
-  border-radius: clamp(12px, 1.6vw, 18px);
-  font-size: clamp(1.4rem, 6vw, 2.4rem);
-  padding: 4px;
-  box-shadow: 0 4px 0 #dfe7e5;
 }
 
 .operation-choice:not(:disabled):active,

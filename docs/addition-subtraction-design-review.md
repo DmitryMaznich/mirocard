@@ -40,16 +40,18 @@ all three shapes, also the ones the hand carries in «Назови действ�
 `clamp(64px, 20vw, 140px)` (≈78px on a 390px phone), like the finger modes' number.
 Open: in «Фигуры сериями» the blue up-triangle looks like the teal ▲ on «Больше».
 
-## 2026-11-11: number pad («Сделай действие», also «Сколько стало?» / «Цепочка» pad input)
+## 2026-11-11: typed answer instead of a row of number buttons
 
-Owner: on a phone the pad didn't fit (with «Показывать инструкции» on) and couldn't be
-scrolled; the layout itself was disliked. It was one row of 10 keys ~33px wide, 58–78px
-below the stick, inside a stage claiming `100dvh` under the header + badge reserve.
-Now: rows of five (1–5 / 6–10 / …), keys ≈68×63px on a 390px phone; 0 (when it is the
-answer) sits alone on the first row; wide landscape tablets keep rows of ten. The stick
-stage fills the session area (`flex: 1; min-height: 0`) and scrolls if it still doesn't
-fit. Checked with a Vite harness + Playwright drags at 390×844, 360×640 (up to 20) and
-1024×768.
+Owner: the answer row (one button per possible result, up to 20) was noisy and hinted
+the range — 20 buttons for 1 + 2, 20 for 20 − 1 — and on a phone it didn't fit and
+couldn't scroll. Replaced in «Сделай действие», «Сколько стало?» and «Цепочка» (pad
+input) by the topic's own digit keypad (`AudioAnswerPad`: 1–9, 0, ⌫, ✓ — the one of
+«Слушай и посчитай» / «Найди неизвестное»), via `useDigitAnswer` in `index.jsx`. The
+typed digits appear in the example's «?» slot (`typedResult` on `OperationExpression`,
+`.operation-expression__result--input/--typed/--wrong`), not in a second box. Still one
+check per task, as with the buttons. «Нажми сколько стало» → «Напиши, сколько стало».
+The stick stage fills the session area and scrolls if it must. Checked with a Vite
+harness + Playwright at 390×844 and 360×640.
 
 ## Status by mode
 
