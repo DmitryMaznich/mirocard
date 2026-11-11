@@ -926,6 +926,26 @@
 .people-point--match .people-match__photos > .people-point-photo--hint { border-color: #4a9b8f; }
 .people-point--match .people-point-photo--faded { opacity: .3; }
 
+/* Three on a narrow portrait screen: two on top, one centred under them
+   ("2 + 1"). In one row each photo would be about a third of a phone's
+   width (~110px) -- too small to find a face in. */
+@media (orientation: portrait) and (max-width: 600px) {
+  .people-point--match-3 > .people-match__sample,
+  .people-point--match-3 > .people-match__choose {
+    --mp-card: min(calc((100cqw - 12px) / 2), 260px, calc((var(--mp-free) - 12px) * .26));
+    --mp-sample: min(90cqw, 640px, calc(var(--mp-free) - 2 * var(--mp-card) - 12px));
+  }
+
+  .people-point--match .people-match__photos--3 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: calc(2 * var(--mp-card) + 12px);
+  }
+
+  .people-point--match .people-match__photos--3 > .people-point-photo { flex: 0 0 var(--mp-card); }
+}
+
 /* Landscape: the name card on the left, the question and choices on the
    right -- in a column the photos would have to shrink to fit. The card is
    as tall as the box allows (up to half its width); the choices share the
