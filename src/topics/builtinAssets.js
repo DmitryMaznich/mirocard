@@ -1,14 +1,239 @@
 const BUILTIN_ASSETS = {
   "media/avatar_games.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#fff4e8"/><path d="M20 89h88" stroke="#b9bbc6" stroke-width="16" stroke-linecap="round"/><rect x="25" y="57" width="68" height="29" rx="12" fill="#ee7869"/><path d="m41 58 9-20h24l16 20" fill="#ee7869"/><path d="m52 43-6 13h31L68 43" fill="#cfefed"/><circle cx="43" cy="86" r="10" fill="#25354c"/><circle cx="80" cy="86" r="10" fill="#25354c"/><path d="M103 24v46" stroke="#25354c" stroke-width="4"/><path d="M105 24h17v20h-17z" fill="#1b9a9b"/></svg>`,
+  // «Мои люди» (2026-11-11): a photo card with a family; one picture per mode
+  // that shows what the child does in it.
   "media/avatar_my_people.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#e4f1ed"/>
-  <circle cx="45" cy="47" r="16" fill="#f3d9b5"/>
-  <path d="M23 102c2-23 12-37 22-37s20 14 22 37" fill="#4a9b8f"/>
-  <circle cx="83" cy="51" r="14" fill="#f3d9b5"/>
-  <path d="M64 104c2-21 10-34 19-34s18 13 20 34" fill="#ef9a73"/>
-  <circle cx="97" cy="29" r="15" fill="#fffdf8" stroke="#4a9b8f" stroke-width="4"/>
-  <path d="M91 29h12M97 23v12" stroke="#4a9b8f" stroke-width="3.5" stroke-linecap="round"/>
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#e4f1ed"/>
+  <rect x="14" y="20" width="100" height="90" rx="20" fill="#4a9b8f"/>
+  <rect x="14" y="98" width="100" height="12" rx="6" fill="#2a6b60" opacity=".0"/>
+  <clipPath id="av">
+  <rect x="20" y="26" width="88" height="70" rx="15"/>
+  </clipPath>
+  <g clip-path="url(#av)">
+  <rect x="20" y="26" width="88" height="70" fill="#fff8ee"/>
+  <path d="M31.04 68.8V56.8a12.96 12.96 0 0 1 25.92 0V68.8z" fill="#7a4a2a"/>
+  <path d="M26 89.2c0-13.200000000000001 7.199999999999999-18 18-18s18 4.800000000000001 18 18z" fill="#ef8a6a"/>
+  <circle cx="44" cy="58" r="12" fill="#f3d9b5"/>
+  <path d="M32 57.4a12 12 0 0 1 24 0c-6-6.6000000000000005-15.600000000000001-6-24 0z" fill="#7a4a2a"/>
+  <circle cx="39.92" cy="58.24" r="1.6" fill="#263131"/>
+  <circle cx="48.08" cy="58.24" r="1.6" fill="#263131"/>
+  <path d="M39.44 62.8q4.5600000000000005 3.84 9.120000000000001 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  <path d="M66 87.2c0-13.200000000000001 7.199999999999999-18 18-18s18 4.800000000000001 18 18z" fill="#7bb0ff"/>
+  <circle cx="84" cy="56" r="12" fill="#f3d9b5"/>
+  <path d="M72 55.4a12 12 0 0 1 24 0c-6-6.6000000000000005-15.600000000000001-6-24 0z" fill="#3b3b3b"/>
+  <circle cx="79.92" cy="56.24" r="1.6" fill="#263131"/>
+  <circle cx="88.08" cy="56.24" r="1.6" fill="#263131"/>
+  <path d="M79.44 60.8q4.5600000000000005 3.84 9.120000000000001 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50.5 97.4c0-9.9 5.3999999999999995-13.5 13.5-13.5s13.5 3.6 13.5 13.5z" fill="#fbbf24"/>
+  <circle cx="64" cy="74" r="9" fill="#f3d9b5"/>
+  <path d="M55 73.55a9 9 0 0 1 18 0c-4.5-4.95-11.700000000000001-4.5-18 0z" fill="#c58a3a"/>
+  <circle cx="60.94" cy="74.18" r="1.6" fill="#263131"/>
+  <circle cx="67.06" cy="74.18" r="1.6" fill="#263131"/>
+  <path d="M60.58 77.6q3.42 2.88 6.84 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <path d="M64 106c-6-4-11-8-11-13a5.5 5.5 0 0 1 11-2 5.5 5.5 0 0 1 11 2c0 5-5 9-11 13z" fill="#ef6f5e" stroke="#fff" stroke-width="2.5" transform="translate(36 2)"/>
+  </g>
+</svg>`,
+  "media/icons/my_people_match_same.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#e4f1ed"/>
+  <rect x="36" y="10" width="56" height="62" rx="12" fill="#4a9b8f"/>
+  <clipPath id="ms">
+  <rect x="40" y="14" width="48" height="44" rx="9"/>
+  </clipPath>
+  <g clip-path="url(#ms)">
+  <rect x="40" y="14" width="48" height="44" fill="#fff8ee"/>
+  <path d="M51.04 46.8V34.8a12.96 12.96 0 0 1 25.92 0V46.8z" fill="#7a4a2a"/>
+  <path d="M46 67.2c0-13.200000000000001 7.199999999999999-18 18-18s18 4.800000000000001 18 18z" fill="#ef8a6a"/>
+  <circle cx="64" cy="36" r="12" fill="#f3d9b5"/>
+  <path d="M52 35.4a12 12 0 0 1 24 0c-6-6.6000000000000005-15.600000000000001-6-24 0z" fill="#7a4a2a"/>
+  <circle cx="59.92" cy="36.24" r="1.6" fill="#263131"/>
+  <circle cx="68.08" cy="36.24" r="1.6" fill="#263131"/>
+  <path d="M59.44 40.8q4.5600000000000005 3.84 9.120000000000001 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <rect x="48" y="62" width="32" height="5" rx="2.5" fill="#fff"/>
+  <rect x="14" y="78" width="42" height="42" rx="10.120000000000001" fill="#fff"/>
+  <clipPath id="c0">
+  <rect x="18" y="82" width="34" height="34" rx="5.44"/>
+  </clipPath>
+  <g clip-path="url(#c0)">
+  <rect x="18" y="82" width="34" height="34" fill="#dbeafe"/>
+  <path d="M21.740000000000002 119.94400000000002c0-9.724 5.303999999999999-13.26 13.26-13.26s13.26 3.536 13.26 13.26z" fill="#7bb0ff"/>
+  <circle cx="35" cy="96.96000000000001" r="8.84" fill="#f3d9b5"/>
+  <path d="M26.16 96.51800000000001a8.84 8.84 0 0 1 17.68 0c-4.42-4.862-11.492-4.42-17.68 0z" fill="#3b3b3b"/>
+  <circle cx="31.9944" cy="97.13680000000001" r="1.6" fill="#263131"/>
+  <circle cx="38.0056" cy="97.13680000000001" r="1.6" fill="#263131"/>
+  <path d="M31.6408 100.49600000000001q3.3592 2.8288 6.7184 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <rect x="72" y="78" width="42" height="42" rx="10.120000000000001" fill="#22c55e"/>
+  <clipPath id="c1">
+  <rect x="76" y="82" width="34" height="34" rx="5.44"/>
+  </clipPath>
+  <g clip-path="url(#c1)">
+  <rect x="76" y="82" width="34" height="34" fill="#fff1e6"/>
+  <path d="M83.4528 104.91600000000001V96.07600000000001a9.5472 9.5472 0 0 1 19.0944 0V104.91600000000001z" fill="#7a4a2a"/>
+  <path d="M79.74 119.94400000000002c0-9.724 5.303999999999999-13.26 13.26-13.26s13.26 3.536 13.26 13.26z" fill="#ef8a6a"/>
+  <circle cx="93" cy="96.96000000000001" r="8.84" fill="#f3d9b5"/>
+  <path d="M84.16 96.51800000000001a8.84 8.84 0 0 1 17.68 0c-4.42-4.862-11.492-4.42-17.68 0z" fill="#7a4a2a"/>
+  <circle cx="89.9944" cy="97.13680000000001" r="1.6" fill="#263131"/>
+  <circle cx="96.0056" cy="97.13680000000001" r="1.6" fill="#263131"/>
+  <path d="M89.6408 100.49600000000001q3.3592 2.8288 6.7184 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <circle cx="108" cy="82" r="9" fill="#22c55e" stroke="#fff" stroke-width="3"/>
+  <path d="M103.95 82l2.6999999999999997 2.88 5.3999999999999995-5.58" fill="none" stroke="#fff" stroke-width="2.5200000000000005" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>`,
+  "media/icons/my_people_show_me.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#fff7ef"/>
+  <circle cx="64" cy="26" r="18" fill="#4a9b8f"/>
+  <path d="M53 21h6l8-7v24l-8-7h-6z" fill="#fff"/>
+  <path d="M71 20q5 6 0 12" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="10" y="52" width="48" height="48" rx="11.2" fill="#fff"/>
+  <clipPath id="c2">
+  <rect x="14" y="56" width="40" height="40" rx="6.4"/>
+  </clipPath>
+  <g clip-path="url(#c2)">
+  <rect x="14" y="56" width="40" height="40" fill="#dbeafe"/>
+  <path d="M18.4 100.64c0-11.440000000000001 6.24-15.600000000000001 15.600000000000001-15.600000000000001s15.600000000000001 4.16 15.600000000000001 15.600000000000001z" fill="#7bb0ff"/>
+  <circle cx="34" cy="73.6" r="10.4" fill="#f3d9b5"/>
+  <path d="M23.6 73.08a10.4 10.4 0 0 1 20.8 0c-5.2-5.720000000000001-13.520000000000001-5.2-20.8 0z" fill="#3b3b3b"/>
+  <circle cx="30.464" cy="73.80799999999999" r="1.6" fill="#263131"/>
+  <circle cx="37.536" cy="73.80799999999999" r="1.6" fill="#263131"/>
+  <path d="M30.048 77.75999999999999q3.9520000000000004 3.3280000000000003 7.904000000000001 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <rect x="70" y="52" width="48" height="48" rx="11.2" fill="#fff"/>
+  <clipPath id="c3">
+  <rect x="74" y="56" width="40" height="40" rx="6.4"/>
+  </clipPath>
+  <g clip-path="url(#c3)">
+  <rect x="74" y="56" width="40" height="40" fill="#fff1e6"/>
+  <path d="M82.768 82.96V72.55999999999999a11.232000000000001 11.232000000000001 0 0 1 22.464000000000002 0V82.96z" fill="#7a4a2a"/>
+  <path d="M78.4 100.64c0-11.440000000000001 6.24-15.600000000000001 15.600000000000001-15.600000000000001s15.600000000000001 4.16 15.600000000000001 15.600000000000001z" fill="#ef8a6a"/>
+  <circle cx="94" cy="73.6" r="10.4" fill="#f3d9b5"/>
+  <path d="M83.6 73.08a10.4 10.4 0 0 1 20.8 0c-5.2-5.720000000000001-13.520000000000001-5.2-20.8 0z" fill="#7a4a2a"/>
+  <circle cx="90.464" cy="73.80799999999999" r="1.6" fill="#263131"/>
+  <circle cx="97.536" cy="73.80799999999999" r="1.6" fill="#263131"/>
+  <path d="M90.048 77.75999999999999q3.9520000000000004 3.3280000000000003 7.904000000000001 0" fill="none" stroke="#263131" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(86 82)">
+  <path d="M0 0c0-5 8-5 8 0v16c2-3 8-2 8 2 2-3 8-2 8 2 2-2 7-1 7 3v12c0 9-6 15-15 15h-3c-6 0-10-3-13-8l-8-12c-2-4 3-7 6-4l5 6z" fill="#fde4c8" stroke="#263131" stroke-width="3.5" stroke-linejoin="round"/>
+  </g>
+  </g>
+</svg>`,
+  "media/icons/my_people_who_is_this.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#eef6ff"/>
+  <rect x="9" y="11" width="72" height="72" rx="16.16" fill="#fff"/>
+  <clipPath id="c4">
+  <rect x="14" y="16" width="62" height="62" rx="9.92"/>
+  </clipPath>
+  <g clip-path="url(#c4)">
+  <rect x="14" y="16" width="62" height="62" fill="#fff1e6"/>
+  <path d="M27.5904 57.788000000000004V41.668a17.4096 17.4096 0 0 1 34.8192 0V57.788000000000004z" fill="#7a4a2a"/>
+  <path d="M20.82 85.19200000000001c0-17.732000000000003 9.672-24.18 24.18-24.18s24.18 6.448 24.18 24.18z" fill="#ef8a6a"/>
+  <circle cx="45" cy="43.28" r="16.12" fill="#f3d9b5"/>
+  <path d="M28.88 42.474000000000004a16.12 16.12 0 0 1 32.24 0c-8.06-8.866000000000001-20.956000000000003-8.06-32.24 0z" fill="#7a4a2a"/>
+  <circle cx="39.5192" cy="43.6024" r="1.9344000000000001" fill="#263131"/>
+  <circle cx="50.4808" cy="43.6024" r="1.9344000000000001" fill="#263131"/>
+  <path d="M38.8744 49.728q6.1256 5.1584 12.2512 0" fill="none" stroke="#263131" stroke-width="2.0956" stroke-linecap="round"/>
+  </g>
+  <circle cx="76" cy="20" r="15" fill="#fbbf24" stroke="#fff" stroke-width="3"/>
+  <text x="76" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#fff">?</text>
+  <path d="M66 84h42a10 10 0 0 1 10 10v12a10 10 0 0 1-10 10H78l-10 10 2-10H66a10 10 0 0 1-10-10V94a10 10 0 0 1 10-10z" fill="#4a9b8f"/>
+  <path d="M68 96h38M68 105h22" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>`,
+  "media/icons/my_people_about_me.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#fff8e7"/>
+  <path d="M19 115.2c0-24.200000000000003 13.2-33 33-33s33 8.8 33 33z" fill="#7bb0ff"/>
+  <circle cx="52" cy="58" r="22" fill="#f3d9b5"/>
+  <path d="M30 56.9a22 22 0 0 1 44 0c-11-12.100000000000001-28.6-11-44 0z" fill="#c58a3a"/>
+  <circle cx="44.519999999999996" cy="58.44" r="2.6399999999999997" fill="#263131"/>
+  <circle cx="59.480000000000004" cy="58.44" r="2.6399999999999997" fill="#263131"/>
+  <path d="M43.64 66.8q8.36 7.04 16.72 0" fill="none" stroke="#263131" stroke-width="2.8600000000000003" stroke-linecap="round"/>
+  <path d="M24 128v-8c0-18 12-28 28-28s28 10 28 28v8z" fill="#7bb0ff"/>
+  <path d="M86 12h22a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H92l10 10 -2-10H86a10 10 0 0 1-10-10V22a10 10 0 0 1 10-10z" fill="#fbbf24"/>
+  <text x="97" y="41" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="900" fill="#fff">Я</text>
+  </g>
+</svg>`,
+  "media/icons/my_people_label_photos.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#f0fdf4"/>
+  <rect x="11" y="9" width="70" height="70" rx="15.799999999999999" fill="#fff"/>
+  <clipPath id="c5">
+  <rect x="16" y="14" width="60" height="60" rx="9.6"/>
+  </clipPath>
+  <g clip-path="url(#c5)">
+  <rect x="16" y="14" width="60" height="60" fill="#fff1e6"/>
+  <path d="M29.151999999999997 54.44V38.839999999999996a16.848000000000003 16.848000000000003 0 0 1 33.696000000000005 0V54.44z" fill="#7a4a2a"/>
+  <path d="M22.599999999999998 80.96000000000001c0-17.160000000000004 9.360000000000001-23.400000000000002 23.400000000000002-23.400000000000002s23.400000000000002 6.240000000000001 23.400000000000002 23.400000000000002z" fill="#ef8a6a"/>
+  <circle cx="46" cy="40.4" r="15.600000000000001" fill="#f3d9b5"/>
+  <path d="M30.4 39.62a15.600000000000001 15.600000000000001 0 0 1 31.200000000000003 0c-7.800000000000001-8.580000000000002-20.28-7.800000000000001-31.200000000000003 0z" fill="#7a4a2a"/>
+  <circle cx="40.696" cy="40.711999999999996" r="1.872" fill="#263131"/>
+  <circle cx="51.304" cy="40.711999999999996" r="1.872" fill="#263131"/>
+  <path d="M40.072 46.64q5.928000000000001 4.992000000000001 11.856000000000002 0" fill="none" stroke="#263131" stroke-width="2.0280000000000005" stroke-linecap="round"/>
+  </g>
+  <rect x="18" y="82" width="58" height="16" rx="8" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="6 5"/>
+  <g transform="rotate(-8 84 92)">
+  <rect x="56" y="84" width="58" height="24" rx="8" fill="#4a9b8f" stroke="#fff" stroke-width="3"/>
+  <path d="M66 96h38" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  </g>
+</svg>`,
+  "media/icons/my_people_introduce_self.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <clipPath id="bg">
+  <rect width="128" height="128" rx="24"/>
+  </clipPath>
+  <g clip-path="url(#bg)">
+  <rect width="128" height="128" fill="#f5f3ff"/>
+  <path d="M10.5 126.2c0-18.700000000000003 10.2-25.5 25.5-25.5s25.5 6.800000000000001 25.5 25.5z" fill="#7bb0ff"/>
+  <circle cx="36" cy="82" r="17" fill="#f3d9b5"/>
+  <path d="M19 81.15a17 17 0 0 1 34 0c-8.5-9.350000000000001-22.1-8.5-34 0z" fill="#c58a3a"/>
+  <circle cx="30.22" cy="82.34" r="2.04" fill="#263131"/>
+  <circle cx="41.78" cy="82.34" r="2.04" fill="#263131"/>
+  <path d="M29.54 88.8q6.46 5.44 12.92 0" fill="none" stroke="#263131" stroke-width="2.21" stroke-linecap="round"/>
+  <path d="M8 128c0-14 12-22 28-22s28 8 28 22z" fill="#7bb0ff"/>
+  <path d="M75.64 97.3V80.3a18.36 18.36 0 0 1 36.72 0V97.3z" fill="#3b3b3b"/>
+  <path d="M68.5 126.2c0-18.700000000000003 10.2-25.5 25.5-25.5s25.5 6.800000000000001 25.5 25.5z" fill="#ef8a6a"/>
+  <circle cx="94" cy="82" r="17" fill="#f3d9b5"/>
+  <path d="M77 81.15a17 17 0 0 1 34 0c-8.5-9.350000000000001-22.1-8.5-34 0z" fill="#3b3b3b"/>
+  <circle cx="88.22" cy="82.34" r="2.04" fill="#263131"/>
+  <circle cx="99.78" cy="82.34" r="2.04" fill="#263131"/>
+  <path d="M87.54 88.8q6.46 5.44 12.92 0" fill="none" stroke="#263131" stroke-width="2.21" stroke-linecap="round"/>
+  <path d="M66 128c0-14 12-22 28-22s28 8 28 22z" fill="#ef8a6a"/>
+  <path d="M18 10h34a10 10 0 0 1 10 10v12a10 10 0 0 1-10 10H38l-10 10 2-10H18a10 10 0 0 1-10-10V20a10 10 0 0 1 10-10z" fill="#4a9b8f"/>
+  <path d="M18 22h34M18 31h22" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M78 22h30a10 10 0 0 1 10 10v8a10 10 0 0 1-10 10H104l10 10 -2-10H78a10 10 0 0 1-10-10V32a10 10 0 0 1 10-10z" fill="#fff" stroke="#8b5cf6" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M78 32h30M78 40h16" stroke="#8b5cf6" stroke-width="4" stroke-linecap="round"/>
+  </g>
 </svg>`,
   "media/avatar_streak_tracker.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">

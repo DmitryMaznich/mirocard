@@ -97,6 +97,7 @@ const labelPhotosMode = {
   },
   ui: {
     title: { ru: "Подпиши фото" },
+    icon: "media/icons/my_people_label_photos.svg",
     instruction: { ru: "Перетащить подпись на фото: «мама», «папа» или имя. Нужно уметь читать" },
   },
 };
@@ -143,6 +144,7 @@ const matchSameMode = {
   },
   ui: {
     title: { ru: "Найди лицо" },
+    icon: "media/icons/my_people_match_same.svg",
     instruction: { ru: "Сверху фото с подписью «Это мама», вопрос «Где мама?» — найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
   },
 };
@@ -168,6 +170,7 @@ const showMeMode = {
   },
   ui: {
     title: { ru: "Покажи" },
+    icon: "media/icons/my_people_show_me.svg",
     instruction: { ru: "«Где мама?» — ребёнок показывает нужное фото" },
   },
 };
@@ -201,6 +204,7 @@ const aboutMeMode = {
   },
   ui: {
     title: { ru: "Обо мне" },
+    icon: "media/icons/my_people_about_me.svg",
     instruction: { ru: "Короткие вопросы о себе: имя, возраст, семья, адрес и телефон, садик или школа" },
   },
 };
@@ -228,6 +232,7 @@ const introduceSelfMode = {
   },
   ui: {
     title: { ru: "Представься" },
+    icon: "media/icons/my_people_introduce_self.svg",
     instruction: { ru: "Продвинутый уровень: познакомиться с новым человеком и рассказать о себе целыми фразами" },
   },
 };
@@ -243,6 +248,7 @@ const whoIsThisMode = {
   hideConceptPicker: true,
   ui: {
     title: { ru: "Кто это?" },
+    icon: "media/icons/my_people_who_is_this.svg",
     instruction: { ru: "Ребёнок называет человека по фотографии, взрослый отмечает ответ." },
   },
 };
