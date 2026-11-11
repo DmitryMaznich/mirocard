@@ -767,10 +767,22 @@
       "version": "0.1.1",
       "renderer": "math_tests",
       "sources": [
+        "public/decks/math_tests_v0.1.1.zip",
         "src/topics/renderers/math_tests",
         "tools/math_tests/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "0.1.1",
+        "url": "./decks/math_tests_v0.1.1.zip",
+        "title": {
+          "ru": "Контрольные по математике",
+          "en": "Math Tests"
+        },
+        "description": "Конструктор контрольных листов по математике: взрослый собирает лист из блоков-заданий (пример в одно и несколько действий, неизвестное, знак, числовая цепочка), у каждого блока свои настройки. Лист печатается в PDF или решается прямо на экране с цифровой клавиатурой и проверкой.",
+        "renderer": "math_tests",
+        "modes": 1,
+        "cards": 5
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "math_tests",
@@ -790,7 +802,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-11T14:18:24+00:00"
+      "sourceUpdatedAt": "2026-11-11T14:27:11+00:00"
     },
     {
       "id": "morning_greeting",
