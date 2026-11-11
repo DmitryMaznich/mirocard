@@ -40,6 +40,17 @@ all three shapes, also the ones the hand carries in «Назови действ�
 `clamp(64px, 20vw, 140px)` (≈78px on a 390px phone), like the finger modes' number.
 Open: in «Фигуры сериями» the blue up-triangle looks like the teal ▲ on «Больше».
 
+## 2026-11-11: number pad («Сделай действие», also «Сколько стало?» / «Цепочка» pad input)
+
+Owner: on a phone the pad didn't fit (with «Показывать инструкции» on) and couldn't be
+scrolled; the layout itself was disliked. It was one row of 10 keys ~33px wide, 58–78px
+below the stick, inside a stage claiming `100dvh` under the header + badge reserve.
+Now: rows of five (1–5 / 6–10 / …), keys ≈68×63px on a 390px phone; 0 (when it is the
+answer) sits alone on the first row; wide landscape tablets keep rows of ten. The stick
+stage fills the session area (`flex: 1; min-height: 0`) and scrolls if it still doesn't
+fit. Checked with a Vite harness + Playwright drags at 390×844, 360×640 (up to 20) and
+1024×768.
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s

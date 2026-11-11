@@ -392,6 +392,7 @@ function NumberPad({ maxNumber, answer, selected, onAnswer }) {
             key={value}
             className={[
               "operation-number-choice",
+              value === 1 ? "operation-number-choice--one" : "",
               isCorrect ? "operation-number-choice--correct" : "",
               isWrong ? "operation-number-choice--wrong" : "",
             ].filter(Boolean).join(" ")}

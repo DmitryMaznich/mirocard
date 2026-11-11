@@ -15377,14 +15377,27 @@ kbd {
   .name-action__scene { transition: none; }
 }
 
+/* Fills the session area instead of claiming 100dvh: with the header and the
+   badge reserve above it, a 100dvh stage pushed the number pad off a phone
+   screen that cannot scroll. If the content still doesn't fit (short phone,
+   instruction on), the stage scrolls; only the stick itself is a drag surface. */
 .operation-stage--stick {
   width: calc(100dvw - 8px);
   max-width: 1400px;
   justify-content: flex-start;
 }
 
+/* Two classes: must beat the phone/landscape .operation-stage min-height rules below. */
+.operation-stage.operation-stage--stick {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: calc(16px + var(--app-safe-bottom, 0px));
+}
+
 .operation-stage--stick .operation-number-grid--pad {
-  margin-top: 0;
+  margin-top: clamp(8px, 2dvh, 24px);
+  flex: none;
 }
 
 .operation-stage-stick__main {
@@ -15965,17 +15978,27 @@ button.operation-dot {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.operation-number-grid--pad {
-  --operation-pad-columns: 10;
-  width: min(1120px, calc(100dvw - 12px));
+/* Number pad: rows of five (1–5, 6–10, …) like the counting stick's
+   groups, big keys. A wide landscape tablet gets rows of ten. When 0 is a
+   possible answer it sits alone on the first row, so the rows stay 1–5 / 6–10. */
+.operation-number-grid.operation-number-grid--pad {
+  --operation-pad-columns: 5;
+  width: min(520px, calc(100dvw - 24px));
   grid-template-columns: repeat(var(--operation-pad-columns), minmax(0, 1fr));
-  gap: clamp(3px, 0.75vw, 12px);
-  margin-top: clamp(72px, 10dvh, 104px);
+  gap: clamp(6px, 1.6vw, 12px);
+  margin: clamp(12px, 3dvh, 32px) auto 0;
 }
 
-.operation-number-grid--pad-10,
-.operation-number-grid--pad-20 {
-  --operation-pad-columns: 10;
+.operation-number-grid--pad-has-zero .operation-number-choice--one {
+  grid-column-start: 1;
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .operation-number-grid.operation-number-grid--pad-10,
+  .operation-number-grid.operation-number-grid--pad-20 {
+    --operation-pad-columns: 10;
+    width: min(1120px, calc(100dvw - 24px));
+  }
 }
 
 .operation-choice,
@@ -16029,10 +16052,11 @@ button.operation-dot {
 }
 
 .operation-number-grid--pad .operation-number-choice {
-  min-height: clamp(40px, 8dvh, 92px);
-  border-radius: clamp(10px, 1.4vw, 18px);
-  font-size: clamp(1.05rem, 4.6vw, 3rem);
-  padding: 6px 4px;
+  min-height: clamp(48px, 7.5dvh, 80px);
+  border-radius: clamp(12px, 1.6vw, 18px);
+  font-size: clamp(1.4rem, 6vw, 2.4rem);
+  padding: 4px;
+  box-shadow: 0 4px 0 #dfe7e5;
 }
 
 .operation-choice:not(:disabled):active,
@@ -16269,29 +16293,10 @@ button.operation-dot {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .operation-number-grid--pad-10,
-  .operation-number-grid--pad-20 {
-    --operation-pad-columns: 10;
-  }
-
-  .operation-number-grid--pad {
-    width: min(100%, calc(100dvw - 12px));
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    gap: clamp(3px, 0.75vw, 6px);
-    margin-top: clamp(58px, 9dvh, 78px);
-  }
-
   .operation-choice,
   .operation-number-choice {
     min-height: 64px;
     border-radius: 16px;
-  }
-
-  .operation-number-grid--pad .operation-number-choice {
-    min-height: clamp(40px, 8dvh, 58px);
-    border-radius: 10px;
-    font-size: clamp(1.05rem, 4.6vw, 1.35rem);
-    padding: 4px 2px;
   }
 
   .operation-stick__bead {
@@ -16353,26 +16358,6 @@ button.operation-dot {
   .operation-link-drill__symbol,
   .operation-link-drill__verb {
     flex: 0 0 auto;
-  }
-}
-
-@media (max-width: 640px), ((pointer: coarse) and (max-height: 560px)) {
-  .operation-number-grid--pad-10,
-  .operation-number-grid--pad-20 {
-    --operation-pad-columns: 10;
-  }
-
-  .operation-number-grid--pad {
-    width: min(100%, calc(100dvw - 12px));
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    gap: clamp(3px, 0.75vw, 6px);
-  }
-
-  .operation-number-grid--pad .operation-number-choice {
-    min-height: clamp(40px, 8dvh, 58px);
-    border-radius: 10px;
-    font-size: clamp(1.05rem, 4.6vw, 1.35rem);
-    padding: 4px 2px;
   }
 }
 
