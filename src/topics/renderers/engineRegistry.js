@@ -4,6 +4,7 @@ import { generateTasks as oppositeEngine }            from "./opposites/engine";
 import { generateTasks as comparisonEngine }           from "./comparison/engine";
 import { generateTasks as mathHousesEngine }           from "./math_houses/engine";
 import { generateTasks as additionSubtractionEngine }  from "./addition_subtraction/engine";
+import { generateTasks as mathTestsEngine }            from "./math_tests/engine.js";
 import { generateTasks as readingEngine }              from "./reading/engine";
 import { generateTasks as sentencePuzzleEngine }       from "./sentence_puzzle/engine";
 import { generateTasks as functionCardsEngine }        from "./function_cards/engine";
@@ -35,6 +36,7 @@ export const ENGINE_REGISTRY = {
   comparison:            comparisonEngine,
   math_houses:           mathHousesEngine,
   addition_subtraction:  additionSubtractionEngine,
+  math_tests:            mathTestsEngine,
   reading:               readingEngine,
   sentence_puzzle:       sentencePuzzleEngine,
   function_cards:        functionCardsEngine,

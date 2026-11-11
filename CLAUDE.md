@@ -218,6 +218,12 @@ recorded voice audio to replace browser TTS), and pitfalls already hit once this
 (don't repeat them — e.g. the raw `chrome --headless --window-size` CLI flag is silently
 ignored in some sandboxes, use Playwright instead when a screenshot's exact width matters).
 
+## Контрольные по математике (math_tests) — new topic (started 2026-11-11)
+
+Test-sheet constructor like `print_letters` (canvas, blocks, block panel, PDF) plus «Решать на экране»
+(keypad, check all at once, «Исправить ошибки», video prize). Renderer is bundled with the app (the deck ZIP
+holds only `topic.json`). **Read `docs/math-tests.md` first.**
+
 ## Глаголы (verbs_v2) — methodology rework planned
 
 Speech-therapy audit of the topic for minimally verbal children with ASD (2026-10-17):

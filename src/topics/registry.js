@@ -4,6 +4,7 @@ import OppositeRenderer            from "./renderers/opposites/index.jsx";
 import ComparisonRenderer          from "./renderers/comparison/index.jsx";
 import MathHousesRenderer          from "./renderers/math_houses/index.jsx";
 import AdditionSubtractionRenderer from "./renderers/addition_subtraction/index.jsx";
+import MathTestsRenderer from "./renderers/math_tests/index.jsx";
 import ReadingRenderer             from "./renderers/reading/index.jsx";
 import FunctionCardsRenderer       from "./renderers/function_cards/index.jsx";
 import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
@@ -33,6 +34,7 @@ export const RENDERER_REGISTRY = {
   comparison:            ComparisonRenderer,
   math_houses:           MathHousesRenderer,
   addition_subtraction:  AdditionSubtractionRenderer,
+  math_tests:            MathTestsRenderer,
   reading:               ReadingRenderer,
   function_cards:        FunctionCardsRenderer,
   vowel_consonant:       VowelConsonantRenderer,

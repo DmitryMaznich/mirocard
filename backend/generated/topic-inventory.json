@@ -759,6 +759,37 @@
       "sourceUpdatedAt": "2026-11-09T12:35:36+00:00"
     },
     {
+      "id": "math_tests",
+      "title": {
+        "ru": "Контрольные по математике",
+        "en": "Math Tests"
+      },
+      "version": "0.1.0",
+      "renderer": null,
+      "sources": [],
+      "bundle": null,
+      "builtin": false,
+      "catalogEntry": {
+        "id": "math_tests",
+        "version": "0.1.0",
+        "url": "./decks/math_tests_v0.1.0.zip",
+        "title": {
+          "ru": "Контрольные по математике",
+          "en": "Math Tests"
+        },
+        "description": {
+          "ru": "Конструктор контрольных листов: блоки-задания на плюс и минус (одно и несколько действий, неизвестное, знак, цепочка) со своими настройками, цифры по клеткам как в тетради. Лист печатается в PDF с ответами или решается на экране с клавиатурой, проверкой и видеопризом.",
+          "en": "Math test builder: blocks of addition and subtraction tasks, digits in notebook cells; print to PDF or solve on screen with a keypad and a check."
+        },
+        "status": "beta",
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
+      },
+      "sourceUpdatedAt": null
+    },
+    {
       "id": "morning_greeting",
       "title": "Утреннее приветствие",
       "version": "1.0.1",

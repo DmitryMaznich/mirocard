@@ -715,6 +715,44 @@ const BUILTIN_ASSETS = {
   <rect x="104" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
   <rect x="114" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
 </svg>`,
+  // «Контрольные по математике» (math_tests): a notebook sheet in cells with a framed task,
+  // answers in boxes and a green check (2026-11-11).
+  "media/avatar_math_tests.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <rect x="18" y="12" width="92" height="106" rx="6" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <path d="M30 13v104M42 13v104M54 13v104M66 13v104M78 13v104M90 13v104M102 13v104M19 24h90M19 36h90M19 48h90M19 60h90M19 72h90M19 84h90M19 96h90M19 108h90" stroke="#dbe9f6" stroke-width="1.5"/>
+  <rect x="24" y="20" width="80" height="44" rx="6" fill="none" stroke="#45524f" stroke-width="2.5"/>
+  <text x="30" y="47" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">3</text>
+  <path d="M43 42h9M47.5 37.5v9" stroke="#1f7a6f" stroke-width="3.2" stroke-linecap="round"/>
+  <text x="56" y="47" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">2</text>
+  <path d="M68 39h8M68 45h8" stroke="#263131" stroke-width="3" stroke-linecap="round"/>
+  <rect x="79" y="31" width="20" height="20" rx="4" fill="#e3f5e9" stroke="#2e9b5a" stroke-width="2.5"/>
+  <text x="89" y="47" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#1d4ed8">5</text>
+  <rect x="24" y="72" width="80" height="38" rx="6" fill="none" stroke="#45524f" stroke-width="2.5"/>
+  <text x="30" y="97" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">7</text>
+  <path d="M43 92h9" stroke="#c04040" stroke-width="3.2" stroke-linecap="round"/>
+  <text x="56" y="97" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">4</text>
+  <path d="M68 89h8M68 95h8" stroke="#263131" stroke-width="3" stroke-linecap="round"/>
+  <rect x="79" y="81" width="20" height="20" rx="4" fill="#fff3c4" stroke="#d9a21b" stroke-width="2.5"/>
+  <circle cx="104" cy="104" r="15" fill="#2e9b5a"/>
+  <path d="M97 104l5 5 9-10" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+  "media/icons/math_tests_constructor.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <rect x="16" y="14" width="70" height="100" rx="6" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <rect x="24" y="24" width="54" height="24" rx="4" fill="none" stroke="#45524f" stroke-width="2.5"/>
+  <rect x="24" y="56" width="54" height="24" rx="4" fill="none" stroke="#45524f" stroke-width="2.5"/>
+  <rect x="24" y="88" width="54" height="16" rx="4" fill="none" stroke="#9db7e8" stroke-width="2.5" stroke-dasharray="5 4"/>
+  <path d="M30 36h14M30 68h20" stroke="#263131" stroke-width="3" stroke-linecap="round"/>
+  <rect x="60" y="29" width="12" height="14" rx="3" fill="#fff6d6" stroke="#e9c46a" stroke-width="2"/>
+  <rect x="60" y="61" width="12" height="14" rx="3" fill="#fff6d6" stroke="#e9c46a" stroke-width="2"/>
+  <rect x="92" y="40" width="26" height="60" rx="8" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <path d="M99 54h12M99 66h12M99 78h8" stroke="#4a9b8f" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="105" cy="30" r="12" fill="#1f7a6f"/>
+  <path d="M105 24v12M99 30h12" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+</svg>`,
   // «Плюс и минус» (addition_subtraction): cover + one icon per mode (2026-11-11).
   // Plus teal #1f7a6f, minus red #c04040, objects blue #3b82f6, unknown «?» on a
   // pale-yellow field like the answer field. The counting rod appears only in the
@@ -1274,6 +1312,7 @@ export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "math_houses") return "media/avatar.svg";
   if (topicId === "propis") return "media/avatar_propis.svg";
   if (topicId === "addition_subtraction") return "media/avatar_operations.svg";
+  if (topicId === "math_tests") return "media/avatar_math_tests.svg";
   if (topicId === "place_value") return "media/avatar_place_value.svg";
   if (topicId?.startsWith("reading_")) return "media/avatar_reading.svg";
   if (topicId === "sentence_puzzle") return "media/avatar_sentence_puzzle.svg";
