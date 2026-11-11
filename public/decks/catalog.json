@@ -640,8 +640,8 @@
     },
     {
       "id": "math_tests",
-      "version": "0.1.0",
-      "url": "./decks/math_tests_v0.1.0.zip",
+      "version": "0.1.1",
+      "url": "./decks/math_tests_v0.1.1.zip",
       "title": {
         "ru": "Контрольные по математике",
         "en": "Math Tests"

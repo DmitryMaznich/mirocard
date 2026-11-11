@@ -764,15 +764,18 @@
         "ru": "Контрольные по математике",
         "en": "Math Tests"
       },
-      "version": "0.1.0",
-      "renderer": null,
-      "sources": [],
+      "version": "0.1.1",
+      "renderer": "math_tests",
+      "sources": [
+        "src/topics/renderers/math_tests",
+        "tools/math_tests/topic.json"
+      ],
       "bundle": null,
       "builtin": false,
       "catalogEntry": {
         "id": "math_tests",
-        "version": "0.1.0",
-        "url": "./decks/math_tests_v0.1.0.zip",
+        "version": "0.1.1",
+        "url": "./decks/math_tests_v0.1.1.zip",
         "title": {
           "ru": "Контрольные по математике",
           "en": "Math Tests"
@@ -787,7 +790,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": null
+      "sourceUpdatedAt": "2026-11-11T14:18:24+00:00"
     },
     {
       "id": "morning_greeting",
