@@ -14988,10 +14988,21 @@ kbd {
   gap: 12px;
 }
 
+/* The numeral is the number itself for the child, so it is set like the
+   finger modes' big number (fingers.css .fng-show-number): Primo, dark ink.
+   It was 23px of grey Nunito on a phone. */
+@font-face {
+  font-family: 'Primo';
+  src: url('/fonts/primo.ttf') format('truetype');
+  font-display: swap;
+}
+
 .observe-change__numeral {
-  color: #536461;
-  font-size: clamp(1.45rem, 5vw, 2rem);
-  font-weight: 900;
+  font-family: 'Primo', 'Nunito', sans-serif;
+  font-weight: 400;
+  font-size: clamp(64px, 20vw, 140px);
+  line-height: 1;
+  color: #1a2540;
 }
 
 .observe-change__rail {
@@ -15016,8 +15027,10 @@ kbd {
   aspect-ratio: 1;
   display: block;
   border-radius: 50%;
-  background: #4a9b8f;
-  box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2);
+  /* Blue, not the teal of the repeat button: in this topic teal also means
+     «плюс», and the objects must neither look like a button nor hint the action. */
+  background: #3b82f6;
+  box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22);
 }
 
 .observe-change__dot--square {
@@ -15028,7 +15041,7 @@ kbd {
   border-radius: 0;
   clip-path: polygon(50% 4%, 96% 94%, 4% 94%);
   box-shadow: none;
-  filter: drop-shadow(0 4px 3px rgba(52, 101, 93, 0.24));
+  filter: drop-shadow(0 4px 3px rgba(37, 99, 235, 0.26));
 }
 
 .observe-change__dot--enter {
@@ -15042,15 +15055,15 @@ kbd {
 /* Mid-animation glow ring on the one dot that's actually changing — the
    slide/scale alone was easy to miss for a kid tracking the whole rail. */
 @keyframes observe-dot-enter {
-  0%   { opacity: 0; transform: translateX(56%) scale(0.54); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 0 rgba(255, 196, 61, 0); }
-  55%  { opacity: 1; transform: translateX(0) scale(1.22); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 9px rgba(255, 196, 61, 0.6); }
-  100% { opacity: 1; transform: translateX(0) scale(1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 0 rgba(255, 196, 61, 0); }
+  0%   { opacity: 0; transform: translateX(56%) scale(0.54); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22), 0 0 0 0 rgba(255, 196, 61, 0); }
+  55%  { opacity: 1; transform: translateX(0) scale(1.22); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22), 0 0 0 9px rgba(255, 196, 61, 0.6); }
+  100% { opacity: 1; transform: translateX(0) scale(1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22), 0 0 0 0 rgba(255, 196, 61, 0); }
 }
 
 @keyframes observe-dot-leave {
-  0%   { opacity: 1; transform: translateX(0) scale(1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 9px rgba(255, 196, 61, 0.6); }
-  45%  { opacity: 1; transform: translateX(0) scale(1.1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 9px rgba(255, 196, 61, 0.6); }
-  100% { opacity: 0; transform: translateX(56%) scale(0.54); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 0 rgba(255, 196, 61, 0); }
+  0%   { opacity: 1; transform: translateX(0) scale(1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22), 0 0 0 9px rgba(255, 196, 61, 0.6); }
+  45%  { opacity: 1; transform: translateX(0) scale(1.1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22), 0 0 0 9px rgba(255, 196, 61, 0.6); }
+  100% { opacity: 0; transform: translateX(56%) scale(0.54); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.1), 0 4px 8px rgba(37, 99, 235, 0.22), 0 0 0 0 rgba(255, 196, 61, 0); }
 }
 
 .observe-change__controls {
@@ -15165,6 +15178,7 @@ kbd {
   .operation-stage--observe { min-height: calc(100dvh - 108px); }
   .observe-change { min-height: 0; gap: 10px; }
   .observe-change__rail { min-height: 68px; padding: 10px; }
+  .observe-change__numeral { font-size: clamp(48px, 14vw, 88px); }
   .observe-change__answer { min-height: 72px; }
   .observe-change__answer-area { min-height: 72px; }
 }

@@ -30,6 +30,16 @@ Done the same day: the whole bank was re-recorded in the owner's ElevenLabs voic
 (whole sentences for modes 2–3, numbers from `public/audio/place-value-numbers/`), see
 the «Сделано» section there. Backlog item 2 below (Gemini/Kore) is obsolete.
 
+## 2026-11-11: «Что изменилось?» objects and numeral
+
+Owner: the objects were the same teal as the ↻ repeat button (teal also means
+«плюс» in this topic), and with «Показывать цифры» on, the numeral was tiny on a
+phone (23px grey Nunito). Fixed in `src/styles.css`: objects (`.observe-change__dot`,
+all three shapes, also the ones the hand carries in «Назови действие») are blue
+`#3b82f6`, the amber change glow kept; the numeral is Primo, dark ink,
+`clamp(64px, 20vw, 140px)` (≈78px on a 390px phone), like the finger modes' number.
+Open: in «Фигуры сериями» the blue up-triangle looks like the teal ▲ on «Больше».
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s
