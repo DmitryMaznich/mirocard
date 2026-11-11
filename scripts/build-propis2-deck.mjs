@@ -137,7 +137,7 @@ if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFile
 if (latin) {
   const tc = JSON.parse(readFileSync(LATIN_PATH, "utf-8"));
   // its own description for the topic card (latin.json `about`: the Nelson scheme, no dictation), not propis2's
-  topic.meta = { ...topic.meta, id: "propis2_lang", version: tc.version, title: tc.title.ru, ...(tc.about ? { about: tc.about } : {}) };
+  topic.meta = { ...topic.meta, id: "propis2_lang", version: tc.version, title: tc.title.ru, ...(tc.about ? { about: tc.about } : {}), ...(tc.avatar ? { avatar: tc.avatar } : {}) };
   // the dictation is Russian (its words, texts and recordings): not in the Latin deck
   topic.modes = topic.modes.filter((m) => m.type !== "dictation");
 }

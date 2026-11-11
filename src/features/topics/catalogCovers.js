@@ -17,8 +17,8 @@ const COVERS = {
   learn_slovene: learnSlovene,
 };
 
-// propis2 and its Latin deck use the old «Прописи» cover kept in builtinAssets.
-const BUILTIN_PATHS = { propis2: "media/avatar_propis.svg", propis2_lang: "media/avatar_propis.svg" };
+// propis2 uses the old «Прописи» cover kept in builtinAssets, its Latin deck its own (the same card, «abc» and the Union flag).
+const BUILTIN_PATHS = { propis2: "media/avatar_propis.svg", propis2_lang: "media/avatar_propis_latin.svg" };
 
 export const CATALOG_COVER_PATH = "media/catalog_cover.svg";
 

@@ -938,6 +938,35 @@ const BUILTIN_ASSETS = {
     <circle cx="98.5" cy="10" r="3.5" fill="#fff" opacity="0.55"/>
   </g>
 </svg>`,
+  // «Прописи: латиница» (propis2_lang) -- 2026-11-11, owner: «чтобы было понятно, что это именно английские прописи». The «Прописи»
+  // card with the British four-line ruling, «abc» in the deck's own British joined hand (the engine's ink paths, not a font) and a small
+  // Union flag in the corner.
+  "media/avatar_propis_latin.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="26" fill="#f7ecd8"/>
+  <rect x="14" y="14" width="100" height="100" rx="12" fill="#fffdf8" stroke="#e3cfa0" stroke-width="3"/>
+  <path d="M22 48.0h84" stroke="#bcd8ec" stroke-width="1.6"/>
+  <path d="M22 63.1h84" stroke="#9cc2e6" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <path d="M22 83.5h84" stroke="#6fa3e0" stroke-width="2.4"/>
+  <path d="M22 98.2h84" stroke="#bcd8ec" stroke-width="1.6"/>
+  <g transform="translate(24.15 39.98) scale(0.68)" fill="none" stroke="#1d4ed8" stroke-width="6.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 31.227 37.242 C 28.325 35.846 25.959 34.484 22.648 34.484 C 15.258 34.484 9.270 42.157 9.270 51.631 C 9.270 58.634 12.904 64.266 17.386 64.266 C 25.660 64.266 32.370 50.742 32.370 34.000 C 32.370 40.416 32.370 46.831 32.370 53.246 C 32.370 59.183 33.996 64.000 36.004 64.000 C 39.373 64.000 41.784 60.642 43.544 58.231"/>
+    <path d="M 43.544 58.231 C 48.766 51.077 50.813 42.077 54.448 34.000"/>
+    <path d="M 54.448 11.800 C 54.448 27.804 54.448 45.400 54.448 64.000 C 54.448 57.608 54.448 51.216 54.448 44.823 C 56.617 39.648 58.994 34.450 65.455 34.450 C 70.954 34.450 75.419 40.941 75.419 48.948 C 75.419 57.492 70.475 64.352 64.382 64.352 C 58.752 64.352 56.709 59.639 54.448 55.386"/>
+    <path d="M 102.575 36.977 C 100.677 35.229 98.802 34.000 96.119 34.000 C 88.827 34.000 82.919 41.881 82.919 51.608 C 82.919 58.519 87.182 64.098 92.439 64.098 C 95.081 64.098 98.733 64.496 101.179 63.504 C 103.781 62.350 105.898 59.771 107.941 57.861"/>
+  </g>
+  <g transform="translate(78 20)">
+    <clipPath id="propis-latin-uk"><rect width="30" height="18" rx="3.5"/></clipPath>
+    <g clip-path="url(#propis-latin-uk)">
+      <rect width="30" height="18" fill="#012169"/>
+      <path d="M0 0L30 18M30 0L0 18" stroke="#fff" stroke-width="4"/>
+      <path d="M0 0L30 18M30 0L0 18" stroke="#c8102e" stroke-width="1.4"/>
+      <path d="M15 0v18M0 9h30" stroke="#fff" stroke-width="5.4"/>
+      <path d="M15 0v18M0 9h30" stroke="#c8102e" stroke-width="3"/>
+    </g>
+    <rect width="30" height="18" rx="3.5" fill="none" stroke="#e3cfa0" stroke-width="1"/>
+  </g>
+</svg>`,
   // Прописи (propis) mode icons -- restored 2026-08-21 (originally added 2026-08-20 in
   // f50f5670, then reverted along with an unrelated topic-catalog-tile experiment; the
   // topic.json "icon" fields were dropped at the same time and are added back alongside

@@ -790,7 +790,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-09T12:35:36+00:00"
+      "sourceUpdatedAt": "2026-11-11T06:56:32+00:00"
     },
     {
       "id": "opposites",
@@ -1167,15 +1167,15 @@
     {
       "id": "propis2_lang",
       "title": "Прописи: латиница",
-      "version": "0.9.4",
+      "version": "0.9.5",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_lang_v0.9.4.zip",
+        "public/decks/propis2_lang_v0.9.5.zip",
         "src/topics/renderers/propis2"
       ],
       "bundle": {
-        "version": "0.9.4",
-        "url": "./decks/propis2_lang_v0.9.4.zip",
+        "version": "0.9.5",
+        "url": "./decks/propis2_lang_v0.9.5.zip",
         "title": "Прописи: латиница",
         "description": "Конструктор английских прописей и тренажёры письменных букв. Британский стиль построен по схеме Nelson Handwriting — британской школьной методики письма: формы букв, четыре вида соединений, буквы-разрывы, наклон и порядок обучения; готовые тетради «Ступени» составлены по образцам пособия New Nelson Handwriting. Четыре стиля: печатные (П), британские раздельные (БР), британские соединённые (БС) и британские соединённые наклонные (БСН); стиль выбирается для всей страницы и для отдельной строки. Взрослый собирает страницы из букв, слов и текстов или берёт готовую тетрадь; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора — режимы «Узнай букву» и «Строчная и заглавная». Nelson Handwriting — товарный знак Oxford University Press; приложение с издательством не связано.",
         "renderer": "propis2",
@@ -1185,7 +1185,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2_lang",
-        "version": "0.9.4",
+        "version": "0.9.5",
         "title": {
           "ru": "Прописи: латиница",
           "en": "Copybook: Latin script"
@@ -1194,7 +1194,7 @@
           "ru": "Английские прописи по британской строке, построенные по схеме Nelson Handwriting: печатные буквы и британское письмо — раздельное, соединённое и соединённое наклонное. Конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная».",
           "en": "English copybook on the British four-line paper, built on the Nelson Handwriting scheme: print letters and the British hand — unjoined, joined and joined sloped. A notebook builder, ready notebooks, letter cards."
         },
-        "url": "./decks/propis2_lang_v0.9.4.zip",
+        "url": "./decks/propis2_lang_v0.9.5.zip",
         "status": "individual",
         "access": "paid",
         "materialLanguages": [
