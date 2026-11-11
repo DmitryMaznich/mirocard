@@ -715,73 +715,157 @@ const BUILTIN_ASSETS = {
   <rect x="104" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
   <rect x="114" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
 </svg>`,
+  // «Плюс и минус» (addition_subtraction): cover + one icon per mode (2026-11-11).
+  // Plus teal #1f7a6f, minus red #c04040, objects blue #3b82f6, unknown «?» on a
+  // pale-yellow field like the answer field. The counting rod appears only in the
+  // icon of the mode that uses it («Сделай действие»), not as the topic symbol.
   "media/avatar_operations.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eefaf5"/>
-  <rect x="20" y="32" width="88" height="52" rx="18" fill="#ffffff" stroke="#c9dfdb" stroke-width="4"/>
-  <path d="M28 64h72" stroke="#9fb8b4" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="42" cy="64" r="10" fill="#4a9b8f"/>
-  <circle cx="64" cy="64" r="10" fill="#4a9b8f"/>
-  <circle cx="86" cy="64" r="10" fill="#ef6f5e"/>
-  <text x="44" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="900" fill="#1f7a6f">+</text>
-  <text x="84" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="900" fill="#c04040">-</text>
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <rect x="10" y="12" width="50" height="50" rx="14" fill="#fff" stroke="#bfe0da" stroke-width="3"/>
+  <path d="M18.200000000000003 37h33.599999999999994M35 20.200000000000003v33.599999999999994" stroke="#1f7a6f" stroke-width="9.799999999999999" stroke-linecap="round"/>
+  <rect x="68" y="12" width="50" height="50" rx="14" fill="#fff" stroke="#f1c6c0" stroke-width="3"/>
+  <path d="M76.2 37h33.599999999999994" stroke="#c04040" stroke-width="9.799999999999999" stroke-linecap="round"/>
+  <circle cx="20" cy="94" r="8" fill="#3b82f6"/>
+  <circle cx="36" cy="94" r="8" fill="#3b82f6"/>
+  <circle cx="52" cy="94" r="11" fill="#fde68a"/>
+  <circle cx="52" cy="94" r="8" fill="#3b82f6"/>
+  <circle cx="78" cy="94" r="8" fill="#3b82f6"/>
+  <circle cx="94" cy="94" r="8" fill="#3b82f6"/>
+  <circle cx="110" cy="94" r="7" fill="none" stroke="#9db7e8" stroke-width="3" stroke-dasharray="4 3"/>
+  <path d="M10 78h50M68 78h50" stroke="#dbe6f3" stroke-width="2"/>
 </svg>`,
-  "media/icons/operations_action_from_sign.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eefaf5"/>
-  <rect x="20" y="26" width="88" height="44" rx="14" fill="#fff" stroke="#c9dfdb" stroke-width="4"/>
-  <text x="64" y="59" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="900" fill="#1f7a6f">+</text>
-  <path d="M37 92h44" stroke="#4a9b8f" stroke-width="8" stroke-linecap="round"/>
-  <path d="M75 80 95 92 75 104" fill="none" stroke="#4a9b8f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`,
-  "media/icons/operations_sign_from_action.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#fff7ed"/>
-  <circle cx="38" cy="64" r="11" fill="#4a9b8f"/>
-  <circle cx="64" cy="64" r="11" fill="#4a9b8f"/>
-  <path d="M82 64h22" stroke="#ef6f5e" stroke-width="8" stroke-linecap="round"/>
-  <text x="64" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#1f4f8a">?</text>
-</svg>`,
-  "media/icons/operations_more_less.svg": `
+  "media/icons/ops_observe.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#eef6ff"/>
-  <circle cx="36" cy="70" r="10" fill="#7bb0ff"/>
-  <circle cx="58" cy="70" r="10" fill="#7bb0ff"/>
-  <circle cx="80" cy="70" r="10" fill="#f3c969"/>
-  <path d="M36 38h26m-13-13v26" stroke="#1f7a6f" stroke-width="8" stroke-linecap="round"/>
-  <path d="M75 38h28" stroke="#c04040" stroke-width="8" stroke-linecap="round"/>
+  <rect x="10" y="44" width="80" height="40" rx="14" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <circle cx="28" cy="64" r="9" fill="#3b82f6"/>
+  <circle cx="28" cy="67.15" r="9" fill="none"/>
+  <circle cx="50" cy="64" r="9" fill="#3b82f6"/>
+  <circle cx="50" cy="67.15" r="9" fill="none"/>
+  <circle cx="72" cy="64" r="13" fill="#fde68a" opacity=".75"/>
+  <circle cx="72" cy="64" r="9" fill="#3b82f6"/>
+  <circle cx="72" cy="67.15" r="9" fill="none"/>
+  <path d="M108 30 l12 20 h-24z" fill="#1f7a6f"/>
+  <path d="M108 98 l12 -20 h-24z" fill="#c04040"/>
+  <text x="108" y="70" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="18" fill="#1f4f8a">?</text>
 </svg>`,
-  "media/icons/operations_result.svg": `
+  "media/icons/ops_name_action.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f7f7ff"/>
-  <text x="35" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#1f4f8a">3</text>
-  <text x="62" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#1f7a6f">+</text>
-  <text x="89" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#ef6f5e">2</text>
-  <path d="M31 91h66" stroke="#d0dedd" stroke-width="7" stroke-linecap="round"/>
-  <text x="64" y="109" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="900" fill="#263131">?</text>
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <rect x="10" y="78" width="78" height="34" rx="12" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <circle cx="28" cy="95" r="8" fill="#3b82f6"/>
+  <circle cx="28" cy="97.8" r="8" fill="none"/>
+  <circle cx="48" cy="95" r="8" fill="#3b82f6"/>
+  <circle cx="48" cy="97.8" r="8" fill="none"/>
+  <circle cx="68" cy="52" r="8" fill="#3b82f6"/>
+  <circle cx="68" cy="54.8" r="8" fill="none"/>
+  <path d="M68 64v10" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" stroke-dasharray="3 4"/>
+  <path d="M86 10h30a8 8 0 0 1 8 8v22a8 8 0 0 1-8 8h-14l-10 10v-10h-6a8 8 0 0 1-8-8v-22a8 8 0 0 1 8-8z" fill="#fff" stroke="#bfe0da" stroke-width="3"/>
+  <text x="102" y="37" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="24" fill="#1f4f8a">?</text>
 </svg>`,
-  "media/icons/operations_missing_sign.svg": `
+  "media/icons/ops_do_action.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#fff8ec"/>
-  <text x="30" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#1f4f8a">6</text>
-  <text x="62" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#c07a20">?</text>
-  <text x="94" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#ef6f5e">2</text>
-  <path d="M39 96h18m-9-9v18" stroke="#1f7a6f" stroke-width="7" stroke-linecap="round"/>
-  <path d="M74 96h22" stroke="#c04040" stroke-width="7" stroke-linecap="round"/>
+  <rect width="128" height="128" rx="24" fill="#effaf6"/>
+  <text x="64" y="40" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="28" fill="#263131">3+2</text>
+  <rect x="10" y="76" width="108" height="8" rx="4" fill="#cdb48a"/>
+  <circle cx="20" cy="80" r="8" fill="#2f9e8a"/>
+  <circle cx="36" cy="80" r="8" fill="#2f9e8a"/>
+  <circle cx="52" cy="80" r="8" fill="#2f9e8a"/>
+  <circle cx="98" cy="80" r="7" fill="#2f9e8a" opacity=".55"/>
+  <circle cx="112" cy="80" r="7" fill="#2f9e8a" opacity=".55"/>
+  <circle cx="76" cy="80" r="8" fill="#2f9e8a" stroke="#fde68a" stroke-width="3"/>
+  <path d="M86 102h-24" stroke="#1f7a6f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M70 95l-8 7 8 7" fill="none" stroke="#1f7a6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
-  "media/icons/operations_audio.svg": `
+  "media/icons/ops_sign_action.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eefaf5"/>
-  <path d="M84 28
-           C62 26 42 42 42 66
-           C42 84 53 97 67 100
-           C74 101 78 95 74 89
-           C70 84 61 83 59 73
-           C57 63 64 54 76 53
-           C85 52 90 44 87 35"
-        fill="none" stroke="#2f6f65" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M26 56 C13 65 13 81 26 90" fill="none" stroke="#9fd4c8" stroke-width="8" stroke-linecap="round"/>
-  <path d="M15 47 C-4 60 -4 86 15 99" fill="none" stroke="#cceae2" stroke-width="8" stroke-linecap="round"/>
+  <rect width="128" height="128" rx="24" fill="#effaf6"/>
+  <rect x="10" y="38" width="44" height="44" rx="12" fill="#fff" stroke="#bfe0da" stroke-width="3"/>
+  <path d="M18.799999999999997 60h26.400000000000002M32 46.8v26.400000000000002" stroke="#1f7a6f" stroke-width="7.700000000000001" stroke-linecap="round"/>
+  <path d="M60 52h16M60 68h16" stroke="#7a8c88" stroke-width="4" stroke-linecap="round"/>
+  <path d="M70 46l7 6-7 6M66 62l-7 6 7 6" fill="none" stroke="#7a8c88" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="80" y="38" width="40" height="44" rx="12" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <circle cx="92" cy="70" r="6" fill="#3b82f6"/>
+  <circle cx="92" cy="72.1" r="6" fill="none"/>
+  <circle cx="108" cy="70" r="6" fill="#3b82f6"/>
+  <circle cx="108" cy="72.1" r="6" fill="none"/>
+  <circle cx="100" cy="50" r="6" fill="#3b82f6"/>
+  <circle cx="100" cy="52.1" r="6" fill="none"/>
+  <path d="M100 58v4" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+</svg>`,
+  "media/icons/ops_find_sign.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff7ed"/>
+  <text x="22" y="70" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="34" fill="#263131">3</text>
+  <rect x="36" y="42" width="36" height="38" rx="8" fill="#fff6d6" stroke="#e9c46a" stroke-width="3"/>
+  <text x="54" y="71.08" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="28" fill="#1f4f8a">?</text>
+  <text x="88" y="70" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="34" fill="#263131">2</text>
+  <text x="64" y="106" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="24" fill="#7a8c88">= 5</text>
+</svg>`,
+  "media/icons/ops_result.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f4f5ff"/>
+  <text x="24" y="58" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="32" fill="#263131">3</text>
+  <path d="M41 47h18M50 38v18" stroke="#1f7a6f" stroke-width="5.25" stroke-linecap="round"/>
+  <text x="76" y="58" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="32" fill="#263131">2</text>
+  <text x="102" y="58" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="30" fill="#7a8c88">=</text>
+  <rect x="40" y="72" width="48" height="40" rx="8" fill="#fff6d6" stroke="#e9c46a" stroke-width="3"/>
+  <text x="64" y="102.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="30" fill="#1f4f8a">?</text>
+</svg>`,
+  "media/icons/ops_chain.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f4f5ff"/>
+  <text x="16" y="56" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#263131">5</text>
+  <path d="M29.4 47h13.200000000000001M36 40.4v13.200000000000001" stroke="#1f7a6f" stroke-width="3.8500000000000005" stroke-linecap="round"/>
+  <text x="56" y="56" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#263131">2</text>
+  <path d="M69.4 47h13.200000000000001" stroke="#c04040" stroke-width="3.8500000000000005" stroke-linecap="round"/>
+  <text x="96" y="56" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#263131">1</text>
+  <path d="M16 66q20 14 40 0M56 66q20 14 40 0" fill="none" stroke="#9fb4c9" stroke-width="3" stroke-linecap="round"/>
+  <text x="52" y="108" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#7a8c88">=</text>
+  <rect x="66" y="84" width="34" height="32" rx="8" fill="#fff6d6" stroke="#e9c46a" stroke-width="3"/>
+  <text x="83" y="108.64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="24" fill="#1f4f8a">?</text>
+</svg>`,
+  "media/icons/ops_worksheet.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fdfaf3"/>
+  <rect x="24" y="12" width="80" height="104" rx="8" fill="#fff" stroke="#d9cfbd" stroke-width="3"/>
+  <text x="34" y="36" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">2+3=</text>
+  <rect x="74" y="21" width="22" height="20" rx="4" fill="#eefaf5" stroke="#1f7a6f" stroke-width="2"/>
+  <text x="85" y="36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="14" fill="#1f5f57">5</text>
+  <text x="34" y="62" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">6−1=</text>
+  <rect x="74" y="47" width="22" height="20" rx="4" fill="#eefaf5" stroke="#1f7a6f" stroke-width="2"/>
+  <text x="85" y="62" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="14" fill="#1f5f57">5</text>
+  <text x="34" y="88" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#263131">4+4=</text>
+  <rect x="74" y="73" width="22" height="20" rx="4" fill="#fff6d6" stroke="#e9c46a" stroke-width="2"/>
+  <path d="M30 102h64" stroke="#e6ddcc" stroke-width="3" stroke-linecap="round"/>
+</svg>`,
+  "media/icons/ops_missing_term.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff7ed"/>
+  <text x="16" y="72" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="30" fill="#263131">3</text>
+  <path d="M28.8 61h14.399999999999999M36 53.8v14.399999999999999" stroke="#1f7a6f" stroke-width="4.2" stroke-linecap="round"/>
+  <rect x="50" y="42" width="30" height="36" rx="8" fill="#fff6d6" stroke="#e9c46a" stroke-width="3"/>
+  <text x="65" y="69.36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#1f4f8a">?</text>
+  <text x="96" y="72" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#7a8c88">=</text>
+  <text x="115" y="72" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="30" fill="#263131">5</text>
+  <circle cx="30" cy="102" r="7" fill="#3b82f6"/>
+  <circle cx="30" cy="104.45" r="7" fill="none"/>
+  <circle cx="48" cy="102" r="7" fill="#3b82f6"/>
+  <circle cx="48" cy="104.45" r="7" fill="none"/>
+  <circle cx="66" cy="102" r="7" fill="#3b82f6"/>
+  <circle cx="66" cy="104.45" r="7" fill="none"/>
+  <circle cx="84" cy="102" r="7" fill="none" stroke="#9db7e8" stroke-width="3" stroke-dasharray="3 3"/>
+  <circle cx="102" cy="102" r="7" fill="none" stroke="#9db7e8" stroke-width="3" stroke-dasharray="3 3"/>
+</svg>`,
+  "media/icons/ops_audio.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <path d="M18 46h14l18-16v60l-18-16h-14z" fill="#1f4f8a"/>
+  <path d="M60 46q8 14 0 28M70 38q14 22 0 44" fill="none" stroke="#3b82f6" stroke-width="5" stroke-linecap="round"/>
+  <rect x="80" y="42" width="36" height="36" rx="8" fill="#fff6d6" stroke="#e9c46a" stroke-width="3"/>
+  <text x="98" y="69.36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#1f4f8a">?</text>
+  <text x="64" y="112" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="20" fill="#9fb4c9">2 + 3</text>
 </svg>`,
   "media/icons/operations_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">

@@ -53,6 +53,19 @@ check per task, as with the buttons. «Нажми сколько стало» �
 The stick stage fills the session area and scrolls if it must. Checked with a Vite
 harness + Playwright at 390×844 and 360×640.
 
+## 2026-11-11: topic cover and mode icons redone
+
+Owner asked for more telling icons; the counting rod fits only its own mode. Before: 7
+icons for 12 modes — the cover (a rod with beads, «-» as a hyphen) doubled as modes 2, 3
+and 12; modes 4–5 shared an arrow; 9, 10 and 11 shared «6 ? 2», which actually depicts
+«find the sign». Now `src/topics/builtinAssets.js` has a new cover (`avatar_operations.svg`:
+big + and − tiles, a group gaining / losing an object) and one icon per mode
+(`media/icons/ops_*.svg`), wired in `topicLoader.js` (`ops_audio` via
+`orderAdditionSubtractionModes`). Palette: plus teal, minus red, objects blue, «?» on the
+pale-yellow answer field. The rod is drawn only in «Сделай действие». Finger-mode icons
+unchanged. Old `operations_*` icons removed except `operations_mode.svg` (column_addition's
+fallback).
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s

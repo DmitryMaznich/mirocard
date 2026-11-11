@@ -1082,7 +1082,7 @@ const DEFAULT_MODES = {
       id: "operation_observe",
       type: "operation_observe",
       evaluation: "auto",
-      ui: { title: "2. Что изменилось?", instruction: "Больше или меньше?", icon: "media/icons/operations_mode.svg" },
+      ui: { title: "2. Что изменилось?", instruction: "Больше или меньше?", icon: "media/icons/ops_observe.svg" },
       params: {
         maxNumber: { type: "enum", values: [3, 5], labels: { ru: { "3": "до 3", "5": "до 5" } }, default: 3, label: { ru: "Максимальное число" } },
         showNumerals: { type: "boolean", default: false, label: { ru: "Показывать цифры" } },
@@ -1093,7 +1093,7 @@ const DEFAULT_MODES = {
       id: "operation_name_action",
       type: "operation_name_action",
       evaluation: "auto",
-      ui: { title: "3. Назови действие", instruction: "Прибавили или убрали?", icon: "media/icons/operations_mode.svg" },
+      ui: { title: "3. Назови действие", instruction: "Прибавили или убрали?", icon: "media/icons/ops_name_action.svg" },
       params: {
         maxNumber: { type: "enum", values: [3, 5], labels: { ru: { "3": "до 3", "5": "до 5" } }, default: 3, label: { ru: "Максимальное число" } },
         shapeMode: { type: "enum", values: ["circle", "blocks"], labels: { ru: { circle: "Только круги", blocks: "Фигуры сериями" } }, default: "circle", label: { ru: "Материал" } },
@@ -1105,7 +1105,7 @@ const DEFAULT_MODES = {
       id: "operation_do_action",
       type: "operation_do_action",
       evaluation: "auto",
-      ui: { title: "4. Сделай действие", instruction: "Покажи на палке и назови результат", icon: "media/icons/operations_action_from_sign.svg" },
+      ui: { title: "4. Сделай действие", instruction: "Покажи на палке и назови результат", icon: "media/icons/ops_do_action.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 1, label: { ru: "Максимальное изменение" } },
@@ -1117,7 +1117,7 @@ const DEFAULT_MODES = {
       id: "operation_action_from_sign",
       type: "operation_action_from_sign",
       evaluation: "auto",
-      ui: { title: "5. Знак ↔ Действие", instruction: "Связываем знак со словом действия", icon: "media/icons/operations_action_from_sign.svg" },
+      ui: { title: "5. Знак ↔ Действие", instruction: "Связываем знак со словом действия", icon: "media/icons/ops_sign_action.svg" },
       params: {
         direction: {
           type: "enum",
@@ -1137,7 +1137,7 @@ const DEFAULT_MODES = {
       id: "operation_find_sign",
       type: "operation_find_sign",
       evaluation: "auto",
-      ui: { title: "6. Найди знак", instruction: "Какой знак пропущен в примере?", icon: "media/icons/operations_sign_from_action.svg" },
+      ui: { title: "6. Найди знак", instruction: "Какой знак пропущен в примере?", icon: "media/icons/ops_find_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1172,7 +1172,7 @@ const DEFAULT_MODES = {
       id: "operation_result",
       type: "operation_result",
       evaluation: "auto",
-      ui: { title: "8. Сколько стало?", instruction: "Вычисли результат примера", icon: "media/icons/operations_result.svg" },
+      ui: { title: "8. Сколько стало?", instruction: "Вычисли результат примера", icon: "media/icons/ops_result.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1193,7 +1193,7 @@ const DEFAULT_MODES = {
       id: "operation_chain",
       type: "operation_chain",
       evaluation: "auto",
-      ui: { title: "9. Цепочка", instruction: "Посчитай пример из двух действий", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "9. Цепочка", instruction: "Посчитай пример из двух действий", icon: "media/icons/ops_chain.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1215,7 +1215,7 @@ const DEFAULT_MODES = {
       type: "operation_worksheet",
       evaluation: "none",
       hideConceptPicker: true,
-      ui: { title: "10. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "10. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/ops_worksheet.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1228,7 +1228,7 @@ const DEFAULT_MODES = {
       id: "operation_missing_term",
       type: "operation_missing_term",
       evaluation: "auto",
-      ui: { title: "11. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "11. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/ops_missing_term.svg" },
       params: {
         operation: {
           type: "enum",
@@ -2223,7 +2223,7 @@ function orderAdditionSubtractionModes(modes) {
   return [...modes]
     .sort((a, b) => rank(a) - rank(b))
     .map((mode) => mode.id === "operation_audio"
-      ? { ...mode, ui: { ...(mode.ui ?? {}), title: "12. Слушай и посчитай" } }
+      ? { ...mode, ui: { ...(mode.ui ?? {}), title: "12. Слушай и посчитай", icon: "media/icons/ops_audio.svg" } }
       : mode);
 }
 
