@@ -21,6 +21,14 @@ manifest) is pinned by `orderAdditionSubtractionModes` in `topicLoader.js`,
 because installed decks keep their own mode order. The titles quoted below
 are the old numbers. Both finger modes are not yet reviewed in this pass.
 
+## Audio review 2026-11-11
+
+All 47 recorded clips were reviewed — see `docs/addition-subtraction-audio-review.md`.
+`phrases/was` is recognised as «Белла?» and `phrases/became` as «Стало?» (defective);
+the bank mixes Gemini Kore and Google WaveNet voices and its loudness varies by 12.5 LU.
+Recommendation there: re-record in the owner's ElevenLabs voice (numbers already exist
+in `public/audio/place-value-numbers/`). This replaces backlog item 2's Gemini plan.
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s
