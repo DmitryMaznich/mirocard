@@ -90,6 +90,39 @@ Owner's asks, all done (deck 1.9.3):
   to 10 also 10, «любое» only for up to 20; a saved value that no longer fits becomes the
   largest that does — in the settings screen and when a session starts from saved settings.
 
+## 2026-11-11: «Контрольная работа» → test constructor (v1)
+
+Owner: the old sheet (2–6 groups of identical A ± B ± C) was monotonous; wanted a test
+built from settings, solved on screen and exportable as a nice A4 sheet. Mockups and the
+brainstorm: https://claude.ai/artifact/5AsUKWsseVPhPhjsPCnYdc (private canvas).
+Owner's decisions: five sections in v1, answers on a separate page. Defaults taken for the
+unanswered: a section is shown as a list on screen; numbers up to 20 (100 later).
+
+- Code: `src/topics/renderers/addition_subtraction/worksheet/` — `sections.js` (catalog,
+  defaults, normalisation, seeded generators), `WorksheetMode.jsx` (constructor → solve →
+  result → reward video → `onCorrect`), `worksheetPdf.js` (A4 vector PDF), `worksheet.css`.
+- Sections: «Пример в одно действие», «Пример в несколько действий» (2–4), «Найди
+  неизвестное» (справа/слева/вперемешку), «Поставь знак», «Числовая цепочка» (2–4 шага).
+  Per section: count 2–12, numbers up to 5/10/20, change (limited by the range, «любое»
+  only up to 20), only + / only − / both, zero.
+- The sheet is generated from the config + a seed (`makeRng`, mulberry32): screen, PDF and
+  the saved test show the same examples until «Новые примеры» (seed + 1).
+- On screen: section by section, tap a box, the topic's keypad (signs: + / − keys), «→»
+  next box, back and forth between sections, check at the end (no per-item red). Result:
+  score per section, mistakes (wrong answer struck in its box, the right one beside it),
+  the weakest section named, PDF with answers, «Новая контрольная», «Готово» → video.
+- PDF: built in the app from the sheet in mm via `svgPagesToPdf` / `outlineText`
+  (`src/features/printLetters/printLettersPdf.js`); signs and arrows are strokes, text with
+  «−» is printed with «–» (the outline font has no U+2212). Header «Имя / Дата / Отметка»,
+  numbered sections, 1 cm boxes, a section kept on one page when it fits, footer
+  «Верно: __ из N»; answers on a separate last page with a score strip. Saving: the file
+  picker where available, else a second tap → share sheet (iPad) / download.
+- The last test is remembered: localStorage + account kv `addition_subtraction:worksheet:last`
+  (newer copy wins). A named list «Мои контрольные» is not built yet.
+- The mode has no generic params any more (`params: {}`); engine returns one task. Deck 1.9.4.
+- Not yet: picture-support and comparison sections, one-item-at-a-time screen option,
+  numbers to 100, «Мои контрольные» list, larger print size option.
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s

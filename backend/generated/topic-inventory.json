@@ -3,16 +3,16 @@
     {
       "id": "addition_subtraction",
       "title": "Плюс и минус",
-      "version": "1.9.3",
+      "version": "1.9.4",
       "renderer": "addition_subtraction",
       "sources": [
-        "public/decks/addition_subtraction_v1.9.3.zip",
+        "public/decks/addition_subtraction_v1.9.4.zip",
         "src/topics/renderers/addition_subtraction",
         "tools/addition_subtraction/topic.json"
       ],
       "bundle": {
-        "version": "1.9.3",
-        "url": "./decks/addition_subtraction_v1.9.3.zip",
+        "version": "1.9.4",
+        "url": "./decks/addition_subtraction_v1.9.4.zip",
         "title": "Плюс и минус",
         "description": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат примера в одно и в несколько действий, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
         "renderer": "addition_subtraction",
@@ -22,7 +22,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "addition_subtraction",
-        "version": "1.9.3",
+        "version": "1.9.4",
         "title": {
           "ru": "Плюс и минус",
           "en": "Addition and Subtraction"
@@ -31,14 +31,14 @@
           "ru": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат примера в одно и в несколько действий, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
           "en": "Ten addition and subtraction modes: object actions, signs, single and chained expressions, missing numbers, written practice, and mental calculation from audio."
         },
-        "url": "./decks/addition_subtraction_v1.9.3.zip",
+        "url": "./decks/addition_subtraction_v1.9.4.zip",
         "status": "release",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-11T08:50:37+00:00"
+      "sourceUpdatedAt": "2026-11-11T12:44:10+00:00"
     },
     {
       "id": "can_i_watch_tv",

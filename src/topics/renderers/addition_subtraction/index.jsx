@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import HelperPanel from "./HelperPanel";
 import NameActionTask from "./NameActionTask";
 import {
@@ -20,6 +19,7 @@ import {
 } from "./audioPhrases";
 import FingersShowTask from "./fingers/FingersShowTask.jsx";
 import FingersCountTask from "./fingers/FingersCountTask.jsx";
+import WorksheetMode from "./worksheet/WorksheetMode.jsx";
 
 
 const ACTION_OPTIONS_PAST = [
@@ -411,137 +411,6 @@ function useDigitAnswer({ maxNumber, answered, onSubmit }) {
       </div>
     ),
   };
-}
-
-// "Контрольная работа": the child computes each example on paper (or with
-// fingers/counting rod) and enters only the final result here — this screen
-// never shows intermediate steps or answer choices. One example is editable
-// at a time (activeIdx), in the same reading order the printed groups are
-// laid out in, so the flat examples[] index maps directly onto (group, row).
-// A wrong entry just shakes and clears — unlimited retries, no penalty — the
-// point is protecting against guessing, not grading. Finishing every example
-// shows one reward video (self-contained here, not the session-wide streak,
-// since this mode's evaluation is "none").
-function WorksheetTask({ task, onCorrect, student }) {
-  const total = task.examples.length;
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [solved, setSolved] = useState({});
-  const [digits, setDigits] = useState([]);
-  const [wrong, setWrong] = useState(false);
-  const [showReward, setShowReward] = useState(false);
-  const activeRef = useRef(null);
-  const wrongTimerRef = useRef(null);
-
-  useEffect(() => () => clearTimeout(wrongTimerRef.current), []);
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [activeIdx]);
-
-  const activeEx = task.examples[activeIdx] ?? null;
-
-  function addDigit(d) {
-    if (wrong || !activeEx || digits.length >= AUDIO_MAX_DIGITS) return;
-    setDigits((prev) => [...prev, d]);
-  }
-
-  function removeDigit() {
-    if (wrong) return;
-    setDigits((prev) => prev.slice(0, -1));
-  }
-
-  function checkAnswer() {
-    if (wrong || !activeEx || digits.length === 0) return;
-    const value = Number(digits.join(""));
-    if (value === activeEx.result) {
-      setSolved((prev) => ({ ...prev, [activeIdx]: true }));
-      setDigits([]);
-      if (activeIdx + 1 < total) {
-        setActiveIdx(activeIdx + 1);
-      } else {
-        setTimeout(() => setShowReward(true), 400);
-      }
-    } else {
-      setWrong(true);
-      wrongTimerRef.current = setTimeout(() => { setWrong(false); setDigits([]); }, 550);
-    }
-  }
-
-  const handleRewardDismiss = useCallback(() => {
-    setShowReward(false);
-    onCorrect?.(task.conceptId, task.cardId);
-  }, [onCorrect, task.conceptId, task.cardId]);
-
-  return (
-    <div className="operation-stage operation-stage--worksheet">
-      <div className="operation-worksheet">
-        {task.examples.map((ex, flatIdx) => {
-          const isActive = flatIdx === activeIdx;
-          const isSolved = !!solved[flatIdx];
-          const groupIndex = Math.floor(flatIdx / task.perGroup);
-          const isGroupStart = flatIdx % task.perGroup === 0;
-          return (
-            <div key={flatIdx} className="operation-worksheet__row">
-              {isGroupStart && (
-                <div className="operation-worksheet__divider">
-                  <span className="operation-worksheet__divider-badge">{groupIndex + 1}</span>
-                  <span className="operation-worksheet__divider-label">Группа {groupIndex + 1}</span>
-                </div>
-              )}
-              <div
-                ref={isActive ? activeRef : null}
-                className={[
-                  "operation-worksheet__line",
-                  isSolved ? "operation-worksheet__line--solved" : "",
-                  isActive ? "operation-worksheet__line--active" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                <span className="operation-worksheet__num">{ex.A}</span>
-                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
-                <span className="operation-worksheet__num">{ex.B}</span>
-                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
-                <span className="operation-worksheet__num">{ex.C}</span>
-                <span className="operation-worksheet__equals">=</span>
-                <span
-                  className={[
-                    "operation-worksheet__answer",
-                    isSolved ? "operation-worksheet__answer--correct" : "",
-                    isActive ? "operation-worksheet__answer--active" : "",
-                    isActive && wrong ? "operation-worksheet__answer--wrong" : "",
-                  ].filter(Boolean).join(" ")}
-                >
-                  {isSolved
-                    ? ex.result
-                    : isActive
-                      ? (digits.length
-                          ? digits.join("")
-                          : <span className="operation-worksheet__answer-placeholder">?</span>)
-                      : ""}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {!showReward && activeEx && (
-        <AudioAnswerPad
-          digits={digits}
-          disabled={wrong}
-          onDigit={addDigit}
-          onBackspace={removeDigit}
-          onCheck={checkAnswer}
-        />
-      )}
-
-      {showReward && (
-        <RewardVideoModal
-          rewardVideos={student?.rewardVideos ?? []}
-          studentId={student?.id}
-          onDismiss={handleRewardDismiss}
-        />
-      )}
-    </div>
-  );
 }
 
 function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
@@ -1428,11 +1297,11 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student, accountKv }) {
   const type = task.type;
 
   if (type === "operation_worksheet") {
-    return <WorksheetTask task={task} onCorrect={onCorrect} student={student} />;
+    return <WorksheetMode task={task} onCorrect={onCorrect} student={student} accountKv={accountKv} />;
   }
   // Kept for the future specialist-only physical-stick tool. It is no longer
   // part of the child-facing `operation_observe` lesson.
@@ -1469,7 +1338,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student }) {
+export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student, accountKv }) {
   if (!task) return null;
   if (task.type === "fingers_show") {
     return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
@@ -1477,5 +1346,5 @@ export default function AdditionSubtractionRenderer({ task, sessionParams, onCor
   if (task.type === "fingers_count") {
     return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onMistake : undefined} onFlashIncorrect={onFlashIncorrect} />;
   }
-  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} />;
+  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} accountKv={accountKv} />;
 }
