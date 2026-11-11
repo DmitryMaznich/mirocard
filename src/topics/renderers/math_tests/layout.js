@@ -131,23 +131,27 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
   const out = [];
   const lw = Math.max(0.3, cell * 0.06);
   const digit = cell * 0.78;
+  // digits are the school hand of the column trainer (Primo): slanted, so a digit is put by the middle
+  // of its ink (≈0.47 em from its origin), not of its advance; ink from the baseline up to 0.72 em.
+  // Primo's line is thin for a 5 mm cell, so the digit is also stroked in its own colour (`outline`).
+  const primo = cell * 1.0;
 
   // the grid
   for (let c = 0; c <= grid.cols; c += 1) out.push({ k: "line", x1: X(c), y1: Y(0), x2: X(c), y2: Y(grid.rows), stroke: COLORS.grid, w: 0.18 });
   for (let r = 0; r <= grid.rows; r += 1) out.push({ k: "line", x1: X(0), y1: Y(r), x2: X(grid.cols), y2: Y(r), stroke: COLORS.grid, w: 0.18 });
 
   const text = (s, x, y, size, opts = {}) => out.push({ k: "text", text: String(s), x, y, size, weight: opts.weight ?? 700, fill: opts.fill ?? COLORS.ink, anchor: opts.anchor ?? "start" });
-  const digitAt = (s, c, r, fill = COLORS.ink) => text(s, X(c + 0.5), Y(r + 0.5) + digit * 0.36, digit, { anchor: "middle", fill, weight: 800 });
+  const digitAt = (s, c, r, fill = COLORS.ink) => out.push({ k: "text", text: String(s), x: X(c + 0.5) - primo * 0.47, y: Y(r + 0.5) + primo * 0.35, size: primo, weight: 400, fill, anchor: "start", font: "primo", outline: cell * 0.045 });
   // + − = drawn as strokes so they look the same on screen and in the PDF
   const opAt = (op, cx, cy, size, stroke = COLORS.ink) => {
     const a = size * 0.3;
-    out.push({ k: "line", x1: cx - a, y1: cy, x2: cx + a, y2: cy, stroke, w: lw * 1.4, cap: "round" });
-    if (op === "add") out.push({ k: "line", x1: cx, y1: cy - a, x2: cx, y2: cy + a, stroke, w: lw * 1.4, cap: "round" });
+    out.push({ k: "line", x1: cx - a, y1: cy, x2: cx + a, y2: cy, stroke, w: lw * 1.2, cap: "round" });
+    if (op === "add") out.push({ k: "line", x1: cx, y1: cy - a, x2: cx, y2: cy + a, stroke, w: lw * 1.2, cap: "round" });
   };
   const eqAt = (cx, cy, size, stroke = COLORS.ink) => {
     const a = size * 0.28;
-    out.push({ k: "line", x1: cx - a, y1: cy - size * 0.12, x2: cx + a, y2: cy - size * 0.12, stroke, w: lw * 1.4, cap: "round" });
-    out.push({ k: "line", x1: cx - a, y1: cy + size * 0.12, x2: cx + a, y2: cy + size * 0.12, stroke, w: lw * 1.4, cap: "round" });
+    out.push({ k: "line", x1: cx - a, y1: cy - size * 0.12, x2: cx + a, y2: cy - size * 0.12, stroke, w: lw * 1.2, cap: "round" });
+    out.push({ k: "line", x1: cx - a, y1: cy + size * 0.12, x2: cx + a, y2: cy + size * 0.12, stroke, w: lw * 1.2, cap: "round" });
   };
   // < > = of a comparison, strokes too
   const cmpAt = (sign, cx, cy, size, stroke = COLORS.ink) => {
@@ -156,7 +160,7 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
     const h = size * 0.28;
     const tip = sign === "<" ? cx - a : cx + a;
     const back = sign === "<" ? cx + a : cx - a;
-    out.push({ k: "path", d: `M ${back} ${cy - h} L ${tip} ${cy} L ${back} ${cy + h}`, stroke, w: lw * 1.4, fill: "none" });
+    out.push({ k: "path", d: `M ${back} ${cy - h} L ${tip} ${cy} L ${back} ${cy + h}`, stroke, w: lw * 1.2, fill: "none" });
   };
   const isCmp = (v) => v === "<" || v === ">" || v === "=";
 

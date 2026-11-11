@@ -1,5 +1,5 @@
 // «Контрольные по математике» → a vector PDF: every page drawn from layout.js's shapes (the same
-// the screen draws), text as Nunito outlines (the app's printLettersPdf.js — no font embedded),
+// the screen draws), text as Nunito outlines (digits as Primo's) (the app's printLettersPdf.js — no font embedded),
 // then svg2pdf. With `answers` a copy of the pages with every box filled in follows, for the adult.
 import { svgPagesToPdf, outlineText } from "@/features/printLetters/printLettersPdf";
 import { layoutTest, pagePrimitives } from "./layout.js";
@@ -18,11 +18,12 @@ async function pageMarkup(layout, pageIndex, opts) {
       const t = { ...p, text: p.text.replace(/\u2212/g, "–") }; // no «−» in the PDF glyph set
       let x = t.x;
       if (t.anchor !== "start") {
-        const { width } = await outlineText(t.text, t.size, 0, 0, { weight: t.weight, fill: t.fill });
+        const { width } = await outlineText(t.text, t.size, 0, 0, { weight: t.weight, fill: t.fill, family: t.font });
         x = t.anchor === "middle" ? t.x - width / 2 : t.x - width;
       }
-      const { markup } = await outlineText(t.text, t.size, x, t.y, { weight: t.weight, fill: esc(t.fill) });
-      parts.push(markup);
+      const { markup } = await outlineText(t.text, t.size, x, t.y, { weight: t.weight, fill: esc(t.fill), family: t.font });
+      // the outline stroke sits on the glyph paths, which are scaled size/upm (Primo: upm 1000) — so its width is in font units
+      parts.push(t.outline ? markup.replace("<g ", `<g stroke="${esc(t.fill)}" stroke-width="${((t.outline / t.size) * 1000).toFixed(1)}" stroke-linejoin="round" `) : markup);
     }
   }
   return { w: layout.grid.w, h: layout.grid.h, markup: parts.join("") };

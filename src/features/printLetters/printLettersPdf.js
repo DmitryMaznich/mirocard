@@ -228,10 +228,11 @@ export async function svgPagesToPdf(pages) {
   return doc ? doc.output("blob") : null;
 }
 
-// `text` in Nunito of `weight` at `size` (mm) from (x, baseline y) as SVG paths filled with `fill`.
-export async function outlineText(text, size, x, y, { weight = 700, fill = "#1e293b" } = {}) {
+// `text` in Nunito of `weight` (or `family`, e.g. "primo") at `size` (mm) from (x, baseline y) as SVG paths filled with `fill`.
+export async function outlineText(text, size, x, y, { weight = 700, fill = "#1e293b", family = "" } = {}) {
   const fonts = await loadGlyphs();
-  const font = fonts[fontKey(weight)] ?? fonts["Nunito-400"];
+  // "primo": the digits only (glyphs.json keeps no other Primo characters) — asked for explicitly, never by a CSS family
+  const font = (family === "primo" && fonts.Primo) || fonts[fontKey(weight)] || fonts["Nunito-400"];
   const { markup, width } = shape(font, String(text ?? ""), size, x, y);
   return { markup: `<g fill="${fill}">${markup}</g>`, width };
 }

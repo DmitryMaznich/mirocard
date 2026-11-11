@@ -41,7 +41,7 @@ function SheetSvg({ layout, pageIndex, test, scale = PX_PER_MM, values, marks, f
           );
         }
         if (p.k === "text") {
-          return <text key={i} x={p.x} y={p.y} fontSize={p.size} fontWeight={p.weight} fill={p.fill} textAnchor={p.anchor} fontFamily="Nunito, system-ui, sans-serif">{p.text}</text>;
+          return <text key={i} x={p.x} y={p.y} fontSize={p.size} fontWeight={p.weight} fill={p.fill} textAnchor={p.anchor} stroke={p.outline ? p.fill : undefined} strokeWidth={p.outline || undefined} strokeLinejoin="round" fontFamily={p.font === "primo" ? "Primo, Nunito, cursive" : "Nunito, system-ui, sans-serif"}>{p.text}</text>;
         }
         return null;
       })}
