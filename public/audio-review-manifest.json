@@ -74,7 +74,7 @@
           "url": "/audio/addition-subtraction-voice/correct_more.mp3",
           "label": "Правильно! Стало больше.",
           "category": "Фразы",
-          "version": "df3791cf8068303e"
+          "version": "5cf4348c18a4468e"
         },
         {
           "id": "audio/addition-subtraction-voice/correct_removed_1.mp3",
@@ -83,7 +83,7 @@
           "url": "/audio/addition-subtraction-voice/correct_removed_1.mp3",
           "label": "Правильно! Убрали один.",
           "category": "Фразы",
-          "version": "f626f05ba3bce039"
+          "version": "81036c14befb79a2"
         },
         {
           "id": "audio/addition-subtraction-voice/correct_removed_2.mp3",
@@ -155,7 +155,7 @@
           "url": "/audio/addition-subtraction-voice/more_or_less.mp3",
           "label": "Стало больше или меньше?",
           "category": "Фразы",
-          "version": "90832ab423beab27"
+          "version": "da9071da4f83051b"
         },
         {
           "id": "audio/addition-subtraction-voice/was_1.mp3",
@@ -380,7 +380,7 @@
           "url": "/audio/addition-subtraction-voice/what_was_done.mp3",
           "label": "Что сделали?",
           "category": "Фразы",
-          "version": "c21e60469fef6464"
+          "version": "f51084e2f3754ee7"
         },
         {
           "id": "audio/addition-subtraction-voice/wrong_look_again.mp3",
