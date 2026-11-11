@@ -26,7 +26,7 @@ export function gridOf(test) {
   return { w: f.w, h: f.h, cell, cols, rows, ox: (f.w - cols * cell) / 2, oy: (f.h - rows * cell) / 2 };
 }
 
-const tokenWidth = (t, bw) => (t.t === "num" ? String(t.v).length : t.t === "arrow" ? 3 : t.t === "blank" ? (t.kind === "sign" ? 1 : bw) : 1);
+const tokenWidth = (t, bw) => (t.t === "num" ? String(t.v).length : t.t === "arrow" ? 3 : t.t === "blank" ? (t.kind === "num" || !t.kind ? bw : 1) : 1);
 
 // one block laid out from row r0 (relative cells); returns its height and items with cell positions
 function layoutBlock(block, built, grid, r0) {
@@ -144,11 +144,21 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
     out.push({ k: "line", x1: cx - a, y1: cy, x2: cx + a, y2: cy, stroke, w: lw * 1.4, cap: "round" });
     if (op === "add") out.push({ k: "line", x1: cx, y1: cy - a, x2: cx, y2: cy + a, stroke, w: lw * 1.4, cap: "round" });
   };
-  const eqAt = (cx, cy, size) => {
+  const eqAt = (cx, cy, size, stroke = COLORS.ink) => {
     const a = size * 0.28;
-    out.push({ k: "line", x1: cx - a, y1: cy - size * 0.12, x2: cx + a, y2: cy - size * 0.12, stroke: COLORS.ink, w: lw * 1.4, cap: "round" });
-    out.push({ k: "line", x1: cx - a, y1: cy + size * 0.12, x2: cx + a, y2: cy + size * 0.12, stroke: COLORS.ink, w: lw * 1.4, cap: "round" });
+    out.push({ k: "line", x1: cx - a, y1: cy - size * 0.12, x2: cx + a, y2: cy - size * 0.12, stroke, w: lw * 1.4, cap: "round" });
+    out.push({ k: "line", x1: cx - a, y1: cy + size * 0.12, x2: cx + a, y2: cy + size * 0.12, stroke, w: lw * 1.4, cap: "round" });
   };
+  // < > = of a comparison, strokes too
+  const cmpAt = (sign, cx, cy, size, stroke = COLORS.ink) => {
+    if (sign === "=") { eqAt(cx, cy, size, stroke); return; }
+    const a = size * 0.24;
+    const h = size * 0.28;
+    const tip = sign === "<" ? cx - a : cx + a;
+    const back = sign === "<" ? cx + a : cx - a;
+    out.push({ k: "path", d: `M ${back} ${cy - h} L ${tip} ${cy} L ${back} ${cy + h}`, stroke, w: lw * 1.4, fill: "none" });
+  };
+  const isCmp = (v) => v === "<" || v === ">" || v === "=";
 
   // the header of the first page
   if (pageIndex === 0) {
@@ -199,17 +209,20 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
           const ink = showAnswers ? COLORS.fix : COLORS.child;
           if (t.kind === "sign") {
             if (shown === "add" || shown === "subtract") opAt(shown, X(c + 0.5), Y(r + 0.5), cell, ink);
+          } else if (t.kind === "cmp") {
+            if (isCmp(shown)) cmpAt(shown, X(c + 0.5), Y(r + 0.5), cell, ink);
           } else {
             String(shown).split("").slice(0, t.w).forEach((d, k) => digitAt(d, c + k, r, ink));
           }
           if (mark === "wrong") {
             // the right answer, small, over the box's top-right corner
-            const fixText = typeof answer === "number" ? String(answer) : answer === "add" ? "+" : "−";
+            const fixText = typeof answer === "number" ? String(answer) : "+";
             const bx = X(c + t.w) - cell * 0.05;
             const by = Y(r) - cell * 0.05;
             const bwid = cell * (0.38 + 0.36 * fixText.length);
             out.push({ k: "rect", x: bx - bwid * 0.5, y: by - cell * 0.32, w: bwid, h: cell * 0.62, rx: cell * 0.3, stroke: COLORS.fix, w2: lw * 0.8, fill: "#ffffff" });
             if (typeof answer === "number") text(fixText, bx, by + cell * 0.14, cell * 0.5, { anchor: "middle", weight: 900, fill: COLORS.fix });
+            else if (isCmp(answer)) cmpAt(answer, bx, by - cell * 0.01, cell * 0.55, COLORS.fix);
             else opAt(answer, bx, by - cell * 0.01, cell * 0.55, COLORS.fix);
           }
         }

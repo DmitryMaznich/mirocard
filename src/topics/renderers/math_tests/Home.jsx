@@ -90,11 +90,6 @@ export default function Home({ tests, loading, onBack, onNew, onOpen, onFromLibr
                 </div>
               ))}
               <div className="mt-card mt-card--soon">
-                <span className="mt-card-group">Сравнение · скоро</span>
-                <b>Больше, меньше, равно</b>
-                <span>&gt; &lt; = с числами и примерами</span>
-              </div>
-              <div className="mt-card mt-card--soon">
                 <span className="mt-card-group">Задачи · скоро</span>
                 <b>Задачи в одно действие</b>
                 <span>с картинкой и коротким текстом</span>

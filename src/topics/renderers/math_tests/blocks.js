@@ -5,19 +5,20 @@
 // new entries here with their own builder — the sheet, the solving screen and the PDF only know
 // the item tokens:
 //   { t: "num", v }  { t: "op", op: "add"|"subtract" }  { t: "eq" }
-//   { t: "blank", i, kind: "num"|"sign" }  { t: "arrow", op, d }
-// and `answers[i]` (a number, or "add"/"subtract") for blank i.
+//   { t: "blank", i, kind: "num"|"sign"|"cmp" }  { t: "arrow", op, d }
+// and `answers[i]` (a number, "add"/"subtract", or "<"/">"/"=") for blank i.
 import {
   SECTION_INFO, MAX_NUMBERS, COUNT_MIN, COUNT_MAX, allowedChanges, normalizeSection, buildSection, makeRng,
 } from "../addition_subtraction/worksheet/sections.js";
+import { CMP_MAX_NUMBERS, normalizeCompare, buildCompare } from "./compare.js";
 
 export const GROUPS = [
   { id: "plusminus", title: "Плюс и минус" },
+  { id: "compare", title: "Сравнение" },
 ];
 
 // coming next — shown in the picker as «Скоро»
 export const SOON = [
-  { id: "compare", title: "Сравнение", sample: "3 + 2 ○ 6" },
   { id: "word", title: "Задача", sample: "картинка и текст" },
   { id: "multiply", title: "Умножение", sample: "таблица, примеры" },
   { id: "place", title: "Разряды числа", sample: "десятки и единицы" },
@@ -52,6 +53,20 @@ export const BLOCK_KINDS = {
   sign: sectionKind("sign", [], "6 ☐ 2 = 8"),
   chain: sectionKind("chain", [OPS, STEPS("Шагов")], "4 →+3 ☐ →−2 ☐"),
 };
+const CMP_NUMBERS = { key: "maxNumber", label: "Числа", kind: "seg", options: () => CMP_MAX_NUMBERS.map((v) => ({ value: v, label: `до ${v}` })) };
+const compareKind = (what, title, sample, extra) => ({
+  group: "compare",
+  title,
+  instruction: "Поставь знак >, < или =",
+  sample,
+  fields: [COMMON[0], CMP_NUMBERS, ...extra, COLS],
+  normalize: (b) => normalizeCompare(b, what),
+  build: (b) => buildCompare(b, what),
+});
+BLOCK_KINDS.cmp_nums = compareKind("nums", "Сравни числа", "7 ○ 5", []);
+BLOCK_KINDS.cmp_expr = compareKind("expr", "Сравни пример и число", "3 + 2 ○ 6", [OPS]);
+BLOCK_KINDS.cmp_two = compareKind("two", "Сравни два примера", "3 + 2 ○ 4 + 1", [OPS]);
+
 export const KIND_IDS = Object.keys(BLOCK_KINDS);
 
 let idCounter = 0;

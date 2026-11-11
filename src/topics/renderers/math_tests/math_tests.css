@@ -200,16 +200,16 @@
 /* keypad */
 .mt-pad { flex: 0 0 auto; display: flex; justify-content: center; gap: 12px; padding: 12px calc(12px + var(--app-safe-right, 0px)) calc(14px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--mt-line); box-shadow: 0 -6px 16px rgba(30,40,38,.06); }
 .mt-pad-digits { display: grid; grid-template-columns: repeat(5, 64px); gap: 8px; }
-.mt-pad-side { display: grid; grid-template-columns: repeat(2, 64px); gap: 8px; }
+.mt-pad-side { display: grid; grid-template-columns: repeat(var(--mt-side-cols, 2), 64px); gap: 8px; }
 .mt-key { height: 56px; border: 2px solid #c8d4d2; border-radius: 14px; background: #fff; font-size: 24px; font-weight: 900; color: var(--mt-ink); box-shadow: 0 4px 0 #dbe4e2; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .mt-key:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #dbe4e2; }
 .mt-key:disabled { opacity: .3; cursor: default; }
 .mt-key--fn { background: #f6f8f7; font-size: 22px; }
 .mt-key--sign { font-size: 28px; color: var(--mt-teal-dark); }
-.mt-pad.is-sign .mt-key--sign { border-color: var(--mt-teal); background: var(--mt-teal-soft); }
+.mt-key--sign.is-active { border-color: var(--mt-teal); background: var(--mt-teal-soft); }
 .mt-solve--phone .mt-pad { gap: 6px; padding-left: calc(8px + var(--app-safe-left, 0px)); padding-right: calc(8px + var(--app-safe-right, 0px)); }
 .mt-solve--phone .mt-pad-digits { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; flex: 5 1 0; }
-.mt-solve--phone .mt-pad-side { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex: 2 1 0; }
+.mt-solve--phone .mt-pad-side { grid-template-columns: repeat(var(--mt-side-cols, 2), minmax(0, 1fr)); gap: 6px; flex: var(--mt-side-cols, 2) 1 0; }
 .mt-solve--phone .mt-key { height: 52px; font-size: 22px; }
 .mt-phone-actions { flex: 0 0 auto; display: flex; gap: 10px; justify-content: center; padding: 10px calc(12px + var(--app-safe-right, 0px)) calc(12px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--mt-line); }
 .mt-phone-actions > * { flex: 1 1 0; }

@@ -11,18 +11,29 @@ import { IconBack, IconVideo } from "./icons";
 
 const CELL_PX = { wide: 27, narrow: 26 }; // how big one notebook cell is on screen while solving
 
-function Numpad({ sign, onDigit, onSign, onErase, onNext }) {
+const SIGN_KEYS = [{ v: "add", label: "+", aria: "Плюс" }, { v: "subtract", label: "−", aria: "Минус" }];
+const CMP_KEYS = [{ v: "<", label: "<", aria: "Меньше" }, { v: "=", label: "=", aria: "Равно" }, { v: ">", label: ">", aria: "Больше" }];
+const SIGN_VALUES = { sign: ["add", "subtract"], cmp: ["<", ">", "="] };
+
+// digits on the left; on the right the sign keys the test needs (+ − and/or < = >) over ⌫ →.
+// Only the keys that fit the focused box are active.
+function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext }) {
+  const showCmp = kinds.has("cmp");
+  const showSign = kinds.has("sign") || !showCmp;
+  const signs = [...(showSign ? SIGN_KEYS.map((k) => ({ ...k, kind: "sign" })) : []), ...(showCmp ? CMP_KEYS.map((k) => ({ ...k, kind: "cmp" })) : [])];
+  const cols = Math.max(2, signs.length);
   return (
-    <div className={`mt-pad${sign ? " is-sign" : ""}`} role="group" aria-label="Клавиатура">
+    <div className={`mt-pad${kind !== "num" ? " is-sign" : ""}`} role="group" aria-label="Клавиатура" style={{ "--mt-side-cols": cols }}>
       <div className="mt-pad-digits">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
-          <button key={d} type="button" className="mt-key" disabled={sign} onClick={() => onDigit(String(d))}>{d}</button>
+          <button key={d} type="button" className="mt-key" disabled={kind !== "num"} onClick={() => onDigit(String(d))}>{d}</button>
         ))}
       </div>
       <div className="mt-pad-side">
-        <button type="button" className="mt-key mt-key--sign" disabled={!sign} onClick={() => onSign("add")} aria-label="Плюс">+</button>
-        <button type="button" className="mt-key mt-key--sign" disabled={!sign} onClick={() => onSign("subtract")} aria-label="Минус">−</button>
-        <button type="button" className="mt-key mt-key--fn" onClick={onErase} aria-label="Стереть">⌫</button>
+        {signs.map((k) => (
+          <button key={k.v} type="button" className={`mt-key mt-key--sign${kind === k.kind ? " is-active" : ""}`} disabled={kind !== k.kind} onClick={() => onSign(k.v)} aria-label={k.aria}>{k.label}</button>
+        ))}
+        <button type="button" className="mt-key mt-key--fn" style={{ gridColumn: cols > 2 ? `span ${cols - 1}` : undefined }} onClick={onErase} aria-label="Стереть">⌫</button>
         <button type="button" className="mt-key mt-key--fn" onClick={onNext} aria-label="Следующая клетка">→</button>
       </div>
     </div>
@@ -30,7 +41,7 @@ function Numpad({ sign, onDigit, onSign, onErase, onNext }) {
 }
 
 // «Решать на экране»: the same sheet, the child fills the boxes with the keypad at the bottom (one
-// digit per cell; + and − for a sign box). «Проверить» marks everything at once: right boxes green,
+// digit per cell; + and − for a sign box, < = > for a comparison). «Проверить» marks everything at once: right boxes green,
 // a wrong one red with the right answer over it, the score and each block's result. From there:
 // «Исправить ошибки» (only the wrong boxes open again), «Решать заново», and — when the test has
 // «Видеоприз» on, every box was filled and the student has videos — «Смотреть видео».
@@ -86,7 +97,7 @@ export default function SolveView({ test, onBack, onResult }) {
   const typeDigit = useCallback((d) => {
     if (!focus || checked) return;
     const b = byKey[focus];
-    if (!b || b.kind === "sign" || locked.has(focus)) return;
+    if (!b || b.kind !== "num" || locked.has(focus)) return;
     const cur = values[focus] ?? "";
     const next = cur.length >= b.w ? d : cur + d;
     setValues((v) => ({ ...v, [focus]: next }));
@@ -95,7 +106,7 @@ export default function SolveView({ test, onBack, onResult }) {
   const typeSign = useCallback((op) => {
     if (!focus || checked) return;
     const b = byKey[focus];
-    if (!b || b.kind !== "sign" || locked.has(focus)) return;
+    if (!b || !SIGN_VALUES[b.kind]?.includes(op) || locked.has(focus)) return;
     setValues((v) => ({ ...v, [focus]: op }));
     const n = nextOpen(focus);
     if (n) setFocus(n);
@@ -108,7 +119,7 @@ export default function SolveView({ test, onBack, onResult }) {
       if (p) setFocus(p);
       return;
     }
-    setValues((v) => ({ ...v, [focus]: byKey[focus]?.kind === "sign" ? "" : cur.slice(0, -1) }));
+    setValues((v) => ({ ...v, [focus]: byKey[focus]?.kind === "num" ? cur.slice(0, -1) : "" }));
   }, [focus, checked, locked, values, nextOpen, byKey]);
   const goNext = useCallback(() => { const n = nextOpen(focus); setFocus(n ?? open[0]?.key ?? null); }, [focus, nextOpen, open]);
 
@@ -119,6 +130,7 @@ export default function SolveView({ test, onBack, onResult }) {
       if (/^[0-9]$/.test(e.key)) typeDigit(e.key);
       else if (e.key === "+") typeSign("add");
       else if (e.key === "-" || e.key === "−") typeSign("subtract");
+      else if (e.key === "<" || e.key === ">" || e.key === "=") typeSign(e.key);
       else if (e.key === "Backspace") erase();
       else if (e.key === "Enter" || e.key === "Tab" || e.key === "ArrowRight") goNext();
       else if (e.key === "ArrowLeft") { const p = nextOpen(focus, -1); if (p) setFocus(p); }
@@ -164,7 +176,8 @@ export default function SolveView({ test, onBack, onResult }) {
   }, [marks, layout, blanks]);
 
   const childPdf = usePdfSaver();
-  const sign = byKey[focus]?.kind === "sign";
+  const focusKind = byKey[focus]?.kind ?? "num";
+  const kinds = useMemo(() => new Set(blanks.map((b) => b.kind)), [blanks]);
   const lockedMarks = !checked && locked.size ? Object.fromEntries([...locked].map((k) => [k, "right"])) : null;
 
   if (prize === "watching") {
@@ -245,7 +258,7 @@ export default function SolveView({ test, onBack, onResult }) {
         )}
       </div>
 
-      {!checked && <Numpad sign={sign} onDigit={typeDigit} onSign={typeSign} onErase={erase} onNext={goNext} />}
+      {!checked && <Numpad kind={focusKind} kinds={kinds} onDigit={typeDigit} onSign={typeSign} onErase={erase} onNext={goNext} />}
       {checked && narrow && (
         <div className="mt-phone-actions">
           <button type="button" className="mt-ghost-btn" onClick={restart}>Заново</button>

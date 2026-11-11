@@ -57,6 +57,22 @@ export const LIBRARY = [
       { type: "sign", maxNumber: 10, changeMax: 5, count: 8 },
     ],
   },
+  {
+    id: "compare10", group: "Сравнение", title: "Сравни до 10", note: "числа, пример и число, два примера",
+    blocks: [
+      { type: "cmp_nums", maxNumber: 10, count: 6 },
+      { type: "cmp_expr", maxNumber: 10, count: 8 },
+      { type: "cmp_two", maxNumber: 10, count: 6 },
+    ],
+  },
+  {
+    id: "compare100", group: "Сравнение", title: "Сравни до 100", note: "двузначные числа и примеры до 20",
+    blocks: [
+      { type: "cmp_nums", maxNumber: 100, count: 9 },
+      { type: "cmp_expr", maxNumber: 20, count: 8 },
+      { type: "cmp_two", maxNumber: 20, count: 6 },
+    ],
+  },
 ];
 
 export function testFromLibrary(entry) {
