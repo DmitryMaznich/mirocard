@@ -7,6 +7,14 @@
 // (lines, rects, texts) that both the screen (SheetSvg.jsx) and the PDF (pdf.js) draw — one
 // source for what the child sees and what is printed.
 import { buildBlock, blockTitle, blockInstruction } from "./blocks.js";
+import { NUNITO_900 } from "./nunitoWidths.js";
+
+// width of a text in Nunito 900 at `size` (the block's name on the frame)
+export function textWidth900(s, size) {
+  let u = 0;
+  for (const ch of String(s)) u += NUNITO_900.w[ch] ?? NUNITO_900.w["?"] ?? 600;
+  return (u / NUNITO_900.upm) * size;
+}
 
 export const FORMATS = {
   a4: { id: "a4", label: "А4", w: 210, h: 297 },
@@ -31,7 +39,7 @@ const tokenWidth = (t, bw) => (t.t === "num" ? String(t.v).length : t.t === "arr
 // one block laid out from row r0 (relative cells); returns its height and items with cell positions
 function layoutBlock(block, built, grid, r0) {
   const bw = String(built.maxNumber ?? 20).length;
-  const items = built.items.map((item) => {
+  let items = built.items.map((item) => {
     let c = 0;
     const tokens = item.tokens.map((t) => {
       const w = tokenWidth(t, bw);
@@ -41,6 +49,15 @@ function layoutBlock(block, built, grid, r0) {
     });
     return { ...item, tokens, width: c };
   });
+  // comparisons stand one under another by their sign box: the left sides end at the same cell
+  const signAt = (it) => it.tokens.find((t) => t.t === "blank" && t.kind === "cmp")?.c;
+  if (items.length && items.every((it) => signAt(it) != null)) {
+    const left = Math.max(...items.map(signAt));
+    items = items.map((it) => {
+      const d = left - signAt(it);
+      return d ? { ...it, tokens: it.tokens.map((t) => ({ ...t, c: t.c + d })), width: it.width + d } : it;
+    });
+  }
   const itemW = Math.max(1, ...items.map((it) => it.width));
   const inner = grid.cols - 4; // frame on columns 1 and cols-1, one cell of padding inside
   const gap = 3;
@@ -50,6 +67,7 @@ function layoutBlock(block, built, grid, r0) {
   const hasArrows = items.some((it) => it.tokens.some((t) => t.t === "arrow"));
   const pitch = hasArrows ? 3 : 2;
   const colStep = cols > 1 ? Math.max(itemW + gap, Math.floor((inner - itemW) / (cols - 1))) : 0;
+  // the block's name sits on the frame's top line (row r0); inside: the instruction (row r0+1), then the items
   const firstRow = r0 + 3 + (hasArrows ? 1 : 0);
   const placed = items.map((it, k) => {
     const col = Math.floor(k / perCol);
@@ -69,7 +87,7 @@ export function layoutTest(test) {
   const startPage = () => {
     page = { index: pages.length, blocks: [] };
     pages.push(page);
-    r = pages.length === 1 ? (test.nameLine !== false ? 5 : 3) : 1;
+    r = pages.length === 1 ? (test.nameLine !== false ? 6 : 4) : 2; // the block's name stands half a cell above its frame
   };
   startPage();
   let no = 0;
@@ -180,11 +198,18 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
   for (const b of page.blocks) {
     const { block, no, r0, h } = b;
     out.push({ k: "rect", x: X(1), y: Y(r0), w: X(grid.cols - 1) - X(1), h: h * cell, rx: cell * 0.3, stroke: COLORS.frame, w2: lw, fill: "none", blockId: block.id, role: "frame" });
-    // number in a circle + the block's name and instruction
-    out.push({ k: "circle", cx: X(2.5), cy: Y(r0 + 1.5), r: cell * 0.42, stroke: COLORS.ink, w2: lw, fill: "#fff" });
-    text(no, X(2.5), Y(r0 + 1.5) + cell * 0.22, cell * 0.6, { anchor: "middle", weight: 900 });
-    text(blockTitle(block), X(3.4), Y(r0 + 2) - cell * 0.25, cell * 0.72, { weight: 900 });
-    text(blockInstruction(block), X(3.4) + blockTitle(block).length * cell * 0.47 + cell * 0.8, Y(r0 + 2) - cell * 0.25, cell * 0.62, { weight: 600, fill: COLORS.muted });
+    // the number and the name on the frame's top line, the line broken under them (like a legend);
+    // only the instruction stays inside
+    const titleSize = cell * 0.72;
+    const title = blockTitle(block);
+    const fy = Y(r0);
+    const tx = X(2) + cell * 0.7;
+    const tw = Math.min(textWidth900(title, titleSize), X(grid.cols - 2) - tx);
+    out.push({ k: "rect", x: X(2) - cell * 0.75, y: fy - cell * 0.5, w: tx + tw + cell * 0.3 - (X(2) - cell * 0.75), h: cell, rx: 0, stroke: "none", w2: 0, fill: "#ffffff" });
+    out.push({ k: "circle", cx: X(2), cy: fy, r: cell * 0.42, stroke: COLORS.ink, w2: lw, fill: "#fff" });
+    text(no, X(2), fy + cell * 0.22, cell * 0.6, { anchor: "middle", weight: 900 });
+    text(title, tx, fy + titleSize * 0.36, titleSize, { weight: 900 });
+    text(blockInstruction(block), X(2), Y(r0 + 2) - cell * 0.3, cell * 0.62, { weight: 600, fill: COLORS.muted });
 
     for (const it of b.items) {
       for (const t of it.tokens) {

@@ -111,12 +111,15 @@ export default function Editor({ test, onChange, onUndo, onRedo, canUndo, canRed
     </div>
   );
 
+  // «Имя, дата»: the name and date lines at the top of the first page. On a phone it stands right after the
+  // block tools — at the end of the sideways-scrolling strip nobody found it.
+  const nameTool = <Tool label="Строки «Имя» и «Дата» сверху листа" caption="Имя, дата" on={test.nameLine} onClick={() => set((t) => ({ nameLine: !t.nameLine }))}><IconName /></Tool>;
   const pageTools = <>
     <Tool label="Формат А4" caption="А4" on={test.format === "a4"} onClick={() => set(() => ({ format: "a4" }))}><IconA4 /></Tool>
     <Tool label="Формат А5" caption="А5" on={test.format === "a5"} onClick={() => set(() => ({ format: "a5" }))}><IconA5 /></Tool>
     <Tool label="Клетка 5 мм" caption="Клетка" on={test.paper === "cell"} onClick={() => set(() => ({ paper: "cell" }))}><IconGrid /></Tool>
     <Tool label="Крупная клетка" caption="Крупная" on={test.paper === "bigcell"} onClick={() => set(() => ({ paper: "bigcell" }))}><IconBigGrid /></Tool>
-    <Tool label="Строки «Имя» и «Дата»" caption="Имя, дата" on={test.nameLine} onClick={() => set((t) => ({ nameLine: !t.nameLine }))}><IconName /></Tool>
+    {!narrow && nameTool}
     <Tool label="Видеоприз после проверки на экране" caption="Видеоприз" on={test.videoPrize} onClick={() => set((t) => ({ videoPrize: !t.videoPrize }))}><IconVideo /></Tool>
   </>;
   const blockTools = <>
@@ -191,6 +194,7 @@ export default function Editor({ test, onChange, onUndo, onRedo, canUndo, canRed
       <div className="mt-strip" role="toolbar" aria-label="Инструменты">
         <div className="mt-bar-group mt-bar-group--block" role="group" aria-label="Блок">{blockTools}</div>
         <span className="mt-sep" aria-hidden="true" />
+        {nameTool}
         {pdfTool}
         <span className="mt-sep" aria-hidden="true" />
         {pageTools}

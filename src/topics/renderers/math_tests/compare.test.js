@@ -50,4 +50,19 @@ describe("math_tests «Сравнение»", () => {
     expect(isAnswerRight(b.answer, b.answer)).toBe(true);
     expect(isAnswerRight(b.answer, wrong)).toBe(false);
   });
+
+  it("in a column the sign boxes stand one under another", () => {
+    for (const type of ["cmp_expr", "cmp_two", "cmp_nums"]) {
+      const t = normalizeTest({ title: "С", blocks: [normalizeBlock({ type, id: "c", seed: 4, count: 12, maxNumber: 20 })] });
+      const [b] = layoutTest(t).pages[0].blocks;
+      const cols = new Map();
+      for (const it of b.items) {
+        const box = it.tokens.find((x) => x.t === "blank");
+        const set = cols.get(it.c0) ?? new Set();
+        set.add(it.c0 + box.c);
+        cols.set(it.c0, set);
+      }
+      for (const set of cols.values()) expect(set.size, type).toBe(1);
+    }
+  });
 });

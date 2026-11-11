@@ -49,8 +49,8 @@ function SheetSvg({ layout, pageIndex, test, scale = PX_PER_MM, values, marks, f
         <rect
           key={b.block.id}
           className="mt-block-hit"
-          x={ox + cell * 0.6} y={oy + b.r0 * cell - cell * 0.4}
-          width={(grid.cols - 1.2) * cell} height={(b.h + 0.8) * cell}
+          x={ox + cell * 0.6} y={oy + b.r0 * cell - cell * 0.9}
+          width={(grid.cols - 1.2) * cell} height={(b.h + 1.3) * cell}
           rx={cell * 0.5}
           fill="transparent"
           onClick={(e) => { e.stopPropagation(); onSelectBlock(b.block.id); }}
@@ -59,8 +59,8 @@ function SheetSvg({ layout, pageIndex, test, scale = PX_PER_MM, values, marks, f
       {sel && (
         <rect
           className="mt-block-sel"
-          x={ox + cell * 0.6} y={oy + sel.r0 * cell - cell * 0.4}
-          width={(grid.cols - 1.2) * cell} height={(sel.h + 0.8) * cell}
+          x={ox + cell * 0.6} y={oy + sel.r0 * cell - cell * 0.9}
+          width={(grid.cols - 1.2) * cell} height={(sel.h + 1.3) * cell}
           rx={cell * 0.5}
           fill="rgba(74,155,143,0.08)" stroke="#4a9b8f" strokeWidth={cell * 0.12}
           pointerEvents="none"
