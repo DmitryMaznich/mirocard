@@ -444,16 +444,16 @@
     },
     {
       "id": "propis2_lang",
-      "version": "0.9.3",
+      "version": "0.9.4",
       "title": {
         "ru": "Прописи: латиница",
         "en": "Copybook: Latin script"
       },
       "description": {
-        "ru": "Английские прописи по британской строке: печатные буквы и британские (Нельсон) — раздельно, позже и соединённо. Конструктор тетрадей, карточки «Узнай букву» и «Строчная и заглавная».",
-        "en": "English copybook on the British four-line paper: print letters and the British (Nelson) style, written apart, later joined. A notebook builder, letter cards."
+        "ru": "Английские прописи по британской строке, построенные по схеме Nelson Handwriting: печатные буквы и британское письмо — раздельное, соединённое и соединённое наклонное. Конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная».",
+        "en": "English copybook on the British four-line paper, built on the Nelson Handwriting scheme: print letters and the British hand — unjoined, joined and joined sloped. A notebook builder, ready notebooks, letter cards."
       },
-      "url": "./decks/propis2_lang_v0.9.3.zip",
+      "url": "./decks/propis2_lang_v0.9.4.zip",
       "status": "individual",
       "access": "paid",
       "materialLanguages": [

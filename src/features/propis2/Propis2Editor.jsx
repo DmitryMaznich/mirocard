@@ -65,7 +65,8 @@ const SETTING_SAYS = {
   writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
   style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
 };
-// a writing style in the strips is its name, in small type (owner, 2026-11-10: not «П» / «БР» — «Печатные», «Британские раздельные» …)
+// a writing style in the strips: its abbreviation on the button («П», «БР», «БС», «БСН»), the abbreviation and the full name in the list
+// (owner, 2026-11-11: the button stays light, the list says what the letters stand for)
 
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
 const PAPER_ICONS = { propis: I.IconRowNarrow, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperM1, m2: I.IconPaperM2 };
@@ -161,7 +162,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const pageIndexRef = useRef(0);
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
-  const styleOptions = useMemo(() => (styles?.options ?? []).map((st) => ({ id: st.id, label: st.title, text: st.title })), [styles?.options]);
+  const styleOptions = useMemo(() => (styles?.options ?? []).map((st) => ({ id: st.id, label: st.title, text: st.title, ...(st.short ? { short: st.short } : {}) })), [styles?.options]);
   const propisGrid = gridKind === "propis";
   const fourPaper = fourLinePaper(gridKind); // a four-line paper (fourLinePapers.js): no dense slant; its own dash, `bgDash`, if it has one
   const bgPaper = Boolean(fourPaper);

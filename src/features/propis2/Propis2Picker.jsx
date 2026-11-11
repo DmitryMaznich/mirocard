@@ -9,11 +9,11 @@ const Caret = () => (
   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 3.5l3 3 3-3" /></svg>
 );
 
-function Option({ id, name, Icon, text, on, onPick, disabled = false }) {
+function Option({ id, name, Icon, text, short, on, onPick, disabled = false }) {
   const { bind, tip } = useHint(name, "right");
   return (
     <button type="button" role="option" aria-selected={on} aria-pressed={on} aria-label={name} aria-disabled={disabled || undefined} disabled={disabled} className={`p2-pick-opt${text ? " p2-pick-opt--text" : ""}${on ? " is-on" : ""}`} onClick={() => onPick(id)} {...(text ? {} : bind)}>
-      {text ? <span className="p2-pick-text">{text}</span> : <Icon />}
+      {text ? <span className="p2-pick-text">{short && <b className="p2-pick-text-short">{short}</b>}{text}</span> : <Icon />}
       {!text && tip}
     </button>
   );
@@ -42,14 +42,14 @@ export default function Propis2Picker({ label, caption, value, options, onChange
     <div className="p2-pick" ref={ref}>
       <button type="button" ref={btnRef} className={`p2-pick-btn p2-tool${open ? " is-open" : ""}`} aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-description={mixed ? "в тетради по-разному" : undefined} data-value={current.id} data-kind={kind} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
         {mixed && <span className="p2-mixed" aria-hidden="true" />}
-        <span className="p2-tool-ico">{current.text ? <span className="p2-pick-current-text">{current.text}</span> : <CurrentIcon />}<Caret /></span>
+        <span className="p2-tool-ico">{current.short ? <span className="p2-pick-short">{current.short}</span> : current.text ? <span className="p2-pick-current-text">{current.text}</span> : <CurrentIcon />}<Caret /></span>
         {caption && <span className="p2-cap">{caption}</span>}
         {tip}
       </button>
       {open && (
         <div className="p2-pick-list" role="listbox" aria-label={label} style={listStyle ?? undefined}>
-          {options.map(({ id, label: name, Icon, text, disabled: off }) => (
-            <Option key={id} id={id} name={name} Icon={Icon} text={text} disabled={off} on={id === current.id} onPick={(v) => { setOpen(false); onChange(v); }} />
+          {options.map(({ id, label: name, Icon, text, short, disabled: off }) => (
+            <Option key={id} id={id} name={name} Icon={Icon} text={text} short={short} disabled={off} on={id === current.id} onPick={(v) => { setOpen(false); onChange(v); }} />
           ))}
         </div>
       )}

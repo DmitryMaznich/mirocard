@@ -193,6 +193,8 @@
 /* a writing style in the strips: its name in small type, not a pictogram (on the button up to three short lines; in the list one line each) */
 .p2-pick-current-text { display: block; max-width: 92px; margin-bottom: 3px; font: 600 10px/1.12 system-ui, sans-serif; text-align: center; white-space: normal; }
 .propis2-editor2 .propis2-settings .p2-pick-btn[data-kind="style"] .p2-tool-ico { height: auto; min-height: 26px; }
+.p2-pick-short { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 3px; font: 700 13px/1 system-ui, sans-serif; letter-spacing: .02em; }
+.p2-pick-text-short { display: inline-block; min-width: 40px; margin-right: 8px; font-weight: 800; }
 .p2-pick-opt--text { width: auto; min-width: 200px; height: auto; min-height: 40px; padding: 8px 12px; display: block; text-align: left; font: 600 14px/1.25 system-ui, sans-serif; white-space: nowrap; }
 .propis2-editor2--phone .p2-pick-btn { height: 42px; padding: 0 3px 0 5px; border-radius: 12px; }
 .propis2-editor2--phone .p2-pick-btn svg:first-child { width: 22px; height: 22px; }
