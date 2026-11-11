@@ -52,10 +52,10 @@ describe("propis2 writing languages", () => {
     expect(pickLanguage(ru, "bg")).toBeNull();
   });
 
-  it("«Прописи» carry Russian, Bulgarian and Kazakh, for everyone, the dictation kept — no draft language; the test copy is one account's", () => {
+  it("«Прописи» carry Russian, Bulgarian and Kazakh, for everyone, the dictation kept — no draft language; the Latin deck is released too", () => {
     expect(catalog.decks.find((d) => d.id === "propis2").status).toBe("release");
-    // the test copy carries the languages still in the making (English, 2026-11-08, docs/latin-letters.md): given to one account only
-    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("individual");
+    // «Прописи: латиница» (English) — open to everyone since 2026-11-11, paid as propis2 (docs/latin-letters.md)
+    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("release");
     expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "ready"]]);
     expect(multi.modes.map((m) => m.type)).toEqual(ru.modes.map((m) => m.type));
     expect(multi.modes.map((m) => m.type)).toContain("dictation");

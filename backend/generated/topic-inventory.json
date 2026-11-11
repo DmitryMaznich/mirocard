@@ -790,7 +790,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-11T06:56:32+00:00"
+      "sourceUpdatedAt": "2026-11-11T07:10:12+00:00"
     },
     {
       "id": "opposites",
@@ -1195,7 +1195,7 @@
           "en": "English copybook on the British four-line paper, built on the Nelson Handwriting scheme: print letters and the British hand — unjoined, joined and joined sloped. A notebook builder, ready notebooks, letter cards."
         },
         "url": "./decks/propis2_lang_v0.9.5.zip",
-        "status": "individual",
+        "status": "release",
         "access": "paid",
         "materialLanguages": [
           "ru",
@@ -1204,7 +1204,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-10T21:19:44+00:00"
+      "sourceUpdatedAt": "2026-11-11T07:15:18+00:00"
     },
     {
       "id": "reading_dad_instructions",
