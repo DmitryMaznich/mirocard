@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NUMBER_WORDS } from "../src/topics/renderers/addition_subtraction/audioNumbers.js";
-import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
+import { PHRASE_ENTRIES, SIGN_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
 import { LETTER_DATA } from "../src/handwriting/letters/letterData.js";
 import { letterDictationKey, splitIntoSentences, syllableDictationKey, textSentenceDictationKey, wordDictationKey } from "../src/handwriting/dictationAudio.js";
@@ -15,18 +15,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(root, "public");
 const labels = new Map();
 const setLabel = (path, label, category) => labels.set(path, { label, category });
+for (const { key, text } of PHRASE_ENTRIES) setLabel(`audio/addition-subtraction-voice/${key}.mp3`, text, "Фразы");
+for (const { key, text } of SIGN_ENTRIES) setLabel(`audio/addition-subtraction-voice/${key}.mp3`, text.replace(".", ""), "Знаки");
 for (const [number, word] of Object.entries(NUMBER_WORDS)) {
-  setLabel(`audio/addition-subtraction/n${number}.mp3`, `${number} — ${word}`, "Числа");
-}
-for (const [key, word] of [["plus", "плюс"], ["minus", "минус"]]) {
-  setLabel(`audio/addition-subtraction/${key}.mp3`, word, "Знаки");
-}
-for (const { key, text } of PHRASE_ENTRIES) setLabel(`audio/addition-subtraction/phrases/${key}.mp3`, text, "Фразы");
-for (const [path, entry] of [...labels]) {
-  if (path.startsWith("audio/addition-subtraction/") && entry.category !== "Фразы") {
-    setLabel(path.replace("audio/addition-subtraction/", "audio/addition-subtraction-review/"), `${entry.label} — новая запись`, entry.category);
-    setLabel(path.replace("audio/addition-subtraction/", "audio/addition-subtraction-russian-review/"), `${entry.label} — русский голос`, entry.category);
-  }
+  setLabel(`audio/place-value-numbers/n${number}.mp3`, `${number} — ${word}`, "Числа");
 }
 for (const { key, text } of AUDIO_ENTRIES) setLabel(`audio/daily-orientation/${key}.mp3`, text, "Слова и фразы");
 // The dictation recordings: one clip per letter (capital + small; ъ ь have only a small one — the
@@ -82,9 +74,8 @@ for (const [key, label] of [
 ]) setLabel(`audio/propis-letter-retake/${key}.mp3`, label, key.startsWith("lo_") ? "ж" : "Х");
 for (const entry of PROPIS_NATURAL_PILOT) setLabel(`audio/propis-natural-pilot/${entry.key}.wav`, entry.label, entry.category);
 const names = {
-  "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
-  "audio/addition-subtraction-review": "Плюс / минус — повторная проверка",
-  "audio/addition-subtraction-russian-review": "Плюс / минус — русский голос WaveNet",
+  "audio/addition-subtraction-voice": "Плюс / минус — фразы и знаки (голос владельца)",
+  "audio/place-value-numbers": "Числа (голос владельца; «Разряды числа», «Плюс / минус»)",
   "audio/daily-orientation": "Ориентировка во времени",
   "audio/propis-dictation": "Прописи — диктант",
   "audio/propis-phoneme-review": "Прописи — WaveNet с обрезкой (отклонён)",

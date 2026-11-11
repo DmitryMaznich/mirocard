@@ -242,7 +242,7 @@ it("downloads the actual Russian recording with RU, never with SL, and keeps it 
   const ru = await installTopicLanguage(entry, "ru", "1.0.2676");
   expect(urls()).toEqual([entry.languageDownload.languages.ru.url.slice(1)]);
   const installedVoice = new Uint8Array(await (await dbModule.topics.getFile(db, entry.id, voicePath)).arrayBuffer());
-  const originalVoice = await readFile(resolve("public/audio/addition-subtraction/phrases/look_again.mp3"));
+  const originalVoice = await readFile(resolve("test-fixtures/audio/addition-subtraction-look_again-kore.mp3"));
   expect(await sha256Bytes(installedVoice)).toBe(await sha256Bytes(originalVoice));
   expect(ru.languageResources.content.ru.recordings["feedback.retry"]).toBe(voicePath);
   fetchMock.mockImplementation(async () => { throw new Error("offline"); });

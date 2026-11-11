@@ -93,13 +93,12 @@ describe("operation_observe", () => {
 
     act(() => { vi.advanceTimersByTime(80); });
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n2.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/was_2.mp3", tight: false },
     ]);
 
     act(() => { vi.advanceTimersByTime(4920); });
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/more_or_less.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/more_or_less.mp3", tight: false },
     ]);
   });
 
@@ -116,7 +115,7 @@ describe("operation_observe", () => {
 
     expect(onIncorrect).toHaveBeenCalledWith("plus", "operation_plus");
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/wrong_look_again.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/wrong_look_again.mp3", tight: false },
     ]);
     expect(container.querySelector(".observe-change__answer--less").classList.contains("observe-change__answer--wrong")).toBe(true);
     expect(container.querySelector(".observe-change__repeat").classList.contains("observe-change__repeat--attention")).toBe(true);
@@ -148,7 +147,7 @@ describe("operation_observe", () => {
     expect(onCorrect).not.toHaveBeenCalled();
     expect(container.querySelector(".observe-change__feedback")).toBeNull();
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/correct_more.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/correct_more.mp3", tight: false },
     ]);
     audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("plus", "operation_plus");

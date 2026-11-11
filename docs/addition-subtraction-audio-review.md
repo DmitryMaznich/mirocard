@@ -101,3 +101,37 @@
 Сеть этой облачной сессии не пускает к `api.elevenlabs.io` напрямую; генерация
 возможна через коннектор ElevenLabs (голос владельца в нём доступен) или локально
 скриптом по образцу `scripts/generate-place-value-numbers-elevenlabs.mjs`.
+
+## Сделано 2026-11-11: переозвучка голосом владельца
+
+По решению владельца («Да делай») весь банк темы заменён.
+
+- **Фразы режимов 2–3** — 41 запись в `public/audio/addition-subtraction-voice/`,
+  тексты в `audioPhraseBank.js`. Числа в этих режимах только 1–5 (шаг 1–3), поэтому
+  каждая фраза с числом записана целиком: `was_N` («Было два.»), `was_became_A_B`
+  («Было два, стало три.» — все 18 пар, которые может дать `engine.js`),
+  `correct_added_N` / `correct_removed_N` («Правильно! Прибавили два.»). Склейки
+  «Было» + число больше нет. Тест `audioPhrases.test.js` проверяет, что у каждого
+  задания режимов 2–3 есть целая запись и что каждый файл банка лежит на диске.
+- **Режим 12** — числа берутся из `public/audio/place-value-numbers/` (тот же голос,
+  обрезаны), `plus` / `minus` записаны заново. `useAudioSequence.js` больше не
+  подрезает тишину на лету (файлы уже обрезаны): пауза внутри числа 0,12 с
+  (`PART_GAP_SECONDS` из «Разрядов числа»), между словами 0,35 с.
+- **Обработка:** тишина обрезана (фразы 50 / 120 мс, знаки 20 / 60 мс как у чисел),
+  громкость −16 LUFS: разброс 1,4 LU вместо 12,5.
+- **Голос / модель / подача:** `R2G2Gb9OjCtLhIBQErXd`, `eleven_v4`,
+  `[calm, clear, like a teacher talking to a young child]`. Записано через коннектор
+  ElevenLabs, по два дубля; в приложении дубль A. Повторить локально —
+  `scripts/generate-addition-subtraction-voice-elevenlabs.mjs` (нужен
+  `ELEVENLABS_API_KEY`).
+- **Удалено:** старый банк `public/audio/addition-subtraction/` (Kore + WaveNet),
+  `addition-subtraction-review/`, `addition-subtraction-russian-review/`, скрипт
+  Kore. Тест «Сравнения» (`topicLanguageDelivery.test.jsx`) сверяет свою копию
+  «Посмотри ещё раз» с `test-fixtures/audio/addition-subtraction-look_again-kore.mp3`.
+- **Проверка на слух:** страница с обоими дублями —
+  https://claude.ai/artifact/DJ7H1KUMspQmanwEcNBYUM (приватная). Владелец отмечает
+  B или «Плохо»; выбранные B заменить из дублей, «Плохо» — перезаписать. В
+  приложении страница проверки звука (`/audio-review.html`) теперь открывается на
+  наборе «Плюс / минус — фразы и знаки».
+- **Статус:** ветка `claude/audio-files-plus-minus-review-vv3wl1`, в `main` ещё не
+  влито — ждёт прослушивания владельцем.

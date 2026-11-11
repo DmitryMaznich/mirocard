@@ -59,7 +59,9 @@
 
 
 Обновление 0.4 / приложение 1.0.2675: русский пакет содержит существующую запись
-«Посмотри ещё раз» из `public/audio/addition-subtraction/phrases/look_again.mp3`.
+«Посмотри ещё раз» из `public/audio/addition-subtraction/phrases/look_again.mp3`
+(банк «Плюс и минус» Gemini/Kore; 2026-11-11 заменён голосом владельца, копия файла
+для теста — `test-fixtures/audio/addition-subtraction-look_again-kore.mp3`).
 Это озвучка подсказки после ошибки в обоих режимах, а не всех заданий. Исходный
 банк и его записи не изменены. Файл включён только в RU ZIP под
 `content/ru/0.4.0/retry.mp3`; SL остаётся без речи. Каталог и окно выбора явно

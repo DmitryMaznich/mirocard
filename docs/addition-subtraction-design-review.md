@@ -26,8 +26,9 @@ are the old numbers. Both finger modes are not yet reviewed in this pass.
 All 47 recorded clips were reviewed — see `docs/addition-subtraction-audio-review.md`.
 `phrases/was` is recognised as «Белла?» and `phrases/became` as «Стало?» (defective);
 the bank mixes Gemini Kore and Google WaveNet voices and its loudness varies by 12.5 LU.
-Recommendation there: re-record in the owner's ElevenLabs voice (numbers already exist
-in `public/audio/place-value-numbers/`). This replaces backlog item 2's Gemini plan.
+Done the same day: the whole bank was re-recorded in the owner's ElevenLabs voice
+(whole sentences for modes 2–3, numbers from `public/audio/place-value-numbers/`), see
+the «Сделано» section there. Backlog item 2 below (Gemini/Kore) is obsolete.
 
 ## Status by mode
 
