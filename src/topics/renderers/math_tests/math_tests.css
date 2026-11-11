@@ -98,7 +98,7 @@
 
 /* block picker */
 .mt-picker { position: relative; }
-.mt-picker-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: min(440px, calc(100vw - 24px)); max-height: min(70dvh, 620px); overflow-y: auto; background: #fff; border-radius: 18px; box-shadow: 0 12px 32px rgba(30,40,38,.22); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.mt-picker-pop { position: fixed; z-index: 60; overflow-y: auto; background: #fff; border-radius: 18px; box-shadow: 0 12px 32px rgba(30,40,38,.22); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .mt-picker-head { display: flex; justify-content: space-between; align-items: baseline; }
 .mt-picker-head b { font-size: 17px; }
 .mt-picker-head span { font-size: 13px; color: var(--mt-muted); font-weight: 700; }
