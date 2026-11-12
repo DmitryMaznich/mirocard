@@ -35,7 +35,7 @@ try {
     const img=document.createElementNS(svgNS,'image');img.setAttribute('href',picture);img.setAttribute('width','640');img.setAttribute('height','360');img.setAttribute('opacity','.45');svg.append(img);
     const group=document.createElementNS(svgNS,'g');group.setAttribute('transform','scale(.5)');group.setAttribute('fill','none');group.setAttribute('stroke','#d90040');group.setAttribute('stroke-width','1.4');group.setAttribute('stroke-linecap','round');group.setAttribute('stroke-linejoin','round');svg.append(group);
     const movements=[],drawn=[];
-    for(const step of source.steps.filter(s=>s.kind==='stroke'&&s.tool==='black')){
+    for(const step of source.steps.filter(s=>s.kind==='stroke'&&s.tool==='black'&&s.reference!==false)){
       const distances=[],outliers=[];
       for(const d of step.paths){const p=document.createElementNS(svgNS,'path');p.setAttribute('d',d);group.append(p);drawn.push(d);const length=p.getTotalLength();
         for(let v=0;v<=length;v+=.6){const q=p.getPointAtLength(v);const d=distance(mask,q.x/2,q.y/2);distances.push(d);if(d>1.5)outliers.push([+(q.x/2).toFixed(2),+(q.y/2).toFixed(2),+d.toFixed(2)]);}}

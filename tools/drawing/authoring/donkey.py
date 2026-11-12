@@ -2,7 +2,7 @@
 import json
 import math
 from pathlib import Path as FilePath
-from geometry import Path,chain,line,reverse,oval,at
+from geometry import Path,chain,line,reverse,oval,at,section
 BASE=FilePath(__file__).resolve().parents[1]
 PENCILS=json.loads((BASE/'pencils.json').read_text())
 REF=json.loads((BASE/'authoring/donkey-reference.json').read_text())['curves']
@@ -44,7 +44,7 @@ tail=ref('tail');tail.attach_start(body.point(body.nearest(tail.cs[0][0])));tip=
 # The small brush has three branches, all sharing the end of the tail.
 brush=[chain([line(tip,p)]) for p in [(432,119),(442,119),(445,127),(440,133)]]
 stroke('Хвост с кисточкой',[tail.d()]+brush,79)
-legs=[];uppers=[];hooves=[];hoof_lines=[]
+legs=[];leg_polygons=[];uppers=[];hooves=[];hoof_lines=[]
 for name,title,time,left_target,right_target in [
     ('leg_far_left','Левая дальняя ножка',88,(286,255),(301,256)),
     ('leg_near_left','Левая ближняя ножка',91,(309,259),(329,260)),
@@ -59,6 +59,7 @@ for name,title,time,left_target,right_target in [
     p,q=leg.point(ul),leg.point(ur);divider=line(p,q)
     stroke(title,leg.d(),time)
     legs.append(full);hoof_lines.append(chain([divider]))
+    leg_polygons.append([at(c,j/40) for c in leg.cs+root for j in range(41)])
     uppers.append(region(leg.sub(0,ul)+[divider]+leg.sub(ur,len(leg.cs))+root))
     hooves.append(region(leg.sub(ul,ur)+reverse([divider])))
 stroke('Четыре копытца',hoof_lines,101)
@@ -69,14 +70,15 @@ color('Серая шея',neck,'gray',156)
 for i,d in enumerate(ears):color(f'Серое ухо {i+1}',d,'gray',118+i*5)
 for i,d in enumerate(uppers):color(f'Серая ножка {i+1}',d,'gray',134+i)
 for i,d in enumerate(hooves):color(f'Коричневое копытце {i+1}',d,'brown',148+i)
-flower_x,flower_y=259,234
-flower_centre=region(oval(flower_x,flower_y,2.1,2.1))
+flower_x,flower_y,flower_scale=251,224,2.25
+flower_centre=region(oval(flower_x,flower_y,2.1*flower_scale,2.1*flower_scale))
+stroke('Круглая серединка цветка',flower_centre,192,tool='brown')
 color('Серединка цветка',flower_centre,'brown',192)
 color('Жёлтая мордочка',muzzle_shape+' '+nostril,'yellow',140,clip=muzzle_shape)
 # Six round petals form one continuous coloured outline.
 points=[]
 for i in range(73):
-    a=2*math.pi*i/72;r=5.0+1.25*math.cos(6*a)
+    a=2*math.pi*i/72;r=(5.0+1.25*math.cos(6*a))*flower_scale
     points.append((flower_x+math.cos(a)*r,flower_y+math.sin(a)*r))
 petal_curves=[]
 # Periodic Catmull-Rom to smooth cubic petals, with a shared closing point.
@@ -84,20 +86,58 @@ for i in range(72):
     p0,p1,p2,p3=points[(i-1)%72],points[i],points[(i+1)%72],points[(i+2)%72]
     petal_curves.append((p1,tuple(p1[n]+(p2[n]-p0[n])/6 for n in (0,1)),tuple(p2[n]-(p3[n]-p1[n])/6 for n in (0,1)),p2))
 flower=region(petal_curves)
-stroke('Жёлтые лепестки',flower,192,tool='yellow')
+stroke('Контур лепестков цветка',flower,192)
+STEPS[-1]['reference']=False # Enlarged teaching detail, intentionally different from the source frame.
 color('Раскрасим лепестки',flower+' '+flower_centre,'yellow',193,clip=flower)
-# Flower and grass positions are aligned to the original black-outline frame.
-stem=[((259,240),(258,247),(259,252),(258,263))]
-leaf_l=[((258.7,249),(252,245),(251,252),(258.3,254)),((258.3,254),(255,251),(256,250),(258.7,249))]
-leaf_r=[((258.3,254),(264,248),(267,254),(258,259)),((258,259),(260,255),(260,254),(258.3,254))]
-leaves=[region(leaf_l),region(leaf_r)]
-stroke('Зелёный стебелёк и листочки',[chain(stem),*leaves],194,tool='green')
+# Larger leaves share their roots with the extended stem. The stem begins
+# at the lower petal's exact indentation, without a floating gap.
+stem=[((flower_x,flower_y+3.75*flower_scale),(250.2,243.5),(252.3,258.5),(251,272))]
+l0,l1=at(stem[0],.45),at(stem[0],.62)
+r0,r1=at(stem[0],.65),at(stem[0],.86)
+leaf_l=(l0,(239,244),(238,256),l1)
+leaf_r=(r0,(264,247),(269,259),r1)
+leaves=[region([leaf_l]+reverse([section(stem[0],.45,.62)])),region([leaf_r]+reverse([section(stem[0],.65,.86)]))]
+stroke('Зелёный стебелёк и листочки',[chain(stem),chain([leaf_l]),chain([leaf_r])],194,tool='green')
 color('Зелёные листочки',' '.join(leaves),'green',195)
 # A single gradual grass step, behind the four legs, rather than many blades.
 grass_points=[(246,278),(245,258),(251,266),(250,253),(257,270),(261,262),(267,278),(270,261),(274,269),(276,254),(282,271),(286,264),(292,278),(299,264),(302,279),(308,268),(310,282),(315,265),(320,278),(325,260),(329,273),(334,254),(337,274),(342,262),(347,275),(352,255),(356,269),(362,257),(366,272),(373,258),(377,270),(384,251),(389,265),(397,251),(399,265),(407,250),(409,263),(419,249),(417,264),(429,250),(426,263),(440,253),(433,269),(446,258),(439,276),(420,282),(390,283),(361,284),(330,288),(303,289),(280,284),(260,285)]
 grass=region([line(a,b) for a,b in zip(grass_points,grass_points[1:]+grass_points[:1])])
+# Cut only the visible outline, preserving the foreground legs and hooves.
+# Contiguous segments stay in one movement; no tap is needed for each blade.
+def cross(a,b): return a[0]*b[1]-a[1]*b[0]
+def inside(p,poly):
+    x,y=p;hit=False
+    for a,b in zip(poly,poly[1:]+poly[:1]):
+        if (a[1]>y)!=(b[1]>y) and x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]:hit=not hit
+    return hit
+outlines=[];active=[]
+for a,b in zip(grass_points,grass_points[1:]+grass_points[:1]):
+    v=(b[0]-a[0],b[1]-a[1]);cuts=[0.,1.]
+    for poly in leg_polygons:
+        for c,d in zip(poly,poly[1:]+poly[:1]):
+            w=(d[0]-c[0],d[1]-c[1]);den=cross(v,w)
+            if abs(den)<1e-10:continue
+            diff=(c[0]-a[0],c[1]-a[1]);t,u=cross(diff,w)/den,cross(diff,v)/den
+            if 0<t<1 and 0<=u<=1:cuts.append(t)
+    cuts=sorted(set(round(t,10) for t in cuts))
+    def point(t):return (a[0]+v[0]*t,a[1]+v[1]*t)
+    for lo,hi in zip(cuts,cuts[1:]):
+        if any(inside(point((lo+hi)/2),poly) for poly in leg_polygons):
+            if active:outlines.append(active);active=[]
+        else:
+            q,r=point(lo),point(hi)
+            if not active:active=[q]
+            active.append(r)
+if active:outlines.append(active)
+if len(outlines)>1 and math.dist(outlines[-1][-1],outlines[0][0])<1e-6:
+    outlines[0]=outlines.pop()+outlines[0][1:]
+visible=[]
+for points in outlines:
+    if sum(math.dist(a,b) for a,b in zip(points,points[1:]))>1.2:
+        visible.append(chain([line(a,b) for a,b in zip(points,points[1:]) if math.dist(a,b)>1e-8]))
+stroke('Зелёный контур травки',visible,182,tool='green')
 color('Зелёная травка',grass+' '+' '.join(legs),'green',183,clip=grass)
-lesson=dict(id='donkey',title='Ослик',viewBox='440 76 500 536',progressRevision=1,
+lesson=dict(id='donkey',title='Ослик',viewBox='440 76 500 536',progressRevision=2,
     source=dict(title='РыбаКит — Учимся рисовать ОСЛИКА',url='https://drive.google.com/file/d/1zAVfuOW7_fHCDXkdTiD8eAPJhRd4vnu2/view',durationSeconds=215.829,referenceFrameSeconds=102,note='Контуры сверены по исходным кадрам 640×360. Уши, шея, ножки и копытца используют общие границы. Раскраска сгруппирована по карандашам; sourceTime приблизительный.'),
     palette=['black','gray','brown','yellow','green'],steps=STEPS)
 (BASE/'lessons/donkey.json').write_text(json.dumps(lesson,ensure_ascii=False,indent=2)+'\n')

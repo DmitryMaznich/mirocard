@@ -15,8 +15,14 @@ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||u
 try{
  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ if(lesson.progressRevision>1)await page.addInitScript(({id,revision})=>{
+  const key='drawing-progress:local:'+id;
+  if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({index:37,phase:'done',revision:revision-1}));
+ },{id,revision:lesson.progressRevision});
  await page.goto(process.env.DRAWING_PREVIEW_URL??`http://localhost:8081/tools/drawing/preview.html?lesson=${id}`);
- await page.locator('.drawing-card').filter({hasText:card.label}).tap();await page.clock.install();
+ await page.locator('.drawing-card').filter({hasText:card.label}).tap();
+ assert.equal(await page.locator('.drawing-repeat').isDisabled(),true,'Start without legacy progress');
+ await page.clock.install();
  await page.evaluate(()=>{document.querySelector('.preview-header').style.display='none';document.getElementById('root').style.height='100dvh';document.documentElement.style.setProperty('--app-safe-top','59px');document.documentElement.style.setProperty('--app-safe-bottom','34px');});
  const index=()=>page.evaluate(id=>JSON.parse(localStorage.getItem('drawing-progress:local:'+id))?.index??0,id);
  let changes=0;
@@ -31,11 +37,19 @@ try{
    await page.getByRole('button',{name:'Закрыть настройки'}).tap();await page.clock.runFor(1000);assert.equal(await path.evaluate(p=>p.style.strokeDashoffset),before);
    await page.locator('.drawing-next').tap();
   }
-  if(i===firstColour+1){
+  if(i===firstColour+1||lesson.steps[i-1].title==='Зелёная травка'){
    await page.clock.runFor(120);assert.equal(await index(),i-1,'Colour index advances only after animation');
    assert(await page.locator(`[data-layer=colors] [data-region="${i-1}"] g[visibility=hidden]`).count()>0,'Future pencil lines must remain hidden');
   }
   await page.clock.runFor(16000);assert.equal(await index(),i,'Step '+i);
+  if(lesson.steps[i-1].title==='Зелёный контур травки'){
+   assert.equal(await page.locator(`[data-layer=colors] [data-region="${i}"]`).count(),0,'Grass must still be uncoloured');
+   await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-grass-outline.png`});
+  }
+  if(lesson.steps[i-1].title==='Контур лепестков цветка'){
+   const width=await page.locator('[data-layer=drawing] > path').last().evaluate(p=>p.getBoundingClientRect().width);
+   assert(width>=36,'Flower contour should be readable on a phone');
+  }
   if(i===blackEnd)await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-outline.png`});
   const step=lesson.steps[i-1];
   if(step.kind==='stroke'&&step.tool!=='black'){
