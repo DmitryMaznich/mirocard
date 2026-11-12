@@ -286,7 +286,28 @@
             "square",
             "ruled"
           ],
-          "note": "строчные одним движением, где перо не отрывается (a b d g h m n p q r u), «z eno potezo» — Naša ulica 2"
+          "note": "строчные одним движением, где перо не отрывается (a b d g h m n p r u), «z eno potezo» — Naša ulica 2"
+        },
+        {
+          "id": "sl_cursive",
+          "short": "ПИС",
+          "title": "Письменные (pisane črke)",
+          "glyphsFile": "tools/handwriting/latin/slovene.json",
+          "script": {
+            "joins": false,
+            "letterGap": 0,
+            "wordGap": 56
+          },
+          "papers": [
+            "sl_10",
+            "sl_8",
+            "sl_6",
+            "sl",
+            "sl_45",
+            "square",
+            "ruled"
+          ],
+          "note": "2-й класс: строчные по школьной модели (шаг 3, tools/latin_letters/glyphs/slovene.mjs), заглавные пока печатные; соединений ещё нет (шаг 4) — буквы стоят вплотную, каждая со своим подъёмом и выходом"
         }
       ]
     }

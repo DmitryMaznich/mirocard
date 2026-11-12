@@ -72,6 +72,25 @@ describe("Slovenian (draft)", () => {
     expect(JSON.stringify(inkOf(view("sl_print"), "mačka"))).not.toBe(JSON.stringify(upper));
   });
 
+  it("cursive small letters (step 3): start on the baseline, end half-way up the x band — b o r v at the top; one movement each", () => {
+    const glyphs = sl.styles.find((st) => st.id === "sl_cursive").glyphs;
+    const pts = (d) => [...d.matchAll(/(-?[\d.]+)[ ,](-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+    // the engine's capture frame (build-print.mjs): baseline y = 62, x-height 52
+    const h = (y) => (62 - y) / 52;
+    for (const ch of sl.alphabet.lower) {
+      const g = glyphs.find((x) => x.label === ch);
+      const main = g.strokes[0].d;
+      const p = pts(main);
+      expect(h(p[0][1]), `${ch} starts on the baseline`).toBeCloseTo(0, 1);
+      const end = h(p.at(-1)[1]);
+      if ("bvor".includes(ch)) expect(end, `${ch} ends at the top`).toBeCloseTo(1, 1);
+      else if (!"sš".includes(ch)) expect(end, `${ch} ends half-way up`).toBeCloseTo(0.48, 1);
+      const lifts = g.strokes.slice(1).map((st) => st.name);
+      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
+      expect(lifts, ch).toEqual(allowed);
+    }
+  });
+
   it("the Slovene paper: three lines, three equal bands, no bottom line; offered in five sizes", async () => {
     for (const id of ["sl", "sl_10", "sl_8", "sl_6", "sl_45"]) {
       const p = FOUR_LINE_PAPERS[id];
@@ -89,6 +108,8 @@ describe("Slovenian (draft)", () => {
       for (const [name, style, lines, grid] of [
         ["caps", "sl_caps", ["A", "M#r", "N", "mama ata", "Čaša žaba šola"], "sl_10"],
         ["print", "sl_print", ["a", "n#r", "abcčdefghijklmnoprsštuvzž", "Čaša in šivanka", "Žaba skače v vodo."], "sl_8"],
+        ["cursive1", "sl_cursive", ["a b c č d e f", "g h i j k l m", "n o p r s š t", "u v z ž"], "sl_10"],
+        ["cursive2", "sl_cursive", ["a#r", "e#r", "l#r", "o#r"], "sl_8"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
     }
   });
