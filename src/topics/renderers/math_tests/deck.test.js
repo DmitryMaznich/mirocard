@@ -14,6 +14,6 @@ describe("math_tests deck", () => {
     const record = await importTopic(db, await readFile(resolve("public/decks", basename(entry.url))), "99.0.0");
     expect(record.meta.id).toBe("math_tests");
     expect(record.meta.version).toBe(entry.version);
-    expect(record.modes.map((m) => m.id)).toEqual(["constructor"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["constructor", "solve"]);
   });
 });

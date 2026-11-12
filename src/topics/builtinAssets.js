@@ -753,6 +753,20 @@ const BUILTIN_ASSETS = {
   <circle cx="105" cy="30" r="12" fill="#1f7a6f"/>
   <path d="M105 24v12M99 30h12" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
 </svg>`,
+  // «Решить контрольную»: the sheet with answers written in, the check mark of «Проверить»
+  "media/icons/math_tests_solve.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <rect x="18" y="14" width="76" height="100" rx="6" fill="#fff" stroke="#cfe0f5" stroke-width="3"/>
+  <path d="M28 36h10M33 31v10M44 36h8M58 33h8M58 39h8" stroke="#263131" stroke-width="3" stroke-linecap="round"/>
+  <rect x="70" y="27" width="16" height="18" rx="3" fill="#e3f5e9" stroke="#2e9b5a" stroke-width="2.5"/>
+  <path d="M74 36l3 3 6-7" stroke="#2e9b5a" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 68h10M44 68h8M58 65h8M58 71h8" stroke="#263131" stroke-width="3" stroke-linecap="round"/>
+  <rect x="70" y="59" width="16" height="18" rx="3" fill="#fff6d6" stroke="#e9c46a" stroke-width="2.5"/>
+  <path d="M28 92h48" stroke="#9db7e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 5"/>
+  <circle cx="102" cy="96" r="16" fill="#1f7a6f"/>
+  <path d="M94 96l6 6 10-12" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
   // «Плюс и минус» (addition_subtraction): cover + one icon per mode (2026-11-11).
   // Plus teal #1f7a6f, minus red #c04040, objects blue #3b82f6, unknown «?» on a
   // pale-yellow field like the answer field. The counting rod appears only in the

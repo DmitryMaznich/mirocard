@@ -14,7 +14,13 @@ const TYPING_MERGE_MS = 1200;
 // «Готовые листы») → the editor (blocks on a notebook sheet) → «Решать на экране» (keypad, check
 // all at once, video prize). Every change is saved at once (device + account); undo/redo live in
 // the editor session. Docs: docs/math-tests.md.
-export default function MathTestsRenderer({ accountKv, onBack }) {
+// Two modes (deck 0.2.0): `task.type` "math_tests_constructor" — the constructor (home → editor →
+// «Решать на экране»); "math_tests_solve" — «Решить контрольную»: the list of tests, a tap opens one
+// straight for solving, no editor. Every «Проверить» is reported to the host as a lesson
+// (`onSessionResult`, PrintLettersScreen → the student's history and «Продолжить» on the home screen).
+export default function MathTestsRenderer({ task, accountKv, onBack, onSessionResult }) {
+  const solving = task?.type === "math_tests_solve";
+  const solveStartedAt = useRef(null);
   const [tests, setTests] = useState(() => loadLocalTests().filter((t) => !t.deleted).map(normalizeTest).sort((a, b) => b.updatedAt - a.updatedAt));
   const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState("home"); // home | edit | solve
@@ -40,6 +46,7 @@ export default function MathTestsRenderer({ accountKv, onBack }) {
 
   function openTest(t, startScreen = "edit") {
     history.current = { past: [], future: [], lastTyping: 0 };
+    solveStartedAt.current = Date.now();
     setTest(t);
     setScreen(startScreen);
   }
@@ -94,8 +101,12 @@ export default function MathTestsRenderer({ accountKv, onBack }) {
     return (
       <SolveView
         test={test}
-        onBack={() => setScreen("edit")}
+        onBack={() => { if (solving) { setScreen("home"); setTest(null); } else setScreen("edit"); }}
         onResult={(r) => {
+          onSessionResult?.({ ...r, startedAt: solveStartedAt.current ?? r.at, testId: test.id, testTitle: test.title });
+          solveStartedAt.current = Date.now();
+          // a ready sheet solved in «Решить контрольную» is not one of «Мои контрольные»: nothing to save
+          if (!tests.some((x) => x.id === test.id)) return;
           const next = { ...test, lastResult: r };
           setTest(next);
           const saved = saveTest(next, accountKv);
@@ -114,7 +125,7 @@ export default function MathTestsRenderer({ accountKv, onBack }) {
         canUndo={history.current.past.length > 0}
         canRedo={history.current.future.length > 0}
         onBack={() => { setScreen("home"); setTest(null); }}
-        onSolve={() => setScreen("solve")}
+        onSolve={() => { solveStartedAt.current = Date.now(); setScreen("solve"); }}
       />
     );
   }
@@ -122,10 +133,11 @@ export default function MathTestsRenderer({ accountKv, onBack }) {
     <Home
       tests={tests}
       loading={loading}
+      solving={solving}
       onBack={onBack}
       onNew={() => create(newTest())}
-      onOpen={(t) => openTest(t)}
-      onFromLibrary={(entry) => create(testFromLibrary(entry))}
+      onOpen={(t) => openTest(t, solving ? "solve" : "edit")}
+      onFromLibrary={(entry) => (solving ? openTest(testFromLibrary(entry), "solve") : create(testFromLibrary(entry)))}
       onDuplicate={(t) => {
         const copy = normalizeTest({ ...t, id: newId("t"), title: `${t.title} (копия)`, blocks: t.blocks.map((b) => ({ ...b, id: newId(), seed: newSeed() })), lastResult: null, updatedAt: Date.now() });
         const saved = saveTest(copy, accountKv);
