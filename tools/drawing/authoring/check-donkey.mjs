@@ -34,6 +34,22 @@ try{
    check(inside(get('Коричневое копытце '+(i+1)),...hooves[i]),'Missing hoof '+i);
    check(!inside(get('Зелёная травка'),...hooves[i]),'Grass paints hoof '+i);
   }
+  const petals=stroke('Контур лепестков цветка')[0].getBBox();
+  check(petals.width>=55&&petals.height>=48,'Flower must be large enough to copy');
+  check(stroke('Круглая серединка цветка')[0].getBBox().width>=18,'Flower centre too small');
+  on(start(stroke('Зелёный стебелёк и листочки')[0]),stroke('Контур лепестков цветка')[0],'Flower/stem junction');
+  const grassStep=lesson.steps.findIndex(s=>s.title==='Зелёный контур травки');
+  check(lesson.steps[grassStep+1]?.title==='Зелёная травка','Grass outline must immediately precede colouring');
+  const legAreas=greys.map((_,i)=>path(get('Серая ножка '+(i+1)).d+' '+get('Коричневое копытце '+(i+1)).d,'evenodd'));
+  let grassOverpaint=false;
+  for(const p of stroke('Зелёный контур травки'))for(let d=2;d<p.getTotalLength()-2;d+=4){
+   const q=p.getPointAtLength(d);
+   for(const leg of legAreas)if(leg.isPointInFill(q)){
+    let nearest=Infinity;for(let k=0;k<leg.getTotalLength();k+=.1){const r=leg.getPointAtLength(k);nearest=Math.min(nearest,Math.hypot(q.x-r.x,q.y-r.y));}
+    if(nearest>.15)grassOverpaint=true;
+   }
+  }
+  check(!grassOverpaint,'Grass contour crosses a leg or hoof');
   for(const s of colours){const b=s.shape.getBBox();let hit=false;for(let i=0;i<=35&&!hit;i++)for(let j=0;j<=35&&!hit;j++)hit=inside(s,(b.x+b.width*i/35)/2,(b.y+b.height*j/35)/2);check(hit,'Empty colour region '+s.title);}
   for(const s of lesson.steps.filter(s=>s.kind==='stroke'))for(const d of s.paths){check(d.match(/M /g).length===1,'Disconnected subpaths');check(path(d).getTotalLength()>2,'Empty stroke');}
   return {checks,message:'Head/ear/neck/leg/hoof joins, white eye and muzzle masks, four legs and grass occlusion verified'};

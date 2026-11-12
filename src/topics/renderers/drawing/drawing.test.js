@@ -20,10 +20,15 @@ describe("downloadable drawing topic", () => {
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey"]));
     const donkey=tasks.find(task=>task.cardId === "donkey").lesson;
     expect(donkey.title).toBe("Ослик");
-    expect(donkey.steps).toHaveLength(37);
+    expect(donkey.steps).toHaveLength(39);
+    expect(donkey.progressRevision).toBe(2);
+    const grassOutline=donkey.steps.findIndex(s=>s.title === "Зелёный контур травки");
+    expect(donkey.steps[grassOutline]).toMatchObject({kind:"stroke",tool:"green"});
+    expect(donkey.steps[grassOutline+1]).toMatchObject({kind:"color",title:"Зелёная травка",tool:"green"});
+    expect(donkey.steps.findIndex(s=>s.title === "Круглая серединка цветка")).toBeLessThan(donkey.steps.findIndex(s=>s.title === "Серединка цветка"));
     expect(donkey.palette.map(tool=>tool.id)).toEqual(["black","gray","brown","yellow","green"]);
     expect(donkey.steps.find(s=>s.title === "Четыре копытца").paths).toHaveLength(4);
-    expect(donkey.steps.find(s=>s.title === "Жёлтые лепестки")).toMatchObject({kind:"stroke",tool:"yellow"});
+    expect(donkey.steps.find(s=>s.title === "Контур лепестков цветка")).toMatchObject({kind:"stroke",tool:"black"});
     const parrot = tasks.find(task => task.cardId === "parrot").lesson;
     expect(parrot.title).toBe("Попугай");
     expect(parrot.progressRevision).toBe(2);
