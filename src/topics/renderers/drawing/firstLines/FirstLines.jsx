@@ -144,10 +144,10 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     </svg>
     <div className="first-lines__footer" aria-live="polite">
       {state.done || correct ? <button type="button" disabled={interactionDisabled || !correct} onClick={onAdvance}><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h30M27 7l10 9-10 9" /></svg> Дальше</button>
-        : <span className="first-lines__cue" aria-label={state.needsReturn ? 'Подними стилус и продолжи от отмеченного места' : 'От точки к домику'}>
+        : <span className="first-lines__cue" aria-label={state.needsReturn ? state.errorKind === 'shape' ? 'Подними стилус и повтори движение от отмеченного места' : 'Подними стилус и продолжи от отмеченного места' : 'От точки к домику'}>
           <svg viewBox="0 0 130 40" aria-hidden="true"><circle cx="12" cy="22" r="7" fill="currentColor" /><path d="M35 22h34M60 13l10 9-10 9" />
             {state.needsReturn ? <path d="M103 33V7M94 16l9-9 9 9" /> : <path d="M96 20v14h23V20M91 21l16-14 17 14M104 34V24h7v10" />}
-          </svg>{state.needsReturn && <span>Продолжи отсюда</span>}
+          </svg>{state.needsReturn && <span>{state.errorKind === 'shape' ? 'Ещё раз отсюда' : 'Продолжи отсюда'}</span>}
         </span>}
     </div>
     {paused && <div className="first-lines__pause" role="dialog" aria-label="Пауза — можно повторить линию на бумаге">

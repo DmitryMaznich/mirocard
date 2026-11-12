@@ -1,5 +1,6 @@
 // Prototype A1. Coordinates and tolerances are hypotheses in docs/drawing-first-lines.md.
 // No rewards here: the renderer reports one mistake and one completion per card.
+import { hasExcessiveWandering } from './straightness.js';
 export const LINE = Object.freeze({ start: 320, end: 680, y: 500, halfWidth: 50, tolerance: 65, resume: 60 });
 export const TRACK_WIDTHS = Object.freeze({ wide: 140, normal: 100, narrow: 60 });
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -7,7 +8,7 @@ const offTrack = p => Math.hypot(p.x - Math.max(LINE.start, Math.min(LINE.end, p
 const copyPoint = p => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 });
 
 export function freshAttempt() {
-  return { progress: LINE.start, anchor: { x: LINE.start, y: LINE.y }, strokes: [], marks: [], needsReturn: false, hadError: false, done: false };
+  return { progress: LINE.start, anchor: { x: LINE.start, y: LINE.y }, strokes: [], marks: [], needsReturn: false, hadError: false, errorKind: null, done: false };
 }
 
 // Only our own bounded, versioned checkpoint is restored. A captured pointer is never restored.
@@ -29,6 +30,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
   let outside = null;
   let last = null;
   let lastTime = 0;
+  let strokeStart = null;
   const startPoint = () => state.anchor;
 
   function begin(p, time = 0) {
@@ -37,6 +39,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
     // Up to 10% starting slack, never a shortcut to the end of the track.
     if (state.progress === LINE.start && p.x > LINE.start + 36) return false;
     state.needsReturn = false;
+    strokeStart = { progress: state.progress, anchor: { ...state.anchor } };
     active = { points: [copyPoint(p)], failedFrom: null };
     state.strokes.push(active);
     last = p; lastTime = time; outside = null;
@@ -66,6 +69,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
           state.marks.push(outside.point);
           mistake = !state.hadError;
           state.hadError = true;
+          state.errorKind = 'boundary';
         }
       } else {
         outside = null;
@@ -76,6 +80,18 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
       }
     }
     last = p; lastTime = time;
+    if (!state.needsReturn && hasExcessiveWandering(state.strokes, state.progress - LINE.start)) {
+      // Repeat this movement from its beginning; earlier accepted strokes stay.
+      // The failed trace stays visible, but cannot satisfy the completion check.
+      state.progress = strokeStart.progress;
+      state.anchor = strokeStart.anchor;
+      active.failedFrom = 0;
+      state.needsReturn = true;
+      state.errorKind = 'shape';
+      state.marks.push(copyPoint(p));
+      mistake = !state.hadError;
+      state.hadError = true;
+    }
     return { mistake };
   }
 
