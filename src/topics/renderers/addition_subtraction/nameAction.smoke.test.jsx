@@ -1,4 +1,3 @@
-import { audioKeyUrl } from "./audioNumbers";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -88,7 +87,7 @@ describe("operation_name_action", () => {
     expect(container.querySelector(".name-action__scene--settled")).not.toBeNull();
     expect([...container.querySelectorAll(".name-action__answer--verb")].map((b) => b.textContent.trim())).toEqual(["+Прибавили", "−Убрали"]);
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/what_was_done.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/what_was_done.mp3", tight: false },
     ]);
   });
 
@@ -101,11 +100,8 @@ describe("operation_name_action", () => {
     click('.name-action__answer--verb[aria-label="Прибавили"]');
 
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/correct_added.mp3", tight: false },
-      { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n2.mp3", tight: false },
-      { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
-      { url: audioKeyUrl("n3"), tight: false },
+      { url: "/audio/addition-subtraction-voice/correct_added.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/was_became_2_3.mp3", tight: false },
     ]);
     expect(onCorrect).not.toHaveBeenCalled();
     audio.play.mock.calls.at(-1)?.[1]?.();
@@ -151,18 +147,14 @@ describe("operation_name_action", () => {
     click('.name-action__answer--verb[aria-label="Убрали"]');
     act(() => { vi.advanceTimersByTime(700); });
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/how_many_removed.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/how_many_removed.mp3", tight: false },
     ]);
 
     const buttons = [...container.querySelectorAll(".name-action__count button")];
     act(() => { buttons[1].dispatchEvent(new MouseEvent("click", { bubbles: true })); });
     expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
-      { url: "/audio/addition-subtraction/phrases/correct_removed_count.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n2.mp3", tight: false },
-      { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
-      { url: audioKeyUrl("n3"), tight: false },
-      { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
-      { url: audioKeyUrl("n1"), tight: false },
+      { url: "/audio/addition-subtraction-voice/correct_removed_2.mp3", tight: false },
+      { url: "/audio/addition-subtraction-voice/was_became_3_1.mp3", tight: false },
     ]);
     audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("minus", "operation_minus");

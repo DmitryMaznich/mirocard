@@ -242,16 +242,16 @@
     },
     {
       "id": "addition_subtraction",
-      "version": "1.9.2",
+      "version": "1.9.4",
       "title": {
         "ru": "Плюс и минус",
         "en": "Addition and Subtraction"
       },
       "description": {
-        "ru": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат и цепочку, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
+        "ru": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат примера в одно и в несколько действий, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
         "en": "Ten addition and subtraction modes: object actions, signs, single and chained expressions, missing numbers, written practice, and mental calculation from audio."
       },
-      "url": "./decks/addition_subtraction_v1.9.2.zip",
+      "url": "./decks/addition_subtraction_v1.9.4.zip",
       "status": "release",
       "access": "free",
       "materialLanguages": [
@@ -454,7 +454,7 @@
         "en": "English copybook on the British four-line paper, built on the Nelson Handwriting scheme: print letters and the British hand — unjoined, joined and joined sloped. A notebook builder, ready notebooks, letter cards."
       },
       "url": "./decks/propis2_lang_v0.9.5.zip",
-      "status": "individual",
+      "status": "release",
       "access": "paid",
       "materialLanguages": [
         "ru",
@@ -639,6 +639,24 @@
       ]
     },
     {
+      "id": "math_tests",
+      "version": "0.2.0",
+      "url": "./decks/math_tests_v0.2.0.zip",
+      "title": {
+        "ru": "Контрольные по математике",
+        "en": "Math Tests"
+      },
+      "description": {
+        "ru": "Контрольные листы по математике: конструктор из блоков (плюс и минус, сравнение, примеры в столбик) со своими настройками, цифры по клеткам как в тетради, и режим «Решить контрольную» — ребёнок решает лист на экране с клавиатурой, проверкой и видеопризом. Лист печатается в PDF с ответами.",
+        "en": "Math test builder: blocks of addition and subtraction tasks, digits in notebook cells; print to PDF or solve on screen with a keypad and a check."
+      },
+      "status": "beta",
+      "access": "paid",
+      "materialLanguages": [
+        "ru"
+      ]
+    },
+    {
       "id": "print_letters",
       "version": "0.5.8",
       "url": "./decks/print_letters_v0.5.8.zip",
@@ -676,16 +694,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.9.0",
+      "version": "0.11.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик и Золотая рыбка.",
-        "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik and Goldfish."
+        "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик, Золотая рыбка и Попугай.",
+        "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik, Goldfish and Parrot."
       },
-      "url": "./decks/drawing_v0.9.0.zip",
+      "url": "./decks/drawing_v0.11.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

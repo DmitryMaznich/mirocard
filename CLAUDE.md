@@ -192,7 +192,7 @@ shown to one account via catalog status `individual`. Never fork `propis2` code 
 alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
 hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 
-**Языки письма в «Прописях» (с 2026-11-01, колода `propis2` 0.6.0).** Русский, болгарский и казахский в самой теме `propis2` (`tools/propis2/languages.json`); язык — у тетради (не у ученика), у карточек — параметр режима; диктант только русский. Языки в работе (`status: "draft"`) в боевую колоду не попадают. **Латиница — отдельная колода «Прописи: латиница»** (с 2026-11-09, id `propis2_lang`, `node scripts/build-propis2-deck.mjs --latin`, `tools/propis2/latin.json`, каталог `individual` до выпуска, доступ платный как у `propis2`): только языки `deck: "latin"` (английский: «Печатные», «Британские раздельные»; соединённые Нельсона в работе), без диктанта, на британской строке `en_gb` (американской в латинице нет). Read `docs/propis2-languages.md` before continuing.
+**Языки письма в «Прописях» (с 2026-11-01, колода `propis2` 0.6.0).** Русский, болгарский и казахский в самой теме `propis2` (`tools/propis2/languages.json`); язык — у тетради (не у ученика), у карточек — параметр режима; диктант только русский. Языки в работе (`status: "draft"`) в боевую колоду не попадают. **Латиница — отдельная колода «Прописи: латиница»** (с 2026-11-09, id `propis2_lang`, `node scripts/build-propis2-deck.mjs --latin`, `tools/propis2/latin.json`, каталог `release` с 2026-11-11 — открыта всем, доступ платный как у `propis2`): только языки `deck: "latin"` (английский, по схеме Nelson Handwriting: «Печатные», «Британские раздельные», «Британские соединённые», «Британские соединённые наклонные»; готовые тетради Join 1–4 и «Ступени»), без диктанта, на британской строке `en_gb` (американской в латинице нет). Read `docs/propis2-languages.md` before continuing.
 
 **Казахские прописи (`propis2_kk`), планируется (2026-10-29).** Тот же приём, что у болгарских: вариант-колода на тех же движке и рендерере, 9 особых букв (Ә Ғ Қ Ң Ө Ұ Ү Һ І). Всё, что
 узнали в сессии русских прописей (движок, соединения, пробел, стенд для картинок, правила работы с владельцем), собрано в **`docs/propis2-kk-handoff.md`: читать первым.**
@@ -217,6 +217,12 @@ unreviewed, the two backlog items waiting on that API key (hand illustrations fo
 recorded voice audio to replace browser TTS), and pitfalls already hit once this pass
 (don't repeat them — e.g. the raw `chrome --headless --window-size` CLI flag is silently
 ignored in some sandboxes, use Playwright instead when a screenshot's exact width matters).
+
+## Контрольные по математике (math_tests) — new topic (started 2026-11-11)
+
+Test-sheet constructor like `print_letters` (canvas, blocks, block panel, PDF) plus «Решать на экране»
+(keypad, check all at once, «Исправить ошибки», video prize). Renderer is bundled with the app (the deck ZIP
+holds only `topic.json`). **Read `docs/math-tests.md` first.**
 
 ## Глаголы (verbs_v2) — methodology rework planned
 

@@ -43,6 +43,7 @@ import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGat
 import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
 import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
+import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -1710,6 +1711,12 @@ export default function ParamsScreen() {
   }
 
   const [params,         setParams]        = useState(getInitialParams);
+  // Mutually dependent settings (limitBy): a value that no longer fits the
+  // other setting — «изменение до 10» with numbers up to 5 — becomes the
+  // largest one that fits, and is saved that way.
+  useEffect(() => {
+    setParams((current) => applyParamLimits(mode?.params, current));
+  }, [mode, params]);
   const selectedStoryQuizIds = getSelectedReadingStories(topicRecord, params).map((story) => story.id);
   const [videoReward,   setVideoReward]   = useState(hideVideoReward ? false : (link.videoRewardEnabled ?? true));
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
@@ -1964,7 +1971,7 @@ export default function ParamsScreen() {
             <EnumParam
               key={key}
               label={setupText(def.label) || key}
-              options={def.values}
+              options={allowedEnumValues(def, params, mode.params)}
               labels={setupLabels(def.labels)}
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
@@ -2165,7 +2172,7 @@ export default function ParamsScreen() {
               <EnumParam
                 key={key}
                 label={setupText(def.label) || key}
-                options={def.values}
+                options={allowedEnumValues(def, params, mode.params)}
                 labels={setupLabels(def.labels)}
                 value={params[key] ?? def.default}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}

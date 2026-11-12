@@ -1,542 +1,395 @@
 {
   "playlists": [
     {
-      "id": "audio/addition-subtraction",
-      "title": "Плюс / минус — слушаем и считаем",
+      "id": "audio/addition-subtraction-voice",
+      "title": "Плюс / минус — фразы и знаки (голос владельца)",
       "items": [
         {
-          "id": "audio/addition-subtraction/n0.mp3",
-          "key": "n0",
-          "path": "audio/addition-subtraction/n0.mp3",
-          "url": "/audio/addition-subtraction/n0.mp3",
-          "label": "0 — ноль",
-          "category": "Числа",
-          "version": "31bff6cc692be0cd"
-        },
-        {
-          "id": "audio/addition-subtraction/n1.mp3",
-          "key": "n1",
-          "path": "audio/addition-subtraction/n1.mp3",
-          "url": "/audio/addition-subtraction/n1.mp3",
-          "label": "1 — один",
-          "category": "Числа",
-          "version": "61816ab09d8371ff"
-        },
-        {
-          "id": "audio/addition-subtraction/n2.mp3",
-          "key": "n2",
-          "path": "audio/addition-subtraction/n2.mp3",
-          "url": "/audio/addition-subtraction/n2.mp3",
-          "label": "2 — два",
-          "category": "Числа",
-          "version": "e316d03f60ca90ac"
-        },
-        {
-          "id": "audio/addition-subtraction/n3.mp3",
-          "key": "n3",
-          "path": "audio/addition-subtraction/n3.mp3",
-          "url": "/audio/addition-subtraction/n3.mp3",
-          "label": "3 — три",
-          "category": "Числа",
-          "version": "72cb7e237d61c83c"
-        },
-        {
-          "id": "audio/addition-subtraction/n4.mp3",
-          "key": "n4",
-          "path": "audio/addition-subtraction/n4.mp3",
-          "url": "/audio/addition-subtraction/n4.mp3",
-          "label": "4 — четыре",
-          "category": "Числа",
-          "version": "eaa21917006883b5"
-        },
-        {
-          "id": "audio/addition-subtraction/n5.mp3",
-          "key": "n5",
-          "path": "audio/addition-subtraction/n5.mp3",
-          "url": "/audio/addition-subtraction/n5.mp3",
-          "label": "5 — пять",
-          "category": "Числа",
-          "version": "bd6a16798985a530"
-        },
-        {
-          "id": "audio/addition-subtraction/n6.mp3",
-          "key": "n6",
-          "path": "audio/addition-subtraction/n6.mp3",
-          "url": "/audio/addition-subtraction/n6.mp3",
-          "label": "6 — шесть",
-          "category": "Числа",
-          "version": "1f14fe43de1531bc"
-        },
-        {
-          "id": "audio/addition-subtraction/n7.mp3",
-          "key": "n7",
-          "path": "audio/addition-subtraction/n7.mp3",
-          "url": "/audio/addition-subtraction/n7.mp3",
-          "label": "7 — семь",
-          "category": "Числа",
-          "version": "d3a9061ff057d5a5"
-        },
-        {
-          "id": "audio/addition-subtraction/n8.mp3",
-          "key": "n8",
-          "path": "audio/addition-subtraction/n8.mp3",
-          "url": "/audio/addition-subtraction/n8.mp3",
-          "label": "8 — восемь",
-          "category": "Числа",
-          "version": "7b5ea15b025fbc3b"
-        },
-        {
-          "id": "audio/addition-subtraction/n9.mp3",
-          "key": "n9",
-          "path": "audio/addition-subtraction/n9.mp3",
-          "url": "/audio/addition-subtraction/n9.mp3",
-          "label": "9 — девять",
-          "category": "Числа",
-          "version": "46337c43b8aa0a6b"
-        },
-        {
-          "id": "audio/addition-subtraction/n10.mp3",
-          "key": "n10",
-          "path": "audio/addition-subtraction/n10.mp3",
-          "url": "/audio/addition-subtraction/n10.mp3",
-          "label": "10 — десять",
-          "category": "Числа",
-          "version": "aa1893cd9080d2a3"
-        },
-        {
-          "id": "audio/addition-subtraction/n11.mp3",
-          "key": "n11",
-          "path": "audio/addition-subtraction/n11.mp3",
-          "url": "/audio/addition-subtraction/n11.mp3",
-          "label": "11 — одиннадцать",
-          "category": "Числа",
-          "version": "a4729afde6da5ed7"
-        },
-        {
-          "id": "audio/addition-subtraction/n12.mp3",
-          "key": "n12",
-          "path": "audio/addition-subtraction/n12.mp3",
-          "url": "/audio/addition-subtraction/n12.mp3",
-          "label": "12 — двенадцать",
-          "category": "Числа",
-          "version": "cee90e0d1b6fb325"
-        },
-        {
-          "id": "audio/addition-subtraction/n13.mp3",
-          "key": "n13",
-          "path": "audio/addition-subtraction/n13.mp3",
-          "url": "/audio/addition-subtraction/n13.mp3",
-          "label": "13 — тринадцать",
-          "category": "Числа",
-          "version": "daeecfb4b9221c0d"
-        },
-        {
-          "id": "audio/addition-subtraction/n14.mp3",
-          "key": "n14",
-          "path": "audio/addition-subtraction/n14.mp3",
-          "url": "/audio/addition-subtraction/n14.mp3",
-          "label": "14 — четырнадцать",
-          "category": "Числа",
-          "version": "1bc6b7c0fa24b8da"
-        },
-        {
-          "id": "audio/addition-subtraction/n15.mp3",
-          "key": "n15",
-          "path": "audio/addition-subtraction/n15.mp3",
-          "url": "/audio/addition-subtraction/n15.mp3",
-          "label": "15 — пятнадцать",
-          "category": "Числа",
-          "version": "fcfe5bc54d7f55df"
-        },
-        {
-          "id": "audio/addition-subtraction/n16.mp3",
-          "key": "n16",
-          "path": "audio/addition-subtraction/n16.mp3",
-          "url": "/audio/addition-subtraction/n16.mp3",
-          "label": "16 — шестнадцать",
-          "category": "Числа",
-          "version": "1e47524d99c781fd"
-        },
-        {
-          "id": "audio/addition-subtraction/n17.mp3",
-          "key": "n17",
-          "path": "audio/addition-subtraction/n17.mp3",
-          "url": "/audio/addition-subtraction/n17.mp3",
-          "label": "17 — семнадцать",
-          "category": "Числа",
-          "version": "e6508804c5fbb2fc"
-        },
-        {
-          "id": "audio/addition-subtraction/n18.mp3",
-          "key": "n18",
-          "path": "audio/addition-subtraction/n18.mp3",
-          "url": "/audio/addition-subtraction/n18.mp3",
-          "label": "18 — восемнадцать",
-          "category": "Числа",
-          "version": "d68ec5228d688121"
-        },
-        {
-          "id": "audio/addition-subtraction/n19.mp3",
-          "key": "n19",
-          "path": "audio/addition-subtraction/n19.mp3",
-          "url": "/audio/addition-subtraction/n19.mp3",
-          "label": "19 — девятнадцать",
-          "category": "Числа",
-          "version": "1ffbe975096fe2e7"
-        },
-        {
-          "id": "audio/addition-subtraction/n20.mp3",
-          "key": "n20",
-          "path": "audio/addition-subtraction/n20.mp3",
-          "url": "/audio/addition-subtraction/n20.mp3",
-          "label": "20 — двадцать",
-          "category": "Числа",
-          "version": "2c0ea8d30f277664"
-        },
-        {
-          "id": "audio/addition-subtraction/n30.mp3",
-          "key": "n30",
-          "path": "audio/addition-subtraction/n30.mp3",
-          "url": "/audio/addition-subtraction/n30.mp3",
-          "label": "30 — тридцать",
-          "category": "Числа",
-          "version": "ebb64db5749d5727"
-        },
-        {
-          "id": "audio/addition-subtraction/n40.mp3",
-          "key": "n40",
-          "path": "audio/addition-subtraction/n40.mp3",
-          "url": "/audio/addition-subtraction/n40.mp3",
-          "label": "40 — сорок",
-          "category": "Числа",
-          "version": "bc5870f994764668"
-        },
-        {
-          "id": "audio/addition-subtraction/n50.mp3",
-          "key": "n50",
-          "path": "audio/addition-subtraction/n50.mp3",
-          "url": "/audio/addition-subtraction/n50.mp3",
-          "label": "50 — пятьдесят",
-          "category": "Числа",
-          "version": "dc220349a36fe326"
-        },
-        {
-          "id": "audio/addition-subtraction/n60.mp3",
-          "key": "n60",
-          "path": "audio/addition-subtraction/n60.mp3",
-          "url": "/audio/addition-subtraction/n60.mp3",
-          "label": "60 — шестьдесят",
-          "category": "Числа",
-          "version": "8659a883e4d7ae0b"
-        },
-        {
-          "id": "audio/addition-subtraction/n70.mp3",
-          "key": "n70",
-          "path": "audio/addition-subtraction/n70.mp3",
-          "url": "/audio/addition-subtraction/n70.mp3",
-          "label": "70 — семьдесят",
-          "category": "Числа",
-          "version": "25a5b459511e28e3"
-        },
-        {
-          "id": "audio/addition-subtraction/n80.mp3",
-          "key": "n80",
-          "path": "audio/addition-subtraction/n80.mp3",
-          "url": "/audio/addition-subtraction/n80.mp3",
-          "label": "80 — восемьдесят",
-          "category": "Числа",
-          "version": "173f501b2a89cfbd"
-        },
-        {
-          "id": "audio/addition-subtraction/n90.mp3",
-          "key": "n90",
-          "path": "audio/addition-subtraction/n90.mp3",
-          "url": "/audio/addition-subtraction/n90.mp3",
-          "label": "90 — девяносто",
-          "category": "Числа",
-          "version": "f1ce89d392446ac0"
-        },
-        {
-          "id": "audio/addition-subtraction/n100.mp3",
-          "key": "n100",
-          "path": "audio/addition-subtraction/n100.mp3",
-          "url": "/audio/addition-subtraction/n100.mp3",
-          "label": "100 — сто",
-          "category": "Числа",
-          "version": "e6945925ca0b0bfd"
-        },
-        {
-          "id": "audio/addition-subtraction/minus.mp3",
+          "id": "audio/addition-subtraction-voice/minus.mp3",
           "key": "minus",
-          "path": "audio/addition-subtraction/minus.mp3",
-          "url": "/audio/addition-subtraction/minus.mp3",
-          "label": "минус",
+          "path": "audio/addition-subtraction-voice/minus.mp3",
+          "url": "/audio/addition-subtraction-voice/minus.mp3",
+          "label": "Минус",
           "category": "Знаки",
-          "version": "e533665bcbf62829"
+          "version": "d9ebfd0ec8aa6fb0"
         },
         {
-          "id": "audio/addition-subtraction/plus.mp3",
+          "id": "audio/addition-subtraction-voice/plus.mp3",
           "key": "plus",
-          "path": "audio/addition-subtraction/plus.mp3",
-          "url": "/audio/addition-subtraction/plus.mp3",
-          "label": "плюс",
+          "path": "audio/addition-subtraction-voice/plus.mp3",
+          "url": "/audio/addition-subtraction-voice/plus.mp3",
+          "label": "Плюс",
           "category": "Знаки",
-          "version": "6a4729b74b8fa255"
+          "version": "cc65e7e2b2dbd1be"
         },
         {
-          "id": "audio/addition-subtraction/phrases/became.mp3",
-          "key": "phrases/became",
-          "path": "audio/addition-subtraction/phrases/became.mp3",
-          "url": "/audio/addition-subtraction/phrases/became.mp3",
-          "label": "стало",
+          "id": "audio/addition-subtraction-voice/correct_added_1.mp3",
+          "key": "correct_added_1",
+          "path": "audio/addition-subtraction-voice/correct_added_1.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_added_1.mp3",
+          "label": "Правильно! Прибавили один.",
           "category": "Фразы",
-          "version": "cdc72dbe4847703f"
+          "version": "275d3112f42503eb"
         },
         {
-          "id": "audio/addition-subtraction/phrases/correct_added_count.mp3",
-          "key": "phrases/correct_added_count",
-          "path": "audio/addition-subtraction/phrases/correct_added_count.mp3",
-          "url": "/audio/addition-subtraction/phrases/correct_added_count.mp3",
-          "label": "Правильно. Прибавили",
+          "id": "audio/addition-subtraction-voice/correct_added_2.mp3",
+          "key": "correct_added_2",
+          "path": "audio/addition-subtraction-voice/correct_added_2.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_added_2.mp3",
+          "label": "Правильно! Прибавили два.",
           "category": "Фразы",
-          "version": "ce40e88c577563b5"
+          "version": "e9bc3469770251ee"
         },
         {
-          "id": "audio/addition-subtraction/phrases/correct_added.mp3",
-          "key": "phrases/correct_added",
-          "path": "audio/addition-subtraction/phrases/correct_added.mp3",
-          "url": "/audio/addition-subtraction/phrases/correct_added.mp3",
-          "label": "Правильно. Прибавили.",
+          "id": "audio/addition-subtraction-voice/correct_added_3.mp3",
+          "key": "correct_added_3",
+          "path": "audio/addition-subtraction-voice/correct_added_3.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_added_3.mp3",
+          "label": "Правильно! Прибавили три.",
           "category": "Фразы",
-          "version": "fd9f48b7948e80e0"
+          "version": "4958f3c7acf1ed23"
         },
         {
-          "id": "audio/addition-subtraction/phrases/correct_less.mp3",
-          "key": "phrases/correct_less",
-          "path": "audio/addition-subtraction/phrases/correct_less.mp3",
-          "url": "/audio/addition-subtraction/phrases/correct_less.mp3",
-          "label": "Правильно. Стало меньше.",
+          "id": "audio/addition-subtraction-voice/correct_added.mp3",
+          "key": "correct_added",
+          "path": "audio/addition-subtraction-voice/correct_added.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_added.mp3",
+          "label": "Правильно! Прибавили.",
           "category": "Фразы",
-          "version": "6489c788a6a147cb"
+          "version": "98a94c8fe26b27fc"
         },
         {
-          "id": "audio/addition-subtraction/phrases/correct_more.mp3",
-          "key": "phrases/correct_more",
-          "path": "audio/addition-subtraction/phrases/correct_more.mp3",
-          "url": "/audio/addition-subtraction/phrases/correct_more.mp3",
-          "label": "Правильно. Стало больше.",
+          "id": "audio/addition-subtraction-voice/correct_less.mp3",
+          "key": "correct_less",
+          "path": "audio/addition-subtraction-voice/correct_less.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_less.mp3",
+          "label": "Правильно! Стало меньше.",
           "category": "Фразы",
-          "version": "c4f20fba3f937a37"
+          "version": "086543b2d032369e"
         },
         {
-          "id": "audio/addition-subtraction/phrases/correct_removed_count.mp3",
-          "key": "phrases/correct_removed_count",
-          "path": "audio/addition-subtraction/phrases/correct_removed_count.mp3",
-          "url": "/audio/addition-subtraction/phrases/correct_removed_count.mp3",
-          "label": "Правильно. Убрали",
+          "id": "audio/addition-subtraction-voice/correct_more.mp3",
+          "key": "correct_more",
+          "path": "audio/addition-subtraction-voice/correct_more.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_more.mp3",
+          "label": "Правильно! Стало больше.",
           "category": "Фразы",
-          "version": "8c78104d0e789743"
+          "version": "5cf4348c18a4468e"
         },
         {
-          "id": "audio/addition-subtraction/phrases/correct_removed.mp3",
-          "key": "phrases/correct_removed",
-          "path": "audio/addition-subtraction/phrases/correct_removed.mp3",
-          "url": "/audio/addition-subtraction/phrases/correct_removed.mp3",
-          "label": "Правильно. Убрали.",
+          "id": "audio/addition-subtraction-voice/correct_removed_1.mp3",
+          "key": "correct_removed_1",
+          "path": "audio/addition-subtraction-voice/correct_removed_1.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_removed_1.mp3",
+          "label": "Правильно! Убрали один.",
           "category": "Фразы",
-          "version": "452b0a45d7251036"
+          "version": "81036c14befb79a2"
         },
         {
-          "id": "audio/addition-subtraction/phrases/count_again.mp3",
-          "key": "phrases/count_again",
-          "path": "audio/addition-subtraction/phrases/count_again.mp3",
-          "url": "/audio/addition-subtraction/phrases/count_again.mp3",
+          "id": "audio/addition-subtraction-voice/correct_removed_2.mp3",
+          "key": "correct_removed_2",
+          "path": "audio/addition-subtraction-voice/correct_removed_2.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_removed_2.mp3",
+          "label": "Правильно! Убрали два.",
+          "category": "Фразы",
+          "version": "c8c040da7e2b8323"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/correct_removed_3.mp3",
+          "key": "correct_removed_3",
+          "path": "audio/addition-subtraction-voice/correct_removed_3.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_removed_3.mp3",
+          "label": "Правильно! Убрали три.",
+          "category": "Фразы",
+          "version": "4283288f656ffe24"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/correct_removed.mp3",
+          "key": "correct_removed",
+          "path": "audio/addition-subtraction-voice/correct_removed.mp3",
+          "url": "/audio/addition-subtraction-voice/correct_removed.mp3",
+          "label": "Правильно! Убрали.",
+          "category": "Фразы",
+          "version": "3a89db555baaaeb5"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/count_again.mp3",
+          "key": "count_again",
+          "path": "audio/addition-subtraction-voice/count_again.mp3",
+          "url": "/audio/addition-subtraction-voice/count_again.mp3",
           "label": "Посчитай ещё раз.",
           "category": "Фразы",
-          "version": "5c3c0a64aaf3bc12"
+          "version": "dda2fdbbe2af1b24"
         },
         {
-          "id": "audio/addition-subtraction/phrases/how_many_added.mp3",
-          "key": "phrases/how_many_added",
-          "path": "audio/addition-subtraction/phrases/how_many_added.mp3",
-          "url": "/audio/addition-subtraction/phrases/how_many_added.mp3",
+          "id": "audio/addition-subtraction-voice/how_many_added.mp3",
+          "key": "how_many_added",
+          "path": "audio/addition-subtraction-voice/how_many_added.mp3",
+          "url": "/audio/addition-subtraction-voice/how_many_added.mp3",
           "label": "Сколько прибавили?",
           "category": "Фразы",
-          "version": "0fc1c058e486e5d1"
+          "version": "ce4ca953fcf5d003"
         },
         {
-          "id": "audio/addition-subtraction/phrases/how_many_removed.mp3",
-          "key": "phrases/how_many_removed",
-          "path": "audio/addition-subtraction/phrases/how_many_removed.mp3",
-          "url": "/audio/addition-subtraction/phrases/how_many_removed.mp3",
+          "id": "audio/addition-subtraction-voice/how_many_removed.mp3",
+          "key": "how_many_removed",
+          "path": "audio/addition-subtraction-voice/how_many_removed.mp3",
+          "url": "/audio/addition-subtraction-voice/how_many_removed.mp3",
           "label": "Сколько убрали?",
           "category": "Фразы",
-          "version": "f37f951e902d5d33"
+          "version": "b2de5d414115064c"
         },
         {
-          "id": "audio/addition-subtraction/phrases/look_again.mp3",
-          "key": "phrases/look_again",
-          "path": "audio/addition-subtraction/phrases/look_again.mp3",
-          "url": "/audio/addition-subtraction/phrases/look_again.mp3",
+          "id": "audio/addition-subtraction-voice/look_again.mp3",
+          "key": "look_again",
+          "path": "audio/addition-subtraction-voice/look_again.mp3",
+          "url": "/audio/addition-subtraction-voice/look_again.mp3",
           "label": "Посмотри ещё раз.",
           "category": "Фразы",
-          "version": "dedc4766737c5b2c"
+          "version": "ef790287f9a3e97f"
         },
         {
-          "id": "audio/addition-subtraction/phrases/more_or_less.mp3",
-          "key": "phrases/more_or_less",
-          "path": "audio/addition-subtraction/phrases/more_or_less.mp3",
-          "url": "/audio/addition-subtraction/phrases/more_or_less.mp3",
+          "id": "audio/addition-subtraction-voice/more_or_less.mp3",
+          "key": "more_or_less",
+          "path": "audio/addition-subtraction-voice/more_or_less.mp3",
+          "url": "/audio/addition-subtraction-voice/more_or_less.mp3",
           "label": "Стало больше или меньше?",
           "category": "Фразы",
-          "version": "c9e8bd6e7aa470ee"
+          "version": "da9071da4f83051b"
         },
         {
-          "id": "audio/addition-subtraction/phrases/was.mp3",
-          "key": "phrases/was",
-          "path": "audio/addition-subtraction/phrases/was.mp3",
-          "url": "/audio/addition-subtraction/phrases/was.mp3",
-          "label": "Было",
+          "id": "audio/addition-subtraction-voice/was_1.mp3",
+          "key": "was_1",
+          "path": "audio/addition-subtraction-voice/was_1.mp3",
+          "url": "/audio/addition-subtraction-voice/was_1.mp3",
+          "label": "Было один.",
           "category": "Фразы",
-          "version": "4965e170299953c4"
+          "version": "8d65708ebe87ead1"
         },
         {
-          "id": "audio/addition-subtraction/phrases/what_was_done_say.mp3",
-          "key": "phrases/what_was_done_say",
-          "path": "audio/addition-subtraction/phrases/what_was_done_say.mp3",
-          "url": "/audio/addition-subtraction/phrases/what_was_done_say.mp3",
+          "id": "audio/addition-subtraction-voice/was_2.mp3",
+          "key": "was_2",
+          "path": "audio/addition-subtraction-voice/was_2.mp3",
+          "url": "/audio/addition-subtraction-voice/was_2.mp3",
+          "label": "Было два.",
+          "category": "Фразы",
+          "version": "96862567b7ef46a9"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_3.mp3",
+          "key": "was_3",
+          "path": "audio/addition-subtraction-voice/was_3.mp3",
+          "url": "/audio/addition-subtraction-voice/was_3.mp3",
+          "label": "Было три.",
+          "category": "Фразы",
+          "version": "752555218041b586"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_4.mp3",
+          "key": "was_4",
+          "path": "audio/addition-subtraction-voice/was_4.mp3",
+          "url": "/audio/addition-subtraction-voice/was_4.mp3",
+          "label": "Было четыре.",
+          "category": "Фразы",
+          "version": "442006231e4a862a"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_5.mp3",
+          "key": "was_5",
+          "path": "audio/addition-subtraction-voice/was_5.mp3",
+          "url": "/audio/addition-subtraction-voice/was_5.mp3",
+          "label": "Было пять.",
+          "category": "Фразы",
+          "version": "fbe71f3b80a922df"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_1_2.mp3",
+          "key": "was_became_1_2",
+          "path": "audio/addition-subtraction-voice/was_became_1_2.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_1_2.mp3",
+          "label": "Было один, стало два.",
+          "category": "Фразы",
+          "version": "4a92a5785dfa5244"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_1_3.mp3",
+          "key": "was_became_1_3",
+          "path": "audio/addition-subtraction-voice/was_became_1_3.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_1_3.mp3",
+          "label": "Было один, стало три.",
+          "category": "Фразы",
+          "version": "dd901c6ba86a9fb4"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_1_4.mp3",
+          "key": "was_became_1_4",
+          "path": "audio/addition-subtraction-voice/was_became_1_4.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_1_4.mp3",
+          "label": "Было один, стало четыре.",
+          "category": "Фразы",
+          "version": "875d3f09a6ebc873"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_2_1.mp3",
+          "key": "was_became_2_1",
+          "path": "audio/addition-subtraction-voice/was_became_2_1.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_2_1.mp3",
+          "label": "Было два, стало один.",
+          "category": "Фразы",
+          "version": "4e18de4511298189"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_2_3.mp3",
+          "key": "was_became_2_3",
+          "path": "audio/addition-subtraction-voice/was_became_2_3.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_2_3.mp3",
+          "label": "Было два, стало три.",
+          "category": "Фразы",
+          "version": "53b3f20c32ee80be"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_2_4.mp3",
+          "key": "was_became_2_4",
+          "path": "audio/addition-subtraction-voice/was_became_2_4.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_2_4.mp3",
+          "label": "Было два, стало четыре.",
+          "category": "Фразы",
+          "version": "2910671df0d633e3"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_2_5.mp3",
+          "key": "was_became_2_5",
+          "path": "audio/addition-subtraction-voice/was_became_2_5.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_2_5.mp3",
+          "label": "Было два, стало пять.",
+          "category": "Фразы",
+          "version": "b116cecec252e35b"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_3_1.mp3",
+          "key": "was_became_3_1",
+          "path": "audio/addition-subtraction-voice/was_became_3_1.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_3_1.mp3",
+          "label": "Было три, стало один.",
+          "category": "Фразы",
+          "version": "1b772b444a8aac47"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_3_2.mp3",
+          "key": "was_became_3_2",
+          "path": "audio/addition-subtraction-voice/was_became_3_2.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_3_2.mp3",
+          "label": "Было три, стало два.",
+          "category": "Фразы",
+          "version": "bbf4ec6657453ae8"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_3_4.mp3",
+          "key": "was_became_3_4",
+          "path": "audio/addition-subtraction-voice/was_became_3_4.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_3_4.mp3",
+          "label": "Было три, стало четыре.",
+          "category": "Фразы",
+          "version": "e7a534727395efa6"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_3_5.mp3",
+          "key": "was_became_3_5",
+          "path": "audio/addition-subtraction-voice/was_became_3_5.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_3_5.mp3",
+          "label": "Было три, стало пять.",
+          "category": "Фразы",
+          "version": "d63d1f9af362e164"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_4_1.mp3",
+          "key": "was_became_4_1",
+          "path": "audio/addition-subtraction-voice/was_became_4_1.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_4_1.mp3",
+          "label": "Было четыре, стало один.",
+          "category": "Фразы",
+          "version": "dd964450eb154b8b"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_4_2.mp3",
+          "key": "was_became_4_2",
+          "path": "audio/addition-subtraction-voice/was_became_4_2.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_4_2.mp3",
+          "label": "Было четыре, стало два.",
+          "category": "Фразы",
+          "version": "4d7530afc80c8203"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_4_3.mp3",
+          "key": "was_became_4_3",
+          "path": "audio/addition-subtraction-voice/was_became_4_3.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_4_3.mp3",
+          "label": "Было четыре, стало три.",
+          "category": "Фразы",
+          "version": "812f528d7b549c8f"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_4_5.mp3",
+          "key": "was_became_4_5",
+          "path": "audio/addition-subtraction-voice/was_became_4_5.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_4_5.mp3",
+          "label": "Было четыре, стало пять.",
+          "category": "Фразы",
+          "version": "c3405b102a26429c"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_5_2.mp3",
+          "key": "was_became_5_2",
+          "path": "audio/addition-subtraction-voice/was_became_5_2.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_5_2.mp3",
+          "label": "Было пять, стало два.",
+          "category": "Фразы",
+          "version": "9672752f6ce81642"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_5_3.mp3",
+          "key": "was_became_5_3",
+          "path": "audio/addition-subtraction-voice/was_became_5_3.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_5_3.mp3",
+          "label": "Было пять, стало три.",
+          "category": "Фразы",
+          "version": "cb07d4543628f3fa"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/was_became_5_4.mp3",
+          "key": "was_became_5_4",
+          "path": "audio/addition-subtraction-voice/was_became_5_4.mp3",
+          "url": "/audio/addition-subtraction-voice/was_became_5_4.mp3",
+          "label": "Было пять, стало четыре.",
+          "category": "Фразы",
+          "version": "1e99e7dcbc67a006"
+        },
+        {
+          "id": "audio/addition-subtraction-voice/what_was_done_say.mp3",
+          "key": "what_was_done_say",
+          "path": "audio/addition-subtraction-voice/what_was_done_say.mp3",
+          "url": "/audio/addition-subtraction-voice/what_was_done_say.mp3",
           "label": "Что сделали? Скажи.",
           "category": "Фразы",
-          "version": "91fa4c75c4ec738f"
+          "version": "9ddcef002f7bf2f1"
         },
         {
-          "id": "audio/addition-subtraction/phrases/what_was_done.mp3",
-          "key": "phrases/what_was_done",
-          "path": "audio/addition-subtraction/phrases/what_was_done.mp3",
-          "url": "/audio/addition-subtraction/phrases/what_was_done.mp3",
+          "id": "audio/addition-subtraction-voice/what_was_done.mp3",
+          "key": "what_was_done",
+          "path": "audio/addition-subtraction-voice/what_was_done.mp3",
+          "url": "/audio/addition-subtraction-voice/what_was_done.mp3",
           "label": "Что сделали?",
           "category": "Фразы",
-          "version": "9007910ec734a315"
+          "version": "f51084e2f3754ee7"
         },
         {
-          "id": "audio/addition-subtraction/phrases/wrong_look_again.mp3",
-          "key": "phrases/wrong_look_again",
-          "path": "audio/addition-subtraction/phrases/wrong_look_again.mp3",
-          "url": "/audio/addition-subtraction/phrases/wrong_look_again.mp3",
+          "id": "audio/addition-subtraction-voice/wrong_look_again.mp3",
+          "key": "wrong_look_again",
+          "path": "audio/addition-subtraction-voice/wrong_look_again.mp3",
+          "url": "/audio/addition-subtraction-voice/wrong_look_again.mp3",
           "label": "Неправильно. Посмотри ещё раз.",
           "category": "Фразы",
-          "version": "cf9fe0afd212f823"
-        }
-      ]
-    },
-    {
-      "id": "audio/addition-subtraction-review",
-      "title": "Плюс / минус — повторная проверка",
-      "items": [
-        {
-          "id": "audio/addition-subtraction-review/n1.mp3",
-          "key": "n1",
-          "path": "audio/addition-subtraction-review/n1.mp3",
-          "url": "/audio/addition-subtraction-review/n1.mp3",
-          "label": "1 — один — новая запись",
-          "category": "Числа",
-          "version": "b91b3ad610873dfb"
-        },
-        {
-          "id": "audio/addition-subtraction-review/n3.mp3",
-          "key": "n3",
-          "path": "audio/addition-subtraction-review/n3.mp3",
-          "url": "/audio/addition-subtraction-review/n3.mp3",
-          "label": "3 — три — новая запись",
-          "category": "Числа",
-          "version": "dda58c0e33f4d3df"
-        },
-        {
-          "id": "audio/addition-subtraction-review/n4.mp3",
-          "key": "n4",
-          "path": "audio/addition-subtraction-review/n4.mp3",
-          "url": "/audio/addition-subtraction-review/n4.mp3",
-          "label": "4 — четыре — новая запись",
-          "category": "Числа",
-          "version": "ee32912f06deaa4f"
-        },
-        {
-          "id": "audio/addition-subtraction-review/n5.mp3",
-          "key": "n5",
-          "path": "audio/addition-subtraction-review/n5.mp3",
-          "url": "/audio/addition-subtraction-review/n5.mp3",
-          "label": "5 — пять — новая запись",
-          "category": "Числа",
-          "version": "cda7067763904ae3"
-        },
-        {
-          "id": "audio/addition-subtraction-review/n6.mp3",
-          "key": "n6",
-          "path": "audio/addition-subtraction-review/n6.mp3",
-          "url": "/audio/addition-subtraction-review/n6.mp3",
-          "label": "6 — шесть — новая запись",
-          "category": "Числа",
-          "version": "bf6aaed8972d5a99"
-        },
-        {
-          "id": "audio/addition-subtraction-review/plus.mp3",
-          "key": "plus",
-          "path": "audio/addition-subtraction-review/plus.mp3",
-          "url": "/audio/addition-subtraction-review/plus.mp3",
-          "label": "плюс — новая запись",
-          "category": "Знаки",
-          "version": "6a4729b74b8fa255"
-        }
-      ]
-    },
-    {
-      "id": "audio/addition-subtraction-russian-review",
-      "title": "Плюс / минус — русский голос WaveNet",
-      "items": [
-        {
-          "id": "audio/addition-subtraction-russian-review/n1.mp3",
-          "key": "n1",
-          "path": "audio/addition-subtraction-russian-review/n1.mp3",
-          "url": "/audio/addition-subtraction-russian-review/n1.mp3",
-          "label": "1 — один — русский голос",
-          "category": "Числа",
-          "version": "61816ab09d8371ff"
-        },
-        {
-          "id": "audio/addition-subtraction-russian-review/n3.mp3",
-          "key": "n3",
-          "path": "audio/addition-subtraction-russian-review/n3.mp3",
-          "url": "/audio/addition-subtraction-russian-review/n3.mp3",
-          "label": "3 — три — русский голос",
-          "category": "Числа",
-          "version": "72cb7e237d61c83c"
-        },
-        {
-          "id": "audio/addition-subtraction-russian-review/n4.mp3",
-          "key": "n4",
-          "path": "audio/addition-subtraction-russian-review/n4.mp3",
-          "url": "/audio/addition-subtraction-russian-review/n4.mp3",
-          "label": "4 — четыре — русский голос",
-          "category": "Числа",
-          "version": "eaa21917006883b5"
-        },
-        {
-          "id": "audio/addition-subtraction-russian-review/n5.mp3",
-          "key": "n5",
-          "path": "audio/addition-subtraction-russian-review/n5.mp3",
-          "url": "/audio/addition-subtraction-russian-review/n5.mp3",
-          "label": "5 — пять — русский голос",
-          "category": "Числа",
-          "version": "bd6a16798985a530"
-        },
-        {
-          "id": "audio/addition-subtraction-russian-review/n6.mp3",
-          "key": "n6",
-          "path": "audio/addition-subtraction-russian-review/n6.mp3",
-          "url": "/audio/addition-subtraction-russian-review/n6.mp3",
-          "label": "6 — шесть — русский голос",
-          "category": "Числа",
-          "version": "1f14fe43de1531bc"
+          "version": "0f2da60b9102fa1d"
         }
       ]
     },
@@ -1457,15 +1310,15 @@
     },
     {
       "id": "audio/place-value-numbers",
-      "title": "audio/place-value-numbers",
+      "title": "Числа (голос владельца; «Разряды числа», «Плюс / минус»)",
       "items": [
         {
           "id": "audio/place-value-numbers/n0.mp3",
           "key": "n0",
           "path": "audio/place-value-numbers/n0.mp3",
           "url": "/audio/place-value-numbers/n0.mp3",
-          "label": "n0",
-          "category": "Прочее",
+          "label": "0 — ноль",
+          "category": "Числа",
           "version": "9a13c1915bab22c3"
         },
         {
@@ -1473,8 +1326,8 @@
           "key": "n1",
           "path": "audio/place-value-numbers/n1.mp3",
           "url": "/audio/place-value-numbers/n1.mp3",
-          "label": "n1",
-          "category": "Прочее",
+          "label": "1 — один",
+          "category": "Числа",
           "version": "2552c30d0829f804"
         },
         {
@@ -1482,8 +1335,8 @@
           "key": "n2",
           "path": "audio/place-value-numbers/n2.mp3",
           "url": "/audio/place-value-numbers/n2.mp3",
-          "label": "n2",
-          "category": "Прочее",
+          "label": "2 — два",
+          "category": "Числа",
           "version": "9738f978b2a3248a"
         },
         {
@@ -1491,8 +1344,8 @@
           "key": "n3",
           "path": "audio/place-value-numbers/n3.mp3",
           "url": "/audio/place-value-numbers/n3.mp3",
-          "label": "n3",
-          "category": "Прочее",
+          "label": "3 — три",
+          "category": "Числа",
           "version": "4cae20beabf447b2"
         },
         {
@@ -1500,8 +1353,8 @@
           "key": "n4",
           "path": "audio/place-value-numbers/n4.mp3",
           "url": "/audio/place-value-numbers/n4.mp3",
-          "label": "n4",
-          "category": "Прочее",
+          "label": "4 — четыре",
+          "category": "Числа",
           "version": "ca8ecfb1f7286ad7"
         },
         {
@@ -1509,8 +1362,8 @@
           "key": "n5",
           "path": "audio/place-value-numbers/n5.mp3",
           "url": "/audio/place-value-numbers/n5.mp3",
-          "label": "n5",
-          "category": "Прочее",
+          "label": "5 — пять",
+          "category": "Числа",
           "version": "e164f44f20240f1b"
         },
         {
@@ -1518,8 +1371,8 @@
           "key": "n6",
           "path": "audio/place-value-numbers/n6.mp3",
           "url": "/audio/place-value-numbers/n6.mp3",
-          "label": "n6",
-          "category": "Прочее",
+          "label": "6 — шесть",
+          "category": "Числа",
           "version": "ed913b98e1dc57b8"
         },
         {
@@ -1527,8 +1380,8 @@
           "key": "n7",
           "path": "audio/place-value-numbers/n7.mp3",
           "url": "/audio/place-value-numbers/n7.mp3",
-          "label": "n7",
-          "category": "Прочее",
+          "label": "7 — семь",
+          "category": "Числа",
           "version": "2c9e15ea20897ec4"
         },
         {
@@ -1536,8 +1389,8 @@
           "key": "n8",
           "path": "audio/place-value-numbers/n8.mp3",
           "url": "/audio/place-value-numbers/n8.mp3",
-          "label": "n8",
-          "category": "Прочее",
+          "label": "8 — восемь",
+          "category": "Числа",
           "version": "8fffb28746cbc347"
         },
         {
@@ -1545,8 +1398,8 @@
           "key": "n9",
           "path": "audio/place-value-numbers/n9.mp3",
           "url": "/audio/place-value-numbers/n9.mp3",
-          "label": "n9",
-          "category": "Прочее",
+          "label": "9 — девять",
+          "category": "Числа",
           "version": "93912d44fd39e10c"
         },
         {
@@ -1554,8 +1407,8 @@
           "key": "n10",
           "path": "audio/place-value-numbers/n10.mp3",
           "url": "/audio/place-value-numbers/n10.mp3",
-          "label": "n10",
-          "category": "Прочее",
+          "label": "10 — десять",
+          "category": "Числа",
           "version": "9a42365e5c3f5121"
         },
         {
@@ -1563,8 +1416,8 @@
           "key": "n11",
           "path": "audio/place-value-numbers/n11.mp3",
           "url": "/audio/place-value-numbers/n11.mp3",
-          "label": "n11",
-          "category": "Прочее",
+          "label": "11 — одиннадцать",
+          "category": "Числа",
           "version": "84565998c55497fd"
         },
         {
@@ -1572,8 +1425,8 @@
           "key": "n12",
           "path": "audio/place-value-numbers/n12.mp3",
           "url": "/audio/place-value-numbers/n12.mp3",
-          "label": "n12",
-          "category": "Прочее",
+          "label": "12 — двенадцать",
+          "category": "Числа",
           "version": "2e287b56dada3d79"
         },
         {
@@ -1581,8 +1434,8 @@
           "key": "n13",
           "path": "audio/place-value-numbers/n13.mp3",
           "url": "/audio/place-value-numbers/n13.mp3",
-          "label": "n13",
-          "category": "Прочее",
+          "label": "13 — тринадцать",
+          "category": "Числа",
           "version": "f34a4d36b71e211b"
         },
         {
@@ -1590,8 +1443,8 @@
           "key": "n14",
           "path": "audio/place-value-numbers/n14.mp3",
           "url": "/audio/place-value-numbers/n14.mp3",
-          "label": "n14",
-          "category": "Прочее",
+          "label": "14 — четырнадцать",
+          "category": "Числа",
           "version": "0e1e4b4fa91f690b"
         },
         {
@@ -1599,8 +1452,8 @@
           "key": "n15",
           "path": "audio/place-value-numbers/n15.mp3",
           "url": "/audio/place-value-numbers/n15.mp3",
-          "label": "n15",
-          "category": "Прочее",
+          "label": "15 — пятнадцать",
+          "category": "Числа",
           "version": "daf1230b68b564e5"
         },
         {
@@ -1608,8 +1461,8 @@
           "key": "n16",
           "path": "audio/place-value-numbers/n16.mp3",
           "url": "/audio/place-value-numbers/n16.mp3",
-          "label": "n16",
-          "category": "Прочее",
+          "label": "16 — шестнадцать",
+          "category": "Числа",
           "version": "1e1a0a9aded105e4"
         },
         {
@@ -1617,8 +1470,8 @@
           "key": "n17",
           "path": "audio/place-value-numbers/n17.mp3",
           "url": "/audio/place-value-numbers/n17.mp3",
-          "label": "n17",
-          "category": "Прочее",
+          "label": "17 — семнадцать",
+          "category": "Числа",
           "version": "6e196624da9ddf84"
         },
         {
@@ -1626,8 +1479,8 @@
           "key": "n18",
           "path": "audio/place-value-numbers/n18.mp3",
           "url": "/audio/place-value-numbers/n18.mp3",
-          "label": "n18",
-          "category": "Прочее",
+          "label": "18 — восемнадцать",
+          "category": "Числа",
           "version": "37f55983abfc5090"
         },
         {
@@ -1635,8 +1488,8 @@
           "key": "n19",
           "path": "audio/place-value-numbers/n19.mp3",
           "url": "/audio/place-value-numbers/n19.mp3",
-          "label": "n19",
-          "category": "Прочее",
+          "label": "19 — девятнадцать",
+          "category": "Числа",
           "version": "4372e58ee656e900"
         },
         {
@@ -1644,8 +1497,8 @@
           "key": "n20",
           "path": "audio/place-value-numbers/n20.mp3",
           "url": "/audio/place-value-numbers/n20.mp3",
-          "label": "n20",
-          "category": "Прочее",
+          "label": "20 — двадцать",
+          "category": "Числа",
           "version": "2f9e4a4fb9b957c5"
         },
         {
@@ -1653,8 +1506,8 @@
           "key": "n30",
           "path": "audio/place-value-numbers/n30.mp3",
           "url": "/audio/place-value-numbers/n30.mp3",
-          "label": "n30",
-          "category": "Прочее",
+          "label": "30 — тридцать",
+          "category": "Числа",
           "version": "630bea2bd6c1f7d2"
         },
         {
@@ -1662,8 +1515,8 @@
           "key": "n40",
           "path": "audio/place-value-numbers/n40.mp3",
           "url": "/audio/place-value-numbers/n40.mp3",
-          "label": "n40",
-          "category": "Прочее",
+          "label": "40 — сорок",
+          "category": "Числа",
           "version": "0c1757d3f0051e40"
         },
         {
@@ -1671,8 +1524,8 @@
           "key": "n50",
           "path": "audio/place-value-numbers/n50.mp3",
           "url": "/audio/place-value-numbers/n50.mp3",
-          "label": "n50",
-          "category": "Прочее",
+          "label": "50 — пятьдесят",
+          "category": "Числа",
           "version": "ce26d9b7eaf588f8"
         },
         {
@@ -1680,8 +1533,8 @@
           "key": "n60",
           "path": "audio/place-value-numbers/n60.mp3",
           "url": "/audio/place-value-numbers/n60.mp3",
-          "label": "n60",
-          "category": "Прочее",
+          "label": "60 — шестьдесят",
+          "category": "Числа",
           "version": "b8b0d333ab458296"
         },
         {
@@ -1689,8 +1542,8 @@
           "key": "n70",
           "path": "audio/place-value-numbers/n70.mp3",
           "url": "/audio/place-value-numbers/n70.mp3",
-          "label": "n70",
-          "category": "Прочее",
+          "label": "70 — семьдесят",
+          "category": "Числа",
           "version": "196c2947f5989d39"
         },
         {
@@ -1698,8 +1551,8 @@
           "key": "n80",
           "path": "audio/place-value-numbers/n80.mp3",
           "url": "/audio/place-value-numbers/n80.mp3",
-          "label": "n80",
-          "category": "Прочее",
+          "label": "80 — восемьдесят",
+          "category": "Числа",
           "version": "fb692b5b6606f18d"
         },
         {
@@ -1707,8 +1560,8 @@
           "key": "n90",
           "path": "audio/place-value-numbers/n90.mp3",
           "url": "/audio/place-value-numbers/n90.mp3",
-          "label": "n90",
-          "category": "Прочее",
+          "label": "90 — девяносто",
+          "category": "Числа",
           "version": "fb5d7ab697c8ad72"
         },
         {
@@ -1716,8 +1569,8 @@
           "key": "n100",
           "path": "audio/place-value-numbers/n100.mp3",
           "url": "/audio/place-value-numbers/n100.mp3",
-          "label": "n100",
-          "category": "Прочее",
+          "label": "100 — сто",
+          "category": "Числа",
           "version": "e3b50c92e227f4f3"
         },
         {

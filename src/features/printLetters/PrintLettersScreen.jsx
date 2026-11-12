@@ -5,6 +5,10 @@ import { loadRenderer } from "@/topics/rendererLoader";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { accountKv } from "@/topics/accountKv";
 import { makePrintLettersPdf } from "./printLettersPdf";
+import { getDb, kv } from "@/core/db";
+import { flushQueue } from "@/core/syncApi";
+import { persistSessionRecord } from "@/features/session/sessionPersistence";
+import { fullScreenSessionRecord } from "./fullScreenSession";
 
 // «Печатные буквы» owns a full screen, like propis2's Propis2Home (owner, 2026-11-03: the
 // constructor must not sit under the session header). App's ParamsRoute sends the topic here
@@ -16,6 +20,8 @@ export default function PrintLettersScreen() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeModeId = useAppStore((s) => s.activeModeId);
   const record = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === s.activeTopicId));
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const appendSession = useAppStore((s) => s.appendSession);
   const mode = record?.modes?.find((m) => m.id === activeModeId) ?? record?.modes?.[0];
 
   const rendererId = record?.meta.renderer ?? "print_letters";
@@ -29,7 +35,20 @@ export default function PrintLettersScreen() {
 
   const task = useMemo(() => (record && mode ? ENGINE_REGISTRY[rendererId]?.(mode, record.cards)?.[0] ?? null : null), [record, mode, rendererId]);
   const onBack = () => setScreen((record?.modes?.length ?? 0) > 1 ? "modes" : "home");
+  const onSessionResult = async (result) => {
+    if (!record || !mode || !activeStudentId) return;
+    const session = fullScreenSessionRecord({ result, studentId: activeStudentId, record, mode });
+    try {
+      const db = await getDb();
+      await kv.set(db, "lastContext", { studentId: activeStudentId, topicId: record.meta.id, textId: null, modeId: mode.id });
+      const saved = await persistSessionRecord(db, session);
+      appendSession(saved);
+      flushQueue().catch(() => {});
+    } catch {
+      appendSession(session); // at least this run of the app shows it
+    }
+  };
 
   if (!record || !Renderer || !task) return <div className="screen-center">Загрузка…</div>;
-  return <Renderer task={task} topicRecord={record} accountKv={accountKv} makePdf={makePrintLettersPdf} onBack={onBack} fullScreen />;
+  return <Renderer task={task} topicRecord={record} accountKv={accountKv} makePdf={makePrintLettersPdf} onBack={onBack} onSessionResult={onSessionResult} fullScreen />;
 }

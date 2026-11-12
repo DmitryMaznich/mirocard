@@ -25,7 +25,7 @@ function selected() { return current?.items.find((item) => item.id === selectedI
 function visible() {
   const query = $("search").value.trim().toLocaleLowerCase("ru");
   const category = $("category").value;
-  return (current?.items ?? []).filter((item) => (!category || (category === "numbers-and-signs" ? ["Числа", "Знаки"].includes(item.category) : item.category === category))
+  return (current?.items ?? []).filter((item) => (!category || item.category === category)
     && ($("filter").value === "all" || review(item).status === $("filter").value)
     && `${item.label} ${item.path}`.toLocaleLowerCase("ru").includes(query));
 }
@@ -122,11 +122,6 @@ function switchPlaylist(id) {
   $("search").value = ""; $("filter").value = "all";
   $("category").replaceChildren(new Option("Все разделы", ""));
   for (const category of new Set(current?.items.map((item) => item.category))) $("category").add(new Option(category, category));
-  // Start with the exact 31 source recordings used by «Слушаем и считаем».
-  if (id === "audio/addition-subtraction") {
-    $("category").add(new Option("Числа и знаки", "numbers-and-signs"));
-    $("category").value = "numbers-and-signs";
-  }
   const url = new URL(location.href); url.searchParams.set("set", id); history.replaceState(null, "", url);
   select(visible()[0], false);
 }
@@ -205,7 +200,7 @@ async function init() {
     playlists = (await response.json()).playlists;
     fillPlaylists();
     const requested = new URL(location.href).searchParams.get("set");
-    const id = playlists.some((entry) => entry.id === requested) ? requested : "audio/addition-subtraction";
+    const id = playlists.some((entry) => entry.id === requested) ? requested : "audio/addition-subtraction-voice";
     $("playlist").value = id; switchPlaylist(id);
   } catch { $("message").textContent = "Не удалось загрузить наборы. Можно выбрать свои файлы или папку со звуками."; render(); }
 }

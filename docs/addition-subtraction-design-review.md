@@ -21,6 +21,108 @@ manifest) is pinned by `orderAdditionSubtractionModes` in `topicLoader.js`,
 because installed decks keep their own mode order. The titles quoted below
 are the old numbers. Both finger modes are not yet reviewed in this pass.
 
+## Audio review 2026-11-11
+
+All 47 recorded clips were reviewed — see `docs/addition-subtraction-audio-review.md`.
+`phrases/was` is recognised as «Белла?» and `phrases/became` as «Стало?» (defective);
+the bank mixes Gemini Kore and Google WaveNet voices and its loudness varies by 12.5 LU.
+Done the same day: the whole bank was re-recorded in the owner's ElevenLabs voice
+(whole sentences for modes 2–3, numbers from `public/audio/place-value-numbers/`), see
+the «Сделано» section there. Backlog item 2 below (Gemini/Kore) is obsolete.
+
+## 2026-11-11: «Что изменилось?» objects and numeral
+
+Owner: the objects were the same teal as the ↻ repeat button (teal also means
+«плюс» in this topic), and with «Показывать цифры» on, the numeral was tiny on a
+phone (23px grey Nunito). Fixed in `src/styles.css`: objects (`.observe-change__dot`,
+all three shapes, also the ones the hand carries in «Назови действие») are blue
+`#3b82f6`, the amber change glow kept; the numeral is Primo, dark ink,
+`clamp(64px, 20vw, 140px)` (≈78px on a 390px phone), like the finger modes' number.
+Open: in «Фигуры сериями» the blue up-triangle looks like the teal ▲ on «Больше».
+
+## 2026-11-11: typed answer instead of a row of number buttons
+
+Owner: the answer row (one button per possible result, up to 20) was noisy and hinted
+the range — 20 buttons for 1 + 2, 20 for 20 − 1 — and on a phone it didn't fit and
+couldn't scroll. Replaced in «Сделай действие», «Сколько стало?» and «Цепочка» (pad
+input) by the topic's own digit keypad (`AudioAnswerPad`: 1–9, 0, ⌫, ✓ — the one of
+«Слушай и посчитай» / «Найди неизвестное»), via `useDigitAnswer` in `index.jsx`. The
+typed digits appear in the example's «?» slot (`typedResult` on `OperationExpression`,
+`.operation-expression__result--input/--typed/--wrong`), not in a second box. Still one
+check per task, as with the buttons. «Нажми сколько стало» → «Напиши, сколько стало».
+The stick stage fills the session area and scrolls if it must. Checked with a Vite
+harness + Playwright at 390×844 and 360×640.
+
+## 2026-11-11: topic cover and mode icons redone
+
+Owner asked for more telling icons; the counting rod fits only its own mode. Before: 7
+icons for 12 modes — the cover (a rod with beads, «-» as a hyphen) doubled as modes 2, 3
+and 12; modes 4–5 shared an arrow; 9, 10 and 11 shared «6 ? 2», which actually depicts
+«find the sign». Now `src/topics/builtinAssets.js` has a new cover (`avatar_operations.svg`:
+big + and − tiles, a group gaining / losing an object) and one icon per mode
+(`media/icons/ops_*.svg`), wired in `topicLoader.js` (`ops_audio` via
+`orderAdditionSubtractionModes`). Palette: plus teal, minus red, objects blue, «?» on the
+pale-yellow answer field. The rod is drawn only in «Сделай действие». Finger-mode icons
+unchanged. Old `operations_*` icons removed except `operations_mode.svg` (column_addition's
+fallback).
+
+## 2026-11-11: «Цепочка» → «Пример в несколько действий» (operation_chain)
+
+Owner's asks, all done (deck 1.9.3):
+- **Number of actions 2 / 3 / 4** (`steps`). `buildChainTask` in `engine.js` is now a random
+  walk: every partial result stays in [min, maxNumber], each change ≤ changeMax, a step never
+  undoes the previous one (+3 then −3). Task carries `terms`, `ops`, `partials`; the old
+  A/B/C/opAB… fields stay for «Контрольная работа» (still two actions) and saved sessions.
+- **Name**: school term «пример (выражение) в несколько действий»; with + and − only they are
+  done in order, left to right — hence the child-facing caption «Считай по порядку». Not
+  «Порядок действий» (in school that means precedence rules).
+- **Hint «По шагам»** (`stepHint`, on by default): splits the example into its actions —
+  «5 + 2 = ?», the answer carries into «7 − 1 = ?» … The child computes every step (keypad or
+  4 choices, matching the mode's input type); a wrong step is just retried, no `onIncorrect`.
+  The finished task goes through `onCorrect(…, { assisted: true })` — counted as done with
+  help, no star (same path as reading / letter_bridge).
+- **Visual**: the example scales to its length (`--chain-tokens`), four actions fit one line on
+  360px; minus is red (the old class was `--subtract` but the CSS said `--sub`, so it never
+  was); the action being solved glows as one «sign + number» unit, solved ones fade; the stage
+  fills the session area and scrolls; the 🧮 button got its safe-area offset.
+- **Settings check (whole topic)**: `limitBy: "maxNumber"` on every `changeMax`
+  (`src/topics/paramLimits.js`). With numbers up to 5 only changes 1 / 3 / 5 are offered, up
+  to 10 also 10, «любое» only for up to 20; a saved value that no longer fits becomes the
+  largest that does — in the settings screen and when a session starts from saved settings.
+
+## 2026-11-11: «Контрольная работа» → test constructor (v1)
+
+Owner: the old sheet (2–6 groups of identical A ± B ± C) was monotonous; wanted a test
+built from settings, solved on screen and exportable as a nice A4 sheet. Mockups and the
+brainstorm: https://claude.ai/artifact/5AsUKWsseVPhPhjsPCnYdc (private canvas).
+Owner's decisions: five sections in v1, answers on a separate page. Defaults taken for the
+unanswered: a section is shown as a list on screen; numbers up to 20 (100 later).
+
+- Code: `src/topics/renderers/addition_subtraction/worksheet/` — `sections.js` (catalog,
+  defaults, normalisation, seeded generators), `WorksheetMode.jsx` (constructor → solve →
+  result → reward video → `onCorrect`), `worksheetPdf.js` (A4 vector PDF), `worksheet.css`.
+- Sections: «Пример в одно действие», «Пример в несколько действий» (2–4), «Найди
+  неизвестное» (справа/слева/вперемешку), «Поставь знак», «Числовая цепочка» (2–4 шага).
+  Per section: count 2–12, numbers up to 5/10/20, change (limited by the range, «любое»
+  only up to 20), only + / only − / both, zero.
+- The sheet is generated from the config + a seed (`makeRng`, mulberry32): screen, PDF and
+  the saved test show the same examples until «Новые примеры» (seed + 1).
+- On screen: section by section, tap a box, the topic's keypad (signs: + / − keys), «→»
+  next box, back and forth between sections, check at the end (no per-item red). Result:
+  score per section, mistakes (wrong answer struck in its box, the right one beside it),
+  the weakest section named, PDF with answers, «Новая контрольная», «Готово» → video.
+- PDF: built in the app from the sheet in mm via `svgPagesToPdf` / `outlineText`
+  (`src/features/printLetters/printLettersPdf.js`); signs and arrows are strokes, text with
+  «−» is printed with «–» (the outline font has no U+2212). Header «Имя / Дата / Отметка»,
+  numbered sections, 1 cm boxes, a section kept on one page when it fits, footer
+  «Верно: __ из N»; answers on a separate last page with a score strip. Saving: the file
+  picker where available, else a second tap → share sheet (iPad) / download.
+- The last test is remembered: localStorage + account kv `addition_subtraction:worksheet:last`
+  (newer copy wins). A named list «Мои контрольные» is not built yet.
+- The mode has no generic params any more (`params: {}`); engine returns one task. Deck 1.9.4.
+- Not yet: picture-support and comparison sections, one-item-at-a-time screen option,
+  numbers to 100, «Мои контрольные» list, larger print size option.
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s

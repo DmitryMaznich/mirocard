@@ -262,69 +262,70 @@ function buildAudioTask(card, params = {}) {
   };
 }
 
+export const CHAIN_STEP_OPTIONS = [2, 3, 4];
+
+// «Пример в несколько действий» (operation_chain) and «Контрольная работа»
+// (operation_worksheet): A ± d1 ± d2 … with 2–4 actions, computed left to
+// right. Every partial result stays inside [minVal, maxNumber], so a child
+// working step by step never meets a number outside the chosen range. A step
+// never just undoes the previous one (+3 then −3): it teaches nothing and
+// looks like a trick.
 function buildChainTask(card, params = {}) {
   const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
   const maxNumber = railSize;
-  const changeMax = Math.max(1, Math.min(Math.floor(maxNumber / 2), toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
+  const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
   const includeZero = Boolean(params.includeZero);
   const minVal = includeZero ? 0 : 1;
+  const steps = CHAIN_STEP_OPTIONS.includes(toNumber(params.steps, 2)) ? toNumber(params.steps, 2) : 2;
   const extraParams = {
     showHelper: Boolean(params.showHelper),
     showMoveHint: Boolean(params.showMoveHint),
     inputMode: params.inputMode ?? "choices",
     timer: params.timer ?? null,
+    stepHint: params.stepHint !== false,
   };
 
-  const B = randomInt(1, changeMax);
-  const C = randomInt(1, changeMax);
-  const caseIdx = Math.floor(Math.random() * 4);
-
-  let A, opAB, signAB, opBC, signBC, intermediate, result;
-
-  if (caseIdx === 0) {
-    // A + B + C; need A + B + C <= maxNumber
-    const maxA = maxNumber - B - C;
-    if (maxA < minVal) return null;
-    A = randomInt(minVal, maxA);
-    opAB = "add"; signAB = "+"; opBC = "add"; signBC = "+";
-    intermediate = A + B;
-    result = intermediate + C;
-  } else if (caseIdx === 1) {
-    // A + B - C; need A + B <= maxNumber, A + B - C >= minVal
-    const minA = Math.max(minVal, minVal + C - B);
-    const maxA = maxNumber - B;
-    if (maxA < minA) return null;
-    A = randomInt(minA, maxA);
-    opAB = "add"; signAB = "+"; opBC = "subtract"; signBC = "-";
-    intermediate = A + B;
-    result = intermediate - C;
-  } else if (caseIdx === 2) {
-    // A - B + C; need A - B >= minVal, A - B + C <= maxNumber
-    const minA = B + minVal;
-    const maxA = Math.min(maxNumber, maxNumber + B - C);
-    if (maxA < minA) return null;
-    A = randomInt(minA, maxA);
-    opAB = "subtract"; signAB = "-"; opBC = "add"; signBC = "+";
-    intermediate = A - B;
-    result = intermediate + C;
-  } else {
-    // A - B - C; need A - B - C >= minVal => A >= B + C + minVal
-    const minA = B + C + minVal;
-    if (minA > maxNumber) return null;
-    A = randomInt(minA, maxNumber);
-    opAB = "subtract"; signAB = "-"; opBC = "subtract"; signBC = "-";
-    intermediate = A - B;
-    result = intermediate - C;
+  const start = randomInt(minVal, maxNumber);
+  const deltas = [];
+  const ops = [];
+  const partials = [];
+  let current = start;
+  for (let i = 0; i < steps; i += 1) {
+    const choices = [];
+    const upRoom = Math.min(changeMax, maxNumber - current);
+    const downRoom = Math.min(changeMax, current - minVal);
+    if (upRoom >= 1) choices.push("add");
+    if (downRoom >= 1) choices.push("subtract");
+    if (!choices.length) return null;
+    const op = choices[randomInt(0, choices.length - 1)];
+    const room = op === "add" ? upRoom : downRoom;
+    let delta = randomInt(1, room);
+    const prevOp = ops[i - 1];
+    if (prevOp && prevOp !== op && deltas[i - 1] === delta) {
+      if (room === 1) return null;
+      delta = delta === room ? delta - 1 : delta + 1;
+    }
+    current = op === "add" ? current + delta : current - delta;
+    ops.push(op);
+    deltas.push(delta);
+    partials.push(current);
   }
+  const result = current;
+  const sign = (op) => (op === "add" ? "+" : "-");
 
   return {
     type: "operation_chain",
     cardId: card.id,
     conceptId: card.conceptId,
-    A, B, C,
-    opAB, signAB,
-    opBC, signBC,
-    intermediate,
+    steps,
+    terms: [start, ...deltas],
+    ops,
+    partials,
+    // Two-action fields kept for «Контрольная работа» and older callers.
+    A: start, B: deltas[0], C: deltas[1],
+    opAB: ops[0], signAB: sign(ops[0]),
+    opBC: ops[1], signBC: sign(ops[1]),
+    intermediate: partials[0],
     result,
     maxNumber,
     resultOptions: makeNumberOptions(result, maxNumber),
@@ -432,19 +433,9 @@ export function generateTasks(mode, cards, arg3, arg4) {
   }
 
   if (modeType === "operation_worksheet") {
-    const groupCount = Math.max(2, Math.min(8, toNumber(params.groupCount, 6)));
-    const perGroup = Math.max(3, Math.min(10, toNumber(params.perGroup, 6)));
-    const total = groupCount * perGroup;
-    const examples = [];
-    let attempts = 0;
-    let idx = 0;
-    while (examples.length < total && attempts < total * 20) {
-      attempts++;
-      const card = operationCards[idx % operationCards.length];
-      const ex = buildChainTask(card, params);
-      if (ex !== null) { examples.push(ex); idx++; }
-    }
-    return [{ type: "operation_worksheet", cardId: operationCards[0].id, conceptId: operationCards[0].conceptId, examples, groupCount, perGroup }];
+    // The test is built on screen by the adult (worksheet/WorksheetMode.jsx);
+    // the session carries one task that opens the constructor.
+    return [{ type: "operation_worksheet", cardId: operationCards[0].id, conceptId: operationCards[0].conceptId }];
   }
 
   if (modeType === "operation_chain") {

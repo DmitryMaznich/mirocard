@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { numberToAudioKeys, numberToWords, taskAudioItems, taskAudioKeys, audioKeyUrl } from "./audioNumbers";
 
-it("loads the approved clips at new URLs while retaining unchanged file URLs", () => {
-  expect(audioKeyUrl("n1")).toBe("/audio/addition-subtraction/n1.mp3?v=61816ab09d8371ff");
-  expect(audioKeyUrl("n2")).toBe("/audio/addition-subtraction/n2.mp3");
-  expect(audioKeyUrl("phrases/was")).toBe("/audio/addition-subtraction/phrases/was.mp3");
+it("speaks numbers from the place-value bank and the signs from the owner's-voice bank", () => {
+  expect(audioKeyUrl("n1")).toBe("/audio/place-value-numbers/n1.mp3");
+  expect(audioKeyUrl("n40")).toBe("/audio/place-value-numbers/n40.mp3");
+  expect(audioKeyUrl("plus")).toBe("/audio/addition-subtraction-voice/plus.mp3");
+  expect(audioKeyUrl("minus")).toBe("/audio/addition-subtraction-voice/minus.mp3");
 });
 
 describe("numberToAudioKeys", () => {

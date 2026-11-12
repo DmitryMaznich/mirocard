@@ -2,6 +2,8 @@
 // Run against the React renderer loaded from the downloadable ZIP, not the
 // standalone design mockup: DRAWING_PREVIEW_URL can point at a prod-ZIP harness.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const cardCount = JSON.parse(await readFile(new URL('./topic.json', import.meta.url), 'utf8')).cards.length;
 import { chromium } from '@playwright/test';
 const base = process.env.DRAWING_PREVIEW_URL ?? 'http://localhost:8080/tools/drawing/preview.html?lesson=goldfish';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
@@ -20,7 +22,7 @@ try {
     root.before(session); session.append(header, root);
   });
   assert.equal(await page.locator('.session-header-wrap').isVisible(), false);
-  assert.equal(await page.locator('.drawing-card').count(), 4);
+  assert.equal(await page.locator('.drawing-card').count(), cardCount);
   const index = () => page.evaluate(() => JSON.parse(localStorage.getItem('drawing-progress:local:goldfish'))?.index ?? 0);
   const hold = async () => {
     const gear = page.locator('.drawing-adult');
@@ -34,7 +36,7 @@ try {
     assert.equal(await page.locator('.drawing-top h2').textContent(), title);
     assert.equal(await page.locator('.drawing-controls button').count(), 2);
     await hold(); await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
-    assert.equal(await page.locator('.drawing-card').count(), 4);
+    assert.equal(await page.locator('.drawing-card').count(), cardCount);
   }
   await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
   await page.locator('.drawing-adult').tap();
@@ -85,7 +87,7 @@ try {
   assert.equal(await page.locator('[data-finale-bubble]').count(), 3);
   await page.clock.runFor(3000); assert.equal(await page.locator('[data-finale]').count(), 0);
   await page.getByRole('button', { name: 'Рисунки', exact: true }).tap();
-  assert.equal(await page.locator('.drawing-card').count(), 4);
+  assert.equal(await page.locator('.drawing-card').count(), cardCount);
   await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
   assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
   assert.equal(await page.locator('[data-finale]').count(), 0);

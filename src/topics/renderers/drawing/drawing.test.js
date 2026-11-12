@@ -17,7 +17,17 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot"]));
+    const parrot = tasks.find(task => task.cardId === "parrot").lesson;
+    expect(parrot.title).toBe("Попугай");
+    expect(parrot.steps).toHaveLength(41);
+    expect(parrot.palette.map(tool => tool.id)).toEqual(["black", "yellow", "pink", "purple", "orange", "brown", "light_green"]);
+    const waves = parrot.steps.filter(step => step.title.startsWith("Волнистые пёрышки"));
+    expect(waves).toHaveLength(3);
+    for (const step of waves) {
+      expect(step.paths).toHaveLength(1);
+      expect(step.paths[0].match(/M /g)).toHaveLength(1);
+    }
     const goldfish = tasks.find(task => task.cardId === "goldfish").lesson;
     expect(goldfish.title).toBe("Золотая рыбка");
     expect(goldfish.steps).toHaveLength(45);

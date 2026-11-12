@@ -22,11 +22,14 @@ FONTS = {
     # the cover's stamp: the face of the printed series' cover (Arial there) — Liberation Sans, metric-compatible with Arial, renamed
     # «Mironium Cover Sans» as the OFL asks of a subset; the same files as public/fonts/cover/*.woff
     "CoverSans-400": "CoverSans-400.ttf", "CoverSans-700": "CoverSans-700.ttf",
+    # the school-hand digits of «Контрольные по математике» (math_tests) — the app's own Primo, the same file the screen uses
+    "Primo": ROOT / "public" / "fonts" / "primo.ttf",
 }
 
 # what a notebook's texts can hold: Latin, Cyrillic (the whole block U+0400–045F), digits and the usual punctuation (« » © № · – — …); DM Serif writes only «Mironium»
 TEXT = set(chr(c) for c in range(0x20, 0x7F)) | set(chr(c) for c in range(0x400, 0x460)) | set("«»©№·–—…‐’“”„")  # the whole Cyrillic block: Bulgarian ѝ Ѝ (propis2_bg) too
 LATIN = set(chr(c) for c in range(0x20, 0x7F))
+DIGITS = set("0123456789 ")
 
 out = {}
 for name, file in FONTS.items():
@@ -34,7 +37,7 @@ for name, file in FONTS.items():
     gs = f.getGlyphSet()
     hhea = f["hhea"]
     glyphs = {}
-    keep = LATIN if name.startswith("DMSerif") else TEXT
+    keep = DIGITS if name == "Primo" else LATIN if name.startswith("DMSerif") else TEXT
     for code, gname in sorted(f.getBestCmap().items()):
         if chr(code) not in keep:
             continue

@@ -1,41 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PART_GAP_SECONDS } from "../place_value/numberAudio";
 
-// Measured directly off the generated mp3s (Web Audio decode, amplitude
-// threshold 0.01): tens words (n20..n90) carry 182-224ms of trailing
-// silence, ones words (n1..n9) carry 79-128ms of leading silence. For a
-// "tight" transition (see `items[].tight`) we trim both close to those
-// floors — leaving only a small safety margin, never clipping a word's own
-// sound — and then nudge the next word's start earlier still, so its quiet
-// lead-in overlaps the previous word's fading tail instead of just abutting
-// it. At 170ms this reaches well past the silence margin into each tens
-// word's actual audible tail (e.g. ~155ms into "n90"'s spoken sound, per
-// the same decode analysis) — the two words genuinely overlap now, not
-// just their quiet edges. Pushed here per explicit request after 30/50/70ms
-// read as no different; if 170ms still sounds unchanged, the audio isn't
-// the problem — something (PWA service-worker caching, most likely: the
-// app defers applying an update while mid-session) is serving stale code.
-const TIGHT_TRAIL_TRIM_SECONDS = 0.17;
-const TIGHT_LEAD_SKIP_SECONDS = 0.065;
-const TIGHT_OVERLAP_SECONDS = 0.17;
+// The clips are trimmed of their silence (owner's-voice bank, 2026-11-11), so
+// the pause between them is set here, not baked into the files:
+// - a "tight" item is the second word of one number («двадцать»·«четыре»):
+//   the same short breath «Разряды числа» uses (PART_GAP_SECONDS, tuned by
+//   the owner's ear on 2026-10-12);
+// - any other item gets a normal pause between words or phrases.
+// The previous Gemini clips carried 0.1–0.4 s of silence at each end and were
+// trimmed while playing; doing that to trimmed clips would cut the words.
+export const WORD_GAP_SECONDS = 0.35;
 
-// Plays a list of short word recordings back to back, like a diktor reading
-// a sentence built from separate takes. Chains plain <audio> elements via
-// "ended" (no Web Audio decoding/splicing needed for word-at-a-time speech —
-// the small natural gap between files reads as a spoken pause, not a glitch)
-// so it works the same on every browser without CORS/decode concerns.
-// `items` is an array of { url, tight? } — a tight item is glued to the
-// previous one, for words that belong to the same spoken number (e.g.
-// "двадцать"+"четыре" for 24).
+// Plays a list of short recordings back to back, like a diktor reading a
+// sentence built from separate takes. Every clip is created (and starts
+// loading) up front, so the gaps are the intended ones, not loading delays.
+// `items` is an array of { url, tight? }.
 export function useAudioSequence() {
   const [isPlaying, setIsPlaying] = useState(false);
-  // Every clip currently sounding, including a tight transition's outgoing
-  // clip left to finish its (already near-silent) tail in the background —
-  // tracked here, not just the latest one, so a fresh play()/stop() call
-  // silences all of them instead of leaking that overlap indefinitely.
   const activeRef = useRef([]);
+  const timerRef = useRef(null);
   const tokenRef = useRef(0);
 
   const stopAll = useCallback(() => {
+    clearTimeout(timerRef.current);
     activeRef.current.forEach((a) => a.pause());
     activeRef.current = [];
   }, []);
@@ -46,51 +33,41 @@ export function useAudioSequence() {
     stopAll();
     const myToken = ++tokenRef.current;
     setIsPlaying(true);
+    const clips = items.map(({ url }) => {
+      const audio = new Audio(url);
+      audio.preload = "auto";
+      return audio;
+    });
+    activeRef.current = clips;
 
     const finish = () => {
       if (tokenRef.current !== myToken) return;
+      activeRef.current = [];
       setIsPlaying(false);
       onComplete?.();
     };
 
     function playAt(index) {
       if (tokenRef.current !== myToken) return;
-      if (index >= items.length) { finish(); return; }
-      const { url, tight } = items[index];
-      // "tight" on an item means IT wants to be glued to the previous one;
-      // that previous clip's own trailing silence is what needs trimming.
-      const nextIsTight = items[index + 1]?.tight === true;
-      const audio = new Audio(url);
-      activeRef.current.push(audio);
-
+      if (index >= clips.length) { finish(); return; }
+      const audio = clips[index];
       let advanced = false;
       const advance = () => {
-        if (advanced) return;
+        if (advanced || tokenRef.current !== myToken) return;
         advanced = true;
-        playAt(index + 1);
+        const next = items[index + 1];
+        if (!next) { finish(); return; }
+        const gap = next.tight ? PART_GAP_SECONDS : WORD_GAP_SECONDS;
+        timerRef.current = setTimeout(() => playAt(index + 1), gap * 1000);
       };
-
-      audio.addEventListener("ended", () => {
-        activeRef.current = activeRef.current.filter((a) => a !== audio);
+      audio.addEventListener("ended", advance, { once: true });
+      audio.addEventListener("error", advance, { once: true });
+      try {
+        const started = audio.play();
+        if (started?.catch) started.catch(advance);
+      } catch {
         advance();
-      });
-      audio.addEventListener("error", () => {
-        activeRef.current = activeRef.current.filter((a) => a !== audio);
-        advance();
-      });
-      audio.addEventListener("loadedmetadata", () => {
-        if (tokenRef.current !== myToken) return;
-        const startAt = tight ? Math.min(TIGHT_LEAD_SKIP_SECONDS, audio.duration / 3) : 0;
-        audio.currentTime = startAt;
-        if (nextIsTight) {
-          // Deliberately don't pause this clip when the timer fires — it
-          // keeps playing its last, already-quiet moment underneath the
-          // next word (the overlap), and cleans itself up via "ended" above.
-          const delayMs = Math.max(0, audio.duration - startAt - TIGHT_TRAIL_TRIM_SECONDS - TIGHT_OVERLAP_SECONDS) * 1000;
-          setTimeout(() => { if (tokenRef.current === myToken) advance(); }, delayMs);
-        }
-        audio.play().catch(advance);
-      }, { once: true });
+      }
     }
 
     playAt(0);

@@ -3,18 +3,18 @@
     {
       "id": "addition_subtraction",
       "title": "Плюс и минус",
-      "version": "1.9.2",
+      "version": "1.9.4",
       "renderer": "addition_subtraction",
       "sources": [
-        "public/decks/addition_subtraction_v1.9.2.zip",
+        "public/decks/addition_subtraction_v1.9.4.zip",
         "src/topics/renderers/addition_subtraction",
         "tools/addition_subtraction/topic.json"
       ],
       "bundle": {
-        "version": "1.9.2",
-        "url": "./decks/addition_subtraction_v1.9.2.zip",
+        "version": "1.9.4",
+        "url": "./decks/addition_subtraction_v1.9.4.zip",
         "title": "Плюс и минус",
-        "description": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат и цепочку, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
+        "description": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат примера в одно и в несколько действий, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
         "renderer": "addition_subtraction",
         "modes": 10,
         "cards": 2
@@ -22,23 +22,23 @@
       "builtin": false,
       "catalogEntry": {
         "id": "addition_subtraction",
-        "version": "1.9.2",
+        "version": "1.9.4",
         "title": {
           "ru": "Плюс и минус",
           "en": "Addition and Subtraction"
         },
         "description": {
-          "ru": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат и цепочку, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
+          "ru": "Двенадцать режимов сложения и вычитания: ребёнок показывает числа на пальцах, наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, считает примеры на пальцах, вычисляет результат примера в одно и в несколько действий, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
           "en": "Ten addition and subtraction modes: object actions, signs, single and chained expressions, missing numbers, written practice, and mental calculation from audio."
         },
-        "url": "./decks/addition_subtraction_v1.9.2.zip",
+        "url": "./decks/addition_subtraction_v1.9.4.zip",
         "status": "release",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-09T12:35:36+00:00"
+      "sourceUpdatedAt": "2026-11-11T12:44:10+00:00"
     },
     {
       "id": "can_i_watch_tv",
@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.9.0",
+      "version": "0.11.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.9.0.zip",
+        "public/decks/drawing_v0.11.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.9.0",
-        "url": "./decks/drawing_v0.9.0.zip",
+        "version": "0.11.0",
+        "url": "./decks/drawing_v0.11.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по анимированному образцу. Каждый тап показывает один контур или постепенно закрашивает один участок карандашными штрихами.",
         "renderer": "drawing",
         "modes": 1,
-        "cards": 4
+        "cards": 5
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.9.0",
+        "version": "0.11.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик и Золотая рыбка.",
-          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik and Goldfish."
+          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик, Золотая рыбка и Попугай.",
+          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik, Goldfish and Parrot."
         },
-        "url": "./decks/drawing_v0.9.0.zip",
+        "url": "./decks/drawing_v0.11.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-10T14:45:23+01:00"
+      "sourceUpdatedAt": "2026-11-12T09:57:07+01:00"
     },
     {
       "id": "emotions_v2",
@@ -759,6 +759,52 @@
       "sourceUpdatedAt": "2026-11-09T12:35:36+00:00"
     },
     {
+      "id": "math_tests",
+      "title": {
+        "ru": "Контрольные по математике",
+        "en": "Math Tests"
+      },
+      "version": "0.2.0",
+      "renderer": "math_tests",
+      "sources": [
+        "public/decks/math_tests_v0.2.0.zip",
+        "src/topics/renderers/math_tests",
+        "tools/math_tests/topic.json"
+      ],
+      "bundle": {
+        "version": "0.2.0",
+        "url": "./decks/math_tests_v0.2.0.zip",
+        "title": {
+          "ru": "Контрольные по математике",
+          "en": "Math Tests"
+        },
+        "description": "Контрольные листы по математике: взрослый собирает лист из блоков-заданий (плюс и минус, сравнение, примеры в столбик), у каждого блока свои настройки. Лист печатается в PDF или решается прямо на экране с цифровой клавиатурой и проверкой.",
+        "renderer": "math_tests",
+        "modes": 2,
+        "cards": 5
+      },
+      "builtin": false,
+      "catalogEntry": {
+        "id": "math_tests",
+        "version": "0.2.0",
+        "url": "./decks/math_tests_v0.2.0.zip",
+        "title": {
+          "ru": "Контрольные по математике",
+          "en": "Math Tests"
+        },
+        "description": {
+          "ru": "Контрольные листы по математике: конструктор из блоков (плюс и минус, сравнение, примеры в столбик) со своими настройками, цифры по клеткам как в тетради, и режим «Решить контрольную» — ребёнок решает лист на экране с клавиатурой, проверкой и видеопризом. Лист печатается в PDF с ответами.",
+          "en": "Math test builder: blocks of addition and subtraction tasks, digits in notebook cells; print to PDF or solve on screen with a keypad and a check."
+        },
+        "status": "beta",
+        "access": "paid",
+        "materialLanguages": [
+          "ru"
+        ]
+      },
+      "sourceUpdatedAt": "2026-11-12T06:01:01+00:00"
+    },
+    {
       "id": "morning_greeting",
       "title": "Утреннее приветствие",
       "version": "1.0.1",
@@ -790,7 +836,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-11T06:56:32+00:00"
+      "sourceUpdatedAt": "2026-11-11T07:10:12+00:00"
     },
     {
       "id": "opposites",
@@ -1195,7 +1241,7 @@
           "en": "English copybook on the British four-line paper, built on the Nelson Handwriting scheme: print letters and the British hand — unjoined, joined and joined sloped. A notebook builder, ready notebooks, letter cards."
         },
         "url": "./decks/propis2_lang_v0.9.5.zip",
-        "status": "individual",
+        "status": "release",
         "access": "paid",
         "materialLanguages": [
           "ru",
@@ -1204,7 +1250,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-10T21:19:44+00:00"
+      "sourceUpdatedAt": "2026-11-11T07:15:18+00:00"
     },
     {
       "id": "reading_dad_instructions",

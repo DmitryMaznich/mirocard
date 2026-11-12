@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import HelperPanel from "./HelperPanel";
 import NameActionTask from "./NameActionTask";
 import {
@@ -20,6 +19,7 @@ import {
 } from "./audioPhrases";
 import FingersShowTask from "./fingers/FingersShowTask.jsx";
 import FingersCountTask from "./fingers/FingersCountTask.jsx";
+import WorksheetMode from "./worksheet/WorksheetMode.jsx";
 
 
 const ACTION_OPTIONS_PAST = [
@@ -179,7 +179,10 @@ function LiveBeadTool({ task, initialWorkCount = task.start, disabled, onAnswer,
   );
 }
 
-function OperationExpression({ task, missingSign = false, missingResult = false, answered = false, activeParts = [] }) {
+// `typedResult` (a string, "" while empty) turns the result slot into the
+// answer field of the digit keypad: the child's digits appear where the "?"
+// is, instead of in a second box under the example.
+function OperationExpression({ task, missingSign = false, missingResult = false, answered = false, activeParts = [], typedResult, typedWrong = false }) {
   const popCls = answered
     ? `operation-expression__result--pop${task.operation === "subtract" ? "-sub" : ""}`
     : "";
@@ -199,9 +202,16 @@ function OperationExpression({ task, missingSign = false, missingResult = false,
       <span className="operation-expression__equals">=</span>
       <span
         key={answered ? "ans" : "open"}
-        className={partClass("result", ["operation-expression__number", "operation-expression__result", popCls].filter(Boolean).join(" "))}
+        className={partClass("result", [
+          "operation-expression__number",
+          "operation-expression__result",
+          typedResult != null && !answered ? "operation-expression__result--input" : "",
+          typedResult && !answered ? "operation-expression__result--typed" : "",
+          typedWrong ? "operation-expression__result--wrong" : "",
+          popCls,
+        ].filter(Boolean).join(" "))}
       >
-        {missingResult ? "?" : task.result}
+        {typedResult != null && !answered ? (typedResult || "?") : missingResult ? "?" : task.result}
       </span>
     </div>
   );
@@ -378,164 +388,29 @@ function NumberChoices({ task, selected, onAnswer }) {
   );
 }
 
-function NumberPad({ maxNumber, answer, selected, onAnswer }) {
-  const values = Array.from({ length: maxNumber }, (_, index) => index + 1);
-  const answerValues = answer === 0 ? [0, ...values] : values;
-  return (
-    <div className={`operation-number-grid operation-number-grid--pad operation-number-grid--pad-${maxNumber}${answer === 0 ? " operation-number-grid--pad-has-zero" : ""}`}>
-      {answerValues.map((value) => {
-        const isSelected = selected === value;
-        const isCorrect = selected != null && value === answer;
-        const isWrong = isSelected && value !== answer;
-        return (
-          <button
-            key={value}
-            className={[
-              "operation-number-choice",
-              isCorrect ? "operation-number-choice--correct" : "",
-              isWrong ? "operation-number-choice--wrong" : "",
-            ].filter(Boolean).join(" ")}
-            type="button"
-            disabled={selected != null}
-            onClick={() => onAnswer(value)}
-          >
-            {value}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// "Контрольная работа": the child computes each example on paper (or with
-// fingers/counting rod) and enters only the final result here — this screen
-// never shows intermediate steps or answer choices. One example is editable
-// at a time (activeIdx), in the same reading order the printed groups are
-// laid out in, so the flat examples[] index maps directly onto (group, row).
-// A wrong entry just shakes and clears — unlimited retries, no penalty — the
-// point is protecting against guessing, not grading. Finishing every example
-// shows one reward video (self-contained here, not the session-wide streak,
-// since this mode's evaluation is "none").
-function WorksheetTask({ task, onCorrect, student }) {
-  const total = task.examples.length;
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [solved, setSolved] = useState({});
+// Typed answer for the result: an empty field + the topic's digit keypad
+// (AudioAnswerPad: 1–9, 0, ⌫, ✓). Replaced a row of one button per possible
+// result (up to 20), which hinted the range and was noisy for 1 + 2.
+// One check per task, like the buttons it replaces.
+function useDigitAnswer({ maxNumber, answered, onSubmit }) {
   const [digits, setDigits] = useState([]);
-  const [wrong, setWrong] = useState(false);
-  const [showReward, setShowReward] = useState(false);
-  const activeRef = useRef(null);
-  const wrongTimerRef = useRef(null);
-
-  useEffect(() => () => clearTimeout(wrongTimerRef.current), []);
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [activeIdx]);
-
-  const activeEx = task.examples[activeIdx] ?? null;
-
-  function addDigit(d) {
-    if (wrong || !activeEx || digits.length >= AUDIO_MAX_DIGITS) return;
-    setDigits((prev) => [...prev, d]);
-  }
-
-  function removeDigit() {
-    if (wrong) return;
-    setDigits((prev) => prev.slice(0, -1));
-  }
-
-  function checkAnswer() {
-    if (wrong || !activeEx || digits.length === 0) return;
-    const value = Number(digits.join(""));
-    if (value === activeEx.result) {
-      setSolved((prev) => ({ ...prev, [activeIdx]: true }));
-      setDigits([]);
-      if (activeIdx + 1 < total) {
-        setActiveIdx(activeIdx + 1);
-      } else {
-        setTimeout(() => setShowReward(true), 400);
-      }
-    } else {
-      setWrong(true);
-      wrongTimerRef.current = setTimeout(() => { setWrong(false); setDigits([]); }, 550);
-    }
-  }
-
-  const handleRewardDismiss = useCallback(() => {
-    setShowReward(false);
-    onCorrect?.(task.conceptId, task.cardId);
-  }, [onCorrect, task.conceptId, task.cardId]);
-
-  return (
-    <div className="operation-stage operation-stage--worksheet">
-      <div className="operation-worksheet">
-        {task.examples.map((ex, flatIdx) => {
-          const isActive = flatIdx === activeIdx;
-          const isSolved = !!solved[flatIdx];
-          const groupIndex = Math.floor(flatIdx / task.perGroup);
-          const isGroupStart = flatIdx % task.perGroup === 0;
-          return (
-            <div key={flatIdx} className="operation-worksheet__row">
-              {isGroupStart && (
-                <div className="operation-worksheet__divider">
-                  <span className="operation-worksheet__divider-badge">{groupIndex + 1}</span>
-                  <span className="operation-worksheet__divider-label">Группа {groupIndex + 1}</span>
-                </div>
-              )}
-              <div
-                ref={isActive ? activeRef : null}
-                className={[
-                  "operation-worksheet__line",
-                  isSolved ? "operation-worksheet__line--solved" : "",
-                  isActive ? "operation-worksheet__line--active" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                <span className="operation-worksheet__num">{ex.A}</span>
-                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
-                <span className="operation-worksheet__num">{ex.B}</span>
-                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
-                <span className="operation-worksheet__num">{ex.C}</span>
-                <span className="operation-worksheet__equals">=</span>
-                <span
-                  className={[
-                    "operation-worksheet__answer",
-                    isSolved ? "operation-worksheet__answer--correct" : "",
-                    isActive ? "operation-worksheet__answer--active" : "",
-                    isActive && wrong ? "operation-worksheet__answer--wrong" : "",
-                  ].filter(Boolean).join(" ")}
-                >
-                  {isSolved
-                    ? ex.result
-                    : isActive
-                      ? (digits.length
-                          ? digits.join("")
-                          : <span className="operation-worksheet__answer-placeholder">?</span>)
-                      : ""}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {!showReward && activeEx && (
+  const maxDigits = Math.max(1, String(maxNumber).length);
+  return {
+    digits,
+    typed: digits.join(""),
+    pad: (
+      <div className="operation-result-keypad">
         <AudioAnswerPad
           digits={digits}
-          disabled={wrong}
-          onDigit={addDigit}
-          onBackspace={removeDigit}
-          onCheck={checkAnswer}
+          disabled={answered}
+          maxDigits={maxDigits}
+          onDigit={(d) => { if (!answered && digits.length < maxDigits) setDigits((prev) => [...prev, d]); }}
+          onBackspace={() => { if (!answered) setDigits((prev) => prev.slice(0, -1)); }}
+          onCheck={() => { if (!answered && digits.length) onSubmit(Number(digits.join(""))); }}
         />
-      )}
-
-      {showReward && (
-        <RewardVideoModal
-          rewardVideos={student?.rewardVideos ?? []}
-          studentId={student?.id}
-          onDismiss={handleRewardDismiss}
-        />
-      )}
-    </div>
-  );
+      </div>
+    ),
+  };
 }
 
 function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
@@ -545,6 +420,7 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
   const setupTask = { ...task, operation: "add", result: task.start };
   const actionWord = task.operation === "add" ? "Прибавь" : "Убери";
   const isFinalAnswerCorrect = selectedResult === task.result;
+  const entry = useDigitAnswer({ maxNumber: beadCount, answered: selectedResult != null, onSubmit: handleResultAnswer });
 
   function handleSetupComplete() {
     setPhase("action");
@@ -568,7 +444,7 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
     ? `Покажи ${task.start} на палке`
     : phase === "action"
       ? `${actionWord} ${task.delta}`
-      : "Нажми сколько стало";
+      : "Напиши, сколько стало";
   const activeExpressionParts = phase === "setup"
     ? ["start"]
     : phase === "action"
@@ -585,6 +461,8 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
           missingResult={!isFinalAnswerCorrect}
           answered={isFinalAnswerCorrect}
           activeParts={activeExpressionParts}
+          typedResult={phase === "answer" ? (selectedResult != null ? String(selectedResult) : entry.typed) : undefined}
+          typedWrong={selectedResult != null && !isFinalAnswerCorrect}
         />
         {task.showInstruction !== false && (
           <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
@@ -622,14 +500,7 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
           />
         )}
       </div>
-      {phase === "answer" && (
-        <NumberPad
-          maxNumber={beadCount}
-          answer={task.result}
-          selected={selectedResult}
-          onAnswer={handleResultAnswer}
-        />
-      )}
+      {phase === "answer" && entry.pad}
     </div>
   );
 }
@@ -931,6 +802,8 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
       onIncorrect(task.conceptId, task.cardId);
     }
   }, [answered, task, onCorrect, onIncorrect]);
+  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered, onSubmit: handleAnswer });
+  const isPad = task.inputMode === "pad";
 
   return (
     <div className="operation-stage operation-stage--result">
@@ -938,15 +811,10 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
         task={task}
         missingResult={selected !== task.result}
         answered={selected === task.result}
+        typedResult={isPad ? (answered && selected >= 0 ? String(selected) : entry.typed) : undefined}
+        typedWrong={isPad && answered && selected !== task.result}
       />
-      {task.inputMode === "pad" ? (
-        <NumberPad
-          maxNumber={task.maxNumber}
-          answer={task.result}
-          selected={selected}
-          onAnswer={handleAnswer}
-        />
-      ) : (
+      {isPad ? entry.pad : (
         <NumberChoices
           task={task}
           selected={selected}
@@ -973,50 +841,174 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
+const CHAIN_SIGN = { add: "+", subtract: "−" };
+const CHAIN_ASSISTED_DELAY_MS = 1400;
+
+// Older two-action tasks (saved sessions) carry only A/B/C.
+function chainParts(task) {
+  if (Array.isArray(task.terms) && Array.isArray(task.ops)) return { terms: task.terms, ops: task.ops };
+  return { terms: [task.A, task.B, task.C], ops: [task.opAB, task.opBC] };
+}
+
+function chainPartials(terms, ops) {
+  const partials = [];
+  ops.reduce((value, op, i) => {
+    const next = op === "add" ? value + terms[i + 1] : value - terms[i + 1];
+    partials.push(next);
+    return next;
+  }, terms[0]);
+  return partials;
+}
+
+// Four answer buttons for one step of the step-by-step hint, around the answer.
+function stepChoices(answer, maxNumber) {
+  const pool = [answer - 1, answer + 1, answer - 2, answer + 2, answer + 3, answer - 3]
+    .filter((v) => v >= 0 && v <= maxNumber && v !== answer);
+  const picked = [answer, ...pool.slice(0, 3)];
+  return picked.sort((x, y) => x - y);
+}
+
+// «Пример в несколько действий» (operation_chain): A ± d1 ± d2 … = ?, 2–4
+// actions, computed left to right. The step-by-step hint («По шагам») splits
+// the example into its actions: the child solves «5 + 2 = ?», the answer
+// carries into «7 − 1 = ?», and so on — the child computes every step, the
+// hint only splits the example. A task finished with the hint is recorded as
+// assisted (no star); a wrong step is simply tried again.
 function ChainTask({ task, onCorrect, onIncorrect }) {
   const [selected, setSelected] = useState(null);
   const [helperOpen, setHelperOpen] = useState(false);
+  const [stepMode, setStepMode] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [stepWrong, setStepWrong] = useState(null);
+  const [stepsDone, setStepsDone] = useState(false);
+  const stepTimerRef = useRef(null);
   const answered = selected != null;
+  const { terms, ops } = chainParts(task);
+  const partials = task.partials ?? chainPartials(terms, ops);
+  const isPad = task.inputMode === "pad";
+
+  useEffect(() => () => clearTimeout(stepTimerRef.current), []);
 
   const handleAnswer = useCallback((value) => {
-    if (answered) return;
+    if (answered || stepMode) return;
     setSelected(value);
     if (value === task.result) {
       onCorrect(task.conceptId, task.cardId);
     } else {
       onIncorrect(task.conceptId, task.cardId);
     }
-  }, [answered, task, onCorrect, onIncorrect]);
+  }, [answered, stepMode, task, onCorrect, onIncorrect]);
+  const entry = useDigitAnswer({ maxNumber: task.maxNumber, answered: answered || stepMode, onSubmit: handleAnswer });
+
+  function handleStepAnswer(value) {
+    if (stepsDone || stepWrong != null) return;
+    if (value !== partials[stepIndex]) {
+      setStepWrong(value);
+      stepTimerRef.current = setTimeout(() => { setStepWrong(null); stepEntry.clear(); }, 700);
+      return;
+    }
+    stepEntry.clear();
+    if (stepIndex + 1 < ops.length) {
+      setStepIndex(stepIndex + 1);
+      return;
+    }
+    setStepsDone(true);
+    stepTimerRef.current = setTimeout(() => onCorrect(task.conceptId, task.cardId, { assisted: true }), CHAIN_ASSISTED_DELAY_MS);
+  }
+  const stepEntry = useStepDigits({ maxNumber: task.maxNumber, locked: stepsDone || stepWrong != null, onSubmit: handleStepAnswer });
+
+  const solvedMain = answered && selected === task.result;
+  const resultText = solvedMain || stepsDone
+    ? String(task.result)
+    : isPad && !stepMode ? ((answered && selected >= 0 ? String(selected) : entry.typed) || "?") : "?";
+  const tokenCount = terms.length * 2 + 1;
 
   return (
     <div className="operation-stage operation-stage--chain">
-      <div className="chain-expression" aria-label="пример">
-        <span className="chain-expression__num">{task.A}</span>
-        <span className={`chain-expression__sign chain-expression__sign--${task.opAB}`}>{task.signAB}</span>
-        <span className="chain-expression__num">{task.B}</span>
-        <span className={`chain-expression__sign chain-expression__sign--${task.opBC}`}>{task.signBC}</span>
-        <span className="chain-expression__num">{task.C}</span>
+      <div className="chain-expression" style={{ "--chain-tokens": tokenCount }} aria-label="пример">
+        {terms.map((term, i) => {
+          // While solving by steps: the action being solved glows as one
+          // «sign + number» unit (the first number glows with the first
+          // action), the solved part fades; finished — all back in full.
+          const solving = stepMode && !stepsDone;
+          const done = solving && (i === 0 ? stepIndex > 0 : i <= stepIndex);
+          const active = solving && (i === stepIndex + 1 || (i === 0 && stepIndex === 0));
+          const cls = ["chain-expression__group", active ? "chain-expression__part--active" : "", done ? "chain-expression__part--done" : ""].filter(Boolean).join(" ");
+          return (
+            <span key={i} className={cls}>
+              {i > 0 && <span className={`chain-expression__sign chain-expression__sign--${ops[i - 1]}`}>{CHAIN_SIGN[ops[i - 1]]}</span>}
+              <span className="chain-expression__num">{term}</span>
+            </span>
+          );
+        })}
         <span className="chain-expression__equals">=</span>
-        <span className={["chain-expression__num", "chain-expression__result", answered && selected === task.result ? "chain-expression__result--pop" : ""].filter(Boolean).join(" ")}>
-          {selected === task.result ? task.result : "?"}
+        <span className={[
+          "chain-expression__num",
+          "chain-expression__result",
+          isPad && !answered && !stepMode ? "chain-expression__result--input" : "",
+          isPad && answered && selected !== task.result ? "chain-expression__result--wrong" : "",
+          solvedMain || stepsDone ? "chain-expression__result--pop" : "",
+        ].filter(Boolean).join(" ")}>
+          {resultText}
         </span>
       </div>
-      <div className="chain-caption">Посчитай пример</div>
-      {task.inputMode === "pad" ? (
-        <NumberPad
-          maxNumber={task.maxNumber}
-          answer={task.result}
-          selected={selected}
-          onAnswer={handleAnswer}
-        />
-      ) : (
+
+      {!stepMode && <div className="chain-caption">Считай по порядку</div>}
+
+      {stepMode ? (
+        <div className="chain-steps" aria-label="Пример по шагам">
+          {ops.map((op, i) => {
+            if (i > stepIndex) return null;
+            const from = i === 0 ? terms[0] : partials[i - 1];
+            const isCurrent = i === stepIndex && !stepsDone;
+            const value = isCurrent ? (stepWrong != null ? String(stepWrong) : stepEntry.typed) : String(partials[i]);
+            return (
+              <div key={i} className={`chain-step${isCurrent ? " chain-step--current" : " chain-step--done"}`}>
+                <span className="chain-step__label">{i + 1}</span>
+                <span className="chain-step__expr">
+                  <span className={i > 0 ? "chain-step__carry" : ""}>{from}</span>
+                  <span className={`chain-step__sign chain-step__sign--${op}`}>{CHAIN_SIGN[op]}</span>
+                  <span>{terms[i + 1]}</span>
+                  <span className="chain-step__equals">=</span>
+                  <span className={[
+                    "chain-step__answer",
+                    isCurrent ? "chain-step__answer--input" : "chain-step__answer--done",
+                    isCurrent && stepWrong != null ? "chain-step__answer--wrong" : "",
+                  ].filter(Boolean).join(" ")}>{value || "?"}</span>
+                </span>
+              </div>
+            );
+          })}
+          {stepsDone ? null : isPad ? stepEntry.pad : (
+            <div className="chain-step-choices">
+              {stepChoices(partials[stepIndex], task.maxNumber).map((v) => (
+                <button
+                  key={`${stepIndex}-${v}`}
+                  type="button"
+                  className={`operation-number-choice${stepWrong === v ? " operation-number-choice--wrong" : ""}`}
+                  disabled={stepWrong != null}
+                  onClick={() => handleStepAnswer(v)}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : isPad ? entry.pad : (
         <NumberChoices
           task={task}
           selected={selected}
           onAnswer={handleAnswer}
         />
       )}
-      {task.timer > 0 && !answered && (
+
+      {task.stepHint !== false && !stepMode && !answered && (
+        <button type="button" className="chain-hint-btn" onClick={() => setStepMode(true)}>
+          <span aria-hidden="true">💡</span> По шагам
+        </button>
+      )}
+      {task.timer > 0 && !answered && !stepMode && (
         <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
       )}
       {task.showHelper && (
@@ -1034,6 +1026,28 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
       )}
     </div>
   );
+}
+
+// Digits for one step of the hint: the same keypad, cleared between steps.
+function useStepDigits({ maxNumber, locked, onSubmit }) {
+  const [digits, setDigits] = useState([]);
+  const maxDigits = Math.max(1, String(maxNumber).length);
+  return {
+    typed: digits.join(""),
+    clear: () => setDigits([]),
+    pad: (
+      <div className="operation-result-keypad">
+        <AudioAnswerPad
+          digits={digits}
+          disabled={locked}
+          maxDigits={maxDigits}
+          onDigit={(d) => { if (!locked && digits.length < maxDigits) setDigits((prev) => [...prev, d]); }}
+          onBackspace={() => { if (!locked) setDigits((prev) => prev.slice(0, -1)); }}
+          onCheck={() => { if (!locked && digits.length) onSubmit(Number(digits.join(""))); }}
+        />
+      </div>
+    ),
+  };
 }
 
 function MissingTermExpression({ task, answered }) {
@@ -1283,11 +1297,11 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student, accountKv }) {
   const type = task.type;
 
   if (type === "operation_worksheet") {
-    return <WorksheetTask task={task} onCorrect={onCorrect} student={student} />;
+    return <WorksheetMode task={task} onCorrect={onCorrect} student={student} accountKv={accountKv} />;
   }
   // Kept for the future specialist-only physical-stick tool. It is no longer
   // part of the child-facing `operation_observe` lesson.
@@ -1324,7 +1338,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student }) {
+export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student, accountKv }) {
   if (!task) return null;
   if (task.type === "fingers_show") {
     return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
@@ -1332,5 +1346,5 @@ export default function AdditionSubtractionRenderer({ task, sessionParams, onCor
   if (task.type === "fingers_count") {
     return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onMistake : undefined} onFlashIncorrect={onFlashIncorrect} />;
   }
-  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} />;
+  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} accountKv={accountKv} />;
 }

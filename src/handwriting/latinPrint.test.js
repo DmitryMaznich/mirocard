@@ -57,7 +57,7 @@ describe("English print letters in the propis2 engine", () => {
     expect(prod.entry.status).toBe("release");
     expect(prod.topic.languages.map((l) => l.id)).not.toContain("en");
     const test = await deck("propis2_lang");
-    expect(test.entry.status).toBe("individual"); // until it is released
+    expect(test.entry.status).toBe("release"); // open to all since 2026-11-11 (paid, as propis2)
     expect(test.entry.access).toBe(prod.entry.access); // paid as propis2
     expect(test.topic.meta.title).toBe("Прописи: латиница");
     expect(test.topic.languages.map((l) => l.id)).toEqual(["en"]); // no Russian, Bulgarian, Kazakh

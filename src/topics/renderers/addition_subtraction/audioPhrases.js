@@ -1,21 +1,28 @@
 import { audioKeyUrl, numberToAudioKeys } from "./audioNumbers";
+import {
+  RECORDED_PHRASE_KEYS,
+  correctCountKey,
+  voiceAudioUrl,
+  wasBecameKey,
+  wasKey,
+} from "./audioPhraseBank";
 
 function phraseItem(key) {
-  return { url: audioKeyUrl(`phrases/${key}`), tight: false };
+  return { url: voiceAudioUrl(key), tight: false };
 }
 
+// Only for a value outside the recorded 1..5 range (no current mode makes
+// one): the number words in the same voice, after a short pause.
 function numberItems(number) {
-  return numberToAudioKeys(number).map((key, index) => ({
-    url: audioKeyUrl(key),
-    tight: index > 0,
-  }));
+  return numberToAudioKeys(number).map((key, index) => ({ url: audioKeyUrl(key), tight: index > 0 }));
 }
 
-// The number recordings are deliberately kept separate from these phrase
-// clips: all modes share the same Kore voice, without needing a recording for
-// every possible "было N" or "стало N" combination.
+function wasItems(start) {
+  return RECORDED_PHRASE_KEYS.has(wasKey(start)) ? [phraseItem(wasKey(start))] : numberItems(start);
+}
+
 export function observeStartAudioItems(start) {
-  return [phraseItem("was"), ...numberItems(start)];
+  return wasItems(start);
 }
 
 export function observeQuestionAudioItems() {
@@ -31,7 +38,7 @@ export function observeRetryAudioItems() {
 }
 
 export function nameActionStartAudioItems(start) {
-  return [phraseItem("was"), ...numberItems(start)];
+  return wasItems(start);
 }
 
 export function nameActionVerbQuestionAudioItems({ isVoice }) {
@@ -43,15 +50,15 @@ export function nameActionCountQuestionAudioItems(operation) {
 }
 
 export function nameActionCorrectAudioItems(task) {
-  const operation = task.operation === "add" ? "added" : "removed";
-  const items = [phraseItem(task.countStep ? `correct_${operation}_count` : `correct_${operation}`)];
-  if (task.countStep) items.push(...numberItems(task.delta));
+  const operation = task.operation === "add" ? "add" : "subtract";
+  const countKey = correctCountKey(operation, task.delta);
+  const confirm = task.countStep && RECORDED_PHRASE_KEYS.has(countKey)
+    ? countKey
+    : (operation === "add" ? "correct_added" : "correct_removed");
+  const changeKey = wasBecameKey(task.start, task.result);
   return [
-    ...items,
-    phraseItem("was"),
-    ...numberItems(task.start),
-    phraseItem("became"),
-    ...numberItems(task.result),
+    phraseItem(confirm),
+    ...(RECORDED_PHRASE_KEYS.has(changeKey) ? [phraseItem(changeKey)] : []),
   ];
 }
 
