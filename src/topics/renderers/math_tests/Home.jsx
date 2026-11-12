@@ -19,7 +19,7 @@ const dateOf = (ts) => new Date(ts).toLocaleDateString("ru-RU", { day: "numeric"
 
 function summary(test) {
   const layout = layoutTest(test);
-  const n = blanksOf(layout).length;
+  const n = blanksOf(layout).filter((b) => !b.aux).length;
   const blocks = test.blocks.length;
   const bw = blocks % 10 === 1 && blocks % 100 !== 11 ? "блок" : [2, 3, 4].includes(blocks % 10) && ![12, 13, 14].includes(blocks % 100) ? "блока" : "блоков";
   return `${blocks} ${bw} · ${n} ответов · ${layout.pages.length > 1 ? `${layout.pages.length} стр. ` : ""}${test.format === "a5" ? "А5" : "А4"}`;

@@ -178,8 +178,9 @@
 .mt-progress-bar { width: 140px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.3); overflow: hidden; display: block; }
 .mt-progress-bar span { display: block; height: 100%; background: #fff; border-radius: 4px; transition: width .2s; }
 .mt-solve-body { flex: 1 1 auto; min-height: 0; display: flex; }
-.mt-canvas--solve { align-items: center; }
-.mt-solve--phone .mt-canvas--solve { align-items: flex-start; padding: 12px; }
+.mt-canvas--solve { align-items: center; padding: 8px; } /* the sheet is laid out for this width (SolveView: width − 16) */
+.mt-solve--phone .mt-canvas--solve { padding: 8px; }
+.mt-key--up, .mt-solve--phone .mt-key.mt-key--up { font-size: 15px; }
 .mt-solve--phone .mt-progress-bar { width: 90px; }
 .mt-blank { cursor: pointer; }
 .mt-result-side { flex: 0 0 300px; overflow-y: auto; padding: 16px calc(16px + var(--app-safe-right, 0px)) calc(16px + var(--app-safe-bottom, 0px)) 16px; display: flex; flex-direction: column; gap: 14px; background: var(--mt-strip); border-left: 1px solid var(--mt-line); }

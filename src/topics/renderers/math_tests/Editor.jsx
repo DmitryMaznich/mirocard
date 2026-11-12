@@ -41,7 +41,7 @@ export default function Editor({ test, onChange, onUndo, onRedo, canUndo, canRed
   const { grid } = layout;
   const fit = useFitScale(canvasRef, grid.w, grid.h, { fitHeight: !narrow, pad: narrow ? 16 : 40 });
   const scale = fit * zoom;
-  const total = useMemo(() => blanksOf(layout).length, [layout]);
+  const total = useMemo(() => blanksOf(layout).filter((b) => !b.aux).length, [layout]);
 
   const index = test.blocks.findIndex((b) => b.id === selectedId);
   const block = index >= 0 ? test.blocks[index] : null;

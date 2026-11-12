@@ -9,7 +9,9 @@ import { makeTestPdf, pdfFileName } from "./pdf.js";
 import { NARROW_QUERY, useMediaQuery } from "./hooks.js";
 import { IconBack, IconVideo } from "./icons";
 
-const CELL_PX = { wide: 27, narrow: 26 }; // how big one notebook cell is on screen while solving
+// how big one notebook cell is on screen while solving; 24 on a phone so two column examples stand side by side
+const CELL_PX = { wide: 27, narrow: 24 };
+const MIN_CELL_PX = 22; // a slightly wider example gets cells this small before it is broken into lines
 
 const SIGN_KEYS = [{ v: "add", label: "+", aria: "Плюс" }, { v: "subtract", label: "−", aria: "Минус" }];
 const CMP_KEYS = [{ v: "<", label: "<", aria: "Меньше" }, { v: "=", label: "=", aria: "Равно" }, { v: ">", label: ">", aria: "Больше" }];
@@ -17,9 +19,10 @@ const SIGN_VALUES = { sign: ["add", "subtract"], cmp: ["<", ">", "="] };
 
 // digits on the left; on the right the sign keys the test needs (+ − and/or < = >) over ⌫ →.
 // Only the keys that fit the focused box are active.
-function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext }) {
+function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext, onUp }) {
   const showCmp = kinds.has("cmp");
-  const showSign = kinds.has("sign") || !showCmp;
+  // + − only when the test has a sign box (or nothing else: the keypad keeps its old shape)
+  const showSign = kinds.has("sign") || (!showCmp && !onUp);
   const signs = [...(showSign ? SIGN_KEYS.map((k) => ({ ...k, kind: "sign" })) : []), ...(showCmp ? CMP_KEYS.map((k) => ({ ...k, kind: "cmp" })) : [])];
   const cols = Math.max(2, signs.length);
   return (
@@ -35,6 +38,9 @@ function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext }) {
         ))}
         <button type="button" className="mt-key mt-key--fn" style={{ gridColumn: cols > 2 ? `span ${cols - 1}` : undefined }} onClick={onErase} aria-label="Стереть">⌫</button>
         <button type="button" className="mt-key mt-key--fn" onClick={onNext} aria-label="Следующая клетка">→</button>
+        {onUp && (
+          <button type="button" className="mt-key mt-key--fn mt-key--up" style={{ gridColumn: `span ${cols}` }} onClick={onUp} aria-label="Пометка сверху: перенос или заём">↑ сверху</button>
+        )}
       </div>
     </div>
   );
@@ -47,17 +53,23 @@ function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext }) {
 // «Видеоприз» on, every box was filled and the student has videos — «Смотреть видео».
 export default function SolveView({ test, onBack, onResult }) {
   const narrow = useMediaQuery(NARROW_QUERY);
-  const layout = useMemo(() => layoutTest(test), [test]);
+  const canvasRef = useRef(null);
+  const [width, setWidth] = useState(() => (typeof window !== "undefined" ? Math.min(window.innerWidth, 1100) : 800));
+  const cellPx = narrow ? CELL_PX.narrow : CELL_PX.wide;
+  // the blocks are laid out for this screen's width (not the paper's): as many cells as fit, one long page
+  const screenCols = Math.max(12, Math.min(48, Math.floor((width - 16) / cellPx) - 1));
+  const maxScreenCols = Math.max(screenCols, Math.min(48, Math.floor((width - 16) / MIN_CELL_PX) - 1));
+  const layout = useMemo(() => layoutTest(test, { screenCols, maxScreenCols }), [test, screenCols, maxScreenCols]);
   const blanks = useMemo(() => blanksOf(layout), [layout]);
+  // the answers; marks (carries / borrowed digits over a column) are the child's help, never graded
+  const graded = useMemo(() => blanks.filter((b) => !b.aux), [blanks]);
   const byKey = useMemo(() => Object.fromEntries(blanks.map((b) => [b.key, b])), [blanks]);
 
   const [values, setValues] = useState({});
   const [locked, setLocked] = useState(() => new Set());
   const [marks, setMarks] = useState(null);
-  const [focus, setFocus] = useState(blanks[0]?.key ?? null);
+  const [focus, setFocus] = useState(graded[0]?.key ?? null);
   const [prize, setPrize] = useState("none"); // none | ready | watching | used
-  const canvasRef = useRef(null);
-  const [width, setWidth] = useState(800);
 
   const students = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
@@ -72,11 +84,11 @@ export default function SolveView({ test, onBack, onResult }) {
     setWidth(el.clientWidth);
     return () => ro.disconnect();
   }, []);
-  const cellPx = narrow ? CELL_PX.narrow : CELL_PX.wide;
-  const scale = narrow ? cellPx / layout.grid.cell : Math.min(cellPx / layout.grid.cell, (width - 32) / layout.grid.w);
+  // a cell of cellPx; smaller only if a block's widest example needs more cells than fit (not below 20 px)
+  const scale = Math.max(MIN_CELL_PX, Math.min(cellPx, (width - 16) / (layout.grid.w / layout.grid.cell))) / layout.grid.cell;
 
-  const open = useMemo(() => blanks.filter((b) => !locked.has(b.key)), [blanks, locked]);
-  const filled = blanks.filter((b) => (values[b.key] ?? "") !== "").length;
+  const open = useMemo(() => graded.filter((b) => !locked.has(b.key)), [graded, locked]);
+  const filled = graded.filter((b) => (values[b.key] ?? "") !== "").length;
   const checked = marks !== null;
 
   // the focused box stays in view (the sheet scrolls itself on a phone)
@@ -94,15 +106,51 @@ export default function SolveView({ test, onBack, onResult }) {
     return j >= 0 && j < open.length ? open[j].key : null;
   }, [open]);
 
+  // the answer box of the same column example (back from a mark)
+  const answerOf = useCallback((item) => graded.find((x) => x.item === item)?.key ?? null, [graded]);
   const typeDigit = useCallback((d) => {
     if (!focus || checked) return;
     const b = byKey[focus];
-    if (!b || b.kind !== "num" || locked.has(focus)) return;
+    if (!b || locked.has(focus)) return;
+    if (b.kind === "mark") {
+      // a carry / a borrowed digit: one digit over the column, then back to the answer
+      setValues((v) => ({ ...v, [focus]: d }));
+      const a = answerOf(b.item);
+      if (a && !locked.has(a)) setFocus(a);
+      return;
+    }
+    if (b.kind !== "num") return;
     const cur = values[focus] ?? "";
-    const next = cur.length >= b.w ? d : cur + d;
+    // a column answer is written from the right: each new digit goes in front
+    const next = cur.length >= b.w ? d : b.rtl ? d + cur : cur + d;
     setValues((v) => ({ ...v, [focus]: next }));
     if (next.length >= b.w) { const n = nextOpen(focus); if (n) setFocus(n); }
-  }, [focus, checked, byKey, locked, values, nextOpen]);
+  }, [focus, checked, byKey, locked, values, nextOpen, answerOf]);
+  // «↑ сверху»: from a column answer to the mark over the next place (where the carry goes, or the
+  // digit borrowed from)
+  const goUp = useCallback(() => {
+    if (!focus || checked) return;
+    const b = byKey[focus];
+    if (!b) return;
+    const markKeys = blanks.filter((x) => x.aux && x.item === b.item);
+    if (!markKeys.length) return;
+    // after writing the digit of place k the carry goes over place k (counted from the units = 0):
+    // the units written (1 digit) → over the tens (1)
+    const pos = b.aux ? b.pos : Math.min(Math.max(1, (values[focus] ?? "").length), markKeys.length - 1);
+    const m = markKeys.find((x) => x.pos === pos) ?? markKeys.at(-1);
+    setFocus(m.key);
+  }, [focus, checked, byKey, blanks, values]);
+  // a tap on a digit of the top number crosses it out (a borrow) or back; crossing out goes on to the
+  // mark over it, where the new digit is written
+  const toggleCross = useCallback((key) => {
+    if (checked) return;
+    const crossing = !values[key];
+    setValues((v) => ({ ...v, [key]: crossing ? "x" : "" }));
+    if (crossing) {
+      const markKey = key.replace(/:x(\d+)$/, ":m$1");
+      if (byKey[markKey]) setFocus(markKey);
+    }
+  }, [checked, values, byKey]);
   const typeSign = useCallback((op) => {
     if (!focus || checked) return;
     const b = byKey[focus];
@@ -119,7 +167,8 @@ export default function SolveView({ test, onBack, onResult }) {
       if (p) setFocus(p);
       return;
     }
-    setValues((v) => ({ ...v, [focus]: byKey[focus]?.kind === "num" ? cur.slice(0, -1) : "" }));
+    const b = byKey[focus];
+    setValues((v) => ({ ...v, [focus]: b?.kind === "num" ? (b.rtl ? cur.slice(1) : cur.slice(0, -1)) : "" }));
   }, [focus, checked, locked, values, nextOpen, byKey]);
   const goNext = useCallback(() => { const n = nextOpen(focus); setFocus(n ?? open[0]?.key ?? null); }, [focus, nextOpen, open]);
 
@@ -134,34 +183,36 @@ export default function SolveView({ test, onBack, onResult }) {
       else if (e.key === "Backspace") erase();
       else if (e.key === "Enter" || e.key === "Tab" || e.key === "ArrowRight") goNext();
       else if (e.key === "ArrowLeft") { const p = nextOpen(focus, -1); if (p) setFocus(p); }
+      else if (e.key === "ArrowUp") goUp();
       else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [checked, typeDigit, typeSign, erase, goNext, nextOpen, focus]);
+  }, [checked, typeDigit, typeSign, erase, goNext, nextOpen, focus, goUp]);
 
   function check() {
     const m = {};
-    for (const b of blanks) m[b.key] = isAnswerRight(b.answer, values[b.key]) ? "right" : "wrong";
+    for (const b of graded) m[b.key] = isAnswerRight(b.answer, values[b.key]) ? "right" : "wrong";
     setMarks(m);
     const right = Object.values(m).filter((x) => x === "right").length;
-    onResult?.({ right, total: blanks.length, at: Date.now() });
-    if (test.videoPrize && hasVideos && filled === blanks.length && prize === "none") setPrize("ready");
+    onResult?.({ right, total: graded.length, at: Date.now() });
+    if (test.videoPrize && hasVideos && filled === graded.length && prize === "none") setPrize("ready");
     canvasRef.current?.scrollTo?.({ top: 0, left: 0, behavior: "smooth" });
   }
   function fixErrors() {
-    const keepRight = new Set(blanks.filter((b) => marks?.[b.key] === "right").map((b) => b.key));
+    const keepRight = new Set(graded.filter((b) => marks?.[b.key] === "right").map((b) => b.key));
     setLocked(keepRight);
-    setValues((v) => Object.fromEntries(Object.entries(v).filter(([k]) => keepRight.has(k))));
+    // wrong answers are cleared; the child's marks and crossings stay
+    setValues((v) => Object.fromEntries(Object.entries(v).filter(([k]) => keepRight.has(k) || !byKey[k] || byKey[k].aux)));
     setMarks(null);
-    setFocus(blanks.find((b) => !keepRight.has(b.key))?.key ?? null);
+    setFocus(graded.find((b) => !keepRight.has(b.key))?.key ?? null);
   }
   function restart() {
     setLocked(new Set());
     setValues({});
     setMarks(null);
-    setFocus(blanks[0]?.key ?? null);
+    setFocus(graded[0]?.key ?? null);
   }
 
   const right = marks ? Object.values(marks).filter((x) => x === "right").length : 0;
@@ -169,15 +220,16 @@ export default function SolveView({ test, onBack, onResult }) {
     if (!marks) return [];
     const rows = [];
     for (const p of layout.pages) for (const b of p.blocks) {
-      const keys = blanks.filter((x) => x.blockId === b.block.id).map((x) => x.key);
+      const keys = graded.filter((x) => x.blockId === b.block.id).map((x) => x.key);
       rows.push({ no: b.no, title: blockTitle(b.block), right: keys.filter((k) => marks[k] === "right").length, total: keys.length });
     }
     return rows;
-  }, [marks, layout, blanks]);
+  }, [marks, layout, graded]);
 
   const childPdf = usePdfSaver();
-  const focusKind = byKey[focus]?.kind ?? "num";
+  const focusKind = byKey[focus]?.kind === "mark" ? "num" : byKey[focus]?.kind ?? "num";
   const kinds = useMemo(() => new Set(blanks.map((b) => b.kind)), [blanks]);
+  const hasMarks = kinds.has("mark");
   const lockedMarks = !checked && locked.size ? Object.fromEntries([...locked].map((k) => [k, "right"])) : null;
 
   if (prize === "watching") {
@@ -198,8 +250,8 @@ export default function SolveView({ test, onBack, onResult }) {
   const scoreCard = checked && (
     <div className="mt-score">
       <span className="mt-score-cap">Верно</span>
-      <b className="mt-score-num">{right} <span>из {blanks.length}</span></b>
-      <span className="mt-score-sub">{right === blanks.length ? "Без ошибок!" : `Ошибок: ${blanks.length - right}`}</span>
+      <b className="mt-score-num">{right} <span>из {graded.length}</span></b>
+      <span className="mt-score-sub">{right === graded.length ? "Без ошибок!" : `Ошибок: ${graded.length - right}`}</span>
       {prizeButton}
     </div>
   );
@@ -210,8 +262,8 @@ export default function SolveView({ test, onBack, onResult }) {
         <button className="back-btn" onClick={onBack} aria-label="В редактор"><IconBack /></button>
         <div className="mt-solve-title">
           <b>{test.title || "Контрольная"}</b>
-          {!checked && <span className="mt-progress"><span className="mt-progress-bar"><span style={{ width: `${blanks.length ? (filled / blanks.length) * 100 : 0}%` }} /></span>{narrow ? "" : "заполнено "}{filled} из {blanks.length}</span>}
-          {checked && <span className="mt-progress">верно {right} из {blanks.length}</span>}
+          {!checked && <span className="mt-progress"><span className="mt-progress-bar"><span style={{ width: `${graded.length ? (filled / graded.length) * 100 : 0}%` }} /></span>{narrow ? "" : "заполнено "}{filled} из {graded.length}</span>}
+          {checked && <span className="mt-progress">верно {right} из {graded.length}</span>}
         </div>
         {!checked && <button type="button" className="mt-solve-btn" onClick={check} disabled={filled === 0}>Проверить</button>}
         {checked && !narrow && <>
@@ -219,7 +271,7 @@ export default function SolveView({ test, onBack, onResult }) {
             {childPdf.job?.status === "making" ? "Готовлю PDF…" : childPdf.job?.status === "ready" ? "Сохранить PDF" : "PDF с решением"}
           </button>
           <button type="button" className="mt-ghost-btn" onClick={restart}>Решать заново</button>
-          {right < blanks.length && <button type="button" className="mt-solve-btn" onClick={fixErrors}>Исправить ошибки</button>}
+          {right < graded.length && <button type="button" className="mt-solve-btn" onClick={fixErrors}>Исправить ошибки</button>}
         </>}
       </div>
 
@@ -237,6 +289,7 @@ export default function SolveView({ test, onBack, onResult }) {
                 marks={marks ?? lockedMarks}
                 focus={checked ? null : focus}
                 onFocusBlank={checked ? undefined : (k) => { if (!locked.has(k)) setFocus(k); }}
+                onToggleCross={checked ? undefined : toggleCross}
               />
             </div>
           ))}
@@ -258,11 +311,11 @@ export default function SolveView({ test, onBack, onResult }) {
         )}
       </div>
 
-      {!checked && <Numpad kind={focusKind} kinds={kinds} onDigit={typeDigit} onSign={typeSign} onErase={erase} onNext={goNext} />}
+      {!checked && <Numpad kind={focusKind} kinds={kinds} onDigit={typeDigit} onSign={typeSign} onErase={erase} onNext={goNext} onUp={hasMarks ? goUp : undefined} />}
       {checked && narrow && (
         <div className="mt-phone-actions">
           <button type="button" className="mt-ghost-btn" onClick={restart}>Заново</button>
-          {right < blanks.length && <button type="button" className="mt-solve-btn" onClick={fixErrors}>Исправить ошибки</button>}
+          {right < graded.length && <button type="button" className="mt-solve-btn" onClick={fixErrors}>Исправить ошибки</button>}
         </div>
       )}
     </div>

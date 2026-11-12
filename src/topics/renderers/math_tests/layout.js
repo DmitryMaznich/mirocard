@@ -40,6 +40,8 @@ const tokenWidth = (t, bw) => (t.t === "num" ? String(t.v).length : t.t === "arr
 function layoutBlock(block, built, grid, r0) {
   const bw = String(built.maxNumber ?? 20).length;
   let items = built.items.map((item) => {
+    // an item with a grid of its own (a column example) has its tokens placed already
+    if (item.grid) return { ...item, width: item.grid.w, height: item.grid.h };
     let c = 0;
     const tokens = item.tokens.map((t) => {
       const w = tokenWidth(t, bw);
@@ -47,8 +49,34 @@ function layoutBlock(block, built, grid, r0) {
       c += w;
       return placed;
     });
-    return { ...item, tokens, width: c };
+    return { ...item, tokens, width: c, height: 1 };
   });
+  const inner = grid.cols - 4; // frame on columns 1 and cols-1, one cell of padding inside
+  // on the screen an example wider than the frame (a long chain on a phone) goes on in the next line,
+  // broken between its steps (an arrow and its box stay together), two rows lower
+  if (grid.screen) {
+    items = items.map((it) => {
+      if (it.grid || it.width <= inner) return it;
+      // a sign never ends a line: + 3, = ☐ and →+3 ☐ go over together
+      const chunks = [];
+      for (const t of it.tokens) {
+        const last = chunks.at(-1);
+        if (last && last.length === 1 && ["op", "eq", "arrow"].includes(last[0].t)) last.push(t);
+        else chunks.push([t]);
+      }
+      let line = 0;
+      let c = 0;
+      let maxW = 0;
+      const tokens = [];
+      for (const ch of chunks) {
+        const w = ch.reduce((n, t) => n + t.w, 0);
+        if (c > 0 && c + w > inner) { line += 1; c = 0; }
+        for (const t of ch) { tokens.push({ ...t, c, dr: line * 2 }); c += t.w; }
+        maxW = Math.max(maxW, c);
+      }
+      return { ...it, tokens, width: maxW, height: 1 + line * 2 };
+    });
+  }
   // comparisons stand one under another by their sign box: the left sides end at the same cell
   const signAt = (it) => it.tokens.find((t) => t.t === "blank" && t.kind === "cmp")?.c;
   if (items.length && items.every((it) => signAt(it) != null)) {
@@ -59,13 +87,13 @@ function layoutBlock(block, built, grid, r0) {
     });
   }
   const itemW = Math.max(1, ...items.map((it) => it.width));
-  const inner = grid.cols - 4; // frame on columns 1 and cols-1, one cell of padding inside
-  const gap = 3;
+  const gap = items.some((it) => it.grid) ? 2 : 3; // column examples: two cells apart, so two fit a phone
   const fitCols = Math.max(1, Math.floor((inner + gap) / (itemW + gap)));
   const cols = Math.max(1, Math.min(block.cols === "auto" ? Math.min(fitCols, 4) : block.cols, fitCols, items.length));
   const perCol = Math.ceil(items.length / cols);
   const hasArrows = items.some((it) => it.tokens.some((t) => t.t === "arrow"));
-  const pitch = hasArrows ? 3 : 2;
+  const itemH = Math.max(1, ...items.map((it) => it.height));
+  const pitch = hasArrows ? itemH + 2 : itemH + 1; // a chain's steps stand in the row above it
   const colStep = cols > 1 ? Math.max(itemW + gap, Math.floor((inner - itemW) / (cols - 1))) : 0;
   // the block's name sits on the frame's top line (row r0); inside: the instruction (row r0+1), then the items
   const firstRow = r0 + 3 + (hasArrows ? 1 : 0);
@@ -75,11 +103,15 @@ function layoutBlock(block, built, grid, r0) {
     return { ...it, index: k, c0: 2 + col * colStep, r: firstRow + row * pitch };
   });
   const lastRow = firstRow + (perCol - 1) * pitch;
-  const h = lastRow + 2 - r0;
+  const h = lastRow + itemH + 1 - r0;
   return { h, items: placed };
 }
 
-export function layoutTest(test) {
+// The paper layout (pages of the test's format), or — with `screenCols` — the screen layout of
+// «Решать на экране»: the same blocks re-flowed for the width of the screen, one long page with no
+// page breaks and no «Имя / Дата», so the screen does not travel over a shrunken sheet of paper.
+export function layoutTest(test, { screenCols = null, maxScreenCols = null } = {}) {
+  if (screenCols) return layoutScreen(test, screenCols, maxScreenCols ?? screenCols);
   const grid = gridOf(test);
   const pages = [];
   let page = null;
@@ -105,6 +137,46 @@ export function layoutTest(test) {
   return { grid, pages, overflow: pages.some((p) => p.blocks.some((b) => b.r0 + b.h > grid.rows)) };
 }
 
+// the narrowest screen grid every block's widest item still fits in (frame + padding: 4 cells)
+function tokenRowWidth(item, block) {
+  const bw = String(buildBlock(block).maxNumber ?? 20).length;
+  return item.tokens.reduce((n, t) => n + tokenWidth(t, bw), 0);
+}
+export function minScreenCols(test) {
+  let need = 12;
+  for (const block of test.blocks ?? []) {
+    for (const item of buildBlock(block).items) {
+      need = Math.max(need, (item.grid ? item.grid.w : tokenRowWidth(item, block)) + 4);
+    }
+  }
+  return need;
+}
+
+// `screenCols` cells fit at the usual cell size, `maxScreenCols` at the smallest one: a slightly wider
+// example gets smaller cells; one wider still (a long chain on a phone) is broken into lines, and only a
+// column example, which can't be broken, may make the sheet wider than the screen
+function layoutScreen(test, screenCols, maxScreenCols) {
+  const cell = (PAPERS[test.paper] ?? PAPERS.cell).cell;
+  const need = minScreenCols(test);
+  const columnNeed = Math.max(12, ...(test.blocks ?? []).flatMap((b) => buildBlock(b).items.filter((it) => it.grid).map((it) => it.grid.w + 4)));
+  const cols = Math.max(columnNeed, need <= maxScreenCols ? Math.max(screenCols, need) : Math.max(screenCols, maxScreenCols));
+  const grid = { cell, cols, rows: 0, ox: cell * 0.5, oy: cell * 0.5, screen: true };
+  const page = { index: 0, blocks: [] };
+  let r = 2; // no title and no «Имя / Дата» on the screen: the header above shows the test's name
+  let no = 0;
+  for (const block of test.blocks ?? []) {
+    const built = buildBlock(block);
+    no += 1;
+    const laid = layoutBlock(block, built, grid, r);
+    page.blocks.push({ block, built, no, r0: r, h: laid.h, items: laid.items });
+    r += laid.h + 2;
+  }
+  grid.rows = Math.max(r, 8);
+  grid.w = cols * cell + cell;
+  grid.h = grid.rows * cell + cell;
+  return { grid, pages: [page], overflow: false };
+}
+
 // every answer box of the test, in solving order (block by block, column by column)
 export function blanksOf(layout) {
   const list = [];
@@ -113,7 +185,10 @@ export function blanksOf(layout) {
       for (const it of b.items) {
         for (const t of it.tokens) {
           if (t.t !== "blank") continue;
-          list.push({ key: `${b.block.id}:${it.index}:${t.i}`, blockId: b.block.id, kind: t.kind, w: t.w, answer: it.answers[t.i], page: page.index });
+          const key = `${b.block.id}:${it.index}:${t.i}`;
+          // a mark (carry / borrowed digit over a column) is the child's help, not an answer: `aux`
+          if (t.kind === "mark") list.push({ key, blockId: b.block.id, kind: "mark", w: 1, aux: true, item: `${b.block.id}:${it.index}`, pos: t.pos, page: page.index });
+          else list.push({ key, blockId: b.block.id, kind: t.kind, w: t.w, rtl: Boolean(t.rtl), answer: it.answers[t.i], item: `${b.block.id}:${it.index}`, page: page.index });
         }
       }
     }
@@ -140,7 +215,9 @@ export const COLORS = {
 // The shapes of one page. Text is { k: "text", x, y (baseline), size, weight, fill, anchor };
 // `values` (key → typed string), `marks` (key → "right"|"wrong"), `focus` (key) and
 // `showAnswers` decide what the boxes show.
-export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = null, focus = null, showAnswers = false, answerTitle = false } = {}) {
+// `screen` (solving on the screen): the empty mark boxes over a column example are shown dashed, and
+// the top digits get a tap target to cross them out.
+export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = null, focus = null, showAnswers = false, answerTitle = false, screen = false } = {}) {
   const { grid } = layout;
   const page = layout.pages[pageIndex];
   const { cell, ox, oy } = grid;
@@ -182,7 +259,7 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
   const isCmp = (v) => v === "<" || v === ">" || v === "=";
 
   // the header of the first page
-  if (pageIndex === 0) {
+  if (pageIndex === 0 && !grid.screen) {
     const title = (answerTitle ? "Ответы · " : "") + (test.title || "Контрольная работа");
     text(title, X(1), Y(2) - cell * 0.22, cell * 1.05, { weight: 900 });
     if (test.nameLine !== false && !answerTitle) {
@@ -200,11 +277,14 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
     out.push({ k: "rect", x: X(1), y: Y(r0), w: X(grid.cols - 1) - X(1), h: h * cell, rx: cell * 0.3, stroke: COLORS.frame, w2: lw, fill: "none", blockId: block.id, role: "frame" });
     // the number and the name on the frame's top line, the line broken under them (like a legend);
     // only the instruction stays inside
-    const titleSize = cell * 0.72;
+    let titleSize = cell * 0.72;
     const title = blockTitle(block);
     const fy = Y(r0);
     const tx = X(2) + cell * 0.7;
-    const tw = Math.min(textWidth900(title, titleSize), X(grid.cols - 2) - tx);
+    // on a narrow screen a long name gets smaller instead of running over the frame
+    const room = X(grid.cols - 2) - tx;
+    if (grid.screen && textWidth900(title, titleSize) > room) titleSize = (titleSize * room) / textWidth900(title, titleSize);
+    const tw = Math.min(textWidth900(title, titleSize), room);
     out.push({ k: "rect", x: X(2) - cell * 0.75, y: fy - cell * 0.5, w: tx + tw + cell * 0.3 - (X(2) - cell * 0.75), h: cell, rx: 0, stroke: "none", w2: 0, fill: "#ffffff" });
     out.push({ k: "circle", cx: X(2), cy: fy, r: cell * 0.42, stroke: COLORS.ink, w2: lw, fill: "#fff" });
     text(no, X(2), fy + cell * 0.22, cell * 0.6, { anchor: "middle", weight: 900 });
@@ -214,7 +294,38 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
     for (const it of b.items) {
       for (const t of it.tokens) {
         const c = it.c0 + t.c;
-        const r = it.r;
+        const r = it.r + (t.dr ?? 0);
+        const itemKey = `${block.id}:${it.index}`;
+        if (t.t === "digit") {
+          digitAt(t.v, c, r);
+          if (t.cross) {
+            const key = `${itemKey}:${t.cross}`;
+            if (values[key]) out.push({ k: "line", x1: X(c) + cell * 0.2, y1: Y(r + 1) - cell * 0.15, x2: X(c + 1) - cell * 0.12, y2: Y(r) + cell * 0.18, stroke: COLORS.child, w: lw * 1.3, cap: "round" });
+            if (screen) out.push({ k: "rect", x: X(c), y: Y(r), w: cell, h: cell, rx: 0, stroke: "none", w2: 0, fill: "none", crossKey: key, role: "cross" });
+          }
+          continue;
+        }
+        if (t.t === "rule") {
+          out.push({ k: "line", x1: X(c) + cell * 0.15, y1: Y(r), x2: X(c + t.w) - cell * 0.05, y2: Y(r), stroke: COLORS.ink, w: lw * 1.2, cap: "round" });
+          continue;
+        }
+        if (t.t === "blank" && t.kind === "mark") {
+          // carry / borrowed digit: small, over the column; on paper only what the child wrote
+          const key = `${itemKey}:${t.i}`;
+          const v = values[key] ?? "";
+          const isFocus = focus === key;
+          if (screen) {
+            out.push({ k: "rect", x: X(c) + cell * 0.2, y: Y(r) + cell * 0.22, w: cell * 0.6, h: cell * 0.6, rx: cell * 0.1, stroke: isFocus ? COLORS.focusStroke : "#c9d6e2", w2: lw * (isFocus ? 1.2 : 0.7), fill: isFocus ? COLORS.focus : "none", dash: isFocus ? null : `${cell * 0.08} ${cell * 0.07}` });
+            // the tap target is the whole cell (the box itself is small)
+            out.push({ k: "rect", x: X(c), y: Y(r), w: cell, h: cell, rx: 0, stroke: "none", w2: 0, fill: "none", blankKey: key, role: "blank" });
+          }
+          if (v !== "") {
+            const fs = cell * 0.62;
+            out.push({ k: "text", text: String(v).slice(0, 2), x: X(c + 0.5) - fs * 0.47 * String(v).slice(0, 2).length, y: Y(r + 0.52) + fs * 0.35, size: fs, weight: 400, fill: COLORS.child, anchor: "start", font: "primo", outline: cell * 0.035 });
+          }
+          continue;
+        }
+        if (t.t === "op" && t.dr != null) { opAt(t.op, X(c + 0.5), Y(it.r + t.dr + 0.5), cell); continue; }
         if (t.t === "num") String(t.v).split("").forEach((d, k) => digitAt(d, c + k, r));
         else if (t.t === "op") opAt(t.op, X(c + 0.5), Y(r + 0.5), cell);
         else if (t.t === "eq") eqAt(X(c + 0.5), Y(r + 0.5), cell);
@@ -240,13 +351,17 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
           } else if (t.kind === "cmp") {
             if (isCmp(shown)) cmpAt(shown, X(c + 0.5), Y(r + 0.5), cell, ink);
           } else {
-            String(shown).split("").slice(0, t.w).forEach((d, k) => digitAt(d, c + k, r, ink));
+            const ds = String(shown).split("").slice(0, t.w);
+            // a column answer is written from the right: its digits stand under their places
+            const shift = t.rtl ? t.w - ds.length : 0;
+            ds.forEach((d, k) => digitAt(d, c + shift + k, r, ink));
           }
           if (mark === "wrong") {
             // the right answer, small, over the box's top-right corner
             const fixText = typeof answer === "number" ? String(answer) : "+";
-            const bx = X(c + t.w) - cell * 0.05;
-            const by = Y(r) - cell * 0.05;
+            // over the box's top-right corner; under the box in a column (the numbers stand above it)
+            const bx = t.fixBelow ? X(c + t.w / 2) : X(c + t.w) - cell * 0.05;
+            const by = t.fixBelow ? Y(r + 1) + cell * 0.42 : Y(r) - cell * 0.05;
             const bwid = cell * (0.38 + 0.36 * fixText.length);
             out.push({ k: "rect", x: bx - bwid * 0.5, y: by - cell * 0.32, w: bwid, h: cell * 0.62, rx: cell * 0.3, stroke: COLORS.fix, w2: lw * 0.8, fill: "#ffffff" });
             if (typeof answer === "number") text(fixText, bx, by + cell * 0.14, cell * 0.5, { anchor: "middle", weight: 900, fill: COLORS.fix });

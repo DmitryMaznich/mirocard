@@ -6,11 +6,11 @@ const PX_PER_MM = 96 / 25.4;
 // One page of the test on screen, drawn from the same shapes as the PDF (layout.js pagePrimitives).
 // `scale` = screen px per mm of paper. In the editor a click on a block selects it; when solving a
 // tap on an answer box focuses it.
-function SheetSvg({ layout, pageIndex, test, scale = PX_PER_MM, values, marks, focus, showAnswers, selectedBlockId, onSelectBlock, onFocusBlank, className = "" }) {
+function SheetSvg({ layout, pageIndex, test, scale = PX_PER_MM, values, marks, focus, showAnswers, selectedBlockId, onSelectBlock, onFocusBlank, onToggleCross, className = "" }) {
   const { grid } = layout;
   const page = layout.pages[pageIndex];
   if (!page) return null;
-  const prims = pagePrimitives(layout, pageIndex, { test, values, marks, focus, showAnswers });
+  const prims = pagePrimitives(layout, pageIndex, { test, values, marks, focus, showAnswers, screen: Boolean(onFocusBlank) });
   const sel = selectedBlockId ? page.blocks.find((b) => b.block.id === selectedBlockId) : null;
   const { cell, ox, oy } = grid;
   return (
@@ -27,13 +27,20 @@ function SheetSvg({ layout, pageIndex, test, scale = PX_PER_MM, values, marks, f
         if (p.k === "line") return <line key={i} x1={p.x1} y1={p.y1} x2={p.x2} y2={p.y2} stroke={p.stroke} strokeWidth={p.w} strokeLinecap={p.cap ?? "butt"} />;
         if (p.k === "path") return <path key={i} d={p.d} stroke={p.stroke} strokeWidth={p.w} fill={p.fill} strokeLinecap="round" strokeLinejoin="round" />;
         if (p.k === "circle") return <circle key={i} cx={p.cx} cy={p.cy} r={p.r} stroke={p.stroke} strokeWidth={p.w2} fill={p.fill} />;
+        if (p.k === "rect" && p.role === "cross") {
+          // a digit of the top number in a column example: a tap crosses it out (a borrow) or back
+          return onToggleCross ? (
+            <rect key={i} x={p.x} y={p.y} width={p.w} height={p.h} fill="rgba(255,255,255,0.001)" className="mt-blank" data-cross={p.crossKey}
+              onClick={(e) => { e.stopPropagation(); onToggleCross(p.crossKey); }} />
+          ) : null;
+        }
         if (p.k === "rect") {
           const blank = p.role === "blank" && onFocusBlank;
           return (
             <rect
               key={i}
               x={p.x} y={p.y} width={p.w} height={p.h} rx={p.rx}
-              stroke={p.stroke} strokeWidth={p.w2} fill={p.fill === "none" && blank ? "rgba(255,255,255,0.001)" : p.fill}
+              stroke={p.stroke} strokeWidth={p.w2} strokeDasharray={p.dash ?? undefined} fill={p.fill === "none" && blank ? "rgba(255,255,255,0.001)" : p.fill}
               data-blank={p.blankKey}
               className={blank ? "mt-blank" : undefined}
               onClick={blank ? (e) => { e.stopPropagation(); onFocusBlank(p.blankKey); } : undefined}

@@ -13,7 +13,8 @@ async function pageMarkup(layout, pageIndex, opts) {
     if (p.k === "line") parts.push(`<line x1="${p.x1}" y1="${p.y1}" x2="${p.x2}" y2="${p.y2}" stroke="${p.stroke}" stroke-width="${p.w}" stroke-linecap="${p.cap ?? "butt"}"/>`);
     else if (p.k === "path") parts.push(`<path d="${p.d}" stroke="${p.stroke}" stroke-width="${p.w}" fill="${p.fill}" stroke-linecap="round" stroke-linejoin="round"/>`);
     else if (p.k === "circle") parts.push(`<circle cx="${p.cx}" cy="${p.cy}" r="${p.r}" stroke="${p.stroke}" stroke-width="${p.w2}" fill="${p.fill}"/>`);
-    else if (p.k === "rect") parts.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${p.rx}" stroke="${p.stroke}" stroke-width="${p.w2}" fill="${p.fill}"/>`);
+    else if (p.k === "rect" && p.role === "cross") continue; // a tap target only
+    else if (p.k === "rect") parts.push(`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${p.rx}" stroke="${p.stroke}" stroke-width="${p.w2}" fill="${p.fill}"${p.dash ? ` stroke-dasharray="${p.dash}"` : ""}/>`);
     else if (p.k === "text") {
       const t = { ...p, text: p.text.replace(/\u2212/g, "–") }; // no «−» in the PDF glyph set
       let x = t.x;

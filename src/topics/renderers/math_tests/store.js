@@ -58,6 +58,14 @@ export const LIBRARY = [
     ],
   },
   {
+    id: "column100", group: "В столбик", title: "Столбик до 100", note: "сложение и вычитание, с переносом и без",
+    blocks: [{ type: "column", size: "2+2", ops: "both", regroup: "mixed", count: 8 }],
+  },
+  {
+    id: "column1000", group: "В столбик", title: "Столбик до 1000", note: "трёхзначные, переносы и займы",
+    blocks: [{ type: "column", size: "3+3", ops: "add", regroup: "with", count: 4 }, { type: "column", size: "3+2", ops: "subtract", regroup: "with", count: 4 }],
+  },
+  {
     id: "compare10", group: "Сравнение", title: "Сравни до 10", note: "числа, пример и число, два примера",
     blocks: [
       { type: "cmp_nums", maxNumber: 10, count: 6 },

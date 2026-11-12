@@ -11,10 +11,12 @@ import {
   SECTION_INFO, MAX_NUMBERS, COUNT_MIN, COUNT_MAX, allowedChanges, normalizeSection, buildSection, makeRng,
 } from "../addition_subtraction/worksheet/sections.js";
 import { CMP_MAX_NUMBERS, normalizeCompare, buildCompare } from "./compare.js";
+import { COLUMN_SIZES, normalizeColumn, buildColumn } from "./column.js";
 
 export const GROUPS = [
   { id: "plusminus", title: "Плюс и минус" },
   { id: "compare", title: "Сравнение" },
+  { id: "column", title: "В столбик" },
 ];
 
 // coming next — shown in the picker as «Скоро»
@@ -66,6 +68,22 @@ const compareKind = (what, title, sample, extra) => ({
 BLOCK_KINDS.cmp_nums = compareKind("nums", "Сравни числа", "7 ○ 5", []);
 BLOCK_KINDS.cmp_expr = compareKind("expr", "Сравни пример и число", "3 + 2 ○ 6", [OPS]);
 BLOCK_KINDS.cmp_two = compareKind("two", "Сравни два примера", "3 + 2 ○ 4 + 1", [OPS]);
+
+BLOCK_KINDS.column = {
+  group: "column",
+  title: "Реши в столбик",
+  instruction: "Переносы и займы пиши сверху",
+  sample: "47 + 38 столбиком",
+  fields: [
+    { ...COMMON[0], label: "Примеров" },
+    OPS,
+    { key: "size", label: "Разрядность", kind: "seg", options: () => COLUMN_SIZES.map((v) => ({ value: v, label: v.replace("+", " + ") })) },
+    { key: "regroup", label: "Перенос / заём", kind: "seg", options: () => [{ value: "mixed", label: "вперемешку" }, { value: "with", label: "все" }, { value: "without", label: "без" }] },
+    COLS,
+  ],
+  normalize: (b) => normalizeColumn(b),
+  build: (b) => buildColumn(b),
+};
 
 export const KIND_IDS = Object.keys(BLOCK_KINDS);
 
