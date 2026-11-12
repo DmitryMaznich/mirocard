@@ -71,7 +71,7 @@ for (const [base, ch, cx] of [["c", "č", 34], ["s", "š", 37.5], ["z", "ž", 57
 // the «Znam pisati» sheet) on the band grid, scaled by the small letters next to them: capitals as tall as the ascenders (top line 0),
 // G and J down to the descender line; most capitals start with a hook or a curl at the top left. In that picture P R S Š T stand
 // about 7 % taller than the other capitals: brought to the top line (`fitTop`, a stretch about the baseline). The top bar of F and T
-// sags a little (owner, 2026-11-12: «верхний штрих слегка прогнуть вниз»); the stem starts on it.
+// sags a little (owner, 2026-11-12: «верхний штрих слегка прогнуть вниз»); the stem starts on it. So does the top of Z Ž.
 const fitTop = (d, k = 100 / 107) => d.replace(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g, (_, x, y) => `${x},${+(100 - (100 - Number(y)) * k).toFixed(2)}`);
 // a caron over a capital: above the top line
 const capCaron = (cx) => s(line([cx - 10, -17], [cx, -8], [cx + 10, -17]), "гачек");
@@ -97,7 +97,7 @@ const upper = {
   T: [89, [s(fitTop("M 18,30 C 9,26 4,20 5,13 C 6,2 14,-5 28,-6 C 46,-2 70,-2 89,-8"), "завиток и черта"), s(fitTop("M 44,-3.6 C 47,20 54,50 54,72 C 54,92 46,103 33,103 C 23,103 17,95 17,86 C 17,80 20,74 24,70"), "палочка с крючком")]],
   U: [106, [s("M 4,17 C 12,8 22,0 32,-1 C 37,-1 38,8 38,25 L 37,65 C 37,90 44,101 52,101 C 64,101 73,92 74,75 L 74,-1 L 74,90 C 74,97 78,101 84,101 C 94,101 101,88 106,74", "две палочки")]],
   V: [111, [s("M 4,15 C 12,6 24,-2 34,-3 C 40,-3 41,8 41,25 L 39,70 C 39,92 46,101 55,101 C 66,101 71,90 71,72 L 71,10 C 71,3 69,-2 66,-1 C 63,0 63,5 66,8 C 72,13 92,8 111,-4", "палочка, полуовал и выход наверху")]],
-  Z: [74, [s("M 18,17 C 15,12 14,6 17,3 C 22,-2 40,0 55,1 C 62,1 67,0 71,-1 L 5,98 C 12,93 20,89 30,91 C 40,93 44,102 53,102 C 63,102 69,90 74,75", "зигзаг"), s(line([19, 43], [58, 43]), "черта")]],
+  Z: [74, [s("M 18,17 C 15,12 14,6 17,3 C 21,-1 28,0 36,2 C 50,5.5 62,4.5 71,-1 L 5,98 C 12,93 20,89 30,91 C 40,93 44,102 53,102 C 63,102 69,90 74,75", "зигзаг"), s(line([19, 43], [58, 43]), "черта")]],
 };
 upper["Č"] = [upper.C[0], [...upper.C[1], capCaron(52)]];
 upper["Š"] = [upper.S[0], [...upper.S[1], capCaron(49)]];
