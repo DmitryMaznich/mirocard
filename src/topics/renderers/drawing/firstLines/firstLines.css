@@ -21,5 +21,4 @@
 .first-lines__cue>svg{width:130px;height:40px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .first-lines__pause{position:absolute;inset:0;background:#fafbf7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:26px;z-index:2}
 .first-lines__pause>svg{width:160px;height:120px;fill:white;stroke:#315b86;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
-.first-lines__size{position:absolute;inset:0;z-index:3;background:#fafbf7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center;font-size:20px}
-.first-lines__size>svg{width:120px;height:100px;fill:none;stroke:#315b86;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+@media(max-height:500px){.first-lines__tools>button:first-child>span{display:none}}

@@ -4,6 +4,8 @@ import { checkpointKey, readCheckpoint, saveCheckpoint } from './checkpoint.js';
 import './firstLines.css';
 
 const pathPoints = points => points.map(p => `${p.x},${p.y}`).join(' ');
+const fullView = { x: 0, y: 0, width: 1000, height: 1000 };
+const compactView = { x: 220, y: 380, width: 560, height: 240 };
 
 export default function FirstLines({ task, student, sessionId, sessionParams, sessionStatus,
   rewardAttemptBlocked = false, interactionDisabled = false, onCorrect, onStreakReset, onAdvance }) {
@@ -15,11 +17,12 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const [demo, setDemo] = useState(false);
   const [demoProgress, setDemoProgress] = useState(0);
   const [hint, setHint] = useState(false);
-  const [small, setSmall] = useState(false);
+  const [compact, setCompact] = useState(false);
   const svg = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
   const state = attempt.state;
   const correct = sessionStatus === 'answer_correct';
-  const disabled = interactionDisabled || paused || demo || correct || small;
+  const disabled = interactionDisabled || paused || demo || correct;
+  const view = compact ? compactView : fullView;
   const refresh = () => { saveCheckpoint(key, state); redraw(n => n + 1); };
 
   useEffect(() => {
@@ -45,7 +48,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       if (disposed || !svg.current) return;
       cancel();
       const rect = svg.current.getBoundingClientRect();
-      setSmall(Math.min(rect.width, rect.height) < 600);
+      setCompact(rect.width < 600 || rect.height < 300);
     }) : null;
     observer?.observe(svg.current);
     document.addEventListener('visibilitychange', hidden);
@@ -81,9 +84,9 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
 
   const point = event => {
     const rect = svg.current.getBoundingClientRect();
-    const size = Math.min(rect.width, rect.height);
-    return { x: (event.clientX - rect.left - (rect.width - size) / 2) * 1000 / size,
-      y: (event.clientY - rect.top - (rect.height - size) / 2) * 1000 / size };
+    const scale = Math.min(rect.width / view.width, rect.height / view.height);
+    return { x: view.x + (event.clientX - rect.left - (rect.width - view.width * scale) / 2) / scale,
+      y: view.y + (event.clientY - rect.top - (rect.height - view.height * scale) / 2) / scale };
   };
   const move = event => {
     const samples = event.nativeEvent?.getCoalescedEvents?.() ?? [];
@@ -113,7 +116,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       </button>
       <button type="button" disabled={interactionDisabled || correct} onClick={() => { attempt.end(true); pointer.current = null; setDemo(false); setPaused(true); refresh(); }} aria-label="Пауза"><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M18 6v20M30 6v20" /></svg></button>
     </div>
-    <svg ref={svg} className="first-lines__board" viewBox="0 0 1000 1000" role="img" aria-label="Проведи линию от точки к домику" data-return={state.needsReturn || undefined}
+    <svg ref={svg} className="first-lines__board" viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`} role="img" aria-label="Проведи линию от точки к домику" data-return={state.needsReturn || undefined}
       onContextMenu={event => event.preventDefault()}
       onPointerDown={event => {
         if (disabled || state.done || pointer.current !== null || event.button !== 0) return;
@@ -151,10 +154,6 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       <svg viewBox="0 0 160 120" aria-hidden="true"><path d="M20 10h110v100H20zM45 65h58M95 57l8 8-8 8" /></svg>
       <span>На бумаге</span>
       <button type="button" disabled={interactionDisabled} onClick={() => setPaused(false)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m10 6 16 10-16 10Z" /></svg> Продолжить</button>
-    </div>}
-    {small && <div className="first-lines__size" role="status">
-      <svg viewBox="0 0 120 100" aria-hidden="true"><rect x="30" y="10" width="60" height="80" rx="8" /><path d="M46 50h28M55 40l-10 10 10 10M65 40l10 10-10 10" /></svg>
-      <strong>Нужно больше места</strong><span>Поверните планшет или откройте занятие на большем экране.</span>
     </div>}
   </section>;
 }
