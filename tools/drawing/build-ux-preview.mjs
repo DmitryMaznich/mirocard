@@ -17,6 +17,8 @@ await writeFile(new URL('index.html', staging), await readFile(new URL('tools/dr
 const player = await readFile(new URL('src/topics/renderers/drawing/player.js', root), 'utf8');
 await writeFile(new URL('previewPlayer.js', staging), player);
 await writeFile(new URL('finale.js', staging), await readFile(new URL('src/topics/renderers/drawing/finale.js', root)));
+await writeFile(new URL('pencilRecording.js', staging), await readFile(new URL('src/topics/renderers/drawing/pencilRecording.js', root)));
+await writeFile(new URL('pencil-writing.pcm', staging), await readFile(new URL('src/topics/renderers/drawing/pencil-writing.pcm', root)));
 await writeFile(new URL('pencilSound.js', staging), await readFile(new URL('src/topics/renderers/drawing/pencilSound.js', root)));
 await writeFile(new URL('vite.config.mjs', staging), `import { defineConfig } from 'vite';import {viteSingleFile} from 'vite-plugin-singlefile';import {fileURLToPath} from 'node:url';export default defineConfig({root:fileURLToPath(new URL('./',import.meta.url)),publicDir:false,plugins:[viteSingleFile()],build:{outDir:'dist',emptyOutDir:true}});\n`);
 execFileSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--config', 'output/drawing-ux/vite.config.mjs'], { cwd: fileURLToPath(root), stdio: 'inherit' });
