@@ -1,6 +1,7 @@
 // Prototype A1. Coordinates and tolerances are hypotheses in docs/drawing-first-lines.md.
 // No rewards here: the renderer reports one mistake and one completion per card.
 export const LINE = Object.freeze({ start: 320, end: 680, y: 500, halfWidth: 50, tolerance: 65, resume: 60 });
+export const TRACK_WIDTHS = Object.freeze({ wide: 140, normal: 100, narrow: 60 });
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const offTrack = p => Math.hypot(p.x - Math.max(LINE.start, Math.min(LINE.end, p.x)), p.y - LINE.y);
 const copyPoint = p => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 });
@@ -20,7 +21,9 @@ export function restoreAttempt(raw) {
   return { ...freshAttempt(), ...s, needsReturn: Boolean(s.needsReturn), hadError: Boolean(s.hadError), done: Boolean(s.done) };
 }
 
-export function createLineAttempt(saved = freshAttempt()) {
+export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal') {
+  const halfWidth = (Object.hasOwn(TRACK_WIDTHS, trackWidth) ? TRACK_WIDTHS[trackWidth] : TRACK_WIDTHS.normal) / 2;
+  const line = Object.freeze({ ...LINE, halfWidth, tolerance: halfWidth + 15 });
   const state = structuredClone(saved);
   let active = null;
   let outside = null;
@@ -29,7 +32,7 @@ export function createLineAttempt(saved = freshAttempt()) {
   const startPoint = () => state.anchor;
 
   function begin(p, time = 0) {
-    const resumeTolerance = state.needsReturn ? LINE.halfWidth : LINE.tolerance;
+    const resumeTolerance = state.needsReturn ? line.halfWidth : line.tolerance;
     if (state.done || active || offTrack(p) > resumeTolerance || distance(p, startPoint()) > LINE.resume) return false;
     // Up to 10% starting slack, never a shortcut to the end of the track.
     if (state.progress === LINE.start && p.x > LINE.start + 36) return false;
@@ -54,7 +57,7 @@ export function createLineAttempt(saved = freshAttempt()) {
       if (distance(active.points.at(-1), sample) >= 3 || i === count) active.points.push(copyPoint(sample));
       if (state.needsReturn) continue;
       const deviation = offTrack(sample);
-      if (deviation > LINE.tolerance) {
+      if (deviation > line.tolerance) {
         outside ??= { time: t, length: 0, index: Math.max(0, active.points.length - 2), point: copyPoint(sample) };
         outside.length += length / count;
         if ((t - outside.time >= 80 && outside.length >= 12) || outside.length >= 30) {
@@ -68,7 +71,7 @@ export function createLineAttempt(saved = freshAttempt()) {
         outside = null;
         if (sample.x >= state.progress - 30 && sample.x <= state.progress + 80) {
           state.progress = Math.max(state.progress, Math.min(LINE.end, sample.x));
-          if (deviation <= LINE.halfWidth) state.anchor = copyPoint(sample);
+          if (deviation <= line.halfWidth) state.anchor = copyPoint(sample);
         }
       }
     }
@@ -85,5 +88,5 @@ export function createLineAttempt(saved = freshAttempt()) {
     return complete;
   }
 
-  return { state, begin, move, end, get active() { return Boolean(active); } };
+  return { state, line, begin, move, end, get active() { return Boolean(active); } };
 }

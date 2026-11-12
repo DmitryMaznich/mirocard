@@ -110,6 +110,33 @@ try {
   await tablet.page.screenshot({ path: 'output/first-lines/tablet.png' });
   await tablet.context.close();
 
+  // The demonstration draws a real sample behind its tip; both use the same timing.
+  // Width chosen before the session controls the visible track and the actual boundary check.
+  for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
+    const sample = await open(`noVideo&width=${width}`);
+    await sample.page.clock.install();
+    expect(await sample.page.locator('.first-lines__track').evaluate(node => parseFloat(window.getComputedStyle(node).strokeWidth))).toBe(size);
+    await sample.page.getByRole('button', { name: 'Показать движение' }).click();
+    await sample.page.clock.runFor(750);
+    const animation = await sample.page.locator('.first-lines__demo').evaluate(group => {
+      return {
+        offset: parseFloat(window.getComputedStyle(group.querySelector('path')).strokeDashoffset),
+        tip: Number(group.querySelector('circle').getAttribute('cx')) - 320,
+      };
+    });
+    expect(animation.offset).toBeGreaterThan(0); expect(animation.offset).toBeLessThan(1);
+    expect(Math.abs(animation.tip - 360 * (1 - animation.offset))).toBeLessThan(.5);
+    if (width === 'wide') await sample.page.screenshot({ path: 'output/first-lines/demo-line.png' });
+    await stroke(sample.page, [[320, 500], [680, 500]]);
+    expect((await state(sample.page)).correctCount).toBe(0);
+    await sample.page.clock.runFor(2400);
+    await expect(sample.page.locator('.first-lines__demo')).toHaveCount(0);
+    await stroke(sample.page, [[320, 500], [450, 500], [450, 560], [520, 560], [680, 500]]);
+    expect((await state(sample.page)).incorrectCount).toBe(mistakes);
+    expect((await state(sample.page)).correctCount).toBe(mistakes ? 0 : 1);
+    await sample.context.close();
+  }
+
   // Automatic pacing must not finish the session underneath its final video prize.
   const auto = await open('auto');
   await auto.page.clock.install();
@@ -131,5 +158,5 @@ try {
   await expect.poll(() => auto.page.evaluate(() => window.previewStore.getState().screen)).toBe('summary');
   await auto.context.close();
   expect(failures).toEqual([]);
-  console.log('First Lines: real ZIP, 15 cards, standard prizes, reload, offline correction, tablet pen and palm checks passed.');
+  console.log('First Lines: real ZIP, 15 cards, standard prizes, reload, offline correction, tablet pen/palm, line demonstration and all three widths passed.');
 } finally { await browser.close(); }

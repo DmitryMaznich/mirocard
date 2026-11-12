@@ -9,6 +9,21 @@ function line(a, start = 320, end = 680) {
 }
 
 describe('first short line', () => {
+  for (const [width, size, error] of [['wide', 140, false], ['normal', 100, false], ['narrow', 60, true]]) {
+    it(`${width}: applies the selected visible width to the boundary check`, () => {
+      const a = createLineAttempt(undefined, width);
+      expect(a.line.halfWidth * 2).toBe(size);
+      expect(a.line.tolerance).toBe(size / 2 + 15);
+      a.begin(p(320)); a.move(p(450), 100); a.move(p(450, 560), 200); a.move(p(520, 560), 400); a.move(p(680), 600);
+      expect(a.state.hadError).toBe(error);
+      expect(a.end()).toBe(!error);
+    });
+  }
+  it('keeps the previous width for missing or unknown saved settings', () => {
+    expect(createLineAttempt().line.halfWidth).toBe(50);
+    expect(createLineAttempt(undefined, 'old-value').line.halfWidth).toBe(50);
+    expect(createLineAttempt(undefined, 'toString').line.halfWidth).toBe(50);
+  });
   it('needs a real movement from the start and a lift at the goal, not a tap or backwards shortcut', () => {
     const a = createLineAttempt();
     expect(a.begin(p(680))).toBe(false);

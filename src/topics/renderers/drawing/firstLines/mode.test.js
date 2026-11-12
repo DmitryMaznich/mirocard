@@ -14,9 +14,11 @@ it('keeps six paper lessons separate from the new evaluated mode and its normal 
   expect(lines).toMatchObject({ evaluation: 'auto', finite: true, paramsScope: 'mode' });
   for (const flag of ['hideVideoReward', 'adultVideoReward', 'rewardPerBlock', 'loop']) expect(lines[flag]).toBeUndefined();
   expect(lines.params.videoRewardEnabled).toBeUndefined();
-  const stored = writeModeParams({ byMode: { drawing_steps: { speed: 'slow', videoRewardEnabled: true } } }, lines, { inputMode: 'touch' });
+  const stored = writeModeParams({ byMode: { drawing_steps: { speed: 'slow', videoRewardEnabled: true } } }, lines, { inputMode: 'touch', trackWidth: 'wide' });
   expect(readModeParams(stored, paper)).toMatchObject({ speed: 'slow', videoRewardEnabled: true });
-  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch' });
+  expect(readModeParams(stored, paper).trackWidth).toBeUndefined();
+  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', trackWidth: 'wide' });
+  expect(readModeParams({ byMode: { drawing_first_lines: { inputMode: 'touch' } } }, lines).trackWidth).toBe('normal');
 });
 
 it('ignores a stale selection of paper drawings and preserves 1/2/3 cards per star', () => {
