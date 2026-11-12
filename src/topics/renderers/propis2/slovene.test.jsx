@@ -92,6 +92,22 @@ describe("Slovenian (draft)", () => {
     }
   });
 
+  it("cursive capitals (step 3): as tall as the ascenders, G and J down to the descender line; the carons last", () => {
+    const glyphs = sl.styles.find((st) => st.id === "sl_cursive").glyphs;
+    const ys = (g) => g.strokes.filter((st) => st.name !== "гачек").flatMap((st) => [...st.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => Number(m[2])));
+    const h = (y) => (62 - y) / 52; // capture frame: baseline 62, x-height 52
+    for (const ch of sl.alphabet.lower.toUpperCase()) {
+      const g = glyphs.find((x) => x.label === ch);
+      expect(g.sourceLabel, ch).toBe(`slovene-${ch}`);
+      const top = Math.max(...ys(g).map(h)), bottom = Math.min(...ys(g).map(h));
+      expect(top, `${ch} top`).toBeGreaterThan(1.85);
+      expect(top, `${ch} top`).toBeLessThan(2.12);
+      if ("GJ".includes(ch)) expect(bottom, `${ch} descender`).toBeLessThan(-0.9);
+      else expect(bottom, `${ch} on the baseline`).toBeGreaterThan(-0.15);
+      if ("ČŠŽ".includes(ch)) expect(g.strokes.at(-1).name).toBe("гачек");
+    }
+  });
+
   it("the Slovene paper: three lines, three equal bands, no bottom line; offered in five sizes", async () => {
     for (const id of ["sl", "sl_10", "sl_8", "sl_6", "sl_45"]) {
       const p = FOUR_LINE_PAPERS[id];
@@ -111,6 +127,8 @@ describe("Slovenian (draft)", () => {
         ["print", "sl_print", ["a", "n#r", "abcčdefghijklmnoprsštuvzž", "Čaša in šivanka", "Žaba skače v vodo."], "sl_8"],
         ["cursive1", "sl_cursive", ["a b c č d e f", "g h i j k l m", "n o p r s š t", "u v z ž"], "sl_10"],
         ["cursive2", "sl_cursive", ["a#r", "e#r", "l#r", "o#r"], "sl_8"],
+        ["capitals", "sl_cursive", ["A B C Č D E F", "G H I J K L M", "N O P R S Š T", "U V Z Ž"], "sl_10"],
+        ["names", "sl_cursive", ["Ana Bled", "Čaša Žiga", "Maja Tone"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
     }
   });
