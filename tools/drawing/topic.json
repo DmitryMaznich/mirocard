@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.12.0",
+    "version": "0.13.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -138,6 +138,14 @@
       "label": "Попугай",
       "image": "media/parrot.svg",
       "lessonFile": "lessons/parrot.json"
+    },
+    {
+      "id": "donkey",
+      "conceptId": "donkey",
+      "primary": true,
+      "label": "Ослик",
+      "image": "media/donkey.svg",
+      "lessonFile": "lessons/donkey.json"
     }
   ]
 }

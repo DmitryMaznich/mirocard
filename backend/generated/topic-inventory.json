@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.12.0",
+      "version": "0.13.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.12.0.zip",
+        "public/decks/drawing_v0.13.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.12.0",
-        "url": "./decks/drawing_v0.12.0.zip",
+        "version": "0.13.0",
+        "url": "./decks/drawing_v0.13.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по анимированному образцу. Каждый тап показывает один контур или постепенно закрашивает один участок карандашными штрихами.",
         "renderer": "drawing",
         "modes": 1,
-        "cards": 5
+        "cards": 6
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.12.0",
+        "version": "0.13.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик, Золотая рыбка и Попугай.",
-          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik, Goldfish and Parrot."
+          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик, Золотая рыбка, Попугай и Ослик.",
+          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik, Goldfish, Parrot and Donkey."
         },
-        "url": "./decks/drawing_v0.12.0.zip",
+        "url": "./decks/drawing_v0.13.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-12T11:37:17Z"
+      "sourceUpdatedAt": "2026-11-12T12:38:58+01:00"
     },
     {
       "id": "emotions_v2",

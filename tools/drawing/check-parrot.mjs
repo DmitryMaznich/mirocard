@@ -1,5 +1,7 @@
 /* global document, window */
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const cardCount=JSON.parse(await readFile(new URL('./topic.json',import.meta.url),'utf8')).cards.length;
 import { chromium } from '@playwright/test';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 try {
@@ -62,9 +64,9 @@ try {
   assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
   await page.locator('.drawing-board svg').screenshot({ path: '/workspace/parrot-finished.png' });
   await page.getByRole('button', { name: 'Рисунки', exact: true }).tap();
-  assert.equal(await page.locator('.drawing-card').count(), 5);
+  assert.equal(await page.locator('.drawing-card').count(), cardCount);
   const boxes = await page.locator('.drawing-card').evaluateAll(nodes => nodes.map(n => { const r=n.getBoundingClientRect(); return { left:r.left, right:r.right, width:r.width }; }));
   assert(boxes.every(b => b.left >= 0 && b.right <= 390 && b.width > 100));
   assert.deepEqual(errors, []);
-  console.log('PASS parrot:', { steps: count, pencilChanges: switches, checks: 'progressive outline/colour, all steps, repeat, saved resume, finish, five-card navigation, mobile safe areas' });
+  console.log('PASS parrot:', { steps: count, pencilChanges: switches, checks: 'progressive outline/colour, all steps, repeat, saved resume, finish, picker navigation, mobile safe areas' });
 } finally { await browser.close(); }
