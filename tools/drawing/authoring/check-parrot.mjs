@@ -13,14 +13,24 @@ try {
     const inside = (s, x, y) => { const p = new DOMPoint(x*2, y*2); return s.shape.isPointInFill(p) && (!s.outer || s.outer.isPointInFill(p)); };
     const colour = title => colours.find(s => s.title === title);
     const yellow = colour('Жёлтая голова и грудка'), pink = colour('Розовая верхняя часть крыла');
+    const outline = title => lesson.steps.find(s => s.title === title).paths.map(d => node(d));
+    const end = p => p.getPointAtLength(p.getTotalLength());
+    const head = outline('Спинка и округлая голова')[0];
+    const beak = outline('Загнутый клюв');
+    const cap = beak[2];
+    check(Boolean(cap), 'Missing right cere/beak connection');
+    check(Math.hypot(end(head).x-cap.getPointAtLength(0).x,end(head).y-cap.getPointAtLength(0).y)<.01, 'Cere cap detached from forehead');
+    const q=end(cap), length=beak[0].getTotalLength(); let closest=Infinity;
+    for(let t=0;t<=length;t+=.01){const p=beak[0].getPointAtLength(t);closest=Math.min(closest,Math.hypot(q.x-p.x,q.y-p.y));}
+    check(closest<.02, 'Cere cap detached from beak');
     check(!inside(yellow, 380, 122), 'Yellow covers eye');
     check(!inside(pink, 380, 122), 'Pink covers eye');
     check(!inside(colour('Розовая макушка'), 380, 122), 'Crown covers eye');
     check(inside(pink, 354, 159), 'Missing pink wing');
     check(inside(colour('Жёлтые длинные перья крыла'), 333, 201), 'Missing yellow wing');
     check(inside(colour('Жёлтый клюв'), 419, 141), 'Missing beak');
-    check(inside(colour('Левая жёлтая лапка'), 308, 260), 'Missing toe');
-    check(!inside(colour('Коричневая веточка'), 308, 260), 'Branch paints toes');
+    check(inside(colour('Левая жёлтая лапка'), 315, 255), 'Missing toe');
+    check(!inside(colour('Коричневая веточка'), 315, 255), 'Branch paints toes');
     const body = yellow.outer; const gaps = [];
     for (let y = 90; y < 282; y += 2) for (let x = 204; x < 435; x += 2) {
       if (!body.isPointInFill(new DOMPoint(x*2, y*2))) continue;

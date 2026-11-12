@@ -32,6 +32,10 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
   const emit = () => { if (!disposed) onChange({ index, busy, paused }); };
   const path = (item, step) => {
     const node = element("path", { d: typeof item === "string" ? item : item.d }, drawing);
+    if (step?.tool && step.tool !== "black") {
+      const ink = lesson.palette?.find(tool => tool.id === step.tool)?.color;
+      if (ink) node.style.stroke = ink;
+    }
     if (item.fill) node.dataset.fill = item.fill;
     if (step?.part) node.dataset.finishPart = step.part;
     return node;

@@ -5,8 +5,17 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const errors = []; page.on('pageerror', e => errors.push(e.message));
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('drawing-progress:local:parrot')) localStorage.setItem('drawing-progress:local:parrot', JSON.stringify({ index: 41, revision: 1, phase: 'done' }));
+    localStorage.setItem('drawing-progress:local:goldfish', JSON.stringify({ index: 44, phase: 'copy' }));
+  });
   await page.goto(process.env.DRAWING_PREVIEW_URL ?? 'http://localhost:8081/tools/drawing/preview.html?lesson=parrot');
-  await page.locator('.drawing-card').filter({ hasText: 'Попугай' }).tap();
+  const parrotCard = page.locator('.drawing-card').filter({ hasText: 'Попугай' });
+  await parrotCard.waitFor();
+  assert.equal(await parrotCard.locator('small').textContent(), '', 'Old geometry progress must not resume');
+  assert.equal(await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).locator('small').textContent(), 'Продолжить');
+  await parrotCard.tap();
+  assert.equal(await page.locator('.drawing-repeat').isDisabled(), true);
   await page.clock.install();
   await page.evaluate(() => {
     document.querySelector('.preview-header').style.display = 'none'; document.getElementById('root').style.height = '100dvh';
@@ -15,6 +24,8 @@ try {
     document.documentElement.style.setProperty('--app-safe-bottom', '34px');
   });
   const count = await page.evaluate(() => window.lesson.steps.length);
+  const outlineEnd = await page.evaluate(() => window.lesson.steps.findIndex(step => step.tool !== 'black'));
+  const leavesIndex = await page.evaluate(() => window.lesson.steps.findIndex(step => step.title === 'Листочки на веточке')+1);
   const index = () => page.evaluate(() => JSON.parse(localStorage.getItem('drawing-progress:local:parrot'))?.index ?? 0);
   const next = async () => {
     await page.locator('.drawing-next').tap();
@@ -36,7 +47,11 @@ try {
       assert(detail, 'Contour/colour must reveal progressively');
     }
     await page.clock.runFor(16000); assert.equal(await index(), i, 'Step '+i);
-    if (i === 19) await page.screenshot({ path: '/workspace/parrot-outline.png' });
+    if (i === leavesIndex) {
+      const inks = await page.locator('[data-layer=drawing] > path').evaluateAll(paths => paths.slice(-4).map(p => p.style.stroke));
+      assert(inks.every(ink => ink === 'rgb(117, 216, 22)'), 'Leaves must use the green pencil');
+    }
+    if (i === outlineEnd) await page.screenshot({ path: '/workspace/parrot-outline.png' });
   }
   assert.equal(switches, 6);
   await page.screenshot({ path: '/workspace/parrot-complete-mobile.png' });
