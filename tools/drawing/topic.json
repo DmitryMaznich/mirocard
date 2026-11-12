@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.10.0",
+    "version": "0.11.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -130,6 +130,14 @@
       "label": "Золотая рыбка",
       "image": "media/goldfish.svg",
       "lessonFile": "lessons/goldfish.json"
+    },
+    {
+      "id": "parrot",
+      "conceptId": "parrot",
+      "primary": true,
+      "label": "Попугай",
+      "image": "media/parrot.svg",
+      "lessonFile": "lessons/parrot.json"
     }
   ]
 }

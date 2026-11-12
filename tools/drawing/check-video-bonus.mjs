@@ -1,5 +1,7 @@
 /* global window, document */
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const cardCount = JSON.parse(await readFile(new URL('./topic.json', import.meta.url), 'utf8')).cards.length;
 import { chromium } from '@playwright/test';
 const base = process.env.DRAWING_PREVIEW_URL ?? 'http://localhost:8080/tools/drawing/preview.html';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
@@ -57,7 +59,7 @@ try {
       assert.equal(await page.locator('.reward-modal__title').textContent(), 'Рисунок готов — молодец!');
       assert.equal(await page.locator('.reward-modal__btn--watch').isEnabled(), true);
       await page.locator('.reward-modal__btn--continue').tap();
-      assert.equal(await page.locator('.drawing-card').count(), 4);
+      assert.equal(await page.locator('.drawing-card').count(), cardCount);
       await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
       assert.equal(await page.getByRole('button', { name: 'Рисунки', exact: true }).count(), 1);
       assert.equal(await page.getByRole('button', { name: 'Дальше — бонус', exact: true }).count(), 0);
