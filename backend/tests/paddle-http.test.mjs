@@ -33,6 +33,18 @@ globalThis.fetch = async (url, init = {}) => {
   if (u.startsWith("https://sandbox-api.paddle.com")) {
     paddleCalls.push({ url: u, method: init.method, body: init.body ? JSON.parse(init.body) : null });
     if (u.endsWith("/transactions")) return new Response(JSON.stringify({ data: { id: "txn_test_1" } }), { status: 201 });
+    const subMatch = u.match(/\/subscriptions\/([^/]+)(\/cancel)?$/);
+    if (subMatch) {
+      const body = init.body ? JSON.parse(init.body) : {};
+      const now = new Date().toISOString();
+      const end = new Date(Date.now() + 366 * 86400000).toISOString();
+      const scheduled = subMatch[2] ? { action: "cancel", effective_at: end } : (body.scheduled_change === null ? null : undefined);
+      return new Response(JSON.stringify({ data: {
+        id: decodeURIComponent(subMatch[1]), status: "active", customer_id: "ctm_x", items: [{ price: { id: "pri_year" } }],
+        current_billing_period: { starts_at: now, ends_at: end }, scheduled_change: scheduled ?? null,
+        custom_data: null, updated_at: new Date(Date.now() + 1000).toISOString(),
+      } }), { status: 200 });
+    }
     if (u.includes("/portal-sessions")) {
       return new Response(JSON.stringify({ data: { urls: {
         general: { overview: "https://customer-portal.paddle.com/overview" },
@@ -45,7 +57,7 @@ globalThis.fetch = async (url, init = {}) => {
 };
 
 const { router, db } = await import("../server.mjs");
-const { findAccountByEmailAny, activateAccount } = await import("../lib/account-repository.mjs");
+const { findAccountByEmailAny, activateAccount, setAccountFeatureFlags } = await import("../lib/account-repository.mjs");
 const { hasActiveEntitlement } = await import("../lib/billing-repository.mjs");
 
 const server = createServer(router);
@@ -53,7 +65,7 @@ await new Promise((resolve) => server.listen(0, resolve));
 const base = `http://127.0.0.1:${server.address().port}`;
 test.after(() => { server.close(); globalThis.fetch = realFetch; });
 
-async function login(email) {
+async function login(email, { preview = true } = {}) {
   const password = "correct horse battery staple";
   const reg = await fetch(`${base}/api/auth/register`, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -63,6 +75,8 @@ async function login(email) {
   const account = findAccountByEmailAny(db, email);
   activateAccount(db, account.id);
   db.prepare("DELETE FROM entitlements WHERE account_id = ?").run(account.id); // no trial in the way
+  // Paid plans are paused (PAYWALL_ENFORCED off): only billing-preview accounts may subscribe.
+  if (preview) setAccountFeatureFlags(db, account.id, ["billing_preview"]);
   const res = await fetch(`${base}/api/auth/login`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }),
   });
@@ -158,4 +172,52 @@ test("the portal needs a subscription", async () => {
   const { auth } = await login("paddle-noportal@example.test");
   const res = await fetch(`${base}/api/billing/portal`, { method: "POST", headers: auth });
   assert.equal(res.status, 404);
+});
+
+test("while paid plans are paused, checkout is refused without the billing preview flag", async () => {
+  const { auth } = await login("paddle-nopreview@example.test", { preview: false });
+  const res = await fetch(`${base}/api/billing/paddle/checkout`, {
+    method: "POST", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ plan: "annual" }),
+  });
+  assert.equal(res.status, 503);
+});
+
+function subscriptionFor(accountId, subId, { eventId, scheduledCancel = false }) {
+  const payload = subscriptionPayload(accountId, "o-" + subId, { eventId });
+  payload.data.id = subId;
+  payload.data.customer_id = "ctm_" + subId;
+  if (scheduledCancel) payload.data.scheduled_change = { action: "cancel", effective_at: payload.data.current_billing_period.ends_at };
+  return payload;
+}
+
+test("resume removes a scheduled cancellation", async () => {
+  const { accountId, auth } = await login("paddle-resume@example.test");
+  assert.equal((await signedWebhook(subscriptionFor(accountId, "sub_resume", { eventId: "evt_resume", scheduledCancel: true }))).status, 200);
+  let sub = await (await fetch(`${base}/api/billing/subscription`, { headers: auth })).json();
+  assert.equal(sub.provider.renews, false);
+  assert.ok(sub.provider.scheduledCancelAt);
+
+  const res = await fetch(`${base}/api/billing/resume`, { method: "POST", headers: auth });
+  assert.equal(res.status, 200);
+  const summary = await res.json();
+  assert.equal(summary.renews, true);
+  assert.equal(summary.scheduledCancelAt, null);
+  const call = paddleCalls.findLast((c) => c.url.endsWith("/subscriptions/sub_resume"));
+  assert.equal(call.method, "PATCH");
+  assert.deepEqual(call.body, { scheduled_change: null });
+
+  const again = await fetch(`${base}/api/billing/resume`, { method: "POST", headers: auth });
+  assert.equal(again.status, 409, "nothing left to resume");
+});
+
+test("deleting the account cancels a renewing subscription at the period's end", async () => {
+  const { accountId, auth } = await login("paddle-delete@example.test");
+  assert.equal((await signedWebhook(subscriptionFor(accountId, "sub_delete", { eventId: "evt_delete" }))).status, 200);
+  const res = await fetch(`${base}/api/account`, { method: "DELETE", headers: auth });
+  assert.ok(res.status === 204 || res.status === 200, `status ${res.status}`);
+  const call = paddleCalls.findLast((c) => c.url.endsWith("/subscriptions/sub_delete/cancel"));
+  assert.ok(call, "Paddle cancel was called");
+  assert.deepEqual(call.body, { effective_from: "next_billing_period" });
+  const row = db.prepare("SELECT scheduled_cancel_at FROM provider_subscriptions WHERE provider_subscription_id = 'sub_delete'").get();
+  assert.ok(row.scheduled_cancel_at);
 });

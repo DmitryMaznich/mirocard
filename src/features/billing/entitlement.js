@@ -23,3 +23,18 @@ export const PAID_PLANS_PAUSED = true;
 export function hasPaidAccess(account, subscription) {
   return PAID_PLANS_PAUSED || hasActiveEntitlement(account, subscription);
 }
+
+// Paddle subscription screens (docs/monetization-eu-plan.md) are shown, while
+// paid plans are paused, only to accounts the admin ticked «Подписка Paddle
+// (тест)» for. The server refuses checkout to everyone else the same way.
+export const BILLING_PREVIEW_FLAG = "billing_preview";
+
+export function isBillingPreview(account) {
+  const flags = account?.featureFlags;
+  return Array.isArray(flags) && flags.includes(BILLING_PREVIEW_FLAG);
+}
+
+// Whether the account sees subscription screens and the account-screen block at all.
+export function showsPaidPlans(account) {
+  return !PAID_PLANS_PAUSED || isBillingPreview(account);
+}

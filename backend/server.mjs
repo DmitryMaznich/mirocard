@@ -20,7 +20,7 @@ import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
 import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs";
 import { createEmailBudget } from "./lib/email-budget.mjs";
 import { setMarketingConsent } from "./lib/marketing-consent.mjs";
-import { getDb } from "./lib/db.mjs";
+import { getDb, withTransaction } from "./lib/db.mjs";
 import { startTelegramNotifications } from "./lib/telegram-notifications.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
@@ -76,10 +76,11 @@ import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import {
   verifyPaddleWebhookSignature, parsePaddleWebhookEvent, isPaddleConfiguredFor,
   createPaddleTransaction, createPaddlePortalSession, getPaddleSubscription,
+  resumePaddleSubscription, cancelPaddleSubscriptionAtPeriodEnd,
 } from "./lib/billing-providers/paddle.mjs";
 import {
   processPaddleEvent, getLatestProviderSubscriptionForAccount, getProviderSubscriptionSummary,
-  reconcileProviderSubscriptions,
+  reconcileProviderSubscriptions, applySubscriptionState,
 } from "./lib/billing-subscriptions.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
 import { pruneBackups, DEFAULT_KEEP as DEFAULT_BACKUP_KEEP } from "../scripts/railway-backup-loop.mjs";
@@ -767,6 +768,7 @@ async function handleChangePassword(req, res) {
 
 async function handleDeleteAccount(req, res) {
   const account = requireAuth(req);
+  await stopRenewingSubscriptionBeforeDeletion(account.id);
   archiveAccount(db, account.id, "self");
   writeNoContent(res);
 }
@@ -1265,14 +1267,19 @@ async function handleAdminLifecycle(req, res, accountId, operation) {
   const body = await readJsonBody(req) ?? {};
   if (operation === "erase") {
     if (body.confirmed !== true) throw {status:400,message:"Подтвердите удаление навсегда."};
+    await stopRenewingSubscriptionBeforeDeletion(accountId);
     return writeJson(res, 200, eraseAccount(db, accountId));
   }
   if (body.action === "archive") {
     if (body.confirmed !== true) throw {status:400,message:"Подтвердите перенос в удалённые."};
+    await stopRenewingSubscriptionBeforeDeletion(accountId);
     return writeJson(res, 200, archiveAccount(db, accountId));
   }
   if (operation === "deletion-preview") return writeJson(res, 200, prepareDeletion(db, accountId, body.mode));
-  if (operation === "delete") return writeJson(res, 200, confirmDeletion(db, accountId, body));
+  if (operation === "delete") {
+    await stopRenewingSubscriptionBeforeDeletion(accountId);
+    return writeJson(res, 200, confirmDeletion(db, accountId, body));
+  }
   if (body.action === "block") return writeJson(res, 200, blockAccount(db, accountId, body.reason));
   if (!["unblock", "restore"].includes(body.action)) return writeJson(res, 400, { error: "Неизвестное действие с аккаунтом." });
   return writeJson(res, 200, restoreAccount(db, accountId, body.action, body.reason));
@@ -1416,6 +1423,8 @@ async function handleBillingCheckout(req, res) {
 // Sandbox checkouts move no real money, so they're open as soon as the keys
 // exist (to test before launch); production ones additionally need the
 // reviewed legal docs, same rule as Stripe above.
+const BILLING_PREVIEW_FLAG = "billing_preview";
+
 function isPaddleCheckoutOpen() {
   if (!PADDLE_API_KEY || !PADDLE_CLIENT_TOKEN) return false;
   return PADDLE_ENV === "sandbox" || LEGAL_DOCS_VERSION !== "draft";
@@ -1429,6 +1438,11 @@ async function handlePaddleCheckout(req, res) {
   const planDef = PLAN_CATALOG[plan];
   if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
   if (!isPaddleCheckoutOpen() || !isPaddleConfiguredFor(plan)) {
+    return writeJson(res, 503, { error: "Checkout is not open yet" });
+  }
+  // While paid plans are paused, only accounts the admin marked for the
+  // billing preview can subscribe (the client shows the screens to them alone).
+  if (!PAYWALL_ENFORCED && !accountHasFeatureFlag(account, BILLING_PREVIEW_FLAG)) {
     return writeJson(res, 503, { error: "Checkout is not open yet" });
   }
   // One live subscription per account: a second one would charge twice.
@@ -1484,6 +1498,40 @@ async function handleBillingPortal(req, res) {
   } catch (err) {
     console.error(`[billing] paddle portal session failed for account ${account.id}:`, err.message);
     writeJson(res, 502, { error: "Payment provider error" });
+  }
+}
+
+// "Возобновить подписку": the customer cancelled in the portal (the
+// cancellation takes effect at the period's end) and changed their mind.
+async function handleBillingResume(req, res) {
+  const account = requireAuth(req);
+  const row = getLatestProviderSubscriptionForAccount(db, account.id);
+  if (!row?.scheduled_cancel_at || row.status === "canceled") return writeJson(res, 409, { error: "Nothing to resume" });
+  try {
+    const sub = await resumePaddleSubscription(row.provider_subscription_id);
+    withTransaction(db, () => applySubscriptionState(db, account.id, sub, { provider: row.provider }));
+    incrementRevision(db, account.id);
+    writeJson(res, 200, getProviderSubscriptionSummary(db, account.id));
+  } catch (err) {
+    console.error(`[billing] paddle resume failed for account ${account.id}:`, err.message);
+    writeJson(res, 502, { error: "Payment provider error" });
+  }
+}
+
+// Before an account is deleted: a renewing Paddle subscription would keep
+// charging the card of an account that no longer exists. Cancelled at the
+// end of the paid period. Throws (status 502) if Paddle can't be reached, so
+// the deletion is refused and can be retried rather than leave charges running.
+async function stopRenewingSubscriptionBeforeDeletion(accountId) {
+  const row = getLatestProviderSubscriptionForAccount(db, accountId);
+  const renews = row && ["active", "trialing", "past_due"].includes(row.status) && !row.scheduled_cancel_at;
+  if (!renews) return;
+  try {
+    const sub = await cancelPaddleSubscriptionAtPeriodEnd(row.provider_subscription_id);
+    withTransaction(db, () => applySubscriptionState(db, accountId, sub, { provider: row.provider }));
+  } catch (err) {
+    console.error(`[billing] paddle cancel before deletion failed for account ${accountId}:`, err.message);
+    throw { status: 502, message: "Could not cancel the subscription; try again" };
   }
 }
 
@@ -2227,6 +2275,7 @@ async function router(req, res) {
     if (method === "POST" && p === "/billing/paddle/checkout")   return await handlePaddleCheckout(req, res);
     if (method === "POST" && p === "/billing/webhook/paddle")    return await handlePaddleWebhook(req, res);
     if (method === "POST" && p === "/billing/portal")            return await handleBillingPortal(req, res);
+    if (method === "POST" && p === "/billing/resume")            return await handleBillingResume(req, res);
     if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
     if (method === "GET"  && p === "/billing/order-status")      return await handleGetOrderStatus(req, res);
     if (method === "POST" && p === "/billing/validate-code") return await handleValidateCode(req, res);

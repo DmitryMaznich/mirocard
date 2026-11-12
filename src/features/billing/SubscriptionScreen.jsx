@@ -4,7 +4,8 @@ import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getPlanLabel, formatPeriodEnd, daysLeft, isUnlimitedPlan } from "./planLabels";
-import { PAID_PLANS_PAUSED } from "./entitlement";
+import { PAID_PLANS_PAUSED, isBillingPreview } from "./entitlement";
+import PaddleSubscriptionScreen from "./PaddleSubscriptionScreen";
 
 
 
@@ -38,6 +39,10 @@ function formatMinor(amountMinor) {
 }
 
 export default function SubscriptionScreen() {
+  const account = useAppStore((s) => s.account);
+  // Paddle subscriptions are shown only to billing-preview accounts for now;
+  // they replace the one-off checkout below once paid plans return.
+  if (isBillingPreview(account)) return <PaddleSubscriptionScreen />;
   return PAID_PLANS_PAUSED ? <FreeForNowScreen /> : <PaidPlansScreen />;
 }
 

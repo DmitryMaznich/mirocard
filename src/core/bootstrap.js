@@ -316,7 +316,10 @@ export function normalizeBootstrap(raw = {}) {
   return {
     token: raw.token ?? null,
     account: raw.account ?? null,
-    subscription: raw.subscription ?? null,
+    // Paddle's state rides on the access object, as GET /billing/subscription returns it.
+    subscription: raw.subscription && raw.providerSubscription
+      ? { ...raw.subscription, provider: raw.providerSubscription }
+      : (raw.subscription ?? null),
     settings: raw.settings ?? null,
     students: Array.isArray(raw.students) ? raw.students.map(migrateStudentPeople) : [],
     erasedStudentIds: Array.isArray(raw.erasedStudentIds) ? raw.erasedStudentIds : [],

@@ -174,3 +174,17 @@ export async function getPaddleSubscription(subscriptionId, { priceIds = PADDLE_
   const data = await paddleRequest("GET", `/subscriptions/${encodeURIComponent(subscriptionId)}`);
   return normalizeSubscription(data, priceIds);
 }
+
+// Undo a cancellation the customer scheduled in the portal ("Возобновить
+// подписку"): removing the scheduled change keeps the subscription renewing.
+export async function resumePaddleSubscription(subscriptionId, { priceIds = PADDLE_PRICE_IDS } = {}) {
+  const data = await paddleRequest("PATCH", `/subscriptions/${encodeURIComponent(subscriptionId)}`, { scheduled_change: null });
+  return normalizeSubscription(data, priceIds);
+}
+
+// Account deletion: no further charges. The period already paid for runs
+// out on its own (no refund is implied), so cancel at the next billing date.
+export async function cancelPaddleSubscriptionAtPeriodEnd(subscriptionId, { priceIds = PADDLE_PRICE_IDS } = {}) {
+  const data = await paddleRequest("POST", `/subscriptions/${encodeURIComponent(subscriptionId)}/cancel`, { effective_from: "next_billing_period" });
+  return normalizeSubscription(data, priceIds);
+}

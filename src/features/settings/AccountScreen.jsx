@@ -10,7 +10,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getPlanLabel, formatPeriodEnd, isUnlimitedPlan } from "@/features/billing/planLabels";
-import { PAID_PLANS_PAUSED } from "@/features/billing/entitlement";
+import { showsPaidPlans } from "@/features/billing/entitlement";
 import { saveMarketingConsent } from "@/features/account/marketingConsent";
 
 export default function AccountScreen() {
@@ -49,7 +49,7 @@ export default function AccountScreen() {
         <p className="settings-scope">{tr("settings.accountScope")}</p>
         <AccountCard onLogout={handleLogout} />
 
-        {!PAID_PLANS_PAUSED && <div className="settings-section">
+        {showsPaidPlans(account) && <div className="settings-section">
           <div className="settings-section-title">{tr("account.subscription")}</div>
           <div className="settings-row">
             <span className="settings-row__label">

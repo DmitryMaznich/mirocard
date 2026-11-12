@@ -1420,6 +1420,19 @@ button {
 .plan__name { font-size: 15px; font-weight: 800; }
 .plan__hint { margin-top: 2px; font-size: 12.5px; font-weight: 600; color: #6b7b78; }
 .plan__price { font-size: 16px; font-weight: 900; white-space: nowrap; }
+/* Paddle subscription screen (PaddleSubscriptionScreen.jsx) */
+.plan__badge { position: absolute; top: -9px; left: 46px; padding: 2px 9px; border-radius: 999px; background: #4a9b8f; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .02em; }
+.subscription-status--warn { background: #fff8e6; border-color: #e0a526; }
+.subscription-status--warn .subscription-status__label { color: #b07b0c; }
+.subscription-manage { display: flex; flex-direction: column; border-radius: 16px; background: #fff; border: 1.5px solid #e4dccf; overflow: hidden; }
+.subscription-manage__row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; min-height: 52px; background: none; border: none; border-top: 1px solid #efe9df; text-align: left; font-family: inherit; color: inherit; cursor: pointer; }
+.subscription-manage__row:first-child { border-top: none; }
+.subscription-manage__text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.subscription-manage__label { font-size: 15px; font-weight: 800; color: #1f2d2a; }
+.subscription-manage__hint { font-size: 12.5px; font-weight: 600; color: #6b7b78; }
+.subscription-manage__note { margin: 12px 4px 0; font-size: 12.5px; font-weight: 600; line-height: 1.4; color: #6b7b78; }
+.subscription-manage__chevron { font-size: 22px; font-weight: 700; color: #a3adaa; }
+.subscription-sandbox-note { margin: 16px 2px 12px; padding: 10px 12px; border-radius: 12px; background: #f3f0ff; color: #4b3f8a; font-size: 12.5px; font-weight: 700; line-height: 1.4; }
 
 .section-label { margin: 22px 0 10px; font-size: 13px; font-weight: 900; color: #526562; }
 .pay-methods { display: flex; gap: 10px; }
@@ -1436,6 +1449,7 @@ button {
 .subscription-error { margin-top: 12px; font-size: 13px; color: #e05252; font-weight: 700; }
 
 .subscription-footer { flex-shrink: 0; padding: 14px 16px calc(16px + var(--app-safe-bottom, 0px)); }
+.subscription-cta { width: 100%; }
 .subscription-disclaimer { margin: 0 0 10px; font-size: 12px; line-height: 1.4; color: #6b7573; text-align: center; }
 .subscription-consents { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 .subscription-consent { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4; color: #4a5450; cursor: pointer; }

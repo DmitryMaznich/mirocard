@@ -97,6 +97,14 @@ describe("bootstrap helpers", () => {
     });
   });
 
+  it("normalizeBootstrap puts Paddle's subscription state on the access object", () => {
+    const access = { plan: "annual", status: "active", currentPeriodEnd: "2027-11-12T00:00:00.000Z" };
+    const providerSubscription = { provider: "paddle", status: "active", renews: true };
+    expect(normalizeBootstrap({ subscription: access, providerSubscription }).subscription).toEqual({ ...access, provider: providerSubscription });
+    expect(normalizeBootstrap({ subscription: access, providerSubscription: null }).subscription).toEqual(access);
+    expect(normalizeBootstrap({ subscription: null, providerSubscription }).subscription).toBe(null);
+  });
+
   it("normalizeBootstrap fills defaults and preserves cumulative session summaries", () => {
     const sessions = Array.from({ length: 205 }, (_, index) => ({ id: index + 1 }));
     const result = normalizeBootstrap({

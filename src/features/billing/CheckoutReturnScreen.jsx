@@ -19,6 +19,7 @@ export default function CheckoutReturnScreen() {
   const { t: tr } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const checkoutOrderId = useAppStore((s) => s.checkoutOrderId);
+  const setSubscription = useAppStore((s) => s.setSubscription);
   const [state, setState] = useState("processing");
   const [result, setResult] = useState(null); // { plan, currentPeriodEnd }
   const [pollToken, setPollToken] = useState(0); // bumped to force a fresh poll cycle
@@ -49,7 +50,16 @@ export default function CheckoutReturnScreen() {
       if (cancelled) return;
 
       if (order?.status === "completed") {
-        setResult({ plan: order.plan, currentPeriodEnd: order.currentPeriodEnd });
+        // A Paddle subscription renews by itself: say when the next charge is
+        // rather than "until …". Its state may lag the order by a webhook.
+        let renewsOn = null;
+        try {
+          const sub = await api.get("/billing/subscription");
+          if (cancelled) return;
+          setSubscription?.(sub);
+          if (sub?.provider?.renews) renewsOn = sub.provider.currentPeriodEnd;
+        } catch { /* the order itself is enough to report success */ }
+        setResult({ plan: order.plan, currentPeriodEnd: order.currentPeriodEnd, renewsOn });
         setState("success");
         return;
       }
@@ -89,7 +99,7 @@ export default function CheckoutReturnScreen() {
     else readCurrentSubscriptionOnce();
 
     return () => { cancelled = true; };
-  }, [checkoutOrderId, pollToken]);
+  }, [checkoutOrderId, pollToken, setSubscription]);
 
   const planLabel = result ? (getPlanLabel(result.plan)) : null;
 
@@ -114,7 +124,16 @@ export default function CheckoutReturnScreen() {
             <div className="checkout-return__check">✓</div>
             <div>
               <div className="checkout-return__title">{tr("billing.success")}</div>
-              <div className="checkout-transition__sub">{tr("billing.until", { plan: planLabel, date: formatPeriodEnd(result.currentPeriodEnd) })}</div>
+              {result.renewsOn ? (
+                <>
+                  <div className="checkout-transition__sub">{tr("billing.p.successSub", { date: formatPeriodEnd(result.renewsOn) })}</div>
+                  <div className="checkout-transition__sub">{tr("billing.p.receipt")}</div>
+                </>
+              ) : result.currentPeriodEnd ? (
+                <div className="checkout-transition__sub">{tr("billing.until", { plan: planLabel, date: formatPeriodEnd(result.currentPeriodEnd) })}</div>
+              ) : (
+                <div className="checkout-transition__sub">{tr("billing.p.allOpen")}</div>
+              )}
             </div>
           </>
         )}
