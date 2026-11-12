@@ -79,14 +79,15 @@ describe("Slovenian (draft)", () => {
     const h = (y) => (62 - y) / 52;
     for (const ch of sl.alphabet.lower) {
       const g = glyphs.find((x) => x.label === ch);
-      const main = g.strokes[0].d;
-      const p = pts(main);
+      const p = pts(g.strokes[0].d);
       expect(h(p[0][1]), `${ch} starts on the baseline`).toBeCloseTo(0, 1);
-      const end = h(p.at(-1)[1]);
+      // the exit: where the last stroke that is not a dot / bar / caron ends (f: its own exit stroke)
+      const last = g.strokes.filter((st) => !["точка", "черта", "гачек"].includes(st.name)).at(-1);
+      const end = h(pts(last.d).at(-1)[1]);
       if ("bvor".includes(ch)) expect(end, `${ch} ends at the top`).toBeCloseTo(1, 1);
       else if (!"sš".includes(ch)) expect(end, `${ch} ends half-way up`).toBeCloseTo(0.48, 1);
       const lifts = g.strokes.slice(1).map((st) => st.name);
-      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
+      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
       expect(lifts, ch).toEqual(allowed);
     }
   });

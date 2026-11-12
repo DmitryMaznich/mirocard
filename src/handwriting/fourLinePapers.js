@@ -46,11 +46,12 @@ export const FOUR_LINE_PAPERS = {
   },
   // Slovenian (docs/propis2-sl.md, measured 2026-11-12): the school cursive model «Male pisane črke» has three equal bands — x-height,
   // ascenders and descenders 209 pt each; the Naša ulica 2 workbooks rule three lines — top, x-line, baseline, all the same thin line,
-  // the x band tinted — and the descenders go on below the row, into the space above the next one (no fourth line).
+  // the x band tinted — and the descenders go on below the row, into the space above the next one (no fourth line). The x-line DASHED:
+  // so it is on most Slovene worksheets (owner, 2026-11-12, «Znam pisati» sheet: solid top, dashed middle, solid baseline).
   sl: {
     label: "Словенская строка · 5 мм",
     upMm: 5, xMm: 5, downMm: 5, gapMm: 0, firstMm: 10, footMm: 5,
-    lines: { top: "thin", x: "thin", base: "thin", bottom: "none" },
+    lines: { top: "thin", x: "dash", base: "thin", bottom: "none" },
     guides: null,
     midDash: false,
     edgeToEdge: false,
