@@ -119,6 +119,42 @@ const signs = {
   ")": [14, [s("M 1,0 C 13,30 13,94 1,124", "скобка")]],
 };
 
+// Č Š Ž č š ž (Slovenian, docs/propis2-sl.md): the letter, then the caron as its own last stroke — «strešico … napiše nazadnje»
+// (Naša ulica 2). Small letters: between the top line and the x-line, where the Slovene school model has it; capitals: above the top line.
+const caron = (cx, yTop, h = 13, w = 9) => s(line([cx - w, yTop], [cx, yTop + h], [cx + w, yTop]), "гачек");
+for (const [base, ch] of [["c", "č"], ["s", "š"], ["z", "ž"]]) {
+  const [w, strokes] = lower[base];
+  lower[ch] = [w, [...strokes, caron(w / 2, 27)]];
+  const [W, Strokes] = upper[base.toUpperCase()];
+  upper[ch.toUpperCase()] = [W, [...Strokes, caron(W / 2, -23, 14, 10)]];
+}
+
+// Slovenian print, style "print_sl" (docs/propis2-sl.md): the same letters, but every small letter that the pen can write without
+// lifting is ONE stroke, going back over the stick where needed («zapis črk z eno potezo», Naša ulica 2; ZRSS 2022: «N nima treh
+// potez. Ima dve ali eno, n pa samo eno»), and the capitals A M N as the Slovene stroke-order chart («Za začetek», p. 54) has them:
+// A — left leg UP to the apex, right leg down, bar; M and N in one stroke from the bottom left, up first.
+// The oval of a one-stroke a d g starts and ends at 3 o'clock — on the stick's own line — so the pen goes up the stick from there and
+// comes back down over the same line (from BOWL_L()'s 1 o'clock the way up showed as a tick outside the oval)
+const BOWL_SL = arc(25, 75, 25, 25, 0, -360);
+const BOWL_END = "L 50,50";
+const slLower = {
+  a: [50, [s(`${BOWL_SL} ${BOWL_END} L 50,100`, "овал и палочка")]],
+  b: [50, [s(`M 0,0 L 0,100 L 0,75 ${arc(25, 75, 25, 25, 180, 540, { move: false })}`, "палочка и овал")]],
+  d: [50, [s(`${BOWL_SL} L 50,0 L 50,100`, "овал и палочка")]],
+  g: [50, [s(`${BOWL_SL} ${BOWL_END} L 50,130 ${arc(30, 130, 20, 20, 0, 160, { move: false })}`, "овал и палочка с крючком")]],
+  h: [50, [s(`M 0,0 L 0,100 L 0,75 ${arc(25, 75, 25, 25, 180, 360, { move: false })} L 50,100`, "палочка и горка")]],
+  m: [70, [s(`M 0,50 L 0,100 L 0,70 ${arc(17.5, 70, 17.5, 20, 180, 360, { move: false })} L 35,100 L 35,70 ${arc(52.5, 70, 17.5, 20, 180, 360, { move: false })} L 70,100`, "палочка и две горки")]],
+  n: [50, [s(`M 0,50 L 0,100 L 0,75 ${arc(25, 75, 25, 25, 180, 360, { move: false })} L 50,100`, "палочка и горка")]],
+  p: [50, [s(`M 0,50 L 0,150 L 0,75 ${arc(25, 75, 25, 25, 180, 540, { move: false })}`, "палочка и овал")]],
+  r: [40, [s(`M 0,50 L 0,100 L 0,72 ${arc(22, 72, 22, 22, 180, 305, { move: false })}`, "палочка и дужка")]],
+  u: [50, [s(`M 0,50 L 0,78 ${arc(25, 78, 25, 22, 180, 0, { move: false })} L 50,50 L 50,100`, "крючок и палочка")]],
+};
+const slUpper = {
+  A: [60, [s(line([0, 100], [30, 0]), "наклонная"), s(line([30, 0], [60, 100]), "наклонная"), s(line([12, 65], [48, 65]), "черта")]],
+  M: [70, [s(line([0, 100], [0, 0], [35, 70], [70, 0], [70, 100]), "палочки и уголок")]],
+  N: [55, [s(line([0, 100], [0, 0], [55, 100], [55, 0]), "палочки и наклонная")]],
+};
+
 const glyphs = {};
 for (const [set, kind] of [[upper, "upper"], [lower, "lower"], [signs, "sign"]]) {
   for (const [ch, [width, strokes]] of Object.entries(set)) glyphs[ch] = { case: kind, width, strokes };
@@ -133,3 +169,12 @@ const out = {
 const file = fileURLToPath(new URL("./print.json", import.meta.url));
 writeFileSync(file, JSON.stringify(out, null, 1) + "\n");
 console.log(`wrote ${Object.keys(glyphs).length} glyphs → ${file}`);
+
+const slGlyphs = { ...glyphs };
+for (const [set, kind] of [[slUpper, "upper"], [slLower, "lower"]]) {
+  for (const [ch, [width, strokes]] of Object.entries(set)) slGlyphs[ch] = { case: kind, width, strokes };
+}
+for (const ch of "qwxyQWXY") delete slGlyphs[ch]; // not letters of the Slovene alphabet (docs/propis2-sl.md)
+const slFile = fileURLToPath(new URL("./print_sl.json", import.meta.url));
+writeFileSync(slFile, JSON.stringify({ ...out, style: "print_sl", title: { ru: "Печатные (словенские)", sl: "Tiskane črke" }, glyphs: slGlyphs }, null, 1) + "\n");
+console.log(`wrote ${Object.keys(slGlyphs).length} glyphs → ${slFile}`);

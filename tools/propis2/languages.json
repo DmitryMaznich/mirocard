@@ -185,6 +185,110 @@
           }
         }
       ]
+    },
+    {
+      "id": "sl",
+      "title": "Slovenščina",
+      "short": "SLO",
+      "status": "draft",
+      "deck": "latin",
+      "note": "Словенские прописи (docs/propis2-sl.md): 25 букв без q w x y, бумага — три равные полосы (fourLinePapers.js sl*), стили по ступеням школы: большие печатные (1-й класс), малые печатные (1–2-й), письменные (2-й, шаг 3 — ещё нет). Черновик: в боевую колоду не попадает (сборка --latin берёт черновики только с --drafts).",
+      "alphabet": {
+        "lower": "abcčdefghijklmnoprsštuvzž"
+      },
+      "papers": [
+        "sl_10",
+        "sl_8",
+        "sl_6",
+        "sl",
+        "sl_45",
+        "square",
+        "ruled"
+      ],
+      "methodology": false,
+      "coverWords": {
+        "headings": {
+          "alphabet": "Abeceda",
+          "digits": "Števila",
+          "signs": "Znaki",
+          "digits-signs": "Števila in znaki",
+          "punctuation": "Ločila"
+        },
+        "signs": {
+          "+": "plus",
+          "-": "minus",
+          "=": "je enako",
+          ">": "je večje od",
+          "<": "je manjše od"
+        },
+        "punctuation": {
+          ".": "pika",
+          ",": "vejica",
+          "?": "vprašaj",
+          "!": "klicaj"
+        },
+        "stamp": {
+          "kicker": "ZVEZEK",
+          "fields": {
+            "name": "Ime",
+            "surname": "Priimek",
+            "class": "Razred",
+            "school": "Šola",
+            "started": "Začeto",
+            "finished": "Končano"
+          },
+          "leaves": {
+            "one": "list",
+            "many": "listov"
+          },
+          "price": ""
+        }
+      },
+      "styles": [
+        {
+          "id": "sl_caps",
+          "short": "ВТ",
+          "title": "Большие печатные (velike tiskane)",
+          "glyphsFile": "tools/handwriting/latin/print_sl.json",
+          "script": {
+            "joins": false,
+            "letterGap": 14,
+            "wordGap": 56,
+            "caps": true
+          },
+          "papers": [
+            "sl_10",
+            "sl_8",
+            "sl_6",
+            "sl",
+            "sl_45",
+            "square",
+            "ruled"
+          ],
+          "note": "1-й класс: всё заглавными (script.caps — движок пишет набранный текст заглавными); порядок штрихов A M N — по таблице «Za začetek», с. 54"
+        },
+        {
+          "id": "sl_print",
+          "short": "МТ",
+          "title": "Малые печатные (male tiskane)",
+          "glyphsFile": "tools/handwriting/latin/print_sl.json",
+          "script": {
+            "joins": false,
+            "letterGap": 14,
+            "wordGap": 56
+          },
+          "papers": [
+            "sl_10",
+            "sl_8",
+            "sl_6",
+            "sl",
+            "sl_45",
+            "square",
+            "ruled"
+          ],
+          "note": "строчные одним движением, где перо не отрывается (a b d g h m n p q r u), «z eno potezo» — Naša ulica 2"
+        }
+      ]
     }
   ]
 }

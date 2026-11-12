@@ -2046,6 +2046,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
   lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[igw]\d+|[bB][^#\s]))+$/, ""));
+  // `script.caps` (the Slovenian «Velike tiskane črke», docs/propis2-sl.md): a style of capitals only, as the first school year writes —
+  // whatever the adult typed is written in capitals («mama» → MAMA; digits and signs have no case)
+  if (glyphsByLabel?.script?.caps) lines = lines.map((l) => l.toLocaleUpperCase("sl"));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;

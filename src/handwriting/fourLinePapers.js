@@ -44,6 +44,17 @@ export const FOUR_LINE_PAPERS = {
     midDash: false,
     edgeToEdge: true,
   },
+  // Slovenian (docs/propis2-sl.md, measured 2026-11-12): the school cursive model «Male pisane črke» has three equal bands — x-height,
+  // ascenders and descenders 209 pt each; the Naša ulica 2 workbooks rule three lines — top, x-line, baseline, all the same thin line,
+  // the x band tinted — and the descenders go on below the row, into the space above the next one (no fourth line).
+  sl: {
+    label: "Словенская строка · 5 мм",
+    upMm: 5, xMm: 5, downMm: 5, gapMm: 0, firstMm: 10, footMm: 5,
+    lines: { top: "thin", x: "thin", base: "thin", bottom: "none" },
+    guides: null,
+    midDash: false,
+    edgeToEdge: false,
+  },
 };
 
 // The English papers in more sizes (Nelson's x-height by year: Starter 8 mm, Book 1 6 mm, Book 2 5 mm, Books 3–4 4 mm; Zaner-Bloser
@@ -61,6 +72,11 @@ Object.assign(FOUR_LINE_PAPERS, {
   en_gb_4: sized("en_gb", 4, "Британская строка · 4 мм", 3.8),
   en_us_8: sized("en_us", 8, "Американская строка · 8 мм"),
   en_us_6: sized("en_us", 6.35, "Американская строка · 6,35 мм (¼ дюйма)"),
+  // Slovenian: 10 mm as on the Naša ulica sheets that bring in a new letter, 4.5 mm as their answer rows
+  sl_10: sized("sl", 10, "Словенская строка · 10 мм"),
+  sl_8: sized("sl", 8, "Словенская строка · 8 мм"),
+  sl_6: sized("sl", 6, "Словенская строка · 6 мм"),
+  sl_45: sized("sl", 4.5, "Словенская строка · 4,5 мм"),
 });
 FOUR_LINE_PAPERS.en_gb.label = "Британская строка · 5 мм";
 FOUR_LINE_PAPERS.en_us.label = "Американская строка · 5 мм";

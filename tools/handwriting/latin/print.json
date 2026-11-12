@@ -624,6 +624,60 @@
    "upright": true
   },
   {
+   "label": "Č",
+   "kind": "letter",
+   "sourceLabel": "print-Č",
+   "strokes": [
+    {
+     "d": "M 73.466 -23.426 C 62.223 -40.17 43.805 -46.337 27.373 -38.859 C 10.941 -31.392 0 -11.861 0 10 C 0 31.861 10.941 51.392 27.373 58.859 C 43.805 66.337 62.223 60.17 73.466 43.426",
+     "name": "полуовал"
+    },
+    {
+     "d": "M 31.2 -65.92 L 41.6 -51.36 L 52 -65.92",
+     "name": "гачек"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "Š",
+   "kind": "letter",
+   "sourceLabel": "print-Š",
+   "strokes": [
+    {
+     "d": "M 54.08 -27.44 C 43.68 -44.08 4.16 -42 4.16 -17.04 C 4.16 10 56.16 5.84 56.16 34.96 C 56.16 64.08 12.48 66.16 2.08 45.36",
+     "name": "змейка"
+    },
+    {
+     "d": "M 18.2 -65.92 L 28.6 -51.36 L 39 -65.92",
+     "name": "гачек"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "Ž",
+   "kind": "letter",
+   "sourceLabel": "print-Ž",
+   "strokes": [
+    {
+     "d": "M 0 -42 L 57.2 -42 L 0 62 L 57.2 62",
+     "name": "зигзаг"
+    },
+    {
+     "d": "M 18.2 -65.92 L 28.6 -51.36 L 39 -65.92",
+     "name": "гачек"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
    "label": "a",
    "kind": "letter",
    "sourceLabel": "print-a",
@@ -1057,6 +1111,60 @@
     {
      "d": "M 0 10 L 52 10 L 0 62 L 52 62",
      "name": "зигзаг"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "č",
+   "kind": "letter",
+   "sourceLabel": "print-č",
+   "strokes": [
+    {
+     "d": "M 45.916 19.287 C 38.896 10.915 27.383 7.826 17.108 11.57 C 6.833 15.304 0 25.07 0 36 C 0 46.93 6.833 56.696 17.108 60.43 C 27.383 64.174 38.896 61.085 45.916 52.713",
+     "name": "полуовал"
+    },
+    {
+     "d": "M 16.64 -13.92 L 26 -0.4 L 35.36 -13.92",
+     "name": "гачек"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "š",
+   "kind": "letter",
+   "sourceLabel": "print-š",
+   "strokes": [
+    {
+     "d": "M 43.68 18.32 C 35.36 7.92 6.24 7.92 6.24 23.52 C 6.24 38.08 43.68 32.88 43.68 48.48 C 43.68 65.12 10.4 65.12 2.08 53.68",
+     "name": "змейка"
+    },
+    {
+     "d": "M 14.04 -13.92 L 23.4 -0.4 L 32.76 -13.92",
+     "name": "гачек"
+    }
+   ],
+   "stretch": 1,
+   "noNormalize": true,
+   "upright": true
+  },
+  {
+   "label": "ž",
+   "kind": "letter",
+   "sourceLabel": "print-ž",
+   "strokes": [
+    {
+     "d": "M 0 10 L 52 10 L 0 62 L 52 62",
+     "name": "зигзаг"
+    },
+    {
+     "d": "M 16.64 -13.92 L 26 -0.4 L 35.36 -13.92",
+     "name": "гачек"
     }
    ],
    "stretch": 1,

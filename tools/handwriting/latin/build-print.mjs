@@ -22,7 +22,10 @@ const STYLE = process.argv.includes("--style") ? process.argv[process.argv.index
 // `print_gb`: the print letters in the British proportions, for the Nelson paper of «Прописи: латиница» (owner, 2026-11-09: no American
 // paper there) -- the zones squeezed as the British letters', a capital squeezed in height only (its width as drawn, as the British
 // capitals since the owner's «ширину заглавных верни как у оригинала»)
-const STYLES = { print: { upper: 1, lower: 1 }, british: { upper: 0.74, lower: 0.72 }, print_gb: { upper: 0.74, lower: 0.72, src: "print", capHeightOnly: true } };
+const STYLES = { print: { upper: 1, lower: 1 }, british: { upper: 0.74, lower: 0.72 }, print_gb: { upper: 0.74, lower: 0.72, src: "print", capHeightOnly: true },
+  // `print_sl`: the Slovenian print letters (print_sl.json from print.mjs: one-stroke small letters, Slovene A M N) on the Slovene paper,
+  // three equal bands (fourLinePapers.js `sl`), so in the source's own proportions (docs/propis2-sl.md)
+  print_sl: { upper: 1, lower: 1 } };
 if (!STYLES[STYLE]) throw new Error(`unknown --style ${STYLE}`);
 const { upper: UPPER, lower: LOWER, src: SRC = STYLE, capHeightOnly = false } = STYLES[STYLE];
 const src = JSON.parse(readFileSync(here(`../../latin_letters/glyphs/${SRC}.json`), "utf8"));

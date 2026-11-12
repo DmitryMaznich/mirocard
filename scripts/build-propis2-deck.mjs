@@ -33,9 +33,14 @@ if (variantId !== null && !/^[a-z]+$/.test(variantId ?? "")) throw new Error("--
 const LANGUAGES_PATH = variantId ? null : "tools/propis2/languages.json";
 // `--latin`: «Прописи: латиница» (id `propis2_lang`, tools/propis2/latin.json; owner, 2026-11-09: Cyrillic and Latin are two decks, too
 // many languages and styles in one) -- the same engine and renderer, built from data only, with ONLY the languages marked
-// `deck: "latin"` in languages.json (English), drafts included, and without the dictation (Russian only). The ordinary build never
-// takes a `deck: "latin"` language, nor a draft one.
+// `deck: "latin"` in languages.json (English), and without the dictation (Russian only). The ordinary build never takes a
+// `deck: "latin"` language, nor a draft one. Since the Latin deck is out for everyone (`release`, 2026-11-11) its build leaves draft
+// languages out too (the Slovenian one, docs/propis2-sl.md); `--drafts --out <file.zip>` builds a try-out copy WITH them, written only
+// to that file — public/decks and the catalog are not touched.
 const latin = process.argv.includes("--latin");
+const drafts = process.argv.includes("--drafts");
+const OUT = process.argv.includes("--out") ? process.argv[process.argv.indexOf("--out") + 1] : null;
+if (drafts && !OUT) throw new Error("--drafts builds a try-out copy: give it --out <file.zip> (never public/decks)");
 if (latin && variantId) throw new Error("--latin builds the Latin deck, not a variant");
 const LATIN_PATH = "tools/propis2/latin.json";
 const VARIANT_PATH = variantId && `tools/propis2/variants/${variantId}/variant.json`;
@@ -69,7 +74,7 @@ const langSpec = LANGUAGES_PATH ? JSON.parse(readFileSync(LANGUAGES_PATH, "utf-8
 if (langSpec) {
   // (the dictation stays: Russian only — its words, texts and recordings are Russian; engine.js makes it in the deck's first language)
   const baseKits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
-  const inDeck = (l) => (latin ? l.deck === "latin" : l.deck !== "latin" && l.status !== "draft");
+  const inDeck = (l) => (latin ? l.deck === "latin" : l.deck !== "latin") && (drafts || l.status !== "draft");
   const skipped = langSpec.languages.filter((l) => !inDeck(l)).map((l) => l.id);
   if (skipped.length) console.log(`  (languages left out of this deck: ${skipped.join(", ")})`);
   topic.languages = langSpec.languages.filter(inDeck).map((spec) => {
@@ -143,8 +148,8 @@ if (latin) {
 }
 const ID = topic.meta.id;
 const VERSION = topic.meta.version;
-const ZIP_PATH = `public/decks/${ID}_v${VERSION}.zip`;
-if (existsSync(ZIP_PATH)) {
+const ZIP_PATH = OUT ?? `public/decks/${ID}_v${VERSION}.zip`;
+if (!OUT && existsSync(ZIP_PATH)) {
   throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? (latin ? LATIN_PATH : TOPIC_PATH)} before building again.`);
 }
 
@@ -153,6 +158,7 @@ zip.file("topic.json", JSON.stringify(topic, null, 2));
 const buffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 writeFileSync(ZIP_PATH, buffer);
 console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024).toFixed(0)} KB, ${topic.wide?.length ?? 0} glyphs, ${Object.keys(topic.wideSheets ?? {}).length} sheets, ${topic.elements?.length ?? 0} elements)`);
+if (OUT) process.exit(0); // a try-out copy: the catalog stays as it is
 
 const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
 const own = variant ?? (latin ? JSON.parse(readFileSync(LATIN_PATH, "utf-8")) : null);
