@@ -19,8 +19,8 @@ try {
     check(inside(pink, 354, 159), 'Missing pink wing');
     check(inside(colour('Жёлтые длинные перья крыла'), 333, 201), 'Missing yellow wing');
     check(inside(colour('Жёлтый клюв'), 419, 141), 'Missing beak');
-    check(inside(colour('Левая жёлтая лапка'), 308, 260), 'Missing toe');
-    check(!inside(colour('Коричневая веточка'), 308, 260), 'Branch paints toes');
+    check(inside(colour('Левая жёлтая лапка'), 315, 255), 'Missing toe');
+    check(!inside(colour('Коричневая веточка'), 315, 255), 'Branch paints toes');
     const body = yellow.outer; const gaps = [];
     for (let y = 90; y < 282; y += 2) for (let x = 204; x < 435; x += 2) {
       if (!body.isPointInFill(new DOMPoint(x*2, y*2))) continue;

@@ -20,6 +20,10 @@ describe("downloadable drawing topic", () => {
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot"]));
     const parrot = tasks.find(task => task.cardId === "parrot").lesson;
     expect(parrot.title).toBe("Попугай");
+    expect(parrot.progressRevision).toBe(2);
+    expect(parrot.steps.filter(s => s.title.startsWith("Пёрышки на щёчке"))).toHaveLength(2);
+    expect(parrot.steps.some(s => s.title === "Маленькое пёрышко на щёчке")).toBe(false);
+    expect(parrot.steps.find(s => s.title === "Листочки на веточке")).toMatchObject({kind: "stroke", tool: "light_green"});
     expect(parrot.steps).toHaveLength(41);
     expect(parrot.palette.map(tool => tool.id)).toEqual(["black", "yellow", "pink", "purple", "orange", "brown", "light_green"]);
     const waves = parrot.steps.filter(step => step.title.startsWith("Волнистые пёрышки"));

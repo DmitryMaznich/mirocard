@@ -27,7 +27,8 @@ for (const card of manifest.cards) {
   card.lesson.steps.forEach((step, i) => {
     if (step.kind === "stroke") for (const item of step.paths) {
       const path = typeof item === "string" ? { d: item } : item;
-      strokes.push(`<path d="${escape(path.d)}" fill="${escape(path.fill ?? "none")}"/>`);
+      const ink = step.tool !== 'black' ? card.lesson.palette.find(tool => tool.id === step.tool)?.color : null;
+      strokes.push(`<path d="${escape(path.d)}" fill="${escape(path.fill ?? "none")}"${ink ? ` stroke="${escape(ink)}"` : ''}/>`);
     } else {
       if (step.clip) defs.push(`<clipPath id="clip-${i}"><path d="${escape(step.clip)}"/></clipPath>`);
       const shape = `<path d="${escape(step.d)}" fill="${escape(step.fill)}" fill-rule="evenodd" stroke="none"${step.clip ? ` clip-path="url(#clip-${i})"` : ""}/>`;
