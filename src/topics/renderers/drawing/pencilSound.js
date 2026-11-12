@@ -1,4 +1,6 @@
-// A quiet procedural graphite/paper texture. No recordings or per-step assets.
+import { createPencilRecordingBuffer } from "./pencilRecording.js";
+
+// One quiet recorded pencil texture, reused for every drawing and step.
 // The graph is created only in an explicit user gesture; motion controls gain.
 export function createPencilSound({ contextFactory, visibilityTarget = document } = {}) {
   let context = null, gain = null, source = null, previous = null;
@@ -22,23 +24,11 @@ export function createPencilSound({ contextFactory, visibilityTarget = document 
         if (!contextFactory && !Ctx) return;
         context = contextFactory ? contextFactory() : new Ctx();
         gain = context.createGain(); gain.gain.value = 0;
-        const buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
-        const data = buffer.getChannelData(0);
-        let seed = 31, b0 = 0, b1 = 0, b2 = 0, grain = .8;
-        for (let i = 0; i < data.length; i++) {
-          seed = (seed * 1664525 + 1013904223) >>> 0;
-          const white = seed / 2147483648 - 1;
-          b0 = .99765 * b0 + white * .099046;
-          b1 = .963 * b1 + white * .2965164;
-          b2 = .57 * b2 + white * 1.0526913;
-          if (i % 240 === 0) grain = .55 + (white + 1) * .225;
-          data[i] = ((b0 + b1 + b2 + white * .1848) * .10 + white * .11) * grain;
-        }
-        const high = context.createBiquadFilter(); high.type = "highpass"; high.frequency.value = 420;
-        const paper = context.createBiquadFilter(); paper.type = "bandpass"; paper.frequency.value = 1750; paper.Q.value = .55;
-        const low = context.createBiquadFilter(); low.type = "lowpass"; low.frequency.value = 4100;
+        const buffer = createPencilRecordingBuffer(context);
+        const high = context.createBiquadFilter(); high.type = "highpass"; high.frequency.value = 140;
+        const low = context.createBiquadFilter(); low.type = "lowpass"; low.frequency.value = 6500;
         source = context.createBufferSource(); source.buffer = buffer; source.loop = true;
-        source.connect(high); high.connect(paper); paper.connect(low); low.connect(gain); gain.connect(context.destination);
+        source.connect(high); high.connect(low); low.connect(gain); gain.connect(context.destination);
         source.start(); // The gain is zero until the point actually moves.
       }
       if (context.state === "suspended") context.resume()?.catch(() => {});
@@ -57,7 +47,7 @@ export function createPencilSound({ contextFactory, visibilityTarget = document 
     previous = { x, y, time: now, stroke };
     if (distance < .02) { level(0); return; }
     const pressure = Math.min(.085, .028 + speed * .00012);
-    level(pressure * (.88 + .12 * Math.sin(now * 43)));
+    level(pressure);
   }
 
   const onVisibility = () => { if (hidden()) stop(); };
