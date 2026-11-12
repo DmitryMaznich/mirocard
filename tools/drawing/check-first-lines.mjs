@@ -8,7 +8,8 @@ const base = process.env.DRAWING_PREVIEW_URL || 'http://127.0.0.1:8080';
 await mkdir('output/first-lines', { recursive: true });
 const failures = [];
 async function open(query = '', viewport = { width: 1180, height: 900 }) {
-  const context = await browser.newContext({ viewport });
+  const mobile = Math.min(viewport.width, viewport.height) < 600;
+  const context = await browser.newContext({ viewport, hasTouch: mobile, isMobile: mobile });
   const page = await context.newPage();
   page.on('pageerror', error => failures.push(error.message));
   await page.addInitScript(() => {
@@ -27,8 +28,11 @@ async function open(query = '', viewport = { width: 1180, height: 900 }) {
 }
 const state = page => page.evaluate(() => window.previewStore.getState().activeSessionSnapshot?.sessionState);
 async function coords(page, x, y = 500) {
-  const r = await page.locator('.first-lines__board').boundingBox(), size = Math.min(r.width, r.height);
-  return { x: r.x + (r.width - size) / 2 + x * size / 1000, y: r.y + (r.height - size) / 2 + y * size / 1000 };
+  return page.locator('.first-lines__board').evaluate((svg, p) => {
+    const point = svg.createSVGPoint(); point.x = p.x; point.y = p.y;
+    const screen = point.matrixTransform(svg.getScreenCTM());
+    return { x: screen.x, y: screen.y };
+  }, { x, y });
 }
 async function stroke(page, points) {
   const start = await coords(page, ...points[0]);
@@ -110,6 +114,45 @@ try {
   await tablet.page.screenshot({ path: 'output/first-lines/tablet.png' });
   await tablet.context.close();
 
+  // Phones use a closer view of the same geometry, with no minimum-size blocker.
+  // Coordinates come from the browser's SVG matrix independently of the renderer mapping.
+  for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 568, height: 320 }, { width: 844, height: 390 }]) {
+    const phone = await open('noVideo&touch', viewport);
+    const screen = phone.page;
+    await expect(screen.locator('.first-lines__size')).toHaveCount(0);
+    const start = await coords(screen, 320), end = await coords(screen, 680);
+    expect(end.x - start.x).toBeGreaterThan(180);
+    expect(start.x).toBeGreaterThan(0); expect(end.x).toBeLessThan(viewport.width);
+    const touch = await phone.context.newCDPSession(screen);
+    const send = async (type, x, y = 500) => touch.send('Input.dispatchTouchEvent', {
+      type, touchPoints: type === 'touchEnd' ? [] : [{ ...await coords(screen, x, y), radiusX: 4, radiusY: 4, force: .1 }],
+    });
+    await screen.screenshot({ path: `output/first-lines/phone-${viewport.width}.png` });
+    await send('touchStart', 320); await send('touchMove', 680); await send('touchEnd');
+    await expect.poll(async () => (await state(screen)).correctCount).toBe(1);
+    expect((await state(screen)).incorrectCount).toBe(0);
+
+    if (viewport.width === 390) {
+      await next(screen);
+      await send('touchStart', 320); await send('touchMove', 450);
+      const work = await screen.locator('polyline').first().getAttribute('points');
+      await screen.setViewportSize({ width: 844, height: 390 });
+      await screen.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await send('touchEnd');
+      expect(await screen.locator('polyline').first().getAttribute('points')).toBe(work);
+      expect((await state(screen)).incorrectCount).toBe(0);
+      await send('touchStart', 450); await send('touchMove', 680); await send('touchEnd');
+      await expect.poll(async () => (await state(screen)).correctCount).toBe(2);
+      await next(screen);
+      await send('touchStart', 320); await send('touchMove', 450); await send('touchMove', 450, 650); await send('touchEnd');
+      await expect.poll(async () => (await state(screen)).incorrectCount).toBe(1);
+      await send('touchStart', 450, 540); await send('touchMove', 680); await send('touchEnd');
+      await expect.poll(async () => (await state(screen)).correctCount).toBe(3);
+      expect((await state(screen)).streakCount).toBe(1);
+    }
+    await phone.context.close();
+  }
+
   // The demonstration draws a real sample behind its tip; both use the same timing.
   // Width chosen before the session controls the visible track and the actual boundary check.
   for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
@@ -158,5 +201,5 @@ try {
   await expect.poll(() => auto.page.evaluate(() => window.previewStore.getState().screen)).toBe('summary');
   await auto.context.close();
   expect(failures).toEqual([]);
-  console.log('First Lines: real ZIP, 15 cards, standard prizes, reload, offline correction, tablet pen/palm, line demonstration and all three widths passed.');
+  console.log('First Lines: real ZIP, rewards, reload, phones in both orientations, touch correction/rotation, tablet pen/palm, demonstration and all widths passed.');
 } finally { await browser.close(); }
