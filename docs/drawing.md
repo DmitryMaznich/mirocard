@@ -35,7 +35,7 @@
   необязательные `clip` и `overlay`.
 - `tools/drawing/build.mjs`: собирает renderer, помещает уроки в карточки
   `topic.json` внутри ZIP, создаёт обложки из тех же путей.
-- `public/decks/drawing_v0.15.1.zip`: самостоятельный пакет, работает без сети.
+- `public/decks/drawing_v0.15.2.zip`: самостоятельный пакет, работает без сети.
 
 При первоначальном добавлении темы в общем коде приложения — только по одному import и элементу в
 `src/topics/registry.js` и `src/topics/renderers/engineRegistry.js` (4 строки).

@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.15.1",
+    "version": "0.15.2",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -18,7 +18,7 @@
       ],
       "finalGoal": "Ребёнок рисует и раскрашивает знакомый рисунок на бумаге, самостоятельно переходя к следующему шагу."
     },
-    "minAppVersion": "1.1.49"
+    "minAppVersion": "1.1.51"
   },
   "modes": [
     {

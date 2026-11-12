@@ -9,8 +9,8 @@ describe("downloadable drawing topic", () => {
     const manifest = JSON.parse(await readFile("tools/drawing/topic.json", "utf8"));
     const bytes = await readFile(`public/decks/drawing_v${manifest.meta.version}.zip`);
     const db = await openDb(`drawing-test-${Date.now()}`);
-    await expect(importTopic(db, bytes, "1.1.48")).rejects.toThrow("1.1.49");
-    await importTopic(db, bytes, "1.1.49");
+    await expect(importTopic(db, bytes, "1.1.50")).rejects.toThrow("1.1.51");
+    await importTopic(db, bytes, "1.1.51");
     const record = await getTopicRecord(db, "drawing");
     expect(record.meta.renderer).toBe("drawing");
     expect(record.modes).toHaveLength(2);
