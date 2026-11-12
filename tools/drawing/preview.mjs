@@ -1,0 +1,15 @@
+/* global window, location, document */
+import {useAdultVideoBonus} from '../../src/features/rewards/useAdultVideoBonus.jsx';import {useAppStore} from '../../src/core/store.js';import {hashPin} from '../../src/shared/utils/pinHash.js';import * as React from 'react';import * as ReactDOM from 'react-dom/client';import * as jsxRuntime from 'react/jsx-runtime';import JSZip from 'jszip';import descriptor from './topic.json';
+const query=new URLSearchParams(location.search);const demoBonus=query.has('bonus');if(demoBonus)await import('../../src/styles.css');
+const zip=await JSZip.loadAsync(await(await fetch(`/decks/drawing_v${descriptor.meta.version}.zip`)).arrayBuffer());const manifest=JSON.parse(await zip.file('topic.json').async('string'));
+manifest.cards=manifest.cards.filter(card=>card.lesson?.steps?.length);
+window.__Mirocard={React,ReactDOM,jsxRuntime};(0,eval)(await zip.file('renderer').async('string'));const style=document.createElement('style');style.textContent=await zip.file('mirocard2.css').async('string');document.head.append(style);
+const selected=new URLSearchParams(location.search).get('lesson');const card=manifest.cards.find(card=>card.id===selected)??manifest.cards[0];
+for(const item of manifest.cards){const link=document.createElement('a');link.href=`?lesson=${encodeURIComponent(item.id)}`;link.textContent=item.label;document.getElementById('lessons').append(link)}
+for(const item of manifest.cards)item.coverUrl='data:image/svg+xml,'+encodeURIComponent(await zip.file(item.image).async('string'));window.lesson=card.lesson;window.finishCount=0;
+const Renderer=window.__MirocardRenderer.default??window.__MirocardRenderer;window.root=ReactDOM.createRoot(document.getElementById('root'));
+window.bonusRequests=0;
+const student=demoBonus?{id:'drawing-preview',rewardVideos:query.has('noVideos')?[]:['https://www.youtube.com/watch?v=aaaaaaaaaaa'],rewardSettings:{duration:'60'}}:undefined;
+if(demoBonus){useAppStore.setState({students:[student],activeStudentId:student.id,settings:{...useAppStore.getState().settings,adultPinHash:await hashPin('1234')}})}
+function Preview(){const bonus=useAdultVideoBonus({student,enabled:demoBonus&&manifest.modes[0].adultVideoReward});return React.createElement(React.Fragment,null,React.createElement(Renderer,{task:{type:'drawing_lesson',lesson:window.lesson},topicRecord:manifest,student,sessionParams:{speed:'fast',videoRewardEnabled:query.get('enabled')==='1'},onRequestVideoBonus:demoBonus?options=>{const accepted=bonus.request(options);if(accepted)window.bonusRequests++;return accepted}:undefined,onClose:()=>{window.finishCount++},onAdvance:()=>{window.finishCount++}}),bonus.modal)}
+window.root.render(React.createElement(Preview));

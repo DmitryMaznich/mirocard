@@ -137,6 +137,13 @@ export function readModeSelectedConceptIds(topicRecord, mode, rawSelectedConcept
   const own = rawSelectedConceptIds
     .filter((id) => id.startsWith(prefix))
     .map((id) => id.slice(prefix.length));
+  // Opt-in for an existing single-pool mode when its topic gains a second pool.
+  // Keep its old selection until the adult saves a namespaced selection.
+  if (!own.length && mode.legacyUnscopedSelection === true) {
+    const pool = new Set(getConceptCards(topicRecord, mode, params).map(card => card.conceptId ?? card.id));
+    const legacy = rawSelectedConceptIds.filter(id => pool.has(id));
+    if (legacy.length) return legacy;
+  }
   // Selections made before the difficulty filter used the shorter namespace.
   // Keep those choices when opening the default “all levels” pool once after
   // the upgrade; level-specific selections remain independent from then on.

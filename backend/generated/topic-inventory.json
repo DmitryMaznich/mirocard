@@ -322,45 +322,45 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.14.0",
+      "version": "0.15.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.14.0.zip",
+        "public/decks/drawing_v0.15.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.14.0",
-        "url": "./decks/drawing_v0.14.0.zip",
+        "version": "0.15.0",
+        "url": "./decks/drawing_v0.15.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
-        "description": "Рисование на бумаге по анимированному образцу. Каждый тап показывает один контур или постепенно закрашивает один участок карандашными штрихами.",
+        "description": "Рисование на бумаге по анимированному образцу и «Первые линии» — первые движения стилусом на экране с переносом на бумагу.",
         "renderer": "drawing",
-        "modes": 1,
-        "cards": 6
+        "modes": 2,
+        "cards": 7
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.14.0",
+        "version": "0.15.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик, Золотая рыбка, Попугай и Ослик.",
-          "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik, Goldfish, Parrot and Donkey."
+          "ru": "Шесть рисунков на бумаге по анимированному образцу и «Первые линии»: короткая прямая стилусом на экране со звёздами и переносом на бумагу.",
+          "en": "Six animated drawing lessons on paper and First Lines: a short line on screen with a stylus, standard stars and practice on paper."
         },
-        "url": "./decks/drawing_v0.14.0.zip",
+        "url": "./decks/drawing_v0.15.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-12T14:02:52+01:00"
+      "sourceUpdatedAt": "2026-11-12T14:23:15+01:00"
     },
     {
       "id": "emotions_v2",

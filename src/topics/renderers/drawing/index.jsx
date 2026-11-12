@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createDrawingPlayer } from './player.js';
 import { toolForStep } from './lessonPlan.js';
 import './drawing.css';
+import FirstLines from './firstLines/FirstLines.jsx';
 
 const initialState = { index: 0, busy: false, paused: false };
 const icons = {
@@ -67,7 +68,11 @@ function Cover({ card, loadTopicFileUrl, topicId }) {
 function readStored(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
 function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local-mode previews can have no storage. */ } }
 
-export default function DrawingRenderer({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onClose, onAdvance, onRequestVideoBonus }) {
+export default function DrawingRenderer(props) {
+  return props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
+}
+
+function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onClose, onAdvance, onRequestVideoBonus }) {
   const cards = topicRecord?.cards?.filter(card => card.lesson?.steps?.length) ?? [];
   const fallback = { id: task?.cardId ?? task?.lesson?.id, label: task?.lesson?.title, lesson: task?.lesson };
   const [selected, setSelected] = useState(() => cards.length > 1 ? null : cards[0] ?? fallback);
