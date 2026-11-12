@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createLineAttempt, restoreAttempt } from './lineAttempt.js';
+import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const p = (x, y = 500) => ({ x, y });
 function line(a, start = 320, end = 680) {
@@ -9,6 +10,67 @@ function line(a, start = 320, end = 680) {
 }
 
 describe('first short line', () => {
+  for (const width of ['wide', 'normal', 'narrow']) {
+    it(`${width}: rejects the screenshot's zigzag inside the road and accepts its correction`, () => {
+      const a = createLineAttempt(undefined, width);
+      expect(a.begin(p(...SCREENSHOT_ZIGZAG[0]))).toBe(true);
+      let errors = 0;
+      for (const xy of SCREENSHOT_ZIGZAG.slice(1)) errors += Number(a.move(p(...xy)).mistake);
+      expect(a.end()).toBe(false); expect(errors).toBe(1);
+      expect(a.state.errorKind).toBe('shape'); expect(a.state.progress).toBe(320);
+      expect(a.state.strokes[0].points.length).toBeGreaterThan(10);
+      expect(a.state.strokes[0].failedFrom).toBe(0);
+      expect(line(a)).toBe(true); expect(a.state.hadError).toBe(true);
+    });
+  }
+  for (const samples of [1, 5, 20]) {
+    it(`has the same zigzag verdict with ${samples} samples per segment`, () => {
+      const a = createLineAttempt(); a.begin(p(...SCREENSHOT_ZIGZAG[0]));
+      let errors = 0;
+      for (let i = 1; i < SCREENSHOT_ZIGZAG.length; i++) {
+        const [x, y] = SCREENSHOT_ZIGZAG[i - 1], [xx, yy] = SCREENSHOT_ZIGZAG[i];
+        for (let k = 1; k <= samples; k++) errors += Number(a.move(p(x + (xx - x) * k / samples, y + (yy - y) * k / samples)).mistake);
+      }
+      expect(a.end()).toBe(false); expect(errors).toBe(1);
+    });
+  }
+  it('does not turn a zigzag into a straight line when the pen is lifted at each corner', () => {
+    const a = createLineAttempt();
+    for (let i = 1; i < SCREENSHOT_ZIGZAG.length && !a.state.needsReturn; i++) {
+      expect(a.begin(p(...SCREENSHOT_ZIGZAG[i - 1]))).toBe(true);
+      a.move(p(...SCREENSHOT_ZIGZAG[i])); a.end();
+    }
+    expect(a.state.hadError).toBe(true); expect(a.state.done).toBe(false);
+    expect(a.state.errorKind).toBe('shape');
+  });
+  it('keeps small high-frequency tremor and a gentle bow acceptable', () => {
+    for (const bow of [false, true]) {
+      const a = createLineAttempt(); a.begin(p(320));
+      for (let x = 321; x <= 680; x++) a.move(p(x, 500 + (bow ? 45 * Math.sin(Math.PI * (x - 320) / 360) : 8 * Math.sin(x * 2))));
+      expect(a.end()).toBe(true); expect(a.state.hadError).toBe(false);
+    }
+  });
+  it('keeps small tremor acceptable when the child lifts the pen frequently', () => {
+    const a = createLineAttempt();
+    let previous = p(320);
+    for (let x = 332; x <= 680 && !a.state.done; x += 12) {
+      expect(a.begin(previous)).toBe(true);
+      previous = p(x, 500 + (x % 24 ? 8 : -8));
+      expect(a.move(previous).mistake).toBe(false);
+      a.end();
+    }
+    expect(a.state.done).toBe(true); expect(a.state.hadError).toBe(false);
+  });
+  it('rejects a loop inside the road and preserves earlier completed movement for the retry', () => {
+    const a = createLineAttempt(); a.begin(p(320)); a.move(p(420)); a.end();
+    const accepted = structuredClone(a.state.strokes[0]);
+    a.begin(p(420)); a.move(p(448));
+    for (let i = 1; i <= 32; i++) a.move(p(420 + 28 * Math.cos(i * 2 * Math.PI / 32), 500 + 28 * Math.sin(i * 2 * Math.PI / 32)));
+    expect(a.end()).toBe(false); expect(a.state.errorKind).toBe('shape');
+    expect(a.state.progress).toBe(420); expect(a.state.anchor).toEqual(p(420));
+    expect(a.state.strokes[0]).toEqual(accepted);
+    expect(a.begin(p(420))).toBe(true); a.move(p(680)); expect(a.end()).toBe(true);
+  });
   for (const [width, size, error] of [['wide', 140, false], ['normal', 100, false], ['narrow', 60, true]]) {
     it(`${width}: applies the selected visible width to the boundary check`, () => {
       const a = createLineAttempt(undefined, width);

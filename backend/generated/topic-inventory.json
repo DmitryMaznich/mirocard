@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.15.3",
+      "version": "0.15.4",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.15.3.zip",
+        "public/decks/drawing_v0.15.4.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.15.3",
-        "url": "./decks/drawing_v0.15.3.zip",
+        "version": "0.15.4",
+        "url": "./decks/drawing_v0.15.4.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -344,7 +344,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.15.3",
+        "version": "0.15.4",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -353,14 +353,14 @@
           "ru": "Шесть рисунков на бумаге по анимированному образцу и «Первые линии»: короткая прямая стилусом на экране со звёздами и переносом на бумагу.",
           "en": "Six animated drawing lessons on paper and First Lines: a short line on screen with a stylus, standard stars and practice on paper."
         },
-        "url": "./decks/drawing_v0.15.3.zip",
+        "url": "./decks/drawing_v0.15.4.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-12T21:08:08Z"
+      "sourceUpdatedAt": "2026-11-12T21:19:25Z"
     },
     {
       "id": "emotions_v2",

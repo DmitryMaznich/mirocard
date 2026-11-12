@@ -6,6 +6,7 @@ import { createSessionState, handleStreakReset, handleAnswer, handleAdvance } fr
 import { generateTasks } from '../engine.js';
 import { checkpointKey, saveCheckpoint } from './checkpoint.js';
 import { createLineAttempt } from './lineAttempt.js';
+import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }]);
 let root, host, latest, errors, successes;
@@ -38,6 +39,22 @@ async function draw() { await send('pointerdown', 320); await send('pointermove'
 async function fail() { await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 650); await send('pointerup', 450, 650); }
 
 describe('First Lines and the real session reward policy', () => {
+  for (const strict of [true, false]) it(`registers a zigzag once and never rewards its correction (strict=${strict})`, async () => {
+    await act(async () => root.render(<Harness strict={strict} />));
+    await send('pointerdown', ...SCREENSHOT_ZIGZAG[0]);
+    for (const xy of SCREENSHOT_ZIGZAG.slice(1)) await send('pointermove', ...xy);
+    await send('pointerup', ...SCREENSHOT_ZIGZAG.at(-1));
+    expect(errors).toHaveBeenCalledTimes(1); expect(successes).not.toHaveBeenCalled();
+    expect(latest.status).toBe('task_active'); expect(latest.rewardAttemptBlocked).toBe(true);
+    expect(host.textContent).toContain('Ещё раз отсюда');
+    const remaining = strict ? 2 : 3;
+    expect(latest.streakCount).toBe(remaining);
+    await draw();
+    expect(latest.streakCount).toBe(remaining); expect(successes).toHaveBeenCalledTimes(1);
+    expect(host.querySelector('.first-lines__ink--error')).toBeTruthy();
+    await act(async () => host.querySelector('.first-lines__footer button').click());
+    await draw(); expect(latest.streakCount).toBe(remaining + 1);
+  });
   for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
     it(`${width}: renders and evaluates the same width`, async () => {
       await act(async () => root.render(<Harness width={width} />));

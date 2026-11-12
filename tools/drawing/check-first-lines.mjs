@@ -2,6 +2,7 @@
 // Runs against `npm run dev`. Tests the installed ZIP in the actual SessionScreen.
 import { chromium, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
+import { SCREENSHOT_ZIGZAG } from '../../src/topics/renderers/drawing/firstLines/testPaths.js';
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
 const base = process.env.DRAWING_PREVIEW_URL || 'http://127.0.0.1:8080';
@@ -113,6 +114,35 @@ try {
   await expect.poll(async () => (await state(tablet.page)).correctCount).toBe(1);
   await tablet.page.screenshot({ path: 'output/first-lines/tablet.png' });
   await tablet.context.close();
+
+  // Regression for the owner's screenshot: a zigzag inside the road is not a
+  // completed straight line, including on a phone. Correction keeps the raw trail.
+  for (const width of ['wide', 'normal', 'narrow']) {
+    const crooked = await open(`noVideo&width=${width}`, { width: 390, height: 844 });
+    const screen = crooked.page;
+    await stroke(screen, SCREENSHOT_ZIGZAG);
+    await expect.poll(async () => (await state(screen)).incorrectCount).toBe(1);
+    expect((await state(screen)).correctCount).toBe(0);
+    expect((await state(screen)).status).toBe('task_active');
+    expect((await state(screen)).rewardAttemptBlocked).toBe(true);
+    await expect(screen.locator('.first-lines__footer button')).toHaveCount(0);
+    await expect(screen.locator('.first-lines__cue')).toContainText('Ещё раз отсюда');
+    if (width === 'normal') await screen.screenshot({ path: 'output/first-lines/zigzag-rejected.png' });
+    const failedTrail = await screen.locator('.first-lines__ink--error').getAttribute('points');
+    if (width === 'normal') {
+      await screen.reload(); await screen.locator('.first-lines__board').waitFor();
+      await screen.evaluate(() => document.fonts.ready);
+      await screen.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      expect((await state(screen)).rewardAttemptBlocked).toBe(true);
+      await expect(screen.locator('.first-lines__footer button')).toHaveCount(0);
+    }
+    await complete(screen);
+    expect((await state(screen)).streakCount).toBe(0);
+    expect(await screen.locator('.first-lines__ink--error').getAttribute('points')).toBe(failedTrail);
+    await next(screen); await complete(screen);
+    expect((await state(screen)).streakCount).toBe(1);
+    await crooked.context.close();
+  }
 
   // Phones use a closer view of the same geometry, with no minimum-size blocker.
   // Coordinates come from the browser's SVG matrix independently of the renderer mapping.
