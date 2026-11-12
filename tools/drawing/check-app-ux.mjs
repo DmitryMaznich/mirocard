@@ -3,7 +3,7 @@
 // standalone design mockup: DRAWING_PREVIEW_URL can point at a prod-ZIP harness.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-const cardCount = JSON.parse(await readFile(new URL('./topic.json', import.meta.url), 'utf8')).cards.length;
+const cardCount = JSON.parse(await readFile(new URL('./topic.json', import.meta.url), 'utf8')).cards.filter(card => card.lessonFile).length;
 import { chromium } from '@playwright/test';
 const base = process.env.DRAWING_PREVIEW_URL ?? 'http://localhost:8080/tools/drawing/preview.html?lesson=goldfish';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
