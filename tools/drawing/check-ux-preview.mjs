@@ -61,7 +61,7 @@ try {
     assert.deepEqual(errors, [], scenario);
     await context.close();
   }
-  console.log(`PASS ${passed} lesson selections: all four drawings, fresh/coloured/completed progress, unavailable storage, next step and reopen`);
+  console.log(`PASS ${passed} lesson selections: all ${cards.length} drawings, fresh/coloured/completed progress, unavailable storage, next step and reopen`);
 } finally {
   await browser.close();
 }
