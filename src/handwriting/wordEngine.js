@@ -1280,7 +1280,7 @@ function cutLegAtLevel(d, yLevel) {
   return null;
 }
 // Cuts a path at the point of it that lies nearest to `pt` (the part before that point is dropped): returns { pt, rest }.
-function cutPathNear(d, pt) {
+function cutPathNear(d, pt, firstWithin = null) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
   for (let i = 0; i < toks.length;) {
@@ -1299,6 +1299,8 @@ function cutPathNear(d, pt) {
       const q = at(k / 96), dd = Math.hypot(q[0] - pt[0], q[1] - pt[1]);
       if (!best || dd < best.dd) best = { dd, si, t: k / 96, P };
     }
+    // `firstWithin`: the FIRST place along the path that comes that near (a path that passes the same point twice, the Slovene a: its top)
+    if (firstWithin != null && best.dd <= firstWithin) break;
     p0 = [x3, y3];
   }
   if (!best) return null;
@@ -2179,6 +2181,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       const unjoined = glyphsByLabel?.script?.joins === false;
       // ...and joined after all by the style's own rules (script.joinRules, the Nelson joins)
       const nelson = unjoined ? nelsonRules(glyphsByLabel?.script?.joinRules) : null;
+      // ...or by meeting (script.meetJoins, the Slovene school hand, docs/propis2-sl.md step 4): the exit of a letter IS the lead-in of the
+      // next — the next letter stands where its rising lead-in passes through the end of the exit, and what of the lead-in lies below that
+      // point is not written; from an exit at the top (o v b r) a short join goes on to the top of the next letter (into e: down to its
+      // loop). `noExitFrom`: letters that end on their left side (the capitals B D F I N P S Š T): the next letter after them keeps its
+      // whole lead-in, not joined.
+      const meet = unjoined && glyphsByLabel?.script?.meetJoins
+        ? { noExit: new Set([...(glyphsByLabel.script.meetJoins.noExitFrom ?? "")]), loopInto: new Set([...(glyphsByLabel.script.meetJoins.loopInto ?? "")]) }
+        : null;
+      let prevMeetExit = null; // the end of the previous letter's exit stroke, row coordinates, with its direction: { p, t }
       // the pieces of ONE composed letter (ш = three hooks, ы = ь + ы2, ии): they are written as the letter itself, never joined by a variant's own connector (`topJoins`)
       const innerPiece = new Set();
       { let at = 0; for (const raw of wideTokenToLabelsRaw(token, glyphsByLabel)) { const n = glyphsByLabel.get(raw)?.compose?.length ?? 1; for (let k = 1; k < n; k += 1) innerPiece.add(at + k); at += n; } }
@@ -2302,6 +2313,41 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             nelsonJoin = { kind, ex, tg, ovalIn, bowlArc };
           }
         }
+        let meetJoin = null;
+        if (meet && apart && loose && !afterSign && !inCell && prevMeetExit && glyph.kind === "letter" && !isCap) {
+          const pts = samplePath(local.strokes[0].d, 60);
+          // the lead-in: from the start for as long as the pen rises
+          let k = 0;
+          for (let i = 1; i < pts.length; i += 1) { if (pts[i][1] > pts[k][1] + 0.5 * scale) break; if (pts[i][1] <= pts[k][1]) k = i; }
+          const E = prevMeetExit.p;
+          // an exit that ends INSIDE the letter, not on its right (s: its little curl at the bottom left): the next letter stands clear of
+          // its ink and the join runs from the curl out under the bowl, level, into the lead-in at that height
+          const prevRight = Math.max(...prevGlyphStrokes.flatMap((m) => samplePath(m.d, 30).map((q) => q[0])));
+          const inside = E[0] < prevRight - 0.2 * WIDE_ZONE_UNITS * scale;
+          if (inside && k > 0 && E[1] < pts[0][1] + 0.5 * scale) {
+            let i = 1;
+            while (i < k && pts[i][1] > E[1]) i += 1;
+            const T = pts[Math.max(1, i)];
+            wantStartX = prevRight + 0.15 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
+            meetJoin = { type: "join", P: T, t: [pts[Math.min(k, i + 2)][0] - T[0], pts[Math.min(k, i + 2)][1] - T[1]], level: true };
+          } else if (k > 0 && E[1] > pts[k][1] + 3 * scale && E[1] < pts[0][1]) {
+            // an exit half-way up (or lower, s): the point where the lead-in passes that height goes onto the exit's end
+            let i = 1;
+            while (i < k && pts[i][1] > E[1]) i += 1;
+            const a0 = pts[i - 1], a1 = pts[i], u = (a0[1] - E[1]) / ((a0[1] - a1[1]) || 1);
+            const P = [a0[0] + (a1[0] - a0[0]) * u, E[1]];
+            wantStartX = E[0] - P[0] + local.start[0];
+            meetJoin = { type: "meet", P };
+          } else if (k > 0) {
+            // an exit at the top: a short join to the top of the lead-in (into e: to its lead-in a little below, the loop's right side)
+            const into = meet.loopInto.has(label);
+            let j = k;
+            if (into) { const yT = pts[k][1] + 0.4 * (pts[0][1] - pts[k][1]); j = 1; while (j < k && pts[j][1] > yT) j += 1; }
+            const T = pts[j], T0 = pts[Math.max(0, j - 2)];
+            wantStartX = E[0] + (into ? 0.25 : 0.2) * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
+            meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]] };
+          }
+        }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
         // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
         // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
@@ -2349,7 +2395,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // else placed it — f's tail under the line touched q's and s's (the pair check, owner, 2026-11-09: «как нам комплексно проверить
         // все соединения»)
         // (not before e's loop: the flick of the letter before is cut off there, e stands where it was)
-        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop) {
+        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop && meetJoin?.type !== "meet") {
           const rows = new Map();
           for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 60)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
           let need = -Infinity;
@@ -2628,6 +2674,19 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
+        if (meetJoin && moved[0]) {
+          const at = [meetJoin.P[0] + dx, meetJoin.P[1]];
+          const cut = cutPathNear(toCubicPathD(moved[0].d), at, 0.6 * scale);
+          if (cut) moved[0] = { ...moved[0], d: cut.rest };
+          if (meetJoin.type === "join") {
+            const E = prevMeetExit.p, L = Math.hypot(at[0] - E[0], at[1] - E[1]);
+            // leaving LEVEL: from the top of o v b r (their exit ends rising: a hook up at the join otherwise) and from under s
+            const tE = [1, 0], tT = nlsUnit(...meetJoin.t);
+            const c1 = [E[0] + tE[0] * L * 0.4, E[1] + tE[1] * L * 0.4], c2 = [at[0] - tT[0] * L * 0.4, at[1] - tT[1] * L * 0.4];
+            const f3 = (v) => v.toFixed(3);
+            strokes.push({ d: `M ${f3(E[0])} ${f3(E[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(at[0])} ${f3(at[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
+          }
+        }
         if (nelsonJoin?.tg.joinedForm && moved[0]) moved[0] = { ...moved[0], d: transformPathD(nelsonJoin.tg.joinedForm, { translateX: dx }) };
         if (nelsonJoin?.tg.entry && moved[nelsonJoin.tg.entry]) moved.unshift(...moved.splice(nelsonJoin.tg.entry, 1)); // (that stroke first)
         if (nelsonJoin?.tg.rebuild && moved[0]) moved[0] = { ...moved[0], d: nelsonRebuildStart(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.rebuild) };
@@ -2665,6 +2724,16 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         afterSign = Boolean(glyph.noJoin);
         prevCapital = isCap;
         prevGlyphStrokes = moved;
+        prevMeetExit = null;
+        if (meet && !inCell && glyph.kind === "letter" && !meet.noExit.has(label)) {
+          // the exit: the last stroke that is not a lift (the dot of i j, the bar of t, a caron)
+          const ei = (glyph.strokes ?? []).map((st) => st.name).findLastIndex((n) => !["точка", "черта", "гачек"].includes(n));
+          if (ei >= 0 && moved[ei]) {
+            const q = samplePath(moved[ei].d, 40);
+            const e1 = q[q.length - 1], e0 = q[Math.max(0, q.length - 4)];
+            prevMeetExit = { p: e1, t: [e1[0] - e0[0], e1[1] - e0[1]] };
+          }
+        }
         pendingTouchX = null;
         if (local.tail) {
           if (glyphsByLabel?.script?.exactJoins) {

@@ -296,7 +296,11 @@
           "script": {
             "joins": false,
             "letterGap": 0,
-            "wordGap": 56
+            "wordGap": 56,
+            "meetJoins": {
+              "noExitFrom": "BDFINPSŠT",
+              "loopInto": "e"
+            }
           },
           "papers": [
             "sl_10",

@@ -6,6 +6,7 @@ import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import PrintPageView from "@/handwriting/PrintPageView";
 import { FOUR_LINE_PAPERS } from "@/handwriting/fourLinePapers";
 import { layoutWideLinesIntoRows } from "@/handwriting/wordEngine";
+import { getPathEndpoints } from "@/handwriting/pathGeometry";
 import { buildPageTask, glyphMapOf } from "./pageTask.js";
 import { languageView } from "./languages.js";
 import { deckPapers } from "./model.js";
@@ -108,6 +109,21 @@ describe("Slovenian (draft)", () => {
     }
   });
 
+  it("joined words (step 4): the exit of a letter is the lead-in of the next; after B D F I N P S Š T the next letter keeps its own", () => {
+    const cur = view("sl_cursive");
+    // the starts on the baseline: in a joined word only the first letter's lead-in starts there
+    const baseStarts = (text) => {
+      const all = [];
+      const walk = (o) => { if (Array.isArray(o)) o.forEach(walk); else if (o && typeof o === "object") { if (typeof o.d === "string") { if (!all.some((x) => x.d === o.d)) all.push(o); } else Object.values(o).forEach(walk); } };
+      walk(inkOf(cur, text).segments);
+      const starts = all.filter((st) => !st.join && !st.dashed).map((st) => getPathEndpoints(st.d).start[1]);
+      return starts.filter((y) => y > 60).length; // the capture frame's baseline: y = 62
+    };
+    for (const w of ["ima", "mamin", "miza", "rumen", "trava", "lovi", "ovca", "vesel"]) expect(baseStarts(w), w).toBe(1);
+    for (const w of ["Miha", "Lara", "Enea", "Janina", "Ana", "Urša"]) expect(baseStarts(w), w).toBe(0);
+    for (const w of ["Da", "Ia", "Pa", "Ta", "Bor"]) expect(baseStarts(w), w).toBe(1);
+  });
+
   it("the Slovene paper: three lines, three equal bands, no bottom line; offered in five sizes", async () => {
     for (const id of ["sl", "sl_10", "sl_8", "sl_6", "sl_45"]) {
       const p = FOUR_LINE_PAPERS[id];
@@ -128,7 +144,9 @@ describe("Slovenian (draft)", () => {
         ["cursive1", "sl_cursive", ["a b c č d e f", "g h i j k l m", "n o p r s š t", "u v z ž"], "sl_10"],
         ["cursive2", "sl_cursive", ["a#r", "e#r", "l#r", "o#r"], "sl_8"],
         ["capitals", "sl_cursive", ["A B C Č D E F", "G H I J K L M", "N O P R S Š T", "U V Z Ž"], "sl_10"],
-        ["names", "sl_cursive", ["Ana Bled", "Čaša Žiga", "Maja Tone"], "sl_10"],
+        ["names", "sl_cursive", ["Miha David", "Enea Lara", "Izak Janina"], "sl_10"],
+        ["words1", "sl_cursive", ["ima imata", "rumen zelen", "mamin trava"], "sl_10"],
+        ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
     }
   });
