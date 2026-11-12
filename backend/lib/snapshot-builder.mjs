@@ -6,6 +6,7 @@ import {
   getAllAccountKv, serializeAccount,
 } from "./account-repository.mjs";
 import { getActiveSubscriptionForAccount } from "./billing-repository.mjs";
+import { getProviderSubscriptionSummary } from "./billing-subscriptions.mjs";
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value ?? "null") ?? fallback; }
@@ -28,6 +29,8 @@ export function buildBootstrap(db, accountId) {
     account: serializeAccount(account),
     builtinVisibility: getBuiltinVisibility(db),
     subscription,
+    // Paddle subscription state (renews / scheduled cancel / past due), or null.
+    providerSubscription: getProviderSubscriptionSummary(db, accountId),
     settings: {
       uiLanguage:       settings?.ui_language ?? "ru",
       cardLanguage:     settings?.card_language ?? "ru",

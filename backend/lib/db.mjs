@@ -592,6 +592,29 @@ export function initDb(dbPath = DB_PATH) {
     CREATE INDEX IF NOT EXISTS idx_entitlements_account ON entitlements(account_id);
     CREATE INDEX IF NOT EXISTS idx_entitlements_account_active ON entitlements(account_id, status, ends_at);
 
+    -- One row per recurring subscription at a payment provider (Paddle), kept
+    -- in step with the provider's webhooks. Access itself still lives in
+    -- entitlements (one row per subscription, source = 'subscription',
+    -- source_id = provider_subscription_id, updated in place on every event).
+    -- provider_updated_at guards against out-of-order webhook deliveries.
+    CREATE TABLE IF NOT EXISTS provider_subscriptions (
+      id                        TEXT PRIMARY KEY,
+      account_id                TEXT NOT NULL REFERENCES accounts(id),
+      provider                  TEXT NOT NULL,          -- 'paddle'
+      provider_subscription_id  TEXT NOT NULL UNIQUE,
+      provider_customer_id      TEXT,
+      plan                      TEXT NOT NULL,          -- 'monthly' | 'half_year' | 'annual' | 'unknown'
+      status                    TEXT NOT NULL,          -- provider status: 'active' | 'trialing' | 'past_due' | 'paused' | 'canceled'
+      current_period_start      TEXT,
+      current_period_end        TEXT,
+      scheduled_cancel_at       TEXT,                   -- set while a cancellation is scheduled for the period end
+      grace_until               TEXT,                   -- past_due only: access kept until this moment
+      provider_updated_at       TEXT,
+      created_at                TEXT NOT NULL,
+      updated_at                TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_provider_subscriptions_account ON provider_subscriptions(account_id);
+
     -- One row per checkout, recording exactly what the account agreed to
     -- and against which version of the legal docs -- a durable audit trail
     -- independent of whatever the current /terms page says later. Required

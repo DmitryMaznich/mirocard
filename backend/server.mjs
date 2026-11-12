@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION, PAYWALL_ENFORCED,
+  PADDLE_ENV, PADDLE_API_KEY, PADDLE_CLIENT_TOKEN,
   CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, EMAIL_MATERIALS_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL, APP_BASE_URL,
 } from "./lib/config.mjs";
 import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
@@ -72,6 +73,14 @@ import {
   verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
+import {
+  verifyPaddleWebhookSignature, parsePaddleWebhookEvent, isPaddleConfiguredFor,
+  createPaddleTransaction, createPaddlePortalSession, getPaddleSubscription,
+} from "./lib/billing-providers/paddle.mjs";
+import {
+  processPaddleEvent, getLatestProviderSubscriptionForAccount, getProviderSubscriptionSummary,
+  reconcileProviderSubscriptions,
+} from "./lib/billing-subscriptions.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
 import { pruneBackups, DEFAULT_KEEP as DEFAULT_BACKUP_KEEP } from "../scripts/railway-backup-loop.mjs";
 import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure, archiveAccount, eraseAccount, eraseStudent } from "./lib/account-lifecycle.mjs";
@@ -682,6 +691,9 @@ async function handleSignupStatus(req, res) {
     // Same gate as handleBillingCheckout: lets the subscription screen say
     // "оплата скоро" instead of sending people into a guaranteed 503.
     checkoutEnabled: LEGAL_DOCS_VERSION !== "draft",
+    // Paddle subscriptions (docs/monetization-eu-plan.md): what the
+    // subscription screen offers once paid plans are back.
+    paddle: { enabled: isPaddleCheckoutOpen(), environment: PADDLE_ENV },
   });
 }
 
@@ -1399,6 +1411,82 @@ async function handleBillingCheckout(req, res) {
   }
 }
 
+// ─── Paddle (auto-renewing subscriptions) ───────────────────────────────────
+
+// Sandbox checkouts move no real money, so they're open as soon as the keys
+// exist (to test before launch); production ones additionally need the
+// reviewed legal docs, same rule as Stripe above.
+function isPaddleCheckoutOpen() {
+  if (!PADDLE_API_KEY || !PADDLE_CLIENT_TOKEN) return false;
+  return PADDLE_ENV === "sandbox" || LEGAL_DOCS_VERSION !== "draft";
+}
+
+async function handlePaddleCheckout(req, res) {
+  const account = requireAuth(req);
+  if (!checkCheckoutLimit(account.id)) return rateLimited(res);
+  const body = await readJsonBody(req);
+  const plan = body?.plan;
+  const planDef = PLAN_CATALOG[plan];
+  if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
+  if (!isPaddleCheckoutOpen() || !isPaddleConfiguredFor(plan)) {
+    return writeJson(res, 503, { error: "Checkout is not open yet" });
+  }
+  // One live subscription per account: a second one would charge twice.
+  // Changing plan is done in Paddle's portal instead.
+  const current = getProviderSubscriptionSummary(db, account.id);
+  if (current?.renews) return writeJson(res, 409, { error: "already_subscribed" });
+
+  const orderId = randomUUID();
+  createOrder(db, account.id, {
+    provider: "paddle", plan, orderId, currency: planDef.currency, amountMinor: planDef.amountMinor,
+  });
+  try {
+    const { transactionId } = await createPaddleTransaction({ plan, accountId: account.id, orderId });
+    trackEvent("checkout_created", { plan, provider: "paddle", amountMinor: planDef.amountMinor, currency: planDef.currency, hasPromoCode: false });
+    writeJson(res, 200, {
+      orderId, transactionId, email: account.email,
+      clientToken: PADDLE_CLIENT_TOKEN, environment: PADDLE_ENV,
+    });
+  } catch (err) {
+    console.error(`[billing] paddle transaction creation failed for order ${orderId}:`, err.message);
+    writeJson(res, 502, { error: "Payment provider error" });
+  }
+}
+
+async function handlePaddleWebhook(req, res) {
+  if (!checkWebhookLimit("paddle")) return rateLimited(res);
+  const rawBody = (await readRawBody(req)).toString("utf8");
+  if (!verifyPaddleWebhookSignature(rawBody, req.headers["paddle-signature"])) {
+    return writeJson(res, 401, { error: "Invalid signature" });
+  }
+  let event;
+  try {
+    event = parsePaddleWebhookEvent(rawBody);
+  } catch {
+    return writeJson(res, 400, { error: "Invalid payload" });
+  }
+  const result = processPaddleEvent(db, event, { rawBody });
+  if (!result.ok) console.error(`[billing] paddle ${event.eventType} ${event.eventId} not applied: ${result.reason}`);
+  handleWebhookOutcome(result);
+  writeJson(res, 200, { received: true });
+}
+
+// A fresh one-time link into Paddle's customer portal (card, cancel, invoices).
+async function handleBillingPortal(req, res) {
+  const account = requireAuth(req);
+  const row = getLatestProviderSubscriptionForAccount(db, account.id);
+  if (!row?.provider_customer_id) return writeJson(res, 404, { error: "No subscription" });
+  try {
+    const urls = await createPaddlePortalSession({
+      customerId: row.provider_customer_id, subscriptionId: row.provider_subscription_id,
+    });
+    writeJson(res, 200, urls);
+  } catch (err) {
+    console.error(`[billing] paddle portal session failed for account ${account.id}:`, err.message);
+    writeJson(res, 502, { error: "Payment provider error" });
+  }
+}
+
 async function handleStripeWebhook(req, res) {
   // Coarse volumetric guard ahead of the (comparatively expensive) HMAC
   // signature check -- keyed by provider, not caller, since a legitimate
@@ -1455,7 +1543,11 @@ function handleWebhookOutcome(result) {
 
 async function handleGetSubscription(req, res) {
   const account = requireAuth(req);
-  writeJson(res, 200, getActiveSubscriptionForAccount(db, account.id));
+  const subscription = getActiveSubscriptionForAccount(db, account.id);
+  // Paddle's view (renews / cancellation scheduled / past due) rides along
+  // on an existing access object; null stays null for old clients.
+  const provider = getProviderSubscriptionSummary(db, account.id);
+  writeJson(res, 200, subscription && provider ? { ...subscription, provider } : subscription);
 }
 
 // Answers "did this specific checkout attempt succeed" -- distinct from
@@ -2132,6 +2224,9 @@ async function router(req, res) {
     if (method === "POST" && p === "/billing/checkout") return await handleBillingCheckout(req, res);
     if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
     if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
+    if (method === "POST" && p === "/billing/paddle/checkout")   return await handlePaddleCheckout(req, res);
+    if (method === "POST" && p === "/billing/webhook/paddle")    return await handlePaddleWebhook(req, res);
+    if (method === "POST" && p === "/billing/portal")            return await handleBillingPortal(req, res);
     if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
     if (method === "GET"  && p === "/billing/order-status")      return await handleGetOrderStatus(req, res);
     if (method === "POST" && p === "/billing/validate-code") return await handleValidateCode(req, res);
@@ -2213,6 +2308,14 @@ if (isMainModule) {
       .then(({ startPhotoGcLoop }) => startPhotoGcLoop(db))
       .catch((err) => console.error("[photo-gc] failed to start:", err));
 
+    // Daily: re-read live Paddle subscriptions in case a webhook was lost.
+    if (PADDLE_API_KEY) {
+      const reconcile = () => reconcileProviderSubscriptions(db, getPaddleSubscription)
+        .then((n) => { if (n) console.log(`[billing] reconciled ${n} paddle subscription(s)`); })
+        .catch((err) => console.error("[billing] paddle reconcile failed:", err));
+      setTimeout(reconcile, 60 * 1000);
+      setInterval(reconcile, 24 * HOUR_MS);
+    }
     // No "your access is ending/ended" emails while access isn't enforced.
     if (PAYWALL_ENFORCED) {
       import("../scripts/entitlement-reminder-loop.mjs")
