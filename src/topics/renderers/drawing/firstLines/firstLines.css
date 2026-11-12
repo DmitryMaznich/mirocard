@@ -6,14 +6,15 @@
 .first-lines button>svg{width:36px;height:32px;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 .first-lines__tools svg{width:48px;height:32px;fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 .first-lines__board{display:block;flex:1;min-height:0;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
-.first-lines__track{fill:none;stroke:#dbebe0;stroke-width:100;stroke-linecap:round}
+.first-lines__track{fill:none;stroke:#dbebe0;stroke-linecap:round}
 .first-lines__house{fill:#fff;stroke:#248b79;stroke-width:8;stroke-linejoin:round;stroke-linecap:round}
 .first-lines__ink{fill:none;stroke:#315b86;stroke-width:14;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}
 .first-lines__ink--error{stroke:#a56e31;opacity:.65}
 .first-lines__mark{fill:none;stroke:#b98532;stroke-width:5;pointer-events:none}
 .first-lines__resume{fill:none;stroke:#248b79;stroke-width:6;stroke-dasharray:7 6;pointer-events:none}
-.first-lines__demo{fill:#315b86;pointer-events:none;animation:first-lines-demo 1.5s ease-in-out forwards}
-@keyframes first-lines-demo{0%,10%{transform:translateX(0)}90%,100%{transform:translateX(360px)}}
+.first-lines__demo{pointer-events:none}
+.first-lines__demo-tip{fill:#315b86}
+.first-lines__demo-line{fill:none;stroke:#315b86;stroke-width:14;stroke-linecap:round;stroke-dasharray:1}
 .first-lines__footer{min-height:72px;display:flex;justify-content:center;align-items:center;padding:4px 16px 12px;flex-shrink:0}
 .first-lines__footer button{background:#e5f1e8}
 .first-lines__cue{display:flex;gap:12px;align-items:center;font-size:19px}
@@ -22,4 +23,3 @@
 .first-lines__pause>svg{width:160px;height:120px;fill:white;stroke:#315b86;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 .first-lines__size{position:absolute;inset:0;z-index:3;background:#fafbf7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center;font-size:20px}
 .first-lines__size>svg{width:120px;height:100px;fill:none;stroke:#315b86;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
-@media(prefers-reduced-motion:reduce){.first-lines__demo{animation-timing-function:linear}}

@@ -9,10 +9,11 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   rewardAttemptBlocked = false, interactionDisabled = false, onCorrect, onStreakReset, onAdvance }) {
   // SessionScreen keys each task. Its stable session identity also survives an app reload.
   const key = checkpointKey(student?.id, sessionId, task.id);
-  const [attempt] = useState(() => createLineAttempt(readCheckpoint(key)));
+  const [attempt] = useState(() => createLineAttempt(readCheckpoint(key), sessionParams?.trackWidth));
   const [, redraw] = useState(0);
   const [paused, setPaused] = useState(Boolean(task.breakBefore));
   const [demo, setDemo] = useState(false);
+  const [demoProgress, setDemoProgress] = useState(0);
   const [hint, setHint] = useState(false);
   const [small, setSmall] = useState(false);
   const svg = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
@@ -64,8 +65,18 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
 
   useEffect(() => {
     if (!demo) return undefined;
-    const timer = setTimeout(() => setDemo(false), 1800);
-    return () => clearTimeout(timer);
+    let frame, started;
+    const linear = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const animate = time => {
+      started ??= time;
+      const progress = Math.max(0, Math.min(1, (time - started - 150) / 1200));
+      // One progress value drives both the drawn line and the tip, including Safari.
+      setDemoProgress(linear ? progress : progress * progress * (3 - 2 * progress));
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    const timer = setTimeout(() => setDemo(false), 2400);
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, [demo]);
 
   const point = event => {
@@ -97,7 +108,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
 
   return <section className="first-lines" aria-label="Первые линии — короткая прямая" onClick={event => event.stopPropagation()}>
     <div className="first-lines__tools">
-      <button type="button" disabled={disabled || state.done} onClick={() => { attempt.end(true); pointer.current = null; setDemo(true); }} aria-label="Показать движение">
+      <button type="button" disabled={disabled || state.done} onClick={() => { attempt.end(true); pointer.current = null; setDemoProgress(0); setDemo(true); }} aria-label="Показать движение">
         <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
       </button>
       <button type="button" disabled={interactionDisabled || correct} onClick={() => { attempt.end(true); pointer.current = null; setDemo(false); setPaused(true); refresh(); }} aria-label="Пауза"><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M18 6v20M30 6v20" /></svg></button>
@@ -113,7 +124,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       }}
       onPointerMove={event => { if (!disabled && pointer.current === event.pointerId) { event.preventDefault(); move(event); refresh(); } }}
       onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={event => finish(event, true)}>
-      <path className="first-lines__track" d="M320 500H680" />
+      <path className="first-lines__track" d="M320 500H680" strokeWidth={attempt.line.halfWidth * 2} />
       <circle cx="320" cy="500" r="22" fill="#248b79" />
       <path className="first-lines__house" d="M653 494v40h54v-40M644 496l36-32 36 32M674 534v-22h13v22" />
       {state.strokes.map((stroke, index) => <g key={index}>
@@ -123,7 +134,10 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       </g>)}
       {state.marks.map((p, index) => <circle key={index} className="first-lines__mark" cx={p.x} cy={p.y} r="22" />)}
       {!state.done && (state.needsReturn || hint || state.progress > LINE.start) && <circle className="first-lines__resume" cx={state.anchor.x} cy={state.anchor.y} r="34" />}
-      {demo && <circle className="first-lines__demo" cx="320" cy="500" r="16" />}
+      {demo && <g className="first-lines__demo" aria-hidden="true">
+        <path className="first-lines__demo-line" d="M320 500H680" pathLength="1" strokeDashoffset={1 - demoProgress} />
+        <circle className="first-lines__demo-tip" cx={320 + 360 * demoProgress} cy="500" r="16" />
+      </g>}
     </svg>
     <div className="first-lines__footer" aria-live="polite">
       {state.done || correct ? <button type="button" disabled={interactionDisabled || !correct} onClick={onAdvance}><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h30M27 7l10 9-10 9" /></svg> Дальше</button>

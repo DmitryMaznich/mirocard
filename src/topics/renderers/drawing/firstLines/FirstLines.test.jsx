@@ -9,14 +9,14 @@ import { createLineAttempt } from './lineAttempt.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }]);
 let root, host, latest, errors, successes;
-function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', initial }) {
+function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', initial }) {
   const [state, setState] = useState(() => initial ?? {
     ...createSessionState(tasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.15.0', ['line'], null, false, perStar, strict, { version: 2, lossMode: loss }),
     id: 'session-test', streakCount: 3 * perStar,
   });
   useEffect(() => { latest = state; }, [state]);
   return <FirstLines key={state.taskIndex} task={state.tasks[state.taskIndex]} student={{ id: 'kid' }} sessionId={state.id}
-    sessionParams={{ inputMode: input }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
+    sessionParams={{ inputMode: input, trackWidth: width }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
     onStreakReset={(concept, card) => { errors(); setState(s => handleStreakReset(s, concept, card)); }}
     onCorrect={(concept, card) => { successes(); setState(s => handleAnswer(s, true, concept, card)); }}
     onAdvance={() => setState(handleAdvance)} />;
@@ -38,6 +38,34 @@ async function draw() { await send('pointerdown', 320); await send('pointermove'
 async function fail() { await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 650); await send('pointerup', 450, 650); }
 
 describe('First Lines and the real session reward policy', () => {
+  for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
+    it(`${width}: renders and evaluates the same width`, async () => {
+      await act(async () => root.render(<Harness width={width} />));
+      expect(host.querySelector('.first-lines__track').getAttribute('stroke-width')).toBe(String(size));
+      await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 560);
+      await send('pointermove', 520, 560); await send('pointermove', 680); await send('pointerup', 680);
+      expect(errors).toHaveBeenCalledTimes(mistakes);
+      expect(successes).toHaveBeenCalledTimes(mistakes ? 0 : 1);
+    });
+  }
+  it('shows the line and its tip without changing the child’s work or awarding a completion', async () => {
+    vi.useFakeTimers();
+    try {
+      await act(async () => root.render(<Harness />));
+      await send('pointerdown', 320); await send('pointermove', 450); await send('pointerup', 450);
+      const work = [...host.querySelectorAll('polyline')].map(node => node.getAttribute('points'));
+      await act(async () => host.querySelector('[aria-label="Показать движение"]').click());
+      expect(host.querySelector('.first-lines__demo-line')).toBeTruthy();
+      expect(host.querySelector('.first-lines__demo-tip')).toBeTruthy();
+      await draw();
+      expect(successes).not.toHaveBeenCalled(); expect(errors).not.toHaveBeenCalled();
+      await act(async () => vi.advanceTimersByTime(2400));
+      expect(host.querySelector('.first-lines__demo')).toBeNull();
+      expect([...host.querySelectorAll('polyline')].map(node => node.getAttribute('points'))).toEqual(work);
+      await send('pointerdown', 450); await send('pointermove', 680); await send('pointerup', 680);
+      expect(successes).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
   for (const strict of [true, false]) for (const loss of ['one', 'all']) for (const perStar of [1, 2, 3]) {
     it(`keeps correction blocked and next card eligible: strict=${strict}, loss=${loss}, perStar=${perStar}`, async () => {
       await act(async () => root.render(<Harness strict={strict} loss={loss} perStar={perStar} />));

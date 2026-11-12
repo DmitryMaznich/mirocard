@@ -26,6 +26,7 @@ it('shows an off-by-default end-bonus switch and launches without the cumulative
   const toggle = host.querySelector('[role=switch][aria-label="Видеобонус в конце рисования"]');
   expect(toggle).toBeTruthy(); expect(toggle.getAttribute('aria-checked')).toBe('false');
   expect(host.querySelector('.video-prize-card')).toBeNull();
+  expect(host.textContent).not.toContain('Ширина дорожки');
   await act(async () => toggle.click());
   expect(toggle.getAttribute('aria-checked')).toBe('true');
   const start = [...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Начать занятие');
@@ -47,6 +48,8 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
   await act(async () => root.render(<ParamsScreen />));
   expect(host.querySelector('.video-prize-card')).toBeTruthy();
   expect(host.querySelector('[aria-label="Видеобонус в конце рисования"]')).toBeNull();
+  expect(host.textContent).toContain('Ширина дорожки');
+  await act(async () => [...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Очень широкая').click());
   const start = [...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Начать занятие');
   await act(async () => start.click());
   expect(host.querySelector('.pin-gate-overlay')).toBeTruthy();
@@ -56,6 +59,9 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
   await vi.waitFor(() => expect(mocks.persist).toHaveBeenCalled());
   expect(mocks.persist).toHaveBeenCalledWith('kid', 'drawing', expect.objectContaining({
     videoRewardEnabled: true, answersPerStar: 3, strictStars: false,
-    params: expect.objectContaining({ byMode: expect.objectContaining({ drawing_steps: expect.objectContaining({ speed: 'slow', videoRewardEnabled: true }) }) }),
+    params: expect.objectContaining({ byMode: expect.objectContaining({
+      drawing_steps: expect.objectContaining({ speed: 'slow', videoRewardEnabled: true }),
+      drawing_first_lines: expect.objectContaining({ trackWidth: 'wide' }),
+    }) }),
   }));
 });

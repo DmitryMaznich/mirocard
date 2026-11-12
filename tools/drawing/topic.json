@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.15.0",
+    "version": "0.15.1",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -145,6 +145,28 @@
               "pen": "Стилусом",
               "touch": "Касанием / пассивным стилусом"
             }
+          }
+        },
+        "trackWidth": {
+          "type": "enum",
+          "label": {
+            "ru": "Ширина дорожки"
+          },
+          "values": [
+            "wide",
+            "normal",
+            "narrow"
+          ],
+          "default": "normal",
+          "labels": {
+            "ru": {
+              "wide": "Очень широкая",
+              "normal": "Широкая",
+              "narrow": "Узкая"
+            }
+          },
+          "hint": {
+            "ru": "Меняет ширину видимой дорожки и допустимую область движения. Выбирайте перед занятием."
           }
         }
       }
