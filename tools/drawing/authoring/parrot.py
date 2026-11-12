@@ -74,10 +74,10 @@ color('Чёрный зрачок с белым бликом',oval(379.7,121.7,3.
 stroke('Дужка над клювом',[chain(cere_curves),chain([((409,128.8),(409.2,129.8),(410.1,130.4),(410.4,131))]),chain([((418.7,129),(419.7,129.7),(419.1,130.4),(420,131))])],44)
 beak=chain(beak_curves)+' Z'
 # The cup is an exposed lower jaw, not a second oversized beak outline.
-stroke('Загнутый клюв',[chain(beak_curves),chain(cup)],49)
+D,dn,dt=nearest(beak_curves,(427.5,135.5))
+stroke('Загнутый клюв',[chain(beak_curves),chain(cup),chain([line(F,D)])],49)
 # The cere's lower boundary is precisely the beak's upper arc.
-K,kn,kt=nearest(beak_curves,(423,135))
-cere=chain(cere_curves)+''.join(curve(c) for c in through(beak_curves,kn,kt))+curve(line(K,F))+' Z'
+cere=chain(cere_curves)+''.join(curve(c) for c in through(beak_curves,dn,dt))+curve(line(D,F))+' Z'
 wing_curves=ref('wing');W,_=point_on_back(wing_curves[0][0]);wing_curves[0]=(W,*wing_curves[0][1:])
 feather_curves=[ref('feather'+str(i)) for i in range(4)]
 wing_end=(254,214.5);wing_curves[-1]=(*wing_curves[-1][:-1],wing_end)
