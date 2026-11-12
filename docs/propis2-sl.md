@@ -30,7 +30,7 @@
   (`wordEngine.js`, «mačka» → MAČKA); «Малые печатные (male tiskane)» — `sl_print`. Названия стилей пока русские (интерфейс
   колоды — шаг 6). Письменные — шаг 3.
 - Проверка — `src/topics/renderers/propis2/slovene.test.jsx` (язык кладётся поверх опубликованной колоды так же, как сборка;
-  `SL_SHOTS=<папка>` пишет HTML страниц). Картинки: `docs/mockups/propis2-sl/step2-caps.png`, `step2-print.png`.
+  `SL_SHOTS=<папка>` пишет HTML страниц, их снимают Playwright; PNG в git не кладём — `.gitignore`).
 
 ## Шаг 1. Что говорят источники (проверено 2026-11-12)
 
