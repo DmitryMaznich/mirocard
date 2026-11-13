@@ -2367,8 +2367,28 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (best) {
               const Pl = pts[best.q], u = best.tq;
               const d = (E[1] - Pl[1]) / (-u[1]);
-              wantStartX = Math.max(E[0] + u[0] * d - Pl[0] + local.start[0], eyeClear(best.q, 0.42));
+              const natural = E[0] + u[0] * d - Pl[0] + local.start[0];
+              wantStartX = Math.max(natural, eyeClear(best.q, 0.42));
               meetJoin = { type: "line", P: Pl, u };
+              // e moved on to stay clear (c č s j g): the straight join keeps the lead-in's direction, as k–e does, and starts lower — the
+              // exit is cut where that line meets it (owner, 2026-11-13: «c, č с e — так же плавно, как k с e»), not flattened
+              if (wantStartX > natural + 0.5 * scale && prevMeetExit.ref) {
+                const PlRow = [wantStartX - local.start[0] + Pl[0], Pl[1]];
+                const hp = samplePath(prevMeetExit.ref.d, 120);
+                // (the line's direction can't stay the lead-in's — it would run parallel to the exit: it goes from the exit point whose own
+                // direction points best at e's meeting point, so the exit bends into it without a kink)
+                let cut = -1, bestA = Infinity;
+                const ang = (v) => Math.atan2(-v[1], v[0]);
+                for (let h = hp.length - 2; h > 0; h -= 1) {
+                  if (hp[h - 1][1] < hp[h][1]) break; // the exit's last rising run only
+                  if (hp[h][1] > E[1] + 0.6 * xh) break;
+                  const th = nlsUnit(hp[h + 1][0] - hp[h - 1][0], hp[h + 1][1] - hp[h - 1][1]);
+                  const tv = nlsUnit(PlRow[0] - hp[h][0], PlRow[1] - hp[h][1]);
+                  const a = Math.abs(ang(th) - ang(tv));
+                  if (a < bestA) { bestA = a; cut = h; }
+                }
+                if (cut > 0 && bestA < 0.35) meetJoin = { type: "line", P: Pl, u, trimExitTo: cut, hp, lineFrom: hp[cut] };
+              }
             } else {
               let i = 1;
               while (i < k && pts[i][1] > E[1]) i += 1;
@@ -2835,14 +2855,14 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const d0 = toCubicPathD(strokes[ei].d);
             const tk = d0.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?|[MC]/g);
             const n = tk.length;
-            if (n >= 7 && tk[n - 7] === "C") {
+            if (!meetJoin.lineFrom && n >= 7 && tk[n - 7] === "C") {
               const ex = Number(tk[n - 2]), ey = Number(tk[n - 1]), cx2 = Number(tk[n - 4]), cy2 = Number(tk[n - 3]);
               const len = Math.max(Math.hypot(ex - cx2, ey - cy2), 4 * scale);
               const ln = Math.hypot(at[0] - ex, at[1] - ey) > 0.5 * scale ? nlsUnit(at[0] - ex, at[1] - ey) : meetJoin.u;
               tk[n - 4] = f3(ex - ln[0] * len); tk[n - 3] = f3(ey - ln[1] * len);
               strokes[ei] = { ...strokes[ei], d: tk.join(" ") };
             }
-            const E = prevMeetExit.p;
+            const E = meetJoin.lineFrom ?? prevMeetExit.p;
             if (Math.hypot(at[0] - E[0], at[1] - E[1]) > 0.5 * scale) strokes.push({ d: `M ${f3(E[0])} ${f3(E[1])} L ${f3(at[0])} ${f3(at[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
           }
           if (meetJoin.type === "join") {
