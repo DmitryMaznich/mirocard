@@ -2452,9 +2452,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               // an exit that ends steeper (or flatter) than the lead-in it runs into (a capital's exit — M A U Ž … — into i u n m:
               // owner, 2026-11-14: «горб на соединении Mi»): the line starts lower down the exit, at the point whose own direction is
               // the lead-in's, and the letter stands where its lead-in runs on from there — exit, line and lead-in one smooth stroke
-              // (after capitals only: the small letters' exits already end on their next letter's slant, and those joins are accepted)
+              // (after capitals, and the small letters in `meetJoins.exitCutFrom` — f, whose exit is its own short steep stroke: owner,
+              // 2026-11-14, «дефект у соединения fi … в том же стиле, что ti»; the other small letters' exits already end on the slant)
               let Es = E, tangentCut = null;
-              if (prevMeetExit.ref && prevLabel && prevLabel !== prevLabel.toLowerCase() && Math.abs(ang(u) - ang(tE)) > 0.12) {
+              if (prevMeetExit.ref && prevLabel && (prevLabel !== prevLabel.toLowerCase() || (glyphsByLabel.script.meetJoins.exitCutFrom ?? "").includes(prevLabel)) && Math.abs(ang(u) - ang(tE)) > 0.12) {
                 const hp = samplePath(prevMeetExit.ref.d, 160);
                 let bh = -1, ba = Infinity;
                 for (let h = hp.length - 2; h > 0; h -= 1) {

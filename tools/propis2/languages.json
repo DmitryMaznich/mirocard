@@ -305,7 +305,8 @@
               "riseInto": "r",
               "capOvalGap": 0.25,
               "capLeadIn": "u",
-              "footTrailSkip": "N"
+              "footTrailSkip": "N",
+              "exitCutFrom": "f"
             }
           },
           "papers": [
