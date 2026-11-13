@@ -1,0 +1,1038 @@
+{
+ "note": "Готовые тетради словенского языка (docs/propis2-sl.md, шаг 5): собирает tools/propis2/build-sl-kits.mjs (не править руками). Слова из «Za začetek» (с. 53–58), отобраны для детей. Бумага — словенская 5 мм на A5 (10 строк, как у британской).",
+ "page": {
+  "gridKind": "sl",
+  "format": "a5"
+ },
+ "kits": [
+  {
+   "id": "sl-abc-caps",
+   "title": "Velike tiskane črke",
+   "group": "Abeceda",
+   "style": "sl_caps",
+   "description": "1. razred: vse črke abecede z velikimi tiskanimi črkami — črka po vrsti (obrisuj, nato bledi), tri besede s to črko.",
+   "pages": [
+    {
+     "title": "A a",
+     "pattern": [
+      "A"
+     ],
+     "trace": [
+      "abeceda",
+      "april",
+      "Avstrija"
+     ]
+    },
+    {
+     "title": "B b",
+     "pattern": [
+      "B"
+     ],
+     "trace": [
+      "banana",
+      "beseda",
+      "brat"
+     ]
+    },
+    {
+     "title": "C c",
+     "pattern": [
+      "C"
+     ],
+     "trace": [
+      "cesta",
+      "cvet",
+      "center"
+     ]
+    },
+    {
+     "title": "Č č",
+     "pattern": [
+      "Č"
+     ],
+     "trace": [
+      "čaj",
+      "čokolada",
+      "čebula"
+     ]
+    },
+    {
+     "title": "D d",
+     "pattern": [
+      "D"
+     ],
+     "trace": [
+      "dežnik",
+      "denar",
+      "država"
+     ]
+    },
+    {
+     "title": "E e",
+     "pattern": [
+      "E"
+     ],
+     "trace": [
+      "ena",
+      "evro",
+      "elektrika"
+     ]
+    },
+    {
+     "title": "F f",
+     "pattern": [
+      "F"
+     ],
+     "trace": [
+      "film",
+      "februar",
+      "fotoaparat"
+     ]
+    },
+    {
+     "title": "G g",
+     "pattern": [
+      "G"
+     ],
+     "trace": [
+      "glava",
+      "gospa",
+      "gospod"
+     ]
+    },
+    {
+     "title": "H h",
+     "pattern": [
+      "H"
+     ],
+     "trace": [
+      "hiša",
+      "hrana",
+      "hotel"
+     ]
+    },
+    {
+     "title": "I i",
+     "pattern": [
+      "I"
+     ],
+     "trace": [
+      "in",
+      "Italija",
+      "internet"
+     ]
+    },
+    {
+     "title": "J j",
+     "pattern": [
+      "J"
+     ],
+     "trace": [
+      "ja",
+      "jakna",
+      "jezik"
+     ]
+    },
+    {
+     "title": "K k",
+     "pattern": [
+      "K"
+     ],
+     "trace": [
+      "kruh",
+      "kava",
+      "knjiga"
+     ]
+    },
+    {
+     "title": "L l",
+     "pattern": [
+      "L"
+     ],
+     "trace": [
+      "list",
+      "limona",
+      "Ljubljana"
+     ]
+    },
+    {
+     "title": "M m",
+     "pattern": [
+      "M"
+     ],
+     "trace": [
+      "mama",
+      "meso",
+      "mesto"
+     ]
+    },
+    {
+     "title": "N n",
+     "pattern": [
+      "N"
+     ],
+     "trace": [
+      "ne",
+      "nogomet",
+      "november"
+     ]
+    },
+    {
+     "title": "O o",
+     "pattern": [
+      "O"
+     ],
+     "trace": [
+      "okno",
+      "omara",
+      "oktober"
+     ]
+    },
+    {
+     "title": "P p",
+     "pattern": [
+      "P"
+     ],
+     "trace": [
+      "pes",
+      "paprika",
+      "pijača"
+     ]
+    },
+    {
+     "title": "R r",
+     "pattern": [
+      "R"
+     ],
+     "trace": [
+      "riž",
+      "roža",
+      "radio"
+     ]
+    },
+    {
+     "title": "S s",
+     "pattern": [
+      "S"
+     ],
+     "trace": [
+      "sadje",
+      "Slovenija",
+      "slovenščina"
+     ]
+    },
+    {
+     "title": "Š š",
+     "pattern": [
+      "Š"
+     ],
+     "trace": [
+      "šola",
+      "šport",
+      "številka"
+     ]
+    },
+    {
+     "title": "T t",
+     "pattern": [
+      "T"
+     ],
+     "trace": [
+      "telefon",
+      "trgovina",
+      "televizija"
+     ]
+    },
+    {
+     "title": "U u",
+     "pattern": [
+      "U"
+     ],
+     "trace": [
+      "ura",
+      "ulica",
+      "učiteljica"
+     ]
+    },
+    {
+     "title": "V v",
+     "pattern": [
+      "V"
+     ],
+     "trace": [
+      "voda",
+      "vaja",
+      "vreme"
+     ]
+    },
+    {
+     "title": "Z z",
+     "pattern": [
+      "Z"
+     ],
+     "trace": [
+      "zelenjava",
+      "zdravnik",
+      "zemljevid"
+     ]
+    },
+    {
+     "title": "Ž ž",
+     "pattern": [
+      "Ž"
+     ],
+     "trace": [
+      "žoga",
+      "žival",
+      "ženska"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sl-abc-print",
+   "title": "Male tiskane črke",
+   "group": "Abeceda",
+   "style": "sl_print",
+   "description": "Velika in mala tiskana črka, tri besede s to črko — vsaka beseda bledi, nato jo napiše sam.",
+   "pages": [
+    {
+     "title": "A a",
+     "pattern": [
+      "A a"
+     ],
+     "trace": [
+      "abeceda",
+      "april",
+      "Avstrija"
+     ]
+    },
+    {
+     "title": "B b",
+     "pattern": [
+      "B b"
+     ],
+     "trace": [
+      "banana",
+      "beseda",
+      "brat"
+     ]
+    },
+    {
+     "title": "C c",
+     "pattern": [
+      "C c"
+     ],
+     "trace": [
+      "cesta",
+      "cvet",
+      "center"
+     ]
+    },
+    {
+     "title": "Č č",
+     "pattern": [
+      "Č č"
+     ],
+     "trace": [
+      "čaj",
+      "čokolada",
+      "čebula"
+     ]
+    },
+    {
+     "title": "D d",
+     "pattern": [
+      "D d"
+     ],
+     "trace": [
+      "dežnik",
+      "denar",
+      "država"
+     ]
+    },
+    {
+     "title": "E e",
+     "pattern": [
+      "E e"
+     ],
+     "trace": [
+      "ena",
+      "evro",
+      "elektrika"
+     ]
+    },
+    {
+     "title": "F f",
+     "pattern": [
+      "F f"
+     ],
+     "trace": [
+      "film",
+      "februar",
+      "fotoaparat"
+     ]
+    },
+    {
+     "title": "G g",
+     "pattern": [
+      "G g"
+     ],
+     "trace": [
+      "glava",
+      "gospa",
+      "gospod"
+     ]
+    },
+    {
+     "title": "H h",
+     "pattern": [
+      "H h"
+     ],
+     "trace": [
+      "hiša",
+      "hrana",
+      "hotel"
+     ]
+    },
+    {
+     "title": "I i",
+     "pattern": [
+      "I i"
+     ],
+     "trace": [
+      "in",
+      "Italija",
+      "internet"
+     ]
+    },
+    {
+     "title": "J j",
+     "pattern": [
+      "J j"
+     ],
+     "trace": [
+      "ja",
+      "jakna",
+      "jezik"
+     ]
+    },
+    {
+     "title": "K k",
+     "pattern": [
+      "K k"
+     ],
+     "trace": [
+      "kruh",
+      "kava",
+      "knjiga"
+     ]
+    },
+    {
+     "title": "L l",
+     "pattern": [
+      "L l"
+     ],
+     "trace": [
+      "list",
+      "limona",
+      "Ljubljana"
+     ]
+    },
+    {
+     "title": "M m",
+     "pattern": [
+      "M m"
+     ],
+     "trace": [
+      "mama",
+      "meso",
+      "mesto"
+     ]
+    },
+    {
+     "title": "N n",
+     "pattern": [
+      "N n"
+     ],
+     "trace": [
+      "ne",
+      "nogomet",
+      "november"
+     ]
+    },
+    {
+     "title": "O o",
+     "pattern": [
+      "O o"
+     ],
+     "trace": [
+      "okno",
+      "omara",
+      "oktober"
+     ]
+    },
+    {
+     "title": "P p",
+     "pattern": [
+      "P p"
+     ],
+     "trace": [
+      "pes",
+      "paprika",
+      "pijača"
+     ]
+    },
+    {
+     "title": "R r",
+     "pattern": [
+      "R r"
+     ],
+     "trace": [
+      "riž",
+      "roža",
+      "radio"
+     ]
+    },
+    {
+     "title": "S s",
+     "pattern": [
+      "S s"
+     ],
+     "trace": [
+      "sadje",
+      "Slovenija",
+      "slovenščina"
+     ]
+    },
+    {
+     "title": "Š š",
+     "pattern": [
+      "Š š"
+     ],
+     "trace": [
+      "šola",
+      "šport",
+      "številka"
+     ]
+    },
+    {
+     "title": "T t",
+     "pattern": [
+      "T t"
+     ],
+     "trace": [
+      "telefon",
+      "trgovina",
+      "televizija"
+     ]
+    },
+    {
+     "title": "U u",
+     "pattern": [
+      "U u"
+     ],
+     "trace": [
+      "ura",
+      "ulica",
+      "učiteljica"
+     ]
+    },
+    {
+     "title": "V v",
+     "pattern": [
+      "V v"
+     ],
+     "trace": [
+      "voda",
+      "vaja",
+      "vreme"
+     ]
+    },
+    {
+     "title": "Z z",
+     "pattern": [
+      "Z z"
+     ],
+     "trace": [
+      "zelenjava",
+      "zdravnik",
+      "zemljevid"
+     ]
+    },
+    {
+     "title": "Ž ž",
+     "pattern": [
+      "Ž ž"
+     ],
+     "trace": [
+      "žoga",
+      "žival",
+      "ženska"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sl-abc-cursive",
+   "title": "Pisane črke",
+   "group": "Abeceda",
+   "style": "sl_cursive",
+   "description": "2. razred: velika in mala pisana črka, povezane; tri besede s to črko — vsaka beseda bledi, nato jo napiše sam.",
+   "pages": [
+    {
+     "title": "A a",
+     "pattern": [
+      "A a"
+     ],
+     "trace": [
+      "abeceda",
+      "april",
+      "Avstrija"
+     ]
+    },
+    {
+     "title": "B b",
+     "pattern": [
+      "B b"
+     ],
+     "trace": [
+      "banana",
+      "beseda",
+      "brat"
+     ]
+    },
+    {
+     "title": "C c",
+     "pattern": [
+      "C c"
+     ],
+     "trace": [
+      "cesta",
+      "cvet",
+      "center"
+     ]
+    },
+    {
+     "title": "Č č",
+     "pattern": [
+      "Č č"
+     ],
+     "trace": [
+      "čaj",
+      "čokolada",
+      "čebula"
+     ]
+    },
+    {
+     "title": "D d",
+     "pattern": [
+      "D d"
+     ],
+     "trace": [
+      "dežnik",
+      "denar",
+      "država"
+     ]
+    },
+    {
+     "title": "E e",
+     "pattern": [
+      "E e"
+     ],
+     "trace": [
+      "ena",
+      "evro",
+      "elektrika"
+     ]
+    },
+    {
+     "title": "F f",
+     "pattern": [
+      "F f"
+     ],
+     "trace": [
+      "film",
+      "februar",
+      "fotoaparat"
+     ]
+    },
+    {
+     "title": "G g",
+     "pattern": [
+      "G g"
+     ],
+     "trace": [
+      "glava",
+      "gospa",
+      "gospod"
+     ]
+    },
+    {
+     "title": "H h",
+     "pattern": [
+      "H h"
+     ],
+     "trace": [
+      "hiša",
+      "hrana",
+      "hotel"
+     ]
+    },
+    {
+     "title": "I i",
+     "pattern": [
+      "I i"
+     ],
+     "trace": [
+      "in",
+      "Italija",
+      "internet"
+     ]
+    },
+    {
+     "title": "J j",
+     "pattern": [
+      "J j"
+     ],
+     "trace": [
+      "ja",
+      "jakna",
+      "jezik"
+     ]
+    },
+    {
+     "title": "K k",
+     "pattern": [
+      "K k"
+     ],
+     "trace": [
+      "kruh",
+      "kava",
+      "knjiga"
+     ]
+    },
+    {
+     "title": "L l",
+     "pattern": [
+      "L l"
+     ],
+     "trace": [
+      "list",
+      "limona",
+      "Ljubljana"
+     ]
+    },
+    {
+     "title": "M m",
+     "pattern": [
+      "M m"
+     ],
+     "trace": [
+      "mama",
+      "meso",
+      "mesto"
+     ]
+    },
+    {
+     "title": "N n",
+     "pattern": [
+      "N n"
+     ],
+     "trace": [
+      "ne",
+      "nogomet",
+      "november"
+     ]
+    },
+    {
+     "title": "O o",
+     "pattern": [
+      "O o"
+     ],
+     "trace": [
+      "okno",
+      "omara",
+      "oktober"
+     ]
+    },
+    {
+     "title": "P p",
+     "pattern": [
+      "P p"
+     ],
+     "trace": [
+      "pes",
+      "paprika",
+      "pijača"
+     ]
+    },
+    {
+     "title": "R r",
+     "pattern": [
+      "R r"
+     ],
+     "trace": [
+      "riž",
+      "roža",
+      "radio"
+     ]
+    },
+    {
+     "title": "S s",
+     "pattern": [
+      "S s"
+     ],
+     "trace": [
+      "sadje",
+      "Slovenija",
+      "slovenščina"
+     ]
+    },
+    {
+     "title": "Š š",
+     "pattern": [
+      "Š š"
+     ],
+     "trace": [
+      "šola",
+      "šport",
+      "številka"
+     ]
+    },
+    {
+     "title": "T t",
+     "pattern": [
+      "T t"
+     ],
+     "trace": [
+      "telefon",
+      "trgovina",
+      "televizija"
+     ]
+    },
+    {
+     "title": "U u",
+     "pattern": [
+      "U u"
+     ],
+     "trace": [
+      "ura",
+      "ulica",
+      "učiteljica"
+     ]
+    },
+    {
+     "title": "V v",
+     "pattern": [
+      "V v"
+     ],
+     "trace": [
+      "voda",
+      "vaja",
+      "vreme"
+     ]
+    },
+    {
+     "title": "Z z",
+     "pattern": [
+      "Z z"
+     ],
+     "trace": [
+      "zelenjava",
+      "zdravnik",
+      "zemljevid"
+     ]
+    },
+    {
+     "title": "Ž ž",
+     "pattern": [
+      "Ž ž"
+     ],
+     "trace": [
+      "žoga",
+      "žival",
+      "ženska"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sl-stevila",
+   "title": "Števila",
+   "group": "Besede",
+   "style": "sl_cursive",
+   "description": "Števila z besedo: od nič do dvajset, desetice do sto.",
+   "pages": [
+    {
+     "title": "0 – 4",
+     "trace": [
+      "nič",
+      "ena",
+      "dve",
+      "tri",
+      "štiri"
+     ]
+    },
+    {
+     "title": "5 – 9",
+     "trace": [
+      "pet",
+      "šest",
+      "sedem",
+      "osem",
+      "devet"
+     ]
+    },
+    {
+     "title": "10 – 14",
+     "trace": [
+      "deset",
+      "enajst",
+      "dvanajst",
+      "trinajst",
+      "štirinajst"
+     ]
+    },
+    {
+     "title": "15 – 19",
+     "trace": [
+      "petnajst",
+      "šestnajst",
+      "sedemnajst",
+      "osemnajst",
+      "devetnajst"
+     ]
+    },
+    {
+     "title": "10 – 50",
+     "trace": [
+      "dvajset",
+      "trideset",
+      "štirideset",
+      "petdeset",
+      "sto"
+     ]
+    },
+    {
+     "title": "60 – 100",
+     "trace": [
+      "šestdeset",
+      "sedemdeset",
+      "osemdeset",
+      "devetdeset",
+      "tisoč"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sl-dnevi",
+   "title": "Dnevi in meseci",
+   "group": "Besede",
+   "style": "sl_cursive",
+   "description": "Dnevi v tednu, meseci v letu in datum: Danes je ponedeljek.",
+   "pages": [
+    {
+     "title": "Dnevi 1",
+     "trace": [
+      "ponedeljek",
+      "torek",
+      "sreda",
+      "četrtek",
+      "petek"
+     ]
+    },
+    {
+     "title": "Dnevi 2",
+     "trace": [
+      "sobota",
+      "nedelja",
+      "dan",
+      "teden",
+      "danes"
+     ]
+    },
+    {
+     "title": "Meseci 1",
+     "trace": [
+      "januar",
+      "februar",
+      "marec",
+      "april",
+      "maj"
+     ]
+    },
+    {
+     "title": "Meseci 2",
+     "trace": [
+      "junij",
+      "julij",
+      "avgust",
+      "september",
+      "oktober"
+     ]
+    },
+    {
+     "title": "Meseci 3",
+     "trace": [
+      "november",
+      "december",
+      "mesec",
+      "leto",
+      "datum"
+     ]
+    },
+    {
+     "title": "Danes je …",
+     "copy": [
+      "Danes je ponedeljek.",
+      "Danes je prvi december.",
+      "Kateri dan je danes?",
+      "Kdaj je koncert?",
+      "Rodil sem se maja."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sl-podatki",
+   "title": "Moji podatki",
+   "group": "Besede",
+   "style": "sl_cursive",
+   "description": "Velika začetnica: ime in priimek, naslov, mesto, država.",
+   "pages": [
+    {
+     "title": "Besede",
+     "trace": [
+      "ime",
+      "priimek",
+      "naslov",
+      "mesto",
+      "država"
+     ]
+    },
+    {
+     "title": "Velika začetnica",
+     "trace": [
+      "Ana",
+      "Kogoj",
+      "Ljubljana",
+      "Slovenija",
+      "Maribor"
+     ]
+    },
+    {
+     "title": "Moji podatki",
+     "copy": [
+      "Ime: Ana",
+      "Priimek: Kogoj",
+      "Ulica: Tržaška",
+      "Mesto: Ljubljana",
+      "Država: Slovenija"
+     ]
+    }
+   ]
+  }
+ ]
+}
