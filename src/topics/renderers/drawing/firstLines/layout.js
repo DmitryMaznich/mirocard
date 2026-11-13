@@ -10,15 +10,30 @@ export function fitShape(shape, area, variant, profile) {
   const bounds=shapeBounds(shape),pad=Math.min(Math.max(30,profile.width/2+profile.extra+6,profile.goalRadius+6),Math.min(area.width,area.height)*.28);
   const w=Math.max(1,bounds.maxX-bounds.minX),h=Math.max(1,bounds.maxY-bounds.minY);
   const maxScale=Math.max(.001,Math.min(Math.max(1,area.width-2*pad)/w,Math.max(1,area.height-2*pad)/h));
-  const minFraction=Math.min(1,Math.max(.45,Math.max(72,profile.width*2)/((shape.parts.length===1&&shape.parts[0].type==='line'?Math.max(w,h):Math.min(w,h))*maxScale)));
-  const size=variant?.schema===4?variant.size:.75,scale=maxScale*(minFraction+(1-minFraction)*size);
+  const minFraction=Math.min(1,Math.max(variant?.schema===5 ? .6 : .45,Math.max(variant?.schema===5?96:72,profile.width*2)/((shape.parts.length===1&&shape.parts[0].type==='line'?Math.max(w,h):Math.min(w,h))*maxScale)));
+  const size=[4,5].includes(variant?.schema)?variant.size:.75,scale=maxScale*(minFraction+(1-minFraction)*size);
   const x=area.x+pad+(area.width-2*pad-w*scale)*(variant?.positionX??.5);
   const y=area.y+pad+(area.height-2*pad-h*scale)*(variant?.positionY??.5);
   return {scale,tx:x-bounds.minX*scale,ty:y-bounds.minY*scale,bounds,pad,area};
 }
-export function screenScene(size,sheet,slot,peek=false) {
-  const compact=sheet&&(size.width<700||size.height<500),width=size.width*(compact?2:1),height=size.height*(compact?2:1);
-  const areas=Array.from({length:4},(_,i)=>sheet?{x:(i%2)*width/2,y:Math.floor(i/2)*height/2,width:width/2,height:height/2}:{x:0,y:0,width,height});
+// Freeze this choice for the session; resizing changes the cells, never their identities.
+export function automaticGrid(size,input='pen') {
+  if(size.width<700||size.height<500)return {columns:2,rows:2};
+  const minWidth=input==='touch'?300:input==='passive_pen'?260:240;
+  const minHeight=input==='touch'?260:input==='passive_pen'?230:220;
+  let columns=Math.max(2,Math.min(4,Math.floor(size.width/minWidth)));
+  let rows=Math.max(2,Math.min(4,Math.floor(size.height/minHeight)));
+  while(columns*rows>12){if(size.width/columns<size.height/rows)columns--;else rows--;}
+  return {columns,rows};
+}
+export function sheetPosition(task,grid) {
+  const capacity=grid.columns*grid.rows,index=Math.max(0,(task.number??1)-1);
+  return task.autoSheet?{page:Math.floor(index/capacity),slot:index%capacity,capacity}:{page:task.sheetPage??0,slot:task.sheetSlot??0,capacity:4};
+}
+export function screenScene(size,sheet,slot,peek=false,grid={columns:2,rows:2}) {
+  const compact=sheet&&(size.width<700||size.height<500);
+  const width=size.width*(compact?grid.columns:1),height=size.height*(compact?grid.rows:1);
+  const areas=Array.from({length:grid.columns*grid.rows},(_,i)=>sheet?{x:(i%grid.columns)*width/grid.columns,y:Math.floor(i/grid.columns)*height/grid.rows,width:width/grid.columns,height:height/grid.rows}:{x:0,y:0,width,height});
   const view=compact&&!peek?areas[slot]:{x:0,y:0,width,height};
   return {compact,width,height,areas,view};
 }

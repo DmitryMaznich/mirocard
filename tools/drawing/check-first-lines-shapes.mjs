@@ -57,30 +57,44 @@ try {
   await mkdir('output/first-lines',{recursive:true});
   if(!process.env.DRAWING_PROFILE_CHECK_ONLY) {
   // Every form with a real random variant on a phone; selected complex ones also on a tablet.
-  for(const kind of SHAPE_KINDS.filter(k=>!['vertical_line','diagonal_up','diagonal_down'].includes(k))) {
+  for(const kind of (process.env.DRAWING_SHEET_CHECK_ONLY?[]:SHAPE_KINDS).filter(k=>!['vertical_line','diagonal_up','diagonal_down'].includes(k))) {
     const {page,context}=await open(`noVideo&exercises=${kind}`);
     expect((await currentTask(page)).exerciseKind).toBe(kind);
-    if(['tilted_oval','rectangle','rhombus','arc','parallelepiped','zigzag_arc_zigzag'].includes(kind)) await page.screenshot({path:`output/first-lines/variety-phone-${kind}.png`});
+    if(['tilted_oval','rectangle','rhombus','arc','parallelepiped','zigzag_arc_zigzag','fence','wave','zigzag'].includes(kind)) await page.screenshot({path:`output/first-lines/variety-phone-${kind}.png`});
     await draw(page); await context.close();
   }
   // A whole random worksheet session keeps real work, geometry, page placement and normal prizes.
   const sheet=await open('surface=sheet',{width:1180,height:1000}); const page=sheet.page;
+  const capacity=Number(await page.locator('.first-lines').getAttribute('data-sheet-capacity'));expect(capacity).toBeGreaterThan(4);
   const tasks=(await state(page)).tasks; expect(new Set(tasks.map(t=>t.exerciseKind)).size).toBe(15);
   expect(new Set(tasks.map(t=>t.variant.size)).size).toBeGreaterThan(1);
   for(let i=0;i<15;i++) {
-    if(i===3) {
-      expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(3);
+    if(i===3||i===6) {
+      expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(i);
       const work=await page.locator('.first-lines__sheet').innerHTML(),variant=(await currentTask(page)).variant;
       await page.reload();await settled(page);expect((await currentTask(page)).variant).toEqual(variant);
       expect(await page.locator('.first-lines__sheet').innerHTML()).toBe(work);
       await page.screenshot({path:'output/first-lines/variety-tablet-sheet.png'});
+      if(i===6){
+        const grid=await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('drawing-grid:')).map(k=>localStorage.getItem(k)));
+        const ink=await page.locator('.first-lines__sheet polyline').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('points')));
+        for(const viewport of [{width:820,height:1180},{width:390,height:844}]){
+          await page.setViewportSize(viewport);await settled(page);await page.reload();await settled(page);
+          expect(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('drawing-grid:')).map(k=>localStorage.getItem(k)))).toEqual(grid);
+          expect(await page.locator('.first-lines__sheet polyline').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('points')))).toEqual(ink);
+          expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(i);
+          expect((await currentTask(page)).variant).toEqual(variant);
+        }
+        await page.setViewportSize({width:1180,height:1000});await settled(page);
+      }
     }
+    if(i===capacity-1)await page.screenshot({path:'output/first-lines/adaptive-tablet-filled.png'});
     await draw(page,'sheet');
     if((i+1)%5===0) {
       await expect(page.locator('.reward-modal-overlay')).toBeVisible();expect((await state(page)).rewardEarnedCount).toBe((i+1)/5);
       await page.locator('.reward-modal__btn--continue').click();
     }
-    if(i<14) { await next(page);if((i+1)%4===0)expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(0); }
+    if(i<14) { await next(page);if((i+1)%capacity===0)expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(0); }
   }
   await sheet.context.close();
   }
@@ -110,5 +124,5 @@ try {
   }
   expect(widths[1]/widths[0]).toBeGreaterThan(3);expect(widths[0]).toBeCloseTo(10,1);expect(widths[1]).toBeCloseTo(56,1);expect(widths[2]).toBeCloseTo(24,1);
   expect(failures).toEqual([]);
-  console.log(process.env.DRAWING_PROFILE_CHECK_ONLY ? 'Input profiles: 10 px active stylus, 24 px passive stylus, 56 px finger; real touch completion, overview and shared rewards passed.' : 'Variety: all 15 generated families on phone, full random worksheet on tablet, stable geometry/reload, preserved work, standard prizes, overview, real finger/passive input and distinct road widths passed.');
+  console.log(process.env.DRAWING_PROFILE_CHECK_ONLY ? 'Input profiles: 10 px active stylus, 24 px passive stylus, 56 px finger; real touch completion, overview and shared rewards passed.' : process.env.DRAWING_SHEET_CHECK_ONLY ? 'Adaptive sheet: capacity beyond four, saved ink, tablet/phone rotation and reload, standard prizes and fixed input widths passed.' : 'Variety: all 16 generated families on phone, full random worksheet on tablet, stable geometry/reload, preserved work, standard prizes, overview, real finger/passive input and distinct road widths passed.');
 }finally{await browser.close();}

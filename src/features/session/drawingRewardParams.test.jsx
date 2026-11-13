@@ -53,7 +53,7 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
   expect(host.textContent).toContain('Рабочее поле');
   expect([...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Круг')).toBeUndefined();
   await act(async () => host.querySelector('[role=switch][aria-label="Выбрать отдельные упражнения"]').click());
-  for (const label of ['Круг', 'Овал', 'Квадрат', 'Общий лист — по 4 задания']) {
+  for (const label of ['Круг', 'Овал', 'Квадрат', 'Общий лист — автоматически']) {
     await act(async () => [...host.querySelectorAll('button')].find(button => button.textContent.trim() === label).click());
   }
   const start = [...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Начать занятие');
