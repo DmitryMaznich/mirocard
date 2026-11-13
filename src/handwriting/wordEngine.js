@@ -2481,12 +2481,22 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
                 while (lo > 1 && hp[lo - 1][1] >= hp[lo][1]) lo -= 1; // back down the hook's last rise to its bottom
                 let h = lo;
                 while (h > 0 && hp[h - 1][1] < hp[h][1]) h -= 1; // up the hook's whole way down: to the top of the stem (v b) or of r's hook
-                if (h < hp.length - 1) start = { h, hp, p: hp[h], t: nlsUnit(hp[h + 1][0] - hp[h][0], hp[h + 1][1] - hp[h][1]) };
+                if (h > 0 && h < hp.length - 1) start = { h, hp, p: hp[h], t: nlsUnit(hp[h + 1][0] - hp[h][0], hp[h + 1][1] - hp[h][1]) };
               }
-              const S = start ? start.p : E;
-              wantStartX = S[0] + 0.65 * xh - P[0] + local.start[0];
+              // r and o (their hook is a stroke of its own): the hook stays whole, up to the top line, and the line into e drops from
+              // its peak — the worksheet's «reže» (owner, 2026-11-13: «ve» good, «re» not yet)
+              if (!start && prevMeetExit.ref) {
+                // round over the top: the hook cut a little before its end, the line turning over from its rising direction
+                const hp = samplePath(prevMeetExit.ref.d, 240);
+                let h = hp.length - 1;
+                while (h > 1 && hp[h][1] < E[1] + 0.04 * xh) h -= 1;
+                start = { h, hp, p: hp[h], t: nlsUnit(hp[h + 1][0] - hp[h - 1][0], hp[h + 1][1] - hp[h - 1][1]), peak: true };
+              }
+              if (!start) start = { p: E, t: nlsUnit(0.3, 1), peak: true };
+              const S = start.p;
+              wantStartX = S[0] + (start.peak ? 0.55 : 0.65) * xh - P[0] + local.start[0];
               meetJoin = { type: "join", P, t: nlsUnit(1, -0.25), valley: true,
-                ...(start ? { trimExitTo: start.h, hp: start.hp, start: start.p, startT: start.t } : {}) };
+                ...(start.hp ? { trimExitTo: start.h, hp: start.hp } : {}), start: start.p, startT: start.t, peak: start.peak };
             }
           }
         }
@@ -2897,7 +2907,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // (from a mid exit into e, and from a hook into an oval: on along the exit's own direction, no bend at the joint)
             const tE = meetJoin.valley ? nlsUnit(...(meetJoin.startT ?? [0.6, 1])) : meetJoin.alongExit || meetJoin.oval ? nlsUnit(...prevMeetExit.t) : meetJoin.into ? nlsUnit(1, 0.3) : [1, 0], tT = nlsUnit(...meetJoin.t);
             const k2 = meetJoin.valley ? 0.6 : meetJoin.alongExit ? 0.3 : meetJoin.into ? 0.3 : meetJoin.from ? 0.35 : 0.4;
-            const c1 = [E[0] + tE[0] * L * (meetJoin.from || meetJoin.valley ? 0.5 : 0.4), E[1] + tE[1] * L * (meetJoin.valley ? 0.5 : 0.4)], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
+            const k1 = meetJoin.peak ? 0.3 : meetJoin.from || meetJoin.valley ? 0.5 : 0.4;
+            const c1 = [E[0] + tE[0] * L * k1, E[1] + tE[1] * L * (meetJoin.peak ? 0.3 : meetJoin.valley ? 0.5 : 0.4)], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
             const f3 = (v) => v.toFixed(3);
             const joinD = meetJoin.path
               ? `M ${meetJoin.path.map((p) => `${f3(p[0])} ${f3(p[1])}`).join(" L ")} L ${f3(at[0])} ${f3(at[1])}`
