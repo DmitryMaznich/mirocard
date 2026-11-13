@@ -2364,6 +2364,19 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const eyeLeft = into ? Math.min(...pts.slice(k).filter((q) => q[1] < pts[0][1] - 0.35 * WIDE_ZONE_UNITS * scale).map((q) => q[0])) : null;
             // into an oval letter (a c d g o …, `ovalInto`): the hook of r v o b runs straight on over into the oval's top, the oval right
             // up against the letter before (owner, 2026-11-13, «ra»: «a своим овалом подходит вплотную к r»); only as far as its ink allows
+            // (owner, 2026-11-13, a teacher's «...erica»: from the hook of r — and the top exits of v o b — there is no join line at all:
+            // the next letter starts right where the hook ends, its lead-in is not written. «ri»: i's stem comes down from the hook's end;
+            // «ra»: the hook runs straight into the top of a's oval, the pen going on round the oval from there)
+            if (!into) {
+              // (into an oval: the hook lands on the oval's upper left, a little below its top, where the oval's first pass is still
+              // rising to the right — the hook runs on along it, over the top, and the oval goes round from there; met at the top itself,
+              // the oval's left half cut through the hook)
+              let c = k;
+              if (meet.ovalInto.has(label)) { const yC = pts[k][1] + 0.1 * WIDE_ZONE_UNITS * scale; c = 0; while (c < k && pts[c][1] > yC) c += 1; }
+              const C = pts[c];
+              wantStartX = E[0] - C[0] + local.start[0];
+              meetJoin = c < k ? { type: "join", P: C, t: [pts[c + 1][0] - C[0], pts[c + 1][1] - C[1]], alongExit: true, short: true } : { type: "meet", P: C };
+            }
             const oval = meet.ovalInto.has(label);
             let ovalX = null;
             if (oval) {
@@ -2374,10 +2387,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               for (const [x, y] of pts.slice(k)) for (const r of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(r)) need = Math.max(need, rows.get(r) + 0.05 * xh - x);
               ovalX = Math.max(E[0] + 0.06 * xh - T[0], Number.isFinite(need) ? need : -Infinity) + local.start[0];
             }
-            wantStartX = into && Number.isFinite(eyeLeft)
+            if (into) wantStartX = into && Number.isFinite(eyeLeft)
               ? E[0] + 0.22 * WIDE_ZONE_UNITS * scale - eyeLeft + local.start[0]
               : oval ? ovalX : E[0] + 0.2 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
-            meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], into, oval };
+            if (into) meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], into, oval };
           }
         }
         // after a capital that ends on its left (B D F I N P S Š T …, `noExitFrom`): no pen lift either — the next letter's whole lead-in
