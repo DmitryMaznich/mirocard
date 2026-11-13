@@ -70,6 +70,8 @@ describe('separate outline and interior assessments',()=>{
     expect(a.move({x:-1,y:50}).failed).toBe(true);
     expect(state.phase).toBe('fill');
     a.end();
+    expect(a.progress().coverage).toBe(0);
+    draw(a,[{x:0,y:10},{x:0,y:90}]);
     const before=a.progress().coverage;
     draw(a,[{x:0,y:10},{x:0,y:90}]);
     expect(a.progress().coverage).toBe(before); // repeated area counts once
@@ -79,8 +81,32 @@ describe('separate outline and interior assessments',()=>{
     expect(a.begin({x:50,y:50})).toBe(true);
     expect(a.move({x:200,y:50}).failed).toBe(true);
     expect(a.move({x:50,y:60}).failed).toBe(true);a.end();
-    expect(state.ink[0].points.at(-1).x).toBeLessThanOrEqual(100);
+    expect(state.ink).toEqual([]);expect(state.filled).toEqual([]);
     expect(a.begin({x:50,y:60})).toBe(true);a.end();
+  });
+  it('restarts the whole outline, including earlier strokes, after a tracing error',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,options);
+    draw(a,[{x:0,y:0},{x:100,y:0}]);
+    expect(a.progress().trace).toBeGreaterThan(.2);
+    expect(a.begin({x:100,y:0})).toBe(true);
+    expect(a.move({x:50,y:50}).failed).toBe(true);
+    expect(state).toMatchObject({phase:'trace',retry:true,outline:[],traceHits:[]});
+    expect(a.progress().trace).toBe(0);expect(a.begin({x:0,y:0})).toBe(false);
+    a.end();draw(a,[...resample(square.points,2),square.points[0]]);
+    expect(state.phase).toBe('fill');expect(a.progress().coverage).toBe(0);
+  });
+  it('restarts all coloring while keeping the completed outline and permits a full retry',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,options);
+    draw(a,[...resample(square.points,2),square.points[0]]);
+    const outline=structuredClone(state.outline),hits=[...state.traceHits];
+    draw(a,[{x:10,y:10},{x:90,y:10}]);draw(a,[{x:10,y:20},{x:90,y:20}]);
+    expect(a.progress().coverage).toBeGreaterThan(0);
+    a.begin({x:50,y:50});expect(a.move({x:200,y:50}).failed).toBe(true);
+    expect(state).toMatchObject({phase:'fill',retry:true,ink:[],filled:[]});
+    expect(state.outline).toEqual(outline);expect(state.traceHits).toEqual(hits);expect(a.progress().coverage).toBe(0);
+    expect(a.begin({x:50,y:50})).toBe(false);a.end();
+    for(let y=6;y<=94&&state.phase!=='done';y+=8)draw(a,[{x:5,y},{x:95,y}]);
+    expect(state.phase).toBe('done');
   });
   it('fills only the interior union, restores coverage and finishes at the target',()=>{
     const state={...fresh(),phase:'fill'},a=createColoringAttempt(square,state,options);

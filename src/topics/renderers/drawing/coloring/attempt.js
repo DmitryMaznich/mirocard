@@ -49,12 +49,20 @@ export function createColoringAttempt(shape,state,options) {
       }
     }
   }
+  function resetStage() {
+    if(state.phase==='trace') {
+      state.outline=[];state.traceHits=[];hits.clear();
+    } else {
+      state.ink=[];state.filled=[];painted.fill(0);filled=0;
+    }
+    state.retry=true;last=null;stroke=null;
+  }
   function move(p) {
     if(!stroke||failed)return {failed};
     const a=last,n=Math.max(1,Math.ceil(Math.hypot(p.x-a.x,p.y-a.y)/2));
     for(let i=1;i<=n;i++) {
       const q={x:a.x+(p.x-a.x)*i/n,y:a.y+(p.y-a.y)*i/n};
-      if(!allowed(q)){stroke.points.push(last);failed=true;return {failed:true,point:q};}
+      if(!allowed(q)){failed=true;resetStage();return {failed:true,point:q};}
       mark(last,q);last=q;
     }
     if(Math.hypot(p.x-stroke.points.at(-1).x,p.y-stroke.points.at(-1).y)>=1)stroke.points.push(p);
@@ -62,7 +70,8 @@ export function createColoringAttempt(shape,state,options) {
   }
   return {state,progress,
     begin(p) {
-      if(state.phase==='done'||!allowed(p))return false;
+      if(failed||stroke||state.phase==='done'||!allowed(p))return false;
+      state.retry=false;
       failed=false;last=p;stroke={width:state.phase==='trace'?3:options.brush,points:[p]};
       (state.phase==='trace'?state.outline:state.ink).push(stroke);mark(p,p);return true;
     },move,

@@ -43,7 +43,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   const [overview,setOverview]=useState(false),[hint,setHint]=useState(''),[drawing,setDrawing]=useState(false);
   const [,redraw]=useState(0);
   const canvas=useRef(null),pointer=useRef(null),failed=useRef(false),reported=useRef(false),completed=useRef(false);
-  const current=useRef(null);
+  const current=useRef(null),activeAttempt=useRef(null);
   useLayoutEffect(()=>{current.current=snapshot;});
   const state=snapshot?.progress.shapes[snapshot.progress.index];
   const shape=snapshot?.sheet.shapes[snapshot.progress.index];
@@ -59,6 +59,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   const {inputMode,outsideTolerance,fillTarget}=sessionParams;
   const options=useMemo(()=>coloringOptions({inputMode,outsideTolerance,fillTarget},scale),[inputMode,outsideTolerance,fillTarget,scale]);
   const attempt=useMemo(()=>shape&&state?createColoringAttempt(shape,state,options):null,[shape,state,options]);
+  useLayoutEffect(()=>{activeAttempt.current=attempt;});
   const correct=sessionStatus==='answer_correct';
   const disabled=interactionDisabled||correct||overview||!attempt||state?.phase==='done';
   const persist=()=>{if(current.current)saveColoring(key,current.current);};
@@ -68,7 +69,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
     const board=canvas.current;
     const resize=()=>{
       const r=board.getBoundingClientRect();if(!r.width||!r.height)return;
-      pointer.current=null;setDrawing(false);setSize({width:r.width,height:r.height});
+      activeAttempt.current?.end(true);pointer.current=null;setDrawing(false);setSize({width:r.width,height:r.height});
       setSnapshot(previous=>{
         if(previous)return previous;
         const sheet=generateSheet(task.seed,Math.max(660,Math.round(r.width)),Math.max(640,Math.round(r.height)),sessionParams.inputMode,sessionParams.figureSet);
@@ -77,10 +78,10 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
     };
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(resize):null;
     observer?.observe(board);resize();
-    const lost=event=>{event.preventDefault();pointer.current=null;setDrawing(false);};
+    const lost=event=>{event.preventDefault();activeAttempt.current?.end(true);pointer.current=null;setDrawing(false);};
     const restored=()=>redraw(n=>n+1);
     board.addEventListener('contextlost',lost);board.addEventListener('contextrestored',restored);
-    const save=()=>{pointer.current=null;setDrawing(false);if(current.current)saveColoring(key,current.current);};
+    const save=()=>{activeAttempt.current?.end(true);pointer.current=null;setDrawing(false);if(current.current)saveColoring(key,current.current);};
     window.addEventListener('blur',save);window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',save);
     return()=>{observer?.disconnect();save();board.removeEventListener('contextlost',lost);board.removeEventListener('contextrestored',restored);window.removeEventListener('blur',save);window.removeEventListener('pagehide',save);document.removeEventListener('visibilitychange',save);};
   },[key,task.seed,sessionParams.inputMode,sessionParams.figureSet]);
@@ -99,7 +100,8 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   };
   const failure=()=>{
     if(failed.current)return;
-    failed.current=true;markColoringError(snapshot);setHint('Стоп. Подними стилус и продолжай внутри');
+    failed.current=true;markColoringError(snapshot);setHint(state.phase==='trace'?'Стоп. Подними стилус — обведём заново':'Стоп. Подними стилус — закрасим заново');
+    persist();
     if(!reported.current&&!rewardAttemptBlocked){reported.current=true;onStreakReset?.(task.conceptId,task.cardId);}else playFeedback?.('incorrect');
   };
   const move=event=>{
@@ -111,12 +113,13 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
     if(pointer.current!==event.pointerId)return;
     if(!cancelled&&!disabled)move(event);
     attempt.end(cancelled||interactionDisabled);pointer.current=null;setDrawing(false);
+    if(failed.current)setHint(state.phase==='trace'?'Обведи контур заново':'Закрась фигуру заново');
     if(canvas.current.hasPointerCapture?.(event.pointerId))canvas.current.releasePointerCapture(event.pointerId);
     persist();refresh();
   };
   const sheetDone=snapshot?.progress.shapes.every(s=>s.phase==='done');
   const metrics=attempt?.progress();
-  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':hint||(state?.phase==='fill'?'Закрась внутри фигуры':'Обведи контур');
+  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':hint||(state?.retry?(state.phase==='fill'?'Закрась фигуру заново':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':'Обведи контур');
   return <section className="coloring" aria-label="Тренировка закрашивания" data-phase={state?.phase??'loading'} data-sheet-count={snapshot?.sheet.shapes.length} onClick={e=>e.stopPropagation()}>
     <header className="coloring__tools"><span>{shape?.title} · {snapshot?`${snapshot.progress.index+1} / ${snapshot.sheet.shapes.length}`:''}</span>
       {compact&&<button type="button" disabled={interactionDisabled||drawing} onClick={()=>{attempt?.end(true);setOverview(v=>!v);setHint('');}}>{overview?'К фигуре':'Весь лист'}</button>}

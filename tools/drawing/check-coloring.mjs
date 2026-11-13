@@ -35,6 +35,10 @@ try {
   let saved=await snapshot(page);assert(saved.sheet.shapes.length>1);
   await page.screenshot({path:`${output}/tablet-start.png`});
   const first=saved.sheet.shapes[0];
+  const center=await page.evaluate(async points=>{const b=(await import('/src/topics/renderers/drawing/coloring/geometry.js')).bounds(points);return {x:b.x+b.width/2,y:b.y+b.height/2};},first.points);
+  await gesture(page,[first.points[0],center]);
+  saved=await snapshot(page);assert.equal(saved.progress.shapes[0].phase,'trace');assert.deepEqual(saved.progress.shapes[0].outline,[]);assert.deepEqual(saved.progress.shapes[0].traceHits,[]);
+  await page.reload();await page.locator('.coloring[data-phase="trace"]').waitFor();
   await gesture(page,[...first.points,first.points[0]],'pen',true);
   await page.locator('.coloring[data-phase="fill"]').waitFor();
   saved=await snapshot(page);assert.equal(saved.progress.shapes[0].filled.length,0);
@@ -53,9 +57,10 @@ try {
   await page.getByRole('button',{name:'Следующая фигура'}).click();
   const second=(await snapshot(page)).sheet.shapes[1];await gesture(page,[...second.points,second.points[0]]);
   await page.locator('.coloring[data-phase="fill"]').waitFor();
+  const keptOutline=(await snapshot(page)).progress.shapes[1].outline;
   const b=await page.evaluate(async points=>(await import('/src/topics/renderers/drawing/coloring/geometry.js')).bounds(points),second.points);
   await gesture(page,[{x:b.x+b.width/2,y:b.y+b.height/2},{x:b.x+b.width+70,y:b.y+b.height/2}]);
-  saved=await snapshot(page);assert(saved.progress.hadError);const preserved=saved.progress.shapes[1].filled.length;
+  saved=await snapshot(page);assert(saved.progress.hadError);const preserved=saved.progress.shapes[1].filled.length;assert.equal(preserved,0);assert.deepEqual(saved.progress.shapes[1].ink,[]);assert.deepEqual(saved.progress.shapes[1].outline,keptOutline);assert.equal(saved.progress.shapes[0].phase,'done');
   await page.reload();await page.locator('.coloring[data-phase="fill"]').waitFor();
   assert.equal((await snapshot(page)).progress.shapes[1].filled.length,preserved);
   // Complete a checkpoint to exercise actual session advancement and the 15-sheet loop.
