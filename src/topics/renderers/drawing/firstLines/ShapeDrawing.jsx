@@ -10,7 +10,7 @@ export default function ShapeDrawing({ state, width = 'normal', passive = false,
     {!passive && shape.parts.map((part, i) => {
       const active = i === state.part && !state.done;
       return <g key={i} transform={frameTransform(part.frame)}>
-        <path className="first-lines__track" d={part.d} strokeWidth={profile.width / part.frame.scale} opacity={active || state.done ? 1 : .5} />
+        <path className="first-lines__track" d={part.d} strokeWidth={profile.width / part.frame.scale} opacity={active || state.done || shape.volume ? 1 : .5} />
       </g>;
     })}
     {shape.parts.map((part, i) => {

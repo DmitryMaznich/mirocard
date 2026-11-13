@@ -17,7 +17,7 @@ export function normalizeVariant(raw) {
   const legacy = { scale: Number.isFinite(raw?.scale) ? Math.max(.55, Math.min(1.1, raw.scale)) : 1,
     angle: Number.isFinite(raw?.angle) ? Math.max(-180, Math.min(180, raw.angle)) : 0,
     aspect: Number.isFinite(raw?.aspect) ? Math.max(.9, Math.min(1.08, raw.aspect)) : 1 };
-  if (![4,5].includes(raw?.schema)) return legacy;
+  if (![4,5,6].includes(raw?.schema)) return legacy;
   const unit = n => Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : .5;
   return { ...legacy, scale: 1, schema: raw.schema, seed: Number.isSafeInteger(raw.seed) ? raw.seed >>> 0 : 1,
     size: unit(raw.size), positionX: unit(raw.positionX), positionY: unit(raw.positionY) };
@@ -104,6 +104,11 @@ function proceduralParts(kind, seed, version) {
   if (['short_line','vertical_line','diagonal_up','diagonal_down'].includes(kind)) return [segment([500-halfW,500],[500+halfW,500])];
   if (kind==='circle') { const r=between(130,230);return [ellipse(r,r,undefined,undefined,undefined,undefined,[.72,1.4])]; }
   if (kind==='oval'||kind==='tilted_oval') { const rx=between(180,260),ry=between(100,140);return [ellipse(rx,ry,undefined,undefined,undefined,undefined,[1.15,3.2])]; }
+  if(kind==='parallelepiped'&&version===6){
+    const edge=between(170,220),x=edge*Math.sqrt(3)/2,y=edge/2,center=[500,500];
+    const vertices=[[500,500-edge],[500+x,500-y],[500+x,500+y],[500,500+edge],[500-x,500+y],[500-x,500-y]];
+    return [...polygon(vertices),segment(vertices[5],center),segment(center,vertices[1]),segment(center,vertices[3])];
+  }
   if (['square','rectangle','rhombus','parallelepiped'].includes(kind)) {
     let vertices;
     if(kind==='rhombus')vertices=[[500,500-halfH],[500+halfW,500],[500,500+halfH],[500-halfW,500]];
@@ -138,15 +143,16 @@ function proceduralParts(kind, seed, version) {
 export function shapeDefinition(kind = 'short_line', rawVariant) {
   const id = knownShape(kind) ? kind : 'short_line', variant = normalizeVariant(rawVariant);
   let base = definitions[id];
-  if (![4,5].includes(variant.schema) && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
-  if (![4,5].includes(variant.schema) && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
-  if ([4,5].includes(variant.schema)) base = proceduralParts(id, variant.seed, variant.schema);
+  if (![4,5,6].includes(variant.schema) && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
+  if (![4,5,6].includes(variant.schema) && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
+  if ([4,5,6].includes(variant.schema)) base = proceduralParts(id, variant.seed, variant.schema);
   const parts = base.map(part => {
     const frame = combineFrame(part.frame, variant);
     return { ...part, frame, travelLength: part.length * frame.scale };
   });
+  const volume=id==='parallelepiped'&&variant.schema===6?{edge:base[0].frame.scale*360,separation:base[0].frame.scale*360*Math.sqrt(3)/2}:null;
   const steps = parts.map(p => p.type === 'line' ? 800 : Math.max(800, Math.min(2400, p.length * 2)));
-  return { id, variant, title: [4,5].includes(variant.schema) && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
+  return { id, variant, ...(volume?{volume}:{}), title: [4,5,6].includes(variant.schema) && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
     length: parts.reduce((sum, p) => sum + p.travelLength, 0), steps,
     motionMs: parts.length > 1 ? steps.reduce((sum, ms) => sum + ms + 400, 0) : parts[0].type === 'line' ? 1200 : steps[0] };
 }
