@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.18.0",
+      "version": "0.18.1",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.18.0.zip",
+        "public/decks/drawing_v0.18.1.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.18.0",
-        "url": "./decks/drawing_v0.18.0.zip",
+        "version": "0.18.1",
+        "url": "./decks/drawing_v0.18.1.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -344,7 +344,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.18.0",
+        "version": "0.18.1",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -353,14 +353,14 @@
           "ru": "Шесть рисунков на бумаге и «Первые линии»: разнообразная база линий, дуг, фигур и узоров со случайными размерами. Разные дорожки для стилуса и пальца, общий лист, штатные звёзды и видеоприз.",
           "en": "Six drawing lessons on paper and First Lines: varied lines, arcs, shapes and patterns with random sizes. Separate stylus/finger tracks, shared worksheets and standard stars and video rewards."
         },
-        "url": "./decks/drawing_v0.18.0.zip",
+        "url": "./decks/drawing_v0.18.1.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-13T09:39:36Z"
+      "sourceUpdatedAt": "2026-11-13T11:55:18Z"
     },
     {
       "id": "emotions_v2",

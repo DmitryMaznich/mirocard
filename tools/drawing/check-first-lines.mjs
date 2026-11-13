@@ -203,8 +203,8 @@ try {
   }
 
   // The demonstration draws a real sample behind its tip; both use the same timing.
-  // Exactly two widths follow the selected input, independent of the contour scale.
-  for (const [input, size] of [['pen', 10], ['touch', 56], ['passive', 10]]) {
+  // Three instrument profiles follow the selected input, independent of the contour scale.
+  for (const [input, size] of [['pen', 10], ['touch', 56], ['passive', 24]]) {
     const sample = await open(`noVideo&${input}`);
     await sample.page.clock.install();
     expect(await sample.page.locator('.first-lines__track').evaluate(node => { const a=node.getScreenCTM(); return parseFloat(window.getComputedStyle(node).strokeWidth)*Math.hypot(a.a,a.b); })).toBeCloseTo(size, 2);
@@ -249,5 +249,5 @@ try {
   await expect.poll(() => auto.page.evaluate(() => window.previewStore.getState().screen)).toBe('summary');
   await auto.context.close();
   expect(failures).toEqual([]);
-  console.log('First Lines: real ZIP, rewards, reload, phones in both orientations, touch correction/rotation, tablet pen/palm, demonstration and both input widths passed.');
+  console.log('First Lines: real ZIP, rewards, reload, phones in both orientations, touch correction/rotation, tablet pen/palm, demonstration and all three input widths passed.');
 } finally { await browser.close(); }

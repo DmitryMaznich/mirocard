@@ -19,8 +19,10 @@ export function scaledProfile(profile, scale = 1) {
 // Fixed device profiles in CSS pixels; canonical coordinates are compensated by the placement scale.
 export function screenProfile(input = 'pen') {
   const touch = input === 'touch';
-  return { width: touch ? 56 : 10, extra: touch ? 7 : 3, resume: touch ? 32 : 14, finish: touch ? 32 : 14,
+  const profile = { width: touch ? 56 : 10, extra: touch ? 7 : 3, resume: touch ? 32 : 14, finish: touch ? 32 : 14,
     close: touch ? 20 : 10, outsideMin: 6, outsideFast: 18, sampleStep: 2, corner: touch ? 26 : 10,
     ink: touch ? 7 : 3, noise: touch ? 10 : 4, markerRadius: touch ? 13 : 8, goalRadius: touch ? 21 : 14,
     markerHalo: 5, leadInk: touch ? 7 : 3, tipRadius: touch ? 9 : 5, markerStroke: 1.5, goalStroke: 3, markRadius: 16, leadLength: 24, overlayScale: 1 };
+  return input === 'passive_pen' ? { ...profile, width: 24, extra: 5, resume: 22, finish: 22, close: 14, corner: 16,
+    ink: 4, noise: 6, markerRadius: 10, goalRadius: 17, leadInk: 4, tipRadius: 6 } : profile;
 }
