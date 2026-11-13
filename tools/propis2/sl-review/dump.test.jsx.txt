@@ -1,0 +1,22 @@
+import { it } from "vitest";
+import { readFile, writeFile } from "node:fs/promises";
+import { openDb } from "@/core/db";
+import { importTopic, getTopicRecord } from "@/topics/topicLoader";
+import { layoutWideLinesIntoRows } from "@/handwriting/wordEngine";
+import { glyphMapOf } from "./pageTask.js";
+import { languageView } from "./languages.js";
+it("dump", async () => {
+  const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+  const db = await openDb(`tmpd-${Date.now()}`);
+  await importTopic(db, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+  const published = await getTopicRecord(db, "propis2_lang");
+  const spec = JSON.parse(await readFile("tools/propis2/languages.json", "utf-8")).languages.find((l) => l.id === "sl");
+  const { deck: _d, ...sl } = spec;
+  sl.styles = await Promise.all(sl.styles.map(async ({ glyphsFile, ...st }) => ({ ...st, glyphs: JSON.parse(await readFile(glyphsFile, "utf-8")).glyphs })));
+  const view = languageView({ ...published, languages: [...published.languages, sl] }, "sl", "sl_cursive");
+  const lay = (w) => layoutWideLinesIntoRows([w], glyphMapOf(view), undefined, false).placed[0].segments.flatMap((sg) => sg.strokes.map((st) => ({ d: st.d, join: !!st.join })));
+  const names = ["Izak","Miha","Enea","Lara","Adela","Žan","Mark","Jakob","Bor","Tanja","David","Janina","Ula","Primož","Ažbe","Angelina","Leja","Luka","Julija"];
+  await writeFile(process.env.W_DIR + "/names.json", JSON.stringify(names.map((w) => ({ w, strokes: lay(w) }))));
+  const groups = JSON.parse(await readFile("tools/propis2/sl-words.json", "utf-8")).groups;
+  await writeFile(process.env.W_DIR + "/words.json", JSON.stringify(groups.map((g) => ({ id: g.id, title: g.title, words: g.words.map((w) => ({ w, strokes: lay(w) })) }))));
+});
