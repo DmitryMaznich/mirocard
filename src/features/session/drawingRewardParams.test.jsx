@@ -80,9 +80,14 @@ it('coloring hides concepts and saves the selected pen width in its own mode', a
   expect(host.textContent).not.toContain('Понятия');
   const row=[...host.querySelectorAll('.param-row')].find(n=>n.querySelector('.param-label')?.textContent==='Толщина пера');
   expect(row).toBeTruthy();
-  const option=[...row.querySelectorAll('button')].find(b=>b.textContent==='16 пикселей');
-  await act(async()=>option.click());
+  const option=row.querySelector('input[type=range]');
+  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(option,'17');option.dispatchEvent(new Event('input',{bubbles:true}));});
+  expect(row.querySelector('output').textContent).toBe('17px');
+  for(const [label,value] of [['Допустимый выход за контур',7],['Заполнить внутри фигуры',87]]) {
+    const slider=[...host.querySelectorAll('input[type=range]')].find(n=>host.querySelector(`label[for="${n.id}"]`)?.textContent===label);
+    await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(slider,String(value));slider.dispatchEvent(new Event('input',{bubbles:true}));});
+  }
   const start=[...host.querySelectorAll('button')].find(b=>b.textContent.trim()==='Начать занятие');
   await act(async()=>start.click());
-  expect(mocks.persist).toHaveBeenCalledWith('kid','drawing',expect.objectContaining({params:expect.objectContaining({byMode:expect.objectContaining({drawing_coloring:expect.objectContaining({penWidth:'16'})})})}));
+  expect(mocks.persist).toHaveBeenCalledWith('kid','drawing',expect.objectContaining({params:expect.objectContaining({byMode:expect.objectContaining({drawing_coloring:expect.objectContaining({penWidth:17,outsideTolerance:7,fillTarget:87})})})}));
 });

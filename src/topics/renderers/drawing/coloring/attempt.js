@@ -6,10 +6,10 @@ export function coloringOptions(params={}, scale=1) {
   const tolerance=Number(params.outsideTolerance);
   const target=Number(params.fillTarget);
   const requestedWidth=Number(params.penWidth);
-  const width=[3,6,10,16,24,32].includes(requestedWidth)?requestedWidth:null;
+  const width=Number.isFinite(requestedWidth)&&requestedWidth>=1&&requestedWidth<=32?requestedWidth:null;
   const profile=contourProfile(input,scale,width===null?undefined:width*factor);
-  return { traceProfile:profile,tolerance: ([3,6,10,16].includes(tolerance)?tolerance:6)*factor,
-    target: ([80,90,95].includes(target)?target:90)/100,
+  return { traceProfile:profile,tolerance: (Number.isFinite(tolerance)&&tolerance>=0&&tolerance<=16?tolerance:6)*factor,
+    target: (Number.isFinite(target)&&target>=50&&target<=100?target:90)/100,
     brush: (width??(input==='touch'?26:input==='passive_pen'?16:12))*factor,
     outlineInk: profile.ink,
     trace: profile.width/2+profile.extra };

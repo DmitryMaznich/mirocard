@@ -1,0 +1,19 @@
+.param-row.coloring-slider{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.coloring-slider__heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.coloring-slider__heading output{display:flex;align-items:baseline;justify-content:center;gap:5px;min-width:72px;padding:5px 10px;border-radius:12px;background:#e5f1ed;color:#245e54;font-size:24px;font-weight:750;font-variant-numeric:tabular-nums}
+.coloring-slider__heading output span{font-size:14px;font-weight:500}
+.coloring-slider__body{display:flex;align-items:center;gap:24px}
+.coloring-slider__control{flex:1;min-width:0}
+.coloring-slider__control input[type=range]{display:block;appearance:none;-webkit-appearance:none;width:100%;height:44px;margin:0;padding:0;border:0;background:transparent;cursor:pointer;touch-action:pan-y;accent-color:#247c70}
+.coloring-slider__control input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:8px;background:linear-gradient(to right,#247c70 0%,#247c70 var(--coloring-range-position),#dce6e2 var(--coloring-range-position),#dce6e2 100%)}
+.coloring-slider__control input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:24px;height:24px;margin-top:-9px;border:3px solid #247c70;border-radius:50%;background:white;box-shadow:0 1px 4px #173c3426}
+.coloring-slider__control input[type=range]::-moz-range-track{height:6px;border-radius:8px;background:#dce6e2}
+.coloring-slider__control input[type=range]::-moz-range-progress{height:6px;border-radius:8px;background:#247c70}
+.coloring-slider__control input[type=range]::-moz-range-thumb{width:18px;height:18px;border:3px solid #247c70;border-radius:50%;background:white}
+.coloring-slider__control input:focus-visible{outline:3px solid #369eac;outline-offset:3px;border-radius:12px}
+.coloring-slider__limits{display:flex;justify-content:space-between;color:#6d8982;font-size:12px;font-variant-numeric:tabular-nums}
+.coloring-slider__preview{display:block;flex:0 0 240px;width:240px;height:100px;background:#f8faf9;border:1px solid #e2ebe6;border-radius:12px}
+.coloring-slider__preview text{fill:#57736b;font:12px sans-serif}
+.coloring-slider__preview .coloring-slider__percent{fill:#254e61;font:bold 18px sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+.coloring-slider__hint{margin:0;color:#6d8982;font-size:13px;line-height:1.4}
+@media(max-width:600px){.coloring-slider__body{gap:12px;flex-wrap:wrap}.coloring-slider__control{flex:1 1 160px}.coloring-slider__preview{flex-basis:240px;width:240px;height:100px}.coloring-slider__heading output{font-size:21px}}

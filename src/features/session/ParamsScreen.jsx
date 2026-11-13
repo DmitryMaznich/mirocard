@@ -42,6 +42,7 @@ import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedAct
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
 import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
 import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
+import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
 
@@ -2144,6 +2145,9 @@ export default function ParamsScreen() {
           return <DailyOrientationSettings params={params} setParams={setParams} student={student} onOpenImportantDates={openImportantDates} />;
         }
         function renderParam(key, def) {
+          if(mode?.type==='drawing_coloring'&&['penWidth','outsideTolerance','fillTarget'].includes(key)&&def.type==='number') {
+            return <DrawingColoringSlider key={key} kind={key} definition={def} params={params} onChange={value=>setParams(previous=>({...previous,[key]:value}))}/>;
+          }
           if (def.type === "concept_selector" || def.type === "content_language") return null;
           if (def.showWhen) {
             const [condKey, condVal] = Object.entries(def.showWhen)[0];
