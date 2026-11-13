@@ -51,6 +51,8 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
   expect(host.textContent).toContain('Ширина дорожки');
   await act(async () => [...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Очень широкая').click());
   expect(host.textContent).toContain('Рабочее поле');
+  expect([...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Круг')).toBeUndefined();
+  await act(async () => host.querySelector('[role=switch][aria-label="Выбрать отдельные упражнения"]').click());
   for (const label of ['Круг', 'Овал', 'Квадрат', 'Общий лист — по 4 задания']) {
     await act(async () => [...host.querySelectorAll('button')].find(button => button.textContent.trim() === label).click());
   }
@@ -65,7 +67,7 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
     videoRewardEnabled: true, answersPerStar: 3, strictStars: false,
     params: expect.objectContaining({ byMode: expect.objectContaining({
       drawing_steps: expect.objectContaining({ speed: 'slow', videoRewardEnabled: true }),
-      drawing_first_lines: expect.objectContaining({ trackWidth: 'wide', exercises: ['short_line', 'circle', 'oval', 'square'], workSurface: 'sheet' }),
+      drawing_first_lines: expect.objectContaining({ trackWidth: 'wide', exercises: ['circle', 'oval', 'square'], preciseSelection: true, workSurface: 'sheet' }),
     }) }),
   }));
 });

@@ -17,7 +17,7 @@ it('keeps six paper lessons separate from the new evaluated mode and its normal 
   const stored = writeModeParams({ byMode: { drawing_steps: { speed: 'slow', videoRewardEnabled: true } } }, lines, { inputMode: 'touch', trackWidth: 'wide', exercises: ['short_line'], workSurface: 'single' });
   expect(readModeParams(stored, paper)).toMatchObject({ speed: 'slow', videoRewardEnabled: true });
   expect(readModeParams(stored, paper).trackWidth).toBeUndefined();
-  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', trackWidth: 'wide', exercises: ['short_line'], workSurface: 'single' });
+  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', trackWidth: 'wide', exercises: ['short_line'], workSurface: 'single', practiceSet: 'mixed', preciseSelection: false });
   expect(readModeParams({ byMode: { drawing_first_lines: { inputMode: 'touch' } } }, lines).trackWidth).toBe('normal');
 });
 
@@ -47,10 +47,10 @@ it('preserves an old paper selection when the topic gains a separate pool of scr
 });
 
 it('cycles only selected shapes, groups sheets by four, and keeps paper pauses without extra credits', () => {
-  const params = { exercises: ['circle', 'square', 'diagonal_up'], workSurface: 'sheet' };
+  const params = { preciseSelection: true, exercises: ['circle', 'square', 'diagonal_up'], workSurface: 'sheet' };
   const tasks = generateTasks(lines, topic.cards, 500, params);
   expect(tasks).toHaveLength(15);
-  expect(tasks.slice(0, 7).map(t => t.exerciseKind)).toEqual(['diagonal_up', 'circle', 'square', 'diagonal_up', 'circle', 'square', 'diagonal_up']);
+  for (let i = 0; i < 15; i += 3) expect(new Set(tasks.slice(i, i + 3).map(t => t.exerciseKind))).toEqual(new Set(params.exercises));
   expect(tasks.filter(t => t.breakBefore).map(t => t.number)).toEqual([5, 9, 13]);
   expect(tasks[3]).toMatchObject({ sheetPage: 0, sheetSlot: 3 });
   expect(tasks[4]).toMatchObject({ sheetPage: 1, sheetSlot: 0 });
@@ -59,6 +59,6 @@ it('cycles only selected shapes, groups sheets by four, and keeps paper pauses w
   const stored = writeModeParams({}, lines, params);
   expect(readModeParams(stored, lines)).toMatchObject(params);
   expect(readModeParams(stored, paper).workSurface).toBeUndefined();
-  expect(generateTasks(lines, topic.cards, 500, { exercises: ['unknown'] })[0].exerciseKind).toBe('short_line');
-  expect(new Set(generateTasks(lines, topic.cards, 500, { exercises: [] }).map(t => t.exerciseKind)).size).toBe(7);
+  expect(generateTasks(lines, topic.cards, 500, { preciseSelection: true, exercises: ['unknown'] })).toHaveLength(15);
+  expect(new Set(generateTasks(lines, topic.cards, 500, { preciseSelection: true, exercises: [] }).map(t => t.exerciseKind)).size).toBe(15);
 });

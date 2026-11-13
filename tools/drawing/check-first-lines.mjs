@@ -2,6 +2,7 @@
 // Runs against `npm run dev`. Tests the installed ZIP in the actual SessionScreen.
 import { chromium, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
+import { shapeDefinition, transformPoint } from '../../src/topics/renderers/drawing/firstLines/shapes.js';
 import { SCREENSHOT_ZIGZAG } from '../../src/topics/renderers/drawing/firstLines/testPaths.js';
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
@@ -21,7 +22,8 @@ async function open(query = '', viewport = { width: 1180, height: 900 }) {
       return play.apply(this, args);
     };
   });
-  await page.goto(`${base}/tools/drawing/first-lines-preview.html?fresh&${query}`);
+  const options = new URLSearchParams(query); if (!options.has('exercises')) options.set('exercises','short_line');
+  await page.goto(`${base}/tools/drawing/first-lines-preview.html?fresh&${options}`);
   await page.locator('.first-lines__board').waitFor();
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -29,11 +31,20 @@ async function open(query = '', viewport = { width: 1180, height: 900 }) {
 }
 const state = page => page.evaluate(() => window.previewStore.getState().activeSessionSnapshot?.sessionState);
 async function coords(page, x, y = 500) {
+  const session = await state(page), task = session.tasks[session.taskIndex];
+  const world = transformPoint({ x, y }, shapeDefinition(task.exerciseKind,task.variant).parts[0].frame);
   return page.locator('.first-lines__board').evaluate((svg, p) => {
     const point = svg.createSVGPoint(); point.x = p.x; point.y = p.y;
     const screen = point.matrixTransform(svg.getScreenCTM());
     return { x: screen.x, y: screen.y };
-  }, { x, y });
+  }, world);
+}
+async function anchor(page) {
+  const task = (await state(page)).tasks[(await state(page)).taskIndex];
+  return page.evaluate(id => {
+    const key = Object.keys(localStorage).find(k => k.startsWith('drawing-first-lines:') && k.endsWith(':' + id));
+    const saved = JSON.parse(localStorage.getItem(key)).attempt.parts[0].anchor; return [saved.x,saved.y];
+  },task.id);
 }
 async function stroke(page, points) {
   const start = await coords(page, ...points[0]);
@@ -50,8 +61,12 @@ async function next(page) {
   const before = (await state(page)).taskIndex;
   await page.locator('.first-lines__footer button').click();
   await expect.poll(async () => (await state(page))?.taskIndex).toBe(before + 1);
+  const task = (await state(page)).tasks[before + 1];
+  await expect(page.locator('.first-lines')).toHaveAttribute('data-task-id',task.id);
+  if (task.breakBefore) await expect(page.locator('.first-lines__pause button')).toBeVisible();
   const pause = page.locator('.first-lines__pause button');
   if (await pause.isVisible()) await pause.click();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
 
 try {
@@ -94,7 +109,7 @@ try {
   expect(await failed.page.locator('polyline').count()).toBe(trail);
   expect((await state(failed.page)).rewardAttemptBlocked).toBe(true);
   await failed.context.setOffline(true);
-  await stroke(failed.page, [[450, 540], [680, 500]]);
+  await stroke(failed.page, [await anchor(failed.page), [680, 500]]);
   await expect.poll(async () => (await state(failed.page)).status).toBe('answer_correct');
   expect((await state(failed.page)).streakCount).toBe(0);
   await next(failed.page); await complete(failed.page);
@@ -118,7 +133,7 @@ try {
   // Regression for the owner's screenshot: a zigzag inside the road is not a
   // completed straight line, including on a phone. Correction keeps the raw trail.
   for (const width of ['wide', 'normal', 'narrow']) {
-    const crooked = await open(`noVideo&width=${width}`, { width: 390, height: 844 });
+    const crooked = await open(`noVideo&touch&width=${width}`, { width: 390, height: 844 });
     const screen = crooked.page;
     await stroke(screen, SCREENSHOT_ZIGZAG);
     await expect.poll(async () => (await state(screen)).incorrectCount).toBe(1);
@@ -151,7 +166,7 @@ try {
     const screen = phone.page;
     await expect(screen.locator('.first-lines__size')).toHaveCount(0);
     const start = await coords(screen, 320), end = await coords(screen, 680);
-    expect(end.x - start.x).toBeGreaterThan(180);
+    expect(end.x - start.x).toBeGreaterThan(70);
     expect(start.x).toBeGreaterThan(0); expect(end.x).toBeLessThan(viewport.width);
     const touch = await phone.context.newCDPSession(screen);
     const send = async (type, x, y = 500) => touch.send('Input.dispatchTouchEvent', {
@@ -176,7 +191,7 @@ try {
       await next(screen);
       await send('touchStart', 320); await send('touchMove', 450); await send('touchMove', 450, 650); await send('touchEnd');
       await expect.poll(async () => (await state(screen)).incorrectCount).toBe(1);
-      await send('touchStart', 450, 540); await send('touchMove', 680); await send('touchEnd');
+      await send('touchStart', ...await anchor(screen)); await send('touchMove', 680); await send('touchEnd');
       await expect.poll(async () => (await state(screen)).correctCount).toBe(3);
       expect((await state(screen)).streakCount).toBe(1);
     }
@@ -186,9 +201,9 @@ try {
   // The demonstration draws a real sample behind its tip; both use the same timing.
   // Width chosen before the session controls the visible track and the actual boundary check.
   for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
-    const sample = await open(`noVideo&width=${width}`);
+    const sample = await open(`noVideo&touch&width=${width}`);
     await sample.page.clock.install();
-    expect(await sample.page.locator('.first-lines__track').evaluate(node => parseFloat(window.getComputedStyle(node).strokeWidth))).toBe(size);
+    expect(await sample.page.locator('.first-lines__track').evaluate(node => { const a=node.getScreenCTM(), b=node.ownerSVGElement.getScreenCTM(); return parseFloat(window.getComputedStyle(node).strokeWidth)*Math.hypot(a.a,a.b)/Math.hypot(b.a,b.b); })).toBeCloseTo(size, 2);
     await sample.page.getByRole('button', { name: 'Показать движение' }).click();
     await sample.page.clock.runFor(750);
     const animation = await sample.page.locator('.first-lines__demo').evaluate(group => {
@@ -204,7 +219,8 @@ try {
     expect((await state(sample.page)).correctCount).toBe(0);
     await sample.page.clock.runFor(2400);
     await expect(sample.page.locator('.first-lines__demo')).toHaveCount(0);
-    await stroke(sample.page, [[320, 500], [450, 500], [450, 560], [520, 560], [680, 500]]);
+    const snapshot = await state(sample.page), scale = snapshot.tasks[snapshot.taskIndex].variant.scale;
+    await stroke(sample.page, [[320, 500], [450, 500], [450, 500 + 60 / scale], [520, 500 + 60 / scale], [680, 500]]);
     expect((await state(sample.page)).incorrectCount).toBe(mistakes);
     expect((await state(sample.page)).correctCount).toBe(mistakes ? 0 : 1);
     await sample.context.close();
@@ -224,6 +240,9 @@ try {
     }
     if (i < 14) {
       await expect.poll(async () => (await state(auto.page)).taskIndex).toBe(i + 1);
+      const task=(await state(auto.page)).tasks[i+1];
+      await expect(auto.page.locator('.first-lines')).toHaveAttribute('data-task-id',task.id);
+      if(task.breakBefore) await expect(auto.page.locator('.first-lines__pause button')).toBeVisible();
       const pause = auto.page.locator('.first-lines__pause button');
       if (await pause.isVisible()) await pause.click();
     }

@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.16.1",
+      "version": "0.17.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.16.1.zip",
+        "public/decks/drawing_v0.17.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.16.1",
-        "url": "./decks/drawing_v0.16.1.zip",
+        "version": "0.17.0",
+        "url": "./decks/drawing_v0.17.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -344,23 +344,23 @@
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.16.1",
+        "version": "0.17.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Шесть рисунков на бумаге по анимированному образцу и «Первые линии»: прямые, круги, овалы и квадрат стилусом. Отдельные карточки или общий лист, штатные звёзды и видеоприз.",
-          "en": "Six animated drawing lessons on paper and First Lines: straight lines, circles, ovals and a square with a stylus. Separate cards or a shared worksheet with standard stars and video rewards."
+          "ru": "Шесть рисунков на бумаге и «Первые линии»: разнообразная база линий, дуг, фигур и узоров со случайными размерами. Разные дорожки для стилуса и пальца, общий лист, штатные звёзды и видеоприз.",
+          "en": "Six drawing lessons on paper and First Lines: varied lines, arcs, shapes and patterns with random sizes. Separate stylus/finger tracks, shared worksheets and standard stars and video rewards."
         },
-        "url": "./decks/drawing_v0.16.1.zip",
+        "url": "./decks/drawing_v0.17.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-13T06:45:30Z"
+      "sourceUpdatedAt": "2026-11-13T06:54:45Z"
     },
     {
       "id": "emotions_v2",

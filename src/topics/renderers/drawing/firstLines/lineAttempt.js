@@ -1,8 +1,9 @@
 // Prototype A1. Coordinates and tolerances are hypotheses in docs/drawing-first-lines.md.
 // No rewards here: the renderer reports one mistake and one completion per card.
 import { hasExcessiveWandering } from './straightness.js';
+import { resolveProfile } from './trackProfile.js';
+export { TRACK_WIDTHS } from './trackProfile.js';
 export const LINE = Object.freeze({ start: 320, end: 680, y: 500, halfWidth: 50, tolerance: 65, resume: 60 });
-export const TRACK_WIDTHS = Object.freeze({ wide: 140, normal: 100, narrow: 60 });
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const offTrack = p => Math.hypot(p.x - Math.max(LINE.start, Math.min(LINE.end, p.x)), p.y - LINE.y);
 const copyPoint = p => ({ x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 });
@@ -23,8 +24,8 @@ export function restoreAttempt(raw) {
 }
 
 export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal') {
-  const halfWidth = (Object.hasOwn(TRACK_WIDTHS, trackWidth) ? TRACK_WIDTHS[trackWidth] : TRACK_WIDTHS.normal) / 2;
-  const line = Object.freeze({ ...LINE, halfWidth, tolerance: halfWidth + 15 });
+  const profile = resolveProfile(trackWidth), halfWidth = profile.width / 2;
+  const line = Object.freeze({ ...LINE, halfWidth, tolerance: halfWidth + profile.extra, resume: profile.resume, finish: profile.finish });
   const state = structuredClone(saved);
   let active = null;
   let outside = null;
@@ -35,9 +36,9 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
 
   function begin(p, time = 0) {
     const resumeTolerance = state.needsReturn ? line.halfWidth : line.tolerance;
-    if (state.done || active || offTrack(p) > resumeTolerance || distance(p, startPoint()) > LINE.resume) return false;
+    if (state.done || active || offTrack(p) > resumeTolerance || distance(p, startPoint()) > line.resume) return false;
     // Up to 10% starting slack, never a shortcut to the end of the track.
-    if (state.progress === LINE.start && p.x > LINE.start + 36) return false;
+    if (state.progress === LINE.start && p.x > LINE.start + Math.min(36, line.resume)) return false;
     state.needsReturn = false;
     strokeStart = { progress: state.progress, anchor: { ...state.anchor } };
     active = { points: [copyPoint(p)], failedFrom: null };
@@ -52,7 +53,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
     const length = distance(from, p);
     let mistake = false;
     // Subdivide actual segments: identical movement behaves the same at different event rates.
-    const count = Math.max(1, Math.ceil(length / 3));
+    const count = Math.max(1, Math.ceil(length / profile.sampleStep));
     for (let i = 1; i <= count; i++) {
       const f = i / count;
       const sample = { x: from.x + (p.x - from.x) * f, y: from.y + (p.y - from.y) * f };
@@ -63,7 +64,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
       if (deviation > line.tolerance) {
         outside ??= { time: t, length: 0, index: Math.max(0, active.points.length - 2), point: copyPoint(sample) };
         outside.length += length / count;
-        if ((t - outside.time >= 80 && outside.length >= 12) || outside.length >= 30) {
+        if ((t - outside.time >= 80 && outside.length >= profile.outsideMin) || outside.length >= profile.outsideFast) {
           state.needsReturn = true;
           active.failedFrom = outside.index;
           state.marks.push(outside.point);
@@ -80,7 +81,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
       }
     }
     last = p; lastTime = time;
-    if (!state.needsReturn && hasExcessiveWandering(state.strokes, state.progress - LINE.start)) {
+    if (!state.needsReturn && hasExcessiveWandering(state.strokes, state.progress - LINE.start, { noise: profile.noise, maxLengthRatio: 1.6, excess: 100 })) {
       // Repeat this movement from its beginning; earlier accepted strokes stay.
       // The failed trace stays visible, but cannot satisfy the completion check.
       state.progress = strokeStart.progress;
@@ -98,7 +99,7 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
   function end(cancelled = false) {
     if (!active) return false;
     const complete = !cancelled && !state.needsReturn && state.progress >= LINE.start + .9 * (LINE.end - LINE.start)
-      && distance(last, { x: LINE.end, y: LINE.y }) <= 60;
+      && distance(last, { x: LINE.end, y: LINE.y }) <= line.finish;
     active = null; outside = null; last = null;
     state.done = complete;
     return complete;

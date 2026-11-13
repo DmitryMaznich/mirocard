@@ -9,7 +9,7 @@ import { createLineAttempt } from './lineAttempt.js';
 import { partPoint, transformPoint, shapeDefinition } from './shapes.js';
 import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
-const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }]);
+const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }], 15, { preciseSelection: true, exercises: ['short_line'] }).map(t => ({ ...t, variant: undefined }));
 let root, host, latest, errors, successes;
 function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', surface = 'single', initial }) {
   const [state, setState] = useState(() => initial ?? {
@@ -41,7 +41,7 @@ async function fail() { await send('pointerdown', 320); await send('pointermove'
 
 describe('First Lines and the real session reward policy', () => {
   for (const strict of [true, false]) it(`registers a zigzag once and never rewards its correction (strict=${strict})`, async () => {
-    await act(async () => root.render(<Harness strict={strict} />));
+    await act(async () => root.render(<Harness strict={strict} input="touch" />));
     await send('pointerdown', ...SCREENSHOT_ZIGZAG[0]);
     for (const xy of SCREENSHOT_ZIGZAG.slice(1)) await send('pointermove', ...xy);
     await send('pointerup', ...SCREENSHOT_ZIGZAG.at(-1));
@@ -56,12 +56,12 @@ describe('First Lines and the real session reward policy', () => {
     await act(async () => host.querySelector('.first-lines__footer button').click());
     await draw(); expect(latest.streakCount).toBe(remaining + 1);
   });
-  for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
+  for (const [width, size, mistakes] of [['wide', 36, 0], ['normal', 24, 0], ['narrow', 16, 1]]) {
     it(`${width}: renders and evaluates the same width`, async () => {
       await act(async () => root.render(<Harness width={width} />));
       expect(host.querySelector('.first-lines__track').getAttribute('stroke-width')).toBe(String(size));
-      await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 560);
-      await send('pointermove', 520, 560); await send('pointermove', 680); await send('pointerup', 680);
+      await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 514);
+      await send('pointermove', 520, 514); await send('pointermove', 680); await send('pointerup', 680);
       expect(errors).toHaveBeenCalledTimes(mistakes);
       expect(successes).toHaveBeenCalledTimes(mistakes ? 0 : 1);
     });
@@ -91,9 +91,9 @@ describe('First Lines and the real session reward policy', () => {
       const expected = strict ? loss === 'all' ? 0 : 2 * perStar : 3 * perStar;
       expect(latest.streakCount).toBe(expected); expect(errors).toHaveBeenCalledTimes(1);
       const before = host.querySelectorAll('polyline').length;
-      await send('pointerdown', 450, 540); await send('pointermove', 470, 700); await send('pointerup', 470, 700);
+      await send('pointerdown', 450, 512); await send('pointermove', 470, 700); await send('pointerup', 470, 700);
       expect(errors).toHaveBeenCalledTimes(1);
-      await send('pointerdown', 450, 540); await send('pointermove', 680); await send('pointerup', 680);
+      await send('pointerdown', 450, 512); await send('pointermove', 680); await send('pointerup', 680);
       expect(successes).toHaveBeenCalledTimes(1); expect(latest.streakCount).toBe(expected);
       expect(host.querySelectorAll('polyline').length).toBeGreaterThan(before);
       await send('pointerup', 680); expect(successes).toHaveBeenCalledTimes(1);
@@ -180,7 +180,7 @@ it('keeps previous actual drawings on a sheet after advancing and after reload',
 it('registers a curve shape error discovered on lift before allowing its correction', async () => {
   const ovalTasks = tasks.map(t => ({ ...t, exerciseKind: 'oval' }));
   const initial = { ...createSessionState(ovalTasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.16.0', ['line'], null, false, 1, true, { version: 2, lossMode: 'one' }), id: 'session-test', streakCount: 3 };
-  await act(async () => root.render(<Harness initial={initial} width="wide" />));
+  await act(async () => root.render(<Harness initial={initial} width="wide" input="touch" />));
   await send('pointerdown', 500, 380);
   for (let i = 1; i <= 80; i++) { const angle = -Math.PI / 2 + 2 * Math.PI * i / 80; await send('pointermove', 500 + 150 * Math.cos(angle), 530 + 150 * Math.sin(angle)); }
   expect(errors).not.toHaveBeenCalled();
@@ -191,4 +191,11 @@ it('registers a curve shape error discovered on lift before allowing its correct
   for (let i = 1; i <= 80; i++) { const p = partPoint(part, i / 80); await send('pointermove', p.x, p.y); }
   await send('pointerup', 500, 380);
   expect(successes).toHaveBeenCalledTimes(1); expect(latest.streakCount).toBe(2);
+});
+
+it('passive stylus accepts touch events with the narrow stylus profile', async () => {
+  await act(async () => root.render(<Harness input="passive_pen" />));
+  expect(host.querySelector('.first-lines__track').getAttribute('stroke-width')).toBe('24');
+  await send('pointerdown',320,500,'touch'); await send('pointermove',680,500,'touch'); await send('pointerup',680,500,'touch');
+  expect(successes).toHaveBeenCalledTimes(1); expect(errors).not.toHaveBeenCalled();
 });
