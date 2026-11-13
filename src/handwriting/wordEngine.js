@@ -2374,10 +2374,25 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             }
             if (best) {
               const Pl = pts[best.q], u = best.tq;
-              const d = (E[1] - Pl[1]) / (-u[1]);
-              const natural = E[0] + u[0] * d - Pl[0] + local.start[0];
+              // an exit that ends steeper (or flatter) than the lead-in it runs into (a capital's exit — M A U Ž … — into i u n m:
+              // owner, 2026-11-14: «горб на соединении Mi»): the line starts lower down the exit, at the point whose own direction is
+              // the lead-in's, and the letter stands where its lead-in runs on from there — exit, line and lead-in one smooth stroke
+              // (after capitals only: the small letters' exits already end on their next letter's slant, and those joins are accepted)
+              let Es = E, tangentCut = null;
+              if (prevMeetExit.ref && prevLabel && prevLabel !== prevLabel.toLowerCase() && Math.abs(ang(u) - ang(tE)) > 0.12) {
+                const hp = samplePath(prevMeetExit.ref.d, 160);
+                let bh = -1, ba = Infinity;
+                for (let h = hp.length - 2; h > 0; h -= 1) {
+                  if (hp[h - 1][1] < hp[h][1]) break; // the exit's last rising run only
+                  const a = Math.abs(ang(nlsUnit(hp[h + 1][0] - hp[h - 1][0], hp[h + 1][1] - hp[h - 1][1])) - ang(u));
+                  if (a < ba) { ba = a; bh = h; }
+                }
+                if (bh > 0 && ba < 0.06 && hp[bh][1] > Pl[1]) { Es = hp[bh]; tangentCut = { trimExitTo: bh, hp, lineFrom: hp[bh] }; }
+              }
+              const d = (Es[1] - Pl[1]) / (-u[1]);
+              const natural = Es[0] + u[0] * d - Pl[0] + local.start[0];
               wantStartX = Math.max(natural, eyeClear(best.q, 0.42));
-              meetJoin = { type: "line", P: Pl, u };
+              meetJoin = { type: "line", P: Pl, u, ...(tangentCut && wantStartX <= natural + 0.5 * scale ? tangentCut : {}) };
               // e moved on to stay clear (c č s j g): the straight join keeps the lead-in's direction, as k–e does, and starts lower — the
               // exit is cut where that line meets it (owner, 2026-11-13: «c, č с e — так же плавно, как k с e»), not flattened
               if (wantStartX > natural + 0.5 * scale && prevMeetExit.ref) {
@@ -2575,9 +2590,14 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         // after a capital, an oval letter (a c d g o …) stands further off (`meetJoins.capOvalGap`, share of the x-height; owner,
         // 2026-11-13, the sheet «IMENA»: «соединение от заглавной к буквам с овалами длиннее, строчная дальше от заглавной»): the
-        // join is drawn to the letter where it now stands — longer, not bent
-        if (meet && meetJoin && prevLabel && prevLabel !== prevLabel.toLowerCase() && meet.ovalInto.has(label) && Number.isFinite(wantStartX))
+        // join is drawn to the letter where it now stands — longer, not bent. So does e after a capital whose exit runs into it
+        // (L M A U H …; owner, 2026-11-14: «L соединялась со e под углом как с a» — e stood close up, the join steep)
+        if (meet && meetJoin && prevLabel && prevLabel !== prevLabel.toLowerCase() && (meet.ovalInto.has(label) || (meet.loopInto.has(label) && meetJoin.type === "line")) && Number.isFinite(wantStartX))
+        {
           wantStartX += (glyphsByLabel.script.meetJoins.capOvalGap ?? 0) * WIDE_ZONE_UNITS * scale;
+          // (the letter moved on: the exit's cut is found again when the join is drawn, pointing at where the letter now stands)
+          if (meetJoin.type === "line" && meetJoin.lineFrom) { delete meetJoin.trimExitTo; delete meetJoin.hp; delete meetJoin.lineFrom; }
+        }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
         // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
         // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
