@@ -25,7 +25,8 @@ try {
   await page.clock.runFor(4500);
   await expect(page.locator('.first-lines__demo')).toHaveCount(0);
   expect(await page.locator('.first-lines__ink').count()).toBe(0);
-  for (const [i, part] of shapeDefinition('square').parts.entries()) {
+  const task = await page.evaluate(() => window.previewStore.getState().activeSessionSnapshot.sessionState.tasks[0]);
+  for (const [i, part] of shapeDefinition('square', task.variant).parts.entries()) {
     const points = [partPoint(part, 0), partPoint(part, 1)].map(p => transformPoint(p, part.frame));
     const screen = await page.locator('.first-lines__board').evaluate((svg, points) => points.map(p => {
       const point = svg.createSVGPoint(); point.x = p.x; point.y = p.y; const xy = point.matrixTransform(svg.getScreenCTM()); return { x: xy.x, y: xy.y };

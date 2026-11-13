@@ -4,13 +4,13 @@ export function checkpointKey(studentId, sessionId, taskId) {
   return `drawing-first-lines:${studentId ?? 'local'}:${sessionId}:${taskId}`;
 }
 
-export function readCheckpoint(key, kind = 'short_line') {
-  try { return restoreShape(JSON.parse(localStorage.getItem(key)), kind); } catch { return restoreShape(null, kind); }
+export function readCheckpoint(key, kind = 'short_line', variant) {
+  try { return restoreShape(JSON.parse(localStorage.getItem(key)), kind, variant); } catch { return restoreShape(null, kind, variant); }
 }
 
 export function saveCheckpoint(key, attempt) {
   try {
-    localStorage.setItem(key, JSON.stringify({ version: attempt.parts ? 2 : 1, attempt }));
+    localStorage.setItem(key, JSON.stringify({ version: attempt.variant ? 3 : attempt.parts ? 2 : 1, attempt }));
     // Keep this experiment's storage bounded, without touching paper-lesson progress.
     const keys = Object.keys(localStorage).filter(value => value.startsWith('drawing-first-lines:'));
     for (const old of keys.slice(0, Math.max(0, keys.length - 45))) if (old !== key) localStorage.removeItem(old);
@@ -26,7 +26,7 @@ export function readSheet(key) {
     return Array.from({ length: 4 }, (_, i) => {
       const entry = raw?.[i];
       if (!entry?.kind) return null;
-      const state = restoreShape({ version: 2, attempt: entry }, entry.kind);
+      const state = restoreShape({ version: entry.variant ? 3 : 2, attempt: entry }, entry.kind, entry.variant);
       return state.done ? state : null;
     });
   } catch { return [null, null, null, null]; }

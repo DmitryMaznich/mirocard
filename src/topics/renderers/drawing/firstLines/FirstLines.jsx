@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createShapeAttempt } from './shapeAttempt.js';
 import { sheetCell, frameTransform, cellTransform, demonstrationFrame } from './shapes.js';
 import ShapeDrawing from './ShapeDrawing.jsx';
+import { trackProfile } from './trackProfile.js';
 import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet } from './checkpoint.js';
 import './firstLines.css';
 
@@ -13,7 +14,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   // SessionScreen keys each task. Its stable session identity also survives an app reload.
   const key = checkpointKey(student?.id, sessionId, task.id);
   const kind = task.exerciseKind ?? 'short_line';
-  const [attempt] = useState(() => createShapeAttempt(kind, readCheckpoint(key, kind), sessionParams?.trackWidth));
+  const [attempt] = useState(() => createShapeAttempt(kind, readCheckpoint(key, kind, task.variant), trackProfile(sessionParams?.trackWidth, sessionParams?.inputMode), task.variant));
   const isSheet = sessionParams?.workSurface === 'sheet';
   const pageKey = sheetKey(student?.id, sessionId, task.sheetPage ?? 0);
   const [entries] = useState(() => readSheet(pageKey));
@@ -30,10 +31,10 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const svg = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
   const state = attempt.state;
   const current = state.parts[state.part];
-  const liftCue = kind === 'square' && !state.done && current.progress >= 644 && Math.hypot(current.anchor.x - 680, current.anchor.y - 500) <= 60;
+  const liftCue = attempt.readyToLift;
   const correct = sessionStatus === 'answer_correct';
   const disabled = interactionDisabled || paused || demo || correct || peek;
-  const focusView = kind === 'short_line' ? compactView : { x: 180, y: 180, width: 640, height: 640 };
+  const focusView = kind === 'short_line' ? compactView : { x: 140, y: 140, width: 720, height: 720 };
   const view = peek || !compact ? fullView : isSheet
     ? { x: cell.tx + focusView.x * cell.scale, y: cell.ty + focusView.y * cell.scale, width: focusView.width * cell.scale, height: focusView.height * cell.scale }
     : focusView;
@@ -134,7 +135,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     if (done && !completed.current) { completed.current = true; onCorrect(task.conceptId, task.cardId); }
   };
 
-  return <section className="first-lines" aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
+  return <section className="first-lines" data-task-id={task.id} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
     <div className="first-lines__tools">
       <button type="button" disabled={disabled || state.done} onClick={() => { attempt.end(true); pointer.current = null; setDemoProgress(0); setDemoLift(null); setDemo(true); }} aria-label="Показать движение">
         <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
@@ -145,7 +146,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       onContextMenu={event => event.preventDefault()}
       onPointerDown={event => {
         if (disabled || state.done || pointer.current !== null || event.button !== 0) return;
-        if (event.pointerType !== 'mouse' && event.pointerType !== 'pen' && !(event.pointerType === 'touch' && sessionParams?.inputMode === 'touch')) return;
+        if (event.pointerType !== 'mouse' && event.pointerType !== 'pen' && !(event.pointerType === 'touch' && ['touch', 'passive_pen'].includes(sessionParams?.inputMode))) return;
         event.preventDefault();
         if (!attempt.begin(point(event), event.timeStamp)) { setHint(true); return; }
         setHint(false); pointer.current = event.pointerId; event.currentTarget.setPointerCapture?.(event.pointerId); refresh();
