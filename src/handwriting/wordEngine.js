@@ -2348,13 +2348,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const T = pts[Math.max(1, i)];
             wantStartX = Math.max(prevRight + 0.15 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0], eyeClear(Math.max(1, i), 0.42));
             meetJoin = { type: "join", P: T, t: [pts[Math.min(k, i + 2)][0] - T[0], pts[Math.min(k, i + 2)][1] - T[1]], level: true };
-            // (owner, 2026-11-13: «соединение от s должно выходить снизу без петли»): the curl back to the left is not written — the
-            // bowl is cut at its lowest point and the join leaves from there, level, to the right; no loop under the bowl
+            // (owner, 2026-11-13: «соединение от s должно выходить снизу без петли»): the join leaves from the bowl's lowest point, level,
+            // to the right — not from the end of the curl, which made a loop under the bowl; the curl itself stays written
             if (prevMeetExit.ref) {
               const hp = samplePath(prevMeetExit.ref.d, 240);
               let lo = hp.length - 1;
               while (lo > 1 && hp[lo - 1][1] >= hp[lo][1]) lo -= 1; // back down the curl to the bowl's bottom
-              if (lo < hp.length - 1) Object.assign(meetJoin, { trimExitTo: lo, hp, start: hp[lo] });
+              if (lo < hp.length - 1) meetJoin.start = hp[lo]; // s itself keeps its curl (owner: «ты обрезал конец s, верни»)
             }
           } else if (k > 0 && E[1] > pts[k][1] + 3 * scale && E[1] < pts[0][1]) {
             // an exit half-way up (or lower, s) into a rising lead-in (owner, 2026-11-13: «два соединения … должны образовывать в средней
