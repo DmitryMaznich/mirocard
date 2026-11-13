@@ -59,6 +59,38 @@ imata); после o v b r (выход наверху) соединение ид
 Тест «joined words» в `slovene.test.jsx`. Картинки (в git не кладутся): `docs/mockups/propis2-sl/step4-words1.png`, `step4-words2.png`,
 `step4-names.png`. Не сделано / проверить с владельцем: форма связки o–v, v–e, r–a по образцам; четырёхлинейная бумага (как «IMENA»).
 
+### Шаг 4б. Прочитанные источники (2026-11-13, curl разрешён владельцем)
+
+- **F. Žagar, «Didaktika slovenskega jezika v osnovni šoli» (Obzorja, 1996)** — по цитатам и рисунку «Pravila šolske pisave» (с. 54)
+  в исследовании OŠ Gustava Šiliha Laporje (2020, `os-laporje.si`) и в магистерской работе A. Sotenšek (PEF UL, 2024,
+  `repozitorij.uni-lj.si/IzpisGradiva.php?id=158597`). Правила школьного письма:
+  слово — одним движением, без перерывов (остановки только у черт t f, точек i j, гачеков č š ž); «tekočnost … medsebojno
+  povezovanje črk **po najkrajši možni poti**»; «pri črkah m n t d p je treba po dvakrat vleči po istih potezah» (возврат по
+  палочке — как у нас); «črke a o d g naj bodo **izvedene iz c** in zaprte»; «med črkami naj bodo primerne razdalje
+  (**»dolge rokice«**)»; дуги m n u округлые, не угловатые; «zgornje, spodnje in srednje poteze naj bodo primerno dolge» (верх и
+  низ одинаковые — наша бумага 1 : 1 : 1); штрихи вниз отвесные, параллельные; «v slovenskih šolah se spodbuja **pokončno
+  pisavo**»; петли b f k h j g аккуратные; опасность «biletrizma» (n/u, s/z, g/p, k/h пишутся одинаково).
+- **Таблица порядка штрихов UČIMse (Mladinska knjiga, 2016)** — в том же исследовании: число и порядок штрихов письменных букв.
+  Сверено: у H — **один** штрих (у нас было два — исправлено), у F — палочка 1, шапка 2, черта 3, у T — палочка 1, шапка 2
+  (исправлено), у B P R — палочка 1, завиток/полуовал 2, у K — дуга 2, у Z — черта 2, у Ž — гачек 3, у f — выход вторым штрихом.
+  Остальное совпадает.
+- **История нормы (Sotenšek 2024, по Žerdin 2003):** до 1989 г. в школах — буквы Славко Пенгова (прямое письмо из прямого овала);
+  в 1989 г. последняя реформа письменных букв — больше одноходовых букв. Порядок: большие печатные → малые печатные → «povežejo
+  v male pisane» → большие письменные.
+- **Магистерская L. Trček (PEF UL, 2021, `IzpisGradiva.php?id=134446`, ментор A. Rot Vrhovec):** в 1-м классе большие печатные,
+  во 2-м малые печатные и письменные; «V prvih razredih mora biti pisava normirana … Ko začne učenec pisati bolj avtomatično, ni
+  več pozoren na obliko in vezavo» (Golli 1991).
+- **Сайт Arnes «Začetno opismenjevanje»:** «Pri obravnavi pisanih črk izhajamo iz malih tiskanih, za velike pisane črke pa iz
+  velikih tiskanih»; при письменных «poseben poudarek na vaji vezave».
+- **Пособие N. Oblak «(S)poznam pisane črke» (Primus):** порядок групп — строчные в нижней половине строки (a n s r …), затем
+  со всей высотой (b d t …), затем с выносными вниз (j p …).
+- Без пользы для соединений: Викиверситет «Mikrografetika» (теория графетики), руководство по дисграфии (svetovalnicenter-mb),
+  пособие ACS для взрослых, лист OŠ Toneta Pavčka про s (только ссылка на анимацию Naša ulica). core.ac.uk ответил 403,
+  pefprints сбрасывает соединение.
+- **Вывод для движка:** соединение «кратчайшим путём», выход = подъём следующей (`meetJoins`) совпадает с нормой; проверить
+  «dolge rokice» — расстояния между буквами не должны быть слишком маленькими. Виды соединений (сверху/снизу) и список
+  соединяющихся заглавных в открытых источниках не описаны — по листам владельца.
+
 ### Шаг 4а. Поиск методик соединения (2026-11-13)
 
 Подтверждено (прочитано целиком раньше или видно в выдержках поиска):
