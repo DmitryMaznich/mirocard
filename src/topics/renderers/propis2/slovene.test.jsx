@@ -109,7 +109,7 @@ describe("Slovenian (draft)", () => {
     }
   });
 
-  it("joined words (step 4): the exit of a letter is the lead-in of the next; after B D F I N O P S Š T V the next letter keeps its own", () => {
+  it("joined words (step 4): the exit of a letter is the lead-in of the next; after B D F I N O P S Š T V the join leaves the capital's bottom", () => {
     const cur = view("sl_cursive");
     // the starts on the baseline: in a joined word only the first letter's lead-in starts there
     const baseStarts = (text) => {
@@ -121,10 +121,11 @@ describe("Slovenian (draft)", () => {
     };
     for (const w of ["ima", "mamin", "miza", "rumen", "trava", "lovi", "ovca", "vesel"]) expect(baseStarts(w), w).toBe(1);
     for (const w of ["Miha", "Lara", "Enea", "Janina", "Ana", "Urša"]) expect(baseStarts(w), w).toBe(0);
-    for (const w of ["Da", "Ia", "Pa", "Ta", "Bor"]) expect(baseStarts(w), w).toBe(1);
+    // after the capitals that end on their left the join leaves the capital's bottom: no lead-in from the baseline either (IMENA sheet)
+    for (const w of ["Da", "Ia", "Pa", "Ta", "Bor"]) expect(baseStarts(w), w).toBe(0);
   });
 
-  it("the word list (tools/propis2/sl-words.json): every word written joined, the capitals that end on their left apart", async () => {
+  it("the word list (tools/propis2/sl-words.json): every word written joined, capitals included", async () => {
     const cur = view("sl_cursive");
     const list = JSON.parse(await readFile("tools/propis2/sl-words.json", "utf-8")).groups;
     const baseStarts = (text) => {
@@ -134,7 +135,7 @@ describe("Slovenian (draft)", () => {
       return all.filter((st) => !st.join && !st.dashed).map((st) => getPathEndpoints(st.d).start[1]).filter((y) => y > 60).length;
     };
     for (const g of list) for (const w of g.words) {
-      const want = g.id === "caps-join" ? 0 : 1;
+      const want = g.id.startsWith("caps") ? 0 : 1;
       expect(baseStarts(w), `${g.id}: ${w}`).toBe(want);
     }
     if (process.env.SL_SHOTS) {
