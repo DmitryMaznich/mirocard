@@ -27,9 +27,9 @@ const STYLES = { print: { upper: 1, lower: 1 }, british: { upper: 0.74, lower: 0
   // three equal bands (fourLinePapers.js `sl`), so in the source's own proportions (docs/propis2-sl.md)
   print_sl: { upper: 1, lower: 1 },
   // `slovene`: the Slovenian school cursive (tools/latin_letters/glyphs/slovene.mjs), same paper, same proportions
-  slovene: { upper: 1, lower: 1 } };
+  slovene: { upper: 1, lower: 1, wide: 1.25 } };
 if (!STYLES[STYLE]) throw new Error(`unknown --style ${STYLE}`);
-const { upper: UPPER, lower: LOWER, src: SRC = STYLE, capHeightOnly = false } = STYLES[STYLE];
+const { upper: UPPER, lower: LOWER, src: SRC = STYLE, capHeightOnly = false, wide = 1 } = STYLES[STYLE];
 const src = JSON.parse(readFileSync(here(`../../latin_letters/glyphs/${SRC}.json`), "utf8"));
 
 const BASE = 62;           // capture baseline
@@ -37,13 +37,14 @@ const K = 52 / 50;         // capture x-height / source band
 const r3 = (n) => Math.round(n * 1000) / 1000;
 
 // band units → capture frame; `capital`: scaled as a whole to the ascenders' height
+const WIDE = wide; // `wide`: the style's letters stretched across (the Slovene worksheets' rounder, wider hand); not a dot's ring
 function mapPoint(x, y, capital) {
   if (capital) {
     const k = K * (1 + UPPER) / 2; // a capital spans two bands in the source
-    return [r3(x * (capHeightOnly ? K : k)), r3(BASE + (y - 100) * k)];
+    return [r3(x * (capHeightOnly ? K : k) * WIDE), r3(BASE + (y - 100) * k)];
   }
   const yc = y < 50 ? BASE - 52 - (50 - y) * K * UPPER : y > 100 ? BASE + (y - 100) * K * LOWER : BASE + (y - 100) * K;
-  return [r3(x * K), r3(yc)];
+  return [r3(x * K * WIDE), r3(yc)];
 }
 
 // paths are M / L / C with absolute "x,y" or "x y" pairs
@@ -65,7 +66,16 @@ function mapPath(d, capital = false) {
 const NUMBERED = new Set([..."0123456789", "+", "-", "=", "<", ">"]);
 const glyphs = Object.entries(src.glyphs).flatMap(([ch, g]) => {
   const sign = g.case === "sign";
-  const strokes = g.strokes.map((st) => ({ d: mapPath(st.d, g.case !== "lower"), ...(st.name ? { name: st.name } : {}) }));
+  const strokes = g.strokes.map((st) => {
+    let d = mapPath(st.d, g.case !== "lower");
+    // a dot stays round when the letters are stretched (`wide`): its ring squeezed back about its centre
+    if (WIDE !== 1 && st.name === "точка") {
+      const xs = [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => Number(m[1]));
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+      d = d.replace(/(-?[\d.]+) (-?[\d.]+)/g, (_, x, y) => `${r3(cx + (Number(x) - cx) / WIDE)} ${y}`);
+    }
+    return { d, ...(st.name ? { name: st.name } : {}) };
+  });
   const base = { sourceLabel: `${STYLE}-${ch}`, strokes, stretch: 1, noNormalize: true, upright: true };
   if (!sign) return [{ label: ch, kind: "letter", ...base }];
   if (NUMBERED.has(ch)) {

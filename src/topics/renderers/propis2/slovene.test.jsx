@@ -146,6 +146,7 @@ describe("Slovenian (draft)", () => {
         ["capitals", "sl_cursive", ["A B C Č D E F", "G H I J K L M", "N O P R S Š T", "U V Z Ž"], "sl_10"],
         ["names", "sl_cursive", ["Miha David", "Enea Lara", "Izak Janina"], "sl_10"],
         ["words1", "sl_cursive", ["ima imata", "rumen zelen", "mamin trava"], "sl_10"],
+        ["cmp", "sl_cursive", ["rumen", "mamin", "ovca", "muca"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
     }
