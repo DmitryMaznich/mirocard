@@ -1,0 +1,20 @@
+{
+  "note": "Словенские слова для проверки письменных букв и соединений (docs/propis2-sl.md, шаг 4г): каждая группа — один вид соединения движка (script.meetJoins) или частое словенское сочетание. Используется тестом slovene.test.jsx (все слова пишутся слитно) и стендом SL_SHOTS; позже — материал для готовых тетрадей.",
+  "groups": [
+    { "id": "arches", "title": "Выход посередине → горки m n", "words": ["ena", "ime", "luna", "kino", "tam", "zima", "lonec", "ulica"] },
+    { "id": "ovals", "title": "Выход посередине → овалы a c d g o", "words": ["mama", "ladja", "voda", "noga", "ura", "medo", "jagoda", "vrata"] },
+    { "id": "loops", "title": "Выход посередине → петли b h k l f", "words": ["miha", "jelka", "vilica", "hlače", "uho", "metla", "mak", "telefon"] },
+    { "id": "e", "title": "Выход посередине → e", "words": ["mesec", "teta", "reka", "pes", "zelje", "ime", "jež", "medvedek"] },
+    { "id": "stems", "title": "Выход посередине → i j u t p r s z v", "words": ["miza", "kuža", "luč", "mati", "napis", "lipa", "kip", "zvezek"] },
+    { "id": "from-o", "title": "Выход наверху: после o", "words": ["dom", "konj", "koza", "sok", "most", "golob", "otok", "kolo", "noč", "nož", "koš", "ovca"] },
+    { "id": "from-v", "title": "Выход наверху: после v", "words": ["voda", "vlak", "vrt", "avto", "dva", "sova", "zvezda", "vesel"] },
+    { "id": "from-b", "title": "Выход наверху: после b", "words": ["babica", "obleka", "brat", "oblak", "riba", "zebra", "kobila", "ribez"] },
+    { "id": "from-r", "title": "Выход наверху: после r", "words": ["trava", "krava", "gora", "roka", "srce", "prst", "črka", "dobro"] },
+    { "id": "from-s", "title": "После s (из-под буквы)", "words": ["sir", "sol", "sneg", "sestra", "osa", "lisica", "sliva", "svetel"] },
+    { "id": "carons", "title": "Гачеки č š ž", "words": ["čaj", "čevelj", "mačka", "šola", "miš", "ušesa", "žaba", "roža", "žoga"] },
+    { "id": "descenders", "title": "Выносные g j p → дальше", "words": ["ogenj", "jajce", "pajek", "ptica", "papir", "juha", "gnezdo", "igla"] },
+    { "id": "clusters", "title": "Сочетания lj nj st sk šč pr kr tr dr gr", "words": ["ljudje", "polje", "njiva", "konji", "sklad", "ščuka", "ščetka", "prijatelj", "kruh", "drevo", "grad"] },
+    { "id": "caps-join", "title": "Заглавные с выходом справа — соединяются", "words": ["Ana", "Eva", "Miha", "Lara", "Uroš", "Jure", "Gal", "Ciril", "Hana", "Katja", "Rok", "Zala", "Žan", "Oto", "Vid", "Čarli"] },
+    { "id": "caps-apart", "title": "Заглавные B D F I N P S Š T — следующая буква со своим заходом", "words": ["Bor", "David", "Filip", "Irena", "Nina", "Peter", "Sara", "Špela", "Tina"] }
+  ]
+}

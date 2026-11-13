@@ -124,6 +124,28 @@ describe("Slovenian (draft)", () => {
     for (const w of ["Da", "Ia", "Pa", "Ta", "Bor"]) expect(baseStarts(w), w).toBe(1);
   });
 
+  it("the word list (tools/propis2/sl-words.json): every word written joined, the capitals that end on their left apart", async () => {
+    const cur = view("sl_cursive");
+    const list = JSON.parse(await readFile("tools/propis2/sl-words.json", "utf-8")).groups;
+    const baseStarts = (text) => {
+      const all = [];
+      const walk = (o) => { if (Array.isArray(o)) o.forEach(walk); else if (o && typeof o === "object") { if (typeof o.d === "string") { if (!all.some((x) => x.d === o.d)) all.push(o); } else Object.values(o).forEach(walk); } };
+      walk(inkOf(cur, text).segments);
+      return all.filter((st) => !st.join && !st.dashed).map((st) => getPathEndpoints(st.d).start[1]).filter((y) => y > 60).length;
+    };
+    for (const g of list) for (const w of g.words) {
+      const want = g.id === "caps-join" ? 0 : 1;
+      expect(baseStarts(w), `${g.id}: ${w}`).toBe(want);
+    }
+    if (process.env.SL_SHOTS) {
+      for (const g of list) {
+        const lines = [];
+        for (let i = 0; i < g.words.length; i += 2) lines.push(`${g.words.slice(i, i + 2).join(" ")}#1`);
+        await writeFile(`${process.env.SL_SHOTS}/list-${g.id}.html`, `<!doctype html><meta charset="utf-8"><style>svg{background:#fff}</style><body style="margin:0;background:#fff">${page(cur, lines, "sl_6")}</body>`);
+      }
+    }
+  });
+
   it("the Slovene paper: three lines, three equal bands, no bottom line; offered in five sizes", async () => {
     for (const id of ["sl", "sl_10", "sl_8", "sl_6", "sl_45"]) {
       const p = FOUR_LINE_PAPERS[id];
