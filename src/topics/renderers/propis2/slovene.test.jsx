@@ -149,13 +149,13 @@ describe("Slovenian (draft)", () => {
     }
   });
 
-  it("the Slovene paper: three lines, three equal bands, no bottom line; offered in five sizes", async () => {
+  it("the Slovene paper: three solid lines, equal bands, two bands blank between rows («Za začetek» p. 55); four sizes", async () => {
     for (const id of ["sl", "sl_10", "sl_8", "sl_6", "sl_45"]) {
       const p = FOUR_LINE_PAPERS[id];
       expect(p.upMm, id).toBeCloseTo(p.xMm, 9);
-      expect(p.downMm, id).toBeCloseTo(p.xMm, 9);
+      expect(p.downMm + p.gapMm, id).toBeCloseTo(2 * p.xMm, 9);
       expect(p.lines.bottom).toBe("none");
-      expect(p.gapMm).toBe(0);
+      expect(p.lines.x).toBe("thin");
     }
     expect(deckPapers(view("sl_print")).map((p) => p.id)).toEqual(["sl_10", "sl_8", "sl_6", "sl", "square", "ruled"]); // (4.5 mm out of the choice, owner 2026-11-14; the paper stays for notebooks made on it)
     const html = page(view("sl_print"), ["mama", "Čaša in šivanka"], "sl_8");

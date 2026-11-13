@@ -48,10 +48,13 @@ export const FOUR_LINE_PAPERS = {
   // ascenders and descenders 209 pt each; the Naša ulica 2 workbooks rule three lines — top, x-line, baseline, all the same thin line,
   // the x band tinted — and the descenders go on below the row, into the space above the next one (no fourth line). The x-line DASHED:
   // so it is on most Slovene worksheets (owner, 2026-11-12, «Znam pisati» sheet: solid top, dashed middle, solid baseline).
+  // Since 2026-11-14 as the writing sheet of «Za začetek» (p. 55, measured: 4.83 mm bands, all three lines solid and alike, 9.63 mm = TWO
+  // bands blank between one row's baseline and the next row's top line — the owner: «три линии … между тройками примерно 2 строки»)
+  // and the school notebooks (solid middle line): the x-line solid, a blank band below the descender band (`gapMm` = one band).
   sl: {
     label: "Словенская строка · 5 мм",
-    upMm: 5, xMm: 5, downMm: 5, gapMm: 0, firstMm: 10, footMm: 5,
-    lines: { top: "thin", x: "dash", base: "thin", bottom: "none" },
+    upMm: 5, xMm: 5, downMm: 5, gapMm: 5, firstMm: 10, footMm: 5,
+    lines: { top: "thin", x: "thin", base: "thin", bottom: "none" },
     guides: null,
     midDash: false,
     edgeToEdge: false,
