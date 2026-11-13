@@ -2316,6 +2316,24 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         let meetJoin = null;
         if (meet && apart && loose && !afterSign && !inCell && prevMeetExit && glyph.kind === "letter" && !isCap) {
           const pts = samplePath(local.strokes[0].d, 60);
+          // into e (owner, 2026-11-13: c–e, s–e, j–e in «jelka» stood almost touching): e's eye at least `gap` of the x-height clear of
+          // the ink before it at the same height — the join gets longer instead. The exit's own top (where the join comes out of it) is
+          // left out of the measure.
+          const eyeClear = (fromIdx, gap) => {
+            if (!meet.loopInto.has(label)) return -Infinity;
+            const xh0 = WIDE_ZONE_UNITS * scale;
+            const rows = new Map();
+            for (const m of prevGlyphStrokes) {
+              const sp = samplePath(m.d, 40);
+              let cutAt = sp.length;
+              if (m === prevMeetExit?.ref) { cutAt = sp.length - 1; while (cutAt > 0 && sp[cutAt - 1][1] >= sp[cutAt][1] && sp[cutAt - 1][1] < prevMeetExit.p[1] + 0.3 * xh0) cutAt -= 1; }
+              for (const [x, y] of sp.slice(0, cutAt)) { const r = Math.round(y); rows.set(r, Math.max(rows.get(r) ?? -Infinity, x)); }
+            }
+            // the eye: the part of e above the exit's end
+            let need = -Infinity;
+            for (const [x, y] of pts.slice(fromIdx)) { if (y > prevMeetExit.p[1]) continue; for (const r of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(r)) need = Math.max(need, rows.get(r) + gap * xh0 - x); }
+            return Number.isFinite(need) ? need + local.start[0] : -Infinity;
+          };
           // the lead-in: from the start for as long as the pen rises
           let k = 0;
           for (let i = 1; i < pts.length; i += 1) { if (pts[i][1] > pts[k][1] + 0.5 * scale) break; if (pts[i][1] <= pts[k][1]) k = i; }
@@ -2328,7 +2346,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             let i = 1;
             while (i < k && pts[i][1] > E[1]) i += 1;
             const T = pts[Math.max(1, i)];
-            wantStartX = prevRight + 0.15 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
+            wantStartX = Math.max(prevRight + 0.15 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0], eyeClear(Math.max(1, i), 0.42));
             meetJoin = { type: "join", P: T, t: [pts[Math.min(k, i + 2)][0] - T[0], pts[Math.min(k, i + 2)][1] - T[1]], level: true };
           } else if (k > 0 && E[1] > pts[k][1] + 3 * scale && E[1] < pts[0][1]) {
             // an exit half-way up (or lower, s) into a rising lead-in (owner, 2026-11-13: «два соединения … должны образовывать в средней
@@ -2349,7 +2367,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (best) {
               const Pl = pts[best.q], u = best.tq;
               const d = (E[1] - Pl[1]) / (-u[1]);
-              wantStartX = E[0] + u[0] * d - Pl[0] + local.start[0];
+              wantStartX = Math.max(E[0] + u[0] * d - Pl[0] + local.start[0], eyeClear(best.q, 0.42));
               meetJoin = { type: "line", P: Pl, u };
             } else {
               let i = 1;
@@ -2820,7 +2838,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (n >= 7 && tk[n - 7] === "C") {
               const ex = Number(tk[n - 2]), ey = Number(tk[n - 1]), cx2 = Number(tk[n - 4]), cy2 = Number(tk[n - 3]);
               const len = Math.max(Math.hypot(ex - cx2, ey - cy2), 4 * scale);
-              tk[n - 4] = f3(ex - meetJoin.u[0] * len); tk[n - 3] = f3(ey - meetJoin.u[1] * len);
+              const ln = Math.hypot(at[0] - ex, at[1] - ey) > 0.5 * scale ? nlsUnit(at[0] - ex, at[1] - ey) : meetJoin.u;
+              tk[n - 4] = f3(ex - ln[0] * len); tk[n - 3] = f3(ey - ln[1] * len);
               strokes[ei] = { ...strokes[ei], d: tk.join(" ") };
             }
             const E = prevMeetExit.p;
