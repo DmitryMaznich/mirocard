@@ -28,13 +28,14 @@ const ovalWithLeadIn = (cx, rx, ry, cy = 75, end = 0) => {
   const [mx, my] = [cx + rx * Math.cos((a * Math.PI) / 180), cy + ry * Math.sin((a * Math.PI) / 180)];
   return `M 1.5,98.5 L ${mx.toFixed(2)},${my.toFixed(2)} ${arc(cx, cy, rx, ry, a, 270, { move: false })} ${arc(cx, cy, rx, ry, 270, end, { move: false })}`;
 };
-// a d g: the lead-in up the oval's left side, over its top to its upper right and on up to the top of the stem (x = cx + rx); back
-// down to the oval (the pen goes over its own line, enopoteznost), round it anticlockwise to its right side, up the stem's line to its top
-const ovalToStem = (cx, rx, ry) => {
-  const sx = cx + rx, top = 75 - ry;
+// a d g (owner, 2026-11-13): the lead-in up the oval's left side and over its top as far as the stem's line, then BACK round the
+// oval (over its top again, down its left side, round its bottom) to its right side, and from there up the stem's line to the stem's
+// top — the x-line for a g, the top line for d; then down (the exit, or g's loop). No climb to the stem's top before the oval: the
+// pen went up there first and came back, a spike at the top.
+const ovalToStem = (cx, rx, ry, stemTop = 75 - ry) => {
+  const sx = cx + rx;
   const [mx, my] = [cx + rx * Math.cos((200 * Math.PI) / 180), 75 + ry * Math.sin((200 * Math.PI) / 180)];
-  const [ux, uy] = [cx + rx * Math.cos((330 * Math.PI) / 180), 75 + ry * Math.sin((330 * Math.PI) / 180)].map((n) => n.toFixed(2));
-  return `M 1.5,98.5 L ${mx.toFixed(2)},${my.toFixed(2)} ${arc(cx, 75, rx, ry, 200, 330, { move: false })} L ${sx},${top} L ${ux},${uy} ${arc(cx, 75, rx, ry, 330, 0, { move: false })} L ${sx},${top}`;
+  return `M 1.5,98.5 L ${mx.toFixed(2)},${my.toFixed(2)} ${arc(cx, 75, rx, ry, 200, 330, { move: false })} ${arc(cx, 75, rx, ry, 330, 0, { move: false })} L ${sx},${stemTop}`;
 };
 // the tall loop of b f h k l: the lead-in straight up to the loop's right side, round its top, down the stem at x
 const loopUp = (x) => `M 1.5,98.5 L ${x},50 C ${x + 6},41 ${x + 17},26 ${x + 20},13 C ${x + 22},5 ${x + 17},0.5 ${x + 12},0.5 C ${x + 5},0.5 ${x},8 ${x},20`;
@@ -43,7 +44,7 @@ const lower = {
   a: [88.5, [s(`${ovalToStem(35, 19, 24)} ${exitFrom(54, 88.5)}`, "овал и палочка")]],
   b: [87, [s(`${loopUp(40)} L 40,88 C 40,95 44,98.5 51,98.5 C 59,98.5 63,93 63,84 L 63,52 L 63,66 C 64,70 70,70 75,67 C 80,64 85,58 87,52`, "петля и полуовал")]],
   c: [61.5, [s(`M 1.5,98.5 L 15.56,66.79 ${arc(32,75,17.5,24,200,325,{ move: false })} ${arc(32,75,17.5,24,325,90,{ move: false })} C 45,99 55,88 61.5,74`, "полуовал")]],
-  d: [88.5, [s(`${ovalToStem(35, 19, 24)} L 54,1 ${exitFrom(54, 88.5)}`, "овал и палочка")]],
+  d: [88.5, [s(`${ovalToStem(35, 19, 24, 1)} ${exitFrom(54, 88.5)}`, "овал и палочка")]],
   e: [61.5, [s("M 1.5,98.5 C 15,87 32,78 38,70 C 42,64 41,51 33,51 C 26,51 23,58 24,70 C 25,85 28,99 37,99 C 47,99 55,88 61.5,75", "петелька")]],
   f: [68, [s(`${loopUp(38.5)} L 38.5,147.5`, "петля и палочка вниз"), s("M 25,88 C 27,95 32,99 40,99 C 52,99 62,88 68,75", "выход")]],
   g: [74, [s(`${ovalToStem(35, 19, 24)} L 54,138 C 54,145 51,148 46,148 C 40,148 35,143 35,136 C 35,124 46,110 54,100 C 60,92 67,84 74,74`, "овал и петля внизу")]],
