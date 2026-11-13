@@ -17,8 +17,6 @@
 .first-lines__footer button{background:#e5f1e8}
 .first-lines__cue{display:flex;gap:12px;align-items:center;font-size:19px}
 .first-lines__cue>svg{width:130px;height:40px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.first-lines__pause{position:absolute;inset:0;background:#fafbf7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:26px;z-index:2}
-.first-lines__pause>svg{width:160px;height:120px;fill:white;stroke:#315b86;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
 @media(max-height:500px){.first-lines__tools>button:first-child>span{display:none}}
 .first-lines .first-lines__overview{position:absolute;left:12px;bottom:82px;flex-direction:column;gap:3px;padding:6px;font-size:12px;min-height:0;background:#ffffffeb}
 .first-lines .first-lines__overview>svg{width:70px;height:70px;stroke-width:0;stroke-linecap:round;stroke-linejoin:round}
@@ -32,12 +30,9 @@
 .first-lines__complete{display:flex;align-items:center;gap:14px;color:#247c53}
 .first-lines__complete>span{font-size:22px;font-weight:700}
 .first-lines__complete>button{font-size:19px}
-.first-lines__pause>svg{width:min(220px,50vh);height:min(220px,40vh)}
 @keyframes first-lines-pulse{0%,100%{opacity:1}50%{opacity:.65}}
 @media(prefers-reduced-motion:reduce){.first-lines__start,.first-lines__start-line{animation:none}}
 @media(max-width:500px){.first-lines__complete{gap:6px}.first-lines__complete>span{font-size:17px}.first-lines__complete>button{font-size:17px;padding:8px}}
-@media(max-height:500px){.first-lines__pause{gap:10px;font-size:21px}.first-lines__pause>svg{height:80px;width:110px}.first-lines__footer{min-height:64px}}
-.first-lines__pause>button{max-width:calc(100% - 32px);font-size:18px}
 /* Feedback must not resize the board and cancel a gesture as its wording changes. */
 .first-lines__footer{width:100%;height:88px;min-height:88px;max-height:88px;box-sizing:border-box}
 .first-lines .first-lines__overview{bottom:100px}
@@ -47,3 +42,15 @@
 .first-lines__start-halo{fill:#0ba85b;opacity:.16;pointer-events:none}
 .first-lines__start-line{fill:none;stroke:#0ba85b;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
 .first-lines__goal{fill:none;stroke:#8153b5;stroke-width:5;pointer-events:none}
+/* This topic uses the entire free lesson area; shared header/rewards remain in place. */
+.session-screen:has(.first-lines)>.session-header-wrap{margin-bottom:0}
+.first-lines{align-items:stretch;border-radius:0}
+.first-lines__tools{position:static;flex:0 0 54px;height:54px;box-sizing:border-box;padding:5px 12px;align-items:center}
+.first-lines__tools button{min-height:44px;font-size:18px;padding:5px 12px}
+.first-lines__board{height:0;flex:1 1 0;min-height:0;width:100%;overflow:hidden}
+.first-lines__footer{height:72px;min-height:72px;max-height:72px;padding:4px 10px}
+.first-lines .first-lines__overview{position:static;flex-direction:row;font-size:13px;padding:3px 8px;gap:6px}
+.first-lines .first-lines__overview>svg{width:32px;height:38px}
+.first-lines__start{stroke-width:var(--first-lines-marker-stroke,2)}
+.first-lines__goal{stroke-width:var(--first-lines-goal-stroke,5)}
+@media(max-height:500px){.first-lines__tools{flex-basis:44px;height:44px;padding:2px 8px}.first-lines__tools button{min-height:38px}.first-lines__footer{height:56px;min-height:56px;max-height:56px}.first-lines .first-lines__overview>svg{height:30px}}

@@ -108,15 +108,6 @@ describe('First Lines and the real session reward policy', () => {
     expect(successes).not.toHaveBeenCalled(); expect(errors).not.toHaveBeenCalled();
     expect(host.querySelectorAll('polyline')).toHaveLength(0);
   });
-  it('cancels a captured gesture when paused and resumes without a connecting jump', async () => {
-    await act(async () => root.render(<Harness />));
-    await send('pointerdown', 320); await send('pointermove', 460);
-    await act(async () => host.querySelector('[aria-label="Повторить на бумаге"]').click());
-    await send('pointermove', 680); expect(successes).not.toHaveBeenCalled();
-    await act(async () => host.querySelector('.first-lines__pause button').click());
-    await send('pointerdown', 460); await send('pointermove', 680); await send('pointerup', 680);
-    expect(successes).toHaveBeenCalledTimes(1); expect(errors).not.toHaveBeenCalled();
-  });
   it('reconciles a newer failed local checkpoint before crediting its completion after reload', async () => {
     const a = createLineAttempt(); a.begin({ x: 320, y: 500 }); a.move({ x: 450, y: 650 }); a.end();
     a.begin(a.state.anchor); a.move({ x: 680, y: 500 }); a.end();
@@ -224,17 +215,6 @@ it('after finishing one side the model shows the next side, which can be copied 
   expect(successes).toHaveBeenCalledTimes(1);expect(errors).not.toHaveBeenCalled();
 });
 
-it('paper has a meaningful target before drawing and includes the finished figure immediately after completion', async () => {
-  await act(async()=>root.render(<Harness surface="sheet"/>));
-  const paper=()=>host.querySelector('[aria-label="Повторить на бумаге"]');
-  await act(async()=>paper().click());expect(host.querySelector('[data-paper-target] path')).toBeTruthy();
-  expect(host.textContent).toContain('Рисовать на экране');await act(async()=>host.querySelector('.first-lines__pause button').click());
-  await send('pointerdown',115,250);await send('pointermove',385,250);await send('pointerup',385,250);
-  expect(successes).toHaveBeenCalledTimes(1);expect(paper().disabled).toBe(false);
-  await act(async()=>paper().click());expect(host.querySelector('.first-lines__pause [data-shape] polyline')).toBeTruthy();
-  await act(async()=>host.querySelector('.first-lines__pause button').click());expect(host.textContent).toContain('Следующее задание');
-});
-
 it('restoring an error at a paper-break card opens the correction point, without another paper interruption', async () => {
   const a=createLineAttempt();a.begin({x:320,y:500});a.move({x:450,y:650});a.end();
   saveCheckpoint(checkpointKey('kid','session-test',tasks[5].id),a.state);
@@ -262,9 +242,9 @@ it('uses the same green start and hollow purple finish on every kind, including 
   }
 });
 
-it('keeps worksheet placement without a visible cross dividing the drawing board', async () => {
-  await act(async()=>root.render(<Harness surface="sheet"/>));
+it('has no paper control or automatic paper break, while keeping the screen sheet', async () => {
+  const initial={...createSessionState(tasks,{evaluation:'auto'},'kid','drawing','0.18.0',['line'],null,false,1,true,{version:2,lossMode:'one'}),id:'screen-only',taskIndex:5};
+  await act(async()=>root.render(<Harness initial={initial} surface="sheet"/>));
+  expect(host.querySelector('[aria-label="Повторить на бумаге"]')).toBeNull();expect(host.querySelector('.first-lines__pause')).toBeNull();
   expect(host.querySelectorAll('.first-lines__sheet>path')).toHaveLength(0);
-  await act(async()=>host.querySelector('[aria-label="Повторить на бумаге"]').click());
-  expect(host.querySelectorAll('.first-lines__pause>svg>path')).toHaveLength(0);
 });

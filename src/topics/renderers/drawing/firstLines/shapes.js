@@ -14,9 +14,13 @@ export const PRACTICE_SETS = Object.freeze({
 export const knownShape = kind => Object.hasOwn(SHAPE_TITLES, kind);
 const identity = { angle: 0, tx: 0, ty: 0, scale: 1 };
 export function normalizeVariant(raw) {
-  return { scale: Number.isFinite(raw?.scale) ? Math.max(.55, Math.min(1.1, raw.scale)) : 1,
+  const legacy = { scale: Number.isFinite(raw?.scale) ? Math.max(.55, Math.min(1.1, raw.scale)) : 1,
     angle: Number.isFinite(raw?.angle) ? Math.max(-180, Math.min(180, raw.angle)) : 0,
     aspect: Number.isFinite(raw?.aspect) ? Math.max(.9, Math.min(1.08, raw.aspect)) : 1 };
+  if (raw?.schema !== 4) return legacy;
+  const unit = n => Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : .5;
+  return { ...legacy, scale: 1, schema: 4, seed: Number.isSafeInteger(raw.seed) ? raw.seed >>> 0 : 1,
+    size: unit(raw.size), positionX: unit(raw.positionX), positionY: unit(raw.positionY) };
 }
 export function transformPoint(p, frame, inverse = false) {
   const angle = frame.angle * Math.PI / 180 * (inverse ? -1 : 1), scale = frame.scale ?? 1;
@@ -90,17 +94,52 @@ const definitions = {
   parallelepiped: [segment([300,380],[600,380]),segment([600,380],[600,700]),segment([600,700],[300,700]),segment([300,700],[300,380]),
     segment([300,380],[400,280]),segment([400,280],[700,280]),segment([700,280],[700,600]),segment([700,600],[600,700]),segment([700,280],[600,380])],
 };
+// A stored seed describes a generated contour, including the number of visible sides.
+function proceduralParts(kind, seed) {
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const between = (a,b) => a + random() * (b-a);
+  const count = (a,b) => Math.floor(between(a,b+1));
+  const halfW=between(135,260),halfH=between(100,230);
+  if (['short_line','vertical_line','diagonal_up','diagonal_down'].includes(kind)) return [segment([500-halfW,500],[500+halfW,500])];
+  if (kind==='circle') { const r=between(130,230);return [ellipse(r,r,undefined,undefined,undefined,undefined,[.72,1.4])]; }
+  if (kind==='oval'||kind==='tilted_oval') { const rx=between(180,260),ry=between(100,140);return [ellipse(rx,ry,undefined,undefined,undefined,undefined,[1.15,3.2])]; }
+  if (['square','rectangle','rhombus','parallelepiped'].includes(kind)) {
+    let vertices;
+    if(kind==='rhombus')vertices=[[500,500-halfH],[500+halfW,500],[500,500+halfH],[500-halfW,500]];
+    else {const h=kind==='square'?halfW:halfH;vertices=[[500-halfW,500-h],[500+halfW,500-h],[500+halfW,500+h],[500-halfW,500+h]];}
+    let edges=polygon(vertices);
+    if(kind==='parallelepiped') {
+      const depth=between(65,130),a=vertices[0],b=vertices[1],c=vertices[2];
+      const aa=[a[0]+depth,a[1]-depth],bb=[b[0]+depth,b[1]-depth],cc=[c[0]+depth,c[1]-depth];
+      edges=[...edges,segment(a,aa),segment(aa,bb),segment(bb,cc),segment(cc,c),segment(bb,b)];
+    }
+    const start=count(0,edges.length-1),visible=count(1,edges.length);
+    return [...edges.slice(start),...edges.slice(0,start)].slice(0,visible);
+  }
+  if(kind==='arc'||kind==='semicircle') {
+    const rx=between(140,250),ry=kind==='semicircle'?rx:between(90,220),sweep=kind==='semicircle'?Math.PI:between(Math.PI*.5,Math.PI*1.5);
+    return [ellipse(rx,ry,between(-Math.PI,Math.PI),sweep)];
+  }
+  const zig = (x0,x1,amplitude,turns) => polyline(Array.from({length:turns+2},(_,i)=>[x0+(x1-x0)*i/(turns+1),i===0||i===turns+1?500:500+(i%2?-1:1)*amplitude]));
+  if(kind==='zigzag')return [zig(500-halfW,500+halfW,between(65,140),count(2,6))];
+  if(kind==='wave') {const cycles=between(.7,2),amp=between(55,135);return [sampled(Array.from({length:481},(_,i)=>({x:500-halfW+2*halfW*i/480,y:500-amp*Math.sin(i/480*Math.PI*2*cycles)})))];}
+  const amp=between(60,120),turns=count(2,4),arcH=between(85,180);
+  if(kind==='zigzag_arc')return [joinPaths([zig(240,440,amp,turns),ellipse(160,arcH,Math.PI,Math.PI,600,500)])];
+  if(kind==='arc_zigzag')return [joinPaths([ellipse(160,arcH,Math.PI,Math.PI,400,500),zig(560,760,amp,turns)])];
+  return [joinPaths([zig(240,400,amp,turns),ellipse(100,arcH,Math.PI,Math.PI,500,500),zig(600,760,amp,turns)])];
+}
 export function shapeDefinition(kind = 'short_line', rawVariant) {
   const id = knownShape(kind) ? kind : 'short_line', variant = normalizeVariant(rawVariant);
   let base = definitions[id];
-  if (['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
-  if (id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
+  if (variant.schema !== 4 && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
+  if (variant.schema !== 4 && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
+  if (variant.schema === 4) base = proceduralParts(id, variant.seed);
   const parts = base.map(part => {
     const frame = combineFrame(part.frame, variant);
     return { ...part, frame, travelLength: part.length * frame.scale };
   });
   const steps = parts.map(p => p.type === 'line' ? 800 : Math.max(800, Math.min(2400, p.length * 2)));
-  return { id, variant, title: SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
+  return { id, variant, title: variant.schema === 4 && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
     length: parts.reduce((sum, p) => sum + p.travelLength, 0), steps,
     motionMs: parts.length > 1 ? steps.reduce((sum, ms) => sum + ms + 400, 0) : parts[0].type === 'line' ? 1200 : steps[0] };
 }

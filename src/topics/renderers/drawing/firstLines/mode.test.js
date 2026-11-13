@@ -14,11 +14,11 @@ it('keeps six paper lessons separate from the new evaluated mode and its normal 
   expect(lines).toMatchObject({ evaluation: 'auto', finite: true, paramsScope: 'mode' });
   for (const flag of ['hideVideoReward', 'adultVideoReward', 'rewardPerBlock', 'loop']) expect(lines[flag]).toBeUndefined();
   expect(lines.params.videoRewardEnabled).toBeUndefined();
-  const stored = writeModeParams({ byMode: { drawing_steps: { speed: 'slow', videoRewardEnabled: true } } }, lines, { inputMode: 'touch', trackWidth: 'wide', exercises: ['short_line'], workSurface: 'single' });
+  const stored = writeModeParams({ byMode: { drawing_steps: { speed: 'slow', videoRewardEnabled: true } } }, lines, { inputMode: 'touch', exercises: ['short_line'], workSurface: 'single' });
   expect(readModeParams(stored, paper)).toMatchObject({ speed: 'slow', videoRewardEnabled: true });
   expect(readModeParams(stored, paper).trackWidth).toBeUndefined();
-  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', trackWidth: 'wide', exercises: ['short_line'], workSurface: 'single', practiceSet: 'mixed', preciseSelection: false });
-  expect(readModeParams({ byMode: { drawing_first_lines: { inputMode: 'touch' } } }, lines).trackWidth).toBe('normal');
+  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', exercises: ['short_line'], workSurface: 'single', practiceSet: 'mixed', preciseSelection: false });
+  expect(readModeParams({},lines).trackWidth).toBeUndefined();
 });
 
 it('ignores a stale selection of paper drawings and preserves 1/2/3 cards per star', () => {
@@ -29,7 +29,7 @@ it('ignores a stale selection of paper drawings and preserves 1/2/3 cards per st
     const state = buildGeneratedSessionState({ topicRecord: topic, mode: lines, activeStudentId: 'kid', activeTopicId: 'drawing',
       activeStudent: { id: 'kid' }, link, ...selection });
     expect(state.tasks).toHaveLength(15); expect(state.answersPerStar).toBe(perStar);
-    expect(state.tasks.filter(t => t.breakBefore).map(t => t.number)).toEqual([6, 11]);
+    expect(state.tasks.filter(t => t.breakBefore).map(t => t.number)).toEqual([]);
     expect(new Set(state.tasks.map(t => t.id)).size).toBe(15);
     expect(state.rewardPolicy).toEqual({ version: 2, lossMode: 'one' });
   }
@@ -46,12 +46,12 @@ it('preserves an old paper selection when the topic gains a separate pool of scr
   expect(resolveModeSelection(topic, lines, { selectedConceptIds: changed }, false, null).selectedConceptIds).toEqual(['first_lines:short_line']);
 });
 
-it('cycles only selected shapes, groups sheets by four, and keeps paper pauses without extra credits', () => {
-  const params = { preciseSelection: true, exercises: ['circle', 'square', 'diagonal_up'], workSurface: 'sheet' };
+it('cycles only selected shapes, groups sheets by four, and omits paper breaks without extra credits', () => {
+  const params = { preciseSelection: true, exercises: ['circle', 'square', 'short_line'], workSurface: 'sheet' };
   const tasks = generateTasks(lines, topic.cards, 500, params);
   expect(tasks).toHaveLength(15);
   for (let i = 0; i < 15; i += 3) expect(new Set(tasks.slice(i, i + 3).map(t => t.exerciseKind))).toEqual(new Set(params.exercises));
-  expect(tasks.filter(t => t.breakBefore).map(t => t.number)).toEqual([5, 9, 13]);
+  expect(tasks.filter(t => t.breakBefore).map(t => t.number)).toEqual([]);
   expect(tasks[3]).toMatchObject({ sheetPage: 0, sheetSlot: 3 });
   expect(tasks[4]).toMatchObject({ sheetPage: 1, sheetSlot: 0 });
   expect(tasks[14].sheetKinds).toHaveLength(3);

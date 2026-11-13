@@ -15,3 +15,12 @@ export function resolveProfile(width = 'normal') {
 export function scaledProfile(profile, scale = 1) {
   return Object.fromEntries(Object.entries(resolveProfile(profile)).map(([key, value]) => [key, value / scale]));
 }
+
+// Fixed device profiles in CSS pixels; canonical coordinates are compensated by the placement scale.
+export function screenProfile(input = 'pen') {
+  const touch = input === 'touch';
+  return { width: touch ? 56 : 10, extra: touch ? 7 : 3, resume: touch ? 32 : 14, finish: touch ? 32 : 14,
+    close: touch ? 20 : 10, outsideMin: 6, outsideFast: 18, sampleStep: 2, corner: touch ? 26 : 10,
+    ink: touch ? 7 : 3, noise: touch ? 10 : 4, markerRadius: touch ? 13 : 8, goalRadius: touch ? 21 : 14,
+    markerHalo: 5, leadInk: touch ? 7 : 3, tipRadius: touch ? 9 : 5, markerStroke: 1.5, goalStroke: 3, markRadius: 16, leadLength: 24, overlayScale: 1 };
+}

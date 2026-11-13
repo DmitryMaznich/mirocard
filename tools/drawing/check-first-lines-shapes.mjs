@@ -2,7 +2,7 @@
 // Actual imported ZIP + actual SessionScreen, with geometry independently mapped by SVG CTM.
 import { chromium, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-import { SHAPE_KINDS, shapeDefinition, partPoint, transformPoint, sheetCell } from '../../src/topics/renderers/drawing/firstLines/shapes.js';
+import { SHAPE_KINDS, shapeDefinition, partPoint, transformPoint } from '../../src/topics/renderers/drawing/firstLines/shapes.js';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
 const base = process.env.DRAWING_PREVIEW_URL || 'http://127.0.0.1:8080', failures = [];
 const state = page => page.evaluate(() => window.previewStore.getState().activeSessionSnapshot?.sessionState);
@@ -16,11 +16,10 @@ async function open(query, viewport = { width: 390, height: 844 }) {
   await page.goto(`${base}/tools/drawing/first-lines-preview.html?fresh&${query}`); await settled(page); return { page, context };
 }
 async function currentTask(page) { const s=await state(page); return s.tasks[s.taskIndex]; }
-async function screenPoints(page, task, part, fractions, surface) {
-  const cell = sheetCell(task.sheetSlot);
-  const points = fractions.map(f => { const p = transformPoint(partPoint(part,f),part.frame); return surface === 'sheet' ? {x:cell.tx+p.x*cell.scale,y:cell.ty+p.y*cell.scale}:p; });
-  return page.locator('.first-lines__board').evaluate((svg, points) => points.map(p => {
-    const point = svg.createSVGPoint(); point.x=p.x; point.y=p.y; const xy=point.matrixTransform(svg.getScreenCTM()); return {x:xy.x,y:xy.y};
+async function screenPoints(page, task, part, fractions) {
+  const points = fractions.map(f => transformPoint(partPoint(part,f),part.frame));
+  return page.locator('.first-lines__active').evaluate((group, points) => points.map(p => {
+    const point = group.ownerSVGElement.createSVGPoint(); point.x=p.x; point.y=p.y; const xy=point.matrixTransform(group.getScreenCTM()); return {x:xy.x,y:xy.y};
   }),points);
 }
 async function gesture(page, points) {
@@ -49,12 +48,7 @@ async function next(page) {
   await expect.poll(async()=>(await state(page)).taskIndex).toBe(before+1);
   const task=await currentTask(page);
   await expect(page.locator('.first-lines')).toHaveAttribute('data-task-id',task.id); await settled(page);
-  const pause=page.locator('.first-lines__pause button');
-  if(task.breakBefore) await expect(pause).toBeVisible();
-  if(await pause.isVisible()) {
-    if(new URL(page.url()).searchParams.get('surface')==='sheet' && task.breakBefore) await expect(page.locator('.first-lines__pause [data-shape]')).toHaveCount(4);
-    await pause.click(); await settled(page);
-  }
+  await expect(page.locator('.first-lines__pause')).toHaveCount(0);
 }
 async function width(page) {
   return page.locator('.first-lines__track').first().evaluate(node => { const matrix=node.getScreenCTM();return parseFloat(window.getComputedStyle(node).strokeWidth)*Math.hypot(matrix.a,matrix.b); });
@@ -62,7 +56,7 @@ async function width(page) {
 try {
   await mkdir('output/first-lines',{recursive:true});
   // Every form with a real random variant on a phone; selected complex ones also on a tablet.
-  for(const kind of SHAPE_KINDS) {
+  for(const kind of SHAPE_KINDS.filter(k=>!['vertical_line','diagonal_up','diagonal_down'].includes(k))) {
     const {page,context}=await open(`noVideo&exercises=${kind}`);
     expect((await currentTask(page)).exerciseKind).toBe(kind);
     if(['tilted_oval','rectangle','rhombus','arc','parallelepiped','zigzag_arc_zigzag'].includes(kind)) await page.screenshot({path:`output/first-lines/variety-phone-${kind}.png`});
@@ -71,7 +65,7 @@ try {
   // A whole random worksheet session keeps real work, geometry, page placement and normal prizes.
   const sheet=await open('surface=sheet',{width:1180,height:1000}); const page=sheet.page;
   const tasks=(await state(page)).tasks; expect(new Set(tasks.map(t=>t.exerciseKind)).size).toBe(15);
-  expect(new Set(tasks.map(t=>t.variant.scale)).size).toBeGreaterThan(1);
+  expect(new Set(tasks.map(t=>t.variant.size)).size).toBeGreaterThan(1);
   for(let i=0;i<15;i++) {
     if(i===3) {
       expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(3);
@@ -105,7 +99,7 @@ try {
     await screen.screenshot({path:`output/first-lines/variety-${input}-road.png`});
     if(input==='touch') {
       await next(screen);await screen.getByRole('button',{name:'Весь лист',exact:true}).click();
-      await expect(screen.locator('.first-lines__board')).toHaveAttribute('viewBox','0 0 1000 1000');
+      expect((await screen.locator('.first-lines__board').getAttribute('viewBox')).split(' ').map(Number).slice(2)).toEqual(await screen.locator('.first-lines__board').evaluate(el=>[Math.round(el.clientWidth)*2,Math.round(el.clientHeight)*2]));
       await screen.screenshot({path:'output/first-lines/variety-phone-overview.png'});
       await screen.getByRole('button',{name:'К заданию',exact:true}).click();
       await draw(screen,'sheet');
@@ -114,5 +108,5 @@ try {
   }
   expect(widths[1]/widths[0]).toBeGreaterThan(3);expect(Math.abs(widths[0]-widths[2])).toBeLessThan(.1);
   expect(failures).toEqual([]);
-  console.log('Variety: all 18 forms on phone, full random worksheet on tablet, stable geometry/reload, preserved work, standard prizes, overview, real finger/passive input and distinct road widths passed.');
+  console.log('Variety: all 15 generated families on phone, full random worksheet on tablet, stable geometry/reload, preserved work, standard prizes, overview, real finger/passive input and distinct road widths passed.');
 }finally{await browser.close();}
