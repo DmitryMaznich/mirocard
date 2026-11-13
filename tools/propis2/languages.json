@@ -299,7 +299,8 @@
             "wordGap": 56,
             "meetJoins": {
               "noExitFrom": "BDFINOPSŠTV",
-              "loopInto": "e"
+              "loopInto": "e",
+              "ovalInto": "acdgoq"
             }
           },
           "papers": [
