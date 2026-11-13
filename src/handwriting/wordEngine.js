@@ -2199,7 +2199,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
-        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
+        let local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         const isCap = !inCell && glyph.kind === "letter" && isCapitalLabel(label);
         const capAfterCap = prevCapital && isCap && tokenStartX !== null;
         // the connector the capital before it would have drawn to it is not drawn
@@ -2315,6 +2315,22 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         let meetJoin = null;
         if (meet && apart && loose && !afterSign && !inCell && prevMeetExit && glyph.kind === "letter" && !isCap) {
+          // after a capital, a straight lead-in (i j p) is written bowed like u's — the join then runs exactly as M–u does (owner,
+          // 2026-11-14: «соединение Mi … точно как соединение Mu»): the same control points as u's lead-in, as shares of the lead-in (only a lead-in that is one straight line up to the x-height:
+          // not a c d g o, whose straight piece ends on the oval)
+          if (prevLabel && prevLabel !== prevLabel.toLowerCase()) {
+            const tk = local.strokes[0].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+            if (tk[0] === "M" && tk[3] === "C") {
+              const [x0, y0, ax, ay, bx, by, x1, y1] = [1, 2, 4, 5, 6, 7, 8, 9].map((i) => Number(tk[i]));
+              const dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy;
+              const off = (x, y) => Math.abs((x - x0) * dy - (y - y0) * dx) / Math.sqrt(L2 || 1);
+              if (dy < -0.85 * WIDE_ZONE_UNITS * scale && dx > 0 && off(ax, ay) < 0.3 * scale && off(bx, by) < 0.3 * scale) {
+                const f = (v) => v.toFixed(3);
+                tk[4] = f(x0 + 0.375 * dx); tk[5] = f(y0 + 0.175 * dy); tk[6] = f(x1 - 0.153 * dx); tk[7] = f(y1 - 0.412 * dy);
+                local = { ...local, strokes: [{ ...local.strokes[0], d: tk.join(" ") }, ...local.strokes.slice(1)] };
+              }
+            }
+          }
           const pts = samplePath(local.strokes[0].d, 60);
           // into e (owner, 2026-11-13: c–e, s–e, j–e in «jelka» stood almost touching): e's eye at least `gap` of the x-height clear of
           // the ink before it at the same height — the join gets longer instead. The exit's own top (where the join comes out of it) is
