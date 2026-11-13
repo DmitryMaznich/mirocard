@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createShapeAttempt, restoreShape } from './shapeAttempt.js';
-import { SHAPE_KINDS, partPoint, transformPoint } from './shapes.js';
+import { SHAPE_KINDS, partPoint, transformPoint, demonstrationFrame, shapeDefinition } from './shapes.js';
 import { readSheet, saveSheet } from './checkpoint.js';
 import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 const world = (part, p) => transformPoint(p, part.frame);
@@ -80,4 +80,14 @@ describe('shape geometry and card boundaries', () => {
     expect(readSheet('drawing-sheet:test').slice(1)).toEqual([null,null,null]);
     expect(restoreShape({version:2,attempt:restored.state},'oval').done).toBe(false);
   });
+});
+
+it('the square demonstration stops at every corner and explicitly models lifting', () => {
+  const shape = shapeDefinition('square');
+  for (let side = 0; side < 4; side++) {
+    const moving = demonstrationFrame(shape, side * 1200 + 400);
+    expect(moving.progress).toBeGreaterThan(side / 4); expect(moving.progress).toBeLessThan((side + 1) / 4); expect(moving.lift).toBeNull();
+    expect(demonstrationFrame(shape, side * 1200 + 950)).toEqual({ progress: (side + 1) / 4, lift: side });
+  }
+  expect(demonstrationFrame(shape, shape.motionMs).progress).toBe(1);
 });

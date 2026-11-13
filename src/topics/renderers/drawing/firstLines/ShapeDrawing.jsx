@@ -1,7 +1,7 @@
 import { shapeDefinition, frameTransform, partPoint, transformPoint } from './shapes.js';
 import { TRACK_WIDTHS } from './lineAttempt.js';
 const pathPoints = points => points.map(p => `${p.x},${p.y}`).join(' ');
-export default function ShapeDrawing({ state, width = 'normal', passive = false, hint = false, demo = false, demoProgress = 0 }) {
+export default function ShapeDrawing({ state, width = 'normal', passive = false, hint = false, demo = false, demoProgress = 0, demoLift = null }) {
   const shape = shapeDefinition(state.kind);
   return <g data-shape={shape.id}>
     {shape.parts.map((part, i) => {
@@ -20,10 +20,17 @@ export default function ShapeDrawing({ state, width = 'normal', passive = false,
         {!passive && active && (s.needsReturn || hint || s.strokes.length > 0) && <circle className="first-lines__resume" cx={s.anchor.x} cy={s.anchor.y} r="34" />}
         {demo && <g className="first-lines__demo" aria-hidden="true">
           <path className="first-lines__demo-line" d={part.d} pathLength="1" strokeDashoffset={1 - fraction} />
-          {(fraction > 0 && fraction < 1 || i === 0 && demoProgress === 0) && <circle className="first-lines__demo-tip" cx={tip.x} cy={tip.y} r="16" />}
+          {(fraction > 0 && fraction < 1 || i === 0 && demoProgress === 0 || i === shape.parts.length - 1 && demoProgress === 1 && demoLift === null) && <circle className="first-lines__demo-tip" cx={tip.x} cy={tip.y} r="16" />}
         </g>}
       </g>;
     })}
+    {demo && demoLift !== null && (() => {
+      const part = shape.parts[demoLift], end = transformPoint(partPoint(part, 1), part.frame);
+      return <g className="first-lines__demo-lift" transform={`translate(${end.x} ${end.y})`} aria-hidden="true">
+        <circle r="20" fill="none" stroke="#315b86" strokeWidth="5" strokeDasharray="6 5" />
+        <path d="M38 12V-36M25-23l13-13 13 13" fill="none" stroke="#315b86" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      </g>;
+    })()}
     {!passive && !shape.closed && (() => {
       const end = transformPoint(partPoint(shape.parts[0], 1), shape.parts[0].frame);
       return <path className="first-lines__house" transform={`translate(${end.x - 680} ${end.y - 500})`} d="M653 494v40h54v-40M644 496l36-32 36 32M674 534v-22h13v22" />;
