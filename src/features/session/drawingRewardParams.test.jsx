@@ -48,8 +48,8 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
   await act(async () => root.render(<ParamsScreen />));
   expect(host.querySelector('.video-prize-card')).toBeTruthy();
   expect(host.querySelector('[aria-label="Видеобонус в конце рисования"]')).toBeNull();
-  expect(host.textContent).toContain('Ширина дорожки');
-  await act(async () => [...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Очень широкая').click());
+  expect(host.textContent).not.toContain('Ширина дорожки');
+  expect(host.textContent).toContain('Пассивным стилусом');
   expect(host.textContent).toContain('Рабочее поле');
   expect([...host.querySelectorAll('button')].find(button => button.textContent.trim() === 'Круг')).toBeUndefined();
   await act(async () => host.querySelector('[role=switch][aria-label="Выбрать отдельные упражнения"]').click());
@@ -67,7 +67,7 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
     videoRewardEnabled: true, answersPerStar: 3, strictStars: false,
     params: expect.objectContaining({ byMode: expect.objectContaining({
       drawing_steps: expect.objectContaining({ speed: 'slow', videoRewardEnabled: true }),
-      drawing_first_lines: expect.objectContaining({ trackWidth: 'wide', exercises: ['circle', 'oval', 'square'], preciseSelection: true, workSurface: 'sheet' }),
+      drawing_first_lines: expect.objectContaining({ exercises: ['circle', 'oval', 'square'], preciseSelection: true, workSurface: 'sheet' }),
     }) }),
   }));
 });

@@ -9,11 +9,13 @@ describe("downloadable drawing topic", () => {
     const manifest = JSON.parse(await readFile("tools/drawing/topic.json", "utf8"));
     const bytes = await readFile(`public/decks/drawing_v${manifest.meta.version}.zip`);
     const db = await openDb(`drawing-test-${Date.now()}`);
-    await expect(importTopic(db, bytes, "1.1.57")).rejects.toThrow("1.1.58");
-    await importTopic(db, bytes, "1.1.58");
+    await expect(importTopic(db, bytes, "1.1.58")).rejects.toThrow("1.1.59");
+    await importTopic(db, bytes, "1.1.59");
     const record = await getTopicRecord(db, "drawing");
     expect(record.meta.renderer).toBe("drawing");
     expect(record.modes).toHaveLength(2);
+    expect(record.modes[1].screenPractice).toBe(true);
+    expect(record.modes[1].params).not.toHaveProperty('trackWidth');
     expect(record.modes[1].params.practiceSet.default).toBe('mixed');
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);

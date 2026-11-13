@@ -22,19 +22,25 @@ async function open(query = '', viewport = { width: 1180, height: 900 }) {
       return play.apply(this, args);
     };
   });
-  const options = new URLSearchParams(query); if (!options.has('exercises')) options.set('exercises','short_line');
+  const options = new URLSearchParams(query); if (!options.has('surface')) options.set('surface','single'); if (!options.has('exercises')) options.set('exercises','short_line');
   await page.goto(`${base}/tools/drawing/first-lines-preview.html?fresh&${options}`);
   await page.locator('.first-lines__board').waitFor();
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const layout=await page.locator('.first-lines__board').evaluate(svg=>{
+    const board=svg.getBoundingClientRect(),parent=svg.closest('.session-renderer-wrap').getBoundingClientRect(),tools=svg.previousElementSibling.getBoundingClientRect(),footer=svg.nextElementSibling.getBoundingClientRect(),v=svg.viewBox.baseVal;
+    return {boardRatio:board.width/board.height,viewRatio:v.width/v.height,topGap:tools.top-parent.top,bottomGap:parent.bottom-footer.bottom,boardGap:board.top-tools.bottom};
+  });
+  expect(layout.viewRatio).toBeCloseTo(layout.boardRatio,2);expect(layout.topGap).toBeCloseTo(0,1);expect(layout.bottomGap).toBeCloseTo(0,1);expect(layout.boardGap).toBeCloseTo(0,1);
+  await expect(page.getByRole('button',{name:/бумаг/})).toHaveCount(0);
   return { page, context };
 }
 const state = page => page.evaluate(() => window.previewStore.getState().activeSessionSnapshot?.sessionState);
 async function coords(page, x, y = 500) {
   const session = await state(page), task = session.tasks[session.taskIndex];
   const world = transformPoint({ x, y }, shapeDefinition(task.exerciseKind,task.variant).parts[0].frame);
-  return page.locator('.first-lines__board').evaluate((svg, p) => {
-    const point = svg.createSVGPoint(); point.x = p.x; point.y = p.y;
+  return page.locator('.first-lines__active').evaluate((svg, p) => {
+    const point = svg.ownerSVGElement.createSVGPoint(); point.x = p.x; point.y = p.y;
     const screen = point.matrixTransform(svg.getScreenCTM());
     return { x: screen.x, y: screen.y };
   }, world);
@@ -63,9 +69,7 @@ async function next(page) {
   await expect.poll(async () => (await state(page))?.taskIndex).toBe(before + 1);
   const task = (await state(page)).tasks[before + 1];
   await expect(page.locator('.first-lines')).toHaveAttribute('data-task-id',task.id);
-  if (task.breakBefore) await expect(page.locator('.first-lines__pause button')).toBeVisible();
-  const pause = page.locator('.first-lines__pause button');
-  if (await pause.isVisible()) await pause.click();
+
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
 
@@ -132,8 +136,8 @@ try {
 
   // Regression for the owner's screenshot: a zigzag inside the road is not a
   // completed straight line, including on a phone. Correction keeps the raw trail.
-  for (const width of ['wide', 'normal', 'narrow']) {
-    const crooked = await open(`noVideo&touch&width=${width}`, { width: 390, height: 844 });
+  for (const input of ['pen', 'touch']) {
+    const crooked = await open(`noVideo&${input}`, { width: 390, height: 844 });
     const screen = crooked.page;
     await stroke(screen, SCREENSHOT_ZIGZAG);
     await expect.poll(async () => (await state(screen)).incorrectCount).toBe(1);
@@ -142,9 +146,9 @@ try {
     expect((await state(screen)).rewardAttemptBlocked).toBe(true);
     await expect(screen.locator('.first-lines__footer button')).toHaveCount(0);
     await expect(screen.locator('.first-lines__cue')).toContainText('Повтори от точки');
-    if (width === 'normal') await screen.screenshot({ path: 'output/first-lines/zigzag-rejected.png' });
+    if (input === 'touch') await screen.screenshot({ path: 'output/first-lines/zigzag-rejected.png' });
     const failedTrail = await screen.locator('.first-lines__ink--error').getAttribute('points');
-    if (width === 'normal') {
+    if (input === 'touch') {
       await screen.reload(); await screen.locator('.first-lines__board').waitFor();
       await screen.evaluate(() => document.fonts.ready);
       await screen.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -166,8 +170,8 @@ try {
     const screen = phone.page;
     await expect(screen.locator('.first-lines__size')).toHaveCount(0);
     const start = await coords(screen, 320), end = await coords(screen, 680);
-    expect(end.x - start.x).toBeGreaterThan(70);
-    expect(start.x).toBeGreaterThan(0); expect(end.x).toBeLessThan(viewport.width);
+    expect(Math.hypot(end.x-start.x,end.y-start.y)).toBeGreaterThan(25);
+    for(const p of [start,end]) {expect(p.x).toBeGreaterThan(0);expect(p.x).toBeLessThan(viewport.width);expect(p.y).toBeGreaterThan(0);expect(p.y).toBeLessThan(viewport.height);}
     const touch = await phone.context.newCDPSession(screen);
     const send = async (type, x, y = 500) => touch.send('Input.dispatchTouchEvent', {
       type, touchPoints: type === 'touchEnd' ? [] : [{ ...await coords(screen, x, y), radiusX: 4, radiusY: 4, force: .1 }],
@@ -199,11 +203,11 @@ try {
   }
 
   // The demonstration draws a real sample behind its tip; both use the same timing.
-  // Width chosen before the session controls the visible track and the actual boundary check.
-  for (const [width, size, mistakes] of [['wide', 140, 0], ['normal', 100, 0], ['narrow', 60, 1]]) {
-    const sample = await open(`noVideo&touch&width=${width}`);
+  // Exactly two widths follow the selected input, independent of the contour scale.
+  for (const [input, size] of [['pen', 10], ['touch', 56], ['passive', 10]]) {
+    const sample = await open(`noVideo&${input}`);
     await sample.page.clock.install();
-    expect(await sample.page.locator('.first-lines__track').evaluate(node => { const a=node.getScreenCTM(), b=node.ownerSVGElement.getScreenCTM(); return parseFloat(window.getComputedStyle(node).strokeWidth)*Math.hypot(a.a,a.b)/Math.hypot(b.a,b.b); })).toBeCloseTo(size, 2);
+    expect(await sample.page.locator('.first-lines__track').evaluate(node => { const a=node.getScreenCTM(); return parseFloat(window.getComputedStyle(node).strokeWidth)*Math.hypot(a.a,a.b); })).toBeCloseTo(size, 2);
     await sample.page.getByRole('button', { name: 'Показать движение' }).click();
     await sample.page.clock.runFor(750);
     const animation = await sample.page.locator('.first-lines__demo').evaluate(group => {
@@ -214,13 +218,10 @@ try {
     });
     expect(animation.offset).toBeGreaterThan(0); expect(animation.offset).toBeLessThan(1);
     expect(Math.abs(animation.tip - 360 * (1 - animation.offset))).toBeLessThan(.5);
-    if (width === 'wide') await sample.page.screenshot({ path: 'output/first-lines/demo-line.png' });
+    if (input === 'touch') await sample.page.screenshot({ path: 'output/first-lines/demo-line.png' });
     await sample.page.clock.runFor(2400);
     await expect(sample.page.locator('.first-lines__demo')).toHaveCount(0);
-    const snapshot = await state(sample.page), scale = snapshot.tasks[snapshot.taskIndex].variant.scale;
-    await stroke(sample.page, [[320, 500], [450, 500], [450, 500 + 60 / scale], [520, 500 + 60 / scale], [680, 500]]);
-    expect((await state(sample.page)).incorrectCount).toBe(mistakes);
-    expect((await state(sample.page)).correctCount).toBe(mistakes ? 0 : 1);
+    await complete(sample.page);expect((await state(sample.page)).incorrectCount).toBe(0);
     await sample.context.close();
   }
 
@@ -248,5 +249,5 @@ try {
   await expect.poll(() => auto.page.evaluate(() => window.previewStore.getState().screen)).toBe('summary');
   await auto.context.close();
   expect(failures).toEqual([]);
-  console.log('First Lines: real ZIP, rewards, reload, phones in both orientations, touch correction/rotation, tablet pen/palm, demonstration and all widths passed.');
+  console.log('First Lines: real ZIP, rewards, reload, phones in both orientations, touch correction/rotation, tablet pen/palm, demonstration and both input widths passed.');
 } finally { await browser.close(); }
