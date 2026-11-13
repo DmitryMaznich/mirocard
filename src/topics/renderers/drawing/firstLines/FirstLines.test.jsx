@@ -11,7 +11,7 @@ import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }], 15, { preciseSelection: true, exercises: ['short_line'] }).map(t => ({ ...t, variant: undefined }));
 let root, host, latest, errors, successes;
-function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', surface = 'single', initial }) {
+function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', surface = 'single', initial, feedback }) {
   const [state, setState] = useState(() => initial ?? {
     ...createSessionState(tasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.15.0', ['line'], null, false, perStar, strict, { version: 2, lossMode: loss }),
     id: 'session-test', streakCount: 3 * perStar,
@@ -19,7 +19,7 @@ function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, i
   useEffect(() => { latest = state; }, [state]);
   return <FirstLines key={state.taskIndex} task={state.tasks[state.taskIndex]} student={{ id: 'kid' }} sessionId={state.id}
     sessionParams={{ inputMode: input, trackWidth: width, workSurface: surface }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
-    onStreakReset={(concept, card) => { errors(); setState(s => handleStreakReset(s, concept, card)); }}
+    playFeedback={feedback} onStreakReset={(concept, card) => { errors(); setState(s => handleStreakReset(s, concept, card)); }}
     onCorrect={(concept, card) => { successes(); setState(s => handleAnswer(s, true, concept, card)); }}
     onAdvance={() => setState(handleAdvance)} />;
 }
@@ -47,7 +47,7 @@ describe('First Lines and the real session reward policy', () => {
     await send('pointerup', ...SCREENSHOT_ZIGZAG.at(-1));
     expect(errors).toHaveBeenCalledTimes(1); expect(successes).not.toHaveBeenCalled();
     expect(latest.status).toBe('task_active'); expect(latest.rewardAttemptBlocked).toBe(true);
-    expect(host.textContent).toContain('Ещё раз отсюда');
+    expect(host.textContent).toContain('Повтори от точки');
     const remaining = strict ? 2 : 3;
     expect(latest.streakCount).toBe(remaining);
     await draw();
@@ -66,23 +66,16 @@ describe('First Lines and the real session reward policy', () => {
       expect(successes).toHaveBeenCalledTimes(mistakes ? 0 : 1);
     });
   }
-  it('shows the line and its tip without changing the child’s work or awarding a completion', async () => {
-    vi.useFakeTimers();
-    try {
-      await act(async () => root.render(<Harness />));
-      await send('pointerdown', 320); await send('pointermove', 450); await send('pointerup', 450);
-      const work = [...host.querySelectorAll('polyline')].map(node => node.getAttribute('points'));
-      await act(async () => host.querySelector('[aria-label="Показать движение"]').click());
-      expect(host.querySelector('.first-lines__demo-line')).toBeTruthy();
-      expect(host.querySelector('.first-lines__demo-tip')).toBeTruthy();
-      await draw();
-      expect(successes).not.toHaveBeenCalled(); expect(errors).not.toHaveBeenCalled();
-      await act(async () => vi.advanceTimersByTime(2400));
-      expect(host.querySelector('.first-lines__demo')).toBeNull();
-      expect([...host.querySelectorAll('polyline')].map(node => node.getAttribute('points'))).toEqual(work);
-      await send('pointerdown', 450); await send('pointermove', 680); await send('pointerup', 680);
-      expect(successes).toHaveBeenCalledTimes(1);
-    } finally { vi.useRealTimers(); }
+  it('shows the current part, keeps old ink as a ghost and lets the child interrupt the model by drawing', async () => {
+    await act(async () => root.render(<Harness />));
+    await send('pointerdown',320); await send('pointermove',450); await send('pointerup',450);
+    await act(async () => host.querySelector('[aria-label="Показать движение"]').click());
+    expect(host.querySelector('.first-lines__demo-line')).toBeTruthy();
+    expect(host.querySelector('.first-lines__history polyline').getAttribute('points')).toContain('450,500');
+    expect(successes).not.toHaveBeenCalled();
+    await draw();
+    expect(host.querySelector('.first-lines__demo')).toBeNull();
+    expect(successes).toHaveBeenCalledTimes(1); expect(errors).not.toHaveBeenCalled();
   });
   for (const strict of [true, false]) for (const loss of ['one', 'all']) for (const perStar of [1, 2, 3]) {
     it(`keeps correction blocked and next card eligible: strict=${strict}, loss=${loss}, perStar=${perStar}`, async () => {
@@ -91,9 +84,9 @@ describe('First Lines and the real session reward policy', () => {
       const expected = strict ? loss === 'all' ? 0 : 2 * perStar : 3 * perStar;
       expect(latest.streakCount).toBe(expected); expect(errors).toHaveBeenCalledTimes(1);
       const before = host.querySelectorAll('polyline').length;
-      await send('pointerdown', 450, 512); await send('pointermove', 470, 700); await send('pointerup', 470, 700);
+      await send('pointerdown', 320); await send('pointermove', 470, 700); await send('pointerup', 470, 700);
       expect(errors).toHaveBeenCalledTimes(1);
-      await send('pointerdown', 450, 512); await send('pointermove', 680); await send('pointerup', 680);
+      await send('pointerdown', 320); await send('pointermove', 680); await send('pointerup', 680);
       expect(successes).toHaveBeenCalledTimes(1); expect(latest.streakCount).toBe(expected);
       expect(host.querySelectorAll('polyline').length).toBeGreaterThan(before);
       await send('pointerup', 680); expect(successes).toHaveBeenCalledTimes(1);
@@ -118,7 +111,7 @@ describe('First Lines and the real session reward policy', () => {
   it('cancels a captured gesture when paused and resumes without a connecting jump', async () => {
     await act(async () => root.render(<Harness />));
     await send('pointerdown', 320); await send('pointermove', 460);
-    await act(async () => host.querySelector('[aria-label="Пауза"]').click());
+    await act(async () => host.querySelector('[aria-label="Повторить на бумаге"]').click());
     await send('pointermove', 680); expect(successes).not.toHaveBeenCalled();
     await act(async () => host.querySelector('.first-lines__pause button').click());
     await send('pointerdown', 460); await send('pointermove', 680); await send('pointerup', 680);
@@ -198,4 +191,55 @@ it('passive stylus accepts touch events with the narrow stylus profile', async (
   expect(host.querySelector('.first-lines__track').getAttribute('stroke-width')).toBe('24');
   await send('pointerdown',320,500,'touch'); await send('pointermove',680,500,'touch'); await send('pointerup',680,500,'touch');
   expect(successes).toHaveBeenCalledTimes(1); expect(errors).not.toHaveBeenCalled();
+});
+
+it('stops ink at an error, waits for lift and visibly restarts only that part; repeated failures do not burn another star', async () => {
+  const feedback=vi.fn(); await act(async()=>root.render(<Harness feedback={feedback}/>));
+  await send('pointerdown',320);await send('pointermove',450);await send('pointermove',450,650);
+  expect(host.querySelector('.first-lines').getAttribute('data-phase')).toBe('error');
+  const stopped=[...host.querySelectorAll('polyline')].map(p=>p.getAttribute('points'));
+  await send('pointermove',650,750);await send('pointermove',680,300);
+  expect([...host.querySelectorAll('polyline')].map(p=>p.getAttribute('points'))).toEqual(stopped);
+  expect(errors).toHaveBeenCalledTimes(1);
+  await send('pointerup',680,300);
+  expect(host.querySelector('.first-lines').getAttribute('data-phase')).toBe('retry');
+  expect(host.querySelector('.first-lines__start').getAttribute('cx')).toBe('320');
+  await fail(); expect(errors).toHaveBeenCalledTimes(1);expect(feedback).toHaveBeenCalledTimes(1);
+  await act(async()=>host.querySelector('[aria-label="Показать движение"]').click());
+  await draw();expect(successes).toHaveBeenCalledTimes(1);expect(latest.streakCount).toBe(2);
+});
+
+it('after finishing one side the model shows the next side, which can be copied immediately', async () => {
+  const squareTasks=tasks.map(t=>({...t,exerciseKind:'square'}));
+  const initial={...createSessionState(squareTasks,{evaluation:'auto'},'kid','drawing','0.17.0',['line'],null,false,1,true,{version:2,lossMode:'one'}),id:'session-test'};
+  await act(async()=>root.render(<Harness initial={initial}/>));
+  const sides=shapeDefinition('square').parts;
+  for(let i=0;i<4;i++) {
+    await act(async()=>host.querySelector('[aria-label="Показать движение"]').click());
+    expect(host.querySelectorAll('.first-lines__demo-line')).toHaveLength(1);
+    expect(host.querySelector('.first-lines__demo').parentElement.getAttribute('data-part')).toBe(String(i));
+    const a=transformPoint(partPoint(sides[i],0),sides[i].frame),b=transformPoint(partPoint(sides[i],1),sides[i].frame);
+    await send('pointerdown',a.x,a.y);await send('pointermove',b.x,b.y);await send('pointerup',b.x,b.y);
+  }
+  expect(successes).toHaveBeenCalledTimes(1);expect(errors).not.toHaveBeenCalled();
+});
+
+it('paper has a meaningful target before drawing and includes the finished figure immediately after completion', async () => {
+  await act(async()=>root.render(<Harness surface="sheet"/>));
+  const paper=()=>host.querySelector('[aria-label="Повторить на бумаге"]');
+  await act(async()=>paper().click());expect(host.querySelector('[data-paper-target] path')).toBeTruthy();
+  expect(host.textContent).toContain('Рисовать на экране');await act(async()=>host.querySelector('.first-lines__pause button').click());
+  await send('pointerdown',115,250);await send('pointermove',385,250);await send('pointerup',385,250);
+  expect(successes).toHaveBeenCalledTimes(1);expect(paper().disabled).toBe(false);
+  await act(async()=>paper().click());expect(host.querySelector('.first-lines__pause [data-shape] polyline')).toBeTruthy();
+  await act(async()=>host.querySelector('.first-lines__pause button').click());expect(host.textContent).toContain('Следующее задание');
+});
+
+it('restoring an error at a paper-break card opens the correction point, without another paper interruption', async () => {
+  const a=createLineAttempt();a.begin({x:320,y:500});a.move({x:450,y:650});a.end();
+  saveCheckpoint(checkpointKey('kid','session-test',tasks[5].id),a.state);
+  const initial={...createSessionState(tasks,{evaluation:'auto'},'kid','drawing','0.17.1',['line'],null,false,1,true,{version:2,lossMode:'one'}),id:'session-test',taskIndex:5};
+  await act(async()=>root.render(<Harness initial={initial}/>));
+  expect(host.querySelector('.first-lines__pause')).toBeNull();expect(host.querySelector('.first-lines').getAttribute('data-phase')).toBe('retry');
+  await draw();expect(successes).toHaveBeenCalledTimes(1);expect(errors).toHaveBeenCalledTimes(1);
 });

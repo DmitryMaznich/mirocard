@@ -25,3 +25,23 @@
 .first-lines .first-lines__overview{position:absolute;left:12px;bottom:82px;flex-direction:column;gap:3px;padding:6px;font-size:12px;min-height:0;background:#ffffffeb}
 .first-lines .first-lines__overview>svg{width:70px;height:70px;stroke-width:0;stroke-linecap:round;stroke-linejoin:round}
 @media(max-height:500px){.first-lines .first-lines__overview{bottom:76px;left:8px}.first-lines .first-lines__overview>svg{width:46px;height:46px}}
+.first-lines__history{opacity:.22;pointer-events:none}
+.first-lines__start{animation:first-lines-pulse 1.2s ease-in-out infinite;pointer-events:none}
+.first-lines__goal--ready{animation:first-lines-pulse 1.2s ease-in-out infinite}
+.first-lines__footer--error{color:#8a541b;background:#fff1dc}
+.first-lines__footer--retry{color:#8a541b}
+.first-lines__cue>svg{width:48px;min-width:48px;height:40px}
+.first-lines__cue>span{font-weight:600}
+.first-lines__complete{display:flex;align-items:center;gap:14px;color:#247c53}
+.first-lines__complete>span{font-size:22px;font-weight:700}
+.first-lines__complete>button{font-size:19px}
+.first-lines__pause>svg{width:min(220px,50vh);height:min(220px,40vh)}
+@keyframes first-lines-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.first-lines__start,.first-lines__goal--ready{animation:none}}
+@media(max-width:500px){.first-lines__complete{gap:6px}.first-lines__complete>span{font-size:17px}.first-lines__complete>button{font-size:17px;padding:8px}}
+@media(max-height:500px){.first-lines__pause{gap:10px;font-size:21px}.first-lines__pause>svg{height:80px;width:110px}.first-lines__footer{min-height:64px}}
+.first-lines__pause>button{max-width:calc(100% - 32px);font-size:18px}
+/* Feedback must not resize the board and cancel a gesture as its wording changes. */
+.first-lines__footer{width:100%;height:88px;min-height:88px;max-height:88px;box-sizing:border-box}
+.first-lines .first-lines__overview{bottom:100px}
+@media(max-height:500px){.first-lines__footer{height:64px;min-height:64px;max-height:64px;padding:4px 8px}.first-lines__cue{font-size:16px}.first-lines__complete>button{min-height:48px;padding:6px 10px;font-size:16px}.first-lines .first-lines__overview{bottom:76px}}

@@ -48,13 +48,14 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
   }
 
   function move(p, time = lastTime) {
-    if (!active || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return { mistake: false };
+    if (!active || state.needsReturn || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return { mistake: false };
     const from = last, fromTime = lastTime;
     const length = distance(from, p);
     let mistake = false;
     // Subdivide actual segments: identical movement behaves the same at different event rates.
     const count = Math.max(1, Math.ceil(length / profile.sampleStep));
     for (let i = 1; i <= count; i++) {
+      if (state.needsReturn) break;
       const f = i / count;
       const sample = { x: from.x + (p.x - from.x) * f, y: from.y + (p.y - from.y) * f };
       const t = fromTime + Math.max(0, time - fromTime) * f;
@@ -96,14 +97,15 @@ export function createLineAttempt(saved = freshAttempt(), trackWidth = 'normal')
     return { mistake };
   }
 
+  const ready = () => Boolean(active) && !state.needsReturn && state.progress >= LINE.start + .9 * (LINE.end - LINE.start)
+    && distance(last, { x: LINE.end, y: LINE.y }) <= line.finish;
   function end(cancelled = false) {
     if (!active) return false;
-    const complete = !cancelled && !state.needsReturn && state.progress >= LINE.start + .9 * (LINE.end - LINE.start)
-      && distance(last, { x: LINE.end, y: LINE.y }) <= line.finish;
+    const complete = !cancelled && ready();
     active = null; outside = null; last = null;
     state.done = complete;
     return complete;
   }
 
-  return { state, line, begin, move, end, get active() { return Boolean(active); } };
+  return { state, line, begin, move, end, get active() { return Boolean(active); }, get ready() { return ready(); } };
 }

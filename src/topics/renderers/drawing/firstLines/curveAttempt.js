@@ -39,10 +39,11 @@ export function createCurveAttempt(part, saved, width = 'normal') {
     last = p; lastTime = time; outside = null; return true;
   }
   function move(p, time = lastTime) {
-    if (!active || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return { mistake: false };
+    if (!active || state.needsReturn || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return { mistake: false };
     const from = last, fromTime = lastTime, length = distance(from, p), count = Math.max(1, Math.ceil(length / profile.sampleStep));
     let mistake = false;
     for (let i = 1; i <= count; i++) {
+      if (state.needsReturn) break;
       const f = i / count, sample = { x: from.x + (p.x - from.x) * f, y: from.y + (p.y - from.y) * f };
       const t = fromTime + Math.max(0, time - fromTime) * f;
       active.points.push(copy(sample));
@@ -73,10 +74,11 @@ export function createCurveAttempt(part, saved, width = 'normal') {
     }
     return { mistake };
   }
+  const ready = () => Boolean(active) && !state.needsReturn && state.progress - state.startS >= part.length * .94
+    && state.corner >= (part.waypoints?.length ?? 0) && distance(last, part.closed ? state.start : part.end) <= (part.closed ? profile.close : profile.finish);
   function end(cancelled = false) {
     if (!active) return false;
-    let complete = !cancelled && !state.needsReturn && state.progress - state.startS >= part.length * .94
-      && state.corner >= (part.waypoints?.length ?? 0) && distance(last, part.closed ? state.start : part.end) <= (part.closed ? profile.close : profile.finish);
+    let complete = !cancelled && ready();
     if (complete && part.aspect) {
       const points = state.strokes.flatMap(s => s.points.slice(0, s.failedFrom === null ? undefined : s.failedFrom));
       const bounds = points.reduce((b, p) => ({ minX: Math.min(b.minX, p.x), maxX: Math.max(b.maxX, p.x), minY: Math.min(b.minY, p.y), maxY: Math.max(b.maxY, p.y) }), { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
@@ -88,5 +90,5 @@ export function createCurveAttempt(part, saved, width = 'normal') {
     }
     active = null; outside = null; last = null; state.done = complete; return complete;
   }
-  return { state, line: { halfWidth }, begin, move, end, get active() { return Boolean(active); } };
+  return { state, line: { halfWidth }, begin, move, end, get active() { return Boolean(active); }, get ready() { return ready(); } };
 }
