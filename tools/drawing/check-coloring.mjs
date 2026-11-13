@@ -73,6 +73,22 @@ try {
   }
   assert.notEqual(await page.evaluate(()=>window.previewStore.getState().activeSessionSnapshot.sessionState.tasks[0].seed),originalSeed);
   await page.close();
+  const settings=await browser.newPage({viewport:{width:1180,height:900}});settings.on('pageerror',e=>errors.push(e.message));
+  await settings.goto('http://localhost:8080/tools/drawing/first-lines-preview.html?fresh&coloring&params&noVideo&figures=basic');
+  const widthRow=settings.locator('.param-row').filter({has:settings.getByText('Толщина пера',{exact:true})});
+  await widthRow.getByRole('button',{name:'16 пикселей',exact:true}).click();
+  assert.equal(await settings.locator('.param-concept-dots').count(),0);
+  await settings.screenshot({path:`${output}/pen-width-settings.png`});
+  await settings.getByRole('button',{name:'Начать занятие',exact:true}).click();await settings.locator('.coloring[data-phase="trace"]').waitFor();
+  const widthSheet=await snapshot(settings),widthFigure=widthSheet.sheet.shapes[0];
+  await gesture(settings,[...widthFigure.points,widthFigure.points[0]],'pen',true);
+  await settings.locator('.coloring[data-phase="fill"]').waitFor();
+  const strokeScale=await settings.locator('canvas.coloring__board').evaluate(c=>{const r=c.getBoundingClientRect(),v=JSON.parse(c.dataset.view);return Math.min(r.width/v.width,r.height/v.height);});
+  assert(Math.abs((await snapshot(settings)).progress.shapes[0].outline[0].width*strokeScale-16)<.001);
+  const fillCenter=await settings.evaluate(async points=>{const b=(await import('/src/topics/renderers/drawing/coloring/geometry.js')).bounds(points);return {x:b.x+b.width/2,y:b.y+b.height/2};},widthFigure.points);
+  await gesture(settings,[fillCenter,{x:fillCenter.x+10,y:fillCenter.y}]);
+  assert(Math.abs((await snapshot(settings)).progress.shapes[0].ink[0].width*strokeScale-16)<.001);
+  await settings.close();
   const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});phone.on('pageerror',e=>errors.push(e.message));
   await ready(phone,'http://localhost:8080/tools/drawing/first-lines-preview.html?fresh&coloring&touch&noVideo&figures=paths');
   saved=await snapshot(phone);assert(saved.sheet.shapes.every(s=>s.kind.endsWith('_path')));

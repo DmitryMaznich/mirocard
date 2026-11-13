@@ -124,6 +124,17 @@ describe('separate outline and interior assessments',()=>{
     b.begin(square.points[0]);for(const p of [...resample(square.points,2),square.points[0]])b.move(p);b.end(true);
     expect(trace.phase).toBe('trace');
   });
+  it('uses the chosen pen width for interior coverage, brush-edge tolerance and outline ink',()=>{
+    const thinOptions=coloringOptions({penWidth:'6'}),thickOptions=coloringOptions({penWidth:'24'});
+    const thin=createColoringAttempt(square,{...fresh(),phase:'fill'},thinOptions),thick=createColoringAttempt(square,{...fresh(),phase:'fill'},thickOptions);
+    draw(thin,[{x:25,y:50},{x:75,y:50}]);draw(thick,[{x:25,y:50},{x:75,y:50}]);
+    expect(thick.progress().coverage).toBeGreaterThan(thin.progress().coverage*3);
+    expect(thin.begin({x:4,y:50})).toBe(true);thin.end();
+    expect(thick.begin({x:4,y:50})).toBe(false);
+    const state=fresh(),a=createColoringAttempt(square,state,thickOptions);
+    draw(a,[{x:0,y:0},{x:100,y:0}]);expect(state.outline[0].width).toBe(24);
+    const zoom=coloringOptions({penWidth:'24'},2);expect(zoom.brush*2).toBe(24);expect(zoom.outlineInk*2).toBe(24);
+  });
   it('keeps tolerance in screen pixels across zoom',()=>{
     expect(coloringOptions({outsideTolerance:'10'},2).tolerance).toBe(5);
     expect(coloringOptions({outsideTolerance:'NaN',fillTarget:'0'})).toMatchObject({tolerance:6,target:.9});

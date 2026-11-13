@@ -4,9 +4,12 @@ export function coloringOptions(params={}, scale=1) {
   const input=params.inputMode, factor=1/Math.max(.05,scale);
   const tolerance=Number(params.outsideTolerance);
   const target=Number(params.fillTarget);
+  const requestedWidth=Number(params.penWidth);
+  const width=[3,6,10,16,24,32].includes(requestedWidth)?requestedWidth:null;
   return { tolerance: ([3,6,10,16].includes(tolerance)?tolerance:6)*factor,
     target: ([80,90,95].includes(target)?target:90)/100,
-    brush: (input==='touch'?26:input==='passive_pen'?16:12)*factor,
+    brush: (width??(input==='touch'?26:input==='passive_pen'?16:12))*factor,
+    outlineInk: (width??3)*factor,
     trace: (input==='touch'?24:input==='passive_pen'?12:7)*factor };
 }
 export function freshProgress(sheet) {
@@ -72,7 +75,7 @@ export function createColoringAttempt(shape,state,options) {
     begin(p) {
       if(failed||stroke||state.phase==='done'||!allowed(p))return false;
       state.retry=false;
-      failed=false;last=p;stroke={width:state.phase==='trace'?3:options.brush,points:[p]};
+      failed=false;last=p;stroke={width:state.phase==='trace'?(options.outlineInk??3):options.brush,points:[p]};
       (state.phase==='trace'?state.outline:state.ink).push(stroke);mark(p,p);return true;
     },move,
     end(cancelled=false) {

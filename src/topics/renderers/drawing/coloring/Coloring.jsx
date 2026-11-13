@@ -56,8 +56,8 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   const scale=Math.min(size.width/view.width,size.height/view.height)||1;
   // SessionScreen recreates its params object on parent updates. Keep the
   // active gesture alive unless the actual tool settings or scale change.
-  const {inputMode,outsideTolerance,fillTarget}=sessionParams;
-  const options=useMemo(()=>coloringOptions({inputMode,outsideTolerance,fillTarget},scale),[inputMode,outsideTolerance,fillTarget,scale]);
+  const {inputMode,outsideTolerance,fillTarget,penWidth}=sessionParams;
+  const options=useMemo(()=>coloringOptions({inputMode,outsideTolerance,fillTarget,penWidth},scale),[inputMode,outsideTolerance,fillTarget,penWidth,scale]);
   const attempt=useMemo(()=>shape&&state?createColoringAttempt(shape,state,options):null,[shape,state,options]);
   useLayoutEffect(()=>{activeAttempt.current=attempt;});
   const correct=sessionStatus==='answer_correct';

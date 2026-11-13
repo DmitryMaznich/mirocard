@@ -71,3 +71,18 @@ it('First Lines shows standard reward settings and keeps the paper bonus scoped 
     }) }),
   }));
 });
+
+it('coloring hides concepts and saves the selected pen width in its own mode', async () => {
+  useAppStore.setState({ activeModeId: 'drawing_coloring', studentTopicLinks: {kid_drawing:{params:{},videoRewardEnabled:false}},
+    students:[{id:'kid',name:'Миша',rewardVideos:[]}] });
+  await act(async()=>root.render(<ParamsScreen />));
+  expect(host.querySelector('.param-concept-dots')).toBeNull();
+  expect(host.textContent).not.toContain('Понятия');
+  const row=[...host.querySelectorAll('.param-row')].find(n=>n.querySelector('.param-label')?.textContent==='Толщина пера');
+  expect(row).toBeTruthy();
+  const option=[...row.querySelectorAll('button')].find(b=>b.textContent==='16 пикселей');
+  await act(async()=>option.click());
+  const start=[...host.querySelectorAll('button')].find(b=>b.textContent.trim()==='Начать занятие');
+  await act(async()=>start.click());
+  expect(mocks.persist).toHaveBeenCalledWith('kid','drawing',expect.objectContaining({params:expect.objectContaining({byMode:expect.objectContaining({drawing_coloring:expect.objectContaining({penWidth:'16'})})})}));
+});
