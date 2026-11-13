@@ -13,8 +13,8 @@ export function fitShape(shape, area, variant, profile) {
   const minFraction=Math.min(1,Math.max((variant?.schema??0)>=5 ? .6 : .45,Math.max((variant?.schema??0)>=5?96:72,profile.width*2)/((shape.parts.length===1&&shape.parts[0].type==='line'?Math.max(w,h):Math.min(w,h))*maxScale)));
   // A solid volume needs both a readable silhouette and clear gaps between its roads.
   const minScale=shape.volume?Math.max((profile.width+12)/shape.volume.separation,(profile.width*2+16)/shape.volume.edge,(profile.width>=50?240:profile.width>=20?200:160)/Math.min(w,h)):0;
-  const size=[4,5,6].includes(variant?.schema)?variant.size:.75;
-  const randomScale=shape.volume?minScale+(Math.min(maxScale,minScale*1.5)-minScale)*size:maxScale*(minFraction+(1-minFraction)*size);
+  const size=[4,5,6,7].includes(variant?.schema)?variant.size:.75;
+  const randomScale=variant?.schema===7?maxScale:shape.volume?minScale+(Math.min(maxScale,minScale*1.5)-minScale)*size:maxScale*(minFraction+(1-minFraction)*size);
   const scale=Math.min(maxScale,Math.max(minScale,randomScale));
   const x=area.x+pad+(area.width-2*pad-w*scale)*(variant?.positionX??.5);
   const y=area.y+pad+(area.height-2*pad-h*scale)*(variant?.positionY??.5);
@@ -44,7 +44,7 @@ export function screenScene(size,sheet,slot,peek=false,grid={columns:2,rows:2},f
 export function practiceScene(size,sheet,slot,grid,shape,variant,profile,peek=false){
   const base=screenScene(size,sheet,slot,peek,grid);
   const fitted=fitShape(shape,base.areas[slot],variant,profile);
-  const focus=sheet&&fitted.needsSpace&&!base.compact;
+  const focus=sheet&&(fitted.needsSpace||variant?.schema===7)&&!base.compact;
   const scene=focus?screenScene(size,sheet,slot,peek,grid,true):base;
   return {...scene,placement:focus?fitShape(shape,scene.areas[slot],variant,profile):fitted};
 }
