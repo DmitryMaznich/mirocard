@@ -57,3 +57,17 @@
 
 .first-lines__room{position:absolute;inset:60px 16px 80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;font-size:19px;pointer-events:none}
 .first-lines__room>svg{width:72px;height:72px;fill:none;stroke:#248b79;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+/* Raster workspace: no large SVG display list or extra GPU promotion. */
+.first-lines__board{filter:none;backdrop-filter:none;transform:none;will-change:auto}
+.first-lines .first-lines__overview>.first-lines__thumb{width:32px;height:38px;flex:none;pointer-events:none}
+.session-screen.first-lines-session>.session-header-wrap{margin-bottom:0}
+.session-screen.first-lines-session .session-plan-tongue,
+.session-screen.first-lines-session .session-plan-tongue__emoji,
+.session-screen.first-lines-session .session-plan-tongue__bar,
+.session-screen.first-lines-session .star-bar-zone,
+.session-screen.first-lines-session .star-bar-star,
+.session-screen.first-lines-session .star-bar-yt{animation:none!important;transition:none!important;filter:none!important;backdrop-filter:none!important;box-shadow:none!important;will-change:auto!important}
+.session-screen.first-lines-session .star-bar-burn-flash,
+.session-screen.first-lines-session .star-bar-spark{display:none}
+.session-screen.first-lines-session .star-bar-star--burn{opacity:0}
