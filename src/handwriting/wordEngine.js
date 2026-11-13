@@ -2354,6 +2354,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], into };
           }
         }
+        // after a capital that ends on its left (B D F I N P S Š T …, `noExitFrom`): no pen lift either — the next letter's whole lead-in
+        // rises from the BOTTOM of the capital (its lowest ink; of the points about as low, the rightmost — N: the foot of its slant),
+        // as on the teacher's «IMENA» sheet: Izak, David, Primož, Bor, Tanja (owner, 2026-11-13: «изак — и соединено с з»)
+        if (meet && apart && loose && !afterSign && !inCell && !meetJoin && prevGlyphStrokes && glyph.kind === "letter" && !isCap && meet.noExit.has(prevLabel)) {
+          const q = prevGlyphStrokes.flatMap((m) => samplePath(m.d, 40));
+          const low = Math.max(...q.map((p) => p[1]));
+          const foot = q.filter((p) => p[1] > low - 0.1 * WIDE_ZONE_UNITS * scale).reduce((a, p) => (p[0] > a[0] ? p : a), [-Infinity, 0]);
+          if (Number.isFinite(foot[0])) { wantStartX = foot[0]; meetJoin = { type: "foot" }; }
+        }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
         // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
         // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
@@ -2401,7 +2410,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // else placed it — f's tail under the line touched q's and s's (the pair check, owner, 2026-11-09: «как нам комплексно проверить
         // все соединения»)
         // (not before e's loop: the flick of the letter before is cut off there, e stands where it was)
-        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop && meetJoin?.type !== "meet") {
+        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop && meetJoin?.type !== "meet" && meetJoin?.type !== "foot") {
           const rows = new Map();
           for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 60)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
           let need = -Infinity;
@@ -2680,7 +2689,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const f3 = (v) => v.toFixed(3);
           strokes.push({ d: `M ${f3(pe[0])} ${f3(pe[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(ns[0])} ${f3(ns[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
         }
-        if (meetJoin && moved[0]) {
+        if (meetJoin && meetJoin.P && moved[0]) {
           const at = [meetJoin.P[0] + dx, meetJoin.P[1]];
           const cut = cutPathNear(toCubicPathD(moved[0].d), at, 0.6 * scale);
           if (cut) moved[0] = { ...moved[0], d: cut.rest };

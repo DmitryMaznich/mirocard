@@ -170,6 +170,7 @@ describe("Slovenian (draft)", () => {
         ["words1", "sl_cursive", ["ima imata", "rumen zelen", "mamin trava"], "sl_10"],
         ["cmp", "sl_cursive", ["rumen", "mamin", "ovca", "muca"], "sl_10"],
         ["vire", "sl_cursive", ["Vid Vika#1", "reka drevo#1", "Jure brest#1", "vi ve#1"], "sl_10"],
+        ["capsfoot", "sl_cursive", ["Izak David#1", "Primož Bor#1", "Tanja Nina#1", "Filip Sara#1"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
     }
