@@ -24,6 +24,28 @@ export const IconPaperPropis = () => S(<>{slants([9, 15, 21, 27], 3, 21)}{rule(6
 export const IconPaperSquare = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke={GRAY} strokeWidth={1.1} /></>);
 // the Bulgarian copybook ruling: bold - thin - thin - bold, a steep guide
 export const IconPaperBg = () => S(<><path d="M14 4L10 20" stroke={GRAY} strokeWidth={1} />{baseRule(4)}{rule(10, 3, 21)}{rule(14, 3, 21)}{baseRule(20)}</>);
+// A three-line paper drawn from its own measures (fourLinePapers.js: upMm xMm downMm gapMm, lines): its rows at 0.55 px per mm, as many
+// as fit — the 10 mm paper one big row, the 4.5 mm one two or three small ones — top line thin, x-line dashed (or thin), baseline bold
+// (owner, 2026-11-14: the Slovene papers all had the same Bulgarian icon, «все иконки этих сеток одинаковые»)
+const fourLineIcons = new Map();
+export const fourLinePaperIcon = (id, p) => {
+  if (fourLineIcons.has(id)) return fourLineIcons.get(id);
+  const k = 0.55, pitch = (p.upMm + p.xMm + p.downMm + p.gapMm) * k;
+  const band = (p.upMm + p.xMm) * k, n = Math.max(1, Math.floor((17.5 - band) / pitch) + 1);
+  const y0 = 12 - ((n - 1) * pitch + band) / 2; // the rows centred in the icon
+  const rows = Array.from({ length: n }, (_, i) => y0 + i * pitch);
+  const line = (kind, y, key) => kind === "dash"
+    ? <path key={key} d={`M2.5 ${y}H21.5`} stroke={GRAY} strokeWidth={1} strokeDasharray="1.6 1.4" />
+    : kind === "none" ? null : <path key={key} d={`M2.5 ${y}H21.5`} stroke={GRAY} strokeWidth={1.1} />;
+  const Icon = () => S(<>{rows.map((y, i) => <g key={i}>
+    {line(p.lines?.top ?? "thin", y, "t")}
+    {line(p.lines?.x ?? "dash", y + p.upMm * k, "x")}
+    <path d={`M2.5 ${y + (p.upMm + p.xMm) * k}H21.5`} stroke={DARK} strokeWidth={1.4} />
+  </g>)}</>);
+  Icon.displayName = `IconPaper_${id}`;
+  fourLineIcons.set(id, Icon);
+  return Icon;
+};
 export const IconPaperRuled = () => S(<>{rule(7, 3, 21)}{rule(12, 3, 21)}{rule(17, 3, 21)}<path d="M6 3.5v17" stroke={RED} strokeWidth={1.3} /></>);
 
 // ---- row size (the letter «а» on its ruling), slant density, dashes, writing space ---------------------------------------

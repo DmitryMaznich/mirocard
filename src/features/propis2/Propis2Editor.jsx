@@ -72,7 +72,8 @@ const SETTING_SAYS = {
 const PAPER_ICONS = { propis: I.IconRowNarrow, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperM1, m2: I.IconPaperM2 };
 // every paper has an icon: a four-line paper without its own (the English ones, fourLinePapers.js) takes the four-line one of the
 // Bulgarian paper — a missing icon was an undefined component, React #130, the editor of an English notebook crashed (1.0.2868)
-const paperIcon = (id) => PAPER_ICONS[id] ?? (fourLinePaper(id) ? I.IconPaperBg : I.IconPaperRuled);
+// (the Slovene papers, three lines and a blank band: an icon drawn from the paper's own measures — I.fourLinePaperIcon)
+const paperIcon = (id) => PAPER_ICONS[id] ?? (fourLinePaper(id) ? (id.startsWith("sl") ? I.fourLinePaperIcon(id, fourLinePaper(id)) : I.IconPaperBg) : I.IconPaperRuled);
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense, none: I.IconSlantNone };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
