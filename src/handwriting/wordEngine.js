@@ -2465,8 +2465,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (into) meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], into, oval };
             // into e from the top exit of r v o b (owner, 2026-11-13, the worksheets' «reže», «vesel», «veverica»: e looked squeezed, like
             // a loop; then «no extra join line»): the letter's own hook does not rise back to the top — it goes on down, deeper than it
-            // dips alone, and enters e below the crossing of e's loop, so the whole e is written. The hook is cut on its way down (where
-            // it is still steeper than 45°) and that one line carries on into e — no second line from the top of the hook
+            // dips alone, and enters e below the crossing of e's loop, so the whole e is written. The hook is cut at the top of its way down (
+            // owner: like r, from the very top — v and b do not go back down their stem first) and that one line carries on into e — no second
+            // line from the top of the hook
             if (into) {
               const xh = WIDE_ZONE_UNITS * scale;
               const yP = pts[0][1] - 0.33 * xh;
@@ -2479,12 +2480,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
                 let lo = hp.length - 1;
                 while (lo > 1 && hp[lo - 1][1] >= hp[lo][1]) lo -= 1; // back down the hook's last rise to its bottom
                 let h = lo;
-                while (h > 1 && hp[h - 1][1] < hp[h][1]) {
-                  const dxh = hp[h][0] - hp[h - 1][0], dyh = hp[h][1] - hp[h - 1][1];
-                  if (dyh >= dxh) break; // steeper than 45° on the way down
-                  h -= 1;
-                }
-                if (h < hp.length - 1) start = { h, hp, p: hp[h], t: nlsUnit(hp[h + 1][0] - hp[h - 1][0], hp[h + 1][1] - hp[h - 1][1]) };
+                while (h > 0 && hp[h - 1][1] < hp[h][1]) h -= 1; // up the hook's whole way down: to the top of the stem (v b) or of r's hook
+                if (h < hp.length - 1) start = { h, hp, p: hp[h], t: nlsUnit(hp[h + 1][0] - hp[h][0], hp[h + 1][1] - hp[h][1]) };
               }
               const S = start ? start.p : E;
               wantStartX = S[0] + 0.65 * xh - P[0] + local.start[0];
