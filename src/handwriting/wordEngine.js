@@ -2551,7 +2551,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
                 if (b[0] < a[0] - 0.01) break;
                 len += Math.hypot(b[0] - a[0], b[1] - a[1]);
                 path.push(b);
-                if (len > 0.22 * xh) break;
+                if (len > 0.5 * xh) break; // (the join's drawing keeps only as much of it as runs into the line)
               }
               break;
             }
@@ -2915,6 +2915,27 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const hp = meetJoin.hp.slice(0, meetJoin.trimExitTo + 1);
             strokes[ei] = { ...strokes[ei], d: `M ${hp.map((q) => `${f3(q[0])} ${f3(q[1])}`).join(" L ")}` };
           }
+          if (meetJoin.type === "line" && ei >= 0 && !meetJoin.lineFrom && meetJoin.trimExitTo == null && prevMeetExit.ref) {
+            // the exit rising more steeply than the line it runs into (a capital's exit into a letter set further off, `capOvalGap`;
+            // owner, 2026-11-13: «линия соединения стала горбатой»): the exit is cut where its own direction points at the letter, and
+            // the straight line goes on from there — no knee
+            const hp = samplePath(prevMeetExit.ref.d, 160);
+            const ang = (v) => Math.atan2(-v[1], v[0]);
+            const off = (h) => Math.abs(ang(nlsUnit(hp[h + 1][0] - hp[h - 1][0], hp[h + 1][1] - hp[h - 1][1])) - ang(nlsUnit(at[0] - hp[h][0], at[1] - hp[h][1])));
+            const last = hp.length - 2;
+            if (off(last) > 0.12) {
+              let cut = last, bestA = off(last);
+              for (let h = last - 1; h > 0; h -= 1) {
+                if (hp[h - 1][1] < hp[h][1]) break; // the exit's last rising run only
+                const a = off(h);
+                if (a < bestA) { bestA = a; cut = h; }
+              }
+              if (cut < last) {
+                strokes[ei] = { ...strokes[ei], d: `M ${hp.slice(0, cut + 1).map((q) => `${f3(q[0])} ${f3(q[1])}`).join(" L ")}` };
+                meetJoin.lineFrom = hp[cut];
+              }
+            }
+          }
           if (meetJoin.type === "line" && ei >= 0) {
             // the exit's end turned onto the join's direction, then the straight join
             const d0 = toCubicPathD(strokes[ei].d);
@@ -2940,8 +2961,20 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const k1 = meetJoin.rise ? 0.5 : meetJoin.peak ? 0.3 : meetJoin.from || meetJoin.valley ? 0.5 : 0.4;
             const c1 = [E[0] + tE[0] * L * k1, E[1] + tE[1] * L * (meetJoin.rise ? 0.5 : meetJoin.peak ? 0.3 : meetJoin.valley ? 0.5 : 0.4)], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
             const f3 = (v) => v.toFixed(3);
-            const joinD = meetJoin.path
-              ? `M ${meetJoin.path.map((p) => `${f3(p[0])} ${f3(p[1])}`).join(" L ")} L ${f3(at[0])} ${f3(at[1])}`
+            // (the retrace along the capital's curl stops where the curl's own direction points at the letter — the straight line goes
+            // on from there without a bend; owner, 2026-11-13: «линия соединения стала горбатой» once the letter stood further off)
+            let rp = meetJoin.path;
+            if (rp && rp.length > 2) {
+              const ang = (v) => Math.atan2(-v[1], v[0]);
+              let j = rp.length - 1, bestA = Infinity;
+              for (let i = 1; i < rp.length; i += 1) {
+                const a = Math.abs(ang(nlsUnit(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1])) - ang(nlsUnit(at[0] - rp[i][0], at[1] - rp[i][1])));
+                if (a < bestA) { bestA = a; j = i; }
+              }
+              rp = rp.slice(0, j + 1);
+            }
+            const joinD = rp
+              ? `M ${rp.map((p) => `${f3(p[0])} ${f3(p[1])}`).join(" L ")} L ${f3(at[0])} ${f3(at[1])}`
               : `M ${f3(E[0])} ${f3(E[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(at[0])} ${f3(at[1])}`;
             strokes.push({ d: joinD, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
           }
