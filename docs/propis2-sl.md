@@ -59,6 +59,26 @@ imata); после o v b r (выход наверху) соединение ид
 Тест «joined words» в `slovene.test.jsx`. Картинки (в git не кладутся): `docs/mockups/propis2-sl/step4-words1.png`, `step4-words2.png`,
 `step4-names.png`. Не сделано / проверить с владельцем: форма связки o–v, v–e, r–a по образцам; четырёхлинейная бумага (как «IMENA»).
 
+### Шаг 4а. Поиск методик соединения (2026-11-13)
+
+Подтверждено (прочитано целиком раньше или видно в выдержках поиска):
+- **Норма (Golli 1991, через ZRC SAZU 2020):** «(1) enopoteznost … (2) začetni spodnji zamah, ki predstavlja povezavo s prejšnjo
+  črko … (3) končna poteza, ki črko povezuje z naslednjo v besedi» — подъём и выход буквы и есть соединение; наше «выход = подъём
+  следующей» (`meetJoins`) этому соответствует.
+- **ZRSS 2022, с. 44–45, 91–95:** все строчные начинаются внизу и кончаются посередине; «pisane črke se držijo za ›rokice‹»; соединения
+  вводятся после ~6 букв («pišejo besede s poudarkom na vezanju črk»); карточки упражнений «smer črt, vezanje» — от простых к сложным.
+- **Naša ulica 2:** каждая буква «z eno potezo», точки и гачеки — после слова; оценивание 2-го класса знает критерий «pravilne poteze
+  in vezava pisanih črk».
+- **Хорватская официальная орфография (pravopis.hr, «Slova» — ZRC SAZU советует брать оттуда q w x y):** в школьном рукописном
+  письме буквы соединены, преобладает одно непрерывное движение; заглавные («verzali») слева не соединяются.
+- Учительский лист владельца «Pisalne vaje 2. r»: упражнения на соединения группами элементов (u e c → n m ne me → b be → z s se → l le).
+
+Не найдено: словенского описания видов соединений (сверху/снизу) и списка заглавных, которые соединяются. Это есть, по-видимому, в
+книге D. Golli «Opismenjevanje v prvem razredu» (1991) и в учительских руководствах к букварям (Lili in Bine, Naša ulica, Primus
+«(S)poznam pisane črke», Nina Oblak) — в сети их нет. Не прочитаны (сеть сессии/инструмент не пустили, хосты уже добавлены в
+окружение): сайт Arnes «opismenjevanje», Викиверситет «Mikrografetika», дипломные работы (repozitorij.uni-lj.si, pefprints, dk.um.si,
+core.ac.uk), листы школ (os-laporje, ostpavcka, svetovalnicenter-mb), arhiv.acs.si.
+
 ## Шаг 2. Язык `sl` черновиком — сделано (2026-11-12)
 
 - **Язык** в `tools/propis2/languages.json`: `id: "sl"`, «Slovenščina», `SLO`, `status: "draft"`, `deck: "latin"`; алфавит
