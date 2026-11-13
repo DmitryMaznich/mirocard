@@ -11,7 +11,7 @@ function segmentDistanceSquared(p, a, b) {
 
 // Iterative Ramer–Douglas–Peucker: tolerance is in lesson coordinates, so the
 // same imperfect line has the same verdict on a phone and on a tablet.
-function smoothedLength(points, realEdges) {
+function smoothedLength(points, realEdges, noise) {
   const end = points.length - 1;
   if (end < 1) return 0;
   const keep = new Uint8Array(end + 1);
@@ -19,7 +19,7 @@ function smoothedLength(points, realEdges) {
   const pending = [[0, end]];
   while (pending.length) {
     const [a, b] = pending.pop();
-    let farthest = -1, maxDistance = STRAIGHTNESS.noise ** 2;
+    let farthest = -1, maxDistance = noise ** 2;
     for (let i = a + 1; i < b; i++) {
       const d = segmentDistanceSquared(points[i], points[a], points[b]);
       if (d > maxDistance) { maxDistance = d; farthest = i; }
@@ -43,7 +43,7 @@ function smoothedLength(points, realEdges) {
   return length;
 }
 
-export function hasExcessiveWandering(strokes, advance) {
+export function hasExcessiveWandering(strokes, advance, tuning = STRAIGHTNESS) {
   const points = [], realEdges = [];
   for (const stroke of strokes) {
     const end = stroke.failedFrom ?? stroke.points.length - 1;
@@ -52,6 +52,6 @@ export function hasExcessiveWandering(strokes, advance) {
       points.push(stroke.points[i]); realEdges.push(i > 0);
     }
   }
-  const length = smoothedLength(points, realEdges);
-  return length - advance > STRAIGHTNESS.excess && length > Math.max(1, advance) * STRAIGHTNESS.maxLengthRatio;
+  const length = smoothedLength(points, realEdges, tuning.noise);
+  return length - advance > tuning.excess && length > Math.max(1, advance) * tuning.maxLengthRatio;
 }

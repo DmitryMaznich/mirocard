@@ -34,7 +34,7 @@ useAppStore.setState({ students: [student], activeStudentId: student.id, activeT
   studentTopicLinks: { [`${student.id}_drawing`]: { selectedConceptIds: ['kompot'],
     answersPerStar: Math.max(1, Math.min(3, Number(q.get('perStar')) || 1)),
     strictStars: !q.has('soft'), videoRewardEnabled: !q.has('noVideo'),
-    params: { byMode: { drawing_first_lines: { inputMode: q.has('touch') ? 'touch' : 'pen', trackWidth: q.get('width') || 'normal' } } } } } });
+    params: { byMode: { drawing_first_lines: { inputMode: q.has('touch') ? 'touch' : 'pen', trackWidth: q.get('width') || 'normal', exercises: (q.get('exercises') || 'short_line').split(','), workSurface: q.get('surface') || 'single' } } } } } });
 window.previewStore = useAppStore;
 function Preview() {
   const screen = useAppStore(s => s.screen);
