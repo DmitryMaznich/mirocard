@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createShapeAttempt } from './shapeAttempt.js';
-import { sheetCell, cellTransform, shapeDefinition } from './shapes.js';
-import ShapeDrawing from './ShapeDrawing.jsx';
+import { sheetCell, shapeDefinition } from './shapes.js';
+import CanvasBoard from './CanvasBoard.jsx';
 import { trackProfile, screenProfile, scaledProfile } from './trackProfile.js';
 import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet, gridKey, readGrid, saveGrid } from './checkpoint.js';
-import { fitShape, placementTransform, fromPlacement, automaticGrid, sheetPosition, practiceScene } from './layout.js';
+import { fitShape, fromPlacement, automaticGrid, sheetPosition, practiceScene } from './layout.js';
 import './firstLines.css';
 
 const defaultGrid = {columns:2,rows:2};
@@ -50,7 +50,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const [inputHint, setInputHint] = useState(false);
   const failedGesture = useRef(false), penSeen = useRef(false);
   const [compact, setCompact] = useState(false);
-  const svg = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
+  const board = useRef(null), thumbnail = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
   const state = attempt.state;
   const current = state.parts[state.part];
   const liftCue = attempt.readyToLift;
@@ -65,17 +65,22 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const placement = scene.placement;
   const view = procedural ? practiceScene(boardSize,isSheet,slot,grid,targetShape,task.variant,pxProfile,peek).view : legacyView;
   const displayCompact = procedural ? scene.compact : compact;
-  const activeTransform = procedural ? placementTransform(placement) : isSheet ? cellTransform(cell) : undefined;
-  const previousDrawing = (entry, index) => {
-    if (!procedural) return <g key={index} transform={cellTransform(sheetCell(index))}><ShapeDrawing state={entry} passive /></g>;
-    const fitted = fitShape(entryShapes[index], scene.areas[index], entry.variant, pxProfile);
-    return <g key={index} transform={placementTransform(fitted)}><ShapeDrawing state={{ ...entry, profile: scaledProfile(pxProfile, fitted.scale) }} passive /></g>;
-  };
+  const drawingPlacement=procedural?placement:isSheet?cell:{tx:0,ty:0,scale:1};
+  const previousDrawings=entries.flatMap((entry,index)=>{
+    if(!entry||index===slot)return [];
+    const fitted=procedural?fitShape(entryShapes[index],scene.areas[index],entry.variant,pxProfile):sheetCell(index);
+    return [{state:entry,shape:entryShapes[index],placement:fitted,profile:procedural?scaledProfile(pxProfile,fitted.scale):entry.profile??trackProfile(sessionParams?.trackWidth,sessionParams?.inputMode),passive:true}];
+  });
   const refresh = () => {
     saveCheckpoint(key, state);
     if (isSheet && layoutReady && state.done) saveSheet(pageKey, slot, state,capacity);
     redraw(n => n + 1);
   };
+
+  useEffect(()=>{
+    const root=board.current?.closest('.session-screen');root?.classList.add('first-lines-session');
+    return()=>root?.classList.remove('first-lines-session');
+  },[]);
 
   useEffect(() => {
     if(!layoutReady)return;
@@ -99,8 +104,8 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     };
     const hidden = () => { if (document.hidden) cancel(); };
     const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
-      if (disposed || !svg.current) return;
-      const rect = svg.current.getBoundingClientRect();
+      if (disposed || !board.current) return;
+      const rect = board.current.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return;
       if (procedural) {
         const width=Math.round(rect.width),height=Math.round(rect.height);
@@ -117,7 +122,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
         cancel(); setCompact(rect.width < 600 || rect.height < 300);
       }
     }) : null;
-    observer?.observe(svg.current);
+    observer?.observe(board.current);
     document.addEventListener('visibilitychange', hidden);
     window.addEventListener('pagehide', cancel);
     window.addEventListener('blur', cancel);
@@ -152,7 +157,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   }, [demo, attempt, demoMs, state.part]);
 
   const point = event => {
-    const rect = svg.current.getBoundingClientRect();
+    const rect = board.current.getBoundingClientRect();
     const scale = Math.min(rect.width / view.width, rect.height / view.height);
     const mapped = { x: view.x + (event.clientX - rect.left - (rect.width - view.width * scale) / 2) / scale,
       y: view.y + (event.clientY - rect.top - (rect.height - view.height * scale) / 2) / scale };
@@ -181,7 +186,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     const done = attempt.end(cancelled || disabled);
     if ((state.failures ?? 0) > failures) announceFailure();
     pointer.current = null;
-    if (svg.current.hasPointerCapture?.(event.pointerId)) svg.current.releasePointerCapture(event.pointerId);
+    if (board.current.hasPointerCapture?.(event.pointerId)) board.current.releasePointerCapture(event.pointerId);
     refresh();
     if (done && !completed.current) { completed.current = true; onCorrect(task.conceptId, task.cardId); }
   };
@@ -199,15 +204,13 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
         <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
       </button>
     {isSheet && displayCompact && <button type="button" className="first-lines__overview" disabled={interactionDisabled || demo} aria-label={peek ? 'К заданию' : 'Весь лист'} onClick={() => { attempt.end(true); pointer.current = null; setPeek(!peek); }}>
-      <svg viewBox={procedural ? `0 0 ${scene.width} ${scene.height}` : '0 0 1000 1000'} aria-hidden="true">
-        <rect x="4" y="4" width={procedural ? scene.width-8 : 992} height={procedural ? scene.height-8 : 992} fill="white" stroke="#a2b9ad" strokeWidth="10" />
-        {entries.map((entry, i) => entry && i !== (slot) && previousDrawing(entry, i))}
-        <g transform={activeTransform}><ShapeDrawing state={state} passive /></g>
-        <rect x={(procedural ? scene.areas[slot].x : cell.x) + 8} y={(procedural ? scene.areas[slot].y : cell.y) + 8} width={procedural ? scene.areas[slot].width-16 : 484} height={procedural ? scene.areas[slot].height-16 : 484} fill="none" stroke="#248b79" strokeWidth="16" />
-      </svg><span>{peek ? 'К заданию' : 'Весь лист'}</span>
+      <CanvasBoard boardRef={thumbnail} className="first-lines__thumb" aria-hidden="true" view={procedural?{x:0,y:0,width:scene.width,height:scene.height}:fullView}
+        drawings={[...previousDrawings,{state,shape:attempt.shape,placement:drawingPlacement,profile:state.profile,passive:true}]} background="#fff" selection={procedural?scene.areas[slot]:cell} /><span>{peek ? 'К заданию' : 'Весь лист'}</span>
     </button>}
     </div>
-    <svg ref={svg} className="first-lines__board" viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`} role="img" aria-label={`Нарисуй: ${attempt.shape.title}`} style={placement.needsSpace?{visibility:'hidden'}:undefined} data-return={current.needsReturn || state.recovery === 'error' || undefined}
+    <CanvasBoard boardRef={board} className="first-lines__board" view={view} placement={drawingPlacement} activeState={state}
+      drawings={[...previousDrawings,{state,shape:attempt.shape,placement:drawingPlacement,profile:state.profile,hint,drawing,demo,demoProgress,demoPart:state.part,demoLift}]} pulse={!disabled&&!state.done}
+      onSurfaceLost={()=>{attempt.end(true);pointer.current=null;refresh();}} role="img" aria-label={`Нарисуй: ${attempt.shape.title}`} style={placement.needsSpace?{visibility:'hidden'}:undefined} data-return={current.needsReturn || state.recovery === 'error' || undefined}
       onContextMenu={event => event.preventDefault()}
       onPointerDown={event => {
         if (disabled || state.done || pointer.current !== null || event.button !== 0) return;
@@ -219,14 +222,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
         setHint(false); setInputHint(false); failedGesture.current = false; pointer.current = event.pointerId; event.currentTarget.setPointerCapture?.(event.pointerId); refresh();
       }}
       onPointerMove={event => { if (!disabled && pointer.current === event.pointerId) { event.preventDefault(); if (!attempt.state.parts[attempt.state.part].needsReturn) { move(event); refresh(); } } }}
-      onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={event => finish(event, true)}>
-      {isSheet && <g className="first-lines__sheet">
-        {entries.map((entry, i) => entry && i !== (slot) && previousDrawing(entry, i))}
-      </g>}
-      <g className="first-lines__active" transform={activeTransform}>
-        <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} drawing={drawing} demoPart={state.part} demo={demo} demoProgress={demoProgress} demoLift={demoLift} />
-      </g>
-    </svg>
+      onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={event => finish(event, true)} />
     {placement.needsSpace&&<div className="first-lines__room" role="status"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 14h24v36H20zM8 30a24 24 0 0 1 40-16M48 4v10H38M56 34a24 24 0 0 1-40 16M16 60V50h10"/></svg><span>Кубу нужно больше места.<br/>Поверни экран или увеличь область занятия.</span></div>}
     <div className={`first-lines__footer first-lines__footer--${phase}`} aria-live="polite">
       {state.done || correct ? <div className="first-lines__complete"><span>✓ Готово!</span><button type="button" disabled={interactionDisabled || !correct} onClick={onAdvance}><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h30M27 7l10 9-10 9" /></svg> Следующее задание</button></div>
