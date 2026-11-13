@@ -17,10 +17,11 @@ export function normalizeVariant(raw) {
   const legacy = { scale: Number.isFinite(raw?.scale) ? Math.max(.55, Math.min(1.1, raw.scale)) : 1,
     angle: Number.isFinite(raw?.angle) ? Math.max(-180, Math.min(180, raw.angle)) : 0,
     aspect: Number.isFinite(raw?.aspect) ? Math.max(.9, Math.min(1.08, raw.aspect)) : 1 };
-  if (![4,5,6].includes(raw?.schema)) return legacy;
+  if (![4,5,6,7].includes(raw?.schema)) return legacy;
   const unit = n => Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : .5;
   return { ...legacy, scale: 1, schema: raw.schema, seed: Number.isSafeInteger(raw.seed) ? raw.seed >>> 0 : 1,
-    size: unit(raw.size), positionX: unit(raw.positionX), positionY: unit(raw.positionY) };
+    size: unit(raw.size), positionX: unit(raw.positionX), positionY: unit(raw.positionY),
+    ...(raw.schema===7?{wideHeight:Number.isFinite(raw.wideHeight)?Math.max(.04,Math.min(1.2,raw.wideHeight)):.22}:{}) };
 }
 export function transformPoint(p, frame, inverse = false) {
   const angle = frame.angle * Math.PI / 180 * (inverse ? -1 : 1), scale = frame.scale ?? 1;
@@ -96,10 +97,22 @@ const definitions = {
     segment([300,380],[400,280]),segment([400,280],[700,280]),segment([700,280],[700,600]),segment([700,600],[600,700]),segment([700,280],[600,380])],
 };
 // A stored seed describes a generated contour, including the number of visible sides.
-function proceduralParts(kind, seed, version) {
+function proceduralParts(kind, seed, version, wideHeight) {
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   const between = (a,b) => a + random() * (b-a);
   const count = (a,b) => Math.floor(between(a,b+1));
+  if(version===7){
+    const height=900*wideHeight,left=50,right=950;
+    if(kind==='short_line')return [segment([left,500],[right,500])];
+    if(kind==='arc')return [ellipse(450,height,Math.PI,random()<.5?Math.PI:-Math.PI,500,500)];
+    if(kind==='wave'){const cycles=between(1,2);return [sampled(Array.from({length:481},(_,i)=>({x:left+900*i/480,y:500-height/2*Math.sin(i/480*Math.PI*2*cycles)})))];}
+    if(kind==='zigzag'){const turns=count(2,4);return [polyline(Array.from({length:turns+2},(_,i)=>[left+900*i/(turns+1),i===0||i===turns+1?500:500+(i%2?-1:1)*height/2]))];}
+    if(kind==='fence'){
+      const teeth=count(2,3),step=900/(teeth*2),vertices=[[left,500+height/2]];
+      for(let i=0;i<teeth;i++){const x=left+2*i*step;vertices.push([x,500-height/2],[x+step,500-height/2],[x+step,500+height/2],[x+2*step,500+height/2]);}
+      return [polyline(vertices)];
+    }
+  }
   const halfW=between(135,260),halfH=between(100,230);
   if (['short_line','vertical_line','diagonal_up','diagonal_down'].includes(kind)) return [segment([500-halfW,500],[500+halfW,500])];
   if (kind==='circle') { const r=between(130,230);return [ellipse(r,r,undefined,undefined,undefined,undefined,[.72,1.4])]; }
@@ -143,16 +156,16 @@ function proceduralParts(kind, seed, version) {
 export function shapeDefinition(kind = 'short_line', rawVariant) {
   const id = knownShape(kind) ? kind : 'short_line', variant = normalizeVariant(rawVariant);
   let base = definitions[id];
-  if (![4,5,6].includes(variant.schema) && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
-  if (![4,5,6].includes(variant.schema) && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
-  if ([4,5,6].includes(variant.schema)) base = proceduralParts(id, variant.seed, variant.schema);
+  if (![4,5,6,7].includes(variant.schema) && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
+  if (![4,5,6,7].includes(variant.schema) && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
+  if ([4,5,6,7].includes(variant.schema)) base = proceduralParts(id, variant.seed, variant.schema, variant.wideHeight);
   const parts = base.map(part => {
     const frame = combineFrame(part.frame, variant);
     return { ...part, frame, travelLength: part.length * frame.scale };
   });
   const volume=id==='parallelepiped'&&variant.schema===6?{edge:base[0].frame.scale*360,separation:base[0].frame.scale*360*Math.sqrt(3)/2}:null;
   const steps = parts.map(p => p.type === 'line' ? 800 : Math.max(800, Math.min(2400, p.length * 2)));
-  return { id, variant, ...(volume?{volume}:{}), title: [4,5,6].includes(variant.schema) && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
+  return { id, variant, ...(volume?{volume}:{}), title: [4,5,6,7].includes(variant.schema) && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
     length: parts.reduce((sum, p) => sum + p.travelLength, 0), steps,
     motionMs: parts.length > 1 ? steps.reduce((sum, ms) => sum + ms + 400, 0) : parts[0].type === 'line' ? 1200 : steps[0] };
 }
