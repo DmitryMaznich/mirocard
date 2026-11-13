@@ -304,7 +304,8 @@
               "hookFrom": "ro",
               "riseInto": "r",
               "capOvalGap": 0.25,
-              "capLeadIn": "u"
+              "capLeadIn": "u",
+              "footTrailSkip": "N"
             }
           },
           "papers": [

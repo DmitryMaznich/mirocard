@@ -2663,7 +2663,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             meetJoin = { type: "join", P: T, t: [tl[0], tl[1]], from: foot, path };
             // into an oval letter: along the capital → u trajectory (`capLeadIn`), from the point of the retrace up the curl where the
             // curl already runs at that lead-in's starting slope (owner, 2026-11-14: «такие соединения в парах Ia, Da, Ja и подобных»)
-            if (meet.ovalInto.has(label)) {
+            // (`meetJoins.footTrailSkip`: capitals whose join stays the straight one — N: owner, 2026-11-14, «Na ты сделал хуже»)
+            if (meet.ovalInto.has(label) && !(glyphsByLabel.script.meetJoins.footTrailSkip ?? "").includes(prevLabel)) {
               const lead = glyphsByLabel.script.meetJoins.capLeadIn && glyphsByLabel.get(glyphsByLabel.script.meetJoins.capLeadIn);
               if (lead) {
                 const u0 = samplePath(wideGlyphLocal(lead, scale).strokes[0].d, 120);
