@@ -31,7 +31,7 @@ describe('screen-sized procedural practice',()=>{
   const area={x:0,y:0,width:500,height:360},profile=screenProfile('pen'),left=fitShape(shape,area,variant(82,{size:0,positionX:0,positionY:0}),profile),right=fitShape(shape,area,variant(82,{size:1,positionX:1,positionY:1}),profile);
   expect(right.scale).toBeGreaterThanOrEqual(left.scale);expect(left.tx).not.toBe(right.tx);
  });
- for(const kind of ['short_line','circle','rectangle','arc','zigzag_arc_zigzag'])for(const input of ['pen','touch'])it(`${kind}/${input}: accepts the generated fragment once, including its final shown side`,()=>{
+ for(const kind of ['short_line','circle','rectangle','arc','zigzag_arc_zigzag'])for(const input of ['pen','touch','passive_pen'])it(`${kind}/${input}: accepts the generated fragment once, including its final shown side`,()=>{
   const v=variant(42),shape=shapeDefinition(kind,v),profile=screenProfile(input),p=fitShape(shape,{x:0,y:0,width:430,height:560},v,profile),a=createShapeAttempt(kind,undefined,scaledProfile(profile,p.scale),v);
   for(const[i,part]of shape.parts.entries()){
    expect(a.begin(transformPoint(partPoint(part,0),part.frame))).toBe(true);

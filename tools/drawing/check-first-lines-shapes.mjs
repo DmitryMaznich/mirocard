@@ -55,6 +55,7 @@ async function width(page) {
 }
 try {
   await mkdir('output/first-lines',{recursive:true});
+  if(!process.env.DRAWING_PROFILE_CHECK_ONLY) {
   // Every form with a real random variant on a phone; selected complex ones also on a tablet.
   for(const kind of SHAPE_KINDS.filter(k=>!['vertical_line','diagonal_up','diagonal_down'].includes(k))) {
     const {page,context}=await open(`noVideo&exercises=${kind}`);
@@ -82,6 +83,7 @@ try {
     if(i<14) { await next(page);if((i+1)%4===0)expect(await page.locator('.first-lines__sheet [data-shape]').count()).toBe(0); }
   }
   await sheet.context.close();
+  }
   // Finger and passive stylus use real touch events, with clearly different road widths.
   const widths=[];
   for(const input of ['pen','touch','passive']) {
@@ -106,7 +108,7 @@ try {
     }
     await session.context.close();
   }
-  expect(widths[1]/widths[0]).toBeGreaterThan(3);expect(Math.abs(widths[0]-widths[2])).toBeLessThan(.1);
+  expect(widths[1]/widths[0]).toBeGreaterThan(3);expect(widths[0]).toBeCloseTo(10,1);expect(widths[1]).toBeCloseTo(56,1);expect(widths[2]).toBeCloseTo(24,1);
   expect(failures).toEqual([]);
-  console.log('Variety: all 15 generated families on phone, full random worksheet on tablet, stable geometry/reload, preserved work, standard prizes, overview, real finger/passive input and distinct road widths passed.');
+  console.log(process.env.DRAWING_PROFILE_CHECK_ONLY ? 'Input profiles: 10 px active stylus, 24 px passive stylus, 56 px finger; real touch completion, overview and shared rewards passed.' : 'Variety: all 15 generated families on phone, full random worksheet on tablet, stable geometry/reload, preserved work, standard prizes, overview, real finger/passive input and distinct road widths passed.');
 }finally{await browser.close();}
