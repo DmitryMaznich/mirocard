@@ -189,6 +189,7 @@ describe("Slovenian (draft)", () => {
         ["capfa", "sl_cursive", ["Ia Da Ja Ta#1", "Pa Ba Fa Na#1", "Oa Sa Va Šo#1", "Ida Dora Jana Tadej#1"], "sl_10"],
         ["borrowed", "sl_cursive", ["q w x y#1", "ć đ ä ö ü#1", "Q W X Y#1", "Ć Đ Ä Ö Ü#1", "Xaver Yvonne#1", "Đurđa Ćiril#1", "Wolf Quinn#1", "Jürgen Ötzi#1", "Äsa Üna Ćevapi#1", "taxi yoga quiz#1"], "sl_10"],
         ["borrowedp", "sl_print", ["q w x y ć đ ä ö ü#1", "Q W X Y Ć Đ#1", "Ä Ö Ü#1", "Xaver Đurđa#1", "Jürgen Ötzi#1"], "sl_10"],
+        ["ij", "sl_cursive", ["I J Z#1", "Izak Janina#1", "Ida Jure Zala#1"], "sl_10"],
         ["lea", "sl_cursive", ["Le La#1", "Leja Lara#1", "le la#1", "Lea Luka#1"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
