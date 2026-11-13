@@ -173,6 +173,7 @@ describe("Slovenian (draft)", () => {
         ["vire", "sl_cursive", ["Vid Vika#1", "reka drevo#1", "Jure brest#1", "vi ve#1"], "sl_10"],
         ["rwords", "sl_cursive", ["r ra re#1", "trava rumen#1", "krava prst#1", "riba Peter#1"], "sl_10"],
         ["ejoin", "sl_cursive", ["me ne ze#1", "le te he#1", "trava vrata#1", "zelen vesel#1"], "sl_10"],
+        ["rsheet", "sl_cursive", ["nabral žafrane#1", "frizerjev raste#1", "Andrej igrati#1", "fotografiji re#1"], "sl_10"],
         ["tope", "sl_cursive", ["re ve oe be#1", "reže vesel#1", "drevo obleka#1", "svetel breg#1"], "sl_10"],
         ["sej", "sl_cursive", ["ce če ke#1", "cesta čevelj#1", "srce lisice#1", "se jelka ge#1"], "sl_10"],
         ["straight", "sl_cursive", ["le ie mi#1", "lina kino#1", "oa ra kolo#1", "noga voda#1"], "sl_10"],
