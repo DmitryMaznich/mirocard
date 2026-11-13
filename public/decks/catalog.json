@@ -694,7 +694,7 @@
     },
     {
       "id": "drawing",
-      "version": "0.19.0",
+      "version": "0.19.1",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
@@ -703,7 +703,7 @@
         "ru": "Шесть рисунков на бумаге и «Первые линии»: разнообразная база линий, дуг, фигур и узоров со случайными размерами. Разные дорожки для стилуса и пальца, общий лист, штатные звёзды и видеоприз.",
         "en": "Six drawing lessons on paper and First Lines: varied lines, arcs, shapes and patterns with random sizes. Separate stylus/finger tracks, shared worksheets and standard stars and video rewards."
       },
-      "url": "./decks/drawing_v0.19.0.zip",
+      "url": "./decks/drawing_v0.19.1.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

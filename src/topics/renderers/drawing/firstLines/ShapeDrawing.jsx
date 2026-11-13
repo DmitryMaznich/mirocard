@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { shapeDefinition, frameTransform, partPoint, transformPoint } from './shapes.js';
+import { shapeDefinition, frameTransform, partPoint, partPrefix, transformPoint } from './shapes.js';
 import { resolveProfile } from './trackProfile.js';
 const pathPoints = points => points.map(p => `${p.x},${p.y}`).join(' ');
 export default function ShapeDrawing({ state, width = 'normal', passive = false, hint = false, demo = false, demoProgress = 0, demoLift = null, demoPart = null, drawing = false }) {
@@ -29,7 +29,7 @@ export default function ShapeDrawing({ state, width = 'normal', passive = false,
         </g>)}
         {s.marks.map((p, index) => <circle key={index} className="first-lines__mark" cx={p.x} cy={p.y} r={(profile.markRadius ?? 20) / part.frame.scale} />)}
         {demo && (demoPart === null || demoPart === i) && <g className="first-lines__demo" aria-hidden="true">
-          <path className="first-lines__demo-line" d={part.d} pathLength="1" strokeDashoffset={1 - fraction} />
+          <path className="first-lines__demo-line" d={partPrefix(part, fraction)} />
           {(fraction > 0 && fraction < 1 || (demoPart === null ? i === 0 : i === demoPart) && demoProgress === 0 || (demoPart === null ? i === shape.parts.length - 1 : i === demoPart) && demoProgress === 1 && demoLift === null) && <circle className="first-lines__demo-tip" cx={tip.x} cy={tip.y} r={(profile.tipRadius ?? Math.max(6, profile.ink)) / part.frame.scale} />}
         </g>}
       </g>;

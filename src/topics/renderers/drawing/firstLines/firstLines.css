@@ -12,7 +12,7 @@
 .first-lines__mark{fill:none;stroke:#b98532;stroke-width:5;pointer-events:none}
 .first-lines__demo{pointer-events:none}
 .first-lines__demo-tip{fill:#315b86}
-.first-lines__demo-line{fill:none;stroke-linejoin:round;stroke:#315b86;stroke-width:var(--first-lines-ink-width,14);stroke-linecap:round;stroke-dasharray:1}
+.first-lines__demo-line{stroke-dasharray:none;stroke-dashoffset:0;fill:none;stroke-linejoin:round;stroke:#315b86;stroke-width:var(--first-lines-ink-width,14);stroke-linecap:round}
 .first-lines__footer{min-height:72px;display:flex;justify-content:center;align-items:center;padding:4px 16px 12px;flex-shrink:0}
 .first-lines__footer button{background:#e5f1e8}
 .first-lines__cue{display:flex;gap:12px;align-items:center;font-size:19px}

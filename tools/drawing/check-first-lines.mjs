@@ -212,12 +212,14 @@ try {
     await sample.page.clock.runFor(750);
     const animation = await sample.page.locator('.first-lines__demo').evaluate(group => {
       return {
-        offset: parseFloat(window.getComputedStyle(group.querySelector('path')).strokeDashoffset),
+        length: group.querySelector('path').getTotalLength(),
+        end: Number(group.querySelector('path').getAttribute('d').split('L').at(-1).split(' ')[0]) - 320,
+        dash: window.getComputedStyle(group.querySelector('path')).strokeDasharray,
         tip: Number(group.querySelector('circle').getAttribute('cx')) - 320,
       };
     });
-    expect(animation.offset).toBeGreaterThan(0); expect(animation.offset).toBeLessThan(1);
-    expect(Math.abs(animation.tip - 360 * (1 - animation.offset))).toBeLessThan(.5);
+    expect(animation.length).toBeGreaterThan(0);expect(animation.length).toBeLessThan(360);
+    expect(animation.dash).toBe('none');expect(Math.abs(animation.tip-animation.end)).toBeLessThan(.01);
     if (input === 'touch') await sample.page.screenshot({ path: 'output/first-lines/demo-line.png' });
     await sample.page.clock.runFor(2400);
     await expect(sample.page.locator('.first-lines__demo')).toHaveCount(0);
