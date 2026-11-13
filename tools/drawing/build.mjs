@@ -10,6 +10,7 @@ const root = fileURLToPath(new URL("../../", base));
 const manifest = JSON.parse(await readFile(new URL("topic.json", base), "utf8"));
 const pencils = JSON.parse(await readFile(new URL("pencils.json", base), "utf8"));
 for (const card of manifest.cards) {
+  if (card.firstLines?.kind === 'short_line') continue;
   card.lesson = planLesson(JSON.parse(await readFile(new URL(card.lessonFile, base), "utf8")), pencils);
   if (card.lesson.id !== card.id || !card.lesson.steps?.length) throw new Error(`Invalid drawing lesson: ${card.id}`);
   delete card.lessonFile;
@@ -23,6 +24,10 @@ zip.file("media/avatar.svg", await readFile(new URL("media/avatar.svg", base)));
 // Covers are generated from the same lesson paths; no separate artwork to maintain.
 const escape = value => String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 for (const card of manifest.cards) {
+  if (card.firstLines?.kind === 'short_line') {
+    zip.file(card.image, await readFile(new URL('media/first-lines.svg', base)));
+    continue;
+  }
   const parts = [], strokes = [], overlays = [], defs = [];
   card.lesson.steps.forEach((step, i) => {
     if (step.kind === "stroke") for (const item of step.paths) {
@@ -41,4 +46,4 @@ for (const card of manifest.cards) {
 const output = new URL(`../../public/decks/drawing_v${manifest.meta.version}.zip`, base);
 await mkdir(new URL("./", output), { recursive: true });
 await writeFile(output, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
-console.log(`Built ${fileURLToPath(output)}: ${manifest.cards.length} drawing(s)`);
+console.log(`Built ${fileURLToPath(output)}: ${manifest.cards.filter(card => card.lesson).length} paper lessons, ${manifest.cards.filter(card => card.firstLines).length} first-lines card(s)`);

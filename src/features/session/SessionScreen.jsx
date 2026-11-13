@@ -381,6 +381,9 @@ export default function SessionScreen() {
             taskRetry={sessionState.taskRetry ?? 0}
             mode={mode}
             sessionStatus={status}
+            sessionId={sessionState.id}
+            rewardAttemptBlocked={Boolean(sessionState.rewardAttemptBlocked)}
+            interactionDisabled={rewardPending || sessionExitPromptOpen || deckExhausted}
             topicId={topicRecord.meta.id}
             topicRecord={topicRecord}
             accountKv={accountKv}

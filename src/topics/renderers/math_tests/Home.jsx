@@ -28,7 +28,7 @@ function summary(test) {
 // «Мои контрольные» and «Готовые листы»: the entry of the topic. `solving` — the mode «Решить
 // контрольную»: a tap opens a sheet for solving, no «Новая контрольная», no copy/delete menu, and a
 // ready sheet is solved as it is (not copied into «Мои контрольные»).
-export default function Home({ tests, loading, onBack, onNew, onOpen, onFromLibrary, onDelete, onDuplicate, solving = false }) {
+export default function Home({ tests, loading, onBack, onNew, onOpen, onFromLibrary, onDelete, onDuplicate, solving = false, draft = null, onContinueDraft }) {
   const [tab, setTab] = useState("mine");
   const [menuFor, setMenuFor] = useState(null);
   useEffect(() => { if (!loading && tests.length === 0) setTab(solving ? "library" : "mine"); }, [loading, tests.length, solving]);
@@ -45,6 +45,16 @@ export default function Home({ tests, loading, onBack, onNew, onOpen, onFromLibr
         <button type="button" role="tab" aria-selected={tab === "library"} className={tab === "library" ? "is-on" : ""} onClick={() => setTab("library")}>Готовые листы</button>
       </div>
       <div className="mt-home-body">
+        {draft && (
+          // a sheet left half-solved (Back, a reload): it goes on from where it stopped (draft.js)
+          <div className="mt-draft" role="status">
+            <div className="mt-draft-text">
+              <span className="mt-card-group">{draft.marks ? "Проверено, есть ошибки" : "Не дорешано"}</span>
+              <b>{draft.test.title || "Контрольная"}</b>
+            </div>
+            <button type="button" className="mt-solve-btn" onClick={onContinueDraft}>Продолжить</button>
+          </div>
+        )}
         {tab === "mine" ? (
           <div className="mt-cards">
             {!solving && (

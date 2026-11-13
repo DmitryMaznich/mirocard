@@ -17,30 +17,46 @@ const SIGN_KEYS = [{ v: "add", label: "+", aria: "Плюс" }, { v: "subtract", 
 const CMP_KEYS = [{ v: "<", label: "<", aria: "Меньше" }, { v: "=", label: "=", aria: "Равно" }, { v: ">", label: ">", aria: "Больше" }];
 const SIGN_VALUES = { sign: ["add", "subtract"], cmp: ["<", ">", "="] };
 
-// digits on the left; on the right the sign keys the test needs (+ − and/or < = >) over ⌫ →.
-// Only the keys that fit the focused box are active.
+// digits on the left; on the right the sign keys the test needs (+ − and/or < = >), then «Дальше» and
+// «Стереть» as words, not symbols (a child reads «⌫ →» as nothing). «Дальше» is the top key of its column
+// and the whole pad stands clear of the bottom edge: on some Android tablets the system Back and menu
+// buttons are right under it. Only the keys that fit the focused box are active. An interim keypad —
+// the designer's brief is docs/math-tests-keypad-brief.md.
+// the same key again within this time is ignored: perseverative double taps, tremor, the edge of a palm
+const REPEAT_MS = 250;
 function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext, onUp }) {
+  const last = useRef({ id: null, at: -Infinity });
+  // called from a click only; the time is the event's own
+  function press(e, id, fn, arg) {
+    const now = e.timeStamp;
+    if (last.current.id === id && now - last.current.at < REPEAT_MS) return;
+    last.current = { id, at: now };
+    fn(arg);
+  }
   const showCmp = kinds.has("cmp");
-  // + − only when the test has a sign box (or nothing else: the keypad keeps its old shape)
-  const showSign = kinds.has("sign") || (!showCmp && !onUp);
+  // + − only when the test has a sign box
+  const showSign = kinds.has("sign");
   const signs = [...(showSign ? SIGN_KEYS.map((k) => ({ ...k, kind: "sign" })) : []), ...(showCmp ? CMP_KEYS.map((k) => ({ ...k, kind: "cmp" })) : [])];
-  const cols = Math.max(2, signs.length);
   return (
-    <div className={`mt-pad${kind !== "num" ? " is-sign" : ""}`} role="group" aria-label="Клавиатура" style={{ "--mt-side-cols": cols }}>
+    <div className={`mt-pad${kind !== "num" ? " is-sign" : ""}`} role="group" aria-label="Клавиатура">
       <div className="mt-pad-digits">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
-          <button key={d} type="button" className="mt-key" disabled={kind !== "num"} onClick={() => onDigit(String(d))}>{d}</button>
+          <button key={d} type="button" className="mt-key" disabled={kind !== "num"} onClick={(e) => press(e, `d${d}`, onDigit, String(d))}>{d}</button>
         ))}
       </div>
+      {signs.length > 0 && (
+        <div className="mt-pad-signs" style={{ "--mt-sign-cols": Math.min(signs.length, 3) }}>
+          {signs.map((k) => (
+            <button key={k.v} type="button" className={`mt-key mt-key--sign${kind === k.kind ? " is-active" : ""}`} disabled={kind !== k.kind} onClick={(e) => press(e, `s${k.v}`, onSign, k.v)} aria-label={k.aria}>{k.label}</button>
+          ))}
+        </div>
+      )}
       <div className="mt-pad-side">
-        {signs.map((k) => (
-          <button key={k.v} type="button" className={`mt-key mt-key--sign${kind === k.kind ? " is-active" : ""}`} disabled={kind !== k.kind} onClick={() => onSign(k.v)} aria-label={k.aria}>{k.label}</button>
-        ))}
-        <button type="button" className="mt-key mt-key--fn" style={{ gridColumn: cols > 2 ? `span ${cols - 1}` : undefined }} onClick={onErase} aria-label="Стереть">⌫</button>
-        <button type="button" className="mt-key mt-key--fn" onClick={onNext} aria-label="Следующая клетка">→</button>
-        {onUp && (
-          <button type="button" className="mt-key mt-key--fn mt-key--up" style={{ gridColumn: `span ${cols}` }} onClick={onUp} aria-label="Пометка сверху: перенос или заём">↑ сверху</button>
-        )}
+        <button type="button" className="mt-key mt-key--next" onClick={(e) => press(e, "next", onNext)}>Дальше<span aria-hidden="true"> →</span></button>
+        <div className="mt-pad-side-row">
+          <button type="button" className="mt-key mt-key--erase" onClick={(e) => press(e, "erase", onErase)}>Стереть</button>
+          {onUp && <button type="button" className="mt-key mt-key--up" onClick={(e) => press(e, "up", onUp)} aria-label="Пометка сверху: перенос или заём">↑ сверху</button>}
+        </div>
       </div>
     </div>
   );
@@ -51,7 +67,10 @@ function Numpad({ kind, kinds, onDigit, onSign, onErase, onNext, onUp }) {
 // a wrong one red with the right answer over it, the score and each block's result. From there:
 // «Исправить ошибки» (only the wrong boxes open again), «Решать заново», and — when the test has
 // «Видеоприз» on, every box was filled and the student has videos — «Смотреть видео».
-export default function SolveView({ test, onBack, onResult }) {
+// `initial` — a saved draft to go on from (draft.js); `onProgress` — every change, to be kept;
+// `backRef.current` — what the system Back does here (index.jsx's back interceptor): it never leaves
+// a half-solved sheet at once, it asks first (and the work is kept either way).
+export default function SolveView({ test, onBack, onResult, initial = null, onProgress, backRef }) {
   const narrow = useMediaQuery(NARROW_QUERY);
   const canvasRef = useRef(null);
   const [width, setWidth] = useState(() => (typeof window !== "undefined" ? Math.min(window.innerWidth, 1100) : 800));
@@ -65,10 +84,11 @@ export default function SolveView({ test, onBack, onResult }) {
   const graded = useMemo(() => blanks.filter((b) => !b.aux), [blanks]);
   const byKey = useMemo(() => Object.fromEntries(blanks.map((b) => [b.key, b])), [blanks]);
 
-  const [values, setValues] = useState({});
-  const [locked, setLocked] = useState(() => new Set());
-  const [marks, setMarks] = useState(null);
-  const [focus, setFocus] = useState(graded[0]?.key ?? null);
+  const [values, setValues] = useState(() => initial?.values ?? {});
+  const [locked, setLocked] = useState(() => new Set(initial?.locked ?? []));
+  const [marks, setMarks] = useState(() => initial?.marks ?? null);
+  const [asking, setAsking] = useState(false); // «Выйти из контрольной?»
+  const [focus, setFocus] = useState(() => graded.find((b) => !(initial?.locked ?? []).includes(b.key) && !(initial?.values?.[b.key]))?.key ?? graded[0]?.key ?? null);
   const [prize, setPrize] = useState("none"); // none | ready | watching | used
 
   const students = useAppStore((s) => s.students);
@@ -86,6 +106,25 @@ export default function SolveView({ test, onBack, onResult }) {
   }, []);
   // a cell of cellPx; smaller only if a block's widest example needs more cells than fit (not below 20 px)
   const scale = Math.max(MIN_CELL_PX, Math.min(cellPx, (width - 16) / (layout.grid.w / layout.grid.cell))) / layout.grid.cell;
+
+  // every change is kept (draft.js) — leaving by mistake loses nothing
+  useEffect(() => { onProgress?.({ values, locked: [...locked], marks }); }, [values, locked, marks]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const written = Object.values(values).some((v) => v !== "" && v != null);
+  const requestExit = useCallback(() => {
+    if (marks !== null || !written) onBack();
+    else setAsking(true);
+  }, [marks, written, onBack]);
+  useEffect(() => {
+    if (!backRef) return undefined;
+    backRef.current = () => {
+      if (asking) { setAsking(false); return true; } // Back on the question = go on solving
+      if (prize === "watching") { setPrize("used"); return true; }
+      requestExit();
+      return true;
+    };
+    return () => { backRef.current = null; };
+  });
 
   const open = useMemo(() => graded.filter((b) => !locked.has(b.key)), [graded, locked]);
   const filled = graded.filter((b) => (values[b.key] ?? "") !== "").length;
@@ -259,7 +298,7 @@ export default function SolveView({ test, onBack, onResult }) {
   return (
     <div className={`screen mt-root mt-solve${narrow ? " mt-solve--phone" : ""}${checked ? " is-checked" : ""}`} data-testid="math-tests-solve">
       <div className="screen-header mt-header">
-        <button className="back-btn" onClick={onBack} aria-label="В редактор"><IconBack /></button>
+        <button className="back-btn" onClick={requestExit} aria-label="Выйти из контрольной"><IconBack /></button>
         <div className="mt-solve-title">
           <b>{test.title || "Контрольная"}</b>
           {!checked && <span className="mt-progress"><span className="mt-progress-bar"><span style={{ width: `${graded.length ? (filled / graded.length) * 100 : 0}%` }} /></span>{narrow ? "" : "заполнено "}{filled} из {graded.length}</span>}
@@ -311,6 +350,16 @@ export default function SolveView({ test, onBack, onResult }) {
         )}
       </div>
 
+      {asking && (
+        <div className="mt-modal" role="dialog" aria-modal="true" aria-label="Выйти из контрольной?">
+          <div className="mt-modal-card mt-exit-card">
+            <h2>Выйти из контрольной?</h2>
+            <p>Всё, что написано, сохранится — потом можно продолжить с этого места.</p>
+            <button type="button" className="mt-solve-btn mt-exit-stay" onClick={() => setAsking(false)}>Решать дальше</button>
+            <button type="button" className="mt-ghost-btn mt-exit-leave" onClick={() => { setAsking(false); onBack(); }}>Выйти</button>
+          </div>
+        </div>
+      )}
       {!checked && <Numpad kind={focusKind} kinds={kinds} onDigit={typeDigit} onSign={typeSign} onErase={erase} onNext={goNext} onUp={hasMarks ? goUp : undefined} />}
       {checked && narrow && (
         <div className="mt-phone-actions">

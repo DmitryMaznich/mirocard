@@ -11,6 +11,8 @@ await mkdir(staging, { recursive: true });
 const manifest = JSON.parse(await readFile(new URL('tools/drawing/topic.json', root), 'utf8'));
 const zip = await JSZip.loadAsync(await readFile(new URL(`public/decks/drawing_v${manifest.meta.version}.zip`, root)));
 const compiled = JSON.parse(await zip.file('topic.json').async('string'));
+// This standalone preview is for paper lessons; First Lines uses the real session.
+compiled.cards = compiled.cards.filter(card => card.lesson?.steps?.length);
 for (const card of compiled.cards) card.cover = await zip.file(card.image).async('string');
 await writeFile(new URL('data.json', staging), JSON.stringify(compiled.cards));
 await writeFile(new URL('index.html', staging), await readFile(new URL('tools/drawing/ux-preview.html', root)));

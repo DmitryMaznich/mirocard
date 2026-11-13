@@ -694,16 +694,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.14.0",
+      "version": "0.19.2",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Рисуем на бумаге по анимированному образцу: контуры и раскраска по цветам, каждый шаг по тапу. Компот, Нудик, Коржик, Золотая рыбка, Попугай и Ослик.",
-        "en": "Draw on paper with animated outlines and colouring grouped by pencil. Kompot, Nudik, Korzhik, Goldfish, Parrot and Donkey."
+        "ru": "Шесть рисунков на бумаге и «Первые линии»: разнообразная база линий, дуг, фигур и узоров со случайными размерами. Разные дорожки для стилуса и пальца, общий лист, штатные звёзды и видеоприз.",
+        "en": "Six drawing lessons on paper and First Lines: varied lines, arcs, shapes and patterns with random sizes. Separate stylus/finger tracks, shared worksheets and standard stars and video rewards."
       },
-      "url": "./decks/drawing_v0.14.0.zip",
+      "url": "./decks/drawing_v0.19.2.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

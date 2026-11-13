@@ -10,7 +10,7 @@ const root = new URL('../../', import.meta.url);
 const html = await readFile(new URL('docs/mockups/drawing/lesson-ux.html', root), 'utf8');
 const manifest = JSON.parse(await readFile(new URL('tools/drawing/topic.json', root), 'utf8'));
 const zip = await JSZip.loadAsync(await readFile(new URL(`public/decks/drawing_v${manifest.meta.version}.zip`, root)));
-const { cards } = JSON.parse(await zip.file('topic.json').async('string'));
+const cards = JSON.parse(await zip.file('topic.json').async('string')).cards.filter(card => card.lesson?.steps?.length);
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 let passed = 0;
 try {

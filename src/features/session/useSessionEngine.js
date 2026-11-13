@@ -373,6 +373,8 @@ export function useSessionEngine() {
 
   const [completedRecord, setCompletedRecord] = useState(null);
   const [rewardPending, setRewardPending] = useState(false);
+  const rewardPendingRef = useRef(false);
+  const deferredAutoAdvanceRef = useRef(null);
   const [deckExhausted, setDeckExhausted] = useState(false);
   const [sessionSaveError, setSessionSaveError] = useState(null);
   const lastRewardEarnedCountRef = useRef(sessionState?.rewardEarnedCount ?? 0);
@@ -610,6 +612,7 @@ export function useSessionEngine() {
     if (earned > lastRewardEarnedCountRef.current) {
       lastRewardEarnedCountRef.current = earned;
       if (rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled) {
+        rewardPendingRef.current = true;
         const timer = window.setTimeout(() => setRewardPending(true), 0);
         return () => window.clearTimeout(timer);
       }
@@ -617,7 +620,13 @@ export function useSessionEngine() {
     return undefined;
   }, [sessionState?.rewardEarnedCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const clearRewardPending = useCallback(() => setRewardPending(false), []);
+  const clearRewardPending = useCallback(() => {
+    rewardPendingRef.current = false;
+    setRewardPending(false);
+    const advance = deferredAutoAdvanceRef.current;
+    deferredAutoAdvanceRef.current = null;
+    advance?.();
+  }, []);
 
   const advanceTask = useCallback((state) => {
     const isMyPeopleRoundEnd = state.mode?.regenerateOnLoop
@@ -704,7 +713,7 @@ export function useSessionEngine() {
         ? Math.max(0, Number(options.autoAdvanceDelayMs) || 0)
         : autoAdvanceDelay * 1000;
       setTimeout(() => {
-        setSessionState((s) => {
+        const advance = () => setSessionState((s) => {
           if (s.status !== "answer_correct") return s;
           if (s.mode.type === "compare_first_number") return s;
           // «Контрольная работа»: the finished sheet shows its result until a tap.
@@ -716,6 +725,10 @@ export function useSessionEngine() {
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;
         });
+        // Keep a promised video visible, including on the final card. Resume
+        // normal automatic pacing once the standard prize has been dismissed.
+        if (rewardPendingRef.current) deferredAutoAdvanceRef.current = advance;
+        else advance();
       }, delayMs);
     }
   }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay, advanceTask]);

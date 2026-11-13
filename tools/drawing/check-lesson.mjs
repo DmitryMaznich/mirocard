@@ -8,6 +8,7 @@ const id=process.argv[2]??'donkey';
 const descriptor=JSON.parse(await readFile(new URL('./topic.json',import.meta.url),'utf8'));
 const zip=await JSZip.loadAsync(await readFile(new URL(`../../public/decks/drawing_v${descriptor.meta.version}.zip`,import.meta.url)));
 const manifest=JSON.parse(await zip.file('topic.json').async('string'));
+manifest.cards=manifest.cards.filter(card=>card.lesson?.steps?.length);
 const card=manifest.cards.find(c=>c.id===id);assert(card,'Unknown lesson');
 const lesson=card.lesson,blackEnd=lesson.steps.findIndex(s=>s.tool!=='black');
 const firstColour=lesson.steps.findIndex(s=>s.kind==='color'&&s.tool!=='black');
