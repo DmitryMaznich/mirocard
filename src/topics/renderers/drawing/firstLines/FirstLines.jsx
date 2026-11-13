@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createShapeAttempt } from './shapeAttempt.js';
-import { sheetCell, frameTransform, cellTransform } from './shapes.js';
+import { sheetCell, frameTransform, cellTransform, demonstrationFrame } from './shapes.js';
 import ShapeDrawing from './ShapeDrawing.jsx';
 import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet } from './checkpoint.js';
 import './firstLines.css';
@@ -24,11 +24,13 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const [paused, setPaused] = useState(Boolean(task.breakBefore));
   const [demo, setDemo] = useState(false);
   const [demoProgress, setDemoProgress] = useState(0);
+  const [demoLift, setDemoLift] = useState(null);
   const [hint, setHint] = useState(false);
   const [compact, setCompact] = useState(false);
   const svg = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
   const state = attempt.state;
   const current = state.parts[state.part];
+  const liftCue = kind === 'square' && !state.done && current.progress >= 644 && Math.hypot(current.anchor.x - 680, current.anchor.y - 500) <= 60;
   const correct = sessionStatus === 'answer_correct';
   const disabled = interactionDisabled || paused || demo || correct || peek;
   const focusView = kind === 'short_line' ? compactView : { x: 180, y: 180, width: 640, height: 640 };
@@ -89,10 +91,11 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     const linear = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const animate = time => {
       started ??= time;
-      const progress = Math.max(0, Math.min(1, (time - started - 150) / attempt.shape.motionMs));
-      // One progress value drives both the drawn line and the tip, including Safari.
-      setDemoProgress(linear ? progress : progress * progress * (3 - 2 * progress));
-      if (progress < 1) frame = requestAnimationFrame(animate);
+      const elapsed = time - started - 150;
+      const sample = demonstrationFrame(attempt.shape, elapsed, linear);
+      // One progress value drives both the drawn line and its tip, including Safari.
+      setDemoProgress(sample.progress); setDemoLift(sample.lift);
+      if (elapsed < attempt.shape.motionMs) frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
     const timer = setTimeout(() => setDemo(false), attempt.shape.motionMs + 1200);
@@ -133,7 +136,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
 
   return <section className="first-lines" aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
     <div className="first-lines__tools">
-      <button type="button" disabled={disabled || state.done} onClick={() => { attempt.end(true); pointer.current = null; setDemoProgress(0); setDemo(true); }} aria-label="Показать движение">
+      <button type="button" disabled={disabled || state.done} onClick={() => { attempt.end(true); pointer.current = null; setDemoProgress(0); setDemoLift(null); setDemo(true); }} aria-label="Показать движение">
         <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
       </button>
       <button type="button" disabled={interactionDisabled || correct} onClick={() => { attempt.end(true); pointer.current = null; setDemo(false); setPaused(true); refresh(); }} aria-label="Пауза"><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M18 6v20M30 6v20" /></svg></button>
@@ -154,7 +157,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
         {entries.map((entry, i) => entry && i !== (task.sheetSlot ?? 0) && <g key={i} transform={cellTransform(sheetCell(i))}><ShapeDrawing state={entry} passive /></g>)}
       </g>}
       <g transform={isSheet ? cellTransform(cell) : undefined}>
-        <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} demo={demo} demoProgress={demoProgress} />
+        <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} demo={demo} demoProgress={demoProgress} demoLift={demoLift} />
       </g>
     </svg>
     {isSheet && compact && <button type="button" className="first-lines__overview" disabled={interactionDisabled || paused || demo} aria-label={peek ? 'К заданию' : 'Весь лист'} onClick={() => { attempt.end(true); pointer.current = null; setPeek(!peek); }}>
@@ -168,10 +171,10 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     </button>}
     <div className="first-lines__footer" aria-live="polite">
       {state.done || correct ? <button type="button" disabled={interactionDisabled || !correct} onClick={onAdvance}><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h30M27 7l10 9-10 9" /></svg> Дальше</button>
-        : peek ? <span>Весь лист</span> : <span className="first-lines__cue" aria-label={current.needsReturn ? current.errorKind === 'shape' ? 'Подними стилус и повтори движение от отмеченного места' : 'Подними стилус и продолжи от отмеченного места' : 'Повтори движение по дорожке'}>
+        : peek ? <span>Весь лист</span> : <span className="first-lines__cue" aria-label={current.needsReturn ? current.errorKind === 'shape' ? 'Подними стилус и повтори движение от отмеченного места' : 'Подними стилус и продолжи от отмеченного места' : liftCue || demo && demoLift !== null ? 'Подними стилус' : 'Повтори движение по дорожке'}>
           <svg viewBox="0 0 130 40" aria-hidden="true"><circle cx="12" cy="22" r="7" fill="currentColor" /><path d="M35 22h34M60 13l10 9-10 9" />
-            {current.needsReturn ? <path d="M103 33V7M94 16l9-9 9 9" /> : attempt.shape.closed ? <path d="M113 10a14 14 0 1 0 7 18M113 10l-1 10 10-2" /> : <path d="M96 20v14h23V20M91 21l16-14 17 14M104 34V24h7v10" />}
-          </svg>{current.needsReturn && <span>{current.errorKind === 'shape' ? 'Ещё раз отсюда' : 'Продолжи отсюда'}</span>}
+            {(current.needsReturn || liftCue || demo && demoLift !== null) ? <path d="M103 33V7M94 16l9-9 9 9" /> : attempt.shape.closed ? <path d="M113 10a14 14 0 1 0 7 18M113 10l-1 10 10-2" /> : <path d="M96 20v14h23V20M91 21l16-14 17 14M104 34V24h7v10" />}
+          </svg>{current.needsReturn ? <span>{current.errorKind === 'shape' ? 'Ещё раз отсюда' : 'Продолжи отсюда'}</span> : (liftCue || demo && demoLift !== null) && <span>Подними стилус</span>}
         </span>}
     </div>
     {paused && <div className="first-lines__pause" role="dialog" aria-label="Пауза — можно повторить фигуры на бумаге">

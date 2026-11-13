@@ -47,7 +47,7 @@ export function shapeDefinition(kind = 'short_line') {
   const id = knownShape(kind) ? kind : 'short_line';
   const parts = definitions[id];
   return { id, title: SHAPE_TITLES[id], parts, closed: ['circle', 'oval', 'square'].includes(id),
-    length: parts.reduce((sum, p) => sum + p.length, 0), motionMs: id === 'square' ? 3200 : parts[0].type === 'curve' ? 2400 : 1200 };
+    length: parts.reduce((sum, p) => sum + p.length, 0), motionMs: id === 'square' ? 4800 : parts[0].type === 'curve' ? 2400 : 1200 };
 }
 export function partPoint(part, fraction) {
   const t = Math.max(0, Math.min(1, fraction));
@@ -63,3 +63,13 @@ export function sheetCell(slot) {
   return { x, y, tx: x - 125, ty: y - 125, scale: .75 };
 }
 export function cellTransform(cell) { return `translate(${cell.tx} ${cell.ty}) scale(${cell.scale})`; }
+
+// Each square side is followed by a visible lift; the sample must model the task.
+export function demonstrationFrame(shape, elapsed, linear = false) {
+  const ease = t => linear ? t : t * t * (3 - 2 * t);
+  if (shape.id !== 'square') return { progress: ease(Math.max(0, Math.min(1, elapsed / shape.motionMs))), lift: null };
+  const time = Math.max(0, Math.min(shape.motionMs, elapsed));
+  const side = Math.min(3, Math.floor(time / 1200));
+  const phase = time - side * 1200;
+  return { progress: (side + ease(Math.min(1, phase / 800))) / 4, lift: phase >= 800 ? side : null };
+}

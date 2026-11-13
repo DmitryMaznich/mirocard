@@ -144,6 +144,8 @@ for (const strict of [true, false]) it(`square rewards once for four sides, corr
     await send('pointerdown', from.x, from.y); await send('pointermove', to.x, to.y); await send('pointerup', to.x, to.y);
   };
   await side(0); expect(successes).not.toHaveBeenCalled();
+  const ink = host.querySelector('.first-lines__ink');
+  for (const track of host.querySelectorAll('.first-lines__track')) expect(track.compareDocumentPosition(ink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   // Error on the right side, then lift and return to its checkpoint.
   await send('pointerdown', 680, 320); await send('pointermove', 850, 450); await send('pointerup', 850, 450);
   expect(errors).toHaveBeenCalledTimes(1);
