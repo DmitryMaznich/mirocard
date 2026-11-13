@@ -2573,6 +2573,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             meetJoin = { type: "join", P: T, t: [tl[0], tl[1]], from: foot, path };
           }
         }
+        // after a capital, an oval letter (a c d g o …) stands further off (`meetJoins.capOvalGap`, share of the x-height; owner,
+        // 2026-11-13, the sheet «IMENA»: «соединение от заглавной к буквам с овалами длиннее, строчная дальше от заглавной»): the
+        // join is drawn to the letter where it now stands — longer, not bent
+        if (meet && meetJoin && prevLabel && prevLabel !== prevLabel.toLowerCase() && meet.ovalInto.has(label) && Number.isFinite(wantStartX))
+          wantStartX += (glyphsByLabel.script.meetJoins.capOvalGap ?? 0) * WIDE_ZONE_UNITS * scale;
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
         // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
         // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off

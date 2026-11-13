@@ -302,7 +302,8 @@
               "loopInto": "e",
               "ovalInto": "acdgoq",
               "hookFrom": "ro",
-              "riseInto": "r"
+              "riseInto": "r",
+              "capOvalGap": 0.25
             }
           },
           "papers": [
