@@ -13,7 +13,7 @@ function generateScreenTasks(mode,card,params) {
     const exerciseKind=bag.pop();previous=exerciseKind;
     return {type:'drawing_first_line',id:`first_lines:${index}`,cardId:card.id,conceptId:card.conceptId,number:index+1,
       exerciseKind,title:exerciseKind==='short_line'?'Прямая':SHAPE_TITLES[exerciseKind],sheetPage:Math.floor(index/4),sheetSlot:index%4,breakBefore:false,...(mode.adaptiveSheet?{autoSheet:true}:{}),
-      variant:{schema:mode.adaptiveSheet?5:4,seed:Math.floor(Math.random()*4294967296),scale:1,aspect:1,angle:Math.round((Math.random()*360-180)*10)/10||0,
+      variant:{schema:mode.solidVolumes&&exerciseKind==='parallelepiped'?6:mode.adaptiveSheet?5:4,seed:Math.floor(Math.random()*4294967296),scale:1,aspect:1,angle:Math.round((Math.random()*360-180)*10)/10||0,
         size:Math.random(),positionX:Math.random(),positionY:Math.random()}};
   });
   return tasks.map((task,i)=>({...task,sheetKinds:tasks.slice(Math.floor(i/4)*4,Math.floor(i/4)*4+4).map(t=>t.exerciseKind)}));

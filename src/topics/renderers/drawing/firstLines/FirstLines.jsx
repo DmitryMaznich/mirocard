@@ -4,19 +4,25 @@ import { sheetCell, cellTransform, shapeDefinition } from './shapes.js';
 import ShapeDrawing from './ShapeDrawing.jsx';
 import { trackProfile, screenProfile, scaledProfile } from './trackProfile.js';
 import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet, gridKey, readGrid, saveGrid } from './checkpoint.js';
-import { fitShape, screenScene, placementTransform, fromPlacement, automaticGrid, sheetPosition } from './layout.js';
+import { fitShape, placementTransform, fromPlacement, automaticGrid, sheetPosition, practiceScene } from './layout.js';
 import './firstLines.css';
 
 const defaultGrid = {columns:2,rows:2};
 const fullView = { x: 0, y: 0, width: 1000, height: 1000 };
 const compactView = { x: 220, y: 380, width: 560, height: 240 };
 
+function useWorksheet(key,capacity){
+  const entries=useMemo(()=>readSheet(key,capacity),[key,capacity]);
+  const shapes=useMemo(()=>entries.map(e=>e?shapeDefinition(e.kind,e.variant):null),[entries]);
+  return {entries,shapes};
+}
+
 export default function FirstLines({ task, student, sessionId, sessionParams, sessionStatus,
   rewardAttemptBlocked = false, interactionDisabled = false, onCorrect, onStreakReset, onAdvance, playFeedback }) {
   // SessionScreen keys each task. Its stable session identity also survives an app reload.
   const key = checkpointKey(student?.id, sessionId, task.id);
   const kind = task.exerciseKind ?? 'short_line';
-  const procedural = [4,5].includes(task.variant?.schema);
+  const procedural = [4,5,6].includes(task.variant?.schema);
   const automatic = Boolean(task.autoSheet && sessionParams?.workSurface === 'sheet');
   const layoutKey = gridKey(student?.id,sessionId);
   const [gridChoice,setGridChoice] = useState(()=>automatic?readGrid(layoutKey):null);
@@ -26,14 +32,14 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const [boardSize, setBoardSize] = useState({ width: 1000, height: 1000 });
   const pxProfile = screenProfile(sessionParams?.inputMode);
   const isSheet = sessionParams?.workSurface === 'sheet';
-  const scene = screenScene(boardSize, isSheet, slot,false,grid);
+  const targetShape=useMemo(()=>shapeDefinition(kind,task.variant),[kind,task.variant]);
+  const scene = practiceScene(boardSize,isSheet,slot,grid,targetShape,task.variant,pxProfile);
   const [attempt, setAttempt] = useState(() => {
-    const fitted=fitShape(shapeDefinition(kind,task.variant),scene.areas[slot],task.variant,pxProfile);
+    const fitted=scene.placement;
     return createShapeAttempt(kind,readCheckpoint(key,kind,task.variant),procedural?scaledProfile(pxProfile,fitted.scale):trackProfile(sessionParams?.trackWidth,sessionParams?.inputMode),task.variant);
   });
   const pageKey = sheetKey(student?.id, sessionId, page);
-  const entries = useMemo(() => readSheet(pageKey,capacity),[pageKey,capacity]);
-  const entryShapes=useMemo(()=>entries.map(e=>e?shapeDefinition(e.kind,e.variant):null),[entries]);
+  const {entries,shapes:entryShapes}=useWorksheet(pageKey,capacity);
   const cell = sheetCell(slot);
   const [peek, setPeek] = useState(false);
   const [, redraw] = useState(0);
@@ -51,13 +57,13 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const part = attempt.shape.parts[state.part];
   const demoMs = part.type === 'line' ? 1200 : attempt.shape.steps[state.part];
   const correct = sessionStatus === 'answer_correct';
-  const disabled = interactionDisabled || correct || peek || !layoutReady;
+  const disabled = interactionDisabled || correct || peek || !layoutReady || scene.placement.needsSpace;
   const focusView = kind === 'short_line' ? compactView : { x: 140, y: 140, width: 720, height: 720 };
   const legacyView = peek || !compact ? fullView : isSheet
     ? { x: cell.tx + focusView.x * cell.scale, y: cell.ty + focusView.y * cell.scale, width: focusView.width * cell.scale, height: focusView.height * cell.scale }
     : focusView;
-  const placement = fitShape(attempt.shape, scene.areas[slot], task.variant, pxProfile);
-  const view = procedural ? screenScene(boardSize, isSheet, slot, peek,grid).view : legacyView;
+  const placement = scene.placement;
+  const view = procedural ? practiceScene(boardSize,isSheet,slot,grid,targetShape,task.variant,pxProfile,peek).view : legacyView;
   const displayCompact = procedural ? scene.compact : compact;
   const activeTransform = procedural ? placementTransform(placement) : isSheet ? cellTransform(cell) : undefined;
   const previousDrawing = (entry, index) => {
@@ -103,8 +109,8 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
         if(automatic&&!gridChoice){saveGrid(layoutKey,nextGrid);setGridChoice(nextGrid);}
         const nextPosition=sheetPosition(automatic?task:{...task,autoSheet:false},nextGrid);
         cancel();
-        const nextScene=screenScene({width,height},isSheet,nextPosition.slot,false,nextGrid);
-        const next=fitShape(attempt.shape,nextScene.areas[nextPosition.slot],task.variant,screenProfile(sessionParams?.inputMode));
+        const nextScene=practiceScene({width,height},isSheet,nextPosition.slot,nextGrid,attempt.shape,task.variant,screenProfile(sessionParams?.inputMode));
+        const next=nextScene.placement;
         setBoardSize({width,height});
         setAttempt(previous=>createShapeAttempt(kind,structuredClone(previous.state),scaledProfile(screenProfile(sessionParams?.inputMode),next.scale),task.variant));
       } else {
@@ -201,7 +207,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       </svg><span>{peek ? 'К заданию' : 'Весь лист'}</span>
     </button>}
     </div>
-    <svg ref={svg} className="first-lines__board" viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`} role="img" aria-label={`Нарисуй: ${attempt.shape.title}`} data-return={current.needsReturn || state.recovery === 'error' || undefined}
+    <svg ref={svg} className="first-lines__board" viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`} role="img" aria-label={`Нарисуй: ${attempt.shape.title}`} style={placement.needsSpace?{visibility:'hidden'}:undefined} data-return={current.needsReturn || state.recovery === 'error' || undefined}
       onContextMenu={event => event.preventDefault()}
       onPointerDown={event => {
         if (disabled || state.done || pointer.current !== null || event.button !== 0) return;
@@ -221,9 +227,10 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
         <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} drawing={drawing} demoPart={state.part} demo={demo} demoProgress={demoProgress} demoLift={demoLift} />
       </g>
     </svg>
+    {placement.needsSpace&&<div className="first-lines__room" role="status"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 14h24v36H20zM8 30a24 24 0 0 1 40-16M48 4v10H38M56 34a24 24 0 0 1-40 16M16 60V50h10"/></svg><span>Кубу нужно больше места.<br/>Поверни экран или увеличь область занятия.</span></div>}
     <div className={`first-lines__footer first-lines__footer--${phase}`} aria-live="polite">
       {state.done || correct ? <div className="first-lines__complete"><span>✓ Готово!</span><button type="button" disabled={interactionDisabled || !correct} onClick={onAdvance}><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h30M27 7l10 9-10 9" /></svg> Следующее задание</button></div>
-        : peek ? <span>Весь лист</span> : <span className="first-lines__cue" aria-label={cues[phase]}>
+        : placement.needsSpace ? null : peek ? <span>Весь лист</span> : <span className="first-lines__cue" aria-label={cues[phase]}>
           <svg viewBox="0 0 48 40" aria-hidden="true">
             {['error', 'lift'].includes(phase) || demoLift !== null && demo ? <><path d="M24 35V6M13 17 24 6l11 11" /><path d="M8 35h32" /></>
               : phase === 'stylus' ? <path d="m12 30 20-25 8 6-20 25-11 2Z" />

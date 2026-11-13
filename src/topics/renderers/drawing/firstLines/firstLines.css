@@ -54,3 +54,6 @@
 .first-lines__start{stroke-width:var(--first-lines-marker-stroke,2)}
 .first-lines__goal{stroke-width:var(--first-lines-goal-stroke,5)}
 @media(max-height:500px){.first-lines__tools{flex-basis:44px;height:44px;padding:2px 8px}.first-lines__tools button{min-height:38px}.first-lines__footer{height:56px;min-height:56px;max-height:56px}.first-lines .first-lines__overview>svg{height:30px}}
+
+.first-lines__room{position:absolute;inset:60px 16px 80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;font-size:19px;pointer-events:none}
+.first-lines__room>svg{width:72px;height:72px;fill:none;stroke:#248b79;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
