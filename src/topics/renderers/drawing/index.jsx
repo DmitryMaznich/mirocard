@@ -1,3 +1,4 @@
+import Coloring from './coloring/Coloring.jsx';
 import { useEffect, useId, useRef, useState } from 'react';
 import { createDrawingPlayer } from './player.js';
 import { toolForStep } from './lessonPlan.js';
@@ -69,7 +70,7 @@ function readStored(key, fallback) { try { return JSON.parse(localStorage.getIte
 function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local-mode previews can have no storage. */ } }
 
 export default function DrawingRenderer(props) {
-  return props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
+  return props.task?.type === 'drawing_coloring' ? <Coloring {...props} /> : props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
 }
 
 function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onClose, onAdvance, onRequestVideoBonus }) {

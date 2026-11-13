@@ -629,6 +629,11 @@ export function useSessionEngine() {
   }, []);
 
   const advanceTask = useCallback((state) => {
+    if (state.mode?.type === 'drawing_coloring' && state.taskIndex + 1 >= state.tasks.length) {
+      const next = handleAdvance(state);
+      const tasks = ENGINE_REGISTRY.drawing(state.mode, topicRecord.cards, undefined, sessionParams);
+      return tasks.length ? {...next, tasks, taskIndex:0} : next;
+    }
     const isMyPeopleRoundEnd = state.mode?.regenerateOnLoop
       && state.taskIndex + 1 >= state.tasks.length;
     const next = handleAdvance(state);
@@ -672,7 +677,7 @@ export function useSessionEngine() {
       myPeopleRound: round,
       myPeopleIntroduced: Object.fromEntries(Object.entries(sessionIntroduced).map(([axis, ids]) => [axis, [...ids]])),
     };
-  }, [activeStudent, sessionParams]);
+  }, [activeStudent, sessionParams, topicRecord]);
 
   const onPrevious = useCallback(() => {
     setSessionState(s => {
