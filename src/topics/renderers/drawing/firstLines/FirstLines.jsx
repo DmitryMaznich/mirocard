@@ -22,7 +22,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   // SessionScreen keys each task. Its stable session identity also survives an app reload.
   const key = checkpointKey(student?.id, sessionId, task.id);
   const kind = task.exerciseKind ?? 'short_line';
-  const procedural = [4,5,6].includes(task.variant?.schema);
+  const procedural = [4,5,6,7].includes(task.variant?.schema);
   const automatic = Boolean(task.autoSheet && sessionParams?.workSurface === 'sheet');
   const layoutKey = gridKey(student?.id,sessionId);
   const [gridChoice,setGridChoice] = useState(()=>automatic?readGrid(layoutKey):null);
@@ -193,7 +193,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const cues = { done: 'Готово!', stylus: 'Рисуй стилусом', error: 'Стоп. Подними стилус', watch: demoLift !== null ? 'В конце — подними стилус' : 'Смотри или рисуй',
     retry: 'Повтори от точки', locate: 'Начни с точки', draw: 'Веди по дорожке', lift: 'Подними стилус', resume: 'Продолжи от точки', start: 'Рисуй от точки' };
 
-  return <section className="first-lines" data-task-id={task.id} data-phase={phase} data-sheet-capacity={capacity} data-sheet-page={page} data-sheet-slot={slot} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
+  return <section className="first-lines" data-task-id={task.id} data-phase={phase} data-movement={task.variant?.schema===7?'wide':'regular'} data-sheet-capacity={capacity} data-sheet-page={page} data-sheet-slot={slot} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
     <div className="first-lines__tools">
       <button type="button" disabled={disabled || demo || state.done} onClick={() => { attempt.end(true); pointer.current = null; attempt.restartPart('sample'); setHint(false); setInputHint(false); refresh(); setDemoProgress(0); setDemoLift(null); setDemo(true); }} aria-label="Показать движение">
         <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
