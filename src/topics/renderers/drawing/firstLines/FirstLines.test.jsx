@@ -6,18 +6,19 @@ import { createSessionState, handleStreakReset, handleAnswer, handleAdvance } fr
 import { generateTasks } from '../engine.js';
 import { checkpointKey, saveCheckpoint } from './checkpoint.js';
 import { createLineAttempt } from './lineAttempt.js';
+import { partPoint, transformPoint, shapeDefinition } from './shapes.js';
 import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }]);
 let root, host, latest, errors, successes;
-function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', initial }) {
+function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', surface = 'single', initial }) {
   const [state, setState] = useState(() => initial ?? {
     ...createSessionState(tasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.15.0', ['line'], null, false, perStar, strict, { version: 2, lossMode: loss }),
     id: 'session-test', streakCount: 3 * perStar,
   });
   useEffect(() => { latest = state; }, [state]);
   return <FirstLines key={state.taskIndex} task={state.tasks[state.taskIndex]} student={{ id: 'kid' }} sessionId={state.id}
-    sessionParams={{ inputMode: input, trackWidth: width }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
+    sessionParams={{ inputMode: input, trackWidth: width, workSurface: surface }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
     onStreakReset={(concept, card) => { errors(); setState(s => handleStreakReset(s, concept, card)); }}
     onCorrect={(concept, card) => { successes(); setState(s => handleAnswer(s, true, concept, card)); }}
     onAdvance={() => setState(handleAdvance)} />;
@@ -131,4 +132,61 @@ describe('First Lines and the real session reward policy', () => {
     expect(errors).toHaveBeenCalledTimes(1); expect(successes).toHaveBeenCalledTimes(1);
     expect(latest.streakCount).toBe(2); expect(latest.rewardAttemptBlocked).toBe(true);
   });
+});
+
+for (const strict of [true, false]) it(`square rewards once for four sides, correction remains blocked (strict=${strict})`, async () => {
+  const squareTasks = tasks.map(t => ({ ...t, exerciseKind: 'square' }));
+  const initial = { ...createSessionState(squareTasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.16.0', ['line'], null, false, 1, strict, { version: 2, lossMode: 'one' }), id: 'session-test', streakCount: 3 };
+  await act(async () => root.render(<Harness initial={initial} strict={strict} />));
+  const sides = shapeDefinition('square').parts;
+  const side = async i => {
+    const from = transformPoint(partPoint(sides[i], 0), sides[i].frame), to = transformPoint(partPoint(sides[i], 1), sides[i].frame);
+    await send('pointerdown', from.x, from.y); await send('pointermove', to.x, to.y); await send('pointerup', to.x, to.y);
+  };
+  await side(0); expect(successes).not.toHaveBeenCalled();
+  // Error on the right side, then lift and return to its checkpoint.
+  await send('pointerdown', 680, 320); await send('pointermove', 850, 450); await send('pointerup', 850, 450);
+  expect(errors).toHaveBeenCalledTimes(1);
+  const marker = host.querySelectorAll('.first-lines__resume')[0];
+  const anchor = transformPoint({ x: Number(marker.getAttribute('cx')), y: Number(marker.getAttribute('cy')) }, sides[1].frame);
+  await send('pointerdown', anchor.x, anchor.y); await send('pointermove', 680, 680); await send('pointerup', 680, 680);
+  await side(2); expect(successes).not.toHaveBeenCalled(); await side(3);
+  expect(successes).toHaveBeenCalledTimes(1); expect(errors).toHaveBeenCalledTimes(1);
+  expect(latest.streakCount).toBe(strict ? 2 : 3);
+});
+
+it('keeps previous actual drawings on a sheet after advancing and after reload', async () => {
+  await act(async () => root.render(<Harness surface="sheet" />));
+  // First slot uses the common worksheet transform in the logical 1000x1000 page.
+  await send('pointerdown', 115, 250); await send('pointermove', 385, 250); await send('pointerup', 385, 250);
+  expect(successes).toHaveBeenCalledTimes(1);
+  await act(async () => host.querySelector('.first-lines__footer button').click());
+  const previous = host.querySelector('.first-lines__sheet polyline').getAttribute('points');
+  expect(previous).toContain('320,500'); expect(previous).toContain('680,500');
+  expect(host.querySelectorAll('.first-lines__track')).toHaveLength(1);
+  // Tapping the completed cell must not draw or reward the new card.
+  await send('pointerdown', 115, 250); await send('pointermove', 385, 250); await send('pointerup', 385, 250);
+  expect(successes).toHaveBeenCalledTimes(1);
+  const snapshot = latest;
+  await act(async () => root.unmount()); root = createRoot(host);
+  await act(async () => root.render(<Harness initial={snapshot} surface="sheet" />));
+  expect(host.querySelector('.first-lines__sheet polyline').getAttribute('points')).toBe(previous);
+  await send('pointerdown', 615, 250); await send('pointermove', 885, 250); await send('pointerup', 885, 250);
+  expect(successes).toHaveBeenCalledTimes(2); expect(errors).not.toHaveBeenCalled();
+});
+
+it('registers a curve shape error discovered on lift before allowing its correction', async () => {
+  const ovalTasks = tasks.map(t => ({ ...t, exerciseKind: 'oval' }));
+  const initial = { ...createSessionState(ovalTasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.16.0', ['line'], null, false, 1, true, { version: 2, lossMode: 'one' }), id: 'session-test', streakCount: 3 };
+  await act(async () => root.render(<Harness initial={initial} width="wide" />));
+  await send('pointerdown', 500, 380);
+  for (let i = 1; i <= 80; i++) { const angle = -Math.PI / 2 + 2 * Math.PI * i / 80; await send('pointermove', 500 + 150 * Math.cos(angle), 530 + 150 * Math.sin(angle)); }
+  expect(errors).not.toHaveBeenCalled();
+  await send('pointerup', 500, 380);
+  expect(errors).toHaveBeenCalledTimes(1); expect(successes).not.toHaveBeenCalled(); expect(latest.rewardAttemptBlocked).toBe(true);
+  const part = shapeDefinition('oval').parts[0];
+  await send('pointerdown', 500, 380);
+  for (let i = 1; i <= 80; i++) { const p = partPoint(part, i / 80); await send('pointermove', p.x, p.y); }
+  await send('pointerup', 500, 380);
+  expect(successes).toHaveBeenCalledTimes(1); expect(latest.streakCount).toBe(2);
 });
