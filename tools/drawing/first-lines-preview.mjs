@@ -18,6 +18,7 @@ import '../../src/styles.css';
 // It installs the real ZIP and uses the same renderer loader, session, audio, stars and prize.
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
 const q = new URLSearchParams(location.search);
+const modeId = q.has('coloring') ? 'drawing_coloring' : 'drawing_first_lines';
 const db = await getDb();
 await importTopic(db, await (await fetch(`/decks/drawing_v${descriptor.meta.version}.zip`)).arrayBuffer(), __APP_VERSION__);
 const record = await getTopicRecord(db, 'drawing');
@@ -28,13 +29,13 @@ const student = { id: 'first-lines-preview', name: 'Проба', lessonFlow: { a
   rewardSettings: { lossMode: q.get('loss') === 'all' ? 'all' : 'one', duration: '60', sound: false },
   rewardVideos: q.has('noVideo') ? [] : ['https://youtu.be/aaaaaaaaaaa'] };
 useAppStore.setState({ students: [student], activeStudentId: student.id, activeTopicId: 'drawing',
-  activeModeId: 'drawing_first_lines', activeTextId: null, activeLessonPlanItemId: null,
+  activeModeId: modeId, activeTextId: null, activeLessonPlanItemId: null,
   topicRecords: [record], sessions: [], account: null, activeSessionSnapshot: snapshot,
   sessionReturnScreen: null, sessionExitPromptOpen: false, screen: q.has('params') ? 'params' : 'session',
   studentTopicLinks: { [`${student.id}_drawing`]: { selectedConceptIds: ['kompot'],
     answersPerStar: Math.max(1, Math.min(3, Number(q.get('perStar')) || 1)),
     strictStars: !q.has('soft'), videoRewardEnabled: !q.has('noVideo'),
-    params: { byMode: { drawing_first_lines: { inputMode: q.has('passive') ? 'passive_pen' : q.has('touch') ? 'touch' : 'pen', preciseSelection: q.has('exercises'), exercises: q.has('exercises') ? q.get('exercises').split(',') : [], practiceSet: q.get('set') || 'mixed', workSurface: q.get('surface') || 'sheet' } } } } } });
+    params: { byMode: { [modeId]: { figureSet: q.get('figures') || 'mixed', outsideTolerance: q.get('tolerance') || '6', fillTarget: q.get('fill') || '90', inputMode: q.has('passive') ? 'passive_pen' : q.has('touch') ? 'touch' : 'pen', preciseSelection: q.has('exercises'), exercises: q.has('exercises') ? q.get('exercises').split(',') : [], practiceSet: q.get('set') || 'mixed', workSurface: q.get('surface') || 'sheet' } } } } } });
 window.previewStore = useAppStore;
 function Preview() {
   const screen = useAppStore(s => s.screen);

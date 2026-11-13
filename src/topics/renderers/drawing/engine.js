@@ -44,6 +44,14 @@ function generateScreenTasks(mode,card,params) {
 }
 // Lesson data is delivered by the topic ZIP, never imported by the app engine.
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
+  if (mode?.type === 'drawing_coloring') {
+    const card = (Array.isArray(cards) ? cards : []).find(card => card.firstLines);
+    if (!card) return [];
+    return Array.from({length:15}, (_,index) => {
+      const seed = Math.floor(Math.random()*4294967296);
+      return {type:'drawing_coloring',id:`coloring:${seed}:${index}`,cardId:card.id,conceptId:card.conceptId??card.id,seed};
+    });
+  }
   if (mode?.type === 'drawing_first_lines') {
     const card = (Array.isArray(cards) ? cards : []).find(card => card.firstLines?.kind === 'short_line');
     if (!card) return [];

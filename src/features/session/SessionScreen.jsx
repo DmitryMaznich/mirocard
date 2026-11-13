@@ -327,7 +327,8 @@ export default function SessionScreen() {
     rewardAvailable: rewardProgress?.available ?? false,
   });
   const showProgress = !(
-    (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
+    mode.type === "drawing_coloring"
+    || (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
     || topicRecord.meta.renderer === "spatial_prepositions"
     // Same "single browse task, no real progress to count" shape as the standalone
