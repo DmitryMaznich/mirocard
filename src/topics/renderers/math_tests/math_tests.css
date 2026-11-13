@@ -180,7 +180,6 @@
 .mt-solve-body { flex: 1 1 auto; min-height: 0; display: flex; }
 .mt-canvas--solve { align-items: center; padding: 8px; } /* the sheet is laid out for this width (SolveView: width − 16) */
 .mt-solve--phone .mt-canvas--solve { padding: 8px; }
-.mt-key--up, .mt-solve--phone .mt-key.mt-key--up { font-size: 15px; }
 .mt-solve--phone .mt-progress-bar { width: 90px; }
 .mt-blank { cursor: pointer; }
 .mt-result-side { flex: 0 0 300px; overflow-y: auto; padding: 16px calc(16px + var(--app-safe-right, 0px)) calc(16px + var(--app-safe-bottom, 0px)) 16px; display: flex; flex-direction: column; gap: 14px; background: var(--mt-strip); border-left: 1px solid var(--mt-line); }
@@ -199,18 +198,42 @@
 .mt-solve--phone .mt-score { align-self: stretch; margin-bottom: 4px; }
 
 /* keypad */
-.mt-pad { flex: 0 0 auto; display: flex; justify-content: center; gap: 12px; padding: 12px calc(12px + var(--app-safe-right, 0px)) calc(14px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--mt-line); box-shadow: 0 -6px 16px rgba(30,40,38,.06); }
+.mt-phone-actions { flex: 0 0 auto; display: flex; gap: 10px; justify-content: center; padding: 10px calc(12px + var(--app-safe-right, 0px)) calc(12px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--mt-line); }
+.mt-phone-actions > * { flex: 1 1 0; }
+
+/* ---------- keypad (interim; brief: docs/math-tests-keypad-brief.md) ----------
+   Stands clear of the bottom edge (28px + the safe area): on some Android tablets the system Back and
+   menu buttons sit right under it. «Дальше» — the top key of the right column, wide, a word. */
+.mt-pad { flex: 0 0 auto; display: flex; justify-content: center; align-items: stretch; gap: 14px; padding: 12px calc(12px + var(--app-safe-right, 0px)) calc(28px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--mt-line); box-shadow: 0 -6px 16px rgba(30,40,38,.06); }
 .mt-pad-digits { display: grid; grid-template-columns: repeat(5, 64px); gap: 8px; }
-.mt-pad-side { display: grid; grid-template-columns: repeat(var(--mt-side-cols, 2), 64px); gap: 8px; }
+.mt-pad-signs { display: grid; grid-template-columns: repeat(var(--mt-sign-cols, 2), 64px); gap: 8px; align-content: start; }
+.mt-pad-side { display: flex; flex-direction: column; gap: 8px; width: 150px; }
+.mt-pad-side-row { display: flex; gap: 8px; flex: 1 1 0; }
+.mt-pad-side-row > * { flex: 1 1 0; min-width: 0; }
 .mt-key { height: 56px; border: 2px solid #c8d4d2; border-radius: 14px; background: #fff; font-size: 24px; font-weight: 900; color: var(--mt-ink); box-shadow: 0 4px 0 #dbe4e2; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .mt-key:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #dbe4e2; }
 .mt-key:disabled { opacity: .3; cursor: default; }
-.mt-key--fn { background: #f6f8f7; font-size: 22px; }
 .mt-key--sign { font-size: 28px; color: var(--mt-teal-dark); }
 .mt-key--sign.is-active { border-color: var(--mt-teal); background: var(--mt-teal-soft); }
+.mt-key--next { flex: 1 1 0; background: var(--mt-teal); border-color: var(--mt-teal-dark); color: #fff; font-size: 19px; box-shadow: 0 4px 0 var(--mt-teal-dark); }
+.mt-key--next:active:not(:disabled) { box-shadow: 0 1px 0 var(--mt-teal-dark); }
+.mt-key--erase, .mt-key--up { background: #f6f8f7; font-size: 15px; padding: 0 4px; }
 .mt-solve--phone .mt-pad { gap: 6px; padding-left: calc(8px + var(--app-safe-left, 0px)); padding-right: calc(8px + var(--app-safe-right, 0px)); }
 .mt-solve--phone .mt-pad-digits { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; flex: 5 1 0; }
-.mt-solve--phone .mt-pad-side { grid-template-columns: repeat(var(--mt-side-cols, 2), minmax(0, 1fr)); gap: 6px; flex: var(--mt-side-cols, 2) 1 0; }
+.mt-solve--phone .mt-pad-signs { grid-template-columns: repeat(var(--mt-sign-cols, 2), minmax(0, 1fr)); gap: 6px; flex: var(--mt-sign-cols, 2) 1 0; }
+.mt-solve--phone .mt-pad-side { width: auto; flex: 2.4 1 0; gap: 6px; }
 .mt-solve--phone .mt-key { height: 52px; font-size: 22px; }
-.mt-phone-actions { flex: 0 0 auto; display: flex; gap: 10px; justify-content: center; padding: 10px calc(12px + var(--app-safe-right, 0px)) calc(12px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px)); background: #fff; border-top: 1px solid var(--mt-line); }
-.mt-phone-actions > * { flex: 1 1 0; }
+.mt-solve--phone .mt-key.mt-key--next { font-size: 16px; }
+.mt-solve--phone .mt-key.mt-key--erase, .mt-solve--phone .mt-key.mt-key--up { font-size: 13px; }
+
+/* «Выйти из контрольной?» — «Решать дальше» is the big default, «Выйти» the quiet one */
+.mt-exit-card { text-align: center; gap: 12px; }
+.mt-exit-card h2 { margin: 0; font-size: 22px; font-weight: 900; }
+.mt-exit-card p { margin: 0 0 6px; color: var(--mt-muted); font-weight: 600; }
+.mt-exit-stay { min-height: 56px; font-size: 18px; justify-content: center; }
+.mt-exit-leave { min-height: 44px; justify-content: center; }
+
+/* «Не дорешано — Продолжить» on top of the list */
+.mt-draft { display: flex; align-items: center; gap: 14px; justify-content: space-between; margin: 0 0 16px; padding: 14px 16px; border-radius: 16px; background: #fff8dc; border: 1.5px solid #ecd486; }
+.mt-draft-text { display: flex; flex-direction: column; min-width: 0; }
+.mt-draft-text b { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

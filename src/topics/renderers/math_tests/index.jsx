@@ -5,6 +5,8 @@ import Editor from "./Editor";
 import SolveView from "./SolveView";
 import { loadTests, loadLocalTests, saveTest, deleteTest, newTest, testFromLibrary, normalizeTest } from "./store.js";
 import { newId, newSeed } from "./blocks.js";
+import { loadDraft, saveDraft, clearDraft, draftHasWork } from "./draft.js";
+import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
 
 const HISTORY_MAX = 80;
 const TYPING_MERGE_MS = 1200;
@@ -21,6 +23,8 @@ const TYPING_MERGE_MS = 1200;
 export default function MathTestsRenderer({ task, accountKv, onBack, onSessionResult }) {
   const solving = task?.type === "math_tests_solve";
   const solveStartedAt = useRef(null);
+  const solveBack = useRef(null); // SolveView's own answer to the system Back
+  const [draft, setDraft] = useState(() => loadDraft());
   const [tests, setTests] = useState(() => loadLocalTests().filter((t) => !t.deleted).map(normalizeTest).sort((a, b) => b.updatedAt - a.updatedAt));
   const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState("home"); // home | edit | solve
@@ -85,6 +89,18 @@ export default function MathTestsRenderer({ task, accountKv, onBack, onSessionRe
     bump((n) => n + 1);
   };
 
+  // The system Back (Android: right under the keypad on some tablets): never leaves the solving at once
+  // (SolveView asks first, the work is kept), steps from the editor back to the list, and only from the
+  // list leaves the topic.
+  useEffect(() => {
+    setBackInterceptor(() => {
+      if (screen === "solve") return solveBack.current ? solveBack.current() : true;
+      if (screen === "edit") { setScreen("home"); setTest(null); return true; }
+      return false;
+    });
+    return () => setBackInterceptor(null);
+  });
+
   useEffect(() => {
     if (screen !== "edit") return undefined;
     const onKey = (e) => {
@@ -98,10 +114,24 @@ export default function MathTestsRenderer({ task, accountKv, onBack, onSessionRe
   });
 
   if (screen === "solve" && test) {
+    const isMine = tests.some((x) => x.id === test.id);
     return (
       <SolveView
+        key={test.id}
         test={test}
-        onBack={() => { if (solving) { setScreen("home"); setTest(null); } else setScreen("edit"); }}
+        backRef={solveBack}
+        initial={draft?.test?.id === test.id ? draft : null}
+        onProgress={(state) => {
+          const d = { test, ...state };
+          if (draftHasWork(d)) { saveDraft(d); setDraft(d); }
+        }}
+        onBack={() => {
+          const d = loadDraft();
+          // solved without a mistake: nothing left to come back to
+          if (d?.test?.id === test.id && d.marks && Object.values(d.marks).every((m) => m === "right")) { clearDraft(); setDraft(null); }
+          else setDraft(d);
+          if (solving || !isMine) { setScreen("home"); setTest(null); } else setScreen("edit");
+        }}
         onResult={(r) => {
           onSessionResult?.({ ...r, startedAt: solveStartedAt.current ?? r.at, testId: test.id, testTitle: test.title });
           solveStartedAt.current = Date.now();
@@ -134,6 +164,8 @@ export default function MathTestsRenderer({ task, accountKv, onBack, onSessionRe
       tests={tests}
       loading={loading}
       solving={solving}
+      draft={draftHasWork(draft) ? draft : null}
+      onContinueDraft={() => openTest(normalizeTest(draft.test), "solve")}
       onBack={onBack}
       onNew={() => create(newTest())}
       onOpen={(t) => openTest(t, solving ? "solve" : "edit")}
