@@ -300,7 +300,8 @@
             "meetJoins": {
               "noExitFrom": "BDFINOPSŠTV",
               "loopInto": "e",
-              "ovalInto": "acdgoq"
+              "ovalInto": "acdgoq",
+              "hookFrom": "ro"
             }
           },
           "papers": [

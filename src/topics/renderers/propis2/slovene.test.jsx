@@ -88,7 +88,7 @@ describe("Slovenian (draft)", () => {
       if ("bvor".includes(ch)) expect(end, `${ch} ends at the top`).toBeCloseTo(1, 1);
       else if (!"sš".includes(ch)) expect(end, `${ch} ends half-way up`).toBeCloseTo(0.48, 1);
       const lifts = g.strokes.slice(1).map((st) => st.name);
-      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], r: ["крючок"], o: ["крючок"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
+      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], o: ["крючок"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
       expect(lifts, ch).toEqual(allowed);
     }
   });

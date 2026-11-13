@@ -6,8 +6,8 @@
 //   - every letter starts ON THE BASELINE with a rising lead-in from the left («začetni spodnji zamah»);
 //   - every letter ends with an exit stroke half-way up the x band (y ≈ 74), except b o r v — those end at the top (y ≈ 50);
 //   - one movement per letter (enopoteznost): the pen goes back over its own line rather than lifting (d, the stems of h k m n p r t);
-//     only the dots of i j, the bar of t, the carons of č š ž, the hook of r and of o (written after the stem / the oval, from its right side: owner,
-//     2026-11-13, as in the model) and the exit of f (the model writes f in two strokes, «z eno ali dvema
+//     only the dots of i j, the bar of t, the carons of č š ž, the hook of o (written after the oval, from its right side: owner,
+//     2026-11-13, as in the model; r's hook was a lift too until the owner traced r in one stroke, back up its stem) and the exit of f (the model writes f in two strokes, «z eno ali dvema
 //     potezama») are lifts;
 //   - no decoration.
 // Each path runs in the writing direction (its first point is the start dot). Width = where the exit ends.
@@ -58,10 +58,11 @@ const lower = {
   n: [105, [s(`M 1.5,98.5 C 15,77 30,51 38,51 C 42,51 44,54 44,60 L 44,98.5 L 44,62 C 47,55 51,51 57,51 C 65,51 69,57 69,64 ${exitFrom(69, 105)}`, "две горки")]],
   o: [79, [s(`${ovalWithLeadIn(35, 17.5, 24.5, 75, -90)}`, "овал"), s("M 50,61 C 51,67 56,70 62,68 C 68,66 75,58 79,51", "крючок")]],
   p: [103.5, [s(`M 1.5,98.5 L 36.5,50 L 36.5,147.5 L 36.5,64 C 40,56 47,50 55,50 C 65,50 70,58 70,68 ${exitFrom(70, 103.5)}`, "палочка вниз и горка")]],
-  // r (owner, 2026-11-13, the school sheet «Male pisane črke – 9»: «r is written differently»): the lead-in straight up to a SHARP peak on
-  // the x-line and the stem straight down from it — no rounded hill; the hook a wide shallow cup (about a quarter of the x band deep,
-  // over half the band wide) from the top of the stem back up to the x-line
-  r: [74, [s("M 1.5,98.5 C 15,83 31,64 44,50.5 L 44,98.5", "палочка"), s("M 44,51.5 C 45,59 50,64 57,64 C 64,64 70,59 74,51", "крючок")]],
+  // r (owner, 2026-11-13): traced by the owner in the capture tool over the school sheet «Male pisane črke – 9» («raste»,
+  // tools/latin_letters/underlays/slovene/lo_r.png), tidied: ONE stroke — the lead-in up to a small rounded top just under the x-line,
+  // the stem straight down, back up the same stem to the x-line, and the hook a wide shallow cup (a fifth of the x band deep) up to
+  // the x-line again. The trace starts a little above the baseline; the lead-in is carried on down to it along its own direction.
+  r: [71.5, [s("M 1.5,98.5 C 10,82 19,62 26,57 C 29,55 33,54.5 35,56.5 C 38,59 39.5,64 39.5,72 L 39.5,98.5 L 39.5,51 C 41,55 46,60.5 54,60.5 C 61,60.5 67,56 71.5,50.5", "палочка и крючок")]],
   s: [60, [s("M 1.5,98.5 L 37,51.5 C 36.5,57 38,62 44,64.5 C 54,68 60,73 60,82 C 60,92 53,98 45,98 C 39,98 35,95 33,91", "острый верх и полуовал")]],
   t: [75, [s(`M 1,98.5 C 12,88 30,74 38.5,60 L 38.5,1 ${exitFrom(38.5, 75)}`, "палочка"), s(line([25, 50], [52.5, 50]), "черта")]],
   u: [100, [s(`M 1.5,98.5 C 15,90 32,70 37.5,50 L 37.5,88 C 37.5,95 41,98.5 47.5,98.5 C 57,98.5 64,90 64,78 L 64,50 ${exitFrom(64, 100)}`, "две палочки")]],

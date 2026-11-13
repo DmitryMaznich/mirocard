@@ -2187,7 +2187,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       // loop). `noExitFrom`: letters that end on their left side (the capitals B D F I N P S Š T): the next letter after them keeps its
       // whole lead-in, not joined.
       const meet = unjoined && glyphsByLabel?.script?.meetJoins
-        ? { noExit: new Set([...(glyphsByLabel.script.meetJoins.noExitFrom ?? "")]), loopInto: new Set([...(glyphsByLabel.script.meetJoins.loopInto ?? "")]), ovalInto: new Set([...(glyphsByLabel.script.meetJoins.ovalInto ?? "")]) }
+        ? { noExit: new Set([...(glyphsByLabel.script.meetJoins.noExitFrom ?? "")]), loopInto: new Set([...(glyphsByLabel.script.meetJoins.loopInto ?? "")]), ovalInto: new Set([...(glyphsByLabel.script.meetJoins.ovalInto ?? "")]), hookFrom: new Set([...(glyphsByLabel.script.meetJoins.hookFrom ?? "")]) }
         : null;
       let prevMeetExit = null; // the end of the previous letter's exit stroke, row coordinates, with its direction: { p, t }
       // the pieces of ONE composed letter (ш = three hooks, ы = ь + ы2, ии): they are written as the letter itself, never joined by a variant's own connector (`topJoins`)
@@ -2483,7 +2483,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
                 while (h > 0 && hp[h - 1][1] < hp[h][1]) h -= 1; // up the hook's whole way down: to the top of the stem (v b) or of r's hook
                 if (h > 0 && h < hp.length - 1) start = { h, hp, p: hp[h], t: nlsUnit(hp[h + 1][0] - hp[h][0], hp[h + 1][1] - hp[h][1]) };
               }
-              // r and o (their hook is a stroke of its own): the hook stays whole, up to the top line, and the line into e drops from
+              if (meet.hookFrom.has(prevLabel)) start = null; // r o: `hookFrom`
+              // r and o (`hookFrom`; their hook is part of the letter, not a way down): the hook stays whole, up to the top line, and the line into e drops from
               // its peak — the worksheet's «reže» (owner, 2026-11-13: «ve» good, «re» not yet)
               if (!start && prevMeetExit.ref) {
                 // round over the top: the hook cut a little before its end, the line turning over from its rising direction
