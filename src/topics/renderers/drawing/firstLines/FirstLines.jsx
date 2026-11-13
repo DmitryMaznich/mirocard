@@ -3,10 +3,11 @@ import { createShapeAttempt } from './shapeAttempt.js';
 import { sheetCell, cellTransform, shapeDefinition } from './shapes.js';
 import ShapeDrawing from './ShapeDrawing.jsx';
 import { trackProfile, screenProfile, scaledProfile } from './trackProfile.js';
-import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet } from './checkpoint.js';
-import { fitShape, screenScene, placementTransform, fromPlacement } from './layout.js';
+import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet, gridKey, readGrid, saveGrid } from './checkpoint.js';
+import { fitShape, screenScene, placementTransform, fromPlacement, automaticGrid, sheetPosition } from './layout.js';
 import './firstLines.css';
 
+const defaultGrid = {columns:2,rows:2};
 const fullView = { x: 0, y: 0, width: 1000, height: 1000 };
 const compactView = { x: 220, y: 380, width: 560, height: 240 };
 
@@ -15,19 +16,25 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   // SessionScreen keys each task. Its stable session identity also survives an app reload.
   const key = checkpointKey(student?.id, sessionId, task.id);
   const kind = task.exerciseKind ?? 'short_line';
-  const procedural = task.variant?.schema === 4;
+  const procedural = [4,5].includes(task.variant?.schema);
+  const automatic = Boolean(task.autoSheet && sessionParams?.workSurface === 'sheet');
+  const layoutKey = gridKey(student?.id,sessionId);
+  const [gridChoice,setGridChoice] = useState(()=>automatic?readGrid(layoutKey):null);
+  const grid=automatic&&gridChoice?gridChoice:defaultGrid;
+  const layoutReady=!automatic||gridChoice!==null;
+  const {page,slot,capacity}=sheetPosition(automatic?task:{...task,autoSheet:false},grid);
   const [boardSize, setBoardSize] = useState({ width: 1000, height: 1000 });
   const pxProfile = screenProfile(sessionParams?.inputMode);
   const isSheet = sessionParams?.workSurface === 'sheet';
-  const scene = screenScene(boardSize, isSheet, task.sheetSlot ?? 0);
+  const scene = screenScene(boardSize, isSheet, slot,false,grid);
   const [attempt, setAttempt] = useState(() => {
-    const fitted=fitShape(shapeDefinition(kind,task.variant),scene.areas[task.sheetSlot??0],task.variant,pxProfile);
+    const fitted=fitShape(shapeDefinition(kind,task.variant),scene.areas[slot],task.variant,pxProfile);
     return createShapeAttempt(kind,readCheckpoint(key,kind,task.variant),procedural?scaledProfile(pxProfile,fitted.scale):trackProfile(sessionParams?.trackWidth,sessionParams?.inputMode),task.variant);
   });
-  const pageKey = sheetKey(student?.id, sessionId, task.sheetPage ?? 0);
-  const [entries] = useState(() => readSheet(pageKey));
+  const pageKey = sheetKey(student?.id, sessionId, page);
+  const entries = useMemo(() => readSheet(pageKey,capacity),[pageKey,capacity]);
   const entryShapes=useMemo(()=>entries.map(e=>e?shapeDefinition(e.kind,e.variant):null),[entries]);
-  const cell = sheetCell(task.sheetSlot ?? 0);
+  const cell = sheetCell(slot);
   const [peek, setPeek] = useState(false);
   const [, redraw] = useState(0);
   const [demo, setDemo] = useState(false);
@@ -44,13 +51,13 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const part = attempt.shape.parts[state.part];
   const demoMs = part.type === 'line' ? 1200 : attempt.shape.steps[state.part];
   const correct = sessionStatus === 'answer_correct';
-  const disabled = interactionDisabled || correct || peek;
+  const disabled = interactionDisabled || correct || peek || !layoutReady;
   const focusView = kind === 'short_line' ? compactView : { x: 140, y: 140, width: 720, height: 720 };
   const legacyView = peek || !compact ? fullView : isSheet
     ? { x: cell.tx + focusView.x * cell.scale, y: cell.ty + focusView.y * cell.scale, width: focusView.width * cell.scale, height: focusView.height * cell.scale }
     : focusView;
-  const placement = fitShape(attempt.shape, scene.areas[task.sheetSlot ?? 0], task.variant, pxProfile);
-  const view = procedural ? screenScene(boardSize, isSheet, task.sheetSlot ?? 0, peek).view : legacyView;
+  const placement = fitShape(attempt.shape, scene.areas[slot], task.variant, pxProfile);
+  const view = procedural ? screenScene(boardSize, isSheet, slot, peek,grid).view : legacyView;
   const displayCompact = procedural ? scene.compact : compact;
   const activeTransform = procedural ? placementTransform(placement) : isSheet ? cellTransform(cell) : undefined;
   const previousDrawing = (entry, index) => {
@@ -60,21 +67,22 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   };
   const refresh = () => {
     saveCheckpoint(key, state);
-    if (isSheet && state.done) saveSheet(pageKey, task.sheetSlot ?? 0, state);
+    if (isSheet && layoutReady && state.done) saveSheet(pageKey, slot, state,capacity);
     redraw(n => n + 1);
   };
 
   useEffect(() => {
+    if(!layoutReady)return;
+    if(isSheet&&state.done)saveSheet(pageKey,slot,state,capacity);
     // A local checkpoint can be newer than the app's async session snapshot. Reconcile
     // the spent attempt before accepting completion; never reset the shared policy.
     if (state.hadError && !rewardAttemptBlocked && !reported.current && !correct) {
       reported.current = true; onStreakReset(task.conceptId, task.cardId);
     }
     if (state.done && !completed.current && !correct) {
-      if (isSheet) saveSheet(pageKey, task.sheetSlot ?? 0, state);
       completed.current = true; onCorrect(task.conceptId, task.cardId);
     }
-  }, [state, rewardAttemptBlocked, correct, onStreakReset, onCorrect, task, isSheet, pageKey]);
+  }, [state, rewardAttemptBlocked, correct, onStreakReset, onCorrect, task, isSheet, pageKey, slot, capacity, layoutReady]);
 
   useEffect(() => {
     let disposed = false;
@@ -90,10 +98,13 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       if (rect.width <= 0 || rect.height <= 0) return;
       if (procedural) {
         const width=Math.round(rect.width),height=Math.round(rect.height);
-        if(width===boardSize.width&&height===boardSize.height)return;
+        if(width===boardSize.width&&height===boardSize.height&&layoutReady)return;
+        const nextGrid=automatic?(gridChoice??automaticGrid({width,height},sessionParams?.inputMode)):grid;
+        if(automatic&&!gridChoice){saveGrid(layoutKey,nextGrid);setGridChoice(nextGrid);}
+        const nextPosition=sheetPosition(automatic?task:{...task,autoSheet:false},nextGrid);
         cancel();
-        const nextScene=screenScene({width,height},isSheet,task.sheetSlot??0);
-        const next=fitShape(attempt.shape,nextScene.areas[task.sheetSlot??0],task.variant,screenProfile(sessionParams?.inputMode));
+        const nextScene=screenScene({width,height},isSheet,nextPosition.slot,false,nextGrid);
+        const next=fitShape(attempt.shape,nextScene.areas[nextPosition.slot],task.variant,screenProfile(sessionParams?.inputMode));
         setBoardSize({width,height});
         setAttempt(previous=>createShapeAttempt(kind,structuredClone(previous.state),scaledProfile(screenProfile(sessionParams?.inputMode),next.scale),task.variant));
       } else {
@@ -110,7 +121,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       window.removeEventListener('pagehide', cancel); window.removeEventListener('blur', cancel);
       attempt.end(true); saveCheckpoint(key, attempt.state);
     };
-  }, [attempt, key, isSheet, procedural, boardSize.width, boardSize.height, kind, task.sheetSlot, task.variant, sessionParams?.inputMode]);
+  }, [attempt, key, isSheet, procedural, boardSize.width, boardSize.height, kind, task, slot, task.variant, sessionParams?.inputMode, automatic, gridChoice, layoutKey, layoutReady, grid]);
 
   useEffect(() => {
     if (disabled) { attempt.end(true); pointer.current = null; }
@@ -176,7 +187,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const cues = { done: 'Готово!', stylus: 'Рисуй стилусом', error: 'Стоп. Подними стилус', watch: demoLift !== null ? 'В конце — подними стилус' : 'Смотри или рисуй',
     retry: 'Повтори от точки', locate: 'Начни с точки', draw: 'Веди по дорожке', lift: 'Подними стилус', resume: 'Продолжи от точки', start: 'Рисуй от точки' };
 
-  return <section className="first-lines" data-task-id={task.id} data-phase={phase} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
+  return <section className="first-lines" data-task-id={task.id} data-phase={phase} data-sheet-capacity={capacity} data-sheet-page={page} data-sheet-slot={slot} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
     <div className="first-lines__tools">
       <button type="button" disabled={disabled || demo || state.done} onClick={() => { attempt.end(true); pointer.current = null; attempt.restartPart('sample'); setHint(false); setInputHint(false); refresh(); setDemoProgress(0); setDemoLift(null); setDemo(true); }} aria-label="Показать движение">
         <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
@@ -184,9 +195,9 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     {isSheet && displayCompact && <button type="button" className="first-lines__overview" disabled={interactionDisabled || demo} aria-label={peek ? 'К заданию' : 'Весь лист'} onClick={() => { attempt.end(true); pointer.current = null; setPeek(!peek); }}>
       <svg viewBox={procedural ? `0 0 ${scene.width} ${scene.height}` : '0 0 1000 1000'} aria-hidden="true">
         <rect x="4" y="4" width={procedural ? scene.width-8 : 992} height={procedural ? scene.height-8 : 992} fill="white" stroke="#a2b9ad" strokeWidth="10" />
-        {entries.map((entry, i) => entry && i !== (task.sheetSlot ?? 0) && previousDrawing(entry, i))}
+        {entries.map((entry, i) => entry && i !== (slot) && previousDrawing(entry, i))}
         <g transform={activeTransform}><ShapeDrawing state={state} passive /></g>
-        <rect x={(procedural ? scene.areas[task.sheetSlot??0].x : cell.x) + 8} y={(procedural ? scene.areas[task.sheetSlot??0].y : cell.y) + 8} width={procedural ? scene.areas[task.sheetSlot??0].width-16 : 484} height={procedural ? scene.areas[task.sheetSlot??0].height-16 : 484} fill="none" stroke="#248b79" strokeWidth="16" />
+        <rect x={(procedural ? scene.areas[slot].x : cell.x) + 8} y={(procedural ? scene.areas[slot].y : cell.y) + 8} width={procedural ? scene.areas[slot].width-16 : 484} height={procedural ? scene.areas[slot].height-16 : 484} fill="none" stroke="#248b79" strokeWidth="16" />
       </svg><span>{peek ? 'К заданию' : 'Весь лист'}</span>
     </button>}
     </div>
@@ -204,7 +215,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       onPointerMove={event => { if (!disabled && pointer.current === event.pointerId) { event.preventDefault(); if (!attempt.state.parts[attempt.state.part].needsReturn) { move(event); refresh(); } } }}
       onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={event => finish(event, true)}>
       {isSheet && <g className="first-lines__sheet">
-        {entries.map((entry, i) => entry && i !== (task.sheetSlot ?? 0) && previousDrawing(entry, i))}
+        {entries.map((entry, i) => entry && i !== (slot) && previousDrawing(entry, i))}
       </g>}
       <g className="first-lines__active" transform={activeTransform}>
         <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} drawing={drawing} demoPart={state.part} demo={demo} demoProgress={demoProgress} demoLift={demoLift} />

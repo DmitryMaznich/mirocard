@@ -2,14 +2,14 @@ export const SHAPE_TITLES = Object.freeze({
   short_line: 'Горизонтальная прямая', vertical_line: 'Вертикальная прямая', diagonal_up: 'Наклонная вверх', diagonal_down: 'Наклонная вниз',
   circle: 'Круг', oval: 'Овал', tilted_oval: 'Наклонный овал', square: 'Квадрат', rectangle: 'Прямоугольник', rhombus: 'Ромб',
   arc: 'Дуга', semicircle: 'Полуокружность', parallelepiped: 'Параллелепипед', zigzag: 'Зигзаг', wave: 'Волна',
-  zigzag_arc: 'Зигзаг и дуга', arc_zigzag: 'Дуга и зигзаг', zigzag_arc_zigzag: 'Зигзаг, дуга и зигзаг',
+  zigzag_arc: 'Зигзаг и дуга', arc_zigzag: 'Дуга и зигзаг', zigzag_arc_zigzag: 'Зигзаг, дуга и зигзаг', fence: 'Заборчик',
 });
 export const SHAPE_KINDS = Object.keys(SHAPE_TITLES);
 export const PRACTICE_SETS = Object.freeze({
   mixed: SHAPE_KINDS,
   lines: ['short_line', 'vertical_line', 'diagonal_up', 'diagonal_down', 'arc', 'semicircle'],
   shapes: ['circle', 'oval', 'tilted_oval', 'square', 'rectangle', 'rhombus', 'parallelepiped'],
-  patterns: ['zigzag', 'wave', 'zigzag_arc', 'arc_zigzag', 'zigzag_arc_zigzag'],
+  patterns: ['zigzag', 'wave', 'fence', 'zigzag_arc', 'arc_zigzag', 'zigzag_arc_zigzag'],
 });
 export const knownShape = kind => Object.hasOwn(SHAPE_TITLES, kind);
 const identity = { angle: 0, tx: 0, ty: 0, scale: 1 };
@@ -17,9 +17,9 @@ export function normalizeVariant(raw) {
   const legacy = { scale: Number.isFinite(raw?.scale) ? Math.max(.55, Math.min(1.1, raw.scale)) : 1,
     angle: Number.isFinite(raw?.angle) ? Math.max(-180, Math.min(180, raw.angle)) : 0,
     aspect: Number.isFinite(raw?.aspect) ? Math.max(.9, Math.min(1.08, raw.aspect)) : 1 };
-  if (raw?.schema !== 4) return legacy;
+  if (![4,5].includes(raw?.schema)) return legacy;
   const unit = n => Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : .5;
-  return { ...legacy, scale: 1, schema: 4, seed: Number.isSafeInteger(raw.seed) ? raw.seed >>> 0 : 1,
+  return { ...legacy, scale: 1, schema: raw.schema, seed: Number.isSafeInteger(raw.seed) ? raw.seed >>> 0 : 1,
     size: unit(raw.size), positionX: unit(raw.positionX), positionY: unit(raw.positionY) };
 }
 export function transformPoint(p, frame, inverse = false) {
@@ -87,6 +87,7 @@ const definitions = {
   arc: [ellipse(220,140, Math.PI, Math.PI, 500,570)],
   semicircle: [ellipse(200,200, Math.PI, Math.PI, 500,600)],
   zigzag: [polyline([[250,500],[350,420],[450,580],[550,420],[650,580],[750,500]])],
+  fence: [polyline([[260,560],[260,440],[380,440],[380,560],[500,560],[500,440],[620,440],[620,560],[740,560]])],
   wave: [sampled(Array.from({ length: 361 }, (_, i) => ({ x: 250 + 500 * i / 360, y: 500 - 100 * Math.sin(i / 360 * Math.PI * 2) })))],
   zigzag_arc: [joinPaths([polyline([[250,500],[300,420],[350,580],[400,420],[450,500]]), ellipse(150,140, Math.PI, Math.PI, 600,500)])],
   arc_zigzag: [joinPaths([ellipse(150,140, Math.PI, Math.PI, 400,500), polyline([[550,500],[600,420],[650,580],[700,420],[750,500]])])],
@@ -95,7 +96,7 @@ const definitions = {
     segment([300,380],[400,280]),segment([400,280],[700,280]),segment([700,280],[700,600]),segment([700,600],[600,700]),segment([700,280],[600,380])],
 };
 // A stored seed describes a generated contour, including the number of visible sides.
-function proceduralParts(kind, seed) {
+function proceduralParts(kind, seed, version) {
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   const between = (a,b) => a + random() * (b-a);
   const count = (a,b) => Math.floor(between(a,b+1));
@@ -116,13 +117,19 @@ function proceduralParts(kind, seed) {
     const start=count(0,edges.length-1),visible=count(1,edges.length);
     return [...edges.slice(start),...edges.slice(0,start)].slice(0,visible);
   }
+  if(kind==='fence') {
+    const teeth=count(2,3),height=between(60,110),left=500-halfW,step=halfW/teeth,vertices=[[left,500+height]];
+    for(let i=0;i<teeth;i++){const x=left+2*i*step;vertices.push([x,500-height],[x+step,500-height],[x+step,500+height],[x+2*step,500+height]);}
+    return [polyline(vertices)];
+  }
   if(kind==='arc'||kind==='semicircle') {
     const rx=between(140,250),ry=kind==='semicircle'?rx:between(90,220),sweep=kind==='semicircle'?Math.PI:between(Math.PI*.5,Math.PI*1.5);
-    return [ellipse(rx,ry,between(-Math.PI,Math.PI),sweep)];
+    const start=between(-Math.PI,Math.PI),direction=version===5&&random()<.5?-1:1;
+    return [ellipse(rx,ry,start,sweep*direction)];
   }
   const zig = (x0,x1,amplitude,turns) => polyline(Array.from({length:turns+2},(_,i)=>[x0+(x1-x0)*i/(turns+1),i===0||i===turns+1?500:500+(i%2?-1:1)*amplitude]));
   if(kind==='zigzag')return [zig(500-halfW,500+halfW,between(65,140),count(2,6))];
-  if(kind==='wave') {const cycles=between(.7,2),amp=between(55,135);return [sampled(Array.from({length:481},(_,i)=>({x:500-halfW+2*halfW*i/480,y:500-amp*Math.sin(i/480*Math.PI*2*cycles)})))];}
+  if(kind==='wave') {const cycles=between(.7,version===5?2.5:2),amp=between(55,135);return [sampled(Array.from({length:481},(_,i)=>({x:500-halfW+2*halfW*i/480,y:500-amp*Math.sin(i/480*Math.PI*2*cycles)})))];}
   const amp=between(60,120),turns=count(2,4),arcH=between(85,180);
   if(kind==='zigzag_arc')return [joinPaths([zig(240,440,amp,turns),ellipse(160,arcH,Math.PI,Math.PI,600,500)])];
   if(kind==='arc_zigzag')return [joinPaths([ellipse(160,arcH,Math.PI,Math.PI,400,500),zig(560,760,amp,turns)])];
@@ -131,15 +138,15 @@ function proceduralParts(kind, seed) {
 export function shapeDefinition(kind = 'short_line', rawVariant) {
   const id = knownShape(kind) ? kind : 'short_line', variant = normalizeVariant(rawVariant);
   let base = definitions[id];
-  if (variant.schema !== 4 && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
-  if (variant.schema !== 4 && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
-  if (variant.schema === 4) base = proceduralParts(id, variant.seed);
+  if (![4,5].includes(variant.schema) && ['oval', 'tilted_oval'].includes(id)) base = [{ ...ellipse(220 * variant.aspect, 120 / variant.aspect, undefined, undefined, undefined, undefined, [1.35,3]), frame: { ...identity, angle: id === 'tilted_oval' ? -45 : 0 } }];
+  if (![4,5].includes(variant.schema) && id === 'rectangle') base = polygon([[500 - 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 - 140 / variant.aspect],[500 + 230 * variant.aspect,500 + 140 / variant.aspect],[500 - 230 * variant.aspect,500 + 140 / variant.aspect]]);
+  if ([4,5].includes(variant.schema)) base = proceduralParts(id, variant.seed, variant.schema);
   const parts = base.map(part => {
     const frame = combineFrame(part.frame, variant);
     return { ...part, frame, travelLength: part.length * frame.scale };
   });
   const steps = parts.map(p => p.type === 'line' ? 800 : Math.max(800, Math.min(2400, p.length * 2)));
-  return { id, variant, title: variant.schema === 4 && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
+  return { id, variant, title: [4,5].includes(variant.schema) && ['short_line','vertical_line','diagonal_up','diagonal_down'].includes(id) ? 'Прямая' : SHAPE_TITLES[id], parts, closed: ['circle','oval','tilted_oval','square','rectangle','rhombus','parallelepiped'].includes(id),
     length: parts.reduce((sum, p) => sum + p.travelLength, 0), steps,
     motionMs: parts.length > 1 ? steps.reduce((sum, ms) => sum + ms + 400, 0) : parts[0].type === 'line' ? 1200 : steps[0] };
 }
