@@ -7,15 +7,26 @@ const output='output/drawing-coloring';await mkdir(output,{recursive:true});
 const errors=[];
 async function ready(page,url){await page.goto(url);await page.locator('.coloring[data-phase="trace"]').waitFor();await page.waitForFunction(()=>document.querySelector('.coloring__board')?.width>100);}
 async function snapshot(page){return page.evaluate(()=>{const key=Object.keys(localStorage).filter(k=>k.startsWith('drawing-coloring:')).at(-1);return {key,...JSON.parse(localStorage.getItem(key))};});}
-async function gesture(page,points,pointerType='pen'){
-  await page.evaluate(async({points,pointerType})=>{
+async function gesture(page,points,pointerType='pen',frameByFrame=false){
+  await page.evaluate(async({points,pointerType,frameByFrame})=>{
     const board=document.querySelector('.coloring__board'),r=board.getBoundingClientRect(),view=JSON.parse(board.dataset.view);
     const scale=Math.min(r.width/view.width,r.height/view.height);
     const send=(type,p)=>board.dispatchEvent(new PointerEvent(type,{bubbles:true,button:0,buttons:type==='pointerup'?0:1,pointerType,pointerId:1,
       clientX:r.left+(r.width-view.width*scale)/2+(p.x-view.x)*scale,clientY:r.top+(r.height-view.height*scale)/2+(p.y-view.y)*scale}));
-    send('pointerdown',points[0]);for(const p of points.slice(1))send('pointermove',p);send('pointerup',points.at(-1));
+    send('pointerdown',points[0]);
+    if(frameByFrame)await new Promise(requestAnimationFrame);
+    for(const p of points.slice(1)){
+      send('pointermove',p);
+      if(frameByFrame){
+        // Repaint SessionScreen between real input frames. Replacing only the
+        // params object's identity must not end the held stroke.
+        window.previewStore.setState({students:[...window.previewStore.getState().students]});
+        await new Promise(requestAnimationFrame);
+      }
+    }
+    send('pointerup',points.at(-1));
     await new Promise(requestAnimationFrame);
-  },{points,pointerType});
+  },{points,pointerType,frameByFrame});
 }
 try {
   const page=await browser.newPage({viewport:{width:1180,height:900}});
@@ -24,7 +35,7 @@ try {
   let saved=await snapshot(page);assert(saved.sheet.shapes.length>1);
   await page.screenshot({path:`${output}/tablet-start.png`});
   const first=saved.sheet.shapes[0];
-  await gesture(page,[...first.points,first.points[0]]);
+  await gesture(page,[...first.points,first.points[0]],'pen',true);
   await page.locator('.coloring[data-phase="fill"]').waitFor();
   saved=await snapshot(page);assert.equal(saved.progress.shapes[0].filled.length,0);
   // Fill the first real random figure with closely spaced short horizontal strokes.
@@ -35,7 +46,7 @@ try {
       if(run.length)result.push(run);
     }return result;
   },first.points);
-  for(const stroke of strokes){if(await page.locator('.coloring').getAttribute('data-phase')==='done')break;await gesture(page,stroke);}
+  for(const [i,stroke] of strokes.entries()){if(await page.locator('.coloring').getAttribute('data-phase')==='done')break;await gesture(page,stroke,'pen',i<6);}
   assert.equal(await page.locator('.coloring').getAttribute('data-phase'),'done');
   saved=await snapshot(page);assert(saved.progress.shapes[0].filled.length>0);
   await page.screenshot({path:`${output}/tablet-first-done.png`});
@@ -68,5 +79,5 @@ try {
   await phone.setViewportSize({width:844,height:390});
   assert.equal((await snapshot(phone)).progress.shapes[0].phase,'fill');
   await phone.screenshot({path:`${output}/phone-rotated.png`});
-  assert.deepEqual(errors,[]);console.log('Coloring: real ZIP, trace/fill, failure, reload, 16 sheets, regenerated loop, phone paths, overview and rotation passed.');
+  assert.deepEqual(errors,[]);console.log('Coloring: separate input frames and parent updates, real ZIP, trace/fill, failure, reload, 16 sheets, regenerated loop, phone paths, overview and rotation passed.');
 } finally {await browser.close();}

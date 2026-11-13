@@ -14,7 +14,9 @@ function paint(canvas,snapshot,view,options,focused) {
   const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
   const ratio=Math.min(2,window.devicePixelRatio||1),ctx=canvas.getContext('2d',{alpha:false,desynchronized:false,willReadFrequently:true});
   if(!ctx)return;
-  canvas.width=Math.round(rect.width*ratio);canvas.height=Math.round(rect.height*ratio);
+  const width=Math.round(rect.width*ratio),height=Math.round(rect.height*ratio);
+  if(canvas.width!==width)canvas.width=width;
+  if(canvas.height!==height)canvas.height=height;
   ctx.setTransform(ratio,0,0,ratio,0,0);ctx.fillStyle='#fff';ctx.fillRect(0,0,rect.width,rect.height);
   const scale=Math.min(rect.width/view.width,rect.height/view.height);
   ctx.translate((rect.width-view.width*scale)/2,(rect.height-view.height*scale)/2);ctx.scale(scale,scale);ctx.translate(-view.x,-view.y);
@@ -52,7 +54,10 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
     return {x:0,y:0,width:snapshot.sheet.width,height:snapshot.sheet.height};
   },[snapshot,compact,overview,shape]);
   const scale=Math.min(size.width/view.width,size.height/view.height)||1;
-  const options=useMemo(()=>coloringOptions(sessionParams,scale),[sessionParams,scale]);
+  // SessionScreen recreates its params object on parent updates. Keep the
+  // active gesture alive unless the actual tool settings or scale change.
+  const {inputMode,outsideTolerance,fillTarget}=sessionParams;
+  const options=useMemo(()=>coloringOptions({inputMode,outsideTolerance,fillTarget},scale),[inputMode,outsideTolerance,fillTarget,scale]);
   const attempt=useMemo(()=>shape&&state?createColoringAttempt(shape,state,options):null,[shape,state,options]);
   const correct=sessionStatus==='answer_correct';
   const disabled=interactionDisabled||correct||overview||!attempt||state?.phase==='done';
