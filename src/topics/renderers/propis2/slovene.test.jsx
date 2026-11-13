@@ -88,7 +88,7 @@ describe("Slovenian (draft)", () => {
       if ("bvor".includes(ch)) expect(end, `${ch} ends at the top`).toBeCloseTo(1, 1);
       else if (!"sš".includes(ch)) expect(end, `${ch} ends half-way up`).toBeCloseTo(0.48, 1);
       const lifts = g.strokes.slice(1).map((st) => st.name);
-      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
+      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], r: ["крючок"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
       expect(lifts, ch).toEqual(allowed);
     }
   });
@@ -171,6 +171,7 @@ describe("Slovenian (draft)", () => {
         ["words1", "sl_cursive", ["ima imata", "rumen zelen", "mamin trava"], "sl_10"],
         ["cmp", "sl_cursive", ["rumen", "mamin", "ovca", "muca"], "sl_10"],
         ["vire", "sl_cursive", ["Vid Vika#1", "reka drevo#1", "Jure brest#1", "vi ve#1"], "sl_10"],
+        ["rwords", "sl_cursive", ["r ra re#1", "trava rumen#1", "krava prst#1", "riba Peter#1"], "sl_10"],
         ["capsfoot", "sl_cursive", ["Izak David#1", "Primož Bor#1", "Tanja Nina#1", "Filip Sara#1"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);

@@ -6,7 +6,8 @@
 //   - every letter starts ON THE BASELINE with a rising lead-in from the left («začetni spodnji zamah»);
 //   - every letter ends with an exit stroke half-way up the x band (y ≈ 74), except b o r v — those end at the top (y ≈ 50);
 //   - one movement per letter (enopoteznost): the pen goes back over its own line rather than lifting (d, the stems of h k m n p r t);
-//     only the dots of i j, the bar of t, the carons of č š ž and the exit of f (the model writes f in two strokes, «z eno ali dvema
+//     only the dots of i j, the bar of t, the carons of č š ž, the hook of r (written after the stem, from the x-line: owner,
+//     2026-11-13, as in the model) and the exit of f (the model writes f in two strokes, «z eno ali dvema
 //     potezama») are lifts;
 //   - no decoration.
 // Each path runs in the writing direction (its first point is the start dot). Width = where the exit ends.
@@ -57,7 +58,7 @@ const lower = {
   n: [105, [s(`M 1.5,98.5 C 15,77 30,51 38,51 C 42,51 44,54 44,60 L 44,98.5 L 44,62 C 47,55 51,51 57,51 C 65,51 69,57 69,64 ${exitFrom(69, 105)}`, "две горки")]],
   o: [79, [s(`${ovalWithLeadIn(35, 17.5, 24.5, 75, -90)} C 43,50.5 49,60 55,66 C 62,72 70,58 79,50`, "овал с выходом наверху")]],
   p: [103.5, [s(`M 1.5,98.5 L 36.5,50 L 36.5,147.5 L 36.5,64 C 40,56 47,50 55,50 C 65,50 70,58 70,68 ${exitFrom(70, 103.5)}`, "палочка вниз и горка")]],
-  r: [74, [s("M 1.5,98.5 C 15,77 30,51 40,51 C 46,51 50,53 50,58 L 50,98.5 L 50,66 C 51,70 57,70 62,67 C 67,64 72,58 74,52", "горка, палочка и чашечка")]],
+  r: [74, [s("M 1.5,98.5 C 15,77 30,51 40,51 C 46,51 50,53 50,58 L 50,98.5", "горка и палочка"), s("M 50,53 C 51,64 56,69 62,67 C 67,65 72,58 74,52", "крючок")]],
   s: [60, [s("M 1.5,98.5 L 37,51.5 C 36.5,57 38,62 44,64.5 C 54,68 60,73 60,82 C 60,92 53,98 45,98 C 39,98 35,95 33,91", "острый верх и полуовал")]],
   t: [75, [s(`M 1,98.5 C 12,88 30,74 38.5,60 L 38.5,1 ${exitFrom(38.5, 75)}`, "палочка"), s(line([25, 50], [52.5, 50]), "черта")]],
   u: [100, [s(`M 1.5,98.5 C 15,90 32,70 37.5,50 L 37.5,88 C 37.5,95 41,98.5 47.5,98.5 C 57,98.5 64,90 64,78 L 64,50 ${exitFrom(64, 100)}`, "две палочки")]],
