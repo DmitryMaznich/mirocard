@@ -1280,6 +1280,56 @@ function cutLegAtLevel(d, yLevel) {
   return null;
 }
 // Cuts a path at the point of it that lies nearest to `pt` (the part before that point is dropped): returns { pt, rest }.
+// After a capital, into an oval letter (a c d g o …; the Slovene school hand, `meetJoins.capLeadIn`, docs/propis2-sl.md steps 4у–4ф):
+// the join runs along the trajectory of the capital's join into u — the lead-in of the `capLeadIn` letter set where it meets the
+// capital's exit (end E, direction tE; `prefix`: what of the join is drawn before E, the retrace up a capital's curl) — until it
+// crosses the letter's rising left side above the middle of the x-height. Returns where the letter starts and the join, or null.
+function capLeadInTrail(glyphsByLabel, scale, E, tE0, prefix, pts, k, start0) {
+  const lead = glyphsByLabel?.script?.meetJoins?.capLeadIn;
+  if (!lead || !glyphsByLabel.get(lead) || k < 2) return null;
+  const xh = WIDE_ZONE_UNITS * scale;
+  const up = samplePath(wideGlyphLocal(glyphsByLabel.get(lead), scale).strokes[0].d, 120);
+  let uk = 0;
+  for (let i = 1; i < up.length; i += 1) { if (up[i][1] > up[uk][1] + 0.5 * scale) break; if (up[i][1] <= up[uk][1]) uk = i; }
+  if (!(uk > 0 && E[1] > up[uk][1] + 3 * scale)) return null;
+  // where the exit runs into that lead-in — as the mid-exit join finds it (an exit below the line, J: into the lead-in's foot)
+  const tE = nlsUnit(...tE0);
+  const ang = (v) => Math.atan2(-v[1], v[0]);
+  let best = null;
+  for (let q = 1; q < uk; q += 1) {
+    if (up[q][1] > E[1] - 0.03 * xh) continue;
+    const tq = nlsUnit(up[q + 1][0] - up[q - 1][0], up[q + 1][1] - up[q - 1][1]);
+    if (tq[1] > -0.2) continue;
+    const score = Math.abs(ang(tq) - ang(tE)) + 0.004 * (E[1] - up[q][1]) / scale;
+    if (!best || score < best.score) best = { q, tq, score };
+  }
+  if (!best) return null;
+  const sx = E[0] + best.tq[0] * ((E[1] - up[best.q][1]) / -best.tq[1]) - up[best.q][0];
+  const trail = [E, ...up.slice(best.q, uk + 1).map((p) => [p[0] + sx, p[1]])];
+  const xAt = (y) => {
+    for (let i = 1; i < trail.length; i += 1) if (trail[i][1] <= y && trail[i - 1][1] >= y) {
+      const t = (trail[i - 1][1] - y) / ((trail[i - 1][1] - trail[i][1]) || 1);
+      return { x: trail[i - 1][0] + (trail[i][0] - trail[i - 1][0]) * t, i, d: nlsUnit(trail[i][0] - trail[i - 1][0], trail[i][1] - trail[i - 1][1]) };
+    }
+    return null;
+  };
+  // the crossing: on the letter's rising left side, above the middle of the x-height, where the two run most alike
+  const base = pts[0][1];
+  let pick = null;
+  for (let j = 1; j < k; j += 1) {
+    const y = pts[j][1];
+    if (y > base - 0.5 * xh || y < base - 0.9 * xh) continue;
+    const tr = xAt(y);
+    if (!tr) continue;
+    const tj = nlsUnit(pts[j + 1][0] - pts[j - 1][0], pts[j + 1][1] - pts[j - 1][1]);
+    const a = Math.abs(ang(tj) - ang(tr.d));
+    if (!pick || a < pick.a) pick = { j, a, tr, tj };
+  }
+  if (!pick) return null;
+  const X = [pick.tr.x, pts[pick.j][1]];
+  return { want: X[0] - pts[pick.j][0] + start0, join: { type: "join", P: pts[pick.j], t: pick.tj, path: [...prefix, ...trail.slice(0, pick.tr.i), X], exact: true, from: prefix[0] ?? E } };
+}
+
 function cutPathNear(d, pt, firstWithin = null) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
@@ -2362,45 +2412,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // (`meetJoins.capLeadIn`, the letter whose lead-in it is) until it crosses the letter's left side above the middle of the
           // x-height; the letter stands where that crossing falls and is written on from there (owner, 2026-11-14: «Ma … соединение от M
           // идёт по этой же траектории что и Mi до пересечения с a выше середины рабочей строки»)
-          const capTrail = (() => {
-            const lead = glyphsByLabel.script.meetJoins.capLeadIn;
-            if (!lead || inside || !prevLabel || prevLabel === prevLabel.toLowerCase() || !meet.ovalInto.has(label) || !glyphsByLabel.get(lead) || k < 2) return null;
-            const xh = WIDE_ZONE_UNITS * scale;
-            const up = samplePath(wideGlyphLocal(glyphsByLabel.get(lead), scale).strokes[0].d, 120);
-            let uk = 0;
-            for (let i = 1; i < up.length; i += 1) { if (up[i][1] > up[uk][1] + 0.5 * scale) break; if (up[i][1] <= up[uk][1]) uk = i; }
-            if (!(uk > 0 && E[1] > up[uk][1] + 3 * scale && E[1] < up[0][1])) return null;
-            // where the capital's exit runs into that lead-in — as the mid-exit join below finds it
-            const tE = nlsUnit(...prevMeetExit.t);
-            const ang = (v) => Math.atan2(-v[1], v[0]);
-            let best = null;
-            for (let q = 1; q < uk; q += 1) {
-              if (up[q][1] > E[1] - 0.03 * xh) continue;
-              const tq = nlsUnit(up[q + 1][0] - up[q - 1][0], up[q + 1][1] - up[q - 1][1]);
-              if (tq[1] > -0.2) continue;
-              const score = Math.abs(ang(tq) - ang(tE)) + 0.004 * (E[1] - up[q][1]) / scale;
-              if (!best || score < best.score) best = { q, tq, score };
-            }
-            if (!best) return null;
-            const sx = E[0] + best.tq[0] * ((E[1] - up[best.q][1]) / -best.tq[1]) - up[best.q][0];
-            const trail = [E, ...up.slice(best.q, uk + 1).map((p) => [p[0] + sx, p[1]])];
-            const xAt = (y) => { for (let i = 1; i < trail.length; i += 1) if (trail[i][1] <= y && trail[i - 1][1] >= y) { const t = (trail[i - 1][1] - y) / ((trail[i - 1][1] - trail[i][1]) || 1); return { x: trail[i - 1][0] + (trail[i][0] - trail[i - 1][0]) * t, i, d: nlsUnit(trail[i][0] - trail[i - 1][0], trail[i][1] - trail[i - 1][1]) }; } return null; };
-            // the crossing: on the letter's rising left side, above the middle of the x-height, where the two run most alike
-            const base = pts[0][1];
-            let pick = null;
-            for (let j = 1; j < k; j += 1) {
-              const y = pts[j][1];
-              if (y > base - 0.5 * xh || y < base - 0.9 * xh) continue;
-              const tr = xAt(y);
-              if (!tr) continue;
-              const tj = nlsUnit(pts[j + 1][0] - pts[j - 1][0], pts[j + 1][1] - pts[j - 1][1]);
-              const a = Math.abs(ang(tj) - ang(tr.d));
-              if (!pick || a < pick.a) pick = { j, a, tr, tj };
-            }
-            if (!pick) return null;
-            const X = [pick.tr.x, pts[pick.j][1]];
-            return { want: X[0] - pts[pick.j][0] + local.start[0], join: { type: "join", P: pts[pick.j], t: pick.tj, path: [...trail.slice(0, pick.tr.i), X], exact: true } };
-          })();
+          const capTrail = prevLabel && prevLabel !== prevLabel.toLowerCase() && meet.ovalInto.has(label)
+            ? capLeadInTrail(glyphsByLabel, scale, E, prevMeetExit.t, [], pts, k, local.start[0]) : null;
           if (capTrail) {
             wantStartX = capTrail.want;
             meetJoin = capTrail.join;
@@ -2648,6 +2661,23 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             if (Number.isFinite(need)) dxL = Math.max(dxL, need);
             wantStartX = local.start[0] + dxL;
             meetJoin = { type: "join", P: T, t: [tl[0], tl[1]], from: foot, path };
+            // into an oval letter: along the capital → u trajectory (`capLeadIn`), from the point of the retrace up the curl where the
+            // curl already runs at that lead-in's starting slope (owner, 2026-11-14: «такие соединения в парах Ia, Da, Ja и подобных»)
+            if (meet.ovalInto.has(label)) {
+              const lead = glyphsByLabel.script.meetJoins.capLeadIn && glyphsByLabel.get(glyphsByLabel.script.meetJoins.capLeadIn);
+              if (lead) {
+                const u0 = samplePath(wideGlyphLocal(lead, scale).strokes[0].d, 120);
+                const a0 = Math.atan2(-(u0[2][1] - u0[0][1]), u0[2][0] - u0[0][0]);
+                // (no retrace — I: its foot is the rightmost low point — the trail leaves the foot level)
+                let ie = path.length - 1;
+                for (let i = 1; i < path.length; i += 1) if (Math.atan2(-(path[i][1] - path[i - 1][1]), path[i][0] - path[i - 1][0]) >= a0) { ie = i; break; }
+                const dE = ie > 0 ? [path[ie][0] - path[ie - 1][0], path[ie][1] - path[ie - 1][1]] : [1, 0];
+                let kk = 0;
+                for (let i = 1; i < lp.length; i += 1) { if (lp[i][1] > lp[kk][1] + 0.5 * scale) break; if (lp[i][1] <= lp[kk][1]) kk = i; }
+                const ct = capLeadInTrail(glyphsByLabel, scale, path[ie], dE, path.slice(0, ie), lp, kk, local.start[0]);
+                    if (ct) { wantStartX = ct.want; meetJoin = ct.join; }
+              }
+            }
           }
         }
         // after a capital, an oval letter (a c d g o …) stands further off (`meetJoins.capOvalGap`, share of the x-height; owner,
