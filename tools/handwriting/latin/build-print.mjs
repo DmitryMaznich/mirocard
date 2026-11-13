@@ -27,7 +27,7 @@ const STYLES = { print: { upper: 1, lower: 1 }, british: { upper: 0.74, lower: 0
   // three equal bands (fourLinePapers.js `sl`), so in the source's own proportions (docs/propis2-sl.md)
   print_sl: { upper: 1, lower: 1 },
   // `slovene`: the Slovenian school cursive (tools/latin_letters/glyphs/slovene.mjs), same paper, same proportions
-  slovene: { upper: 1, lower: 1, wide: 1.25 } };
+  slovene: { upper: 1, lower: 1 } };
 if (!STYLES[STYLE]) throw new Error(`unknown --style ${STYLE}`);
 const { upper: UPPER, lower: LOWER, src: SRC = STYLE, capHeightOnly = false, wide = 1 } = STYLES[STYLE];
 const src = JSON.parse(readFileSync(here(`../../latin_letters/glyphs/${SRC}.json`), "utf8"));
