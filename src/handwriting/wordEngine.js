@@ -2358,7 +2358,53 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // its ink and the join runs from the curl out under the bowl, level, into the lead-in at that height
           const prevRight = Math.max(...prevGlyphStrokes.flatMap((m) => samplePath(m.d, 30).map((q) => q[0])));
           const inside = E[0] < prevRight - 0.2 * WIDE_ZONE_UNITS * scale;
-          if (inside && k > 0 && E[1] < pts[0][1] + 0.5 * scale) {
+          // after a capital, into an oval letter (a c d g o …): the join runs along the very trajectory of the capital's join into u / i
+          // (`meetJoins.capLeadIn`, the letter whose lead-in it is) until it crosses the letter's left side above the middle of the
+          // x-height; the letter stands where that crossing falls and is written on from there (owner, 2026-11-14: «Ma … соединение от M
+          // идёт по этой же траектории что и Mi до пересечения с a выше середины рабочей строки»)
+          const capTrail = (() => {
+            const lead = glyphsByLabel.script.meetJoins.capLeadIn;
+            if (!lead || inside || !prevLabel || prevLabel === prevLabel.toLowerCase() || !meet.ovalInto.has(label) || !glyphsByLabel.get(lead) || k < 2) return null;
+            const xh = WIDE_ZONE_UNITS * scale;
+            const up = samplePath(wideGlyphLocal(glyphsByLabel.get(lead), scale).strokes[0].d, 120);
+            let uk = 0;
+            for (let i = 1; i < up.length; i += 1) { if (up[i][1] > up[uk][1] + 0.5 * scale) break; if (up[i][1] <= up[uk][1]) uk = i; }
+            if (!(uk > 0 && E[1] > up[uk][1] + 3 * scale && E[1] < up[0][1])) return null;
+            // where the capital's exit runs into that lead-in — as the mid-exit join below finds it
+            const tE = nlsUnit(...prevMeetExit.t);
+            const ang = (v) => Math.atan2(-v[1], v[0]);
+            let best = null;
+            for (let q = 1; q < uk; q += 1) {
+              if (up[q][1] > E[1] - 0.03 * xh) continue;
+              const tq = nlsUnit(up[q + 1][0] - up[q - 1][0], up[q + 1][1] - up[q - 1][1]);
+              if (tq[1] > -0.2) continue;
+              const score = Math.abs(ang(tq) - ang(tE)) + 0.004 * (E[1] - up[q][1]) / scale;
+              if (!best || score < best.score) best = { q, tq, score };
+            }
+            if (!best) return null;
+            const sx = E[0] + best.tq[0] * ((E[1] - up[best.q][1]) / -best.tq[1]) - up[best.q][0];
+            const trail = [E, ...up.slice(best.q, uk + 1).map((p) => [p[0] + sx, p[1]])];
+            const xAt = (y) => { for (let i = 1; i < trail.length; i += 1) if (trail[i][1] <= y && trail[i - 1][1] >= y) { const t = (trail[i - 1][1] - y) / ((trail[i - 1][1] - trail[i][1]) || 1); return { x: trail[i - 1][0] + (trail[i][0] - trail[i - 1][0]) * t, i, d: nlsUnit(trail[i][0] - trail[i - 1][0], trail[i][1] - trail[i - 1][1]) }; } return null; };
+            // the crossing: on the letter's rising left side, above the middle of the x-height, where the two run most alike
+            const base = pts[0][1];
+            let pick = null;
+            for (let j = 1; j < k; j += 1) {
+              const y = pts[j][1];
+              if (y > base - 0.5 * xh || y < base - 0.9 * xh) continue;
+              const tr = xAt(y);
+              if (!tr) continue;
+              const tj = nlsUnit(pts[j + 1][0] - pts[j - 1][0], pts[j + 1][1] - pts[j - 1][1]);
+              const a = Math.abs(ang(tj) - ang(tr.d));
+              if (!pick || a < pick.a) pick = { j, a, tr, tj };
+            }
+            if (!pick) return null;
+            const X = [pick.tr.x, pts[pick.j][1]];
+            return { want: X[0] - pts[pick.j][0] + local.start[0], join: { type: "join", P: pts[pick.j], t: pick.tj, path: [...trail.slice(0, pick.tr.i), X], exact: true } };
+          })();
+          if (capTrail) {
+            wantStartX = capTrail.want;
+            meetJoin = capTrail.join;
+          } else if (inside && k > 0 && E[1] < pts[0][1] + 0.5 * scale) {
             let i = 1;
             while (i < k && pts[i][1] > E[1]) i += 1;
             const T = pts[Math.max(1, i)];
@@ -2608,7 +2654,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // 2026-11-13, the sheet «IMENA»: «соединение от заглавной к буквам с овалами длиннее, строчная дальше от заглавной»): the
         // join is drawn to the letter where it now stands — longer, not bent. So does e after a capital whose exit runs into it
         // (L M A U H …; owner, 2026-11-14: «L соединялась со e под углом как с a» — e stood close up, the join steep)
-        if (meet && meetJoin && prevLabel && prevLabel !== prevLabel.toLowerCase() && (meet.ovalInto.has(label) || (meet.loopInto.has(label) && meetJoin.type === "line")) && Number.isFinite(wantStartX))
+        if (meet && meetJoin && prevLabel && prevLabel !== prevLabel.toLowerCase() && !meetJoin.exact && (meet.ovalInto.has(label) || (meet.loopInto.has(label) && meetJoin.type === "line")) && Number.isFinite(wantStartX))
         {
           wantStartX += (glyphsByLabel.script.meetJoins.capOvalGap ?? 0) * WIDE_ZONE_UNITS * scale;
           // (the letter moved on: the exit's cut is found again when the join is drawn, pointing at where the letter now stands)
@@ -2661,7 +2707,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // else placed it — f's tail under the line touched q's and s's (the pair check, owner, 2026-11-09: «как нам комплексно проверить
         // все соединения»)
         // (not before e's loop: the flick of the letter before is cut off there, e stands where it was)
-        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop && meetJoin?.type !== "meet" && meetJoin?.type !== "line" && !meetJoin?.from && !meetJoin?.alongExit) {
+        if (unjoined && loose && prevGlyphStrokes && !inCell && !afterSign && glyph.kind === "letter" && !nelsonJoin?.tg.intoLoop && meetJoin?.type !== "meet" && meetJoin?.type !== "line" && !meetJoin?.from && !meetJoin?.alongExit && !meetJoin?.exact) {
           const rows = new Map();
           for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 60)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
           let need = -Infinity;
@@ -3000,7 +3046,18 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // (the retrace along the capital's curl stops where the curl's own direction points at the letter — the straight line goes
             // on from there without a bend; owner, 2026-11-13: «линия соединения стала горбатой» once the letter stood further off)
             let rp = meetJoin.path;
-            if (rp && rp.length > 2) {
+            if (meetJoin.exact && ei >= 0 && rp.length > 1) {
+              // the exit's end turned onto the trail's first straight piece, as the capital's join into i / u does
+              const tk = toCubicPathD(strokes[ei].d).match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?|[MC]/g);
+              const n = tk.length;
+              if (n >= 7 && tk[n - 7] === "C") {
+                const ex = Number(tk[n - 2]), ey = Number(tk[n - 1]), len = Math.max(Math.hypot(ex - Number(tk[n - 4]), ey - Number(tk[n - 3])), 4 * scale);
+                const ln = nlsUnit(rp[1][0] - rp[0][0], rp[1][1] - rp[0][1]);
+                tk[n - 4] = f3(ex - ln[0] * len); tk[n - 3] = f3(ey - ln[1] * len);
+                strokes[ei] = { ...strokes[ei], d: tk.join(" ") };
+              }
+            }
+            if (rp && rp.length > 2 && !meetJoin.exact) {
               const ang = (v) => Math.atan2(-v[1], v[0]);
               let j = rp.length - 1, bestA = Infinity;
               for (let i = 1; i < rp.length; i += 1) {
