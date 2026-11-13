@@ -298,7 +298,7 @@
             "letterGap": 0,
             "wordGap": 56,
             "meetJoins": {
-              "noExitFrom": "BDFINPSŠT",
+              "noExitFrom": "BDFINOPSŠTV",
               "loopInto": "e"
             }
           },

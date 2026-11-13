@@ -2342,10 +2342,16 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // an exit at the top: a short join to the top of the lead-in (into e: to its lead-in a little below, the loop's right side)
             const into = meet.loopInto.has(label);
             let j = k;
-            if (into) { const yT = pts[k][1] + 0.4 * (pts[0][1] - pts[k][1]); j = 1; while (j < k && pts[j][1] > yT) j += 1; }
+            // into e: the join IS e's bar — it runs across, dipping a little, to the eye's right side (its rightmost point on the way up)
+            // and the eye goes on round from there; the eye stands clear right of the exit (owner, 2026-11-13: «re» came out as «ρ» when
+            // the join came down into the eye's left side)
+            if (into) { j = 1; for (let q = 1; q < k; q += 1) if (pts[q][1] < pts[0][1] - 0.3 * WIDE_ZONE_UNITS * scale && pts[q][0] >= pts[j][0]) j = q; }
             const T = pts[j], T0 = pts[Math.max(0, j - 2)];
-            wantStartX = E[0] + (into ? 0.25 : 0.2) * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
-            meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]] };
+            const eyeLeft = into ? Math.min(...pts.slice(k).filter((q) => q[1] < pts[0][1] - 0.35 * WIDE_ZONE_UNITS * scale).map((q) => q[0])) : null;
+            wantStartX = into && Number.isFinite(eyeLeft)
+              ? E[0] + 0.22 * WIDE_ZONE_UNITS * scale - eyeLeft + local.start[0]
+              : E[0] + 0.2 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
+            meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], into };
           }
         }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
@@ -2681,8 +2687,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           if (meetJoin.type === "join") {
             const E = prevMeetExit.p, L = Math.hypot(at[0] - E[0], at[1] - E[1]);
             // leaving LEVEL: from the top of o v b r (their exit ends rising: a hook up at the join otherwise) and from under s
-            const tE = [1, 0], tT = nlsUnit(...meetJoin.t);
-            const c1 = [E[0] + tE[0] * L * 0.4, E[1] + tE[1] * L * 0.4], c2 = [at[0] - tT[0] * L * 0.4, at[1] - tT[1] * L * 0.4];
+            // (into e: across, dipping a little — e's bar)
+            const tE = meetJoin.into ? nlsUnit(1, 0.3) : [1, 0], tT = nlsUnit(...meetJoin.t);
+            const k2 = meetJoin.into ? 0.3 : 0.4;
+            const c1 = [E[0] + tE[0] * L * 0.4, E[1] + tE[1] * L * 0.4], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
             const f3 = (v) => v.toFixed(3);
             strokes.push({ d: `M ${f3(E[0])} ${f3(E[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(at[0])} ${f3(at[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
           }

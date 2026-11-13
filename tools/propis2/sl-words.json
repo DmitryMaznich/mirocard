@@ -14,7 +14,7 @@
     { "id": "carons", "title": "Гачеки č š ž", "words": ["čaj", "čevelj", "mačka", "šola", "miš", "ušesa", "žaba", "roža", "žoga"] },
     { "id": "descenders", "title": "Выносные g j p → дальше", "words": ["ogenj", "jajce", "pajek", "ptica", "papir", "juha", "gnezdo", "igla"] },
     { "id": "clusters", "title": "Сочетания lj nj st sk šč pr kr tr dr gr", "words": ["ljudje", "polje", "njiva", "konji", "sklad", "ščuka", "ščetka", "prijatelj", "kruh", "drevo", "grad"] },
-    { "id": "caps-join", "title": "Заглавные с выходом справа — соединяются", "words": ["Ana", "Eva", "Miha", "Lara", "Uroš", "Jure", "Gal", "Ciril", "Hana", "Katja", "Rok", "Zala", "Žan", "Oto", "Vid", "Čarli"] },
-    { "id": "caps-apart", "title": "Заглавные B D F I N P S Š T — следующая буква со своим заходом", "words": ["Bor", "David", "Filip", "Irena", "Nina", "Peter", "Sara", "Špela", "Tina"] }
+    { "id": "caps-join", "title": "Заглавные с выходом справа — соединяются", "words": ["Ana", "Eva", "Miha", "Lara", "Uroš", "Jure", "Gal", "Ciril", "Hana", "Katja", "Rok", "Zala", "Žan", "Čarli"] },
+    { "id": "caps-apart", "title": "Заглавные B D F I N O P S Š T V — следующая буква со своим заходом", "words": ["Oto", "Vid", "Vika", "Bor", "David", "Filip", "Irena", "Nina", "Peter", "Sara", "Špela", "Tina"] }
   ]
 }

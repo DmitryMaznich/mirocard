@@ -109,7 +109,7 @@ describe("Slovenian (draft)", () => {
     }
   });
 
-  it("joined words (step 4): the exit of a letter is the lead-in of the next; after B D F I N P S Š T the next letter keeps its own", () => {
+  it("joined words (step 4): the exit of a letter is the lead-in of the next; after B D F I N O P S Š T V the next letter keeps its own", () => {
     const cur = view("sl_cursive");
     // the starts on the baseline: in a joined word only the first letter's lead-in starts there
     const baseStarts = (text) => {
@@ -169,6 +169,7 @@ describe("Slovenian (draft)", () => {
         ["names", "sl_cursive", ["Miha David", "Enea Lara", "Izak Janina"], "sl_10"],
         ["words1", "sl_cursive", ["ima imata", "rumen zelen", "mamin trava"], "sl_10"],
         ["cmp", "sl_cursive", ["rumen", "mamin", "ovca", "muca"], "sl_10"],
+        ["vire", "sl_cursive", ["Vid Vika#1", "reka drevo#1", "Jure brest#1", "vi ve#1"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);
     }
