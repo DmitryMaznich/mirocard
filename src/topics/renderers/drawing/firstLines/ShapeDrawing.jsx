@@ -1,20 +1,19 @@
 import { shapeDefinition, frameTransform, partPoint, transformPoint } from './shapes.js';
 import { resolveProfile } from './trackProfile.js';
 const pathPoints = points => points.map(p => `${p.x},${p.y}`).join(' ');
-export default function ShapeDrawing({ state, width = 'normal', passive = false, hint = false, demo = false, demoProgress = 0, demoLift = null, demoPart = null, drawing = false, ready = false }) {
+export default function ShapeDrawing({ state, width = 'normal', passive = false, hint = false, demo = false, demoProgress = 0, demoLift = null, demoPart = null, drawing = false }) {
   const shape = shapeDefinition(state.kind, state.variant);
   const profile = state.profile ?? resolveProfile(width);
   return <g data-shape={shape.id} data-size={shape.variant.scale}>
     {/* Guides are behind every stroke, including the shared corners of a square. */}
     {!passive && shape.parts.map((part, i) => {
-      const active = i === state.part && !state.done, s = state.parts[i], start = s.anchor;
+      const active = i === state.part && !state.done;
       return <g key={i} transform={frameTransform(part.frame)}>
         <path className="first-lines__track" d={part.d} strokeWidth={profile.width / part.frame.scale} opacity={active || state.done ? 1 : .5} />
-        {active && !drawing && <circle className="first-lines__start" cx={start.x} cy={start.y} r={Math.max(10, profile.width * .22) / part.frame.scale} fill="#248b79" />}
       </g>;
     })}
     {shape.parts.map((part, i) => {
-      const s = state.parts[i], active = i === state.part && !state.done;
+      const s = state.parts[i];
       const fraction = demoPart === null ? Math.max(0, Math.min(1, (demoProgress * shape.length - shape.parts.slice(0, i).reduce((sum, p) => sum + p.travelLength, 0)) / part.travelLength)) : demoProgress;
       const tip = partPoint(part, fraction);
       return <g key={i} transform={frameTransform(part.frame)} data-part={i} style={{ '--first-lines-ink-width': profile.ink / part.frame.scale }}>
@@ -28,14 +27,6 @@ export default function ShapeDrawing({ state, width = 'normal', passive = false,
           {stroke.failedFrom !== null && <polyline className="first-lines__ink first-lines__ink--error" points={pathPoints(stroke.points.slice(stroke.failedFrom))} />}
         </g>)}
         {s.marks.map((p, index) => <circle key={index} className="first-lines__mark" cx={p.x} cy={p.y} r={20 / part.frame.scale} />)}
-        {!passive && active && !drawing && (s.needsReturn || hint || s.strokes.length > 0 || state.recovery) && <circle className="first-lines__resume" cx={s.anchor.x} cy={s.anchor.y} r={Math.max(profile.width / 2, profile.resume * .55) / part.frame.scale} />}
-        {!passive && active && (shape.parts.length > 1 || part.closed && s.start) && (() => {
-          const end = part.closed && s.start ? s.start : partPoint(part, 1);
-          return <g className={`first-lines__goal${ready ? ' first-lines__goal--ready' : ''}`} transform={`translate(${end.x} ${end.y})`}>
-            <circle r={16 / part.frame.scale} fill="white" stroke="#248b79" strokeWidth={4 / part.frame.scale} />
-            {ready && <path d="m-8 0 6 6 12-14" fill="none" stroke="#248b79" strokeWidth="4" />}
-          </g>;
-        })()}
         {demo && (demoPart === null || demoPart === i) && <g className="first-lines__demo" aria-hidden="true">
           <path className="first-lines__demo-line" d={part.d} pathLength="1" strokeDashoffset={1 - fraction} />
           {(fraction > 0 && fraction < 1 || (demoPart === null ? i === 0 : i === demoPart) && demoProgress === 0 || (demoPart === null ? i === shape.parts.length - 1 : i === demoPart) && demoProgress === 1 && demoLift === null) && <circle className="first-lines__demo-tip" cx={tip.x} cy={tip.y} r={Math.max(6, profile.ink) / part.frame.scale} />}
@@ -45,13 +36,23 @@ export default function ShapeDrawing({ state, width = 'normal', passive = false,
     {demo && demoLift !== null && (() => {
       const part = shape.parts[demoLift], end = transformPoint(partPoint(part, 1), part.frame);
       return <g className="first-lines__demo-lift" transform={`translate(${end.x} ${end.y})`} aria-hidden="true">
-        <circle r="20" fill="none" stroke="#315b86" strokeWidth="5" strokeDasharray="6 5" />
         <path d="M38 12V-36M25-23l13-13 13 13" fill="none" stroke="#315b86" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
       </g>;
     })()}
-    {!passive && !shape.closed && (() => {
-      const part = shape.parts.at(-1), end = transformPoint(partPoint(part, 1), part.frame);
-      return <path className="first-lines__house" transform={`translate(${end.x - 680} ${end.y - 500})`} d="M653 494v40h54v-40M644 496l36-32 36 32M674 534v-22h13v22" />;
+    {!passive && !state.done && (() => {
+      const part = shape.parts[state.part], current = state.parts[state.part];
+      const from = drawing && current.strokes.length ? current.strokes.at(-1).points[0] : current.anchor;
+      const start = transformPoint(from, part.frame);
+      const finish = transformPoint(part.closed && current.start ? current.start : partPoint(part, 1), part.frame);
+      const radius = Math.max(14, profile.width * .22);
+      const fraction = part.type === 'line' ? (current.progress - 320) / 360 : current.progress / part.length;
+      const lead = Array.from({ length: 12 }, (_, i) => transformPoint(partPoint(part, Math.min(1, fraction + 44 / part.travelLength * i / 11)), part.frame));
+      return <g className="first-lines__endpoints" aria-hidden="true">
+        {!drawing && !current.needsReturn && <path className="first-lines__start-line" d={'M' + [start, ...lead].map(p => `${p.x} ${p.y}`).join('L')} strokeWidth={Math.max(6, profile.ink)} />}
+        <circle className="first-lines__start-halo" cx={start.x} cy={start.y} r={radius + (hint || state.recovery ? 8 : 5)} />
+        <circle className="first-lines__start" cx={start.x} cy={start.y} r={radius} fill="#0ba85b" />
+        <circle className="first-lines__goal" cx={finish.x} cy={finish.y} r={radius + 10} fill="none" stroke="#8153b5" />
+      </g>;
     })()}
   </g>;
 }

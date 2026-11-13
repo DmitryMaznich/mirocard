@@ -172,17 +172,15 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       onPointerMove={event => { if (!disabled && pointer.current === event.pointerId) { event.preventDefault(); if (!attempt.state.parts[attempt.state.part].needsReturn) { move(event); refresh(); } } }}
       onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={event => finish(event, true)}>
       {isSheet && <g className="first-lines__sheet">
-        <path d="M500 0V1000M0 500H1000" fill="none" stroke="#dce5df" strokeWidth="2" />
         {entries.map((entry, i) => entry && i !== (task.sheetSlot ?? 0) && <g key={i} transform={cellTransform(sheetCell(i))}><ShapeDrawing state={entry} passive /></g>)}
       </g>}
       <g transform={isSheet ? cellTransform(cell) : undefined}>
-        <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} drawing={drawing} ready={Boolean(liftCue)} demoPart={state.part} demo={demo} demoProgress={demoProgress} demoLift={demoLift} />
+        <ShapeDrawing state={state} width={sessionParams?.trackWidth} hint={hint} drawing={drawing} demoPart={state.part} demo={demo} demoProgress={demoProgress} demoLift={demoLift} />
       </g>
     </svg>
     {isSheet && compact && <button type="button" className="first-lines__overview" disabled={interactionDisabled || paused || demo} aria-label={peek ? 'К заданию' : 'Весь лист'} onClick={() => { attempt.end(true); pointer.current = null; setPeek(!peek); }}>
       <svg viewBox="0 0 1000 1000" aria-hidden="true">
         <rect x="4" y="4" width="992" height="992" fill="white" stroke="#a2b9ad" strokeWidth="10" />
-        <path d="M500 0V1000M0 500H1000" stroke="#dce5df" strokeWidth="8" />
         {entries.map((entry, i) => entry && i !== (task.sheetSlot ?? 0) && <g key={i} transform={cellTransform(sheetCell(i))}><ShapeDrawing state={entry} passive /></g>)}
         <g transform={cellTransform(cell)}><ShapeDrawing state={state} passive /></g>
         <rect x={cell.x + 8} y={cell.y + 8} width="484" height="484" fill="none" stroke="#248b79" strokeWidth="16" />
@@ -194,7 +192,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
           <svg viewBox="0 0 48 40" aria-hidden="true">
             {['error', 'lift'].includes(phase) || demoLift !== null && demo ? <><path d="M24 35V6M13 17 24 6l11 11" /><path d="M8 35h32" /></>
               : phase === 'stylus' ? <path d="m12 30 20-25 8 6-20 25-11 2Z" />
-                : <><circle cx="10" cy="20" r="7" fill="currentColor"/><path d="M24 20h18M34 12l8 8-8 8"/></>}
+                : <><circle cx="8" cy="20" r="6" fill="#0ba85b" stroke="white" strokeWidth="1"/><path d="M19 20h8M23 16l4 4-4 4"/><circle cx="39" cy="20" r="7" fill="none" stroke="#8153b5"/></>}
           </svg><span>{cues[phase]}</span>
         </span>}
     </div>
@@ -202,7 +200,6 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       <svg viewBox="0 0 1000 1000" aria-hidden="true">
         <rect x="15" y="15" width="970" height="970" strokeWidth="18" />
         {isSheet ? <>
-          <path d="M500 15V985M15 500H985" strokeWidth="12" />
           {paperEntries.map((entry, i) => entry && <g key={i} transform={cellTransform(sheetCell(i))}><ShapeDrawing state={entry} passive /></g>)}
           {!paperPrevious && !state.done && <g transform={cellTransform(cell)} data-paper-target="true">
             {attempt.shape.parts.map((part, i) => <path key={i} transform={frameTransform(part.frame)} d={part.d} strokeWidth={18 / part.frame.scale} />)}

@@ -6,7 +6,7 @@ import { createSessionState, handleStreakReset, handleAnswer, handleAdvance } fr
 import { generateTasks } from '../engine.js';
 import { checkpointKey, saveCheckpoint } from './checkpoint.js';
 import { createLineAttempt } from './lineAttempt.js';
-import { partPoint, transformPoint, shapeDefinition } from './shapes.js';
+import { partPoint, transformPoint, shapeDefinition, SHAPE_KINDS } from './shapes.js';
 import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }], 15, { preciseSelection: true, exercises: ['short_line'] }).map(t => ({ ...t, variant: undefined }));
@@ -142,8 +142,8 @@ for (const strict of [true, false]) it(`square rewards once for four sides, corr
   // Error on the right side, then lift and return to its checkpoint.
   await send('pointerdown', 680, 320); await send('pointermove', 850, 450); await send('pointerup', 850, 450);
   expect(errors).toHaveBeenCalledTimes(1);
-  const marker = host.querySelectorAll('.first-lines__resume')[0];
-  const anchor = transformPoint({ x: Number(marker.getAttribute('cx')), y: Number(marker.getAttribute('cy')) }, sides[1].frame);
+  const marker = host.querySelector('.first-lines__start');
+  const anchor = { x: Number(marker.getAttribute('cx')), y: Number(marker.getAttribute('cy')) };
   await send('pointerdown', anchor.x, anchor.y); await send('pointermove', 680, 680); await send('pointerup', 680, 680);
   await side(2); expect(successes).not.toHaveBeenCalled(); await side(3);
   expect(successes).toHaveBeenCalledTimes(1); expect(errors).toHaveBeenCalledTimes(1);
@@ -242,4 +242,29 @@ it('restoring an error at a paper-break card opens the correction point, without
   await act(async()=>root.render(<Harness initial={initial}/>));
   expect(host.querySelector('.first-lines__pause')).toBeNull();expect(host.querySelector('.first-lines').getAttribute('data-phase')).toBe('retry');
   await draw();expect(successes).toHaveBeenCalledTimes(1);expect(errors).toHaveBeenCalledTimes(1);
+});
+
+it('uses the same green start and hollow purple finish on every kind, including concentric markers for closed loops', async () => {
+  for(const kind of SHAPE_KINDS) {
+    const lesson=tasks.map(t=>({...t,exerciseKind:kind}));
+    const initial={...createSessionState(lesson,{evaluation:'auto'},'kid','drawing','0.17.2',['line'],null,false,1,true,{version:2,lossMode:'one'}),id:'markers-'+kind};
+    await act(async()=>root.render(<Harness key={kind} initial={initial}/>));
+    expect(host.querySelectorAll('.first-lines__start')).toHaveLength(1);expect(host.querySelectorAll('.first-lines__goal')).toHaveLength(1);
+    const start=host.querySelector('.first-lines__start'),goal=host.querySelector('.first-lines__goal');
+    expect(start.getAttribute('fill')).toBe('#0ba85b');expect(goal.getAttribute('fill')).toBe('none');expect(goal.getAttribute('stroke')).toBe('#8153b5');
+    expect(host.querySelector('.first-lines__house')).toBeNull();expect(host.querySelector('.first-lines__start-line')).toBeTruthy();
+    if(['circle','oval','tilted_oval'].includes(kind)) {
+      expect(Number(goal.getAttribute('cx'))).toBeCloseTo(Number(start.getAttribute('cx')),8);expect(Number(goal.getAttribute('cy'))).toBeCloseTo(Number(start.getAttribute('cy')),8);
+      expect(Number(goal.getAttribute('r'))).toBeGreaterThan(Number(start.getAttribute('r')));
+    }
+    const part=shapeDefinition(kind).parts[0],p=transformPoint(partPoint(part,0),part.frame);
+    await send('pointerdown',p.x,p.y);expect(host.querySelector('.first-lines__start')).toBeTruthy();expect(host.querySelector('.first-lines__goal')).toBeTruthy();
+  }
+});
+
+it('keeps worksheet placement without a visible cross dividing the drawing board', async () => {
+  await act(async()=>root.render(<Harness surface="sheet"/>));
+  expect(host.querySelectorAll('.first-lines__sheet>path')).toHaveLength(0);
+  await act(async()=>host.querySelector('[aria-label="Повторить на бумаге"]').click());
+  expect(host.querySelectorAll('.first-lines__pause>svg>path')).toHaveLength(0);
 });

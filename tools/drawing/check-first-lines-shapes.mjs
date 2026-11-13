@@ -31,6 +31,10 @@ async function gesture(page, points) {
 async function draw(page, surface='single') {
   const before=await state(page),task=before.tasks[before.taskIndex],shape=shapeDefinition(task.exerciseKind,task.variant);
   for(const [i,part] of shape.parts.entries()) {
+    await expect(page.locator('.first-lines__start')).toHaveCount(1);await expect(page.locator('.first-lines__goal')).toHaveCount(1);
+    await expect(page.locator('.first-lines__goal')).toHaveAttribute('fill','none');await expect(page.locator('.first-lines__goal')).toHaveAttribute('stroke','#8153b5');
+    await expect(page.locator('.first-lines__house')).toHaveCount(0);
+    await expect(page.locator('.first-lines__sheet>path')).toHaveCount(0);
     const count=part.type==='line'?3:121;
     await gesture(page,await screenPoints(page,task,part,Array.from({length:count},(_,n)=>n/(count-1)),surface));
     if(i<shape.parts.length-1) expect((await state(page)).status).toBe('task_active');
