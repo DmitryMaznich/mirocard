@@ -2361,18 +2361,37 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const q = prevGlyphStrokes.flatMap((m) => samplePath(m.d, 40));
           const low = Math.max(...q.map((p) => p[1]));
           const foot = q.filter((p) => p[1] > low - 0.1 * WIDE_ZONE_UNITS * scale).reduce((a, p) => (p[0] > a[0] ? p : a), [-Infinity, 0]);
-          // the join leaves that lowest point going on RIGHT along the capital's own bottom curve (level there), then rises in one smooth
-          // curve into the lead-in, met a third of the way up (owner, 2026-11-13: the lead-in started straight from the capital looked
-          // shifted left, too sharp); the letter's body stays clear of the capital's ink («Da»: a ran into D's bowl)
+          // the join (owner, 2026-11-13, drawing over «Primož»): from that lowest point a few points back along the capital's own curve
+          // (the way x grows: up its curl towards the stem), then off it in a STRAIGHT line into the lead-in of the letter, along the
+          // lead-in's own direction, met at a little over half the x-height (what of the lead-in lies below is not written); the letter's
+          // body stays clear of the capital's ink («Da»: a ran into D's bowl)
           if (Number.isFinite(foot[0])) {
             const xh = WIDE_ZONE_UNITS * scale;
+            // the retrace: along the stroke that holds the foot
+            let path = [foot];
+            for (const m of prevGlyphStrokes) {
+              const sp = samplePath(m.d, 60);
+              const fi = sp.findIndex((p) => p[0] === foot[0] && p[1] === foot[1]);
+              if (fi < 0) continue;
+              const dir = (sp[fi + 1]?.[0] ?? -Infinity) > (sp[fi - 1]?.[0] ?? -Infinity) ? 1 : -1;
+              let len = 0;
+              for (let t = fi + dir; t >= 0 && t < sp.length; t += dir) {
+                const a = path[path.length - 1], b = sp[t];
+                if (b[0] < a[0] - 0.01) break;
+                len += Math.hypot(b[0] - a[0], b[1] - a[1]);
+                path.push(b);
+                if (len > 0.22 * xh) break;
+              }
+              break;
+            }
+            const A = path[path.length - 1];
             const lp = samplePath(local.strokes[0].d, 60);
             let iT = 1;
-            while (iT < lp.length - 1 && lp[iT][1] > lp[0][1] - 0.38 * xh) iT += 1;
-            const T = lp[iT], T0 = lp[Math.max(0, iT - 2)];
-            let dxL = foot[0] + 0.55 * xh - T[0];
-            // clearance: the body (everything after the met point, and the other strokes) at least 0.18 x-height right of the capital's
-            // ink at the same height
+            while (iT < lp.length - 2 && lp[iT][1] > lp[0][1] - 0.55 * xh) iT += 1;
+            const T = lp[iT], Tn = lp[iT + 1];
+            const tl = nlsUnit(Tn[0] - T[0], Tn[1] - T[1]);
+            // the straight line along the lead-in's direction at T: where T must stand for it to start at A
+            let dxL = A[0] + (A[1] - T[1]) * (tl[0] / (-tl[1] || 1)) - T[0];
             const rows = new Map();
             for (const p of q) { const k = Math.round(p[1]); rows.set(k, Math.max(rows.get(k) ?? -Infinity, p[0])); }
             const body = [...lp.slice(iT), ...local.strokes.slice(1).flatMap((m) => samplePath(m.d, 40))];
@@ -2380,7 +2399,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             for (const [x, y] of body) for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) + 0.18 * xh - x);
             if (Number.isFinite(need)) dxL = Math.max(dxL, need);
             wantStartX = local.start[0] + dxL;
-            meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], from: foot };
+            meetJoin = { type: "join", P: T, t: [tl[0], tl[1]], from: foot, path };
           }
         }
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
@@ -2721,7 +2740,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const k2 = meetJoin.into ? 0.3 : meetJoin.from ? 0.35 : 0.4;
             const c1 = [E[0] + tE[0] * L * (meetJoin.from ? 0.5 : 0.4), E[1] + tE[1] * L * 0.4], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
             const f3 = (v) => v.toFixed(3);
-            strokes.push({ d: `M ${f3(E[0])} ${f3(E[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(at[0])} ${f3(at[1])}`, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
+            const joinD = meetJoin.path
+              ? `M ${meetJoin.path.map((p) => `${f3(p[0])} ${f3(p[1])}`).join(" L ")} L ${f3(at[0])} ${f3(at[1])}`
+              : `M ${f3(E[0])} ${f3(E[1])} C ${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(at[0])} ${f3(at[1])}`;
+            strokes.push({ d: joinD, join: true, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) });
           }
         }
         if (nelsonJoin?.tg.joinedForm && moved[0]) moved[0] = { ...moved[0], d: transformPathD(nelsonJoin.tg.joinedForm, { translateX: dx }) };
