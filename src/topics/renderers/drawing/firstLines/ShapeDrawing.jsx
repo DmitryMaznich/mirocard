@@ -4,13 +4,19 @@ const pathPoints = points => points.map(p => `${p.x},${p.y}`).join(' ');
 export default function ShapeDrawing({ state, width = 'normal', passive = false, hint = false, demo = false, demoProgress = 0, demoLift = null }) {
   const shape = shapeDefinition(state.kind);
   return <g data-shape={shape.id}>
+    {/* Guides are behind every stroke, including the shared corners of a square. */}
+    {!passive && shape.parts.map((part, i) => {
+      const active = i === state.part && !state.done, start = partPoint(part, 0);
+      return <g key={i} transform={frameTransform(part.frame)}>
+        <path className="first-lines__track" d={part.d} strokeWidth={TRACK_WIDTHS[width] ?? 100} opacity={active || state.done ? 1 : .5} />
+        {active && <circle cx={start.x} cy={start.y} r="22" fill="#248b79" />}
+      </g>;
+    })}
     {shape.parts.map((part, i) => {
       const s = state.parts[i], active = i === state.part && !state.done;
       const fraction = Math.max(0, Math.min(1, (demoProgress * shape.length - shape.parts.slice(0, i).reduce((sum, p) => sum + p.length, 0)) / part.length));
-      const tip = partPoint(part, fraction), start = partPoint(part, 0);
+      const tip = partPoint(part, fraction);
       return <g key={i} transform={frameTransform(part.frame)} data-part={i}>
-        {!passive && <path className="first-lines__track" d={part.d} strokeWidth={TRACK_WIDTHS[width] ?? 100} opacity={active || state.done ? 1 : .5} />}
-        {!passive && active && <circle cx={start.x} cy={start.y} r="22" fill="#248b79" />}
         {s.strokes.map((stroke, index) => <g key={index}>
           {stroke.points.length === 1 && <circle cx={stroke.points[0].x} cy={stroke.points[0].y} r="7" fill="#315b86" />}
           <polyline className="first-lines__ink" points={pathPoints(stroke.failedFrom === null ? stroke.points : stroke.points.slice(0, stroke.failedFrom + 1))} />
