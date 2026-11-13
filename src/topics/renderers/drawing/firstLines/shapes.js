@@ -158,6 +158,17 @@ export function partPoint(part, fraction) {
   const a = part.points[i - 1], b = part.points[i], f = (s - a.s) / (b.s - a.s);
   return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
 }
+// Draw only the visible prefix. Avoid normalized SVG dashes: transformed paths can
+// rasterize into large bands on some tablet GPU/browser combinations.
+export function partPrefix(part, fraction) {
+  const t=Math.max(0,Math.min(1,Number.isFinite(fraction)?fraction:0));
+  const start=partPoint(part,0);
+  if(t===0)return `M${start.x} ${start.y}`;
+  if(part.type==='line'){const end=partPoint(part,t);return `M${start.x} ${start.y}L${end.x} ${end.y}`;}
+  const limit=t*part.length,points=part.points.filter(p=>p.s<limit);
+  points.push(partPoint(part,t));
+  return points.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join('');
+}
 export function sheetCell(slot) { const x = (slot % 2) * 500, y = Math.floor(slot / 2) * 500; return { x, y, tx: x - 125, ty: y - 125, scale: .75 }; }
 export const cellTransform = cell => `translate(${cell.tx} ${cell.ty}) scale(${cell.scale})`;
 export function demonstrationFrame(shape, elapsed, linear = false) {
