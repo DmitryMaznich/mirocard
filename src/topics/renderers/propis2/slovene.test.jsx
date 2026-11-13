@@ -157,7 +157,7 @@ describe("Slovenian (draft)", () => {
       expect(p.lines.bottom).toBe("none");
       expect(p.gapMm).toBe(0);
     }
-    expect(deckPapers(view("sl_print")).map((p) => p.id)).toEqual(["sl_10", "sl_8", "sl_6", "sl", "sl_45", "square", "ruled"]);
+    expect(deckPapers(view("sl_print")).map((p) => p.id)).toEqual(["sl_10", "sl_8", "sl_6", "sl", "square", "ruled"]); // (4.5 mm out of the choice, owner 2026-11-14; the paper stays for notebooks made on it)
     const html = page(view("sl_print"), ["mama", "Čaša in šivanka"], "sl_8");
     const ruling = html.match(/<g data-simple-grid="sl_8">([\s\S]*)/)[1];
     expect(ruling).toMatch(/data-bg-row="0"/);

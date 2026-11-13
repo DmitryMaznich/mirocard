@@ -73,10 +73,11 @@ Object.assign(FOUR_LINE_PAPERS, {
   en_gb_4: sized("en_gb", 4, "Британская строка · 4 мм", 3.8),
   en_us_8: sized("en_us", 8, "Американская строка · 8 мм"),
   en_us_6: sized("en_us", 6.35, "Американская строка · 6,35 мм (¼ дюйма)"),
-  // Slovenian: 10 mm as on the Naša ulica sheets that bring in a new letter, 4.5 mm as their answer rows
+  // Slovenian: 10 mm as on the Naša ulica sheets that bring in a new letter, 4.5 mm as their answer rows (not offered since 2026-11-14)
   sl_10: sized("sl", 10, "Словенская строка · 10 мм"),
   sl_8: sized("sl", 8, "Словенская строка · 8 мм"),
   sl_6: sized("sl", 6, "Словенская строка · 6 мм"),
+  // (no longer offered — owner, 2026-11-14: «нет смысла в размере 4,5 мм»; kept so that a notebook made on it still opens)
   sl_45: sized("sl", 4.5, "Словенская строка · 4,5 мм"),
 });
 FOUR_LINE_PAPERS.en_gb.label = "Британская строка · 5 мм";
