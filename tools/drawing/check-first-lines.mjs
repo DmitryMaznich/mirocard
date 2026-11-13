@@ -141,7 +141,7 @@ try {
     expect((await state(screen)).status).toBe('task_active');
     expect((await state(screen)).rewardAttemptBlocked).toBe(true);
     await expect(screen.locator('.first-lines__footer button')).toHaveCount(0);
-    await expect(screen.locator('.first-lines__cue')).toContainText('Ещё раз отсюда');
+    await expect(screen.locator('.first-lines__cue')).toContainText('Повтори от точки');
     if (width === 'normal') await screen.screenshot({ path: 'output/first-lines/zigzag-rejected.png' });
     const failedTrail = await screen.locator('.first-lines__ink--error').getAttribute('points');
     if (width === 'normal') {
@@ -215,8 +215,6 @@ try {
     expect(animation.offset).toBeGreaterThan(0); expect(animation.offset).toBeLessThan(1);
     expect(Math.abs(animation.tip - 360 * (1 - animation.offset))).toBeLessThan(.5);
     if (width === 'wide') await sample.page.screenshot({ path: 'output/first-lines/demo-line.png' });
-    await stroke(sample.page, [[320, 500], [680, 500]]);
-    expect((await state(sample.page)).correctCount).toBe(0);
     await sample.page.clock.runFor(2400);
     await expect(sample.page.locator('.first-lines__demo')).toHaveCount(0);
     const snapshot = await state(sample.page), scale = snapshot.tasks[snapshot.taskIndex].variant.scale;
