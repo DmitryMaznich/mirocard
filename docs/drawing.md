@@ -99,7 +99,7 @@ Canvas 2D с программным буфером и полным обновл�
   необязательные `clip` и `overlay`.
 - `tools/drawing/build.mjs`: собирает renderer, помещает уроки в карточки
   `topic.json` внутри ZIP, создаёт обложки из тех же путей.
-- `public/decks/drawing_v0.22.3.zip`: самостоятельный пакет, работает без сети.
+- `public/decks/drawing_v0.23.0.zip`: самостоятельный пакет, работает без сети.
 
 При первоначальном добавлении темы в общем коде приложения — только по одному import и элементу в
 `src/topics/registry.js` и `src/topics/renderers/engineRegistry.js` (4 строки).

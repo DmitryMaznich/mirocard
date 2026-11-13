@@ -1,4 +1,5 @@
 import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import {contourPart} from './contour.js';
 import {bounds,generateSheet} from './geometry.js';
 import {coloringOptions,createColoringAttempt,freshProgress,markColoringError,nextColoringShape} from './attempt.js';
 import {loadColoring,saveColoring,storageKey} from './storage.js';
@@ -24,15 +25,23 @@ function paint(canvas,snapshot,view,options,focused) {
   snapshot.sheet.shapes.forEach((shape,i)=>{
     const state=snapshot.progress.shapes[i],active=i===snapshot.progress.index;
     if(focused&&!active)return;
-    if(active&&state.phase==='trace') {path(ctx,shape.points,true);ctx.strokeStyle='#dceee2';ctx.lineWidth=options.trace*2;ctx.stroke();}
+    if(state.phase==='trace') {
+      path(ctx,shape.points,true);ctx.strokeStyle=active?'#dceee2':'#edf3ef';ctx.lineWidth=(options.traceProfile?.width??options.trace*2);ctx.stroke();
+    }
     for(const stroke of [...state.ink,...state.outline]) {
       path(ctx,stroke.points);ctx.strokeStyle=state.ink.includes(stroke)?'#66aacd':'#315b86';ctx.lineWidth=stroke.width;
       if(stroke.points.length===1){ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.arc(stroke.points[0].x,stroke.points[0].y,stroke.width/2,0,Math.PI*2);ctx.fill();}else ctx.stroke();
     }
-    path(ctx,shape.points,true);ctx.strokeStyle=state.phase==='done'?'#31805e':active?'#344e49':'#a2b6af';ctx.lineWidth=1.6/scale;ctx.stroke();
     if(active&&state.phase==='trace') {
-      const p=shape.points[0];ctx.beginPath();ctx.arc(p.x,p.y,6/scale,0,Math.PI*2);ctx.fillStyle='#0ba85b';ctx.fill();
+      const target=state.contourAttempt?.anchor??shape.points[0],start=state.contourAttempt?.start??shape.points[0];
+      const profile=options.traceProfile;
+      const progress=state.contourAttempt?.progress??0;
+      const guide=contourPart(shape.points).points.filter(p=>p.s>=progress&&p.s<=progress+(profile?.leadLength??24/scale));
+      if(guide.length>1){path(ctx,guide);ctx.strokeStyle='#0ba85b';ctx.lineWidth=profile?.leadInk??3/scale;ctx.stroke();}
+      ctx.beginPath();ctx.arc(start.x,start.y,(profile?.goalRadius??14/scale),0,Math.PI*2);ctx.strokeStyle='#8153b5';ctx.lineWidth=3/scale;ctx.stroke();
+      ctx.beginPath();ctx.arc(target.x,target.y,(profile?.markerRadius??8/scale),0,Math.PI*2);ctx.fillStyle='#0ba85b';ctx.fill();
     }
+
   });
 }
 
@@ -43,7 +52,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   const [overview,setOverview]=useState(false),[hint,setHint]=useState(''),[drawing,setDrawing]=useState(false);
   const [,redraw]=useState(0);
   const canvas=useRef(null),pointer=useRef(null),failed=useRef(false),reported=useRef(false),completed=useRef(false);
-  const current=useRef(null),activeAttempt=useRef(null);
+  const current=useRef(null),activeAttempt=useRef(null),measuredSize=useRef({width:0,height:0});
   useLayoutEffect(()=>{current.current=snapshot;});
   const state=snapshot?.progress.shapes[snapshot.progress.index];
   const shape=snapshot?.sheet.shapes[snapshot.progress.index];
@@ -69,6 +78,8 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
     const board=canvas.current;
     const resize=()=>{
       const r=board.getBoundingClientRect();if(!r.width||!r.height)return;
+      if(measuredSize.current.width===r.width&&measuredSize.current.height===r.height)return;
+      measuredSize.current={width:r.width,height:r.height};
       activeAttempt.current?.end(true);pointer.current=null;setDrawing(false);setSize({width:r.width,height:r.height});
       setSnapshot(previous=>{
         if(previous)return previous;
@@ -106,7 +117,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   };
   const move=event=>{
     if(failed.current)return;
-    for(const sample of [...(event.nativeEvent?.getCoalescedEvents?.()??[]),event])if(attempt.move(point(sample)).failed){failure();break;}
+    for(const sample of [...(event.nativeEvent?.getCoalescedEvents?.()??[]),event])if(attempt.move(point(sample),sample.timeStamp).failed){failure();break;}
     refresh();
   };
   const end=(event,cancelled=false)=>{
@@ -119,7 +130,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   };
   const sheetDone=snapshot?.progress.shapes.every(s=>s.phase==='done');
   const metrics=attempt?.progress();
-  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':hint||(state?.retry?(state.phase==='fill'?'Закрась фигуру заново':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':'Обведи контур');
+  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':hint||(state?.retry?(state.phase==='fill'?'Закрась фигуру заново':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':(metrics?.trace??0)>=.94?'Замкни линию — вернись к кольцу':(metrics?.trace??0)>0?'Продолжи от зелёной точки':'Обведи от точки и замкни линию');
   return <section className="coloring" aria-label="Тренировка закрашивания" data-phase={state?.phase??'loading'} data-sheet-count={snapshot?.sheet.shapes.length} onClick={e=>e.stopPropagation()}>
     <header className="coloring__tools"><span>{shape?.title} · {snapshot?`${snapshot.progress.index+1} / ${snapshot.sheet.shapes.length}`:''}</span>
       {compact&&<button type="button" disabled={interactionDisabled||drawing} onClick={()=>{attempt?.end(true);setOverview(v=>!v);setHint('');}}>{overview?'К фигуре':'Весь лист'}</button>}
@@ -130,7 +141,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
         if(disabled||pointer.current!==null||event.button!==0)return;
         if(!['pen','mouse'].includes(event.pointerType)&&!(event.pointerType==='touch'&&['touch','passive_pen'].includes(sessionParams.inputMode))){setHint('Рисуй стилусом');return;}
         event.preventDefault();failed.current=false;
-        if(!attempt.begin(point(event))){setHint(state.phase==='trace'?'Начни на контуре':'Начни внутри фигуры');return;}
+        if(!attempt.begin(point(event),event.timeStamp)){setHint(state.phase==='trace'?'Начни с зелёной точки':'Начни внутри фигуры');return;}
         setHint('');setDrawing(true);pointer.current=event.pointerId;event.currentTarget.setPointerCapture?.(event.pointerId);refresh();
       }}
       onPointerMove={event=>{if(!disabled&&pointer.current===event.pointerId){event.preventDefault();move(event);}}}

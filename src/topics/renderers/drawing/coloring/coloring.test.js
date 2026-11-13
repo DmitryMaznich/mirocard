@@ -56,6 +56,29 @@ describe('coloring geometry and placement',()=>{
   });
 });
 describe('separate outline and interior assessments',()=>{
+  it('uses the First Lines start and resume points, and refuses disconnected fragments',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,options);
+    expect(a.begin({x:100,y:100})).toBe(false);
+    draw(a,[{x:0,y:0},{x:100,y:0}]);expect(state.phase).toBe('trace');
+    expect(a.begin({x:0,y:100})).toBe(false);
+    draw(a,[{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:0}]);
+    expect(state.phase).toBe('fill');
+  });
+  it('requires the pupil line to close even after over 97 percent of the path is traced',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,options);
+    draw(a,[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:8}]);
+    expect(a.progress().trace).toBeGreaterThan(.97);expect(state.phase).toBe('trace');
+    draw(a,[{x:0,y:8},{x:0,y:0}]);expect(state.phase).toBe('fill');
+  });
+  it('restores the ordered contour after lifting and reloading without substituting a ready-made boundary',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,options);
+    draw(a,[{x:0,y:0},{x:100,y:0}]);
+    const saved=structuredClone(state),restored=createColoringAttempt(square,saved,options);
+    expect(saved.outline).toEqual(state.outline);
+    expect(restored.begin({x:0,y:100})).toBe(false);
+    draw(restored,[{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:0}]);
+    expect(saved.phase).toBe('fill');
+  });
   it('does not credit tracing as coloring and advances only after a lifted contour',()=>{
     const state=fresh(),a=createColoringAttempt(square,state,options);
     draw(a,[...resample(square.points,2),square.points[0]]);

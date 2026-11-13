@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.22.3",
+      "version": "0.23.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.22.3.zip",
+        "public/decks/drawing_v0.23.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.22.3",
-        "url": "./decks/drawing_v0.22.3.zip",
+        "version": "0.23.0",
+        "url": "./decks/drawing_v0.23.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -344,7 +344,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.22.3",
+        "version": "0.23.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -353,14 +353,14 @@
           "ru": "Шесть рисунков на бумаге, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
           "en": "Six paper drawing lessons, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
         },
-        "url": "./decks/drawing_v0.22.3.zip",
+        "url": "./decks/drawing_v0.23.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-13T22:01:36+00:00"
+      "sourceUpdatedAt": "2026-11-13T22:01:36Z"
     },
     {
       "id": "emotions_v2",

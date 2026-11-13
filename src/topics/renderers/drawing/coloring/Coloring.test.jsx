@@ -17,7 +17,7 @@ beforeEach(()=>{
   vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockImplementation(function(){const ctx=recordingContext(this);ctx.closePath=()=>{};return ctx;});
   vi.spyOn(HTMLCanvasElement.prototype,'getBoundingClientRect').mockReturnValue({x:0,y:0,left:0,top:0,width:640,height:640,right:640,bottom:640});
 });
-afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.restoreAllMocks();});
+afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function render(inputMode='pen',props={}){
   // SessionScreen constructs a fresh params object on each parent render.
   await act(async()=>root.render(<Coloring task={task} student={{id:'kid'}} sessionId="session" sessionParams={{inputMode,outsideTolerance:'6',fillTarget:'90'}} {...props} />));
@@ -75,7 +75,7 @@ describe('natural coloring across separate browser frames',()=>{
   it('removes the whole partial outline on error and retains the reset after remounting',async()=>{
     const saved=loadColoring(key);saved.progress.shapes[0].phase='trace';saveColoring(key,saved);
     await render();await send('pointerdown',50,50);await send('pointermove',200,50);await send('pointerup',200,50);
-    expect(loadColoring(key).progress.shapes[0].traceHits.length).toBeGreaterThan(0);
+    expect(loadColoring(key).progress.shapes[0].contourAttempt.progress).toBeGreaterThan(0);
     await send('pointerdown',200,50);await send('pointermove',200,150);
     expect(loadColoring(key).progress.shapes[0]).toMatchObject({phase:'trace',retry:true,outline:[],traceHits:[]});
     await send('pointerup',200,150);expect(host.textContent).toContain('Обведи контур заново');
@@ -91,6 +91,14 @@ describe('natural coloring across separate browser frames',()=>{
     await send('pointerdown',100,150);await send('pointermove',180,150);await send('pointerup',180,150);
     const saved=loadColoring(key).progress.shapes[0];expect(saved.ink).toHaveLength(1);
     expect(saved.filled.length).toBeGreaterThan(0);expect(saved.ink[0].points.at(-1)).toEqual({x:180,y:150});
+  });
+
+  it('does not cancel a held stroke when ResizeObserver repeats an unchanged size',async()=>{
+    let notify;
+    vi.stubGlobal('ResizeObserver',class {constructor(callback){notify=callback;}observe(){}disconnect(){}});
+    await render();await send('pointerdown',100,100);await send('pointermove',120,100);
+    await act(async()=>notify());await send('pointermove',200,100);await send('pointerup',200,100);
+    expect(loadColoring(key).progress.shapes[0].ink[0].points.at(-1)).toEqual({x:200,y:100});
   });
 
 });

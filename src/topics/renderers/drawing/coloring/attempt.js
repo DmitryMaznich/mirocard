@@ -1,4 +1,5 @@
-import { bounds, contourDistance, distanceToSegment, inside, resample } from './geometry.js';
+import {createContour,contourProfile} from './contour.js';
+import { bounds, contourDistance, distanceToSegment, inside } from './geometry.js';
 
 export function coloringOptions(params={}, scale=1) {
   const input=params.inputMode, factor=1/Math.max(.05,scale);
@@ -6,11 +7,12 @@ export function coloringOptions(params={}, scale=1) {
   const target=Number(params.fillTarget);
   const requestedWidth=Number(params.penWidth);
   const width=[3,6,10,16,24,32].includes(requestedWidth)?requestedWidth:null;
-  return { tolerance: ([3,6,10,16].includes(tolerance)?tolerance:6)*factor,
+  const profile=contourProfile(input,scale,width===null?undefined:width*factor);
+  return { traceProfile:profile,tolerance: ([3,6,10,16].includes(tolerance)?tolerance:6)*factor,
     target: ([80,90,95].includes(target)?target:90)/100,
     brush: (width??(input==='touch'?26:input==='passive_pen'?16:12))*factor,
-    outlineInk: (width??3)*factor,
-    trace: (input==='touch'?24:input==='passive_pen'?12:7)*factor };
+    outlineInk: profile.ink,
+    trace: profile.width/2+profile.extra };
 }
 export function freshProgress(sheet) {
   return {index:0,hadError:false,shapes:sheet.shapes.map(()=>({phase:'trace',traceHits:[],filled:[],outline:[],ink:[]}))};
@@ -27,9 +29,9 @@ export function createColoringAttempt(shape,state,options) {
     if(inside({x:box.x+(x+.5)*step,y:box.y+(y+.5)*step},shape.points)){mask[i]=1;total++;}
   }
   for(const i of state.filled)if(Number.isInteger(i)&&mask[i]&&!painted[i]){painted[i]=1;filled++;}
-  const contour=resample(shape.points,3), hits=new Set(state.traceHits.filter(i=>Number.isInteger(i)&&i>=0&&i<contour.length));
+  let contour=state.phase==='trace'?createContour(shape,state,options):null;
   let last=null,stroke=null,failed=false;
-  const progress=()=>({coverage:total?filled/total:0,trace:contour.length?hits.size/contour.length:0});
+  const progress=()=>({coverage:total?filled/total:0,trace:contour?Math.min(1,contour.attempt.state.progress/contour.part.length):1});
   const allowed = p => {
     if(state.phase==='trace')return contourDistance(p,shape.points)<=options.trace;
     // Sample the whole brush footprint along with its centre. This includes the
@@ -40,9 +42,7 @@ export function createColoringAttempt(shape,state,options) {
     return samples.every(q=>inside(q,shape.points)||contourDistance(q,shape.points)<=options.tolerance);
   };
   function mark(a,b) {
-    if(state.phase==='trace') {
-      contour.forEach((p,i)=>{if(!hits.has(i)&&distanceToSegment(p,a,b)<=options.trace){hits.add(i);state.traceHits.push(i);}});
-    } else {
+    if(state.phase!=='trace') {
       const r=options.brush/2;
       const x0=Math.max(0,Math.floor((Math.min(a.x,b.x)-r-box.x)/step)),x1=Math.min(cols-1,Math.ceil((Math.max(a.x,b.x)+r-box.x)/step));
       const y0=Math.max(0,Math.floor((Math.min(a.y,b.y)-r-box.y)/step)),y1=Math.min(rows-1,Math.ceil((Math.max(a.y,b.y)+r-box.y)/step));
@@ -54,14 +54,21 @@ export function createColoringAttempt(shape,state,options) {
   }
   function resetStage() {
     if(state.phase==='trace') {
-      state.outline=[];state.traceHits=[];hits.clear();
+      state.outline=[];state.traceHits=[];delete state.contourAttempt;
+      contour=createContour(shape,state,options);
     } else {
       state.ink=[];state.filled=[];painted.fill(0);filled=0;
     }
     state.retry=true;last=null;stroke=null;
   }
-  function move(p) {
-    if(!stroke||failed)return {failed};
+  function move(p,time=0) {
+    if(failed)return {failed:true};
+    if(state.phase==='trace') {
+      const result=contour.attempt.move(p,time);
+      if(result.mistake||contour.attempt.state.needsReturn){failed=true;resetStage();return {failed:true,point:p};}
+      return {failed:false};
+    }
+    if(!stroke)return {failed:false};
     const a=last,n=Math.max(1,Math.ceil(Math.hypot(p.x-a.x,p.y-a.y)/2));
     for(let i=1;i<=n;i++) {
       const q={x:a.x+(p.x-a.x)*i/n,y:a.y+(p.y-a.y)*i/n};
@@ -72,17 +79,29 @@ export function createColoringAttempt(shape,state,options) {
     return {failed:false};
   }
   return {state,progress,
-    begin(p) {
-      if(failed||stroke||state.phase==='done'||!allowed(p))return false;
+    begin(p,time=0) {
+      if(failed||stroke||state.phase==='done')return false;
+      if(state.phase==='trace') {
+        if(!contour.attempt.begin(p,time))return false;
+        state.retry=false;
+        contour.attempt.state.strokes.at(-1).width=options.outlineInk??contour.profile.ink;
+        return true;
+      }
+      if(!allowed(p))return false;
       state.retry=false;
       failed=false;last=p;stroke={width:state.phase==='trace'?(options.outlineInk??3):options.brush,points:[p]};
       (state.phase==='trace'?state.outline:state.ink).push(stroke);mark(p,p);return true;
     },move,
     end(cancelled=false) {
+      if(state.phase==='trace') {
+        const done=contour.attempt.end(cancelled||failed);
+        if(contour.attempt.state.needsReturn&&!failed){failed=true;resetStage();}
+        if(done&&!failed)state.phase='fill';
+        failed=false;return state.phase;
+      }
       // A cancellation preserves work, but never advances a phase mid-gesture.
       if(!cancelled&&stroke&&!failed) {
-        if(state.phase==='trace'&&progress().trace>=.97)state.phase='fill';
-        else if(state.phase==='fill'&&progress().coverage>=options.target)state.phase='done';
+        if(progress().coverage>=options.target)state.phase='done';
       }
       last=null;stroke=null;failed=false;return state.phase;
     },
