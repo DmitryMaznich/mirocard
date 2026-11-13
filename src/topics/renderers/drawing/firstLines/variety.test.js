@@ -124,3 +124,15 @@ it('never stretches an old fixed-line checkpoint into a newly randomized figure'
   expect(restoreShape(old,'short_line').done).toBe(true);
   expect(restoreShape(old,'short_line',{scale:.7,angle:12,aspect:1}).done).toBe(false);
 });
+
+it('varies the actual angle and length of straight lines, not only task metadata', () => {
+  vi.spyOn(Math,'random').mockImplementation(seeded(789));
+  const lesson=generateTasks(mode,bank,15,{preciseSelection:true,exercises:['short_line']});
+  expect(new Set(lesson.map(t=>t.variant.angle)).size).toBeGreaterThan(3);
+  expect(new Set(lesson.map(t=>t.variant.scale)).size).toBeGreaterThan(5);
+  for(const task of lesson) {
+    const part=shapeDefinition(task.exerciseKind,task.variant).parts[0],a=point(part,0),b=point(part,1);
+    expect(Math.hypot(b.x-a.x,b.y-a.y)).toBeCloseTo(360*task.variant.scale,8);
+    expect(Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI).toBeCloseTo(task.variant.angle,8);
+  }
+});
