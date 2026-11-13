@@ -4,9 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import FirstLines from './FirstLines.jsx';
 import { createSessionState, handleStreakReset, handleAnswer, handleAdvance } from '@/features/session/sessionEngine.js';
 import { generateTasks } from '../engine.js';
-import { checkpointKey, saveCheckpoint } from './checkpoint.js';
+import { checkpointKey, saveCheckpoint,readSheet,sheetKey } from './checkpoint.js';
 import { createLineAttempt } from './lineAttempt.js';
 import { partPoint, transformPoint, shapeDefinition, SHAPE_KINDS } from './shapes.js';
+import { freshShape } from './shapeAttempt.js';
+import { recordingContext } from './canvasTestContext.js';
+import { drawingMarkers } from './canvasDrawing.js';
 import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }], 15, { preciseSelection: true, exercises: ['short_line'] }).map(t => ({ ...t, variant: undefined }));
@@ -26,7 +29,8 @@ function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, i
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true; localStorage.clear(); errors = vi.fn(); successes = vi.fn();
   host = document.createElement('div'); document.body.append(host); root = createRoot(host);
-  vi.spyOn(SVGElement.prototype, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 1000, height: 1000 });
+  vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 1000, height: 1000 });
+  vi.spyOn(HTMLCanvasElement.prototype,'getContext').mockImplementation(function(){return recordingContext(this);});
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
 async function send(type, x, y = 500, pointerType = 'pen', id = 1) {
@@ -36,6 +40,10 @@ async function send(type, x, y = 500, pointerType = 'pen', id = 1) {
     host.querySelector('.first-lines__board').dispatchEvent(event);
   });
 }
+function saved(){const task=latest.tasks[latest.taskIndex];return JSON.parse(localStorage.getItem(checkpointKey('kid',latest.id,task.id)))?.attempt??freshShape(task.exerciseKind,task.variant);}
+function strokes(){return saved().parts.flatMap(p=>[...(p.history??[]).flatMap(h=>h.strokes),...p.strokes]);}
+function trace(){return JSON.stringify(strokes());}
+function markers(){const a=saved(),shape=shapeDefinition(a.kind,a.variant),profile=a.profile??{width:24,ink:6};return drawingMarkers(a,shape,profile);}
 async function draw() { await send('pointerdown', 320); await send('pointermove', 680); await send('pointerup', 680); }
 async function fail() { await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 650); await send('pointerup', 450, 650); }
 
@@ -52,14 +60,14 @@ describe('First Lines and the real session reward policy', () => {
     expect(latest.streakCount).toBe(remaining);
     await draw();
     expect(latest.streakCount).toBe(remaining); expect(successes).toHaveBeenCalledTimes(1);
-    expect(host.querySelector('.first-lines__ink--error')).toBeTruthy();
+    expect(saved().hadError).toBe(true);expect(strokes().some(s=>s.failedFrom!==null)).toBe(true);
     await act(async () => host.querySelector('.first-lines__footer button').click());
     await draw(); expect(latest.streakCount).toBe(remaining + 1);
   });
   for (const [width, size, mistakes] of [['wide', 36, 0], ['normal', 24, 0], ['narrow', 16, 1]]) {
     it(`${width}: renders and evaluates the same width`, async () => {
       await act(async () => root.render(<Harness width={width} />));
-      expect(host.querySelector('.first-lines__track').getAttribute('stroke-width')).toBe(String(size));
+      expect(host.querySelector('.first-lines__board').getAttribute('data-logical-track-width')).toBe(String(size));
       await send('pointerdown', 320); await send('pointermove', 450); await send('pointermove', 450, 514);
       await send('pointermove', 520, 514); await send('pointermove', 680); await send('pointerup', 680);
       expect(errors).toHaveBeenCalledTimes(mistakes);
@@ -70,11 +78,11 @@ describe('First Lines and the real session reward policy', () => {
     await act(async () => root.render(<Harness />));
     await send('pointerdown',320); await send('pointermove',450); await send('pointerup',450);
     await act(async () => host.querySelector('[aria-label="Показать движение"]').click());
-    expect(host.querySelector('.first-lines__demo-line')).toBeTruthy();
-    expect(host.querySelector('.first-lines__history polyline').getAttribute('points')).toContain('450,500');
+    expect(host.querySelector('.first-lines__board').dataset.demo).toBe('true');
+    expect(saved().parts[0].history[0].strokes[0].points.some(p=>p.x===450&&p.y===500)).toBe(true);
     expect(successes).not.toHaveBeenCalled();
     await draw();
-    expect(host.querySelector('.first-lines__demo')).toBeNull();
+    expect(host.querySelector('.first-lines__board').dataset.demo).toBeUndefined();
     expect(successes).toHaveBeenCalledTimes(1); expect(errors).not.toHaveBeenCalled();
   });
   for (const strict of [true, false]) for (const loss of ['one', 'all']) for (const perStar of [1, 2, 3]) {
@@ -83,12 +91,12 @@ describe('First Lines and the real session reward policy', () => {
       await fail();
       const expected = strict ? loss === 'all' ? 0 : 2 * perStar : 3 * perStar;
       expect(latest.streakCount).toBe(expected); expect(errors).toHaveBeenCalledTimes(1);
-      const before = host.querySelectorAll('polyline').length;
+      const before = strokes().length;
       await send('pointerdown', 320); await send('pointermove', 470, 700); await send('pointerup', 470, 700);
       expect(errors).toHaveBeenCalledTimes(1);
       await send('pointerdown', 320); await send('pointermove', 680); await send('pointerup', 680);
       expect(successes).toHaveBeenCalledTimes(1); expect(latest.streakCount).toBe(expected);
-      expect(host.querySelectorAll('polyline').length).toBeGreaterThan(before);
+      expect(strokes().length).toBeGreaterThan(before);
       await send('pointerup', 680); expect(successes).toHaveBeenCalledTimes(1);
       await act(async () => host.querySelector('.first-lines__footer button').click());
       await draw(); expect(latest.streakCount).toBe(expected + 1);
@@ -97,7 +105,7 @@ describe('First Lines and the real session reward policy', () => {
   it('rejects palm touches and concurrent pointers, allows passive stylus only when selected', async () => {
     await act(async () => root.render(<Harness />));
     await send('pointerdown', 320, 500, 'touch'); await send('pointermove', 680, 500, 'touch'); await send('pointerup', 680, 500, 'touch');
-    expect(host.querySelectorAll('polyline')).toHaveLength(0);
+    expect(strokes()).toHaveLength(0);
     await send('pointerdown', 320); await send('pointermove', 450);
     await send('pointerdown', 450, 700, 'touch', 2); await send('pointermove', 680, 700, 'touch', 2);
     await send('pointermove', 680); await send('pointerup', 680);
@@ -106,7 +114,7 @@ describe('First Lines and the real session reward policy', () => {
   it('does not draw or credit while the standard prize or exit prompt disables input', async () => {
     await act(async () => root.render(<Harness disabled />)); await draw();
     expect(successes).not.toHaveBeenCalled(); expect(errors).not.toHaveBeenCalled();
-    expect(host.querySelectorAll('polyline')).toHaveLength(0);
+    expect(strokes()).toHaveLength(0);
   });
   it('reconciles a newer failed local checkpoint before crediting its completion after reload', async () => {
     const a = createLineAttempt(); a.begin({ x: 320, y: 500 }); a.move({ x: 450, y: 650 }); a.end();
@@ -128,13 +136,11 @@ for (const strict of [true, false]) it(`square rewards once for four sides, corr
     await send('pointerdown', from.x, from.y); await send('pointermove', to.x, to.y); await send('pointerup', to.x, to.y);
   };
   await side(0); expect(successes).not.toHaveBeenCalled();
-  const ink = host.querySelector('.first-lines__ink');
-  for (const track of host.querySelectorAll('.first-lines__track')) expect(track.compareDocumentPosition(ink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(host.querySelector('.first-lines__board').tagName).toBe('CANVAS');expect(strokes()).toHaveLength(1);
   // Error on the right side, then lift and return to its checkpoint.
   await send('pointerdown', 680, 320); await send('pointermove', 850, 450); await send('pointerup', 850, 450);
   expect(errors).toHaveBeenCalledTimes(1);
-  const marker = host.querySelector('.first-lines__start');
-  const anchor = { x: Number(marker.getAttribute('cx')), y: Number(marker.getAttribute('cy')) };
+  const anchor=markers().start;
   await send('pointerdown', anchor.x, anchor.y); await send('pointermove', 680, 680); await send('pointerup', 680, 680);
   await side(2); expect(successes).not.toHaveBeenCalled(); await side(3);
   expect(successes).toHaveBeenCalledTimes(1); expect(errors).toHaveBeenCalledTimes(1);
@@ -147,16 +153,15 @@ it('keeps previous actual drawings on a sheet after advancing and after reload',
   await send('pointerdown', 115, 250); await send('pointermove', 385, 250); await send('pointerup', 385, 250);
   expect(successes).toHaveBeenCalledTimes(1);
   await act(async () => host.querySelector('.first-lines__footer button').click());
-  const previous = host.querySelector('.first-lines__sheet polyline').getAttribute('points');
-  expect(previous).toContain('320,500'); expect(previous).toContain('680,500');
-  expect(host.querySelectorAll('.first-lines__track')).toHaveLength(1);
+  const previous=JSON.stringify(readSheet(sheetKey('kid',latest.id,0))[0].parts[0].strokes);
+  expect(previous).toContain('320');expect(previous).toContain('680');
   // Tapping the completed cell must not draw or reward the new card.
   await send('pointerdown', 115, 250); await send('pointermove', 385, 250); await send('pointerup', 385, 250);
   expect(successes).toHaveBeenCalledTimes(1);
   const snapshot = latest;
   await act(async () => root.unmount()); root = createRoot(host);
   await act(async () => root.render(<Harness initial={snapshot} surface="sheet" />));
-  expect(host.querySelector('.first-lines__sheet polyline').getAttribute('points')).toBe(previous);
+  expect(JSON.stringify(readSheet(sheetKey('kid',latest.id,0))[0].parts[0].strokes)).toBe(previous);
   await send('pointerdown', 615, 250); await send('pointermove', 885, 250); await send('pointerup', 885, 250);
   expect(successes).toHaveBeenCalledTimes(2); expect(errors).not.toHaveBeenCalled();
 });
@@ -179,7 +184,7 @@ it('registers a curve shape error discovered on lift before allowing its correct
 
 it('passive stylus accepts touch events with the narrow stylus profile', async () => {
   await act(async () => root.render(<Harness input="passive_pen" />));
-  expect(host.querySelector('.first-lines__track').getAttribute('stroke-width')).toBe('24');
+  expect(host.querySelector('.first-lines__board').getAttribute('data-logical-track-width')).toBe('24');
   await send('pointerdown',320,500,'touch'); await send('pointermove',680,500,'touch'); await send('pointerup',680,500,'touch');
   expect(successes).toHaveBeenCalledTimes(1); expect(errors).not.toHaveBeenCalled();
 });
@@ -188,13 +193,13 @@ it('stops ink at an error, waits for lift and visibly restarts only that part; r
   const feedback=vi.fn(); await act(async()=>root.render(<Harness feedback={feedback}/>));
   await send('pointerdown',320);await send('pointermove',450);await send('pointermove',450,650);
   expect(host.querySelector('.first-lines').getAttribute('data-phase')).toBe('error');
-  const stopped=[...host.querySelectorAll('polyline')].map(p=>p.getAttribute('points'));
+  const stopped=trace();
   await send('pointermove',650,750);await send('pointermove',680,300);
-  expect([...host.querySelectorAll('polyline')].map(p=>p.getAttribute('points'))).toEqual(stopped);
+  expect(trace()).toBe(stopped);
   expect(errors).toHaveBeenCalledTimes(1);
   await send('pointerup',680,300);
   expect(host.querySelector('.first-lines').getAttribute('data-phase')).toBe('retry');
-  expect(host.querySelector('.first-lines__start').getAttribute('cx')).toBe('320');
+  expect(markers().start.x).toBe(320);
   await fail(); expect(errors).toHaveBeenCalledTimes(1);expect(feedback).toHaveBeenCalledTimes(1);
   await act(async()=>host.querySelector('[aria-label="Показать движение"]').click());
   await draw();expect(successes).toHaveBeenCalledTimes(1);expect(latest.streakCount).toBe(2);
@@ -207,8 +212,8 @@ it('after finishing one side the model shows the next side, which can be copied 
   const sides=shapeDefinition('square').parts;
   for(let i=0;i<4;i++) {
     await act(async()=>host.querySelector('[aria-label="Показать движение"]').click());
-    expect(host.querySelectorAll('.first-lines__demo-line')).toHaveLength(1);
-    expect(host.querySelector('.first-lines__demo').parentElement.getAttribute('data-part')).toBe(String(i));
+    expect(host.querySelector('.first-lines__board').dataset.demo).toBe('true');
+    expect(host.querySelector('.first-lines__board').dataset.part).toBe(String(i));
     const a=transformPoint(partPoint(sides[i],0),sides[i].frame),b=transformPoint(partPoint(sides[i],1),sides[i].frame);
     await send('pointerdown',a.x,a.y);await send('pointermove',b.x,b.y);await send('pointerup',b.x,b.y);
   }
@@ -229,16 +234,11 @@ it('uses the same green start and hollow purple finish on every kind, including 
     const lesson=tasks.map(t=>({...t,exerciseKind:kind}));
     const initial={...createSessionState(lesson,{evaluation:'auto'},'kid','drawing','0.17.2',['line'],null,false,1,true,{version:2,lossMode:'one'}),id:'markers-'+kind};
     await act(async()=>root.render(<Harness key={kind} initial={initial}/>));
-    expect(host.querySelectorAll('.first-lines__start')).toHaveLength(1);expect(host.querySelectorAll('.first-lines__goal')).toHaveLength(1);
-    const start=host.querySelector('.first-lines__start'),goal=host.querySelector('.first-lines__goal');
-    expect(start.getAttribute('fill')).toBe('#0ba85b');expect(goal.getAttribute('fill')).toBe('none');expect(goal.getAttribute('stroke')).toBe('#8153b5');
-    expect(host.querySelector('.first-lines__house')).toBeNull();expect(host.querySelector('.first-lines__start-line')).toBeTruthy();
-    if(['circle','oval','tilted_oval'].includes(kind)) {
-      expect(Number(goal.getAttribute('cx'))).toBeCloseTo(Number(start.getAttribute('cx')),8);expect(Number(goal.getAttribute('cy'))).toBeCloseTo(Number(start.getAttribute('cy')),8);
-      expect(Number(goal.getAttribute('r'))).toBeGreaterThan(Number(start.getAttribute('r')));
-    }
+    expect(host.querySelector('.first-lines__board').tagName).toBe('CANVAS');
+    const m=markers();expect(m.radius).toBeGreaterThan(0);expect(m.goalRadius).toBeGreaterThan(m.radius);
+    if(['circle','oval','tilted_oval'].includes(kind)){expect(m.start.x).toBeCloseTo(m.finish.x,8);expect(m.start.y).toBeCloseTo(m.finish.y,8);}
     const part=shapeDefinition(kind).parts[0],p=transformPoint(partPoint(part,0),part.frame);
-    await send('pointerdown',p.x,p.y);expect(host.querySelector('.first-lines__start')).toBeTruthy();expect(host.querySelector('.first-lines__goal')).toBeTruthy();
+    await send('pointerdown',p.x,p.y);expect(markers().start.x).toBeCloseTo(p.x,8);expect(markers().start.y).toBeCloseTo(p.y,8);
   }
 });
 
