@@ -2348,6 +2348,14 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const T = pts[Math.max(1, i)];
             wantStartX = Math.max(prevRight + 0.15 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0], eyeClear(Math.max(1, i), 0.42));
             meetJoin = { type: "join", P: T, t: [pts[Math.min(k, i + 2)][0] - T[0], pts[Math.min(k, i + 2)][1] - T[1]], level: true };
+            // (owner, 2026-11-13: «соединение от s должно выходить снизу без петли»): the curl back to the left is not written — the
+            // bowl is cut at its lowest point and the join leaves from there, level, to the right; no loop under the bowl
+            if (prevMeetExit.ref) {
+              const hp = samplePath(prevMeetExit.ref.d, 240);
+              let lo = hp.length - 1;
+              while (lo > 1 && hp[lo - 1][1] >= hp[lo][1]) lo -= 1; // back down the curl to the bowl's bottom
+              if (lo < hp.length - 1) Object.assign(meetJoin, { trimExitTo: lo, hp, start: hp[lo] });
+            }
           } else if (k > 0 && E[1] > pts[k][1] + 3 * scale && E[1] < pts[0][1]) {
             // an exit half-way up (or lower, s) into a rising lead-in (owner, 2026-11-13: «два соединения … должны образовывать в средней
             // части прямую линию без изгибов» — l–e, i–i …): the join is ONE straight line — from the exit's end, along the lead-in's own
