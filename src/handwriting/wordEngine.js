@@ -3110,7 +3110,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           const { top: T, left: Lp } = nelsonJoin.tg.intoLoop;
           moved[0] = { ...moved[0], d: nelsonLoopRound(moved[0].d, [nelsonJoin.tg.p[0] + dx, nelsonJoin.tg.p[1]], nelsonJoin.tg.t, [T[0] + dx, T[1]], [Lp[0] + dx, Lp[1]]) };
         }
-        if (meet) (glyph.strokes ?? []).forEach((st, si) => { if (moved[si] && (st.name === "точка" || st.name === "гачек")) moved[si] = { ...moved[si], afterWord: true }; });
+        if (meet) (glyph.strokes ?? []).forEach((st, si) => { if (moved[si] && (st.name === "точка" || st.name === "гачек" || st.name === "черточка")) moved[si] = { ...moved[si], afterWord: true }; });
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
@@ -3144,7 +3144,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         prevMeetExit = null;
         if (meet && !inCell && glyph.kind === "letter" && !meet.noExit.has(label)) {
           // the exit: the last stroke that is not a lift (the dot of i j, the bar of t, a caron)
-          const ei = (glyph.strokes ?? []).map((st) => st.name).findLastIndex((n) => !["точка", "черта", "гачек"].includes(n));
+          const ei = (glyph.strokes ?? []).map((st) => st.name).findLastIndex((n) => !["точка", "черта", "гачек", "черточка"].includes(n));
           if (ei >= 0 && moved[ei]) {
             const q = samplePath(moved[ei].d, 40);
             const e1 = q[q.length - 1], e0 = q[Math.max(0, q.length - 4)];
@@ -3183,7 +3183,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const snapped = snapX(rowIndex, prevExit[0] - tokenPhase, prevExit[1]) + tokenPhase;
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
-      // meetJoins (the Slovene school hand): the dots of i j and the carons of č š ž are written after the whole word («pike na i in
+      // meetJoins (the Slovene school hand): the dots of i j (and of ä ö ü), the carons of č š ž and the acute of ć are written after the whole word («pike na i in
       // strešice na ž naredi na koncu», Naša ulica 2; owner, 2026-11-13) — those strokes go to the end of the word, in their order
       if (meet && tokenStrokeFrom >= 0) {
         const own = strokes.slice(tokenStrokeFrom);

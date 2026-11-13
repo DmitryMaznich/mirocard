@@ -14,7 +14,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { arc, line, dot, s } from "./geom.mjs";
+import { arc, line, dot, s, r2 } from "./geom.mjs";
 
 // x-band: circle centre y=75, radius 25. "Ball and stick": round part + straight stick.
 const BOWL_L = (cx = 25) => arc(cx, 75, 25, 25, -30, -390); // a d g q: start at 1 o'clock, back round
@@ -174,7 +174,31 @@ const slGlyphs = { ...glyphs };
 for (const [set, kind] of [[slUpper, "upper"], [slLower, "lower"]]) {
   for (const [ch, [width, strokes]] of Object.entries(set)) slGlyphs[ch] = { case: kind, width, strokes };
 }
-for (const ch of "qwxyQWXY") delete slGlyphs[ch]; // not letters of the Slovene alphabet (docs/propis2-sl.md)
+// The letters a Slovene text borrows (owner, 2026-11-14: «заимствованные буквы x y q w и сразу хорватские đ ć» — foreign names and
+// words, SP 2001: q w x y, ć đ, ä ö ü), outside the 25 of the alphabet (`alphabet.lower` keeps 25: cards and the cover alphabet stay
+// Slovene) but written when typed. q w x y as the English print, q in one stroke like g; ć — c and the acute (a lift, last, like the
+// caron), đ — d and a bar across its stick, ä ö ü — two dots, last.
+const shiftX = (d, dx) => d.replace(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g, (_, x, y) => `${r2(Number(x) + dx)},${y}`);
+const acute = (cx, yTop, h = 15) => s(line([cx + 5, yTop], [cx - 5, yTop + h]), "черточка");
+const dots2 = (cx, y, gap = 9) => [dot(cx - gap, y), dot(cx + gap, y)];
+const slExtra = {
+  lower: {
+    q: [50, [s(`${BOWL_SL} ${BOWL_END} L 50,150`, "овал и палочка")]],
+    "ć": [50, [...lower.c[1], acute(27, 24)]],
+    "đ": [50, [...slLower.d[1], s(line([36, 22], [64, 22]), "черта")]],
+    "ä": [50, [...slLower.a[1], ...dots2(25, 33)]],
+    "ö": [50, [...lower.o[1], ...dots2(25, 33)]],
+    "ü": [50, [...slLower.u[1], ...dots2(25, 33)]],
+  },
+  upper: {
+    "Ć": [80, [...upper.C[1], acute(44, -25)]],
+    "Đ": [70, [...upper.D[1].map((st) => ({ ...st, d: shiftX(st.d, 10) })), s(line([0, 50], [26, 50]), "черта")]],
+    "Ä": [60, [...slUpper.A[1], ...dots2(30, -12, 10)]],
+    "Ö": [80, [...upper.O[1], ...dots2(40, -12, 10)]],
+    "Ü": [55, [...upper.U[1], ...dots2(27.5, -12, 10)]],
+  },
+};
+for (const kind of ["lower", "upper"]) for (const [ch, [width, strokes]] of Object.entries(slExtra[kind])) slGlyphs[ch] = { case: kind, width, strokes };
 const slFile = fileURLToPath(new URL("./print_sl.json", import.meta.url));
 writeFileSync(slFile, JSON.stringify({ ...out, style: "print_sl", title: { ru: "Печатные (словенские)", sl: "Tiskane črke" }, glyphs: slGlyphs }, null, 1) + "\n");
 console.log(`wrote ${Object.keys(slGlyphs).length} glyphs → ${slFile}`);

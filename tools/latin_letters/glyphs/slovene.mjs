@@ -111,6 +111,35 @@ upper["Č"] = [upper.C[0], [...upper.C[1], capCaron(52)]];
 upper["Š"] = [upper.S[0], [...upper.S[1], capCaron(44)]];
 upper["Ž"] = [upper.Z[0], [...upper.Z[1], capCaron(52)]];
 
+// The borrowed letters (owner, 2026-11-14: «заимствованные буквы x y q w и сразу хорватские đ ć», and ä ö ü of foreign names; SP 2001)
+// — not in «Male pisane črke», so drawn after the model's own letters, to be checked with the owner against a school sheet that has
+// them: q — a's oval, the stem down below the line and a loop back up to the right into the exit; w — v with one more stem; x — a
+// slanting stroke with the lead-in and the exit, crossed by a second stroke (a lift, like t's bar); y — u with g's loop below; the
+// capitals: Q an oval with a tail at the bottom right, W V with one more stem, X as x, Y U with the loop below. ć — c and the acute,
+// đ — d and a bar across its stem, ä ö ü (Ä Ö Ü) — two dots; acute and dots written after the word, as the carons.
+const acute = (cx, yTop = 22) => s(line([cx + 5, yTop], [cx - 5, yTop + 16]), "черточка");
+const dots2 = (cx, y = 33, gap = 8) => [dot(cx - gap, y, 1.2), dot(cx + gap, y, 1.2)];
+lower.q = [80, [s(`${ovalToStem(35, 19, 24)} L 54,136 C 54,145 58,149 63,148 C 69,147 71,139 68,128 C 65,117 59,107 55,100 C 61,92 70,84 80,74`, "овал и палочка с петлёй")]];
+lower.w = [108, [s("M 1.5,98.5 C 15,77 30,51 38,51 C 42,51 44,54 44,60 L 44,88 C 44,95 48,98.5 54,98.5 C 60,98.5 64,93 64,84 L 64,52 L 64,88 C 64,95 68,98.5 74,98.5 C 80,98.5 84,93 84,84 L 84,52 L 84,66 C 85,70 91,70 96,67 C 101,64 106,58 108,52", "две горки с выходом наверху")]];
+lower.x = [88, [s("M 1.5,98.5 C 12,80 22,60 30,54 C 36,49 44,50 46,58 L 52,90 C 54,97 58,99 64,99 C 73,99 81,88 88,74", "наклонная"), s(line([66, 52], [32, 98]), "черта")]];
+lower.y = [84, [s("M 1.5,98.5 C 15,90 32,70 37.5,50 L 37.5,88 C 37.5,95 41,98.5 47.5,98.5 C 57,98.5 64,90 64,78 L 64,50 L 64,138 C 64,145 61,148 56,148 C 49,148 45,142 45.5,135 C 46,124 56,110 64,100 C 70,92 77,84 84,74", "палочка и петля внизу")]];
+lower["ć"] = [lower.c[0], [...lower.c[1], acute(36)]];
+lower["đ"] = [lower.d[0], [...lower.d[1], s(line([42, 22], [66, 22]), "черта")]];
+lower["ä"] = [lower.a[0], [...lower.a[1], ...dots2(35)]];
+lower["ö"] = [lower.o[0], [...lower.o[1], ...dots2(35)]];
+lower["ü"] = [lower.u[0], [...lower.u[1], ...dots2(51)]];
+const capAcute = (cx) => s(line([cx + 5, -19], [cx - 4, -6]), "черточка"); // as high as the carons: the line has no gap above
+const capDots = (cx) => [dot(cx - 9, -12, 1.4), dot(cx + 9, -12, 1.4)];
+upper.Q = [92, [s("M 60,4 C 50,-1 34,0 24,12 C 12,26 6,46 8,66 C 10,88 24,101 42,101 C 62,101 78,84 80,58 C 82,30 72,6 56,2", "овал"), s("M 44,74 C 54,86 62,101 76,101 C 84,101 89,94 92,86", "хвостик")]];
+upper.W = [144, [s("M 4,15 C 12,6 24,-2 34,-3 C 40,-3 41,8 41,25 L 39,70 C 39,92 46,101 55,101 C 66,101 71,90 71,72 L 71,-1 L 71,72 C 71,90 78,101 88,101 C 99,101 104,90 104,72 L 104,10 C 104,3 102,-2 99,-1 C 96,0 96,5 99,8 C 105,13 125,8 144,-4", "три палочки и выход наверху")]];
+upper.X = [97, [s("M 6,14 C 14,4 26,-1 34,2 C 42,5 44,20 48,45 L 56,88 C 58,97 64,101 72,101 C 84,101 92,90 97,76", "наклонная"), s(line([80, 4], [20, 100]), "черта")]];
+upper.Y = [89, [s("M 4,17 C 12,8 22,0 32,-1 C 37,-1 38,8 38,25 L 37,65 C 37,90 44,101 52,101 C 64,101 73,92 74,75 L 74,-1 L 74,135 C 74,145 69,152 61,152 C 53,152 49,146 49,138 C 49,124 63,108 74,98 C 79,92 84,84 89,77", "две палочки и петля внизу")]];
+upper["Ć"] = [upper.C[0], [...upper.C[1], capAcute(56)]];
+upper["Đ"] = [upper.D[0], [...upper.D[1], s(line([18, 50], [46, 50]), "черта")]];
+upper["Ä"] = [upper.A[0], [...upper.A[1], ...capDots(58)]];
+upper["Ö"] = [upper.O[0], [...upper.O[1], ...capDots(46)]];
+upper["Ü"] = [upper.U[0], [...upper.U[1], ...capDots(56)]];
+
 // digits and signs: the Slovenian print ones (print_sl.json)
 const glyphs = Object.fromEntries(Object.entries(printSl.glyphs).filter(([, g]) => g.case === "sign"));
 for (const [ch, [width, strokes]] of Object.entries(upper)) glyphs[ch] = { case: "upper", width, strokes };

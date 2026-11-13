@@ -33,7 +33,7 @@ describe("Slovenian (draft)", () => {
     expect(published.languages.find((l) => l.id === "sl")?.status).toBe("draft");
   });
 
-  it("25 letters, no q w x y, every one with a small and a capital form in both styles", () => {
+  it("25 letters, every one with a small and a capital form in both styles; the borrowed q w x y ć đ ä ö ü written too", () => {
     expect([...sl.alphabet.lower]).toHaveLength(25);
     for (const st of ["sl_caps", "sl_print"]) {
       const labels = new Set(view(st).wide.map((g) => g.label));
@@ -41,7 +41,8 @@ describe("Slovenian (draft)", () => {
         expect(labels.has(ch), `${st} ${ch}`).toBe(true);
         expect(labels.has(ch.toUpperCase()), `${st} ${ch.toUpperCase()}`).toBe(true);
       }
-      for (const ch of "qwxy") expect(sl.styles.find((s) => s.id === st).glyphs.some((g) => g.label === ch)).toBe(false);
+      // the borrowed letters (step 4х): written when typed, not in the 25 of the alphabet
+      for (const ch of "qwxyćđäöüQWXYĆĐÄÖÜ") expect(labels.has(ch), `${st} ${ch}`).toBe(true);
     }
   });
 
@@ -186,6 +187,8 @@ describe("Slovenian (draft)", () => {
         ["capi", "sl_cursive", ["Mi Ma Mu Mn#1", "Ai Ei Ui Ji#1", "Li Le La Lu#1", "Ži Ži Ku Hi#1"], "sl_10"],
         ["cape", "sl_cursive", ["Le Me Ae Ue#1", "Je Že Ke He#1", "Lea Leja Lena#1", "Meta Eva Uroš#1"], "sl_10"],
         ["capfa", "sl_cursive", ["Ia Da Ja Ta#1", "Pa Ba Fa Na#1", "Oa Sa Va Šo#1", "Ida Dora Jana Tadej#1"], "sl_10"],
+        ["borrowed", "sl_cursive", ["q w x y#1", "ć đ ä ö ü#1", "Q W X Y#1", "Ć Đ Ä Ö Ü#1", "Xaver Yvonne#1", "Đurđa Ćiril#1", "Wolf Quinn#1", "Jürgen Ötzi#1", "Äsa Üna Ćevapi#1", "taxi yoga quiz#1"], "sl_10"],
+        ["borrowedp", "sl_print", ["q w x y ć đ ä ö ü#1", "Q W X Y Ć Đ#1", "Ä Ö Ü#1", "Xaver Đurđa#1", "Jürgen Ötzi#1"], "sl_10"],
         ["lea", "sl_cursive", ["Le La#1", "Leja Lara#1", "le la#1", "Lea Luka#1"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
       ]) await writeFile(`${out}/${name}.html`, `<!doctype html><meta charset="utf-8"><body style="margin:0;background:#fff">${page(view(style), lines, grid)}</body>`);

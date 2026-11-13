@@ -192,7 +192,7 @@
       "short": "SLO",
       "status": "draft", "publishDraft": true,
       "deck": "latin",
-      "note": "Словенские прописи (docs/propis2-sl.md): 25 букв без q w x y, бумага — три равные полосы (fourLinePapers.js sl*), стили по ступеням школы: большие печатные (1-й класс), малые печатные (1–2-й), письменные (2-й, шаг 3 — ещё нет). Черновик: в боевую колоду не попадает (сборка --latin берёт черновики только с --drafts).",
+      "note": "Словенские прописи (docs/propis2-sl.md): алфавит — 25 букв (карточки, алфавит обложки), плюс заимствованные q w x y, ć đ, ä ö ü — пишутся, если набраны (шаг 4х); бумага — три равные полосы (fourLinePapers.js sl*), стили по ступеням школы: большие печатные (1-й класс), малые печатные (1–2-й), письменные (2-й). Черновик, но выходит в боевую колоду с пометкой «черновик» (publishDraft, колода 0.10.0).",
       "alphabet": {
         "lower": "abcčdefghijklmnoprsštuvzž"
       },
@@ -298,7 +298,7 @@
             "letterGap": 0,
             "wordGap": 56,
             "meetJoins": {
-              "noExitFrom": "BDFINOPSŠTV",
+              "noExitFrom": "BDFINOPSŠTVĐÖWQ",
               "loopInto": "e",
               "ovalInto": "acdgoq",
               "hookFrom": "ro",
@@ -317,7 +317,7 @@
             "square",
             "ruled"
           ],
-          "note": "2-й класс: строчные по школьной модели (шаг 3, tools/latin_letters/glyphs/slovene.mjs), соединений ещё нет (шаг 4) — буквы стоят вплотную, каждая со своим подъёмом и выходом"
+          "note": "2-й класс: строчные по школьной модели (шаг 3, tools/latin_letters/glyphs/slovene.mjs), соединения — script.meetJoins (шаг 4 в docs/propis2-sl.md)"
         }
       ]
     }
