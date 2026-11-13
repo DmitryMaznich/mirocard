@@ -88,7 +88,7 @@ describe("Slovenian (draft)", () => {
       if ("bvor".includes(ch)) expect(end, `${ch} ends at the top`).toBeCloseTo(1, 1);
       else if (!"sš".includes(ch)) expect(end, `${ch} ends half-way up`).toBeCloseTo(0.48, 1);
       const lifts = g.strokes.slice(1).map((st) => st.name);
-      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], r: ["крючок"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
+      const allowed = { i: ["точка"], j: ["точка"], t: ["черта"], f: ["выход"], r: ["крючок"], o: ["крючок"], č: ["гачек"], š: ["гачек"], ž: ["гачек"] }[ch] ?? [];
       expect(lifts, ch).toEqual(allowed);
     }
   });
@@ -173,6 +173,7 @@ describe("Slovenian (draft)", () => {
         ["vire", "sl_cursive", ["Vid Vika#1", "reka drevo#1", "Jure brest#1", "vi ve#1"], "sl_10"],
         ["rwords", "sl_cursive", ["r ra re#1", "trava rumen#1", "krava prst#1", "riba Peter#1"], "sl_10"],
         ["ejoin", "sl_cursive", ["me ne ze#1", "le te he#1", "trava vrata#1", "zelen vesel#1"], "sl_10"],
+        ["straight", "sl_cursive", ["le ie mi#1", "lina kino#1", "oa ra kolo#1", "noga voda#1"], "sl_10"],
         ["topexit", "sl_cursive", ["perica ri ra#1", "trava vrata#1", "dobro oblak#1", "kolo voda#1"], "sl_10"],
         ["capsfoot", "sl_cursive", ["Izak David#1", "Primož Bor#1", "Tanja Nina#1", "Filip Sara#1"], "sl_10"],
         ["words2", "sl_cursive", ["nov lovi", "ovca vesel", "svetel naš"], "sl_10"],
