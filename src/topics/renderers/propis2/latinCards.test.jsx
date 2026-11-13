@@ -15,11 +15,12 @@ const deck = await getTopicRecord(db, "propis2_lang");
 const modes = deck.modes.filter((m) => ["letters_recognize", "letters_case"].includes(m.type));
 
 describe("letter cards in English", () => {
-  it("the card modes offer the English styles (one language in «Прописи: латиница»: no «Язык» to choose)", () => {
+  it("the card modes offer English and Slovenian (a published draft since deck 0.10.0) with their styles", () => {
     for (const m of modes) {
-      expect(m.params.writingLang).toBeUndefined();
-      expect(m.params.writingStyle.values).toEqual(["print", "british", "british_joined", "british_slanted"]);
-      expect(m.params.writingStyle.labels.ru).toEqual({ print: "Печатные", british: "Британские раздельные", british_joined: "Британские соединённые", british_slanted: "Британские соединённые наклонные" });
+      expect(m.params.writingLang.values).toEqual(["en", "sl"]);
+      expect(m.params.writingLang.default).toBe("en");
+      expect(m.params.writingStyle.values).toEqual(["print", "british", "british_joined", "british_slanted", "sl_caps", "sl_print", "sl_cursive"]);
+      expect(m.params.writingStyle.labels.ru.british_joined).toBe("Британские соединённые (English)");
     }
   });
 

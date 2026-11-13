@@ -60,14 +60,14 @@ describe("English print letters in the propis2 engine", () => {
     expect(test.entry.status).toBe("release"); // open to all since 2026-11-11 (paid, as propis2)
     expect(test.entry.access).toBe(prod.entry.access); // paid as propis2
     expect(test.topic.meta.title).toBe("Прописи: латиница");
-    expect(test.topic.languages.map((l) => l.id)).toEqual(["en"]); // no Russian, Bulgarian, Kazakh
+    expect(test.topic.languages.map((l) => l.id)).toEqual(["en", "sl"]); // no Russian, Bulgarian, Kazakh; Slovenian a published draft since 0.10.0
     expect(test.topic.modes.map((m) => m.type)).not.toContain("dictation"); // the dictation is Russian
     const en = test.topic.languages.find((l) => l.id === "en");
     // 52 letters + 0–9 and + − = < > (as «№…») + the hyphen + . , ? ! + (2026-11-10, the copymasters' texts) : ; ' ’ " “ ” ( ) — all
     // upright, none borrowed from the Russian cursive
     for (const id of ["print", "british"]) {
       const g = en.styles.find((s) => s.id === id).glyphs;
-      expect(g).toHaveLength(81);
+      expect(g).toHaveLength(id === "print" ? 87 : 81); // (print: + Č Š Ž č š ž, shared with the Slovenian print letters since deck 0.10.0)
       for (const label of ["№0", "№9", "№+", "№=", "-", ".", "?", "!", ":", ";", "'", "’", '"', "“", "”", "(", ")"]) expect(g.find((x) => x.label === label)?.upright, `${id} ${label}`).toBe(true);
     }
   });

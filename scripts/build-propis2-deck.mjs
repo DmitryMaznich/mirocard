@@ -74,7 +74,9 @@ const langSpec = LANGUAGES_PATH ? JSON.parse(readFileSync(LANGUAGES_PATH, "utf-8
 if (langSpec) {
   // (the dictation stays: Russian only — its words, texts and recordings are Russian; engine.js makes it in the deck's first language)
   const baseKits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
-  const inDeck = (l) => (latin ? l.deck === "latin" : l.deck !== "latin") && (drafts || l.status !== "draft");
+  // (`publishDraft: true`: a draft language that goes out all the same, marked «черновик» in the language picker — the Slovenian one
+  // since the Latin deck 0.10.0, owner, 2026-11-14: «сразу в латиницу для всех»)
+  const inDeck = (l) => (latin ? l.deck === "latin" : l.deck !== "latin") && (drafts || l.status !== "draft" || l.publishDraft);
   const skipped = langSpec.languages.filter((l) => !inDeck(l)).map((l) => l.id);
   if (skipped.length) console.log(`  (languages left out of this deck: ${skipped.join(", ")})`);
   topic.languages = langSpec.languages.filter(inDeck).map((spec) => {

@@ -190,7 +190,7 @@
       "id": "sl",
       "title": "Slovenščina",
       "short": "SLO",
-      "status": "draft",
+      "status": "draft", "publishDraft": true,
       "deck": "latin",
       "note": "Словенские прописи (docs/propis2-sl.md): 25 букв без q w x y, бумага — три равные полосы (fourLinePapers.js sl*), стили по ступеням школы: большие печатные (1-й класс), малые печатные (1–2-й), письменные (2-й, шаг 3 — ещё нет). Черновик: в боевую колоду не попадает (сборка --latin берёт черновики только с --drafts).",
       "alphabet": {

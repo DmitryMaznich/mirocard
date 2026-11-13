@@ -207,8 +207,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     expect(host.querySelector(".screen-title").textContent).toBe("Прописи: латиница");
-    // one language, and the style is the page's: nothing to choose for a new notebook
-    expect(host.querySelector('[data-testid="propis2-new-lang"]')).toBeNull();
+    // English and Slovenian (a published draft since deck 0.10.0): the new notebook's language can be chosen, English first
+    expect(host.querySelector('[data-testid="propis2-new-lang"]')).not.toBeNull();
     await click(btn(host, "Новая тетрадь"));
     expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
     const field = host.querySelector('[aria-label="Текст страницы"]');

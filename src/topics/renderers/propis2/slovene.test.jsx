@@ -11,7 +11,7 @@ import { buildPageTask, glyphMapOf } from "./pageTask.js";
 import { languageView } from "./languages.js";
 import { deckPapers } from "./model.js";
 
-// The Slovenian language of «Прописи: латиница» (docs/propis2-sl.md, step 2), a draft: not in the published deck. Here it is laid over
+// The Slovenian language of «Прописи: латиница» (docs/propis2-sl.md, step 2), a draft published in the deck since 0.10.0. Here it is laid over
 // the published Latin deck the way scripts/build-propis2-deck.mjs does it (a style's letters from its `glyphsFile`).
 const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
 const db = await openDb(`test-latin-sl-${Date.now()}`);
@@ -20,16 +20,17 @@ const published = await getTopicRecord(db, "propis2_lang");
 const spec = JSON.parse(await readFile("tools/propis2/languages.json", "utf-8")).languages.find((l) => l.id === "sl");
 const { deck: _deck, ...sl } = spec;
 sl.styles = await Promise.all(sl.styles.map(async ({ glyphsFile, ...st }) => ({ ...st, glyphs: JSON.parse(await readFile(glyphsFile, "utf-8")).glyphs })));
-const deck = { ...published, languages: [...published.languages, sl] };
+const deck = { ...published, languages: [...published.languages.filter((l) => l.id !== "sl"), sl] };
 const view = (style) => languageView(deck, "sl", style);
 const page = (rec, lines, grid) => renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines, grid })} bare />);
 const inkOf = (rec, text) => layoutWideLinesIntoRows([text], glyphMapOf(rec), undefined, false).placed[0];
 
 describe("Slovenian (draft)", () => {
-  it("is a draft of the Latin deck and is not in the published one", () => {
+  it("is a draft of the Latin deck, published all the same (marked «черновик»: publishDraft, deck 0.10.0)", () => {
     expect(spec.status).toBe("draft");
     expect(spec.deck).toBe("latin");
-    expect(published.languages.map((l) => l.id)).not.toContain("sl");
+    expect(spec.publishDraft).toBe(true);
+    expect(published.languages.find((l) => l.id === "sl")?.status).toBe("draft");
   });
 
   it("25 letters, no q w x y, every one with a small and a capital form in both styles", () => {

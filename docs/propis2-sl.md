@@ -10,9 +10,14 @@
 
 ## Передача (handoff, 2026-11-13) — читать первым
 
-**Ветка:** `claude/slovenian-handwriting-structure-zyeutk` (оба репо — работа только в `DmitryMaznich/mirocard`). В `main` не
-сливалось, `package.json` не трогался; язык `sl` — черновик (`status: "draft"`), в боевую колоду не попадает. Собрать колоду с
-черновиками: `node scripts/build-propis2-deck.mjs --latin --drafts --out <файл>`.
+**Ветка:** `claude/slovenian-handwriting-structure-zyeutk` (оба репо — работа только в `DmitryMaznich/mirocard`). **2026-11-14 влита в
+`main` и выпущена** (владелец: «сразу в латиницу для всех»): колода «Прописи: латиница» **0.10.0** — английский и словенский; словенский
+остаётся черновиком (`status: "draft"`, в выборе языка — пометка «черновик»), но идёт в боевую колоду (`publishDraft: true` в
+`languages.json`; без флага черновики в сборку не попадают). Скрыть язык от всех, кроме админа, приложение пока не умеет
+(`offeredLanguages` в `languages.js` нигде не вызывается — признака админа в клиенте нет). Сборка: `node scripts/build-propis2-deck.mjs
+--latin` (обновляет `public/decks` и каталог; старую ZIP удалить, `node scripts/build-topic-inventory.mjs`). Движок ветки проверен: английские
+и русские/болгарские/казахские раскладки байт в байт как у движка `main` (соединения `meetJoins` есть только у словенских письменных).
+В английский «Печатные» вошли Č Š Ž č š ž (87 знаков вместо 81, общие со словенскими печатными).
 
 **Где что.** Буквы: `tools/latin_letters/glyphs/slovene.mjs` (строчные `lower`, заглавные `upper`) →
 `node tools/latin_letters/glyphs/slovene.mjs && node tools/handwriting/latin/build-print.mjs --style slovene`. Стиль и настройки
