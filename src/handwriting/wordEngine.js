@@ -2463,6 +2463,18 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
               ? E[0] + 0.22 * WIDE_ZONE_UNITS * scale - eyeLeft + local.start[0]
               : oval ? ovalX : E[0] + 0.2 * WIDE_ZONE_UNITS * scale - T[0] + local.start[0];
             if (into) meetJoin = { type: "join", P: T, t: [T[0] - T0[0], T[1] - T0[1]], into, oval };
+            // into e from the top exit of r v o b (owner, 2026-11-13, the worksheets' «reže», «vesel», «svetel»: e looked squeezed, like
+            // a loop): from the end of the hook the join dips in a smooth valley down to e's bar, low in the x band, and e is written from
+            // there as it is everywhere else — its bar rising into its eye
+            if (into) {
+              const xh = WIDE_ZONE_UNITS * scale;
+              const yP = pts[0][1] - 0.42 * xh;
+              let q = 1;
+              while (q < k && pts[q][1] > yP) q += 1;
+              const P = pts[q], uq = nlsUnit(pts[q + 1][0] - pts[q - 1][0], pts[q + 1][1] - pts[q - 1][1]);
+              wantStartX = E[0] + 0.6 * xh - P[0] + local.start[0];
+              meetJoin = { type: "join", P, t: uq, valley: true };
+            }
           }
         }
         // after a capital that ends on its left (B D F I N P S Š T …, `noExitFrom`): no pen lift either — the next letter's whole lead-in
@@ -2870,9 +2882,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // leaving LEVEL: from the top of o v b r (their exit ends rising: a hook up at the join otherwise) and from under s
             // (into e: across, dipping a little — e's bar)
             // (from a mid exit into e, and from a hook into an oval: on along the exit's own direction, no bend at the joint)
-            const tE = meetJoin.alongExit || meetJoin.oval ? nlsUnit(...prevMeetExit.t) : meetJoin.into ? nlsUnit(1, 0.3) : [1, 0], tT = nlsUnit(...meetJoin.t);
-            const k2 = meetJoin.alongExit ? 0.3 : meetJoin.into ? 0.3 : meetJoin.from ? 0.35 : 0.4;
-            const c1 = [E[0] + tE[0] * L * (meetJoin.from ? 0.5 : 0.4), E[1] + tE[1] * L * 0.4], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
+            const tE = meetJoin.valley ? nlsUnit(1, 0.12) : meetJoin.alongExit || meetJoin.oval ? nlsUnit(...prevMeetExit.t) : meetJoin.into ? nlsUnit(1, 0.3) : [1, 0], tT = nlsUnit(...meetJoin.t);
+            const k2 = meetJoin.valley ? 0.4 : meetJoin.alongExit ? 0.3 : meetJoin.into ? 0.3 : meetJoin.from ? 0.35 : 0.4;
+            const c1 = [E[0] + tE[0] * L * (meetJoin.from || meetJoin.valley ? 0.5 : 0.4), E[1] + tE[1] * L * (meetJoin.valley ? 0.5 : 0.4)], c2 = [at[0] - tT[0] * L * k2, at[1] - tT[1] * L * k2];
             const f3 = (v) => v.toFixed(3);
             const joinD = meetJoin.path
               ? `M ${meetJoin.path.map((p) => `${f3(p[0])} ${f3(p[1])}`).join(" L ")} L ${f3(at[0])} ${f3(at[1])}`
