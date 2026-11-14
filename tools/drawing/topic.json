@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.25.2",
+    "version": "0.26.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -414,6 +414,14 @@
       "label": "Ослик",
       "image": "media/donkey.svg",
       "lessonFile": "lessons/donkey.json"
+    },
+    {
+      "id": "peppa_george",
+      "conceptId": "peppa_george",
+      "primary": true,
+      "label": "Пеппа и Джордж",
+      "image": "media/peppa_george.svg",
+      "lessonFile": "lessons/peppa_george.json"
     },
     {
       "id": "first_lines:short_line",

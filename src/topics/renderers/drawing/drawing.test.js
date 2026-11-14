@@ -20,7 +20,18 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george"]));
+    const peppa = tasks.find(task => task.cardId === "peppa_george").lesson;
+    expect(peppa.title).toBe("Пеппа и Джордж");
+    expect(peppa.source.url).toContain("1TXjRL5uiFjGpBmAIo9WXDKnmgehVs-tT");
+    expect(peppa.steps).toHaveLength(73);
+    expect(peppa.steps[0]).toMatchObject({ kind: "stroke", title: "Голова Джорджа" });
+    expect(peppa.steps.at(-1)).toMatchObject({ kind: "color", tool: "green" });
+    // A single animated stroke cannot contain disconnected moves: SVG dash
+    // patterns restart at each M and would reveal later lines prematurely.
+    for (const step of peppa.steps.filter(s => s.kind === "stroke")) {
+      for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
+    }
     const donkey=tasks.find(task=>task.cardId === "donkey").lesson;
     expect(donkey.title).toBe("Ослик");
     expect(donkey.steps).toHaveLength(39);
