@@ -21,8 +21,7 @@ def color(title,d,tool,time,**extra):
 def polygon(points):return region([line(a,b) for a,b in zip(points,points[1:]+points[:1])])
 
 shell=ref('shell');shell_d=shell.d(True)
-stroke('Левая дуга раковины',chain(shell.cs[:4]),15)
-stroke('Правая дуга раковины',chain(shell.cs[4:]),24)
+stroke('Контур раковины',shell.d(True),24)
 
 tail=ref('tail');lower=ref('lower_body');head=ref('head')
 left=shell.nearest(tail.cs[0][0]);bottom=shell.nearest(lower.cs[0][0]);right=shell.nearest(head.cs[-1][-1])
@@ -32,16 +31,12 @@ joint=tuple((lower.cs[-1][-1][i]+head.cs[0][0][i])/2 for i in (0,1))
 lower.attach_end(joint);head.attach_start(joint)
 tail_d=region(tail.cs+shell.short_arc(bottom,left))
 body_d=region(lower.cs+head.cs+shell.short_arc(right,bottom))
-stroke('Заострённый хвостик',chain(tail.cs[:2]),31)
-stroke('Нижняя линия тела',[chain(tail.cs[2:]),lower.d()],35)
-stroke('Округлая голова и шея',head.d(),39)
+stroke('Контур тела и головы',chain(tail.cs+lower.cs+head.cs),39)
 
 eyes=[];stalks=[];irises=[]
 for side,title,time in [('left','Левый',44),('right','Правый',47)]:
     eye=ref('eye_'+side);iris=ref('iris_'+side)
     eyes.append(eye.d(True));irises.append(iris.d(True))
-    stroke(title+' глазок',eye.d(True),time)
-    stroke(title+' зрачок',iris.d(True),time+2)
     stalk_l,stalk_r=ref('stem_'+side+'_l'),ref('stem_'+side+'_r')
     if side=='right':
         stalk_l=Path(reverse(stalk_l.cs));stalk_r=Path(reverse(stalk_r.cs))
@@ -50,8 +45,9 @@ for side,title,time in [('left','Левый',44),('right','Правый',47)]:
     stalk_l.attach_start(eye.point(a));stalk_r.attach_start(eye.point(b))
     stalk_l.attach_end(head.point(c));stalk_r.attach_end(head.point(d))
     stalks.append(region(stalk_l.cs+head.short_arc(c,d)+reverse(stalk_r.cs)+eye.short_arc(b,a)))
-    stroke(title+' стебелёк — первая линия',stalk_l.d(),52)
-    stroke(title+' стебелёк — вторая линия',stalk_r.d(),54)
+    # One tap demonstrates the whole eye. Pen lifts between the independent
+    # rings and stalk edges remain sequential paths, never multiple M in one.
+    stroke(title+' глазок со стебельком',[eye.d(True),iris.d(True),stalk_l.d(),stalk_r.d()],54)
     # The source has white reflections within each black pupil, no extra rings.
     cx,cy=(403.2,136.2) if side=='left' else (445.3,145.7)
     highlights=region(oval(cx+1,cy+1.7,1.15,2.1))+' '+region(oval(cx+.3,cy-3.4,1.1,.75))
@@ -59,9 +55,7 @@ for side,title,time in [('left','Левый',44),('right','Правый',47)]:
 stroke('Улыбка улитки',ref('smile').d(),59)
 
 spiral=ref('spiral');spiral.attach_start(shell.point(shell.nearest(spiral.cs[0][0])))
-stroke('Большой виток спирали',chain(spiral.cs[:2]),68)
-stroke('Средний виток спирали',chain(spiral.cs[2:5]),76)
-stroke('Маленький завиток в центре',chain(spiral.cs[5:]),83)
+stroke('Спираль раковины',spiral.d(),83)
 color('Розовая основа раковины',shell_d,'pink',100)
 
 # Soft shadows and thin radial pastel marks follow the original shell pattern.
@@ -104,12 +98,11 @@ for i in range(38):
     distance=min(hits);a=(q[0]+v[0]*2.1,q[1]+v[1]*2.1);b=(q[0]+v[0]*(distance-2.4),q[1]+v[1]*(distance-2.4))
     dx,dy=b[0]-a[0],b[1]-a[1]
     rays.append(chain([(a,(a[0]+dx*.30-dy*.12,a[1]+dy*.30+dx*.12),(a[0]+dx*.67-dy*.08,a[1]+dy*.67+dx*.08),b)]))
-for i in range(0,len(rays),3):stroke(f'Фиолетовые лучики раковины {i//3+1}',rays[i:i+3],145+i/3,tool='purple',reference=False)
+for i in range(0,len(rays),8):stroke(f'Фиолетовые лучики раковины {i//8+1}',rays[i:i+8],145+i/3,tool='purple',reference=False)
 
 color('Жёлтый хвостик',tail_d,'yellow',169)
 color('Жёлтое тело и голова',body_d,'yellow',178)
-for i,d in enumerate(stalks):color(f'Жёлтый стебелёк {i+1}',d,'yellow',185+i)
-for i,d in enumerate(eyes):color(f'Жёлтая окантовка глазка {i+1}',d+' '+irises[i],'yellow',188+i,clip=d)
+for i,d in enumerate(eyes):color(f'Жёлтый глазок и стебелёк {i+1}',stalks[i]+' '+d+' '+irises[i],'yellow',188+i)
 
 shade_return=[(joint,(423,190),(415,203),(405,214)),((405,214),(381,233),(346,240),shell.point(bottom))]
 color('Зелёная тень на теле',region(lower.cs+shade_return),'green',204,clip=body_d)
@@ -128,22 +121,15 @@ stroke('Зелёный контур следа',chain(slime)+' Z',217,tool='gree
 hole=region(oval(284,254,47,1.8))+' '+region(oval(367,251,23,1.5))
 color('Зелёный след под улиткой',slime_d+' '+hole,'green',220,clip=slime_d)
 drops=[(163,254,6.8,1.6),(181,269,4.7,1.5),(213,267,5.0,2.4),(250,270,6.7,1.8),(393,262,6.5,1.6),(421,245,6.8,2.1)]
-for group in range(2):
-    ds=[region(oval(*p)) for p in drops[group*3:group*3+3]]
-    stroke(f'Зелёные капельки {group+1}',ds,226+group,tool='green',reference=False)
-    color(f'Раскрасим капельки {group+1}',' '.join(ds),'green',228+group)
-stroke('Голубые штрихи на следе слева',[
-    chain([((181,255),(194,253),(201,254),(208,254))]),
-    chain([((223,258),(230,258),(236,252),(243,255))])],236,tool='blue',reference=False)
-stroke('Голубые штрихи на следе справа',[
-    chain([((320,255),(329,259),(340,252),(351,255))]),
-    chain([((370,254),(381,255),(391,254),(397,250))])],240,tool='blue',reference=False)
+ds=[region(oval(*p)) for p in drops]
+stroke('Зелёные капельки',ds,226,tool='green',reference=False)
+color('Раскрасим капельки',' '.join(ds),'green',228)
 
-lesson=dict(id='snail',title='Улитка',viewBox='298 192 640 372',
+lesson=dict(id='snail',title='Улитка',viewBox='298 192 640 372',progressRevision=2,
     source=dict(title='РыбаКит — Рисуем УЛИТКУ масляной пастелью',
         url='https://drive.google.com/file/d/1QfPhIZi4nFFKpKyG28rTtL4pIjWhMzSx/view',
         durationSeconds=253.028,referenceFrameSeconds=82,
-        note='Контуры восстановлены по независимому кадру 640×360. Пастельная раскраска адаптирована к карандашной: розовая основа, фиолетовые тени и лучики, жёлтое тело, зелёные тени и след, голубые штрихи. Порядок сгруппирован по карандашам, sourceTime приблизительный.'),
-    palette=['black','pink','purple','yellow','green','blue'],steps=STEPS)
+        note='Контуры восстановлены по независимому кадру 640×360. Пастельная раскраска адаптирована к карандашной: розовая основа, фиолетовые тени и лучики, жёлтое тело, зелёные тени и след. Незаметные голубые акценты опущены. Непрерывные контуры объединены, каждый глазок показан целиком. Порядок сгруппирован по карандашам, sourceTime приблизительный.'),
+    palette=['black','pink','purple','yellow','green'],steps=STEPS)
 (BASE/'lessons/snail.json').write_text(json.dumps(lesson,ensure_ascii=False,indent=2)+'\n')
 print(len(STEPS),'steps;',len(rays),'shell rays')

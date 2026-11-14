@@ -23,9 +23,13 @@ describe("downloadable drawing topic", () => {
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail"]));
     const snail = tasks.find(task => task.cardId === "snail").lesson;
     expect(snail.title).toBe("Улитка");
-    expect(snail.steps).toHaveLength(51);
+    expect(snail.steps).toHaveLength(26);
+    expect(snail.progressRevision).toBe(2);
     expect(snail.source.url).toContain("1QfPhIZi4nFFKpKyG28rTtL4pIjWhMzSx");
-    expect(snail.palette.map(tool => tool.id)).toEqual(["black", "pink", "purple", "yellow", "green", "blue"]);
+    expect(snail.palette.map(tool => tool.id)).toEqual(["black", "pink", "purple", "yellow", "green"]);
+    for (const title of ["Контур раковины", "Контур тела и головы", "Спираль раковины"]) {
+      expect(snail.steps.find(step => step.title === title).paths).toHaveLength(1);
+    }
     for (const step of snail.steps.filter(s => s.kind === "stroke")) {
       for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
     }
