@@ -101,4 +101,32 @@ describe('natural coloring across separate browser frames',()=>{
     expect(loadColoring(key).progress.shapes[0].ink[0].points.at(-1)).toEqual({x:200,y:100});
   });
 
+  it('offers five pencils during filling, keeps old strokes colored and restores the selection',async()=>{
+    await render();
+    const colors=host.querySelector('[aria-label="Цвет карандаша"]');expect(colors).toBeTruthy();expect(colors.querySelectorAll('button')).toHaveLength(5);
+    await act(async()=>host.querySelector('[aria-label="Красный"]').click());
+    expect(host.querySelector('[aria-label="Красный"]').getAttribute('aria-pressed')).toBe('true');
+    await send('pointerdown',100,100);await send('pointermove',180,100);await send('pointerup',180,100);
+    const before=loadColoring(key).progress.shapes[0].filled.length;
+    await act(async()=>host.querySelector('[aria-label="Зелёный"]').click());
+    expect(loadColoring(key).progress.shapes[0].filled.length).toBe(before);
+    await send('pointerdown',100,140);await send('pointermove',180,140);await send('pointerup',180,140);
+    const saved=loadColoring(key);expect(saved.progress.shapes[0].ink.map(s=>s.color)).toEqual(['#ef6363','#68b77d']);
+    expect(saved.progress.color).toBe('#68b77d');
+    await act(async()=>root.unmount());root=createRoot(host);await render();
+    expect(host.querySelector('[aria-label="Зелёный"]').getAttribute('aria-pressed')).toBe('true');
+    await send('pointerdown',100,180);await send('pointermove',180,180);await send('pointerup',180,180);
+    expect(loadColoring(key).progress.shapes[0].ink.map(s=>s.color)).toEqual(['#ef6363','#68b77d','#68b77d']);
+  });
+  it('hides the palette during contour tracing and disables color changes during a stroke',async()=>{
+    const saved=loadColoring(key);saved.progress.shapes[0].phase='trace';saveColoring(key,saved);
+    await render();expect(host.querySelector('[aria-label="Цвет карандаша"]')).toBeNull();
+    await send('pointerdown',50,50);await send('pointermove',350,50);await send('pointermove',350,350);await send('pointermove',50,350);await send('pointermove',50,50);await send('pointerup',50,50);
+    expect(host.querySelector('[aria-label="Цвет карандаша"]')).toBeTruthy();
+    await send('pointerdown',100,100);
+    expect([...host.querySelectorAll('.coloring__color')].every(b=>b.disabled)).toBe(true);
+    await send('pointerup',100,100);
+    expect([...host.querySelectorAll('.coloring__color')].some(b=>b.disabled)).toBe(false);
+  });
+
 });

@@ -1,3 +1,4 @@
+import {inkColor} from './palette.js';
 import {createContour,contourProfile} from './contour.js';
 import { bounds, contourDistance, distanceToSegment, inside } from './geometry.js';
 
@@ -79,7 +80,7 @@ export function createColoringAttempt(shape,state,options) {
     return {failed:false};
   }
   return {state,progress,
-    begin(p,time=0) {
+    begin(p,time=0,color) {
       if(failed||stroke||state.phase==='done')return false;
       if(state.phase==='trace') {
         if(!contour.attempt.begin(p,time))return false;
@@ -89,7 +90,7 @@ export function createColoringAttempt(shape,state,options) {
       }
       if(!allowed(p))return false;
       state.retry=false;
-      failed=false;last=p;stroke={width:state.phase==='trace'?(options.outlineInk??3):options.brush,points:[p]};
+      failed=false;last=p;stroke={width:options.brush,color:inkColor(color),points:[p]};
       (state.phase==='trace'?state.outline:state.ink).push(stroke);mark(p,p);return true;
     },move,
     end(cancelled=false) {

@@ -34,6 +34,7 @@ try {
   await ready(page,'http://localhost:8080/tools/drawing/first-lines-preview.html?fresh&coloring&noVideo&figures=basic');
   let saved=await snapshot(page);assert(saved.sheet.shapes.length>1);
   await page.screenshot({path:`${output}/tablet-start.png`});
+  assert.equal(await page.getByRole('group',{name:'Цвет карандаша'}).count(),0);
   const first=saved.sheet.shapes[0];
   const center=await page.evaluate(async points=>{const b=(await import('/src/topics/renderers/drawing/coloring/geometry.js')).bounds(points);return {x:b.x+b.width/2,y:b.y+b.height/2};},first.points);
   await gesture(page,[first.points[0],center]);
@@ -50,9 +51,15 @@ try {
       if(run.length)result.push(run);
     }return result;
   },first.points);
-  for(const [i,stroke] of strokes.entries()){if(await page.locator('.coloring').getAttribute('data-phase')==='done')break;await gesture(page,stroke,'pen',i<6);}
+  for(const [i,stroke] of strokes.entries()){
+    if(await page.locator('.coloring').getAttribute('data-phase')==='done')break;
+    if(i===0)await page.getByRole('button',{name:'Красный',exact:true}).click();
+    if(i===6)await page.getByRole('button',{name:'Зелёный',exact:true}).click();
+    await gesture(page,stroke,'pen',i<6);
+  }
   assert.equal(await page.locator('.coloring').getAttribute('data-phase'),'done');
-  saved=await snapshot(page);assert(saved.progress.shapes[0].filled.length>0);
+  saved=await snapshot(page);assert(saved.progress.shapes[0].filled.length>0);assert(new Set(saved.progress.shapes[0].ink.map(s=>s.color)).size>=2);
+  assert.equal(await page.getByRole('group',{name:'Цвет карандаша'}).count(),0);
   await page.screenshot({path:`${output}/tablet-first-done.png`});
   await page.getByRole('button',{name:'Следующая фигура'}).click();
   const second=(await snapshot(page)).sheet.shapes[1];await gesture(page,[...second.points,second.points[0]]);
@@ -63,6 +70,7 @@ try {
   saved=await snapshot(page);assert(saved.progress.hadError);const preserved=saved.progress.shapes[1].filled.length;assert.equal(preserved,0);assert.deepEqual(saved.progress.shapes[1].ink,[]);assert.deepEqual(saved.progress.shapes[1].outline,keptOutline);assert.equal(saved.progress.shapes[0].phase,'done');
   await page.reload();await page.locator('.coloring[data-phase="fill"]').waitFor();
   assert.equal((await snapshot(page)).progress.shapes[1].filled.length,preserved);
+  assert.equal(await page.getByRole('button',{name:'Зелёный',exact:true}).getAttribute('aria-pressed'),'true');
   // Complete a checkpoint to exercise actual session advancement and the 15-sheet loop.
   const originalSeed=await page.evaluate(()=>window.previewStore.getState().activeSessionSnapshot.sessionState.tasks[0].seed);
   await page.addInitScript(()=>{if(sessionStorage.getItem('complete-coloring')!=='yes')return;sessionStorage.removeItem('complete-coloring');for(const key of Object.keys(localStorage).filter(k=>k.startsWith('drawing-coloring:'))){const s=JSON.parse(localStorage.getItem(key));s.progress.index=s.sheet.shapes.length-1;s.progress.shapes.forEach(p=>p.phase='done');localStorage.setItem(key,JSON.stringify(s));}});
@@ -98,6 +106,12 @@ try {
   await phone.screenshot({path:`${output}/phone-road.png`});
   await gesture(phone,[...saved.sheet.shapes[0].points,saved.sheet.shapes[0].points[0]],'touch');
   await phone.locator('.coloring[data-phase="fill"]').waitFor();
+  await phone.getByRole('button',{name:'Фиолетовый',exact:true}).click();
+  await phone.setViewportSize({width:320,height:844});
+  const buttons=await phone.locator('.coloring__color').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};}));
+  assert.equal(buttons.length,5);assert(buttons.every(r=>r.left>=0&&r.right<=320&&r.width>=44&&r.height>=44));
+  await phone.screenshot({path:`${output}/phone-palette.png`});
+  await phone.setViewportSize({width:390,height:844});
   await phone.getByRole('button',{name:'Весь лист',exact:true}).click();await phone.screenshot({path:`${output}/phone-overview.png`});
   await phone.getByRole('button',{name:'К фигуре'}).click();
   await phone.setViewportSize({width:844,height:390});
