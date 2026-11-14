@@ -36,12 +36,14 @@ const ROWS = 10;
 const blank = () => ({ kind: "blank" });
 const fill = (rows) => [...rows, ...Array.from({ length: Math.max(0, ROWS - rows.length) }, blank)];
 export function seriesPage(p) {
-  let rows;
-  if (p.copy) rows = p.copy.flatMap((l) => [row(l, "one", "one", { asText: false }), blank()]);
-  else if (p.trace) rows = p.trace.flatMap(word);
-  else if (p.pattern) rows = p.pattern.flatMap((t) => [row(t, "all"), row(t, "fade", "all")]);
-  else if (p.fade) rows = p.fade.map((t) => row(t, "fade", "all", { gap: 1 }));
-  else throw new Error(`a series page needs copy, trace, pattern or fade: ${p.title}`);
+  // (several kinds on one page go in this order: pattern, fade, trace, copy — the Slovene «Abeceda»: the letter, then its words)
+  const rows = [
+    ...(p.pattern ?? []).flatMap((t) => [row(t, "all"), row(t, "fade", "all")]),
+    ...(p.fade ?? []).map((t) => row(t, "fade", "all", { gap: 1 })),
+    ...(p.trace ?? []).flatMap(word),
+    ...(p.copy ?? []).flatMap((l) => [row(l, "one", "one", { asText: false }), blank()]),
+  ];
+  if (!rows.length) throw new Error(`a series page needs copy, trace, pattern or fade: ${p.title}`);
   if (rows.length > ROWS) throw new Error(`page «${p.title}»: ${rows.length} rows, a page holds ${ROWS}`);
   return { title: p.title, ...(p.style ? { style: p.style } : {}), rows: fill(rows) };
 }

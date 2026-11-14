@@ -187,7 +187,7 @@
       ]
     },
     {
-      "id": "sl",
+      "id": "sl", "kitsFile": "tools/propis2/sl-kits.json",
       "title": "Slovenščina",
       "short": "SLO",
       "status": "draft", "publishDraft": true,
