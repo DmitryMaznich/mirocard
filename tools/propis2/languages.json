@@ -246,12 +246,12 @@
       "styles": [
         {
           "id": "sl_caps",
-          "short": "ВТ",
-          "title": "Большие печатные (velike tiskane)",
+          "short": "VT",
+          "title": "Velike tiskane črke",
           "glyphsFile": "tools/handwriting/latin/print_sl.json",
           "script": {
             "joins": false,
-            "letterGap": 14,
+            "letterGap": 20,
             "wordGap": 56,
             "caps": true
           },
@@ -267,12 +267,12 @@
         },
         {
           "id": "sl_print",
-          "short": "МТ",
-          "title": "Малые печатные (male tiskane)",
+          "short": "MT",
+          "title": "Male tiskane črke",
           "glyphsFile": "tools/handwriting/latin/print_sl.json",
           "script": {
             "joins": false,
-            "letterGap": 14,
+            "letterGap": 20,
             "wordGap": 56
           },
           "papers": [
@@ -287,8 +287,8 @@
         },
         {
           "id": "sl_cursive",
-          "short": "ПИС",
-          "title": "Письменные (pisane črke)",
+          "short": "PČ",
+          "title": "Pisane črke",
           "glyphsFile": "tools/handwriting/latin/slovene.json",
           "script": {
             "joins": false,
