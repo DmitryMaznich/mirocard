@@ -8,3 +8,16 @@
 .coloring button:focus-visible{outline:3px solid #287cbe;outline-offset:2px}
 @media(max-width:500px){.coloring__tools{font-size:14px}.coloring__footer{font-size:16px;gap:8px}.coloring__footer button{font-size:15px}}
 @media(max-height:500px){.coloring__tools{height:42px;flex-basis:42px}.coloring__footer{height:58px;flex-basis:58px}}
+.coloring__palette{display:flex;align-items:center;gap:4px}
+.coloring .coloring__color{position:relative;flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;border:2px solid transparent;border-radius:13px;background:#fff;color:var(--pencil-color);transition:transform .12s ease}
+.coloring .coloring__color[aria-pressed=true]{border-color:var(--pencil-color);background:color-mix(in srgb,var(--pencil-color) 12%,white);transform:translateY(-2px)}
+.coloring .coloring__color .coloring__pencil{display:block;width:27px;height:34px;fill:none;stroke:none}
+.coloring__color-check{position:absolute;right:-3px;top:-4px;display:flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#247c70;color:#fff;border:2px solid #fff;font-size:11px;font-weight:800;line-height:1}
+.coloring .coloring__overview{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.coloring__overview svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}
+.coloring .coloring__tools--palette{padding:4px 8px}
+@media(max-width:500px){.coloring__tools--palette .coloring__overview{width:44px;min-width:44px;padding:0}.coloring__tools--palette .coloring__overview span{display:none}}
+@media(max-height:500px){.coloring .coloring__tools--palette{height:52px;flex-basis:52px}}
+@media(prefers-reduced-motion:reduce){.coloring .coloring__color{transition:none}}
+
+.coloring .coloring__color:disabled{opacity:1;cursor:default}
