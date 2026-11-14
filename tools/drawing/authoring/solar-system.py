@@ -57,13 +57,16 @@ class Object:
     def data(self):return dict(id=self.name,sourceCenter=self.source_center,targetCenter=self.target_center,scale=self.scale,sourceBounds=self.bounds)
 
 class Lesson:
-    def __init__(self,id,title,objects,palette):self.id=id;self.title=title;self.objects=objects;self.palette=palette;self.steps=[]
+    def __init__(self,id,title,objects,palette):self.id=id;self.title=title;self.objects=objects;self.palette=palette;self.steps=[];self.labels=[]
     def stroke(self,title,paths,time,obj,tool='black'):
         self.steps.append(dict(kind='stroke',title=title,paths=paths if isinstance(paths,list) else [paths],tool=tool,sourceTime=time,referenceObject=obj.name,reference=tool=='black'))
     def color(self,title,d,tool,time,**extra):
         self.steps.append(dict(kind='color',title=title,d=d,tool=tool,fill=PENCILS[tool]['color'],sourceTime=time,**extra))
+    def label(self,obj,text,position,anchor='middle'):
+        self.labels.append(dict(id=obj.name,text=text,x=position[0]*2,y=position[1]*2,anchor=anchor,afterStep=len(self.steps)))
     def save(self):
         lesson=dict(id=self.id,title=self.title,viewBox='0 0 1000 720',source=dict(title='Super Easy Drawings — Draw and Color the Solar System',url=URL,durationSeconds=417.319,referenceFrameSeconds=158,occlusionRepairFrameSeconds=162,videoSize=[854,480],objects=[o.data() for o in self.objects],note='Учебная адаптация части общего листа: объекты увеличены и переставлены, тёмный фон и остальные планеты опущены. Исходные контуры сохранены; участок Сатурна под служебным указателем сверен с кадром 162 секунды. sourceTime приблизительный, раскраска сгруппирована по карандашам.'),palette=self.palette,steps=self.steps)
+        lesson['labels']=self.labels
         (BASE/f'lessons/{self.id}.json').write_text(json.dumps(lesson,ensure_ascii=False,indent=2)+'\n')
         print(self.id,len(self.steps),'steps')
 
@@ -73,6 +76,7 @@ moon=Object('moon',[594,72],[418,64],1,[563,40,628,105])
 first=Lesson('sun_earth_moon','Солнце, Земля и Луна',[sun,earth,moon],['black','light_gray','yellow','orange','blue','green'])
 core=sun.path('sun_core');flames=sun.path('sun_flames')
 first.stroke('Круг Солнца',core.d(True),8,sun)
+first.label(sun,'Солнце',[130,325])
 first.stroke('Лучи Солнца',flames.d(True),20,sun)
 world=earth.path('earth');lands=[];coasts=[]
 for name in ['earth_north','earth_south','earth_east']:
@@ -81,9 +85,11 @@ for name in ['earth_north','earth_south','earth_east']:
     else:_,_,d=attach(coast,world)
     coasts.append(coast.d(name=='earth_south'));lands.append(d)
 first.stroke('Круг Земли',world.d(True),29,earth)
+first.label(earth,'Земля',[361,297])
 first.stroke('Материки Земли',coasts,41,earth)
 moon_disc=moon.path('moon')
 first.stroke('Луна и кратеры',[moon_disc.d(True)]+[moon.path('moon_crater_'+str(i)).d() for i in range(1,5)],51,moon)
+first.label(moon,'Луна',[418,26])
 first.color('Светло-серая Луна',moon_disc.d(True),'light_gray',211)
 first.color('Жёлтое Солнце',core.d(True),'yellow',182)
 first.color('Оранжевые лучи',flames.d(True)+' '+core.d(True),'orange',193,clip=flames.d(True))
@@ -100,6 +106,7 @@ gas=jupiter.path('jupiter');bands=[]
 for i in range(1,9):
     band=jupiter.path('jupiter_band_'+str(i));a,b,_=attach(band,gas);bands.append((band,a,b))
 second.stroke('Круг Юпитера',gas.d(True),65,jupiter)
+second.label(jupiter,'Юпитер',[126,235])
 second.stroke('Верхние полосы Юпитера',[p.d() for p,_,_ in bands[:4]],73,jupiter)
 second.stroke('Нижние полосы Юпитера',[p.d() for p,_,_ in bands[4:]],80,jupiter)
 spot=jupiter.path('jupiter_spot_outer');_,_,spot_d=attach(spot,gas)
@@ -139,6 +146,7 @@ def visible_globe():
 
 globe_strokes=visible_globe()
 second.stroke('Шар Сатурна',globe_strokes,118,saturn)
+second.label(saturn,'Сатурн',[328,349])
 second.stroke('Наружные кольца Сатурна',[p.d() for p in rings[:2]],128,saturn)
 second.stroke('Внутренние кольца Сатурна',[p.d() for p in rings[2:]],134,saturn)
 stripes=[saturn.path('saturn_stripe_'+str(i)) for i in range(1,8)]
@@ -150,6 +158,7 @@ second.stroke('Полосы Сатурна',[p.d() for p in stripes],137,saturn)
 companion=satellite.path('satellite')
 craters=[satellite.path('satellite_crater_'+str(i)).d(True) for i in range(1,8)]
 second.stroke('Спутник и кратеры',[companion.d(True)]+craters+[satellite.path('satellite_shadow').d()],146,satellite)
+second.label(satellite,'Спутник',[416,129])
 second.color('Тёмные кратеры спутника',' '.join(craters),'black',338)
 second.color('Светло-серый спутник',companion.d(True)+' '+' '.join(craters),'light_gray',334,clip=companion.d(True))
 second.color('Розовая основа Сатурна',globe.d(True),'pink',310)

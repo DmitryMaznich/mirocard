@@ -4,6 +4,7 @@ import { createDrawingPlayer } from './player.js';
 import { toolForStep } from './lessonPlan.js';
 import './drawing.css';
 import FirstLines from './firstLines/FirstLines.jsx';
+import { drawingLabelAttributes } from './labels.js';
 
 const initialState = { index: 0, busy: false, paused: false };
 const icons = {
@@ -64,7 +65,7 @@ function Cover({ card, loadTopicFileUrl, topicId }) {
   }, [card.coverUrl, card.image, loadTopicFileUrl, topicId]);
   return url ? <img src={url} alt="" /> : <svg viewBox={card.lesson.viewBox} aria-hidden="true"><g fill="none" stroke="#26352d" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
     {card.lesson.steps.flatMap((step, i) => step.kind === 'stroke' ? step.paths.map((item, n) => <path key={`${i}-${n}`} d={typeof item === 'string' ? item : item.d} fill={item.fill ?? 'none'} />) : [])}
-  </g></svg>;
+  </g>{card.lesson.labels?.map(label => <text key={label.id} {...drawingLabelAttributes(label)}>{label.text}</text>)}</svg>;
 }
 function readStored(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
 function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local-mode previews can have no storage. */ } }

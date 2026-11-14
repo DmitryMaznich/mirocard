@@ -18,6 +18,7 @@ await writeFile(new URL('data.json', staging), JSON.stringify(compiled.cards));
 await writeFile(new URL('index.html', staging), await readFile(new URL('tools/drawing/ux-preview.html', root)));
 const player = await readFile(new URL('src/topics/renderers/drawing/player.js', root), 'utf8');
 await writeFile(new URL('previewPlayer.js', staging), player);
+await writeFile(new URL('labels.js', staging), await readFile(new URL('src/topics/renderers/drawing/labels.js', root)));
 await writeFile(new URL('finale.js', staging), await readFile(new URL('src/topics/renderers/drawing/finale.js', root)));
 await writeFile(new URL('pencilRecording.js', staging), await readFile(new URL('src/topics/renderers/drawing/pencilRecording.js', root)));
 await writeFile(new URL('pencil-writing.pcm', staging), await readFile(new URL('src/topics/renderers/drawing/pencil-writing.pcm', root)));

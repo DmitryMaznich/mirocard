@@ -1,5 +1,6 @@
 import { createDrawingFinale } from "./finale.js";
 import { createPencilSound } from "./pencilSound.js";
+import { drawingLabelAttributes, svgAttributeName } from "./labels.js";
 
 // This player only knows strokes and clipped pencil regions. Lessons arrive as
 // data from the topic ZIP; there is no dependency on the app store or routing.
@@ -17,6 +18,13 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
   const colors = element("g", { "data-layer": "colors" }, svg);
   const drawing = element("g", { "data-layer": "drawing" }, svg);
   const accents = element("g", { "data-layer": "accents" }, svg);
+  const captions = element("g", { "data-layer": "labels", "pointer-events": "none" }, svg);
+  const labels = (lesson.labels ?? []).map(label => {
+    const attrs = Object.fromEntries(Object.entries(drawingLabelAttributes(label)).map(([key, value]) => [svgAttributeName(key), value]));
+    const node = element('text', { ...attrs, 'data-label': label.id, visibility: 'hidden' }, captions);
+    node.textContent = label.text;
+    return { node, afterStep: label.afterStep ?? 0 };
+  });
   const pencil = element("g", { visibility: "hidden", "data-pencil": "" }, svg);
   const pencilBody = element("g", { transform: "rotate(32)" }, pencil);
   element("path", { d: "M0 0 L-5 -14 V-66 H5 V-14 Z", style: "fill:#edb95b;stroke:#514535;stroke-width:1.2" }, pencilBody);
@@ -29,7 +37,11 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
   sound.setEnabled(options.soundEnabled !== false);
   let index = 0, busy = false, paused = false, version = 0, speed = 1, disposed = false;
   let frameId = null, animationResolve = null;
-  const emit = () => { if (!disposed) onChange({ index, busy, paused }); };
+  const emit = () => {
+    if (disposed) return;
+    for (const { node, afterStep } of labels) node.setAttribute('visibility', index >= afterStep ? 'visible' : 'hidden');
+    onChange({ index, busy, paused });
+  };
   const path = (item, step) => {
     const node = element("path", { d: typeof item === "string" ? item : item.d }, drawing);
     if (step?.tool && step.tool !== "black") {

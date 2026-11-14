@@ -1,4 +1,4 @@
-/* global document */
+/* global document, Image, XMLSerializer */
 // End-to-end verification for any authored lesson in the actual downloadable ZIP.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -51,6 +51,7 @@ try{
    assert(await page.locator(`[data-layer=colors] [data-region="${i-1}"] g[visibility=hidden]`).count()>0,'Future pencil lines must remain hidden');
   }
   await page.clock.runFor(16000);assert.equal(await index(),i,'Step '+i);
+  assert.deepEqual(await page.locator('[data-layer=labels] text[visibility=visible]').allTextContents(),(lesson.labels??[]).filter(label=>i>=(label.afterStep??0)).map(label=>label.text),'Labels must follow their object outlines');
   if(lesson.steps[i-1].title==='Зелёный контур травки'){
    assert.equal(await page.locator(`[data-layer=colors] [data-region="${i}"]`).count(),0,'Grass must still be uncoloured');
    await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-grass-outline.png`});
@@ -72,6 +73,24 @@ try{
  await page.reload();await page.locator('.drawing-card').filter({hasText:card.label}).tap();assert.equal(await index(),lesson.steps.length,'Saved progress');
  assert.equal(await page.locator('.drawing-top h2').textContent(),card.label,'Explicit finish required');await page.locator('.drawing-next').tap();
  assert.equal(await page.locator('.drawing-top h2').textContent(),'Рисунок готов');await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-finished.png`});
+ if(lesson.labels?.length){
+  assert.deepEqual(await page.locator('[data-layer=labels] text[visibility=visible]').allTextContents(),lesson.labels.map(label=>label.text),'Labels survive repeat, saved resume and finish');
+  const layout=await page.evaluate(async()=>{
+   const svg=document.querySelector('.drawing-board svg'),view=svg.viewBox.baseVal;
+   const boxes=[...svg.querySelectorAll('[data-layer=labels] text')].map(node=>{const b=node.getBBox();return {text:node.textContent,x:b.x,y:b.y,width:b.width,height:b.height,screenHeight:node.getBoundingClientRect().height};});
+   const clone=svg.cloneNode(true);clone.querySelector('[data-layer=labels]')?.remove();clone.setAttribute('width',view.width);clone.setAttribute('height',view.height);
+   const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml'}));
+   const img=new Image();try{await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});}finally{URL.revokeObjectURL(url);}
+   const canvas=document.createElement('canvas');canvas.width=view.width;canvas.height=view.height;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+   for(const box of boxes){
+    if(box.x<8||box.y<8||box.x+box.width>view.width-8||box.y+box.height>view.height-8)throw Error('Label leaves sheet: '+box.text);
+    if(box.screenHeight<11)throw Error('Label too small on phone: '+box.text);
+    for(let y=Math.floor(box.y)-4;y<box.y+box.height+4;y++)for(let x=Math.floor(box.x)-4;x<box.x+box.width+4;x++)if(data[(y*canvas.width+x)*4+3]>40)throw Error('Label overlaps drawing: '+box.text);
+   }
+   return boxes.map(box=>({text:box.text,screenHeight:Math.round(box.screenHeight)}));
+  });
+  console.log('PASS labels:',layout);
+ }
  await page.getByRole('button',{name:'Рисунки',exact:true}).tap();assert.equal(await page.locator('.drawing-card').count(),manifest.cards.length);
  const bounds=await page.locator('.drawing-card').evaluateAll(ns=>ns.map(n=>{const b=n.getBoundingClientRect();return {left:b.left,right:b.right};}));assert(bounds.every(b=>b.left>=0&&b.right<=390));
  assert.deepEqual(errors,[]);console.log('PASS lesson:',{id,steps:lesson.steps.length,pencilChanges:changes,cards:manifest.cards.length,checks:'progressive contour/colour, pause, repeat, coloured outlines, saved resume, explicit finish, picker, mobile safe areas'});

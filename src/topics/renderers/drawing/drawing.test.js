@@ -3,11 +3,13 @@ import { readFile } from "node:fs/promises";
 import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { generateTasks } from "./engine.js";
+import JSZip from "jszip";
 
 describe("downloadable drawing topic", () => {
   it("imports its own renderer and every drawing without changing shared loaders", async () => {
     const manifest = JSON.parse(await readFile("tools/drawing/topic.json", "utf8"));
     const bytes = await readFile(`public/decks/drawing_v${manifest.meta.version}.zip`);
+    const archive = await JSZip.loadAsync(bytes);
     const db = await openDb(`drawing-test-${Date.now()}`);
     await expect(importTopic(db, bytes, "1.1.74")).rejects.toThrow("1.1.75");
     await importTopic(db, bytes, "1.1.75");
@@ -27,6 +29,10 @@ describe("downloadable drawing topic", () => {
       expect(lesson.steps).toHaveLength(count);
       expect(lesson.source.url).toContain("1r3Y6FDQqPTwQK0JmCWX12ICzgATCCsr3");
       expect(lesson.source.objects).toHaveLength(3);
+      expect(lesson.labels.map(label => label.text)).toEqual(id === "sun_earth_moon"
+        ? ["Солнце", "Земля", "Луна"] : ["Юпитер", "Сатурн", "Спутник"]);
+      const cover = await archive.file(`media/${id}.svg`).async('string');
+      for (const label of lesson.labels) expect(cover).toContain(`>${label.text}</text>`);
       for (const step of lesson.steps.filter(s => s.kind === "stroke")) {
         for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
       }

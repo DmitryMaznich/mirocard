@@ -4,6 +4,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import { planLesson } from "../../src/topics/renderers/drawing/lessonPlan.js";
+import { drawingLabelAttributes, svgAttributeName } from "../../src/topics/renderers/drawing/labels.js";
 
 const base = new URL("./", import.meta.url);
 const root = fileURLToPath(new URL("../../", base));
@@ -40,7 +41,11 @@ for (const card of manifest.cards) {
       (step.overlay ? overlays : parts).push(shape);
     }
   });
-  const cover = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${escape(card.lesson.viewBox)}"><defs>${defs.join("")}</defs><g>${parts.join("")}</g><g stroke="#26352d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">${strokes.join("")}</g>${overlays.join("")}</svg>`;
+  const labels = (card.lesson.labels ?? []).map(label => {
+    const attrs = Object.entries(drawingLabelAttributes(label)).map(([name, value]) => `${svgAttributeName(name)}="${escape(value)}"`).join(' ');
+    return `<text ${attrs}>${escape(label.text)}</text>`;
+  }).join('');
+  const cover = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${escape(card.lesson.viewBox)}"><defs>${defs.join("")}</defs><g>${parts.join("")}</g><g stroke="#26352d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">${strokes.join("")}</g>${overlays.join("")}${labels}</svg>`;
   zip.file(card.image, cover);
 }
 const output = new URL(`../../public/decks/drawing_v${manifest.meta.version}.zip`, base);

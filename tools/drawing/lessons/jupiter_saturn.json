@@ -296,5 +296,31 @@
       "fill": "#efdd05",
       "sourceTime": 329
     }
+  ],
+  "labels": [
+    {
+      "id": "jupiter",
+      "text": "Юпитер",
+      "x": 252,
+      "y": 470,
+      "anchor": "middle",
+      "afterStep": 1
+    },
+    {
+      "id": "saturn",
+      "text": "Сатурн",
+      "x": 656,
+      "y": 698,
+      "anchor": "middle",
+      "afterStep": 5
+    },
+    {
+      "id": "satellite",
+      "text": "Спутник",
+      "x": 832,
+      "y": 258,
+      "anchor": "middle",
+      "afterStep": 9
+    }
   ]
 }
