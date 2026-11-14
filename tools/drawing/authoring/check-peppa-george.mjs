@@ -1,4 +1,4 @@
-/* global document, Path2D */
+/* global document, Path2D, DOMPoint */
 // Check visible colour boundaries against the actual SVG contours, independently
 // of the Python author's curve/junction calculations.
 import { readFile } from 'node:fs/promises';
@@ -32,8 +32,58 @@ try {
       }
       if (missing) gaps.push({ title: detail.title, missing, examples });
     }
-    return { details: details.length, samples, gaps };
+    const region = title => {
+      const step = lesson.steps.find(s => s.title === title);
+      const shape = path(step.d); shape.setAttribute('fill-rule', 'evenodd');
+      const clip = step.clip ? path(step.clip) : null;
+      return { shape, inside: q => shape.isPointInFill(q) && (!clip || clip.isPointInFill(q)) };
+    };
+    const pairs = [
+      ['Розовый цвет: Ручка Джорджа', 'Розовый цвет: Вторая ручка Джорджа'],
+      ['Розовый цвет: Первая ножка Джорджа', 'Закрасим первый ботинок Джорджа'],
+      ['Розовый цвет: Вторая ножка Джорджа', 'Закрасим второй ботинок Джорджа'],
+      ['Розовый цвет: Первая ножка Пеппы', 'Закрасим первый ботинок Пеппы'],
+      ['Розовый цвет: Вторая ножка Пеппы', 'Закрасим второй ботинок Пеппы'],
+    ];
+    const overlaps = [];
+    for (const [a, b] of pairs) {
+      const first = region(a), second = region(b), box = first.shape.getBBox();
+      let count = 0; const examples = [];
+      for (let x = box.x + .2; x < box.x + box.width; x += .5) {
+        for (let y = box.y + .2; y < box.y + box.height; y += .5) {
+          const q = new DOMPoint(x, y);
+          if (first.inside(q) && second.inside(q)) {
+            count++; if (examples.length < 3) examples.push([x / 2, y / 2]);
+          }
+        }
+      }
+      if (count) overlaps.push({ a, b, count, examples });
+    }
+    const firstArm = region(pairs[0][0]), secondArm = region(pairs[0][1]);
+    const secondArmPath = new Path2D(secondArm.shape.getAttribute('d'));
+    ctx.lineWidth = 7;
+    for(let d=0;d<firstArm.shape.getTotalLength();d+=.5){
+      const q=firstArm.shape.getPointAtLength(d);
+      if(ctx.isPointInStroke(secondArmPath,q.x,q.y))throw Error('The displayed black hand outlines touch or overlap');
+    }
+    const sourcePoints = [[304,254,firstArm],[300,275,firstArm],[262,289,secondArm],[284,280,secondArm]];
+    for (const [x,y,arm] of sourcePoints) {
+      if (!arm.inside(new DOMPoint(x*2,y*2))) throw Error(`Missing arm at original reference point ${x},${y}`);
+    }
+    const grass = region('Зелёная горка'), grassOverlaps = [];
+    ctx.lineWidth = 3.5;
+    for (const title of [...new Set(pairs.slice(1).flat())]) {
+      const part = region(title), box = part.shape.getBBox(); let count = 0;
+      for (let x=box.x+.3;x<box.x+box.width;x+=1) for(let y=box.y+.3;y<box.y+box.height;y+=1) {
+        const q=new DOMPoint(x,y);
+        if (part.inside(q)&&grass.inside(q)&&!contours.some(p=>ctx.isPointInStroke(p,x,y))) count++;
+      }
+      if(count)grassOverlaps.push({title,count});
+    }
+    return { details: details.length, samples, gaps, overlaps, grassOverlaps };
   }, lesson);
   assert.equal(result.gaps.length, 0, 'Unoutlined colour boundaries: ' + JSON.stringify(result.gaps));
+  assert.equal(result.overlaps.length, 0, 'Overlapping limbs: ' + JSON.stringify(result.overlaps));
+  assert.equal(result.grassOverlaps.length, 0, 'Grass paints feet: ' + JSON.stringify(result.grassOverlaps));
   console.log('PASS small detail contours:', result);
 } finally { await browser.close(); }

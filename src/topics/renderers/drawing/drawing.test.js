@@ -25,7 +25,7 @@ describe("downloadable drawing topic", () => {
     expect(peppa.title).toBe("Пеппа и Джордж");
     expect(peppa.source.url).toContain("1TXjRL5uiFjGpBmAIo9WXDKnmgehVs-tT");
     expect(peppa.steps).toHaveLength(79);
-    expect(peppa.progressRevision).toBe(2);
+    expect(peppa.progressRevision).toBe(3);
     expect(peppa.steps[0]).toMatchObject({ kind: "stroke", title: "Голова Джорджа" });
     expect(peppa.steps.at(-1)).toMatchObject({ kind: "color", tool: "green" });
     // A single animated stroke cannot contain disconnected moves: SVG dash
