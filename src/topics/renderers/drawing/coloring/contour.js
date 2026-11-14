@@ -13,12 +13,12 @@ export function contourPart(points) {
 }
 export function contourProfile(input,scale=1,ink) {
   const profile=scaledProfile(screenProfile(input),scale);
-  // Round stroke caps must actually touch to form a closed pupil-drawn boundary.
-  return {...profile,ink:ink??profile.ink,close:Math.min(profile.close,ink??profile.ink)};
+  // The accepted finish area matches the visible ring, independently of pen width.
+  return {...profile,ink:ink??profile.ink,close:profile.goalRadius+profile.goalStroke/2};
 }
 export function createContour(shape,state,options) {
   const part=contourPart(shape.points),profile=options.traceProfile??{...contourProfile('pen'),width:options.trace*2};
-  const attempt=createCurveAttempt(part,state.contourAttempt,profile);
+  const attempt=createCurveAttempt(part,state.contourAttempt,profile,{stopAtFinish:true});
   state.contourAttempt=attempt.state;
   state.outline=attempt.state.strokes;
   for(const stroke of state.outline)stroke.width=options.outlineInk??profile.ink;

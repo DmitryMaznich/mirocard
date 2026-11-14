@@ -80,6 +80,7 @@ export function createColoringAttempt(shape,state,options) {
     return {failed:false};
   }
   return {state,progress,
+    get readyToLift(){return state.phase==='trace'&&contour.attempt.ready;},
     begin(p,time=0,color) {
       if(failed||stroke||state.phase==='done')return false;
       if(state.phase==='trace') {
@@ -95,9 +96,16 @@ export function createColoringAttempt(shape,state,options) {
     },move,
     end(cancelled=false) {
       if(state.phase==='trace') {
-        const done=contour.attempt.end(cancelled||failed);
+        // Some tablets report cancel/lost capture instead of up when lifting.
+        // Once a valid finish was observed, that cannot undo a completed contour.
+        const done=contour.attempt.end(failed||(cancelled&&!contour.attempt.ready));
         if(contour.attempt.state.needsReturn&&!failed){failed=true;resetStage();}
-        if(done&&!failed)state.phase='fill';
+        if(done&&!failed){
+          // Close only the short accepted gap to the child's actual first point.
+          const start=contour.attempt.state.start,points=state.outline.at(-1)?.points;
+          if(start&&points&&Math.hypot(points.at(-1).x-start.x,points.at(-1).y-start.y)>.001)points.push({x:start.x,y:start.y});
+          state.phase='fill';
+        }
         failed=false;return state.phase;
       }
       // A cancellation preserves work, but never advances a phase mid-gesture.

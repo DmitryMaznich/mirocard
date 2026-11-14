@@ -694,16 +694,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.26.0",
+      "version": "0.27.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Шесть рисунков на бумаге, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
-        "en": "Six paper drawing lessons, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
+        "ru": "Семь рисунков на бумаге, включая Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
+        "en": "Seven paper drawing lessons, including Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
       },
-      "url": "./decks/drawing_v0.26.0.zip",
+      "url": "./decks/drawing_v0.27.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

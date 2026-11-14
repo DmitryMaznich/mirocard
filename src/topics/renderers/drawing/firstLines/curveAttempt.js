@@ -5,10 +5,10 @@ const copy = p => ({ x: p.x, y: p.y });
 export function freshCurve(part) {
   return { progress: 0, anchor: copy(part.points[0]), start: null, startS: 0, strokes: [], marks: [], needsReturn: false, hadError: false, errorKind: null, corner: 0, done: false };
 }
-export function createCurveAttempt(part, saved, width = 'normal') {
+export function createCurveAttempt(part, saved, width = 'normal', { stopAtFinish = false } = {}) {
   const state = structuredClone({ ...freshCurve(part), ...saved });
   const profile = resolveProfile(width), halfWidth = profile.width / 2;
-  let active, last, lastTime, outside, checkpoint;
+  let active, last, lastTime, outside, checkpoint, finishReached=false;
   const nearest = (p, min = 0, max = part.length + 80) => {
     let best = { distance: Infinity, s: 0 };
     for (const target of part.points) {
@@ -19,6 +19,7 @@ export function createCurveAttempt(part, saved, width = 'normal') {
     return best;
   };
   const fail = (p, errorKind, all = false) => {
+    finishReached=false;
     const mistake = !state.hadError;
     state.hadError = true; state.needsReturn = true; state.errorKind = errorKind;
     state.marks.push(copy(p));
@@ -36,9 +37,10 @@ export function createCurveAttempt(part, saved, width = 'normal') {
     if (!state.start) { state.start = copy(p); state.startS = target.s; state.progress = target.s; }
     checkpoint = { progress: state.progress, anchor: copy(state.anchor), corner: state.corner };
     active = { points: [copy(p)], failedFrom: null }; state.strokes.push(active);
-    last = p; lastTime = time; outside = null; return true;
+    last = p; lastTime = time; outside = null; finishReached=stopAtFinish&&atFinish(p); return true;
   }
   function move(p, time = lastTime) {
+    if (stopAtFinish && finishReached) return { mistake: false };
     if (!active || state.needsReturn || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return { mistake: false };
     const from = last, fromTime = lastTime, length = distance(from, p), count = Math.max(1, Math.ceil(length / profile.sampleStep));
     let mistake = false;
@@ -66,16 +68,18 @@ export function createCurveAttempt(part, saved, width = 'normal') {
           if (deviation <= halfWidth) state.anchor = copy(sample);
         }
       }
+      if (stopAtFinish && atFinish(sample)) { finishReached=true; last=sample; lastTime=t; break; }
     }
-    last = p; lastTime = time;
+    if (!finishReached) { last = p; lastTime = time; }
     if (!state.needsReturn && hasExcessiveWandering(state.strokes, state.progress - state.startS, { noise: profile.noise, maxLengthRatio: 1.8, excess: 160 })) {
       state.progress = checkpoint.progress; state.anchor = checkpoint.anchor; state.corner = checkpoint.corner; active.failedFrom = 0;
       mistake = fail(p, 'shape') || mistake;
     }
     return { mistake };
   }
-  const ready = () => Boolean(active) && !state.needsReturn && state.progress - state.startS >= part.length * .94
-    && state.corner >= (part.waypoints?.length ?? 0) && distance(last, part.closed ? state.start : part.end) <= (part.closed ? profile.close : profile.finish);
+  const atFinish = point => Boolean(active) && Boolean(point) && !state.needsReturn && state.progress - state.startS >= part.length * .94
+    && state.corner >= (part.waypoints?.length ?? 0) && distance(point, part.closed ? state.start : part.end) <= (part.closed ? profile.close : profile.finish);
+  const ready = () => atFinish(last);
   function end(cancelled = false) {
     if (!active) return false;
     let complete = !cancelled && ready();
@@ -88,7 +92,7 @@ export function createCurveAttempt(part, saved, width = 'normal') {
         fail(last, 'shape', true); complete = false;
       }
     }
-    active = null; outside = null; last = null; state.done = complete; return complete;
+    active = null; outside = null; last = null; finishReached=false; state.done = complete; return complete;
   }
   return { state, line: { halfWidth }, begin, move, end, get active() { return Boolean(active); }, get ready() { return ready(); } };
 }
