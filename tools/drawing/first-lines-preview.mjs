@@ -35,7 +35,7 @@ useAppStore.setState({ students: [student], activeStudentId: student.id, activeT
   studentTopicLinks: { [`${student.id}_drawing`]: { selectedConceptIds: ['kompot'],
     answersPerStar: Math.max(1, Math.min(3, Number(q.get('perStar')) || 1)),
     strictStars: !q.has('soft'), videoRewardEnabled: !q.has('noVideo'),
-    params: { byMode: { [modeId]: { penWidth: q.get('penWidth') || 'auto', figureSet: q.get('figures') || 'mixed', outsideTolerance: q.get('tolerance') || '6', fillTarget: q.get('fill') || '90', inputMode: q.has('passive') ? 'passive_pen' : q.has('touch') ? 'touch' : 'pen', preciseSelection: q.has('exercises'), exercises: q.has('exercises') ? q.get('exercises').split(',') : [], practiceSet: q.get('set') || 'mixed', workSurface: q.get('surface') || 'sheet' } } } } } });
+    params: { byMode: { [modeId]: { penWidth: q.get('penWidth') || 'auto', figureSet: q.get('figures') || 'mixed', outsideTolerance: q.get('tolerance') || '6', fillTarget: q.get('fill') || '90', inputMode: q.has('passive') ? 'passive_pen' : q.has('touch') ? 'touch' : 'pen', preciseSelection: q.has('exercises'), exercises: q.has('exercises') ? q.get('exercises').split(',') : [], practiceSet: q.get('set') || 'mixed', workSurface: q.get('surface') || 'sheet', sheetView: q.get('view') || 'large', advance: q.has('tap') ? 'tap' : 'auto' } } } } } });
 window.previewStore = useAppStore;
 function Preview() {
   const screen = useAppStore(s => s.screen);

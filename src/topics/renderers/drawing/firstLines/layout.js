@@ -21,8 +21,10 @@ export function fitShape(shape, area, variant, profile) {
   return {scale,tx:x-bounds.minX*scale,ty:y-bounds.minY*scale,bounds,pad,area,minScale,needsSpace:minScale>maxScale+1e-9};
 }
 // Freeze this choice for the session; resizing changes the cells, never their identities.
-export function automaticGrid(size,input='pen') {
+export function automaticGrid(size,input='pen',focus=false) {
   if(size.width<700||size.height<500)return {columns:2,rows:2};
+  // «Крупно, лист в конце»: the sheet is only seen as a reveal, so it fills up sooner.
+  if(focus)return size.width>=size.height?{columns:3,rows:2}:{columns:2,rows:3};
   const minWidth=input==='touch'?300:input==='passive_pen'?260:240;
   const minHeight=input==='touch'?260:input==='passive_pen'?230:220;
   let columns=Math.max(2,Math.min(4,Math.floor(size.width/minWidth)));
@@ -41,7 +43,19 @@ export function screenScene(size,sheet,slot,peek=false,grid={columns:2,rows:2},f
   const view=compact&&!peek?areas[slot]:{x:0,y:0,width,height};
   return {compact,width,height,areas,view};
 }
-export function practiceScene(size,sheet,slot,grid,shape,variant,profile,peek=false){
+// A large single task keeps a calm margin (≈80% of the screen at most) and clears the ▶ button.
+export function focusedFit(shape,area,variant,profile){
+  if(variant?.schema===7)return fitShape(shape,area,variant,profile);
+  const inset=Math.min(Math.max(72,Math.min(area.width,area.height)*.1),Math.min(area.width,area.height)*.3);
+  const inner={x:area.x+inset,y:area.y+inset,width:area.width-2*inset,height:area.height-2*inset};
+  const fitted=fitShape(shape,inner,variant,profile);
+  return fitted.needsSpace?fitShape(shape,area,variant,profile):fitted;
+}
+export function practiceScene(size,sheet,slot,grid,shape,variant,profile,peek=false,large=false){
+  if(sheet&&large){
+    const scene=screenScene(size,sheet,slot,peek,grid,true);
+    return {...scene,placement:focusedFit(shape,scene.areas[slot],variant,profile),full:{x:0,y:0,width:scene.width,height:scene.height},cell:scene.areas[slot]};
+  }
   const base=screenScene(size,sheet,slot,peek,grid);
   const fitted=fitShape(shape,base.areas[slot],variant,profile);
   const focus=sheet&&(fitted.needsSpace||variant?.schema===7)&&!base.compact;

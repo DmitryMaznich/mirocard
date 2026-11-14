@@ -694,7 +694,7 @@
     },
     {
       "id": "drawing",
-      "version": "0.25.1",
+      "version": "0.26.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
@@ -703,7 +703,7 @@
         "ru": "Шесть рисунков на бумаге, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
         "en": "Six paper drawing lessons, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
       },
-      "url": "./decks/drawing_v0.25.1.zip",
+      "url": "./decks/drawing_v0.26.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

@@ -33,4 +33,5 @@ export async function pixels(p){
  });
 }
 export async function checkpoint(p){const t=await task(p);return p.evaluate(id=>{const key=Object.keys(localStorage).find(k=>k.startsWith('drawing-first-lines:')&&k.endsWith(':'+id));return key?JSON.parse(localStorage.getItem(key)).attempt:null;},t.id);}
-export async function next(p){const i=(await state(p)).taskIndex;await p.getByRole('button',{name:'Следующее задание'}).click();await expect.poll(async()=>(await state(p)).taskIndex).toBe(i+1);await settle(p);}
+// «Само» (default since 0.26.0) moves on by itself; «По нажатию» shows one round arrow.
+export async function next(p){const i=(await state(p)).taskIndex,button=p.getByRole('button',{name:'Следующее задание'});if(await button.count())await button.click();await expect.poll(async()=>(await state(p)).taskIndex).toBe(i+1);await settle(p);}

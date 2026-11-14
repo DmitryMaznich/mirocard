@@ -17,7 +17,7 @@ it('keeps six paper lessons separate from the new evaluated mode and its normal 
   const stored = writeModeParams({ byMode: { drawing_steps: { speed: 'slow', videoRewardEnabled: true } } }, lines, { inputMode: 'touch', exercises: ['short_line'], workSurface: 'single' });
   expect(readModeParams(stored, paper)).toMatchObject({ speed: 'slow', videoRewardEnabled: true });
   expect(readModeParams(stored, paper).trackWidth).toBeUndefined();
-  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', exercises: ['short_line'], workSurface: 'single', practiceSet: 'mixed', preciseSelection: false });
+  expect(readModeParams(stored, lines)).toEqual({ inputMode: 'touch', exercises: ['short_line'], workSurface: 'single', sheetView: 'large', practiceSet: 'mixed', preciseSelection: false, advance: 'auto' });
   expect(readModeParams({},lines).trackWidth).toBeUndefined();
 });
 

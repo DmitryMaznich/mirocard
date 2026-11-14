@@ -14,7 +14,7 @@ async function open(query,viewport={width:820,height:1180},random=false){
  expect(await p.locator('.first-lines__board').evaluate(n=>n.tagName)).toBe('CANVAS');expect(await p.locator('.first-lines__board path,.first-lines__board polyline').count()).toBe(0);
  expect(image.green).toBeGreaterThan(20);expect(image.purple).toBeGreaterThan(20);return{context,p};
 }
-async function correctedCredit(p,before){await draw(p);await expect.poll(async()=>(await state(p)).correctCount).toBe(before+1);expect((await pixels(p)).blue).toBeGreaterThan(50);await expect.poll(async()=>(await pixels(p)).purple).toBe(0);}
+async function correctedCredit(p,before){await draw(p);await expect.poll(async()=>(await state(p)).correctCount).toBe(before+1);expect((await pixels(p)).green).toBeGreaterThan(50);await expect.poll(async()=>(await pixels(p)).purple).toBe(0);}
 async function failGesture(p){
  const t=await task(p),part=shapeDefinition(t.exerciseKind,t.variant).parts[0],xy=await points(p,part,[0,.2]);await p.mouse.move(xy[0].x,xy[0].y);await p.mouse.down();
  await p.mouse.move(xy[1].x,xy[1].y);await p.mouse.move(xy[1].x+110,xy[1].y+150,{steps:15});await p.mouse.move(xy[1].x+160,xy[1].y+190,{steps:8});await p.mouse.up();await settle(p);
@@ -32,7 +32,7 @@ try{
   }
   for(const input of ['touch','passive','pen'])for(const viewport of [{width:390,height:844},{width:844,height:390}]){
    const{context,p}=await open(`noVideo&surface=sheet&exercises=wave&${input}`,viewport);
-   await draw(p,{touch:input!=='pen',context});await expect.poll(async()=>(await state(p)).correctCount).toBe(1);expect((await state(p)).incorrectCount).toBe(0);expect((await pixels(p)).blue).toBeGreaterThan(30);await context.close();
+   await draw(p,{touch:input!=='pen',context});await expect.poll(async()=>(await state(p)).correctCount).toBe(1);expect((await state(p)).incorrectCount).toBe(0);expect((await pixels(p)).green).toBeGreaterThan(30);await context.close();
   }
   report.push('shapes, real touch, all profiles, whole cube, wide strokes, pixels, reload');
  }
@@ -42,7 +42,7 @@ try{
   for(let i=0;i<15;i++){
    await correctedCredit(p,i);expect((await state(p)).incorrectCount).toBe(0);
    // Repeated taps after a correct answer repaint the bitmap without changing ink or rewards.
-   const saved=await checkpoint(p);if((i+1)%5!==0)for(let n=0;n<4;n++)await p.locator('.first-lines__board').click({position:{x:15+n*3,y:20}});
+   const saved=await checkpoint(p);if((i+1)%5!==0)for(let n=0;n<4;n++)await p.locator('.first-lines__board').click({position:{x:15+n*3,y:120}});
    expect(await checkpoint(p)).toEqual(saved);expect((await state(p)).correctCount).toBe(i+1);
    if(i===13){await p.screenshot({path:'output/first-lines/canvas-card14-after-taps.png'});const filter=await p.locator('.session-plan-tongue').evaluate(n=>({filter:getComputedStyle(n).filter,animation:getComputedStyle(n).animationName}));expect(filter).toEqual({filter:'none',animation:'none'});}
    if((i+1)%5===0){await expect(p.locator('.reward-modal-overlay')).toBeVisible();await p.locator('.reward-modal__btn--continue').click();}
@@ -69,7 +69,7 @@ try{
   const{context,p}=await open('noVideo&exercises=wave&surface=sheet&passive');
   for(let i=0;i<3;i++){await p.getByRole('button',{name:'Показать движение',exact:true}).click();await expect(p.locator('.first-lines__board')).toHaveAttribute('data-demo','true');await expect.poll(async()=>(await pixels(p)).blue).toBeGreaterThan(30);await p.waitForTimeout(4000);expect((await state(p)).correctCount).toBe(0);expect((await state(p)).incorrectCount).toBe(0);}
   await p.getByRole('button',{name:'Показать движение',exact:true}).click();await correctedCredit(p,0);await expect(p.locator('.first-lines__board')).not.toHaveAttribute('data-demo','true');
-  await p.setViewportSize({width:900,height:1180});await settle(p);await p.reload();await settle(p);expect((await state(p)).correctCount).toBe(1);expect((await pixels(p)).blue).toBeGreaterThan(30);await context.close();report.push('repeated show, raster model pixels, interruption, rotate/reload');
+  await p.setViewportSize({width:900,height:1180});await settle(p);await p.reload();await settle(p);expect((await state(p)).correctCount).toBe(1);expect((await pixels(p)).green).toBeGreaterThan(30);await context.close();report.push('repeated show, raster model pixels, interruption, rotate/reload');
  }
  expect(errors).toEqual([]);await writeFile('output/first-lines/canvas-verification.json',JSON.stringify({scope,report},null,2));console.log('Canvas 2D: '+report.join('; ')+'.');
 }finally{await browser.close();}

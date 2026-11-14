@@ -22,8 +22,8 @@ describe('software raster workspace',()=>{
   const v={schema:kind==='parallelepiped'?6:5,seed:42,angle:37,size:.6},shape=shapeDefinition(kind,v),profile=screenProfile('passive_pen'),placement=fitShape(shape,{x:0,y:0,width:800,height:700},v,profile),a=createShapeAttempt(kind,undefined,scaledProfile(profile,placement.scale),v),part=shape.parts[0];
   a.begin(transformPoint(partPoint(part,0),part.frame));for(let n=1;n<=60;n++)a.move(transformPoint(partPoint(part,.3*n/60),part.frame),n*20);a.end();
   const ctx=recordingContext();paintFrame(ctx,{width:1000,height:1000,ratio:1,view:{x:0,y:0,width:1000,height:1000},drawings:[{state:a.state,shape,placement,profile:a.state.profile}]});
-  const strokes=ctx.calls.filter(c=>c.name==='stroke'),lastGuide=strokes.findLastIndex(c=>c.stroke==='#dbebe0'),firstInk=strokes.findIndex(c=>c.stroke==='#315b86');
-  expect(strokes.filter(c=>c.stroke==='#dbebe0')).toHaveLength(shape.parts.length);expect(firstInk).toBeGreaterThan(lastGuide);
+  const strokes=ctx.calls.filter(c=>c.name==='stroke'),lastGuide=strokes.findLastIndex(c=>c.stroke==='#e8f4ec'),firstInk=strokes.findIndex(c=>c.stroke==='#315b86');
+  expect(strokes.filter(c=>c.stroke==='#e8f4ec')).toHaveLength(shape.parts.length);expect(strokes.filter(c=>c.stroke==='#8fc0a5')).toHaveLength(shape.parts.length);expect(firstInk).toBeGreaterThan(lastGuide);
   expect(ctx.calls.every(c=>c.args.every(n=>typeof n!=='number'||Number.isFinite(n)))).toBe(true);
   expect(strokes.some(c=>c.stroke==='#8153b5')).toBe(true);expect(ctx.calls.some(c=>c.name==='fill'&&c.fill==='#0ba85b')).toBe(true);
  });
@@ -34,5 +34,23 @@ describe('software raster workspace',()=>{
   const a=createShapeAttempt('short_line');a.begin({x:320,y:500});a.move({x:450,y:700},500);a.end();const before=JSON.stringify(a.state),ctx=recordingContext();
   paintFrame(ctx,{width:1000,height:1000,ratio:1,view:{x:0,y:0,width:1000,height:1000},drawings:[{state:a.state,shape:a.shape,placement:{tx:0,ty:0,scale:1},profile:a.state.profile,demo:true,demoProgress:.5}]});
   expect(ctx.calls.some(c=>c.name==='stroke'&&c.stroke==='#a56e31'&&c.alpha<.3)).toBe(true);expect(JSON.stringify(a.state)).toBe(before);
+ });
+ it('paints success on the child line itself: green ink over a glow and a ticked finish, no extra markers',()=>{
+  const profile=screenProfile('pen'),a=createShapeAttempt('short_line',undefined,profile);a.begin({x:320,y:500});for(let x=330;x<=680;x+=10)a.move({x,y:500},x);a.end();expect(a.state.done).toBe(true);
+  const paint=success=>{const ctx=recordingContext();paintFrame(ctx,{width:1000,height:1000,ratio:1,view:{x:0,y:0,width:1000,height:1000},drawings:[{state:a.state,shape:a.shape,placement:{tx:0,ty:0,scale:1},profile:a.state.profile,success}]});return ctx.calls;};
+  const plain=paint(false),done=paint(true);
+  expect(plain.some(c=>c.stroke==='#16a34a')).toBe(false);
+  expect(done.some(c=>c.name==='stroke'&&c.stroke==='#bbf7d0')).toBe(true);expect(done.some(c=>c.name==='stroke'&&c.stroke==='#16a34a')).toBe(true);
+  expect(done.some(c=>c.name==='fill'&&c.fill==='#16a34a')).toBe(true);expect(done.some(c=>c.name==='stroke'&&c.stroke==='#fff')).toBe(true);
+  expect(done.some(c=>c.fill==='#0ba85b'||c.stroke==='#8153b5')).toBe(false);
+ });
+ it('draws the lift cue beside the pen tip and makes the start call louder after a pause',()=>{
+  const profile=screenProfile('pen'),a=createShapeAttempt('short_line',undefined,profile);a.begin({x:320,y:500});a.move({x:450,y:500},100);
+  const paint=extra=>{const ctx=recordingContext();paintFrame(ctx,{width:1000,height:1000,ratio:1,view:{x:0,y:0,width:1000,height:1000},drawings:[{state:a.state,shape:a.shape,placement:{tx:0,ty:0,scale:1},profile:a.state.profile,...extra}]});return ctx.calls;};
+  expect(paint({liftCue:{type:'error',since:0}}).some(c=>c.fill==='#fff1dc')).toBe(true);
+  expect(paint({}).some(c=>c.fill==='#fff1dc')).toBe(false);
+  a.end();
+  const halo=calls=>calls.filter(c=>c.name==='arc'&&c.args[2]>0).map(c=>c.args[2]);
+  expect(Math.max(...halo(paint({idle:2})))).toBeGreaterThan(Math.max(...halo(paint({idle:0}))));
  });
 });

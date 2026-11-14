@@ -4,12 +4,24 @@ import { sheetCell, shapeDefinition } from './shapes.js';
 import CanvasBoard from './CanvasBoard.jsx';
 import { trackProfile, screenProfile, scaledProfile } from './trackProfile.js';
 import { checkpointKey, readCheckpoint, saveCheckpoint, sheetKey, readSheet, saveSheet, gridKey, readGrid, saveGrid } from './checkpoint.js';
-import { fitShape, fromPlacement, automaticGrid, sheetPosition, practiceScene } from './layout.js';
+import { fitShape, focusedFit, fromPlacement, automaticGrid, sheetPosition, practiceScene } from './layout.js';
 import './firstLines.css';
 
 const defaultGrid = {columns:2,rows:2};
 const fullView = { x: 0, y: 0, width: 1000, height: 1000 };
 const compactView = { x: 220, y: 380, width: 560, height: 240 };
+// Timings are fixed on purpose: the same event always looks the same (docs/drawing-first-lines-redesign-brief.md).
+const ADVANCE_MS = 900, REVEAL_START_MS = 600, REVEAL_MOVE_MS = 900, REVEAL_HOLD_MS = 1000, IDLE_MS = [5000, 10000];
+const seenKey = (studentId, sessionId) => `drawing-first-lines-seen:${studentId ?? 'local'}:${sessionId}`;
+// The first task of each kind in a lesson is modelled once by itself; later ones only on ▶.
+function firstOfKind(studentId, sessionId, kind) {
+  try {
+    const key = seenKey(studentId, sessionId), seen = JSON.parse(localStorage.getItem(key)) ?? [];
+    if (seen.includes(kind)) return false;
+    localStorage.setItem(key, JSON.stringify([...seen, kind])); return true;
+  } catch { return false; }
+}
+const mix = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, width: a.width + (b.width - a.width) * t, height: a.height + (b.height - a.height) * t });
 
 function useWorksheet(key,capacity){
   const entries=useMemo(()=>readSheet(key,capacity),[key,capacity]);
@@ -24,8 +36,14 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const kind = task.exerciseKind ?? 'short_line';
   const procedural = [4,5,6,7].includes(task.variant?.schema);
   const automatic = Boolean(task.autoSheet && sessionParams?.workSurface === 'sheet');
+  // «Крупно, лист в конце» (default): one large task at a time, the sheet appears when it is full.
+  const large = procedural && automatic && sessionParams?.sheetView !== 'sheet';
+  const autoAdvance = sessionParams?.advance !== 'tap';
   const layoutKey = gridKey(student?.id,sessionId);
   const [gridChoice,setGridChoice] = useState(()=>automatic?readGrid(layoutKey):null);
+  const [reveal,setReveal] = useState(0);
+  const [idleState,setIdleState] = useState({key:null,level:0});
+  const [liftSince,setLiftSince] = useState(null);
   const grid=automatic&&gridChoice?gridChoice:defaultGrid;
   const layoutReady=!automatic||gridChoice!==null;
   const {page,slot,capacity}=sheetPosition(automatic?task:{...task,autoSheet:false},grid);
@@ -33,7 +51,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const pxProfile = screenProfile(sessionParams?.inputMode);
   const isSheet = sessionParams?.workSurface === 'sheet';
   const targetShape=useMemo(()=>shapeDefinition(kind,task.variant),[kind,task.variant]);
-  const scene = practiceScene(boardSize,isSheet,slot,grid,targetShape,task.variant,pxProfile);
+  const scene = practiceScene(boardSize,isSheet,slot,grid,targetShape,task.variant,pxProfile,false,large);
   const [attempt, setAttempt] = useState(() => {
     const fitted=scene.placement;
     return createShapeAttempt(kind,readCheckpoint(key,kind,task.variant),procedural?scaledProfile(pxProfile,fitted.scale):trackProfile(sessionParams?.trackWidth,sessionParams?.inputMode),task.variant);
@@ -41,7 +59,6 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const pageKey = sheetKey(student?.id, sessionId, page);
   const {entries,shapes:entryShapes}=useWorksheet(pageKey,capacity);
   const cell = sheetCell(slot);
-  const [peek, setPeek] = useState(false);
   const [, redraw] = useState(0);
   const [demo, setDemo] = useState(false);
   const [demoProgress, setDemoProgress] = useState(0);
@@ -50,27 +67,30 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const [inputHint, setInputHint] = useState(false);
   const failedGesture = useRef(false), penSeen = useRef(false);
   const [compact, setCompact] = useState(false);
-  const board = useRef(null), thumbnail = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
+  const board = useRef(null), pointer = useRef(null), reported = useRef(false), completed = useRef(false);
   const state = attempt.state;
   const current = state.parts[state.part];
   const liftCue = attempt.readyToLift;
   const part = attempt.shape.parts[state.part];
   const demoMs = part.type === 'line' ? 1200 : attempt.shape.steps[state.part];
   const correct = sessionStatus === 'answer_correct';
-  const disabled = interactionDisabled || correct || peek || !layoutReady || scene.placement.needsSpace;
+  const disabled = interactionDisabled || correct || !layoutReady || scene.placement.needsSpace;
+  const endsSheet = large && slot === capacity - 1 && task.number < 15, revealing = endsSheet && state.done;
   const focusView = kind === 'short_line' ? compactView : { x: 140, y: 140, width: 720, height: 720 };
-  const legacyView = peek || !compact ? fullView : isSheet
+  const legacyView = !compact ? fullView : isSheet
     ? { x: cell.tx + focusView.x * cell.scale, y: cell.ty + focusView.y * cell.scale, width: focusView.width * cell.scale, height: focusView.height * cell.scale }
     : focusView;
   const placement = scene.placement;
-  const view = procedural ? practiceScene(boardSize,isSheet,slot,grid,targetShape,task.variant,pxProfile,peek).view : legacyView;
-  const displayCompact = procedural ? scene.compact : compact;
+  const view = procedural ? (large ? (reveal > 0 ? mix(scene.cell, scene.full, reveal) : scene.view) : scene.view) : legacyView;
   const drawingPlacement=procedural?placement:isSheet?cell:{tx:0,ty:0,scale:1};
   const previousDrawings=entries.flatMap((entry,index)=>{
     if(!entry||index===slot)return [];
-    const fitted=procedural?fitShape(entryShapes[index],scene.areas[index],entry.variant,pxProfile):sheetCell(index);
+    const fitted=procedural?(large?focusedFit:fitShape)(entryShapes[index],scene.areas[index],entry.variant,pxProfile):sheetCell(index);
     return [{state:entry,shape:entryShapes[index],placement:fitted,profile:procedural?scaledProfile(pxProfile,fitted.scale):entry.profile??trackProfile(sessionParams?.trackWidth,sessionParams?.inputMode),passive:true}];
   });
+  // The app's engine advances by itself after this delay (no «Готово», no «Следующее задание»).
+  const credit = () => onCorrect(task.conceptId, task.cardId, autoAdvance
+    ? { autoAdvance: true, autoAdvanceDelayMs: endsSheet ? REVEAL_START_MS + REVEAL_MOVE_MS + REVEAL_HOLD_MS : ADVANCE_MS } : undefined);
   const refresh = () => {
     saveCheckpoint(key, state);
     if (isSheet && layoutReady && state.done) saveSheet(pageKey, slot, state,capacity);
@@ -91,9 +111,9 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       reported.current = true; onStreakReset(task.conceptId, task.cardId);
     }
     if (state.done && !completed.current && !correct) {
-      completed.current = true; onCorrect(task.conceptId, task.cardId);
+      completed.current = true; credit();
     }
-  }, [state, rewardAttemptBlocked, correct, onStreakReset, onCorrect, task, isSheet, pageKey, slot, capacity, layoutReady]);
+  }, [state, rewardAttemptBlocked, correct, onStreakReset, onCorrect, task, isSheet, pageKey, slot, capacity, layoutReady]); // eslint-disable-line react-hooks/exhaustive-deps -- credit() is guarded by completed.current
 
   useEffect(() => {
     let disposed = false;
@@ -110,11 +130,11 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       if (procedural) {
         const width=Math.round(rect.width),height=Math.round(rect.height);
         if(width===boardSize.width&&height===boardSize.height&&layoutReady)return;
-        const nextGrid=automatic?(gridChoice??automaticGrid({width,height},sessionParams?.inputMode)):grid;
+        const nextGrid=automatic?(gridChoice??automaticGrid({width,height},sessionParams?.inputMode,large)):grid;
         if(automatic&&!gridChoice){saveGrid(layoutKey,nextGrid);setGridChoice(nextGrid);}
         const nextPosition=sheetPosition(automatic?task:{...task,autoSheet:false},nextGrid);
         cancel();
-        const nextScene=practiceScene({width,height},isSheet,nextPosition.slot,nextGrid,attempt.shape,task.variant,screenProfile(sessionParams?.inputMode));
+        const nextScene=practiceScene({width,height},isSheet,nextPosition.slot,nextGrid,attempt.shape,task.variant,screenProfile(sessionParams?.inputMode),false,large);
         const next=nextScene.placement;
         setBoardSize({width,height});
         setAttempt(previous=>createShapeAttempt(kind,structuredClone(previous.state),scaledProfile(screenProfile(sessionParams?.inputMode),next.scale),task.variant));
@@ -132,11 +152,62 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       window.removeEventListener('pagehide', cancel); window.removeEventListener('blur', cancel);
       attempt.end(true); saveCheckpoint(key, attempt.state);
     };
-  }, [attempt, key, isSheet, procedural, boardSize.width, boardSize.height, kind, task, slot, task.variant, sessionParams?.inputMode, automatic, gridChoice, layoutKey, layoutReady, grid]);
+  }, [attempt, key, isSheet, procedural, boardSize.width, boardSize.height, kind, task, slot, task.variant, sessionParams?.inputMode, automatic, gridChoice, layoutKey, layoutReady, grid, large]);
 
   useEffect(() => {
     if (disabled) { attempt.end(true); pointer.current = null; }
   }, [disabled, attempt]);
+
+  // Reopened after a credited task (reload, app switch): the engine's own timer is gone, so move on here.
+  useEffect(() => {
+    if (!autoAdvance || !correct || completed.current || interactionDisabled) return undefined;
+    const timer = setTimeout(onAdvance, ADVANCE_MS);
+    return () => clearTimeout(timer);
+  }, [autoAdvance, correct, interactionDisabled, onAdvance]);
+
+  // Model the movement once on the first task of each kind (errorless start). Never on idle.
+  const autoDemo = useRef(false);
+  useEffect(() => {
+    if (autoDemo.current || !procedural || disabled || state.done || current.strokes.length || (current.history?.length ?? 0)) return undefined;
+    // Decided inside the timer: a resize recreates the attempt and would cancel an earlier decision.
+    const timer = setTimeout(() => {
+      if (autoDemo.current) return;
+      autoDemo.current = true;
+      if (firstOfKind(student?.id, sessionId, kind) && !attempt.active) { setDemoProgress(0); setDemoLift(null); setDemo(true); }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [procedural, disabled, state.done, current, student?.id, sessionId, kind, attempt]);
+
+  // A long pause only makes the start point call louder (5 s, then 10 s).
+  const waiting = !disabled && !state.done && !demo && !attempt.active;
+  const waitKey = waiting ? `${state.part}:${current.strokes.length}:${hint}` : null;
+  const idle = idleState.key === waitKey && waitKey !== null ? idleState.level : 0;
+  useEffect(() => {
+    if (waitKey === null) return undefined;
+    const timers = IDLE_MS.map((ms, i) => setTimeout(() => setIdleState({ key: waitKey, level: i + 1 }), ms));
+    return () => timers.forEach(clearTimeout);
+  }, [waitKey]);
+
+  // Sheet full: the camera moves out to show the whole sheet, then the next task comes by itself.
+  useEffect(() => {
+    if (!revealing) return undefined;
+    const linear = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let frame, started;
+    const animate = time => {
+      started ??= time;
+      const t = Math.max(0, Math.min(1, (time - started) / REVEAL_MOVE_MS));
+      setReveal(linear ? 1 : Math.max(.001, t * t * (3 - 2 * t)));
+      if (t < 1 && !linear) frame = requestAnimationFrame(animate);
+    };
+    const timer = setTimeout(() => { frame = requestAnimationFrame(animate); }, REVEAL_START_MS);
+    return () => { clearTimeout(timer); cancelAnimationFrame(frame); };
+  }, [revealing]);
+
+  useEffect(() => {
+    if (!inputHint) return undefined;
+    const timer = setTimeout(() => setInputHint(false), 2000);
+    return () => clearTimeout(timer);
+  }, [inputHint]);
 
   useEffect(() => {
     if (!demo) return undefined;
@@ -166,7 +237,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   };
   const announceFailure = () => {
     if (failedGesture.current) return;
-    failedGesture.current = true;
+    failedGesture.current = true; setLiftSince(performance.now());
     if (!reported.current && !rewardAttemptBlocked) { reported.current = true; onStreakReset(task.conceptId, task.cardId); }
     else playFeedback?.('incorrect'); // New gesture: familiar sound, no second reward event.
     try { navigator.vibrate?.(30); } catch { /* Optional on supported devices. */ }
@@ -188,7 +259,7 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
     pointer.current = null;
     if (board.current.hasPointerCapture?.(event.pointerId)) board.current.releasePointerCapture(event.pointerId);
     refresh();
-    if (done && !completed.current) { completed.current = true; onCorrect(task.conceptId, task.cardId); }
+    if (done && !completed.current) { completed.current = true; credit(); }
   };
   const drawing = attempt.active;
   const waitingLift = current.needsReturn && drawing;
@@ -198,18 +269,12 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
   const cues = { done: 'Готово!', stylus: 'Рисуй стилусом', error: 'Стоп. Подними стилус', watch: demoLift !== null ? 'В конце — подними стилус' : 'Смотри или рисуй',
     retry: 'Повтори от точки', locate: 'Начни с точки', draw: 'Веди по дорожке', lift: 'Подними стилус', resume: 'Продолжи от точки', start: 'Рисуй от точки' };
 
-  return <section className="first-lines" data-task-id={task.id} data-phase={phase} data-movement={task.variant?.schema===7?'wide':'regular'} data-sheet-capacity={capacity} data-sheet-page={page} data-sheet-slot={slot} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
-    <div className="first-lines__tools">
-      <button type="button" disabled={disabled || demo || state.done} onClick={() => { attempt.end(true); pointer.current = null; attempt.restartPart('sample'); setHint(false); setInputHint(false); refresh(); setDemoProgress(0); setDemoLift(null); setDemo(true); }} aria-label="Показать движение">
-        <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h26M27 7l10 9-10 9" /></svg><span>Показать</span>
-      </button>
-    {isSheet && displayCompact && <button type="button" className="first-lines__overview" disabled={interactionDisabled || demo} aria-label={peek ? 'К заданию' : 'Весь лист'} onClick={() => { attempt.end(true); pointer.current = null; setPeek(!peek); }}>
-      <CanvasBoard boardRef={thumbnail} className="first-lines__thumb" aria-hidden="true" view={procedural?{x:0,y:0,width:scene.width,height:scene.height}:fullView}
-        drawings={[...previousDrawings,{state,shape:attempt.shape,placement:drawingPlacement,profile:state.profile,passive:true}]} background="#fff" selection={procedural?scene.areas[slot]:cell} /><span>{peek ? 'К заданию' : 'Весь лист'}</span>
-    </button>}
-    </div>
+  const item = {state,shape:attempt.shape,placement:drawingPlacement,profile:state.profile,hint,drawing,demo,demoProgress,demoPart:state.part,demoLift,
+    success:procedural&&state.done,idle,liftCue:waitingLift&&liftSince!==null?{type:'error',since:liftSince}:liftCue&&drawing?{type:'finish'}:null};
+  // No text on the child's screen: every cue is drawn on the board. The words stay for screen readers.
+  return <section className="first-lines" data-task-id={task.id} data-phase={phase} data-movement={task.variant?.schema===7?'wide':'regular'} data-layout={large?'large':'sheet'} data-reveal={reveal>0||undefined} data-idle={idle||undefined} data-sheet-capacity={capacity} data-sheet-page={page} data-sheet-slot={slot} aria-label={`Первые линии — ${attempt.shape.title}`} onClick={event => event.stopPropagation()}>
     <CanvasBoard boardRef={board} className="first-lines__board" view={view} placement={drawingPlacement} activeState={state}
-      drawings={[...previousDrawings,{state,shape:attempt.shape,placement:drawingPlacement,profile:state.profile,hint,drawing,demo,demoProgress,demoPart:state.part,demoLift}]} pulse={!disabled&&!state.done}
+      drawings={reveal>0?[...previousDrawings,item].map(d=>({...d,inkScale:1+2*reveal})):[...previousDrawings,item]} pulse={!disabled&&!state.done||Boolean(item.liftCue)}
       onSurfaceLost={()=>{attempt.end(true);pointer.current=null;refresh();}} role="img" aria-label={`Нарисуй: ${attempt.shape.title}`} style={placement.needsSpace?{visibility:'hidden'}:undefined} data-return={current.needsReturn || state.recovery === 'error' || undefined}
       onContextMenu={event => event.preventDefault()}
       onPointerDown={event => {
@@ -223,16 +288,14 @@ export default function FirstLines({ task, student, sessionId, sessionParams, se
       }}
       onPointerMove={event => { if (!disabled && pointer.current === event.pointerId) { event.preventDefault(); if (!attempt.state.parts[attempt.state.part].needsReturn) { move(event); refresh(); } } }}
       onPointerUp={event => finish(event)} onPointerCancel={event => finish(event, true)} onLostPointerCapture={event => finish(event, true)} />
+    <button type="button" className="first-lines__show" data-active={demo||undefined} disabled={disabled || demo || state.done} onClick={() => { attempt.end(true); pointer.current = null; attempt.restartPart('sample'); setHint(false); setInputHint(false); refresh(); setDemoProgress(0); setDemoLift(null); setDemo(true); }} aria-label="Показать движение">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg>
+    </button>
+    {inputHint&&<div className="first-lines__pen-hint" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="m14 50 4-14 26-26 10 10-26 26zM18 36l10 10M40 14l10 10" /></svg></div>}
     {placement.needsSpace&&<div className="first-lines__room" role="status"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 14h24v36H20zM8 30a24 24 0 0 1 40-16M48 4v10H38M56 34a24 24 0 0 1-40 16M16 60V50h10"/></svg><span>Кубу нужно больше места.<br/>Поверни экран или увеличь область занятия.</span></div>}
-    <div className={`first-lines__footer first-lines__footer--${phase}`} aria-live="polite">
-      {state.done || correct ? <div className="first-lines__complete"><span>✓ Готово!</span><button type="button" disabled={interactionDisabled || !correct} onClick={onAdvance}><svg viewBox="0 0 48 32" aria-hidden="true"><path d="M5 16h30M27 7l10 9-10 9" /></svg> Следующее задание</button></div>
-        : placement.needsSpace ? null : peek ? <span>Весь лист</span> : <span className="first-lines__cue" aria-label={cues[phase]}>
-          <svg viewBox="0 0 48 40" aria-hidden="true">
-            {['error', 'lift'].includes(phase) || demoLift !== null && demo ? <><path d="M24 35V6M13 17 24 6l11 11" /><path d="M8 35h32" /></>
-              : phase === 'stylus' ? <path d="m12 30 20-25 8 6-20 25-11 2Z" />
-                : <><circle cx="8" cy="20" r="6" fill="#0ba85b" stroke="white" strokeWidth="1"/><path d="M19 20h8M23 16l4 4-4 4"/><circle cx="39" cy="20" r="7" fill="none" stroke="#8153b5"/></>}
-          </svg><span>{cues[phase]}</span>
-        </span>}
-    </div>
+    {!autoAdvance && correct && <button type="button" className="first-lines__next" disabled={interactionDisabled} onClick={onAdvance} aria-label="Следующее задание">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 24h24M25 13l11 11-11 11" /></svg>
+    </button>}
+    <p className="first-lines__live" aria-live="polite">{placement.needsSpace ? '' : cues[phase]}</p>
   </section>;
 }

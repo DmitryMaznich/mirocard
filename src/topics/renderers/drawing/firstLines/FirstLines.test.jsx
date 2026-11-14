@@ -14,16 +14,16 @@ import { SCREENSHOT_ZIGZAG } from './testPaths.js';
 
 const tasks = generateTasks({ type: 'drawing_first_lines' }, [{ id: 'line', conceptId: 'line', firstLines: { kind: 'short_line' } }], 15, { preciseSelection: true, exercises: ['short_line'] }).map(t => ({ ...t, variant: undefined }));
 let root, host, latest, errors, successes;
-function Harness({ strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', surface = 'single', initial, feedback }) {
+function Harness({ advance = 'tap', strict = true, loss = 'one', perStar = 1, disabled = false, input = 'pen', width = 'normal', surface = 'single', initial, feedback }) {
   const [state, setState] = useState(() => initial ?? {
     ...createSessionState(tasks, { evaluation: 'auto' }, 'kid', 'drawing', '0.15.0', ['line'], null, false, perStar, strict, { version: 2, lossMode: loss }),
     id: 'session-test', streakCount: 3 * perStar,
   });
   useEffect(() => { latest = state; }, [state]);
   return <FirstLines key={state.taskIndex} task={state.tasks[state.taskIndex]} student={{ id: 'kid' }} sessionId={state.id}
-    sessionParams={{ inputMode: input, trackWidth: width, workSurface: surface }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
+    sessionParams={{ inputMode: input, trackWidth: width, workSurface: surface, advance }} interactionDisabled={disabled} sessionStatus={state.status} rewardAttemptBlocked={state.rewardAttemptBlocked}
     playFeedback={feedback} onStreakReset={(concept, card) => { errors(); setState(s => handleStreakReset(s, concept, card)); }}
-    onCorrect={(concept, card) => { successes(); setState(s => handleAnswer(s, true, concept, card)); }}
+    onCorrect={(concept, card, options) => { successes(options); setState(s => handleAnswer(s, true, concept, card)); }}
     onAdvance={() => setState(handleAdvance)} />;
 }
 beforeEach(() => {
@@ -61,7 +61,7 @@ describe('First Lines and the real session reward policy', () => {
     await draw();
     expect(latest.streakCount).toBe(remaining); expect(successes).toHaveBeenCalledTimes(1);
     expect(saved().hadError).toBe(true);expect(strokes().some(s=>s.failedFrom!==null)).toBe(true);
-    await act(async () => host.querySelector('.first-lines__footer button').click());
+    await act(async () => host.querySelector('.first-lines__next').click());
     await draw(); expect(latest.streakCount).toBe(remaining + 1);
   });
   for (const [width, size, mistakes] of [['wide', 36, 0], ['normal', 24, 0], ['narrow', 16, 1]]) {
@@ -98,10 +98,18 @@ describe('First Lines and the real session reward policy', () => {
       expect(successes).toHaveBeenCalledTimes(1); expect(latest.streakCount).toBe(expected);
       expect(strokes().length).toBeGreaterThan(before);
       await send('pointerup', 680); expect(successes).toHaveBeenCalledTimes(1);
-      await act(async () => host.querySelector('.first-lines__footer button').click());
+      await act(async () => host.querySelector('.first-lines__next').click());
       await draw(); expect(latest.streakCount).toBe(expected + 1);
     });
   }
+  it('moves on by itself by default: no «Готово», no text, the app engine advances after a fixed pause', async () => {
+    await act(async () => root.render(<Harness advance="auto" />));
+    await draw();
+    expect(successes).toHaveBeenCalledWith({ autoAdvance: true, autoAdvanceDelayMs: 900 });
+    expect(host.querySelector('.first-lines__next')).toBeNull();
+    expect(host.querySelector('.first-lines__live').textContent).toBe('Готово!');
+    expect([...host.querySelectorAll('button')].every(b => !b.textContent.trim())).toBe(true);
+  });
   it('rejects palm touches and concurrent pointers, allows passive stylus only when selected', async () => {
     await act(async () => root.render(<Harness />));
     await send('pointerdown', 320, 500, 'touch'); await send('pointermove', 680, 500, 'touch'); await send('pointerup', 680, 500, 'touch');
@@ -152,7 +160,7 @@ it('keeps previous actual drawings on a sheet after advancing and after reload',
   // First slot uses the common worksheet transform in the logical 1000x1000 page.
   await send('pointerdown', 115, 250); await send('pointermove', 385, 250); await send('pointerup', 385, 250);
   expect(successes).toHaveBeenCalledTimes(1);
-  await act(async () => host.querySelector('.first-lines__footer button').click());
+  await act(async () => host.querySelector('.first-lines__next').click());
   const previous=JSON.stringify(readSheet(sheetKey('kid',latest.id,0))[0].parts[0].strokes);
   expect(previous).toContain('320');expect(previous).toContain('680');
   // Tapping the completed cell must not draw or reward the new card.
