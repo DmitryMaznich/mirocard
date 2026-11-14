@@ -81,7 +81,7 @@
       "styles": [
         {
           "id": "print",
-          "short": "П",
+          "short": "P",
           "title": "Печатные",
           "glyphsFile": "tools/handwriting/latin/print_gb.json",
           "script": {
@@ -101,7 +101,7 @@
         },
         {
           "id": "british",
-          "short": "БР",
+          "short": "BU",
           "title": "Британские раздельные",
           "note": "Нельсон: печатные с хвостиками, буквы раздельно",
           "glyphsFile": "tools/handwriting/latin/british.json",
@@ -121,7 +121,7 @@
         },
         {
           "id": "british_joined",
-          "short": "БС",
+          "short": "BJ",
           "title": "Британские соединённые",
           "note": "Нельсон: те же буквы, соединения по его правилам (4 группы букв, 4 вида соединений, после b g j p q x y z — без соединения)",
           "glyphsFile": "tools/handwriting/latin/british.json",
@@ -175,7 +175,7 @@
         },
         {
           "id": "british_slanted",
-          "short": "БСН",
+          "short": "BJS",
           "title": "Британские соединённые наклонные",
           "note": "Нельсон, Book 3 и дальше: соединённые с наклоном ~8° — буквы и соединения стиля british_joined (like), раскладка прямая, наклон после (scriptGeometry.js sourceSlantDeg 90 → slantDeg 82)",
           "like": "british_joined",
