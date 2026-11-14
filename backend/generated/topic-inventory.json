@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.28.0",
+      "version": "0.29.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.28.0.zip",
+        "public/decks/drawing_v0.29.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.28.0",
-        "url": "./decks/drawing_v0.28.0.zip",
+        "version": "0.29.0",
+        "url": "./decks/drawing_v0.29.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по образцу, первые линии и тренировка закрашивания фигур и дорожек на экране.",
         "renderer": "drawing",
         "modes": 3,
-        "cards": 9
+        "cards": 11
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.28.0",
+        "version": "0.29.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Восемь рисунков на бумаге, включая улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
-          "en": "Eight paper drawing lessons, including a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
+          "ru": "Десять рисунков на бумаге, включая два космических рисунка, улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
+          "en": "Ten paper drawing lessons, including two space drawings, a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
         },
-        "url": "./decks/drawing_v0.28.0.zip",
+        "url": "./decks/drawing_v0.29.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T09:56:01Z"
+      "sourceUpdatedAt": "2026-11-14T12:53:09Z"
     },
     {
       "id": "emotions_v2",

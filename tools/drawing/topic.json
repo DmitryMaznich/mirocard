@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.28.0",
+    "version": "0.29.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -473,6 +473,22 @@
       "label": "Улитка",
       "image": "media/snail.svg",
       "lessonFile": "lessons/snail.json"
+    },
+    {
+      "id": "sun_earth_moon",
+      "conceptId": "sun_earth_moon",
+      "primary": true,
+      "label": "Солнце, Земля и Луна",
+      "image": "media/sun_earth_moon.svg",
+      "lessonFile": "lessons/sun_earth_moon.json"
+    },
+    {
+      "id": "jupiter_saturn",
+      "conceptId": "jupiter_saturn",
+      "primary": true,
+      "label": "Юпитер, Сатурн и спутник",
+      "image": "media/jupiter_saturn.svg",
+      "lessonFile": "lessons/jupiter_saturn.json"
     },
     {
       "id": "first_lines:short_line",

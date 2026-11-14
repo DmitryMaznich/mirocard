@@ -20,7 +20,17 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn"]));
+    for (const [id, title, count] of [["sun_earth_moon", "Солнце, Земля и Луна", 10], ["jupiter_saturn", "Юпитер, Сатурн и спутник", 20]]) {
+      const lesson = tasks.find(task => task.cardId === id).lesson;
+      expect(lesson.title).toBe(title);
+      expect(lesson.steps).toHaveLength(count);
+      expect(lesson.source.url).toContain("1r3Y6FDQqPTwQK0JmCWX12ICzgATCCsr3");
+      expect(lesson.source.objects).toHaveLength(3);
+      for (const step of lesson.steps.filter(s => s.kind === "stroke")) {
+        for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
+      }
+    }
     const snail = tasks.find(task => task.cardId === "snail").lesson;
     expect(snail.title).toBe("Улитка");
     expect(snail.steps).toHaveLength(26);
