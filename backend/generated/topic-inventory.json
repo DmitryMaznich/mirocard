@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.26.2",
+      "version": "0.27.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.26.2.zip",
+        "public/decks/drawing_v0.27.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.26.2",
-        "url": "./decks/drawing_v0.26.2.zip",
+        "version": "0.27.0",
+        "url": "./decks/drawing_v0.27.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по образцу, первые линии и тренировка закрашивания фигур и дорожек на экране.",
         "renderer": "drawing",
         "modes": 3,
-        "cards": 8
+        "cards": 9
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.26.2",
+        "version": "0.27.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Семь рисунков на бумаге, включая Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
-          "en": "Seven paper drawing lessons, including Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
+          "ru": "Восемь рисунков на бумаге, включая улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
+          "en": "Eight paper drawing lessons, including a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
         },
-        "url": "./decks/drawing_v0.26.2.zip",
+        "url": "./decks/drawing_v0.27.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T06:57:34Z"
+      "sourceUpdatedAt": "2026-11-14T07:08:47Z"
     },
     {
       "id": "emotions_v2",

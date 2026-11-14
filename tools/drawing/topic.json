@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.26.2",
+    "version": "0.27.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -422,6 +422,14 @@
       "label": "Пеппа и Джордж",
       "image": "media/peppa_george.svg",
       "lessonFile": "lessons/peppa_george.json"
+    },
+    {
+      "id": "snail",
+      "conceptId": "snail",
+      "primary": true,
+      "label": "Улитка",
+      "image": "media/snail.svg",
+      "lessonFile": "lessons/snail.json"
     },
     {
       "id": "first_lines:short_line",
