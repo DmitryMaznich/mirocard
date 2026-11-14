@@ -1,0 +1,39 @@
+name: Codespaces development smoke
+
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/codespaces.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  dev-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [bundled, unbundled]
+    env:
+      MIROCARD_DEV_UNBUNDLED: ${{ matrix.mode == 'unbundled' && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install and prepare the development environment
+        run: node .devcontainer/setup.mjs
+      - name: Check startup, API, mail and persistence across restart
+        run: node .devcontainer/smoke.mjs
+      - name: Install browser for the actual email-link flow
+        run: npx playwright install --with-deps chromium
+      - name: Verify email confirmation in the development browser
+        run: node .devcontainer/browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: codespaces-browser-${{ matrix.mode }}
+          path: output/codespaces-browser.png

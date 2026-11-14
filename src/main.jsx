@@ -69,7 +69,7 @@ function bootMainApp() {
 
   markIosStandalone();
 
-  if ("serviceWorker" in navigator) {
+  if (import.meta.env.PROD && "serviceWorker" in navigator) {
     let refreshing = false;
     let hasController = Boolean(navigator.serviceWorker.controller);
 

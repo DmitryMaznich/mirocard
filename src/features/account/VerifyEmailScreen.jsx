@@ -1,5 +1,5 @@
 import MironiumLogo from "@/shared/components/MironiumLogo";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
 import { getDb } from "@/core/db";
@@ -10,6 +10,7 @@ export default function VerifyEmailScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const token = useAppStore((s) => s.verifyEmailToken);
 
+  const verificationStarted = useRef(null);
   const [status, setStatus] = useState("loading"); // loading | success | error
 
   useEffect(() => {
@@ -17,6 +18,11 @@ export default function VerifyEmailScreen() {
       setStatus("error");
       return;
     }
+
+    // The server consumes this token once. Do not repeat the request when
+    // React StrictMode replays the effect during development.
+    if (verificationStarted.current === token) return;
+    verificationStarted.current = token;
 
     async function verify() {
       try {

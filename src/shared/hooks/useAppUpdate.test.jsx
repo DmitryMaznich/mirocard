@@ -54,6 +54,7 @@ function mountWithRegistration(reg) {
 }
 
 beforeEach(() => {
+  vi.stubEnv("DEV", false);
   latest = null;
   setHidden(false);
   container = document.createElement("div");
@@ -70,9 +71,25 @@ afterEach(() => {
   root = null; container = null;
   delete navigator.serviceWorker;
   vi.clearAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("useAppUpdate", () => {
+  it("leaves development updates to Vite even when the server version differs", async () => {
+    vi.stubEnv("DEV", true);
+    api.get.mockResolvedValue({ version: "1.0.9999" });
+    const reg = makeFakeRegistration();
+    await mountWithRegistration(reg);
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      await latest.applyUpdate();
+    });
+    expect(api.get).not.toHaveBeenCalled();
+    expect(reg.update).not.toHaveBeenCalled();
+    expect(latest.hasUpdate).toBe(false);
+    expect(reloadSpy).not.toHaveBeenCalled();
+  });
+
   it("re-checks for an update when the tab becomes visible again, not just on mount", async () => {
     const reg = makeFakeRegistration();
     await mountWithRegistration(reg);
