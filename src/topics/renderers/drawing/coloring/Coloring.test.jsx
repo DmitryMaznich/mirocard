@@ -129,4 +129,23 @@ describe('natural coloring across separate browser frames',()=>{
     expect([...host.querySelectorAll('.coloring__color')].some(b=>b.disabled)).toBe(false);
   });
 
+  it('shows finish feedback inside the ring, ignores lift drift, and opens the palette after one lap',async()=>{
+    const saved=loadColoring(key);saved.progress.shapes[0].phase='trace';saveColoring(key,saved);
+    await render();await send('pointerdown',50,50);await send('pointermove',350,50);await send('pointermove',350,350);await send('pointermove',50,350);await send('pointermove',50,58);
+    expect(host.textContent).toContain('Линия замкнута');
+    await send('pointerup',90,90);
+    expect(loadColoring(key).progress.shapes[0].phase).toBe('fill');
+    expect(loadColoring(key).progress.hadError).toBe(false);
+    expect(host.querySelector('[aria-label="Цвет карандаша"]')).toBeTruthy();
+    expect(loadColoring(key).progress.shapes[0].outline.at(-1).points.at(-1)).toEqual({x:50,y:50});
+  });
+
+  it('accepts a tablet cancellation after the finish, while an early cancellation preserves only partial progress',async()=>{
+    const saved=loadColoring(key);saved.progress.shapes[0].phase='trace';saveColoring(key,saved);
+    await render();await send('pointerdown',50,50);await send('pointermove',200,50);await send('pointercancel',200,50);
+    expect(loadColoring(key).progress.shapes[0].phase).toBe('trace');
+    await send('pointerdown',200,50);await send('pointermove',350,50);await send('pointermove',350,350);await send('pointermove',50,350);await send('pointermove',50,58);await send('pointercancel',0,0);
+    expect(loadColoring(key).progress.shapes[0].phase).toBe('fill');expect(loadColoring(key).progress.hadError).toBe(false);
+  });
+
 });

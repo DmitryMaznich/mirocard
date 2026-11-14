@@ -56,6 +56,40 @@ describe('coloring geometry and placement',()=>{
   });
 });
 describe('separate outline and interior assessments',()=>{
+  it('accepts the visible finish circle with a thin pen and closes the final small gap',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,coloringOptions({penWidth:'1'}));
+    draw(a,[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:8}]);
+    expect(state.phase).toBe('fill');
+    expect(state.outline.at(-1).points.at(-1)).toEqual({x:0,y:0});
+  });
+  it('keeps completion once the contour has reached the goal, despite lift-off drift',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,coloringOptions({penWidth:'1'}));
+    expect(a.begin({x:0,y:0})).toBe(true);
+    for(const p of [{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:0}])expect(a.move(p).failed).toBe(false);
+    expect(a.move({x:40,y:40}).failed).toBe(false);
+    a.end();expect(state.phase).toBe('fill');
+  });
+  it('detects the goal even when a single sparse event crosses it and ends beyond the track',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,coloringOptions({penWidth:'1'}));
+    a.begin({x:0,y:0});
+    for(const p of [{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:30}])expect(a.move(p).failed).toBe(false);
+    expect(a.readyToLift).toBe(false);
+    expect(a.move({x:0,y:-40}).failed).toBe(false);expect(a.readyToLift).toBe(true);
+    a.end();expect(state.phase).toBe('fill');
+  });
+  for(const inputMode of ['pen','passive_pen','touch'])for(const scale of [.5,2])it(`${inputMode}/${scale}: matches the visible finish ring independently of thin pen width`,()=>{
+    const side=200/scale,shape={points:[{x:0,y:0},{x:side,y:0},{x:side,y:side},{x:0,y:side}]};
+    const state=freshProgress({shapes:[shape]}).shapes[0],opts=coloringOptions({inputMode,penWidth:'1'},scale);
+    const a=createColoringAttempt(shape,state,opts),gap=opts.traceProfile.goalRadius*.8;
+    draw(a,[{x:0,y:0},{x:side,y:0},{x:side,y:side},{x:0,y:side},{x:0,y:gap}]);
+    expect(state.phase).toBe('fill');expect(state.outline.at(-1).points.at(-1)).toEqual({x:0,y:0});
+  });
+  it('retains a valid finish when a tablet reports cancellation instead of pointer-up',()=>{
+    const state=fresh(),a=createColoringAttempt(square,state,coloringOptions({penWidth:'1'}));
+    a.begin({x:0,y:0});for(const p of [{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:0}])a.move(p);
+    expect(a.readyToLift).toBe(true);a.end(true);expect(state.phase).toBe('fill');
+    expect(state.outline.at(-1).points.at(-1)).toEqual({x:0,y:0});
+  });
   it('uses the First Lines start and resume points, and refuses disconnected fragments',()=>{
     const state=fresh(),a=createColoringAttempt(square,state,options);
     expect(a.begin({x:100,y:100})).toBe(false);
@@ -64,11 +98,11 @@ describe('separate outline and interior assessments',()=>{
     draw(a,[{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:0}]);
     expect(state.phase).toBe('fill');
   });
-  it('requires the pupil line to close even after over 97 percent of the path is traced',()=>{
+  it('requires reaching the finish ring, rather than just tracing most of the path',()=>{
     const state=fresh(),a=createColoringAttempt(square,state,options);
-    draw(a,[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:8}]);
-    expect(a.progress().trace).toBeGreaterThan(.97);expect(state.phase).toBe('trace');
-    draw(a,[{x:0,y:8},{x:0,y:0}]);expect(state.phase).toBe('fill');
+    draw(a,[{x:0,y:0},{x:100,y:0},{x:100,y:100},{x:0,y:100},{x:0,y:20}]);
+    expect(a.progress().trace).toBeGreaterThan(.94);expect(state.phase).toBe('trace');
+    draw(a,[{x:0,y:20},{x:0,y:8}]);expect(state.phase).toBe('fill');
   });
   it('restores the ordered contour after lifting and reloading without substituting a ready-made boundary',()=>{
     const state=fresh(),a=createColoringAttempt(square,state,options);
@@ -144,7 +178,7 @@ describe('separate outline and interior assessments',()=>{
     const state={...fresh(),phase:'fill'},a=createColoringAttempt(shape,state,options);
     expect(a.begin({x:15,y:80})).toBe(true);expect(a.move({x:85,y:80}).failed).toBe(true);a.end();
     const trace=fresh(),b=createColoringAttempt(square,trace,options);
-    b.begin(square.points[0]);for(const p of [...resample(square.points,2),square.points[0]])b.move(p);b.end(true);
+    b.begin(square.points[0]);for(const p of resample(square.points,2).slice(0,100))b.move(p);b.end(true);
     expect(trace.phase).toBe('trace');
   });
   it('uses the chosen pen width for interior coverage, brush-edge tolerance and outline ink',()=>{

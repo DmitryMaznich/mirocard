@@ -7,8 +7,8 @@ const output='output/drawing-coloring';await mkdir(output,{recursive:true});
 const errors=[];
 async function ready(page,url){await page.goto(url);await page.locator('.coloring[data-phase="trace"]').waitFor();await page.waitForFunction(()=>document.querySelector('.coloring__board')?.width>100);}
 async function snapshot(page){return page.evaluate(()=>{const key=Object.keys(localStorage).filter(k=>k.startsWith('drawing-coloring:')).at(-1);return {key,...JSON.parse(localStorage.getItem(key))};});}
-async function gesture(page,points,pointerType='pen',frameByFrame=false){
-  await page.evaluate(async({points,pointerType,frameByFrame})=>{
+async function gesture(page,points,pointerType='pen',frameByFrame=false,liftPoint=null){
+  await page.evaluate(async({points,pointerType,frameByFrame,liftPoint})=>{
     const board=document.querySelector('.coloring__board'),r=board.getBoundingClientRect(),view=JSON.parse(board.dataset.view);
     const scale=Math.min(r.width/view.width,r.height/view.height);
     const send=(type,p)=>board.dispatchEvent(new PointerEvent(type,{bubbles:true,button:0,buttons:type==='pointerup'?0:1,pointerType,pointerId:1,
@@ -24,9 +24,9 @@ async function gesture(page,points,pointerType='pen',frameByFrame=false){
         await new Promise(requestAnimationFrame);
       }
     }
-    send('pointerup',points.at(-1));
+    send('pointerup',liftPoint??points.at(-1));
     await new Promise(requestAnimationFrame);
-  },{points,pointerType,frameByFrame});
+  },{points,pointerType,frameByFrame,liftPoint});
 }
 try {
   const page=await browser.newPage({viewport:{width:1180,height:900}});
@@ -40,9 +40,17 @@ try {
   await gesture(page,[first.points[0],center]);
   saved=await snapshot(page);assert.equal(saved.progress.shapes[0].phase,'trace');assert.deepEqual(saved.progress.shapes[0].outline,[]);assert.deepEqual(saved.progress.shapes[0].traceHits,[]);
   await page.reload();await page.locator('.coloring[data-phase="trace"]').waitFor();
-  await gesture(page,[...first.points,first.points[0]],'pen',true);
+  const finish=await page.evaluate(points=>{
+    const c=document.querySelector('.coloring__board'),r=c.getBoundingClientRect(),v=JSON.parse(c.dataset.view),scale=Math.min(r.width/v.width,r.height/v.height);
+    const start=points[0],previous=[...points].reverse().find(p=>Math.hypot(p.x-start.x,p.y-start.y)>20/scale);
+    const factor=12/scale/Math.hypot(previous.x-start.x,previous.y-start.y);
+    return {x:start.x+(previous.x-start.x)*factor,y:start.y+(previous.y-start.y)*factor};
+  },first.points);
+  // Finish inside the drawn ring, not at its exact centre. Lift at a drifting
+  // coordinate: the first valid goal entry must already have been retained.
+  await gesture(page,[...first.points,finish],'pen',true,center);
   await page.locator('.coloring[data-phase="fill"]').waitFor();
-  saved=await snapshot(page);assert.equal(saved.progress.shapes[0].filled.length,0);
+  saved=await snapshot(page);assert.equal(saved.progress.shapes[0].filled.length,0);assert.deepEqual(saved.progress.shapes[0].outline.at(-1).points.at(-1),first.points[0]);
   // Fill the first real random figure with closely spaced short horizontal strokes.
   const strokes=await page.evaluate(async(points)=>{
     const {inside,contourDistance,bounds}=await import('/src/topics/renderers/drawing/coloring/geometry.js');const b=bounds(points),result=[];

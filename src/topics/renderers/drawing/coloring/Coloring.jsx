@@ -13,7 +13,7 @@ function path(ctx,points,close=false) {
   for(const p of points.slice(1))ctx.lineTo(p.x,p.y);
   if(close)ctx.closePath();
 }
-function paint(canvas,snapshot,view,options,focused) {
+function paint(canvas,snapshot,view,options,focused,readyToLift) {
   const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
   const ratio=Math.min(2,window.devicePixelRatio||1),ctx=canvas.getContext('2d',{alpha:false,desynchronized:false,willReadFrequently:true});
   if(!ctx)return;
@@ -39,7 +39,7 @@ function paint(canvas,snapshot,view,options,focused) {
       const profile=options.traceProfile;
       const progress=state.contourAttempt?.progress??0;
       const guide=contourPart(shape.points).points.filter(p=>p.s>=progress&&p.s<=progress+2*(profile?.leadLength??24/scale));
-      if(guide.length>1){
+      if(guide.length>1&&!readyToLift){
         path(ctx,guide);ctx.strokeStyle='#0ba85b';ctx.lineWidth=profile?.leadInk??3/scale;ctx.stroke();
         const tip=guide.at(-1),previous=guide.at(-2),distance=Math.hypot(tip.x-previous.x,tip.y-previous.y);
         if(distance>0){
@@ -48,7 +48,7 @@ function paint(canvas,snapshot,view,options,focused) {
             {x:tip.x-dx*wing*.8+dy*wing*.6,y:tip.y-dy*wing*.8-dx*wing*.6}]);ctx.stroke();
         }
       }
-      ctx.beginPath();ctx.arc(start.x,start.y,(profile?.goalRadius??14/scale),0,Math.PI*2);ctx.strokeStyle='#8153b5';ctx.lineWidth=3/scale;ctx.stroke();
+      ctx.beginPath();ctx.arc(start.x,start.y,(profile?.goalRadius??14/scale),0,Math.PI*2);ctx.strokeStyle=readyToLift?'#0ba85b':'#8153b5';ctx.lineWidth=3/scale;ctx.stroke();
       ctx.beginPath();ctx.arc(target.x,target.y,(profile?.markerRadius??8/scale),0,Math.PI*2);ctx.fillStyle='#0ba85b';ctx.fill();
     }
 
@@ -114,7 +114,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   },[snapshot,state?.phase,correct,rewardAttemptBlocked,onStreakReset,onCorrect,task]);
   useEffect(()=>{if(interactionDisabled){attempt?.end(true);pointer.current=null;}},[interactionDisabled,attempt]);
   useEffect(()=>()=>attempt?.end(true),[attempt]);
-  useLayoutEffect(()=>{if(snapshot)paint(canvas.current,snapshot,view,options,compact&&!overview);});
+  useLayoutEffect(()=>{if(snapshot)paint(canvas.current,snapshot,view,options,compact&&!overview,attempt?.readyToLift);});
 
   const point=event=>{
     const r=canvas.current.getBoundingClientRect();
@@ -141,7 +141,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   };
   const sheetDone=snapshot?.progress.shapes.every(s=>s.phase==='done');
   const metrics=attempt?.progress();
-  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':hint||(state?.retry?(state.phase==='fill'?'Закрась фигуру заново':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':(metrics?.trace??0)>=.94?'Замкни линию — вернись к кольцу':(metrics?.trace??0)>0?'Продолжи от зелёной точки':'Обведи от точки и замкни линию');
+  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':(attempt?.readyToLift?(inputMode==='touch'?'Линия замкнута — подними палец':'Линия замкнута — подними стилус'):hint)||(state?.retry?(state.phase==='fill'?'Закрась фигуру заново':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':(metrics?.trace??0)>=.94?'Замкни линию — вернись к кольцу':(metrics?.trace??0)>0?'Продолжи от зелёной точки':'Обведи от точки и замкни линию');
   return <section className="coloring" aria-label="Тренировка закрашивания" data-phase={state?.phase??'loading'} data-sheet-count={snapshot?.sheet.shapes.length} onClick={e=>e.stopPropagation()}>
     <header className={`coloring__tools${state?.phase==='fill'&&!overview?' coloring__tools--palette':''}`}>
       {state?.phase==='fill'&&!overview?<ColorPalette color={color} disabled={interactionDisabled||drawing||correct} onChange={value=>{setColor(chooseColor(snapshot,student?.id,value));persist();}}/>
