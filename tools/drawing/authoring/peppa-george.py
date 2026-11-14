@@ -7,6 +7,7 @@ The marker colouring is adapted to the existing gradual pencil renderer.
 import json
 import re
 from pathlib import Path
+from geometry import Path as CurvePath, chain, line
 
 BASE = Path(__file__).resolve().parents[1]
 PENCILS = json.loads((BASE / 'pencils.json').read_text())
@@ -14,6 +15,44 @@ STEPS = []
 
 def svg(d):
     return re.sub(r'-?\d+(?:\.\d+)?', lambda m: f'{float(m[0])*2:g}', d)
+
+def curves(d):
+    """Read the native absolute M/L/C/Q/Z authoring paths into cubic curves."""
+    tokens = iter(re.findall(r'[MLCQZ]|-?\d+(?:\.\d+)?', d))
+    out = []
+    def point(): return (float(next(tokens)), float(next(tokens)))
+    for command in tokens:
+        if command == 'M': current = start = point()
+        elif command == 'C':
+            a, b, end = point(), point(), point()
+            out.append((current, a, b, end)); current = end
+        elif command == 'L':
+            end = point(); out.append(line(current, end)); current = end
+        elif command == 'Q':
+            control, end = point(), point()
+            a = tuple(current[i]+2*(control[i]-current[i])/3 for i in (0, 1))
+            b = tuple(end[i]+2*(control[i]-end[i])/3 for i in (0, 1))
+            out.append((current, a, b, end)); current = end
+        elif command == 'Z':
+            if current != start: out.append(line(current, start))
+            current = start
+        else: raise ValueError(command)
+    return CurvePath(out)
+
+def native(cs):
+    # geometry.chain exports at 2×; keep the rest of this author's data native.
+    return re.sub(r'-?\d+(?:\.\d+)?', lambda m: f'{float(m[0])/2:.6f}', chain(cs))
+
+def attached(detail, parent):
+    """One open stroke joins the existing outline at both ends.
+
+    Its fill closes along that exact existing outline, never an implicit chord
+    across an unoutlined gap. The parent is already drawn before the detail.
+    """
+    child, boundary = curves(detail), curves(parent)
+    a = boundary.nearest(child.cs[0][0]); b = boundary.nearest(child.cs[-1][-1])
+    child.attach_start(boundary.point(a)); child.attach_end(boundary.point(b))
+    return native(child.cs), native(child.cs + boundary.short_arc(b, a)) + ' Z'
 
 def stroke(title, d, time):
     STEPS.append(dict(kind='stroke', title=title, paths=[svg(d)], tool='black', sourceTime=time))
@@ -38,16 +77,25 @@ g_body_fill = g_body + ' C 307 248 296 262 285 262 C 260 281 230 288 209 279 Z'
 g_cheek = oval(212, 241, 16, 17)
 g_mouth = 'M 245 232 C 257 228 270 216 274 206 C 288 214 292 234 279 244 C 266 252 251 247 245 232 Z'
 g_inner = 'M 253 234 C 265 230 273 222 276 216 C 284 228 279 240 267 241 C 261 242 256 239 253 234 Z'
-g_arm1 = 'M 291 244 L 283 273 C 273 270 273 277 279 280 C 267 280 270 288 279 286 C 278 298 287 298 289 287 C 300 294 302 286 296 281 L 308 250'
+g_arm1 = 'M 307 236 L 283 273 C 273 270 273 277 279 280 C 267 280 270 288 279 286 C 278 298 287 298 289 287 C 300 294 302 286 296 281 L 315 243'
 g_arm2 = 'M 279 279 L 257 284 C 244 286 245 292 255 292 L 279 290 C 279 299 286 301 289 292 C 300 296 302 289 293 285'
 g_leg1 = 'M 265 316 L 286 337 L 294 331 L 274 311'
 g_leg2 = 'M 309 293 L 319 299 L 324 290 L 315 286'
 g_shoe1 = 'M 286 337 C 297 329 315 321 318 327 C 320 335 296 347 288 345 Z'
 g_shoe2 = 'M 319 299 C 324 291 333 278 336 282 C 339 288 329 303 323 307 L 313 303 Z'
 g_tail = 'M 210 308 C 192 299 188 318 199 318 C 211 320 211 304 201 309 C 194 313 202 322 191 322 C 187 332 206 327 219 313'
+g_body, g_body_fill = attached(g_body, g_head)
+g_ear1, g_ear1_fill = attached(g_ear1, g_head)
+g_ear2, g_ear2_fill = attached(g_ear2, g_head)
+g_arm1, g_arm1_fill = attached(g_arm1, g_body)
+g_arm2, g_arm2_fill = attached(g_arm2, g_arm1_fill)
+g_leg1, g_leg1_fill = attached(g_leg1, g_body)
+g_leg2, g_leg2_fill = attached(g_leg2, g_body)
+g_tail, g_tail_fill = attached(g_tail, g_body)
 stroke('Голова Джорджа', g_head, 8)
 stroke('Пятачок Джорджа', g_nose, 10)
 for i, (x,y) in enumerate([(279,144),(273,154)]):
+    stroke(f'Контур ноздри Джорджа {i+1}', oval(x,y,1.8,2), 11)
     color(f'Ноздря Джорджа {i+1}', oval(x,y,1.8,2), 'black', 11)
 stroke('Первое ушко Джорджа', g_ear1, 13)
 stroke('Второе ушко Джорджа', g_ear2, 15)
@@ -84,14 +132,25 @@ p_leg1 = 'M 390 309 L 381 316 L 382 323 L 418 314'
 p_leg2 = 'M 477 322 L 459 340 L 452 334 L 463 321'
 p_shoe1 = 'M 381 316 C 379 302 373 282 377 280 C 385 274 391 310 390 317 L 382 323 Z'
 p_shoe2 = 'M 459 340 C 455 325 452 307 446 307 C 438 310 444 339 450 346 Z'
-p_tail = 'M 570 276 C 579 258 599 260 601 275 C 606 291 584 298 583 284 C 583 271 598 272 597 281 C 597 287 588 285 592 281 M 571 289 C 581 294 587 295 592 290'
+p_tail = 'M 570 276 C 579 258 599 260 601 275 C 606 291 587 298 579 290 L 571 289'
+p_curl = 'M 579 290 C 573 277 588 270 594 277 C 599 285 587 290 586 282 C 585 279 590 277 592 281'
+p_body, p_body_fill = attached(p_body, p_head)
+p_ear1, p_ear1_fill = attached(p_ear1, p_head)
+p_ear2, p_ear2_fill = attached(p_ear2, p_head)
+p_arm1, p_arm1_fill = attached(p_arm1, p_body)
+p_leg1, p_leg1_fill = attached(p_leg1, p_body)
+p_leg2, p_leg2_fill = attached(p_leg2, p_body)
+p_tail, p_tail_fill = attached(p_tail, p_body)
 stroke('Голова Пеппы', p_head, 50)
 stroke('Пятачок Пеппы', p_nose, 53)
 for i,(x,y) in enumerate([(421,49),(435,56)]):
+    stroke(f'Контур ноздри Пеппы {i+1}', oval(x,y,2,2.5), 54)
     color(f'Ноздря Пеппы {i+1}', oval(x,y,2,2.5), 'black', 54)
 stroke('Первый глаз Пеппы', p_eye1, 58)
+stroke('Контур первого зрачка Пеппы', oval(491,63,5,6), 59)
 color('Первый зрачок Пеппы', oval(491,63,5,6), 'black', 59)
 stroke('Второй глаз Пеппы', p_eye2, 61)
+stroke('Контур второго зрачка Пеппы', oval(527,81,5,6), 62)
 color('Второй зрачок Пеппы', oval(527,81,5,6), 'black', 62)
 stroke('Первое ушко Пеппы', p_ear1, 65)
 stroke('Второе ушко Пеппы', p_ear2, 67)
@@ -107,8 +166,8 @@ stroke('Первый ботинок Пеппы', p_shoe1, 99)
 color('Закрасим первый ботинок Пеппы', p_shoe1, 'black', 99)
 stroke('Второй ботинок Пеппы', p_shoe2, 100)
 color('Закрасим второй ботинок Пеппы', p_shoe2, 'black', 100)
-for d in p_tail.split(' M '):
-    stroke('Хвостик Пеппы', d if d.startswith('M ') else 'M '+d, 103)
+stroke('Хвостик Пеппы', p_tail, 103)
+stroke('Завиток хвостика Пеппы', p_curl, 103)
 stroke('Горка слева', 'M 137 282 Q 159 268 185 260', 108)
 stroke('Горка между героями', 'M 306 232 Q 355 218 409 229', 109)
 stroke('Горка справа', 'M 601 276 Q 623 287 637 301', 110)
@@ -121,21 +180,21 @@ for who,head,cheek,mouth,eyes,time in [
 ]:
     color('Розовая голова '+who, head+' '+cheek+' '+mouth+' '+eyes, 'pink',time)
 for title,d,time in [
-    ('Первое ушко Джорджа',g_ear1+' Z',118),('Второе ушко Джорджа',g_ear2+' Z',119),
-    ('Ручка Джорджа',g_arm1+' Z',124),('Вторая ручка Джорджа',g_arm2+' Z',125),
-    ('Первая ножка Джорджа',g_leg1+' Z',127),('Вторая ножка Джорджа',g_leg2+' Z',128),
-    ('Хвостик Джорджа',g_tail+' Z',129),
-    ('Первое ушко Пеппы',p_ear1+' Z',157),('Второе ушко Пеппы',p_ear2+' Z',158),
-    ('Ручка Пеппы',p_arm1+' Z',162),('Вторая ручка Пеппы',p_arm2,163),
-    ('Первая ножка Пеппы',p_leg1+' Z',165),('Вторая ножка Пеппы',p_leg2+' Z',166),
-    ('Хвостик Пеппы','M 570 276 C 579 258 599 260 601 275 C 606 291 584 298 583 284 L 571 289 Z',167),
+    ('Первое ушко Джорджа',g_ear1_fill,118),('Второе ушко Джорджа',g_ear2_fill,119),
+    ('Ручка Джорджа',g_arm1_fill,124),('Вторая ручка Джорджа',g_arm2_fill,125),
+    ('Первая ножка Джорджа',g_leg1_fill,127),('Вторая ножка Джорджа',g_leg2_fill,128),
+    ('Хвостик Джорджа',g_tail_fill,129),
+    ('Первое ушко Пеппы',p_ear1_fill,157),('Второе ушко Пеппы',p_ear2_fill,158),
+    ('Ручка Пеппы',p_arm1_fill,162),('Вторая ручка Пеппы',p_arm2,163),
+    ('Первая ножка Пеппы',p_leg1_fill,165),('Вторая ножка Пеппы',p_leg2_fill,166),
+    ('Хвостик Пеппы',p_tail_fill,167),
 ]:
     color('Розовый цвет: '+title,d,'pink',time)
 color('Розовая улыбка Джорджа', g_inner, 'pink', 131)
 color('Фиолетовая щёчка Джорджа', g_cheek, 'purple',133)
 color('Фиолетовая щёчка Пеппы', p_cheek, 'purple',173)
 # Arms are holes in the clothing regions, keeping the shared boundaries intact.
-color('Голубая одежда Джорджа',g_body_fill+' '+g_arm1+' Z '+g_arm2+' Z','light_blue',140)
+color('Голубая одежда Джорджа',g_body_fill+' '+g_arm1_fill+' '+g_arm2_fill,'light_blue',140)
 STEPS[-1]['clip'] = svg(g_body_fill)
 color('Красная улыбка Пеппы',p_inner,'red',177)
 color('Красное платье Пеппы',p_body_fill+' '+p_arm2,'red',187)
@@ -155,7 +214,7 @@ grass = ('M 137 282 Q 159 268 185 260 C 192 269 199 275 209 279 '
          'Q 623 287 637 301 L 637 358 L 137 358 Z')
 color('Зелёная горка',grass,'green',198)
 
-lesson = dict(id='peppa_george',title='Пеппа и Джордж',viewBox='260 10 1030 710',
+lesson = dict(id='peppa_george',title='Пеппа и Джордж',viewBox='260 10 1030 710',progressRevision=2,
     source=dict(title='Super Easy Drawings — Пеппа и Джордж',
         url='https://drive.google.com/file/d/1TXjRL5uiFjGpBmAIo9WXDKnmgehVs-tT/view',
         durationSeconds=210.048,referenceFrameSeconds=108,
