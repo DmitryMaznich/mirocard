@@ -30,6 +30,14 @@ try{
  for(let i=1;i<=lesson.steps.length;i++){
   await page.locator('.drawing-next').tap();
   if(await page.locator('[role=status]').textContent()==='Подготовьте следующий карандаш'){changes++;await page.locator('.drawing-next').tap();}
+  const currentStep=lesson.steps[i-1];
+  if(currentStep.kind==='stroke'&&currentStep.paths.length>1){
+   const previousPaths=lesson.steps.slice(0,i-1).filter(s=>s.kind==='stroke').reduce((sum,s)=>sum+s.paths.length,0);
+   await page.clock.runFor(120);
+   const paths=page.locator('[data-layer=drawing] > path');
+   assert.equal(await paths.count(),previousPaths+1,'Later strokes in a combined step must wait for the pencil');
+   assert(Number(await paths.last().evaluate(p=>p.style.strokeDashoffset))>0,'Combined step must animate its first stroke');
+  }
   if(i===1){
    await page.clock.runFor(120);
    const path=page.locator('[data-layer=drawing] path').last();assert(Number(await path.evaluate(p=>p.style.strokeDashoffset))>0,'Contour must be progressive');

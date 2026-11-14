@@ -13,24 +13,22 @@ try {
     const start=p=>p.getPointAtLength(0),end=p=>p.getPointAtLength(p.getTotalLength());
     const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
     const on=(q,ps,title)=>{let best=Infinity;for(const p of ps)for(let d=0;d<=p.getTotalLength();d+=.04)best=Math.min(best,distance(q,p.getPointAtLength(d)));check(best<.08,title);};
-    const shell=[...outlines('Левая дуга раковины'),...outlines('Правая дуга раковины')];
-    check(distance(end(shell[0]),start(shell[1]))<.001,'Shell halves do not join');
-    check(distance(end(shell[1]),start(shell[0]))<.001,'Shell is not closed');
-    const tail=outlines('Заострённый хвостик'),lower=outlines('Нижняя линия тела'),head=outlines('Округлая голова и шея');
-    on(start(tail[0]),shell,'Tail/shell root');on(end(lower[0]),shell,'Tail/shell bottom');
-    check(distance(end(tail[0]),start(lower[0]))<.001,'Disconnected tail');
-    check(distance(end(lower[0]),start(lower[1]))<.001,'Disconnected lower body');
-    check(distance(end(lower[1]),start(head[0]))<.001,'Disconnected head/lower body');
-    on(end(head[0]),shell,'Head/shell root');
-    for(const title of ['Левый','Правый'])for(const part of ['первая','вторая']){
-      const stalk=outlines(title+' стебелёк — '+part+' линия')[0];
-      on(start(stalk),outlines(title+' глазок'),title+' eye/stalk join');
-      on(end(stalk),head,title+' stalk/head join');
+    const shell=outlines('Контур раковины'),bodyOutline=outlines('Контур тела и головы');
+    check(shell.length===1&&bodyOutline.length===1,'Continuous contours split into separate movements');
+    check(distance(end(shell[0]),start(shell[0]))<.001,'Shell is not closed');
+    on(start(bodyOutline[0]),shell,'Tail/shell root');
+    on(end(bodyOutline[0]),shell,'Head/shell root');
+    for(const title of ['Левый','Правый']){
+      const eye=outlines(title+' глазок со стебельком');
+      check(eye.length===4,'Eye should demonstrate both rings and stalk edges in one step');
+      for(const stalk of eye.slice(2)){
+        on(start(stalk),[eye[0]],title+' eye/stalk join');
+        on(end(stalk),bodyOutline,title+' stalk/head join');
+      }
     }
-    const spiral=['Большой виток спирали','Средний виток спирали','Маленький завиток в центре'].map(t=>outlines(t)[0]);
+    const spiral=outlines('Спираль раковины');
+    check(spiral.length===1,'Spiral split into separate movements');
     on(start(spiral[0]),shell,'Spiral starts on the shell');
-    check(distance(end(spiral[0]),start(spiral[1]))<.001,'First spiral break');
-    check(distance(end(spiral[1]),start(spiral[2]))<.001,'Second spiral break');
     const regions=lesson.steps.filter(s=>s.kind==='color').map(s=>{
       const shape=path(s.d);shape.setAttribute('fill-rule','evenodd');const clip=s.clip?path(s.clip):null;
       return {...s,shape,inside:q=>shape.isPointInFill(q)&&(!clip||clip.isPointInFill(q))};
@@ -50,7 +48,7 @@ try {
     for(const [index,cx,cy,title] of [[0,403.2,136.2,'левый'],[1,445.3,145.7,'правый']]){
       const pupil=get('Чёрный зрачок с бликами: '+title);
       check(!pupil.inside(new DOMPoint((cx+1)*2,(cy+1.7)*2)),'Pupil reflection painted black');
-      const ring=get('Жёлтая окантовка глазка '+(index+1));
+      const ring=get('Жёлтый глазок и стебелёк '+(index+1));
       check(!ring.inside(new DOMPoint(cx*2,cy*2)),'Yellow covers the pupil');
     }
     ctx.lineWidth=2;
