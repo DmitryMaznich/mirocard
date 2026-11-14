@@ -75,6 +75,22 @@ describe("Slovenian (draft)", () => {
     expect(JSON.stringify(inkOf(view("sl_print"), "mačka"))).not.toBe(JSON.stringify(upper));
   });
 
+  it("print letters, capitals too, stand one steady gap apart (script.letterGap) — no slant-grid gap of a capital after a capital (owner, 2026-11-15)", () => {
+    const xs = (ks) => ks.flatMap((k) => [...k.d.matchAll(/(-?[\d.]+)[ ,](-?[\d.]+)/g)].map((m) => Number(m[1])));
+    for (const [style, word] of [["sl_caps", "danes"], ["sl_caps", "janez"], ["sl_print", "JANEZ"], ["sl_print", "danes"]]) {
+      const v = view(style);
+      const n = [...word].map((_, i) => inkOf(v, word.slice(0, i + 1)).segments[0].strokes.length);
+      const all = inkOf(v, word).segments[0].strokes;
+      const box = n.map((c, i) => { const x = xs(all.slice(i ? n[i - 1] : 0, c)); return [Math.min(...x), Math.max(...x)]; });
+      // the bounding boxes of neighbours never overlap and are never far apart (the old rule: up to a cell and a half, E and S overlapping)
+      for (let i = 1; i < box.length; i += 1) {
+        const gap = box[i][0] - box[i - 1][1];
+        expect(gap, `${style} ${word} ${i}`).toBeGreaterThan(-1);
+        expect(gap, `${style} ${word} ${i}`).toBeLessThan(v.meta.script.letterGap * 1.6);
+      }
+    }
+  });
+
   it("cursive small letters (step 3): start on the baseline, end half-way up the x band — b o r v at the top; one movement each", () => {
     const glyphs = sl.styles.find((st) => st.id === "sl_cursive").glyphs;
     const pts = (d) => [...d.matchAll(/(-?[\d.]+)[ ,](-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);

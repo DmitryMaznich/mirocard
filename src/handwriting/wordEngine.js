@@ -2251,7 +2251,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
         let local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         const isCap = !inCell && glyph.kind === "letter" && isCapitalLabel(label);
-        const capAfterCap = prevCapital && isCap && tokenStartX !== null;
+        // (not in a print style — letters written apart, no joins of any kind: there every letter, a capital too, stands `script.letterGap`
+        // after the ink before it; the slant-grid gap of a capital after a capital made the all-capitals «Velike tiskane» uneven, owner 2026-11-15)
+        const capAfterCap = prevCapital && isCap && tokenStartX !== null && !(unjoined && !meet && !nelson);
         // the connector the capital before it would have drawn to it is not drawn
         if (capAfterCap) { pendingTail = null; prevExit = null; prevExitStroke = -1; }
         // meta.script.exactJoins (the Bulgarian о б в ю): the connector is drawn only before a letter that starts on its oval; a
