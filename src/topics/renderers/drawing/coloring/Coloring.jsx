@@ -38,8 +38,16 @@ function paint(canvas,snapshot,view,options,focused) {
       const target=state.contourAttempt?.anchor??shape.points[0],start=state.contourAttempt?.start??shape.points[0];
       const profile=options.traceProfile;
       const progress=state.contourAttempt?.progress??0;
-      const guide=contourPart(shape.points).points.filter(p=>p.s>=progress&&p.s<=progress+(profile?.leadLength??24/scale));
-      if(guide.length>1){path(ctx,guide);ctx.strokeStyle='#0ba85b';ctx.lineWidth=profile?.leadInk??3/scale;ctx.stroke();}
+      const guide=contourPart(shape.points).points.filter(p=>p.s>=progress&&p.s<=progress+2*(profile?.leadLength??24/scale));
+      if(guide.length>1){
+        path(ctx,guide);ctx.strokeStyle='#0ba85b';ctx.lineWidth=profile?.leadInk??3/scale;ctx.stroke();
+        const tip=guide.at(-1),previous=guide.at(-2),distance=Math.hypot(tip.x-previous.x,tip.y-previous.y);
+        if(distance>0){
+          const dx=(tip.x-previous.x)/distance,dy=(tip.y-previous.y)/distance,wing=Math.max(10/scale,ctx.lineWidth*2.5);
+          path(ctx,[{x:tip.x-dx*wing*.8-dy*wing*.6,y:tip.y-dy*wing*.8+dx*wing*.6},tip,
+            {x:tip.x-dx*wing*.8+dy*wing*.6,y:tip.y-dy*wing*.8-dx*wing*.6}]);ctx.stroke();
+        }
+      }
       ctx.beginPath();ctx.arc(start.x,start.y,(profile?.goalRadius??14/scale),0,Math.PI*2);ctx.strokeStyle='#8153b5';ctx.lineWidth=3/scale;ctx.stroke();
       ctx.beginPath();ctx.arc(target.x,target.y,(profile?.markerRadius??8/scale),0,Math.PI*2);ctx.fillStyle='#0ba85b';ctx.fill();
     }
