@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Рисование · Первые линии — макет редизайна (2026-11-14)</title>
+<style>
+  :root{font-family:"Nunito",system-ui,sans-serif;color:#263d39;background:#f3f5f0}
+  body{margin:0;padding:24px clamp(12px,3vw,40px) 60px}
+  h1{font-size:clamp(22px,3vw,30px);margin:0 0 6px}
+  .lead{max-width:860px;color:#4b5f5a;margin:0 0 28px;line-height:1.45}
+  section{background:#fff;border-radius:18px;padding:20px clamp(12px,2vw,24px) 24px;margin:0 0 26px;box-shadow:0 1px 3px #0001}
+  section h2{font-size:21px;margin:0 0 6px}
+  section h2 b{display:inline-block;min-width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%;background:#4a9b8f;color:#fff;font-size:16px;margin-right:8px}
+  .why{max-width:900px;margin:0 0 16px;line-height:1.45;color:#3f524d}
+  .why li{margin:3px 0}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  .pair.phone{grid-template-columns:repeat(2,minmax(0,300px));justify-content:start}
+  .pair.three{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:860px){.pair,.pair.three{grid-template-columns:1fr}.pair.phone{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  figure{margin:0}
+  figcaption{font-size:14px;font-weight:700;margin:0 0 6px;display:flex;gap:8px;align-items:center}
+  figcaption .tag{font-size:12px;padding:2px 8px;border-radius:999px}
+  .was .tag{background:#fee2e2;color:#b91c1c}
+  .now .tag{background:#dcfce7;color:#15803d}
+  .shot{display:block;width:100%;height:auto;border-radius:12px;border:1px solid #dfe5e1;background:#fafbf7}
+  .note{font-size:13px;color:#5d6f6a;margin-top:6px;line-height:1.4}
+  .timeline{display:flex;gap:0;margin-top:10px;font-size:13px;color:#3f524d}
+  .timeline div{flex:1;border-top:3px solid #16a34a;padding-top:6px;position:relative}
+  .timeline div::before{content:"";position:absolute;top:-8px;left:0;width:13px;height:13px;border-radius:50%;background:#16a34a}
+  .timeline b{display:block;color:#15803d}
+  .settings{border:1px solid #dfe5e1;border-radius:16px;padding:16px 18px;max-width:560px;background:#fcfcfa}
+  .settings h3{margin:0 0 12px;font-size:17px}
+  .row{margin:0 0 14px}
+  .row label{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+  .seg{display:inline-flex;border:2px solid #d4e3dc;border-radius:12px;overflow:hidden}
+  .seg span{padding:8px 14px;font-size:14px;border-right:2px solid #d4e3dc}
+  .seg span:last-child{border-right:0}
+  .seg .on{background:#4a9b8f;color:#fff;font-weight:700}
+  .row small{display:block;color:#6b7c77;margin-top:5px;font-size:12.5px}
+  .keep{columns:2;max-width:900px;line-height:1.5}
+  @media(max-width:700px){.keep{columns:1}}
+  /* SVG animation helpers */
+  .pulse{animation:pulse 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:.25}50%{transform:scale(1.35);opacity:.08}}
+  .bob{animation:bob 1s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .spark{animation:spark 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes spark{0%{transform:scale(.2);opacity:0}30%{opacity:1}100%{transform:scale(1.2);opacity:0}}
+  .zoomout{animation:zoomout 3.2s ease-in-out infinite;transform-origin:590px 444px}
+  @keyframes zoomout{0%,15%{transform:scale(3.1) translate(-200px,-120px)}55%,100%{transform:scale(1) translate(0,0)}}
+  .fadein{animation:fadein 3s ease-in-out infinite}
+  @keyframes fadein{0%,40%{opacity:0}60%,100%{opacity:1}}
+  .appear{animation:appear 3s ease-in-out infinite}
+  @keyframes appear{0%,35%{opacity:0;transform:scale(.6)}50%,100%{opacity:1;transform:scale(1)}}
+  .appear{transform-box:fill-box;transform-origin:center}
+</style>
+</head>
+<body>
+<h1>Рисование · «Первые линии» — предлагаемый экран занятия</h1>
+<p class="lead">Макет к обсуждению, не готовая вёрстка. Слева — настоящие снимки текущей версии темы (0.25.1,
+iPad 1180×820, стилус; телефон 390×844, палец), справа — предлагаемый вид. Общая шапка (звёзды, счётчик, ×) не меняется.
+Правила оценки, ошибки и звёзд тоже не меняются: меняется только то, что ребёнок видит и сколько раз ему приходится ждать.</p>
+
+<section>
+  <h2><b>1</b>Без «Готово» и «Следующее задание»</h2>
+  <ul class="why">
+    <li>Успех виден на самой линии: след становится зелёным, кольцо финиша закрашивается галочкой, короткие искры, штатный звук.</li>
+    <li>Через ~0,9 с следующее задание появляется само. Кнопку нажимать не нужно, за 15 заданий уходит 15 лишних остановок.</li>
+    <li>Окно звезды с видео после каждого 5-го задания остаётся как есть: это настоящая пауза.</li>
+  </ul>
+  <div class="pair">
+    <figure class="was"><figcaption><span class="tag">Было</span>После каждой линии — остановка и кнопка</figcaption>
+      <img class="shot" src="before-ipad-2-done.png" alt="Сейчас: Готово и Следующее задание"></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>Подтверждение на самой линии, дальше сам</figcaption>
+      <div data-frame="success"></div>
+      <div class="timeline"><div><b>0 с</b>отрыв стилуса — линия зеленеет, кольцо с галочкой</div><div><b>0,3 с</b>искры и звук</div><div><b>0,9 с</b>линия уходит в лист, появляется следующая</div></div>
+    </figure>
+  </div>
+  <p class="note">Если взрослому нужна пауза между заданиями (настройка «По нажатию», см. п. 7), вместо текстовой кнопки — одна крупная круглая стрелка в правом нижнем углу:</p>
+  <div class="pair"><figure class="now"><figcaption><span class="tag">Вариант</span>Переход по нажатию взрослого</figcaption><div data-frame="manual"></div></figure><div></div></div>
+</section>
+
+<section>
+  <h2><b>2</b>Без текстовой строки внизу — подсказки на холсте</h2>
+  <ul class="why">
+    <li>«Рисуй от точки», «Стоп. Подними стилус», «Повтори от точки» — текст для взрослого, ребёнок его не читает. Полоса под ним занимает 72–88 px.</li>
+    <li>«Стоп»: след останавливается, у кончика — янтарный кружок со стрелкой вверх (покачивается). Без надписи.</li>
+    <li>«Повтори»: точка возврата пульсирует зелёным, как стартовая — то же значение «начни здесь».</li>
+    <li>Холст занимает всю высоту до низа экрана.</li>
+  </ul>
+  <div class="pair">
+    <figure class="was"><figcaption><span class="tag">Было</span>Ошибка: надпись внизу</figcaption>
+      <img class="shot" src="before-ipad-3-error.png" alt="Сейчас: Стоп. Подними стилус"></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>Ошибка: знак «подними» у кончика</figcaption><div data-frame="error"></div></figure>
+    <figure class="was"><figcaption><span class="tag">Было</span>После ошибки: «Повтори от точки»</figcaption>
+      <img class="shot" src="before-ipad-4-retry.png" alt="Сейчас: Повтори от точки"></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>После отрыва: пульсирует место продолжения</figcaption><div data-frame="retry"></div></figure>
+  </div>
+</section>
+
+<section>
+  <h2><b>3</b>Показ движения включается сам</h2>
+  <ul class="why">
+    <li>Автопоказ — на первом задании каждого нового типа линии и после 5 с бездействия. Карандаш-призрак проводит линию полупрозрачно и исчезает.</li>
+    <li>В остальное время — маленькая круглая кнопка ▶ без слова. Касание стилусом прерывает показ, как сейчас; показ не засчитывается и не штрафуется.</li>
+  </ul>
+  <div class="pair">
+    <figure class="was"><figcaption><span class="tag">Было</span>Кнопка «Показать» с текстом, только по нажатию</figcaption>
+      <img class="shot" src="before-ipad-1-start.png" alt="Сейчас: кнопка Показать"></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>Автопоказ (анимация повторяется)</figcaption><div data-frame="demo"></div></figure>
+  </div>
+</section>
+
+<section>
+  <h2><b>4</b>Текущее задание крупно и по центру; лист — в конце, как награда</h2>
+  <ul class="why">
+    <li>Сейчас на планшете лист делится на сетку 4×3: линия ~250 px в верхнем левом углу, остальные 85% экрана пустые.</li>
+    <li>Предлагаю: текущее задание всегда крупно, прежние рисунки бледно на фоне.</li>
+    <li>Когда лист заполнен, камера плавно отъезжает и показывает весь лист («вот что ты нарисовал»), потом начинается новый.</li>
+    <li>Спорный момент: пропадает ощущение «рисую на одном листе». Если это методически важно, запасной вариант — плавное приближение текущей ячейки вместо крупного центра.</li>
+  </ul>
+  <div class="pair">
+    <figure class="was"><figcaption><span class="tag">Было</span>Маленькая линия в ячейке 1 из 12</figcaption>
+      <img class="shot" src="before-ipad-1-start.png" alt="Сейчас: линия в углу"></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>Крупная линия, дорожка контрастнее</figcaption><div data-frame="start"></div></figure>
+    <figure class="now" style="grid-column:1/-1;max-width:calc(50% - 9px);justify-self:end;width:100%"><figcaption><span class="tag">Стало</span>Лист заполнен: отъезд камеры (анимация)</figcaption><div data-frame="sheet"></div></figure>
+  </div>
+</section>
+
+<section>
+  <h2><b>5</b>Заметная дорожка и понятная цель</h2>
+  <ul class="why">
+    <li>Дорожка стилуса сейчас — 10 px бледно-зелёного на почти белом. Предлагаю тёмные края и точечную ось, ширина и допуск прежние.</li>
+    <li>Финиш — то же фиолетовое кольцо, но толще. Предмет вместо кольца (домик) — отдельная настройка, по умолчанию выключена: одних детей предмет мотивирует, других отвлекает.</li>
+  </ul>
+  <div class="pair three">
+    <figure class="now"><figcaption><span class="tag">Стало</span>Дорожка стилуса крупным планом</figcaption><div data-frame="closeup"></div></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>Финиш: кольцо (по умолчанию)</figcaption><div data-frame="start"></div></figure>
+    <figure class="now"><figcaption><span class="tag">Вариант</span>Финиш: домик</figcaption><div data-frame="house"></div></figure>
+  </div>
+</section>
+
+<section>
+  <h2><b>6</b>Телефон: без «Весь лист» и без нижней строки</h2>
+  <ul class="why">
+    <li>«Весь лист» — просмотр для взрослого; ребёнок нажимает его случайно. С п. 4 кнопка не нужна: лист показывается сам в конце.</li>
+    <li>Освободившееся место отдаётся холсту, фигура крупнее.</li>
+  </ul>
+  <div class="pair phone">
+    <figure class="was"><figcaption><span class="tag">Было</span>Палец, дуга</figcaption>
+      <img class="shot" src="before-phone-1-start.png" alt="Сейчас: телефон"></figure>
+    <figure class="now"><figcaption><span class="tag">Стало</span>Палец, дуга</figcaption><div data-frame="phone"></div></figure>
+  </div>
+</section>
+
+<section>
+  <h2><b>7</b>Что добавляется в настройки взрослого</h2>
+  <div class="settings">
+    <h3>Первые линии · перед занятием</h3>
+    <div class="row"><label>Следующее задание</label><div class="seg"><span class="on">Само</span><span>По нажатию</span></div>
+      <small>Сейчас это общая настройка ученика; для этого режима по умолчанию — «Само».</small></div>
+    <div class="row"><label>Показ движения</label><div class="seg"><span class="on">Сам на новом и при паузе</span><span>Только по ▶</span></div></div>
+    <div class="row"><label>Финиш</label><div class="seg"><span class="on">Кольцо</span><span>Домик</span></div></div>
+    <div class="row"><label>Рисунок на экране</label><div class="seg"><span class="on">Крупно, лист в конце</span><span>Сразу на листе</span></div>
+      <small>«Сразу на листе» — текущее поведение (сетка до 4×3).</small></div>
+  </div>
+</section>
+
+<section>
+  <h2><b>8</b>Что не меняется</h2>
+  <ul class="keep">
+    <li>Проверка движения, допуски, ширина дорожки по способу ввода (стилус / пассивный / палец).</li>
+    <li>Сценарий ошибки: одно списание на задание, исправление без зачёта.</li>
+    <li>Звёзды, видеоприз каждые 5 заданий, 15 заданий в занятии.</li>
+    <li>Общая шапка, кнопка выхода, звук ошибки и успеха.</li>
+    <li>Сохранение прогресса при повороте и перезагрузке.</li>
+    <li>Режим «Рисуем по шагам» и раскраски.</li>
+  </ul>
+</section>
+
+<script>
+// Frames are drawn in the same pixel space as the screenshots: tablet 1180×820, phone 390×844.
+const A={x:300,y:600},B={x:880,y:340};
+const at=t=>({x:A.x+(B.x-A.x)*t,y:A.y+(B.y-A.y)*t});
+const L=Math.hypot(B.x-A.x,B.y-A.y);
+const line=(p,q)=>`M${p.x} ${p.y} L${q.x} ${q.y}`;
+
+function header(w,count='2 / 15',star=''){
+  return `<rect width="${w}" height="68" fill="#fff"/><line x1="0" y1="68.5" x2="${w}" y2="68.5" stroke="#e3e7e4"/>
+  ${w>600?`<text x="18" y="58" font-size="11" fill="#9aa5a2">Рисование · Первые линии</text>`:''}
+  <text x="${w-110}" y="34" font-size="14" fill="#56625f">${count}</text>
+  <rect x="${w-52}" y="10" width="36" height="36" rx="8" fill="#f1f3f2"/><path d="M${w-39} 23l10 10M${w-29} 23l-10 10" stroke="#333" stroke-width="2"/>
+  ${star||`<rect x="${w/2-24}" y="57" width="48" height="20" rx="10" fill="#fdf8ef" stroke="#e7dccb"/><path d="M${w/2-17} 67h10M${w/2-5} 67h10M${w/2+7} 67h10" stroke="#3f7a5a" stroke-width="2"/>`}`;
+}
+function track(d,w=12){ // contrast track: dark edge, light body, dotted axis
+  return `<path d="${d}" fill="none" stroke="#8fc0a5" stroke-width="${w+8}" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="${d}" fill="none" stroke="#e8f4ec" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="${d}" fill="none" stroke="#9cc8b0" stroke-width="3" stroke-dasharray="1 13" stroke-linecap="round"/>`;
+}
+const startDot=(p,pulse=true)=>`${pulse?`<circle class="pulse" cx="${p.x}" cy="${p.y}" r="30" fill="#0ba85b" opacity=".25"/>`:''}<circle cx="${p.x}" cy="${p.y}" r="16" fill="#0ba85b" stroke="#fff" stroke-width="3"/>`;
+const ring=p=>`<circle cx="${p.x}" cy="${p.y}" r="22" fill="#fff" stroke="#8153b5" stroke-width="7"/>`;
+const house=p=>`<g transform="translate(${p.x-26} ${p.y-30})"><path d="M4 26 26 6l22 20v28H4z" fill="#f4eefb" stroke="#8153b5" stroke-width="5" stroke-linejoin="round"/><rect x="19" y="34" width="14" height="20" fill="#8153b5"/></g>`;
+const playBtn=()=>`<circle cx="50" cy="112" r="30" fill="#fff" stroke="#d4e3dc" stroke-width="2.5"/><path d="M42 98 62 112 42 126z" fill="#254e45"/>`;
+const ghosts=()=>`<g opacity=".16" fill="none" stroke="#315b86" stroke-width="5" stroke-linecap="round">
+  <path d="M90 230 L240 180"/><path d="M960 160 q60 -70 120 0"/><path d="M110 760 l40 -50 40 50 40 -50"/><path d="M930 720 q35 -45 70 0 t70 0"/></g>`;
+const bg=(w,h)=>`<rect width="${w}" height="${h}" fill="#fafbf7"/>`;
+const tablet=inner=>`<svg viewBox="0 0 1180 820" class="shot" role="img">${bg(1180,820)}${inner}</svg>`;
+
+const frames={
+  start:()=>tablet(`${header(1180)}${ghosts()}${track(line(A,B))}${startDot(A)}${ring(B)}${playBtn()}`),
+  house:()=>tablet(`${header(1180)}${ghosts()}${track(line(A,B))}${startDot(A)}${house(B)}${playBtn()}`),
+  demo:()=>tablet(`${header(1180)}${ghosts()}${track(line(A,B))}${startDot(A,false)}${ring(B)}
+    <path d="${line(A,B)}" fill="none" stroke="#315b86" stroke-opacity=".45" stroke-width="7" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L}">
+      <animate attributeName="stroke-dashoffset" values="${L};${L};0;0" keyTimes="0;.15;.7;1" dur="3s" repeatCount="indefinite"/></path>
+    <g opacity=".75"><path d="M0 0 l-10 -34 l14 -4 l10 34z M0 0 l-4 6" fill="#ffd27a" stroke="#7a5a1a" stroke-width="2.5" stroke-linejoin="round" transform="rotate(-20)"/>
+      <animateMotion path="${line(A,B)}" keyPoints="0;0;1;1" keyTimes="0;.15;.7;1" calcMode="linear" dur="3s" repeatCount="indefinite"/></g>
+    <circle cx="50" cy="112" r="30" fill="#e5f1e8" stroke="#4a9b8f" stroke-width="2.5"/><path d="M42 98 62 112 42 126z" fill="#254e45"/>`),
+  success:()=>{const pts=[.18,.45,.72,1].map(at);return tablet(`${header(1180,'1 / 15',`<circle cx="590" cy="68" r="46" fill="#dcf5e6" stroke="#bfe8cf"/><text x="590" y="84" font-size="44" text-anchor="middle">😊</text>`)}${ghosts()}
+    <path d="${line(A,B)}" fill="none" stroke="#bbf7d0" stroke-width="30" stroke-linecap="round"/>
+    <path d="${line(A,B)}" fill="none" stroke="#16a34a" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="${B.x}" cy="${B.y}" r="26" fill="#16a34a"/><path d="M${B.x-11} ${B.y} l8 9 l15 -17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<path class="spark" style="animation-delay:${i*.18}s" d="M${p.x+18} ${p.y-34} l5 14 14 5 -14 5 -5 14 -5 -14 -14 -5 14 -5z" fill="#facc15"/>`).join('')}
+    <circle cx="50" cy="112" r="30" fill="#fff" stroke="#d4e3dc" stroke-width="2.5" opacity=".4"/><path d="M42 98 62 112 42 126z" fill="#254e45" opacity=".4"/>`);},
+  manual:()=>tablet(`${header(1180)}${ghosts()}<path d="${line(A,B)}" fill="none" stroke="#16a34a" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="${B.x}" cy="${B.y}" r="26" fill="#16a34a"/><path d="M${B.x-11} ${B.y} l8 9 l15 -17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="appear"><circle cx="1090" cy="730" r="54" fill="#22c55e"/><circle cx="1090" cy="736" r="54" fill="#15803d" opacity=".35"/><circle cx="1090" cy="730" r="54" fill="#22c55e"/>
+    <path d="M1064 730h46M1094 712l18 18-18 18" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></g>`),
+  error:()=>{const p=at(.4),q={x:p.x+70,y:p.y+95};return tablet(`${header(1180)}${ghosts()}${track(line(A,B))}${ring(B)}
+    <path d="${line(A,p)}" fill="none" stroke="#315b86" stroke-width="7" stroke-linecap="round"/>
+    <path d="M${p.x} ${p.y} q20 40 ${q.x-p.x} ${q.y-p.y}" fill="none" stroke="#a56e31" stroke-opacity=".65" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="${p.x+16}" cy="${p.y+30}" r="18" fill="none" stroke="#b98532" stroke-width="5"/>
+    <g class="bob"><circle cx="${q.x+46}" cy="${q.y-6}" r="34" fill="#fff1dc" stroke="#b98532" stroke-width="4"/>
+      <path d="M${q.x+46} ${q.y+12}V${q.y-24}M${q.x+33} ${q.y-11}l13 -13 13 13" fill="none" stroke="#8a541b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <circle cx="${q.x}" cy="${q.y}" r="9" fill="#315b86"/>${playBtn()}`);},
+  retry:()=>{const p=at(.4),q={x:p.x+70,y:p.y+95};return tablet(`${header(1180)}${ghosts()}${track(line(A,B))}${ring(B)}
+    <path d="${line(A,p)}" fill="none" stroke="#315b86" stroke-width="7" stroke-linecap="round"/>
+    <path d="M${p.x} ${p.y} q20 40 ${q.x-p.x} ${q.y-p.y}" fill="none" stroke="#a56e31" stroke-opacity=".22" stroke-width="7" stroke-linecap="round"/>
+    ${startDot(p)}${playBtn()}`);},
+  sheet:()=>{const cells=[];for(let r=0;r<3;r++)for(let c=0;c<4;c++){const x=40+c*280,y=100+r*235,k=(r*4+c)%6;
+      const d=[`M${x+50} ${y+170}L${x+210} ${y+60}`,`M${x+40} ${y+150}q90 -130 180 0`,`M${x+40} ${y+150}l45 -70 45 70 45 -70`,`M${x+40} ${y+120}q35 -50 70 0t70 0t70 0`,`M${x+60} ${y+60}h150v110h-150z`,`M${x+130} ${y+50}a65 65 0 1 0 0.1 0`][k];
+      cells.push(`<path d="${d}" fill="none" stroke="${r*4+c===0?'#16a34a':'#315b86'}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`);}
+    return tablet(`${header(1180,'12 / 15')}<g class="zoomout">${cells.join('')}</g>
+      <g class="fadein"><circle cx="1110" cy="740" r="40" fill="#fff" stroke="#facc15" stroke-width="5"/><path d="M1110 715 l7 16 17 2 -13 11 4 17 -15 -9 -15 9 4 -17 -13 -11 17 -2z" fill="#facc15"/></g>`);},
+  closeup:()=>{const a={x:150,y:520},b={x:1030,y:300};return tablet(`<rect x="0" y="0" width="1180" height="820" fill="#fafbf7"/>
+    <text x="40" y="70" font-size="34" fill="#9aa5a2">было:</text>
+    <path d="M150 230 L1030 160" stroke="#dbebe0" stroke-width="20" stroke-linecap="round"/>
+    <text x="40" y="380" font-size="34" fill="#9aa5a2">стало:</text>${track(line(a,b),20)}${startDot(a,false)}${ring(b)}`);},
+  phone:()=>{const c={x:195,y:540},r=150,s={x:c.x+r,y:c.y},f={x:c.x-r,y:c.y};const d=`M${s.x} ${s.y} A${r} ${r} 0 0 0 ${f.x} ${f.y}`;
+    return `<svg viewBox="0 0 390 844" class="shot" role="img">${bg(390,844)}${header(390,'1 / 15')}
+    <g opacity=".14" fill="none" stroke="#315b86" stroke-width="5" stroke-linecap="round"><path d="M40 180 L120 140"/><path d="M260 760 l25 -35 25 35 25 -35"/></g>
+    ${track(d,52)}${startDot(s)}${ring(f)}${playBtn()}</svg>`;}
+};
+document.querySelectorAll('[data-frame]').forEach(n=>{n.innerHTML=frames[n.dataset.frame]();});
+</script>
+</body>
+</html>
