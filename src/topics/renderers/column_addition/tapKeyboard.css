@@ -35,14 +35,14 @@
   align-items: center;
   justify-content: center;
   background: #fff;
-  border: 2px solid #dbeafe;
+  border: 2px solid #bfdbfe;
   border-radius: 12px;
   font-weight: 700;
   font-family: 'Primo', cursive;
   color: #1a1a2e;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 3px 0 #c7d2fe;
+  box-shadow: 0 3px 0 #93c5fd;
   touch-action: manipulation;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -59,7 +59,7 @@
   color: #2563eb;
   background: #eff6ff;
   border-color: #bfdbfe;
-  box-shadow: 0 3px 0 #a5b4fc;
+  box-shadow: 0 3px 0 #93c5fd;
 }
 
 .col-tap-btn--sign-dim {
@@ -71,10 +71,10 @@
 
 .col-tap-btn--line {
   background: #fff;
-  border: 2px solid #dbeafe;
+  border: 2px solid #bfdbfe;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 3px 0 #c7d2fe;
+  box-shadow: 0 3px 0 #93c5fd;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,4 +83,35 @@
 .col-tap-btn--line:active {
   transform: translateY(2px);
   box-shadow: none;
+}
+
+/* ── Столбик trainer: two plaques, wider gaps ─── */
+/* The container is transparent; each plaque (digits, «+ − черта») has its
+   own background, so the sign row hidden in the solve phase leaves no empty
+   plaque behind. */
+.col-tap-kb--trainer {
+  gap: 10px;
+  padding: 0;
+  margin-top: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.col-tap-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(240, 246, 255, 0.92);
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(100, 130, 200, 0.18);
+}
+
+.col-tap-pad.col-tap-row {
+  flex-direction: row;
+}
+
+.col-tap-kb--trainer .col-tap-row {
+  gap: 10px;
 }

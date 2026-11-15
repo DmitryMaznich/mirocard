@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 // Shared by every col-tap-kb style keyboard (Столбик, Считаем на пальцах) so
 // they scale up together at tablet width instead of each hand-rolling it.
-export function useTapButtonSize(btnSize) {
+export function useTapButtonSize(btnSize, maxTablet = Infinity) {
   const [isTablet, setIsTablet] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
   );
@@ -12,5 +12,5 @@ export function useTapButtonSize(btnSize) {
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
-  return isTablet ? Math.round(btnSize * 1.5) : btnSize;
+  return isTablet ? Math.min(maxTablet, Math.round(btnSize * 1.5)) : btnSize;
 }

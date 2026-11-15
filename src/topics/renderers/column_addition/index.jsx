@@ -21,7 +21,13 @@ const PANEL_SCALE = 1.5;
 // room, independent of how many digits/result columns the current problem
 // happens to have — the keyboard is always 5 keys wide regardless of
 // whether the task is 2-digit or 3-digit, so its size shouldn't be either.
-const KEYBOARD_COLS = 6;
+// Trainer keys (2026-11-15): as wide as the screen allows for five keys with
+// 10px gaps in a 14px-padded plaque — a child's finger needs more than the
+// old 52px with 6px gaps; the tablet size is capped so the plaque stays
+// compact.
+const TAP_KEY_MIN = 44;
+const TAP_KEY_MAX = 64;
+const TAP_KEY_MAX_TABLET = 88;
 const COLUMN_HINTS_SEEN_KEY = "mirocard:column-arithmetic-hints:v1";
 
 function getDigitAt(n, position) {
@@ -62,28 +68,31 @@ function Expression({ task, result, cellSize = 44 }) {
 // ── Compact tap keyboard ──────────────────────────────────────────────────────
 // Rows: [1-5] / [6-0] / phase1: [sign+][sign−][line]  phase2: [helper toggle]
 
-function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidden }) {
-  const bs = useTapButtonSize(btnSize);
+// Two plaques: the digits, and under them «+ − черта» for building the
+// column. In the solve phase the second plaque goes invisible but keeps its
+// place, so the digit keys never move between phases. «+» and «−» look
+// alike and keep their order — the child picks the sign, no colour or
+// position gives it away.
+function TapKeyboard({ phase, onDigit, onSign, onLine, btnSize, hidden }) {
+  const bs = useTapButtonSize(btnSize, TAP_KEY_MAX_TABLET);
   const bsStr = bs + "px";
-  const signFS = Math.round(bs * 0.85) + "px";
-  const signStyle = { width: bsStr, height: bsStr, fontSize: signFS };
-  const correctSign = operation === "add" ? "+" : "−";
-  const wrongSign = operation === "add" ? "−" : "+";
+  const signStyle = { width: bsStr, height: bsStr, fontSize: Math.round(bs * 0.85) + "px" };
 
   return (
-    <div className="col-tap-kb" style={hidden ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
-      <DigitKeypad onDigit={onDigit} bs={bs} />
+    <div className="col-tap-kb col-tap-kb--trainer" style={hidden ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
+      <div className="col-tap-pad">
+        <DigitKeypad onDigit={onDigit} bs={bs} />
+      </div>
       <div
-        className="col-tap-row col-tap-row--form"
+        className="col-tap-pad col-tap-row col-tap-row--form"
         style={phase !== "form" ? { visibility: "hidden", pointerEvents: "none" } : undefined}
       >
-        <button className="col-tap-btn col-tap-btn--sign" style={signStyle} onClick={() => onSign(correctSign)}>
-          <span className="col-slant">{correctSign}</span>
-        </button>
-        <button className="col-tap-btn col-tap-btn--sign-dim" style={signStyle} onClick={() => onSign(wrongSign)}>
-          <span className="col-slant">{wrongSign}</span>
-        </button>
-        <button className="col-tap-btn col-tap-btn--line" style={{ height: bsStr, flex: 1 }} onClick={onLine}>
+        {["+", "−"].map((sign) => (
+          <button key={sign} type="button" className="col-tap-btn col-tap-btn--sign" style={signStyle} onClick={() => onSign(sign)}>
+            <span className="col-slant">{sign}</span>
+          </button>
+        ))}
+        <button type="button" className="col-tap-btn col-tap-btn--line" style={{ height: bsStr, flex: 1 }} onClick={onLine}>
           <div className="col-line-tile-bar" />
         </button>
       </div>
@@ -584,7 +593,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
       const w = rootRef.current.clientWidth;
       const avail = w - 32;
 
-      const cs = Math.min(52, Math.max(28, Math.floor(avail / KEYBOARD_COLS)));
+      const cs = Math.min(TAP_KEY_MAX, Math.max(TAP_KEY_MIN, Math.floor((w - 16 - 2 * 14 - 4 * 10) / 5)));
       setCellSize(cs);
 
       const digits = task.digits;
@@ -762,7 +771,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
   }, [activeStep, formActiveKey, phase, showingCompare, showingCrossout]);
 
   return (
-    <div className="col-screen" ref={rootRef}>
+    <div className="col-screen col-screen--trainer" ref={rootRef}>
       <div className="col-notebook" ref={notebookRef} style={{ gap: `${2 * gridCellSize}px` }}>
         <Expression task={task} result={solved ? task.result : null} cellSize={gridCellSize} />
         <ColumnGrid
@@ -802,7 +811,6 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
       <div className="col-controls-area">
         <TapKeyboard
           phase={phase}
-          operation={task.operation}
           onDigit={(d) => phase === "form" ? handleFormTap(d, "digit") : handleSolveTap(d)}
           onSign={(s) => handleFormTap(s, "sign")}
           onLine={() => handleFormTap(null, "line")}

@@ -59,8 +59,8 @@ describe("ColumnArithmeticTask — compareMode", () => {
     act(() => btn.click());
   }
 
-  function tapSign() {
-    const btn = container.querySelector(".col-tap-btn--sign");
+  function tapSign(sign) {
+    const btn = Array.from(container.querySelectorAll(".col-tap-btn--sign")).find((b) => b.textContent.trim() === sign);
     expect(btn, "sign button not found").toBeTruthy();
     act(() => btn.click());
   }
@@ -80,7 +80,7 @@ describe("ColumnArithmeticTask — compareMode", () => {
 
   async function fillForm(task) {
     for (const d of String(task.top).split("")) tapDigit(d);
-    tapSign();
+    tapSign(task.operation === "add" ? "+" : "−");
     for (const d of String(task.bottom).split("")) tapDigit(d);
     tapLine();
     // form -> solve phase transition is on a 500ms setTimeout (index.jsx).
