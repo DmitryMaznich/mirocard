@@ -51,7 +51,8 @@ function simpleSteps(face) {
     { name: 'Глаза', icon: [face.cx - face.rx * .78, eyeY - 24, face.rx * 1.56, 48], places: eyes.map(e => [e.x, e.y, 15 * u, 12 * u]), variants: [
       { label: 'Кружки', d: both(e => circle(e.x, e.y, 11 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
       { label: 'Овалы', d: both(e => ellipse(e.x, e.y, 14 * u, 9 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
-      { label: 'Узкие', d: both(e => lens(e, 15 * u, 5 * u)), fill: both(e => circle(e.x, e.y, 3.4 * u)) },
+      // A narrow triangle: a straight lid on top, the point below (owner, 2026-11-15).
+      { label: 'Узкие', d: both(e => `M${f(e.x - 17 * u)} ${f(e.y - 6 * u)} L${f(e.x + 17 * u)} ${f(e.y - 6 * u)} L${f(e.x)} ${f(e.y + 9 * u)}Z`), fill: both(e => circle(e.x, e.y - .5 * u, 3.2 * u)) },
       { label: 'Миндаль', d: both(e => lens(e, 15 * u, 10 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
       { label: 'Полукруги', d: both(e => `M${f(e.x - 12 * u)} ${f(e.y + 4 * u)} A${f(12 * u)} ${f(12 * u)} 0 0 1 ${f(e.x + 12 * u)} ${f(e.y + 4 * u)}Z`), fill: both(e => circle(e.x, e.y - 1 * u, 4.5 * u)) },
       { label: 'Большие', d: both(e => circle(e.x, e.y, 13 * u)), fill: both(e => circle(e.x, e.y, 6.5 * u)) },
