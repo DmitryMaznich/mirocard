@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Столбик: одна запись для тренажёра и «Контрольных»</title>
+<style>
+  @font-face { font-family: Primo; src: url("../../../public/fonts/primo.ttf"); }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Nunito, system-ui, -apple-system, "Segoe UI", sans-serif; background: #f6f4ef; color: #1f2d2b; }
+  main { max-width: 1180px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 21px; margin: 6px 0 4px; }
+  h2 { font-size: 17px; margin: 22px 0 8px; }
+  .sub { color: #64748b; font-size: 14px; margin: 0 0 12px; line-height: 1.45; }
+  .row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 900px) { .row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .card { background: #fff; border-radius: 14px; padding: 10px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .card h3 { font-size: 13px; margin: 0 0 6px; color: #475569; }
+  .card.pick { outline: 3px solid #1c7a6e; }
+  .cap { font-size: 12.5px; color: #475569; margin-top: 6px; line-height: 1.4; }
+  .paper { --c: 40px; display: inline-grid; grid-auto-rows: var(--c); padding: 6px; border-radius: 10px;
+    background-color: #f0f6ff;
+    background-image: linear-gradient(rgba(140,190,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(140,190,255,.5) 1px, transparent 1px);
+    background-size: var(--c) var(--c); }
+  .c { position: relative; width: var(--c); height: var(--c); display: flex; align-items: center; justify-content: center;
+    font-family: Primo, "Comic Sans MS", cursive; font-size: 30px; line-height: 1; }
+  .sign { color: #2563eb; }
+  .ans { color: #1d4ed8; }
+  .rule { height: 3px; background: #1f2d2b; align-self: start; border-radius: 2px; }
+  /* small marks */
+  .m { font-size: 19px; color: #1d4ed8; align-items: flex-end; padding-bottom: 3px; }
+  .m .one { font-size: 15px; margin-right: 1px; }
+  .slot { width: 60%; height: 60%; border: 1.5px dashed #9fb3c8; border-radius: 5px; background: #fff3c4; }
+  /* «now» trainer look */
+  .tri { position: absolute; right: 2px; bottom: 2px; width: 70%; height: 70%; background: #fef3c7; clip-path: polygon(100% 100%, 100% 25%, 25% 100%);
+    display: flex; align-items: flex-end; justify-content: flex-end; padding: 0 8% 6% 0; font-size: 15px; color: #92400e; font-weight: 700; }
+  .corner { position: absolute; left: 0; top: 0; width: 55%; height: 55%; background: #fef3c7; clip-path: polygon(0 0, 100% 0, 0 100%);
+    font-size: 13px; color: #92400e; padding: 1px 0 0 3px; font-weight: 700; }
+  .amber { background: #fef3c7; border-radius: 5px; padding: 0 3px; color: #92400e; font-weight: 700; }
+  .xr::after, .xb::after { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; height: 3px; border-radius: 2px; transform: rotate(-38deg); }
+  .xr::after { background: #ef4444; }
+  .xb::after { background: #1d4ed8; height: 2.5px; }
+  .ansbox { border: 1.5px solid #7f8e8b; border-radius: 6px; }
+  .notes { background: #fff; border-radius: 14px; padding: 12px 18px; margin-top: 22px; font-size: 14px; line-height: 1.55; }
+  .notes li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Столбик: одна запись для тренажёра и «Контрольных по математике»</h1>
+<p class="sub">Макет, 15.11.2026. В каждой строке — один пример в четырёх записях: как сейчас в тренажёре, как сейчас в «Контрольных», и два варианта общей записи. Синим — то, что пишет ребёнок.</p>
+
+<div id="ex"></div>
+
+<div class="notes">
+  <b>Общая запись (обе предлагаемые колонки):</b>
+  <ul>
+    <li>Всё, что пишет ребёнок, — маленькие синие цифры над столбиком, без жёлтых треугольников, уголков и подложек. Как ручкой в тетради.</li>
+    <li>Перенос: «1» над следующим разрядом. Заём: зачеркнуть цифру синей ручкой, сверху написать на 1 меньше (3 → 2, 0 → 9).</li>
+    <li>Место, куда сейчас писать, — пунктирный квадратик с жёлтым фоном (так в «Контрольных» уже сейчас); написанное остаётся просто цифрой.</li>
+    <li><b>Разница вариантов — одна:</b> маленькая «1» перед числом разряда, который занял (12 − 7). В «С 1» она пишется (в тренажёре так сейчас), в «Без 1» — держится в уме, как по Моро (в «Контрольных» так сейчас: там её некуда записать).</li>
+  </ul>
+  Я бы взял <b>«С 1»</b>: для твоего сына видно, из чего он вычитает, а в «Контрольных» добавлю для неё место (тап по цифре разряда — маленькая клетка перед ней). Но «Без 1» — ровно школьная запись и проще; если дома и в школе пишут так — бери его.
+</div>
+</main>
+<script>
+// a column picture: rows of cells. spec: { w, marks:{pos:html}, top, bottom, ans, op, cross:[pos], extras:{pos:html (inside top digit cell)}, style }
+function cellEl(html, cls = "") { const d = document.createElement("div"); d.className = "c " + cls; d.innerHTML = html ?? ""; return d; }
+function paper(s) {
+  const p = document.createElement("div"); p.className = "paper";
+  const W = s.w + 1;
+  p.style.gridTemplateColumns = `repeat(${W}, var(--c))`;
+  p.style.gridTemplateRows = `var(--c) var(--c) var(--c) 4px var(--c)`;
+  const put = (el, r, c) => { el.style.gridRow = r; el.style.gridColumn = c; p.appendChild(el); };
+  const col = (pos) => W - pos;
+  for (let pos = 0; pos < s.w; pos++) {
+    const mk = s.marks?.[pos];
+    if (mk != null) put(cellEl(mk, s.markCls?.[pos] ?? "m"), 1, col(pos));
+    const td = String(s.top).split("").reverse()[pos];
+    if (td != null) put(cellEl(td + (s.extras?.[pos] ?? ""), s.cross?.includes(pos) ? s.xcls : ""), 2, col(pos));
+    const bd = String(s.bottom).split("").reverse()[pos];
+    if (bd != null) put(cellEl(bd), 3, col(pos));
+    const ad = String(s.ans ?? "").split("").reverse()[pos];
+    if (ad != null) put(cellEl(ad, "ans" + (s.ansbox ? " ansbox" : "")), 5, col(pos));
+  }
+  put(cellEl(s.op, "sign"), "2 / 4", 1);
+  const r = document.createElement("div"); r.className = "rule"; r.style.gridRow = 4; r.style.gridColumn = `1 / ${W + 1}`; p.appendChild(r);
+  return p;
+}
+function card(title, spec, cap, pick) {
+  const c = document.createElement("div"); c.className = "card" + (pick ? " pick" : "");
+  c.innerHTML = `<h3>${title}</h3>`; c.appendChild(paper(spec));
+  const p = document.createElement("div"); p.className = "cap"; p.innerHTML = cap; c.appendChild(p);
+  return c;
+}
+const slot = '<span class="slot"></span>';
+const EX = [
+  ["47 + 38 — перенос", [
+    ["Тренажёр сейчас", { w: 2, op: "+", top: 47, bottom: 38, ans: 85, marks: { 1: '<span class="tri">1</span>' }, markCls: { 1: "" } }, "Перенос — в жёлтом треугольнике."],
+    ["«Контрольные» сейчас", { w: 2, op: "+", top: 47, bottom: 38, ans: 85, ansbox: true, marks: { 1: "1" } }, "Маленькая синяя «1» над десятками."],
+    ["Общая: с «1»", { w: 2, op: "+", top: 47, bottom: 38, ans: 85, marks: { 1: "1" } }, "Сложение одинаково в обоих вариантах.", true],
+    ["Общая: без «1»", { w: 2, op: "+", top: 47, bottom: 38, ans: 85, marks: { 1: "1" } }, "—"],
+  ]],
+  ["478 + 365 — в процессе: пишем перенос в сотни", [
+    ["Тренажёр сейчас", { w: 3, op: "+", top: 478, bottom: 365, ans: "43", marks: { 1: '<span class="tri">1</span>', 2: '<span class="tri" style="background:#fde68a"></span>' }, markCls: { 1: "", 2: "" } }, "Пустой треугольник мигает."],
+    ["«Контрольные» сейчас", { w: 3, op: "+", top: 478, bottom: 365, ans: "43", ansbox: true, marks: { 0: slot, 1: "1", 2: slot } }, "Пунктирные места над всеми разрядами."],
+    ["Общая: с «1»", { w: 3, op: "+", top: 478, bottom: 365, ans: "43", marks: { 1: "1", 2: slot } }, "Место появляется, когда до него дошли — как сейчас в тренажёре, но в виде квадратика.", true],
+    ["Общая: без «1»", { w: 3, op: "+", top: 478, bottom: 365, ans: "43", marks: { 1: "1", 2: slot } }, "—"],
+  ]],
+  ["532 − 157 — двойной заём, готово", [
+    ["Тренажёр сейчас", { w: 3, op: "−", top: 532, bottom: 157, ans: 375, xcls: "xr", cross: [1, 2], marks: { 1: '<span class="amber"><span style="font-size:13px">1</span>2</span>', 2: '<span class="amber">4</span>' }, extras: { 0: '<span class="corner">1</span>' } }, "Жёлтые подложки, красное зачёркивание, уголок у единиц."],
+    ["«Контрольные» сейчас", { w: 3, op: "−", top: 532, bottom: 157, ans: 375, ansbox: true, xcls: "xb", cross: [1, 2], marks: { 1: "2", 2: "4" } }, "Зачеркнуть синим, сверху новая цифра. «1» перед 2 негде записать."],
+    ["Общая: с «1»", { w: 3, op: "−", top: 532, bottom: 157, ans: 375, xcls: "xb", cross: [1, 2], marks: { 1: '<span class="one">1</span>2', 2: "4" }, extras: { 0: '<span style="position:absolute;left:2px;top:1px;font-size:15px;color:#1d4ed8">1</span>' } }, "Видно 12 и 12: из чего вычитаем.", true],
+    ["Общая: без «1»", { w: 3, op: "−", top: 532, bottom: 157, ans: 375, xcls: "xb", cross: [1, 2], marks: { 1: "2", 2: "4" } }, "12 − 7 и 12 − 5 — в уме, как по Моро."],
+  ]],
+  ["302 − 195 — заём через ноль, готово", [
+    ["Тренажёр сейчас", { w: 3, op: "−", top: 302, bottom: 195, ans: 107, xcls: "xr", cross: [1, 2], marks: { 1: '<span class="amber">9</span>', 2: '<span class="amber">2</span>' }, extras: { 0: '<span class="corner">1</span>' } }, ""],
+    ["«Контрольные» сейчас", { w: 3, op: "−", top: 302, bottom: 195, ans: 107, ansbox: true, xcls: "xb", cross: [1, 2], marks: { 1: "9", 2: "2" } }, ""],
+    ["Общая: с «1»", { w: 3, op: "−", top: 302, bottom: 195, ans: 107, xcls: "xb", cross: [1, 2], marks: { 1: "9", 2: "2" }, extras: { 0: '<span style="position:absolute;left:2px;top:1px;font-size:15px;color:#1d4ed8">1</span>' } }, "", true],
+    ["Общая: без «1»", { w: 3, op: "−", top: 302, bottom: 195, ans: 107, xcls: "xb", cross: [1, 2], marks: { 1: "9", 2: "2" } }, ""],
+  ]],
+];
+const root = document.getElementById("ex");
+for (const [title, cards] of EX) {
+  const h = document.createElement("h2"); h.textContent = title; root.appendChild(h);
+  const row = document.createElement("div"); row.className = "row";
+  for (const [t, spec, cap, pick] of cards) row.appendChild(card(t, spec, cap, pick));
+  root.appendChild(row);
+}
+</script>
+</body>
+</html>
