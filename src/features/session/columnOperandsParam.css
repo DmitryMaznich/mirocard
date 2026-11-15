@@ -96,37 +96,65 @@
   line-height: 1.35;
 }
 
-.cop-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-.cop-clear {
-  min-height: 38px;
-  padding: 6px 12px;
-  border: 1.5px solid #f3c98b;
-  border-radius: 10px;
-  background: #fff7e6;
-  color: #b45309;
-  font-family: inherit;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 .cop-again {
-  margin-left: auto;
-  min-height: 38px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 0;
   border-radius: 10px;
   background: #eaf1f0;
-  padding: 6px 12px;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 1.25rem;
   font-weight: 700;
+  line-height: 1;
   color: #1c7a6e;
   cursor: pointer;
 }
 
-.cop-hint {
-  font-size: 0.75rem;
-  color: #7a9e9a;
-  line-height: 1.4;
+/* cells on the left, what a tap does on the right */
+.cop-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+}
+.cop-column { flex: none; }
+
+.cop-legend {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #3a5c58;
+  line-height: 1.25;
+}
+.cop-legend li { display: flex; align-items: center; gap: 8px; }
+.cop-legend__note { font-size: 0.82rem; font-weight: 600; color: #7a9e9a; }
+
+.cop-mini {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px dashed #c3d0ce;
+  background: #fafcfc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Primo', cursive;
+  font-size: 15px;
+  color: #b45309;
+}
+.cop-mini--on { border: 1.5px solid #1c7a6e; background: #d7efe9; }
+.cop-mini--on::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #1c7a6e; opacity: 0.55; }
+.cop-mini--zero { border: 1.5px solid #d97706; background: #fff4dc; }
+
+@media (max-width: 380px) {
+  .cop-column { --cop-cell: 42px; grid-template-columns: 24px repeat(3, var(--cop-cell)); }
+  .cop-body { gap: 10px; }
+  .cop-legend { font-size: 0.82rem; gap: 6px; }
 }

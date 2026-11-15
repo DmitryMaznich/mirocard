@@ -69,38 +69,36 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key, op, carryMode, seed],
   );
-  const hasZeros = o.topZeros.length + o.bottomZeros.length > 0;
   const tap = (row, place) => onChange(tapCell(o, row, place, limitOp));
 
   return (
     <div className="param-row param-row--block cop" aria-label={label}>
       {labelNode}
+      <div className="cop-body">
       <div className="cop-column">
         <CellRow row="top" label="Верхнее число" digits={o.top} zeros={o.topZeros} gridRow={1} onTap={tap} />
         <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
         <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} max={limitOp === "add" ? CELLS : o.top} gridRow={2} onTap={tap} />
         <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
       </div>
+      {/* what a tap does, next to the cells — a small cell of each state */}
+      <ul className="cop-legend">
+        <li><span className="cop-mini" aria-hidden="true" /> нажми — цифра</li>
+        <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> ещё раз — ноль</li>
+        <li><span className="cop-mini cop-mini--zero" aria-hidden="true">0</span> ещё раз — снова цифра</li>
+        <li className="cop-legend__note">у первой цифры «ещё раз» — убрать её</li>
+      </ul>
+      </div>
       <div className="cop-example">
         <span>Например:</span>
         <span className="cop-example__numbers">{example ? `${example.top} ${example.operation === "subtract" ? "−" : "+"} ${example.bottom}` : "—"}</span>
-        <button type="button" className="cop-again" onClick={() => setSeed((s) => s + 1)}>↻ Другой</button>
+        <button type="button" className="cop-again" aria-label="Другой пример" onClick={() => setSeed((s) => s + 1)}>↻</button>
       </div>
       {example?.relaxed && (
         <div className="cop-note">
           {op === "subtract" ? "С займом" : "С переносом"} такие числа не бывают без нового разряда — примеры будут без {op === "subtract" ? "займа" : "переноса"}.
         </div>
       )}
-      {hasZeros && (
-        <div className="cop-actions">
-          {/* was a «Любое (без нулей)» checkbox — it couldn't be unchecked (what
-              would «not any» be?) and read as broken; now a plain action */}
-          <button type="button" className="cop-clear" onClick={() => onChange(normalizeOperands({ ...o, topZeros: [], bottomZeros: [] }))}>
-            Убрать нули
-          </button>
-        </div>
-      )}
-      <div className="cop-hint">Пустая клетка — число до неё. Ещё раз — 0 в ней, а где 0 стоять не может (первая цифра), клетка выключается.</div>
     </div>
   );
 }
