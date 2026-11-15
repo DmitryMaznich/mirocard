@@ -67,7 +67,16 @@ function printSvg(title, svg) {
   setTimeout(() => { try { frame.contentWindow.focus(); frame.contentWindow.print(); } finally { setTimeout(() => frame.remove(), 1000); } }, 100);
 }
 
-export default function Portrait({ student, sessionParams, interactionDisabled = false, onClose, onAdvance, AdultButton, AdultDialog }) {
+// Adult menu: an ordinary tap, as everywhere else in the app (no long press). Leaving the lesson is the
+// shared header's ✕, which asks for confirmation, so the menu holds only printing and step controls.
+function MenuButton({ onOpen }) {
+  return <button type="button" className="drawing-adult portrait-menu" aria-label="Для взрослого" onClick={onOpen}>
+    <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M13 3h6l1 4 4 2 4-1 3 5-3 3v4l3 3-3 5-4-1-4 2-1 4h-6l-1-4-4-2-4 1-3-5 3-3v-4l-3-3 3-5 4 1 4-2Z" /><circle cx="16" cy="18" r="5" /></svg>
+  </button>;
+}
+
+export default function Portrait({ student, sessionParams, interactionDisabled = false, onClose, onAdvance, AdultDialog }) {
   const key = portraitKey(student?.id);
   const styleId = normalizeStyle(sessionParams?.style);
   const [state, setState] = useState(() => readPortrait(key, styleId));
@@ -108,14 +117,13 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
       {state.phase === 'done' && <button type="button" onClick={() => print(false)}>Распечатать портрет</button>}
       {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); update(back); setMenu(null); }}>Вернуться на шаг</button>}
       {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); setState(freshPortrait(state.style)); setMenu(null); }}>Начать новый портрет</button>}
-      <button type="button" onClick={finish}>Закончить занятие</button>
     </div>
-    <p className="drawing-adult-note">Чтобы открыть это меню, удерживайте шестерёнку. Стиль и кубик ({screenDie ? 'на экране' : 'настоящий'}) меняются в настройках режима.</p>
+    <p className="drawing-adult-note">Стиль и кубик ({screenDie ? 'на экране' : 'настоящий'}) меняются в настройках режима.</p>
   </AdultDialog>;
   const shell = (phase, label, children) => <section className="drawing-lesson drawing-shell portrait" data-phase={phase} data-style={state.style} aria-label={label}>{children}{adult}</section>;
 
   if (state.phase === 'shape') return shell('shape', 'Портрет по кубику: выбери лицо', <>
-    <header className="drawing-top portrait-top"><h2>Какое лицо?</h2><AdultButton onOpen={() => setMenu('settings')} /></header>
+    <header className="drawing-top portrait-top"><h2>Какое лицо?</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
     <div className="portrait-shapes">{style.faces.map((option, i) => <button type="button" key={option.name} className="portrait-shape" aria-label={option.name} disabled={interactionDisabled}
       onClick={() => update(s => chooseShape(s, i))}>
       <svg viewBox={style.viewBox} fill="none" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" aria-hidden="true"><path d={option.path} /></svg>
@@ -123,7 +131,7 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
   </>);
 
   if (state.phase === 'done') return shell('done', 'Портрет готов', <>
-    <header className="drawing-top portrait-top"><h2>Портрет готов</h2><AdultButton onOpen={() => setMenu('settings')} /></header>
+    <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
     <div className="portrait-done" ref={faceRef}><Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} hint={false} className="portrait-face portrait-face--done" /></div>
     <div className="portrait-done-actions">
       <button type="button" className="portrait-round" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
@@ -138,7 +146,7 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
     <header className="drawing-top portrait-top">
       <h2>{step.name}</h2>
       <ol className="portrait-steps" aria-label={`Шаг ${part + 1} из ${total}`}>{steps.map((s, i) => <li key={s.name} className={i < part ? 'is-done' : i === part ? 'is-current' : ''} />)}</ol>
-      <AdultButton onOpen={() => setMenu('settings')} />
+      <MenuButton onOpen={() => setMenu('settings')} />
     </header>
     <div className="portrait-work" data-part={part} data-chosen={state.value ?? undefined}>
       <div className="portrait-options" role="group" aria-label={`Варианты: ${step.name.toLowerCase()}`}>

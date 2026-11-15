@@ -120,6 +120,14 @@ describe('portrait screen', () => {
     expect(host.querySelectorAll('.portrait-option[aria-pressed="true"]')).toHaveLength(1);
     expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.portrait-next')).not.toBeNull();
   });
+  it('the adult menu opens with an ordinary tap and has no own exit (the shared header ✕ does that)', async () => {
+    await render();
+    await click(label('Для взрослого'));
+    const dialog = host.querySelector('dialog');
+    expect(dialog.open).toBe(true);
+    expect(dialog.textContent).toContain('Распечатать контур лица');
+    expect(dialog.textContent).not.toContain('Закончить занятие'); expect(dialog.textContent).not.toMatch(/удержива/i);
+  });
   it('continues after a reload with the chosen variant', async () => {
     localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'part', shape: 2, results: [1, 2], value: 4 }));
     await render();

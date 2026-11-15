@@ -67,3 +67,7 @@
 .portrait-show svg { width:26px; height:26px; margin-left:3px; fill:currentColor; }
 .portrait-tip { color:#15803d; }
 .portrait-ghost { opacity:.22; }
+/* The portrait keeps the app's shared session header (✕ with confirmation), unlike the other drawing
+   lessons that hide it; so no safe-area padding at the top — the header already has it. */
+.session-screen:has(.drawing-lesson.portrait) > .session-header-wrap { display:block; margin-bottom:8px; }
+.drawing-shell.portrait { padding-top:4px; }

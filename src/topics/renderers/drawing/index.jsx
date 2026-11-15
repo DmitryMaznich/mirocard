@@ -72,7 +72,7 @@ function readStored(key, fallback) { try { return JSON.parse(localStorage.getIte
 function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local-mode previews can have no storage. */ } }
 
 export default function DrawingRenderer(props) {
-  if (props.task?.type === 'drawing_portrait') return <Portrait {...props} AdultButton={AdultButton} AdultDialog={AdultDialog} />;
+  if (props.task?.type === 'drawing_portrait') return <Portrait {...props} AdultDialog={AdultDialog} />;
   return props.task?.type === 'drawing_coloring' ? <Coloring {...props} /> : props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
 }
 
