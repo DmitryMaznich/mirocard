@@ -319,22 +319,38 @@ describe("«Числа в примере» — each number chosen on its own", (
   const gen = (operands, operation = "mixed", carryMode = "mixed", n = 40) =>
     generateTasks("column_arithmetic", CARDS, n, { operation, carryMode, operands });
 
-  it("widths and zeros hold for every combination; no other zeros; the answer keeps the top's width", () => {
+  it("widths and zeros hold for every combination; the answer keeps the longer number's width", () => {
     const subsets = (n) => [[], [0], [1], [0, 1]].filter((z) => z.every((p) => p < n - 1));
-    for (const top of [2, 3]) for (const bottom of [1, 2, 3].filter((b) => b <= top)) {
+    for (const top of [1, 2, 3]) for (const bottom of [1, 2, 3]) {
       for (const topZeros of subsets(top)) for (const bottomZeros of subsets(bottom)) {
-        const tasks = gen({ top, topZeros, bottom, bottomZeros }, "mixed", "mixed", 12);
-        expect(tasks.length, JSON.stringify({ top, topZeros, bottom, bottomZeros })).toBeGreaterThan(0);
-        for (const t of tasks) {
-          expect(String(t.top)).toHaveLength(top);
-          expect(String(t.bottom)).toHaveLength(bottom);
-          expect(String(t.result)).toHaveLength(top);
-          const zerosOf = (n) => String(n).split("").reverse().flatMap((d, p) => (d === "0" ? [p] : []));
-          expect(zerosOf(t.top)).toEqual(topZeros);
-          expect(zerosOf(t.bottom)).toEqual(bottomZeros);
+        for (const operation of ["add", "subtract"]) {
+          const spec = { top, topZeros, bottom, bottomZeros };
+          const tasks = gen(spec, operation, "mixed", 8);
+          // 1 − 1 digits: nothing to subtract that keeps a column; 1 + 1 only below 10
+          if (top === 1 && bottom === 1 && operation === "subtract") continue;
+          expect(tasks.length, JSON.stringify({ ...spec, operation })).toBeGreaterThan(0);
+          const swapped = operation === "subtract" && bottom > top;
+          const [wTop, zTop, wBottom, zBottom] = swapped ? [bottom, bottomZeros, top, topZeros] : [top, topZeros, bottom, bottomZeros];
+          for (const t of tasks) {
+            expect(String(t.top)).toHaveLength(wTop);
+            expect(String(t.bottom)).toHaveLength(wBottom);
+            expect(String(t.result)).toHaveLength(Math.max(wTop, wBottom));
+            const zerosOf = (n) => String(n).split("").reverse().flatMap((d, p) => (d === "0" ? [p] : []));
+            expect(zerosOf(t.top)).toEqual(zTop);
+            expect(zerosOf(t.bottom)).toEqual(zBottom);
+            const r = Object.fromEntries(t.steps.filter((st) => st.cellType === "result").map((st) => [st.position, st.digit]));
+            expect((r.hundreds ?? 0) * 100 + (r.tens ?? 0) * 10 + (r.units ?? 0)).toBe(t.result);
+          }
         }
       }
     }
+  });
+
+  it("25 + 326: a shorter top number — its empty cell is marked, the grid as wide as the longer", () => {
+    const t = columnTaskOfExample({ operation: "add", top: 25, bottom: 326 });
+    expect(t.digits).toBe(3);
+    expect(t.columns.map((c) => c.hasTopDigit)).toEqual([true, true, false]);
+    expect(t.steps.filter((st) => st.cellType === "result").map((st) => st.digit)).toEqual([1, 5, 3]);
   });
 
   it("carry is honoured where the numbers allow it", () => {
@@ -351,8 +367,9 @@ describe("«Числа в примере» — each number chosen on its own", (
     expect(gen({ top: 2, topZeros: [0], bottom: 2, bottomZeros: [0] }, "add", "carry")).not.toHaveLength(0);
   });
 
-  it("bottom never longer than top; the leading digit never a zero", () => {
-    expect(normalizeOperands({ top: 2, bottom: 3 })).toMatchObject({ top: 2, bottom: 2 });
+  it("either number may be the longer; the leading digit never a zero", () => {
+    expect(normalizeOperands({ top: 2, bottom: 3 })).toMatchObject({ top: 2, bottom: 3 });
+    expect(normalizeOperands({ top: 1, bottom: 1 })).toMatchObject({ top: 1, bottom: 1 });
     expect(normalizeOperands({ top: 2, topZeros: [0, 1], bottom: 1, bottomZeros: [0] })).toEqual({ top: 2, topZeros: [0], bottom: 1, bottomZeros: [] });
   });
 

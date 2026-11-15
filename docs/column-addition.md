@@ -15,21 +15,22 @@ no longer needed for the column.
   «Числа в примере» (since 2026-11-15, replaced the «Разрядность» list of
   abbreviations; owner's design): the setting is drawn as the column — two
   rows of 3 tappable cells, the sign, the line, «Например: 305 − 7» under it
-  (`src/features/session/ColumnOperandsParam.jsx`, mockup
-  `docs/mockups/column-addition/2026-11-15-operands-cells-b.html`). An empty
-  cell grows the number to it, a marked cell toggles a 0 there, the leftmost
-  marked cell takes no 0 (it shakes and says why), its «×» removes it;
-  «Убрать нули» (shown only while there are zeros) clears them. No row
-  captions, no notebook grid (owner: the example says enough). Param
-  `operands` = `{top, topZeros, bottom, bottomZeros}` (places from the units),
-  type `column_operands`. An unmarked cell never draws a 0 — zeros come only
-  from marked cells. `operandsExample` (`engine.js`) draws the numbers; the
-  answer is as wide as the top number (no new place in the trainer); a carry
-  the numbers can't have (40 + 50 «С переносом») — examples come without it
-  and the setting says so. Old saved `digits` (and the same day's
-  `topKind`/`bottomKind`) map onto it (`resolveOperands`, `normalizeOperands`;
-  ParamsScreen does it when the settings open). Three cells: the trainer
-  stays within three digits — four would mean thousands (owner agreed).
+  (`src/features/session/ColumnOperandsParam.jsx`). Every cell of both rows
+  works the same (owner: one gesture, one meaning — no «×», no hidden rules):
+  an empty cell — the number grows to it; a marked cell — 0 there if a 0 can
+  stand there, otherwise (the leading digit) the cell goes off; a 0 again —
+  any digit. «Убрать нули» shows only while there are zeros. Either number
+  may be the longer (25 + 326 — the trainer draws a shorter top number with
+  an empty cell, `hasTopDigit`); subtraction puts the longer number on top
+  and the setting says the numbers change places. Param `operands` =
+  `{top, topZeros, bottom, bottomZeros}` (1…3 digits, zero places from the
+  units), type `column_operands`. An unmarked cell never draws a 0.
+  `operandsExample` (`engine.js`) draws the numbers; the answer is as wide as
+  the longer number (no new place in the trainer); a carry the numbers can't
+  have (40 + 50 «С переносом») — examples come without it and the setting
+  says so. Old saved `digits` map onto it (`resolveOperands`; ParamsScreen
+  does it when the settings open). Three cells: the trainer stays within
+  three digits — four would mean thousands (owner agreed).
 - «Контрольная работа» (`column_copy`, rebuilt 2026-10-23): a sheet of examples
   in a line; the child sets them up in the notebook, types the answer, «✓».
   - «Какие примеры» — switches (`COPY_KINDS`): 2 + 2, 2 + 1, 3 + 3, 3 + 2,

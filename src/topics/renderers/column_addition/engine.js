@@ -16,7 +16,9 @@ function getDigits(n, count) {
 // tells the renderer that position has no real digit to show/fill for the
 // bottom number, so it can leave that cell blank instead of drawing a "0"
 // that was never written on paper.
-function buildAddColumns(top, bottom, digits, bottomDigits = digits) {
+// topDigits < digits — a shorter TOP number (25 + 326, «Числа в примере»
+// 2026-11-15): the same idea one row up, hasTopDigit marks the empty cells.
+function buildAddColumns(top, bottom, digits, bottomDigits = digits, topDigits = digits) {
   const td = getDigits(top, digits);
   const bd = getDigits(bottom, digits);
   const cols = [];
@@ -25,7 +27,7 @@ function buildAddColumns(top, bottom, digits, bottomDigits = digits) {
     const sum = td[i] + bd[i] + carry;
     const writeDigit = sum % 10;
     const carryOut = Math.floor(sum / 10);
-    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, carryIn: carry, carryOut, writeDigit });
+    cols.push({ position: POSITIONS[i], topDigit: td[i], hasTopDigit: i < topDigits, bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, carryIn: carry, carryOut, writeDigit });
     carry = carryOut;
   }
   return cols;
@@ -308,8 +310,9 @@ export function columnTaskOfExample(ex) {
 
 function trainerTaskFrom(ex, card) {
   const op = ex.operation;
-  const digits = width(ex.top), bottomDigits = width(ex.bottom);
-  const columns = op === "add" ? buildAddColumns(ex.top, ex.bottom, digits, bottomDigits) : buildSubColumns(ex.top, ex.bottom, digits, bottomDigits);
+  const topDigits = width(ex.top), bottomDigits = width(ex.bottom);
+  const digits = Math.max(topDigits, bottomDigits);
+  const columns = op === "add" ? buildAddColumns(ex.top, ex.bottom, digits, bottomDigits, topDigits) : buildSubColumns(ex.top, ex.bottom, digits, bottomDigits);
   return {
     type: "column_arithmetic",
     cardId: card.id,
@@ -325,15 +328,16 @@ function trainerTaskFrom(ex, card) {
 }
 
 // ── «Числа в примере» (2026-11-15): each number of the trainer drawn as cells
-// the adult taps (mockup docs/mockups/column-addition/2026-11-15-operands-cells-b.html):
-// how many cells — how many digits; a cell marked 0 is always 0 there.
-//   { top: 2 | 3, topZeros: [places], bottom: 1…top, bottomZeros: [places] }
+// the adult taps (owner's design):
+//   { top: 1…3, topZeros: [places], bottom: 1…3, bottomZeros: [places] }
 // places count from the units (0 = units, 1 = tens). 340 is topZeros [0],
-// 305 — [1], 400 — [0, 1]. The leading digit is never 0, and an unmarked cell
-// is never 0 either — a zero comes only from a marked cell, so «С нулём»
-// never turns up uninvited (900 − 94 for a «0 in the tens» setting).
-// The answer never grows a place here (the trainer's grid is as wide as the
-// top number) and a difference stays as wide as the top number.
+// 305 — [1], 400 — [0, 1]. Either number may be the longer one (25 + 326).
+// The leading digit is never 0, and an unmarked cell is never 0 either — a
+// zero comes only from a marked cell, so «с нулём» never turns up uninvited.
+// The answer is as wide as the longer number (the trainer's answer never
+// grows a place). Subtraction puts the longer number on top (25 − 326 has no
+// answer): with the bottom set longer, its examples take the two numbers the
+// other way round — the settings screen says so.
 function cleanZeros(zeros, digits) {
   return [...new Set((Array.isArray(zeros) ? zeros : []).map(Number))]
     .filter((p) => Number.isInteger(p) && p >= 0 && p < digits - 1)
@@ -343,9 +347,11 @@ function cleanZeros(zeros, digits) {
 // Settings saved earlier in the day (2026-11-15) had kinds instead of zeros.
 const KIND_ZEROS = { round: [0], zero: [1] };
 
+const clampDigits = (n, fallback) => Math.min(3, Math.max(1, Math.round(Number(n)) || fallback));
+
 export function normalizeOperands(o) {
-  const top = o?.top === 3 ? 3 : 2;
-  const bottom = Math.min(top, Math.max(1, Number(o?.bottom) || top));
+  const top = clampDigits(o?.top, 2);
+  const bottom = clampDigits(o?.bottom, top);
   return {
     top,
     topZeros: cleanZeros(o?.topZeros ?? KIND_ZEROS[o?.topKind], top),
@@ -374,12 +380,20 @@ function drawOperand(digits, zeros) {
   return n;
 }
 
+// Subtraction with the bottom set longer: the numbers change places.
+export function operandsSwappedFor(o, op) {
+  return op === "subtract" && o.bottom > o.top;
+}
+
 function drawOperandsPair(o, op, carryMode, usedPairs) {
+  const [upper, lower] = operandsSwappedFor(o, op)
+    ? [[o.bottom, o.bottomZeros], [o.top, o.topZeros]]
+    : [[o.top, o.topZeros], [o.bottom, o.bottomZeros]];
   for (let attempt = 0; attempt < 300; attempt++) {
-    const top = drawOperand(o.top, o.topZeros);
-    const bottom = drawOperand(o.bottom, o.bottomZeros);
+    const top = drawOperand(...upper);
+    const bottom = drawOperand(...lower);
     const answer = op === "add" ? top + bottom : top - bottom;
-    if (answer <= 0 || width(answer) !== width(top)) continue;
+    if (answer <= 0 || width(answer) !== Math.max(width(top), width(bottom))) continue;
     if (carryMode !== "mixed") {
       const crosses = op === "add" ? hasCarry(top, bottom) : hasBorrow(top, bottom);
       if (crosses !== (carryMode === "carry")) continue;

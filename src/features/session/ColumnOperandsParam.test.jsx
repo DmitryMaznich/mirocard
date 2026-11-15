@@ -1,40 +1,42 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
-import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
+import ColumnOperandsParam, { tapCell } from "./ColumnOperandsParam.jsx";
 
 // cells in DOM order: top hundreds, tens, units; bottom hundreds, tens, units
-describe("ColumnOperandsParam — cells", () => {
+describe("ColumnOperandsParam — one gesture for every cell", () => {
   let container, root, value;
   afterEach(() => { act(() => root.unmount()); container.remove(); });
-  function mount(start) {
+  function mount(start, operation = "add") {
     container = document.createElement("div"); document.body.appendChild(container);
     root = createRoot(container);
-    function App() { const [v, setV] = useState(start); value = v; return <ColumnOperandsParam value={v} operation="add" carryMode="mixed" onChange={setV} />; }
+    function App() { const [v, setV] = useState(start); value = v; return <ColumnOperandsParam value={v} operation={operation} carryMode="mixed" onChange={setV} />; }
     act(() => root.render(<App />));
   }
-  const cell = (i) => container.querySelectorAll(".cop-cell")[i];
-  const tap = (i) => act(() => cell(i).click());
+  const tap = (i) => act(() => container.querySelectorAll(".cop-cell")[i].click());
 
-  it("a zero goes into any cell but the leading one; the leading one says why", () => {
-    mount({ top: 3, topZeros: [], bottom: 2, bottomZeros: [] });
-    tap(1); tap(2); tap(5);
-    expect(value).toEqual({ top: 3, topZeros: [0, 1], bottom: 2, bottomZeros: [0] });
-    tap(0); // leading cell of the top
+  it("empty cell — the number grows; again — 0 where it can stand, otherwise off", () => {
+    mount({ top: 2, topZeros: [], bottom: 2, bottomZeros: [] });
+    tap(0); // top grows to 3
     expect(value.top).toBe(3);
-    expect(container.querySelector(".cop-note").textContent).toContain("не начинается с нуля");
-    tap(1); // again — back to any digit
+    tap(1); tap(2); // zeros in the tens and units
+    expect(value.topZeros).toEqual([0, 1]);
+    tap(1); // a 0 again — any digit
     expect(value.topZeros).toEqual([0]);
+    tap(0); // the leading digit takes no 0 — off
+    expect(value.top).toBe(2);
+    tap(3); // the bottom may be longer than the top: 25 + 326
+    expect(value).toEqual({ top: 2, topZeros: [0], bottom: 3, bottomZeros: [] });
+    expect(container.querySelector(".cop-remove")).toBeNull();
   });
 
-  it("«×» on the leading cell removes a digit; an empty cell grows the number", () => {
-    mount({ top: 3, topZeros: [], bottom: 2, bottomZeros: [] });
-    const removes = () => container.querySelectorAll(".cop-remove");
-    expect(removes()).toHaveLength(2); // top 3 → 2, bottom 2 → 1
-    act(() => removes()[1].click());
-    expect(value.bottom).toBe(1);
-    expect(removes()).toHaveLength(1); // a one-digit bottom can't shrink
-    tap(4);
-    expect(value.bottom).toBe(2);
+  it("a one-digit number keeps its digit", () => {
+    expect(tapCell({ top: 1, topZeros: [], bottom: 1, bottomZeros: [] }, "bottom", 0)).toEqual({ top: 1, topZeros: [], bottom: 1, bottomZeros: [] });
+  });
+
+  it("subtraction with the longer bottom says the numbers change places", () => {
+    mount({ top: 2, topZeros: [], bottom: 3, bottomZeros: [] }, "subtract");
+    expect(container.textContent).toContain("большее число встанет сверху");
+    expect(container.querySelector(".cop-example__numbers").textContent).toMatch(/^\d{3} − \d{2}$/);
   });
 });

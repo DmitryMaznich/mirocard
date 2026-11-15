@@ -261,6 +261,8 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
     const pos = POSITIONS[i];
     const gridCol = digits + 2 - i;
     const col = task.columns[i];
+    // A shorter top number (25 + 326): no cell, as on paper.
+    if (col.hasTopDigit === false) continue;
 
     if (phase === "form") {
       const key = `top:${pos}`;
@@ -554,6 +556,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
     const positions = POSITIONS.slice(0, task.digits).reverse();
     const steps = [];
     for (const pos of positions) {
+      // A shorter top number (25 + 326) has no digit here — nothing to place.
+      if (task.columns[POS_INDEX[pos]].hasTopDigit === false) continue;
       steps.push({ cellKey: `top:${pos}`, value: task.columns[POS_INDEX[pos]].topDigit });
     }
     steps.push({ cellKey: "sign", value: task.operation === "add" ? "+" : "−" });
@@ -656,12 +660,16 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
     () => task.columns.filter((c) => c.hasBottomDigit !== false).length,
     [task]
   );
+  const topDigitsCount = useMemo(
+    () => task.columns.filter((c) => c.hasTopDigit !== false).length,
+    [task]
+  );
 
   // Advance to phase 2 when column fully built.
   useEffect(() => {
     if (
       phase === "form" &&
-      Object.keys(topFilled).length === task.digits &&
+      Object.keys(topFilled).length === topDigitsCount &&
       Object.keys(bottomFilled).length === bottomDigitsCount &&
       signFilled !== null &&
       lineFilled
@@ -669,7 +677,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
       const t = setTimeout(() => setPhase("solve"), 500);
       return () => clearTimeout(t);
     }
-  }, [phase, topFilled, bottomFilled, signFilled, lineFilled, task.digits, bottomDigitsCount]);
+  }, [phase, topFilled, bottomFilled, signFilled, lineFilled, topDigitsCount, bottomDigitsCount]);
 
   const triggerShake = useCallback((key) => {
     setShakeCell(key);

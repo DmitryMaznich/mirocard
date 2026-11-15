@@ -38,24 +38,24 @@ const tap = async (i) => act(async () => cells()[i].click());
 const clear = () => host.querySelector(".cop-clear");
 const start = async () => act(async () => [...host.querySelectorAll("button")].find((b) => b.textContent.trim() === "Начать занятие").click());
 
-it("2 + 2: the middle cell is the leading tens — no zero, it says why; a 3-digit top takes a zero in the middle", async () => {
+it("2 + 2: the middle cell goes off (it is the leading tens), grows back, a 3-digit top takes a zero in the middle", async () => {
   mountWith({});
   await act(async () => root.render(<ParamsScreen />));
   expect(state()).toBe("_••_••");
   expect(clear()).toBeNull();
-  await tap(1);
-  expect(state()).toBe("_••_••");
-  expect(host.textContent).toContain("Число не начинается с нуля");
+  await tap(1); // the leading tens of a 2-digit top — off
+  expect(state()).toBe("__•_••");
   await tap(0); // grow the top to 3 digits
-  await tap(1); // now the middle is the tens of a 3-digit number
+  await tap(1); // the middle is the tens of a 3-digit number now — 0
   expect(state()).toBe("•0•_••");
   await act(async () => clear().click()); // «Убрать нули» — only there while zeros are
   expect(state()).toBe("•••_••");
   expect(clear()).toBeNull();
   await tap(1);
+  await tap(3); // a 3-digit bottom
   await start();
   expect(mocks.persist).toHaveBeenCalledWith("kid", "column_addition", expect.objectContaining({
-    params: expect.objectContaining({ operands: { top: 3, topZeros: [1], bottom: 2, bottomZeros: [] } }),
+    params: expect.objectContaining({ operands: { top: 3, topZeros: [1], bottom: 3, bottomZeros: [] } }),
   }));
 });
 

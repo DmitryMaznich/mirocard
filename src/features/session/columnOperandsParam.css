@@ -53,12 +53,6 @@
   background: #fff4dc;
 }
 
-.cop-cell--off {
-  opacity: 0.35;
-  border-style: dotted;
-  cursor: default;
-}
-
 .cop-sign {
   font-family: 'Primo', cursive;
   font-size: 30px;
@@ -130,35 +124,3 @@
   color: #7a9e9a;
   line-height: 1.4;
 }
-
-/* a cell and its «×» (the leading cell only) */
-.cop-slot { position: relative; width: var(--cop-cell); height: var(--cop-cell); }
-
-.cop-remove {
-  position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  background: #7a9e9a;
-  color: #fff;
-  font: 800 14px/1 Nunito, sans-serif;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  touch-action: manipulation;
-}
-/* a bigger touch area than the 22px circle */
-.cop-remove::before { content: ""; position: absolute; inset: -9px; }
-
-.cop-cell--shake { animation: cop-shake 0.4s ease-in-out; }
-@keyframes cop-shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
-}
-@media (prefers-reduced-motion: reduce) { .cop-cell--shake { animation: none; } }

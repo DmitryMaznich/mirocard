@@ -1,68 +1,45 @@
-import { useMemo, useState } from "react";
-import { normalizeOperands, operandsExample } from "@/topics/renderers/column_addition/engine.js";
-import "./columnOperandsParam.css";
-
-// «Числа в примере» for «Столбик — Тренажёр» (2026-11-15, mockup
-// docs/mockups/column-addition/2026-11-15-operands-cells-b.html): the setting
-// is drawn as the column itself — two rows of 3 cells, the sign, the line.
-//   empty cell → the number grows to it;
-//   marked cell → 0 there (again → any digit);
-//   the leading cell takes no 0 — a tap shakes it and says so; its «×»
-//   removes it (2026-11-15: a silent «tap the left cell to remove» read as
-//   «the zero doesn't work»).
-// Under the line — an example of what the child gets. No row captions and no
-// notebook grid (owner: this is the adult's screen, the example says enough).
+// «Числа в примере» for «Столбик — Тренажёр» (2026-11-15, owner's design):
+// the setting is drawn as the column — two rows of 3 cells, the sign, the
+// line, an example under it. Every cell of both rows works the same way:
+//   an empty cell — the number grows to it;
+//   a marked cell — 0 there if a 0 can stand there, otherwise the cell goes
+//   off (the leading digit of a number is never 0); a 0 tapped again — back
+//   to any digit.
+// Either number may be the longer (25 + 326). No row captions, no notebook
+// grid, no extra buttons on the cells (owner: one gesture, one meaning).
 // Value: { top, topZeros, bottom, bottomZeros } — engine.js normalizeOperands.
+
+import { useMemo, useState } from "react";
+import { normalizeOperands, operandsExample, operandsSwappedFor } from "@/topics/renderers/column_addition/engine.js";
+import "./columnOperandsParam.css";
 
 const CELLS = 3;
 
-// The smallest numbers the trainer takes: a two-digit top, a one-digit bottom.
-const MIN_DIGITS = { top: 2, bottom: 1 };
-
-// empty cell → the number grows to it; a marked cell → 0 there or back; the
-// leading cell takes no 0 (a number doesn't start with one) — its own «×»
-// removes it.
-function tapCell(o, row, place) {
+export function tapCell(o, row, place) {
   const digits = o[row];
   const zerosKey = row === "top" ? "topZeros" : "bottomZeros";
-  const max = row === "top" ? CELLS : o.top;
-  if (place >= max) return o;
   if (place >= digits) return normalizeOperands({ ...o, [row]: place + 1 });
-  if (place === digits - 1) return o;
+  if (place === digits - 1) return digits > 1 ? normalizeOperands({ ...o, [row]: place }) : o;
   const zeros = o[zerosKey].includes(place) ? o[zerosKey].filter((p) => p !== place) : [...o[zerosKey], place];
   return normalizeOperands({ ...o, [zerosKey]: zeros });
 }
 
-function CellRow({ row, digits, zeros, max, gridRow, onTap, onRemove, shaking, label }) {
+function CellRow({ row, digits, zeros, gridRow, onTap, label }) {
   const cells = [];
   for (let place = CELLS - 1; place >= 0; place--) {
     const on = place < digits;
     const zero = on && zeros.includes(place);
-    const off = place >= max;
-    const lead = on && place === digits - 1;
-    const removable = lead && digits > MIN_DIGITS[row];
     cells.push(
-      <div key={place} className="cop-slot" style={{ gridRow, gridColumn: 2 + (CELLS - 1 - place) }}>
-        <button
-          type="button"
-          className={[
-            "cop-cell",
-            on ? "cop-cell--on" : "",
-            lead ? "cop-cell--lead" : "",
-            zero ? "cop-cell--zero" : "",
-            off ? "cop-cell--off" : "",
-            shaking === `${row}:${place}` ? "cop-cell--shake" : "",
-          ].filter(Boolean).join(" ")}
-          disabled={off}
-          aria-label={`${label}, ${["единицы", "десятки", "сотни"][place]}: ${zero ? "ноль" : on ? "цифра" : "пусто"}`}
-          onClick={() => onTap(row, place)}
-        >
-          {zero ? "0" : ""}
-        </button>
-        {removable && (
-          <button type="button" className="cop-remove" aria-label={`${label}: убрать цифру`} onClick={() => onRemove(row)}>×</button>
-        )}
-      </div>
+      <button
+        key={place}
+        type="button"
+        className={["cop-cell", on ? "cop-cell--on" : "", zero ? "cop-cell--zero" : ""].filter(Boolean).join(" ")}
+        style={{ gridRow, gridColumn: 2 + (CELLS - 1 - place) }}
+        aria-label={`${label}, ${["единицы", "десятки", "сотни"][place]}: ${zero ? "ноль" : on ? "цифра" : "пусто"}`}
+        onClick={() => onTap(row, place)}
+      >
+        {zero ? "0" : ""}
+      </button>
     );
   }
   return cells;
@@ -80,24 +57,16 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
     [key, op, carryMode, seed],
   );
   const hasZeros = o.topZeros.length + o.bottomZeros.length > 0;
-  const [shaking, setShaking] = useState(null);
-  const tap = (row, place) => {
-    if (place === o[row] - 1) {
-      setShaking(`${row}:${place}`);
-      setTimeout(() => setShaking(null), 1600);
-      return;
-    }
-    onChange(tapCell(o, row, place));
-  };
-  const remove = (row) => onChange(normalizeOperands({ ...o, [row]: o[row] - 1 }));
+  const tap = (row, place) => onChange(tapCell(o, row, place));
+  const swapped = (operation === "subtract" || operation === "mixed") && operandsSwappedFor(o, "subtract");
 
   return (
     <div className="param-row param-row--block cop" aria-label={label}>
       {labelNode}
       <div className="cop-column">
-        <CellRow row="top" label="Верхнее число" digits={o.top} zeros={o.topZeros} max={CELLS} gridRow={1} onTap={tap} onRemove={remove} shaking={shaking} />
+        <CellRow row="top" label="Верхнее число" digits={o.top} zeros={o.topZeros} gridRow={1} onTap={tap} />
         <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
-        <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} max={o.top} gridRow={2} onTap={tap} onRemove={remove} shaking={shaking} />
+        <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} gridRow={2} onTap={tap} />
         <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
       </div>
       <div className="cop-example">
@@ -105,7 +74,7 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
         <span className="cop-example__numbers">{example ? `${example.top} ${example.operation === "subtract" ? "−" : "+"} ${example.bottom}` : "—"}</span>
         <button type="button" className="cop-again" onClick={() => setSeed((s) => s + 1)}>↻ Другой</button>
       </div>
-      {shaking && <div className="cop-note">Число не начинается с нуля — эту цифру можно только убрать (×).</div>}
+      {swapped && <div className="cop-note">В вычитании большее число встанет сверху: числа поменяются местами.</div>}
       {example?.relaxed && (
         <div className="cop-note">
           {op === "subtract" ? "С займом" : "С переносом"} такие числа не бывают без нового разряда — примеры будут без {op === "subtract" ? "займа" : "переноса"}.
@@ -120,7 +89,7 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
           </button>
         </div>
       )}
-      <div className="cop-hint">Пустая клетка — число до неё. Отмеченная — 0 в ней, ещё раз — любая цифра. × — убрать цифру.</div>
+      <div className="cop-hint">Пустая клетка — число до неё. Ещё раз — 0 в ней, а где 0 стоять не может (первая цифра), клетка выключается.</div>
     </div>
   );
 }

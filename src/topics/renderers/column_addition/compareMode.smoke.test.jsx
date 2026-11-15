@@ -184,4 +184,14 @@ describe("ColumnArithmeticTask — compareMode", () => {
     tapDigit(1);
     expect(overflow.textContent.trim()).toBe("1");
   });
+  it("25 + 326: a shorter top number — no cell for its hundreds, solved to the end", async () => {
+    const task = columnTaskOfExample({ operation: "add", top: 25, bottom: 326 });
+    mount(task, "always");
+    await fillForm(task);
+    expect(container.querySelectorAll(".col-result-cell")).toHaveLength(3);
+    tapDigit(1); tapDigit(1); // 5 + 6 = 11: 1, carry 1
+    tapDigit(5); // 2 + 2 + 1
+    tapDigit(3); // nothing on top — the 3 comes down
+    expect(container.querySelectorAll(".col-result-cell--filled")).toHaveLength(3);
+  });
 });

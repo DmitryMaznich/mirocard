@@ -32,6 +32,10 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
   if (activeStep.cellType === "adjust") return ["Шаг 2", "Стало на 1 меньше", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в клетку сверху.`];
   // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit at this
   // position — nothing to add or subtract, the top digit just comes down.
+  if (col.hasTopDigit === false) {
+    const carryNote = col.carryIn ? ` и перенос ${col.carryIn}` : "";
+    return ["Шаг 2", `Считаем ${label}`, `У верхнего числа тут нет цифры — сноси нижнюю${carryNote}: ${activeStep.digit}.`];
+  }
   if (col.hasBottomDigit === false) {
     const carryNote = task.operation === "add" && col.carryIn ? ` (с переносом ${col.carryIn})` : "";
     return ["Шаг 2", `Считаем ${label}`, `У нижнего числа тут нет цифры — просто сноси ${activeStep.digit}${carryNote}.`];
