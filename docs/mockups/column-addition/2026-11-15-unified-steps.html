@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Столбик: единый порядок шагов — макет</title>
+<style>
+  @font-face { font-family: Primo; src: url("../../../public/fonts/primo.ttf"); }
+  :root { --cs: 34px; --ink: #1e293b; --child: #2563eb; --red: #ef4444; --hl: #fde68a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: #f8fafc; }
+  main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 22px; margin: 8px 0 4px; }
+  h2 { font-size: 18px; margin: 28px 0 4px; }
+  .sub { color: #64748b; margin: 0 0 10px; font-size: 14px; }
+  .rule { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; font-size: 14px; line-height: 1.5; }
+  .rule ol { margin: 4px 0; padding-left: 20px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #475569; margin-top: 8px; }
+  .legend b { color: var(--child); }
+  .strip { display: flex; flex-wrap: wrap; gap: 10px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 10px 10px; width: 210px; display: flex; flex-direction: column; gap: 6px; }
+  .card .n { font-size: 11px; color: #94a3b8; }
+  .card .cap { font-size: 13px; line-height: 1.35; min-height: 36px; }
+  .card.final { border-color: #86efac; background: #f0fdf4; }
+  .grid { display: grid; grid-auto-rows: var(--cs); align-self: center;
+    background-image: linear-gradient(#dbeafe 1px, transparent 1px), linear-gradient(90deg, #dbeafe 1px, transparent 1px);
+    background-size: var(--cs) var(--cs); border-right: 1px solid #dbeafe; border-bottom: 1px solid #dbeafe; }
+  .c { position: relative; width: var(--cs); height: var(--cs); display: flex; align-items: center; justify-content: center;
+    font-family: Primo, "Comic Sans MS", system-ui, sans-serif; font-size: 26px; font-style: italic; }
+  .c.line { height: 3px; }
+  .lineRow { grid-column: 1 / -1; height: 3px; background: var(--ink); align-self: center; }
+  .mark { font-size: 16px; color: var(--child); align-items: flex-end; padding-bottom: 2px; }
+  .child { color: var(--child); }
+  .one { font-size: 15px; color: var(--child); position: absolute; left: 1px; top: 0px; }
+  .mark .one { position: static; margin-right: 1px; }
+  .x::after { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 3px; background: var(--red); transform: rotate(-35deg); border-radius: 2px; }
+  .dot::before { content: ""; position: absolute; top: 1px; left: 50%; width: 6px; height: 6px; margin-left: -1px; background: var(--ink); border-radius: 50%; }
+  .hl { background: var(--hl); border-radius: 6px; }
+  .cmp { background: #ede9fe; border-radius: 6px; }
+  .sign { font-size: 26px; }
+  .row2 { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .cmpcard { width: 260px; }
+  .bad { border-color: #fca5a5; background: #fef2f2; }
+  code { background: #f1f5f9; padding: 1px 4px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Столбик: один порядок шагов для любого разряда</h1>
+<p class="sub">Макет, 15.11.2026. Каждая карточка — один шаг ребёнка. Жёлтым — что написано на этом шаге, сиреневым — что сравниваем.</p>
+
+<div class="rule">
+  <b>Сложение</b>, разряд за разрядом справа налево:
+  <ol><li>складываю цифры разряда и перенос над ним;</li>
+  <li>пишу в ответ единицы суммы;</li>
+  <li>если 10 и больше — «1» над следующим разрядом; если следующего разряда нет — эту «1» пишу в ответ сам (новый разряд).</li></ol>
+  <b>Вычитание</b>, разряд за разрядом справа налево:
+  <ol><li>моё верхнее число — цифра, а если над ней пометка, то пометка;</li>
+  <li>сравниваю с нижней цифрой;</li>
+  <li>не хватает → занимаю: зачёркиваю соседа слева и пишу над ним на 1 меньше; если сосед 0 — занимаю у следующего, а 0 становится 9;</li>
+  <li>ставлю маленькую «1» перед своим числом (2 → 12);</li>
+  <li>вычитаю и пишу ответ. Ноль в начале ответа не пишу.</li></ol>
+  <div class="legend"><span><b>синим</b> — пишет ребёнок</span><span><span style="color:var(--red)">красным</span> — зачёркнуто</span><span>над столбиком — одна клетка пометок на разряд (как в «Контрольных»)</span></div>
+</div>
+
+<h2>Главная разница: 532 − 157, итог</h2>
+<p class="sub">Сейчас пометки лежат в уголке клетки, и у десятков «1» затирает «2». Предлагаю пометку над цифрой — тогда видно и «2», и «1» перед ней.</p>
+<div class="row2" id="compare"></div>
+
+<div id="examples"></div>
+</main>
+
+<script>
+const PLACE = ["Единицы", "Десятки", "Сотни", "Тысячи"];
+const place = (i) => PLACE[i] ?? "Разряд";
+const digitsOf = (n) => String(n).split("").reverse().map(Number);
+
+function blank(W) {
+  return { W, marks: {}, ones: {}, crossed: {}, res: {}, corner: {}, dots: {}, hl: [], cmp: [] };
+}
+const snap = (s, cap, extra = {}) => ({ ...JSON.parse(JSON.stringify(s)), cap, ...extra });
+
+function addFrames(a, b) {
+  const W = String(a + b).length, t = digitsOf(a), d = digitsOf(b);
+  const s = blank(W); s.top = t; s.bot = d; s.op = "+";
+  const f = [snap(s, "Записали пример в столбик.")];
+  const carry = {};
+  for (let i = 0; i < W; i++) {
+    const has = i < t.length || i < d.length;
+    if (!has) {
+      s.res[i] = carry[i]; s.hl = [`res:${i}`];
+      f.push(snap(s, `Переносить «1» некуда — пишу её в ответ: новый разряд.`));
+      break;
+    }
+    const terms = [t[i], d[i], carry[i]].filter((x) => x !== undefined);
+    const sum = terms.reduce((p, q) => p + q, 0);
+    s.res[i] = sum % 10; s.hl = [`res:${i}`];
+    f.push(snap(s, `${place(i)}: ${terms.join(" + ")} = ${sum}. Пишу ${sum % 10}.`));
+    if (sum >= 10) {
+      const nextHas = i + 1 < t.length || i + 1 < d.length;
+      if (nextHas) {
+        carry[i + 1] = 1; s.marks[i + 1] = "1"; s.hl = [`mark:${i + 1}`];
+        f.push(snap(s, `1 ${i === 0 ? "десяток" : i === 1 ? "сотню" : "тысячу"} переношу — пишу «1» над ${["десятками","сотнями","тысячами"][i]}.`));
+      } else carry[i + 1] = 1;
+    }
+  }
+  s.hl = [];
+  f.push(snap(s, `Ответ: ${a + b}.`, { final: true }));
+  return f;
+}
+
+function subFrames(a, b) {
+  const t = digitsOf(a), d = digitsOf(b), W = t.length;
+  const s = blank(W); s.top = t; s.bot = d; s.op = "−";
+  const cur = [...t];
+  const f = [snap(s, "Записали пример в столбик.")];
+  for (let i = 0; i < W; i++) {
+    let v = cur[i];
+    const bd = d[i];
+    const vKey = s.marks[i] !== undefined ? `mark:${i}` : `top:${i}`;
+    if (bd !== undefined && v < bd) {
+      s.hl = []; s.cmp = [vKey, `bot:${i}`];
+      f.push(snap(s, `${place(i)}: ${v} меньше ${bd} — не хватает, занимаю.`));
+      s.cmp = [];
+      let j = i + 1;
+      while (cur[j] === 0) j++;
+      cur[j] -= 1; s.crossed[j] = true; s.marks[j] = String(cur[j]); s.hl = [`top:${j}`, `mark:${j}`];
+      f.push(snap(s, `Зачёркиваю ${t[j]} (${place(j).toLowerCase()}), сверху пишу ${cur[j]}.`));
+      for (let k = j - 1; k > i; k--) {
+        cur[k] = 9; s.crossed[k] = true; s.marks[k] = "9"; s.hl = [`top:${k}`, `mark:${k}`];
+        f.push(snap(s, `Тут был 0: он получил 10 и отдал 1 — зачёркиваю 0, пишу 9.`));
+      }
+      s.ones[i] = true; s.hl = [`one:${i}`];
+      f.push(snap(s, `Ставлю «1» перед ${v} — стало ${v + 10}.`));
+      v += 10;
+    } else if (bd !== undefined) {
+      s.hl = []; s.cmp = [vKey, `bot:${i}`];
+      f.push(snap(s, `${place(i)}: ${v} ${v === bd ? "равно" : "больше"} ${bd} — хватает.`));
+      s.cmp = [];
+    }
+    const r = v - (bd ?? 0);
+    if (i === W - 1 && i > 0 && r === 0) {
+      s.hl = [];
+      f.push(snap(s, `${place(i)}: остался 0 — в начале ответа ноль не пишу.`));
+      continue;
+    }
+    s.res[i] = r; s.hl = [`res:${i}`];
+    f.push(snap(s, bd !== undefined ? `${v} − ${bd} = ${r}. Пишу ${r}.` : `${place(i)}: внизу цифры нет — пишу ${v}.`));
+  }
+  s.hl = [];
+  f.push(snap(s, `Ответ: ${a - b}.`, { final: true }));
+  return f;
+}
+
+function cell(content, cls, col, row, hlKey, st) {
+  const el = document.createElement("div");
+  el.className = "c " + (cls || "");
+  if (hlKey && st.hl.includes(hlKey)) el.classList.add("hl");
+  if (hlKey && st.cmp.includes(hlKey)) el.classList.add("cmp");
+  el.style.gridColumn = col; el.style.gridRow = row;
+  if (content instanceof Node) el.appendChild(content); else if (content !== undefined && content !== null) el.innerHTML = content;
+  return el;
+}
+
+function renderGrid(st) {
+  const g = document.createElement("div");
+  g.className = "grid";
+  const cols = st.W + 2; // sign + spare column on the left
+  g.style.gridTemplateColumns = `repeat(${cols}, var(--cs))`;
+  g.style.gridTemplateRows = `var(--cs) var(--cs) var(--cs) 3px var(--cs)`;
+  const colOf = (i) => cols - i;
+  for (let i = 0; i < st.W; i++) {
+    // marks row
+    if (st.marks[i] !== undefined) {
+      const one = st.ones[i] && st.marks[i] !== undefined ? `<span class="one${st.hl.includes(`one:${i}`) ? " hl" : ""}">1</span>` : "";
+      g.appendChild(cell(one + st.marks[i], "mark", colOf(i), 1, `mark:${i}`, st));
+    }
+    // top
+    if (i < st.top.length) {
+      let html = String(st.top[i]);
+      if (st.corner[i]) html += `<span class="one">${st.corner[i]}</span>`;
+      if (st.ones[i] && st.marks[i] === undefined) html += `<span class="one${st.hl.includes(`one:${i}`) ? " hl" : ""}">1</span>`;
+      const cls = [st.crossed[i] ? "x" : "", st.dots[i] ? "dot" : ""].join(" ");
+      g.appendChild(cell(html, cls, colOf(i), 2, `top:${i}`, st));
+    }
+    if (i < st.bot.length) g.appendChild(cell(String(st.bot[i]), "", colOf(i), 3, `bot:${i}`, st));
+    if (st.res[i] !== undefined) g.appendChild(cell(String(st.res[i]), "child", colOf(i), 5, `res:${i}`, st));
+  }
+  const signCol = colOf(Math.max(st.top.length, st.bot.length)) ;
+  g.appendChild(cell(st.op, "sign", signCol, "2 / 4", null, st)).style.alignSelf = "center";
+  const line = document.createElement("div");
+  line.className = "lineRow"; line.style.gridRow = 4; line.style.gridColumn = `${signCol} / -1`;
+  g.appendChild(line);
+  return g;
+}
+
+function card(st, n, extraCls = "") {
+  const c = document.createElement("div");
+  c.className = "card " + (st.final ? "final " : "") + extraCls;
+  if (n) { const k = document.createElement("div"); k.className = "n"; k.textContent = `шаг ${n}`; c.appendChild(k); }
+  c.appendChild(renderGrid(st));
+  const cap = document.createElement("div"); cap.className = "cap"; cap.innerHTML = st.cap; c.appendChild(cap);
+  return c;
+}
+
+const EXAMPLES = [
+  ["47 + 38", "Двузначный — тот же порядок, что и для трёх разрядов.", () => addFrames(47, 38)],
+  ["478 + 365", "Перенос и в десятки, и в сотни.", () => addFrames(478, 365)],
+  ["650 + 470", "Новый разряд: последнюю «1» ребёнок пишет сам (сейчас она стоит готовой).", () => addFrames(650, 470)],
+  ["95 + 7", "Два переноса подряд и новый разряд.", () => addFrames(95, 7)],
+  ["52 − 37", "Двузначный заём.", () => subFrames(52, 37)],
+  ["532 − 157", "Заём в единицах и в десятках — то, что сейчас ломается.", () => subFrames(532, 157)],
+  ["302 − 195", "Через ноль: 0 становится 9.", () => subFrames(302, 195)],
+  ["400 − 126", "Два нуля.", () => subFrames(400, 126)],
+  ["102 − 7", "Ноль в начале ответа не пишем.", () => subFrames(102, 7)],
+];
+
+const root = document.getElementById("examples");
+for (const [title, sub, make] of EXAMPLES) {
+  const h = document.createElement("h2"); h.textContent = title; root.appendChild(h);
+  const p = document.createElement("p"); p.className = "sub"; p.textContent = sub; root.appendChild(p);
+  const strip = document.createElement("div"); strip.className = "strip";
+  make().forEach((st, i) => strip.appendChild(card(st, i)));
+  root.appendChild(strip);
+}
+
+// 532 − 157: now / proposed / school dots
+const cmpRoot = document.getElementById("compare");
+const now = blank(3); Object.assign(now, { top: [2,3,5], bot: [7,5,1], op: "−", res: {0:5,1:7,2:3},
+  crossed: {1:true,2:true}, corner: {0:"1",1:"1",2:"4"},
+  cap: "<b>Сейчас.</b> У десятков в уголке «1» — «2» затёрта. Читается как 13, хотя считали 12 − 5." });
+const prop = subFrames(532, 157).at(-1);
+prop.cap = "<b>Предлагаю.</b> Над зачёркнутой 3 — «2», перед ней «1»: видно 12. Над 5 — «4».";
+const dots = blank(3); Object.assign(dots, { top: [2,3,5], bot: [7,5,1], op: "−", res: {0:5,1:7,2:3}, dots: {1:true,2:true},
+  cap: "<b>Как по Моро (точки).</b> Точка над тем, у кого заняли; всё остальное — в уме. Короче, но для ребёнка ничего не видно." });
+cmpRoot.appendChild(card(now, 0, "cmpcard bad"));
+cmpRoot.appendChild(card(prop, 0, "cmpcard final"));
+cmpRoot.appendChild(card(dots, 0, "cmpcard"));
+</script>
+</body>
+</html>
