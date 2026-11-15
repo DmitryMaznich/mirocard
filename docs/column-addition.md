@@ -104,7 +104,7 @@ Owner chose «с 1» (mockup `docs/mockups/column-addition/2026-11-15-one-style.
   the place to write next is a small dashed yellow box (`.col-mark-part--slot`, math_tests' focus box);
 - in `math_tests` a subtraction mark is written from the right like the answer: 2, then 1 → «12»
   (`SolveView.jsx` typeDigit / erase; the mark blank carries `op`), and `layout.js` draws the «1»
-  smaller in front, a lone «1» over an uncrossed digit at the left of its cell. Marks are still not
+  in front, the same size as every mark (owner: one size, as in a notebook), a lone «1» over an uncrossed digit at the left of its cell. Marks are still not
   graded there.
 
 ## Next

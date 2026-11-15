@@ -79,7 +79,7 @@ describe("math_tests blocks", () => {
     expect(a.id).not.toBe(b.id);
     expect(a.steps).toBe(2);
   });
-  it("column marks: the borrowed «1» in front — «12» over a crossed digit, a lone «1» low on the left (one record with the trainer)", () => {
+  it("column marks: the borrowed «1» in front, the same size — «12» over a crossed digit, a lone «1» on the left (one record with the trainer)", () => {
     const t = testOf([{ type: "column", count: 2, ops: "subtract", size: "3+3", regroup: "with" }]);
     const layout = layoutTest(t);
     const it0 = layout.pages[0].blocks[0].items[0];
@@ -90,7 +90,7 @@ describe("math_tests blocks", () => {
     const two = marks.find((p) => p.text === "2");
     const ones = marks.filter((p) => p.text === "1");
     expect(ones).toHaveLength(2);
-    expect(ones.every((p) => p.size < two.size)).toBe(true);
+    expect(ones.every((p) => p.size === two.size)).toBe(true); // one size, as in a notebook
     // the tens: «1» just in front of «2»; the units: a lone «1» at the left of its cell
     const tensOne = ones.find((p) => p.x < two.x && two.x - p.x < two.size);
     expect(tensOne).toBeTruthy();

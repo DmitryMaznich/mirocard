@@ -224,7 +224,6 @@
   justify-content: center;
   min-width: 0.6em;
 }
-.col-mark-part--one { font-size: 0.78em; }
 .col-mark-part--slot {
   width: 0.8em;
   height: 1em;
@@ -233,7 +232,6 @@
   background: #fff3c4;
   animation: col-mark-slot-pulse 1.1s ease-in-out infinite;
 }
-.col-mark-part--one.col-mark-part--slot { width: 0.65em; height: 0.85em; }
 @keyframes col-mark-slot-pulse {
   0%, 100% { background: #fff3c4; }
   50%       { background: #fde68a; }
