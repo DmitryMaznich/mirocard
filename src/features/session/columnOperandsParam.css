@@ -53,6 +53,12 @@
   background: #fff4dc;
 }
 
+.cop-cell--off {
+  opacity: 0.3;
+  border-style: dotted;
+  cursor: default;
+}
+
 .cop-sign {
   font-family: 'Primo', cursive;
   font-size: 30px;

@@ -335,9 +335,8 @@ function trainerTaskFrom(ex, card) {
 // The leading digit is never 0, and an unmarked cell is never 0 either — a
 // zero comes only from a marked cell, so «с нулём» never turns up uninvited.
 // The answer is as wide as the longer number (the trainer's answer never
-// grows a place). Subtraction puts the longer number on top (25 − 326 has no
-// answer): with the bottom set longer, its examples take the two numbers the
-// other way round — the settings screen says so.
+// grows a place). With a «−» in play (Операция «−» or «Микс») the bottom
+// number is no longer than the top — `normalizeOperands(o, operation)`.
 function cleanZeros(zeros, digits) {
   return [...new Set((Array.isArray(zeros) ? zeros : []).map(Number))]
     .filter((p) => Number.isInteger(p) && p >= 0 && p < digits - 1)
@@ -349,9 +348,9 @@ const KIND_ZEROS = { round: [0], zero: [1] };
 
 const clampDigits = (n, fallback) => Math.min(3, Math.max(1, Math.round(Number(n)) || fallback));
 
-export function normalizeOperands(o) {
+export function normalizeOperands(o, operation = "add") {
   const top = clampDigits(o?.top, 2);
-  const bottom = clampDigits(o?.bottom, top);
+  const bottom = Math.min(clampDigits(o?.bottom, top), operation === "add" ? 3 : top);
   return {
     top,
     topZeros: cleanZeros(o?.topZeros ?? KIND_ZEROS[o?.topKind], top),
@@ -380,18 +379,10 @@ function drawOperand(digits, zeros) {
   return n;
 }
 
-// Subtraction with the bottom set longer: the numbers change places.
-export function operandsSwappedFor(o, op) {
-  return op === "subtract" && o.bottom > o.top;
-}
-
 function drawOperandsPair(o, op, carryMode, usedPairs) {
-  const [upper, lower] = operandsSwappedFor(o, op)
-    ? [[o.bottom, o.bottomZeros], [o.top, o.topZeros]]
-    : [[o.top, o.topZeros], [o.bottom, o.bottomZeros]];
   for (let attempt = 0; attempt < 300; attempt++) {
-    const top = drawOperand(...upper);
-    const bottom = drawOperand(...lower);
+    const top = drawOperand(o.top, o.topZeros);
+    const bottom = drawOperand(o.bottom, o.bottomZeros);
     const answer = op === "add" ? top + bottom : top - bottom;
     if (answer <= 0 || width(answer) !== Math.max(width(top), width(bottom))) continue;
     if (carryMode !== "mixed") {
@@ -410,7 +401,7 @@ function drawOperandsPair(o, op, carryMode, usedPairs) {
 // carry only into a new place) — the examples come without it rather than not
 // at all; `relaxed` tells the settings screen to say so.
 export function operandsExample(operands, op, carryMode, usedPairs) {
-  const o = normalizeOperands(operands);
+  const o = normalizeOperands(operands, op);
   const ex = drawOperandsPair(o, op, carryMode, usedPairs);
   if (ex || carryMode === "mixed") return ex;
   const loose = drawOperandsPair(o, op, "mixed", usedPairs);

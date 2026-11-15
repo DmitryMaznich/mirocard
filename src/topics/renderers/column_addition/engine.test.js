@@ -329,8 +329,9 @@ describe("«Числа в примере» — each number chosen on its own", (
           // 1 − 1 digits: nothing to subtract that keeps a column; 1 + 1 only below 10
           if (top === 1 && bottom === 1 && operation === "subtract") continue;
           expect(tasks.length, JSON.stringify({ ...spec, operation })).toBeGreaterThan(0);
-          const swapped = operation === "subtract" && bottom > top;
-          const [wTop, zTop, wBottom, zBottom] = swapped ? [bottom, bottomZeros, top, topZeros] : [top, topZeros, bottom, bottomZeros];
+          // with a «−» the bottom is cut to the top's length (its zeros too)
+          const wBottom = operation === "subtract" ? Math.min(bottom, top) : bottom;
+          const [wTop, zTop, zBottom] = [top, topZeros, bottomZeros.filter((p) => p < wBottom - 1)];
           for (const t of tasks) {
             expect(String(t.top)).toHaveLength(wTop);
             expect(String(t.bottom)).toHaveLength(wBottom);
@@ -370,6 +371,8 @@ describe("«Числа в примере» — each number chosen on its own", (
   it("either number may be the longer; the leading digit never a zero", () => {
     expect(normalizeOperands({ top: 2, bottom: 3 })).toMatchObject({ top: 2, bottom: 3 });
     expect(normalizeOperands({ top: 1, bottom: 1 })).toMatchObject({ top: 1, bottom: 1 });
+    expect(normalizeOperands({ top: 2, bottom: 3 }, "subtract")).toMatchObject({ top: 2, bottom: 2 });
+    expect(normalizeOperands({ top: 2, bottom: 3 }, "mixed")).toMatchObject({ top: 2, bottom: 2 });
     expect(normalizeOperands({ top: 2, topZeros: [0, 1], bottom: 1, bottomZeros: [0] })).toEqual({ top: 2, topZeros: [0], bottom: 1, bottomZeros: [] });
   });
 

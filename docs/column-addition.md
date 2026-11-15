@@ -20,9 +20,10 @@ no longer needed for the column.
   an empty cell — the number grows to it; a marked cell — 0 there if a 0 can
   stand there, otherwise (the leading digit) the cell goes off; a 0 again —
   any digit. «Убрать нули» shows only while there are zeros. Either number
-  may be the longer (25 + 326 — the trainer draws a shorter top number with
-  an empty cell, `hasTopDigit`); subtraction puts the longer number on top
-  and the setting says the numbers change places. Param `operands` =
+  may be the longer with «+» (25 + 326 — the trainer draws a shorter top
+  number with an empty cell, `hasTopDigit`); with a «−» in play («−» or
+  «Микс») the bottom is no longer than the top — its extra cells go dim,
+  a longer saved bottom is cut (owner: just limit it, no notes). Param `operands` =
   `{top, topZeros, bottom, bottomZeros}` (1…3 digits, zero places from the
   units), type `column_operands`. An unmarked cell never draws a 0.
   `operandsExample` (`engine.js`) draws the numbers; the answer is as wide as

@@ -5,35 +5,40 @@
 //   a marked cell — 0 there if a 0 can stand there, otherwise the cell goes
 //   off (the leading digit of a number is never 0); a 0 tapped again — back
 //   to any digit.
-// Either number may be the longer (25 + 326). No row captions, no notebook
-// grid, no extra buttons on the cells (owner: one gesture, one meaning).
+// With «+» either number may be the longer (25 + 326); with a «−» in play the
+// bottom is no longer than the top — its extra cells go dim and don't take a
+// tap. No row captions, no notebook grid, no extra buttons or notes (owner:
+// one gesture, one meaning).
 // Value: { top, topZeros, bottom, bottomZeros } — engine.js normalizeOperands.
 
-import { useMemo, useState } from "react";
-import { normalizeOperands, operandsExample, operandsSwappedFor } from "@/topics/renderers/column_addition/engine.js";
+import { useEffect, useMemo, useState } from "react";
+import { normalizeOperands, operandsExample } from "@/topics/renderers/column_addition/engine.js";
 import "./columnOperandsParam.css";
 
 const CELLS = 3;
 
-export function tapCell(o, row, place) {
+export function tapCell(o, row, place, operation = "add") {
   const digits = o[row];
   const zerosKey = row === "top" ? "topZeros" : "bottomZeros";
-  if (place >= digits) return normalizeOperands({ ...o, [row]: place + 1 });
-  if (place === digits - 1) return digits > 1 ? normalizeOperands({ ...o, [row]: place }) : o;
-  const zeros = o[zerosKey].includes(place) ? o[zerosKey].filter((p) => p !== place) : [...o[zerosKey], place];
-  return normalizeOperands({ ...o, [zerosKey]: zeros });
+  if (row === "bottom" && operation !== "add" && place >= o.top) return o;
+  const next = place >= digits ? { ...o, [row]: place + 1 }
+    : place === digits - 1 ? (digits > 1 ? { ...o, [row]: place } : o)
+    : { ...o, [zerosKey]: o[zerosKey].includes(place) ? o[zerosKey].filter((p) => p !== place) : [...o[zerosKey], place] };
+  return normalizeOperands(next, operation);
 }
 
-function CellRow({ row, digits, zeros, gridRow, onTap, label }) {
+function CellRow({ row, digits, zeros, max = CELLS, gridRow, onTap, label }) {
   const cells = [];
   for (let place = CELLS - 1; place >= 0; place--) {
     const on = place < digits;
     const zero = on && zeros.includes(place);
+    const off = place >= max;
     cells.push(
       <button
         key={place}
         type="button"
-        className={["cop-cell", on ? "cop-cell--on" : "", zero ? "cop-cell--zero" : ""].filter(Boolean).join(" ")}
+        disabled={off}
+        className={["cop-cell", on ? "cop-cell--on" : "", zero ? "cop-cell--zero" : "", off ? "cop-cell--off" : ""].filter(Boolean).join(" ")}
         style={{ gridRow, gridColumn: 2 + (CELLS - 1 - place) }}
         aria-label={`${label}, ${["единицы", "десятки", "сотни"][place]}: ${zero ? "ноль" : on ? "цифра" : "пусто"}`}
         onClick={() => onTap(row, place)}
@@ -46,7 +51,14 @@ function CellRow({ row, digits, zeros, gridRow, onTap, label }) {
 }
 
 export default function ColumnOperandsParam({ label, value, operation, carryMode, onChange, labelNode }) {
-  const o = normalizeOperands(value);
+  const limitOp = operation === "add" ? "add" : "subtract";
+  const o = normalizeOperands(value, limitOp);
+  // switching to «−» cuts a longer bottom — keep the saved value the same as shown
+  const shownKey = JSON.stringify(o);
+  useEffect(() => {
+    if (JSON.stringify(normalizeOperands(value)) !== shownKey) onChange(o);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownKey]);
   const [seed, setSeed] = useState(0);
   const op = operation === "subtract" ? "subtract" : operation === "mixed" ? (seed % 2 ? "subtract" : "add") : "add";
   const sign = op === "subtract" ? "−" : "+";
@@ -57,8 +69,7 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
     [key, op, carryMode, seed],
   );
   const hasZeros = o.topZeros.length + o.bottomZeros.length > 0;
-  const tap = (row, place) => onChange(tapCell(o, row, place));
-  const swapped = (operation === "subtract" || operation === "mixed") && operandsSwappedFor(o, "subtract");
+  const tap = (row, place) => onChange(tapCell(o, row, place, limitOp));
 
   return (
     <div className="param-row param-row--block cop" aria-label={label}>
@@ -66,7 +77,7 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
       <div className="cop-column">
         <CellRow row="top" label="Верхнее число" digits={o.top} zeros={o.topZeros} gridRow={1} onTap={tap} />
         <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
-        <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} gridRow={2} onTap={tap} />
+        <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} max={limitOp === "add" ? CELLS : o.top} gridRow={2} onTap={tap} />
         <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
       </div>
       <div className="cop-example">
@@ -74,7 +85,6 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
         <span className="cop-example__numbers">{example ? `${example.top} ${example.operation === "subtract" ? "−" : "+"} ${example.bottom}` : "—"}</span>
         <button type="button" className="cop-again" onClick={() => setSeed((s) => s + 1)}>↻ Другой</button>
       </div>
-      {swapped && <div className="cop-note">В вычитании большее число встанет сверху: числа поменяются местами.</div>}
       {example?.relaxed && (
         <div className="cop-note">
           {op === "subtract" ? "С займом" : "С переносом"} такие числа не бывают без нового разряда — примеры будут без {op === "subtract" ? "займа" : "переноса"}.

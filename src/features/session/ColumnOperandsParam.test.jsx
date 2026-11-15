@@ -34,9 +34,12 @@ describe("ColumnOperandsParam — one gesture for every cell", () => {
     expect(tapCell({ top: 1, topZeros: [], bottom: 1, bottomZeros: [] }, "bottom", 0)).toEqual({ top: 1, topZeros: [], bottom: 1, bottomZeros: [] });
   });
 
-  it("subtraction with the longer bottom says the numbers change places", () => {
+  it("with a «−» the bottom is no longer than the top: extra cells off, a longer bottom cut", () => {
     mount({ top: 2, topZeros: [], bottom: 3, bottomZeros: [] }, "subtract");
-    expect(container.textContent).toContain("большее число встанет сверху");
-    expect(container.querySelector(".cop-example__numbers").textContent).toMatch(/^\d{3} − \d{2}$/);
+    expect(value.bottom).toBe(2); // cut and saved as shown
+    const bottomHundreds = container.querySelectorAll(".cop-cell")[3];
+    expect(bottomHundreds.disabled).toBe(true);
+    expect(container.querySelector(".cop-note")).toBeNull();
+    expect(container.querySelector(".cop-example__numbers").textContent).toMatch(/^\d{2} − \d{1,2}$/);
   });
 });
