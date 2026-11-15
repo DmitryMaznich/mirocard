@@ -12,9 +12,17 @@ no longer needed for the column.
 ## Modes
 
 - «Столбик — Тренажёр» (`column_arithmetic`): step-by-step on the notebook grid.
-  «Разрядность» since 2026-10-23 also has 3 + 2, 3 + 1, «Круглые до 1000», «С
-  нулём» — numbers from the check's kinds (`trainerTaskOfKind`, `engine.js`);
-  the grid is as wide as the top number, the answer never grows a place.
+  «Числа в примере» (since 2026-11-15, replaced the «Разрядность» list of
+  abbreviations): param `operands` = `{top, topKind, bottom, bottomKind}`,
+  type `column_operands`, drawn by `src/features/session/ColumnOperandsParam.jsx`
+  — «Верхнее число» 2 / 3 цифры × Любое / Круглое / С нулём (305, 340, 400 —
+  3 digits only), «Нижнее число» 1…top цифр × Любое / Круглое (2+ digits),
+  with a live example in the column («↻ Другой»). `operandsExample` (`engine.js`)
+  draws the numbers; the answer is as wide as the top number (no new place in
+  the trainer). A carry the numbers can't have without a new place (40 + 50
+  «С переносом») — examples come without it, and the settings say so. Old
+  saved `digits` map onto `operands` (`resolveOperands`; ParamsScreen does it
+  when the settings open).
 - «Контрольная работа» (`column_copy`, rebuilt 2026-10-23): a sheet of examples
   in a line; the child sets them up in the notebook, types the answer, «✓».
   - «Какие примеры» — switches (`COPY_KINDS`): 2 + 2, 2 + 1, 3 + 3, 3 + 2,

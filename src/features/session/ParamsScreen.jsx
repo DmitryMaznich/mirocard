@@ -45,6 +45,8 @@ import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } 
 import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
+import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
+import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -1704,6 +1706,11 @@ export default function ParamsScreen() {
         out[key] = saved[key] ?? def.default ?? [];
         continue;
       }
+      if (def.type === "column_operands") {
+        // settings saved before 2026-11-15 carry the old «Разрядность» (digits)
+        out[key] = resolveOperands({ operands: saved[key], digits: saved.digits });
+        continue;
+      }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
     }
     // «Видео в конце занятия» is not a declared mode option: kept with the params like figureFilters
@@ -2187,6 +2194,20 @@ export default function ParamsScreen() {
                 onShowInfo={setActiveInfo}
                 ordered={def.ordered === true}
                 hint={setupText(def.hint) || ""}
+              />
+            );
+          }
+          if (def.type === "column_operands") {
+            const label = setupText(def.label) || key;
+            return (
+              <ColumnOperandsParam
+                key={key}
+                label={label}
+                labelNode={<ParamLabel label={label} info={setupInfo(def.info)} onShowInfo={setActiveInfo} />}
+                value={params[key]}
+                operation={params.operation ?? mode.params?.operation?.default}
+                carryMode={params.carryMode ?? mode.params?.carryMode?.default}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
             );
           }

@@ -120,154 +120,6 @@ function buildSubSteps(columns) {
   return steps;
 }
 
-function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digits, roundTens = false) {
-  for (let attempt = 0; attempt < 100; attempt++) {
-    let top, bottom;
-    if (roundTens) {
-      // "Круглые дес.": both operands are plain multiples of 10 (units digit
-      // genuinely 0 for both, not a phantom column). The sum must never
-      // exceed 100 — see the `top + bottom > 100` reject below — so "с
-      // переносом" here means exactly "reaching 100" (e.g. 40+60=100), not
-      // climbing arbitrarily into the hundreds (60+70=130 is NOT allowed).
-      top = randomInt(1, 9) * 10;
-      bottom = randomInt(1, 9) * 10;
-    } else if (bottomDigits < digits) {
-      // Mixed width ("2-зн. + 1-зн."): the search space is small (≤90×9), so
-      // plain random + retry-on-mismatch below is simpler than hand-tuning
-      // ranges the way the uniform-width branches do.
-      top = randomInt(10 ** (digits - 1), 10 ** digits - 1);
-      bottom = randomInt(1, 10 ** bottomDigits - 1);
-    } else if (digits === 2) {
-      if (carryMode === "none") {
-        const tU = randomInt(1, 8), tT = randomInt(1, 8);
-        const bU = randomInt(1, 9 - tU), bT = randomInt(1, 9 - tT);
-        top = tT * 10 + tU; bottom = bT * 10 + bU;
-      } else if (carryMode === "carry") {
-        const tU = randomInt(2, 9), bU = randomInt(10 - tU, 9);
-        const tT = randomInt(1, 7), bT = randomInt(1, 8 - tT);
-        top = tT * 10 + tU; bottom = bT * 10 + bU;
-      } else {
-        // bottom's upper bound must leave top+bottom within the 2-digit cap (99), so
-        // top itself can't go all the way to 89 — at 89 there'd be no valid 2-digit
-        // bottom (99-89=10 < the 11 floor every other branch here uses).
-        top = randomInt(11, 88); bottom = randomInt(11, 99 - top);
-      }
-    } else {
-      // Same reasoning as above, one digit up: top can't reach 899, or 999-top would
-      // dip below the 101 floor and leave no valid 3-digit bottom.
-      top = randomInt(101, 898); bottom = randomInt(101, 999 - top);
-    }
-    const columns = buildAddColumns(top, bottom, digits, bottomDigits);
-    const hasCarry = columns.some(c => c.carryOut > 0);
-    if (carryMode === "none" && hasCarry) continue;
-    if (carryMode === "carry" && !hasCarry) continue;
-    // Neither "Круглые дес." nor "2-зн. + 1-зн." should ever spill a digit
-    // past the grid's own width — 60+70=130 and 97+4=101 both broke this the
-    // same way (a carry cascading past the last real column, e.g. 97's tens
-    // digit being 9 pushes a units carry straight into hundreds). Plain
-    // uniform-width digits (2 or 3) already stay in-range by construction in
-    // the branches above, so these rejects only ever fire for these two.
-    // Round-tens' own cap is the round number itself (100), one higher than
-    // "2+1"'s (99 — same ceiling as plain 2-значные addition), since
-    // round-tens carryMode:"carry" is specifically about reaching exactly
-    // that boundary (40+60=100), not staying strictly under it.
-    if (roundTens && top + bottom > 10 ** digits) continue;
-    if (bottomDigits < digits && top + bottom > 10 ** digits - 1) continue;
-    // Avoid handing back the exact same pair twice within one generated batch —
-    // pure independent random draws otherwise repeat far more often than a
-    // parent/child expects, especially once carryMode narrows the digit space.
-    const pairKey = `add:${top},${bottom}`;
-    if (usedPairs?.has(pairKey)) continue;
-    usedPairs?.add(pairKey);
-    return {
-      type: "column_arithmetic",
-      cardId: card.id,
-      conceptId: card.conceptId,
-      operation: "add",
-      digits,
-      top,
-      bottom,
-      result: top + bottom,
-      columns,
-      steps: buildAddSteps(columns),
-    };
-  }
-  return null;
-}
-
-function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digits, roundTens = false) {
-  for (let attempt = 0; attempt < 100; attempt++) {
-    let top, bottom;
-    if (roundTens) {
-      // Round-tens subtraction never borrows: units are 0−0 for both, and
-      // top's tens digit is constructed to always be ≥ bottom's (strictly
-      // greater — same "never a 0 result" convention as the other branches).
-      // carryMode is therefore meaningless here; see the skip below.
-      const topTens = randomInt(2, 9);
-      const bottomTens = randomInt(1, topTens - 1);
-      top = topTens * 10;
-      bottom = bottomTens * 10;
-    } else if (bottomDigits < digits) {
-      // top (2-зн.) is always ≥ 10 > 9 ≥ bottom (1-зн.), so top > bottom is
-      // guaranteed without extra range-juggling — same retry-on-mismatch
-      // reasoning as the addition branch above.
-      top = randomInt(10 ** (digits - 1), 10 ** digits - 1);
-      bottom = randomInt(1, 10 ** bottomDigits - 1);
-    } else if (digits === 2) {
-      if (carryMode === "none") {
-        const bU = randomInt(1, 8), tU = randomInt(bU, 9);
-        const bT = randomInt(1, 8), tT = randomInt(bT + 1, 9);
-        top = tT * 10 + tU; bottom = bT * 10 + bU;
-      } else if (carryMode === "carry") {
-        const bU = randomInt(2, 9), tU = randomInt(1, bU - 1);
-        const bT = randomInt(1, 7), tT = randomInt(bT + 1, 9);
-        top = tT * 10 + tU; bottom = bT * 10 + bU;
-      } else {
-        top = randomInt(21, 99); bottom = randomInt(11, top - 10);
-      }
-    } else {
-      top = randomInt(201, 999); bottom = randomInt(101, top - 100);
-    }
-    const columns = buildSubColumns(top, bottom, digits, bottomDigits);
-    const hasBorrow = columns.some(c => c.borrowOut > 0);
-    // A round-tens borrow is structurally impossible — filtering on carryMode
-    // here would make carryMode:"carry" retry all 100 attempts and always
-    // fail, starving the session of tasks. carryMode simply doesn't apply.
-    if (!roundTens) {
-      if (carryMode === "none" && hasBorrow) continue;
-      if (carryMode === "carry" && !hasBorrow) continue;
-    }
-    const pairKey = `sub:${top},${bottom}`;
-    if (usedPairs?.has(pairKey)) continue;
-    usedPairs?.add(pairKey);
-    return {
-      type: "column_arithmetic",
-      cardId: card.id,
-      conceptId: card.conceptId,
-      operation: "subtract",
-      digits,
-      top,
-      bottom,
-      result: top - bottom,
-      columns,
-      steps: buildSubSteps(columns),
-    };
-  }
-  return null;
-}
-
-// "2+1" and "round10" are the two non-numeric `digits` values. "2+1" is a
-// shorthand for "top is 2-значное, bottom is 1-значное" (uneven width);
-// "round10" means both operands are plain multiples of 10 (even width, both
-// digits real — no bottomDigits narrowing needed). Grid width (digits) stays 2.
-function resolveDigitsParam(digitsParam) {
-  const mixedWidth = digitsParam === "2+1";
-  const roundTens = digitsParam === "round10";
-  const digits = mixedWidth || roundTens ? 2 : Number(digitsParam ?? 2);
-  const bottomDigits = mixedWidth ? 1 : digits;
-  return { digits, bottomDigits, roundTens };
-}
-
 // Gate for the borrow-teaching UI (comparison strip + borrow/adjust squares):
 // only subtraction tasks that actually contain a borrow qualify. Addition,
 // and subtraction tasks generated without a borrow, are untouched by it.
@@ -303,8 +155,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
 
   const operation = params.operation ?? "add";
   const carryMode = params.carryMode ?? "none";
-  const { digits, bottomDigits, roundTens } = resolveDigitsParam(params.digits);
-  const kind = TRAINER_KINDS[params.digits];
+  const operands = resolveOperands(params);
 
   const filtered   = operation === "mixed" ? arithmeticCards
     : arithmeticCards.filter(c => (c.params?.operation ?? "add") === operation);
@@ -318,11 +169,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     attempts++;
     const card = activePool[idx % activePool.length];
     const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
-    const task = kind ? trainerTaskOfKind(kind, op, carryMode, card, usedPairs)
-      : op === "add"
-        ? generateAddTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens)
-        : generateSubTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens);
-    if (task) { tasks.push(task); idx++; }
+    const ex = operandsExample(operands, op, carryMode, usedPairs);
+    if (ex) { tasks.push(trainerTaskFrom(ex, card)); idx++; }
   }
 
   return tasks;
@@ -458,16 +306,6 @@ export function columnTaskOfExample(ex) {
   return trainerTaskFrom(ex, { id: "copy", conceptId: "copy" });
 }
 
-// «Разрядность» of the trainer that come from the sheet's kinds (3 + 2, 3 + 1,
-// круглые до 1000, с нулём): numbers as in the check, the grid as wide as the
-// top number — the answer never grows a place here (no «Новый разряд»).
-const TRAINER_KINDS = { "3+2": "32", "3+1": "31", round: "round", zero: "zero" };
-
-function trainerTaskOfKind(kind, op, carryMode, card, usedPairs) {
-  const ex = generateCopyExample(kind, op, carryMode, usedPairs);
-  return ex && trainerTaskFrom(ex, card);
-}
-
 function trainerTaskFrom(ex, card) {
   const op = ex.operation;
   const digits = width(ex.top), bottomDigits = width(ex.bottom);
@@ -484,4 +322,76 @@ function trainerTaskFrom(ex, card) {
     columns,
     steps: op === "add" ? buildAddSteps(columns) : buildSubSteps(columns),
   };
+}
+
+// ── «Числа в примере» (2026-11-15): each number of the trainer chosen on its
+// own — how many digits and what kind — instead of the old list of
+// abbreviations («2-зн. + 1-зн.», «Круглые дес.», …).
+//   top: 2 | 3 digits, topKind: "any" | "round" (ends in 0) | "zero" (a 0
+//   inside: 305, 340, 400 — 3 digits only);
+//   bottom: 1…top digits, bottomKind: "any" | "round" (2+ digits).
+// The answer never grows a place here (the trainer's grid is as wide as the
+// top number) and a difference stays as wide as the top number.
+export const OPERAND_KINDS = ["any", "round", "zero"];
+
+export function normalizeOperands(o) {
+  const top = o?.top === 3 ? 3 : 2;
+  const bottom = Math.min(top, Math.max(1, Number(o?.bottom) || top));
+  const topKind = o?.topKind === "round" || (o?.topKind === "zero" && top === 3) ? o.topKind : "any";
+  const bottomKind = o?.bottomKind === "round" && bottom >= 2 ? "round" : "any";
+  return { top, topKind, bottom, bottomKind };
+}
+
+// The old «Разрядность» values, for settings saved before 2026-11-15.
+const LEGACY_DIGITS = {
+  2: [2, "any", 2, "any"], 3: [3, "any", 3, "any"],
+  "2+1": [2, "any", 1, "any"], "3+2": [3, "any", 2, "any"], "3+1": [3, "any", 1, "any"],
+  round10: [2, "round", 2, "round"], round: [3, "round", 2, "round"], zero: [3, "zero", 2, "any"],
+};
+
+export function resolveOperands(params) {
+  if (params?.operands && typeof params.operands === "object") return normalizeOperands(params.operands);
+  const [top, topKind, bottom, bottomKind] = LEGACY_DIGITS[params?.digits ?? 2] ?? LEGACY_DIGITS[2];
+  return normalizeOperands({ top, topKind, bottom, bottomKind });
+}
+
+function drawOperand(digits, kind) {
+  if (kind === "round") {
+    if (digits === 2) return randomInt(1, 9) * 10;
+    return Math.random() < 0.4 ? randomInt(1, 9) * 100 : randomInt(10, 99) * 10;
+  }
+  if (kind === "zero") {
+    const h = randomInt(1, 9);
+    return pickOne([h * 100 + randomInt(1, 9), h * 100 + randomInt(1, 9) * 10, h * 100]);
+  }
+  return digits === 1 ? randomInt(2, 9) : ofWidth(digits);
+}
+
+function drawOperandsPair(o, op, carryMode, usedPairs) {
+  for (let attempt = 0; attempt < 300; attempt++) {
+    const top = drawOperand(o.top, o.topKind);
+    const bottom = drawOperand(o.bottom, o.bottomKind);
+    const answer = op === "add" ? top + bottom : top - bottom;
+    if (answer <= 0 || width(answer) !== width(top)) continue;
+    if (carryMode !== "mixed") {
+      const crosses = op === "add" ? hasCarry(top, bottom) : hasBorrow(top, bottom);
+      if (crosses !== (carryMode === "carry")) continue;
+    }
+    const pairKey = `${op}:${top},${bottom}`;
+    if (usedPairs?.has(pairKey)) continue;
+    usedPairs?.add(pairKey);
+    return { operation: op, top, bottom };
+  }
+  return null;
+}
+
+// A carry the numbers can't have (40 + 50 with «С переносом»: round tens
+// carry only into a new place) — the examples come without it rather than not
+// at all; `relaxed` tells the settings screen to say so.
+export function operandsExample(operands, op, carryMode, usedPairs) {
+  const o = normalizeOperands(operands);
+  const ex = drawOperandsPair(o, op, carryMode, usedPairs);
+  if (ex || carryMode === "mixed") return ex;
+  const loose = drawOperandsPair(o, op, "mixed", usedPairs);
+  return loose && { ...loose, relaxed: true };
 }

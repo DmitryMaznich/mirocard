@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow, columnTaskOfExample } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow, columnTaskOfExample, operandsExample, normalizeOperands, resolveOperands } from "./engine.js";
 
 const CARDS = [
   { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
@@ -198,14 +198,6 @@ describe("generateTasks – column_arithmetic, digits: \"round10\" (Круглы
     }
   });
 
-  it("add/carry: reaches exactly 100 (e.g. 40+60=100), never more", () => {
-    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "carry", digits: "round10" });
-    for (const t of tasks) {
-      expect(t.columns.some((c) => c.carryOut > 0)).toBe(true);
-      expect(t.result).toBe(100);
-    }
-  });
-
   it("add: sum never exceeds 100, regardless of carryMode (60+70=130 must never appear)", () => {
     for (const carryMode of ["none", "carry", "mixed"]) {
       const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode, digits: "round10" });
@@ -323,36 +315,55 @@ describe("buildSubColumns compareTopDigit", () => {
 });
 
 // digits:"mixed" carryMode picks top/bottom independently within a range, rather than
-// deriving bottom from "how much room is left before the digit cap" — at the RNG's
-// top-of-range value that let add/mixed hand back a 2-digit result over 99 (or a 3-digit
-// result over 999). Math.random is pinned to just-under-1 so randomInt(min, max) always
-// resolves to max, deterministically reproducing the worst case instead of relying on
-// hitting it by chance.
-describe("column_arithmetic — result never exceeds the selected digit count", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
+describe("«Числа в примере» — each number chosen on its own", () => {
+  const gen = (operands, operation = "mixed", carryMode = "mixed", n = 40) =>
+    generateTasks("column_arithmetic", CARDS, n, { operation, carryMode, operands });
+
+  it("widths and kinds hold for every combination; the answer keeps the top's width", () => {
+    for (const top of [2, 3]) for (const bottom of [1, 2, 3].filter((b) => b <= top)) {
+      for (const topKind of top === 3 ? ["any", "round", "zero"] : ["any", "round"]) {
+        for (const bottomKind of bottom >= 2 ? ["any", "round"] : ["any"]) {
+          const tasks = gen({ top, topKind, bottom, bottomKind }, "mixed", "mixed", 12);
+          expect(tasks.length, JSON.stringify({ top, topKind, bottom, bottomKind })).toBeGreaterThan(0);
+          for (const t of tasks) {
+            expect(String(t.top)).toHaveLength(top);
+            expect(String(t.bottom)).toHaveLength(bottom);
+            expect(String(t.result)).toHaveLength(top);
+            if (topKind === "round") expect(t.top % 10).toBe(0);
+            if (topKind === "zero") expect(String(t.top).slice(1)).toContain("0");
+            if (bottomKind === "round") expect(t.bottom % 10).toBe(0);
+          }
+        }
+      }
+    }
   });
 
-  it("add/mixed, digits:2 — result stays within 2 digits at the RNG's top-of-range value", () => {
-    vi.spyOn(Math, "random").mockReturnValue(1 - 1e-9);
-    const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "add", carryMode: "mixed", digits: 2 });
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].result).toBeLessThanOrEqual(99);
+  it("carry is honoured where the numbers allow it", () => {
+    for (const t of gen({ top: 3, bottom: 2 }, "add", "carry")) expect(hasCarry(t.top, t.bottom)).toBe(true);
+    for (const t of gen({ top: 3, topKind: "zero", bottom: 2 }, "subtract", "carry")) expect(hasBorrow(t.top, t.bottom)).toBe(true);
+    for (const t of gen({ top: 2, bottom: 1 }, "add", "none")) expect(hasCarry(t.top, t.bottom)).toBe(false);
   });
 
-  it("add/mixed, digits:3 — result stays within 3 digits at the RNG's top-of-range value", () => {
-    vi.spyOn(Math, "random").mockReturnValue(1 - 1e-9);
-    const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "add", carryMode: "mixed", digits: 3 });
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].result).toBeLessThanOrEqual(999);
+  it("a carry the numbers can't have: examples come without it, marked relaxed", () => {
+    // round tens + round tens carry only into a new place, which the trainer doesn't do
+    const ex = operandsExample({ top: 2, topKind: "round", bottom: 2, bottomKind: "round" }, "add", "carry");
+    expect(ex).toBeTruthy();
+    expect(ex.relaxed).toBe(true);
+    expect(gen({ top: 2, topKind: "round", bottom: 2, bottomKind: "round" }, "add", "carry")).not.toHaveLength(0);
   });
 
-  it("subtract/mixed, digits:2 — result stays within [0, 99] at the RNG's top-of-range value", () => {
-    vi.spyOn(Math, "random").mockReturnValue(1 - 1e-9);
-    const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "subtract", carryMode: "mixed", digits: 2 });
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].result).toBeGreaterThanOrEqual(0);
-    expect(tasks[0].result).toBeLessThanOrEqual(99);
+  it("bottom never longer than top; zero only for 3 digits; round bottom needs 2+ digits", () => {
+    expect(normalizeOperands({ top: 2, bottom: 3 })).toMatchObject({ top: 2, bottom: 2 });
+    expect(normalizeOperands({ top: 2, topKind: "zero", bottom: 1 }).topKind).toBe("any");
+    expect(normalizeOperands({ top: 3, bottom: 1, bottomKind: "round" }).bottomKind).toBe("any");
+  });
+
+  it("old «Разрядность» settings map onto the numbers", () => {
+    expect(resolveOperands({ digits: "3+1" })).toEqual({ top: 3, topKind: "any", bottom: 1, bottomKind: "any" });
+    expect(resolveOperands({ digits: "round10" })).toEqual({ top: 2, topKind: "round", bottom: 2, bottomKind: "round" });
+    expect(resolveOperands({ digits: "zero" })).toEqual({ top: 3, topKind: "zero", bottom: 2, bottomKind: "any" });
+    expect(resolveOperands({})).toEqual({ top: 2, topKind: "any", bottom: 2, bottomKind: "any" });
+    expect(resolveOperands({ digits: 3, operands: { top: 2, bottom: 1 } })).toMatchObject({ top: 2, bottom: 1 });
   });
 });
 
