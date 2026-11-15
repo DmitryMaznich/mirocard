@@ -59,18 +59,19 @@ describe('natural coloring across separate browser frames',()=>{
     saveColoring(key,snapshot);const error=vi.fn();
     await render('pen',{onStreakReset:error});
     await send('pointerdown',100,100);await send('pointermove',180,100);await send('pointerup',180,100);
-    expect(loadColoring(key).progress.shapes[1].filled.length).toBeGreaterThan(0);
+    const first=loadColoring(key).progress.shapes[1].filled;expect(first.length).toBeGreaterThan(0);
     await send('pointerdown',100,130);await send('pointermove',400,130);
     let saved=loadColoring(key);
-    expect(saved.progress.shapes[1]).toMatchObject({phase:'fill',retry:true,ink:[],filled:[],outline:completed.outline});
+    expect(saved.progress.shapes[1]).toMatchObject({phase:'fill',retry:true,filled:first,outline:completed.outline});
+    expect(saved.progress.shapes[1].ink).toHaveLength(1);
     expect(saved.progress.shapes[0]).toEqual(completed);expect(saved.progress.hadError).toBe(true);
-    await send('pointermove',100,150);expect(loadColoring(key).progress.shapes[1].filled).toEqual([]);
-    await send('pointerup',100,150);expect(host.textContent).toContain('Закрась фигуру заново');
+    await send('pointermove',100,150);expect(loadColoring(key).progress.shapes[1].filled).toEqual(first);
+    await send('pointerup',100,150);expect(host.textContent).toContain('Закрашивай дальше');
     await send('pointerdown',100,160);await send('pointermove',180,160);await send('pointerup',180,160);
-    saved=loadColoring(key);expect(saved.progress.shapes[1].filled.length).toBeGreaterThan(0);
-    expect(saved.progress.shapes[1].ink).toHaveLength(1);expect(error).toHaveBeenCalledTimes(1);
+    saved=loadColoring(key);const second=saved.progress.shapes[1].filled;expect(second.length).toBeGreaterThan(first.length);
+    expect(saved.progress.shapes[1].ink).toHaveLength(2);expect(error).toHaveBeenCalledTimes(1);
     await send('pointerdown',100,180);await send('pointermove',400,180);await send('pointerup',400,180);
-    expect(loadColoring(key).progress.shapes[1].filled).toEqual([]);expect(error).toHaveBeenCalledTimes(1);
+    expect(loadColoring(key).progress.shapes[1].filled).toEqual(second);expect(error).toHaveBeenCalledTimes(1);
   });
   it('removes the whole partial outline on error and retains the reset after remounting',async()=>{
     const saved=loadColoring(key);saved.progress.shapes[0].phase='trace';saveColoring(key,saved);
