@@ -8,11 +8,11 @@ import { back, chooseShape, freshPortrait, next, pick, portraitKey, readPortrait
 import { LIFT_MS, splitSubpaths, timeline, timelineEnd } from './drawPath.js';
 
 describe('portrait styles', () => {
-  it('«Простое лицо»: three faces, five steps of six variants, finite paths and a place for every step', () => {
-    expect(STYLES.simple.faces).toHaveLength(3); expect(stepCount('simple')).toBe(5);
+  it('«Простое лицо»: three faces, seven steps of six variants, finite paths and a place for every step', () => {
+    expect(STYLES.simple.faces).toHaveLength(3); expect(stepCount('simple')).toBe(7);
     for (let shape = 0; shape < 3; shape++) {
       const steps = styleSteps('simple', shape);
-      expect(steps.map(s => s.name)).toEqual(['Глаза', 'Нос', 'Рот', 'Уши', 'Волосы']);
+      expect(steps.map(s => s.name)).toEqual(['Глаза', 'Брови', 'Нос', 'Рот', 'Уши', 'Волосы', 'Шея']);
       for (const step of steps) {
         expect(step.variants).toHaveLength(6); expect(step.places.length).toBeGreaterThan(0);
         for (const v of step.variants) { expect(v.label).toBeTruthy(); expect(v.d).not.toMatch(/NaN|undefined/); }
@@ -21,7 +21,17 @@ describe('portrait styles', () => {
   });
   it('«Простое лицо» draws paired parts on both sides of the face', () => {
     const steps = styleSteps('simple', 1);
-    for (const index of [0, 3]) for (const v of steps[index].variants) expect(splitSubpaths(v.d).length % 2).toBe(0);
+    for (const index of [0, 1, 4]) for (const v of steps[index].variants) expect(splitSubpaths(v.d).length % 2).toBe(0);
+  });
+  it('«Простое лицо» brows are level (no emotion) and the neck starts at the chin', () => {
+    for (const shape of [0, 1, 2]) {
+      const steps = styleSteps('simple', shape);
+      for (const v of steps[1].variants) for (const sub of splitSubpaths(v.d)) {
+        const ys = [...sub.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(m => +m[2]);
+        expect(Math.abs(ys[0] - ys.at(-1))).toBeLessThan(.01);
+      }
+      expect(steps[6].variants.every(v => v.d.startsWith('M'))).toBe(true);
+    }
   });
   it('«Пикассо» keeps the prototype: seven steps, hair placed per face shape', () => {
     expect(stepCount('picasso')).toBe(7);
@@ -33,9 +43,9 @@ describe('portrait state', () => {
   it('walks shape → parts → done and steps back one choice at a time', () => {
     let s = chooseShape(freshPortrait('simple'), 1);
     expect(next(s)).toBe(s);
-    for (let i = 0; i < 5; i++) { s = next(pick(s, i + 1)); }
-    expect(s).toMatchObject({ phase: 'done', style: 'simple', results: [1, 2, 3, 4, 5] });
-    s = back(s); expect(s).toMatchObject({ phase: 'part', results: [1, 2, 3, 4], value: 5 });
+    for (let i = 0; i < 7; i++) { s = next(pick(s, (i % 6) + 1)); }
+    expect(s).toMatchObject({ phase: 'done', style: 'simple', results: [1, 2, 3, 4, 5, 6, 1] });
+    s = back(s); expect(s).toMatchObject({ phase: 'part', results: [1, 2, 3, 4, 5, 6], value: 1 });
     expect(validPortrait(s)).toBe(true); expect(pick(s, 7)).toBe(s);
   });
   it('reads a pre-style save as Picasso and starts over when the adult chose another style', () => {
@@ -68,7 +78,7 @@ describe('portrait screen', () => {
   const click = async el => act(async () => el.click());
   const label = name => host.querySelector(`[aria-label="${name}"]`);
 
-  it('«Простое лицо» by default: tap the variant with the same pips, ▶ shows it again, five steps to the portrait', async () => {
+  it('«Простое лицо» by default: tap the variant with the same pips, ▶ shows it again, seven steps to the portrait', async () => {
     await render();
     expect(host.querySelector('.portrait').dataset.style).toBe('simple');
     await click(label('Овальное'));
@@ -80,12 +90,12 @@ describe('portrait screen', () => {
     expect(options[1].getAttribute('aria-pressed')).toBe('true');
     expect(host.querySelector('.portrait-face__current path')).not.toBeNull();
     expect(label('Показать, как рисовать')).not.toBeNull();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 7; i++) {
       if (i) await click(host.querySelectorAll('.portrait-option')[0]);
       await click(host.querySelector('.portrait-next'));
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('done');
-    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ style: 'simple', phase: 'done', shape: 1, results: [2, 1, 1, 1, 1] });
+    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ style: 'simple', phase: 'done', shape: 1, results: [2, 1, 1, 1, 1, 1, 1] });
     await click(label('Новый портрет'));
     expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
   });
@@ -110,7 +120,7 @@ describe('portrait screen', () => {
   it('continues after a reload with the chosen variant', async () => {
     localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'part', shape: 2, results: [1, 2], value: 4 }));
     await render();
-    expect(host.querySelector('h2').textContent).toBe('Рот');
-    expect(host.querySelector('.portrait-option[aria-pressed="true"]').getAttribute('aria-label')).toBe('4: Овал');
+    expect(host.querySelector('h2').textContent).toBe('Нос');
+    expect(host.querySelector('.portrait-option[aria-pressed="true"]').getAttribute('aria-label')).toBe('4: Уголок');
   });
 });

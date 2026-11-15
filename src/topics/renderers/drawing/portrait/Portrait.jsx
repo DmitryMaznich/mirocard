@@ -2,7 +2,7 @@
 // a die (a real one or one on the screen) picks which of six variants to draw. Not evaluated.
 // The adult picks the style (styles.js); the chosen variant is then drawn stroke by stroke as a model.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FACE_VIEWBOX, STYLES, normalizeStyle, styleSteps } from './styles.js';
+import { STYLES, normalizeStyle, styleSteps } from './styles.js';
 import { back, chooseShape, next, pick, portraitKey, readPortrait, savePortrait, freshPortrait, stepCount } from './state.js';
 import { sampleSubpaths, timeline, timelineEnd } from './drawPath.js';
 import './portrait.css';
@@ -41,9 +41,9 @@ function TracedArt({ variant, play }) {
 }
 
 // The face with the parts already drawn; the current one in the accent colour, or a dashed place for it.
-function Face({ face, steps, results, current = null, hint = true, play = 0, className = 'portrait-face' }) {
+function Face({ viewBox, face, steps, results, current = null, hint = true, play = 0, className = 'portrait-face' }) {
   const step = steps[results.length];
-  return <svg className={className} viewBox={FACE_VIEWBOX} fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  return <svg className={className} viewBox={viewBox} fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d={face.path} />
     {results.map((value, i) => <g key={i} transform={steps[i].transform}><Art variant={steps[i].variants[value - 1]} /></g>)}
     {current !== null && <g className="portrait-face__current" transform={step.transform}><TracedArt key={`${results.length}:${current}:${play}`} variant={step.variants[current - 1]} play={play} /></g>}
@@ -96,7 +96,7 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
   const print = blank => {
     const done = faceRef.current?.querySelector('svg')?.outerHTML;
     const svg = done && !blank ? done
-      : `<svg viewBox="${FACE_VIEWBOX}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${face.path}"/></svg>`;
+      : `<svg viewBox="${style.viewBox}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${face.path}"/></svg>`;
     printSvg(blank ? 'Портрет по кубику — контур лица' : 'Мой портрет по кубику', svg);
   };
 
@@ -118,13 +118,13 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
     <header className="drawing-top portrait-top"><h2>Какое лицо?</h2><AdultButton onOpen={() => setMenu('settings')} /></header>
     <div className="portrait-shapes">{style.faces.map((option, i) => <button type="button" key={option.name} className="portrait-shape" aria-label={option.name} disabled={interactionDisabled}
       onClick={() => update(s => chooseShape(s, i))}>
-      <svg viewBox={FACE_VIEWBOX} fill="none" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" aria-hidden="true"><path d={option.path} /></svg>
+      <svg viewBox={style.viewBox} fill="none" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" aria-hidden="true"><path d={option.path} /></svg>
     </button>)}</div>
   </>);
 
   if (state.phase === 'done') return shell('done', 'Портрет готов', <>
     <header className="drawing-top portrait-top"><h2>Портрет готов</h2><AdultButton onOpen={() => setMenu('settings')} /></header>
-    <div className="portrait-done" ref={faceRef}><Face face={face} steps={steps} results={state.results} hint={false} className="portrait-face portrait-face--done" /></div>
+    <div className="portrait-done" ref={faceRef}><Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} hint={false} className="portrait-face portrait-face--done" /></div>
     <div className="portrait-done-actions">
       <button type="button" className="portrait-round" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
         <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 10a11 11 0 1 1-1 14M7 3v8h8" /></svg></button>
@@ -152,7 +152,7 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
         })}
       </div>
       <div className="portrait-stage">
-        <Face face={face} steps={steps} results={state.results} current={state.value} play={play} />
+        <Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} current={state.value} play={play} />
         {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать, как рисовать" disabled={interactionDisabled}
           onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
         {screenDie && state.value === null && <button type="button" className="portrait-roll" aria-label="Бросить кубик" disabled={interactionDisabled || rolling !== null}

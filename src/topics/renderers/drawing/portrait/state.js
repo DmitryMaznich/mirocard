@@ -3,7 +3,8 @@ import { STYLES, normalizeStyle } from './styles.js';
 
 export const stepCount = style => STYLES[normalizeStyle(style)].stepCount;
 export const freshPortrait = (style = 'simple') => ({ version: 2, style: normalizeStyle(style), phase: 'shape', shape: null, results: [], value: null });
-export const portraitKey = studentId => `drawing-portrait:v1:${studentId ?? 'local'}`;
+// v2 since «Простое лицо» got brows and a neck (2026-11-15): its steps moved, older saves start afresh.
+export const portraitKey = studentId => `drawing-portrait:v2:${studentId ?? 'local'}`;
 
 const die = value => Number.isInteger(value) && value >= 1 && value <= 6;
 export function validPortrait(raw) {

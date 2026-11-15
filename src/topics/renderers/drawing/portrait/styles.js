@@ -7,6 +7,8 @@ import { FACES, HAIR_TRANSFORMS, PART_FILLS, PART_LABELS, PART_NAMES, PART_TRANS
 
 export const STYLE_IDS = ['simple', 'picasso'];
 export const FACE_VIEWBOX = '0 -28 220 268';
+// «Простое лицо» has a neck and shoulders, so its sheet is taller and a little wider.
+const SIMPLE_VIEWBOX = '-24 -30 268 312';
 
 // ---- «Простое лицо» ----------------------------------------------------------------------------
 // Faces are superellipses: n = 2 is an ellipse, a larger n is a rounded square.
@@ -35,7 +37,7 @@ const line = (a, b) => `M${f(a.x)} ${f(a.y)} L${f(b.x)} ${f(b.y)}`;
 const pair = (draw, left, right) => `${draw(left, -1)} ${draw(right, 1)}`;
 
 function simpleSteps(face) {
-  const u = face.rx / 84, eyeY = face.cy - face.ry * .22, eyeDX = face.rx * .4, noseY = face.cy + face.ry * .12, mouthY = face.cy + face.ry * .48;
+  const u = face.rx / 84, eyeY = face.cy - face.ry * .22, browY = eyeY - 24 * u, eyeDX = face.rx * .4, noseY = face.cy + face.ry * .12, mouthY = face.cy + face.ry * .48;
   const eyes = [{ x: face.cx - eyeDX, y: eyeY }, { x: face.cx + eyeDX, y: eyeY }];
   const both = draw => `${draw(eyes[0], -1)} ${draw(eyes[1], 1)}`;
   const ears = [at(face, 180), at(face, 0)];
@@ -50,6 +52,16 @@ function simpleSteps(face) {
       { label: 'Дуги', d: both(e => `M${f(e.x - 12 * u)} ${f(e.y)} Q${f(e.x)} ${f(e.y + 11 * u)} ${f(e.x + 12 * u)} ${f(e.y)}`) },
       { label: 'Чёрточки', d: both(e => line({ x: e.x - 11 * u, y: e.y }, { x: e.x + 11 * u, y: e.y })) },
       { label: 'Овалы с точкой', d: both(e => ellipse(e.x, e.y, 14 * u, 9 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
+    ] },
+    // Brows: lines and arcs only, always level — a slant would read as anger or sadness (no emotions here).
+    { name: 'Брови', icon: [face.cx - face.rx * .78, browY - 22, face.rx * 1.56, 40], places: eyes.map(e => [e.x, browY, 16 * u, 8 * u]), variants: [
+      { label: 'Дуги', d: both(e => `M${f(e.x - 13 * u)} ${f(browY + 3 * u)} Q${f(e.x)} ${f(browY - 7 * u)} ${f(e.x + 13 * u)} ${f(browY + 3 * u)}`) },
+      { label: 'Прямые', d: both(e => line({ x: e.x - 13 * u, y: browY }, { x: e.x + 13 * u, y: browY })) },
+      { label: 'Короткие', d: both(e => line({ x: e.x - 6 * u, y: browY }, { x: e.x + 6 * u, y: browY })) },
+      { label: 'Длинные дуги', d: both(e => `M${f(e.x - 18 * u)} ${f(browY + 5 * u)} Q${f(e.x)} ${f(browY - 8 * u)} ${f(e.x + 18 * u)} ${f(browY + 5 * u)}`) },
+      { label: 'Высокие дуги', d: both(e => `M${f(e.x - 12 * u)} ${f(browY)} Q${f(e.x)} ${f(browY - 14 * u)} ${f(e.x + 12 * u)} ${f(browY)}`) },
+      { label: 'Густые', d: both(e => `M${f(e.x - 14 * u)} ${f(browY + 2 * u)} Q${f(e.x)} ${f(browY - 8 * u)} ${f(e.x + 14 * u)} ${f(browY + 2 * u)} Q${f(e.x)} ${f(browY - 2 * u)} ${f(e.x - 14 * u)} ${f(browY + 2 * u)}Z`),
+        fill: both(e => `M${f(e.x - 14 * u)} ${f(browY + 2 * u)} Q${f(e.x)} ${f(browY - 8 * u)} ${f(e.x + 14 * u)} ${f(browY + 2 * u)} Q${f(e.x)} ${f(browY - 2 * u)} ${f(e.x - 14 * u)} ${f(browY + 2 * u)}Z`) },
     ] },
     { name: 'Нос', icon: [face.cx - 30, noseY - 26, 60, 50], places: [[n.x, n.y, 14 * u, 16 * u]], variants: [
       { label: 'Точка', d: circle(n.x, n.y, 4.5 * u), fill: circle(n.x, n.y, 4.5 * u) },
@@ -87,7 +99,24 @@ function simpleSteps(face) {
         return `M${f(cap[0].x)} ${f(low)} L${cap.map(p => `${f(p.x)} ${f(p.y)}`).join(' L')} L${f(cap.at(-1).x)} ${f(low)}`; })() },
       { label: 'Хвостики', d: [215, 325].map(a => { const p = at(face, a, 22 * u); return `${line(at(face, a), at(face, a, 10 * u))} ${circle(p.x, p.y, 12 * u)}`; }).join(' ') },
     ] },
+    neckStep(face, u),
   ];
+}
+// Neck (and shoulders): two straight lines from the chin, then what the child likes around them.
+function neckStep(face, u) {
+  const left = at(face, 108), right = at(face, 72), base = face.cy + face.ry + 34 * u, sx = face.rx * 1.12, sy = base + 30 * u;
+  const neck = `M${f(left.x)} ${f(left.y)} L${f(left.x)} ${f(base)} M${f(right.x)} ${f(right.y)} L${f(right.x)} ${f(base)}`;
+  const shoulders = `M${f(left.x)} ${f(base)} Q${f(face.cx - sx)} ${f(base)} ${f(face.cx - sx)} ${f(sy)} M${f(right.x)} ${f(base)} Q${f(face.cx + sx)} ${f(base)} ${f(face.cx + sx)} ${f(sy)}`;
+  const mid = { x: face.cx, y: base };
+  return { name: 'Шея', icon: [face.cx - sx - 12, face.cy + face.ry * .45, sx * 2 + 24, sy - face.cy - face.ry * .45 + 10], ghost: true,
+    places: [[face.cx, base, sx * .75, 22 * u]], variants: [
+      { label: 'Шея', d: neck },
+      { label: 'Шея и плечи', d: `${neck} ${shoulders}` },
+      { label: 'Воротник', d: `${neck} ${shoulders} M${f(left.x - 10 * u)} ${f(base - 2 * u)} L${f(mid.x)} ${f(base + 16 * u)} L${f(right.x + 10 * u)} ${f(base - 2 * u)}` },
+      { label: 'Бусы', d: `${neck} ${shoulders} ${[-2, -1, 0, 1, 2].map(k => circle(mid.x + k * 9 * u, base - 6 * u + Math.abs(k) * -2 * u + 4 * u, 3.6 * u)).join(' ')}` },
+      { label: 'Круглый вырез', d: `${neck} ${shoulders} M${f(left.x - 12 * u)} ${f(base)} Q${f(mid.x)} ${f(base + 24 * u)} ${f(right.x + 12 * u)} ${f(base)}` },
+      { label: 'Бантик', d: `${neck} ${shoulders} M${f(mid.x)} ${f(base + 4 * u)} L${f(mid.x - 13 * u)} ${f(base - 4 * u)} L${f(mid.x - 13 * u)} ${f(base + 12 * u)}Z M${f(mid.x)} ${f(base + 4 * u)} L${f(mid.x + 13 * u)} ${f(base - 4 * u)} L${f(mid.x + 13 * u)} ${f(base + 12 * u)}Z` },
+    ] };
 }
 
 // ---- «Пикассо» ---------------------------------------------------------------------------------
@@ -101,8 +130,8 @@ function picassoSteps(shape) {
 }
 
 export const STYLES = {
-  simple: { title: 'Простое лицо', faces: SIMPLE_FACES.map(face => ({ name: face.name, path: outline(face) })), stepCount: 5 },
-  picasso: { title: 'Пикассо', faces: FACES, stepCount: PART_NAMES.length },
+  simple: { title: 'Простое лицо', viewBox: SIMPLE_VIEWBOX, faces: SIMPLE_FACES.map(face => ({ name: face.name, path: outline(face) })), stepCount: 7 },
+  picasso: { title: 'Пикассо', viewBox: FACE_VIEWBOX, faces: FACES, stepCount: PART_NAMES.length },
 };
 // Steps depend on the chosen face: simple parts follow its outline, Picasso hair has a per-face transform.
 export function styleSteps(style, shape) {
