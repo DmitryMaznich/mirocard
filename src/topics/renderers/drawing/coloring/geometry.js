@@ -66,25 +66,28 @@ export function resample(points, spacing=4) {
   return points.flatMap((p,i)=>{const q=points[(i+1)%points.length],n=Math.max(1,Math.ceil(Math.hypot(q.x-p.x,q.y-p.y)/spacing));return Array.from({length:n},(_,j)=>point(p.x+(q.x-p.x)*j/n,p.y+(q.y-p.y)*j/n));});
 }
 
-// Pack actual random sizes, rather than choosing a fixed number of cells.
+// Three or four figures per sheet: a whole screen of shapes was too much for one task (owner, 2026-11-15).
+// Each figure gets its own cell (2×2, or 3 in a row/column) and a random size and place inside it.
 export function generateSheet(seed, width, height, input='pen', set='mixed') {
   const random=randomSource(seed), gap=input==='touch'?38:26, shapes=[];
   const pool=set==='paths'?FIGURES.filter(k=>k.endsWith('_path')):set==='basic'?FIGURES.slice(0,8):FIGURES;
-  const minimum=input==='touch'?155:110;
-  let x=gap,y=gap,rowHeight=0;
-  for(let tries=0;tries<60;tries++) {
-    const kind=pool[Math.floor(random()*pool.length)],path=kind.endsWith('_path');
-    const size=Math.min(minimum+random()*100,Math.max(60,width-2*gap),Math.max(60,height-2*gap));
+  const minimum=input==='touch'?215:170;
+  const count=random()<.5?3:4,landscape=width>=height;
+  const columns=count===4?2:landscape?3:1,rows=count===4?2:landscape?1:3;
+  const cellW=(width-gap)/columns,cellH=(height-gap)/rows;
+  let previous=null;
+  for(let i=0;i<count;i++) {
+    let kind=pool[Math.floor(random()*pool.length)];
+    if(kind===previous&&pool.length>1)kind=pool[(pool.indexOf(kind)+1)%pool.length];
+    previous=kind;
+    const path=kind.endsWith('_path'),cell={x:gap+(i%columns)*cellW,y:gap+Math.floor(i/columns)*cellH,width:cellW-gap,height:cellH-gap};
     const angle=random()*Math.PI*2,aspect=['oval','rectangle','rounded_rectangle','leaf','cloud'].includes(kind)?.6+random()*.18:1;
     const raw=figureOutline(kind,random).map(p=>point(p.x*Math.cos(angle)-p.y*aspect*Math.sin(angle),p.x*Math.sin(angle)+p.y*aspect*Math.cos(angle))),box=bounds(raw);
-    const longest=path?size*(1.5+random()*.6):size;
-    const scale=Math.min(longest/Math.max(box.width,box.height),(width-2*gap)/box.width,(height-2*gap)/box.height);
-    const w=box.width*scale,h=box.height*scale;
-    if(x+w>width-gap){x=gap;y+=rowHeight+gap;rowHeight=0;}
-    if(y+h>height-gap)break;
+    const size=minimum+random()*120,longest=path?size*(1.5+random()*.6):size;
+    const scale=Math.min(longest/Math.max(box.width,box.height),cell.width/box.width,cell.height/box.height);
+    const w=box.width*scale,h=box.height*scale,x=cell.x+(cell.width-w)*random(),y=cell.y+(cell.height-h)*random();
     const points=raw.map(p=>point(x+(p.x-box.x)/box.width*w,y+(p.y-box.y)/box.height*h));
     shapes.push({kind,title:TITLES[FIGURES.indexOf(kind)],points});
-    x+=w+gap;rowHeight=Math.max(rowHeight,h);
   }
   return {version:1,width,height,shapes};
 }

@@ -22,12 +22,12 @@ describe('coloring geometry and placement',()=>{
       expect(inside({x:0,y:0},points)).toBe(true);
     }
   });
-  it('keeps random sheets deterministic, in bounds and separated, with variable counts',()=>{
+  it('keeps random sheets deterministic, in bounds and separated, with three or four figures',()=>{
     const counts=new Set();
     for(let seed=0;seed<40;seed++){
       const sheet=generateSheet(seed,1000,720);counts.add(sheet.shapes.length);
       expect(sheet).toEqual(generateSheet(seed,1000,720));
-      expect(sheet.shapes.length).toBeGreaterThan(1);
+      expect([3,4]).toContain(sheet.shapes.length);
       const boxes=sheet.shapes.map(s=>bounds(s.points));
       for(const b of boxes){expect(b.x).toBeGreaterThanOrEqual(25);expect(b.y).toBeGreaterThanOrEqual(25);expect(b.x+b.width).toBeLessThanOrEqual(975);expect(b.y+b.height).toBeLessThanOrEqual(695);}
       for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
@@ -48,6 +48,12 @@ describe('coloring geometry and placement',()=>{
         crosses ||= cross(a,b,c)*cross(a,b,d)<-1e-12&&cross(c,d,a)*cross(c,d,b)<-1e-12;
       }
       expect(crosses).toBe(false);
+    }
+  });
+  it('gives three or four figures on any screen, including a phone',()=>{
+    for(let seed=0;seed<40;seed++)for(const [w,h,input] of [[1180,750,'pen'],[660,760,'touch'],[820,1100,'passive_pen']]){
+      const sheet=generateSheet(seed,w,h,input);expect([3,4]).toContain(sheet.shapes.length);
+      for(const b of sheet.shapes.map(s=>bounds(s.points))){expect(b.x).toBeGreaterThanOrEqual(0);expect(b.x+b.width).toBeLessThanOrEqual(w);expect(b.y+b.height).toBeLessThanOrEqual(h);}
     }
   });
   it('can restrict the selection to roads or basic shapes',()=>{
