@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
-import { COPY_KINDS, columnTaskOfExample, generateCopySheet, taskNeedsBorrowTeaching, resolveCompareMode } from "./engine.js";
+import { COPY_KINDS, columnTaskOfExample, generateCopySheet, resolveCompareMode } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
@@ -98,54 +98,58 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidde
 // (compareMode) requires the child to judge whether this column needs a
 // заём — gating logic lives entirely in ColumnArithmeticTask's
 // showingCompare/showingCompareAlways, unchanged by this component.
-// The two digits it refers to are highlighted directly in the column
-// (.col-digit--comparing, same purple) instead of being repeated as text
-// here. The tail is a fixed part of the panel (CSS ::before), not a line
+// The two numbers it refers to are also highlighted in the column
+// (.col-digit--comparing, same purple). The tail is a fixed part of the panel (CSS ::before), not a line
 // drawn to the specific column — the active column's distance from the
 // panel varies (units/tens/hundreds), so the shared purple color is what
 // ties panel and digits together, not a measured connector.
 
-function ColumnComparePanel({ topDigit, bottomDigit, onResolve, top, panelCellSize = 66 }) {
-  const [shakeSign, setShakeSign] = useState(null);
-  const correctSign = topDigit < bottomDigit ? "<" : topDigit > bottomDigit ? ">" : "=";
+// «Хватает?» (2026-11-15): the same question and words as «Разряды числа»
+// (ExchangeTable: «2 − 4: единиц хватает?» → «Хватает» / «Не хватает») — the
+// bridge between the two topics. `have` is the place's top number right now
+// (the digit, or the mark over it), `need` the bottom digit.
+const PLACE_GENITIVE = { units: "единиц", tens: "десятков", hundreds: "сотен" };
 
-  function handleTap(sign) {
-    if (sign !== correctSign) {
-      setShakeSign(sign);
-      setTimeout(() => setShakeSign(null), 400);
+function ColumnComparePanel({ have, need, position, onResolve, top, panelCellSize = 66 }) {
+  const [shake, setShake] = useState(null);
+  const enough = have >= need;
+
+  function handleTap(answer) {
+    if (answer !== enough) {
+      setShake(answer ? "yes" : "no");
+      setTimeout(() => setShake(null), 400);
       return;
     }
     onResolve();
   }
 
-  // Ratios reproduce today's fixed 38px/16px/8px-10px/6px/12px/18px values
-  // at panelCellSize=66 (gridBaseSize 44 × PANEL_SCALE 1.5) — the panel
-  // scales from there exactly like the notebook scales from cellSize.
   const pcs = panelCellSize;
-  const btnSize = Math.round(pcs * 0.576) + "px";
-  const btnFontSize = Math.round(pcs * 0.242) + "px";
-  const qFontSize = Math.round(pcs * 0.182) + "px";
+  const btnHeight = Math.round(pcs * 0.72) + "px";
+  const btnFontSize = Math.round(pcs * 0.3) + "px";
+  const qFontSize = Math.round(pcs * 0.28) + "px";
   const panelStyle = {
     top,
     marginLeft: Math.round(pcs * 0.273) + "px",
-    padding: `${Math.round(pcs * 0.121)}px ${Math.round(pcs * 0.152)}px`,
-    gap: Math.round(pcs * 0.091) + "px",
+    padding: `${Math.round(pcs * 0.121)}px ${Math.round(pcs * 0.182)}px`,
+    gap: Math.round(pcs * 0.121) + "px",
   };
-  const btnsStyle = { gap: Math.round(pcs * 0.091) + "px" };
-  const btnStyle = { width: btnSize, height: btnSize, fontSize: btnFontSize };
+  const btnStyle = { height: btnHeight, fontSize: btnFontSize, padding: `0 ${Math.round(pcs * 0.2)}px` };
 
   return (
     <div className="col-compare-panel" style={panelStyle}>
-      <div className="col-compare-panel-q" style={{ fontSize: qFontSize }}>?</div>
-      <div className="col-compare-panel-btns" style={btnsStyle}>
-        {["<", ">", "="].map((sign) => (
+      <div className="col-compare-panel-q" style={{ fontSize: qFontSize }}>
+        <span className="col-slant">{have} − {need}</span>: {PLACE_GENITIVE[position]} хватает?
+      </div>
+      <div className="col-compare-panel-btns" style={{ gap: Math.round(pcs * 0.091) + "px" }}>
+        {[[true, "Хватает", "yes"], [false, "Не хватает", "no"]].map(([answer, label, key]) => (
           <button
-            key={sign}
-            className={["col-compare-panel-btn", shakeSign === sign ? "col-compare-panel-btn--shake" : ""].filter(Boolean).join(" ")}
+            key={key}
+            type="button"
+            className={["col-compare-panel-btn", shake === key ? "col-compare-panel-btn--shake" : ""].filter(Boolean).join(" ")}
             style={btnStyle}
-            onClick={() => handleTap(sign)}
+            onClick={() => handleTap(answer)}
           >
-            <span className="col-slant">{sign}</span>
+            {label}
           </button>
         ))}
       </div>
@@ -183,35 +187,61 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   const formCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const resultCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const carryStyle = { width: csStr, height: csStr, fontSize: carryCornerFS };
+  const markStyle = { width: csStr, height: csStr, fontSize: Math.round(cs * 0.6) + "px" };
 
-  // ── Carry row (addition only, phase 2) ───────────────────────────────────
-  // Subtraction's "borrow"/"adjust" no longer render here — they render as a
-  // corner mark on the relevant column's own top digit cell instead (see the
-  // top-row loop below), so this row is addition-only now.
+  // ── Marks row (row 1, phase 2) ────────────────────────────────────────────
+  // One mark cell over each place, as on paper and in «Контрольные»:
+  // addition's carried «1», subtraction's lent-down digit over the
+  // crossed-out one (3 → 2, 0 → 9). A place that lent and then borrows itself
+  // (532 − 157, the tens) gets its «1» in front of that mark — «12» — never
+  // over it. A mark not yet reached stays invisible: an empty box ahead of
+  // time would give the next step away.
+  const markPositions = new Set(task.steps.filter((s) => s.cellType === "adjust").map((s) => s.position));
   if (phase === "solve") {
-    const auxSteps = task.steps.filter((s) => s.cellType === "carry");
-    for (const step of auxSteps) {
+    for (const step of task.steps.filter((s) => s.cellType === "carry" || s.cellType === "adjust")) {
       const i = POS_INDEX[step.position];
       const gridCol = digits + 2 - i;
       const key = `${step.cellType}:${step.position}`;
       const filled = filledCells[key] !== undefined;
       const active = activeStep?.cellType === step.cellType && activeStep?.position === step.position;
-      // Not yet reached — stays invisible, same reasoning as the corner mark:
-      // an empty box sitting on screen ahead of time would give away that a
-      // carry is coming before the child gets there.
       if (!filled && !active) continue;
+      if (step.cellType === "carry") {
+        cells.push(
+          <div
+            key={`aux:${key}`}
+            data-cell-key={key}
+            className={["col-carry-cell", active ? "col-carry-cell--active" : "", filled ? "col-carry-cell--filled" : ""].filter(Boolean).join(" ")}
+            style={{ ...carryStyle, gridColumn: gridCol, gridRow: 1 }}
+          >
+            {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
+          </div>
+        );
+        continue;
+      }
+      const borrowKey = `borrow:${step.position}`;
+      const borrowFilled = filledCells[borrowKey] !== undefined;
+      const borrowActive = activeStep?.cellType === "borrow" && activeStep?.position === step.position && !compareColumn;
+      const comparing = filled && step.position === comparingPosition;
       cells.push(
         <div
-          key={`aux:${key}`}
-          data-cell-key={key}
-          className={[
-            "col-carry-cell",
-            active ? "col-carry-cell--active" : "",
-            filled ? "col-carry-cell--filled" : "",
-          ].filter(Boolean).join(" ")}
-          style={{ ...carryStyle, gridColumn: gridCol, gridRow: 1 }}
+          key={`mark:${key}`}
+          className={["col-mark-cell", comparing ? "col-mark-cell--comparing" : ""].filter(Boolean).join(" ")}
+          style={{ ...markStyle, gridColumn: gridCol, gridRow: 1 }}
         >
-          {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
+          {(borrowFilled || borrowActive) && (
+            <span
+              data-cell-key={borrowKey}
+              className={["col-mark-one", borrowActive ? "col-mark-one--active" : "col-mark-one--filled"].join(" ")}
+            >
+              {borrowFilled ? <span className="col-slant">{filledCells[borrowKey]}</span> : ""}
+            </span>
+          )}
+          <span
+            data-cell-key={key}
+            className={["col-mark-value", active ? "col-mark-value--active" : "col-mark-value--filled"].join(" ")}
+          >
+            {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
+          </span>
         </div>
       );
     }
@@ -250,47 +280,21 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       const wasBorrowedFrom = operation === "subtract" && filledCells[crossoutKey] !== undefined;
       const isCrossoutActive =
         operation === "subtract" &&
+        !compareColumn &&
         activeStep?.cellType === "crossout" &&
         activeStep?.position === pos;
 
-      // Corner mark: "borrow" (this column received a ten — reads like a
-      // small tens-digit tucked before the main digit, e.g. small "1" +
-      // main "2" = "12") and "adjust" (this column was a source and got
-      // reduced) both land here, in the SAME upper-left corner of this
-      // column's own top digit cell — no separate row. If a column is ever
-      // both (a cascading borrow: reduced as a source, then later needs its
-      // own borrow), "borrow" simply overwrites "adjust" once typed — see
-      // cornerFilledValue below.
+      // Corner mark: the borrowed «1» in front of the digit (small «1» +
+      // main «2» = «12») — only for a place with no mark over it; a place
+      // with a mark gets its «1» in front of the mark (marks row above).
       const borrowKey = `borrow:${pos}`;
-      const borrowFilled = operation === "subtract" && filledCells[borrowKey] !== undefined;
+      const hasMark = markPositions.has(pos);
+      const borrowFilled = operation === "subtract" && !hasMark && filledCells[borrowKey] !== undefined;
       const borrowActive =
-        operation === "subtract" && activeStep?.cellType === "borrow" && activeStep?.position === pos;
-      const adjustKey = `adjust:${pos}`;
-      const adjustFilled = operation === "subtract" && filledCells[adjustKey] !== undefined;
-      const adjustActive =
-        operation === "subtract" && activeStep?.cellType === "adjust" && activeStep?.position === pos;
-
-      const cornerActive = borrowActive || adjustActive;
-      // Only "borrow" is ever gated by an unresolved compare question
-      // ("adjust" never is) — while gated, the corner must not jump ahead
-      // to an empty/pulsing "ready to type" state; it just keeps showing
-      // whatever was already settled (or nothing, on a first-time borrow).
-      const cornerGatedByCompare = borrowActive && !!compareColumn;
-      const cornerReady = cornerActive && !cornerGatedByCompare;
-      const cornerFilledValue = borrowFilled
-        ? filledCells[borrowKey]
-        : adjustFilled
-          ? filledCells[adjustKey]
-          : null;
-      const showCornerPulsing = cornerReady;
-      const showCornerValue = !cornerReady && cornerFilledValue !== null;
-      const showCorner = showCornerPulsing || showCornerValue;
-      // Once a digit has already been reduced by an earlier borrow, its
-      // current value lives in this corner mark — so the comparing
-      // highlight goes on the corner (when it's showing a settled value) or
-      // on the whole cell (a first-time borrow, nothing in the corner yet).
-      const isComparingCorner = pos === comparingPosition && wasBorrowedFrom && showCornerValue;
-      const isComparingHere = pos === comparingPosition && !wasBorrowedFrom;
+        operation === "subtract" && !hasMark && activeStep?.cellType === "borrow" && activeStep?.position === pos && !compareColumn;
+      const showCorner = borrowActive || borrowFilled;
+      const markFilled = hasMark && filledCells[`adjust:${pos}`] !== undefined;
+      const isComparingHere = pos === comparingPosition && !markFilled;
 
       cells.push(
         <div
@@ -301,15 +305,10 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           {col.topDigit}
           {showCorner && (
             <div
-              data-cell-key={`corner:${pos}`}
-              className={[
-                "col-digit-corner",
-                showCornerPulsing ? "col-digit-corner--active" : "",
-                showCornerValue ? "col-digit-corner--filled" : "",
-                isComparingCorner ? "col-digit-corner--comparing" : "",
-              ].filter(Boolean).join(" ")}
+              data-cell-key={borrowKey}
+              className={["col-digit-corner", borrowActive ? "col-digit-corner--active" : "col-digit-corner--filled"].join(" ")}
             >
-              {showCornerValue ? <span className="col-slant">{cornerFilledValue}</span> : ""}
+              {borrowFilled ? <span className="col-slant">{filledCells[borrowKey]}</span> : ""}
             </div>
           )}
           {isCrossoutActive && (
@@ -452,18 +451,28 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         </div>
       );
     }
-    const lastCol = task.columns[digits - 1];
-    if (operation === "add" && lastCol.carryOut > 0) {
+    // A new place (95 + 7 = 102): the last carry has no place over it to go
+    // to — the child writes that «1» in the answer, left of the others.
+    // The cell appears only when its turn comes: shown ahead of time it
+    // would tell the answer's width.
+    const overflowFilled = filledCells["result:overflow"] !== undefined;
+    if (overflowFilled || activeStep?.position === "overflow") {
       const key = "result:overflow";
-      const filled = filledCells[key] !== undefined;
+      const filled = overflowFilled;
+      const active = !filled;
       cells.push(
         <div
           key={key}
           data-cell-key={key}
-          className={["col-result-cell", filled ? "col-result-cell--filled" : ""].filter(Boolean).join(" ")}
+          className={[
+            "col-result-cell",
+            active && !filled ? "col-result-cell--active" : "",
+            filled ? "col-result-cell--filled" : "",
+            shakeCell === key ? "col-result-cell--shake" : "",
+          ].filter(Boolean).join(" ")}
           style={{ ...resultCellStyle, gridColumn: 2, gridRow: 5 }}
         >
-          {filled ? <span className="col-slant">{filledCells[key]}</span> : lastCol.carryOut}
+          {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
         </div>
       );
     }
@@ -480,8 +489,9 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       {cells}
       {compareColumn && (
         <ColumnComparePanel
-          topDigit={compareColumn.compareTopDigit}
-          bottomDigit={compareColumn.bottomDigit}
+          have={compareColumn.have}
+          need={compareColumn.need}
+          position={compareColumn.position}
           top={`${comparePanelTop}px`}
           onResolve={onCompareResolve}
           panelCellSize={panelCellSize}
@@ -722,28 +732,20 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
 
   const compareMode = resolveCompareMode(sessionParams);
 
-  const showingCompareOnBorrow =
-    phase === "solve" &&
-    activeStep?.cellType === "borrow" &&
-    compareMode !== "off" &&
-    taskNeedsBorrowTeaching(task) &&
-    !resolvedCompares.has(activeStep.position);
-
-  const showingCompareAlways =
-    phase === "solve" &&
-    compareMode === "always" &&
+  // «Хватает?» is asked on the first step of a place: «Всегда» — every place
+  // with a bottom digit; «Как сейчас» — only a place that has to borrow.
+  const compareStep = phase === "solve" && activeStep?.first && activeStep.need != null ? activeStep : null;
+  const compareStepBorrows = compareStep ? compareStep.have < compareStep.need : false;
+  const showingCompare =
+    !!compareStep &&
     task.operation === "subtract" &&
-    activeStep?.cellType === "result" &&
-    // A column with no real bottom digit (shorter bottom number) has
-    // nothing to compare against — there's no borrow decision to make.
-    task.columns[POS_INDEX[activeStep.position]]?.hasBottomDigit !== false &&
-    !resolvedCompares.has(activeStep.position);
+    compareMode !== "off" &&
+    (compareMode === "always" || compareStepBorrows) &&
+    !resolvedCompares.has(compareStep.column);
 
-  const showingCompare = showingCompareOnBorrow || showingCompareAlways;
+  const compareColumn = showingCompare ? { position: compareStep.column, have: compareStep.have, need: compareStep.need } : null;
 
-  const compareColumn = showingCompare ? task.columns[POS_INDEX[activeStep.position]] : null;
-
-  const showingCrossout = phase === "solve" && activeStep?.cellType === "crossout";
+  const showingCrossout = phase === "solve" && activeStep?.cellType === "crossout" && !showingCompare;
 
   const closeHints = useCallback(() => {
     hintUsedRef.current = true;
@@ -756,7 +758,6 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
     if (showingCrossout) return ".col-crossout-gesture";
     if (phase === "form") return formActiveKey ? `[data-cell-key="${formActiveKey}"]` : null;
     if (!activeStep) return null;
-    if (activeStep.cellType === "borrow" || activeStep.cellType === "adjust") return `[data-cell-key="corner:${activeStep.position}"]`;
     return `[data-cell-key="${activeStep.cellType}:${activeStep.position}"]`;
   }, [activeStep, formActiveKey, phase, showingCompare, showingCrossout]);
 
@@ -780,7 +781,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
           crossoutPaths={crossoutPaths}
           onCrossoutComplete={handleCrossoutComplete}
           compareColumn={compareColumn}
-          onCompareResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
+          onCompareResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.column))}
         />
       </div>
 

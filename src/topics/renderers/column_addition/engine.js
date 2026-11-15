@@ -1,5 +1,7 @@
 const POSITIONS = ["units", "tens", "hundreds"];
 
+export { buildAddSteps, buildSubSteps };
+
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -50,63 +52,70 @@ export function buildSubColumns(top, bottom, digits, bottomDigits = digits) {
   return cols;
 }
 
+// One order for every place (2026-11-15, mockup
+// docs/mockups/column-addition/2026-11-15-unified-steps.html). Every step
+// carries `column` — the place being worked on — and the first step of a
+// place carries `first`, `have` (the top number of the place right now: the
+// digit, or the mark written over it) and `need` (the bottom digit, null when
+// the bottom number has none): the «… хватает?» question is asked there.
+//
+// Addition, per place right to left: the result digit; a sum of 10 or more —
+// «1» over the next place; with no next place the child writes that «1» in
+// the answer itself (`result:overflow`, a new place: 95 + 7 = 102).
 function buildAddSteps(columns) {
   const steps = [];
   for (let i = 0; i < columns.length; i++) {
     const col = columns[i];
     const next = columns[i + 1];
-    steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
-    if (col.carryOut > 0 && next) {
-      steps.push({ cellType: "carry", position: next.position, digit: col.carryOut });
+    const sum = col.topDigit + col.bottomDigit + col.carryIn;
+    steps.push({ cellType: "result", position: col.position, digit: col.writeDigit, column: col.position, first: true, have: sum, need: null });
+    if (col.carryOut > 0) {
+      steps.push(next
+        ? { cellType: "carry", position: next.position, digit: col.carryOut, column: col.position }
+        : { cellType: "result", position: "overflow", digit: col.carryOut, column: col.position });
     }
   }
   return steps;
 }
 
+// Subtraction, per place right to left:
+//   1. the top number of the place: its digit, or the mark over it;
+//   2. «хватает?» against the bottom digit;
+//   3. not enough → borrow: cross out the neighbour on the left and write it
+//      one less over it; a 0 there lends through — the next one gives, the
+//      0 becomes 9 (302 − 195: 3 → 2, then 0 → 9);
+//   4. a small «1» in front of the place's own number (2 → 12);
+//   5. the result digit. A leading zero of the answer is not written, and a
+//      leading place lent down to 0 gets no «0» over it (102 − 7 = 95).
+// Nothing is ever overwritten: 532 − 157 keeps «2» over the crossed-out 3 of
+// the tens and puts the tens' own «1» in front of it — 12.
 function buildSubSteps(columns) {
   const steps = [];
-  for (let i = 0; i < columns.length; i++) {
+  const cur = columns.map((c) => c.topDigit);
+  const last = columns.length - 1;
+  for (let i = 0; i <= last; i++) {
     const col = columns[i];
-    const next = columns[i + 1];
-    // The zero in the middle was settled when the column below it borrowed
-    // (the school's order: the hundreds give first, 3 → 2, then the 0 of the
-    // tens becomes 10 and gives one, 9): only its result is left.
-    if (col.throughZero) {
-      if (next || col.writeDigit !== 0) steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
-      continue;
+    const have = cur[i];
+    const need = col.hasBottomDigit === false ? null : col.bottomDigit;
+    const place = [];
+    let value = have;
+    if (need !== null && have < need) {
+      let j = i + 1;
+      while (cur[j] === 0) j++;
+      place.push({ cellType: "crossout", position: columns[j].position, digit: null });
+      cur[j] -= 1;
+      if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
+      for (let k = j - 1; k > i; k--) {
+        cur[k] = 9;
+        place.push({ cellType: "crossout", position: columns[k].position, digit: null });
+        place.push({ cellType: "adjust", position: columns[k].position, digit: 9 });
+      }
+      place.push({ cellType: "borrow", position: col.position, digit: 1 });
+      value += 10;
     }
-    if (col.borrowOut > 0 && next?.throughZero) {
-      const far = columns[i + 2];
-      steps.push({ cellType: "borrow", position: col.position, digit: 1 });
-      steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
-      steps.push({ cellType: "crossout", position: far.position, digit: null });
-      steps.push({ cellType: "adjust", position: far.position, digit: far.topDigit - 1 });
-      steps.push({ cellType: "crossout", position: next.position, digit: null });
-      steps.push({ cellType: "adjust", position: next.position, digit: 9 });
-      continue;
-    }
-    if (col.borrowOut > 0 && next) {
-      // "borrow" sits at the column that RECEIVES the extra ten (the one that
-      // was short) — the child types "1" here to acknowledge the borrow.
-      steps.push({ cellType: "borrow", position: col.position, digit: 1 });
-    }
-    // 102 − 7 = 95: a leading zero is not written.
-    if (!next && i > 0 && col.writeDigit === 0) continue;
-    // The current column is finished — borrowed if it needed to, then its
-    // own result — BEFORE touching the source column at all. Only once this
-    // column is fully done does work move to the source (crossout+adjust
-    // below), which doubles as the first step of "moving on" to that column.
-    steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
-    if (col.borrowOut > 0 && next) {
-      // "crossout" sits at the SOURCE column (one place higher), same
-      // position "adjust" uses — the child must draw a left-to-right swipe
-      // across that digit themselves before it counts as crossed out.
-      // digit:null because this step isn't a numeric input, it's a gesture.
-      steps.push({ cellType: "crossout", position: next.position, digit: null });
-      // "adjust" sits at the SOURCE column too — the child computes and
-      // types its own reduced digit (topDigit - 1) themselves.
-      steps.push({ cellType: "adjust", position: next.position, digit: next.topDigit - 1 });
-    }
+    const digit = value - (need ?? 0);
+    if (!(i === last && i > 0 && digit === 0)) place.push({ cellType: "result", position: col.position, digit });
+    place.forEach((step, n) => steps.push({ ...step, column: col.position, ...(n === 0 ? { first: true, have, need } : {}) }));
   }
   return steps;
 }

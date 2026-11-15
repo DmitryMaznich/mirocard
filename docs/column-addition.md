@@ -46,6 +46,33 @@ out first (3 → 2), then the 0 of the tens (→ 9), then the tens and hundreds 
 counted. A leading zero of the answer is not written (102 − 7 = 95, 52 − 47 =
 5): no step and no cell for it.
 
+## One order for every place (2026-11-15)
+
+Owner's decision after the mockup `docs/mockups/column-addition/2026-11-15-unified-steps.html`
+— this is the solving style the math tests (`math_tests`, «Реши в столбик») are to follow too.
+`buildAddSteps` / `buildSubSteps` (`engine.js`) build the steps from one rule, with no
+separate branches for two or three places or for a zero:
+
+- **Addition**, per place right to left: the result digit; 10 or more — «1» in the mark cell
+  over the next place; with no next place the child writes that «1» in the answer
+  (`result:overflow`, 95 + 7 = 102, 650 + 470 = 1120) — it used to stand there ready, and the
+  cell now appears only on its turn (shown early it tells the answer's width).
+- **Subtraction**, per place right to left: «2 − 7: единиц хватает?» → «Хватает» / «Не
+  хватает» (the words of «Разряды числа», owner: the bridge between the topics; it replaced
+  the < > = strip); not enough → **take first**: cross out the neighbour, write it one less
+  in the mark cell over it (a 0 between lends through: the next one gives, the 0 becomes 9);
+  then the small «1» in front of the place's own number; then the result.
+- The mark cell over a place holds its current top number; a place that lent and then
+  borrows (532 − 157, the tens) gets its «1» in front of that mark — «12». The old corner
+  mark held both and the «1» overwrote the «2» (the 3-digit bug). A place with no mark keeps
+  the «1» in the digit's corner.
+- Every step carries `column` (the place being worked); the first step of a place carries
+  `first`, `have` (top number now) and `need` (bottom digit, null if none) — the question is
+  asked there. «При заёме» (`onBorrow`) asks only where a borrow comes — the answer is then
+  always «Не хватает», a prop for the ritual; «Всегда» is the real decision.
+- 102 − 7: the hundreds lent down to 0 are crossed out with no «0» over them; a leading zero
+  of the answer is not written.
+
 ## Next
 
 - «Найди ошибку» — new mode, mockup shown to the owner 2026-10-23, waiting for

@@ -374,11 +374,11 @@ describe("buildSubSteps borrow/adjust step shape", () => {
     expect(adjustStep.digit).toBe(t.columns[1].topDigit - 1);
   });
 
-  it("step order is borrow, result(lower) — finish the current column — then crossout, adjust, result(higher)", () => {
+  it("step order: take first (crossout, adjust), then the «1» in front, then the result", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
     // (52 − 47 = 5 has no tens to write — a leading zero is not written)
     const t = tasks.find((task) => task.columns[0].borrowOut > 0 && task.result >= 10);
-    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "result", "crossout", "adjust", "result"]);
+    expect(t.steps.map((s) => s.cellType)).toEqual(["crossout", "adjust", "borrow", "result", "result"]);
   });
 
   it("crossout step sits at the source column's position, between borrow and adjust", () => {
@@ -464,11 +464,46 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
 
   it("302 − 195: the hundreds give first, the 0 becomes 9 — never «−1»", () => {
     expect(steps(302, 195)).toEqual([
-      "borrow:units:1", "result:units:7",
       "crossout:hundreds:null", "adjust:hundreds:2",
       "crossout:tens:null", "adjust:tens:9",
+      "borrow:units:1", "result:units:7",
       "result:tens:0", "result:hundreds:1",
     ]);
+  });
+
+  it("532 − 157: the tens lend, then borrow themselves — one order for every place", () => {
+    expect(steps(532, 157)).toEqual([
+      "crossout:tens:null", "adjust:tens:2", "borrow:units:1", "result:units:5",
+      "crossout:hundreds:null", "adjust:hundreds:4", "borrow:tens:1", "result:tens:7",
+      "result:hundreds:3",
+    ]);
+  });
+
+  it("every place starts with its «хватает?» numbers: what is on top now and the bottom digit", () => {
+    const firsts = columnTaskOfExample({ operation: "subtract", top: 532, bottom: 157 }).steps.filter((st) => st.first);
+    expect(firsts.map((st) => [st.column, st.have, st.need])).toEqual([["units", 2, 7], ["tens", 2, 5], ["hundreds", 4, 1]]);
+    const short = columnTaskOfExample({ operation: "subtract", top: 347, bottom: 5 }).steps.filter((st) => st.first);
+    expect(short.map((st) => st.need)).toEqual([5, null, null]);
+  });
+
+  it("400 − 126: through a zero: the hundreds give, the 0 of the tens becomes 9", () => {
+    expect(steps(400, 126)).toEqual([
+      "crossout:hundreds:null", "adjust:hundreds:3",
+      "crossout:tens:null", "adjust:tens:9",
+      "borrow:units:1", "result:units:4",
+      "result:tens:7", "result:hundreds:2",
+    ]);
+  });
+
+  it("every 3-digit subtraction: digits 0–9 only, the result digits make the answer", () => {
+    for (let top = 100; top < 1000; top++) {
+      for (let bottom = 1; bottom < top; bottom += 7) {
+        const t = columnTaskOfExample({ operation: "subtract", top, bottom });
+        expect(t.steps.every((st) => st.digit === null || (st.digit >= 0 && st.digit <= 9))).toBe(true);
+        const r = Object.fromEntries(t.steps.filter((st) => st.cellType === "result").map((st) => [st.position, st.digit]));
+        expect((r.hundreds ?? 0) * 100 + (r.tens ?? 0) * 10 + (r.units ?? 0)).toBe(t.result);
+      }
+    }
   });
 
   it("no step asks for a digit outside 0–9, the result digits make the answer", () => {
@@ -484,6 +519,14 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
 
   it("102 − 7 = 95: no leading zero to write", () => {
     expect(steps(102, 7).filter((st) => st.startsWith("result"))).toEqual(["result:units:5", "result:tens:9"]);
+    // the hundreds lent down to 0: crossed out, no «0» written over them
+    expect(steps(102, 7).filter((st) => st.endsWith("hundreds:null") || st.startsWith("adjust:hundreds"))).toEqual(["crossout:hundreds:null"]);
+  });
+
+  it("new place: 95 + 7 and 650 + 470 — the child writes the last «1» in the answer", () => {
+    const add = (top, bottom) => columnTaskOfExample({ operation: "add", top, bottom }).steps.map((st) => `${st.cellType}:${st.position}:${st.digit}`);
+    expect(add(95, 7)).toEqual(["result:units:2", "carry:tens:1", "result:tens:0", "result:overflow:1"]);
+    expect(add(650, 470)).toEqual(["result:units:0", "result:tens:2", "carry:hundreds:1", "result:hundreds:1", "result:overflow:1"]);
   });
 });
 

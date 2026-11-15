@@ -228,6 +228,49 @@
   }
 }
 
+/* ── Mark over a crossed-out digit (subtraction, row 1) ───── */
+/* The lent-down digit (3 → 2, 0 → 9) sits over the crossed-out one, and a
+   place that then borrows itself gets its «1» in front of it — «12». */
+.col-mark-cell {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1px;
+  padding-bottom: 4%;
+  font-family: 'Primo', cursive;
+  font-weight: 700;
+  color: #92400e;
+  border-radius: 8px;
+}
+.col-mark-cell--comparing {
+  background: #ede9fe;
+  color: #6d28d9;
+  box-shadow: 0 0 0 3px #7c3aed;
+  animation: col-pulse-compare 1.4s ease-in-out infinite;
+}
+.col-mark-value,
+.col-mark-one {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.9em;
+  height: 1.15em;
+  border-radius: 5px;
+}
+.col-mark-one { font-size: 0.8em; }
+.col-mark-value--filled,
+.col-mark-one--filled { background: #fef3c7; }
+.col-mark-value--active,
+.col-mark-one--active {
+  background: #fde68a;
+  animation: col-pulse-corner 1.1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .col-mark-cell--comparing,
+  .col-mark-value--active,
+  .col-mark-one--active { animation: none; }
+}
+
 /* ── Corner mark (заём/adjust, on the digit cell itself) ───── */
 /* Upper-left triangle inside .col-digit (which is already position:relative)
    — the small "borrow"/"adjust" digit sits here instead of a separate row,
@@ -446,10 +489,10 @@
 
 .col-compare-panel-q {
   font-weight: 700;
-  color: #7c3aed;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: #6d28d9;
+  white-space: nowrap;
 }
+.col-compare-panel-q .col-slant { font-family: 'Primo', cursive; font-size: 1.2em; }
 
 .col-compare-panel-btns {
   display: flex;
@@ -458,7 +501,9 @@
 
 .col-compare-panel-btn {
   font-weight: 700;
-  font-family: 'Primo', cursive;
+  font-family: inherit;
+  white-space: nowrap;
+  width: 100%;
   border-radius: 9px;
   border: 2px solid #dbeafe;
   background: #fff;

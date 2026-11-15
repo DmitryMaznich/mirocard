@@ -7,7 +7,6 @@ function overlap(a, b) {
 }
 
 const place = { units: "единицы", tens: "десятки", hundreds: "сотни" };
-const POS_INDEX_HINT = { units: 0, tens: 1, hundreds: 2 };
 
 function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solved }) {
   if (solved) return ["Готово", "Пример решён!", "Посмотри на ответ сверху и похвали себя за каждый выполненный шаг."];
@@ -19,17 +18,18 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
     return ["Шаг 1", "Собираем столбик", `Впиши ${value} в ${place[position]} ${row === "top" ? "верхнего" : "нижнего"} числа.`];
   }
   if (!activeStep) return ["Подсказка", "Подожди немного", "Сейчас появится следующий шаг."];
+  const genitive = { units: "единиц", tens: "десятков", hundreds: "сотен" };
+  if (showingCompare) return ["Шаг 2", "Хватает?", `${activeStep.have} − ${activeStep.need}: ${genitive[activeStep.column]} хватает? Если сверху меньше, чем снизу, — не хватает, придётся занять.`];
+  if (activeStep.position === "overflow") return ["Шаг 2", "Новый разряд", "Переносить «1» больше некуда — впиши её в ответ слева."];
   const col = task.columns.find((item) => item.position === activeStep.position);
   const label = place[activeStep.position];
-  if (activeStep.cellType === "carry") return ["Шаг 2", "Переносим десяток", `В ${label} получилось больше 9. Перенеси 1 в маленькую клетку сверху.`];
-  if (activeStep.cellType === "borrow") return showingCompare ? ["Шаг 2", "Проверяем: хватает ли?", `Сравни ${col.compareTopDigit} и ${col.bottomDigit}. ${col.compareTopDigit} меньше ${col.bottomDigit}.`] : ["Шаг 2", "Занимаем десяток", `В ${label} не хватает единиц. Поставь маленькую 1.`];
-  // Borrowing through a zero (302 − 195): the hundreds give first, then the
-  // zero of the tens becomes 10 and gives one — 9 is left.
-  const lender = task.columns[POS_INDEX_HINT[activeStep.position] - 1];
-  if (activeStep.cellType === "crossout" && lender?.throughZero) return ["Шаг 2", "Занимаем через ноль", `В десятках 0 — занимать не из чего. Отдают сотни: проведи пальцем по цифре сотен.`];
-  if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдаём один десяток", `Проведи пальцем по цифре в разряде «${label}».`];
-  if (activeStep.cellType === "adjust" && col.throughZero) return ["Шаг 2", "Ноль стал девяткой", `Сотня — это 10 десятков, один отдали единицам: 10 − 1 = 9. Впиши 9 в маленький уголок.`];
-  if (activeStep.cellType === "adjust") return ["Шаг 2", "Уменьшаем цифру", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в маленький уголок.`];
+  const working = place[activeStep.column];
+  if (activeStep.cellType === "carry") return ["Шаг 2", "Переносим", `В разряде «${working}» получилось больше 9. Перенеси 1 в клетку сверху.`];
+  if (activeStep.cellType === "borrow") return ["Шаг 2", "Ставим «1»", "Заняли — поставь маленькую 1 перед своим числом: оно стало на 10 больше."];
+  if (activeStep.cellType === "crossout" && col.topDigit === 0) return ["Шаг 2", "Ноль тоже отдаёт", `Тут 0: он получил 10 и отдаёт 1. Проведи пальцем по нулю.`];
+  if (activeStep.cellType === "crossout") return ["Шаг 2", "Занимаем", `В разряде «${working}» не хватает. Проведи пальцем по цифре в разряде «${label}».`];
+  if (activeStep.cellType === "adjust" && col.topDigit === 0) return ["Шаг 2", "Ноль стал девяткой", "10 − 1 = 9. Впиши 9 в клетку сверху."];
+  if (activeStep.cellType === "adjust") return ["Шаг 2", "Стало на 1 меньше", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в клетку сверху.`];
   // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit at this
   // position — nothing to add or subtract, the top digit just comes down.
   if (col.hasBottomDigit === false) {
@@ -37,7 +37,7 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
     return ["Шаг 2", `Считаем ${label}`, `У нижнего числа тут нет цифры — просто сноси ${activeStep.digit}${carryNote}.`];
   }
   if (task.operation === "add") { const sum = col.topDigit + col.bottomDigit + (col.carryIn ?? 0); return ["Шаг 2", `Считаем ${label}`, `${col.topDigit} + ${col.bottomDigit}${col.carryIn ? ` + ${col.carryIn}` : ""} = ${sum}. Впиши ${activeStep.digit}.`]; }
-  return ["Шаг 2", `Считаем ${label}`, `${col.effectiveTopDigit} − ${col.bottomDigit} = ${activeStep.digit}. Впиши ${activeStep.digit}.`];
+  return ["Шаг 2", `Считаем ${label}`, `${activeStep.digit + col.bottomDigit} − ${col.bottomDigit} = ${activeStep.digit}. Впиши ${activeStep.digit}.`];
 }
 
 export default function ColumnHints(props) {
