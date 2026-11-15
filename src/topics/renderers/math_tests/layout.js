@@ -321,18 +321,19 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
           }
           if (v !== "") {
             // one record with the «Столбик» trainer (2026-11-15): in a subtraction the borrowed «1»
-            // stands in front of the place's number — in front of the lent-down digit over a crossed
+            // stands in front of the place's number, the same size — in front of the lent-down digit over a crossed
             // one («12»), or, over a digit not crossed, low on the left, just in front of the digit
             const str = String(v).slice(0, 2);
             const fs = cell * 0.62;
-            const small = fs * 0.8;
+            const small = fs; // the same size as the other marks, as in a notebook (owner, 2026-11-15)
             const crossed = Boolean(values[`${itemKey}:x${t.pos}`]);
             const glyph = (ch, x, size) => out.push({ k: "text", text: ch, x, y: Y(r + 0.52) + fs * 0.35, size, weight: 400, fill: COLORS.child, anchor: "start", font: "primo", outline: cell * 0.035 });
             if (it.column?.op === "subtract" && str === "1" && !crossed) glyph("1", X(c) + cell * 0.04, small);
             else if (str.length === 2) {
-              const width = (small + fs) * 0.47;
-              glyph(str[0], X(c + 0.5) - width, small);
-              glyph(str[1], X(c + 0.5) - width + small * 0.47 * 1.15, fs);
+              const step = small * 0.47 * 1.15; // the «1», then the digit right after it
+              const start = X(c + 0.5) - (step + fs * 0.5) / 2; // the pair centred over the place
+              glyph(str[0], start, small);
+              glyph(str[1], start + step, fs);
             } else glyph(str, X(c + 0.5) - fs * 0.47, fs);
           }
           continue;

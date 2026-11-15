@@ -81,12 +81,11 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
         <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} max={limitOp === "add" ? CELLS : o.top} gridRow={2} onTap={tap} />
         <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
       </div>
-      {/* what a tap does, next to the cells — a small cell of each state */}
+      {/* what a cell means, next to the cells (owner: states, not gestures) */}
       <ul className="cop-legend">
-        <li><span className="cop-mini" aria-hidden="true" /> нажми — цифра</li>
-        <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> ещё раз — ноль</li>
-        <li><span className="cop-mini cop-mini--zero" aria-hidden="true">0</span> ещё раз — снова цифра</li>
-        <li className="cop-legend__note">у первой цифры «ещё раз» — убрать её</li>
+        <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> любая цифра</li>
+        <li><span className="cop-mini cop-mini--zero" aria-hidden="true">0</span> ноль</li>
+        <li><span className="cop-mini" aria-hidden="true" /> разряда нет</li>
       </ul>
       </div>
       <div className="cop-example">

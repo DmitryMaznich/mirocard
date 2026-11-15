@@ -19,8 +19,8 @@ no longer needed for the column.
   works the same (owner: one gesture, one meaning — no «×», no hidden rules):
   an empty cell — the number grows to it; a marked cell — 0 there if a 0 can
   stand there, otherwise (the leading digit) the cell goes off; a 0 again —
-  any digit. What a tap does is a small legend right of the cells (a mini
-  cell of each state); the example's ↻ shows another one. Either number
+  any digit. What a cell means is a small legend right of the cells (a mini
+  cell of each state: «любая цифра», «ноль», «разряда нет»); the example's ↻ shows another one. Either number
   may be the longer with «+» (25 + 326 — the trainer draws a shorter top
   number with an empty cell, `hasTopDigit`); with «−» the bottom is no
   longer than the top — its extra cells go dim, a longer saved bottom is cut
@@ -104,8 +104,14 @@ Owner chose «с 1» (mockup `docs/mockups/column-addition/2026-11-15-one-style.
   the place to write next is a small dashed yellow box (`.col-mark-part--slot`, math_tests' focus box);
 - in `math_tests` a subtraction mark is written from the right like the answer: 2, then 1 → «12»
   (`SolveView.jsx` typeDigit / erase; the mark blank carries `op`), and `layout.js` draws the «1»
-  smaller in front, a lone «1» over an uncrossed digit at the left of its cell. Marks are still not
+  in front, the same size as every mark (owner: one size, as in a notebook), a lone «1» over an uncrossed digit at the left of its cell. Marks are still not
   graded there.
+
+## Copying the numbers is not graded (2026-11-15)
+
+Setting the example up in the column: a wrong digit (or the line too early) only shakes the cell —
+a slip of the finger, not a mistake to count (owner). A wrong sign still counts: «+» and «−» look
+alike, so picking the sign is the child's decision. Same in the tablet check (slips).
 
 ## Next
 

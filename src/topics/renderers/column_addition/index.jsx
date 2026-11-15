@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { COPY_KINDS, columnTaskOfExample, generateCopySheet, resolveCompareMode } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import CrossoutGesture from "./CrossoutGesture.jsx";
@@ -479,6 +480,12 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
 // noHints — an example of «Контрольная работа» solved on the tablet: no 💡,
 // no first-time hints card.
+// The 💡 into the session wrap when there is one (see the comment where it is drawn).
+function portalHintButton(button, host) {
+  if (!host) return button;
+  return createPortal(<div className="col-hint-corner">{button}</div>, host);
+}
+
 function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHints = false }) {
   const [phase, setPhase] = useState("form");
   const [topFilled, setTopFilled] = useState({});
@@ -501,6 +508,11 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
+  const [hintHost, setHintHost] = useState(null);
+  useLayoutEffect(() => {
+    const wrap = rootRef.current?.parentElement;
+    setHintHost(wrap?.classList.contains("session-renderer-wrap") ? wrap : null);
+  }, []);
 
   useEffect(() => {
     if (noHints) return;
@@ -661,7 +673,10 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
 
     if (!ok) {
       triggerShake(step.cellKey);
-      onMistake?.();
+      // Copying the numbers into the column: a wrong digit is a slip of the finger, not a mistake
+      // to count (owner, 2026-11-15) — the cell just shakes. Only the sign is a decision the child
+      // makes (+ and − look alike), so a wrong sign still counts.
+      if (step.cellKey === "sign" && type === "sign") onMistake?.();
       return;
     }
 
@@ -800,7 +815,14 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
           🧮
         </button>
       )}
-      {!showHints && !noHints && <button type="button" className="col-hint-toggle" onClick={() => { hintUsedRef.current = true; setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>}
+      {/* The 💡 goes to the session screen's own top-right corner — the strip under the
+          session header (.session-renderer-wrap's reserved top), not .col-screen's corner, where on a
+          phone it covered the end of the example «… = ?» (owner, 2026-11-15). Outside a session
+          (no wrap) it stays in .col-screen. */}
+      {!showHints && !noHints && portalHintButton(
+        <button type="button" className="col-hint-toggle" onClick={() => { hintUsedRef.current = true; setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>,
+        hintHost,
+      )}
       {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} onShown={() => { hintUsedRef.current = true; }} screenElement={rootRef.current} targetSelector={hintTargetSelector} avoidSelector=".col-notebook .col-digit, .col-notebook [data-cell-key], .col-expression, .col-controls-area" />}
     </div>
   );
