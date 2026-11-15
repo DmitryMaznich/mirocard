@@ -195,4 +195,17 @@ describe("ColumnArithmeticTask — compareMode", () => {
     tapDigit(3); // nothing on top — the 3 comes down
     expect(container.querySelectorAll(".col-result-cell--filled")).toHaveLength(3);
   });
+  it("copying the numbers: a wrong digit shakes but isn't a mistake; a wrong sign is", async () => {
+    const task = columnTaskOfExample({ operation: "add", top: 47, bottom: 38 });
+    const mistakes = [];
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => root.render(<ColumnAdditionRenderer task={task} mode={{ type: "column_arithmetic" }} sessionParams={{ strictStars: true }} onCorrect={() => {}} onMistake={() => mistakes.push(1)} />));
+    tapDigit(9); // should be 4
+    expect(mistakes).toHaveLength(0);
+    tapDigit(4); tapDigit(7);
+    tapSign("−"); // a decision
+    expect(mistakes).toHaveLength(1);
+  });
 });

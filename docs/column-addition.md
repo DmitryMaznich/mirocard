@@ -107,6 +107,12 @@ Owner chose «с 1» (mockup `docs/mockups/column-addition/2026-11-15-one-style.
   in front, the same size as every mark (owner: one size, as in a notebook), a lone «1» over an uncrossed digit at the left of its cell. Marks are still not
   graded there.
 
+## Copying the numbers is not graded (2026-11-15)
+
+Setting the example up in the column: a wrong digit (or the line too early) only shakes the cell —
+a slip of the finger, not a mistake to count (owner). A wrong sign still counts: «+» and «−» look
+alike, so picking the sign is the child's decision. Same in the tablet check (slips).
+
 ## Next
 
 - «Найди ошибку» — new mode, mockup shown to the owner 2026-10-23, waiting for

@@ -673,7 +673,10 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
 
     if (!ok) {
       triggerShake(step.cellKey);
-      onMistake?.();
+      // Copying the numbers into the column: a wrong digit is a slip of the finger, not a mistake
+      // to count (owner, 2026-11-15) — the cell just shakes. Only the sign is a decision the child
+      // makes (+ and − look alike), so a wrong sign still counts.
+      if (step.cellKey === "sign" && type === "sign") onMistake?.();
       return;
     }
 
