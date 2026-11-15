@@ -122,7 +122,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   };
   const failure=()=>{
     if(failed.current)return;
-    failed.current=true;markColoringError(snapshot);setHint(state.phase==='trace'?'Стоп. Подними стилус — обведём заново':'Стоп. Подними стилус — закрасим заново');
+    failed.current=true;markColoringError(snapshot);setHint(state.phase==='trace'?'Стоп. Подними стилус — обведём заново':'Стоп. Подними стилус');
     persist();
     if(!reported.current&&!rewardAttemptBlocked){reported.current=true;onStreakReset?.(task.conceptId,task.cardId);}else playFeedback?.('incorrect');
   };
@@ -135,13 +135,13 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
     if(pointer.current!==event.pointerId)return;
     if(!cancelled&&!disabled)move(event);
     attempt.end(cancelled||interactionDisabled);pointer.current=null;setDrawing(false);
-    if(failed.current)setHint(state.phase==='trace'?'Обведи контур заново':'Закрась фигуру заново');
+    if(failed.current)setHint(state.phase==='trace'?'Обведи контур заново':'Закрашивай дальше');
     if(canvas.current.hasPointerCapture?.(event.pointerId))canvas.current.releasePointerCapture(event.pointerId);
     persist();refresh();
   };
   const sheetDone=snapshot?.progress.shapes.every(s=>s.phase==='done');
   const metrics=attempt?.progress();
-  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':(attempt?.readyToLift?(inputMode==='touch'?'Линия замкнута — подними палец':'Линия замкнута — подними стилус'):hint)||(state?.retry?(state.phase==='fill'?'Закрась фигуру заново':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':(metrics?.trace??0)>=.94?'Замкни линию — вернись к кольцу':(metrics?.trace??0)>0?'Продолжи от зелёной точки':'Обведи от точки и замкни линию');
+  const cue=overview?'Весь лист':state?.phase==='done'?'Готово!':(attempt?.readyToLift?(inputMode==='touch'?'Линия замкнута — подними палец':'Линия замкнута — подними стилус'):hint)||(state?.retry?(state.phase==='fill'?'Закрашивай дальше':'Обведи контур заново'):state?.phase==='fill'?'Закрась внутри фигуры':(metrics?.trace??0)>=.94?'Замкни линию — вернись к кольцу':(metrics?.trace??0)>0?'Продолжи от зелёной точки':'Обведи от точки и замкни линию');
   return <section className="coloring" aria-label="Тренировка закрашивания" data-phase={state?.phase??'loading'} data-sheet-count={snapshot?.sheet.shapes.length} onClick={e=>e.stopPropagation()}>
     <header className={`coloring__tools${state?.phase==='fill'&&!overview?' coloring__tools--palette':''}`}>
       {state?.phase==='fill'&&!overview?<ColorPalette color={color} disabled={interactionDisabled||drawing||correct} onChange={value=>{setColor(chooseColor(snapshot,student?.id,value));persist();}}/>

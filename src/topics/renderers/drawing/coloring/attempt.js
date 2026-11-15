@@ -31,7 +31,7 @@ export function createColoringAttempt(shape,state,options) {
   }
   for(const i of state.filled)if(Number.isInteger(i)&&mask[i]&&!painted[i]){painted[i]=1;filled++;}
   let contour=state.phase==='trace'?createContour(shape,state,options):null;
-  let last=null,stroke=null,failed=false;
+  let last=null,stroke=null,failed=false,strokeStart=0;
   const progress=()=>({coverage:total?filled/total:0,trace:contour?Math.min(1,contour.attempt.state.progress/contour.part.length):1});
   const allowed = p => {
     if(state.phase==='trace')return contourDistance(p,shape.points)<=options.trace;
@@ -58,7 +58,9 @@ export function createColoringAttempt(shape,state,options) {
       state.outline=[];state.traceHits=[];delete state.contourAttempt;
       contour=createContour(shape,state,options);
     } else {
-      state.ink=[];state.filled=[];painted.fill(0);filled=0;
+      // Only the stroke that left the figure burns: earlier coloring stays (owner, 2026-11-15).
+      for(const i of state.filled.splice(strokeStart)){painted[i]=0;filled--;}
+      const index=state.ink.lastIndexOf(stroke);if(index>=0)state.ink.splice(index,1);
     }
     state.retry=true;last=null;stroke=null;
   }
@@ -91,7 +93,7 @@ export function createColoringAttempt(shape,state,options) {
       }
       if(!allowed(p))return false;
       state.retry=false;
-      failed=false;last=p;stroke={width:options.brush,color:inkColor(color),points:[p]};
+      failed=false;last=p;strokeStart=state.filled.length;stroke={width:options.brush,color:inkColor(color),points:[p]};
       (state.phase==='trace'?state.outline:state.ink).push(stroke);mark(p,p);return true;
     },move,
     end(cancelled=false) {

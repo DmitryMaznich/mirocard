@@ -22,12 +22,12 @@ describe('coloring geometry and placement',()=>{
       expect(inside({x:0,y:0},points)).toBe(true);
     }
   });
-  it('keeps random sheets deterministic, in bounds and separated, with variable counts',()=>{
+  it('keeps random sheets deterministic, in bounds and separated, with three or four figures',()=>{
     const counts=new Set();
     for(let seed=0;seed<40;seed++){
       const sheet=generateSheet(seed,1000,720);counts.add(sheet.shapes.length);
       expect(sheet).toEqual(generateSheet(seed,1000,720));
-      expect(sheet.shapes.length).toBeGreaterThan(1);
+      expect([3,4]).toContain(sheet.shapes.length);
       const boxes=sheet.shapes.map(s=>bounds(s.points));
       for(const b of boxes){expect(b.x).toBeGreaterThanOrEqual(25);expect(b.y).toBeGreaterThanOrEqual(25);expect(b.x+b.width).toBeLessThanOrEqual(975);expect(b.y+b.height).toBeLessThanOrEqual(695);}
       for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
@@ -48,6 +48,12 @@ describe('coloring geometry and placement',()=>{
         crosses ||= cross(a,b,c)*cross(a,b,d)<-1e-12&&cross(c,d,a)*cross(c,d,b)<-1e-12;
       }
       expect(crosses).toBe(false);
+    }
+  });
+  it('gives three or four figures on any screen, including a phone',()=>{
+    for(let seed=0;seed<40;seed++)for(const [w,h,input] of [[1180,750,'pen'],[660,760,'touch'],[820,1100,'passive_pen']]){
+      const sheet=generateSheet(seed,w,h,input);expect([3,4]).toContain(sheet.shapes.length);
+      for(const b of sheet.shapes.map(s=>bounds(s.points))){expect(b.x).toBeGreaterThanOrEqual(0);expect(b.x+b.width).toBeLessThanOrEqual(w);expect(b.y+b.height).toBeLessThanOrEqual(h);}
     }
   });
   it('can restrict the selection to roads or basic shapes',()=>{
@@ -122,12 +128,12 @@ describe('separate outline and interior assessments',()=>{
     const state={...fresh(),phase:'fill'},a=createColoringAttempt(square,state,options);
     // Half of the brush is outside; it reaches exactly six units from the contour.
     draw(a,[{x:0,y:10},{x:0,y:90}]);
-    expect(a.progress().coverage).toBeLessThan(.06);
+    const kept=a.progress().coverage;expect(kept).toBeLessThan(.06);
     expect(a.begin({x:0,y:50})).toBe(true);
     expect(a.move({x:-1,y:50}).failed).toBe(true);
     expect(state.phase).toBe('fill');
     a.end();
-    expect(a.progress().coverage).toBe(0);
+    expect(a.progress().coverage).toBe(kept); // only the failed stroke burns
     draw(a,[{x:0,y:10},{x:0,y:90}]);
     const before=a.progress().coverage;
     draw(a,[{x:0,y:10},{x:0,y:90}]);
@@ -152,15 +158,19 @@ describe('separate outline and interior assessments',()=>{
     a.end();draw(a,[...resample(square.points,2),square.points[0]]);
     expect(state.phase).toBe('fill');expect(a.progress().coverage).toBe(0);
   });
-  it('restarts all coloring while keeping the completed outline and permits a full retry',()=>{
+  it('burns only the stroke that left the figure, keeping earlier coloring and the outline',()=>{
     const state=fresh(),a=createColoringAttempt(square,state,options);
     draw(a,[...resample(square.points,2),square.points[0]]);
     const outline=structuredClone(state.outline),hits=[...state.traceHits];
     draw(a,[{x:10,y:10},{x:90,y:10}]);draw(a,[{x:10,y:20},{x:90,y:20}]);
-    expect(a.progress().coverage).toBeGreaterThan(0);
-    a.begin({x:50,y:50});expect(a.move({x:200,y:50}).failed).toBe(true);
-    expect(state).toMatchObject({phase:'fill',retry:true,ink:[],filled:[]});
-    expect(state.outline).toEqual(outline);expect(state.traceHits).toEqual(hits);expect(a.progress().coverage).toBe(0);
+    const coverage=a.progress().coverage,kept=[...state.filled],ink=structuredClone(state.ink);
+    expect(coverage).toBeGreaterThan(0);
+    a.begin({x:50,y:50});a.move({x:50,y:80});expect(a.progress().coverage).toBeGreaterThan(coverage);
+    expect(a.move({x:200,y:80}).failed).toBe(true);
+    expect(state).toMatchObject({phase:'fill',retry:true});expect(state.filled).toEqual(kept);expect(state.ink).toEqual(ink);
+    expect(state.outline).toEqual(outline);expect(state.traceHits).toEqual(hits);expect(a.progress().coverage).toBe(coverage);
+    // The restored mask is real: the burnt area can be painted and counted again.
+    expect(createColoringAttempt(square,structuredClone(state),options).progress().coverage).toBe(coverage);
     expect(a.begin({x:50,y:50})).toBe(false);a.end();
     for(let y=6;y<=94&&state.phase!=='done';y+=8)draw(a,[{x:5,y},{x:95,y}]);
     expect(state.phase).toBe('done');

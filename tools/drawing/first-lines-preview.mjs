@@ -18,7 +18,7 @@ import '../../src/styles.css';
 // It installs the real ZIP and uses the same renderer loader, session, audio, stars and prize.
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
 const q = new URLSearchParams(location.search);
-const modeId = q.has('coloring') ? 'drawing_coloring' : 'drawing_first_lines';
+const modeId = q.has('portrait') ? 'drawing_portrait' : q.has('coloring') ? 'drawing_coloring' : 'drawing_first_lines';
 const db = await getDb();
 await importTopic(db, await (await fetch(`/decks/drawing_v${descriptor.meta.version}.zip`)).arrayBuffer(), __APP_VERSION__);
 const record = await getTopicRecord(db, 'drawing');
@@ -35,7 +35,7 @@ useAppStore.setState({ students: [student], activeStudentId: student.id, activeT
   studentTopicLinks: { [`${student.id}_drawing`]: { selectedConceptIds: ['kompot'],
     answersPerStar: Math.max(1, Math.min(3, Number(q.get('perStar')) || 1)),
     strictStars: !q.has('soft'), videoRewardEnabled: !q.has('noVideo'),
-    params: { byMode: { [modeId]: { penWidth: q.get('penWidth') || 'auto', figureSet: q.get('figures') || 'mixed', outsideTolerance: q.get('tolerance') || '6', fillTarget: q.get('fill') || '90', inputMode: q.has('passive') ? 'passive_pen' : q.has('touch') ? 'touch' : 'pen', preciseSelection: q.has('exercises'), exercises: q.has('exercises') ? q.get('exercises').split(',') : [], practiceSet: q.get('set') || 'mixed', workSurface: q.get('surface') || 'sheet', sheetView: q.get('view') || 'large', advance: q.has('tap') ? 'tap' : 'auto' } } } } } });
+    params: { byMode: { [modeId]: { penWidth: q.get('penWidth') || 'auto', figureSet: q.get('figures') || 'mixed', outsideTolerance: q.get('tolerance') || '6', fillTarget: q.get('fill') || '90', dice: q.has('screenDie') ? 'screen' : 'real', style: q.get('style') || 'simple', inputMode: q.has('passive') ? 'passive_pen' : q.has('touch') ? 'touch' : 'pen', preciseSelection: q.has('exercises'), exercises: q.has('exercises') ? q.get('exercises').split(',') : [], practiceSet: q.get('set') || 'mixed', workSurface: q.get('surface') || 'sheet', sheetView: q.get('view') || 'large', advance: q.has('tap') ? 'tap' : 'auto' } } } } } });
 window.previewStore = useAppStore;
 function Preview() {
   const screen = useAppStore(s => s.screen);
