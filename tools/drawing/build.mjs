@@ -22,6 +22,7 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("renderer", await readFile(new URL("dist/renderer", base)));
 zip.file("mirocard2.css", await readFile(new URL("dist/mirocard2.css", base)));
 zip.file("media/avatar.svg", await readFile(new URL("media/avatar.svg", base)));
+zip.file("media/portrait.svg", await readFile(new URL("media/portrait.svg", base)));
 // Covers are generated from the same lesson paths; no separate artwork to maintain.
 const escape = value => String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 for (const card of manifest.cards) {

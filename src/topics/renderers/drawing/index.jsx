@@ -5,6 +5,7 @@ import { toolForStep } from './lessonPlan.js';
 import './drawing.css';
 import FirstLines from './firstLines/FirstLines.jsx';
 import { drawingLabelAttributes } from './labels.js';
+import Portrait from './portrait/Portrait.jsx';
 
 const initialState = { index: 0, busy: false, paused: false };
 const icons = {
@@ -71,6 +72,7 @@ function readStored(key, fallback) { try { return JSON.parse(localStorage.getIte
 function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local-mode previews can have no storage. */ } }
 
 export default function DrawingRenderer(props) {
+  if (props.task?.type === 'drawing_portrait') return <Portrait {...props} AdultButton={AdultButton} AdultDialog={AdultDialog} />;
   return props.task?.type === 'drawing_coloring' ? <Coloring {...props} /> : props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
 }
 

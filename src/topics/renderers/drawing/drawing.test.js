@@ -11,11 +11,12 @@ describe("downloadable drawing topic", () => {
     const bytes = await readFile(`public/decks/drawing_v${manifest.meta.version}.zip`);
     const archive = await JSZip.loadAsync(bytes);
     const db = await openDb(`drawing-test-${Date.now()}`);
-    await expect(importTopic(db, bytes, "1.1.74")).rejects.toThrow("1.1.75");
-    await importTopic(db, bytes, "1.1.75");
+    await expect(importTopic(db, bytes, "1.1.97")).rejects.toThrow("1.1.98");
+    await importTopic(db, bytes, "1.1.98");
     const record = await getTopicRecord(db, "drawing");
     expect(record.meta.renderer).toBe("drawing");
-    expect(record.modes).toHaveLength(3);
+    expect(record.modes).toHaveLength(4);
+    expect(record.modes[3]).toMatchObject({ type: "drawing_portrait", evaluation: "none", finite: true });
     expect(record.modes[1].screenPractice).toBe(true);
     expect(record.modes[1].params).not.toHaveProperty('trackWidth');
     expect(record.modes[1].params.practiceSet.default).toBe('mixed');

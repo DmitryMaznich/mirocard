@@ -52,6 +52,11 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
       return {type:'drawing_coloring',id:`coloring:${seed}:${index}`,cardId:card.id,conceptId:card.conceptId??card.id,seed};
     });
   }
+  // «Портрет по кубику»: one portrait per lesson, drawn on paper; the renderer keeps its own steps.
+  if (mode?.type === 'drawing_portrait') {
+    const card = (Array.isArray(cards) ? cards : []).find(card => card.firstLines);
+    return card ? [{ type: 'drawing_portrait', id: 'portrait', cardId: card.id, conceptId: card.conceptId ?? card.id }] : [];
+  }
   if (mode?.type === 'drawing_first_lines') {
     const card = (Array.isArray(cards) ? cards : []).find(card => card.firstLines?.kind === 'short_line');
     if (!card) return [];
