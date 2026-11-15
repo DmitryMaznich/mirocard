@@ -33,6 +33,8 @@ function evenAngles(face, from, to, count) {
 const outline = face => `M${Array.from({ length: 96 }, (_, i) => { const p = at(face, i * 3.75); return `${f(p.x)} ${f(p.y)}`; }).join(' L')}Z`;
 const circle = (x, y, r) => `M${f(x + r)} ${f(y)} A${f(r)} ${f(r)} 0 1 0 ${f(x - r)} ${f(y)} A${f(r)} ${f(r)} 0 1 0 ${f(x + r)} ${f(y)}`;
 const ellipse = (x, y, rx, ry) => `M${f(x + rx)} ${f(y)} A${f(rx)} ${f(ry)} 0 1 0 ${f(x - rx)} ${f(y)} A${f(rx)} ${f(ry)} 0 1 0 ${f(x + rx)} ${f(y)}`;
+// An eye shape of two arcs meeting at sharp corners; h is the half-height.
+const lens = (e, w, h) => `M${f(e.x - w)} ${f(e.y)} Q${f(e.x)} ${f(e.y - 2 * h)} ${f(e.x + w)} ${f(e.y)} Q${f(e.x)} ${f(e.y + 2 * h)} ${f(e.x - w)} ${f(e.y)}Z`;
 const line = (a, b) => `M${f(a.x)} ${f(a.y)} L${f(b.x)} ${f(b.y)}`;
 const pair = (draw, left, right) => `${draw(left, -1)} ${draw(right, 1)}`;
 
@@ -45,13 +47,14 @@ function simpleSteps(face) {
   const top = (from, to, count) => evenAngles(face, from, to, count);
   const n = { x: face.cx, y: noseY }, m = { x: face.cx, y: mouthY }, w = 24 * u;
   return [
+    // Every eye has a pupil (owner, 2026-11-15): a bare line or dot next to line brows read as no eye at all.
     { name: 'Глаза', icon: [face.cx - face.rx * .78, eyeY - 24, face.rx * 1.56, 48], places: eyes.map(e => [e.x, e.y, 15 * u, 12 * u]), variants: [
-      { label: 'Точки', d: both(e => circle(e.x, e.y, 5 * u)), fill: both(e => circle(e.x, e.y, 5 * u)) },
-      { label: 'Кружки', d: both(e => circle(e.x, e.y, 11 * u)) },
-      { label: 'Кружки с точкой', d: both(e => circle(e.x, e.y, 12 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
-      { label: 'Дуги', d: both(e => `M${f(e.x - 12 * u)} ${f(e.y)} Q${f(e.x)} ${f(e.y + 11 * u)} ${f(e.x + 12 * u)} ${f(e.y)}`) },
-      { label: 'Чёрточки', d: both(e => line({ x: e.x - 11 * u, y: e.y }, { x: e.x + 11 * u, y: e.y })) },
-      { label: 'Овалы с точкой', d: both(e => ellipse(e.x, e.y, 14 * u, 9 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
+      { label: 'Кружки', d: both(e => circle(e.x, e.y, 11 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
+      { label: 'Овалы', d: both(e => ellipse(e.x, e.y, 14 * u, 9 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
+      { label: 'Узкие', d: both(e => lens(e, 15 * u, 5 * u)), fill: both(e => circle(e.x, e.y, 3.4 * u)) },
+      { label: 'Миндаль', d: both(e => lens(e, 15 * u, 10 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
+      { label: 'Полукруги', d: both(e => `M${f(e.x - 12 * u)} ${f(e.y + 4 * u)} A${f(12 * u)} ${f(12 * u)} 0 0 1 ${f(e.x + 12 * u)} ${f(e.y + 4 * u)}Z`), fill: both(e => circle(e.x, e.y - 1 * u, 4.5 * u)) },
+      { label: 'Большие', d: both(e => circle(e.x, e.y, 13 * u)), fill: both(e => circle(e.x, e.y, 6.5 * u)) },
     ] },
     // Brows: lines and arcs only, always level — a slant would read as anger or sadness (no emotions here).
     { name: 'Брови', icon: [face.cx - face.rx * .78, browY - 22, face.rx * 1.56, 40], places: eyes.map(e => [e.x, browY, 16 * u, 8 * u]), variants: [

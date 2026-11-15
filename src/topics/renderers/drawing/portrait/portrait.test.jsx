@@ -23,6 +23,9 @@ describe('portrait styles', () => {
     const steps = styleSteps('simple', 1);
     for (const index of [0, 1, 4]) for (const v of steps[index].variants) expect(splitSubpaths(v.d).length % 2).toBe(0);
   });
+  it('«Простое лицо»: every eye variant has a pupil', () => {
+    for (const shape of [0, 1, 2]) expect(styleSteps('simple', shape)[0].variants.every(v => splitSubpaths(v.fill).length === 2)).toBe(true);
+  });
   it('«Простое лицо» brows are level (no emotion) and the neck starts at the chin', () => {
     for (const shape of [0, 1, 2]) {
       const steps = styleSteps('simple', shape);
