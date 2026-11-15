@@ -34,6 +34,13 @@ describe("ColumnOperandsParam — one gesture for every cell", () => {
     expect(tapCell({ top: 1, topZeros: [], bottom: 1, bottomZeros: [] }, "bottom", 0)).toEqual({ top: 1, topZeros: [], bottom: 1, bottomZeros: [] });
   });
 
+  it("«Микс»: the bottom may be longer; only the subtraction examples cut it", () => {
+    mount({ top: 2, topZeros: [], bottom: 2, bottomZeros: [] }, "mixed");
+    tap(3);
+    expect(value.bottom).toBe(3);
+    expect(container.querySelectorAll(".cop-cell")[3].disabled).toBe(false);
+  });
+
   it("with a «−» the bottom is no longer than the top: extra cells off, a longer bottom cut", () => {
     mount({ top: 2, topZeros: [], bottom: 3, bottomZeros: [] }, "subtract");
     expect(value.bottom).toBe(2); // cut and saved as shown

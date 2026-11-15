@@ -5,9 +5,10 @@
 //   a marked cell — 0 there if a 0 can stand there, otherwise the cell goes
 //   off (the leading digit of a number is never 0); a 0 tapped again — back
 //   to any digit.
-// With «+» either number may be the longer (25 + 326); with a «−» in play the
-// bottom is no longer than the top — its extra cells go dim and don't take a
-// tap. No row captions, no notebook grid, no extra buttons or notes (owner:
+// With «+» and «Микс» either number may be the longer (25 + 326) — in a mix
+// the subtraction examples cut the bottom to the top's length on their own;
+// with «−» the bottom is no longer than the top — its extra cells go dim and
+// don't take a tap. No row captions, no notebook grid, no extra buttons or notes (owner:
 // one gesture, one meaning).
 // Value: { top, topZeros, bottom, bottomZeros } — engine.js normalizeOperands.
 
@@ -51,7 +52,7 @@ function CellRow({ row, digits, zeros, max = CELLS, gridRow, onTap, label }) {
 }
 
 export default function ColumnOperandsParam({ label, value, operation, carryMode, onChange, labelNode }) {
-  const limitOp = operation === "add" ? "add" : "subtract";
+  const limitOp = operation === "subtract" ? "subtract" : "add";
   const o = normalizeOperands(value, limitOp);
   // switching to «−» cuts a longer bottom — keep the saved value the same as shown
   const shownKey = JSON.stringify(o);

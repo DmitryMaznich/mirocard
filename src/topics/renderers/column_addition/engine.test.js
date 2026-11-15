@@ -372,7 +372,10 @@ describe("«Числа в примере» — each number chosen on its own", (
     expect(normalizeOperands({ top: 2, bottom: 3 })).toMatchObject({ top: 2, bottom: 3 });
     expect(normalizeOperands({ top: 1, bottom: 1 })).toMatchObject({ top: 1, bottom: 1 });
     expect(normalizeOperands({ top: 2, bottom: 3 }, "subtract")).toMatchObject({ top: 2, bottom: 2 });
-    expect(normalizeOperands({ top: 2, bottom: 3 }, "mixed")).toMatchObject({ top: 2, bottom: 2 });
+    // «Микс»: the setting stays free; each subtraction example cuts the bottom itself
+    const mixed = generateTasks("column_arithmetic", CARDS, 40, { operation: "mixed", carryMode: "mixed", operands: { top: 2, bottom: 3 } });
+    expect(mixed.some((t) => t.operation === "add" && String(t.bottom).length === 3)).toBe(true);
+    for (const t of mixed.filter((t) => t.operation === "subtract")) expect(String(t.bottom).length).toBeLessThanOrEqual(2);
     expect(normalizeOperands({ top: 2, topZeros: [0, 1], bottom: 1, bottomZeros: [0] })).toEqual({ top: 2, topZeros: [0], bottom: 1, bottomZeros: [] });
   });
 

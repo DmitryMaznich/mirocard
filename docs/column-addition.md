@@ -21,9 +21,10 @@ no longer needed for the column.
   stand there, otherwise (the leading digit) the cell goes off; a 0 again —
   any digit. «Убрать нули» shows only while there are zeros. Either number
   may be the longer with «+» (25 + 326 — the trainer draws a shorter top
-  number with an empty cell, `hasTopDigit`); with a «−» in play («−» or
-  «Микс») the bottom is no longer than the top — its extra cells go dim,
-  a longer saved bottom is cut (owner: just limit it, no notes). Param `operands` =
+  number with an empty cell, `hasTopDigit`); with «−» the bottom is no
+  longer than the top — its extra cells go dim, a longer saved bottom is cut
+  (owner: just limit it, no notes); in «Микс» the setting stays free and only
+  the subtraction examples cut the bottom to the top's length. Param `operands` =
   `{top, topZeros, bottom, bottomZeros}` (1…3 digits, zero places from the
   units), type `column_operands`. An unmarked cell never draws a 0.
   `operandsExample` (`engine.js`) draws the numbers; the answer is as wide as

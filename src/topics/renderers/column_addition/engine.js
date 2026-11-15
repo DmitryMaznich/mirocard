@@ -335,8 +335,10 @@ function trainerTaskFrom(ex, card) {
 // The leading digit is never 0, and an unmarked cell is never 0 either — a
 // zero comes only from a marked cell, so «с нулём» never turns up uninvited.
 // The answer is as wide as the longer number (the trainer's answer never
-// grows a place). With a «−» in play (Операция «−» or «Микс») the bottom
-// number is no longer than the top — `normalizeOperands(o, operation)`.
+// grows a place). A subtraction example cuts the bottom number to the top's
+// length (`normalizeOperands(o, "subtract")`): with «−» the setting itself
+// is limited so, in «Микс» only the subtraction examples are — the addition
+// ones keep the longer bottom.
 function cleanZeros(zeros, digits) {
   return [...new Set((Array.isArray(zeros) ? zeros : []).map(Number))]
     .filter((p) => Number.isInteger(p) && p >= 0 && p < digits - 1)
