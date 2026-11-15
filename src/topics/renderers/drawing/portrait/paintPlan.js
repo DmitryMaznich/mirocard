@@ -1,6 +1,6 @@
 // «Портрет по кубику» colouring: what is coloured, in which order and with which pencils.
 // Order is a painter's: big and light first, small and dark last — skin, hair (+ brows), clothes,
-// eyes (only the iris), lips. Skin is the child's own choice; the other colours come from the die.
+// eyes (only the iris), lips. Every colour is chosen by hand (owner, 2026-11-15: no die here).
 // The finished portrait becomes a lesson for the «Рисуем по шагам» player (player.js): one stroke step
 // with the whole outline, then colour steps (pencil hatching) and traced lines in colour.
 import { STYLES, styleSteps } from './styles.js';
@@ -27,10 +27,10 @@ const PALETTES = {
 };
 export const COLOR_STEPS = [
   { group: 'skin', name: 'Лицо', choice: 'pick' },
-  { group: 'hair', name: 'Волосы', choice: 'die' },
-  { group: 'clothes', name: 'Одежда', choice: 'die' },
-  { group: 'eyes', name: 'Глаза', choice: 'die' },
-  { group: 'lips', name: 'Губы', choice: 'die' },
+  { group: 'hair', name: 'Волосы', choice: 'pick' },
+  { group: 'clothes', name: 'Одежда', choice: 'pick' },
+  { group: 'eyes', name: 'Глаза', choice: 'pick' },
+  { group: 'lips', name: 'Губы', choice: 'pick' },
 ];
 export const paletteFor = (style, group) => PALETTES[style][group].map(tool);
 

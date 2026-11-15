@@ -127,7 +127,7 @@ describe('portrait screen', () => {
     expect(host.querySelectorAll('.portrait-option[aria-pressed="true"]')).toHaveLength(1);
     expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.portrait-next')).not.toBeNull();
   });
-  it('colouring after the portrait: skin is picked by tap, the rest by the die; the coloured portrait is kept', async () => {
+  it('colouring after the portrait: every colour is picked by tap (no die); the coloured portrait is kept', async () => {
     localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
     await render();
     await click(label('Раскрасить'));
@@ -136,7 +136,7 @@ describe('portrait screen', () => {
     expect(skin).toHaveLength(6); expect(skin[0].querySelector('.portrait-die')).toBeNull();
     await click(skin[3]); await click(host.querySelector('.portrait-next'));
     expect(host.querySelector('h2').textContent).toBe('Волосы');
-    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(6);
+    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(0);
     for (const name of ['Волосы', 'Одежда', 'Глаза', 'Губы']) {
       expect(host.querySelector('h2').textContent).toBe(name);
       await click(host.querySelectorAll('.portrait-color')[1]); await click(host.querySelector('.portrait-next'));

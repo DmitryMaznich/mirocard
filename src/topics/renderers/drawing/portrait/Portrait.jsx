@@ -115,6 +115,10 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
   const steps = useMemo(() => state.shape === null ? null : styleSteps(state.style, state.shape), [state.style, state.shape]);
   const face = style.faces[state.shape ?? 0];
   const part = state.results.length, step = steps?.[part];
+  // One lesson object per choice: a new object on every render restarted the player mid-colour (2026-11-15).
+  const paintKey = state.phase === 'color' || state.phase === 'colored'
+    ? JSON.stringify([state.style, state.shape, state.results, state.phase === 'colored' || state.value === null ? state.colors : [...state.colors, state.value]]) : null;
+  const paint = useMemo(() => { if (!paintKey) return null; const [st, sh, res, cols] = JSON.parse(paintKey); return paintLesson(st, sh, res, cols); }, [paintKey]);
   const finish = () => { setMenu(null); (onClose ?? onAdvance)?.(); };
   const update = change => setState(previous => change(previous));
 
@@ -177,11 +181,10 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
   const nextButton = label => state.value !== null && <button type="button" className="portrait-next" aria-label={label} disabled={interactionDisabled}
     onClick={() => update(next)}><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 24h24M25 13l11 11-11 11" /></svg></button>;
 
-  // Colouring on screen, to repeat with real pencils on paper: skin is the child's choice, the rest the die's.
+  // Colouring on screen, to repeat with real pencils on paper. Every colour is the child's choice by tap.
   if (state.phase === 'color' || state.phase === 'colored') {
     const plan = colorSteps(state.style, state.shape, state.results), k = state.colors.length, cstep = plan[k];
-    const shown = state.phase === 'colored' ? state.colors : state.value !== null ? [...state.colors, state.value] : state.colors;
-    const { lesson, ends } = paintLesson(state.style, state.shape, state.results, shown);
+    const { lesson, ends } = paint;
     const from = state.phase === 'colored' ? ends.at(-1) : ends[k], to = ends.at(-1);
     const board = <PaintBoard lesson={lesson} from={from} to={to} play={play} soundEnabled={soundEnabled} />;
     if (state.phase === 'colored') return shell('colored', 'Портрет раскрашен', <>
@@ -194,7 +197,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
           <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 17 18 6l13 11M9 14v15h18V14" /></svg></button>
       </div>
     </>);
-    const pencils = paletteFor(state.style, cstep.group), picked = cstep.choice === 'pick', useDie = !picked;
+    const pencils = paletteFor(state.style, cstep.group);
     return shell('color', `Раскрась: ${cstep.name}`, <>
       <header className="drawing-top portrait-top">
         <h2>{cstep.name}</h2>
@@ -206,9 +209,9 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
           {pencils.map((pencil, i) => {
             const value = i + 1, selected = chosen === value;
             return <button type="button" key={pencil.id} className={`portrait-option portrait-color${selected ? ' is-selected' : ''}${chosen && !selected ? ' is-dim' : ''}`}
-              aria-label={useDie ? `${value}: ${pencil.name}` : pencil.name} aria-pressed={selected}
-              disabled={interactionDisabled || (useDie && (screenDie || rolling !== null))} onClick={() => { update(s => pick(s, value)); setPlay(n => n + 1); }}>
-              {useDie && <Die value={value} />}<Pencil pencil={pencil} /><span className="portrait-color__name">{pencil.name}</span>
+              aria-label={pencil.name} aria-pressed={selected}
+              disabled={interactionDisabled} onClick={() => { update(s => pick(s, value)); setPlay(n => n + 1); }}>
+              <Pencil pencil={pencil} /><span className="portrait-color__name">{pencil.name}</span>
             </button>;
           })}
         </div>
@@ -216,11 +219,10 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
           {board}
           {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать ещё раз" disabled={interactionDisabled}
             onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
-          {useDie && roller}
         </div>
       </div>
       {nextButton(k + 1 === plan.length ? 'Готово' : 'Дальше')}
-      <span className="drawing-sr-only" role="status" aria-live="polite">{state.value === null ? (picked ? 'Выбери цвет' : 'Брось кубик') : `${pencils[state.value - 1].name}. Раскрась на бумаге`}</span>
+      <span className="drawing-sr-only" role="status" aria-live="polite">{state.value === null ? 'Выбери цвет' : `${pencils[state.value - 1].name}. Раскрась на бумаге`}</span>
     </>);
   }
 
