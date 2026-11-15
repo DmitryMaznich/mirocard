@@ -97,7 +97,9 @@ function simpleSteps(face) {
       // One line: down the left side, over the head, down the right side.
       { label: 'Длинные', d: (() => { const cap = top(180, 360, 25).map(deg => at(face, deg, 12 * u)), low = face.cy + face.ry * .7;
         return `M${f(cap[0].x)} ${f(low)} L${cap.map(p => `${f(p.x)} ${f(p.y)}`).join(' L')} L${f(cap.at(-1).x)} ${f(low)}`; })() },
-      { label: 'Хвостики', d: [215, 325].map(a => { const p = at(face, a, 22 * u); return `${line(at(face, a), at(face, a, 10 * u))} ${circle(p.x, p.y, 12 * u)}`; }).join(' ') },
+      // A fringe of arcs hanging onto the forehead, one continuous line.
+      { label: 'Чёлка', d: (() => { const p = top(218, 322, 6).map(deg => at(face, deg));
+        return `M${f(p[0].x)} ${f(p[0].y)} ${p.slice(1).map((q, k) => { const a = p[k]; return `Q${f((a.x + q.x) / 2)} ${f(Math.max(a.y, q.y) + 22 * u)} ${f(q.x)} ${f(q.y)}`; }).join(' ')}`; })() },
     ] },
     neckStep(face, u),
   ];
