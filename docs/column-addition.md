@@ -13,16 +13,22 @@ no longer needed for the column.
 
 - «Столбик — Тренажёр» (`column_arithmetic`): step-by-step on the notebook grid.
   «Числа в примере» (since 2026-11-15, replaced the «Разрядность» list of
-  abbreviations): param `operands` = `{top, topKind, bottom, bottomKind}`,
-  type `column_operands`, drawn by `src/features/session/ColumnOperandsParam.jsx`
-  — «Верхнее число» 2 / 3 цифры × Любое / Круглое / С нулём (305, 340, 400 —
-  3 digits only), «Нижнее число» 1…top цифр × Любое / Круглое (2+ digits),
-  with a live example in the column («↻ Другой»). `operandsExample` (`engine.js`)
-  draws the numbers; the answer is as wide as the top number (no new place in
-  the trainer). A carry the numbers can't have without a new place (40 + 50
-  «С переносом») — examples come without it, and the settings say so. Old
-  saved `digits` map onto `operands` (`resolveOperands`; ParamsScreen does it
-  when the settings open).
+  abbreviations; owner's design): the setting is drawn as the column — two
+  rows of 3 tappable cells, the sign, the line, «Например: 305 − 7» under it
+  (`src/features/session/ColumnOperandsParam.jsx`, mockup
+  `docs/mockups/column-addition/2026-11-15-operands-cells-b.html`). An empty
+  cell grows the number to it, a marked cell toggles a 0 there, the leftmost
+  marked cell removes itself; «Любое (без нулей)» clears the zeros. No row
+  captions, no notebook grid (owner: the example says enough). Param
+  `operands` = `{top, topZeros, bottom, bottomZeros}` (places from the units),
+  type `column_operands`. An unmarked cell never draws a 0 — zeros come only
+  from marked cells. `operandsExample` (`engine.js`) draws the numbers; the
+  answer is as wide as the top number (no new place in the trainer); a carry
+  the numbers can't have (40 + 50 «С переносом») — examples come without it
+  and the setting says so. Old saved `digits` (and the same day's
+  `topKind`/`bottomKind`) map onto it (`resolveOperands`, `normalizeOperands`;
+  ParamsScreen does it when the settings open). Three cells: the trainer
+  stays within three digits — four would mean thousands (owner agreed).
 - «Контрольная работа» (`column_copy`, rebuilt 2026-10-23): a sheet of examples
   in a line; the child sets them up in the notebook, types the answer, «✓».
   - «Какие примеры» — switches (`COPY_KINDS`): 2 + 2, 2 + 1, 3 + 3, 3 + 2,

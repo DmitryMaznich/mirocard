@@ -324,53 +324,60 @@ function trainerTaskFrom(ex, card) {
   };
 }
 
-// ── «Числа в примере» (2026-11-15): each number of the trainer chosen on its
-// own — how many digits and what kind — instead of the old list of
-// abbreviations («2-зн. + 1-зн.», «Круглые дес.», …).
-//   top: 2 | 3 digits, topKind: "any" | "round" (ends in 0) | "zero" (a 0
-//   inside: 305, 340, 400 — 3 digits only);
-//   bottom: 1…top digits, bottomKind: "any" | "round" (2+ digits).
+// ── «Числа в примере» (2026-11-15): each number of the trainer drawn as cells
+// the adult taps (mockup docs/mockups/column-addition/2026-11-15-operands-cells-b.html):
+// how many cells — how many digits; a cell marked 0 is always 0 there.
+//   { top: 2 | 3, topZeros: [places], bottom: 1…top, bottomZeros: [places] }
+// places count from the units (0 = units, 1 = tens). 340 is topZeros [0],
+// 305 — [1], 400 — [0, 1]. The leading digit is never 0, and an unmarked cell
+// is never 0 either — a zero comes only from a marked cell, so «С нулём»
+// never turns up uninvited (900 − 94 for a «0 in the tens» setting).
 // The answer never grows a place here (the trainer's grid is as wide as the
 // top number) and a difference stays as wide as the top number.
-export const OPERAND_KINDS = ["any", "round", "zero"];
+function cleanZeros(zeros, digits) {
+  return [...new Set((Array.isArray(zeros) ? zeros : []).map(Number))]
+    .filter((p) => Number.isInteger(p) && p >= 0 && p < digits - 1)
+    .sort((a, b) => a - b);
+}
+
+// Settings saved earlier in the day (2026-11-15) had kinds instead of zeros.
+const KIND_ZEROS = { round: [0], zero: [1] };
 
 export function normalizeOperands(o) {
   const top = o?.top === 3 ? 3 : 2;
   const bottom = Math.min(top, Math.max(1, Number(o?.bottom) || top));
-  const topKind = o?.topKind === "round" || (o?.topKind === "zero" && top === 3) ? o.topKind : "any";
-  const bottomKind = o?.bottomKind === "round" && bottom >= 2 ? "round" : "any";
-  return { top, topKind, bottom, bottomKind };
+  return {
+    top,
+    topZeros: cleanZeros(o?.topZeros ?? KIND_ZEROS[o?.topKind], top),
+    bottom,
+    bottomZeros: cleanZeros(o?.bottomZeros ?? KIND_ZEROS[o?.bottomKind], bottom),
+  };
 }
 
 // The old «Разрядность» values, for settings saved before 2026-11-15.
 const LEGACY_DIGITS = {
-  2: [2, "any", 2, "any"], 3: [3, "any", 3, "any"],
-  "2+1": [2, "any", 1, "any"], "3+2": [3, "any", 2, "any"], "3+1": [3, "any", 1, "any"],
-  round10: [2, "round", 2, "round"], round: [3, "round", 2, "round"], zero: [3, "zero", 2, "any"],
+  2: [2, [], 2, []], 3: [3, [], 3, []],
+  "2+1": [2, [], 1, []], "3+2": [3, [], 2, []], "3+1": [3, [], 1, []],
+  round10: [2, [0], 2, [0]], round: [3, [0], 2, [0]], zero: [3, [1], 2, []],
 };
 
 export function resolveOperands(params) {
   if (params?.operands && typeof params.operands === "object") return normalizeOperands(params.operands);
-  const [top, topKind, bottom, bottomKind] = LEGACY_DIGITS[params?.digits ?? 2] ?? LEGACY_DIGITS[2];
-  return normalizeOperands({ top, topKind, bottom, bottomKind });
+  const [top, topZeros, bottom, bottomZeros] = LEGACY_DIGITS[params?.digits ?? 2] ?? LEGACY_DIGITS[2];
+  return normalizeOperands({ top, topZeros, bottom, bottomZeros });
 }
 
-function drawOperand(digits, kind) {
-  if (kind === "round") {
-    if (digits === 2) return randomInt(1, 9) * 10;
-    return Math.random() < 0.4 ? randomInt(1, 9) * 100 : randomInt(10, 99) * 10;
-  }
-  if (kind === "zero") {
-    const h = randomInt(1, 9);
-    return pickOne([h * 100 + randomInt(1, 9), h * 100 + randomInt(1, 9) * 10, h * 100]);
-  }
-  return digits === 1 ? randomInt(2, 9) : ofWidth(digits);
+function drawOperand(digits, zeros) {
+  if (digits === 1) return randomInt(2, 9);
+  let n = 0;
+  for (let p = digits - 1; p >= 0; p--) n = n * 10 + (zeros.includes(p) ? 0 : randomInt(1, 9));
+  return n;
 }
 
 function drawOperandsPair(o, op, carryMode, usedPairs) {
   for (let attempt = 0; attempt < 300; attempt++) {
-    const top = drawOperand(o.top, o.topKind);
-    const bottom = drawOperand(o.bottom, o.bottomKind);
+    const top = drawOperand(o.top, o.topZeros);
+    const bottom = drawOperand(o.bottom, o.bottomZeros);
     const answer = op === "add" ? top + bottom : top - bottom;
     if (answer <= 0 || width(answer) !== width(top)) continue;
     if (carryMode !== "mixed") {

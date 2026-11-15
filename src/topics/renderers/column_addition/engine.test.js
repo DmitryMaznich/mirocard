@@ -319,20 +319,19 @@ describe("«Числа в примере» — each number chosen on its own", (
   const gen = (operands, operation = "mixed", carryMode = "mixed", n = 40) =>
     generateTasks("column_arithmetic", CARDS, n, { operation, carryMode, operands });
 
-  it("widths and kinds hold for every combination; the answer keeps the top's width", () => {
+  it("widths and zeros hold for every combination; no other zeros; the answer keeps the top's width", () => {
+    const subsets = (n) => [[], [0], [1], [0, 1]].filter((z) => z.every((p) => p < n - 1));
     for (const top of [2, 3]) for (const bottom of [1, 2, 3].filter((b) => b <= top)) {
-      for (const topKind of top === 3 ? ["any", "round", "zero"] : ["any", "round"]) {
-        for (const bottomKind of bottom >= 2 ? ["any", "round"] : ["any"]) {
-          const tasks = gen({ top, topKind, bottom, bottomKind }, "mixed", "mixed", 12);
-          expect(tasks.length, JSON.stringify({ top, topKind, bottom, bottomKind })).toBeGreaterThan(0);
-          for (const t of tasks) {
-            expect(String(t.top)).toHaveLength(top);
-            expect(String(t.bottom)).toHaveLength(bottom);
-            expect(String(t.result)).toHaveLength(top);
-            if (topKind === "round") expect(t.top % 10).toBe(0);
-            if (topKind === "zero") expect(String(t.top).slice(1)).toContain("0");
-            if (bottomKind === "round") expect(t.bottom % 10).toBe(0);
-          }
+      for (const topZeros of subsets(top)) for (const bottomZeros of subsets(bottom)) {
+        const tasks = gen({ top, topZeros, bottom, bottomZeros }, "mixed", "mixed", 12);
+        expect(tasks.length, JSON.stringify({ top, topZeros, bottom, bottomZeros })).toBeGreaterThan(0);
+        for (const t of tasks) {
+          expect(String(t.top)).toHaveLength(top);
+          expect(String(t.bottom)).toHaveLength(bottom);
+          expect(String(t.result)).toHaveLength(top);
+          const zerosOf = (n) => String(n).split("").reverse().flatMap((d, p) => (d === "0" ? [p] : []));
+          expect(zerosOf(t.top)).toEqual(topZeros);
+          expect(zerosOf(t.bottom)).toEqual(bottomZeros);
         }
       }
     }
@@ -340,30 +339,29 @@ describe("«Числа в примере» — each number chosen on its own", (
 
   it("carry is honoured where the numbers allow it", () => {
     for (const t of gen({ top: 3, bottom: 2 }, "add", "carry")) expect(hasCarry(t.top, t.bottom)).toBe(true);
-    for (const t of gen({ top: 3, topKind: "zero", bottom: 2 }, "subtract", "carry")) expect(hasBorrow(t.top, t.bottom)).toBe(true);
+    for (const t of gen({ top: 3, topZeros: [1], bottom: 2 }, "subtract", "carry")) expect(hasBorrow(t.top, t.bottom)).toBe(true);
     for (const t of gen({ top: 2, bottom: 1 }, "add", "none")) expect(hasCarry(t.top, t.bottom)).toBe(false);
   });
 
   it("a carry the numbers can't have: examples come without it, marked relaxed", () => {
     // round tens + round tens carry only into a new place, which the trainer doesn't do
-    const ex = operandsExample({ top: 2, topKind: "round", bottom: 2, bottomKind: "round" }, "add", "carry");
+    const ex = operandsExample({ top: 2, topZeros: [0], bottom: 2, bottomZeros: [0] }, "add", "carry");
     expect(ex).toBeTruthy();
     expect(ex.relaxed).toBe(true);
-    expect(gen({ top: 2, topKind: "round", bottom: 2, bottomKind: "round" }, "add", "carry")).not.toHaveLength(0);
+    expect(gen({ top: 2, topZeros: [0], bottom: 2, bottomZeros: [0] }, "add", "carry")).not.toHaveLength(0);
   });
 
-  it("bottom never longer than top; zero only for 3 digits; round bottom needs 2+ digits", () => {
+  it("bottom never longer than top; the leading digit never a zero", () => {
     expect(normalizeOperands({ top: 2, bottom: 3 })).toMatchObject({ top: 2, bottom: 2 });
-    expect(normalizeOperands({ top: 2, topKind: "zero", bottom: 1 }).topKind).toBe("any");
-    expect(normalizeOperands({ top: 3, bottom: 1, bottomKind: "round" }).bottomKind).toBe("any");
+    expect(normalizeOperands({ top: 2, topZeros: [0, 1], bottom: 1, bottomZeros: [0] })).toEqual({ top: 2, topZeros: [0], bottom: 1, bottomZeros: [] });
   });
 
-  it("old «Разрядность» settings map onto the numbers", () => {
-    expect(resolveOperands({ digits: "3+1" })).toEqual({ top: 3, topKind: "any", bottom: 1, bottomKind: "any" });
-    expect(resolveOperands({ digits: "round10" })).toEqual({ top: 2, topKind: "round", bottom: 2, bottomKind: "round" });
-    expect(resolveOperands({ digits: "zero" })).toEqual({ top: 3, topKind: "zero", bottom: 2, bottomKind: "any" });
-    expect(resolveOperands({})).toEqual({ top: 2, topKind: "any", bottom: 2, bottomKind: "any" });
-    expect(resolveOperands({ digits: 3, operands: { top: 2, bottom: 1 } })).toMatchObject({ top: 2, bottom: 1 });
+  it("old settings map onto the cells", () => {
+    expect(resolveOperands({ digits: "3+1" })).toEqual({ top: 3, topZeros: [], bottom: 1, bottomZeros: [] });
+    expect(resolveOperands({ digits: "round10" })).toEqual({ top: 2, topZeros: [0], bottom: 2, bottomZeros: [0] });
+    expect(resolveOperands({ digits: "zero" })).toEqual({ top: 3, topZeros: [1], bottom: 2, bottomZeros: [] });
+    expect(resolveOperands({})).toEqual({ top: 2, topZeros: [], bottom: 2, bottomZeros: [] });
+    expect(resolveOperands({ operands: { top: 3, topKind: "round", bottom: 2, bottomKind: "any" } })).toEqual({ top: 3, topZeros: [0], bottom: 2, bottomZeros: [] });
   });
 });
 

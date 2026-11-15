@@ -1,157 +1,150 @@
-/* «Числа в примере» (ColumnOperandsParam.jsx) — the trainer's numbers, each
-   chosen on its own, with a live example in the column. Colours follow the
-   settings screen (.enum-btn teal), the example follows the notebook. */
+/* «Числа в примере» (ColumnOperandsParam.jsx): the setting drawn as the
+   column — tappable cells, the sign, the line, an example under it. Colours
+   follow the settings screen (teal .enum-btn), the zero is amber. */
 
-.cop { gap: 12px; }
+.cop { gap: 10px; }
 
-.cop__body {
-  display: flex;
-  gap: 14px;
-  width: 100%;
-  align-items: stretch;
+.cop-column {
+  --cop-cell: 48px;
+  display: grid;
+  grid-template-columns: 32px repeat(3, var(--cop-cell));
+  grid-template-rows: var(--cop-cell) var(--cop-cell) 6px;
+  align-items: center;
+  column-gap: 4px;
+  row-gap: 4px;
 }
 
-.cop__choices {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.cop-number { display: flex; flex-direction: column; gap: 6px; }
-
-.cop-number__title {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #537b75;
-}
-
-.cop-segments {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 2px;
-  padding: 3px;
+.cop-cell {
+  width: var(--cop-cell);
+  height: var(--cop-cell);
   border-radius: 12px;
-  background: #eaf1f0;
-}
-
-.cop-seg {
-  flex: 1 1 0;
-  min-width: 0;
-  white-space: nowrap;
-  min-height: 40px;
-  padding: 6px 10px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: #3a5c58;
-  font-family: inherit;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
+  border: 2px dashed #c3d0ce;
+  background: #fafcfc;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  padding: 0;
+  font-family: 'Primo', cursive;
+  font-size: 30px;
+  line-height: 1;
+  color: #b45309;
+  cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+}
+.cop-cell:active:not(:disabled) { transform: scale(0.94); }
+
+.cop-cell--on {
+  border: 2px solid #1c7a6e;
+  background: #d7efe9;
+}
+.cop-cell--on:not(.cop-cell--zero)::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #1c7a6e;
+  opacity: 0.55;
 }
 
-.cop-seg:hover { background: rgba(255, 255, 255, 0.6); }
-
-.cop-seg--on,
-.cop-seg--on:hover {
-  background: #fff;
-  color: #1c7a6e;
-  box-shadow: 0 1px 4px rgba(28, 122, 110, 0.25), inset 0 0 0 1.5px #1c7a6e;
+.cop-cell--on.cop-cell--zero {
+  border-color: #d97706;
+  background: #fff4dc;
 }
 
-.cop-seg__sample {
+.cop-cell--off {
+  opacity: 0.35;
+  border-style: dotted;
+  cursor: default;
+}
+
+.cop-sign {
   font-family: 'Primo', cursive;
-  font-size: 1.05rem;
-  font-weight: 400;
-  color: #94a3b8;
+  font-size: 30px;
+  color: #2563eb;
+  text-align: center;
 }
-.cop-seg--on .cop-seg__sample { color: #1c7a6e; }
 
-/* ── live example ── */
-.cop-preview {
-  flex: 0 0 116px;
+.cop-line {
+  height: 3px;
+  border-radius: 2px;
+  background: #1f2d2b;
+  align-self: start;
+}
+
+.cop-example {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 8px 8px 6px;
-  border-radius: 12px;
-  background-color: #f0f6ff;
-  background-image:
-    linear-gradient(rgba(140, 190, 255, 0.45) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(140, 190, 255, 0.45) 1px, transparent 1px);
-  background-size: 18px 18px;
-}
-
-.cop-preview__caption {
-  align-self: flex-start;
-  font-size: 0.7rem;
-  font-weight: 800;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #64748b;
 }
-
-.cop-preview__column {
-  display: grid;
-  grid-auto-rows: 26px;
-  column-gap: 1px;
+.cop-example__numbers {
   font-family: 'Primo', cursive;
-  font-size: 1.55rem;
-  color: #1a1a2e;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #1f2d2b;
+  white-space: nowrap;
 }
 
-.cop-preview__digit,
-.cop-preview__sign {
-  width: 17px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.cop-preview__sign { color: #2563eb; }
-
-.cop-preview__line {
-  grid-row: 3;
-  height: 2px;
-  align-self: start;
-  background: #1a1a2e;
-}
-
-.cop-preview__again {
-  border: 0;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 8px;
-  padding: 4px 8px;
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1c7a6e;
-  cursor: pointer;
-}
-
-.cop__note {
+.cop-note {
   font-size: 0.8rem;
   color: #b45309;
   line-height: 1.35;
 }
 
-@media (max-width: 420px) {
-  .cop-seg { padding: 6px 4px; gap: 4px; font-size: 0.82rem; }
-  .cop__body { flex-direction: column-reverse; }
-  .cop-preview { flex-basis: auto; flex-direction: row; align-self: stretch; padding: 8px 12px; }
-  .cop-preview__caption { align-self: center; }
+.cop-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.cop-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 6px 12px 6px 9px;
+  border: 0;
+  border-radius: 10px;
+  background: #eaf1f0;
+  color: #3a5c58;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cop-check__box {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid #9fb8b4;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #fff;
+}
+.cop-check--on { background: #d7efe9; color: #1c7a6e; }
+.cop-check--on .cop-check__box { background: #1c7a6e; border-color: #1c7a6e; }
+.cop-check--on .cop-check__box::after { content: "✓"; }
+
+.cop-again {
+  margin-left: auto;
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: #eaf1f0;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1c7a6e;
+  cursor: pointer;
 }
 
-/* 320px phones: no room for the sample digits next to the words */
-@media (max-width: 359px) {
-  .cop-seg__sample { display: none; }
+.cop-hint {
+  font-size: 0.75rem;
+  color: #7a9e9a;
+  line-height: 1.4;
 }
