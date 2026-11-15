@@ -106,8 +106,9 @@ describe('portrait screen', () => {
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('done');
     expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ style: 'simple', phase: 'done', shape: 1, results: [2, 1, 1, 1, 1, 1, 1] });
-    await click(label('Новый портрет'));
-    expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
+    // One primary action, no home button: leaving the lesson is only the shared header's ✕.
+    expect(label('Закончить')).toBeNull(); expect(label('Новый портрет')).toBeNull();
+    expect(host.querySelectorAll('.portrait-next')).toHaveLength(1); expect(label('Раскрасить')).not.toBeNull();
   });
   it('«Пикассо» when the adult chose it: seven steps', async () => {
     await render({ style: 'picasso' });
@@ -143,6 +144,9 @@ describe('portrait screen', () => {
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('colored');
     expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [4, 2, 2, 2, 2] });
+    expect(host.querySelectorAll('.portrait-next')).toHaveLength(1);
+    await click(label('Новый портрет'));
+    expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
   });
   it('builds the colouring lesson painter-wise: outline, then skin, hair, clothes, eyes (iris inside the eye), lips', () => {
     const results = [1, 1, 1, 6, 2, 2, 2], plan = colorSteps('simple', 1, results);

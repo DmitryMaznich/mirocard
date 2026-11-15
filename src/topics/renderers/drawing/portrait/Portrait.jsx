@@ -82,6 +82,17 @@ function Pencil({ pencil }) {
     {pencil.light && <path d="M14 28 q12 -4 24 0 t24 0" fill="none" stroke={pencil.color} strokeWidth="4" strokeLinecap="round" />}
   </svg>;
 }
+// The one primary action of every screen: the big green round button, always bottom right
+// («Дальше», «Раскрасить», «Новый портрет»). Leaving the lesson is only the header's ✕.
+const ICONS = {
+  next: <path d="M11 24h24M25 13l11 11-11 11" />,
+  paint: <><path d="M24 6C12 6 6 14 6 23c0 9 7 16 15 16 4 0 4-4 1-7-2-3 0-7 4-7h7c7 0 10-4 10-9 0-6-8-10-19-10Z" /><circle cx="15" cy="20" r="2.4" /><circle cx="23" cy="13" r="2.4" /><circle cx="32" cy="16" r="2.4" /></>,
+  again: <path d="M12 16a14 14 0 1 1-2 15M11 7v10h10" />,
+};
+function Primary({ icon, label, disabled, onClick }) {
+  return <button type="button" className="portrait-next" data-icon={icon} aria-label={label} disabled={disabled} onClick={onClick}>
+    <svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[icon]}</svg></button>;
+}
 // Printing goes through a hidden frame: a pop-up is often blocked in an installed app.
 function printSvg(title, svg) {
   const frame = document.createElement('iframe');
@@ -103,7 +114,7 @@ function MenuButton({ onOpen }) {
   </button>;
 }
 
-export default function Portrait({ student, sessionParams, soundEnabled = true, interactionDisabled = false, onClose, onAdvance, AdultDialog }) {
+export default function Portrait({ student, sessionParams, soundEnabled = true, interactionDisabled = false, AdultDialog }) {
   const key = portraitKey(student?.id);
   const styleId = normalizeStyle(sessionParams?.style);
   const [state, setState] = useState(() => readPortrait(key, styleId));
@@ -121,7 +132,6 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
   const paintKey = state.phase === 'color' || state.phase === 'colored'
     ? JSON.stringify([state.style, state.shape, state.results, state.phase === 'colored' || state.value === null ? state.colors : [...state.colors, state.value]]) : null;
   const paint = useMemo(() => { if (!paintKey) return null; const [st, sh, res, cols] = JSON.parse(paintKey); return paintLesson(st, sh, res, cols); }, [paintKey]);
-  const finish = () => { setMenu(null); (onClose ?? onAdvance)?.(); };
   const update = change => setState(previous => change(previous));
 
   // An on-screen throw: the faces flicker for a moment, then the die lands and picks the variant itself.
@@ -164,14 +174,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
   if (state.phase === 'done') return shell('done', 'Портрет готов', <>
     <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
     <div className="portrait-done" ref={faceRef}><Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} hint={false} className="portrait-face portrait-face--done" /></div>
-    <div className="portrait-done-actions">
-      <button type="button" className="portrait-round portrait-round--paint" aria-label="Раскрасить" disabled={interactionDisabled} onClick={() => update(startColoring)}>
-        <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C9 4 4 10 4 17c0 7 5 12 11 12 3 0 3-3 1-5-2-2 0-5 3-5h5c5 0 8-3 8-7 0-5-6-8-14-8Z" /><circle cx="11" cy="15" r="2" /><circle cx="17" cy="10" r="2" /><circle cx="24" cy="12" r="2" /></svg></button>
-      <button type="button" className="portrait-round portrait-round--quiet" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
-        <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 10a11 11 0 1 1-1 14M7 3v8h8" /></svg></button>
-      <button type="button" className="portrait-round portrait-round--quiet" aria-label="Закончить" disabled={interactionDisabled} onClick={finish}>
-        <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 17 18 6l13 11M9 14v15h18V14" /></svg></button>
-    </div>
+    <Primary icon="paint" label="Раскрасить" disabled={interactionDisabled} onClick={() => update(startColoring)} />
   </>);
 
   const chosen = rolling ?? state.value;
@@ -180,8 +183,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
       if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) update(s => pick(s, 1 + Math.floor(Math.random() * 6)));
       else setRolling(1 + Math.floor(Math.random() * 6));
     }}><Die value={rolling ?? 5} size="big" /></button>;
-  const nextButton = label => state.value !== null && <button type="button" className="portrait-next" aria-label={label} disabled={interactionDisabled}
-    onClick={() => update(next)}><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 24h24M25 13l11 11-11 11" /></svg></button>;
+  const nextButton = label => state.value !== null && <Primary icon="next" label={label} disabled={interactionDisabled} onClick={() => update(next)} />;
 
   // Colouring on screen, to repeat with real pencils on paper. Every colour is the child's choice by tap.
   if (state.phase === 'color' || state.phase === 'colored') {
@@ -192,12 +194,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
     if (state.phase === 'colored') return shell('colored', 'Портрет раскрашен', <>
       <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
       <div className="portrait-done" ref={faceRef}>{board}</div>
-      <div className="portrait-done-actions">
-        <button type="button" className="portrait-round" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
-          <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 10a11 11 0 1 1-1 14M7 3v8h8" /></svg></button>
-        <button type="button" className="portrait-round portrait-round--quiet" aria-label="Закончить" disabled={interactionDisabled} onClick={finish}>
-          <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 17 18 6l13 11M9 14v15h18V14" /></svg></button>
-      </div>
+      <Primary icon="again" label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))} />
     </>);
     const pencils = paletteFor(state.style, cstep.group);
     return shell('color', `Раскрась: ${cstep.name}`, <>

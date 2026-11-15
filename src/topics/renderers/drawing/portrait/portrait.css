@@ -82,3 +82,7 @@
 /* The finished (and the coloured) portrait always fits its frame, whatever the SVG content. */
 .portrait-done { position:relative; }
 .portrait-done > svg { position:absolute; inset:12px; width:calc(100% - 24px); height:calc(100% - 24px); }
+
+/* One navigation style (2026-11-15): the primary action is always the green round button bottom right;
+   leaving is only the header's ✕ (the ⌂ that closed the whole lesson is gone). Icons drawn with strokes. */
+.portrait-next[data-icon="paint"] svg circle { fill:currentColor; stroke:none; }
