@@ -6,6 +6,7 @@ import { generateTasks } from '../engine.js';
 import { STYLES, styleSteps } from './styles.js';
 import { back, chooseShape, freshPortrait, next, pick, portraitKey, readPortrait, stepCount, validPortrait } from './state.js';
 import { LIFT_MS, splitSubpaths, timeline, timelineEnd } from './drawPath.js';
+import { colorSteps, paintLesson, transformPath } from './paintPlan.js';
 
 describe('portrait styles', () => {
   it('«Простое лицо»: three faces, seven steps of six variants, finite paths and a place for every step', () => {
@@ -34,6 +35,12 @@ describe('portrait styles', () => {
         expect(Math.abs(ys[0] - ys.at(-1))).toBeLessThan(.01);
       }
       expect(steps[6].variants.every(v => v.d.startsWith('M'))).toBe(true);
+    }
+  });
+  it('hair along the top of the head ends on the right side, never jumps back to the left', () => {
+    for (const shape of [0, 1, 2]) for (const v of styleSteps('simple', shape)[5].variants) {
+      const xs = [...v.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(m => +m[1]);
+      if (v.label === 'Шапочка' || v.label === 'Зигзаг' || v.label === 'Длинные') expect(xs.at(-1)).toBeGreaterThan(110);
     }
   });
   it('«Пикассо» keeps the prototype: seven steps, hair placed per face shape', () => {
@@ -119,6 +126,39 @@ describe('portrait screen', () => {
     await act(async () => { vi.advanceTimersByTime(1000); });
     expect(host.querySelectorAll('.portrait-option[aria-pressed="true"]')).toHaveLength(1);
     expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.portrait-next')).not.toBeNull();
+  });
+  it('colouring after the portrait: skin is picked by tap, the rest by the die; the coloured portrait is kept', async () => {
+    localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
+    await render();
+    await click(label('Раскрасить'));
+    expect(host.querySelector('h2').textContent).toBe('Лицо');
+    const skin = host.querySelectorAll('.portrait-color');
+    expect(skin).toHaveLength(6); expect(skin[0].querySelector('.portrait-die')).toBeNull();
+    await click(skin[3]); await click(host.querySelector('.portrait-next'));
+    expect(host.querySelector('h2').textContent).toBe('Волосы');
+    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(6);
+    for (const name of ['Волосы', 'Одежда', 'Глаза', 'Губы']) {
+      expect(host.querySelector('h2').textContent).toBe(name);
+      await click(host.querySelectorAll('.portrait-color')[1]); await click(host.querySelector('.portrait-next'));
+    }
+    expect(host.querySelector('.portrait').dataset.phase).toBe('colored');
+    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [4, 2, 2, 2, 2] });
+  });
+  it('builds the colouring lesson painter-wise: outline, then skin, hair, clothes, eyes (iris inside the eye), lips', () => {
+    const results = [1, 1, 1, 6, 2, 2, 2], plan = colorSteps('simple', 1, results);
+    expect(plan.map(s => s.group)).toEqual(['skin', 'hair', 'clothes', 'eyes', 'lips']);
+    const { lesson, ends } = paintLesson('simple', 1, results, [1, 1, 1, 1, 1]);
+    expect(lesson.steps[0]).toMatchObject({ kind: 'stroke', tool: 'black' });
+    expect(ends).toHaveLength(6); expect(ends.at(-1)).toBe(lesson.steps.length);
+    const eyes = lesson.steps.slice(ends[3], ends[4]);
+    expect(eyes.every(s => s.kind === 'color' && s.clip)).toBe(true);
+    expect(lesson.steps.filter(s => s.kind === 'color').every(s => s.fill.startsWith('#'))).toBe(true);
+    // A line mouth is traced in colour, not filled.
+    expect(paintLesson('simple', 1, [1, 1, 1, 2, 2, 2, 2], [1, 1, 1, 1, 1]).lesson.steps.at(-1)).toMatchObject({ kind: 'stroke' });
+  });
+  it('moves Picasso parts onto the sheet for colouring (translate + scale, relative arcs too)', () => {
+    expect(transformPath('M10 20 L30 40 a5 5 0 1 0 10 0Z', 'translate(43 66) scale(.39)')).toBe('M46.9 73.8 L54.7 81.6 a1.95 1.95 0 1 0 3.9 0 Z');
+    expect(colorSteps('picasso', 0, [1, 2, 3, 4, 5, 6, 1]).map(s => s.group)).toEqual(['skin', 'hair', 'eyes', 'lips']);
   });
   it('the adult menu opens with an ordinary tap and has no own exit (the shared header ✕ does that)', async () => {
     await render();

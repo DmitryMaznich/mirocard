@@ -28,7 +28,13 @@ function evenAngles(face, from, to, count) {
   const lengths = [0];
   for (let i = 1; i < fine.length; i++) { const a = at(face, fine[i - 1]), b = at(face, fine[i]); lengths.push(lengths[i - 1] + Math.hypot(b.x - a.x, b.y - a.y)); }
   const total = lengths.at(-1);
-  return Array.from({ length: count }, (_, k) => { const goal = total * k / (count - 1), i = lengths.findIndex(l => l >= goal); return fine[Math.max(0, i)]; });
+  // The last point is the end itself: total * k / (count - 1) can round just above total, and a missed
+  // findIndex (-1) used to jump back to the first point — a line across the face (2026-11-15).
+  return Array.from({ length: count }, (_, k) => {
+    if (k === count - 1) return fine.at(-1);
+    const goal = total * k / (count - 1), i = lengths.findIndex(l => l >= goal - 1e-9);
+    return fine[i < 0 ? fine.length - 1 : i];
+  });
 }
 const outline = face => `M${Array.from({ length: 96 }, (_, i) => { const p = at(face, i * 3.75); return `${f(p.x)} ${f(p.y)}`; }).join(' L')}Z`;
 const circle = (x, y, r) => `M${f(x + r)} ${f(y)} A${f(r)} ${f(r)} 0 1 0 ${f(x - r)} ${f(y)} A${f(r)} ${f(r)} 0 1 0 ${f(x + r)} ${f(y)}`;
@@ -46,7 +52,7 @@ function simpleSteps(face) {
   const ear = draw => pair(draw, ears[0], ears[1]);
   const top = (from, to, count) => evenAngles(face, from, to, count);
   const n = { x: face.cx, y: noseY }, m = { x: face.cx, y: mouthY }, w = 24 * u;
-  return [
+  const steps = [
     // Every eye has a pupil (owner, 2026-11-15): a bare line or dot next to line brows read as no eye at all.
     { name: 'Глаза', icon: [face.cx - face.rx * .78, eyeY - 24, face.rx * 1.56, 48], places: eyes.map(e => [e.x, e.y, 15 * u, 12 * u]), variants: [
       { label: 'Кружки', d: both(e => circle(e.x, e.y, 11 * u)), fill: both(e => circle(e.x, e.y, 4.5 * u)) },
@@ -107,6 +113,27 @@ function simpleSteps(face) {
     ] },
     neckStep(face, u),
   ];
+  return addSimplePaint(steps, face, u, eyes);
+}
+// What the colouring steps paint for each «Простое лицо» variant: closed regions get pencil hatching,
+// open lines are traced again in colour. Groups: skin, hair, clothes, eyes, lips (paintPlan.js).
+const sub = d => d.trim().split(/(?=M)/).map(x => x.trim()).filter(Boolean);
+function addSimplePaint(steps, face, u, eyes) {
+  const [eyeStep, brows, , mouth, ears, hair] = steps;
+  const iris = [[0, 8], [0, 7], [-.5, 5], [0, 8], [-1, 7.5], [0, 10]];
+  eyeStep.variants.forEach((v, i) => { const [dy, r] = iris[i];
+    v.paint = sub(v.d).map((shape, k) => ({ group: 'eyes', d: circle(eyes[k].x, eyes[k].y + dy * u, r * u), clip: shape })); });
+  brows.variants.forEach(v => { v.paint = [{ group: 'hair', line: v.d }]; });
+  mouth.variants.forEach((v, i) => { v.paint = i < 2 ? [{ group: 'lips', line: v.d }] : [{ group: 'lips', d: v.d }]; });
+  ears.variants.forEach((v, i) => { v.paint = i === 1 || i === 2 ? sub(v.d).map(d => ({ group: 'skin', d })) : []; });
+  hair.variants.forEach((v, i) => {
+    if (i === 2) v.paint = sub(v.d).map(d => ({ group: 'hair', d }));
+    else if (i === 1) { // the cap closes along the top of the head
+      const back = Array.from({ length: 33 }, (_, k) => at(face, 350 - k * 5)).map(p => `${f(p.x)} ${f(p.y)}`).join(' L');
+      v.paint = [{ group: 'hair', d: `${v.d} L${back}Z` }];
+    } else v.paint = [{ group: 'hair', line: v.d }];
+  });
+  return steps;
 }
 // Neck (and shoulders): two straight lines from the chin, then what the child likes around them.
 function neckStep(face, u) {
@@ -114,14 +141,17 @@ function neckStep(face, u) {
   const neck = `M${f(left.x)} ${f(left.y)} L${f(left.x)} ${f(base)} M${f(right.x)} ${f(right.y)} L${f(right.x)} ${f(base)}`;
   const shoulders = `M${f(left.x)} ${f(base)} Q${f(face.cx - sx)} ${f(base)} ${f(face.cx - sx)} ${f(sy)} M${f(right.x)} ${f(base)} Q${f(face.cx + sx)} ${f(base)} ${f(face.cx + sx)} ${f(sy)}`;
   const mid = { x: face.cx, y: base };
+  // Skin of the neck (its top hides under the face) and the clothes below the shoulders, closed by the sheet's edge.
+  const skin = { group: 'skin', d: `M${f(left.x)} ${f(left.y - 6 * u)} L${f(left.x)} ${f(base)} L${f(right.x)} ${f(base)} L${f(right.x)} ${f(right.y - 6 * u)}Z` };
+  const clothes = { group: 'clothes', d: `M${f(left.x)} ${f(base)} Q${f(face.cx - sx)} ${f(base)} ${f(face.cx - sx)} ${f(sy)} L${f(face.cx + sx)} ${f(sy)} Q${f(face.cx + sx)} ${f(base)} ${f(right.x)} ${f(base)}Z` };
   return { name: 'Шея', icon: [face.cx - sx - 12, face.cy + face.ry * .45, sx * 2 + 24, sy - face.cy - face.ry * .45 + 10], ghost: true,
     places: [[face.cx, base, sx * .75, 22 * u]], variants: [
-      { label: 'Шея', d: neck },
-      { label: 'Шея и плечи', d: `${neck} ${shoulders}` },
-      { label: 'Воротник', d: `${neck} ${shoulders} M${f(left.x - 10 * u)} ${f(base - 2 * u)} L${f(mid.x)} ${f(base + 16 * u)} L${f(right.x + 10 * u)} ${f(base - 2 * u)}` },
-      { label: 'Бусы', d: `${neck} ${shoulders} ${[-2, -1, 0, 1, 2].map(k => circle(mid.x + k * 9 * u, base - 6 * u + Math.abs(k) * -2 * u + 4 * u, 3.6 * u)).join(' ')}` },
-      { label: 'Круглый вырез', d: `${neck} ${shoulders} M${f(left.x - 12 * u)} ${f(base)} Q${f(mid.x)} ${f(base + 24 * u)} ${f(right.x + 12 * u)} ${f(base)}` },
-      { label: 'Бантик', d: `${neck} ${shoulders} M${f(mid.x)} ${f(base + 4 * u)} L${f(mid.x - 13 * u)} ${f(base - 4 * u)} L${f(mid.x - 13 * u)} ${f(base + 12 * u)}Z M${f(mid.x)} ${f(base + 4 * u)} L${f(mid.x + 13 * u)} ${f(base - 4 * u)} L${f(mid.x + 13 * u)} ${f(base + 12 * u)}Z` },
+      { label: 'Шея', d: neck, paint: [skin] },
+      { label: 'Шея и плечи', d: `${neck} ${shoulders}`, paint: [skin, clothes] },
+      { label: 'Воротник', d: `${neck} ${shoulders} M${f(left.x - 10 * u)} ${f(base - 2 * u)} L${f(mid.x)} ${f(base + 16 * u)} L${f(right.x + 10 * u)} ${f(base - 2 * u)}`, paint: [skin, clothes] },
+      { label: 'Бусы', d: `${neck} ${shoulders} ${[-2, -1, 0, 1, 2].map(k => circle(mid.x + k * 9 * u, base - 6 * u + Math.abs(k) * -2 * u + 4 * u, 3.6 * u)).join(' ')}`, paint: [skin, clothes] },
+      { label: 'Круглый вырез', d: `${neck} ${shoulders} M${f(left.x - 12 * u)} ${f(base)} Q${f(mid.x)} ${f(base + 24 * u)} ${f(right.x + 12 * u)} ${f(base)}`, paint: [skin, clothes] },
+      { label: 'Бантик', d: `${neck} ${shoulders} M${f(mid.x)} ${f(base + 4 * u)} L${f(mid.x - 13 * u)} ${f(base - 4 * u)} L${f(mid.x - 13 * u)} ${f(base + 12 * u)}Z M${f(mid.x)} ${f(base + 4 * u)} L${f(mid.x + 13 * u)} ${f(base - 4 * u)} L${f(mid.x + 13 * u)} ${f(base + 12 * u)}Z`, paint: [skin, clothes] },
     ] };
 }
 

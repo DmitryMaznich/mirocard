@@ -71,3 +71,14 @@
    lessons that hide it; so no safe-area padding at the top — the header already has it. */
 .session-screen:has(.drawing-lesson.portrait) > .session-header-wrap { display:block; margin-bottom:8px; }
 .drawing-shell.portrait { padding-top:4px; }
+/* Colouring steps: pencil cards (colour + name; die pips unless the child picks). */
+.portrait-color { gap:6px; }
+.portrait-pencil { width:min(150px,90%); height:auto; flex:none; max-height:none; }
+.portrait-color__name { font-size:15px; font-weight:650; color:var(--drawing-ink); }
+.portrait-round--paint { background:#eab73b; box-shadow:0 5px 0 #b98a1d; }
+.drawing-lesson .portrait-round--paint { color:#3a2a06; }
+.portrait-paint { overflow:visible; }
+@media (orientation:portrait) and (max-width:900px) { .portrait-color__name { font-size:13px; } }
+/* The finished (and the coloured) portrait always fits its frame, whatever the SVG content. */
+.portrait-done { position:relative; }
+.portrait-done > svg { position:absolute; inset:12px; width:calc(100% - 24px); height:calc(100% - 24px); }

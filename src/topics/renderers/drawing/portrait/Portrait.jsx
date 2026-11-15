@@ -3,7 +3,9 @@
 // The adult picks the style (styles.js); the chosen variant is then drawn stroke by stroke as a model.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { STYLES, normalizeStyle, styleSteps } from './styles.js';
-import { back, chooseShape, next, pick, portraitKey, readPortrait, savePortrait, freshPortrait, stepCount } from './state.js';
+import { back, chooseShape, next, pick, portraitKey, readPortrait, savePortrait, freshPortrait, stepCount, startColoring } from './state.js';
+import { colorSteps, paintLesson, paletteFor } from './paintPlan.js';
+import { createDrawingPlayer } from '../player.js';
 import { sampleSubpaths, timeline, timelineEnd } from './drawPath.js';
 import './portrait.css';
 
@@ -55,6 +57,29 @@ function VariantIcon({ step, variant, face }) {
     {step.ghost && <path d={face.path} className="portrait-ghost" />}<g transform={step.ownSpace ? undefined : step.transform}><Art variant={variant} /></g>
   </svg>;
 }
+// The «Рисуем по шагам» player shows the colouring: the portrait outline at once, then the new colour
+// hatched in like a real pencil (from → to player steps). Without SVG geometry (tests) it stays empty.
+function PaintBoard({ lesson, from, to, play, soundEnabled }) {
+  const svg = useRef(null);
+  useEffect(() => {
+    const node = svg.current;
+    if (!node || typeof node.getBBox !== 'function') return undefined;
+    let player, alive = true;
+    try {
+      player = createDrawingPlayer(node, lesson, () => {}, `portrait-${play}`, { soundEnabled });
+      player.restore(from);
+      (async () => { for (let i = from; i < to && alive; i++) await player.next(); })();
+    } catch { try { player?.restore(to); } catch { /* geometry unavailable */ } }
+    return () => { alive = false; player?.dispose(); };
+  }, [lesson, from, to, play, soundEnabled]);
+  return <svg ref={svg} className="portrait-face portrait-paint" viewBox={lesson.viewBox} role="img" aria-label="Раскраска портрета" />;
+}
+function Pencil({ pencil }) {
+  return <svg className="portrait-pencil" viewBox="0 0 120 30" aria-hidden="true">
+    <path d="M10 5h78l22 10-22 10H10a5 5 0 0 1-5-5V10a5 5 0 0 1 5-5Z" fill={pencil.color} stroke="#3a3a32" strokeWidth="1.5" />
+    <path d="M88 5l22 10-22 10Z" fill="#f1d7ad" stroke="#3a3a32" strokeWidth="1.5" /><path d="M103 12l7 3-7 3Z" fill={pencil.color} />
+  </svg>;
+}
 // Printing goes through a hidden frame: a pop-up is often blocked in an installed app.
 function printSvg(title, svg) {
   const frame = document.createElement('iframe');
@@ -76,7 +101,7 @@ function MenuButton({ onOpen }) {
   </button>;
 }
 
-export default function Portrait({ student, sessionParams, interactionDisabled = false, onClose, onAdvance, AdultDialog }) {
+export default function Portrait({ student, sessionParams, soundEnabled = true, interactionDisabled = false, onClose, onAdvance, AdultDialog }) {
   const key = portraitKey(student?.id);
   const styleId = normalizeStyle(sessionParams?.style);
   const [state, setState] = useState(() => readPortrait(key, styleId));
@@ -111,10 +136,10 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
 
   const adult = <AdultDialog page={menu} onDismiss={() => setMenu(null)}>
     <div className="drawing-dialog__heading"><h3>Для взрослого</h3><button type="button" onClick={() => setMenu(null)} aria-label="Закрыть настройки">×</button></div>
-    <p className="drawing-parent-progress">{style.title}{state.phase === 'done' ? ' · портрет готов' : step ? ` · ${step.name} · шаг ${part + 1} из ${total}` : ''}</p>
+    <p className="drawing-parent-progress">{style.title}{state.phase === 'done' || state.phase === 'colored' ? ' · портрет готов' : state.phase === 'color' ? ' · раскрашиваем' : step ? ` · ${step.name} · шаг ${part + 1} из ${total}` : ''}</p>
     <div className="drawing-dialog__actions portrait-adult-actions">
       <button type="button" onClick={() => print(true)}>Распечатать контур лица</button>
-      {state.phase === 'done' && <button type="button" onClick={() => print(false)}>Распечатать портрет</button>}
+      {(state.phase === 'done' || state.phase === 'colored') && <button type="button" onClick={() => print(false)}>Распечатать портрет</button>}
       {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); update(back); setMenu(null); }}>Вернуться на шаг</button>}
       {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); setState(freshPortrait(state.style)); setMenu(null); }}>Начать новый портрет</button>}
     </div>
@@ -134,7 +159,9 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
     <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
     <div className="portrait-done" ref={faceRef}><Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} hint={false} className="portrait-face portrait-face--done" /></div>
     <div className="portrait-done-actions">
-      <button type="button" className="portrait-round" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
+      <button type="button" className="portrait-round portrait-round--paint" aria-label="Раскрасить" disabled={interactionDisabled} onClick={() => update(startColoring)}>
+        <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C9 4 4 10 4 17c0 7 5 12 11 12 3 0 3-3 1-5-2-2 0-5 3-5h5c5 0 8-3 8-7 0-5-6-8-14-8Z" /><circle cx="11" cy="15" r="2" /><circle cx="17" cy="10" r="2" /><circle cx="24" cy="12" r="2" /></svg></button>
+      <button type="button" className="portrait-round portrait-round--quiet" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
         <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 10a11 11 0 1 1-1 14M7 3v8h8" /></svg></button>
       <button type="button" className="portrait-round portrait-round--quiet" aria-label="Закончить" disabled={interactionDisabled} onClick={finish}>
         <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 17 18 6l13 11M9 14v15h18V14" /></svg></button>
@@ -142,6 +169,61 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
   </>);
 
   const chosen = rolling ?? state.value;
+  const roller = screenDie && state.value === null && <button type="button" className="portrait-roll" aria-label="Бросить кубик" disabled={interactionDisabled || rolling !== null}
+    data-rolling={rolling !== null || undefined} onClick={() => {
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) update(s => pick(s, 1 + Math.floor(Math.random() * 6)));
+      else setRolling(1 + Math.floor(Math.random() * 6));
+    }}><Die value={rolling ?? 5} size="big" /></button>;
+  const nextButton = label => state.value !== null && <button type="button" className="portrait-next" aria-label={label} disabled={interactionDisabled}
+    onClick={() => update(next)}><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 24h24M25 13l11 11-11 11" /></svg></button>;
+
+  // Colouring on screen, to repeat with real pencils on paper: skin is the child's choice, the rest the die's.
+  if (state.phase === 'color' || state.phase === 'colored') {
+    const plan = colorSteps(state.style, state.shape, state.results), k = state.colors.length, cstep = plan[k];
+    const shown = state.phase === 'colored' ? state.colors : state.value !== null ? [...state.colors, state.value] : state.colors;
+    const { lesson, ends } = paintLesson(state.style, state.shape, state.results, shown);
+    const from = state.phase === 'colored' ? ends.at(-1) : ends[k], to = ends.at(-1);
+    const board = <PaintBoard lesson={lesson} from={from} to={to} play={play} soundEnabled={soundEnabled} />;
+    if (state.phase === 'colored') return shell('colored', 'Портрет раскрашен', <>
+      <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
+      <div className="portrait-done" ref={faceRef}>{board}</div>
+      <div className="portrait-done-actions">
+        <button type="button" className="portrait-round" aria-label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))}>
+          <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 10a11 11 0 1 1-1 14M7 3v8h8" /></svg></button>
+        <button type="button" className="portrait-round portrait-round--quiet" aria-label="Закончить" disabled={interactionDisabled} onClick={finish}>
+          <svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 17 18 6l13 11M9 14v15h18V14" /></svg></button>
+      </div>
+    </>);
+    const pencils = paletteFor(state.style, cstep.group), picked = cstep.choice === 'pick', useDie = !picked;
+    return shell('color', `Раскрась: ${cstep.name}`, <>
+      <header className="drawing-top portrait-top">
+        <h2>{cstep.name}</h2>
+        <ol className="portrait-steps portrait-steps--paint" aria-label={`Цвет ${k + 1} из ${plan.length}`}>{plan.map((s, i) => <li key={s.group} className={i < k ? 'is-done' : i === k ? 'is-current' : ''} />)}</ol>
+        <MenuButton onOpen={() => setMenu('settings')} />
+      </header>
+      <div className="portrait-work" data-paint={cstep.group} data-chosen={state.value ?? undefined}>
+        <div className="portrait-options portrait-options--paint" role="group" aria-label={`Цвет: ${cstep.name.toLowerCase()}`}>
+          {pencils.map((pencil, i) => {
+            const value = i + 1, selected = chosen === value;
+            return <button type="button" key={pencil.id} className={`portrait-option portrait-color${selected ? ' is-selected' : ''}${chosen && !selected ? ' is-dim' : ''}`}
+              aria-label={useDie ? `${value}: ${pencil.name}` : pencil.name} aria-pressed={selected}
+              disabled={interactionDisabled || (useDie && (screenDie || rolling !== null))} onClick={() => { update(s => pick(s, value)); setPlay(n => n + 1); }}>
+              {useDie && <Die value={value} />}<Pencil pencil={pencil} /><span className="portrait-color__name">{pencil.name}</span>
+            </button>;
+          })}
+        </div>
+        <div className="portrait-stage">
+          {board}
+          {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать ещё раз" disabled={interactionDisabled}
+            onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
+          {useDie && roller}
+        </div>
+      </div>
+      {nextButton(k + 1 === plan.length ? 'Готово' : 'Дальше')}
+      <span className="drawing-sr-only" role="status" aria-live="polite">{state.value === null ? (picked ? 'Выбери цвет' : 'Брось кубик') : `${pencils[state.value - 1].name}. Раскрась на бумаге`}</span>
+    </>);
+  }
+
   return shell('part', `Портрет по кубику: ${step.name}`, <>
     <header className="drawing-top portrait-top">
       <h2>{step.name}</h2>
@@ -163,15 +245,10 @@ export default function Portrait({ student, sessionParams, interactionDisabled =
         <Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} current={state.value} play={play} />
         {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать, как рисовать" disabled={interactionDisabled}
           onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
-        {screenDie && state.value === null && <button type="button" className="portrait-roll" aria-label="Бросить кубик" disabled={interactionDisabled || rolling !== null}
-          data-rolling={rolling !== null || undefined} onClick={() => {
-            if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) update(s => pick(s, 1 + Math.floor(Math.random() * 6)));
-            else setRolling(1 + Math.floor(Math.random() * 6));
-          }}><Die value={rolling ?? 5} size="big" /></button>}
+        {roller}
       </div>
     </div>
-    {state.value !== null && <button type="button" className="portrait-next" aria-label={part + 1 === total ? 'Готово' : 'Дальше'} disabled={interactionDisabled}
-      onClick={() => update(next)}><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 24h24M25 13l11 11-11 11" /></svg></button>}
+    {nextButton(part + 1 === total ? 'Готово' : 'Дальше')}
     <span className="drawing-sr-only" role="status" aria-live="polite">{state.value === null ? (screenDie ? 'Брось кубик' : 'Брось кубик и выбери') : `${step.variants[state.value - 1].label}. Нарисуй на бумаге`}</span>
   </>);
 }
