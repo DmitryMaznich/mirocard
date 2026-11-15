@@ -152,8 +152,11 @@ export default function SolveView({ test, onBack, onResult, initial = null, onPr
     const b = byKey[focus];
     if (!b || locked.has(focus)) return;
     if (b.kind === "mark") {
-      // a carry / a borrowed digit: one digit over the column, then back to the answer
-      setValues((v) => ({ ...v, [focus]: d }));
+      // a carry / a lent-down digit: one digit over the column, then back to the answer. In a
+      // subtraction the mark is written from the right like the answer: the lent-down 2 first, the
+      // borrowed 1 in front of it later — «12», as in the «Столбик» trainer (one record, 2026-11-15)
+      const cur = values[focus] ?? "";
+      setValues((v) => ({ ...v, [focus]: b.op === "subtract" && cur.length === 1 ? d + cur : d }));
       const a = answerOf(b.item);
       if (a && !locked.has(a)) setFocus(a);
       return;
@@ -207,7 +210,7 @@ export default function SolveView({ test, onBack, onResult, initial = null, onPr
       return;
     }
     const b = byKey[focus];
-    setValues((v) => ({ ...v, [focus]: b?.kind === "num" ? (b.rtl ? cur.slice(1) : cur.slice(0, -1)) : "" }));
+    setValues((v) => ({ ...v, [focus]: b?.kind === "num" ? (b.rtl ? cur.slice(1) : cur.slice(0, -1)) : b?.kind === "mark" && b.op === "subtract" ? cur.slice(1) : "" }));
   }, [focus, checked, locked, values, nextOpen, byKey]);
   const goNext = useCallback(() => { const n = nextOpen(focus); setFocus(n ?? open[0]?.key ?? null); }, [focus, nextOpen, open]);
 

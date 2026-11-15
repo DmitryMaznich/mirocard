@@ -92,6 +92,21 @@ separate branches for two or three places or for a zero:
 - 102 − 7: the hundreds lent down to 0 are crossed out with no «0» over them; a leading zero
   of the answer is not written.
 
+## One record with «Контрольные по математике» (2026-11-15)
+
+Owner chose «с 1» (mockup `docs/mockups/column-addition/2026-11-15-one-style.html`): the trainer and
+«Реши в столбик» of `math_tests` write the column the same way, as a pen in a notebook —
+- everything the child writes besides the answer is a small digit in the child's blue (`#1d4ed8`,
+  math_tests `COLORS.child`) in the marks row over its place: the carried «1»; the lent-down digit
+  over a crossed-out one (crossed in the same blue); the borrowed «1» in front of the place's number —
+  in front of that mark («12»), or, over a digit not crossed, low on the left of its mark cell;
+- no yellow triangles, corners or tints any more (`.col-carry-cell`, `.col-digit-corner` are gone);
+  the place to write next is a small dashed yellow box (`.col-mark-part--slot`, math_tests' focus box);
+- in `math_tests` a subtraction mark is written from the right like the answer: 2, then 1 → «12»
+  (`SolveView.jsx` typeDigit / erase; the mark blank carries `op`), and `layout.js` draws the «1»
+  smaller in front, a lone «1» over an uncrossed digit at the left of its cell. Marks are still not
+  graded there.
+
 ## Next
 
 - «Найди ошибку» — new mode, mockup shown to the owner 2026-10-23, waiting for

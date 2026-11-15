@@ -129,8 +129,8 @@ describe("ColumnArithmeticTask — compareMode", () => {
     answer("Не хватает");
     crossOut(); // the 3 of the tens
     tapDigit(2); // adjust:tens — over the crossed-out 3
-    tapDigit(1); // borrow:units — in front of the 2 of the units
-    expect(container.querySelector('[data-cell-key="borrow:units"]').closest(".col-digit")).toBeTruthy();
+    tapDigit(1); // borrow:units — low on the left over the units, in front of the 2
+    expect(container.querySelector('[data-cell-key="borrow:units"]').closest(".col-mark-cell--one-only")).toBeTruthy();
     tapDigit(5); // 12 − 7
 
     expect(question()).toBe("2 − 5: десятков хватает?");
@@ -141,6 +141,7 @@ describe("ColumnArithmeticTask — compareMode", () => {
     tapDigit(4);
     tapDigit(1); // borrow:tens — in front of the mark «2»
     const tensMark = container.querySelector('[data-cell-key="adjust:tens"]').closest(".col-mark-cell");
+    expect(container.querySelector(".col-digit-corner, .col-carry-cell")).toBeNull(); // no triangles left
     expect(tensMark.textContent.replace(/\s+/g, "")).toBe("12");
     tapDigit(7); // 12 − 5
 

@@ -187,7 +187,7 @@ export function blanksOf(layout) {
           if (t.t !== "blank") continue;
           const key = `${b.block.id}:${it.index}:${t.i}`;
           // a mark (carry / borrowed digit over a column) is the child's help, not an answer: `aux`
-          if (t.kind === "mark") list.push({ key, blockId: b.block.id, kind: "mark", w: 1, aux: true, item: `${b.block.id}:${it.index}`, pos: t.pos, page: page.index });
+          if (t.kind === "mark") list.push({ key, blockId: b.block.id, kind: "mark", w: 1, aux: true, item: `${b.block.id}:${it.index}`, pos: t.pos, op: it.column?.op, page: page.index });
           else list.push({ key, blockId: b.block.id, kind: t.kind, w: t.w, rtl: Boolean(t.rtl), answer: it.answers[t.i], item: `${b.block.id}:${it.index}`, page: page.index });
         }
       }
@@ -320,8 +320,20 @@ export function pagePrimitives(layout, pageIndex, { test, values = {}, marks = n
             out.push({ k: "rect", x: X(c), y: Y(r), w: cell, h: cell, rx: 0, stroke: "none", w2: 0, fill: "none", blankKey: key, role: "blank" });
           }
           if (v !== "") {
+            // one record with the «Столбик» trainer (2026-11-15): in a subtraction the borrowed «1»
+            // stands in front of the place's number — in front of the lent-down digit over a crossed
+            // one («12»), or, over a digit not crossed, low on the left, just in front of the digit
+            const str = String(v).slice(0, 2);
             const fs = cell * 0.62;
-            out.push({ k: "text", text: String(v).slice(0, 2), x: X(c + 0.5) - fs * 0.47 * String(v).slice(0, 2).length, y: Y(r + 0.52) + fs * 0.35, size: fs, weight: 400, fill: COLORS.child, anchor: "start", font: "primo", outline: cell * 0.035 });
+            const small = fs * 0.8;
+            const crossed = Boolean(values[`${itemKey}:x${t.pos}`]);
+            const glyph = (ch, x, size) => out.push({ k: "text", text: ch, x, y: Y(r + 0.52) + fs * 0.35, size, weight: 400, fill: COLORS.child, anchor: "start", font: "primo", outline: cell * 0.035 });
+            if (it.column?.op === "subtract" && str === "1" && !crossed) glyph("1", X(c) + cell * 0.04, small);
+            else if (str.length === 2) {
+              const width = (small + fs) * 0.47;
+              glyph(str[0], X(c + 0.5) - width, small);
+              glyph(str[1], X(c + 0.5) - width + small * 0.47 * 1.15, fs);
+            } else glyph(str, X(c + 0.5) - fs * 0.47, fs);
           }
           continue;
         }

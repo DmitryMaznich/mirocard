@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutTest, blanksOf, pagePrimitives, gridOf } from "./layout.js";
+import { layoutTest, blanksOf, pagePrimitives, gridOf, COLORS } from "./layout.js";
 import { newBlock, normalizeBlock, buildBlock, isAnswerRight, KIND_IDS } from "./blocks.js";
 import { LIBRARY, testFromLibrary, normalizeTest } from "./store.js";
 
@@ -78,5 +78,21 @@ describe("math_tests blocks", () => {
     const b = newBlock("multi");
     expect(a.id).not.toBe(b.id);
     expect(a.steps).toBe(2);
+  });
+  it("column marks: the borrowed «1» in front — «12» over a crossed digit, a lone «1» low on the left (one record with the trainer)", () => {
+    const t = testOf([{ type: "column", count: 2, ops: "subtract", size: "3+3", regroup: "with" }]);
+    const layout = layoutTest(t);
+    const it0 = layout.pages[0].blocks[0].items[0];
+    const k = `${t.blocks[0].id}:${it0.index}`;
+    const values = { [`${k}:m1`]: "12", [`${k}:x1`]: "x", [`${k}:m0`]: "1" };
+    const prims = pagePrimitives(layout, 0, { test: t, values });
+    const marks = prims.filter((p) => p.k === "text" && p.font === "primo" && p.fill === COLORS.child);
+    const two = marks.find((p) => p.text === "2");
+    const ones = marks.filter((p) => p.text === "1");
+    expect(ones).toHaveLength(2);
+    expect(ones.every((p) => p.size < two.size)).toBe(true);
+    // the tens: «1» just in front of «2»; the units: a lone «1» at the left of its cell
+    const tensOne = ones.find((p) => p.x < two.x && two.x - p.x < two.size);
+    expect(tensOne).toBeTruthy();
   });
 });

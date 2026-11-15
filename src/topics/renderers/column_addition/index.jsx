@@ -186,71 +186,51 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   const digitPT = Math.round(cs * 0.45) + "px";
   const digitFS = Math.round(cs * 1.02) + "px";
   const signFS = Math.round(cs * 1.14) + "px";
-  // Same ratio .col-digit-corner uses (0.42em of the digit's own font-size)
-  // — the carry corner has no big digit to sit next to in its own row, so
-  // it's computed directly off `cs` instead of inherited via em.
-  const carryCornerFS = Math.round(cs * 0.42) + "px";
 
   const digitStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const signCellStyle = { width: csStr, height: csStr, fontSize: signFS };
   const formCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const resultCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
-  const carryStyle = { width: csStr, height: csStr, fontSize: carryCornerFS };
-  const markStyle = { width: csStr, height: csStr, fontSize: Math.round(cs * 0.6) + "px" };
+  const markStyle = { width: csStr, height: csStr, fontSize: Math.round(cs * 0.72) + "px" };
 
   // ── Marks row (row 1, phase 2) ────────────────────────────────────────────
-  // One mark cell over each place, as on paper and in «Контрольные»:
-  // addition's carried «1», subtraction's lent-down digit over the
-  // crossed-out one (3 → 2, 0 → 9). A place that lent and then borrows itself
-  // (532 − 157, the tens) gets its «1» in front of that mark — «12» — never
-  // over it. A mark not yet reached stays invisible: an empty box ahead of
-  // time would give the next step away.
+  // Everything the child writes besides the answer lives here, over its place,
+  // as small digits of the child's pen — the same notebook record as «Реши в
+  // столбик» of «Контрольные по математике» (one style, owner 2026-11-15,
+  // mockup docs/mockups/column-addition/2026-11-15-one-style.html):
+  //   addition — the carried «1»;
+  //   subtraction — the lent-down digit over the crossed-out one (3 → 2,
+  //   0 → 9), and the borrowed «1» in front of the place's number: in front
+  //   of that mark («12»), or, with no mark, low on the left, just in front
+  //   of the digit itself.
+  // The place to write next is a small dashed box; nothing shows ahead of
+  // time (an empty box early would give the next step away).
   const markPositions = new Set(task.steps.filter((s) => s.cellType === "adjust").map((s) => s.position));
   if (phase === "solve") {
-    for (const step of task.steps.filter((s) => s.cellType === "carry" || s.cellType === "adjust")) {
-      const i = POS_INDEX[step.position];
-      const gridCol = digits + 2 - i;
-      const key = `${step.cellType}:${step.position}`;
+    const part = (type, pos) => {
+      const key = `${type}:${pos}`;
       const filled = filledCells[key] !== undefined;
-      const active = activeStep?.cellType === step.cellType && activeStep?.position === step.position;
-      if (!filled && !active) continue;
-      if (step.cellType === "carry") {
-        cells.push(
-          <div
-            key={`aux:${key}`}
-            data-cell-key={key}
-            className={["col-carry-cell", active ? "col-carry-cell--active" : "", filled ? "col-carry-cell--filled" : ""].filter(Boolean).join(" ")}
-            style={{ ...carryStyle, gridColumn: gridCol, gridRow: 1 }}
-          >
-            {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
-          </div>
-        );
-        continue;
-      }
-      const borrowKey = `borrow:${step.position}`;
-      const borrowFilled = filledCells[borrowKey] !== undefined;
-      const borrowActive = activeStep?.cellType === "borrow" && activeStep?.position === step.position && !compareColumn;
-      const comparing = filled && step.position === comparingPosition;
+      const active = activeStep?.cellType === type && activeStep?.position === pos && !compareColumn;
+      if (!filled && !active) return null;
+      return (
+        <span key={key} data-cell-key={key} className={["col-mark-part", type === "borrow" ? "col-mark-part--one" : "", filled ? "" : "col-mark-part--slot"].filter(Boolean).join(" ")}>
+          {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
+        </span>
+      );
+    };
+    for (let i = 0; i < digits; i++) {
+      const pos = POSITIONS[i];
+      const one = operation === "subtract" ? part("borrow", pos) : null;
+      const value = operation === "subtract" ? part("adjust", pos) : part("carry", pos);
+      if (!one && !value) continue;
+      const comparing = !!value && pos === comparingPosition && filledCells[`adjust:${pos}`] !== undefined;
       cells.push(
         <div
-          key={`mark:${key}`}
-          className={["col-mark-cell", comparing ? "col-mark-cell--comparing" : ""].filter(Boolean).join(" ")}
-          style={{ ...markStyle, gridColumn: gridCol, gridRow: 1 }}
+          key={`mark:${pos}`}
+          className={["col-mark-cell", value ? "" : "col-mark-cell--one-only", comparing ? "col-mark-cell--comparing" : ""].filter(Boolean).join(" ")}
+          style={{ ...markStyle, gridColumn: digits + 2 - i, gridRow: 1 }}
         >
-          {(borrowFilled || borrowActive) && (
-            <span
-              data-cell-key={borrowKey}
-              className={["col-mark-one", borrowActive ? "col-mark-one--active" : "col-mark-one--filled"].join(" ")}
-            >
-              {borrowFilled ? <span className="col-slant">{filledCells[borrowKey]}</span> : ""}
-            </span>
-          )}
-          <span
-            data-cell-key={key}
-            className={["col-mark-value", active ? "col-mark-value--active" : "col-mark-value--filled"].join(" ")}
-          >
-            {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
-          </span>
+          {one}{value}
         </div>
       );
     }
@@ -295,16 +275,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         activeStep?.cellType === "crossout" &&
         activeStep?.position === pos;
 
-      // Corner mark: the borrowed «1» in front of the digit (small «1» +
-      // main «2» = «12») — only for a place with no mark over it; a place
-      // with a mark gets its «1» in front of the mark (marks row above).
-      const borrowKey = `borrow:${pos}`;
-      const hasMark = markPositions.has(pos);
-      const borrowFilled = operation === "subtract" && !hasMark && filledCells[borrowKey] !== undefined;
-      const borrowActive =
-        operation === "subtract" && !hasMark && activeStep?.cellType === "borrow" && activeStep?.position === pos && !compareColumn;
-      const showCorner = borrowActive || borrowFilled;
-      const markFilled = hasMark && filledCells[`adjust:${pos}`] !== undefined;
+      const markFilled = markPositions.has(pos) && filledCells[`adjust:${pos}`] !== undefined;
       const isComparingHere = pos === comparingPosition && !markFilled;
 
       cells.push(
@@ -314,14 +285,6 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 2 }}
         >
           {col.topDigit}
-          {showCorner && (
-            <div
-              data-cell-key={borrowKey}
-              className={["col-digit-corner", borrowActive ? "col-digit-corner--active" : "col-digit-corner--filled"].join(" ")}
-            >
-              {borrowFilled ? <span className="col-slant">{filledCells[borrowKey]}</span> : ""}
-            </div>
-          )}
           {isCrossoutActive && (
             <CrossoutGesture cellWidth={cs} cellHeight={cs} onComplete={onCrossoutComplete} />
           )}
@@ -330,8 +293,8 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
               <path
                 d={crossoutPaths[pos]}
                 fill="none"
-                stroke="#ef4444"
-                strokeWidth={4}
+                stroke="#1d4ed8"
+                strokeWidth={3}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
