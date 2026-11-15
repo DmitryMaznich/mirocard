@@ -111,18 +111,15 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
           {op === "subtract" ? "С займом" : "С переносом"} такие числа не бывают без нового разряда — примеры будут без {op === "subtract" ? "займа" : "переноса"}.
         </div>
       )}
-      <div className="cop-actions">
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={!hasZeros}
-          className={`cop-check${hasZeros ? "" : " cop-check--on"}`}
-          onClick={() => onChange(normalizeOperands({ ...o, topZeros: [], bottomZeros: [] }))}
-        >
-          <span className="cop-check__box" aria-hidden="true" />
-          Любое (без нулей)
-        </button>
-      </div>
+      {hasZeros && (
+        <div className="cop-actions">
+          {/* was a «Любое (без нулей)» checkbox — it couldn't be unchecked (what
+              would «not any» be?) and read as broken; now a plain action */}
+          <button type="button" className="cop-clear" onClick={() => onChange(normalizeOperands({ ...o, topZeros: [], bottomZeros: [] }))}>
+            Убрать нули
+          </button>
+        </div>
+      )}
       <div className="cop-hint">Пустая клетка — число до неё. Отмеченная — 0 в ней, ещё раз — любая цифра. × — убрать цифру.</div>
     </div>
   );

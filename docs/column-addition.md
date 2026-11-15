@@ -18,7 +18,8 @@ no longer needed for the column.
   (`src/features/session/ColumnOperandsParam.jsx`, mockup
   `docs/mockups/column-addition/2026-11-15-operands-cells-b.html`). An empty
   cell grows the number to it, a marked cell toggles a 0 there, the leftmost
-  marked cell removes itself; «Любое (без нулей)» clears the zeros. No row
+  marked cell takes no 0 (it shakes and says why), its «×» removes it;
+  «Убрать нули» (shown only while there are zeros) clears them. No row
   captions, no notebook grid (owner: the example says enough). Param
   `operands` = `{top, topZeros, bottom, bottomZeros}` (places from the units),
   type `column_operands`. An unmarked cell never draws a 0 — zeros come only
