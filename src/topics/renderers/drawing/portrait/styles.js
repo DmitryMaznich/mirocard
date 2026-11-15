@@ -94,7 +94,8 @@ function simpleSteps(face) {
 function picassoSteps(shape) {
   return PART_NAMES.map((name, part) => {
     const transform = part === 6 ? HAIR_TRANSFORMS[shape] : PART_TRANSFORMS[part];
-    return { name, transform, icon: [0, 0, 180, 160], places: [PLACEMENTS[part]],
+    // Card icons are drawn in the part's own 0 0 180 160 space; only the face uses the transform.
+    return { name, transform, icon: [0, 0, 180, 160], ownSpace: true, places: [PLACEMENTS[part]],
       variants: PARTS[part].map((d, i) => ({ label: PART_LABELS[part][i], d, fill: part < 2 ? PART_FILLS[part][i] || undefined : undefined })) };
   });
 }

@@ -94,6 +94,8 @@ describe('portrait screen', () => {
     await click(label('Фантазийное'));
     expect(host.querySelector('h2').textContent).toBe('Левый глаз');
     expect(host.querySelector('[aria-label="Шаг 1 из 7"]')).not.toBeNull();
+    // Card icons stay in their own space (a face transform pushed them off the card, 2026-11-15).
+    expect([...host.querySelectorAll('.portrait-option svg g')].every(g => !g.getAttribute('transform'))).toBe(true);
   });
   it('screen die: variants are not tappable, a throw picks one by itself', async () => {
     vi.useFakeTimers();

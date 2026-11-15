@@ -52,7 +52,7 @@ function Face({ face, steps, results, current = null, hint = true, play = 0, cla
 }
 function VariantIcon({ step, variant, face }) {
   return <svg viewBox={step.icon.join(' ')} fill="none" stroke="currentColor" strokeWidth={Math.max(2.4, step.icon[2] / 34)} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {step.ghost && <path d={face.path} className="portrait-ghost" />}<g transform={step.transform}><Art variant={variant} /></g>
+    {step.ghost && <path d={face.path} className="portrait-ghost" />}<g transform={step.ownSpace ? undefined : step.transform}><Art variant={variant} /></g>
   </svg>;
 }
 // Printing goes through a hidden frame: a pop-up is often blocked in an installed app.
