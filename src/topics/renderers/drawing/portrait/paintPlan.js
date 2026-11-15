@@ -7,22 +7,25 @@ import { STYLES, styleSteps } from './styles.js';
 import { HAIR_REGIONS } from './parts.js';
 import { splitSubpaths } from './drawPath.js';
 
+// Only pencils of an ordinary children's set (owner, 2026-11-15: the child has no skin-tone pencils).
+// Skin is an ordinary pencil used lightly — orange or yellow without pressing gives a peach or light skin
+// on paper, and light pressure is a motor goal in itself. A «light» pencil is drawn paler on screen.
 const P = {
   black: ['Чёрный', '#151917'], brown: ['Коричневый', '#6f3324'], yellow: ['Жёлтый', '#efdd05'], orange: ['Оранжевый', '#efaa12'],
   red: ['Красный', '#b73316'], gray: ['Серый', '#777b7c'], light_blue: ['Голубой', '#34c6e8'], blue: ['Синий', '#0866d1'],
   green: ['Зелёный', '#30bb05'], light_green: ['Салатовый', '#75d816'], pink: ['Розовый', '#de64a5'], purple: ['Фиолетовый', '#923bc0'],
-  beige: ['Бежевый', '#f2d69a'],
-  // Skin tones for «Простое лицо» — the child picks one.
-  skin_1: ['Светлый', '#f7e0c8'], skin_2: ['Бежевый', '#efc9a0'], skin_3: ['Персиковый', '#e8a87c'],
-  skin_4: ['Смуглый', '#c68b59'], skin_5: ['Коричневый', '#8d5a3b'], skin_6: ['Тёмно-коричневый', '#5b3a29'],
 };
-const tool = id => ({ id, name: P[id][0], color: P[id][1] });
+const lighten = (hex, k) => `#${[1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - k) + 255 * k).toString(16).padStart(2, '0')).join('')}`;
+const tool = id => {
+  const light = id.endsWith(':light'), base = light ? id.slice(0, -6) : id, [name, color] = P[base];
+  return light ? { id: `${base}-light`, name: `${name}, слегка`, color: lighten(color, .55), pencil: color, light: true } : { id, name, color, pencil: color };
+};
 const PALETTES = {
-  simple: { skin: ['skin_1', 'skin_2', 'skin_3', 'skin_4', 'skin_5', 'skin_6'], hair: ['black', 'brown', 'yellow', 'orange', 'gray', 'red'],
+  simple: { skin: ['orange:light', 'yellow:light', 'pink:light', 'brown:light', 'orange', 'brown'], hair: ['black', 'brown', 'yellow', 'orange', 'gray', 'red'],
     clothes: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'], eyes: ['light_blue', 'blue', 'green', 'brown', 'gray', 'light_green'],
-    lips: ['pink', 'red', 'orange', 'purple', 'brown', 'beige'] },
+    lips: ['pink', 'red', 'orange', 'purple', 'brown', 'pink:light'] },
   // Picasso's own faces are blue, pink, yellow, green — the colours are part of the style.
-  picasso: { skin: ['light_blue', 'pink', 'yellow', 'light_green', 'orange', 'beige'], hair: ['blue', 'purple', 'red', 'green', 'black', 'orange'],
+  picasso: { skin: ['light_blue', 'pink', 'yellow', 'light_green', 'orange', 'purple:light'], hair: ['blue', 'purple', 'red', 'green', 'black', 'orange'],
     clothes: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'], eyes: ['blue', 'green', 'purple', 'red', 'orange', 'brown'],
     lips: ['red', 'pink', 'purple', 'orange', 'blue', 'green'] },
 };

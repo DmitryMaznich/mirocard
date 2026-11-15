@@ -75,9 +75,11 @@ function PaintBoard({ lesson, from, to, play, soundEnabled }) {
   return <svg ref={svg} className="portrait-face portrait-paint" viewBox={lesson.viewBox} role="img" aria-label="Раскраска портрета" />;
 }
 function Pencil({ pencil }) {
-  return <svg className="portrait-pencil" viewBox="0 0 120 30" aria-hidden="true">
-    <path d="M10 5h78l22 10-22 10H10a5 5 0 0 1-5-5V10a5 5 0 0 1 5-5Z" fill={pencil.color} stroke="#3a3a32" strokeWidth="1.5" />
-    <path d="M88 5l22 10-22 10Z" fill="#f1d7ad" stroke="#3a3a32" strokeWidth="1.5" /><path d="M103 12l7 3-7 3Z" fill={pencil.color} />
+  return <svg className="portrait-pencil" viewBox="0 0 120 34" aria-hidden="true">
+    <path d="M10 5h78l22 10-22 10H10a5 5 0 0 1-5-5V10a5 5 0 0 1 5-5Z" fill={pencil.pencil ?? pencil.color} stroke="#3a3a32" strokeWidth="1.5" />
+    <path d="M88 5l22 10-22 10Z" fill="#f1d7ad" stroke="#3a3a32" strokeWidth="1.5" /><path d="M103 12l7 3-7 3Z" fill={pencil.pencil ?? pencil.color} />
+    {/* «слегка»: the same pencil, a pale stroke beside it shows the light pressure */}
+    {pencil.light && <path d="M14 28 q12 -4 24 0 t24 0" fill="none" stroke={pencil.color} strokeWidth="4" strokeLinecap="round" />}
   </svg>;
 }
 // Printing goes through a hidden frame: a pop-up is often blocked in an installed app.
