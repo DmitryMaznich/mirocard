@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Портрет по кубику — обычный стиль (макет)</title>
+<style>
+:root{font-family:"Nunito",system-ui,sans-serif;color:#274139;background:#f2f1e9}
+body{margin:0;padding:22px clamp(12px,3vw,36px) 50px}
+h1{font-size:clamp(22px,3vw,28px);margin:0 0 6px}.lead{max-width:880px;line-height:1.45;color:#4b5f5a;margin:0 0 24px}
+section{background:#fffefa;border:1px solid #dedfd5;border-radius:20px;padding:18px clamp(12px,2vw,22px) 22px;margin:0 0 22px}
+h2{font-size:20px;margin:0 0 4px}.why{margin:0 0 14px;color:#4b5f5a;line-height:1.4;max-width:900px}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{border:2px solid #dedfd5;border-radius:16px;padding:8px 6px 6px;text-align:center;background:#fff}
+.card svg{width:100%;height:auto;display:block}.card b{display:block;font-size:13px;margin-top:2px}
+.die{display:inline-grid;grid-template-columns:repeat(3,6px);gap:2px;padding:3px;border:1.5px solid #d6cfbd;border-radius:6px;background:#fff;margin-bottom:2px}
+.die i{width:6px;height:6px;border-radius:50%}.die i.p{background:#274139}
+.faces{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media(max-width:800px){.faces{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.faces figure{margin:0;border:1px solid #dedfd5;border-radius:18px;background:#fff;padding:8px}
+.faces figcaption{font-size:13px;text-align:center;color:#4b5f5a;line-height:1.3}
+.q{background:#fff6e0;border:1px solid #f0d99a;border-radius:16px;padding:14px 18px;line-height:1.5}
+.q li{margin:4px 0}
+</style></head><body>
+<h1>«Портрет по кубику»: обычный стиль — макет</h1>
+<p class="lead">Второй стиль рядом с нынешним «Пикассо». Лицо реалистичное и симметричное: глаза, брови и уши рисуются парой, поэтому шагов меньше — <b>форма лица → глаза → брови → нос → рот → причёска</b>. Варианты — разнообразие внешности (разрез глаз, форма носа и губ, тип волос), без карикатуры: пропорции у всех одинаково спокойные. Кубик, как и сейчас, выбирает вариант на каждом шаге.</p>
+<div id="app"></div>
+<section class="q"><h2>Что нужно решить</h2><ol>
+<li><b>Эмоции</b> — отдельным шагом «Настроение» (меняет брови и рот вместе: радость, грусть, удивление, злость, страх, спокойствие) или так, как в макете: брови — шаг, а улыбка — один из вариантов рта? Отдельный шаг понятнее для занятий по эмоциям, но тогда рот выбирается только по форме губ.</li>
+<li><b>Цвет кожи и волос</b> — предложить при раскрашивании палитру оттенков кожи? Сейчас раскрашивают на бумаге своими карандашами.</li>
+<li><b>Форма лица</b> — выбирает ребёнок (как сейчас) или тоже кубиком?</li>
+<li>Какие варианты убрать или заменить — например, если косички или пучок сейчас не нужны.</li>
+</ol></section>
+<script>
+const CX=110, EY=104, EX=28; // face centre line, eye line, eye offset
+const FACE={
+ 'Овальное':'M110 20 C160 20 178 70 176 115 C174 176 146 222 110 222 C74 222 46 176 44 115 C42 70 60 20 110 20Z',
+ 'Круглое':'M110 24 C165 24 182 72 181 118 C180 178 148 216 110 216 C72 216 40 178 39 118 C38 72 55 24 110 24Z',
+ 'Вытянутое':'M110 14 C152 14 168 62 168 110 C168 178 146 228 110 228 C74 228 52 178 52 110 C52 62 68 14 110 14Z',
+ 'Квадратное':'M110 22 C156 22 176 52 176 104 C176 156 172 196 150 212 C136 221 124 223 110 223 C96 223 84 221 70 212 C48 196 44 156 44 104 C44 52 64 22 110 22Z',
+};
+// Each eye is drawn in local units: +x points to the outer corner, then mirrored per side.
+const EYES=[
+ ['Миндалевидные',(e)=>[`M${e(-15,0)} Q${e(0,-11)} ${e(15,0)} Q${e(0,9)} ${e(-15,0)}Z`,iris(e,0,-.5,5.5)]],
+ ['Круглые',(e)=>[`M${e(-14,0)} C${e(-14,-13)} ${e(14,-13)} ${e(14,0)} C${e(14,12)} ${e(-14,12)} ${e(-14,0)}Z`,iris(e,0,0,6.5)]],
+ ['Узкие, без складки века',(e)=>[`M${e(-15,1)} Q${e(-2,-7)} ${e(16,-3)} Q${e(2,6)} ${e(-15,1)}Z`,`M${e(-15,1)} Q${e(-12,-2)} ${e(-8,-3)}`,iris(e,1,-.5,4.2)]],
+ ['С опущенными уголками',(e)=>[`M${e(-15,-2)} Q${e(-1,-12)} ${e(15,3)} Q${e(1,9)} ${e(-15,-2)}Z`,`M${e(-11,-9)} Q${e(2,-17)} ${e(15,-4)}`,iris(e,0,-.5,5.5)]],
+ ['С приподнятыми уголками',(e)=>[`M${e(-15,2)} Q${e(0,-9)} ${e(16,-5)} Q${e(2,9)} ${e(-15,2)}Z`,iris(e,0,0,5.5)]],
+ ['С ресницами и складкой',(e)=>[`M${e(-15,0)} Q${e(0,-12)} ${e(15,0)} Q${e(0,10)} ${e(-15,0)}Z`,`M${e(-13,-7)} Q${e(0,-18)} ${e(14,-7)}`,`M${e(6,-8)} L${e(8,-13)} M${e(11,-5)} L${e(15,-9)} M${e(14,-2)} L${e(19,-4)}`,iris(e,0,-.5,5.5)]],
+];
+function iris(e,x,y,r){const [cx,cy]=e(x,y).split(' ').map(Number);return {circle:[cx,cy,r]};}
+const BROWS=[
+ ['Спокойные',(b)=>`M${b(-15,0)} Q${b(0,-5)} ${b(16,0)}`],
+ ['Дугой',(b)=>`M${b(-15,2)} Q${b(0,-10)} ${b(16,2)}`],
+ ['Прямые густые',(b)=>`M${b(-15,-1)} L${b(16,-2)} L${b(16,2)} L${b(-15,3)}Z`],
+ ['Удивлённые',(b)=>`M${b(-14,-4)} Q${b(0,-14)} ${b(15,-4)}`],
+ ['Сердитые',(b)=>`M${b(-15,5)} L${b(15,-4)}`],
+ ['Грустные',(b)=>`M${b(-15,-5)} Q${b(-2,-3)} ${b(15,4)}`],
+];
+const NOSES=[
+ ['Прямой узкий','M106 110 Q104 128 102 138 M100 141 Q104 146 110 145 Q116 146 120 141 M102 141 q3 -3 5 0 M113 141 q3 -3 5 0'],
+ ['Широкий','M107 112 Q106 128 103 136 M94 140 Q96 134 101 136 Q104 147 110 146 Q116 147 119 136 Q124 134 126 140 Q124 146 118 145 M102 145 Q96 146 94 140'],
+ ['Курносый','M107 118 Q106 128 104 134 M100 138 Q103 143 110 142 Q117 143 120 138 Q118 133 114 134 M104 139 q3 -2 5 0 M112 139 q3 -2 5 0'],
+ ['С горбинкой','M104 108 Q112 122 106 134 Q103 140 102 140 M100 141 Q104 146 110 145 Q116 146 120 141 M103 141 q3 -3 5 0'],
+ ['Круглый кончик','M106 112 Q105 126 104 132 M101 136 C96 146 124 146 119 136 M101 136 Q110 131 119 136'],
+ ['Маленький','M108 124 Q106 132 105 136 M103 139 Q107 142 112 141 Q116 141 117 138'],
+];
+const MOUTHS=[
+ ['Тонкие губы','M92 172 Q110 168 128 172 M92 172 Q110 178 128 172 M92 172 Q101 167 110 170 Q119 167 128 172'],
+ ['Полные губы','M90 171 Q100 160 110 165 Q120 160 130 171 Q110 175 90 171 Z M90 171 Q110 192 130 171'],
+ ['Улыбка','M90 168 Q110 186 130 168 M90 168 Q110 177 130 168'],
+ ['Улыбка с зубами','M88 166 Q110 192 132 166 Q110 172 88 166Z M94 170 Q110 176 126 170'],
+ ['Маленький рот','M100 171 Q105 167 110 169 Q115 167 120 171 Q110 177 100 171Z'],
+ ['Губы бантиком','M92 171 Q99 160 107 166 L110 168 L113 166 Q121 160 128 171 Q110 174 92 171Z M92 171 Q110 186 128 171'],
+];
+const HAIR=[
+ ['Короткие прямые','M46 108 C38 48 74 16 112 18 C152 16 182 46 174 108 C168 74 154 52 128 48 C112 60 80 58 64 50 C54 62 50 82 46 108Z'],
+ ['Длинные прямые','M44 110 C36 44 76 12 112 14 C150 12 186 44 176 110 L182 210 L162 214 L170 120 C164 70 150 52 110 50 C70 52 56 70 50 120 L58 214 L38 210Z'],
+ ['Кудрявые','M48 100 C30 92 34 66 50 62 C42 42 62 26 78 34 C82 14 106 12 114 26 C124 12 150 18 150 36 C170 30 184 50 172 66 C188 76 186 98 172 102 C168 82 160 66 140 58 C132 68 120 60 110 64 C100 58 88 68 80 58 C62 66 54 82 48 100Z M60 78 q6 -6 12 0 M92 46 q6 -6 12 0 M130 44 q6 -6 12 0 M152 74 q6 -6 12 0'],
+ ['Афро','M46 112 C14 104 10 58 36 40 C40 6 86 -12 112 -2 C140 -12 186 6 186 40 C210 60 204 104 174 112 C172 84 162 62 140 54 C124 64 96 64 80 54 C58 62 48 84 46 112Z M34 64 q8 -8 16 0 M60 26 q8 -8 16 0 M100 8 q8 -8 16 0 M142 22 q8 -8 16 0 M172 56 q8 -8 16 0 M28 92 q6 -6 12 0 M180 92 q6 -6 12 0'],
+ ['Косички','M46 104 C40 44 76 16 112 18 C150 16 182 44 174 104 C166 72 150 56 110 54 C70 56 54 72 46 104Z M110 18 L110 54 M44 108 Q34 130 44 150 Q34 170 44 190 M38 120 l12 6 M38 140 l12 6 M38 160 l12 6 M38 180 l12 6 M176 108 Q186 130 176 150 Q186 170 176 190 M170 120 l12 6 M170 140 l12 6 M170 160 l12 6 M170 180 l12 6'],
+ ['Пучок','M48 104 C42 50 76 22 112 22 C148 22 180 50 172 104 C166 72 150 56 110 54 C70 56 54 72 48 104Z M90 24 C82 -6 138 -6 130 24 M96 12 Q110 4 124 12'],
+];
+const die=n=>`<span class="die">${Array.from({length:9},(_,i)=>`<i class="${[[4],[0,8],[0,4,8],[0,2,6,8],[0,2,4,6,8],[0,2,3,5,6,8]][n-1].includes(i)?'p':''}"></i>`).join('')}</span>`;
+const side=(cx,cy,s)=>(x,y)=>`${(cx+s*x).toFixed(1)} ${(cy+y).toFixed(1)}`;
+const SW=3;
+function eyesSvg(i){return [-1,1].map(s=>{const e=side(CX+s*EX,EY,s);return EYES[i][1](e).map(p=>typeof p==='string'?`<path d="${p}"/>`:`<circle cx="${p.circle[0]}" cy="${p.circle[1]}" r="${p.circle[2]}" fill="currentColor" stroke="none"/>`).join('');}).join('');}
+function browsSvg(i){return [-1,1].map(s=>`<path d="${BROWS[i][1](side(CX+s*EX,EY-20,s))}"${i===2?' fill="currentColor"':''}/>`).join('');}
+const ears=`<path d="M45 102 C30 96 28 128 46 134 M42 108 C36 110 36 122 44 126"/><path d="M175 102 C190 96 192 128 174 134 M178 108 C184 110 184 122 176 126"/>`;
+function hairSvg(i,ghost=''){const d=HAIR[i][1],k=d.indexOf(' M',1),mass=k<0?d:d.slice(0,k),rest=k<0?'':d.slice(k+1);
+ return `${ghost}<path d="${mass}" fill="#fffefa" stroke-width="3"/>${rest?`<path d="${rest}" stroke-width="3"/>`:''}`;}
+function face({shape='Овальное',eyes=0,brows=0,nose=0,mouth=0,hair=0},extra=''){
+ return `<svg viewBox="0 -28 220 268" fill="none" stroke="currentColor" stroke-width="${SW}" stroke-linecap="round" stroke-linejoin="round">
+  <path d="${FACE[shape]}" stroke-width="4" fill="#fffefa"/>${ears}${hairSvg(hair)}${eyesSvg(eyes)}${browsSvg(brows)}<path d="${NOSES[nose][1]}"/><path d="${MOUTHS[mouth][1]}"/>${extra}</svg>`;}
+function crop(inner,vb){const w=+vb.split(' ')[2];return `<svg viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="${Math.max(1.6,SW*w/150)}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;}
+const sec=(title,why,cards)=>`<section><h2>${title}</h2><p class="why">${why}</p><div class="grid">${cards}</div></section>`;
+const card=(n,name,svg)=>`<div class="card">${n?die(n):''}${svg}<b>${name}</b></div>`;
+let html='';
+html+=sec('1. Форма лица','Выбирает ребёнок (не кубик), как сейчас.',Object.keys(FACE).map(k=>card(0,k,crop(`<path d="${FACE[k]}" stroke-width="4"/>`,'30 6 160 228'))).join(''));
+html+=sec('2. Глаза','Пара глаз одним шагом — разрез и форма. Вариант 3 — восточноазиатский разрез: узкий, без складки верхнего века, с небольшой складкой у внутреннего уголка.',EYES.map((e,i)=>card(i+1,e[0],crop(eyesSvg(i),'44 84 132 40'))).join(''));
+html+=sec('3. Брови','Здесь же уже есть эмоции: удивлённые, сердитые, грустные (см. вопрос 1 внизу).',BROWS.map((b,i)=>card(i+1,b[0],crop(browsSvg(i),'44 66 132 36'))).join(''));
+html+=sec('4. Нос','Узкий, широкий (с широкими крыльями), курносый, с горбинкой, с круглым кончиком, маленький.',NOSES.map((n,i)=>card(i+1,n[0],crop(`<path d="${n[1]}"/>`,'80 104 60 48'))).join(''));
+html+=sec('5. Рот','Тонкие и полные губы, улыбки, маленький рот, бантик.',MOUTHS.map((m,i)=>card(i+1,m[0],crop(`<path d="${m[1]}"/>`,'80 152 60 40'))).join(''));
+html+=sec('6. Причёска','Прямые короткие и длинные, кудрявые, афро, косички, пучок.',HAIR.map((h,i)=>card(i+1,h[0],crop(hairSvg(i,`<path d="${FACE['Овальное']}" stroke-width="4" opacity=".25"/>`),'0 -24 220 250'))).join(''));
+const examples=[
+ [{shape:'Овальное',eyes:0,brows:0,nose:0,mouth:2,hair:1},'Миндалевидные глаза, прямой нос, улыбка, длинные прямые волосы'],
+ [{shape:'Круглое',eyes:2,brows:1,nose:5,mouth:4,hair:5},'Узкие глаза без складки века, маленький нос, пучок'],
+ [{shape:'Овальное',eyes:1,brows:0,nose:1,mouth:1,hair:3},'Круглые глаза, широкий нос, полные губы, афро'],
+ [{shape:'Квадратное',eyes:3,brows:5,nose:3,mouth:0,hair:0},'Опущенные уголки, грустные брови, нос с горбинкой'],
+];
+html+=`<section><h2>Примеры готовых портретов</h2><p class="why">Так выглядит лицо в конце занятия (кубик выбрал разные варианты).</p><div class="faces">${examples.map(([f,c])=>`<figure>${face(f)}<figcaption>${c}</figcaption></figure>`).join('')}</div></section>`;
+document.getElementById('app').innerHTML=html;
+</script></body></html>
