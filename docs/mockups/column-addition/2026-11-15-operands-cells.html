@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Столбик: «Числа в примере» клетками — макет</title>
+<style>
+  @font-face { font-family: Primo; src: url("../../../public/fonts/primo.ttf"); }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; background: #f6f4ef; color: #1f2d2b; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 21px; margin: 6px 0 4px; }
+  .sub { color: #64748b; font-size: 14px; margin: 0 0 14px; line-height: 1.45; }
+  .variants { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }
+  .variant { width: 360px; }
+  .variant h2 { font-size: 16px; margin: 0 0 4px; }
+  .variant .how { font-size: 13px; color: #475569; margin: 0 0 10px; line-height: 1.45; min-height: 76px; }
+  .section-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #7a9e9a; text-transform: uppercase; margin: 0 0 6px 4px; }
+  .card { background: #fff; border-radius: 14px; padding: 14px 16px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 3px 8px rgba(0,0,0,.03); }
+  .card-title { font-weight: 800; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .i { width: 18px; height: 18px; border-radius: 50%; background: #e8efee; color: #537b75; font-size: 11px; font-style: italic; display: inline-flex; align-items: center; justify-content: center; }
+
+  /* the control is a column itself */
+  .col { --c: 46px; display: grid; grid-template-columns: var(--c) repeat(4, var(--c)) 1fr; grid-auto-rows: var(--c); align-items: center; padding: 6px 0;
+    background-color: #f0f6ff;
+    background-image: linear-gradient(rgba(140,190,255,.45) 1px, transparent 1px), linear-gradient(90deg, rgba(140,190,255,.45) 1px, transparent 1px);
+    background-size: 23px 23px; border-radius: 12px; }
+  .sign { grid-column: 1; text-align: center; font-family: Primo, "Comic Sans MS", cursive; font-size: 30px; color: #2563eb; }
+  .cell { width: calc(var(--c) - 6px); height: calc(var(--c) - 6px); margin: 3px; border-radius: 10px; border: 2px dashed #b8c8d8; background: rgba(255,255,255,.55);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: Primo, "Comic Sans MS", cursive; font-size: 28px; color: #1c7a6e;
+    transition: background .12s, border-color .12s, transform .08s; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .cell:active { transform: scale(.94); }
+  .cell.on { border: 2px solid #1c7a6e; background: #d7efe9; }
+  .cell.on::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #1c7a6e; opacity: .55; }
+  .cell.on.zero::after { content: none; }
+  .cell.on.zero { background: #fff7e6; border-color: #d97706; color: #b45309; }
+  .cell.off { opacity: .35; cursor: default; border-style: dotted; }
+  .rowlabel { grid-column: 6; font-size: 12px; font-weight: 700; color: #537b75; padding-left: 8px; line-height: 1.2; }
+  .line { grid-column: 1 / 6; height: 3px; background: #1f2d2b; align-self: center; margin: 0 4px; border-radius: 2px; }
+  .ex { grid-column: 2 / 6; display: grid; grid-template-columns: repeat(4, var(--c)); font-family: Primo, "Comic Sans MS", cursive; font-size: 26px; color: #94a3b8; }
+  .ex span { text-align: center; }
+
+  .kinds { display: flex; gap: 8px; margin: 8px 0 0; flex-wrap: wrap; }
+  .kinds .who { font-size: 12px; font-weight: 700; color: #537b75; width: 100%; }
+  .chk { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px 7px 9px; border-radius: 10px; background: #eaf1f0; font-size: 14px; font-weight: 700; color: #3a5c58; cursor: pointer; user-select: none; }
+  .chk .box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #9fb8b4; background: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
+  .chk.on { background: #d7efe9; color: #1c7a6e; }
+  .chk.on .box { background: #1c7a6e; border-color: #1c7a6e; }
+  .chk.on .box::after { content: "✓"; }
+  .chk.dis { opacity: .4; cursor: default; }
+  .again { margin-top: 10px; border: 0; background: #eaf1f0; color: #1c7a6e; font: 700 13px inherit; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .notes { margin-top: 26px; background: #fff; border-radius: 14px; padding: 14px 18px; font-size: 14px; line-height: 1.55; }
+  .notes h3 { margin: 0 0 6px; font-size: 15px; }
+  .notes li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+<h1>«Числа в примере» клетками</h1>
+<p class="sub">Макет, 15.11.2026. Настройка сама нарисована как столбик: две строки по 4 клетки, знак, черта. Клетки нажимаются пальцем — сколько отмечено, столько цифр в числе (справа налево, как в тетради). Под чертой — пример, какой получит ребёнок. Всё живое — нажимай.</p>
+
+<div class="variants">
+  <section class="variant">
+    <h2>А. Клетки + «Любое / Круглое»</h2>
+    <p class="how">Нажал клетку — число до неё. «Любое» и «Круглое» — у каждого числа свои, отмечено всегда одно: «Любое» снимает «Круглое». У однозначного «Круглое» недоступно. «С нулём» (305) в этом варианте нет.</p>
+    <div class="section-h">Что решаем</div>
+    <div class="card" id="A"></div>
+  </section>
+
+  <section class="variant">
+    <h2>Б. Клетки, ноль — прямо в клетке</h2>
+    <p class="how">Нажал пустую клетку — число до неё. Нажал отмеченную — в ней 0 (ещё раз — снова любая цифра). Так задаётся и «круглое» (0 в единицах: 340), и «с нулём» (0 в десятках: 305), и 400. Левую клетку нулём сделать нельзя — её нажатие убирает клетку. «Любое» снимает все нули.</p>
+    <div class="section-h">Что решаем</div>
+    <div class="card" id="B"></div>
+  </section>
+</div>
+
+<div class="notes">
+  <h3>Что стоит решить</h3>
+  <ul>
+    <li><b>4 клетки.</b> Сейчас тренажёр — до трёхзначных, четвёртая цифра бывает только у ответа (650 + 470 = 1120). Четвёртая клетка в макете означает тысячи в самих числах: 1347 + 528. Это новая ступень (тысячи в «Разрядах числа» пока отложены) — включать её или сделать 3 клетки?</li>
+    <li><b>«Любое» и «Круглое» — это выбор одного из двух</b>, а не две независимые галочки: отмечено всегда ровно одно. Выглядят как галочки, ведут себя как переключатель.</li>
+    <li><b>Б полнее, А проще.</b> Б даёт всё, что было (круглые, «с нулём», 400, 305) одним жестом, но жест «нажми ещё раз — будет 0» надо знать. А понятна сразу, но теряет «с нулём» (заём через ноль) — его придётся вернуть третьей галочкой.</li>
+  </ul>
+</div>
+</main>
+
+<script>
+const N = 4;
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+// a number: width w, zeros = set of positions (0 = units) fixed to 0
+function draw(w, zeros) {
+  let s = "";
+  for (let p = w - 1; p >= 0; p--) s += zeros.has(p) ? "0" : String(p === w - 1 ? rnd(1, 9) : rnd(0, 9));
+  return s;
+}
+
+function mount(root, variant) {
+  const st = {
+    top: { w: 3, zeros: new Set(), round: false },
+    bot: { w: 2, zeros: new Set(), round: false },
+  };
+  let seed = 0;
+
+  function tap(row, p) {
+    const r = st[row];
+    const max = row === "bot" ? st.top.w : N;
+    if (p >= max) return;
+    if (variant === "A" || p >= r.w) {
+      r.w = p + 1;
+    } else if (p === r.w - 1) {
+      r.w = Math.max(1, p);             // left cell: remove it
+    } else {
+      r.zeros.has(p) ? r.zeros.delete(p) : r.zeros.add(p);
+    }
+    for (const q of [...r.zeros]) if (q >= r.w - 1) r.zeros.delete(q);
+    if (r.w < 2) r.round = false;
+    if (st.bot.w > st.top.w) st.bot.w = st.top.w;
+    for (const q of [...st.bot.zeros]) if (q >= st.bot.w - 1) st.bot.zeros.delete(q);
+    render();
+  }
+
+  function zerosOf(r) { return variant === "A" ? (r.round ? new Set([0]) : new Set()) : r.zeros; }
+
+  function render() {
+    root.innerHTML = "";
+    const title = document.createElement("div");
+    title.className = "card-title"; title.innerHTML = 'Числа в примере <span class="i">i</span>';
+    root.appendChild(title);
+
+    const col = document.createElement("div"); col.className = "col";
+    const rows = [["top", 1, "Верхнее"], ["bot", 2, "Нижнее"]];
+    for (const [row, gr, name] of rows) {
+      const r = st[row];
+      const max = row === "bot" ? st.top.w : N;
+      if (row === "bot") { const s = document.createElement("div"); s.className = "sign"; s.style.gridRow = gr; s.textContent = "+"; col.appendChild(s); }
+      const zs = zerosOf(r);
+      for (let p = N - 1; p >= 0; p--) {
+        const c = document.createElement("div");
+        c.className = "cell" + (p < r.w ? " on" : "") + (p >= max ? " off" : "") + (p < r.w && zs.has(p) ? " zero" : "");
+        if (p < r.w && zs.has(p)) c.textContent = "0";
+        c.style.gridRow = gr; c.style.gridColumn = 2 + (N - 1 - p);
+        c.onclick = () => tap(row, p);
+        col.appendChild(c);
+      }
+      const l = document.createElement("div"); l.className = "rowlabel"; l.style.gridRow = gr;
+      l.textContent = `${name}: ${r.w} ${r.w === 1 ? "цифра" : r.w < 5 ? "цифры" : "цифр"}`;
+      col.appendChild(l);
+    }
+    const line = document.createElement("div"); line.className = "line"; line.style.gridRow = 3; col.appendChild(line);
+
+    // live example under the line
+    const a = draw(st.top.w, zerosOf(st.top)), b = draw(st.bot.w, zerosOf(st.bot));
+    const ex = document.createElement("div"); ex.className = "ex"; ex.style.gridRow = 4;
+    const exTop = document.createElement("div"); exTop.className = "ex"; exTop.style.gridRow = 4;
+    ex.innerHTML = `<span style="grid-column:1 / 5;text-align:left;font-family:Nunito,system-ui;font-size:12px;font-weight:700;color:#64748b;padding-left:4px">Например: <span style="font-family:Primo,'Comic Sans MS',cursive;font-size:24px;color:#1f2d2b">${a} + ${b}</span></span>`;
+    col.appendChild(ex);
+    root.appendChild(col);
+
+    if (variant === "A") {
+      for (const [row, name] of [["top", "Верхнее число"], ["bot", "Нижнее число"]]) {
+        const r = st[row];
+        const k = document.createElement("div"); k.className = "kinds";
+        k.innerHTML = `<span class="who">${name}</span>`;
+        const any = chk("Любое", !r.round, false, () => { r.round = false; render(); });
+        const rnd = chk("Круглое", r.round, r.w < 2, () => { if (r.w >= 2) { r.round = true; render(); } });
+        k.append(any, rnd); root.appendChild(k);
+      }
+    } else {
+      const k = document.createElement("div"); k.className = "kinds";
+      const hasZeros = st.top.zeros.size + st.bot.zeros.size > 0;
+      k.append(chk("Любое (без нулей)", !hasZeros, false, () => { st.top.zeros.clear(); st.bot.zeros.clear(); render(); }));
+      root.appendChild(k);
+    }
+    const again = document.createElement("button"); again.className = "again"; again.textContent = "↻ Другой пример";
+    again.onclick = () => { seed++; render(); };
+    root.appendChild(again);
+  }
+
+  function chk(label, on, dis, onClick) {
+    const el = document.createElement("span");
+    el.className = "chk" + (on ? " on" : "") + (dis ? " dis" : "");
+    el.innerHTML = `<span class="box"></span>${label}`;
+    el.onclick = onClick;
+    return el;
+  }
+  render();
+}
+
+mount(document.getElementById("A"), "A");
+mount(document.getElementById("B"), "B");
+</script>
+</body>
+</html>
