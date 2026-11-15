@@ -2,8 +2,9 @@
 // Order is a painter's: big and light first, small and dark last — skin, hair (+ brows), clothes,
 // eyes (only the iris), lips. Every colour is chosen by hand (owner, 2026-11-15: no die here).
 // The finished portrait becomes a lesson for the «Рисуем по шагам» player (player.js): one stroke step
-// with the whole outline, then colour steps (pencil hatching) and traced lines in colour.
+// with the whole outline, then colour steps (pencil hatching under the black lines).
 import { STYLES, styleSteps } from './styles.js';
+import { HAIR_REGIONS } from './parts.js';
 import { splitSubpaths } from './drawPath.js';
 
 const P = {
@@ -65,22 +66,28 @@ const closed = d => /z\s*$/i.test(d.trim());
 
 // Everything one finished portrait is made of, on the sheet: outlines, fills and what each colour group paints.
 export function portraitPaint(styleId, shape, results) {
-  const style = STYLES[styleId], steps = styleSteps(styleId, shape);
-  const outline = [{ d: style.faces[shape].path }], paint = { skin: [{ d: style.faces[shape].path }], hair: [], clothes: [], eyes: [], lips: [] };
+  const style = STYLES[styleId], steps = styleSteps(styleId, shape), face = style.faces[shape].path;
+  const outline = [{ d: face }], paint = { skin: [], hair: [], clothes: [], eyes: [], lips: [] }, parts = [];
   results.forEach((value, part) => {
     const step = steps[part], v = step.variants[value - 1], move = d => step.ownSpace ? transformPath(d, step.transform) : d;
     for (const d of splitSubpaths(v.d)) outline.push({ d: move(d) });
     if (v.fill) for (const d of splitSubpaths(v.fill)) outline.push({ d: move(d), fill: '#26352d' });
-    if (v.paint) for (const item of v.paint) paint[item.group].push(item.line ? { line: item.line } : { d: item.d, clip: item.clip });
+    if (v.paint) for (const item of v.paint) parts.push({ group: item.group, d: item.d, clip: item.clip });
     else if (step.ownSpace) {
-      // Picasso: eyes 0–1, mouth 3, ears 4–5, hair 6. A closed first shape is filled, an open one traced in colour.
-      const group = part < 2 ? 'eyes' : part === 3 ? 'lips' : part === 4 || part === 5 ? 'skin' : part === 6 ? 'hair' : null;
-      if (!group) return;
+      // Picasso: eyes 0–1 and mouth 3 are their closed first shape, ears 4–5 skin, hair 6 its mass (HAIR_REGIONS).
       const first = splitSubpaths(v.d)[0];
-      if (closed(first)) paint[group].push({ d: move(first) });
-      else if (group === 'hair') paint.hair.push({ line: move(v.d) });
+      if (part === 6) parts.push({ group: 'hair', d: move(HAIR_REGIONS[value - 1]) });
+      else if (closed(first) && part !== 2) parts.push({ group: part < 2 ? 'eyes' : part === 3 ? 'lips' : 'skin', d: move(first) });
     }
   });
+  // Colour never goes over colour: the face is hatched around the eyes, mouth and hair (they get their own
+  // colour later), and ears and neck only outside the face. Even-odd holes, clipped to the shape itself.
+  const holes = parts.filter(p => p.group !== 'skin' && p.group !== 'clothes').map(p => p.clip ?? p.d);
+  paint.skin.push({ d: [face, ...holes].join(' '), clip: face });
+  for (const p of parts) {
+    if (p.group === 'skin') paint.skin.push({ d: `${p.d} ${face}`, clip: p.d });
+    else paint[p.group].push({ d: p.d, ...(p.clip ? { clip: p.clip } : {}) });
+  }
   return { outline, paint, viewBox: style.viewBox };
 }
 // Colour steps this portrait needs (a group with nothing to paint is skipped).
@@ -96,9 +103,7 @@ export function paintLesson(styleId, shape, results, colors) {
   colors.forEach((value, k) => {
     const pencil = paletteFor(styleId, steps[k].group)[value - 1], id = `${steps[k].group}-${pencil.id}`;
     palette.push({ ...pencil, id });
-    const items = paint[steps[k].group], lines = items.filter(i => i.line), regions = items.filter(i => i.d);
-    for (const region of regions) lesson.push({ kind: 'color', tool: id, fill: pencil.color, d: region.d, ...(region.clip ? { clip: region.clip } : {}) });
-    if (lines.length) lesson.push({ kind: 'stroke', tool: id, paths: lines.map(i => i.line) });
+    for (const region of paint[steps[k].group]) lesson.push({ kind: 'color', tool: id, fill: pencil.color, d: region.d, ...(region.clip ? { clip: region.clip } : {}) });
     ends.push(lesson.length);
   });
   return { lesson: { id: 'portrait', title: 'Портрет', viewBox, palette, steps: lesson }, ends };

@@ -153,12 +153,18 @@ describe('portrait screen', () => {
     const eyes = lesson.steps.slice(ends[3], ends[4]);
     expect(eyes.every(s => s.kind === 'color' && s.clip)).toBe(true);
     expect(lesson.steps.filter(s => s.kind === 'color').every(s => s.fill.startsWith('#'))).toBe(true);
-    // A line mouth is traced in colour, not filled.
-    expect(paintLesson('simple', 1, [1, 1, 1, 2, 2, 2, 2], [1, 1, 1, 1, 1]).lesson.steps.at(-1)).toMatchObject({ kind: 'stroke' });
+    // Only areas are coloured: a line mouth has no lips step, brows are never recoloured.
+    expect(colorSteps('simple', 1, [1, 1, 1, 2, 2, 2, 2]).map(s => s.group)).toEqual(['skin', 'hair', 'clothes', 'eyes']);
+    expect(lesson.steps.slice(1).every(s => s.kind === 'color')).toBe(true);
+    // The face is hatched around the eyes, mouth and hair: their shapes are even-odd holes, clipped to the face.
+    const face = lesson.steps[1];
+    expect(face.clip).toBeTruthy(); expect(splitSubpaths(face.d).length).toBeGreaterThan(4);
   });
   it('moves Picasso parts onto the sheet for colouring (translate + scale, relative arcs too)', () => {
     expect(transformPath('M10 20 L30 40 a5 5 0 1 0 10 0Z', 'translate(43 66) scale(.39)')).toBe('M46.9 73.8 L54.7 81.6 a1.95 1.95 0 1 0 3.9 0 Z');
     expect(colorSteps('picasso', 0, [1, 2, 3, 4, 5, 6, 1]).map(s => s.group)).toEqual(['skin', 'hair', 'eyes', 'lips']);
+    // Picasso hair is coloured as a mass (a closed area), never as a traced line.
+    for (let v = 1; v <= 6; v++) expect(paintLesson('picasso', 0, [1, 2, 3, 4, 5, 6, v], [1, 1, 1, 1]).lesson.steps.filter(s => s.kind === 'stroke')).toHaveLength(1);
   });
   it('the adult menu opens with an ordinary tap and has no own exit (the shared header ✕ does that)', async () => {
     await render();

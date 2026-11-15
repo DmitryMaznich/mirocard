@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.34.2",
+    "version": "0.34.3",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {

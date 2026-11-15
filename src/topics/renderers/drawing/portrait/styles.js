@@ -115,24 +115,32 @@ function simpleSteps(face) {
   ];
   return addSimplePaint(steps, face, u, eyes);
 }
-// What the colouring steps paint for each «Простое лицо» variant: closed regions get pencil hatching,
-// open lines are traced again in colour. Groups: skin, hair, clothes, eyes, lips (paintPlan.js).
+// What the colouring steps paint for each «Простое лицо» variant (paintPlan.js). Only closed areas are coloured,
+// the way a child colours on paper: hair is a coloured mass under its black strands, the face is coloured
+// around the eyes, mouth and hair (paintPlan.js cuts those out), brows and line mouths stay pencil lines.
 const sub = d => d.trim().split(/(?=M)/).map(x => x.trim()).filter(Boolean);
 function addSimplePaint(steps, face, u, eyes) {
   const [eyeStep, brows, , mouth, ears, hair] = steps;
   const iris = [[0, 8], [0, 7], [-.5, 5], [0, 8], [-1, 7.5], [0, 10]];
+  const pts = list => list.map(p => `${f(p.x)} ${f(p.y)}`).join(' L');
+  const arc = (from, to, grow = 0, count = 33) => pts(evenAngles(face, from, to, count).map(a => at(face, a, grow)));
   eyeStep.variants.forEach((v, i) => { const [dy, r] = iris[i];
     v.paint = sub(v.d).map((shape, k) => ({ group: 'eyes', d: circle(eyes[k].x, eyes[k].y + dy * u, r * u), clip: shape })); });
-  brows.variants.forEach(v => { v.paint = [{ group: 'hair', line: v.d }]; });
-  mouth.variants.forEach((v, i) => { v.paint = i < 2 ? [{ group: 'lips', line: v.d }] : [{ group: 'lips', d: v.d }]; });
+  brows.variants.forEach(v => { v.paint = []; });
+  mouth.variants.forEach((v, i) => { v.paint = i < 2 ? [] : [{ group: 'lips', d: v.d }]; });
   ears.variants.forEach((v, i) => { v.paint = i === 1 || i === 2 ? sub(v.d).map(d => ({ group: 'skin', d })) : []; });
-  hair.variants.forEach((v, i) => {
-    if (i === 2) v.paint = sub(v.d).map(d => ({ group: 'hair', d }));
-    else if (i === 1) { // the cap closes along the top of the head
-      const back = Array.from({ length: 33 }, (_, k) => at(face, 350 - k * 5)).map(p => `${f(p.x)} ${f(p.y)}`).join(' L');
-      v.paint = [{ group: 'hair', d: `${v.d} L${back}Z` }];
-    } else v.paint = [{ group: 'hair', line: v.d }];
-  });
+  // Where the long hair meets the face on each side (the face below that is not hair).
+  const low = face.cy + face.ry * .7;
+  let side = 0; while (side < 89 && at(face, side).y < low) side += .5;
+  const hairMass = [
+    `M${arc(205, 335, 17 * u)} L${arc(335, 205)}Z`,                                // Ёжик: the band under the strands
+    `${hair.variants[1].d} L${arc(350, 190)}Z`,                                    // Шапочка: the cap down to the head
+    null,                                                                         // Кудряшки: each curl (below)
+    `${hair.variants[3].d} L${arc(340, 200)}Z`,                                    // Зигзаг: the crown down to the head
+    `${hair.variants[4].d} L${pts([at(face, side)])} L${arc(side, -180 - side, 0, 49)}Z`, // Длинные: strands round the face
+    `${hair.variants[5].d} L${arc(322, 218)}Z`,                                    // Чёлка: the top of the head to the fringe
+  ];
+  hair.variants.forEach((v, i) => { v.paint = i === 2 ? sub(v.d).map(d => ({ group: 'hair', d })) : [{ group: 'hair', d: hairMass[i] }]; });
   return steps;
 }
 // Neck (and shoulders): two straight lines from the chin, then what the child likes around them.
