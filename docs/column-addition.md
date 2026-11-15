@@ -19,8 +19,8 @@ no longer needed for the column.
   works the same (owner: one gesture, one meaning — no «×», no hidden rules):
   an empty cell — the number grows to it; a marked cell — 0 there if a 0 can
   stand there, otherwise (the leading digit) the cell goes off; a 0 again —
-  any digit. What a tap does is a small legend right of the cells (a mini
-  cell of each state); the example's ↻ shows another one. Either number
+  any digit. What a cell means is a small legend right of the cells (a mini
+  cell of each state: «любая цифра», «ноль», «разряда нет»); the example's ↻ shows another one. Either number
   may be the longer with «+» (25 + 326 — the trainer draws a shorter top
   number with an empty cell, `hasTopDigit`); with «−» the bottom is no
   longer than the top — its extra cells go dim, a longer saved bottom is cut
