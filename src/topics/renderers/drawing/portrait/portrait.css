@@ -62,3 +62,8 @@
 /* The lesson shell sets button colour to inherit; these buttons are white on colour. */
 .drawing-lesson .portrait-next, .drawing-lesson .portrait-round { color:#fff; }
 .drawing-lesson .portrait-round--quiet { color:var(--drawing-ink); }
+/* ▶ — show again how the chosen part is drawn. */
+.portrait-show { position:absolute; top:12px; left:12px; width:54px; height:54px; border-radius:50%; border:2.5px solid #d4e3dc; background:#fff; color:#254e45; display:grid; place-items:center; padding:0; touch-action:manipulation; }
+.portrait-show svg { width:26px; height:26px; margin-left:3px; fill:currentColor; }
+.portrait-tip { color:#15803d; }
+.portrait-ghost { opacity:.22; }
