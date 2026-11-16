@@ -78,3 +78,26 @@ describe("propis2: the Russian print style «Печатные»", () => {
     expect(svg("print_line")).toContain("data-print-row=");
   });
 });
+
+describe("propis2: a row writes only some strokes of its letter (row.parts → #p, owner 2026-11-16)", () => {
+  const snap = snapXFor({ narrowRows: true, simpleGrid: "print_cell", margin: "off", format: "a5", narrow17: true });
+  const row = (line) => layoutWideLinesIntoRows([line], map, snap, true).placed[0];
+  const ds = (r) => r.segments.flatMap((sg) => sg.strokes.map((st) => st.d));
+  it("the strokes left out are not drawn and get no start dot; the ones written stand exactly where they stand in the whole letter", () => {
+    const whole = row("А#r");
+    const part = row("А#r#p0.1"); // А: left slant, right slant, bar → no bar
+    const n = ds(whole).length / 3; // copies of А in the row
+    expect(ds(part).length).toBe(n * 2);
+    const keep = ds(whole).filter((_, i) => i % 3 !== 2);
+    expect(ds(part)).toEqual(keep);
+    const dots = (r) => r.segments.flatMap((sg) => sg.startPoints ?? []).length;
+    expect(dots(part)).toBeLessThan(dots(whole));
+  });
+  it("a row's parts reach the line only while its text is the letter they were picked for", async () => {
+    const { pageToLines, newRow } = await import("./model.js");
+    const page = { rows: [newRow({ text: "А", parts: { of: "А", keep: [2] } }), newRow({ text: "Б", parts: { of: "А", keep: [2] } })], gridKind: "print_cell" };
+    const [a, b] = pageToLines(page, map);
+    expect(a).toMatch(/#p2$/);
+    expect(b).not.toMatch(/#p/);
+  });
+});

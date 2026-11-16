@@ -2010,7 +2010,46 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null) {
 // own copy of the page's lines — the lines of the other styles left blank, so each row keeps its place (rowIndex: the slant grid, the
 // cells) — and each row is taken from its style's layout (`row.style`). Without a `#y` flag nothing changes.
 const STYLE_FLAG = /#y([a-z0-9_]+)$/;
+// The PARTS of a letter a row trains (`propis2` row panel, owner 2026-11-16: «всю букву, или только одну петельку, или один штрих»): its line
+// carries `#p<i>.<j>…` — the indices of the letter's strokes that are written, before a `#y` flag if any. The row is laid out with a glyph map
+// in which every letter of several strokes has the others as `hiddenStrokes`: they are placed as always (the part stands where it stands in
+// the letter, on the cell lines of the print papers), get no start dot, and are left out of the row (layoutWideLinesIntoRowsNow). Nothing is
+// drawn in their place (owner, 2026-11-16). A letter of one stroke (most of the copybook hand) is written whole.
+const PARTS_FLAG = /#p(\d+(?:\.\d+)*)(?=(?:#y[a-z0-9_]+)?$)/;
+const PARTS_MAPS = new WeakMap(); // glyph map -> Map(parts key -> glyph map)
+function partsGlyphMap(map, key) {
+  let byKey = PARTS_MAPS.get(map);
+  if (!byKey) { byKey = new Map(); PARTS_MAPS.set(map, byKey); }
+  if (byKey.has(key)) return byKey.get(key);
+  const keep = new Set(key.split(".").map(Number));
+  const swapped = new Map();
+  const swap = (g) => {
+    if (!g || g.kind !== "letter" || !(g.strokes?.length > 1)) return g;
+    if (!swapped.has(g)) {
+      const hidden = g.strokes.map((_, i) => i).filter((i) => !keep.has(i));
+      swapped.set(g, hidden.length && hidden.length < g.strokes.length ? { ...g, hiddenStrokes: hidden } : g);
+    }
+    return swapped.get(g);
+  };
+  const out = new Map([...map].map(([k, g]) => [k, swap(g)]));
+  for (const p of ["script", "styleId"]) if (map[p] !== undefined) out[p] = map[p];
+  if (map.styles) { const st = map.styles; Object.defineProperty(out, "styles", { get: () => new Map([...st].map(([id, m]) => [id, m === map ? out : partsGlyphMap(m, key)])) }); }
+  byKey.set(key, out);
+  return out;
+}
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+  if (!glyphsByLabel || !lines.some((l) => PARTS_FLAG.test(l))) return layoutWideLinesIntoRowsStyled(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  const parts = lines.map((l) => PARTS_FLAG.exec(l)?.[1] ?? null);
+  const bare = lines.map((l) => l.replace(PARTS_FLAG, ""));
+  const base = layoutWideLinesIntoRowsStyled(bare.map((l, i) => (parts[i] ? "" : l)), glyphsByLabel, snapX, multiply, scale, maxX);
+  const placed = [...base.placed];
+  for (const key of new Set(parts.filter(Boolean))) {
+    const res = layoutWideLinesIntoRowsStyled(bare.map((l, i) => (parts[i] === key ? l : "")), partsGlyphMap(glyphsByLabel, key), snapX, multiply, scale, maxX);
+    parts.forEach((p, i) => { if (p === key) placed[i] = res.placed[i]; });
+  }
+  return { ...base, placed };
+}
+function layoutWideLinesIntoRowsStyled(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   const styles = glyphsByLabel?.styles;
   if (!styles || !lines.some((l) => STYLE_FLAG.test(l))) return layoutWideLinesIntoRowsOne(lines, glyphsByLabel, snapX, multiply, scale, maxX);
   const own = lines.map((l) => { const m = STYLE_FLAG.exec(l); return m && styles.has(m[1]) && styles.get(m[1]) !== glyphsByLabel ? m[1] : null; });
@@ -2843,7 +2882,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           startX = o + Math.ceil((startX - lead - o) / S - 1e-6) * S + lead;
         }
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.missing ? { missing: true } : {}), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.missing ? { missing: true } : {}), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}), ...(glyph.hiddenStrokes?.includes(si) ? { hidden: true } : {}) }));
         let highJoined = false;
         if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
@@ -3135,6 +3174,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // every token's first glyph gets its red start dot(s), and so does a capital written apart after a capital; only the very first one also gets direction arrows
           for (const [si, s] of moved.entries()) {
             if (glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
+            if (s.hidden) continue; // a part of the letter not written in this row (`#p`): no dot where it would start
             startPoints.push(getPathEndpoints(s.d).start);
             if (!WIDE_DIRECTION_ARROWS || dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
             directionArrows.push(...longArrowsFor(s.d, scale, glyph.arrowSpan ?? null));
@@ -3269,6 +3309,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       if (fades[i] && copyX !== undefined) out = { ...out, opacity: Math.round(Math.max(0, 1 - (copyX - firstX) / Math.max(1, WIDE_FADE_END_X - firstX)) * 100) / 100 };
       return out;
     });
+    // the parts of a letter not written in this row (`#p`, layoutWideLinesIntoRows): laid out in their place, then left out
+    if (seg.strokes?.some((st) => st.hidden)) {
+      seg.strokes = seg.strokes.filter((st) => !st.hidden);
+      if (seg.trajectory) seg.trajectory = { ...seg.trajectory, strokes: seg.trajectory.strokes.filter((st) => !st.hidden) };
+    }
     if (hideCopies[i]) {
       seg.strokes = seg.strokes.filter((st) => !st.dashed && st.opacity === undefined);
       if (seg.trajectory) seg.trajectory = { ...seg.trajectory, strokes: seg.trajectory.strokes.filter((st) => !st.dashed) };

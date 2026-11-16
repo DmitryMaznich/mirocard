@@ -348,6 +348,14 @@ function wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap) {
 export const rowStyleOf = (row, glyphMap) => (row?.style && glyphMap?.styleId && row.style !== glyphMap.styleId && glyphMap.styles?.has(row.style) ? row.style : null);
 export const rowGlyphMap = (glyphMap, row) => { const st = rowStyleOf(row, glyphMap); return st ? glyphMap.styles.get(st) : glyphMap; };
 const styleTag = (row, glyphMap) => { const st = rowStyleOf(row, glyphMap); return st ? `#y${st}` : ""; };
+// The PARTS of its letter a row writes (the row panel's «Что пишем», owner 2026-11-16): `row.parts = { of, keep }` — the strokes `keep` (indices
+// into the letter's strokes) of the letter `of`, the row's text when they were picked. Typed over with something else, the row writes its text
+// whole again (the pick stays stored, unused). Its line gets `#p<i>.<j>…` (wordEngine layoutWideLinesIntoRows: the other strokes are not written).
+export const rowPartsOf = (row) => {
+  const p = row?.parts;
+  return row?.kind === "text" && p && Array.isArray(p.keep) && p.keep.length && p.of === String(row.text ?? "").trim() ? p.keep : null;
+};
+const partsTag = (row) => { const keep = rowPartsOf(row); return keep ? `#p${[...keep].sort((a, b) => a - b).join(".")}` : ""; };
 
 export function pageToLines(page, glyphMap) {
   const out = [];
@@ -373,7 +381,7 @@ export function pageToLines(page, glyphMap) {
     const line = rowToLine(row);
     // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
     if (!line) { out.push(tag); return; }
-    out.push(`${line}${indentTag}${cutTag}${tag}${styleTag(row, glyphMap)}`);
+    out.push(`${line}${indentTag}${cutTag}${tag}${partsTag(row)}${styleTag(row, glyphMap)}`);
     if (page?.writeAfter) out.push("");
   });
   return out;

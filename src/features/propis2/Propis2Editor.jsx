@@ -2,7 +2,8 @@ import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { pageMidDash, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
+import { samplePath } from "@/handwriting/pathGeometry.js";
+import { pageMidDash, rowPartsOf, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -120,6 +121,28 @@ function Seg({ label, options, value, onChange, disabled = false }) {
 }
 
 const ROW_DOCK_KEY = "propis2:rowDock";
+
+// The letter of a row, large, its strokes to tap (the row panel's «Что пишем», as «Печатные буквы» ElementPad): a stroke that is written is
+// ink, the others grey; any number can be on, at least one. Only the strokes — no dots, numbers or arrows (the sheet shows those).
+const PAD_H = 150;
+const capitalize = (t) => (t ? t[0].toLocaleUpperCase("ru") + t.slice(1) : null);
+function PartsPad({ glyph, keep, onToggle }) {
+  const pts = glyph.strokes.flatMap((st) => samplePath(st.d, 30));
+  const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+  const pad = 14;
+  const [x0, x1, y0, y1] = [Math.min(...xs) - pad, Math.max(...xs) + pad, Math.min(...ys) - pad, Math.max(...ys) + pad];
+  const on = new Set(keep);
+  return (
+    <svg className="p2-partpad" viewBox={`${x0} ${y0} ${x1 - x0} ${y1 - y0}`} height={PAD_H} width={(PAD_H * (x1 - x0)) / (y1 - y0)} aria-label={`Штрихи буквы ${glyph.label}`}>
+      {glyph.strokes.map((st, i) => <path key={`v${i}`} d={st.d} fill="none" stroke={on.has(i) ? "var(--p2-blue)" : "#c3c9d2"} strokeWidth={on.has(i) ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />)}
+      {glyph.strokes.map((st, i) => (
+        <path key={`h${i}`} d={st.d} fill="none" stroke="transparent" strokeWidth={18} strokeLinecap="round" className="p2-partpad-hit" role="button" tabIndex={0}
+          aria-label={`${st.name ?? `Штрих ${i + 1}`}: ${on.has(i) ? "пишем" : "не пишем"}`} aria-pressed={on.has(i)} onClick={() => onToggle(i)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(i); } }} />
+      ))}
+    </svg>
+  );
+}
 
 function IconBtn({ label, caption, on, onClick, disabled, children, className = "", mixed = false, ...rest }) {
   const { bind, tip } = useHint(label);
@@ -514,6 +537,27 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   </>;
   const rowNo = selectedIndex >= 0 ? owners.indexOf(selectedIndex) + 1 : 0;
   const kindName = !selected ? "" : selected.kind === "passage" ? "связный текст" : selected.kind === "blank" || !String(selected.text ?? "").trim() ? "пустая строка" : selected.kind === "element" ? "элемент" : "образец";
+  // the parts of the row's letter (row.parts, model.js rowPartsOf): a row of ONE letter of several strokes (the print letters: their strokes
+  // are lines of their own; most copybook letters are one line, they have nothing to pick)
+  const partsGlyph = (() => {
+    if (!rowEditable || selected.kind !== "text") return null;
+    const map = rowGlyphMap(glyphMap, selected);
+    const t = String(selected.text ?? "").trim();
+    const g = t && [...t].length === 1 ? map?.get(map.script?.caps ? t.toLocaleUpperCase("ru") : t) : null;
+    return g?.kind === "letter" && g.strokes?.length > 1 ? g : null;
+  })();
+  const partsSaved = partsGlyph ? rowPartsOf(selected) : null;
+  const partsWhole = !partsSaved;
+  const partsKeep = partsSaved ?? (partsGlyph ? partsGlyph.strokes.map((_, i) => i) : []);
+  const setParts = (keep) => {
+    const all = !keep || keep.length >= partsGlyph.strokes.length;
+    if (all) { const { parts: _p, ...rest } = selected; setRows(page.rows.map((r) => (r.id === selectedId ? rest : r))); return; }
+    patchSelected({ parts: { of: String(selected.text ?? "").trim(), keep: [...keep].sort((a, b) => a - b) } });
+  };
+  const togglePart = (i) => {
+    const next = partsKeep.includes(i) ? partsKeep.filter((k) => k !== i) : [...partsKeep, i];
+    if (next.length) setParts(next);
+  };
   const rowStyleValue = selected ? rowSetting(selected, "style", glyphMap) ?? styles?.value : styles?.value;
   // The row panel (as «Печатные буквы» RowInspector / «Контрольные» Inspector): on a computer the column right of the sheet, on a phone
   // the dock at the bottom. Its head: which row, its own ↑ ↓ copy delete; then what the row is, how it repeats, its dots, its style, the
@@ -540,6 +584,19 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <span className="p2-insp-lbl">Что в строке</span>
           <Seg label="Что в строке" value={selected.kind === "passage" ? "passage" : "sample"} disabled={locked} onChange={(id) => setRowAsText(id === "passage")}
             options={[{ id: "sample", label: "Образец и копии по строке", short: "Образец", Icon: I.IconRepAll }, { id: "passage", label: "Связный текст с переносом на следующие строки", short: "Связный текст", Icon: I.IconTabText }]} />
+        </section>
+      )}
+      {partsGlyph && (
+        <section className="p2-insp-sec" aria-label="Что пишем">
+          <span className="p2-insp-lbl">Что пишем — нажмите на штрих буквы</span>
+          <div className="p2-insp-els"><PartsPad glyph={partsGlyph} keep={partsKeep} onToggle={togglePart} /></div>
+          <div className="p2-insp-chips">
+            <button type="button" className={`p2-el${partsWhole ? " is-on" : ""}`} aria-pressed={partsWhole} onClick={() => setParts(null)}>Вся буква</button>
+            {partsGlyph.strokes.map((st, i) => (
+              <button key={i} type="button" className={`p2-el${!partsWhole && partsKeep.includes(i) ? " is-on" : ""}`} aria-pressed={!partsWhole && partsKeep.includes(i)} onClick={() => setParts([i])}>{capitalize(st.name) ?? `Штрих ${i + 1}`}</button>
+            ))}
+          </div>
+          {!partsWhole && <span className="p2-insp-hint">Пишется только выбранное — на своём месте в букве; остального на листе нет.</span>}
         </section>
       )}
       {rowEditable && (
