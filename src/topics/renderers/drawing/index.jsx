@@ -9,6 +9,7 @@ import Portrait from './portrait/Portrait.jsx';
 import { MenuButton, Primary, ShowAgain } from './ui.jsx';
 
 const initialState = { index: 0, busy: false, paused: false };
+const TOOL_PAUSE_MS = 1100;
 const icons = {
   next: <path d="M7 16h18M19 7l9 9-9 9" />,
   repeat: <path d="M7 10a11 11 0 1 1-1 14M7 3v8h8" />,
@@ -70,27 +71,20 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
   const [bonusEnabled, setBonusEnabled] = useState(sessionParams?.videoRewardEnabled === true);
   const bonusAvailable = typeof onRequestVideoBonus === 'function' && Boolean(student?.rewardVideos?.length);
   const bonus = { enabled: bonusEnabled, available: bonusAvailable, setEnabled: setBonusEnabled, request: onRequestVideoBonus };
-  const [progress, setProgress] = useState(() => new Map());
   const progressKey = id => `drawing-progress:${student?.id ?? 'local'}:${id}`;
   const revisionFor = id => (cards.find(card => card.id === id) ?? fallback).lesson?.progressRevision;
-  const getProgress = id => {
-    const saved = progress.get(id) ?? readStored(progressKey(id), null);
-    const revision = revisionFor(id);
-    return revision !== undefined && saved?.revision !== revision ? null : saved;
-  };
-  const saveProgress = (id, snapshot) => {
-    const value = { ...snapshot, revision: revisionFor(id) ?? 0 };
-    setProgress(previous => new Map(previous).set(id, value)); store(progressKey(id), value);
-  };
+  const saveProgress = (id, snapshot) => store(progressKey(id), { ...snapshot, revision: revisionFor(id) ?? 0 });
   const changeChoice = (key, value) => setChoices(previous => { const next = { ...previous, [key]: value }; store('drawing-ui-options', next); return next; });
-  if (selected?.lesson?.steps?.length) return <Lesson key={selected.id} card={selected} saved={getProgress(selected.id)} choices={choices} onChoice={changeChoice}
+  // A drawing is drawn in one sitting (owner, 2026-11-16): opening it always starts from the first step.
+  // The position is still written (the browser checks read it), but never restored.
+  if (selected?.lesson?.steps?.length) return <Lesson key={selected.id} card={selected} saved={null} choices={choices} onChoice={changeChoice}
     soundEnabled={soundEnabled} bonus={bonus} onSave={snapshot => saveProgress(selected.id, snapshot)} onDrawings={() => setSelected(null)} />;
   return <section className="drawing-lesson drawing-picker" aria-label="Рисование">
     <div className="drawing-picker__adult"><MenuButton onOpen={() => setMenu('settings')} /></div>
     <h2>Рисование</h2><p>Выбери рисунок</p>
     <div className="drawing-cards">{cards.map(card => <button type="button" className="drawing-card" key={card.id} onClick={() => setSelected(card)}>
       <Cover card={card} loadTopicFileUrl={loadTopicFileUrl} topicId={topicId} /><span>{card.label ?? card.lesson.title}</span>
-      <small>{getProgress(card.id)?.index > 0 && getProgress(card.id)?.index < card.lesson.steps.length ? 'Продолжить' : ''}</small>
+
     </button>)}</div>
     <AdultDialog page={menu} onDismiss={() => setMenu(null)}><div className="drawing-dialog__heading"><h3>Для взрослого</h3><button type="button" onClick={() => setMenu(null)} aria-label="Закрыть настройки">×</button></div>
       <Settings choices={choices} onChoice={changeChoice} bonus={bonus} />
@@ -148,8 +142,12 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
       if (current.index === lesson.steps.length) {
         changePhase('done'); save.current({ index: current.index, phase: 'done' }); player.current.playFinale(); return;
       }
+      // A new pencil: it wiggles in the header for a moment, then the step starts by itself (no extra tap;
+      // a second tap starts it at once). Owner, 2026-11-16.
       if (toolForStep(lesson, current.index-1).tool.id !== toolForStep(lesson, current.index).tool.id) {
-        changePhase('tool'); return;
+        changePhase('tool');
+        setTimeout(() => { if (phaseRef.current === 'tool' && !last.current.busy) { changePhase('animating'); player.current?.next(); } }, TOOL_PAUSE_MS);
+        return;
       }
     }
     changePhase('animating'); player.current.next();
@@ -176,8 +174,10 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
     if (!accepted) setBonusPending(false);
   };
   return <section className="drawing-lesson drawing-shell" aria-label={`Рисуем: ${lesson.title}`}>
-    <header className="drawing-top"><h2>{done ? 'Рисунок готов' : lesson.title}</h2><MenuButton onOpen={openSettings} /></header>
-    <div className="drawing-pencil-space" role="img" aria-label={done ? 'Рисунок готов' : context.tool.name}>{!done && <Pencil tool={context.tool} />}</div>
+    <header className="drawing-top"><h2>{done ? 'Рисунок готов' : lesson.title}</h2>
+      {/* The pencil to take: small, in the header, so the picture gets the whole lesson area. It wiggles when it changes. */}
+      <div className={`drawing-pencil-chip${phase === 'tool' ? ' is-new' : ''}`} role="img" aria-label={done ? 'Рисунок готов' : context.tool.name}>{!done && <Pencil tool={context.tool} />}</div>
+      <MenuButton onOpen={openSettings} /></header>
     <div className="drawing-board" role={choices.tap && !done ? 'button' : undefined} tabIndex={choices.tap && !done ? 0 : undefined}
       aria-label={choices.tap && !done ? 'Показать следующий шаг' : undefined} onClick={() => { if (choices.tap) next(); }}
       onKeyDown={event => { if (choices.tap && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); next(); } }}>
@@ -185,6 +185,10 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
       {state.paused && <div className="drawing-pause-curtain"><Icon name="pause" /></div>}
       {!done && state.index > 0 && !state.busy && <ShowAgain label="Показать этот шаг ещё раз" onClick={event => { event.stopPropagation(); repeat(); }} />}
     </div>
+    {/* Back is the child's (owner, 2026-11-16): it only rewinds the model on screen — the paper stays — so
+        a child who got lost can look again by themselves. One tap, one step; restart stays with the adult. */}
+    {state.index > 0 && !state.busy && <button type="button" className="drawing-back" aria-label="Назад на шаг" onClick={previous}>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M37 24H13M23 13 12 24l11 11" /></svg></button>}
     {done ? <Primary icon={offerBonus ? 'next' : 'drawings'} label={offerBonus ? 'Дальше — бонус' : 'Другой рисунок'} disabled={bonusPending} onClick={finishDrawing} />
       : <Primary icon="next" label="Дальше" disabled={state.busy && !state.paused} onClick={next} />}
     <span className="drawing-sr-only" role="status" aria-live="polite">{state.paused ? 'Анимация на паузе' : done ? 'Рисунок готов' : phase === 'copy' ? 'Можно рисовать на бумаге' : phase === 'tool' ? 'Подготовьте следующий карандаш' : 'Показать следующий шаг'}</span>
