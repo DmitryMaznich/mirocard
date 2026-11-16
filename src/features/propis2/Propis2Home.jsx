@@ -87,6 +87,9 @@ export default function Propis2Home({ db }) {
   const pageStyle = useCallback((p) => (multiStyle ? pickStyle(deckRecord, lang, p?.style ?? writingStyle) : writingStyle), [multiStyle, deckRecord, lang, writingStyle]);
   const recordOfStyle = useCallback((st) => (languages ? languageView(deckRecord, lang, st) : deckRecord), [languages, deckRecord, lang]);
   const recordOfPage = useCallback((p) => recordOfStyle(pageStyle(p)), [recordOfStyle, pageStyle]);
+  // the styles the editor offers, each with the papers it writes on: a row may take another style only where that style has the page's
+  // paper (the Russian print letters stand on papers of their own, never on the copybook ruling)
+  const styleChoices = useMemo(() => (multiStyle ? langStyleList.map((st) => ({ ...st, paperIds: deckPapers(recordOfStyle(st.id)).map((g) => g.id) })) : null), [multiStyle, langStyleList, recordOfStyle]);
   // runs of the notebook by paper AND style (model.js notebookSections)
   const sectionOpts = useMemo(() => (multiStyle ? { styleOf: pageStyle, glyphMapOf: (st) => glyphMapOf(recordOfStyle(st)) } : undefined), [multiStyle, pageStyle, recordOfStyle]);
   const dirty = Boolean(session && session.lib !== session.base);
@@ -604,7 +607,7 @@ export default function Propis2Home({ db }) {
         topicRecord={recordOfPage(shown)}
         language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone, styleTitle: styleTitleOf(languages.find((l) => l.id === lang), shownStyle) } : null}
         // the page's writing style: picked in the page strip like its paper (a page of print letters, the next one in the British hand)
-        styles={multiStyle ? { options: langStyleList, value: shownStyle } : null}
+        styles={multiStyle ? { options: styleChoices, value: shownStyle } : null}
         onChange={(next, how) => {
           if (multiStyle && next.style !== shown.style) next = fitPaper(next);
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's

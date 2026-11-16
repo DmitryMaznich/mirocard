@@ -164,6 +164,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
   const styleOptions = useMemo(() => (styles?.options ?? []).map((st) => ({ id: st.id, label: st.title, text: st.title, ...(st.short ? { short: st.short } : {}) })), [styles?.options]);
+  // a row's style: only the styles that write on this page's paper (`paperIds`, Propis2Home); the page's own style is always one of them
+  const rowStyleOptions = useMemo(() => styleOptions.filter((o, i) => !styles?.options?.[i]?.paperIds || styles.options[i].paperIds.includes(gridKind) || o.id === styles.value), [styleOptions, styles, gridKind]);
   const propisGrid = gridKind === "propis";
   const fourPaper = fourLinePaper(gridKind); // a four-line paper (fourLinePapers.js): no dense slant; its own dash, `bgDash`, if it has one
   const bgPaper = Boolean(fourPaper);
@@ -490,7 +492,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           {/* the row's writing style (docs/propis2-languages.md «Стиль у строки»): a row of print letters, the next one joined */}
-          {styles && <Propis2Picker label="Стиль строки" caption="Стиль строки" kind="style" value={selected ? rowSetting(selected, "style", glyphMap) ?? styles.value : styles.value} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={styleOptions} />}
+          {styles && rowStyleOptions.length > 1 && <Propis2Picker label="Стиль строки" caption="Стиль строки" kind="style" value={selected ? rowSetting(selected, "style", glyphMap) ?? styles.value : styles.value} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
           {/* keeps the field's focus (the keyboard stays open, the caret where it was) */}
           <IconBtn label="Вставить текст из буфера обмена" caption="Вставить" disabled={!canPaste} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}><I.IconPaste /></IconBtn>

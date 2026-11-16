@@ -129,9 +129,16 @@ if (langSpec) {
   // (engine.js passes it to languageView); offered only when some language of this deck has more than one
   const styled = topic.languages.filter((l) => (l.styles?.length ?? 0) > 1);
   if (styled.length) {
-    const opts = styled.flatMap((l) => l.styles.map((st) => [st.id, topic.languages.length === 1 ? st.title : `${st.title} (${l.title})`]));
+    // (`cards: false`: a style the letter cards do not use at all — the Russian «Печатные»: «Узнай букву» shows a printed letter to find
+    // among written ones, there both would be the same shape)
+    const all = styled.flatMap((l) => l.styles.filter((st) => st.cards !== false).map((st) => [st.id, topic.languages.length === 1 ? st.title : `${st.title} (${l.title})`, Boolean(st.script?.caps)]));
     for (const m of topic.modes) {
       if (!["letters_recognize", "letters_case"].includes(m.type)) continue;
+      // «Строчная и заглавная» pairs a small letter with its capital: not in a style of capitals only (`script.caps`: the Russian «Печатные»,
+      // the Slovene «Velike tiskane črke») — there the two are one shape
+      const opts = all.filter(([, , caps]) => !(caps && m.type === "letters_case"));
+      // (fewer than two styles left to choose from: the cards write in the language's first style, nothing to offer)
+      if (opts.length < 2) continue;
       const params = { ...m.params };
       const { writingLang, ...rest } = params;
       m.params = { ...(writingLang ? { writingLang } : {}), writingStyle: { type: "enum", label: { ru: "Стиль письма" }, values: opts.map(([id]) => id), labels: { ru: Object.fromEntries(opts) }, default: opts[0][0] }, ...rest };

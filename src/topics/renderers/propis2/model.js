@@ -1,6 +1,7 @@
 // `propis2`: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { FOUR_LINE_IDS, fourLinePaper, isFourLinePaper } from "../../../handwriting/fourLinePapers.js";
+import { PRINT_PAPER_IDS, isPrintPaper, printPaper } from "../../../handwriting/printPapers.js";
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../../../handwriting/wordEngine.js";
 import { dropFlag, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
 import { snapXFor, ownRowsPerPage } from "../../../handwriting/PrintPageView.jsx";
@@ -52,10 +53,12 @@ export const GRID_KINDS = [
   // the first two steps of the Mazina method (PrintPageView MZ): our ordinary «Прописи» is the third step
   { id: "m1", label: "Ступень 1 (строка 8 мм)" },
   { id: "m2", label: "Ступень 2 (строка 5 мм)" },
+  // the print style's papers (src/handwriting/printPapers.js), offered only by a style that lists them («Печатные»)
+  ...PRINT_PAPER_IDS.map((id) => ({ id, label: printPaper(id).label })),
 ];
 // Papers with rows of their own (not the 12 mm cycle of the Russian copybook): always on the narrow size, no ruling to choose.
 export const MAZINA_PAPERS = new Set(["m1", "m2"]);
-export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || isFourLinePaper(grid) || MAZINA_PAPERS.has(grid);
+export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || isFourLinePaper(grid) || MAZINA_PAPERS.has(grid) || isPrintPaper(grid);
 // The papers a deck offers, in order (the first is the paper of a new notebook): meta.papers of a variant deck; the Russian ones else.
 const RU_PAPERS = ["propis", "m1", "m2", "square", "ruled"];
 export const deckPapers = (topicRecord) => {

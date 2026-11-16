@@ -22,7 +22,7 @@ const hands = decks.flatMap((rec) => (deckLanguages(rec) ?? []).flatMap((l) => (
 
 describe("colon, semicolon and dash in every alphabet", () => {
   it("there are several hands to check", () => {
-    expect(hands.map((h) => h.name)).toEqual(expect.arrayContaining(["propis2/ru", "propis2/bg", "propis2/kk"]));
+    expect(hands.map((h) => h.name)).toEqual(expect.arrayContaining(["propis2/ru/cursive", "propis2/ru/print", "propis2/bg", "propis2/kk"]));
   });
 
   it.each(hands.map((h) => [h.name, h]))("%s: : ; – — are written, : ; stand on the baseline with the upper dot inside the lowercase height, – on the middle", (_n, { view }) => {

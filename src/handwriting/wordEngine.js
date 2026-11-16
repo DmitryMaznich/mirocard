@@ -2248,7 +2248,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         pieceIndex += 1;
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
-        const inCell = Boolean(cellGrid) && glyph.kind === "digit";
+        // (the print style's papers, `cell.onLines`: a digit is written as the letters are, on their lines, not into a cell of its own)
+        const inCell = Boolean(cellGrid) && !cellGrid.onLines && glyph.kind === "digit";
         let local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         const isCap = !inCell && glyph.kind === "letter" && isCapitalLabel(label);
         // (not in a print style — letters written apart, no joins of any kind: there every letter, a capital too, stands `script.letterGap`
@@ -2829,6 +2830,17 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           startX = edgeX + (prevToken.bandY - local.start[1]) * WIDE_JOIN_TAN + (2 + pendingGap) * CELL + lead; // every extra space typed (`_N`, the gap of the units of a multiplied row) adds a cell
           if (snapX.drawn) startX = snapStart(startX);
           else { tokenPhase = 0; tokenPhase = startX - snapStart(startX); } // no drawn lines: exactly two cells, and the rest of the word is joined on the lattice shifted by that
+        }
+        // the print style's papers (`cell.onLines`, src/handwriting/printPapers.js, Ilyukhina's cells): wherever the rules above put it, a letter
+        // written apart starts ON a line of the paper's cells — its ink moves on to the first line at or right of where it would begin. A letter
+        // is half its 1 cm letter-cell wide (two thirds when wide), so with a small `letterGap` the letters of a word stand one letter-cell apart;
+        // a `wordGap` of a letter's height leaves two cells clear between words.
+        // (a mark — comma, full stop — stays where it is, against the letter before it)
+        if (cellGrid?.onLines && !inCell && (glyph.kind === "letter" || glyph.kind === "digit")) {
+          const S = cellGrid.size;
+          const o = cellGrid.origin(rowIndex);
+          const lead = local.start[0] - (local.apartMinX ?? local.minX);
+          startX = o + Math.ceil((startX - lead - o) / S - 1e-6) * S + lead;
         }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.missing ? { missing: true } : {}), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));

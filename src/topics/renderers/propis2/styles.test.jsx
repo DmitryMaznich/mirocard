@@ -33,14 +33,17 @@ const twoStyles = {
 
 describe("propis2 writing styles", () => {
   it("a language without styles gives the view it always gave", () => {
-    for (const l of deck.languages) {
+    // (Russian has styles since deck 0.7.0 — «Прописные» first, «Печатные»: its first style writes the page it always wrote)
+    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => st.id)).toEqual(["cursive", "print"]);
+    expect(page(languageView(deck, "ru", "cursive"), ["мама мыла раму"], "propis")).toBe(page(languageView(deck, "ru", "x"), ["мама мыла раму"], "propis"));
+    for (const l of deck.languages.filter((x) => x.id !== "ru")) {
       expect(langStyles(l)).toBeNull();
       expect(pickStyle(deck, l.id, "anything")).toBeNull();
       const view = languageView(deck, l.id, "anything");
       expect(view).toBe(languageView(deck, l.id)); // the same cached view, whatever style is asked for
       expect(view.meta.writingStyle).toBeUndefined();
     }
-    expect(page(languageView(deck, "ru", "x"), ["мама мыла раму"], "propis")).toBe(page(languageView(deck, "ru"), ["мама мыла раму"], "propis"));
+    expect(page(languageView(deck, "bg", "x"), ["мама мыла раму"], "propis")).toBe(page(languageView(deck, "bg"), ["мама мыла раму"], "propis"));
   });
 
   it("picks the wanted style, else the language's first", () => {
@@ -78,6 +81,6 @@ describe("propis2 writing styles", () => {
     expect(task.writingLang).toBe("xx");
     expect(task.writingStyle).toBe("upright");
     const [ruTask] = generateTasks(mode, twoStyles, 10, { writingLang: "ru" });
-    expect(ruTask.writingStyle).toBeUndefined();
+    expect(ruTask.writingStyle).toBe("cursive"); // Russian: its first style
   });
 });

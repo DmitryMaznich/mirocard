@@ -164,7 +164,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
         field.dispatchEvent(new Event("input", { bubbles: true }));
         await tick();
       });
-      expect(Boolean(host.querySelector('button[aria-label="Стиль страницы"]'))).toBe(lang === "bg");
+      // (Russian has two styles of its own since deck 0.7.0: «Прописные», «Печатные»)
+      expect(Boolean(host.querySelector('button[aria-label="Стиль страницы"]'))).toBe(true);
       await click(host.querySelector(".back-btn"));
       await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
       await act(async () => { root.unmount(); await tick(400); });

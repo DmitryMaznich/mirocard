@@ -1,4 +1,5 @@
 import { isFourLinePaper } from "@/handwriting/fourLinePapers.js";
+import { isPrintPaper } from "@/handwriting/printPapers.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PrintPageView, { snapXFor } from "@/handwriting/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
@@ -36,7 +37,7 @@ export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, 
   }, []);
   // the fragment is moved to the middle of its row (an indent in slant cells), so the ruling runs on at both sides of it
   const task = useMemo(() => {
-    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled" || isFourLinePaper(grid) || grid === "m1" || grid === "m2";
+    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled" || isFourLinePaper(grid) || grid === "m1" || grid === "m2" || isPrintPaper(grid);
     const snap = snapXFor({ narrowRows: narrow, simpleGrid: grid, narrow17: narrow });
     const scale = snap.cell?.scale ?? snap.letterScale ?? (narrow ? 0.5 : 1);
     const w = lineWidth(fragment, buildGlyphMap(topicRecord), narrow ? "narrow" : "wide", snap);

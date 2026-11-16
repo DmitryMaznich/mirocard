@@ -6,6 +6,7 @@ import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import { BrandMarks, FoldLine, StapleMarks } from "./brandMarks.jsx";
 import { bookletSheets } from "./booklet.js";
 import { FOUR_LINE_PAPERS, fourLinePaper, fourLinePitchMm, isFourLinePaper } from "./fourLinePapers.js";
+import { PRINT_PAPERS, isPrintPaper, printPaper } from "./printPapers.js";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
@@ -236,6 +237,8 @@ const OWN_ROWS = {
   ruled: { pitch: RULED_PITCH, first: 2 * RULED_PITCH, foot: RULED_PITCH, scale: RULED_LETTER_SCALE },
   ...Object.fromEntries(Object.entries(FOUR_LINE_PAPERS).map(([k, p]) => [k, { pitch: mmToNativeUnits(fourLinePitchMm(p)), first: mmToNativeUnits(p.firstMm + p.upMm + p.xMm), foot: mmToNativeUnits(p.downMm + p.footMm), scale: fourLineScale(p) }])),
   ...Object.fromEntries(Object.entries(MZ).map(([k, m]) => [k, { pitch: mmToNativeUnits(m.bandMm + m.gapMm), first: mmToNativeUnits(m.topMm), foot: mmToNativeUnits(m.footMm), scale: m.scale }])),
+  // the print style's papers (printPapers.js): a capital `letterMm` tall = two of the engine's 48-unit bands at this scale
+  ...Object.fromEntries(Object.entries(PRINT_PAPERS).map(([k, p]) => [k, { pitch: mmToNativeUnits(p.pitchMm), first: mmToNativeUnits(p.firstMm), foot: mmToNativeUnits(p.footMm), scale: mmToNativeUnits(p.letterMm / 2) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) }])),
 };
 const ownOf = (kind) => OWN_ROWS[kind === true ? "square" : kind] ?? null;
 const ownRowsOf = (geom, kind) => { const o = ownOf(kind); return Math.floor((geom.h - o.foot - o.first) / o.pitch) + 1; };
@@ -434,7 +437,7 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
-  const plain = simpleGrid === "square" || simpleGrid === "ruled" || isFourLinePaper(simpleGrid) || Boolean(MZ[simpleGrid]);
+  const plain = simpleGrid === "square" || simpleGrid === "ruled" || isFourLinePaper(simpleGrid) || Boolean(MZ[simpleGrid]) || isPrintPaper(simpleGrid);
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
   // dashed guide lines are slightly red on the `propis2` pages (the `propis` sheets keep the grid colour)
   const dashColor = simpleGrid ? "#e57d7a" : guideColor;
@@ -555,7 +558,41 @@ function PrintPage({ page, pageIndex, gridIndex = null, noSlant = false, activeI
       </g>
     );
   })() : null;
-  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? mzEls ?? (simpleGrid && simpleGrid !== "ruled" && !isFourLinePaper(simpleGrid) && simpleGrid !== "none" ? (
+  // the print style's papers (printPapers.js): the cells from the page's edges (`gridMm`), or (`heightLine`) per row its solid baseline and a
+  // dashed line at the letter's height
+  const printP = printPaper(ownRows);
+  const printEls = printP ? (() => {
+    const cell = mmToNativeUnits(printP.gridMm);
+    if (cell) {
+      return (
+        <g data-simple-grid={ownRows} shapeRendering="crispEdges">
+          {Array.from({ length: Math.floor(PAGE_W_UNITS / cell) + 1 }, (_, i) => (
+            <line key={`v${i}`} x1={i * cell} y1={0} x2={i * cell} y2={PAGE_H_UNITS} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} opacity={0.7} />
+          ))}
+          {Array.from({ length: Math.floor(PAGE_H_UNITS / cell) + 1 }, (_, i) => (
+            <line key={`h${i}`} x1={0} y1={i * cell} x2={PAGE_W_UNITS} y2={i * cell} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} opacity={0.7} />
+          ))}
+        </g>
+      );
+    }
+    const count = ownRowsOf(geom, ownRows);
+    const rows = Array.from({ length: count }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
+    const h = mmToNativeUnits(printP.letterMm);
+    return (
+      <g data-simple-grid={ownRows}>
+        {rows.map((r) => {
+          const y = ownRowY(r, ownRows) + WIDE_BAND_BOTTOM_LOCAL;
+          return (
+            <g key={r} data-print-row={r}>
+              <line x1={0} y1={y - h} x2={PAGE_W_UNITS} y2={y - h} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />
+              <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W * 1.6} />
+            </g>
+          );
+        })}
+      </g>
+    );
+  })() : null;
+  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? mzEls ?? printEls ?? (simpleGrid && simpleGrid !== "ruled" && !isFourLinePaper(simpleGrid) && simpleGrid !== "none" ? (
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
@@ -965,6 +1002,15 @@ function squareSnapFor(margin, geom) {
   return snap;
 }
 
+// The print style's papers (printPapers.js): letters written apart, each starting ON a line of the paper's cells (`cell.onLines`, wordEngine.js),
+// the lines counted from the page's left edge like the squared grid's; nothing snaps to a slant (the letters are upright). On the ruled one
+// (no cells drawn) the lines are the 5 mm the letter-cells are measured in.
+function printSnapFor(kind, margin, geom) {
+  const snap = (_rowIndex, x) => x;
+  snap.cell = { size: mmToNativeUnits(printPaper(kind).snapMm), scale: ownOf(kind).scale, onLines: true, origin: (rowIndex) => -rowContentX(rowIndex, margin, geom, true, kind) };
+  return snap;
+}
+
 // Ruled paper (and the four-line papers, `scale` their own): no cells; the letters smaller (`letterScale`), on the same undrawn
 // slant grid scaled with them (see squareSnapFor).
 function ruledSnapFor(scale = RULED_LETTER_SCALE) {
@@ -1072,6 +1118,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   if (simpleGrid === "ruled") return ruledSnapFor();
   if (isFourLinePaper(simpleGrid)) return ruledSnapFor(ownOf(simpleGrid).scale);
   if (MZ[simpleGrid]) return mazinaSnapFor(simpleGrid, margin, geom);
+  if (isPrintPaper(simpleGrid)) return printSnapFor(simpleGrid, margin, geom);
   const dense = simpleGrid === "dense";
   if (dense) {
     const drawn = narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
