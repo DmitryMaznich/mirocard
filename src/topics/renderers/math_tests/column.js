@@ -9,12 +9,25 @@
 //   (`rtl`), graded as one number.
 // Column `c = 0` is the sign, places run right to left: units in column `w - 1`.
 import { makeRng } from "../addition_subtraction/worksheet/sections.js";
+import { normalizeOperands, operandsExample } from "../column_addition/engine.js";
 
+// before 2026-11-16 a block chose a «Разрядность» (2 + 1 … 3 + 3); now the numbers are drawn as cells,
+// the same setting as the «Столбик» trainer (`operands`, column_addition/engine.js normalizeOperands):
+// how many digits each number has and where a 0 stands
 export const COLUMN_SIZES = ["2+1", "2+2", "3+1", "3+2", "3+3"];
+const operandsOfSize = (size) => {
+  const [top, bottom] = String(size).split("+").map(Number);
+  return { top, topZeros: [], bottom, bottomZeros: [] };
+};
 export const COLUMN_REGROUP = ["mixed", "with", "without"];
 
+// `form`: "column" — the example stands in a column already; "line" — given in a line («347 + 28 =»),
+// the child sets it up in a column in the notebook and writes the answer (what «Контрольная работа»
+// of the «Столбик» topic did, 2026-11-16)
+export const COLUMN_FORMS = ["column", "line"];
+
 export function defaultColumn() {
-  return { type: "column", count: 8, ops: "both", size: "2+2", regroup: "mixed" };
+  return { type: "column", count: 8, ops: "both", operands: operandsOfSize("2+2"), regroup: "mixed", form: "column", newPlace: true };
 }
 
 export function normalizeColumn(block) {
@@ -22,12 +35,17 @@ export function normalizeColumn(block) {
   const b = { ...def, ...block, type: "column" };
   b.count = Math.max(2, Math.min(12, Math.round(Number(b.count) || def.count)));
   if (!["add", "subtract", "both"].includes(b.ops)) b.ops = def.ops;
-  if (!COLUMN_SIZES.includes(b.size)) b.size = def.size;
+  // a «−» keeps the bottom no longer than the top; «+» and «оба» leave it free (as in the trainer)
+  const operands = block?.operands ?? (COLUMN_SIZES.includes(block?.size) ? operandsOfSize(block.size) : def.operands);
+  b.operands = normalizeOperands(operands, b.ops === "subtract" ? "subtract" : "add");
+  delete b.size;
   if (!COLUMN_REGROUP.includes(b.regroup)) b.regroup = def.regroup;
+  if (!COLUMN_FORMS.includes(b.form)) b.form = def.form;
+  // «Новый разряд»: the answer may grow or lose a place (95 + 7 = 102, 102 − 7 = 95)
+  b.newPlace = b.newPlace !== false;
   return b;
 }
 
-const int = (rng, min, max) => min + Math.floor(rng() * (max - min + 1));
 const digitsOf = (n) => String(n).split("").map(Number).reverse(); // units first
 
 // does a ± b carry / borrow in any place?
@@ -42,26 +60,6 @@ export function regroups(a, b, op) {
   return false;
 }
 
-function pickNumbers(rng, b, op, wantRegroup) {
-  const [la, lb] = b.size.split("+").map(Number);
-  const lo = (l) => 10 ** (l - 1);
-  const hi = (l) => 10 ** l - 1;
-  for (let k = 0; k < 200; k += 1) {
-    let x = int(rng, lo(la), hi(la));
-    let y = int(rng, lo(lb), hi(lb));
-    if (op === "subtract") {
-      if (la === lb && x < y) [x, y] = [y, x];
-      if (x - y < 1) continue;
-    }
-    // round numbers (40 + 30) teach nothing about the column
-    if (y % 10 === 0 && x % 10 === 0) continue;
-    const r = regroups(x, y, op);
-    if (wantRegroup === true && !r) continue;
-    if (wantRegroup === false && r) continue;
-    return [x, y];
-  }
-  return null;
-}
 
 // tokens of one column example
 export function columnItem(a, b, op) {
@@ -79,20 +77,27 @@ export function columnItem(a, b, op) {
   return { grid: { w, h: 4 }, tokens, answers: [r], column: { a, b, op, w } };
 }
 
+// the example in a line: 347 + 28 = ☐ (the column is written in the notebook)
+function lineItem(a, b, op) {
+  return {
+    tokens: [{ t: "num", v: a }, { t: "op", op }, { t: "num", v: b }, { t: "eq" }, { t: "blank", i: 0, kind: "num" }],
+    answers: [op === "add" ? a + b : a - b],
+    line: { a, b, op },
+  };
+}
+
 export function buildColumn(block) {
   const b = normalizeColumn(block);
   const rng = makeRng(block.seed ?? 1);
   const items = [];
   const seen = new Set();
-  for (let k = 0; items.length < b.count && k < b.count * 40; k += 1) {
+  for (let k = 0; items.length < b.count && k < b.count * 4; k += 1) {
     const op = b.ops === "both" ? (items.length % 2 === 0 ? "add" : "subtract") : b.ops;
-    const want = b.regroup === "with" ? true : b.regroup === "without" ? false : items.length % 3 !== 2;
-    const pair = pickNumbers(rng, b, op, want) ?? pickNumbers(rng, b, op, null);
-    if (!pair) continue;
-    const key = `${pair[0]}${op}${pair[1]}`;
-    if (seen.has(key) && k < b.count * 20) continue;
-    seen.add(key);
-    items.push(columnItem(pair[0], pair[1], op));
+    const want = b.regroup === "with" ? "carry" : b.regroup === "without" ? "none" : items.length % 3 !== 2 ? "carry" : "none";
+    const ex = operandsExample(b.operands, op, want, seen, { rng, newPlace: b.newPlace });
+    if (!ex) continue;
+    items.push(b.form === "line" ? lineItem(ex.top, ex.bottom, op) : columnItem(ex.top, ex.bottom, op));
   }
-  return { maxNumber: 999, items };
+  // the answer box of a line is as wide as the longest answer (1120 after 650 + 470)
+  return { maxNumber: b.form === "line" ? Math.max(9, ...items.map((it) => it.answers[0])) : 999, items };
 }

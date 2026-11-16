@@ -30,6 +30,51 @@ describe("math_tests «Реши в столбик»", () => {
     }
   });
 
+  it("the numbers as cells, as in the trainer: digits, zeros where marked, a longer bottom with «+»", () => {
+    const zerosOf = (n) => String(n).split("").reverse().flatMap((d, p) => (d === "0" ? [p] : []));
+    const operands = { top: 3, topZeros: [1], bottom: 2, bottomZeros: [0] };
+    for (let seed = 1; seed <= 6; seed += 1) {
+      for (const it of buildBlock(colBlock({ operands, ops: "subtract", regroup: "mixed", seed })).items) {
+        const { a, b } = it.column;
+        expect(String(a)).toHaveLength(3);
+        expect(zerosOf(a)).toEqual([1]); // 305-like
+        expect(String(b)).toHaveLength(2);
+        expect(zerosOf(b)).toEqual([0]); // 40-like
+        expect(it.answers[0]).toBe(a - b);
+      }
+    }
+    const longer = buildBlock(colBlock({ operands: { top: 2, bottom: 3 }, ops: "add" })).items;
+    expect(longer.every((it) => String(it.column.a).length === 2 && String(it.column.b).length === 3)).toBe(true);
+    // «−» keeps the bottom no longer than the top
+    expect(normalizeBlock({ type: "column", id: "c", ops: "subtract", operands: { top: 2, bottom: 3 } }).operands.bottom).toBe(2);
+  });
+
+  it("«строкой»: 347 + 28 = ☐ in a line — the column goes in the notebook, the answer is graded", () => {
+    const block = colBlock({ form: "line", operands: { top: 3, topZeros: [0], bottom: 2 }, ops: "add", regroup: "with" });
+    const { items, maxNumber } = buildBlock(block);
+    for (const it of items) {
+      expect(it.grid).toBeUndefined();
+      expect(it.tokens.map((t) => t.t)).toEqual(["num", "op", "num", "eq", "blank"]);
+      expect(it.answers[0]).toBe(it.line.a + it.line.b);
+      expect(it.line.a % 10).toBe(0);
+    }
+    expect(maxNumber).toBeGreaterThanOrEqual(Math.max(...items.map((it) => it.answers[0])));
+    const t = normalizeTest({ title: "С", blocks: [block] });
+    expect(blanksOf(layoutTest(t)).filter((b) => !b.aux)).toHaveLength(12);
+  });
+
+  it("«Новый разряд» off: the answer keeps the longer number's width (a sheet «до 100» stays under 100)", () => {
+    for (let seed = 1; seed <= 6; seed += 1) {
+      for (const it of buildBlock(colBlock({ operands: { top: 2, bottom: 2 }, ops: "both", regroup: "with", newPlace: false, seed })).items) {
+        expect(String(it.answers[0])).toHaveLength(2);
+      }
+    }
+  });
+
+  it("a block saved with the old «Разрядность» opens as cells", () => {
+    expect(normalizeBlock({ type: "column", id: "c", size: "3+1" }).operands).toEqual({ top: 3, topZeros: [], bottom: 1, bottomZeros: [] });
+  });
+
   it("digits stand in cells: places right-aligned, the answer box under the places", () => {
     const { items } = buildBlock(colBlock({ size: "3+2", ops: "add" }));
     for (const it of items) {

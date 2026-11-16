@@ -51,6 +51,35 @@ function CellRow({ row, digits, zeros, max = CELLS, gridRow, onTap, label }) {
   return cells;
 }
 
+// The cells and what a cell means — shared with the block panel of «Контрольные по математике»
+// («Реши в столбик», math_tests/Inspector.jsx): one setting, one look.
+function OperandCells({ o, sign, limitOp, onTap }) {
+  return (
+    <div className="cop-body">
+      <div className="cop-column">
+        <CellRow row="top" label="Верхнее число" digits={o.top} zeros={o.topZeros} gridRow={1} onTap={onTap} />
+        <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
+        <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} max={limitOp === "add" ? CELLS : o.top} gridRow={2} onTap={onTap} />
+        <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
+      </div>
+      {/* what a cell means, next to the cells (owner: states, not gestures) */}
+      <ul className="cop-legend">
+        <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> любая цифра</li>
+        <li><span className="cop-mini cop-mini--zero" aria-hidden="true">0</span> ноль</li>
+        <li><span className="cop-mini" aria-hidden="true" /> разряда нет</li>
+      </ul>
+    </div>
+  );
+}
+
+// `operation`: "add" | "subtract" | "mixed" — only «−» limits the bottom number.
+export function ColumnOperandCells({ value, operation, onChange }) {
+  const limitOp = operation === "subtract" ? "subtract" : "add";
+  const o = normalizeOperands(value, limitOp);
+  const sign = operation === "subtract" ? "−" : operation === "add" ? "+" : "±";
+  return <OperandCells o={o} sign={sign} limitOp={limitOp} onTap={(row, place) => onChange(tapCell(o, row, place, limitOp))} />;
+}
+
 export default function ColumnOperandsParam({ label, value, operation, carryMode, onChange, labelNode }) {
   const limitOp = operation === "subtract" ? "subtract" : "add";
   const o = normalizeOperands(value, limitOp);
@@ -74,20 +103,7 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
   return (
     <div className="param-row param-row--block cop" aria-label={label}>
       {labelNode}
-      <div className="cop-body">
-      <div className="cop-column">
-        <CellRow row="top" label="Верхнее число" digits={o.top} zeros={o.topZeros} gridRow={1} onTap={tap} />
-        <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
-        <CellRow row="bottom" label="Нижнее число" digits={o.bottom} zeros={o.bottomZeros} max={limitOp === "add" ? CELLS : o.top} gridRow={2} onTap={tap} />
-        <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
-      </div>
-      {/* what a cell means, next to the cells (owner: states, not gestures) */}
-      <ul className="cop-legend">
-        <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> любая цифра</li>
-        <li><span className="cop-mini cop-mini--zero" aria-hidden="true">0</span> ноль</li>
-        <li><span className="cop-mini" aria-hidden="true" /> разряда нет</li>
-      </ul>
-      </div>
+      <OperandCells o={o} sign={sign} limitOp={limitOp} onTap={tap} />
       <div className="cop-example">
         <span>Например:</span>
         <span className="cop-example__numbers">{example ? `${example.top} ${example.operation === "subtract" ? "−" : "+"} ${example.bottom}` : "—"}</span>

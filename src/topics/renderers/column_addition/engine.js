@@ -374,19 +374,24 @@ export function resolveOperands(params) {
   return normalizeOperands({ top, topZeros, bottom, bottomZeros });
 }
 
-function drawOperand(digits, zeros) {
-  if (digits === 1) return randomInt(2, 9);
+// `rng` — a seeded generator for «Контрольные по математике» (the same sheet from the same seed).
+function drawOperand(digits, zeros, rng = Math.random) {
+  const int = (min, max) => min + Math.floor(rng() * (max - min + 1));
+  if (digits === 1) return int(2, 9);
   let n = 0;
-  for (let p = digits - 1; p >= 0; p--) n = n * 10 + (zeros.includes(p) ? 0 : randomInt(1, 9));
+  for (let p = digits - 1; p >= 0; p--) n = n * 10 + (zeros.includes(p) ? 0 : int(1, 9));
   return n;
 }
 
-function drawOperandsPair(o, op, carryMode, usedPairs) {
+function drawOperandsPair(o, op, carryMode, usedPairs, { rng = Math.random, newPlace = false } = {}) {
   for (let attempt = 0; attempt < 300; attempt++) {
-    const top = drawOperand(o.top, o.topZeros);
-    const bottom = drawOperand(o.bottom, o.bottomZeros);
+    const top = drawOperand(o.top, o.topZeros, rng);
+    const bottom = drawOperand(o.bottom, o.bottomZeros, rng);
     const answer = op === "add" ? top + bottom : top - bottom;
-    if (answer <= 0 || width(answer) !== Math.max(width(top), width(bottom))) continue;
+    if (answer <= 0) continue;
+    // the trainer's answer is as wide as the longer number; a test may let it grow or shrink a
+    // place (95 + 7 = 102, 102 − 7 = 95) — `newPlace`
+    if (!newPlace && width(answer) !== Math.max(width(top), width(bottom))) continue;
     if (carryMode !== "mixed") {
       const crosses = op === "add" ? hasCarry(top, bottom) : hasBorrow(top, bottom);
       if (crosses !== (carryMode === "carry")) continue;
@@ -402,10 +407,10 @@ function drawOperandsPair(o, op, carryMode, usedPairs) {
 // A carry the numbers can't have (40 + 50 with «С переносом»: round tens
 // carry only into a new place) — the examples come without it rather than not
 // at all; `relaxed` tells the settings screen to say so.
-export function operandsExample(operands, op, carryMode, usedPairs) {
+export function operandsExample(operands, op, carryMode, usedPairs, options) {
   const o = normalizeOperands(operands, op);
-  const ex = drawOperandsPair(o, op, carryMode, usedPairs);
+  const ex = drawOperandsPair(o, op, carryMode, usedPairs, options);
   if (ex || carryMode === "mixed") return ex;
-  const loose = drawOperandsPair(o, op, "mixed", usedPairs);
+  const loose = drawOperandsPair(o, op, "mixed", usedPairs, options);
   return loose && { ...loose, relaxed: true };
 }
