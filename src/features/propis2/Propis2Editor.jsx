@@ -124,16 +124,26 @@ const ROW_DOCK_KEY = "propis2:rowDock";
 
 // The letter of a row, large, its strokes to tap (the row panel's «Что пишем», as «Печатные буквы» ElementPad): a stroke that is written is
 // ink, the others grey; any number can be on, at least one. Only the strokes — no dots, numbers or arrows (the sheet shows those).
-const PAD_H = 150;
-const capitalize = (t) => (t ? t[0].toLocaleUpperCase("ru") + t.slice(1) : null);
+// The letter on its own cells (the print letters: a capital two 52-unit cells tall in the engine's frame, top y = -42, baseline 62 —
+// tools/handwriting/cyrillic/build-print.mjs), a clear cell around it, as «Печатные буквы» ElementPad draws its letter on the grid
+const PAD_CELL = 52;
+const PAD_PX = 44; // px per cell
 function PartsPad({ glyph, keep, onToggle }) {
-  const pts = glyph.strokes.flatMap((st) => samplePath(st.d, 30));
-  const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
-  const pad = 14;
-  const [x0, x1, y0, y1] = [Math.min(...xs) - pad, Math.max(...xs) + pad, Math.min(...ys) - pad, Math.max(...ys) + pad];
+  const xs = glyph.strokes.flatMap((st) => samplePath(st.d, 30).map((q) => q[0]));
+  const ys = glyph.strokes.flatMap((st) => samplePath(st.d, 30).map((q) => q[1]));
+  const c = PAD_CELL;
+  const top = -42;
+  const x0 = Math.floor(Math.min(0, ...xs) / c) * c - c;
+  const x1 = Math.ceil(Math.max(...xs) / c - 1e-6) * c + c;
+  const y0 = top + Math.floor((Math.min(...ys) - top) / c) * c - c;
+  const y1 = top + Math.ceil((Math.max(...ys) - top) / c - 1e-6) * c + c;
   const on = new Set(keep);
+  const vLines = Array.from({ length: Math.round((x1 - x0) / c) + 1 }, (_, i) => x0 + i * c);
+  const hLines = Array.from({ length: Math.round((y1 - y0) / c) + 1 }, (_, i) => y0 + i * c);
   return (
-    <svg className="p2-partpad" viewBox={`${x0} ${y0} ${x1 - x0} ${y1 - y0}`} height={PAD_H} width={(PAD_H * (x1 - x0)) / (y1 - y0)} aria-label={`Штрихи буквы ${glyph.label}`}>
+    <svg className="p2-partpad" viewBox={`${x0} ${y0} ${x1 - x0} ${y1 - y0}`} width={((x1 - x0) / c) * PAD_PX} height={((y1 - y0) / c) * PAD_PX} aria-label={`Буква ${glyph.label}: нажмите на штрих, чтобы писать или не писать его`}>
+      {vLines.map((x) => <line key={`gv${x}`} x1={x} y1={y0} x2={x} y2={y1} stroke="#bcd4e8" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
+      {hLines.map((y) => <line key={`gh${y}`} x1={x0} y1={y} x2={x1} y2={y} stroke="#bcd4e8" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
       {glyph.strokes.map((st, i) => <path key={`v${i}`} d={st.d} fill="none" stroke={on.has(i) ? "var(--p2-blue)" : "#c3c9d2"} strokeWidth={on.has(i) ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />)}
       {glyph.strokes.map((st, i) => (
         <path key={`h${i}`} d={st.d} fill="none" stroke="transparent" strokeWidth={18} strokeLinecap="round" className="p2-partpad-hit" role="button" tabIndex={0}
@@ -547,7 +557,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     return g?.kind === "letter" && g.strokes?.length > 1 ? g : null;
   })();
   const partsSaved = partsGlyph ? rowPartsOf(selected) : null;
-  const partsWhole = !partsSaved;
   const partsKeep = partsSaved ?? (partsGlyph ? partsGlyph.strokes.map((_, i) => i) : []);
   const setParts = (keep) => {
     const all = !keep || keep.length >= partsGlyph.strokes.length;
@@ -586,17 +595,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             options={[{ id: "sample", label: "Образец и копии по строке", short: "Образец", Icon: I.IconRepAll }, { id: "passage", label: "Связный текст с переносом на следующие строки", short: "Связный текст", Icon: I.IconTabText }]} />
         </section>
       )}
+      {/* «Что пишем»: only the letter, its strokes to tap (owner, 2026-11-16: no captions, no buttons — they only take room) */}
       {partsGlyph && (
         <section className="p2-insp-sec" aria-label="Что пишем">
-          <span className="p2-insp-lbl">Что пишем — нажмите на штрих буквы</span>
           <div className="p2-insp-els"><PartsPad glyph={partsGlyph} keep={partsKeep} onToggle={togglePart} /></div>
-          <div className="p2-insp-chips">
-            <button type="button" className={`p2-el${partsWhole ? " is-on" : ""}`} aria-pressed={partsWhole} onClick={() => setParts(null)}>Вся буква</button>
-            {partsGlyph.strokes.map((st, i) => (
-              <button key={i} type="button" className={`p2-el${!partsWhole && partsKeep.includes(i) ? " is-on" : ""}`} aria-pressed={!partsWhole && partsKeep.includes(i)} onClick={() => setParts([i])}>{capitalize(st.name) ?? `Штрих ${i + 1}`}</button>
-            ))}
-          </div>
-          {!partsWhole && <span className="p2-insp-hint">Пишется только выбранное — на своём месте в букве; остального на листе нет.</span>}
         </section>
       )}
       {rowEditable && (
@@ -619,14 +621,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label }))} />
         </section>
       )}
-      <section className="p2-insp-sec" aria-label="Буква на полях">
+      {/* (a printed letter goes only on the copybook's narrow rows: elsewhere the section is left out, not shown dead) */}
+      {dropPage && <section className="p2-insp-sec" aria-label="Буква на полях">
         <span className="p2-insp-lbl">Печатная буква на краю строки</span>
         <div className="p2-insp-row p2-insp-row--drop">
           <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
             onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />
           <span className="p2-insp-hint">{dropBlock ?? "Ставится в начало или в конец строки — туда, где курсор."}</span>
         </div>
-      </section>
+      </section>}
     </div>
   );
   // phone: the panel is a dock at the bottom, folded to one bar until opened; it gives its room to the keyboard
