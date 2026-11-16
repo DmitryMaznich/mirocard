@@ -4,7 +4,8 @@ import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { glyphMapOf } from "./pageTask.js";
 import { languageView } from "./languages.js";
-import { letterPieces, piecePathD } from "@/handwriting/letterParts.js";
+import { letterPieces, piecePathD, setAutoCuts } from "@/handwriting/letterParts.js";
+setAutoCuts(true); // the automatic cut is off in the app: the sheet shows what it would do
 import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
 const COLORS = ["#1d4ed8", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2"];
 it("sheet", async () => {

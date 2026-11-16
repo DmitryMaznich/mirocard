@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { readFile } from "node:fs/promises";
 import { renderToStaticMarkup } from "react-dom/server";
 import { openDb } from "@/core/db";
@@ -102,7 +102,19 @@ describe("propis2: a row writes only some strokes of its letter (row.parts → #
   });
 });
 
-describe("propis2: the parts of a copybook letter (letterParts.js: cut where an element of the method begins)", () => {
+describe("propis2: the copybook hand has no parts in the app yet (owner, 2026-11-16: the automatic cut needs polishing first)", () => {
+  it("и а п are one part each: «Что пишем» offers nothing, the row writes the letter whole", async () => {
+    const { letterPieces } = await import("@/handwriting/letterParts.js");
+    const cursive = glyphMapOf(languageView(deck, "ru", "cursive"));
+    expect([..."иап"].map((ch) => letterPieces(cursive.get(ch)).length)).toEqual([1, 1, 1]);
+    // the print letters keep theirs: every stroke a part
+    expect(letterPieces(map.get("А")).length).toBe(3);
+  });
+});
+
+describe("propis2: the parts of a copybook letter (letterParts.js: cut where an element of the method begins; turned on for the review sheet)", () => {
+  beforeAll(async () => { (await import("@/handwriting/letterParts.js")).setAutoCuts(true); });
+  afterAll(async () => { (await import("@/handwriting/letterParts.js")).setAutoCuts(false); });
   it("и: two sticks rounded at the bottom; а д: the oval, then the stick; п р: the stick, then the arch / hook; т: three; о е с: one", async () => {
     const { letterPieces } = await import("@/handwriting/letterParts.js");
     const cursive = glyphMapOf(languageView(deck, "ru", "cursive"));

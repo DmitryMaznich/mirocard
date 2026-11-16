@@ -72,18 +72,24 @@ function pointAt(pts, len, s) {
   return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t];
 }
 
+// The automatic cut of the copybook hand is OFF in the app (owner, 2026-11-16: «многие буквы неправильно, отшлифуем позже»): a copybook letter
+// has parts only where they are given by hand (`glyph.partCuts`); the review sheet (tools/propis2/parts-review) and the tests turn it on.
+let AUTO_CUTS = false;
+export const setAutoCuts = (on) => { AUTO_CUTS = Boolean(on); };
+
 // [{ stroke, from, to }] — the letter's parts in writing order; a letter of one part has nothing to pick
-const PIECES = new WeakMap();
+const PIECES = { on: new WeakMap(), off: new WeakMap() };
 export function letterPieces(glyph) {
   if (!glyph?.strokes?.length) return [];
-  if (PIECES.has(glyph)) return PIECES.get(glyph);
+  const cache = AUTO_CUTS ? PIECES.on : PIECES.off;
+  if (cache.has(glyph)) return cache.get(glyph);
   const out = [];
   glyph.strokes.forEach((st, si) => {
-    const cuts = glyph.upright ? [] : (glyph.partCuts?.[si] ?? autoCuts(st.d));
+    const cuts = glyph.upright ? [] : (glyph.partCuts?.[si] ?? (AUTO_CUTS ? autoCuts(st.d) : []));
     const edges = [0, ...cuts, 1];
     for (let k = 0; k + 1 < edges.length; k += 1) out.push({ stroke: si, from: edges[k], to: edges[k + 1] });
   });
-  PIECES.set(glyph, out);
+  cache.set(glyph, out);
   return out;
 }
 
