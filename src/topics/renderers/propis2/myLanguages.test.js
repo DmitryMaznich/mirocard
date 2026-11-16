@@ -9,6 +9,7 @@ const deck = {
     { id: "kk", title: "Қазақша", status: "ready", alphabet: { lower: "аәбвгғ" } },
     { id: "en", title: "English", status: "ready", alphabet: { lower: "abcdefghijklmnopqrstuvwxyz" } },
     { id: "sl", title: "Slovenščina", status: "draft", alphabet: { lower: "abcčdš" } },
+    { id: "hr", title: "Hrvatski", status: "draft", publishDraft: true, alphabet: { lower: "abcčćd" } },
   ],
   modes: [
     { id: "cards", type: "letters_recognize", params: { writingLang: { type: "enum", values: ["ru", "kk", "en", "sl"], default: "ru" } } },
@@ -17,9 +18,9 @@ const deck = {
 };
 
 describe("«Мои языки»", () => {
-  it("a draft language is offered only to an account with the flag", () => {
-    expect(offeredLanguages(deck).map((l) => l.id)).toEqual(["ru", "kk", "en"]);
-    expect(offeredLanguages(deck, [DRAFT_FLAG]).map((l) => l.id)).toEqual(["ru", "kk", "en", "sl"]);
+  it("a draft language is offered only to an account with the flag, unless published on purpose (publishDraft)", () => {
+    expect(offeredLanguages(deck).map((l) => l.id)).toEqual(["ru", "kk", "en", "hr"]); // a draft published on purpose: to everyone
+    expect(offeredLanguages(deck, [DRAFT_FLAG]).map((l) => l.id)).toEqual(["ru", "kk", "en", "sl", "hr"]);
   });
   it("first list: the interface language and the languages of the notebooks made; a saved list wins, in the deck's order", () => {
     expect(resolveMyLanguages(deck, null, { uiLanguage: "ru" })).toEqual(["ru"]);
@@ -30,7 +31,7 @@ describe("«Мои языки»", () => {
     expect(resolveMyLanguages(deck, ["sl"], { uiLanguage: "ru" })).toEqual(["ru"]); // nothing offered left: the first list again
   });
   it("script groups and letter samples: a language's own letters when it has some", () => {
-    expect(deck.languages.map(scriptOf)).toEqual(["cyrillic", "cyrillic", "latin", "latin"]);
+    expect(deck.languages.map(scriptOf)).toEqual(["cyrillic", "cyrillic", "latin", "latin", "latin"]);
     expect(sampleLetters(deck.languages[0])).toBe("Аа Бб");
     expect(sampleLetters(deck.languages[1])).toBe("Әә Ғғ");
     expect(sampleLetters(deck.languages[3])).toBe("Čč Šš");

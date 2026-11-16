@@ -2,7 +2,8 @@
 // languages they picked — the ready notebooks, the language of a new notebook, the letter cards, the dictation. A list of the ACCOUNT (one
 // adult, several devices, a whole class of students), not of a student. Only a deck that says so (`meta.myLanguages`, the build's flag) uses
 // it — first «Прописи: латиница» as the try-out; a deck without it is exactly as before.
-//   - a language in work (`status: "draft"`) is offered only to an account with the feature flag `draft_languages`;
+//   - a language in work (`status: "draft"`) is offered only to an account with the feature flag `draft_languages`, unless it was
+//     published on purpose (`publishDraft`): then to everyone, marked «черновик»;
 //   - the first list (nothing saved yet): the app's interface language + the languages of the notebooks already made, else the deck's first;
 //   - a notebook of a language taken off the list stays in «Мои тетради» (owner: data is never hidden), with its language mark.
 // Stored as the account document `propis2:prefs` ({ langs, updatedAt }, the app's offline queue `kv.upsert`, last write wins) and copied on
@@ -20,7 +21,9 @@ export const myLanguagesOn = (record) => Boolean(record?.meta?.myLanguages) && B
 export function offeredLanguages(record, flags = []) {
   const all = deckLanguages(record) ?? [];
   const drafts = Array.isArray(flags) && flags.includes(DRAFT_FLAG);
-  return all.filter((l) => l.status !== "draft" || drafts);
+  // (a draft published on purpose, `publishDraft` — the Slovenian one, owner 2026-11-14: «сразу в латиницу для всех» — is offered to everyone,
+  // marked «черновик»; any other draft only to an account with the flag)
+  return all.filter((l) => l.status !== "draft" || l.publishDraft || drafts);
 }
 
 // the list in use: the saved one (only languages still offered, in the deck's order), else the first list
