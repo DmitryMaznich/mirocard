@@ -694,16 +694,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.39.0",
+      "version": "0.40.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Десять рисунков на бумаге, включая два космических рисунка, улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
-        "en": "Ten paper drawing lessons, including two space drawings, a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
+        "ru": "Одиннадцать рисунков на бумаге, включая собачку, два космических рисунка, улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
+        "en": "Eleven paper drawing lessons, including a dog, two space drawings, a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
       },
-      "url": "./decks/drawing_v0.39.0.zip",
+      "url": "./decks/drawing_v0.40.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [
