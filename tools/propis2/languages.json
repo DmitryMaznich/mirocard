@@ -5,7 +5,24 @@
       "id": "ru",
       "title": "Русский",
       "short": "РУС",
-      "status": "ready"
+      "status": "ready",
+      "styles": [
+        {
+          "id": "cursive",
+          "short": "ПР",
+          "title": "Прописные",
+          "note": "школьная пропись: буквы, соединения и бумаги языка, как до стилей. Первый стиль — у тетрадей и страниц без стиля"
+        },
+        {
+          "id": "print",
+          "short": "ПЧ",
+          "title": "Печатные",
+          "glyphsFile": "tools/handwriting/cyrillic/print.json",
+          "script": { "joins": false, "letterGap": 52, "wordGap": 156, "caps": true },
+          "papers": ["square", "ruled"],
+          "note": "печатные буквы по Илюхиной из темы «Печатные буквы» (tools/handwriting/cyrillic/build-print.mjs). Только заглавные: строчных печатных в школе не пишут (владелец, 2026-11-16) — набранная строчная пишется заглавной (script.caps). Промежутки как в «Печатных буквах»: клетка между буквами, три — между словами"
+        }
+      ]
     },
     {
       "id": "bg",
