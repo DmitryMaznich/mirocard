@@ -86,3 +86,17 @@
 /* One navigation style (2026-11-15): the primary action is always the green round button bottom right;
    leaving is only the header's ✕ (the ⌂ that closed the whole lesson is gone). Icons drawn with strokes. */
 .portrait-next[data-icon="paint"] svg circle { fill:currentColor; stroke:none; }
+/* Colour given by the screen: one big pencil instead of six cards. */
+.portrait-options--given { display:grid; grid-template-columns:1fr; grid-template-rows:1fr; }
+.portrait-color--given { cursor:default; }
+.portrait-color--given .portrait-pencil { width:min(260px,90%); }
+.portrait-color--given .portrait-color__name { font-size:clamp(20px,2.6vw,28px); }
+/* What this step colours: a pale underlay of the pencil's colour, pulsing (once, before the pencil starts). */
+.portrait-stage > .portrait-paint { position:relative; z-index:1; }
+.portrait-hint { position:absolute; inset:10px; width:calc(100% - 20px); height:calc(100% - 20px); z-index:0; pointer-events:none; opacity:.35; animation:portrait-hint 1s ease-in-out infinite alternate; }
+.portrait-hint--once { animation:portrait-hint 0.8s ease-in-out 2 alternate both; }
+@keyframes portrait-hint { from { opacity:.15; } to { opacity:.5; } }
+@media (prefers-reduced-motion:reduce) { .portrait-hint { animation:none; } }
+@media (orientation:portrait) and (max-width:900px) { .portrait-options--given { grid-template-columns:1fr; grid-template-rows:auto; } }
+/* Buttons on the picture stay above it (the colouring board sits over the area hint, z-index 1). */
+.portrait-stage > .portrait-show, .portrait-stage > .portrait-roll { z-index:2; }

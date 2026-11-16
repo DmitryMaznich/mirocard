@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { STYLES, normalizeStyle, styleSteps } from './styles.js';
 import { back, chooseShape, next, pick, portraitKey, readPortrait, savePortrait, freshPortrait, stepCount, startColoring } from './state.js';
-import { colorSteps, paintLesson, paletteFor } from './paintPlan.js';
+import { colorSteps, fixedColor, paintLesson, paletteFor, portraitPaint } from './paintPlan.js';
 import { createDrawingPlayer } from '../player.js';
 import { sampleSubpaths, timeline, timelineEnd } from './drawPath.js';
 import './portrait.css';
@@ -59,7 +59,7 @@ function VariantIcon({ step, variant, face }) {
 }
 // The «Рисуем по шагам» player shows the colouring: the portrait outline at once, then the new colour
 // hatched in like a real pencil (from → to player steps). Without SVG geometry (tests) it stays empty.
-function PaintBoard({ lesson, from, to, play, soundEnabled }) {
+function PaintBoard({ lesson, from, to, play, soundEnabled, delay = 0 }) {
   const svg = useRef(null);
   useEffect(() => {
     const node = svg.current;
@@ -68,11 +68,22 @@ function PaintBoard({ lesson, from, to, play, soundEnabled }) {
     try {
       player = createDrawingPlayer(node, lesson, () => {}, `portrait-${play}`, { soundEnabled });
       player.restore(from);
-      (async () => { for (let i = from; i < to && alive; i++) await player.next(); })();
+      (async () => {
+        if (delay) await new Promise(resolve => setTimeout(resolve, delay));
+        for (let i = from; i < to && alive; i++) await player.next();
+      })();
     } catch { try { player?.restore(to); } catch { /* geometry unavailable */ } }
     return () => { alive = false; player?.dispose(); };
-  }, [lesson, from, to, play, soundEnabled]);
+  }, [lesson, from, to, play, soundEnabled, delay]);
   return <svg ref={svg} className="portrait-face portrait-paint" viewBox={lesson.viewBox} role="img" aria-label="Раскраска портрета" />;
+}
+// What this step colours, as a pale pulsing underlay of the pencil's colour (until the pencil starts).
+const HINT_MS = 1600;
+function AreaHint({ regions, color, viewBox, until }) {
+  return <svg className={`portrait-hint${until ? ' portrait-hint--once' : ''}`} viewBox={viewBox} aria-hidden="true">
+    <defs>{regions.map((r, i) => r.clip && <clipPath key={i} id={`portrait-hint-${i}`}><path d={r.clip} /></clipPath>)}</defs>
+    {regions.map((r, i) => <path key={i} d={r.d} fill={color} fillRule="evenodd" clipPath={r.clip ? `url(#portrait-hint-${i})` : undefined} />)}
+  </svg>;
 }
 function Pencil({ pencil }) {
   return <svg className="portrait-pencil" viewBox="0 0 120 34" aria-hidden="true">
@@ -117,7 +128,12 @@ function MenuButton({ onOpen }) {
 export default function Portrait({ student, sessionParams, soundEnabled = true, interactionDisabled = false, AdultDialog }) {
   const key = portraitKey(student?.id);
   const styleId = normalizeStyle(sessionParams?.style);
-  const [state, setState] = useState(() => readPortrait(key, styleId));
+  const colorMode = sessionParams?.colorChoice === 'die' ? 'die' : 'instruction', skinTone = sessionParams?.skinTone;
+  // A colour step whose pencil is given (instruction, or the adult's skin tone) is chosen on arrival.
+  const fixedOf = s => s.phase === 'color' ? fixedColor(s.style, colorSteps(s.style, s.shape, s.results)[s.colors.length]?.group, colorMode, skinTone) : null;
+  const auto = s => s.phase === 'color' && s.value === null && fixedOf(s) ? pick(s, fixedOf(s)) : s;
+  const backAuto = s => { const r = back(s); return r.phase === 'color' && r.value === null && fixedOf(r) ? back(r) : r; };
+  const [state, setState] = useState(() => auto(readPortrait(key, styleId)));
   const [rolling, setRolling] = useState(null);
   const [play, setPlay] = useState(0);
   const [menu, setMenu] = useState(null);
@@ -156,7 +172,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
     <div className="drawing-dialog__actions portrait-adult-actions">
       <button type="button" onClick={() => print(true)}>Распечатать контур лица</button>
       {(state.phase === 'done' || state.phase === 'colored') && <button type="button" onClick={() => print(false)}>Распечатать портрет</button>}
-      {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); update(back); setMenu(null); }}>Вернуться на шаг</button>}
+      {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); update(backAuto); setMenu(null); }}>Вернуться на шаг</button>}
       {state.phase !== 'shape' && <button type="button" onClick={() => { setRolling(null); setState(freshPortrait(state.style)); setMenu(null); }}>Начать новый портрет</button>}
     </div>
     <p className="drawing-adult-note">Стиль и кубик ({screenDie ? 'на экране' : 'настоящий'}) меняются в настройках режима.</p>
@@ -174,7 +190,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
   if (state.phase === 'done') return shell('done', 'Портрет готов', <>
     <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
     <div className="portrait-done" ref={faceRef}><Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} hint={false} className="portrait-face portrait-face--done" /></div>
-    <Primary icon="paint" label="Раскрасить" disabled={interactionDisabled} onClick={() => update(startColoring)} />
+    <Primary icon="paint" label="Раскрасить" disabled={interactionDisabled} onClick={() => { setPlay(0); update(s => auto(startColoring(s))); }} />
   </>);
 
   const chosen = rolling ?? state.value;
@@ -183,45 +199,54 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
       if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) update(s => pick(s, 1 + Math.floor(Math.random() * 6)));
       else setRolling(1 + Math.floor(Math.random() * 6));
     }}><Die value={rolling ?? 5} size="big" /></button>;
-  const nextButton = label => state.value !== null && <Primary icon="next" label={label} disabled={interactionDisabled} onClick={() => update(next)} />;
+  const nextButton = label => state.value !== null && <Primary icon="next" label={label} disabled={interactionDisabled} onClick={() => { setPlay(0); update(s => auto(next(s))); }} />;
 
-  // Colouring on screen, to repeat with real pencils on paper. Every colour is the child's choice by tap.
+  // Colouring on screen, to repeat with real pencils on paper. The pencil is given (instruction) or the die's.
   if (state.phase === 'color' || state.phase === 'colored') {
     const plan = colorSteps(state.style, state.shape, state.results), k = state.colors.length, cstep = plan[k];
     const { lesson, ends } = paint;
     const from = state.phase === 'colored' ? ends.at(-1) : ends[k], to = ends.at(-1);
-    const board = <PaintBoard lesson={lesson} from={from} to={to} play={play} soundEnabled={soundEnabled} />;
     if (state.phase === 'colored') return shell('colored', 'Портрет раскрашен', <>
       <header className="drawing-top portrait-top"><h2>Портрет готов</h2><MenuButton onOpen={() => setMenu('settings')} /></header>
-      <div className="portrait-done" ref={faceRef}>{board}</div>
+      <div className="portrait-done" ref={faceRef}><PaintBoard lesson={lesson} from={from} to={to} play={play} soundEnabled={soundEnabled} /></div>
       <Primary icon="again" label="Новый портрет" disabled={interactionDisabled} onClick={() => setState(freshPortrait(state.style))} />
     </>);
-    const pencils = paletteFor(state.style, cstep.group);
+    const pencils = paletteFor(state.style, cstep.group), given = fixedOf(state), pencil = state.value ? pencils[state.value - 1] : null;
+    // The area is shown first (pale underlay), then the pencil colours it; ▶ replays without the pause.
+    const regions = portraitPaint(state.style, state.shape, state.results).paint[cstep.group];
+    const hintColor = (given ? pencils[given - 1] : pencil)?.color ?? '#9fc3b2';
+    const firstShow = play === 0 && given;
     return shell('color', `Раскрась: ${cstep.name}`, <>
       <header className="drawing-top portrait-top">
         <h2>{cstep.name}</h2>
         <ol className="portrait-steps portrait-steps--paint" aria-label={`Цвет ${k + 1} из ${plan.length}`}>{plan.map((s, i) => <li key={s.group} className={i < k ? 'is-done' : i === k ? 'is-current' : ''} />)}</ol>
         <MenuButton onOpen={() => setMenu('settings')} />
       </header>
-      <div className="portrait-work" data-paint={cstep.group} data-chosen={state.value ?? undefined}>
-        <div className="portrait-options portrait-options--paint" role="group" aria-label={`Цвет: ${cstep.name.toLowerCase()}`}>
-          {pencils.map((pencil, i) => {
+      <div className="portrait-work" data-paint={cstep.group} data-color-mode={given ? 'given' : 'die'} data-chosen={state.value ?? undefined}>
+        {given ? <div className="portrait-options portrait-options--given">
+          <div className="portrait-option portrait-color portrait-color--given is-selected" aria-label={`Возьми: ${pencils[given - 1].name}`} role="img">
+            <Pencil pencil={pencils[given - 1]} /><span className="portrait-color__name">{pencils[given - 1].name}</span>
+          </div>
+        </div> : <div className="portrait-options portrait-options--paint" role="group" aria-label={`Цвет: ${cstep.name.toLowerCase()}`}>
+          {pencils.map((p, i) => {
             const value = i + 1, selected = chosen === value;
-            return <button type="button" key={pencil.id} className={`portrait-option portrait-color${selected ? ' is-selected' : ''}${chosen && !selected ? ' is-dim' : ''}`}
-              aria-label={pencil.name} aria-pressed={selected}
-              disabled={interactionDisabled} onClick={() => { update(s => pick(s, value)); setPlay(n => n + 1); }}>
-              <Pencil pencil={pencil} /><span className="portrait-color__name">{pencil.name}</span>
+            return <button type="button" key={p.id} className={`portrait-option portrait-color${selected ? ' is-selected' : ''}${chosen && !selected ? ' is-dim' : ''}`}
+              aria-label={`${value}: ${p.name}`} aria-pressed={selected}
+              disabled={interactionDisabled || screenDie || rolling !== null} onClick={() => { update(s => pick(s, value)); setPlay(n => n + 1); }}>
+              <Die value={value} /><Pencil pencil={p} /><span className="portrait-color__name">{p.name}</span>
             </button>;
           })}
-        </div>
+        </div>}
         <div className="portrait-stage">
-          {board}
+          {(state.value === null || firstShow) && <AreaHint key={`${k}:${play}`} regions={regions} color={hintColor} viewBox={lesson.viewBox} until={firstShow} />}
+          <PaintBoard lesson={lesson} from={from} to={to} play={play} soundEnabled={soundEnabled} delay={firstShow ? HINT_MS : 0} />
           {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать ещё раз" disabled={interactionDisabled}
             onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
+          {!given && roller}
         </div>
       </div>
       {nextButton(k + 1 === plan.length ? 'Готово' : 'Дальше')}
-      <span className="drawing-sr-only" role="status" aria-live="polite">{state.value === null ? 'Выбери цвет' : `${pencils[state.value - 1].name}. Раскрась на бумаге`}</span>
+      <span className="drawing-sr-only" role="status" aria-live="polite">{state.value === null ? 'Брось кубик' : `${pencil.name}. Раскрась на бумаге`}</span>
     </>);
   }
 

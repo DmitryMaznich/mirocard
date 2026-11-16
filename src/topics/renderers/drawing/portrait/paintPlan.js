@@ -111,3 +111,19 @@ export function paintLesson(styleId, shape, results, colors) {
   });
   return { lesson: { id: 'portrait', title: 'Портрет', viewBox, palette, steps: lesson }, ends };
 }
+
+// Who sets each colour (owner, 2026-11-16; docs/drawing-portrait-coloring-brief.md): no free choice.
+// «По инструкции» (default): one pencil per area, given by the screen. «По кубику»: the die, as for the parts.
+// Skin of «Простое лицо» is never the die's: the adult sets it once (mode parameter skinTone).
+export const SKIN_TONES = ['orange_light', 'yellow_light', 'pink_light', 'brown_light', 'orange', 'brown'];
+const INSTRUCTION = {
+  simple: { hair: 'brown', clothes: 'red', eyes: 'light_blue', lips: 'pink' },
+  picasso: { skin: 'yellow', hair: 'purple', clothes: 'red', eyes: 'blue', lips: 'red' },
+};
+// The pencil (1–6 in paletteFor) this step must use, or null when the die decides.
+export function fixedColor(style, group, mode = 'instruction', skinTone = 'orange_light') {
+  if (style === 'simple' && group === 'skin') return Math.max(0, SKIN_TONES.indexOf(skinTone)) + 1;
+  if (mode === 'die') return null;
+  const id = INSTRUCTION[style]?.[group];
+  return PALETTES[style][group].indexOf(id) + 1 || 1;
+}

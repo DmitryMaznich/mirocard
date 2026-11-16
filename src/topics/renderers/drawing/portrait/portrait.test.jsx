@@ -128,25 +128,42 @@ describe('portrait screen', () => {
     expect(host.querySelectorAll('.portrait-option[aria-pressed="true"]')).toHaveLength(1);
     expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.portrait-next')).not.toBeNull();
   });
-  it('colouring after the portrait: every colour is picked by tap (no die); the coloured portrait is kept', async () => {
-    localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
-    await render();
+  const donePortrait = () => localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
+  it('colouring «По инструкции» (default): one given pencil per area, the skin from the settings, no choice to make', async () => {
+    donePortrait();
+    await render({ skinTone: 'yellow_light' });
     await click(label('Раскрасить'));
     expect(host.querySelector('h2').textContent).toBe('Лицо');
-    const skin = host.querySelectorAll('.portrait-color');
-    expect(skin).toHaveLength(6); expect(skin[0].querySelector('.portrait-die')).toBeNull();
-    await click(skin[3]); await click(host.querySelector('.portrait-next'));
-    expect(host.querySelector('h2').textContent).toBe('Волосы');
-    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(0);
-    for (const name of ['Волосы', 'Одежда', 'Глаза', 'Губы']) {
+    expect(host.querySelectorAll('.portrait-color')).toHaveLength(1);
+    expect(host.querySelector('[aria-label="Возьми: Жёлтый, слегка"]')).not.toBeNull();
+    for (const [name, pencil] of [['Лицо'], ['Волосы', 'Коричневый'], ['Одежда', 'Красный'], ['Глаза', 'Голубой'], ['Губы', 'Розовый']]) {
       expect(host.querySelector('h2').textContent).toBe(name);
-      await click(host.querySelectorAll('.portrait-color')[1]); await click(host.querySelector('.portrait-next'));
+      if (pencil) expect(host.querySelector(`[aria-label="Возьми: ${pencil}"]`)).not.toBeNull();
+      expect(host.querySelector('.portrait-hint')).not.toBeNull(); // the area is shown before the pencil starts
+      await click(host.querySelector('.portrait-next'));
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('colored');
-    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [4, 2, 2, 2, 2] });
+    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [2, 2, 1, 1, 1] });
     expect(host.querySelectorAll('.portrait-next')).toHaveLength(1);
     await click(label('Новый портрет'));
     expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
+  });
+  it('colouring «По кубику»: six pencils with pips, but the skin of «Простое лицо» is never the die\'s', async () => {
+    donePortrait();
+    await render({ colorChoice: 'die' });
+    await click(label('Раскрасить'));
+    expect(host.querySelectorAll('.portrait-color')).toHaveLength(1); // skin: the adult's tone
+    await click(host.querySelector('.portrait-next'));
+    expect(host.querySelector('h2').textContent).toBe('Волосы');
+    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(6);
+    expect(host.querySelector('.portrait-next')).toBeNull();
+    await click(label('3: Жёлтый'));
+    expect(host.querySelector('.portrait-next')).not.toBeNull();
+    // Back from a chosen die step clears the choice; back again returns to the given skin step.
+    await click(label('Для взрослого')); await click([...host.querySelectorAll('dialog button')].find(b => b.textContent === 'Вернуться на шаг'));
+    expect(host.querySelector('.portrait-next')).toBeNull();
+    await click(label('Для взрослого')); await click([...host.querySelectorAll('dialog button')].find(b => b.textContent === 'Вернуться на шаг'));
+    expect(host.querySelector('h2').textContent).toBe('Лицо');
   });
   it('builds the colouring lesson painter-wise: outline, then skin, hair, clothes, eyes (iris inside the eye), lips', () => {
     const results = [1, 1, 1, 6, 2, 2, 2], plan = colorSteps('simple', 1, results);
