@@ -14,8 +14,7 @@ try {
   await page.goto(process.env.DRAWING_PREVIEW_URL ?? 'http://localhost:8081/tools/drawing/preview.html?lesson=parrot');
   const parrotCard = page.locator('.drawing-card').filter({ hasText: 'Попугай' });
   await parrotCard.waitFor();
-  assert.equal(await parrotCard.locator('small').textContent(), '', 'Old geometry progress must not resume');
-  assert.equal(await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).locator('small').textContent(), 'Продолжить');
+  assert.equal(await page.locator('.drawing-card small').count(), 0, 'No resume: drawings always start afresh');
   await parrotCard.tap();
   assert.equal(await page.locator('.drawing-show').count(), 0);
   await page.clock.install();
@@ -31,10 +30,8 @@ try {
   const index = () => page.evaluate(() => JSON.parse(localStorage.getItem('drawing-progress:local:parrot'))?.index ?? 0);
   const next = async () => {
     await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
-    if (await page.locator('[role=status]').textContent() === 'Подготовьте следующий карандаш') {
-      await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); return 1;
-    }
-    return 0;
+    // A new pencil needs no extra tap: it wiggles in the header and the step starts by itself.
+    return await page.locator('[role=status]').textContent() === 'Подготовьте следующий карандаш' ? 1 : 0;
   };
   let switches = 0;
   for (let i = 1; i <= count; i++) {
@@ -58,8 +55,6 @@ try {
   assert.equal(switches, 6);
   await page.screenshot({ path: '/workspace/parrot-complete-mobile.png' });
   await page.locator('.drawing-show').tap(); await page.clock.runFor(16000); assert.equal(await index(), count);
-  await page.reload(); await page.locator('.drawing-card').filter({ hasText: 'Попугай' }).tap();
-  assert.equal(await index(), count, 'Saved progress resumes');
   await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
   assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
   await page.locator('.drawing-board > svg').screenshot({ path: '/workspace/parrot-finished.png' });

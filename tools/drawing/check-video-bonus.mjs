@@ -26,7 +26,8 @@ try {
     await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
     await page.clock.install();
     assert.equal(await page.getByRole('button', { name: 'Дальше — бонус', exact: true }).count(), 0);
-    await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await page.clock.runFor(16000);
+    // A drawing always starts from the first step (no resume since 2026-11-16): draw all 45, then finish.
+    for (let i = 0; i < 45; i++) { await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await page.clock.runFor(16000); }
     assert.equal(await page.locator('.pin-gate-overlay').count(), 0);
     await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await page.clock.runFor(5000);
     if (scenario === 'no-videos') {
@@ -61,7 +62,7 @@ try {
       await page.locator('.reward-modal__btn--continue').tap();
       assert.equal(await page.locator('.drawing-card').count(), cardCount);
       await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
-      assert.equal(await page.getByRole('button', { name: 'Другой рисунок', exact: true }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'Дальше', exact: true }).count(), 1, 'Reopened drawing starts afresh');
       assert.equal(await page.getByRole('button', { name: 'Дальше — бонус', exact: true }).count(), 0);
     }
     assert.deepEqual(errors, []);

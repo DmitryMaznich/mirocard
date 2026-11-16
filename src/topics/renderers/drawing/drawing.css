@@ -12,7 +12,7 @@
 .drawing-lesson button:focus-visible, .drawing-lesson select:focus-visible, .drawing-board:focus-visible { outline:4px solid #eab73b; outline-offset:3px; }
 .drawing-lesson button svg { pointer-events:none; }
 .drawing-lesson svg { display:block; }
-.drawing-shell { flex:1; min-height:0; height:100%; display:flex; flex-direction:column; max-width:980px; margin:0 auto; gap:8px; padding:4px calc(14px + var(--app-safe-right,0px)) calc(12px + var(--app-safe-bottom,0px)) calc(14px + var(--app-safe-left,0px)); }
+.drawing-shell { flex:1; min-height:0; height:100%; display:flex; flex-direction:column; width:100%; margin:0 auto; gap:8px; padding:4px calc(14px + var(--app-safe-right,0px)) calc(12px + var(--app-safe-bottom,0px)) calc(14px + var(--app-safe-left,0px)); }
 .drawing-top { height:48px; flex:none; display:flex; justify-content:space-between; align-items:center; }
 .drawing-top h2 { font-size:21px; font-weight:650; margin:0; letter-spacing:-.3px; }
 .drawing-lesson .drawing-adult { width:48px; height:48px; display:grid; place-items:center; background:transparent; border:0; border-radius:15px; color:#66756d; touch-action:none; user-select:none; -webkit-touch-callout:none; padding:0; }
@@ -58,7 +58,6 @@
 .drawing-pause-curtain { position:absolute; inset:0; background:#fffefa66; display:grid; place-items:center; pointer-events:none; }
 .drawing-pause-curtain svg { width:50px; height:50px; color:#64796d; }
 .drawing-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-@media(min-width:760px) { .drawing-shell { max-width:760px; } .drawing-controls { max-width:570px; width:100%; align-self:center; } .drawing-control { height:86px; } .drawing-pencil-space { height:76px; } }
 @media(max-height:650px) { .drawing-pencil-space { height:45px; } .drawing-pencil-space svg { height:46px; } .drawing-top { height:40px; } .drawing-lesson .drawing-control { height:68px; } .drawing-shell { gap:5px; } .drawing-control svg { height:25px; } }
 
 /* ── One navigation style for every drawing mode (ui.jsx) ───────────────────────────── */
@@ -74,3 +73,17 @@
 @media (max-height:520px) { :is(.drawing-lesson, .coloring) .drawing-primary { width:76px; height:76px; } .drawing-primary svg { width:40px; height:40px; } }
 @media (prefers-reduced-motion:reduce) { :is(.drawing-lesson, .coloring) .drawing-primary { animation:none; } }
 
+
+/* «Рисуем по шагам» (2026-11-16): the picture takes the whole lesson area; the pencil is a small chip in the header. */
+.drawing-top { gap:12px; }
+.drawing-top h2 { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.drawing-pencil-chip { flex:none; height:40px; width:132px; display:grid; place-items:center; }
+.drawing-pencil-chip svg { width:132px; height:40px; }
+.drawing-pencil-chip.is-new { animation:drawing-pencil-new .28s ease-in-out 4 alternate; }
+@keyframes drawing-pencil-new { from { transform:rotate(-6deg) scale(1.08); } to { transform:rotate(6deg) scale(1.18); } }
+@media (prefers-reduced-motion:reduce) { .drawing-pencil-chip.is-new { animation:none; outline:3px solid #eab73b; border-radius:12px; } }
+/* Back one step — the child's, bottom left, opposite the green «Дальше». */
+.drawing-lesson .drawing-back { position:fixed; z-index:5; left:calc(20px + var(--app-safe-left,0px)); bottom:calc(26px + var(--app-safe-bottom,0px)); width:76px; height:76px; border-radius:50%; border:2.5px solid #d4e3dc; background:#fff; color:#254e45; display:grid; place-items:center; padding:0; box-shadow:0 4px 0 #d4e3dc; touch-action:manipulation; }
+.drawing-lesson .drawing-back:active { transform:translateY(3px); box-shadow:0 1px 0 #d4e3dc; }
+.drawing-back svg { width:40px; height:40px; fill:none; stroke:currentColor; stroke-width:5.5; stroke-linecap:round; stroke-linejoin:round; }
+@media (max-height:520px) { .drawing-lesson .drawing-back { width:62px; height:62px; } }

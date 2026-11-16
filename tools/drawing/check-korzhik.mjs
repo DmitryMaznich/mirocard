@@ -11,7 +11,7 @@ try {
   });
   await page.goto(process.env.DRAWING_PREVIEW_URL ?? 'http://localhost:8080/tools/drawing/preview.html?lesson=korzhik');
   const card = page.locator('.drawing-card').filter({ hasText: 'Коржик' });
-  await card.waitFor(); assert.equal(await card.locator('small').textContent(), '');
+  await card.waitFor(); assert.equal(await page.locator('.drawing-card small').count(), 0);
   await card.tap(); await page.clock.install();
   assert.equal(await page.locator('.drawing-show').count(), 0);
   assert.equal(await page.locator('[data-layer=drawing] path').count(), 0);
@@ -19,9 +19,8 @@ try {
   let switches = 0;
   for (let i = 1; i <= 58; i++) {
     await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
-    if (await page.locator('[role=status]').textContent() === 'Подготовьте следующий карандаш') {
-      switches++; await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
-    }
+    // A new pencil needs no extra tap: it wiggles in the header and the step starts by itself.
+    if (await page.locator('[role=status]').textContent() === 'Подготовьте следующий карандаш') switches++;
     await page.clock.runFor(16000); assert.equal(await index(), i);
     if (i === 8) await page.screenshot({ path: '/tmp/korzhik-head-hat-ears.png' });
     if (i % 10 === 0) console.log('Korzhik step', i);
@@ -32,12 +31,11 @@ try {
   assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('drawing-progress:local:korzhik')).revision), 2);
   await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
   await page.locator('.drawing-card').filter({ hasText: 'Коржик' }).tap();
-  assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
-  await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
+  assert.equal(await page.locator('.drawing-top h2').textContent(), 'Коржик', 'Reopened drawing starts afresh');
+  await page.locator('.drawing-adult').tap(); await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
   const fish = page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' });
-  assert.equal(await fish.locator('small').textContent(), 'Продолжить'); await fish.tap();
-  assert.equal(await page.locator('[data-finish-part=pupil]').count(), 1);
-  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('drawing-progress:local:goldfish')).index), 44);
+  await fish.tap();
+  assert.equal(await page.locator('[data-layer=drawing] path').count(), 0, 'Saved fish progress is not resumed');
   assert.deepEqual(errors, []);
-  console.log('PASS all 58 Korzhik steps, 5 pencils, repeat/finish/reopen, legacy progress reset only for Korzhik, fish progress retained');
+  console.log('PASS all 58 Korzhik steps, 5 pencils, repeat/finish/reopen, drawings start afresh on reopen (no resume)');
 } finally { await browser.close(); }

@@ -43,6 +43,11 @@ try {
   assert.equal(await index(), 0, 'Canvas taps are off by default');
   await next().tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
   await page.locator('.drawing-show').tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
+  await next().tap(); await page.clock.runFor(16000); assert.equal(await index(), 2);
+  await page.locator('.drawing-back').tap(); assert.equal(await index(), 1, 'The child steps back one step');
+  await page.locator('.drawing-back').tap(); assert.equal(await index(), 0);
+  assert.equal(await page.locator('.drawing-back').count(), 0);
+  await next().tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
   await hold();
   assert.equal(await page.getByText('показано 1 из 45', { exact: false }).count(), 1);
   assert.equal(await page.getByLabel('Слова на кнопках').count(), 0);
@@ -58,18 +63,19 @@ try {
   await hold(); await page.getByRole('button', { name: 'Начать рисунок сначала…', exact: true }).tap();
   await page.getByRole('button', { name: 'Оставить рисунок', exact: true }).tap(); assert.equal(await index(), 1);
   await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
-  await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap(); assert.equal(await index(), 1);
+  await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
+  assert.equal(await page.locator('.drawing-back').count(), 0, 'A reopened drawing starts from the first step');
   await hold(); await page.getByRole('button', { name: 'Начать рисунок сначала…', exact: true }).tap();
   await page.getByRole('button', { name: 'Начать сначала', exact: true }).tap(); assert.equal(await index(), 0);
   let changes = 0;
   for (let i = 1; i <= 45; i++) {
-    const oldTool = await page.locator('.drawing-pencil-space').getAttribute('aria-label');
+    const oldTool = await page.locator('.drawing-pencil-chip').getAttribute('aria-label');
     await next().tap();
     if (await page.locator('[role=status]').textContent() === 'Подготовьте следующий карандаш') {
+      // The new pencil wiggles in the header; the step starts by itself, no extra tap.
       changes++; assert.equal(await index(), i-1);
-      assert.notEqual(await page.locator('.drawing-pencil-space').getAttribute('aria-label'), oldTool);
-      assert.equal(await page.locator('[data-pencil]').getAttribute('visibility'), 'hidden');
-      await next().tap();
+      assert.notEqual(await page.locator('.drawing-pencil-chip').getAttribute('aria-label'), oldTool);
+      assert.equal(await page.locator('.drawing-pencil-chip.is-new').count(), 1);
     }
     await page.clock.runFor(16000); assert.equal(await index(), i);
     assert.equal(await page.locator('[data-finale]').count(), 0, 'Wait for explicit finish');
@@ -82,8 +88,8 @@ try {
   await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
   assert.equal(await page.locator('.drawing-card').count(), cardCount);
   await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
-  assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
+  assert.equal(await page.locator('.drawing-top h2').textContent(), 'Золотая рыбка', 'No resume after finishing either');
   assert.equal(await page.locator('[data-finale]').count(), 0);
   assert.deepEqual(errors, []);
-  console.log('PASS app ZIP: 4 drawings, shared header, one primary + show-again, tap settings, repeat/back, pause/resume, reset confirmation, retained progress, 4 pencil gates, all 45 fish steps, explicit finale');
+  console.log('PASS app ZIP: 4 drawings, shared header, one primary + show-again, tap settings, repeat/back, pause/resume, reset confirmation, fresh start on reopen, child back button, 4 automatic pencil changes, all 45 fish steps, explicit finale');
 } finally { await browser.close(); }

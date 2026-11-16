@@ -29,7 +29,8 @@ try{
  let changes=0;
  for(let i=1;i<=lesson.steps.length;i++){
   await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
-  if(await page.locator('[role=status]').textContent()==='Подготовьте следующий карандаш'){changes++;await page.locator('.drawing-primary[aria-label="Дальше"]').tap();}
+  // A new pencil: no extra tap — it wiggles in the header and the step starts by itself after a short pause.
+  if(await page.locator('[role=status]').textContent()==='Подготовьте следующий карандаш'){changes++;await page.clock.runFor(1150);}
   const currentStep=lesson.steps[i-1];
   if(currentStep.kind==='stroke'&&currentStep.paths.length>1){
    const previousPaths=lesson.steps.slice(0,i-1).filter(s=>s.kind==='stroke').reduce((sum,s)=>sum+s.paths.length,0);
@@ -70,7 +71,6 @@ try{
  }
  assert.equal(changes,lesson.palette.length-1);
  await page.locator('.drawing-show').tap();await page.clock.runFor(16000);assert.equal(await index(),lesson.steps.length);
- await page.reload();await page.locator('.drawing-card').filter({hasText:card.label}).tap();assert.equal(await index(),lesson.steps.length,'Saved progress');
  assert.equal(await page.locator('.drawing-top h2').textContent(),card.label,'Explicit finish required');await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
  assert.equal(await page.locator('.drawing-top h2').textContent(),'Рисунок готов');await page.locator('.drawing-board > svg').screenshot({path:`/workspace/${id}-finished.png`});
  if(lesson.labels?.length){
