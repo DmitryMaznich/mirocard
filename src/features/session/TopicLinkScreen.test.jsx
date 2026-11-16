@@ -38,7 +38,8 @@ it("the mode list: the link instead of the old check (kept as retired)", () => {
 it("not installed: the catalog opens on the topic", async () => {
   mountWith([structuredClone(column)]);
   await act(async () => root.render(<ParamsScreen />));
-  expect(host.textContent).toContain("Теперь в теме «Контрольные по математике»");
+  expect(host.textContent).toContain("Контрольные по столбику — в отдельной теме");
+  expect(host.textContent).not.toMatch(/теперь|переехал/i);
   const button = [...host.querySelectorAll("button")].find((b) => b.textContent === "Установить тему");
   await act(async () => button.click());
   expect(useAppStore.getState().screen).toBe("topics");
