@@ -87,3 +87,15 @@
 .drawing-lesson .drawing-back:active { transform:translateY(3px); box-shadow:0 1px 0 #d4e3dc; }
 .drawing-back svg { width:40px; height:40px; fill:none; stroke:currentColor; stroke-width:5.5; stroke-linecap:round; stroke-linejoin:round; }
 @media (max-height:520px) { .drawing-lesson .drawing-back { width:62px; height:62px; } }
+
+/* Drawing picker, compact (2026-11-16): the list grows with every new drawing — small tiles, more per row,
+   less air; the header sits under the shared session header. */
+.drawing-picker { padding:8px calc(14px + var(--app-safe-right,0px)) calc(16px + var(--app-safe-bottom,0px)) calc(14px + var(--app-safe-left,0px)); }
+.drawing-picker > h2, .drawing-picker > p, .drawing-cards { max-width:none; }
+.drawing-picker h2 { font-size:22px; margin:4px 0 2px; }
+.drawing-picker > p { font-size:15px; margin-bottom:0; }
+.drawing-cards { grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px; margin-top:12px; }
+.drawing-lesson .drawing-card { padding:6px 6px 8px; gap:2px; border-radius:16px; box-shadow:0 3px 0 #243e3208; }
+.drawing-card img, .drawing-card > svg { height:clamp(72px,12dvh,120px); }
+.drawing-card > span { font-size:14px; line-height:1.2; text-align:center; }
+@media (min-width:900px) { .drawing-cards { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); } }
