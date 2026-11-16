@@ -18,8 +18,10 @@ export default function TopicLinkScreen({ mode, onBack }) {
 
   function go() {
     if (installed) {
+      // straight to the topic's own mode list — what the catalog does on a tap (previewTopicDestination);
+      // «home» showed whatever the home screen chose, not necessarily this topic
       setActiveTopicId(topicId);
-      setScreen("home");
+      setScreen("modes");
       return;
     }
     setTopicLibraryQuery(title ?? "");

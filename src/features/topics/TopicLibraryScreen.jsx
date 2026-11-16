@@ -54,7 +54,8 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
 
   const [catalog,           setCatalog]           = useState(null);
   const [catalogError,      setCatalogError]      = useState(false);
-  const [filter,             setFilter]           = useState(preview ? "all" : "mine");
+  // a search handed over by TopicLinkScreen looks for a topic not installed yet — in all topics, not «mine»
+  const [filter,             setFilter]           = useState(preview || useAppStore.getState().topicLibraryQuery ? "all" : "mine");
   const [query,              setQuery]            = useState(() => useAppStore.getState().topicLibraryQuery ?? "");
   useEffect(() => { if (useAppStore.getState().topicLibraryQuery) useAppStore.getState().setTopicLibraryQuery(""); }, []);
   const [deleting,          setDeleting]          = useState(null);

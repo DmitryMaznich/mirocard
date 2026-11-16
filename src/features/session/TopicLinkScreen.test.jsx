@@ -52,5 +52,5 @@ it("installed: the topic opens", async () => {
   const button = [...host.querySelectorAll("button")].find((b) => b.textContent.startsWith("Открыть"));
   await act(async () => button.click());
   expect(useAppStore.getState().activeTopicId).toBe("math_tests");
-  expect(useAppStore.getState().screen).toBe("home");
+  expect(useAppStore.getState().screen).toBe("modes"); // the topic's own mode list
 });
