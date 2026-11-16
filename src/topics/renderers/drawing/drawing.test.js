@@ -142,3 +142,18 @@ describe("downloadable drawing topic", () => {
     expect(generateTasks({}, [])).toEqual([]);
   });
 });
+
+import { chooseCorner, signatureDate } from './signature.js';
+import { it as signIt, expect as signExpect } from 'vitest';
+signIt('signs with the date in words and in the emptiest corner (top right on a tie: the bottom has buttons)', () => {
+  signExpect(signatureDate(new Date(2026, 10, 16))).toBe('16 ноября 2026');
+  signExpect(signatureDate(new Date(2027, 0, 3))).toBe('3 января 2027');
+  const view = { x: 0, y: 0, width: 1000, height: 800 }, size = { width: 260, height: 90 };
+  signExpect(chooseCorner(view, { x: 100, y: 150, width: 700, height: 450 }, size, 30).id).toBe('tr');
+  // The round buttons over the bottom corners count as taken.
+  const buttons = [{ x: 0, y: 700, width: 120, height: 100 }, { x: 880, y: 700, width: 120, height: 100 }];
+  signExpect(chooseCorner(view, { x: 0, y: 0, width: 1000, height: 600 }, size, 30, buttons).id).toBe('tr');
+  // A drawing in the top right leaves the top left free; one filling the top leaves the bottom.
+  signExpect(chooseCorner(view, { x: 400, y: 0, width: 600, height: 500 }, size, 30).id).toBe('tl');
+  signExpect(chooseCorner(view, { x: 0, y: 0, width: 1000, height: 600 }, size, 30).id).toBe('br');
+});

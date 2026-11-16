@@ -7,6 +7,7 @@ import FirstLines from './firstLines/FirstLines.jsx';
 import { drawingLabelAttributes } from './labels.js';
 import Portrait from './portrait/Portrait.jsx';
 import { MenuButton, Primary, ShowAgain } from './ui.jsx';
+import { writeSignature } from './signature.js';
 
 const initialState = { index: 0, busy: false, paused: false };
 const TOOL_PAUSE_MS = 1100;
@@ -67,7 +68,7 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
   const fallback = { id: task?.cardId ?? task?.lesson?.id, label: task?.lesson?.title, lesson: task?.lesson };
   const [selected, setSelected] = useState(() => cards.length > 1 ? null : cards[0] ?? fallback);
   const [menu, setMenu] = useState(null);
-  const [choices, setChoices] = useState(() => ({ labels: true, tap: false, speed: sessionParams?.speed ?? 'normal', pencilSound: sessionParams?.pencilSound !== 'off', ...readStored('drawing-ui-options', {}) }));
+  const [choices, setChoices] = useState(() => ({ labels: true, tap: false, speed: sessionParams?.speed ?? 'normal', pencilSound: sessionParams?.pencilSound !== 'off', signatureCase: sessionParams?.signatureCase ?? 'normal', ...readStored('drawing-ui-options', {}) }));
   const [bonusEnabled, setBonusEnabled] = useState(sessionParams?.videoRewardEnabled === true);
   const bonusAvailable = typeof onRequestVideoBonus === 'function' && Boolean(student?.rewardVideos?.length);
   const bonus = { enabled: bonusEnabled, available: bonusAvailable, setEnabled: setBonusEnabled, request: onRequestVideoBonus };
@@ -98,6 +99,7 @@ function Settings({ choices, onChoice, bonus }) {
     <label className="drawing-setting"><span>Видеобонус в конце</span><input type="checkbox" checked={bonus.enabled} disabled={!bonus.available} onChange={event => bonus.setEnabled(event.target.checked)} /></label>
     {!bonus.available && <p className="drawing-adult-note">Добавьте видео в карточке ребёнка, чтобы включить бонус.</p>}
     <label className="drawing-setting"><span>Темп анимации</span><select value={choices.speed} onChange={event => onChoice('speed', event.target.value)}><option value="slow">Медленно</option><option value="normal">Обычно</option><option value="fast">Быстро</option></select></label>
+    <label className="drawing-setting"><span>Подпись на рисунке</span><select value={choices.signatureCase} onChange={event => onChoice('signatureCase', event.target.value)}><option value="normal">Обычными буквами</option><option value="upper">Заглавными</option></select></label>
   </>;
 }
 function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawings, bonus }) {
@@ -126,6 +128,11 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
     // The component is keyed by card id. Restore only on mount, after SVG is attached.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson, prefix]);
+  // Last step: once the drawing is done, the pencil signs the sheet (title + date) in its emptiest corner.
+  useEffect(() => {
+    if (phase !== 'done') return undefined;
+    return writeSignature(svg.current, lesson.title, { upper: choices.signatureCase === 'upper', reduced: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches });
+  }, [phase, lesson.title, choices.signatureCase]);
   useEffect(() => { player.current?.setSpeed(choices.speed); }, [choices.speed]);
   useEffect(() => { player.current?.setSoundEnabled(soundEnabled && choices.pencilSound); }, [soundEnabled, choices.pencilSound]);
   const context = toolForStep(lesson, phase === 'copy' || phase === 'done' ? Math.max(0, state.index-1) : Math.min(state.index, lesson.steps.length-1));
