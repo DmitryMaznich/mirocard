@@ -26,11 +26,11 @@ try {
     await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
     await page.clock.install();
     assert.equal(await page.getByRole('button', { name: 'Дальше — бонус', exact: true }).count(), 0);
-    await page.locator('.drawing-next').tap(); await page.clock.runFor(16000);
+    await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await page.clock.runFor(16000);
     assert.equal(await page.locator('.pin-gate-overlay').count(), 0);
-    await page.locator('.drawing-next').tap(); await page.clock.runFor(5000);
+    await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await page.clock.runFor(5000);
     if (scenario === 'no-videos') {
-      assert.equal(await page.getByRole('button', { name: 'Рисунки', exact: true }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'Другой рисунок', exact: true }).count(), 1);
       await page.locator('.drawing-adult').focus(); await page.keyboard.press('Enter');
       assert.equal(await page.getByLabel('Видеобонус в конце', { exact: true }).isDisabled(), true);
       assert.equal(await page.locator('.pin-gate-overlay').count(), 0);
@@ -40,7 +40,7 @@ try {
       assert.equal(await page.getByLabel('Видеобонус в конце', { exact: true }).isChecked(), scenario === 'enabled');
       await page.getByLabel('Видеобонус в конце', { exact: true }).uncheck();
       await page.getByRole('button', { name: 'Закрыть настройки' }).tap();
-      assert.equal(await page.getByRole('button', { name: 'Рисунки', exact: true }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'Другой рисунок', exact: true }).count(), 1);
       await settings(); await page.getByLabel('Видеобонус в конце', { exact: true }).check();
       await page.getByRole('button', { name: 'Закрыть настройки' }).tap();
       const bonusButton = () => page.getByRole('button', { name: 'Дальше — бонус', exact: true });
@@ -61,7 +61,7 @@ try {
       await page.locator('.reward-modal__btn--continue').tap();
       assert.equal(await page.locator('.drawing-card').count(), cardCount);
       await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
-      assert.equal(await page.getByRole('button', { name: 'Рисунки', exact: true }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'Другой рисунок', exact: true }).count(), 1);
       assert.equal(await page.getByRole('button', { name: 'Дальше — бонус', exact: true }).count(), 0);
     }
     assert.deepEqual(errors, []);

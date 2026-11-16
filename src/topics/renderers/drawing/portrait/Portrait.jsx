@@ -7,6 +7,7 @@ import { back, chooseShape, next, pick, portraitKey, readPortrait, savePortrait,
 import { colorSteps, fixedColor, paintLesson, paletteFor, portraitPaint } from './paintPlan.js';
 import { createDrawingPlayer } from '../player.js';
 import { sampleSubpaths, timeline, timelineEnd } from './drawPath.js';
+import { MenuButton, Primary, ShowAgain } from '../ui.jsx';
 import './portrait.css';
 
 const PIPS = [[4], [0, 8], [0, 4, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 3, 5, 6, 8]];
@@ -93,17 +94,6 @@ function Pencil({ pencil }) {
     {pencil.light && <path d="M14 28 q12 -4 24 0 t24 0" fill="none" stroke={pencil.color} strokeWidth="4" strokeLinecap="round" />}
   </svg>;
 }
-// The one primary action of every screen: the big green round button, always bottom right
-// («Дальше», «Раскрасить», «Новый портрет»). Leaving the lesson is only the header's ✕.
-const ICONS = {
-  next: <path d="M11 24h24M25 13l11 11-11 11" />,
-  paint: <><path d="M24 6C12 6 6 14 6 23c0 9 7 16 15 16 4 0 4-4 1-7-2-3 0-7 4-7h7c7 0 10-4 10-9 0-6-8-10-19-10Z" /><circle cx="15" cy="20" r="2.4" /><circle cx="23" cy="13" r="2.4" /><circle cx="32" cy="16" r="2.4" /></>,
-  again: <path d="M12 16a14 14 0 1 1-2 15M11 7v10h10" />,
-};
-function Primary({ icon, label, disabled, onClick }) {
-  return <button type="button" className="portrait-next" data-icon={icon} aria-label={label} disabled={disabled} onClick={onClick}>
-    <svg viewBox="0 0 48 48" aria-hidden="true">{ICONS[icon]}</svg></button>;
-}
 // Printing goes through a hidden frame: a pop-up is often blocked in an installed app.
 function printSvg(title, svg) {
   const frame = document.createElement('iframe');
@@ -114,15 +104,6 @@ function printSvg(title, svg) {
   doc.write(`<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${title}</title><style>@page{size:A4;margin:12mm}body{margin:0;display:flex;justify-content:center}svg{width:170mm;height:210mm;color:#222}</style></head><body>${svg}</body></html>`);
   doc.close();
   setTimeout(() => { try { frame.contentWindow.focus(); frame.contentWindow.print(); } finally { setTimeout(() => frame.remove(), 1000); } }, 100);
-}
-
-// Adult menu: an ordinary tap, as everywhere else in the app (no long press). Leaving the lesson is the
-// shared header's ✕, which asks for confirmation, so the menu holds only printing and step controls.
-function MenuButton({ onOpen }) {
-  return <button type="button" className="drawing-adult portrait-menu" aria-label="Для взрослого" onClick={onOpen}>
-    <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M13 3h6l1 4 4 2 4-1 3 5-3 3v4l3 3-3 5-4-1-4 2-1 4h-6l-1-4-4-2-4 1-3-5 3-3v-4l-3-3 3-5 4 1 4-2Z" /><circle cx="16" cy="18" r="5" /></svg>
-  </button>;
 }
 
 export default function Portrait({ student, sessionParams, soundEnabled = true, interactionDisabled = false, AdultDialog }) {
@@ -240,8 +221,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
         <div className="portrait-stage">
           {(state.value === null || firstShow) && <AreaHint key={`${k}:${play}`} regions={regions} color={hintColor} viewBox={lesson.viewBox} until={firstShow} />}
           <PaintBoard lesson={lesson} from={from} to={to} play={play} soundEnabled={soundEnabled} delay={firstShow ? HINT_MS : 0} />
-          {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать ещё раз" disabled={interactionDisabled}
-            onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
+          {state.value !== null && <ShowAgain label="Показать ещё раз" disabled={interactionDisabled} onClick={() => setPlay(n => n + 1)} />}
           {!given && roller}
         </div>
       </div>
@@ -269,8 +249,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
       </div>
       <div className="portrait-stage">
         <Face viewBox={style.viewBox} face={face} steps={steps} results={state.results} current={state.value} play={play} />
-        {state.value !== null && <button type="button" className="portrait-show" aria-label="Показать, как рисовать" disabled={interactionDisabled}
-          onClick={() => setPlay(n => n + 1)}><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11 7.5v17l14-8.5z" /></svg></button>}
+        {state.value !== null && <ShowAgain label="Показать, как рисовать" disabled={interactionDisabled} onClick={() => setPlay(n => n + 1)} />}
         {roller}
       </div>
     </div>

@@ -120,10 +120,11 @@ try {
   assert.equal(buttons.length,5);assert(buttons.every(r=>r.left>=0&&r.right<=320&&r.width>=44&&r.height>=44));
   await phone.screenshot({path:`${output}/phone-palette.png`});
   await phone.setViewportSize({width:390,height:844});
-  await phone.getByRole('button',{name:'Весь лист',exact:true}).click();await phone.screenshot({path:`${output}/phone-overview.png`});
-  await phone.getByRole('button',{name:'К фигуре'}).click();
+  // No «Весь лист» (one style for all drawing modes) and no words on the child's screen.
+  assert.equal(await phone.getByRole('button',{name:'Весь лист',exact:true}).count(),0);
+  assert.equal(await phone.locator('.coloring__footer').count(),0);
   await phone.setViewportSize({width:844,height:390});
   assert.equal((await snapshot(phone)).progress.shapes[0].phase,'fill');
   await phone.screenshot({path:`${output}/phone-rotated.png`});
-  assert.deepEqual(errors,[]);console.log('Coloring: separate input frames and parent updates, real ZIP, trace/fill, failure, reload, 16 sheets, regenerated loop, phone paths, overview and rotation passed.');
+  assert.deepEqual(errors,[]);console.log('Coloring: separate input frames and parent updates, real ZIP, trace/fill, failure, reload, 16 sheets, regenerated loop, phone paths, no overview/footer text, rotation passed.');
 } finally {await browser.close();}

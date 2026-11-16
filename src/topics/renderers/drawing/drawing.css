@@ -1,7 +1,9 @@
 /* The topic owns the child's navigation. Its adult menu retains onClose;
    this scoped rule removes the competing shared header without changing it
    for any other topic. All safe-area values come from the app shell. */
-.session-screen:has(.drawing-lesson) > .session-header-wrap { display: none; }
+/* Since 2026-11-16 every drawing mode keeps the shared header (✕ with confirmation) — one navigation style.
+   The lesson starts right under it, so no top safe-area padding of its own. */
+.session-screen:has(.drawing-lesson) > .session-header-wrap { margin-bottom: 8px; }
 .drawing-lesson { --drawing-ink:#274139; --drawing-accent:#28655a; --drawing-paper:#fffefa; box-sizing:border-box; width:100%; min-width:0; color:var(--drawing-ink); background:#f2f1e9; font:18px system-ui,sans-serif; }
 .drawing-lesson *, .drawing-dialog * { box-sizing:border-box; }
 .drawing-lesson button, .drawing-lesson select { font:inherit; color:inherit; }
@@ -10,7 +12,7 @@
 .drawing-lesson button:focus-visible, .drawing-lesson select:focus-visible, .drawing-board:focus-visible { outline:4px solid #eab73b; outline-offset:3px; }
 .drawing-lesson button svg { pointer-events:none; }
 .drawing-lesson svg { display:block; }
-.drawing-shell { flex:1; min-height:0; height:100%; display:flex; flex-direction:column; max-width:980px; margin:0 auto; gap:8px; padding:calc(8px + var(--app-safe-top,0px)) calc(14px + var(--app-safe-right,0px)) calc(12px + var(--app-safe-bottom,0px)) calc(14px + var(--app-safe-left,0px)); }
+.drawing-shell { flex:1; min-height:0; height:100%; display:flex; flex-direction:column; max-width:980px; margin:0 auto; gap:8px; padding:4px calc(14px + var(--app-safe-right,0px)) calc(12px + var(--app-safe-bottom,0px)) calc(14px + var(--app-safe-left,0px)); }
 .drawing-top { height:48px; flex:none; display:flex; justify-content:space-between; align-items:center; }
 .drawing-top h2 { font-size:21px; font-weight:650; margin:0; letter-spacing:-.3px; }
 .drawing-lesson .drawing-adult { width:48px; height:48px; display:grid; place-items:center; background:transparent; border:0; border-radius:15px; color:#66756d; touch-action:none; user-select:none; -webkit-touch-callout:none; padding:0; }
@@ -58,3 +60,17 @@
 .drawing-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 @media(min-width:760px) { .drawing-shell { max-width:760px; } .drawing-controls { max-width:570px; width:100%; align-self:center; } .drawing-control { height:86px; } .drawing-pencil-space { height:76px; } }
 @media(max-height:650px) { .drawing-pencil-space { height:45px; } .drawing-pencil-space svg { height:46px; } .drawing-top { height:40px; } .drawing-lesson .drawing-control { height:68px; } .drawing-shell { gap:5px; } .drawing-control svg { height:25px; } }
+
+/* ── One navigation style for every drawing mode (ui.jsx) ───────────────────────────── */
+:is(.drawing-lesson, .coloring, .portrait) .drawing-primary { position:fixed; z-index:5; right:calc(20px + var(--app-safe-right,0px)); bottom:calc(20px + var(--app-safe-bottom,0px)); width:96px; height:96px; border-radius:50%; border:0; padding:0; background:#22c55e; color:#fff; box-shadow:0 5px 0 #15803d; display:grid; place-items:center; animation:drawing-primary-in .3s ease-out; touch-action:manipulation; opacity:1; }
+:is(.drawing-lesson, .coloring) .drawing-primary:active { transform:translateY(4px); box-shadow:0 1px 0 #15803d; }
+:is(.drawing-lesson, .coloring) .drawing-primary:disabled { opacity:.45; }
+.drawing-primary svg { width:50px; height:50px; fill:none; stroke:currentColor; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
+.drawing-primary[data-icon="paint"] svg circle { fill:currentColor; stroke:none; }
+.drawing-primary[data-icon="drawings"] svg { stroke-width:4.5; }
+@keyframes drawing-primary-in { from { opacity:0; transform:scale(.7); } }
+.drawing-lesson .drawing-show { position:absolute; z-index:2; top:12px; left:12px; width:54px; height:54px; border-radius:50%; border:2.5px solid #d4e3dc; background:#fff; color:#254e45; display:grid; place-items:center; padding:0; touch-action:manipulation; }
+.drawing-show svg { width:26px; height:26px; margin-left:3px; fill:currentColor; }
+@media (max-height:520px) { :is(.drawing-lesson, .coloring) .drawing-primary { width:76px; height:76px; } .drawing-primary svg { width:40px; height:40px; } }
+@media (prefers-reduced-motion:reduce) { :is(.drawing-lesson, .coloring) .drawing-primary { animation:none; } }
+

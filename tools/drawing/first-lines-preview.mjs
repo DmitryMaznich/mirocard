@@ -18,7 +18,7 @@ import '../../src/styles.css';
 // It installs the real ZIP and uses the same renderer loader, session, audio, stars and prize.
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
 const q = new URLSearchParams(location.search);
-const modeId = q.has('portrait') ? 'drawing_portrait' : q.has('coloring') ? 'drawing_coloring' : 'drawing_first_lines';
+const modeId = q.has('steps') ? 'drawing_steps' : q.has('portrait') ? 'drawing_portrait' : q.has('coloring') ? 'drawing_coloring' : 'drawing_first_lines';
 const db = await getDb();
 await importTopic(db, await (await fetch(`/decks/drawing_v${descriptor.meta.version}.zip`)).arrayBuffer(), __APP_VERSION__);
 const record = await getTopicRecord(db, 'drawing');

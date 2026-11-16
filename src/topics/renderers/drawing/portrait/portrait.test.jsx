@@ -93,7 +93,7 @@ describe('portrait screen', () => {
     expect(host.querySelector('.portrait').dataset.style).toBe('simple');
     await click(label('Овальное'));
     expect(host.querySelector('h2').textContent).toBe('Глаза');
-    expect(host.querySelector('.portrait-next')).toBeNull(); expect(label('Показать, как рисовать')).toBeNull();
+    expect(host.querySelector('.drawing-primary')).toBeNull(); expect(label('Показать, как рисовать')).toBeNull();
     const options = host.querySelectorAll('.portrait-option');
     expect(options).toHaveLength(6);
     await click(options[1]);
@@ -102,13 +102,13 @@ describe('portrait screen', () => {
     expect(label('Показать, как рисовать')).not.toBeNull();
     for (let i = 0; i < 7; i++) {
       if (i) await click(host.querySelectorAll('.portrait-option')[0]);
-      await click(host.querySelector('.portrait-next'));
+      await click(host.querySelector('.drawing-primary'));
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('done');
     expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ style: 'simple', phase: 'done', shape: 1, results: [2, 1, 1, 1, 1, 1, 1] });
     // One primary action, no home button: leaving the lesson is only the shared header's ✕.
     expect(label('Закончить')).toBeNull(); expect(label('Новый портрет')).toBeNull();
-    expect(host.querySelectorAll('.portrait-next')).toHaveLength(1); expect(label('Раскрасить')).not.toBeNull();
+    expect(host.querySelectorAll('.drawing-primary')).toHaveLength(1); expect(label('Раскрасить')).not.toBeNull();
   });
   it('«Пикассо» when the adult chose it: seven steps', async () => {
     await render({ style: 'picasso' });
@@ -126,7 +126,7 @@ describe('portrait screen', () => {
     await click(label('Бросить кубик'));
     await act(async () => { vi.advanceTimersByTime(1000); });
     expect(host.querySelectorAll('.portrait-option[aria-pressed="true"]')).toHaveLength(1);
-    expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.portrait-next')).not.toBeNull();
+    expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.drawing-primary')).not.toBeNull();
   });
   const donePortrait = () => localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
   it('colouring «По инструкции» (default): one given pencil per area, the skin from the settings, no choice to make', async () => {
@@ -140,11 +140,11 @@ describe('portrait screen', () => {
       expect(host.querySelector('h2').textContent).toBe(name);
       if (pencil) expect(host.querySelector(`[aria-label="Возьми: ${pencil}"]`)).not.toBeNull();
       expect(host.querySelector('.portrait-hint')).not.toBeNull(); // the area is shown before the pencil starts
-      await click(host.querySelector('.portrait-next'));
+      await click(host.querySelector('.drawing-primary'));
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('colored');
     expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [2, 2, 1, 1, 1] });
-    expect(host.querySelectorAll('.portrait-next')).toHaveLength(1);
+    expect(host.querySelectorAll('.drawing-primary')).toHaveLength(1);
     await click(label('Новый портрет'));
     expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
   });
@@ -153,15 +153,15 @@ describe('portrait screen', () => {
     await render({ colorChoice: 'die' });
     await click(label('Раскрасить'));
     expect(host.querySelectorAll('.portrait-color')).toHaveLength(1); // skin: the adult's tone
-    await click(host.querySelector('.portrait-next'));
+    await click(host.querySelector('.drawing-primary'));
     expect(host.querySelector('h2').textContent).toBe('Волосы');
     expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(6);
-    expect(host.querySelector('.portrait-next')).toBeNull();
+    expect(host.querySelector('.drawing-primary')).toBeNull();
     await click(label('3: Жёлтый'));
-    expect(host.querySelector('.portrait-next')).not.toBeNull();
+    expect(host.querySelector('.drawing-primary')).not.toBeNull();
     // Back from a chosen die step clears the choice; back again returns to the given skin step.
     await click(label('Для взрослого')); await click([...host.querySelectorAll('dialog button')].find(b => b.textContent === 'Вернуться на шаг'));
-    expect(host.querySelector('.portrait-next')).toBeNull();
+    expect(host.querySelector('.drawing-primary')).toBeNull();
     await click(label('Для взрослого')); await click([...host.querySelectorAll('dialog button')].find(b => b.textContent === 'Вернуться на шаг'));
     expect(host.querySelector('h2').textContent).toBe('Лицо');
   });

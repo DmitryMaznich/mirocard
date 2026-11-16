@@ -21,3 +21,9 @@
 @media(prefers-reduced-motion:reduce){.coloring .coloring__color{transition:none}}
 
 .coloring .coloring__color:disabled{opacity:1;cursor:default}
+
+/* Figures on the sheet as dots, like the portrait's steps — no words on the child's screen. */
+.coloring__steps{display:flex;gap:8px;list-style:none;margin:0;padding:0}
+.coloring__steps li{width:14px;height:14px;border-radius:50%;background:#dfe3da}
+.coloring__steps li.is-done{background:#28655a}
+.coloring__steps li.is-current{background:#eab73b;box-shadow:0 0 0 3px #f7e2a8}
