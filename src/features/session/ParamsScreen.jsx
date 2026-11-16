@@ -2188,7 +2188,8 @@ export default function ParamsScreen() {
                 label={setupText(def.label) || key}
                 options={allowedEnumValues(def, params, mode.params)}
                 labels={setupLabels(def.labels)}
-                value={params[key] ?? def.default}
+                // (a saved value no longer offered — a propis2 style of another language, «Мои языки» changed — shows the default)
+                value={Array.isArray(def.values) && params[key] !== undefined && !def.values.includes(params[key]) ? def.default : (params[key] ?? def.default)}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 disabledValues={def.disabledValues}
                 disabled={isDisabled}
@@ -2327,7 +2328,17 @@ export default function ParamsScreen() {
           return null;
         }
 
-        const allEntries = Object.entries(mode.params ?? {});
+        // (a choice of one is not shown: «Мои языки» left a single language — propis2/myLanguagesView.js; a propis2 deck's writing style:
+        // only the styles of the language picked above, as «Строчная и заглавная» does)
+        const styleOfLang = (def) => {
+          const langId = params.writingLang ?? mode.params.writingLang?.default;
+          const own = (topicRecord?.languages ?? []).find((l) => l.id === langId)?.styles?.map((st) => st.id) ?? [];
+          const values = (def.values ?? []).filter((v) => own.includes(v));
+          return values.length < 2 ? { ...def, hidden: true } : { ...def, values, default: values.includes(def.default) ? def.default : values[0] };
+        };
+        const allEntries = Object.entries(mode.params ?? {})
+          .map(([key, def]) => [key, key === "writingStyle" && topicRecord?.meta?.renderer === "propis2" && def.type === "enum" ? styleOfLang(def) : def])
+          .filter(([, def]) => !def.hidden);
         const ungrouped  = allEntries.filter(([, def]) => !def.section);
         const sectionMap = {};
         for (const [key, def] of allEntries) {
