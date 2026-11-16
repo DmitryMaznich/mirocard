@@ -55,7 +55,8 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
   const [catalog,           setCatalog]           = useState(null);
   const [catalogError,      setCatalogError]      = useState(false);
   const [filter,             setFilter]           = useState(preview ? "all" : "mine");
-  const [query,              setQuery]            = useState("");
+  const [query,              setQuery]            = useState(() => useAppStore.getState().topicLibraryQuery ?? "");
+  useEffect(() => { if (useAppStore.getState().topicLibraryQuery) useAppStore.getState().setTopicLibraryQuery(""); }, []);
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
   const [actionSheetRecord, setActionSheetRecord] = useState(null);

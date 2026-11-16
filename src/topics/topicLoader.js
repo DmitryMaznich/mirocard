@@ -1338,10 +1338,31 @@ const DEFAULT_MODES = {
         },
       },
     },
+    // The check moved to «Контрольные по математике» (owner, 2026-11-16): the old mode stays as
+    // `retired` (out of the mode lists; saved plans and history still resolve), the list shows a link.
+    {
+      id: "column_tests_link",
+      type: "topic_link",
+      evaluation: "none",
+      hideConceptPicker: true,
+      ui: { title: "Контрольная работа", instruction: "Теперь в теме «Контрольные по математике»", icon: "media/icons/column_copy_mode.svg" },
+      link: {
+        topicId: "math_tests",
+        title: "Контрольные по математике",
+        text: "Контрольные по столбику собраны там вместе с остальными: готовые листы («Столбик до 100», «Запиши в столбик», «Круглые и с нулём») и конструктор, где числа задаются клетками, как здесь в тренажёре. Решать на экране или распечатать.",
+      },
+      methodology: {
+        summary: "Переход в тему «Контрольные по математике», где теперь контрольные по столбику.",
+        text: "Контрольная работа по столбику переехала в отдельную тему «Контрольные по математике»: готовые листы и конструктор, решение на экране или на распечатанном листе. Если тема не установлена, откроется каталог с ней.",
+        goal: "Взрослый проверяет, решает ли ребёнок примеры в столбик сам, без пошаговых подсказок тренажёра.",
+      },
+      params: {},
+    },
     {
       id: "column_copy",
       type: "column_copy",
       evaluation: "none",
+      retired: true,
       ui: { title: "Контрольная работа", instruction: "Перепиши примеры в тетрадь и реши", icon: "media/icons/column_copy_mode.svg" },
       hideConceptPicker: true,
       startRequires: [{ anyOf: COPY_KINDS.map((k) => k.key), message: { ru: "Отметьте хотя бы один вид примеров." } }],

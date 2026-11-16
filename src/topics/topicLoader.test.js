@@ -823,7 +823,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // as leftover "custom" modes.
     expect(record.modes.map((m) => m.id)).toEqual([
       "column_arithmetic",
-      "column_copy",
+      "column_tests_link", // the check moved to «Контрольные по математике» (2026-11-16)
+      "column_copy", // retired: out of the mode lists, old plans still resolve
     ]);
 
     const arithmetic = record.modes.find((m) => m.id === "column_arithmetic");
