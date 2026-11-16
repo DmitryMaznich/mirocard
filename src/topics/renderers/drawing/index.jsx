@@ -7,6 +7,7 @@ import FirstLines from './firstLines/FirstLines.jsx';
 import { drawingLabelAttributes } from './labels.js';
 import Portrait from './portrait/Portrait.jsx';
 import { MenuButton, Primary, ShowAgain } from './ui.jsx';
+import { writeSignature } from './signature.js';
 
 const initialState = { index: 0, busy: false, paused: false };
 const TOOL_PAUSE_MS = 1100;
@@ -126,6 +127,11 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
     // The component is keyed by card id. Restore only on mount, after SVG is attached.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson, prefix]);
+  // Last step: once the drawing is done, the pencil signs the sheet (title + date) in its emptiest corner.
+  useEffect(() => {
+    if (phase !== 'done') return undefined;
+    return writeSignature(svg.current, lesson.title, { reduced: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches });
+  }, [phase, lesson.title]);
   useEffect(() => { player.current?.setSpeed(choices.speed); }, [choices.speed]);
   useEffect(() => { player.current?.setSoundEnabled(soundEnabled && choices.pencilSound); }, [soundEnabled, choices.pencilSound]);
   const context = toolForStep(lesson, phase === 'copy' || phase === 'done' ? Math.max(0, state.index-1) : Math.min(state.index, lesson.steps.length-1));
