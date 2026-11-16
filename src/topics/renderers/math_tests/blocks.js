@@ -11,7 +11,7 @@ import {
   SECTION_INFO, MAX_NUMBERS, COUNT_MIN, COUNT_MAX, allowedChanges, normalizeSection, buildSection, makeRng,
 } from "../addition_subtraction/worksheet/sections.js";
 import { CMP_MAX_NUMBERS, normalizeCompare, buildCompare } from "./compare.js";
-import { COLUMN_SIZES, normalizeColumn, buildColumn } from "./column.js";
+import { normalizeColumn, buildColumn } from "./column.js";
 
 export const GROUPS = [
   { id: "plusminus", title: "Плюс и минус" },
@@ -72,12 +72,15 @@ BLOCK_KINDS.cmp_two = compareKind("two", "Сравни два примера", "
 BLOCK_KINDS.column = {
   group: "column",
   title: "Реши в столбик",
-  instruction: "Переносы и займы пиши сверху",
+  instruction: (b) => (b.form === "line" ? "Реши столбиком в тетради" : "Переносы и займы пиши сверху"),
   sample: "47 + 38 столбиком",
   fields: [
     { ...COMMON[0], label: "Примеров" },
     OPS,
-    { key: "size", label: "Разрядность", kind: "seg", options: () => COLUMN_SIZES.map((v) => ({ value: v, label: v.replace("+", " + ") })) },
+    // the numbers as cells, the same setting as the «Столбик» trainer (2026-11-16)
+    { key: "operands", label: "Числа", kind: "operands" },
+    { key: "form", label: "Пример", kind: "seg", options: () => [{ value: "column", label: "столбиком" }, { value: "line", label: "строкой" }] },
+    { key: "newPlace", label: "Новый разряд в ответе (95 + 7 = 102)", kind: "toggle" },
     { key: "regroup", label: "Перенос / заём", kind: "seg", options: () => [{ value: "mixed", label: "вперемешку" }, { value: "with", label: "все" }, { value: "without", label: "без" }] },
     COLS,
   ],
@@ -109,7 +112,10 @@ export function newBlock(type, patch = {}) {
 }
 
 export const blockTitle = (b) => b.title || BLOCK_KINDS[b.type]?.title || "";
-export const blockInstruction = (b) => b.instruction || BLOCK_KINDS[b.type]?.instruction || "";
+export const blockInstruction = (b) => {
+  const own = BLOCK_KINDS[b.type]?.instruction;
+  return b.instruction || (typeof own === "function" ? own(b) : own) || "";
+};
 
 // built examples are cached by the block's settings (the same object is reused while nothing changed)
 const cache = new Map();

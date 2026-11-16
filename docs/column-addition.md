@@ -34,7 +34,13 @@ no longer needed for the column.
   says so. Old saved `digits` map onto it (`resolveOperands`; ParamsScreen
   does it when the settings open). Three cells: the trainer stays within
   three digits — four would mean thousands (owner agreed).
-- «Контрольная работа» (`column_copy`, rebuilt 2026-10-23): a sheet of examples
+- **«Контрольная работа» moved to «Контрольные по математике» (2026-11-16, owner).** The mode list shows
+  `column_tests_link` (type `topic_link`: `link: {topicId, title, text}`) — ParamsScreen opens
+  `TopicLinkScreen` for it: the topic opens if installed, else the catalog opens on it (store
+  `topicLibraryQuery`). `column_copy` stays `retired` (out of the lists; old plans and history
+  resolve), its description below is history. The same link is to replace the checks of «Плюс и
+  минус» and «Сравнение»; «Разряды числа» keep theirs (owner). `math_tests` is `release` since then.
+- «Контрольная работа» (`column_copy`, rebuilt 2026-10-23, retired 2026-11-16): a sheet of examples
   in a line; the child sets them up in the notebook, types the answer, «✓».
   - «Какие примеры» — switches (`COPY_KINDS`): 2 + 2, 2 + 1, 3 + 3, 3 + 2,
     3 + 1, круглые, с нулём, новый разряд; the sheet mixes the ticked kinds

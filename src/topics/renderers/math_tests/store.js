@@ -59,11 +59,39 @@ export const LIBRARY = [
   },
   {
     id: "column100", group: "В столбик", title: "Столбик до 100", note: "сложение и вычитание, с переносом и без",
-    blocks: [{ type: "column", size: "2+2", ops: "both", regroup: "mixed", count: 8 }],
+    blocks: [{ type: "column", operands: { top: 2, bottom: 2 }, ops: "both", regroup: "mixed", count: 8, newPlace: false }],
   },
   {
     id: "column1000", group: "В столбик", title: "Столбик до 1000", note: "трёхзначные, переносы и займы",
-    blocks: [{ type: "column", size: "3+3", ops: "add", regroup: "with", count: 4 }, { type: "column", size: "3+2", ops: "subtract", regroup: "with", count: 4 }],
+    blocks: [
+      { type: "column", operands: { top: 3, bottom: 3 }, ops: "add", regroup: "with", count: 4 },
+      { type: "column", operands: { top: 3, bottom: 2 }, ops: "subtract", regroup: "with", count: 4 },
+    ],
+  },
+  // from «Контрольная работа» of the «Столбик» topic (moved here 2026-11-16): the example in a line,
+  // the child sets it up in a column in the notebook
+  {
+    id: "columnCopy100", group: "В столбик", title: "Запиши в столбик до 100", note: "пример строкой — столбик в тетради",
+    blocks: [
+      { type: "column", form: "line", operands: { top: 2, bottom: 2 }, ops: "both", regroup: "mixed", count: 6, newPlace: false },
+      { type: "column", form: "line", operands: { top: 2, bottom: 1 }, ops: "both", regroup: "mixed", count: 4, newPlace: false },
+    ],
+  },
+  {
+    id: "columnCopy1000", group: "В столбик", title: "Запиши в столбик до 1000", note: "трёхзначные строкой — столбик в тетради",
+    blocks: [
+      { type: "column", form: "line", operands: { top: 3, bottom: 3 }, ops: "both", regroup: "mixed", count: 4 },
+      { type: "column", form: "line", operands: { top: 3, bottom: 2 }, ops: "both", regroup: "mixed", count: 4 },
+      { type: "column", form: "line", operands: { top: 3, bottom: 1 }, ops: "both", regroup: "mixed", count: 2 },
+    ],
+  },
+  {
+    id: "columnZeros", group: "В столбик", title: "Столбик: круглые и с нулём", note: "340 + 50, 305 − 7, 400 − 126",
+    blocks: [
+      { type: "column", operands: { top: 3, topZeros: [0], bottom: 2, bottomZeros: [0] }, ops: "both", regroup: "mixed", count: 4 },
+      { type: "column", operands: { top: 3, topZeros: [1], bottom: 1 }, ops: "subtract", regroup: "with", count: 2 },
+      { type: "column", operands: { top: 3, topZeros: [0, 1], bottom: 3 }, ops: "subtract", regroup: "with", count: 2 },
+    ],
   },
   {
     id: "compare10", group: "Сравнение", title: "Сравни до 10", note: "числа, пример и число, два примера",

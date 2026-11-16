@@ -9,6 +9,8 @@ import { RELEASE_TOPIC_COPY, applyReleaseTopicCopy } from "../src/topics/release
 // records at runtime. --write bumps each changed deck's patch version and
 // updates the catalog; --check catches ZIPs rebuilt without the editorial copy.
 const write = process.argv.includes("--write");
+// --only <id>: one deck (another deck's stale copy is not this change's business)
+const only = process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1] : null;
 const catalogPath = join("public", "decks", "catalog.json");
 const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
 let changed = 0;
@@ -23,8 +25,8 @@ function nextPatch(version) {
   return parts.join(".");
 }
 
-for (const entry of catalog.decks.filter((deck) => RELEASE_TOPIC_COPY[deck.id])) {
-  if (entry.status !== "release") throw new Error(`${entry.id} is no longer a release topic`);
+for (const entry of catalog.decks.filter((deck) => RELEASE_TOPIC_COPY[deck.id] && (!only || deck.id === only))) {
+  if (!["release", "beta"].includes(entry.status)) throw new Error(`${entry.id} is no longer a release or beta topic`);
   const copy = RELEASE_TOPIC_COPY[entry.id];
   const hash = createHash("sha256").update(JSON.stringify(copy)).digest("hex").slice(0, 16);
   const oldPath = join("public", "decks", basename(entry.url));

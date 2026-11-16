@@ -15,7 +15,7 @@ vi.mock("@/core/linkUtils", () => ({ persistStudentTopicLink: mocks.persist }));
 vi.mock("@/features/timer/TimerContext", () => ({ useTimer: () => ({ markSessionStart: mocks.start }) }));
 
 const db = await openDb("cop-" + Math.random());
-await importTopic(db, await readFile("public/decks/column_addition_v1.3.2.zip"));
+await importTopic(db, await readFile("public/decks/column_addition_v1.3.3.zip"));
 const topic = await getTopicRecord(db, "column_addition");
 const initial = useAppStore.getState();
 let root, host;

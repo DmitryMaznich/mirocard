@@ -165,6 +165,10 @@ export const useAppStore = create((set) => ({
   ownedTopics: [],
   builtinVisibility: {},
   archivedTopicIds: [],
+  // A search the topic library opens with once (TopicLinkScreen: «установить тему» goes to the
+  // catalog on that topic); the library takes it and clears it.
+  topicLibraryQuery: "",
+  setTopicLibraryQuery: (topicLibraryQuery) => set({ topicLibraryQuery }),
   setArchivedTopicIds: (archivedTopicIds) => set((s) => ({
     archivedTopicIds,
     topicRecords: applyBuiltinVisibility(s.topicRecords, s.builtinVisibility, archivedTopicIds),

@@ -1,5 +1,6 @@
 import { BLOCK_KINDS, blockTitle, blockInstruction, buildBlock } from "./blocks.js";
 import { IconShuffle, IconCopy, IconUp, IconDown, IconTrash } from "./icons";
+import { ColumnOperandCells } from "@/features/session/ColumnOperandsParam.jsx";
 
 function Field({ field, block, onPatch }) {
   const value = block[field.key];
@@ -12,6 +13,18 @@ function Field({ field, block, onPatch }) {
           <b aria-live="polite">{value}</b>
           <button type="button" aria-label="Больше" disabled={value >= field.max} onClick={() => onPatch({ [field.key]: value + 1 })}>+</button>
         </div>
+      </div>
+    );
+  }
+  if (field.kind === "operands") {
+    return (
+      <div className="mt-field mt-field--operands">
+        <span className="mt-field-label">{field.label}</span>
+        <ColumnOperandCells
+          value={value}
+          operation={block.ops === "both" ? "mixed" : block.ops}
+          onChange={(v) => onPatch({ [field.key]: v })}
+        />
       </div>
     );
   }
@@ -72,7 +85,7 @@ export default function Inspector({ block, index, count, onPatch, onReseed, onDu
       </label>
       <label className="mt-text">
         <span className="mt-field-label">Инструкция</span>
-        <input value={block.instruction} placeholder={kind.instruction} onChange={(e) => onPatch({ instruction: e.target.value }, { typing: true })} />
+        <input value={block.instruction} placeholder={typeof kind.instruction === "function" ? kind.instruction(block) : kind.instruction} onChange={(e) => onPatch({ instruction: e.target.value }, { typing: true })} />
       </label>
       {kind.fields.map((f) => <Field key={f.key} field={f} block={block} onPatch={onPatch} />)}
       <p className="mt-insp-note">На листе: «{blockTitle(block)}» — {blockInstruction(block).toLowerCase()}.</p>

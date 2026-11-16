@@ -314,15 +314,15 @@
     },
     {
       "id": "column_addition",
-      "version": "1.3.2",
-      "url": "./decks/column_addition_v1.3.2.zip",
+      "version": "1.3.3",
+      "url": "./decks/column_addition_v1.3.3.zip",
       "title": {
         "ru": "Сложение и вычитание в столбик"
       },
       "status": "beta",
       "access": "paid",
       "description": {
-        "ru": "Два режима сложения и вычитания в столбик: пошаговый тренажёр, где ребёнок перетаскивает цифры в клетки — единицы, перенос или заём, десятки, — и контрольная работа, где примеры переписываются в тетрадь и решаются самостоятельно. Десятки и единицы на монетах — в теме «Разряды числа», счёт на пальцах — в теме «Плюс и минус».",
+        "ru": "Пошаговый тренажёр сложения и вычитания в столбик: ребёнок сам ставит пример в столбик и решает его по разрядам — с переносом, займом и через ноль. Контрольные по столбику — в теме «Контрольные по математике». Десятки и единицы на монетах — в теме «Разряды числа», счёт на пальцах — в теме «Плюс и минус».",
         "en": "Seven modes progress from finger counting and tens-and-ones models to regrouping, column arithmetic, and independent written examples."
       },
       "materialLanguages": [
@@ -650,7 +650,7 @@
         "ru": "Контрольные листы по математике: конструктор из блоков (плюс и минус, сравнение, примеры в столбик) со своими настройками, цифры по клеткам как в тетради, и режим «Решить контрольную» — ребёнок решает лист на экране с клавиатурой, проверкой и видеопризом. Лист печатается в PDF с ответами.",
         "en": "Math test builder: blocks of addition and subtraction tasks, digits in notebook cells; print to PDF or solve on screen with a keypad and a check."
       },
-      "status": "beta",
+      "status": "release",
       "access": "paid",
       "materialLanguages": [
         "ru"

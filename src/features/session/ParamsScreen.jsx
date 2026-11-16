@@ -46,6 +46,7 @@ import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
+import TopicLinkScreen from "./TopicLinkScreen.jsx";
 import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
@@ -2375,6 +2376,9 @@ export default function ParamsScreen() {
   const unmetStartRequirement = (mode?.startRequires ?? []).find((req) => (!req.when || req.when.some(isOn)) && !req.anyOf.some(isOn));
   const needsContentLanguage = Boolean(topicRecord?.languageContract) && !availableContentLanguages(topicRecord, mode?.id).includes(topicLanguageForStudent(topicRecord));
   const isStartDisabled = needsContentLanguage || sentenceListEmpty || textListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
+
+  // a mode that moved to another topic (the checks → «Контрольные по математике»); here, after every hook
+  if (mode?.type === "topic_link") return <TopicLinkScreen mode={mode} onBack={() => setScreen("modes")} />;
 
   return (
     <div className="screen">
