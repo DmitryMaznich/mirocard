@@ -39,6 +39,17 @@ function alphabetRows(alphabet) {
   return rows;
 }
 
+// a style of capitals only (`script.caps`, the Russian «Печатные»): no pairs «А а» (the small letter would be written as its capital,
+// «А А»), every letter once, a word space between them — 6 to a row, as they fit the A5 width on the print papers (a letter 1 cm and
+// two clear cells after it)
+const CAPS_ROW = 6;
+function capitalRows(alphabet) {
+  const caps = alphabet.lower.map((l) => l.toUpperCase());
+  const rows = [];
+  for (let i = 0; i < caps.length; i += CAPS_ROW) rows.push(caps.slice(i, i + CAPS_ROW).join(" "));
+  return rows;
+}
+
 const DIGITS = "0 1 2 3 4 5 6 7 8 9";
 const SIGNS = [["+", "плюс"], ["-", "минус"], ["=", "равно"], [">", "больше"], ["<", "меньше"]];
 const PUNCT = [[".", "точка"], [",", "запятая"], ["?", "вопрос"], ["!", "восклицание"]];
@@ -49,12 +60,12 @@ export const BACK_HEADINGS = { alphabet: "Алфавит", digits: "Цифры",
 // `alphabet`: the deck's (topicAlphabet with the glyph map, so a capital without ink is not written). `words`: the deck's own words
 // for what the back writes out (`meta.coverWords` of a variant deck: { headings: {kind: text}, signs: {"+": text}, punctuation: {".": text} }),
 // the Russian ones where it has none.
-export function backContent(kind, alphabet = RU, words = {}) {
+export function backContent(kind, alphabet = RU, words = {}, { caps = false } = {}) {
   const word = (group, sign, ru) => words[group]?.[sign] ?? ru;
   let lines;
   switch (kind) {
     case "alphabet":
-      lines = writeEven(alphabetRows(alphabet));
+      lines = caps ? writeAll(capitalRows(alphabet)) : writeEven(alphabetRows(alphabet));
       break;
     case "digits":
       lines = writeAll([DIGITS, "1 2 3 4 5 6 7 8 9 10", "11 12 13 14 15", "16 17 18 19 20"]);

@@ -1135,10 +1135,19 @@
       "version": "0.7.0",
       "renderer": "propis2",
       "sources": [
+        "public/decks/propis2_v0.7.0.zip",
         "src/topics/renderers/propis2",
         "tools/propis2/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "0.7.0",
+        "url": "./decks/propis2_v0.7.0.zip",
+        "title": "Прописи",
+        "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
+        "renderer": "propis2",
+        "modes": 4,
+        "cards": 1
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "propis2",
@@ -1160,7 +1169,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T06:33:14+00:00"
+      "sourceUpdatedAt": "2026-11-16T10:34:43+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1199,7 +1208,7 @@
           "bg"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T06:33:14+00:00"
+      "sourceUpdatedAt": "2026-11-16T10:34:43+00:00"
     },
     {
       "id": "propis2_lang",
@@ -1241,7 +1250,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T06:33:14+00:00"
+      "sourceUpdatedAt": "2026-11-16T10:34:43+00:00"
     },
     {
       "id": "reading_dad_instructions",

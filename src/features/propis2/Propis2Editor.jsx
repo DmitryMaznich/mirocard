@@ -69,7 +69,7 @@ const SETTING_SAYS = {
 // (owner, 2026-11-11: the button stays light, the list says what the letters stand for)
 
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
-const PAPER_ICONS = { propis: I.IconRowNarrow, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperM1, m2: I.IconPaperM2 };
+const PAPER_ICONS = { propis: I.IconRowNarrow, square: I.IconPaperSquare, ruled: I.IconPaperRuled, bg: I.IconPaperBg, m1: I.IconPaperM1, m2: I.IconPaperM2, print_cell: I.IconPaperPrintCell, print_bigcell: I.IconPaperPrintBigCell, print_line: I.IconPaperPrintLine };
 // every paper has an icon: a four-line paper without its own (the English ones, fourLinePapers.js) takes the four-line one of the
 // Bulgarian paper — a missing icon was an undefined component, React #130, the editor of an English notebook crashed (1.0.2868)
 // (the Slovene papers, three lines and a blank band: an icon drawn from the paper's own measures — I.fourLinePaperIcon)

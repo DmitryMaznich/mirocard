@@ -46,6 +46,11 @@ export const fourLinePaperIcon = (id, p) => {
   fourLineIcons.set(id, Icon);
   return Icon;
 };
+// the print style's papers (src/handwriting/printPapers.js): the 5 mm cell with a letter-tall band, the 1 cm cell, the 1 cm rows with the
+// letter's height dashed and a gap between them
+export const IconPaperPrintCell = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M7.75 3.5v17M12 3.5v17M16.25 3.5v17M3.5 7.75h17M3.5 12h17M3.5 16.25h17" stroke={GRAY} strokeWidth={0.8} /><path d="M7.75 7.75v8.5M10 7.75v8.5" stroke={DARK} strokeWidth={1.4} /></>);
+export const IconPaperPrintBigCell = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M12 3.5v17M3.5 12h17" stroke={GRAY} strokeWidth={1.1} /><path d="M5.5 5v5M5.5 5h3" stroke={DARK} strokeWidth={1.4} /></>);
+export const IconPaperPrintLine = () => S(<><path d="M2.5 5H21.5M2.5 14H21.5" stroke={GRAY} strokeWidth={1} strokeDasharray="1.6 1.4" />{baseRule(10)}{baseRule(19)}</>);
 export const IconPaperRuled = () => S(<>{rule(7, 3, 21)}{rule(12, 3, 21)}{rule(17, 3, 21)}<path d="M6 3.5v17" stroke={RED} strokeWidth={1.3} /></>);
 
 // ---- row size (the letter «а» on its ruling), slant density, dashes, writing space ---------------------------------------

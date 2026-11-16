@@ -1,6 +1,8 @@
 import { useState } from "react";
 import CoverSide from "./cover/CoverSide.jsx";
 import { BOOKLET_MAX_PAGES, bookletPageCount } from "@/handwriting/booklet.js";
+import { isPrintPaper } from "@/handwriting/printPapers.js";
+import { deckPapers } from "@/topics/renderers/propis2/model.js";
 import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, SPINE_PAPERS, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
 
 // Asked before a notebook is printed (owner, 2026-10-08). The cover is one template (cover/coverConfig.js): a ready design picked in
@@ -21,6 +23,8 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
   const [side, setSide] = useState("front"); // the side the phone shows
   const [tune, setTune] = useState(false);
   const preset = presetOf(cover);
+  // the print style («Печатные», papers of its own): the back is written on its paper, nothing to choose (coverTasks.js)
+  const printStyle = isPrintPaper(deckPapers(notebook?.topicRecord)[0]?.id);
   const set = (patch) => setCover((c) => normalizeCover({ ...c, ...patch }));
   const setTitle = (patch) => setCover((c) => normalizeCover({ ...c, title: { ...c.title, ...patch } }));
   const toggleField = (id) => setCover((c) => normalizeCover({ ...c, fields: c.fields.includes(id) ? c.fields.filter((f) => f !== id) : [...c.fields, id] }));
@@ -53,7 +57,7 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
               <div className="p2-print-page p2-print-page--front"><CoverSide side="front" cover={cover} notebook={shown} /></div>
             </div>
             <Chips label="Задник" options={BACKS} value={cover.back.kind} onPick={(kind) => set({ back: { kind, paper: backPaperOf(kind) } })} />
-            {cover.back.kind !== "none" && <Chips label="Бумага задника" options={BACK_PAPERS} value={cover.back.paper} onPick={(paper) => set({ back: { ...cover.back, paper } })} small />}
+            {cover.back.kind !== "none" && !printStyle && <Chips label="Бумага задника" options={BACK_PAPERS} value={cover.back.paper} onPick={(paper) => set({ back: { ...cover.back, paper } })} small />}
             <button type="button" className={`p2-print-more${tune ? " is-open" : ""}`} aria-expanded={tune} onClick={() => setTune((t) => !t)}>
               Настроить обложку <span aria-hidden="true">{tune ? "▴" : "▾"}</span>
             </button>
