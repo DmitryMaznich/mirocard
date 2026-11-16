@@ -10,7 +10,7 @@
 import {
   SECTION_INFO, MAX_NUMBERS, COUNT_MIN, COUNT_MAX, allowedChanges, normalizeSection, buildSection, makeRng,
 } from "../addition_subtraction/worksheet/sections.js";
-import { CMP_MAX_NUMBERS, normalizeCompare, buildCompare } from "./compare.js";
+import { CMP_MAX_NUMBERS, CMP_NUMS_MAX_NUMBERS, normalizeCompare, buildCompare } from "./compare.js";
 import { normalizeColumn, buildColumn } from "./column.js";
 
 export const GROUPS = [
@@ -66,6 +66,10 @@ const compareKind = (what, title, sample, extra) => ({
   build: (b) => buildCompare(b, what),
 });
 BLOCK_KINDS.cmp_nums = compareKind("nums", "Сравни числа", "7 ○ 5", []);
+// «Сравни числа» also up to 1000 (the place-value traps)
+BLOCK_KINDS.cmp_nums.fields = BLOCK_KINDS.cmp_nums.fields.map((f) => (f.key === "maxNumber"
+  ? { ...f, options: () => CMP_NUMS_MAX_NUMBERS.map((v) => ({ value: v, label: `до ${v}` })) }
+  : f));
 BLOCK_KINDS.cmp_expr = compareKind("expr", "Сравни пример и число", "3 + 2 ○ 6", [OPS]);
 BLOCK_KINDS.cmp_two = compareKind("two", "Сравни два примера", "3 + 2 ○ 4 + 1", [OPS]);
 

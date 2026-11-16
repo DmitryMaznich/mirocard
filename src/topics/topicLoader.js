@@ -939,6 +939,27 @@ function buildFlashcardModes(meta, existingModes) {
   return [...sorted, withAdultRating(qaMode)];
 }
 
+// The checks moved to «Контрольные по математике» (owner, 2026-11-16): in a topic's mode list a
+// link (`type: "topic_link"`, ParamsScreen → TopicLinkScreen) stands where the old check stood
+// (`replaces`, see placeTopicLinks); the old mode stays `retired` so saved plans and history resolve.
+function testsLinkMode({ id, replaces, title, icon, heading, text, about }) {
+  return {
+    id,
+    type: "topic_link",
+    evaluation: "none",
+    hideConceptPicker: true,
+    replaces,
+    ui: { title, instruction: "В теме «Контрольные по математике»", icon },
+    link: { topicId: "math_tests", title: "Контрольные по математике", heading, text },
+    methodology: {
+      summary: `Переход в тему «Контрольные по математике» — ${about}.`,
+      text: `${heading}: в теме «Контрольные по математике» готовые листы и конструктор, решение на экране или на распечатанном листе. Если тема не установлена, откроется каталог с ней.`,
+      goal: "Взрослый проверяет, решает ли ребёнок задания сам, без подсказок режимов темы.",
+    },
+    params: {},
+  };
+}
+
 const DEFAULT_MODES = {
   reading: [
     {
@@ -1032,7 +1053,12 @@ const DEFAULT_MODES = {
     { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "4. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",            icon: "media/icons/comparison_mode.svg" } },
     { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Сравни первое и второе",   instruction: "Сравни первое число со вторым",          icon: "media/icons/comparison_first_number.svg" } },
     { id: "compare_apply",        type: "compare_apply",        evaluation: "auto", ui: { title: "6. Применяем сравнение",     instruction: "Выбери число или расставь по порядку",  icon: "media/icons/comparison_apply.svg" } },
-    { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "7. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
+    testsLinkMode({
+      id: "compare_tests_link", replaces: "compare_test", title: "7. Контрольная работа", icon: "media/icons/comparison_test.svg",
+      about: "контрольные по сравнению", heading: "Контрольные по сравнению — в отдельной теме",
+      text: "В теме «Контрольные по математике» — готовые листы «Сравни до 10», «до 20», «до 100», «до 1000» (с ловушками 47 и 74, 305 и 350, 99 и 100) и конструктор: сравни числа, пример и число, два примера. Лист решают на экране или распечатывают.",
+    }),
+    { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", retired: true, ui: { title: "7. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
     { id: "compare_real_life",    type: "compare_real_life",    evaluation: "auto", ui: { title: "8. Сравни в жизни",          instruction: "У кого больше?",                             icon: "media/icons/comparison_real_life.svg" } },
   ],
   math_houses: [
@@ -1212,8 +1238,14 @@ const DEFAULT_MODES = {
         showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" } },
       },
     },
+    testsLinkMode({
+      id: "operation_tests_link", replaces: "operation_worksheet", title: "10. Контрольная работа", icon: "media/icons/ops_worksheet.svg",
+      about: "контрольные по сложению и вычитанию", heading: "Контрольные по сложению и вычитанию — в отдельной теме",
+      text: "В теме «Контрольные по математике» — готовые листы («Разминка до 5», «Проверочная до 10», «Цепочки до 20», «Неизвестное и знак») и конструктор из тех же разделов: пример в одно и в несколько действий, найди неизвестное, поставь знак, числовая цепочка. Лист решают на экране или распечатывают.",
+    }),
     {
       id: "operation_worksheet",
+      retired: true,
       type: "operation_worksheet",
       evaluation: "none",
       hideConceptPicker: true,
@@ -1342,6 +1374,7 @@ const DEFAULT_MODES = {
     // `retired` (out of the mode lists; saved plans and history still resolve), the list shows a link.
     {
       id: "column_tests_link",
+      replaces: "column_copy",
       type: "topic_link",
       evaluation: "none",
       hideConceptPicker: true,
@@ -2200,7 +2233,7 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
     };
   });
   const customModes = existingModes.filter((mode) => !defaultIds.has(mode.id));
-  return [...mergedDefaults, ...customModes];
+  return placeTopicLinks([...mergedDefaults, ...customModes]);
 }
 
 // addition_subtraction's mode order lives in its published deck manifest, and
@@ -2219,6 +2252,7 @@ const ADDITION_SUBTRACTION_ORDER = [
   "fingers_count",
   "operation_result",
   "operation_chain",
+  "operation_tests_link",
   "operation_worksheet",
   "operation_missing_term",
   "operation_audio",
@@ -2245,6 +2279,15 @@ function orderAdditionSubtractionModes(modes) {
 }
 
 // Preserves manifest mode order; only appends default modes absent from manifest
+// A link to «Контрольные по математике» stands where the check it replaces stood, even when the
+// deck's own manifest lists its modes (a default the manifest lacks would go last otherwise).
+function placeTopicLinks(modes) {
+  const links = modes.filter((m) => m.type === "topic_link" && m.replaces && modes.some((x) => x.id === m.replaces));
+  if (!links.length) return modes;
+  const rest = modes.filter((m) => !links.includes(m));
+  return rest.flatMap((m) => [...links.filter((l) => l.replaces === m.id), m]);
+}
+
 function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
   const defaultById = modesById(defaultModes);
   const manifestIds = new Set(manifestModes.map((m) => m.id));
@@ -2259,7 +2302,7 @@ function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
     };
   });
   const missing = defaultModes.filter((m) => !manifestIds.has(m.id));
-  return [...merged, ...missing];
+  return placeTopicLinks([...merged, ...missing]);
 }
 
 function mergeDefaultMeta(meta, renderer) {

@@ -109,6 +109,24 @@ export const LIBRARY = [
       { type: "cmp_two", maxNumber: 20, count: 6 },
     ],
   },
+  // from «7. Контрольная работа» of «Сравнение» (moved here 2026-11-16): a sheet mixes the steps up
+  // to its ceiling, so «до 1000» still checks numbers up to 20 and 100
+  {
+    id: "compare20", group: "Сравнение", title: "Сравни до 20", note: "числа до 10 и до 20, примеры до 20",
+    blocks: [
+      { type: "cmp_nums", maxNumber: 10, count: 4 },
+      { type: "cmp_nums", maxNumber: 20, count: 6 },
+      { type: "cmp_expr", maxNumber: 20, count: 6 },
+    ],
+  },
+  {
+    id: "compare1000", group: "Сравнение", title: "Сравни до 1000", note: "двузначные и трёхзначные, 305 и 350, 99 и 100",
+    blocks: [
+      { type: "cmp_nums", maxNumber: 20, count: 3 },
+      { type: "cmp_nums", maxNumber: 100, count: 6 },
+      { type: "cmp_nums", maxNumber: 1000, count: 9 },
+    ],
+  },
 ];
 
 export function testFromLibrary(entry) {

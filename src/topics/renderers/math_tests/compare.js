@@ -9,6 +9,9 @@
 import { makeRng } from "../addition_subtraction/worksheet/sections.js";
 
 export const CMP_MAX_NUMBERS = [10, 20, 100];
+// «Сравни числа» goes up to 1000 too (from «7. Контрольная работа» of «Сравнение», moved here
+// 2026-11-16): three-digit numbers with the place-value traps — 305 / 350, 99 / 100, 300 / 299
+export const CMP_NUMS_MAX_NUMBERS = [10, 20, 100, 1000];
 export const CMP_WHAT = ["nums", "expr", "two"];
 export const CMP_SIGNS = ["<", ">", "="];
 
@@ -20,7 +23,7 @@ export function normalizeCompare(block, what) {
   const def = defaultCompare(what);
   const b = { ...def, ...block, type: `cmp_${what}` };
   b.count = Math.max(2, Math.min(12, Math.round(Number(b.count) || def.count)));
-  if (!CMP_MAX_NUMBERS.includes(b.maxNumber)) b.maxNumber = def.maxNumber;
+  if (!(what === "nums" ? CMP_NUMS_MAX_NUMBERS : CMP_MAX_NUMBERS).includes(b.maxNumber)) b.maxNumber = def.maxNumber;
   if (!["add", "subtract", "both"].includes(b.ops)) b.ops = "both";
   return b;
 }
@@ -65,6 +68,7 @@ function relation(rng, what) {
 function oneItem(rng, b, what, index) {
   const max = b.maxNumber;
   const rel = relation(rng, what);
+  if (what === "nums" && max >= 1000) return threeDigitPair(rng, rel);
   if (what === "nums") {
     // two-digit numbers: often the same digits swapped or the same tens, the classic traps
     const lo = max >= 100 ? 10 : 0;
@@ -95,6 +99,23 @@ function oneItem(rng, b, what, index) {
   return { tokens: [...left, BOX, num(w)], answers: [rel] };
 }
 
+// three-digit numbers: a third of them the traps of the place value, the rest close to each other
+function threeDigitPair(rng, rel) {
+  const signOf = (a, b) => (a < b ? "<" : a > b ? ">" : "=");
+  let pair;
+  if (rel === "=") { const v = int(rng, 100, 999); pair = [v, v]; }
+  else {
+    const x = rng();
+    if (x < 0.15) { const h = int(rng, 1, 9), d = int(rng, 1, 9); pair = [h * 100 + d * 10, h * 100 + d]; } // 350 / 305
+    else if (x < 0.3) { const n = int(rng, 1, 9) * 100; pair = [n - 1, n]; } // 299 / 300, 99 / 100
+    else if (x < 0.45) { const h = int(rng, 1, 9), t = int(rng, 1, 9), o = int(rng, 1, 9); pair = t === o ? null : [h * 100 + t * 10 + o, h * 100 + o * 10 + t]; } // 347 / 374
+    else { const v = int(rng, 100, 989); pair = [v, v + int(rng, 1, 10)]; }
+    if (!pair) return null;
+    if (rng() < 0.5) pair.reverse();
+  }
+  return { tokens: [num(pair[0]), BOX, num(pair[1])], answers: [signOf(pair[0], pair[1])] };
+}
+
 const keyOf = (item) => item.tokens.map((t) => (t.t === "num" ? t.v : t.t === "op" ? t.op : "_")).join(" ");
 
 export function buildCompare(block, what) {
@@ -112,7 +133,7 @@ export function buildCompare(block, what) {
     seen.add(key);
     items.push(item);
   }
-  return { maxNumber: b.maxNumber, items };
+  return { maxNumber: Math.min(b.maxNumber, 999), items }; // «до 1000» — three-digit cells
 }
 
 // the value of a side made of tokens (for tests and checks)

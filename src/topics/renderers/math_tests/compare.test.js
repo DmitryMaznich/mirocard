@@ -65,4 +65,21 @@ describe("math_tests «Сравнение»", () => {
       for (const set of cols.values()) expect(set.size, type).toBe(1);
     }
   });
+  it("«Сравни числа» до 1000: three-digit numbers, the sign right, the place-value traps there", () => {
+    let traps = 0;
+    for (let seed = 1; seed <= 8; seed += 1) {
+      const { items, maxNumber } = buildBlock(normalizeBlock({ type: "cmp_nums", id: "c", seed, count: 12, maxNumber: 1000 }));
+      expect(maxNumber).toBe(999);
+      expect(items).toHaveLength(12);
+      for (const it of items) {
+        const [a, b] = [it.tokens[0].v, it.tokens[2].v];
+        expect(a).toBeGreaterThanOrEqual(99);
+        expect(b).toBeLessThanOrEqual(999);
+        expect(it.answers[0]).toBe(a < b ? "<" : a > b ? ">" : "=");
+        if (Math.floor(a / 100) === Math.floor(b / 100) && String(a).split("").sort().join() === String(b).split("").sort().join() && a !== b) traps += 1;
+        if (Math.abs(a - b) === 1 && (a % 100 === 0 || b % 100 === 0)) traps += 1;
+      }
+    }
+    expect(traps).toBeGreaterThan(5);
+  });
 });

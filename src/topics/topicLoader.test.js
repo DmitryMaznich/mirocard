@@ -196,7 +196,8 @@ describe("importTopic — valid cases", () => {
       "fingers_count",
       "operation_result",
       "operation_chain",
-      "operation_worksheet",
+      "operation_tests_link", // the check → «Контрольные по математике» (2026-11-16)
+      "operation_worksheet", // retired
       "operation_missing_term",
     ]);
     expect(record.modes.map((m) => m.ui.title)).toEqual([
@@ -209,7 +210,8 @@ describe("importTopic — valid cases", () => {
       "7. Считаем на пальцах",
       "8. Сколько стало?",
       "9. Пример в несколько действий",
-      "10. Контрольная работа",
+      "10. Контрольная работа", // the link
+      "10. Контрольная работа", // retired: out of the mode lists
       "11. Найди неизвестное",
     ]);
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
@@ -741,7 +743,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(record.modes.map((m) => m.id)).toEqual([
       "fingers_show", "operation_observe", "operation_name_action", "operation_do_action",
       "operation_action_from_sign", "operation_find_sign", "fingers_count", "operation_result",
-      "operation_chain", "operation_worksheet", "operation_missing_term", "operation_audio",
+      "operation_chain", "operation_tests_link", "operation_worksheet", "operation_missing_term", "operation_audio",
     ]);
     const audio = record.modes.find((m) => m.id === "operation_audio");
     expect(audio.ui).toMatchObject({ title: "12. Слушай и посчитай", instruction: "Послушай пример" });

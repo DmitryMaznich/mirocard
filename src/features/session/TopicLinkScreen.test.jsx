@@ -35,6 +35,21 @@ it("the mode list: the link instead of the old check (kept as retired)", () => {
   expect(column.modes.find((m) => m.id === "column_copy")?.retired).toBe(true);
 });
 
+it("«Сравнение» and «Плюс и минус»: the link stands where the old check stood", async () => {
+  for (const [file, id, linkId, before, after] of [
+    ["comparison_v2.57.1.zip", "comparison", "compare_tests_link", "compare_apply", "compare_real_life"],
+    ["addition_subtraction_v1.9.5.zip", "addition_subtraction", "operation_tests_link", "operation_chain", "operation_missing_term"],
+  ]) {
+    await importTopic(db, await readFile(`public/decks/${file}`));
+    const listed = (await getTopicRecord(db, id)).modes.filter(isPickableMode).map((m) => m.id);
+    const at = listed.indexOf(linkId);
+    expect(at, id).toBeGreaterThan(0);
+    expect(listed[at - 1], id).toBe(before);
+    expect(listed[at + 1], id).toBe(after);
+    expect(listed, id).not.toContain(id === "comparison" ? "compare_test" : "operation_worksheet");
+  }
+});
+
 it("not installed: the catalog opens on the topic", async () => {
   mountWith([structuredClone(column)]);
   await act(async () => root.render(<ParamsScreen />));
