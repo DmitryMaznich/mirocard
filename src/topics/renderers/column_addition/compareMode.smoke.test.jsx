@@ -115,10 +115,13 @@ describe("ColumnArithmeticTask — compareMode", () => {
     mount(task, "always");
     await fillForm(task);
 
-    expect(container.querySelector(".col-crossout-gesture")).toBeFalsy();
+    expect(container.querySelector(".col-digit--lender")).toBeFalsy();
     expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeFalsy();
     answer("Не хватает");
-    expect(container.querySelector(".col-crossout-gesture")).toBeTruthy();
+    // take — give — reduce: the tens light up while the «1» goes in front of the units
+    expect(container.querySelector(".col-digit--lender")?.textContent).toContain("3");
+    expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeTruthy();
+    expect(container.querySelector(".col-crossout-gesture")).toBeFalsy();
   });
 
   it("532 − 157: the tens keep their «2» and get a «1» in front of it — 12, nothing overwritten", async () => {
@@ -127,19 +130,19 @@ describe("ColumnArithmeticTask — compareMode", () => {
     await fillForm(task);
 
     answer("Не хватает");
-    crossOut(); // the 3 of the tens
-    tapDigit(2); // adjust:tens — over the crossed-out 3
     tapDigit(1); // borrow:units — low on the left over the units, in front of the 2
     expect(container.querySelector('[data-cell-key="borrow:units"]').closest(".col-mark-cell--one-only")).toBeTruthy();
+    crossOut(); // the 3 of the tens
+    tapDigit(2); // adjust:tens — over the crossed-out 3
     tapDigit(5); // 12 − 7
 
     expect(question()).toBe("2 − 5: десятков хватает?");
     // the mark over the tens is what is compared now, not the crossed-out 3
     expect(container.querySelector(".col-mark-cell--comparing")).toBeTruthy();
     answer("Не хватает");
+    tapDigit(1); // borrow:tens — in front of the mark «2»
     crossOut(); // the 5 of the hundreds
     tapDigit(4);
-    tapDigit(1); // borrow:tens — in front of the mark «2»
     const tensMark = container.querySelector('[data-cell-key="adjust:tens"]').closest(".col-mark-cell");
     expect(container.querySelector(".col-digit-corner, .col-carry-cell")).toBeNull(); // no triangles left
     expect(tensMark.textContent.replace(/\s+/g, "")).toBe("12");
@@ -158,17 +161,17 @@ describe("ColumnArithmeticTask — compareMode", () => {
 
     expect(question()).toBe("2 − 7: единиц хватает?");
     answer("Не хватает");
-    crossOut(); tapDigit(4); tapDigit(1); tapDigit(5);
+    tapDigit(1); crossOut(); tapDigit(4); tapDigit(5);
     expect(container.querySelector(".col-compare-panel")).toBeFalsy(); // 4 − 2: no question
   });
 
-  it("off: never asks — straight to crossing out", async () => {
+  it("off: never asks — straight to taking", async () => {
     const task = columnTaskOfExample({ operation: "subtract", top: 52, bottom: 27 });
     mount(task, "off");
     await fillForm(task);
 
     expect(container.querySelector(".col-compare-panel")).toBeFalsy();
-    expect(container.querySelector(".col-crossout-gesture")).toBeTruthy();
+    expect(container.querySelector(".col-digit--lender")).toBeTruthy(); // straight to taking: the «1»
   });
 
   it("95 + 7: the new place's «1» is the child's to write, not shown ready", async () => {

@@ -83,10 +83,12 @@ function buildAddSteps(columns) {
 // Subtraction, per place right to left:
 //   1. the top number of the place: its digit, or the mark over it;
 //   2. «хватает?» against the bottom digit;
-//   3. not enough → borrow: cross out the neighbour on the left and write it
-//      one less over it; a 0 there lends through — the next one gives, the
-//      0 becomes 9 (302 − 195: 3 → 2, then 0 → 9);
-//   4. a small «1» in front of the place's own number (2 → 12);
+//   3. not enough → borrow: the neighbour on the left lights up (a 0 there
+//      lends through — the next one lights up too) and a «1» goes in front of
+//      the place's own number (2 → 12);
+//   4. the lender is crossed out and written one less over it; a 0 between
+//      becomes 9 (302 − 195: 3 → 2, then 0 → 9) — take, give, reduce
+//      (owner, 2026-11-16; before: reduce first, then the «1»);
 //   5. the result digit. A leading zero of the answer is not written, and a
 //      leading place lent down to 0 gets no «0» over it (102 − 7 = 95).
 // Nothing is ever overwritten: 532 − 157 keeps «2» over the crossed-out 3 of
@@ -104,6 +106,10 @@ function buildSubSteps(columns) {
     if (need !== null && have < need) {
       let j = i + 1;
       while (cur[j] === 0) j++;
+      // take — give — reduce (owner, 2026-11-16): the place(s) we take from light up while the
+      // «1» goes in front of our own number, then the lender is crossed out and written one less
+      const lenders = columns.slice(i + 1, j + 1).map((c) => c.position);
+      place.push({ cellType: "borrow", position: col.position, digit: 1, lenders });
       place.push({ cellType: "crossout", position: columns[j].position, digit: null });
       cur[j] -= 1;
       if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
@@ -112,7 +118,6 @@ function buildSubSteps(columns) {
         place.push({ cellType: "crossout", position: columns[k].position, digit: null });
         place.push({ cellType: "adjust", position: columns[k].position, digit: 9 });
       }
-      place.push({ cellType: "borrow", position: col.position, digit: 1 });
       value += 10;
     }
     const digit = value - (need ?? 0);

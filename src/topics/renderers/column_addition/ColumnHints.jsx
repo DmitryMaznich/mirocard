@@ -25,9 +25,9 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
   const label = place[activeStep.position];
   const working = place[activeStep.column];
   if (activeStep.cellType === "carry") return ["Шаг 2", "Переносим", `В разряде «${working}» получилось больше 9. Перенеси 1 в клетку сверху.`];
-  if (activeStep.cellType === "borrow") return ["Шаг 2", "Ставим «1»", "Заняли — поставь маленькую 1 перед своим числом: оно стало на 10 больше."];
+  if (activeStep.cellType === "borrow") return ["Шаг 2", "Занимаем", `В разряде «${working}» не хватает — берём десяток у подсвеченной цифры. Поставь маленькую 1: твоё число стало на 10 больше.`];
   if (activeStep.cellType === "crossout" && col.topDigit === 0) return ["Шаг 2", "Ноль тоже отдаёт", `Тут 0: он получил 10 и отдаёт 1. Проведи пальцем по нулю.`];
-  if (activeStep.cellType === "crossout") return ["Шаг 2", "Занимаем", `В разряде «${working}» не хватает. Проведи пальцем по цифре в разряде «${label}».`];
+  if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдали десяток", `Зачеркни цифру в разряде «${label}» — у неё взяли один.`];
   if (activeStep.cellType === "adjust" && col.topDigit === 0) return ["Шаг 2", "Ноль стал девяткой", "10 − 1 = 9. Впиши 9 в клетку сверху."];
   if (activeStep.cellType === "adjust") return ["Шаг 2", "Стало на 1 меньше", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в клетку сверху.`];
   // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit at this
