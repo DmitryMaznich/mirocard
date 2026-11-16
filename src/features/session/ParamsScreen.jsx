@@ -1920,6 +1920,8 @@ export default function ParamsScreen() {
         />
       )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        // (a choice of one: «Мои языки» left a single language — propis2/myLanguagesView.js)
+        if (def.hidden) return null;
         if (def.showWhen && !Object.entries(def.showWhen).every(([condition, expected]) => (
           params[condition] ?? mode.params[condition]?.default
         ) === expected)) return null;
@@ -2012,7 +2014,7 @@ export default function ParamsScreen() {
   ) : isLettersCase ? (
     <>
       {/* a propis2 deck with several writing languages: the language of the cards (propis2/languages.js) */}
-      {mode?.params?.writingLang?.type === "enum" && (
+      {mode?.params?.writingLang?.type === "enum" && !mode.params.writingLang.hidden && (
         <EnumParam
           label={setupText(mode.params.writingLang.label) || "Язык"}
           options={mode.params.writingLang.values}

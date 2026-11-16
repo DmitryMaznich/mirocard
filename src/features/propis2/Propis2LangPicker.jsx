@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { sampleLetters, scriptOf } from "@/topics/renderers/propis2/myLanguages.js";
 
 // The language of a new notebook in a deck with several writing languages (propis2/languages.js, docs/propis2-languages.md): a bottom
 // sheet with the languages — each with what changes (how many letters, its own letters) and how many notebooks it already has.
@@ -47,6 +48,58 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
           ))}
         </div>
         <button type="button" className="p2-lang-done" onClick={() => { if (picked !== lang) onPick(picked); onClose(); }}>Готово</button>
+      </div>
+    </div>
+  );
+}
+
+// «Мои языки» (docs/mockups/propis2-languages-journey.html, screen 3): the languages the adult works in — ticks, grouped by script (the
+// script of the first ticked one first), each named in itself, with two of its letters; the last one cannot be unticked. Notebooks of a
+// language taken off stay in «Мои тетради».
+export function Propis2MyLangsSheet({ languages, selected, counts = {}, onSave, onClose }) {
+  const [picked, setPicked] = useState(() => new Set(selected));
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const firstScript = scriptOf(languages.find((l) => selected.includes(l.id)) ?? languages[0]);
+  const groups = [firstScript, firstScript === "latin" ? "cyrillic" : "latin"]
+    .map((sc) => ({ sc, langs: languages.filter((l) => scriptOf(l) === sc) }))
+    .filter((g) => g.langs.length);
+  const toggle = (id) => setPicked((cur) => {
+    const next = new Set(cur);
+    if (next.has(id)) { if (next.size > 1) next.delete(id); } else next.add(id);
+    return next;
+  });
+  return (
+    <div className="p2-lang-layer" data-testid="propis2-my-langs-sheet">
+      <div className="p2-lang-scrim" onClick={onClose} />
+      <div className="p2-lang-sheet" role="dialog" aria-modal="true" aria-labelledby="p2-mylang-title">
+        <div className="p2-lang-grab" aria-hidden="true" />
+        <h2 id="p2-mylang-title">Мои языки</h2>
+        <p className="p2-lang-sub">Тетради, готовые тетради и карточки — на этих языках. Тетради снятого языка остаются в «Моих тетрадях».</p>
+        {groups.map((g) => (
+          <div key={g.sc}>
+            <div className="p2-lang-group">{g.sc === "latin" ? "Латиница" : "Кириллица"}</div>
+            <div className="p2-lang-list" role="group" aria-label={g.sc === "latin" ? "Латиница" : "Кириллица"}>
+              {g.langs.map((l) => {
+                const on = picked.has(l.id);
+                return (
+                  <button key={l.id} type="button" role="checkbox" aria-checked={on} className={`p2-lang-opt${on ? " is-on" : ""}`} onClick={() => toggle(l.id)} disabled={on && picked.size === 1} title={on && picked.size === 1 ? "Хотя бы один язык" : undefined}>
+                    <span className={`p2-lang-check${on ? " is-on" : ""}`} aria-hidden="true">{on ? "✓" : ""}</span>
+                    <span className="p2-lang-text">
+                      <span className="p2-lang-name">{l.title}{l.status === "draft" && <span className="p2-lang-draft">черновик</span>}</span>
+                      <span className="p2-lang-note">{notebooksNote(counts[l.id] ?? 0)}{l.styles?.length > 1 ? ` · стилей: ${l.styles.length}` : ""}</span>
+                    </span>
+                    <span className="p2-lang-sample" aria-hidden="true">{sampleLetters(l)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <button type="button" className="p2-lang-done" onClick={() => { onSave([...picked]); onClose(); }}>Готово</button>
       </div>
     </div>
   );

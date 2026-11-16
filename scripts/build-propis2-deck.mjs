@@ -76,7 +76,9 @@ if (langSpec) {
   const baseKits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   // (`publishDraft: true`: a draft language that goes out all the same, marked «черновик» in the language picker — the Slovenian one
   // since the Latin deck 0.10.0, owner, 2026-11-14: «сразу в латиницу для всех»)
-  const inDeck = (l) => (latin ? l.deck === "latin" : l.deck !== "latin") && (drafts || l.status !== "draft" || l.publishDraft);
+  // «Прописи: латиница» is the try-out of ONE «Прописи» with every alphabet and «Мои языки» (owner, 2026-11-16: «откатать слияние на
+  // теме Прописи латиница, если всё ок — соберём всё в главную тему»): it takes every language, the Cyrillic ones too
+  const inDeck = (l) => (latin || l.deck !== "latin") && (drafts || l.status !== "draft" || l.publishDraft);
   const skipped = langSpec.languages.filter((l) => !inDeck(l)).map((l) => l.id);
   if (skipped.length) console.log(`  (languages left out of this deck: ${skipped.join(", ")})`);
   topic.languages = langSpec.languages.filter(inDeck).map((spec) => {
@@ -152,8 +154,11 @@ if (latin) {
   const tc = JSON.parse(readFileSync(LATIN_PATH, "utf-8"));
   // its own description for the topic card (latin.json `about`: the Nelson scheme, no dictation), not propis2's
   topic.meta = { ...topic.meta, id: "propis2_lang", version: tc.version, title: tc.title.ru, ...(tc.about ? { about: tc.about } : {}), ...(tc.avatar ? { avatar: tc.avatar } : {}) };
-  // the dictation is Russian (its words, texts and recordings): not in the Latin deck
-  topic.modes = topic.modes.filter((m) => m.type !== "dictation");
+  // «Мои языки» (src/topics/renderers/propis2/myLanguages.js): the adult sees the languages they picked; the dictation is recorded in
+  // Russian only — it is shown to those who have Russian among theirs (`requiresLanguages`, owner 2026-11-16: «диктант скрываем для тех
+  // языков, где нет озвучки»)
+  topic.meta.myLanguages = true;
+  topic.modes = topic.modes.map((m) => (m.type === "dictation" ? { ...m, requiresLanguages: ["ru"] } : m));
 }
 const ID = topic.meta.id;
 const VERSION = topic.meta.version;

@@ -10,7 +10,9 @@ import { LATIN_KIT_OLD_TITLES, ladderIndex } from "@/topics/renderers/propis2/da
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
-import { Propis2LangSheet } from "./Propis2LangPicker";
+import { Propis2LangSheet, Propis2MyLangsSheet } from "./Propis2LangPicker";
+import { getUiLanguage } from "@/shared/i18n/uiLanguage.js";
+import { keepMyLanguagesLocal, loadMyLanguagesDoc, myLanguagesOn, newerRemotePrefs, offeredLanguages, resolveMyLanguages, saveMyLanguages } from "@/topics/renderers/propis2/myLanguages.js";
 import { deckLanguages, fixLegacyNotebookLangs, langOf, languageView, langStyles, mostUsedLang, pickLanguage, pickStyle, styleOf } from "@/topics/renderers/propis2/languages.js";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
@@ -40,7 +42,15 @@ export default function Propis2Home({ db }) {
   // (the writing style is not chosen for a new notebook: each page picks its own in the editor, owner 2026-11-10)
   const setNewLang = (id) => { setNewLangState(id); writeNewLang(activeTopicId, id); };
   const [langSheet, setLangSheet] = useState(false);
-  const [langFilter, setLangFilter] = useState("all");
+  const [langFilter, setLangFilterState] = useState("all");
+  // «Мои языки» (myLanguages.js; only a deck with `meta.myLanguages`): the account's list, the device's copy first
+  const flags = useAppStore((s) => s.account?.featureFlags);
+  const myOn = myLanguagesOn(deckRecord);
+  const [myDoc, setMyDoc] = useState(null);
+  const myDocRef = useRef(null);
+  myDocRef.current = myDoc;
+  const [mySheet, setMySheet] = useState(false);
+  useEffect(() => { if (!myOn) return undefined; let alive = true; loadMyLanguagesDoc(db).then((d) => { if (alive && d) setMyDoc(d); }).catch(() => {}); return () => { alive = false; }; }, [myOn, db]);
   const [library, setLibrary] = useState(emptyLibrary);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState({ name: "library" });
@@ -75,7 +85,28 @@ export default function Propis2Home({ db }) {
   const [draft, setDraft] = useState(null); // an unsaved notebook a closed app left on this device
   const working = session ? session.lib : library;
   const sessionSet = session ? session.lib.sets.find((st) => st.id === session.sid) : null; // the notebook being worked on
-  const lang = languages ? (sessionSet ? pickLanguage(deckRecord, langOf(sessionSet)) : newLang) : null;
+  // «Мои языки»: the languages offered here (the ready notebooks, a new notebook, the filter) — all of the deck's without the flag
+  const notebookLangs = useMemo(() => (myOn ? [...new Set(library.sets.map(langOf))] : []), [myOn, library.sets]);
+  const myIds = useMemo(
+    () => (myOn ? resolveMyLanguages(deckRecord, myDoc?.langs, { uiLanguage: getUiLanguage(), notebookLangs, flags: flags ?? [] }) : null),
+    [myOn, deckRecord, myDoc, notebookLangs, flags],
+  );
+  const listLangs = useMemo(() => (myOn ? languages.filter((l) => myIds.includes(l.id)) : languages), [myOn, languages, myIds]);
+  // a new notebook's language is one of mine
+  const curNewLang = myOn && !myIds.includes(newLang) ? myIds[0] : newLang;
+  const setMyLanguages = (ids) => {
+    const next = languages.filter((l) => ids.includes(l.id)).map((l) => l.id);
+    if (!next.length) return;
+    setMyDoc({ langs: next, updatedAt: Date.now() });
+    saveMyLanguages(next, db).then(setMyDoc).catch(() => {});
+    if (langFilter !== "all" && !next.includes(langFilter) && !library.sets.some((st) => langOf(st) === langFilter)) setLangFilterState("all");
+  };
+  // the store shows the modes of my languages (the dictation, the cards' language: myLanguagesView.js)
+  const myKey = myIds ? myIds.join() : "";
+  useEffect(() => { if (myOn && myKey && myKey !== (useAppStore.getState().myLanguages ?? []).join()) useAppStore.getState().setMyLanguages(myKey.split(",")); }, [myOn, myKey]);
+  // picking a language in the filter makes it the language of the next new notebook (one tap, owner 2026-11-16)
+  const setLangFilter = (id) => { setLangFilterState(id); if (myOn && id !== "all" && myIds.includes(id)) setNewLang(id); };
+  const lang = languages ? (sessionSet ? pickLanguage(deckRecord, langOf(sessionSet)) : curNewLang) : null;
   // the default writing style of the notebook's pages (docs/latin-letters.md): the language's first one — or `set.style` of a notebook that
   // has one (made before styles moved to the pages, or a copy of a ready notebook in its style); null when the language has none
   const writingStyle = languages ? pickStyle(deckRecord, lang, sessionSet ? styleOf(sessionSet) : null) : null;
@@ -118,6 +149,8 @@ export default function Propis2Home({ db }) {
       const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
       if (!Array.isArray(res?.kv)) return;
       syncedRef.current = snapshotFromRemote(res.kv);
+      const remotePrefs = newerRemotePrefs(res.kv, myDocRef.current);
+      if (remotePrefs) { setMyDoc(remotePrefs); keepMyLanguagesLocal(remotePrefs, db).catch(() => {}); }
       const before = latest.current;
       const pulled = openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(before, res.kv)))));
       // the Bulgarian customer's old notebooks may arrive only now, on a new device (languages.js)
@@ -133,7 +166,7 @@ export default function Propis2Home({ db }) {
     } catch {
       // offline or signed out: the local library keeps working, the queue catches up later
     }
-  }, [persist]);
+  }, [persist, db]);
 
   useEffect(() => {
     let alive = true;
@@ -181,13 +214,13 @@ export default function Propis2Home({ db }) {
   // with languages: every language's ready notebooks (its own kits; the bundled Russian ones for a language with the methodology)
   const readyAll = useMemo(() => {
     if (!languages) return presetsOf(ownKits ? kits : []).map((ps) => readyOf(ps, null));
-    return languages.flatMap((l) => {
+    return listLangs.flatMap((l) => {
       const v = languageView(deckRecord, l.id);
       const own = v.meta?.methodology !== false || Boolean(v.kits?.length);
       return presetsOf(own ? (v.kits ?? bundleKits) : []).map((ps) => readyOf(ps, l.id));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [languages, deckRecord, ownKits, kits, bundleKits]);
+  }, [languages, listLangs, deckRecord, ownKits, kits, bundleKits]);
   // copies taken before the ready notebooks got their ladder titles follow the new title while they still have the old one
   useEffect(() => {
     if (languages || !loaded || !ownKits || !kits.length) return;
@@ -226,7 +259,7 @@ export default function Propis2Home({ db }) {
   // notebooks of a language this deck does not have (an English notebook made in the test copy `propis2_lang`, whose library is this
   // same one, docs/latin-letters.md) are not listed here — kept, never deleted, waiting for their language
   const knownSets = useMemo(() => (languages ? library.sets.filter((st) => languages.some((l) => l.id === langOf(st))) : library.sets), [languages, library.sets]);
-  const usedLangs = useMemo(() => (languages ? new Set([...knownSets.map(langOf), newLang]) : null), [languages, knownSets, newLang]);
+  const usedLangs = useMemo(() => (languages ? new Set([...knownSets.map(langOf), curNewLang, ...(myIds ?? [])]) : null), [languages, knownSets, curNewLang, myIds]);
   // the ready notebooks of every language are always offered (owner, 2026-11-02: the Kazakh ones were hidden until Kazakh was in use),
   // so their languages count for the marks and the filter too
   const shownLangs = useMemo(() => (languages ? new Set([...usedLangs, ...ready.map((r) => r.lang)]) : null), [languages, usedLangs, ready]);
@@ -345,7 +378,7 @@ export default function Propis2Home({ db }) {
   const editReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps, r.lang); startSession(st.id, lib); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); };
   // a new page is a notebook of one page (there is no page outside a notebook); it is not in the list until it is confirmed
   const createPage = (p) => {
-    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: newLang } : {}) });
+    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt, ...(languages ? { lang: curNewLang } : {}) });
     startSession(nb.id, upsertSet(upsertPage(library, p), nb));
     setView({ name: "editor", pageId: p.id, backTo: { name: "library" } });
   };
@@ -649,9 +682,11 @@ export default function Propis2Home({ db }) {
       sets={shownSets}
       langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
       // a deck with one language («Прописи: латиница») has nothing to choose for a new notebook
-      newLang={languages && languages.length > 1 ? { title: languages.find((l) => l.id === newLang)?.title, onOpen: () => setLangSheet(true) } : null}
+      newLang={listLangs && listLangs.length > 1 ? { title: languages.find((l) => l.id === curNewLang)?.title, onOpen: () => setLangSheet(true) } : null}
       title={topicRecord?.meta?.title}
-      filterBar={multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
+      filterBar={myOn
+        ? <LangFilter languages={multiLang ? languages.filter((l) => shownLangs.has(l.id)) : []} value={langFilter} onChange={setLangFilter} onEdit={() => setMySheet(true)} editTitle={multiLang ? null : languages.find((l) => l.id === myIds[0])?.title} />
+        : multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
       blankCount={blankIds.length}
       onResumeDraft={resumeDraft}
@@ -677,18 +712,25 @@ export default function Propis2Home({ db }) {
       }}
       onDeleteSet={(id) => persist(removeSet(library, id))}
     />
-    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={languages} lang={newLang} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
+    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={listLangs} lang={curNewLang} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
+    {mySheet && myOn && <Propis2MyLangsSheet languages={offeredLanguages(deckRecord, flags ?? [])} selected={myIds} counts={langCounts} onSave={setMyLanguages} onClose={() => setMySheet(false)} />}
     </>
   );
 }
 
-// the filter of the list by language (only when more than one is in use)
-function LangFilter({ languages, value, onChange }) {
+// the filter of the list by language (only when more than one is in use); with «Мои языки» (`onEdit`): «＋» at its end opens the list of my
+// languages — or, with one language, the only chip is «Языки: Русский ▾» (docs/mockups/propis2-languages-journey.html, screens 2 and 4)
+function LangFilter({ languages, value, onChange, onEdit = null, editTitle = null }) {
   return (
     <div className="p2-lang-filter" role="radiogroup" aria-label="Язык тетрадей" data-testid="propis2-lang-filter">
-      {[{ id: "all", title: "Все" }, ...languages].map((l) => (
+      {languages.length > 0 && [{ id: "all", title: "Все" }, ...languages].map((l) => (
         <button key={l.id} type="button" role="radio" aria-checked={value === l.id} className={`p2-lang-fchip${value === l.id ? " is-on" : ""}`} onClick={() => onChange(l.id)}>{l.title}</button>
       ))}
+      {onEdit && (
+        <button type="button" className="p2-lang-fchip p2-lang-fchip--edit" onClick={onEdit} aria-label="Мои языки" data-testid="propis2-my-langs">
+          {editTitle ? <>Языки: {editTitle} <span aria-hidden="true">▾</span></> : "＋"}
+        </button>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { getUiLanguage, subscribeUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import { accountLanguages } from "./languageSync.js";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
+import { withMyLanguages } from "@/topics/renderers/propis2/myLanguagesView.js";
 
 export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
@@ -179,17 +180,20 @@ export const useAppStore = create((set) => ({
   topicRecords: [...BUILTIN_TOPICS],
   setOwnedTopics: (ownedTopics) => set({ ownedTopics }),
   setTopicRecords: (topicRecords) => set((s) => ({
-    topicRecords: applyBuiltinVisibility(topicRecords ?? [], s.builtinVisibility ?? {}, s.archivedTopicIds ?? []),
+    topicRecords: applyBuiltinVisibility(topicRecords ?? [], s.builtinVisibility ?? {}, s.archivedTopicIds ?? []).map((r) => withMyLanguages(r, s.myLanguages)),
   })),
   upsertTopicRecord: (record) => set((s) => {
     if (BUILTIN_TOPIC_IDS.has(record.meta.id) || s.archivedTopicIds.includes(record.meta.id)) return s;
     return {
       topicRecords: [
         ...s.topicRecords.filter((r) => r.meta.id !== record.meta.id),
-        record,
+        withMyLanguages(record, s.myLanguages),
       ],
     };
   }),
+  // «Мои языки» of «Прописи» (topics/renderers/propis2/myLanguages.js): the decks that use them show only those languages' modes
+  myLanguages: null,
+  setMyLanguages: (myLanguages) => set((s) => ({ myLanguages, topicRecords: s.topicRecords.map((r) => withMyLanguages(r, myLanguages)) })),
   upsertOwnedTopic: (topic) => set((s) => {
     const idx = s.ownedTopics.findIndex((x) => x.topicId === topic.topicId);
     const next = [...s.ownedTopics];

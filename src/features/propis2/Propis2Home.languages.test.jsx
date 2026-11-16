@@ -9,6 +9,11 @@ import { useAppStore } from "@/core/store";
 import { loadLibrary, saveLibrary, emptyLibrary, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import { newPage, newSet } from "@/topics/renderers/propis2/model.js";
 import Propis2Home from "./Propis2Home.jsx";
+import { kv } from "@/core/db";
+import { PREFS_KEY } from "@/topics/renderers/propis2/myLanguages.js";
+// «Прописи: латиница» carries every language since deck 0.11.0 with «Мои языки» (myLanguages.js): these English tests pick English and
+// Slovenian (a draft: the account has the flag), as an English-teaching adult would
+const seedMyLangs = (db) => kv.set(db, PREFS_KEY, { langs: ["en", "sl"], updatedAt: 1 });
 
 vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
 
@@ -201,8 +206,9 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const tdb = await openDb("p2lang-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
     const testCopy = await getTopicRecord(tdb, "propis2_lang");
-    useAppStore.setState({ topicRecords: [testCopy], activeTopicId: "propis2_lang" });
+    useAppStore.setState({ topicRecords: [testCopy], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2lang-en-" + Date.now());
+    await seedMyLangs(db);
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
@@ -247,8 +253,9 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2pstyle-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2pstyle-en-" + Date.now());
+    await seedMyLangs(db);
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
@@ -286,8 +293,9 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2rstyle-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2rstyle-en-" + Date.now());
+    await seedMyLangs(db);
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
@@ -328,8 +336,9 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2kit-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang" });
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2kit-en-" + Date.now());
+    await seedMyLangs(db);
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);

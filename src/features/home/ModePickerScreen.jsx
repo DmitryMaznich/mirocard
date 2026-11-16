@@ -12,6 +12,8 @@ import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { Fragment, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
+import { resolveMyLanguagesNow } from "@/topics/renderers/propis2/myLanguages.js";
+import { getUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import Modal from "@/shared/components/Modal";
 import InfoModal from "@/shared/components/InfoModal";
 import ModeMethodology from "@/shared/components/ModeMethodology";
@@ -101,6 +103,19 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
   const [topicAbout,      setTopicAbout]       = useState(false);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
+  // «Прописи» with «Мои языки» (propis2/myLanguages.js): the modes of my languages only — resolved here too, the topic itself may not have
+  // been opened on this device yet
+  const myLangTopic = Boolean(topicRecord?.meta?.myLanguages);
+  const accountFlags = useAppStore((s) => s.account?.featureFlags);
+  useEffect(() => {
+    if (!myLangTopic) return undefined;
+    let alive = true;
+    resolveMyLanguagesNow(topicRecord, { flags: accountFlags ?? [], uiLanguage: getUiLanguage() })
+      .then((ids) => { if (alive && ids.join() !== (useAppStore.getState().myLanguages ?? []).join()) useAppStore.getState().setMyLanguages(ids); })
+      .catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myLangTopic, activeTopicId, accountFlags]);
   const isReading = topicRecord?.meta.renderer === "reading";
   const isShortStories = activeTopicId === "reading_short_stories";
   const activeText = isReading

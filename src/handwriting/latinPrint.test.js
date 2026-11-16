@@ -46,7 +46,7 @@ describe("English print letters in the propis2 engine", () => {
     }
   });
 
-  it("English is in «Прописи: латиница» only (two decks: Cyrillic and Latin, owner 2026-11-09), never in propis2", async () => {
+  it("English is in «Прописи: латиница» (the try-out of every alphabet in one topic), not yet in propis2", async () => {
     const catalog = JSON.parse(readFileSync("public/decks/catalog.json", "utf-8"));
     const deck = async (id) => {
       const e = catalog.decks.find((d) => d.id === id);
@@ -60,8 +60,11 @@ describe("English print letters in the propis2 engine", () => {
     expect(test.entry.status).toBe("release"); // open to all since 2026-11-11 (paid, as propis2)
     expect(test.entry.access).toBe(prod.entry.access); // paid as propis2
     expect(test.topic.meta.title).toBe("Прописи: латиница");
-    expect(test.topic.languages.map((l) => l.id)).toEqual(["en", "sl"]); // no Russian, Bulgarian, Kazakh; Slovenian a published draft since 0.10.0
-    expect(test.topic.modes.map((m) => m.type)).not.toContain("dictation"); // the dictation is Russian
+    // since 0.11.0 the try-out of ONE «Прописи» with every alphabet and «Мои языки» (owner, 2026-11-16); Slovenian a published draft
+    expect(test.topic.languages.map((l) => l.id)).toEqual(["ru", "bg", "kk", "en", "sl"]);
+    expect(test.topic.meta.myLanguages).toBe(true);
+    // the dictation is recorded in Russian: shown only to those with Russian among «Мои языки» (myLanguagesView.js)
+    expect(test.topic.modes.find((m) => m.type === "dictation").requiresLanguages).toEqual(["ru"]);
     const en = test.topic.languages.find((l) => l.id === "en");
     // 52 letters + 0–9 and + − = < > (as «№…») + the hyphen + . , ? ! + (2026-11-10, the copymasters' texts) : ; ' ’ " “ ” ( ) — all
     // upright, none borrowed from the Russian cursive
