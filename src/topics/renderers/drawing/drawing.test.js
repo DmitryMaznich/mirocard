@@ -23,7 +23,16 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog"]));
+    const dog = tasks.find(task => task.cardId === "dog").lesson;
+    expect(dog.title).toBe("Собачка");
+    expect(dog.steps).toHaveLength(48);
+    expect(dog.palette.map(tool => tool.id)).toEqual(["black", "yellow", "orange", "red", "green"]);
+    expect(dog.source.url).toContain("1CDOHzsdyq1gN8gthBAlObKIJKxpYxxk6");
+    expect(await archive.file("media/dog.svg").async("string")).toContain(dog.viewBox);
+    for (const step of dog.steps.filter(step => step.kind === "stroke")) {
+      for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
+    }
     for (const [id, title, count] of [["sun_earth_moon", "Солнце, Земля и Луна", 10], ["jupiter_saturn", "Юпитер, Сатурн и спутник", 20]]) {
       const lesson = tasks.find(task => task.cardId === id).lesson;
       expect(lesson.title).toBe(title);
