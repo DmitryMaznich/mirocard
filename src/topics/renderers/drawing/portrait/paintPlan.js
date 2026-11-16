@@ -2,26 +2,30 @@
 // Order is a painter's: big and light first, small and dark last — skin, hair (+ brows), clothes,
 // eyes (only the iris), lips. Every colour is chosen by hand (owner, 2026-11-15: no die here).
 // The finished portrait becomes a lesson for the «Рисуем по шагам» player (player.js): one stroke step
-// with the whole outline, then colour steps (pencil hatching) and traced lines in colour.
+// with the whole outline, then colour steps (pencil hatching under the black lines).
 import { STYLES, styleSteps } from './styles.js';
+import { HAIR_REGIONS } from './parts.js';
 import { splitSubpaths } from './drawPath.js';
 
+// Only pencils of an ordinary children's set (owner, 2026-11-15: the child has no skin-tone pencils).
+// Skin is an ordinary pencil used lightly — orange or yellow without pressing gives a peach or light skin
+// on paper, and light pressure is a motor goal in itself. A «light» pencil is drawn paler on screen.
 const P = {
   black: ['Чёрный', '#151917'], brown: ['Коричневый', '#6f3324'], yellow: ['Жёлтый', '#efdd05'], orange: ['Оранжевый', '#efaa12'],
   red: ['Красный', '#b73316'], gray: ['Серый', '#777b7c'], light_blue: ['Голубой', '#34c6e8'], blue: ['Синий', '#0866d1'],
   green: ['Зелёный', '#30bb05'], light_green: ['Салатовый', '#75d816'], pink: ['Розовый', '#de64a5'], purple: ['Фиолетовый', '#923bc0'],
-  beige: ['Бежевый', '#f2d69a'],
-  // Skin tones for «Простое лицо» — the child picks one.
-  skin_1: ['Светлый', '#f7e0c8'], skin_2: ['Бежевый', '#efc9a0'], skin_3: ['Персиковый', '#e8a87c'],
-  skin_4: ['Смуглый', '#c68b59'], skin_5: ['Коричневый', '#8d5a3b'], skin_6: ['Тёмно-коричневый', '#5b3a29'],
 };
-const tool = id => ({ id, name: P[id][0], color: P[id][1] });
+const lighten = (hex, k) => `#${[1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - k) + 255 * k).toString(16).padStart(2, '0')).join('')}`;
+const tool = id => {
+  const light = id.endsWith(':light'), base = light ? id.slice(0, -6) : id, [name, color] = P[base];
+  return light ? { id: `${base}-light`, name: `${name}, слегка`, color: lighten(color, .55), pencil: color, light: true } : { id, name, color, pencil: color };
+};
 const PALETTES = {
-  simple: { skin: ['skin_1', 'skin_2', 'skin_3', 'skin_4', 'skin_5', 'skin_6'], hair: ['black', 'brown', 'yellow', 'orange', 'gray', 'red'],
+  simple: { skin: ['orange:light', 'yellow:light', 'pink:light', 'brown:light', 'orange', 'brown'], hair: ['black', 'brown', 'yellow', 'orange', 'gray', 'red'],
     clothes: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'], eyes: ['light_blue', 'blue', 'green', 'brown', 'gray', 'light_green'],
-    lips: ['pink', 'red', 'orange', 'purple', 'brown', 'beige'] },
+    lips: ['pink', 'red', 'orange', 'purple', 'brown', 'pink:light'] },
   // Picasso's own faces are blue, pink, yellow, green — the colours are part of the style.
-  picasso: { skin: ['light_blue', 'pink', 'yellow', 'light_green', 'orange', 'beige'], hair: ['blue', 'purple', 'red', 'green', 'black', 'orange'],
+  picasso: { skin: ['light_blue', 'pink', 'yellow', 'light_green', 'orange', 'purple:light'], hair: ['blue', 'purple', 'red', 'green', 'black', 'orange'],
     clothes: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'], eyes: ['blue', 'green', 'purple', 'red', 'orange', 'brown'],
     lips: ['red', 'pink', 'purple', 'orange', 'blue', 'green'] },
 };
@@ -65,22 +69,28 @@ const closed = d => /z\s*$/i.test(d.trim());
 
 // Everything one finished portrait is made of, on the sheet: outlines, fills and what each colour group paints.
 export function portraitPaint(styleId, shape, results) {
-  const style = STYLES[styleId], steps = styleSteps(styleId, shape);
-  const outline = [{ d: style.faces[shape].path }], paint = { skin: [{ d: style.faces[shape].path }], hair: [], clothes: [], eyes: [], lips: [] };
+  const style = STYLES[styleId], steps = styleSteps(styleId, shape), face = style.faces[shape].path;
+  const outline = [{ d: face }], paint = { skin: [], hair: [], clothes: [], eyes: [], lips: [] }, parts = [];
   results.forEach((value, part) => {
     const step = steps[part], v = step.variants[value - 1], move = d => step.ownSpace ? transformPath(d, step.transform) : d;
     for (const d of splitSubpaths(v.d)) outline.push({ d: move(d) });
     if (v.fill) for (const d of splitSubpaths(v.fill)) outline.push({ d: move(d), fill: '#26352d' });
-    if (v.paint) for (const item of v.paint) paint[item.group].push(item.line ? { line: item.line } : { d: item.d, clip: item.clip });
+    if (v.paint) for (const item of v.paint) parts.push({ group: item.group, d: item.d, clip: item.clip });
     else if (step.ownSpace) {
-      // Picasso: eyes 0–1, mouth 3, ears 4–5, hair 6. A closed first shape is filled, an open one traced in colour.
-      const group = part < 2 ? 'eyes' : part === 3 ? 'lips' : part === 4 || part === 5 ? 'skin' : part === 6 ? 'hair' : null;
-      if (!group) return;
+      // Picasso: eyes 0–1 and mouth 3 are their closed first shape, ears 4–5 skin, hair 6 its mass (HAIR_REGIONS).
       const first = splitSubpaths(v.d)[0];
-      if (closed(first)) paint[group].push({ d: move(first) });
-      else if (group === 'hair') paint.hair.push({ line: move(v.d) });
+      if (part === 6) parts.push({ group: 'hair', d: move(HAIR_REGIONS[value - 1]) });
+      else if (closed(first) && part !== 2) parts.push({ group: part < 2 ? 'eyes' : part === 3 ? 'lips' : 'skin', d: move(first) });
     }
   });
+  // Colour never goes over colour: the face is hatched around the eyes, mouth and hair (they get their own
+  // colour later), and ears and neck only outside the face. Even-odd holes, clipped to the shape itself.
+  const holes = parts.filter(p => p.group !== 'skin' && p.group !== 'clothes').map(p => p.clip ?? p.d);
+  paint.skin.push({ d: [face, ...holes].join(' '), clip: face });
+  for (const p of parts) {
+    if (p.group === 'skin') paint.skin.push({ d: `${p.d} ${face}`, clip: p.d });
+    else paint[p.group].push({ d: p.d, ...(p.clip ? { clip: p.clip } : {}) });
+  }
   return { outline, paint, viewBox: style.viewBox };
 }
 // Colour steps this portrait needs (a group with nothing to paint is skipped).
@@ -96,10 +106,24 @@ export function paintLesson(styleId, shape, results, colors) {
   colors.forEach((value, k) => {
     const pencil = paletteFor(styleId, steps[k].group)[value - 1], id = `${steps[k].group}-${pencil.id}`;
     palette.push({ ...pencil, id });
-    const items = paint[steps[k].group], lines = items.filter(i => i.line), regions = items.filter(i => i.d);
-    for (const region of regions) lesson.push({ kind: 'color', tool: id, fill: pencil.color, d: region.d, ...(region.clip ? { clip: region.clip } : {}) });
-    if (lines.length) lesson.push({ kind: 'stroke', tool: id, paths: lines.map(i => i.line) });
+    for (const region of paint[steps[k].group]) lesson.push({ kind: 'color', tool: id, fill: pencil.color, d: region.d, ...(region.clip ? { clip: region.clip } : {}) });
     ends.push(lesson.length);
   });
   return { lesson: { id: 'portrait', title: 'Портрет', viewBox, palette, steps: lesson }, ends };
+}
+
+// Who sets each colour (owner, 2026-11-16; docs/drawing-portrait-coloring-brief.md): no free choice.
+// «По инструкции» (default): one pencil per area, given by the screen. «По кубику»: the die, as for the parts.
+// Skin of «Простое лицо» is never the die's: the adult sets it once (mode parameter skinTone).
+export const SKIN_TONES = ['orange_light', 'yellow_light', 'pink_light', 'brown_light', 'orange', 'brown'];
+const INSTRUCTION = {
+  simple: { hair: 'brown', clothes: 'red', eyes: 'light_blue', lips: 'pink' },
+  picasso: { skin: 'yellow', hair: 'purple', clothes: 'red', eyes: 'blue', lips: 'red' },
+};
+// The pencil (1–6 in paletteFor) this step must use, or null when the die decides.
+export function fixedColor(style, group, mode = 'instruction', skinTone = 'orange_light') {
+  if (style === 'simple' && group === 'skin') return Math.max(0, SKIN_TONES.indexOf(skinTone)) + 1;
+  if (mode === 'die') return null;
+  const id = INSTRUCTION[style]?.[group];
+  return PALETTES[style][group].indexOf(id) + 1 || 1;
 }

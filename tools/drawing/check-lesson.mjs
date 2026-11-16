@@ -22,14 +22,14 @@ try{
  },{id,revision:lesson.progressRevision});
  await page.goto(process.env.DRAWING_PREVIEW_URL??`http://localhost:8081/tools/drawing/preview.html?lesson=${id}`);
  await page.locator('.drawing-card').filter({hasText:card.label}).tap();
- assert.equal(await page.locator('.drawing-repeat').isDisabled(),true,'Start without legacy progress');
+ assert.equal(await page.locator('.drawing-show').count(),0,'Start without legacy progress');
  await page.clock.install();
  await page.evaluate(()=>{document.querySelector('.preview-header').style.display='none';document.getElementById('root').style.height='100dvh';document.documentElement.style.setProperty('--app-safe-top','59px');document.documentElement.style.setProperty('--app-safe-bottom','34px');});
  const index=()=>page.evaluate(id=>JSON.parse(localStorage.getItem('drawing-progress:local:'+id))?.index??0,id);
  let changes=0;
  for(let i=1;i<=lesson.steps.length;i++){
-  await page.locator('.drawing-next').tap();
-  if(await page.locator('[role=status]').textContent()==='Подготовьте следующий карандаш'){changes++;await page.locator('.drawing-next').tap();}
+  await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
+  if(await page.locator('[role=status]').textContent()==='Подготовьте следующий карандаш'){changes++;await page.locator('.drawing-primary[aria-label="Дальше"]').tap();}
   const currentStep=lesson.steps[i-1];
   if(currentStep.kind==='stroke'&&currentStep.paths.length>1){
    const previousPaths=lesson.steps.slice(0,i-1).filter(s=>s.kind==='stroke').reduce((sum,s)=>sum+s.paths.length,0);
@@ -44,7 +44,7 @@ try{
    await page.locator('.drawing-adult').focus();await page.keyboard.press('Enter');
    const before=await path.evaluate(p=>p.style.strokeDashoffset);await page.clock.runFor(1000);assert.equal(await path.evaluate(p=>p.style.strokeDashoffset),before,'Pause must freeze drawing');
    await page.getByRole('button',{name:'Закрыть настройки'}).tap();await page.clock.runFor(1000);assert.equal(await path.evaluate(p=>p.style.strokeDashoffset),before);
-   await page.locator('.drawing-next').tap();
+   await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
   }
   if(i===firstColour+1||lesson.steps[i-1].title==='Зелёная травка'){
    await page.clock.runFor(120);assert.equal(await index(),i-1,'Colour index advances only after animation');
@@ -54,13 +54,13 @@ try{
   assert.deepEqual(await page.locator('[data-layer=labels] text[visibility=visible]').allTextContents(),(lesson.labels??[]).filter(label=>i>=(label.afterStep??0)).map(label=>label.text),'Labels must follow their object outlines');
   if(lesson.steps[i-1].title==='Зелёный контур травки'){
    assert.equal(await page.locator(`[data-layer=colors] [data-region="${i}"]`).count(),0,'Grass must still be uncoloured');
-   await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-grass-outline.png`});
+   await page.locator('.drawing-board > svg').screenshot({path:`/workspace/${id}-grass-outline.png`});
   }
   if(lesson.steps[i-1].title==='Контур лепестков цветка'){
    const width=await page.locator('[data-layer=drawing] > path').last().evaluate(p=>p.getBoundingClientRect().width);
    assert(width>=36,'Flower contour should be readable on a phone');
   }
-  if(i===blackEnd)await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-outline.png`});
+  if(i===blackEnd)await page.locator('.drawing-board > svg').screenshot({path:`/workspace/${id}-outline.png`});
   const step=lesson.steps[i-1];
   if(step.kind==='stroke'&&step.tool!=='black'){
    const expected=await page.evaluate(colour=>{const e=document.createElement('div');e.style.color=colour;return e.style.color;},lesson.palette.find(t=>t.id===step.tool).color);
@@ -69,14 +69,14 @@ try{
   }
  }
  assert.equal(changes,lesson.palette.length-1);
- await page.locator('.drawing-repeat').tap();await page.clock.runFor(16000);assert.equal(await index(),lesson.steps.length);
+ await page.locator('.drawing-show').tap();await page.clock.runFor(16000);assert.equal(await index(),lesson.steps.length);
  await page.reload();await page.locator('.drawing-card').filter({hasText:card.label}).tap();assert.equal(await index(),lesson.steps.length,'Saved progress');
- assert.equal(await page.locator('.drawing-top h2').textContent(),card.label,'Explicit finish required');await page.locator('.drawing-next').tap();
- assert.equal(await page.locator('.drawing-top h2').textContent(),'Рисунок готов');await page.locator('.drawing-board svg').screenshot({path:`/workspace/${id}-finished.png`});
+ assert.equal(await page.locator('.drawing-top h2').textContent(),card.label,'Explicit finish required');await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
+ assert.equal(await page.locator('.drawing-top h2').textContent(),'Рисунок готов');await page.locator('.drawing-board > svg').screenshot({path:`/workspace/${id}-finished.png`});
  if(lesson.labels?.length){
   assert.deepEqual(await page.locator('[data-layer=labels] text[visibility=visible]').allTextContents(),lesson.labels.map(label=>label.text),'Labels survive repeat, saved resume and finish');
   const layout=await page.evaluate(async()=>{
-   const svg=document.querySelector('.drawing-board svg'),view=svg.viewBox.baseVal;
+   const svg=document.querySelector('.drawing-board > svg'),view=svg.viewBox.baseVal;
    const boxes=[...svg.querySelectorAll('[data-layer=labels] text')].map(node=>{const b=node.getBBox();return {text:node.textContent,x:b.x,y:b.y,width:b.width,height:b.height,screenHeight:node.getBoundingClientRect().height};});
    const clone=svg.cloneNode(true);clone.querySelector('[data-layer=labels]')?.remove();clone.setAttribute('width',view.width);clone.setAttribute('height',view.height);
    const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml'}));
@@ -91,7 +91,7 @@ try{
   });
   console.log('PASS labels:',layout);
  }
- await page.getByRole('button',{name:'Рисунки',exact:true}).tap();assert.equal(await page.locator('.drawing-card').count(),manifest.cards.length);
+ await page.getByRole('button',{name:'Другой рисунок',exact:true}).tap();assert.equal(await page.locator('.drawing-card').count(),manifest.cards.length);
  const bounds=await page.locator('.drawing-card').evaluateAll(ns=>ns.map(n=>{const b=n.getBoundingClientRect();return {left:b.left,right:b.right};}));assert(bounds.every(b=>b.left>=0&&b.right<=390));
  assert.deepEqual(errors,[]);console.log('PASS lesson:',{id,steps:lesson.steps.length,pencilChanges:changes,cards:manifest.cards.length,checks:'progressive contour/colour, pause, repeat, coloured outlines, saved resume, explicit finish, picker, mobile safe areas'});
 }finally{await browser.close();}

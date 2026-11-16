@@ -21,47 +21,40 @@ try {
     const header = document.createElement('div'); header.className = 'session-header-wrap'; header.textContent = 'Shared navigation';
     root.before(session); session.append(header, root);
   });
-  assert.equal(await page.locator('.session-header-wrap').isVisible(), false);
+  // One navigation style (2026-11-16): the shared header (✕ with confirmation) stays visible in drawing.
+  assert.equal(await page.locator('.session-header-wrap').isVisible(), true);
   assert.equal(await page.locator('.drawing-card').count(), cardCount);
   const index = () => page.evaluate(() => JSON.parse(localStorage.getItem('drawing-progress:local:goldfish'))?.index ?? 0);
-  const hold = async () => {
-    const gear = page.locator('.drawing-adult');
-    await gear.dispatchEvent('pointerdown', { button: 0, pointerType: 'touch', pointerId: 1 });
-    await page.clock.runFor(1000); assert.equal(await page.locator('dialog[open]').count(), 0);
-    await page.clock.runFor(250); await gear.dispatchEvent('pointerup', { button: 0, pointerId: 1 });
-    assert.equal(await page.locator('dialog[open]').count(), 1);
-  };
+  // The adult's menu opens with an ordinary tap, as everywhere else in the app (no long press).
+  const hold = async () => { await page.locator('.drawing-adult').tap(); assert.equal(await page.locator('dialog[open]').count(), 1); };
+  const next = () => page.locator('.drawing-primary[aria-label="Дальше"]');
   for (const title of ['Компот', 'Нудик', 'Коржик']) {
     await page.locator('.drawing-card').filter({ hasText: title }).tap();
     assert.equal(await page.locator('.drawing-top h2').textContent(), title);
-    assert.equal(await page.locator('.drawing-controls button').count(), 2);
+    assert.equal(await page.locator('.drawing-primary').count(), 1); assert.equal(await page.locator('.drawing-show').count(), 0);
     await hold(); await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
     assert.equal(await page.locator('.drawing-card').count(), cardCount);
   }
   await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
-  await page.locator('.drawing-adult').tap();
-  assert.equal(await page.locator('dialog[open]').count(), 0, 'A short tap must not open adult controls');
   assert.equal(await page.locator('.drawing-shell progress').count(), 0);
-  assert.equal(await page.locator('.drawing-controls button').allTextContents().then(x => x.join('|')), 'Ещё раз|Дальше');
+  // No words on the child's buttons: one round primary action, «show again» only after a step.
+  assert.equal(await page.locator('.drawing-primary').textContent(), '');
   await page.locator('.drawing-board').tap(); await page.clock.runFor(1000);
   assert.equal(await index(), 0, 'Canvas taps are off by default');
-  await page.locator('.drawing-next').tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
-  await page.locator('.drawing-repeat').tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
+  await next().tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
+  await page.locator('.drawing-show').tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
   await hold();
   assert.equal(await page.getByText('показано 1 из 45', { exact: false }).count(), 1);
-  const before = await page.locator('.drawing-next').boundingBox();
-  await page.getByLabel('Слова на кнопках').uncheck();
-  await page.getByRole('button', { name: 'Закрыть настройки' }).tap();
-  assert.equal(await page.locator('.drawing-next .drawing-control-label').isVisible(), false);
-  assert.deepEqual(await page.locator('.drawing-next').boundingBox(), before);
-  await hold(); await page.getByLabel('Слова на кнопках').check(); await page.getByLabel('Темп анимации').selectOption('slow');
+  assert.equal(await page.getByLabel('Слова на кнопках').count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Закончить занятие', exact: true }).count(), 0, 'Leaving is the header ✕ only');
+  await page.getByLabel('Темп анимации').selectOption('slow');
   await page.getByRole('button', { name: 'Вернуться на один шаг', exact: true }).tap(); assert.equal(await index(), 0);
-  await page.locator('.drawing-next').tap(); await page.clock.runFor(100);
+  await next().tap(); await page.clock.runFor(100);
   await hold();
   assert.equal(await page.locator('.drawing-pause-curtain').count(), 1);
   await page.getByRole('button', { name: 'Закрыть настройки' }).tap(); await page.clock.runFor(10000);
   assert.equal(await index(), 0, 'Closing settings must leave drawing paused');
-  await page.locator('.drawing-next').tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
+  await next().tap(); await page.clock.runFor(16000); assert.equal(await index(), 1);
   await hold(); await page.getByRole('button', { name: 'Начать рисунок сначала…', exact: true }).tap();
   await page.getByRole('button', { name: 'Оставить рисунок', exact: true }).tap(); assert.equal(await index(), 1);
   await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
@@ -71,29 +64,26 @@ try {
   let changes = 0;
   for (let i = 1; i <= 45; i++) {
     const oldTool = await page.locator('.drawing-pencil-space').getAttribute('aria-label');
-    await page.locator('.drawing-next').tap();
+    await next().tap();
     if (await page.locator('[role=status]').textContent() === 'Подготовьте следующий карандаш') {
       changes++; assert.equal(await index(), i-1);
       assert.notEqual(await page.locator('.drawing-pencil-space').getAttribute('aria-label'), oldTool);
       assert.equal(await page.locator('[data-pencil]').getAttribute('visibility'), 'hidden');
-      await page.locator('.drawing-next').tap();
+      await next().tap();
     }
     await page.clock.runFor(16000); assert.equal(await index(), i);
     assert.equal(await page.locator('[data-finale]').count(), 0, 'Wait for explicit finish');
   }
   assert.equal(changes, 4);
   await page.screenshot({ path: '/tmp/drawing-app-ux-finished.png' });
-  await page.locator('.drawing-next').tap(); await page.clock.runFor(2300);
+  await next().tap(); await page.clock.runFor(2300);
   assert.equal(await page.locator('[data-finale-bubble]').count(), 3);
   await page.clock.runFor(3000); assert.equal(await page.locator('[data-finale]').count(), 0);
-  await page.getByRole('button', { name: 'Рисунки', exact: true }).tap();
+  await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap();
   assert.equal(await page.locator('.drawing-card').count(), cardCount);
   await page.locator('.drawing-card').filter({ hasText: 'Золотая рыбка' }).tap();
   assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
   assert.equal(await page.locator('[data-finale]').count(), 0);
-  await hold(); await page.getByRole('button', { name: 'Закончить занятие', exact: true }).tap();
-  assert.equal(await page.locator('dialog[open]').count(), 0);
-  assert.equal(await page.evaluate(() => window.finishCount), 1);
   assert.deepEqual(errors, []);
-  console.log('PASS app ZIP: 4 drawings, 2 child buttons, long-press settings, repeat/back, pause/resume, reset confirmation, retained progress, 4 pencil gates, all 45 fish steps, explicit finale, session exit');
+  console.log('PASS app ZIP: 4 drawings, shared header, one primary + show-again, tap settings, repeat/back, pause/resume, reset confirmation, retained progress, 4 pencil gates, all 45 fish steps, explicit finale');
 } finally { await browser.close(); }

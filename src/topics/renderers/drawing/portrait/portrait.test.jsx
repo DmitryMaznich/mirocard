@@ -93,7 +93,7 @@ describe('portrait screen', () => {
     expect(host.querySelector('.portrait').dataset.style).toBe('simple');
     await click(label('Овальное'));
     expect(host.querySelector('h2').textContent).toBe('Глаза');
-    expect(host.querySelector('.portrait-next')).toBeNull(); expect(label('Показать, как рисовать')).toBeNull();
+    expect(host.querySelector('.drawing-primary')).toBeNull(); expect(label('Показать, как рисовать')).toBeNull();
     const options = host.querySelectorAll('.portrait-option');
     expect(options).toHaveLength(6);
     await click(options[1]);
@@ -102,12 +102,13 @@ describe('portrait screen', () => {
     expect(label('Показать, как рисовать')).not.toBeNull();
     for (let i = 0; i < 7; i++) {
       if (i) await click(host.querySelectorAll('.portrait-option')[0]);
-      await click(host.querySelector('.portrait-next'));
+      await click(host.querySelector('.drawing-primary'));
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('done');
     expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ style: 'simple', phase: 'done', shape: 1, results: [2, 1, 1, 1, 1, 1, 1] });
-    await click(label('Новый портрет'));
-    expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
+    // One primary action, no home button: leaving the lesson is only the shared header's ✕.
+    expect(label('Закончить')).toBeNull(); expect(label('Новый портрет')).toBeNull();
+    expect(host.querySelectorAll('.drawing-primary')).toHaveLength(1); expect(label('Раскрасить')).not.toBeNull();
   });
   it('«Пикассо» when the adult chose it: seven steps', async () => {
     await render({ style: 'picasso' });
@@ -125,24 +126,44 @@ describe('portrait screen', () => {
     await click(label('Бросить кубик'));
     await act(async () => { vi.advanceTimersByTime(1000); });
     expect(host.querySelectorAll('.portrait-option[aria-pressed="true"]')).toHaveLength(1);
-    expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.portrait-next')).not.toBeNull();
+    expect(label('Бросить кубик')).toBeNull(); expect(host.querySelector('.drawing-primary')).not.toBeNull();
   });
-  it('colouring after the portrait: every colour is picked by tap (no die); the coloured portrait is kept', async () => {
-    localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
-    await render();
+  const donePortrait = () => localStorage.setItem(portraitKey('kid'), JSON.stringify({ version: 2, style: 'simple', phase: 'done', shape: 1, results: [1, 1, 1, 6, 2, 2, 2], colors: [], value: null }));
+  it('colouring «По инструкции» (default): one given pencil per area, the skin from the settings, no choice to make', async () => {
+    donePortrait();
+    await render({ skinTone: 'yellow_light' });
     await click(label('Раскрасить'));
     expect(host.querySelector('h2').textContent).toBe('Лицо');
-    const skin = host.querySelectorAll('.portrait-color');
-    expect(skin).toHaveLength(6); expect(skin[0].querySelector('.portrait-die')).toBeNull();
-    await click(skin[3]); await click(host.querySelector('.portrait-next'));
-    expect(host.querySelector('h2').textContent).toBe('Волосы');
-    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(0);
-    for (const name of ['Волосы', 'Одежда', 'Глаза', 'Губы']) {
+    expect(host.querySelectorAll('.portrait-color')).toHaveLength(1);
+    expect(host.querySelector('[aria-label="Возьми: Жёлтый, слегка"]')).not.toBeNull();
+    for (const [name, pencil] of [['Лицо'], ['Волосы', 'Коричневый'], ['Одежда', 'Красный'], ['Глаза', 'Голубой'], ['Губы', 'Розовый']]) {
       expect(host.querySelector('h2').textContent).toBe(name);
-      await click(host.querySelectorAll('.portrait-color')[1]); await click(host.querySelector('.portrait-next'));
+      if (pencil) expect(host.querySelector(`[aria-label="Возьми: ${pencil}"]`)).not.toBeNull();
+      expect(host.querySelector('.portrait-hint')).not.toBeNull(); // the area is shown before the pencil starts
+      await click(host.querySelector('.drawing-primary'));
     }
     expect(host.querySelector('.portrait').dataset.phase).toBe('colored');
-    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [4, 2, 2, 2, 2] });
+    expect(JSON.parse(localStorage.getItem(portraitKey('kid')))).toMatchObject({ phase: 'colored', colors: [2, 2, 1, 1, 1] });
+    expect(host.querySelectorAll('.drawing-primary')).toHaveLength(1);
+    await click(label('Новый портрет'));
+    expect(host.querySelectorAll('.portrait-shape')).toHaveLength(3);
+  });
+  it('colouring «По кубику»: six pencils with pips, but the skin of «Простое лицо» is never the die\'s', async () => {
+    donePortrait();
+    await render({ colorChoice: 'die' });
+    await click(label('Раскрасить'));
+    expect(host.querySelectorAll('.portrait-color')).toHaveLength(1); // skin: the adult's tone
+    await click(host.querySelector('.drawing-primary'));
+    expect(host.querySelector('h2').textContent).toBe('Волосы');
+    expect(host.querySelectorAll('.portrait-color .portrait-die')).toHaveLength(6);
+    expect(host.querySelector('.drawing-primary')).toBeNull();
+    await click(label('3: Жёлтый'));
+    expect(host.querySelector('.drawing-primary')).not.toBeNull();
+    // Back from a chosen die step clears the choice; back again returns to the given skin step.
+    await click(label('Для взрослого')); await click([...host.querySelectorAll('dialog button')].find(b => b.textContent === 'Вернуться на шаг'));
+    expect(host.querySelector('.drawing-primary')).toBeNull();
+    await click(label('Для взрослого')); await click([...host.querySelectorAll('dialog button')].find(b => b.textContent === 'Вернуться на шаг'));
+    expect(host.querySelector('h2').textContent).toBe('Лицо');
   });
   it('builds the colouring lesson painter-wise: outline, then skin, hair, clothes, eyes (iris inside the eye), lips', () => {
     const results = [1, 1, 1, 6, 2, 2, 2], plan = colorSteps('simple', 1, results);
@@ -153,12 +174,18 @@ describe('portrait screen', () => {
     const eyes = lesson.steps.slice(ends[3], ends[4]);
     expect(eyes.every(s => s.kind === 'color' && s.clip)).toBe(true);
     expect(lesson.steps.filter(s => s.kind === 'color').every(s => s.fill.startsWith('#'))).toBe(true);
-    // A line mouth is traced in colour, not filled.
-    expect(paintLesson('simple', 1, [1, 1, 1, 2, 2, 2, 2], [1, 1, 1, 1, 1]).lesson.steps.at(-1)).toMatchObject({ kind: 'stroke' });
+    // Only areas are coloured: a line mouth has no lips step, brows are never recoloured.
+    expect(colorSteps('simple', 1, [1, 1, 1, 2, 2, 2, 2]).map(s => s.group)).toEqual(['skin', 'hair', 'clothes', 'eyes']);
+    expect(lesson.steps.slice(1).every(s => s.kind === 'color')).toBe(true);
+    // The face is hatched around the eyes, mouth and hair: their shapes are even-odd holes, clipped to the face.
+    const face = lesson.steps[1];
+    expect(face.clip).toBeTruthy(); expect(splitSubpaths(face.d).length).toBeGreaterThan(4);
   });
   it('moves Picasso parts onto the sheet for colouring (translate + scale, relative arcs too)', () => {
     expect(transformPath('M10 20 L30 40 a5 5 0 1 0 10 0Z', 'translate(43 66) scale(.39)')).toBe('M46.9 73.8 L54.7 81.6 a1.95 1.95 0 1 0 3.9 0 Z');
     expect(colorSteps('picasso', 0, [1, 2, 3, 4, 5, 6, 1]).map(s => s.group)).toEqual(['skin', 'hair', 'eyes', 'lips']);
+    // Picasso hair is coloured as a mass (a closed area), never as a traced line.
+    for (let v = 1; v <= 6; v++) expect(paintLesson('picasso', 0, [1, 2, 3, 4, 5, 6, v], [1, 1, 1, 1]).lesson.steps.filter(s => s.kind === 'stroke')).toHaveLength(1);
   });
   it('the adult menu opens with an ordinary tap and has no own exit (the shared header ✕ does that)', async () => {
     await render();

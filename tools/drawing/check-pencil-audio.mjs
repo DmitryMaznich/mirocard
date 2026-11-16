@@ -24,7 +24,7 @@ try {
     const R = window.__MirocardRenderer.default ?? window.__MirocardRenderer;
     window.root.render(window.__Mirocard.React.createElement(R, { task: { lesson: window.lesson }, sessionParams: { speed: 'slow' }, soundEnabled: !muted }));
   }, muted);
-  await render(false); await page.locator('.drawing-next').waitFor();
+  await render(false); await page.locator('.drawing-primary[aria-label="Дальше"]').waitFor();
   assert.equal(await page.evaluate(() => window.__pencilAudioGraphs.length), 0);
   const rms = () => page.evaluate(() => {
     const a = window.__pencilAudioGraphs.at(-1)?.analyser; if (!a) return 0;
@@ -35,14 +35,14 @@ try {
   const audible = async why => { await page.waitForTimeout(250); const value = await rms(); assert(value > 1e-5 && value < .03, why+': '+value); return value; };
   const settings = async () => { await page.locator('.drawing-adult').focus(); await page.keyboard.press('Enter'); };
   const close = () => page.getByRole('button', { name: 'Закрыть настройки' }).tap();
-  await page.locator('.drawing-next').tap(); const level = await audible('Contour must play the recording');
+  await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); const level = await audible('Contour must play the recording');
   assert.deepEqual(await page.evaluate(() => window.__pencilAudioGraphs[0].recordings), [{ channels: 1, length: 26160, rate: 24000 }]);
   await settings(); await silent('Adult menu pauses audio'); await close(); await silent('Closing menu does not resume');
-  await page.locator('.drawing-next').tap(); await audible('Resume');
+  await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await audible('Resume');
   await settings(); await page.getByLabel('Шуршание карандаша').uncheck(); await close();
-  await page.locator('.drawing-next').tap(); await silent('Adult sound toggle');
+  await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await silent('Adult sound toggle');
   await settings(); await page.getByLabel('Шуршание карандаша').check(); await close();
-  await page.locator('.drawing-next').tap(); await audible('Sound re-enabled');
+  await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await audible('Sound re-enabled');
   await render(true); await silent('Global app mute'); await render(false); await audible('Global app unmute');
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
   await silent('Hidden page');
@@ -50,7 +50,7 @@ try {
   await page.getByRole('button', { name: 'Начать сначала', exact: true }).tap();
   await page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
   await silent('Reset and idle');
-  await page.locator('.drawing-next').tap(); await audible('Fresh stroke after reset');
+  await page.locator('.drawing-primary[aria-label="Дальше"]').tap(); await audible('Fresh stroke after reset');
   await page.evaluate(() => window.root.unmount()); await page.waitForTimeout(100);
   assert.equal(await page.evaluate(() => window.__pencilAudioGraphs.at(-1).state), 'closed');
   assert.deepEqual(errors, []);

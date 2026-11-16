@@ -6,6 +6,7 @@ import './drawing.css';
 import FirstLines from './firstLines/FirstLines.jsx';
 import { drawingLabelAttributes } from './labels.js';
 import Portrait from './portrait/Portrait.jsx';
+import { MenuButton, Primary, ShowAgain } from './ui.jsx';
 
 const initialState = { index: 0, busy: false, paused: false };
 const icons = {
@@ -25,22 +26,6 @@ function Pencil({ tool }) {
     <path d="M30 18H190Q193 23 193 28H24V25Q24 18 30 18Z" fill="white" opacity=".28" /><path d="M24 46H193Q194 51 190 56H30Q24 56 24 50Z" fill="black" opacity=".13" />
     <path d="M232 31.8 248 37 232 42.2Z" fill={tool.color} /><path d="M36 24H165" stroke="white" strokeWidth="3" strokeLinecap="round" opacity=".32" />
   </g></svg>;
-}
-function AdultButton({ onOpen }) {
-  const timer = useRef(null);
-  const [holding, setHolding] = useState(false);
-  const clear = () => { clearTimeout(timer.current); timer.current = null; setHolding(false); };
-  useEffect(() => () => clearTimeout(timer.current), []);
-  return <button type="button" className={`drawing-adult${holding ? ' drawing-adult--holding' : ''}`} aria-label="Настройки взрослого — удерживать"
-    onContextMenu={event => event.preventDefault()} onClick={event => event.preventDefault()}
-    onPointerDown={event => {
-      if (event.button !== 0) return;
-      clearTimeout(timer.current); setHolding(true);
-      timer.current = setTimeout(() => { timer.current = null; setHolding(false); onOpen(); }, 1200);
-    }} onPointerUp={clear} onPointerLeave={clear} onPointerCancel={clear}
-    onKeyDown={event => { if (!event.repeat && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); clear(); onOpen(); } }}>
-    <Icon name="gear" />
-  </button>;
 }
 function AdultDialog({ page, onDismiss, children }) {
   const ref = useRef(null);
@@ -76,7 +61,7 @@ export default function DrawingRenderer(props) {
   return props.task?.type === 'drawing_coloring' ? <Coloring {...props} /> : props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
 }
 
-function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onClose, onAdvance, onRequestVideoBonus }) {
+function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onRequestVideoBonus }) {
   const cards = topicRecord?.cards?.filter(card => card.lesson?.steps?.length) ?? [];
   const fallback = { id: task?.cardId ?? task?.lesson?.id, label: task?.lesson?.title, lesson: task?.lesson };
   const [selected, setSelected] = useState(() => cards.length > 1 ? null : cards[0] ?? fallback);
@@ -98,11 +83,10 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
     setProgress(previous => new Map(previous).set(id, value)); store(progressKey(id), value);
   };
   const changeChoice = (key, value) => setChoices(previous => { const next = { ...previous, [key]: value }; store('drawing-ui-options', next); return next; });
-  const finishSession = () => { setMenu(null); (onClose ?? onAdvance)?.(); };
   if (selected?.lesson?.steps?.length) return <Lesson key={selected.id} card={selected} saved={getProgress(selected.id)} choices={choices} onChoice={changeChoice}
-    soundEnabled={soundEnabled} bonus={bonus} onSave={snapshot => saveProgress(selected.id, snapshot)} onDrawings={() => setSelected(null)} onClose={finishSession} />;
+    soundEnabled={soundEnabled} bonus={bonus} onSave={snapshot => saveProgress(selected.id, snapshot)} onDrawings={() => setSelected(null)} />;
   return <section className="drawing-lesson drawing-picker" aria-label="Рисование">
-    <div className="drawing-picker__adult"><AdultButton onOpen={() => setMenu('settings')} /></div>
+    <div className="drawing-picker__adult"><MenuButton onOpen={() => setMenu('settings')} /></div>
     <h2>Рисование</h2><p>Выбери рисунок</p>
     <div className="drawing-cards">{cards.map(card => <button type="button" className="drawing-card" key={card.id} onClick={() => setSelected(card)}>
       <Cover card={card} loadTopicFileUrl={loadTopicFileUrl} topicId={topicId} /><span>{card.label ?? card.lesson.title}</span>
@@ -110,14 +94,11 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
     </button>)}</div>
     <AdultDialog page={menu} onDismiss={() => setMenu(null)}><div className="drawing-dialog__heading"><h3>Для взрослого</h3><button type="button" onClick={() => setMenu(null)} aria-label="Закрыть настройки">×</button></div>
       <Settings choices={choices} onChoice={changeChoice} bonus={bonus} />
-      <div className="drawing-dialog__actions"><button type="button" onClick={finishSession}>Закончить занятие</button></div>
-      <p className="drawing-adult-note">Чтобы открыть это меню, удерживайте шестерёнку.</p>
     </AdultDialog>
   </section>;
 }
 function Settings({ choices, onChoice, bonus }) {
   return <>
-    <label className="drawing-setting"><span>Слова на кнопках</span><input type="checkbox" checked={choices.labels} onChange={event => onChoice('labels', event.target.checked)} /></label>
     <label className="drawing-setting"><span>Переход тапом по рисунку</span><input type="checkbox" checked={choices.tap} onChange={event => onChoice('tap', event.target.checked)} /></label>
     <label className="drawing-setting"><span>Шуршание карандаша</span><input type="checkbox" checked={choices.pencilSound} onChange={event => onChoice('pencilSound', event.target.checked)} /></label>
     <label className="drawing-setting"><span>Видеобонус в конце</span><input type="checkbox" checked={bonus.enabled} disabled={!bonus.available} onChange={event => bonus.setEnabled(event.target.checked)} /></label>
@@ -125,7 +106,7 @@ function Settings({ choices, onChoice, bonus }) {
     <label className="drawing-setting"><span>Темп анимации</span><select value={choices.speed} onChange={event => onChoice('speed', event.target.value)}><option value="slow">Медленно</option><option value="normal">Обычно</option><option value="fast">Быстро</option></select></label>
   </>;
 }
-function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawings, onClose, bonus }) {
+function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawings, bonus }) {
   const lesson = card.lesson;
   const svg = useRef(null), player = useRef(null), last = useRef(initialState), save = useRef(onSave);
   useEffect(() => { save.current = onSave; }, [onSave]);
@@ -194,29 +175,26 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
     });
     if (!accepted) setBonusPending(false);
   };
-  return <section className={`drawing-lesson drawing-shell${choices.labels ? '' : ' drawing-icons-only'}`} aria-label={`Рисуем: ${lesson.title}`}>
-    <header className="drawing-top"><h2>{done ? 'Рисунок готов' : lesson.title}</h2><AdultButton onOpen={openSettings} /></header>
+  return <section className="drawing-lesson drawing-shell" aria-label={`Рисуем: ${lesson.title}`}>
+    <header className="drawing-top"><h2>{done ? 'Рисунок готов' : lesson.title}</h2><MenuButton onOpen={openSettings} /></header>
     <div className="drawing-pencil-space" role="img" aria-label={done ? 'Рисунок готов' : context.tool.name}>{!done && <Pencil tool={context.tool} />}</div>
     <div className="drawing-board" role={choices.tap && !done ? 'button' : undefined} tabIndex={choices.tap && !done ? 0 : undefined}
       aria-label={choices.tap && !done ? 'Показать следующий шаг' : undefined} onClick={() => { if (choices.tap) next(); }}
       onKeyDown={event => { if (choices.tap && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); next(); } }}>
       <svg ref={svg} viewBox={lesson.viewBox} role="img" aria-label={lesson.title} />
       {state.paused && <div className="drawing-pause-curtain"><Icon name="pause" /></div>}
+      {!done && state.index > 0 && !state.busy && <ShowAgain label="Показать этот шаг ещё раз" onClick={event => { event.stopPropagation(); repeat(); }} />}
     </div>
-    <div className={`drawing-controls${done ? ' drawing-controls--done' : ''}`}>
-      {done ? <button type="button" className="drawing-control drawing-control--primary" onClick={finishDrawing} disabled={bonusPending}><Icon name={offerBonus ? "next" : "home"} /><span className="drawing-control-label">{offerBonus ? "Дальше — бонус" : "Рисунки"}</span></button> : <>
-        <button type="button" className="drawing-control drawing-repeat" disabled={state.busy || !state.index} onClick={repeat} aria-label="Показать этот шаг ещё раз"><Icon name="repeat" /><span className="drawing-control-label">Ещё раз</span></button>
-        <button type="button" className="drawing-control drawing-control--primary drawing-next" disabled={state.busy && !state.paused} onClick={next} aria-label="Дальше"><Icon name="next" /><span className="drawing-control-label">Дальше</span></button>
-      </>}
-    </div>
+    {done ? <Primary icon={offerBonus ? 'next' : 'drawings'} label={offerBonus ? 'Дальше — бонус' : 'Другой рисунок'} disabled={bonusPending} onClick={finishDrawing} />
+      : <Primary icon="next" label="Дальше" disabled={state.busy && !state.paused} onClick={next} />}
     <span className="drawing-sr-only" role="status" aria-live="polite">{state.paused ? 'Анимация на паузе' : done ? 'Рисунок готов' : phase === 'copy' ? 'Можно рисовать на бумаге' : phase === 'tool' ? 'Подготовьте следующий карандаш' : 'Показать следующий шаг'}</span>
     <AdultDialog page={menu} onDismiss={() => setMenu(null)}>
       {menu === 'reset' ? <><h3>Начать сначала?</h3><p>Сделанные шаги этого рисунка сбросятся.</p><div className="drawing-dialog__actions"><button type="button" onClick={() => setMenu('settings')}>Оставить рисунок</button><button type="button" className="drawing-danger" onClick={reset}>Начать сначала</button></div></> : <>
         <div className="drawing-dialog__heading"><h3>Для взрослого</h3><button type="button" onClick={() => setMenu(null)} aria-label="Закрыть настройки">×</button></div>
         <p className="drawing-parent-progress">{lesson.title} · показано {state.index} из {lesson.steps.length} шагов</p>
         <Settings choices={choices} onChoice={onChoice} bonus={bonus} />
-        <div className="drawing-dialog__actions"><button type="button" disabled={state.busy || !state.index} onClick={previous}>Вернуться на один шаг</button><button type="button" onClick={onDrawings}>Другой рисунок</button><button type="button" className="drawing-danger" onClick={() => setMenu('reset')}>Начать рисунок сначала…</button><button type="button" onClick={() => { setMenu(null); onClose(); }}>Закончить занятие</button></div>
-        <p className="drawing-adult-note">Чтобы открыть это меню, удерживайте шестерёнку. Во время настройки анимация стоит на паузе. Продолжение — по кнопке ребёнка.</p>
+        <div className="drawing-dialog__actions"><button type="button" disabled={state.busy || !state.index} onClick={previous}>Вернуться на один шаг</button><button type="button" onClick={onDrawings}>Другой рисунок</button><button type="button" className="drawing-danger" onClick={() => setMenu('reset')}>Начать рисунок сначала…</button></div>
+        <p className="drawing-adult-note">Во время настройки анимация стоит на паузе. Продолжение — по зелёной кнопке. Выйти из занятия — ✕ вверху.</p>
       </>}
     </AdultDialog>
   </section>;

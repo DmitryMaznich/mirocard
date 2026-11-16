@@ -39,9 +39,6 @@
 @keyframes portrait-shake { 25% { transform:rotate(-9deg) translateY(-4px); } 75% { transform:rotate(9deg) translateY(-2px); } }
 
 /* Next: one round arrow, bottom right, after a variant is chosen. */
-.portrait-next { position:fixed; z-index:2; right:calc(20px + var(--app-safe-right,0px)); bottom:calc(20px + var(--app-safe-bottom,0px)); width:96px; height:96px; border-radius:50%; border:0; background:#22c55e; color:#fff; box-shadow:0 5px 0 #15803d; display:grid; place-items:center; animation:portrait-appear .3s ease-out; touch-action:manipulation; }
-.portrait-next:active { transform:translateY(4px); box-shadow:0 1px 0 #15803d; }
-.portrait-next svg { width:50px; height:50px; fill:none; stroke:currentColor; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
 @keyframes portrait-appear { from { opacity:0; transform:scale(.7); } }
 
 /* Finished portrait. */
@@ -57,19 +54,16 @@
   .portrait-options { grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,minmax(84px,1fr)); }
   .portrait-option svg { max-height:70px; }
 }
-@media (max-height:520px) { .portrait-steps li { width:10px; height:10px; } .portrait-option { padding:4px; } .portrait-die { width:24px; height:24px; } .portrait-next { width:76px; height:76px; } }
-@media (prefers-reduced-motion:reduce) { .portrait-face__place, .portrait-next, .portrait-roll[data-rolling] .portrait-die--big { animation:none; } }
+@media (max-height:520px) { .portrait-steps li { width:10px; height:10px; } .portrait-option { padding:4px; } .portrait-die { width:24px; height:24px; }  }
+@media (prefers-reduced-motion:reduce) { .portrait-face__place, .portrait-roll[data-rolling] .portrait-die--big { animation:none; } }
 /* The lesson shell sets button colour to inherit; these buttons are white on colour. */
-.drawing-lesson .portrait-next, .drawing-lesson .portrait-round { color:#fff; }
+.drawing-lesson .portrait-round { color:#fff; }
 .drawing-lesson .portrait-round--quiet { color:var(--drawing-ink); }
 /* ▶ — show again how the chosen part is drawn. */
-.portrait-show { position:absolute; top:12px; left:12px; width:54px; height:54px; border-radius:50%; border:2.5px solid #d4e3dc; background:#fff; color:#254e45; display:grid; place-items:center; padding:0; touch-action:manipulation; }
-.portrait-show svg { width:26px; height:26px; margin-left:3px; fill:currentColor; }
 .portrait-tip { color:#15803d; }
 .portrait-ghost { opacity:.22; }
 /* The portrait keeps the app's shared session header (✕ with confirmation), unlike the other drawing
    lessons that hide it; so no safe-area padding at the top — the header already has it. */
-.session-screen:has(.drawing-lesson.portrait) > .session-header-wrap { display:block; margin-bottom:8px; }
 .drawing-shell.portrait { padding-top:4px; }
 /* Colouring steps: pencil cards (colour + name; die pips unless the child picks). */
 .portrait-color { gap:6px; }
@@ -82,3 +76,30 @@
 /* The finished (and the coloured) portrait always fits its frame, whatever the SVG content. */
 .portrait-done { position:relative; }
 .portrait-done > svg { position:absolute; inset:12px; width:calc(100% - 24px); height:calc(100% - 24px); }
+
+/* One navigation style (2026-11-15): the primary action is always the green round button bottom right;
+   leaving is only the header's ✕ (the ⌂ that closed the whole lesson is gone). Icons drawn with strokes. */
+/* Colour given by the screen: one big pencil instead of six cards. */
+.portrait-options--given { display:grid; grid-template-columns:1fr; grid-template-rows:1fr; }
+.portrait-color--given { cursor:default; }
+.portrait-color--given .portrait-pencil { width:min(260px,90%); }
+.portrait-color--given .portrait-color__name { font-size:clamp(20px,2.6vw,28px); }
+/* What this step colours: a pale underlay of the pencil's colour, pulsing (once, before the pencil starts). */
+.portrait-stage > .portrait-paint { position:relative; z-index:1; }
+.portrait-hint { position:absolute; inset:10px; width:calc(100% - 20px); height:calc(100% - 20px); z-index:0; pointer-events:none; opacity:.35; animation:portrait-hint 1s ease-in-out infinite alternate; }
+.portrait-hint--once { animation:portrait-hint 0.8s ease-in-out 2 alternate both; }
+@keyframes portrait-hint { from { opacity:.15; } to { opacity:.5; } }
+@media (prefers-reduced-motion:reduce) { .portrait-hint { animation:none; } }
+@media (orientation:portrait) and (max-width:900px) { .portrait-options--given { grid-template-columns:1fr; grid-template-rows:auto; } }
+/* Buttons on the picture stay above it (the colouring board sits over the area hint, z-index 1). */
+.portrait-stage > .drawing-show, .portrait-stage > .portrait-roll { z-index:2; }
+
+/* Pencil cards without captions (owner, 2026-11-16): the names stay for screen readers and the adult's
+   menu; the cards are only as tall as the pencil (and the die), stacked from the top. */
+.portrait-options--paint { grid-template-rows:repeat(3, auto); align-content:start; }
+.portrait-options--given { grid-template-rows:auto; align-content:start; }
+.portrait-color { padding:12px 10px; min-height:0; }
+.portrait-color .portrait-pencil { width:min(170px,88%); }
+.portrait-color--given { padding:22px 12px; }
+.portrait-color--given .portrait-pencil { width:min(260px,88%); }
+@media (orientation:portrait) and (max-width:900px) { .portrait-options--paint { grid-template-rows:repeat(2, auto); } .portrait-color { padding:8px 6px; } }

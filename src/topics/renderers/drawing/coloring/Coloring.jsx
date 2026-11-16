@@ -1,6 +1,7 @@
 import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {contourPart} from './contour.js';
 import {bounds,generateSheet} from './geometry.js';
+import { Primary } from '../ui.jsx';
 import {coloringOptions,createColoringAttempt,freshProgress,markColoringError,nextColoringShape} from './attempt.js';
 import {loadColoring,saveColoring,storageKey} from './storage.js';
 import ColorPalette from './ColorPalette.jsx';
@@ -60,7 +61,8 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   const [snapshot,setSnapshot]=useState(()=>loadColoring(key));
   const [color,setColor]=useState(()=>inkColor(snapshot?.progress.color??readColorChoice(student?.id)));
   const [size,setSize]=useState({width:0,height:0});
-  const [overview,setOverview]=useState(false),[hint,setHint]=useState(''),[drawing,setDrawing]=useState(false);
+  // No «Весь лист» any more (one style for all drawing modes): the current figure is always shown.
+  const overview=false,[hint,setHint]=useState(''),[drawing,setDrawing]=useState(false);
   const [,redraw]=useState(0);
   const canvas=useRef(null),pointer=useRef(null),failed=useRef(false),reported=useRef(false),completed=useRef(false);
   const current=useRef(null),activeAttempt=useRef(null),measuredSize=useRef({width:0,height:0});
@@ -145,8 +147,7 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
   return <section className="coloring" aria-label="Тренировка закрашивания" data-phase={state?.phase??'loading'} data-sheet-count={snapshot?.sheet.shapes.length} onClick={e=>e.stopPropagation()}>
     <header className={`coloring__tools${state?.phase==='fill'&&!overview?' coloring__tools--palette':''}`}>
       {state?.phase==='fill'&&!overview?<ColorPalette color={color} disabled={interactionDisabled||drawing||correct} onChange={value=>{setColor(chooseColor(snapshot,student?.id,value));persist();}}/>
-        :<span>{shape?.title} · {snapshot?`${snapshot.progress.index+1} / ${snapshot.sheet.shapes.length}`:''}</span>}
-      {compact&&<button type="button" className="coloring__overview" aria-label={overview?'К фигуре':'Весь лист'} disabled={interactionDisabled||drawing} onClick={()=>{attempt?.end(true);setOverview(v=>!v);setHint('');}}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 3v18M4 12h16"/></svg><span>{overview?'К фигуре':'Весь лист'}</span></button>}
+        :<ol className="coloring__steps" aria-label={`${shape?.title??''} · ${snapshot?`${snapshot.progress.index+1} из ${snapshot.sheet.shapes.length}`:''}`}>{snapshot?.sheet.shapes.map((_,i)=><li key={i} className={i<snapshot.progress.index?'is-done':i===snapshot.progress.index?'is-current':''}/>)}</ol>}
     </header>
     <canvas ref={canvas} className="coloring__board" role="img" aria-label="Лист для обводки и закрашивания" data-view={JSON.stringify(view)}
       onContextMenu={e=>e.preventDefault()}
@@ -160,11 +161,11 @@ export default function Coloring({task,student,sessionId,sessionParams={},sessio
       onPointerMove={event=>{if(!disabled&&pointer.current===event.pointerId){event.preventDefault();move(event);}}}
       onPointerUp={event=>end(event)} onPointerCancel={event=>end(event,true)} onLostPointerCapture={event=>end(event,true)}
 />
-    <footer className="coloring__footer" aria-live="polite"><span>{cue}{state?.phase==='fill'&&!overview&&<small>Закрашено {Math.floor((metrics?.coverage??0)*100)}%</small>}</span>
-      {state?.phase==='done'&&!overview&&<button type="button" disabled={interactionDisabled||(sheetDone&&!correct)} onClick={()=>{
+    {/* No words on the child's screen (one style for all drawing modes): the cue is for screen readers. */}
+    <p className="drawing-sr-only" role="status" aria-live="polite">{cue}</p>
+    {state?.phase==='done'&&<Primary icon="next" label={sheetDone?'Следующий лист':'Следующая фигура'} disabled={interactionDisabled||(sheetDone&&!correct)} onClick={()=>{
         if(sheetDone){onAdvance?.();return;}
         nextColoringShape(snapshot);setHint('');persist();refresh();
-      }}>{sheetDone?'Следующий лист':'Следующая фигура'} →</button>}
-    </footer>
+      }} />}
   </section>;
 }
