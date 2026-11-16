@@ -1,6 +1,7 @@
 // The last step of every «Рисуем по шагам» drawing: the pencil signs the sheet, like a real artwork —
 // the drawing's title and the date («16 ноября 2026») in the emptiest corner, written left to right
-// with the pencil tip following. The child copies it on the paper (owner, 2026-11-16).
+// with the pencil tip following, in the app's print font — children who only print or only read
+// copy it too; a cursive one excluded them (owner, 2026-11-16). The child copies it on the paper.
 const NS = 'http://www.w3.org/2000/svg';
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 export const signatureDate = (date = new Date()) => `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
@@ -45,7 +46,7 @@ export function writeSignature(svg, title, { date = new Date(), reduced = false 
   const g = el('g', { 'data-layer': 'signature', 'pointer-events': 'none', 'aria-hidden': 'true' }, svg);
   const defs = el('defs', {}, g);
   const lines = [title, signatureDate(date)].map((text, i) => {
-    const node = el('text', { x: 0, y: i * size * 1.25, 'font-family': "'Primo', 'Comic Sans MS', cursive", 'font-size': (i ? size * .85 : size).toFixed(2), fill: '#3b3f3a' }, g);
+    const node = el('text', { x: 0, y: i * size * 1.25, 'font-family': "'Nunito', sans-serif", 'font-weight': 600, 'font-size': (i ? size * .85 : size).toFixed(2), fill: '#3b3f3a' }, g);
     node.textContent = text; return node;
   });
   // Measure, then place the block in the chosen corner.
