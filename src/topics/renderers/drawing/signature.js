@@ -25,7 +25,7 @@ export function chooseCorner(view, box, size, margin, obstacles = []) {
   return corners.reduce((best, c) => cost(c) < cost(best) - 1e-6 ? c : best);
 }
 
-export function writeSignature(svg, title, { date = new Date(), reduced = false } = {}) {
+export function writeSignature(svg, title, { date = new Date(), reduced = false, upper = false } = {}) {
   if (!svg || typeof svg.getBBox !== 'function') return () => {};
   svg.querySelector('[data-layer=signature]')?.remove();
   // Sized from the long side, and never under 16 screen px (a wide sheet on a phone is drawn small).
@@ -35,7 +35,8 @@ export function writeSignature(svg, title, { date = new Date(), reduced = false 
   // above and below it, and the sheet's own corner would sit on the drawing.
   const box0 = svg.getBoundingClientRect?.(), a0 = toSheet && box0 ? toSheet(box0.left, box0.top) : null, c0 = toSheet && box0 ? toSheet(box0.right, box0.bottom) : null;
   const view = a0 && c0 && c0.x > a0.x ? { x: a0.x, y: a0.y, width: c0.x - a0.x, height: c0.y - a0.y } : sheet;
-  const size = Math.max(unit * .036, 16 / scale), margin = unit * .025;
+  // Small and light, as an artist signs a sheet: it must not compete with the drawing.
+  const size = Math.max(unit * .026, 14 / scale), margin = unit * .025;
   // The lesson's round buttons (back, primary) float over the sheet: keep the signature off them.
   const obstacles = toSheet ? [...document.querySelectorAll('.drawing-primary, .drawing-back, .drawing-show')].map(b => {
     const r = b.getBoundingClientRect(), pad = 28, a = toSheet(r.left - pad, r.top - pad), c = toSheet(r.right + pad, r.bottom + pad);
@@ -46,8 +47,9 @@ export function writeSignature(svg, title, { date = new Date(), reduced = false 
   const g = el('g', { 'data-layer': 'signature', 'pointer-events': 'none', 'aria-hidden': 'true' }, svg);
   const defs = el('defs', {}, g);
   const lines = [title, signatureDate(date)].map((text, i) => {
-    const node = el('text', { x: 0, y: i * size * 1.25, 'font-family': "'Nunito', sans-serif", 'font-weight': 600, 'font-size': (i ? size * .85 : size).toFixed(2), fill: '#3b3f3a' }, g);
-    node.textContent = text; return node;
+    const node = el('text', { x: 0, y: i * size * 1.25, 'font-family': "'Nunito', sans-serif", 'font-weight': 400, 'font-size': (i ? size * .85 : size).toFixed(2), fill: '#4a4f49' }, g);
+    // Capitals (adult's setting) for a child who copies only block capitals.
+    node.textContent = upper ? text.toLocaleUpperCase('ru') : text; return node;
   });
   // Measure, then place the block in the chosen corner.
   const widths = lines.map(n => n.getBBox().width), block = { width: Math.max(...widths), height: size * 2.25 };
