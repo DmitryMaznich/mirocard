@@ -225,7 +225,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
       <div className="portrait-work" data-paint={cstep.group} data-color-mode={given ? 'given' : 'die'} data-chosen={state.value ?? undefined}>
         {given ? <div className="portrait-options portrait-options--given">
           <div className="portrait-option portrait-color portrait-color--given is-selected" aria-label={`Возьми: ${pencils[given - 1].name}`} role="img">
-            <Pencil pencil={pencils[given - 1]} /><span className="portrait-color__name">{pencils[given - 1].name}</span>
+            <Pencil pencil={pencils[given - 1]} />
           </div>
         </div> : <div className="portrait-options portrait-options--paint" role="group" aria-label={`Цвет: ${cstep.name.toLowerCase()}`}>
           {pencils.map((p, i) => {
@@ -233,7 +233,7 @@ export default function Portrait({ student, sessionParams, soundEnabled = true, 
             return <button type="button" key={p.id} className={`portrait-option portrait-color${selected ? ' is-selected' : ''}${chosen && !selected ? ' is-dim' : ''}`}
               aria-label={`${value}: ${p.name}`} aria-pressed={selected}
               disabled={interactionDisabled || screenDie || rolling !== null} onClick={() => { update(s => pick(s, value)); setPlay(n => n + 1); }}>
-              <Die value={value} /><Pencil pencil={p} /><span className="portrait-color__name">{p.name}</span>
+              <Die value={value} /><Pencil pencil={p} />
             </button>;
           })}
         </div>}

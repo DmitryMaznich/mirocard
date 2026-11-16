@@ -100,3 +100,13 @@
 @media (orientation:portrait) and (max-width:900px) { .portrait-options--given { grid-template-columns:1fr; grid-template-rows:auto; } }
 /* Buttons on the picture stay above it (the colouring board sits over the area hint, z-index 1). */
 .portrait-stage > .portrait-show, .portrait-stage > .portrait-roll { z-index:2; }
+
+/* Pencil cards without captions (owner, 2026-11-16): the names stay for screen readers and the adult's
+   menu; the cards are only as tall as the pencil (and the die), stacked from the top. */
+.portrait-options--paint { grid-template-rows:repeat(3, auto); align-content:start; }
+.portrait-options--given { grid-template-rows:auto; align-content:start; }
+.portrait-color { padding:12px 10px; min-height:0; }
+.portrait-color .portrait-pencil { width:min(170px,88%); }
+.portrait-color--given { padding:22px 12px; }
+.portrait-color--given .portrait-pencil { width:min(260px,88%); }
+@media (orientation:portrait) and (max-width:900px) { .portrait-options--paint { grid-template-rows:repeat(2, auto); } .portrait-color { padding:8px 6px; } }
