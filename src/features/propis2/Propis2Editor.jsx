@@ -2,7 +2,8 @@ import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { samplePath } from "@/handwriting/pathGeometry.js";
+import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
+import { letterPieces, piecePathD } from "@/handwriting/letterParts.js";
 import { pageMidDash, rowPartsOf, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
@@ -127,27 +128,33 @@ const ROW_DOCK_KEY = "propis2:rowDock";
 // The letter on its own cells (the print letters: a capital two 52-unit cells tall in the engine's frame, top y = -42, baseline 62 —
 // tools/handwriting/cyrillic/build-print.mjs), a clear cell around it, as «Печатные буквы» ElementPad draws its letter on the grid
 const PAD_CELL = 52;
-const PAD_PX = 44; // px per cell
+const PAD_PX = 44; // px per cell, at least
+const PAD_TALL = 190;
 function PartsPad({ glyph, keep, onToggle }) {
-  const xs = glyph.strokes.flatMap((st) => samplePath(st.d, 30).map((q) => q[0]));
-  const ys = glyph.strokes.flatMap((st) => samplePath(st.d, 30).map((q) => q[1]));
+  const pieces = letterPieces(glyph).map((p) => ({ ...p, d: piecePathD(glyph.strokes[p.stroke].d, p.from, p.to), name: glyph.strokes[p.stroke].name }));
+  const xs = glyph.strokes.flatMap((st) => samplePath(toCubicPathD(st.d), 30).map((q) => q[0]));
+  const ys = glyph.strokes.flatMap((st) => samplePath(toCubicPathD(st.d), 30).map((q) => q[1]));
   const c = PAD_CELL;
   const top = -42;
-  const x0 = Math.floor(Math.min(0, ...xs) / c) * c - c;
-  const x1 = Math.ceil(Math.max(...xs) / c - 1e-6) * c + c;
-  const y0 = top + Math.floor((Math.min(...ys) - top) / c) * c - c;
-  const y1 = top + Math.ceil((Math.max(...ys) - top) / c - 1e-6) * c + c;
+  // half a cell of room around the cells the letter takes
+  const x0 = Math.floor(Math.min(...xs) / c) * c - c / 2;
+  const x1 = Math.ceil(Math.max(...xs) / c - 1e-6) * c + c / 2;
+  const y0 = top + Math.floor((Math.min(...ys) - top) / c) * c - c / 2;
+  const y1 = top + Math.ceil((Math.max(...ys) - top) / c - 1e-6) * c + c / 2;
+  const first = (v0) => Math.ceil(v0 / c) * c;
+  // the letter about PAD_TALL px tall whatever its size (a copybook small letter is one cell, a print capital two)
+  const px = Math.min(PAD_PX * 2.6, Math.max(PAD_PX, PAD_TALL / ((y1 - y0) / c)));
   const on = new Set(keep);
-  const vLines = Array.from({ length: Math.round((x1 - x0) / c) + 1 }, (_, i) => x0 + i * c);
-  const hLines = Array.from({ length: Math.round((y1 - y0) / c) + 1 }, (_, i) => y0 + i * c);
+  const vLines = Array.from({ length: Math.floor((x1 - first(x0)) / c) + 1 }, (_, i) => first(x0) + i * c);
+  const hLines = Array.from({ length: Math.floor((y1 - (top + first(y0 - top))) / c) + 1 }, (_, i) => top + first(y0 - top) + i * c);
   return (
-    <svg className="p2-partpad" viewBox={`${x0} ${y0} ${x1 - x0} ${y1 - y0}`} width={((x1 - x0) / c) * PAD_PX} height={((y1 - y0) / c) * PAD_PX} aria-label={`Буква ${glyph.label}: нажмите на штрих, чтобы писать или не писать его`}>
+    <svg className="p2-partpad" viewBox={`${x0} ${y0} ${x1 - x0} ${y1 - y0}`} width={((x1 - x0) / c) * px} height={((y1 - y0) / c) * px} aria-label={`Буква ${glyph.label}: нажмите на штрих, чтобы писать или не писать его`}>
       {vLines.map((x) => <line key={`gv${x}`} x1={x} y1={y0} x2={x} y2={y1} stroke="#bcd4e8" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
       {hLines.map((y) => <line key={`gh${y}`} x1={x0} y1={y} x2={x1} y2={y} stroke="#bcd4e8" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
-      {glyph.strokes.map((st, i) => <path key={`v${i}`} d={st.d} fill="none" stroke={on.has(i) ? "var(--p2-blue)" : "#c3c9d2"} strokeWidth={on.has(i) ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />)}
-      {glyph.strokes.map((st, i) => (
+      {pieces.map((st, i) => <path key={`v${i}`} d={st.d} fill="none" stroke={on.has(i) ? "var(--p2-blue)" : "#c3c9d2"} strokeWidth={on.has(i) ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />)}
+      {pieces.map((st, i) => (
         <path key={`h${i}`} d={st.d} fill="none" stroke="transparent" strokeWidth={18} strokeLinecap="round" className="p2-partpad-hit" role="button" tabIndex={0}
-          aria-label={`${st.name ?? `Штрих ${i + 1}`}: ${on.has(i) ? "пишем" : "не пишем"}`} aria-pressed={on.has(i)} onClick={() => onToggle(i)}
+          aria-label={`${pieces.length > glyph.strokes.length || !st.name ? `Часть ${i + 1}` : st.name}: ${on.has(i) ? "пишем" : "не пишем"}`} aria-pressed={on.has(i)} onClick={() => onToggle(i)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(i); } }} />
       ))}
     </svg>
@@ -554,12 +561,13 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const map = rowGlyphMap(glyphMap, selected);
     const t = String(selected.text ?? "").trim();
     const g = t && [...t].length === 1 ? map?.get(map.script?.caps ? t.toLocaleUpperCase("ru") : t) : null;
-    return g?.kind === "letter" && g.strokes?.length > 1 ? g : null;
+    return (g?.kind === "letter" || g?.kind === "element") && !g.compose && letterPieces(g).length > 1 ? g : null;
   })();
   const partsSaved = partsGlyph ? rowPartsOf(selected) : null;
-  const partsKeep = partsSaved ?? (partsGlyph ? partsGlyph.strokes.map((_, i) => i) : []);
+  const partsCount = partsGlyph ? letterPieces(partsGlyph).length : 0;
+  const partsKeep = partsSaved ?? Array.from({ length: partsCount }, (_, i) => i);
   const setParts = (keep) => {
-    const all = !keep || keep.length >= partsGlyph.strokes.length;
+    const all = !keep || keep.length >= partsCount;
     if (all) { const { parts: _p, ...rest } = selected; setRows(page.rows.map((r) => (r.id === selectedId ? rest : r))); return; }
     patchSelected({ parts: { of: String(selected.text ?? "").trim(), keep: [...keep].sort((a, b) => a - b) } });
   };

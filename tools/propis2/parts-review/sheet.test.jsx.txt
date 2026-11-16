@@ -1,0 +1,28 @@
+import { it } from "vitest";
+import { readFile, writeFile } from "node:fs/promises";
+import { openDb } from "@/core/db";
+import { importTopic, getTopicRecord } from "@/topics/topicLoader";
+import { glyphMapOf } from "./pageTask.js";
+import { languageView } from "./languages.js";
+import { letterPieces, piecePathD } from "@/handwriting/letterParts.js";
+import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
+const COLORS = ["#1d4ed8", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2"];
+it("sheet", async () => {
+  const db = await openDb("zp" + Date.now());
+  await importTopic(db, await readFile("public/decks/propis2_v0.7.0.zip"), "999.0.0");
+  const map = glyphMapOf(languageView(await getTopicRecord(db, "propis2"), "ru", "cursive"));
+  const letters = [...(process.env.LETTERS ?? "абвгдеёжзийклмнопрстуфхцчшщъыьэюя")];
+  const cells = letters.map((ch) => {
+    const g = map.get(ch);
+    if (!g) return `<div class=c><b>${ch}</b><i>нет</i></div>`;
+    if (g.compose) return `<div class=c><b>${ch}</b><i>из ${g.compose.join("+")}</i></div>`;
+    const ps = letterPieces(g);
+    const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
+    const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+    const x0 = Math.min(...xs) - 8, y0 = Math.min(-45, Math.min(...ys)) - 8, w = Math.max(...xs) - x0 + 8, h = Math.max(115, Math.max(...ys)) - y0 + 8;
+    const paths = ps.map((p, i) => `<path d="${piecePathD(g.strokes[p.stroke].d, p.from, p.to)}" stroke="${COLORS[i % COLORS.length]}" stroke-width="3" fill="none" stroke-linecap="round"/>`).join("");
+    const guides = [-42, 10, 62].map((y) => `<line x1="${x0}" x2="${x0 + w}" y1="${y}" y2="${y}" stroke="#ddd" stroke-width="1"/>`).join("");
+    return `<div class=c><b>${ch} <small>${ps.length}</small></b><svg viewBox="${x0} ${y0} ${w} ${h}" height="220">${guides}${paths}</svg></div>`;
+  }).join("");
+  await writeFile(process.env.OUT, `<!doctype html><meta charset=utf-8><style>body{font-family:sans-serif;margin:12px;background:#fff}.g{display:flex;flex-wrap:wrap;gap:8px}.c{border:1px solid #ddd;border-radius:6px;padding:4px;text-align:center;min-width:70px}b{display:block}small{color:#888}i{color:#999;font-size:12px}</style><div class=g>${cells}</div>`);
+});

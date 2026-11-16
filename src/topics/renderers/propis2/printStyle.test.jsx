@@ -101,3 +101,24 @@ describe("propis2: a row writes only some strokes of its letter (row.parts → #
     expect(b).not.toMatch(/#p/);
   });
 });
+
+describe("propis2: the parts of a copybook letter (letterParts.js: cut where an element of the method begins)", () => {
+  it("и: two sticks rounded at the bottom; а д: the oval, then the stick; п р: the stick, then the arch / hook; т: three; о е с: one", async () => {
+    const { letterPieces } = await import("@/handwriting/letterParts.js");
+    const cursive = glyphMapOf(languageView(deck, "ru", "cursive"));
+    const n = (ch) => letterPieces(cursive.get(ch)).length;
+    expect(Object.fromEntries([..."иадпртоесул"].map((ch) => [ch, n(ch)]))).toEqual({ и: 2, а: 2, д: 2, п: 2, р: 2, т: 3, о: 1, е: 1, с: 1, у: 2, л: 2 });
+  });
+  it("a row of one part of и writes only that stick, in its place", () => {
+    const cursive = glyphMapOf(languageView(deck, "ru", "cursive"));
+    const snap = snapXFor({ narrowRows: true, simpleGrid: "regular", margin: "off", format: "a5", narrow17: true });
+    const lay = (line) => layoutWideLinesIntoRows([line], cursive, snap, false).placed[0].segments.flatMap((sg) => sg.strokes);
+    const whole = lay("и#1"), first = lay("и#1#p0"), second = lay("и#1#p1");
+    const xs = (strokes) => strokes.flatMap((st) => samplePath(st.d, 2)).map((q) => q[0]);
+    expect(first.length).toBe(1);
+    expect(second.length).toBe(1);
+    // the first stick is the left part of the letter, the second its right part
+    expect(Math.max(...xs(first))).toBeLessThan(Math.max(...xs(whole)));
+    expect(Math.min(...xs(second))).toBeGreaterThan(Math.min(...xs(whole)));
+  });
+});

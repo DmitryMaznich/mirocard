@@ -1,5 +1,6 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
 import { mapRowInk, scriptKey, scriptPointMap } from "./scriptGeometry.js";
+import { letterPieces, splitIntoParts } from "./letterParts.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   TEXT_ROW_WIDE_DIAGONAL_SPACING,
@@ -2011,10 +2012,11 @@ function nelsonTarget(R, label, kind, strokes, scale, entry = null) {
 // cells) — and each row is taken from its style's layout (`row.style`). Without a `#y` flag nothing changes.
 const STYLE_FLAG = /#y([a-z0-9_]+)$/;
 // The PARTS of a letter a row trains (`propis2` row panel, owner 2026-11-16: «всю букву, или только одну петельку, или один штрих»): its line
-// carries `#p<i>.<j>…` — the indices of the letter's strokes that are written, before a `#y` flag if any. The row is laid out with a glyph map
-// in which every letter of several strokes has the others as `hiddenStrokes`: they are placed as always (the part stands where it stands in
-// the letter, on the cell lines of the print papers), get no start dot, and are left out of the row (layoutWideLinesIntoRowsNow). Nothing is
-// drawn in their place (owner, 2026-11-16). A letter of one stroke (most of the copybook hand) is written whole.
+// carries `#p<i>.<j>…` — the indices of the letter's PARTS that are written (letterParts.js: a print letter's strokes; a copybook letter's
+// line cut where an element begins), before a `#y` flag if any. The row is laid out with a glyph map in which every letter of several parts
+// has the others as `hiddenParts`: the letter is placed as always (a part stands where it stands in the letter, on the cell lines of the print
+// papers), cut into its parts, and the hidden ones get no start dot and are left out of the row (layoutWideLinesIntoRowsNow). Nothing is drawn
+// in their place (owner, 2026-11-16).
 const PARTS_FLAG = /#p(\d+(?:\.\d+)*)(?=(?:#y[a-z0-9_]+)?$)/;
 const PARTS_MAPS = new WeakMap(); // glyph map -> Map(parts key -> glyph map)
 function partsGlyphMap(map, key) {
@@ -2024,10 +2026,11 @@ function partsGlyphMap(map, key) {
   const keep = new Set(key.split(".").map(Number));
   const swapped = new Map();
   const swap = (g) => {
-    if (!g || g.kind !== "letter" || !(g.strokes?.length > 1)) return g;
+    if (!g || (g.kind !== "letter" && g.kind !== "element") || g.compose) return g;
     if (!swapped.has(g)) {
-      const hidden = g.strokes.map((_, i) => i).filter((i) => !keep.has(i));
-      swapped.set(g, hidden.length && hidden.length < g.strokes.length ? { ...g, hiddenStrokes: hidden } : g);
+      const n = letterPieces(g).length;
+      const hidden = Array.from({ length: n }, (_, i) => i).filter((i) => !keep.has(i));
+      swapped.set(g, n > 1 && hidden.length && hidden.length < n ? { ...g, hiddenParts: new Set(hidden) } : g);
     }
     return swapped.get(g);
   };
@@ -2882,7 +2885,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           startX = o + Math.ceil((startX - lead - o) / S - 1e-6) * S + lead;
         }
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.missing ? { missing: true } : {}), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}), ...(glyph.hiddenStrokes?.includes(si) ? { hidden: true } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.missing ? { missing: true } : {}), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(glyph.dotWidth && glyph.dotStrokes?.includes(si) ? { width: glyph.dotWidth } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
         if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
@@ -3166,14 +3169,16 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         }
         if (meet) (glyph.strokes ?? []).forEach((st, si) => { if (moved[si] && (st.name === "точка" || st.name === "гачек" || st.name === "черточка")) moved[si] = { ...moved[si], afterWord: true }; });
         const firstMovedIndex = strokes.length;
-        strokes.push(...moved);
+        // a letter written only in part (`#p`, partsGlyphMap): its strokes cut into its parts (letterParts.js), the ones not written marked hidden
+        const movedOut = glyph.hiddenParts ? splitIntoParts(moved, glyph, glyph.hiddenParts) : moved;
+        strokes.push(...movedOut);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
         cellRun.push(cellRec);
         if (prevExit && !exactTouch && !liftJoin) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null || capAfterCap) {
           // every token's first glyph gets its red start dot(s), and so does a capital written apart after a capital; only the very first one also gets direction arrows
-          for (const [si, s] of moved.entries()) {
-            if (glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
+          for (const [si, s] of movedOut.entries()) {
+            if (!glyph.hiddenParts && glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
             if (s.hidden) continue; // a part of the letter not written in this row (`#p`): no dot where it would start
             startPoints.push(getPathEndpoints(s.d).start);
             if (!WIDE_DIRECTION_ARROWS || dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
