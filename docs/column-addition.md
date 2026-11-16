@@ -84,9 +84,10 @@ separate branches for two or three places or for a zero:
   cell now appears only on its turn (shown early it tells the answer's width).
 - **Subtraction**, per place right to left: «2 − 7: единиц хватает?» → «Хватает» / «Не
   хватает» (the words of «Разряды числа», owner: the bridge between the topics; it replaced
-  the < > = strip); not enough → **take first**: cross out the neighbour, write it one less
-  in the mark cell over it (a 0 between lends through: the next one gives, the 0 becomes 9);
-  then the small «1» in front of the place's own number; then the result.
+  the < > = strip); not enough → **take — give — reduce** (owner, 2026-11-16; the first version
+  reduced first): the lender lights up (`.col-digit--lender`, the borrow step's `lenders`; a 0
+  between lights up too) while the «1» goes in front of the place's own number; then the lender is
+  crossed out and written one less in the mark cell over it (a 0 between becomes 9); then the result.
 - The mark cell over a place holds its current top number; a place that lent and then
   borrows (532 − 157, the tens) gets its «1» in front of that mark — «12». The old corner
   mark held both and the «1» overwrote the «2» (the 3-digit bug). A place with no mark keeps

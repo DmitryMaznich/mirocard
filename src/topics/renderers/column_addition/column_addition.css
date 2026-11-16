@@ -196,6 +196,13 @@
 
 /* ── Carry / borrow aux cells ──────────────── */
 
+/* the place we take from, while the borrowed «1» goes in (take — give — reduce) */
+.col-digit--lender {
+  background: #fef3c7;
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px #f59e0b;
+}
+
 /* ── Marks row: the child's pen over a place (2026-11-15) ─────
    Carries, lent-down digits and the borrowed «1» — small digits in the
    child's blue, no triangles or tints, as in «Контрольные по математике»

@@ -406,11 +406,12 @@ describe("buildSubSteps borrow/adjust step shape", () => {
     expect(adjustStep.digit).toBe(t.columns[1].topDigit - 1);
   });
 
-  it("step order: take first (crossout, adjust), then the «1» in front, then the result", () => {
+  it("step order: take — give — reduce: the «1» in front, then crossout and adjust, then the result", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
     // (52 − 47 = 5 has no tens to write — a leading zero is not written)
     const t = tasks.find((task) => task.columns[0].borrowOut > 0 && task.result >= 10);
-    expect(t.steps.map((s) => s.cellType)).toEqual(["crossout", "adjust", "borrow", "result", "result"]);
+    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "crossout", "adjust", "result", "result"]);
+    expect(t.steps[0].lenders).toEqual(["tens"]);
   });
 
   it("crossout step sits at the source column's position, between borrow and adjust", () => {
@@ -496,17 +497,18 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
 
   it("302 − 195: the hundreds give first, the 0 becomes 9 — never «−1»", () => {
     expect(steps(302, 195)).toEqual([
+      "borrow:units:1",
       "crossout:hundreds:null", "adjust:hundreds:2",
       "crossout:tens:null", "adjust:tens:9",
-      "borrow:units:1", "result:units:7",
+      "result:units:7",
       "result:tens:0", "result:hundreds:1",
     ]);
   });
 
   it("532 − 157: the tens lend, then borrow themselves — one order for every place", () => {
     expect(steps(532, 157)).toEqual([
-      "crossout:tens:null", "adjust:tens:2", "borrow:units:1", "result:units:5",
-      "crossout:hundreds:null", "adjust:hundreds:4", "borrow:tens:1", "result:tens:7",
+      "borrow:units:1", "crossout:tens:null", "adjust:tens:2", "result:units:5",
+      "borrow:tens:1", "crossout:hundreds:null", "adjust:hundreds:4", "result:tens:7",
       "result:hundreds:3",
     ]);
   });
@@ -520,9 +522,10 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
 
   it("400 − 126: through a zero: the hundreds give, the 0 of the tens becomes 9", () => {
     expect(steps(400, 126)).toEqual([
+      "borrow:units:1",
       "crossout:hundreds:null", "adjust:hundreds:3",
       "crossout:tens:null", "adjust:tens:9",
-      "borrow:units:1", "result:units:4",
+      "result:units:4",
       "result:tens:7", "result:hundreds:2",
     ]);
   });

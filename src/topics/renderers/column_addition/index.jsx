@@ -278,11 +278,13 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
       const markFilled = markPositions.has(pos) && filledCells[`adjust:${pos}`] !== undefined;
       const isComparingHere = pos === comparingPosition && !markFilled;
+      // take — give — reduce: while the «1» goes in, the place we take from lights up
+      const isLender = operation === "subtract" && !compareColumn && activeStep?.cellType === "borrow" && (activeStep.lenders ?? []).includes(pos);
 
       cells.push(
         <div
           key={`top:${pos}`}
-          className={["col-digit", wasBorrowedFrom ? "col-digit--top-borrowed" : "", isComparingHere ? "col-digit--comparing" : ""].filter(Boolean).join(" ")}
+          className={["col-digit", wasBorrowedFrom ? "col-digit--top-borrowed" : "", isComparingHere ? "col-digit--comparing" : "", isLender ? "col-digit--lender" : ""].filter(Boolean).join(" ")}
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 2 }}
         >
           {col.topDigit}
