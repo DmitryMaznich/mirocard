@@ -654,3 +654,63 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 /* a phone: the header keeps the notebook's title readable — the page's style is already on the strip's «Стиль страницы» button (ПР / ПЧ,
    BU / BJ …) right under it; since deck 0.7.0 every Russian notebook has two styles and the badge squeezed the title to one word */
 @media (max-width: 559px) { .p2-header .p2-style-badge { display: none; } }
+
+/* ===== The row panel (Propis2Editor rowPanelEl, owner 2026-11-16: «как в конструкторе печатных листов и контрольных»): the column right of
+   the sheet on a computer, a dock at the bottom on a phone. Its look is «Печатные буквы» RowInspector's (print_letters.css .pl-insp*). ===== */
+.p2-inspector { flex: 0 0 340px; width: 340px; min-height: 0; overflow-y: auto; background: var(--p2-surface); border-left: 1px solid var(--p2-line); padding-right: var(--app-safe-right, 0px); }
+.p2-insp { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+.p2-insp--empty { color: var(--p2-muted); font-size: 14px; line-height: 1.45; }
+.p2-insp--empty p { margin: 0; }
+.p2-insp-head { display: flex; flex-direction: column; gap: 10px; }
+.p2-insp-title { font-weight: 800; font-size: 15px; }
+.p2-insp-kind { font-weight: 700; color: var(--p2-muted); }
+.p2-insp-acts { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: #eef3fb; }
+.p2-insp-acts button {
+  flex: 1 1 0; min-width: 0; height: 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: none; border-radius: 10px; background: transparent; color: var(--p2-ink);
+  font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.p2-insp-acts button svg { width: 22px; height: 22px; }
+.p2-insp-acts button:hover:not(:disabled) { background: #fff; }
+.p2-insp-acts button:disabled { opacity: .35; cursor: default; }
+.p2-insp-acts button.is-danger { color: var(--p2-red); }
+.p2-insp-sec { display: flex; flex-direction: column; gap: 8px; }
+.p2-insp-lbl { font-size: 11px; font-weight: 800; color: #5b6472; text-transform: uppercase; letter-spacing: .04em; }
+.p2-insp-mixed { color: #d97706; text-transform: none; letter-spacing: 0; font-weight: 700; }
+.p2-insp-hint { font-size: 12px; color: #5b6472; line-height: 1.4; margin: 0; }
+.p2-insp-row { display: flex; align-items: center; gap: 10px; }
+.p2-insp-row .p2-ib { flex: 0 0 auto; }
+/* a choice: every option in sight, the current one raised (print_letters .pl-seg) */
+.p2-iseg { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--p2-strip); }
+.p2-iseg button {
+  flex: 1 1 0; min-width: 0; min-height: 44px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: none; border-radius: 8px; background: transparent; color: var(--p2-ink);
+  font: inherit; font-size: 12px; font-weight: 700; line-height: 1.15; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.p2-iseg button.is-on { background: #fff; color: var(--p2-teal-dark); box-shadow: 0 1px 3px rgba(28, 54, 52, .18); }
+.p2-iseg button:disabled { opacity: .4; cursor: default; }
+.p2-iseg-ico { display: grid; place-items: center; height: 24px; }
+.p2-iseg-ico svg { width: 26px; height: 26px; }
+.p2-iseg-cap { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+/* phone / tablet: the panel docked over the keys strip, folded to its bar; open, a share of the screen, its insides scroll */
+.p2-rowdock { flex: 0 0 auto; display: flex; flex-direction: column; min-height: 0; }
+.p2-rowdock:not(.is-folded) { height: 38dvh; max-height: 38dvh; }
+/* the keys dock holding an open row panel: its own height, not the field's limit (the panel scrolls inside) */
+.propis2-dock--keys:has(.p2-rowdock:not(.is-folded)) { max-height: none; overflow: visible; }
+.p2-rowdock-toggle {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 4px 2px;
+  border: none; background: transparent; color: var(--p2-ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.p2-rowdock:not(.is-folded) .p2-rowdock-toggle { min-height: 26px; justify-content: center; padding: 0; }
+.p2-rowdock-sum { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.p2-rowdock-sum b { font-weight: 800; }
+.p2-rowdock-chev { flex: 0 0 auto; width: 36px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: var(--p2-strip); color: var(--p2-teal-dark); font-size: 14px; }
+.p2-rowdock:not(.is-folded) .p2-rowdock-chev { width: 56px; height: 22px; border-radius: 11px; color: #8b93a1; }
+.p2-rowdock-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.p2-rowdock .p2-insp { padding: 0 0 6px; gap: 12px; }
+.p2-rowdock .p2-insp-head { position: sticky; top: 0; z-index: 2; background: var(--p2-surface); padding: 4px 0 6px; gap: 6px; }
+.p2-rowdock .p2-insp-acts button { height: 46px; }
+.p2-insp-row--drop { align-items: flex-start; }
+.p2-insp-row--drop > .p2-ib, .p2-insp-row--drop > * > .p2-ib { width: auto; min-width: 64px; height: auto; padding: 4px 6px; }
+.p2-insp-row--drop .p2-insp-hint { padding-top: 6px; }

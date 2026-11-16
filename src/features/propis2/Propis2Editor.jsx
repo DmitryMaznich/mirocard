@@ -81,17 +81,17 @@ const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.Ic
 const repeatChoice = (o) => (o.repeat === "all" && o.copies === "solid" ? SOLID_REPEAT : o.repeat);
 const repeatPatch = (id) => (id === SOLID_REPEAT ? { repeat: "all", copies: "solid" } : { repeat: id, copies: "dash" });
 const REPEAT_OPTS = [
-  { id: "one", label: "Одна запись", Icon: I.IconRepOne },
-  { id: "all", label: "Повтор пунктиром", Icon: I.IconRepAll },
+  { id: "one", label: "Одна запись", short: "Один раз", Icon: I.IconRepOne },
+  { id: "all", label: "Повтор пунктиром", short: "Пунктир", Icon: I.IconRepAll },
   // the copies as pale solid lines (row `copies: "solid"`): it was a «Копии» button of its own, the difference unseen at the size of
   // the page on a phone and the button looked dead (owner, 2026-10-15: make it a choice of «Образец»)
-  { id: SOLID_REPEAT, label: "Повтор бледной линией", Icon: I.IconRepSolid },
-  { id: "fade", label: "Повтор с затуханием", Icon: I.IconRepFade },
+  { id: SOLID_REPEAT, label: "Повтор бледной линией", short: "Бледно", Icon: I.IconRepSolid },
+  { id: "fade", label: "Повтор с затуханием", short: "Затухание", Icon: I.IconRepFade },
 ];
 const DOT_OPTS = [
-  { id: "none", label: "Без красных точек", Icon: I.IconDotsNone },
-  { id: "one", label: "Красная точка у образца", Icon: I.IconDotsOne },
-  { id: "all", label: "Красные точки у образца и копий", Icon: I.IconDotsAll },
+  { id: "none", label: "Без красных точек", short: "Нет", Icon: I.IconDotsNone },
+  { id: "one", label: "Красная точка у образца", short: "У образца", Icon: I.IconDotsOne },
+  { id: "all", label: "Красные точки у образца и копий", short: "Везде", Icon: I.IconDotsAll },
 ];
 // What a row strip button did, for the offer to do it on the next rows too (owner, 2026-10-24)
 const ROW_SAYS = {
@@ -104,6 +104,23 @@ const onRows = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "строке" : 
 
 
 // A round/square icon button: 44px target, pressed state, the name only as aria-label.
+// A choice of the row panel (as «Печатные буквы» RowInspector's Seg): every option in sight, its icon and a short caption, the current
+// one raised; `mixed`: the rows of the page differ in it (only said, nothing is picked)
+function Seg({ label, options, value, onChange, disabled = false }) {
+  return (
+    <div className="p2-iseg" role="radiogroup" aria-label={label} aria-disabled={disabled || undefined} data-value={value}>
+      {options.map((o) => (
+        <button key={o.id} type="button" role="radio" aria-checked={o.id === value} aria-label={o.label} title={o.label} className={o.id === value ? "is-on" : ""} disabled={disabled || o.disabled} onClick={() => o.id !== value && onChange(o.id)}>
+          {o.Icon && <span className="p2-iseg-ico"><o.Icon /></span>}
+          <span className="p2-iseg-cap">{o.short ?? o.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const ROW_DOCK_KEY = "propis2:rowDock";
+
 function IconBtn({ label, caption, on, onClick, disabled, children, className = "", mixed = false, ...rest }) {
   const { bind, tip } = useHint(label);
   return (
@@ -488,25 +505,77 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     return true;
   };
   const onDropRemove = locked ? null : (absLine) => { const ri = ownersNow[absLine]; if (ri != null && page.rows[ri]?.drop) removeDrop(page.rows[ri].id); };
+  // the strip keeps only what TYPES at the caret (an element, the clipboard): it works while the keyboard is open; everything about the
+  // row itself is in the row panel (rowPanelEl, owner 2026-11-16: «как в конструкторе печатных листов и контрольных»)
   const rowEls = <>
-          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
-          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
-          {/* the row's writing style (docs/propis2-languages.md «Стиль у строки»): a row of print letters, the next one joined */}
-          {styles && rowStyleOptions.length > 1 && <Propis2Picker label="Стиль строки" caption="Стиль строки" kind="style" value={selected ? rowSetting(selected, "style", glyphMap) ?? styles.value : styles.value} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
           {/* keeps the field's focus (the keyboard stays open, the caret where it was) */}
           <IconBtn label="Вставить текст из буфера обмена" caption="Вставить" disabled={!canPaste} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}><I.IconPaste /></IconBtn>
+  </>;
+  const rowNo = selectedIndex >= 0 ? owners.indexOf(selectedIndex) + 1 : 0;
+  const kindName = !selected ? "" : selected.kind === "passage" ? "связный текст" : selected.kind === "blank" || !String(selected.text ?? "").trim() ? "пустая строка" : selected.kind === "element" ? "элемент" : "образец";
+  const rowStyleValue = selected ? rowSetting(selected, "style", glyphMap) ?? styles?.value : styles?.value;
+  // The row panel (as «Печатные буквы» RowInspector / «Контрольные» Inspector): on a computer the column right of the sheet, on a phone
+  // the dock at the bottom. Its head: which row, its own ↑ ↓ copy delete; then what the row is, how it repeats, its dots, its style, the
+  // printed letter at its end. The buttons keep the field's focus (mousedown), so the caret stays where it was.
+  const keepFocus = (e) => e.preventDefault();
+  const rowPanelEl = !selected ? (
+    <div className="p2-insp p2-insp--empty" data-testid="propis2-row-panel">
+      <p>Щёлкните по строке листа — здесь появятся её настройки: образец или текст, повтор, точки, стиль, буква на полях.</p>
+      <p>Печатайте прямо на строке: слово — образец, фраза с пробелами — связный текст.</p>
+    </div>
+  ) : (
+    <div className="p2-insp" data-testid="propis2-row-panel" onMouseDown={keepFocus}>
+      <div className="p2-insp-head">
+        <div className="p2-insp-title">Строка {rowNo}{kindName ? <span className="p2-insp-kind"> · {kindName}</span> : null}</div>
+        <div className="p2-insp-acts" role="group" aria-label="Строка">
+          <button type="button" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={selectedIndex === 0} aria-label="Строку выше"><I.IconUp /><span>Выше</span></button>
+          <button type="button" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={selectedIndex === page.rows.length - 1} aria-label="Строку ниже"><I.IconDown /><span>Ниже</span></button>
+          <button type="button" onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }} aria-label="Дублировать строку"><I.IconDuplicate /><span>Дубль</span></button>
+          <button type="button" className="is-danger" onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }} aria-label="Удалить строку"><I.IconTrash /><span>Удалить</span></button>
+        </div>
+      </div>
+      {selected.kind !== "blank" && selected.kind !== "element" && (
+        <section className="p2-insp-sec" aria-label="Что в строке">
+          <span className="p2-insp-lbl">Что в строке</span>
+          <Seg label="Что в строке" value={selected.kind === "passage" ? "passage" : "sample"} disabled={locked} onChange={(id) => setRowAsText(id === "passage")}
+            options={[{ id: "sample", label: "Образец и копии по строке", short: "Образец", Icon: I.IconRepAll }, { id: "passage", label: "Связный текст с переносом на следующие строки", short: "Связный текст", Icon: I.IconTabText }]} />
+        </section>
+      )}
+      {rowEditable && (
+        <>
+          <section className="p2-insp-sec" aria-label="Повтор">
+            <span className="p2-insp-lbl">Повтор образца{rowMixed.repeat ? <span className="p2-insp-mixed"> · на странице по-разному</span> : null}</span>
+            <Seg label="Повтор" options={REPEAT_OPTS} value={repeatChoice(rowOpts)} onChange={(id) => setRowSetting("repeat", id)} />
+          </section>
+          <section className="p2-insp-sec" aria-label="Красные точки">
+            <span className="p2-insp-lbl">Красные точки — где начинать</span>
+            <Seg label="Красные точки" options={DOT_OPTS} value={rowOpts?.dots ?? "all"} onChange={(id) => setRowSetting("dots", id)} />
+          </section>
+        </>
+      )}
+      {/* the row's writing style (docs/propis2-languages.md «Стиль у строки»): only the styles on the page's paper */}
+      {styles && rowStyleOptions.length > 1 && selected.kind !== "blank" && (
+        <section className="p2-insp-sec" aria-label="Стиль строки">
+          <span className="p2-insp-lbl">Стиль строки</span>
+          <Seg label="Стиль строки" disabled={locked} value={rowStyleValue} onChange={(id) => setRowSetting("style", id)}
+            options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label }))} />
+        </section>
+      )}
+      <section className="p2-insp-sec" aria-label="Буква на полях">
+        <span className="p2-insp-lbl">Печатная буква на краю строки</span>
+        <div className="p2-insp-row p2-insp-row--drop">
           <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
             onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />
-          <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
-          <span className="p2-sep" aria-hidden="true" />
-          <div className="p2-seg" role="group" aria-label="Строка">
-            <IconBtn label="Выше" caption="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
-            <IconBtn label="Ниже" caption="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
-            <IconBtn label="Дублировать" caption="Дубль" disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
-            <IconBtn label="Удалить строку" caption="Удалить" className="p2-ib--danger" disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
-          </div>
-  </>;
+          <span className="p2-insp-hint">{dropBlock ?? "Ставится в начало или в конец строки — туда, где курсор."}</span>
+        </div>
+      </section>
+    </div>
+  );
+  // phone: the panel is a dock at the bottom, folded to one bar until opened; it gives its room to the keyboard
+  // (open or folded: remembered on the device, as «Печатные буквы» does)
+  const [dockOpen, setDockOpenState] = useState(() => { try { return localStorage.getItem(ROW_DOCK_KEY) === "1"; } catch { return false; } });
+  const setDockOpen = (fn) => setDockOpenState((o) => { const next = typeof fn === "function" ? fn(o) : fn; try { localStorage.setItem(ROW_DOCK_KEY, next ? "1" : "0"); } catch { /* not remembered */ } return next; });
   // the canvas zoom (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back
   // `withHistory`: undo / redo in the same row as the zoom (phones / tablets, owner 2026-10-24: hides nothing there); the desk
   // layout has them in its tool bar
@@ -560,8 +629,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     // The computer layout (owner, 2026-10-23, «вариант Б»): one tool bar across the screen — undo / redo, the page's paper, the row's
     // tools, the zoom — the notebook's pages as thumbnails on the left (a click opens one, the page's own actions under them), the
     // sheet in the middle, a status bar at the bottom (page, row, what Enter does, the problems).
-    const rowNo = selectedIndex >= 0 ? owners.indexOf(selectedIndex) + 1 : 0;
-    const kindName = !selected ? "" : selected.kind === "passage" ? "связный текст" : selected.kind === "blank" || !String(selected.text ?? "").trim() ? "пустая строка" : selected.kind === "element" ? "элемент" : "образец";
     return (
       <div className={`screen propis2-home propis2-editor2 propis2-editor2--desk${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
         {headerEl}
@@ -575,7 +642,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           )}
           <div className="p2-desk-group" role="group" aria-label="Настройки страницы">{paperEls}</div>
           <span className="p2-sep" aria-hidden="true" />
-          <div className="p2-desk-group p2-desk-group--row" role="group" aria-label="Настройки строки">{rowEls}</div>
+          <div className="p2-desk-group p2-desk-group--row" role="group" aria-label="Набор">{rowEls}</div>
           <span className="p2-desk-fill" />
           {zoomEl()}
         </div>
@@ -585,6 +652,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             {canvasEl}
             {offerEl}
           </div>
+          <aside className="p2-inspector" aria-label="Настройки строки">{rowPanelEl}</aside>
         </div>
         <div className="p2-status" role="status">
           {nav && <span>Стр. <b>{nav.index + 1}</b> из {nav.total}</span>}
@@ -631,7 +699,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           )}
         </div>
 
-        <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
+        <div className="propis2-settings propis2-settings--row" role="group" aria-label="Набор">
           {rowEls}
         </div>
 
@@ -641,8 +709,19 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
 
         <div className="propis2-dock propis2-dock--keys">
           {warnsEl}
+          {/* the row panel, folded to a bar (owner 2026-11-16): it gives its room to the keyboard */}
+        {/* only for a selected row (no row: the hint below says what to do); under an open keyboard it gives its room */}
+        {selected && !keyboard.open && (
+            <div className={`p2-rowdock${dockOpen ? "" : " is-folded"}`}>
+              <button type="button" className="p2-rowdock-toggle" onMouseDown={keepFocus} onClick={() => setDockOpen((o) => !o)} aria-expanded={dockOpen} aria-label={dockOpen ? "Свернуть настройки строки" : "Показать настройки строки"}>
+                {!dockOpen && <span className="p2-rowdock-sum">{rowNo > 0 ? <>Строка <b>{rowNo}</b>{kindName ? ` · ${kindName}` : ""}</> : "Настройки строки"}</span>}
+                <span className="p2-rowdock-chev" aria-hidden="true">{dockOpen ? "▾" : "▴"}</span>
+              </button>
+              {dockOpen && <div className="p2-rowdock-body">{rowPanelEl}</div>}
+            </div>
+          )}
           {/* with the keyboard open (or typing on a phone / portrait tablet: Android shrinks the window itself) the hint gives its room to the page */}
-          {!keyboard.open && !typing && <p className="p2-keys-hint" data-testid="propis2-keys-hint">
+          {!keyboard.open && !typing && !selected && <p className="p2-keys-hint" data-testid="propis2-keys-hint">
             {typing
               ? "Enter — новая строка. Слово — образец, фраза с пробелами — связный текст. Элементы — кнопкой «Элемент»."
               : "Нажмите на строку листа и печатайте: буквы встают прямо на строку."}

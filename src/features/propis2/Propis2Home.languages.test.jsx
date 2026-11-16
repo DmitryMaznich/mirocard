@@ -302,11 +302,13 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { await tick(50); });
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
     const before = ink();
-    const rowPicker = host.querySelector('button[aria-label="Стиль строки"]');
+    // the row's style: a choice in the row panel (owner, 2026-11-16; its dock opened, as the device remembers)
+    const dockBtn = host.querySelector('[aria-label="Показать настройки строки"]');
+    if (dockBtn) await click(dockBtn);
+    const rowPicker = host.querySelector('[role="radiogroup"][aria-label="Стиль строки"]');
     expect(rowPicker).not.toBeNull();
-    expect(rowPicker.disabled).toBe(false); // the row with the caret is selected
-    await click(rowPicker);
-    await click(document.querySelector('[role="option"][aria-label="Британские соединённые"]'));
+    expect(rowPicker.getAttribute("aria-disabled")).toBeNull(); // the row with the caret is selected
+    await click(rowPicker.querySelector('[aria-label="Британские соединённые"]'));
     await act(async () => { await tick(50); });
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     expect(ink()).not.toBe(before); // the second row is written with the joins now
