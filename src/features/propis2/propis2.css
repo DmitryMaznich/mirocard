@@ -726,3 +726,4 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-sample { flex: 0 0 auto; margin-left: auto; font-family: "Segoe Script", "Comic Sans MS", cursive; color: #1d4ed8; font-size: 19px; white-space: nowrap; }
 .p2-lang-opt:disabled { cursor: default; opacity: 1; }
 .propis2-lib .p2-lang-fchip--edit { border-style: dashed; color: var(--p2-teal-dark); }
+.p2-lang-name .p2-lang-draft { margin-left: 8px; vertical-align: 2px; }
