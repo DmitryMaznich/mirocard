@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.37.0",
+    "version": "0.38.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -104,7 +104,8 @@
         "parrot",
         "donkey"
       ],
-      "legacyUnscopedSelection": true
+      "legacyUnscopedSelection": true,
+      "learning": true
     },
     {
       "id": "drawing_first_lines",
@@ -308,7 +309,8 @@
       "screenPractice": true,
       "adaptiveSheet": true,
       "solidVolumes": true,
-      "wideMovements": true
+      "wideMovements": true,
+      "learning": true
     },
     {
       "id": "drawing_coloring",
@@ -406,7 +408,8 @@
           "default": 90
         }
       },
-      "hideConceptPicker": true
+      "hideConceptPicker": true,
+      "learning": true
     },
     {
       "id": "drawing_portrait",
@@ -525,7 +528,8 @@
             "style": "simple"
           }
         }
-      }
+      },
+      "learning": true
     }
   ],
   "cards": [

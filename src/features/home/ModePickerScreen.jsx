@@ -194,7 +194,8 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
 
   if (hasSingleMode) return null;
   if (statisticsOpen) return <StatisticsScreen initialTopicId={activeTopicId} onClose={() => setStatisticsOpen(false)} />;
-  const isTestMode = (mode) => Boolean(mode.finite || /Контрольная работа/.test(getTopicTitle(mode?.ui?.title)));
+  // `learning: true` in a mode keeps a finite lesson among the exercises (e.g. every drawing mode: no tests there).
+  const isTestMode = (mode) => !mode.learning && Boolean(mode.finite || /Контрольная работа/.test(getTopicTitle(mode?.ui?.title)));
   // The preview lists tests as their own group after the exercises (mockup v06).
   const listedModes = preview ? [...modes.filter((mode) => !isTestMode(mode)), ...modes.filter(isTestMode)] : modes;
   const firstTestId = preview && listedModes.some((mode) => !isTestMode(mode)) ? listedModes.find(isTestMode)?.id : null;
@@ -285,7 +286,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
                 </div> : null} /> : <div
                 // «Контрольная работа» stands out on a light tint — by `finite`
                 // (place_value) or by its title (comparison, the other math topics).
-                className={`mode-item mode-item--flex${mode.finite || /Контрольная работа/.test(getTopicTitle(mode?.ui?.title)) ? " mode-item--test" : ""}`}
+                className={`mode-item mode-item--flex${isTestMode(mode) ? " mode-item--test" : ""}`}
                 role="button"
                 tabIndex={myPeopleModeAvailable(mode) ? 0 : -1}
                 onClick={() => myPeopleModeAvailable(mode) && pickMode(mode)}
