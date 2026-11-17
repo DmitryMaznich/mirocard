@@ -200,8 +200,8 @@ L = lambda ch, cls='': {'cls': cls, 'letter': ch, 'show': True}
 matrix = f"""<table class="matrix">
 <tr><th></th><th><span class="num">Б</span>Какая буква? <small style="font-weight:600;color:#6b7280">— тянем букву</small></th><th><span class="num b">Ф</span>Где звук? <small style="font-weight:600;color:#6b7280">— ставим фишку</small></th></tr>
 <tr><td class="rowh">Начало</td>
- <td>{mini([{'cls':'ok','letter':'М','show':True},{'cls':'wide'}], '<span class="num">1</span>С какой буквы?', 'ваше упражнение · одна или три картинки')}</td>
- <td>{mini([{'cls':'ok','chip':'in'},{'cls':'wide'}], '<span class="num b">2</span>Звук в начале?', 'есть / нет')}</td></tr>
+ <td>{mini([{'cls':'ok','letter':'М','show':True},{'cls':'wide'}], '<span class="num">2</span>С какой буквы?', 'ваше упражнение · одна или три картинки')}</td>
+ <td>{mini([{'cls':'ok','chip':'in'},{'cls':'wide'}], '<span class="num b">1</span>Звук в начале?', 'есть / нет · самое простое')}</td></tr>
 <tr><td class="rowh">Конец</td>
  <td>{mini([{},{'cls':'off'},{'cls':'ok','letter':'Т','show':True}], '<span class="num">3</span>Какой буквой кончается?', 'последняя клетка')}</td>
  <td>{mini([{},{'cls':'off'},{'cls':'ok','chip':'in'}], '<span class="num b">4</span>Начало или конец?', 'внутренние закрыты')}</td></tr>
@@ -254,8 +254,8 @@ html = f"""<!DOCTYPE html>
 (букву или фишку) и <b>какие</b> клетки открыты. Цифры — порядок ступеней.</p>
 {legend2}
 <h2 class="block">Карта: 6 ступеней</h2>{matrix}
-<h2 class="block">Ступень 1 — «С какой буквы?» (ваше упражнение)</h2><div class="row">{first}</div>
-<h2 class="block">Вариант ступени 1 (три картинки) и ступень 3</h2><div class="row">{match}{last}</div>
-<p class="block-note" style="margin-top:22px">Ступени с фишкой (2, 4, 5) и проверка по слову — в v02, без изменений.</p>
+<h2 class="block">Ступень 2 — «С какой буквы?» (ваше упражнение)</h2><div class="row">{first}</div>
+<h2 class="block">Вариант ступени 2 (три картинки) и ступень 3</h2><div class="row">{match}{last}</div>
+<p class="block-note" style="margin-top:22px">Ступени с фишкой (1, 4, 5) и проверка по слову — в v02, без изменений.</p>
 </div></body></html>"""
 open('/home/user/mirocard/docs/mockups/letters-and-sounds/letters-and-sounds-v03.html', 'w').write(html)
