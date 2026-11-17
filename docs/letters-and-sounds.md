@@ -1,5 +1,30 @@
 # «Буквы и звуки» — концепция развития темы `phonetic_analysis`
 
+## Передача (handoff, 2026-11-17) — читать первым
+
+- **Ветка:** `ccr-4ba7c8f7-9fbznb` (всё запушено). В `main` не уходило — в проде старая 1.0.0.
+- **Сделано:** колода 2.0.0 (`public/decks/phonetic_analysis_v2.0.0.zip`, каталог указывает на неё, 1.0.0 удалена),
+  движок + 11 тестов, рендерер (схема Эльконина с фишкой/буквой, лото с перетаскиванием, «Найди букву», «Найди все»),
+  словарь 130 слов (`tools/phonetic_analysis/words.src.py` → `words.json`), лист покрытия `docs/mockups/letters-and-sounds/words-v02.html`.
+  `npx vitest run src/topics` и `npm run build` зелёные. Проверено Playwright на стенде `.pa-preview/` (не в git — пересоздать по описанию ниже).
+- **Следующий шаг — картинки.** Нужна сессия с сетевым секретом для `generativelanguage.googleapis.com`
+  (заголовок `x-goog-api-key`; есть в окружении владельца «My environment»). Затем:
+  1. `node tools/phonetic_analysis/generate-pictures.mjs` — 2 варианта на слово в `tools/phonetic_analysis/candidates/`
+     (не в git) + `candidates/sheet.html`. Сначала пробный запуск `--words=кот --n=1`.
+  2. Показать владельцу контактный лист (скриншотом — он воспринимает визуально), он выбирает по одной.
+  3. `node tools/phonetic_analysis/pick-pictures.mjs кот=2 дом=1 …` → `media/<слово>.webp`.
+  4. Поднять `VERSION` в `tools/phonetic_analysis/build.mjs`, `node tools/phonetic_analysis/build.mjs`, скопировать ZIP в
+     `public/decks/phonetic_analysis_v<версия>.zip`, удалить прошлый, обновить `catalog.json` (CLAUDE.md, «Deck-zip topics»).
+  25 слов без эмодзи (аист, улица, бочка, ворота…) сейчас в задания не попадают — с картинками попадут сами.
+- **Потом:** озвучка слов (ElevenLabs, ключ там же; файлы `tools/phonetic_analysis/audio/<слово>.mp3` сборка подхватит сама),
+  звуки букв и медленное «слово по звукам» — живым голосом (§5), «Почини букву» (импорт из `print_letters`).
+- **Решения владельца:** поезд → звуковая схема из клеток; ступени 1 «Звук в начале?» → 2 «С какой буквы?» (порядок 1↔2 —
+  его решение); лото — перетаскивание буквы на картинку (его настольная игра), верная буква уходит в угол; кнопки динамика нет —
+  слово звучит само, повтор нажатием на картинку; мак заменён (незнакомый цветок). Ребёнок владельца читает — все буквы сразу.
+- **Выпуск в прод** — только по слову владельца: `npm version patch --no-git-tag-version`, отдельный коммит, слияние в `main`.
+- **Стенд:** `.pa-preview/index.html` (Nunito) + `entry.jsx`: импорт `src/styles.css`, `tools/phonetic_analysis/topic.json`,
+  `generateTasks` и `index.jsx`; `?mode=pa_where&letters=МСК`; `npx vite --port 5199`. В `.git/info/exclude`.
+
 Статус (2026-11-17): **колода 2.0.0 собрана на ветке `ccr-4ba7c8f7-9fbznb`, в `main` не уходила.**
 Карточки — 31 буква (все `primary`, группы Гласные / Е Ё Ю Я / Согласные); режимы `pa_find_letter`,
 `pa_find_all`, `pa_sound_start` (1), `pa_first_letter` (2), `pa_lotto` (2, игра), `pa_last_letter` (3),
