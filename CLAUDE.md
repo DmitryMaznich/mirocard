@@ -288,6 +288,13 @@ faded out as a prompt). Not the app's Slovenian UI localization. **Read
 `docs/reading-micro-stories.md` first** — виды вопросов, правила их составления, сборка
 (базовые колоды в `test-fixtures/decks/`, исходных PNG в git нет), открытые пункты.
 
+## Буквы и звуки (phonetic_analysis) — концепция развития (2026-11-17)
+
+Запрос учителя: повтор пройденных букв (найти, собрать, найти такую же) и позиция звука в слове по
+картинке со схемой-поездом и проверкой по написанному слову. Решено развивать на базе
+`phonetic_analysis`, не `print_letters` («Почини букву» и формы букв — импортом оттуда). Кода нет.
+**Read `docs/letters-and-sounds.md` first.**
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
