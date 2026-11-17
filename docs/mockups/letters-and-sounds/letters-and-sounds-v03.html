@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Буквы и звуки — система v03</title><style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; background: #e9e5dc; color: #1f2937; }
+  .page { max-width: 1320px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  .lead { margin: 0 0 22px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  h2.block { margin: 34px 0 6px; font-size: 21px; }
+  .block-note { margin: 0 0 16px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  .row { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start; }
+  .shot { width: 360px; }
+  .shot h3 { margin: 0 0 8px; font-size: 16px; }
+  .shot h3 small { color: #6b7280; font-weight: 600; }
+  .note { margin-top: 10px; font-size: 13.5px; line-height: 1.45; color: #374151; }
+  .note b { color: #111827; }
+  .note .q { display: block; margin-top: 6px; padding: 6px 9px; background: #fff7e6; border-left: 3px solid #f59e0b; border-radius: 4px; }
+
+  /* ---- phone ---- */
+  .phone { width: 360px; height: 680px; border-radius: 34px; background: #111; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .screen { width: 100%; height: 100%; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; background: #fdfcf9; }
+  .topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; background: #fff; border-bottom: 1px solid #eee7d8; font-size: 13px; font-weight: 700; color: #6b7280; }
+  .topbar .stars { letter-spacing: 2px; color: #f59e0b; }
+  .topbar .x { width: 30px; height: 30px; border-radius: 50%; background: #f3f4f6; display: grid; place-items: center; }
+  .stage { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; padding: 14px 16px 18px; gap: 14px; min-height: 0; }
+  .instr { font-weight: 800; font-size: 18px; color: #374151; text-align: center; }
+
+  /* ---- shared bits ---- */
+  .speaker { width: 46px; height: 46px; border-radius: 50%; background: #4a9b8f; color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 4px 0 #2a6b60; flex: 0 0 auto; }
+  .target { display: flex; align-items: center; gap: 14px; }
+  .big-letter { width: 104px; height: 104px; border-radius: 22px; background: #fff; border: 3px solid #4a9b8f; display: grid; place-items: center; font-size: 72px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tiles { display: grid; gap: 12px; width: 100%; }
+  .tiles.c3 { grid-template-columns: repeat(3, 1fr); }
+  .tiles.c4 { grid-template-columns: repeat(4, 1fr); }
+  .tile { aspect-ratio: 1; border-radius: 18px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 48px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tile.ok { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; }
+  .tile.bad { border-color: #ef4444; background: #fef2f2; box-shadow: 0 4px 0 #fca5a5; }
+  .tile.dim { opacity: .35; }
+  .picture { width: 170px; height: 150px; border-radius: 20px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 3px 10px rgba(0,0,0,.08); display: grid; place-items: center; font-size: 92px; line-height: 1; position: relative; }
+  .picture .speaker { position: absolute; right: -16px; bottom: -14px; width: 42px; height: 42px; font-size: 19px; }
+  .with-letter { display: flex; align-items: center; gap: 22px; }
+  .chip { font-size: 13px; font-weight: 800; color: #4a9b8f; background: #e7f3f1; padding: 3px 10px; border-radius: 99px; }
+  .spacer { flex: 1 1 auto; }
+
+  /* ---- train ---- */
+  .train { display: flex; align-items: flex-end; gap: 6px; width: 100%; justify-content: center; }
+  .car { position: relative; height: 92px; border-radius: 14px 14px 8px 8px; background: #fff; border: 3px dashed #cbd5e1; display: grid; place-items: center; font-weight: 900; font-size: 34px; color: #94a3b8; }
+  .car::before, .car::after { content: ""; position: absolute; bottom: -15px; width: 22px; height: 22px; border-radius: 50%; background: #475569; border: 3px solid #fdfcf9; }
+  .car::before { left: 12px; } .car::after { right: 12px; }
+  .car.loco { border-radius: 30px 14px 8px 8px; }
+  .car.loco .chim { position: absolute; top: -22px; left: 22px; width: 18px; height: 22px; background: #475569; border-radius: 4px 4px 0 0; }
+  .car.loco .cab { position: absolute; top: 10px; right: 10px; width: 26px; height: 22px; border-radius: 6px; background: #e0f2fe; border: 2px solid #94a3b8; }
+  .car.solid { border-style: solid; }
+  .car.hint { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 4px rgba(59,130,246,.25); color: #1d4ed8; }
+  .car.ok { border-style: solid; border-color: #22c55e; background: #dcfce7; color: #15803d; }
+  .car.bad { border-style: solid; border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+  .car-label { font-size: 13px; font-weight: 800; color: #64748b; text-align: center; margin-top: 18px; }
+  .train-col { display: flex; flex-direction: column; align-items: stretch; }
+  .rail { width: 100%; height: 5px; background: repeating-linear-gradient(90deg,#94a3b8 0 14px,transparent 14px 20px); border-radius: 3px; margin-top: 16px; }
+  .arrow { font-size: 13px; font-weight: 800; color: #94a3b8; width: 100%; text-align: center; }
+
+  /* ---- word check ---- */
+  .wordcars { display: flex; gap: 6px; justify-content: center; }
+  .wcar { width: 62px; height: 70px; border-radius: 12px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 44px; font-weight: 800; }
+  .wcar.found { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; color: #15803d; }
+  .wcar.empty { border-style: dashed; border-color: #cbd5e1; box-shadow: none; color: transparent; }
+
+  /* ---- fix letter ---- */
+  .board { width: 300px; height: 300px; border-radius: 16px; background-color: #fff;
+    background-image: linear-gradient(#dbe7f3 1px, transparent 1px), linear-gradient(90deg, #dbe7f3 1px, transparent 1px);
+    background-size: 30px 30px; border: 2px solid #e2e8f0; }
+
+  /* ---- find all ---- */
+  .field { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+  .field span { aspect-ratio: 1; display: grid; place-items: center; font-size: 34px; font-weight: 800; color: #374151; border-radius: 50%; }
+  .field span.circ { box-shadow: inset 0 0 0 3.5px #22c55e; color: #15803d; }
+  .counter { display: flex; gap: 6px; }
+  .counter i { width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; display: block; }
+  .counter i.on { background: #22c55e; }
+
+  /* ---- adult screen ---- */
+  .adult .screen { background: #f7f6f2; }
+  .adult .stage { align-items: stretch; gap: 12px; padding: 14px 14px; }
+  .sect { font-size: 13px; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+  .groups { display: flex; flex-wrap: wrap; gap: 6px; }
+  .groups span { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: #fff; border: 1.5px solid #d1d5db; }
+  .groups span.on { background: #4a9b8f; border-color: #4a9b8f; color: #fff; }
+  .abc { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+  .abc span { aspect-ratio: 1; border-radius: 9px; background: #fff; border: 1.5px solid #e5e7eb; display: grid; place-items: center; font-weight: 800; font-size: 17px; color: #9ca3af; position: relative; }
+  .abc span.on { border-color: #4a9b8f; background: #e7f3f1; color: #1f2937; }
+  .abc span.on::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--d, #d1d5db); }
+  .abc span.v { color: #dc2626; } .abc span.on.v { color: #dc2626; }
+  .modes { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .mode { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #fff; border-radius: 12px; border: 1.5px solid #e5e7eb; font-size: 14px; font-weight: 700; }
+  .mode .n { width: 26px; height: 26px; border-radius: 8px; background: #e7f3f1; color: #2a6b60; display: grid; place-items: center; font-size: 12px; font-weight: 900; flex: 0 0 auto; }
+  .mode .n.b { background: #e0ecff; color: #1d4ed8; }
+  .mode small { display: block; font-weight: 600; color: #6b7280; font-size: 12px; }
+  .btn { background: #4a9b8f; color: #fff; font-weight: 800; text-align: center; padding: 12px; border-radius: 14px; box-shadow: 0 4px 0 #2a6b60; font-size: 16px; }
+
+  .fn { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+  .fh { font-family: "Comic Sans MS", "Segoe Print", cursive; font-weight: 400; }
+  .fm { font-family: "Courier New", monospace; font-weight: 700; }
+
+  .phone { width: 300px; height: 590px; } .shot { width: 300px; } .row { gap: 18px; } .page { max-width: 1320px; }
+  .picture { width: 140px; height: 124px; font-size: 76px; }
+  .picture.tap { position: relative; }
+  .picture .wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; }
+  .picture.playing { border-color: #4a9b8f; box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .picture.playing .wave { stroke: #4a9b8f; width: 28px; height: 28px; }
+  .big-letter.tap { position: relative; }
+  .big-letter .wave { position: absolute; right: 5px; bottom: 5px; width: 16px; height: 16px; fill: none; stroke: #cbd5e1; stroke-width: 2.6; stroke-linecap: round; }
+  .big-letter.playing { box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .big-letter.playing .wave { stroke: #4a9b8f; width: 20px; height: 20px; }
+  .bubble { font-size: 15px; font-weight: 800; color: #2a6b60; background: #e7f3f1; padding: 4px 12px; border-radius: 99px; }
+  .rules { background: #fff; border-radius: 14px; padding: 14px 18px; max-width: 900px; font-size: 14.5px; line-height: 1.55; border-left: 5px solid #f59e0b; }
+  .rules b { color: #111827; }
+
+  .tray { display: flex; gap: 10px; justify-content: center; }
+  .tray .tile { width: 64px; font-size: 38px; }
+  .tray .tile.ghost { opacity: .25; }
+  .cell .tl { font-size: 38px; font-weight: 800; }
+  .cell.slot { border-style: dashed; border-color: #3b82f6; background: #eff6ff; }
+  .cell.fade .ltr { color: #94a3b8; }
+  .match { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+  .mrow { display: flex; align-items: center; gap: 12px; }
+  .mrow .picture { width: 84px; height: 76px; font-size: 48px; border-radius: 14px; }
+  .mrow .scheme { justify-content: flex-start; }
+  .mrow .cell { width: 54px; height: 54px; font-size: 32px; }
+  .mrow .cell.wide { width: 96px; }
+  .matrix { border-collapse: separate; border-spacing: 10px; }
+  .matrix th { font-size: 15px; text-align: left; color: #374151; padding: 0 6px; }
+  .matrix td { background: #fff; border-radius: 14px; padding: 12px 14px; vertical-align: middle; min-width: 250px; }
+  .matrix td.rowh { background: transparent; font-weight: 800; font-size: 15px; min-width: 120px; }
+  .matrix td.na { background: transparent; border: 2px dashed #d6d3cb; color: #9ca3af; font-size: 13px; }
+  .mini { display: flex; align-items: center; gap: 12px; }
+  .mini .scheme { justify-content: flex-start; }
+  .mini .cell { width: 34px; height: 34px; font-size: 20px; border-width: 2.5px; margin-left: -2.5px; }
+  .mini .cell.wide { width: 70px; }
+  .mini .chipdot { width: 20px; height: 20px; box-shadow: none; }
+  .mini .lbl { font-size: 14px; font-weight: 700; color: #1f2937; line-height: 1.3; }
+  .mini .lbl small { display: block; color: #6b7280; font-weight: 600; }
+  .mini .read-arrow, .mrow .read-arrow { display: none; }
+  .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #4a9b8f; color: #fff; font-size: 13px; font-weight: 900; margin-right: 4px; }
+  .num.b { background: #2563eb; }
+  .scheme { display: flex; justify-content: center; }
+  .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
+    display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
+  .cell:first-child { margin-left: 0; border-radius: 10px 0 0 10px; }
+  .cell:last-child { border-radius: 0 10px 10px 0; }
+  .cell:only-child { border-radius: 10px; }
+  .cell.wide { width: 170px; }
+  .cell.off { background: repeating-linear-gradient(45deg,#f1f5f9 0 6px,#e2e8f0 6px 12px); border-color: #94a3b8; z-index: 0; }
+  .cell.ok { background: #dcfce7; border-color: #16a34a; z-index: 2; }
+  .cell.bad { background: #fef2f2; border-color: #ef4444; z-index: 2; }
+  .cell.here { box-shadow: 0 0 0 5px rgba(34,197,94,.45); border-color: #16a34a; z-index: 2; }
+  .cell .ltr { color: #cbd5e1; }
+  .cell .ltr.show { color: #1f2937; }
+  .cell.ok .ltr { color: #15803d; }
+  .chipdot { width: 36px; height: 36px; border-radius: 50%; background: #2563eb; box-shadow: 0 3px 0 #1e40af; }
+  .cell .chipdot.on-letter { position: absolute; top: -20px; right: -14px; width: 28px; height: 28px; }
+  .cell .chipdot.bad { background: #ef4444; box-shadow: 0 3px 0 #b91c1c; }
+  .cell .mark { position: absolute; bottom: -30px; font-size: 22px; }
+  .read-arrow { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; margin-top: 8px; }
+  .read-arrow i { display: block; height: 3px; background: #94a3b8; width: 70%; }
+  .read-arrow b { width: 0; height: 0; border-left: 12px solid #94a3b8; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+  .pool { display: flex; gap: 10px; justify-content: center; }
+  .pool .chipdot { width: 44px; height: 44px; }
+  .pool.empty .chipdot { opacity: .25; }
+  .tiles .tile.small { font-size: 36px; }
+  .step-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1f2937; color: #fff; font-size: 15px; margin-right: 6px; }
+  .cap { margin-top: 10px; font-size: 15px; font-weight: 700; color: #1f2937; line-height: 1.35; }
+  .cap span { display: block; font-weight: 600; color: #6b7280; font-size: 13.5px; }
+  .sound { font-weight: 900; color: #2563eb; }
+  .vs { display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 4px 0 18px; font-size: 14px; font-weight: 700; color: #374151; align-items: center; }
+  .legend .cell { width: 34px; height: 34px; border-radius: 6px !important; margin: 0; font-size: 18px; display: inline-grid; vertical-align: middle; }
+  .legend .chipdot { width: 24px; height: 24px; display: inline-block; vertical-align: middle; }
+</style></head>
+<body><div class="page">
+<h1>Звук и буква в слове — одна система (v03)</h1>
+<p class="lead">Один экран на всё: картинка, под ней клетки. Отличается только то, <b>что</b> ребёнок кладёт
+(букву или фишку) и <b>какие</b> клетки открыты. Цифры — порядок ступеней.</p>
+<div class="legend">
+  <span><span class="cell slot"></span> сюда тянуть букву</span>
+  <span><span class="cell off"></span> закрыто</span>
+  <span><span class="chipdot"></span> фишка</span>
+  <span><span class="cell ok"></span> верно</span>
+  <span><span class="cell bad"></span> не та</span></div>
+<h2 class="block">Карта: 6 ступеней</h2><table class="matrix">
+<tr><th></th><th><span class="num">Б</span>Какая буква? <small style="font-weight:600;color:#6b7280">— тянем букву</small></th><th><span class="num b">Ф</span>Где звук? <small style="font-weight:600;color:#6b7280">— ставим фишку</small></th></tr>
+<tr><td class="rowh">Начало</td>
+ <td><div class="mini"><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num">1</span>С какой буквы?<small>ваше упражнение · одна или три картинки</small></div></div></td>
+ <td><div class="mini"><div class="scheme"><div class="cell ok"><span class="chipdot"></span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num b">2</span>Звук в начале?<small>есть / нет</small></div></div></td></tr>
+<tr><td class="rowh">Конец</td>
+ <td><div class="mini"><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="ltr show">Т</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num">3</span>Какой буквой кончается?<small>последняя клетка</small></div></div></td>
+ <td><div class="mini"><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="chipdot"></span></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num b">4</span>Начало или конец?<small>внутренние закрыты</small></div></div></td></tr>
+<tr><td class="rowh">Где угодно</td>
+ <td><div class="mini"><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num">6</span>Все буквы по порядку<small>потолок, не в 1-й версии</small></div></div></td>
+ <td><div class="mini"><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell ok"><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num b">5</span>Где звук?<small>любая клетка = «середина»</small></div></div></td></tr>
+</table>
+<h2 class="block">Ступень 1 — «С какой буквы?» (ваше упражнение)</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Слово звучит</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="picture tap playing">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell slot"></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">С</div><div class="tile ">М</div><div class="tile ">Ш</div></div></div></div></div><div class="cap">Под картинкой — пустая первая клетка<span>Три буквы — из пройденных</span></div></div><div class="shot"><h3><span class="step-n">2</span>Не та буква</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell bad"><span class="ltr show">С</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ghost">С</div><div class="tile ">М</div><div class="tile ">Ш</div></div></div></div></div><div class="cap">С краснеет и уезжает обратно<span>Без штрафа, можно снова</span></div></div><div class="shot"><h3><span class="step-n">3</span>Тянет М</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">С</div><div class="tile ghost">М</div><div class="tile ">Ш</div></div></div></div></div><div class="cap">М встаёт в первую клетку<span></span></div></div><div class="shot"><h3><span class="step-n">4</span>Слово дописывается</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell fade"><span class="ltr show">А</span></div><div class="cell fade"><span class="ltr show">К</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:44px">✓</div></div></div></div><div class="cap">Полоса делится на клетки: М А К<span>Та же проверка по слову, что у фишки</span></div></div></div>
+<h2 class="block">Вариант ступени 1 (три картинки) и ступень 3</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Разложи буквы</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>3 / 8</span><span class="stars">★★☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">С какой буквы?</div><div class="match"><div class="mrow"><div class="picture">🌺</div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div><div class="mrow"><div class="picture">🧀</div><div class="scheme"><div class="cell slot"></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div><div class="mrow"><div class="picture">🎈</div><div class="scheme"><div class="cell "></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div></div><div class="spacer"></div><div class="tray"><div class="tile ">Ш</div><div class="tile ">С</div><div class="tile ghost">М</div></div></div></div></div><div class="cap">Три картинки — три буквы<span>Нажал на картинку — звучит её слово</span></div></div><div class="shot"><h3><span class="num">3</span>Какой буквой кончается</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>4 / 10</span><span class="stars">★★☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">Какой буквой кончается?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell slot"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">Т</div><div class="tile ">К</div><div class="tile ">М</div></div></div></div></div><div class="cap">Открыта только последняя клетка<span></span></div></div></div>
+<p class="block-note" style="margin-top:22px">Ступени с фишкой (2, 4, 5) и проверка по слову — в v02, без изменений.</p>
+</div></body></html>
