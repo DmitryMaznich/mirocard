@@ -146,3 +146,7 @@ public/vendor/heic-to.LICENSE.txt
 
 # the fonts the PDF glyph outlines are built from (tools/propis2/build_pdf_glyphs.py)
 !tools/propis2/pdf-fonts/*.ttf
+
+# «Буквы и звуки»: generated picture candidates (picks go to media/)
+tools/phonetic_analysis/candidates/
+tools/phonetic_analysis/dist/
