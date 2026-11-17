@@ -41,6 +41,15 @@ css = base + r"""
   .mini .read-arrow, .mrow .read-arrow { display: none; }
   .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #4a9b8f; color: #fff; font-size: 13px; font-weight: 900; margin-right: 4px; }
   .num.b { background: #2563eb; }
+  .cell.lit { background: #fef3c7; border-color: #f59e0b; z-index: 3; box-shadow: 0 0 0 5px rgba(245,158,11,.25); }
+  .cell.lit.long { box-shadow: 0 0 0 9px rgba(245,158,11,.30); }
+  .cell.done { background: #fffbeb; }
+  .say { font-size: 22px; font-weight: 900; color: #b45309; letter-spacing: 1px; min-height: 30px; }
+  .say i { color: #d6d3d1; font-style: normal; }
+  .slowbtn { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: #b45309; background: #fffbeb; border: 2px solid #fcd34d; border-radius: 99px; padding: 6px 14px; }
+  .fade-ladder { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .fade-ladder div { background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; min-width: 220px; }
+  .fade-ladder small { display: block; color: #6b7280; font-weight: 600; }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -238,6 +247,33 @@ kot = phone(pic('🐱') + '<div class="instr" style="font-size:17px">Какой 
   scheme([{}, {'cls':'off'}, {'cls':'slot'}]) + S + tray(['Т','К','М']), "4 / 10", "★★☆☆")
 last = shot('<span class="num">3</span>Какой буквой кончается', kot, 'Открыта только последняя клетка', '')
 
+goatq = target('З','🐐','з')
+def kz(lit=None, done=(), chip=None, longlit=False):
+    cells=[]
+    for i in range(4):
+        cls=[]
+        if i==lit: cls.append('lit'); 
+        if i==lit and longlit: cls.append('long')
+        if i in done: cls.append('done')
+        c={'cls':' '.join(cls)}
+        if chip==i: c['chip']='in'; c['cls']+=' ok'
+        cells.append(c)
+    return scheme(cells)
+SLOW = '<div class="slowbtn">🐢 медленно</div>'
+o1 = phone(goatq + S + kz() + SLOW + S + pool(), "6 / 10")
+o2 = phone(goatq + '<div class="say">к<i>…о…з…а</i></div>' + S + kz(lit=0) + SLOW + S + pool(), "6 / 10")
+o3 = phone(goatq + '<div class="say"><i>к‑о‑</i>ззз<i>…а</i></div>' + S + kz(lit=2, done=(0,1), longlit=True) + SLOW + S + pool(), "6 / 10")
+o4 = phone(goatq + '<div class="say"></div>' + S + kz(chip=2) + SLOW + S + pool(True), "6 / 10")
+slow = ''.join([
+  shot('<span class="step-n">1</span>Не знает, куда', o1, 'Нажимает «медленно» (или на схему)', ''),
+  shot('<span class="step-n">2</span>«к…»', o2, 'Слово звучит по звукам', 'Клетка горит, пока звучит её звук'),
+  shot('<span class="step-n">3</span>«ззз»', o3, 'Нужный звук — дольше и громче', 'Ребёнок видит, где он загорелся'),
+  shot('<span class="step-n">4</span>Ставит фишку', o4, 'Туда, где горело «ззз»', 'Засчитывается как с подсказкой'),
+])
+fade = '''<div class="fade-ladder">
+<div>Уровень А<small>медленно + клетки горят</small></div>
+<div>Уровень Б<small>медленно, клетки не горят</small></div>
+<div>Уровень В<small>только обычное слово</small></div></div>'''
 legend2 = legend = """<div class="legend">
   <span><span class="cell slot"></span> сюда тянуть букву</span>
   <span><span class="cell off"></span> закрыто</span>
@@ -256,6 +292,11 @@ html = f"""<!DOCTYPE html>
 <h2 class="block">Карта: 6 ступеней</h2>{matrix}
 <h2 class="block">Ступень 2 — «С какой буквы?» (ваше упражнение)</h2><div class="row">{first}</div>
 <h2 class="block">Вариант ступени 2 (три картинки) и ступень 3</h2><div class="row">{match}{last}</div>
+<h2 class="block">Как ребёнок находит место звука — «слово по звукам»</h2>
+<p class="block-note">Ребёнок не считает клетки и не пишет слово в уме. Приложение проговаривает слово медленно, протягивая звуки,
+и клетки загораются по очереди — то, что логопед делает пальцем по схеме.</p>
+<div class="row">{slow}</div>
+<p class="block-note" style="margin-top:14px"><b>Опора убирается постепенно</b> (по ученику, не по ступени):</p>{fade}
 <p class="block-note" style="margin-top:22px">Ступени с фишкой (1, 4, 5) и проверка по слову — в v02, без изменений.</p>
 </div></body></html>"""
 open('/home/user/mirocard/docs/mockups/letters-and-sounds/letters-and-sounds-v03.html', 'w').write(html)

@@ -143,6 +143,15 @@
   .mini .read-arrow, .mrow .read-arrow { display: none; }
   .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #4a9b8f; color: #fff; font-size: 13px; font-weight: 900; margin-right: 4px; }
   .num.b { background: #2563eb; }
+  .cell.lit { background: #fef3c7; border-color: #f59e0b; z-index: 3; box-shadow: 0 0 0 5px rgba(245,158,11,.25); }
+  .cell.lit.long { box-shadow: 0 0 0 9px rgba(245,158,11,.30); }
+  .cell.done { background: #fffbeb; }
+  .say { font-size: 22px; font-weight: 900; color: #b45309; letter-spacing: 1px; min-height: 30px; }
+  .say i { color: #d6d3d1; font-style: normal; }
+  .slowbtn { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: #b45309; background: #fffbeb; border: 2px solid #fcd34d; border-radius: 99px; padding: 6px 14px; }
+  .fade-ladder { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .fade-ladder div { background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; min-width: 220px; }
+  .fade-ladder small { display: block; color: #6b7280; font-weight: 600; }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -213,5 +222,29 @@
   <div class="stage"><div class="instr" style="font-size:17px">С какой буквы?</div><div class="match"><div class="mrow"><div class="picture">🌺</div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div><div class="mrow"><div class="picture">🧀</div><div class="scheme"><div class="cell slot"></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div><div class="mrow"><div class="picture">🎈</div><div class="scheme"><div class="cell "></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div></div><div class="spacer"></div><div class="tray"><div class="tile ">Ш</div><div class="tile ">С</div><div class="tile ghost">М</div></div></div></div></div><div class="cap">Три картинки — три буквы<span>Нажал на картинку — звучит её слово</span></div></div><div class="shot"><h3><span class="num">3</span>Какой буквой кончается</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>4 / 10</span><span class="stars">★★☆☆</span></div>
   <div class="stage"><div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">Какой буквой кончается?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell slot"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">Т</div><div class="tile ">К</div><div class="tile ">М</div></div></div></div></div><div class="cap">Открыта только последняя клетка<span></span></div></div></div>
+<h2 class="block">Как ребёнок находит место звука — «слово по звукам»</h2>
+<p class="block-note">Ребёнок не считает клетки и не пишет слово в уме. Приложение проговаривает слово медленно, протягивая звуки,
+и клетки загораются по очереди — то, что логопед делает пальцем по схеме.</p>
+<div class="row"><div class="shot"><h3><span class="step-n">1</span>Не знает, куда</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">З<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="slowbtn">🐢 медленно</div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Нажимает «медленно» (или на схему)<span></span></div></div><div class="shot"><h3><span class="step-n">2</span>«к…»</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">З<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="say">к<i>…о…з…а</i></div><div class="spacer"></div><div class="scheme"><div class="cell lit"></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="slowbtn">🐢 медленно</div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Слово звучит по звукам<span>Клетка горит, пока звучит её звук</span></div></div><div class="shot"><h3><span class="step-n">3</span>«ззз»</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">З<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="say"><i>к‑о‑</i>ззз<i>…а</i></div><div class="spacer"></div><div class="scheme"><div class="cell done"></div><div class="cell done"></div><div class="cell lit long"></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="slowbtn">🐢 медленно</div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Нужный звук — дольше и громче<span>Ребёнок видит, где он загорелся</span></div></div><div class="shot"><h3><span class="step-n">4</span>Ставит фишку</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">З<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="say"></div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell  ok"><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="slowbtn">🐢 медленно</div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Туда, где горело «ззз»<span>Засчитывается как с подсказкой</span></div></div></div>
+<p class="block-note" style="margin-top:14px"><b>Опора убирается постепенно</b> (по ученику, не по ступени):</p><div class="fade-ladder">
+<div>Уровень А<small>медленно + клетки горят</small></div>
+<div>Уровень Б<small>медленно, клетки не горят</small></div>
+<div>Уровень В<small>только обычное слово</small></div></div>
 <p class="block-note" style="margin-top:22px">Ступени с фишкой (1, 4, 5) и проверка по слову — в v02, без изменений.</p>
 </div></body></html>
