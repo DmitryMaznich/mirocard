@@ -1,80 +1,99 @@
 import { describe, it, expect } from "vitest";
-import { generateTasks } from "./engine";
+import { generateTasks, lottoBoard, distractors } from "./engine";
+import WORDS_JSON from "../../../../tools/phonetic_analysis/words.json";
 
-const CARDS = [
-  {
-    id: "word_кот", word: "кот", emoji: "🐱", image: "media/word_кот.svg",
-    targetLetterFirst: "к", targetLetterLast: "т",
-    positionWords: [{ targetLetter: "к", position: "start" }, { targetLetter: "т", position: "end" }],
-    blanks: [{ blankIndex: 2, targetLetter: "т" }],
-    difficultyTier: 1,
-  },
-  {
-    id: "word_ваза", word: "ваза", emoji: "🏺", image: "media/word_ваза.svg",
-    targetLetterFirst: "в", // targetLetterLast намеренно отсутствует — безударное конечное "а"
-    positionWords: [{ targetLetter: "в", position: "start" }, { targetLetter: "з", position: "middle" }],
-    blanks: [{ blankIndex: 2, targetLetter: "з" }],
-    difficultyTier: 1,
-  },
-  {
-    id: "word_чай", word: "чай", emoji: "🍵", image: "media/word_чай.svg",
-    targetLetterFirst: "ч", targetLetterLast: "й",
-    positionWords: [{ targetLetter: "ч", position: "start" }],
-    blanks: [{ blankIndex: 0, targetLetter: "ч" }],
-    difficultyTier: 1,
-  },
-];
+const WORDS = WORDS_JSON.words;
+const ALL = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ".split("");
+const cards = (letters) => letters.map((L) => ({ id: `letter_${L}`, conceptId: L, letter: L }));
+const run = (type, letters = ALL, params = {}) => generateTasks({ type, words: WORDS }, cards(letters), 0, params);
 
-describe("generateTasks — first_sound", () => {
-  it("produces one task per word", () => {
-    expect(generateTasks("first_sound", CARDS)).toHaveLength(3);
+describe("scheme steps", () => {
+  it("step 1: half the words start with the sound, answer is cell 0 or the bar", () => {
+    const tasks = run("pa_sound_start", ALL, { taskCount: 10 });
+    expect(tasks).toHaveLength(10);
+    for (const t of tasks) {
+      const pos = t.word.targets.find((x) => x.letter === t.letter).position;
+      expect(t.answer).toBe(pos === "start" ? 0 : "bar");
+      expect(t.word.aligned).toBe(true);
+    }
+    expect(tasks.filter((t) => t.answer === 0)).toHaveLength(5);
   });
 
-  it("accepts a mode object (as the real session engine passes it), not just a type string", () => {
-    const mode = { id: "first_sound", type: "first_sound", evaluation: "auto" };
-    expect(generateTasks(mode, CARDS)).toHaveLength(3);
+  it("step 2: the tray has the first letter and two others, all different", () => {
+    for (const t of run("pa_first_letter")) {
+      expect(t.letter).toBe(t.word.word[0].toUpperCase());
+      expect(t.tray).toContain(t.letter);
+      expect(new Set(t.tray).size).toBe(3);
+    }
   });
 
-  it("each task has 3 options with exactly one target matching targetLetter (uppercased)", () => {
-    for (const t of generateTasks("first_sound", CARDS)) {
-      expect(t.type).toBe("first_sound");
-      expect(t.options).toHaveLength(3);
-      const targets = t.options.filter((o) => o.isTarget);
-      expect(targets).toHaveLength(1);
-      expect(targets[0].letter).toBe(t.targetLetter.toUpperCase());
+  it("step 3 and 4: the answer is the first or last cell, where the letter really is", () => {
+    for (const t of [...run("pa_last_letter"), ...run("pa_start_end")]) {
+      expect([0, t.letters.length - 1]).toContain(t.answer);
+      expect(t.letters[t.answer]).toBe(t.letter);
+    }
+  });
+
+  it("step 5: the chip's cell holds the letter; about half are inside the word", () => {
+    const tasks = run("pa_where", ALL, { taskCount: 10 });
+    for (const t of tasks) expect(t.letters[t.answer]).toBe(t.letter);
+    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("only learned letters are asked", () => {
+    const learned = ["М", "С", "К"];
+    for (const type of ["pa_sound_start", "pa_first_letter", "pa_last_letter", "pa_where"]) {
+      for (const t of run(type, learned)) {
+        if (t.type === "pa_need_more") continue;
+        expect(learned).toContain(t.letter);
+      }
+    }
+  });
+
+  it("step 6: words made only of learned letters", () => {
+    const learned = ["К", "О", "Т", "С", "М", "Н"];
+    for (const t of run("pa_all_letters", learned)) {
+      expect(t.letters.every((c) => learned.includes(c))).toBe(true);
+      for (const c of t.letters) expect(t.tray).toContain(c);
+    }
+  });
+
+  it("asks for more letters instead of failing silently", () => {
+    expect(run("pa_last_letter", ["Б"])[0].type).toBe("pa_need_more");
+  });
+});
+
+describe("lotto", () => {
+  it("9 pictures, 4 letters, each letter's picture is on the board and no other picture starts with it", () => {
+    for (let i = 0; i < 20; i += 1) {
+      const b = lottoBoard(WORDS.filter((w) => w.emoji), ALL);
+      expect(b.board).toHaveLength(9);
+      expect(b.pairs).toHaveLength(4);
+      for (const p of b.pairs) {
+        const starting = b.board.filter((w) => w.firstLetter === p.letter);
+        expect(starting.map((w) => w.id)).toEqual([p.wordId]);
+      }
     }
   });
 });
 
-describe("generateTasks — last_sound", () => {
-  it("skips words without targetLetterLast (ваза)", () => {
-    const tasks = generateTasks("last_sound", CARDS);
-    expect(tasks).toHaveLength(2);
-    expect(tasks.some((t) => t.word === "ваза")).toBe(false);
-  });
-});
-
-describe("generateTasks — sound_position", () => {
-  it("produces one task per positionWords entry (2+2+1=5)", () => {
-    expect(generateTasks("sound_position", CARDS)).toHaveLength(5);
+describe("letter games", () => {
+  it("find letter: target among options, hard has 6", () => {
+    const t = run("pa_find_letter", ALL, { difficulty: "hard" })[0];
+    expect(t.options).toContain(t.letter);
+    expect(t.options).toHaveLength(6);
+    expect(new Set(t.options).size).toBe(6);
   });
 
-  it("correctPosition is one of start/middle/end", () => {
-    for (const t of generateTasks("sound_position", CARDS)) {
-      expect(["start", "middle", "end"]).toContain(t.correctPosition);
+  it("find all: the field has exactly `total` copies", () => {
+    for (const t of run("pa_find_all")) {
+      expect(t.field).toHaveLength(25);
+      expect(t.field.filter((c) => c === t.letter)).toHaveLength(t.total);
     }
   });
-});
 
-describe("generateTasks — missing_letter", () => {
-  it("produces one task per blanks entry", () => {
-    expect(generateTasks("missing_letter", CARDS)).toHaveLength(3);
-  });
-
-  it("options are lowercase and include the target letter", () => {
-    for (const t of generateTasks("missing_letter", CARDS)) {
-      expect(t.options.every((o) => o.letter === o.letter.toLowerCase())).toBe(true);
-      expect(t.options.some((o) => o.isTarget && o.letter === t.targetLetter)).toBe(true);
-    }
+  it("distractors never repeat the target", () => {
+    expect(distractors("Б", ALL, 5)).not.toContain("Б");
+    expect(distractors("Б", ["Б"], 2)).toHaveLength(2);
   });
 });
