@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Буквы и звуки — звуковая схема v02</title><style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; background: #e9e5dc; color: #1f2937; }
+  .page { max-width: 1320px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  .lead { margin: 0 0 22px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  h2.block { margin: 34px 0 6px; font-size: 21px; }
+  .block-note { margin: 0 0 16px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  .row { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start; }
+  .shot { width: 360px; }
+  .shot h3 { margin: 0 0 8px; font-size: 16px; }
+  .shot h3 small { color: #6b7280; font-weight: 600; }
+  .note { margin-top: 10px; font-size: 13.5px; line-height: 1.45; color: #374151; }
+  .note b { color: #111827; }
+  .note .q { display: block; margin-top: 6px; padding: 6px 9px; background: #fff7e6; border-left: 3px solid #f59e0b; border-radius: 4px; }
+
+  /* ---- phone ---- */
+  .phone { width: 360px; height: 680px; border-radius: 34px; background: #111; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .screen { width: 100%; height: 100%; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; background: #fdfcf9; }
+  .topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; background: #fff; border-bottom: 1px solid #eee7d8; font-size: 13px; font-weight: 700; color: #6b7280; }
+  .topbar .stars { letter-spacing: 2px; color: #f59e0b; }
+  .topbar .x { width: 30px; height: 30px; border-radius: 50%; background: #f3f4f6; display: grid; place-items: center; }
+  .stage { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; padding: 14px 16px 18px; gap: 14px; min-height: 0; }
+  .instr { font-weight: 800; font-size: 18px; color: #374151; text-align: center; }
+
+  /* ---- shared bits ---- */
+  .speaker { width: 46px; height: 46px; border-radius: 50%; background: #4a9b8f; color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 4px 0 #2a6b60; flex: 0 0 auto; }
+  .target { display: flex; align-items: center; gap: 14px; }
+  .big-letter { width: 104px; height: 104px; border-radius: 22px; background: #fff; border: 3px solid #4a9b8f; display: grid; place-items: center; font-size: 72px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tiles { display: grid; gap: 12px; width: 100%; }
+  .tiles.c3 { grid-template-columns: repeat(3, 1fr); }
+  .tiles.c4 { grid-template-columns: repeat(4, 1fr); }
+  .tile { aspect-ratio: 1; border-radius: 18px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 48px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tile.ok { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; }
+  .tile.bad { border-color: #ef4444; background: #fef2f2; box-shadow: 0 4px 0 #fca5a5; }
+  .tile.dim { opacity: .35; }
+  .picture { width: 170px; height: 150px; border-radius: 20px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 3px 10px rgba(0,0,0,.08); display: grid; place-items: center; font-size: 92px; line-height: 1; position: relative; }
+  .picture .speaker { position: absolute; right: -16px; bottom: -14px; width: 42px; height: 42px; font-size: 19px; }
+  .with-letter { display: flex; align-items: center; gap: 22px; }
+  .chip { font-size: 13px; font-weight: 800; color: #4a9b8f; background: #e7f3f1; padding: 3px 10px; border-radius: 99px; }
+  .spacer { flex: 1 1 auto; }
+
+  /* ---- train ---- */
+  .train { display: flex; align-items: flex-end; gap: 6px; width: 100%; justify-content: center; }
+  .car { position: relative; height: 92px; border-radius: 14px 14px 8px 8px; background: #fff; border: 3px dashed #cbd5e1; display: grid; place-items: center; font-weight: 900; font-size: 34px; color: #94a3b8; }
+  .car::before, .car::after { content: ""; position: absolute; bottom: -15px; width: 22px; height: 22px; border-radius: 50%; background: #475569; border: 3px solid #fdfcf9; }
+  .car::before { left: 12px; } .car::after { right: 12px; }
+  .car.loco { border-radius: 30px 14px 8px 8px; }
+  .car.loco .chim { position: absolute; top: -22px; left: 22px; width: 18px; height: 22px; background: #475569; border-radius: 4px 4px 0 0; }
+  .car.loco .cab { position: absolute; top: 10px; right: 10px; width: 26px; height: 22px; border-radius: 6px; background: #e0f2fe; border: 2px solid #94a3b8; }
+  .car.solid { border-style: solid; }
+  .car.hint { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 4px rgba(59,130,246,.25); color: #1d4ed8; }
+  .car.ok { border-style: solid; border-color: #22c55e; background: #dcfce7; color: #15803d; }
+  .car.bad { border-style: solid; border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+  .car-label { font-size: 13px; font-weight: 800; color: #64748b; text-align: center; margin-top: 18px; }
+  .train-col { display: flex; flex-direction: column; align-items: stretch; }
+  .rail { width: 100%; height: 5px; background: repeating-linear-gradient(90deg,#94a3b8 0 14px,transparent 14px 20px); border-radius: 3px; margin-top: 16px; }
+  .arrow { font-size: 13px; font-weight: 800; color: #94a3b8; width: 100%; text-align: center; }
+
+  /* ---- word check ---- */
+  .wordcars { display: flex; gap: 6px; justify-content: center; }
+  .wcar { width: 62px; height: 70px; border-radius: 12px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 44px; font-weight: 800; }
+  .wcar.found { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; color: #15803d; }
+  .wcar.empty { border-style: dashed; border-color: #cbd5e1; box-shadow: none; color: transparent; }
+
+  /* ---- fix letter ---- */
+  .board { width: 300px; height: 300px; border-radius: 16px; background-color: #fff;
+    background-image: linear-gradient(#dbe7f3 1px, transparent 1px), linear-gradient(90deg, #dbe7f3 1px, transparent 1px);
+    background-size: 30px 30px; border: 2px solid #e2e8f0; }
+
+  /* ---- find all ---- */
+  .field { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+  .field span { aspect-ratio: 1; display: grid; place-items: center; font-size: 34px; font-weight: 800; color: #374151; border-radius: 50%; }
+  .field span.circ { box-shadow: inset 0 0 0 3.5px #22c55e; color: #15803d; }
+  .counter { display: flex; gap: 6px; }
+  .counter i { width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; display: block; }
+  .counter i.on { background: #22c55e; }
+
+  /* ---- adult screen ---- */
+  .adult .screen { background: #f7f6f2; }
+  .adult .stage { align-items: stretch; gap: 12px; padding: 14px 14px; }
+  .sect { font-size: 13px; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+  .groups { display: flex; flex-wrap: wrap; gap: 6px; }
+  .groups span { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: #fff; border: 1.5px solid #d1d5db; }
+  .groups span.on { background: #4a9b8f; border-color: #4a9b8f; color: #fff; }
+  .abc { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+  .abc span { aspect-ratio: 1; border-radius: 9px; background: #fff; border: 1.5px solid #e5e7eb; display: grid; place-items: center; font-weight: 800; font-size: 17px; color: #9ca3af; position: relative; }
+  .abc span.on { border-color: #4a9b8f; background: #e7f3f1; color: #1f2937; }
+  .abc span.on::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--d, #d1d5db); }
+  .abc span.v { color: #dc2626; } .abc span.on.v { color: #dc2626; }
+  .modes { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .mode { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #fff; border-radius: 12px; border: 1.5px solid #e5e7eb; font-size: 14px; font-weight: 700; }
+  .mode .n { width: 26px; height: 26px; border-radius: 8px; background: #e7f3f1; color: #2a6b60; display: grid; place-items: center; font-size: 12px; font-weight: 900; flex: 0 0 auto; }
+  .mode .n.b { background: #e0ecff; color: #1d4ed8; }
+  .mode small { display: block; font-weight: 600; color: #6b7280; font-size: 12px; }
+  .btn { background: #4a9b8f; color: #fff; font-weight: 800; text-align: center; padding: 12px; border-radius: 14px; box-shadow: 0 4px 0 #2a6b60; font-size: 16px; }
+
+  .fn { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+  .fh { font-family: "Comic Sans MS", "Segoe Print", cursive; font-weight: 400; }
+  .fm { font-family: "Courier New", monospace; font-weight: 700; }
+
+  .phone { width: 300px; height: 590px; } .shot { width: 300px; } .row { gap: 18px; } .page { max-width: 1320px; }
+  .picture { width: 140px; height: 124px; font-size: 76px; }
+  .scheme { display: flex; justify-content: center; }
+  .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
+    display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
+  .cell:first-child { margin-left: 0; border-radius: 10px 0 0 10px; }
+  .cell:last-child { border-radius: 0 10px 10px 0; }
+  .cell:only-child { border-radius: 10px; }
+  .cell.wide { width: 170px; }
+  .cell.off { background: repeating-linear-gradient(45deg,#f1f5f9 0 6px,#e2e8f0 6px 12px); border-color: #94a3b8; z-index: 0; }
+  .cell.ok { background: #dcfce7; border-color: #16a34a; z-index: 2; }
+  .cell.bad { background: #fef2f2; border-color: #ef4444; z-index: 2; }
+  .cell.here { box-shadow: 0 0 0 5px rgba(34,197,94,.45); border-color: #16a34a; z-index: 2; }
+  .cell .ltr { color: #cbd5e1; }
+  .cell .ltr.show { color: #1f2937; }
+  .cell.ok .ltr { color: #15803d; }
+  .chipdot { width: 36px; height: 36px; border-radius: 50%; background: #2563eb; box-shadow: 0 3px 0 #1e40af; }
+  .cell .chipdot.on-letter { position: absolute; top: -20px; right: -14px; width: 28px; height: 28px; }
+  .cell .chipdot.bad { background: #ef4444; box-shadow: 0 3px 0 #b91c1c; }
+  .cell .mark { position: absolute; bottom: -30px; font-size: 22px; }
+  .read-arrow { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; margin-top: 8px; }
+  .read-arrow i { display: block; height: 3px; background: #94a3b8; width: 70%; }
+  .read-arrow b { width: 0; height: 0; border-left: 12px solid #94a3b8; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+  .pool { display: flex; gap: 10px; justify-content: center; }
+  .pool .chipdot { width: 44px; height: 44px; }
+  .pool.empty .chipdot { opacity: .25; }
+  .tiles .tile.small { font-size: 36px; }
+  .step-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1f2937; color: #fff; font-size: 15px; margin-right: 6px; }
+  .cap { margin-top: 10px; font-size: 15px; font-weight: 700; color: #1f2937; line-height: 1.35; }
+  .cap span { display: block; font-weight: 600; color: #6b7280; font-size: 13.5px; }
+  .sound { font-weight: 900; color: #2563eb; }
+  .vs { display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 4px 0 18px; font-size: 14px; font-weight: 700; color: #374151; align-items: center; }
+  .legend .cell { width: 34px; height: 34px; border-radius: 6px !important; margin: 0; font-size: 18px; display: inline-grid; vertical-align: middle; }
+  .legend .chipdot { width: 24px; height: 24px; display: inline-block; vertical-align: middle; }
+</style></head>
+<body><div class="page">
+<h1>Звук в слове — схема Эльконина (v02)</h1>
+<p class="lead">Вместо поезда — клетки: одна клетка = один звук. Ребёнок ставит фишку в клетку со звуком.
+Буквенные режимы (найди букву, почини, найди все) — без изменений, в v01.</p>
+<div class="legend">
+  <span><span class="cell" style="border-radius:6px"></span> звук</span>
+  <span><span class="cell off"></span> закрыто на этой ступени</span>
+  <span><span class="chipdot"></span> фишка ребёнка</span>
+  <span><span class="cell ok"></span> верно</span>
+  <span><span class="cell bad"></span> не туда</span>
+  <span>→ направление чтения</span></div>
+<h2 class="block">Сравнение</h2><div class="vs"><div class="shot"><h3>Было: поезд</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="train">
+  <div class="train-col" style="flex:0 0 96px"><div class="car loco"><span class="chim"></span><span class="cab"></span></div><div class="car-label">начало</div></div>
+  <div class="train-col" style="flex:1 1 0"><div class="car hint"></div><div class="car-label">середина</div></div>
+  <div class="train-col" style="flex:1 1 0"><div class="car"></div><div class="car-label">конец</div></div></div><div class="spacer"></div></div></div></div><div class="cap">3 части на любое слово<span>Где «середина» в длинном слове — непонятно</span></div></div><div class="shot"><h3>Стало: схема</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка на каждый звук<span>Середина — любая внутренняя клетка</span></div></div></div>
+<h2 class="block">Лестница: 4 ступени</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Первый звук</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">М</div>
+  <div class="picture">🌺<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[м]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="chipdot"></span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка + полоса<span>Длину слова ещё не показываем</span></div></div><div class="shot"><h3><span class="step-n">2</span>Начало или конец</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">Т</div>
+  <div class="picture">🐱<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[т]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="chipdot"></span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка на каждый звук<span>Внутренние закрыты</span></div></div><div class="shot"><h3><span class="step-n">3</span>Где угодно</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell ok"><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Любая клетка<span>Внутренние = «середина»</span></div></div><div class="shot"><h3><span class="step-n">4</span>Все звуки <small>потолок</small></h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>2 / 6</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="picture">🐱<div class="speaker">🔊</div></div>
+  <div class="instr" style="font-size:17px">Звуки по порядку</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">К</span></div><div class="cell ok"><span class="ltr show">О</span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tiles c4" style="width:80%"><div class="tile small dim">К</div><div class="tile small dim">О</div><div class="tile small">Т</div><div class="tile small">М</div></div></div></div></div><div class="cap">Буквы в клетки по порядку<span>Не в первой версии</span></div></div></div>
+<h2 class="block">Проверка по слову — если верно</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Слушает слово</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Пустая схема + фишка<span>Можно вести пальцем по клеткам</span></div></div><div class="shot"><h3><span class="step-n">2</span>Ставит фишку</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Фишка в 3-ю клетку<span></span></div></div><div class="shot"><h3><span class="step-n">3</span>Появляются буквы</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell "><span class="ltr show">З</span><span class="chipdot on-letter "></span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Схема → слово<span>Фишка поднимается над буквой</span></div></div><div class="shot"><h3><span class="step-n">4</span>Совпало</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★★</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell ok"><span class="ltr show">З</span><span class="chipdot on-letter "></span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:44px">✓</div></div></div></div><div class="cap">З под фишкой — зелёная<span></span></div></div></div>
+<h2 class="block">Проверка по слову — если ошибся</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Ставит не туда</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Фишка во 2-ю клетку<span></span></div></div><div class="shot"><h3><span class="step-n">2</span>Буквы показывают</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell bad"><span class="ltr show">О</span><span class="chipdot on-letter bad"></span></div><div class="cell here"><span class="ltr show">З</span><span class="mark">👆</span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="font-size:16px;color:#6b7280">Звук <span class="sound">[з]</span> здесь</div></div></div></div><div class="cap">Красная — где фишка, палец — где звук<span>Без штрафа, это объяснение</span></div></div><div class="shot"><h3><span class="step-n">3</span>Сам переставляет</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Буквы снова прячутся, фишку — в 3-ю<span>Засчитывается как с подсказкой</span></div></div></div>
+</div></body></html>
