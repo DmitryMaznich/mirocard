@@ -50,6 +50,20 @@ css = base + r"""
   .fade-ladder { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
   .fade-ladder div { background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; min-width: 220px; }
   .fade-ladder small { display: block; color: #6b7280; font-weight: 600; }
+  .lotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+  .lp { position: relative; aspect-ratio: 1; border-radius: 16px; background: #fff; border: 2.5px solid #e2e8f0; display: grid; place-items: center; font-size: 50px; }
+  .lp .ov { position: absolute; inset: 6px; border-radius: 12px; display: grid; place-items: center; font-size: 58px; font-weight: 900;
+    background: rgba(255,255,255,.45); border: 2px solid rgba(37,99,235,.55); color: rgba(29,78,216,.85); backdrop-filter: blur(0.5px); }
+  .lp.ok { border-color: #22c55e; }
+  .lp.ok .ov { border-color: rgba(22,163,74,.7); color: rgba(21,128,61,.85); background: rgba(220,252,231,.40); }
+  .lp.bad { border-color: #ef4444; }
+  .lp.bad .ov { border-color: rgba(239,68,68,.8); color: rgba(185,28,28,.85); background: rgba(254,242,242,.45); }
+  .lp.hover { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.3); }
+  .ltray { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .ltray .card { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center; font-size: 36px; font-weight: 900;
+    color: #1d4ed8; background: rgba(239,246,255,.7); border: 2px solid rgba(37,99,235,.5); box-shadow: 0 3px 0 rgba(37,99,235,.25); }
+  .ltray .card.gone { opacity: 0; }
+  .ltray .card.drag { transform: translate(-30px,-120px) rotate(-6deg) scale(1.08); box-shadow: 0 10px 20px rgba(0,0,0,.18); }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -274,6 +288,31 @@ fade = '''<div class="fade-ladder">
 <div>Уровень А<small>медленно + клетки горят</small></div>
 <div>Уровень Б<small>медленно, клетки не горят</small></div>
 <div>Уровень В<small>только обычное слово</small></div></div>'''
+BOARD = [('🏠','Д'),('🎈','Ш'),('🐱','К'),('🦊','Л'),('🧀','С'),('🚂','П'),('🐟','Р'),('🌺','М'),('👃','Н')]
+def board(placed=None, bad=None, hover=None):
+    placed = placed or {}
+    out=[]
+    for i,(e,l) in enumerate(BOARD):
+        cls=''; ov=''
+        if i in placed: cls='ok'; ov=f'<div class="ov">{placed[i]}</div>'
+        if bad and bad[0]==i: cls='bad'; ov=f'<div class="ov">{bad[1]}</div>'
+        if hover==i: cls='hover'
+        out.append(f'<div class="lp {cls}">{e}{ov}</div>')
+    return '<div class="lotto">'+''.join(out)+'</div>'
+def ltray(letters, gone=(), drag=None):
+    return '<div class="ltray">'+''.join(f'<div class="card {"gone" if l in gone else ""} {"drag" if l==drag else ""}">{l}</div>' for l in letters)+'</div>'
+LET = ['Д','П','К','Л']
+INS = '<div class="instr" style="font-size:17px">Положи букву на картинку</div>'
+b1 = phone(INS + board() + S + ltray(LET), "1 / 3", "☆☆☆☆")
+b2 = phone(INS + board(placed={0:'Д'}, hover=5) + S + ltray(LET, gone=['Д'], drag='П'), "1 / 3", "☆☆☆☆")
+b3 = phone(INS + board(placed={0:'Д',5:'П'}, bad=(3,'К')) + S + ltray(LET, gone=['Д','П','К']), "1 / 3", "☆☆☆☆")
+b4 = phone(INS + board(placed={0:'Д',5:'П',2:'К',3:'Л'}) + S + '<div class="instr" style="color:#16a34a;font-size:40px">✓</div>', "1 / 3", "★☆☆☆")
+lotto = ''.join([
+  shot('<span class="step-n">1</span>Поле', b1, '9 картинок, 4 буквы', 'Картинок больше, чем букв — не угадать «по остатку»'),
+  shot('<span class="step-n">2</span>Тянет П', b2, 'Д уже лежит на домике', 'Картинка видна сквозь букву'),
+  shot('<span class="step-n">3</span>Не туда', b3, 'К на лисе — краснеет, уезжает', 'Нажал на картинку — звучит слово'),
+  shot('<span class="step-n">4</span>Всё разложено', b4, 'Следующее поле', ''),
+])
 legend2 = legend = """<div class="legend">
   <span><span class="cell slot"></span> сюда тянуть букву</span>
   <span><span class="cell off"></span> закрыто</span>
@@ -292,6 +331,9 @@ html = f"""<!DOCTYPE html>
 <h2 class="block">Карта: 6 ступеней</h2>{matrix}
 <h2 class="block">Ступень 2 — «С какой буквы?» (ваше упражнение)</h2><div class="row">{first}</div>
 <h2 class="block">Вариант ступени 2 (три картинки) и ступень 3</h2><div class="row">{match}{last}</div>
+<h2 class="block">Лото «Буквы на картинки» — ваша настольная игра</h2>
+<p class="block-note">Поле с картинками, прозрачные карточки букв. Буква ложится прямо на картинку, картинка остаётся видна.</p>
+<div class="row">{lotto}</div>
 <h2 class="block">Как ребёнок находит место звука — «слово по звукам»</h2>
 <p class="block-note">Ребёнок не считает клетки и не пишет слово в уме. Приложение проговаривает слово медленно, протягивая звуки,
 и клетки загораются по очереди — то, что логопед делает пальцем по схеме.</p>

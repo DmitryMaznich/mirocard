@@ -152,6 +152,20 @@
   .fade-ladder { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
   .fade-ladder div { background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; min-width: 220px; }
   .fade-ladder small { display: block; color: #6b7280; font-weight: 600; }
+  .lotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+  .lp { position: relative; aspect-ratio: 1; border-radius: 16px; background: #fff; border: 2.5px solid #e2e8f0; display: grid; place-items: center; font-size: 50px; }
+  .lp .ov { position: absolute; inset: 6px; border-radius: 12px; display: grid; place-items: center; font-size: 58px; font-weight: 900;
+    background: rgba(255,255,255,.45); border: 2px solid rgba(37,99,235,.55); color: rgba(29,78,216,.85); backdrop-filter: blur(0.5px); }
+  .lp.ok { border-color: #22c55e; }
+  .lp.ok .ov { border-color: rgba(22,163,74,.7); color: rgba(21,128,61,.85); background: rgba(220,252,231,.40); }
+  .lp.bad { border-color: #ef4444; }
+  .lp.bad .ov { border-color: rgba(239,68,68,.8); color: rgba(185,28,28,.85); background: rgba(254,242,242,.45); }
+  .lp.hover { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.3); }
+  .ltray { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .ltray .card { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center; font-size: 36px; font-weight: 900;
+    color: #1d4ed8; background: rgba(239,246,255,.7); border: 2px solid rgba(37,99,235,.5); box-shadow: 0 3px 0 rgba(37,99,235,.25); }
+  .ltray .card.gone { opacity: 0; }
+  .ltray .card.drag { transform: translate(-30px,-120px) rotate(-6deg) scale(1.08); box-shadow: 0 10px 20px rgba(0,0,0,.18); }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -222,6 +236,17 @@
   <div class="stage"><div class="instr" style="font-size:17px">С какой буквы?</div><div class="match"><div class="mrow"><div class="picture">🌺</div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div><div class="mrow"><div class="picture">🧀</div><div class="scheme"><div class="cell slot"></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div><div class="mrow"><div class="picture">🎈</div><div class="scheme"><div class="cell "></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div></div></div><div class="spacer"></div><div class="tray"><div class="tile ">Ш</div><div class="tile ">С</div><div class="tile ghost">М</div></div></div></div></div><div class="cap">Три картинки — три буквы<span>Нажал на картинку — звучит её слово</span></div></div><div class="shot"><h3><span class="num">3</span>Какой буквой кончается</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>4 / 10</span><span class="stars">★★☆☆</span></div>
   <div class="stage"><div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">Какой буквой кончается?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell slot"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">Т</div><div class="tile ">К</div><div class="tile ">М</div></div></div></div></div><div class="cap">Открыта только последняя клетка<span></span></div></div></div>
+<h2 class="block">Лото «Буквы на картинки» — ваша настольная игра</h2>
+<p class="block-note">Поле с картинками, прозрачные карточки букв. Буква ложится прямо на картинку, картинка остаётся видна.</p>
+<div class="row"><div class="shot"><h3><span class="step-n">1</span>Поле</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ">🏠</div><div class="lp ">🎈</div><div class="lp ">🐱</div><div class="lp ">🦊</div><div class="lp ">🧀</div><div class="lp ">🚂</div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="ltray"><div class="card  ">Д</div><div class="card  ">П</div><div class="card  ">К</div><div class="card  ">Л</div></div></div></div></div><div class="cap">9 картинок, 4 буквы<span>Картинок больше, чем букв — не угадать «по остатку»</span></div></div><div class="shot"><h3><span class="step-n">2</span>Тянет П</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ok">🏠<div class="ov">Д</div></div><div class="lp ">🎈</div><div class="lp ">🐱</div><div class="lp ">🦊</div><div class="lp ">🧀</div><div class="lp hover">🚂</div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="ltray"><div class="card gone ">Д</div><div class="card  drag">П</div><div class="card  ">К</div><div class="card  ">Л</div></div></div></div></div><div class="cap">Д уже лежит на домике<span>Картинка видна сквозь букву</span></div></div><div class="shot"><h3><span class="step-n">3</span>Не туда</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ok">🏠<div class="ov">Д</div></div><div class="lp ">🎈</div><div class="lp ">🐱</div><div class="lp bad">🦊<div class="ov">К</div></div><div class="lp ">🧀</div><div class="lp ok">🚂<div class="ov">П</div></div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="ltray"><div class="card gone ">Д</div><div class="card gone ">П</div><div class="card gone ">К</div><div class="card  ">Л</div></div></div></div></div><div class="cap">К на лисе — краснеет, уезжает<span>Нажал на картинку — звучит слово</span></div></div><div class="shot"><h3><span class="step-n">4</span>Всё разложено</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ok">🏠<div class="ov">Д</div></div><div class="lp ">🎈</div><div class="lp ok">🐱<div class="ov">К</div></div><div class="lp ok">🦊<div class="ov">Л</div></div><div class="lp ">🧀</div><div class="lp ok">🚂<div class="ov">П</div></div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:40px">✓</div></div></div></div><div class="cap">Следующее поле<span></span></div></div></div>
 <h2 class="block">Как ребёнок находит место звука — «слово по звукам»</h2>
 <p class="block-note">Ребёнок не считает клетки и не пишет слово в уме. Приложение проговаривает слово медленно, протягивая звуки,
 и клетки загораются по очереди — то, что логопед делает пальцем по схеме.</p>
