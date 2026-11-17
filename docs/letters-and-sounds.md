@@ -11,6 +11,8 @@
   (заголовок `x-goog-api-key`; есть в окружении владельца «My environment»). Затем:
   1. `node tools/phonetic_analysis/generate-pictures.mjs` — 2 варианта на слово в `tools/phonetic_analysis/candidates/`
      (не в git) + `candidates/sheet.html`. Сначала пробный запуск `--words=кот --n=1`.
+     В облачной сессии — с `NODE_USE_ENV_PROXY=1` (иначе fetch идёт мимо прокси, ключ не подставляется).
+     2026-11-17: запуск упёрся в `402 prepayment credits are depleted` — у Google-проекта кончились кредиты (AI Studio → Billing).
   2. Показать владельцу контактный лист (скриншотом — он воспринимает визуально), он выбирает по одной.
   3. `node tools/phonetic_analysis/pick-pictures.mjs кот=2 дом=1 …` → `media/<слово>.webp`.
   4. Поднять `VERSION` в `tools/phonetic_analysis/build.mjs`, `node tools/phonetic_analysis/build.mjs`, скопировать ZIP в

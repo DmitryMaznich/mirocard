@@ -5,7 +5,9 @@
 // the picks to media/<word>.webp, and build.mjs uses them instead of emoji.
 // The key: GEMINI_API_KEY, or the cloud proxy's network secret for
 // generativelanguage.googleapis.com (then any placeholder value is replaced).
-// Usage: node tools/phonetic_analysis/generate-pictures.mjs [--words=кот,дом] [--n=2] [--force]
+// In a cloud session run with NODE_USE_ENV_PROXY=1, otherwise Node's fetch bypasses
+// the proxy and the key is not injected ("API key not valid").
+// Usage: NODE_USE_ENV_PROXY=1 node tools/phonetic_analysis/generate-pictures.mjs [--words=кот,дом] [--n=2] [--force]
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
