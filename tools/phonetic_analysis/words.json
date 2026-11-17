@@ -205,26 +205,6 @@
    "emoji": "🎣"
   },
   {
-   "id": "улица",
-   "word": "улица",
-   "pic": "улица с домами",
-   "note": "л перед и мягкий",
-   "aligned": true,
-   "only": null,
-   "firstLetter": "У",
-   "targets": [
-    {
-     "letter": "У",
-     "position": "start"
-    },
-    {
-     "letter": "Ц",
-     "position": "middle"
-    }
-   ],
-   "emoji": null
-  },
-  {
    "id": "иголка",
    "word": "иголка",
    "pic": "иголка с ниткой",
@@ -307,34 +287,6 @@
     }
    ],
    "emoji": "🍦"
-  },
-  {
-   "id": "экран",
-   "word": "экран",
-   "pic": "экран телевизора / проектора",
-   "note": "Э безударная — проверить на слух",
-   "aligned": true,
-   "only": null,
-   "firstLetter": "Э",
-   "targets": [
-    {
-     "letter": "Э",
-     "position": "start"
-    },
-    {
-     "letter": "К",
-     "position": "middle"
-    },
-    {
-     "letter": "Р",
-     "position": "middle"
-    },
-    {
-     "letter": "Н",
-     "position": "end"
-    }
-   ],
-   "emoji": null
   },
   {
    "id": "банан",
@@ -1557,26 +1509,6 @@
     }
    ],
    "emoji": "🐘"
-  },
-  {
-   "id": "кино",
-   "word": "кино",
-   "pic": "кинозал / экран кино",
-   "note": "к перед и мягкий",
-   "aligned": true,
-   "only": null,
-   "firstLetter": "К",
-   "targets": [
-    {
-     "letter": "Н",
-     "position": "middle"
-    },
-    {
-     "letter": "О",
-     "position": "end"
-    }
-   ],
-   "emoji": "🎬"
   },
   {
    "id": "пушка",
