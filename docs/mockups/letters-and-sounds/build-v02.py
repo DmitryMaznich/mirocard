@@ -2,6 +2,10 @@ base = open('docs/mockups/letters-and-sounds/base.css').read()
 css = base + r"""
   .phone { width: 300px; height: 590px; } .shot { width: 300px; } .row { gap: 18px; } .page { max-width: 1320px; }
   .picture { width: 140px; height: 124px; font-size: 76px; }
+  .picture.tap { position: relative; }
+  .picture .wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; }
+  .picture.playing { border-color: #4a9b8f; box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .picture.playing .wave { stroke: #4a9b8f; width: 28px; height: 28px; }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -42,9 +46,12 @@ def phone(stage, counter="5 / 10", stars="★★★☆"):
   <div class="topbar"><span class="x">✕</span><span>{counter}</span><span class="stars">{stars}</span></div>
   <div class="stage">{stage}</div></div></div>'''
 
-def target(letter, emoji, sound, small=False):
+WAVE = '<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg>'
+def pic(emoji, playing=False):
+    return f'<div class="picture tap {"playing" if playing else ""}">{emoji}{WAVE}</div>'
+def target(letter, emoji, sound, small=False, playing=False):
     return f'''<div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">{letter}</div>
-  <div class="picture">{emoji}<div class="speaker">🔊</div></div></div>
+  {pic(emoji, playing)}</div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[{sound}]</span>?</div>'''
 
 def scheme(cells):
@@ -72,10 +79,10 @@ def shot(title, phone_html, cap, sub=''):
 S = '<div class="spacer"></div>'
 
 # ---- ladder ----
-l1 = phone(target('М','🌺','м') + S + scheme([{'cls':'ok','chip':'in'},{'cls':'wide'}]) + S + pool(True))
+l1 = phone(target('М','🌺','м', playing=True) + S + scheme([{'cls':'ok','chip':'in'},{'cls':'wide'}]) + S + pool(True))
 l2 = phone(target('Т','🐱','т') + S + scheme([{}, {'cls':'off'}, {'cls':'ok','chip':'in'}]) + S + pool(True))
 l3 = phone(target('З','🐐','з') + S + scheme([{}, {}, {'cls':'ok','chip':'in'}, {}]) + S + pool(True))
-l4 = phone('''<div class="picture">🐱<div class="speaker">🔊</div></div>
+l4 = phone(pic('🐱') + '''
   <div class="instr" style="font-size:17px">Звуки по порядку</div>''' + S +
   scheme([{'cls':'ok','letter':'К','show':True},{'cls':'ok','letter':'О','show':True},{}]) + S +
   '<div class="tiles c4" style="width:80%"><div class="tile small dim">К</div><div class="tile small dim">О</div><div class="tile small">Т</div><div class="tile small">М</div></div>',
@@ -106,7 +113,8 @@ def word_cells(chip_idx=None, show=False, ok_idx=None, bad_idx=None, here_idx=No
     return scheme(cells)
 
 goat = target('З','🐐','з')
-f1 = phone(goat + S + word_cells() + S + pool(), "6 / 10")
+goat_play = target('З','🐐','з', playing=True)
+f1 = phone(goat_play + S + word_cells() + S + pool(), "6 / 10")
 f2 = phone(goat + S + word_cells(chip_idx=2) + S + pool(True), "6 / 10")
 f3 = phone(goat + S + word_cells(chip_idx=2, show=True) + S + pool(True), "6 / 10")
 f4 = phone(goat + S + word_cells(chip_idx=2, show=True, ok_idx=2) + S + '<div class="instr" style="color:#16a34a;font-size:44px">✓</div>', "6 / 10", "★★★★")
@@ -134,6 +142,10 @@ train = '''<div class="train">
   <div class="train-col" style="flex:1 1 0"><div class="car"></div><div class="car-label">конец</div></div></div>'''
 cmp1 = phone(goat + S + train + S, "6 / 10")
 cmp2 = phone(goat + S + word_cells(chip_idx=2) + S + pool(True), "6 / 10")
+h1p = phone(target('З','🐐','з', playing=True) + S + word_cells() + S + pool(), "6 / 10")
+h2p = phone(goat + S + word_cells() + S + pool(), "6 / 10")
+hear = shot('<span class="step-n">1</span>Задание открылось', h1p, 'Слово звучит само', 'Картинка «дышит», пока звучит') + \
+       shot('<span class="step-n">2</span>Тишина', h2p, 'Нажал на картинку — ещё раз', 'Значок волн — тихий, в углу')
 compare = shot('Было: поезд', cmp1, '3 части на любое слово', 'Где «середина» в длинном слове — непонятно') + \
           shot('Стало: схема', cmp2, 'Клетка на каждый звук', 'Середина — любая внутренняя клетка')
 
@@ -143,7 +155,8 @@ legend = '''<div class="legend">
   <span><span class="chipdot"></span> фишка ребёнка</span>
   <span><span class="cell ok"></span> верно</span>
   <span><span class="cell bad"></span> не туда</span>
-  <span>→ направление чтения</span></div>'''
+  <span>→ направление чтения</span>
+  <span><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:middle;fill:none;stroke:#4a9b8f;stroke-width:2.4;stroke-linecap:round"><path d="M8 9 Q11 12 8 15"/><path d="M12 6 Q17 12 12 18"/><path d="M16 3 Q23 12 16 21"/></svg> картинка звучит, нажать — повтор</span></div>'''
 
 html = f'''<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -153,6 +166,7 @@ html = f'''<!DOCTYPE html>
 <p class="lead">Вместо поезда — клетки: одна клетка = один звук. Ребёнок ставит фишку в клетку со звуком.
 Буквенные режимы (найди букву, почини, найди все) — без изменений, в v01.</p>
 {legend}
+<h2 class="block">Как ребёнок слушает слово</h2><div class="vs">{hear}</div>
 <h2 class="block">Сравнение</h2><div class="vs">{compare}</div>
 <h2 class="block">Лестница: 4 ступени</h2><div class="row">{ladder}</div>
 <h2 class="block">Проверка по слову — если верно</h2><div class="row">{story}</div>

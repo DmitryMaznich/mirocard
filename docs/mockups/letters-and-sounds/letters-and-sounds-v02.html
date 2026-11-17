@@ -104,6 +104,10 @@
 
   .phone { width: 300px; height: 590px; } .shot { width: 300px; } .row { gap: 18px; } .page { max-width: 1320px; }
   .picture { width: 140px; height: 124px; font-size: 76px; }
+  .picture.tap { position: relative; }
+  .picture .wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; }
+  .picture.playing { border-color: #4a9b8f; box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .picture.playing .wave { stroke: #4a9b8f; width: 28px; height: 28px; }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -148,63 +152,73 @@
   <span><span class="chipdot"></span> фишка ребёнка</span>
   <span><span class="cell ok"></span> верно</span>
   <span><span class="cell bad"></span> не туда</span>
-  <span>→ направление чтения</span></div>
+  <span>→ направление чтения</span>
+  <span><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:middle;fill:none;stroke:#4a9b8f;stroke-width:2.4;stroke-linecap:round"><path d="M8 9 Q11 12 8 15"/><path d="M12 6 Q17 12 12 18"/><path d="M16 3 Q23 12 16 21"/></svg> картинка звучит, нажать — повтор</span></div>
+<h2 class="block">Как ребёнок слушает слово</h2><div class="vs"><div class="shot"><h3><span class="step-n">1</span>Задание открылось</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture tap playing">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Слово звучит само<span>Картинка «дышит», пока звучит</span></div></div><div class="shot"><h3><span class="step-n">2</span>Тишина</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Нажал на картинку — ещё раз<span>Значок волн — тихий, в углу</span></div></div></div>
 <h2 class="block">Сравнение</h2><div class="vs"><div class="shot"><h3>Было: поезд</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="train">
   <div class="train-col" style="flex:0 0 96px"><div class="car loco"><span class="chim"></span><span class="cab"></span></div><div class="car-label">начало</div></div>
   <div class="train-col" style="flex:1 1 0"><div class="car hint"></div><div class="car-label">середина</div></div>
   <div class="train-col" style="flex:1 1 0"><div class="car"></div><div class="car-label">конец</div></div></div><div class="spacer"></div></div></div></div><div class="cap">3 части на любое слово<span>Где «середина» в длинном слове — непонятно</span></div></div><div class="shot"><h3>Стало: схема</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка на каждый звук<span>Середина — любая внутренняя клетка</span></div></div></div>
 <h2 class="block">Лестница: 4 ступени</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Первый звук</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">М</div>
-  <div class="picture">🌺<div class="speaker">🔊</div></div></div>
+  <div class="picture tap playing">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[м]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="chipdot"></span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка + полоса<span>Длину слова ещё не показываем</span></div></div><div class="shot"><h3><span class="step-n">2</span>Начало или конец</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">Т</div>
-  <div class="picture">🐱<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[т]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="chipdot"></span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка на каждый звук<span>Внутренние закрыты</span></div></div><div class="shot"><h3><span class="step-n">3</span>Где угодно</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell ok"><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Любая клетка<span>Внутренние = «середина»</span></div></div><div class="shot"><h3><span class="step-n">4</span>Все звуки <small>потолок</small></h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>2 / 6</span><span class="stars">★☆☆☆</span></div>
-  <div class="stage"><div class="picture">🐱<div class="speaker">🔊</div></div>
+  <div class="stage"><div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
   <div class="instr" style="font-size:17px">Звуки по порядку</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">К</span></div><div class="cell ok"><span class="ltr show">О</span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tiles c4" style="width:80%"><div class="tile small dim">К</div><div class="tile small dim">О</div><div class="tile small">Т</div><div class="tile small">М</div></div></div></div></div><div class="cap">Буквы в клетки по порядку<span>Не в первой версии</span></div></div></div>
 <h2 class="block">Проверка по слову — если верно</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Слушает слово</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap playing">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Пустая схема + фишка<span>Можно вести пальцем по клеткам</span></div></div><div class="shot"><h3><span class="step-n">2</span>Ставит фишку</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Фишка в 3-ю клетку<span></span></div></div><div class="shot"><h3><span class="step-n">3</span>Появляются буквы</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell "><span class="ltr show">З</span><span class="chipdot on-letter "></span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Схема → слово<span>Фишка поднимается над буквой</span></div></div><div class="shot"><h3><span class="step-n">4</span>Совпало</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★★</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell ok"><span class="ltr show">З</span><span class="chipdot on-letter "></span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:44px">✓</div></div></div></div><div class="cap">З под фишкой — зелёная<span></span></div></div></div>
 <h2 class="block">Проверка по слову — если ошибся</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Ставит не туда</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Фишка во 2-ю клетку<span></span></div></div><div class="shot"><h3><span class="step-n">2</span>Буквы показывают</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell bad"><span class="ltr show">О</span><span class="chipdot on-letter bad"></span></div><div class="cell here"><span class="ltr show">З</span><span class="mark">👆</span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="font-size:16px;color:#6b7280">Звук <span class="sound">[з]</span> здесь</div></div></div></div><div class="cap">Красная — где фишка, палец — где звук<span>Без штрафа, это объяснение</span></div></div><div class="shot"><h3><span class="step-n">3</span>Сам переставляет</h3><div class="phone"><div class="screen">
   <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
   <div class="stage"><div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
-  <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+  <div class="picture tap ">🐐<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[з]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Буквы снова прячутся, фишку — в 3-ю<span>Засчитывается как с подсказкой</span></div></div></div>
 </div></body></html>
