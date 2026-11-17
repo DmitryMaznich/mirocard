@@ -6,6 +6,13 @@ css = base + r"""
   .picture .wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; }
   .picture.playing { border-color: #4a9b8f; box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
   .picture.playing .wave { stroke: #4a9b8f; width: 28px; height: 28px; }
+  .big-letter.tap { position: relative; }
+  .big-letter .wave { position: absolute; right: 5px; bottom: 5px; width: 16px; height: 16px; fill: none; stroke: #cbd5e1; stroke-width: 2.6; stroke-linecap: round; }
+  .big-letter.playing { box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .big-letter.playing .wave { stroke: #4a9b8f; width: 20px; height: 20px; }
+  .bubble { font-size: 15px; font-weight: 800; color: #2a6b60; background: #e7f3f1; padding: 4px 12px; border-radius: 99px; }
+  .rules { background: #fff; border-radius: 14px; padding: 14px 18px; max-width: 900px; font-size: 14.5px; line-height: 1.55; border-left: 5px solid #f59e0b; }
+  .rules b { color: #111827; }
   .scheme { display: flex; justify-content: center; }
   .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
     display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
@@ -49,8 +56,8 @@ def phone(stage, counter="5 / 10", stars="★★★☆"):
 WAVE = '<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg>'
 def pic(emoji, playing=False):
     return f'<div class="picture tap {"playing" if playing else ""}">{emoji}{WAVE}</div>'
-def target(letter, emoji, sound, small=False, playing=False):
-    return f'''<div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">{letter}</div>
+def target(letter, emoji, sound, small=False, playing=False, letter_playing=False):
+    return f'''<div class="with-letter"><div class="big-letter tap {"playing" if letter_playing else ""}" style="width:80px;height:80px;font-size:54px">{letter}{WAVE}</div>
   {pic(emoji, playing)}</div>
   <div class="instr" style="font-size:17px">Где звук <span class="sound">[{sound}]</span>?</div>'''
 
@@ -144,8 +151,10 @@ cmp1 = phone(goat + S + train + S, "6 / 10")
 cmp2 = phone(goat + S + word_cells(chip_idx=2) + S + pool(True), "6 / 10")
 h1p = phone(target('З','🐐','з', playing=True) + S + word_cells() + S + pool(), "6 / 10")
 h2p = phone(goat + S + word_cells() + S + pool(), "6 / 10")
+h3p = phone(target('З','🐐','з', letter_playing=True) + '<div class="bubble">[ззз…]</div>' + S + word_cells() + S + pool(), "6 / 10")
 hear = shot('<span class="step-n">1</span>Задание открылось', h1p, 'Слово звучит само', 'Картинка «дышит», пока звучит') + \
-       shot('<span class="step-n">2</span>Тишина', h2p, 'Нажал на картинку — ещё раз', 'Значок волн — тихий, в углу')
+       shot('<span class="step-n">2</span>Тишина', h2p, 'Нажал на картинку — ещё раз', 'Значок волн — тихий, в углу') + \
+       shot('<span class="step-n">3</span>Нужна опора', h3p, 'Нажал на букву — звучит звук', 'Только звук, не название: [ззз], не «зэ»')
 compare = shot('Было: поезд', cmp1, '3 части на любое слово', 'Где «середина» в длинном слове — непонятно') + \
           shot('Стало: схема', cmp2, 'Клетка на каждый звук', 'Середина — любая внутренняя клетка')
 
@@ -156,7 +165,7 @@ legend = '''<div class="legend">
   <span><span class="cell ok"></span> верно</span>
   <span><span class="cell bad"></span> не туда</span>
   <span>→ направление чтения</span>
-  <span><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:middle;fill:none;stroke:#4a9b8f;stroke-width:2.4;stroke-linecap:round"><path d="M8 9 Q11 12 8 15"/><path d="M12 6 Q17 12 12 18"/><path d="M16 3 Q23 12 16 21"/></svg> картинка звучит, нажать — повтор</span></div>'''
+  <span><svg viewBox="0 0 24 24" width="20" height="20" style="vertical-align:middle;fill:none;stroke:#4a9b8f;stroke-width:2.4;stroke-linecap:round"><path d="M8 9 Q11 12 8 15"/><path d="M12 6 Q17 12 12 18"/><path d="M16 3 Q23 12 16 21"/></svg> картинка — слово, буква — звук (по нажатию)</span></div>'''
 
 html = f'''<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -167,6 +176,14 @@ html = f'''<!DOCTYPE html>
 Буквенные режимы (найди букву, почини, найди все) — без изменений, в v01.</p>
 {legend}
 <h2 class="block">Как ребёнок слушает слово</h2><div class="vs">{hear}</div>
+<div class="rules" style="margin-top:18px">
+<b>Правила звука</b><br>
+• При открытии задания звучит <b>только слово</b>. Звук буквы — только по нажатию, сам не играет.<br>
+• Звучит <b>звук</b>, не название буквы: [ззз], [м], а не «зэ», «эм». Взрывные (Б П Д Т К Г) — коротко, без «ы»/«э».<br>
+• Звуки — <b>запись живым голосом</b> (предложить учителю записать ~30 файлов). Синтезом не подменять: нет записи — плашка не звучит.<br>
+• Пока звучит, повторное нажатие на картинку или букву ничего не делает.<br>
+• На первых ступенях — только твёрдый звук ([з], не [з']), слова подбираются под него.
+</div>
 <h2 class="block">Сравнение</h2><div class="vs">{compare}</div>
 <h2 class="block">Лестница: 4 ступени</h2><div class="row">{ladder}</div>
 <h2 class="block">Проверка по слову — если верно</h2><div class="row">{story}</div>
