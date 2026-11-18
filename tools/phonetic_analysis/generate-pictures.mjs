@@ -48,6 +48,8 @@ async function generate(prompt) {
   return Buffer.from(data, "base64");
 }
 
+// Kept at 1024 px (2026-11-18): the sound-scheme screen shows the photo up to
+// ~560 CSS px, ~1100 device px on a retina screen; the first set was cut to 512.
 mkdirSync(OUT, { recursive: true });
 const jobs = words.flatMap((w) => Array.from({ length: N }, (_, i) => ({ w, n: i + 1 })))
   .filter((j) => FORCE || !existsSync(join(OUT, `${j.w.id}_${j.n}.webp`)));
@@ -61,7 +63,7 @@ async function worker() {
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         const png = await generate(prompt);
-        writeFileSync(join(OUT, `${w.id}_${n}.webp`), await sharp(png).resize(512, 512, { fit: "cover" }).webp({ quality: 82 }).toBuffer());
+        writeFileSync(join(OUT, `${w.id}_${n}.webp`), await sharp(png).resize(1024, 1024, { fit: "cover" }).webp({ quality: 82 }).toBuffer());
         console.log(`ok   ${w.id}_${n}`);
         break;
       } catch (err) {
