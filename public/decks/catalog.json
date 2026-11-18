@@ -351,15 +351,15 @@
     },
     {
       "id": "phonetic_analysis",
-      "version": "2.7.0",
-      "url": "./decks/phonetic_analysis_v2.7.0.zip",
-      "zipUrl": "phonetic_analysis_v2.7.0.zip",
+      "version": "2.7.1",
+      "url": "./decks/phonetic_analysis_v2.7.1.zip",
+      "zipUrl": "phonetic_analysis_v2.7.1.zip",
       "title": {
         "ru": "Буквы и звуки",
         "en": "Letters and Sounds"
       },
       "renderer": "phonetic_analysis",
-      "status": "beta",
+      "status": "release",
       "access": "paid",
       "materialLanguages": [
         "ru"

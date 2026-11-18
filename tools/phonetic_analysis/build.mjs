@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "2.7.0";
+const VERSION = "2.7.1";
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.map((w) => {
   const image = `media/${w.id}.webp`;
@@ -63,7 +63,7 @@ const topic = {
       flow: [
         "В «Изменить» отметьте пройденные буквы — все задания строятся только из них.",
         "1 — повтор букв. 2 «Где звук?»: Начало или конец → Везде. 3 «Лото» — первая буква. 4 «Буквы в клетки»: Последняя буква → Всё слово.",
-        "Слово звучит само; нажать на картинку — ещё раз.",
+        "Слово звучит само; нажать на картинку — ещё раз. В «Где звук?» перед словом звучит сам звук (пока у гласных), нажать на букву в вопросе — ещё раз.",
       ],
     },
   },
