@@ -167,6 +167,29 @@
 .pa-options--3 { grid-template-columns: repeat(3, 1fr); }
 .pa-options--4 { grid-template-columns: repeat(4, 1fr); }
 
+/* --- lotto: the board and the deck of cards, sized from the free space like a
+   board game on the table (owner, 2026-11-18: on a tablet the board was a small
+   460px square and the cards one long row). --b is the board's side. Portrait /
+   phone: the deck under the board in rows of 5 and 4; landscape: a 3×3 deck to
+   the right of the board. Every card keeps its slot. --- */
+.pa-lotto-area { flex: 1 1 0; min-height: 0; width: 100%; container-type: size; display: flex; align-items: center; justify-content: center; }
+.pa-lotto-play {
+  --b: min(100cqw, 66cqh);
+  --gap: calc(var(--b) * 0.03);
+  display: flex; flex-direction: column; align-items: center; gap: calc(var(--b) * 0.05);
+}
+.pa-lotto-play .pa-lotto, .pa-lotto-play .pa-rlotto { width: var(--b); height: var(--b); gap: var(--gap); grid-template-rows: repeat(3, 1fr); }
+.pa-lotto-play .pa-lotto__pic, .pa-lotto-play .pa-rlotto__cell { width: 100%; height: 100%; aspect-ratio: auto; border-radius: calc(var(--b) * 0.045); }
+.pa-lotto-play .pa-rlotto__cell { font-size: calc(var(--b) * 0.17); }
+.pa-lotto-tray { --cols: 5; --tw: var(--b); display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--gap); width: var(--tw); }
+.pa-lotto-tray .pa-lotto-slot { --s: calc((var(--tw) - (var(--cols) - 1) * var(--gap)) / var(--cols) - 1px); width: var(--s); height: var(--s); box-sizing: border-box; }
+.pa-lotto-tray .pa-card { font-size: calc(var(--s) * 0.6); border-radius: calc(var(--s) * 0.2); }
+.pa-lotto-tray .pa-rlotto__thumb { width: 100%; height: 100%; aspect-ratio: auto; border-radius: calc(var(--s) * 0.18); }
+@container (min-aspect-ratio: 5/4) {
+  .pa-lotto-play { --b: min(100cqh, 60cqw); flex-direction: row; gap: calc(var(--b) * 0.08); }
+  .pa-lotto-tray { --cols: 3; --tw: calc(var(--b) * 0.62); height: var(--b); }
+}
+
 /* --- lotto --- */
 .pa-lotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: min(100%, 460px); }
 .pa-lotto__pic { width: 100%; aspect-ratio: 1; border-radius: 16px; }
