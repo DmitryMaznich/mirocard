@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.40.0",
+    "version": "0.41.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -640,6 +640,14 @@
       "label": "Собачка",
       "image": "media/dog.svg",
       "lessonFile": "lessons/dog.json"
+    },
+    {
+      "id": "snowman_glasses",
+      "conceptId": "snowman_glasses",
+      "primary": true,
+      "label": "Снеговик в очках",
+      "image": "media/snowman_glasses.svg",
+      "lessonFile": "lessons/snowman_glasses.json"
     },
     {
       "id": "first_lines:short_line",
