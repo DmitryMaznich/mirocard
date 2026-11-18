@@ -83,6 +83,8 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
     onTap: (payload) => { if (!payload.chip) placeLetter(payload.tile, null); },
   });
 
+  // "bar" — the first cell and a bar for the rest; "bar-end" — a bar, then the last cell.
+  const barEnd = task.layout === "bar-end";
   const showCells = task.layout === "cells" || reveal;
   const closed = (i) => task.closed === "inner" && i > 0 && i < n - 1 && !reveal;
   const dropFor = (i) => {
@@ -97,7 +99,7 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
     if (task.kind === "letter" && phase === "play" && i === task.answer) cls.push("pa-cell--slot");
     if (filled[i]) cls.push("pa-cell--ok");
     if (wrong?.cell === `c${i}` || wrong?.cell === i) cls.push("pa-cell--bad");
-    if (wrong?.cell === "bar" && i > 0) cls.push("pa-cell--bad");
+    if (wrong?.cell === "bar" && (barEnd ? i < n - 1 : i > 0)) cls.push("pa-cell--bad");
     if (phase === "right" && i === soundIndex && task.kind !== "all") cls.push("pa-cell--ok");
     if (phase === "explain" && i === soundIndex) cls.push("pa-cell--here");
     if (reveal && task.kind !== "all" && i !== soundIndex) cls.push("pa-cell--dim");
@@ -139,7 +141,7 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
             ))
             : (
               <>
-                <div className={cellClass(0)} data-drop={dropFor(0)} onClick={() => task.kind === "chip" && placeChip(dropFor(0))}>{cellContent(0)}</div>
+                {!barEnd && <div className={cellClass(0)} data-drop={dropFor(0)} onClick={() => task.kind === "chip" && placeChip(dropFor(0))}>{cellContent(0)}</div>}
                 <div
                   className={`pa-cell pa-cell--bar${wrong?.cell === "bar" ? " pa-cell--bad" : ""}`}
                   data-drop={phase === "play" && task.kind === "chip" ? "bar" : undefined}
@@ -147,6 +149,7 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
                 >
                   {chipAt === "bar" && <span className="pa-chip" />}
                 </div>
+                {barEnd && <div className={cellClass(n - 1)} data-drop={dropFor(n - 1)} onClick={() => task.kind === "chip" && placeChip(dropFor(n - 1))}>{cellContent(n - 1)}</div>}
               </>
             )}
         </div>

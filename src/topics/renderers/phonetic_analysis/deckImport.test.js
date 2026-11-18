@@ -19,7 +19,17 @@ describe("phonetic_analysis deck as installed", () => {
     const record = await importTopic(db, bytes, "99.0.0");
     expect(record.modes.map((m) => m.id)).toEqual(manifest.modes.map((m) => m.id));
     for (const mode of record.modes) {
-      expect(generateTasks(mode, record.cards, 10, mode.params ?? {}).length, mode.id).toBeGreaterThan(0);
+      // every value of every setting (Сложность, Где искать, Направление, …)
+      const variants = [{}];
+      for (const [key, def] of Object.entries(mode.params ?? {})) {
+        if (def?.type !== "enum") continue;
+        for (const v of [...variants]) for (const value of def.values) variants.push({ ...v, [key]: value });
+      }
+      for (const params of variants) {
+        const tasks = generateTasks(mode, record.cards, 10, params);
+        expect(tasks.length, `${mode.id} ${JSON.stringify(params)}`).toBeGreaterThan(0);
+        expect(tasks.some((t) => t.type === "pa_need_more"), `${mode.id} ${JSON.stringify(params)}`).toBe(false);
+      }
     }
   });
 });

@@ -927,7 +927,7 @@
         "ru": "Буквы и звуки",
         "en": "Letters and Sounds"
       },
-      "version": "2.3.2",
+      "version": "2.4.0",
       "renderer": "phonetic_analysis",
       "sources": [
         "src/topics/renderers/phonetic_analysis",
@@ -937,9 +937,9 @@
       "builtin": false,
       "catalogEntry": {
         "id": "phonetic_analysis",
-        "version": "2.3.2",
-        "url": "./decks/phonetic_analysis_v2.3.2.zip",
-        "zipUrl": "phonetic_analysis_v2.3.2.zip",
+        "version": "2.4.0",
+        "url": "./decks/phonetic_analysis_v2.4.0.zip",
+        "zipUrl": "phonetic_analysis_v2.4.0.zip",
         "title": {
           "ru": "Буквы и звуки",
           "en": "Letters and Sounds"
@@ -951,7 +951,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-18T09:38:17+00:00"
+      "sourceUpdatedAt": "2026-11-18T10:05:16+00:00"
     },
     {
       "id": "place_value",

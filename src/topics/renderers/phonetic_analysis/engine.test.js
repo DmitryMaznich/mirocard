@@ -8,8 +8,8 @@ const cards = (letters) => letters.map((L) => ({ id: `letter_${L}`, conceptId: L
 const run = (type, letters = ALL, params = {}) => generateTasks({ type, words: WORDS }, cards(letters), 0, params);
 
 describe("scheme steps", () => {
-  it("step 1: half the words start with the sound, answer is cell 0 or the bar", () => {
-    const tasks = run("pa_sound_start", ALL, { taskCount: 10 });
+  it("«Где звук?» В начале: half the words start with the sound, answer is cell 0 or the bar", () => {
+    const tasks = run("pa_where", ALL, { taskCount: 10, position: "start" });
     expect(tasks).toHaveLength(10);
     for (const t of tasks) {
       const pos = t.word.targets.find((x) => x.letter === t.letter).position;
@@ -33,39 +33,50 @@ describe("scheme steps", () => {
     expect(new Set(t.cards)).toEqual(new Set(["М", "С"]));
   });
 
-  it("step 3 and 4: the answer is the first or last cell, where the letter really is", () => {
-    for (const t of [...run("pa_last_letter"), ...run("pa_start_end")]) {
-      expect([0, t.letters.length - 1]).toContain(t.answer);
+  it("«Где звук?» В конце: half the words end with the sound, answer is the last cell or the bar", () => {
+    const tasks = run("pa_where", ALL, { taskCount: 10, position: "end" });
+    expect(tasks).toHaveLength(10);
+    for (const t of tasks) {
+      expect(t.layout).toBe("bar-end");
+      const pos = t.word.targets.find((x) => x.letter === t.letter).position;
+      expect(t.answer).toBe(pos === "end" ? t.letters.length - 1 : "bar");
+    }
+    expect(tasks.filter((t) => t.answer !== "bar")).toHaveLength(5);
+  });
+
+  it("«Буквы в клетки» Последняя буква: the answer is the last cell, where the letter really is", () => {
+    for (const t of run("pa_all_letters", ALL, { scope: "last" })) {
+      expect(t.answer).toBe(t.letters.length - 1);
       expect(t.letters[t.answer]).toBe(t.letter);
     }
   });
 
-  it("step 5: the chip's cell holds the letter; about half are inside the word", () => {
-    const tasks = run("pa_where", ALL, { taskCount: 10 });
+  it("«Где звук?» Везде: the chip's cell holds the letter; about half are inside the word", () => {
+    const tasks = run("pa_where", ALL, { taskCount: 10, position: "all" });
     for (const t of tasks) expect(t.letters[t.answer]).toBe(t.letter);
     expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(4);
   });
 
   it("only learned letters are asked", () => {
     const learned = ["М", "С", "К"];
-    for (const type of ["pa_sound_start", "pa_last_letter", "pa_where"]) {
-      for (const t of run(type, learned)) {
+    for (const [type, params] of [["pa_where", { position: "start" }], ["pa_where", { position: "end" }], ["pa_where", { position: "all" }], ["pa_all_letters", { scope: "last" }]]) {
+      for (const t of run(type, learned, params)) {
         if (t.type === "pa_need_more") continue;
         expect(learned).toContain(t.letter);
       }
     }
   });
 
-  it("step 6: words made only of learned letters", () => {
+  it("«Буквы в клетки» Всё слово: words made only of learned letters", () => {
     const learned = ["К", "О", "Т", "С", "М", "Н"];
-    for (const t of run("pa_all_letters", learned)) {
+    for (const t of run("pa_all_letters", learned, { scope: "word" })) {
       expect(t.letters.every((c) => learned.includes(c))).toBe(true);
       for (const c of t.letters) expect(t.tray).toContain(c);
     }
   });
 
   it("asks for more letters instead of failing silently", () => {
-    expect(run("pa_last_letter", ["Б"])[0].type).toBe("pa_need_more");
+    expect(run("pa_all_letters", ["Б"], { scope: "last" })[0].type).toBe("pa_need_more");
   });
 });
 
