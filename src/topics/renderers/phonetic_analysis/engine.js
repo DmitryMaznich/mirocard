@@ -8,8 +8,10 @@
 import { shuffle } from "@/shared/utils/shuffle";
 import { pickDistractorLetters } from "./phoneticDistractors";
 
-const DEFAULT_COUNT = 10;
-const LOTTO_BOARDS = 3;
+// The lesson loops until the adult ends it; a long queue keeps the round from
+// coming back to the same words soon (the session cycles the queue).
+const DEFAULT_COUNT = 40;
+const LOTTO_BOARDS = 10;
 const LOTTO_SIZE = 9;
 // Words that name the same picture: never on one lotto board.
 const SAME_PICTURE = [["кот", "кошка"], ["мяч", "футбол"], ["шуба", "пальто"], ["чай", "чашка"]];
@@ -107,7 +109,7 @@ function whereTasks(words, learned, count) {
 function allLettersTasks(words, learned, count) {
   const pool = words.filter((w) => w.aligned && w.word.length <= 5 && [...w.word.toUpperCase()].every((c) => learned.includes(c)));
   if (!pool.length) return needMore("Нет коротких слов только из выбранных букв. Добавьте буквы в «Изменить».");
-  return cycle(pool, Math.min(count, 8)).map((w) => {
+  return cycle(pool, count).map((w) => {
     const letters = [...w.word.toUpperCase()];
     const extra = distractors(letters[0], learned, 4).filter((l) => !letters.includes(l)).slice(0, 2);
     return schemeTask(6, "all", w, letters[0], { layout: "cells", tray: shuffle([...letters, ...extra]) });
@@ -172,7 +174,7 @@ function findLetterTasks(learned, count, difficulty) {
 
 // «Найди все»: a 5×5 field, find every copy of the letter.
 function findAllTasks(learned, count) {
-  return cycle(learned, Math.min(count, 5)).map((L) => {
+  return cycle(learned, Math.min(count, 15)).map((L) => {
     const n = 4 + Math.floor(Math.random() * 2);
     const others = distractors(L, learned, 4);
     const field = shuffle([...Array(n).fill(L), ...Array.from({ length: 25 - n }, (_, i) => others[i % others.length])]);
@@ -183,7 +185,7 @@ function findAllTasks(learned, count) {
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const learned = lettersOf(cards);
   if (!learned.length) return [];
-  const count = Number(params.taskCount) || DEFAULT_COUNT;
+  const count = DEFAULT_COUNT; // a stored «Заданий в занятии» from deck ≤ 2.4 is ignored
   const words = (mode?.words ?? []).filter(hasPicture);
   const tasks = build(mode?.type, words, learned, count, params);
   const run = Math.random().toString(36).slice(2, 7);

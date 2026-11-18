@@ -9,14 +9,14 @@ const run = (type, letters = ALL, params = {}) => generateTasks({ type, words: W
 
 describe("scheme steps", () => {
   it("«Где звук?» В начале: half the words start with the sound, answer is cell 0 or the bar", () => {
-    const tasks = run("pa_where", ALL, { taskCount: 10, position: "start" });
-    expect(tasks).toHaveLength(10);
+    const tasks = run("pa_where", ALL, { position: "start" });
+    expect(tasks).toHaveLength(40);
     for (const t of tasks) {
       const pos = t.word.targets.find((x) => x.letter === t.letter).position;
       expect(t.answer).toBe(pos === "start" ? 0 : "bar");
       expect(t.word.aligned).toBe(true);
     }
-    expect(tasks.filter((t) => t.answer === 0)).toHaveLength(5);
+    expect(tasks.filter((t) => t.answer === 0)).toHaveLength(20);
   });
 
   it("lotto «Картинки на буквы»: 9 letter squares, 9 pictures, the squares are exactly the pictures' first letters", () => {
@@ -34,14 +34,14 @@ describe("scheme steps", () => {
   });
 
   it("«Где звук?» В конце: half the words end with the sound, answer is the last cell or the bar", () => {
-    const tasks = run("pa_where", ALL, { taskCount: 10, position: "end" });
-    expect(tasks).toHaveLength(10);
+    const tasks = run("pa_where", ALL, { position: "end" });
+    expect(tasks).toHaveLength(40);
     for (const t of tasks) {
       expect(t.layout).toBe("bar-end");
       const pos = t.word.targets.find((x) => x.letter === t.letter).position;
       expect(t.answer).toBe(pos === "end" ? t.letters.length - 1 : "bar");
     }
-    expect(tasks.filter((t) => t.answer !== "bar")).toHaveLength(5);
+    expect(tasks.filter((t) => t.answer !== "bar")).toHaveLength(20);
   });
 
   it("«Буквы в клетки» Последняя буква: the answer is the last cell, where the letter really is", () => {
@@ -52,9 +52,9 @@ describe("scheme steps", () => {
   });
 
   it("«Где звук?» Везде: the chip's cell holds the letter; about half are inside the word", () => {
-    const tasks = run("pa_where", ALL, { taskCount: 10, position: "all" });
+    const tasks = run("pa_where", ALL, { position: "all" });
     for (const t of tasks) expect(t.letters[t.answer]).toBe(t.letter);
-    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(4);
+    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(16);
   });
 
   it("only learned letters are asked", () => {

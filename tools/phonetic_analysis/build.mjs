@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "2.4.0";
+const VERSION = "2.5.0";
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.map((w) => {
   const image = `media/${w.id}.webp`;
@@ -29,16 +29,11 @@ const cards = GROUPS.flatMap((g) => g.letters.split(" ").map((L) => ({
   id: `letter_${L}`, conceptId: L, letter: L, label: L, group: g.id, primary: true,
 })));
 
-const taskCount = {
-  type: "enum",
-  label: { ru: "Заданий в занятии" },
-  values: [6, 10, 15],
-  labels: { ru: { 6: "6", 10: "10", 15: "15" } },
-  default: 10,
-};
 const mode = (id, title, methodology, extra = {}) => ({
-  id, type: id, evaluation: "instant", finite: true, paramsScope: "mode",
-  ui: { title }, methodology, params: { taskCount }, ...extra,
+  // No `finite` and no «Заданий в занятии»: the lesson goes round until the adult
+  // ends it, as in the other topics (owner, 2026-11-18).
+  id, type: id, evaluation: "instant", paramsScope: "mode",
+  ui: { title }, methodology, params: {}, ...extra,
 });
 const withWords = { words };
 
@@ -73,16 +68,16 @@ const topic = {
       text: "Сверху буква. «Легко» — найти среди 3 непохожих букв. «Средне» — среди 6, есть похожие по звучанию и написанию. «Трудно» — поле 5×5, найти все такие буквы; кружки сверху показывают, сколько осталось. Неверная буква вздрагивает и бледнеет, верная зеленеет.",
       goal: "Узнавать пройденные буквы и различать похожие.",
       duration: "2–3 минуты",
-    }, { params: { taskCount, difficulty: { type: "enum", label: { ru: "Сложность" }, values: ["easy", "medium", "hard"], labels: { ru: { easy: "Легко", medium: "Средне", hard: "Трудно" } }, default: "easy" } } }),
+    }, { params: { difficulty: { type: "enum", label: { ru: "Сложность" }, values: ["easy", "medium", "hard"], labels: { ru: { easy: "Легко", medium: "Средне", hard: "Трудно" } }, default: "easy" } } }),
     mode("pa_where", "2. Где звук?", {
       summary: "Положить фишку туда, где в слове звук: в начале, в конце или в любом месте.",
       text: "Слово звучит само (нажать на картинку — ещё раз). «В начале»: под картинкой клетка и полоса — фишка в клетку, если слово начинается с этого звука, или в полосу, если звук дальше. «В конце»: полоса и клетка — то же для конца слова. «Везде»: клетка на каждый звук, фишка в начало, середину или конец; половина слов — со звуком внутри. После ответа в клетках появляется слово: видно, где эта буква. Ошибка — палец показывает, где звук, ребёнок сам переставляет фишку.",
       goal: "Слышать, где в слове звук: начало, конец, середина.",
       duration: "2–3 минуты",
-    }, { ...withWords, params: { taskCount, position: { type: "enum", label: { ru: "Где искать" }, values: ["start", "end", "all"], labels: { ru: { start: "В начале", end: "В конце", all: "Везде" } }, default: "start" } } }),
+    }, { ...withWords, params: { position: { type: "enum", label: { ru: "Где искать" }, values: ["start", "end", "all"], labels: { ru: { start: "В начале", end: "В конце", all: "Везде" } }, default: "start" } } }),
     mode("pa_lotto", "3. Лото", {
       summary: "Буквы на картинки или картинки на буквы — направление выбирается перед занятием.",
-      text: "Как настольное лото: поле 3×3 закрывается целиком. «Буквы на картинки»: 9 картинок на поле и по букве на каждую — букву кладут на картинку, которая с неё начинается. «Картинки на буквы»: 9 букв на поле и 9 картинок — картинку кладут на её первую букву. Если пройдено мало букв, буква повторяется: любая «М» подходит к любой картинке на М. Нажать на картинку — услышать слово. Три поля за занятие.",
+      text: "Как настольное лото: поле 3×3 закрывается целиком. «Буквы на картинки»: 9 картинок на поле и по букве на каждую — букву кладут на картинку, которая с неё начинается. «Картинки на буквы»: 9 букв на поле и 9 картинок — картинку кладут на её первую букву. Если пройдено мало букв, буква повторяется: любая «М» подходит к любой картинке на М. Нажать на картинку — услышать слово. Поле за полем, пока взрослый не закончит занятие.",
       goal: "Сравнивать первые звуки слов и находить слово на заданную букву.",
       duration: "3 минуты",
     }, { ...withWords, params: { direction: { type: "enum", label: { ru: "Направление" }, values: ["letters", "pictures"], labels: { ru: { letters: "Буквы на картинки", pictures: "Картинки на буквы" } }, default: "letters" } } }),
@@ -91,7 +86,7 @@ const topic = {
       text: "«Последняя буква»: клетка на каждый звук, внутренние закрыты — перетащить последнюю букву в последнюю клетку; только слова, где последний звук совпадает с буквой (без «дуб» — там слышится [п]). «Всё слово»: короткие слова только из пройденных букв, плюс 1–2 лишние буквы; можно нажимать на буквы по порядку или перетаскивать в нужную клетку.",
       goal: "Слышать звук и знать его букву — от последнего звука к полному анализу слова.",
       duration: "3 минуты",
-    }, { ...withWords, params: { taskCount, scope: { type: "enum", label: { ru: "Что вставлять" }, values: ["last", "word"], labels: { ru: { last: "Последняя буква", word: "Всё слово" } }, default: "last" } } }),
+    }, { ...withWords, params: { scope: { type: "enum", label: { ru: "Что вставлять" }, values: ["last", "word"], labels: { ru: { last: "Последняя буква", word: "Всё слово" } }, default: "last" } } }),
   ],
 };
 
