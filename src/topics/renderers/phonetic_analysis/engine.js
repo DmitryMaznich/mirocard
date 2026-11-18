@@ -14,7 +14,7 @@ const DEFAULT_COUNT = 40;
 const LOTTO_BOARDS = 10;
 const LOTTO_SIZE = 9;
 // Words that name the same picture: never on one lotto board.
-const SAME_PICTURE = [["кот", "кошка"], ["мяч", "футбол"], ["шуба", "пальто"], ["чай", "чашка"]];
+const SAME_PICTURE = [["кот", "кошка"], ["машина", "такси"], ["мяч", "футбол"], ["шуба", "пальто"], ["чай", "чашка"]];
 
 const needMore = (text) => [{ type: "pa_need_more", text }];
 const hasPicture = (w) => Boolean(w.image || w.emoji);

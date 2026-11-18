@@ -27,7 +27,8 @@ const FORCE = args.includes("--force");
 const STYLE = "realistic photograph for a children's speech-therapy picture card, one single subject centered and "
   + "filling about two thirds of a square frame, plain very light neutral background, soft even daylight, sharp focus, "
   + "typical everyday look a young child in Russia would recognise at once, "
-  + "no text, no letters, no logos, no labels, no other objects";
+  + "no text, no letters, no logos, no labels, no other objects, "
+  + "the photo fills the whole frame edge to edge: no border, no frame, no picture inside the picture, not a photo of a photo or a print";
 const VARIANT = ["", "a different typical example, different colour and angle than usual"];
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words
