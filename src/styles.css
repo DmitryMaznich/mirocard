@@ -14051,7 +14051,10 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .rp-person, .rp-people-count, .rp-row-note, .rp-row-value { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
-.param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+/* margin-left: auto keeps the buttons at the right beside a short label; once
+   they wrap under the label they start at the left, not hang off the right
+   edge (short stories «Ступень» / «Вопросы»). */
+.param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-start; margin-left: auto; }
 .param-enum-group--col { flex-direction: column; align-items: flex-end; }
 /* Ordered steps (Монеты → Схема → Таблица): arrows between the buttons. */
 .param-enum-group--ordered { align-items: center; gap: 4px; }
@@ -14067,7 +14070,7 @@ kbd {
   gap: 8px;
 }
 .param-row--block .param-label { flex: none; }
-.param-row--block .param-enum-group { justify-content: flex-start; }
+.param-row--block .param-enum-group { justify-content: flex-start; margin-left: 0; }
 .param-hint {
   font-size: 0.78rem;
   color: #7a9e9a;
