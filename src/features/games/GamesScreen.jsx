@@ -5,6 +5,7 @@ import { normalizeRewardVideoIds } from "@/shared/utils/rewardVideoPicker";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
+import { genitivePhrase } from "@/features/importantDates/importantDates";
 import { FINISH, TUG_FINISH, comparisonAnswer, createRace, createTugOfWar, raceReducer, tugPullDirection } from "./raceEngine";
 import { DiceFace, RaceCar } from "./RaceArt";
 import RollingDice from "./RollingDice";
@@ -27,6 +28,14 @@ function tugRoundStatus(race, names) {
   }
   const player = direction < 0 ? 0 : 1;
   return `${names[player]} тянет на ${race.dice[player]}`;
+}
+
+function tugPlayerLabel(name, childSex) {
+  const lower = name.toLowerCase();
+  if (lower === "взрослый") return "У взрослого";
+  if (/^(папа|мама|дедушка|бабушка|игрок)$/.test(lower)) return `У ${genitivePhrase(lower)}`;
+  const simpleName = /^[А-ЯЁ][а-яё]+$/.test(name) && !/[ь]$/.test(name);
+  return simpleName && (/[ая]$/.test(name) || childSex === "m") ? `У ${genitivePhrase(name)}` : name;
 }
 
 function RaceLane({ name, player, position }) {
@@ -75,7 +84,7 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
   const [celebrated, setCelebrated] = useState(false);
   const childName = student.name || "Игрок";
   const adult = adultName.trim() || "Взрослый";
-  const canCompare = comparisonAnswer(race.dice) !== null;
+  const canCompare = isTug ? race.phase === "comparing" : race.phase === "input" && comparisonAnswer(race.dice) !== null;
   const hasVideo = normalizeRewardVideoIds(rewardVideos).length > 0;
   const earnedVideo = race.result === "child" || race.result === "tie";
   const showResult = race.phase === "finished" && (!(isTower || isWater) || celebrated);
@@ -99,10 +108,10 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
     if (paused) return undefined;
     const action = race.phase === "settling" ? "settled" : race.phase === "arriving" ? "arrived" : null;
     if (!action) return undefined;
-    const duration = race.phase === "settling" ? 360 : isTug && race.result ? 600 : 320;
+    const duration = race.phase === "settling" ? 360 : 320;
     const timer = setTimeout(() => dispatch({ type: action }), duration);
     return () => clearTimeout(timer);
-  }, [isTug, race.phase, race.result, paused]);
+  }, [race.phase, paused]);
 
   useEffect(() => {
     setBackInterceptor(() => {
@@ -116,8 +125,16 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
   }, [rewardOpen, paused, started, race.phase, onBack]);
 
   const rolling = race.phase === "rolling" || race.phase === "settling";
-  const question = isTug ? "Кто перетянет канат в этом раунде?" : isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
-  const status = race.phase === "between" ? "" : race.phase === "moving" || race.phase === "arriving" ? isTug ? tugRoundStatus(race, [childName, adult]) : isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
+  const question = isTug ? "У кого больше очков на табло?" : isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
+  const moving = race.phase === "moving" || race.phase === "arriving";
+  const status = moving
+    ? isTug ? tugRoundStatus(race, [childName, adult]) : isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!"
+    : isTug
+      ? race.phase === "input" ? "Отметьте, что выпало на кубиках" : question
+      : race.mistake ? "Посмотри на кубики ещё раз" : question;
+  const answers = isTug
+    ? [["child", tugPlayerLabel(childName, student.sex)], ["adult", tugPlayerLabel(adult)], ["equal", "Поровну"]]
+    : [["child", childName], ["adult", adult], ["equal", "Одинаково"]];
 
   return <main className={`dice-race${isTower ? " dice-race--tower" : ""}${isWater ? " dice-race--water" : ""}${isTug ? " dice-race--tug" : ""}${isTower || isWater ? " dice-race--compact" : ""}`}>
     <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
@@ -133,10 +150,15 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
       {[childName, adult].map((name, i) => <PlayerCard key={i} name={name} player={i === 0 ? "child" : "adult"} value={race.dice[i]} disabled={!started || race.phase !== "input" || paused} onDice={value => dispatch({ type: "dice", player: i, value })} />)}
     </div>
     <footer className="race-footer">
-      {race.phase !== "between" && <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{status}</strong></div>}
-      {race.phase === "between" ? <button className="games-primary race-next-throw" disabled={paused} onClick={() => dispatch({type:"nextThrow"})}>Бросить кубики</button> : <div className="race-options" role="group" aria-label={question}>
-        {[["child", childName], ["adult", adult], ["equal", "Одинаково"]].map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || race.phase !== "input" || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
+      {race.phase !== "between" && <div className="race-prompt">
+        <strong id="race-question" role="status" aria-live="polite">{status}</strong>
+        {isTug && race.phase === "comparing" && race.mistake && <span role="status">Посмотри на оба числа на табло.</span>}
       </div>}
+      {race.phase === "between"
+        ? <button className="games-primary race-next-throw" disabled={paused} onClick={() => dispatch({type:"nextThrow"})}>Бросить кубики</button>
+        : (!isTug || canCompare) && <div className="race-options" role="group" aria-label={question}>
+          {answers.map(([answer, label]) => <button key={answer} className={`race-option${race.answer === answer ? race.mistake ? " race-option--wrong" : " race-option--correct" : ""}`} disabled={!started || !canCompare || paused} aria-pressed={race.answer === answer} onClick={() => dispatch({ type: "compare", answer })}>{label}</button>)}
+        </div>}
     </footer>
     </div>
 
@@ -144,7 +166,7 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
 
     {!started && <div className="games-overlay"><section className={`games-dialog${isWater ? " games-dialog--water" : ""}`} role="dialog" aria-modal="true" aria-labelledby="race-start-title">
       <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">{isTug ? "Кто перетянет канат?" : isWater ? "У кого вода первой польётся через край?" : isTower ? "Чья башня дорастёт до облаков?" : "Кто первым до финиша?"}</h2>
-      <p>{isTug ? "Бросьте по одному настоящему кубику и сравните числа. Первым тянет игрок с меньшим числом, затем другой тянет в обратную сторону. Каждый тянет на столько делений, сколько выпало, и получает очко за каждое деление. При равных бросках канат остаётся на месте." : isWater ? "Бросайте настоящие кубики и сравнивайте числа. Одна точка на кубике — одна порция воды. На отметке 20 стакан полон. Выигрывает тот, у кого первым вода польётся через край." : isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
+      <p>{isTug ? "Бросьте по одному настоящему кубику и отметьте оба числа. Канат потянут сначала в одну сторону, потом в другую, а на табло прибавятся очки. Когда канат остановится, сравните общий счёт. При равных бросках канат остаётся на месте." : isWater ? "Бросайте настоящие кубики и сравнивайте числа. Одна точка на кубике — одна порция воды. На отметке 20 стакан полон. Выигрывает тот, у кого первым вода польётся через край." : isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
       <label className="race-adult-name">Второй игрок<input maxLength={24} value={adultName} onChange={e => setAdultName(e.target.value)} /></label>
       {isWater && <WaterCharacters values={characters} onChange={setCharacters} />}
       <p className="games-prize-rule">{isTug ? `В начале под флажком стоит ноль. Если к концу раунда отметка ${TUG_FINISH} дошла до флажка или прошла мимо него, побеждает игрок, который перетянул канат на свою сторону.${hasVideo ? " За победу ребёнка — любимое видео." : ""}` : hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isWater ? "Вода перелилась одновременно у обоих — ничья." : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
