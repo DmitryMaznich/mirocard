@@ -147,6 +147,9 @@
 
 /* --- lotto --- */
 .pa-lotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: min(100%, 460px); }
+/* «Какая картинка на эту букву?»: three big pictures in a row */
+.pa-lotto--three { width: min(100%, 720px); gap: clamp(10px, 2.5vw, 20px); }
+.pa-lotto--three .pa-lotto__pic { border-radius: 20px; }
 .pa-lotto__pic { width: 100%; aspect-ratio: 1; border-radius: 16px; }
 .pa-lotto__pic .pa-pic__emoji { font-size: clamp(44px, 12vw, 72px); }
 .pa-lotto__pic .pa-wave { width: 16px; height: 16px; right: 5px; bottom: 5px; }

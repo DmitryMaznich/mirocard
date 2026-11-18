@@ -73,13 +73,29 @@ function soundStartTasks(words, learned, count) {
   return chosen.map(({ w, L, start }) => schemeTask(1, "chip", w, L, { layout: "bar", answer: start ? 0 : "bar" }));
 }
 
-// Step 2 «С какой буквы?»: the letter is dragged into the first cell.
-function firstLetterTasks(words, learned, count) {
-  const pool = words.filter((w) => learned.includes(w.firstLetter));
-  if (!pool.length) return needMore("Нет слов на выбранные буквы. Добавьте буквы в «Изменить».");
-  return cycle(pool, count).map((w) => schemeTask(2, "letter", w, w.firstLetter, {
-    layout: "bar", answer: 0, tray: shuffle([w.firstLetter, ...distractors(w.firstLetter, learned, 2)]),
-  }));
+// «Какая картинка на эту букву?»: one letter card and 3 pictures, the card
+// goes onto the picture whose word starts with it (owner, 2026-11-18 — the old
+// «drag the first letter into the only slot» was a choice of 1 of 3 letters,
+// not analysis). Drawn by LottoTask. A tap on a picture says its word; one of
+// the other two starts with a letter easily confused with this one (б/п, с/ш).
+function letterPicturesTasks(words, learned, count) {
+  const byLetter = new Map();
+  for (const w of words) byLetter.set(w.firstLetter, [...(byLetter.get(w.firstLetter) ?? []), w]);
+  const targets = learned.filter((L) => byLetter.has(L));
+  if (!targets.length) return needMore("Нет слов на выбранные буквы. Добавьте буквы в «Изменить».");
+  const clash = (a, b) => SAME_PICTURE.some((g) => g.includes(a.word) && g.includes(b.word));
+  return cycle(targets, count).map((L) => {
+    const right = pick(byLetter.get(L));
+    const board = [right];
+    const close = pickDistractorLetters(L.toLowerCase(), 3).map((l) => l.toUpperCase());
+    const others = [...shuffle(close), ...shuffle([...byLetter.keys()])].filter((l, i, a) => l !== L && byLetter.has(l) && a.indexOf(l) === i);
+    for (const l of others) {
+      if (board.length === 3) break;
+      const w = shuffle(byLetter.get(l)).find((c) => !board.some((b) => b.firstLetter === c.firstLetter || clash(b, c)));
+      if (w) board.push(w);
+    }
+    return { type: "pa_lotto", size: 3, conceptId: L, letter: L, board: shuffle(board), pairs: [{ letter: L, wordId: right.id }] };
+  });
 }
 
 // Step 3 «Какой буквой кончается?»: the last cell only.
@@ -158,8 +174,12 @@ function lottoTasks(words, learned) {
   return boards.length ? boards : needMore("Для лото нужно хотя бы 2 буквы. Добавьте буквы в «Изменить».");
 }
 
-// «Найди букву»: the letter is shown and voiced, find it among 3 or 6.
-function findLetterTasks(learned, count, hard) {
+// «Найди букву»: the letter is shown, find it — «Легко» among 3 unlike letters,
+// «Средне» among 6 with lookalikes, «Трудно» every copy on a 5×5 field (the
+// former mode «Найди все», merged in as a level by the owner, 2026-11-18).
+function findLetterTasks(learned, count, difficulty) {
+  if (difficulty === "hard") return findAllTasks(learned, count);
+  const hard = difficulty === "medium";
   return cycle(learned, count).map((L) => {
     const options = shuffle([L, ...(hard
       ? distractors(L, learned, 5)
@@ -191,13 +211,13 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
 function build(type, words, learned, count, params) {
   switch (type) {
     case "pa_sound_start": return soundStartTasks(words, learned, count);
-    case "pa_first_letter": return firstLetterTasks(words, learned, count);
+    case "pa_first_letter": return letterPicturesTasks(words, learned, count);
     case "pa_last_letter": return lastLetterTasks(words, learned, count);
     case "pa_start_end": return startEndTasks(words, learned, count);
     case "pa_where": return whereTasks(words, learned, count);
     case "pa_all_letters": return allLettersTasks(words, learned, count);
     case "pa_lotto": return lottoTasks(words, learned);
-    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty === "hard");
+    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty);
     case "pa_find_all": return findAllTasks(learned, count);
     default: return [];
   }

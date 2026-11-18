@@ -19,11 +19,13 @@ describe("scheme steps", () => {
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(5);
   });
 
-  it("step 2: the tray has the first letter and two others, all different", () => {
+  it("picture for the letter: 3 pictures, exactly one starts with the letter", () => {
     for (const t of run("pa_first_letter")) {
-      expect(t.letter).toBe(t.word.word[0].toUpperCase());
-      expect(t.tray).toContain(t.letter);
-      expect(new Set(t.tray).size).toBe(3);
+      expect(t.type).toBe("pa_lotto");
+      expect(t.board).toHaveLength(3);
+      expect(t.board.filter((w) => w.firstLetter === t.letter)).toHaveLength(1);
+      expect(new Set(t.board.map((w) => w.firstLetter)).size).toBe(3);
+      expect(t.pairs).toEqual([{ letter: t.letter, wordId: t.board.find((w) => w.firstLetter === t.letter).id }]);
     }
   });
 
@@ -78,15 +80,17 @@ describe("lotto", () => {
 });
 
 describe("letter games", () => {
-  it("find letter: target among options, hard has 6", () => {
-    const t = run("pa_find_letter", ALL, { difficulty: "hard" })[0];
+  it("find letter: easy has 3 options, medium 6", () => {
+    expect(run("pa_find_letter", ALL, { difficulty: "easy" })[0].options).toHaveLength(3);
+    const t = run("pa_find_letter", ALL, { difficulty: "medium" })[0];
     expect(t.options).toContain(t.letter);
     expect(t.options).toHaveLength(6);
     expect(new Set(t.options).size).toBe(6);
   });
 
-  it("find all: the field has exactly `total` copies", () => {
-    for (const t of run("pa_find_all")) {
+  it("find letter «Трудно» is the 5×5 field with exactly `total` copies", () => {
+    for (const t of run("pa_find_letter", ALL, { difficulty: "hard" })) {
+      expect(t.type).toBe("pa_find_all");
       expect(t.field).toHaveLength(25);
       expect(t.field.filter((c) => c === t.letter)).toHaveLength(t.total);
     }
