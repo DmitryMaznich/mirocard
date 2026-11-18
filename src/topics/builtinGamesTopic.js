@@ -4,7 +4,7 @@ export function buildGamesTopicRecord() {
     meta: {
       id: "games",
       renderer: "games",
-      version: "1.4.2",
+      version: "1.4.3",
       title: { ru: "Игры", sl: "Igre" },
       avatar: "media/avatar_games.svg",
       builtin: true,

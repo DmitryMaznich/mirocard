@@ -14,8 +14,8 @@ function createAudio(src) {
   return audio;
 }
 
-export function useAudio() {
-  const [soundEnabled, setSoundEnabled] = useState(true);
+export function useAudio(initiallyEnabled = true) {
+  const [soundEnabled, setSoundEnabled] = useState(initiallyEnabled);
   const [isTopicAudioPlaying, setIsTopicAudioPlaying] = useState(false);
   const currentRef = useRef(null);
   const currentCleanupRef = useRef(null);
@@ -33,8 +33,8 @@ export function useAudio() {
     return feedbackRef.current[kind];
   }, []);
 
-  const unlockFeedbackAudio = useCallback(() => {
-    if (unlockedRef.current || !soundEnabled) return;
+  const unlockFeedbackAudio = useCallback((enableNow) => {
+    if (unlockedRef.current || (!soundEnabled && enableNow !== true)) return;
     unlockedRef.current = true;
 
     for (const kind of Object.keys(FEEDBACK_SOURCES)) {
@@ -44,21 +44,23 @@ export function useAudio() {
       audio.currentTime = 0;
       audio.play()
         .then(() => {
+          if (currentRef.current === audio) return;
           audio.pause();
           audio.currentTime = 0;
           audio.muted = previousMuted;
         })
         .catch(() => {
-          audio.muted = previousMuted;
+          if (currentRef.current !== audio) audio.muted = previousMuted;
           unlockedRef.current = false;
         });
     }
   }, [getFeedbackAudio, soundEnabled]);
 
   useEffect(() => {
+    if (!soundEnabled) return;
     getFeedbackAudio("correct");
     getFeedbackAudio("incorrect");
-  }, [getFeedbackAudio]);
+  }, [getFeedbackAudio, soundEnabled]);
 
   useEffect(() => {
     if (!soundEnabled) return undefined;
@@ -174,15 +176,13 @@ export function useAudio() {
   );
 
   const toggleSound = useCallback(() => {
-    setSoundEnabled((v) => {
-      const next = !v;
-      if (next) {
-        unlockedRef.current = false;
-        window.setTimeout(unlockFeedbackAudio, 0);
-      }
-      return next;
-    });
-  }, [unlockFeedbackAudio]);
+    if (soundEnabled) stop();
+    else {
+      unlockedRef.current = false;
+      unlockFeedbackAudio(true);
+    }
+    setSoundEnabled(!soundEnabled);
+  }, [soundEnabled, stop, unlockFeedbackAudio]);
 
   const isAudioPlaying = useCallback(() => {
     const a = currentRef.current;
