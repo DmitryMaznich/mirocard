@@ -360,7 +360,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-18T11:18:22+01:00"
+      "sourceUpdatedAt": "2026-11-18T15:26:15+00:00"
     },
     {
       "id": "emotions_v2",
@@ -930,10 +930,22 @@
       "version": "2.7.2",
       "renderer": "phonetic_analysis",
       "sources": [
+        "public/decks/phonetic_analysis_v2.7.2.zip",
         "src/topics/renderers/phonetic_analysis",
         "tools/phonetic_analysis/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "2.7.2",
+        "url": "./decks/phonetic_analysis_v2.7.2.zip",
+        "title": {
+          "ru": "Буквы и звуки",
+          "en": "Letters and Sounds"
+        },
+        "description": "Повторение пройденных букв и звуков. Узнать букву, найти её среди других; услышать звук в слове и показать, где он: в начале, в конце, в середине. Под картинкой — звуковая схема: одна клетка = один звук.",
+        "renderer": "phonetic_analysis",
+        "modes": 4,
+        "cards": 31
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "phonetic_analysis",
@@ -951,7 +963,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-18T14:28:31+00:00"
+      "sourceUpdatedAt": "2026-11-18T16:20:39+00:00"
     },
     {
       "id": "place_value",
