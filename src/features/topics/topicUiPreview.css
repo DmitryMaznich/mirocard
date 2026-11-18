@@ -16,6 +16,7 @@
 .topic-ui-continue-label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5b8a6c; margin-bottom: 12px; }
 .topic-ui-continue-title { margin: 0 0 8px; font-size: 21px; line-height: 1.2; color: #24372b; }
 .topic-ui-continue-help { margin: 0 0 14px; font-size: 15px; line-height: 1.45; color: #3f5a49; }
+.topic-ui-continue-help--last { margin-bottom: 0; }
 .topic-ui-continue-topic { display: flex; align-items: center; gap: 14px; }
 .topic-ui-continue-topic .topic-cover { width: 72px; height: 72px; border-radius: 18px; flex-shrink: 0; object-fit: contain; }
 .topic-ui-continue-topic > div { min-width: 0; }

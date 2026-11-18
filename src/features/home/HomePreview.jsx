@@ -14,7 +14,10 @@ import { isPickableMode } from "@/shared/utils/topicUtils";
 
 // Home in the topic UI preview: «Продолжить» (the student's latest topic and
 // exercise, one tap to start) above «Мои темы». No progress, no score — only
-// when the last lesson was (owner's decision, 2026-11-09).
+// when the last lesson was (owner's decision, 2026-11-09). Before the first
+// lesson the card is only a hint, no button: «Добавить тему» is already the
+// last tile of the grid, and the catalog it opens does not list the topics
+// shown below (owner, 2026-11-18).
 export default function HomePreview() {
   const { t, language } = useUiTranslation();
   const sessions = useAppStore((s) => s.sessions);
@@ -41,8 +44,7 @@ export default function HomePreview() {
     {last ? <ContinueCard last={last} t={t} language={language} onStart={start} onChange={change} />
       : <section className="topic-ui-continue">
         <div className="topic-ui-continue-label">{t("preview.firstLesson")}</div>
-        <p className="topic-ui-continue-help">{t("preview.firstLessonHelp")}</p>
-        <button className="topic-ui-start" onClick={() => setScreen("topics")}>+ {t("preview.addTopic")}</button>
+        <p className="topic-ui-continue-help topic-ui-continue-help--last">{t("preview.firstLessonHelp")}</p>
       </section>}
     <TopicLibraryScreen embedded />
   </div>;
