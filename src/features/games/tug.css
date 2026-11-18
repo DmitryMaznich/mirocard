@@ -1,0 +1,122 @@
+.tug-scene {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  flex: 1.2;
+  place-items: center;
+  min-width: 0;
+  min-height: 144px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #e3f0e8;
+}
+
+.tug-scene .tug-picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.tug-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
+  width: min(100% - 16px, 24rem);
+  margin: 8px auto 0;
+  padding: 6px 8px 8px;
+  border: 1px solid #ded7c8;
+  border-radius: 18px;
+  background: #fffaf0;
+  box-shadow: 0 3px 0 #56615318;
+}
+
+.tug-scoreboard-title {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #536559;
+  font-size: clamp(12px, 1.25vw, 15px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.tug-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border: 1px solid var(--player-border);
+  border-radius: 11px;
+  background: var(--player-bg);
+}
+
+.tug-score[data-pulling="true"] {
+  box-shadow: inset 0 0 0 1px var(--player-color);
+}
+
+.tug-score-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(12px, 1.4vw, 17px);
+  font-weight: 800;
+}
+
+.tug-score-value {
+  font-size: clamp(22px, 2.5vw, 32px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.games-tile__art--tug {
+  background: #e3f0e8;
+}
+
+.games-tile__art--tug .tug-picture {
+  width: 100%;
+  height: 100%;
+}
+
+.tug-mark {
+  fill: #3b4c41;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.tug-win {
+  animation: tug-gate-win 460ms ease-out both;
+}
+
+@keyframes tug-gate-win {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (orientation: landscape) {
+  .dice-race .tug-scene {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 530px) {
+  .tug-scoreboard { margin-top: 4px; padding-block: 4px; }
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  .dice-race--tug .race-header h1 {
+    flex: 1;
+    min-width: 0;
+    font-size: clamp(17px, 4.6vw, 25px);
+    overflow-wrap: anywhere;
+  }
+  .dice-race--tug .race-round { white-space: nowrap; }
+  .tug-scene { display: block; flex: none; min-height: 0; }
+  .tug-scene .tug-picture { height: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tug-win { animation: none; }
+}

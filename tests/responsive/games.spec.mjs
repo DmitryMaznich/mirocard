@@ -172,7 +172,7 @@ test("reduced motion keeps the same stop and manual input flow",async ({page}) =
   await expect(page.getByRole("button",{name:"Мирон: выпало 1",exact:true})).toBeEnabled();
 });
 
-for(const game of ["Гонки","Дом до облаков","Наливаем до краёв"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
+for(const game of ["Гонки","Дом до облаков","Наливаем до краёв","Перетягивание каната"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);
   await page.goto("/tests/responsive/games.html");
   await page.getByRole("button",{name:new RegExp(game)}).click();
@@ -180,4 +180,46 @@ for(const game of ["Гонки","Дом до облаков","Наливаем �
   await expect(page.locator(".race-cube-face")).toHaveCount(12);
   const sizes=await page.locator(".race-cube-face").evaluateAll(nodes=>nodes.map(face=>({face:parseFloat(getComputedStyle(face).width),drawing:parseFloat(getComputedStyle(face.firstElementChild).width),h:parseFloat(getComputedStyle(face.firstElementChild).height)})));
   for(const size of sizes){expect(size.drawing).toBeCloseTo(size.face,1);expect(size.h).toBeCloseTo(size.face,1);}
+});
+
+test("tug of war opens from Games and counts pulls towards either side", async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await page.goto("/tests/responsive/games.html");
+  await page.getByRole("button",{name:/Перетягивание каната/}).click();
+  await page.getByRole("button",{name:"На старт!",exact:true}).click();
+  await enterNumbers(page);
+
+  const scene = page.locator(".tug-scene");
+  const flag = scene.locator(".tug-center-flag");
+  const flagStart = await flag.getAttribute("transform");
+  const scores = scene.getByRole("group",{name:"Очки за рывки"});
+  const answers = page.getByRole("group",{name:"Кто перетянет канат в этом раунде?"});
+  const play = async (child, adult, answer) => {
+    await page.getByRole("button",{name:`Мирон: выпало ${child}`,exact:true}).click();
+    await page.getByRole("button",{name:`Папа: выпало ${adult}`,exact:true}).click();
+    await answers.getByRole("button",{name:answer,exact:true}).click();
+  };
+
+  for (const [child, adult, answer, position, totals] of [
+    [6, 1, "Мирон", "-5", ["5","0"]],
+    [1, 6, "Папа", "0", ["5","5"]],
+    [4, 4, "Одинаково", "0", ["5","5"]],
+    [1, 6, "Папа", "5", ["5","10"]],
+    [1, 6, "Папа", "10", ["5","15"]],
+  ]) {
+    await play(child, adult, answer);
+    await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+    await expect(scene).toHaveAttribute("data-rope-position", position);
+    await expect(flag).toHaveAttribute("transform", flagStart);
+    await expect(scores.locator(".tug-score-value")).toHaveText(totals);
+    await enterNumbers(page);
+  }
+
+  await play(1, 6, "Папа");
+  const result = page.getByRole("dialog",{name:"Папа — победитель!"});
+  await expect(result).toBeVisible();
+  await expect(result.locator(".tug-score-value")).toHaveText(["5","20"]);
+  await result.getByRole("button",{name:"К играм",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"Игры",exact:true})).toBeVisible();
 });
