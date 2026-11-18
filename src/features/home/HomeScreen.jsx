@@ -1,5 +1,5 @@
 import { useTopicUiPreview } from "@/core/topicUiPreview";
-import HomePreview from "./HomePreview";
+import HomePreview, { HomePreviewNoStudent } from "./HomePreview";
 import { setupText } from "@/shared/i18n/setupText.js";
 import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
@@ -66,22 +66,25 @@ function getTimeGreeting(date = new Date()) {
 
 function HomeHeader({
   student, buildInfo, hasUpdate, refreshingAll, refreshFailed, versionTitle,
-  onRefresh, onMenu, onAvatarTap,
+  onRefresh, onMenu, onAvatarTap, preview = false,
 }) {
   const { t } = useUiTranslation();
+  // The new interface greets a brand-new account plainly: no «—» avatar and
+  // no «Ученик не выбран» — the card below already invites to add one.
+  const bare = preview && !student;
   return (
     <header className="home-header">
       {/* Secret 5-tap shortcut into the "streak_tracker" test topic — a dev/QA
           convenience, not a real feature, so it stays visually inert. */}
-      <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
+      {!bare && <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
         {student
           ? (student.photo ? <AuthenticatedImage src={student.photo} alt="" /> : getInitials(student.name))
           : '—'}
-      </div>
+      </div>}
       <div className="home-header__copy">
-        <span className="home-header__eyebrow">{getTimeGreeting()}</span>
+        {!bare && <span className="home-header__eyebrow">{getTimeGreeting()}</span>}
         <span className="home-header__student-name">
-          {student ? student.name : t("home.noStudent")}
+          {bare ? getTimeGreeting().replace(/,\s*$/, "") : student ? student.name : t("home.noStudent")}
         </span>
       </div>
       <button
@@ -274,7 +277,7 @@ function SessionTab({
   const { t } = useUiTranslation();
   const { enabled: preview } = useTopicUiPreview();
   if (!student) {
-    return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
+    return preview ? <HomePreviewNoStudent onAdd={onAddFirstStudent} /> : <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
   if (preview) return <HomePreview />;
 
@@ -1026,6 +1029,7 @@ export default function HomeScreen() {
   return (
     <div className={`screen home-screen-v2${preview ? ' topic-ui-home' : ''}${visibleTab === 'statistics' ? ' home-screen-v2--statistics' : ''}`}>
       <HomeHeader
+        preview={preview}
         student={student}
         buildInfo={buildInfo}
         hasUpdate={hasUpdate}

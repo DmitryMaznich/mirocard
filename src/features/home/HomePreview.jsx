@@ -71,6 +71,20 @@ export default function HomePreview() {
   }
 }
 
+// A brand-new account: no student yet. The same card as «Продолжить» /
+// «Первое занятие», so the very first screen already looks like the new Home.
+export function HomePreviewNoStudent({ onAdd }) {
+  const { t } = useUiTranslation();
+  return <div className="topic-ui-home-body">
+    <section className="topic-ui-continue">
+      <div className="topic-ui-continue-label">{t("preview.startHere")}</div>
+      <h2 className="topic-ui-continue-title">{t("home.firstStudent")}</h2>
+      <p className="topic-ui-continue-help">{t("home.firstStudentHelp")}</p>
+      <button className="topic-ui-start" onClick={onAdd}>+ {t("students.add")}</button>
+    </section>
+  </div>;
+}
+
 function knownText(record, textId) {
   return textId && record.texts?.some((text) => text.id === textId) ? textId : null;
 }
