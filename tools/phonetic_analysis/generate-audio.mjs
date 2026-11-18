@@ -31,18 +31,21 @@ const CHECK = args.includes("--check"); // only re-check the files for a pause i
 // «Аист.» merged into «айст» (heard as «Iced»); the stress mark keeps two vowels.
 // «замок»: the picture is a padlock — замо́к, while «Диктант» says за́мок, so it is not copied.
 const SAY = { аист: "Аи́ст.", замок: "Замо́к." };
+// Sent without the delivery tag: with it «замо́к» came out with a drawn-out «з» and the
+// stress still on А; the plain «Замо́к.» (eleven_v4) is the owner's pick (2026-11-18).
+const NO_TAG = new Set(["замок"]);
 // After synthesis each file was checked by speech recognition (ElevenLabs scribe_v1);
 // «лыжи», «вагон» came out stuttered («Л-лыжи», «В вагон») and were redone.
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.filter((w) => !ONLY || ONLY.has(w.id));
 const dictation = new Map(JSON.parse(readFileSync(join(ROOT, "tools/propis2/topic.json"), "utf8")).words
   .map((w) => [w.word.toLowerCase(), join(ROOT, "public/audio/propis-dictation", `word_${w.id}.mp3`)]));
 
-async function synth(text) {
+async function synth(text, tag = TAG) {
   for (let attempt = 1; attempt <= 4; attempt++) {
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "xi-api-key": process.env.ELEVENLABS_API_KEY || "via-proxy" },
-      body: JSON.stringify({ text: `${TAG} ${text}`, model_id: MODEL_ID }),
+      body: JSON.stringify({ text: tag ? `${tag} ${text}` : text, model_id: MODEL_ID }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
     const body = await res.text();
@@ -76,7 +79,7 @@ for (const w of CHECK ? [] : words) {
   }
   const text = SAY[w.id] ?? `${w.word[0].toUpperCase()}${w.word.slice(1)}.`;
   if (DRY) { console.log(`synth ${text}`); made += 1; continue; }
-  writeFileSync(file, await synth(text));
+  writeFileSync(file, await synth(text, NO_TAG.has(w.id) ? "" : TAG));
   made += 1;
   console.log(`made ${w.word}`);
 }
