@@ -1,4 +1,5 @@
 import Coloring from './coloring/Coloring.jsx';
+import DrawingPreparation from './DrawingPreparation.jsx';
 import { useEffect, useId, useRef, useState } from 'react';
 import { createDrawingPlayer } from './player.js';
 import { toolForStep } from './lessonPlan.js';
@@ -78,7 +79,7 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
   const changeChoice = (key, value) => setChoices(previous => { const next = { ...previous, [key]: value }; store('drawing-ui-options', next); return next; });
   // A drawing is drawn in one sitting (owner, 2026-11-16): opening it always starts from the first step.
   // The position is still written (the browser checks read it), but never restored.
-  if (selected?.lesson?.steps?.length) return <Lesson key={selected.id} card={selected} saved={null} choices={choices} onChoice={changeChoice}
+  if (selected?.lesson?.steps?.length) return <PreparedLesson key={selected.id} card={selected} saved={null} choices={choices} onChoice={changeChoice}
     soundEnabled={soundEnabled} bonus={bonus} onSave={snapshot => saveProgress(selected.id, snapshot)} onDrawings={() => setSelected(null)} />;
   return <section className="drawing-lesson drawing-picker" aria-label="Рисование">
     <div className="drawing-picker__adult"><MenuButton onOpen={() => setMenu('settings')} /></div>
@@ -91,6 +92,10 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
       <Settings choices={choices} onChoice={changeChoice} bonus={bonus} />
     </AdultDialog>
   </section>;
+}
+function PreparedLesson(props) {
+  const [ready, setReady] = useState(props.card.lesson.paperOrientation !== 'landscape');
+  return ready ? <Lesson {...props} /> : <DrawingPreparation title={props.card.lesson.title} onStart={() => setReady(true)} />;
 }
 function Settings({ choices, onChoice, bonus }) {
   return <>
