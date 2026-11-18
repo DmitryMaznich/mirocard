@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useDrag } from "./useDrag";
 import { Picture, useSayOnce, useWordVoice, wait } from "./voice";
 
@@ -17,7 +17,13 @@ const PROMPT = {
 
 export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
   const { play, playing } = useWordVoice({ topicId, playTopicFile });
-  useSayOnce(play, task.word);
+  // «Где звук?» with a recorded sound: the sound, then the word; otherwise the word.
+  const sayFirst = useCallback(async (word) => {
+    if (task.sound && playTopicFile) { await playTopicFile(topicId, task.sound); await wait(350); }
+    await play(word);
+  }, [task.sound, topicId, playTopicFile, play]);
+  useSayOnce(sayFirst, task.word);
+  const playSound = () => { if (task.sound && playTopicFile) playTopicFile(topicId, task.sound); };
   const n = task.letters.length;
   const soundIndex = task.kind === "chip" ? task.letters.indexOf(task.letter) : task.answer;
   const [phase, setPhase] = useState("play"); // play | right | explain
@@ -129,7 +135,7 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
           plate beside the photo plus «[т]» in the text said it twice and left
           the photo small); the photo takes the free height. */}
       <div className="pa-prompt pa-prompt--ask">
-        {task.kind === "chip" ? <>Где звук <span className="pa-ask">{task.letter}</span><span className="pa-ask-q">?</span></> : PROMPT[task.step]}
+        {task.kind === "chip" ? <>Где звук <button type="button" className={`pa-ask${task.sound ? " pa-ask--sound" : ""}`} onClick={(e) => { e.stopPropagation(); playSound(); }}>{task.letter}</button><span className="pa-ask-q">?</span></> : PROMPT[task.step]}
       </div>
       <div className="pa-hero">
         <Picture className="pa-pic--hero" topicId={topicId} word={task.word} playing={playing === task.word.id} onTap={play} />

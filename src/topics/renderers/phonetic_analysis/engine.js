@@ -61,28 +61,17 @@ function schemeTask(step, kind, word, letter, extra = {}) {
   };
 }
 
-// «Где звук?» → «В начале»: a cell and a bar; the chip goes into the cell
-// (the sound starts the word) or into the bar (it is further on).
-function soundStartTasks(words, learned, count) {
-  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && targetOf(w, L)).map((w) => ({ w, L, start: targetOf(w, L).position === "start" })));
-  const yes = pool.filter((p) => p.start);
-  const no = pool.filter((p) => !p.start);
-  if (!yes.length || !no.length) return needMore("Для этой ступени нужны слова с выбранными буквами. Добавьте буквы в «Изменить».");
-  const half = Math.ceil(count / 2);
-  const chosen = shuffle([...cycle(yes, half), ...cycle(no, count - half)]);
-  return chosen.map(({ w, L, start }) => schemeTask(1, "chip", w, L, { layout: "bar", answer: start ? 0 : "bar" }));
-}
-
-// «Где звук?» → «В конце»: the bar first, then the last cell; the chip goes into
-// the cell (the word ends with the sound) or into the bar (the sound is earlier).
-function soundEndTasks(words, learned, count) {
-  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && targetOf(w, L)).map((w) => ({ w, L, end: targetOf(w, L).position === "end" })));
-  const yes = pool.filter((p) => p.end);
-  const no = pool.filter((p) => !p.end);
-  if (!yes.length || !no.length) return needMore("Нужны слова, где выбранные буквы и в конце, и раньше. Добавьте буквы в «Изменить».");
-  const half = Math.ceil(count / 2);
-  return shuffle([...cycle(yes, half), ...cycle(no, count - half)])
-    .map(({ w, L, end }) => schemeTask(1, "chip", w, L, { layout: "bar-end", answer: end ? w.word.length - 1 : "bar" }));
+// «Где звук?» → «Начало или конец»: a cell for every sound, all open (owner,
+// 2026-11-18: a lone first cell and a bar made it a yes/no guess); the sound is
+// the first or the last one — half and half — and the child taps its cell.
+function edgeTasks(words, learned, count) {
+  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && ["start", "end"].includes(targetOf(w, L)?.position)).map((w) => ({ w, L })));
+  const starts = pool.filter((p) => targetOf(p.w, p.L).position === "start");
+  const ends = pool.filter((p) => targetOf(p.w, p.L).position === "end");
+  if (!starts.length && !ends.length) return needMore("Нет слов, где выбранные буквы в начале или в конце. Добавьте буквы в «Изменить».");
+  const half = starts.length && ends.length ? Math.ceil(count / 2) : count;
+  return shuffle([...cycle(starts.length ? starts : ends, half), ...cycle(ends.length ? ends : starts, count - half)])
+    .map(({ w, L }) => schemeTask(4, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }));
 }
 
 // «Буквы в клетки» → «Последняя буква»: the last cell only.
@@ -187,7 +176,10 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   if (!learned.length) return [];
   const count = DEFAULT_COUNT; // a stored «Заданий в занятии» from deck ≤ 2.4 is ignored
   const words = (mode?.words ?? []).filter(hasPicture);
-  const tasks = build(mode?.type, words, learned, count, params);
+  // The letter's sound (mode.sounds: letter → file) goes with «Где звук?»: it plays
+  // before the word, and a tap on the letter in the question repeats it.
+  const tasks = build(mode?.type, words, learned, count, params)
+    .map((t) => (t.kind === "chip" && mode?.sounds?.[t.letter] ? { ...t, sound: mode.sounds[t.letter] } : t));
   const run = Math.random().toString(36).slice(2, 7);
   return tasks.map((t, i) => ({ ...t, taskId: `${t.type}_${run}_${i}` }));
 }
@@ -196,9 +188,8 @@ function build(type, words, learned, count, params) {
   switch (type) {
     // «Где звук?» (owner, 2026-11-18): one mode, the place set before the lesson.
     case "pa_where":
-      if (params.position === "all") return whereTasks(words, learned, count);
-      if (params.position === "end") return soundEndTasks(words, learned, count);
-      return soundStartTasks(words, learned, count); // «В начале», the default
+      // «start»/«end» stored by deck ≤ 2.6 fall back to «Начало или конец»
+      return params.position === "all" ? whereTasks(words, learned, count) : edgeTasks(words, learned, count);
     // «Буквы в клетки»: the last letter only, or the whole word.
     case "pa_all_letters":
       return params.scope === "word" ? allLettersTasks(words, learned, count) : lastLetterTasks(words, learned, count);

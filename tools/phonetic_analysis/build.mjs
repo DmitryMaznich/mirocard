@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "2.6.2";
+const VERSION = "2.7.0";
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.map((w) => {
   const image = `media/${w.id}.webp`;
@@ -36,6 +36,12 @@ const mode = (id, title, methodology, extra = {}) => ({
   ui: { title }, methodology, params: {}, ...extra,
 });
 const withWords = { words };
+// Letter sounds for «Где звук?» (sounds/<letter>.mp3). Vowels are cut from the
+// «Диктант» clips (lo_<letter>.mp3 «Строчная а» → «а», owner 2026-11-18);
+// consonants wait for the owner's own recording — synthesis says the letter's
+// name or adds a vowel. A letter without a file: only the word is voiced.
+const sounds = Object.fromEntries([..."АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ"]
+  .map((L) => [L, `sounds/${L.toLowerCase()}.mp3`]).filter(([, f]) => existsSync(join(DIR, f))));
 
 const topic = {
   meta: {
@@ -56,7 +62,7 @@ const topic = {
       finalGoal: "Ребёнок слышит, где в слове звук, и знает, какая это буква.",
       flow: [
         "В «Изменить» отметьте пройденные буквы — все задания строятся только из них.",
-        "1 — повтор букв. 2 «Где звук?»: В начале → В конце → Везде. 3 «Лото» — первая буква. 4 «Буквы в клетки»: Последняя буква → Всё слово.",
+        "1 — повтор букв. 2 «Где звук?»: Начало или конец → Везде. 3 «Лото» — первая буква. 4 «Буквы в клетки»: Последняя буква → Всё слово.",
         "Слово звучит само; нажать на картинку — ещё раз.",
       ],
     },
@@ -70,11 +76,11 @@ const topic = {
       duration: "2–3 минуты",
     }, { params: { difficulty: { type: "enum", label: { ru: "Сложность" }, values: ["easy", "medium", "hard"], labels: { ru: { easy: "Легко", medium: "Средне", hard: "Трудно" } }, default: "easy" } } }),
     mode("pa_where", "2. Где звук?", {
-      summary: "Нажать туда, где в слове звук: в начале, в конце или в любом месте.",
-      text: "Слово звучит само (нажать на картинку — ещё раз). Ребёнок нажимает туда, где звук, — там появляется фишка. «В начале»: под картинкой клетка и полоса — нажать на клетку, если слово начинается с этого звука, или на полосу, если звук дальше. «В конце»: полоса и клетка — то же для конца слова. «Везде»: клетка на каждый звук — начало, середина или конец; половина слов — со звуком внутри. После ответа в клетках появляется слово: видно, где эта буква. Ошибка — палец показывает, где звук, ребёнок сам переставляет фишку.",
+      summary: "Нажать на клетку, где в слове звук.",
+      text: "Сначала звучит звук, потом слово (нажать на букву в вопросе — звук ещё раз, на картинку — слово). Под картинкой клетка на каждый звук слова, все открыты; ребёнок нажимает на клетку, где звук, — там появляется фишка. «Начало или конец»: звук первый или последний, поровну. «Везде»: ещё и в середине, половина слов — со звуком внутри. После ответа в клетках появляется слово: видно, где эта буква. Ошибка — палец показывает, где звук, ребёнок нажимает ещё раз.",
       goal: "Слышать, где в слове звук: начало, конец, середина.",
       duration: "2–3 минуты",
-    }, { ...withWords, params: { position: { type: "enum", label: { ru: "Где искать" }, values: ["start", "end", "all"], labels: { ru: { start: "В начале", end: "В конце", all: "Везде" } }, default: "start" } } }),
+    }, { ...withWords, sounds, params: { position: { type: "enum", label: { ru: "Где искать" }, values: ["edges", "all"], labels: { ru: { edges: "Начало или конец", all: "Везде" } }, default: "edges" } } }),
     mode("pa_lotto", "3. Лото", {
       summary: "Буквы на картинки или картинки на буквы — направление выбирается перед занятием.",
       text: "Как настольное лото: поле 3×3 закрывается целиком. «Буквы на картинки»: 9 картинок на поле и по букве на каждую — букву кладут на картинку, которая с неё начинается. «Картинки на буквы»: 9 букв на поле и 9 картинок — картинку кладут на её первую букву. Если пройдено мало букв, буква повторяется: любая «М» подходит к любой картинке на М. Нажать на картинку — услышать слово. Поле за полем, пока взрослый не закончит занятие.",
@@ -90,7 +96,7 @@ const topic = {
   ],
 };
 
-const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio].filter(Boolean))]);
+const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio].filter(Boolean)), ...Object.values(sounds)]);
 writeFileSync(join(DIR, "topic.json"), `${JSON.stringify(topic, null, 2)}\n`);
 
 console.log("Building renderer…");

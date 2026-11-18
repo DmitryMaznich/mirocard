@@ -8,15 +8,22 @@ const cards = (letters) => letters.map((L) => ({ id: `letter_${L}`, conceptId: L
 const run = (type, letters = ALL, params = {}) => generateTasks({ type, words: WORDS }, cards(letters), 0, params);
 
 describe("scheme steps", () => {
-  it("«Где звук?» В начале: half the words start with the sound, answer is cell 0 or the bar", () => {
-    const tasks = run("pa_where", ALL, { position: "start" });
+  it("«Где звук?» Начало или конец: all cells open, the sound is first or last, about half each", () => {
+    const tasks = run("pa_where", ALL, { position: "edges" });
     expect(tasks).toHaveLength(40);
     for (const t of tasks) {
-      const pos = t.word.targets.find((x) => x.letter === t.letter).position;
-      expect(t.answer).toBe(pos === "start" ? 0 : "bar");
-      expect(t.word.aligned).toBe(true);
+      expect(t.layout).toBe("cells");
+      expect(t.closed).toBeUndefined();
+      expect([0, t.letters.length - 1]).toContain(t.answer);
+      expect(t.letters[t.answer]).toBe(t.letter);
     }
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(20);
+  });
+
+  it("«Где звук?» carries the letter's sound when the deck has one", () => {
+    const mode = { type: "pa_where", words: WORDS, sounds: { А: "sounds/а.mp3" } };
+    const tasks = generateTasks(mode, cards(["А", "М"]), 0, { position: "all" });
+    for (const t of tasks) expect(t.sound).toBe(t.letter === "А" ? "sounds/а.mp3" : undefined);
   });
 
   it("lotto «Картинки на буквы»: 9 letter squares, 9 pictures, the squares are exactly the pictures' first letters", () => {
@@ -31,17 +38,6 @@ describe("scheme steps", () => {
     const t = run("pa_lotto", ["М", "С"])[0];
     expect(t.board).toHaveLength(9);
     expect(new Set(t.cards)).toEqual(new Set(["М", "С"]));
-  });
-
-  it("«Где звук?» В конце: half the words end with the sound, answer is the last cell or the bar", () => {
-    const tasks = run("pa_where", ALL, { position: "end" });
-    expect(tasks).toHaveLength(40);
-    for (const t of tasks) {
-      expect(t.layout).toBe("bar-end");
-      const pos = t.word.targets.find((x) => x.letter === t.letter).position;
-      expect(t.answer).toBe(pos === "end" ? t.letters.length - 1 : "bar");
-    }
-    expect(tasks.filter((t) => t.answer !== "bar")).toHaveLength(20);
   });
 
   it("«Буквы в клетки» Последняя буква: the answer is the last cell, where the letter really is", () => {
@@ -59,7 +55,7 @@ describe("scheme steps", () => {
 
   it("only learned letters are asked", () => {
     const learned = ["М", "С", "К"];
-    for (const [type, params] of [["pa_where", { position: "start" }], ["pa_where", { position: "end" }], ["pa_where", { position: "all" }], ["pa_all_letters", { scope: "last" }]]) {
+    for (const [type, params] of [["pa_where", { position: "edges" }], ["pa_where", { position: "all" }], ["pa_all_letters", { scope: "last" }]]) {
       for (const t of run(type, learned, params)) {
         if (t.type === "pa_need_more") continue;
         expect(learned).toContain(t.letter);

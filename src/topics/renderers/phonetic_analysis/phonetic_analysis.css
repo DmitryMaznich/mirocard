@@ -54,7 +54,10 @@
   min-width: 1.7em; height: 1.7em; padding: 0 0.15em; box-sizing: border-box;
   border: 3px solid #4a9b8f; border-radius: 0.4em; background: #fff;
   font-size: 1.45em; font-weight: 900; color: #1f2937;
+  font-family: inherit; line-height: 1; cursor: default; -webkit-tap-highlight-color: transparent;
 }
+.pa-ask--sound { cursor: pointer; box-shadow: 0 3px 0 #2a6b60; }
+.pa-ask--sound:active { transform: translateY(3px); box-shadow: none; }
 .pa-ask-q { margin-left: -0.25em; }
 .pa-hero { flex: 1 1 0; min-height: 140px; width: 100%; container-type: size; display: flex; align-items: center; justify-content: center; }
 .pa-pic--hero { width: min(100cqw, 100cqh, 560px); height: min(100cqw, 100cqh, 560px); aspect-ratio: auto; border-radius: clamp(20px, 6cqmin, 32px); }
