@@ -3,34 +3,38 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useDrag } from "./useDrag";
 import { Picture, useWordVoice, wait } from "./voice";
 
-// Lotto «Картинки на буквы» — the lotto turned round: a board of letters and
-// pictures in the tray; each picture goes onto the letter its word starts with.
+// Lotto «Картинки на буквы» — the lotto turned round: a 3×3 board of letters
+// (one per picture, a letter may repeat — squares are told apart by index) and
+// the pictures in the tray; each picture goes onto a letter its word starts with.
 // A tap on a picture says its word. A right picture settles into the letter's
 // square (the letter moves to the corner), a wrong one turns the square red and
 // stays in the tray.
 export default function LottoReverseTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
   const { play, playing } = useWordVoice({ topicId, playTopicFile });
-  const [placed, setPlaced] = useState(() => ({})); // letter → word
-  const [wrong, setWrong] = useState(null); // letter
+  const [placed, setPlaced] = useState(() => ({})); // square index → word
+  const [wrong, setWrong] = useState(null); // square index
   const [done, setDone] = useState(false);
   const errors = useRef(0);
 
-  async function drop(wordId, letter) {
-    if (done || !letter || placed[letter]) return;
+  async function drop(wordId, target) {
+    if (done || target == null) return;
+    const square = Number(target);
+    const letter = task.letters[square];
+    if (placed[square]) return;
     const word = task.pictures.find((w) => w.id === wordId);
     if (!word) return;
     if (word.firstLetter !== letter) {
       errors.current += 1;
       onStreakReset?.(task.conceptId, word.id);
-      setWrong(letter);
+      setWrong(square);
       await wait(800);
       setWrong(null);
       return;
     }
-    const next = { ...placed, [letter]: word };
+    const next = { ...placed, [square]: word };
     setPlaced(next);
     play(word);
-    if (Object.keys(next).length === task.pairs.length) {
+    if (Object.keys(next).length === task.letters.length) {
       setDone(true);
       await wait(1600);
       onCorrect?.(task.conceptId, task.pairs[0].wordId, errors.current ? { assisted: true } : undefined);
@@ -49,13 +53,13 @@ export default function LottoReverseTask({ task, topicId, playTopicFile, onCorre
     <div className="session-body pa-stage pa-stage--lotto">
       <div className="pa-prompt">Положи картинку на букву</div>
       <div className="pa-rlotto">
-        {task.letters.map((L) => {
-          const mine = placed[L];
+        {task.letters.map((L, i) => {
+          const mine = placed[i];
           return (
             <div
-              key={L}
-              className={`pa-rlotto__cell${mine ? " pa-rlotto__cell--ok" : ""}${wrong === L ? " pa-rlotto__cell--bad" : ""}`}
-              data-drop={!mine && !done ? L : undefined}
+              key={i}
+              className={`pa-rlotto__cell${mine ? " pa-rlotto__cell--ok" : ""}${wrong === i ? " pa-rlotto__cell--bad" : ""}`}
+              data-drop={!mine && !done ? String(i) : undefined}
             >
               {mine ? <PlacedPicture topicId={topicId} word={mine} letter={L} /> : L}
             </div>

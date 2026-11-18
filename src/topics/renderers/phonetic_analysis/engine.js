@@ -11,14 +11,11 @@ import { pickDistractorLetters } from "./phoneticDistractors";
 const DEFAULT_COUNT = 10;
 const LOTTO_BOARDS = 3;
 const LOTTO_SIZE = 9;
-const LOTTO_LETTERS = 4;
-const REVERSE_EXTRA = 2; // letters on the «Картинки на буквы» board beyond the 4 answers
 // Words that name the same picture: never on one lotto board.
 const SAME_PICTURE = [["кот", "кошка"], ["мяч", "футбол"], ["шуба", "пальто"], ["чай", "чашка"]];
 
 const needMore = (text) => [{ type: "pa_need_more", text }];
 const hasPicture = (w) => Boolean(w.image || w.emoji);
-const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
 // A shuffled cycle of `length`, never the same item twice in a row.
 export function cycle(items, length) {
@@ -117,43 +114,36 @@ function allLettersTasks(words, learned, count) {
   });
 }
 
-// Lotto: a 3×3 board of pictures and 4 letter cards; each letter goes on the
-// picture that starts with it. More pictures than letters, so the last card
-// can't be placed by elimination.
+// Lotto, like the board game (owner, 2026-11-18): a 3×3 board of pictures and
+// a card for every picture — the board closes completely. The pictures are spread
+// over the learned letters in turn, so with few letters a letter repeats (two
+// «М» cards, two pictures on М — any «М» fits either, the check is the first letter).
 export function lottoBoard(words, learned) {
   const byLetter = new Map();
-  for (const w of words) if (learned.includes(w.firstLetter)) byLetter.set(w.firstLetter, [...(byLetter.get(w.firstLetter) ?? []), w]);
-  const letters = shuffle([...byLetter.keys()]).slice(0, LOTTO_LETTERS);
+  for (const w of shuffle(words)) if (learned.includes(w.firstLetter)) byLetter.set(w.firstLetter, [...(byLetter.get(w.firstLetter) ?? []), w]);
+  const letters = shuffle([...byLetter.keys()]);
   if (letters.length < 2) return null;
   const clash = (a, b) => SAME_PICTURE.some((g) => g.includes(a.word) && g.includes(b.word));
-  const chosen = [];
-  const pairs = letters.map((L) => {
-    const w = pick(byLetter.get(L));
-    chosen.push(w);
-    return { letter: L, wordId: w.id };
-  });
-  const fillers = shuffle(words.filter((w) => !letters.includes(w.firstLetter)));
-  for (const w of fillers) {
-    if (chosen.length >= LOTTO_SIZE) break;
-    if (chosen.some((c) => c.id === w.id || clash(c, w))) continue;
-    chosen.push(w);
+  const board = [];
+  for (let round = 0; board.length < LOTTO_SIZE; round += 1) {
+    let added = false;
+    for (const L of letters) {
+      if (board.length === LOTTO_SIZE) break;
+      const w = byLetter.get(L).find((c) => !board.some((b) => b.id === c.id || clash(b, c)));
+      if (w) { board.push(w); added = true; }
+    }
+    if (!added) break;
   }
-  return { board: shuffle(chosen), pairs: shuffle(pairs) };
+  const pairs = board.map((w) => ({ letter: w.firstLetter, wordId: w.id }));
+  return { board: shuffle(board), cards: shuffle(board.map((w) => w.firstLetter)), pairs };
 }
 
-// «Картинки на буквы» — the lotto turned round (owner, 2026-11-18): a board of
-// 6 letters and 4 pictures; each picture goes onto its first letter. More
-// letters than pictures, so the last picture can't go by elimination.
+// «Картинки на буквы» — the same board turned round: 9 letter squares (one per
+// picture, so a letter may repeat) and the 9 pictures to put on them.
 export function reverseLottoBoard(words, learned) {
   const b = lottoBoard(words, learned);
   if (!b) return null;
-  const used = b.pairs.map((p) => p.letter);
-  const extra = [];
-  const add = (l) => { if (l && !used.includes(l) && !extra.includes(l) && extra.length < REVERSE_EXTRA) extra.push(l); };
-  shuffle(learned).forEach(add);
-  for (const L of used) distractors(L, learned, 3).forEach(add);
-  const pictures = b.pairs.map((p) => b.board.find((w) => w.id === p.wordId));
-  return { letters: shuffle([...used, ...extra]), pictures: shuffle(pictures), pairs: b.pairs };
+  return { letters: shuffle(b.board.map((w) => w.firstLetter)), pictures: shuffle(b.board), pairs: b.pairs };
 }
 
 function lottoTasks(words, learned, direction) {

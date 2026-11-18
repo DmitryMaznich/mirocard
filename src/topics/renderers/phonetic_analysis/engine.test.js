@@ -19,21 +19,18 @@ describe("scheme steps", () => {
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(5);
   });
 
-  it("lotto «Картинки на буквы»: 6 letters, 4 pictures, each picture's first letter is on the board", () => {
+  it("lotto «Картинки на буквы»: 9 letter squares, 9 pictures, the squares are exactly the pictures' first letters", () => {
     for (const t of run("pa_lotto", ALL, { direction: "pictures" })) {
       expect(t.type).toBe("pa_lotto_reverse");
-      expect(t.pictures).toHaveLength(4);
-      expect(t.letters).toHaveLength(6);
-      expect(new Set(t.letters).size).toBe(6);
-      for (const w of t.pictures) expect(t.letters).toContain(w.firstLetter);
-      expect(new Set(t.pictures.map((w) => w.firstLetter)).size).toBe(4);
+      expect(t.pictures).toHaveLength(9);
+      expect([...t.letters].sort()).toEqual(t.pictures.map((w) => w.firstLetter).sort());
     }
   });
 
-  it("lotto «Картинки на буквы» with only 2 learned letters still has spare letters", () => {
-    const t = run("pa_lotto", ["М", "С"], { direction: "pictures" })[0];
-    expect(t.pictures).toHaveLength(2);
-    expect(t.letters.length).toBeGreaterThan(2);
+  it("lotto with only 2 learned letters: the board is full, the letters repeat", () => {
+    const t = run("pa_lotto", ["М", "С"])[0];
+    expect(t.board).toHaveLength(9);
+    expect(new Set(t.cards)).toEqual(new Set(["М", "С"]));
   });
 
   it("step 3 and 4: the answer is the first or last cell, where the letter really is", () => {
@@ -73,15 +70,12 @@ describe("scheme steps", () => {
 });
 
 describe("lotto", () => {
-  it("9 pictures, 4 letters, each letter's picture is on the board and no other picture starts with it", () => {
+  it("9 pictures and a card for each: the cards are exactly the pictures' first letters", () => {
     for (let i = 0; i < 20; i += 1) {
       const b = lottoBoard(WORDS.filter((w) => w.emoji), ALL);
       expect(b.board).toHaveLength(9);
-      expect(b.pairs).toHaveLength(4);
-      for (const p of b.pairs) {
-        const starting = b.board.filter((w) => w.firstLetter === p.letter);
-        expect(starting.map((w) => w.id)).toEqual([p.wordId]);
-      }
+      expect(new Set(b.board.map((w) => w.id)).size).toBe(9);
+      expect([...b.cards].sort()).toEqual(b.board.map((w) => w.firstLetter).sort());
     }
   });
 });

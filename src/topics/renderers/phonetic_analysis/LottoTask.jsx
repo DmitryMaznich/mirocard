@@ -3,19 +3,21 @@ import { useDrag } from "./useDrag";
 import { Picture, useWordVoice, wait } from "./voice";
 
 // Lotto «Буквы на картинки» — the owner's board game on screen: a 3×3 board of
-// pictures and transparent letter cards; each card goes onto the picture whose
-// word starts with that letter. A picture says its word when tapped. A right
+// pictures and a transparent letter card for each; a card goes onto a picture
+// whose word starts with that letter, and the board closes completely. Cards
+// are told apart by index — a letter may repeat. A picture says its word when tapped. A right
 // card settles into the picture's corner (the picture stays visible), a wrong
 // one turns red and comes back.
 export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
   const { play, playing } = useWordVoice({ topicId, playTopicFile });
-  const [placed, setPlaced] = useState(() => ({})); // wordId → letter
+  const [placed, setPlaced] = useState(() => ({})); // wordId → card index
   const [wrong, setWrong] = useState(null); // { wordId, letter }
   const [done, setDone] = useState(false);
   const errors = useRef(0);
 
-  async function drop(letter, wordId) {
-    if (done || !wordId || placed[wordId]) return;
+  async function drop(card, wordId) {
+    const letter = task.cards[card];
+    if (done || !wordId || placed[wordId] != null || Object.values(placed).includes(card)) return;
     const word = task.board.find((w) => w.id === wordId);
     if (word?.firstLetter !== letter) {
       errors.current += 1;
@@ -25,25 +27,25 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
       setWrong(null);
       return;
     }
-    const next = { ...placed, [wordId]: letter };
+    const next = { ...placed, [wordId]: card };
     setPlaced(next);
     play(word);
-    if (Object.keys(next).length === task.pairs.length) {
+    if (Object.keys(next).length === task.cards.length) {
       setDone(true);
       await wait(1600);
       onCorrect?.(task.conceptId, task.pairs[0].wordId, errors.current ? { assisted: true } : undefined);
     }
   }
 
-  const drag = useDrag({ onDrop: (payload, target) => drop(payload.letter, target) });
-  const left = task.pairs.filter((p) => !placed[p.wordId]);
+  const drag = useDrag({ onDrop: (payload, target) => drop(payload.card, target) });
+  const used = new Set(Object.values(placed));
 
   return (
     <div className="session-body pa-stage pa-stage--lotto">
       <div className="pa-prompt">Положи букву на картинку</div>
       <div className="pa-lotto">
         {task.board.map((w) => {
-          const mine = placed[w.id];
+          const mine = placed[w.id] != null ? task.cards[placed[w.id]] : null;
           const bad = wrong?.wordId === w.id;
           return (
             <Picture
@@ -53,7 +55,7 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
               playing={playing === w.id}
               onTap={play}
               className={`pa-lotto__pic${mine ? " pa-lotto__pic--ok" : ""}${bad ? " pa-lotto__pic--bad" : ""}`}
-              data-drop={!mine && !done ? w.id : undefined}
+              data-drop={mine == null && !done ? w.id : undefined}
             >
               {mine && <span className="pa-card pa-card--placed">{mine}</span>}
               {bad && <span className="pa-card pa-card--bad">{wrong.letter}</span>}
@@ -64,19 +66,19 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
       <div className="pa-tray">
         {done
           ? <span className="pa-done">✓</span>
-          : left.map((p) => (
+          : task.cards.map((letter, i) => (used.has(i) ? null : (
             <span
-              key={p.letter}
-              className={`pa-card${drag.dragging?.letter === p.letter ? " pa-card--lifted" : ""}`}
-              onPointerDown={(e) => drag.start(e, { letter: p.letter })}
+              key={i}
+              className={`pa-card${drag.dragging?.card === i ? " pa-card--lifted" : ""}`}
+              onPointerDown={(e) => drag.start(e, { card: i })}
             >
-              {p.letter}
+              {letter}
             </span>
-          ))}
+          )))}
       </div>
       {drag.ghost && (
         <div className="pa-ghost" style={{ left: drag.ghost.x, top: drag.ghost.y }}>
-          <span className="pa-card pa-card--drag">{drag.ghost.payload.letter}</span>
+          <span className="pa-card pa-card--drag">{task.cards[drag.ghost.payload.card]}</span>
         </div>
       )}
     </div>

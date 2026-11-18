@@ -189,9 +189,9 @@
 .pa-rlotto__cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: pa-fade 0.4s ease; }
 .pa-rlotto__cell--ok { border-color: #22c55e; }
 .pa-rlotto__cell--bad { border-color: #ef4444; background: #fef2f2; }
-.pa-rlotto__thumb { width: clamp(76px, 19vw, 104px); aspect-ratio: 1; border-radius: 14px; touch-action: none; cursor: grab; }
+.pa-rlotto__thumb { width: clamp(60px, 16vw, 88px); aspect-ratio: 1; border-radius: 14px; touch-action: none; cursor: grab; }
 .pa-rlotto__thumb--lifted { opacity: 0.2; }
-.pa-rlotto__ghost { width: clamp(76px, 19vw, 104px); aspect-ratio: 1; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18); }
+.pa-rlotto__ghost { width: clamp(60px, 16vw, 88px); aspect-ratio: 1; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18); }
 .pa-rlotto__ghost img { width: 100%; height: 100%; object-fit: cover; }
 @keyframes pa-fade { from { opacity: 0; } }
 .pa-done { font-size: 44px; color: #16a34a; font-weight: 900; }
