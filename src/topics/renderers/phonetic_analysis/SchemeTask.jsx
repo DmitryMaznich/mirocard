@@ -136,7 +136,7 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
       </div>
 
       <div className="pa-scheme-wrap">
-        <div className="pa-scheme" style={{ "--n": showCells ? n : 4 }}>
+        <div className={`pa-scheme${task.kind === "chip" && phase === "play" ? " pa-scheme--tap" : ""}`} style={{ "--n": showCells ? n : 4 }}>
           {showCells
             ? task.letters.map((_, i) => (
               <div key={i} className={cellClass(i)} data-drop={dropFor(i)} onClick={() => task.kind === "chip" && placeChip(dropFor(i))}>{cellContent(i)}</div>
@@ -155,18 +155,13 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
               </>
             )}
         </div>
-        <div className="pa-arrow"><i /><b /></div>
       </div>
 
-      <div className="pa-tray">
-        {task.kind === "chip"
-          ? (
-            <span
-              className={`pa-chip pa-chip--big${chipAt || drag.dragging ? " pa-chip--ghosted" : ""}`}
-              onPointerDown={(e) => phase === "play" && !chipAt && drag.start(e, { chip: true })}
-            />
-          )
-          : task.tray.map((letter, i) => (
+      {/* No arrow and no chip to drag (owner, 2026-11-18): the child taps the
+          cell (or the bar) where the sound is, and the chip appears there. The
+          tray holds only the letters of «Буквы в клетки». */}
+      {task.kind !== "chip" && <div className="pa-tray">
+        {task.tray.map((letter, i) => (
             <button
               key={i}
               type="button"
@@ -177,7 +172,7 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
               {letter}
             </button>
           ))}
-      </div>
+      </div>}
 
       {drag.ghost && (
         <div className="pa-ghost" style={{ left: drag.ghost.x, top: drag.ghost.y }}>

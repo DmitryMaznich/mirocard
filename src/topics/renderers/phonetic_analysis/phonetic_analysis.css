@@ -80,6 +80,9 @@
 /* --- sound scheme --- */
 .pa-scheme-wrap { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
 .pa-scheme { display: flex; justify-content: center; }
+/* «Где звук?»: the cells are the buttons — tap where the sound is */
+.pa-scheme--tap .pa-cell:not(.pa-cell--off) { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pa-scheme--tap .pa-cell:not(.pa-cell--off):active { background: #eff6ff; border-color: #3b82f6; }
 .pa-cell {
   /* --n: cells in the row (SchemeTask) — a long word shrinks to fit the screen */
   --cell: min(clamp(50px, 15vw, 84px), calc((100vw - 40px) / var(--n, 6)));
