@@ -113,23 +113,31 @@ function TugStep({ race, paused, onStep, label }) {
 }
 
 export default function TugScene({ race, names, paused, onStep }) {
-  const { ropePosition, pullScores } = race;
+  const { ropePosition, pullScores, startingScores, sumsAnswered } = race;
   const direction = race.phase === "moving" ? tugPullDirection(race.dice, race.step) : 0;
+  const filling = ["moving", "arriving", "adding", "sumFeedback"].includes(race.phase);
+  const scores = pullScores.map((score, i) => filling && i >= sumsAnswered ? startingScores[i] : score);
+  const bonuses = pullScores.map((score, i) => score - scores[i]);
+  const counting = race.phase === "adding" ? sumsAnswered : null;
+  const confirmed = race.phase === "sumFeedback" ? sumsAnswered - 1 : null;
   const label = ropePosition === 0 ? "Ноль на канате под флажком" : `Сдвиг каната в сторону игрока ${names[ropePosition < 0 ? 0 : 1]} — ${Math.abs(ropePosition)}`;
   return <div className="tug-scene" data-rope-position={ropePosition}>
-    <TugScoreboard names={names} scores={pullScores} direction={direction} />
+    <TugScoreboard names={names} scores={scores} bonuses={bonuses} direction={direction} counting={counting} confirmed={confirmed} />
     {race.phase === "moving"
       ? <TugStep key={`${race.round}-${race.step}`} race={race} paused={paused} onStep={onStep} label={label} />
       : <TugPicture position={ropePosition} result={race.phase === "finished" ? race.result : null} label={label} />}
   </div>;
 }
 
-export function TugScoreboard({ names, scores, direction = 0 }) {
+export function TugScoreboard({ names, scores, bonuses = [], direction = 0, counting = null, confirmed = null }) {
   return <div className="tug-scoreboard" role="group" aria-label="Очки за рывки">
     <span className="tug-scoreboard-title" aria-hidden="true">Очки за рывки</span>
-    {names.map((name, i) => <div key={i} className={`tug-score race-player--${i === 0 ? "child" : "adult"}`} data-pulling={direction === (i === 0 ? -1 : 1)}>
+    {names.map((name, i) => <div key={i} className={`tug-score race-player--${i === 0 ? "child" : "adult"}`} data-pulling={direction === (i === 0 ? -1 : 1) || counting === i} data-confirmed={confirmed === i}>
       <span className="tug-score-name">{name}</span>
-      <strong className="tug-score-value">{scores[i]}</strong>
+      <span className="tug-score-points">
+        <strong className="tug-score-value">{scores[i]}</strong>
+        {bonuses[i] > 0 && <span className="tug-score-bonus">+{bonuses[i]}</span>}
+      </span>
     </div>)}
   </div>;
 }
