@@ -15,7 +15,8 @@ export function planLesson(source, pencils) {
       throw new Error(`Pencil and fill disagree in ${source.id}: ${step.title}`);
     }
   }
-  const steps = palette.flatMap(tool => source.steps.filter(step => step.tool === tool.id));
+  const steps = source.stepOrder === 'authored' ? source.steps.slice()
+    : palette.flatMap(tool => source.steps.filter(step => step.tool === tool.id));
   return { ...source, palette, steps };
 }
 

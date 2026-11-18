@@ -99,3 +99,18 @@
 .drawing-card img, .drawing-card > svg { height:clamp(72px,12dvh,120px); }
 .drawing-card > span { font-size:14px; line-height:1.2; text-align:center; }
 @media (min-width:900px) { .drawing-cards { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); } }
+
+/* Landscape paper is suggested once before a new drawing; rotation stays optional. */
+.drawing-preparation { flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column; align-items:center; justify-content:safe center; gap:18px; text-align:center; padding:20px calc(18px + var(--app-safe-right,0px)) calc(20px + var(--app-safe-bottom,0px)) calc(18px + var(--app-safe-left,0px)); }
+.drawing-preparation h2 { margin:0; font-size:clamp(23px,4vw,30px); }
+.drawing-preparation p { margin:0; color:#607065; line-height:1.5; }
+.drawing-preparation__cards { display:flex; gap:14px; width:100%; max-width:680px; }
+.drawing-preparation__card { flex:1; min-width:0; border:1px solid #dedfd5; border-radius:22px; background:#fffefa; padding:16px 10px; }
+.drawing-preparation__card svg { width:100%; height:120px; margin-bottom:12px; }
+.drawing-preparation__card h3 { font-size:18px; margin:0 0 8px; }
+.drawing-preparation__card p { font-size:14px; }
+.drawing-lesson .drawing-preparation__start { flex:none; min-height:52px; border:1px solid #28655a; border-radius:14px; background:#28655a; color:white; padding:12px 24px; font-weight:600; }
+.drawing-preparation__phone { transform-origin:100px 75px; animation:drawing-turn-phone 3.5s ease-in-out infinite; }
+@keyframes drawing-turn-phone { 0%,15%,100% { transform:rotate(0deg); } 55%,85% { transform:rotate(-90deg); } }
+@media (orientation:landscape) and (max-height:520px) { .drawing-preparation { gap:10px; padding-top:10px; padding-bottom:10px; } .drawing-preparation__cards { max-width:560px; } .drawing-preparation__card { display:grid; grid-template-columns:130px 1fr; text-align:left; column-gap:14px; padding:8px; } .drawing-preparation__card svg { height:90px; grid-row:1/3; margin:0; } .drawing-preparation__card h3 { align-self:end; } .drawing-preparation__card p { align-self:start; } .drawing-lesson .drawing-preparation__start { min-height:44px; padding:8px 20px; } }
+@media (prefers-reduced-motion:reduce) { .drawing-preparation__phone { animation:none; transform:rotate(-90deg); } }
