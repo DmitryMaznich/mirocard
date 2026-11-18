@@ -59,6 +59,7 @@ summary::-webkit-details-marker{display:none}
 .hero__copy .eyebrow sup{color:var(--coral-deep);font-size:.9em}
 .hero__copy h1{animation-delay:.15s}
 .hero__copy .lead{animation-delay:.25s}
+.hero__copy .hero__highlight{animation-delay:.3s}
 .hero__copy .hero__actions{animation-delay:.35s}
 @keyframes heroIn{to{opacity:1;transform:translateY(0)}}
 .hero h1{font:900 clamp(38px,3vw,46px)/1.08 var(--font-display);letter-spacing:-.024em;margin:18px 0 20px}
@@ -66,6 +67,9 @@ summary::-webkit-details-marker{display:none}
 .hero__actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:30px}
 .hero__copy .hero__footnote{animation-delay:.42s}
 .hero__footnote{margin-top:18px;font-size:12.5px;line-height:1.5;color:var(--copy);max-width:440px}
+.hero__highlight{display:flex;align-items:flex-start;gap:10px;margin-top:20px;padding:12px 16px;max-width:460px;border-radius:14px;background:rgba(239,111,94,.12);border:1px solid rgba(239,111,94,.28);font-size:14.5px;line-height:1.5;color:var(--ink)}
+.hero__highlight strong{color:var(--coral-deep)}
+.hero__highlight-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-top:1px;border-radius:50%;background:var(--coral-deep);color:#fff;font-size:10px}
 .hero__visual{display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(14px) scale(.97);animation:heroIn .7s .3s ease forwards}
 
 /* Tablet device mockup — shared by the hero and the "topics in action" stage.
@@ -547,6 +551,16 @@ summary::-webkit-details-marker{display:none}
   .hero h1{font-size:clamp(38px,3vw,46px);letter-spacing:-.024em}
 }
 
+.reward-feature{padding:88px 0}
+.reward-feature__grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.reward-feature__copy h2{font:700 clamp(28px,3.2vw,40px)/1.16 var(--font-display);letter-spacing:-.02em;margin-top:14px}
+.reward-feature__copy h2 em{font-style:normal;position:relative;color:var(--coral-deep);white-space:nowrap}
+.reward-feature__copy h2 em:after{content:"";position:absolute;left:-2px;right:-2px;bottom:2px;height:9px;background:rgba(239,111,94,.22);z-index:-1;border-radius:3px}
+.reward-feature__lead{margin-top:16px;max-width:50ch;font-size:16.5px;line-height:1.6;color:var(--copy)}
+.reward-feature__copy .checklist{max-width:48ch}
+.reward-feature__copy .quiet-link{margin-top:22px}
+.reward-feature__visual{display:flex;justify-content:center}
+.reward-feature__phone{position:relative;width:min(240px,66vw);border-radius:32px;background:var(--ink);padding:9px;box-shadow:0 24px 48px -18px rgba(28,54,52,.38),0 2px 0 rgba(28,54,52,.06)}
 .about{position:relative;background:var(--paper);padding:112px 0;overflow:hidden}
 .about:before{content:"";position:absolute;left:-160px;top:-120px;width:420px;height:420px;border-radius:50%;background:rgba(243,201,105,.28);filter:blur(6px)}
 .about:after{content:"";position:absolute;right:6%;bottom:-140px;width:280px;height:280px;border-radius:50%;background:rgba(239,111,94,.14);filter:blur(4px)}
@@ -583,7 +597,8 @@ summary::-webkit-details-marker{display:none}
 @media(prefers-reduced-motion:reduce){.faq__icon:before,.faq__icon:after{transition:none}}
 
 .final{max-width:760px;padding:120px 0;text-align:center}
-.final h2{font:700 clamp(32px,3.8vw,50px)/1.15 var(--font-display);letter-spacing:-.02em;margin-bottom:26px}
+.final h2{font:700 clamp(32px,3.8vw,50px)/1.15 var(--font-display);letter-spacing:-.02em;margin-bottom:0}
+.final__lead{margin:16px auto 30px;max-width:46ch;font-size:16.5px;line-height:1.6;color:var(--copy)}
 
 /* Footer: one compact band, not three. */
 .site-footer-wrap{background:var(--deep);color:#fff}
@@ -659,6 +674,9 @@ summary::-webkit-details-marker{display:none}
   .pricing-card__hint{min-height:0}
   .pricing__footer{margin-top:26px;padding:18px}
   .pricing__intro h2{font-size:32px}
+  .reward-feature{padding:56px 0}
+  .reward-feature__grid{grid-template-columns:1fr;gap:28px}
+  .reward-feature__visual{order:-1}
   .about{padding:64px 0}
   .about:after{display:none}
   .about__grid{grid-template-columns:1fr;gap:40px}
