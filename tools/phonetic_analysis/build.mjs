@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "2.3.1";
+const VERSION = "2.3.2";
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.map((w) => {
   const image = `media/${w.id}.webp`;
@@ -47,6 +47,7 @@ const topic = {
     id: "phonetic_analysis",
     version: VERSION,
     renderer: "phonetic_analysis",
+    numberedModes: true, // mode titles carry their numbers; the mode list shows them (owner, 2026-11-18)
     title: { ru: "Буквы и звуки", en: "Letters and Sounds" },
     avatar: "media/avatar.svg",
     groups: Object.fromEntries(GROUPS.map((g) => [g.id, { ru: g.title }])),
