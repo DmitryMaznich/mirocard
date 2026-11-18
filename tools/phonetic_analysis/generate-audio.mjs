@@ -29,7 +29,8 @@ const CHECK = args.includes("--check"); // only re-check the files for a pause i
 
 // What to send instead of the plain word, where the plain word came out wrong:
 // «Аист.» merged into «айст» (heard as «Iced»); the stress mark keeps two vowels.
-const SAY = { аист: "Аи́ст." };
+// «замок»: the picture is a padlock — замо́к, while «Диктант» says за́мок, so it is not copied.
+const SAY = { аист: "Аи́ст.", замок: "Замо́к." };
 // After synthesis each file was checked by speech recognition (ElevenLabs scribe_v1);
 // «лыжи», «вагон» came out stuttered («Л-лыжи», «В вагон») and were redone.
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.filter((w) => !ONLY || ONLY.has(w.id));
@@ -67,7 +68,7 @@ for (const w of CHECK ? [] : words) {
   const file = join(OUT, `${w.id}.mp3`);
   if (existsSync(file) && !FORCE) continue;
   const from = dictation.get(w.word.toLowerCase());
-  if (from && existsSync(from)) {
+  if (from && existsSync(from) && !SAY[w.id]) {
     if (!DRY) copyFileSync(from, file);
     copied += 1;
     console.log(`copy ${w.word}`);

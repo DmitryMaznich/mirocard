@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "phonetic_analysis",
-    "version": "2.6.0",
+    "version": "2.6.1",
     "renderer": "phonetic_analysis",
     "numberedModes": true,
     "title": {
@@ -1748,7 +1748,7 @@
         {
           "id": "мост",
           "word": "мост",
-          "pic": "небольшой каменный мост через речку, крупно, занимает почти весь кадр",
+          "pic": "небольшой каменный мост через речку, снято на природе, мост крупно во весь кадр",
           "note": "",
           "aligned": true,
           "only": null,
@@ -2690,7 +2690,7 @@
         {
           "id": "флаг",
           "word": "флаг",
-          "pic": "флаг",
+          "pic": "однотонный жёлтый флаг на деревянном древке, флаг без рисунка, полос, гербов и надписей — не флаг страны",
           "note": "г на конце звучит [к]",
           "aligned": true,
           "only": null,
@@ -3297,26 +3297,26 @@
           "audio": "audio/палец.mp3"
         },
         {
-          "id": "какаду",
-          "word": "какаду",
-          "pic": "попугай какаду",
-          "note": "к и а по два раза",
+          "id": "кенгуру",
+          "word": "кенгуру",
+          "pic": "кенгуру стоит на задних лапах, целиком, сбоку",
+          "note": "к перед е мягкий; е безударная; у два раза — не цель (владелец 2026-11-18 вместо какаду)",
           "aligned": true,
           "only": null,
           "firstLetter": "К",
           "targets": [
             {
-              "letter": "Д",
+              "letter": "Н",
               "position": "middle"
             },
             {
-              "letter": "У",
-              "position": "end"
+              "letter": "Г",
+              "position": "middle"
             }
           ],
-          "emoji": "🦜",
-          "image": "media/какаду.webp",
-          "audio": "audio/какаду.mp3"
+          "emoji": "🦘",
+          "image": "media/кенгуру.webp",
+          "audio": "audio/кенгуру.mp3"
         },
         {
           "id": "кит",
@@ -3421,44 +3421,6 @@
           "emoji": null,
           "image": "media/укроп.webp",
           "audio": "audio/укроп.mp3"
-        },
-        {
-          "id": "футбол",
-          "word": "футбол",
-          "pic": "футбольный мяч",
-          "note": "",
-          "aligned": true,
-          "only": null,
-          "firstLetter": "Ф",
-          "targets": [
-            {
-              "letter": "Ф",
-              "position": "start"
-            },
-            {
-              "letter": "У",
-              "position": "middle"
-            },
-            {
-              "letter": "Т",
-              "position": "middle"
-            },
-            {
-              "letter": "Б",
-              "position": "middle"
-            },
-            {
-              "letter": "О",
-              "position": "middle"
-            },
-            {
-              "letter": "Л",
-              "position": "end"
-            }
-          ],
-          "emoji": null,
-          "image": "media/футбол.webp",
-          "audio": "audio/футбол.mp3"
         },
         {
           "id": "туфли",
@@ -5016,7 +4978,7 @@
         {
           "id": "мост",
           "word": "мост",
-          "pic": "небольшой каменный мост через речку, крупно, занимает почти весь кадр",
+          "pic": "небольшой каменный мост через речку, снято на природе, мост крупно во весь кадр",
           "note": "",
           "aligned": true,
           "only": null,
@@ -5958,7 +5920,7 @@
         {
           "id": "флаг",
           "word": "флаг",
-          "pic": "флаг",
+          "pic": "однотонный жёлтый флаг на деревянном древке, флаг без рисунка, полос, гербов и надписей — не флаг страны",
           "note": "г на конце звучит [к]",
           "aligned": true,
           "only": null,
@@ -6565,26 +6527,26 @@
           "audio": "audio/палец.mp3"
         },
         {
-          "id": "какаду",
-          "word": "какаду",
-          "pic": "попугай какаду",
-          "note": "к и а по два раза",
+          "id": "кенгуру",
+          "word": "кенгуру",
+          "pic": "кенгуру стоит на задних лапах, целиком, сбоку",
+          "note": "к перед е мягкий; е безударная; у два раза — не цель (владелец 2026-11-18 вместо какаду)",
           "aligned": true,
           "only": null,
           "firstLetter": "К",
           "targets": [
             {
-              "letter": "Д",
+              "letter": "Н",
               "position": "middle"
             },
             {
-              "letter": "У",
-              "position": "end"
+              "letter": "Г",
+              "position": "middle"
             }
           ],
-          "emoji": "🦜",
-          "image": "media/какаду.webp",
-          "audio": "audio/какаду.mp3"
+          "emoji": "🦘",
+          "image": "media/кенгуру.webp",
+          "audio": "audio/кенгуру.mp3"
         },
         {
           "id": "кит",
@@ -6689,44 +6651,6 @@
           "emoji": null,
           "image": "media/укроп.webp",
           "audio": "audio/укроп.mp3"
-        },
-        {
-          "id": "футбол",
-          "word": "футбол",
-          "pic": "футбольный мяч",
-          "note": "",
-          "aligned": true,
-          "only": null,
-          "firstLetter": "Ф",
-          "targets": [
-            {
-              "letter": "Ф",
-              "position": "start"
-            },
-            {
-              "letter": "У",
-              "position": "middle"
-            },
-            {
-              "letter": "Т",
-              "position": "middle"
-            },
-            {
-              "letter": "Б",
-              "position": "middle"
-            },
-            {
-              "letter": "О",
-              "position": "middle"
-            },
-            {
-              "letter": "Л",
-              "position": "end"
-            }
-          ],
-          "emoji": null,
-          "image": "media/футбол.webp",
-          "audio": "audio/футбол.mp3"
         },
         {
           "id": "туфли",
@@ -8284,7 +8208,7 @@
         {
           "id": "мост",
           "word": "мост",
-          "pic": "небольшой каменный мост через речку, крупно, занимает почти весь кадр",
+          "pic": "небольшой каменный мост через речку, снято на природе, мост крупно во весь кадр",
           "note": "",
           "aligned": true,
           "only": null,
@@ -9226,7 +9150,7 @@
         {
           "id": "флаг",
           "word": "флаг",
-          "pic": "флаг",
+          "pic": "однотонный жёлтый флаг на деревянном древке, флаг без рисунка, полос, гербов и надписей — не флаг страны",
           "note": "г на конце звучит [к]",
           "aligned": true,
           "only": null,
@@ -9833,26 +9757,26 @@
           "audio": "audio/палец.mp3"
         },
         {
-          "id": "какаду",
-          "word": "какаду",
-          "pic": "попугай какаду",
-          "note": "к и а по два раза",
+          "id": "кенгуру",
+          "word": "кенгуру",
+          "pic": "кенгуру стоит на задних лапах, целиком, сбоку",
+          "note": "к перед е мягкий; е безударная; у два раза — не цель (владелец 2026-11-18 вместо какаду)",
           "aligned": true,
           "only": null,
           "firstLetter": "К",
           "targets": [
             {
-              "letter": "Д",
+              "letter": "Н",
               "position": "middle"
             },
             {
-              "letter": "У",
-              "position": "end"
+              "letter": "Г",
+              "position": "middle"
             }
           ],
-          "emoji": "🦜",
-          "image": "media/какаду.webp",
-          "audio": "audio/какаду.mp3"
+          "emoji": "🦘",
+          "image": "media/кенгуру.webp",
+          "audio": "audio/кенгуру.mp3"
         },
         {
           "id": "кит",
@@ -9957,44 +9881,6 @@
           "emoji": null,
           "image": "media/укроп.webp",
           "audio": "audio/укроп.mp3"
-        },
-        {
-          "id": "футбол",
-          "word": "футбол",
-          "pic": "футбольный мяч",
-          "note": "",
-          "aligned": true,
-          "only": null,
-          "firstLetter": "Ф",
-          "targets": [
-            {
-              "letter": "Ф",
-              "position": "start"
-            },
-            {
-              "letter": "У",
-              "position": "middle"
-            },
-            {
-              "letter": "Т",
-              "position": "middle"
-            },
-            {
-              "letter": "Б",
-              "position": "middle"
-            },
-            {
-              "letter": "О",
-              "position": "middle"
-            },
-            {
-              "letter": "Л",
-              "position": "end"
-            }
-          ],
-          "emoji": null,
-          "image": "media/футбол.webp",
-          "audio": "audio/футбол.mp3"
         },
         {
           "id": "туфли",
