@@ -33,15 +33,19 @@ export default function DangerZone() {
     }
   }
 
+  if (!open) {
+    return (
+      <div className="danger-zone--closed">
+        <button type="button" className="danger-zone__open-btn" onClick={() => setOpen(true)}>{tr("account.delete")}</button>
+      </div>
+    );
+  }
+
   return (
     <div className="danger-zone">
       <div className="danger-zone__title">{tr("account.deleteTitle")}</div>
       <p className="danger-zone__text">{tr("account.deleteExplanation")}</p>
-
-      {!open ? (
-        <button className="danger-zone__trigger" onClick={() => setOpen(true)}>{tr("account.delete")}</button>
-      ) : (
-        <div className="danger-zone__confirm">
+      <div className="danger-zone__confirm">
           <label className="danger-zone__label">
             {tr("account.confirmDelete", { email: account?.email })}
           </label>
@@ -59,8 +63,7 @@ export default function DangerZone() {
               {deleting ? tr("account.deleting") : tr("account.delete")}
             </Button>
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
