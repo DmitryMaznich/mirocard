@@ -5,13 +5,14 @@ import { normalizeRewardVideoIds } from "@/shared/utils/rewardVideoPicker";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
-import { FINISH, comparisonAnswer, createRace, raceReducer } from "./raceEngine";
+import { FINISH, TUG_FINISH, comparisonAnswer, createRace, createTugOfWar, raceReducer } from "./raceEngine";
 import { DiceFace, RaceCar } from "./RaceArt";
 import RollingDice from "./RollingDice";
 import TowerScene from "./TowerScene";
 import { MAX_FLOORS } from "./towerGeometry";
 import WaterScene from "./WaterScene";
 import WaterCharacters from "./WaterCharacters";
+import TugScene, { TugScoreboard } from "./TugScene";
 import { WATER_CAPACITY,WATER_WIN } from "./waterGeometry";
 import "./games.css";
 import "./landscape.css";
@@ -45,11 +46,11 @@ export default function GamesScreen() {
   const [adultName, setAdultName] = useState("Папа");
   const [characters,setCharacters] = useState(()=>[student?.sex === "f" ? "girl" : "boy","man"]);
   if (!student) return <main className="games-home"><h1>Выберите ученика</h1><button className="games-primary" onClick={() => setScreen("home")}>На главный экран</button></main>;
-  return <DiceRace key={`${studentId}-${modeId}-${gameNumber}`} isTower={modeId === "skyscrapers"} isWater={modeId === "water_fill"} initialCharacters={characters} onCharactersChange={setCharacters} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
+  return <DiceRace key={`${studentId}-${modeId}-${gameNumber}`} isTower={modeId === "skyscrapers"} isWater={modeId === "water_fill"} isTug={modeId === "tug_of_war"} initialCharacters={characters} onCharactersChange={setCharacters} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
 }
 
-function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersChange, initialAdultName, onNameChange, onBack, onReplay }) {
-  const [race, dispatch] = useReducer(raceReducer, undefined, () => createRace(isWater ? WATER_WIN : isTower ? MAX_FLOORS : FINISH, isWater ? WATER_CAPACITY : isTower ? MAX_FLOORS : FINISH, isWater, isWater));
+function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onCharactersChange, initialAdultName, onNameChange, onBack, onReplay }) {
+  const [race, dispatch] = useReducer(raceReducer, undefined, () => isTug ? createTugOfWar() : createRace(isWater ? WATER_WIN : isTower ? MAX_FLOORS : FINISH, isWater ? WATER_CAPACITY : isTower ? MAX_FLOORS : FINISH, isWater, isWater));
   const [started, setStarted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [adultName, setAdultName] = useState(initialAdultName);
@@ -68,7 +69,7 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
   const showResult = race.phase === "finished" && (!(isTower || isWater) || celebrated);
   const rewardOpen = showResult && earnedVideo && hasVideo && !rewardClaimed;
   const resultTitle = race.result === "tie" ? "Ничья!" : race.result === "child" ? `${childName} — победитель!` : `${adult} — победитель!`;
-  const onFloorPlaced = useCallback(() => dispatch({type:"tick"}), []);
+  const onSceneStep = useCallback(() => dispatch({type:"tick"}), []);
 
   useEffect(() => {
     if (!(isTower || isWater) || race.phase !== "finished" || paused) return undefined;
@@ -77,18 +78,19 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
   },[isTower,isWater,race.phase,paused]);
 
   useEffect(() => {
-    if (isTower || isWater || race.phase !== "moving" || paused) return undefined;
+    if (isTower || isWater || isTug || race.phase !== "moving" || paused) return undefined;
     const timer = setTimeout(() => dispatch({ type: "tick" }), 320);
     return () => clearTimeout(timer);
-  }, [isTower,isWater,race.phase, race.step, paused]);
+  }, [isTower, isWater, isTug, race.phase, race.step, paused]);
 
   useEffect(() => {
     if (paused) return undefined;
     const action = race.phase === "settling" ? "settled" : race.phase === "arriving" ? "arrived" : null;
     if (!action) return undefined;
-    const timer = setTimeout(() => dispatch({ type: action }), race.phase === "settling" ? 360 : 320);
+    const duration = race.phase === "settling" ? 360 : isTug && race.result ? 600 : 320;
+    const timer = setTimeout(() => dispatch({ type: action }), duration);
     return () => clearTimeout(timer);
-  }, [race.phase, paused]);
+  }, [isTug, race.phase, race.result, paused]);
 
   useEffect(() => {
     setBackInterceptor(() => {
@@ -102,16 +104,19 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
   }, [rewardOpen, paused, started, race.phase, onBack]);
 
   const rolling = race.phase === "rolling" || race.phase === "settling";
-  const question = isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
-  const status = race.phase === "between" ? "" : race.phase === "moving" || race.phase === "arriving" ? isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
+  const question = isTug ? "Кто перетянет канат в этом раунде?" : isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
+  const highRoll = Math.max(...race.dice);
+  const lowRoll = Math.min(...race.dice);
+  const tugStatus = highRoll === lowRoll ? "Поровну. Канат на месте." : `${highRoll} − ${lowRoll} = ${highRoll - lowRoll}`;
+  const status = race.phase === "between" ? "" : race.phase === "moving" || race.phase === "arriving" ? isTug ? tugStatus : isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
 
-  return <main className={`dice-race${isTower ? " dice-race--tower" : ""}${isWater ? " dice-race--water" : ""}${isTower || isWater ? " dice-race--compact" : ""}`}>
+  return <main className={`dice-race${isTower ? " dice-race--tower" : ""}${isWater ? " dice-race--water" : ""}${isTug ? " dice-race--tug" : ""}${isTower || isWater ? " dice-race--compact" : ""}`}>
     <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
     <header className="games-header race-header">
       <button className="games-icon" aria-label="К списку игр" onClick={() => started && race.phase !== "finished" ? setPaused(true) : onBack()}><BackArrowIcon /></button>
-      <h1>{isWater ? "Наливаем до краёв" : isTower ? "Дом до облаков" : "Гонки"}</h1><span className="race-round">Раунд {race.round}</span>
+      <h1>{isTug ? "Перетягивание каната" : isWater ? "Наливаем до краёв" : isTower ? "Дом до облаков" : "Гонки"}</h1><span className="race-round">Раунд {race.round}</span>
     </header>
-    {isWater ? <WaterScene race={race} names={[childName,adult]} characters={characters} paused={paused} onPortion={onFloorPlaced} /> : isTower ? <TowerScene race={race} names={[childName,adult]} paused={paused} onPlaced={onFloorPlaced} /> : <div className="race-course">
+    {isTug ? <TugScene race={race} names={[childName, adult]} paused={paused} onStep={onSceneStep} /> : isWater ? <WaterScene race={race} names={[childName,adult]} characters={characters} paused={paused} onPortion={onSceneStep} /> : isTower ? <TowerScene race={race} names={[childName,adult]} paused={paused} onPlaced={onSceneStep} /> : <div className="race-course">
       <RaceLane name={childName} player="child" position={race.positions[0]} />
       <RaceLane name={adult} player="adult" position={race.positions[1]} />
     </div>}
@@ -129,21 +134,22 @@ function DiceRace({ student, isTower, isWater, initialCharacters, onCharactersCh
     {started && rolling && <RollingDice key={race.round} childName={childName} adultName={adult} round={race.round} settling={race.phase === "settling"} paused={paused} onReady={() => dispatch({ type: "ready" })} onPause={() => setPaused(true)} />}
 
     {!started && <div className="games-overlay"><section className={`games-dialog${isWater ? " games-dialog--water" : ""}`} role="dialog" aria-modal="true" aria-labelledby="race-start-title">
-      <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">{isWater ? "У кого вода первой польётся через край?" : isTower ? "Чья башня дорастёт до облаков?" : "Кто первым до финиша?"}</h2>
-      <p>{isWater ? "Бросайте настоящие кубики и сравнивайте числа. Одна точка на кубике — одна порция воды. На отметке 20 стакан полон. Выигрывает тот, у кого первым вода польётся через край." : isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
+      <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">{isTug ? "Кто перетянет канат?" : isWater ? "У кого вода первой польётся через край?" : isTower ? "Чья башня дорастёт до облаков?" : "Кто первым до финиша?"}</h2>
+      <p>{isTug ? "Бросьте по одному настоящему кубику и сравните числа. Канат сдвинется в сторону большего броска на разницу между числами. При равных бросках канат останется на месте. За каждое деление, на которое игрок подтянул канат к себе, на его табло прибавляется очко." : isWater ? "Бросайте настоящие кубики и сравнивайте числа. Одна точка на кубике — одна порция воды. На отметке 20 стакан полон. Выигрывает тот, у кого первым вода польётся через край." : isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
       <label className="race-adult-name">Второй игрок<input maxLength={24} value={adultName} onChange={e => setAdultName(e.target.value)} /></label>
       {isWater && <WaterCharacters values={characters} onChange={setCharacters} />}
-      <p className="games-prize-rule">{hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isWater ? "Вода перелилась одновременно у обоих — ничья." : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
+      <p className="games-prize-rule">{isTug ? `В начале под флажком стоит ноль. Побеждает тот, кто первым подтянет канат так, чтобы под флажком оказалась отметка ${TUG_FINISH}.${hasVideo ? " За победу ребёнка — любимое видео." : ""}` : hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isWater ? "Вода перелилась одновременно у обоих — ничья." : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
       <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" autoFocus onClick={() => { setAdultName(adult); onNameChange(adult); onCharactersChange(characters); setStarted(true); }}>На старт!</button></div>
     </section></div>}
 
-    {paused && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-pause-title"><h2 id="race-pause-title">Пауза</h2><p>{isWater ? "Вода подождёт." : isTower ? "Краны подождут." : "Машинки подождут."}</p><div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>Закончить игру</button><button className="games-primary" autoFocus onClick={() => setPaused(false)}>Продолжить</button></div></section></div>}
+    {paused && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-pause-title"><h2 id="race-pause-title">Пауза</h2><p>{isTug ? "Канат подождёт." : isWater ? "Вода подождёт." : isTower ? "Краны подождут." : "Машинки подождут."}</p><div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>Закончить игру</button><button className="games-primary" autoFocus onClick={() => setPaused(false)}>Продолжить</button></div></section></div>}
 
     {showResult && !rewardOpen && <div className="games-overlay"><section className="games-dialog games-result" role="dialog" aria-modal="true" aria-labelledby="race-result-title">
       <span className="games-result-flag" aria-hidden="true">⚑</span><h2 id="race-result-title">{resultTitle}</h2>
-      <p>{isWater ? race.result === "tie" ? "Вода перелилась через край одновременно у обоих!" : "Вода полилась через край!" : isTower ? race.result === "tie" ? "Оба небоскрёба доросли до облаков в одном раунде." : "Небоскрёб до облаков построен!" : race.result === "tie" ? "Обе машинки добрались до финиша в одном раунде." : "Первым до финиша добрался " + (race.result === "child" ? childName : adult) + "."}</p>
-      <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" onClick={onReplay}>{isWater ? "Наливать ещё" : isTower ? "Строить ещё" : "Ещё гонка"}</button></div>
+      <p>{isTug ? `Отметка ${TUG_FINISH} дошла до флажка!` : isWater ? race.result === "tie" ? "Вода перелилась через край одновременно у обоих!" : "Вода полилась через край!" : isTower ? race.result === "tie" ? "Оба небоскрёба доросли до облаков в одном раунде." : "Небоскрёб до облаков построен!" : race.result === "tie" ? "Обе машинки добрались до финиша в одном раунде." : "Первым до финиша добрался " + (race.result === "child" ? childName : adult) + "."}</p>
+      {isTug && <TugScoreboard names={[childName, adult]} scores={race.pullScores} />}
+      <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" onClick={onReplay}>{isTug ? "Ещё поединок" : isWater ? "Наливать ещё" : isTower ? "Строить ещё" : "Ещё гонка"}</button></div>
     </section></div>}
-    {rewardOpen && <RewardVideoModal studentId={student.id} rewardVideos={rewardVideos} settingsOverride={rewardSettings} title={resultTitle} continueLabel={isWater ? "Вернуться к воде" : isTower ? "Вернуться к стройке" : "Вернуться к гонке"} onDismiss={() => setRewardClaimed(true)} />}
+    {rewardOpen && <RewardVideoModal studentId={student.id} rewardVideos={rewardVideos} settingsOverride={rewardSettings} title={resultTitle} continueLabel={isTug ? "Вернуться к канату" : isWater ? "Вернуться к воде" : isTower ? "Вернуться к стройке" : "Вернуться к гонке"} onDismiss={() => setRewardClaimed(true)} />}
   </main>;
 }

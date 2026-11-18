@@ -3,6 +3,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { RaceCar } from "./RaceArt";
 import { TowerPreview } from "./TowerScene";
 import { WaterPreview } from "./WaterScene";
+import { TugPreview } from "./TugScene";
 import "./games.css";
 
 export default function GamesHome() {
@@ -30,6 +31,12 @@ export default function GamesHome() {
         <span className="games-tile__art games-tile__art--water"><WaterPreview /></span>
         <strong>Наливаем до краёв</strong>
         <span>Персонажи, краны и два стакана воды</span>
+        <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
+      </button>
+      <button className="games-tile" onClick={() => { setActiveModeId("tug_of_war"); setScreen("params"); }}>
+        <span className="games-tile__art games-tile__art--tug"><TugPreview /></span>
+        <strong>Перетягивание каната</strong>
+        <span>Кто первым дотянет канат до отметки 15?</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
       </button>
     </div>

@@ -1,7 +1,16 @@
 export const FINISH = 19;
+export const TUG_FINISH = 15;
 
 export function createRace(finish = FINISH, capacity = finish, deferResult = false, firstToFinish = false) {
   return { finish, capacity, deferResult, firstToFinish, positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
+}
+
+export function createTugOfWar() {
+  return { ...createRace(TUG_FINISH), ropePosition: 0, pullScores: [0, 0] };
+}
+
+export function tugDirection(dice) {
+  return Math.sign(dice[1] - dice[0]);
 }
 
 export function comparisonAnswer(dice) {
@@ -10,7 +19,9 @@ export function comparisonAnswer(dice) {
 }
 
 export function raceReducer(state, action) {
-  if (action.type === "reset") return createRace(state.finish, state.capacity, state.deferResult, state.firstToFinish);
+  if (action.type === "reset") return state.ropePosition === undefined
+    ? createRace(state.finish, state.capacity, state.deferResult, state.firstToFinish)
+    : createTugOfWar();
   if (action.type === "nextThrow" && state.phase === "between") return { ...state, phase: "rolling", dice: [null, null], answer: null, mistake: false };
   if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
   if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
@@ -32,6 +43,15 @@ export function raceReducer(state, action) {
   }
   if (action.type !== "tick" || state.phase !== "moving") return state;
   const step = state.step + 1;
+  if (state.ropePosition !== undefined) {
+    const direction = tugDirection(state.dice);
+    const ropePosition = state.ropePosition + direction;
+    const [childScore, adultScore] = state.pullScores;
+    const pullScores = [childScore + Math.max(0, -direction), adultScore + Math.max(0, direction)];
+    const result = ropePosition === -TUG_FINISH ? "child" : ropePosition === TUG_FINISH ? "adult" : null;
+    const complete = result || step >= Math.abs(state.dice[0] - state.dice[1]);
+    return { ...state, ropePosition, pullScores, step, result, phase: complete ? "arriving" : "moving" };
+  }
   const finish = state.finish ?? FINISH;
   const capacity = state.capacity ?? finish;
   const positions = state.positions.map((position, i) => Math.min(capacity, position + (step <= state.dice[i] ? 1 : 0)));
