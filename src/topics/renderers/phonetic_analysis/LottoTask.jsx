@@ -41,7 +41,7 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
   return (
     <div className="session-body pa-stage pa-stage--lotto">
       <div className="pa-prompt">Положи букву на картинку</div>
-      <div className={`pa-lotto${task.size === 3 ? " pa-lotto--three" : ""}`}>
+      <div className="pa-lotto">
         {task.board.map((w) => {
           const mine = placed[w.id];
           const bad = wrong?.wordId === w.id;

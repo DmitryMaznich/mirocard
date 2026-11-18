@@ -1,0 +1,101 @@
+import { useRef, useState } from "react";
+import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { useDrag } from "./useDrag";
+import { Picture, useWordVoice, wait } from "./voice";
+
+// Lotto «Картинки на буквы» — the lotto turned round: a board of letters and
+// pictures in the tray; each picture goes onto the letter its word starts with.
+// A tap on a picture says its word. A right picture settles into the letter's
+// square (the letter moves to the corner), a wrong one turns the square red and
+// stays in the tray.
+export default function LottoReverseTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
+  const { play, playing } = useWordVoice({ topicId, playTopicFile });
+  const [placed, setPlaced] = useState(() => ({})); // letter → word
+  const [wrong, setWrong] = useState(null); // letter
+  const [done, setDone] = useState(false);
+  const errors = useRef(0);
+
+  async function drop(wordId, letter) {
+    if (done || !letter || placed[letter]) return;
+    const word = task.pictures.find((w) => w.id === wordId);
+    if (!word) return;
+    if (word.firstLetter !== letter) {
+      errors.current += 1;
+      onStreakReset?.(task.conceptId, word.id);
+      setWrong(letter);
+      await wait(800);
+      setWrong(null);
+      return;
+    }
+    const next = { ...placed, [letter]: word };
+    setPlaced(next);
+    play(word);
+    if (Object.keys(next).length === task.pairs.length) {
+      setDone(true);
+      await wait(1600);
+      onCorrect?.(task.conceptId, task.pairs[0].wordId, errors.current ? { assisted: true } : undefined);
+    }
+  }
+
+  const drag = useDrag({
+    onDrop: (payload, target) => drop(payload.wordId, target),
+    onTap: (payload) => play(task.pictures.find((w) => w.id === payload.wordId)),
+  });
+  const placedIds = new Set(Object.values(placed).map((w) => w.id));
+  const left = task.pictures.filter((w) => !placedIds.has(w.id));
+  const lifted = drag.ghost ? task.pictures.find((w) => w.id === drag.ghost.payload.wordId) : null;
+
+  return (
+    <div className="session-body pa-stage pa-stage--lotto">
+      <div className="pa-prompt">Положи картинку на букву</div>
+      <div className="pa-rlotto">
+        {task.letters.map((L) => {
+          const mine = placed[L];
+          return (
+            <div
+              key={L}
+              className={`pa-rlotto__cell${mine ? " pa-rlotto__cell--ok" : ""}${wrong === L ? " pa-rlotto__cell--bad" : ""}`}
+              data-drop={!mine && !done ? L : undefined}
+            >
+              {mine ? <PlacedPicture topicId={topicId} word={mine} letter={L} /> : L}
+            </div>
+          );
+        })}
+      </div>
+      <div className="pa-tray">
+        {done
+          ? <span className="pa-done">✓</span>
+          : left.map((w) => (
+            <div key={w.id} onPointerDown={(e) => drag.start(e, { wordId: w.id })}>
+              <Picture
+                topicId={topicId}
+                word={w}
+                playing={playing === w.id}
+                className={`pa-rlotto__thumb${drag.dragging?.wordId === w.id ? " pa-rlotto__thumb--lifted" : ""}`}
+              />
+            </div>
+          ))}
+      </div>
+      {lifted && (
+        <div className="pa-ghost" style={{ left: drag.ghost.x, top: drag.ghost.y }}>
+          <GhostPicture topicId={topicId} word={lifted} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlacedPicture({ topicId, word, letter }) {
+  const url = useTopicFile(topicId, word.image);
+  return (
+    <>
+      {url ? <img src={url} alt="" draggable={false} /> : <span className="pa-pic__emoji">{word.emoji}</span>}
+      <span className="pa-card pa-card--placed">{letter}</span>
+    </>
+  );
+}
+
+function GhostPicture({ topicId, word }) {
+  const url = useTopicFile(topicId, word.image);
+  return <div className="pa-rlotto__ghost">{url ? <img src={url} alt="" /> : <span className="pa-pic__emoji">{word.emoji}</span>}</div>;
+}

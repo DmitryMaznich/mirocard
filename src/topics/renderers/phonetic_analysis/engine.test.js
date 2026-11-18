@@ -19,14 +19,21 @@ describe("scheme steps", () => {
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(5);
   });
 
-  it("picture for the letter: 3 pictures, exactly one starts with the letter", () => {
-    for (const t of run("pa_first_letter")) {
-      expect(t.type).toBe("pa_lotto");
-      expect(t.board).toHaveLength(3);
-      expect(t.board.filter((w) => w.firstLetter === t.letter)).toHaveLength(1);
-      expect(new Set(t.board.map((w) => w.firstLetter)).size).toBe(3);
-      expect(t.pairs).toEqual([{ letter: t.letter, wordId: t.board.find((w) => w.firstLetter === t.letter).id }]);
+  it("lotto «Картинки на буквы»: 6 letters, 4 pictures, each picture's first letter is on the board", () => {
+    for (const t of run("pa_lotto", ALL, { direction: "pictures" })) {
+      expect(t.type).toBe("pa_lotto_reverse");
+      expect(t.pictures).toHaveLength(4);
+      expect(t.letters).toHaveLength(6);
+      expect(new Set(t.letters).size).toBe(6);
+      for (const w of t.pictures) expect(t.letters).toContain(w.firstLetter);
+      expect(new Set(t.pictures.map((w) => w.firstLetter)).size).toBe(4);
     }
+  });
+
+  it("lotto «Картинки на буквы» with only 2 learned letters still has spare letters", () => {
+    const t = run("pa_lotto", ["М", "С"], { direction: "pictures" })[0];
+    expect(t.pictures).toHaveLength(2);
+    expect(t.letters.length).toBeGreaterThan(2);
   });
 
   it("step 3 and 4: the answer is the first or last cell, where the letter really is", () => {
@@ -44,7 +51,7 @@ describe("scheme steps", () => {
 
   it("only learned letters are asked", () => {
     const learned = ["М", "С", "К"];
-    for (const type of ["pa_sound_start", "pa_first_letter", "pa_last_letter", "pa_where"]) {
+    for (const type of ["pa_sound_start", "pa_last_letter", "pa_where"]) {
       for (const t of run(type, learned)) {
         if (t.type === "pa_need_more") continue;
         expect(learned).toContain(t.letter);

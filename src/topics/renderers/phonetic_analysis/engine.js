@@ -12,6 +12,7 @@ const DEFAULT_COUNT = 10;
 const LOTTO_BOARDS = 3;
 const LOTTO_SIZE = 9;
 const LOTTO_LETTERS = 4;
+const REVERSE_EXTRA = 2; // letters on the «Картинки на буквы» board beyond the 4 answers
 // Words that name the same picture: never on one lotto board.
 const SAME_PICTURE = [["кот", "кошка"], ["мяч", "футбол"], ["шуба", "пальто"], ["чай", "чашка"]];
 
@@ -71,31 +72,6 @@ function soundStartTasks(words, learned, count) {
   const half = Math.ceil(count / 2);
   const chosen = shuffle([...cycle(yes, half), ...cycle(no, count - half)]);
   return chosen.map(({ w, L, start }) => schemeTask(1, "chip", w, L, { layout: "bar", answer: start ? 0 : "bar" }));
-}
-
-// «Какая картинка на эту букву?»: one letter card and 3 pictures, the card
-// goes onto the picture whose word starts with it (owner, 2026-11-18 — the old
-// «drag the first letter into the only slot» was a choice of 1 of 3 letters,
-// not analysis). Drawn by LottoTask. A tap on a picture says its word; one of
-// the other two starts with a letter easily confused with this one (б/п, с/ш).
-function letterPicturesTasks(words, learned, count) {
-  const byLetter = new Map();
-  for (const w of words) byLetter.set(w.firstLetter, [...(byLetter.get(w.firstLetter) ?? []), w]);
-  const targets = learned.filter((L) => byLetter.has(L));
-  if (!targets.length) return needMore("Нет слов на выбранные буквы. Добавьте буквы в «Изменить».");
-  const clash = (a, b) => SAME_PICTURE.some((g) => g.includes(a.word) && g.includes(b.word));
-  return cycle(targets, count).map((L) => {
-    const right = pick(byLetter.get(L));
-    const board = [right];
-    const close = pickDistractorLetters(L.toLowerCase(), 3).map((l) => l.toUpperCase());
-    const others = [...shuffle(close), ...shuffle([...byLetter.keys()])].filter((l, i, a) => l !== L && byLetter.has(l) && a.indexOf(l) === i);
-    for (const l of others) {
-      if (board.length === 3) break;
-      const w = shuffle(byLetter.get(l)).find((c) => !board.some((b) => b.firstLetter === c.firstLetter || clash(b, c)));
-      if (w) board.push(w);
-    }
-    return { type: "pa_lotto", size: 3, conceptId: L, letter: L, board: shuffle(board), pairs: [{ letter: L, wordId: right.id }] };
-  });
 }
 
 // Step 3 «Какой буквой кончается?»: the last cell only.
@@ -165,11 +141,27 @@ export function lottoBoard(words, learned) {
   return { board: shuffle(chosen), pairs: shuffle(pairs) };
 }
 
-function lottoTasks(words, learned) {
+// «Картинки на буквы» — the lotto turned round (owner, 2026-11-18): a board of
+// 6 letters and 4 pictures; each picture goes onto its first letter. More
+// letters than pictures, so the last picture can't go by elimination.
+export function reverseLottoBoard(words, learned) {
+  const b = lottoBoard(words, learned);
+  if (!b) return null;
+  const used = b.pairs.map((p) => p.letter);
+  const extra = [];
+  const add = (l) => { if (l && !used.includes(l) && !extra.includes(l) && extra.length < REVERSE_EXTRA) extra.push(l); };
+  shuffle(learned).forEach(add);
+  for (const L of used) distractors(L, learned, 3).forEach(add);
+  const pictures = b.pairs.map((p) => b.board.find((w) => w.id === p.wordId));
+  return { letters: shuffle([...used, ...extra]), pictures: shuffle(pictures), pairs: b.pairs };
+}
+
+function lottoTasks(words, learned, direction) {
+  const reverse = direction === "pictures";
   const boards = [];
   for (let i = 0; i < LOTTO_BOARDS; i += 1) {
-    const b = lottoBoard(words, learned);
-    if (b) boards.push({ type: "pa_lotto", conceptId: b.pairs[0].letter, ...b });
+    const b = reverse ? reverseLottoBoard(words, learned) : lottoBoard(words, learned);
+    if (b) boards.push({ type: reverse ? "pa_lotto_reverse" : "pa_lotto", conceptId: b.pairs[0].letter, ...b });
   }
   return boards.length ? boards : needMore("Для лото нужно хотя бы 2 буквы. Добавьте буквы в «Изменить».");
 }
@@ -211,12 +203,11 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
 function build(type, words, learned, count, params) {
   switch (type) {
     case "pa_sound_start": return soundStartTasks(words, learned, count);
-    case "pa_first_letter": return letterPicturesTasks(words, learned, count);
     case "pa_last_letter": return lastLetterTasks(words, learned, count);
     case "pa_start_end": return startEndTasks(words, learned, count);
     case "pa_where": return whereTasks(words, learned, count);
     case "pa_all_letters": return allLettersTasks(words, learned, count);
-    case "pa_lotto": return lottoTasks(words, learned);
+    case "pa_lotto": return lottoTasks(words, learned, params.direction);
     case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty);
     case "pa_find_all": return findAllTasks(learned, count);
     default: return [];

@@ -1,11 +1,13 @@
 import "./phonetic_analysis.css";
 import SchemeTask from "./SchemeTask";
 import LottoTask from "./LottoTask";
+import LottoReverseTask from "./LottoReverseTask";
 import { FindLetterTask, FindAllTask, NeedMoreTask } from "./LetterGames";
 
 const TASKS = {
   pa_scheme: SchemeTask,
   pa_lotto: LottoTask,
+  pa_lotto_reverse: LottoReverseTask,
   pa_find_letter: FindLetterTask,
   pa_find_all: FindAllTask,
   pa_need_more: NeedMoreTask,
