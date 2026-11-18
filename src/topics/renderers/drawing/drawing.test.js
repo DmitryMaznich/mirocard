@@ -23,7 +23,25 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog", "snowman_glasses"]));
+    const snowman = tasks.find(task => task.cardId === "snowman_glasses").lesson;
+    expect(snowman.title).toBe("Снеговик в очках");
+    expect(snowman.steps).toHaveLength(41);
+    expect(snowman.source.url).toContain("1pxa9_W1Dnj1BlfVCz5AwHNtdq66dzFGb");
+    expect(snowman.steps.slice(0, 7).map(step => step.title)).toEqual([
+      "Шарф целиком", "Складка шарфа", "Большой снежный ком",
+      "Голова над шарфом — от края до края", "Целый отворот шапки на голове",
+      "Верхняя часть шапки", "Круглый помпон",
+    ]);
+    for (const step of snowman.steps.slice(0, 7)) expect(step.paths).toHaveLength(1);
+    expect(snowman.steps.findIndex(step => step.title === "Левая ручка-веточка"))
+      .toBeLessThan(snowman.steps.findIndex(step => step.title === "Левая варежка на ручке"));
+    expect(snowman.steps.findIndex(step => step.title === "Правая ручка-веточка"))
+      .toBeLessThan(snowman.steps.findIndex(step => step.title === "Правая варежка на ручке"));
+    expect(await archive.file("media/snowman_glasses.svg").async("string")).toContain(snowman.viewBox);
+    for (const step of snowman.steps.filter(step => step.kind === "stroke")) {
+      for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
+    }
     const dog = tasks.find(task => task.cardId === "dog").lesson;
     expect(dog.title).toBe("Собачка");
     expect(dog.steps).toHaveLength(48);
