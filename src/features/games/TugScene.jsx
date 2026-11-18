@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { TUG_FINISH, tugDirection } from "./raceEngine";
+import { TUG_FINISH, tugPullDirection } from "./raceEngine";
 import "./tug.css";
 
-const CENTER = 480;
+const SCENE_WIDTH = 1040;
+const CENTER = SCENE_WIDTH / 2;
 const DIVISION = 12;
 const MARKS = Array.from({ length: TUG_FINISH * 2 + 1 }, (_, i) => i - TUG_FINISH);
 const COLORS = ["#e77868", "#369c9a"];
@@ -36,18 +37,20 @@ function TugPicture({ position, pull = 0, direction = 0, result = null, label, p
   const offset = position * DIVISION;
   // Leave both pullers room at the margins while the marked rope passes through their grip.
   const pullerOffset = offset * 0.55;
-  const child = 156 + pullerOffset;
-  const adult = 804 + pullerOffset;
+  const child = 180 + pullerOffset;
+  const adult = 860 + pullerOffset;
   const ropePath = `M${child + 47} 190H${adult - 53}`;
   const stride = direction * Math.sin(Math.PI * pull) * 6;
   const winner = result === "child" ? 0 : 1;
-  return <svg className="tug-picture" viewBox={preview ? "90 42 780 278" : "0 0 960 320"} role={preview ? undefined : "img"} aria-label={label} aria-hidden={preview || undefined}>
-    <rect width="960" height="320" rx="24" fill="#e3f0e8" />
-    <circle cx="779" cy="70" r="31" fill="#f9df95" />
-    <path d="M75 69q10-28 33-15 22-24 48 7 21-4 29 13H68q0-3 7-5zm230-31q10-16 24-8 16-17 35 3 12-2 18 9h-81z" fill="#fffaf0" />
-    <path d="M0 179Q185 107 377 177T692 168Q833 118 960 171V320H0z" fill="#c9e3cb" />
-    <path d="M0 246Q154 210 329 236T647 233Q818 204 960 244V320H0z" fill="#b3d3ad" />
-    <path d="M0 293Q231 241 480 285Q702 242 960 293V320H0z" fill="#e9d3ab" />
+  return <svg className="tug-picture" viewBox={preview ? "110 42 820 278" : `0 0 ${SCENE_WIDTH} 320`} role={preview ? undefined : "img"} aria-label={label} aria-hidden={preview || undefined}>
+    <rect width={SCENE_WIDTH} height="320" rx="24" fill="#e3f0e8" />
+    <g transform={`scale(${SCENE_WIDTH / 960} 1)`}>
+      <circle cx="779" cy="70" r="31" fill="#f9df95" />
+      <path d="M75 69q10-28 33-15 22-24 48 7 21-4 29 13H68q0-3 7-5zm230-31q10-16 24-8 16-17 35 3 12-2 18 9h-81z" fill="#fffaf0" />
+      <path d="M0 179Q185 107 377 177T692 168Q833 118 960 171V320H0z" fill="#c9e3cb" />
+      <path d="M0 246Q154 210 329 236T647 233Q818 204 960 244V320H0z" fill="#b3d3ad" />
+      <path d="M0 293Q231 241 480 285Q702 242 960 293V320H0z" fill="#e9d3ab" />
+    </g>
     <g className="tug-center-flag" transform={`translate(${CENTER} 301)`}>
       <ellipse rx="22" ry="5" fill="#b99367" opacity=".4" />
       <path d="M0-2v-193" stroke="#684232" strokeWidth="7" strokeLinecap="round" />
@@ -65,7 +68,7 @@ function TugPicture({ position, pull = 0, direction = 0, result = null, label, p
       {MARKS.map(mark => {
         const major = mark % 5 === 0;
         const center = mark === 0;
-        const winning = result && mark === -position;
+        const winning = result && mark === -Math.sign(position) * TUG_FINISH;
         return <g key={mark} data-rope-mark={mark} transform={`translate(${CENTER + mark * DIVISION} 190)`}>
           <path d={major ? "M0-8v21" : "M0-4v8"} stroke={center ? "#bc633b" : "#674831"} strokeWidth={major ? 3 : 1.5} strokeLinecap="round" />
           {major && <>
@@ -83,17 +86,19 @@ function TugPicture({ position, pull = 0, direction = 0, result = null, label, p
 function TugStep({ race, paused, onStep, label }) {
   const [progress, setProgress] = useState(0);
   const elapsed = useRef(0);
-  const direction = tugDirection(race.dice);
+  const direction = tugPullDirection(race.dice, race.step);
+  const changingSides = direction !== 0 && race.step === Math.min(...race.dice);
   useEffect(() => {
     if (paused) return undefined;
     let frame;
     let previous = performance.now();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const duration = direction === 0 ? 160 : reduced ? 85 : 290;
+    const pauseBeforeStep = changingSides && !reduced ? 280 : 0;
     function advance(now) {
       elapsed.current += now - previous;
       previous = now;
-      const next = Math.min(elapsed.current / duration, 1);
+      const next = Math.max(0, Math.min((elapsed.current - pauseBeforeStep) / duration, 1));
       if (next === 1) onStep();
       else {
         if (!reduced && direction) setProgress(next);
@@ -102,15 +107,15 @@ function TugStep({ race, paused, onStep, label }) {
     }
     frame = requestAnimationFrame(advance);
     return () => cancelAnimationFrame(frame);
-  }, [direction, onStep, paused]);
+  }, [changingSides, direction, onStep, paused]);
   const eased = progress * progress * (3 - 2 * progress);
   return <TugPicture position={race.ropePosition + direction * eased} pull={progress} direction={direction} label={label} />;
 }
 
 export default function TugScene({ race, names, paused, onStep }) {
   const { ropePosition, pullScores } = race;
-  const direction = race.phase === "moving" || race.phase === "arriving" ? tugDirection(race.dice) : 0;
-  const label = ropePosition === 0 ? "Ноль на канате под флажком" : `Канат сдвинут на ${Math.abs(ropePosition)} из ${TUG_FINISH} делений в сторону игрока ${names[ropePosition < 0 ? 0 : 1]}`;
+  const direction = race.phase === "moving" ? tugPullDirection(race.dice, race.step) : 0;
+  const label = ropePosition === 0 ? "Ноль на канате под флажком" : `Сдвиг каната в сторону игрока ${names[ropePosition < 0 ? 0 : 1]} — ${Math.abs(ropePosition)}`;
   return <div className="tug-scene" data-rope-position={ropePosition}>
     <TugScoreboard names={names} scores={pullScores} direction={direction} />
     {race.phase === "moving"
