@@ -117,17 +117,31 @@ describe("tug of war", () => {
 
   it("keeps the shared position on equality and allows the lead to reverse", () => {
     let duel = play(createTugOfWar(), 4, 1);
-    expect(duel).toMatchObject({ ropePosition: -3, pullScores: [3, 0] });
+    expect(duel).toMatchObject({ ropePosition: -3, pullScores: [4, 1] });
     duel = play(duel, 6, 6);
-    expect(duel).toMatchObject({ ropePosition: -3, pullScores: [3, 0], result: null });
+    expect(duel).toMatchObject({ ropePosition: -3, pullScores: [4, 1], result: null });
     duel = play(duel, 1, 6);
-    expect(duel).toMatchObject({ ropePosition: 2, pullScores: [3, 5] });
-    expect(play(duel, 3, 1)).toMatchObject({ ropePosition: 0, pullScores: [5, 5], result: null });
+    expect(duel).toMatchObject({ ropePosition: 2, pullScores: [5, 7] });
+    expect(play(duel, 3, 1)).toMatchObject({ ropePosition: 0, pullScores: [8, 8], result: null });
   });
 
-  it("stops at the finish even when the winning roll has steps left", () => {
+  it("lets the smaller roll pass the finish and waits for the full return pull", () => {
+    const atEdge = input({ ...createTugOfWar(), ropePosition: 14, pullScores: [0, 14], dice: [6, 5] });
+    let duel = raceReducer(atEdge, { type: "compare", answer: "child" });
+    for (let step = 1; step <= 5; step++) {
+      duel = raceReducer(duel, { type: "tick" });
+      expect(duel).toMatchObject({ ropePosition: 14 + step, pullScores: [0, 14 + step], phase: "moving", result: null });
+    }
+    for (let step = 1; step <= 6; step++) {
+      duel = raceReducer(duel, { type: "tick" });
+      expect(duel).toMatchObject({ ropePosition: 19 - step, pullScores: [step, 19], result: null });
+    }
+    expect(duel.phase).toBe("arriving");
+  });
+
+  it("credits both full pulls when the winning roll crosses the finish", () => {
     const duel = play({ ...createTugOfWar(), ropePosition: -14, pullScores: [14, 0] }, 6, 1);
-    expect(duel).toMatchObject({ ropePosition: -15, pullScores: [15, 0], result: "child", step: 1 });
+    expect(duel).toMatchObject({ ropePosition: -19, pullScores: [20, 1], result: "child", step: 7 });
     expect(raceReducer(duel, { type: "tick" })).toBe(duel);
   });
 });

@@ -5,7 +5,7 @@ import { normalizeRewardVideoIds } from "@/shared/utils/rewardVideoPicker";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
-import { FINISH, TUG_FINISH, comparisonAnswer, createRace, createTugOfWar, raceReducer } from "./raceEngine";
+import { FINISH, TUG_FINISH, comparisonAnswer, createRace, createTugOfWar, raceReducer, tugPullDirection } from "./raceEngine";
 import { DiceFace, RaceCar } from "./RaceArt";
 import RollingDice from "./RollingDice";
 import TowerScene from "./TowerScene";
@@ -16,6 +16,18 @@ import TugScene, { TugScoreboard } from "./TugScene";
 import { WATER_CAPACITY,WATER_WIN } from "./waterGeometry";
 import "./games.css";
 import "./landscape.css";
+
+function tugRoundStatus(race, names) {
+  const direction = tugPullDirection(race.dice, race.step);
+  if (!direction) return "Поровну. Канат на месте.";
+  if (race.phase === "arriving") {
+    const highRoll = Math.max(...race.dice);
+    const lowRoll = Math.min(...race.dice);
+    return `${highRoll} − ${lowRoll} = ${highRoll - lowRoll}`;
+  }
+  const player = direction < 0 ? 0 : 1;
+  return `${names[player]} тянет на ${race.dice[player]}`;
+}
 
 function RaceLane({ name, player, position }) {
   return <div className={`race-lane race-player--${player}`}>
@@ -105,10 +117,7 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
 
   const rolling = race.phase === "rolling" || race.phase === "settling";
   const question = isTug ? "Кто перетянет канат в этом раунде?" : isWater ? "Кто нальёт больше воды?" : isTower ? "Кто построит больше этажей?" : "Кто едет дальше?";
-  const highRoll = Math.max(...race.dice);
-  const lowRoll = Math.min(...race.dice);
-  const tugStatus = highRoll === lowRoll ? "Поровну. Канат на месте." : `${highRoll} − ${lowRoll} = ${highRoll - lowRoll}`;
-  const status = race.phase === "between" ? "" : race.phase === "moving" || race.phase === "arriving" ? isTug ? tugStatus : isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
+  const status = race.phase === "between" ? "" : race.phase === "moving" || race.phase === "arriving" ? isTug ? tugRoundStatus(race, [childName, adult]) : isWater ? "Наливаем!" : isTower ? "Строим!" : "Поехали!" : race.mistake ? "Посмотри на кубики ещё раз" : question;
 
   return <main className={`dice-race${isTower ? " dice-race--tower" : ""}${isWater ? " dice-race--water" : ""}${isTug ? " dice-race--tug" : ""}${isTower || isWater ? " dice-race--compact" : ""}`}>
     <div className="race-board" inert={!started || paused || rolling || race.phase === "finished"} aria-hidden={!started || paused || rolling || race.phase === "finished" || undefined}>
@@ -135,10 +144,10 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
 
     {!started && <div className="games-overlay"><section className={`games-dialog${isWater ? " games-dialog--water" : ""}`} role="dialog" aria-modal="true" aria-labelledby="race-start-title">
       <span className="games-eyebrow">ИГРАЕМ ВДВОЁМ</span><h2 id="race-start-title">{isTug ? "Кто перетянет канат?" : isWater ? "У кого вода первой польётся через край?" : isTower ? "Чья башня дорастёт до облаков?" : "Кто первым до финиша?"}</h2>
-      <p>{isTug ? "Бросьте по одному настоящему кубику и сравните числа. Канат сдвинется в сторону большего броска на разницу между числами. При равных бросках канат останется на месте. За каждое деление, на которое игрок подтянул канат к себе, на его табло прибавляется очко." : isWater ? "Бросайте настоящие кубики и сравнивайте числа. Одна точка на кубике — одна порция воды. На отметке 20 стакан полон. Выигрывает тот, у кого первым вода польётся через край." : isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
+      <p>{isTug ? "Бросьте по одному настоящему кубику и сравните числа. Первым тянет игрок с меньшим числом, затем другой тянет в обратную сторону. Каждый тянет на столько делений, сколько выпало, и получает очко за каждое деление. При равных бросках канат остаётся на месте." : isWater ? "Бросайте настоящие кубики и сравнивайте числа. Одна точка на кубике — одна порция воды. На отметке 20 стакан полон. Выигрывает тот, у кого первым вода польётся через край." : isTower ? "Бросайте настоящие кубики и сравнивайте числа. Краны построят столько этажей, сколько выпало. Кто первым построит 20 этажей, тот победит." : "Бросайте настоящие кубики, сравнивайте числа и передвигайте машинки."}</p>
       <label className="race-adult-name">Второй игрок<input maxLength={24} value={adultName} onChange={e => setAdultName(e.target.value)} /></label>
       {isWater && <WaterCharacters values={characters} onChange={setCharacters} />}
-      <p className="games-prize-rule">{isTug ? `В начале под флажком стоит ноль. Побеждает тот, кто первым подтянет канат так, чтобы под флажком оказалась отметка ${TUG_FINISH}.${hasVideo ? " За победу ребёнка — любимое видео." : ""}` : hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isWater ? "Вода перелилась одновременно у обоих — ничья." : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
+      <p className="games-prize-rule">{isTug ? `В начале под флажком стоит ноль. Если к концу раунда отметка ${TUG_FINISH} дошла до флажка или прошла мимо него, побеждает игрок, который перетянул канат на свою сторону.${hasVideo ? " За победу ребёнка — любимое видео." : ""}` : hasVideo ? `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isWater ? "Вода перелилась одновременно у обоих — ничья." : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
       <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" autoFocus onClick={() => { setAdultName(adult); onNameChange(adult); onCharactersChange(characters); setStarted(true); }}>На старт!</button></div>
     </section></div>}
 
@@ -146,7 +155,7 @@ function DiceRace({ student, isTower, isWater, isTug, initialCharacters, onChara
 
     {showResult && !rewardOpen && <div className="games-overlay"><section className="games-dialog games-result" role="dialog" aria-modal="true" aria-labelledby="race-result-title">
       <span className="games-result-flag" aria-hidden="true">⚑</span><h2 id="race-result-title">{resultTitle}</h2>
-      <p>{isTug ? `Отметка ${TUG_FINISH} дошла до флажка!` : isWater ? race.result === "tie" ? "Вода перелилась через край одновременно у обоих!" : "Вода полилась через край!" : isTower ? race.result === "tie" ? "Оба небоскрёба доросли до облаков в одном раунде." : "Небоскрёб до облаков построен!" : race.result === "tie" ? "Обе машинки добрались до финиша в одном раунде." : "Первым до финиша добрался " + (race.result === "child" ? childName : adult) + "."}</p>
+      <p>{isTug ? `Канат перетянут на ${Math.abs(race.ropePosition)} делений!` : isWater ? race.result === "tie" ? "Вода перелилась через край одновременно у обоих!" : "Вода полилась через край!" : isTower ? race.result === "tie" ? "Оба небоскрёба доросли до облаков в одном раунде." : "Небоскрёб до облаков построен!" : race.result === "tie" ? "Обе машинки добрались до финиша в одном раунде." : "Первым до финиша добрался " + (race.result === "child" ? childName : adult) + "."}</p>
       {isTug && <TugScoreboard names={[childName, adult]} scores={race.pullScores} />}
       <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" onClick={onReplay}>{isTug ? "Ещё поединок" : isWater ? "Наливать ещё" : isTower ? "Строить ещё" : "Ещё гонка"}</button></div>
     </section></div>}

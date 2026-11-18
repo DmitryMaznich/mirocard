@@ -184,7 +184,6 @@ for(const game of ["Гонки","Дом до облаков","Наливаем �
 
 test("tug of war opens from Games and counts pulls towards either side", async ({page}) => {
   await page.setViewportSize({width:390,height:844});
-  await page.emulateMedia({reducedMotion:"reduce"});
   await page.goto("/tests/responsive/games.html");
   await page.getByRole("button",{name:/Перетягивание каната/}).click();
   await page.getByRole("button",{name:"На старт!",exact:true}).click();
@@ -202,13 +201,19 @@ test("tug of war opens from Games and counts pulls towards either side", async (
   };
 
   for (const [child, adult, answer, position, totals] of [
-    [6, 1, "Мирон", "-5", ["5","0"]],
-    [1, 6, "Папа", "0", ["5","5"]],
-    [4, 4, "Одинаково", "0", ["5","5"]],
-    [1, 6, "Папа", "5", ["5","10"]],
-    [1, 6, "Папа", "10", ["5","15"]],
+    [6, 1, "Мирон", "-5", ["6","1"]],
+    [1, 6, "Папа", "0", ["7","7"]],
+    [4, 4, "Одинаково", "0", ["7","7"]],
+    [1, 6, "Папа", "5", ["8","13"]],
+    [1, 6, "Папа", "10", ["9","19"]],
   ]) {
     await play(child, adult, answer);
+    if (position === "-5") {
+      await expect(scene).toHaveAttribute("data-rope-position", "1");
+      await expect(scores.locator(".tug-score-value")).toHaveText(["0","1"]);
+      await expect(page.getByRole("status")).toHaveText("Мирон тянет на 6");
+      await page.emulateMedia({reducedMotion:"reduce"});
+    }
     await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
     await expect(scene).toHaveAttribute("data-rope-position", position);
     await expect(flag).toHaveAttribute("transform", flagStart);
@@ -219,7 +224,7 @@ test("tug of war opens from Games and counts pulls towards either side", async (
   await play(1, 6, "Папа");
   const result = page.getByRole("dialog",{name:"Папа — победитель!"});
   await expect(result).toBeVisible();
-  await expect(result.locator(".tug-score-value")).toHaveText(["5","20"]);
+  await expect(result.locator(".tug-score-value")).toHaveText(["10","25"]);
   await result.getByRole("button",{name:"К играм",exact:true}).click();
   await expect(page.getByRole("heading",{name:"Игры",exact:true})).toBeVisible();
 });

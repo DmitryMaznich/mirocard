@@ -9,8 +9,9 @@ export function createTugOfWar() {
   return { ...createRace(TUG_FINISH), ropePosition: 0, pullScores: [0, 0] };
 }
 
-export function tugDirection(dice) {
-  return Math.sign(dice[1] - dice[0]);
+export function tugPullDirection(dice, stepsDone) {
+  const strongerDirection = Math.sign(dice[1] - dice[0]);
+  return stepsDone < Math.min(...dice) ? -strongerDirection : strongerDirection;
 }
 
 export function comparisonAnswer(dice) {
@@ -44,12 +45,14 @@ export function raceReducer(state, action) {
   if (action.type !== "tick" || state.phase !== "moving") return state;
   const step = state.step + 1;
   if (state.ropePosition !== undefined) {
-    const direction = tugDirection(state.dice);
+    const direction = tugPullDirection(state.dice, state.step);
     const ropePosition = state.ropePosition + direction;
     const [childScore, adultScore] = state.pullScores;
     const pullScores = [childScore + Math.max(0, -direction), adultScore + Math.max(0, direction)];
-    const result = ropePosition === -TUG_FINISH ? "child" : ropePosition === TUG_FINISH ? "adult" : null;
-    const complete = result || step >= Math.abs(state.dice[0] - state.dice[1]);
+    const complete = direction === 0 || step >= state.dice[0] + state.dice[1];
+    const result = complete && Math.abs(ropePosition) >= TUG_FINISH
+      ? (ropePosition < 0 ? "child" : "adult")
+      : null;
     return { ...state, ropePosition, pullScores, step, result, phase: complete ? "arriving" : "moving" };
   }
   const finish = state.finish ?? FINISH;
