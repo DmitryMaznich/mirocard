@@ -16,17 +16,23 @@ export function tugPullDirection(dice, stepsDone) {
 
 export function comparisonAnswer(dice) {
   if (!dice.every(n => Number.isInteger(n) && n >= 1 && n <= 6)) return null;
-  return dice[0] === dice[1] ? "equal" : dice[0] > dice[1] ? "child" : "adult";
+  return comparePlayerValues(dice);
+}
+
+function comparePlayerValues([child, adult]) {
+  return child === adult ? "equal" : child > adult ? "child" : "adult";
 }
 
 export function raceReducer(state, action) {
-  if (action.type === "reset") return state.ropePosition === undefined
-    ? createRace(state.finish, state.capacity, state.deferResult, state.firstToFinish)
-    : createTugOfWar();
+  const isTug = state.ropePosition !== undefined;
+  if (action.type === "reset") return isTug
+    ? createTugOfWar()
+    : createRace(state.finish, state.capacity, state.deferResult, state.firstToFinish);
   if (action.type === "nextThrow" && state.phase === "between") return { ...state, phase: "rolling", dice: [null, null], answer: null, mistake: false };
   if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
   if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
   if (action.type === "arrived" && state.phase === "arriving") {
+    if (isTug) return { ...state, phase: "comparing" };
     if (state.result) return { ...state, phase: "finished" };
     return { ...state, round: state.round + 1, phase: "between" };
   }
@@ -34,9 +40,20 @@ export function raceReducer(state, action) {
     if (![0, 1].includes(action.player) || !Number.isInteger(action.value) || action.value < 1 || action.value > 6) return state;
     const dice = [...state.dice];
     dice[action.player] = action.value;
+    if (isTug && comparisonAnswer(dice) !== null) {
+      return { ...state, dice, answer: null, mistake: false, phase: "moving", step: 0 };
+    }
     return { ...state, dice, answer: null, mistake: false };
   }
-  if (action.type === "compare" && state.phase === "input") {
+  if (action.type === "compare" && isTug && state.phase === "comparing") {
+    if (!["child", "adult", "equal"].includes(action.answer)) return state;
+    const correct = action.answer === comparePlayerValues(state.pullScores);
+    const next = { ...state, answer: action.answer, mistake: !correct };
+    if (!correct) return next;
+    if (state.result) return { ...next, phase: "finished" };
+    return { ...next, round: state.round + 1, phase: "between" };
+  }
+  if (action.type === "compare" && !isTug && state.phase === "input") {
     const answer = comparisonAnswer(state.dice);
     if (!answer || !["child", "adult", "equal"].includes(action.answer)) return state;
     const correct = action.answer === answer;
@@ -44,7 +61,7 @@ export function raceReducer(state, action) {
   }
   if (action.type !== "tick" || state.phase !== "moving") return state;
   const step = state.step + 1;
-  if (state.ropePosition !== undefined) {
+  if (isTug) {
     const direction = tugPullDirection(state.dice, state.step);
     const ropePosition = state.ropePosition + direction;
     const [childScore, adultScore] = state.pullScores;

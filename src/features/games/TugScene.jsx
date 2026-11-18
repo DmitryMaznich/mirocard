@@ -120,7 +120,7 @@ export default function TugScene({ race, names, paused, onStep }) {
     <TugScoreboard names={names} scores={pullScores} direction={direction} />
     {race.phase === "moving"
       ? <TugStep key={`${race.round}-${race.step}`} race={race} paused={paused} onStep={onStep} label={label} />
-      : <TugPicture position={ropePosition} result={race.result} label={label} />}
+      : <TugPicture position={ropePosition} result={race.phase === "finished" ? race.result : null} label={label} />}
   </div>;
 }
 

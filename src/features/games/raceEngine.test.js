@@ -6,12 +6,21 @@ function input(state = createRace()) {
   return raceReducer(raceReducer(state, { type:"ready" }), { type:"settled" });
 }
 
-function play(state, child, adult) {
+function enterDice(state, child, adult) {
   let race = raceReducer(input(state), { type: "dice", player: 0, value: child });
-  race = raceReducer(race, { type: "dice", player: 1, value: adult });
-  race = raceReducer(race, { type: "compare", answer: comparisonAnswer(race.dice) });
+  return raceReducer(race, { type: "dice", player: 1, value: adult });
+}
+
+function play(state, child, adult) {
+  let race = enterDice(state, child, adult);
+  if (race.phase === "input") race = raceReducer(race, { type: "compare", answer: comparisonAnswer(race.dice) });
   while (race.phase === "moving") race = raceReducer(race, { type: "tick" });
   if (race.phase === "arriving") race = raceReducer(race, { type:"arrived" });
+  if (race.phase === "comparing") {
+    const [childScore, adultScore] = race.pullScores;
+    const answer = childScore === adultScore ? "equal" : childScore > adultScore ? "child" : "adult";
+    race = raceReducer(race, { type: "compare", answer });
+  }
   return race;
 }
 
@@ -126,8 +135,7 @@ describe("tug of war", () => {
   });
 
   it("lets the smaller roll pass the finish and waits for the full return pull", () => {
-    const atEdge = input({ ...createTugOfWar(), ropePosition: 14, pullScores: [0, 14], dice: [6, 5] });
-    let duel = raceReducer(atEdge, { type: "compare", answer: "child" });
+    let duel = enterDice({ ...createTugOfWar(), ropePosition: 14, pullScores: [0, 14] }, 6, 5);
     for (let step = 1; step <= 5; step++) {
       duel = raceReducer(duel, { type: "tick" });
       expect(duel).toMatchObject({ ropePosition: 14 + step, pullScores: [0, 14 + step], phase: "moving", result: null });
@@ -143,5 +151,34 @@ describe("tug of war", () => {
     const duel = play({ ...createTugOfWar(), ropePosition: -14, pullScores: [14, 0] }, 6, 1);
     expect(duel).toMatchObject({ ropePosition: -19, pullScores: [20, 1], result: "child", step: 7 });
     expect(raceReducer(duel, { type: "tick" })).toBe(duel);
+  });
+
+  it("starts after both rolls and compares the displayed totals once the rope has stopped", () => {
+    const firstRoll = raceReducer(input(createTugOfWar()), { type: "dice", player: 0, value: 2 });
+    expect(firstRoll.phase).toBe("input");
+    expect(raceReducer(firstRoll, { type: "compare", answer: "child" })).toBe(firstRoll);
+
+    const before = play(createTugOfWar(), 6, 1);
+    let duel = enterDice(before, 2, 5);
+    expect(duel).toMatchObject({ phase: "moving", pullScores: [6, 1] });
+    expect(raceReducer(duel, { type: "compare", answer: "child" })).toBe(duel);
+    while (duel.phase === "moving") duel = raceReducer(duel, { type: "tick" });
+    expect(duel).toMatchObject({ phase: "arriving", pullScores: [8, 6], ropePosition: -2 });
+    duel = raceReducer(duel, { type: "arrived" });
+    expect(duel.phase).toBe("comparing");
+    expect(raceReducer(duel, { type: "nextThrow" })).toBe(duel);
+    duel = raceReducer(duel, { type: "compare", answer: "adult" });
+    expect(duel).toMatchObject({ phase: "comparing", pullScores: [8, 6], ropePosition: -2, mistake: true });
+    expect(raceReducer(duel, { type: "compare", answer: "child" })).toMatchObject({ phase: "between", round: 3, mistake: false });
+  });
+
+  it("keeps the winning round open until the score question is answered", () => {
+    let duel = enterDice({ ...createTugOfWar(), ropePosition: 14, pullScores: [0, 14] }, 1, 6);
+    while (duel.phase === "moving") duel = raceReducer(duel, { type: "tick" });
+    duel = raceReducer(duel, { type: "arrived" });
+    expect(duel).toMatchObject({ phase: "comparing", pullScores: [1,20], result: "adult" });
+    duel = raceReducer(duel, { type: "compare", answer: "equal" });
+    expect(duel).toMatchObject({ phase: "comparing", mistake: true });
+    expect(raceReducer(duel, { type: "compare", answer: "adult" })).toMatchObject({ phase: "finished", result: "adult" });
   });
 });

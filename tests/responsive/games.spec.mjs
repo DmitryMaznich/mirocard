@@ -182,7 +182,7 @@ for(const game of ["Гонки","Дом до облаков","Наливаем �
   for(const size of sizes){expect(size.drawing).toBeCloseTo(size.face,1);expect(size.h).toBeCloseTo(size.face,1);}
 });
 
-test("tug of war opens from Games and counts pulls towards either side", async ({page}) => {
+test("tug of war moves after both rolls and asks about the totals", async ({page}) => {
   await page.setViewportSize({width:390,height:844});
   await page.goto("/tests/responsive/games.html");
   await page.getByRole("button",{name:/Перетягивание каната/}).click();
@@ -193,38 +193,53 @@ test("tug of war opens from Games and counts pulls towards either side", async (
   const flag = scene.locator(".tug-center-flag");
   const flagStart = await flag.getAttribute("transform");
   const scores = scene.getByRole("group",{name:"Очки за рывки"});
-  const answers = page.getByRole("group",{name:"Кто перетянет канат в этом раунде?"});
-  const play = async (child, adult, answer) => {
+  const answers = page.getByRole("group",{name:"У кого больше очков на табло?"});
+  const choose = choice => answers.getByRole("button",{name:choice,exact:true}).click();
+  const roll = async (child, adult) => {
     await page.getByRole("button",{name:`Мирон: выпало ${child}`,exact:true}).click();
+    await expect(answers).toHaveCount(0);
     await page.getByRole("button",{name:`Папа: выпало ${adult}`,exact:true}).click();
-    await answers.getByRole("button",{name:answer,exact:true}).click();
   };
 
   for (const [child, adult, answer, position, totals] of [
-    [6, 1, "Мирон", "-5", ["6","1"]],
-    [1, 6, "Папа", "0", ["7","7"]],
-    [4, 4, "Одинаково", "0", ["7","7"]],
-    [1, 6, "Папа", "5", ["8","13"]],
-    [1, 6, "Папа", "10", ["9","19"]],
+    [6, 1, "У Мирона", "-5", ["6","1"]],
+    [1, 4, "У Мирона", "-2", ["7","5"]],
+    [3, 5, "Поровну", "0", ["10","10"]],
+    [4, 4, "Поровну", "0", ["10","10"]],
+    [1, 6, "У папы", "5", ["11","16"]],
+    [1, 6, "У папы", "10", ["12","22"]],
   ]) {
-    await play(child, adult, answer);
+    await roll(child, adult);
     if (position === "-5") {
+      await expect(answers).toHaveCount(0);
       await expect(scene).toHaveAttribute("data-rope-position", "1");
       await expect(scores.locator(".tug-score-value")).toHaveText(["0","1"]);
       await expect(page.getByRole("status")).toHaveText("Мирон тянет на 6");
       await page.emulateMedia({reducedMotion:"reduce"});
     }
-    await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+    await expect(answers).toBeVisible();
     await expect(scene).toHaveAttribute("data-rope-position", position);
     await expect(flag).toHaveAttribute("transform", flagStart);
     await expect(scores.locator(".tug-score-value")).toHaveText(totals);
+    if (position === "-2") {
+      await choose("У папы");
+      await expect(page.getByText("Посмотри на оба числа на табло.")).toBeVisible();
+      await expect(scores.locator(".tug-score-value")).toHaveText(totals);
+      await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toHaveCount(0);
+    }
+    await choose(answer);
     await enterNumbers(page);
   }
 
-  await play(1, 6, "Папа");
+  await roll(1, 6);
   const result = page.getByRole("dialog",{name:"Папа — победитель!"});
+  await expect(answers).toBeVisible();
+  await expect(result).toHaveCount(0);
+  await expect(scene.locator(".tug-win")).toHaveCount(0);
+  await expect(scores.locator(".tug-score-value")).toHaveText(["13","28"]);
+  await choose("У папы");
   await expect(result).toBeVisible();
-  await expect(result.locator(".tug-score-value")).toHaveText(["10","25"]);
+  await expect(result.locator(".tug-score-value")).toHaveText(["13","28"]);
   await result.getByRole("button",{name:"К играм",exact:true}).click();
   await expect(page.getByRole("heading",{name:"Игры",exact:true})).toBeVisible();
 });
