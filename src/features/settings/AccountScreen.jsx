@@ -66,10 +66,12 @@ export default function AccountScreen() {
         {account?.id && (
           <div className="settings-section">
             <div className="settings-section-title">{tr("account.mail")}</div>
-            <label className="settings-row">
+            <label className="settings-row settings-row--switch">
               <span className="settings-row__label">{tr("account.marketing")}</span>
               <input
                 type="checkbox"
+                role="switch"
+                className="settings-switch"
                 name="marketingOptIn"
                 checked={!!account.marketingOptIn}
                 disabled={savingMarketing}

@@ -61,9 +61,9 @@ export default function SettingsScreen() {
         {(previewUnlocked || previewEnabled) && (
           <div className="settings-section" data-testid="topic-ui-preview-settings">
             <div className="settings-section-title">{t("preview.settingsTitle")}</div>
-            <label className="settings-row">
+            <label className="settings-row settings-row--switch">
               <span>{t("preview.settingsToggle")}</span>
-              <input type="checkbox" role="switch" checked={previewEnabled}
+              <input type="checkbox" role="switch" className="settings-switch" checked={previewEnabled}
                 onChange={(event) => {
                   setPreviewUnlocked(true);
                   setPreviewSaved(setPreviewEnabled(event.target.checked));

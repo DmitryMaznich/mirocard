@@ -87,16 +87,19 @@ function HomeHeader({
           {bare ? getTimeGreeting().replace(/,\s*$/, "") : student ? student.name : t("home.noStudent")}
         </span>
       </div>
-      <button
+      {/* The new interface shows no build number to the adult — only «Обновить»
+          when there is something to update (installed topics refresh on their
+          own; the number stays in «Настройки приложения»). */}
+      {(!preview || hasUpdate || refreshingAll || refreshFailed) && <button
         type="button"
         className={`home-header__version${hasUpdate || refreshingAll || refreshFailed ? " home-header__version--update" : ""}${refreshingAll ? " home-header__version--refreshing" : ""}${refreshFailed ? " home-header__version--error" : ""}`}
         onClick={onRefresh}
         title={versionTitle}
         disabled={refreshingAll}
       >
-        v{buildInfo.version}
+        {preview ? t(refreshFailed ? "common.retry" : "preview.updateApp") : `v${buildInfo.version}`}
         {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-header__version__dot" />}
-      </button>
+      </button>}
       <button className="home-header__settings-btn" onClick={onMenu} aria-label={t("nav.menu")}>
         <MenuIcon />
       </button>
