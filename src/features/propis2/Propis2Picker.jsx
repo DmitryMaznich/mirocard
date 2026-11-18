@@ -24,7 +24,10 @@ export default function Propis2Picker({ label, caption, value, options, onChange
   const open = openRaw && !disabled;
   const ref = useRef(null);
   const btnRef = useRef(null);
-  const listStyle = usePopupPos(open, btnRef, 62, () => setOpen(false));
+  // A list of named options (e.g. a language's writing styles, up to "Британские соединённые наклонные") is far wider
+  // than the plain icon lists this popup usually shows — give it a wider placement budget so it isn't pushed off-screen
+  // on a phone (the CSS still wraps/caps its actual width to the viewport).
+  const listStyle = usePopupPos(open, btnRef, options.some((o) => o.text) ? 260 : 62, () => setOpen(false));
   const current = options.find((o) => o.id === value) ?? options[0];
 
   useEffect(() => {

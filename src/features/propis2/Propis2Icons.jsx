@@ -61,13 +61,14 @@ const mmRow = (bandMm) => function MmRowIcon() {
   const h = bandMm * 2;
   const top = (24 - h) / 2;
   const base = top + h;
-  const head = Math.min(2, h / 3);
+  const head = Math.min(1.6, h / 3);
+  const arrowX = 14.3;
   return S(<>
     {rule(top, 2.5, 13)}
     {guide(top + h / 2, 2.5, 13)}
     {baseRule(base, 2.5, 13)}
-    <path d={`M14.8 ${top}V${base}M${14.8 - head * 0.6} ${top + head}L14.8 ${top}L${14.8 + head * 0.6} ${top + head}M${14.8 - head * 0.6} ${base - head}L14.8 ${base}L${14.8 + head * 0.6} ${base - head}`} stroke={DARK} strokeWidth={1} />
-    <text x="19.9" y="15.4" textAnchor="middle" fontSize="9.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill={DARK} stroke="none">{bandMm}</text>
+    <path d={`M${arrowX} ${top}V${base}M${arrowX - head * 0.6} ${top + head}L${arrowX} ${top}L${arrowX + head * 0.6} ${top + head}M${arrowX - head * 0.6} ${base - head}L${arrowX} ${base}L${arrowX + head * 0.6} ${base - head}`} stroke={DARK} strokeWidth={1} />
+    <text x="16.3" y="15.4" textAnchor="start" fontSize="9" fontWeight="700" fontFamily="system-ui, sans-serif" fill={DARK} stroke="none">{bandMm}</text>
   </>);
 };
 export const IconRowNarrow = mmRow(4);
