@@ -14852,6 +14852,9 @@ kbd {
 .concept-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  /* Rows as tall as the card: auto rows came out shorter than picture + label
+     and cut the word under every picture. */
+  grid-auto-rows: max-content;
   gap: 0;
   padding: 0;
   align-content: start;

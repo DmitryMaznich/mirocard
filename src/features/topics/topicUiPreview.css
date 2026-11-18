@@ -159,3 +159,4 @@
 /* Tablet: the left info column of the lesson settings in the same plain card. */
 .topic-ui-params .params-info-col { background: #fffdf9; border: 1px solid #e4e0d5; box-shadow: none; }
 .topic-ui-params .params-info-student { background: #f0f4ec; }
+.topic-ui-fullscreen { position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: #eef0ef; }

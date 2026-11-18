@@ -8,6 +8,7 @@ import { deriveConcepts, getConceptCards, readModeSelectedConceptIds, writeModeS
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 
 function ConceptCard({ concept, topicId, level, selected, onToggle }) {
   const imgUrl = useTopicFile(topicId, concept.primary?.icon ?? concept.primary?.image);
@@ -42,6 +43,7 @@ function ConceptCard({ concept, topicId, level, selected, onToggle }) {
 
 export default function ConceptPickerScreen() {
   const { t: tr } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
   const setScreen          = useAppStore((s) => s.setScreen);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
   const activeModeId       = useAppStore((s) => s.activeModeId);
@@ -118,9 +120,11 @@ export default function ConceptPickerScreen() {
     <div className="screen" style={{ height: "100dvh", overflow: "hidden" }}>
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("params")}><BackArrowIcon /></button>
-        <h1 className="screen-title">{tr("setup.conceptCount", { count: selected.size })}</h1>
-        <button className="header-action-btn" onClick={allFilteredSelected ? selectNone : selectAll}>
-          {allFilteredSelected ? "−" : "✓"}
+        {/* The new interface names them «Карточки», as the settings row that
+            opens this screen does, and says what the header button does. */}
+        <h1 className="screen-title">{tr(preview ? "setup.cardCount" : "setup.conceptCount", { count: selected.size })}</h1>
+        <button className={`header-action-btn${preview ? " topic-ui-header-text-btn" : ""}`} onClick={allFilteredSelected ? selectNone : selectAll}>
+          {preview ? tr(allFilteredSelected ? "setup.selectNone" : "setup.selectAll") : allFilteredSelected ? "−" : "✓"}
         </button>
       </div>
 
