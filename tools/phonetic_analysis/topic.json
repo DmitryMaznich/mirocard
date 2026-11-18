@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "phonetic_analysis",
-    "version": "2.5.0",
+    "version": "2.5.1",
     "renderer": "phonetic_analysis",
     "numberedModes": true,
     "title": {

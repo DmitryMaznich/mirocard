@@ -46,6 +46,21 @@
 .pa-wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; pointer-events: none; }
 .pa-pic--playing .pa-wave { stroke: #4a9b8f; }
 
+/* --- sound scheme screen: the question with its letter, then the photo as
+   large as the free height allows (container units keep it square) --- */
+.pa-prompt--ask { display: flex; align-items: center; justify-content: center; gap: 0.4em; font-size: clamp(20px, 5.4vw, 28px); line-height: 1; }
+.pa-ask {
+  display: inline-grid; place-items: center;
+  min-width: 1.7em; height: 1.7em; padding: 0 0.15em; box-sizing: border-box;
+  border: 3px solid #4a9b8f; border-radius: 0.4em; background: #fff;
+  font-size: 1.45em; font-weight: 900; color: #1f2937;
+}
+.pa-ask-q { margin-left: -0.25em; }
+.pa-hero { flex: 1 1 0; min-height: 140px; width: 100%; container-type: size; display: flex; align-items: center; justify-content: center; }
+.pa-pic--hero { width: min(100cqw, 100cqh, 560px); height: min(100cqw, 100cqh, 560px); aspect-ratio: auto; border-radius: clamp(20px, 6cqmin, 32px); }
+.pa-pic--hero .pa-pic__emoji { font-size: min(40cqmin, 220px); }
+.pa-pic--hero .pa-wave { width: 30px; height: 30px; right: 12px; bottom: 12px; }
+
 /* --- letter plate (the sound being asked about) --- */
 .pa-plate {
   width: clamp(72px, 19vw, 96px);
@@ -63,10 +78,11 @@
 .pa-plate--big { width: clamp(100px, 26vw, 130px); height: clamp(100px, 26vw, 130px); font-size: clamp(66px, 17vw, 90px); }
 
 /* --- sound scheme --- */
-.pa-scheme-wrap { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; min-height: 0; }
+.pa-scheme-wrap { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
 .pa-scheme { display: flex; justify-content: center; }
 .pa-cell {
-  --cell: clamp(52px, 14vw, 76px);
+  /* --n: cells in the row (SchemeTask) — a long word shrinks to fit the screen */
+  --cell: min(clamp(50px, 15vw, 84px), calc((100vw - 40px) / var(--n, 6)));
   position: relative;
   width: var(--cell);
   height: var(--cell);

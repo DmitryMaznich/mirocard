@@ -125,16 +125,18 @@ export default function SchemeTask({ task, topicId, playTopicFile, onCorrect, on
 
   return (
     <div className="session-body pa-stage">
-      <div className="pa-head">
-        {task.kind === "chip" && <div className="pa-plate">{task.letter}</div>}
-        <Picture topicId={topicId} word={task.word} playing={playing === task.word.id} onTap={play} />
+      {/* The letter is named once, in the question (owner, 2026-11-18: a big
+          plate beside the photo plus «[т]» in the text said it twice and left
+          the photo small); the photo takes the free height. */}
+      <div className="pa-prompt pa-prompt--ask">
+        {task.kind === "chip" ? <>Где звук <span className="pa-ask">{task.letter}</span><span className="pa-ask-q">?</span></> : PROMPT[task.step]}
       </div>
-      <div className="pa-prompt">
-        {task.kind === "chip" ? <>Где звук <b>[{task.letter.toLowerCase()}]</b>?</> : PROMPT[task.step]}
+      <div className="pa-hero">
+        <Picture className="pa-pic--hero" topicId={topicId} word={task.word} playing={playing === task.word.id} onTap={play} />
       </div>
 
       <div className="pa-scheme-wrap">
-        <div className="pa-scheme">
+        <div className="pa-scheme" style={{ "--n": showCells ? n : 4 }}>
           {showCells
             ? task.letters.map((_, i) => (
               <div key={i} className={cellClass(i)} data-drop={dropFor(i)} onClick={() => task.kind === "chip" && placeChip(dropFor(i))}>{cellContent(i)}</div>
