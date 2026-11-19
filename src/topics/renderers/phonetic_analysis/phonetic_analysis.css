@@ -20,7 +20,8 @@
 .pa-stage--center { justify-content: center; }
 
 .pa-head { display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 26px); }
-.pa-prompt { font-weight: 800; font-size: clamp(17px, 2.4vw, 22px); color: #374151; text-align: center; }
+/* The question at least twice as large as before (owner, 2026-11-19: 17–22px was too small). */
+.pa-prompt { font-weight: 800; font-size: clamp(34px, 5.6vmin, 52px); line-height: 1.15; color: #374151; text-align: center; }
 .pa-prompt b { color: #2563eb; }
 
 /* --- picture: tap to hear the word --- */
@@ -48,12 +49,12 @@
 
 /* --- sound scheme screen: the question with its letter, then the photo as
    large as the free height allows (container units keep it square) --- */
-.pa-prompt--ask { display: flex; align-items: center; justify-content: center; gap: 0.4em; font-size: clamp(20px, 5.4vw, 28px); line-height: 1; }
+.pa-prompt--ask { display: flex; align-items: center; justify-content: center; gap: 0.35em; font-size: clamp(40px, 7vmin, 60px); line-height: 1; }
 .pa-ask {
   display: inline-grid; place-items: center;
   min-width: 1.7em; height: 1.7em; padding: 0 0.15em; box-sizing: border-box;
   border: 3px solid #4a9b8f; border-radius: 0.4em; background: #fff;
-  font-size: 1.45em; font-weight: 900; color: #1f2937;
+  font-size: 1.15em; font-weight: 900; color: #1f2937;
   font-family: inherit; line-height: 1; cursor: default; -webkit-tap-highlight-color: transparent;
 }
 .pa-ask--sound { cursor: pointer; box-shadow: 0 3px 0 #2a6b60; }

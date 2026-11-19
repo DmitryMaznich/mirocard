@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "phonetic_analysis",
-    "version": "2.11.0",
+    "version": "2.11.1",
     "renderer": "phonetic_analysis",
     "conceptNoun": "letters",
     "showSelectedConcepts": true,
