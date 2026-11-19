@@ -1,17 +1,38 @@
-.session-screen--emotions .session-header-wrap,
-.session-screen--emotions .session-header-wrap--compact {
+.session-screen.session-screen--emotions {
+  background: #eef2ec;
+}
+
+.session-screen.session-screen--emotions .session-header-wrap {
   margin-bottom: 0;
 }
 
+.session-screen--emotions .session-topbar {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+  padding-inline: clamp(12px, 3vw, 32px);
+  border-bottom: 0;
+}
+
+.session-screen--emotions .session-subtitle {
+  color: #53635a;
+  font-size: .85rem;
+  font-weight: 650;
+}
+
 .emotion-lesson {
-  --emotion-gap: clamp(8px, 2vmin, 20px);
-  --emotion-side: clamp(88px, min(38vw, 52dvh), 390px);
-  --emotion-choice: clamp(74px, min(24vw, 24dvh), 210px);
+  --emotion-gap: clamp(10px, 2vmin, 20px);
+  --emotion-side: clamp(108px, min(40vw, 46dvh), 365px);
+  --emotion-grid-image: clamp(72px, min(21vw, 19.25dvh), 162px);
+  --emotion-border: #d9e1da;
+  --emotion-ink: #25332d;
   display: flex;
   flex: 1;
-  min-height: 0;
   flex-direction: column;
-  color: #25332d;
+  width: min(100%, 1120px);
+  min-height: 0;
+  margin-inline: auto;
+  padding-inline: clamp(12px, 3vw, 32px);
+  color: var(--emotion-ink);
 }
 
 .emotion-lesson__exercise {
@@ -19,16 +40,25 @@
   min-height: 0;
   overflow: auto;
   display: grid;
-  justify-items: center;
   align-content: safe center;
+  justify-items: center;
   gap: var(--emotion-gap);
-  padding: var(--emotion-gap);
+  padding: clamp(12px, 3.25vmin, 28px);
+  background: #fffefa;
+  border: 1px solid var(--emotion-border);
+  border-radius: clamp(16px, 2.8vw, 28px);
+}
+
+.emotion-lesson[data-emotion-mode="emotion_control"] .emotion-lesson__exercise {
+  align-content: start;
+  padding-block-start: clamp(12px, 8dvh, 56px);
 }
 
 .emotion-lesson__question {
   margin: 0;
-  font-size: clamp(1.35rem, 4vmin, 2.5rem);
-  line-height: 1.16;
+  font-size: clamp(1.4rem, 4.2vmin, 2.5rem);
+  line-height: 1.14;
+  letter-spacing: -.025em;
   text-align: center;
   text-wrap: balance;
 }
@@ -39,14 +69,37 @@
 
 .emotion-lesson__layout {
   display: grid;
+  align-content: safe center;
   align-items: center;
   justify-items: center;
   gap: var(--emotion-gap);
-  width: min(100%, 920px);
+  width: min(100%, 820px);
+  min-width: 0;
 }
 
 .emotion-lesson__layout--split {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.emotion-lesson[data-emotion-mode="situation_emotion"] .emotion-lesson__layout--split {
+  width: min(100%, 900px);
+}
+
+.emotion-lesson[data-emotion-mode="emotion_control"] .emotion-lesson__layout {
+  align-content: start;
+  grid-template-rows: auto auto;
+}
+
+.emotion-lesson[data-emotion-mode="emotion_control"] .emotion-lesson__stimulus {
+  width: min(100%, clamp(100px, min(70vw, 43dvh), 330px));
+}
+
+.emotion-lesson[data-emotion-mode="yes_no"] .emotion-lesson__layout {
+  width: min(100%, 690px);
+}
+
+.emotion-lesson[data-emotion-mode="yes_no"] .emotion-lesson__answers--words {
+  width: min(100%, 280px);
 }
 
 .emotion-lesson__stimulus {
@@ -54,15 +107,14 @@
 }
 
 .emotion-lesson__stimulus:has(.emotion-lesson__pair) {
-  width: min(100%, 760px);
+  width: min(100%, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
 }
 
-.emotion-lesson__pair {
+.emotion-lesson__pair,
+.emotion-lesson__answers {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--emotion-gap);
-  width: min(100%, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
-  margin-inline: auto;
 }
 
 .emotion-lesson__image {
@@ -70,7 +122,7 @@
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: 13px;
 }
 
 .emotion-lesson__placeholder {
@@ -78,29 +130,23 @@
 }
 
 .emotion-lesson__answers {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--emotion-gap);
-  width: min(100%, 440px);
+  width: min(100%, 420px);
 }
 
-.emotion-lesson__answers--portrait {
+.emotion-lesson__answers--portrait,
+.emotion-lesson__answers--scene {
   width: min(100%, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
 }
 
 .emotion-lesson__answers--portrait[data-count="4"] {
-  width: min(100%, calc(var(--emotion-choice) * 4 + var(--emotion-gap) * 3));
+  width: min(100%, calc(var(--emotion-grid-image) * 4 + var(--emotion-gap) * 3));
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .emotion-lesson__answers--portrait[data-count="6"],
 .emotion-lesson__answers--portrait[data-count="9"] {
-  width: min(100%, calc(var(--emotion-choice) * 3 + var(--emotion-gap) * 2));
+  width: min(100%, calc(var(--emotion-grid-image) * 3 + var(--emotion-gap) * 2));
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.emotion-lesson__answers--scene {
-  width: min(100%, 720px, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
 }
 
 .emotion-lesson__option {
@@ -110,8 +156,8 @@
   min-width: 0;
   min-height: 48px;
   padding: 5px;
-  border: 2px solid #dce4de;
-  border-radius: 14px;
+  border: 2px solid var(--emotion-border);
+  border-radius: 17px;
   background: #fff;
   color: inherit;
   font: inherit;
@@ -129,27 +175,25 @@
 }
 
 .emotion-lesson__answers--words .emotion-lesson__option {
-  padding: 8px 16px;
-  min-height: 52px;
-  font-size: clamp(.92rem, 2.5vmin, 1.5rem);
-  font-weight: 700;
-  overflow-wrap: anywhere;
+  min-height: 54px;
+  padding: 10px 12px;
+  font-size: clamp(.95rem, 2.4vmin, 1.4rem);
+  font-weight: 720;
 }
 
 .emotion-lesson__answers--tags {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 8px;
+  width: min(100%, 680px);
 }
 
 .emotion-lesson__answers--tags .emotion-lesson__option {
-  flex: 1 1 112px;
-  max-width: 220px;
+  min-height: 48px;
+  padding: 8px 18px;
   border-radius: 999px;
-}
-
-.emotion-lesson__answers--words .emotion-lesson__option::first-letter {
-  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .emotion-lesson__option[data-result="correct"] { border-color: #397957; }
@@ -171,9 +215,9 @@
 }
 
 .emotion-lesson__answers--words .emotion-lesson__mark {
-  inset: 3px 3px auto auto;
-  width: 15px;
-  height: 15px;
+  inset: 2px 3px auto auto;
+  width: 14px;
+  height: 14px;
   font-size: 10px;
 }
 
@@ -190,21 +234,28 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-content: center;
   align-items: center;
   gap: 6px 12px;
-  padding: 6px var(--emotion-gap);
-  border-top: 1px solid #edf0ec;
-  font-size: .88rem;
+  min-height: 58px;
+  padding-block: 6px;
+  font-size: .9rem;
 }
 
 .emotion-lesson__controls :is(button, select, summary) {
   min-height: 44px;
-  padding: 7px 10px;
-  border: 1px solid #dce4de;
-  border-radius: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--emotion-border);
+  border-radius: 10px;
   color: #35443b;
   background: #fff;
   font: inherit;
+}
+
+.emotion-lesson__controls button {
+  border-color: #bdd0c3;
+  background: #dfeae1;
+  font-weight: 700;
 }
 
 .emotion-lesson__adult-note {
@@ -221,14 +272,37 @@
 }
 
 @media (max-width: 620px) {
-  .emotion-lesson { --emotion-side: clamp(112px, min(50vw, 30dvh), 220px); }
+  .emotion-lesson {
+    --emotion-side: clamp(104px, min(68vw, 31dvh), 260px);
+  }
+
+  .emotion-lesson[data-emotion-mode="situation_emotion"] .emotion-lesson__exercise {
+    align-content: start;
+  }
 
   .emotion-lesson__layout--split {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .emotion-lesson__answers--portrait[data-count="4"] {
-    width: min(100%, calc(var(--emotion-choice) * 2 + var(--emotion-gap)));
+    width: min(100%, calc(var(--emotion-grid-image) * 2 + var(--emotion-gap)));
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 460px) and (min-width: 621px) {
+  .emotion-lesson[data-emotion-mode="emotion_control"] .emotion-lesson__exercise {
+    align-content: safe center;
+    padding-block-start: 12px;
+  }
+
+  .emotion-lesson[data-emotion-mode="emotion_control"] .emotion-lesson__layout {
+    align-content: safe center;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    grid-template-rows: auto;
+  }
+
+  .emotion-lesson[data-emotion-mode="emotion_control"] .emotion-lesson__stimulus {
+    grid-column: 1;
   }
 }
