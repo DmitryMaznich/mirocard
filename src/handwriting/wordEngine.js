@@ -1492,6 +1492,7 @@ function wideTransform(d, originX) {
 // outlines stop 0-3 units short, so the whole letter is stretched vertically to fill [10, 62] -- but along the slant
 // (x slides with y, x' = x + (y - y') * tan25), so every point stays on its own grid line and the stems stay on the grid.
 // Only small corrections are made (otherwise the glyph is left alone); descenders (р) and elements are not touched.
+// (exported for the review sheets, tools/propis2/parts-review: they must show a letter as the rows stand it)
 const WIDE_CAPTURE_TOP = 10;
 const WIDE_CAPTURE_CAP_TOP = -42; // top of a capital letter (and of a digit) in the capture
 function mapCubicPoints(d, fn) {
@@ -1505,7 +1506,7 @@ function mapCubicPoints(d, fn) {
   }
   return out.join(" ");
 }
-function normalizeLetterExtremes(glyph) {
+export function normalizeLetterExtremes(glyph) {
   const cubic = glyph.strokes.map((s) => toCubicPathD(s.d));
   if (!/^[\u0400-\u04FF]/.test(glyph.label ?? "") || glyph.descender || glyph.label === "р" || glyph.noNormalize) return cubic;
   let top = Infinity, bottom = -Infinity;

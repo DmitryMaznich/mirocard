@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { letterPaths, letterMoves, segmentShare } from "./letterParts.js";
 import { samplePath, toCubicPathD } from "./pathGeometry.js";
+import { normalizeLetterExtremes } from "./wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const spec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
@@ -96,6 +97,17 @@ describe("the elements stand on the same lines", () => {
       const [stick, hook] = ink(ch);
       expect(Math.min(...hook), ch).toBeCloseTo(Math.min(...stick), 1);
     }
+  });
+});
+
+// …and as the rows stand them (normalizeLetterExtremes; р is never stretched, its own data stands on the lines): every element of и п р
+// touches the top line (10) and comes down to the baseline (62) — р's stick down to the descender line (114)
+describe("the elements on the lines of the band, as the app stands the letter", () => {
+  const onBand = (ch) => { const g = glyph(ch); return { ...g, strokes: normalizeLetterExtremes(g).map((d) => ({ d })) }; };
+  const ext = (d) => { const ys = samplePath(toCubicPathD(d), 60).map((q) => q[1]); return [Math.min(...ys), Math.max(...ys)]; };
+  it.each([["и", [[10, 62], [10, 62]]], ["п", [[10, 62], [10, 62]]], ["р", [[10, 114], [10, 62]]]])("%s", (ch, want) => {
+    const ink = letterMoves(onBand(ch), "lifted").filter((x) => x.kind === "ink").map((x) => ext(x.d));
+    ink.forEach(([top, bottom], i) => { expect(top, `${ch} ${i} top`).toBeCloseTo(want[i][0], 1); expect(bottom, `${ch} ${i} bottom`).toBeCloseTo(want[i][1], 1); });
   });
 });
 
