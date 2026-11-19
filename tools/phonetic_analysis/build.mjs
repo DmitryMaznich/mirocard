@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "2.7.2";
+const VERSION = "2.8.0";
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.map((w) => {
   const image = `media/${w.id}.webp`;
@@ -29,11 +29,14 @@ const cards = GROUPS.flatMap((g) => g.letters.split(" ").map((L) => ({
   id: `letter_${L}`, conceptId: L, letter: L, label: L, group: g.id, primary: true,
 })));
 
+// Mode icons (owner, 2026-11-18): src/topics/renderers/phonetic_analysis/media/icons/<mode id>.svg.
+const ICONS = join(ROOT, "src/topics/renderers/phonetic_analysis/media/icons");
+const iconOf = (id) => (existsSync(join(ICONS, `${id}.svg`)) ? `media/icons/${id}.svg` : undefined);
 const mode = (id, title, methodology, extra = {}) => ({
   // No `finite` and no «Заданий в занятии»: the lesson goes round until the adult
   // ends it, as in the other topics (owner, 2026-11-18).
   id, type: id, evaluation: "instant", paramsScope: "mode",
-  ui: { title }, methodology, params: {}, ...extra,
+  ui: { title, ...(iconOf(id) ? { icon: iconOf(id) } : {}) }, methodology, params: {}, ...extra,
 });
 const withWords = { words };
 // Letter sounds for «Где звук?» (sounds/<letter>.mp3). Vowels are cut from the
@@ -108,6 +111,7 @@ zip.file("topic.json", readFileSync(join(DIR, "topic.json"), "utf8"));
 zip.file("renderer", readFileSync(join(dist, "renderer")));
 if (existsSync(join(dist, "mirocard2.css"))) zip.file("mirocard2.css", readFileSync(join(dist, "mirocard2.css")));
 for (const f of files) zip.file(f, readFileSync(join(DIR, f)));
+for (const m of topic.modes) if (m.ui.icon) zip.file(m.ui.icon, readFileSync(join(ICONS, m.ui.icon.replace("media/icons/", ""))));
 
 const out = join(DIR, "phonetic_analysis.zip");
 writeFileSync(out, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));

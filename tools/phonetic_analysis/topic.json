@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "phonetic_analysis",
-    "version": "2.7.2",
+    "version": "2.8.0",
     "renderer": "phonetic_analysis",
     "numberedModes": true,
     "title": {
@@ -292,7 +292,8 @@
       "evaluation": "instant",
       "paramsScope": "mode",
       "ui": {
-        "title": "1. Найди букву"
+        "title": "1. Найди букву",
+        "icon": "media/icons/pa_find_letter.svg"
       },
       "methodology": {
         "summary": "Буква показана — найти её: среди 3, среди 6 или все на поле.",
@@ -328,7 +329,8 @@
       "evaluation": "instant",
       "paramsScope": "mode",
       "ui": {
-        "title": "2. Где звук?"
+        "title": "2. Где звук?",
+        "icon": "media/icons/pa_where.svg"
       },
       "methodology": {
         "summary": "Нажать на клетку, где в слове звук.",
@@ -3570,7 +3572,8 @@
       "evaluation": "instant",
       "paramsScope": "mode",
       "ui": {
-        "title": "3. Лото"
+        "title": "3. Лото",
+        "icon": "media/icons/pa_lotto.svg"
       },
       "methodology": {
         "summary": "Буквы на картинки или картинки на буквы — направление выбирается перед занятием.",
@@ -6800,7 +6803,8 @@
       "evaluation": "instant",
       "paramsScope": "mode",
       "ui": {
-        "title": "4. Буквы в клетки"
+        "title": "4. Буквы в клетки",
+        "icon": "media/icons/pa_all_letters.svg"
       },
       "methodology": {
         "summary": "Перетащить буквы в клетки звуковой схемы: последнюю букву или всё слово.",

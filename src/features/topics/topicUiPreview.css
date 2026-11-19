@@ -120,6 +120,9 @@
 .topic-ui-exercise-open:disabled { opacity: .65; }
 .topic-ui-exercise-number { display: grid; place-items: center; flex: 0 0 46px; width: 46px; height: 46px; border-radius: 12px; background: #edf0e3; color: #67816d; font-size: 17px; font-weight: 800; }
 .topic-ui-exercise-open .mode-icon { flex: 0 0 46px; width: 46px; height: 46px; }
+.topic-ui-exercise-iconwrap { position: relative; flex: 0 0 46px; width: 46px; height: 46px; }
+.topic-ui-exercise-iconwrap .mode-icon { width: 46px; height: 46px; }
+.topic-ui-exercise-badge { position: absolute; left: -6px; top: -6px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 7px; background: #1c3634; color: #fff; font-size: 12px; font-weight: 800; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px #fff; }
 .topic-ui-exercise-open > svg { flex: 0 0 16px; color: #8aa08d; }
 .topic-ui-exercise-copy { min-width: 0; flex: 1; }
 .topic-ui-exercise-copy strong { display: block; font-size: 15.5px; line-height: 1.25; }
