@@ -44,7 +44,7 @@ h2{margin:8px 0}h3{margin:0 0 4px;font-size:15px;font-weight:600}
 .gl{stroke:#e5e7eb;stroke-width:1}
 .ink{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 button{margin-top:6px;font-size:14px;padding:4px 10px}
-p{margin:6px 0 0;font-size:14px}
+p{margin:6px 0 0;font-size:14px;max-width:260px;text-align:left}p span{display:block}
 .note{max-width:720px;color:#555;font-size:14px}
 </style>
 <p class="note">Синяя линия — что остаётся на бумаге. Зелёная точка — где ручка касается бумаги. Безотрывно: после палочки ручка идёт по ней обратно вверх до средней линии (новой линии нет) и сразу пишет крючок. С отрывом: палочка закончилась — ручка исчезает и появляется в начале крючка.</p>
