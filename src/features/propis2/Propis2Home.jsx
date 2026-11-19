@@ -264,7 +264,14 @@ export default function Propis2Home({ db }) {
   // so their languages count for the marks and the filter too
   const shownLangs = useMemo(() => (languages ? new Set([...usedLangs, ...ready.map((r) => r.lang)]) : null), [languages, usedLangs, ready]);
   const multiLang = Boolean(shownLangs && shownLangs.size > 1);
-  const shownSets = useMemo(() => (languages && langFilter !== "all" ? knownSets.filter((st) => langOf(st) === langFilter) : knownSets), [languages, langFilter, knownSets]);
+  // «Мои языки»: the filter has a chip per language of mine; the notebooks of a language taken off the list (kept, owner 2026-11-16) are under
+  // ONE chip «Другие» (owner, 2026-11-19: a chip of a language that is not mine, while the new notebook offers no choice, is illogical)
+  const otherLangs = useMemo(() => (myOn ? new Set(knownSets.map(langOf).filter((id) => !myIds.includes(id))) : null), [myOn, knownSets, myIds]);
+  const shownSets = useMemo(() => {
+    if (!languages || langFilter === "all") return knownSets;
+    if (langFilter === OTHER) return knownSets.filter((st) => otherLangs?.has(langOf(st)));
+    return knownSets.filter((st) => langOf(st) === langFilter);
+  }, [languages, langFilter, knownSets, otherLangs]);
   const shownReady = useMemo(() => (!languages ? ready : ready.filter((r) => langFilter === "all" || r.lang === langFilter)), [languages, ready, langFilter]);
   const markOf = (id) => { const i = languages?.findIndex((l) => l.id === id) ?? -1; const l = languages?.[i]; return { short: l?.short ?? id?.toUpperCase(), title: l?.title ?? id, tone: Math.max(i, 0) % 4 }; };
   const langCounts = useMemo(() => (languages ? Object.fromEntries(languages.map((l) => [l.id, library.sets.filter((st) => langOf(st) === l.id).length])) : {}), [languages, library.sets]);
@@ -676,16 +683,26 @@ export default function Propis2Home({ db }) {
     );
   }
 
+  // the filter with «Мои языки»: my languages (those with notebooks or ready ones), «Другие» when notebooks of other languages exist, «＋» to
+  // change my languages; no filter at all while there is nothing to choose between (the language chip of «Новая тетрадь» opens the list then)
+  function myFilterBar() {
+    const mine = languages.filter((l) => myIds.includes(l.id) && shownLangs.has(l.id));
+    const chips = [...mine, ...(otherLangs.size ? [{ id: OTHER, title: "Другие" }] : [])];
+    if (chips.length < 2) return null;
+    const value = chips.some((c) => c.id === langFilter) ? langFilter : "all";
+    return <LangFilter languages={chips} value={value} onChange={setLangFilter} onEdit={() => setMySheet(true)} />;
+  }
   return (
     <>
     <Propis2Library
       sets={shownSets}
       langOf={multiLang ? (item) => markOf(item.lang ?? langOf(item)) : null}
       // a deck with one language («Прописи: латиница») has nothing to choose for a new notebook
-      newLang={listLangs && listLangs.length > 1 ? { title: languages.find((l) => l.id === curNewLang)?.title, onOpen: () => setLangSheet(true) } : null}
+      // with «Мои языки» the language of a new notebook is always shown, even with one language (owner, 2026-11-19: where did the choice go?)
+      newLang={listLangs && (myOn ? listLangs.length > 0 : listLangs.length > 1) ? { title: languages.find((l) => l.id === curNewLang)?.title, onOpen: () => setLangSheet(true) } : null}
       title={topicRecord?.meta?.title}
       filterBar={myOn
-        ? <LangFilter languages={multiLang ? languages.filter((l) => shownLangs.has(l.id)) : []} value={langFilter} onChange={setLangFilter} onEdit={() => setMySheet(true)} editTitle={multiLang ? null : languages.find((l) => l.id === myIds[0])?.title} />
+        ? myFilterBar()
         : multiLang ? <LangFilter languages={languages.filter((l) => shownLangs.has(l.id))} value={langFilter} onChange={setLangFilter} /> : null}
       draft={draft}
       blankCount={blankIds.length}
@@ -712,15 +729,15 @@ export default function Propis2Home({ db }) {
       }}
       onDeleteSet={(id) => persist(removeSet(library, id))}
     />
-    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={listLangs} lang={curNewLang} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} />}
+    {langSheet && languages && <Propis2LangSheet title="Язык новой тетради" languages={listLangs} lang={curNewLang} counts={langCounts} onPick={setNewLang} onClose={() => setLangSheet(false)} onEditMine={myOn ? () => { setLangSheet(false); setMySheet(true); } : null} />}
     {mySheet && myOn && <Propis2MyLangsSheet languages={offeredLanguages(deckRecord, flags ?? [])} selected={myIds} counts={langCounts} onSave={setMyLanguages} onClose={() => setMySheet(false)} />}
     </>
   );
 }
 
 // the filter of the list by language (only when more than one is in use); with «Мои языки» (`onEdit`): «＋» at its end opens the list of my
-// languages — or, with one language, the only chip is «Языки: Русский ▾» (docs/mockups/propis2-languages-journey.html, screens 2 and 4)
-function LangFilter({ languages, value, onChange, onEdit = null, editTitle = null }) {
+// languages (a single language has no filter: the chip of «Новая тетрадь» and its «＋ Другой язык» lead there, owner 2026-11-19)
+function LangFilter({ languages, value, onChange, onEdit = null }) {
   return (
     <div className="p2-lang-filter" role="radiogroup" aria-label="Язык тетрадей" data-testid="propis2-lang-filter">
       {languages.length > 0 && [{ id: "all", title: "Все" }, ...languages].map((l) => (
@@ -728,12 +745,15 @@ function LangFilter({ languages, value, onChange, onEdit = null, editTitle = nul
       ))}
       {onEdit && (
         <button type="button" className="p2-lang-fchip p2-lang-fchip--edit" onClick={onEdit} aria-label="Мои языки" data-testid="propis2-my-langs">
-          {editTitle ? <>Языки: {editTitle} <span aria-hidden="true">▾</span></> : "＋"}
+          ＋
         </button>
       )}
     </div>
   );
 }
+
+// the filter's chip of the notebooks whose language is not on «Мои языки»
+const OTHER = "__other";
 
 // the language a new notebook gets, remembered on this device per topic (a teacher preparing a Kazakh class keeps it for a while)
 const NEW_LANG_KEY = "propis2:newLang";

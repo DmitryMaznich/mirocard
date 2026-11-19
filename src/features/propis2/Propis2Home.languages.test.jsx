@@ -201,6 +201,36 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
+  it("«Мои языки» = Russian only, with English and Slovenian notebooks made before: the new notebook still shows its language; the filter has «Другие» (owner, 2026-11-19)", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tdb = await openDb("p2my-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    const db = await openDb("p2my-ru-" + Date.now());
+    await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
+    let lib = emptyLibrary();
+    for (const [id, lang, title] of [["st_en", "en", "English one"], ["st_sl", "sl", "Slovenski"]]) {
+      const pg = { ...newPage(title, "square"), id: `pg_${id}` };
+      lib = upsertSet(upsertPage(lib, pg), { ...newSet(title, { id, pageIds: [pg.id] }), lang });
+    }
+    await saveLibrary(lib, db);
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Русский");
+    const chips = () => [...host.querySelectorAll('[data-testid="propis2-lang-filter"] [role="radio"]')].map((b) => b.textContent);
+    expect(chips()).toEqual(["Все", "Русский", "Другие"]);
+    await click([...host.querySelectorAll('[data-testid="propis2-lang-filter"] [role="radio"]')].find((b) => b.textContent === "Другие"));
+    expect(cards(host, "propis2-set-card").map((c) => (c.textContent.includes("English one") ? "en" : c.textContent.includes("Slovenski") ? "sl" : "?")).sort()).toEqual(["en", "sl"]);
+    // the language sheet of a new notebook leads to «Мои языки»
+    await click(host.querySelector('[data-testid="propis2-new-lang"]'));
+    await click(document.querySelector('[data-testid="propis2-lang-more"]'));
+    expect(document.querySelector('[data-testid="propis2-lang-sheet"]')).toBeNull();
+    expect(document.body.textContent).toContain("Мои языки");
+    await act(async () => { root.unmount(); await tick(100); });
+    host.remove();
+  });
   it("an English notebook («Прописи: латиница») opens in the editor on its own paper", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2lang-tc-" + Date.now());
