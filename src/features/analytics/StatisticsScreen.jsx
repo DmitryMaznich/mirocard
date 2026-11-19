@@ -10,6 +10,7 @@ import { aggregateStatistics } from "../../../shared/session-statistics.mjs";
 import { formatDate } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./statistics.css";
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { restoreHistoricalSessions } from "./restoreHistoricalSessions";
 
 const text = value => typeof value === "string" ? value : value?.ru ?? "";
@@ -97,6 +98,7 @@ function GroupCard({ group, topic }) {
 
 export default function StatisticsScreen({ initialTopicId = null, onClose, embedded = false }) {
   const { t: tr } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
   const students = useAppStore(state => state.students);
   const activeStudentId = useAppStore(state => state.activeStudentId);
   const sessions = useAppStore(state => state.sessions);
@@ -141,11 +143,13 @@ export default function StatisticsScreen({ initialTopicId = null, onClose, embed
     return <span className="statistics-topic-result">{group.conditions.historical ? tr("stats.oldHistory") : tr("stats.recentConditions")}: {setupText(mode?.ui?.title) || group.modeId}{choices} · {tr("stats.firstAnswerResult", { score: score(group.totals.firstCorrect, group.totals.firstTotal) })}</span>;
   }
   const total = report.totals;
-  return <div className={embedded ? "statistics-screen statistics-screen--embedded" : "screen statistics-screen"}>
+  return <div className={`${embedded ? "statistics-screen statistics-screen--embedded" : "screen statistics-screen"}${preview ? " topic-ui-stats" : ""}`}>
     <div className="screen-header"><button className="back-btn" onClick={() => topicId && !initialTopicId ? setTopicId(null) : onClose()} aria-label={tr("common.back")}><BackArrowIcon /></button><h1 className="screen-title">{topicId ? title(topicId) : tr("nav.studentStatistics")}</h1><button className="header-action-btn statistics-refresh" onClick={() => { setNow(Date.now()); setRevision(value => value + 1); }}>{tr("analytics.refresh")}</button></div>
     <div className="statistics-content">
       <div className="statistics-filters"><label>{tr("stats.student")}<select value={studentId} onChange={event => setStudentId(event.target.value)}><option value="" disabled>{tr("home.chooseStudent")}</option>{students.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label><label>{tr("stats.period")}<select value={period} onChange={event => setPeriod(event.target.value)}><option value="7">{tr("stats.lastWeek")}</option><option value="30">{tr("stats.lastMonth")}</option><option value="all">{tr("stats.allTime")}</option></select></label></div>
-      <p className="statistics-note" role="status">{status === "loading" ? tr("stats.loading") : status === "server" ? tr("stats.server") : status === "offline" ? tr("stats.offline") : tr("stats.local")}</p>
+      {/* The new interface says nothing when all is normal (the server's data);
+          it still warns when the figures are only this device's or offline. */}
+      {!(preview && status === "server") && <p className="statistics-note" role="status">{status === "loading" ? tr("stats.loading") : status === "server" ? tr("stats.server") : status === "offline" ? tr("stats.offline") : tr("stats.local")}</p>}
       {!studentId ? <p className="empty-state">{tr("stats.noStudent")}</p> : total.sessions === 0 ? <p className="empty-state">{tr("stats.empty")}</p> : <>
         <div className="statistics-overview"><div><strong>{total.sessions}</strong><span>{tr("stats.lessonsLabel")}</span></div><div><strong>{report.activeDays}</strong><span>{tr("stats.practiceDays")}</span></div><div><strong>{total.timedSessions ? Math.round(total.activeDurationMs / 60000) : "—"}</strong><span>{tr("stats.activeMinutes")}</span></div><div><strong>{total.completedSeries}</strong><span>{tr("stats.completedSeries")}</span></div></div>
         {total.checkpointSessions > 0 && <p className="statistics-note">{tr("stats.checkpoints", { count: total.checkpointSessions })}</p>}

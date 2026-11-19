@@ -34,6 +34,7 @@ import "@/features/planner/planner.css";
 import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
+import StudentSwitcherSheet from "./StudentSwitcherSheet";
 import MarketingPromptCard from "./MarketingPromptCard";
 import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
 import StatisticsScreen from "@/features/analytics/StatisticsScreen";
@@ -66,7 +67,7 @@ function getTimeGreeting(date = new Date()) {
 
 function HomeHeader({
   student, buildInfo, hasUpdate, refreshingAll, refreshFailed, versionTitle,
-  onRefresh, onMenu, onAvatarTap, preview = false,
+  onRefresh, onMenu, onAvatarTap, onStudentTap, preview = false,
 }) {
   const { t } = useUiTranslation();
   // The new interface greets a brand-new account plainly: no «—» avatar and
@@ -76,6 +77,19 @@ function HomeHeader({
     <header className="home-header">
       {/* Secret 5-tap shortcut into the "streak_tracker" test topic — a dev/QA
           convenience, not a real feature, so it stays visually inert. */}
+      {preview && student ? (
+        // New interface: the student is a button — tap to switch students.
+        <button type="button" className="home-header__student-btn" onClick={onStudentTap}
+          aria-haspopup="dialog" aria-label={`${student.name}: ${t("preview.whoStudies")}`}>
+          <span className="home-header__avatar">
+            {student.photo ? <AuthenticatedImage src={student.photo} alt="" /> : getInitials(student.name)}
+          </span>
+          <span className="home-header__copy">
+            <span className="home-header__eyebrow">{getTimeGreeting()}</span>
+            <span className="home-header__student-name">{student.name}<span className="home-header__switch-caret" aria-hidden="true">▾</span></span>
+          </span>
+        </button>
+      ) : <>
       {!bare && <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
         {student
           ? (student.photo ? <AuthenticatedImage src={student.photo} alt="" /> : getInitials(student.name))
@@ -87,6 +101,7 @@ function HomeHeader({
           {bare ? getTimeGreeting().replace(/,\s*$/, "") : student ? student.name : t("home.noStudent")}
         </span>
       </div>
+      </>}
       {/* The new interface shows no build number to the adult — only «Обновить»
           when there is something to update (installed topics refresh on their
           own; the number stays in «Настройки приложения»). */}
@@ -785,6 +800,7 @@ export default function HomeScreen() {
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   // Topic/mode come pre-filled with defaults, so a first-time user sees both
@@ -1042,6 +1058,7 @@ export default function HomeScreen() {
         onRefresh={refreshAppAndTopics}
         onMenu={() => { closeHints(); setMenuOpen(true); }}
         onAvatarTap={handleAvatarSecretTap}
+        onStudentTap={() => { closeHints(); setSwitcherOpen(true); }}
       />
 
       <div className="home-main">
@@ -1092,6 +1109,17 @@ export default function HomeScreen() {
 
       {!preview && <HomeTabs active={visibleTab} onChange={changeTab} statisticsAvailable={statisticsAvailable} statisticsDisabledReason={statisticsDisabledReason} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />}
       {hintsOpen && student && <ScreenHints steps={homeHintSteps} onClose={closeHints} />}
+
+      {switcherOpen && (
+        <StudentSwitcherSheet
+          students={students}
+          activeId={student?.id}
+          onPick={setActiveStudentId}
+          onAdd={handleAddFirstStudent}
+          onAll={() => setScreen("students")}
+          onClose={() => setSwitcherOpen(false)}
+        />
+      )}
 
       {menuOpen && (
         <HomeMenuSheet
