@@ -493,7 +493,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         {/* a deck with several writing languages: the notebook's language (it never changes, docs/propis2-languages.md) */}
         {language && <span className={`p2-lang-badge p2-lang-tone-${language.tone ?? 0}`} title={`Язык тетради: ${language.title}`} aria-label={`Язык тетради: ${language.title}`} data-testid="propis2-notebook-lang">{language.short ?? language.title}</span>}
         {/* the writing style of the open page, when its language has several (English: «Печатные» / «Британские»); changed in the page strip («Стиль») */}
-        {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
+        {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /><span className="p2-save-text">Сохранить</span></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
   );
