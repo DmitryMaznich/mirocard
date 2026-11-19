@@ -6,8 +6,10 @@ import { api, setApiToken, ApiError } from "@/core/api";
 import { getDb } from "@/core/db";
 import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 export default function ResetPasswordScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const token = useAppStore((s) => s.passwordResetToken);
 
@@ -20,7 +22,7 @@ export default function ResetPasswordScreen() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (password.length < 8) {
-      setError("Пароль должен содержать минимум 8 символов");
+      setError(t("auth.shortPassword"));
       return;
     }
     setError("");
@@ -60,7 +62,7 @@ export default function ResetPasswordScreen() {
       if (err instanceof ApiError && err.status === 400) {
         setInvalidOrExpired(true);
       } else {
-        setError(authErrorMessage(err, "Не удалось сохранить новый пароль. Попробуйте ещё раз."));
+        setError(authErrorMessage(err, t("auth.resetFailed")));
       }
     } finally {
       setLoading(false);
@@ -73,13 +75,13 @@ export default function ResetPasswordScreen() {
         <MironiumLogo className="auth-logo" />
         <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
           <p style={{ color: "#c0392b" }}>
-            Ссылка недействительна или срок её действия истёк.
+            {t("auth.linkInvalid")}
           </p>
           <Button onClick={() => setScreen("forgot_password")} fullWidth variant="secondary">
-            Запросить новую ссылку
+            {t("auth.requestNewLink")}
           </Button>
           <button className="auth-link" onClick={() => setScreen("login")}>
-            Вернуться к входу
+            {t("auth.backToLogin")}
           </button>
         </div>
       </div>
@@ -91,7 +93,7 @@ export default function ResetPasswordScreen() {
       <MironiumLogo className="auth-logo" />
       <form className="auth-form" onSubmit={handleSubmit}>
         <p style={{ color: "#7c8c89", fontSize: "0.9rem", margin: "0 0 4px" }}>
-          Придумайте новый пароль.
+          {t("auth.newPasswordIntro")}
         </p>
         <div className="auth-password-wrap">
           <input
@@ -99,7 +101,7 @@ export default function ResetPasswordScreen() {
             type={showPass ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Новый пароль (минимум 8 символов)"
+            placeholder={t("auth.newPasswordPlaceholder")}
             required
             autoFocus
             autoComplete="new-password"
@@ -109,14 +111,14 @@ export default function ResetPasswordScreen() {
             className="auth-password-toggle"
             onClick={() => setShowPass((v) => !v)}
             tabIndex={-1}
-            aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+            aria-label={t(showPass ? "auth.hidePassword" : "auth.showPassword")}
           >
             {showPass ? "🙈" : "👁"}
           </button>
         </div>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
-          {loading ? "Сохраняем…" : "Сохранить новый пароль"}
+          {loading ? t("auth.saving") : t("auth.saveNewPassword")}
         </Button>
       </form>
     </div>

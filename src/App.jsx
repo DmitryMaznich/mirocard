@@ -143,6 +143,7 @@ const SCREENS = {
 };
 
 function OrientationGuard({ orientationLock }) {
+  const { t } = useUiTranslation();
   if (!orientationLock) return null;
   const isLandscape = orientationLock.startsWith("landscape");
 
@@ -151,10 +152,10 @@ function OrientationGuard({ orientationLock }) {
       <div className="orientation-guard-card">
         <div className="orientation-guard-icon">↻</div>
         <div className="orientation-guard-title">
-          {isLandscape ? "Поверните экран горизонтально" : "Поверните экран вертикально"}
+          {t(isLandscape ? "app.rotateLandscape" : "app.rotatePortrait")}
         </div>
         <div className="orientation-guard-text">
-          Этот режим рассчитан на {isLandscape ? "горизонтальную" : "вертикальную"} ориентацию экрана.
+          {t(isLandscape ? "app.orientationLandscape" : "app.orientationPortrait")}
         </div>
       </div>
     </div>

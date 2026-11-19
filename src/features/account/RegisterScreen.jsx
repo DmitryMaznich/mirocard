@@ -6,11 +6,12 @@ import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import PrivacyContent from "@/features/help/PrivacyContent";
-import { fetchSignupStatus, SIGNUP_PAUSED_TEXT, SIGNUP_PAUSED_WITH_GOOGLE_TEXT } from "./signupStatus";
-import { MARKETING_CONSENT_TEXT } from "./marketingConsent";
+import { fetchSignupStatus } from "./signupStatus";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import GoogleSignInButton from "./GoogleSignInButton";
 
 export default function RegisterScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setPendingVerificationEmail = useAppStore((s) => s.setPendingVerificationEmail);
 
@@ -39,11 +40,11 @@ export default function RegisterScreen() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (password.length < 8) {
-      setError("Пароль должен содержать минимум 8 символов");
+      setError(t("auth.shortPassword"));
       return;
     }
     if (!consent) {
-      setError("Необходимо согласие на обработку персональных данных");
+      setError(t("auth.consentRequired"));
       return;
     }
     setError("");
@@ -65,9 +66,9 @@ export default function RegisterScreen() {
       if (err.status === 503 && err.message === "signup_paused_email_budget") {
         setStatus((s) => ({ ...(s ?? { google: null }), emailSignupOpen: false }));
       } else if (err.status === 409) {
-        setError("Этот email уже зарегистрирован");
+        setError(t("auth.emailRegistered"));
       } else {
-        setError(authErrorMessage(err, "Ошибка регистрации. Попробуйте ещё раз."));
+        setError(authErrorMessage(err, t("auth.registerFailed")));
       }
     } finally {
       setLoading(false);
@@ -80,12 +81,12 @@ export default function RegisterScreen() {
       {status?.google && (
         <div className="auth-google">
           <GoogleSignInButton clientId={status.google.clientId} text="signup_with" />
-          {!emailSignupClosed && <div className="auth-divider"><span>или по почте</span></div>}
+          {!emailSignupClosed && <div className="auth-divider"><span>{t("auth.orEmail")}</span></div>}
         </div>
       )}
       {emailSignupClosed ? (
         <div className="auth-form">
-          <p className="auth-notice">{status.google ? SIGNUP_PAUSED_WITH_GOOGLE_TEXT : SIGNUP_PAUSED_TEXT}</p>
+          <p className="auth-notice">{t(status.google ? "auth.signupPausedGoogle" : "auth.signupPaused")}</p>
         </div>
       ) : (
       <form className="auth-form" onSubmit={handleSubmit}>
@@ -94,7 +95,7 @@ export default function RegisterScreen() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder={t("auth.email")}
           required
           autoFocus
           autoComplete="email"
@@ -104,7 +105,7 @@ export default function RegisterScreen() {
           type="text"
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
-          placeholder="Имя *"
+          placeholder={t("auth.firstNameRequiredField")}
           required
           autoComplete="given-name"
         />
@@ -113,7 +114,7 @@ export default function RegisterScreen() {
           type="text"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
-          placeholder="Фамилия (необязательно)"
+          placeholder={t("auth.lastNameOptional")}
           autoComplete="family-name"
         />
         <select
@@ -122,9 +123,9 @@ export default function RegisterScreen() {
           onChange={(e) => setRole(e.target.value)}
           required
         >
-          <option value="" disabled>Кто вы? *</option>
-          <option value="parent">Родитель</option>
-          <option value="specialist">Специалист</option>
+          <option value="" disabled>{t("auth.whoAreYou")}</option>
+          <option value="parent">{t("auth.roleParent")}</option>
+          <option value="specialist">{t("auth.roleSpecialist")}</option>
         </select>
         <select
           className="auth-input"
@@ -132,11 +133,11 @@ export default function RegisterScreen() {
           onChange={(e) => setReferralSource(e.target.value)}
           required
         >
-          <option value="" disabled>Как узнали о Mironium? *</option>
+          <option value="" disabled>{t("auth.howHeard")}</option>
           <option value="instagram">Instagram</option>
-          <option value="friend">Рекомендация друзей</option>
-          <option value="developer">Приглашение разработчика</option>
-          <option value="other">Другое</option>
+          <option value="friend">{t("auth.heardFriend")}</option>
+          <option value="developer">{t("auth.heardDeveloper")}</option>
+          <option value="other">{t("auth.heardOther")}</option>
         </select>
         <div className="auth-password-wrap">
           <input
@@ -144,7 +145,7 @@ export default function RegisterScreen() {
             type={showPass ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Пароль (минимум 8 символов) *"
+            placeholder={t("auth.passwordNew")}
             required
             autoComplete="new-password"
           />
@@ -153,7 +154,7 @@ export default function RegisterScreen() {
             className="auth-password-toggle"
             onClick={() => setShowPass((v) => !v)}
             tabIndex={-1}
-            aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+            aria-label={t(showPass ? "auth.hidePassword" : "auth.showPassword")}
           >
             {showPass ? "🙈" : "👁"}
           </button>
@@ -166,9 +167,9 @@ export default function RegisterScreen() {
             required
           />
           <span>
-            Согласен(а) на{" "}
+            {t("auth.consentPrefix")}{" "}
             <button type="button" className="auth-consent__link" onClick={() => setShowPrivacy(true)}>
-              обработку персональных данных
+              {t("auth.consentLink")}
             </button>
           </span>
         </label>
@@ -179,20 +180,20 @@ export default function RegisterScreen() {
             checked={marketingOptIn}
             onChange={(e) => setMarketingOptIn(e.target.checked)}
           />
-          <span>{MARKETING_CONSENT_TEXT}</span>
+          <span>{t("auth.marketingConsent")}</span>
         </label>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
-          {loading ? "Создаём аккаунт…" : "Создать аккаунт"}
+          {loading ? t("auth.creatingAccount") : t("auth.createAccount")}
         </Button>
       </form>
       )}
       <button className="auth-link" onClick={() => setScreen("login")}>
-        Уже есть аккаунт? Войти
+        {t("auth.haveAccount")}
       </button>
 
       {showPrivacy && (
-        <Modal title="Политика конфиденциальности" onClose={() => setShowPrivacy(false)}>
+        <Modal title={t("auth.privacyTitle")} onClose={() => setShowPrivacy(false)}>
           <PrivacyContent />
         </Modal>
       )}
