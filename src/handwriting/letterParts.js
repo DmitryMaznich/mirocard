@@ -234,3 +234,31 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
   }
   return moves;
 }
+
+// A COMPOSED letter (`glyph.compose`, ш = 6 + 6 + 6) has no line of its own: the row lays its parts out and joins them as letters in a word.
+// Its elements are those parts, the joins between them the pen's way from one to the next. `strokes`: the parts as the row placed them;
+// `trajectory`: the row's trajectory of the letter (the parts and, between them, the joins). Joined: one start, every join run with the pen
+// down — leaving its line if it goes over blank paper (ш: up along the next stick); lifted: every part from its own start dot.
+export function composedMoves(strokes, trajectory, technique = "joined") {
+  const part = new Set(strokes.map((s) => s.d));
+  const moves = [];
+  let element = 0, last = null;
+  const drawn = [];
+  for (const t of trajectory) {
+    const pts = samplePath(toCubicPathD(t.d), 6);
+    if (!part.has(t.d)) {
+      if (technique !== "joined") continue;
+      const over = pts.filter((q) => drawn.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 1)).length;
+      moves.push({ kind: "retrace", d: t.d, continues: true, ...(over < pts.length / 2 ? { ink: true } : {}) });
+      last = pts.at(-1);
+      continue;
+    }
+    const touchDown = !moves.length || technique === "lifted";
+    if (touchDown && last && Math.hypot(pts[0][0] - last[0], pts[0][1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: pts[0] });
+    moves.push({ kind: "ink", d: t.d, element: element++, startDot: touchDown, ...(touchDown ? {} : { continues: true }) });
+    drawn.push(...samplePath(toCubicPathD(t.d), 12));
+    last = pts.at(-1);
+  }
+  return moves;
+}
+

@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { letterPaths, letterMoves, segmentShare } from "./letterParts.js";
+import { letterPaths, letterMoves, segmentShare, composedMoves } from "./letterParts.js";
 import { samplePath, toCubicPathD } from "./pathGeometry.js";
-import { normalizeLetterExtremes } from "./wordEngine.js";
+import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "./wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
-const spec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
+const allSpec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
+// (the composed letters — ш — have no line of their own: tested through the row below)
+const spec = Object.fromEntries(Object.entries(allSpec).filter(([, v]) => !v.composed));
 const glyph = (ch) => ({ ...wide.find((g) => g.label === ch || g.aliases?.includes(ch)), trajectory: spec[ch] });
 const endOf = (d) => d.trim().split(/\s+/).slice(-2).map(Number);
 const startOf = (d) => d.trim().split(/\s+/).slice(1, 3).map(Number);
@@ -186,6 +188,31 @@ describe("continues", () => {
     expect(j.filter((m) => !m.continues && m.kind !== "lift").length, ch).toBe(strokes); // one fresh start per stroke (й: its breve)
     const l = letterMoves(glyph(ch), "lifted").filter((m) => m.kind === "ink");
     expect(l.every((m) => !m.continues)).toBe(true);
+  });
+});
+
+// ш = 6 + 6 + 6, joined by the row (owner 2026-11-19: «аналогично и»): three elements; joined — the way from the end of one up to the top
+// of the next runs along the next stick and leaves its line, one start dot; lifted — three start dots
+describe("ш, composed", () => {
+  const map = new Map(wide.map((g) => [g.label, g])); for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
+  const seg = layoutWideLinesIntoRows(["ш"], map, undefined, false).placed[0].segments[0];
+  it("joined", () => {
+    const m = composedMoves(seg.strokes, seg.trajectory.strokes, "joined");
+    expect(m.map((x) => x.kind)).toEqual(["ink", "retrace", "ink", "retrace", "ink"]);
+    expect(m.filter((x) => x.startDot).length).toBe(1);
+    expect(m.filter((x) => x.kind === "retrace").every((x) => x.ink && x.continues)).toBe(true);
+    // each way up lies on the next stick
+    m.forEach((r, i) => {
+      if (r.kind !== "retrace") return;
+      const stick = samplePath(toCubicPathD(m[i + 1].d), 200);
+      // (0.08: the row writes its coordinates to 3 decimals; the line is 2 wide)
+      for (const q of samplePath(toCubicPathD(r.d), 20)) expect(Math.min(...stick.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1])))).toBeLessThan(0.1);
+    });
+  });
+  it("lifted", () => {
+    const m = composedMoves(seg.strokes, seg.trajectory.strokes, "lifted");
+    expect(m.filter((x) => x.kind === "ink").length).toBe(3);
+    expect(m.filter((x) => x.startDot).length).toBe(3);
   });
 });
 

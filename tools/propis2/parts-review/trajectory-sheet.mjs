@@ -3,9 +3,9 @@
 // pen running along the ink, no new line; lifted: every element from its own start dot, the pen's way through the air not shown).
 //   node tools/propis2/parts-review/trajectory-sheet.mjs [letters] > out.html
 import { readFileSync } from "node:fs";
-import { letterMoves, letterPaths, piecePathD } from "../../../src/handwriting/letterParts.js";
+import { letterMoves, letterPaths, piecePathD, composedMoves } from "../../../src/handwriting/letterParts.js";
 import { samplePath, toCubicPathD } from "../../../src/handwriting/pathGeometry.js";
-import { normalizeLetterExtremes } from "../../../src/handwriting/wordEngine.js";
+import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "../../../src/handwriting/wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const spec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
@@ -17,18 +17,27 @@ const cards = letters.map((ch) => {
   // the letter as the app stands it on the band (wordEngine's normalizeLetterExtremes: stretched along the slant so that its top and bottom
   // touch the lines), not the raw capture — otherwise the sheet shows letters off the lines that are on them in the app
   const raw = wide.find((x) => x.label === ch || x.aliases?.includes(ch));
-  const g = { ...raw, strokes: normalizeLetterExtremes(raw).map((d) => ({ d })), trajectory: spec[ch] };
+  // a composed letter (ш = 6 + 6 + 6): laid out by the row, its parts and the joins between them brought back to the capture frame
+  // (the row: top line 16, baseline 64, i.e. 52 capture units in 48)
+  const composed = raw.compose ? (() => {
+    const map = new Map(wide.map((x) => [x.label, x])); for (const x of wide) for (const a of x.aliases ?? []) map.set(a, x);
+    const seg = layoutWideLinesIntoRows([ch], map, undefined, false).placed[0].segments[0];
+    const back = (d) => d.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${(+x * 52 / 48 + 100).toFixed(2)} ${(10 + (+y - 16) * 52 / 48).toFixed(2)}`);
+    return { strokes: seg.strokes.map((s) => ({ d: back(s.d) })), trajectory: seg.trajectory.strokes.map((s) => ({ ...s, d: back(s.d) })) };
+  })() : null;
+  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: normalizeLetterExtremes(raw).map((d) => ({ d })), trajectory: spec[ch] };
+  const movesOf = (t) => (composed ? composedMoves(composed.strokes, composed.trajectory, t) : letterMoves(g, t));
   const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
   const x0 = Math.min(...xs) - 14, y0 = Math.min(-45, ...ys) - 10, w = Math.max(...xs) - x0 + 14, h = Math.max(118, ...ys) - y0 + 10;
   const guides = [-42, 10, 62, 114].map((y) => `<line x1="${x0}" x2="${x0 + w}" y1="${y}" y2="${y}" class="gl"/>`).join("");
   const svg = (inner, extra = "") => `<svg viewBox="${x0} ${y0} ${w} ${h}" ${extra}>${guides}${inner}</svg>`;
   const names = spec[ch]?.elements ?? [];
-  const ink = letterPaths(g).filter((p) => p.kind === "ink");
-  const elems = ink.map((p, i) => `<path d="${piecePathD(g.strokes[p.stroke].d, p.from, p.to)}" stroke="${COLORS[i % 6]}" class="ink"/>`).join("");
+  const inkD = movesOf("lifted").filter((m) => m.kind === "ink").map((m) => m.d);
+  const elems = inkD.map((d, i) => `<path d="${d}" stroke="${COLORS[i % 6]}" class="ink"/>`).join("");
   const legend = names.map((n, i) => `<span style="color:${COLORS[i % 6]}">● ${n}</span>`).join(" ");
   const anim = ["joined", "lifted"].map((t) => {
-    const moves = letterMoves(g, t);
+    const moves = movesOf(t);
     return `<div class="panel"><h3>${TITLE[t]}</h3>${svg("", `data-moves='${JSON.stringify(moves)}'`)}<button>▶ ещё раз</button></div>`;
   }).join("");
   return `<section><h2>${ch}</h2><div class="row"><div class="panel"><h3>Элементы</h3>${svg(elems)}<p>${legend}</p></div>${anim}</div></section>`;
