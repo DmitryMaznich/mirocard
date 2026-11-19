@@ -139,11 +139,19 @@ export function splitIntoParts(strokes, glyph, hidden) {
 
 // the share of the stroke's length at a position: a number of segments (2 = the end of the 2nd segment after M, 2.5 = the middle of the
 // 3rd by its curve parameter), or { seg, y } — the first point after the end of segment `seg` where the path reaches the height y (a
-// guide line of the letter's band: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline, in the capture frame)
+// guide line of the letter's band: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline, in the capture frame), or
+// { seg, top: true } — the highest point of the segment after `seg`
 export function segmentShare(d, at) {
   const { pts, len } = polyOf(d);
   const total = len[len.length - 1];
   if (!total) return 0;
+  // { seg, top: true } — the highest point of the segment after `seg` (л м: where the pen turns down at the top, a cut without a retrace)
+  if (typeof at === "object" && at !== null && at.top) {
+    const from = Math.round(at.seg * PER_SEGMENT), to = Math.min(pts.length - 1, from + PER_SEGMENT);
+    let best = from;
+    for (let i = from; i <= to; i += 1) if (pts[i][1] < pts[best][1]) best = i;
+    return len[best] / total;
+  }
   if (typeof at === "object" && at !== null) {
     for (let i = Math.max(1, Math.round(at.seg * PER_SEGMENT) + 1); i < pts.length; i += 1) {
       const a = pts[i - 1][1] - at.y, b = pts[i][1] - at.y;
