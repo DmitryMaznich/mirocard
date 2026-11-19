@@ -35,6 +35,8 @@ import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
 import StudentSwitcherSheet from "./StudentSwitcherSheet";
+import LanguageSheet from "./LanguageSheet";
+import { UI_LANGUAGES } from "@/shared/i18n/uiLanguage.js";
 import MarketingPromptCard from "./MarketingPromptCard";
 import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
 import StatisticsScreen from "@/features/analytics/StatisticsScreen";
@@ -767,7 +769,7 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
 
 export default function HomeScreen() {
   const { enabled: preview } = useTopicUiPreview();
-  const { t } = useUiTranslation();
+  const { t, language: uiLanguage } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
@@ -798,6 +800,7 @@ export default function HomeScreen() {
   const [refreshFailed, setRefreshFailed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   // Topic/mode come pre-filled with defaults, so a first-time user sees both
@@ -1118,13 +1121,20 @@ export default function HomeScreen() {
         />
       )}
 
+      {languageOpen && <LanguageSheet onClose={() => setLanguageOpen(false)} />}
+
       {menuOpen && (
         <HomeMenuSheet
           onClose={() => setMenuOpen(false)}
           onOpenProfile={() => setScreen("account")}
           onOpenStudents={() => setScreen("students")}
-          onOpenStatistics={() => setScreen("history")}
-          onOpenSettings={() => setScreen("settings")}
+          // New interface: statistics live with the student (Ученики → «…»)
+          // and the topic; the language is in the menu itself, so there is no
+          // «Настройки приложения» (owner, 2026-11-19).
+          onOpenStatistics={preview ? null : () => setScreen("history")}
+          onOpenSettings={preview ? null : () => setScreen("settings")}
+          onOpenLanguage={preview ? () => setLanguageOpen(true) : null}
+          languageLabel={UI_LANGUAGES.find((item) => item.code === uiLanguage)?.label}
           onOpenHelp={() => setScreen("help")}
           extraItems={preview ? [
             hasLessonPlanAccess && { id: "lesson_plan", label: t("home.lessonPlan"), onClick: () => changeTab("lesson_plan") },

@@ -17255,6 +17255,8 @@ button.operation-dot {
   letter-spacing: 0.05em;
 }
 .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-top: 1px solid rgba(28, 54, 52, 0.06); }
+/* Explanatory text inside a settings plate: kept off the plate's edges. */
+.settings-section__text { margin: 0; padding: 2px 16px 14px; color: #5e716d; font-size: 0.85rem; line-height: 1.5; }
 /* An on/off setting: label on the left, a switch on the right — also on phones,
    where the generic narrow-screen rule stacks .settings-row into a column.
    The native checkbox stays (forms and tests read .checked), drawn as a switch. */

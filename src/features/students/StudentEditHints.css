@@ -25,6 +25,13 @@
 }
 .student-settings-group > summary { padding: 18px 16px; font-weight: 800; cursor: pointer; }
 .student-settings-content { display: grid; gap: 16px; padding: 0 14px 16px; min-width: 0; }
-.lesson-flow-settings { border: 0; margin: 0; padding: 12px; min-width: 0; }
+.lesson-flow-settings { border: 0; margin: 0; padding: 0; min-width: 0; }
+/* Student settings plates: every plate keeps its text and buttons 16px off
+   its border (the reward rules and «Окружение» touched the edge on phones). */
+.se-padded-card { padding: 14px 16px 6px; }
+.se-padded-card .reward-settings { margin: 0; }
+.se-padded-card .reward-settings h3 { margin-top: 0; }
+.se-padded-card .lesson-flow-settings legend { padding: 0; margin-bottom: 10px; }
+.se-my-people-card p { padding: 0 16px; }
 .lesson-flow-settings legend { font-weight: 800; }
 .lesson-flow-settings p, .settings-scope { color: #526e67; font-size: .9rem; line-height: 1.5; }
