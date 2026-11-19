@@ -34,6 +34,20 @@ describe("scheme steps", () => {
     }
   });
 
+  it("lotto «Буква: последняя»: each card is the word's last letter, and only clean last sounds", () => {
+    for (const direction of ["letters", "pictures"]) {
+      for (const t of run("pa_lotto", ALL, { by: "last", direction })) {
+        expect(t.by).toBe("last");
+        const words = t.board ?? t.pictures;
+        for (const w of words) {
+          expect(w.lottoLetter).toBe(w.word.at(-1).toUpperCase());
+          expect(w.targets.find((x) => x.position === "end")?.letter).toBe(w.lottoLetter);
+        }
+        expect(words.map((w) => w.word)).not.toContain("мышь");
+      }
+    }
+  });
+
   it("lotto with only 2 learned letters: the board is full, the letters repeat", () => {
     const t = run("pa_lotto", ["М", "С"])[0];
     expect(t.board).toHaveLength(9);

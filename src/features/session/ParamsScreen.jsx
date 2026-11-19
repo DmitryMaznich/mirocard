@@ -2110,19 +2110,29 @@ export default function ParamsScreen() {
         // those stay on the picker «Изменить» opens (owner, 2026-11-18).
         <button type="button" className="param-row topic-ui-param-pick" onClick={() => setScreen("concepts")}>
           <span className="topic-ui-param-pick__copy">
-            <span className="param-label">{tr("setup.cards")}</span>
+            {/* A topic whose cards are letters names them so (meta.conceptNoun) and, with
+                meta.showSelectedConcepts, shows the chosen ones themselves (2026-11-19). */}
+            <span className="param-label">{tr(topicRecord?.meta?.conceptNoun === "letters" ? "setup.letters" : "setup.cards")}</span>
+            {topicRecord?.meta?.showSelectedConcepts ? (
+              <span className="param-concept-chips">
+                {allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId)).map((c) => (
+                  <span key={c.conceptId} className="param-concept-chip">{c.label ?? c.conceptId}</span>
+                ))}
+              </span>
+            ) : (
             <span className="topic-ui-param-pick__value">
               {selectedConceptIds.length === allConcepts.length
                 ? tr("setup.cardsAll", { count: allConcepts.length })
                 : tr("setup.selectionOf", { selected: selectedConceptIds.length, total: allConcepts.length })}
             </span>
+            )}
           </span>
           <span className="topic-ui-param-pick__action">{tr("setup.edit")}<ChevronRightIcon size={15} /></span>
         </button>
       )}
       {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && !preview && (
         <div className="param-row param-row--block">
-          <div className="param-label">{tr("setup.concepts")}</div>
+          <div className="param-label">{tr(topicRecord?.meta?.conceptNoun === "letters" ? "setup.letters" : "setup.concepts")}</div>
           <div className="param-concept-col">
             {/* «Буквы и звуки» (meta.showSelectedConcepts): the chosen letters themselves,
                 so the adult sees what the lesson is built from (teacher's request, 2026-11-19). */}

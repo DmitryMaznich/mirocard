@@ -218,13 +218,16 @@
 .pa-card--lifted { opacity: 0.2; }
 .pa-card--drag { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18); }
 .pa-card--placed, .pa-card--bad { position: absolute; pointer-events: none; }
+/* The laid card settles where the letter is in the word: the first letter in the top
+   left corner, the last one («Буква: последняя») in the bottom right (2026-11-19). */
 .pa-card--placed {
-  right: 4px; top: 4px; width: 38%; height: 38%;
+  left: 4px; top: 4px; width: 38%; height: 38%;
   font-size: clamp(20px, 5vw, 28px);
   color: #15803d; background: rgba(220, 252, 231, 0.85); border-color: rgba(22, 163, 74, 0.7);
   animation: pa-settle 0.45s ease;
 }
 .pa-card--bad { inset: 8%; width: auto; height: auto; color: #b91c1c; background: rgba(254, 242, 242, 0.6); border-color: rgba(239, 68, 68, 0.8); }
+.pa-card--placed.pa-card--at-end { left: auto; top: auto; right: 4px; bottom: 4px; }
 @keyframes pa-settle { from { inset: 8%; width: 84%; height: 84%; } }
 /* --- lotto «Картинки на буквы»: letters on the board, pictures in the tray --- */
 .pa-rlotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: min(100%, 460px); }

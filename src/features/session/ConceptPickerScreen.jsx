@@ -122,7 +122,7 @@ export default function ConceptPickerScreen() {
         <button className="back-btn" onClick={() => setScreen("params")}><BackArrowIcon /></button>
         {/* The new interface names them «Карточки», as the settings row that
             opens this screen does, and says what the header button does. */}
-        <h1 className="screen-title">{tr(preview ? "setup.cardCount" : "setup.conceptCount", { count: selected.size })}</h1>
+        <h1 className="screen-title">{tr(topicRecord?.meta?.conceptNoun === "letters" ? "setup.letterCount" : preview ? "setup.cardCount" : "setup.conceptCount", { count: selected.size })}</h1>
         <button className={`header-action-btn${preview ? " topic-ui-header-text-btn" : ""}`} onClick={allFilteredSelected ? selectNone : selectAll}>
           {preview ? tr(allFilteredSelected ? "setup.selectNone" : "setup.selectAll") : allFilteredSelected ? "−" : "✓"}
         </button>

@@ -23,7 +23,7 @@ export default function LottoReverseTask({ task, topicId, playTopicFile, onCorre
     if (placed[square]) return;
     const word = task.pictures.find((w) => w.id === wordId);
     if (!word) return;
-    if (word.firstLetter !== letter) {
+    if ((word.lottoLetter ?? word.firstLetter) !== letter) {
       errors.current += 1;
       onStreakReset?.(task.conceptId, word.id);
       setWrong(square);
@@ -61,7 +61,7 @@ export default function LottoReverseTask({ task, topicId, playTopicFile, onCorre
               className={`pa-rlotto__cell${mine ? " pa-rlotto__cell--ok" : ""}${wrong === i ? " pa-rlotto__cell--bad" : ""}`}
               data-drop={!mine && !done ? String(i) : undefined}
             >
-              {mine ? <PlacedPicture topicId={topicId} word={mine} letter={L} /> : L}
+              {mine ? <PlacedPicture topicId={topicId} word={mine} letter={L} atEnd={task.by === "last"} /> : L}
             </div>
           );
         })}
@@ -89,12 +89,12 @@ export default function LottoReverseTask({ task, topicId, playTopicFile, onCorre
   );
 }
 
-function PlacedPicture({ topicId, word, letter }) {
+function PlacedPicture({ topicId, word, letter, atEnd }) {
   const url = useTopicFile(topicId, word.image);
   return (
     <>
       {url ? <img src={url} alt="" draggable={false} /> : <span className="pa-pic__emoji">{word.emoji}</span>}
-      <span className="pa-card pa-card--placed">{letter}</span>
+      <span className={`pa-card pa-card--placed${atEnd ? " pa-card--at-end" : ""}`}>{letter}</span>
     </>
   );
 }

@@ -109,10 +109,19 @@ function allLettersTasks(words, learned, count) {
 // Lotto, like the board game (owner, 2026-11-18): a 3×3 board of pictures and
 // a card for every picture — the board closes completely. The pictures are spread
 // over the learned letters in turn, so with few letters a letter repeats (two
-// «М» cards, two pictures on М — any «М» fits either, the check is the first letter).
-export function lottoBoard(words, learned) {
+// «М» cards, two pictures on М — any «М» fits either, the check is the letter).
+// «Буква: первая / последняя» (2026-11-19): the key letter is the word's first
+// letter, or its last one — only words whose last sound IS that letter (no «дуб»
+// with its [п], no «мышь» ending on Ь, no unstressed final vowel: targets "end").
+// Each board word carries its key letter as `lottoLetter`.
+const lastKey = (w) => w.aligned && w.targets?.find((t) => t.position === "end")?.letter;
+export function lottoBoard(words, learned, by = "first") {
+  const keyOf = by === "last" ? lastKey : (w) => w.firstLetter;
   const byLetter = new Map();
-  for (const w of shuffle(words)) if (learned.includes(w.firstLetter)) byLetter.set(w.firstLetter, [...(byLetter.get(w.firstLetter) ?? []), w]);
+  for (const w of shuffle(words)) {
+    const L = keyOf(w);
+    if (L && learned.includes(L)) byLetter.set(L, [...(byLetter.get(L) ?? []), { ...w, lottoLetter: L }]);
+  }
   const letters = shuffle([...byLetter.keys()]);
   if (letters.length < 2) return null;
   const clash = (a, b) => SAME_PICTURE.some((g) => g.includes(a.word) && g.includes(b.word));
@@ -126,26 +135,28 @@ export function lottoBoard(words, learned) {
     }
     if (!added) break;
   }
-  const pairs = board.map((w) => ({ letter: w.firstLetter, wordId: w.id }));
-  return { board: shuffle(board), cards: shuffle(board.map((w) => w.firstLetter)), pairs };
+  const pairs = board.map((w) => ({ letter: w.lottoLetter, wordId: w.id }));
+  return { board: shuffle(board), cards: shuffle(board.map((w) => w.lottoLetter)), pairs, by };
 }
 
 // «Картинки на буквы» — the same board turned round: 9 letter squares (one per
 // picture, so a letter may repeat) and the 9 pictures to put on them.
-export function reverseLottoBoard(words, learned) {
-  const b = lottoBoard(words, learned);
+export function reverseLottoBoard(words, learned, by = "first") {
+  const b = lottoBoard(words, learned, by);
   if (!b) return null;
-  return { letters: shuffle(b.board.map((w) => w.firstLetter)), pictures: shuffle(b.board), pairs: b.pairs };
+  return { letters: shuffle(b.board.map((w) => w.lottoLetter)), pictures: shuffle(b.board), pairs: b.pairs, by };
 }
 
-function lottoTasks(words, learned, direction) {
+function lottoTasks(words, learned, direction, by) {
   const reverse = direction === "pictures";
   const boards = [];
   for (let i = 0; i < LOTTO_BOARDS; i += 1) {
-    const b = reverse ? reverseLottoBoard(words, learned) : lottoBoard(words, learned);
+    const b = reverse ? reverseLottoBoard(words, learned, by) : lottoBoard(words, learned, by);
     if (b) boards.push({ type: reverse ? "pa_lotto_reverse" : "pa_lotto", conceptId: b.pairs[0].letter, ...b });
   }
-  return boards.length ? boards : needMore("Для лото нужно хотя бы 2 буквы. Добавьте буквы в «Изменить».");
+  return boards.length ? boards : needMore(by === "last"
+    ? "Для лото по последней букве нужно хотя бы 2 буквы, на которые кончаются слова (К, Т, А, Р, С, М…). Добавьте буквы в «Изменить»."
+    : "Для лото нужно хотя бы 2 буквы. Добавьте буквы в «Изменить».");
 }
 
 // What a «Найди…» / «Что пропало?» task is made of: the learned letters, or the
@@ -242,7 +253,7 @@ function build(type, words, learned, count, params, voiced) {
     // «Буквы в клетки»: the last letter only, or the whole word.
     case "pa_all_letters":
       return params.scope === "word" ? allLettersTasks(words, learned, count) : lastLetterTasks(words, learned, count);
-    case "pa_lotto": return lottoTasks(words, learned, params.direction);
+    case "pa_lotto": return lottoTasks(words, learned, params.direction, params.by === "last" ? "last" : "first");
     case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty, params.unit, voiced);
     case "pa_missing": return missingTasks(learned, count, params.difficulty, params.unit, voiced);
     case "pa_find_all": return findAllTasks(learned, learned, count);
