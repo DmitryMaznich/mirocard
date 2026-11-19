@@ -4,7 +4,7 @@
 //   node tools/propis2/parts-review/trajectory-sheet.mjs [letters] > out.html
 import { readFileSync } from "node:fs";
 import { letterMoves, letterPaths, piecePathD, composedMoves } from "../../../src/handwriting/letterParts.js";
-import { samplePath, toCubicPathD } from "../../../src/handwriting/pathGeometry.js";
+import { samplePath, toCubicPathD, stretchKeepSlantPathD } from "../../../src/handwriting/pathGeometry.js";
 import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "../../../src/handwriting/wordEngine.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
@@ -25,7 +25,9 @@ const cards = letters.map((ch) => {
     const back = (d) => d.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${(+x * 52 / 48 + 100).toFixed(2)} ${(10 + (+y - 16) * 52 / 48).toFixed(2)}`);
     return { strokes: seg.strokes.map((s) => ({ d: back(s.d) })), trajectory: seg.trajectory.strokes.map((s) => ({ ...s, d: back(s.d) })) };
   })() : null;
-  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: normalizeLetterExtremes(raw).map((d) => ({ d })), trajectory: spec[ch] };
+  // (and widened as the row widens it: wide.json "stretch", the slant kept — without it a letter here is 1.8 times narrower than a composed
+  // one, which comes from the row already widened)
+  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: normalizeLetterExtremes(raw).map((d) => ({ d: stretchKeepSlantPathD(d, raw.stretch ?? 1, 25, 62) })), trajectory: spec[ch] };
   const movesOf = (t) => (composed ? composedMoves(composed.strokes, composed.trajectory, t) : letterMoves(g, t));
   const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
