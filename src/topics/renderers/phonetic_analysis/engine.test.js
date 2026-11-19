@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateTasks, lottoBoard, distractors } from "./engine";
+import { generateTasks, lottoBoard, distractors, pairedExtras } from "./engine";
 import WORDS_JSON from "../../../../tools/phonetic_analysis/words.json";
 
 const WORDS = WORDS_JSON.words;
@@ -106,6 +106,25 @@ describe("scheme steps", () => {
 
   it("asks for more letters instead of failing silently", () => {
     expect(run("pa_all_letters", ["Б"], { scope: "last" })[0].type).toBe("pa_need_more");
+  });
+});
+
+describe("«Буквы в клетки»: voiced/voiceless pairs as wrong letters", () => {
+  it("КОТ → Г and Д, learned pairs first", () => {
+    expect(pairedExtras([..."КОТ"], [..."КОТГД"], 2, "К").sort()).toEqual(["Г", "Д"]);
+    const one = pairedExtras([..."КОТ"], [..."КОТГ"], 1, "К");
+    expect(one).toEqual(["Г"]);
+  });
+  it("no paired consonant: the usual lookalikes", () => {
+    const e = pairedExtras([..."МАМА"], [..."МАО"], 2, "М");
+    expect(e).toHaveLength(2);
+    for (const l of e) expect("МА").not.toContain(l);
+  });
+  it("the whole word: the tray holds a pair of one of its consonants when it has one", () => {
+    for (const t of run("pa_all_letters", [..."КОТСУПНМА"], { scope: "word" })) {
+      const pairs = t.letters.map((c) => ({ Б: "П", П: "Б", Г: "К", К: "Г", Д: "Т", Т: "Д", З: "С", С: "З" })[c]).filter(Boolean).filter((p) => !t.letters.includes(p));
+      if (pairs.length) expect(t.tray.some((l) => pairs.includes(l))).toBe(true);
+    }
   });
 });
 

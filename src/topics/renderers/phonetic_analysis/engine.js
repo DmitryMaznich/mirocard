@@ -93,12 +93,24 @@ function positionTasks(words, learned, count, places) {
     .map(({ w, L }) => schemeTask(4, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }))];
 }
 
+// Voiced ↔ voiceless pairs (owner, 2026-11-19): the wrong letters in «Буквы в клетки»
+// are first the pairs of the word's consonants — КОТ → Г, Д; СУП → З, Б — the mix-up
+// a child really makes. Learned pairs come first; an unlearned one only if no learned
+// pair is left (a letter the child doesn't know is ruled out without listening).
+const PAIR = { Б: "П", П: "Б", В: "Ф", Ф: "В", Г: "К", К: "Г", Д: "Т", Т: "Д", Ж: "Ш", Ш: "Ж", З: "С", С: "З" };
+export function pairedExtras(letters, learned, count, fallbackFrom) {
+  const pairs = shuffle([...new Set(letters.map((c) => PAIR[c]).filter((p) => p && !letters.includes(p)))]);
+  const out = [...pairs.filter((p) => learned.includes(p)), ...pairs.filter((p) => !learned.includes(p))];
+  for (const l of distractors(fallbackFrom, learned, count + letters.length)) if (!letters.includes(l) && !out.includes(l)) out.push(l);
+  return out.slice(0, count);
+}
+
 // «Буквы в клетки» → «Последняя буква»: the last cell only.
 function lastLetterTasks(words, learned, count) {
   const pool = learned.flatMap((L) => words.filter((w) => w.aligned && targetOf(w, L)?.position === "end").map((w) => ({ w, L })));
   if (!pool.length) return needMore("Нет слов, которые кончаются на выбранные буквы. Добавьте буквы в «Изменить».");
   return cycle(pool, count).map(({ w, L }) => schemeTask(3, "letter", w, L, {
-    layout: "cells", answer: w.word.length - 1, closed: "inner", tray: shuffle([L, ...distractors(L, learned, 2)]),
+    layout: "cells", answer: w.word.length - 1, closed: "inner", tray: shuffle([L, ...pairedExtras([L], learned, 2, L)]),
   }));
 }
 
@@ -108,7 +120,7 @@ function allLettersTasks(words, learned, count) {
   if (!pool.length) return needMore("Нет коротких слов только из выбранных букв. Добавьте буквы в «Изменить».");
   return cycle(pool, count).map((w) => {
     const letters = [...w.word.toUpperCase()];
-    const extra = distractors(letters[0], learned, 4).filter((l) => !letters.includes(l)).slice(0, 2);
+    const extra = pairedExtras(letters, learned, 2, letters[0]);
     return schemeTask(6, "all", w, letters[0], { layout: "cells", tray: shuffle([...letters, ...extra]) });
   });
 }
