@@ -625,6 +625,7 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-note { font-size: 13px; color: #6b7385; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .p2-lang-draft { font-size: 11px; font-weight: 900; color: #5b4a1f; background: #fbf3dc; border: 1px solid #ecd9a4; padding: 2px 7px; border-radius: 6px; }
 .p2-lang-done { display: block; width: 100%; margin-top: 14px; padding: 14px; border: 0; border-radius: 14px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; font-size: 16px; box-shadow: 0 4px 0 #2a6b60; cursor: pointer; touch-action: manipulation; }
+.p2-lang-more { display: block; width: 100%; margin-top: 10px; padding: 12px; border: 2px dashed #d9d2c3; border-radius: 14px; background: transparent; color: #2a6b60; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; touch-action: manipulation; }
 .p2-lang-done:active { transform: translateY(3px); box-shadow: none; }
 /* a language's empty library: its own letters, so it is plain the language has changed */
 .propis2-lib .p2-lang-empty { text-align: center; padding: 18px 10px 4px; color: #6b7385; font-weight: 700; }
@@ -653,7 +654,6 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-tone-3 { background: #f6e6f0; color: #8b2a6b; }
 /* a phone: the header keeps the notebook's title readable — the page's style is already on the strip's «Стиль страницы» button (ПР / ПЧ,
    BU / BJ …) right under it; since deck 0.7.0 every Russian notebook has two styles and the badge squeezed the title to one word */
-@media (max-width: 559px) { .p2-header .p2-style-badge { display: none; } }
 
 /* ===== The row panel (Propis2Editor rowPanelEl, owner 2026-11-16: «как в конструкторе печатных листов и контрольных»): the column right of
    the sheet on a computer, a dock at the bottom on a phone. Its look is «Печатные буквы» RowInspector's (print_letters.css .pl-insp*). ===== */

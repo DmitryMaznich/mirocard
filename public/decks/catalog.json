@@ -424,7 +424,7 @@
     },
     {
       "id": "propis2",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -433,7 +433,7 @@
         "ru": "Конструктор тетрадей по письму и тренажёры письменных букв на русском, болгарском и казахском: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
         "en": "Handwriting notebook builder and written-letter trainers in Russian, Bulgarian and Kazakh: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
       },
-      "url": "./decks/propis2_v0.7.0.zip",
+      "url": "./decks/propis2_v0.7.1.zip",
       "status": "release",
       "access": "paid",
       "materialLanguages": [
@@ -444,7 +444,7 @@
     },
     {
       "id": "propis2_lang",
-      "version": "0.11.0",
+      "version": "0.11.1",
       "title": {
         "ru": "Прописи: латиница",
         "en": "Copybook: Latin script"
@@ -453,7 +453,7 @@
         "ru": "Прописи на всех языках в одной теме (проба перед слиянием с «Прописями»): русский, болгарский, казахский, английский — вы отмечаете свои языки, остальные не мешают. Прописные и печатные стили, конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная», диктант — для русского.",
         "en": "Every alphabet of the Copybook in one topic (the try-out before it joins «Прописи»): Russian, Bulgarian, Kazakh, English — pick your languages, the others stay out of the way. Cursive and print styles, a notebook builder, ready notebooks, letter cards; dictation in Russian."
       },
-      "url": "./decks/propis2_lang_v0.11.0.zip",
+      "url": "./decks/propis2_lang_v0.11.1.zip",
       "status": "release",
       "access": "paid",
       "materialLanguages": [
