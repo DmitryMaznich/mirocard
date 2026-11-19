@@ -19,6 +19,7 @@ import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
 import { useHint } from "./Propis2Hint";
 import { usePopupPos } from "./usePopupPos";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 // The page constructor: the page canvas with the settings of the page and of the row above it. The text is typed STRAIGHT ONTO THE
 // SHEET (owner, 2026-10-23, «как в Word»): a click on a row puts the caret there, between the letters, and the keyboard writes into the
@@ -165,11 +166,12 @@ function PartsPad({ glyph, keep, onToggle }) {
 // scrolling strip above the keyboard again): a button of the strip, the letter with its strokes to tap in a popup over the sheet. The popup
 // keeps the field's focus, so the keyboard stays where it is.
 function PartsPicker({ glyph, keep, onToggle, partial }) {
+  const { t } = useUiTranslation();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const btnRef = useRef(null);
   const panelStyle = usePopupPos(open, btnRef, 300, () => setOpen(false));
-  const { bind, tip } = useHint("Что пишем: штрихи буквы");
+  const { bind, tip } = useHint(t("propis2.strokesLabel"));
   useEffect(() => {
     if (!open) return undefined;
     const away = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
@@ -180,13 +182,13 @@ function PartsPicker({ glyph, keep, onToggle, partial }) {
   }, [open]);
   return (
     <div className="p2-pick p2-parts" ref={wrapRef}>
-      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open || partial ? " is-on" : ""}`} aria-label="Что пишем: штрихи буквы" aria-haspopup="dialog" aria-expanded={open} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen((o) => !o)} {...bind}>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open || partial ? " is-on" : ""}`} aria-label={t("propis2.strokesLabel")} aria-haspopup="dialog" aria-expanded={open} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen((o) => !o)} {...bind}>
         <span className="p2-tool-ico"><I.IconStrokes /></span>
-        <span className="p2-cap">Штрихи</span>
+        <span className="p2-cap">{t("propis2.strokes")}</span>
         {tip}
       </button>
       {open && (
-        <div className="p2-parts-panel" role="dialog" aria-label="Что пишем" onMouseDown={(e) => e.preventDefault()} style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
+        <div className="p2-parts-panel" role="dialog" aria-label={t("propis2.whatWeWrite")} onMouseDown={(e) => e.preventDefault()} style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           <PartsPad glyph={glyph} keep={keep} onToggle={onToggle} />
         </div>
       )}
@@ -206,6 +208,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
 }
 
 export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, notebook = null, language = null, styles = null }) {
+  const { t } = useUiTranslation();
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // The checks of the rows and the map of the sheet's rows are worked out on a deferred copy of the page (as the preview is): a key
   // typed shows in the field at once, the marks on the sheet follow a moment later.
@@ -526,7 +529,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         {/* a deck with several writing languages: the notebook's language (it never changes, docs/propis2-languages.md) */}
         {language && <span className={`p2-lang-badge p2-lang-tone-${language.tone ?? 0}`} title={`Язык тетради: ${language.title}`} aria-label={`Язык тетради: ${language.title}`} data-testid="propis2-notebook-lang">{language.short ?? language.title}</span>}
         {/* the writing style of the open page, when its language has several (English: «Печатные» / «Британские»); changed in the page strip («Стиль») */}
-        {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /><span className="p2-save-text">Сохранить</span></button>}
+        {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /><span className="p2-save-text">{t("propis2.save")}</span></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
   );
@@ -675,20 +678,20 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // phone / portrait tablet: the row's settings are the scrolling strip above the keyboard (as before 2026-11-16) — the panel at the bottom
   // kept giving way to the keyboard, and selecting a row IS the caret in the text, so the keyboard was always open (owner, 2026-11-19)
   const phoneRowEls = <>
-          {selected && selected.kind !== "blank" && selected.kind !== "element" && <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
+          {selected && selected.kind !== "blank" && selected.kind !== "element" && <IconBtn label={t("propis2.rowAsText")} caption={t("propis2.text")} on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
           {partsGlyph && <PartsPicker glyph={partsGlyph} keep={partsKeep} onToggle={togglePart} partial={Boolean(partsSaved)} />}
-          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
-          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
-          {styles && rowStyleOptions.length > 1 && <Propis2Picker label="Стиль строки" caption="Стиль строки" kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
+          <Propis2Picker label={t("propis2.repeat")} caption={t("propis2.sample")} value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
+          <Propis2Picker label={t("propis2.redDots")} caption={t("propis2.dots")} value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
+          {styles && rowStyleOptions.length > 1 && <Propis2Picker label={t("propis2.rowStyle")} caption={t("propis2.rowStyle")} kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
           {rowEls}
           {dropPage && <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
             onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />}
           <span className="p2-sep" aria-hidden="true" />
-          <div className="p2-seg" role="group" aria-label="Строка">
-            <IconBtn label="Строку выше" caption="Выше" onMouseDown={keepFocus} onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
-            <IconBtn label="Строку ниже" caption="Ниже" onMouseDown={keepFocus} onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
-            <IconBtn label="Дублировать строку" caption="Дубль" onMouseDown={keepFocus} disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
-            <IconBtn label="Удалить строку" caption="Удалить" className="p2-ib--danger" onMouseDown={keepFocus} disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
+          <div className="p2-seg" role="group" aria-label={t("propis2.row")}>
+            <IconBtn label={t("propis2.rowUp")} caption={t("propis2.up")} onMouseDown={keepFocus} onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
+            <IconBtn label={t("propis2.rowDown")} caption={t("propis2.down")} onMouseDown={keepFocus} onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
+            <IconBtn label={t("propis2.rowDuplicate")} caption={t("propis2.duplicate")} onMouseDown={keepFocus} disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
+            <IconBtn label={t("propis2.rowDelete")} caption={t("propis2.delete")} className="p2-ib--danger" onMouseDown={keepFocus} disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
           </div>
   </>;
   // the canvas zoom (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back

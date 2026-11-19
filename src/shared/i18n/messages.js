@@ -1,5 +1,6 @@
 import { SETTINGS_MESSAGES } from "./settingsMessages.js";
 import { AUTH_MESSAGES } from "./authMessages.js";
+import { PROPIS2_EDITOR_MESSAGES } from "./propis2EditorMessages.js";
 import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
@@ -97,6 +98,7 @@ export const UI_MESSAGES = {
     "pin.erase": "Удалить последнюю цифру",
     ...SETTINGS_MESSAGES.ru,
     ...AUTH_MESSAGES.ru,
+    ...PROPIS2_EDITOR_MESSAGES.ru,
   },
   sl: {
     ...TOPIC_PREVIEW_MESSAGES.sl,
@@ -188,6 +190,7 @@ export const UI_MESSAGES = {
     "pin.erase": "Izbriši zadnjo številko",
     ...SETTINGS_MESSAGES.sl,
     ...AUTH_MESSAGES.sl,
+    ...PROPIS2_EDITOR_MESSAGES.sl,
   },
   // English is the fallback for every language (shared/ui-languages.mjs); it
   // fills in screen by screen as text moves into the dictionaries.
@@ -273,5 +276,6 @@ export const UI_MESSAGES = {
     "pin.erase": "Delete the last digit",
     ...SETTINGS_MESSAGES.en,
     ...AUTH_MESSAGES.en,
+    ...PROPIS2_EDITOR_MESSAGES.en,
   },
 };
