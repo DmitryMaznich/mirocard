@@ -137,3 +137,12 @@ describe("ц and у begin with и as the rows stand it", () => {
   });
 });
 
+// joined: a retrace over ink already drawn adds none (р п), one ahead of the element leaves the line (и й у ц: up to the top line)
+describe("joined: the way up of и leaves its line, the way back up the stick of р does not", () => {
+  it.each([["р", false], ["п", false], ["и", true], ["й", true], ["у", true], ["ц", true]])("%s", (ch, ink) => {
+    const r = letterMoves(glyph(ch), "joined").filter((x) => x.kind === "retrace");
+    expect(r.length).toBe(1);
+    expect(Boolean(r[0].ink)).toBe(ink);
+  });
+});
+

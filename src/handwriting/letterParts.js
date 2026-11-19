@@ -188,25 +188,37 @@ const pointOf = (d, share) => {
 };
 
 // The moves of the pen writing the letter in a technique, in order, over the given strokes (the glyph's own, or as placed on a row — the
-// same order and shape): { kind: "ink", d, element, startDot } — draws; { kind: "retrace", d } — the pen on paper along ink already there
-// (joined only), nothing new on the sheet; { kind: "lift", from, to } — the pen leaves the paper and is put down elsewhere: its way through
+// same order and shape): { kind: "ink", d, element, startDot } — draws; { kind: "retrace", d, ink? } — the pen on paper along the line of an
+// element (joined only): over ink already there it adds nothing, ahead of the element it is about to write (`ink: true`) it leaves the line; { kind: "lift", from, to } — the pen leaves the paper and is put down elsewhere: its way through
 // the air is NOT shown (owner, 2026-11-19: «просто там закончилось и потом началось в начале второго штриха»). A start dot marks every place the pen touches
 // down: the start of each stroke, and in `lifted` the start of every element.
 export function letterMoves(glyph, technique = "joined", strokes = glyph?.strokes) {
   const moves = [];
   let last = null; // [x, y] where the pen is
   let lastStroke = -1;
+  const drawn = []; // points of the ink drawn so far
   for (const p of letterPaths(glyph)) {
     const d = strokes[p.stroke].d;
     if (p.kind === "retrace") {
-      if (technique === "joined") { moves.push({ kind: "retrace", d: piecePathD(d, p.from, p.to) }); last = pointOf(d, p.to); }
+      if (technique === "joined") {
+        // over ink already drawn (р п: back up the stick) the pen adds nothing; AHEAD of an element (и: up the line the second stick then
+        // comes down) it leaves its trace — on paper the line is there as soon as the pen went up (owner, 2026-11-19: «после первого штриха
+        // перо идёт вверх по наклонной до верхней линии»)
+        const rd = piecePathD(d, p.from, p.to);
+        const over = samplePath(toCubicPathD(rd), 6).filter((q) => drawn.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 1)).length;
+        const ahead = over < samplePath(toCubicPathD(rd), 6).length / 2;
+        moves.push({ kind: "retrace", d: rd, ...(ahead ? { ink: true } : {}) });
+        last = pointOf(d, p.to);
+      }
       continue;
     }
     const start = pointOf(d, p.from);
     // (lifted: every element from its own start dot, also one that goes on from the point where the last one ended)
     const touchDown = p.stroke !== lastStroke || technique === "lifted";
     if (touchDown && last && Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: start });
-    moves.push({ kind: "ink", d: piecePathD(d, p.from, p.to), element: p.element, startDot: Boolean(touchDown) });
+    const ink = piecePathD(d, p.from, p.to);
+    moves.push({ kind: "ink", d: ink, element: p.element, startDot: Boolean(touchDown) });
+    drawn.push(...samplePath(toCubicPathD(ink), 12));
     last = pointOf(d, p.to);
     lastStroke = p.stroke;
   }

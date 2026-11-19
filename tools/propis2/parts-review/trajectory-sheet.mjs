@@ -47,7 +47,7 @@ button{margin-top:6px;font-size:14px;padding:4px 10px}
 p{margin:6px 0 0;font-size:14px;max-width:260px;text-align:left}p span{display:block}
 .note{max-width:720px;color:#555;font-size:14px}
 </style>
-<p class="note">Синяя линия — что остаётся на бумаге. Зелёная точка — где ручка касается бумаги. Безотрывно: после палочки ручка идёт по ней обратно вверх до средней линии (новой линии нет) и сразу пишет крючок. С отрывом: палочка закончилась — ручка исчезает и появляется в начале крючка.</p>
+<p class="note">Синяя линия — что остаётся на бумаге. Зелёная точка — где ручка касается бумаги. Безотрывно: у «р» после палочки ручка идёт по ней обратно вверх до средней линии (новой линии нет) и сразу пишет крючок; у «и» после закругления ручка поднимается по наклонной до верхней линии (линия остаётся) и оттуда пишет вторую палочку. С отрывом: палочка закончилась — ручка исчезает и появляется в начале крючка.</p>
 ${cards}
 <script>
 const NS = "http://www.w3.org/2000/svg", SPEED = 0.09; // units per ms
@@ -66,18 +66,18 @@ function play(svg) {
     let path, len, onFrame;
     if (m.kind === "lift") { pen.remove(); svg._t = setTimeout(next, 450); return; } // the pen's way through the air is not shown
     {
-      path = el("path", { d: m.d, class: "ink", stroke: m.kind === "ink" ? "#1d4ed8" : "none" });
+      path = el("path", { d: m.d, class: "ink", stroke: m.kind === "ink" || m.ink ? "#1d4ed8" : "none" });
       layer.appendChild(path); pen.setAttribute("opacity", 1); pen.setAttribute("r", 4.5);
       if (m.startDot) { const p0 = path.getPointAtLength(0); layer.appendChild(el("circle", { cx: p0.x, cy: p0.y, r: 4, fill: "#16a34a" })); }
     }
     len = path.getTotalLength();
-    if (m.kind === "ink") { path.style.strokeDasharray = len; path.style.strokeDashoffset = len; }
+    if (m.kind === "ink" || m.ink) { path.style.strokeDasharray = len; path.style.strokeDashoffset = len; }
     layer.appendChild(pen);
     const t0 = performance.now(), dur = Math.max(250, len / SPEED);
     const step = (now) => {
       const k = Math.min(1, (now - t0) / dur), p = path.getPointAtLength(len * k);
       pen.setAttribute("cx", p.x); pen.setAttribute("cy", p.y);
-      if (m.kind === "ink") path.style.strokeDashoffset = len * (1 - k);
+      if (m.kind === "ink" || m.ink) path.style.strokeDashoffset = len * (1 - k);
       if (k < 1) svg._raf = requestAnimationFrame(step);
       else { svg._t = setTimeout(next, m.kind === "ink" ? 120 : 60); }
     };
