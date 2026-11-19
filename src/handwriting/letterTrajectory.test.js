@@ -105,9 +105,35 @@ describe("the elements stand on the same lines", () => {
 describe("the elements on the lines of the band, as the app stands the letter", () => {
   const onBand = (ch) => { const g = glyph(ch); return { ...g, strokes: normalizeLetterExtremes(g).map((d) => ({ d })) }; };
   const ext = (d) => { const ys = samplePath(toCubicPathD(d), 60).map((q) => q[1]); return [Math.min(...ys), Math.max(...ys)]; };
-  it.each([["и", [[10, 62], [10, 62]]], ["п", [[10, 62], [10, 62]]], ["р", [[10, 114], [10, 62]]]])("%s", (ch, want) => {
+  it.each([["и", [[10, 62], [10, 62]]], ["п", [[10, 62], [10, 62]]], ["р", [[10, 114], [10, 62]]], ["й", [[10, 62], [10, 62]]], ["у", [[10, 62], [10, 113.98]]]])("%s", (ch, want) => {
     const ink = letterMoves(onBand(ch), "lifted").filter((x) => x.kind === "ink").map((x) => ext(x.d));
-    ink.forEach(([top, bottom], i) => { expect(top, `${ch} ${i} top`).toBeCloseTo(want[i][0], 1); expect(bottom, `${ch} ${i} bottom`).toBeCloseTo(want[i][1], 1); });
+    ink.slice(0, want.length).forEach(([top, bottom], i) => { /* (й: its breve stands above the band) */ expect(top, `${ch} ${i} top`).toBeCloseTo(want[i][0], 1); expect(bottom, `${ch} ${i} bottom`).toBeCloseTo(want[i][1], 1); });
+  });
+});
+
+// a retrace adds no ink: it runs along the line of an element (a mark at the wrong segment would draw a «retrace» through the air)
+describe("every retrace runs along the ink of its letter", () => {
+  it.each(Object.keys(spec))("%s", (ch) => {
+    const m = letterMoves(glyph(ch), "joined");
+    const ink = m.filter((x) => x.kind === "ink").flatMap((x) => samplePath(toCubicPathD(x.d), 80));
+    for (const r of m.filter((x) => x.kind === "retrace")) {
+      for (const q of samplePath(toCubicPathD(r.d), 20)) {
+        const dist = Math.min(...ink.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1])));
+        expect(dist, `${ch} at ${q.map((v) => v.toFixed(1))}`).toBeLessThan(1);
+      }
+    }
+  });
+});
+
+// ц and у are not stretched by the rows (they go below the band): they begin with и exactly as the rows stand и
+describe("ц and у begin with и as the rows stand it", () => {
+  const prefix = (d, n) => d.split(/ (?=[MLQC] )/).slice(0, n).join(" ");
+  const iBand = normalizeLetterExtremes(glyph("и"))[0];
+  const pts = (d) => samplePath(toCubicPathD(d), 30);
+  it.each([["у", 8], ["ц", 10]])("%s", (ch, n) => {
+    const a = pts(prefix(glyph(ch).strokes[0].d, n)), b = pts(iBand.split(/ (?=C )/).slice(0, n).join(" "));
+    expect(a.length).toBe(b.length);
+    a.forEach((q, k) => expect(Math.hypot(q[0] - b[k][0], q[1] - b[k][1])).toBeLessThan(0.02));
   });
 });
 
