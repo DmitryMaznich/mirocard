@@ -7,7 +7,7 @@
   min-height: 144px;
   overflow: hidden;
   border-radius: 22px;
-  background: #e3f0e8;
+  background: linear-gradient(#d1e8dd, #faf4e8);
 }
 
 .tug-scene .tug-picture {
@@ -20,20 +20,20 @@
 .tug-scoreboard {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 8px;
-  width: min(100% - 16px, 24rem);
+  gap: 6px 12px;
+  width: min(100% - 24px, 32rem);
   margin: 8px auto 0;
-  padding: 6px 8px 8px;
-  border: 1px solid #ded7c8;
+  padding: 8px 12px 10px;
+  border: 1px solid #eedfce;
   border-radius: 18px;
-  background: #fffaf0;
-  box-shadow: 0 3px 0 #56615318;
+  background: #fffaf3;
+  box-shadow: 0 4px 14px #20324e08;
 }
 
 .tug-scoreboard-title {
   grid-column: 1 / -1;
   text-align: center;
-  color: #536559;
+  color: #536476;
   font-size: clamp(12px, 1.25vw, 15px);
   font-weight: 800;
   line-height: 1.2;
@@ -44,9 +44,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 6px;
-  padding: 2px 9px;
+  padding: 6px 12px;
   border: 1px solid var(--player-border);
-  border-radius: 11px;
+  border-radius: 14px;
   background: var(--player-bg);
 }
 
@@ -69,7 +69,7 @@
 .tug-score-bonus {
   padding: 2px 5px;
   border-radius: 7px;
-  background: #fffaf0;
+  background: #fffaf3;
   font-size: 14px;
   font-weight: 800;
 }
@@ -78,12 +78,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: clamp(12px, 1.4vw, 17px);
+  font-size: clamp(15px, 1.5vw, 20px);
   font-weight: 800;
 }
 
 .tug-score-value {
-  font-size: clamp(22px, 2.5vw, 32px);
+  font-size: clamp(28px, 2.8vw, 38px);
   font-variant-numeric: tabular-nums;
   font-weight: 900;
   line-height: 1.15;
@@ -95,7 +95,7 @@
   padding: 5px 10px;
   border: 1px solid #d3c6b6;
   border-radius: 12px;
-  background: #fffaf0;
+  background: #fffaf3;
   color: inherit;
   font-weight: 800;
 }
@@ -131,7 +131,7 @@
 }
 
 .games-tile__art--tug {
-  background: #e3f0e8;
+  background: linear-gradient(#d1e8dd, #faf4e8);
 }
 
 .games-tile__art--tug .tug-picture {
@@ -163,17 +163,37 @@
 }
 
 @media (orientation: landscape) and (max-height: 530px) {
-  .tug-scoreboard { margin-top: 4px; padding-block: 4px; }
+  .tug-scoreboard { margin-top: 4px; padding: 4px 8px; gap: 3px 8px; }
+  .tug-score { padding: 2px 8px; }
+  .tug-score-name { font-size: 14px; }
+  .tug-score-value { font-size: 24px; }
+  .tug-scoreboard-title { font-size: 12px; }
 }
 
 @media (orientation: portrait) and (max-width: 600px) {
-  .dice-race--tug .race-header h1 {
-    flex: 1;
-    min-width: 0;
-    font-size: clamp(17px, 4.6vw, 25px);
-    overflow-wrap: anywhere;
+  .dice-race--tug .race-header {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
   }
-  .dice-race--tug .race-round { white-space: nowrap; }
+  .dice-race--tug .race-header h1 {
+    grid-column: 2 / -1;
+    min-width: 0;
+    font-size: 22px;
+    overflow-wrap: normal;
+  }
+  .dice-race--tug .race-round {
+    grid-column: 2;
+    grid-row: 2;
+    position: static;
+    transform: none;
+    justify-self: center;
+    margin: 0;
+    white-space: nowrap;
+  }
+  .dice-race--tug .tug-sound { grid-column: 3; grid-row: 2; }
+  .dice-race--tug .race-controls { flex: none; min-height: 0; }
+  .dice-race--tug .race-dice-value { flex: none; min-height: 60px; }
   .tug-scene { display: block; flex: none; min-height: 0; }
   .tug-scene .tug-picture { height: auto; }
 }

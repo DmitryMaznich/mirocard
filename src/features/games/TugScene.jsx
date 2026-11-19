@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { TUG_FINISH, tugPullDirection } from "./raceEngine";
 import "./tug.css";
 
@@ -10,48 +10,60 @@ const COLORS = ["#e77868", "#369c9a"];
 
 function Puller({ x, player, effort, stride }) {
   const adult = player === 1;
-  const scale = adult ? 1.12 : 1;
+  const scale = adult ? 1.63 : 1.45;
   const shirt = COLORS[player];
-  const skin = adult ? "#d99a75" : "#f0b188";
-  const hair = adult ? "#533b39" : "#774d3b";
-  return <g transform={`translate(${x} 275) scale(${adult ? -scale : scale} ${scale})`}>
-    <ellipse cy="4" rx="47" ry="9" fill="#769076" opacity=".27" />
-    <path d={`M-12-52 -24-22 ${-36 + stride}-3 M12-52 23-23 ${28 - stride}-4`} stroke="#47617a" strokeWidth="15" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <path d={`M${-42 + stride}-2h18m${44 - 2 * stride} 0h17`} stroke="#293c51" strokeWidth="9" strokeLinecap="round" />
-    <g transform={`rotate(${-10 - effort * 8} 0 -55)`}>
-      <path d="M-27-57q2-44 12-53l30-2q13 11 14 54l-6 7h-46z" fill={shirt} stroke="#354959" strokeWidth="3" />
-      <path d="M-18-93q-4 13-4 30" stroke="#fff7e8" strokeWidth="4" opacity=".45" fill="none" strokeLinecap="round" />
-      <path d="M-5-119v13h17v-14" fill={skin} stroke="#354959" strokeWidth="2" />
-      <path d="M-27-147q0-29 30-30 29 0 29 29l5 12-7 3q-3 16-25 20-31 0-32-34z" fill={skin} stroke="#354959" strokeWidth="3" strokeLinejoin="round" />
-      <path d="M-28-141q-14-29 11-39 15-9 39 0l12-5q9 18-8 26l-12-5q-10 19-29 12l-4 12z" fill={hair} />
-      <circle cx="-18" cy="-143" r="8" fill={skin} />
-      <circle cx="21" cy="-146" r="3" fill="#293c51" />
-      <path d="M15-128q5 4 10 0" stroke="#754838" strokeWidth="2" fill="none" strokeLinecap="round" />
+  const skin = adult ? "#e5b58e" : "#f3c6a0";
+  const hair = adult ? "#634231" : "#855037";
+  const gripY = adult ? -76 : -85;
+  return <g className="tug-puller" data-player={player} transform={`translate(${x} 435) scale(${adult ? -scale : scale} ${scale})`}>
+    <ellipse cy="4" rx="43" ry="7" fill="#405443" opacity=".13" />
+    <path d={`M-12-52 -24-22 ${-36 + stride}-3 M12-52 23-23 ${28 - stride}-4`} stroke="#50627b" strokeWidth="15" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <path d={`M${-42 + stride}-2h18m${44 - 2 * stride} 0h17`} stroke="#283b54" strokeWidth="9" strokeLinecap="round" />
+    <path d={`M${-42 + stride} 2h18m${44 - 2 * stride} 0h17`} stroke="#fff8ed" strokeWidth="2" strokeLinecap="round" />
+    <g transform={`rotate(${-5 - effort * 5} 0 -55)`}>
+      <path d="M-27-57q2-44 12-53l30-2q13 11 14 54l-6 7h-46z" fill={shirt} />
+      <path d="M-18-94q-4 13-4 31" stroke="#fff7e8" strokeWidth="4" opacity=".32" fill="none" strokeLinecap="round" />
+      <path d="M-5-119v13q8 7 17-1v-13" fill={skin} />
+      <path d="M-25-146q-3-28 24-30 28-2 30 25l6 12q1 4-6 5-4 18-24 20-28-1-30-32z" fill={skin} />
+      <path d="M-25-142q-11-21 3-32 12-12 29-7 15-6 23-12 9 16-2 25-9 7-22 0-10 16-22 14l-2 13z" fill={hair} />
+      <path d="M-22-170q16-14 32-7" stroke="#ad7751" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".65" />
+      <ellipse cx="-19" cy="-141" rx="7" ry="9" fill={skin} />
+      <path d="M-21-144q6-3 5 5" stroke="#ce9477" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="19" cy="-145" rx="6" ry="8" fill="#fffdf7" />
+      <ellipse cx="21" cy="-144" rx="3.2" ry="4.7" fill="#654432" /><circle cx="22" cy="-146" r="1.1" fill="#fffdf7" />
+      <path d="M12-157q7-4 13-1" stroke={hair} strokeWidth="3" fill="none" strokeLinecap="round" />
+      <ellipse cx="15" cy="-131" rx="7" ry="3.5" fill="#e99481" opacity=".3" />
+      {adult && <path d="M-13-126q8 4 13-1 12 7 23-8-1 19-20 20-11-1-16-11z" fill={hair} opacity=".78" />}
+      <path d="M13-130q6 5 12-1" stroke={adult ? "#5b3c2b" : "#ab6652"} strokeWidth="2" fill="none" strokeLinecap="round" />
     </g>
-    <path d={`M12-94 Q${24 - effort * 6}-65 47 ${adult ? -76 : -85}`} stroke="#354959" strokeWidth="17" strokeLinecap="round" fill="none" />
-    <path d={`M12-94 Q${24 - effort * 6}-65 47 ${adult ? -76 : -85}`} stroke={skin} strokeWidth="12" strokeLinecap="round" fill="none" />
+    <path d={`M-3-96 Q${15 - effort * 5}-65 42 ${gripY}`} stroke="#d9a281" strokeWidth="11" strokeLinecap="round" fill="none" />
+    <path d={`M12-94 Q${24 - effort * 6}-65 47 ${gripY}`} stroke={skin} strokeWidth="12" strokeLinecap="round" fill="none" />
+    <ellipse cx="47" cy={gripY} rx="7" ry="6" fill={skin} />
+    <path d={`M44 ${gripY-3}v5m3-5v5m3-5v4`} stroke="#ce9477" strokeWidth=".9" strokeLinecap="round" />
   </g>;
 }
 
 function TugPicture({ position, pull = 0, direction = 0, result = null, label, preview = false }) {
+  const uid = useId().replace(/:/g, "");
   const offset = position * DIVISION;
   // Leave both pullers room at the margins while the marked rope passes through their grip.
-  const pullerOffset = offset * 0.55;
-  const child = 180 + pullerOffset;
-  const adult = 860 + pullerOffset;
-  const ropePath = `M${child + 47} 190H${adult - 53}`;
+  const pullerOffset = offset * 0.32;
+  const child = 165 + pullerOffset;
+  const adult = 875 + pullerOffset;
+  const ropePath = `M${child - 58} 316Q${child - 20} 312 ${child + 68} 312H${adult - 76}Q${adult + 20} 312 ${adult + 65} 316`;
   const stride = direction * Math.sin(Math.PI * pull) * 6;
   const winner = result === "child" ? 0 : 1;
-  return <svg className="tug-picture" viewBox={preview ? "110 42 820 278" : `0 0 ${SCENE_WIDTH} 320`} role={preview ? undefined : "img"} aria-label={label} aria-hidden={preview || undefined}>
-    <rect width={SCENE_WIDTH} height="320" rx="24" fill="#e3f0e8" />
-    <g transform={`scale(${SCENE_WIDTH / 960} 1)`}>
-      <circle cx="779" cy="70" r="31" fill="#f9df95" />
-      <path d="M75 69q10-28 33-15 22-24 48 7 21-4 29 13H68q0-3 7-5zm230-31q10-16 24-8 16-17 35 3 12-2 18 9h-81z" fill="#fffaf0" />
-      <path d="M0 179Q185 107 377 177T692 168Q833 118 960 171V320H0z" fill="#c9e3cb" />
-      <path d="M0 246Q154 210 329 236T647 233Q818 204 960 244V320H0z" fill="#b3d3ad" />
-      <path d="M0 293Q231 241 480 285Q702 242 960 293V320H0z" fill="#e9d3ab" />
-    </g>
-    <g className="tug-center-flag" transform={`translate(${CENTER} 301)`}>
+  return <svg className="tug-picture" viewBox={preview ? "70 95 900 365" : `0 75 ${SCENE_WIDTH} 405`} role={preview ? undefined : "img"} aria-label={label} aria-hidden={preview || undefined}>
+    <defs>
+      <linearGradient id={`${uid}-sky`} x2="0" y2="1"><stop stopColor="#d1e8dd" /><stop offset="1" stopColor="#faf4e8" /></linearGradient>
+    </defs>
+    <rect y="75" width={SCENE_WIDTH} height="405" fill={preview ? `url(#${uid}-sky)` : "transparent"} />
+    <circle cx="780" cy="133" r="27" fill="#f6d991" opacity=".8" />
+    <path d="M65 150q12-22 32-12 19-28 47-5 22-3 32 17zm304-35q11-17 24-8 16-18 35 3 12-2 18 9h-81z" fill="#fffdf6" opacity=".85" />
+    <path d="M0 325Q160 245 350 307T700 301Q892 253 1040 320V480H0z" fill="#c9dfc5" opacity=".72" />
+    <path d="M0 388Q180 344 350 377T715 373Q875 340 1040 380V480H0z" fill="#b6cfb1" opacity=".65" />
+    <path d="M0 444Q220 404 520 434Q805 401 1040 441V480H0z" fill="#eed9b7" />
+    <g className="tug-center-flag" transform={`translate(${CENTER} 435)`}>
       <ellipse rx="22" ry="5" fill="#b99367" opacity=".4" />
       <path d="M0-2v-193" stroke="#684232" strokeWidth="7" strokeLinecap="round" />
       <path d="M-1-4v-190" stroke="#b08159" strokeWidth="2" strokeLinecap="round" />
@@ -69,7 +81,8 @@ function TugPicture({ position, pull = 0, direction = 0, result = null, label, p
         const major = mark % 5 === 0;
         const center = mark === 0;
         const winning = result && mark === -Math.sign(position) * TUG_FINISH;
-        return <g key={mark} data-rope-mark={mark} transform={`translate(${CENTER + mark * DIVISION} 190)`}>
+        return <g key={mark} data-rope-mark={mark} transform={`translate(${CENTER + mark * DIVISION} 312)`}>
+          {center && <path d="M-7-9h14l-3 24-4-4-4 4z" fill="#e77868" stroke="#fff8ea" strokeWidth="1.5" />}
           <path d={major ? "M0-8v21" : "M0-4v8"} stroke={center ? "#bc633b" : "#674831"} strokeWidth={major ? 3 : 1.5} strokeLinecap="round" />
           {major && <>
             <rect x="-19" y="10" width="38" height="30" rx="8" fill={winning || center ? "#f8c85d" : "#fff6e1"} stroke={winning ? COLORS[winner] : "#a57d54"} strokeWidth={winning ? 3 : 1.5} />
