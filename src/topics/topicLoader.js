@@ -1,4 +1,3 @@
-import { EMOTIONS_TOPIC_ID, alignEmotionMode } from "./emotionsContent";
 import { sha256Bytes } from "../../shared/topic-delivery.mjs";
 import { loadTopicLanguages } from "../../shared/topic-language-contract.mjs";
 import { clearRendererCache } from "./rendererLoader";
@@ -871,7 +870,6 @@ function buildFlashcardModes(meta, existingModes) {
   // Opt-out for decks that define their own complete mode list (e.g. symmetry_draw)
   // and never want the generic find_n/yes_no/choose_word_by_picture/choose_all set
   // merged in alongside it.
-  if (meta.id === EMOTIONS_TOPIC_ID && existingModes?.length) return existingModes.map(alignEmotionMode);
   if (meta.customModesOnly) return (existingModes ?? []).map(withAdultRating);
   const base = existingModes?.length
     ? mergeDefaultModes(existingModes, DEFAULT_FLASHCARD_MODES)
@@ -2566,12 +2564,6 @@ function migrateRecord(record) {
 
   // Flashcard deck already has renderer set — patch missing modes, fix sort order, backfill params
   if (record.meta.renderer === "flashcards") {
-    if (record.meta.id === EMOTIONS_TOPIC_ID) {
-      return {
-        ...record,
-        modes: ensureModeIcons(buildFlashcardModes(record.meta, record.modes), "flashcards"),
-      };
-    }
     if (record.meta.customModesOnly) {
       // Strip default template modes (find_n, yes_no, ...) that got merged in
       // by an earlier install/read before customModesOnly existed on this topic.

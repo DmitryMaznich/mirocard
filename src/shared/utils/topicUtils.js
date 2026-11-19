@@ -1,5 +1,3 @@
-import { EMOTIONS_TOPIC_ID, emotionSceneUse } from "@/topics/emotionsContent";
-
 export function deriveConcepts(cards) {
   const map = new Map();
   for (const card of cards) {
@@ -85,11 +83,6 @@ export function getConceptCards(topicRecord, mode, params = {}) {
   const cards = Array.isArray(mode?.cardIds)
     ? allCards.filter((card) => mode.cardIds.includes(card.id))
     : allCards;
-  if (topicRecord?.meta?.id === EMOTIONS_TOPIC_ID && ["situation_emotion", "emotion_situation"].includes(mode?.type)) {
-    const concepts = new Set(cards.filter((card) => card.cardType === "situation" && emotionSceneUse(card) === "auto")
-      .map((card) => card.conceptId));
-    return cards.filter((card) => concepts.has(card.conceptId));
-  }
   if (topicRecord?.meta?.renderer === "word_agreement" && mode?.type) {
     return cards.filter((c) => c.skill === mode.type);
   }

@@ -15,7 +15,7 @@ import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
-import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord, recordTaskAssessment, withWork } from "./sessionEngine";
+import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord, withWork } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
@@ -169,7 +169,7 @@ export function buildGeneratedSessionState({
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
     const concepts = shuffle(safeStart === 0 ? selected : [...selected.slice(safeStart), ...selected.slice(0, safeStart)]);
     const generateTasks = ENGINE_REGISTRY.flashcards;
-    tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams, mode, activeTopicId) : [];
+    tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams, mode) : [];
     isDeckMode = true;
   } else if (renderer === "function_cards") {
     const allConcepts = deriveConcepts(topicRecord.cards);
@@ -800,13 +800,6 @@ export function useSessionEngine() {
     return () => clearTimeout(timer);
   }, [mode?.id, sessionState, tapToAdvance, autoAdvanceDelay, rewardPending]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onRecordAssessment = useCallback((quality, conceptId, cardId) => {
-    setSessionState((s) => {
-      if (!s || s.status !== "task_active" || s.assessments?.some((item) => item.taskIndex === s.taskIndex)) return s;
-      return recordTaskAssessment(s, quality, conceptId, cardId);
-    });
-  }, []);
-
   const onQualityAnswer = useCallback((quality, conceptId, cardId) => {
     setSessionState((s) => {
       const next = handleQualityAnswer(s, quality, conceptId, cardId);
@@ -876,7 +869,6 @@ export function useSessionEngine() {
     onStreakReset,
     onAdvance,
     onQualityAnswer,
-    onRecordAssessment,
     onPeopleEvent,
     onCardShown: ignoreCardEvent,
     onTap:       ignoreCardEvent,
