@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { UI_MESSAGES } from "./messages.js";
 import { menuUiLanguages, translateUiMessage, UI_LANGUAGES } from "./uiLanguage.js";
-import { legalLanguageFor, localeFor, pickUiText, publishedUiLanguages, UI_LANGUAGE_REGISTRY, uiFallbackChain } from "../../../shared/ui-languages.mjs";
+import { legalLanguageFor, localeFor, pickUiText, publishedUiLanguages, UI_FALLBACK_LANGUAGES, UI_LANGUAGE_REGISTRY, uiFallbackChain, uiLanguageEntry } from "../../../shared/ui-languages.mjs";
 
 // The rule that makes adding a language a matter of data (docs/localization/adding-a-language.md):
 // a published language has every string the source language has, with the
 // same placeholders and every plural form its own grammar needs.
 const PLURAL = /_(zero|one|two|few|many|other)$/;
+// Strings that quote Russian lesson material on purpose (the material of these
+// topics is Russian whatever the interface language): an example sentence for
+// the sentence puzzle, the spoken answer of «Сравнение».
+const QUOTES_RUSSIAN_MATERIAL = new Set(["setup.sentenceExample", "setup.verbalHint"]);
 const placeholders = (text) => [...String(text).matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).sort().join(",");
 
 function expectedKeys(source) {
@@ -20,7 +24,10 @@ describe("interface languages", () => {
   const source = UI_MESSAGES.ru;
   const { plain, plural } = expectedKeys(source);
 
-  for (const { code, locale } of publishedUiLanguages()) {
+  // Published languages, and the fallback languages even while they are drafts:
+  // a string missing elsewhere is looked up there.
+  const checked = [...new Set([...publishedUiLanguages().map(({ code }) => code), ...UI_FALLBACK_LANGUAGES])];
+  for (const { code, locale } of checked.map(uiLanguageEntry)) {
     it(`${code}: every string, placeholders and plural forms`, () => {
       const dictionary = UI_MESSAGES[code] ?? {};
       const missing = [...plain].filter((key) => !(key in dictionary) && !plural.has(key));
@@ -32,6 +39,10 @@ describe("interface languages", () => {
       expect(missingForms, `plural forms missing in ${code}`).toEqual([]);
       const wrongPlaceholders = [...plain].filter((key) => key in dictionary && placeholders(dictionary[key]) !== placeholders(source[key]));
       expect(wrongPlaceholders, `placeholders differ in ${code}`).toEqual([]);
+      if (code !== "ru") {
+        const untranslated = Object.entries(dictionary).filter(([key, text]) => !QUOTES_RUSSIAN_MATERIAL.has(key) && /[А-Яа-яЁё]/.test(text)).map(([key]) => key);
+        expect(untranslated, `Russian text left in ${code}`).toEqual([]);
+      }
     });
   }
 
@@ -46,7 +57,8 @@ describe("interface languages", () => {
     expect(uiFallbackChain("xx")).toEqual(["ru", "en"]);
     expect(pickUiText({ ru: "Глаголы", en: "Verbs" }, "sl")).toBe("Verbs");
     expect(pickUiText({ ru: "Глаголы" }, "sl")).toBe("Глаголы");
-    expect(translateUiMessage("en", "common.cancel")).toBe(UI_MESSAGES.en?.["common.cancel"] ?? UI_MESSAGES.ru["common.cancel"]);
+    expect(translateUiMessage("en", "common.cancel")).toBe("Cancel");
+    expect(translateUiMessage("xx", "common.cancel")).toBe(UI_MESSAGES.ru["common.cancel"]);
   });
 
   it("takes dates and plural rules from the registry", () => {

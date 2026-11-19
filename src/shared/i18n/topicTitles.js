@@ -42,7 +42,26 @@ const SLOVENIAN_TOPIC_TITLES = {
 
 // Topic names per interface language, for topics whose metadata does not carry
 // that language yet. A new language adds its own map here.
-const TOPIC_TITLE_TRANSLATIONS = { sl: SLOVENIAN_TOPIC_TITLES };
+// Built-in topics carry only a Russian title; catalogue topics already have
+// `title.en` in catalog.json.
+const ENGLISH_TOPIC_TITLES = {
+  "streak_tracker": "5 of 5",
+  "games": "Games",
+  "my_people": "My people",
+  "daily_orientation": "Today",
+  "shopping_list": "Shopping list",
+  "chat_with_mom": "Chat with mum",
+  "reading_dad_poems": "Reading: poems",
+  "reading_short_stories": "Reading: short stories",
+  "reading_dad_instructions": "Reading: instructions",
+  "emotions_v2": "Emotions",
+  "people_names": "Sex, age, names",
+  "clothes_basic": "Clothes",
+  "verbs_v2": "Verbs",
+  "spatial_prepositions": "Prepositions: where is it?"
+};
+
+const TOPIC_TITLE_TRANSLATIONS = { sl: SLOVENIAN_TOPIC_TITLES, en: ENGLISH_TOPIC_TITLES };
 
 // For library/home navigation only. Never use this to select lesson content/audio.
 // Order: the title's own text in the language → this table → the registry's
