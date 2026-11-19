@@ -4,14 +4,14 @@ export function buildGamesTopicRecord() {
     meta: {
       id: "games",
       renderer: "games",
-      version: "1.6.0",
+      version: "1.7.0",
       title: { ru: "Игры", sl: "Igre" },
       avatar: "media/avatar_games.svg",
       builtin: true,
       about: {
-        description: "Игры с ребёнком и настоящими кубиками: гонки, строительство небоскрёбов, наполнение стаканов и перетягивание каната.",
+        description: "Игры с ребёнком и настоящими кубиками: гонки, строительство небоскрёбов, наполнение стаканов, перетягивание каната и парковка.",
         goals: ["Сравнивать числа от 1 до 6.", "Соблюдать правила совместной игры."],
-        flow: ["Бросьте по кубику и отметьте числа.", "Сравните результаты, чтобы запустить ход."],
+        flow: ["Выберите игру и её правила.", "Играйте вместе, соблюдая очередность ходов."],
       },
     },
     modes: [{
@@ -34,6 +34,9 @@ export function buildGamesTopicRecord() {
     }, {
       id: "tug_of_war", type: "tug_of_war", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
       ui: { title: { ru: "Перетягивание каната" }, instruction: { ru: "Перетяни ленточку за свою линию" } },
+    }, {
+      id: "parking", type: "parking", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
+      ui: { title: { ru: "Парковка", sl: "Parkirišče", en: "Parking" }, instruction: { ru: "Расставь машинки по цветным гаражам", sl: "Parkiraj avtomobile po barvah", en: "Park the cars by colour" } },
     }],
     cards: [],
     installedAt: "builtin",

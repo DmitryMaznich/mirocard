@@ -1,3 +1,4 @@
+import ParkingGame from "./ParkingGame";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useRewardSettings } from "@/features/rewards/useRewardSettings";
@@ -50,6 +51,7 @@ export default function GamesScreen() {
   const [adultName, setAdultName] = useState("Папа");
   const [characters,setCharacters] = useState(()=>[student?.sex === "f" ? "girl" : "boy","man"]);
   if (!student) return <main className="games-home"><h1>Выберите ученика</h1><button className="games-primary" onClick={() => setScreen("home")}>На главный экран</button></main>;
+  if(modeId === "parking") return <ParkingGame key={studentId} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} />;
   return <DiceRace key={`${studentId}-${modeId}-${gameNumber}`} isTower={modeId === "skyscrapers"} isWater={modeId === "water_fill"} isTug={modeId === "tug_of_war"} initialCountMoves={countMoves} onCountMovesChange={setCountMoves} initialCharacters={characters} onCharactersChange={setCharacters} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
 }
 
