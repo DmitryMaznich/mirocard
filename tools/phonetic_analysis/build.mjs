@@ -5,6 +5,7 @@
 // Then copy phonetic_analysis.zip to public/decks/phonetic_analysis_v<version>.zip
 // and point public/decks/catalog.json at it (CLAUDE.md, "Deck-zip topics").
 import JSZip from "jszip";
+import { allSyllables } from "../../src/topics/renderers/phonetic_analysis/syllables.js";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -12,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(DIR, "..", "..");
-const VERSION = "2.8.0";
+const VERSION = "2.9.0";
 
 const words = JSON.parse(readFileSync(join(DIR, "words.json"), "utf8")).words.map((w) => {
   const image = `media/${w.id}.webp`;
@@ -43,6 +44,10 @@ const withWords = { words };
 // «Диктант» clips (lo_<letter>.mp3 «Строчная а» → «а», owner 2026-11-18);
 // consonants wait for the owner's own recording — synthesis says the letter's
 // name or adds a vowel. A letter without a file: only the word is voiced.
+// Syllable voice (syllables/<слог>.mp3, generate-syllables.mjs) for «Найди букву» and «Что пропало?».
+const syllableSounds = Object.fromEntries(allSyllables()
+  .map((S) => [S, `syllables/${S.toLowerCase()}.mp3`]).filter(([, f]) => existsSync(join(DIR, f))));
+const UNIT = (label) => ({ type: "enum", label: { ru: label }, values: ["letters", "syllables"], labels: { ru: { letters: "Буквы", syllables: "Слоги" } }, default: "letters" });
 const sounds = Object.fromEntries([..."АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ"]
   .map((L) => [L, `sounds/${L.toLowerCase()}.mp3`]).filter(([, f]) => existsSync(join(DIR, f))));
 
@@ -51,6 +56,7 @@ const topic = {
     id: "phonetic_analysis",
     version: VERSION,
     renderer: "phonetic_analysis",
+    showSelectedConcepts: true, // the launch screen shows the chosen letters themselves, not progress dots (2026-11-19)
     numberedModes: true, // mode titles carry their numbers; the mode list shows them (owner, 2026-11-18)
     title: { ru: "Буквы и звуки", en: "Letters and Sounds" },
     avatar: "media/avatar.svg",
@@ -65,7 +71,7 @@ const topic = {
       finalGoal: "Ребёнок слышит, где в слове звук, и знает, какая это буква.",
       flow: [
         "В «Изменить» отметьте пройденные буквы — все задания строятся только из них.",
-        "1 — повтор букв. 2 «Где звук?»: Начало или конец → Везде. 3 «Лото» — первая буква. 4 «Буквы в клетки»: Последняя буква → Всё слово.",
+        "1 — повтор букв и слогов, 5 «Что пропало?» — тоже. 2 «Где звук?»: Начало или конец → Везде. 3 «Лото» — первая буква. 4 «Буквы в клетки»: Последняя буква → Всё слово.",
         "Слово звучит само; нажать на картинку — ещё раз. В «Где звук?» перед словом звучит сам звук (пока у гласных), нажать на букву в вопросе — ещё раз.",
       ],
     },
@@ -73,11 +79,11 @@ const topic = {
   cards,
   modes: [
     mode("pa_find_letter", "1. Найди букву", {
-      summary: "Буква показана — найти её: среди 3, среди 6 или все на поле.",
-      text: "Сверху буква. «Легко» — найти среди 3 непохожих букв. «Средне» — среди 6, есть похожие по звучанию и написанию. «Трудно» — поле 5×5, найти все такие буквы; кружки сверху показывают, сколько осталось. Неверная буква вздрагивает и бледнеет, верная зеленеет.",
-      goal: "Узнавать пройденные буквы и различать похожие.",
+      summary: "Буква или слог показаны — найти такие же: среди 3, среди 6 или все на поле.",
+      text: "«Что искать»: буквы или слоги (слоги собираются сами из пройденных букв: согласная + гласная — МА, МО, СУ…). Сверху образец, он звучит (нажать — ещё раз). «Легко» — найти среди 3 непохожих. «Средне» — среди 6, есть похожие: для букв — по звучанию и написанию, для слогов — перевёртыш (АМ), та же согласная (МО), та же гласная (НА). «Трудно» — поле, найти все такие; кружки сверху показывают, сколько осталось. Неверная карточка вздрагивает и бледнеет, верная зеленеет.",
+      goal: "Узнавать пройденные буквы и слоги целиком, различать похожие.",
       duration: "2–3 минуты",
-    }, { params: { difficulty: { type: "enum", label: { ru: "Сложность" }, values: ["easy", "medium", "hard"], labels: { ru: { easy: "Легко", medium: "Средне", hard: "Трудно" } }, default: "easy" } } }),
+    }, { sounds, syllableSounds, params: { unit: UNIT("Что искать"), difficulty: { type: "enum", label: { ru: "Сложность" }, values: ["easy", "medium", "hard"], labels: { ru: { easy: "Легко", medium: "Средне", hard: "Трудно" } }, default: "easy" } } }),
     mode("pa_where", "2. Где звук?", {
       summary: "Нажать на клетку, где в слове звук.",
       text: "Сначала звучит звук, потом слово (нажать на букву в вопросе — звук ещё раз, на картинку — слово). Под картинкой клетка на каждый звук слова, все открыты; ребёнок нажимает на клетку, где звук, — там появляется фишка. «Начало или конец»: звук первый или последний, поровну. «Везде»: ещё и в середине, половина слов — со звуком внутри. После ответа в клетках появляется слово: видно, где эта буква. Ошибка — палец показывает, где звук, ребёнок нажимает ещё раз.",
@@ -96,10 +102,16 @@ const topic = {
       goal: "Слышать звук и знать его букву — от последнего звука к полному анализу слова.",
       duration: "3 минуты",
     }, { ...withWords, params: { scope: { type: "enum", label: { ru: "Что вставлять" }, values: ["last", "word"], labels: { ru: { last: "Последняя буква", word: "Всё слово" } }, default: "last" } } }),
+    mode("pa_missing", "5. Что пропало?", {
+      summary: "Запомнить ряд карточек — одна пропадёт, найти её среди трёх.",
+      text: "Буквы или слоги из пройденных. Ряд карточек звучит по очереди, через несколько секунд карточки переворачиваются, и одна исчезает. Ребёнок выбирает пропавшую из трёх вариантов (два других похожи на неё и в ряду не было). Ошибка — вариант вздрагивает и бледнеет; после двух ошибок ряд на секунду открывается снова. «Легко» — 3 карточки, «Средне» — 4, «Трудно» — 5.",
+      goal: "Узнавать букву и слог целиком и удерживать в памяти ряд из 3–5 карточек.",
+      duration: "3 минуты",
+    }, { sounds, syllableSounds, params: { unit: UNIT("Что"), difficulty: { type: "enum", label: { ru: "Сложность" }, values: ["easy", "medium", "hard"], labels: { ru: { easy: "Легко — 3", medium: "Средне — 4", hard: "Трудно — 5" } }, default: "easy" } } }),
   ],
 };
 
-const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio].filter(Boolean)), ...Object.values(sounds)]);
+const files = new Set(["media/avatar.svg", ...words.flatMap((w) => [w.image, w.audio].filter(Boolean)), ...Object.values(sounds), ...Object.values(syllableSounds)]);
 writeFileSync(join(DIR, "topic.json"), `${JSON.stringify(topic, null, 2)}\n`);
 
 console.log("Building renderer…");

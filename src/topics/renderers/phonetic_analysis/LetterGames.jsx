@@ -1,9 +1,19 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { wait } from "./voice";
+
+// The shown letter or syllable is voiced when the task appears and on a tap
+// (task.sound — the deck's recording; a letter or syllable without one is silent).
+function useUnitVoice(task, topicId, playTopicFile) {
+  const say = () => { if (task.sound && playTopicFile) playTopicFile(topicId, task.sound); };
+  useEffect(() => { const t = window.setTimeout(say, 350); return () => window.clearTimeout(t); }, [task.taskId]); // eslint-disable-line react-hooks/exhaustive-deps
+  return say;
+}
+const wide = (text) => (text?.length > 1 ? " pa-syl" : "");
 
 // «Найди букву»: the letter is shown, find it among 3 or 6. A wrong tap shakes
 // and fades; the right one turns green.
-export function FindLetterTask({ task, onCorrect, onStreakReset }) {
+export function FindLetterTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
+  const say = useUnitVoice(task, topicId, playTopicFile);
   const [faded, setFaded] = useState(() => new Set());
   const [shake, setShake] = useState(null);
   const [done, setDone] = useState(null);
@@ -24,14 +34,14 @@ export function FindLetterTask({ task, onCorrect, onStreakReset }) {
   }
   return (
     <div className="session-body pa-stage">
-      <div className="pa-prompt">Найди букву</div>
-      <div className="pa-plate pa-plate--big">{task.letter}</div>
+      <div className="pa-prompt">{task.letter.length > 1 ? "Найди слог" : "Найди букву"}</div>
+      <button type="button" className={`pa-plate pa-plate--big${wide(task.letter)}`} onClick={(e) => { e.stopPropagation(); say(); }}>{task.letter}</button>
       <div className={`pa-options pa-options--${task.options.length > 4 ? 3 : task.options.length}`}>
         {task.options.map((l, i) => (
           <button
             key={i}
             type="button"
-            className={`pa-tile pa-tile--option${done === i ? " pa-tile--ok" : ""}${faded.has(i) ? " pa-tile--faded" : ""}${shake === i ? " pa-tile--shake pa-tile--bad" : ""}`}
+            className={`pa-tile pa-tile--option${wide(l)}${done === i ? " pa-tile--ok" : ""}${faded.has(i) ? " pa-tile--faded" : ""}${shake === i ? " pa-tile--shake pa-tile--bad" : ""}`}
             onClick={(e) => { e.stopPropagation(); tap(i); }}
           >
             {l}
@@ -43,7 +53,8 @@ export function FindLetterTask({ task, onCorrect, onStreakReset }) {
 }
 
 // «Найди все»: a 5×5 field; circles above count what is left to find.
-export function FindAllTask({ task, onCorrect, onStreakReset }) {
+export function FindAllTask({ task, topicId, playTopicFile, onCorrect, onStreakReset }) {
+  const say = useUnitVoice(task, topicId, playTopicFile);
   const [found, setFound] = useState(() => new Set());
   const [shake, setShake] = useState(null);
   const errors = useRef(0);
@@ -65,11 +76,11 @@ export function FindAllTask({ task, onCorrect, onStreakReset }) {
   }
   return (
     <div className="session-body pa-stage">
-      <div className="pa-plate">{task.letter}</div>
+      <button type="button" className={`pa-plate${wide(task.letter)}`} onClick={(e) => { e.stopPropagation(); say(); }}>{task.letter}</button>
       <div className="pa-counter">
         {Array.from({ length: task.total }, (_, i) => <i key={i} className={i < found.size ? "on" : ""} />)}
       </div>
-      <div className="pa-field">
+      <div className={`pa-field${wide(task.letter)}`} style={{ gridTemplateColumns: `repeat(${task.cols ?? 5}, 1fr)` }}>
         {task.field.map((l, i) => (
           <button
             key={i}

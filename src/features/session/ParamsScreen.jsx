@@ -2107,6 +2107,15 @@ export default function ParamsScreen() {
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.concepts")}</div>
           <div className="param-concept-col">
+            {/* «Буквы и звуки» (meta.showSelectedConcepts): the chosen letters themselves,
+                so the adult sees what the lesson is built from (teacher's request, 2026-11-19). */}
+            {topicRecord?.meta?.showSelectedConcepts ? (
+              <div className="param-concept-chips">
+                {allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId)).map((c) => (
+                  <span key={c.conceptId} className="param-concept-chip">{c.label ?? c.conceptId}</span>
+                ))}
+              </div>
+            ) : (
             <div className="param-concept-dots">
               {allConcepts.map((c) => (
                 <ConceptDot
@@ -2116,6 +2125,7 @@ export default function ParamsScreen() {
                 />
               ))}
             </div>
+            )}
             <div className="param-concept-row">
               <span className="param-hint">{tr("setup.selectionOf", { selected: selectedConceptIds.length, total: allConcepts.length })}</span>
               <button className="link-btn" onClick={() => setScreen("concepts")}>{tr("setup.edit")}</button>

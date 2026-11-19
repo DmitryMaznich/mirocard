@@ -7,6 +7,7 @@
 //   only "letter" | "lotto" — usable only for «which letter does it start with»
 import { shuffle } from "@/shared/utils/shuffle";
 import { pickDistractorLetters } from "./phoneticDistractors";
+import { allSyllables, lookalikeSyllables, syllablesOf } from "./syllables";
 
 // The lesson loops until the adult ends it; a long queue keeps the round from
 // coming back to the same words soon (the session cycles the queue).
@@ -147,27 +148,64 @@ function lottoTasks(words, learned, direction) {
   return boards.length ? boards : needMore("Для лото нужно хотя бы 2 буквы. Добавьте буквы в «Изменить».");
 }
 
-// «Найди букву»: the letter is shown, find it — «Легко» among 3 unlike letters,
-// «Средне» among 6 with lookalikes, «Трудно» every copy on a 5×5 field (the
-// former mode «Найди все», merged in as a level by the owner, 2026-11-18).
-function findLetterTasks(learned, count, difficulty) {
-  if (difficulty === "hard") return findAllTasks(learned, count);
-  const hard = difficulty === "medium";
-  return cycle(learned, count).map((L) => {
-    const options = shuffle([L, ...(hard
-      ? distractors(L, learned, 5)
-      : shuffle(learned.filter((l) => l !== L)).concat(shuffle("АМСОУХШЛНК".split("").filter((l) => l !== L))).filter((l, i, a) => a.indexOf(l) === i).slice(0, 2))]);
-    return { type: "pa_find_letter", conceptId: L, letter: L, options };
+// What a «Найди…» / «Что пропало?» task is made of: the learned letters, or the
+// syllables built from them (syllables.js) — «Что искать: Буквы / Слоги».
+function unitsOf(learned, unit) {
+  return unit === "syllables" ? syllablesOf(learned) : learned;
+}
+const NEED_SYLLABLES = "Для слогов нужна хотя бы одна согласная и одна гласная. Добавьте буквы в «Изменить».";
+
+// Wrong options close to the target: for a letter — easily confused letters, for a
+// syllable — its reversal, the same consonant or the same vowel (lookalikeSyllables).
+function lookalikes(target, learned, count) {
+  return target.length > 1 ? lookalikeSyllables(target, learned, count) : distractors(target, learned, count);
+}
+// Wrong options unlike the target («Легко»): for a syllable, no shared letter.
+function unlike(target, units, count) {
+  const far = (u) => u !== target && ![...u].some((ch) => target.includes(ch));
+  const pool = shuffle(units.filter(far));
+  const extra = target.length > 1 ? shuffle(allSyllables().filter(far)) : shuffle("АМСОУХШЛНК".split("").filter(far));
+  return [...pool, ...extra].filter((u, i, a) => a.indexOf(u) === i).slice(0, count);
+}
+
+// «Найди букву»: the letter (or syllable) is shown, find it — «Легко» among 3 unlike,
+// «Средне» among 6 with lookalikes, «Трудно» every copy on a field (the former mode
+// «Найди все», merged in as a level by the owner, 2026-11-18).
+function findLetterTasks(learned, count, difficulty, unit) {
+  const units = unitsOf(learned, unit);
+  if (!units.length) return needMore(NEED_SYLLABLES);
+  if (difficulty === "hard") return findAllTasks(units, learned, count);
+  const medium = difficulty === "medium";
+  return cycle(units, count).map((L) => ({
+    type: "pa_find_letter", conceptId: L, letter: L,
+    options: shuffle([L, ...(medium ? lookalikes(L, learned, 5) : unlike(L, units, 2))]),
+  }));
+}
+
+// «Найди все»: a field (5×5 letters, 4×4 syllables), find every copy.
+function findAllTasks(units, learned, count) {
+  return cycle(units, Math.min(count, 15)).map((L) => {
+    const syllable = L.length > 1;
+    const size = syllable ? 16 : 25;
+    const n = (syllable ? 3 : 4) + Math.floor(Math.random() * 2);
+    const others = lookalikes(L, learned, 4);
+    const field = shuffle([...Array(n).fill(L), ...Array.from({ length: size - n }, (_, i) => others[i % others.length])]);
+    return { type: "pa_find_all", conceptId: L, letter: L, field, total: n, cols: syllable ? 4 : 5 };
   });
 }
 
-// «Найди все»: a 5×5 field, find every copy of the letter.
-function findAllTasks(learned, count) {
-  return cycle(learned, Math.min(count, 15)).map((L) => {
-    const n = 4 + Math.floor(Math.random() * 2);
-    const others = distractors(L, learned, 4);
-    const field = shuffle([...Array(n).fill(L), ...Array.from({ length: 25 - n }, (_, i) => others[i % others.length])]);
-    return { type: "pa_find_all", conceptId: L, letter: L, field, total: n };
+// «Что пропало?» (owner, 2026-11-19): a row of 3, 4 or 5 cards to look at, they turn over,
+// one is gone — pick it among 3 options (it and two lookalikes not in the row).
+const MISSING_SIZE = { easy: 3, medium: 4, hard: 5 };
+function missingTasks(learned, count, difficulty, unit) {
+  const units = unitsOf(learned, unit);
+  if (unit === "syllables" && !units.length) return needMore(NEED_SYLLABLES);
+  if (units.length < 3) return needMore("Для «Что пропало?» нужно хотя бы 3 разных карточки. Добавьте буквы в «Изменить».");
+  const n = Math.min(MISSING_SIZE[difficulty] ?? 3, units.length);
+  return cycle(units, count).map((gone) => {
+    const row = shuffle([gone, ...shuffle(units.filter((u) => u !== gone)).slice(0, n - 1)]);
+    const wrong = lookalikes(gone, learned, 8).filter((u) => !row.includes(u)).slice(0, 2);
+    return { type: "pa_missing", conceptId: gone, letter: gone, row, missing: row.indexOf(gone), options: shuffle([gone, ...wrong]) };
   });
 }
 
@@ -178,8 +216,13 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const words = (mode?.words ?? []).filter(hasPicture);
   // The letter's sound (mode.sounds: letter → file) goes with «Где звук?»: it plays
   // before the word, and a tap on the letter in the question repeats it.
-  const tasks = build(mode?.type, words, learned, count, params)
-    .map((t) => (t.kind === "chip" && mode?.sounds?.[t.letter] ? { ...t, sound: mode.sounds[t.letter] } : t));
+  // A letter's or a syllable's recording (mode.sounds / mode.syllableSounds: text → file).
+  const voiceOf = (u) => (u?.length > 1 ? mode?.syllableSounds?.[u] : mode?.sounds?.[u]);
+  const tasks = build(mode?.type, words, learned, count, params).map((t) => {
+    if (t.kind === "chip" || t.type === "pa_find_letter" || t.type === "pa_find_all") return voiceOf(t.letter) ? { ...t, sound: voiceOf(t.letter) } : t;
+    if (t.type === "pa_missing") return { ...t, sounds: Object.fromEntries([...t.row, ...t.options].map((u) => [u, voiceOf(u)]).filter(([, f]) => f)) };
+    return t;
+  });
   const run = Math.random().toString(36).slice(2, 7);
   return tasks.map((t, i) => ({ ...t, taskId: `${t.type}_${run}_${i}` }));
 }
@@ -194,8 +237,9 @@ function build(type, words, learned, count, params) {
     case "pa_all_letters":
       return params.scope === "word" ? allLettersTasks(words, learned, count) : lastLetterTasks(words, learned, count);
     case "pa_lotto": return lottoTasks(words, learned, params.direction);
-    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty);
-    case "pa_find_all": return findAllTasks(learned, count);
+    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty, params.unit);
+    case "pa_missing": return missingTasks(learned, count, params.difficulty, params.unit);
+    case "pa_find_all": return findAllTasks(learned, learned, count);
     default: return [];
   }
 }
