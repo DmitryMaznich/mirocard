@@ -182,6 +182,10 @@ the dictation scripts and `build-audio-review-manifest` read `tools/propis2/topi
 `docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
 geometry, glyph capture) — still worth reading when touching the shared engine.
 
+**Части прописных букв («Что пишем» / «Штрихи», 2026-11-16) — разрезка прописных в работе, в приложении выключена.**
+Перед продолжением — **`docs/propis2-letter-parts.md`**: что готово, где резать (`src/handwriting/letterParts.js`), стенд, картинка
+текущей автоматики (`docs/mockups/propis2-parts/`), подводные камни (сдвиг индексов сохранённых `row.parts`).
+
 Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
 **Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18; archived 2026-11-08 (Bulgarian

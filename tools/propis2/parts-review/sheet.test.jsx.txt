@@ -10,7 +10,8 @@ import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
 const COLORS = ["#1d4ed8", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2"];
 it("sheet", async () => {
   const db = await openDb("zp" + Date.now());
-  await importTopic(db, await readFile("public/decks/propis2_v0.7.0.zip"), "999.0.0");
+  const cat = JSON.parse(await readFile("public/decks/catalog.json", "utf-8")).decks.find((d) => d.id === "propis2"); // the published deck, whatever its version
+  await importTopic(db, await readFile(`public/decks/${cat.url.replace("./decks/", "")}`), "999.0.0");
   const map = glyphMapOf(languageView(await getTopicRecord(db, "propis2"), "ru", "cursive"));
   const letters = [...(process.env.LETTERS ?? "абвгдеёжзийклмнопрстуфхцчшщъыьэюя")];
   const cells = letters.map((ch) => {
