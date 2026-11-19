@@ -9,7 +9,7 @@ const run = (type, letters = ALL, params = {}) => generateTasks({ type, words: W
 
 describe("scheme steps", () => {
   it("«Где звук?» Начало или конец: all cells open, the sound is first or last, about half each", () => {
-    const tasks = run("pa_where", ALL, { position: "edges" });
+    const tasks = run("pa_where", ALL, { where: ["start", "end"] });
     expect(tasks).toHaveLength(40);
     for (const t of tasks) {
       expect(t.layout).toBe("cells");
@@ -20,9 +20,20 @@ describe("scheme steps", () => {
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(20);
   });
 
+  it("«Где звук?» only the chosen places, in equal shares", () => {
+    const only = run("pa_where", ALL, { where: ["end"] });
+    for (const t of only) expect(t.answer).toBe(t.letters.length - 1);
+    const mid = run("pa_where", ALL, { where: ["middle"] });
+    for (const t of mid) { expect(t.answer).toBeGreaterThan(0); expect(t.answer).toBeLessThan(t.letters.length - 1); }
+    const all = run("pa_where", ALL, { where: ["start", "middle", "end"] });
+    const start = all.filter((t) => t.answer === 0).length, end = all.filter((t) => t.answer === t.letters.length - 1).length;
+    expect(Math.abs(start - end)).toBeLessThanOrEqual(2);
+    expect(all.length - start - end).toBeGreaterThanOrEqual(12);
+  });
+
   it("«Где звук?» carries the letter's sound when the deck has one", () => {
     const mode = { type: "pa_where", words: WORDS, sounds: { А: "sounds/а.mp3" } };
-    const tasks = generateTasks(mode, cards(["А", "М"]), 0, { position: "all" });
+    const tasks = generateTasks(mode, cards(["А", "М"]), 0, { where: ["start", "middle", "end"] });
     for (const t of tasks) expect(t.sound).toBe(t.letter === "А" ? "sounds/а.mp3" : undefined);
   });
 
@@ -61,15 +72,15 @@ describe("scheme steps", () => {
     }
   });
 
-  it("«Где звук?» Везде: the chip's cell holds the letter; about half are inside the word", () => {
-    const tasks = run("pa_where", ALL, { position: "all" });
+  it("«Где звук?» all places: the chip's cell holds the letter; about a third are inside the word", () => {
+    const tasks = run("pa_where", ALL, { where: ["start", "middle", "end"] });
     for (const t of tasks) expect(t.letters[t.answer]).toBe(t.letter);
-    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(16);
+    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(12);
   });
 
   it("only learned letters are asked", () => {
     const learned = ["М", "С", "К"];
-    for (const [type, params] of [["pa_where", { position: "edges" }], ["pa_where", { position: "all" }], ["pa_all_letters", { scope: "last" }]]) {
+    for (const [type, params] of [["pa_where", { where: ["start", "end"] }], ["pa_where", { where: ["start", "middle", "end"] }], ["pa_where", { where: ["middle"] }], ["pa_all_letters", { scope: "last" }]]) {
       for (const t of run(type, learned, params)) {
         if (t.type === "pa_need_more") continue;
         expect(learned).toContain(t.letter);

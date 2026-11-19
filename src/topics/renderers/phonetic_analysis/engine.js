@@ -62,16 +62,18 @@ function schemeTask(step, kind, word, letter, extra = {}) {
   };
 }
 
-// «Где звук?» → «Начало или конец»: a cell for every sound, all open (owner,
-// 2026-11-18: a lone first cell and a bar made it a yes/no guess); the sound is
-// the first or the last one — half and half — and the child taps its cell.
-function edgeTasks(words, learned, count) {
-  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && ["start", "end"].includes(targetOf(w, L)?.position)).map((w) => ({ w, L })));
-  const starts = pool.filter((p) => targetOf(p.w, p.L).position === "start");
-  const ends = pool.filter((p) => targetOf(p.w, p.L).position === "end");
-  if (!starts.length && !ends.length) return needMore("Нет слов, где выбранные буквы в начале или в конце. Добавьте буквы в «Изменить».");
-  const half = starts.length && ends.length ? Math.ceil(count / 2) : count;
-  return shuffle([...cycle(starts.length ? starts : ends, half), ...cycle(ends.length ? ends : starts, count - half)])
+// «Где звук?» → «Где может быть звук: Начало · Середина · Конец» (owner, 2026-11-19 —
+// «Начало или конец» / «Везде» said nothing): a cell for every sound, all open; the
+// sound is in one of the chosen places, the places in equal shares, and the child
+// taps its cell.
+const POSITIONS = ["start", "middle", "end"];
+function positionTasks(words, learned, count, places) {
+  const chosen = POSITIONS.filter((p) => places.includes(p));
+  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && chosen.includes(targetOf(w, L)?.position)).map((w) => ({ w, L, at: targetOf(w, L).position })));
+  const groups = chosen.map((p) => pool.filter((x) => x.at === p)).filter((g) => g.length);
+  if (!groups.length) return needMore("Нет слов, где выбранные буквы стоят в выбранных местах. Добавьте буквы в «Изменить» или включите другое место.");
+  const share = Math.ceil(count / groups.length);
+  return shuffle(groups.flatMap((g) => cycle(g, share))).slice(0, count)
     .map(({ w, L }) => schemeTask(4, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }));
 }
 
@@ -82,17 +84,6 @@ function lastLetterTasks(words, learned, count) {
   return cycle(pool, count).map(({ w, L }) => schemeTask(3, "letter", w, L, {
     layout: "cells", answer: w.word.length - 1, closed: "inner", tray: shuffle([L, ...distractors(L, learned, 2)]),
   }));
-}
-
-// «Где звук?» → «Везде»: chip, any cell; half of the words have the sound inside.
-function whereTasks(words, learned, count) {
-  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && targetOf(w, L)).map((w) => ({ w, L })));
-  if (!pool.length) return needMore("Нет слов с выбранными буквами. Добавьте буквы в «Изменить».");
-  const middle = pool.filter((p) => targetOf(p.w, p.L).position === "middle");
-  const edge = pool.filter((p) => targetOf(p.w, p.L).position !== "middle");
-  const half = middle.length ? Math.ceil(count / 2) : 0;
-  const chosen = shuffle([...cycle(middle, half), ...cycle(edge.length ? edge : middle, count - half)]);
-  return chosen.map(({ w, L }) => schemeTask(5, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }));
 }
 
 // «Буквы в клетки» → «Всё слово»: short words made only of learned letters.
@@ -248,8 +239,9 @@ function build(type, words, learned, count, params, voiced) {
   switch (type) {
     // «Где звук?» (owner, 2026-11-18): one mode, the place set before the lesson.
     case "pa_where":
-      // «start»/«end» stored by deck ≤ 2.6 fall back to «Начало или конец»
-      return params.position === "all" ? whereTasks(words, learned, count) : edgeTasks(words, learned, count);
+      // Older decks stored `position`: «all» = every place, anything else = start and end.
+      return positionTasks(words, learned, count, Array.isArray(params.where) && params.where.length ? params.where
+        : params.position === "all" ? POSITIONS : ["start", "end"]);
     // «Буквы в клетки»: the last letter only, or the whole word.
     case "pa_all_letters":
       return params.scope === "word" ? allLettersTasks(words, learned, count) : lastLetterTasks(words, learned, count);

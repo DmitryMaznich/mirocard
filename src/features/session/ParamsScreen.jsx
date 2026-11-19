@@ -386,6 +386,30 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
   );
 }
 
+// Several values on at once, in one row of buttons («Где звук: Начало · Середина · Конец»,
+// owner 2026-11-19). A tap turns a value on or off; the last one stays on.
+export function MultiParam({ label, options, labels, value, onChange, info, onShowInfo, disabled = false, hint = "" }) {
+  const on = new Set(Array.isArray(value) ? value : []);
+  const toggle = (opt) => {
+    const next = new Set(on);
+    if (next.has(opt)) { if (next.size === 1) return; next.delete(opt); } else next.add(opt);
+    onChange(options.filter((o) => next.has(o)));
+  };
+  return (
+    <div className="param-row">
+      <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
+      <div className="param-enum-group">
+        {options.map((opt) => (
+          <button key={opt} type="button" aria-pressed={on.has(opt)} className={`enum-btn ${on.has(opt) ? "enum-btn--active" : ""}`} onClick={() => toggle(opt)} disabled={disabled}>
+            {labels?.[opt] ?? opt}
+          </button>
+        ))}
+      </div>
+      {hint ? <div className="param-hint param-hint--ordered">{hint}</div> : null}
+    </div>
+  );
+}
+
 function figureCountLabel(count) { return tr("setup.taskCount", { count }); }
 
 function FigureDifficultyParam({
@@ -1996,6 +2020,21 @@ export default function ParamsScreen() {
             />
           );
         }
+        if (def.type === "multi") {
+          return (
+            <MultiParam
+              key={key}
+              label={setupText(def.label) || key}
+              options={def.values}
+              labels={setupLabels(def.labels)}
+              value={Array.isArray(params[key]) && params[key].length ? params[key] : def.default}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              info={setupInfo(def.info)}
+              onShowInfo={setActiveInfo}
+              hint={setupText(def.hint) || ""}
+            />
+          );
+        }
         if (def.type === "boolean") {
           return (
             <BooleanParam
@@ -2215,6 +2254,22 @@ export default function ParamsScreen() {
                 info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
                 disabled={isDisabled}
+              />
+            );
+          }
+          if (def.type === "multi") {
+            return (
+              <MultiParam
+                key={key}
+                label={setupText(def.label) || key}
+                options={def.values}
+                labels={setupLabels(def.labels)}
+                value={Array.isArray(params[key]) && params[key].length ? params[key] : def.default}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                disabled={isDisabled}
+                info={setupInfo(def.info)}
+                onShowInfo={setActiveInfo}
+                hint={setupText(def.hint) || ""}
               />
             );
           }

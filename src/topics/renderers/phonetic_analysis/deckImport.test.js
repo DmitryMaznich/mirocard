@@ -22,6 +22,7 @@ describe("phonetic_analysis deck as installed", () => {
       // every value of every setting (Сложность, Где искать, Направление, …)
       const variants = [{}];
       for (const [key, def] of Object.entries(mode.params ?? {})) {
+        if (def?.type === "multi") { for (const v of [...variants]) for (const value of def.values) variants.push({ ...v, [key]: [value] }); continue; }
         if (def?.type !== "enum") continue;
         for (const v of [...variants]) for (const value of def.values) variants.push({ ...v, [key]: value });
       }

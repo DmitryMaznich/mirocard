@@ -29,6 +29,11 @@ export function buildModeSettings(mode) {
       const label = getLocalizedText(def?.label) || key;
       const hint = getLocalizedText(def?.hint);
 
+      if (def?.type === "multi") {
+        const values = (def.values ?? []).map((value) => getValueLabel(def, value)).join(" / ");
+        const on = (def.default ?? []).map((value) => getValueLabel(def, value)).join(", ");
+        return `${label}: ${values} — можно выбрать несколько.${on ? ` По умолчанию: ${on}.` : ""}${hint ? ` ${hint}` : ""}`;
+      }
       if (def?.type === "enum") {
         const values = (def.values ?? []).map((value) => getValueLabel(def, value)).join(" / ");
         const defaultText = def.default != null ? ` По умолчанию: ${getValueLabel(def, def.default)}.` : "";
