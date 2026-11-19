@@ -245,18 +245,19 @@ export function handleStreakReset(state, conceptId, cardId) {
 const REWARD_CREDIT_QUALITIES = new Set(["easy", "independent", "correct"]);
 const REWARD_MISTAKE_QUALITIES = new Set(["fail"]);
 
+export function recordTaskAssessment(state, quality, conceptId, cardId) {
+  const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
+  const assessed = recordQuality(markSessionAction(state), quality);
+  return { ...assessed, assessments: [...(assessed.assessments ?? []), assessment] };
+}
+
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
-  state = markSessionAction(state);
-  state = recordQuality(state, quality);
+  state = recordTaskAssessment(state, quality, conceptId, cardId);
   if (state.mode?.evaluation === "adult") {
     if (REWARD_CREDIT_QUALITIES.has(quality)) state = creditRewardStreak(state);
     else if (REWARD_MISTAKE_QUALITIES.has(quality)) state = applyRewardMistake(state);
   }
-  const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
-  return handleAdvance({
-    ...state,
-    assessments: [...state.assessments, assessment],
-  });
+  return handleAdvance(state);
 }
 
 export function handleAdvance(state) {

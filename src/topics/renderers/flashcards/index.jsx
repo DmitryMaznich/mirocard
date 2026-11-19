@@ -4,6 +4,8 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { getTopicTitle } from "@/shared/utils/format";
 import Diktor from "@/shared/components/Diktor.jsx";
+import { EMOTIONS_TOPIC_ID } from "@/topics/emotionsContent";
+import EmotionLesson from "./EmotionLesson";
 
 function getTaskAudioPath(task) {
   if (task?.card?.audio?.ru) return task.card.audio.ru;
@@ -796,7 +798,9 @@ const TASK_RENDERERS = {
   sort_by_attribute:      SortByAttributeTask,
 };
 
-export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
+export default function FlashcardsRenderer(props) {
+  const { task, mode, sessionParams, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality } = props;
+  if (topicId === EMOTIONS_TOPIC_ID && task) return <EmotionLesson {...props} />;
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (

@@ -20,6 +20,7 @@ export default function SessionHeader({
   topicTitle,
   modeTitle,
   showProgress,
+  quietControls = false,
   showStreak,
   streakCount,
   rewardChangeReason,
@@ -55,13 +56,14 @@ export default function SessionHeader({
           )}
         </div>
       )}
-      <span
+      {!quietControls && <span
         className={`session-network-status${isOnline ? "" : " session-network-status--offline"}`}
         role="status"
         aria-label={isOnline ? "Есть подключение к интернету" : "Нет подключения к интернету"}
       >
         <NetworkStatusIcon online={isOnline} />
-      </span>
+      </span>}
+      {quietControls && <button type="button" className="session-finish-btn" aria-label="Открыть настройки режима" onClick={onOpenModeSettings}>⋯</button>}
       <button className="session-finish-btn" onClick={onClose}>✕</button>
     </div>
   );
@@ -94,7 +96,7 @@ export default function SessionHeader({
           {rightCluster}
         </div>
       )}
-      <button
+      {!quietControls && <button
         type="button"
         className={`session-plan-tongue${pillState.mode === "correct" ? " session-plan-tongue--correct" : ""}${pillState.mode === "incorrect" ? " session-plan-tongue--incorrect" : ""}`}
         onClick={onOpenModeSettings}
@@ -111,7 +113,7 @@ export default function SessionHeader({
             <span className="session-plan-tongue__bar" aria-hidden="true" />
           </>
         )}
-      </button>
+      </button>}
     </div>
   );
 }
