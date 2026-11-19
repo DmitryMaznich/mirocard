@@ -119,9 +119,10 @@ export default function EmotionLesson({
   }
 
   const answerKind = mediaType || "words";
-  const layout = stimulus && answers.length ? " emotion-lesson__layout--split" : "";
+  const layout = !isOral && stimulus && answers.length ? " emotion-lesson__layout--split" : "";
+  const hasControls = canAdvance || revealPending;
   return (
-    <section className="emotion-lesson" aria-label="Задание">
+    <section className="emotion-lesson" data-emotion-mode={type} aria-label="Задание">
       <div className="emotion-lesson__exercise">
         {question && <h1 className="emotion-lesson__question">{question}</h1>}
         <div className={`emotion-lesson__layout${layout}`}>
@@ -155,8 +156,8 @@ export default function EmotionLesson({
       <span className="emotion-lesson__status" role="status">
         {miss ? "Попробуй ещё." : selected.length ? "Верно." : ""}
       </span>
-      {(canAdvance || revealPending) && (
-        <div className="emotion-lesson__controls" aria-label="Управление взрослого">
+      <div className="emotion-lesson__controls" aria-label={hasControls ? "Управление взрослого" : undefined}>
+        {hasControls && <>
           {sceneLabel && (
             <details className="emotion-lesson__adult-note">
               <summary>Текст для взрослого</summary>
@@ -178,8 +179,8 @@ export default function EmotionLesson({
           }}>
             {revealPending ? (type === "situation_intro" ? "Показать лицо" : "Показать варианты") : "Дальше"}
           </button>
-        </div>
-      )}
+        </>}
+      </div>
     </section>
   );
 }
