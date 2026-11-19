@@ -4,7 +4,7 @@ import { letterPaths, letterMoves, segmentShare } from "./letterParts.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const spec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
-const glyph = (ch) => ({ ...wide.find((g) => g.label === ch), trajectory: spec[ch] });
+const glyph = (ch) => ({ ...wide.find((g) => g.label === ch || g.aliases?.includes(ch)), trajectory: spec[ch] });
 const endOf = (d) => d.trim().split(/\s+/).slice(-2).map(Number);
 const startOf = (d) => d.trim().split(/\s+/).slice(1, 3).map(Number);
 const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.6;
@@ -51,3 +51,32 @@ describe("р: the stick, the retrace up it, the hook (owner 2026-11-19)", () => 
     expect(m.length).toBe(1);
   });
 });
+
+describe("п: like р, the stick down to the baseline", () => {
+  const p = glyph("п");
+  it("joined: stick, back up it to the middle line, the hook; lifted: the hook from its own dot on the middle line", () => {
+    expect(letterMoves(p, "joined").map((x) => x.kind)).toEqual(["ink", "retrace", "ink"]);
+    const m = letterMoves(p, "lifted");
+    expect(m.map((x) => x.kind)).toEqual(["ink", "lift", "ink"]);
+    expect(startOf(m[2].d)[1]).toBeCloseTo(36, 1);
+    expect(endOf(m[0].d)[1]).toBeCloseTo(60.18, 1);
+  });
+});
+
+describe("и: two sticks rounded at the bottom; the pen goes up the line of the second one (owner 2026-11-19)", () => {
+  const i = glyph("и");
+  it("the first element ends on the middle line, the second starts at the top line", () => {
+    const m = letterMoves(i, "lifted");
+    expect(m.map((x) => x.kind)).toEqual(["ink", "lift", "ink"]);
+    expect(endOf(m[0].d)[1]).toBeCloseTo(36, 1);
+    expect(startOf(m[2].d)[1]).toBeCloseTo(11.48, 1);
+    expect(m.filter((x) => x.startDot).length).toBe(2);
+  });
+  it("joined: the way up from the middle line runs along the second stick, one start dot", () => {
+    const m = letterMoves(i, "joined");
+    expect(m.map((x) => x.kind)).toEqual(["ink", "retrace", "ink"]);
+    expect(m.filter((x) => x.startDot).length).toBe(1);
+    expect(near(endOf(m[1].d), [154.66, 11.48])).toBe(true);
+  });
+});
+

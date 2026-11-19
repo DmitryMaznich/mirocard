@@ -13,7 +13,7 @@ const COLORS = ["#1d4ed8", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2"
 const TITLE = { joined: "Безотрывно", lifted: "С отрывом" };
 
 const cards = letters.map((ch) => {
-  const g = { ...wide.find((x) => x.label === ch), trajectory: spec[ch] };
+  const g = { ...wide.find((x) => x.label === ch || x.aliases?.includes(ch)), trajectory: spec[ch] };
   const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
   const x0 = Math.min(...xs) - 14, y0 = Math.min(-45, ...ys) - 10, w = Math.max(...xs) - x0 + 14, h = Math.max(118, ...ys) - y0 + 10;
