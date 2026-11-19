@@ -1,0 +1,234 @@
+.session-screen--emotions .session-header-wrap,
+.session-screen--emotions .session-header-wrap--compact {
+  margin-bottom: 0;
+}
+
+.emotion-lesson {
+  --emotion-gap: clamp(8px, 2vmin, 20px);
+  --emotion-side: clamp(88px, min(38vw, 52dvh), 390px);
+  --emotion-choice: clamp(74px, min(24vw, 24dvh), 210px);
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  color: #25332d;
+}
+
+.emotion-lesson__exercise {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  justify-items: center;
+  align-content: safe center;
+  gap: var(--emotion-gap);
+  padding: var(--emotion-gap);
+}
+
+.emotion-lesson__question {
+  margin: 0;
+  font-size: clamp(1.35rem, 4vmin, 2.5rem);
+  line-height: 1.16;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.emotion-lesson__question::first-letter {
+  text-transform: uppercase;
+}
+
+.emotion-lesson__layout {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  gap: var(--emotion-gap);
+  width: min(100%, 920px);
+}
+
+.emotion-lesson__layout--split {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.emotion-lesson__stimulus {
+  width: min(100%, var(--emotion-side));
+}
+
+.emotion-lesson__stimulus:has(.emotion-lesson__pair) {
+  width: min(100%, 760px);
+}
+
+.emotion-lesson__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--emotion-gap);
+  width: min(100%, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
+  margin-inline: auto;
+}
+
+.emotion-lesson__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.emotion-lesson__placeholder {
+  background: #f1f3f0;
+}
+
+.emotion-lesson__answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--emotion-gap);
+  width: min(100%, 440px);
+}
+
+.emotion-lesson__answers--portrait {
+  width: min(100%, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
+}
+
+.emotion-lesson__answers--portrait[data-count="4"] {
+  width: min(100%, calc(var(--emotion-choice) * 4 + var(--emotion-gap) * 3));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.emotion-lesson__answers--portrait[data-count="6"],
+.emotion-lesson__answers--portrait[data-count="9"] {
+  width: min(100%, calc(var(--emotion-choice) * 3 + var(--emotion-gap) * 2));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.emotion-lesson__answers--scene {
+  width: min(100%, 720px, calc(var(--emotion-side) * 2 + var(--emotion-gap)));
+}
+
+.emotion-lesson__option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 48px;
+  padding: 5px;
+  border: 2px solid #dce4de;
+  border-radius: 14px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.emotion-lesson__option:focus-visible,
+.emotion-lesson__controls :is(button, select, summary):focus-visible {
+  outline: 3px solid #28614e;
+  outline-offset: 2px;
+}
+
+.emotion-lesson__option:disabled {
+  cursor: default;
+}
+
+.emotion-lesson__answers--words .emotion-lesson__option {
+  padding: 8px 16px;
+  min-height: 52px;
+  font-size: clamp(.92rem, 2.5vmin, 1.5rem);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.emotion-lesson__answers--tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.emotion-lesson__answers--tags .emotion-lesson__option {
+  flex: 1 1 112px;
+  max-width: 220px;
+  border-radius: 999px;
+}
+
+.emotion-lesson__answers--words .emotion-lesson__option::first-letter {
+  text-transform: uppercase;
+}
+
+.emotion-lesson__option[data-result="correct"] { border-color: #397957; }
+.emotion-lesson__option[data-result="incorrect"] { border-style: dashed; border-color: #67756d; }
+
+.emotion-lesson__mark {
+  position: absolute;
+  inset: auto 5px 5px auto;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.emotion-lesson__answers--words .emotion-lesson__mark {
+  inset: 3px 3px auto auto;
+  width: 15px;
+  height: 15px;
+  font-size: 10px;
+}
+
+.emotion-lesson__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.emotion-lesson__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 6px var(--emotion-gap);
+  border-top: 1px solid #edf0ec;
+  font-size: .88rem;
+}
+
+.emotion-lesson__controls :is(button, select, summary) {
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 1px solid #dce4de;
+  border-radius: 8px;
+  color: #35443b;
+  background: #fff;
+  font: inherit;
+}
+
+.emotion-lesson__adult-note {
+  margin-right: auto;
+}
+
+.emotion-lesson__adult-note summary {
+  align-content: center;
+  cursor: pointer;
+}
+
+.emotion-lesson__adult-note p {
+  margin: 5px 0;
+}
+
+@media (max-width: 620px) {
+  .emotion-lesson { --emotion-side: clamp(112px, min(50vw, 30dvh), 220px); }
+
+  .emotion-lesson__layout--split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .emotion-lesson__answers--portrait[data-count="4"] {
+    width: min(100%, calc(var(--emotion-choice) * 2 + var(--emotion-gap)));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,3 +1,4 @@
+import { EMOTIONS_TOPIC_ID } from "@/topics/emotionsContent";
 import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 import { rewardText } from "@/features/rewards/rewardText.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -66,7 +67,7 @@ export default function SessionScreen() {
     completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
     rewardPending, clearRewardPending, rewardChangeReason,
     deckExhausted, sessionSaveError, handleRestartDeck, handleFinishDeck, finishCurrentSession,
-    onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
+    onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer, onRecordAssessment,
     onCardShown, onTap, onQuality, onPeopleEvent,
   } = useSessionEngine();
 
@@ -320,14 +321,15 @@ export default function SessionScreen() {
   const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
-  const showStreak = shouldShowSessionStreak({
+  const isEmotionLesson = topicRecord.meta.id === EMOTIONS_TOPIC_ID;
+  const showStreak = !isEmotionLesson && shouldShowSessionStreak({
     mode,
     isNavigatorFlashCards,
     renderer: topicRecord.meta.renderer,
     rewardAvailable: rewardProgress?.available ?? false,
   });
   const showProgress = !(
-    mode.type === "drawing_coloring"
+    isEmotionLesson || mode.type === "drawing_coloring"
     || (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
     || topicRecord.meta.renderer === "spatial_prepositions"
@@ -343,7 +345,7 @@ export default function SessionScreen() {
   const isDailyOrientation = topicRecord.meta.renderer === "daily_orientation";
 
   return (
-    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}`}>
+    <div className={`session-screen${isEmotionLesson ? " session-screen--emotions" : ""}${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}`}>
       {sessionExitPromptOpen && (
         <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
       )}
@@ -353,6 +355,7 @@ export default function SessionScreen() {
           topicTitle={topicTitle}
           modeTitle={modeTitle}
           showProgress={showProgress}
+          quietControls={isEmotionLesson}
           showStreak={showStreak}
           streakCount={streakCount}
           rewardChangeReason={rewardChangeReason}
@@ -407,6 +410,7 @@ export default function SessionScreen() {
             onAdvance={requestAdvance}
             onRequestVideoBonus={mode?.adultVideoReward === true ? adultVideoBonus.request : undefined}
             onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}
+            onRecordAssessment={onRecordAssessment}
             onClose={openSessionExitPrompt}
             onCardShown={onCardShown}
             onTap={onTap}

@@ -368,15 +368,15 @@
         "ru": "Эмоции",
         "en": "Emotions"
       },
-      "version": "1.10.1",
+      "version": "1.10.2",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/emotions_v2_v1.10.1.zip",
+        "public/decks/emotions_v2_v1.10.2.zip",
         "src/topics/renderers/flashcards"
       ],
       "bundle": {
-        "version": "1.10.1",
-        "url": "./decks/emotions_v2_v1.10.1.zip",
+        "version": "1.10.2",
+        "url": "./decks/emotions_v2_v1.10.2.zip",
         "title": {
           "ru": "Эмоции",
           "en": "Emotions"
@@ -389,7 +389,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "emotions_v2",
-        "version": "1.10.1",
+        "version": "1.10.2",
         "title": {
           "ru": "Эмоции",
           "en": "Emotions"
@@ -398,14 +398,14 @@
           "ru": "Десять эмоциональных состояний показаны на лицах детей и в коротких сюжетных ситуациях: для каждого состояния есть три ситуации и портреты. Девять режимов ведут от знакомства и выбора эмоции по лицу к сопоставлению события и чувства в обоих направлениях.",
           "en": "Ten emotions shown on children's faces and in three situations each; nine modes connect facial expression, emotion word, and event."
         },
-        "url": "./decks/emotions_v2_v1.10.1.zip",
+        "url": "./decks/emotions_v2_v1.10.2.zip",
         "status": "beta",
         "access": "paid",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T16:41:26+00:00"
+      "sourceUpdatedAt": "2026-11-19T14:56:12Z"
     },
     {
       "id": "feel_sick",

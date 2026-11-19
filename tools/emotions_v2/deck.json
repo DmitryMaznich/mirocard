@@ -5,20 +5,31 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.10.0",
+    "version": "1.10.2",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
     "answerPrefix": "Чувствует",
     "about": {
-      "text": "Колода знакомит с 6 базовыми эмоциями и 4 состояниями. Три вариации детских лиц для каждого понятия развивают узнавание эмоции у разных людей. Для всех десяти понятий есть жизненные ситуации с сюжетными фотографиями.",
+      "text": "Десять эмоциональных состояний показаны на лицах детей и в коротких сюжетных ситуациях: для каждого состояния есть три ситуации и портреты. Девять режимов ведут от знакомства и выбора эмоции по лицу к сопоставлению события и чувства в обоих направлениях.",
       "tips": [
         "Начинайте с 2–3 самых знакомых эмоций — радость, грусть, злость",
         "Обсуждайте ситуации: «Когда ты так себя чувствуешь?»",
         "Используйте зеркало — попросите ребёнка показать эмоцию на лице",
         "Для невербальных детей используйте режим «Найди картинку» как основной"
+      ],
+      "description": "Десять эмоциональных состояний показаны на лицах детей и в коротких сюжетных ситуациях: для каждого состояния есть три ситуации и портреты. Девять режимов ведут от знакомства и выбора эмоции по лицу к сопоставлению события и чувства в обоих направлениях.",
+      "goals": [
+        "Различать десять представленных состояний по выражению лица и называть их.",
+        "Связывать описанное событие с возможной эмоцией персонажа и подбирать ситуацию к изображённой эмоции."
+      ],
+      "finalGoal": "Ребёнок выбирает и называет изображённую эмоцию, а также объясняет, какая показанная ситуация могла её вызвать.",
+      "flow": [
+        "Сначала рассматривайте лицо и называйте чувство, затем переходите к выбору среди нескольких портретов.",
+        "После узнавания эмоций работайте с сюжетными ситуациями в обоих направлениях: ситуация → эмоция и эмоция → ситуация."
       ]
-    }
+    },
+    "customModesOnly": true
   },
   "modes": [
     {
@@ -28,16 +39,16 @@
       "answerPrefix": "Чувствует",
       "ui": {
         "title": "Знакомство",
-        "instruction": "Нажмите на карточку чтобы продолжить"
+        "instruction": "Рассмотри портрет"
       },
       "methodology": {
-        "text": "Пассивное знакомство с материалом. Ребёнок видит карточку и слышит название — без задания и оценки. Активирует пассивный словарь и снижает тревожность перед новой темой.",
+        "text": "На карточках показаны детские лица с разными эмоциональными состояниями. Взрослый называет чувство, ребёнок рассматривает выражение лица и перелистывает карточки без проверки ответа.",
         "tips": [
-          "Называйте понятия вслух вместе с ребёнком",
-          "Не торопите — пусть ребёнок рассматривает каждую карточку столько, сколько хочет",
-          "Используйте в начале работы с новой темой или после перерыва"
+          "Назовите чувство вслух и покажите другое лицо с тем же выражением."
         ],
-        "duration": "2–4 минуты"
+        "duration": "2–4 минуты",
+        "summary": "Рассмотри лица детей и послушай названия десяти эмоций.",
+        "goal": "Ребёнок узнаёт знакомое выражение лица и может указать портрет, когда взрослый называет эмоцию."
       }
     },
     {
@@ -46,17 +57,16 @@
       "evaluation": "auto",
       "ui": {
         "title": "Найди картинку",
-        "instruction": "Нажми на нужную картинку"
+        "instruction": "Покажи, кому грустно"
       },
       "methodology": {
-        "text": "Слово показывается вверху — ребёнок находит карточку среди 2, 4 или 6 вариантов. Чистое рецептивное задание: услышал слово — нашёл образ. Первый шаг от пассивного восприятия к активному ответу.",
+        "text": "Ребёнок слышит или видит название эмоции и выбирает среди нескольких фотографий лицо ребёнка с этим выражением.",
         "tips": [
-          "Начните с 2 вариантов — переходите к 4 и 6 по мере уверенности",
-          "Убедитесь что дистракторы понятны ребёнку — иначе выбор неосознанный",
-          "При ошибке назовите правильный вариант, не акцентируйте ошибку",
-          "Слово-подсказка показывается только текстом, без озвучки — для нечитающего ребёнка называйте его вслух сами"
+          "Начните с двух портретов. При необходимости прочитайте фразу на экране."
         ],
-        "duration": "4–6 минут"
+        "duration": "4–6 минут",
+        "summary": "По названию эмоции найди подходящий портрет.",
+        "goal": "Ребёнок выбирает портрет, соответствующий названной эмоции, среди лиц с другими состояниями."
       },
       "params": {
         "optionCount": {
@@ -69,7 +79,7 @@
             4,
             6
           ],
-          "default": 4
+          "default": 2
         },
         "repsPerConcept": {
           "type": "number",
@@ -80,7 +90,8 @@
           "min": 1,
           "max": 3
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "yes_no",
@@ -89,17 +100,16 @@
       "answerPrefix": "Чувствует",
       "ui": {
         "title": "Да / Нет",
-        "instruction": "Правильное ли слово?"
+        "instruction": "Она радуется?"
       },
       "methodology": {
-        "text": "Карточка показывается с подписью — иногда верной, иногда ложной. Ребёнок нажимает ДА или НЕТ. Требует уже сформированной связи слово↔образ: ребёнок не просто находит, а оценивает правильность.",
+        "text": "Показывается портрет и слово-название эмоции — подходящее или ошибочное. Ребёнок отвечает «Да» либо «Нет».",
         "tips": [
-          "Хвалите за ДА и за НЕТ одинаково — оба ответа равнозначны",
-          "Если ребёнок часто нажимает ДА вслепую — сделайте паузу перед показом кнопок",
-          "Используйте после «Найди картинку» — связь слово-образ уже должна быть сформирована",
-          "Подпись под карточкой не озвучивается — нечитающему ребёнку прочитайте её вслух сами"
+          "В ответ на «Нет» вместе назовите, что показывает портрет."
         ],
-        "duration": "3–5 минут"
+        "duration": "3–5 минут",
+        "summary": "Проверь, верно ли названа эмоция на лице.",
+        "goal": "Ребёнок различает совпадение и несовпадение названия эмоции с выражением лица."
       },
       "params": {
         "repsPerConcept": {
@@ -111,7 +121,8 @@
           "min": 1,
           "max": 5
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "choose_word_by_picture",
@@ -119,16 +130,16 @@
       "evaluation": "auto",
       "ui": {
         "title": "Выбери слово",
-        "instruction": "Нажми на правильное слово"
+        "instruction": "Выбери слово"
       },
       "methodology": {
-        "text": "Карточка показывается — ребёнок выбирает правильное слово из четырёх. Тренирует связь образа со словом, готовит к чтению.",
+        "text": "Ребёнок рассматривает лицо и выбирает подходящее слово из нескольких названий эмоциональных состояний.",
         "tips": [
-          "Следите: некоторые дети угадывают по длине слова, не читая",
-          "Для неграмотных детей этот режим может быть преждевременным",
-          "Переходите после уверенного прохождения «Найди картинку» и «Да / Нет»"
+          "Используйте, когда ребёнок может прочитать варианты."
         ],
-        "duration": "4–6 минут"
+        "duration": "4–6 минут",
+        "summary": "К портрету ребёнка выбери написанное название эмоции.",
+        "goal": "Ребёнок соотносит выражение лица с написанным названием соответствующей эмоции."
       },
       "params": {
         "repsPerConcept": {
@@ -143,7 +154,8 @@
         "concepts": {
           "type": "concept_selector"
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "choose_all",
@@ -151,17 +163,16 @@
       "evaluation": "auto",
       "ui": {
         "title": "Выбери все",
-        "instruction": "Найди все подходящие карточки"
+        "instruction": "Найди всех, кому грустно"
       },
       "methodology": {
-        "text": "Называется целевая категория — ребёнок нажимает все подходящие карточки в сетке. Тренирует обобщение и категориальное мышление.",
+        "text": "В сетке показаны разные лица детей. Ребёнок отмечает все портреты с заданным эмоциональным состоянием, не выбирая другие выражения.",
         "tips": [
-          "Перед началом убедитесь что ребёнок понимает задание — покажите пример",
-          "Хвалите за каждое верное нажатие, а не только за итоговый результат",
-          "Используйте только после освоения предыдущих режимов",
-          "Название категории показывается только текстом — нечитающему ребёнку называйте её вслух сами"
+          "Начните с четырёх карточек, две из которых подходят."
         ],
-        "duration": "5–8 минут"
+        "duration": "5–8 минут",
+        "summary": "Отметь все портреты с названной эмоцией.",
+        "goal": "Ребёнок узнаёт одну эмоцию на нескольких разных лицах и отделяет её от других состояний."
       },
       "params": {
         "optionCount": {
@@ -177,7 +188,8 @@
           ],
           "default": 4
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "situation_intro",
@@ -185,16 +197,16 @@
       "evaluation": "none",
       "ui": {
         "title": "Знакомство: ситуации",
-        "instruction": "Прочитай и узнай эмоцию"
+        "instruction": "Что случилось?"
       },
       "methodology": {
-        "text": "Ребёнок читает короткую ситуацию и по нажатию видит, какую эмоцию испытывает человек в этой ситуации. Без задания и оценки — знакомит с причиной эмоции перед практикой.",
+        "text": "Показывается короткая ситуация; после нажатия ребёнок видит крупный портрет того же персонажа. Задания на выбор и автоматической оценки здесь нет: взрослый обсуждает, что произошло и что почувствовал персонаж.",
         "tips": [
-          "Прочитайте ситуацию вслух вместе с ребёнком",
-          "После открытия эмоции обсудите: «Почему именно так?»",
-          "Используйте перед режимами «Ситуация → эмоция» и «Эмоция → Ситуация»"
+          "Сначала обсудите, что случилось; затем откройте лицо. В неоднозначных сценах примите разные обоснованные ответы."
         ],
-        "duration": "3–5 минут"
+        "duration": "3–5 минут",
+        "summary": "Посмотри ситуацию и открой портрет ребёнка с соответствующей эмоцией.",
+        "goal": "Ребёнок называет чувство персонажа после просмотра ситуации и портрета и связывает его с событием."
       },
       "params": {
         "taskCount": {
@@ -209,7 +221,8 @@
           ],
           "default": 6
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "situation_emotion",
@@ -217,16 +230,16 @@
       "evaluation": "auto",
       "ui": {
         "title": "Ситуация → эмоция",
-        "instruction": "Прочитай ситуацию и выбери подходящую эмоцию"
+        "instruction": "Что чувствует ребёнок?"
       },
       "methodology": {
-        "text": "Ребёнок читает короткое описание ситуации и выбирает картинку с подходящей эмоцией среди вариантов. В отличие от «Найди картинку», здесь нет слова-подсказки — нужно самому понять, что почувствовал бы человек в этой ситуации. Первый шаг от узнавания эмоции к пониманию её причины.",
+        "text": "Ребёнок читает короткое описание события и выбирает из нескольких портретов ребёнка, который мог бы так себя чувствовать. Слово-название эмоции в задании не даётся.",
         "tips": [
-          "После ответа обсудите: «А ты сам как бы себя чувствовал в такой ситуации?»",
-          "Если ребёнок ошибся, проговорите ситуацию ещё раз медленно, выделяя ключевые слова",
-          "Не торопите — на осмысление ситуации нужно больше времени, чем на узнавание лица"
+          "При необходимости прочитайте событие из «Текста для взрослого». Откройте портреты после устного ответа."
         ],
-        "duration": "5-8 минут"
+        "duration": "5-8 минут",
+        "summary": "По описанию ситуации выбери портрет с подходящей эмоцией.",
+        "goal": "Ребёнок выбирает изображённую эмоцию по смыслу ситуации, а не по подсказке-названию."
       },
       "params": {
         "taskCount": {
@@ -240,20 +253,9 @@
             8
           ],
           "default": 6
-        },
-        "optionCount": {
-          "type": "enum",
-          "label": {
-            "ru": "Вариантов"
-          },
-          "values": [
-            2,
-            4,
-            6
-          ],
-          "default": 4
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "emotion_situation",
@@ -261,16 +263,16 @@
       "evaluation": "auto",
       "ui": {
         "title": "Эмоция → Ситуация",
-        "instruction": "Выбери, когда бывает такая эмоция"
+        "instruction": "Где ребёнку грустно?"
       },
       "methodology": {
-        "text": "Ребёнок видит картинку эмоции и выбирает подходящую ситуацию из нескольких сюжетных фотографий. Обратное направление к «Ситуация → эмоция» — тренирует применение эмоции, а не только её узнавание по описанию.",
+        "text": "Показывается портрет ребёнка с определённой эмоцией и несколько сюжетных фотографий. Ребёнок выбирает событие, которое соответствует выражению лица.",
         "tips": [
-          "Используйте после уверенного прохождения «Ситуация → эмоция»",
-          "Если ребёнок ошибся, рассмотрите вместе все варианты и обсудите, чем они отличаются",
-          "Хорошо дополняет «Ситуация → эмоция» — закрепляет связь в обе стороны"
+          "Прочитайте короткий вопрос, если ребёнок пока не читает."
         ],
-        "duration": "5-8 минут"
+        "duration": "5-8 минут",
+        "summary": "По выражению лица выбери подходящую сюжетную ситуацию.",
+        "goal": "Ребёнок соотносит изображённое чувство с подходящим событием среди предложенных ситуаций."
       },
       "params": {
         "taskCount": {
@@ -284,20 +286,9 @@
             8
           ],
           "default": 6
-        },
-        "optionCount": {
-          "type": "enum",
-          "label": {
-            "ru": "Вариантов"
-          },
-          "values": [
-            2,
-            4,
-            6
-          ],
-          "default": 2
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
       "id": "question_answer",
@@ -305,17 +296,16 @@
       "evaluation": "auto",
       "ui": {
         "title": "Что чувствует?",
-        "instruction": "Что чувствует?"
+        "instruction": "Что чувствует ребёнок?"
       },
       "methodology": {
-        "text": "Контрольная работа по теме: ребёнок называет эмоцию по фотографии, затем подтверждает свой ответ среди слов темы.",
+        "text": "Ребёнок видит портрет, сначала произносит название чувства, а затем нажимает соответствующее слово среди предложенных вариантов. Приложение проверяет выбор слова; качество устного ответа оценивает взрослый.",
         "tips": [
-          "Сначала дайте ребёнку назвать эмоцию вслух, и только потом предлагайте нажать на слово",
-          "Остальные показанные слова — дистракторы, подобранные как самые похожие на верный ответ; это проверяет точность называния, а не только узнавание картинки",
-          "Используйте после знакомства и упражнений с ситуациями",
-          "Начните с 6 слов, если после «Найди картинку» сразу все 10 слишком много — прибавляйте по мере уверенности"
+          "Дайте время ответить до показа тегов. Отметку об устном ответе можно сохранить отдельно от выбора слова."
         ],
-        "duration": "5–8 минут"
+        "duration": "5–8 минут",
+        "summary": "Назови эмоцию по лицу, затем выбери её название для проверки.",
+        "goal": "Ребёнок называет эмоцию по выражению лица и подтверждает ответ выбором правильного слова."
       },
       "params": {
         "optionCount": {
@@ -324,13 +314,16 @@
             "ru": "Вариантов ответа"
           },
           "values": [
+            3,
+            4,
             6,
             8,
             10
           ],
-          "default": 10
+          "default": 3
         }
-      }
+      },
+      "paramsScope": "mode"
     }
   ],
   "annotation": {
@@ -363,7 +356,8 @@
         "group2": "high",
         "group3": "facial"
       },
-      "answerKey": "радость"
+      "answerKey": "радость",
+      "gender": "male"
     },
     {
       "id": "joy_2",
@@ -385,7 +379,8 @@
         "group2": "high",
         "group3": "mixed"
       },
-      "answerKey": "радость"
+      "answerKey": "радость",
+      "gender": "female"
     },
     {
       "id": "joy_3",
@@ -407,7 +402,8 @@
         "group2": "high",
         "group3": "facial"
       },
-      "answerKey": "радость"
+      "answerKey": "радость",
+      "gender": "male"
     },
     {
       "id": "sadness_1",
@@ -429,7 +425,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "грусть"
+      "answerKey": "грусть",
+      "gender": "male"
     },
     {
       "id": "sadness_2",
@@ -451,7 +448,8 @@
         "group2": "low",
         "group3": "postural"
       },
-      "answerKey": "грусть"
+      "answerKey": "грусть",
+      "gender": "female"
     },
     {
       "id": "sadness_3",
@@ -473,7 +471,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "грусть"
+      "answerKey": "грусть",
+      "gender": "male"
     },
     {
       "id": "anger_1",
@@ -495,7 +494,8 @@
         "group2": "high",
         "group3": "facial"
       },
-      "answerKey": "злость"
+      "answerKey": "злость",
+      "gender": "female"
     },
     {
       "id": "anger_2",
@@ -517,7 +517,8 @@
         "group2": "high",
         "group3": "postural"
       },
-      "answerKey": "злость"
+      "answerKey": "злость",
+      "gender": "male"
     },
     {
       "id": "anger_3",
@@ -539,7 +540,8 @@
         "group2": "high",
         "group3": "facial"
       },
-      "answerKey": "злость"
+      "answerKey": "злость",
+      "gender": "male"
     },
     {
       "id": "fear_1",
@@ -561,7 +563,8 @@
         "group2": "high",
         "group3": "facial"
       },
-      "answerKey": "страх"
+      "answerKey": "страх",
+      "gender": "male"
     },
     {
       "id": "fear_2",
@@ -583,7 +586,8 @@
         "group2": "high",
         "group3": "postural"
       },
-      "answerKey": "страх"
+      "answerKey": "страх",
+      "gender": "female"
     },
     {
       "id": "fear_3",
@@ -605,7 +609,8 @@
         "group2": "high",
         "group3": "mixed"
       },
-      "answerKey": "страх"
+      "answerKey": "страх",
+      "gender": "male"
     },
     {
       "id": "surprise_1",
@@ -627,7 +632,8 @@
         "group2": "high",
         "group3": "facial"
       },
-      "answerKey": "удивление"
+      "answerKey": "удивление",
+      "gender": "female"
     },
     {
       "id": "surprise_2",
@@ -649,7 +655,8 @@
         "group2": "high",
         "group3": "mixed"
       },
-      "answerKey": "удивление"
+      "answerKey": "удивление",
+      "gender": "male"
     },
     {
       "id": "surprise_3",
@@ -671,7 +678,8 @@
         "group2": "high",
         "group3": "mixed"
       },
-      "answerKey": "удивление"
+      "answerKey": "удивление",
+      "gender": "female"
     },
     {
       "id": "disgust_1",
@@ -693,7 +701,8 @@
         "group2": "medium",
         "group3": "facial"
       },
-      "answerKey": "отвращение"
+      "answerKey": "отвращение",
+      "gender": "male"
     },
     {
       "id": "disgust_2",
@@ -715,7 +724,8 @@
         "group2": "medium",
         "group3": "mixed"
       },
-      "answerKey": "отвращение"
+      "answerKey": "отвращение",
+      "gender": "female"
     },
     {
       "id": "disgust_3",
@@ -737,7 +747,8 @@
         "group2": "medium",
         "group3": "facial"
       },
-      "answerKey": "отвращение"
+      "answerKey": "отвращение",
+      "gender": "male"
     },
     {
       "id": "calm_1",
@@ -759,7 +770,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "спокойствие"
+      "answerKey": "спокойствие",
+      "gender": "male"
     },
     {
       "id": "calm_2",
@@ -781,7 +793,8 @@
         "group2": "low",
         "group3": "postural"
       },
-      "answerKey": "спокойствие"
+      "answerKey": "спокойствие",
+      "gender": "female"
     },
     {
       "id": "calm_3",
@@ -803,7 +816,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "спокойствие"
+      "answerKey": "спокойствие",
+      "gender": "male"
     },
     {
       "id": "shame_1",
@@ -825,7 +839,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "стыд"
+      "answerKey": "стыд",
+      "gender": "male"
     },
     {
       "id": "shame_2",
@@ -847,7 +862,8 @@
         "group2": "low",
         "group3": "postural"
       },
-      "answerKey": "стыд"
+      "answerKey": "стыд",
+      "gender": "female"
     },
     {
       "id": "shame_3",
@@ -869,7 +885,8 @@
         "group2": "low",
         "group3": "mixed"
       },
-      "answerKey": "стыд"
+      "answerKey": "стыд",
+      "gender": "male"
     },
     {
       "id": "boredom_1",
@@ -892,7 +909,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "скука"
+      "answerKey": "скука",
+      "gender": "male"
     },
     {
       "id": "boredom_2",
@@ -914,7 +932,8 @@
         "group2": "low",
         "group3": "postural"
       },
-      "answerKey": "скука"
+      "answerKey": "скука",
+      "gender": "female"
     },
     {
       "id": "boredom_3",
@@ -936,7 +955,8 @@
         "group2": "low",
         "group3": "mixed"
       },
-      "answerKey": "скука"
+      "answerKey": "скука",
+      "gender": "male"
     },
     {
       "id": "tiredness_1",
@@ -958,7 +978,8 @@
         "group2": "low",
         "group3": "facial"
       },
-      "answerKey": "усталость"
+      "answerKey": "усталость",
+      "gender": "male"
     },
     {
       "id": "tiredness_2",
@@ -980,7 +1001,8 @@
         "group2": "low",
         "group3": "postural"
       },
-      "answerKey": "усталость"
+      "answerKey": "усталость",
+      "gender": "female"
     },
     {
       "id": "tiredness_3",
@@ -1002,7 +1024,8 @@
         "group2": "low",
         "group3": "mixed"
       },
-      "answerKey": "усталость"
+      "answerKey": "усталость",
+      "gender": "male"
     },
     {
       "id": "situation_joy_1",
@@ -1014,7 +1037,8 @@
       "revealCardId": "joy_1",
       "answerKey": "радость",
       "primary": false,
-      "revealImage": "media/portrait_situation_joy_1_v2.webp"
+      "revealImage": "media/portrait_situation_joy_1_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_joy_2",
@@ -1026,7 +1050,8 @@
       "revealCardId": "joy_2",
       "answerKey": "радость",
       "primary": false,
-      "revealImage": "media/portrait_situation_joy_2_v2.webp"
+      "revealImage": "media/portrait_situation_joy_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_joy_3",
@@ -1038,7 +1063,8 @@
       "revealCardId": "joy_1",
       "answerKey": "радость",
       "primary": false,
-      "revealImage": "media/portrait_situation_joy_3_v2.webp"
+      "revealImage": "media/portrait_situation_joy_3_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_sadness_1",
@@ -1050,7 +1076,8 @@
       "revealCardId": "sadness_2",
       "answerKey": "грусть",
       "primary": false,
-      "revealImage": "media/portrait_situation_sadness_1_v2.webp"
+      "revealImage": "media/portrait_situation_sadness_1_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_sadness_2",
@@ -1062,7 +1089,8 @@
       "revealCardId": "sadness_1",
       "answerKey": "грусть",
       "primary": false,
-      "revealImage": "media/portrait_situation_sadness_2_v2.webp"
+      "revealImage": "media/portrait_situation_sadness_2_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_sadness_3",
@@ -1074,7 +1102,8 @@
       "revealCardId": "sadness_2",
       "answerKey": "грусть",
       "primary": false,
-      "revealImage": "media/portrait_situation_sadness_3_v2.webp"
+      "revealImage": "media/portrait_situation_sadness_3_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_anger_1",
@@ -1086,7 +1115,8 @@
       "revealCardId": "anger_1",
       "answerKey": "злость",
       "primary": false,
-      "revealImage": "media/portrait_situation_anger_1_v2.webp"
+      "revealImage": "media/portrait_situation_anger_1_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_anger_2",
@@ -1098,7 +1128,8 @@
       "revealCardId": "anger_2",
       "answerKey": "злость",
       "primary": false,
-      "revealImage": "media/portrait_situation_anger_2_v2.webp"
+      "revealImage": "media/portrait_situation_anger_2_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_anger_3",
@@ -1110,7 +1141,8 @@
       "revealCardId": "anger_1",
       "answerKey": "злость",
       "primary": false,
-      "revealImage": "media/portrait_situation_anger_3_v2.webp"
+      "revealImage": "media/portrait_situation_anger_3_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_fear_1",
@@ -1122,7 +1154,8 @@
       "revealCardId": "fear_1",
       "answerKey": "страх",
       "primary": false,
-      "revealImage": "media/portrait_situation_fear_1_v2.webp"
+      "revealImage": "media/portrait_situation_fear_1_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_fear_2",
@@ -1134,7 +1167,8 @@
       "revealCardId": "fear_2",
       "answerKey": "страх",
       "primary": false,
-      "revealImage": "media/portrait_situation_fear_2_v2.webp"
+      "revealImage": "media/portrait_situation_fear_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_fear_3",
@@ -1146,7 +1180,8 @@
       "revealCardId": "fear_2",
       "answerKey": "страх",
       "primary": false,
-      "revealImage": "media/portrait_situation_fear_3_v2.webp"
+      "revealImage": "media/portrait_situation_fear_3_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_surprise_1",
@@ -1158,7 +1193,8 @@
       "revealCardId": "surprise_1",
       "answerKey": "удивление",
       "primary": false,
-      "revealImage": "media/portrait_situation_surprise_1_v2.webp"
+      "revealImage": "media/portrait_situation_surprise_1_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_surprise_2",
@@ -1170,7 +1206,8 @@
       "revealCardId": "surprise_1",
       "answerKey": "удивление",
       "primary": false,
-      "revealImage": "media/portrait_situation_surprise_2_v2.webp"
+      "revealImage": "media/portrait_situation_surprise_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_surprise_3",
@@ -1182,19 +1219,21 @@
       "revealCardId": "surprise_2",
       "answerKey": "удивление",
       "primary": false,
-      "revealImage": "media/portrait_situation_surprise_3_v2.webp"
+      "revealImage": "media/portrait_situation_surprise_3_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_calm_1",
       "conceptId": "calm",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "Мальчик слушает тихую музыку.",
       "sceneImage": "media/situation_calm_1.webp",
       "revealCardId": "calm_1",
       "answerKey": "спокойствие",
       "primary": false,
-      "revealImage": "media/portrait_situation_calm_1_v2.webp"
+      "revealImage": "media/portrait_situation_calm_1_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_calm_2",
@@ -1206,31 +1245,34 @@
       "revealCardId": "calm_2",
       "answerKey": "спокойствие",
       "primary": false,
-      "revealImage": "media/portrait_situation_calm_2_v2.webp"
+      "revealImage": "media/portrait_situation_calm_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_calm_3",
       "conceptId": "calm",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "Мальчик тихо гуляет в парке.",
       "sceneImage": "media/situation_calm_3.webp",
       "revealCardId": "calm_3",
       "answerKey": "спокойствие",
       "primary": false,
-      "revealImage": "media/portrait_situation_calm_3_v2.webp"
+      "revealImage": "media/portrait_situation_calm_3_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_boredom_1",
       "conceptId": "boredom",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "Мальчик долго ждёт в очереди.",
       "sceneImage": "media/situation_boredom_1.webp",
       "revealCardId": "boredom_1",
       "answerKey": "скука",
       "primary": false,
-      "revealImage": "media/portrait_situation_boredom_1_v2.webp"
+      "revealImage": "media/portrait_situation_boredom_1_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_shame_1",
@@ -1242,19 +1284,21 @@
       "revealCardId": "shame_1",
       "answerKey": "стыд",
       "primary": false,
-      "revealImage": "media/portrait_situation_shame_1_v2.webp"
+      "revealImage": "media/portrait_situation_shame_1_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_tiredness_1",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "После долгой дороги хочется спать.",
       "sceneImage": "media/situation_tiredness_1.webp",
       "revealCardId": "tiredness_1",
       "answerKey": "усталость",
       "primary": false,
-      "revealImage": "media/portrait_situation_tiredness_1_v2.webp"
+      "revealImage": "media/portrait_situation_tiredness_1_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_disgust_1",
@@ -1266,31 +1310,34 @@
       "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false,
-      "revealImage": "media/portrait_situation_disgust_1_v2.webp"
+      "revealImage": "media/portrait_situation_disgust_1_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_shame_2",
       "conceptId": "shame",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "deferred",
       "label": "Друзья сказали, что от меня плохо пахнет.",
       "sceneImage": "media/situation_shame_2.webp",
       "revealCardId": "shame_1",
       "answerKey": "стыд",
       "primary": false,
-      "revealImage": "media/portrait_situation_shame_2_v2.webp"
+      "revealImage": "media/portrait_situation_shame_2_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_shame_3",
       "conceptId": "shame",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "Девочка случайно разлила воду на рисунок.",
       "sceneImage": "media/situation_shame_3.webp",
       "revealCardId": "shame_2",
       "answerKey": "стыд",
       "primary": false,
-      "revealImage": "media/portrait_situation_shame_3_v2.webp"
+      "revealImage": "media/portrait_situation_shame_3_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_disgust_2",
@@ -1302,7 +1349,8 @@
       "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false,
-      "revealImage": "media/portrait_situation_disgust_2_v2.webp"
+      "revealImage": "media/portrait_situation_disgust_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_disgust_3",
@@ -1314,19 +1362,21 @@
       "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false,
-      "revealImage": "media/portrait_situation_disgust_3_v2.webp"
+      "revealImage": "media/portrait_situation_disgust_3_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_boredom_2",
       "conceptId": "boredom",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "Играть дома уже надоело.",
       "sceneImage": "media/situation_boredom_2.webp",
       "revealCardId": "boredom_2",
       "answerKey": "скука",
       "primary": false,
-      "revealImage": "media/portrait_situation_boredom_2_v2.webp"
+      "revealImage": "media/portrait_situation_boredom_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_boredom_3",
@@ -1338,19 +1388,21 @@
       "revealCardId": "boredom_3",
       "answerKey": "скука",
       "primary": false,
-      "revealImage": "media/portrait_situation_boredom_3_v2.webp"
+      "revealImage": "media/portrait_situation_boredom_3_v2.webp",
+      "gender": "male"
     },
     {
       "id": "situation_tiredness_2",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "situationUse": "auto",
+      "situationUse": "discussion",
       "label": "После игры на улице ребёнок устал.",
       "sceneImage": "media/situation_tiredness_2.webp",
       "revealCardId": "tiredness_2",
       "answerKey": "усталость",
       "primary": false,
-      "revealImage": "media/portrait_situation_tiredness_2_v2.webp"
+      "revealImage": "media/portrait_situation_tiredness_2_v2.webp",
+      "gender": "female"
     },
     {
       "id": "situation_tiredness_3",
@@ -1362,7 +1414,8 @@
       "revealCardId": "tiredness_1",
       "answerKey": "усталость",
       "primary": false,
-      "revealImage": "media/portrait_situation_tiredness_3_v2.webp"
+      "revealImage": "media/portrait_situation_tiredness_3_v2.webp",
+      "gender": "male"
     }
   ]
 }
