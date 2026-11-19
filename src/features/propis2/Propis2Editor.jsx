@@ -18,6 +18,7 @@ import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
 import { useHint } from "./Propis2Hint";
+import { usePopupPos } from "./usePopupPos";
 
 // The page constructor: the page canvas with the settings of the page and of the row above it. The text is typed STRAIGHT ONTO THE
 // SHEET (owner, 2026-10-23, «как в Word»): a click on a row puts the caret there, between the letters, and the keyboard writes into the
@@ -121,7 +122,6 @@ function Seg({ label, options, value, onChange, disabled = false }) {
   );
 }
 
-const ROW_DOCK_KEY = "propis2:rowDock";
 
 // The letter of a row, large, its strokes to tap (the row panel's «Что пишем», as «Печатные буквы» ElementPad): a stroke that is written is
 // ink, the others grey; any number can be on, at least one. Only the strokes — no dots, numbers or arrows (the sheet shows those).
@@ -158,6 +158,39 @@ function PartsPad({ glyph, keep, onToggle }) {
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(i); } }} />
       ))}
     </svg>
+  );
+}
+
+// The phone's «Штрихи» (owner, 2026-11-19: the row panel at the bottom kept fighting the keyboard — on a phone the row's settings are the
+// scrolling strip above the keyboard again): a button of the strip, the letter with its strokes to tap in a popup over the sheet. The popup
+// keeps the field's focus, so the keyboard stays where it is.
+function PartsPicker({ glyph, keep, onToggle, partial }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const btnRef = useRef(null);
+  const panelStyle = usePopupPos(open, btnRef, 300, () => setOpen(false));
+  const { bind, tip } = useHint("Что пишем: штрихи буквы");
+  useEffect(() => {
+    if (!open) return undefined;
+    const away = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    const esc = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
+  }, [open]);
+  return (
+    <div className="p2-pick p2-parts" ref={wrapRef}>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open || partial ? " is-on" : ""}`} aria-label="Что пишем: штрихи буквы" aria-haspopup="dialog" aria-expanded={open} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen((o) => !o)} {...bind}>
+        <span className="p2-tool-ico"><I.IconStrokes /></span>
+        <span className="p2-cap">Штрихи</span>
+        {tip}
+      </button>
+      {open && (
+        <div className="p2-parts-panel" role="dialog" aria-label="Что пишем" onMouseDown={(e) => e.preventDefault()} style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
+          <PartsPad glyph={glyph} keep={keep} onToggle={onToggle} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -639,10 +672,25 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       </section>}
     </div>
   );
-  // phone: the panel is a dock at the bottom, folded to one bar until opened; it gives its room to the keyboard
-  // (open or folded: remembered on the device, as «Печатные буквы» does)
-  const [dockOpen, setDockOpenState] = useState(() => { try { return localStorage.getItem(ROW_DOCK_KEY) === "1"; } catch { return false; } });
-  const setDockOpen = (fn) => setDockOpenState((o) => { const next = typeof fn === "function" ? fn(o) : fn; try { localStorage.setItem(ROW_DOCK_KEY, next ? "1" : "0"); } catch { /* not remembered */ } return next; });
+  // phone / portrait tablet: the row's settings are the scrolling strip above the keyboard (as before 2026-11-16) — the panel at the bottom
+  // kept giving way to the keyboard, and selecting a row IS the caret in the text, so the keyboard was always open (owner, 2026-11-19)
+  const phoneRowEls = <>
+          {selected && selected.kind !== "blank" && selected.kind !== "element" && <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
+          {partsGlyph && <PartsPicker glyph={partsGlyph} keep={partsKeep} onToggle={togglePart} partial={Boolean(partsSaved)} />}
+          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
+          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
+          {styles && rowStyleOptions.length > 1 && <Propis2Picker label="Стиль строки" caption="Стиль строки" kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
+          {rowEls}
+          {dropPage && <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
+            onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />}
+          <span className="p2-sep" aria-hidden="true" />
+          <div className="p2-seg" role="group" aria-label="Строка">
+            <IconBtn label="Строку выше" caption="Выше" onMouseDown={keepFocus} onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
+            <IconBtn label="Строку ниже" caption="Ниже" onMouseDown={keepFocus} onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
+            <IconBtn label="Дублировать строку" caption="Дубль" onMouseDown={keepFocus} disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
+            <IconBtn label="Удалить строку" caption="Удалить" className="p2-ib--danger" onMouseDown={keepFocus} disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
+          </div>
+  </>;
   // the canvas zoom (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back
   // `withHistory`: undo / redo in the same row as the zoom (phones / tablets, owner 2026-10-24: hides nothing there); the desk
   // layout has them in its tool bar
@@ -767,7 +815,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Набор">
-          {rowEls}
+          {phoneRowEls}
         </div>
 
         {offerEl}
@@ -776,17 +824,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
 
         <div className="propis2-dock propis2-dock--keys">
           {warnsEl}
-          {/* the row panel, folded to a bar (owner 2026-11-16): it gives its room to the keyboard */}
-        {/* only for a selected row (no row: the hint below says what to do); under an open keyboard it gives its room */}
-        {selected && !keyboard.open && (
-            <div className={`p2-rowdock${dockOpen ? "" : " is-folded"}`}>
-              <button type="button" className="p2-rowdock-toggle" onMouseDown={keepFocus} onClick={() => setDockOpen((o) => !o)} aria-expanded={dockOpen} aria-label={dockOpen ? "Свернуть настройки строки" : "Показать настройки строки"}>
-                {!dockOpen && <span className="p2-rowdock-sum">{rowNo > 0 ? <>Строка <b>{rowNo}</b>{kindName ? ` · ${kindName}` : ""}</> : "Настройки строки"}</span>}
-                <span className="p2-rowdock-chev" aria-hidden="true">{dockOpen ? "▾" : "▴"}</span>
-              </button>
-              {dockOpen && <div className="p2-rowdock-body">{rowPanelEl}</div>}
-            </div>
-          )}
           {/* with the keyboard open (or typing on a phone / portrait tablet: Android shrinks the window itself) the hint gives its room to the page */}
           {!keyboard.open && !typing && !selected && <p className="p2-keys-hint" data-testid="propis2-keys-hint">
             {typing
