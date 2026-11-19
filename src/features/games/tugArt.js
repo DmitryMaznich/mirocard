@@ -13,7 +13,7 @@ export function loadTugArt() {
   if (!loading) loading = Promise.all(Object.entries(SOURCES).map(([key, src]) => new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve([key, image]);
-    image.onerror = () => reject(new Error('Не удалось загрузить поле для каната'));
+    image.onerror = () => reject(new Error('Unable to load tug artwork'));
     image.src = src;
   }))).then(entries => { cached = Object.fromEntries(entries); return cached; }).catch(error => { loading = undefined; throw error; });
   return loading;
