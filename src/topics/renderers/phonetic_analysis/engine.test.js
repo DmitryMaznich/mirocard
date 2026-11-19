@@ -20,6 +20,14 @@ describe("scheme steps", () => {
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(20);
   });
 
+  it("«Где звук?» a chosen place with no word is said, not skipped silently", () => {
+    const t = run("pa_where", [..."ЗЖВЕЁЮЯ"], { where: ["start", "end"] });
+    expect(t[0].type).toBe("pa_need_more");
+    expect(t[0].text).toContain("в конце");
+    expect(t[0].text).toMatch(/букв: К, /);
+    expect(t.slice(1).every((x) => x.answer === 0)).toBe(true);
+  });
+
   it("«Где звук?» only the chosen places, in equal shares", () => {
     const only = run("pa_where", ALL, { where: ["end"] });
     for (const t of only) expect(t.answer).toBe(t.letters.length - 1);

@@ -67,14 +67,30 @@ function schemeTask(step, kind, word, letter, extra = {}) {
 // sound is in one of the chosen places, the places in equal shares, and the child
 // taps its cell.
 const POSITIONS = ["start", "middle", "end"];
+const PLACE_NAME = { start: "в начале", middle: "в середине", end: "в конце" };
+// «Для выбранных букв нет слов со звуком в конце. Чтобы он был, добавьте любую из букв: К, Т, А…»
+function placesNotice(words, empty) {
+  return empty.map((p) => {
+    const count = new Map();
+    for (const w of words) if (w.aligned) for (const t of w.targets ?? []) if (t.position === p) count.set(t.letter, (count.get(t.letter) ?? 0) + 1);
+    const letters = [...count].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([L]) => L).join(", ");
+    return `Для выбранных букв нет слов со звуком ${PLACE_NAME[p]}. Чтобы он был, добавьте в «Изменить» любую из букв: ${letters}.`;
+  }).join(" ");
+}
 function positionTasks(words, learned, count, places) {
   const chosen = POSITIONS.filter((p) => places.includes(p));
   const pool = learned.flatMap((L) => words.filter((w) => w.aligned && chosen.includes(targetOf(w, L)?.position)).map((w) => ({ w, L, at: targetOf(w, L).position })));
-  const groups = chosen.map((p) => pool.filter((x) => x.at === p)).filter((g) => g.length);
-  if (!groups.length) return needMore("Нет слов, где выбранные буквы стоят в выбранных местах. Добавьте буквы в «Изменить» или включите другое место.");
+  const byPlace = chosen.map((p) => [p, pool.filter((x) => x.at === p)]);
+  const groups = byPlace.map(([, g]) => g).filter((g) => g.length);
+  // A chosen place with no word for the learned letters is said out loud, not
+  // skipped silently (owner, 2026-11-19: «Конец» on, and 20 tasks in a row on the
+  // start — few letters end a word cleanly, none of Б В Г Д Ж З Е Ё Ю Я do).
+  const empty = byPlace.filter(([, g]) => !g.length).map(([p]) => p);
+  const notice = empty.length ? [{ type: "pa_need_more", text: placesNotice(words, empty), canContinue: groups.length > 0 }] : [];
+  if (!groups.length) return notice;
   const share = Math.ceil(count / groups.length);
-  return shuffle(groups.flatMap((g) => cycle(g, share))).slice(0, count)
-    .map(({ w, L }) => schemeTask(4, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }));
+  return [...notice, ...shuffle(groups.flatMap((g) => cycle(g, share))).slice(0, count)
+    .map(({ w, L }) => schemeTask(4, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }))];
 }
 
 // «Буквы в клетки» → «Последняя буква»: the last cell only.
