@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes back along ink already drawn, written without a lift) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = halfway along the 3rd). The ink between them, in writing order, are the letter's elements.",
+    "techniques": "joined (default, owner): the path as captured, retraces run along the ink and add none; lifted: every element on its own, from its own start dot, the pen jumps between them"
+  },
+  "letters": {
+    "р": {
+      "elements": ["палочка", "крючок"],
+      "strokes": [{ "retrace": [[1, 2]] }]
+    }
+  }
+}
