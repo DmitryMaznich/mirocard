@@ -3,6 +3,7 @@ import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { useAppStore } from "@/core/store";
 import { getStoragePersistenceStatus, requestStoragePersistence, STORAGE_PERSISTENCE_EVENT } from "@/core/storagePersistence";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { useInstallPrompt } from "@/shared/hooks/useInstallPrompt";
 
 // «This device»: the experimental-interface switch (7 taps on the build line),
 // local data protection and the build line itself. «Настройки приложения»
@@ -16,6 +17,7 @@ export default function DeviceSettings() {
   const [previewUnlocked, setPreviewUnlocked] = useState(false);
   const [previewSaved, setPreviewSaved] = useState(true);
   const secretTaps = useRef({ count: 0, startedAt: 0 });
+  const installPrompt = useInstallPrompt();
 
   function revealPreview() {
     const now = Date.now();
@@ -66,20 +68,38 @@ export default function DeviceSettings() {
           {!previewSaved && <p className="settings-section__text" role="status">{t("preview.notSaved")}</p>}
         </div>
       )}
-      <div className="settings-section">
-        <div className="settings-section-title">{t("settings.deviceData")}</div>
-        <div className="settings-row settings-row--action">
-          <span className="settings-row__label">{t(`settings.protection.${storageStatus}`)}</span>
-          {(storageStatus === "not_granted" || storageStatus === "error") && (
-            <button className="link-btn" onClick={handleStorageRequest}>{t("settings.enable")}</button>
-          )}
-        </div>
-        <p className="settings-section__text">{t("settings.storageHelp")}</p>
-      </div>
+      {/* The app already asks the browser for this protection on the first tap
+          of every visit; the browser decides. Nothing to show while it holds
+          (or cannot hold) — only when it refused, and then what helps: the app
+          on the home screen (owner, 2026-11-19). */}
+      {(storageStatus === "not_granted" || storageStatus === "error") && (
+        <StorageAtRisk t={t} install={installPrompt} onRetry={handleStorageRequest} />
+      )}
       <button type="button" className="settings-build-info" onClick={revealPreview}
         style={{ border: 0, background: "transparent", fontFamily: "inherit", cursor: "default" }}>
         v{buildInfo.version} · {buildInfo.gitSha}
       </button>
     </>
+  );
+}
+
+function StorageAtRisk({ t, install, onRetry }) {
+  const advice = install.installed ? null
+    : install.isIosNonSafari ? t("settings.storageInstallIosOther")
+    : install.isIos ? t("settings.storageInstallIos")
+    : install.isAndroid ? t("settings.storageInstallAndroid")
+    : t("settings.storageInstallDesktop");
+  return (
+    <div className="settings-section" data-testid="storage-at-risk">
+      <div className="settings-section-title">{t("settings.deviceData")}</div>
+      <p className="settings-section__text settings-section__text--first">{t("settings.storageAtRisk")}</p>
+      {advice && <p className="settings-section__text">{advice}</p>}
+      <div className="settings-row settings-row--action">
+        {install.hasNativePrompt && !install.installed
+          ? <button className="link-btn" onClick={install.install}>{t("settings.storageInstall")}</button>
+          : <span />}
+        <button className="link-btn" onClick={onRetry}>{t("settings.storageRetry")}</button>
+      </div>
+    </div>
   );
 }

@@ -16,9 +16,8 @@ function isIosNonSafariBrowser() {
 }
 
 function isStandalone() {
-  return window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches ||
-    Boolean(navigator.standalone);
+  const mq = (query) => typeof window.matchMedia === "function" && window.matchMedia(query).matches;
+  return mq("(display-mode: standalone)") || mq("(display-mode: fullscreen)") || Boolean(navigator.standalone);
 }
 
 function wasDismissedInTab() {
@@ -79,6 +78,6 @@ export function useInstallPrompt() {
   // Phones/tablets can open a guide before a native install prompt is ready.
   const visible = isMobileDevice && !installed && !dismissed;
 
-  return { visible, install, dismiss, isIos, isIosNonSafari, isAndroid, isFirefoxAndroid, hasNativePrompt: deferredPrompt != null };
+  return { visible, install, dismiss, installed, isIos, isIosNonSafari, isAndroid, isFirefoxAndroid, hasNativePrompt: deferredPrompt != null };
 }
 

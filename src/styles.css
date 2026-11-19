@@ -22783,3 +22783,4 @@ body { background: #eef0ef; }
 .topic-language-option > span { min-width: 0; }
 .topic-language-detail { display: block; font-size: 13px; line-height: 1.5; color: #526663; margin-top: 4px; }
 .topic-language-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 16px; color: #526663; font-size: 14px; }
+.settings-section__text--first { padding-top: 6px; }
