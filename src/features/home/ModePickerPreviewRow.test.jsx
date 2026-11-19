@@ -11,10 +11,15 @@ function render(props) {
 
 describe("ModePickerPreviewRow numbers", () => {
   const mode = { id: "m", ui: { icon: "media/icons/reading_mode.svg" } };
-  it("a numbered topic shows the title's own number instead of the icon", () => {
+  it("a numbered topic shows the title's own number as a badge on the icon", () => {
     const div = render({ mode, title: "3. Лото", numbered: true });
-    expect(div.querySelector(".topic-ui-exercise-number")?.textContent).toBe("3");
+    expect(div.querySelector(".topic-ui-exercise-badge")?.textContent).toBe("3");
+    expect(div.querySelector(".topic-ui-exercise-iconwrap .mode-icon, .topic-ui-exercise-iconwrap img, .topic-ui-exercise-iconwrap")).not.toBeNull();
     expect(div.querySelector("strong").textContent).toBe("Лото");
+  });
+  it("a numbered topic's mode without an icon shows the number in its place", () => {
+    const div = render({ mode: { id: "m", ui: {} }, title: "2. Где звук?", numbered: true });
+    expect(div.querySelector(".topic-ui-exercise-number")?.textContent).toBe("2");
   });
   it("other topics keep the icon", () => {
     const div = render({ mode, title: "3. Лото" });

@@ -24,17 +24,23 @@ export function ModePickerPreviewSection({ title }) {
 // (owner's decision, 2026-11-09). The instruction is behind «?» — the same
 // sign the lesson settings use for the same text.
 // A topic whose mode titles carry their own numbers («3. Лото») and that sets
-// meta.numberedModes shows that number in place of the icon, so the list and
-// the lesson header name a mode the same way (phonetic_analysis, 2026-11-18).
+// meta.numberedModes shows that number — on the mode's icon as a corner badge,
+// or in place of a missing icon — so the list and the lesson header name a mode
+// the same way (phonetic_analysis, 2026-11-18/19).
 export function ModePickerPreviewRow({ topicId, mode, title, index, disabled, test,
   recent, lastTime, onSelect, onInfo, readiness, numbered = false }) {
   const { t } = useUiTranslation();
   const ownNumber = title.match(/^(\d+)\.\s*/)?.[1];
-  const showNumber = (numbered && ownNumber) || !mode.ui?.icon;
+  const showNumber = !mode.ui?.icon || (numbered && ownNumber);
   return <div className={`topic-ui-exercise${recent ? " topic-ui-exercise--recent" : ""}${test ? " topic-ui-exercise--test" : ""}`}>
     <button className="topic-ui-exercise-open" disabled={disabled} onClick={onSelect}>
-      {showNumber ? <span className="topic-ui-exercise-number" aria-hidden="true">{(numbered && ownNumber) || index + 1}</span>
-        : <ModeIcon topicId={topicId} iconPath={mode.ui.icon} size="medium" />}
+      {numbered && ownNumber && mode.ui?.icon
+        ? <span className="topic-ui-exercise-iconwrap">
+          <ModeIcon topicId={topicId} iconPath={mode.ui.icon} size="medium" />
+          <span className="topic-ui-exercise-badge" aria-hidden="true">{ownNumber}</span>
+        </span>
+        : showNumber ? <span className="topic-ui-exercise-number" aria-hidden="true">{(numbered && ownNumber) || index + 1}</span>
+          : <ModeIcon topicId={topicId} iconPath={mode.ui.icon} size="medium" />}
       <span className="topic-ui-exercise-copy">
         {recent && <span className="topic-ui-exercise-tags"><span className="topic-ui-mode-recent">{t("preview.lastTimePill")}</span></span>}
         <strong>{title.replace(/^\d+\.\s*/, "")}</strong>
