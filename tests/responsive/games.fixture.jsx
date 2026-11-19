@@ -8,7 +8,7 @@ import "../../src/styles.css";
 
 useAppStore.setState({
   screen:"modes", activeStudentId:"race-kid", activeTopicId:"games", activeModeId:"dice_race",
-  students:[{id:"race-kid",name:"Мирон",rewardSettings:{duration:"60"},rewardVideos:["https://youtu.be/aaaaaaaaaaa"]}],
+  students:[{id:"race-kid",name:"Мирон",sex:"m",rewardSettings:{duration:"60"},rewardVideos:["https://youtu.be/aaaaaaaaaaa"]}],
   topicRecords:[buildGamesTopicRecord()],
 });
 function Fixture() {
