@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateTasks, lottoBoard, distractors } from "./engine";
+import { generateTasks, lottoBoard, distractors, pairedExtras } from "./engine";
 import WORDS_JSON from "../../../../tools/phonetic_analysis/words.json";
 
 const WORDS = WORDS_JSON.words;
@@ -9,7 +9,7 @@ const run = (type, letters = ALL, params = {}) => generateTasks({ type, words: W
 
 describe("scheme steps", () => {
   it("«Где звук?» Начало или конец: all cells open, the sound is first or last, about half each", () => {
-    const tasks = run("pa_where", ALL, { position: "edges" });
+    const tasks = run("pa_where", ALL, { where: ["start", "end"] });
     expect(tasks).toHaveLength(40);
     for (const t of tasks) {
       expect(t.layout).toBe("cells");
@@ -20,9 +20,28 @@ describe("scheme steps", () => {
     expect(tasks.filter((t) => t.answer === 0)).toHaveLength(20);
   });
 
+  it("«Где звук?» a chosen place with no word is said, not skipped silently", () => {
+    const t = run("pa_where", [..."ЗЖВЕЁЮЯ"], { where: ["start", "end"] });
+    expect(t[0].type).toBe("pa_need_more");
+    expect(t[0].text).toContain("в конце");
+    expect(t[0].text).toMatch(/букв: К, /);
+    expect(t.slice(1).every((x) => x.answer === 0)).toBe(true);
+  });
+
+  it("«Где звук?» only the chosen places, in equal shares", () => {
+    const only = run("pa_where", ALL, { where: ["end"] });
+    for (const t of only) expect(t.answer).toBe(t.letters.length - 1);
+    const mid = run("pa_where", ALL, { where: ["middle"] });
+    for (const t of mid) { expect(t.answer).toBeGreaterThan(0); expect(t.answer).toBeLessThan(t.letters.length - 1); }
+    const all = run("pa_where", ALL, { where: ["start", "middle", "end"] });
+    const start = all.filter((t) => t.answer === 0).length, end = all.filter((t) => t.answer === t.letters.length - 1).length;
+    expect(Math.abs(start - end)).toBeLessThanOrEqual(2);
+    expect(all.length - start - end).toBeGreaterThanOrEqual(12);
+  });
+
   it("«Где звук?» carries the letter's sound when the deck has one", () => {
     const mode = { type: "pa_where", words: WORDS, sounds: { А: "sounds/а.mp3" } };
-    const tasks = generateTasks(mode, cards(["А", "М"]), 0, { position: "all" });
+    const tasks = generateTasks(mode, cards(["А", "М"]), 0, { where: ["start", "middle", "end"] });
     for (const t of tasks) expect(t.sound).toBe(t.letter === "А" ? "sounds/а.mp3" : undefined);
   });
 
@@ -31,6 +50,20 @@ describe("scheme steps", () => {
       expect(t.type).toBe("pa_lotto_reverse");
       expect(t.pictures).toHaveLength(9);
       expect([...t.letters].sort()).toEqual(t.pictures.map((w) => w.firstLetter).sort());
+    }
+  });
+
+  it("lotto «Буква: последняя»: each card is the word's last letter, and only clean last sounds", () => {
+    for (const direction of ["letters", "pictures"]) {
+      for (const t of run("pa_lotto", ALL, { by: "last", direction })) {
+        expect(t.by).toBe("last");
+        const words = t.board ?? t.pictures;
+        for (const w of words) {
+          expect(w.lottoLetter).toBe(w.word.at(-1).toUpperCase());
+          expect(w.targets.find((x) => x.position === "end")?.letter).toBe(w.lottoLetter);
+        }
+        expect(words.map((w) => w.word)).not.toContain("мышь");
+      }
     }
   });
 
@@ -47,15 +80,15 @@ describe("scheme steps", () => {
     }
   });
 
-  it("«Где звук?» Везде: the chip's cell holds the letter; about half are inside the word", () => {
-    const tasks = run("pa_where", ALL, { position: "all" });
+  it("«Где звук?» all places: the chip's cell holds the letter; about a third are inside the word", () => {
+    const tasks = run("pa_where", ALL, { where: ["start", "middle", "end"] });
     for (const t of tasks) expect(t.letters[t.answer]).toBe(t.letter);
-    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(16);
+    expect(tasks.filter((t) => t.answer > 0 && t.answer < t.letters.length - 1).length).toBeGreaterThanOrEqual(12);
   });
 
   it("only learned letters are asked", () => {
     const learned = ["М", "С", "К"];
-    for (const [type, params] of [["pa_where", { position: "edges" }], ["pa_where", { position: "all" }], ["pa_all_letters", { scope: "last" }]]) {
+    for (const [type, params] of [["pa_where", { where: ["start", "end"] }], ["pa_where", { where: ["start", "middle", "end"] }], ["pa_where", { where: ["middle"] }], ["pa_all_letters", { scope: "last" }]]) {
       for (const t of run(type, learned, params)) {
         if (t.type === "pa_need_more") continue;
         expect(learned).toContain(t.letter);
@@ -73,6 +106,25 @@ describe("scheme steps", () => {
 
   it("asks for more letters instead of failing silently", () => {
     expect(run("pa_all_letters", ["Б"], { scope: "last" })[0].type).toBe("pa_need_more");
+  });
+});
+
+describe("«Буквы в клетки»: voiced/voiceless pairs as wrong letters", () => {
+  it("КОТ → Г and Д, learned pairs first", () => {
+    expect(pairedExtras([..."КОТ"], [..."КОТГД"], 2, "К").sort()).toEqual(["Г", "Д"]);
+    const one = pairedExtras([..."КОТ"], [..."КОТГ"], 1, "К");
+    expect(one).toEqual(["Г"]);
+  });
+  it("no paired consonant: the usual lookalikes", () => {
+    const e = pairedExtras([..."МАМА"], [..."МАО"], 2, "М");
+    expect(e).toHaveLength(2);
+    for (const l of e) expect("МА").not.toContain(l);
+  });
+  it("the whole word: the tray holds a pair of one of its consonants when it has one", () => {
+    for (const t of run("pa_all_letters", [..."КОТСУПНМА"], { scope: "word" })) {
+      const pairs = t.letters.map((c) => ({ Б: "П", П: "Б", Г: "К", К: "Г", Д: "Т", Т: "Д", З: "С", С: "З" })[c]).filter(Boolean).filter((p) => !t.letters.includes(p));
+      if (pairs.length) expect(t.tray.some((l) => pairs.includes(l))).toBe(true);
+    }
   });
 });
 

@@ -386,6 +386,30 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
   );
 }
 
+// Several values on at once, in one row of buttons («Где звук: Начало · Середина · Конец»,
+// owner 2026-11-19). A tap turns a value on or off; the last one stays on.
+export function MultiParam({ label, options, labels, value, onChange, info, onShowInfo, disabled = false, hint = "" }) {
+  const on = new Set(Array.isArray(value) ? value : []);
+  const toggle = (opt) => {
+    const next = new Set(on);
+    if (next.has(opt)) { if (next.size === 1) return; next.delete(opt); } else next.add(opt);
+    onChange(options.filter((o) => next.has(o)));
+  };
+  return (
+    <div className="param-row">
+      <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
+      <div className="param-enum-group">
+        {options.map((opt) => (
+          <button key={opt} type="button" aria-pressed={on.has(opt)} className={`enum-btn ${on.has(opt) ? "enum-btn--active" : ""}`} onClick={() => toggle(opt)} disabled={disabled}>
+            {labels?.[opt] ?? opt}
+          </button>
+        ))}
+      </div>
+      {hint ? <div className="param-hint param-hint--ordered">{hint}</div> : null}
+    </div>
+  );
+}
+
 function figureCountLabel(count) { return tr("setup.taskCount", { count }); }
 
 function FigureDifficultyParam({
@@ -1996,6 +2020,21 @@ export default function ParamsScreen() {
             />
           );
         }
+        if (def.type === "multi") {
+          return (
+            <MultiParam
+              key={key}
+              label={setupText(def.label) || key}
+              options={def.values}
+              labels={setupLabels(def.labels)}
+              value={Array.isArray(params[key]) && params[key].length ? params[key] : def.default}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              info={setupInfo(def.info)}
+              onShowInfo={setActiveInfo}
+              hint={setupText(def.hint) || ""}
+            />
+          );
+        }
         if (def.type === "boolean") {
           return (
             <BooleanParam
@@ -2110,20 +2149,39 @@ export default function ParamsScreen() {
         // those stay on the picker «Изменить» opens (owner, 2026-11-18).
         <button type="button" className="param-row topic-ui-param-pick" onClick={() => setScreen("concepts")}>
           <span className="topic-ui-param-pick__copy">
-            <span className="param-label">{tr("setup.cards")}</span>
+            {/* A topic whose cards are letters names them so (meta.conceptNoun) and, with
+                meta.showSelectedConcepts, shows the chosen ones themselves (2026-11-19). */}
+            <span className="param-label">{tr(topicRecord?.meta?.conceptNoun === "letters" ? "setup.letters" : "setup.cards")}</span>
+            {topicRecord?.meta?.showSelectedConcepts ? (
+              <span className="param-concept-chips">
+                {allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId)).map((c) => (
+                  <span key={c.conceptId} className="param-concept-chip">{c.label ?? c.conceptId}</span>
+                ))}
+              </span>
+            ) : (
             <span className="topic-ui-param-pick__value">
               {selectedConceptIds.length === allConcepts.length
                 ? tr("setup.cardsAll", { count: allConcepts.length })
                 : tr("setup.selectionOf", { selected: selectedConceptIds.length, total: allConcepts.length })}
             </span>
+            )}
           </span>
           <span className="topic-ui-param-pick__action">{tr("setup.edit")}<ChevronRightIcon size={15} /></span>
         </button>
       )}
       {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && !preview && (
         <div className="param-row param-row--block">
-          <div className="param-label">{tr("setup.concepts")}</div>
+          <div className="param-label">{tr(topicRecord?.meta?.conceptNoun === "letters" ? "setup.letters" : "setup.concepts")}</div>
           <div className="param-concept-col">
+            {/* «Буквы и звуки» (meta.showSelectedConcepts): the chosen letters themselves,
+                so the adult sees what the lesson is built from (teacher's request, 2026-11-19). */}
+            {topicRecord?.meta?.showSelectedConcepts ? (
+              <div className="param-concept-chips">
+                {allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId)).map((c) => (
+                  <span key={c.conceptId} className="param-concept-chip">{c.label ?? c.conceptId}</span>
+                ))}
+              </div>
+            ) : (
             <div className="param-concept-dots">
               {allConcepts.map((c) => (
                 <ConceptDot
@@ -2133,6 +2191,7 @@ export default function ParamsScreen() {
                 />
               ))}
             </div>
+            )}
             <div className="param-concept-row">
               <span className="param-hint">{tr("setup.selectionOf", { selected: selectedConceptIds.length, total: allConcepts.length })}</span>
               <button className="link-btn" onClick={() => setScreen("concepts")}>{tr("setup.edit")}</button>
@@ -2195,6 +2254,22 @@ export default function ParamsScreen() {
                 info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
                 disabled={isDisabled}
+              />
+            );
+          }
+          if (def.type === "multi") {
+            return (
+              <MultiParam
+                key={key}
+                label={setupText(def.label) || key}
+                options={def.values}
+                labels={setupLabels(def.labels)}
+                value={Array.isArray(params[key]) && params[key].length ? params[key] : def.default}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                disabled={isDisabled}
+                info={setupInfo(def.info)}
+                onShowInfo={setActiveInfo}
+                hint={setupText(def.hint) || ""}
               />
             );
           }

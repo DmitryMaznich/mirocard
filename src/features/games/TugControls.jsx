@@ -10,7 +10,7 @@ export default function TugControls({race,names,paused,onAnswer,onNext}) {
   const choices=counting ? [1,2,3,4,5].map(n=>[n,String(n)]) : [["child",names[0]],["adult",names[1]],["equal","Одинаково"]];
   const selected=counting ? race.countAnswer : race.answer;
   const direction=tugPullDirection(race.dice);
-  const status=race.phase === "finished" ? "Пять бросков позади!" : direction ? `${names[direction<0 ? 0 : 1]} тянет канат` : "Одинаково. Канат на месте.";
+  const status=race.phase === "finished" ? "Канат перетянут!" : direction ? `${names[direction<0 ? 0 : 1]} тянет канат` : "Одинаково. Канат на месте.";
   return <>
     <div className="race-prompt"><strong id="race-question" role="status" aria-live="polite">{choosing ? question : status}</strong></div>
     {choosing && <div className={`race-options${counting ? " tug-count-options" : ""}`} role="group" aria-label={question}>

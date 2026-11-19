@@ -469,14 +469,14 @@
     {
       "id": "games",
       "title": "Игры",
-      "version": "1.4.3",
+      "version": "1.6.0",
       "renderer": null,
       "sources": [
         "src/topics/builtinGamesTopic.js"
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-14T16:41:26+00:00"
+      "sourceUpdatedAt": "2026-11-19T14:53:57+00:00"
     },
     {
       "id": "good_night",
@@ -927,7 +927,7 @@
         "ru": "Буквы и звуки",
         "en": "Letters and Sounds"
       },
-      "version": "2.8.0",
+      "version": "2.11.2",
       "renderer": "phonetic_analysis",
       "sources": [
         "src/topics/renderers/phonetic_analysis",
@@ -937,9 +937,9 @@
       "builtin": false,
       "catalogEntry": {
         "id": "phonetic_analysis",
-        "version": "2.8.0",
-        "url": "./decks/phonetic_analysis_v2.8.0.zip",
-        "zipUrl": "phonetic_analysis_v2.8.0.zip",
+        "version": "2.11.2",
+        "url": "./decks/phonetic_analysis_v2.11.2.zip",
+        "zipUrl": "phonetic_analysis_v2.11.2.zip",
         "title": {
           "ru": "Буквы и звуки",
           "en": "Letters and Sounds"
@@ -951,7 +951,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-18T16:20:39+00:00"
+      "sourceUpdatedAt": "2026-11-19T18:11:34+00:00"
     },
     {
       "id": "place_value",
@@ -1123,16 +1123,16 @@
     {
       "id": "propis2",
       "title": "Прописи",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_v0.7.0.zip",
+        "public/decks/propis2_v0.7.1.zip",
         "src/topics/renderers/propis2",
         "tools/propis2/topic.json"
       ],
       "bundle": {
-        "version": "0.7.0",
-        "url": "./decks/propis2_v0.7.0.zip",
+        "version": "0.7.1",
+        "url": "./decks/propis2_v0.7.1.zip",
         "title": "Прописи",
         "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
         "renderer": "propis2",
@@ -1142,7 +1142,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2",
-        "version": "0.7.0",
+        "version": "0.7.1",
         "title": {
           "ru": "Прописи",
           "en": "Copybook"
@@ -1151,7 +1151,7 @@
           "ru": "Конструктор тетрадей по письму и тренажёры письменных букв на русском, болгарском и казахском: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
           "en": "Handwriting notebook builder and written-letter trainers in Russian, Bulgarian and Kazakh: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
         },
-        "url": "./decks/propis2_v0.7.0.zip",
+        "url": "./decks/propis2_v0.7.1.zip",
         "status": "release",
         "access": "paid",
         "materialLanguages": [
@@ -1160,7 +1160,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-16T19:54:35+00:00"
+      "sourceUpdatedAt": "2026-11-19T05:49:39+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1204,15 +1204,15 @@
     {
       "id": "propis2_lang",
       "title": "Прописи: латиница",
-      "version": "0.11.0",
+      "version": "0.11.1",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_lang_v0.11.0.zip",
+        "public/decks/propis2_lang_v0.11.1.zip",
         "src/topics/renderers/propis2"
       ],
       "bundle": {
-        "version": "0.11.0",
-        "url": "./decks/propis2_lang_v0.11.0.zip",
+        "version": "0.11.1",
+        "url": "./decks/propis2_lang_v0.11.1.zip",
         "title": "Прописи: латиница",
         "description": "Прописи на всех языках в одной теме — проба перед слиянием с «Прописями». Русский, болгарский, казахский и английский: вы отмечаете свои языки («Языки» на экране тетрадей), и тема показывает только их — готовые тетради, язык новой тетради, карточки; тетради других языков остаются в списке с меткой языка. У русского — прописные и печатные буквы, у английского — печатные и британские по схеме Nelson Handwriting (раздельные, соединённые, соединённые наклонные); стиль выбирается для страницы и для строки. Взрослый собирает страницы из букв, слов и текстов или берёт готовую тетрадь; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Режимы: «Узнай букву», «Строчная и заглавная» и диктант — для тех, у кого среди языков есть русский. Nelson Handwriting — товарный знак Oxford University Press; приложение с издательством не связано.",
         "renderer": "propis2",
@@ -1222,7 +1222,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2_lang",
-        "version": "0.11.0",
+        "version": "0.11.1",
         "title": {
           "ru": "Прописи: латиница",
           "en": "Copybook: Latin script"
@@ -1231,7 +1231,7 @@
           "ru": "Прописи на всех языках в одной теме (проба перед слиянием с «Прописями»): русский, болгарский, казахский, английский — вы отмечаете свои языки, остальные не мешают. Прописные и печатные стили, конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная», диктант — для русского.",
           "en": "Every alphabet of the Copybook in one topic (the try-out before it joins «Прописи»): Russian, Bulgarian, Kazakh, English — pick your languages, the others stay out of the way. Cursive and print styles, a notebook builder, ready notebooks, letter cards; dictation in Russian."
         },
-        "url": "./decks/propis2_lang_v0.11.0.zip",
+        "url": "./decks/propis2_lang_v0.11.1.zip",
         "status": "release",
         "access": "paid",
         "materialLanguages": [
@@ -1241,7 +1241,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-16T19:54:35+00:00"
+      "sourceUpdatedAt": "2026-11-19T05:49:39+00:00"
     },
     {
       "id": "reading_dad_instructions",
@@ -1489,7 +1489,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-11-14T16:41:26+00:00"
+      "sourceUpdatedAt": "2026-11-18T14:59:34+00:00"
     },
     {
       "id": "symmetry_draw",
@@ -1665,7 +1665,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T16:41:26+00:00"
+      "sourceUpdatedAt": "2026-11-19T05:37:59+00:00"
     },
     {
       "id": "vowel_consonant_ru",

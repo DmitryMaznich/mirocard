@@ -2011,6 +2011,11 @@ function describeModeParams(params = {}) {
       return `${label || "Понятия"}: выберите карточки или понятия, которые нужны именно для этого занятия.`;
     }
 
+    if (def?.type === "multi") {
+      const values = (def.values ?? []).map((value) => getParamValueLabel(def, value)).join(" / ");
+      const on = (def.default ?? []).map((value) => getParamValueLabel(def, value)).join(", ");
+      return `${label}: ${values} — можно выбрать несколько.${on ? ` По умолчанию: ${on}.` : ""}${hint ? ` ${hint}` : ""}`;
+    }
     if (def?.type === "enum") {
       const values = (def.values ?? []).map((value) => getParamValueLabel(def, value)).join(" / ");
       const defaultText = def.default != null ? ` По умолчанию: ${getParamValueLabel(def, def.default)}.` : "";

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Буквы и звуки — слоги и «Что пропало?» (макет v01)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Макет, не исходник: цвета и формы — из phonetic_analysis.css и topicUiPreview.css */
+  body { margin: 0; font-family: Nunito, sans-serif; background: #ece9df; color: #1f2937; }
+  header { padding: 18px 20px 6px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  header p { margin: 0; color: #4b5563; max-width: 900px; }
+  .row { display: flex; flex-wrap: wrap; gap: 22px; padding: 16px 20px 30px; align-items: flex-start; }
+  .shot { width: 300px; }
+  .cap { font-weight: 800; margin: 0 0 6px; font-size: 15px; }
+  .cap small { display: block; font-weight: 600; color: #6b7280; font-size: 13px; }
+  .phone { width: 300px; height: 560px; border-radius: 30px; background: #fdfcf9; box-shadow: 0 0 0 8px #1f2937, 0 10px 30px rgba(0,0,0,.25); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .bar { height: 44px; background: #1c3634; color: #fff; display: flex; align-items: center; padding: 0 12px; gap: 10px; font-weight: 800; font-size: 14px; }
+  .bar .st { margin-left: auto; letter-spacing: 2px; color: #fcd34d; }
+  .stage { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 14px; }
+  .prompt { font-weight: 800; font-size: 19px; color: #374151; display: flex; align-items: center; gap: 8px; }
+  .plate { min-width: 92px; height: 86px; padding: 0 12px; border-radius: 18px; border: 3px solid #4a9b8f; background: #fff; display: grid; place-items: center; font-size: 50px; font-weight: 900; box-sizing: border-box; }
+  .opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: auto; }
+  .tile { aspect-ratio: 1; border-radius: 16px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 34px; font-weight: 900; }
+  .tile.ok { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; color: #15803d; }
+  .tile.faded { opacity: .3; }
+  .cards { display: flex; gap: 8px; justify-content: center; margin: auto 0; }
+  .card { width: 62px; height: 84px; border-radius: 14px; background: #fff; border: 2.5px solid #cbd5e1; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 28px; font-weight: 900; }
+  .card.back { background: repeating-linear-gradient(45deg, #4a9b8f 0 8px, #5aab9f 8px 16px); border-color: #2a6b60; color: transparent; }
+  .card.gap { background: #eff6ff; border: 2.5px dashed #3b82f6; box-shadow: none; color: #3b82f6; font-size: 30px; }
+  .card.ok { border-color: #22c55e; background: #dcfce7; color: #15803d; }
+  .timer { width: 54px; height: 54px; border-radius: 50%; background: conic-gradient(#4a9b8f 0 70%, #e5e7eb 70% 100%); display: grid; place-items: center; }
+  .timer i { width: 40px; height: 40px; border-radius: 50%; background: #fdfcf9; display: grid; place-items: center; font-style: normal; font-size: 20px; }
+  .note { font-size: 12.5px; color: #6b7280; text-align: center; margin-top: 4px; }
+  /* экран запуска */
+  .setup { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: #f6f4ec; }
+  .modecard { background: #fff; border-radius: 16px; padding: 12px; display: flex; gap: 10px; align-items: center; font-weight: 800; }
+  .modecard img { width: 42px; height: 42px; border-radius: 10px; }
+  .field { background: #fff; border-radius: 16px; padding: 12px; }
+  .field b { display: block; font-size: 13px; color: #6f8273; margin-bottom: 6px; }
+  .letters { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .letters span { width: 28px; height: 28px; border-radius: 8px; background: #e5f2ef; display: grid; place-items: center; font-weight: 900; }
+  .letters em { font-style: normal; margin-left: auto; color: #3d6c58; font-weight: 800; font-size: 14px; }
+  .seg { display: flex; background: #edf0e3; border-radius: 12px; padding: 3px; }
+  .seg span { flex: 1; text-align: center; padding: 8px 0; border-radius: 10px; font-weight: 800; font-size: 14px; color: #67816d; }
+  .seg span.on { background: #fff; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .start { margin-top: auto; background: #4a9b8f; color: #fff; text-align: center; font-weight: 800; font-size: 17px; padding: 15px; border-radius: 16px; box-shadow: 0 4px 0 #2a6b60; }
+  .new { background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+  section h2 { font-size: 18px; margin: 10px 20px 0; }
+  section > p { margin: 4px 20px 0; color: #4b5563; max-width: 900px; font-size: 14.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Буквы и звуки — слоги и «Что пропало?» · макет v01</h1>
+  <p>Запрос учительницы: тренировать конкретные буквы и слоги; глобальное чтение слогов — найти среди других, найти такой же, отгадать, какой пропал. Слоги собираются сами из пройденных букв (согласная + гласная: МА, МО, СУ…).</p>
+</header>
+
+<section>
+  <h2>А. Экран запуска: пройденные буквы на виду, «Буквы / Слоги»</h2>
+  <p>Выбор букв уже есть (кнопка «Изменить»), но учительница его не нашла — выносим строкой прямо на экран запуска. Переключатель «Что искать» — в режимах 1 и 5.</p>
+  <div class="row">
+    <div class="shot">
+      <p class="cap">А1. Запуск режима 1<small>две настройки: что искать и сложность</small></p>
+      <div class="phone">
+        <div class="bar">‹ Буквы и звуки</div>
+        <div class="setup">
+          <div class="modecard"><span style="width:42px;height:42px;border-radius:10px;background:#e5f2ef;display:grid;place-items:center">🔍</span>1. Найди букву</div>
+          <div class="field"><b>Пройденные буквы</b><div class="letters"><span>М</span><span>С</span><span>К</span><span>Н</span><span>А</span><span>О</span><span>У</span><em>Изменить ›</em></div></div>
+          <div class="field"><b>Что искать</b><div class="seg"><span>Буквы</span><span class="on">Слоги</span></div></div>
+          <div class="field"><b>Сложность</b><div class="seg"><span class="on">Легко</span><span>Средне</span><span>Трудно</span></div></div>
+          <div class="start">Начать</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Б. Режим 1 «Найди букву» со слогами</h2>
+  <p>Та же механика: показан образец — найти такой же. Слог звучит (записи слогов есть в «Диктанте»). Похожие подбираются с подвохом: перевёртыш (АМ), та же согласная (МО), та же гласная (НА).</p>
+  <div class="row">
+    <div class="shot">
+      <p class="cap">Б1. Легко<small>среди 3 непохожих</small></p>
+      <div class="phone"><div class="bar">1. Найди слог <span class="st">★★☆☆☆</span></div>
+        <div class="stage"><div class="prompt">Найди слог</div><div class="plate">МА</div>
+          <div class="opts"><div class="tile">КУ</div><div class="tile">МА</div><div class="tile">СО</div></div></div></div>
+    </div>
+    <div class="shot">
+      <p class="cap">Б2. Средне<small>среди 6, есть похожие</small></p>
+      <div class="phone"><div class="bar">1. Найди слог <span class="st">★★★☆☆</span></div>
+        <div class="stage"><div class="prompt">Найди слог</div><div class="plate">МА</div>
+          <div class="opts"><div class="tile faded">АМ</div><div class="tile">МО</div><div class="tile">НА</div><div class="tile ok">МА</div><div class="tile">МУ</div><div class="tile">СА</div></div>
+          <div class="note">АМ уже нажимали — побледнел. МА — верно.</div></div></div>
+    </div>
+    <div class="shot">
+      <p class="cap">Б3. Трудно<small>найти все на поле (как сейчас с буквами)</small></p>
+      <div class="phone"><div class="bar">1. Найди слог <span class="st">★★★★☆</span></div>
+        <div class="stage"><div class="plate" style="height:64px;font-size:36px">МА</div>
+          <div style="display:flex;gap:5px"><i style="width:14px;height:14px;border-radius:50%;background:#22c55e"></i><i style="width:14px;height:14px;border-radius:50%;background:#e5e7eb"></i><i style="width:14px;height:14px;border-radius:50%;background:#e5e7eb"></i><i style="width:14px;height:14px;border-radius:50%;background:#e5e7eb"></i></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;margin:auto 0;font-weight:900;font-size:22px;text-align:center">
+            <span style="color:#15803d;background:#dcfce7;border-radius:8px">МА</span><span>АМ</span><span>МО</span><span>НА</span>
+            <span>МУ</span><span>МА</span><span>СА</span><span>АМ</span>
+            <span>НА</span><span>МО</span><span>КА</span><span>МА</span>
+            <span>СО</span><span>МА</span><span>МУ</span><span>НА</span>
+          </div></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>В. Новый режим 5 «Что пропало?» <span class="new">новое</span></h2>
+  <p>Ряд карточек (буквы или слоги) — ребёнок смотрит, карточки переворачиваются, одна исчезает — выбрать её из вариантов. Тренирует узнавание слога целиком и зрительную память. Настройки: «Что» (Буквы / Слоги) и «Сложность» (Легко — 3 карточки, Средне — 4, Трудно — 5). Круг без конца.</p>
+  <div class="row">
+    <div class="shot">
+      <p class="cap">В1. Запомни<small>3 секунды (кружок), или взрослый нажимает «Готов»</small></p>
+      <div class="phone"><div class="bar">5. Что пропало? <span class="st">★☆☆☆☆</span></div>
+        <div class="stage"><div class="prompt">Запомни</div>
+          <div class="cards"><div class="card">МА</div><div class="card">СО</div><div class="card">КУ</div><div class="card">НА</div></div>
+          <div class="timer"><i>👀</i></div>
+          <div class="note">Каждая карточка озвучивается по очереди.</div></div></div>
+    </div>
+    <div class="shot">
+      <p class="cap">В2. Перевернулись<small>на секунду — «прячем»</small></p>
+      <div class="phone"><div class="bar">5. Что пропало? <span class="st">★☆☆☆☆</span></div>
+        <div class="stage"><div class="prompt">Закрываем…</div>
+          <div class="cards"><div class="card back">МА</div><div class="card back">СО</div><div class="card back">КУ</div><div class="card back">НА</div></div></div></div>
+    </div>
+    <div class="shot">
+      <p class="cap">В3. Одной нет — какой?<small>3 варианта: пропавший + 2 похожих</small></p>
+      <div class="phone"><div class="bar">5. Что пропало? <span class="st">★☆☆☆☆</span></div>
+        <div class="stage"><div class="prompt">Что пропало?</div>
+          <div class="cards"><div class="card">МА</div><div class="card">СО</div><div class="card gap">?</div><div class="card">НА</div></div>
+          <div class="opts"><div class="tile">КО</div><div class="tile">КУ</div><div class="tile">УК</div></div></div></div>
+    </div>
+    <div class="shot">
+      <p class="cap">В4. Верно<small>карточка встаёт на место и звучит, дальше — новый ряд</small></p>
+      <div class="phone"><div class="bar">5. Что пропало? <span class="st">★★☆☆☆</span></div>
+        <div class="stage"><div class="prompt">Что пропало?</div>
+          <div class="cards"><div class="card">МА</div><div class="card">СО</div><div class="card ok">КУ</div><div class="card">НА</div></div>
+          <div class="opts"><div class="tile faded">КО</div><div class="tile ok">КУ</div><div class="tile faded">УК</div></div>
+          <div class="note">Ошибка: неверный вариант вздрагивает и бледнеет; после двух ошибок карточки на секунду открываются снова.</div></div></div>
+    </div>
+  </div>
+</section>
+</body>
+</html>

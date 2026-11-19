@@ -150,3 +150,6 @@ public/vendor/heic-to.LICENSE.txt
 # «Буквы и звуки»: generated picture candidates (picks go to media/)
 tools/phonetic_analysis/candidates/
 tools/phonetic_analysis/dist/
+
+# Illustrated, versioned game assets shipped with the app.
+!public/game-art/tug-v1/*.webp

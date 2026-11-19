@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FINISH, TUG_ROUNDS, TUG_MAX_DISTANCE, comparisonAnswer, createRace, createTugOfWar, raceReducer, tugDistance } from "./raceEngine";
+import { FINISH, TUG_MAX_DISTANCE, comparisonAnswer, createRace, createTugOfWar, raceReducer, tugDistance } from "./raceEngine";
 
 function input(state = createRace()) {
   if (state.phase === "between") state = raceReducer(state, {type:"nextThrow"});
@@ -106,7 +106,7 @@ describe("physical dice race", () => {
   });
 });
 
-describe("five-throw tug of war",()=>{
+describe("tug of war to the boundary",()=>{
   it.each(Array.from({length:36},(_,n)=>[Math.floor(n/6)+1,n%6+1]))("moves only the difference for %i versus %i",(a,b)=>{
     const race=play(createTugOfWar(),a,b);
     expect(race).toMatchObject({ropePosition:b-a,completedRounds:1,round:1,phase:"between",result:null});
@@ -134,22 +134,19 @@ describe("five-throw tug of war",()=>{
     expect(s).toMatchObject({round:2,completedRounds:1,phase:"rolling",dice:[null,null]});
     expect(raceReducer(s,{type:"nextThrow"})).toBe(s);
   });
-  it.each([[6,1,"child",-TUG_MAX_DISTANCE],[1,6,"adult",TUG_MAX_DISTANCE],[4,4,"tie",0]])("finishes precisely after five throws of %i versus %i",(a,b,result,position)=>{
-    let s=createTugOfWar();
-    for(let n=1;n<=TUG_ROUNDS;n++){
-      s=play(s,a,b);
-      expect(s.completedRounds).toBe(n);
-      expect(s.round).toBe(n);
-      expect(s.phase).toBe(n===5 ? "finished" : "between");
-      expect(s.result).toBe(n===5 ? result : null);
-    }
-    expect(s.ropePosition).toBe(position);
+  it.each([[6,1,"child",-TUG_MAX_DISTANCE],[1,6,"adult",TUG_MAX_DISTANCE]])("stops at the boundary mid-throw for %i versus %i",(a,b,result,position)=>{
+    let s=play(createTugOfWar(),a,b);
+    expect(s).toMatchObject({phase:"between",result:null,ropePosition:b-a});
+    s=play(s,a,b);
+    expect(s).toMatchObject({phase:"finished",result,ropePosition:position,step:1,completedRounds:2});
     for(const type of ["tick","arrived","nextThrow","paired","compare"]) expect(raceReducer(s,{type,answer:"child"})).toBe(s);
   });
-  it("includes equality and reversals in the same five throws",()=>{
+  it("continues beyond five throws, including equality and reversals",()=>{
     let s=createTugOfWar(true);
-    for(const [a,b] of [[6,1],[1,6],[5,3],[3,5],[4,4]]) s=play(s,a,b);
-    expect(s).toMatchObject({result:"tie",phase:"finished",completedRounds:5,ropePosition:0});
+    for(let i=0;i<3;i++)for(const [a,b] of [[6,1],[1,6],[5,3],[3,5],[4,4]]) s=play(s,a,b);
+    expect(s).toMatchObject({result:null,phase:"between",completedRounds:15,ropePosition:0});
+    s=play(s,6,1);s=play(s,6,1);
+    expect(s).toMatchObject({result:"child",phase:"finished",completedRounds:17,ropePosition:-TUG_MAX_DISTANCE});
   });
   it("asks for the remainder only in count mode and never moves on a wrong count",()=>{
     let s=enterDice(createTugOfWar(true),5,3);

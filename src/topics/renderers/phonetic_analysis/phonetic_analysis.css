@@ -20,7 +20,8 @@
 .pa-stage--center { justify-content: center; }
 
 .pa-head { display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 26px); }
-.pa-prompt { font-weight: 800; font-size: clamp(17px, 2.4vw, 22px); color: #374151; text-align: center; }
+/* The question at least twice as large as before (owner, 2026-11-19: 17–22px was too small). */
+.pa-prompt { font-weight: 800; font-size: clamp(34px, 5.6vmin, 52px); line-height: 1.15; color: #374151; text-align: center; }
 .pa-prompt b { color: #2563eb; }
 
 /* --- picture: tap to hear the word --- */
@@ -48,12 +49,12 @@
 
 /* --- sound scheme screen: the question with its letter, then the photo as
    large as the free height allows (container units keep it square) --- */
-.pa-prompt--ask { display: flex; align-items: center; justify-content: center; gap: 0.4em; font-size: clamp(20px, 5.4vw, 28px); line-height: 1; }
+.pa-prompt--ask { display: flex; align-items: center; justify-content: center; gap: 0.35em; font-size: clamp(40px, 7vmin, 60px); line-height: 1; }
 .pa-ask {
   display: inline-grid; place-items: center;
   min-width: 1.7em; height: 1.7em; padding: 0 0.15em; box-sizing: border-box;
   border: 3px solid #4a9b8f; border-radius: 0.4em; background: #fff;
-  font-size: 1.45em; font-weight: 900; color: #1f2937;
+  font-size: 1.15em; font-weight: 900; color: #1f2937;
   font-family: inherit; line-height: 1; cursor: default; -webkit-tap-highlight-color: transparent;
 }
 .pa-ask--sound { cursor: pointer; box-shadow: 0 3px 0 #2a6b60; }
@@ -66,19 +67,19 @@
 
 /* --- letter plate (the sound being asked about) --- */
 .pa-plate {
-  width: clamp(72px, 19vw, 96px);
-  height: clamp(72px, 19vw, 96px);
+  width: clamp(72px, 15vmin, 130px);
+  height: clamp(72px, 15vmin, 130px);
   border-radius: 20px;
   background: #fff;
   border: 3px solid #4a9b8f;
   display: grid;
   place-items: center;
-  font-size: clamp(46px, 12vw, 64px);
+  font-size: clamp(46px, 10vmin, 88px);
   font-weight: 800;
   color: #1f2937;
   line-height: 1;
 }
-.pa-plate--big { width: clamp(100px, 26vw, 130px); height: clamp(100px, 26vw, 130px); font-size: clamp(66px, 17vw, 90px); }
+.pa-plate--big { width: clamp(100px, 24vmin, 200px); height: clamp(100px, 24vmin, 200px); font-size: clamp(66px, 16vmin, 136px); }
 
 /* --- sound scheme --- */
 .pa-scheme-wrap { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
@@ -163,7 +164,10 @@
 .pa-ghost, .pa-ghost * { pointer-events: none !important; }
 .pa-ghost { position: fixed; transform: translate(-50%, -50%) scale(1.1); z-index: 1000; }
 
-.pa-options { display: grid; gap: 12px; width: min(100%, 420px); margin-top: auto; margin-bottom: auto; }
+/* Sized from the screen, not a fixed 420px: on a tablet the options were a narrow strip (owner, 2026-11-19). */
+.pa-options { display: grid; gap: clamp(10px, 2vmin, 18px); width: min(100%, 78vmin); margin-top: auto; margin-bottom: auto; container-type: inline-size; }
+.pa-options--3 .pa-tile--option { font-size: 17cqi; }
+.pa-options--3 .pa-tile--option.pa-syl, .pa-options--3.pa-syl .pa-tile--option { font-size: 12cqi; }
 .pa-options--3 { grid-template-columns: repeat(3, 1fr); }
 .pa-options--4 { grid-template-columns: repeat(4, 1fr); }
 
@@ -215,13 +219,16 @@
 .pa-card--lifted { opacity: 0.2; }
 .pa-card--drag { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18); }
 .pa-card--placed, .pa-card--bad { position: absolute; pointer-events: none; }
+/* The laid card settles where the letter is in the word: the first letter in the top
+   left corner, the last one («Буква: последняя») in the bottom right (2026-11-19). */
 .pa-card--placed {
-  right: 4px; top: 4px; width: 38%; height: 38%;
+  left: 4px; top: 4px; width: 38%; height: 38%;
   font-size: clamp(20px, 5vw, 28px);
   color: #15803d; background: rgba(220, 252, 231, 0.85); border-color: rgba(22, 163, 74, 0.7);
   animation: pa-settle 0.45s ease;
 }
 .pa-card--bad { inset: 8%; width: auto; height: auto; color: #b91c1c; background: rgba(254, 242, 242, 0.6); border-color: rgba(239, 68, 68, 0.8); }
+.pa-card--placed.pa-card--at-end { left: auto; top: auto; right: 4px; bottom: 4px; }
 @keyframes pa-settle { from { inset: 8%; width: 84%; height: 84%; } }
 /* --- lotto «Картинки на буквы»: letters on the board, pictures in the tray --- */
 .pa-rlotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: min(100%, 460px); }
@@ -241,14 +248,38 @@
 @keyframes pa-fade { from { opacity: 0; } }
 .pa-done { font-size: 44px; color: #16a34a; font-weight: 900; }
 
+/* --- syllables: two letters in a plate, tile or field cell (pa-syl) --- */
+.pa-plate.pa-syl { width: auto; min-width: clamp(110px, 30vw, 150px); padding: 0 0.25em; font-size: clamp(40px, 11vw, 56px); }
+.pa-plate--big.pa-syl { font-size: clamp(56px, 12vmin, 104px); }
+.pa-tile--option.pa-syl, .pa-syl .pa-tile--option { font-size: 12cqi; }
+.pa-field.pa-syl .pa-field__cell { font-size: 10cqi; }
+button.pa-plate { font-family: inherit; font-weight: 800; color: #1f2937; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* --- «Что пропало?»: the row to remember, then the options --- */
+.pa-stage--missing { justify-content: space-between; }
+.pa-mrow { display: flex; gap: clamp(8px, 2vw, 14px); justify-content: center; width: 100%; margin: auto 0; }
+.pa-mcard {
+  --w: min(calc((100vw - 48px) / var(--n, 4) - 12px), 24vmin, 200px);
+  width: var(--w); height: calc(var(--w) * 1.3); border-radius: calc(var(--w) * 0.18);
+  background: #fff; border: 2.5px solid #cbd5e1; box-shadow: 0 4px 0 #d6dde6;
+  display: grid; place-items: center; font-size: calc(var(--w) * 0.55); font-weight: 900; color: #1f2937;
+  transition: background 0.2s;
+}
+.pa-syl .pa-mcard { font-size: calc(var(--w) * 0.4); }
+.pa-mcard--back { background: repeating-linear-gradient(45deg, #4a9b8f 0 8px, #5aab9f 8px 16px); border-color: #2a6b60; animation: pa-turn 0.3s ease; }
+@keyframes pa-turn { from { transform: scaleX(0.1); } }
+.pa-mcard--gap { background: #eff6ff; border: 2.5px dashed #3b82f6; box-shadow: none; color: #3b82f6; }
+.pa-mcard--ok { border-color: #22c55e; background: #dcfce7; color: #15803d; animation: pa-fade 0.3s ease; }
+.pa-stage--missing .pa-options { width: min(100%, 66vmin); }
+
 /* --- find all --- */
 .pa-counter { display: flex; gap: 6px; }
 .pa-counter i { width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; }
 .pa-counter i.on { background: #22c55e; }
-.pa-field { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: min(100%, 420px); margin: auto 0; }
+.pa-field { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(6px, 1.4vmin, 12px); width: min(100%, 76vmin); margin: auto 0; container-type: inline-size; }
 .pa-field__cell {
   aspect-ratio: 1; border: 0; background: transparent; border-radius: 50%;
-  font: inherit; font-size: clamp(30px, 8vw, 42px); font-weight: 800; color: #374151;
+  font: inherit; font-size: 11cqi; font-weight: 800; color: #374151;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .pa-field__cell--found { box-shadow: inset 0 0 0 4px #22c55e; color: #15803d; }

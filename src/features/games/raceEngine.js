@@ -1,6 +1,7 @@
 export const FINISH = 19;
-export const TUG_ROUNDS = 5;
-export const TUG_MAX_DISTANCE = TUG_ROUNDS * 5;
+// A boundary, not a throw limit. Even the largest dice difference needs
+// another turn to win from the centre.
+export const TUG_MAX_DISTANCE = 6;
 
 export function createRace(finish = FINISH, capacity = finish, deferResult = false, firstToFinish = false) {
   return { finish, capacity, deferResult, firstToFinish, positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
@@ -40,9 +41,8 @@ export function raceReducer(state, action) {
   if (action.type === "arrived" && state.phase === "arriving") {
     if (isTug) {
       const completedRounds = state.completedRounds + 1;
-      const result = completedRounds === TUG_ROUNDS
-        ? state.ropePosition === 0 ? "tie" : state.ropePosition < 0 ? "child" : "adult"
-        : null;
+      const result = Math.abs(state.ropePosition) >= TUG_MAX_DISTANCE
+        ? state.ropePosition < 0 ? "child" : "adult" : null;
       return {...state,completedRounds,result,phase:result ? "finished" : "between"};
     }
     if (state.result) return { ...state, phase: "finished" };
@@ -75,8 +75,8 @@ export function raceReducer(state, action) {
   if (action.type !== "tick" || state.phase !== "moving") return state;
   const step = state.step + 1;
   if (isTug) {
-    const ropePosition = state.ropePosition + tugPullDirection(state.dice);
-    return {...state,ropePosition,step,phase:step >= tugDistance(state.dice) ? "arriving" : "moving"};
+    const ropePosition = Math.max(-TUG_MAX_DISTANCE, Math.min(TUG_MAX_DISTANCE, state.ropePosition + tugPullDirection(state.dice)));
+    return {...state,ropePosition,step,phase:Math.abs(ropePosition) >= TUG_MAX_DISTANCE || step >= tugDistance(state.dice) ? "arriving" : "moving"};
   }
   const finish = state.finish ?? FINISH;
   const capacity = state.capacity ?? finish;

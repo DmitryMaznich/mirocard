@@ -19,7 +19,7 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
     const letter = task.cards[card];
     if (done || !wordId || placed[wordId] != null || Object.values(placed).includes(card)) return;
     const word = task.board.find((w) => w.id === wordId);
-    if (word?.firstLetter !== letter) {
+    if ((word?.lottoLetter ?? word?.firstLetter) !== letter) {
       errors.current += 1;
       onStreakReset?.(task.conceptId, task.pairs[0].wordId);
       setWrong({ wordId, letter });
@@ -58,7 +58,7 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
               className={`pa-lotto__pic${mine ? " pa-lotto__pic--ok" : ""}${bad ? " pa-lotto__pic--bad" : ""}`}
               data-drop={mine == null && !done ? w.id : undefined}
             >
-              {mine && <span className="pa-card pa-card--placed">{mine}</span>}
+              {mine && <span className={`pa-card pa-card--placed${task.by === "last" ? " pa-card--at-end" : ""}`}>{mine}</span>}
               {bad && <span className="pa-card pa-card--bad">{wrong.letter}</span>}
             </Picture>
           );

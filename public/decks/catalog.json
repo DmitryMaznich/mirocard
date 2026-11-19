@@ -351,9 +351,9 @@
     },
     {
       "id": "phonetic_analysis",
-      "version": "2.8.0",
-      "url": "./decks/phonetic_analysis_v2.8.0.zip",
-      "zipUrl": "phonetic_analysis_v2.8.0.zip",
+      "version": "2.11.2",
+      "url": "./decks/phonetic_analysis_v2.11.2.zip",
+      "zipUrl": "phonetic_analysis_v2.11.2.zip",
       "title": {
         "ru": "Буквы и звуки",
         "en": "Letters and Sounds"
