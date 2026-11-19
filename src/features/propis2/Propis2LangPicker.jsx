@@ -21,7 +21,7 @@ function notebooksNote(n) {
 }
 
 // Only the language: a writing style is chosen per PAGE in the editor («Стиль» in the page strip, owner 2026-11-10), not for a new notebook.
-export function Propis2LangSheet({ title = "Язык письма", languages, lang, counts = {}, onPick, onClose }) {
+export function Propis2LangSheet({ title = "Язык письма", languages, lang, counts = {}, onPick, onClose, onEditMine = null }) {
   const [picked, setPicked] = useState(lang);
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -47,6 +47,7 @@ export function Propis2LangSheet({ title = "Язык письма", languages, l
             </button>
           ))}
         </div>
+        {onEditMine && <button type="button" className="p2-lang-more" onClick={() => { if (picked !== lang) onPick(picked); onEditMine(); }} data-testid="propis2-lang-more">＋ Другой язык</button>}
         <button type="button" className="p2-lang-done" onClick={() => { if (picked !== lang) onPick(picked); onClose(); }}>Готово</button>
       </div>
     </div>

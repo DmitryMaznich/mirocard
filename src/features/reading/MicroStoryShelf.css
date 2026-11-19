@@ -1,5 +1,9 @@
 /* Micro-story shelf on the setup screen (mss-). Literacy palette. */
 .mss { --mss-ink: #23383d; --mss-soft: #5c6d70; --mss-faint: #9aa6a7; --mss-rule: #e8e2d6; --mss-teal: #4a9b8f; --mss-teal-tint: #e3f1ee; font-family: "Nunito", sans-serif; color: var(--mss-ink); }
+/* The shelf sits in a column .param-row--block (align-items: flex-start), where
+   its rows took their content's width. Stretch them to the row instead. */
+.param-row--block.mss { align-items: stretch; }
+.mss > * { min-width: 0; max-width: 100%; }
 .mss-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .mss-summary { color: var(--mss-soft); font-size: 14px; font-weight: 700; }
 .mss-heroes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -23,7 +27,10 @@
 .mss-level__head.is-on b { color: var(--mss-teal); }
 .mss-level__n { align-self: center; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--mss-ink); color: #fff; font-weight: 900; font-size: 14px; }
 .mss-covers { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 6px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
-.mss-cover { flex: none; width: clamp(108px, 15vw, 140px); cursor: pointer; scroll-snap-align: start; -webkit-tap-highlight-color: transparent; }
+/* position: relative keeps the hidden checkbox inside its cover: without it the
+   absolutely placed inputs escaped the scrolling strip and stretched the whole
+   setup screen sideways (~980px on a phone). */
+.mss-cover { position: relative; flex: none; width: clamp(108px, 15vw, 140px); cursor: pointer; scroll-snap-align: start; -webkit-tap-highlight-color: transparent; }
 .mss-cover input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
 .mss-cover__img {
   position: relative; display: block; overflow: hidden; aspect-ratio: 1;

@@ -58,6 +58,7 @@ import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { sessionToApi, getSessionStatistics, restoreSessionHistory } from "./lib/session-statistics.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
+import { isKnownUiLanguage, legalUiLanguages } from "../shared/ui-languages.mjs";
 import {
   createOrder, getOrderByExternalId, getEntitlementForOrder, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
@@ -786,7 +787,7 @@ async function handlePatchSettings(req, res) {
   const patch = {};
   // Language writes use an account-scoped operation and server revision.
   // Keep old clients compatible while refusing invalid language codes.
-  if (("uiLanguage" in body && !["ru", "sl"].includes(body.uiLanguage)) ||
+  if (("uiLanguage" in body && !isKnownUiLanguage(body.uiLanguage)) ||
       ("cardLanguage" in body && !isLessonLanguage(body.cardLanguage))) {
     return writeJson(res, 400, { error: "Invalid language preference" });
   }
@@ -1360,7 +1361,8 @@ async function handleBillingCheckout(req, res) {
 
   const body = await readJsonBody(req);
   const { plan, method, code, consents } = body ?? {};
-  const locale = body?.locale === "sl" ? "sl" : "ru";
+  // The consent wording the customer saw: only a language the legal documents exist in.
+  const locale = legalUiLanguages().some(({ code }) => code === body?.locale) ? body.locale : "ru";
 
   const planDef = PLAN_CATALOG[plan];
   if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
@@ -1846,11 +1848,14 @@ const LEGAL_STRINGS = {
 };
 
 function renderLegalPage(slug, title, bodyHtml, lang = "ru") {
-  const t = LEGAL_STRINGS[lang];
+  const t = LEGAL_STRINGS[lang] ?? LEGAL_STRINGS.ru;
   const draftBanner = LEGAL_DOCS_VERSION === "draft"
     ? `<p class="legal-draft-banner">${t.draft}</p>`
     : "";
-  const langSwitch = `<nav class="legal-lang">${lang === "ru" ? "<strong>Русский</strong>" : `<a href="/${slug}" hreflang="ru">Русский</a>`} · ${lang === "sl" ? "<strong>Slovenščina</strong>" : `<a href="/sl/${slug}" hreflang="sl">Slovenščina</a>`}</nav>`;
+  // Every language the documents exist in (shared/ui-languages.mjs, `legal`).
+  const langSwitch = `<nav class="legal-lang">${legalUiLanguages().map(({ code, nativeName }) => code === lang
+    ? `<strong>${nativeName}</strong>`
+    : `<a href="${legalDocPath(slug, code)}" hreflang="${code}">${nativeName}</a>`).join(" · ")}</nav>`;
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -1878,9 +1883,14 @@ ${bodyHtml}
 </html>`;
 }
 
+// Russian at /<slug> (backend/legal/), every other legal language at
+// /<code>/<slug> (backend/legal/<code>/).
+const LEGAL_DOC_TITLES = { ru: LEGAL_DOCS, sl: LEGAL_DOCS_SL };
+const legalDocPath = (slug, lang) => lang === "ru" ? `/${slug}` : `/${lang}/${slug}`;
+
 async function handleLegalDoc(req, res, slug, lang = "ru") {
-  const title = (lang === "sl" ? LEGAL_DOCS_SL : LEGAL_DOCS)[slug];
-  const dir = lang === "sl" ? path.join(LEGAL_DIR, "sl") : LEGAL_DIR;
+  const title = (LEGAL_DOC_TITLES[lang] ?? LEGAL_DOCS)[slug];
+  const dir = lang === "ru" ? LEGAL_DIR : path.join(LEGAL_DIR, lang);
   try {
     const bodyHtml = await readFile(path.join(dir, `${slug}.html`), "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
@@ -2304,10 +2314,12 @@ async function router(req, res) {
     if (method === "GET"    && p === "/healthz")                  return await handleHealthz(req, res);
 
     // Legal pages
-    { const legalSlug = Object.keys(LEGAL_DOCS).find((slug) => p === `/${slug}`);
-      if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug); }
-    { const legalSlug = Object.keys(LEGAL_DOCS_SL).find((slug) => p === `/sl/${slug}`);
-      if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug, "sl"); }
+    if (method === "GET") {
+      for (const { code } of legalUiLanguages()) {
+        const legalSlug = Object.keys(LEGAL_DOC_TITLES[code] ?? {}).find((slug) => p === legalDocPath(slug, code));
+        if (legalSlug) return await handleLegalDoc(req, res, legalSlug, code);
+      }
+    }
 
     if (!url.pathname.startsWith("/api/") && trySpaFallback(req, res, url.pathname)) return;
 

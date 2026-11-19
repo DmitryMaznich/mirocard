@@ -1,4 +1,5 @@
 // Opt-in contract. This module deliberately has no application/store/UI imports.
+import { publishedUiLanguages } from "./ui-languages.mjs";
 const fail = (message) => { throw new Error(`Topic language contract: ${message}`); };
 const placeholders = (text) => [...text.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).sort().join(",");
 const safePath = (path) => typeof path === "string" && /^[\w-]+(?:\/[\w-]+)*\.json$/.test(path);
@@ -16,7 +17,9 @@ export function validateTopicLanguages(topic, { requireAllContent = true } = {})
   if (contract.schemaVersion !== 1) fail("unsupported schemaVersion");
   const ui = topic.languageResources?.ui;
   const content = topic.languageResources?.content;
-  if (!ui || !content || !contract.ui?.ru || !contract.ui?.sl) fail("RU/SL UI resources are required");
+  // Every published interface language (shared/ui-languages.mjs) must be there.
+  const missingUi = publishedUiLanguages().map(({ code }) => code).filter((code) => !contract.ui?.[code]);
+  if (!ui || !content || missingUi.length) fail(`UI resources are required for every published language (missing: ${missingUi.join(", ") || "resources"})`);
   let keys;
   for (const language of Object.keys(contract.ui)) {
     if (!safePath(contract.ui[language])) fail(`unsafe UI path: ${language}`);

@@ -1,0 +1,12 @@
+{
+  "trials": 100000,
+  "seed": 20261119,
+  "meanRounds": 43.30505,
+  "medianRounds": 33,
+  "p90Rounds": 89,
+  "p95Rounds": 113,
+  "finishBy6": 0.0148,
+  "finishBy10": 0.07932,
+  "winnerScoreMedian": 104,
+  "winnerScoreP90": 267
+}

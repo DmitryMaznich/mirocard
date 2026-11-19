@@ -9,8 +9,7 @@
 .reward-settings fieldset:disabled { opacity: .5; }
 .reward-settings legend { font-size: 14px; font-weight: 700; }
 .reward-settings__notice { padding: 10px 12px; border-radius: 10px; background: #eff5ec; }
-.reward-settings__check { display: flex; align-items: center; min-height: 44px; gap: 10px; font-size: 13px; margin-top: 8px; }
-.reward-settings__check input { width: 20px; height: 20px; accent-color: #4a9b8f; }
+.reward-settings__check { display: flex; align-items: center; justify-content: space-between; min-height: 44px; gap: 12px; font-size: 14px; font-weight: 700; margin-top: 8px; cursor: pointer; }
 .star-bar-zone--soft.star-bar-zone--shake { animation: none; }
 .star-bar-zone--soft .star-bar-spark, .star-bar-zone--soft .star-bar-burn-flash { display: none; }
 .star-bar-zone--soft .star-bar-star--burn { animation: reward-soft-burn .75s ease-out forwards; }

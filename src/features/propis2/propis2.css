@@ -299,7 +299,7 @@
 .propis2-editor2 .propis2-settings .p2-lock { flex: 0 0 auto; align-self: center; padding: 0 6px; }
 .p2-pager-pos { flex: 0 0 auto; align-self: center; padding: 0 8px; font-weight: 800; font-size: 14px; color: #5b4a1f; white-space: nowrap; }
 /* a strip with an open popup rises above the text dock (the popup is fixed, but its stacking context is the strip's) */
-.propis2-editor2 .propis2-main > .propis2-settings:has(.p2-pick-list) { z-index: 20; }
+.propis2-editor2 .propis2-main > .propis2-settings:has(.p2-pick-list, .p2-parts-panel, .p2-letters-panel, .p2-elements-panel) { z-index: 20; }
 /* ---- the library: tiles to start, one card per notebook with a row of tools (same family as the editor's strips) ---- */
 .propis2-lib { --p2-surface: #fff; --p2-line: #e3dccb; --p2-ink: #28323c; --p2-teal: #4a9b8f; --p2-teal-dark: #2a6b60; --p2-teal-soft: #e5f2ef; --p2-red: #b42318; }
 .p2-nb-start { display: flex; gap: 10px; }
@@ -353,7 +353,13 @@
 .p2-modal-btn--danger { color: #b42318; }
 /* undo / redo: two round buttons one above the other, floating over the right side of the canvas (same grid area as the page) */
 .p2-save { flex: 0 0 auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: #2563eb; color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 #1d4ed8; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.p2-save svg { width: 28px; height: 28px; }
+.p2-save svg { width: 26px; height: 26px; }
+/* the word next to the floppy where the header has room (owner, 2026-11-19); a phone keeps the round icon button */
+.p2-save-text { display: none; }
+@media (min-width: 560px) {
+  .p2-save { width: auto; padding: 0 18px 0 14px; border-radius: 24px; display: inline-flex; align-items: center; gap: 8px; }
+  .p2-save-text { display: inline; font: inherit; font-weight: 800; font-size: 16px; }
+}
 .p2-save:disabled { background: #cbd5e1; box-shadow: none; color: #fff; cursor: default; }
 .p2-save:not(:disabled):active { transform: translateY(3px); box-shadow: none; }
 /* library banners: an unsaved notebook from a closed app, empty notebooks */
@@ -625,6 +631,7 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-note { font-size: 13px; color: #6b7385; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .p2-lang-draft { font-size: 11px; font-weight: 900; color: #5b4a1f; background: #fbf3dc; border: 1px solid #ecd9a4; padding: 2px 7px; border-radius: 6px; }
 .p2-lang-done { display: block; width: 100%; margin-top: 14px; padding: 14px; border: 0; border-radius: 14px; background: #4a9b8f; color: #fff; font: inherit; font-weight: 900; font-size: 16px; box-shadow: 0 4px 0 #2a6b60; cursor: pointer; touch-action: manipulation; }
+.p2-lang-more { display: block; width: 100%; margin-top: 10px; padding: 12px; border: 2px dashed #d9d2c3; border-radius: 14px; background: transparent; color: #2a6b60; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; touch-action: manipulation; }
 .p2-lang-done:active { transform: translateY(3px); box-shadow: none; }
 /* a language's empty library: its own letters, so it is plain the language has changed */
 .propis2-lib .p2-lang-empty { text-align: center; padding: 18px 10px 4px; color: #6b7385; font-weight: 700; }
@@ -653,7 +660,6 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-tone-3 { background: #f6e6f0; color: #8b2a6b; }
 /* a phone: the header keeps the notebook's title readable — the page's style is already on the strip's «Стиль страницы» button (ПР / ПЧ,
    BU / BJ …) right under it; since deck 0.7.0 every Russian notebook has two styles and the badge squeezed the title to one word */
-@media (max-width: 559px) { .p2-header .p2-style-badge { display: none; } }
 
 /* ===== The row panel (Propis2Editor rowPanelEl, owner 2026-11-16: «как в конструкторе печатных листов и контрольных»): the column right of
    the sheet on a computer, a dock at the bottom on a phone. Its look is «Печатные буквы» RowInspector's (print_letters.css .pl-insp*). ===== */
@@ -692,25 +698,6 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-iseg-ico { display: grid; place-items: center; height: 24px; }
 .p2-iseg-ico svg { width: 26px; height: 26px; }
 .p2-iseg-cap { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-/* phone / tablet: the panel docked over the keys strip, folded to its bar; open, a share of the screen, its insides scroll */
-.p2-rowdock { flex: 0 0 auto; display: flex; flex-direction: column; min-height: 0; }
-.p2-rowdock:not(.is-folded) { height: 38dvh; max-height: 38dvh; }
-/* the keys dock holding an open row panel: its own height, not the field's limit (the panel scrolls inside) */
-.propis2-dock--keys:has(.p2-rowdock:not(.is-folded)) { max-height: none; overflow: visible; }
-.p2-rowdock-toggle {
-  flex: 0 0 auto; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 4px 2px;
-  border: none; background: transparent; color: var(--p2-ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer;
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-}
-.p2-rowdock:not(.is-folded) .p2-rowdock-toggle { min-height: 26px; justify-content: center; padding: 0; }
-.p2-rowdock-sum { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.p2-rowdock-sum b { font-weight: 800; }
-.p2-rowdock-chev { flex: 0 0 auto; width: 36px; height: 30px; display: grid; place-items: center; border-radius: 10px; background: var(--p2-strip); color: var(--p2-teal-dark); font-size: 14px; }
-.p2-rowdock:not(.is-folded) .p2-rowdock-chev { width: 56px; height: 22px; border-radius: 11px; color: #8b93a1; }
-.p2-rowdock-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-.p2-rowdock .p2-insp { padding: 0 0 6px; gap: 12px; }
-.p2-rowdock .p2-insp-head { position: sticky; top: 0; z-index: 2; background: var(--p2-surface); padding: 4px 0 6px; gap: 6px; }
-.p2-rowdock .p2-insp-acts button { height: 46px; }
 .p2-insp-row--drop { align-items: flex-start; }
 .p2-insp-row--drop > .p2-ib, .p2-insp-row--drop > * > .p2-ib { width: auto; min-width: 64px; height: auto; padding: 4px 6px; }
 .p2-insp-row--drop .p2-insp-hint { padding-top: 6px; }
@@ -727,3 +714,7 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-opt:disabled { cursor: default; opacity: 1; }
 .propis2-lib .p2-lang-fchip--edit { border-style: dashed; color: var(--p2-teal-dark); }
 .p2-lang-name .p2-lang-draft { margin-left: 8px; vertical-align: 2px; }
+
+/* the phone's «Штрихи» popup (PartsPicker): the letter with its strokes to tap, over the sheet */
+.p2-parts-panel { z-index: 710; padding: 10px; border-radius: 16px; background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, .22); max-width: calc(100vw - 16px); }
+.p2-parts-panel .p2-partpad { display: block; max-width: 100%; height: auto; }

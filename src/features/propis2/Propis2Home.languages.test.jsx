@@ -201,6 +201,36 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       host.remove();
     }
   });
+  it("«Мои языки» = Russian only, with English and Slovenian notebooks made before: the new notebook still shows its language; the filter has «Другие» (owner, 2026-11-19)", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tdb = await openDb("p2my-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    const db = await openDb("p2my-ru-" + Date.now());
+    await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
+    let lib = emptyLibrary();
+    for (const [id, lang, title] of [["st_en", "en", "English one"], ["st_sl", "sl", "Slovenski"]]) {
+      const pg = { ...newPage(title, "square"), id: `pg_${id}` };
+      lib = upsertSet(upsertPage(lib, pg), { ...newSet(title, { id, pageIds: [pg.id] }), lang });
+    }
+    await saveLibrary(lib, db);
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Русский");
+    const chips = () => [...host.querySelectorAll('[data-testid="propis2-lang-filter"] [role="radio"]')].map((b) => b.textContent);
+    expect(chips()).toEqual(["Все", "Русский", "Другие"]);
+    await click([...host.querySelectorAll('[data-testid="propis2-lang-filter"] [role="radio"]')].find((b) => b.textContent === "Другие"));
+    expect(cards(host, "propis2-set-card").map((c) => (c.textContent.includes("English one") ? "en" : c.textContent.includes("Slovenski") ? "sl" : "?")).sort()).toEqual(["en", "sl"]);
+    // the language sheet of a new notebook leads to «Мои языки»
+    await click(host.querySelector('[data-testid="propis2-new-lang"]'));
+    await click(document.querySelector('[data-testid="propis2-lang-more"]'));
+    expect(document.querySelector('[data-testid="propis2-lang-sheet"]')).toBeNull();
+    expect(document.body.textContent).toContain("Мои языки");
+    await act(async () => { root.unmount(); await tick(100); });
+    host.remove();
+  });
   it("an English notebook («Прописи: латиница») opens in the editor on its own paper", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2lang-tc-" + Date.now());
@@ -267,14 +297,14 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       field.dispatchEvent(new Event("input", { bubbles: true }));
       await tick();
     });
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Печатные");
+    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("print"); // the style is the page strip's «Стиль страницы», not a badge in the header (owner, 2026-11-19)
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
     const printInk = ink();
     expect(printInk.length).toBeGreaterThan(0);
     await click(host.querySelector('button[aria-label="Стиль страницы"]'));
     await click(document.querySelector('[role="option"][aria-label="Британские раздельные"]'));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские раздельные");
+    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("british");
     await act(async () => { await tick(50); });
     expect(ink()).not.toBe(printInk); // the sheet is written with the British letters now
     // the student view draws the page in its style
@@ -310,13 +340,12 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { await tick(50); });
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
     const before = ink();
-    // the row's style: a choice in the row panel (owner, 2026-11-16; its dock opened, as the device remembers)
-    const dockBtn = host.querySelector('[aria-label="Показать настройки строки"]');
-    if (dockBtn) await click(dockBtn);
-    const rowPicker = host.querySelector('[role="radiogroup"][aria-label="Стиль строки"]');
+    // the row's style: on a phone a picker of the strip above the keyboard (owner, 2026-11-19: the bottom panel fought the keyboard)
+    const rowPicker = host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]');
     expect(rowPicker).not.toBeNull();
-    expect(rowPicker.getAttribute("aria-disabled")).toBeNull(); // the row with the caret is selected
-    await click(rowPicker.querySelector('[aria-label="Британские соединённые"]'));
+    expect(rowPicker.disabled).toBe(false); // the row with the caret is selected
+    await click(rowPicker);
+    await click(document.querySelector('[role="listbox"][aria-label="Стиль строки"] [aria-label="Британские соединённые"]'));
     await act(async () => { await tick(50); });
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     expect(ink()).not.toBe(before); // the second row is written with the joins now
@@ -348,7 +377,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const card = readyCards().find((c) => c.textContent.includes("Join 1"));
     await click([...card.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? "").startsWith("Изменить тетрадь")));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские соединённые"); // the editor says which style
+    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("british_joined"); // the editor says which style
+    expect(host.querySelector('[data-testid="propis2-notebook-style"]')).toBeNull();
     expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();

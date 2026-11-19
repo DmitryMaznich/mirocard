@@ -9,13 +9,13 @@
       "styles": [
         {
           "id": "cursive",
-          "short": "ПР",
+          "short": "Проп",
           "title": "Прописные",
           "note": "школьная пропись: буквы, соединения и бумаги языка, как до стилей. Первый стиль — у тетрадей и страниц без стиля"
         },
         {
           "id": "print",
-          "short": "ПЧ",
+          "short": "Печ",
           "title": "Печатные",
           "glyphsFile": "tools/handwriting/cyrillic/print.json",
           "script": { "joins": false, "letterGap": 8, "wordGap": 104, "caps": true },
@@ -99,7 +99,7 @@
       "styles": [
         {
           "id": "print",
-          "short": "P",
+          "short": "Печ",
           "title": "Печатные",
           "glyphsFile": "tools/handwriting/latin/print_gb.json",
           "script": {
@@ -119,7 +119,7 @@
         },
         {
           "id": "british",
-          "short": "BU",
+          "short": "Разд",
           "title": "Британские раздельные",
           "note": "Нельсон: печатные с хвостиками, буквы раздельно",
           "glyphsFile": "tools/handwriting/latin/british.json",
@@ -139,7 +139,7 @@
         },
         {
           "id": "british_joined",
-          "short": "BJ",
+          "short": "Соед",
           "title": "Британские соединённые",
           "note": "Нельсон: те же буквы, соединения по его правилам (4 группы букв, 4 вида соединений, после b g j p q x y z — без соединения)",
           "glyphsFile": "tools/handwriting/latin/british.json",
@@ -193,7 +193,7 @@
         },
         {
           "id": "british_slanted",
-          "short": "BJS",
+          "short": "Накл",
           "title": "Британские соединённые наклонные",
           "note": "Нельсон, Book 3 и дальше: соединённые с наклоном ~8° — буквы и соединения стиля british_joined (like), раскладка прямая, наклон после (scriptGeometry.js sourceSlantDeg 90 → slantDeg 82)",
           "like": "british_joined",
@@ -264,7 +264,7 @@
       "styles": [
         {
           "id": "sl_caps",
-          "short": "VT",
+          "short": "Загл",
           "title": "Velike tiskane črke",
           "glyphsFile": "tools/handwriting/latin/print_sl.json",
           "script": {
@@ -285,7 +285,7 @@
         },
         {
           "id": "sl_print",
-          "short": "MT",
+          "short": "Печ",
           "title": "Male tiskane črke",
           "glyphsFile": "tools/handwriting/latin/print_sl.json",
           "script": {
@@ -305,7 +305,7 @@
         },
         {
           "id": "sl_cursive",
-          "short": "PČ",
+          "short": "Проп",
           "title": "Pisane črke",
           "glyphsFile": "tools/handwriting/latin/slovene.json",
           "script": {

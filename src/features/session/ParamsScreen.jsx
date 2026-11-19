@@ -26,7 +26,8 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS, DOT_LAYOUT_VIEWS, ENOUGH_OPTIONS, normalizeEnoughOption, PLACE_VALUE_MODE_IDS, REAL_LIFE_PHRASES, TEST_RANGES, VISUAL_MODES, visualModeLevel } from "@/topics/renderers/comparison/engine";
 import { DOT_LAYOUTS } from "@/topics/renderers/comparison/dotLayout.js";
-import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
@@ -1522,6 +1523,7 @@ function ComparisonParams({ params, onChange }) {
 
 export default function ParamsScreen() {
   const { t: tr } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
   const setScreen              = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
@@ -2103,7 +2105,22 @@ export default function ParamsScreen() {
     </>
   ) : (
     <>
-      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && (
+      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && preview && (
+        // New interface: how many cards go into the lesson, no mastery dots —
+        // those stay on the picker «Изменить» opens (owner, 2026-11-18).
+        <button type="button" className="param-row topic-ui-param-pick" onClick={() => setScreen("concepts")}>
+          <span className="topic-ui-param-pick__copy">
+            <span className="param-label">{tr("setup.cards")}</span>
+            <span className="topic-ui-param-pick__value">
+              {selectedConceptIds.length === allConcepts.length
+                ? tr("setup.cardsAll", { count: allConcepts.length })
+                : tr("setup.selectionOf", { selected: selectedConceptIds.length, total: allConcepts.length })}
+            </span>
+          </span>
+          <span className="topic-ui-param-pick__action">{tr("setup.edit")}<ChevronRightIcon size={15} /></span>
+        </button>
+      )}
+      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && !preview && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr("setup.concepts")}</div>
           <div className="param-concept-col">
@@ -2404,7 +2421,7 @@ export default function ParamsScreen() {
   if (mode?.type === "topic_link") return <TopicLinkScreen mode={mode} onBack={() => setScreen("modes")} />;
 
   return (
-    <div className="screen">
+    <div className={preview ? "screen topic-ui-params" : "screen"}>
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen(modeBackScreen)}><BackArrowIcon /></button>
         <h1 className="screen-title">{modeTitle}</h1>

@@ -4,6 +4,8 @@ import { CATEGORY_ORDER, CATEGORY_LABEL_KEYS } from "./topicCategories";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import TopicImport from "./TopicImport";
 
+const TOOL_TOPIC_IDS = new Set(["streak_tracker"]);
+
 // embedded — «Мои темы» on Home: installed topics in a stable alphabetical
 // grid (the latest one is marked, not moved — a topic keeps its place), and
 // «Добавить тему» as the last tile: a rare action, so not at the top.
@@ -13,6 +15,7 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
   filter, onFilter, loading, error, onRetry, onHome, onCatalog }) {
   const { t, language } = useUiTranslation();
   const [showInstalled, setShowInstalled] = useState(false);
+  const [showSoon, setShowSoon] = useState(false);
   // A topic added on this visit stays in its row (now with «Открыть»), so its
   // sheet does not vanish mid-download and the list does not jump.
   const [offered, setOffered] = useState(() => new Set());
@@ -20,7 +23,10 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
   if (unseen.length) setOffered(new Set([...offered, ...unseen.map((item) => item.id)]));
   const isNew = (item) => !item.installedRecord || offered.has(item.id);
   const byTitle = (a, b) => a.title.localeCompare(b.title, language);
-  const installed = items.filter((item) => item.installedRecord).sort(byTitle);
+  // «5 из 5» is a counter for any lesson, not a topic of its own: it closes the
+  // grid instead of standing first among the topics.
+  const toolLast = (a, b) => Number(TOOL_TOPIC_IDS.has(a.id)) - Number(TOOL_TOPIC_IDS.has(b.id));
+  const installed = items.filter((item) => item.installedRecord).sort((a, b) => toolLast(a, b) || byTitle(a, b));
 
   if (embedded) {
     return <>
@@ -39,10 +45,15 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
   const needle = query.trim().toLocaleLowerCase(language);
   const inFilter = items.filter((item) => (filter === "all" || item.category === filter)
     && (!searching || item.title.toLocaleLowerCase(language).includes(needle)));
-  const notInstalled = inFilter.filter(isNew)
-    .sort((a, b) => Number(Boolean(a.entry?.comingSoon)) - Number(Boolean(b.entry?.comingSoon)) || byTitle(a, b));
+  // Topics still in the works («Скоро») would be two thirds of the list for a
+  // newcomer: they wait under one «Готовятся» line at the end. A search still
+  // finds them.
+  const notInstalled = inFilter.filter(isNew).sort(byTitle);
+  const ready = notInstalled.filter((item) => !item.entry?.comingSoon);
+  const soon = notInstalled.filter((item) => item.entry?.comingSoon);
   const installedInFilter = inFilter.filter((item) => !isNew(item)).sort(byTitle);
-  const listed = searching || showInstalled ? [...notInstalled, ...installedInFilter] : notInstalled;
+  const listed = searching ? [...ready, ...soon, ...installedInFilter]
+    : [...ready, ...(showInstalled ? installedInFilter : []), ...(showSoon ? soon : [])];
 
   return <>
     <div className="screen-header topic-ui-screen-header">
@@ -60,10 +71,13 @@ export default function TopicLibraryPreview({ embedded, items, renderItem, query
         onClick={() => onFilter(category)}>{category === "all" ? t("topics.all") : t(CATEGORY_LABEL_KEYS[category])}</button>)}
     </nav>
     <div className="topic-ui-catalog-list">{listed.map(renderItem)}</div>
-    {!searching && !loading && !error && notInstalled.length === 0 && !showInstalled && <p className="topic-ui-empty">{t("preview.nothingNew")}</p>}
+    {!searching && !loading && !error && ready.length === 0 && !showInstalled && !showSoon && <p className="topic-ui-empty">{t("preview.nothingNew")}</p>}
     {searching && !listed.length && !loading && !error && <p className="topic-ui-empty">{t("topics.noResults")}</p>}
     {!searching && installedInFilter.length > 0 && <button className="topic-ui-show-installed" onClick={() => setShowInstalled((value) => !value)}>
       {showInstalled ? t("preview.hideInstalled") : t("preview.showInstalled", { count: installedInFilter.length })}
+    </button>}
+    {!searching && soon.length > 0 && <button className="topic-ui-show-installed" aria-expanded={showSoon} onClick={() => setShowSoon((value) => !value)}>
+      {showSoon ? t("preview.hideSoon") : t("preview.showSoon", { count: soon.length })}
     </button>}
     {loading && <p role="status">{t("topics.loading")}</p>}
     {error && <div className="topic-ui-catalog-error" role="status"><p>{t("topics.loadError")}</p><button onClick={onRetry}>{t("common.retry")}</button></div>}

@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
-import { EMAIL_BUDGET_EXHAUSTED_TEXT } from "./signupStatus";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 const RESEND_COOLDOWN_MS = 60_000;
 
 export default function VerifyEmailSentScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const email = useAppStore((s) => s.pendingVerificationEmail);
   const resendAvailableAt = useAppStore((s) => s.verificationResendAvailableAt);
@@ -48,21 +49,21 @@ export default function VerifyEmailSentScreen() {
       <MironiumLogo className="auth-logo" />
       <div className="auth-form">
         <p style={{ textAlign: "center", lineHeight: 1.6 }}>
-          Письмо с подтверждением отправлено на{" "}
-          <strong>{email || "ваш email"}</strong>.
+          {t("auth.verifySentTo")}{" "}
+          <strong>{email || t("auth.yourEmail")}</strong>.
           <br />
-          Нажмите ссылку в письме, чтобы активировать аккаунт.
+          {t("auth.verifyClickLink")}
         </p>
         <p style={{ textAlign: "center", fontSize: "0.88rem", color: "#888" }}>
-          Обычно письмо приходит в течение 1–2 минут. Не пришло? Проверьте папку «Спам».
+          {t("auth.verifyHint")}
         </p>
-        {budgetError && <p className="auth-notice">{EMAIL_BUDGET_EXHAUSTED_TEXT}</p>}
+        {budgetError && <p className="auth-notice">{t("auth.emailBudgetExhausted")}</p>}
         <Button onClick={handleResend} disabled={loading || cooldownActive} fullWidth variant="secondary">
-          {loading ? "Отправляем…" : cooldownActive ? "Письмо отправлено, ждём…" : "Отправить повторно"}
+          {loading ? t("auth.sending") : cooldownActive ? t("auth.sentWaiting") : t("auth.resend")}
         </Button>
       </div>
       <button className="auth-link" onClick={() => setScreen("login")}>
-        Вернуться к входу
+        {t("auth.backToLogin")}
       </button>
     </div>
   );

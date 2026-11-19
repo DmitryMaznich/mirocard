@@ -10,7 +10,9 @@ import { aggregateStatistics } from "../../../shared/session-statistics.mjs";
 import { formatDate } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./statistics.css";
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { restoreHistoricalSessions } from "./restoreHistoricalSessions";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 const text = value => typeof value === "string" ? value : value?.ru ?? "";
 const valueLabels = () => ({ easy: tr("stats.easy"), correct: tr("stats.correct"), prompted: tr("stats.prompted"), fail: tr("stats.fail"), independent: tr("stats.independent"), after_model: tr("stats.afterModel"), none: tr("stats.noAnswer"), starter: tr("stats.starter"), reinforce: tr("stats.reinforce"), challenge: tr("stats.challenge"), medium: tr("stats.medium"), hard: tr("stats.hard"), training: tr("stats.training"), check: tr("stats.check"), trained: tr("stats.trained"), transfer: tr("stats.transfer"), model: tr("stats.model"), answer: tr("stats.answer"), phrase: tr("stats.phrase"), dots: tr("setup.dots"), more: tr("setup.more"), less: tr("setup.less") });
@@ -23,7 +25,7 @@ function SessionTiming({ session, timeZone }) {
   const { t: tr, language } = useUiTranslation();
   const at = Number.isFinite(Date.parse(session.startedAt)) ? session.startedAt : session.completedAt;
   const withTime = /[T ]\d{2}:\d{2}/.test(at);
-  const date = new Intl.DateTimeFormat(language === "sl" ? "sl-SI" : "ru-RU", { day: "numeric", month: "short", year: "numeric",
+  const date = new Intl.DateTimeFormat(localeFor(language), { day: "numeric", month: "short", year: "numeric",
     timeZone: withTime ? timeZone : "UTC", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
   }).format(new Date(at));
   const active = Number.isFinite(session.activeDurationMs) && session.activeDurationMs >= 0;
@@ -97,6 +99,7 @@ function GroupCard({ group, topic }) {
 
 export default function StatisticsScreen({ initialTopicId = null, onClose, embedded = false }) {
   const { t: tr } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
   const students = useAppStore(state => state.students);
   const activeStudentId = useAppStore(state => state.activeStudentId);
   const sessions = useAppStore(state => state.sessions);
@@ -141,11 +144,13 @@ export default function StatisticsScreen({ initialTopicId = null, onClose, embed
     return <span className="statistics-topic-result">{group.conditions.historical ? tr("stats.oldHistory") : tr("stats.recentConditions")}: {setupText(mode?.ui?.title) || group.modeId}{choices} · {tr("stats.firstAnswerResult", { score: score(group.totals.firstCorrect, group.totals.firstTotal) })}</span>;
   }
   const total = report.totals;
-  return <div className={embedded ? "statistics-screen statistics-screen--embedded" : "screen statistics-screen"}>
+  return <div className={`${embedded ? "statistics-screen statistics-screen--embedded" : "screen statistics-screen"}${preview ? " topic-ui-stats" : ""}`}>
     <div className="screen-header"><button className="back-btn" onClick={() => topicId && !initialTopicId ? setTopicId(null) : onClose()} aria-label={tr("common.back")}><BackArrowIcon /></button><h1 className="screen-title">{topicId ? title(topicId) : tr("nav.studentStatistics")}</h1><button className="header-action-btn statistics-refresh" onClick={() => { setNow(Date.now()); setRevision(value => value + 1); }}>{tr("analytics.refresh")}</button></div>
     <div className="statistics-content">
       <div className="statistics-filters"><label>{tr("stats.student")}<select value={studentId} onChange={event => setStudentId(event.target.value)}><option value="" disabled>{tr("home.chooseStudent")}</option>{students.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label><label>{tr("stats.period")}<select value={period} onChange={event => setPeriod(event.target.value)}><option value="7">{tr("stats.lastWeek")}</option><option value="30">{tr("stats.lastMonth")}</option><option value="all">{tr("stats.allTime")}</option></select></label></div>
-      <p className="statistics-note" role="status">{status === "loading" ? tr("stats.loading") : status === "server" ? tr("stats.server") : status === "offline" ? tr("stats.offline") : tr("stats.local")}</p>
+      {/* The new interface says nothing when all is normal (the server's data);
+          it still warns when the figures are only this device's or offline. */}
+      {!(preview && status === "server") && <p className="statistics-note" role="status">{status === "loading" ? tr("stats.loading") : status === "server" ? tr("stats.server") : status === "offline" ? tr("stats.offline") : tr("stats.local")}</p>}
       {!studentId ? <p className="empty-state">{tr("stats.noStudent")}</p> : total.sessions === 0 ? <p className="empty-state">{tr("stats.empty")}</p> : <>
         <div className="statistics-overview"><div><strong>{total.sessions}</strong><span>{tr("stats.lessonsLabel")}</span></div><div><strong>{report.activeDays}</strong><span>{tr("stats.practiceDays")}</span></div><div><strong>{total.timedSessions ? Math.round(total.activeDurationMs / 60000) : "—"}</strong><span>{tr("stats.activeMinutes")}</span></div><div><strong>{total.completedSeries}</strong><span>{tr("stats.completedSeries")}</span></div></div>
         {total.checkpointSessions > 0 && <p className="statistics-note">{tr("stats.checkpoints", { count: total.checkpointSessions })}</p>}

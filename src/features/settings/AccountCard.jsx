@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 
 
@@ -18,7 +19,7 @@ function initialsOf(account) {
 function memberSince(account) {
   if (!account?.createdAt) return null;
   try {
-    return new Intl.DateTimeFormat(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU", { month: "long", year: "numeric" }).format(new Date(account.createdAt));
+    return new Intl.DateTimeFormat(localeFor(getUiLanguage()), { month: "long", year: "numeric" }).format(new Date(account.createdAt));
   } catch {
     return null;
   }
@@ -78,15 +79,6 @@ const ROLE_LABELS = { parent: tr("account.parent"), specialist: tr("account.spec
     <div className="account-card">
       <div className="account-card__glow" aria-hidden="true" />
 
-      {!confirmLogout ? (
-        <button className="account-card__logout-btn" onClick={() => setConfirmLogout(true)}>{tr("account.logout")}</button>
-      ) : (
-        <div className="account-card__logout-confirm">
-          <button className="account-card__logout-no" onClick={() => setConfirmLogout(false)}>{tr("common.no")}</button>
-          <button className="account-card__logout-yes" onClick={onLogout}>{tr("account.logout")}</button>
-        </div>
-      )}
-
       <div className="account-card__avatar">{initialsOf(account)}</div>
 
       {!editing ? (
@@ -102,9 +94,22 @@ const ROLE_LABELS = { parent: tr("account.parent"), specialist: tr("account.spec
           <div className="account-card__email">{account?.email ?? "—"}</div>
           {sinceLabel && <div className="account-card__since">{tr("account.since", { date: sinceLabel })}</div>}
 
-          <div className="account-card__actions">
-            <button className="account-card__edit-btn" onClick={startEdit} aria-label={tr("account.editProfile")}>{tr("account.edit")}</button>
-          </div>
+          {/* «Выйти» sits with «Изменить», not as a faint word in the card's
+              corner: several adults may share one computer (owner, 2026-11-19). */}
+          {!confirmLogout ? (
+            <div className="account-card__actions">
+              <button className="account-card__edit-btn" onClick={startEdit} aria-label={tr("account.editProfile")}>{tr("account.edit")}</button>
+              <button className="account-card__edit-btn account-card__logout-btn" onClick={() => setConfirmLogout(true)}>{tr("account.logoutAction")}</button>
+            </div>
+          ) : (
+            <div className="account-card__logout-confirm" role="group" aria-label={tr("account.logoutQuestion")}>
+              <p>{tr("account.logoutQuestion")}</p>
+              <div className="account-card__actions">
+                <button className="account-card__edit-btn" onClick={() => setConfirmLogout(false)}>{tr("common.cancel")}</button>
+                <button className="account-card__edit-btn account-card__logout-yes" onClick={onLogout}>{tr("account.logoutAction")}</button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="account-card__body account-card__body--edit">

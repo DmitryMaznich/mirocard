@@ -66,10 +66,12 @@ export default function AccountScreen() {
         {account?.id && (
           <div className="settings-section">
             <div className="settings-section-title">{tr("account.mail")}</div>
-            <label className="settings-row">
+            <label className="settings-row settings-row--switch">
               <span className="settings-row__label">{tr("account.marketing")}</span>
               <input
                 type="checkbox"
+                role="switch"
+                className="settings-switch"
                 name="marketingOptIn"
                 checked={!!account.marketingOptIn}
                 disabled={savingMarketing}
@@ -82,7 +84,7 @@ export default function AccountScreen() {
         <div className="settings-section">
           <div className="settings-section-title">{tr("account.security")}</div>
           <AdultPinSettings />
-          <div className="settings-row">
+          <div className="settings-row settings-row--action">
             <span className="settings-row__label">{tr("auth.password")}</span>
             <button className="link-btn" onClick={() => setChangePasswordOpen(true)}>{tr("account.changePassword")}</button>
           </div>

@@ -82,7 +82,7 @@ export default function LoginScreen() {
   }
 
   async function handleLocalMode() {
-    const account = { email: "local", displayName: "Локальный режим" };
+    const account = { email: "local", displayName: t("auth.localModeName") };
     const db = await getDb();
     const payload = { account, token: null };
     await persistBootstrap(db, payload);

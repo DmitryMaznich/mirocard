@@ -9,6 +9,7 @@ vi.mock("@/shared/components/TopicCover", () => ({ default: () => <span classNam
 vi.mock("./catalogService", async (original) => ({ ...(await original()), fetchCatalog: vi.fn(async () => ({ decks: [
   { id: "ordinary", title: "Обычная тема", version: "1", access: "free" },
   { id: "reading", title: "Чтение", version: "1", access: "free" },
+  { id: "later", title: "Аист", version: "1", access: "free", comingSoon: true },
 ] })) }));
 vi.mock("./topicLanguageChoice", async (original) => ({ ...(await original()), requestTopicLanguage: vi.fn(async () => false) }));
 
@@ -55,12 +56,25 @@ describe("preview library preserves selection and visibility rules", () => {
     expect(host.querySelector('[data-topic-id="private-other-account"]')).toBeNull();
     expect(host.querySelector('[data-topic-id="hidden"]')).toBeNull();
     // The latest topic is in the «Продолжить» card above; the grid does not
-    // mark or move it — a topic keeps its alphabetical place.
+    // mark or move it — a topic keeps its alphabetical place («5 из 5», a
+    // counter rather than a topic, closes the grid — tested below).
     expect(host.querySelector(".topic-ui-tile--recent")).toBeNull();
-    const order = [...host.querySelectorAll(".topic-ui-installed-grid article")].map((tile) => tile.dataset.topicId);
+    const order = [...host.querySelectorAll(".topic-ui-installed-grid article")].map((tile) => tile.dataset.topicId)
+      .filter((id) => id !== "streak_tracker");
     expect(order).toEqual([...order].sort((x, y) => host.querySelector(`[data-topic-id="${x}"] strong`).textContent
       .localeCompare(host.querySelector(`[data-topic-id="${y}"] strong`).textContent, "ru")));
     expect(host.querySelector(".topic-ui-add-tile")).not.toBeNull();
+  });
+
+  it("puts the «5 из 5» counter after the topics", async () => {
+    writeTopicUiPreview(scope, true);
+    const counter = topic("streak_tracker");
+    counter.meta.title = { ru: "5 из 5" };
+    counter.meta.builtin = true;
+    useAppStore.setState({ topicRecords: [counter, topic("ordinary"), topic("reading", "reading")] });
+    await mount({ embedded: true });
+    const order = [...host.querySelectorAll(".topic-ui-installed-grid article")].map((tile) => tile.dataset.topicId);
+    expect(order.at(-1)).toBe("streak_tracker");
   });
 
   it("lists only topics not added yet in the catalog, the rest one tap away", async () => {
@@ -73,6 +87,18 @@ describe("preview library preserves selection and visibility rules", () => {
     expect(listed()).not.toContain("ordinary");
     await act(async () => host.querySelector(".topic-ui-show-installed").click());
     expect(listed()).toContain("ordinary");
+  });
+
+  it("keeps topics still in the works under one «Готовятся» line", async () => {
+    writeTopicUiPreview(scope, true);
+    useAppStore.setState({ topicRecords: [], ownedTopics: [] });
+    await mount();
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    const listed = () => [...host.querySelectorAll(".topic-ui-catalog-list article")].map((row) => row.dataset.topicId);
+    expect(listed()).toEqual(["ordinary", "reading"]);
+    const toggle = [...host.querySelectorAll(".topic-ui-show-installed")].find((button) => button.textContent.includes("(1)"));
+    await act(async () => toggle.click());
+    expect(listed()).toEqual(["ordinary", "reading", "later"]);
   });
 
   it("does not navigate into a language package that was not installed", async () => {

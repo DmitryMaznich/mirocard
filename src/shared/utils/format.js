@@ -1,8 +1,9 @@
 import { getUiLanguage } from "../i18n/uiLanguage.js";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 export function formatDate(isoString) {
   if (!isoString) return "";
-  return new Date(isoString).toLocaleDateString(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU", {
+  return new Date(isoString).toLocaleDateString(localeFor(getUiLanguage()), {
     day: "numeric",
     month: "short",
     year: "numeric",

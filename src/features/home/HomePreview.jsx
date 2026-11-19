@@ -14,7 +14,10 @@ import { isPickableMode } from "@/shared/utils/topicUtils";
 
 // Home in the topic UI preview: «Продолжить» (the student's latest topic and
 // exercise, one tap to start) above «Мои темы». No progress, no score — only
-// when the last lesson was (owner's decision, 2026-11-09).
+// when the last lesson was (owner's decision, 2026-11-09). Before the first
+// lesson the card is only a hint, no button: «Добавить тему» is already the
+// last tile of the grid, and the catalog it opens does not list the topics
+// shown below (owner, 2026-11-18).
 export default function HomePreview() {
   const { t, language } = useUiTranslation();
   const sessions = useAppStore((s) => s.sessions);
@@ -41,8 +44,7 @@ export default function HomePreview() {
     {last ? <ContinueCard last={last} t={t} language={language} onStart={start} onChange={change} />
       : <section className="topic-ui-continue">
         <div className="topic-ui-continue-label">{t("preview.firstLesson")}</div>
-        <p className="topic-ui-continue-help">{t("preview.firstLessonHelp")}</p>
-        <button className="topic-ui-start" onClick={() => setScreen("topics")}>+ {t("preview.addTopic")}</button>
+        <p className="topic-ui-continue-help topic-ui-continue-help--last">{t("preview.firstLessonHelp")}</p>
       </section>}
     <TopicLibraryScreen embedded />
   </div>;
@@ -69,6 +71,20 @@ export default function HomePreview() {
     startContinuePick();
     setScreen(last.record.meta.renderer === "reading" && textId ? "modes" : previewTopicDestination(last.record));
   }
+}
+
+// A brand-new account: no student yet. The same card as «Продолжить» /
+// «Первое занятие», so the very first screen already looks like the new Home.
+export function HomePreviewNoStudent({ onAdd }) {
+  const { t } = useUiTranslation();
+  return <div className="topic-ui-home-body">
+    <section className="topic-ui-continue">
+      <div className="topic-ui-continue-label">{t("preview.startHere")}</div>
+      <h2 className="topic-ui-continue-title">{t("home.firstStudent")}</h2>
+      <p className="topic-ui-continue-help">{t("home.firstStudentHelp")}</p>
+      <button className="topic-ui-start" onClick={onAdd}>+ {t("students.add")}</button>
+    </section>
+  </div>;
 }
 
 function knownText(record, textId) {

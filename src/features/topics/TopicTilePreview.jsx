@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import TopicCover from "@/shared/components/TopicCover";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 // Presentation only. TopicTile remains the owner of access checks, downloads,
 // errors and progress for both interfaces.
@@ -115,9 +116,10 @@ function useDownloadSize(url) {
   return size;
 }
 
+// «11 МБ», «2,5 MB», «< 1 MB» — unit name and decimal mark from the language's locale.
 function formatSize(bytes, language) {
   const mb = bytes / (1024 * 1024);
-  const unit = language === "sl" ? "MB" : "МБ";
-  if (mb < 1) return `< 1 ${unit}`;
-  return `${mb < 10 ? mb.toFixed(1).replace(".0", "") : Math.round(mb)} ${unit}`.replace(".", language === "sl" || language === "ru" ? "," : ".");
+  const format = (value, digits) => new Intl.NumberFormat(localeFor(language), { style: "unit", unit: "megabyte", maximumFractionDigits: digits }).format(value);
+  if (mb < 1) return `< ${format(1, 0)}`;
+  return format(mb < 10 ? Math.round(mb * 10) / 10 : Math.round(mb), mb < 10 ? 1 : 0);
 }

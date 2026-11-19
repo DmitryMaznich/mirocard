@@ -14051,7 +14051,10 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .rp-person, .rp-people-count, .rp-row-note, .rp-row-value { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
-.param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+/* margin-left: auto keeps the buttons at the right beside a short label; once
+   they wrap under the label they start at the left, not hang off the right
+   edge (short stories «Ступень» / «Вопросы»). */
+.param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-start; margin-left: auto; }
 .param-enum-group--col { flex-direction: column; align-items: flex-end; }
 /* Ordered steps (Монеты → Схема → Таблица): arrows between the buttons. */
 .param-enum-group--ordered { align-items: center; gap: 4px; }
@@ -14067,7 +14070,7 @@ kbd {
   gap: 8px;
 }
 .param-row--block .param-label { flex: none; }
-.param-row--block .param-enum-group { justify-content: flex-start; }
+.param-row--block .param-enum-group { justify-content: flex-start; margin-left: 0; }
 .param-hint {
   font-size: 0.78rem;
   color: #7a9e9a;
@@ -14851,6 +14854,9 @@ kbd {
 .concept-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  /* Rows as tall as the card: auto rows came out shorter than picture + label
+     and cut the word under every picture. */
+  grid-auto-rows: max-content;
   gap: 0;
   padding: 0;
   align-content: start;
@@ -17251,6 +17257,23 @@ button.operation-dot {
   letter-spacing: 0.05em;
 }
 .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-top: 1px solid rgba(28, 54, 52, 0.06); }
+/* Explanatory text inside a settings plate: kept off the plate's edges. */
+.settings-section__text { margin: 0; padding: 2px 16px 14px; color: #5e716d; font-size: 0.85rem; line-height: 1.5; }
+/* An on/off setting: label on the left, a switch on the right — also on phones,
+   where the generic narrow-screen rule stacks .settings-row into a column.
+   The native checkbox stays (forms and tests read .checked), drawn as a switch. */
+.settings-row.settings-row--switch, .settings-row.settings-row--action { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; text-align: left; }
+.settings-row.settings-row--switch { cursor: pointer; }
+.settings-row--action > span:first-child { flex: 1; min-width: 0; color: #263b31; }
+.settings-row--action > .link-btn { flex-shrink: 0; min-height: 44px; }
+.settings-row--action > [role="alert"] { flex-basis: 100%; }
+.settings-row--switch > span { flex: 1; min-width: 0; color: #263b31; }
+.settings-switch { appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative; width: 44px; height: 26px; margin: 0; border-radius: 13px; background: #c8d1cf; cursor: pointer; transition: background .15s; }
+.settings-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .15s; }
+.settings-switch:checked { background: #1c7a6e; }
+.settings-switch:checked::after { left: 21px; }
+.settings-switch:disabled { opacity: .55; cursor: not-allowed; }
+.settings-switch:focus-visible { outline: 3px solid #9fd0c6; outline-offset: 2px; }
 
 .settings-row--zone { gap: 10px; }
 .settings-zone-icon { font-size: 1.3rem; flex-shrink: 0; }
@@ -17439,53 +17462,15 @@ button.operation-dot {
   letter-spacing: 0.02em;
   box-shadow: 0 6px 16px rgba(42, 107, 96, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
 }
-.account-card__logout-btn {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  background: none;
-  border: none;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #9aa6a3;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
-  letter-spacing: 0.03em;
-  transition: color 0.15s, background 0.15s;
-}
-.account-card__logout-btn:hover {
-  color: #c0504a;
-  background: rgba(192, 80, 74, 0.08);
-}
-.account-card__logout-confirm {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.account-card__logout-no,
-.account-card__logout-yes {
-  border: none;
-  cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 8px;
-  transition: opacity 0.12s;
-}
-.account-card__logout-no {
-  background: rgba(28, 54, 52, 0.07);
-  color: #4a6966;
-}
-.account-card__logout-yes {
-  background: rgba(192, 80, 74, 0.12);
-  color: #c0504a;
-}
-.account-card__logout-no:hover { opacity: 0.75; }
-.account-card__logout-yes:hover { opacity: 0.75; }
+/* «Выйти из аккаунта» beside «Изменить»: the same outline button, a muted
+   red so it reads as leaving, not as editing. */
+.account-card__edit-btn.account-card__logout-btn { color: #a64242; border-color: rgba(192, 69, 69, 0.3); }
+.account-card__edit-btn.account-card__logout-btn:hover { border-color: #c24545; }
+.account-card__logout-confirm { margin-top: 14px; }
+.account-card__logout-confirm p { margin: 0; font-size: 0.85rem; line-height: 1.45; color: #4e5f5b; }
+.account-card__logout-confirm .account-card__actions { margin-top: 10px; }
+.account-card__edit-btn.account-card__logout-yes { background: #c24545; border-color: #c24545; color: #fff; }
+.account-card__edit-btn.account-card__logout-yes:hover { background: #a83838; border-color: #a83838; }
 .account-card__body {
   position: relative;
   flex: 1;
@@ -17613,6 +17598,24 @@ select.account-card__input {
 .account-card__save-btn:disabled, .account-card__cancel-btn:disabled { opacity: 0.5; pointer-events: none; }
 
 /* ─── Danger zone ────────────────────────────────────────────────────────── */
+/* Closed: one quiet red line at the very bottom, not a red block on the
+   account's main screen. The explanation and the e-mail check open on tap. */
+.danger-zone--closed {
+  margin: 8px 16px 24px;
+  display: flex;
+  justify-content: center;
+}
+.danger-zone__open-btn {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  background: transparent;
+  color: #c24545;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
 .danger-zone {
   margin: 0 16px;
   padding: 16px;
@@ -22782,3 +22785,4 @@ body { background: #eef0ef; }
 .topic-language-option > span { min-width: 0; }
 .topic-language-detail { display: block; font-size: 13px; line-height: 1.5; color: #526663; margin-top: 4px; }
 .topic-language-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 16px; color: #526663; font-size: 14px; }
+.settings-section__text--first { padding-top: 6px; }

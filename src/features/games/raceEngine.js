@@ -1,25 +1,21 @@
 export const FINISH = 19;
-export const TUG_FINISH = 15;
+export const TUG_ROUNDS = 5;
+export const TUG_MAX_DISTANCE = TUG_ROUNDS * 5;
 
 export function createRace(finish = FINISH, capacity = finish, deferResult = false, firstToFinish = false) {
   return { finish, capacity, deferResult, firstToFinish, positions: [0, 0], dice: [null, null], round: 1, phase: "rolling", answer: null, mistake: false, step: 0, result: null };
 }
 
-export function createTugOfWar() {
-  return { ...createRace(TUG_FINISH), ropePosition: 0, pullScores: [0, 0], startingScores: [0, 0], sumsAnswered: 0 };
+export function createTugOfWar(countMoves = false) {
+  return { ...createRace(), ropePosition: 0, completedRounds: 0, countMoves, countAnswer: null };
 }
 
-export function tugPullDirection(dice, stepsDone) {
-  const strongerDirection = Math.sign(dice[1] - dice[0]);
-  return stepsDone < Math.min(...dice) ? -strongerDirection : strongerDirection;
+export function tugPullDirection(dice) {
+  return Math.sign(dice[1] - dice[0]);
 }
 
-export function tugAddition(state) {
-  const player = state.phase === "sumFeedback" ? state.sumsAnswered - 1 : state.sumsAnswered;
-  const previous = state.startingScores[player];
-  const total = state.pullScores[player];
-  const firstChoice = Math.max(0, total - (state.round + player) % 3);
-  return { player, previous, added: total - previous, total, choices: [firstChoice, firstChoice + 1, firstChoice + 2] };
+export function tugDistance(dice) {
+  return Math.abs(dice[0] - dice[1]);
 }
 
 export function comparisonAnswer(dice) {
@@ -34,13 +30,21 @@ function comparePlayerValues([child, adult]) {
 export function raceReducer(state, action) {
   const isTug = state.ropePosition !== undefined;
   if (action.type === "reset") return isTug
-    ? createTugOfWar()
+    ? createTugOfWar(state.countMoves)
     : createRace(state.finish, state.capacity, state.deferResult, state.firstToFinish);
-  if (action.type === "nextThrow" && state.phase === "between") return { ...state, phase: "rolling", dice: [null, null], answer: null, mistake: false };
+  if (action.type === "configureTug" && isTug && state.phase === "rolling" && state.completedRounds === 0) return { ...state, countMoves: Boolean(action.countMoves) };
+  if (action.type === "nextThrow" && state.phase === "between") return { ...state, round: state.round + (isTug ? 1 : 0), phase: "rolling", dice: [null, null], answer: null, mistake: false, ...(isTug ? {countAnswer: null} : {}) };
+  if (action.type === "paired" && isTug && state.phase === "pairing") return {...state,phase:tugDistance(state.dice) ? "moving" : "arriving"};
   if (action.type === "ready" && state.phase === "rolling") return { ...state, phase: "settling" };
   if (action.type === "settled" && state.phase === "settling") return { ...state, phase: "input" };
   if (action.type === "arrived" && state.phase === "arriving") {
-    if (isTug) return { ...state, phase: state.dice[0] === state.dice[1] ? "comparing" : "adding" };
+    if (isTug) {
+      const completedRounds = state.completedRounds + 1;
+      const result = completedRounds === TUG_ROUNDS
+        ? state.ropePosition === 0 ? "tie" : state.ropePosition < 0 ? "child" : "adult"
+        : null;
+      return {...state,completedRounds,result,phase:result ? "finished" : "between"};
+    }
     if (state.result) return { ...state, phase: "finished" };
     return { ...state, round: state.round + 1, phase: "between" };
   }
@@ -48,28 +52,19 @@ export function raceReducer(state, action) {
     if (![0, 1].includes(action.player) || !Number.isInteger(action.value) || action.value < 1 || action.value > 6) return state;
     const dice = [...state.dice];
     dice[action.player] = action.value;
-    if (isTug && comparisonAnswer(dice) !== null) {
-      return { ...state, dice, answer: null, mistake: false, phase: "moving", step: 0, startingScores: state.pullScores, sumsAnswered: 0 };
-    }
     return { ...state, dice, answer: null, mistake: false };
   }
-  if (action.type === "sum" && isTug && state.phase === "adding") {
-    const { total, choices } = tugAddition(state);
-    if (!choices.includes(action.answer)) return state;
-    if (action.answer !== total) return { ...state, answer: action.answer, mistake: true };
-    return { ...state, answer: action.answer, mistake: false, phase: "sumFeedback", sumsAnswered: state.sumsAnswered + 1 };
+  if (action.type === "count" && isTug && state.phase === "counting") {
+    if (!Number.isInteger(action.answer) || action.answer < 1 || action.answer > 5) return state;
+    const correct = action.answer === tugDistance(state.dice);
+    return {...state,countAnswer:action.answer,mistake:!correct,phase:correct ? "pairing" : "counting"};
   }
-  if (action.type === "advanceFeedback" && isTug && state.phase === "sumFeedback") {
-    return { ...state, answer: null, phase: state.sumsAnswered === 2 ? "comparing" : "adding" };
-  }
-  if (action.type === "advanceFeedback" && isTug && state.phase === "comparisonFeedback") {
-    if (state.result) return { ...state, phase: "finished" };
-    return { ...state, round: state.round + 1, phase: "between" };
-  }
-  if (action.type === "compare" && isTug && state.phase === "comparing") {
-    if (!["child", "adult", "equal"].includes(action.answer)) return state;
-    const correct = action.answer === comparePlayerValues(state.pullScores);
-    return { ...state, answer: action.answer, mistake: !correct, phase: correct ? "comparisonFeedback" : "comparing" };
+  if (action.type === "compare" && isTug && state.phase === "input") {
+    const answer = comparisonAnswer(state.dice);
+    if (!answer || !["child", "adult", "equal"].includes(action.answer)) return state;
+    const correct = action.answer === answer;
+    return {...state,answer:action.answer,mistake:!correct,step:0,
+      phase:correct ? state.countMoves && tugDistance(state.dice) ? "counting" : "pairing" : "input"};
   }
   if (action.type === "compare" && !isTug && state.phase === "input") {
     const answer = comparisonAnswer(state.dice);
@@ -80,15 +75,8 @@ export function raceReducer(state, action) {
   if (action.type !== "tick" || state.phase !== "moving") return state;
   const step = state.step + 1;
   if (isTug) {
-    const direction = tugPullDirection(state.dice, state.step);
-    const ropePosition = state.ropePosition + direction;
-    const [childScore, adultScore] = state.pullScores;
-    const pullScores = [childScore + Math.max(0, -direction), adultScore + Math.max(0, direction)];
-    const complete = direction === 0 || step >= state.dice[0] + state.dice[1];
-    const result = complete && Math.abs(ropePosition) >= TUG_FINISH
-      ? (ropePosition < 0 ? "child" : "adult")
-      : null;
-    return { ...state, ropePosition, pullScores, step, result, phase: complete ? "arriving" : "moving" };
+    const ropePosition = state.ropePosition + tugPullDirection(state.dice);
+    return {...state,ropePosition,step,phase:step >= tugDistance(state.dice) ? "arriving" : "moving"};
   }
   const finish = state.finish ?? FINISH;
   const capacity = state.capacity ?? finish;

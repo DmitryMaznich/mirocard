@@ -6,6 +6,7 @@ import { isLessonLanguage } from "../../shared/languages.mjs";
 import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { studentPeople, legacyAdults, applyLegacyAdults, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "../../src/shared/utils/rewardVideoViews.js";
+import { isKnownUiLanguage } from "../../shared/ui-languages.mjs";
 
 export function recordStudentVideoViews(db, accountId, { studentId, views }) {
   const student = db.prepare(
@@ -322,7 +323,7 @@ export function updateAccountSettings(db, accountId, patch) {
   ];
   const fields = Object.keys(patch).filter((k) => allowed.includes(k));
   if (fields.length === 0) return;
-  if (("ui_language" in patch && !["ru", "sl"].includes(patch.ui_language)) ||
+  if (("ui_language" in patch && !isKnownUiLanguage(patch.ui_language)) ||
       ("card_language" in patch && !isLessonLanguage(patch.card_language))) {
     throw Object.assign(new Error("Invalid language preference"), { status: 400 });
   }

@@ -326,8 +326,10 @@ export default function StudentEditScreen() {
         </div></details>
         <details className="student-settings-group" open={hintsOpen}>
           <summary>{t("settings.studentLessons")}</summary><div className="student-settings-content">
+        <div className="settings-section se-padded-card">
           <LessonFlowSettings value={lessonFlow} onChange={setLessonFlow} />
-        <div className="settings-section">
+        </div>
+        <div className="settings-section se-padded-card">
           <RewardSettingsSection value={rewardSettings} onChange={setRewardSettings} />
         </div>
         {/* ── Видео-награды ── */}

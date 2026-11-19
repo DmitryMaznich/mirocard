@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
-import { EMAIL_BUDGET_EXHAUSTED_TEXT } from "./signupStatus";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 export default function ForgotPasswordScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
 
   const [email,   setEmail]   = useState("");
@@ -40,13 +41,13 @@ export default function ForgotPasswordScreen() {
         <MironiumLogo className="auth-logo" />
         <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
           <p style={{ fontSize: "1.05rem", color: "#4a9b8f", fontWeight: 600 }}>
-            Если такой email зарегистрирован, мы отправили на него ссылку для сброса пароля.
+            {t("auth.resetSent")}
           </p>
           <p style={{ color: "#7c8c89", fontSize: "0.9rem" }}>
-            Проверьте папку «Спам», если письма долго нет.
+            {t("auth.checkSpam")}
           </p>
           <button className="auth-link" onClick={() => setScreen("login")}>
-            Вернуться к входу
+            {t("auth.backToLogin")}
           </button>
         </div>
       </div>
@@ -58,25 +59,25 @@ export default function ForgotPasswordScreen() {
       <MironiumLogo className="auth-logo" />
       <form className="auth-form" onSubmit={handleSubmit}>
         <p style={{ color: "#7c8c89", fontSize: "0.9rem", margin: "0 0 4px" }}>
-          Укажите email аккаунта — пришлём ссылку для сброса пароля.
+          {t("auth.forgotIntro")}
         </p>
         <input
           className="auth-input"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder={t("auth.email")}
           required
           autoFocus
           autoComplete="email"
         />
-        {budgetError && <p className="auth-notice">{EMAIL_BUDGET_EXHAUSTED_TEXT}</p>}
+        {budgetError && <p className="auth-notice">{t("auth.emailBudgetExhausted")}</p>}
         <Button type="submit" disabled={loading} fullWidth>
-          {loading ? "Отправляем…" : "Отправить ссылку"}
+          {loading ? t("auth.sending") : t("auth.sendLink")}
         </Button>
       </form>
       <button className="auth-link" onClick={() => setScreen("login")}>
-        Вернуться к входу
+        {t("auth.backToLogin")}
       </button>
     </div>
   );

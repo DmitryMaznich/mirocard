@@ -171,4 +171,7 @@ export const IconAddPage = () => S(<><rect x="5" y="3" width="14" height="18" rx
 export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18" rx="1.8" /><path d="M9 3v18" /><path d="M12 8h4M12 11.5h4" strokeWidth="1.4" /></>); // a notebook card in the library
 export const IconRename = () => S(<><path d="M4 20h16" /><path d="M6 16l.8-3.2L15.6 4a1.8 1.8 0 012.6 0 1.8 1.8 0 010 2.6L9.4 15.4z" /></>);
 
-export const IconSave = () => S(<><path d="M5 12.5l4.5 4.5L19 7.5" strokeWidth="2.4" /></>); // confirm: keep the changes in the notebook
+// «Штрихи»: a letter А whose bar is left out (dashed) — the row writes some strokes of its letter
+export const IconStrokes = () => S(<><path d="M5 20L12 4l7 16" /><path d="M8.2 14h7.6" strokeDasharray="1.6 2" /></>);
+// keep the changes in the notebook: a floppy disk, still the one save sign everybody reads (owner, 2026-11-19: the tick read as «закрыть»)
+export const IconSave = () => S(<><path d="M5 4h11.5L20 7.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" /><path d="M8 4v4.5h7V4" /><rect x="7.5" y="13" width="9" height="7" rx=".5" /></>);

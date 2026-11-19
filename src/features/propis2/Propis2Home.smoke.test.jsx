@@ -90,8 +90,7 @@ describe("propis2 (zip topic)", () => {
       const host = document.createElement("div");
       document.body.appendChild(host);
       const root = createRoot(host);
-      localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
-    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
       return { host, root };
     };
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
@@ -174,7 +173,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -198,7 +196,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -236,7 +233,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -292,8 +288,7 @@ describe("propis2 (zip topic)", () => {
       const host = document.createElement("div");
       document.body.appendChild(host);
       const root = createRoot(host);
-      localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
-    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
       const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(60); }); };
       const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь 4. Буквы л м я о а ю с"]';
       for (let i = 0; i < 40 && !host.querySelector(edit); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
@@ -329,7 +324,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const open = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь Цифры"]';
@@ -352,7 +346,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -395,7 +388,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -574,7 +566,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
@@ -632,7 +623,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая тетрадь")));
@@ -747,7 +737,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
     await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая тетрадь")));
@@ -822,7 +811,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     // a page setting is a picker (its variants drop down); a row setting a choice in the row panel (radiogroup, the value in data-value)
@@ -839,7 +827,7 @@ describe("propis2 (zip topic)", () => {
     await caretTo(4);
     await pick("Повтор", "Одна запись");
     await caretTo(0);
-    expect(host.querySelector('[data-testid="propis2-row-panel"]').textContent).toContain("на странице по-разному"); // the rows of the page differ
+    expect(pickBtn("Повтор").getAttribute("aria-description")).toBe("в тетради по-разному"); // the rows of the page differ
     await pick("Повтор", "Повтор с затуханием");
     const offer = () => host.querySelector('[data-testid="propis2-offer"]');
     expect(offer().textContent).toMatch(/^Образец: повтор с затуханием — на строке 1/);
@@ -860,7 +848,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
@@ -938,7 +925,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     await act(async () => { byLabel(host, "Новая тетрадь").click(); await tick(); });
     // a new notebook is A5, and the format can be picked (owner, 2026-11-05: A4 is a whole sheet per page)
@@ -960,7 +946,6 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     await click(byLabel(host, "Новая тетрадь"));
@@ -981,18 +966,18 @@ describe("propis2 (zip topic)", () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    localStorage.setItem("propis2:rowDock", "1"); // the row panel's dock open (remembered on the device)
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     await click(byLabel(host, "Новая тетрадь"));
     await typeInField(host, "мама");
-    // the row panel's «Что в строке»: Образец / Связный текст
-    const kind = () => host.querySelector('[role="radiogroup"][aria-label="Что в строке"]').dataset.value;
+    // on a phone the strip's «Текст»: a sample row / running text (owner, 2026-11-19)
+    const textBtn = () => host.querySelector('button[aria-label="Строка как текст (с переносом)"]');
+    const kind = () => (textBtn().getAttribute("aria-pressed") === "true" ? "passage" : "sample");
     expect(kind()).toBe("sample");
-    await click(host.querySelector('[role="radiogroup"][aria-label="Что в строке"] [aria-label^="Связный текст"]'));
+    await click(textBtn());
     expect(kind()).toBe("passage");
     // a row that is running text takes no repeat or dots
-    expect(host.querySelector('[role="radiogroup"][aria-label="Повтор"]')).toBeNull();
+    expect(host.querySelector('button[aria-label="Повтор"]').disabled).toBe(true);
     await typeInField(host, "мама мыла раму");
     expect(kind()).toBe("passage");
     await act(async () => { root.unmount(); await tick(300); });
