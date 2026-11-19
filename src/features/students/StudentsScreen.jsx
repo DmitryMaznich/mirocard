@@ -7,7 +7,8 @@ import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { formatDate, getInitials } from "@/shared/utils/format";
-import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
+import { BackArrowIcon, ChevronRightIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 
 async function persistStudents(db, students, setStudents) {
   await kv.set(db, "students", students);
@@ -16,6 +17,9 @@ async function persistStudents(db, students, setStudents) {
 
 export default function StudentsScreen() {
   const { t } = useUiTranslation();
+  const { enabled: preview } = useTopicUiPreview();
+  const activeStudentId    = useAppStore((s) => s.activeStudentId);
+  const [menuStudent, setMenuStudent] = useState(null);
   const students           = useAppStore((s) => s.students);
   const setStudents        = useAppStore((s) => s.setStudents);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
@@ -93,15 +97,25 @@ export default function StudentsScreen() {
                         <div className="student-comment">{student.comment}</div>
                       )}
                       <div className="student-meta">
-                        {t("students.added", { date: formatDate(student.createdAt) })}
+                        {preview && student.id === (activeStudentId ?? students[0]?.id)
+                          ? <span className="student-meta--current">{t("preview.currentStudent")}</span>
+                          : t("students.added", { date: formatDate(student.createdAt) })}
                       </div>
                     </div>
                   </button>
+                  {preview ? (
+                    // New interface: one «…» with worded actions, as on topic tiles,
+                    // instead of three bare signs (▥ ✎ ✕).
+                    <div className="student-item__actions">
+                      <button className="icon-btn" aria-label={`${t("topics.actions")}: ${student.name}`} onClick={() => setMenuStudent(student)}><MoreDotsIcon size={18} /></button>
+                    </div>
+                  ) : (
                   <div className="student-item__actions">
                     <button className="icon-btn" aria-label={t("students.statisticsFor", { name: student.name })} title={t("nav.statistics")} onClick={() => { setActiveStudentId(student.id); setScreen("history"); }}>▥</button>
                     <button className="icon-btn" onClick={() => openEdit(student)}>✎</button>
                     <button className="icon-btn icon-btn--danger" onClick={() => setDeleting(student)}>✕</button>
                   </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -146,6 +160,18 @@ export default function StudentsScreen() {
           </div>
         ) : null}
       </div>
+
+      {menuStudent && (
+        <div className="action-sheet-overlay" onClick={(event) => event.target === event.currentTarget && setMenuStudent(null)}>
+          <div className="action-sheet" role="dialog" aria-modal="true" aria-label={menuStudent.name}>
+            <div className="action-sheet__title">{menuStudent.name}</div>
+            <button className="action-sheet__item" onClick={() => { setActiveStudentId(menuStudent.id); setMenuStudent(null); setScreen("history"); }}>{t("nav.statistics")}</button>
+            <button className="action-sheet__item" onClick={() => { const target = menuStudent; setMenuStudent(null); openEdit(target); }}>{t("common.edit")}</button>
+            <button className="action-sheet__item action-sheet__item--danger" onClick={() => { setDeleting(menuStudent); setMenuStudent(null); }}>{t("common.delete")}</button>
+            <button className="action-sheet__item action-sheet__item--cancel" onClick={() => setMenuStudent(null)}>{t("common.cancel")}</button>
+          </div>
+        </div>
+      )}
 
       {deleting && (
         <Modal

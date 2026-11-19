@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Буквы и звуки — макеты v01</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; background: #e9e5dc; color: #1f2937; }
+  .page { max-width: 1320px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  .lead { margin: 0 0 22px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  h2.block { margin: 34px 0 6px; font-size: 21px; }
+  .block-note { margin: 0 0 16px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  .row { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start; }
+  .shot { width: 360px; }
+  .shot h3 { margin: 0 0 8px; font-size: 16px; }
+  .shot h3 small { color: #6b7280; font-weight: 600; }
+  .note { margin-top: 10px; font-size: 13.5px; line-height: 1.45; color: #374151; }
+  .note b { color: #111827; }
+  .note .q { display: block; margin-top: 6px; padding: 6px 9px; background: #fff7e6; border-left: 3px solid #f59e0b; border-radius: 4px; }
+
+  /* ---- phone ---- */
+  .phone { width: 360px; height: 680px; border-radius: 34px; background: #111; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .screen { width: 100%; height: 100%; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; background: #fdfcf9; }
+  .topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; background: #fff; border-bottom: 1px solid #eee7d8; font-size: 13px; font-weight: 700; color: #6b7280; }
+  .topbar .stars { letter-spacing: 2px; color: #f59e0b; }
+  .topbar .x { width: 30px; height: 30px; border-radius: 50%; background: #f3f4f6; display: grid; place-items: center; }
+  .stage { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; padding: 14px 16px 18px; gap: 14px; min-height: 0; }
+  .instr { font-weight: 800; font-size: 18px; color: #374151; text-align: center; }
+
+  /* ---- shared bits ---- */
+  .speaker { width: 46px; height: 46px; border-radius: 50%; background: #4a9b8f; color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 4px 0 #2a6b60; flex: 0 0 auto; }
+  .target { display: flex; align-items: center; gap: 14px; }
+  .big-letter { width: 104px; height: 104px; border-radius: 22px; background: #fff; border: 3px solid #4a9b8f; display: grid; place-items: center; font-size: 72px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tiles { display: grid; gap: 12px; width: 100%; }
+  .tiles.c3 { grid-template-columns: repeat(3, 1fr); }
+  .tiles.c4 { grid-template-columns: repeat(4, 1fr); }
+  .tile { aspect-ratio: 1; border-radius: 18px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 48px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tile.ok { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; }
+  .tile.bad { border-color: #ef4444; background: #fef2f2; box-shadow: 0 4px 0 #fca5a5; }
+  .tile.dim { opacity: .35; }
+  .picture { width: 170px; height: 150px; border-radius: 20px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 3px 10px rgba(0,0,0,.08); display: grid; place-items: center; font-size: 92px; line-height: 1; position: relative; }
+  .picture .speaker { position: absolute; right: -16px; bottom: -14px; width: 42px; height: 42px; font-size: 19px; }
+  .with-letter { display: flex; align-items: center; gap: 22px; }
+  .chip { font-size: 13px; font-weight: 800; color: #4a9b8f; background: #e7f3f1; padding: 3px 10px; border-radius: 99px; }
+  .spacer { flex: 1 1 auto; }
+
+  /* ---- train ---- */
+  .train { display: flex; align-items: flex-end; gap: 6px; width: 100%; justify-content: center; }
+  .car { position: relative; height: 92px; border-radius: 14px 14px 8px 8px; background: #fff; border: 3px dashed #cbd5e1; display: grid; place-items: center; font-weight: 900; font-size: 34px; color: #94a3b8; }
+  .car::before, .car::after { content: ""; position: absolute; bottom: -15px; width: 22px; height: 22px; border-radius: 50%; background: #475569; border: 3px solid #fdfcf9; }
+  .car::before { left: 12px; } .car::after { right: 12px; }
+  .car.loco { border-radius: 30px 14px 8px 8px; }
+  .car.loco .chim { position: absolute; top: -22px; left: 22px; width: 18px; height: 22px; background: #475569; border-radius: 4px 4px 0 0; }
+  .car.loco .cab { position: absolute; top: 10px; right: 10px; width: 26px; height: 22px; border-radius: 6px; background: #e0f2fe; border: 2px solid #94a3b8; }
+  .car.solid { border-style: solid; }
+  .car.hint { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 4px rgba(59,130,246,.25); color: #1d4ed8; }
+  .car.ok { border-style: solid; border-color: #22c55e; background: #dcfce7; color: #15803d; }
+  .car.bad { border-style: solid; border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+  .car-label { font-size: 13px; font-weight: 800; color: #64748b; text-align: center; margin-top: 18px; }
+  .train-col { display: flex; flex-direction: column; align-items: stretch; }
+  .rail { width: 100%; height: 5px; background: repeating-linear-gradient(90deg,#94a3b8 0 14px,transparent 14px 20px); border-radius: 3px; margin-top: 16px; }
+  .arrow { font-size: 13px; font-weight: 800; color: #94a3b8; width: 100%; text-align: center; }
+
+  /* ---- word check ---- */
+  .wordcars { display: flex; gap: 6px; justify-content: center; }
+  .wcar { width: 62px; height: 70px; border-radius: 12px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 44px; font-weight: 800; }
+  .wcar.found { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; color: #15803d; }
+  .wcar.empty { border-style: dashed; border-color: #cbd5e1; box-shadow: none; color: transparent; }
+
+  /* ---- fix letter ---- */
+  .board { width: 300px; height: 300px; border-radius: 16px; background-color: #fff;
+    background-image: linear-gradient(#dbe7f3 1px, transparent 1px), linear-gradient(90deg, #dbe7f3 1px, transparent 1px);
+    background-size: 30px 30px; border: 2px solid #e2e8f0; }
+
+  /* ---- find all ---- */
+  .field { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+  .field span { aspect-ratio: 1; display: grid; place-items: center; font-size: 34px; font-weight: 800; color: #374151; border-radius: 50%; }
+  .field span.circ { box-shadow: inset 0 0 0 3.5px #22c55e; color: #15803d; }
+  .counter { display: flex; gap: 6px; }
+  .counter i { width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; display: block; }
+  .counter i.on { background: #22c55e; }
+
+  /* ---- adult screen ---- */
+  .adult .screen { background: #f7f6f2; }
+  .adult .stage { align-items: stretch; gap: 12px; padding: 14px 14px; }
+  .sect { font-size: 13px; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+  .groups { display: flex; flex-wrap: wrap; gap: 6px; }
+  .groups span { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: #fff; border: 1.5px solid #d1d5db; }
+  .groups span.on { background: #4a9b8f; border-color: #4a9b8f; color: #fff; }
+  .abc { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+  .abc span { aspect-ratio: 1; border-radius: 9px; background: #fff; border: 1.5px solid #e5e7eb; display: grid; place-items: center; font-weight: 800; font-size: 17px; color: #9ca3af; position: relative; }
+  .abc span.on { border-color: #4a9b8f; background: #e7f3f1; color: #1f2937; }
+  .abc span.on::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--d, #d1d5db); }
+  .abc span.v { color: #dc2626; } .abc span.on.v { color: #dc2626; }
+  .modes { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .mode { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #fff; border-radius: 12px; border: 1.5px solid #e5e7eb; font-size: 14px; font-weight: 700; }
+  .mode .n { width: 26px; height: 26px; border-radius: 8px; background: #e7f3f1; color: #2a6b60; display: grid; place-items: center; font-size: 12px; font-weight: 900; flex: 0 0 auto; }
+  .mode .n.b { background: #e0ecff; color: #1d4ed8; }
+  .mode small { display: block; font-weight: 600; color: #6b7280; font-size: 12px; }
+  .btn { background: #4a9b8f; color: #fff; font-weight: 800; text-align: center; padding: 12px; border-radius: 14px; box-shadow: 0 4px 0 #2a6b60; font-size: 16px; }
+
+  .fn { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+  .fh { font-family: "Comic Sans MS", "Segoe Print", cursive; font-weight: 400; }
+  .fm { font-family: "Courier New", monospace; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Буквы и звуки — макеты v01</h1>
+  <p class="lead">Черновые макеты для оценки, до разговора с учителем. Тема — развитие <code>phonetic_analysis</code>,
+  концепция: <code>docs/letters-and-sounds.md</code>. Картинки — эмодзи как заглушки (в теме будут фото или
+  иллюстрации), шапка с звёздами — обычная шапка сессии. Под каждым экраном — что происходит и что я
+  сам ещё не решил.</p>
+
+  <!-- ================= ВЗРОСЛЫЙ ================= -->
+  <h2 class="block">0. Взрослый: пройденные буквы и лестница</h2>
+  <p class="block-note">Учитель не «вводит буквы» в отдельном месте — пройденные буквы и есть выбранные
+  карточки темы (как в «Учим словенский»). Всё остальное в теме строится только из них.</p>
+  <div class="row">
+    <div class="shot">
+      <h3>Выбор букв <small>«Изменить» темы</small></h3>
+      <div class="phone adult"><div class="screen">
+        <div class="topbar"><span>← Буквы и звуки</span><span>Миша</span></div>
+        <div class="stage">
+          <div class="sect">Группы по букварю</div>
+          <div class="groups"><span class="on">1: А У О М С</span><span class="on">2: Х Ш Ы</span><span>3: Л Н Р</span><span>4: К П Т И</span><span>…</span></div>
+          <div class="sect">Пройденные буквы — 9</div>
+          <div class="abc">
+            <span class="on v" style="--d:#22c55e">А</span><span>Б</span><span>В</span><span>Г</span><span>Д</span><span class="v">Е</span><span class="v">Ё</span><span>Ж</span>
+            <span>З</span><span class="v">И</span><span>Й</span><span>К</span><span>Л</span><span class="on" style="--d:#22c55e">М</span><span>Н</span><span class="on v" style="--d:#22c55e">О</span>
+            <span>П</span><span>Р</span><span class="on" style="--d:#f59e0b">С</span><span>Т</span><span class="on v" style="--d:#22c55e">У</span><span>Ф</span><span class="on" style="--d:#f59e0b">Х</span><span>Ц</span>
+            <span>Ч</span><span class="on" style="--d:#ef4444">Ш</span><span>Щ</span><span>Ъ</span><span class="on v">Ы</span><span>Ь</span><span class="v">Э</span><span class="v">Ю</span>
+            <span class="v">Я</span>
+          </div>
+          <div class="sect">Занятие</div>
+          <div class="modes">
+            <div class="mode"><span class="n">А1</span><div>Найди букву<small>3 буквы · похожие: нет</small></div></div>
+            <div class="mode"><span class="n">А2</span><div>Найди такую же</div></div>
+            <div class="mode"><span class="n">А3</span><div>Собери букву</div></div>
+            <div class="mode"><span class="n b">Б3</span><div>Звук в начале?<small>+ проверка по слову</small></div></div>
+          </div>
+          <div class="spacer"></div>
+          <div class="btn">Начать</div>
+        </div>
+      </div></div>
+      <div class="note"><b>Точки под буквами</b> — обычный прогресс по понятию: зелёная — знает,
+      жёлтая — путает, красная — ошибки. Гласные красным, как в «Магнитной азбуке».
+      <span class="q">Вопрос к себе: группы по какому букварю? Пока выдуманы по Жуковой. И нужен ли
+      учителю экран «какие буквы путает» — это уже статистика, не в первой версии.</span></div>
+    </div>
+  </div>
+
+  <!-- ================= БЛОК А ================= -->
+  <h2 class="block">А. Буква как образ</h2>
+  <p class="block-note">Все буквы на экране — из пройденных. Если пройденных мало (3–4), отвлекалки
+  добираются из похожих по начертанию, и тогда ребёнок видит незнакомую букву — это осознанный выбор, не баг.</p>
+  <div class="row">
+    <div class="shot">
+      <h3>А1. Найди букву</h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>4 / 10</span><span class="stars">★★★☆</span></div>
+        <div class="stage">
+          <div class="instr">Найди букву</div>
+          <div class="target"><div class="big-letter">Ш</div><div class="speaker">🔊</div></div>
+          <div class="spacer"></div>
+          <div class="tiles c3">
+            <div class="tile">М</div><div class="tile bad">Щ</div><div class="tile">С</div>
+            <div class="tile ok">Ш</div><div class="tile">Х</div><div class="tile">И</div>
+          </div>
+          <div class="spacer"></div>
+        </div>
+      </div></div>
+      <div class="note"><b>Уровни</b> (параметр «Похожие буквы»): нет → по элементам (Ш/Щ/И) →
+      зеркальные (Э/С, Я/R-подобные ошибки). Число букв 3 → 6. Показан момент ошибки на Щ и верного Ш.
+      <span class="q">Образец показывать или только озвучивать? Без образца — это уже «узнай по
+      звуку», задача другого уровня. Я бы сделал два варианта: «вижу и ищу» и «слышу и ищу».</span></div>
+    </div>
+
+    <div class="shot">
+      <h3>А2. Найди такую же</h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>2 / 10</span><span class="stars">★☆☆☆</span></div>
+        <div class="stage">
+          <div class="instr">Найди такую же</div>
+          <div class="big-letter">М</div>
+          <span class="chip">разные шрифты</span>
+          <div class="spacer"></div>
+          <div class="tiles c4">
+            <div class="tile fn">Л</div><div class="tile fh ok">м</div><div class="tile fm">П</div><div class="tile fn">Н</div>
+          </div>
+          <div class="spacer"></div>
+        </div>
+      </div></div>
+      <div class="note"><b>Уровни</b>: тот же шрифт → другой шрифт и размер → заглавная ↔ строчная
+      (на макете: М ищем среди строчной «м» рукописного вида и других).
+      <span class="q">Отличие от А1 тонкое. Возможно, А2 стоит заменить на «мемори» — открыть две
+      одинаковые карточки. Это игра в чистом виде, и учитель сама её назвала «найди такую же».</span></div>
+    </div>
+
+    <div class="shot">
+      <h3>А3. Собери букву <small>из «Печатных букв»</small></h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>3 / 8</span><span class="stars">★★☆☆</span></div>
+        <div class="stage">
+          <div class="instr">Почини букву</div>
+          <div class="board">
+            <svg viewBox="0 0 300 300" width="300" height="300">
+              <!-- ghost of К -->
+              <g stroke="#e2e8f0" stroke-width="16" stroke-linecap="round" fill="none">
+                <line x1="105" y1="60" x2="105" y2="240"/><line x1="105" y1="150" x2="195" y2="60"/><line x1="105" y1="150" x2="195" y2="240"/>
+              </g>
+              <!-- placed vertical -->
+              <line x1="105" y1="60" x2="105" y2="240" stroke="#1f2937" stroke-width="14" stroke-linecap="round"/>
+              <!-- displaced diagonals -->
+              <line x1="170" y1="200" x2="250" y2="130" stroke="#1f2937" stroke-width="14" stroke-linecap="round"/>
+              <line x1="140" y1="40" x2="240" y2="70" stroke="#3b82f6" stroke-width="14" stroke-linecap="round"/>
+              <circle cx="190" cy="55" r="9" fill="#3b82f6"/>
+            </svg>
+          </div>
+          <div class="spacer"></div>
+        </div>
+      </div></div>
+      <div class="note"><b>Берём как есть</b> из <code>print_letters</code> («Почини букву»): элементы
+      сдвинуты и повёрнуты, ребёнок тянет их на место, магнит защёлкивает. Здесь — только буквы из набора.
+      Бледный «призрак» буквы — подсказка уровня «Легко».
+      <span class="q">«Собирать из элементов» учитель могла понимать иначе: россыпь палочек и дуг
+      рядом с пустым полем, собрать с нуля. Это сложнее «почини» и на экране неудобно. Предлагаю
+      показать ей «почини» и спросить.</span></div>
+    </div>
+
+    <div class="shot">
+      <h3>А4. Найди все</h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>1 / 5</span><span class="stars">☆☆☆☆</span></div>
+        <div class="stage">
+          <div class="target"><div class="big-letter" style="width:74px;height:74px;font-size:50px">О</div><div class="speaker">🔊</div></div>
+          <div class="counter"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <div class="field">
+            <span>С</span><span class="circ">О</span><span>А</span><span>У</span><span>С</span>
+            <span>М</span><span>У</span><span>С</span><span class="circ">О</span><span>А</span>
+            <span>О</span><span>Х</span><span>М</span><span>А</span><span>С</span>
+            <span>У</span><span>А</span><span>Ш</span><span>У</span><span>О</span>
+            <span>М</span><span>С</span><span>У</span><span>Х</span><span>М</span>
+          </div>
+        </div>
+      </div></div>
+      <div class="note"><b>Как «Найди и обведи»</b> из печатных листов, но на экране. Кружочки сверху —
+      сколько осталось найти. Хорошо работает именно на повторе: О среди С и У — настоящая работа глаза.
+      <span class="q">Пожалуй, самый «игровой» из графических режимов при самом дешёвом коде. Если
+      резать блок А — оставил бы А1, А3, А4.</span></div>
+    </div>
+  </div>
+
+  <!-- ================= БЛОК Б ================= -->
+  <h2 class="block">Б. Звук в слове + В. проверка по слову</h2>
+  <p class="block-note">Схема позиции — поезд: паровоз — начало, последний вагон — конец. Паровоз слева, как начало
+  слова при чтении, значит поезд едет влево — против направления чтения (см. вопрос внизу). Слово всегда звучит (🔊 на картинке), без звука режимы не работают.
+  Все слова — по правилам подбора из концепции (§6): звук совпадает с буквой.</p>
+  <div class="row">
+    <div class="shot">
+      <h3>Б3. Звук в начале? <small>2 части</small></h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★★☆</span></div>
+        <div class="stage">
+          <div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">М</div>
+            <div class="picture">🌺<div class="speaker">🔊</div></div></div>
+          <div class="instr" style="font-size:16px">Где звук [м] в слове «мак»?</div>
+          <div class="spacer"></div>
+          <div class="train">
+            <div class="train-col" style="flex:0 0 96px"><div class="car loco ok"><span class="chim"></span><span class="cab"></span>М</div><div class="car-label">в начале</div></div>
+            <div class="train-col" style="flex:1 1 auto"><div class="car"></div><div class="car-label">не в начале</div></div>
+          </div>
+          <div class="arrow">← поезд едет, паровоз впереди</div>
+          <div class="spacer"></div>
+        </div>
+      </div></div>
+      <div class="note"><b>Первая ступень.</b> Только «в начале / не в начале» — то, с чего учитель
+      предлагает начинать. Половина слов звук содержит в начале, половина — в другом месте (или вовсе нет?).
+      <span class="q">Решить: бывают ли слова без звука вообще? Тогда нужна третья кнопка «нет звука», и
+      поезд уже не так ясен. Я бы на первой ступени дал только слова, где звук есть.</span></div>
+    </div>
+
+    <div class="shot">
+      <h3>Б5. Начало, середина, конец</h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+        <div class="stage">
+          <div class="with-letter"><div class="big-letter" style="width:80px;height:80px;font-size:54px">З</div>
+            <div class="picture">🐐<div class="speaker">🔊</div></div></div>
+          <div class="instr" style="font-size:16px">Где звук [з] в слове «коза»?</div>
+          <div class="spacer"></div>
+          <div class="train">
+            <div class="train-col" style="flex:0 0 96px"><div class="car loco"><span class="chim"></span><span class="cab"></span></div><div class="car-label">начало</div></div>
+            <div class="train-col" style="flex:1 1 0"><div class="car hint"></div><div class="car-label">середина</div></div>
+            <div class="train-col" style="flex:1 1 0"><div class="car"></div><div class="car-label">конец</div></div>
+          </div>
+          <div class="arrow">← поезд едет, паровоз впереди</div>
+          <div class="spacer"></div>
+        </div>
+      </div></div>
+      <div class="note"><b>Высокий уровень.</b> Ребёнок нажимает вагон (на макете — момент нажатия на
+      середину). Между Б3 и Б5 есть промежуточная ступень Б4 «начало или конец» — тот же поезд, но
+      средний вагон пустой и неактивный.
+      <span class="q">Подписи «начало/середина/конец» — для взрослого и читающего ребёнка. Для
+      нечитающего их можно убрать, оставить только образ поезда.</span></div>
+    </div>
+
+    <div class="shot">
+      <h3>В. Проверка по слову <small>после ответа</small></h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+        <div class="stage">
+          <div class="picture" style="width:130px;height:110px;font-size:70px">🐐<div class="speaker">🔊</div></div>
+          <div class="instr" style="font-size:16px">Найди букву З в слове</div>
+          <div class="wordcars"><div class="wcar">К</div><div class="wcar">О</div><div class="wcar found">З</div><div class="wcar">А</div></div>
+          <div class="arrow">↓</div>
+          <div class="train">
+            <div class="train-col" style="flex:0 0 96px"><div class="car loco solid"><span class="chim"></span><span class="cab"></span></div><div class="car-label">начало</div></div>
+            <div class="train-col" style="flex:1 1 0"><div class="car ok">З</div><div class="car-label">середина ✓</div></div>
+            <div class="train-col" style="flex:1 1 0"><div class="car solid"></div><div class="car-label">конец</div></div>
+          </div>
+          <div class="spacer"></div>
+        </div>
+      </div></div>
+      <div class="note"><b>То, о чём просила учитель:</b> после ответа на звук появляется написанное
+      слово, ребёнок нажимает букву, и она «едет» в тот вагон, который он выбрал. Совпало — зелёный.
+      Если ребёнок ответил неверно, буква приедет в правильный вагон, а выбранный им покажется красным —
+      без штрафа, это объяснение, а не вторая проверка.
+      <span class="q">Если в слове есть непройденные буквы (К, З), нечитающий ребёнок всё равно найдёт
+      З по образцу сверху. Но это работает, только если целевая буква пройдена — следить при подборе.</span></div>
+    </div>
+
+    <div class="shot">
+      <h3>Б6. Звуковая схема <small>самый высокий</small></h3>
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="x">✕</span><span>2 / 6</span><span class="stars">★☆☆☆</span></div>
+        <div class="stage">
+          <div class="picture">🐱<div class="speaker">🔊</div></div>
+          <div class="instr" style="font-size:16px">Посади звуки в вагоны</div>
+          <div class="spacer"></div>
+          <div class="train">
+            <div class="train-col" style="flex:0 0 96px"><div class="car loco ok"><span class="chim"></span><span class="cab"></span>К</div></div>
+            <div class="train-col" style="flex:1 1 0"><div class="car hint">О</div></div>
+            <div class="train-col" style="flex:1 1 0"><div class="car"></div></div>
+          </div>
+          <div class="rail" style="margin-top:4px"></div>
+          <div class="spacer"></div>
+          <div class="tiles c4" style="width:80%">
+            <div class="tile dim" style="font-size:38px">К</div><div class="tile dim" style="font-size:38px">О</div><div class="tile" style="font-size:38px">Т</div><div class="tile" style="font-size:38px">М</div>
+          </div>
+        </div>
+      </div></div>
+      <div class="note"><b>Вагон на каждый звук</b>, буквы перетаскиваются. Только слова из 3–4 звуков
+      и только из пройденных букв (здесь К, О, Т + лишняя М).
+      <span class="q">Это уже не «позиция», а полный звуковой анализ — учитель его не просила.
+      Держу как потолок лестницы; в первую версию не берём.</span></div>
+    </div>
+  </div>
+
+  <h2 class="block">Что я бы оценил до показа учителю</h2>
+  <p class="block-note">
+  1) Не перегружен ли блок А: четыре режима на один навык «узнать букву». Мой выбор — А1, А3, А4.<br>
+  2) Поезд против простых трёх клеточек (схема, привычная логопедам). Поезд нагляднее для начала/конца,
+  но в Б6 он превращается в те же клеточки. И у поезда есть противоречие: паровоз слева = начало слова, но тогда
+  поезд едет влево, против чтения. Можно не рисовать движение вовсе — стоящий поезд, «первый вагон — паровоз».<br>
+  3) Проверка по слову — включена по умолчанию или как отдельная ступень? Она удваивает длину задания.<br>
+  4) Первая волна: блок А + Б3 + В на 8–10 буквах — достаточно, чтобы учитель могла попробовать с детьми.
+  </p>
+</div>
+</body>
+</html>

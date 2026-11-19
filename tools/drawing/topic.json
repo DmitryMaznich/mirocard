@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.40.0",
+    "version": "0.42.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -34,7 +34,7 @@
       },
       "methodology": {
         "summary": "Один тап — один небольшой шаг. Ребёнок повторяет его на бумаге и сам выбирает, когда продолжить.",
-        "text": "Положите рядом бумагу и карандаши. Касание образца запускает один контур или закрашивание одного участка. Предыдущие линии остаются видимыми. Следующий шаг начинается только после нового касания. Можно повторить шаг, вернуться назад или поставить анимацию на паузу. На экране ребёнок смотрит образец, рисует на бумаге. Приложение не оценивает качество рисунка. Перед каждым шагом показан большой заточенный карандаш нужного цвета, без текстовой подсказки. Сначала рисуем весь контур чёрным, затем последовательно закрашиваем все участки одним цветом и только потом меняем карандаш.",
+        "text": "Положите рядом бумагу и карандаши. Касание образца запускает один контур или закрашивание одного участка. Предыдущие линии остаются видимыми. Следующий шаг начинается только после нового касания. Можно повторить шаг, вернуться назад или поставить анимацию на паузу. На экране ребёнок смотрит образец, рисует на бумаге. Приложение не оценивает качество рисунка. Перед каждым шагом показан большой заточенный карандаш нужного цвета, без текстовой подсказки. В рисунках с несколькими героями сначала полностью рисуем и раскрашиваем одного, затем переходим к следующему. В остальных рисунках сначала рисуем контур, затем раскрашиваем его. Перед рисунком на горизонтальном листе показана подготовка листа и экрана.",
         "tips": [
           "Подберите удобную скорость анимации.",
           "При необходимости разделите рисунок на несколько коротких подходов."
@@ -605,7 +605,7 @@
       "id": "peppa_george",
       "conceptId": "peppa_george",
       "primary": true,
-      "label": "Пеппа и Джордж",
+      "label": "Пеппа и Джордж на горке",
       "image": "media/peppa_george.svg",
       "lessonFile": "lessons/peppa_george.json"
     },
@@ -640,6 +640,78 @@
       "label": "Собачка",
       "image": "media/dog.svg",
       "lessonFile": "lessons/dog.json"
+    },
+    {
+      "id": "snowman_glasses",
+      "conceptId": "snowman_glasses",
+      "primary": true,
+      "label": "Снеговик в очках",
+      "image": "media/snowman_glasses.svg",
+      "lessonFile": "lessons/snowman_glasses.json"
+    },
+    {
+      "id": "cute_baby",
+      "conceptId": "cute_baby",
+      "primary": true,
+      "label": "Малыш с бантиком",
+      "image": "media/cute_baby.svg",
+      "lessonFile": "lessons/cute_baby.json"
+    },
+    {
+      "id": "house_tree_sun",
+      "conceptId": "house_tree_sun",
+      "primary": true,
+      "label": "Домик с деревом и солнышком",
+      "image": "media/house_tree_sun.svg",
+      "lessonFile": "lessons/house_tree_sun.json"
+    },
+    {
+      "id": "peppa_collection_peppa_george",
+      "conceptId": "peppa_collection_peppa_george",
+      "primary": true,
+      "label": "Пеппа и Джордж",
+      "image": "media/peppa_collection_peppa_george.svg",
+      "lessonFile": "lessons/peppa_collection_peppa_george.json"
+    },
+    {
+      "id": "peppa_collection_mummy_daddy",
+      "conceptId": "peppa_collection_mummy_daddy",
+      "primary": true,
+      "label": "Мама Свинка и Папа Свин",
+      "image": "media/peppa_collection_mummy_daddy.svg",
+      "lessonFile": "lessons/peppa_collection_mummy_daddy.json"
+    },
+    {
+      "id": "peppa_collection_suzy_danny",
+      "conceptId": "peppa_collection_suzy_danny",
+      "primary": true,
+      "label": "Сьюзи и Дэнни",
+      "image": "media/peppa_collection_suzy_danny.svg",
+      "lessonFile": "lessons/peppa_collection_suzy_danny.json"
+    },
+    {
+      "id": "peppa_collection_pedro_candy",
+      "conceptId": "peppa_collection_pedro_candy",
+      "primary": true,
+      "label": "Педро и Кэнди",
+      "image": "media/peppa_collection_pedro_candy.svg",
+      "lessonFile": "lessons/peppa_collection_pedro_candy.json"
+    },
+    {
+      "id": "peppa_collection_rebecca_emily",
+      "conceptId": "peppa_collection_rebecca_emily",
+      "primary": true,
+      "label": "Ребекка и Эмили",
+      "image": "media/peppa_collection_rebecca_emily.svg",
+      "lessonFile": "lessons/peppa_collection_rebecca_emily.json"
+    },
+    {
+      "id": "peppa_collection_zoe_freddy",
+      "conceptId": "peppa_collection_zoe_freddy",
+      "primary": true,
+      "label": "Зои и Фредди",
+      "image": "media/peppa_collection_zoe_freddy.svg",
+      "lessonFile": "lessons/peppa_collection_zoe_freddy.json"
     },
     {
       "id": "first_lines:short_line",

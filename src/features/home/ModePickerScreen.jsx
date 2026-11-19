@@ -291,6 +291,7 @@ export function LegacyModePickerScreen({ hiddenModeIds = [], onBack = null, topI
             <li className={`mode-item-row${isMyPeople && !myPeopleModeAvailable(mode) ? " mode-item-row--disabled" : ""}`}>
               {preview ? <ModePickerPreviewRow topicId={activeTopicId} mode={mode}
                 title={getModeTitle(mode)} index={index}
+                numbered={Boolean(topicRecord.meta?.numberedModes)}
                 test={isTestMode(mode)}
                 disabled={!myPeopleModeAvailable(mode)} recent={recent?.modeId === mode.id}
                 onSelect={() => pickMode(mode)} onInfo={() => setMethodology(mode)}

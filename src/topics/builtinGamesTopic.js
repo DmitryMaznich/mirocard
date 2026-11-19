@@ -4,14 +4,14 @@ export function buildGamesTopicRecord() {
     meta: {
       id: "games",
       renderer: "games",
-      version: "1.3.0",
+      version: "1.4.3",
       title: { ru: "Игры", sl: "Igre" },
       avatar: "media/avatar_games.svg",
       builtin: true,
       about: {
-        description: "Играйте вместе с ребёнком: гонки, строительство небоскрёбов и наполнение стаканов с настоящими кубиками.",
+        description: "Игры с ребёнком и настоящими кубиками: гонки, строительство небоскрёбов, наполнение стаканов и перетягивание каната.",
         goals: ["Сравнивать числа от 1 до 6.", "Соблюдать правила совместной игры."],
-        flow: ["Бросьте по кубику и отметьте числа.", "Сравните результаты: машинки поедут, краны построят этажи, а стаканы наполнятся водой."],
+        flow: ["Бросьте по кубику и отметьте числа.", "Сравните результаты, чтобы запустить ход."],
       },
     },
     modes: [{
@@ -31,6 +31,9 @@ export function buildGamesTopicRecord() {
     }, {
       id: "water_fill", type: "water_fill", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
       ui: { title: { ru: "Наливаем до краёв" }, instruction: { ru: "У кого вода первой польётся через край?" } },
+    }, {
+      id: "tug_of_war", type: "tug_of_war", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
+      ui: { title: { ru: "Перетягивание каната" }, instruction: { ru: "Кто первым дотянет канат до отметки 15?" } },
     }],
     cards: [],
     installedAt: "builtin",

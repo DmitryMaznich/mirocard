@@ -31,6 +31,8 @@ export const BUILTIN_TOPICS = [
         id: "streak",
         type: "streak",
         evaluation: "instant",
+        // One placeholder card: a «Понятия · 1 из 1» picker would mean nothing.
+        hideConceptPicker: true,
         ui: {
           title: { ru: "5 из 5" },
           instruction: { ru: "Отмечайте ответы ребёнка" },

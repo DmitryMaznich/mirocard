@@ -1,6 +1,7 @@
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
+import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 const SUPPORT_EMAIL = "hello@mironium.com";
@@ -32,14 +33,16 @@ function FaqItem({ item, isOpen, onToggle, onOpenLink }) {
 
 export default function HelpScreen() {
   const { t: tr } = useUiTranslation();
+  // The new interface has no «Тема» / «Режим» cards on Home: its own answer.
+  const { enabled: preview } = useTopicUiPreview();
   const FAQ_ITEMS = [
     {
       q: tr("help.studentQuestion"),
       a: tr("help.studentAnswer"),
     },
     {
-      q: tr("help.modeQuestion"),
-      a: tr("help.modeAnswer"),
+      q: tr(preview ? "help.modeQuestionPreview" : "help.modeQuestion"),
+      a: tr(preview ? "help.modeAnswerPreview" : "help.modeAnswer"),
     },
     {
       q: tr("help.dataQuestion"),

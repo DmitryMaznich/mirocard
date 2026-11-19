@@ -265,7 +265,13 @@ export function handleAdvance(state) {
   if (state.mode?.rewardPerBlock) state = blockReward(state);
   const nextIndex = state.taskIndex + 1;
   if (nextIndex >= state.tasks.length) {
-    if (state.mode?.loop) {
+    // An instant-scored mode goes round until the adult ends it (sessionEndsOnItsOwn) — also
+    // when the last task is left by an answer with help or by «дальше», not only by a plain
+    // right answer (handleInstantCorrect). Before 2026-11-18 those two paths ended the lesson
+    // («Буквы и звуки» → «Собери слово» reached the end).
+    const goesRound = state.mode?.loop
+      || (state.mode?.evaluation === "instant" && !state.mode?.finite && !state.isDeckMode);
+    if (goesRound) {
       return {
         ...rewardAttemptComplete(state),
         status: "task_active",

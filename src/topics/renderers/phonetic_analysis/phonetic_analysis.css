@@ -1,119 +1,259 @@
-.pa-screen {
+/* «Буквы и звуки» (phonetic_analysis). Literacy palette: cream paper, teal
+   accent; the sound scheme in dark ink, the child's chip in blue. Mockups:
+   docs/mockups/letters-and-sounds/letters-and-sounds-teacher.html */
+
+.pa-stage {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 12px;
-  gap: 16px;
-  box-sizing: border-box;
-  background: #f0f4f8;
+  align-items: center;
+  gap: clamp(10px, 2.2vh, 18px);
+  padding: 12px 16px calc(16px + var(--app-safe-bottom, 0px));
+  background: #fdfcf9;
   user-select: none;
-}
-
-.pa-stimulus {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-}
-
-.pa-picture {
-  border-radius: 18px;
-  background: #fff;
-  border: 2.5px solid #e2e8f0;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.09);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  box-sizing: border-box;
   overflow: hidden;
 }
+.pa-stage--center { justify-content: center; }
 
-.pa-picture-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.pa-head { display: flex; align-items: center; justify-content: center; gap: clamp(14px, 4vw, 26px); }
+.pa-prompt { font-weight: 800; font-size: clamp(17px, 2.4vw, 22px); color: #374151; text-align: center; }
+.pa-prompt b { color: #2563eb; }
+
+/* --- picture: tap to hear the word --- */
+.pa-pic {
+  position: relative;
+  width: clamp(130px, 34vw, 190px);
+  aspect-ratio: 1.12;
+  border-radius: 20px;
+  background: #fff;
+  border: 2.5px solid #e2e8f0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
+.pa-pic img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.pa-pic__emoji { font-size: clamp(64px, 17vw, 100px); line-height: 1; pointer-events: none; }
+.pa-pic--playing { border-color: #4a9b8f; box-shadow: 0 0 0 6px rgba(74, 155, 143, 0.22), 0 0 0 14px rgba(74, 155, 143, 0.1); }
+.pa-wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; pointer-events: none; }
+.pa-pic--playing .pa-wave { stroke: #4a9b8f; }
 
-.pa-picture-emoji {
+/* --- sound scheme screen: the question with its letter, then the photo as
+   large as the free height allows (container units keep it square) --- */
+.pa-prompt--ask { display: flex; align-items: center; justify-content: center; gap: 0.4em; font-size: clamp(20px, 5.4vw, 28px); line-height: 1; }
+.pa-ask {
+  display: inline-grid; place-items: center;
+  min-width: 1.7em; height: 1.7em; padding: 0 0.15em; box-sizing: border-box;
+  border: 3px solid #4a9b8f; border-radius: 0.4em; background: #fff;
+  font-size: 1.45em; font-weight: 900; color: #1f2937;
+  font-family: inherit; line-height: 1; cursor: default; -webkit-tap-highlight-color: transparent;
+}
+.pa-ask--sound { cursor: pointer; box-shadow: 0 3px 0 #2a6b60; }
+.pa-ask--sound:active { transform: translateY(3px); box-shadow: none; }
+.pa-ask-q { margin-left: -0.25em; }
+.pa-hero { flex: 1 1 0; min-height: 140px; width: 100%; container-type: size; display: flex; align-items: center; justify-content: center; }
+.pa-pic--hero { width: min(100cqw, 100cqh, 560px); height: min(100cqw, 100cqh, 560px); aspect-ratio: auto; border-radius: clamp(20px, 6cqmin, 32px); }
+.pa-pic--hero .pa-pic__emoji { font-size: min(40cqmin, 220px); }
+.pa-pic--hero .pa-wave { width: 30px; height: 30px; right: 12px; bottom: 12px; }
+
+/* --- letter plate (the sound being asked about) --- */
+.pa-plate {
+  width: clamp(72px, 19vw, 96px);
+  height: clamp(72px, 19vw, 96px);
+  border-radius: 20px;
+  background: #fff;
+  border: 3px solid #4a9b8f;
+  display: grid;
+  place-items: center;
+  font-size: clamp(46px, 12vw, 64px);
+  font-weight: 800;
+  color: #1f2937;
   line-height: 1;
 }
+.pa-plate--big { width: clamp(100px, 26vw, 130px); height: clamp(100px, 26vw, 130px); font-size: clamp(66px, 17vw, 90px); }
 
-.pa-target-letter {
-  font-weight: 900;
-  font-size: clamp(2.5rem, 10vw, 4rem);
-  color: #1e293b;
-  text-align: center;
-}
-
-.pa-blank-word {
-  display: flex;
-  gap: 4px;
-  font-weight: 800;
-  font-size: clamp(1.6rem, 7vw, 2.6rem);
-  color: #1e293b;
-}
-
-.pa-blank-char {
-  min-width: 0.7em;
-  text-align: center;
-}
-
-.pa-blank-slot {
-  min-width: 0.7em;
-  text-align: center;
-  border-bottom: 4px solid #94a3b8;
-  color: transparent;
-}
-
-.pa-options {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  flex: 1;
-}
-
-.pa-zones {
-  display: flex;
-  gap: 12px;
-  flex: 1;
-}
-
-.pa-option,
-.pa-zone {
-  border-radius: 14px;
-  border: 3px solid #e2e8f0;
+/* --- sound scheme --- */
+.pa-scheme-wrap { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+.pa-scheme { display: flex; justify-content: center; }
+/* «Где звук?»: the cells are the buttons — tap where the sound is */
+.pa-scheme--tap .pa-cell:not(.pa-cell--off) { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pa-scheme--tap .pa-cell:not(.pa-cell--off):active { background: #eff6ff; border-color: #3b82f6; }
+.pa-cell {
+  /* --n: cells in the row (SchemeTask) — a long word shrinks to fit the screen */
+  --cell: min(clamp(50px, 15vw, 84px), calc((100vw - 40px) / var(--n, 6)));
+  position: relative;
+  width: var(--cell);
+  height: var(--cell);
+  margin-left: -3px;
+  border: 3px solid #334155;
   background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  touch-action: none;
+}
+.pa-cell:first-child { margin-left: 0; border-radius: 12px 0 0 12px; }
+.pa-cell:last-child { border-radius: 0 12px 12px 0; }
+.pa-cell--bar { width: calc(var(--cell) * 2.8); }
+.pa-cell--off { background: repeating-linear-gradient(45deg, #f1f5f9 0 6px, #e2e8f0 6px 12px); border-color: #94a3b8; }
+.pa-cell--slot { border-style: dashed; border-color: #3b82f6; background: #eff6ff; z-index: 1; }
+.pa-cell--ok { background: #dcfce7; border-color: #16a34a; z-index: 2; }
+.pa-cell--bad { background: #fef2f2; border-color: #ef4444; z-index: 2; }
+.pa-cell--here { border-color: #16a34a; box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.45); z-index: 3; }
+.pa-cell--dim .pa-cell__letter { color: #94a3b8; }
+.pa-cell__letter { font-size: calc(var(--cell) * 0.62); font-weight: 800; color: #1f2937; line-height: 1; }
+.pa-cell--ok .pa-cell__letter { color: #15803d; }
+.pa-cell--bad .pa-cell__letter { color: #b91c1c; }
+.pa-cell__finger { position: absolute; bottom: -34px; font-size: 26px; }
+
+.pa-arrow { display: flex; align-items: center; justify-content: center; width: 70%; max-width: 320px; margin-top: 12px; }
+.pa-arrow i { flex: 1; height: 3px; background: #94a3b8; }
+.pa-arrow b { width: 0; height: 0; border-left: 12px solid #94a3b8; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+
+/* --- chip --- */
+.pa-chip { display: block; width: 38px; height: 38px; border-radius: 50%; background: #2563eb; box-shadow: 0 3px 0 #1e40af; pointer-events: none; }
+.pa-chip--big { width: 54px; height: 54px; pointer-events: auto; touch-action: none; cursor: grab; }
+.pa-chip--ghosted { opacity: 0.25; }
+.pa-chip--top { position: absolute; top: -18px; right: -12px; width: 26px; height: 26px; }
+.pa-chip--bad { background: #ef4444; box-shadow: 0 3px 0 #b91c1c; }
+
+/* --- tray and tiles --- */
+.pa-tray { flex: 0 0 auto; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; min-height: 72px; align-items: center; }
+.pa-tile {
+  width: clamp(58px, 15vw, 72px);
+  height: clamp(58px, 15vw, 72px);
+  border-radius: 16px;
+  background: #fff;
+  border: 2.5px solid #e2e8f0;
+  box-shadow: 0 4px 0 #d6dde6;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: clamp(34px, 9vw, 44px);
   font-weight: 800;
-  font-size: clamp(1.4rem, 6vw, 2.2rem);
-  color: #1e293b;
-  transition: border-color 0.15s, background 0.15s;
-  touch-action: manipulation;
-  padding: 8px;
+  color: #1f2937;
+  touch-action: none;
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+}
+.pa-tile:active { transform: translateY(3px); box-shadow: none; }
+.pa-tile--used { opacity: 0.2; }
+.pa-tile--ok { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; }
+.pa-tile--bad { border-color: #ef4444; background: #fef2f2; }
+.pa-tile--faded { opacity: 0.3; }
+.pa-tile--shake { animation: pa-shake 0.4s ease; }
+.pa-tile--option { width: 100%; height: auto; aspect-ratio: 1; touch-action: manipulation; cursor: pointer; font-size: clamp(42px, 11vw, 60px); }
+@keyframes pa-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
 }
 
-.pa-zone {
-  flex: 1;
-  font-size: clamp(0.95rem, 3.5vw, 1.2rem);
+.pa-ghost, .pa-ghost * { pointer-events: none !important; }
+.pa-ghost { position: fixed; transform: translate(-50%, -50%) scale(1.1); z-index: 1000; }
+
+.pa-options { display: grid; gap: 12px; width: min(100%, 420px); margin-top: auto; margin-bottom: auto; }
+.pa-options--3 { grid-template-columns: repeat(3, 1fr); }
+.pa-options--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* --- lotto: the board and the deck of cards, sized from the free space like a
+   board game on the table (owner, 2026-11-18: on a tablet the board was a small
+   460px square and the cards one long row). --b is the board's side. Portrait /
+   phone: the deck under the board in rows of 5 and 4; landscape: a 3×3 deck to
+   the right of the board. Every card keeps its slot. --- */
+.pa-lotto-area { flex: 1 1 0; min-height: 0; width: 100%; container-type: size; display: flex; align-items: center; justify-content: center; }
+.pa-lotto-play {
+  --b: min(100cqw, 66cqh);
+  --gap: calc(var(--b) * 0.03);
+  display: flex; flex-direction: column; align-items: center; gap: calc(var(--b) * 0.05);
+}
+.pa-lotto-play .pa-lotto, .pa-lotto-play .pa-rlotto { width: var(--b); height: var(--b); gap: var(--gap); grid-template-rows: repeat(3, 1fr); }
+.pa-lotto-play .pa-lotto__pic, .pa-lotto-play .pa-rlotto__cell { width: 100%; height: 100%; aspect-ratio: auto; border-radius: calc(var(--b) * 0.045); }
+.pa-lotto-play .pa-rlotto__cell { font-size: calc(var(--b) * 0.17); }
+.pa-lotto-tray { --cols: 5; --tw: var(--b); display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--gap); width: var(--tw); }
+.pa-lotto-tray .pa-lotto-slot { --s: calc((var(--tw) - (var(--cols) - 1) * var(--gap)) / var(--cols) - 1px); width: var(--s); height: var(--s); box-sizing: border-box; }
+.pa-lotto-tray .pa-card { font-size: calc(var(--s) * 0.6); border-radius: calc(var(--s) * 0.2); }
+.pa-lotto-tray .pa-rlotto__thumb { width: 100%; height: 100%; aspect-ratio: auto; border-radius: calc(var(--s) * 0.18); }
+@container (min-aspect-ratio: 5/4) {
+  .pa-lotto-play { --b: min(100cqh, 60cqw); flex-direction: row; gap: calc(var(--b) * 0.08); }
+  .pa-lotto-tray { --cols: 3; --tw: calc(var(--b) * 0.62); height: var(--b); }
 }
 
-.pa-option--correct,
-.pa-zone--correct {
-  border-color: #22c55e;
-  background: #f0fdf4;
+/* --- lotto --- */
+.pa-lotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: min(100%, 460px); }
+.pa-lotto__pic { width: 100%; aspect-ratio: 1; border-radius: 16px; }
+.pa-lotto__pic .pa-pic__emoji { font-size: clamp(44px, 12vw, 72px); }
+.pa-lotto__pic .pa-wave { width: 16px; height: 16px; right: 5px; bottom: 5px; }
+.pa-lotto__pic--ok { border-color: #22c55e; }
+.pa-lotto__pic--bad { border-color: #ef4444; }
+.pa-card {
+  width: clamp(56px, 14vw, 68px);
+  height: clamp(56px, 14vw, 68px);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: clamp(36px, 9vw, 44px);
+  font-weight: 900;
+  color: #1d4ed8;
+  background: rgba(239, 246, 255, 0.72);
+  border: 2px solid rgba(37, 99, 235, 0.5);
+  box-shadow: 0 3px 0 rgba(37, 99, 235, 0.25);
+  touch-action: none;
+  cursor: grab;
 }
+.pa-card--lifted { opacity: 0.2; }
+.pa-card--drag { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18); }
+.pa-card--placed, .pa-card--bad { position: absolute; pointer-events: none; }
+.pa-card--placed {
+  right: 4px; top: 4px; width: 38%; height: 38%;
+  font-size: clamp(20px, 5vw, 28px);
+  color: #15803d; background: rgba(220, 252, 231, 0.85); border-color: rgba(22, 163, 74, 0.7);
+  animation: pa-settle 0.45s ease;
+}
+.pa-card--bad { inset: 8%; width: auto; height: auto; color: #b91c1c; background: rgba(254, 242, 242, 0.6); border-color: rgba(239, 68, 68, 0.8); }
+@keyframes pa-settle { from { inset: 8%; width: 84%; height: 84%; } }
+/* --- lotto «Картинки на буквы»: letters on the board, pictures in the tray --- */
+.pa-rlotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2vw, 14px); width: min(100%, 460px); }
+.pa-rlotto__cell {
+  position: relative; aspect-ratio: 1; border-radius: 16px; overflow: hidden;
+  display: grid; place-items: center;
+  font-size: clamp(48px, 12vw, 76px); font-weight: 900; color: #1f2937;
+  background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+.pa-rlotto__cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: pa-fade 0.4s ease; }
+.pa-rlotto__cell--ok { border-color: #22c55e; }
+.pa-rlotto__cell--bad { border-color: #ef4444; background: #fef2f2; }
+.pa-rlotto__thumb { width: clamp(60px, 16vw, 88px); aspect-ratio: 1; border-radius: 14px; touch-action: none; cursor: grab; }
+.pa-rlotto__thumb--lifted { opacity: 0.2; }
+.pa-rlotto__ghost { width: clamp(60px, 16vw, 88px); aspect-ratio: 1; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18); }
+.pa-rlotto__ghost img { width: 100%; height: 100%; object-fit: cover; }
+@keyframes pa-fade { from { opacity: 0; } }
+.pa-done { font-size: 44px; color: #16a34a; font-weight: 900; }
 
-.pa-option--wrong,
-.pa-zone--wrong {
-  border-color: #ef4444;
-  background: #fef2f2;
+/* --- find all --- */
+.pa-counter { display: flex; gap: 6px; }
+.pa-counter i { width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; }
+.pa-counter i.on { background: #22c55e; }
+.pa-field { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: min(100%, 420px); margin: auto 0; }
+.pa-field__cell {
+  aspect-ratio: 1; border: 0; background: transparent; border-radius: 50%;
+  font: inherit; font-size: clamp(30px, 8vw, 42px); font-weight: 800; color: #374151;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
+.pa-field__cell--found { box-shadow: inset 0 0 0 4px #22c55e; color: #15803d; }
+.pa-field__cell--bad { color: #ef4444; }
 
-.pa-option--disabled,
-.pa-zone--disabled {
-  pointer-events: none;
-}
+.pa-need-more { max-width: 420px; text-align: center; font-size: 18px; line-height: 1.5; color: #374151; }
+.pa-btn { background: #4a9b8f; color: #fff; font: inherit; font-weight: 800; font-size: 17px; border: 0; border-radius: 14px; padding: 12px 28px; box-shadow: 0 4px 0 #2a6b60; cursor: pointer; }
+.pa-btn:active { transform: translateY(3px); box-shadow: none; }

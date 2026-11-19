@@ -1,80 +1,201 @@
-import { pickDistractorLetters } from "./phoneticDistractors";
+// «Буквы и звуки» (phonetic_analysis) — docs/letters-and-sounds.md.
+// Cards are letters ({ conceptId: "М", letter: "М" }): the adult picks the
+// letters the child has learned, every task is built from them. Words with
+// pictures come from mode.words (tools/phonetic_analysis/words.json):
+//   targets [{ letter, position }] — letters whose SOUND equals the letter here
+//   aligned — one letter = one sound, so the sound scheme's cells can show the word
+//   only "letter" | "lotto" — usable only for «which letter does it start with»
 import { shuffle } from "@/shared/utils/shuffle";
+import { pickDistractorLetters } from "./phoneticDistractors";
 
-const OPTION_COUNT = 3;
+// The lesson loops until the adult ends it; a long queue keeps the round from
+// coming back to the same words soon (the session cycles the queue).
+const DEFAULT_COUNT = 40;
+const LOTTO_BOARDS = 10;
+const LOTTO_SIZE = 9;
+// Words that name the same picture: never on one lotto board.
+const SAME_PICTURE = [["кот", "кошка"], ["машина", "такси"], ["мяч", "футбол"], ["шуба", "пальто"], ["чай", "чашка"]];
 
-function buildLetterOptions(targetLetter, letterCase) {
-  const distractors = pickDistractorLetters(targetLetter, OPTION_COUNT - 1);
-  const cast = (l) => (letterCase === "upper" ? l.toUpperCase() : l);
-  const target = { id: targetLetter, letter: cast(targetLetter), isTarget: true };
-  const distractorOptions = distractors.map((l) => ({ id: l, letter: cast(l), isTarget: false }));
-  return shuffle([target, ...distractorOptions]);
-}
+const needMore = (text) => [{ type: "pa_need_more", text }];
+const hasPicture = (w) => Boolean(w.image || w.emoji);
 
-function generateEdgeTasks(cards, edge) {
-  const field = edge === "first" ? "targetLetterFirst" : "targetLetterLast";
-  const type  = edge === "first" ? "first_sound" : "last_sound";
-  const tasks = [];
-  for (const card of cards) {
-    const targetLetter = card[field];
-    if (!targetLetter) continue; // например, ваза без targetLetterLast
-    tasks.push({
-      type,
-      taskId: `${type}_${card.id}`,
-      word: card.word,
-      emoji: card.emoji,
-      image: card.image,
-      targetLetter,
-      options: buildLetterOptions(targetLetter, "upper"),
-    });
+// A shuffled cycle of `length`, never the same item twice in a row.
+export function cycle(items, length) {
+  const out = [];
+  while (out.length < length && items.length) {
+    let order = shuffle(items);
+    if (order.length > 1 && order[0] === out[out.length - 1]) order = [...order.slice(1), order[0]];
+    out.push(...order);
   }
-  return shuffle(tasks);
+  return out.slice(0, length);
 }
 
-function generatePositionTasks(cards) {
-  const tasks = [];
-  for (const card of cards) {
-    for (const entry of card.positionWords ?? []) {
-      tasks.push({
-        type: "sound_position",
-        taskId: `sound_position_${card.id}_${entry.targetLetter}`,
-        word: card.word,
-        emoji: card.emoji,
-        image: card.image,
-        targetLetter: entry.targetLetter.toUpperCase(),
-        correctPosition: entry.position,
-      });
+export function lettersOf(cards) {
+  return [...new Set((cards ?? []).map((c) => c?.letter ?? c?.conceptId).filter(Boolean))];
+}
+
+// Wrong letters for a tray: one easily confused with the target (б/п, с/ш),
+// the rest from the learned letters, then from the whole alphabet.
+export function distractors(target, learned, count) {
+  const out = [];
+  const add = (l) => { if (l && l !== target && !out.includes(l) && out.length < count) out.push(l); };
+  pickDistractorLetters(target.toLowerCase(), 3).map((l) => l.toUpperCase()).filter((l) => learned.includes(l)).forEach(add);
+  shuffle(learned).forEach(add);
+  pickDistractorLetters(target.toLowerCase(), count + 2).map((l) => l.toUpperCase()).forEach(add);
+  return out;
+}
+
+const targetOf = (word, letter) => word.targets?.find((t) => t.letter === letter);
+const indexOf = (word, letter) => word.word.toUpperCase().indexOf(letter);
+
+function schemeTask(step, kind, word, letter, extra = {}) {
+  return {
+    type: "pa_scheme",
+    step,
+    kind, // "chip" — where is the sound; "letter" — which letter; "all" — every letter
+    conceptId: letter,
+    letter,
+    word,
+    letters: [...word.word.toUpperCase()],
+    ...extra,
+  };
+}
+
+// «Где звук?» → «Начало или конец»: a cell for every sound, all open (owner,
+// 2026-11-18: a lone first cell and a bar made it a yes/no guess); the sound is
+// the first or the last one — half and half — and the child taps its cell.
+function edgeTasks(words, learned, count) {
+  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && ["start", "end"].includes(targetOf(w, L)?.position)).map((w) => ({ w, L })));
+  const starts = pool.filter((p) => targetOf(p.w, p.L).position === "start");
+  const ends = pool.filter((p) => targetOf(p.w, p.L).position === "end");
+  if (!starts.length && !ends.length) return needMore("Нет слов, где выбранные буквы в начале или в конце. Добавьте буквы в «Изменить».");
+  const half = starts.length && ends.length ? Math.ceil(count / 2) : count;
+  return shuffle([...cycle(starts.length ? starts : ends, half), ...cycle(ends.length ? ends : starts, count - half)])
+    .map(({ w, L }) => schemeTask(4, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }));
+}
+
+// «Буквы в клетки» → «Последняя буква»: the last cell only.
+function lastLetterTasks(words, learned, count) {
+  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && targetOf(w, L)?.position === "end").map((w) => ({ w, L })));
+  if (!pool.length) return needMore("Нет слов, которые кончаются на выбранные буквы. Добавьте буквы в «Изменить».");
+  return cycle(pool, count).map(({ w, L }) => schemeTask(3, "letter", w, L, {
+    layout: "cells", answer: w.word.length - 1, closed: "inner", tray: shuffle([L, ...distractors(L, learned, 2)]),
+  }));
+}
+
+// «Где звук?» → «Везде»: chip, any cell; half of the words have the sound inside.
+function whereTasks(words, learned, count) {
+  const pool = learned.flatMap((L) => words.filter((w) => w.aligned && targetOf(w, L)).map((w) => ({ w, L })));
+  if (!pool.length) return needMore("Нет слов с выбранными буквами. Добавьте буквы в «Изменить».");
+  const middle = pool.filter((p) => targetOf(p.w, p.L).position === "middle");
+  const edge = pool.filter((p) => targetOf(p.w, p.L).position !== "middle");
+  const half = middle.length ? Math.ceil(count / 2) : 0;
+  const chosen = shuffle([...cycle(middle, half), ...cycle(edge.length ? edge : middle, count - half)]);
+  return chosen.map(({ w, L }) => schemeTask(5, "chip", w, L, { layout: "cells", answer: indexOf(w, L) }));
+}
+
+// «Буквы в клетки» → «Всё слово»: short words made only of learned letters.
+function allLettersTasks(words, learned, count) {
+  const pool = words.filter((w) => w.aligned && w.word.length <= 5 && [...w.word.toUpperCase()].every((c) => learned.includes(c)));
+  if (!pool.length) return needMore("Нет коротких слов только из выбранных букв. Добавьте буквы в «Изменить».");
+  return cycle(pool, count).map((w) => {
+    const letters = [...w.word.toUpperCase()];
+    const extra = distractors(letters[0], learned, 4).filter((l) => !letters.includes(l)).slice(0, 2);
+    return schemeTask(6, "all", w, letters[0], { layout: "cells", tray: shuffle([...letters, ...extra]) });
+  });
+}
+
+// Lotto, like the board game (owner, 2026-11-18): a 3×3 board of pictures and
+// a card for every picture — the board closes completely. The pictures are spread
+// over the learned letters in turn, so with few letters a letter repeats (two
+// «М» cards, two pictures on М — any «М» fits either, the check is the first letter).
+export function lottoBoard(words, learned) {
+  const byLetter = new Map();
+  for (const w of shuffle(words)) if (learned.includes(w.firstLetter)) byLetter.set(w.firstLetter, [...(byLetter.get(w.firstLetter) ?? []), w]);
+  const letters = shuffle([...byLetter.keys()]);
+  if (letters.length < 2) return null;
+  const clash = (a, b) => SAME_PICTURE.some((g) => g.includes(a.word) && g.includes(b.word));
+  const board = [];
+  for (let round = 0; board.length < LOTTO_SIZE; round += 1) {
+    let added = false;
+    for (const L of letters) {
+      if (board.length === LOTTO_SIZE) break;
+      const w = byLetter.get(L).find((c) => !board.some((b) => b.id === c.id || clash(b, c)));
+      if (w) { board.push(w); added = true; }
     }
+    if (!added) break;
   }
-  return shuffle(tasks);
+  const pairs = board.map((w) => ({ letter: w.firstLetter, wordId: w.id }));
+  return { board: shuffle(board), cards: shuffle(board.map((w) => w.firstLetter)), pairs };
 }
 
-function generateBlankTasks(cards) {
-  const tasks = [];
-  for (const card of cards) {
-    for (const blank of card.blanks ?? []) {
-      tasks.push({
-        type: "missing_letter",
-        taskId: `missing_letter_${card.id}_${blank.blankIndex}`,
-        word: card.word,
-        emoji: card.emoji,
-        image: card.image,
-        blankIndex: blank.blankIndex,
-        targetLetter: blank.targetLetter,
-        options: buildLetterOptions(blank.targetLetter, "lower"),
-      });
-    }
-  }
-  return shuffle(tasks);
+// «Картинки на буквы» — the same board turned round: 9 letter squares (one per
+// picture, so a letter may repeat) and the 9 pictures to put on them.
+export function reverseLottoBoard(words, learned) {
+  const b = lottoBoard(words, learned);
+  if (!b) return null;
+  return { letters: shuffle(b.board.map((w) => w.firstLetter)), pictures: shuffle(b.board), pairs: b.pairs };
 }
 
-export function generateTasks(modeOrType, cards) {
-  const modeType = typeof modeOrType === "string" ? modeOrType : modeOrType?.type;
-  switch (modeType) {
-    case "first_sound":    return generateEdgeTasks(cards, "first");
-    case "last_sound":     return generateEdgeTasks(cards, "last");
-    case "sound_position": return generatePositionTasks(cards);
-    case "missing_letter": return generateBlankTasks(cards);
+function lottoTasks(words, learned, direction) {
+  const reverse = direction === "pictures";
+  const boards = [];
+  for (let i = 0; i < LOTTO_BOARDS; i += 1) {
+    const b = reverse ? reverseLottoBoard(words, learned) : lottoBoard(words, learned);
+    if (b) boards.push({ type: reverse ? "pa_lotto_reverse" : "pa_lotto", conceptId: b.pairs[0].letter, ...b });
+  }
+  return boards.length ? boards : needMore("Для лото нужно хотя бы 2 буквы. Добавьте буквы в «Изменить».");
+}
+
+// «Найди букву»: the letter is shown, find it — «Легко» among 3 unlike letters,
+// «Средне» among 6 with lookalikes, «Трудно» every copy on a 5×5 field (the
+// former mode «Найди все», merged in as a level by the owner, 2026-11-18).
+function findLetterTasks(learned, count, difficulty) {
+  if (difficulty === "hard") return findAllTasks(learned, count);
+  const hard = difficulty === "medium";
+  return cycle(learned, count).map((L) => {
+    const options = shuffle([L, ...(hard
+      ? distractors(L, learned, 5)
+      : shuffle(learned.filter((l) => l !== L)).concat(shuffle("АМСОУХШЛНК".split("").filter((l) => l !== L))).filter((l, i, a) => a.indexOf(l) === i).slice(0, 2))]);
+    return { type: "pa_find_letter", conceptId: L, letter: L, options };
+  });
+}
+
+// «Найди все»: a 5×5 field, find every copy of the letter.
+function findAllTasks(learned, count) {
+  return cycle(learned, Math.min(count, 15)).map((L) => {
+    const n = 4 + Math.floor(Math.random() * 2);
+    const others = distractors(L, learned, 4);
+    const field = shuffle([...Array(n).fill(L), ...Array.from({ length: 25 - n }, (_, i) => others[i % others.length])]);
+    return { type: "pa_find_all", conceptId: L, letter: L, field, total: n };
+  });
+}
+
+export function generateTasks(mode, cards, _sessionSize, params = {}) {
+  const learned = lettersOf(cards);
+  if (!learned.length) return [];
+  const count = DEFAULT_COUNT; // a stored «Заданий в занятии» from deck ≤ 2.4 is ignored
+  const words = (mode?.words ?? []).filter(hasPicture);
+  // The letter's sound (mode.sounds: letter → file) goes with «Где звук?»: it plays
+  // before the word, and a tap on the letter in the question repeats it.
+  const tasks = build(mode?.type, words, learned, count, params)
+    .map((t) => (t.kind === "chip" && mode?.sounds?.[t.letter] ? { ...t, sound: mode.sounds[t.letter] } : t));
+  const run = Math.random().toString(36).slice(2, 7);
+  return tasks.map((t, i) => ({ ...t, taskId: `${t.type}_${run}_${i}` }));
+}
+
+function build(type, words, learned, count, params) {
+  switch (type) {
+    // «Где звук?» (owner, 2026-11-18): one mode, the place set before the lesson.
+    case "pa_where":
+      // «start»/«end» stored by deck ≤ 2.6 fall back to «Начало или конец»
+      return params.position === "all" ? whereTasks(words, learned, count) : edgeTasks(words, learned, count);
+    // «Буквы в клетки»: the last letter only, or the whole word.
+    case "pa_all_letters":
+      return params.scope === "word" ? allLettersTasks(words, learned, count) : lastLetterTasks(words, learned, count);
+    case "pa_lotto": return lottoTasks(words, learned, params.direction);
+    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty);
+    case "pa_find_all": return findAllTasks(learned, count);
     default: return [];
   }
 }

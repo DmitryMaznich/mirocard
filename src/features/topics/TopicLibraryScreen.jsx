@@ -274,7 +274,12 @@ export default function TopicLibraryScreen({ embedded = false } = {}) {
     );
   }
 
-  if (statisticsTopic) return <StatisticsScreen initialTopicId={statisticsTopic.meta.id} onClose={() => setStatisticsTopic(null)} />;
+  // Embedded in the new Home the library is only a part of that screen: the
+  // topic's statistics open over the whole screen, not inside the grid.
+  if (statisticsTopic) {
+    const statistics = <StatisticsScreen initialTopicId={statisticsTopic.meta.id} onClose={() => setStatisticsTopic(null)} />;
+    return embedded ? <div className="topic-ui-fullscreen">{statistics}</div> : statistics;
+  }
 
   return (
     <div className={preview ? `topic-ui-library${embedded ? " topic-ui-library--embedded" : " screen topic-ui-library--catalog"}` : "screen"}>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Буквы и звуки — набросок игры</title><style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; background: #e9e5dc; color: #1f2937; }
+  .page { max-width: 1320px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  .lead { margin: 0 0 22px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  h2.block { margin: 34px 0 6px; font-size: 21px; }
+  .block-note { margin: 0 0 16px; color: #4b5563; max-width: 900px; line-height: 1.5; }
+  .row { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-start; }
+  .shot { width: 360px; }
+  .shot h3 { margin: 0 0 8px; font-size: 16px; }
+  .shot h3 small { color: #6b7280; font-weight: 600; }
+  .note { margin-top: 10px; font-size: 13.5px; line-height: 1.45; color: #374151; }
+  .note b { color: #111827; }
+  .note .q { display: block; margin-top: 6px; padding: 6px 9px; background: #fff7e6; border-left: 3px solid #f59e0b; border-radius: 4px; }
+
+  /* ---- phone ---- */
+  .phone { width: 360px; height: 680px; border-radius: 34px; background: #111; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .screen { width: 100%; height: 100%; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; background: #fdfcf9; }
+  .topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; background: #fff; border-bottom: 1px solid #eee7d8; font-size: 13px; font-weight: 700; color: #6b7280; }
+  .topbar .stars { letter-spacing: 2px; color: #f59e0b; }
+  .topbar .x { width: 30px; height: 30px; border-radius: 50%; background: #f3f4f6; display: grid; place-items: center; }
+  .stage { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; padding: 14px 16px 18px; gap: 14px; min-height: 0; }
+  .instr { font-weight: 800; font-size: 18px; color: #374151; text-align: center; }
+
+  /* ---- shared bits ---- */
+  .speaker { width: 46px; height: 46px; border-radius: 50%; background: #4a9b8f; color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 4px 0 #2a6b60; flex: 0 0 auto; }
+  .target { display: flex; align-items: center; gap: 14px; }
+  .big-letter { width: 104px; height: 104px; border-radius: 22px; background: #fff; border: 3px solid #4a9b8f; display: grid; place-items: center; font-size: 72px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tiles { display: grid; gap: 12px; width: 100%; }
+  .tiles.c3 { grid-template-columns: repeat(3, 1fr); }
+  .tiles.c4 { grid-template-columns: repeat(4, 1fr); }
+  .tile { aspect-ratio: 1; border-radius: 18px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 48px; font-weight: 800; color: #1f2937; line-height: 1; }
+  .tile.ok { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; }
+  .tile.bad { border-color: #ef4444; background: #fef2f2; box-shadow: 0 4px 0 #fca5a5; }
+  .tile.dim { opacity: .35; }
+  .picture { width: 170px; height: 150px; border-radius: 20px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 3px 10px rgba(0,0,0,.08); display: grid; place-items: center; font-size: 92px; line-height: 1; position: relative; }
+  .picture .speaker { position: absolute; right: -16px; bottom: -14px; width: 42px; height: 42px; font-size: 19px; }
+  .with-letter { display: flex; align-items: center; gap: 22px; }
+  .chip { font-size: 13px; font-weight: 800; color: #4a9b8f; background: #e7f3f1; padding: 3px 10px; border-radius: 99px; }
+  .spacer { flex: 1 1 auto; }
+
+  /* ---- train ---- */
+  .train { display: flex; align-items: flex-end; gap: 6px; width: 100%; justify-content: center; }
+  .car { position: relative; height: 92px; border-radius: 14px 14px 8px 8px; background: #fff; border: 3px dashed #cbd5e1; display: grid; place-items: center; font-weight: 900; font-size: 34px; color: #94a3b8; }
+  .car::before, .car::after { content: ""; position: absolute; bottom: -15px; width: 22px; height: 22px; border-radius: 50%; background: #475569; border: 3px solid #fdfcf9; }
+  .car::before { left: 12px; } .car::after { right: 12px; }
+  .car.loco { border-radius: 30px 14px 8px 8px; }
+  .car.loco .chim { position: absolute; top: -22px; left: 22px; width: 18px; height: 22px; background: #475569; border-radius: 4px 4px 0 0; }
+  .car.loco .cab { position: absolute; top: 10px; right: 10px; width: 26px; height: 22px; border-radius: 6px; background: #e0f2fe; border: 2px solid #94a3b8; }
+  .car.solid { border-style: solid; }
+  .car.hint { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 4px rgba(59,130,246,.25); color: #1d4ed8; }
+  .car.ok { border-style: solid; border-color: #22c55e; background: #dcfce7; color: #15803d; }
+  .car.bad { border-style: solid; border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+  .car-label { font-size: 13px; font-weight: 800; color: #64748b; text-align: center; margin-top: 18px; }
+  .train-col { display: flex; flex-direction: column; align-items: stretch; }
+  .rail { width: 100%; height: 5px; background: repeating-linear-gradient(90deg,#94a3b8 0 14px,transparent 14px 20px); border-radius: 3px; margin-top: 16px; }
+  .arrow { font-size: 13px; font-weight: 800; color: #94a3b8; width: 100%; text-align: center; }
+
+  /* ---- word check ---- */
+  .wordcars { display: flex; gap: 6px; justify-content: center; }
+  .wcar { width: 62px; height: 70px; border-radius: 12px; background: #fff; border: 2.5px solid #e2e8f0; box-shadow: 0 4px 0 #d6dde6; display: grid; place-items: center; font-size: 44px; font-weight: 800; }
+  .wcar.found { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #86efac; color: #15803d; }
+  .wcar.empty { border-style: dashed; border-color: #cbd5e1; box-shadow: none; color: transparent; }
+
+  /* ---- fix letter ---- */
+  .board { width: 300px; height: 300px; border-radius: 16px; background-color: #fff;
+    background-image: linear-gradient(#dbe7f3 1px, transparent 1px), linear-gradient(90deg, #dbe7f3 1px, transparent 1px);
+    background-size: 30px 30px; border: 2px solid #e2e8f0; }
+
+  /* ---- find all ---- */
+  .field { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+  .field span { aspect-ratio: 1; display: grid; place-items: center; font-size: 34px; font-weight: 800; color: #374151; border-radius: 50%; }
+  .field span.circ { box-shadow: inset 0 0 0 3.5px #22c55e; color: #15803d; }
+  .counter { display: flex; gap: 6px; }
+  .counter i { width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; display: block; }
+  .counter i.on { background: #22c55e; }
+
+  /* ---- adult screen ---- */
+  .adult .screen { background: #f7f6f2; }
+  .adult .stage { align-items: stretch; gap: 12px; padding: 14px 14px; }
+  .sect { font-size: 13px; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+  .groups { display: flex; flex-wrap: wrap; gap: 6px; }
+  .groups span { font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: #fff; border: 1.5px solid #d1d5db; }
+  .groups span.on { background: #4a9b8f; border-color: #4a9b8f; color: #fff; }
+  .abc { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+  .abc span { aspect-ratio: 1; border-radius: 9px; background: #fff; border: 1.5px solid #e5e7eb; display: grid; place-items: center; font-weight: 800; font-size: 17px; color: #9ca3af; position: relative; }
+  .abc span.on { border-color: #4a9b8f; background: #e7f3f1; color: #1f2937; }
+  .abc span.on::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--d, #d1d5db); }
+  .abc span.v { color: #dc2626; } .abc span.on.v { color: #dc2626; }
+  .modes { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .mode { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #fff; border-radius: 12px; border: 1.5px solid #e5e7eb; font-size: 14px; font-weight: 700; }
+  .mode .n { width: 26px; height: 26px; border-radius: 8px; background: #e7f3f1; color: #2a6b60; display: grid; place-items: center; font-size: 12px; font-weight: 900; flex: 0 0 auto; }
+  .mode .n.b { background: #e0ecff; color: #1d4ed8; }
+  .mode small { display: block; font-weight: 600; color: #6b7280; font-size: 12px; }
+  .btn { background: #4a9b8f; color: #fff; font-weight: 800; text-align: center; padding: 12px; border-radius: 14px; box-shadow: 0 4px 0 #2a6b60; font-size: 16px; }
+
+  .fn { font-family: Georgia, "Times New Roman", serif; font-weight: 700; }
+  .fh { font-family: "Comic Sans MS", "Segoe Print", cursive; font-weight: 400; }
+  .fm { font-family: "Courier New", monospace; font-weight: 700; }
+
+  .phone { width: 300px; height: 590px; } .shot { width: 300px; } .row { gap: 18px; } .page { max-width: 1320px; }
+  .picture { width: 140px; height: 124px; font-size: 76px; }
+  .picture.tap { position: relative; }
+  .picture .wave { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; fill: none; stroke: #cbd5e1; stroke-width: 2.4; stroke-linecap: round; }
+  .picture.playing { border-color: #4a9b8f; box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .picture.playing .wave { stroke: #4a9b8f; width: 28px; height: 28px; }
+  .big-letter.tap { position: relative; }
+  .big-letter .wave { position: absolute; right: 5px; bottom: 5px; width: 16px; height: 16px; fill: none; stroke: #cbd5e1; stroke-width: 2.6; stroke-linecap: round; }
+  .big-letter.playing { box-shadow: 0 0 0 6px rgba(74,155,143,.22), 0 0 0 14px rgba(74,155,143,.10); }
+  .big-letter.playing .wave { stroke: #4a9b8f; width: 20px; height: 20px; }
+  .bubble { font-size: 15px; font-weight: 800; color: #2a6b60; background: #e7f3f1; padding: 4px 12px; border-radius: 99px; }
+  .rules { background: #fff; border-radius: 14px; padding: 14px 18px; max-width: 900px; font-size: 14.5px; line-height: 1.55; border-left: 5px solid #f59e0b; }
+  .rules b { color: #111827; }
+
+  .tray { display: flex; gap: 10px; justify-content: center; }
+  .tray .tile { width: 64px; font-size: 38px; }
+  .tray .tile.ghost { opacity: .25; }
+  .cell .tl { font-size: 38px; font-weight: 800; }
+  .cell.slot { border-style: dashed; border-color: #3b82f6; background: #eff6ff; }
+  .cell.fade .ltr { color: #94a3b8; }
+  .match { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+  .mrow { display: flex; align-items: center; gap: 12px; }
+  .mrow .picture { width: 84px; height: 76px; font-size: 48px; border-radius: 14px; }
+  .mrow .scheme { justify-content: flex-start; }
+  .mrow .cell { width: 54px; height: 54px; font-size: 32px; }
+  .mrow .cell.wide { width: 96px; }
+  .matrix { border-collapse: separate; border-spacing: 10px; }
+  .matrix th { font-size: 15px; text-align: left; color: #374151; padding: 0 6px; }
+  .matrix td { background: #fff; border-radius: 14px; padding: 12px 14px; vertical-align: middle; min-width: 250px; }
+  .matrix td.rowh { background: transparent; font-weight: 800; font-size: 15px; min-width: 120px; }
+  .matrix td.na { background: transparent; border: 2px dashed #d6d3cb; color: #9ca3af; font-size: 13px; }
+  .mini { display: flex; align-items: center; gap: 12px; }
+  .mini .scheme { justify-content: flex-start; }
+  .mini .cell { width: 34px; height: 34px; font-size: 20px; border-width: 2.5px; margin-left: -2.5px; }
+  .mini .cell.wide { width: 70px; }
+  .mini .chipdot { width: 20px; height: 20px; box-shadow: none; }
+  .mini .lbl { font-size: 14px; font-weight: 700; color: #1f2937; line-height: 1.3; }
+  .mini .lbl small { display: block; color: #6b7280; font-weight: 600; }
+  .mini .read-arrow, .mrow .read-arrow { display: none; }
+  .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #4a9b8f; color: #fff; font-size: 13px; font-weight: 900; margin-right: 4px; }
+  .num.b { background: #2563eb; }
+  .cell.lit { background: #fef3c7; border-color: #f59e0b; z-index: 3; box-shadow: 0 0 0 5px rgba(245,158,11,.25); }
+  .cell.lit.long { box-shadow: 0 0 0 9px rgba(245,158,11,.30); }
+  .cell.done { background: #fffbeb; }
+  .say { font-size: 22px; font-weight: 900; color: #b45309; letter-spacing: 1px; min-height: 30px; }
+  .say i { color: #d6d3d1; font-style: normal; }
+  .slowbtn { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: #b45309; background: #fffbeb; border: 2px solid #fcd34d; border-radius: 99px; padding: 6px 14px; }
+  .fade-ladder { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .fade-ladder div { background: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700; min-width: 220px; }
+  .fade-ladder small { display: block; color: #6b7280; font-weight: 600; }
+  .lotto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+  .lp { position: relative; aspect-ratio: 1; border-radius: 16px; background: #fff; border: 2.5px solid #e2e8f0; display: grid; place-items: center; font-size: 50px; }
+  .lp .ov { position: absolute; inset: 6px; border-radius: 12px; display: grid; place-items: center; font-size: 58px; font-weight: 900;
+    background: rgba(255,255,255,.45); border: 2px solid rgba(37,99,235,.55); color: rgba(29,78,216,.85); backdrop-filter: blur(0.5px); }
+  .lp.ok { border-color: #22c55e; }
+  .lp.ok .ov { border-color: rgba(22,163,74,.7); color: rgba(21,128,61,.85); background: rgba(220,252,231,.40); }
+  .lp.bad { border-color: #ef4444; }
+  .lp.bad .ov { border-color: rgba(239,68,68,.8); color: rgba(185,28,28,.85); background: rgba(254,242,242,.45); }
+  .lp.hover { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.3); }
+  .ltray { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .ltray .card { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center; font-size: 36px; font-weight: 900;
+    color: #1d4ed8; background: rgba(239,246,255,.7); border: 2px solid rgba(37,99,235,.5); box-shadow: 0 3px 0 rgba(37,99,235,.25); }
+  .ltray .card.gone { opacity: 0; }
+  .ltray .card.drag { transform: translate(-30px,-120px) rotate(-6deg) scale(1.08); box-shadow: 0 10px 20px rgba(0,0,0,.18); }
+  .scheme { display: flex; justify-content: center; }
+  .cell { width: 64px; height: 64px; border: 3px solid #334155; margin-left: -3px; background: #fff;
+    display: grid; place-items: center; font-size: 40px; font-weight: 800; color: #1f2937; position: relative; }
+  .cell:first-child { margin-left: 0; border-radius: 10px 0 0 10px; }
+  .cell:last-child { border-radius: 0 10px 10px 0; }
+  .cell:only-child { border-radius: 10px; }
+  .cell.wide { width: 170px; }
+  .cell.off { background: repeating-linear-gradient(45deg,#f1f5f9 0 6px,#e2e8f0 6px 12px); border-color: #94a3b8; z-index: 0; }
+  .cell.ok { background: #dcfce7; border-color: #16a34a; z-index: 2; }
+  .cell.bad { background: #fef2f2; border-color: #ef4444; z-index: 2; }
+  .cell.here { box-shadow: 0 0 0 5px rgba(34,197,94,.45); border-color: #16a34a; z-index: 2; }
+  .cell .ltr { color: #cbd5e1; }
+  .cell .ltr.show { color: #1f2937; }
+  .cell.ok .ltr { color: #15803d; }
+  .chipdot { width: 36px; height: 36px; border-radius: 50%; background: #2563eb; box-shadow: 0 3px 0 #1e40af; }
+  .cell .chipdot.on-letter { position: absolute; top: -20px; right: -14px; width: 28px; height: 28px; }
+  .cell .chipdot.bad { background: #ef4444; box-shadow: 0 3px 0 #b91c1c; }
+  .cell .mark { position: absolute; bottom: -30px; font-size: 22px; }
+  .read-arrow { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; margin-top: 8px; }
+  .read-arrow i { display: block; height: 3px; background: #94a3b8; width: 70%; }
+  .read-arrow b { width: 0; height: 0; border-left: 12px solid #94a3b8; border-top: 7px solid transparent; border-bottom: 7px solid transparent; }
+  .pool { display: flex; gap: 10px; justify-content: center; }
+  .pool .chipdot { width: 44px; height: 44px; }
+  .pool.empty .chipdot { opacity: .25; }
+  .tiles .tile.small { font-size: 36px; }
+  .step-n { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1f2937; color: #fff; font-size: 15px; margin-right: 6px; }
+  .cap { margin-top: 10px; font-size: 15px; font-weight: 700; color: #1f2937; line-height: 1.35; }
+  .cap span { display: block; font-weight: 600; color: #6b7280; font-size: 13.5px; }
+  .sound { font-weight: 900; color: #2563eb; }
+  .vs { display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 4px 0 18px; font-size: 14px; font-weight: 700; color: #374151; align-items: center; }
+  .legend .cell { width: 34px; height: 34px; border-radius: 6px !important; margin: 0; font-size: 18px; display: inline-grid; vertical-align: middle; }
+  .legend .chipdot { width: 24px; height: 24px; display: inline-block; vertical-align: middle; }
+
+  .page { max-width: 1320px; }
+  h1 { font-size: 30px; }
+  .lead { font-size: 16px; }
+  .sec { margin-top: 42px; padding-top: 6px; border-top: 2px solid #d9d4c8; }
+  .sec h2 { margin: 18px 0 6px; font-size: 23px; }
+  .sec p.intro { margin: 0 0 18px; color: #4b5563; font-size: 15.5px; line-height: 1.5; max-width: 860px; }
+  .board-s { width: 240px; height: 240px; border-radius: 14px; background-color: #fff;
+    background-image: linear-gradient(#dbe7f3 1px, transparent 1px), linear-gradient(90deg, #dbe7f3 1px, transparent 1px);
+    background-size: 24px 24px; border: 2px solid #e2e8f0; }
+  .qs { background: #fff; border-radius: 16px; padding: 18px 22px; max-width: 860px; font-size: 15.5px; line-height: 1.6; }
+  .qs ol { margin: 6px 0 0; padding-left: 22px; }
+  .qs li { margin-bottom: 6px; }
+  .shot h3 { min-height: 30px; display: flex; align-items: center; }
+  .adult .screen { background: #f7f6f2; }
+  .adult .stage { align-items: stretch; gap: 10px; padding: 12px; }
+  .adult .abc { grid-template-columns: repeat(7, 1fr); }
+</style></head>
+<body><div class="page">
+<h1>Буквы и звуки — набросок игры</h1>
+<p class="lead">По вашей просьбе: повторение пройденных букв и звуков. Это картинки экранов, ещё не готовая игра.
+Картинки-эмодзи — временные, в игре будут нормальные иллюстрации или фото.</p>
+
+<div class="sec"><h2>1. Пройденные буквы</h2>
+<p class="intro">Вы отмечаете, какие буквы ученик уже прошёл. Все игры дальше используют только эти буквы.</p>
+<div class="row"><div class="shot"><h3>Выбор букв</h3><div class="phone adult"><div class="screen">
+  <div class="topbar"><span>← Буквы и звуки</span><span>Ученик</span></div>
+  <div class="stage">
+    <div class="sect">Группы</div>
+    <div class="groups"><span class="on">А У О М С</span><span class="on">Х Ш Ы</span><span>Л Н Р</span><span>К П Т И</span><span>…</span></div>
+    <div class="sect">Пройденные буквы — 8</div>
+    <div class="abc"><span class="on v">А</span><span class=" ">Б</span><span class=" ">В</span><span class=" ">Г</span><span class=" ">Д</span><span class=" v">Е</span><span class=" v">Ё</span><span class=" ">Ж</span><span class=" ">З</span><span class=" v">И</span><span class=" ">Й</span><span class=" ">К</span><span class=" ">Л</span><span class="on ">М</span><span class=" ">Н</span><span class="on v">О</span><span class=" ">П</span><span class=" ">Р</span><span class="on ">С</span><span class=" ">Т</span><span class="on v">У</span><span class=" ">Ф</span><span class="on ">Х</span><span class=" ">Ц</span><span class=" ">Ч</span><span class="on ">Ш</span><span class=" ">Щ</span><span class=" ">Ъ</span><span class="on v">Ы</span><span class=" ">Ь</span><span class=" v">Э</span><span class=" v">Ю</span><span class=" v">Я</span></div>
+    <div class="spacer"></div>
+    <div class="btn">Начать</div>
+  </div></div></div><div class="cap">Отмечаете буквы, которые ученик прошёл<span>Целой группой или по одной. Все игры берут только их.</span></div></div></div></div>
+
+<div class="sec"><h2>2. Буква</h2>
+<p class="intro">Узнать букву, собрать её из частей, найти среди многих. Нажать на букву — прозвучит её звук.</p>
+<div class="row"><div class="shot"><h3>Найди букву</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>4 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="instr">Найди букву</div>
+  <div class="target"><div class="big-letter tap">Ш<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div><div class="spacer"></div>
+  <div class="tiles c3"><div class="tile">М</div><div class="tile bad">Щ</div><div class="tile">С</div>
+  <div class="tile ok">Ш</div><div class="tile">Х</div><div class="tile">И</div></div><div class="spacer"></div></div></div></div><div class="cap">Среди 3–6 букв<span>Сначала непохожие, потом похожие: Ш — Щ — И</span></div></div><div class="shot"><h3>Почини букву</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>3 / 8</span><span class="stars">★★☆☆</span></div>
+  <div class="stage"><div class="instr">Почини букву</div><div class="spacer"></div><div class="board-s">
+  <svg viewBox="0 0 300 300" width="240" height="240">
+  <g stroke="#e2e8f0" stroke-width="16" stroke-linecap="round" fill="none"><line x1="105" y1="60" x2="105" y2="240"/><line x1="105" y1="150" x2="195" y2="60"/><line x1="105" y1="150" x2="195" y2="240"/></g>
+  <line x1="105" y1="60" x2="105" y2="240" stroke="#1f2937" stroke-width="14" stroke-linecap="round"/>
+  <line x1="170" y1="200" x2="250" y2="130" stroke="#1f2937" stroke-width="14" stroke-linecap="round"/>
+  <line x1="140" y1="40" x2="240" y2="70" stroke="#3b82f6" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="190" cy="55" r="9" fill="#3b82f6"/></svg></div><div class="spacer"></div></div></div></div><div class="cap">Части буквы сдвинуты — вернуть на место<span>Деталь «примагничивается». Легко / Средне / Трудно</span></div></div><div class="shot"><h3>Найди все</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 5</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="target"><div class="big-letter tap" style="width:74px;height:74px;font-size:50px">О<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="counter"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+  <div class="field"><span class="">С</span><span class="circ">О</span><span class="">А</span><span class="">У</span><span class="">С</span><span class="">М</span><span class="">У</span><span class="">С</span><span class="circ">О</span><span class="">А</span><span class="">О</span><span class="">Х</span><span class="">М</span><span class="">А</span><span class="">С</span><span class="">У</span><span class="">А</span><span class="">Ш</span><span class="">У</span><span class="">О</span><span class="">М</span><span class="">С</span><span class="">У</span><span class="">Х</span><span class="">М</span></div></div></div></div><div class="cap">Найти все О на поле<span>Кружки сверху — сколько осталось</span></div></div></div></div>
+
+<div class="sec"><h2>3. Звук и буква в слове</h2>
+<p class="intro">Под картинкой — клетки: одна клетка = один звук (звуковая схема). Ребёнок кладёт в клетку
+<b>фишку</b>, когда вопрос «где звук?», или <b>букву</b>, когда вопрос «какая буква?». Шесть ступеней от простого к сложному:</p>
+<table class="matrix">
+<tr><th></th><th><span class="num b">Ф</span>Где звук? <small style="font-weight:600;color:#6b7280">— ребёнок ставит фишку</small></th><th><span class="num">Б</span>Какая буква? <small style="font-weight:600;color:#6b7280">— ребёнок тянет букву</small></th></tr>
+<tr><td class="rowh">Начало</td>
+ <td><div class="mini"><div class="scheme"><div class="cell ok"><span class="chipdot"></span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num b">1</span>Звук в начале?<small>самое простое</small></div></div></td>
+ <td><div class="mini"><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num">2</span>С какой буквы?<small>одна картинка или лото</small></div></div></td></tr>
+<tr><td class="rowh">Конец</td>
+ <td><div class="mini"><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="chipdot"></span></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num b">4</span>Начало или конец?<small>внутренние клетки закрыты</small></div></div></td>
+ <td><div class="mini"><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="ltr show">Т</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num">3</span>Какой буквой кончается?<small>последняя клетка</small></div></div></td></tr>
+<tr><td class="rowh">Где угодно</td>
+ <td><div class="mini"><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell ok"><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num b">5</span>Где звук?<small>середина — любая внутренняя клетка</small></div></div></td>
+ <td><div class="mini"><div class="scheme"><div class="cell "><span class="ltr show">К</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="lbl"><span class="num">6</span>Все буквы по порядку<small>самый высокий уровень</small></div></div></td></tr>
+</table></div>
+
+<div class="sec"><h2>Ступень 1</h2><div class="row"><div class="shot"><h3><span class="step-n">1</span>Звук в начале?</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>2 / 10</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">М<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap playing">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[м]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="chipdot"></span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Фишка — в первую клетку или в полосу<span>Слово звучит само</span></div></div></div></div>
+<div class="sec"><h2>Ступень 2</h2><div class="row"><div class="shot"><h3><span class="step-n">2</span>С какой буквы?</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="picture tap playing">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell slot"></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">С</div><div class="tile ">М</div><div class="tile ">Ш</div></div></div></div></div><div class="cap">Пустая первая клетка, три буквы<span>Буквы — только пройденные</span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell bad"><span class="ltr show">С</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ghost">С</div><div class="tile ">М</div><div class="tile ">Ш</div></div></div></div></div><div class="cap">Не та буква краснеет и возвращается<span></span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell wide"></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ">С</div><div class="tile ghost">М</div><div class="tile ">Ш</div></div></div></div></div><div class="cap">Нужная встаёт в клетку<span></span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 10</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🌺<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">С какой буквы?</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">М</span></div><div class="cell fade"><span class="ltr show">А</span></div><div class="cell fade"><span class="ltr show">К</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:44px">✓</div></div></div></div><div class="cap">Слово дописывается: М А К<span>Видно, что М — действительно первая</span></div></div></div>
+<p class="intro" style="margin-top:20px">То же самое в виде игры-лото:</p><div class="row"><div class="shot"><h3>Лото: буквы на картинки</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ">🏠</div><div class="lp ">🎈</div><div class="lp ">🐱</div><div class="lp ">🦊</div><div class="lp ">🧀</div><div class="lp ">🚂</div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="ltray"><div class="card  ">Д</div><div class="card  ">П</div><div class="card  ">К</div><div class="card  ">Л</div></div></div></div></div><div class="cap">Поле картинок, прозрачные буквы<span>Картинок больше, чем букв</span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">☆☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ok">🏠<div class="ov">Д</div></div><div class="lp ">🎈</div><div class="lp ">🐱</div><div class="lp ">🦊</div><div class="lp ">🧀</div><div class="lp hover">🚂</div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="ltray"><div class="card gone ">Д</div><div class="card  drag">П</div><div class="card  ">К</div><div class="card  ">Л</div></div></div></div></div><div class="cap">Буква ложится на картинку<span>Картинка видна сквозь букву</span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>1 / 3</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="instr" style="font-size:17px">Положи букву на картинку</div><div class="lotto"><div class="lp ok">🏠<div class="ov">Д</div></div><div class="lp ">🎈</div><div class="lp ok">🐱<div class="ov">К</div></div><div class="lp ok">🦊<div class="ov">Л</div></div><div class="lp ">🧀</div><div class="lp ok">🚂<div class="ov">П</div></div><div class="lp ">🐟</div><div class="lp ">🌺</div><div class="lp ">👃</div></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:40px">✓</div></div></div></div><div class="cap">Всё разложено — следующее поле<span></span></div></div></div></div>
+<div class="sec"><h2>Ступени 3 и 4</h2><div class="row"><div class="shot"><h3><span class="step-n">3</span>Какой буквой кончается?</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>4 / 10</span><span class="stars">★★☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div><div class="instr" style="font-size:17px">Какой буквой кончается?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="ltr show">Т</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tray"><div class="tile ghost">Т</div><div class="tile ">К</div><div class="tile ">М</div></div></div></div></div><div class="cap">Открыта только последняя клетка<span></span></div></div><div class="shot"><h3><span class="step-n">4</span>Начало или конец?</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>5 / 10</span><span class="stars">★★☆☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">С<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">👃<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[с]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell off"></div><div class="cell ok"><span class="chipdot"></span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Внутренние клетки закрыты<span></span></div></div></div></div>
+<div class="sec"><h2>Ступень 5 — звук в любом месте слова</h2><div class="row"><div class="shot"><h3><span class="step-n">5</span>Где звук?</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap playing">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Клетка на каждый звук<span>Середина — любая внутренняя клетка</span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Фишка — в третью клетку<span></span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">Н</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell "><span class="ltr show">Г</span><span class="chipdot on-letter "></span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">В клетках появляется слово<span></span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★★</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">Н</span></div><div class="cell "><span class="ltr show">О</span></div><div class="cell ok"><span class="ltr show">Г</span><span class="chipdot on-letter "></span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="instr" style="color:#16a34a;font-size:44px">✓</div></div></div></div><div class="cap">Под фишкой — Г. Верно<span></span></div></div></div>
+<div class="row" style="margin-top:20px"><div class="shot"><h3>Если ошибся</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "><span class="ltr show">Н</span></div><div class="cell bad"><span class="ltr show">О</span><span class="chipdot on-letter bad"></span></div><div class="cell here"><span class="ltr show">Г</span><span class="mark">👆</span></div><div class="cell "><span class="ltr show">А</span></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div></div></div></div><div class="cap">Показываем, где звук<span>Без наказания: это объяснение</span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "><span class="chipdot"></span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool empty"><span class="chipdot"></span></div></div></div></div><div class="cap">Ребёнок сам переставляет фишку<span></span></div></div><div class="shot"><h3>Опора: слово по звукам</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell lit long"></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="slowbtn">🐢 медленно</div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Слово звучит медленно, по звукам<span>Клетка горит, пока звучит её звук</span></div></div><div class="shot"><h3>&nbsp;</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell done"></div><div class="cell done"></div><div class="cell lit long"></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="slowbtn">🐢 медленно</div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Нужный звук — протяжнее<span>Ребёнок видит, где он прозвучал</span></div></div></div></div>
+<div class="sec"><h2>Ступень 6</h2><div class="row"><div class="shot"><h3><span class="step-n">6</span>Все буквы по порядку</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>2 / 6</span><span class="stars">★☆☆☆</span></div>
+  <div class="stage"><div class="picture tap ">🐱<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="instr" style="font-size:17px">Звуки по порядку</div><div class="spacer"></div><div class="scheme"><div class="cell ok"><span class="ltr show">К</span></div><div class="cell ok"><span class="ltr show">О</span></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="tiles c4" style="width:80%"><div class="tile small dim">К</div><div class="tile small dim">О</div><div class="tile small">Т</div><div class="tile small">М</div></div></div></div></div><div class="cap">Самый высокий уровень<span>Позже, после первых ступеней</span></div></div></div></div>
+
+<div class="sec"><h2>Что звучит</h2><div class="row"><div class="shot"><h3>Слово</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap " style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap playing">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Звучит само, когда появилось задание<span>Нажать на картинку — ещё раз</span></div></div><div class="shot"><h3>Звук буквы</h3><div class="phone"><div class="screen">
+  <div class="topbar"><span class="x">✕</span><span>6 / 10</span><span class="stars">★★★☆</span></div>
+  <div class="stage"><div class="with-letter"><div class="big-letter tap playing" style="width:80px;height:80px;font-size:54px">Г<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div>
+  <div class="picture tap ">🦵<svg class="wave" viewBox="0 0 24 24"><path d="M8 9 Q11 12 8 15" /><path d="M12 6 Q17 12 12 18" /><path d="M16 3 Q23 12 16 21" /></svg></div></div>
+  <div class="instr" style="font-size:17px">Где звук <span class="sound">[г]</span>?</div><div class="spacer"></div><div class="scheme"><div class="cell "></div><div class="cell "></div><div class="cell "></div><div class="cell "></div></div><div class="read-arrow"><i></i><b></b></div><div class="spacer"></div><div class="pool "><span class="chipdot"></span></div></div></div></div><div class="cap">Звучит по нажатию на букву<span>Звук, а не название: [г], а не «гэ»</span></div></div></div></div>
+
+<div class="sec"><h2>Вопросы</h2><div class="qs"><b>Хотелось бы узнать ваше мнение</b><ol>
+<li>Кто ваши ученики: возраст, говорят ли, читают ли? От этого зависит, сколько вариантов показывать сразу.</li>
+<li>В каком порядке вы проходите буквы (по какому букварю)? Так мы соберём группы букв.</li>
+<li>Какие игры из блока «Буква» вам ближе всего? Чего не хватает?</li>
+<li>Порядок ступеней в блоке «Звук и буква» — такой подходит?</li>
+<li>Твёрдые и мягкие звуки ([л] и [л’]) на первых ступенях считаем одним звуком или разными?</li>
+<li>Звуки букв лучше записать живым голосом (синтез не умеет правильно произносить [б], [т], [к]). Согласились бы вы записать около 30 коротких звуков?</li>
+<li>Работают ли дети сами на планшете или с вами рядом?</li>
+</ol></div></div>
+</div></body></html>

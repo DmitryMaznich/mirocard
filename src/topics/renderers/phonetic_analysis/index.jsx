@@ -1,35 +1,20 @@
 import "./phonetic_analysis.css";
-import SoundMatchView    from "./SoundMatchView";
-import SoundPositionView from "./SoundPositionView";
+import SchemeTask from "./SchemeTask";
+import LottoTask from "./LottoTask";
+import LottoReverseTask from "./LottoReverseTask";
+import { FindLetterTask, FindAllTask, NeedMoreTask } from "./LetterGames";
 
-export default function PhoneticAnalysisRenderer({ task, topicId, onAdvance, onCorrect, onMistake }) {
-  if (!task) return null;
-  switch (task.type) {
-    case "first_sound":
-    case "last_sound":
-    case "missing_letter":
-      return (
-        <SoundMatchView
-          key={task.taskId}
-          task={task}
-          topicId={topicId}
-          onAdvance={onAdvance}
-          onCorrect={onCorrect}
-          onMistake={onMistake}
-        />
-      );
-    case "sound_position":
-      return (
-        <SoundPositionView
-          key={task.taskId}
-          task={task}
-          topicId={topicId}
-          onAdvance={onAdvance}
-          onCorrect={onCorrect}
-          onMistake={onMistake}
-        />
-      );
-    default:
-      return <div style={{ padding: 24, color: "#aaa" }}>Неизвестный тип задания: {task.type}</div>;
-  }
+const TASKS = {
+  pa_scheme: SchemeTask,
+  pa_lotto: LottoTask,
+  pa_lotto_reverse: LottoReverseTask,
+  pa_find_letter: FindLetterTask,
+  pa_find_all: FindAllTask,
+  pa_need_more: NeedMoreTask,
+};
+
+export default function PhoneticAnalysisRenderer(props) {
+  const Task = TASKS[props.task?.type];
+  if (!Task) return <div className="screen-center">Неизвестный тип задания: {props.task?.type}</div>;
+  return <Task key={props.task.taskId ?? JSON.stringify(props.task).slice(0, 80)} {...props} />;
 }

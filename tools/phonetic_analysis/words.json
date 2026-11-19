@@ -1,0 +1,2948 @@
+{
+ "words": [
+  {
+   "id": "аист",
+   "word": "аист",
+   "pic": "аист, белая птица на длинных красных ногах",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "А",
+   "targets": [
+    {
+     "letter": "А",
+     "position": "start"
+    },
+    {
+     "letter": "И",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "автобус",
+   "word": "автобус",
+   "pic": "городской автобус сбоку",
+   "note": "в перед т звучит [ф]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "А",
+   "targets": [
+    {
+     "letter": "А",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Б",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "end"
+    }
+   ],
+   "emoji": "🚌"
+  },
+  {
+   "id": "арбуз",
+   "word": "арбуз",
+   "pic": "целый арбуз",
+   "note": "з на конце звучит [с]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "А",
+   "targets": [
+    {
+     "letter": "А",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Б",
+     "position": "middle"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🍉"
+  },
+  {
+   "id": "ослик",
+   "word": "ослик",
+   "pic": "серый ослик",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "О",
+   "targets": [
+    {
+     "letter": "О",
+     "position": "start"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🫏"
+  },
+  {
+   "id": "очки",
+   "word": "очки",
+   "pic": "очки",
+   "note": "к перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "О",
+   "targets": [
+    {
+     "letter": "О",
+     "position": "start"
+    },
+    {
+     "letter": "Ч",
+     "position": "middle"
+    }
+   ],
+   "emoji": "👓"
+  },
+  {
+   "id": "утка",
+   "word": "утка",
+   "pic": "утка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "У",
+   "targets": [
+    {
+     "letter": "У",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🦆"
+  },
+  {
+   "id": "ухо",
+   "word": "ухо",
+   "pic": "ухо человека",
+   "note": "о на конце безударное",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "У",
+   "targets": [
+    {
+     "letter": "У",
+     "position": "start"
+    },
+    {
+     "letter": "Х",
+     "position": "middle"
+    }
+   ],
+   "emoji": "👂"
+  },
+  {
+   "id": "удочка",
+   "word": "удочка",
+   "pic": "удочка",
+   "note": "о безударная",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "У",
+   "targets": [
+    {
+     "letter": "У",
+     "position": "start"
+    },
+    {
+     "letter": "Д",
+     "position": "middle"
+    },
+    {
+     "letter": "Ч",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🎣"
+  },
+  {
+   "id": "иголка",
+   "word": "иголка",
+   "pic": "иголка с ниткой",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "И",
+   "targets": [
+    {
+     "letter": "И",
+     "position": "start"
+    },
+    {
+     "letter": "Г",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🪡"
+  },
+  {
+   "id": "индюк",
+   "word": "индюк",
+   "pic": "индюк",
+   "note": "д перед ю мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "И",
+   "targets": [
+    {
+     "letter": "И",
+     "position": "start"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦃"
+  },
+  {
+   "id": "экскаватор",
+   "word": "экскаватор",
+   "pic": "жёлтый экскаватор с ковшом, сбоку",
+   "note": "Э безударная — проверить на слух; к и а по два раза, о безударная",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Э",
+   "targets": [
+    {
+     "letter": "Э",
+     "position": "start"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "В",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "банан",
+   "word": "банан",
+   "pic": "банан",
+   "note": "н и а по два раза",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Б",
+   "targets": [
+    {
+     "letter": "Б",
+     "position": "start"
+    }
+   ],
+   "emoji": "🍌"
+  },
+  {
+   "id": "бусы",
+   "word": "бусы",
+   "pic": "бусы надеты на шею женщины, крупный план шеи и ключиц, лицо за кадром (кадр обрезан по подбородку), бусы из крупных бусин в центре кадра",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Б",
+   "targets": [
+    {
+     "letter": "Б",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "Ы",
+     "position": "end"
+    }
+   ],
+   "emoji": "📿"
+  },
+  {
+   "id": "бант",
+   "word": "бант",
+   "pic": "бант",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Б",
+   "targets": [
+    {
+     "letter": "Б",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": "🎀"
+  },
+  {
+   "id": "бочка",
+   "word": "бочка",
+   "pic": "деревянная бочка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Б",
+   "targets": [
+    {
+     "letter": "Б",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Ч",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "собака",
+   "word": "собака",
+   "pic": "собака",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "Б",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🐕"
+  },
+  {
+   "id": "вагон",
+   "word": "вагон",
+   "pic": "один отдельный пассажирский железнодорожный вагон сбоку, без локомотива и без других вагонов",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "Г",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "end"
+    }
+   ],
+   "emoji": "🚃"
+  },
+  {
+   "id": "ворота",
+   "word": "ворота",
+   "pic": "ворота",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "волк",
+   "word": "волк",
+   "pic": "волк",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐺"
+  },
+  {
+   "id": "сова",
+   "word": "сова",
+   "pic": "сова",
+   "note": "ударение сова́",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "В",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦉"
+  },
+  {
+   "id": "вода",
+   "word": "вода",
+   "pic": "стакан воды",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "Д",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "💧"
+  },
+  {
+   "id": "ваза",
+   "word": "ваза",
+   "pic": "ваза",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "З",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🏺"
+  },
+  {
+   "id": "врач",
+   "word": "врач",
+   "pic": "врач в белом халате",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Ч",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "вата",
+   "word": "вата",
+   "pic": "кусок ваты",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "В",
+   "targets": [
+    {
+     "letter": "В",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "гора",
+   "word": "гора",
+   "pic": "одна большая гора со снежной вершиной, крупно, занимает почти весь кадр",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Г",
+   "targets": [
+    {
+     "letter": "Г",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "⛰️"
+  },
+  {
+   "id": "горох",
+   "word": "горох",
+   "pic": "стручок гороха",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Г",
+   "targets": [
+    {
+     "letter": "Г",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Х",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "нога",
+   "word": "нога",
+   "pic": "нога",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Н",
+   "targets": [
+    {
+     "letter": "Н",
+     "position": "start"
+    },
+    {
+     "letter": "Г",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦵"
+  },
+  {
+   "id": "гусь",
+   "word": "гусь",
+   "pic": "гусь",
+   "note": "ь",
+   "aligned": false,
+   "only": "lotto",
+   "firstLetter": "Г",
+   "targets": [],
+   "emoji": "🪿"
+  },
+  {
+   "id": "дом",
+   "word": "дом",
+   "pic": "дом",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Д",
+   "targets": [
+    {
+     "letter": "Д",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "М",
+     "position": "end"
+    }
+   ],
+   "emoji": "🏠"
+  },
+  {
+   "id": "дым",
+   "word": "дым",
+   "pic": "дым из трубы",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Д",
+   "targets": [
+    {
+     "letter": "Д",
+     "position": "start"
+    },
+    {
+     "letter": "Ы",
+     "position": "middle"
+    },
+    {
+     "letter": "М",
+     "position": "end"
+    }
+   ],
+   "emoji": "💨"
+  },
+  {
+   "id": "жук",
+   "word": "жук",
+   "pic": "жук",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ж",
+   "targets": [
+    {
+     "letter": "Ж",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🪲"
+  },
+  {
+   "id": "жираф",
+   "word": "жираф",
+   "pic": "жираф",
+   "note": "жи = [жы], И не цель",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ж",
+   "targets": [
+    {
+     "letter": "Ж",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Ф",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦒"
+  },
+  {
+   "id": "лыжи",
+   "word": "лыжи",
+   "pic": "лыжи",
+   "note": "и на конце звучит [ы]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "Ы",
+     "position": "middle"
+    },
+    {
+     "letter": "Ж",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🎿"
+  },
+  {
+   "id": "ножницы",
+   "word": "ножницы",
+   "pic": "ножницы",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Н",
+   "targets": [
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Ж",
+     "position": "middle"
+    },
+    {
+     "letter": "Ц",
+     "position": "middle"
+    }
+   ],
+   "emoji": "✂️"
+  },
+  {
+   "id": "зубы",
+   "word": "зубы",
+   "pic": "крупный план открытого в улыбке рта: видны только губы и ровные белые зубы, без лица и глаз",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "З",
+   "targets": [
+    {
+     "letter": "З",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Б",
+     "position": "middle"
+    },
+    {
+     "letter": "Ы",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦷"
+  },
+  {
+   "id": "зонт",
+   "word": "зонт",
+   "pic": "зонт",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "З",
+   "targets": [
+    {
+     "letter": "З",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": "☂️"
+  },
+  {
+   "id": "замок",
+   "word": "замок",
+   "pic": "навесной замок",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "З",
+   "targets": [
+    {
+     "letter": "З",
+     "position": "start"
+    },
+    {
+     "letter": "М",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🔒"
+  },
+  {
+   "id": "коза",
+   "word": "коза",
+   "pic": "коза",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "З",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐐"
+  },
+  {
+   "id": "кот",
+   "word": "кот",
+   "pic": "кот",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐈"
+  },
+  {
+   "id": "кошка",
+   "word": "кошка",
+   "pic": "кошка",
+   "note": "к два раза — К не цель",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Ш",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🐱"
+  },
+  {
+   "id": "кофта",
+   "word": "кофта",
+   "pic": "кофта",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Ф",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "коса",
+   "word": "коса",
+   "pic": "коса (причёска)",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "комар",
+   "word": "комар",
+   "pic": "комар",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "М",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦟"
+  },
+  {
+   "id": "ключ",
+   "word": "ключ",
+   "pic": "ключ",
+   "note": "л перед ю мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "Ч",
+     "position": "end"
+    }
+   ],
+   "emoji": "🔑"
+  },
+  {
+   "id": "карандаш",
+   "word": "карандаш",
+   "pic": "карандаш",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "К",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "Д",
+     "position": "middle"
+    },
+    {
+     "letter": "Ш",
+     "position": "end"
+    }
+   ],
+   "emoji": "✏️"
+  },
+  {
+   "id": "лук",
+   "word": "лук",
+   "pic": "луковица",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🧅"
+  },
+  {
+   "id": "лодка",
+   "word": "лодка",
+   "pic": "деревянная вёсельная лодка сбоку, крупно, занимает почти весь кадр",
+   "note": "д перед к звучит [т]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🛶"
+  },
+  {
+   "id": "лампа",
+   "word": "лампа",
+   "pic": "настольная лампа",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "М",
+     "position": "middle"
+    },
+    {
+     "letter": "П",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "лопата",
+   "word": "лопата",
+   "pic": "лопата",
+   "note": "а два раза",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "П",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🪏"
+  },
+  {
+   "id": "луна",
+   "word": "луна",
+   "pic": "луна",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "🌙"
+  },
+  {
+   "id": "лапа",
+   "word": "лапа",
+   "pic": "лапа собаки",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Л",
+   "targets": [
+    {
+     "letter": "Л",
+     "position": "start"
+    },
+    {
+     "letter": "П",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🐾"
+  },
+  {
+   "id": "машина",
+   "word": "машина",
+   "pic": "настоящая легковая машина сбоку, целиком, обычная городская машина, не игрушка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "М",
+     "position": "start"
+    },
+    {
+     "letter": "Ш",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🚗"
+  },
+  {
+   "id": "мост",
+   "word": "мост",
+   "pic": "небольшой каменный мост через речку, снято на природе, мост крупно во весь кадр",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "М",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": "🌉"
+  },
+  {
+   "id": "молоко",
+   "word": "молоко",
+   "pic": "молоко в стакане",
+   "note": "о три раза",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "М",
+     "position": "start"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🥛"
+  },
+  {
+   "id": "муха",
+   "word": "муха",
+   "pic": "муха",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "М",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Х",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🪰"
+  },
+  {
+   "id": "майка",
+   "word": "майка",
+   "pic": "майка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "М",
+     "position": "start"
+    },
+    {
+     "letter": "Й",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🎽"
+  },
+  {
+   "id": "малыш",
+   "word": "малыш",
+   "pic": "малыш",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "М",
+     "position": "start"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "Ы",
+     "position": "middle"
+    },
+    {
+     "letter": "Ш",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "мышь",
+   "word": "мышь",
+   "pic": "мышь",
+   "note": "ь",
+   "aligned": false,
+   "only": "lotto",
+   "firstLetter": "М",
+   "targets": [],
+   "emoji": "🐭"
+  },
+  {
+   "id": "мяч",
+   "word": "мяч",
+   "pic": "мяч",
+   "note": "м перед я мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "Ч",
+     "position": "end"
+    }
+   ],
+   "emoji": "⚽"
+  },
+  {
+   "id": "нос",
+   "word": "нос",
+   "pic": "крупный план носа ребёнка: только нос и немного щёк, без глаз и рта",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Н",
+   "targets": [
+    {
+     "letter": "Н",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "end"
+    }
+   ],
+   "emoji": "👃"
+  },
+  {
+   "id": "слон",
+   "word": "слон",
+   "pic": "слон",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐘"
+  },
+  {
+   "id": "пушка",
+   "word": "пушка",
+   "pic": "пушка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "П",
+   "targets": [
+    {
+     "letter": "П",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Ш",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "паук",
+   "word": "паук",
+   "pic": "паук",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "П",
+   "targets": [
+    {
+     "letter": "П",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🕷️"
+  },
+  {
+   "id": "птица",
+   "word": "птица",
+   "pic": "птица",
+   "note": "т перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "П",
+   "targets": [
+    {
+     "letter": "П",
+     "position": "start"
+    },
+    {
+     "letter": "Ц",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🐦"
+  },
+  {
+   "id": "плащ",
+   "word": "плащ",
+   "pic": "плащ",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "П",
+   "targets": [
+    {
+     "letter": "П",
+     "position": "start"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Щ",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "шапка",
+   "word": "шапка",
+   "pic": "шапка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ш",
+   "targets": [
+    {
+     "letter": "Ш",
+     "position": "start"
+    },
+    {
+     "letter": "П",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🧢"
+  },
+  {
+   "id": "суп",
+   "word": "суп",
+   "pic": "тарелка супа",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "П",
+     "position": "end"
+    }
+   ],
+   "emoji": "🍲"
+  },
+  {
+   "id": "пальто",
+   "word": "пальто",
+   "pic": "пальто",
+   "note": "ь",
+   "aligned": false,
+   "only": "lotto",
+   "firstLetter": "П",
+   "targets": [],
+   "emoji": "🧥"
+  },
+  {
+   "id": "рыба",
+   "word": "рыба",
+   "pic": "рыба",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Р",
+   "targets": [
+    {
+     "letter": "Р",
+     "position": "start"
+    },
+    {
+     "letter": "Ы",
+     "position": "middle"
+    },
+    {
+     "letter": "Б",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🐟"
+  },
+  {
+   "id": "рак",
+   "word": "рак",
+   "pic": "рак",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Р",
+   "targets": [
+    {
+     "letter": "Р",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🦞"
+  },
+  {
+   "id": "рука",
+   "word": "рука",
+   "pic": "рука, ладонь",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Р",
+   "targets": [
+    {
+     "letter": "Р",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "✋"
+  },
+  {
+   "id": "ручка",
+   "word": "ручка",
+   "pic": "ручка (пишет)",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Р",
+   "targets": [
+    {
+     "letter": "Р",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Ч",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🖊️"
+  },
+  {
+   "id": "сыр",
+   "word": "сыр",
+   "pic": "сыр",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "Ы",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "end"
+    }
+   ],
+   "emoji": "🧀"
+  },
+  {
+   "id": "шар",
+   "word": "шар",
+   "pic": "воздушный шар",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ш",
+   "targets": [
+    {
+     "letter": "Ш",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "end"
+    }
+   ],
+   "emoji": "🎈"
+  },
+  {
+   "id": "сок",
+   "word": "сок",
+   "pic": "стакан сока",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🧃"
+  },
+  {
+   "id": "сом",
+   "word": "сом",
+   "pic": "сом (рыба)",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "М",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "сумка",
+   "word": "сумка",
+   "pic": "сумка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "М",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "👜"
+  },
+  {
+   "id": "стол",
+   "word": "стол",
+   "pic": "стол",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "Л",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "стул",
+   "word": "стул",
+   "pic": "стул",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Л",
+     "position": "end"
+    }
+   ],
+   "emoji": "🪑"
+  },
+  {
+   "id": "санки",
+   "word": "санки",
+   "pic": "санки",
+   "note": "к перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🛷"
+  },
+  {
+   "id": "оса",
+   "word": "оса",
+   "pic": "оса",
+   "note": "о безударная",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "О",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐝"
+  },
+  {
+   "id": "ананас",
+   "word": "ананас",
+   "pic": "ананас",
+   "note": "а и н по нескольку раз",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "А",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "end"
+    }
+   ],
+   "emoji": "🍍"
+  },
+  {
+   "id": "тапки",
+   "word": "тапки",
+   "pic": "тапки",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Т",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "start"
+    },
+    {
+     "letter": "П",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "танк",
+   "word": "танк",
+   "pic": "танк",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Т",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "тыква",
+   "word": "тыква",
+   "pic": "тыква",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Т",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "start"
+    },
+    {
+     "letter": "Ы",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    },
+    {
+     "letter": "В",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🎃"
+  },
+  {
+   "id": "такси",
+   "word": "такси",
+   "pic": "настоящее жёлтое такси сбоку, целиком",
+   "note": "с перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Т",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    },
+    {
+     "letter": "И",
+     "position": "end"
+    }
+   ],
+   "emoji": "🚕"
+  },
+  {
+   "id": "трамвай",
+   "word": "трамвай",
+   "pic": "трамвай",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Т",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "М",
+     "position": "middle"
+    },
+    {
+     "letter": "В",
+     "position": "middle"
+    },
+    {
+     "letter": "Й",
+     "position": "end"
+    }
+   ],
+   "emoji": "🚋"
+  },
+  {
+   "id": "метро",
+   "word": "метро",
+   "pic": "поезд метро у платформы на станции",
+   "note": "м перед е мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "М",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "end"
+    }
+   ],
+   "emoji": "🚇"
+  },
+  {
+   "id": "флаг",
+   "word": "флаг",
+   "pic": "однотонный жёлтый флаг на деревянном древке, флаг без рисунка, полос, гербов и надписей — не флаг страны",
+   "note": "г на конце звучит [к]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ф",
+   "targets": [
+    {
+     "letter": "Ф",
+     "position": "start"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🚩"
+  },
+  {
+   "id": "фартук",
+   "word": "фартук",
+   "pic": "фартук",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ф",
+   "targets": [
+    {
+     "letter": "Ф",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "фонарь",
+   "word": "фонарь",
+   "pic": "фонарь",
+   "note": "ь",
+   "aligned": false,
+   "only": "lotto",
+   "firstLetter": "Ф",
+   "targets": [],
+   "emoji": "🔦"
+  },
+  {
+   "id": "шкаф",
+   "word": "шкаф",
+   "pic": "шкаф",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ш",
+   "targets": [
+    {
+     "letter": "Ш",
+     "position": "start"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Ф",
+     "position": "end"
+    }
+   ],
+   "emoji": "🗄️"
+  },
+  {
+   "id": "хвост",
+   "word": "хвост",
+   "pic": "хвост",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Х",
+   "targets": [
+    {
+     "letter": "Х",
+     "position": "start"
+    },
+    {
+     "letter": "В",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "халат",
+   "word": "халат",
+   "pic": "халат",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Х",
+   "targets": [
+    {
+     "letter": "Х",
+     "position": "start"
+    },
+    {
+     "letter": "Л",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "хлеб",
+   "word": "хлеб",
+   "pic": "хлеб",
+   "note": "л перед е мягкий, б→[п]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Х",
+   "targets": [
+    {
+     "letter": "Х",
+     "position": "start"
+    }
+   ],
+   "emoji": "🍞"
+  },
+  {
+   "id": "петух",
+   "word": "петух",
+   "pic": "петух",
+   "note": "п перед е мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "П",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "Х",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐓"
+  },
+  {
+   "id": "цветок",
+   "word": "цветок",
+   "pic": "цветок",
+   "note": "в перед е мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ц",
+   "targets": [
+    {
+     "letter": "Ц",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🌷"
+  },
+  {
+   "id": "цирк",
+   "word": "цирк",
+   "pic": "цирк, шатёр",
+   "note": "ци = [цы], И не цель",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ц",
+   "targets": [
+    {
+     "letter": "Ц",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🎪"
+  },
+  {
+   "id": "цыплёнок",
+   "word": "цыплёнок",
+   "pic": "цыплёнок",
+   "note": "длинное слово",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ц",
+   "targets": [
+    {
+     "letter": "Ц",
+     "position": "start"
+    }
+   ],
+   "emoji": "🐥"
+  },
+  {
+   "id": "огурец",
+   "word": "огурец",
+   "pic": "огурец",
+   "note": "о безударная",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "О",
+   "targets": [
+    {
+     "letter": "Г",
+     "position": "middle"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Ц",
+     "position": "end"
+    }
+   ],
+   "emoji": "🥒"
+  },
+  {
+   "id": "чашка",
+   "word": "чашка",
+   "pic": "чашка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ч",
+   "targets": [
+    {
+     "letter": "Ч",
+     "position": "start"
+    },
+    {
+     "letter": "Ш",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "☕"
+  },
+  {
+   "id": "часы",
+   "word": "часы",
+   "pic": "часы",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ч",
+   "targets": [
+    {
+     "letter": "Ч",
+     "position": "start"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    },
+    {
+     "letter": "Ы",
+     "position": "end"
+    }
+   ],
+   "emoji": "⌚"
+  },
+  {
+   "id": "чай",
+   "word": "чай",
+   "pic": "чашка чая",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ч",
+   "targets": [
+    {
+     "letter": "Ч",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Й",
+     "position": "end"
+    }
+   ],
+   "emoji": "🍵"
+  },
+  {
+   "id": "чайник",
+   "word": "чайник",
+   "pic": "чайник",
+   "note": "н перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ч",
+   "targets": [
+    {
+     "letter": "Ч",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Й",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🫖"
+  },
+  {
+   "id": "шуба",
+   "word": "шуба",
+   "pic": "шуба",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ш",
+   "targets": [
+    {
+     "letter": "Ш",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Б",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "щука",
+   "word": "щука",
+   "pic": "щука",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Щ",
+   "targets": [
+    {
+     "letter": "Щ",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "щётка",
+   "word": "щётка",
+   "pic": "щётка",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Щ",
+   "targets": [
+    {
+     "letter": "Щ",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🪥"
+  },
+  {
+   "id": "щенок",
+   "word": "щенок",
+   "pic": "щенок",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Щ",
+   "targets": [
+    {
+     "letter": "Щ",
+     "position": "start"
+    },
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "К",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐶"
+  },
+  {
+   "id": "йогурт",
+   "word": "йогурт",
+   "pic": "йогурт в стаканчике",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Й",
+   "targets": [
+    {
+     "letter": "Й",
+     "position": "start"
+    },
+    {
+     "letter": "Г",
+     "position": "middle"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": "🥣"
+  },
+  {
+   "id": "сарай",
+   "word": "сарай",
+   "pic": "деревянный сарай во дворе",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "С",
+   "targets": [
+    {
+     "letter": "С",
+     "position": "start"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "Й",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "палец",
+   "word": "палец",
+   "pic": "палец",
+   "note": "л перед е мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "П",
+   "targets": [
+    {
+     "letter": "П",
+     "position": "start"
+    },
+    {
+     "letter": "А",
+     "position": "middle"
+    },
+    {
+     "letter": "Ц",
+     "position": "end"
+    }
+   ],
+   "emoji": "☝️"
+  },
+  {
+   "id": "кенгуру",
+   "word": "кенгуру",
+   "pic": "кенгуру стоит на задних лапах, целиком, сбоку",
+   "note": "к перед е мягкий; е безударная; у два раза — не цель (владелец 2026-11-18 вместо какаду)",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "Н",
+     "position": "middle"
+    },
+    {
+     "letter": "Г",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🦘"
+  },
+  {
+   "id": "кит",
+   "word": "кит",
+   "pic": "кит",
+   "note": "к перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "К",
+   "targets": [
+    {
+     "letter": "И",
+     "position": "middle"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": "🐋"
+  },
+  {
+   "id": "жилет",
+   "word": "жилет",
+   "pic": "жилет",
+   "note": "жи = [жы]",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Ж",
+   "targets": [
+    {
+     "letter": "Ж",
+     "position": "start"
+    },
+    {
+     "letter": "Т",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "носки",
+   "word": "носки",
+   "pic": "носки",
+   "note": "к перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Н",
+   "targets": [
+    {
+     "letter": "Н",
+     "position": "start"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "С",
+     "position": "middle"
+    }
+   ],
+   "emoji": "🧦"
+  },
+  {
+   "id": "укроп",
+   "word": "укроп",
+   "pic": "укроп",
+   "note": "",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "У",
+   "targets": [
+    {
+     "letter": "У",
+     "position": "start"
+    },
+    {
+     "letter": "К",
+     "position": "middle"
+    },
+    {
+     "letter": "Р",
+     "position": "middle"
+    },
+    {
+     "letter": "О",
+     "position": "middle"
+    },
+    {
+     "letter": "П",
+     "position": "end"
+    }
+   ],
+   "emoji": null
+  },
+  {
+   "id": "туфли",
+   "word": "туфли",
+   "pic": "туфли",
+   "note": "л перед и мягкий",
+   "aligned": true,
+   "only": null,
+   "firstLetter": "Т",
+   "targets": [
+    {
+     "letter": "Т",
+     "position": "start"
+    },
+    {
+     "letter": "У",
+     "position": "middle"
+    },
+    {
+     "letter": "Ф",
+     "position": "middle"
+    }
+   ],
+   "emoji": "👠"
+  },
+  {
+   "id": "енот",
+   "word": "енот",
+   "pic": "енот",
+   "note": "Е в начале = [йэ]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Е",
+   "targets": [],
+   "emoji": "🦝"
+  },
+  {
+   "id": "ёлка",
+   "word": "ёлка",
+   "pic": "ёлка",
+   "note": "Ё в начале = [йо]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Ё",
+   "targets": [],
+   "emoji": "🎄"
+  },
+  {
+   "id": "ёж",
+   "word": "ёж",
+   "pic": "ёж",
+   "note": "Ё в начале = [йо]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Ё",
+   "targets": [],
+   "emoji": "🦔"
+  },
+  {
+   "id": "юла",
+   "word": "юла",
+   "pic": "юла",
+   "note": "Ю в начале = [йу]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Ю",
+   "targets": [],
+   "emoji": null
+  },
+  {
+   "id": "юбка",
+   "word": "юбка",
+   "pic": "юбка",
+   "note": "Ю в начале = [йу]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Ю",
+   "targets": [],
+   "emoji": "👗"
+  },
+  {
+   "id": "яблоко",
+   "word": "яблоко",
+   "pic": "яблоко",
+   "note": "Я в начале = [йа]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Я",
+   "targets": [],
+   "emoji": "🍎"
+  },
+  {
+   "id": "ящик",
+   "word": "ящик",
+   "pic": "ящик",
+   "note": "Я в начале = [йа]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Я",
+   "targets": [],
+   "emoji": null
+  },
+  {
+   "id": "якорь",
+   "word": "якорь",
+   "pic": "якорь",
+   "note": "Я в начале = [йа]",
+   "aligned": false,
+   "only": "letter",
+   "firstLetter": "Я",
+   "targets": [],
+   "emoji": "⚓"
+  }
+ ]
+}

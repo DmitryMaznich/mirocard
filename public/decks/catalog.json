@@ -110,7 +110,7 @@
     },
     {
       "id": "verbs_v2",
-      "version": "2.4.7",
+      "version": "2.4.8",
       "title": {
         "ru": "Глаголы",
         "en": "Verbs"
@@ -119,7 +119,7 @@
         "ru": "44 глагола в пяти наборах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
         "en": "44 everyday verbs in five sets, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
-      "url": "./decks/verbs_v2_v2.4.7.zip",
+      "url": "./decks/verbs_v2_v2.4.8.zip",
       "status": "release",
       "access": "free",
       "materialLanguages": [
@@ -351,15 +351,15 @@
     },
     {
       "id": "phonetic_analysis",
-      "version": "1.0.0",
-      "url": "./decks/phonetic_analysis_v1.0.0.zip",
-      "zipUrl": "phonetic_analysis_v1.0.0.zip",
+      "version": "2.8.0",
+      "url": "./decks/phonetic_analysis_v2.8.0.zip",
+      "zipUrl": "phonetic_analysis_v2.8.0.zip",
       "title": {
-        "ru": "Звуки и буквы",
-        "en": "Sounds and Letters"
+        "ru": "Буквы и звуки",
+        "en": "Letters and Sounds"
       },
       "renderer": "phonetic_analysis",
-      "status": "beta",
+      "status": "release",
       "access": "paid",
       "materialLanguages": [
         "ru"
@@ -694,16 +694,16 @@
     },
     {
       "id": "drawing",
-      "version": "0.40.0",
+      "version": "0.42.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
       },
       "description": {
-        "ru": "Одиннадцать рисунков на бумаге, включая собачку, два космических рисунка, улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
-        "en": "Eleven paper drawing lessons, including a dog, two space drawings, a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
+        "ru": "Двадцать рисунков на бумаге: малыш, домик, шесть пар героев из мира Пеппы, снеговик, собачка и другие. Также доступны «Первые линии» и тренировка закрашивания фигур и дорожек.",
+        "en": "Twenty paper drawing lessons, including a baby, a house, six Peppa family and friends pairs, a snowman and a dog, plus First Lines and coloring practice."
       },
-      "url": "./decks/drawing_v0.40.0.zip",
+      "url": "./decks/drawing_v0.42.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

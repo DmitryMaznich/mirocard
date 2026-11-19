@@ -23,7 +23,31 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
-    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog", "snowman_glasses"]));
+    expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining([
+      'cute_baby', 'house_tree_sun', 'peppa_collection_peppa_george',
+      'peppa_collection_mummy_daddy', 'peppa_collection_suzy_danny',
+      'peppa_collection_pedro_candy', 'peppa_collection_rebecca_emily', 'peppa_collection_zoe_freddy',
+    ]));
+    expect(tasks.find(task => task.cardId === 'house_tree_sun').lesson.paperOrientation).toBe('landscape');
+    const snowman = tasks.find(task => task.cardId === "snowman_glasses").lesson;
+    expect(snowman.title).toBe("Снеговик в очках");
+    expect(snowman.steps).toHaveLength(41);
+    expect(snowman.source.url).toContain("1pxa9_W1Dnj1BlfVCz5AwHNtdq66dzFGb");
+    expect(snowman.steps.slice(0, 7).map(step => step.title)).toEqual([
+      "Шарф целиком", "Складка шарфа", "Большой снежный ком",
+      "Голова над шарфом — от края до края", "Целый отворот шапки на голове",
+      "Верхняя часть шапки", "Круглый помпон",
+    ]);
+    for (const step of snowman.steps.slice(0, 7)) expect(step.paths).toHaveLength(1);
+    expect(snowman.steps.findIndex(step => step.title === "Левая ручка-веточка"))
+      .toBeLessThan(snowman.steps.findIndex(step => step.title === "Левая варежка на ручке"));
+    expect(snowman.steps.findIndex(step => step.title === "Правая ручка-веточка"))
+      .toBeLessThan(snowman.steps.findIndex(step => step.title === "Правая варежка на ручке"));
+    expect(await archive.file("media/snowman_glasses.svg").async("string")).toContain(snowman.viewBox);
+    for (const step of snowman.steps.filter(step => step.kind === "stroke")) {
+      for (const path of step.paths) expect(path.match(/M /g)).toHaveLength(1);
+    }
     const dog = tasks.find(task => task.cardId === "dog").lesson;
     expect(dog.title).toBe("Собачка");
     expect(dog.steps).toHaveLength(48);
@@ -129,8 +153,17 @@ describe("downloadable drawing topic", () => {
     for (const task of tasks) {
       const order = task.lesson.steps.map(step => step.tool);
       const groups = order.filter((tool, i) => i===0 || order[i-1]!==tool);
-      expect(new Set(groups).size).toBe(groups.length);
-      expect(groups).toEqual(task.lesson.palette.map(tool => tool.id));
+      if (task.lesson.stepOrder === 'authored') {
+        const original = JSON.parse(await readFile(`tools/drawing/lessons/${task.lesson.id}.json`, 'utf8'));
+        expect(task.lesson.steps).toEqual(original.steps);
+        const [first, second] = task.lesson.characters;
+        expect(task.lesson.steps.slice(0, first.endStep).every(step => step.character === first.name)).toBe(true);
+        expect(task.lesson.steps[first.endStep - 1].kind).toBe('color');
+        expect(task.lesson.steps.slice(first.endStep).every(step => step.character === second.name)).toBe(true);
+      } else {
+        expect(new Set(groups).size).toBe(groups.length);
+        expect(groups).toEqual(task.lesson.palette.map(tool => tool.id));
+      }
       for (const step of task.lesson.steps.filter(step => step.kind === "color")) {
         expect(step.fill).toBe(task.lesson.palette.find(tool => tool.id===step.tool).color);
       }

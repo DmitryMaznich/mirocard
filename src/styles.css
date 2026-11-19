@@ -14051,7 +14051,10 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .rp-person, .rp-people-count, .rp-row-note, .rp-row-value { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
-.param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+/* margin-left: auto keeps the buttons at the right beside a short label; once
+   they wrap under the label they start at the left, not hang off the right
+   edge (short stories «Ступень» / «Вопросы»). */
+.param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-start; margin-left: auto; }
 .param-enum-group--col { flex-direction: column; align-items: flex-end; }
 /* Ordered steps (Монеты → Схема → Таблица): arrows between the buttons. */
 .param-enum-group--ordered { align-items: center; gap: 4px; }
@@ -14067,7 +14070,7 @@ kbd {
   gap: 8px;
 }
 .param-row--block .param-label { flex: none; }
-.param-row--block .param-enum-group { justify-content: flex-start; }
+.param-row--block .param-enum-group { justify-content: flex-start; margin-left: 0; }
 .param-hint {
   font-size: 0.78rem;
   color: #7a9e9a;
@@ -14849,6 +14852,9 @@ kbd {
 .concept-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  /* Rows as tall as the card: auto rows came out shorter than picture + label
+     and cut the word under every picture. */
+  grid-auto-rows: max-content;
   gap: 0;
   padding: 0;
   align-content: start;
@@ -17249,6 +17255,21 @@ button.operation-dot {
   letter-spacing: 0.05em;
 }
 .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-top: 1px solid rgba(28, 54, 52, 0.06); }
+/* An on/off setting: label on the left, a switch on the right — also on phones,
+   where the generic narrow-screen rule stacks .settings-row into a column.
+   The native checkbox stays (forms and tests read .checked), drawn as a switch. */
+.settings-row.settings-row--switch, .settings-row.settings-row--action { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; text-align: left; }
+.settings-row.settings-row--switch { cursor: pointer; }
+.settings-row--action > span:first-child { flex: 1; min-width: 0; color: #263b31; }
+.settings-row--action > .link-btn { flex-shrink: 0; min-height: 44px; }
+.settings-row--action > [role="alert"] { flex-basis: 100%; }
+.settings-row--switch > span { flex: 1; min-width: 0; color: #263b31; }
+.settings-switch { appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative; width: 44px; height: 26px; margin: 0; border-radius: 13px; background: #c8d1cf; cursor: pointer; transition: background .15s; }
+.settings-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .15s; }
+.settings-switch:checked { background: #1c7a6e; }
+.settings-switch:checked::after { left: 21px; }
+.settings-switch:disabled { opacity: .55; cursor: not-allowed; }
+.settings-switch:focus-visible { outline: 3px solid #9fd0c6; outline-offset: 2px; }
 
 .settings-row--zone { gap: 10px; }
 .settings-zone-icon { font-size: 1.3rem; flex-shrink: 0; }
@@ -17611,6 +17632,24 @@ select.account-card__input {
 .account-card__save-btn:disabled, .account-card__cancel-btn:disabled { opacity: 0.5; pointer-events: none; }
 
 /* ─── Danger zone ────────────────────────────────────────────────────────── */
+/* Closed: one quiet red line at the very bottom, not a red block on the
+   account's main screen. The explanation and the e-mail check open on tap. */
+.danger-zone--closed {
+  margin: 8px 16px 24px;
+  display: flex;
+  justify-content: center;
+}
+.danger-zone__open-btn {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  background: transparent;
+  color: #c24545;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
 .danger-zone {
   margin: 0 16px;
   padding: 16px;

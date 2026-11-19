@@ -172,7 +172,7 @@ test("reduced motion keeps the same stop and manual input flow",async ({page}) =
   await expect(page.getByRole("button",{name:"Мирон: выпало 1",exact:true})).toBeEnabled();
 });
 
-for(const game of ["Гонки","Дом до облаков","Наливаем до краёв"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
+for(const game of ["Гонки","Дом до облаков","Наливаем до краёв","Перетягивание каната"]) for(const viewport of [{width:1280,height:800},{width:844,height:390},{width:390,height:844}]) test(`rolling faces fill each cube: ${game} ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);
   await page.goto("/tests/responsive/games.html");
   await page.getByRole("button",{name:new RegExp(game)}).click();
@@ -180,4 +180,116 @@ for(const game of ["Гонки","Дом до облаков","Наливаем �
   await expect(page.locator(".race-cube-face")).toHaveCount(12);
   const sizes=await page.locator(".race-cube-face").evaluateAll(nodes=>nodes.map(face=>({face:parseFloat(getComputedStyle(face).width),drawing:parseFloat(getComputedStyle(face.firstElementChild).width),h:parseFloat(getComputedStyle(face.firstElementChild).height)})));
   for(const size of sizes){expect(size.drawing).toBeCloseTo(size.face,1);expect(size.h).toBeCloseTo(size.face,1);}
+});
+
+test("tug of war asks for both sums before comparing the totals", async ({page}) => {
+  test.setTimeout(55000);
+  await page.setViewportSize({width:390,height:844});
+  await page.addInitScript(() => {
+    window.feedbackSounds = [];
+    const originalPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      if (!this.muted && this.src.includes("/sounds/")) window.feedbackSounds.push(this.src.split("/").at(-1));
+      return originalPlay.apply(this);
+    };
+  });
+  await page.goto("/tests/responsive/games.html");
+  await page.getByRole("button",{name:/Перетягивание каната/}).click();
+  await page.getByRole("button",{name:"На старт!",exact:true}).click();
+  await enterNumbers(page);
+
+  const scene = page.locator(".tug-scene");
+  const flag = scene.locator(".tug-center-flag");
+  const flagStart = await flag.getAttribute("transform");
+  const scores = scene.getByRole("group",{name:"Очки за рывки"});
+  const values = scores.locator(".tug-score-value");
+  const sums = page.getByRole("group",{name:"Сколько очков стало?"});
+  const equation = page.locator(".tug-equation");
+  const answers = page.getByRole("group",{name:"У кого больше очков на табло?"});
+  const choose = choice => answers.getByRole("button",{name:choice,exact:true}).click();
+  const chooseSum = number => sums.getByRole("button",{name:String(number),exact:true}).click();
+  const sound = page.getByRole("button",{name:"Звук",exact:true});
+  await expect(sound).toHaveAttribute("aria-pressed","false");
+  const roll = async (child, adult) => {
+    await page.getByRole("button",{name:`Мирон: выпало ${child}`,exact:true}).click();
+    await expect(answers).toHaveCount(0);
+    await page.getByRole("button",{name:`Папа: выпало ${adult}`,exact:true}).click();
+  };
+
+  async function fillScores(child, adult, totals, checkFeedback = false) {
+    if (child === adult) {
+      await expect(answers).toBeVisible();
+      await expect(sums).toHaveCount(0);
+      return;
+    }
+    const oldChild = String(Number(totals[0]) - child);
+    const oldAdult = String(Number(totals[1]) - adult);
+    await expect(equation).toHaveText(`${oldChild} + ${child} = ?`);
+    await expect(answers).toHaveCount(0);
+    await expect(values).toHaveText([oldChild, oldAdult]);
+    await expect(scores.locator(".tug-score-bonus")).toHaveText([`+${child}`, `+${adult}`]);
+    if (checkFeedback) {
+      await sound.click();
+      await chooseSum(5);
+      await expect(page.getByText("Начни с 0. Прибавь ещё 6.")).toBeVisible();
+      await expect(page.locator(".tug-count-dots i")).toHaveCount(6);
+      await expect(values).toHaveText([oldChild, oldAdult]);
+      await expect.poll(() => page.evaluate(() => window.feedbackSounds.at(-1))).toBe("incorrect.wav");
+    }
+    await chooseSum(totals[0]);
+    if (checkFeedback) {
+      await expect(page.getByText("Верно!",{exact:true})).toBeVisible();
+      await expect.poll(() => page.evaluate(() => window.feedbackSounds.at(-1))).toBe("correct.wav");
+      await sound.click();
+    }
+    await expect(equation).toHaveText(`${oldAdult} + ${adult} = ?`);
+    await expect(values).toHaveText([totals[0], oldAdult]);
+    await chooseSum(totals[1]);
+    await expect(answers).toBeVisible();
+  }
+
+  for (const [child, adult, answer, position, totals] of [
+    [6, 1, "У Мирона", "-5", ["6","1"]],
+    [1, 4, "У Мирона", "-2", ["7","5"]],
+    [3, 5, "Поровну", "0", ["10","10"]],
+    [4, 4, "Поровну", "0", ["10","10"]],
+    [1, 6, "У папы", "5", ["11","16"]],
+    [1, 6, "У папы", "10", ["12","22"]],
+  ]) {
+    await roll(child, adult);
+    if (position === "-5") {
+      await expect(answers).toHaveCount(0);
+      await expect(scene).toHaveAttribute("data-rope-position", "1");
+      await expect(values).toHaveText(["0","0"]);
+      await expect(scores.locator(".tug-score-bonus")).toHaveText(["+1"]);
+      await expect(page.getByRole("status")).toHaveText("Мирон тянет на 6");
+      await page.emulateMedia({reducedMotion:"reduce"});
+    }
+    await fillScores(child, adult, totals, position === "-5");
+    await expect(scene).toHaveAttribute("data-rope-position", position);
+    await expect(flag).toHaveAttribute("transform", flagStart);
+    await expect(scores.locator(".tug-score-value")).toHaveText(totals);
+    if (position === "-2") {
+      await choose("У папы");
+      await expect(page.getByText("Посмотри на оба числа на табло.")).toBeVisible();
+      await expect(scores.locator(".tug-score-value")).toHaveText(totals);
+      await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toHaveCount(0);
+    }
+    await choose(answer);
+    await expect(page.getByRole("button",{name:"Бросить кубики",exact:true})).toBeVisible();
+    await enterNumbers(page);
+  }
+
+  await roll(1, 6);
+  await fillScores(1, 6, ["13","28"]);
+  const result = page.getByRole("dialog",{name:"Папа — победитель!"});
+  await expect(answers).toBeVisible();
+  await expect(result).toHaveCount(0);
+  await expect(scene.locator(".tug-win")).toHaveCount(0);
+  await expect(scores.locator(".tug-score-value")).toHaveText(["13","28"]);
+  await choose("У папы");
+  await expect(result).toBeVisible();
+  await expect(result.locator(".tug-score-value")).toHaveText(["13","28"]);
+  await result.getByRole("button",{name:"К играм",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"Игры",exact:true})).toBeVisible();
 });

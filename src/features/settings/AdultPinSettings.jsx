@@ -32,7 +32,7 @@ export default function AdultPinSettings() {
   }
 
   function handleSetNewSuccess() { setPinResetMode(null); }
-  return <div className="settings-row">
+  return <div className="settings-row settings-row--action">
     <span>{t("settings.pin")}</span><button className="link-btn" onClick={startPinReset}>{t(adultPinHash ? "settings.changePin" : "settings.setPin")}</button>
     {error && <span role="alert">{t("account.saveError")}</span>}
       {pinResetMode === "verify-old" && (

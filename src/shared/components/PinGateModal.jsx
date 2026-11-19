@@ -72,6 +72,8 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = 
     <div className="pin-gate-overlay">
       <div className="pin-gate">
         <div className="pin-gate__title">{t(title)}</div>
+        {/* Said once, while the adult makes the PIN up: what it is for. */}
+        {isSetup && stage === "enter" && <p className="pin-gate__hint">{t("pin.createHint")}</p>}
 
         <div className={`pin-gate__dots${shake ? " pin-gate__dots--shake" : ""}`}>
           {[0, 1, 2, 3].map((i) => (

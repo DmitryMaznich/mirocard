@@ -1,5 +1,5 @@
 import { useTopicUiPreview } from "@/core/topicUiPreview";
-import HomePreview from "./HomePreview";
+import HomePreview, { HomePreviewNoStudent } from "./HomePreview";
 import { setupText } from "@/shared/i18n/setupText.js";
 import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
@@ -34,6 +34,7 @@ import "@/features/planner/planner.css";
 import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
+import StudentSwitcherSheet from "./StudentSwitcherSheet";
 import MarketingPromptCard from "./MarketingPromptCard";
 import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
 import StatisticsScreen from "@/features/analytics/StatisticsScreen";
@@ -66,34 +67,54 @@ function getTimeGreeting(date = new Date()) {
 
 function HomeHeader({
   student, buildInfo, hasUpdate, refreshingAll, refreshFailed, versionTitle,
-  onRefresh, onMenu, onAvatarTap,
+  onRefresh, onMenu, onAvatarTap, onStudentTap, preview = false,
 }) {
   const { t } = useUiTranslation();
+  // The new interface greets a brand-new account plainly: no «—» avatar and
+  // no «Ученик не выбран» — the card below already invites to add one.
+  const bare = preview && !student;
   return (
     <header className="home-header">
       {/* Secret 5-tap shortcut into the "streak_tracker" test topic — a dev/QA
           convenience, not a real feature, so it stays visually inert. */}
-      <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
+      {preview && student ? (
+        // New interface: the student is a button — tap to switch students.
+        <button type="button" className="home-header__student-btn" onClick={onStudentTap}
+          aria-haspopup="dialog" aria-label={`${student.name}: ${t("preview.whoStudies")}`}>
+          <span className="home-header__avatar">
+            {student.photo ? <AuthenticatedImage src={student.photo} alt="" /> : getInitials(student.name)}
+          </span>
+          <span className="home-header__copy">
+            <span className="home-header__eyebrow">{getTimeGreeting()}</span>
+            <span className="home-header__student-name">{student.name}<span className="home-header__switch-caret" aria-hidden="true">▾</span></span>
+          </span>
+        </button>
+      ) : <>
+      {!bare && <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
         {student
           ? (student.photo ? <AuthenticatedImage src={student.photo} alt="" /> : getInitials(student.name))
           : '—'}
-      </div>
+      </div>}
       <div className="home-header__copy">
-        <span className="home-header__eyebrow">{getTimeGreeting()}</span>
+        {!bare && <span className="home-header__eyebrow">{getTimeGreeting()}</span>}
         <span className="home-header__student-name">
-          {student ? student.name : t("home.noStudent")}
+          {bare ? getTimeGreeting().replace(/,\s*$/, "") : student ? student.name : t("home.noStudent")}
         </span>
       </div>
-      <button
+      </>}
+      {/* The new interface shows no build number to the adult — only «Обновить»
+          when there is something to update (installed topics refresh on their
+          own; the number stays in «Настройки приложения»). */}
+      {(!preview || hasUpdate || refreshingAll || refreshFailed) && <button
         type="button"
         className={`home-header__version${hasUpdate || refreshingAll || refreshFailed ? " home-header__version--update" : ""}${refreshingAll ? " home-header__version--refreshing" : ""}${refreshFailed ? " home-header__version--error" : ""}`}
         onClick={onRefresh}
         title={versionTitle}
         disabled={refreshingAll}
       >
-        v{buildInfo.version}
+        {preview ? t(refreshFailed ? "common.retry" : "preview.updateApp") : `v${buildInfo.version}`}
         {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-header__version__dot" />}
-      </button>
+      </button>}
       <button className="home-header__settings-btn" onClick={onMenu} aria-label={t("nav.menu")}>
         <MenuIcon />
       </button>
@@ -274,7 +295,7 @@ function SessionTab({
   const { t } = useUiTranslation();
   const { enabled: preview } = useTopicUiPreview();
   if (!student) {
-    return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
+    return preview ? <HomePreviewNoStudent onAdd={onAddFirstStudent} /> : <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
   if (preview) return <HomePreview />;
 
@@ -779,6 +800,7 @@ export default function HomeScreen() {
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   // Topic/mode come pre-filled with defaults, so a first-time user sees both
@@ -1026,6 +1048,7 @@ export default function HomeScreen() {
   return (
     <div className={`screen home-screen-v2${preview ? ' topic-ui-home' : ''}${visibleTab === 'statistics' ? ' home-screen-v2--statistics' : ''}`}>
       <HomeHeader
+        preview={preview}
         student={student}
         buildInfo={buildInfo}
         hasUpdate={hasUpdate}
@@ -1035,6 +1058,7 @@ export default function HomeScreen() {
         onRefresh={refreshAppAndTopics}
         onMenu={() => { closeHints(); setMenuOpen(true); }}
         onAvatarTap={handleAvatarSecretTap}
+        onStudentTap={() => { closeHints(); setSwitcherOpen(true); }}
       />
 
       <div className="home-main">
@@ -1085,6 +1109,17 @@ export default function HomeScreen() {
 
       {!preview && <HomeTabs active={visibleTab} onChange={changeTab} statisticsAvailable={statisticsAvailable} statisticsDisabledReason={statisticsDisabledReason} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />}
       {hintsOpen && student && <ScreenHints steps={homeHintSteps} onClose={closeHints} />}
+
+      {switcherOpen && (
+        <StudentSwitcherSheet
+          students={students}
+          activeId={student?.id}
+          onPick={setActiveStudentId}
+          onAdd={handleAddFirstStudent}
+          onAll={() => setScreen("students")}
+          onClose={() => setSwitcherOpen(false)}
+        />
+      )}
 
       {menuOpen && (
         <HomeMenuSheet
