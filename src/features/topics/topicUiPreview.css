@@ -183,3 +183,9 @@
 .topic-ui-stats .statistics-overview > div, .topic-ui-stats .statistics-group, .topic-ui-stats .statistics-topics button { background: #fffdf9; border-color: #e4e0d5; }
 .topic-ui-stats .statistics-filters select { border-color: #d6dccf; }
 .topic-ui-stats .empty-state { color: #6f8273; }
+
+/* Menu rows that carry a value (Язык · Русский) and the language sheet. */
+.action-sheet__item--value { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.action-sheet__value { color: #6f8273; font-size: 0.92rem; }
+.action-sheet__item--current { font-weight: 800; color: #1c7a6e; }
+.action-sheet__note { margin: 0; padding: 4px 20px 12px; color: #6f8273; font-size: 0.82rem; line-height: 1.45; }

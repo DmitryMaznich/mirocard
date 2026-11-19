@@ -5,8 +5,10 @@ import { api, setApiToken } from "@/core/api";
 import { getDb } from "@/core/db";
 import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 export default function VerifyEmailScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const token = useAppStore((s) => s.verifyEmailToken);
 
@@ -63,7 +65,7 @@ export default function VerifyEmailScreen() {
       <div className="auth-screen">
         <MironiumLogo className="auth-logo" />
         <div className="auth-form" style={{ textAlign: "center" }}>
-          Подтверждаем email…
+          {t("auth.verifying")}
         </div>
       </div>
     );
@@ -75,10 +77,10 @@ export default function VerifyEmailScreen() {
         <MironiumLogo className="auth-logo" />
         <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
           <p style={{ fontSize: "1.1rem", color: "#4a9b8f", fontWeight: 600 }}>
-            Email подтверждён!
+            {t("auth.verified")}
           </p>
           <Button onClick={() => setScreen("home")} fullWidth>
-            Перейти в приложение
+            {t("auth.openApp")}
           </Button>
         </div>
       </div>
@@ -90,13 +92,13 @@ export default function VerifyEmailScreen() {
       <MironiumLogo className="auth-logo" />
       <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
         <p style={{ color: "#c0392b" }}>
-          Ссылка недействительна или срок её действия истёк.
+          {t("auth.linkInvalid")}
         </p>
         <Button onClick={() => setScreen("verify_email_sent")} fullWidth variant="secondary">
-          Запросить новую ссылку
+          {t("auth.requestNewLink")}
         </Button>
         <button className="auth-link" onClick={() => setScreen("login")}>
-          Вернуться к входу
+          {t("auth.backToLogin")}
         </button>
       </div>
     </div>

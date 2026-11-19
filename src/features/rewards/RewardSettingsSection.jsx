@@ -26,8 +26,8 @@ export default function RewardSettingsSection({ value, onChange }) {
         {["soft", "normal"].map(animation => <button type="button" key={animation}
           aria-pressed={settings.animation === animation} onClick={() => change({ animation })}>{text(animation)}</button>)}
       </div>
-      <label className="reward-settings__check"><input type="checkbox" checked={settings.sound}
-        onChange={event => change({ sound: event.target.checked })} />{text("sound")}</label>
+      <label className="reward-settings__check"><span>{text("sound")}</span><input type="checkbox" role="switch" className="settings-switch" checked={settings.sound}
+        onChange={event => change({ sound: event.target.checked })} /></label>
     </fieldset>
   </section>;
 }

@@ -1,5 +1,6 @@
 import { getUiLanguage } from "./uiLanguage.js";
 import { getTopicTitle } from "../utils/format.js";
+import { pickUiText } from "../../../shared/ui-languages.mjs";
 
 const SLOVENIAN_TOPIC_TITLES = {
   "streak_tracker": "5 od 5",
@@ -39,11 +40,37 @@ const SLOVENIAN_TOPIC_TITLES = {
   "spatial_prepositions": "Predlogi: kje je predmet?"
 };
 
+// Topic names per interface language, for topics whose metadata does not carry
+// that language yet. A new language adds its own map here.
+// Built-in topics carry only a Russian title; catalogue topics already have
+// `title.en` in catalog.json.
+const ENGLISH_TOPIC_TITLES = {
+  "streak_tracker": "5 of 5",
+  "games": "Games",
+  "my_people": "My people",
+  "daily_orientation": "Today",
+  "shopping_list": "Shopping list",
+  "chat_with_mom": "Chat with mum",
+  "reading_dad_poems": "Reading: poems",
+  "reading_short_stories": "Reading: short stories",
+  "reading_dad_instructions": "Reading: instructions",
+  "emotions_v2": "Emotions",
+  "people_names": "Sex, age, names",
+  "clothes_basic": "Clothes",
+  "verbs_v2": "Verbs",
+  "spatial_prepositions": "Prepositions: where is it?"
+};
+
+const TOPIC_TITLE_TRANSLATIONS = { sl: SLOVENIAN_TOPIC_TITLES, en: ENGLISH_TOPIC_TITLES };
+
 // For library/home navigation only. Never use this to select lesson content/audio.
+// Order: the title's own text in the language → this table → the registry's
+// fallback chain (English, then Russian).
 export function getInterfaceTopicTitle(id, title, language = getUiLanguage()) {
-  if (language === "sl") {
-    if (typeof title === "object" && !Array.isArray(title) && title?.sl) return getTopicTitle(title, "sl");
-    if (SLOVENIAN_TOPIC_TITLES[id]) return SLOVENIAN_TOPIC_TITLES[id];
-  }
+  const own = typeof title === "object" && !Array.isArray(title) ? title?.[language] : null;
+  if (own) return getTopicTitle(own, language);
+  const translated = TOPIC_TITLE_TRANSLATIONS[language]?.[id];
+  if (translated) return translated;
+  if (typeof title === "object" && title && !Array.isArray(title)) return getTopicTitle(pickUiText(title, language), language);
   return getTopicTitle(title, language);
 }

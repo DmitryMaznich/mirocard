@@ -23,7 +23,7 @@ export function createAccountLanguages({ storage, applyLanguage, request, makeId
     // have their own explicit marker, including a deliberate ru choice.
     const legacy = Object.keys(records).length === 0 ? storage?.getItem("mironium.uiLanguage") : null;
     const saved = storage?.getItem("mironium.guestUiLanguage") ??
-      (legacy === "sl" ? legacy : null);
+      (legacy && legacy !== "ru" ? legacy : null);
     if (isUiLanguage(saved)) guestChoice = saved;
   } catch { /* guest choice still works in memory */ }
   let snapshot = Object.freeze({ accountId: null, cardLanguage: "ru", status: "local", durable: true });

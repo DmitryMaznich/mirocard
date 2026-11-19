@@ -1,8 +1,11 @@
 import { getUiLanguage } from "./uiLanguage.js";
 import { getTopicTitle } from "../utils/format.js";
+import { isKnownUiLanguage, pickUiText, SOURCE_UI_LANGUAGE } from "../../../shared/ui-languages.mjs";
 
 // Display-only labels from first-party deck metadata. Never run on lesson text,
-// audio, user input or stored parameter values. Explicit SL metadata takes priority.
+// audio, user input or stored parameter values. Explicit metadata in the
+// language takes priority; then these translations of the Russian wording, per
+// language; then the registry's fallback chain (English, Russian).
 const SLOVENIAN_SETUP_LABELS = {
   "Раскладка": "Pospravljanje",
   "Сложность фигур": "Zahtevnost likov",
@@ -304,17 +307,42 @@ const SLOVENIAN_SETUP_LABELS = {
   "любое": "poljubno"
 };
 
+const SETUP_LABEL_TRANSLATIONS = { sl: SLOVENIAN_SETUP_LABELS };
+
+const isLocalized = (value) => value != null && typeof value === "object" && !Array.isArray(value);
+
 export function setupText(value, language = getUiLanguage()) {
-  const source = getTopicTitle(value, language);
-  return language === "sl" && Object.hasOwn(SLOVENIAN_SETUP_LABELS, source) ? SLOVENIAN_SETUP_LABELS[source] : source;
+  if (isLocalized(value) && value[language] != null && value[language] !== "") return getTopicTitle(value[language], language);
+  const source = getTopicTitle(value, SOURCE_UI_LANGUAGE);
+  const translated = SETUP_LABEL_TRANSLATIONS[language]?.[source];
+  if (translated) return translated;
+  if (language === SOURCE_UI_LANGUAGE || !isLocalized(value)) return source;
+  return getTopicTitle(pickUiText(value, language), language);
+}
+
+// { ru: { key: "…" }, en: {…} } → { key: label } in the interface language,
+// key by key along the same order as setupText.
+function localizedMap(map, language) {
+  if (!map || typeof map !== "object") return map;
+  // A plain { key: label } map (values may themselves be { ru, sl }) is not per language.
+  if (!Object.keys(map).some((code) => isKnownUiLanguage(code) && isLocalized(map[code]))) return map;
+  const source = map[SOURCE_UI_LANGUAGE] ?? pickUiText(map, language);
+  if (map[language]) return map[language];
+  return Object.fromEntries(Object.keys(source ?? {}).map((key) => {
+    const ru = source[key];
+    const viaPhrase = typeof ru === "string" ? SETUP_LABEL_TRANSLATIONS[language]?.[ru] : null;
+    return [key, viaPhrase ?? pickUiText(Object.fromEntries(Object.entries(map).map(([code, labels]) => [code, labels?.[key]])), language)];
+  }));
 }
 
 export function setupLabels(labels) {
-  const source = labels?.[getUiLanguage()] ?? labels?.ru ?? labels ?? {};
+  const language = getUiLanguage();
+  const source = localizedMap(labels, language) ?? {};
   return Object.fromEntries(Object.entries(source).map(([key, value]) => [key, setupText(value)]));
 }
 
 export function setupInfo(info) {
-  const source = info?.[getUiLanguage()] ?? info?.ru ?? info;
+  const language = getUiLanguage();
+  const source = info?.[language] ?? info?.[SOURCE_UI_LANGUAGE] ?? info?.en ?? info;
   return source ? { ...source, text: setupText(source.text), tip: setupText(source.tip) } : source;
 }

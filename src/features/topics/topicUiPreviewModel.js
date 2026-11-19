@@ -1,4 +1,5 @@
 import { isPickableMode } from "@/shared/utils/topicUtils";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 export function previewTopicDestination(record) {
   if (record.meta.renderer === "reading") return "texts";
@@ -84,7 +85,7 @@ export function lastActivityParts(time, now = new Date()) {
 export function formatLastActivity(time, t, language, now = new Date()) {
   const parts = lastActivityParts(time, now);
   if (!parts) return "";
-  const locale = language === "sl" ? "sl-SI" : "ru-RU";
+  const locale = localeFor(language);
   if (parts.kind === "today") {
     return t("preview.today", { time: parts.date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) });
   }

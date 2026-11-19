@@ -63,12 +63,18 @@ test("a legacy account without a settings row can save its language instead of a
 
 test("API rejects unsupported codes, fields and revisions before writing", () => {
   const { db, account, patch } = fixture();
-  for (const values of [{ uiLanguage: "en" }, { uiLanguage: "sl-SI" }, { cardLanguage: "xx" }, { adultPinHash: "overwrite" }, {}]) {
+  // Codes outside shared/ui-languages.mjs; a draft language of the registry is accepted (test below).
+  for (const values of [{ uiLanguage: "xx" }, { uiLanguage: "sl-SI" }, { cardLanguage: "xx" }, { adultPinHash: "overwrite" }, {}]) {
     assert.throws(() => patch("bad", 0, values), error => error.status === 400);
   }
   assert.throws(() => patch("bad", -1, { uiLanguage: "sl" }), error => error.status === 400);
   assert.equal(readAccountLanguages(db, account.id).languageRevision, 0);
   db.close();
+});
+
+test("API accepts any interface language of the registry, a draft one too", () => {
+  const { patch } = fixture();
+  assert.equal(patch("draft-language", 0, { uiLanguage: "en" }).uiLanguage, "en");
 });
 
 test("a retry repairs a legacy no-op that was logged before its settings row existed", () => {

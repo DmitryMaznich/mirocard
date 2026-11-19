@@ -6,6 +6,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getPlanLabel, formatPeriodEnd, daysLeft, isUnlimitedPlan } from "./planLabels";
 import { PAID_PLANS_PAUSED, isBillingPreview } from "./entitlement";
 import PaddleSubscriptionScreen from "./PaddleSubscriptionScreen";
+import { legalLanguageFor, legalUiLanguages } from "../../../shared/ui-languages.mjs";
 
 
 
@@ -94,7 +95,10 @@ function PaidPlansScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [pricePeriodConfirmed, setPricePeriodConfirmed] = useState(false);
   const [digitalContentAck, setDigitalContentAck] = useState(false);
-  const [consentLocale, setConsentLocale] = useState(language);
+  // The consents are shown in a language the legal documents exist in: the
+  // interface language if they do, else the registry's fallback (never a
+  // language without its own terms).
+  const [consentLocale, setConsentLocale] = useState(() => legalLanguageFor(language));
   // Two steps: "choose" shows the current access and the plans; payment
   // method, promo-discounted total and the legal consents only appear on
   // "pay", after the user deliberately moves on to paying.
@@ -220,8 +224,9 @@ function PaidPlansScreen() {
 
           <div className="subscription-consents" lang={consentLocale}>
             <div className="consent-lang" role="group" aria-label="Язык условий / Jezik pogojev">
-              <button type="button" className={`consent-lang__btn${consentLocale === "ru" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "ru"} onClick={() => switchConsentLocale("ru")}>Русский</button>
-              <button type="button" className={`consent-lang__btn${consentLocale === "sl" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "sl"} onClick={() => switchConsentLocale("sl")}>Slovenščina</button>
+              {legalUiLanguages().filter(({ code }) => CONSENT_TEXT[code]).map(({ code, nativeName }) => (
+                <button key={code} type="button" lang={code} className={`consent-lang__btn${consentLocale === code ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === code} onClick={() => switchConsentLocale(code)}>{nativeName}</button>
+              ))}
             </div>
             <label className="subscription-consent">
               <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />

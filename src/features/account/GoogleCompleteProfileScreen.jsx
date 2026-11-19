@@ -5,14 +5,14 @@ import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import PrivacyContent from "@/features/help/PrivacyContent";
-import { MARKETING_CONSENT_TEXT } from "./marketingConsent";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { authErrorMessage } from "./authErrors";
 import { completeLogin } from "./completeLogin";
-
-const EXPIRED_TEXT = "Время на завершение регистрации истекло. Нажмите «Войти через Google» ещё раз.";
 
 // First Google sign-in of a new person: the account is created only here,
 // after the same questions and consents as the email signup form.
 export default function GoogleCompleteProfileScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const signup = useAppStore((s) => s.googleSignup);
 
@@ -33,7 +33,7 @@ export default function GoogleCompleteProfileScreen() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!consent) {
-      setError("Необходимо согласие на обработку персональных данных");
+      setError(t("auth.consentRequired"));
       return;
     }
     setError("");
@@ -50,7 +50,7 @@ export default function GoogleCompleteProfileScreen() {
       await completeLogin({ account, token });
     } catch (err) {
       if (err?.status === 400 && err.message === "invalid_or_expired_code") setExpired(true);
-      else setError(err?.message || "Не получилось завершить регистрацию. Попробуйте ещё раз.");
+      else setError(authErrorMessage(err, t("auth.googleFinishFailed")));
     } finally {
       setLoading(false);
     }
@@ -66,8 +66,8 @@ export default function GoogleCompleteProfileScreen() {
       <div className="auth-screen">
         <MironiumLogo className="auth-logo" />
         <div className="auth-form">
-          <p className="auth-notice">{EXPIRED_TEXT}</p>
-          <Button onClick={backToLogin} fullWidth>К входу</Button>
+          <p className="auth-notice">{t("auth.googleTimeExpired")}</p>
+          <Button onClick={backToLogin} fullWidth>{t("auth.toLogin")}</Button>
         </div>
       </div>
     );
@@ -77,21 +77,21 @@ export default function GoogleCompleteProfileScreen() {
     <div className="auth-screen">
       <MironiumLogo className="auth-logo" />
       <form className="auth-form" onSubmit={handleSubmit}>
-        <h2 className="auth-title">Ещё один шаг</h2>
+        <h2 className="auth-title">{t("auth.oneMoreStep")}</h2>
         <p className="auth-subtitle">
-          Вы входите через Google как <strong>{signup.email}</strong>
+          {t("auth.googleAs")} <strong>{signup.email}</strong>
         </p>
         <select className="auth-input" value={role} onChange={(e) => setRole(e.target.value)} required>
-          <option value="" disabled>Кто вы? *</option>
-          <option value="parent">Родитель</option>
-          <option value="specialist">Специалист</option>
+          <option value="" disabled>{t("auth.whoAreYou")}</option>
+          <option value="parent">{t("auth.roleParent")}</option>
+          <option value="specialist">{t("auth.roleSpecialist")}</option>
         </select>
         <select className="auth-input" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} required>
-          <option value="" disabled>Как узнали о Mironium? *</option>
+          <option value="" disabled>{t("auth.howHeard")}</option>
           <option value="instagram">Instagram</option>
-          <option value="friend">Рекомендация друзей</option>
-          <option value="developer">Приглашение разработчика</option>
-          <option value="other">Другое</option>
+          <option value="friend">{t("auth.heardFriend")}</option>
+          <option value="developer">{t("auth.heardDeveloper")}</option>
+          <option value="other">{t("auth.heardOther")}</option>
         </select>
         <label className="auth-consent">
           <input
@@ -101,9 +101,9 @@ export default function GoogleCompleteProfileScreen() {
             onChange={(e) => setConsent(e.target.checked)}
           />
           <span>
-            Согласен(а) на{" "}
+            {t("auth.consentPrefix")}{" "}
             <button type="button" className="auth-consent__link" onClick={() => setShowPrivacy(true)}>
-              обработку персональных данных
+              {t("auth.consentLink")}
             </button>
           </span>
         </label>
@@ -114,17 +114,17 @@ export default function GoogleCompleteProfileScreen() {
             checked={marketingOptIn}
             onChange={(e) => setMarketingOptIn(e.target.checked)}
           />
-          <span>{MARKETING_CONSENT_TEXT}</span>
+          <span>{t("auth.marketingConsent")}</span>
         </label>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
-          {loading ? "Создаём аккаунт…" : "Продолжить"}
+          {loading ? t("auth.creatingAccount") : t("auth.continue")}
         </Button>
       </form>
-      <button className="auth-link" onClick={backToLogin}>Отмена</button>
+      <button className="auth-link" onClick={backToLogin}>{t("auth.cancel")}</button>
 
       {showPrivacy && (
-        <Modal title="Политика конфиденциальности" onClose={() => setShowPrivacy(false)}>
+        <Modal title={t("auth.privacyTitle")} onClose={() => setShowPrivacy(false)}>
           <PrivacyContent />
         </Modal>
       )}

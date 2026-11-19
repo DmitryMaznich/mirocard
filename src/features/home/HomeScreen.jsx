@@ -35,6 +35,8 @@ import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
 import StudentSwitcherSheet from "./StudentSwitcherSheet";
+import LanguageSheet from "./LanguageSheet";
+import { menuUiLanguages } from "@/shared/i18n/uiLanguage.js";
 import MarketingPromptCard from "./MarketingPromptCard";
 import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
 import StatisticsScreen from "@/features/analytics/StatisticsScreen";
@@ -102,19 +104,16 @@ function HomeHeader({
         </span>
       </div>
       </>}
-      {/* The new interface shows no build number to the adult — only «Обновить»
-          when there is something to update (installed topics refresh on their
-          own; the number stays in «Настройки приложения»). */}
-      {(!preview || hasUpdate || refreshingAll || refreshFailed) && <button
+      <button
         type="button"
         className={`home-header__version${hasUpdate || refreshingAll || refreshFailed ? " home-header__version--update" : ""}${refreshingAll ? " home-header__version--refreshing" : ""}${refreshFailed ? " home-header__version--error" : ""}`}
         onClick={onRefresh}
         title={versionTitle}
         disabled={refreshingAll}
       >
-        {preview ? t(refreshFailed ? "common.retry" : "preview.updateApp") : `v${buildInfo.version}`}
+        v{buildInfo.version}
         {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-header__version__dot" />}
-      </button>}
+      </button>
       <button className="home-header__settings-btn" onClick={onMenu} aria-label={t("nav.menu")}>
         <MenuIcon />
       </button>
@@ -770,7 +769,7 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
 
 export default function HomeScreen() {
   const { enabled: preview } = useTopicUiPreview();
-  const { t } = useUiTranslation();
+  const { t, language: uiLanguage } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
@@ -801,6 +800,7 @@ export default function HomeScreen() {
   const [refreshFailed, setRefreshFailed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   // Topic/mode come pre-filled with defaults, so a first-time user sees both
@@ -1121,13 +1121,20 @@ export default function HomeScreen() {
         />
       )}
 
+      {languageOpen && <LanguageSheet onClose={() => setLanguageOpen(false)} />}
+
       {menuOpen && (
         <HomeMenuSheet
           onClose={() => setMenuOpen(false)}
           onOpenProfile={() => setScreen("account")}
           onOpenStudents={() => setScreen("students")}
-          onOpenStatistics={() => setScreen("history")}
-          onOpenSettings={() => setScreen("settings")}
+          // New interface: statistics live with the student (Ученики → «…»)
+          // and the topic; the language is in the menu itself, so there is no
+          // «Настройки приложения» (owner, 2026-11-19).
+          onOpenStatistics={preview ? null : () => setScreen("history")}
+          onOpenSettings={preview ? null : () => setScreen("settings")}
+          onOpenLanguage={preview ? () => setLanguageOpen(true) : null}
+          languageLabel={menuUiLanguages(uiLanguage).find((item) => item.code === uiLanguage)?.label}
           onOpenHelp={() => setScreen("help")}
           extraItems={preview ? [
             hasLessonPlanAccess && { id: "lesson_plan", label: t("home.lessonPlan"), onClick: () => changeTab("lesson_plan") },

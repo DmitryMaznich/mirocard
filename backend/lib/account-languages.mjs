@@ -1,4 +1,5 @@
 import { isLessonLanguage } from "../../shared/languages.mjs";
+import { isKnownUiLanguage } from "../../shared/ui-languages.mjs";
 
 export function readAccountLanguages(db, accountId) {
   const row = db.prepare("SELECT ui_language, card_language, language_revision FROM account_settings WHERE account_id=?").get(accountId);
@@ -11,7 +12,7 @@ export function patchAccountLanguages(db, accountId, body) {
       !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 ||
       typeof initializeOnly !== "boolean" || !patch || typeof patch !== "object" || Array.isArray(patch) ||
       Object.keys(patch).length === 0 || !Object.keys(patch).every((key) =>
-        key === "uiLanguage" ? ["ru", "sl"].includes(patch[key]) : key === "cardLanguage" && isLessonLanguage(patch[key]))) {
+        key === "uiLanguage" ? isKnownUiLanguage(patch[key]) : key === "cardLanguage" && isLessonLanguage(patch[key]))) {
     const error = new Error("Invalid language preference");
     error.status = 400;
     throw error;

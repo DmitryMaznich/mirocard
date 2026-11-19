@@ -2,6 +2,7 @@ import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useTopicUiPreview } from "@/core/topicUiPreview";
+import DeviceSettings from "@/features/settings/DeviceSettings";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 const SUPPORT_EMAIL = "hello@mironium.com";
@@ -60,7 +61,7 @@ export default function HelpScreen() {
     },
     {
       q: tr("help.multipleQuestion"),
-      a: tr("help.multipleAnswer"),
+      a: tr(preview ? "help.multipleAnswerPreview" : "help.multipleAnswer"),
     },
   ];
 
@@ -95,6 +96,9 @@ export default function HelpScreen() {
           <p className="help-contact__hint">{tr("help.contactHint")}</p>
           <a className="btn btn-primary" href={`mailto:${SUPPORT_EMAIL}`}>{tr("help.contact")}</a>
         </div>
+        {/* The new interface has no «Настройки приложения» (the language is in
+            the menu): this device's data protection and the build line live here. */}
+        {preview && <DeviceSettings />}
       </div>
     </div>
   );

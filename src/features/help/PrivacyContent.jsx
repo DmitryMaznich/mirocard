@@ -1,12 +1,19 @@
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import slPrivacy from "../../../backend/legal/sl/privacy.html?raw";
+import { legalLanguageFor } from "../../../shared/ui-languages.mjs";
 const SUPPORT_EMAIL = "hello@mironium.com";
 
 // Same text as the published policy (backend/legal/privacy.html → /api/privacy),
 // kept identical by PrivacyContent.test.jsx: edit the policy there first, then here.
+// The published policy per legal language (backend/legal/<code>/privacy.html);
+// Russian is the JSX below. Shown in the interface language if the policy
+// exists in it, else in the registry's fallback (shared/ui-languages.mjs).
+const PRIVACY_HTML = { sl: slPrivacy };
+
 export default function PrivacyContent() {
   const { language } = useUiTranslation();
-  if (language === "sl") return <div className="privacy-body" lang="sl" dangerouslySetInnerHTML={{ __html: slPrivacy.replace(/<h1>[\s\S]*?<\/h1>/, "") }} />;
+  const legal = legalLanguageFor(language);
+  if (PRIVACY_HTML[legal]) return <div className="privacy-body" lang={legal} dangerouslySetInnerHTML={{ __html: PRIVACY_HTML[legal].replace(/<h1>[\s\S]*?<\/h1>/, "") }} />;
   return (
     <div className="privacy-body">
       <p className="privacy-intro">

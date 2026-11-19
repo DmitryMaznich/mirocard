@@ -12,6 +12,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./statistics.css";
 import { useTopicUiPreview } from "@/core/topicUiPreview";
 import { restoreHistoricalSessions } from "./restoreHistoricalSessions";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 const text = value => typeof value === "string" ? value : value?.ru ?? "";
 const valueLabels = () => ({ easy: tr("stats.easy"), correct: tr("stats.correct"), prompted: tr("stats.prompted"), fail: tr("stats.fail"), independent: tr("stats.independent"), after_model: tr("stats.afterModel"), none: tr("stats.noAnswer"), starter: tr("stats.starter"), reinforce: tr("stats.reinforce"), challenge: tr("stats.challenge"), medium: tr("stats.medium"), hard: tr("stats.hard"), training: tr("stats.training"), check: tr("stats.check"), trained: tr("stats.trained"), transfer: tr("stats.transfer"), model: tr("stats.model"), answer: tr("stats.answer"), phrase: tr("stats.phrase"), dots: tr("setup.dots"), more: tr("setup.more"), less: tr("setup.less") });
@@ -24,7 +25,7 @@ function SessionTiming({ session, timeZone }) {
   const { t: tr, language } = useUiTranslation();
   const at = Number.isFinite(Date.parse(session.startedAt)) ? session.startedAt : session.completedAt;
   const withTime = /[T ]\d{2}:\d{2}/.test(at);
-  const date = new Intl.DateTimeFormat(language === "sl" ? "sl-SI" : "ru-RU", { day: "numeric", month: "short", year: "numeric",
+  const date = new Intl.DateTimeFormat(localeFor(language), { day: "numeric", month: "short", year: "numeric",
     timeZone: withTime ? timeZone : "UTC", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
   }).format(new Date(at));
   const active = Number.isFinite(session.activeDurationMs) && session.activeDurationMs >= 0;
