@@ -4,7 +4,7 @@ export function buildGamesTopicRecord() {
     meta: {
       id: "games",
       renderer: "games",
-      version: "1.5.0",
+      version: "1.6.0",
       title: { ru: "Игры", sl: "Igre" },
       avatar: "media/avatar_games.svg",
       builtin: true,
@@ -33,7 +33,7 @@ export function buildGamesTopicRecord() {
       ui: { title: { ru: "Наливаем до краёв" }, instruction: { ru: "У кого вода первой польётся через край?" } },
     }, {
       id: "tug_of_war", type: "tug_of_war", evaluation: "none", hideVideoReward: true, hideConceptPicker: true,
-      ui: { title: { ru: "Перетягивание каната" }, instruction: { ru: "Пять бросков — тянем ленточку к себе" } },
+      ui: { title: { ru: "Перетягивание каната" }, instruction: { ru: "Перетяни ленточку за свою линию" } },
     }],
     cards: [],
     installedAt: "builtin",
