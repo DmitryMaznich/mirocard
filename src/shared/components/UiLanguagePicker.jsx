@@ -1,6 +1,6 @@
 import { useId, useSyncExternalStore } from "react";
 import { accountLanguages } from "@/core/languageSync.js";
-import { UI_LANGUAGES } from "../i18n/uiLanguage.js";
+import { menuUiLanguages } from "../i18n/uiLanguage.js";
 import { useUiTranslation } from "../i18n/useUiTranslation.js";
 import "./UiLanguagePicker.css";
 
@@ -16,7 +16,7 @@ export default function UiLanguagePicker() {
           <path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1m14 20-5-10-5 10m2-4h6" />
         </svg>
         <select id={id} value={language} onChange={(event) => setLanguage(event.target.value)}>
-          {UI_LANGUAGES.map(({ code, label }) => <option key={code} value={code} lang={code}>{label}</option>)}
+          {menuUiLanguages(language).map(({ code, label }) => <option key={code} value={code} lang={code}>{label}</option>)}
         </select>
       </div>
       <p className="ui-language-picker__help">{t("common.scope")}</p>

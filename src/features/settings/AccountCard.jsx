@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 
 
@@ -18,7 +19,7 @@ function initialsOf(account) {
 function memberSince(account) {
   if (!account?.createdAt) return null;
   try {
-    return new Intl.DateTimeFormat(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU", { month: "long", year: "numeric" }).format(new Date(account.createdAt));
+    return new Intl.DateTimeFormat(localeFor(getUiLanguage()), { month: "long", year: "numeric" }).format(new Date(account.createdAt));
   } catch {
     return null;
   }

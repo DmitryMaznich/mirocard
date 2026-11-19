@@ -1,4 +1,5 @@
 import { getUiLanguage, translateUi } from "@/shared/i18n/uiLanguage.js";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 export const PLAN_LABELS = {
   trial: "Пробный период",
   free_grant: "Бесплатный доступ",
@@ -19,7 +20,7 @@ export function daysLeft(iso, now = Date.now()) {
 }
 
 export function formatPeriodEnd(iso) {
-  return new Date(iso).toLocaleDateString(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString(localeFor(getUiLanguage()), { day: "numeric", month: "long", year: "numeric" });
 }
 
 export function getPlanLabel(plan) {

@@ -1,5 +1,5 @@
 import { CheckmarkIcon } from "@/shared/components/ArrowIcons";
-import { UI_LANGUAGES } from "@/shared/i18n/uiLanguage.js";
+import { menuUiLanguages } from "@/shared/i18n/uiLanguage.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 // The interface language straight from the menu (new interface): someone who
@@ -11,7 +11,7 @@ export default function LanguageSheet({ onClose }) {
     <div className="action-sheet-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div className="action-sheet" role="dialog" aria-modal="true" aria-label={t("common.language")}>
         <div className="action-sheet__title">{t("common.language")}</div>
-        {UI_LANGUAGES.map(({ code, label }) => (
+        {menuUiLanguages(language).map(({ code, label }) => (
           <button key={code} type="button" lang={code} aria-current={code === language ? "true" : undefined}
             className={`action-sheet__item action-sheet__item--value${code === language ? " action-sheet__item--current" : ""}`}
             onClick={() => { setLanguage(code); onClose(); }}>

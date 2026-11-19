@@ -3,10 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <script id="ui-language-boot">
-      // Keep in sync with shared/i18n/uiLanguage.js; runs before the first paint.
+      // Runs before the first paint. Any language code of the registry
+      // (shared/ui-languages.mjs) — the app checks it and sets <html dir> on start.
       try {
         var savedUiLanguage = localStorage.getItem("mironium.uiLanguage");
-        if (savedUiLanguage === "ru" || savedUiLanguage === "sl") {
+        if (/^[a-z]{2,3}$/.test(savedUiLanguage || "")) {
           document.documentElement.lang = savedUiLanguage;
         }
       } catch (_) { /* Storage can be disabled; Russian remains the default. */ }

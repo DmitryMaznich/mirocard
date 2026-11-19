@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { api } from "@/core/api";
 import { flushQueue } from "@/core/syncApi";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { localeFor } from "../../../shared/ui-languages.mjs";
 
 const HYPOTHESIS_COLOR = {
   "усваивает":  "#43a047",
@@ -68,7 +69,7 @@ export function AnalyticsScreen({ studentId, topicId, topicTitle, onClose }) {
         <div style={styles.headerTitle}>
           <span style={styles.topicTitle}>{topicTitle}</span>
           {report?.generated_at && (
-            <span style={styles.updatedAt}>{tr("analytics.updated")}{" "}{new Date(report.generated_at).toLocaleDateString(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU")}
+            <span style={styles.updatedAt}>{tr("analytics.updated")}{" "}{new Date(report.generated_at).toLocaleDateString(localeFor(getUiLanguage()))}
             </span>
           )}
         </div>

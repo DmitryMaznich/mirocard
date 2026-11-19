@@ -36,7 +36,7 @@ import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
 import StudentSwitcherSheet from "./StudentSwitcherSheet";
 import LanguageSheet from "./LanguageSheet";
-import { UI_LANGUAGES } from "@/shared/i18n/uiLanguage.js";
+import { menuUiLanguages } from "@/shared/i18n/uiLanguage.js";
 import MarketingPromptCard from "./MarketingPromptCard";
 import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
 import StatisticsScreen from "@/features/analytics/StatisticsScreen";
@@ -1134,7 +1134,7 @@ export default function HomeScreen() {
           onOpenStatistics={preview ? null : () => setScreen("history")}
           onOpenSettings={preview ? null : () => setScreen("settings")}
           onOpenLanguage={preview ? () => setLanguageOpen(true) : null}
-          languageLabel={UI_LANGUAGES.find((item) => item.code === uiLanguage)?.label}
+          languageLabel={menuUiLanguages(uiLanguage).find((item) => item.code === uiLanguage)?.label}
           onOpenHelp={() => setScreen("help")}
           extraItems={preview ? [
             hasLessonPlanAccess && { id: "lesson_plan", label: t("home.lessonPlan"), onClick: () => changeTab("lesson_plan") },
