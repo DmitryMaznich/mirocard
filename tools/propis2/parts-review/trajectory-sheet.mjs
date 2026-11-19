@@ -59,31 +59,34 @@ function play(svg) {
   const ghost = el("g", { class: "dyn", opacity: 0.12 }); svg.insertBefore(ghost, layer);
   for (const m of moves) if (m.kind === "ink") ghost.appendChild(el("path", { d: m.d, class: "ink", stroke: "#1d4ed8" }));
   const pen = el("circle", { r: 4.5, fill: "#fbbf24", stroke: "#92400e", "stroke-width": 1.2, class: "dyn" });
-  let i = 0;
-  const next = () => {
+  // a move that "continues" the previous one starts at the very moment that one ended (the clock is carried over, not restarted on the next
+  // frame) and runs at the same speed: the pen goes over the joint without a stop. Pauses only where the pen is lifted, and at the end.
+  let i = 0, clock = 0;
+  const next = (now) => {
     if (i >= moves.length) { pen.remove(); svg._t = setTimeout(() => play(svg), 1600); return; }
     const m = moves[i++];
-    let path, len, onFrame;
-    if (m.kind === "lift") { pen.remove(); svg._t = setTimeout(next, 450); return; } // the pen's way through the air is not shown
-    {
-      path = el("path", { d: m.d, class: "ink", stroke: m.kind === "ink" || m.ink ? "#1d4ed8" : "none" });
-      layer.appendChild(path); pen.setAttribute("opacity", 1); pen.setAttribute("r", 4.5);
-      if (m.startDot) { const p0 = path.getPointAtLength(0); layer.appendChild(el("circle", { cx: p0.x, cy: p0.y, r: 4, fill: "#16a34a" })); }
-    }
-    len = path.getTotalLength();
-    if (m.kind === "ink" || m.ink) { path.style.strokeDasharray = len; path.style.strokeDashoffset = len; }
+    if (m.kind === "lift") { pen.remove(); svg._t = setTimeout(() => requestAnimationFrame(start), 450); return; } // the way through the air is not shown
+    const path = el("path", { d: m.d, class: "ink", stroke: m.kind === "ink" || m.ink ? "#1d4ed8" : "none" });
+    layer.appendChild(path);
+    if (m.startDot) { const p0 = path.getPointAtLength(0); layer.appendChild(el("circle", { cx: p0.x, cy: p0.y, r: 4, fill: "#16a34a" })); }
+    const len = path.getTotalLength();
+    const drawn = m.kind === "ink" || m.ink;
+    if (drawn) { path.style.strokeDasharray = len; path.style.strokeDashoffset = len; }
     layer.appendChild(pen);
-    const t0 = performance.now(), dur = Math.max(250, len / SPEED);
-    const step = (now) => {
-      const k = Math.min(1, (now - t0) / dur), p = path.getPointAtLength(len * k);
+    const t0 = m.continues ? clock : now, dur = len / SPEED;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur), p = path.getPointAtLength(len * k);
       pen.setAttribute("cx", p.x); pen.setAttribute("cy", p.y);
-      if (m.kind === "ink" || m.ink) path.style.strokeDashoffset = len * (1 - k);
-      if (k < 1) svg._raf = requestAnimationFrame(step);
-      else { svg._t = setTimeout(next, m.kind === "ink" ? 120 : 60); }
+      if (drawn) path.style.strokeDashoffset = len * (1 - k);
+      if (k < 1) { svg._raf = requestAnimationFrame(step); return; }
+      clock = t0 + dur;
+      // the next move in this same frame when it goes on with the pen down, else after the frame
+      if (moves[i]?.continues) next(t); else svg._raf = requestAnimationFrame(next);
     };
-    svg._raf = requestAnimationFrame(step);
+    step(now);
   };
-  svg._t = setTimeout(next, 400);
+  const start = (t) => next(t);
+  svg._t = setTimeout(() => requestAnimationFrame(start), 400);
 }
 document.querySelectorAll("svg[data-moves]").forEach((svg) => {
   play(svg);

@@ -191,7 +191,9 @@ const pointOf = (d, share) => {
 // same order and shape): { kind: "ink", d, element, startDot } — draws; { kind: "retrace", d, ink? } — the pen on paper along the line of an
 // element (joined only): over ink already there it adds nothing, ahead of the element it is about to write (`ink: true`) it leaves the line; { kind: "lift", from, to } — the pen leaves the paper and is put down elsewhere: its way through
 // the air is NOT shown (owner, 2026-11-19: «просто там закончилось и потом началось в начале второго штриха»). A start dot marks every place the pen touches
-// down: the start of each stroke, and in `lifted` the start of every element.
+// down: the start of each stroke, and in `lifted` the start of every element. `continues: true` — the move goes on from the previous one with
+// the pen on the paper: a player must run it as ONE motion with it, at the same speed and without a pause (owner, 2026-11-19: «при
+// непрерывном соединении стыки траектории должны быть незаметными»).
 export function letterMoves(glyph, technique = "joined", strokes = glyph?.strokes) {
   const moves = [];
   let last = null; // [x, y] where the pen is
@@ -207,7 +209,7 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
         const rd = piecePathD(d, p.from, p.to);
         const over = samplePath(toCubicPathD(rd), 6).filter((q) => drawn.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 1)).length;
         const ahead = over < samplePath(toCubicPathD(rd), 6).length / 2;
-        moves.push({ kind: "retrace", d: rd, ...(ahead ? { ink: true } : {}) });
+        moves.push({ kind: "retrace", d: rd, continues: true, ...(ahead ? { ink: true } : {}) });
         last = pointOf(d, p.to);
       }
       continue;
@@ -217,7 +219,7 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
     const touchDown = p.stroke !== lastStroke || technique === "lifted";
     if (touchDown && last && Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: start });
     const ink = piecePathD(d, p.from, p.to);
-    moves.push({ kind: "ink", d: ink, element: p.element, startDot: Boolean(touchDown) });
+    moves.push({ kind: "ink", d: ink, element: p.element, startDot: Boolean(touchDown), ...(touchDown ? {} : { continues: true }) });
     drawn.push(...samplePath(toCubicPathD(ink), 12));
     last = pointOf(d, p.to);
     lastStroke = p.stroke;

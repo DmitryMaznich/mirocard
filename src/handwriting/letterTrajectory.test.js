@@ -177,3 +177,15 @@ describe("after a retrace back, the next element begins on the line the pen came
   });
 });
 
+// joined: after the first touch-down every move goes on from the one before with the pen down (`continues`), a player runs them as one
+// motion; lifted: every element starts anew
+describe("continues", () => {
+  it.each(Object.keys(spec))("%s", (ch) => {
+    const strokes = glyph(ch).strokes.length;
+    const j = letterMoves(glyph(ch), "joined");
+    expect(j.filter((m) => !m.continues && m.kind !== "lift").length, ch).toBe(strokes); // one fresh start per stroke (й: its breve)
+    const l = letterMoves(glyph(ch), "lifted").filter((m) => m.kind === "ink");
+    expect(l.every((m) => !m.continues)).toBe(true);
+  });
+});
+
