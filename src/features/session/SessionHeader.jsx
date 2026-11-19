@@ -39,11 +39,12 @@ export default function SessionHeader({
 }) {
   const isOnline = useOnlineStatus();
 
+  const settingsLabel = "Открыть настройки режима";
   const pillState = getTonguePillState({ answerStatus });
   const pillAriaLabel =
     pillState.mode === "correct" ? "Правильно, открыть настройки режима"
     : pillState.mode === "incorrect" ? "Неправильно, открыть настройки режима"
-    : "Открыть настройки режима";
+    : settingsLabel;
 
   const rightCluster = (
     <div className="session-topbar-right">
@@ -63,7 +64,7 @@ export default function SessionHeader({
       >
         <NetworkStatusIcon online={isOnline} />
       </span>}
-      {quietControls && <button type="button" className="session-finish-btn" aria-label="Открыть настройки режима" onClick={onOpenModeSettings}>⋯</button>}
+      {quietControls && <button type="button" className="session-finish-btn" aria-label={settingsLabel} onClick={onOpenModeSettings}>⋯</button>}
       <button className="session-finish-btn" onClick={onClose}>✕</button>
     </div>
   );
