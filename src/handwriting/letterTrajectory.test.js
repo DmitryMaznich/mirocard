@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { letterPaths, letterMoves, segmentShare } from "./letterParts.js";
+import { samplePath, toCubicPathD } from "./pathGeometry.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const spec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
@@ -69,14 +70,32 @@ describe("и: two sticks rounded at the bottom; the pen goes up the line of the 
     const m = letterMoves(i, "lifted");
     expect(m.map((x) => x.kind)).toEqual(["ink", "lift", "ink"]);
     expect(endOf(m[0].d)[1]).toBeCloseTo(36, 1);
-    expect(startOf(m[2].d)[1]).toBeCloseTo(11.48, 1);
+    expect(startOf(m[2].d)[1]).toBeCloseTo(10, 1);
     expect(m.filter((x) => x.startDot).length).toBe(2);
   });
   it("joined: the way up from the middle line runs along the second stick, one start dot", () => {
     const m = letterMoves(i, "joined");
     expect(m.map((x) => x.kind)).toEqual(["ink", "retrace", "ink"]);
     expect(m.filter((x) => x.startDot).length).toBe(1);
-    expect(near(endOf(m[1].d), [154.66, 11.48])).toBe(true);
+    expect(near(endOf(m[1].d), [155.35, 10])).toBe(true);
+  });
+});
+
+// the elements of a letter stand on the same lines (owner, 2026-11-19: «у обоих штрихов верхние и нижние точки должны быть на одной линии»)
+describe("the elements stand on the same lines", () => {
+  const ys = (d) => samplePath(toCubicPathD(d), 60).map((q) => q[1]);
+  const ink = (ch) => letterMoves(glyph(ch), "lifted").filter((x) => x.kind === "ink").map((x) => ys(x.d));
+  it("и: both sticks from the top line, both roundings equally low", () => {
+    const [a, b] = ink("и");
+    expect(Math.min(...a)).toBeCloseTo(10, 1);
+    expect(Math.min(...b)).toBeCloseTo(10, 1);
+    expect(Math.max(...a)).toBeCloseTo(Math.max(...b), 1);
+  });
+  it("п, р: the hook as high as the stick", () => {
+    for (const ch of ["п", "р"]) {
+      const [stick, hook] = ink(ch);
+      expect(Math.min(...hook), ch).toBeCloseTo(Math.min(...stick), 1);
+    }
   });
 });
 
