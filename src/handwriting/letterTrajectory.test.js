@@ -105,7 +105,7 @@ describe("the elements stand on the same lines", () => {
 describe("the elements on the lines of the band, as the app stands the letter", () => {
   const onBand = (ch) => { const g = glyph(ch); return { ...g, strokes: normalizeLetterExtremes(g).map((d) => ({ d })) }; };
   const ext = (d) => { const ys = samplePath(toCubicPathD(d), 60).map((q) => q[1]); return [Math.min(...ys), Math.max(...ys)]; };
-  it.each([["и", [[10, 62], [10, 62]]], ["п", [[10, 62], [10, 62]]], ["р", [[10, 114], [10, 62]]], ["й", [[10, 62], [10, 62]]], ["у", [[10, 62], [10, 113.98]]]])("%s", (ch, want) => {
+  it.each([["и", [[10, 62], [10, 62]]], ["п", [[10, 62], [10, 62]]], ["р", [[10, 114], [10, 62]]], ["н", [[10, 62], [30.09, 36.19], [10, 62]]], ["й", [[10, 62], [10, 62]]], ["у", [[10, 62], [10, 113.98]]]])("%s", (ch, want) => {
     const ink = letterMoves(onBand(ch), "lifted").filter((x) => x.kind === "ink").map((x) => ext(x.d));
     ink.slice(0, want.length).forEach(([top, bottom], i) => { /* (й: its breve stands above the band) */ expect(top, `${ch} ${i} top`).toBeCloseTo(want[i][0], 1); expect(bottom, `${ch} ${i} bottom`).toBeCloseTo(want[i][1], 1); });
   });
