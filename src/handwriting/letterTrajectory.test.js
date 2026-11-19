@@ -163,3 +163,17 @@ describe("т", () => {
   });
 });
 
+// a retrace back along a stick ends ON the stick, and the next element begins there (owner, 2026-11-19: the hooks of т «должны начинаться строго
+// на линии предыдущего штриха» — 1 unit off made the joined writing step)
+describe("after a retrace back, the next element begins on the line the pen came back along", () => {
+  it.each(Object.keys(spec))("%s", (ch) => {
+    const m = letterMoves(glyph(ch), "joined");
+    m.forEach((r, i) => {
+      if (r.kind !== "retrace" || r.ink) return;
+      const stick = samplePath(toCubicPathD(m[i - 1].d), 400);
+      for (const q of samplePath(toCubicPathD(r.d), 40)) expect(Math.min(...stick.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1]))), ch).toBeLessThan(0.05);
+      expect(near(startOf(m[i + 1].d), endOf(r.d))).toBe(true);
+    });
+  });
+});
+
