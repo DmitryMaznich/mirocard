@@ -654,7 +654,6 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-lang-tone-3 { background: #f6e6f0; color: #8b2a6b; }
 /* a phone: the header keeps the notebook's title readable — the page's style is already on the strip's «Стиль страницы» button (ПР / ПЧ,
    BU / BJ …) right under it; since deck 0.7.0 every Russian notebook has two styles and the badge squeezed the title to one word */
-@media (max-width: 559px) { .p2-header .p2-style-badge { display: none; } }
 
 /* ===== The row panel (Propis2Editor rowPanelEl, owner 2026-11-16: «как в конструкторе печатных листов и контрольных»): the column right of
    the sheet on a computer, a dock at the bottom on a phone. Its look is «Печатные буквы» RowInspector's (print_letters.css .pl-insp*). ===== */

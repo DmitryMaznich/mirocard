@@ -645,7 +645,7 @@ export default function Propis2Home({ db }) {
         title={navSet ? navSet.title : undefined}
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={recordOfPage(shown)}
-        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone, styleTitle: styleTitleOf(languages.find((l) => l.id === lang), shownStyle) } : null}
+        language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone } : null}
         // the page's writing style: picked in the page strip like its paper (a page of print letters, the next one in the British hand)
         styles={multiStyle ? { options: styleChoices, value: shownStyle } : null}
         onChange={(next, how) => {
@@ -762,10 +762,6 @@ function readNewLang(topicId, key = NEW_LANG_KEY) {
 }
 function writeNewLang(topicId, id, key = NEW_LANG_KEY) {
   try { const all = JSON.parse(localStorage.getItem(key) ?? "{}") ?? {}; localStorage.setItem(key, JSON.stringify({ ...all, [topicId]: id })); } catch { /* private mode: not remembered */ }
-}
-// the title of a style of a language that has several; null otherwise (one style: nothing to tell apart)
-function styleTitleOf(lang, styleId) {
-  return lang?.styles?.length > 1 ? lang.styles.find((x) => x.id === styleId)?.title ?? null : null;
 }
 
 // page numbers per notebook: a convenience of this device, not part of the notebook (the cover is the notebook's: `set.cover`;

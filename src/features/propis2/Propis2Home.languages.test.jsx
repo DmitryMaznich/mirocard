@@ -297,14 +297,14 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       field.dispatchEvent(new Event("input", { bubbles: true }));
       await tick();
     });
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Печатные");
+    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("print"); // the style is the page strip's «Стиль страницы», not a badge in the header (owner, 2026-11-19)
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
     const printInk = ink();
     expect(printInk.length).toBeGreaterThan(0);
     await click(host.querySelector('button[aria-label="Стиль страницы"]'));
     await click(document.querySelector('[role="option"][aria-label="Британские раздельные"]'));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские раздельные");
+    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("british");
     await act(async () => { await tick(50); });
     expect(ink()).not.toBe(printInk); // the sheet is written with the British letters now
     // the student view draws the page in its style
@@ -378,7 +378,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const card = readyCards().find((c) => c.textContent.includes("Join 1"));
     await click([...card.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? "").startsWith("Изменить тетрадь")));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('[data-testid="propis2-notebook-style"]').textContent).toBe("Британские соединённые"); // the editor says which style
+    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("british_joined"); // the editor says which style
+    expect(host.querySelector('[data-testid="propis2-notebook-style"]')).toBeNull();
     expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
