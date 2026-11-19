@@ -139,10 +139,27 @@ describe("ц and у begin with и as the rows stand it", () => {
 
 // joined: a retrace over ink already drawn adds none (р п), one ahead of the element leaves the line (и й у ц: up to the top line)
 describe("joined: the way up of и leaves its line, the way back up the stick of р does not", () => {
-  it.each([["р", false], ["п", false], ["и", true], ["й", true], ["у", true], ["ц", true]])("%s", (ch, ink) => {
+  it.each([["р", [false]], ["п", [false]], ["т", [false, false]], ["и", [true]], ["й", [true]], ["у", [true]], ["ц", [true]]])("%s", (ch, ink) => {
     const r = letterMoves(glyph(ch), "joined").filter((x) => x.kind === "retrace");
-    expect(r.length).toBe(1);
-    expect(Boolean(r[0].ink)).toBe(ink);
+    expect(r.map((x) => Boolean(x.ink))).toEqual(ink);
+  });
+});
+
+// т: the stick and two hooks (owner 2026-11-19: like п, a hook from the middle line after each stick); every element down to the baseline in the
+// row (the top of the first stick is the letter's start, where the join from the letter before arrives: left as captured, 10.7)
+describe("т", () => {
+  it("joined: one start dot, two retraces up the sticks to the middle line; lifted: three elements, the hooks from the middle line", () => {
+    const g = glyph("т");
+    expect(letterMoves(g, "joined").filter((x) => x.startDot).length).toBe(1);
+    const m = letterMoves(g, "lifted").filter((x) => x.kind === "ink");
+    expect(m.length).toBe(3);
+    expect(m.every((x) => x.startDot)).toBe(true);
+    for (const x of m.slice(1)) expect(startOf(x.d)[1]).toBeCloseTo(36, 1);
+  });
+  it("every element comes down to the baseline as the row stands the letter", () => {
+    const g = glyph("т");
+    const band = { ...g, strokes: normalizeLetterExtremes(g).map((d) => ({ d })) };
+    for (const x of letterMoves(band, "lifted").filter((x) => x.kind === "ink")) expect(Math.max(...samplePath(toCubicPathD(x.d), 60).map((q) => q[1]))).toBeCloseTo(62, 1);
   });
 });
 
