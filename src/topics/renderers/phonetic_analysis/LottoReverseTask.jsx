@@ -46,12 +46,12 @@ export default function LottoReverseTask({ task, topicId, playTopicFile, onCorre
     onTap: (payload) => play(task.pictures.find((w) => w.id === payload.wordId)),
   });
   const placedIds = new Set(Object.values(placed).map((w) => w.id));
-  const left = task.pictures.filter((w) => !placedIds.has(w.id));
   const lifted = drag.ghost ? task.pictures.find((w) => w.id === drag.ghost.payload.wordId) : null;
 
   return (
     <div className="session-body pa-stage pa-stage--lotto">
       <div className="pa-prompt">Положи картинку на букву</div>
+      <div className="pa-lotto-area"><div className="pa-lotto-play">
       <div className="pa-rlotto">
         {task.letters.map((L, i) => {
           const mine = placed[i];
@@ -66,20 +66,20 @@ export default function LottoReverseTask({ task, topicId, playTopicFile, onCorre
           );
         })}
       </div>
-      <div className="pa-tray">
-        {done
-          ? <span className="pa-done">✓</span>
-          : left.map((w) => (
-            <div key={w.id} onPointerDown={(e) => drag.start(e, { wordId: w.id })}>
-              <Picture
-                topicId={topicId}
-                word={w}
-                playing={playing === w.id}
-                className={`pa-rlotto__thumb${drag.dragging?.wordId === w.id ? " pa-rlotto__thumb--lifted" : ""}`}
-              />
-            </div>
-          ))}
+      {/* The deck keeps a slot for every picture, so nothing jumps as they are laid out. */}
+      <div className="pa-lotto-tray">
+        {task.pictures.map((w) => (placedIds.has(w.id) ? <span key={w.id} className="pa-lotto-slot" /> : (
+          <div key={w.id} className="pa-lotto-slot" onPointerDown={(e) => drag.start(e, { wordId: w.id })}>
+            <Picture
+              topicId={topicId}
+              word={w}
+              playing={playing === w.id}
+              className={`pa-rlotto__thumb${drag.dragging?.wordId === w.id ? " pa-rlotto__thumb--lifted" : ""}`}
+            />
+          </div>
+        )))}
       </div>
+      </div></div>
       {lifted && (
         <div className="pa-ghost" style={{ left: drag.ghost.x, top: drag.ghost.y }}>
           <GhostPicture topicId={topicId} word={lifted} />

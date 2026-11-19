@@ -43,6 +43,7 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
   return (
     <div className="session-body pa-stage pa-stage--lotto">
       <div className="pa-prompt">Положи букву на картинку</div>
+      <div className="pa-lotto-area"><div className="pa-lotto-play">
       <div className="pa-lotto">
         {task.board.map((w) => {
           const mine = placed[w.id] != null ? task.cards[placed[w.id]] : null;
@@ -63,19 +64,19 @@ export default function LottoTask({ task, topicId, playTopicFile, onCorrect, onS
           );
         })}
       </div>
-      <div className="pa-tray">
-        {done
-          ? <span className="pa-done">✓</span>
-          : task.cards.map((letter, i) => (used.has(i) ? null : (
-            <span
-              key={i}
-              className={`pa-card${drag.dragging?.card === i ? " pa-card--lifted" : ""}`}
-              onPointerDown={(e) => drag.start(e, { card: i })}
-            >
-              {letter}
-            </span>
-          )))}
+      {/* The deck keeps a slot for every card, so nothing jumps as they are laid out. */}
+      <div className="pa-lotto-tray">
+        {task.cards.map((letter, i) => (used.has(i) ? <span key={i} className="pa-lotto-slot" /> : (
+          <span
+            key={i}
+            className={`pa-lotto-slot pa-card${drag.dragging?.card === i ? " pa-card--lifted" : ""}`}
+            onPointerDown={(e) => drag.start(e, { card: i })}
+          >
+            {letter}
+          </span>
+        )))}
       </div>
+      </div></div>
       {drag.ghost && (
         <div className="pa-ghost" style={{ left: drag.ghost.x, top: drag.ghost.y }}>
           <span className="pa-card pa-card--drag">{task.cards[drag.ghost.payload.card]}</span>

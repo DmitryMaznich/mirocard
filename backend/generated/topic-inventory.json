@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.41.0",
+      "version": "0.42.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.41.0.zip",
+        "public/decks/drawing_v0.42.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.41.0",
-        "url": "./decks/drawing_v0.41.0.zip",
+        "version": "0.42.0",
+        "url": "./decks/drawing_v0.42.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,21 +339,21 @@
         "description": "Рисование на бумаге по образцу, первые линии и тренировка закрашивания фигур и дорожек на экране.",
         "renderer": "drawing",
         "modes": 4,
-        "cards": 13
+        "cards": 21
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.41.0",
+        "version": "0.42.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Двенадцать рисунков на бумаге, включая снеговика в очках, собачку, два космических рисунка, улитку, Пеппу и Джорджа, «Первые линии» и тренировка закрашивания: случайные фигуры и дорожки на листе, обводка контура и заполнение внутри с настраиваемым допуском.",
-          "en": "Twelve paper drawing lessons, including a snowman in glasses, a dog, two space drawings, a snail, Peppa and George, First Lines and coloring practice: random shapes and ribbons on shared sheets, contour tracing and interior fill with adjustable boundary tolerance."
+          "ru": "Двадцать рисунков на бумаге: малыш, домик, шесть пар героев из мира Пеппы, снеговик, собачка и другие. Также доступны «Первые линии» и тренировка закрашивания фигур и дорожек.",
+          "en": "Twenty paper drawing lessons, including a baby, a house, six Peppa family and friends pairs, a snowman and a dog, plus First Lines and coloring practice."
         },
-        "url": "./decks/drawing_v0.41.0.zip",
+        "url": "./decks/drawing_v0.42.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
@@ -469,7 +469,7 @@
     {
       "id": "games",
       "title": "Игры",
-      "version": "1.3.0",
+      "version": "1.4.3",
       "renderer": null,
       "sources": [
         "src/topics/builtinGamesTopic.js"
@@ -927,7 +927,7 @@
         "ru": "Буквы и звуки",
         "en": "Letters and Sounds"
       },
-      "version": "2.7.1",
+      "version": "2.7.2",
       "renderer": "phonetic_analysis",
       "sources": [
         "src/topics/renderers/phonetic_analysis",
@@ -937,9 +937,9 @@
       "builtin": false,
       "catalogEntry": {
         "id": "phonetic_analysis",
-        "version": "2.7.1",
-        "url": "./decks/phonetic_analysis_v2.7.1.zip",
-        "zipUrl": "phonetic_analysis_v2.7.1.zip",
+        "version": "2.7.2",
+        "url": "./decks/phonetic_analysis_v2.7.2.zip",
+        "zipUrl": "phonetic_analysis_v2.7.2.zip",
         "title": {
           "ru": "Буквы и звуки",
           "en": "Letters and Sounds"
@@ -951,7 +951,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-18T14:18:09+00:00"
+      "sourceUpdatedAt": "2026-11-18T14:28:31+00:00"
     },
     {
       "id": "place_value",

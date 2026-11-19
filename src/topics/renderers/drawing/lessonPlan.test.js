@@ -21,6 +21,12 @@ describe("drawing pencil plan", () => {
     expect(result.steps.map(step => step.title)).toEqual(["outline", "shirt base", "other base", "collar", "diamonds"]);
     expect(source.steps[0].title).toBe("collar");
   });
+  it("keeps authored character order across repeated pencil changes", () => {
+    const result = planLesson({ ...source, stepOrder: 'authored' }, pencils);
+    expect(result.steps.map(step => step.title)).toEqual(source.steps.map(step => step.title));
+    expect(result.steps).not.toBe(source.steps);
+    expect(toolForStep(result, 4)).toMatchObject({ tool: { id: 'base' }, first: 4, total: 1 });
+  });
   it("reports the required pencil and progress before animation, also when going back across a colour boundary", () => {
     const lesson = planLesson(source, pencils);
     expect(toolForStep(lesson, 3)).toMatchObject({ tool: { id: "pattern" }, first: 3, position: 1, total: 2 });

@@ -1,17 +1,134 @@
 {
-  "black": {"id": "black", "type": "pencil", "name": "Чёрный карандаш", "color": "#151917"},
-  "orange": {"id": "orange", "type": "pencil", "name": "Оранжевый карандаш", "color": "#efaa12"},
-  "red": {"id": "red", "type": "pencil", "name": "Красный карандаш", "color": "#b73316"},
-  "turquoise": {"id": "turquoise", "type": "pencil", "name": "Голубой карандаш", "color": "#009cbd"},
-  "green": {"id": "green", "type": "pencil", "name": "Зелёный карандаш", "color": "#30bb05"},
-  "beige": {"id": "beige", "type": "pencil", "name": "Бежевый карандаш", "color": "#f2d69a"},
-  "gray": {"id": "gray", "type": "pencil", "name": "Серый карандаш", "color": "#777b7c"},
-  "light_gray": {"id": "light_gray", "type": "pencil", "name": "Светло-серый карандаш", "color": "#c3c4bb"},
-  "light_blue": {"id": "light_blue", "type": "pencil", "name": "Голубой карандаш", "color": "#34c6e8"},
-  "blue": {"id": "blue", "type": "pencil", "name": "Синий карандаш", "color": "#0866d1"},
-  "light_green": {"id": "light_green", "type": "pencil", "name": "Салатовый карандаш", "color": "#75d816"},
-  "pink": {"id": "pink", "type": "pencil", "name": "Розовый карандаш", "color": "#de64a5"},
-  "yellow": {"id": "yellow", "type": "pencil", "name": "Жёлтый карандаш", "color": "#efdd05"},
-  "brown": {"id": "brown", "type": "pencil", "name": "Коричневый карандаш", "color": "#6f3324"},
-  "purple": {"id": "purple", "type": "pencil", "name": "Фиолетовый карандаш", "color": "#923bc0"}
+  "black": {
+    "id": "black",
+    "type": "pencil",
+    "name": "Чёрный карандаш",
+    "color": "#151917"
+  },
+  "orange": {
+    "id": "orange",
+    "type": "pencil",
+    "name": "Оранжевый карандаш",
+    "color": "#efaa12"
+  },
+  "red": {
+    "id": "red",
+    "type": "pencil",
+    "name": "Красный карандаш",
+    "color": "#b73316"
+  },
+  "turquoise": {
+    "id": "turquoise",
+    "type": "pencil",
+    "name": "Голубой карандаш",
+    "color": "#009cbd"
+  },
+  "green": {
+    "id": "green",
+    "type": "pencil",
+    "name": "Зелёный карандаш",
+    "color": "#30bb05"
+  },
+  "beige": {
+    "id": "beige",
+    "type": "pencil",
+    "name": "Бежевый карандаш",
+    "color": "#f2d69a"
+  },
+  "gray": {
+    "id": "gray",
+    "type": "pencil",
+    "name": "Серый карандаш",
+    "color": "#777b7c"
+  },
+  "light_gray": {
+    "id": "light_gray",
+    "type": "pencil",
+    "name": "Светло-серый карандаш",
+    "color": "#c3c4bb"
+  },
+  "light_blue": {
+    "id": "light_blue",
+    "type": "pencil",
+    "name": "Голубой карандаш",
+    "color": "#34c6e8"
+  },
+  "blue": {
+    "id": "blue",
+    "type": "pencil",
+    "name": "Синий карандаш",
+    "color": "#0866d1"
+  },
+  "light_green": {
+    "id": "light_green",
+    "type": "pencil",
+    "name": "Салатовый карандаш",
+    "color": "#75d816"
+  },
+  "pink": {
+    "id": "pink",
+    "type": "pencil",
+    "name": "Розовый карандаш",
+    "color": "#de64a5"
+  },
+  "yellow": {
+    "id": "yellow",
+    "type": "pencil",
+    "name": "Жёлтый карандаш",
+    "color": "#efdd05"
+  },
+  "brown": {
+    "id": "brown",
+    "type": "pencil",
+    "name": "Коричневый карандаш",
+    "color": "#6f3324"
+  },
+  "purple": {
+    "id": "purple",
+    "type": "pencil",
+    "name": "Фиолетовый карандаш",
+    "color": "#923bc0"
+  },
+  "peach": {
+    "id": "peach",
+    "type": "pencil",
+    "name": "Оранжевый карандаш, без нажима",
+    "color": "#efb58f"
+  },
+  "light_pink": {
+    "id": "light_pink",
+    "type": "pencil",
+    "name": "Светло-розовый карандаш",
+    "color": "#f3b4c5"
+  },
+  "cream": {
+    "id": "cream",
+    "type": "pencil",
+    "name": "Кремовый карандаш",
+    "color": "#f6e5bd"
+  },
+  "tan": {
+    "id": "tan",
+    "type": "pencil",
+    "name": "Светло-коричневый карандаш",
+    "color": "#bf8750"
+  },
+  "lilac": {
+    "id": "lilac",
+    "type": "pencil",
+    "name": "Сиреневый карандаш",
+    "color": "#a17bd2"
+  },
+  "fox_orange": {
+    "id": "fox_orange",
+    "type": "pencil",
+    "name": "Рыжий карандаш",
+    "color": "#ee7d27"
+  },
+  "magenta": {
+    "id": "magenta",
+    "type": "pencil",
+    "name": "Малиновый карандаш",
+    "color": "#ce3dab"
+  }
 }
