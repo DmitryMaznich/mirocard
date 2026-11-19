@@ -927,31 +927,19 @@
         "ru": "Буквы и звуки",
         "en": "Letters and Sounds"
       },
-      "version": "2.9.0",
+      "version": "2.9.1",
       "renderer": "phonetic_analysis",
       "sources": [
-        "public/decks/phonetic_analysis_v2.9.0.zip",
         "src/topics/renderers/phonetic_analysis",
         "tools/phonetic_analysis/topic.json"
       ],
-      "bundle": {
-        "version": "2.9.0",
-        "url": "./decks/phonetic_analysis_v2.9.0.zip",
-        "title": {
-          "ru": "Буквы и звуки",
-          "en": "Letters and Sounds"
-        },
-        "description": "Повторение пройденных букв и звуков. Узнать букву, найти её среди других; услышать звук в слове и показать, где он: в начале, в конце, в середине. Под картинкой — звуковая схема: одна клетка = один звук.",
-        "renderer": "phonetic_analysis",
-        "modes": 5,
-        "cards": 31
-      },
+      "bundle": null,
       "builtin": false,
       "catalogEntry": {
         "id": "phonetic_analysis",
-        "version": "2.9.0",
-        "url": "./decks/phonetic_analysis_v2.9.0.zip",
-        "zipUrl": "phonetic_analysis_v2.9.0.zip",
+        "version": "2.9.1",
+        "url": "./decks/phonetic_analysis_v2.9.1.zip",
+        "zipUrl": "phonetic_analysis_v2.9.1.zip",
         "title": {
           "ru": "Буквы и звуки",
           "en": "Letters and Sounds"

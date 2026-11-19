@@ -57,7 +57,11 @@ function cutAtFirstPause(file) {
 }
 
 mkdirSync(OUT, { recursive: true });
-const list = allSyllables().map((s) => s.toLowerCase()).filter((s) => !ONLY || ONLY.has(s));
+// The owner rejected every take of these (2026-11-19): no file, so the engine leaves them
+// out of the tasks (unitsOf). They come back with the owner's own recording.
+const REJECTED = new Set(["бе", "хэ", "хе", "що"]);
+// Picked by the owner among 3 takes (а — tag, б — no tag, в — stress mark): жэ в, зэ б, ке а, мю б, мя б, ще б.
+const list = allSyllables().map((s) => s.toLowerCase()).filter((s) => !REJECTED.has(s) && (!ONLY || ONLY.has(s)));
 const bad = [];
 let copied = 0, made = 0;
 for (const syl of list) {

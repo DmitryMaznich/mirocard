@@ -43,6 +43,11 @@ describe("«Найди букву» with syllables", () => {
     expect(t.cols).toBe(4);
     expect(t.field.filter((x) => x === t.letter)).toHaveLength(t.total);
   });
+  it("a deck with recordings uses only voiced syllables", () => {
+    const mode = { type: "pa_find_letter", syllableSounds: { МА: "syllables/ма.mp3", МО: "syllables/мо.mp3", СА: "syllables/са.mp3" } };
+    const tasks = generateTasks(mode, cards("МСАО"), 0, { unit: "syllables", difficulty: "easy" });
+    for (const t of tasks) expect(["МА", "МО", "СА"]).toContain(t.letter);
+  });
   it("only vowels learned: asks for a consonant", () => {
     expect(run("pa_find_letter", "АОУ", { unit: "syllables" })[0].type).toBe("pa_need_more");
   });

@@ -150,8 +150,13 @@ function lottoTasks(words, learned, direction) {
 
 // What a «Найди…» / «Что пропало?» task is made of: the learned letters, or the
 // syllables built from them (syllables.js) — «Что искать: Буквы / Слоги».
-function unitsOf(learned, unit) {
-  return unit === "syllables" ? syllablesOf(learned) : learned;
+// A syllable is used only if the deck has its recording (mode.syllableSounds), when the
+// deck has any: a silent one among voiced ones looks like a fault (owner rejected
+// БЕ ХЭ ХЕ ЩО takes, 2026-11-19). Without recordings at all — every syllable.
+function unitsOf(learned, unit, voiced) {
+  if (unit !== "syllables") return learned;
+  const all = syllablesOf(learned);
+  return voiced?.size ? all.filter((s) => voiced.has(s)) : all;
 }
 const NEED_SYLLABLES = "Для слогов нужна хотя бы одна согласная и одна гласная. Добавьте буквы в «Изменить».";
 
@@ -171,8 +176,8 @@ function unlike(target, units, count) {
 // «Найди букву»: the letter (or syllable) is shown, find it — «Легко» among 3 unlike,
 // «Средне» among 6 with lookalikes, «Трудно» every copy on a field (the former mode
 // «Найди все», merged in as a level by the owner, 2026-11-18).
-function findLetterTasks(learned, count, difficulty, unit) {
-  const units = unitsOf(learned, unit);
+function findLetterTasks(learned, count, difficulty, unit, voiced) {
+  const units = unitsOf(learned, unit, voiced);
   if (!units.length) return needMore(NEED_SYLLABLES);
   if (difficulty === "hard") return findAllTasks(units, learned, count);
   const medium = difficulty === "medium";
@@ -197,8 +202,8 @@ function findAllTasks(units, learned, count) {
 // «Что пропало?» (owner, 2026-11-19): a row of 3, 4 or 5 cards to look at, they turn over,
 // one is gone — pick it among 3 options (it and two lookalikes not in the row).
 const MISSING_SIZE = { easy: 3, medium: 4, hard: 5 };
-function missingTasks(learned, count, difficulty, unit) {
-  const units = unitsOf(learned, unit);
+function missingTasks(learned, count, difficulty, unit, voiced) {
+  const units = unitsOf(learned, unit, voiced);
   if (unit === "syllables" && !units.length) return needMore(NEED_SYLLABLES);
   if (units.length < 3) return needMore("Для «Что пропало?» нужно хотя бы 3 разных карточки. Добавьте буквы в «Изменить».");
   const n = Math.min(MISSING_SIZE[difficulty] ?? 3, units.length);
@@ -218,7 +223,8 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   // before the word, and a tap on the letter in the question repeats it.
   // A letter's or a syllable's recording (mode.sounds / mode.syllableSounds: text → file).
   const voiceOf = (u) => (u?.length > 1 ? mode?.syllableSounds?.[u] : mode?.sounds?.[u]);
-  const tasks = build(mode?.type, words, learned, count, params).map((t) => {
+  const voiced = new Set(Object.keys(mode?.syllableSounds ?? {}));
+  const tasks = build(mode?.type, words, learned, count, params, voiced).map((t) => {
     if (t.kind === "chip" || t.type === "pa_find_letter" || t.type === "pa_find_all") return voiceOf(t.letter) ? { ...t, sound: voiceOf(t.letter) } : t;
     if (t.type === "pa_missing") return { ...t, sounds: Object.fromEntries([...t.row, ...t.options].map((u) => [u, voiceOf(u)]).filter(([, f]) => f)) };
     return t;
@@ -227,7 +233,7 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   return tasks.map((t, i) => ({ ...t, taskId: `${t.type}_${run}_${i}` }));
 }
 
-function build(type, words, learned, count, params) {
+function build(type, words, learned, count, params, voiced) {
   switch (type) {
     // «Где звук?» (owner, 2026-11-18): one mode, the place set before the lesson.
     case "pa_where":
@@ -237,8 +243,8 @@ function build(type, words, learned, count, params) {
     case "pa_all_letters":
       return params.scope === "word" ? allLettersTasks(words, learned, count) : lastLetterTasks(words, learned, count);
     case "pa_lotto": return lottoTasks(words, learned, params.direction);
-    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty, params.unit);
-    case "pa_missing": return missingTasks(learned, count, params.difficulty, params.unit);
+    case "pa_find_letter": return findLetterTasks(learned, count, params.difficulty, params.unit, voiced);
+    case "pa_missing": return missingTasks(learned, count, params.difficulty, params.unit, voiced);
     case "pa_find_all": return findAllTasks(learned, learned, count);
     default: return [];
   }
