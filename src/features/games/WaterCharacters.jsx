@@ -1,4 +1,9 @@
-import {ART_SIZE,CHARACTER_ART,WATER_PEOPLE_ART} from "./waterCharacterArt";
+import boyPortrait from "./art/boy-portrait.webp?inline";
+import girlPortrait from "./art/girl-portrait.webp?inline";
+import manPortrait from "./art/man-portrait.webp?inline";
+import womanPortrait from "./art/woman-portrait.webp?inline";
+
+const PORTRAITS={boy:boyPortrait,girl:girlPortrait,man:manPortrait,woman:womanPortrait};
 
 const WATER_CHARACTERS = [
   {id:"boy",label:"Мальчик"},{id:"girl",label:"Девочка"},
@@ -6,10 +11,9 @@ const WATER_CHARACTERS = [
 ];
 
 export function CharacterFace({type,color="#e88373"}) {
-  const [x,y,size]=(CHARACTER_ART[type] ?? CHARACTER_ART.boy).portrait;
-  return <svg viewBox={`${x} ${y} ${size} ${size}`} aria-hidden="true" className="water-character-portrait">
-    <rect x={x} y={y} width={size} height={size} rx={size/2} fill={`${color}18`} />
-    <image href={WATER_PEOPLE_ART} width={ART_SIZE.width} height={ART_SIZE.height} />
+  return <svg viewBox="0 0 112 112" aria-hidden="true" className="water-character-portrait">
+    <rect width="112" height="112" rx="56" fill={`${color}18`} />
+    <image href={PORTRAITS[type] ?? PORTRAITS.boy} width="112" height="112" />
   </svg>;
 }
 
