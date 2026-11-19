@@ -36,7 +36,7 @@ export default function GamesHome() {
       <button className="games-tile" onClick={() => { setActiveModeId("tug_of_war"); setScreen("params"); }}>
         <span className="games-tile__art games-tile__art--tug"><TugPreview /></span>
         <strong>Перетягивание каната</strong>
-        <span>Кто первым дотянет канат до отметки 15?</span>
+        <span>Пять бросков, два игрока и один канат</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
       </button>
     </div>

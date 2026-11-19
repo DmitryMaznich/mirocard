@@ -1,14 +1,17 @@
-import {createTugOfWar,raceReducer} from '../../src/features/games/raceEngine.js';
 import assert from 'node:assert/strict';
 let seed=20261119;
 const random=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
-// Check the shortcut against the current reducer for every possible pair of dice.
+// Historical rules reviewed at commit 362525b (before the five-throw redesign).
+// Keep the historical model independent of the current game's reducer.
 for(let a=1;a<=6;a++)for(let b=1;b<=6;b++){
- let s={...createTugOfWar(),phase:'input'};
- s=raceReducer(s,{type:'dice',player:0,value:a});s=raceReducer(s,{type:'dice',player:1,value:b});
- while(s.phase==='moving')s=raceReducer(s,{type:'tick'});
- assert.equal(s.ropePosition,b-a);
- assert.deepEqual(s.pullScores,a===b?[0,0]:[a,b]);
+ let position=0;const scores=[0,0];
+ if(a!==b)for(let step=0;step<a+b;step++){
+  const stronger=Math.sign(b-a);
+  const direction=step<Math.min(a,b) ? -stronger : stronger;
+  position+=direction;scores[direction<0 ? 0 : 1]++;
+ }
+ assert.equal(position,b-a);
+ assert.deepEqual(scores,a===b ? [0,0] : [a,b]);
 }
 const rounds=[],scores=[];
 for(let i=0;i<100000;i++){

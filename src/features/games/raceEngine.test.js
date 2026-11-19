@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FINISH, TUG_FINISH, comparisonAnswer, createRace, createTugOfWar, raceReducer, tugAddition } from "./raceEngine";
+import { FINISH, TUG_ROUNDS, TUG_MAX_DISTANCE, comparisonAnswer, createRace, createTugOfWar, raceReducer, tugDistance } from "./raceEngine";
 
 function input(state = createRace()) {
   if (state.phase === "between") state = raceReducer(state, {type:"nextThrow"});
@@ -11,27 +11,13 @@ function enterDice(state, child, adult) {
   return raceReducer(race, { type: "dice", player: 1, value: adult });
 }
 
-function fillScoreboard(state) {
-  let race = state;
-  while (race.phase === "adding") {
-    race = raceReducer(race, { type: "sum", answer: tugAddition(race).total });
-    race = raceReducer(race, { type: "advanceFeedback" });
-  }
-  return race;
-}
-
 function play(state, child, adult) {
-  let race = enterDice(state, child, adult);
-  if (race.phase === "input") race = raceReducer(race, { type: "compare", answer: comparisonAnswer(race.dice) });
-  while (race.phase === "moving") race = raceReducer(race, { type: "tick" });
-  if (race.phase === "arriving") race = raceReducer(race, { type:"arrived" });
-  race = fillScoreboard(race);
-  if (race.phase === "comparing") {
-    const [childScore, adultScore] = race.pullScores;
-    const answer = childScore === adultScore ? "equal" : childScore > adultScore ? "child" : "adult";
-    race = raceReducer(race, { type: "compare", answer });
-    race = raceReducer(race, { type: "advanceFeedback" });
-  }
+  let race=enterDice(state,child,adult);
+  race=raceReducer(race,{type:"compare",answer:comparisonAnswer(race.dice)});
+  if(race.phase==="counting") race=raceReducer(race,{type:"count",answer:tugDistance(race.dice)});
+  if(race.phase==="pairing") race=raceReducer(race,{type:"paired"});
+  while(race.phase==="moving") race=raceReducer(race,{type:"tick"});
+  if(race.phase==="arriving") race=raceReducer(race,{type:"arrived"});
   return race;
 }
 
@@ -120,96 +106,70 @@ describe("physical dice race", () => {
   });
 });
 
-describe("tug of war", () => {
-  it.each([[6, 1, -1, "child"], [1, 6, 1, "adult"]])(
-    "reaches the finish on the third round with rolls of %i vs %i",
-    (child, adult, direction, winner) => {
-      let duel = createTugOfWar();
-      for (const distance of [5, 10]) {
-        duel = play(duel, child, adult);
-        expect(duel).toMatchObject({ ropePosition: distance * direction, phase: "between", result: null });
-      }
-      duel = play(duel, child, adult);
-      expect(duel).toMatchObject({ ropePosition: TUG_FINISH * direction, round: 3, phase: "finished", result: winner });
-      expect(raceReducer(duel, { type: "reset" })).toEqual(createTugOfWar());
-    },
-  );
-
-  it("keeps the shared position on equality and allows the lead to reverse", () => {
-    let duel = play(createTugOfWar(), 4, 1);
-    expect(duel).toMatchObject({ ropePosition: -3, pullScores: [4, 1] });
-    duel = play(duel, 6, 6);
-    expect(duel).toMatchObject({ ropePosition: -3, pullScores: [4, 1], result: null });
-    duel = play(duel, 1, 6);
-    expect(duel).toMatchObject({ ropePosition: 2, pullScores: [5, 7] });
-    expect(play(duel, 3, 1)).toMatchObject({ ropePosition: 0, pullScores: [8, 8], result: null });
+describe("five-throw tug of war",()=>{
+  it.each(Array.from({length:36},(_,n)=>[Math.floor(n/6)+1,n%6+1]))("moves only the difference for %i versus %i",(a,b)=>{
+    const race=play(createTugOfWar(),a,b);
+    expect(race).toMatchObject({ropePosition:b-a,completedRounds:1,round:1,phase:"between",result:null});
+    expect(race.step).toBe(Math.abs(b-a));
   });
-
-  it("lets the smaller roll pass the finish and waits for the full return pull", () => {
-    let duel = enterDice({ ...createTugOfWar(), ropePosition: 14, pullScores: [0, 14] }, 6, 5);
-    for (let step = 1; step <= 5; step++) {
-      duel = raceReducer(duel, { type: "tick" });
-      expect(duel).toMatchObject({ ropePosition: 14 + step, pullScores: [0, 14 + step], phase: "moving", result: null });
+  it("waits for a correct comparison of this throw before anything moves",()=>{
+    let s=enterDice(createTugOfWar(),5,3);
+    expect(s).toMatchObject({phase:"input",ropePosition:0});
+    expect(raceReducer(s,{type:"tick"})).toBe(s);
+    s=raceReducer(s,{type:"compare",answer:"adult"});
+    expect(s).toMatchObject({phase:"input",mistake:true,ropePosition:0});
+    s=raceReducer(s,{type:"compare",answer:"child"});
+    expect(s.phase).toBe("pairing");
+    expect(raceReducer(s,{type:"compare",answer:"child"})).toBe(s);
+    s=raceReducer(s,{type:"paired"});
+    expect(s.phase).toBe("moving");
+    s=raceReducer(s,{type:"tick"});expect(s.ropePosition).toBe(-1);
+    s=raceReducer(s,{type:"tick"});expect(s).toMatchObject({ropePosition:-2,phase:"arriving"});
+  });
+  it("allows the next throw only by tap and leaves the completed throw visible",()=>{
+    let s=play(createTugOfWar(),5,3);
+    for(const type of ["tick","arrived","paired","compare","count"]) expect(raceReducer(s,{type,answer:2})).toBe(s);
+    expect(s.dice).toEqual([5,3]);
+    s=raceReducer(s,{type:"nextThrow"});
+    expect(s).toMatchObject({round:2,completedRounds:1,phase:"rolling",dice:[null,null]});
+    expect(raceReducer(s,{type:"nextThrow"})).toBe(s);
+  });
+  it.each([[6,1,"child",-TUG_MAX_DISTANCE],[1,6,"adult",TUG_MAX_DISTANCE],[4,4,"tie",0]])("finishes precisely after five throws of %i versus %i",(a,b,result,position)=>{
+    let s=createTugOfWar();
+    for(let n=1;n<=TUG_ROUNDS;n++){
+      s=play(s,a,b);
+      expect(s.completedRounds).toBe(n);
+      expect(s.round).toBe(n);
+      expect(s.phase).toBe(n===5 ? "finished" : "between");
+      expect(s.result).toBe(n===5 ? result : null);
     }
-    for (let step = 1; step <= 6; step++) {
-      duel = raceReducer(duel, { type: "tick" });
-      expect(duel).toMatchObject({ ropePosition: 19 - step, pullScores: [step, 19], result: null });
-    }
-    expect(duel.phase).toBe("arriving");
+    expect(s.ropePosition).toBe(position);
+    for(const type of ["tick","arrived","nextThrow","paired","compare"]) expect(raceReducer(s,{type,answer:"child"})).toBe(s);
   });
-
-  it("credits both full pulls when the winning roll crosses the finish", () => {
-    const duel = play({ ...createTugOfWar(), ropePosition: -14, pullScores: [14, 0] }, 6, 1);
-    expect(duel).toMatchObject({ ropePosition: -19, pullScores: [20, 1], result: "child", step: 7 });
-    expect(raceReducer(duel, { type: "tick" })).toBe(duel);
+  it("includes equality and reversals in the same five throws",()=>{
+    let s=createTugOfWar(true);
+    for(const [a,b] of [[6,1],[1,6],[5,3],[3,5],[4,4]]) s=play(s,a,b);
+    expect(s).toMatchObject({result:"tie",phase:"finished",completedRounds:5,ropePosition:0});
   });
-
-  it("starts after both rolls and compares the displayed totals once the rope has stopped", () => {
-    const firstRoll = raceReducer(input(createTugOfWar()), { type: "dice", player: 0, value: 2 });
-    expect(firstRoll.phase).toBe("input");
-    expect(raceReducer(firstRoll, { type: "compare", answer: "child" })).toBe(firstRoll);
-
-    const before = play(createTugOfWar(), 6, 1);
-    let duel = enterDice(before, 2, 5);
-    expect(duel).toMatchObject({ phase: "moving", pullScores: [6, 1] });
-    expect(raceReducer(duel, { type: "compare", answer: "child" })).toBe(duel);
-    while (duel.phase === "moving") duel = raceReducer(duel, { type: "tick" });
-    expect(duel).toMatchObject({ phase: "arriving", pullScores: [8, 6], ropePosition: -2 });
-    duel = fillScoreboard(raceReducer(duel, { type: "arrived" }));
-    expect(duel.phase).toBe("comparing");
-    expect(raceReducer(duel, { type: "nextThrow" })).toBe(duel);
-    duel = raceReducer(duel, { type: "compare", answer: "adult" });
-    expect(duel).toMatchObject({ phase: "comparing", pullScores: [8, 6], ropePosition: -2, mistake: true });
-    duel = raceReducer(duel, { type: "compare", answer: "child" });
-    expect(duel).toMatchObject({ phase: "comparisonFeedback", mistake: false });
-    expect(raceReducer(duel, { type: "advanceFeedback" })).toMatchObject({ phase: "between", round: 3 });
+  it("asks for the remainder only in count mode and never moves on a wrong count",()=>{
+    let s=enterDice(createTugOfWar(true),5,3);
+    s=raceReducer(s,{type:"compare",answer:"child"});
+    expect(s.phase).toBe("counting");
+    expect(raceReducer(s,{type:"count",answer:0})).toBe(s);
+    expect(raceReducer(s,{type:"count",answer:6})).toBe(s);
+    s=raceReducer(s,{type:"count",answer:1});
+    expect(s).toMatchObject({phase:"counting",mistake:true,ropePosition:0});
+    expect(raceReducer(s,{type:"tick"})).toBe(s);
+    s=raceReducer(s,{type:"count",answer:2});
+    expect(s).toMatchObject({phase:"pairing",mistake:false,countAnswer:2});
+    expect(raceReducer(s,{type:"count",answer:2})).toBe(s);
+    expect(play(createTugOfWar(true),4,4)).toMatchObject({phase:"between",step:0,completedRounds:1});
   });
-
-  it("keeps the winning round open until the score question is answered", () => {
-    let duel = enterDice({ ...createTugOfWar(), ropePosition: 14, pullScores: [0, 14] }, 1, 6);
-    while (duel.phase === "moving") duel = raceReducer(duel, { type: "tick" });
-    duel = fillScoreboard(raceReducer(duel, { type: "arrived" }));
-    expect(duel).toMatchObject({ phase: "comparing", pullScores: [1,20], result: "adult" });
-    duel = raceReducer(duel, { type: "compare", answer: "equal" });
-    expect(duel).toMatchObject({ phase: "comparing", mistake: true });
-    duel = raceReducer(duel, { type: "compare", answer: "adult" });
-    expect(raceReducer(duel, { type: "advanceFeedback" })).toMatchObject({ phase: "finished", result: "adult" });
-  });
-
-  it("asks for each sum in turn and keeps a wrong answer on the same sum", () => {
-    let duel = enterDice(play(createTugOfWar(), 6, 1), 2, 5);
-    while (duel.phase === "moving") duel = raceReducer(duel, { type: "tick" });
-    duel = raceReducer(duel, { type: "arrived" });
-    expect(tugAddition(duel)).toMatchObject({ player: 0, previous: 6, added: 2, total: 8 });
-    expect(raceReducer(duel, { type: "compare", answer: "child" })).toBe(duel);
-    duel = raceReducer(duel, { type: "sum", answer: 7 });
-    expect(duel).toMatchObject({ phase: "adding", sumsAnswered: 0, ropePosition: -2, mistake: true });
-    duel = raceReducer(duel, { type: "sum", answer: 8 });
-    expect(duel).toMatchObject({ phase: "sumFeedback", sumsAnswered: 1, mistake: false });
-    expect(tugAddition(duel).player).toBe(0);
-    duel = raceReducer(duel, { type: "advanceFeedback" });
-    expect(tugAddition(duel)).toMatchObject({ player: 1, previous: 1, added: 5, total: 6 });
-    duel = fillScoreboard(duel);
-    expect(duel).toMatchObject({ phase: "comparing", sumsAnswered: 2, pullScores: [8, 6] });
+  it("preserves the selected teaching variant on reset and locks it after play starts",()=>{
+    let s=raceReducer(createTugOfWar(),{type:"configureTug",countMoves:true});
+    expect(s.countMoves).toBe(true);
+    s=input(s);
+    expect(raceReducer(s,{type:"configureTug",countMoves:false})).toBe(s);
+    expect(raceReducer(s,{type:"reset"})).toEqual(createTugOfWar(true));
   });
 });
