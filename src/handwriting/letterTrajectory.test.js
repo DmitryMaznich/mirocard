@@ -23,19 +23,24 @@ describe("р: the stick, the retrace up it, the hook (owner 2026-11-19)", () => 
     expect(paths[1].from).toBeCloseTo(segmentShare(r.strokes[0].d, 1), 6);
     const moves = letterMoves(r, "joined");
     expect(near(startOf(moves[1].d), [88.86, 114])).toBe(true);
-    expect(near(endOf(moves[1].d), [120.16, 46.87])).toBe(true);
+    expect(endOf(moves[1].d)[1]).toBeCloseTo(36, 1); // up the stick to the middle dashed line, where the hook begins
   });
   it("joined: one start dot, stick → retrace → hook, no jump", () => {
     const m = letterMoves(r, "joined");
     expect(m.map((x) => x.kind)).toEqual(["ink", "retrace", "ink"]);
     expect(m.filter((x) => x.startDot).length).toBe(1);
   });
-  it("lifted: stick, a jump from its foot up to the hook's start, the hook from its own dot", () => {
+  it("lifted: stick, the pen lifted at its foot and put down at the hook's start, the hook from its own dot", () => {
     const m = letterMoves(r, "lifted");
-    expect(m.map((x) => x.kind)).toEqual(["ink", "jump", "ink"]);
+    expect(m.map((x) => x.kind)).toEqual(["ink", "lift", "ink"]);
     expect(m.filter((x) => x.startDot).length).toBe(2);
     expect(near(m[1].from, [88.86, 114])).toBe(true);
-    expect(near(m[1].to, [120.16, 46.87])).toBe(true);
+    expect(m[1].to[1]).toBeCloseTo(36, 1);
+  });
+  it("the hook begins and ends on the middle dashed line, like a г", () => {
+    const hook = letterMoves(r, "lifted")[2].d;
+    expect(startOf(hook)[1]).toBeCloseTo(36, 1);
+    expect(endOf(hook)[1]).toBeCloseTo(36, 1);
   });
   it("the elements are the same ink in both techniques", () => {
     const ink = (t) => letterMoves(r, t).filter((x) => x.kind === "ink").map((x) => x.d);

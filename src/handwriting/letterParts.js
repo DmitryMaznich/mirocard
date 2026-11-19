@@ -133,18 +133,29 @@ export function splitIntoParts(strokes, glyph, hidden) {
 // A letter has what stays on paper (its ELEMENTS: р = the stick and the hook) and the way the pen went over it. Two techniques write the
 // same elements: `joined` (default, the owner taught his son so): the path as captured — р goes down the stick, back UP it to where the hook
 // begins (a RETRACE: on paper, over ink already drawn, adding none) and on into the hook; `lifted` (the way schools lean now): every element on
-// its own from its own start dot, the pen jumps through the air between them. `glyph.trajectory` (tools/handwriting/cyrillic/
+// its own from its own start dot; between them the pen is lifted (its way through the air is not shown). `glyph.trajectory` (tools/handwriting/cyrillic/
 // letter_elements.json) marks per stroke `retrace: [[a, b]…]` and `cuts: [a…]` (an element begins without a retrace), positions counted in
 // path segments from the stroke's start. Not wired into the rows yet: `letterPieces` (the parts a row keeps) still has its old numbering.
 
-// the share of the stroke's length at a position counted in segments (2 = the end of the 2nd segment after M, 2.5 = halfway along the 3rd)
+// the share of the stroke's length at a position: a number of segments (2 = the end of the 2nd segment after M, 2.5 = the middle of the
+// 3rd by its curve parameter), or { seg, y } — the first point after the end of segment `seg` where the path reaches the height y (a
+// guide line of the letter's band: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline, in the capture frame)
 export function segmentShare(d, at) {
-  const { len } = polyOf(d);
+  const { pts, len } = polyOf(d);
   const total = len[len.length - 1];
+  if (!total) return 0;
+  if (typeof at === "object" && at !== null) {
+    for (let i = Math.max(1, Math.round(at.seg * PER_SEGMENT) + 1); i < pts.length; i += 1) {
+      const a = pts[i - 1][1] - at.y, b = pts[i][1] - at.y;
+      if (a === 0) return len[i - 1] / total;
+      if (a * b <= 0) return (len[i - 1] + (len[i] - len[i - 1]) * (a / (a - b))) / total;
+    }
+    throw new Error(`the path never reaches y=${at.y} after segment ${at.seg}`);
+  }
   const x = Math.max(0, Math.min((len.length - 1) / PER_SEGMENT, at)) * PER_SEGMENT;
   const i = Math.floor(x), t = x - i;
   const s = i >= len.length - 1 ? len[len.length - 1] : len[i] + (len[i + 1] - len[i]) * t;
-  return total ? s / total : 0;
+  return s / total;
 }
 
 // [{ kind: "ink" | "retrace", stroke, from, to, element? }] in writing order (shares of the stroke's length): the ink pieces carry the number
@@ -178,7 +189,8 @@ const pointOf = (d, share) => {
 
 // The moves of the pen writing the letter in a technique, in order, over the given strokes (the glyph's own, or as placed on a row — the
 // same order and shape): { kind: "ink", d, element, startDot } — draws; { kind: "retrace", d } — the pen on paper along ink already there
-// (joined only), nothing new on the sheet; { kind: "jump", from, to } — the pen in the air. A start dot marks every place the pen touches
+// (joined only), nothing new on the sheet; { kind: "lift", from, to } — the pen leaves the paper and is put down elsewhere: its way through
+// the air is NOT shown (owner, 2026-11-19: «просто там закончилось и потом началось в начале второго штриха»). A start dot marks every place the pen touches
 // down: the start of each stroke, and in `lifted` the start of every element.
 export function letterMoves(glyph, technique = "joined", strokes = glyph?.strokes) {
   const moves = [];
@@ -193,7 +205,7 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
     const start = pointOf(d, p.from);
     // (lifted: every element from its own start dot, also one that goes on from the point where the last one ended)
     const touchDown = p.stroke !== lastStroke || technique === "lifted";
-    if (touchDown && last && Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5) moves.push({ kind: "jump", from: last, to: start });
+    if (touchDown && last && Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: start });
     moves.push({ kind: "ink", d: piecePathD(d, p.from, p.to), element: p.element, startDot: Boolean(touchDown) });
     last = pointOf(d, p.to);
     lastStroke = p.stroke;

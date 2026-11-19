@@ -1,12 +1,19 @@
 {
   "meta": {
-    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes back along ink already drawn, written without a lift) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = halfway along the 3rd). The ink between them, in writing order, are the letter's elements.",
-    "techniques": "joined (default, owner): the path as captured, retraces run along the ink and add none; lifted: every element on its own, from its own start dot, the pen jumps between them"
+    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes back along ink already drawn, written without a lift) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = the middle of the 3rd by its curve parameter; {\"seg\": 2, \"y\": 36} = the first point after segment 2 at the height 36 — guide lines in the capture frame: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline). The ink between them, in writing order, are the letter's elements.",
+    "techniques": "joined (default, owner): the path as captured, retraces run along the ink and add none; lifted: every element on its own, from its own start dot; the pen's way through the air between them is not shown"
   },
   "letters": {
     "р": {
-      "elements": ["палочка", "крючок"],
-      "strokes": [{ "retrace": [[1, 2]] }]
+      "elements": [
+        "палочка",
+        "крючок (почти г: от средней линии до средней линии)"
+      ],
+      "strokes": [
+        {
+          "retrace": [[1, { "seg": 2, "y": 36 }]]
+        }
+      ]
     }
   }
 }

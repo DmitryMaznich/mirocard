@@ -1,6 +1,6 @@
 // Review page of the pen trajectory of the copybook letters (docs/propis2-letter-parts.md): per letter of
 // tools/handwriting/cyrillic/letter_elements.json — its elements in colours, and an animation of each technique (joined: the retrace is the
-// pen running along the ink, no new line; lifted: the pen jumps in the air, every element from its own start dot).
+// pen running along the ink, no new line; lifted: every element from its own start dot, the pen's way through the air not shown).
 //   node tools/propis2/parts-review/trajectory-sheet.mjs [letters] > out.html
 import { readFileSync } from "node:fs";
 import { letterMoves, letterPaths, piecePathD } from "../../../src/handwriting/letterParts.js";
@@ -43,7 +43,7 @@ button{margin-top:6px;font-size:14px;padding:4px 10px}
 p{margin:6px 0 0;font-size:14px}
 .note{max-width:720px;color:#555;font-size:14px}
 </style>
-<p class="note">Синяя линия — что остаётся на бумаге. Зелёная точка — где ручка касается бумаги. Безотрывно: после палочки ручка идёт по ней обратно вверх (новой линии нет) и сразу пишет крючок. С отрывом: ручка поднимается (бледная, пунктир по воздуху) и ставится в начало крючка.</p>
+<p class="note">Синяя линия — что остаётся на бумаге. Зелёная точка — где ручка касается бумаги. Безотрывно: после палочки ручка идёт по ней обратно вверх до средней линии (новой линии нет) и сразу пишет крючок. С отрывом: палочка закончилась — ручка исчезает и появляется в начале крючка.</p>
 ${cards}
 <script>
 const NS = "http://www.w3.org/2000/svg", SPEED = 0.09; // units per ms
@@ -60,13 +60,8 @@ function play(svg) {
     if (i >= moves.length) { pen.remove(); svg._t = setTimeout(() => play(svg), 1600); return; }
     const m = moves[i++];
     let path, len, onFrame;
-    if (m.kind === "jump") {
-      // (an arc to the left of the way: the pen is in the air, off the line it would run along)
-      const [ax, ay] = m.from, [bx, by] = m.to, dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1, off = Math.min(28, L * 0.35);
-      const cx = (ax + bx) / 2 + (dy / L) * off, cy = (ay + by) / 2 - (dx / L) * off;
-      path = el("path", { d: "M " + ax + " " + ay + " Q " + cx + " " + cy + " " + bx + " " + by, fill: "none", stroke: "#9ca3af", "stroke-width": 1.2, "stroke-dasharray": "3 4" });
-      layer.appendChild(path); pen.setAttribute("opacity", 0.45); pen.setAttribute("r", 6);
-    } else {
+    if (m.kind === "lift") { pen.remove(); svg._t = setTimeout(next, 450); return; } // the pen's way through the air is not shown
+    {
       path = el("path", { d: m.d, class: "ink", stroke: m.kind === "ink" ? "#1d4ed8" : "none" });
       layer.appendChild(path); pen.setAttribute("opacity", 1); pen.setAttribute("r", 4.5);
       if (m.startDot) { const p0 = path.getPointAtLength(0); layer.appendChild(el("circle", { cx: p0.x, cy: p0.y, r: 4, fill: "#16a34a" })); }
@@ -74,13 +69,13 @@ function play(svg) {
     len = path.getTotalLength();
     if (m.kind === "ink") { path.style.strokeDasharray = len; path.style.strokeDashoffset = len; }
     layer.appendChild(pen);
-    const t0 = performance.now(), dur = Math.max(250, len / SPEED) * (m.kind === "jump" ? 0.8 : 1);
+    const t0 = performance.now(), dur = Math.max(250, len / SPEED);
     const step = (now) => {
       const k = Math.min(1, (now - t0) / dur), p = path.getPointAtLength(len * k);
       pen.setAttribute("cx", p.x); pen.setAttribute("cy", p.y);
       if (m.kind === "ink") path.style.strokeDashoffset = len * (1 - k);
       if (k < 1) svg._raf = requestAnimationFrame(step);
-      else { if (m.kind === "jump") path.remove(), pen.setAttribute("opacity", 1), pen.setAttribute("r", 4.5); svg._t = setTimeout(next, m.kind === "ink" ? 120 : 60); }
+      else { svg._t = setTimeout(next, m.kind === "ink" ? 120 : 60); }
     };
     svg._raf = requestAnimationFrame(step);
   };
