@@ -45,7 +45,8 @@ export const P2_GLYPH_OVERRIDES = {
   "ы2": { joinAtStart: true, joinReverse: true, joinArrive: 1 },
   "ь": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true, exitNudge: 24 },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
-  "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
+  // flagWidenK (owner 2026-11-20): the flag one whole cell wide — its start on the slant one cell left of the stem (it was 0.53 of a cell)
+  "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1, flagWidenK: 1.8887 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   // snapAtOldStart (а б д, owner 2026-11-20 «все овалы … начинать от пунктира»): their oval begins on the middle line now (the same curve of о, a
@@ -349,7 +350,8 @@ const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOn
   if (punctDots) out = scalePunctDots(out, punctDots);
   if (startDrop) out = dropStart(out, startDrop);
   if (stemOnLine) out = markStem(out);
-  if (g.flagWidenK != null) out = widenFlag(out, g.flagWidenK);
+  // (a variant's glyph carries its own value; else the override's — Russian ъ, owner 2026-11-20: «флажок шириной 1 клетка»)
+  if ((g.flagWidenK ?? rest.flagWidenK) != null) out = widenFlag(out, g.flagWidenK ?? rest.flagWidenK);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
   if (straightTail != null) out = straightenTail(out, straightTail);

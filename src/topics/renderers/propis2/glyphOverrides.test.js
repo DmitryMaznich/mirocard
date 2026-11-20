@@ -16,22 +16,23 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     expect(ny - ry).toBeCloseTo(7, 1);
     expect(ny).toBeCloseTo(10 + 0.25 * 50, 0);
     expect(nx).toBeLessThan(rx);
-    // everything from the opening line to the top of the stem (the captured flag) is the captured path
+    // the flag from the opening line to the top of the stem is the captured one widened ALONG THE GRID (flagWidenK, owner 2026-11-20: one
+    // whole cell): the same heights, every point moved along its slant, the top of the stem where it was
     const rd = raw.strokes[0].d, nd = yer.strokes[0].d;
-    const flag = (d) => d.slice(d.indexOf("L"), d.indexOf("L 164.3") + 12);
-    expect(flag(nd)).toBe(flag(rd));
-    // the opening line keeps the direction of the captured one (the kink at the start of the flag is taken out by the connector, not by the flag)
-    const [x1, y1] = pts(rd).slice(2, 4);
-    expect((x1 - nx) / (ny - y1)).toBeCloseTo((x1 - rx) / (ry - y1), 2);
+    const flag = (d) => d.slice(d.indexOf("L"), d.indexOf("164.3") + 12);
+    const ys = (d) => (flag(d).match(/-?\d*\.?\d+ (-?\d*\.?\d+)/g) || []).map((q) => +q.split(" ")[1]);
+    expect(ys(nd)).toEqual(ys(rd));
+    // the start of the flag on the slanted line one whole cell (18 capture units along the grid) left of the stem's
+    const T = 0.4663;
+    expect(yer.stemAnchor[0] + T * yer.stemAnchor[1] - (nx + T * ny)).toBeCloseTo(18, 1);
   });
   it("the anchor is the top of the stem (the start of its first long straight segment)", () => {
     expect(yer.stemAnchor[0]).toBeCloseTo(164.35, 1);
     expect(yer.stemAnchor[1]).toBeCloseTo(10, 1);
   });
-  it("the line through the stem lies 0.56 of a cell (30 units, x1.806 stretch) right of the start's line, in the layout's units", () => {
+  it("the line through the stem lies one whole cell (30 units) right of the start's line, in the layout's units (the flag one cell wide)", () => {
     const l = wideGlyphLocal(yer, 1);
-    expect(l.stemDx).toBeGreaterThan(14);
-    expect(l.stemDx).toBeLessThan(19);
+    expect(l.stemDx).toBeCloseTo(30, 0);
     // narrow rows: scaled with the letter
     expect(wideGlyphLocal(yer, 0.6).stemDx / l.stemDx).toBeCloseTo(0.6, 1);
   });
