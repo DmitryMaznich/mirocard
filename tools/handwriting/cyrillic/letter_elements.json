@@ -390,7 +390,7 @@
       ],
       "strokes": [
         {
-          "retrace": [[48, 60, "ahead"], [91, 103, "ahead"]]
+          "retrace": [[48, 60, "ahead"], [95, 107, "ahead"]]
         }
       ]
     },
@@ -403,8 +403,8 @@
       ],
       "strokes": [
         {
-          "retrace": [[48, 60, "ahead"], [91, 103, "ahead"]],
-          "cuts": [116]
+          "retrace": [[48, 60, "ahead"], [95, 107, "ahead"]],
+          "cuts": [120]
         }
       ]
     },
