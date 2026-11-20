@@ -180,7 +180,7 @@ describe("ы1: the knot at the top of the oval and the connector from it (the sc
   const map = buildGlyphMap({ wide });
   const tanS = Math.tan((25 * Math.PI) / 180);
   const left = map.get("ы1");
-  it("the oval comes back to the stem at the height of its top, a small knot, and the connector is the tail (the last cubic), leaving from the knot", () => {
+  it("the oval comes back to the stem at the height of its top, and the connector is the tail (the last cubic), leaving from there", () => {
     const loc = wideGlyphLocal(left, 1);
     expect(loc.tail).toBeTruthy();
     const body = pts(loc.strokes[0].d), tail = pts(loc.tail.d);
@@ -190,13 +190,20 @@ describe("ы1: the knot at the top of the oval and the connector from it (the sc
     expect(tail.slice(-2)[1]).toBeLessThan(tail[1]);
     expect(tail.slice(-2)[0]).toBeGreaterThan(tail[0]);
   });
-  it("the knot is not a corner: the heading at the end of the knot equals the heading at the start of the connector", () => {
+  // owner, 2026-11-20: «соединительный элемент ы начинается от вертикальной линии» — the oval comes back to the stem itself and the connector
+  // leaves from the stem (it used to leave from a small loop 3.7 units right of the stem, which kept the turn smooth): the pen turns there
+  it("the connector starts on the stem, where the oval comes back to it", () => {
     const d = left.strokes[0].d;
     const n = pts(d);
-    // the last two cubics: the knot [.. p3] and the connector [c1 ...]: the knot's last handle and the connector's first handle are on one line
-    const k = n.slice(-12, -6), c = n.slice(-6);
-    const a1 = Math.atan2(k[5] - k[3], k[4] - k[2]), a2 = Math.atan2(c[1] - k[5], c[0] - k[4]);
-    expect(Math.abs(a1 - a2)).toBeLessThan(0.08); // the loop ends along the way the connector leaves (a few degrees: the loop is a spline through the traced points)
+    const top = n.slice(0, 2), foot = n.slice(2, 4); // M (the top of the stem), L (its foot)
+    const start = n.slice(-8, -6); // the start of the connector (the end of the cubic before it)
+    const xOnStem = top[0] + ((foot[0] - top[0]) * (start[1] - top[1])) / (foot[1] - top[1]);
+    expect(Math.abs(start[0] - xOnStem)).toBeLessThan(0.05);
+    // the oval arrives from the right, the connector leaves to the right and up
+    const before = n.slice(-10, -8), c1 = n.slice(-6, -4);
+    expect(before[0]).toBeGreaterThan(start[0]);
+    expect(c1[0]).toBeGreaterThan(start[0]);
+    expect(c1[1]).toBeLessThan(start[1]);
     expect(tanS).toBeGreaterThan(0);
   });
 });

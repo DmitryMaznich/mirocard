@@ -364,14 +364,16 @@ const withOverride = (g) => {
 
 // `yerLoop(soft)`: the left part of ы, `ы1` (2026-10-28), drawn after the school copybook (Горецкий / «Школа России») and the pen's path the owner traced over its photo.
 // It is ь up to the bottom of the oval (the stem and the lower lobe of в, reduced, see `yerBelly`); then the school form: the right side of the oval, almost straight along the slant, goes up, on to the left along its top, curls into a
-// small LOOP against the stem (counter-clockwise: left, down, right), crosses its own top edge and leaves to the right as the CONNECTOR, a concave rise to the TOP of the
+// goes on to the left up to the stem itself (it used to curl into a small loop there), and from the stem leaves to the right as the CONNECTOR, a concave rise to the TOP of the
 // next stem (`ы2`), where it meets the stem coming down in a narrow wedge. The oval is a little over half the row (its top at 0.59 of the height, the knot at 0.55).
 // The points are the owner's trace converted to the capture's units (calibrated on the stem line and the baseline of the photo). The connector is the tail (the last cubic: it
 // is drawn because ы2 always follows; the layout redraws it to end at the start of ы2: `joinAtStart` + `joinReverse` there). ь itself in words is unchanged.
 // Built from the patched ь (8 commands: M, L to the foot of the belly, 4 cubics of the oval, the replayed bottom, the exit); only the first four are kept (stem, three cubics of the oval up to its top).
-const Y_LOOP_POINTS = [
-  [157.15, 34.15], [155.8, 33.85], [154.7, 34.0], [154.0, 34.35], [154.6, 34.7], [155.7, 34.75], [156.7, 34.4], // the loop against the stem (flattened: its upper and lower lines run almost along each other, no hole)
-];
+// From the top of the oval the pen goes on to the left up to the stem itself; the CONNECTOR starts there, on the stem (owner, 2026-11-20:
+// «соединительный элемент ы начинается от вертикальной линии»). It used to curl into a small loop against the stem (left, down, right) and leave
+// from its right end, 3.7 units right of the stem. The last point (on the stem, at the height of the loop) is computed from the stem.
+const Y_LOOP_POINTS = [[157.15, 34.15], [155.8, 33.85], [154.7, 34.0]];
+const Y_STEM_Y = 34.35; // the height where the oval meets the stem and the connector leaves it
 const Y_TOP_RAISE = 1.8; // how far the top of ь's oval goes up to meet the loop
 const Y_LINK = [[168.3, 30.0], [175.95, 21.5], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
 export function yerLoop(soft) {
@@ -386,7 +388,10 @@ export function yerLoop(soft) {
   // (the last control point and the end of the cubic move up together, the top stays flat and round).
   const topUp = (n) => n.map((v, i) => (i === 3 || i === 5 ? v - Y_TOP_RAISE : v));
   const T = topUp(c[4].n).slice(-2);
-  const P = [T, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy])];
+  // the point of the stem (ь's stem: from its top c[0] to its foot c[1]) at the height of the loop
+  const foot = c[1].n.slice(-2), sy = Y_STEM_Y + dy;
+  const onStem = [top[0] + ((foot[0] - top[0]) * (sy - top[1])) / (foot[1] - top[1]), sy];
+  const P = [T, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy]), onStem];
   // Catmull-Rom through the points -> cubics (the ends repeated)
   const segs = P.slice(0, -1).map((p1, i) => {
     const p0 = P[Math.max(0, i - 1)], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
