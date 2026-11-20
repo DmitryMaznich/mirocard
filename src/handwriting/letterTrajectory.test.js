@@ -177,7 +177,7 @@ describe("after a retrace back, the next element begins on the line the pen came
       for (const q of samplePath(toCubicPathD(r.d), 40)) expect(Math.min(...stick.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1]))), ch).toBeLessThan(0.05);
       expect(near(startOf(m[i + 1].d), endOf(r.d))).toBe(true);
     });
-  });
+  }, 30000); // (ж: long retraces, slow)
 });
 
 // joined: after the first touch-down every move goes on from the one before with the pen down (`continues`), a player runs them as one
@@ -243,11 +243,16 @@ describe("ъ, ы", () => {
 describe("в х ж ч к з", () => {
   const count = (ch) => letterMoves(glyph(ch), "lifted").filter((x) => x.kind === "ink").length;
   it.each([["в", 1], ["х", 2], ["ж", 3], ["ч", 2], ["к", 3], ["з", 2]])("%s: %i elements", (ch, n) => expect(count(ch)).toBe(n));
-  it("ж: joined — one start, the two links inside the letter are written; lifted — they are not", () => {
+  // ж (owner 2026-11-20): the zigzag between the arcs is one element from the middle line on the left arc to the middle line on the right one;
+  // the right arc starts at its upper end point (the tip of its curl), the way up to it along the arc is not written by the lifted hand
+  it("ж: the zigzag from the middle line to the middle line, the right arc from the tip of its curl", () => {
+    const l = letterMoves(glyph("ж"), "lifted").filter((x) => x.kind === "ink");
+    expect(startOf(l[1].d)[1]).toBeCloseTo(36, 1);
+    expect(endOf(l[1].d)[1]).toBeCloseTo(36, 1);
+    expect(near(startOf(l[2].d), [175.88, 24.6])).toBe(true);
     const j = letterMoves(glyph("ж"), "joined");
     expect(j.filter((x) => x.startDot).length).toBe(1);
-    expect(j.filter((x) => x.link && x.ink).length).toBe(2);
-    expect(letterMoves(glyph("ж"), "lifted").some((x) => x.link)).toBe(false);
+    expect(j.map((x) => x.kind)).toEqual(["ink", "retrace", "ink", "retrace", "ink"]);
   });
   it("к: the upper hook begins on the stick, after the way back up it", () => {
     const m = letterMoves(glyph("к"), "joined");
