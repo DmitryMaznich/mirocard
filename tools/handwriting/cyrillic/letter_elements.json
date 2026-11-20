@@ -352,7 +352,7 @@
       ],
       "strokes": [
         {
-          "retrace": [[30, 31, "ahead"]]
+          "retrace": [[25, 26, "ahead"]]
         }
       ]
     },
@@ -364,7 +364,7 @@
       ],
       "strokes": [
         {
-          "retrace": [[30, 31, "ahead"]]
+          "retrace": [[25, 26, "ahead"]]
         },
         {}
       ]
@@ -377,8 +377,8 @@
       ],
       "strokes": [
         {
-          "retrace": [[30, 31, "ahead"]],
-          "cuts": [34]
+          "retrace": [[25, 26, "ahead"]],
+          "cuts": [29]
         }
       ]
     },
@@ -390,7 +390,7 @@
       ],
       "strokes": [
         {
-          "retrace": [[30, 31, "ahead"], [34, 35, "ahead"]]
+          "retrace": [[25, 26, "ahead"], [29, 30, "ahead"]]
         }
       ]
     },
@@ -403,8 +403,8 @@
       ],
       "strokes": [
         {
-          "retrace": [[30, 31, "ahead"], [34, 35, "ahead"]],
-          "cuts": [38]
+          "retrace": [[25, 26, "ahead"], [29, 30, "ahead"]],
+          "cuts": [33]
         }
       ]
     },
