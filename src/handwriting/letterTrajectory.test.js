@@ -119,7 +119,7 @@ describe("every retrace runs along the ink of its letter", () => {
   it.each(Object.keys(spec))("%s", (ch) => {
     const m = letterMoves(glyph(ch), "joined");
     const ink = m.filter((x) => x.kind === "ink").flatMap((x) => samplePath(toCubicPathD(x.d), 80));
-    for (const r of m.filter((x) => x.kind === "retrace")) {
+    for (const r of m.filter((x) => x.kind === "retrace" && !x.link)) { // (a link — ж — is a line of its own, not along an element)
       for (const q of samplePath(toCubicPathD(r.d), 20)) {
         const dist = Math.min(...ink.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1])));
         expect(dist, `${ch} at ${q.map((v) => v.toFixed(1))}`).toBeLessThan(1);
@@ -236,6 +236,22 @@ describe("ъ, ы", () => {
     const l = composedMoves(seg.strokes, seg.trajectory.strokes, "lifted", parts);
     expect(l.filter((x) => x.kind === "ink").map((x) => x.element)).toEqual([0, 1, 2]);
     expect(l.filter((x) => x.startDot).length).toBe(3);
+  });
+});
+
+// the letters with loops and hooks (owner 2026-11-20: «в — один, х — 2, ж — 3, ч — 2, к — 3, з — 2»)
+describe("в х ж ч к з", () => {
+  const count = (ch) => letterMoves(glyph(ch), "lifted").filter((x) => x.kind === "ink").length;
+  it.each([["в", 1], ["х", 2], ["ж", 3], ["ч", 2], ["к", 3], ["з", 2]])("%s: %i elements", (ch, n) => expect(count(ch)).toBe(n));
+  it("ж: joined — one start, the two links inside the letter are written; lifted — they are not", () => {
+    const j = letterMoves(glyph("ж"), "joined");
+    expect(j.filter((x) => x.startDot).length).toBe(1);
+    expect(j.filter((x) => x.link && x.ink).length).toBe(2);
+    expect(letterMoves(glyph("ж"), "lifted").some((x) => x.link)).toBe(false);
+  });
+  it("к: the upper hook begins on the stick, after the way back up it", () => {
+    const m = letterMoves(glyph("к"), "joined");
+    expect(m.map((x) => x.kind)).toEqual(["ink", "retrace", "ink", "lift", "ink"]);
   });
 });
 

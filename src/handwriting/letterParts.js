@@ -173,16 +173,21 @@ export function letterPaths(glyph) {
   let element = 0;
   (glyph?.strokes ?? []).forEach((st, si) => {
     const spec = glyph.trajectory?.strokes?.[si] ?? {};
-    const retr = (spec.retrace ?? []).map(([a, b]) => [segmentShare(st.d, a), segmentShare(st.d, b)]).sort((p, q) => p[0] - q[0]);
+    // `links` (ж): a line INSIDE the letter between two of its elements that is not part of either — written by the joined hand (a line on
+    // the paper), left out by the lifted one; unlike a retrace it need not run along an element's line
+    const retr = [
+      ...(spec.retrace ?? []).map(([a, b]) => [segmentShare(st.d, a), segmentShare(st.d, b), false]),
+      ...(spec.links ?? []).map(([a, b]) => [segmentShare(st.d, a), segmentShare(st.d, b), true]),
+    ].sort((p, q) => p[0] - q[0]);
     const cuts = (spec.cuts ?? []).map((a) => segmentShare(st.d, a));
     let pos = 0;
     const ink = (from, to) => {
       const edges = [from, ...cuts.filter((c) => c > from && c < to).sort((p, q) => p - q), to];
       for (let k = 0; k + 1 < edges.length; k += 1) if (edges[k + 1] > edges[k]) out.push({ kind: "ink", stroke: si, from: edges[k], to: edges[k + 1], element: element++ });
     };
-    for (const [a, b] of retr) {
+    for (const [a, b, link] of retr) {
       ink(pos, a);
-      out.push({ kind: "retrace", stroke: si, from: a, to: b });
+      out.push({ kind: "retrace", stroke: si, from: a, to: b, ...(link ? { link: true } : {}) });
       pos = b;
     }
     ink(pos, 1);
@@ -216,8 +221,8 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
         // перо идёт вверх по наклонной до верхней линии»)
         const rd = piecePathD(d, p.from, p.to);
         const over = samplePath(toCubicPathD(rd), 6).filter((q) => drawn.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 1)).length;
-        const ahead = over < samplePath(toCubicPathD(rd), 6).length / 2;
-        moves.push({ kind: "retrace", d: rd, continues: true, ...(ahead ? { ink: true } : {}) });
+        const ahead = p.link || over < samplePath(toCubicPathD(rd), 6).length / 2;
+        moves.push({ kind: "retrace", d: rd, continues: true, ...(ahead ? { ink: true } : {}), ...(p.link ? { link: true } : {}) });
         last = pointOf(d, p.to);
       }
       continue;

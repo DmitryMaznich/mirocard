@@ -1,9 +1,40 @@
 {
   "meta": {
-    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes on the paper along the line of an element — one already drawn, р: back up the stick; or the one it is about to write, и: up the line its second stick then comes down — written without a lift, adding no ink of its own) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = the middle of the 3rd by its curve parameter; {\"seg\": 2, \"y\": 36} = the first point after segment 2 at the height 36 — guide lines in the capture frame: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline). The ink between them, in writing order, are the letter's elements. {\"seg\": 9, \"top\": true} = the highest point of the 10th segment (a cut at the top, л м).",
+    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes on the paper along the line of an element — one already drawn, р: back up the stick; or the one it is about to write, и: up the line its second stick then comes down — written without a lift, adding no ink of its own) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = the middle of the 3rd by its curve parameter; {\"seg\": 2, \"y\": 36} = the first point after segment 2 at the height 36 — guide lines in the capture frame: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline). The ink between them, in writing order, are the letter's elements. {\"seg\": 9, \"top\": true} = the highest point of the 10th segment (a cut at the top, л м). `links: [[a, b]]` — a line inside the letter between two elements that is part of neither (ж): the joined hand writes it, the lifted one does not.",
     "techniques": "joined (default, owner): the path as captured, retraces run along the ink and add none; lifted: every element on its own, from its own start dot; the pen's way through the air between them is not shown"
   },
   "letters": {
+    "в": {
+      "elements": [
+        "в целиком (один элемент, владелец)"
+      ],
+      "strokes": [
+        {}
+      ]
+    },
+    "ж": {
+      "elements": [
+        "левая дуга",
+        "палочка",
+        "правая дуга"
+      ],
+      "strokes": [
+        {
+          "links": [[4, 6], [7, 9]]
+        }
+      ]
+    },
+    "з": {
+      "elements": [
+        "верхняя дуга (до перехвата)",
+        "нижняя петля с выходом (от перехвата)"
+      ],
+      "strokes": [
+        {
+          "cuts": [10]
+        }
+      ]
+    },
     "и": {
       "elements": [
         "палочка с закруглением внизу (до средней линии)",
@@ -24,6 +55,19 @@
       "strokes": [
         {
           "retrace": [[{ "seg": 3, "y": 36 }, 5]]
+        },
+        {}
+      ]
+    },
+    "к": {
+      "elements": [
+        "палочка",
+        "верхний крюк (от палочки на средней линии)",
+        "нижний элемент (от палочки)"
+      ],
+      "strokes": [
+        {
+          "retrace": [[1, 2]]
         },
         {}
       ]
@@ -108,6 +152,16 @@
         }
       ]
     },
+    "х": {
+      "elements": [
+        "левая полуовальная дуга",
+        "правая полуовальная дуга"
+      ],
+      "strokes": [
+        {},
+        {}
+      ]
+    },
     "ц": {
       "elements": [
         "палочка с закруглением внизу (до средней линии)",
@@ -118,6 +172,17 @@
         {
           "retrace": [[{ "seg": 5, "y": 36 }, 7]],
           "cuts": [10]
+        }
+      ]
+    },
+    "ч": {
+      "elements": [
+        "левая часть (от средней линии вверх, провал, к правой вершине)",
+        "палочка с закруглением внизу (от правой вершины)"
+      ],
+      "strokes": [
+        {
+          "cuts": [16]
         }
       ]
     },
