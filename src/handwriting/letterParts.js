@@ -239,14 +239,20 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
 // Its elements are those parts, the joins between them the pen's way from one to the next. `strokes`: the parts as the row placed them;
 // `trajectory`: the row's trajectory of the letter (the parts and, between them, the joins). Joined: one start, every join run with the pen
 // down — leaving its line if it goes over blank paper (ш: up along the next stick); lifted: every part from its own start dot.
-export function composedMoves(strokes, trajectory, technique = "joined") {
-  const part = new Set(strokes.map((s) => s.d));
+// `parts` (optional, letter_elements.json): which pieces of the trajectory are the elements, by index — when a part brings its own join along
+// (ы: the tail of its left part runs up to the top of the right stick, a piece of the part's own ink); by default the pieces drawn on the
+// page (`strokes`) are the elements and the rest are joins. Pieces of no length are skipped.
+export function composedMoves(strokes, trajectory, technique = "joined", parts = null) {
+  const own = parts ? new Set(parts) : null;
+  const drawnD = new Set(strokes.map((s) => s.d));
+  const isPart = (t, i) => (own ? own.has(i) : drawnD.has(t.d));
   const moves = [];
   let element = 0, last = null;
   const drawn = [];
-  for (const t of trajectory) {
+  for (const [i, t] of trajectory.entries()) {
     const pts = samplePath(toCubicPathD(t.d), 6);
-    if (!part.has(t.d)) {
+    if (Math.max(...pts.map((q) => Math.hypot(q[0] - pts[0][0], q[1] - pts[0][1]))) < 0.01) continue;
+    if (!isPart(t, i)) {
       if (technique !== "joined") continue;
       const over = pts.filter((q) => drawn.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 1)).length;
       moves.push({ kind: "retrace", d: t.d, continues: true, ...(over < pts.length / 2 ? { ink: true } : {}) });

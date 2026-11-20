@@ -40,7 +40,7 @@ const cards = letters.map((ch) => {
   // (and widened as the row widens it: wide.json "stretch", the slant kept — without it a letter here is 1.8 times narrower than a composed
   // one, which comes from the row already widened)
   const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: normalizeLetterExtremes(raw).map((d) => ({ d: stretchKeepSlantPathD(d, raw.stretch ?? 1, 25, 62) })), trajectory: spec[ch] };
-  const movesOf = (t) => (composed ? composedMoves(composed.strokes, composed.trajectory, t) : letterMoves(g, t));
+  const movesOf = (t) => (composed ? composedMoves(composed.strokes, composed.trajectory, t, spec[ch]?.parts) : letterMoves(g, t));
   const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
   const x0 = Math.min(...xs) - 14, y0 = Math.min(-45, ...ys) - 10, w = Math.max(...xs) - x0 + 14, h = Math.max(118, ...ys) - y0 + 10;

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { letterPaths, letterMoves, segmentShare, composedMoves } from "./letterParts.js";
 import { samplePath, toCubicPathD } from "./pathGeometry.js";
 import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "./wordEngine.js";
+import { buildGlyphMap } from "../topics/renderers/propis2/pageTask.js";
 
 const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "utf-8")).glyphs;
 const allSpec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
@@ -213,6 +214,30 @@ describe("ш, composed", () => {
     const m = composedMoves(seg.strokes, seg.trajectory.strokes, "lifted");
     expect(m.filter((x) => x.kind === "ink").length).toBe(3);
     expect(m.filter((x) => x.startDot).length).toBe(3);
+  });
+});
+
+// ъ: the flag and ь, cut at the top (owner 2026-11-20); ы: composed in the app (ы1 + ы2) — its left part brings its own join up to the top of
+// the right stick, which the lifted writing leaves out
+describe("ъ, ы", () => {
+  it("ъ: the flag up to the top, then the stick with the loop; one start joined, two lifted, the second at the top line", () => {
+    expect(letterMoves(glyph("ъ"), "joined").filter((x) => x.startDot).length).toBe(1);
+    const m = letterMoves(glyph("ъ"), "lifted").filter((x) => x.kind === "ink");
+    expect(m.length).toBe(2);
+    expect(startOf(m[1].d)[1]).toBeCloseTo(10, 1);
+  });
+  it("ы: two elements; joined — the left part's tail runs up to the right stick with the pen down; lifted — it is not written", () => {
+    const map = buildGlyphMap({ wide });
+    const seg = layoutWideLinesIntoRows(["ы"], map, undefined, false).placed[0].segments[0];
+    const parts = allSpec["ы"].parts;
+    const j = composedMoves(seg.strokes, seg.trajectory.strokes, "joined", parts);
+    expect(j.filter((x) => x.kind === "ink").length).toBe(2);
+    expect(j.filter((x) => x.startDot).length).toBe(1);
+    expect(j.some((x) => x.kind === "retrace" && x.ink)).toBe(true);
+    const l = composedMoves(seg.strokes, seg.trajectory.strokes, "lifted", parts);
+    expect(l.filter((x) => x.kind === "ink").length).toBe(2);
+    expect(l.filter((x) => x.startDot).length).toBe(2);
+    expect(l.some((x) => x.kind === "retrace")).toBe(false);
   });
 });
 
