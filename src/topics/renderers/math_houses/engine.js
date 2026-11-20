@@ -1,3 +1,5 @@
+import { generateNumberPath } from "./numberPath.js";
+
 export function generatePairs(number) {
   return Array.from({ length: number + 1 }, (_, i) => [i, number - i]);
 }
@@ -107,6 +109,7 @@ function generateHouseTask(modeType, card, params = {}) {
 export function generateTasks(mode, cards, arg3, arg4) {
   if (!cards.length) return [];
   const { modeType, count, params } = normalizeArgs(mode, arg3, arg4);
+  if (modeType === "number_path") return generateNumberPath(cards, params);
   const actualType = resolveActualType(modeType, params);
   if (
     actualType === "math_houses_read" ||

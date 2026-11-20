@@ -1,4 +1,5 @@
 import { alignWordFormationMode } from "./wordFormationMethodology.js";
+import { NUMBER_PATH_ICON, NUMBER_PATH_TITLE } from "./renderers/math_houses/numberPathConfig.js";
 
 // Editorial copy for published release topics. This is the single source for
 // both the running app (including already-installed records) and ZIP publishing.
@@ -130,10 +131,17 @@ export const RELEASE_TOPIC_COPY = {
   },
   math_houses: {
     about: {
-      description: "Девять домиков показывают состав чисел от 2 до 10. В режиме «Домик» ребёнок дополняет пары частей одного числа; в «Растущем домике» вспоминает и заполняет последовательность пар для выбранного числа.",
-      goals: ["Находить недостающую часть при известном целом и одной части.", "Заполнять разные пары частей для одного и того же числа, не повторяя одну пару как единственный ответ."],
-      finalGoal: "Ребёнок для выбранного числа от 2 до 10 называет и заполняет его пары частей, например 7 = 3 + 4 и 7 = 5 + 2.",
-      flow: ["Выберите небольшое число и проговаривайте целое и обе части каждой строки домика.", "Когда отдельные пары получаются уверенно, переходите к заполнению растущего домика."],
+      description: "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
+      goals: ["Видеть число как сумму двух частей.", "Находить разные пары слагаемых для одного числа."],
+      finalGoal: "Ребёнок узнаёт и дополняет пары слагаемых для чисел от 2 до 10.",
+      flow: ["В «Домике» проговаривайте целое и обе части, затем предложите ребёнку вспомнить пары в «Растущем домике».", "Для знакомства с дорожкой выберите поле 5 × 5. При необходимости покажите первый ход или фишки для пересчёта."],
+    },
+    modes: {
+      number_path: mode(
+        "Найди дорожку по клеткам с заданной суммой.",
+        "Выберите сложность — 5 × 5, 10 × 10 или 15 × 15. Карточки автоматически идут по кругу от 2 до 10. Ребёнок нажимает на соседние клетки с общей стороной, от «число + 0» до «0 + число». Можно показать первый ход и включить фишки. После ошибки ребёнок повторяет ход или возвращается к первой клетке согласно настройке.",
+        "Ребёнок выбирает примеры с заданной суммой с опорой на фишки или самостоятельно."
+      ),
     },
   },
   addition_subtraction: {
@@ -266,6 +274,9 @@ export function applyReleaseTopicCopy(record) {
   // the server lists it in `archivedTopicIds`, the app keeps it off the home screen; only the admin archive shows it)
   const title = { propis: "Прописи старые", propis2: "Прописи" }[record.meta.id];
   if (title) record = { ...record, meta: { ...record.meta, title } };
+  if (record.meta.id === "math_houses") {
+    record = { ...record, meta: { ...record.meta, title: NUMBER_PATH_TITLE, avatar: NUMBER_PATH_ICON } };
+  }
   const copy = RELEASE_TOPIC_COPY[record.meta.id];
   if (!copy) return record;
 

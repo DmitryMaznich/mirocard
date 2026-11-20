@@ -1,3 +1,5 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation";
+import { ParkingPreview } from "./ParkingArt";
 import { useAppStore } from "@/core/store";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { RaceCar } from "./RaceArt";
@@ -7,6 +9,7 @@ import { TugPreview } from "./TugScene";
 import "./games.css";
 
 export default function GamesHome() {
+  const {t}=useUiTranslation();
   const setScreen = useAppStore(s => s.setScreen);
   const setActiveModeId = useAppStore(s => s.setActiveModeId);
   return <main className="games-home">
@@ -38,6 +41,12 @@ export default function GamesHome() {
         <strong>Перетягивание каната</strong>
         <span>Тянем ленточку за свою линию</span>
         <span className="games-tile__play">Играть <span aria-hidden="true">→</span></span>
+      </button>
+      <button className="games-tile" onClick={() => { setActiveModeId("parking"); setScreen("params"); }}>
+        <span className="games-tile__art games-tile__art--parking"><ParkingPreview /></span>
+        <strong>{t("parking.title")}</strong>
+        <span>{t("parking.description")}</span>
+        <span className="games-tile__play">{t("parking.play")} <span aria-hidden="true">→</span></span>
       </button>
     </div>
   </main>;

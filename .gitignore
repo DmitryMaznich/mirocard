@@ -153,3 +153,5 @@ tools/phonetic_analysis/dist/
 
 # Illustrated, versioned game assets shipped with the app.
 !public/game-art/tug-v1/*.webp
+
+!public/game-art/parking-v1/*.webp

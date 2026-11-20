@@ -46,6 +46,7 @@ import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } 
 import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
+import { normalizeNumberPathSize } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
 import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
@@ -1742,6 +1743,7 @@ export default function ParamsScreen() {
     }
     // «Видео в конце занятия» is not a declared mode option: kept with the params like figureFilters
     if (saved.videoAtEnd === true) out.videoAtEnd = true;
+    if (mode?.type === "number_path") out.boardSize = normalizeNumberPathSize(out.boardSize);
     return out;
   }
 

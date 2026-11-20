@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import NumberPath from "./NumberPath.jsx";
 
 function HouseTask({ task, onCorrect, onMistake }) {
   const hiddenCells = useMemo(
@@ -593,7 +594,9 @@ function HouseGrow({ task, onCorrect }) {
   );
 }
 
-export default function MathHousesRenderer({ task, onCorrect, onMistake }) {
+export default function MathHousesRenderer(props) {
+  const { task, onCorrect, onMistake } = props;
+  if (task?.type === "number_path") return <NumberPath {...props} />;
   if (
     task?.type === "math_houses_read" ||
     task?.type === "math_houses" ||
