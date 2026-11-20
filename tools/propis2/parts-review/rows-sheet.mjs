@@ -36,7 +36,7 @@ const html = placed.map((row, ri) => {
   const strokes = segs.flatMap((s) => s.strokes ?? []).filter((s) => !s.hidden);
   const dots = segs.flatMap((s) => s.startPoints ?? []);
   const xs = strokes.flatMap((s) => geo.samplePath(geo.toCubicPathD(s.d), 6).map((q) => q[0]));
-  const x0 = -10, x1 = Math.max(200, ...xs) + 20;
+  const x0 = Math.min(-10, ...xs) - 20, x1 = Math.max(200, ...xs) + 20;
   let sl = "";
   for (let x = snap(ri, x0, 0) - 60; x < x1 + 60; x += 30) { const xb = snap(ri, x, 0); sl += `<line x1="${xb + 44 * TAN}" y1="-44" x2="${xb - 130 * TAN}" y2="130" class="sl"/>`; }
   const h = [-32, 16, 40, 64, 112].map((y) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" class="gl${y === 40 ? " mid" : ""}"/>`).join("");
