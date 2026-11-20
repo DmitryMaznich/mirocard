@@ -65,8 +65,8 @@ export const P2_GLYPH_OVERRIDES = {
   "х": { repeatCells: 4 },
   "ж": { repeatCells: 5 },
   "э": { tailStroke: 2, tailLift: true },
-  // capital У: whole, with its hook; the connector leaves its lowest point like о's and arrives where Ч's exit does (У is «как Ч»)
-  "У": { joinFrom: { stroke: 0 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },
+  // capital У: whole, with its hook; the connector leaves the lowest point of its stem (stroke 1, Т's first element) like о's and arrives where Ч's exit does (У is «как Ч»)
+  "У": { joinFrom: { stroke: 1 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },
   // startLift (capture units): the letter starts that much higher, on its own opening line. г: it starts exactly where the exit of
   // the letter before it ends when nothing stretches that exit: 2.2 engine units above the dashed middle line (wordEngine's exit lift),
   // = 2.2 / WIDE_SCALE (48/52) capture units above the capture's mid line (y 36). Two letters written apart then glue into one line
