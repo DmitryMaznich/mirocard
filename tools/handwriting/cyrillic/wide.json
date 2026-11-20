@@ -40,7 +40,8 @@
       ],
       "stretch": 1.806,
       "gridFitted": true,
-      "repeatCells": 3
+      "repeatCells": 3,
+      "stemOnLine": true
     },
     {
       "label": "й",
@@ -302,8 +303,12 @@
       "repeatCells": 3,
       "joinLeft": true,
       "arrowSpan": [
-        0.0,
+        0,
         0.3
+      ],
+      "stemAnchor": [
+        138.63,
+        24.6
       ]
     },
     {
@@ -441,7 +446,8 @@
       ],
       "stretch": 1.806,
       "repeatCells": 3,
-      "joinAtStart": true
+      "joinAtStart": true,
+      "stemOnLine": true
     },
     {
       "label": "ь",
@@ -453,7 +459,8 @@
         }
       ],
       "stretch": 1.806,
-      "repeatCells": 3
+      "repeatCells": 3,
+      "yerStemJoin": true
     },
     {
       "label": "ъ",
@@ -508,7 +515,11 @@
       "noDotStrokes": [
         1
       ],
-      "exitStroke": 1
+      "exitStroke": 1,
+      "stemAnchor": [
+        138.63,
+        24.6
+      ]
     },
     {
       "label": "ф",
@@ -535,7 +546,8 @@
       "stretch": 1.806,
       "repeatCells": 4,
       "descender": true,
-      "sourceLabel": "у (и до вершины; стойка с петлёй — захват «Петля1», расширена влево до 2/3 клетки; выход до пересечения пунктира со следующей наклонной)"
+      "sourceLabel": "у (и до вершины; стойка с петлёй — захват «Петля1», расширена влево до 2/3 клетки; выход до пересечения пунктира со следующей наклонной)",
+      "stemOnLine": true
     },
     {
       "label": "у1",
@@ -575,7 +587,11 @@
       "repeatCells": 4,
       "joinLeft": true,
       "descender": true,
-      "sourceLabel": "д (овал как у а; вверх по стойке до вершины; вниз по той же наклонной в петлю от у; выход)"
+      "sourceLabel": "д (овал как у а; вверх по стойке до вершины; вниз по той же наклонной в петлю от у; выход)",
+      "stemAnchor": [
+        138.63,
+        24.6
+      ]
     },
     {
       "label": "з",
@@ -628,7 +644,8 @@
       "stretch": 1.806,
       "repeatCells": 4,
       "descender": true,
-      "sourceLabel": "ц (и; крюк выхода поднимается от базовой линии на 1/4 высоты строки; отсюда стойка вниз в петлю от у, уменьшенную; прямой выход)"
+      "sourceLabel": "ц (и; крюк выхода поднимается от базовой линии на 1/4 высоты строки; отсюда стойка вниз в петлю от у, уменьшенную; прямой выход)",
+      "stemOnLine": true
     },
     {
       "label": "щ",
@@ -641,7 +658,8 @@
       "stretch": 1.806,
       "repeatCells": 5,
       "descender": true,
-      "sourceLabel": "щ (ш; то же: крюк на 1/4 высоты, стойка в петлю от у; прямой выход)"
+      "sourceLabel": "щ (ш; то же: крюк на 1/4 высоты, стойка в петлю от у; прямой выход)",
+      "stemOnLine": true
     },
     {
       "label": "И",
@@ -727,7 +745,10 @@
       "repeatCells": 4,
       "ascender": true,
       "sourceLabel": "У (первый элемент: подводка, закругление, палочка и подъём до стойки; стойка — первый элемент Т с крюком, от верхней линии)",
-      "exitStroke": 1
+      "exitStroke": 1,
+      "joinFrom": {
+        "stroke": 1
+      }
     },
     {
       "label": "Г",

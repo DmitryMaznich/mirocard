@@ -48,25 +48,17 @@ export const P2_GLYPH_OVERRIDES = {
   "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
-  // snapAtOldStart (а б д, owner 2026-11-20 «все овалы … начинать от пунктира»): their oval begins on the middle line now (the same curve of о, a
-  // little longer), not 0.44 of the zone above it; the letter keeps its place on the grid by the point where it used to begin
-  "а": { stemAnchor: [138.63, 24.6] },
-  "б": { tailStroke: 1, tailLift: true, repeatCells: 4, stemAnchor: [138.63, 24.6] },
+  "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
   "р": { repeatCells: 4, touchFirstLine: true },
-  // stemOnLine (и у ц щ, owner 2026-11-20): their start is a small rounded tip 0.5 left of the stick, so with the start on a slant of the grid
-  // every stick stood 0.8 (of a 30 cell) off its slant; placed by the stick they lie on the slants like п т н. Shapes and joins unchanged
-  // (in the deck's 667 words with these letters the letter only moves by 0.83).
-  "и": { stemOnLine: true },
-  "у": { straightTail: 32, stemOnLine: true },
-  "ц": { stemOnLine: true },
-  "щ": { stemOnLine: true },
-  "д": { straightTail: 31, stemAnchor: [138.63, 24.6] },
+  "у": { straightTail: 32 },
+  "д": { straightTail: 31 },
   "з": { straightTail: 57 },
   "х": { repeatCells: 4 },
   "ж": { repeatCells: 5 },
   "э": { tailStroke: 2, tailLift: true },
-  // capital У: whole, with its hook; the connector leaves the lowest point of its stem (stroke 1, Т's first element) like о's and arrives where Ч's exit does (У is «как Ч»)
-  "У": { joinFrom: { stroke: 1 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },
+  // capital У: whole, with its hook; the connector leaves its lowest point like о's and arrives where Ч's exit does (У is «как Ч»). The letters of
+  // 2026-11-20 (wide.json) carry their own `joinFrom` (У in two strokes: the stem is stroke 1), which wins over this one
+  "У": { joinFrom: { stroke: 0 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },
   // startLift (capture units): the letter starts that much higher, on its own opening line. г: it starts exactly where the exit of
   // the letter before it ends when nothing stretches that exit: 2.2 engine units above the dashed middle line (wordEngine's exit lift),
   // = 2.2 / WIDE_SCALE (48/52) capture units above the capture's mid line (y 36). Two letters written apart then glue into one line
@@ -76,9 +68,7 @@ export const P2_GLYPH_OVERRIDES = {
   "г": { startLift: 2.2 * 52 / 48, joinAtStart: true },
   // ч opens with a steep stem (65°) at the middle line, the connectors arrive much flatter (after В 28°, after о ~15°): a visible corner where they meet.
   // joinSmooth: the connector is bent so that it enters ч along that stem (the way ъ is entered), joinArrive 1 = all of the bend follows the stem (2026-10-29)
-  // stemOnLine (owner, 2026-11-20): ч stands on the slant grid by its stick (the line from the right apex down), not by its start on the middle
-  // line — with the start on a slant the stick stood 0.9 (of a 30 cell) off its slant
-  "ч": { joinAtStart: true, joinSmooth: true, joinToApex: true, joinArrive: 1, stemOnLine: true },
+  "ч": { joinAtStart: true, joinSmooth: true, joinToApex: true, joinArrive: 1 },
 };
 
 // Digits and signs (+ - = < >) captured on 2026-10-06 (tools/handwriting/cyrillic/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»
@@ -343,12 +333,15 @@ function scalePunctDots(glyph, { strokes: idx, k = 1.5, anchor = "bottom" }) {
   });
   return { ...glyph, strokes, dotStrokes: idx, dotWidth: DOT_BASE_WIDTH * k };
 }
+// The letters of 2026-11-20 (tools/handwriting/cyrillic/wide.json, owner's session with Мазина's copybook) carry what their new shapes need as
+// DATA, not here: a deck built before (the live «Прописи») keeps its letters exactly as they were. `stemOnLine: true` on a glyph (и у ц щ ч:
+// placed by the stick), its own `joinFrom` (У in two strokes), `stemAnchor` (а б д: placed by the point where the oval used to begin).
 const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOnLine, startDrop, dotScale, dotShift, punctDots, ...rest }) => {
-  let out = liftStart({ ...g, ...rest }, startLift);
+  let out = liftStart({ ...g, ...rest, ...(g.joinFrom ? { joinFrom: g.joinFrom } : {}) }, startLift);
   if (dotScale || dotShift) out = scaleDots(out, dotScale, dotShift);
   if (punctDots) out = scalePunctDots(out, punctDots);
   if (startDrop) out = dropStart(out, startDrop);
-  if (stemOnLine) out = markStem(out);
+  if (stemOnLine || g.stemOnLine) out = markStem(out);
   if (g.flagWidenK != null) out = widenFlag(out, g.flagWidenK);
   if (softHook != null) out = softenHook(out, softHook);
   if (steepExit) out = steepenExit(out);
@@ -360,7 +353,7 @@ const applyOverride = (g, { startLift, steepExit, straightTail, softHook, stemOn
 // the fixes above are for the shapes of THIS bank (stroke / coordinate indices of the captured letters) and would break it
 const withOverride = (g) => {
   if (g.noOverrides) return [g];
-  const own = P2_GLYPH_OVERRIDES[g.label] ? applyOverride(g, P2_GLYPH_OVERRIDES[g.label]) : g;
+  const own = P2_GLYPH_OVERRIDES[g.label] ? applyOverride(g, P2_GLYPH_OVERRIDES[g.label]) : g.stemOnLine ? markStem(g) : g;
   const split = (g.aliases ?? []).filter((a) => P2_GLYPH_OVERRIDES[a]);
   if (!split.length) return [own];
   const aliases = g.aliases.filter((a) => !split.includes(a));
@@ -379,9 +372,14 @@ const withOverride = (g) => {
 // from its right end, 3.7 units right of the stem. The last point (on the stem, at the height of the loop) is computed from the stem.
 // The oval closes on the stem ON the middle line, and the connector leaves from there (owner, 2026-11-20, after Мазина's copybook — the
 // de-facto school standard: the second start dot of ы is on the stem on the middle line); it used to close 1.65 above it.
+// (`yerStemJoin: true` on ь in wide.json — the letters of 2026-11-20; a deck built before keeps the loop: Y_LOOP_OLD, Y_TOP_RAISE_OLD)
 const Y_LOOP_POINTS = [[157.15, 35.8], [155.8, 35.5], [154.7, 35.65]];
 const Y_STEM_Y = 36; // the height where the oval meets the stem and the connector leaves it: the middle line
 const Y_TOP_RAISE = 0.15; // how far the top of ь's oval goes up to meet the loop (its line now on the middle line: almost not at all)
+const Y_LOOP_OLD = [
+  [157.15, 34.15], [155.8, 33.85], [154.7, 34.0], [154.0, 34.35], [154.6, 34.7], [155.7, 34.75], [156.7, 34.4], // the loop against the stem (flattened: its upper and lower lines run almost along each other, no hole)
+];
+const Y_TOP_RAISE_OLD = 1.8;
 const Y_LINK = [[168.3, 30.0], [175.95, 21.5], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
 export function yerLoop(soft) {
   const c = parseCmds(soft?.strokes?.[0]?.d);
@@ -393,12 +391,14 @@ export function yerLoop(soft) {
   // the oval is ь's own as far as its top (the right side and the round top, 3 cubics: foot -> bottom -> right -> top); the loop goes on from the top
   // ь's oval ends at its top at 36, BELOW the line of the loop (33.8–35.7): the arrival lay under the loop, a lump under the line. The top is raised to the level of the loop's upper line
   // (the last control point and the end of the cubic move up together, the top stays flat and round).
-  const topUp = (n) => n.map((v, i) => (i === 3 || i === 5 ? v - Y_TOP_RAISE : v));
+  const stemJoin = Boolean(soft.yerStemJoin);
+  const raise = stemJoin ? Y_TOP_RAISE : Y_TOP_RAISE_OLD;
+  const topUp = (n) => n.map((v, i) => (i === 3 || i === 5 ? v - raise : v));
   const T = topUp(c[4].n).slice(-2);
   // the point of the stem (ь's stem: from its top c[0] to its foot c[1]) at the height of the loop
   const foot = c[1].n.slice(-2), sy = Y_STEM_Y + dy;
   const onStem = [top[0] + ((foot[0] - top[0]) * (sy - top[1])) / (foot[1] - top[1]), sy];
-  const P = [T, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy]), onStem];
+  const P = stemJoin ? [T, ...Y_LOOP_POINTS.map(([x, y]) => [x + dx, y + dy]), onStem] : [T, ...Y_LOOP_OLD.map(([x, y]) => [x + dx, y + dy])];
   // Catmull-Rom through the points -> cubics (the ends repeated)
   const segs = P.slice(0, -1).map((p1, i) => {
     const p0 = P[Math.max(0, i - 1)], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
@@ -406,7 +406,7 @@ export function yerLoop(soft) {
   });
   const link = ["C", Y_LINK.flatMap(([x, y]) => [x + dx, y + dy])];
   const d = [show("M", c[0].n), show("L", c[1].n), show("C", c[2].n), show("C", c[3].n), show("C", topUp(c[4].n)), ...segs.map((sg) => show(...sg)), show(...link)].join(" ");
-  const { tailNoAlign, bellyFrom, aliases, ...rest } = soft;
+  const { tailNoAlign, bellyFrom, aliases, yerStemJoin: _y, ...rest } = soft;
   return { ...rest, label: "ы1", sourceLabel: "ы1: левая часть «ы» по школьной прописи и траектории владельца (овал, петля у стойки, соединение к верху правой стойки)", tailSplit: 0, tailSplitCount: 1, tailLift: false, noLiftExit: true, strokes: [{ ...soft.strokes[0], d }] };
 }
 
