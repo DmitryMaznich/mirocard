@@ -48,26 +48,50 @@ function shownStorageKey(scope) {
   return `${SHOWN_PREFIX}${scope || "global"}`;
 }
 
-export function getLastRewardVideoId(scope) {
+// The rotation state lives in memory first and localStorage second. When
+// localStorage is full (drawings and other topics write there too), setItem
+// throws while getItem keeps returning the last value that did get written.
+// Reading that stale state on every pick froze the cycle: "unseen" stayed the
+// same one or two videos, so the same clip came up again and again. Memory
+// always holds the real last state for this app run; storage only carries it
+// across reloads, and a failed write removes the stale copy instead of
+// leaving it behind.
+const memory = new Map();
+
+function readKey(key) {
+  if (memory.has(key)) return memory.get(key);
   try {
-    return window.localStorage?.getItem(lastStorageKey(scope)) || null;
+    return window.localStorage?.getItem(key) ?? null;
   } catch {
     return null;
   }
 }
 
+function writeKey(key, value) {
+  memory.set(key, value);
+  try {
+    window.localStorage?.setItem(key, value);
+  } catch {
+    try {
+      window.localStorage?.removeItem(key);
+    } catch {
+      // Storage unavailable: the in-memory state still rotates this run.
+    }
+  }
+}
+
+export function getLastRewardVideoId(scope) {
+  return readKey(lastStorageKey(scope)) || null;
+}
+
 export function setLastRewardVideoId(scope, videoId) {
   if (!videoId) return;
-  try {
-    window.localStorage?.setItem(lastStorageKey(scope), videoId);
-  } catch {
-    // Reward rotation still works for the current pick when storage is unavailable.
-  }
+  writeKey(lastStorageKey(scope), videoId);
 }
 
 export function getShownRewardVideoIds(scope) {
   try {
-    const raw = window.localStorage?.getItem(shownStorageKey(scope));
+    const raw = readKey(shownStorageKey(scope));
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -76,11 +100,12 @@ export function getShownRewardVideoIds(scope) {
 }
 
 export function setShownRewardVideoIds(scope, ids) {
-  try {
-    window.localStorage?.setItem(shownStorageKey(scope), JSON.stringify(ids));
-  } catch {
-    // Cycle tracking still works for the current pick when storage is unavailable.
-  }
+  writeKey(shownStorageKey(scope), JSON.stringify(ids));
+}
+
+/** Test hook: forget the in-memory rotation state. */
+export function resetRewardVideoMemory() {
+  memory.clear();
 }
 
 export function pickStoredRewardVideoId(videos, scope, random = Math.random) {
