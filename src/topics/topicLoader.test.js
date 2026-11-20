@@ -173,10 +173,30 @@ describe("importTopic — valid cases", () => {
     const record = await importTopic(db, buf, "2.0.0");
 
     expect(record.meta.id).toBe("math_houses");
-    expect(record.meta.avatar).toBe("media/avatar.svg");
+    expect(record.meta.title.ru).toBe("Состав числа");
+    expect(record.meta.avatar).toBe("media/icons/number_path.svg");
     expect(record.cards[0].renderer).toBe("math_houses");
-    expect(record.modes.map((m) => m.id)).toContain("math_houses_grow");
+    expect(record.modes.filter((mode) => !mode.retired).map((mode) => mode.id))
+      .toEqual(["math_houses_practice", "math_houses_grow", "number_path"]);
+    expect(Object.keys(record.modes[2].params)).toEqual(["boardSize", "mistakeBehavior"]);
     expect(record.modes.every((m) => m.ui?.icon)).toBe(true);
+  });
+
+  it("opens a previously installed Number Houses deck as Number Composition", async () => {
+    const db = await freshDb();
+    await kv.set(db, "topic:math_houses", {
+      meta: { id: "math_houses", version: "1.2.1", title: "Домики чисел" },
+      cards: [{ id: "house_5", renderer: "math_houses", params: { number: 5 } }],
+      modes: [{ id: "math_houses_practice", retired: true, params: { shufflePairs: { default: true } } }],
+    });
+
+    const updated = await getTopicRecord(db, "math_houses");
+    expect(updated.meta).toMatchObject({ id: "math_houses", version: "1.2.1", title: { ru: "Состав числа" } });
+    expect(updated.cards[0].conceptId).toBe("house_5");
+    expect(updated.modes.map(({ id, retired }) => [id, Boolean(retired)]))
+      .toEqual([["math_houses_practice", false], ["math_houses_grow", false], ["number_path", false]]);
+    expect(updated.modes[0].params.subtype.default).toBe("fill");
+    expect(updated.modes[0].params.shufflePairs.default).toBe(true);
   });
 
   it("imports addition/subtraction procedural cards with default modes", async () => {

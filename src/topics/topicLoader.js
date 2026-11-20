@@ -7,6 +7,7 @@ import { COPY_KINDS } from "./renderers/column_addition/engine.js";
 import { kv, topics } from "@/core/db";
 import { semver } from "@/shared/utils/semver";
 import { applyReleaseTopicCopy } from "./releaseTopicCopy";
+import { MATH_HOUSE_MODES, NUMBER_PATH_MODE } from "./renderers/math_houses/numberPathConfig.js";
 
 export class TopicImportError extends Error {
   constructor(message) {
@@ -1025,10 +1026,7 @@ const DEFAULT_MODES = {
     { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", retired: true, ui: { title: "7. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
     { id: "compare_real_life",    type: "compare_real_life",    evaluation: "auto", ui: { title: "8. Сравни в жизни",          instruction: "У кого больше?",                             icon: "media/icons/comparison_real_life.svg" } },
   ],
-  math_houses: [
-    { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },
-    { id: "math_houses_grow",      type: "math_houses_grow",      evaluation: "auto", ui: { title: "Растущий домик",     instruction: "Вспомни все пары числа",                    icon: "media/icons/math_houses_grow.svg" } },
-  ],
+  math_houses: MATH_HOUSE_MODES,
   vowel_consonant: [
     {
       id: "sort_letters",
@@ -2319,9 +2317,9 @@ function normalizeProcedural(manifest) {
   }));
 
   const defaultModes = DEFAULT_MODES[renderer] ?? [];
-  let modes = manifest.modes?.length
-    ? ensureModeIcons(mergeDefaultModesKeepOrder(manifest.modes, defaultModes), renderer)
-    : ensureModeIcons(defaultModes, renderer);
+  let modes = renderer === "math_houses" && meta.id === "math_houses"
+    ? normalizeNumberCompositionModes(manifest.modes ?? [])
+    : ensureModeIcons(manifest.modes?.length ? mergeDefaultModesKeepOrder(manifest.modes, defaultModes) : defaultModes, renderer);
   if (renderer === "addition_subtraction") modes = orderAdditionSubtractionModes(modes);
   if (renderer === "place_value") modes = orderPlaceValueModes(modes);
 
@@ -2519,6 +2517,14 @@ export async function getTopicRecord(db, topicId) {
   return applyReleaseTopicCopy(migrateRecord(await kv.get(db, `topic:${topicId}`)));
 }
 
+function normalizeNumberCompositionModes(modes) {
+  const houses = MATH_HOUSE_MODES.map((mode) => {
+    const stored = modes.find((item) => item.id === mode.id);
+    return { ...mode, ...stored, params: { ...mode.params, ...stored?.params }, retired: false };
+  });
+  return ensureModeIcons([...houses, NUMBER_PATH_MODE], "math_houses");
+}
+
 function migrateRecord(record) {
   if (!record) return record;
   if (record.meta?.renderer === "reading" || (record.meta?.renderer == null && Array.isArray(record.texts))) {
@@ -2541,11 +2547,14 @@ function migrateRecord(record) {
       conceptId: card.conceptId ?? card.id,
       primary:   card.primary ?? true,
     }));
+    const modes = record.modes ?? [];
     return {
       ...record,
       meta:  mergeDefaultMeta({ ...record.meta, renderer: "math_houses" }, "math_houses"),
       cards: normalizedCards,
-      modes: ensureModeIcons(mergeDefaultModesKeepOrder(record.modes ?? [], DEFAULT_MODES.math_houses), "math_houses"),
+      modes: record.meta.id === "math_houses"
+        ? normalizeNumberCompositionModes(modes)
+        : ensureModeIcons(mergeDefaultModesKeepOrder(modes, DEFAULT_MODES.math_houses), "math_houses"),
     };
   }
 

@@ -105,7 +105,7 @@ export default function SessionScreen() {
       setScreen("summary");
       return;
     }
-    setScreen(sessionReturnScreen ?? "home");
+    setScreen(sessionReturnScreen ?? (mode?.type === "number_path" ? "params" : "home"));
     setSessionReturnScreen(null);
   }
 
@@ -141,6 +141,7 @@ export default function SessionScreen() {
     "numeral_agreement", "adjective_agreement", "possessive_agreement",
     "preposition_recognize", "preposition_place", "preposition_phrase",
     "operation_observe",
+    "number_path",
     // «Учим словенский»: a wrong tap only fades that option and shows the
     // right one — no buzz (docs/learn-slovene.md); a word plays its own recording.
     "lb_pair", "lb_find", "lb_trap", "lb_syll", "lb_word", "lb_build", "lb_listen", "lb_block_end",
@@ -317,17 +318,21 @@ export default function SessionScreen() {
     && (Array.isArray(currentTask?.items) || currentTask?.taskType === "order");
   // A retry must retain whether the picture was opened for this question.
   const keepsStorySupportOnMistake = currentTask?.type === "story_quiz";
-  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
-    ? String(taskIndex)
-    : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
-  const showStreak = shouldShowSessionStreak({
+  const isNumberPath = currentTask?.type === "number_path";
+  const tapToAdvanceOnBoard = !isNumberPath && (isCorrectFeedback || isAdvanceGateActive);
+  const rendererTaskKey = isNumberPath ? `${taskIndex}:${currentTask.layoutIndex}`
+    : keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
+      ? String(taskIndex)
+      : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
+  const showStreak = !isNumberPath && shouldShowSessionStreak({
     mode,
     isNavigatorFlashCards,
     renderer: topicRecord.meta.renderer,
     rewardAvailable: rewardProgress?.available ?? false,
   });
   const showProgress = !(
-    mode.type === "drawing_coloring"
+    isNumberPath
+    || mode.type === "drawing_coloring"
     || (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
     || topicRecord.meta.renderer === "spatial_prepositions"
@@ -363,7 +368,7 @@ export default function SessionScreen() {
           total={total}
           correctCount={correctCount}
           incorrectCount={incorrectCount}
-          answerStatus={tongueAnswerStatus}
+          answerStatus={isNumberPath ? "task_active" : tongueAnswerStatus}
           evaluation={mode.evaluation}
           finite={Boolean(mode.finite)}
           onClose={openSessionExitPrompt}
@@ -373,8 +378,8 @@ export default function SessionScreen() {
 
       {Renderer && currentTask ? (
         <div
-          className={`session-renderer-wrap${(isCorrectFeedback && (!adultConfirmAdvance || isAdvanceReady)) || isAdvanceReady ? " session-renderer-wrap--tappable" : ""}`}
-          onClick={(isCorrectFeedback || isAdvanceGateActive) ? requestAdvance : undefined}
+          className={`session-renderer-wrap${tapToAdvanceOnBoard && (!adultConfirmAdvance || isAdvanceReady) ? " session-renderer-wrap--tappable" : ""}`}
+          onClick={tapToAdvanceOnBoard ? requestAdvance : undefined}
         >
           <Renderer
             key={rendererTaskKey}

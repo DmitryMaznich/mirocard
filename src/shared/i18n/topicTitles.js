@@ -13,7 +13,7 @@ const SLOVENIAN_TOPIC_TITLES = {
   "verbs_v2": "Glagoli",
   "transport_photo": "Prevozna sredstva",
   "comparison": "Primerjanje",
-  "math_houses": "Številske hišice",
+  "math_houses": "Sestava števil",
   "addition_subtraction": "Plus in minus",
   "sentence_puzzle": "Sestavljanje povedi",
   "tools_functions": "Orodja in njihova uporaba",

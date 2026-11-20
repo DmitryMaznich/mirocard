@@ -513,6 +513,14 @@ const BUILTIN_ASSETS = {
   <path d="M54 54h20l-10 16z" fill="#4a9b8f"/>
   <path d="M34 28h60" stroke="#1f4f8a" stroke-width="8" stroke-linecap="round"/>
 </svg>`,
+  "media/icons/number_path.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#e6efe9"/>
+  <path d="M24 24h80v80H24zM24 51h80M24 77h80M51 24v80M77 24v80" fill="none" stroke="#acc3b5" stroke-width="3"/>
+  <path d="M37 37h27v53h27" fill="none" stroke="#345e50" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="37" cy="37" r="6" fill="#345e50"/>
+  <circle cx="91" cy="90" r="7" fill="#e6efe9" stroke="#345e50" stroke-width="4"/>
+</svg>`,
   "media/icons/math_houses_read.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#edf5ff"/>
@@ -1323,7 +1331,7 @@ function svgToDataUrl(svg) {
 export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "games") return "media/avatar_games.svg";
   if (topicId === "comparison") return "media/avatar_comparison.svg";
-  if (topicId === "math_houses") return "media/avatar.svg";
+  if (topicId === "math_houses") return "media/icons/number_path.svg";
   if (topicId === "propis") return "media/avatar_propis.svg";
   if (topicId === "addition_subtraction") return "media/avatar_operations.svg";
   if (topicId === "math_tests") return "media/avatar_math_tests.svg";
@@ -1350,6 +1358,6 @@ export function getBuiltinTopicAsset(topicId, assetPath) {
 
 export function getMathHousesAssetEntries() {
   return Object.entries(BUILTIN_ASSETS)
-    .filter(([path]) => path === "media/avatar.svg" || path.startsWith("media/icons/math_houses"))
+    .filter(([path]) => path === "media/icons/number_path.svg" || path.startsWith("media/icons/math_houses"))
     .map(([path, svg]) => [path, svg.trim()]);
 }

@@ -716,47 +716,47 @@
     {
       "id": "math_houses",
       "title": {
-        "ru": "Домики чисел",
-        "en": "Number Houses"
+        "ru": "Состав числа",
+        "en": "Number Composition"
       },
-      "version": "1.2.1",
-      "renderer": null,
+      "version": "1.3.0",
+      "renderer": "math_houses",
       "sources": [
-        "public/decks/math_houses_v1.2.1.zip",
+        "public/decks/math_houses_v1.3.0.zip",
         "src/topics/renderers/math_houses"
       ],
       "bundle": {
-        "version": "1.2.1",
-        "url": "./decks/math_houses_v1.2.1.zip",
+        "version": "1.3.0",
+        "url": "./decks/math_houses_v1.3.0.zip",
         "title": {
-          "ru": "Домики чисел",
-          "en": "Number Houses"
+          "ru": "Состав числа",
+          "en": "Number Composition"
         },
-        "description": "Девять домиков показывают состав чисел от 2 до 10. В режиме «Домик» ребёнок дополняет пары частей одного числа; в «Растущем домике» вспоминает и заполняет последовательность пар для выбранного числа.",
-        "renderer": null,
-        "modes": 2,
+        "description": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
+        "renderer": "math_houses",
+        "modes": 3,
         "cards": 9
       },
       "builtin": false,
       "catalogEntry": {
         "id": "math_houses",
-        "version": "1.2.1",
+        "version": "1.3.0",
         "title": {
-          "ru": "Домики чисел",
-          "en": "Number Houses"
+          "ru": "Состав числа",
+          "en": "Number Composition"
         },
         "description": {
-          "ru": "Девять домиков показывают состав чисел от 2 до 10. В режиме «Домик» ребёнок дополняет пары частей одного числа; в «Растущем домике» вспоминает и заполняет последовательность пар для выбранного числа.",
-          "en": "Number composition from 2 to 10. Learn and complete number houses. Ages 5+."
+          "ru": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
+          "en": "Explore number composition from 2 to 10 in Number House, Growing House, and Find the Path."
         },
-        "url": "./decks/math_houses_v1.2.1.zip",
+        "url": "./decks/math_houses_v1.3.0.zip",
         "status": "beta",
         "access": "paid",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-14T16:41:26+00:00"
+      "sourceUpdatedAt": "2026-11-19T20:35:29Z"
     },
     {
       "id": "math_tests",

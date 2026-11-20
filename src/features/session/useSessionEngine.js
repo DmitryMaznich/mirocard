@@ -15,6 +15,7 @@ import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
+import { generateNumberPath } from "@/topics/renderers/math_houses/numberPath.js";
 import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord, withWork } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
@@ -229,7 +230,7 @@ export function buildGeneratedSessionState({
     }
   }
 
-  const sessionConceptIds = renderer === "my_people"
+  const sessionConceptIds = renderer === "my_people" || mode.type === "number_path"
     ? [...new Set(tasks.flatMap((task) => task.progressConceptIds ?? [task.targetConceptId ?? task.conceptId]).filter(Boolean))]
     : selectedConceptIds;
 
@@ -330,7 +331,7 @@ export function useSessionEngine() {
       textId: isReading ? activeTextId : null,
       modeId: activeModeId,
       topicVersion: topicRecord.meta.version,
-      conceptIds: selectedConceptIds,
+      conceptIds: mode.type === "number_path" ? generatedState.conceptIds : selectedConceptIds,
       languageContext: generatedState.languageContext,
       params: generatedState.statistics?.conditions?.params,
       rewardPolicy: generatedState.rewardPolicy,
@@ -637,6 +638,10 @@ export function useSessionEngine() {
     const isMyPeopleRoundEnd = state.mode?.regenerateOnLoop
       && state.taskIndex + 1 >= state.tasks.length;
     const next = handleAdvance(state);
+    if (state.mode?.type === "number_path" && state.taskIndex + 1 >= state.tasks.length && next.status === "task_active") {
+      const tasks = generateNumberPath(topicRecord.cards, sessionParams, state.tasks);
+      return tasks.length ? { ...next, tasks } : next;
+    }
     if (!isMyPeopleRoundEnd) return next;
 
     // A new round must be generated, not merely reordered: this refreshes
@@ -705,6 +710,7 @@ export function useSessionEngine() {
         return next;
       }
       let next = handleAnswer(s, true, conceptId, cardId, options);
+      if (s.mode.type === "number_path" && next.status === "answer_correct") next = advanceTask(next);
       // «Мои люди»: a trial answered only with help comes back a little later.
       if (options.retryLater) next = { ...next, tasks: insertRetryTrial(next.tasks, next.taskIndex) };
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
@@ -712,7 +718,7 @@ export function useSessionEngine() {
       return next;
     });
 
-    const shouldAutoAdvance = options.autoAdvance === true || !tapToAdvance;
+    const shouldAutoAdvance = mode?.type !== "number_path" && (options.autoAdvance === true || !tapToAdvance);
     if (shouldAutoAdvance && !adultConfirmAdvance) {
       const delayMs = options.autoAdvance === true
         ? Math.max(0, Number(options.autoAdvanceDelayMs) || 0)
@@ -736,7 +742,7 @@ export function useSessionEngine() {
         else advance();
       }, delayMs);
     }
-  }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay, advanceTask]);
+  }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay, advanceTask, mode?.type]);
 
   // `answer`: what the child gave on a check task (place_value «Контрольная работа»).
   const onIncorrect = useCallback((conceptId, cardId, answer) => {

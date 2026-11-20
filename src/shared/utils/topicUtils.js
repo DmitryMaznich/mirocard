@@ -212,8 +212,9 @@ export function readModeParams(savedParams, mode) {
 }
 
 export function writeModeParams(savedParams, mode, params) {
-  if (mode?.paramsScope !== "mode") return params;
   const saved = savedParams ?? {};
+  // A topic can offer shared legacy settings and scoped settings side by side.
+  if (mode?.paramsScope !== "mode") return saved.byMode ? { ...params, byMode: saved.byMode } : params;
   return { ...saved, byMode: { ...(saved.byMode ?? {}), [mode.id]: params } };
 }
 
