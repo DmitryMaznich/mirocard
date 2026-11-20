@@ -39,7 +39,19 @@ const cards = letters.map((ch) => {
   })() : null;
   // (and widened as the row widens it: wide.json "stretch", the slant kept — without it a letter here is 1.8 times narrower than a composed
   // one, which comes from the row already widened)
-  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: normalizeLetterExtremes(raw).map((d) => ({ d: stretchKeepSlantPathD(d, raw.stretch ?? 1, 25, 62) })), trajectory: spec[ch] };
+  // (and without its join to the next letter where the app splits it off — `tailSplit` / `tailStroke`, ъ ь о …: the letter alone is written
+  // without it, owner 2026-11-20: «у ъ нужно отделить соединение»)
+  const ownStrokes = composed ? null : (() => {
+    const st = normalizeLetterExtremes(raw).map((d) => ({ d: stretchKeepSlantPathD(d, raw.stretch ?? 1, 25, 62) }));
+    if (Number.isInteger(raw.tailStroke) && st[raw.tailStroke]) return st.filter((_, i) => i !== raw.tailStroke);
+    if (Number.isInteger(raw.tailSplit) && st[raw.tailSplit]) {
+      const parts = st[raw.tailSplit].d.split(/ (?=C )/);
+      const n = raw.tailSplitCount ?? 1;
+      if (parts.length - n >= 2) st[raw.tailSplit] = { d: parts.slice(0, parts.length - n).join(" ") };
+    }
+    return st;
+  })();
+  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: ownStrokes, trajectory: spec[ch] };
   const movesOf = (t) => (composed ? composedMoves(composed.strokes, composed.trajectory, t, spec[ch]?.parts) : letterMoves(g, t));
   const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);

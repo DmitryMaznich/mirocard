@@ -226,18 +226,18 @@ describe("ъ, ы", () => {
     expect(m.length).toBe(2);
     expect(startOf(m[1].d)[1]).toBeCloseTo(10, 1);
   });
-  it("ы: two elements; joined — the left part's tail runs up to the right stick with the pen down; lifted — it is not written", () => {
+  it("ы: two elements, the first with the line from its loop up to the right stick", () => {
     const map = buildGlyphMap({ wide });
     const seg = layoutWideLinesIntoRows(["ы"], map, undefined, false).placed[0].segments[0];
     const parts = allSpec["ы"].parts;
     const j = composedMoves(seg.strokes, seg.trajectory.strokes, "joined", parts);
-    expect(j.filter((x) => x.kind === "ink").length).toBe(2);
+    expect(j.filter((x) => x.kind === "ink").length).toBe(3);
     expect(j.filter((x) => x.startDot).length).toBe(1);
-    expect(j.some((x) => x.kind === "retrace" && x.ink)).toBe(true);
     const l = composedMoves(seg.strokes, seg.trajectory.strokes, "lifted", parts);
-    expect(l.filter((x) => x.kind === "ink").length).toBe(2);
+    // the line from the loop up to the right stick is part of the first element (owner 2026-11-20): written in both techniques
+    expect(new Set(l.filter((x) => x.kind === "ink").map((x) => x.element))).toEqual(new Set([0, 1]));
+    expect(l.filter((x) => x.kind === "ink").length).toBe(3);
     expect(l.filter((x) => x.startDot).length).toBe(2);
-    expect(l.some((x) => x.kind === "retrace")).toBe(false);
   });
 });
 

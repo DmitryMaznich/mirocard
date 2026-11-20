@@ -242,10 +242,13 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
 // `parts` (optional, letter_elements.json): which pieces of the trajectory are the elements, by index — when a part brings its own join along
 // (ы: the tail of its left part runs up to the top of the right stick, a piece of the part's own ink); by default the pieces drawn on the
 // page (`strokes`) are the elements and the rest are joins. Pieces of no length are skipped.
+// An entry of `parts` may be a list: several pieces that make ONE element (ы: its left part AND the line from its loop up to the right stick —
+// «соединение между штрихами — часть буквы», owner 2026-11-20); the pieces after the first go on with the pen down in either technique.
 export function composedMoves(strokes, trajectory, technique = "joined", parts = null) {
-  const own = parts ? new Set(parts) : null;
+  const elementOf = new Map();
+  (parts ?? []).forEach((p, e) => (Array.isArray(p) ? p : [p]).forEach((i) => elementOf.set(i, e)));
   const drawnD = new Set(strokes.map((s) => s.d));
-  const isPart = (t, i) => (own ? own.has(i) : drawnD.has(t.d));
+  const isPart = (t, i) => (parts ? elementOf.has(i) : drawnD.has(t.d));
   const moves = [];
   let element = 0, last = null;
   const drawn = [];
@@ -259,9 +262,13 @@ export function composedMoves(strokes, trajectory, technique = "joined", parts =
       last = pts.at(-1);
       continue;
     }
-    const touchDown = !moves.length || technique === "lifted";
+    // (a piece of the same element as the one before goes on with the pen down, whatever the technique)
+    const e = parts ? elementOf.get(i) : element;
+    const sameElement = parts && moves.length && moves.filter((m) => m.kind === "ink").at(-1)?.element === e;
+    const touchDown = !moves.length || (technique === "lifted" && !sameElement);
     if (touchDown && last && Math.hypot(pts[0][0] - last[0], pts[0][1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: pts[0] });
-    moves.push({ kind: "ink", d: t.d, element: element++, startDot: touchDown, ...(touchDown ? {} : { continues: true }) });
+    moves.push({ kind: "ink", d: t.d, element: e, startDot: touchDown, ...(touchDown ? {} : { continues: true }) });
+    if (!parts) element += 1;
     drawn.push(...samplePath(toCubicPathD(t.d), 12));
     last = pts.at(-1);
   }
