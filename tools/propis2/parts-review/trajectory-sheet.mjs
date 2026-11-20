@@ -99,7 +99,9 @@ const cards = letters.map((ch) => {
 
 process.stdout.write(`<!doctype html><meta charset="utf-8"><title>Траектория прописных букв</title>
 <style>
+:root{color-scheme:light}html,body{background:#fff}
 body{font-family:system-ui,sans-serif;margin:16px;color:#222}
+.panel,.panel svg{background:#fff}
 .row{display:flex;flex-wrap:wrap;gap:16px}
 .panel{border:1px solid #ddd;border-radius:8px;padding:8px;text-align:center}
 .panel svg{height:300px;display:block;margin:auto}

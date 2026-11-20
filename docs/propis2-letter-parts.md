@@ -63,7 +63,7 @@
 позиции — в сегментах пути от начала штриха (не в долях длины: так не зависят от растяжения глифа). Код —
 `letterPaths` / `letterMoves(glyph, "joined" | "lifted")` в `src/handwriting/letterParts.js`, тесты
 `src/handwriting/letterTrajectory.test.js`. Стенд-анимация: `node tools/propis2/parts-review/trajectory-sheet.mjs р > out.html`
-(картинка «р п и» — `docs/mockups/propis2-parts/trajectory-2026-11-19.html`).
+(картинка «р п и» — `docs/mockups/propis2-parts/trajectory-2026-11-20.html`).
 
 **Выравнивание элементов (владелец 2026-11-19: «у обоих штрихов верхние и нижние точки должны быть на одной линии», «все должно
 быть четко»).** Важно: движок ставит букву на строку не как она лежит в `wide.json` — `normalizeLetterExtremes` (`wordEngine.js`)

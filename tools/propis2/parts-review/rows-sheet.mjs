@@ -43,6 +43,7 @@ const html = placed.map((row, ri) => {
   return `<div class="r"><div class="t">${label[ri]}</div><svg viewBox="${x0} -40 ${x1 - x0} 162" height="190">${sl}${h}${strokes.map((s) => `<path d="${s.d}" class="ink"/>`).join("")}${dots.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" class="dot"/>`).join("")}</svg></div>`;
 }).join("");
 process.stdout.write(`<!doctype html><meta charset="utf-8"><title>Части письменных букв в строках тетради</title><style>
+:root{color-scheme:light}html,body,svg{background:#fff}
 body{font-family:system-ui,sans-serif;margin:12px;color:#222}.r{margin:2px 0 10px}.t{font-size:13px;color:#475569}
 .gl{stroke:#cbd5e1;stroke-width:0.6}.mid{stroke-dasharray:3 3}.sl{stroke:#e2e8f0;stroke-width:0.5}
 .ink{fill:none;stroke:#1d4ed8;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.dot{fill:#dc2626}
