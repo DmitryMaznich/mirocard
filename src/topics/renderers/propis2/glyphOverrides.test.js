@@ -28,10 +28,12 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     expect(yer.stemAnchor[0]).toBeCloseTo(164.35, 1);
     expect(yer.stemAnchor[1]).toBeCloseTo(10, 1);
   });
-  it("the line through the stem lies 0.56 of a cell (30 units, x1.806 stretch) right of the start's line, in the layout's units", () => {
+  // the flag after Мазина's copybook (owner, 2026-11-20): the bar along the top line about one cell long, so the stem stands about a cell
+  // right of the start's line (it was 0.56 of a cell)
+  it("the line through the stem lies about a cell (30 units) right of the start's line, in the layout's units", () => {
     const l = wideGlyphLocal(yer, 1);
-    expect(l.stemDx).toBeGreaterThan(14);
-    expect(l.stemDx).toBeLessThan(19);
+    expect(l.stemDx).toBeGreaterThan(24);
+    expect(l.stemDx).toBeLessThan(36);
     // narrow rows: scaled with the letter
     expect(wideGlyphLocal(yer, 0.6).stemDx / l.stemDx).toBeCloseTo(0.6, 1);
   });

@@ -372,9 +372,11 @@ const withOverride = (g) => {
 // From the top of the oval the pen goes on to the left up to the stem itself; the CONNECTOR starts there, on the stem (owner, 2026-11-20:
 // «соединительный элемент ы начинается от вертикальной линии»). It used to curl into a small loop against the stem (left, down, right) and leave
 // from its right end, 3.7 units right of the stem. The last point (on the stem, at the height of the loop) is computed from the stem.
-const Y_LOOP_POINTS = [[157.15, 34.15], [155.8, 33.85], [154.7, 34.0]];
-const Y_STEM_Y = 34.35; // the height where the oval meets the stem and the connector leaves it
-const Y_TOP_RAISE = 1.8; // how far the top of ь's oval goes up to meet the loop
+// The oval closes on the stem ON the middle line, and the connector leaves from there (owner, 2026-11-20, after Мазина's copybook — the
+// de-facto school standard: the second start dot of ы is on the stem on the middle line); it used to close 1.65 above it.
+const Y_LOOP_POINTS = [[157.15, 35.8], [155.8, 35.5], [154.7, 35.65]];
+const Y_STEM_Y = 36; // the height where the oval meets the stem and the connector leaves it: the middle line
+const Y_TOP_RAISE = 0.15; // how far the top of ь's oval goes up to meet the loop (its line now on the middle line: almost not at all)
 const Y_LINK = [[168.3, 30.0], [175.95, 21.5], [181.47, 10.15]]; // c1, c2, the top of ы2's stem (one slanted line to the right of ь's)
 export function yerLoop(soft) {
   const c = parseCmds(soft?.strokes?.[0]?.d);
