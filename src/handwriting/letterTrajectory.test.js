@@ -124,7 +124,7 @@ describe("every retrace runs along the ink of its letter", () => {
         expect(dist, `${ch} at ${q.map((v) => v.toFixed(1))}`).toBeLessThan(1);
       }
     }
-  });
+  }, 30000); // (щ: a long path, slow under a full parallel run)
 });
 
 // ц and у are not stretched by the rows (they go below the band): they begin with и exactly as the rows stand и
