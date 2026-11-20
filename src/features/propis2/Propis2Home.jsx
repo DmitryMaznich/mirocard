@@ -118,8 +118,8 @@ export default function Propis2Home({ db }) {
   const pageStyle = useCallback((p) => (multiStyle ? pickStyle(deckRecord, lang, p?.style ?? writingStyle) : writingStyle), [multiStyle, deckRecord, lang, writingStyle]);
   const recordOfStyle = useCallback((st) => (languages ? languageView(deckRecord, lang, st) : deckRecord), [languages, deckRecord, lang]);
   const recordOfPage = useCallback((p) => recordOfStyle(pageStyle(p)), [recordOfStyle, pageStyle]);
-  // the styles the editor offers, each with the papers it writes on: a row may take another style only where that style has the page's
-  // paper (the Russian print letters stand on papers of their own, never on the copybook ruling)
+  // the styles the editor offers, each with the papers it writes on: on a print paper (printPapers.js) a row may take only a style that has
+  // it; on any other paper every style (the Russian print capitals stand on the copybook ruling too — Propis2Editor rowStyleOptions)
   const styleChoices = useMemo(() => (multiStyle ? langStyleList.map((st) => ({ ...st, paperIds: deckPapers(recordOfStyle(st.id)).map((g) => g.id) })) : null), [multiStyle, langStyleList, recordOfStyle]);
   // runs of the notebook by paper AND style (model.js notebookSections)
   const sectionOpts = useMemo(() => (multiStyle ? { styleOf: pageStyle, glyphMapOf: (st) => glyphMapOf(recordOfStyle(st)) } : undefined), [multiStyle, pageStyle, recordOfStyle]);

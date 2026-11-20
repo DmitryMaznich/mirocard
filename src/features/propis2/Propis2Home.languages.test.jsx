@@ -361,6 +361,50 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(lib.pages[0].rows.map((r) => r.style).filter(Boolean)).toEqual(["british_joined"]); // the selected row only
     host.remove();
   });
+  it("a Russian row takes «Печатные» on the copybook ruling; on a print paper «Прописные» stays in the list, greyed (owner, 2026-11-20)", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tdb = await openDb("p2rstyle-ru-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    const db = await openDb("p2rstyle-ru-" + Date.now());
+    await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    await click(btn(host, "Новая тетрадь"));
+    const field = host.querySelector('[aria-label="Текст страницы"]');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "мама\nшар");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      await tick();
+    });
+    await act(async () => { await tick(50); });
+    const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
+    const before = ink();
+    const rowPicker = host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]');
+    expect(rowPicker).not.toBeNull(); // the same button as in English: Russian has two styles too
+    await click(rowPicker);
+    const opt = (name) => document.querySelector(`[role="listbox"][aria-label="Стиль строки"] [aria-label="${name}"]`);
+    expect(opt("Печатные").disabled).toBe(false); // print capitals on the copybook ruling
+    await click(opt("Печатные"));
+    await act(async () => { await tick(50); });
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    expect(ink()).not.toBe(before);
+    await click(host.querySelector('[aria-label="Показать ученику"]'));
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    await click(host.querySelector(".propis-practice-close"));
+    // the page in print letters goes onto a print paper: a cursive row would be split by its cell snap — offered, but greyed
+    await click(host.querySelector('button[aria-label="Стиль страницы"]'));
+    await click(document.querySelector('[role="option"][aria-label="Печатные"]'));
+    const field2 = host.querySelector('[aria-label="Текст страницы"]');
+    await act(async () => { field2.focus(); field2.setSelectionRange(1, 1); field2.dispatchEvent(new Event("select", { bubbles: true })); document.dispatchEvent(new Event("selectionchange")); await tick(); });
+    await click(host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]'));
+    expect(opt("Прописные")).not.toBeNull();
+    expect(opt("Прописные").disabled).toBe(true);
+    await act(async () => { root.unmount(); await tick(100); });
+    host.remove();
+  });
   it("a ready Latin notebook (the Nelson joins) opens as a copy in its own style, «Британские соединённые»", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2kit-tc-" + Date.now());

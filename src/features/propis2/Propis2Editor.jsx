@@ -1,4 +1,5 @@
 import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
+import { isPrintPaper } from "@/handwriting/printPapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -258,8 +259,14 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
   const styleOptions = useMemo(() => (styles?.options ?? []).map((st) => ({ id: st.id, label: st.title, text: st.title, ...(st.short ? { short: st.short } : {}) })), [styles?.options]);
-  // a row's style: only the styles that write on this page's paper (`paperIds`, Propis2Home); the page's own style is always one of them
-  const rowStyleOptions = useMemo(() => styleOptions.filter((o, i) => !styles?.options?.[i]?.paperIds || styles.options[i].paperIds.includes(gridKind) || o.id === styles.value), [styleOptions, styles, gridKind]);
+  // a row's style: every style of the language, always (owner, 2026-11-20: the button must not come and go with the language). A style
+  // goes on any ordinary paper — the Russian print capitals stand fine on the copybook ruling; only a print paper (printPapers.js: the cell
+  // snap of the print letters splits a cursive word) takes just the styles that have it — the others stay in the list, greyed
+  const rowStyleOptions = useMemo(() => styleOptions.map((o, i) => {
+    const ids = styles?.options?.[i]?.paperIds;
+    const off = isPrintPaper(gridKind) && ids && !ids.includes(gridKind) && o.id !== styles.value;
+    return off ? { ...o, disabled: true } : o;
+  }), [styleOptions, styles, gridKind]);
   const propisGrid = gridKind === "propis";
   const fourPaper = fourLinePaper(gridKind); // a four-line paper (fourLinePapers.js): no dense slant; its own dash, `bgDash`, if it has one
   const bgPaper = Boolean(fourPaper);
@@ -662,7 +669,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <section className="p2-insp-sec" aria-label="Стиль строки">
           <span className="p2-insp-lbl">Стиль строки</span>
           <Seg label="Стиль строки" disabled={locked} value={rowStyleValue} onChange={(id) => setRowSetting("style", id)}
-            options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label }))} />
+            options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label, disabled: o.disabled }))} />
         </section>
       )}
       {/* (a printed letter goes only on the copybook's narrow rows: elsewhere the section is left out, not shown dead) */}
