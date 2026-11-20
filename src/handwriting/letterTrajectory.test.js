@@ -9,7 +9,20 @@ const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "ut
 const allSpec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
 // (the composed letters — ш — have no line of their own: tested through the row below)
 const spec = Object.fromEntries(Object.entries(allSpec).filter(([, v]) => !v.composed));
-const glyph = (ch) => ({ ...wide.find((g) => g.label === ch || g.aliases?.includes(ch)), trajectory: spec[ch] });
+// the captured letter, without its join to the next letter where the app splits it off (glyphOverrides.js `tailStroke` / `tailSplit`: б э ъ о ю ф …)
+// — a letter alone, as a row of parts writes it, has no join
+const APP = buildGlyphMap({ wide });
+const withoutTail = (g, app) => {
+  if (!app) return g;
+  if (Number.isInteger(app.tailStroke) && g.strokes[app.tailStroke]) return { ...g, strokes: g.strokes.filter((_, i) => i !== app.tailStroke) };
+  if (Number.isInteger(app.tailSplit) && g.strokes[app.tailSplit]) {
+    const parts = g.strokes[app.tailSplit].d.split(/ (?=[LQC] )/);
+    const n = app.tailSplitCount ?? 1;
+    if (parts.length - n >= 2) return { ...g, strokes: g.strokes.map((st, i) => (i === app.tailSplit ? { ...st, d: parts.slice(0, parts.length - n).join(" ") } : st)) };
+  }
+  return g;
+};
+const glyph = (ch) => ({ ...withoutTail(wide.find((g) => g.label === ch || g.aliases?.includes(ch)), APP.get(ch)), trajectory: spec[ch] });
 const endOf = (d) => d.trim().split(/\s+/).slice(-2).map(Number);
 const startOf = (d) => d.trim().split(/\s+/).slice(1, 3).map(Number);
 const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.6;
@@ -257,6 +270,28 @@ describe("в х ж ч к з", () => {
   it("к: the upper hook begins on the stick, after the way back up it", () => {
     const m = letterMoves(glyph("к"), "joined");
     expect(m.map((x) => x.kind)).toEqual(["ink", "retrace", "ink", "lift", "ink"]);
+  });
+});
+
+// the ovals (owner 2026-11-20, after Мазина's reels — the red dots are the starts of the elements)
+describe("а б д е ё о с э ю я ф", () => {
+  const ink = (ch, t) => letterMoves(glyph(ch), t).filter((x) => x.kind === "ink");
+  it.each([["а", 2], ["б", 2], ["д", 2], ["е", 1], ["ё", 3], ["о", 1], ["с", 1], ["э", 2], ["ю", 3], ["я", 2], ["ф", 3]])("%s: %i elements, one start dot each when lifted", (ch, n) => {
+    expect(ink(ch, "lifted").length).toBe(n);
+    expect(ink(ch, "lifted").every((x) => x.startDot)).toBe(true);
+  });
+  // (in the captured data: я's top is 10.5, the row stretches it onto 10)
+  it.each([["а", 10], ["д", 10], ["я", 10]])("%s: the stick starts at the top line", (ch, y) => expect(Math.abs(startOf(ink(ch, "lifted").at(-1).d)[1] - y)).toBeLessThan(0.6));
+  it("б: the stick with the flag starts at the right of the oval on the middle line", () => expect(startOf(ink("б", "lifted")[1].d)[1]).toBeCloseTo(36, 1));
+  it("ю: the bar from the stick to the left of the oval, the oval from the middle line", () => {
+    const [, bar, oval] = ink("ю", "lifted");
+    expect(startOf(oval.d)[1]).toBeCloseTo(36, 1);
+    expect(near(endOf(bar.d), startOf(oval.d))).toBe(true);
+  });
+  it("joined: one start dot (е ё: the dots are pen lifts in any hand)", () => {
+    for (const ch of ["а", "б", "д", "о", "с", "ю", "я", "ф"]) expect(letterMoves(glyph(ch), "joined").filter((x) => x.startDot).length, ch).toBe(1);
+    expect(letterMoves(glyph("ё"), "joined").filter((x) => x.startDot).length).toBe(3);
+    expect(letterMoves(glyph("э"), "joined").filter((x) => x.startDot).length).toBe(2); // its bar is a stroke of its own
   });
 });
 

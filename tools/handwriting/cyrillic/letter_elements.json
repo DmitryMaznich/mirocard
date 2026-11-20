@@ -1,14 +1,68 @@
 {
   "meta": {
-    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes on the paper along the line of an element — one already drawn, р: back up the stick; or the one it is about to write, и: up the line its second stick then comes down — written without a lift, adding no ink of its own) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = the middle of the 3rd by its curve parameter; {\"seg\": 2, \"y\": 36} = the first point after segment 2 at the height 36 — guide lines in the capture frame: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline). The ink between them, in writing order, are the letter's elements. {\"seg\": 9, \"top\": true} = the highest point of the 10th segment (a cut at the top, л м). `links: [[a, b]]` — a line inside the letter between two elements that is part of neither (ж): the joined hand writes it, the lifted one does not.",
+    "about": "Elements and pen trajectory of the copybook letters (docs/propis2-letter-parts.md, owner 2026-11-19). The letter shapes stay in wide.json; this file only marks, per stroke of a letter, which stretches of its path are a RETRACE (the pen goes on the paper along the line of an element — one already drawn, р: back up the stick; or the one it is about to write, и: up the line its second stick then comes down — written without a lift, adding no ink of its own) and where an element begins without one (`cuts`). Positions are counted in path segments from the stroke's start (2 = the point where the 2nd segment after M ends; 2.5 = the middle of the 3rd by its curve parameter; {\"seg\": 2, \"y\": 36} = the first point after segment 2 at the height 36 — guide lines in the capture frame: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline). The ink between them, in writing order, are the letter's elements. {\"seg\": 9, \"top\": true} = the highest point of the 10th segment (a cut at the top, л м). A retrace may carry a third entry \"ahead\": the pen goes up the line of the element it is about to write (decided by the ink already drawn otherwise). `links: [[a, b]]` — a line inside the letter between two elements that is part of neither (ж): the joined hand writes it, the lifted one does not.",
     "techniques": "joined (default, owner): the path as captured, retraces run along the ink and add none; lifted: every element on its own, from its own start dot; the pen's way through the air between them is not shown"
   },
   "letters": {
+    "а": {
+      "elements": [
+        "овал",
+        "палочка с закруглением внизу (от верхней линии)"
+      ],
+      "strokes": [
+        {
+          "retrace": [[4, 5]]
+        }
+      ]
+    },
+    "б": {
+      "elements": [
+        "овал",
+        "палочка вверх с флажком (от правого края овала на средней линии)"
+      ],
+      "strokes": [
+        {
+          "cuts": [4]
+        },
+        {}
+      ]
+    },
     "в": {
       "elements": [
         "в целиком (один элемент, владелец)"
       ],
       "strokes": [
+        {}
+      ]
+    },
+    "д": {
+      "elements": [
+        "овал",
+        "палочка с петлёй (от верхней линии)"
+      ],
+      "strokes": [
+        {
+          "retrace": [[4, 5]]
+        }
+      ]
+    },
+    "е": {
+      "elements": [
+        "е целиком"
+      ],
+      "strokes": [
+        {}
+      ]
+    },
+    "ё": {
+      "elements": [
+        "е",
+        "точка",
+        "точка"
+      ],
+      "strokes": [
+        {},
+        {},
         {}
       ]
     },
@@ -107,6 +161,14 @@
         }
       ]
     },
+    "о": {
+      "elements": [
+        "овал"
+      ],
+      "strokes": [
+        {}
+      ]
+    },
     "п": {
       "elements": [
         "палочка",
@@ -129,6 +191,14 @@
         }
       ]
     },
+    "с": {
+      "elements": [
+        "с целиком"
+      ],
+      "strokes": [
+        {}
+      ]
+    },
     "т": {
       "elements": [
         "палочка",
@@ -149,6 +219,18 @@
       "strokes": [
         {
           "retrace": [[{ "seg": 5, "y": 36 }, 7]]
+        }
+      ]
+    },
+    "ф": {
+      "elements": [
+        "левый овал",
+        "палочка (от верхней линии вниз)",
+        "правый овал"
+      ],
+      "strokes": [
+        {
+          "retrace": [[4, 5], [6, 7]]
         }
       ]
     },
@@ -227,6 +309,41 @@
       ],
       "composed": "ы собрана из «ы1» и «ы2» (glyphOverrides.js compose, yerLoop); в раскладке строки 4 куска: левая часть, соединительный элемент (от палочки к верху правой палочки, владелец 2026-11-20 — часть буквы и свой элемент), пустой кусок, правая палочка; `parts` — куски каждого элемента",
       "parts": [[0], [1], [3]]
+    },
+    "э": {
+      "elements": [
+        "дуга",
+        "перекладина (от средней линии к дуге)"
+      ],
+      "strokes": [
+        {},
+        {},
+        {}
+      ]
+    },
+    "ю": {
+      "elements": [
+        "палочка",
+        "перекладина (от палочки к овалу)",
+        "овал"
+      ],
+      "strokes": [
+        {
+          "retrace": [[4, 5]],
+          "cuts": [21]
+        }
+      ]
+    },
+    "я": {
+      "elements": [
+        "левая часть с овалом (от средней линии)",
+        "палочка с закруглением внизу (от верхней линии)"
+      ],
+      "strokes": [
+        {
+          "retrace": [[21, 22, "ahead"]]
+        }
+      ]
     }
   }
 }
