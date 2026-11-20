@@ -48,7 +48,10 @@ export const P2_GLYPH_OVERRIDES = {
   "ъ": { bellyFrom: { label: "в", kv: 0.5, ku: 0.6 }, tailSplit: 0, tailSplitCount: 2, tailNoAlign: true, steepExit: true, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24, stemOnLine: true, startDrop: 7, snapNotRight: 0.2, joinArrive: 1 },
   // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
-  "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
+  // snapAtOldStart (а б д, owner 2026-11-20 «все овалы … начинать от пунктира»): their oval begins on the middle line now (the same curve of о, a
+  // little longer), not 0.44 of the zone above it; the letter keeps its place on the grid by the point where it used to begin
+  "а": { stemAnchor: [138.63, 24.6] },
+  "б": { tailStroke: 1, tailLift: true, repeatCells: 4, stemAnchor: [138.63, 24.6] },
   "р": { repeatCells: 4, touchFirstLine: true },
   // stemOnLine (и у ц щ, owner 2026-11-20): their start is a small rounded tip 0.5 left of the stick, so with the start on a slant of the grid
   // every stick stood 0.8 (of a 30 cell) off its slant; placed by the stick they lie on the slants like п т н. Shapes and joins unchanged
@@ -57,7 +60,7 @@ export const P2_GLYPH_OVERRIDES = {
   "у": { straightTail: 32, stemOnLine: true },
   "ц": { stemOnLine: true },
   "щ": { stemOnLine: true },
-  "д": { straightTail: 31 },
+  "д": { straightTail: 31, stemAnchor: [138.63, 24.6] },
   "з": { straightTail: 57 },
   "х": { repeatCells: 4 },
   "ж": { repeatCells: 5 },
