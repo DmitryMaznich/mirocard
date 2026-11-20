@@ -2,7 +2,9 @@
 // tools/handwriting/cyrillic/letter_elements.json — its elements in colours, and an animation of each technique (joined: the retrace is the
 // pen running along the ink, no new line; lifted: every element from its own start dot, the pen's way through the air not shown).
 //   node tools/propis2/parts-review/trajectory-sheet.mjs [letters] > out.html
+// The page shows the dense slant grid of the notebook (5 mm, as the row puts the letter on it) and the middle dashed line.
 import { readFileSync } from "node:fs";
+import { runnerImport } from "vite";
 import { letterMoves, letterPaths, piecePathD, composedMoves } from "../../../src/handwriting/letterParts.js";
 import { samplePath, toCubicPathD, stretchKeepSlantPathD } from "../../../src/handwriting/pathGeometry.js";
 import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "../../../src/handwriting/wordEngine.js";
@@ -12,16 +14,26 @@ const spec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements
 const letters = [...(process.argv[2] ?? Object.keys(spec).join(""))];
 const COLORS = ["#1d4ed8", "#dc2626", "#16a34a", "#d97706", "#7c3aed", "#0891b2"];
 const TITLE = { joined: "Безотрывно", lifted: "С отрывом" };
+// the dense slant grid of the notebook (owner, 2026-11-20: to check that the letters go along the slants): the page's own grid function,
+// loaded through Vite (PrintPageView.jsx is JSX); the row puts every letter on it as the page does — the same lines are drawn here
+const { module: page } = await runnerImport(new URL("../../../src/handwriting/PrintPageView.jsx", import.meta.url).pathname, { root: new URL("../../..", import.meta.url).pathname, logLevel: "error" });
+const DENSE = page.snapXFor({ narrowRows: false, simpleGrid: "dense", margin: "off", format: "a5" });
+const ROW = 52 / 48; // row units -> capture units (the row: 48 for the 52 of the capture band)
+const TAN = Math.tan((25 * Math.PI) / 180);
+// the letters as the app builds them: wide.json with propis2's own fixes (glyphOverrides.js: у's straight tail, the stem a letter is placed by …)
+const { module: pageTask } = await runnerImport(new URL("../../../src/topics/renderers/propis2/pageTask.js", import.meta.url).pathname, { root: new URL("../../..", import.meta.url).pathname, logLevel: "error" });
+const elementsJson = JSON.parse(readFileSync("tools/handwriting/cyrillic/elements.json", "utf-8")).elements;
+const MAP = pageTask.buildGlyphMap({ wide, elements: elementsJson });
+const startOf = (d) => samplePath(toCubicPathD(d), 1)[0];
 
 const cards = letters.map((ch) => {
   // the letter as the app stands it on the band (wordEngine's normalizeLetterExtremes: stretched along the slant so that its top and bottom
   // touch the lines), not the raw capture — otherwise the sheet shows letters off the lines that are on them in the app
-  const raw = wide.find((x) => x.label === ch || x.aliases?.includes(ch));
+  const raw = MAP.get(ch);
   // a composed letter (ш = 6 + 6 + 6): laid out by the row, its parts and the joins between them brought back to the capture frame
   // (the row: top line 16, baseline 64, i.e. 52 capture units in 48)
   const composed = raw.compose ? (() => {
-    const map = new Map(wide.map((x) => [x.label, x])); for (const x of wide) for (const a of x.aliases ?? []) map.set(a, x);
-    const seg = layoutWideLinesIntoRows([ch], map, undefined, false).placed[0].segments[0];
+    const seg = layoutWideLinesIntoRows([ch], MAP, DENSE, false).placed[0].segments[0];
     const back = (d) => d.replace(/(-?\d*\.?\d+) (-?\d*\.?\d+)/g, (_, x, y) => `${(+x * 52 / 48 + 100).toFixed(2)} ${(10 + (+y - 16) * 52 / 48).toFixed(2)}`);
     return { strokes: seg.strokes.map((s) => ({ d: back(s.d) })), trajectory: seg.trajectory.strokes.map((s) => ({ ...s, d: back(s.d) })) };
   })() : null;
@@ -32,7 +44,43 @@ const cards = letters.map((ch) => {
   const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
   const x0 = Math.min(...xs) - 14, y0 = Math.min(-45, ...ys) - 10, w = Math.max(...xs) - x0 + 14, h = Math.max(118, ...ys) - y0 + 10;
-  const guides = [-42, 10, 62, 114].map((y) => `<line x1="${x0}" x2="${x0 + w}" y1="${y}" y2="${y}" class="gl"/>`).join("");
+  // the slants: the row lays the letter out on the dense grid; the line of the grid nearest to the letter's start there, carried over to this
+  // frame through the same start point (the row and this frame differ by a scale and a shift only), then every 30 row units
+  const rowSeg = layoutWideLinesIntoRows([ch], MAP, DENSE, false).placed[0].segments[0];
+  const ps = startOf(rowSeg.strokes[0].d), pc = startOf(g.strokes[0].d);
+  const anchor = pc[0] + (DENSE(0, ps[0], ps[1]) - ps[0]) * ROW, step = 30 * ROW;
+  const xAt = (n, y) => anchor + n * step - (y - pc[1]) * TAN;
+  const slants = [];
+  for (let n = -12; n <= 12; n += 1) {
+    const ya = y0, yb = y0 + h;
+    if (Math.max(xAt(n, ya), xAt(n, yb)) < x0 || Math.min(xAt(n, ya), xAt(n, yb)) > x0 + w) continue;
+    slants.push(`<line x1="${xAt(n, ya).toFixed(2)}" y1="${ya}" x2="${xAt(n, yb).toFixed(2)}" y2="${yb}" class="sl"/>`);
+  }
+  // the sticks: stretches of the ink at least 12 units long going along the slant (65°, ±2°); for each, its distance across the grid from the
+  // nearest line (in row units, as the notebook measures: a slant cell is 30)
+  const sticks = [];
+  for (const st of g.strokes) {
+    const q = samplePath(toCubicPathD(st.d), 24);
+    let run = [q[0]];
+    const flush = () => {
+      const L = run.length > 1 ? Math.hypot(run.at(-1)[0] - run[0][0], run.at(-1)[1] - run[0][1]) : 0;
+      if (L >= 12) {
+        const off = run.map(([x, y]) => { const u = (x - xAt(0, y)) / step; return (u - Math.round(u)) * 30; });
+        const mean = off.reduce((a, b) => a + b, 0) / off.length;
+        sticks.push(mean);
+      }
+      run = [];
+    };
+    for (let i = 1; i < q.length; i += 1) {
+      const dx = q[i][0] - q[i - 1][0], dy = q[i][1] - q[i - 1][1];
+      const ang = Math.abs(Math.atan2(Math.abs(dy), Math.sign(dy) * -dx) * 180 / Math.PI);
+      const along = Math.hypot(dx, dy) > 1e-6 && Math.abs((Math.atan2(Math.abs(dy), dy > 0 ? -dx : dx) * 180) / Math.PI - 65) <= 2;
+      if (along) { if (!run.length) run.push(q[i - 1]); run.push(q[i]); } else flush();
+    }
+    flush();
+  }
+  const stickNote = sticks.length ? `палочки от наклонных: ${sticks.map((v) => (v >= 0 ? "+" : "") + v.toFixed(1)).join(", ")} (клетка 30)` : "";
+  const guides = slants.join("") + [-42, 10, 62, 114].map((y) => `<line x1="${x0}" x2="${x0 + w}" y1="${y}" y2="${y}" class="gl"/>`).join("") + `<line x1="${x0}" x2="${x0 + w}" y1="36" y2="36" class="gl mid"/>`;
   const svg = (inner, extra = "") => `<svg viewBox="${x0} ${y0} ${w} ${h}" ${extra}>${guides}${inner}</svg>`;
   const names = spec[ch]?.elements ?? [];
   const inkD = movesOf("lifted").filter((m) => m.kind === "ink").map((m) => m.d);
@@ -42,7 +90,7 @@ const cards = letters.map((ch) => {
     const moves = movesOf(t);
     return `<div class="panel"><h3>${TITLE[t]}</h3>${svg("", `data-moves='${JSON.stringify(moves)}'`)}<button>▶ ещё раз</button></div>`;
   }).join("");
-  return `<section><h2>${ch}</h2><div class="row"><div class="panel"><h3>Элементы</h3>${svg(elems)}<p>${legend}</p></div>${anim}</div></section>`;
+  return `<section><h2>${ch} <small class="note2">${stickNote}</small></h2><div class="row"><div class="panel"><h3>Элементы</h3>${svg(elems)}<p>${legend}</p></div>${anim}</div></section>`;
 }).join("");
 
 process.stdout.write(`<!doctype html><meta charset="utf-8"><title>Траектория прописных букв</title>
@@ -51,8 +99,8 @@ body{font-family:system-ui,sans-serif;margin:16px;color:#222}
 .row{display:flex;flex-wrap:wrap;gap:16px}
 .panel{border:1px solid #ddd;border-radius:8px;padding:8px;text-align:center}
 .panel svg{height:300px;display:block;margin:auto}
-h2{margin:8px 0}h3{margin:0 0 4px;font-size:15px;font-weight:600}
-.gl{stroke:#e5e7eb;stroke-width:1}
+h2{margin:8px 0}.note2{font-size:13px;font-weight:400;color:#64748b}h3{margin:0 0 4px;font-size:15px;font-weight:600}
+.gl{stroke:#cbd5e1;stroke-width:1}.mid{stroke-dasharray:3 3}.sl{stroke:#94a3b8;stroke-width:0.6}
 .ink{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 button{margin-top:6px;font-size:14px;padding:4px 10px}
 p{margin:6px 0 0;font-size:14px;max-width:260px;text-align:left}p span{display:block}
