@@ -13,7 +13,8 @@ const spec = Object.fromEntries(Object.entries(allSpec).filter(([, v]) => !v.com
 // letterParts leaves the join out — a letter alone, as a row of parts writes it, has no join
 const APP = buildGlyphMap({ wide });
 const tailOf = (app) => (app ? { tailStroke: app.tailStroke, tailSplit: app.tailSplit, tailSplitCount: app.tailSplitCount } : {});
-const glyph = (ch) => ({ ...wide.find((g) => g.label === ch || g.aliases?.includes(ch)), ...tailOf(APP.get(ch)), trajectory: spec[ch] });
+// (Й is not in wide.json: the app builds it from И and the breve of й — glyphOverrides.js MARKED_CAPITALS)
+const glyph = (ch) => ({ ...(wide.find((g) => g.label === ch || g.aliases?.includes(ch)) ?? APP.get(ch)), ...tailOf(APP.get(ch)), trajectory: spec[ch] });
 const endOf = (d) => d.trim().split(/\s+/).slice(-2).map(Number);
 const startOf = (d) => d.trim().split(/\s+/).slice(1, 3).map(Number);
 const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.6;
@@ -22,8 +23,9 @@ describe("р: the stick, the retrace up it, the hook (owner 2026-11-19)", () => 
   const r = glyph("р");
   it("every letter in letter_elements.json is in wide.json, its element names match its ink pieces", () => {
     for (const ch of Object.keys(spec)) {
+      // (an element can be in pieces of several strokes: Ж's zigzag, `same`)
       const ink = letterPaths(glyph(ch)).filter((p) => p.kind === "ink");
-      expect(ink.length, ch).toBe(spec[ch].elements.length);
+      expect(new Set(ink.map((p) => p.element)).size, ch).toBe(spec[ch].elements.length);
     }
   });
   it("the retrace runs from the foot of the stick to where the hook begins", () => {
@@ -190,11 +192,15 @@ describe("after a retrace back, the next element begins on the line the pen came
 // motion; lifted: every element starts anew
 describe("continues", () => {
   it.each(Object.keys(spec))("%s", (ch) => {
-    const strokes = ownStrokes(glyph(ch)).length; // (without the join to the next letter: б э)
+    // one fresh start per stroke that begins away from where the pen is (й: its breve); a stroke that begins where the last one ended goes
+    // on with it (Ж: one motion captured as five strokes)
+    const own = ownStrokes(glyph(ch));
+    const fresh = own.filter((st, i) => i === 0 || Math.hypot(...[0, 1].map((k) => startOf(st.d)[k] - endOf(own[i - 1].d)[k])) > 0.5).length;
     const j = letterMoves(glyph(ch), "joined");
-    expect(j.filter((m) => !m.continues && m.kind !== "lift").length, ch).toBe(strokes); // one fresh start per stroke (й: its breve)
+    expect(j.filter((m) => !m.continues && m.kind !== "lift").length, ch).toBe(fresh);
+    // lifted: every element starts anew; only a piece of the same element goes on (Ж's zigzag over three strokes)
     const l = letterMoves(glyph(ch), "lifted").filter((m) => m.kind === "ink");
-    expect(l.every((m) => !m.continues)).toBe(true);
+    expect(l.every((m, i) => !m.continues || (i > 0 && l[i - 1].element === m.element))).toBe(true);
   });
 });
 
@@ -288,3 +294,24 @@ describe("а б д е ё о с э ю я ф", () => {
   });
 });
 
+
+// the capitals (owner, 2026-11-20): Ж — the zigzag in the middle is ONE element (over three of its captured strokes); И — «вытянутая г» and a
+// stick with a hook; Ш Щ Ц Й the same start. Written in one motion: one start dot joined.
+describe("capitals: И Ж Ш and their kin", () => {
+  it("Ж: three elements, the zigzag one of them; joined — one start", () => {
+    const ink = letterPaths(glyph("Ж")).filter((p) => p.kind === "ink");
+    expect(new Set(ink.map((p) => p.element))).toEqual(new Set([0, 1, 2]));
+    expect(ink.filter((p) => p.element === 1).map((p) => p.stroke)).toEqual([1, 2, 3]);
+    expect(letterMoves(glyph("Ж"), "joined").filter((m) => m.startDot).length).toBe(1);
+    expect(letterMoves(glyph("Ж"), "lifted").filter((m) => m.startDot).length).toBe(3);
+  });
+  it("И: two elements; joined, the way up from the foot of the first stick leaves its line (diagonal, then up the second stick)", () => {
+    const j = letterMoves(glyph("И"), "joined");
+    expect(new Set(j.filter((m) => m.kind === "ink").map((m) => m.element)).size).toBe(2);
+    expect(j.filter((m) => m.kind === "retrace").every((m) => m.ink)).toBe(true);
+    expect(letterMoves(glyph("И"), "lifted").filter((m) => m.kind === "retrace").length).toBe(0);
+  });
+  it.each([["Ш", 3], ["Щ", 4], ["Ц", 3], ["Й", 3]])("%s: %i elements", (ch, n) => {
+    expect(new Set(letterPaths(glyph(ch)).filter((p) => p.kind === "ink").map((p) => p.element)).size).toBe(n);
+  });
+});

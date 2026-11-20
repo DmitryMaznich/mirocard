@@ -132,7 +132,8 @@ const PAD_CELL = 52;
 const PAD_PX = 44; // px per cell, at least
 const PAD_TALL = 190;
 function PartsPad({ glyph, keep, onToggle }) {
-  const pieces = letterPieces(glyph).map((p) => ({ ...p, d: piecePathD(glyph.strokes[p.stroke].d, p.from, p.to), name: glyph.strokes[p.stroke].name }));
+  // (an element in pieces of several strokes — Ж's zigzag — drawn as all of them)
+  const pieces = letterPieces(glyph).map((p) => ({ ...p, d: [p, ...(p.more ?? [])].map((r) => piecePathD(glyph.strokes[r.stroke].d, r.from, r.to)).join(" "), name: glyph.strokes[p.stroke].name }));
   const xs = glyph.strokes.flatMap((st) => samplePath(toCubicPathD(st.d), 30).map((q) => q[0]));
   const ys = glyph.strokes.flatMap((st) => samplePath(toCubicPathD(st.d), 30).map((q) => q[1]));
   const c = PAD_CELL;

@@ -86,7 +86,11 @@ export function letterPieces(glyph) {
   // a copybook letter marked in tools/handwriting/cyrillic/letter_elements.json (the deck puts it on the glyph as `trajectory`): its parts are
   // its ELEMENTS (owner 2026-11-19/20); their ends are positions on the path ({ seg, t }), exact on the letter as any row places it
   if (glyph.trajectory && !glyph.upright) {
-    const els = letterPaths(glyph).filter((p) => p.kind === "ink").map(({ stroke, from, to }) => ({ stroke, from, to }));
+    // (one entry per element; an element made of pieces of several strokes — `same`, the zigzag of Ж — carries the further pieces in `more`)
+    const els = [];
+    for (const { stroke, from, to, element } of letterPaths(glyph).filter((p) => p.kind === "ink")) {
+      if (els[element]) (els[element].more ??= []).push({ stroke, from, to }); else els[element] = { stroke, from, to };
+    }
     cache.set(glyph, els);
     return els;
   }
@@ -197,6 +201,8 @@ export function anchorPos(d, at) {
     const seg = Math.floor(at), t = at - seg;
     return seg >= n ? { seg: n - 1, t: 1 } : { seg: Math.max(0, seg), t: seg < 0 ? 0 : t };
   }
+  // an exact place on a segment (the capitals, 2026-11-20: the lowest point of a stick's rounding, found once and written down)
+  if (at && Number.isFinite(at.t)) return { seg: Math.min(n - 1, at.seg), t: at.t };
   if (at && at.top) {
     const P = segs[Math.min(n - 1, at.seg)];
     let best = 0, by = Infinity;
@@ -276,9 +282,16 @@ export function letterPaths(glyph) {
     const cuts = (spec.cuts ?? []).map(pos);
     const end = { seg: cubicSegs(st.d).length - 1, t: 1 };
     let at = { seg: 0, t: 0 };
+    // `same: true` (Ж, written in one motion but captured as five strokes): the stroke's first piece goes on with the element of the stroke
+    // before — the zigzag of Ж is one element over three strokes (owner, 2026-11-20)
+    let goesOn = Boolean(spec.same) && element > 0;
     const ink = (from, to) => {
       const edges = [from, ...cuts.filter((c) => posValue(c) > posValue(from) && posValue(c) < posValue(to)).sort((p, q) => posValue(p) - posValue(q)), to];
-      for (let k = 0; k + 1 < edges.length; k += 1) if (posValue(edges[k + 1]) - posValue(edges[k]) > 1e-9) out.push({ kind: "ink", stroke: si, from: edges[k], to: edges[k + 1], element: element++ });
+      for (let k = 0; k + 1 < edges.length; k += 1) {
+        if (posValue(edges[k + 1]) - posValue(edges[k]) <= 1e-9) continue;
+        out.push({ kind: "ink", stroke: si, from: edges[k], to: edges[k + 1], element: goesOn ? element - 1 : element++ });
+        goesOn = false;
+      }
     };
     for (const [a, b, link, ahead] of retr) {
       ink(at, a);
@@ -327,7 +340,7 @@ function splitMarked(strokes, glyph, hidden) {
 export function letterMoves(glyph, technique = "joined", strokes = ownStrokes(glyph)) {
   const moves = [];
   let last = null; // [x, y] where the pen is
-  let lastStroke = -1;
+  let lastElement = -1;
   const drawn = []; // points of the ink drawn so far
   for (const p of letterPaths(glyph)) {
     const d = strokes[p.stroke].d;
@@ -345,14 +358,17 @@ export function letterMoves(glyph, technique = "joined", strokes = ownStrokes(gl
       continue;
     }
     const start = pointAtPos(d, p.from);
-    // (lifted: every element from its own start dot, also one that goes on from the point where the last one ended)
-    const touchDown = p.stroke !== lastStroke || technique === "lifted";
+    // The pen touches down where it is not already: joined — at a stroke that begins away from where the last one ended (a stroke that begins
+    // where the pen is goes on with it: the capitals were captured in several strokes written in one motion, Ж and others, owner 2026-11-20);
+    // lifted — also at every element, even one that goes on from the point where the last one ended
+    const away = !last || Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5;
+    const touchDown = away || (technique === "lifted" && p.element !== lastElement);
     if (touchDown && last && Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: start });
     const ink = piecePathD(d, p.from, p.to);
     moves.push({ kind: "ink", d: ink, element: p.element, startDot: Boolean(touchDown), ...(touchDown ? {} : { continues: true }) });
     drawn.push(...samplePath(toCubicPathD(ink), 12));
     last = pointAtPos(d, p.to);
-    lastStroke = p.stroke;
+    lastElement = p.element;
   }
   return moves;
 }

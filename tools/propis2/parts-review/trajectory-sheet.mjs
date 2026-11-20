@@ -87,8 +87,9 @@ const cards = letters.map((ch) => {
   const guides = slants.join("") + [-42, 10, 62, 114].map((y) => `<line x1="${x0}" x2="${x0 + w}" y1="${y}" y2="${y}" class="gl"/>`).join("") + `<line x1="${x0}" x2="${x0 + w}" y1="36" y2="36" class="gl mid"/>`;
   const svg = (inner, extra = "") => `<svg viewBox="${x0} ${y0} ${w} ${h}" ${extra}>${guides}${inner}</svg>`;
   const names = spec[ch]?.elements ?? [];
-  const inkD = movesOf("lifted").filter((m) => m.kind === "ink").map((m) => m.d);
-  const elems = inkD.map((d, i) => `<path d="${d}" stroke="${COLORS[i % 6]}" class="ink"/>`).join("");
+  // (coloured by ELEMENT: one element can come in pieces of several strokes, Ж's zigzag)
+  const inks = movesOf("lifted").filter((m) => m.kind === "ink");
+  const elems = inks.map((m, i) => `<path d="${m.d}" stroke="${COLORS[(m.element ?? i) % 6]}" class="ink"/>`).join("");
   const legend = names.map((n, i) => `<span style="color:${COLORS[i % 6]}">● ${n}</span>`).join(" ");
   const anim = ["joined", "lifted"].map((t) => {
     const moves = movesOf(t);
