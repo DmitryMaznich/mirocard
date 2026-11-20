@@ -5,7 +5,7 @@
 // The page shows the dense slant grid of the notebook (5 mm, as the row puts the letter on it) and the middle dashed line.
 import { readFileSync } from "node:fs";
 import { runnerImport } from "vite";
-import { letterMoves, letterPaths, piecePathD, composedMoves } from "../../../src/handwriting/letterParts.js";
+import { letterMoves, composedMoves, ownStrokes } from "../../../src/handwriting/letterParts.js";
 import { samplePath, toCubicPathD, stretchKeepSlantPathD } from "../../../src/handwriting/pathGeometry.js";
 import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "../../../src/handwriting/wordEngine.js";
 
@@ -41,25 +41,17 @@ const cards = letters.map((ch) => {
   // one, which comes from the row already widened)
   // (and without its join to the next letter where the app splits it off — `tailSplit` / `tailStroke`, ъ ь о …: the letter alone is written
   // without it, owner 2026-11-20: «у ъ нужно отделить соединение»)
-  const ownStrokes = composed ? null : (() => {
-    const st = normalizeLetterExtremes(raw).map((d) => ({ d: stretchKeepSlantPathD(d, raw.stretch ?? 1, 25, 62) }));
-    if (Number.isInteger(raw.tailStroke) && st[raw.tailStroke]) return st.filter((_, i) => i !== raw.tailStroke);
-    if (Number.isInteger(raw.tailSplit) && st[raw.tailSplit]) {
-      const parts = st[raw.tailSplit].d.split(/ (?=C )/);
-      const n = raw.tailSplitCount ?? 1;
-      if (parts.length - n >= 2) st[raw.tailSplit] = { d: parts.slice(0, parts.length - n).join(" ") };
-    }
-    return st;
-  })();
-  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: ownStrokes, trajectory: spec[ch] };
+  // (the join to the next letter is left out by letterParts itself — ownStrokes — where the app splits it off: `tailStroke` / `tailSplit`)
+  const fullStrokes = composed ? null : normalizeLetterExtremes(raw).map((d) => ({ d: stretchKeepSlantPathD(d, raw.stretch ?? 1, 25, 62) }));
+  const g = composed ? { ...raw, strokes: composed.strokes } : { ...raw, strokes: fullStrokes, trajectory: spec[ch] };
   const movesOf = (t) => (composed ? composedMoves(composed.strokes, composed.trajectory, t, spec[ch]?.parts) : letterMoves(g, t));
-  const pts = g.strokes.flatMap((s) => samplePath(toCubicPathD(s.d), 20));
+  const pts = (composed ? g.strokes : ownStrokes(g)).flatMap((s) => samplePath(toCubicPathD(s.d), 20));
   const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
   const x0 = Math.min(...xs) - 14, y0 = Math.min(-45, ...ys) - 10, w = Math.max(...xs) - x0 + 14, h = Math.max(118, ...ys) - y0 + 10;
   // the slants: the row lays the letter out on the dense grid; the line of the grid nearest to the letter's start there, carried over to this
   // frame through the same start point (the row and this frame differ by a scale and a shift only), then every 30 row units
   const rowSeg = layoutWideLinesIntoRows([ch], MAP, DENSE, false).placed[0].segments[0];
-  const ps = startOf(rowSeg.strokes[0].d), pc = startOf(g.strokes[0].d);
+  const ps = startOf(rowSeg.strokes[0].d), pc = startOf((composed ? g.strokes : ownStrokes(g))[0].d);
   const anchor = pc[0] + (DENSE(0, ps[0], ps[1]) - ps[0]) * ROW, step = 30 * ROW;
   const xAt = (n, y) => anchor + n * step - (y - pc[1]) * TAN;
   const slants = [];

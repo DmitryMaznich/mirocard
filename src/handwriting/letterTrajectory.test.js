@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { letterPaths, letterMoves, segmentShare, composedMoves } from "./letterParts.js";
+import { letterPaths, letterMoves, composedMoves, ownStrokes } from "./letterParts.js";
 import { samplePath, toCubicPathD } from "./pathGeometry.js";
 import { normalizeLetterExtremes, layoutWideLinesIntoRows } from "./wordEngine.js";
 import { buildGlyphMap } from "../topics/renderers/propis2/pageTask.js";
@@ -9,20 +9,11 @@ const wide = JSON.parse(readFileSync("tools/handwriting/cyrillic/wide.json", "ut
 const allSpec = JSON.parse(readFileSync("tools/handwriting/cyrillic/letter_elements.json", "utf-8")).letters;
 // (the composed letters — ш — have no line of their own: tested through the row below)
 const spec = Object.fromEntries(Object.entries(allSpec).filter(([, v]) => !v.composed));
-// the captured letter, without its join to the next letter where the app splits it off (glyphOverrides.js `tailStroke` / `tailSplit`: б э ъ о ю ф …)
-// — a letter alone, as a row of parts writes it, has no join
+// the captured letter with the app's marks of its join to the next letter (glyphOverrides.js `tailStroke` / `tailSplit`: б э ъ о ю ф …):
+// letterParts leaves the join out — a letter alone, as a row of parts writes it, has no join
 const APP = buildGlyphMap({ wide });
-const withoutTail = (g, app) => {
-  if (!app) return g;
-  if (Number.isInteger(app.tailStroke) && g.strokes[app.tailStroke]) return { ...g, strokes: g.strokes.filter((_, i) => i !== app.tailStroke) };
-  if (Number.isInteger(app.tailSplit) && g.strokes[app.tailSplit]) {
-    const parts = g.strokes[app.tailSplit].d.split(/ (?=[LQC] )/);
-    const n = app.tailSplitCount ?? 1;
-    if (parts.length - n >= 2) return { ...g, strokes: g.strokes.map((st, i) => (i === app.tailSplit ? { ...st, d: parts.slice(0, parts.length - n).join(" ") } : st)) };
-  }
-  return g;
-};
-const glyph = (ch) => ({ ...withoutTail(wide.find((g) => g.label === ch || g.aliases?.includes(ch)), APP.get(ch)), trajectory: spec[ch] });
+const tailOf = (app) => (app ? { tailStroke: app.tailStroke, tailSplit: app.tailSplit, tailSplitCount: app.tailSplitCount } : {});
+const glyph = (ch) => ({ ...wide.find((g) => g.label === ch || g.aliases?.includes(ch)), ...tailOf(APP.get(ch)), trajectory: spec[ch] });
 const endOf = (d) => d.trim().split(/\s+/).slice(-2).map(Number);
 const startOf = (d) => d.trim().split(/\s+/).slice(1, 3).map(Number);
 const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.6;
@@ -38,7 +29,7 @@ describe("р: the stick, the retrace up it, the hook (owner 2026-11-19)", () => 
   it("the retrace runs from the foot of the stick to where the hook begins", () => {
     const paths = letterPaths(r);
     expect(paths.map((p) => p.kind)).toEqual(["ink", "retrace", "ink"]);
-    expect(paths[1].from).toBeCloseTo(segmentShare(r.strokes[0].d, 1), 6);
+    expect(paths[1].from).toEqual({ seg: 1, t: 0 }); // the end of the stick: the start of the 2nd segment
     const moves = letterMoves(r, "joined");
     expect(near(startOf(moves[1].d), [88.86, 114])).toBe(true);
     expect(endOf(moves[1].d)[1]).toBeCloseTo(36, 1); // up the stick to the middle dashed line, where the hook begins
@@ -186,8 +177,10 @@ describe("after a retrace back, the next element begins on the line the pen came
     const m = letterMoves(glyph(ch), "joined");
     m.forEach((r, i) => {
       if (r.kind !== "retrace" || r.ink) return;
-      const stick = samplePath(toCubicPathD(m[i - 1].d), 400);
-      for (const q of samplePath(toCubicPathD(r.d), 40)) expect(Math.min(...stick.map((p) => Math.hypot(p[0] - q[0], p[1] - q[1]))), ch).toBeLessThan(0.05);
+      // (the distance to the stick's LINE: its samples joined into a polyline — the pieces are exact curves now, sampled sparsely)
+      const stick = samplePath(toCubicPathD(m[i - 1].d), 60);
+      const toLine = (q) => Math.min(...stick.slice(1).map((b, k) => { const a = stick[k], vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((q[0] - a[0]) * vx + (q[1] - a[1]) * vy) / L)); return Math.hypot(q[0] - a[0] - vx * t, q[1] - a[1] - vy * t); }));
+      for (const q of samplePath(toCubicPathD(r.d), 40)) expect(toLine(q), ch).toBeLessThan(0.05);
       expect(near(startOf(m[i + 1].d), endOf(r.d))).toBe(true);
     });
   }, 30000); // (ж: long retraces, slow)
@@ -197,7 +190,7 @@ describe("after a retrace back, the next element begins on the line the pen came
 // motion; lifted: every element starts anew
 describe("continues", () => {
   it.each(Object.keys(spec))("%s", (ch) => {
-    const strokes = glyph(ch).strokes.length;
+    const strokes = ownStrokes(glyph(ch)).length; // (without the join to the next letter: б э)
     const j = letterMoves(glyph(ch), "joined");
     expect(j.filter((m) => !m.continues && m.kind !== "lift").length, ch).toBe(strokes); // one fresh start per stroke (й: its breve)
     const l = letterMoves(glyph(ch), "lifted").filter((m) => m.kind === "ink");

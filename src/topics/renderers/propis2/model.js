@@ -3,6 +3,7 @@
 import { FOUR_LINE_IDS, fourLinePaper, isFourLinePaper } from "../../../handwriting/fourLinePapers.js";
 import { PRINT_PAPER_IDS, isPrintPaper, printPaper } from "../../../handwriting/printPapers.js";
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../../../handwriting/wordEngine.js";
+import { letterPieces, cubicSegs } from "../../../handwriting/letterParts.js";
 import { dropFlag, DROP_ROW_INDENT_CELLS } from "./dropCap.js";
 import { snapXFor, ownRowsPerPage } from "../../../handwriting/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../../../handwriting/propisRuling.js";
@@ -351,11 +352,26 @@ const styleTag = (row, glyphMap) => { const st = rowStyleOf(row, glyphMap); retu
 // The PARTS of its letter a row writes (the row panel's «Что пишем», owner 2026-11-16): `row.parts = { of, keep }` — the strokes `keep` (indices
 // into the letter's strokes) of the letter `of`, the row's text when they were picked. Typed over with something else, the row writes its text
 // whole again (the pick stays stored, unused). Its line gets `#p<i>.<j>…` (wordEngine layoutWideLinesIntoRows: the other strokes are not written).
-export const rowPartsOf = (row) => {
-  const p = row?.parts;
-  return row?.kind === "text" && p && Array.isArray(p.keep) && p.keep.length && p.of === String(row.text ?? "").trim() ? p.keep : null;
+// The parts of a copybook letter became its ELEMENTS (letter_elements.json, 2026-11-20): a pick made since carries `v: 2`. A pick made before
+// counted the letter's STROKES; it stands only where the parts are still exactly the strokes (the print letters, х, ё …), otherwise its numbers
+// would name other parts (б: 1 was its join, now the stick with the flag) — the row then writes its letter whole. `glyph`: the row's letter.
+export const PARTS_VERSION = 2;
+const partsAreStrokes = (glyph) => {
+  const pieces = letterPieces(glyph);
+  return pieces.length === (glyph?.strokes?.length ?? 0) && pieces.every((p, i) => p.stroke === i && (typeof p.from === "object" ? p.from.seg === 0 && p.from.t === 0 && p.to.t === 1 && p.to.seg === cubicSegs(glyph.strokes[i].d).length - 1 : p.from === 0 && p.to === 1));
 };
-const partsTag = (row) => { const keep = rowPartsOf(row); return keep ? `#p${[...keep].sort((a, b) => a - b).join(".")}` : ""; };
+export const rowPartsOf = (row, glyph) => {
+  const p = row?.parts;
+  if (!(row?.kind === "text" && p && Array.isArray(p.keep) && p.keep.length && p.of === String(row.text ?? "").trim())) return null;
+  if (p.v !== PARTS_VERSION && glyph && !partsAreStrokes(glyph)) return null;
+  return p.keep;
+};
+const rowLetterGlyph = (row, glyphMap) => {
+  const t = String(row?.text ?? "").trim();
+  const map = glyphMap ? rowGlyphMap(glyphMap, row) : null;
+  return t && [...t].length === 1 && map ? map.get(map.script?.caps ? t.toLocaleUpperCase("ru") : t) ?? null : null;
+};
+const partsTag = (row, glyphMap) => { const keep = rowPartsOf(row, rowLetterGlyph(row, glyphMap)); return keep ? `#p${[...keep].sort((a, b) => a - b).join(".")}` : ""; };
 
 export function pageToLines(page, glyphMap) {
   const out = [];
@@ -381,7 +397,7 @@ export function pageToLines(page, glyphMap) {
     const line = rowToLine(row);
     // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
     if (!line) { out.push(tag); return; }
-    out.push(`${line}${indentTag}${cutTag}${tag}${partsTag(row)}${styleTag(row, glyphMap)}`);
+    out.push(`${line}${indentTag}${cutTag}${tag}${partsTag(row, glyphMap)}${styleTag(row, glyphMap)}`);
     if (page?.writeAfter) out.push("");
   });
   return out;

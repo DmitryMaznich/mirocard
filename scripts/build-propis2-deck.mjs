@@ -56,6 +56,22 @@ if (existsSync(WIDE_PATH)) {
   topic.wideElementRepeat = wideData.elementRepeat ?? {};
   if (existsSync(PARTS_PATH)) topic.wide = [...topic.wide, ...JSON.parse(readFileSync(PARTS_PATH, "utf-8")).glyphs];
 }
+// the ELEMENTS of the copybook letters and the pen's way over them (docs/propis2-letter-parts.md): tools/handwriting/cyrillic/letter_elements.json
+// goes onto each letter as `trajectory` (src/handwriting/letterParts.js: the parts a row of one letter writes are its elements). A letter is
+// found by its label or an alias (п: the glyph п1). Composed letters (ш ы) have no line of their own: their entry has no strokes, nothing to add.
+const ELEMENTS_OF_LETTERS = "tools/handwriting/cyrillic/letter_elements.json";
+if (existsSync(ELEMENTS_OF_LETTERS) && Array.isArray(topic.wide)) {
+  const marks = JSON.parse(readFileSync(ELEMENTS_OF_LETTERS, "utf-8")).letters;
+  let n = 0;
+  for (const [ch, m] of Object.entries(marks)) {
+    if (!m.strokes || m.composed) continue;
+    const g = topic.wide.find((x) => x.label === ch) ?? topic.wide.find((x) => x.aliases?.includes(ch));
+    if (!g || g.compose) continue;
+    g.trajectory = { strokes: m.strokes };
+    n += 1;
+  }
+  console.log(`✓ elements of ${n} copybook letters (letter_elements.json)`);
+}
 if (existsSync(NUMBERS_PATH)) {
   const nd = JSON.parse(readFileSync(NUMBERS_PATH, "utf-8"));
   topic.elementNumbers = nd.numbers;

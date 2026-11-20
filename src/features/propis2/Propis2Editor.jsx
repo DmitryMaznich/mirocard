@@ -4,7 +4,7 @@ import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
 import { letterPieces, piecePathD } from "@/handwriting/letterParts.js";
-import { pageMidDash, rowPartsOf, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
+import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -598,13 +598,13 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const g = t && [...t].length === 1 ? map?.get(map.script?.caps ? t.toLocaleUpperCase("ru") : t) : null;
     return (g?.kind === "letter" || g?.kind === "element") && !g.compose && letterPieces(g).length > 1 ? g : null;
   })();
-  const partsSaved = partsGlyph ? rowPartsOf(selected) : null;
+  const partsSaved = partsGlyph ? rowPartsOf(selected, partsGlyph) : null;
   const partsCount = partsGlyph ? letterPieces(partsGlyph).length : 0;
   const partsKeep = partsSaved ?? Array.from({ length: partsCount }, (_, i) => i);
   const setParts = (keep) => {
     const all = !keep || keep.length >= partsCount;
     if (all) { const { parts: _p, ...rest } = selected; setRows(page.rows.map((r) => (r.id === selectedId ? rest : r))); return; }
-    patchSelected({ parts: { of: String(selected.text ?? "").trim(), keep: [...keep].sort((a, b) => a - b) } });
+    patchSelected({ parts: { of: String(selected.text ?? "").trim(), keep: [...keep].sort((a, b) => a - b), v: PARTS_VERSION } });
   };
   const togglePart = (i) => {
     const next = partsKeep.includes(i) ? partsKeep.filter((k) => k !== i) : [...partsKeep, i];

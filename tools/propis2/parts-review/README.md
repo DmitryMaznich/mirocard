@@ -9,3 +9,12 @@ LETTERS="абвгдеёжзийклмнопрстуфхцчшщъыьэюя" OUT
 rm src/topics/renderers/propis2/zzParts.test.jsx   # не коммитить
 ```
 Стиль — в тексте теста (`languageView(..., "ru", "cursive")`); колода — опубликованный ZIP `propis2`.
+
+Строки тетради с частями букв (как их кладёт движок на частую сетку; «буква:номера элементов»):
+
+```bash
+node tools/propis2/parts-review/rows-sheet.mjs "п:1;ж:1;ю:0.2" > /abs/path/rows.html
+```
+
+Анимация элементов и двух техник: `node tools/propis2/parts-review/trajectory-sheet.mjs [буквы] > out.html` (скрипты должны лежать в проекте:
+грузят JSX через Vite `runnerImport`).

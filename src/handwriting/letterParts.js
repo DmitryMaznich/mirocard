@@ -83,6 +83,13 @@ export function letterPieces(glyph) {
   if (!glyph?.strokes?.length) return [];
   const cache = AUTO_CUTS ? PIECES.on : PIECES.off;
   if (cache.has(glyph)) return cache.get(glyph);
+  // a copybook letter marked in tools/handwriting/cyrillic/letter_elements.json (the deck puts it on the glyph as `trajectory`): its parts are
+  // its ELEMENTS (owner 2026-11-19/20); their ends are positions on the path ({ seg, t }), exact on the letter as any row places it
+  if (glyph.trajectory && !glyph.upright) {
+    const els = letterPaths(glyph).filter((p) => p.kind === "ink").map(({ stroke, from, to }) => ({ stroke, from, to }));
+    cache.set(glyph, els);
+    return els;
+  }
   const out = [];
   glyph.strokes.forEach((st, si) => {
     const cuts = glyph.upright ? [] : (glyph.partCuts?.[si] ?? (AUTO_CUTS ? autoCuts(st.d) : []));
@@ -95,6 +102,7 @@ export function letterPieces(glyph) {
 
 // the piece of a path between two shares of its length, as a polyline (the cut pieces of a copybook letter); the whole path is returned as it is
 export function piecePathD(d, from, to) {
+  if (typeof from === "object" && from !== null) return subPathD(d, from, to);
   if (from <= 0 && to >= 1) return d;
   const { pts, len } = polyOf(d);
   const total = len[len.length - 1];
@@ -114,6 +122,7 @@ export function piecePathD(d, from, to) {
 // stroke that are written alike are joined back into one piece (one line, one start dot). `strokes`: the letter's strokes as placed on the row
 // (the same order and shape as the glyph's own, moved).
 export function splitIntoParts(strokes, glyph, hidden) {
+  if (glyph.trajectory && !glyph.upright) return splitMarked(strokes, glyph, hidden);
   const pieces = letterPieces(glyph);
   const out = [];
   strokes.forEach((s, si) => {
@@ -135,72 +144,178 @@ export function splitIntoParts(strokes, glyph, hidden) {
 // begins (a RETRACE: on paper, over ink already drawn, adding none) and on into the hook; `lifted` (the way schools lean now): every element on
 // its own from its own start dot; between them the pen is lifted (its way through the air is not shown). `glyph.trajectory` (tools/handwriting/cyrillic/
 // letter_elements.json) marks per stroke `retrace: [[a, b]…]` and `cuts: [a…]` (an element begins without a retrace), positions counted in
-// path segments from the stroke's start. Not wired into the rows yet: `letterPieces` (the parts a row keeps) still has its old numbering.
+// path segments from the stroke's start. The parts a row keeps (`letterPieces`) of a marked letter are its elements.
 
-// the share of the stroke's length at a position: a number of segments (2 = the end of the 2nd segment after M, 2.5 = the middle of the
-// 3rd by its curve parameter), or { seg, y } — the first point after the end of segment `seg` where the path reaches the height y (a
-// guide line of the letter's band: 10 the top of the small letters, 36 the middle dashed line, 62 the baseline, in the capture frame), or
-// { seg, top: true } — the highest point of the segment after `seg`
+// the share of the stroke's length at a position (kept for the review sheets and the old share-based cuts): a number of segments (2 = the end of
+// the 2nd segment after M, 2.5 = the middle of the 3rd by its curve parameter), { seg, y } or { seg, top: true } — see anchorPos
 export function segmentShare(d, at) {
-  const { pts, len } = polyOf(d);
+  const { len } = polyOf(d);
   const total = len[len.length - 1];
   if (!total) return 0;
-  // { seg, top: true } — the highest point of the segment after `seg` (л м: where the pen turns down at the top, a cut without a retrace)
-  if (typeof at === "object" && at !== null && at.top) {
-    const from = Math.round(at.seg * PER_SEGMENT), to = Math.min(pts.length - 1, from + PER_SEGMENT);
-    let best = from;
-    for (let i = from; i <= to; i += 1) if (pts[i][1] < pts[best][1]) best = i;
-    return len[best] / total;
+  const p = anchorPos(d, at);
+  const i = Math.min(len.length - 1, Math.round((p.seg + p.t) * PER_SEGMENT));
+  return len[i] / total;
+}
+
+// ── positions on a path: { seg, t } — the segment (0-based, of the path as cubics: every L / Q / C one segment) and the curve parameter on it.
+// A row places a letter by mapping its points (the fit to the lines, the widening along the slant, the move — wordEngine): a cubic's curve
+// parameter stays where it was, so a position found on the glyph's own path is the same point of the letter on the placed one, exactly.
+const SEGS = new Map(); // d -> [[p0, p1, p2, p3], …]
+export function cubicSegs(d) {
+  if (!SEGS.has(d)) {
+    const t = toCubicPathD(d).match(/[MC]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
+    const segs = [];
+    let cur = null;
+    for (let i = 0; i < t.length;) {
+      if (t[i] === "M") { cur = [+t[i + 1], +t[i + 2]]; i += 3; continue; }
+      if (t[i] === "C") { i += 1; continue; }
+      const n = t.slice(i, i + 6).map(Number); i += 6;
+      segs.push([cur, [n[0], n[1]], [n[2], n[3]], [n[4], n[5]]]);
+      cur = [n[4], n[5]];
+    }
+    if (SEGS.size > 4000) SEGS.clear();
+    SEGS.set(d, segs);
   }
-  if (typeof at === "object" && at !== null) {
-    for (let i = Math.max(1, Math.round(at.seg * PER_SEGMENT) + 1); i < pts.length; i += 1) {
-      const a = pts[i - 1][1] - at.y, b = pts[i][1] - at.y;
-      if (a === 0) return len[i - 1] / total;
-      if (a * b <= 0) return (len[i - 1] + (len[i] - len[i - 1]) * (a / (a - b))) / total;
+  return SEGS.get(d);
+}
+const bez = (P, t) => [0, 1].map((i) => (1 - t) ** 3 * P[0][i] + 3 * (1 - t) ** 2 * t * P[1][i] + 3 * (1 - t) * t * t * P[2][i] + t ** 3 * P[3][i]);
+const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+// de Casteljau: the cubic split at t, [left, right]
+function splitCubic(P, t) {
+  const a = lerp(P[0], P[1], t), b = lerp(P[1], P[2], t), c = lerp(P[2], P[3], t), e = lerp(a, b, t), f = lerp(b, c, t), m = lerp(e, f, t);
+  return [[P[0], a, e, m], [m, f, c, P[3]]];
+}
+const posValue = (p) => p.seg + p.t;
+// a position from a mark of letter_elements.json on the glyph's own path: a number of segments (k = the start of the k-th segment counted from 0,
+// i.e. the end of the k-th after M; k.5 = the middle of the next by its parameter), { seg, y } — the first point from segment `seg` on at the
+// height y (a guide line in the capture frame: 10 the top line, 36 the middle line, 62 the baseline), { seg, top: true } — the highest point
+// of segment `seg`
+export function anchorPos(d, at) {
+  const segs = cubicSegs(d);
+  const n = segs.length;
+  if (typeof at === "number") {
+    const seg = Math.floor(at), t = at - seg;
+    return seg >= n ? { seg: n - 1, t: 1 } : { seg: Math.max(0, seg), t: seg < 0 ? 0 : t };
+  }
+  if (at && at.top) {
+    const P = segs[Math.min(n - 1, at.seg)];
+    let best = 0, by = Infinity;
+    for (let k = 0; k <= 400; k += 1) { const y = bez(P, k / 400)[1]; if (y < by) { by = y; best = k / 400; } }
+    return { seg: Math.min(n - 1, at.seg), t: best };
+  }
+  if (at && Number.isFinite(at.y)) {
+    for (let i = Math.max(0, at.seg); i < n; i += 1) {
+      const P = segs[i];
+      let prev = bez(P, 0)[1] - at.y;
+      for (let k = 1; k <= 64; k += 1) {
+        const cur = bez(P, k / 64)[1] - at.y;
+        if (prev === 0) return { seg: i, t: (k - 1) / 64 };
+        if (prev * cur <= 0) {
+          let lo = (k - 1) / 64, hi = k / 64;
+          for (let r = 0; r < 40; r += 1) { const m = (lo + hi) / 2; const v = bez(P, m)[1] - at.y; if ((v > 0) === (prev > 0)) lo = m; else hi = m; }
+          return { seg: i, t: (lo + hi) / 2 };
+        }
+        prev = cur;
+      }
     }
     throw new Error(`the path never reaches y=${at.y} after segment ${at.seg}`);
   }
-  const x = Math.max(0, Math.min((len.length - 1) / PER_SEGMENT, at)) * PER_SEGMENT;
-  const i = Math.floor(x), t = x - i;
-  const s = i >= len.length - 1 ? len[len.length - 1] : len[i] + (len[i + 1] - len[i]) * t;
-  return s / total;
+  throw new Error("not a position: " + JSON.stringify(at));
+}
+export const pointAtPos = (d, pos) => bez(cubicSegs(d)[pos.seg], pos.t);
+// the exact piece of a path between two positions, as cubics (no faceting, the curve itself)
+export function subPathD(d, a, b) {
+  const segs = cubicSegs(d);
+  const f = (q) => `${q[0].toFixed(3)} ${q[1].toFixed(3)}`;
+  const out = [];
+  for (let i = a.seg; i <= b.seg; i += 1) {
+    let P = segs[i];
+    const t0 = i === a.seg ? a.t : 0, t1 = i === b.seg ? b.t : 1;
+    if (t1 - t0 <= 1e-9) continue;
+    if (t1 < 1) P = splitCubic(P, t1)[0];
+    if (t0 > 0) P = splitCubic(P, t0 / t1)[1];
+    out.push(P);
+  }
+  if (!out.length) { const q = pointAtPos(d, a); return `M ${f(q)} C ${f(q)} ${f(q)} ${f(q)}`; }
+  return `M ${f(out[0][0])} ` + out.map((P) => `C ${f(P[1])} ${f(P[2])} ${f(P[3])}`).join(" ");
 }
 
-// [{ kind: "ink" | "retrace", stroke, from, to, element? }] in writing order (shares of the stroke's length): the ink pieces carry the number
-// of the element they are; a stroke with nothing marked is one element
+// the letter's own strokes without its join to the next letter where the app splits it off (glyphOverrides.js `tailStroke`: a stroke of its
+// own, б э; `tailSplit`: the last `tailSplitCount` commands of a stroke, о ю ф ъ ь): a letter alone, as a row of parts writes it, has no join.
+// The engine splits the same way (wordEngine wideGlyphLocalCompute), so these strokes match the row's placed ones one by one.
+export function ownStrokes(glyph) {
+  const st = glyph?.strokes ?? [];
+  if (Number.isInteger(glyph?.tailStroke) && st[glyph.tailStroke]) return st.filter((_, i) => i !== glyph.tailStroke);
+  if (Number.isInteger(glyph?.tailSplit) && st[glyph.tailSplit]) {
+    const parts = String(st[glyph.tailSplit].d).trim().split(/ (?=[LQC] )/);
+    const n = glyph.tailSplitCount ?? 1;
+    if (parts.length - n >= 2) return st.map((s, i) => (i === glyph.tailSplit ? { ...s, d: parts.slice(0, parts.length - n).join(" ") } : s));
+  }
+  return st;
+}
+
+// [{ kind: "ink" | "retrace", stroke, from, to, element? }] in writing order, `from` / `to` positions ({ seg, t }) on the letter's own strokes
+// (ownStrokes: its join to the next letter left out): the ink pieces carry the number of the element they are; a stroke with nothing marked is
+// one element
+const PATHS = new WeakMap();
 export function letterPaths(glyph) {
+  if (glyph && PATHS.has(glyph)) return PATHS.get(glyph);
   const out = [];
   let element = 0;
-  (glyph?.strokes ?? []).forEach((st, si) => {
+  ownStrokes(glyph).forEach((st, si) => {
     const spec = glyph.trajectory?.strokes?.[si] ?? {};
+    const pos = (at) => anchorPos(st.d, at);
     // `links` (ж): a line INSIDE the letter between two of its elements that is not part of either — written by the joined hand (a line on
     // the paper), left out by the lifted one; unlike a retrace it need not run along an element's line
     const retr = [
       // (a third entry "ahead" says outright that the pen goes up the line of the element it is about to write — я: part of that way runs
       // over its own rise before the loop, so the rule by the ink already drawn would take it for a way back)
-      ...(spec.retrace ?? []).map(([a, b, kind]) => [segmentShare(st.d, a), segmentShare(st.d, b), false, kind === "ahead"]),
-      ...(spec.links ?? []).map(([a, b]) => [segmentShare(st.d, a), segmentShare(st.d, b), true, false]),
-    ].sort((p, q) => p[0] - q[0]);
-    const cuts = (spec.cuts ?? []).map((a) => segmentShare(st.d, a));
-    let pos = 0;
+      ...(spec.retrace ?? []).map(([a, b, kind]) => [pos(a), pos(b), false, kind === "ahead"]),
+      ...(spec.links ?? []).map(([a, b]) => [pos(a), pos(b), true, false]),
+    ].sort((p, q) => posValue(p[0]) - posValue(q[0]));
+    const cuts = (spec.cuts ?? []).map(pos);
+    const end = { seg: cubicSegs(st.d).length - 1, t: 1 };
+    let at = { seg: 0, t: 0 };
     const ink = (from, to) => {
-      const edges = [from, ...cuts.filter((c) => c > from && c < to).sort((p, q) => p - q), to];
-      for (let k = 0; k + 1 < edges.length; k += 1) if (edges[k + 1] > edges[k]) out.push({ kind: "ink", stroke: si, from: edges[k], to: edges[k + 1], element: element++ });
+      const edges = [from, ...cuts.filter((c) => posValue(c) > posValue(from) && posValue(c) < posValue(to)).sort((p, q) => posValue(p) - posValue(q)), to];
+      for (let k = 0; k + 1 < edges.length; k += 1) if (posValue(edges[k + 1]) - posValue(edges[k]) > 1e-9) out.push({ kind: "ink", stroke: si, from: edges[k], to: edges[k + 1], element: element++ });
     };
     for (const [a, b, link, ahead] of retr) {
-      ink(pos, a);
+      ink(at, a);
       out.push({ kind: "retrace", stroke: si, from: a, to: b, ...(link ? { link: true } : {}), ...(ahead ? { ahead: true } : {}) });
-      pos = b;
+      at = b;
     }
-    ink(pos, 1);
+    ink(at, end);
   });
+  if (glyph) PATHS.set(glyph, out);
   return out;
 }
 
-const pointOf = (d, share) => {
-  const { pts, len } = polyOf(d);
-  return pointAt(pts, len, share * len[len.length - 1]);
-};
+// A placed MARKED letter written only in part (a row's `#p`): its strokes cut at the ends of its elements; an element not written is hidden,
+// and so is a retrace or link next to one (it belongs to the writing of the two elements it lies between: with one of them left out the pen
+// has no way to go there). Consecutive pieces written alike are joined back into one (one line, one start dot).
+function splitMarked(strokes, glyph, hidden) {
+  const paths = letterPaths(glyph);
+  const inks = paths.filter((p) => p.kind === "ink");
+  const out = [];
+  strokes.forEach((s, si) => {
+    const mine = paths.filter((p) => p.stroke === si);
+    const runs = [];
+    mine.forEach((p, k) => {
+      let h;
+      if (p.kind === "ink") h = hidden.has(p.element);
+      else {
+        const before = [...mine.slice(0, k)].reverse().find((q) => q.kind === "ink"), after = mine.slice(k + 1).find((q) => q.kind === "ink");
+        h = (before && hidden.has(before.element)) || (after && hidden.has(after.element)) || !before || !after;
+      }
+      const last = runs[runs.length - 1];
+      if (last && last.hidden === h) last.to = p.to; else runs.push({ from: p.from, to: p.to, hidden: h });
+    });
+    for (const r of runs) out.push({ ...s, d: subPathD(s.d, r.from, r.to), ...(r.hidden ? { hidden: true } : {}) });
+  });
+  void inks;
+  return out;
+}
 
 // The moves of the pen writing the letter in a technique, in order, over the given strokes (the glyph's own, or as placed on a row — the
 // same order and shape): { kind: "ink", d, element, startDot } — draws; { kind: "retrace", d, ink? } — the pen on paper along the line of an
@@ -209,7 +324,7 @@ const pointOf = (d, share) => {
 // down: the start of each stroke, and in `lifted` the start of every element. `continues: true` — the move goes on from the previous one with
 // the pen on the paper: a player must run it as ONE motion with it, at the same speed and without a pause (owner, 2026-11-19: «при
 // непрерывном соединении стыки траектории должны быть незаметными»).
-export function letterMoves(glyph, technique = "joined", strokes = glyph?.strokes) {
+export function letterMoves(glyph, technique = "joined", strokes = ownStrokes(glyph)) {
   const moves = [];
   let last = null; // [x, y] where the pen is
   let lastStroke = -1;
@@ -225,18 +340,18 @@ export function letterMoves(glyph, technique = "joined", strokes = glyph?.stroke
         const over = samplePath(toCubicPathD(rd), 6).filter((q) => drawn.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1]) < 1)).length;
         const ahead = p.link || p.ahead || over < samplePath(toCubicPathD(rd), 6).length / 2;
         moves.push({ kind: "retrace", d: rd, continues: true, ...(ahead ? { ink: true } : {}), ...(p.link ? { link: true } : {}) });
-        last = pointOf(d, p.to);
+        last = pointAtPos(d, p.to);
       }
       continue;
     }
-    const start = pointOf(d, p.from);
+    const start = pointAtPos(d, p.from);
     // (lifted: every element from its own start dot, also one that goes on from the point where the last one ended)
     const touchDown = p.stroke !== lastStroke || technique === "lifted";
     if (touchDown && last && Math.hypot(start[0] - last[0], start[1] - last[1]) > 0.5) moves.push({ kind: "lift", from: last, to: start });
     const ink = piecePathD(d, p.from, p.to);
     moves.push({ kind: "ink", d: ink, element: p.element, startDot: Boolean(touchDown), ...(touchDown ? {} : { continues: true }) });
     drawn.push(...samplePath(toCubicPathD(ink), 12));
-    last = pointOf(d, p.to);
+    last = pointAtPos(d, p.to);
     lastStroke = p.stroke;
   }
   return moves;
