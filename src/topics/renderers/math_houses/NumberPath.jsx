@@ -1,4 +1,5 @@
-import { Fragment, useId, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { CheckmarkIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons.jsx";
 import { arePathNeighbors } from "./numberPath.js";
 import "./numberPath.css";
 
@@ -8,6 +9,14 @@ function sum([left, right]) {
 
 function expression(pair) {
   return pair.join(" + ");
+}
+
+function directionTo(from, to, size) {
+  if (to === from + 1) return "right";
+  if (to === from - 1) return "left";
+  if (to === from + size) return "down";
+  if (to === from - size) return "up";
+  return undefined;
 }
 
 function Counters({ pair, showPlus = false }) {
@@ -43,12 +52,24 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
   const boardRef = useRef(null);
   const boardViewportRef = useRef(null);
   const moveFocus = useRef(false);
+  const completionReported = useRef(false);
   const current = route.at(-1);
+  const finished = current === finish;
   const guideCell = task.route[1];
   const guideLabel = expression(cells[guideCell]);
   const pickedPair = cells[lastPick];
   const incorrect = pickedPair && sum(pickedPair) !== number;
   const canFinish = arePathNeighbors(current, finish, size);
+  const nextByCell = new Map(route.slice(0, -1).map((cell, step) => [cell, route[step + 1]]));
+
+  useEffect(() => {
+    if (!finished || interactionDisabled || completionReported.current) return undefined;
+    const timer = window.setTimeout(() => {
+      completionReported.current = true;
+      onCorrect(task.conceptId, task.cardId);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [finished, interactionDisabled, onCorrect, task.conceptId, task.cardId]);
 
   useLayoutEffect(() => {
     const viewport = boardViewportRef.current;
@@ -58,8 +79,9 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
     function keepCurrentCellVisible() {
       const bounds = viewport.getBoundingClientRect();
       const cell = tile.getBoundingClientRect();
-      const horizontalMargin = Math.max(0, Math.min(cell.width + 5, (viewport.clientWidth - cell.width) / 2));
-      const verticalMargin = Math.max(0, Math.min(cell.height + 5, (viewport.clientHeight - cell.height) / 2));
+      const gap = parseFloat(getComputedStyle(boardRef.current).gap) || 0;
+      const horizontalMargin = Math.max(0, Math.min(cell.width + gap, (viewport.clientWidth - cell.width) / 2));
+      const verticalMargin = Math.max(0, Math.min(cell.height + gap, (viewport.clientHeight - cell.height) / 2));
       const left = Math.min(0, cell.left - horizontalMargin - bounds.left)
         || Math.max(0, cell.right + horizontalMargin - bounds.left - viewport.clientWidth);
       const top = Math.min(0, cell.top - verticalMargin - bounds.top)
@@ -92,64 +114,79 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
       setShowGuide(false);
       setUsedGuide(true);
     }
-    if (index === finish) {
-      onCorrect(task.conceptId, task.cardId);
-      return;
-    }
-    moveFocus.current = event.detail === 0;
+    moveFocus.current = index !== finish && event.detail === 0;
     setRoute([...route, index]);
   }
 
-  const message = pickedPair ? `${expression(pickedPair)} = ${sum(pickedPair)}` : `Начни с ${firstLabel}.`;
-  const detail = incorrect ? (restartOnMistake ? `Начни снова с ${firstLabel}.` : `Найди рядом клетку с суммой ${number}.`)
-    : canFinish ? `Теперь нажми на ${lastLabel}.` : "Выбери одну из соседних клеток.";
+  const message = finished ? "Дорожка пройдена!"
+    : pickedPair ? `${expression(pickedPair)} = ${sum(pickedPair)}` : `Старт на клетке ${firstLabel}`;
+  const detail = finished ? `${lastLabel} = ${number}`
+    : incorrect ? (restartOnMistake ? "Начни снова со старта." : "Попробуй другую соседнюю клетку.")
+      : canFinish ? `Шагни на финиш: ${lastLabel}.` : "Выбери одну из соседних клеток.";
 
   return (
     <section
       className="number-path"
+      data-size={size}
       style={{ "--number-path-size": size }}
       aria-labelledby={titleId}
     >
       <header className="number-path__goal">
         <div>
-          <h2 id={titleId}>Найди дорожку до {lastLabel}</h2>
-          <p>Нажимай на соседние клетки, где сумма равна {number}.</p>
+          <h2 id={titleId}>Найди дорожку</h2>
+          <p>Шагай к финишу по клеткам с суммой <strong>{number}</strong>.</p>
         </div>
-        <span className="number-path__target" aria-hidden="true">{number}</span>
+        <div className="number-path__target" aria-hidden="true">
+          <span>Сумма</span>
+          <strong>{number}</strong>
+        </div>
       </header>
-      <div ref={boardViewportRef} className="number-path__board-viewport">
-        <div
-          ref={boardRef}
-          className="number-path__board"
-          role="group"
-          aria-label="Поле задания"
-        >
-          {cells.map((pair, index) => {
-            const visited = route.includes(index);
-            const guided = showGuide && index === guideCell;
-            const neighbor = !visited && arePathNeighbors(current, index, size) && (!showGuide || guided);
-            const state = index === current ? "current" : visited ? "path" : guided ? "guide"
-              : incorrect && !restartOnMistake && index === lastPick ? "retry" : neighbor ? "neighbor" : "idle";
-            const label = expression(pair);
-            const description = {
-              current: "здесь", path: "пройдено", retry: "сумма не подходит",
-              neighbor: "соседняя клетка", guide: "клетка для первого хода",
-            }[state];
-            return (
-              <button
-                key={index}
-                type="button"
-                className="number-path__tile"
-                data-state={state}
-                aria-label={description ? `${label}, ${description}` : label}
-                disabled={!neighbor || interactionDisabled}
-                onClick={(event) => choose(index, event)}
-              >
-                <span>{label}</span>
-                {showCounters && neighbor && !showGuide && <Counters pair={pair} />}
-              </button>
-            );
-          })}
+      <div className="number-path__field">
+        <div ref={boardViewportRef} className="number-path__board-viewport">
+          <div
+            ref={boardRef}
+            className="number-path__board"
+            role="group"
+            aria-label="Поле задания"
+          >
+            {cells.map((pair, index) => {
+              const visited = route.includes(index);
+              const guided = showGuide && index === guideCell;
+              const neighbor = !finished && !visited && arePathNeighbors(current, index, size) && (!showGuide || guided);
+              const state = index === current ? "current" : visited ? "path" : guided ? "guide"
+                : incorrect && !restartOnMistake && index === lastPick ? "retry" : neighbor ? "neighbor" : "idle";
+              const label = expression(pair);
+              const description = {
+                current: "здесь", path: "пройдено", retry: "сумма не подходит",
+                neighbor: "соседняя клетка", guide: "клетка для первого хода",
+              }[state];
+              const endpoint = index === start ? "Старт" : index === finish ? "Финиш" : null;
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  className="number-path__tile"
+                  data-state={state}
+                  data-endpoint={index === start ? "start" : index === finish ? "finish" : undefined}
+                  data-link={directionTo(index, nextByCell.get(index), size)}
+                  aria-label={[label, endpoint, description].filter(Boolean).join(", ")}
+                  disabled={!neighbor || interactionDisabled}
+                  onClick={(event) => choose(index, event)}
+                >
+                  {endpoint && <span className="number-path__endpoint" aria-hidden="true">{endpoint}</span>}
+                  {!endpoint && (state === "current" || state === "path" || state === "retry") && (
+                    <span className="number-path__marker" aria-hidden="true">
+                      {state === "path" ? "✓" : state === "retry" ? "×" : "●"}
+                    </span>
+                  )}
+                  <span className="number-path__sum">
+                    {pair[0]}<span className="number-path__plus">+</span>{pair[1]}
+                  </span>
+                  {showCounters && neighbor && !showGuide && <Counters pair={pair} />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
       <footer className="number-path__footer">
@@ -158,11 +195,16 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
             <Counters pair={cells[guideCell]} showPlus />
             <strong>= {number}</strong>
           </div>
-          <p>{guideLabel} = {number}. Нажми на клетку {guideLabel}.</p>
+          <p>{guideLabel} = {number}. Нажми на эту клетку.</p>
         </div>
         <div className="number-path__feedback" data-mistake={Boolean(incorrect)} role="status" aria-atomic="true" hidden={showGuide}>
-          <strong>{message}</strong>
-          <p>{detail}</p>
+          <span className="number-path__feedback-icon" aria-hidden="true">
+            {incorrect ? "×" : pickedPair ? <CheckmarkIcon size={20} /> : <ForwardArrowIcon size={20} />}
+          </span>
+          <div>
+            <strong>{message}</strong>
+            <p>{detail}</p>
+          </div>
         </div>
         <div className="number-path__actions">
           {route.length === 1 && !usedGuide && (
@@ -171,7 +213,7 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
               type="button"
               aria-expanded={showGuide}
               aria-controls={guideId}
-              disabled={interactionDisabled}
+              disabled={interactionDisabled || finished}
               onClick={() => {
                 if (!showGuide) setLastPick(null);
                 setShowGuide(!showGuide);
@@ -184,8 +226,8 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
             <button
               className="number-path__action"
               type="button"
-              data-active={showCounters}
-              disabled={interactionDisabled}
+              aria-pressed={showCounters}
+              disabled={interactionDisabled || finished}
               onClick={() => setShowCounters(!showCounters)}
             >
               {showCounters ? "Скрыть фишки" : "Показать фишки"}
