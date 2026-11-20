@@ -32,7 +32,6 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
   const cells = task.cells.map((pair, index) => pair ?? (index === start ? [number, 0] : [0, number]));
   const firstLabel = expression(cells[start]);
   const lastLabel = expression(cells[finish]);
-  const largeBoard = size > 5;
   const restartOnMistake = sessionParams?.mistakeBehavior === "restart";
   const titleId = useId();
   const guideId = useId();
@@ -52,26 +51,31 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
   const canFinish = arePathNeighbors(current, finish, size);
 
   useLayoutEffect(() => {
-    if (largeBoard) {
-      const viewport = boardViewportRef.current;
-      const tile = boardRef.current?.querySelector('[data-state="current"]');
-      if (viewport && tile) {
-        const bounds = viewport.getBoundingClientRect();
-        const cell = tile.getBoundingClientRect();
-        const gap = 8;
-        viewport.scrollBy({
-          left: Math.min(0, cell.left - cell.width - gap - bounds.left)
-            || Math.max(0, cell.right + cell.width + gap - bounds.left - viewport.clientWidth),
-          top: Math.min(0, cell.top - cell.height - gap - bounds.top)
-            || Math.max(0, cell.bottom + cell.height + gap - bounds.top - viewport.clientHeight),
-          behavior: "instant",
-        });
-      }
+    const viewport = boardViewportRef.current;
+    const tile = boardRef.current?.querySelector('[data-state="current"]');
+    if (!viewport || !tile) return undefined;
+
+    function keepCurrentCellVisible() {
+      const bounds = viewport.getBoundingClientRect();
+      const cell = tile.getBoundingClientRect();
+      const horizontalMargin = Math.max(0, Math.min(cell.width + 5, (viewport.clientWidth - cell.width) / 2));
+      const verticalMargin = Math.max(0, Math.min(cell.height + 5, (viewport.clientHeight - cell.height) / 2));
+      const left = Math.min(0, cell.left - horizontalMargin - bounds.left)
+        || Math.max(0, cell.right + horizontalMargin - bounds.left - viewport.clientWidth);
+      const top = Math.min(0, cell.top - verticalMargin - bounds.top)
+        || Math.max(0, cell.bottom + verticalMargin - bounds.top - viewport.clientHeight);
+      if (left || top) viewport.scrollBy({ left, top, behavior: "instant" });
     }
-    if (!moveFocus.current) return;
-    moveFocus.current = false;
-    boardRef.current?.querySelector("button:not(:disabled)")?.focus({ preventScroll: largeBoard });
-  }, [current, largeBoard, showGuide]);
+
+    keepCurrentCellVisible();
+    if (moveFocus.current) {
+      moveFocus.current = false;
+      boardRef.current?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+    }
+    const observer = new ResizeObserver(keepCurrentCellVisible);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [current, showGuide]);
 
   function choose(index, event) {
     const pair = cells[index];
@@ -102,33 +106,53 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
 
   return (
     <section
-      className={`number-path${largeBoard ? " number-path--large" : ""}`}
+      className="number-path"
       style={{ "--number-path-size": size }}
       aria-labelledby={titleId}
     >
-      <div className="number-path__sheet">
-        <header className="number-path__goal">
-          <div>
-            <h2 id={titleId}>Найди дорожку до {lastLabel}</h2>
-            <p>Нажимай на соседние клетки, где сумма равна {number}.</p>
-          </div>
-          <span className="number-path__target" aria-hidden="true">{number}</span>
-        </header>
-        {route.length === 1 && !usedGuide && (
-          <button
-            className="number-path__action number-path__guide-toggle"
-            type="button"
-            aria-expanded={showGuide}
-            aria-controls={guideId}
-            disabled={interactionDisabled}
-            onClick={() => {
-              if (!showGuide) setLastPick(null);
-              setShowGuide(!showGuide);
-            }}
-          >
-            {showGuide ? "Закрыть показ" : "Показать первый ход"}
-          </button>
-        )}
+      <header className="number-path__goal">
+        <div>
+          <h2 id={titleId}>Найди дорожку до {lastLabel}</h2>
+          <p>Нажимай на соседние клетки, где сумма равна {number}.</p>
+        </div>
+        <span className="number-path__target" aria-hidden="true">{number}</span>
+      </header>
+      <div ref={boardViewportRef} className="number-path__board-viewport">
+        <div
+          ref={boardRef}
+          className="number-path__board"
+          role="group"
+          aria-label="Поле задания"
+        >
+          {cells.map((pair, index) => {
+            const visited = route.includes(index);
+            const guided = showGuide && index === guideCell;
+            const neighbor = !visited && arePathNeighbors(current, index, size) && (!showGuide || guided);
+            const state = index === current ? "current" : visited ? "path" : guided ? "guide"
+              : incorrect && !restartOnMistake && index === lastPick ? "retry" : neighbor ? "neighbor" : "idle";
+            const label = expression(pair);
+            const description = {
+              current: "здесь", path: "пройдено", retry: "сумма не подходит",
+              neighbor: "соседняя клетка", guide: "клетка для первого хода",
+            }[state];
+            return (
+              <button
+                key={index}
+                type="button"
+                className="number-path__tile"
+                data-state={state}
+                aria-label={description ? `${label}, ${description}` : label}
+                disabled={!neighbor || interactionDisabled}
+                onClick={(event) => choose(index, event)}
+              >
+                <span>{label}</span>
+                {showCounters && neighbor && !showGuide && <Counters pair={pair} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <footer className="number-path__footer">
         <div id={guideId} className="number-path__guide" hidden={!showGuide}>
           <div className="number-path__worked" aria-hidden="true">
             <Counters pair={cells[guideCell]} showPlus />
@@ -136,57 +160,39 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
           </div>
           <p>{guideLabel} = {number}. Нажми на клетку {guideLabel}.</p>
         </div>
-        <div ref={boardViewportRef} className="number-path__board-viewport">
-          <div
-            ref={boardRef}
-            className="number-path__board"
-            role="group"
-            aria-label="Поле задания"
-          >
-            {cells.map((pair, index) => {
-              const visited = route.includes(index);
-              const guided = showGuide && index === guideCell;
-              const neighbor = !visited && arePathNeighbors(current, index, size) && (!showGuide || guided);
-              const state = index === current ? "current" : visited ? "path" : guided ? "guide"
-                : incorrect && !restartOnMistake && index === lastPick ? "retry" : neighbor ? "neighbor" : "idle";
-              const label = expression(pair);
-              const description = {
-                current: "здесь", path: "пройдено", retry: "сумма не подходит",
-                neighbor: "соседняя клетка", guide: "клетка для первого хода",
-              }[state];
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  className="number-path__tile"
-                  data-state={state}
-                  aria-label={description ? `${label}, ${description}` : label}
-                  disabled={!neighbor || interactionDisabled}
-                  onClick={(event) => choose(index, event)}
-                >
-                  <span>{label}</span>
-                  {showCounters && neighbor && !showGuide && <Counters pair={pair} />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
         <div className="number-path__feedback" data-mistake={Boolean(incorrect)} role="status" aria-atomic="true" hidden={showGuide}>
           <strong>{message}</strong>
           <p>{detail}</p>
         </div>
-        {!showGuide && (
-          <button
-            className="number-path__action"
-            type="button"
-            data-active={showCounters}
-            disabled={interactionDisabled}
-            onClick={() => setShowCounters(!showCounters)}
-          >
-            {showCounters ? "Скрыть фишки" : "Показать фишки"}
-          </button>
-        )}
-      </div>
+        <div className="number-path__actions">
+          {route.length === 1 && !usedGuide && (
+            <button
+              className="number-path__action"
+              type="button"
+              aria-expanded={showGuide}
+              aria-controls={guideId}
+              disabled={interactionDisabled}
+              onClick={() => {
+                if (!showGuide) setLastPick(null);
+                setShowGuide(!showGuide);
+              }}
+            >
+              {showGuide ? "Закрыть показ" : "Показать первый ход"}
+            </button>
+          )}
+          {!showGuide && (
+            <button
+              className="number-path__action"
+              type="button"
+              data-active={showCounters}
+              disabled={interactionDisabled}
+              onClick={() => setShowCounters(!showCounters)}
+            >
+              {showCounters ? "Скрыть фишки" : "Показать фишки"}
+            </button>
+          )}
+        </div>
+      </footer>
     </section>
   );
 }
