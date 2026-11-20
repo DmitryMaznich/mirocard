@@ -101,7 +101,12 @@ describe("ъ stands by its stem (stemOnLine)", () => {
     }
   });
   it("other letters are snapped by their start as before", () => {
-    for (const lab of ["ь", "н", "к", "у", "о"]) expect(wideGlyphLocal(map.get(lab), 1).stemDx).toBe(0);
+    for (const lab of ["ь", "н", "к", "о"]) expect(wideGlyphLocal(map.get(lab), 1).stemDx).toBe(0);
+  });
+  // и у ц щ (owner 2026-11-20): their start is a small rounded tip left of the stick — they stand by the stick too, a small step to the right
+  it("и у ц щ stand by their first stick: a small step, the same for all four", () => {
+    const d = ["и", "у", "ц", "щ"].map((lab) => wideGlyphLocal(map.get(lab), 1).stemDx);
+    for (const v of d) { expect(v).toBeGreaterThan(0.5); expect(v).toBeLessThan(1.2); expect(v).toBeCloseTo(d[0], 2); }
   });
   it("a glyph without a long straight segment gets no anchor", () => {
     const g = { strokes: [{ d: "M 0 0 L 1 1 Q 2 2 3 3" }] };

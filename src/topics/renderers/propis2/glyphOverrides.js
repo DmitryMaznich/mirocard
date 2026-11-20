@@ -50,7 +50,13 @@ export const P2_GLYPH_OVERRIDES = {
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
   "р": { repeatCells: 4, touchFirstLine: true },
-  "у": { straightTail: 32 },
+  // stemOnLine (и у ц щ, owner 2026-11-20): their start is a small rounded tip 0.5 left of the stick, so with the start on a slant of the grid
+  // every stick stood 0.8 (of a 30 cell) off its slant; placed by the stick they lie on the slants like п т н. Shapes and joins unchanged
+  // (in the deck's 667 words with these letters the letter only moves by 0.83).
+  "и": { stemOnLine: true },
+  "у": { straightTail: 32, stemOnLine: true },
+  "ц": { stemOnLine: true },
+  "щ": { stemOnLine: true },
   "д": { straightTail: 31 },
   "з": { straightTail: 57 },
   "х": { repeatCells: 4 },
