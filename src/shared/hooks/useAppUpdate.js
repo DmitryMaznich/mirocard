@@ -16,6 +16,9 @@ export function useAppUpdate() {
   const [reg, setReg] = useState(null);
 
   useEffect(() => {
+    // Vite handles development updates. A dev build must not compare itself
+    // with the backend's release version and reload on every home mount.
+    if (import.meta.env.DEV) return;
     if (!navigator.serviceWorker) return;
     let currentReg = null;
 
@@ -102,6 +105,7 @@ export function useAppUpdate() {
   }, []);
 
   const applyUpdate = useCallback(async () => {
+    if (import.meta.env.DEV) return;
     if (reg?.waiting) {
       reg.waiting.postMessage({ type: "SKIP_WAITING" });
       return;
