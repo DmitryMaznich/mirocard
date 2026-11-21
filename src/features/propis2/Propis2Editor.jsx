@@ -229,6 +229,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [typing, setTyping] = useState(false); // the invisible text has the focus: the caret shows on the sheet
   const [pageW, setPageW] = useState(0);
   const [colW, setColW] = useState(0); // the canvas width: the page at «По ширине»
+  const [wholeW, setWholeW] = useState(0); // the page's width with ALL of it in sight: «Лист целиком»
   const locked = isLocked(page);
   // A setting changed on this page is offered for the whole notebook for a few seconds (owner, 2026-10-15: no «Всем» button, no
   // mode to forget): { key, value, done } — `done`: it went onto every page, the offer turns into «Отменить».
@@ -290,6 +291,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       if (!w || !h) return;
       setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * aspect)));
       setColW(Math.floor(w - 8));
+      // (the page starts below the zoom bar: the room above it is not the page's)
+      const box = boxRef.current;
+      const top = box ? box.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop : 0;
+      setWholeW(Math.floor(Math.min(w - 8, (el.clientHeight - top - 12) * aspect)));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
@@ -491,7 +496,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     return [...out, ...caretMarks];
   }, [owners, analysis, page.rows, selectedId, caretMarks]);
 
-  const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW });
+  const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW, wholeW });
   // The caret (or, not typing, the selected row) stays in sight, the page zoomed in or not: the canvas scrolls to it. Also when the
   // canvas itself changes size — above all when a phone's or a tablet's keyboard opens (the editor then takes only the visible part
   // of the screen) — so the caret never stays under the keyboard (owner, 2026-10-23). Not on a zoom: Ctrl + wheel keeps the point under
@@ -726,9 +731,11 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               <span className="p2-zoom-sep" aria-hidden="true" />
             </>
           )}
-          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= 1.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
-          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={zoom.z <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
+          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= zoom.minZ + 0.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
+          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={Math.abs(zoom.z - 1) < 0.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
           <button type="button" className="p2-zoom-btn" onClick={zoom.zoomIn} disabled={zoom.z >= zoom.maxZ - 0.001} aria-label="Увеличить" title="Увеличить (Ctrl + колесо)">+</button>
+          {/* «Лист целиком» (phone / portrait tablet: the fitted page runs below the canvas; owner, 2026-11-21) — an icon, as «По ширине» */}
+          {zoom.canWhole && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.wholeZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWhole} aria-label={t("propis2.wholePage")} title={t("propis2.wholePage")}><I.IconFitPage /></button>}
           {zoom.canWidth && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.widthZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWidth} aria-label="По ширине" title="Страница по ширине"><I.IconFitWidth /></button>}
         </div>
   );

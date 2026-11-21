@@ -100,7 +100,7 @@
 /* the dot on a strip button: the notebook's pages differ in this setting */
 .p2-mixed { position: absolute; top: 2px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: #d97706; border: 2px solid var(--p2-strip); pointer-events: none; z-index: 1; }
 .propis2-main > .propis2-dock { grid-area: dock; }
-.propis2-page-col { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 6px; display: flex; justify-content: center; align-items: flex-start; background: var(--p2-board); }
+.propis2-page-col { touch-action: pan-x pan-y; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 6px; display: flex; justify-content: center; align-items: flex-start; background: var(--p2-board); }
 .propis2-page-box { max-width: 100%; flex: none; margin-inline: auto; }
 /* zoomed in (useCanvasZoom.js): the page wider than the canvas, which scrolls both ways; auto margins centre a smaller page and let
    a bigger one start at the edge (centring it with justify-content would cut its left part off) */

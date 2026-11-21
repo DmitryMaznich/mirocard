@@ -11,22 +11,26 @@ const MAX_OVER_WIDTH = 2.5; // the most: 2.5 times the canvas width (handwriting
 function readPref() {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) ?? "null");
-    if (v && (v.mode === "fit" || v.mode === "width" || (v.mode === "z" && Number.isFinite(v.z)))) return v;
+    if (v && (v.mode === "fit" || v.mode === "width" || v.mode === "whole" || (v.mode === "z" && Number.isFinite(v.z)))) return v;
   } catch { /* none kept */ }
   return { mode: "fit" };
 }
 const writePref = (v) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch { /* not kept */ } };
 
-// `fitW`: the page's fitted width, `widthW`: the canvas width (both px, 0 until measured).
-export function useCanvasZoom({ colRef, boxRef, fitW, widthW }) {
+// `fitW`: the page's fitted width, `widthW`: the canvas width, `wholeW`: the width at which the WHOLE page is in sight (px, 0 until
+// measured). On a phone / portrait tablet the fitted page is as wide as the canvas and runs below it: «Лист целиком» (owner, 2026-11-21)
+// shrinks it under 100 % until all of it shows; on a computer the fitted page is already whole.
+export function useCanvasZoom({ colRef, boxRef, fitW, widthW, wholeW = 0 }) {
   const [pref, setPrefRaw] = useState(readPref);
   const widthZ = fitW > 0 && widthW > 0 ? Math.max(1, widthW / fitW) : 1;
+  const wholeZ = fitW > 0 && wholeW > 0 ? Math.min(1, wholeW / fitW) : 1;
+  const minZ = wholeZ;
   const maxZ = widthZ * MAX_OVER_WIDTH;
-  const z = pref.mode === "fit" ? 1 : pref.mode === "width" ? widthZ : Math.min(maxZ, Math.max(1, pref.z));
+  const z = pref.mode === "fit" ? 1 : pref.mode === "width" ? widthZ : pref.mode === "whole" ? wholeZ : Math.min(maxZ, Math.max(minZ, pref.z));
   const anchor = useRef(null);
 
   // keep the point under `at` (client coords; none: the middle of the canvas) where it is while the page grows or shrinks
-  const setPref = useCallback((next, at) => {
+  const setPref = useCallback((next, at, keep = true) => {
     const col = colRef.current;
     const box = boxRef.current;
     if (col && box) {
@@ -37,7 +41,7 @@ export function useCanvasZoom({ colRef, boxRef, fitW, widthW }) {
       anchor.current = { x, y, fx: b.width ? (x - b.left) / b.width : 0.5, fy: b.height ? (y - b.top) / b.height : 0.5 };
     }
     setPrefRaw(next);
-    writePref(next);
+    if (keep) writePref(next);
   }, [colRef, boxRef]);
 
   useLayoutEffect(() => {
@@ -51,16 +55,18 @@ export function useCanvasZoom({ colRef, boxRef, fitW, widthW }) {
     col.scrollTop += b.top + a.fy * b.height - a.y;
   }, [z, colRef, boxRef]);
 
-  const toZ = (nz, at) => {
-    const v = Math.min(maxZ, Math.max(1, nz));
-    if (Math.abs(v - 1) < 0.01) setPref({ mode: "fit" }, at);
-    else if (Math.abs(v - widthZ) < 0.01) setPref({ mode: "width" }, at);
-    else setPref({ mode: "z", z: v }, at);
+  const toZ = (nz, at, keep = true) => {
+    const v = Math.min(maxZ, Math.max(minZ, nz));
+    if (Math.abs(v - 1) < 0.01) setPref({ mode: "fit" }, at, keep);
+    else if (Math.abs(v - widthZ) < 0.01) setPref({ mode: "width" }, at, keep);
+    else if (minZ < 0.99 && Math.abs(v - minZ) < 0.01) setPref({ mode: "whole" }, at, keep);
+    else setPref({ mode: "z", z: v }, at, keep);
   };
   const zoomIn = () => toZ(z * STEP);
   const zoomOut = () => toZ(z / STEP);
   const fit = () => setPref({ mode: "fit" });
   const toWidth = () => setPref({ mode: "width" });
+  const toWhole = () => setPref({ mode: "whole" });
 
   // a computer: Ctrl + wheel (a touchpad's pinch comes as that too) zooms around the pointer
   const live = useRef({ z, toZ });
@@ -78,5 +84,55 @@ export function useCanvasZoom({ colRef, boxRef, fitW, widthW }) {
     return () => col.removeEventListener("wheel", onWheel);
   }, [colRef]);
 
-  return { z, widthZ, maxZ, zoomIn, zoomOut, fit, toWidth, canWidth: widthZ > 1.02 };
+  // a phone / tablet: two fingers zoom around the point between them and move the page with them (owner, 2026-11-21: «зумирование
+  // пальцами» as in the student view); one finger scrolls as ever. Applied once a frame; kept on the device when the fingers lift.
+  useEffect(() => {
+    const col = colRef.current;
+    if (!col) return undefined;
+    let pinch = null, frame = 0, pending = null;
+    const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const mid = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+    const apply = () => {
+      frame = 0;
+      if (!pending) return;
+      const { nz, at, dx, dy } = pending;
+      pending = null;
+      col.scrollLeft -= dx;
+      col.scrollTop -= dy;
+      live.current.toZ(nz, at, false);
+    };
+    const onStart = (e) => {
+      if (e.touches.length !== 2) return;
+      const [a, b] = e.touches;
+      pinch = { d: dist(a, b) || 1, z: live.current.z, last: mid(a, b) };
+    };
+    const onMove = (e) => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();
+      const [a, b] = e.touches;
+      const m = mid(a, b);
+      pending = { nz: pinch.z * (dist(a, b) / pinch.d), at: m, dx: (pending?.dx ?? 0) + m.x - pinch.last.x, dy: (pending?.dy ?? 0) + m.y - pinch.last.y };
+      pinch.last = m;
+      if (!frame) frame = requestAnimationFrame(apply);
+    };
+    const onEnd = (e) => {
+      if (!pinch || e.touches.length >= 2) return;
+      pinch = null;
+      if (frame) { cancelAnimationFrame(frame); apply(); }
+      live.current.toZ(live.current.z); // kept on the device
+    };
+    col.addEventListener("touchstart", onStart, { passive: true });
+    col.addEventListener("touchmove", onMove, { passive: false });
+    col.addEventListener("touchend", onEnd);
+    col.addEventListener("touchcancel", onEnd);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      col.removeEventListener("touchstart", onStart);
+      col.removeEventListener("touchmove", onMove);
+      col.removeEventListener("touchend", onEnd);
+      col.removeEventListener("touchcancel", onEnd);
+    };
+  }, [colRef]);
+
+  return { z, widthZ, wholeZ, minZ, maxZ, zoomIn, zoomOut, fit, toWidth, toWhole, canWidth: widthZ > 1.02, canWhole: wholeZ < 0.98 };
 }
