@@ -36,8 +36,8 @@ export function ElementPicker({ elements, disabled, onInsert }) {
         <div className="p2-elements-panel" role="dialog" aria-label="Элементы" onMouseDown={(e) => e.preventDefault()} style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           {elements.map((tile, i) => (
             <Fragment key={tile.key}>
-              {tile.group && tile.group !== elements[i - 1]?.group && <div className="p2-el-group" role="presentation">{tile.group}</div>}
-              <button type="button" className="propis2-tile" data-tile={tile.text} aria-label={`№${tile.no}, ${tile.caption}`} title={`№${tile.no} · ${tile.caption}`} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
+              {tile.group && tile.group !== elements[i - 1]?.group && <div className="p2-el-group" role="presentation" style={tile.color ? { "--el-color": tile.color } : undefined}>{tile.group}</div>}
+              <button type="button" className="propis2-tile" style={tile.color ? { "--el-color": tile.color } : undefined} data-tile={tile.text} aria-label={`№${tile.no}, ${tile.caption}`} title={`№${tile.no} · ${tile.caption}`} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
                 <TileGlyph tile={tile} size={ELEMENT_TILE_W} />
                 <span className="p2-el-num" aria-hidden="true">{tile.no}</span>
               </button>

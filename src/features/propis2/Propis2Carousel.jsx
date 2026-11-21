@@ -25,6 +25,8 @@ const TILE_SNAP = snapXFor({ narrowRows: true, simpleGrid: "dense", margin: "off
 // any Cyrillic letter name (not only the deck's alphabet): a letter stored as an «element» is never listed with the elements
 const LETTER_NAMES = new Set([...RU_LOWER, ...RU_LOWER.toUpperCase()]);
 
+const GROUP_COLORS = ["#2b8be0", "#f59e0b", "#ec5547", "#37a64a", "#8b5cf6", "#e3559c", "#0f9f91", "#c08a00"];
+
 export function buildTiles(topicRecord) {
   const glyphMap = buildGlyphMap(topicRecord);
   const strokesOf = (label) => narrowStrokes(glyphMap, label);
@@ -62,6 +64,8 @@ export function buildTiles(topicRecord) {
     t.group = gi === undefined ? (groups.length ? "Другие" : "") : groups[gi].title;
   }
   elements.sort((a, b) => a.groupIndex - b.groupIndex || a.no - b.no);
+  // a colour per group (owner, 2026-11-21: «Элементы» like «Штрихи» — the colours of Propis2PartsPad): its tiles' ink, number and heading
+  for (const t of elements) t.color = GROUP_COLORS[t.groupIndex % GROUP_COLORS.length];
   // punctuation marks (wide.json kind "punct", and : ; – made in glyphOverrides.js), in the order of a sentence
   const marks = [".", ",", ":", ";", "–", "!", "?"].filter((m) => glyphMap.get(m)?.kind === "punct").map((m) => make("text", m, m));
   // the deck's own alphabet (alphabet.js: a variant deck has its own), capitals only of the letters that have one
@@ -124,18 +128,22 @@ export function TileGlyph({ tile, size = 56, bare = false }) {
       const x0 = a + k * NARROW_CELL + (ROW_BASE - (y + h)) * SLANT_RUN; // the line's x at the bottom of the frame
       slants.push(<line key={k} x1={x0} y1={y + h} x2={x0 + h * SLANT_RUN} y2={y} />);
     }
+    // the look of the «Штрихи» pad (Propis2PartsPad): a white mat, the row's lines (red dashes: capitals, middle, tails; the top of the small
+    // letters; the bold baseline), the slants; the element in its group's colour with a dot where the pen starts it
+    const ink = tile.color ?? "#1d4ed8";
+    const start = tile.strokes[0]?.match(/-?\d*\.?\d+/g)?.slice(0, 2).map(Number);
     return (
       <svg className="propis2-tile-glyph" width={size} height={Math.round((size * h) / w)} viewBox={`${x} ${y} ${w} ${h}`} aria-hidden="true">
-        <rect x={x} y={ROW_TOP} width={w} height={ROW_BASE - ROW_TOP} fill="#eef4ff" />
-        <g stroke="#c4cad4" strokeWidth="0.45" fill="none">{slants}</g>
+        <g stroke="#93a3b5" strokeOpacity="0.45" strokeWidth="0.45" fill="none">{slants}</g>
         <g fill="none">
-          <line x1={x} x2={x + w} y1={WIDE_TOP} y2={WIDE_TOP} stroke="#d98a85" strokeWidth="0.7" strokeDasharray="2.4 1.6" />
-          <line x1={x} x2={x + w} y1={WIDE_BOTTOM} y2={WIDE_BOTTOM} stroke="#d98a85" strokeWidth="0.7" strokeDasharray="2.4 1.6" />
-          <line x1={x} x2={x + w} y1={ROW_TOP} y2={ROW_TOP} stroke="#8a8f98" strokeWidth="0.7" />
-          <line x1={x} x2={x + w} y1={ROW_MID} y2={ROW_MID} stroke="#8a8f98" strokeWidth="0.6" strokeDasharray="2 1.4" />
-          <line x1={x} x2={x + w} y1={ROW_BASE} y2={ROW_BASE} stroke="#555" strokeWidth="1.3" />
+          <line x1={x} x2={x + w} y1={WIDE_TOP} y2={WIDE_TOP} stroke="#e57d7a" strokeWidth="0.6" strokeDasharray="2.4 1.8" />
+          <line x1={x} x2={x + w} y1={WIDE_BOTTOM} y2={WIDE_BOTTOM} stroke="#e57d7a" strokeWidth="0.6" strokeDasharray="2.4 1.8" />
+          <line x1={x} x2={x + w} y1={ROW_TOP} y2={ROW_TOP} stroke="#55606c" strokeWidth="0.7" />
+          <line x1={x} x2={x + w} y1={ROW_MID} y2={ROW_MID} stroke="#e57d7a" strokeWidth="0.6" strokeDasharray="2.4 1.8" />
+          <line x1={x} x2={x + w} y1={ROW_BASE} y2={ROW_BASE} stroke="#2f3842" strokeWidth="1.3" />
         </g>
-        {tile.strokes.map((d, i) => <path key={i} d={d} fill="none" stroke="#1d4ed8" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />)}
+        {tile.strokes.map((d, i) => <path key={i} d={d} fill="none" stroke={ink} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round" />)}
+        {start && start.length === 2 && <circle cx={start[0]} cy={start[1]} r={2.7} fill={ink} stroke="#fff" strokeWidth={0.9} />}
       </svg>
     );
   }
