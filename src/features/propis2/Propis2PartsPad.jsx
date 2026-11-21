@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { layoutWideLinesIntoRows } from "@/handwriting/wordEngine.js";
 import { letterPieces, ownStrokes, splitIntoParts } from "@/handwriting/letterParts.js";
 import { getPathEndpoints, samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
@@ -21,6 +22,7 @@ const snapToSlant = (_r, x, y = BASE) => { const off = (BASE - y) * SLANT; retur
 const startOf = (d) => getPathEndpoints(d).start;
 
 export default function Propis2PartsPad({ glyph, text, map, keep, onToggle }) {
+  const { t } = useUiTranslation();
   const lay = useMemo(() => {
     // the letter as the row places it; a letter the row writes in other strokes than its glyph's — the raw glyph, as before
     let placed = null;
@@ -56,7 +58,7 @@ export default function Propis2PartsPad({ glyph, text, map, keep, onToggle }) {
   const hl = (y, props) => <line x1={x0} y1={y} x2={x1} y2={y} vectorEffect="non-scaling-stroke" {...props} />;
   return (
     <svg className="p2-partpad" viewBox={`${x0} ${Y0} ${w} ${h}`} width={Math.round(w * PX)} height={Math.round(h * PX)}
-      aria-label={`Буква ${glyph.label}: нажмите на штрих, чтобы писать или не писать его`}>
+      aria-label={t("propis2.padLabel", { letter: glyph.label })}>
       <defs>
         <clipPath id={`${id}-c`}><rect x={x0 + RULER} y={Y0 + RULER} width={w - RULER} height={h - RULER} /></clipPath>
         <pattern id={`${id}-dots`} width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="0.55" fill="#9aa6b2" fillOpacity="0.45" /></pattern>
@@ -84,7 +86,7 @@ export default function Propis2PartsPad({ glyph, text, map, keep, onToggle }) {
         ))}
         {parts.map((p, i) => (
           <path key={`h${i}`} d={p.d} fill="none" stroke="transparent" strokeWidth={20} strokeLinecap="round" className="p2-partpad-hit" role="button" tabIndex={0}
-            aria-label={`Часть ${i + 1}: ${on.has(i) ? "пишем" : "не пишем"}`} aria-pressed={on.has(i)} onClick={() => onToggle(i)}
+            aria-label={t(on.has(i) ? "propis2.partOn" : "propis2.partOff", { n: i + 1 })} aria-pressed={on.has(i)} onClick={() => onToggle(i)}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(i); } }} />
         ))}
       </g>
