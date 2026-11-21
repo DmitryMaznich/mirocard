@@ -43,7 +43,7 @@ function letterBoxes(line, paper) {
 
 describe("propis2: the Russian print style «Печатные»", () => {
   it("Russian has two styles, the copybook hand first; the print one writes capitals only, on its own three papers", () => {
-    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => [st.id, st.title])).toEqual([["cursive", "Прописные"], ["print", "Печатные"], ["book", "Книжные"]]);
+    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => [st.id, st.title])).toEqual([["cursive", "Прописные"], ["print", "Печатные"]]);
     expect(deckPapers(view).map((g) => g.id)).toEqual(["print_cell", "print_bigcell", "print_line"]);
     expect(deckPapers(languageView(deck, "ru", "cursive")).map((g) => g.id)).toEqual(["propis", "m1", "m2", "square", "ruled"]);
     expect(map.script).toMatchObject({ joins: false, caps: true });
