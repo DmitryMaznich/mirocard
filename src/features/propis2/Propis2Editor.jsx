@@ -340,9 +340,18 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
   // A row setting (Образец, Точки) changed on the selected row; the rows below that were set as it was are offered the change too:
   // «… на строке 3 · На следующие строки» (as the paper's «На всю тетрадь»). Only down to the first row set otherwise, on this page.
+  // a style that is a sample to read and copy, not to trace (`readingSample`, «Книжные»): the row it goes onto is written once, no red
+  // dots (owner, 2026-11-21) — Образец / Точки can be changed after
+  // (and back: a row leaving such a style takes the ordinary sample again, copies and dots, as a new row has them)
+  const readingSample = (id) => Boolean(styles?.options?.find((st) => st.id === id)?.script?.readingSample);
+  const stylePatch = (id, row) => ({
+    ...ROW_PATCH.style(id),
+    ...(readingSample(id) ? { ...repeatPatch("one"), dots: "none" } : row && readingSample(rowSetting(row, "style", glyphMap)) ? { ...repeatPatch("all"), dots: "all" } : {}),
+  });
+  const rowPatch = (key, value, row) => (key === "style" ? stylePatch(value, row) : ROW_PATCH[key](value));
   const setRowSetting = (key, value) => {
     const old = rowSetting(selected, key, glyphMap);
-    patchSelected(ROW_PATCH[key](value));
+    patchSelected(rowPatch(key, value, selected));
     // a row's style is offered for the whole page (the page has no style button of its own since 2026-11-20); Образец / Точки — the rows below
     const page_ = key === "style";
     const ids = old === value ? [] : page_ ? otherRowsOtherwise(page.rows, selectedIndex, key, value, glyphMap) : followingSameRows(page.rows, selectedIndex, key, old, glyphMap);
@@ -733,8 +742,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const rowOffer = offer?.scope === "rows";
   const applyRowOffer = () => {
     const ids = new Set(offer.ids);
-    const patch = ROW_PATCH[offer.key](offer.value);
-    setRows(page.rows.map((r) => (ids.has(r.id) ? { ...r, ...patch } : r)));
+    setRows(page.rows.map((r) => (ids.has(r.id) ? { ...r, ...rowPatch(offer.key, offer.value, r) } : r)));
     showOffer({ ...offer, done: true }, OFFER_MS - 1000);
   };
   const offerEl = offer && (rowOffer || notebook) && (

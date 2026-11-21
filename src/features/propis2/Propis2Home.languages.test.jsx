@@ -418,6 +418,41 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(pg.rows.map((r) => r.style)).toEqual([undefined, undefined]); // «мама» was cursive: it cannot stand on the cell, it writes in print now
     host.remove();
   });
+  it("«Книжные» (print capitals + small letters) makes the row a sample to copy: written once, no red dots (owner, 2026-11-21)", async () => {
+    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tdb = await openDb("p2book-tc-" + Date.now());
+    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    const db = await openDb("p2book-ru-" + Date.now());
+    await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    await click(btn(host, "Новая тетрадь"));
+    const field = host.querySelector('[aria-label="Текст страницы"]');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "мама\nМила мыла раму.");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      await tick();
+    });
+    await click(host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]'));
+    await click(document.querySelector('[role="listbox"][aria-label="Стиль строки"] [aria-label="Книжные"]'));
+    await act(async () => { await tick(50); });
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    await click(host.querySelector('[aria-label="Показать ученику"]'));
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    await click(host.querySelector(".propis-practice-close"));
+    await click(host.querySelector(".back-btn"));
+    await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+    await act(async () => { root.unmount(); await tick(400); });
+    const rows = (await loadLibrary(db)).pages[0].rows;
+    const book = rows.filter((r) => r.style === "book");
+    expect(book.length).toBe(1); // the row with the caret only
+    expect([book[0].repeat, book[0].dots]).toEqual(["one", "none"]);
+    expect(rows.find((r) => r.style !== "book").dots).not.toBe("none"); // the other row keeps its own
+    host.remove();
+  });
   it("a ready Latin notebook (the Nelson joins) opens as a copy in its own style, «Британские соединённые»", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2kit-tc-" + Date.now());

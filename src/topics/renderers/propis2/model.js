@@ -391,7 +391,10 @@ export function pageToLines(page, glyphMap) {
       if (!wrapped.length) { out.push(tag); return; }
       const indent = leadingSpaces(row.text) + (reserve && !right ? reserve : 0);
       const st = styleTag(row, glyphMap);
-      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}`); if (page?.writeAfter) out.push(""); });
+      // a running text in a style that is a sample to read («Книжные», `script.readingSample`) honours «no dots» (other running texts
+      // keep their dots, as always)
+      const clean = rowParams(row).dots === "none" && rowGlyphMap(glyphMap, row)?.script?.readingSample ? "#c" : "";
+      wrapped.forEach((l, k) => { out.push(`${l}#1${clean}${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}`); if (page?.writeAfter) out.push(""); });
       return;
     }
     const line = rowToLine(row);

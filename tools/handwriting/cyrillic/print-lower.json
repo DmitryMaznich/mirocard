@@ -1,5 +1,5 @@
 {
-  "note": "Russian SMALL print letters for the style «Книжные» (owner, 2026-11-21: a printed sample between the copybook rows, for the child to copy in cursive; the capitals of «Печатные» alone looked foreign). Hand-drawn source in the engine's capture frame, the same single-line geometry as the Ilyukhina capitals and the Latin print letters (tools/handwriting/latin/print_sl.json): x-height top y = 10, midline y = 36, baseline y = 62, ascender y = -42, short descender y = 80, long descender y = 114. а е о р с у х are the Latin ones. Built into tools/handwriting/cyrillic/print-book.json by build-print.mjs — edit HERE.",
+  "note": "Russian SMALL print letters for the style «Книжные» (owner, 2026-11-21: a printed sample between the copybook rows, for the child to copy in cursive; the capitals of «Печатные» alone looked foreign). Hand-drawn source in the engine's capture frame, the same single-line geometry as the Ilyukhina capitals and the Latin print letters (tools/handwriting/latin/print_sl.json): x-height top y = 10, midline y = 36, baseline y = 62, ascender y = -42, short descender y = 80, long descender y = 114. а е о р с у х are the Latin ones; л has the book form, a flat top and a hooked left leg (owner, 2026-11-21), not the capital's Λ. Built into tools/handwriting/cyrillic/print-book.json by build-print.mjs — edit HERE.",
   "glyphs": [
     { "label": "а", "strokes": [{ "d": "M 52 36 C 52 21.638 40.362 10 26 10 C 11.638 10 0 21.638 0 36 C 0 50.362 11.638 62 26 62 C 40.362 62 52 50.362 52 36 L 52 10 L 52 62", "name": "овал и палочка" }] },
     { "label": "б", "strokes": [{ "d": "M 44 -42 L 22 -42 C 9.85 -42 0 -32.15 0 -20 L 0 36", "name": "шея" }, { "d": "M 0 36 C 0 21.638 11.638 10 26 10 C 40.362 10 52 21.638 52 36 C 52 50.362 40.362 62 26 62 C 11.638 62 0 50.362 0 36", "name": "овал" }] },
@@ -13,7 +13,7 @@
     { "label": "и", "strokes": [{ "d": "M 0 10 L 0 62 L 44 10 L 44 62", "name": "палочки и наклонная" }] },
     { "label": "й", "strokes": [{ "d": "M 0 10 L 0 62 L 44 10 L 44 62", "name": "палочки и наклонная" }, { "d": "M 12 -8 C 15 0 29 0 32 -8", "name": "краткая" }] },
     { "label": "к", "strokes": [{ "d": "M 0 10 L 0 62", "name": "палочка" }, { "d": "M 38 10 L 0 38 L 40 62", "name": "уголок" }] },
-    { "label": "л", "strokes": [{ "d": "M 0 62 L 23 10 L 46 62", "name": "наклонные" }] },
+    { "label": "л", "strokes": [{ "d": "M 0 59 C 2.5 61.5 7 62 10 59 C 13 56 15 48 15 36 L 15 10 L 46 10 L 46 62", "name": "ножка с крючком, крыша и палочка" }] },
     { "label": "м", "strokes": [{ "d": "M 0 62 L 0 10 L 27 44 L 54 10 L 54 62", "name": "палочки и уголок" }] },
     { "label": "н", "strokes": [{ "d": "M 0 10 L 0 62", "name": "левая палочка" }, { "d": "M 44 10 L 44 62", "name": "правая палочка" }, { "d": "M 0 36 L 44 36", "name": "перекладина" }] },
     { "label": "о", "strokes": [{ "d": "M 39 13.484 C 26.562 6.308 10.66 10.562 3.484 23 C -3.692 35.438 0.562 51.34 13 58.516 C 25.438 65.692 41.34 61.438 48.516 49 C 55.692 36.562 51.438 20.66 39 13.484", "name": "овал" }] },
