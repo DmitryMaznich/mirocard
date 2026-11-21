@@ -49,8 +49,8 @@ export const NUMBER_PATH_MODE = {
     boardSize: {
       type: "enum",
       label: { ru: "Сложность" },
-      values: [5, 10, 15],
-      labels: { ru: { 5: "Начальная · 5 × 5", 10: "Средняя · 10 × 10", 15: "Продвинутая · 15 × 15" } },
+      values: [5, 10, 14],
+      labels: { ru: { 5: "Начальная · 5 × 5", 10: "Средняя · 10 × 10", 14: "Продвинутая · 10 × 14 / 14 × 10" } },
       default: 5,
     },
     mistakeBehavior: {
@@ -66,5 +66,6 @@ export const NUMBER_PATH_MODE = {
 export function normalizeNumberPathSize(value) {
   const { values, default: defaultSize } = NUMBER_PATH_MODE.params.boardSize;
   const size = Number(value);
+  if (size === 15) return 14;
   return values.includes(size) ? size : defaultSize;
 }

@@ -11,16 +11,16 @@ function expression(pair) {
   return pair.join(" + ");
 }
 
-function directionTo(from, to, size) {
+function directionTo(from, to, columns) {
   if (to === from + 1) return "right";
   if (to === from - 1) return "left";
-  if (to === from + size) return "down";
-  if (to === from - size) return "up";
+  if (to === from + columns) return "down";
+  if (to === from - columns) return "up";
   return undefined;
 }
 
 export default function NumberPath({ task, sessionParams, sessionStatus, interactionDisabled, onCorrect, onMistake, onAdvance }) {
-  const { number, size } = task;
+  const { number, size, columns = size } = task;
   const start = task.route[0];
   const finish = task.route.at(-1);
   const cells = task.cells.map((pair, index) => pair ?? (index === start ? [number, 0] : [0, number]));
@@ -31,7 +31,6 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
   const [lastPick, setLastPick] = useState(null);
   const [checkPick, setCheckPick] = useState(null);
   const boardRef = useRef(null);
-  const boardViewportRef = useRef(null);
   const checkRef = useRef(null);
   const moveFocus = useRef(false);
   const current = route.at(-1);
@@ -52,35 +51,10 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
   }, [checkSolved, interactionDisabled]);
 
   useLayoutEffect(() => {
-    const viewport = boardViewportRef.current;
-    const tile = boardRef.current?.querySelector('[data-state="current"]');
-    if (!viewport || !tile) return undefined;
-
-    function keepCurrentCellVisible() {
-      const bounds = viewport.getBoundingClientRect();
-      const cell = tile.getBoundingClientRect();
-      const gap = parseFloat(getComputedStyle(boardRef.current).gap) || 0;
-      const horizontalMargin = Math.max(0, Math.min(cell.width + gap, (viewport.clientWidth - cell.width) / 2));
-      const verticalMargin = Math.max(0, Math.min(cell.height + gap, (viewport.clientHeight - cell.height) / 2));
-      const left = Math.min(0, cell.left - horizontalMargin - bounds.left)
-        || Math.max(0, cell.right + horizontalMargin - bounds.left - viewport.clientWidth);
-      const top = Math.min(0, cell.top - verticalMargin - bounds.top)
-        || Math.max(0, cell.bottom + verticalMargin - bounds.top - viewport.clientHeight);
-      if (left || top) viewport.scrollBy({ left, top, behavior: "instant" });
-    }
-
-    keepCurrentCellVisible();
-    if (moveFocus.current) {
-      moveFocus.current = false;
-      if (finished) {
-        checkRef.current?.querySelector("button:not(:disabled)")?.focus();
-      } else {
-        boardRef.current?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
-      }
-    }
-    const observer = new ResizeObserver(keepCurrentCellVisible);
-    observer.observe(viewport);
-    return () => observer.disconnect();
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    const next = finished ? checkRef.current : boardRef.current;
+    next?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
   }, [current, finished]);
 
   function choose(index, event) {
@@ -105,7 +79,8 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
     <section
       className="number-path"
       data-size={size}
-      style={{ "--number-path-size": size }}
+      data-rectangular={columns !== size ? "" : undefined}
+      style={{ "--np-columns": columns, "--np-rows": size }}
       aria-labelledby={titleId}
     >
       <header className="number-path__goal">
@@ -113,7 +88,7 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
         <strong className="number-path__target"><span className="number-path__target-label">Ищем </span>{number}</strong>
       </header>
       <div className="number-path__field">
-        <div ref={boardViewportRef} className="number-path__board-viewport">
+        <div className="number-path__board-frame">
           <div
             ref={boardRef}
             className="number-path__board"
@@ -122,7 +97,7 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
           >
             {cells.map((pair, index) => {
               const visited = route.includes(index);
-              const neighbor = !finished && !visited && arePathNeighbors(current, index, size);
+              const neighbor = !finished && !visited && arePathNeighbors(current, index, columns);
               const state = index === current ? "current" : visited ? "path"
                 : incorrect && !restartOnMistake && index === lastPick ? "retry" : neighbor ? "neighbor" : "idle";
               const label = expression(pair);
@@ -138,7 +113,7 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
                   className="number-path__tile"
                   data-state={state}
                   data-endpoint={index === start ? "start" : index === finish ? "finish" : undefined}
-                  data-link={directionTo(index, nextByCell.get(index), size)}
+                  data-link={directionTo(index, nextByCell.get(index), columns)}
                   aria-label={[label, endpoint, description].filter(Boolean).join(", ")}
                   disabled={!neighbor || interactionDisabled}
                   onClick={(event) => choose(index, event)}

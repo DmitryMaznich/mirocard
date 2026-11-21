@@ -1,7 +1,7 @@
 import { normalizeNumberPathSize, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
 
-export function arePathNeighbors(a, b, size) {
-  return Math.abs(Math.floor(a / size) - Math.floor(b / size)) + Math.abs(a % size - b % size) === 1;
+export function arePathNeighbors(a, b, columns) {
+  return Math.abs(Math.floor(a / columns) - Math.floor(b / columns)) + Math.abs(a % columns - b % columns) === 1;
 }
 
 function readRoute(layout) {
@@ -9,7 +9,7 @@ function readRoute(layout) {
   const cells = [...rows.join("")].flatMap((cell, index) => cell === "#" ? [index] : []);
   const route = [cells.shift()];
   while (cells.length) {
-    const next = cells.findIndex((cell) => arePathNeighbors(route.at(-1), cell, rows.length));
+    const next = cells.findIndex((cell) => arePathNeighbors(route.at(-1), cell, rows[0].length));
     if (next === -1) throw new Error("Disconnected number path layout");
     route.push(cells.splice(next, 1)[0]);
   }
@@ -46,66 +46,73 @@ const ROUTES = {
       ..#####..#
     `),
   ],
-  15: [
+  14: [
     readRoute(`
-      #..########....
-      ####......#....
-      ..........#....
-      ..........##...
-      ...........#...
-      ..........##...
-      ..........#....
-      ####......#....
-      #..##...###....
-      ###.#####......
-      ..#......###...
-      ..#......#.##..
-      ###..###.#..##.
-      #....#.#.#...#.
-      ######.###...##
+      ##....####
+      .#....#..#
+      .#....#..#
+      .##..##.##
+      ..#.##.##.
+      ..###..#..
+      .......#..
+      ......##..
+      ......#...
+      ......####
+      .........#
+      ......####
+      ......#...
+      ..#####...
     `),
     readRoute(`
-      #..........###.
-      ##.........#.#.
-      .##.......##.##
-      ..##.....##...#
-      ...##....#...##
-      ....##...###.#.
-      .....##....#.##
-      ......#....#..#
-      ......####.##.#
-      .........#..#.#
-      ......####.##.#
-      ....###....#.##
-      ...##..#####.#.
-      ...#.###.....#.
-      ...###.......##
+      ####......
+      ...####...
+      ......####
+      ###......#
+      #.##..####
+      #..####...
+      ##........
+      .#........
+      .##...####
+      ..#####..#
+      .........#
+      .........#
+      ...#######
+      ...#......
     `),
   ],
 };
 
-function transformCell(cell, size, variant) {
-  let row = Math.floor(cell / size);
-  let column = cell % size;
-  if (variant >= 4) [row, column] = [column, row];
-  if (variant % 2 === 1) row = size - 1 - row;
-  if (variant % 4 >= 2) column = size - 1 - column;
-  return row * size + column;
+function columnsForSize(size) {
+  return size === 14 ? 10 : size;
+}
+
+function transformCell(cell, columns, rows, variant) {
+  let row = Math.floor(cell / columns);
+  let column = cell % columns;
+  if (variant >= 4 && columns === rows) [row, column] = [column, row];
+  if (variant % 2 === 1) row = rows - 1 - row;
+  if (variant % 4 >= 2) column = columns - 1 - column;
+  return row * columns + column;
 }
 
 function layoutsForSize(size) {
+  const columns = columnsForSize(size);
   const trims = size === 5 ? [[0, 0]] : [[1, 2], [2, 1], [3, 3], [0, 3], [3, 0]];
   return ROUTES[size].flatMap((base) => trims.flatMap(([start, end]) =>
-    Array.from({ length: 8 }, (_, variant) => base.slice(start, base.length - end)
-      .map((cell) => transformCell(cell, size, variant))),
+    Array.from({ length: 8 }, (_, variant) => {
+      const route = base.slice(start, base.length - end);
+      if (columns !== size && variant >= 4) route.reverse();
+      return route.map((cell) => transformCell(cell, columns, size, variant));
+    }),
   ));
 }
 
 const LAYOUTS = new Map(NUMBER_PATH_MODE.params.boardSize.values.map((size) => [size, layoutsForSize(size)]));
 
 function createTask(card, number, size, route, layoutIndex) {
+  const columns = columnsForSize(size);
   const innerRoute = route.slice(1, -1);
-  const cells = Array.from({ length: size * size }, (_, index) => {
+  const cells = Array.from({ length: columns * size }, (_, index) => {
     if (index === route[0]) return [number, 0];
     if (index === route.at(-1)) return [0, number];
     const step = innerRoute.indexOf(index);
@@ -118,7 +125,7 @@ function createTask(card, number, size, route, layoutIndex) {
     return [first, otherTotal - first];
   });
 
-  return { type: NUMBER_PATH_MODE.type, cardId: card.id, conceptId: card.conceptId, number, size, cells, route, layoutIndex };
+  return { type: NUMBER_PATH_MODE.type, cardId: card.id, conceptId: card.conceptId, number, size, columns, cells, route, layoutIndex };
 }
 
 export function generateNumberPath(cards, params, previousRound = []) {

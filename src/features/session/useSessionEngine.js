@@ -16,6 +16,7 @@ import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConcep
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
 import { generateNumberPath } from "@/topics/renderers/math_houses/numberPath.js";
+import { normalizeNumberPathSize } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord, withWork } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
@@ -58,6 +59,9 @@ export function resolveModeSelection(topicRecord, mode, link, isReading, activeT
   // ZIP renderers forward intermediate mistakes; the engine applies strictness.
   let sessionParams = { ...applyParamLimits(mode?.params, readModeParams(link.params, mode)), strictStars: true,
     rewardPolicyVersion: 2, rewardLossMode: settings.lossMode };
+  if (mode?.type === "number_path" && sessionParams.boardSize !== undefined) {
+    sessionParams.boardSize = normalizeNumberPathSize(sessionParams.boardSize);
+  }
   if (mode?.id === PEOPLE_MODE_ID) {
     const store = useAppStore.getState();
     const saved = store.activeSessionSnapshot?.context;
