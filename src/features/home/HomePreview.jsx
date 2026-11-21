@@ -2,7 +2,7 @@ import { useAppStore } from "@/core/store";
 import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
 import { isLocalModeProfile } from "@/features/topics/catalogService";
 import { continueContext, continueDestination, formatLastActivity, previewTopicDestination,
-  readContinueChoice, recentTopicContext, rememberPreviewChoice, startContinuePick } from "@/features/topics/topicUiPreviewModel";
+  readContinueChoice, readTopicVisit, recentTopicContext, withTopicVisit, rememberPreviewChoice, startContinuePick } from "@/features/topics/topicUiPreviewModel";
 import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
@@ -38,7 +38,7 @@ export default function HomePreview() {
   const records = !account || isLocalModeProfile(account, token)
     ? topicRecords
     : topicRecords.filter((record) => record.meta.builtin || owned.has(record.meta.id));
-  const last = continueContext(recentTopicContext(sessions, studentId, snapshot), records, readContinueChoice(studentId));
+  const last = continueContext(withTopicVisit(recentTopicContext(sessions, studentId, snapshot), readTopicVisit(studentId)), records, readContinueChoice(studentId));
 
   return <div className="topic-ui-home-body">
     {last ? <ContinueCard last={last} t={t} language={language} onStart={start} onChange={change} />

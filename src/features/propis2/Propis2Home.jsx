@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
+import { saveTopicVisit } from "@/features/topics/topicUiPreviewModel";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/handwriting/PrintPageView";
@@ -34,6 +35,10 @@ export default function Propis2Home({ db }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const deckRecord = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === activeTopicId));
+  // the constructor opened: the topic is the student's latest on «Продолжить» (no lesson is written for it)
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const builderModeId = deckRecord?.modes?.find((m) => m.type === "builder")?.id ?? null;
+  useEffect(() => { if (activeTopicId) saveTopicVisit(activeStudentId, { topicId: activeTopicId, modeId: builderModeId }); }, [activeStudentId, activeTopicId, builderModeId]);
   // a deck with several writing languages (propis2/languages.js, docs/propis2-languages.md): the language belongs to the NOTEBOOK —
   // one «student» may be a whole class, a child may write in two languages. Everything below works on the deck as the language of the
   // notebook being worked on; in the list, as the language a new notebook will get (`newLang`, remembered on this device)

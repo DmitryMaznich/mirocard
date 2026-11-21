@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { continueContext, continueDestination, lastActivityParts, previewTopicDestination, readContinueChoice, recentTopicContext, saveContinueChoice } from "./topicUiPreviewModel";
+import { readTopicVisit, saveTopicVisit, withTopicVisit } from "./topicUiPreviewModel";
 
 describe("preview topic routes and recent activity", () => {
   it("preserves renderer-specific entry points", () => {
@@ -58,5 +59,22 @@ describe("preview topic routes and recent activity", () => {
     expect(lastActivityParts(new Date(2026, 10, 5), now)).toMatchObject({ kind: "date", withYear: false });
     expect(lastActivityParts(new Date(2025, 10, 5), now).withYear).toBe(true);
     expect(lastActivityParts(NaN, now)).toBeNull();
+  });
+});
+
+// «Прописи» constructor opened (owner, 2026-11-21): no lesson is written, but «Продолжить» shows the topic when it is the latest
+describe("topic visit (a topic opened without a lesson)", () => {
+  it("is newer than the last lesson → «Продолжить» takes it, with its mode", () => {
+    saveTopicVisit("st-v", { topicId: "propis2_lang", modeId: "builder" }, 2000);
+    const recent = { topicId: "verbs_v2", modeId: "show", time: 1000 };
+    expect(withTopicVisit(recent, readTopicVisit("st-v"))).toEqual({ topicId: "propis2_lang", modeId: "builder", textId: null, time: 2000 });
+  });
+  it("an older visit leaves the last lesson; no visit, no change; another student has none", () => {
+    saveTopicVisit("st-v2", { topicId: "propis2_lang", modeId: "builder" }, 500);
+    const recent = { topicId: "verbs_v2", modeId: "show", time: 1000 };
+    expect(withTopicVisit(recent, readTopicVisit("st-v2"))).toBe(recent);
+    expect(withTopicVisit(recent, null)).toBe(recent);
+    expect(readTopicVisit("nobody")).toBeNull();
+    expect(withTopicVisit(null, readTopicVisit("st-v2")).topicId).toBe("propis2_lang");
   });
 });
