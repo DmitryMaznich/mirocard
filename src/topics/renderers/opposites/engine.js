@@ -79,9 +79,13 @@ function generateChooseTwoTasks(cards, params) {
   return shuffle(tasks);
 }
 
-function buildConceptZones(conceptCards) {
-  const left  = conceptCards.filter(c => c.pole === "left");
-  const right = conceptCards.filter(c => c.pole === "right");
+function buildConceptZones(conceptCards, cardCount = 4) {
+  // Keep matched objects together so both poles have a comparison reference.
+  const pairs = shuffle([...groupByObjectId(conceptCards).values()]
+    .filter(({ left, right }) => left && right))
+    .slice(0, Math.floor(cardCount / 2));
+  const left  = pairs.map(pair => pair.left);
+  const right = pairs.map(pair => pair.right);
   if (!left.length || !right.length) return null;
   const zL = `${left[0].conceptId}_left`;
   const zR = `${left[0].conceptId}_right`;
@@ -106,11 +110,11 @@ function groupByConcept(cards) {
   return map;
 }
 
-function generateSortL1Tasks(cards) {
+function generateSortL1Tasks(cards, params) {
   const byConcept = groupByConcept(cards);
   const tasks = [];
   for (const [, conceptCards] of byConcept) {
-    const built = buildConceptZones(conceptCards);
+    const built = buildConceptZones(conceptCards, params.cardCount ?? 4);
     if (!built) continue;
     tasks.push({ type: "sort", ...built });
   }
@@ -154,7 +158,7 @@ function generateSortL2Tasks(cards, params) {
   // leftover concept when odd count
   if (conceptIds.length % 2 !== 0) {
     const lastCards = byConcept.get(conceptIds[conceptIds.length - 1]);
-    const built = buildConceptZones(lastCards);
+    const built = buildConceptZones(lastCards, cardsPerConcept);
     if (built) tasks.push({ type: "sort", ...built });
   }
   return shuffle(tasks);
@@ -162,7 +166,7 @@ function generateSortL2Tasks(cards, params) {
 
 function generateSortTask(cards, params) {
   const level = params.level ?? 1;
-  return level === 2 ? generateSortL2Tasks(cards, params) : generateSortL1Tasks(cards);
+  return level === 2 ? generateSortL2Tasks(cards, params) : generateSortL1Tasks(cards, params);
 }
 
 function generateFindAllTasks(cards, params) {
@@ -195,9 +199,34 @@ function generateFindAllTasks(cards, params) {
   return shuffle(tasks);
 }
 
+function selectOppositeDistractors(cards, stimulus, correct, params) {
+  const count = Math.max(1, params.distractorCount ?? 2);
+  // Another object with the opposite pole is also a valid semantic answer.
+  // Only the stimulus pole can be an incorrect answer within this concept.
+  const samePole = shuffle(cards.filter(c =>
+    c.conceptId === stimulus.conceptId && c.pole === stimulus.pole
+  ));
+  const pool = params.sameConcept
+    ? samePole
+    : [
+        ...shuffle(cards.filter(c => c.conceptId !== stimulus.conceptId)),
+        // A single-concept lesson still needs a real choice. The stimulus
+        // itself is a valid foil when no other object is available.
+        ...samePole,
+      ];
+  const optionKey = params.distractorType === "text"
+    ? card => card.poleLabel
+    : card => card.id;
+  const seen = new Set([optionKey(correct)]);
+  return pool.filter(card => {
+    const key = optionKey(card);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, count);
+}
+
 function generateFindOppositeImageTasks(cards, params) {
-  const distractorCount = params.distractorCount ?? 2;
-  const sameConcept     = params.sameConcept ?? false;
   const byObject        = groupByObjectId(cards);
   const tasks           = [];
 
@@ -207,15 +236,8 @@ function generateFindOppositeImageTasks(cards, params) {
     const stimulus = pair[0];
     const correct  = pair[1];
 
-    const distractors = sameConcept
-      ? shuffle(cards.filter(c =>
-          c.conceptId === stimulus.conceptId &&
-          c.pole      === correct.pole       &&
-          c.objectId  !== stimulus.objectId
-        )).slice(0, distractorCount)
-      : shuffle(cards.filter(c =>
-          c.conceptId !== stimulus.conceptId
-        )).slice(0, distractorCount);
+    const distractors = selectOppositeDistractors(cards, stimulus, correct, params);
+    if (!distractors.length) continue;
 
     tasks.push({
       type:           "find_opposite",
@@ -233,12 +255,10 @@ function generateFindOppositeImageTasks(cards, params) {
 }
 
 function generateFindOppositeTextTasks(cards, params) {
-  const distractorCount = params.distractorCount ?? 2;
-  const sameConcept     = params.sameConcept ?? false;
   const byConcept       = groupByConcept(cards);
   const tasks           = [];
 
-  for (const [conceptId, conceptCards] of byConcept) {
+  for (const [, conceptCards] of byConcept) {
     const leftCards  = conceptCards.filter(c => c.pole === "left");
     const rightCards = conceptCards.filter(c => c.pole === "right");
     if (!leftCards.length || !rightCards.length) continue;
@@ -252,11 +272,8 @@ function generateFindOppositeTextTasks(cards, params) {
     const textCard    = textCards[0];
     const correctCard = shuffle(answerCards)[0];
 
-    const distractors = sameConcept
-      ? shuffle(textCards.filter(c => c.id !== textCard.id))
-          .slice(0, distractorCount)
-      : shuffle(cards.filter(c => c.conceptId !== conceptId))
-          .slice(0, distractorCount);
+    const distractors = selectOppositeDistractors(cards, textCard, correctCard, params);
+    if (!distractors.length) continue;
 
     tasks.push({
       type:           "find_opposite",
