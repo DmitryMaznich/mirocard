@@ -506,6 +506,11 @@ export function followingSameRows(rows, index, key, old, glyphMap) {
   }
   return out;
 }
+// The other rows of the page that write otherwise than `value` (a row's style offered for the whole page, owner 2026-11-20: as the
+// other settings, «На всю страницу» for a few seconds). Blank rows are passed over. Ids, in order.
+export function otherRowsOtherwise(rows, index, key, value, glyphMap) {
+  return rows.filter((r, i) => i !== index && rowsFor(key)(r) && rowSetting(r, key, glyphMap) !== value).map((r) => r.id);
+}
 // Which row settings differ between the sample rows of the page (the dot on a strip button): { repeat: true, dots: true }
 export function mixedRowSettings(rows, glyphMap) {
   const out = {};

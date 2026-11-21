@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { useHint } from "./Propis2Hint";
 import { usePopupPos } from "./usePopupPos";
 
@@ -25,6 +25,16 @@ export default function Propis2Picker({ label, caption, value, options, onChange
   const ref = useRef(null);
   const btnRef = useRef(null);
   const listStyle = usePopupPos(open, btnRef, 62, () => setOpen(false));
+  // a list of names (the writing styles) is wider than the 62px usePopupPos keeps on the screen: measured, it is moved back left so
+  // its right edge stays on the screen (a phone cut «Британские соединённые» and «… наклонные» to the same «Британские соединён…»)
+  const listRef = useRef(null);
+  useLayoutEffect(() => {
+    const el = listRef.current;
+    if (!open || !el || !listStyle) return;
+    const r = el.getBoundingClientRect();
+    const over = r.right - (window.innerWidth - 8);
+    if (over > 0) el.style.left = `${Math.max(8, r.left - over)}px`;
+  }, [open, listStyle]);
   const current = options.find((o) => o.id === value) ?? options[0];
 
   useEffect(() => {
@@ -47,7 +57,7 @@ export default function Propis2Picker({ label, caption, value, options, onChange
         {tip}
       </button>
       {open && (
-        <div className="p2-pick-list" role="listbox" aria-label={label} style={listStyle ?? undefined}>
+        <div className="p2-pick-list" ref={listRef} role="listbox" aria-label={label} style={listStyle ?? undefined}>
           {options.map(({ id, label: name, Icon, text, short, disabled: off }) => (
             <Option key={id} id={id} name={name} Icon={Icon} text={text} short={short} disabled={off} on={id === current.id} onPick={(v) => { setOpen(false); onChange(v); }} />
           ))}

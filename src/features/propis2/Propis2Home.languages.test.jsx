@@ -170,7 +170,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
         await tick();
       });
       // (Russian has two styles of its own since deck 0.7.0: «Прописные», «Печатные»)
-      expect(Boolean(host.querySelector('button[aria-label="Стиль страницы"]'))).toBe(true);
+      expect(Boolean(host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]'))).toBe(true); // the style is the row's (no page style button since 2026-11-20)
       await click(host.querySelector(".back-btn"));
       await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
       await act(async () => { root.unmount(); await tick(400); });
@@ -279,7 +279,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(lib.pages.map((pg) => pg.gridKind)).toEqual(["en_gb"]);
     host.remove();
   });
-  it("a page of an English notebook changes its writing style in the page strip (page.style); the notebook stores none", async () => {
+  it("a row's style is offered for the whole page for a few seconds, «На всю страницу» (owner, 2026-11-20); no page style button", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2pstyle-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
@@ -293,21 +293,27 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await click(btn(host, "Новая тетрадь"));
     const field = host.querySelector('[aria-label="Текст страницы"]');
     await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "little kitten");
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(field, "little kitten\nlittle cat\nbig dog");
       field.dispatchEvent(new Event("input", { bubbles: true }));
       await tick();
     });
-    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("print"); // the style is the page strip's «Стиль страницы», not a badge in the header (owner, 2026-11-19)
+    expect(host.querySelector('button[aria-label="Стиль страницы"]')).toBeNull();
+    const rowPicker = () => host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]');
+    expect(rowPicker().getAttribute("data-value")).toBe("print");
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
-    const printInk = ink();
-    expect(printInk.length).toBeGreaterThan(0);
-    await click(host.querySelector('button[aria-label="Стиль страницы"]'));
-    await click(document.querySelector('[role="option"][aria-label="Британские раздельные"]'));
-    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("british");
     await act(async () => { await tick(50); });
-    expect(ink()).not.toBe(printInk); // the sheet is written with the British letters now
-    // the student view draws the page in its style
+    const printInk = ink();
+    await click(rowPicker());
+    await click(document.querySelector('[role="listbox"][aria-label="Стиль строки"] [aria-label="Британские раздельные"]'));
+    const offer = () => host.querySelector('[data-testid="propis2-offer"]');
+    expect(offer()).not.toBeNull();
+    const spread = [...offer().querySelectorAll("button")].find((b) => b.textContent.includes("На всю страницу"));
+    expect(spread).toBeTruthy();
+    await click(spread);
+    expect(offer().textContent).toMatch(/на всей странице/);
+    await act(async () => { await tick(50); });
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
+    expect(ink()).not.toBe(printInk);
     await click(host.querySelector('[aria-label="Показать ученику"]'));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     await click(host.querySelector(".propis-practice-close"));
@@ -316,7 +322,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { root.unmount(); await tick(400); });
     const lib = await loadLibrary(db);
     expect(lib.sets.map((st) => [st.lang, st.style])).toEqual([["en", undefined]]); // the notebook itself has no style
-    expect(lib.pages.map((pg) => [pg.style, pg.gridKind])).toEqual([["british", "en_gb"]]);
+    expect(lib.pages[0].style).toBeUndefined();
+    expect(lib.pages[0].rows.map((r) => r.style)).toEqual(["british", "british", "british"]);
     host.remove();
   });
   it("a row of an English page writes in a style of its own (row.style): print, then joined, on one page", async () => {
@@ -361,7 +368,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(lib.pages[0].rows.map((r) => r.style).filter(Boolean)).toEqual(["british_joined"]); // the selected row only
     host.remove();
   });
-  it("a Russian row takes «Печатные» on the copybook ruling; on a print paper «Прописные» stays in the list, greyed (owner, 2026-11-20)", async () => {
+  it("a Russian row takes «Печатные» on the copybook ruling; a print paper (picked in «Бумага») takes the page into print letters, «Прописные» stays in the list, greyed (owner, 2026-11-20)", async () => {
     const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
     const tdb = await openDb("p2rstyle-ru-tc-" + Date.now());
     await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
@@ -395,14 +402,20 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     await click(host.querySelector(".propis-practice-close"));
     // the page in print letters goes onto a print paper: a cursive row would be split by its cell snap — offered, but greyed
-    await click(host.querySelector('button[aria-label="Стиль страницы"]'));
-    await click(document.querySelector('[role="option"][aria-label="Печатные"]'));
+    await click(host.querySelector('button[aria-label="Тип бумаги"]'));
+    await click(document.querySelector('[role="listbox"][aria-label="Тип бумаги"] [aria-label="Крупная клетка"]'));
+    expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
     const field2 = host.querySelector('[aria-label="Текст страницы"]');
     await act(async () => { field2.focus(); field2.setSelectionRange(1, 1); field2.dispatchEvent(new Event("select", { bubbles: true })); document.dispatchEvent(new Event("selectionchange")); await tick(); });
     await click(host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]'));
     expect(opt("Прописные")).not.toBeNull();
     expect(opt("Прописные").disabled).toBe(true);
-    await act(async () => { root.unmount(); await tick(100); });
+    await click(host.querySelector(".back-btn"));
+    await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
+    await act(async () => { root.unmount(); await tick(400); });
+    const [pg] = (await loadLibrary(db)).pages;
+    expect([pg.gridKind, pg.style]).toEqual(["print_bigcell", "print"]); // the paper took the page into the print letters
+    expect(pg.rows.map((r) => r.style)).toEqual([undefined, undefined]); // «мама» was cursive: it cannot stand on the cell, it writes in print now
     host.remove();
   });
   it("a ready Latin notebook (the Nelson joins) opens as a copy in its own style, «Британские соединённые»", async () => {
@@ -421,7 +434,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     const card = readyCards().find((c) => c.textContent.includes("Join 1"));
     await click([...card.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? "").startsWith("Изменить тетрадь")));
     expect(document.body.textContent).not.toMatch(/Ошибка отображения/);
-    expect(host.querySelector('button[aria-label="Стиль страницы"]').getAttribute("data-value")).toBe("british_joined"); // the editor says which style
+    expect(host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]').getAttribute("data-value")).toBe("british_joined"); // the editor says which style
     expect(host.querySelector('[data-testid="propis2-notebook-style"]')).toBeNull();
     expect(host.querySelector('[data-testid="propis2-notebook-lang"]').textContent).toBe("ENG");
     await act(async () => { root.unmount(); await tick(400); });
