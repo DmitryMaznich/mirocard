@@ -127,8 +127,10 @@ export default function Propis2Home({ db }) {
   const paperChoices = useMemo(() => {
     if (!multiStyle) return null;
     const seen = new Map();
-    for (const st of langStyleList) for (const g of deckPapers(recordOfStyle(st.id))) if (!seen.has(g.id)) seen.set(g.id, g);
-    return [...seen.values()];
+    // each paper under the first style that has it: the list shows the groups («Проп», «Печ») when there is more than one
+    for (const st of langStyleList) for (const g of deckPapers(recordOfStyle(st.id))) if (!seen.has(g.id)) seen.set(g.id, { ...g, group: st.short ?? st.title });
+    const out = [...seen.values()];
+    return new Set(out.map((g) => g.group)).size > 1 ? out : out.map(({ group: _g, ...g }) => g);
   }, [multiStyle, langStyleList, recordOfStyle]);
   // runs of the notebook by paper AND style (model.js notebookSections)
   const sectionOpts = useMemo(() => (multiStyle ? { styleOf: pageStyle, glyphMapOf: (st) => glyphMapOf(recordOfStyle(st)) } : undefined), [multiStyle, pageStyle, recordOfStyle]);

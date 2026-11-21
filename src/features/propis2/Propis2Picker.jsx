@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { Fragment, useEffect, useRef, useState, useLayoutEffect } from "react";
 import { useHint } from "./Propis2Hint";
 import { usePopupPos } from "./usePopupPos";
 
@@ -58,8 +58,12 @@ export default function Propis2Picker({ label, caption, value, options, onChange
       </button>
       {open && (
         <div className="p2-pick-list" ref={listRef} role="listbox" aria-label={label} style={listStyle ?? undefined}>
-          {options.map(({ id, label: name, Icon, text, short, disabled: off }) => (
-            <Option key={id} id={id} name={name} Icon={Icon} text={text} short={short} disabled={off} on={id === current.id} onPick={(v) => { setOpen(false); onChange(v); }} />
+          {options.map(({ id, label: name, Icon, text, short, disabled: off, group }, i) => (
+            <Fragment key={id}>
+              {/* a variant with `group` opens a group when it differs from the one above (the papers of each writing style: «Проп», «Печ») */}
+              {group && group !== options[i - 1]?.group && <span className="p2-pick-group" aria-hidden="true">{group}</span>}
+              <Option id={id} name={name} Icon={Icon} text={text} short={short} disabled={off} on={id === current.id} onPick={(v) => { setOpen(false); onChange(v); }} />
+            </Fragment>
           ))}
         </div>
       )}

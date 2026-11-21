@@ -68,7 +68,8 @@ const SETTING_SAYS = {
   bandFill: (v) => `Подсветка: ${BAND_FILL_OPTS.find((o) => o.id === v)?.label ?? "нет"}`,
   bgDash: (v) => (v ? "Пунктир включён" : "Пунктир выключен"),
   writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
-  style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
+  // the short name («Соед»), as on the button: the full one made the offer three lines on a phone (owner, 2026-11-21)
+  style: (v, styles) => { const st = styles?.find((x) => x.id === v); return `Стиль: ${st?.short ?? st?.title ?? v}`; },
 };
 // a writing style in the strips: its abbreviation on the button («П», «БР», «БС», «БСН»), the abbreviation and the full name in the list
 // (owner, 2026-11-11: the button stays light, the list says what the letters stand for)
@@ -102,7 +103,8 @@ const DOT_OPTS = [
 const ROW_SAYS = {
   repeat: (v) => `Образец: ${optionName(REPEAT_OPTS, v)}`,
   dots: (v) => `Точки: ${optionName(DOT_OPTS, v)}`,
-  style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
+  // the short name («Соед»), as on the button: the full one made the offer three lines on a phone (owner, 2026-11-21)
+  style: (v, styles) => { const st = styles?.find((x) => x.id === v); return `Стиль: ${st?.short ?? st?.title ?? v}`; },
 };
 const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }), style: (v) => ({ style: v }) };
 const onRows = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "строке" : "строках"}`;
@@ -548,7 +550,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           {/* the page's writing style (docs/propis2-languages.md «Стиль у страницы»): only a language with several styles */}
-          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={(styles?.papers ?? deckPapers(topicRecord)).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id) }))} />
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={(styles?.papers ?? deckPapers(topicRecord)).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id), ...(g.group ? { group: g.group } : {}) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id], disabled: (mazinaPaper && g.id === "regular") || (bgPaper && g.id === "dense") }))} />
