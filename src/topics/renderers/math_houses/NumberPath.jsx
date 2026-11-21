@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { CheckmarkIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons.jsx";
+import { useEffect, useEffectEvent, useId, useLayoutEffect, useRef, useState } from "react";
+import { CheckmarkIcon } from "@/shared/components/ArrowIcons.jsx";
 import { arePathNeighbors } from "./numberPath.js";
 import "./numberPath.css";
 
@@ -19,57 +19,37 @@ function directionTo(from, to, size) {
   return undefined;
 }
 
-function Counters({ pair, showPlus = false }) {
-  return (
-    <span className="number-path__counters" aria-hidden="true">
-      {pair.map((count, group) => (
-        <Fragment key={group}>
-          {showPlus && group === 1 && <span>+</span>}
-          <span className="number-path__counter-group" data-group={group}>
-            {Array.from({ length: count }, (_, i) => <span key={i} />)}
-          </span>
-        </Fragment>
-      ))}
-    </span>
-  );
-}
-
-export default function NumberPath({ task, sessionParams, interactionDisabled, onCorrect, onMistake }) {
+export default function NumberPath({ task, sessionParams, sessionStatus, interactionDisabled, onCorrect, onMistake, onAdvance }) {
   const { number, size } = task;
   const start = task.route[0];
   const finish = task.route.at(-1);
   const cells = task.cells.map((pair, index) => pair ?? (index === start ? [number, 0] : [0, number]));
-  const firstLabel = expression(cells[start]);
-  const lastLabel = expression(cells[finish]);
   const restartOnMistake = sessionParams?.mistakeBehavior === "restart";
   const titleId = useId();
-  const guideId = useId();
-  const [route, setRoute] = useState([start]);
+  const checkId = useId();
+  const [route, setRoute] = useState(() => sessionStatus === "answer_correct" ? task.route : [start]);
   const [lastPick, setLastPick] = useState(null);
-  const [showCounters, setShowCounters] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-  const [usedGuide, setUsedGuide] = useState(false);
+  const [checkPick, setCheckPick] = useState(null);
   const boardRef = useRef(null);
   const boardViewportRef = useRef(null);
+  const checkRef = useRef(null);
   const moveFocus = useRef(false);
-  const completionReported = useRef(false);
   const current = route.at(-1);
   const finished = current === finish;
-  const guideCell = task.route[1];
-  const guideLabel = expression(cells[guideCell]);
   const pickedPair = cells[lastPick];
   const incorrect = pickedPair && sum(pickedPair) !== number;
-  const canFinish = arePathNeighbors(current, finish, size);
+  const knownPart = Math.floor(number / 2);
+  const missingPart = number - knownPart;
+  const options = Array.from({ length: 3 }, (_, index) => missingPart - 1 + (index + finish) % 3);
+  const checkSolved = checkPick === missingPart;
   const nextByCell = new Map(route.slice(0, -1).map((cell, step) => [cell, route[step + 1]]));
+  const advance = useEffectEvent(() => onAdvance());
 
   useEffect(() => {
-    if (!finished || interactionDisabled || completionReported.current) return undefined;
-    const timer = window.setTimeout(() => {
-      completionReported.current = true;
-      onCorrect(task.conceptId, task.cardId);
-    }, 500);
+    if (!checkSolved || interactionDisabled) return undefined;
+    const timer = window.setTimeout(() => advance(), 1000);
     return () => window.clearTimeout(timer);
-  }, [finished, interactionDisabled, onCorrect, task.conceptId, task.cardId]);
+  }, [checkSolved, interactionDisabled]);
 
   useLayoutEffect(() => {
     const viewport = boardViewportRef.current;
@@ -92,12 +72,16 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
     keepCurrentCellVisible();
     if (moveFocus.current) {
       moveFocus.current = false;
-      boardRef.current?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+      if (finished) {
+        checkRef.current?.querySelector("button:not(:disabled)")?.focus();
+      } else {
+        boardRef.current?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+      }
     }
     const observer = new ResizeObserver(keepCurrentCellVisible);
     observer.observe(viewport);
     return () => observer.disconnect();
-  }, [current, showGuide]);
+  }, [current, finished]);
 
   function choose(index, event) {
     const pair = cells[index];
@@ -110,19 +94,12 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
       onMistake(task.conceptId, task.cardId);
       return;
     }
-    if (showGuide) {
-      setShowGuide(false);
-      setUsedGuide(true);
-    }
-    moveFocus.current = index !== finish && event.detail === 0;
+    moveFocus.current = event.detail === 0;
     setRoute([...route, index]);
+    if (index === finish) onCorrect(task.conceptId, task.cardId);
   }
 
-  const message = finished ? "Дорожка пройдена!"
-    : pickedPair ? `${expression(pickedPair)} = ${sum(pickedPair)}` : `Старт на клетке ${firstLabel}`;
-  const detail = finished ? `${lastLabel} = ${number}`
-    : incorrect ? (restartOnMistake ? "Начни снова со старта." : "Попробуй другую соседнюю клетку.")
-      : canFinish ? `Шагни на финиш: ${lastLabel}.` : "Выбери одну из соседних клеток.";
+  const message = finished ? "Дорожка пройдена!" : pickedPair ? `${expression(pickedPair)} = ${sum(pickedPair)}` : "";
 
   return (
     <section
@@ -132,14 +109,8 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
       aria-labelledby={titleId}
     >
       <header className="number-path__goal">
-        <div>
-          <h2 id={titleId}>Найди дорожку</h2>
-          <p>Шагай к финишу по клеткам с суммой <strong>{number}</strong>.</p>
-        </div>
-        <div className="number-path__target" aria-hidden="true">
-          <span>Сумма</span>
-          <strong>{number}</strong>
-        </div>
+        <h2 id={titleId}>Найди дорожку</h2>
+        <strong className="number-path__target"><span className="number-path__target-label">Ищем </span>{number}</strong>
       </header>
       <div className="number-path__field">
         <div ref={boardViewportRef} className="number-path__board-viewport">
@@ -151,14 +122,13 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
           >
             {cells.map((pair, index) => {
               const visited = route.includes(index);
-              const guided = showGuide && index === guideCell;
-              const neighbor = !finished && !visited && arePathNeighbors(current, index, size) && (!showGuide || guided);
-              const state = index === current ? "current" : visited ? "path" : guided ? "guide"
+              const neighbor = !finished && !visited && arePathNeighbors(current, index, size);
+              const state = index === current ? "current" : visited ? "path"
                 : incorrect && !restartOnMistake && index === lastPick ? "retry" : neighbor ? "neighbor" : "idle";
               const label = expression(pair);
               const description = {
                 current: "здесь", path: "пройдено", retry: "сумма не подходит",
-                neighbor: "соседняя клетка", guide: "клетка для первого хода",
+                neighbor: "соседняя клетка",
               }[state];
               const endpoint = index === start ? "Старт" : index === finish ? "Финиш" : null;
               return (
@@ -182,7 +152,6 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
                   <span className="number-path__sum">
                     {pair[0]}<span className="number-path__plus">+</span>{pair[1]}
                   </span>
-                  {showCounters && neighbor && !showGuide && <Counters pair={pair} />}
                 </button>
               );
             })}
@@ -190,50 +159,38 @@ export default function NumberPath({ task, sessionParams, interactionDisabled, o
         </div>
       </div>
       <footer className="number-path__footer">
-        <div id={guideId} className="number-path__guide" hidden={!showGuide}>
-          <div className="number-path__worked" aria-hidden="true">
-            <Counters pair={cells[guideCell]} showPlus />
-            <strong>= {number}</strong>
-          </div>
-          <p>{guideLabel} = {number}. Нажми на эту клетку.</p>
-        </div>
-        <div className="number-path__feedback" data-mistake={Boolean(incorrect)} role="status" aria-atomic="true" hidden={showGuide}>
+        <div className="number-path__feedback" data-mistake={Boolean(incorrect)} data-finished={finished} role="status" aria-atomic="true" hidden={!message}>
           <span className="number-path__feedback-icon" aria-hidden="true">
-            {incorrect ? "×" : pickedPair ? <CheckmarkIcon size={20} /> : <ForwardArrowIcon size={20} />}
+            {incorrect ? "×" : <CheckmarkIcon size={20} />}
           </span>
           <div>
             <strong>{message}</strong>
-            <p>{detail}</p>
+            {incorrect && <p>Ищем {number}.{restartOnMistake ? " Начни снова со старта." : ""}</p>}
           </div>
         </div>
-        <div className="number-path__actions">
-          {route.length === 1 && !usedGuide && (
-            <button
-              className="number-path__action"
-              type="button"
-              aria-expanded={showGuide}
-              aria-controls={guideId}
-              disabled={interactionDisabled || finished}
-              onClick={() => {
-                if (!showGuide) setLastPick(null);
-                setShowGuide(!showGuide);
-              }}
-            >
-              {showGuide ? "Закрыть показ" : "Показать первый ход"}
-            </button>
-          )}
-          {!showGuide && (
-            <button
-              className="number-path__action"
-              type="button"
-              aria-pressed={showCounters}
-              disabled={interactionDisabled || finished}
-              onClick={() => setShowCounters(!showCounters)}
-            >
-              {showCounters ? "Скрыть фишки" : "Показать фишки"}
-            </button>
-          )}
-        </div>
+        {finished && (
+          <section ref={checkRef} className="number-path__check" aria-labelledby={checkId}>
+            <h3 id={checkId}>Какого числа не хватает?</h3>
+            <p className="number-path__missing">{knownPart} + <span>{checkSolved ? missingPart : "?"}</span> = {number}</p>
+            <div className="number-path__choices">
+              {options.map((option) => (
+                <button
+                  key={option}
+                  className="number-path__action"
+                  type="button"
+                  data-result={option === checkPick ? (checkSolved ? "correct" : "incorrect") : undefined}
+                  disabled={interactionDisabled || checkSolved}
+                  onClick={() => setCheckPick(option)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            <p className="number-path__check-status" role="status">
+              {checkSolved ? "Верно!" : checkPick !== null ? `Получилось ${knownPart + checkPick}. Ищем ${number}.` : ""}
+            </p>
+          </section>
+        )}
       </footer>
     </section>
   );
