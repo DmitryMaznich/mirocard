@@ -264,6 +264,14 @@
 .propis2-panel-close { position: absolute; top: calc(12px + var(--app-safe-top, 0px)); right: calc(12px + var(--app-safe-right, 0px)); width: 48px; height: 48px; border: none; border-radius: 50%; background: #efe9dc; color: #4b5563; font: 700 22px/1 "Nunito", sans-serif; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .propis2-panel-close:active { background: #e3dccb; }
 .propis2-panel-stage { flex: 1 1 auto; min-height: 0; position: relative; padding: 0 var(--app-safe-right, 0px) 0 var(--app-safe-left, 0px); }
+/* «Без отрыва | С отрывом» in the show panel: a two-way switch, the light thumb slides under the chosen side (owner, 2026-11-21) */
+.propis2-tech { position: relative; flex: 0 0 auto; align-self: center; display: grid; grid-template-columns: 1fr 1fr; margin: 4px 16px 2px; padding: 4px; min-width: min(360px, calc(100vw - 32px)); border-radius: 999px; background: #e3ece9; box-shadow: inset 0 1px 3px rgba(30,60,55,.18); }
+.propis2-tech-thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 999px; background: #fff; box-shadow: 0 2px 6px rgba(30,60,55,.22), 0 0 0 2px #4a9b8f; transition: transform .28s cubic-bezier(.3,1.4,.5,1); }
+.propis2-tech[data-lifted="1"] .propis2-tech-thumb { transform: translateX(100%); }
+.propis2-tech-opt { position: relative; z-index: 1; height: 48px; padding: 0 14px; border: none; border-radius: 999px; background: transparent; color: #5b6f6b; font: 800 16px/1 "Nunito", sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: color .2s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-tech-opt.is-on { color: #2a6b60; }
+.propis2-tech-ico { width: 30px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { .propis2-tech-thumb { transition: none; } }
 .propis2-panel-controls { flex: 0 0 auto; display: flex; justify-content: center; gap: 14px; padding: 10px 16px calc(18px + var(--app-safe-bottom, 0px)); }
 .propis2-panel-btn { min-width: 150px; height: 56px; padding: 0 22px; border: none; border-radius: 16px; background: #4a9b8f; color: #fff; font: 800 18px/1 "Nunito", sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 3px 0 #2a6b60; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .propis2-panel-btn:active { transform: translateY(3px); box-shadow: none; }

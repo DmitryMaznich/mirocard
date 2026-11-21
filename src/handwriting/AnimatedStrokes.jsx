@@ -47,7 +47,7 @@ export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs
           strokeLinecap="round" strokeLinejoin="round" opacity={0.15} />
       ))}
       {trajectory.strokes.map((s, i) => (
-        <path key={`a${i}`} data-pr-anim={i} data-pr-continuous={s.continuous ? "1" : undefined}
+        <path key={`a${i}`} data-pr-anim={i} data-pr-continuous={s.continuous ? "1" : undefined} data-pr-jump={trajectory.lifted ? "1" : undefined}
           d={s.d} fill="none" stroke={INK_COLOR}
           strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
       ))}

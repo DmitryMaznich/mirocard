@@ -1,6 +1,6 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
 import { mapRowInk, scriptKey, scriptPointMap } from "./scriptGeometry.js";
-import { letterPieces, splitIntoParts } from "./letterParts.js";
+import { letterMoves, letterPieces, ownStrokes, splitIntoParts } from "./letterParts.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   TEXT_ROW_WIDE_DIAGONAL_SPACING,
@@ -2041,6 +2041,44 @@ function partsGlyphMap(map, key) {
   byKey.set(key, out);
   return out;
 }
+// The pen of a row in the LIFTED technique (row flag `#L`, the show panel's «С отрывом», docs/propis2-letter-parts.md): a marked letter is
+// written element by element (letterMoves "lifted": the way back over ink already drawn is left out), its exit to the next letter is a
+// piece of its own, and every other stroke — a join, a dot, a letter not marked — too; no stroke goes on from the one before (no join
+// transitions), and the player puts the pen down at each one without showing its way through the air (trajectory `lifted`). The ink on
+// the sheet is the same strokes as ever: only the animation changes.
+// (a stroke as its commands: "M x y", "C …", "L …"; a placed stroke keeps the commands of its glyph's, a join may add or take some at its end)
+const pathCommands = (d) => String(d).trim().split(/\s*(?=[LQC])/); // (a command may follow a number with no space: «58.04L 143.6 36»)
+function liftedAnimStrokes(strokes, markedRuns) {
+  const out = [];
+  for (let i = 0; i < strokes.length; i += 1) {
+    const run = markedRuns.get(i);
+    if (!run) { const { continuous: _c, ...st } = strokes[i]; out.push(st); continue; }
+    const placed = strokes.slice(i, i + run.count);
+    i += run.count - 1;
+    const g = run.glyph;
+    // the letter's own strokes as placed: each the first as many commands as the glyph's own stroke has; what a stroke has beyond them is
+    // its exit (tailSplit — and a join that changed the end: о before т); the stroke left out (`tailStroke`) is the exit whole
+    const mine = ownStrokes(g);
+    const keep = placed.map((_, k) => k).filter((k) => !(Number.isInteger(g.tailStroke) && k === g.tailStroke));
+    const own = [], tails = [];
+    let ok = keep.length === mine.length;
+    keep.forEach((k, j) => {
+      if (!ok) return;
+      const cmds = pathCommands(placed[k].d), n = pathCommands(mine[j].d).length;
+      if (cmds.length < n) { ok = false; return; }
+      own.push({ ...placed[k], d: cmds.slice(0, n).join(" ") });
+      if (cmds.length > n) { const from = getPathEndpoints(own[own.length - 1].d).end; tails.push(`M ${from[0]} ${from[1]} ${cmds.slice(n).join(" ")}`); }
+    });
+    let moves = null;
+    if (ok) { try { moves = letterMoves(g, "lifted", own); } catch { moves = null; } }
+    // (a letter its strokes do not fit: written stroke by stroke, as it is)
+    if (!moves) { for (const st of placed) { const { continuous: _c, ...rest } = st; out.push(rest); } continue; }
+    for (const m of moves) if (m.kind === "ink") out.push({ d: m.d, ...(m.continues ? { continuous: true } : {}) });
+    for (const d of tails) out.push({ d });
+    if (Number.isInteger(g.tailStroke) && placed[g.tailStroke]) out.push({ d: placed[g.tailStroke].d });
+  }
+  return out;
+}
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   if (!glyphsByLabel || !lines.some((l) => PARTS_FLAG.test(l))) return layoutWideLinesIntoRowsStyled(lines, glyphsByLabel, snapX, multiply, scale, maxX);
   const parts = lines.map((l) => PARTS_FLAG.exec(l)?.[1] ?? null);
@@ -2114,7 +2152,9 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.drawn ? { drawn: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[igw]\d+|[bB][^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
+  // L = the pen animated in the LIFTED technique (docs/propis2-letter-parts.md): every element of a marked letter, every join, on its own
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxvL]|[igw]\d+|[bB][^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
+  const liftedRows = flags.map((f) => f.includes("#L"));
   // bX / BX = the row has a printed letter X (propis2 «буквица», drawn by PrintPageView) at its left / right end: a flag of the row, no ink of its own
   const dropMarks = flags.map((f) => /#([bB])([^#\s])/.exec(f));
   const drops = dropMarks.map((m) => (m ? m[2] : null));
@@ -2140,7 +2180,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[igw]\d+|[bB][^#\s]))+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxvL]|[igw]\d+|[bB][^#\s]))+$/, ""));
   // `script.caps` (the Slovenian «Velike tiskane črke», docs/propis2-sl.md): a style of capitals only, as the first school year writes —
   // whatever the adult typed is written in capitals («mama» → MAMA; digits and signs have no case)
   if (glyphsByLabel?.script?.caps) lines = lines.map((l) => l.toLocaleUpperCase("sl"));
@@ -2220,6 +2260,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
     // doesn't lift between them.
     const joins = new Map(); // first stroke index of a joined letter -> index of the stroke it continues from
     const joinLeftAt = new Set(); // first stroke indexes of joined glyphs that are entered from the left of their oval (а, с)
+    const markedRuns = new Map(); // `#L`: first stroke index of a marked letter (letter_elements.json) -> { count, glyph }
     const startPoints = [];
     const directionArrows = [];
     let cursorX = null;
@@ -3177,6 +3218,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // a letter written only in part (`#p`, partsGlyphMap): its strokes cut into its parts (letterParts.js), the ones not written marked hidden
         const movedOut = glyph.hiddenParts ? splitIntoParts(moved, glyph, glyph.hiddenParts) : moved;
         strokes.push(...movedOut);
+        if (liftedRows[rowIndex] && glyph.trajectory && !glyph.upright && !glyph.hiddenParts && !dashed) markedRuns.set(firstMovedIndex, { count: movedOut.length, glyph });
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
         cellRun.push(cellRec);
         if (prevExit && !exactTouch && !liftJoin) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
@@ -3276,8 +3318,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       for (let j = rec.first; j < rec.first + rec.count; j += 1) strokes[j] = { ...strokes[j], d: transformPathD(strokes[j].d, { translateX: shift }) };
       for (let j = rec.dotFrom; j < rec.dotTo; j += 1) startPoints[j] = [startPoints[j][0] + shift, startPoints[j][1]];
     });
-    const animStrokes = [];
-    strokes.forEach((st, i) => {
+    const animStrokes = liftedRows[rowIndex] ? liftedAnimStrokes(strokes, markedRuns) : [];
+    if (!liftedRows[rowIndex]) strokes.forEach((st, i) => {
       if (!joins.has(i)) { animStrokes.push(st); return; }
       const contact = getPathEndpoints(strokes[joins.get(i)].d).end;
       const start = getPathEndpoints(st.d).start;
@@ -3303,7 +3345,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
     // `type: "element"` on purpose: PrintPageView already renders those as static ink with start
     // dots + direction arrows (no tap/animation).
     const segments = strokes.length
-      ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }]
+      ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes, ...(liftedRows[rowIndex] ? { lifted: true } : {}) } }]
       : [];
     return { word: line, rowIndex, x: 0, segments };
   });

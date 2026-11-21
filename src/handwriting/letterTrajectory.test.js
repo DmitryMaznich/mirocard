@@ -315,3 +315,30 @@ describe("capitals: И Ж Ш and their kin", () => {
     expect(new Set(letterPaths(glyph(ch)).filter((p) => p.kind === "ink").map((p) => p.element)).size).toBe(n);
   });
 });
+
+// The show panel's «С отрывом» (row flag `#L`, owner 2026-11-21): the same ink, the pen animated element by element
+describe("a row in the lifted technique (#L)", () => {
+  const withTrajectory = buildGlyphMap({ wide: wide.map((g) => { const t = spec[g.label] ?? (g.aliases ?? []).map((a) => spec[a]).find(Boolean); return t ? { ...g, trajectory: t } : g; }) });
+  const row = (line) => layoutWideLinesIntoRows([line], withTrajectory, (_r, x) => x).placed[0].segments[0];
+  it("р: the stick, then the hook from its own start — no way back up the stick", () => {
+    const t = row("р#1#L").trajectory;
+    expect(t.lifted).toBe(true);
+    const r = glyph("р");
+    expect(t.strokes.length).toBe(letterMoves(r, "lifted").filter((m) => m.kind === "ink").length);
+    expect(t.strokes.some((s) => s.continuous)).toBe(false);
+  });
+  it("the sheet's ink is the same in both techniques; only the animation changes", () => {
+    for (const w of ["рот", "мама", "шип", "жук", "щука", "объём", "Юля", "Нина"]) {
+      const j = row(`${w}#1`), l = row(`${w}#1#L`);
+      expect(l.strokes.map((s) => s.d)).toEqual(j.strokes.map((s) => s.d));
+      expect(j.trajectory.lifted).toBeUndefined();
+      expect(l.trajectory.strokes.length).toBeGreaterThan(0);
+    }
+  });
+  it("every marked letter alone and in a word lays out its lifted pieces", () => {
+    for (const ch of Object.keys(spec)) {
+      expect(() => row(`${ch}#1#L`)).not.toThrow();
+      expect(() => row(`о${ch}а#1#L`)).not.toThrow();
+    }
+  });
+});

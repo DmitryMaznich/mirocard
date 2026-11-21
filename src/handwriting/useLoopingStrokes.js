@@ -89,6 +89,14 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
       const el = g.querySelector(`[data-pr-anim="${i}"]`);
       const lifted = el?.getAttribute("data-pr-continuous") !== "1";
       const done = (pt) => { lastPt = pt; runStroke(i + 1); };
+      // the lifted technique (`data-pr-jump`, trajectory `lifted`): the pen's way through the air is NOT shown (owner, 2026-11-19: «там
+      // закончилось и потом началось») — it leaves the paper, and after a pause it is put down at the start of the next piece
+      if (lifted && el?.getAttribute("data-pr-jump") === "1") {
+        if (tip) tip.setAttribute("opacity", "0");
+        const t = setTimeout(() => animStroke(g, i, tip, done), i === 0 ? 0 : PAUSE);
+        timersRef.current.push(t);
+        return;
+      }
       if (evenSpeed) {
         if (lifted && lastPt && el && tip) airMove(tip, lastPt, el.getPointAtLength(0), () => animStroke(g, i, tip, done));
         else animStroke(g, i, tip, done);
