@@ -272,7 +272,7 @@
       ]
     },
     {
-      "label": "о",
+      "label": "о", "joinOntoStart": true,
       "sourceLabel": "о (синтез: овал шириной в клетку, касается двух наклонных и линий полосы)",
       "kind": "letter",
       "strokes": [
@@ -402,7 +402,7 @@
       ]
     },
     {
-      "label": "е",
+      "label": "е", "joinOntoStart": true,
       "sourceLabel": "е1 (захват 2026-10-02, выправлен: старт на стойке, петля в полклетки; дно и выход скопированы с н/п)",
       "kind": "letter",
       "strokes": [
@@ -414,7 +414,7 @@
       "repeatCells": 3
     },
     {
-      "label": "ё",
+      "label": "ё", "joinOntoStart": true,
       "sourceLabel": "ё (е1 + две точки над петлёй)",
       "kind": "letter",
       "noDotStrokes": [

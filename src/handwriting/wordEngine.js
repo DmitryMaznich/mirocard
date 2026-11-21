@@ -1114,7 +1114,7 @@ function pathXAtY(d, y) {
 // height, its start moves horizontally onto the line (dragging the previous curve's end and last control point along),
 // so the exit rise and the next letter's first rise become ONE straight line. Returns null when the start has to
 // move further than maxShift (then the caller keeps the plain nudge).
-function alignLastPieceD(d, lineX, maxShift) {
+function alignLastPieceD(d, lineX, maxShift, endAt = null) {
   const segs = [];
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   for (let i = 0; i < toks.length;) {
@@ -1129,7 +1129,9 @@ function alignLastPieceD(d, lineX, maxShift) {
   const pa = prev.c === "M" ? prev.v : prev.v.slice(-2);
   const end = last.v.slice(-2);
   const paNew = [lineX(pa[1]), pa[1]];
-  const endNew = [lineX(end[1]), end[1]];
+  // `endAt`: the start of the next letter when it lies LOWER than the piece's own end (е ё): the piece ends on that start, not on the
+  // letter's stroke above it (owner, 2026-11-21: «соединение не протыкает е, а заканчивается строго на точке начала»)
+  const endNew = endAt && endAt[1] > end[1] ? [endAt[0], endAt[1]] : [lineX(end[1]), end[1]];
   if (Math.abs(paNew[0] - pa[0]) > maxShift) return null;
   const dxs = paNew[0] - pa[0];
   if (prev.c === "C") { prev.v[2] += dxs; prev.v[4] += dxs; } else prev.v[0] += dxs;
@@ -1439,6 +1441,26 @@ function lastCubicStartY(d) {
 }
 
 // The last cubic's end (and its second control, by the same amount) moved onto `target`: the shape is kept.
+// the last cubic turned and scaled round its own start so that it ends at `target`: the curve keeps its shape (moveTailEndD below drags only
+// the end and its handle, which kinks the curve when the end moves far, ь ъ before е)
+function swingTailEndD(d, target) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const n = toks.length;
+  if (n < 10 || toks[n - 7] !== "C") return null;
+  const p0 = [parseFloat(toks[n - 9]), parseFloat(toks[n - 8])];
+  const e = [parseFloat(toks[n - 2]), parseFloat(toks[n - 1])];
+  const vx = e[0] - p0[0], vy = e[1] - p0[1], wx = target[0] - p0[0], wy = target[1] - p0[1];
+  const L2 = vx * vx + vy * vy;
+  if (L2 < 1e-9) return null;
+  const a = (wx * vx + wy * vy) / L2, b = (wy * vx - wx * vy) / L2; // the complex ratio w / v
+  const out = toks.slice();
+  const f = (x) => String(Number(x.toFixed(3)));
+  for (let k = n - 6; k < n; k += 2) {
+    const x = parseFloat(toks[k]) - p0[0], y = parseFloat(toks[k + 1]) - p0[1];
+    out[k] = f(p0[0] + a * x - b * y); out[k + 1] = f(p0[1] + b * x + a * y);
+  }
+  return out.join(" ");
+}
 function moveTailEndD(d, target) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   if (toks.length < 7 || toks[toks.length - 7] !== "C") return null;
@@ -3015,11 +3037,21 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const rising = Math.atan2(st0[1] - rp[1], rp[0] - st0[0]) * (180 / Math.PI);
             if (rising > 30 && rising < 70) {
               const lineX = (y) => st0[0] + (st0[1] - y) * slope;
-              const d2 = alignLastPieceD(strokes[prevExitStroke].d, lineX, 9 * scale);
+              const d2 = alignLastPieceD(strokes[prevExitStroke].d, lineX, 9 * scale, glyph.joinOntoStart ? st0 : null);
               if (d2) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d2 }; aligned = true; }
             }
           }
-          if (!aligned && contactX !== null && Math.abs(contactX - prevExit[0]) < curNudge * scale) {
+          // a letter that starts LOWER than the tail ends and goes up from its start (е ё о): the contact at the tail's height lies on the
+          // letter's own stroke past its start, so the tail ran into the letter and the pen came back to the start; the tail ends ON the start
+          // (owner, 2026-11-21: «соединение не протыкает е, а заканчивается строго на точке начала»). Only a glyph marked `joinOntoStart` (the data of the
+          // copybook letters since then): a deck built before keeps its joins exactly
+          let ontoStart = false;
+          const onStroke = contactX !== null && pathXsAtY(moved[0].d, prevExit[1]).some((x) => Math.abs(x - contactX) < 0.5 * scale);
+          if (glyph.joinOntoStart && !aligned && !highJoined && onStroke && st0[1] > prevExit[1] + 0.3 * scale && Math.hypot(st0[0] - prevExit[0], st0[1] - prevExit[1]) < 12 * scale) {
+            const d5 = swingTailEndD(strokes[prevExitStroke].d, st0) ?? moveTailEndD(strokes[prevExitStroke].d, st0);
+            if (d5) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d5 }; ontoStart = true; }
+          }
+          if (!aligned && !ontoStart && contactX !== null && Math.abs(contactX - prevExit[0]) < curNudge * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
           // `meta.script.growJoins` (the Kazakh variant, owner 2026-10-31: «соединяем с верхней точкой следующей буквы»; only for a connector that is a stroke of its own: the exits that are part of a letter (п и …) are left as in the Russian deck): the connector is carried on to the START of the next
