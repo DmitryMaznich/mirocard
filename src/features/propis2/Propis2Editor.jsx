@@ -3,8 +3,7 @@ import { isPrintPaper } from "@/handwriting/printPapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
-import { letterPieces, piecePathD } from "@/handwriting/letterParts.js";
+import { letterPieces } from "@/handwriting/letterParts.js";
 import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, otherRowsOtherwise, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
@@ -16,6 +15,7 @@ import { useKeyboardInset } from "./useKeyboardInset";
 import { bracesIn, bracesOut, caretAtLineEnd, caretAtLineStart, cleanPastedText, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
+import PartsPad from "./Propis2PartsPad";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
 import { useHint } from "./Propis2Hint";
@@ -131,45 +131,10 @@ function Seg({ label, options, value, onChange, disabled = false }) {
 // ink, the others grey; any number can be on, at least one. Only the strokes — no dots, numbers or arrows (the sheet shows those).
 // The letter on its own cells (the print letters: a capital two 52-unit cells tall in the engine's frame, top y = -42, baseline 62 —
 // tools/handwriting/cyrillic/build-print.mjs), a clear cell around it, as «Печатные буквы» ElementPad draws its letter on the grid
-const PAD_CELL = 52;
-const PAD_PX = 44; // px per cell, at least
-const PAD_TALL = 190;
-function PartsPad({ glyph, keep, onToggle }) {
-  // (an element in pieces of several strokes — Ж's zigzag — drawn as all of them)
-  const pieces = letterPieces(glyph).map((p) => ({ ...p, d: [p, ...(p.more ?? [])].map((r) => piecePathD(glyph.strokes[r.stroke].d, r.from, r.to)).join(" "), name: glyph.strokes[p.stroke].name }));
-  const xs = glyph.strokes.flatMap((st) => samplePath(toCubicPathD(st.d), 30).map((q) => q[0]));
-  const ys = glyph.strokes.flatMap((st) => samplePath(toCubicPathD(st.d), 30).map((q) => q[1]));
-  const c = PAD_CELL;
-  const top = -42;
-  // half a cell of room around the cells the letter takes
-  const x0 = Math.floor(Math.min(...xs) / c) * c - c / 2;
-  const x1 = Math.ceil(Math.max(...xs) / c - 1e-6) * c + c / 2;
-  const y0 = top + Math.floor((Math.min(...ys) - top) / c) * c - c / 2;
-  const y1 = top + Math.ceil((Math.max(...ys) - top) / c - 1e-6) * c + c / 2;
-  const first = (v0) => Math.ceil(v0 / c) * c;
-  // the letter about PAD_TALL px tall whatever its size (a copybook small letter is one cell, a print capital two)
-  const px = Math.min(PAD_PX * 2.6, Math.max(PAD_PX, PAD_TALL / ((y1 - y0) / c)));
-  const on = new Set(keep);
-  const vLines = Array.from({ length: Math.floor((x1 - first(x0)) / c) + 1 }, (_, i) => first(x0) + i * c);
-  const hLines = Array.from({ length: Math.floor((y1 - (top + first(y0 - top))) / c) + 1 }, (_, i) => top + first(y0 - top) + i * c);
-  return (
-    <svg className="p2-partpad" viewBox={`${x0} ${y0} ${x1 - x0} ${y1 - y0}`} width={((x1 - x0) / c) * px} height={((y1 - y0) / c) * px} aria-label={`Буква ${glyph.label}: нажмите на штрих, чтобы писать или не писать его`}>
-      {vLines.map((x) => <line key={`gv${x}`} x1={x} y1={y0} x2={x} y2={y1} stroke="#bcd4e8" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
-      {hLines.map((y) => <line key={`gh${y}`} x1={x0} y1={y} x2={x1} y2={y} stroke="#bcd4e8" strokeWidth={1} vectorEffect="non-scaling-stroke" />)}
-      {pieces.map((st, i) => <path key={`v${i}`} d={st.d} fill="none" stroke={on.has(i) ? "var(--p2-blue)" : "#c3c9d2"} strokeWidth={on.has(i) ? 5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />)}
-      {pieces.map((st, i) => (
-        <path key={`h${i}`} d={st.d} fill="none" stroke="transparent" strokeWidth={18} strokeLinecap="round" className="p2-partpad-hit" role="button" tabIndex={0}
-          aria-label={`${pieces.length > glyph.strokes.length || !st.name ? `Часть ${i + 1}` : st.name}: ${on.has(i) ? "пишем" : "не пишем"}`} aria-pressed={on.has(i)} onClick={() => onToggle(i)}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(i); } }} />
-      ))}
-    </svg>
-  );
-}
-
 // The phone's «Штрихи» (owner, 2026-11-19: the row panel at the bottom kept fighting the keyboard — on a phone the row's settings are the
 // scrolling strip above the keyboard again): a button of the strip, the letter with its strokes to tap in a popup over the sheet. The popup
 // keeps the field's focus, so the keyboard stays where it is.
-function PartsPicker({ glyph, keep, onToggle, partial }) {
+function PartsPicker({ glyph, text, map, keep, onToggle, partial }) {
   const { t } = useUiTranslation();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -193,7 +158,7 @@ function PartsPicker({ glyph, keep, onToggle, partial }) {
       </button>
       {open && (
         <div className="p2-parts-panel" role="dialog" aria-label={t("propis2.whatWeWrite")} onMouseDown={(e) => e.preventDefault()} style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
-          <PartsPad glyph={glyph} keep={keep} onToggle={onToggle} />
+          <PartsPad glyph={glyph} text={text} map={map} keep={keep} onToggle={onToggle} />
         </div>
       )}
     </div>
@@ -623,6 +588,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const g = t && [...t].length === 1 ? map?.get(map.script?.caps ? t.toLocaleUpperCase("ru") : t) : null;
     return (g?.kind === "letter" || g?.kind === "element") && !g.compose && letterPieces(g).length > 1 ? g : null;
   })();
+  const partsText = partsGlyph ? String(selected.text ?? "").trim() : "";
   const partsSaved = partsGlyph ? rowPartsOf(selected, partsGlyph) : null;
   const partsCount = partsGlyph ? letterPieces(partsGlyph).length : 0;
   const partsKeep = partsSaved ?? Array.from({ length: partsCount }, (_, i) => i);
@@ -666,7 +632,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       {/* «Что пишем»: only the letter, its strokes to tap (owner, 2026-11-16: no captions, no buttons — they only take room) */}
       {partsGlyph && (
         <section className="p2-insp-sec" aria-label="Что пишем">
-          <div className="p2-insp-els"><PartsPad glyph={partsGlyph} keep={partsKeep} onToggle={togglePart} /></div>
+          <div className="p2-insp-els"><PartsPad glyph={partsGlyph} text={partsText} map={rowGlyphMap(glyphMap, selected)} keep={partsKeep} onToggle={togglePart} /></div>
         </section>
       )}
       {rowEditable && (
@@ -704,7 +670,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // kept giving way to the keyboard, and selecting a row IS the caret in the text, so the keyboard was always open (owner, 2026-11-19)
   const phoneRowEls = <>
           {selected && selected.kind !== "blank" && selected.kind !== "element" && <IconBtn label={t("propis2.rowAsText")} caption={t("propis2.text")} on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
-          {partsGlyph && <PartsPicker glyph={partsGlyph} keep={partsKeep} onToggle={togglePart} partial={Boolean(partsSaved)} />}
+          {partsGlyph && <PartsPicker glyph={partsGlyph} text={partsText} map={rowGlyphMap(glyphMap, selected)} keep={partsKeep} onToggle={togglePart} partial={Boolean(partsSaved)} />}
           <Propis2Picker label={t("propis2.repeat")} caption={t("propis2.sample")} value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label={t("propis2.redDots")} caption={t("propis2.dots")} value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           {styles && rowStyleOptions.length > 1 && <Propis2Picker label={t("propis2.rowStyle")} caption={t("propis2.rowStyle")} kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
