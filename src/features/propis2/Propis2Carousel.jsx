@@ -43,7 +43,17 @@ export function buildTiles(topicRecord) {
     // г п р л м я are stored as «elements» in the deck but are letters: they live under the letters, not here
     if ([g.label, ...(g.aliases ?? [])].some((n) => LETTER_NAMES.has(n))) continue;
     seen.add(g.label);
-    elements.push(make("element", g.label, g.label, TILE_SNAP));
+    const tile = make("element", g.label, g.labelRu ?? g.label, TILE_SNAP);
+    // a rhythm pattern (`tileRepeat`, tools/propis2/rhythm): its tile shows it run on — the label that many times, chained as in a row
+    // (a period ends where the next begins: each copy is the stroke moved by the distance from its start to its end)
+    if (g.tileRepeat > 1 && tile.strokes.length) {
+      const d = tile.strokes.join(" ");
+      const nums = d.match(/-?\d*\.?\d+/g).map(Number);
+      const dx = nums[nums.length - 2] - nums[0];
+      const shift = (k) => tile.strokes.map((sd) => { let i = 0; return sd.replace(/-?\d*\.?\d+/g, (n) => (i++ % 2 === 0 ? String(Number(n) + k * dx) : n)); });
+      tile.strokes = Array.from({ length: g.tileRepeat }, (_, k) => shift(k)).flat();
+    }
+    elements.push(tile);
   }
   for (const el of topicRecord?.elements ?? []) {
     if (seen.has(el.id)) continue;

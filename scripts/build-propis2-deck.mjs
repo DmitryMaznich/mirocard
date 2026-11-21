@@ -21,6 +21,7 @@ const ELEMENTS_PATH = "tools/handwriting/cyrillic/elements.json";
 const WIDE_PATH = "tools/handwriting/cyrillic/wide.json";
 // «части букв» from the owner's sheet (tools/propis2/parts/README.md): element glyphs of propis2 only, appended after the shared ones
 const PARTS_PATH = "tools/propis2/parts_elements.json";
+const RHYTHM_PATH = "tools/propis2/rhythm_elements.json";
 // stable numbers of the elements (tools/propis2/element_numbers.json): the badge on a tile of the element list and the field code {эN}
 const NUMBERS_PATH = "tools/propis2/element_numbers.json";
 const CATALOG_PATH = "public/decks/catalog.json";
@@ -55,6 +56,8 @@ if (existsSync(WIDE_PATH)) {
   topic.wideSheets = wideData.sheets ?? {};
   topic.wideElementRepeat = wideData.elementRepeat ?? {};
   if (existsSync(PARTS_PATH)) topic.wide = [...topic.wide, ...JSON.parse(readFileSync(PARTS_PATH, "utf-8")).glyphs];
+  // «Ритм» (owner, 2026-11-21): continuous rhythm patterns, tools/propis2/rhythm/build.py
+  if (existsSync(RHYTHM_PATH)) topic.wide = [...topic.wide, ...JSON.parse(readFileSync(RHYTHM_PATH, "utf-8")).glyphs];
 }
 // the ELEMENTS of the copybook letters and the pen's way over them (docs/propis2-letter-parts.md): tools/handwriting/cyrillic/letter_elements.json
 // goes onto each letter as `trajectory` (src/handwriting/letterParts.js: the parts a row of one letter writes are its elements). A letter is
