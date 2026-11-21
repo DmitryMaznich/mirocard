@@ -704,13 +704,13 @@ export function useSessionEngine() {
     }
     setSessionState((prev) => {
       const s = withWork(prev, options.work);
+      if (s.mode?.type === "number_path" && s.status !== "task_active") return s;
       if (s.mode?.evaluation === "instant") {
         const next = handleInstantCorrect(s, conceptId, cardId);
         if (next.status === "completed") finishSession(next);
         return next;
       }
       let next = handleAnswer(s, true, conceptId, cardId, options);
-      if (s.mode.type === "number_path" && next.status === "answer_correct") next = advanceTask(next);
       // «Мои люди»: a trial answered only with help comes back a little later.
       if (options.retryLater) next = { ...next, tasks: insertRetryTrial(next.tasks, next.taskIndex) };
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
@@ -718,6 +718,7 @@ export function useSessionEngine() {
       return next;
     });
 
+    // Number Path credits the route at the finish and advances after its follow-up.
     const shouldAutoAdvance = mode?.type !== "number_path" && (options.autoAdvance === true || !tapToAdvance);
     if (shouldAutoAdvance && !adultConfirmAdvance) {
       const delayMs = options.autoAdvance === true
@@ -778,7 +779,7 @@ export function useSessionEngine() {
 
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
-      if (s.mode?.id === PEOPLE_MODE_ID && s.status !== 'answer_correct') return s;
+      if ((s.mode?.id === PEOPLE_MODE_ID || s.mode?.type === "number_path") && s.status !== "answer_correct") return s;
       const next = advanceTask(s);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);

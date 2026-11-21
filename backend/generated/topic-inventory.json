@@ -719,15 +719,15 @@
         "ru": "Состав числа",
         "en": "Number Composition"
       },
-      "version": "1.3.0",
+      "version": "1.3.1",
       "renderer": "math_houses",
       "sources": [
-        "public/decks/math_houses_v1.3.0.zip",
+        "public/decks/math_houses_v1.3.1.zip",
         "src/topics/renderers/math_houses"
       ],
       "bundle": {
-        "version": "1.3.0",
-        "url": "./decks/math_houses_v1.3.0.zip",
+        "version": "1.3.1",
+        "url": "./decks/math_houses_v1.3.1.zip",
         "title": {
           "ru": "Состав числа",
           "en": "Number Composition"
@@ -740,7 +740,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "math_houses",
-        "version": "1.3.0",
+        "version": "1.3.1",
         "title": {
           "ru": "Состав числа",
           "en": "Number Composition"
@@ -749,7 +749,7 @@
           "ru": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
           "en": "Explore number composition from 2 to 10 in Number House, Growing House, and Find the Path."
         },
-        "url": "./decks/math_houses_v1.3.0.zip",
+        "url": "./decks/math_houses_v1.3.1.zip",
         "status": "beta",
         "access": "paid",
         "materialLanguages": [
