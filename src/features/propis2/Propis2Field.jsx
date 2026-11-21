@@ -10,7 +10,9 @@ import { usePopupPos } from "./usePopupPos";
 // field (phone) and the full-page text editor (wide screens).
 const ELEMENT_TILE_W = 84; // px: the ruling inside is drawn at this width, so the slant and the rows read at a glance
 
-export function ElementPicker({ elements, disabled, onInsert }) {
+export function ElementPicker({ elements: all, disabled, onInsert }) {
+  // (an element marked `hidden` — its letter gives it in «Штрихи» — is not offered; buildTiles keeps it for the rows that have it)
+  const elements = all.filter((t) => !t.hidden);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const btnRef = useRef(null);

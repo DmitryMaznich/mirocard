@@ -64,6 +64,10 @@ export function buildTiles(topicRecord) {
     t.group = gi === undefined ? (groups.length ? "Другие" : "") : groups[gi].title;
   }
   elements.sort((a, b) => a.groupIndex - b.groupIndex || a.no - b.no);
+  // not offered in the panel (`groups[].hidden`, tools/propis2/element_numbers.json; owner, 2026-11-21: the letters give them — «Штрихи»);
+  // still in the list (`hidden`), only the picker leaves them out: the field's {эN} codes of the rows that have them, the ready notebooks
+  const hiddenIds = new Set(groups.flatMap((g) => g.hidden ?? []));
+  for (const t of elements) if (hiddenIds.has(t.text)) t.hidden = true;
   // a colour per group (owner, 2026-11-21: «Элементы» like «Штрихи» — the colours of Propis2PartsPad): its tiles' ink, number and heading
   for (const t of elements) t.color = GROUP_COLORS[t.groupIndex % GROUP_COLORS.length];
   // punctuation marks (wide.json kind "punct", and : ; – made in glyphOverrides.js), in the order of a sentence
