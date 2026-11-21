@@ -995,3 +995,18 @@ describe("«Подсветка» of the narrow rows (owner, 2026-11-01)", () => 
     expect(othersDiffer(set, byId, a.id, "bandFill", "green")).toBe(true);
   });
 });
+
+describe("a join into е ё о ends on the start of the letter (owner, 2026-11-21: «соединение не протыкает е»)", () => {
+  const strokesOf = (w) => layoutWideLinesIntoRows([w], map, undefined, false).placed[0].segments.flatMap((s) => s.strokes ?? []).filter((s) => !s.hidden);
+  const ends = (d) => { const n = d.match(/-?\d*\.?\d+(?:e-?\d+)?/g).map(Number); return [n.slice(0, 2), n.slice(-2)]; };
+  it.each(["ве", "ие", "ье", "ъе", "зе", "Се", "Хе", "вё", "во", "уо", "До"])("%s: the pen lifts exactly where the next letter starts", (w) => {
+    const st = strokesOf(w);
+    const lifts = st.map((s, i) => [s, i]).filter(([s, i]) => i > 0 && !s.continuous).map(([s, i]) => Math.hypot(ends(st[i - 1].d)[1][0] - ends(s.d)[0][0], ends(st[i - 1].d)[1][1] - ends(s.d)[0][1]));
+    expect(Math.min(...lifts)).toBeLessThan(0.01);
+  });
+  it("a deck built before (no `joinOntoStart` on its glyphs) keeps its joins", () => {
+    const old = buildGlyphMap({ ...record(), wide: record().wide.map(({ joinOntoStart, ...g }) => g) });
+    const st = layoutWideLinesIntoRows(["ве"], old, undefined, false).placed[0].segments.flatMap((s) => s.strokes ?? []);
+    expect(Math.hypot(ends(st[1].d)[1][0] - ends(st[2].d)[0][0], ends(st[1].d)[1][1] - ends(st[2].d)[0][1])).toBeGreaterThan(3);
+  });
+});
