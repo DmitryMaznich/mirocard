@@ -391,7 +391,10 @@ export function pageToLines(page, glyphMap) {
       if (!wrapped.length) { out.push(tag); return; }
       const indent = leadingSpaces(row.text) + (reserve && !right ? reserve : 0);
       const st = styleTag(row, glyphMap);
-      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}`); if (page?.writeAfter) out.push(""); });
+      // a running text in a style that is a sample to read («Книжные», `script.readingSample`) honours «no dots» (other running texts
+      // keep their dots, as always)
+      const clean = rowParams(row).dots === "none" && rowGlyphMap(glyphMap, row)?.script?.readingSample ? "#c" : "";
+      wrapped.forEach((l, k) => { out.push(`${l}#1${clean}${k === 0 && indent ? `#i${indent}` : ""}${k === 0 ? `${cutTag}${tag}` : ""}${st}`); if (page?.writeAfter) out.push(""); });
       return;
     }
     const line = rowToLine(row);
@@ -505,6 +508,11 @@ export function followingSameRows(rows, index, key, old, glyphMap) {
     out.push(rows[i].id);
   }
   return out;
+}
+// The other rows of the page that write otherwise than `value` (a row's style offered for the whole page, owner 2026-11-20: as the
+// other settings, «На всю страницу» for a few seconds). Blank rows are passed over. Ids, in order.
+export function otherRowsOtherwise(rows, index, key, value, glyphMap) {
+  return rows.filter((r, i) => i !== index && rowsFor(key)(r) && rowSetting(r, key, glyphMap) !== value).map((r) => r.id);
 }
 // Which row settings differ between the sample rows of the page (the dot on a strip button): { repeat: true, dots: true }
 export function mixedRowSettings(rows, glyphMap) {

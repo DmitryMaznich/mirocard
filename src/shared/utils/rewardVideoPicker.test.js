@@ -1,8 +1,9 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import {
   normalizeRewardVideoIds,
   pickRewardVideoId,
   pickStoredRewardVideoId,
+  resetRewardVideoMemory,
 } from "./rewardVideoPicker";
 
 const A = "aaaaaaaaaaa";
@@ -53,6 +54,7 @@ describe("pickStoredRewardVideoId (cycle, via localStorage)", () => {
 
   beforeEach(() => {
     window.localStorage.clear();
+    resetRewardVideoMemory();
   });
 
   it("shows every video exactly once before any repeats", () => {
@@ -87,5 +89,27 @@ describe("pickStoredRewardVideoId (cycle, via localStorage)", () => {
     const picks = new Set();
     for (let i = 0; i < 3; i += 1) picks.add(pickStoredRewardVideoId(editedVideos, scope));
     expect(picks.has(D)).toBe(true);
+  });
+
+  it("keeps rotating when localStorage is full (writes throw, reads return stale state)", () => {
+    const videos = [A, B, C, D].map((id) => `https://youtu.be/${id}`);
+    pickStoredRewardVideoId(videos, scope);
+    pickStoredRewardVideoId(videos, scope); // stale state: 2 of 4 shown
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("full", "QuotaExceededError");
+    });
+    try {
+      let previous = null;
+      const cycle = new Set();
+      for (let i = 0; i < 40; i += 1) {
+        const id = pickStoredRewardVideoId(videos, scope);
+        expect(id).not.toBe(previous);
+        previous = id;
+        cycle.add(id);
+      }
+      expect(cycle.size).toBe(4);
+    } finally {
+      setItem.mockRestore();
+    }
   });
 });

@@ -1,10 +1,11 @@
 import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
+import { isPrintPaper } from "@/handwriting/printPapers.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { samplePath, toCubicPathD } from "@/handwriting/pathGeometry.js";
 import { letterPieces, piecePathD } from "@/handwriting/letterParts.js";
-import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
+import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, otherRowsOtherwise, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -67,7 +68,8 @@ const SETTING_SAYS = {
   bandFill: (v) => `Подсветка: ${BAND_FILL_OPTS.find((o) => o.id === v)?.label ?? "нет"}`,
   bgDash: (v) => (v ? "Пунктир включён" : "Пунктир выключен"),
   writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
-  style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
+  // the short name («Соед»), as on the button: the full one made the offer three lines on a phone (owner, 2026-11-21)
+  style: (v, styles) => { const st = styles?.find((x) => x.id === v); return `Стиль: ${st?.short ?? st?.title ?? v}`; },
 };
 // a writing style in the strips: its abbreviation on the button («П», «БР», «БС», «БСН»), the abbreviation and the full name in the list
 // (owner, 2026-11-11: the button stays light, the list says what the letters stand for)
@@ -101,7 +103,8 @@ const DOT_OPTS = [
 const ROW_SAYS = {
   repeat: (v) => `Образец: ${optionName(REPEAT_OPTS, v)}`,
   dots: (v) => `Точки: ${optionName(DOT_OPTS, v)}`,
-  style: (v, styles) => `Стиль: ${styles?.find((st) => st.id === v)?.title ?? v}`,
+  // the short name («Соед»), as on the button: the full one made the offer three lines on a phone (owner, 2026-11-21)
+  style: (v, styles) => { const st = styles?.find((x) => x.id === v); return `Стиль: ${st?.short ?? st?.title ?? v}`; },
 };
 const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }), style: (v) => ({ style: v }) };
 const onRows = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "строке" : "строках"}`;
@@ -226,6 +229,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [typing, setTyping] = useState(false); // the invisible text has the focus: the caret shows on the sheet
   const [pageW, setPageW] = useState(0);
   const [colW, setColW] = useState(0); // the canvas width: the page at «По ширине»
+  const [wholeW, setWholeW] = useState(0); // the page's width with ALL of it in sight: «Лист целиком»
   const locked = isLocked(page);
   // A setting changed on this page is offered for the whole notebook for a few seconds (owner, 2026-10-15: no «Всем» button, no
   // mode to forget): { key, value, done } — `done`: it went onto every page, the offer turns into «Отменить».
@@ -258,8 +262,14 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
   const styleOptions = useMemo(() => (styles?.options ?? []).map((st) => ({ id: st.id, label: st.title, text: st.title, ...(st.short ? { short: st.short } : {}) })), [styles?.options]);
-  // a row's style: only the styles that write on this page's paper (`paperIds`, Propis2Home); the page's own style is always one of them
-  const rowStyleOptions = useMemo(() => styleOptions.filter((o, i) => !styles?.options?.[i]?.paperIds || styles.options[i].paperIds.includes(gridKind) || o.id === styles.value), [styleOptions, styles, gridKind]);
+  // a row's style: every style of the language, always (owner, 2026-11-20: the button must not come and go with the language). A style
+  // goes on any ordinary paper — the Russian print capitals stand fine on the copybook ruling; only a print paper (printPapers.js: the cell
+  // snap of the print letters splits a cursive word) takes just the styles that have it — the others stay in the list, greyed
+  const rowStyleOptions = useMemo(() => styleOptions.map((o, i) => {
+    const ids = styles?.options?.[i]?.paperIds;
+    const off = isPrintPaper(gridKind) && ids && !ids.includes(gridKind) && o.id !== styles.value;
+    return off ? { ...o, disabled: true } : o;
+  }), [styleOptions, styles, gridKind]);
   const propisGrid = gridKind === "propis";
   const fourPaper = fourLinePaper(gridKind); // a four-line paper (fourLinePapers.js): no dense slant; its own dash, `bgDash`, if it has one
   const bgPaper = Boolean(fourPaper);
@@ -281,6 +291,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       if (!w || !h) return;
       setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * aspect)));
       setColW(Math.floor(w - 8));
+      // (the page starts below the zoom bar: the room above it is not the page's)
+      const box = boxRef.current;
+      const top = box ? box.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop : 0;
+      setWholeW(Math.floor(Math.min(w - 8, (el.clientHeight - top - 12) * aspect)));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
@@ -331,11 +345,22 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
   // A row setting (Образец, Точки) changed on the selected row; the rows below that were set as it was are offered the change too:
   // «… на строке 3 · На следующие строки» (as the paper's «На всю тетрадь»). Only down to the first row set otherwise, on this page.
+  // a style that is a sample to read and copy, not to trace (`readingSample`, «Книжные»): the row it goes onto is written once, no red
+  // dots (owner, 2026-11-21) — Образец / Точки can be changed after
+  // (and back: a row leaving such a style takes the ordinary sample again, copies and dots, as a new row has them)
+  const readingSample = (id) => Boolean(styles?.options?.find((st) => st.id === id)?.script?.readingSample);
+  const stylePatch = (id, row) => ({
+    ...ROW_PATCH.style(id),
+    ...(readingSample(id) ? { ...repeatPatch("one"), dots: "none" } : row && readingSample(rowSetting(row, "style", glyphMap)) ? { ...repeatPatch("all"), dots: "all" } : {}),
+  });
+  const rowPatch = (key, value, row) => (key === "style" ? stylePatch(value, row) : ROW_PATCH[key](value));
   const setRowSetting = (key, value) => {
     const old = rowSetting(selected, key, glyphMap);
-    patchSelected(ROW_PATCH[key](value));
-    const ids = old === value ? [] : followingSameRows(page.rows, selectedIndex, key, old, glyphMap);
-    showOffer(ids.length ? { scope: "rows", key, value, ids, row: selectedIndex + 1 } : null, OFFER_MS);
+    patchSelected(rowPatch(key, value, selected));
+    // a row's style is offered for the whole page (the page has no style button of its own since 2026-11-20); Образец / Точки — the rows below
+    const page_ = key === "style";
+    const ids = old === value ? [] : page_ ? otherRowsOtherwise(page.rows, selectedIndex, key, value, glyphMap) : followingSameRows(page.rows, selectedIndex, key, old, glyphMap);
+    showOffer(ids.length ? { scope: "rows", page: page_, key, value, ids, row: selectedIndex + 1 } : null, OFFER_MS);
   };
   const rowMixed = useMemo(() => mixedRowSettings(page.rows, glyphMap), [page.rows, glyphMap]);
 
@@ -471,7 +496,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     return [...out, ...caretMarks];
   }, [owners, analysis, page.rows, selectedId, caretMarks]);
 
-  const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW });
+  const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW, wholeW });
   // The caret (or, not typing, the selected row) stays in sight, the page zoomed in or not: the canvas scrolls to it. Also when the
   // canvas itself changes size — above all when a phone's or a tablet's keyboard opens (the editor then takes only the visible part
   // of the screen) — so the caret never stays under the keyboard (owner, 2026-10-23). Not on a zoom: Ctrl + wheel keeps the point under
@@ -539,8 +564,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           {/* the page's writing style (docs/propis2-languages.md «Стиль у страницы»): only a language with several styles */}
-          {styles && <Propis2Picker label="Стиль страницы" caption="Стиль страницы" kind="style" disabled={locked} mixed={mx.style} value={styles.value} onChange={(id) => setSetting("style", id)} options={styleOptions} />}
-          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={deckPapers(topicRecord).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id) }))} />
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={(styles?.papers ?? deckPapers(topicRecord)).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id), ...(g.group ? { group: g.group } : {}) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id], disabled: (mazinaPaper && g.id === "regular") || (bgPaper && g.id === "dense") }))} />
@@ -662,7 +686,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <section className="p2-insp-sec" aria-label="Стиль строки">
           <span className="p2-insp-lbl">Стиль строки</span>
           <Seg label="Стиль строки" disabled={locked} value={rowStyleValue} onChange={(id) => setRowSetting("style", id)}
-            options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label }))} />
+            options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label, disabled: o.disabled }))} />
         </section>
       )}
       {/* (a printed letter goes only on the copybook's narrow rows: elsewhere the section is left out, not shown dead) */}
@@ -707,9 +731,11 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               <span className="p2-zoom-sep" aria-hidden="true" />
             </>
           )}
-          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= 1.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
-          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={zoom.z <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
+          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= zoom.minZ + 0.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
+          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={Math.abs(zoom.z - 1) < 0.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
           <button type="button" className="p2-zoom-btn" onClick={zoom.zoomIn} disabled={zoom.z >= zoom.maxZ - 0.001} aria-label="Увеличить" title="Увеличить (Ctrl + колесо)">+</button>
+          {/* «Лист целиком» (phone / portrait tablet: the fitted page runs below the canvas; owner, 2026-11-21) — an icon, as «По ширине» */}
+          {zoom.canWhole && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.wholeZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWhole} aria-label={t("propis2.wholePage")} title={t("propis2.wholePage")}><I.IconFitPage /></button>}
           {zoom.canWidth && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.widthZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWidth} aria-label="По ширине" title="Страница по ширине"><I.IconFitWidth /></button>}
         </div>
   );
@@ -723,19 +749,18 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const rowOffer = offer?.scope === "rows";
   const applyRowOffer = () => {
     const ids = new Set(offer.ids);
-    const patch = ROW_PATCH[offer.key](offer.value);
-    setRows(page.rows.map((r) => (ids.has(r.id) ? { ...r, ...patch } : r)));
+    setRows(page.rows.map((r) => (ids.has(r.id) ? { ...r, ...rowPatch(offer.key, offer.value, r) } : r)));
     showOffer({ ...offer, done: true }, OFFER_MS - 1000);
   };
   const offerEl = offer && (rowOffer || notebook) && (
           <div className="p2-offer" role="status" data-testid="propis2-offer">
             <span className="p2-offer-msg">{rowOffer
-              ? `${ROW_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? `ещё на ${onRows(offer.ids.length)} ниже` : `на строке ${offer.row}`}`
+              ? `${ROW_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? (offer.page ? t("propis2.onWholePage") : `ещё на ${onRows(offer.ids.length)} ниже`) : `на строке ${offer.row}`}`
               : `${SETTING_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}`}</span>
             {offer.done
               ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
               : rowOffer
-                ? <button type="button" className="p2-offer-btn" onClick={applyRowOffer}><I.IconSpread />На следующие строки</button>
+                ? <button type="button" className="p2-offer-btn" onClick={applyRowOffer}><I.IconSpread />{offer.page ? t("propis2.toWholePage") : "На следующие строки"}</button>
                 : <button type="button" className="p2-offer-btn" onClick={() => { notebook.applyAll(offer.key, offer.value); showOffer({ ...offer, done: true }, OFFER_MS - 1000); }}><I.IconSpread />На всю тетрадь</button>}
             <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
           </div>

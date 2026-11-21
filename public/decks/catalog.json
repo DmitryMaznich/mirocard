@@ -224,7 +224,7 @@
     },
     {
       "id": "math_houses",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "title": {
         "ru": "Состав числа",
         "en": "Number Composition"
@@ -233,7 +233,7 @@
         "ru": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
         "en": "Explore number composition from 2 to 10 in Number House, Growing House, and Find the Path."
       },
-      "url": "./decks/math_houses_v1.3.0.zip",
+      "url": "./decks/math_houses_v1.3.1.zip",
       "status": "beta",
       "access": "paid",
       "materialLanguages": [
@@ -444,7 +444,7 @@
     },
     {
       "id": "propis2_lang",
-      "version": "0.12.1",
+      "version": "0.12.2",
       "title": {
         "ru": "Прописи: латиница",
         "en": "Copybook: Latin script"
@@ -453,7 +453,7 @@
         "ru": "Прописи на всех языках в одной теме (проба перед слиянием с «Прописями»): русский, болгарский, казахский, английский — вы отмечаете свои языки, остальные не мешают. Прописные и печатные стили, конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная», диктант — для русского.",
         "en": "Every alphabet of the Copybook in one topic (the try-out before it joins «Прописи»): Russian, Bulgarian, Kazakh, English — pick your languages, the others stay out of the way. Cursive and print styles, a notebook builder, ready notebooks, letter cards; dictation in Russian."
       },
-      "url": "./decks/propis2_lang_v0.12.1.zip",
+      "url": "./decks/propis2_lang_v0.12.2.zip",
       "status": "release",
       "access": "paid",
       "materialLanguages": [

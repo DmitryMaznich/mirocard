@@ -18,6 +18,28 @@ export function recentTopicContext(sessions, studentId, snapshot) {
     .sort((a, b) => b.time - a.time)[0] ?? null;
 }
 
+// A topic opened without a lesson to show for it — the «Прописи» constructor (owner, 2026-11-21: «Прописи: латиница» did not stay as the
+// last task on the home screen; a notebook made or printed is not a session). Kept on the device per student, never in the lesson
+// history (no empty lessons in the statistics); «Продолжить» takes it when it is newer than the last lesson.
+const VISIT_PREFIX = "mirocard.topic-ui-preview.visit.v1:";
+export function saveTopicVisit(studentId, { topicId, modeId = null }, now = Date.now()) {
+  if (!studentId || !topicId) return;
+  try { localStorage.setItem(VISIT_PREFIX + studentId, JSON.stringify({ topicId, modeId, at: now })); }
+  catch { /* «Продолжить» stays on the last lesson */ }
+}
+export function readTopicVisit(studentId) {
+  if (!studentId) return null;
+  try {
+    const value = JSON.parse(localStorage.getItem(VISIT_PREFIX + studentId));
+    return value && typeof value.topicId === "string" && Number.isFinite(value.at) ? value : null;
+  } catch { return null; }
+}
+// the newer of the last lesson (recentTopicContext) and the last visit
+export function withTopicVisit(recent, visit) {
+  if (!visit || (recent && recent.time >= visit.at)) return recent;
+  return { topicId: visit.topicId, modeId: visit.modeId, textId: null, time: visit.at };
+}
+
 // What the «Продолжить» card offers: the student's latest topic that is still
 // on the device and visible, with its mode when that mode can still be picked.
 // Reading keeps the text the lesson was on, so «Начать» lands on the same text.

@@ -18,10 +18,19 @@
           "short": "Печ",
           "title": "Печатные",
           "glyphsFile": "tools/handwriting/cyrillic/print.json",
-          "script": { "joins": false, "letterGap": 8, "wordGap": 104, "caps": true },
+          "script": { "joins": false, "letterGap": 8, "freeLetterGap": 40, "wordGap": 104, "caps": true },
           "papers": ["print_cell", "print_bigcell", "print_line"],
           "cards": false,
           "note": "печатные буквы по Илюхиной из темы «Печатные буквы» (tools/handwriting/cyrillic/build-print.mjs). Только заглавные: строчных печатных в школе не пишут (владелец, 2026-11-16) — набранная строчная пишется заглавной (script.caps). Бумаги — три бумаги «Печатных букв» (src/handwriting/printPapers.js): буква 1 см, каждая начинается на линии клетки (буквы слова — через буквенную клетку 1 см), между словами две чистые клетки (владелец, 2026-11-16)"
+        },
+        {
+          "id": "book",
+          "short": "Кн",
+          "title": "Книжные",
+          "glyphsFile": "tools/handwriting/cyrillic/print-book.json",
+          "script": { "joins": false, "letterGap": 14, "wordGap": 56, "readingSample": true },
+          "cards": false,
+          "note": "печатный образец между строками прописей — ребёнок переписывает его прописными (владелец, 2026-11-21: одни заглавные «Печатных» смотрелись инородно). Заглавные — те же, что в «Печатных» (Илюхина), строчные нарисованы в той же геометрии (tools/handwriting/cyrillic/print-lower.json, сборка build-print.mjs): строчная — рабочая строка, заглавная — до верхней линии. Бумаги — бумаги прописей (своих нет): на печатных бумагах стиль в списке серый. `script.readingSample`: строка, получившая этот стиль, — образец один раз, без красных точек (ребёнок переписывает, не обводит; владелец, 2026-11-21)"
         }
       ]
     },

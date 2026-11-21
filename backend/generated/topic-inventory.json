@@ -719,15 +719,15 @@
         "ru": "Состав числа",
         "en": "Number Composition"
       },
-      "version": "1.3.0",
+      "version": "1.3.1",
       "renderer": "math_houses",
       "sources": [
-        "public/decks/math_houses_v1.3.0.zip",
+        "public/decks/math_houses_v1.3.1.zip",
         "src/topics/renderers/math_houses"
       ],
       "bundle": {
-        "version": "1.3.0",
-        "url": "./decks/math_houses_v1.3.0.zip",
+        "version": "1.3.1",
+        "url": "./decks/math_houses_v1.3.1.zip",
         "title": {
           "ru": "Состав числа",
           "en": "Number Composition"
@@ -740,7 +740,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "math_houses",
-        "version": "1.3.0",
+        "version": "1.3.1",
         "title": {
           "ru": "Состав числа",
           "en": "Number Composition"
@@ -749,7 +749,7 @@
           "ru": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
           "en": "Explore number composition from 2 to 10 in Number House, Growing House, and Find the Path."
         },
-        "url": "./decks/math_houses_v1.3.0.zip",
+        "url": "./decks/math_houses_v1.3.1.zip",
         "status": "beta",
         "access": "paid",
         "materialLanguages": [
@@ -1172,7 +1172,7 @@
           "kk"
         ]
       },
-      "sourceUpdatedAt": "2026-11-20T21:37:56+00:00"
+      "sourceUpdatedAt": "2026-11-21T08:52:53+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1211,20 +1211,20 @@
           "bg"
         ]
       },
-      "sourceUpdatedAt": "2026-11-20T21:37:56+00:00"
+      "sourceUpdatedAt": "2026-11-21T08:52:53+00:00"
     },
     {
       "id": "propis2_lang",
       "title": "Прописи: латиница",
-      "version": "0.12.1",
+      "version": "0.12.2",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_lang_v0.12.1.zip",
+        "public/decks/propis2_lang_v0.12.2.zip",
         "src/topics/renderers/propis2"
       ],
       "bundle": {
-        "version": "0.12.1",
-        "url": "./decks/propis2_lang_v0.12.1.zip",
+        "version": "0.12.2",
+        "url": "./decks/propis2_lang_v0.12.2.zip",
         "title": "Прописи: латиница",
         "description": "Прописи на всех языках в одной теме — проба перед слиянием с «Прописями». Русский, болгарский, казахский и английский: вы отмечаете свои языки («Языки» на экране тетрадей), и тема показывает только их — готовые тетради, язык новой тетради, карточки; тетради других языков остаются в списке с меткой языка. У русского — прописные и печатные буквы, у английского — печатные и британские по схеме Nelson Handwriting (раздельные, соединённые, соединённые наклонные); стиль выбирается для страницы и для строки. Взрослый собирает страницы из букв, слов и текстов или берёт готовую тетрадь; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Режимы: «Узнай букву», «Строчная и заглавная» и диктант — для тех, у кого среди языков есть русский. Nelson Handwriting — товарный знак Oxford University Press; приложение с издательством не связано.",
         "renderer": "propis2",
@@ -1234,7 +1234,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2_lang",
-        "version": "0.12.1",
+        "version": "0.12.2",
         "title": {
           "ru": "Прописи: латиница",
           "en": "Copybook: Latin script"
@@ -1243,7 +1243,7 @@
           "ru": "Прописи на всех языках в одной теме (проба перед слиянием с «Прописями»): русский, болгарский, казахский, английский — вы отмечаете свои языки, остальные не мешают. Прописные и печатные стили, конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная», диктант — для русского.",
           "en": "Every alphabet of the Copybook in one topic (the try-out before it joins «Прописи»): Russian, Bulgarian, Kazakh, English — pick your languages, the others stay out of the way. Cursive and print styles, a notebook builder, ready notebooks, letter cards; dictation in Russian."
         },
-        "url": "./decks/propis2_lang_v0.12.1.zip",
+        "url": "./decks/propis2_lang_v0.12.2.zip",
         "status": "release",
         "access": "paid",
         "materialLanguages": [
@@ -1253,7 +1253,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-20T21:37:56+00:00"
+      "sourceUpdatedAt": "2026-11-21T08:52:53+00:00"
     },
     {
       "id": "reading_dad_instructions",

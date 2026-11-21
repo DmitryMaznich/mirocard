@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
+import { saveTopicVisit } from "@/features/topics/topicUiPreviewModel";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/handwriting/PrintPageView";
 import { openPdf, pdfFileName, pdfSavesOnDevice, pdfTab, printPdf } from "@/handwriting/printPdf.js";
 import { buildPageTask, glyphMapOf } from "@/topics/renderers/propis2/pageTask.js";
+import { isPrintPaper } from "@/handwriting/printPapers.js";
 import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, screenPagesOf as screenPagesOfPage, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageBandFill, pageMidDash, pageNoSlant, pageToLines, mixedSettings, othersDiffer, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { LATIN_KIT_OLD_TITLES, ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
@@ -33,6 +35,10 @@ export default function Propis2Home({ db }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const deckRecord = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === activeTopicId));
+  // the constructor opened: the topic is the student's latest on «Продолжить» (no lesson is written for it)
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const builderModeId = deckRecord?.modes?.find((m) => m.type === "builder")?.id ?? null;
+  useEffect(() => { if (activeTopicId) saveTopicVisit(activeStudentId, { topicId: activeTopicId, modeId: builderModeId }); }, [activeStudentId, activeTopicId, builderModeId]);
   // a deck with several writing languages (propis2/languages.js, docs/propis2-languages.md): the language belongs to the NOTEBOOK —
   // one «student» may be a whole class, a child may write in two languages. Everything below works on the deck as the language of the
   // notebook being worked on; in the list, as the language a new notebook will get (`newLang`, remembered on this device)
@@ -118,9 +124,19 @@ export default function Propis2Home({ db }) {
   const pageStyle = useCallback((p) => (multiStyle ? pickStyle(deckRecord, lang, p?.style ?? writingStyle) : writingStyle), [multiStyle, deckRecord, lang, writingStyle]);
   const recordOfStyle = useCallback((st) => (languages ? languageView(deckRecord, lang, st) : deckRecord), [languages, deckRecord, lang]);
   const recordOfPage = useCallback((p) => recordOfStyle(pageStyle(p)), [recordOfStyle, pageStyle]);
-  // the styles the editor offers, each with the papers it writes on: a row may take another style only where that style has the page's
-  // paper (the Russian print letters stand on papers of their own, never on the copybook ruling)
+  // the styles the editor offers, each with the papers it writes on: on a print paper (printPapers.js) a row may take only a style that has
+  // it; on any other paper every style (the Russian print capitals stand on the copybook ruling too — Propis2Editor rowStyleOptions)
   const styleChoices = useMemo(() => (multiStyle ? langStyleList.map((st) => ({ ...st, paperIds: deckPapers(recordOfStyle(st.id)).map((g) => g.id) })) : null), [multiStyle, langStyleList, recordOfStyle]);
+  // the paper button offers the papers of every style (the page has no style button since 2026-11-20: a Russian page goes onto the print
+  // letters' cell by its paper); the first style that has the picked paper becomes the page's (refitStyle below)
+  const paperChoices = useMemo(() => {
+    if (!multiStyle) return null;
+    const seen = new Map();
+    // each paper under the first style that has it: the list shows the groups («Проп», «Печ») when there is more than one
+    for (const st of langStyleList) for (const g of deckPapers(recordOfStyle(st.id))) if (!seen.has(g.id)) seen.set(g.id, { ...g, group: st.short ?? st.title });
+    const out = [...seen.values()];
+    return new Set(out.map((g) => g.group)).size > 1 ? out : out.map(({ group: _g, ...g }) => g);
+  }, [multiStyle, langStyleList, recordOfStyle]);
   // runs of the notebook by paper AND style (model.js notebookSections)
   const sectionOpts = useMemo(() => (multiStyle ? { styleOf: pageStyle, glyphMapOf: (st) => glyphMapOf(recordOfStyle(st)) } : undefined), [multiStyle, pageStyle, recordOfStyle]);
   const dirty = Boolean(session && session.lib !== session.base);
@@ -598,6 +614,24 @@ export default function Propis2Home({ db }) {
       if (!papers.length || papers.includes(pageGridKind(p))) return p;
       return papers[0] === "propis" ? { ...p, gridKind: undefined } : { ...p, gridKind: papers[0] };
     };
+    // a new paper on the page: when the page's style has no such paper, the page takes the first style that has it, and its rows keep the
+    // letters they were written in (they get the old style as their own, where it may stand); a row whose style cannot stand on the
+    // paper — a cursive row on a print paper, whose cell snap splits the word — loses its own style (Propis2Editor rowStyleOptions)
+    const fitsPaper = (stId, kind) => { const ids = styleChoices?.find((c) => c.id === stId)?.paperIds; return !ids || ids.includes(kind) || !isPrintPaper(kind); };
+    const refitStyle = (prev, next) => {
+      const kind = pageGridKind(next);
+      if (kind === pageGridKind(prev)) return next;
+      const oldStyle = pageStyle(prev);
+      let style = next.style;
+      const own = styleChoices.find((c) => c.id === oldStyle);
+      if (own && !own.paperIds.includes(kind)) style = styleChoices.find((c) => c.paperIds.includes(kind))?.id ?? style;
+      const rows = next.rows.map((r) => {
+        const rs = r.style ?? (style !== oldStyle ? oldStyle : undefined);
+        if (!rs || rs === style || !fitsPaper(rs, kind)) { if (r.style === undefined) return r; const { style: _s, ...rest } = r; return rest; }
+        return rs === r.style ? r : { ...r, style: rs };
+      });
+      return { ...next, ...(style !== undefined ? { style } : {}), rows };
+    };
     const nav = navSet && navIndex >= 0 ? {
       index: navIndex,
       total: navSet.pageIds.length,
@@ -647,8 +681,9 @@ export default function Propis2Home({ db }) {
         topicRecord={recordOfPage(shown)}
         language={languages ? { ...(languages.find((l) => l.id === lang) ?? {}), tone: markOf(lang).tone } : null}
         // the page's writing style: picked in the page strip like its paper (a page of print letters, the next one in the British hand)
-        styles={multiStyle ? { options: styleChoices, value: shownStyle } : null}
+        styles={multiStyle ? { options: styleChoices, papers: paperChoices, value: shownStyle } : null}
         onChange={(next, how) => {
+          if (multiStyle) next = refitStyle(shown, next);
           if (multiStyle && next.style !== shown.style) next = fitPaper(next);
           // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
           const change = navSet ? layoutChange(shown, next) : {};
@@ -666,6 +701,8 @@ export default function Propis2Home({ db }) {
             let lib = applyLayout(working, navSet.id, { [key]: value });
             // every page in the new style: a paper it does not have is replaced on the pages that had it
             if (key === "style") for (const id of navSet.pageIds) { const p = lib.pages.find((x) => x.id === id); const fit = p && fitPaper(p); if (fit && fit !== p) lib = upsertPage(lib, fit); }
+            // the paper on every page: each page refits its style and rows as when its own paper changes
+            if (key === "gridKind" && multiStyle) for (const id of navSet.pageIds) { const was = id === page.id ? page : pagesById.get(id); const p = lib.pages.find((x) => x.id === id); const fit = was && p && refitStyle(was, p); if (fit && fit !== p) lib = upsertPage(lib, fit); }
             edit(lib);
           },
         } : null}
