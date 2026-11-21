@@ -2337,11 +2337,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // script.joins === false: a new word starts after the ink of the word before at `script.wordGap` (row units at full scale), not
         // on the slant grid — the grid's lean would pull a word that starts high (D, L, M) back over the one before it
         const freeWord = unjoined && !loose && !prevExit && Boolean(prevToken) && tokenStartX === null && Number.isFinite(prevToken?.inkMaxX);
+        // the gap between letters written apart: `script.letterGap`; off the print papers' cells (no `cell.onLines` to space them out — the
+        // Russian print capitals on the copybook ruling, owner 2026-11-21: «слишком близко») `script.freeLetterGap` when the style has one.
+        // (the space between words there is the two cells of THE WORD SPACE below, whatever `wordGap` says: past ~45 the words run together)
+        const apartGap = (!cellGrid?.onLines ? glyphsByLabel.script?.freeLetterGap : undefined) ?? glyphsByLabel.script?.letterGap ?? WIDE_AFTER_SIGN_GAP;
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         let wantStartX = freeWord
           ? prevToken.inkMaxX + (glyphsByLabel.script.wordGap ?? WIDE_WORD_SPACE) * scale + pendingGap * CELL - local.minX + local.start[0]
           : loose
-          ? cursorX + (apart ? glyphsByLabel.script.letterGap ?? WIDE_AFTER_SIGN_GAP : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - (apart ? local.apartMinX ?? local.minX : local.minX) + local.start[0]
+          ? cursorX + (apart ? apartGap : afterSign && !glyph.noJoin ? WIDE_AFTER_SIGN_GAP : WIDE_PUNCT_GAP) * scale - (apart ? local.apartMinX ?? local.minX : local.minX) + local.start[0]
           : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx + pushNext
           : prevToken

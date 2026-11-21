@@ -18,7 +18,7 @@
           "short": "Печ",
           "title": "Печатные",
           "glyphsFile": "tools/handwriting/cyrillic/print.json",
-          "script": { "joins": false, "letterGap": 8, "wordGap": 104, "caps": true },
+          "script": { "joins": false, "letterGap": 8, "freeLetterGap": 40, "wordGap": 104, "caps": true },
           "papers": ["print_cell", "print_bigcell", "print_line"],
           "cards": false,
           "note": "печатные буквы по Илюхиной из темы «Печатные буквы» (tools/handwriting/cyrillic/build-print.mjs). Только заглавные: строчных печатных в школе не пишут (владелец, 2026-11-16) — набранная строчная пишется заглавной (script.caps). Бумаги — три бумаги «Печатных букв» (src/handwriting/printPapers.js): буква 1 см, каждая начинается на линии клетки (буквы слова — через буквенную клетку 1 см), между словами две чистые клетки (владелец, 2026-11-16)"
