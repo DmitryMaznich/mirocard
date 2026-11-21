@@ -27,13 +27,13 @@ export function ElementPicker({ elements, disabled, onInsert }) {
   }, [open]);
   return (
     <div className="p2-pick p2-elements" ref={wrapRef}>
-      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen((o) => !o)} {...bind}>
         <span className="p2-tool-ico"><I.IconElement /></span>
         <span className="p2-cap">Элемент</span>
         {tip}
       </button>
       {open && (
-        <div className="p2-elements-panel" role="dialog" aria-label="Элементы" style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
+        <div className="p2-elements-panel" role="dialog" aria-label="Элементы" onMouseDown={(e) => e.preventDefault()} style={panelStyle ? { ...panelStyle, bottom: "auto", right: "auto" } : undefined}>
           {elements.map((tile, i) => (
             <Fragment key={tile.key}>
               {tile.group && tile.group !== elements[i - 1]?.group && <div className="p2-el-group" role="presentation">{tile.group}</div>}
