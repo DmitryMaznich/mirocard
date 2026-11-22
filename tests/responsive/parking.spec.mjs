@@ -21,14 +21,41 @@ async function hintedMove(page){
   await expect(page.locator('.parking-grid')).not.toHaveAttribute('data-phase','moving');
 }
 
+test('a started game becomes the latest topic on Home and survives a reload', async ({page})=>{
+  await page.goto('/tests/responsive/games.html?recent');
+  const recent=page.getByRole('region',{name:'Продолжить',exact:true});
+  await page.getByRole('button',{name:/Парковка/}).click();
+  await page.getByRole('button',{name:'К играм',exact:true}).click();
+  await page.getByRole('button',{name:'На главный экран',exact:true}).click();
+  await expect(recent.getByRole('heading',{name:'Предыдущая тема'})).toBeVisible();
+
+  await page.reload();
+  await page.getByRole('button',{name:/Парковка/}).click();
+  await page.getByRole('button',{name:'Начать',exact:true}).click();
+  await page.getByRole('button',{name:'К играм',exact:true}).click();
+  await page.getByRole('button',{name:'Закончить игру',exact:true}).click();
+  await page.getByRole('button',{name:'На главный экран',exact:true}).click();
+  await expect(recent.getByRole('heading',{name:'Игры',exact:true})).toBeVisible();
+  await expect(recent.getByRole('button',{name:/Парковка/})).toBeVisible();
+
+  await page.reload();
+  await page.getByRole('button',{name:'На главный экран',exact:true}).click();
+  await expect(recent.getByRole('heading',{name:'Игры',exact:true})).toBeVisible();
+  await expect(recent.getByRole('button',{name:/Парковка/})).toBeVisible();
+
+  await recent.getByRole('button',{name:/Парковка.*Сменить/}).click();
+  await page.getByRole('button',{name:/^Гонки/}).click();
+  await expect(recent.getByRole('button',{name:/Гонки.*Сменить/})).toBeVisible();
+});
+
 test('the child completes a short puzzle and rings the bell before receiving a video',async({page})=>{
   await start(page);const board=page.locator('.parking-grid'),bell=page.getByRole('button',{name:'Колокольчик — парковка готова',exact:true});
-  await expect(page.locator('.parking-piece')).toHaveCount(3);await expect(bell).toBeDisabled();
+  await expect(page.locator('.parking-piece')).toHaveCount(3);await expect(bell).toHaveCount(0);
   await page.locator('.parking-piece[data-movable="false"]').first().click({force:true});
   await expect(board).toHaveAttribute('data-moves','0');await expect(board).toHaveAttribute('data-turn','0');
   await hintedMove(page);await expect(board).toHaveAttribute('data-phase','ready');await expect(bell).toBeEnabled();
   await page.waitForTimeout(600);await expect(page.locator('.reward-modal-overlay')).toHaveCount(0);
-  await bell.click();await expect(board).toHaveAttribute('data-phase','celebrating');
+  await bell.click();
   await expect(page.locator('.reward-modal__title')).toHaveText('Парковка готова!');
   await page.getByRole('button',{name:'Вернуться к парковке',exact:true}).click();
   await page.getByRole('button',{name:'Настроить игру',exact:true}).click();
@@ -55,9 +82,32 @@ test('partners alternate moves, pause preserves the board and the next puzzle wa
   await expect(page.getByRole('radio',{name:/^Несколько ходов/})).toHaveAttribute('aria-checked','true');
 });
 
+test('the shutters stay open until the cars enter and the finale resumes after a pause',async({page})=>{
+  await start(page,{animated:true});
+  await hintedMove(page);
+  await page.getByRole('button',{name:'Колокольчик — парковка готова',exact:true}).click();
+  const board=page.locator('.parking-grid');
+  const shutter=page.locator('.parking-shutter').first();
+  await expect(board).toHaveAttribute('data-phase','celebrating');
+  await expect.poll(()=>shutter.evaluate(element=>new DOMMatrix(getComputedStyle(element).transform).d)).toBeLessThan(.15);
+  await page.getByRole('button',{name:'К играм',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Пауза',exact:true})).toBeVisible();
+  const car=page.locator('.parking-piece-surface').first();
+  const position=await car.evaluate(element=>getComputedStyle(element).transform);
+  await page.waitForTimeout(700);
+  await expect(board).toHaveAttribute('data-phase','celebrating');
+  expect(await car.evaluate(element=>getComputedStyle(element).transform)).toBe(position);
+  await expect(page.locator('.reward-modal-overlay')).toHaveCount(0);
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await expect(board).toHaveAttribute('data-phase','finished');
+  await expect(page.locator('.reward-modal__title')).toHaveText('Парковка готова!');
+  await expect(car).toBeHidden();
+  expect(await shutter.evaluate(element=>new DOMMatrix(getComputedStyle(element).transform).d)).toBe(1);
+});
+
 test('the large puzzle starts mixed and needs twelve to sixteen helpful moves',async({page})=>{
   await start(page,{level:'Большая парковка'});await expect(page.locator('.parking-piece')).toHaveCount(8);
-  await expect(page.locator('.parking-player')).toHaveCount(1);
+  await expect(page.locator('.parking-player')).toHaveCount(0);
   await expect(page.locator('.parking-grid')).toHaveAttribute('data-play-mode','solo');
   const misplaced=await page.locator('.parking-piece').evaluateAll(cars=>cars.filter(car=>Number(car.dataset.color)!==Number(car.dataset.index)%3).length);
   expect(misplaced).toBeGreaterThanOrEqual(6);
@@ -77,6 +127,10 @@ for(const size of [{width:1280,height:800},{width:1024,height:768},{width:844,he
   const board=await page.locator('.parking-grid').boundingBox();expect(board.width/3).toBeGreaterThanOrEqual(48);
   const offsets=await page.locator('.parking-piece').evaluateAll(cars=>cars.map(car=>{const r=car.getBoundingClientRect(),board=car.closest('.parking-grid').getBoundingClientRect(),i=Number(car.dataset.index);return Math.abs(r.x-board.x-(i%3)*board.width/3)+Math.abs(r.y-board.y-Math.floor(i/3)*board.height/3);}));
   expect(Math.max(...offsets)).toBeLessThan(2);
-  const bell=await page.locator('.parking-bell').boundingBox();expect(bell.x).toBeGreaterThanOrEqual(0);expect(bell.x+bell.width).toBeLessThanOrEqual(size.width);
+  const hint=await page.getByRole('button',{name:'Подсказка',exact:true}).boundingBox();
+  expect(hint.x).toBeGreaterThanOrEqual(0);expect(hint.x+hint.width).toBeLessThanOrEqual(size.width);
+  const gates=await page.locator('.parking-garages').boundingBox();
+  expect(Math.abs(gates.y+gates.height-board.y)).toBeLessThan(2);
+  await expect(page.getByRole('heading',{name:'Парковка',exact:true})).toBeVisible();
   await page.screenshot({path:`.cache/parking-results/parking-${size.width}.png`,fullPage:true});
 });

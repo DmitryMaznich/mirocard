@@ -1,7 +1,7 @@
 export const PARKING_LEVELS = Object.freeze({
-  first: { columns: 2, rows: 2, distance: 1, guides: true },
-  practice: { columns: 2, rows: 3, distance: 3, guides: true },
-  big: { columns: 3, rows: 3, distance: 12, maxDistance: 16, minMisplaced: 6, guides: false },
+  first: { columns: 2, rows: 2, distance: 1 },
+  practice: { columns: 2, rows: 3, distance: 3 },
+  big: { columns: 3, rows: 3, distance: 12, maxDistance: 16, minMisplaced: 6 },
 });
 export const PARKING_MOVE_MS = 320;
 const graphs = new Map();
