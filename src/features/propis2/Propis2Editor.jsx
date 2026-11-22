@@ -1,5 +1,6 @@
 import { fourLinePaper } from "@/handwriting/fourLinePapers.js";
 import { isPrintPaper } from "@/handwriting/printPapers.js";
+import { scriptOf } from "@/topics/renderers/propis2/myLanguages.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -299,6 +300,13 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   }
   const openWarn = warnOpen && warnOpen.row === selectedId && warnChips.some((w) => w.kind === warnOpen.kind) ? warnOpen.kind : null;
   const rowEditable = !locked && Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
+  // a row of an ELEMENT (kind element, or a text row whose text is an element — typed as {эN}): elements are the copybook hand's, so the
+  // row has no other style and is no running text (owner, 2026-11-22: no button that cannot do its job — «Печатные» wrote «РИТМ-ВОЛНА»)
+  const rowIsElement = Boolean(selected) && (selected.kind === "element" || (selected.kind === "text" && glyphMap?.get(String(selected.text ?? "").trim())?.kind === "element"));
+  // the elements are drawn for the Cyrillic copybook hand (65° slant, its ruling): not on a print paper, not in a Latin language, not into a
+  // row written in another style than the copybook one (owner, 2026-11-22)
+  const elementsFit = !isPrintPaper(gridKind) && (!language?.alphabet || scriptOf(language) === "cyrillic")
+    && (!styles || !selected || (rowSetting(selected, "style", glyphMap) ?? styles.value) === styles.options?.[0]?.id);
   const rowOpts = (() => {
     if (!selected) return null;
     const p = rowParams(selected);
@@ -573,7 +581,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // the strip keeps only what TYPES at the caret (an element, the clipboard): it works while the keyboard is open; everything about the
   // row itself is in the row panel (rowPanelEl, owner 2026-11-16: «как в конструкторе печатных листов и контрольных»)
   const rowEls = <>
-          <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
+          <ElementPicker elements={elementTiles} disabled={(locked && !selected) || !elementsFit} onInsert={(text) => { insertElement(text); }} />
           {/* keeps the field's focus (the keyboard stays open, the caret where it was) */}
           <IconBtn label="Вставить текст из буфера обмена" caption="Вставить" disabled={!canPaste} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}><I.IconPaste /></IconBtn>
   </>;
@@ -622,7 +630,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <button type="button" className="is-danger" onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }} aria-label="Удалить строку"><I.IconTrash /><span>Удалить</span></button>
         </div>
       </div>
-      {selected.kind !== "blank" && selected.kind !== "element" && (
+      {selected.kind !== "blank" && !rowIsElement && (
         <section className="p2-insp-sec" aria-label="Что в строке">
           <span className="p2-insp-lbl">Что в строке</span>
           <Seg label="Что в строке" value={selected.kind === "passage" ? "passage" : "sample"} disabled={locked} onChange={(id) => setRowAsText(id === "passage")}
@@ -651,7 +659,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       {styles && rowStyleOptions.length > 1 && selected.kind !== "blank" && (
         <section className="p2-insp-sec" aria-label="Стиль строки">
           <span className="p2-insp-lbl">Стиль строки</span>
-          <Seg label="Стиль строки" disabled={locked} value={rowStyleValue} onChange={(id) => setRowSetting("style", id)}
+          <Seg label="Стиль строки" disabled={locked || rowIsElement} value={rowStyleValue} onChange={(id) => setRowSetting("style", id)}
             options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label, disabled: o.disabled }))} />
         </section>
       )}
@@ -669,11 +677,11 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // phone / portrait tablet: the row's settings are the scrolling strip above the keyboard (as before 2026-11-16) — the panel at the bottom
   // kept giving way to the keyboard, and selecting a row IS the caret in the text, so the keyboard was always open (owner, 2026-11-19)
   const phoneRowEls = <>
-          {selected && selected.kind !== "blank" && selected.kind !== "element" && <IconBtn label={t("propis2.rowAsText")} caption={t("propis2.text")} on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
+          {selected && selected.kind !== "blank" && !rowIsElement && <IconBtn label={t("propis2.rowAsText")} caption={t("propis2.text")} on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
           {partsGlyph && <PartsPicker glyph={partsGlyph} text={partsText} map={rowGlyphMap(glyphMap, selected)} keep={partsKeep} onToggle={togglePart} partial={Boolean(partsSaved)} />}
           <Propis2Picker label={t("propis2.repeat")} caption={t("propis2.sample")} value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label={t("propis2.redDots")} caption={t("propis2.dots")} value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
-          {styles && rowStyleOptions.length > 1 && <Propis2Picker label={t("propis2.rowStyle")} caption={t("propis2.rowStyle")} kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
+          {styles && rowStyleOptions.length > 1 && <Propis2Picker label={t("propis2.rowStyle")} caption={t("propis2.rowStyle")} kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank" || rowIsElement} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
           {rowEls}
           {dropPage && <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
             onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />}

@@ -298,6 +298,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
       await tick();
     });
     expect(host.querySelector('button[aria-label="Стиль страницы"]')).toBeNull();
+    expect(host.querySelector('button[aria-label="Элементы"]').disabled).toBe(true); // the elements are the Cyrillic copybook hand's
     const rowPicker = () => host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]');
     expect(rowPicker().getAttribute("data-value")).toBe("print");
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
@@ -389,6 +390,8 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await act(async () => { await tick(50); });
     const ink = () => [...host.querySelectorAll(".propis2-editor2 svg path")].map((el) => el.getAttribute("d")).join("|");
     const before = ink();
+    const elementsBtn = () => host.querySelector('button[aria-label="Элементы"]');
+    expect(elementsBtn().disabled).toBe(false); // the copybook elements on the copybook ruling
     const rowPicker = host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]');
     expect(rowPicker).not.toBeNull(); // the same button as in English: Russian has two styles too
     await click(rowPicker);
@@ -410,6 +413,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     await click(host.querySelector('button[aria-label="Стиль строки"][aria-haspopup]'));
     expect(opt("Прописные")).not.toBeNull();
     expect(opt("Прописные").disabled).toBe(true);
+    expect(elementsBtn().disabled).toBe(true); // no copybook elements on the print letters' paper (owner, 2026-11-22)
     await click(host.querySelector(".back-btn"));
     await click([...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes("Сохранить")));
     await act(async () => { root.unmount(); await tick(400); });

@@ -135,7 +135,9 @@ export default function Propis2Home({ db }) {
     // each paper under the first style that has it: the list shows the groups («Проп», «Печ») when there is more than one
     for (const st of langStyleList) for (const g of deckPapers(recordOfStyle(st.id))) if (!seen.has(g.id)) seen.set(g.id, { ...g, group: st.short ?? st.title });
     const out = [...seen.values()];
-    return new Set(out.map((g) => g.group)).size > 1 ? out : out.map(({ group: _g, ...g }) => g);
+    // two papers of the same name in different styles (the copybook «Клетка» and the print letters' one): the name says whose
+    const named = out.map((g) => (out.some((o) => o !== g && o.label === g.label) && g.group !== out.find((o) => o.label === g.label)?.group ? { ...g, label: `${g.label} · ${langStyleList.find((st) => (st.short ?? st.title) === g.group)?.title ?? g.group}` } : g));
+    return new Set(named.map((g) => g.group)).size > 1 ? named : named.map(({ group: _g, ...g }) => g);
   }, [multiStyle, langStyleList, recordOfStyle]);
   // runs of the notebook by paper AND style (model.js notebookSections)
   const sectionOpts = useMemo(() => (multiStyle ? { styleOf: pageStyle, glyphMapOf: (st) => glyphMapOf(recordOfStyle(st)) } : undefined), [multiStyle, pageStyle, recordOfStyle]);
