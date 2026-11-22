@@ -5,6 +5,7 @@ import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "./ParamsScreen";
 import { useAppStore } from "@/core/store";
 import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
+import { NUMBER_PATH_MODE } from "@/topics/renderers/math_houses/numberPathConfig.js";
 
 const mocks = vi.hoisted(() => ({ persist: vi.fn(), start: vi.fn() }));
 vi.mock("@/core/linkUtils", () => ({ persistStudentTopicLink: mocks.persist }));
@@ -64,4 +65,35 @@ it("keeps assessment-mode styling independent of its translated display name", a
   expect(host.querySelector('.mode-item--test .mode-item__title').textContent).toBe("7. Preizkus znanja");
   await switchLanguage("ru");
   expect(host.querySelector('.mode-item--test .mode-item__title').textContent).toBe("7. Контрольная работа");
+});
+
+it("keeps the number-path bounds ordered and saves only an available grid size", async () => {
+  const topicId = "math_houses";
+  useAppStore.setState({
+    activeTopicId: topicId,
+    activeModeId: NUMBER_PATH_MODE.id,
+    topicRecords: [{ meta: { id: topicId, renderer: topicId }, cards: [], modes: [NUMBER_PATH_MODE] }],
+    studentTopicLinks: { kid_math_houses: { params: {}, videoRewardEnabled: false } },
+  });
+  await switchLanguage("ru");
+  await act(async () => root.render(<ParamsScreen />));
+  const rangeRow = (label) => [...host.querySelectorAll(".param-row")].find((row) => row.textContent.includes(label));
+  const [lowerMax] = rangeRow("Максимальное число").querySelectorAll(".stepper-btn");
+  const [, raiseMin] = rangeRow("Минимальное число").querySelectorAll(".stepper-btn");
+  for (let i = 0; i < 4; i++) await act(async () => lowerMax.click());
+  await act(async () => button("Средняя · 10 × 10").click());
+  await act(async () => lowerMax.click());
+  expect(button("Средняя · 10 × 10")).toBeUndefined();
+  await act(async () => raiseMin.click());
+  await act(async () => raiseMin.click());
+  expect(raiseMin.disabled).toBe(true);
+  expect(lowerMax.disabled).toBe(true);
+  await act(async () => button("Начать занятие").click());
+  expect(mocks.persist).toHaveBeenCalledWith("kid", topicId, expect.objectContaining({
+    params: expect.objectContaining({
+      byMode: expect.objectContaining({
+        number_path: expect.objectContaining({ minNumber: 5, maxNumber: 5, boardSize: 5 }),
+      }),
+    }),
+  }));
 });

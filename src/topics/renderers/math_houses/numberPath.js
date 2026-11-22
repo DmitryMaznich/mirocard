@@ -1,4 +1,4 @@
-import { normalizeNumberPathSize, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
+import { normalizeNumberPathParams, numberPathBoardSizes, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
 
 export function arePathNeighbors(a, b, columns) {
   return Math.abs(Math.floor(a / columns) - Math.floor(b / columns)) + Math.abs(a % columns - b % columns) === 1;
@@ -112,15 +112,16 @@ const LAYOUTS = new Map(NUMBER_PATH_MODE.params.boardSize.values.map((size) => [
 function createTask(card, number, size, route, layoutIndex) {
   const columns = columnsForSize(size);
   const innerRoute = route.slice(1, -1);
+  const offset = number > NUMBER_PATH_NUMBERS.at(-1) ? layoutIndex : 0;
   const cells = Array.from({ length: columns * size }, (_, index) => {
     if (index === route[0]) return [number, 0];
     if (index === route.at(-1)) return [0, number];
     const step = innerRoute.indexOf(index);
     if (step !== -1) {
-      const first = (step % (number - 1)) + 1;
+      const first = ((step + offset) % (number - 1)) + 1;
       return [first, number - first];
     }
-    const otherTotal = index % 2 === 0 && number < 10 ? number + 1 : number - 1;
+    const otherTotal = index % 2 === 0 && number < NUMBER_PATH_MODE.params.maxNumber.max ? number + 1 : number - 1;
     const first = (index + number - 1) % (otherTotal + 1);
     return [first, otherTotal - first];
   });
@@ -129,20 +130,24 @@ function createTask(card, number, size, route, layoutIndex) {
 }
 
 export function generateNumberPath(cards, params, previousRound = []) {
-  const size = normalizeNumberPathSize(params.boardSize);
-  const layouts = LAYOUTS.get(size);
+  const { minNumber, maxNumber, boardSize } = normalizeNumberPathParams(params);
   // Only the first round needs randomness. Advancing from saved tasks yields
   // the same next round if the session state update is replayed.
-  const initialIndex = previousRound.length ? (previousRound[0].layoutIndex ?? -1) + 1
-    : Math.floor(Math.random() * layouts.length);
+  const seed = previousRound.length ? 0 : Math.random();
   const tasks = [];
-  for (const number of NUMBER_PATH_NUMBERS) {
-    const card = cards.find((item) => Number(item.params?.number ?? item.params?.total) === number);
+  for (let number = minNumber; number <= maxNumber; number += 1) {
+    const size = Math.min(boardSize, numberPathBoardSizes(number).at(-1));
+    const layouts = LAYOUTS.get(size);
+    // Sums above the house deck's range belong to this procedural mode only.
+    const pathId = `number_path_${number}`;
+    const card = cards.find((item) => Number(item.params?.number ?? item.params?.total) === number)
+      ?? (number > NUMBER_PATH_NUMBERS.at(-1) ? { id: pathId, conceptId: pathId } : null);
     if (!card) continue;
     const prior = tasks.at(-1) ?? previousRound.at(-1);
     const lastLayout = previousRound.find((task) => task.number === number)?.layoutIndex;
-    let layoutIndex = (initialIndex + tasks.length * 7) % layouts.length;
-    while (layoutIndex === lastLayout || (prior?.route[0] === layouts[layoutIndex][0]
+    const initialIndex = lastLayout === undefined ? Math.floor(seed * layouts.length) + tasks.length * 7 : lastLayout + 1;
+    let layoutIndex = initialIndex % layouts.length;
+    while (layoutIndex === lastLayout || (prior?.size === size && prior.route[0] === layouts[layoutIndex][0]
       && prior.route.at(-1) === layouts[layoutIndex].at(-1))) {
       layoutIndex = (layoutIndex + 1) % layouts.length;
     }

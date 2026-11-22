@@ -719,20 +719,20 @@
         "ru": "Состав числа",
         "en": "Number Composition"
       },
-      "version": "1.3.2",
+      "version": "1.3.3",
       "renderer": "math_houses",
       "sources": [
-        "public/decks/math_houses_v1.3.2.zip",
+        "public/decks/math_houses_v1.3.3.zip",
         "src/topics/renderers/math_houses"
       ],
       "bundle": {
-        "version": "1.3.2",
-        "url": "./decks/math_houses_v1.3.2.zip",
+        "version": "1.3.3",
+        "url": "./decks/math_houses_v1.3.3.zip",
         "title": {
           "ru": "Состав числа",
           "en": "Number Composition"
         },
-        "description": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
+        "description": "В «Домике» и «Растущем домике» ребёнок работает с составом чисел от 2 до 10. В режиме «Найди дорожку» он проходит по клеткам с заданной суммой от 3 до 20.",
         "renderer": "math_houses",
         "modes": 3,
         "cards": 9
@@ -740,23 +740,23 @@
       "builtin": false,
       "catalogEntry": {
         "id": "math_houses",
-        "version": "1.3.2",
+        "version": "1.3.3",
         "title": {
           "ru": "Состав числа",
           "en": "Number Composition"
         },
         "description": {
-          "ru": "Состав чисел от 2 до 10. Ребёнок дополняет пары в «Домике», вспоминает их в «Растущем домике» или проходит примеры с нужной суммой в режиме «Найди дорожку».",
-          "en": "Explore number composition from 2 to 10 in Number House, Growing House, and Find the Path."
+          "ru": "В «Домике» и «Растущем домике» ребёнок работает с составом чисел от 2 до 10. В режиме «Найди дорожку» он проходит по клеткам с заданной суммой от 3 до 20.",
+          "en": "Explore number composition from 2 to 10 in Number House and Growing House, and from 3 to 20 in Find the Path."
         },
-        "url": "./decks/math_houses_v1.3.2.zip",
+        "url": "./decks/math_houses_v1.3.3.zip",
         "status": "beta",
         "access": "paid",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-21T08:29:35+00:00"
+      "sourceUpdatedAt": "2026-11-21T09:52:00Z"
     },
     {
       "id": "math_tests",

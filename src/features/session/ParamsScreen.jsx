@@ -46,7 +46,7 @@ import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } 
 import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
-import { normalizeNumberPathSize } from "@/topics/renderers/math_houses/numberPathConfig.js";
+import { normalizeNumberPathParams, numberPathBoardSizes } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
 import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
@@ -1743,8 +1743,7 @@ export default function ParamsScreen() {
     }
     // «Видео в конце занятия» is not a declared mode option: kept with the params like figureFilters
     if (saved.videoAtEnd === true) out.videoAtEnd = true;
-    if (mode?.type === "number_path") out.boardSize = normalizeNumberPathSize(out.boardSize);
-    return out;
+    return mode?.type === "number_path" ? normalizeNumberPathParams(out) : out;
   }
 
   const [params,         setParams]        = useState(getInitialParams);
@@ -2233,6 +2232,7 @@ export default function ParamsScreen() {
           return <DailyOrientationSettings params={params} setParams={setParams} student={student} onOpenImportantDates={openImportantDates} />;
         }
         function renderParam(key, def) {
+          const isNumberPath = mode.type === "number_path";
           if(mode?.type==='drawing_coloring'&&['penWidth','outsideTolerance','fillTarget'].includes(key)&&def.type==='number') {
             return <DrawingColoringSlider key={key} kind={key} definition={def} params={params} onChange={value=>setParams(previous=>({...previous,[key]:value}))}/>;
           }
@@ -2250,9 +2250,12 @@ export default function ParamsScreen() {
                 key={key}
                 label={setupText(def.label) || key}
                 value={params[key] ?? def.default}
-                min={def.min}
-                max={def.max}
-                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                min={isNumberPath && key === "maxNumber" ? params.minNumber : def.min}
+                max={isNumberPath && key === "minNumber" ? params.maxNumber : def.max}
+                onChange={(v) => setParams((p) => {
+                  const updated = { ...p, [key]: v };
+                  return isNumberPath ? normalizeNumberPathParams(updated) : updated;
+                })}
                 info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
                 disabled={isDisabled}
@@ -2280,7 +2283,9 @@ export default function ParamsScreen() {
               <EnumParam
                 key={key}
                 label={setupText(def.label) || key}
-                options={allowedEnumValues(def, params, mode.params)}
+                options={isNumberPath && key === "boardSize"
+                  ? numberPathBoardSizes(params.maxNumber)
+                  : allowedEnumValues(def, params, mode.params)}
                 labels={setupLabels(def.labels)}
                 // (a saved value no longer offered — a propis2 style of another language, «Мои языки» changed — shows the default)
                 value={Array.isArray(def.values) && params[key] !== undefined && !def.values.includes(params[key]) ? def.default : (params[key] ?? def.default)}

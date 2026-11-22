@@ -112,6 +112,7 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
                   type="button"
                   className="number-path__tile"
                   data-state={state}
+                  data-two-digits={pair.some((part) => part >= 10) ? "" : undefined}
                   data-endpoint={index === start ? "start" : index === finish ? "finish" : undefined}
                   data-link={directionTo(index, nextByCell.get(index), columns)}
                   aria-label={[label, endpoint, description].filter(Boolean).join(", ")}

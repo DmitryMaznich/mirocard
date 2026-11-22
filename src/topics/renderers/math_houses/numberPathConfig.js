@@ -1,6 +1,9 @@
 export const NUMBER_PATH_TITLE = { ru: "Состав числа", en: "Number Composition" };
 export const NUMBER_PATH_ICON = "media/icons/number_path.svg";
 export const NUMBER_PATH_NUMBERS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+const MIN_PATH_NUMBER = 3;
+const MAX_PATH_NUMBER = 20;
+const SMALL_BOARD_THROUGH = 5;
 
 export const MATH_HOUSE_MODES = [
   {
@@ -46,12 +49,21 @@ export const NUMBER_PATH_MODE = {
     icon: NUMBER_PATH_ICON,
   },
   params: {
+    minNumber: {
+      type: "number", min: MIN_PATH_NUMBER, max: MAX_PATH_NUMBER, default: MIN_PATH_NUMBER,
+      label: { ru: "Минимальное число", sl: "Najmanjše število" },
+    },
+    maxNumber: {
+      type: "number", min: MIN_PATH_NUMBER, max: MAX_PATH_NUMBER, default: 10,
+      label: { ru: "Максимальное число" },
+    },
     boardSize: {
       type: "enum",
       label: { ru: "Сложность" },
       values: [5, 10, 14],
       labels: { ru: { 5: "Начальная · 5 × 5", 10: "Средняя · 10 × 10", 14: "Продвинутая · 10 × 14 / 14 × 10" } },
       default: 5,
+      hint: { ru: "Для чисел от 3 до 5 поле всегда 5 × 5.", sl: "Za števila od 3 do 5 je mreža vedno 5 × 5." },
     },
     mistakeBehavior: {
       type: "enum",
@@ -63,9 +75,27 @@ export const NUMBER_PATH_MODE = {
   },
 };
 
-export function normalizeNumberPathSize(value) {
+function normalizeNumberPathSize(value) {
   const { values, default: defaultSize } = NUMBER_PATH_MODE.params.boardSize;
   const size = Number(value);
   if (size === 15) return 14;
   return values.includes(size) ? size : defaultSize;
+}
+
+export function numberPathBoardSizes(number) {
+  const { values } = NUMBER_PATH_MODE.params.boardSize;
+  return number <= SMALL_BOARD_THROUGH ? values.slice(0, 1) : values;
+}
+
+export function normalizeNumberPathParams(params = {}) {
+  const definitions = NUMBER_PATH_MODE.params;
+  function clampNumber(key) {
+    const { min, max, default: fallback } = definitions[key];
+    const value = Number(params[key] ?? fallback);
+    return Number.isFinite(value) ? Math.max(min, Math.min(max, Math.round(value))) : fallback;
+  }
+  const maxNumber = clampNumber("maxNumber");
+  const minNumber = Math.min(clampNumber("minNumber"), maxNumber);
+  const boardSize = Math.min(normalizeNumberPathSize(params.boardSize), numberPathBoardSizes(maxNumber).at(-1));
+  return { ...params, minNumber, maxNumber, boardSize };
 }

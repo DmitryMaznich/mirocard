@@ -178,7 +178,7 @@ describe("importTopic — valid cases", () => {
     expect(record.cards[0].renderer).toBe("math_houses");
     expect(record.modes.filter((mode) => !mode.retired).map((mode) => mode.id))
       .toEqual(["math_houses_practice", "math_houses_grow", "number_path"]);
-    expect(Object.keys(record.modes[2].params)).toEqual(["boardSize", "mistakeBehavior"]);
+    expect(Object.keys(record.modes[2].params)).toEqual(["minNumber", "maxNumber", "boardSize", "mistakeBehavior"]);
     expect(record.modes.every((m) => m.ui?.icon)).toBe(true);
   });
 

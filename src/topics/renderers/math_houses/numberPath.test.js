@@ -2,11 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { readModeParams, writeModeParams } from "@/shared/utils/topicUtils.js";
 import { generateTasks } from "./engine.js";
 import { arePathNeighbors, generateNumberPath } from "./numberPath.js";
-import { MATH_HOUSE_MODES, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
+import { MATH_HOUSE_MODES, normalizeNumberPathParams, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
 
 const cards = NUMBER_PATH_NUMBERS.map((number) => ({
   id: `house_${number}`, conceptId: `house_${number}`, params: { number },
 }));
+const defaultPathNumbers = NUMBER_PATH_NUMBERS.filter((number) => number >= 3);
 
 describe("number composition routes", () => {
   it.each([[5, 5], [10, 10], [10, 14]])("uses side-connected routes with varying ends on %i × %i boards", (columns, size) => {
@@ -16,8 +17,9 @@ describe("number composition routes", () => {
       const firstMoves = new Set();
       for (const seed of [0, 0.13, 0.29, 0.51, 0.72, 0.99]) {
         random.mockReturnValue(seed);
-        const tasks = generateTasks(NUMBER_PATH_MODE, [...cards].reverse(), 500, { boardSize: size });
-        expect(tasks.map(({ number }) => number)).toEqual(NUMBER_PATH_NUMBERS);
+        const minNumber = size === 5 ? 3 : 6;
+        const tasks = generateTasks(NUMBER_PATH_MODE, [...cards].reverse(), 500, { boardSize: size, minNumber });
+        expect(tasks.map(({ number }) => number)).toEqual(defaultPathNumbers.filter((number) => number >= minNumber));
         tasks.forEach(({ cells, route, number, cardId }, index) => {
           expect(cardId).toBe(`house_${number}`);
           expect(cells).toHaveLength(columns * size);
@@ -47,13 +49,32 @@ describe("number composition routes", () => {
   });
 
   it("builds a new lap in the same order from the saved round", () => {
-    const first = generateNumberPath(cards, { boardSize: 5 });
-    const second = generateNumberPath(cards, { boardSize: 5 }, first);
-    expect(generateNumberPath(cards, { boardSize: 5 }, first)).toEqual(second);
-    expect(second.map((task) => task.number)).toEqual(NUMBER_PATH_NUMBERS);
+    const params = { minNumber: 4, maxNumber: 7, boardSize: 10 };
+    const first = generateNumberPath(cards, params);
+    const second = generateNumberPath(cards, params, first);
+    expect(generateNumberPath(cards, params, first)).toEqual(second);
+    expect(first.map(({ number, size }) => [number, size])).toEqual([[4, 5], [5, 5], [6, 10], [7, 10]]);
+    expect(second.map(({ number, size }) => [number, size])).toEqual([[4, 5], [5, 5], [6, 10], [7, 10]]);
     expect(second.every((task, index) => task.layoutIndex !== first[index].layoutIndex)).toBe(true);
-    const prior = first.at(-1).route;
-    expect([second[0].route[0], second[0].route.at(-1)]).not.toEqual([prior[0], prior.at(-1)]);
+  });
+
+  it("generates sums above the installed house deck and loops for a single number", () => {
+    const tasks = generateTasks(NUMBER_PATH_MODE, cards, { minNumber: 11, maxNumber: 20 });
+    expect(tasks.map((task) => task.number)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+    const params = { minNumber: 20, maxNumber: 20, boardSize: 14 };
+    const [first] = generateNumberPath(cards, params);
+    const [second] = generateNumberPath(cards, params, [first]);
+    expect(second).toMatchObject({ number: 20, cardId: "number_path_20", columns: 10, size: 14 });
+    expect(second.route).not.toEqual(first.route);
+    for (const [index, [a, b]] of second.cells.entries()) {
+      expect(a + b <= 20).toBe(true);
+      expect(a + b === 20).toBe(second.route.includes(index));
+    }
+  });
+
+  it("normalizes invalid or inverted saved limits and caps the small range", () => {
+    expect(normalizeNumberPathParams({ minNumber: -1, maxNumber: 40 })).toEqual({ minNumber: 3, maxNumber: 20, boardSize: 5 });
+    expect(normalizeNumberPathParams({ minNumber: "9", maxNumber: "5", boardSize: 15 })).toEqual({ minNumber: 5, maxNumber: 5, boardSize: 5 });
   });
 
   it("repeats correct pairs even on the smallest board for 5", () => {
@@ -63,9 +84,9 @@ describe("number composition routes", () => {
     expect(pairs.length).toBeGreaterThan(4);
   });
 
-  it("starts with 2 on a small board when mode settings are missing", () => {
+  it("starts with 3 on a small board when mode settings are missing", () => {
     const [task] = generateTasks(NUMBER_PATH_MODE, cards);
-    expect(task).toMatchObject({ number: 2, size: 5, cardId: "house_2" });
+    expect(task).toMatchObject({ number: 3, size: 5, cardId: "house_3" });
   });
 
   it.each([3, 4])("opens a 5 × 5 board for the old saved %i setting", (boardSize) => {
@@ -74,14 +95,14 @@ describe("number composition routes", () => {
   });
 
   it("opens a rectangular board for the old saved 15 × 15 setting", () => {
-    const [task] = generateTasks(NUMBER_PATH_MODE, cards, 500, { boardSize: 15 });
+    const [task] = generateTasks(NUMBER_PATH_MODE, cards, 500, { minNumber: 6, boardSize: 15 });
     expect(task).toMatchObject({ columns: 10, size: 14 });
     expect(task.cells).toHaveLength(140);
   });
 
   it("keeps the path settings when a number house is used", () => {
     const [house] = MATH_HOUSE_MODES;
-    const pathParams = { boardSize: 14, mistakeBehavior: "restart" };
+    const pathParams = { minNumber: 5, maxNumber: 12, boardSize: 14, mistakeBehavior: "restart" };
     const saved = writeModeParams({ subtype: "read" }, NUMBER_PATH_MODE, pathParams);
     const updated = writeModeParams(saved, house, { subtype: "recall" });
     expect(readModeParams(updated, NUMBER_PATH_MODE)).toEqual(pathParams);
