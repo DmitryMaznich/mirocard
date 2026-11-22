@@ -109,14 +109,28 @@ function buildSubSteps(columns) {
       // take — give — reduce (owner, 2026-11-16): the place(s) we take from light up while the
       // «1» goes in front of our own number, then the lender is crossed out and written one less
       const lenders = columns.slice(i + 1, j + 1).map((c) => c.position);
-      place.push({ cellType: "borrow", position: col.position, digit: 1, lenders });
-      place.push({ cellType: "crossout", position: columns[j].position, digit: null });
-      cur[j] -= 1;
-      if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
-      for (let k = j - 1; k > i; k--) {
-        cur[k] = 9;
-        place.push({ cellType: "crossout", position: columns[k].position, digit: null });
-        place.push({ cellType: "adjust", position: columns[k].position, digit: 9 });
+      if (j === i + 1) {
+        place.push({ cellType: "borrow", position: col.position, digit: 1, lenders });
+        place.push({ cellType: "crossout", position: columns[j].position, digit: null });
+        cur[j] -= 1;
+        if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
+      } else {
+        // Borrowing through a 0 (708 − 409, owner 2026-11-22): the ten travels
+        // top-down as on paper, and only then does our place take its «1»:
+        // the hundreds give one (7 → 6) → it becomes 10 over the 0 (the child
+        // writes «10») → that 10 gives one away (crossed out, → 9) → «1» in
+        // front of our number → its result. «Хватает?» is still asked first,
+        // on the place's first step (the crossout of the far lender).
+        place.push({ cellType: "crossout", position: columns[j].position, digit: null });
+        cur[j] -= 1;
+        if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
+        for (let k = j - 1; k > i; k--) {
+          cur[k] = 9;
+          place.push({ cellType: "regroup", position: columns[k].position, digit: 10 });
+          place.push({ cellType: "crossout", position: columns[k].position, digit: null });
+          place.push({ cellType: "adjust", position: columns[k].position, digit: 9 });
+        }
+        place.push({ cellType: "borrow", position: col.position, digit: 1, lenders: [columns[i + 1].position] });
       }
       value += 10;
     }

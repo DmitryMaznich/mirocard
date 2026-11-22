@@ -26,7 +26,14 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
   const working = place[activeStep.column];
   if (activeStep.cellType === "carry") return ["Шаг 2", "Переносим", `В разряде «${working}» получилось больше 9. Перенеси 1 в клетку сверху.`];
   if (activeStep.cellType === "borrow") return ["Шаг 2", "Занимаем", `В разряде «${working}» не хватает — берём десяток у подсвеченной цифры. Поставь маленькую 1: твоё число стало на 10 больше.`];
-  if (activeStep.cellType === "crossout" && col.topDigit === 0) return ["Шаг 2", "Ноль тоже отдаёт", `Тут 0: он получил 10 и отдаёт 1. Проведи пальцем по нулю.`];
+  // Borrowing through a 0 (708 − 409): the ten travels top-down — the far
+  // place gives first, it becomes 10 over the 0, that 10 gives one away (9),
+  // and only then does the short place take its «1».
+  const dative = { units: "Единицам", tens: "Десяткам", hundreds: "Сотням" };
+  const zeroBelow = task.columns[task.columns.indexOf(col) - 1];
+  if (activeStep.cellType === "crossout" && activeStep.first && zeroBelow?.topDigit === 0 && zeroBelow.position !== activeStep.column) return ["Шаг 2", "Занимаем через ноль", `${dative[activeStep.column]} не хватает. В разряде «${place[zeroBelow.position]}» 0 — занять нечего. Идём к разряду «${label}»: проведи пальцем по его цифре.`];
+  if (activeStep.cellType === "regroup") return ["Шаг 2", "Одна сотня — это 10 десятков", "Сотня пришла к десяткам: был 0, стало 10. Впиши 10 над нулём."];
+  if (activeStep.cellType === "crossout" && col.topDigit === 0) return ["Шаг 2", "Десяток отдаём вниз", `Теперь тут 10. Один десяток отдаём единицам — проведи пальцем по нулю.`];
   if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдали десяток", `Зачеркни цифру в разряде «${label}» — у неё взяли один.`];
   if (activeStep.cellType === "adjust" && col.topDigit === 0) return ["Шаг 2", "Ноль стал девяткой", "10 − 1 = 9. Впиши 9 в клетку сверху."];
   if (activeStep.cellType === "adjust") return ["Шаг 2", "Стало на 1 меньше", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в клетку сверху.`];

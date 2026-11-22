@@ -239,6 +239,15 @@
   background: #fff3c4;
   animation: col-mark-slot-pulse 1.1s ease-in-out infinite;
 }
+/* «10» over a 0 (borrowing through it) — two digits in the slot */
+.col-mark-part--wide.col-mark-part--slot { width: 1.3em; }
+/* …struck through once that 0 gives a ten away; the 9 replaces it */
+.col-mark-part--struck .col-slant {
+  text-decoration: line-through;
+  text-decoration-color: #1d4ed8;
+  text-decoration-thickness: 2px;
+  opacity: 0.75;
+}
 @keyframes col-mark-slot-pulse {
   0%, 100% { background: #fff3c4; }
   50%       { background: #fde68a; }

@@ -495,11 +495,11 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
   const steps = (top, bottom) => columnTaskOfExample({ operation: "subtract", top, bottom }).steps
     .map((st) => `${st.cellType}:${st.position}:${st.digit}`);
 
-  it("302 − 195: the hundreds give first, the 0 becomes 9 — never «−1»", () => {
+  it("302 − 195: the hundreds give first, the 0 becomes 10, gives one and is 9 — then the units take their «1»", () => {
     expect(steps(302, 195)).toEqual([
-      "borrow:units:1",
       "crossout:hundreds:null", "adjust:hundreds:2",
-      "crossout:tens:null", "adjust:tens:9",
+      "regroup:tens:10", "crossout:tens:null", "adjust:tens:9",
+      "borrow:units:1",
       "result:units:7",
       "result:tens:0", "result:hundreds:1",
     ]);
@@ -520,21 +520,36 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
     expect(short.map((st) => st.need)).toEqual([5, null, null]);
   });
 
-  it("400 − 126: through a zero: the hundreds give, the 0 of the tens becomes 9", () => {
+  it("400 − 126: through a zero: the hundreds give, the 0 of the tens becomes 10, then 9", () => {
     expect(steps(400, 126)).toEqual([
-      "borrow:units:1",
       "crossout:hundreds:null", "adjust:hundreds:3",
-      "crossout:tens:null", "adjust:tens:9",
+      "regroup:tens:10", "crossout:tens:null", "adjust:tens:9",
+      "borrow:units:1",
       "result:units:4",
       "result:tens:7", "result:hundreds:2",
     ]);
+  });
+
+  it("708 − 409 and 808 − 599: «хватает?» first, then the ten travels top-down, the 10 the child writes, the units last", () => {
+    const t = columnTaskOfExample({ operation: "subtract", top: 708, bottom: 409 });
+    expect(t.steps.map((st) => `${st.cellType}:${st.position}:${st.digit}`)).toEqual([
+      "crossout:hundreds:null", "adjust:hundreds:6",
+      "regroup:tens:10", "crossout:tens:null", "adjust:tens:9",
+      "borrow:units:1", "result:units:9",
+      "result:tens:9", "result:hundreds:2",
+    ]);
+    // «Хватает?» (8 − 9) is asked on the very first step of the chain
+    expect(t.steps[0]).toMatchObject({ first: true, column: "units", have: 8, need: 9 });
+    // the «1» comes from the tens (the 10 that just gave one away)
+    expect(t.steps.find((st) => st.cellType === "borrow").lenders).toEqual(["tens"]);
+    expect(steps(808, 599).filter((st) => st.startsWith("result"))).toEqual(["result:units:9", "result:tens:0", "result:hundreds:2"]);
   });
 
   it("every 3-digit subtraction: digits 0–9 only, the result digits make the answer", () => {
     for (let top = 100; top < 1000; top++) {
       for (let bottom = 1; bottom < top; bottom += 7) {
         const t = columnTaskOfExample({ operation: "subtract", top, bottom });
-        expect(t.steps.every((st) => st.digit === null || (st.digit >= 0 && st.digit <= 9))).toBe(true);
+        expect(t.steps.every((st) => st.digit === null || (st.digit >= 0 && st.digit <= (st.cellType === "regroup" ? 10 : 9)))).toBe(true);
         const r = Object.fromEntries(t.steps.filter((st) => st.cellType === "result").map((st) => [st.position, st.digit]));
         expect((r.hundreds ?? 0) * 100 + (r.tens ?? 0) * 10 + (r.units ?? 0)).toBe(t.result);
       }
@@ -545,7 +560,7 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
     const cards = [{ id: "s", conceptId: "s", renderer: "column_addition", params: { operation: "subtract" } }];
     for (let run = 0; run < 100; run++) {
       for (const t of generateTasks("column_arithmetic", cards, 10, { digits: run % 2 ? 3 : "zero", carryMode: "carry", operation: "subtract" })) {
-        expect(t.steps.every((st) => st.digit === null || (st.digit >= 0 && st.digit <= 9))).toBe(true);
+        expect(t.steps.every((st) => st.digit === null || (st.digit >= 0 && st.digit <= (st.cellType === "regroup" ? 10 : 9)))).toBe(true);
         const r = Object.fromEntries(t.steps.filter((st) => st.cellType === "result").map((st) => [st.position, st.digit]));
         expect((r.hundreds ?? 0) * 100 + (r.tens ?? 0) * 10 + r.units).toBe(t.result);
       }
