@@ -110,17 +110,24 @@ export const IconMarkClean = () => S(<>{rule(18)}{guide(12)}</>);
 export const IconRepOne = () => S(<>{rule(18)}{hook(3)}</>);
 export const IconRepAll = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, copy)}{hook(2 + 2 * STEP, copy)}</>);
 export const IconRepFade = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { ...copy, opacity: 0.55 })}{hook(2 + 2 * STEP, { ...copy, opacity: 0.22 })}</>);
-// (owner, 2026-11-22: the icon IS the sample — no dot at all for «Нет», a dot at the sample, at every copy, at every stroke of the sample)
-export const IconDotsNone = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}</>);
-export const IconDotsOne = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}</>);
-export const IconDotsAll = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
-// «Каждый штрих»: a letter of two strokes (a stick and a hook, «р»), a dot at the start of each on the sample, one on the copy
-const P_STICK = (x) => `M${x + 5} 7 L${x + 1.6} 21`;
-const P_HOOK = (x) => `M${x + 3.6} 12.5 C${x + 4.6} 8.2 ${x + 9} 6.6 ${x + 9.6} 9.4 C${x + 10.2} 12.3 ${x + 7.2} 14.6 ${x + 4.6} 13.8`;
-export const IconDotsStrokes = () => S(<>{rule(18)}
-  <path d={`${P_STICK(1)} ${P_HOOK(1)}`} />
-  <path d={`${P_STICK(11.5)} ${P_HOOK(11.5)}`} {...copy} />
-  {redDot(6, 7)}{redDot(4.6, 12.5)}{redDot(16.5, 7)}</>);
+// (owner, 2026-11-22) the start-dot icons are the capital print «А» — three strokes — as the sample, a dashed copy after it, and the red
+// dots where the sheet puts them: the left slant starts at the bottom left, the right one at the apex, the bar at its left end.
+// Proportions of the letter's own glyph (tools/handwriting/cyrillic/print.json): 2/3 as wide as tall, the bar at 0.4 of the height.
+const A_H = 13, A_W = A_H * (69.332 / 104), A_BASE = 19, A_BAR = A_BASE - A_H * (41.6 / 104);
+const aStrokes = (x) => [
+  [[x, A_BASE], [x + A_W / 2, A_BASE - A_H]],
+  [[x + A_W / 2, A_BASE - A_H], [x + A_W, A_BASE]],
+  [[x + A_W * 0.2, A_BAR], [x + A_W * 0.8, A_BAR]],
+];
+const A_X = 2, A_COPY_X = 13.3;
+const letterA = (x, props) => <g {...props}>{aStrokes(x).map(([[x1, y1], [x2, y2]], i) => <path key={i} d={`M${x1.toFixed(2)} ${y1.toFixed(2)}L${x2.toFixed(2)} ${y2.toFixed(2)}`} />)}</g>;
+const aCopy = { strokeDasharray: "1.1 1.35", stroke: "#7b8494", strokeWidth: 1.4 };
+const dotsA = (dots) => S(<>{rule(A_BASE + 0.6, 1.5, 22.5)}{letterA(A_X)}{letterA(A_COPY_X, aCopy)}{dots.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={1.55} fill={RED} stroke="none" />)}</>);
+const aStart = (x) => aStrokes(x).map(([p]) => p);
+export const IconDotsNone = () => dotsA([]);
+export const IconDotsOne = () => dotsA([aStart(A_X)[0]]);
+export const IconDotsAll = () => dotsA([aStart(A_X)[0], aStart(A_COPY_X)[0]]);
+export const IconDotsStrokes = () => dotsA([...aStart(A_X), aStart(A_COPY_X)[0]]);
 export const IconRepSolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}{hook(2 + 2 * STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}</>);
 export const IconCopySolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { opacity: 0.35 })}{hook(2 + 2 * STEP, { opacity: 0.35 })}</>);
 
