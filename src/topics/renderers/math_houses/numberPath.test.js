@@ -48,13 +48,13 @@ describe("number composition routes", () => {
     }
   });
 
-  it("builds a new lap in the same order from the saved round", () => {
-    const params = { minNumber: 4, maxNumber: 7, boardSize: 10 };
+  it.each([10, 14])("starts on the selected large board and keeps it on a new lap (%i)", (boardSize) => {
+    const params = { minNumber: 4, maxNumber: 7, boardSize };
     const first = generateNumberPath(cards, params);
     const second = generateNumberPath(cards, params, first);
     expect(generateNumberPath(cards, params, first)).toEqual(second);
-    expect(first.map(({ number, size }) => [number, size])).toEqual([[4, 5], [5, 5], [6, 10], [7, 10]]);
-    expect(second.map(({ number, size }) => [number, size])).toEqual([[4, 5], [5, 5], [6, 10], [7, 10]]);
+    expect(first.map(({ number, size }) => [number, size])).toEqual([[6, boardSize], [7, boardSize]]);
+    expect(second.map(({ number, size }) => [number, size])).toEqual([[6, boardSize], [7, boardSize]]);
     expect(second.every((task, index) => task.layoutIndex !== first[index].layoutIndex)).toBe(true);
   });
 
@@ -95,8 +95,8 @@ describe("number composition routes", () => {
   });
 
   it("opens a rectangular board for the old saved 15 × 15 setting", () => {
-    const [task] = generateTasks(NUMBER_PATH_MODE, cards, 500, { minNumber: 6, boardSize: 15 });
-    expect(task).toMatchObject({ columns: 10, size: 14 });
+    const [task] = generateTasks(NUMBER_PATH_MODE, cards, 500, { boardSize: 15 });
+    expect(task).toMatchObject({ number: 6, columns: 10, size: 14 });
     expect(task.cells).toHaveLength(140);
   });
 

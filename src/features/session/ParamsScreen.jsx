@@ -46,7 +46,7 @@ import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } 
 import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
-import { normalizeNumberPathParams, numberPathBoardSizes } from "@/topics/renderers/math_houses/numberPathConfig.js";
+import { normalizeNumberPathParams, numberPathBoardSizes, numberPathMinForBoard } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
 import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
@@ -2250,7 +2250,9 @@ export default function ParamsScreen() {
                 key={key}
                 label={setupText(def.label) || key}
                 value={params[key] ?? def.default}
-                min={isNumberPath && key === "maxNumber" ? params.minNumber : def.min}
+                min={isNumberPath
+                  ? (key === "maxNumber" ? params.minNumber : numberPathMinForBoard(params.boardSize))
+                  : def.min}
                 max={isNumberPath && key === "minNumber" ? params.maxNumber : def.max}
                 onChange={(v) => setParams((p) => {
                   const updated = { ...p, [key]: v };
@@ -2289,7 +2291,10 @@ export default function ParamsScreen() {
                 labels={setupLabels(def.labels)}
                 // (a saved value no longer offered — a propis2 style of another language, «Мои языки» changed — shows the default)
                 value={Array.isArray(def.values) && params[key] !== undefined && !def.values.includes(params[key]) ? def.default : (params[key] ?? def.default)}
-                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                onChange={(v) => setParams((p) => {
+                  const updated = { ...p, [key]: v };
+                  return isNumberPath && key === "boardSize" ? normalizeNumberPathParams(updated) : updated;
+                })}
                 disabledValues={def.disabledValues}
                 disabled={isDisabled}
                 compact={def.compact}

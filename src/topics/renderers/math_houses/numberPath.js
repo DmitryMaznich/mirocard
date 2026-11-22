@@ -1,4 +1,4 @@
-import { normalizeNumberPathParams, numberPathBoardSizes, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
+import { normalizeNumberPathParams, NUMBER_PATH_MODE, NUMBER_PATH_NUMBERS } from "./numberPathConfig.js";
 
 export function arePathNeighbors(a, b, columns) {
   return Math.abs(Math.floor(a / columns) - Math.floor(b / columns)) + Math.abs(a % columns - b % columns) === 1;
@@ -130,14 +130,13 @@ function createTask(card, number, size, route, layoutIndex) {
 }
 
 export function generateNumberPath(cards, params, previousRound = []) {
-  const { minNumber, maxNumber, boardSize } = normalizeNumberPathParams(params);
+  const { minNumber, maxNumber, boardSize: size } = normalizeNumberPathParams(params);
+  const layouts = LAYOUTS.get(size);
   // Only the first round needs randomness. Advancing from saved tasks yields
   // the same next round if the session state update is replayed.
   const seed = previousRound.length ? 0 : Math.random();
   const tasks = [];
   for (let number = minNumber; number <= maxNumber; number += 1) {
-    const size = Math.min(boardSize, numberPathBoardSizes(number).at(-1));
-    const layouts = LAYOUTS.get(size);
     // Sums above the house deck's range belong to this procedural mode only.
     const pathId = `number_path_${number}`;
     const card = cards.find((item) => Number(item.params?.number ?? item.params?.total) === number)

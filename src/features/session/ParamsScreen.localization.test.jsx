@@ -6,6 +6,7 @@ import ParamsScreen from "./ParamsScreen";
 import { useAppStore } from "@/core/store";
 import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import { NUMBER_PATH_MODE } from "@/topics/renderers/math_houses/numberPathConfig.js";
+import { generateTasks } from "@/topics/renderers/math_houses/engine.js";
 
 const mocks = vi.hoisted(() => ({ persist: vi.fn(), start: vi.fn() }));
 vi.mock("@/core/linkUtils", () => ({ persistStudentTopicLink: mocks.persist }));
@@ -80,9 +81,7 @@ it("keeps the number-path bounds ordered and saves only an available grid size",
   const rangeRow = (label) => [...host.querySelectorAll(".param-row")].find((row) => row.textContent.includes(label));
   const [lowerMax] = rangeRow("Максимальное число").querySelectorAll(".stepper-btn");
   const [, raiseMin] = rangeRow("Минимальное число").querySelectorAll(".stepper-btn");
-  for (let i = 0; i < 4; i++) await act(async () => lowerMax.click());
-  await act(async () => button("Средняя · 10 × 10").click());
-  await act(async () => lowerMax.click());
+  for (let i = 0; i < 5; i++) await act(async () => lowerMax.click());
   expect(button("Средняя · 10 × 10")).toBeUndefined();
   await act(async () => raiseMin.click());
   await act(async () => raiseMin.click());
@@ -96,4 +95,30 @@ it("keeps the number-path bounds ordered and saves only an available grid size",
       }),
     }),
   }));
+});
+
+it.each([
+  ["Средняя · 10 × 10", 10, 100],
+  ["Продвинутая · 10 × 14 / 14 × 10", 14, 140],
+])("starts from 6 with the selected field %s", async (label, boardSize, cellCount) => {
+  const topicId = "math_houses";
+  const card = { id: "house_6", conceptId: "house_6", params: { number: 6 } };
+  useAppStore.setState({
+    activeTopicId: topicId,
+    activeModeId: NUMBER_PATH_MODE.id,
+    topicRecords: [{ meta: { id: topicId, renderer: topicId }, cards: [card], modes: [NUMBER_PATH_MODE] }],
+    studentTopicLinks: { kid_math_houses: { params: {}, videoRewardEnabled: false } },
+  });
+  await switchLanguage("ru");
+  await act(async () => root.render(<ParamsScreen />));
+  await act(async () => button(label).click());
+  const minRow = [...host.querySelectorAll(".param-row")].find(row => row.textContent.includes("Минимальное число"));
+  expect(minRow.querySelector(".stepper-value").textContent).toBe("6");
+  expect(minRow.querySelector(".stepper-btn").disabled).toBe(true);
+  await act(async () => button("Начать занятие").click());
+  const { params } = mocks.persist.mock.lastCall[2];
+  expect(params.byMode.number_path).toMatchObject({ minNumber: 6, maxNumber: 10, boardSize });
+  const [first] = generateTasks(NUMBER_PATH_MODE, [card], params.byMode.number_path);
+  expect(first).toMatchObject({ number: 6, size: boardSize });
+  expect(first.cells).toHaveLength(cellCount);
 });

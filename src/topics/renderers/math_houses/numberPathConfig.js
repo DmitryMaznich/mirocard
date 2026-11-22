@@ -63,7 +63,7 @@ export const NUMBER_PATH_MODE = {
       values: [5, 10, 14],
       labels: { ru: { 5: "Начальная · 5 × 5", 10: "Средняя · 10 × 10", 14: "Продвинутая · 10 × 14 / 14 × 10" } },
       default: 5,
-      hint: { ru: "Для чисел от 3 до 5 поле всегда 5 × 5.", sl: "Za števila od 3 do 5 je mreža vedno 5 × 5." },
+      hint: { ru: "Для больших полей минимальное число — 6.", sl: "Pri večjih mrežah je najmanjše število 6." },
     },
     mistakeBehavior: {
       type: "enum",
@@ -87,6 +87,10 @@ export function numberPathBoardSizes(number) {
   return number <= SMALL_BOARD_THROUGH ? values.slice(0, 1) : values;
 }
 
+export function numberPathMinForBoard(boardSize) {
+  return boardSize === NUMBER_PATH_MODE.params.boardSize.default ? MIN_PATH_NUMBER : SMALL_BOARD_THROUGH + 1;
+}
+
 export function normalizeNumberPathParams(params = {}) {
   const definitions = NUMBER_PATH_MODE.params;
   function clampNumber(key) {
@@ -95,7 +99,7 @@ export function normalizeNumberPathParams(params = {}) {
     return Number.isFinite(value) ? Math.max(min, Math.min(max, Math.round(value))) : fallback;
   }
   const maxNumber = clampNumber("maxNumber");
-  const minNumber = Math.min(clampNumber("minNumber"), maxNumber);
   const boardSize = Math.min(normalizeNumberPathSize(params.boardSize), numberPathBoardSizes(maxNumber).at(-1));
+  const minNumber = Math.max(numberPathMinForBoard(boardSize), Math.min(clampNumber("minNumber"), maxNumber));
   return { ...params, minNumber, maxNumber, boardSize };
 }
