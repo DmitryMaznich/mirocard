@@ -457,7 +457,16 @@ export function extraPunctGlyphs(byLabel) {
   return out.filter((g) => !byLabel.has(g.label) && !(g.aliases ?? []).some((a) => byLabel.has(a)));
 }
 
+// Memoised per source array (owner, 2026-11-22: typing lagged): buildPageTask asks for it on every key, and a new array of glyphs made the
+// sheet build a new glyph map — the row cache (wordEngine WIDE_ROW_CACHE, per map) then never hit and every row of the page was laid out
+// again (with its probes for how many copies fit) on every key. The result is never changed by its users.
+const OVERRIDDEN = new WeakMap();
 export const withGlyphOverrides = (glyphs) => {
+  if (!Array.isArray(glyphs)) return withGlyphOverridesNow(glyphs);
+  if (!OVERRIDDEN.has(glyphs)) OVERRIDDEN.set(glyphs, withGlyphOverridesNow(glyphs));
+  return OVERRIDDEN.get(glyphs);
+};
+const withGlyphOverridesNow = (glyphs) => {
   const raw = new Map((glyphs ?? []).map((g) => [g.label, g]));
   const belly = (g) => (g.bellyFrom && raw.get(g.bellyFrom.label) ? yerBelly(g, raw.get(g.bellyFrom.label), g.bellyFrom) : g);
   // the bank's digits and signs (cursive) — unless the deck's language / style brings its own under the same «№» label (the English

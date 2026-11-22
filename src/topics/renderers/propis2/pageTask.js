@@ -49,6 +49,7 @@ export function listElementChoices(topicRecord) {
 // `minPages`: how many pages the task has at least (a notebook's pages, blank ones included: trailing blank rows are dropped below).
 const OWN_ROW_GRIDS = new Set(["square", "ruled", ...FOUR_LINE_IDS, "m1", "m2", ...PRINT_PAPER_IDS]);
 
+const NO_REPEAT = Object.freeze({});
 export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0, firstPage = 0, noSlant = false, bandFill = null }) {
   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
   const clean = (lines ?? []).map((l) => String(l).trim());
@@ -81,7 +82,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     narrow17: Boolean(narrowRows), // the narrow ruling uses all 17 rows of the printed notebook (see PrintPageView)
     wideGlyphs: withGlyphOverrides(topicRecord?.wide),
     script: topicRecord?.meta?.script ?? null,
-    wideElementRepeat: topicRecord?.wideElementRepeat ?? {},
+    wideElementRepeat: topicRecord?.wideElementRepeat ?? NO_REPEAT, // (one object: the sheet keeps its glyph map while these stay the same)
     // rows in another style of the language (`#y<style>` on their line): the letters and geometry of every style
     ...styleGlyphsOf(topicRecord),
   };

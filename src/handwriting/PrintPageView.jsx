@@ -1083,6 +1083,42 @@ function drawnGridSnapX(step, margin, geom, narrow17 = false) {
 
 // The function that puts a letter's start on a line of the grid the page is drawn with (the layout and the text wrapping of
 // `propis2` must use the SAME one: a word placed on the grid is wider than the same word measured freely).
+// The task's glyph map, kept while its glyphs are the same (owner, 2026-11-22: typing lagged). The row cache of the engine (wordEngine
+// WIDE_ROW_CACHE) is kept per map: a new map on every key — the editor builds a new task on every key — laid out every row of the page
+// again; with the same map only the row that changed is laid out.
+const WIDE_MAPS = new WeakMap();
+function wideGlyphMapOf(task) {
+  const key = Array.isArray(task?.wideGlyphs) ? task.wideGlyphs : null;
+  const styles = task?.styleGlyphs ? Object.entries(task.styleGlyphs).map(([id, st]) => [id, st.wideGlyphs, st.script]) : null;
+  const same = (m) => m.elements === task?.elements && m.repeat === task?.wideElementRepeat && m.script === task?.script && m.writingStyle === task?.writingStyle
+    && (m.styles === null ? styles === null : styles !== null && m.styles.length === styles.length && m.styles.every((s, i) => s[0] === styles[i][0] && s[1] === styles[i][1] && s[2] === styles[i][2]));
+  if (key) { const m = WIDE_MAPS.get(key); if (m && same(m)) return m.map; }
+  // elements.json entries captured on the wide zone ride along by id (same capture grid, so
+  // they get the same grid stretch); wide.json glyphs win and also register their aliases.
+  const wideGlyphsByLabel = new Map();
+  for (const el of task?.elements ?? []) wideGlyphsByLabel.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH, repeatCells: task?.wideElementRepeat?.[el.id] });
+  for (const item of task?.wideGlyphs ?? []) {
+    wideGlyphsByLabel.set(item.label, item);
+    for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
+  }
+  if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
+  // `propis2`, a language with several writing styles: a row of another style (`#y<style>` on its line) writes with that style's letters
+  if (task?.styleGlyphs) {
+    const styles = new Map();
+    for (const [id, st] of Object.entries(task.styleGlyphs)) {
+      if (id === task.writingStyle) { styles.set(id, wideGlyphsByLabel); continue; }
+      const map = new Map();
+      for (const el of task?.elements ?? []) map.set(el.id, wideGlyphsByLabel.get(el.id));
+      for (const item of st.wideGlyphs ?? []) { map.set(item.label, item); for (const alias of item.aliases ?? []) map.set(alias, item); }
+      if (st.script) map.script = st.script;
+      styles.set(id, map);
+    }
+    wideGlyphsByLabel.styles = styles;
+  }
+  if (key) WIDE_MAPS.set(key, { map: wideGlyphsByLabel, elements: task?.elements, repeat: task?.wideElementRepeat, script: task?.script, writingStyle: task?.writingStyle, styles });
+  return wideGlyphsByLabel;
+}
+
 // The same function for the same page parameters (`cacheable`): the layout keeps finished rows per grid function (wordEngine.js).
 const SNAP_FNS = new Map();
 // the show panel's window (focus): room for the pen above (and, to keep the row in the middle, below) the row; margin beside the ink
@@ -1157,28 +1193,7 @@ function layoutTaskPages(task) {
   const ownRows = wideRows && OWN_ROWS[task?.simpleGrid] ? task.simpleGrid : null;
   const perPage = perPageOf(geom, narrow17, ownRows);
   const useElements = Boolean(task?.useElements) && !wideRows;
-  // elements.json entries captured on the wide zone ride along by id (same capture grid, so
-  // they get the same grid stretch); wide.json glyphs win and also register their aliases.
-  const wideGlyphsByLabel = new Map();
-  for (const el of task?.elements ?? []) wideGlyphsByLabel.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH, repeatCells: task?.wideElementRepeat?.[el.id] });
-  for (const item of task?.wideGlyphs ?? []) {
-    wideGlyphsByLabel.set(item.label, item);
-    for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
-  }
-  if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
-  // `propis2`, a language with several writing styles: a row of another style (`#y<style>` on its line) writes with that style's letters
-  if (task?.styleGlyphs) {
-    const styles = new Map();
-    for (const [id, st] of Object.entries(task.styleGlyphs)) {
-      if (id === task.writingStyle) { styles.set(id, wideGlyphsByLabel); continue; }
-      const map = new Map();
-      for (const el of task?.elements ?? []) map.set(el.id, wideGlyphsByLabel.get(el.id));
-      for (const item of st.wideGlyphs ?? []) { map.set(item.label, item); for (const alias of item.aliases ?? []) map.set(alias, item); }
-      if (st.script) map.script = st.script;
-      styles.set(id, map);
-    }
-    wideGlyphsByLabel.styles = styles;
-  }
+  const wideGlyphsByLabel = wideGlyphMapOf(task);
   const layout = wideRows
     ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17, pageShift: (Number(task?.firstPage) || 0) % 2 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
     : useElements
