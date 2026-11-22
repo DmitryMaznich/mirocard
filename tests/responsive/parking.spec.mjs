@@ -64,6 +64,42 @@ test('the child completes a short puzzle and rings the bell before receiving a v
   await expect(page.getByRole('textbox',{name:'Второй игрок',exact:true})).toHaveCount(0);
 });
 
+test('the tablet desk bell plays one ring per tap and respects the sound setting',async({page})=>{
+  await page.setViewportSize({width:1180,height:820});
+  await start(page,{animated:true});
+  const bell=page.getByRole('button',{name:'Колокольчик — парковка готова',exact:true});
+  const sound=page.locator('.parking-game audio');
+  await sound.evaluate(audio=>audio.addEventListener('playing',()=>{
+    audio.dataset.starts=Number(audio.dataset.starts??0)+1;
+  }));
+  await hintedMove(page);
+  await expect.poll(()=>bell.locator('img').first().evaluate(image=>image.naturalWidth)).toBeGreaterThan(0);
+  const target=await bell.boundingBox();
+  expect(target.height).toBeGreaterThanOrEqual(90);
+  await bell.locator('.parking-bell-plunger').evaluate(plunger=>plunger.addEventListener('animationstart',event=>{
+    if(event.animationName==='parking-bell-press')plunger.dataset.pressed='true';
+  }));
+  await page.screenshot({path:'.cache/parking-results/parking-desk-bell-tablet.png'});
+  await page.touchscreen.tap(target.x+target.width/2,target.y+target.height/2);
+  await expect(sound).toHaveAttribute('data-starts','1');
+  await expect(page.locator('.parking-bell-plunger')).toHaveAttribute('data-pressed','true');
+  await expect(page.locator('.reward-modal__title')).toHaveText('Парковка готова!');
+  await expect(sound).toHaveAttribute('data-starts','1');
+
+  await page.getByRole('button',{name:'Вернуться к парковке',exact:true}).click();
+  await page.getByRole('button',{name:'Играть ещё',exact:true}).click();
+  await page.getByRole('button',{name:'К играм',exact:true}).click();
+  const toggle=page.getByRole('button',{name:'Звук',exact:true});
+  await expect(toggle).toHaveAttribute('aria-pressed','true');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed','false');
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await hintedMove(page);
+  await bell.tap();
+  await expect(page.locator('.reward-modal__title')).toHaveText('Парковка готова!');
+  await expect(sound).toHaveAttribute('data-starts','1');
+});
+
 test('partners alternate moves, pause preserves the board and the next puzzle waits for a tap',async({page})=>{
   await start(page,{level:'Несколько ходов',partner:'Логопед',animated:true,together:true});const board=page.locator('.parking-grid');
   await expect(page.locator('.parking-player[data-active=true]')).toHaveText(/Мирон/);

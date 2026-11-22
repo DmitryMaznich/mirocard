@@ -51,8 +51,8 @@ body:has(.parking-game) { min-height: 100dvh; }
 .parking-play-area { container: parking-stage / size; }
 .parking-play-layout {
   --parking-gap: clamp(12px, 3cqmin, 28px);
-  --parking-action-height: clamp(56px, 8cqh, 72px);
-  --parking-action-width: clamp(106px, 15cqw, 160px);
+  --parking-action-height: clamp(68px, 14cqh, 104px);
+  --parking-action-width: clamp(112px, 17cqw, 168px);
   --parking-board-width: 100cqw;
   --parking-board-height: calc(100cqh - var(--parking-action-height) - var(--parking-gap));
   display: flex;
@@ -166,15 +166,42 @@ body:has(.parking-game) { min-height: 100dvh; }
   width: var(--parking-action-width);
   height: var(--parking-action-height);
 }
-.parking-game .parking-bell, .parking-game .parking-hint {
+.parking-game .parking-hint {
   border-radius: 16px;
   border: 1px solid #ddcdb7;
   background: #fffaf1;
   color: #36505b;
   font-weight: 800;
 }
-.parking-game .parking-bell { display: grid; place-items: center; width: var(--parking-action-height); height: var(--parking-action-height); padding: calc(var(--parking-action-height) * .14); background: #fff0cc; border-color: #e4ca90; }
-.parking-bell svg { width: 100%; height: 100%; }
+.parking-game .parking-bell {
+  width: min(100%, calc(var(--parking-action-height) * 1.38));
+  height: var(--parking-action-height);
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+.parking-bell-art {
+  --parking-plunger-edge: 12%;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 3px #4c35153b);
+  pointer-events: none;
+}
+.parking-bell-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.parking-bell-body { clip-path: inset(var(--parking-plunger-edge) 0 0); }
+.parking-bell-plunger { clip-path: inset(0 0 calc(100% - var(--parking-plunger-edge))); }
+.parking-bell:active .parking-bell-plunger { transform: translateY(7%); }
+.parking-bell[data-ringing=true] .parking-bell-plunger { animation: parking-bell-press 160ms ease-out both; }
+.parking-bell[data-ringing=true] { animation: parking-bell-dismiss 280ms ease-out both; }
+@keyframes parking-bell-press {
+  from { transform: translateY(7%); }
+  to { transform: none; }
+}
+@keyframes parking-bell-dismiss { 45% { opacity: 1; } to { opacity: 0; visibility: hidden; } }
 .parking-game .parking-hint { min-height: 46px; padding: 8px 12px; font-size: clamp(16px, 2.25cqmin, 21px); }
 .parking-hint:disabled { opacity: .65; }
 
@@ -221,6 +248,9 @@ body:has(.parking-game) { min-height: 100dvh; }
 }
 @media (prefers-reduced-motion: reduce) {
   .parking-game .parking-piece { transition: none; }
+  .parking-bell:active .parking-bell-plunger { transform: none; }
+  .parking-bell[data-ringing=true] .parking-bell-plunger { animation: none; }
+  .parking-bell[data-ringing=true] { animation: none; visibility: hidden; }
   .parking-lot[data-phase=celebrating] .parking-shutter { animation: parking-close-gate 1ms step-end forwards; }
   .parking-lot[data-phase=celebrating] .parking-piece-surface { animation: none; visibility: hidden; }
 }

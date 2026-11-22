@@ -1,8 +1,7 @@
-import {useEffect,useReducer,useState} from 'react';
+import {useEffect,useReducer,useRef,useState} from 'react';
 import {useUiTranslation} from '@/shared/i18n/useUiTranslation';
 import {useRewardSettings} from '@/features/rewards/useRewardSettings';
 import {normalizeRewardVideoIds} from '@/shared/utils/rewardVideoPicker';
-import {useAudio} from '@/shared/hooks/useAudio';
 import {setBackInterceptor} from '@/shared/navigation/backInterceptor';
 import {BackArrowIcon} from '@/shared/components/ArrowIcons';
 import RewardVideoModal from '@/shared/components/RewardVideoModal';
@@ -26,7 +25,8 @@ export default function ParkingGame({student,initialAdultName,onNameChange,onSta
   const [adultName,setAdultName]=useState(initialAdultName||t('parking.defaultPartner'));
   const [paused,setPaused]=useState(false),[hint,setHint]=useState(null);
   const [reward,setReward]=useState(null),[rewardClaimed,setRewardClaimed]=useState(false);
-  const {soundEnabled,toggleSound,playFeedback}=useAudio(false);
+  const [soundEnabled,setSoundEnabled]=useState(true);
+  const bellAudio=useRef(null);
   const names=[student.name||t('parking.child'),adultName.trim()||t('parking.defaultPartner')];
   const finished=state.phase==='finished',celebrating=state.phase==='celebrating';
   const ready=state.phase==='ready',locked=configure||paused||state.phase!=='playing';
@@ -64,7 +64,16 @@ export default function ParkingGame({student,initialAdultName,onNameChange,onSta
   }
   function ring() {
     if(!ready||paused||configure)return;
-    playFeedback('correct');dispatch({type:'bell'});
+    const sound=bellAudio.current;
+    if(soundEnabled&&sound){
+      sound.currentTime=0;
+      sound.play().catch(()=>{});
+    }
+    dispatch({type:'bell'});
+  }
+  function toggleSound() {
+    if(soundEnabled)bellAudio.current?.pause();
+    setSoundEnabled(!soundEnabled);
   }
   function showHint() {
     const index=parkingHint(state);
@@ -74,6 +83,7 @@ export default function ParkingGame({student,initialAdultName,onNameChange,onSta
   const vacancy=state.board.indexOf(null);
   const lanes=state.palette.map(color=>({color:PALETTES[color],label:t(GARAGE_KEYS[color]),symbol:SYMBOLS[color]}));
   return <main className="games-home parking-game" data-paused={paused}>
+    <audio ref={bellAudio} src="/game-art/parking-v1/bell.mp3" preload="auto" />
     <div className="parking-content" inert={configure||paused||rewardOpen||finished} aria-hidden={configure||paused||rewardOpen||finished||undefined}>
       <header className="parking-header">
         <button className="games-icon" aria-label={t('parking.back')} onClick={()=>setPaused(true)}><BackArrowIcon /></button>
@@ -113,7 +123,10 @@ export default function ParkingGame({student,initialAdultName,onNameChange,onSta
             </div>
           </section>
           <div className="parking-actions">
-            {ready&&<button className="parking-bell" aria-label={t('parking.bellLabel')} onClick={ring}><ParkingBell /></button>}
+            <button type="button" className="parking-bell" hidden={!ready&&!celebrating} disabled={celebrating}
+              data-ringing={celebrating} aria-hidden={celebrating||undefined} aria-label={t('parking.bellLabel')} onClick={ring}>
+              <ParkingBell />
+            </button>
             {(state.phase==='playing'||state.phase==='moving')&&<button className="parking-hint" disabled={locked} onClick={showHint}>{t('parking.hint')}</button>}
           </div>
         </div>
