@@ -202,3 +202,46 @@ test('rotating or resizing a tablet reflows the current round', async ({page})=>
   expect(await page.locator('.parking-piece').evaluateAll(cars=>cars.map(({dataset})=>[dataset.car,dataset.index]))).toEqual(positions);
   await expect(grid).toHaveAttribute('data-moves','1');
 });
+
+test('expert 4 × 4 fits the tablet and small phone and can be solved with hints',async({page})=>{
+  await page.setViewportSize({width:820,height:1180});
+  await start(page,{level:'Сложная парковка',together:true});
+  const game=page.locator('.parking-game');
+  const board=page.locator('.parking-grid');
+  await expect(page.locator('.parking-piece')).toHaveCount(15);
+  await expect(page.locator('.parking-garage')).toHaveCount(4);
+  await expect(page.getByRole('img',{name:'Зелёный гараж',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Зелёная машинка',exact:true}).first()).toBeVisible();
+  await hintedMove(page);
+  await page.evaluate(()=>{
+    for(const side of ['top','right','bottom','left'])document.documentElement.style.setProperty('--app-safe-'+side,'20px');
+  });
+
+  for(const size of [{width:820,height:1180},{width:1180,height:820},{width:550,height:900},{width:320,height:700},{width:568,height:320}]){
+    await page.setViewportSize(size);
+    await expect(board).toHaveAttribute('data-moves','1');
+    expect(await game.evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
+    const cell=await page.locator('.parking-piece').first().boundingBox();
+    expect(cell.width).toBeGreaterThanOrEqual(44);
+    expect(cell.height).toBeGreaterThanOrEqual(44);
+    const hint=await page.getByRole('button',{name:'Подсказка',exact:true}).boundingBox();
+    expect(hint.y+hint.height).toBeLessThanOrEqual(size.height);
+    if(size.width>=820)await page.screenshot({path:`.cache/parking-results/parking-expert-${size.width}.png`});
+  }
+
+  await page.setViewportSize({width:1180,height:820});
+  let steps=1;
+  while(await board.getAttribute('data-phase')==='playing'&&steps<32){
+    await hintedMove(page);
+    steps++;
+  }
+  expect(steps).toBeGreaterThanOrEqual(18);
+  await expect(board).toHaveAttribute('data-phase','ready');
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.getByRole('button',{name:'Колокольчик — парковка готова',exact:true}).tap();
+  const shutters=page.locator('.parking-shutter');
+  await expect.poll(()=>shutters.evaluateAll(elements=>elements.every(element=>
+    new DOMMatrix(getComputedStyle(element).transform).d<.15))).toBe(true);
+  await expect(board).toHaveAttribute('data-phase','finished');
+  await expect(page.locator('.reward-modal__title')).toHaveText('Парковка готова!');
+});

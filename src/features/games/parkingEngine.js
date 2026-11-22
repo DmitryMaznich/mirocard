@@ -2,6 +2,7 @@ export const PARKING_LEVELS = Object.freeze({
   first: { columns: 2, rows: 2, distance: 1 },
   practice: { columns: 2, rows: 3, distance: 3 },
   big: { columns: 3, rows: 3, distance: 12, maxDistance: 16, minMisplaced: 6 },
+  expert: { columns: 4, rows: 4, distance: 18, maxDistance: 32, minMisplaced: 8 },
 });
 export const PARKING_MOVE_MS = 320;
 const graphs = new Map();
@@ -17,7 +18,7 @@ export function parkingSolved(board, columns) {
 }
 function swapKey(key,a,b) {const chars=key.split('');[chars[a],chars[b]]=[chars[b],chars[a]];return chars.join('');}
 // Multi-source BFS treats every correct position of the empty space as solved.
-// There are only 5,040 arrangements on the largest board (3+3+2 cars).
+// The largest board using BFS has only 5,040 arrangements (3+3+2 cars).
 function graphFor(columns,rows,missingColumn) {
   const id=`${columns}-${rows}-${missingColumn}`;
   if(graphs.has(id))return graphs.get(id);
@@ -35,9 +36,33 @@ function graphFor(columns,rows,missingColumn) {
   }
   graphs.set(id,distances);return distances;
 }
-export function createParking(level='first',random=Math.random,playMode='solo') {
-  const selected=Object.hasOwn(PARKING_LEVELS,level)?level:'first';
-  const {columns,rows,distance,maxDistance=distance,minMisplaced=0}=PARKING_LEVELS[selected];
+// Hex cell indices trace the vacancy from a sorted board to a mixed one.
+// Each start needs at least 18 horizontal moves and has a route of at most 32 moves.
+const EXPERT_PATHS = [
+  '456732104567bfedc8456abfed9a', 'fedc89abfedc89567321045621',
+  '21048cdea98cdefba9567ba9548956', '32104510489abfedc89abfed9abfea621',
+  'cdefba984567321045673210456', '451237659abfed984012376548cd9512',
+  '67ba98456a98401237baefba95489dc', '65489abfed9ab73210489ab76210',
+  '4567ba6732104598cdea956a98cde', '89abfeab732104510489ab76aedc89a',
+  '210456732104567321567bfed9abfe', '4567ba9defb7321048cdea984567ba',
+];
+
+function createExpertLayout(random) {
+  const [goalBlank,...steps]=Array.from(sample(EXPERT_PATHS,random),cell=>Number.parseInt(cell,16));
+  const paletteOffset=sample([0,1,2,3],random);
+  const palette=Array.from({length:4},(_,i)=>(i+paletteOffset)%4);
+  let blank=goalBlank;
+  let start=Array.from({length:16},(_,i)=>i===blank?'_':String(i%4)).join('');
+  const route=[];
+  for(const index of steps) {
+    route.push(start);
+    start=swapKey(start,blank,index);
+    blank=index;
+  }
+  return {start,route:route.reverse(),missingColumn:goalBlank%4,palette};
+}
+
+function createSmallLayout({columns,rows,distance,maxDistance=distance,minMisplaced=0},random) {
   const missingColumn=sample(Array.from({length:columns},(_,i)=>i),random);
   const palette=sample(columns===2?[[0,1],[1,2],[0,2]]:[[0,1,2],[2,0,1],[1,2,0]],random);
   const graph=graphFor(columns,rows,missingColumn);
@@ -49,28 +74,47 @@ export function createParking(level='first',random=Math.random,playMode='solo') 
     // eight cars outside their garage lane, rather than nearly sorted.
     return !minMisplaced||Array.from({length:columns},(_,column)=>[...key].some((color,i)=>i%columns===column&&color!=='_'&&Number(color)!==column)).every(Boolean);
   }).map(([key])=>key);
-  const start=sample(candidates,random);
+  return {start:sample(candidates,random),missingColumn,palette};
+}
+
+export function createParking(level='first',random=Math.random,playMode='solo') {
+  const selected=Object.hasOwn(PARKING_LEVELS,level)?level:'first';
+  const rules=PARKING_LEVELS[selected];
+  const {columns,rows}=rules;
+  const {start,...layout}=selected==='expert'?createExpertLayout(random):createSmallLayout(rules,random);
   const counts=Array(columns).fill(0);
   const board=start.split('').map(color=>color==='_'?null:{color:Number(color),id:`car-${color}-${counts[Number(color)]++}`});
-  return {level:selected,playMode:playMode==='together'?'together':'solo',columns,rows,missingColumn,palette:[...palette],board,turn:0,phase:'playing',moves:0};
+  return {level:selected,playMode:playMode==='together'?'together':'solo',columns,rows,...layout,palette:[...layout.palette],board,turn:0,phase:'playing',moves:0};
 }
 export function parkingCanMove(state,index) {
   return Number.isInteger(index)&&index>=0&&index<state.board.length&&state.board[index]!==null&&parkingNeighbors(state.board.indexOf(null),state.columns,state.rows).includes(index);
 }
 export function parkingDistance(state) {
+  // Expert rounds keep a verified route instead of indexing the full board graph.
+  if(state.route)return state.route.length;
   return graphFor(state.columns,state.rows,state.missingColumn).get(keyOf(state.board));
 }
 export function parkingHint(state) {
+  if(state.route)return state.route[0]?.indexOf('_')??null;
   const distance=parkingDistance(state);
   if(!distance)return null;
   const key=keyOf(state.board),blank=key.indexOf('_'),graph=graphFor(state.columns,state.rows,state.missingColumn);
   return parkingNeighbors(blank,state.columns,state.rows).find(index=>graph.get(swapKey(key,blank,index))===distance-1)??null;
 }
+function updateExpertRoute(state,board) {
+  if(parkingSolved(board,state.columns))return [];
+  const joinedAt=state.route.indexOf(keyOf(board));
+  // Rejoin if possible. Otherwise the previous state is one legal move away.
+  return joinedAt>=0?state.route.slice(joinedAt+1):[keyOf(state.board),...state.route];
+}
+
 export function parkingReducer(state,action) {
   if(action.type==='move'&&state.phase==='playing'&&parkingCanMove(state,action.index)) {
     const board=[...state.board],blank=board.indexOf(null);
     [board[blank],board[action.index]]=[board[action.index],null];
-    return {...state,board,moves:state.moves+1,phase:'moving'};
+    const next={...state,board,moves:state.moves+1,phase:'moving'};
+    if(state.route)next.route=updateExpertRoute(state,board);
+    return next;
   }
   if(action.type==='settled'&&state.phase==='moving')return {...state,phase:parkingSolved(state.board,state.columns)?'ready':'playing',turn:state.playMode==='together'?1-state.turn:0};
   if(action.type==='bell'&&state.phase==='ready')return {...state,phase:'celebrating'};

@@ -19,7 +19,10 @@ export function ParkingBuilding({title,lanes,onClosed}) {
 }
 
 export function ParkingSprite({color,garage=false}) {
-  return <svg viewBox={`${color*384} ${garage?384:0} 384 384`} className={garage?'parking-garage-art':'parking-car-art'} aria-hidden="true"><image href={ART} width="1152" height="768" /></svg>;
+  const green=color===3;
+  const sprite=green?1:color;
+  return <svg viewBox={`${sprite*384} ${garage?384:0} 384 384`} className={garage?'parking-garage-art':'parking-car-art'}
+    data-green={green||undefined} aria-hidden="true"><image href={ART} width="1152" height="768" /></svg>;
 }
 export function ParkingPreview() {
   return <span className="parking-preview" aria-hidden="true"><ParkingSprite color={1} /><ParkingSprite color={1} garage /></span>;

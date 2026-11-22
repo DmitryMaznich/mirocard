@@ -65,7 +65,7 @@ body:has(.parking-game) { min-height: 100dvh; }
 .parking-lot {
   --roof-ratio: .35;
   --door-ratio: .53;
-  --slot: max(48px, min(
+  --slot: max(44px, min(
     calc(var(--parking-board-width) / var(--columns)),
     calc(var(--parking-board-height) / (var(--rows) + var(--roof-ratio) + var(--door-ratio)))));
   --door-height: calc(var(--slot) * var(--door-ratio));
@@ -79,6 +79,7 @@ body:has(.parking-game) { min-height: 100dvh; }
 .parking-lot [data-color=yellow] { --lane: #fae9bf; --door: #edd397; --slat: #ad8644; }
 .parking-lot [data-color=blue] { --lane: #d8ebf4; --door: #b9d8e9; --slat: #6e9ab0; }
 .parking-lot [data-color=coral] { --lane: #f7ddd4; --door: #eabdad; --slat: #ba8273; }
+.parking-lot [data-color=green] { --lane: #dcebd5; --door: #bbd5ae; --slat: #7b9d70; }
 
 .parking-building { position: relative; z-index: 2; }
 .parking-roof {
@@ -139,6 +140,7 @@ body:has(.parking-game) { min-height: 100dvh; }
 .parking-piece[data-hint=true] .parking-piece-surface { outline: 3px solid #286a68; outline-offset: -3px; }
 .parking-piece:disabled { opacity: 1; }
 .parking-car-art { display: block; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.parking-car-art[data-green] { filter: hue-rotate(-93deg); }
 .parking-shape {
   position: absolute;
   right: 2px;
@@ -234,7 +236,7 @@ body:has(.parking-game) { min-height: 100dvh; }
 .parking-preview .parking-garage-art { display: block; width: 50%; height: 95%; overflow: hidden; }
 
 @media (min-width: 600px) {
-  .parking-mode-picker [role=radiogroup] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .parking-levels [role=radiogroup] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (orientation: landscape) and (max-height: 600px) {
   .games-home.parking-game { padding-block: calc(6px + var(--app-safe-top, 0px)) calc(6px + var(--app-safe-bottom, 0px)); }

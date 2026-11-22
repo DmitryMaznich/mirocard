@@ -10,10 +10,10 @@ import {ParkingSprite,ParkingBell,ParkingBuilding} from './ParkingArt';
 import './games.css';
 import './parking.css';
 
-const CAR_KEYS=['parking.yellowCar','parking.blueCar','parking.redCar'];
-const GARAGE_KEYS=['parking.yellowGarage','parking.blueGarage','parking.redGarage'];
-const PALETTES=['yellow','blue','coral'];
-const SYMBOLS=['●','▲','■'];
+const CAR_KEYS=['parking.yellowCar','parking.blueCar','parking.redCar','parking.greenCar'];
+const GARAGE_KEYS=['parking.yellowGarage','parking.blueGarage','parking.redGarage','parking.greenGarage'];
+const PALETTES=['yellow','blue','coral','green'];
+const SYMBOLS=['●','▲','■','◆'];
 
 export default function ParkingGame({student,initialAdultName,onNameChange,onStart,onBack}) {
   const {t}=useUiTranslation();
