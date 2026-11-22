@@ -16,6 +16,7 @@ export const PARKING_MESSAGES = {
     'parking.first':'Первый успех','parking.firstDetail':'Поле 2 × 2, один ход до результата',
     'parking.practice':'Несколько ходов','parking.practiceDetail':'Поле 2 × 3, короткая задача',
     'parking.big':'Большая парковка','parking.bigDetail':'Поле 3 × 3, хорошо перемешанные машинки',
+    'parking.expert':'Сложная парковка','parking.expertDetail':'Поле 4 × 4, четыре цвета',
     'parking.start':'Начать','parking.back':'К играм','parking.turn':'Ход: {{name}}','parking.moving':'Машинка переезжает…',
     'parking.instruction':'Нажми на машинку рядом со свободным местом','parking.empty':'Свободное место',
     'parking.board':'Игровое поле парковки','parking.hint':'Подсказка','parking.hintMessage':'Подсвеченная машинка может приблизить нас к решению',
@@ -27,6 +28,7 @@ export const PARKING_MESSAGES = {
     'parking.pause':'Пауза','parking.pauseText':'Парковка подождёт. Все машинки останутся на своих местах.',
     'parking.continue':'Продолжить','parking.end':'Закончить игру','parking.sound':'Звук','parking.yellowCar':'Жёлтая машинка',
     'parking.blueCar':'Синяя машинка','parking.redCar':'Красная машинка','parking.yellowGarage':'Жёлтый гараж','parking.blueGarage':'Синий гараж','parking.redGarage':'Красный гараж',
+    'parking.greenCar':'Зелёная машинка','parking.greenGarage':'Зелёный гараж',
   },
   sl: {
     "parking.playMode": "Kako igramo",
@@ -45,6 +47,7 @@ export const PARKING_MESSAGES = {
     'parking.first':'Prvi uspeh','parking.firstDetail':'Polje 2 × 2, ena poteza do cilja',
     'parking.practice':'Nekaj potez','parking.practiceDetail':'Polje 2 × 3, kratka naloga',
     'parking.big':'Veliko parkirišče','parking.bigDetail':'Polje 3 × 3, dobro premešani avtomobili',
+    'parking.expert':'Zahtevno parkirišče','parking.expertDetail':'Polje 4 × 4, štiri barve',
     'parking.start':'Začni','parking.back':'K igram','parking.turn':'Na vrsti: {{name}}','parking.moving':'Avtomobil se premika…',
     'parking.instruction':'Dotakni se avtomobila ob praznem mestu','parking.empty':'Prazno mesto',
     'parking.board':'Igralno polje parkirišča','parking.hint':'Namig','parking.hintMessage':'Označeni avtomobil nas lahko približa rešitvi',
@@ -56,6 +59,7 @@ export const PARKING_MESSAGES = {
     'parking.pause':'Premor','parking.pauseText':'Parkirišče bo počakalo. Vsi avtomobili ostanejo na svojih mestih.',
     'parking.continue':'Nadaljuj','parking.end':'Končaj igro','parking.sound':'Zvok','parking.yellowCar':'Rumeni avtomobil',
     'parking.blueCar':'Modri avtomobil','parking.redCar':'Rdeči avtomobil','parking.yellowGarage':'Rumena garaža','parking.blueGarage':'Modra garaža','parking.redGarage':'Rdeča garaža',
+    'parking.greenCar':'Zeleni avtomobil','parking.greenGarage':'Zelena garaža',
   },
   en: {
     "parking.playMode": "How to play",
@@ -74,6 +78,7 @@ export const PARKING_MESSAGES = {
     'parking.first':'First success','parking.firstDetail':'A 2 × 2 board, one move from the goal',
     'parking.practice':'A few moves','parking.practiceDetail':'A 2 × 3 board, a short puzzle',
     'parking.big':'Big car park','parking.bigDetail':'A 3 × 3 board with well-shuffled cars',
+    'parking.expert':'Expert car park','parking.expertDetail':'A 4 × 4 board with four colours',
     'parking.start':'Start','parking.back':'Games','parking.turn':'Turn: {{name}}','parking.moving':'The car is moving…',
     'parking.instruction':'Tap a car next to the empty space','parking.empty':'Empty space',
     'parking.board':'Parking board','parking.hint':'Hint','parking.hintMessage':'The highlighted car can bring us closer to the solution',
@@ -85,5 +90,6 @@ export const PARKING_MESSAGES = {
     'parking.pause':'Pause','parking.pauseText':'The car park can wait. All cars will stay in place.',
     'parking.continue':'Continue','parking.end':'End game','parking.sound':'Sound','parking.yellowCar':'Yellow car',
     'parking.blueCar':'Blue car','parking.redCar':'Red car','parking.yellowGarage':'Yellow garage','parking.blueGarage':'Blue garage','parking.redGarage':'Red garage',
+    'parking.greenCar':'Green car','parking.greenGarage':'Green garage',
   },
 };

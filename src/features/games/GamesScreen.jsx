@@ -2,6 +2,7 @@ import ParkingGame from "./ParkingGame";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useRewardSettings } from "@/features/rewards/useRewardSettings";
+import { saveTopicVisit } from "@/features/topics/topicUiPreviewModel";
 import { useAudio } from "@/shared/hooks/useAudio";
 import { normalizeRewardVideoIds } from "@/shared/utils/rewardVideoPicker";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
@@ -45,17 +46,19 @@ export default function GamesScreen() {
   const studentId = useAppStore(s => s.activeStudentId);
   const student = useAppStore(s => s.students.find(item => item.id === s.activeStudentId));
   const setScreen = useAppStore(s => s.setScreen);
+  const topicId = useAppStore(s => s.activeTopicId);
   const modeId = useAppStore(s => s.activeModeId);
   const [gameNumber, setGameNumber] = useState(0);
   const [countMoves,setCountMoves] = useState(false);
   const [adultName, setAdultName] = useState("Папа");
   const [characters,setCharacters] = useState(()=>[student?.sex === "f" ? "girl" : "boy","man"]);
   if (!student) return <main className="games-home"><h1>Выберите ученика</h1><button className="games-primary" onClick={() => setScreen("home")}>На главный экран</button></main>;
-  if(modeId === "parking") return <ParkingGame key={studentId} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} />;
-  return <DiceRace key={`${studentId}-${modeId}-${gameNumber}`} isTower={modeId === "skyscrapers"} isWater={modeId === "water_fill"} isTug={modeId === "tug_of_war"} initialCountMoves={countMoves} onCountMovesChange={setCountMoves} initialCharacters={characters} onCharactersChange={setCharacters} student={student} initialAdultName={adultName} onNameChange={setAdultName} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
+  const rememberGame = () => saveTopicVisit(studentId, { topicId, modeId: modeId ?? "dice_race" });
+  if(modeId === "parking") return <ParkingGame key={studentId} student={student} initialAdultName={adultName} onNameChange={setAdultName} onStart={rememberGame} onBack={() => setScreen("modes")} />;
+  return <DiceRace key={`${studentId}-${modeId}-${gameNumber}`} isTower={modeId === "skyscrapers"} isWater={modeId === "water_fill"} isTug={modeId === "tug_of_war"} initialCountMoves={countMoves} onCountMovesChange={setCountMoves} initialCharacters={characters} onCharactersChange={setCharacters} student={student} initialAdultName={adultName} onNameChange={setAdultName} onStart={rememberGame} onBack={() => setScreen("modes")} onReplay={() => setGameNumber(n => n + 1)} />;
 }
 
-function DiceRace({ student, isTower, isWater, isTug, initialCountMoves, onCountMovesChange, initialCharacters, onCharactersChange, initialAdultName, onNameChange, onBack, onReplay }) {
+function DiceRace({ student, isTower, isWater, isTug, initialCountMoves, onCountMovesChange, initialCharacters, onCharactersChange, initialAdultName, onNameChange, onStart, onBack, onReplay }) {
   const [race, dispatch] = useReducer(raceReducer, undefined, () => isTug ? createTugOfWar(initialCountMoves) : createRace(isWater ? WATER_WIN : isTower ? MAX_FLOORS : FINISH, isWater ? WATER_CAPACITY : isTower ? MAX_FLOORS : FINISH, isWater, isWater));
   const [started, setStarted] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -167,7 +170,7 @@ function DiceRace({ student, isTower, isWater, isTug, initialCountMoves, onCount
       {(isWater || isTug) && <WaterCharacters values={characters} onChange={setCharacters} />}
       {isTug && <fieldset className="tug-mode-picker"><legend>Как играем</legend><div role="radiogroup" aria-label="Как играем">{[[false,"Сравниваем"],[true,"Считаем ходы"]].map(([value,label])=><button key={label} type="button" role="radio" aria-checked={countMoves===value} onClick={()=>setCountMoves(value)}>{label}</button>)}</div><p>{countMoves ? "После сравнения посчитаем точки без пары — столько ходов сделает канат." : "Сравниваем кубики и смотрим, как двигается канат."}</p></fieldset>}
       <p className="games-prize-rule">{hasVideo ? isTug ? `Если побеждает ${childName} — любимое видео. Если побеждает второй игрок — без видео.` : `Если побеждает ${childName} или получается ничья — любимое видео. Если побеждает второй игрок — без видео.` : isTug ? "Перетяните ленточку за свою линию. Число бросков не ограничено." : isWater ? "Вода перелилась одновременно у обоих — ничья." : isTower ? "Оба небоскрёба достигли облаков в одном раунде — ничья." : "Финиш — на 19-й отметке. Побеждает тот, кто первым доберётся до него."}</p>
-      <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" autoFocus onClick={() => { setAdultName(adult); onNameChange(adult); onCharactersChange(characters); if(isTug){onCountMovesChange(countMoves);dispatch({type:"configureTug",countMoves});} setStarted(true); }}>На старт!</button></div>
+      <div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>К играм</button><button className="games-primary" autoFocus onClick={() => { setAdultName(adult); onNameChange(adult); onCharactersChange(characters); if(isTug){onCountMovesChange(countMoves);dispatch({type:"configureTug",countMoves});} onStart(); setStarted(true); }}>На старт!</button></div>
     </section></div>}
 
     {paused && <div className="games-overlay"><section className="games-dialog" role="dialog" aria-modal="true" aria-labelledby="race-pause-title"><h2 id="race-pause-title">Пауза</h2><p>{isTug ? "Канат подождёт." : isWater ? "Вода подождёт." : isTower ? "Краны подождут." : "Машинки подождут."}</p><div className="games-dialog-actions"><button className="games-secondary" onClick={onBack}>Закончить игру</button><button className="games-primary" autoFocus onClick={() => setPaused(false)}>Продолжить</button></div></section></div>}

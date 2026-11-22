@@ -4,7 +4,8 @@ const move=(state,index)=>parkingReducer(parkingReducer(state,{type:'move',index
 
 describe('cooperative parking',()=>{
   it.each(Object.keys(PARKING_LEVELS))('creates solvable %s puzzles at the intended difficulty',level=>{
-    for(const seed of [0,.12,.35,.55,.8,.999]){
+    const seeds=level==='expert'?Array.from({length:12},(_,i)=>(i+.5)/12):[0,.12,.35,.55,.8,.999];
+    for(const seed of seeds){
       let state=createParking(level,()=>seed);
       const ids=state.board.filter(Boolean).map(car=>car.id).sort();
       expect(new Set(ids).size).toBe(ids.length);
@@ -16,6 +17,14 @@ describe('cooperative parking',()=>{
       if(level==='big'){
         expect(state.board.filter((car,i)=>car&&car.color!==i%3).length).toBeGreaterThanOrEqual(6);
         for(let column=0;column<3;column++)expect(state.board.some((car,i)=>car&&i%3===column&&car.color!==column)).toBe(true);
+      }
+      if(level==='expert'){
+        expect(state.palette).toHaveLength(4);
+        const horizontalMoves=state.board.reduce((sum,car,i)=>sum+(car?Math.abs(car.color-i%4):0),0);
+        expect(horizontalMoves).toBeGreaterThanOrEqual(rules.distance);
+        for(let column=0;column<4;column++){
+          expect(state.board.filter((car,i)=>car&&i%4===column&&car.color!==column).length).toBeGreaterThanOrEqual(2);
+        }
       }
       for(let remaining=parkingDistance(state);remaining>0;remaining--){
         const hint=parkingHint(state);expect(parkingCanMove(state,hint)).toBe(true);
@@ -67,5 +76,22 @@ describe('cooperative parking',()=>{
     }
     let limit=50;while(state.phase==='playing'&&limit-->0)state=move(state,parkingHint(state));
     expect(state.phase).toBe('ready');expect(state.board.filter(Boolean)).toHaveLength(8);
+  });
+  it('keeps valid hints on the 4 × 4 board after moves away from the route',()=>{
+    let state=createParking('expert',()=>.24,'together');
+    for(let i=0;i<48&&state.phase==='playing';i++){
+      const options=parkingNeighbors(state.board.indexOf(null),state.columns,state.rows);
+      const other=options.filter(index=>index!==parkingHint(state));
+      state=move(state,other[i%other.length]);
+    }
+    let remaining=parkingDistance(state);
+    while(remaining>0){
+      const hint=parkingHint(state);
+      expect(parkingCanMove(state,hint)).toBe(true);
+      state=move(state,hint);
+      expect(parkingDistance(state)).toBe(--remaining);
+    }
+    expect(state.phase).toBe('ready');
+    expect(state.board.filter(Boolean)).toHaveLength(15);
   });
 });
