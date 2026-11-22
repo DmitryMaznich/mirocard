@@ -1,15 +1,29 @@
-.parking-game {
+body:has(.parking-game) { min-height: 100dvh; }
+
+.games-home.parking-game {
   --parking-ground: #fcf7ed;
-  --parking-side: max(16px, var(--app-safe-left, 0px));
-  --parking-right: max(16px, var(--app-safe-right, 0px));
   --parking-safe-y: calc(var(--app-safe-top, 0px) + var(--app-safe-bottom, 0px));
+  height: 100dvh;
+  min-height: 0;
   background: var(--parking-ground);
-  overflow-x: clip;
+  overflow: auto;
 }
 
-.parking-content { position: relative; margin: 0 auto; max-width: 1050px; }
+.parking-content {
+  --parking-header-height: 44px;
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--parking-header-height) minmax(0, 1fr);
+  min-width: 0;
+  height: 100%;
+}
 .parking-header { position: absolute; inset: 0 0 auto; display: flex; pointer-events: none; }
-.parking-header button { pointer-events: auto; z-index: 5; }
+.parking-header .games-icon {
+  width: var(--parking-header-height);
+  height: var(--parking-header-height);
+  pointer-events: auto;
+  z-index: 5;
+}
 .parking-game .parking-sound {
   min-height: 44px;
   padding: 6px 12px;
@@ -22,7 +36,7 @@
 .parking-game .parking-sound[aria-pressed=true] { background: #e0efe5; border-color: #499985; }
 
 .parking-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.parking-turn { min-height: 48px; display: grid; place-items: center; padding-inline: 72px; }
+.parking-turn { display: grid; place-items: center; padding-inline: 56px; }
 .parking-player {
   max-width: 100%;
   overflow: hidden;
@@ -34,12 +48,27 @@
   color: #36505b;
   font-weight: 800;
 }
-.parking-play-area { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.parking-play-area { container: parking-stage / size; }
+.parking-play-layout {
+  --parking-gap: clamp(12px, 3cqmin, 28px);
+  --parking-action-height: clamp(56px, 8cqh, 72px);
+  --parking-action-width: clamp(106px, 15cqw, 160px);
+  --parking-board-width: 100cqw;
+  --parking-board-height: calc(100cqh - var(--parking-action-height) - var(--parking-gap));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: var(--parking-gap);
+  min-height: 100%;
+}
 .parking-lot {
-  --slot: min(144px,
-    calc((100vw - var(--parking-side) - var(--parking-right) - 14px) / var(--columns)),
-    calc((100dvh - 158px - var(--parking-safe-y)) / (var(--rows) + .9)));
-  --door-height: calc(var(--slot) * .53);
+  --roof-ratio: .35;
+  --door-ratio: .53;
+  --slot: max(48px, min(
+    calc(var(--parking-board-width) / var(--columns)),
+    calc(var(--parking-board-height) / (var(--rows) + var(--roof-ratio) + var(--door-ratio)))));
+  --door-height: calc(var(--slot) * var(--door-ratio));
   --gate-opening: 580ms;
   --drive-step: 410ms;
   --follow-delay: 105ms;
@@ -53,7 +82,7 @@
 
 .parking-building { position: relative; z-index: 2; }
 .parking-roof {
-  height: calc(var(--slot) * .35);
+  height: calc(var(--slot) * var(--roof-ratio));
   display: grid;
   place-items: center;
   padding-block: 3px;
@@ -130,7 +159,13 @@
   background: #fffaf23b;
 }
 
-.parking-actions { min-height: 56px; min-width: 116px; display: grid; place-items: center; }
+.parking-actions {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--parking-action-width);
+  height: var(--parking-action-height);
+}
 .parking-game .parking-bell, .parking-game .parking-hint {
   border-radius: 16px;
   border: 1px solid #ddcdb7;
@@ -138,9 +173,9 @@
   color: #36505b;
   font-weight: 800;
 }
-.parking-game .parking-bell { display: grid; place-items: center; width: 56px; height: 56px; padding: 8px; background: #fff0cc; border-color: #e4ca90; }
+.parking-game .parking-bell { display: grid; place-items: center; width: var(--parking-action-height); height: var(--parking-action-height); padding: calc(var(--parking-action-height) * .14); background: #fff0cc; border-color: #e4ca90; }
 .parking-bell svg { width: 100%; height: 100%; }
-.parking-game .parking-hint { min-height: 46px; padding: 8px 17px; }
+.parking-game .parking-hint { min-height: 46px; padding: 8px 12px; font-size: clamp(16px, 2.25cqmin, 21px); }
 .parking-hint:disabled { opacity: .65; }
 
 .parking-lot[data-phase=celebrating] .parking-shutter {
@@ -165,7 +200,7 @@
 .parking-levels button strong { font-size: 18px; }
 .parking-levels button span { font-size: 14px; }
 .parking-game .parking-levels button[aria-checked=true] { border-color: #3c988d; background: #e7f4eb; }
-.parking-game .games-dialog { max-height: calc(100dvh - 32px); overflow: auto; }
+.parking-game .games-dialog { max-height: calc(100dvh - var(--parking-safe-y) - 32px); overflow: auto; }
 .parking-game .parking-dialog { width: min(620px, 100%); }
 .parking-preview { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 4px; }
 .parking-preview .parking-car-art { width: 44%; height: 85%; transform: rotate(180deg); }
@@ -176,12 +211,12 @@
 }
 @media (orientation: landscape) and (max-height: 600px) {
   .games-home.parking-game { padding-block: calc(6px + var(--app-safe-top, 0px)) calc(6px + var(--app-safe-bottom, 0px)); }
-  .parking-play-area { flex-direction: row; }
-  .parking-turn { min-height: 36px; }
-  .parking-lot {
-    --slot: min(116px,
-      calc((100vw - var(--parking-side) - var(--parking-right) - 142px) / var(--columns)),
-      calc((100dvh - 50px - var(--parking-safe-y)) / (var(--rows) + .9)));
+}
+@container parking-stage (min-width: 440px) and (min-aspect-ratio: 1) {
+  .parking-play-layout {
+    --parking-board-width: calc(100cqw - var(--parking-action-width) - var(--parking-gap));
+    --parking-board-height: 100cqh;
+    flex-direction: row;
   }
 }
 @media (prefers-reduced-motion: reduce) {

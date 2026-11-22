@@ -119,18 +119,50 @@ test('the large puzzle starts mixed and needs twelve to sixteen helpful moves',a
   await expect(page.getByRole('img',{name:'Свободное место',exact:true})).toHaveCount(1);
 });
 
-for(const size of [{width:1280,height:800},{width:1024,height:768},{width:844,height:390},{width:390,height:844},{width:320,height:700}])test(`parking fits ${size.width}x${size.height}`,async({page})=>{
+for(const size of [{width:1280,height:800},{width:1024,height:768},{width:1366,height:1024},{width:820,height:1180},{width:550,height:900},{width:844,height:390},{width:390,height:844},{width:320,height:700}])test(`parking fits ${size.width}x${size.height}`,async({page})=>{
   await page.setViewportSize(size);await start(page,{level:'Большая парковка',partner:'Очень длинное имя игрока',together:true});
-  if(size.width>size.height&&size.height<500)await page.evaluate(()=>{for(const side of ['top','right','bottom','left'])document.documentElement.style.setProperty('--app-safe-'+side,'20px');});
+  if(size.width>=550)await page.evaluate(()=>{for(const side of ['top','right','bottom','left'])document.documentElement.style.setProperty('--app-safe-'+side,'20px');});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  if(size.width>size.height)expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+  expect(await page.locator('.parking-game').evaluate(game=>game.scrollWidth<=game.clientWidth&&game.scrollHeight<=game.clientHeight)).toBe(true);
   const board=await page.locator('.parking-grid').boundingBox();expect(board.width/3).toBeGreaterThanOrEqual(48);
   const offsets=await page.locator('.parking-piece').evaluateAll(cars=>cars.map(car=>{const r=car.getBoundingClientRect(),board=car.closest('.parking-grid').getBoundingClientRect(),i=Number(car.dataset.index);return Math.abs(r.x-board.x-(i%3)*board.width/3)+Math.abs(r.y-board.y-Math.floor(i/3)*board.height/3);}));
   expect(Math.max(...offsets)).toBeLessThan(2);
   const hint=await page.getByRole('button',{name:'Подсказка',exact:true}).boundingBox();
   expect(hint.x).toBeGreaterThanOrEqual(0);expect(hint.x+hint.width).toBeLessThanOrEqual(size.width);
+  expect(hint.y+hint.height).toBeLessThanOrEqual(size.height);
+  if(size.width>size.height)expect(hint.x).toBeGreaterThan(board.x+board.width);
+  else expect(hint.y).toBeGreaterThan(board.y+board.height);
+  const stage=await page.locator('.parking-play-area').boundingBox();
+  const lot=await page.locator('.parking-lot').boundingBox();
+  const actions=await page.locator('.parking-actions').boundingBox();
+  const sideBySide=size.width>size.height;
+  const widthUsed=(lot.width+(sideBySide?actions.width:0))/stage.width;
+  const heightUsed=(lot.height+(sideBySide?0:actions.height))/stage.height;
+  expect(Math.max(widthUsed,heightUsed)).toBeGreaterThan(.9);
   const gates=await page.locator('.parking-garages').boundingBox();
   expect(Math.abs(gates.y+gates.height-board.y)).toBeLessThan(2);
   await expect(page.getByRole('heading',{name:'Парковка',exact:true})).toBeVisible();
   await page.screenshot({path:`.cache/parking-results/parking-${size.width}.png`,fullPage:true});
+});
+
+test('rotating or resizing a tablet reflows the current round', async ({page})=>{
+  await page.setViewportSize({width:820,height:1180});
+  await start(page,{level:'Большая парковка'});
+  await hintedMove(page);
+  const grid=page.locator('.parking-grid');
+  const positions=await page.locator('.parking-piece').evaluateAll(cars=>cars.map(({dataset})=>[dataset.car,dataset.index]));
+  const portrait=await grid.boundingBox();
+  await page.setViewportSize({width:1180,height:820});
+  const landscape=await grid.boundingBox();
+  const action=await page.getByRole('button',{name:'Подсказка',exact:true}).boundingBox();
+  expect(action.x).toBeGreaterThan(landscape.x+landscape.width);
+  expect(landscape.height).toBeLessThan(portrait.height);
+  await page.setViewportSize({width:520,height:820});
+  const split=await grid.boundingBox();
+  const splitAction=await page.getByRole('button',{name:'Подсказка',exact:true}).boundingBox();
+  expect(splitAction.y).toBeGreaterThan(split.y+split.height);
+  expect(split.width).toBeLessThan(landscape.width);
+  expect(await page.locator('.parking-piece').evaluateAll(cars=>cars.map(({dataset})=>[dataset.car,dataset.index]))).toEqual(positions);
+  await expect(grid).toHaveAttribute('data-moves','1');
 });

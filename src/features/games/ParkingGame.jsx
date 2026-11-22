@@ -85,35 +85,37 @@ export default function ParkingGame({student,initialAdultName,onNameChange,onSta
         {ready?t('parking.ready'):celebrating?celebrationText:''}
       </span>
       <div className="parking-play-area">
-        <section key={puzzleNumber} className="parking-lot" data-phase={state.phase}
-          style={{'--columns':state.columns,'--rows':state.rows}} aria-label={t('parking.board')}>
-          <ParkingBuilding title={t('parking.title')} lanes={lanes} onClosed={()=>dispatch({type:'celebrated'})} />
-          <div className="parking-grid" data-phase={state.phase} data-play-mode={state.playMode} data-turn={state.turn} data-moves={state.moves}>
-            <div className="parking-lanes" aria-hidden="true">
-              {lanes.map(({color})=><div key={color} data-color={color} />)}
+        <div className="parking-play-layout">
+          <section key={puzzleNumber} className="parking-lot" data-phase={state.phase}
+            style={{'--columns':state.columns,'--rows':state.rows}} aria-label={t('parking.board')}>
+            <ParkingBuilding title={t('parking.title')} lanes={lanes} onClosed={()=>dispatch({type:'celebrated'})} />
+            <div className="parking-grid" data-phase={state.phase} data-play-mode={state.playMode} data-turn={state.turn} data-moves={state.moves}>
+              <div className="parking-lanes" aria-hidden="true">
+                {lanes.map(({color})=><div key={color} data-color={color} />)}
+              </div>
+              <div className="parking-traffic">
+                {!celebrating&&!finished&&<div className="parking-empty" role="img" aria-label={t('parking.empty')}
+                  style={{'--column':vacancy%state.columns,'--row':Math.floor(vacancy/state.columns)}}><span /></div>}
+                {state.board.map((car,index)=>{
+                  if(!car)return null;
+                  const movable=parkingCanMove(state,index);
+                  const color=state.palette[car.color];
+                  return <button key={car.id} className="parking-piece" data-car={car.id} data-index={index}
+                    data-color={car.color} data-movable={movable} data-hint={hint===car.id}
+                    disabled={locked} aria-disabled={locked||!movable} aria-label={t(CAR_KEYS[color])}
+                    onClick={()=>move(index)} style={{'--column':index%state.columns,'--row':Math.floor(index/state.columns)}}>
+                    <span className="parking-piece-surface">
+                      <ParkingSprite color={color} /><span className="parking-shape" aria-hidden="true">{SYMBOLS[color]}</span>
+                    </span>
+                  </button>;
+                })}
+              </div>
             </div>
-            <div className="parking-traffic">
-              {!celebrating&&!finished&&<div className="parking-empty" role="img" aria-label={t('parking.empty')}
-                style={{'--column':vacancy%state.columns,'--row':Math.floor(vacancy/state.columns)}}><span /></div>}
-              {state.board.map((car,index)=>{
-                if(!car)return null;
-                const movable=parkingCanMove(state,index);
-                const color=state.palette[car.color];
-                return <button key={car.id} className="parking-piece" data-car={car.id} data-index={index}
-                  data-color={car.color} data-movable={movable} data-hint={hint===car.id}
-                  disabled={locked} aria-disabled={locked||!movable} aria-label={t(CAR_KEYS[color])}
-                  onClick={()=>move(index)} style={{'--column':index%state.columns,'--row':Math.floor(index/state.columns)}}>
-                  <span className="parking-piece-surface">
-                    <ParkingSprite color={color} /><span className="parking-shape" aria-hidden="true">{SYMBOLS[color]}</span>
-                  </span>
-                </button>;
-              })}
-            </div>
+          </section>
+          <div className="parking-actions">
+            {ready&&<button className="parking-bell" aria-label={t('parking.bellLabel')} onClick={ring}><ParkingBell /></button>}
+            {(state.phase==='playing'||state.phase==='moving')&&<button className="parking-hint" disabled={locked} onClick={showHint}>{t('parking.hint')}</button>}
           </div>
-        </section>
-        <div className="parking-actions">
-          {ready&&<button className="parking-bell" aria-label={t('parking.bellLabel')} onClick={ring}><ParkingBell /></button>}
-          {(state.phase==='playing'||state.phase==='moving')&&<button className="parking-hint" disabled={locked} onClick={showHint}>{t('parking.hint')}</button>}
         </div>
       </div>
     </div>
