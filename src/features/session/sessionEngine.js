@@ -1,4 +1,5 @@
 import { learningSummary } from '@/features/myPeople/peopleLearning';
+import { numberPathRewardPerCard } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import { applyRewardMistake, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { createSessionMetrics, recordResponse, recordAdvance, recordQuality, recordWrongAnswer, summarizeMetrics } from "../analytics/sessionMetrics";
 
@@ -104,9 +105,11 @@ export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) 
   state = recordResponse(state, isCorrect ? "correct" : "incorrect");
   if (isCorrect) {
     const scoreCount = Math.max(1, Math.round(Number(options.scoreCount) || 1));
-    const streakTarget = 5 * (state.answersPerStar ?? 1);
-    const rewardScore = state.rewardPolicy?.version === 2 && (state.rewardAttemptBlocked || state.rewardAttemptCredited) ? 0 : scoreCount;
-    const streakCount = (state.streakCount ?? 0) + rewardScore;
+    const rewardPerPath = state.mode.type === "number_path" && numberPathRewardPerCard(state.tasks?.[state.taskIndex]?.size);
+    const streakTarget = rewardPerPath ? 1 : 5 * (state.answersPerStar ?? 1);
+    const blocked = state.rewardPolicy?.version === 2 && (state.rewardAttemptBlocked || state.rewardAttemptCredited);
+    const rewardScore = blocked ? 0 : rewardPerPath ? 1 : scoreCount;
+    const streakCount = (rewardPerPath ? 0 : (state.streakCount ?? 0)) + rewardScore;
     const earnedNow = Math.floor(streakCount / streakTarget);
     const rewardEarnedCount = (state.rewardEarnedCount ?? 0) + earnedNow;
     const finalStreak = streakCount % streakTarget;

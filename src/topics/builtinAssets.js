@@ -1,3 +1,5 @@
+import { NUMBER_COMPOSITION_ICON, NUMBER_PATH_ICON } from "./renderers/math_houses/numberPathConfig.js";
+
 const BUILTIN_ASSETS = {
   "media/avatar_games.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#fff4e8"/><path d="M20 89h88" stroke="#b9bbc6" stroke-width="16" stroke-linecap="round"/><rect x="25" y="57" width="68" height="29" rx="12" fill="#ee7869"/><path d="m41 58 9-20h24l16 20" fill="#ee7869"/><path d="m52 43-6 13h31L68 43" fill="#cfefed"/><circle cx="43" cy="86" r="10" fill="#25354c"/><circle cx="80" cy="86" r="10" fill="#25354c"/><path d="M103 24v46" stroke="#25354c" stroke-width="4"/><path d="M105 24h17v20h-17z" fill="#1b9a9b"/></svg>`,
   // «Мои люди» (2026-11-11): a photo card with a family; one picture per mode
@@ -513,7 +515,23 @@ const BUILTIN_ASSETS = {
   <path d="M54 54h20l-10 16z" fill="#4a9b8f"/>
   <path d="M34 28h60" stroke="#1f4f8a" stroke-width="8" stroke-linecap="round"/>
 </svg>`,
-  "media/icons/number_path.svg": `
+  [NUMBER_COMPOSITION_ICON]: `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="26" fill="#edf5f1"/>
+  <path d="M64 57v11m-32 9v-9h64v9" fill="none" stroke="#568578" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="19" y="15" width="90" height="42" rx="14" fill="#fff" stroke="#c8ded4" stroke-width="2"/>
+  <rect x="10" y="78" width="46" height="34" rx="11" fill="#cdebe1"/>
+  <rect x="65" y="78" width="53" height="34" rx="11" fill="#ffe6ad"/>
+  <g fill="#277866">
+    <circle cx="36" cy="36" r="5.4"/><circle cx="50" cy="36" r="5.4"/>
+    <circle cx="26" cy="95" r="5.1"/><circle cx="40" cy="95" r="5.1"/>
+  </g>
+  <g fill="#ad681b">
+    <circle cx="64" cy="36" r="5.4"/><circle cx="78" cy="36" r="5.4"/><circle cx="92" cy="36" r="5.4"/>
+    <circle cx="78" cy="95" r="5.1"/><circle cx="91.5" cy="95" r="5.1"/><circle cx="105" cy="95" r="5.1"/>
+  </g>
+</svg>`,
+  [NUMBER_PATH_ICON]: `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#e6efe9"/>
   <path d="M24 24h80v80H24zM24 51h80M24 77h80M51 24v80M77 24v80" fill="none" stroke="#acc3b5" stroke-width="3"/>
@@ -1331,7 +1349,7 @@ function svgToDataUrl(svg) {
 export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "games") return "media/avatar_games.svg";
   if (topicId === "comparison") return "media/avatar_comparison.svg";
-  if (topicId === "math_houses") return "media/icons/number_path.svg";
+  if (topicId === "math_houses") return NUMBER_COMPOSITION_ICON;
   if (topicId === "propis") return "media/avatar_propis.svg";
   if (topicId === "addition_subtraction") return "media/avatar_operations.svg";
   if (topicId === "math_tests") return "media/avatar_math_tests.svg";
@@ -1358,6 +1376,6 @@ export function getBuiltinTopicAsset(topicId, assetPath) {
 
 export function getMathHousesAssetEntries() {
   return Object.entries(BUILTIN_ASSETS)
-    .filter(([path]) => path === "media/icons/number_path.svg" || path.startsWith("media/icons/math_houses"))
+    .filter(([path]) => path === NUMBER_COMPOSITION_ICON || path === NUMBER_PATH_ICON || path.startsWith("media/icons/math_houses"))
     .map(([path, svg]) => [path, svg.trim()]);
 }

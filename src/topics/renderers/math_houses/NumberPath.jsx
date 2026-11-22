@@ -84,7 +84,7 @@ export default function NumberPath({ task, sessionParams, sessionStatus, interac
       aria-labelledby={titleId}
     >
       <header className="number-path__goal">
-        <h2 id={titleId}>Найди дорожку</h2>
+        <h2 id={titleId}>Найди дорожку числа</h2>
         <strong className="number-path__target"><span className="number-path__target-label">Ищем </span>{number}</strong>
       </header>
       <div className="number-path__field">

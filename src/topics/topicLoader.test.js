@@ -174,11 +174,12 @@ describe("importTopic — valid cases", () => {
 
     expect(record.meta.id).toBe("math_houses");
     expect(record.meta.title.ru).toBe("Состав числа");
-    expect(record.meta.avatar).toBe("media/icons/number_path.svg");
+    expect(record.meta.avatar).toBe("media/icons/math_composition.svg");
     expect(record.cards[0].renderer).toBe("math_houses");
     expect(record.modes.filter((mode) => !mode.retired).map((mode) => mode.id))
       .toEqual(["math_houses_practice", "math_houses_grow", "number_path"]);
     expect(Object.keys(record.modes[2].params)).toEqual(["minNumber", "maxNumber", "boardSize", "mistakeBehavior"]);
+    expect(record.modes[2].ui).toMatchObject({ title: "Числовая дорожка", icon: "media/icons/number_path.svg" });
     expect(record.modes.every((m) => m.ui?.icon)).toBe(true);
   });
 
@@ -187,7 +188,7 @@ describe("importTopic — valid cases", () => {
     await kv.set(db, "topic:math_houses", {
       meta: { id: "math_houses", version: "1.2.1", title: "Домики чисел" },
       cards: [{ id: "house_5", renderer: "math_houses", params: { number: 5 } }],
-      modes: [{ id: "math_houses_practice", retired: true, params: { shufflePairs: { default: true } } }],
+      modes: [{ id: "math_houses_practice", retired: true, ui: { title: "Домик" }, params: { shufflePairs: { default: true } } }],
     });
 
     const updated = await getTopicRecord(db, "math_houses");
@@ -196,6 +197,7 @@ describe("importTopic — valid cases", () => {
     expect(updated.modes.map(({ id, retired }) => [id, Boolean(retired)]))
       .toEqual([["math_houses_practice", false], ["math_houses_grow", false], ["number_path", false]]);
     expect(updated.modes[0].params.subtype.default).toBe("fill");
+    expect(updated.modes[0].ui.title).toBe("Домики числа");
     expect(updated.modes[0].params.shufflePairs.default).toBe(true);
   });
 

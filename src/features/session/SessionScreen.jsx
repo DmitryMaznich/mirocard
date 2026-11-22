@@ -6,6 +6,7 @@ import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
 import { accountKv } from "@/topics/accountKv";
+import { numberPathRewardPerCard } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
@@ -319,12 +320,13 @@ export default function SessionScreen() {
   // A retry must retain whether the picture was opened for this question.
   const keepsStorySupportOnMistake = currentTask?.type === "story_quiz";
   const isNumberPath = currentTask?.type === "number_path";
+  const rewardPerPath = isNumberPath && numberPathRewardPerCard(currentTask.size);
   const tapToAdvanceOnBoard = !isNumberPath && (isCorrectFeedback || isAdvanceGateActive);
   const rendererTaskKey = isNumberPath ? `${taskIndex}:${currentTask.layoutIndex}`
     : keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
       ? String(taskIndex)
       : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
-  const showStreak = shouldShowSessionStreak({
+  const showStreak = !rewardPerPath && shouldShowSessionStreak({
     mode,
     isNavigatorFlashCards,
     renderer: topicRecord.meta.renderer,
@@ -465,7 +467,7 @@ export default function SessionScreen() {
           settingsOverride={sessionRewardSettings}
           studentId={activeStudent.id}
           onDismiss={clearRewardPending}
-          title={mode?.rewardPerBlock ? "Блок пройден!" : sessionState.rewardPolicy?.version === 2 ? rewardText("rewardTitle") : `Молодец! ${5 * answersPerStar} правильных подряд!`}
+          title={rewardPerPath ? "Дорожка пройдена!" : mode?.rewardPerBlock ? "Блок пройден!" : sessionState.rewardPolicy?.version === 2 ? rewardText("rewardTitle") : `Молодец! ${5 * answersPerStar} правильных подряд!`}
         />
       )}
 

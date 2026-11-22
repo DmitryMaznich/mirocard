@@ -2520,7 +2520,8 @@ export async function getTopicRecord(db, topicId) {
 function normalizeNumberCompositionModes(modes) {
   const houses = MATH_HOUSE_MODES.map((mode) => {
     const stored = modes.find((item) => item.id === mode.id);
-    return { ...mode, ...stored, params: { ...mode.params, ...stored?.params }, retired: false };
+    return { ...mode, ...stored, ui: { ...mode.ui, ...stored?.ui, title: mode.ui.title },
+      params: { ...mode.params, ...stored?.params }, retired: false };
   });
   return ensureModeIcons([...houses, NUMBER_PATH_MODE], "math_houses");
 }

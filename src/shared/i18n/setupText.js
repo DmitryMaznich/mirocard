@@ -87,6 +87,8 @@ const SLOVENIAN_SETUP_LABELS = {
   "9. Найди неизвестное": "9. Poišči neznanko",
   "10. Слушай и посчитай": "10. Poslušaj in izračunaj",
   "Домик": "Hišica",
+  "Домики числа": "Številske hišice",
+  "Числовая дорожка": "Številska pot",
   "Растущий домик": "Rastoča hišica",
   "Конструктор тетрадей": "Ustvarjanje zvezkov",
   "Узнай букву": "Prepoznaj črko",

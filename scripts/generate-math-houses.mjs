@@ -5,10 +5,10 @@ import { getMathHousesAssetEntries } from "../src/topics/builtinAssets.js";
 import { applyReleaseTopicCopy, RELEASE_TOPIC_COPY } from "../src/topics/releaseTopicCopy.js";
 import {
   MATH_HOUSE_MODES,
-  NUMBER_PATH_ICON,
+  NUMBER_COMPOSITION_ICON,
+  NUMBER_COMPOSITION_TITLE,
   NUMBER_PATH_MODE,
   NUMBER_PATH_NUMBERS,
-  NUMBER_PATH_TITLE,
 } from "../src/topics/renderers/math_houses/numberPathConfig.js";
 
 const topicId = "math_houses";
@@ -21,11 +21,11 @@ const manifest = applyReleaseTopicCopy({
     version: entry.version,
     renderer: topicId,
     cardType: "procedural",
-    title: NUMBER_PATH_TITLE,
+    title: NUMBER_COMPOSITION_TITLE,
     about: RELEASE_TOPIC_COPY.math_houses.about,
     copyHash: createHash("sha256").update(JSON.stringify(RELEASE_TOPIC_COPY.math_houses)).digest("hex").slice(0, 16),
     conceptCount: NUMBER_PATH_NUMBERS.length,
-    avatar: NUMBER_PATH_ICON,
+    avatar: NUMBER_COMPOSITION_ICON,
   },
   cards: NUMBER_PATH_NUMBERS.map((number, index) => ({
     id: `house_${number}`,

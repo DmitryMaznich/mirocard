@@ -41,13 +41,14 @@
   grid-area: goal;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: clamp(12px, 2.6vw, 28px);
 }
 
 .number-path__goal h2 {
   margin: 0;
-  font-size: clamp(28px, 6vw, 38px);
+  font-size: clamp(20px, 4.4vw, 36px);
+  text-wrap: balance;
   font-weight: 900;
   line-height: 1.05;
 }
@@ -62,17 +63,17 @@
 .number-path__target {
   display: inline-grid;
   place-items: center;
-  vertical-align: middle;
-  min-width: 1.5em;
-  height: 1.46em;
-  padding: 0 .18em;
+  flex: none;
+  min-width: 1.2em;
+  padding: .055em .18em .09em;
   box-sizing: border-box;
   border: 1px solid #c1dfce;
-  border-radius: .38em;
+  border-radius: .26em;
   background: #e2f2e8;
   color: var(--np-green);
   box-shadow: 0 3px 0 #d1e4d6;
-  font-size: clamp(30px, 6vw, 39px);
+  font-size: clamp(44px, 9vmin, 88px);
+  line-height: 1;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
@@ -406,9 +407,19 @@
     grid-auto-flow: column;
   }
 
-  .number-path__goal { gap: 6px; }
+  .number-path__goal { justify-content: space-between; gap: 8px; }
   .number-path__goal h2 { font-size: clamp(16px, 2.3vw, 24px); }
-  .number-path__target { font-size: clamp(24px, 3vw, 32px); }
+  .number-path__target { font-size: clamp(42px, 11vh, 86px); }
+}
+
+@media (orientation: landscape) and (min-height: 541px) {
+  .number-path__goal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .number-path__goal h2 { font-size: clamp(19px, 2.15vw, 26px); }
 }
 
 @media (orientation: landscape) and (max-height: 540px), (orientation: portrait) and (max-height: 700px) {

@@ -46,7 +46,7 @@ import { getSelectedReadingStories, mergeStoryQuizText, validateStoryQuizText } 
 import DrawingColoringSlider from "./DrawingColoringSlider.jsx";
 import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
-import { normalizeNumberPathParams, numberPathBoardSizes, numberPathMinForBoard } from "@/topics/renderers/math_houses/numberPathConfig.js";
+import { normalizeNumberPathParams, numberPathBoardSizes, numberPathMinForBoard, numberPathRewardPerCard } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
 import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
@@ -1747,6 +1747,7 @@ export default function ParamsScreen() {
   }
 
   const [params,         setParams]        = useState(getInitialParams);
+  const rewardPerPath = mode?.type === "number_path" && numberPathRewardPerCard(params.boardSize);
   // Mutually dependent settings (limitBy): a value that no longer fits the
   // other setting — «изменение до 10» with numbers up to 5 — becomes the
   // largest one that fits, and is saved that way.
@@ -2574,16 +2575,17 @@ export default function ParamsScreen() {
               <VideoPrizeCard
                 enabled={videoReward}
                 onEnabled={setVideoReward}
-                showSeries={mode.evaluation !== "none"}
+                showSeries={mode.evaluation !== "none" && !rewardPerPath}
                 answersPerStar={answersPerStar}
                 onAnswersPerStar={setAnswersPerStar}
                 showAtEnd={mode.evaluation !== "none" && endsOnItsOwn}
                 atEnd={params.videoAtEnd === true}
                 onAtEnd={(on) => setParams((p) => ({ ...p, videoAtEnd: on }))}
-                showStrict={mode.evaluation !== "none"}
+                showStrict={mode.evaluation !== "none" && !rewardPerPath}
                 strict={strictStars}
                 onStrict={setStrictStars}
-                rules={mode.evaluation !== "none" ? studentRewardSettings : null}
+                rules={mode.evaluation !== "none" && !rewardPerPath ? studentRewardSettings : null}
+                note={rewardPerPath ? setupText({ ru: "Видеоприз за одну дорожку, пройденную без ошибок.", sl: "Videonagrada za eno pot brez napak." }) : null}
                 onShowInfo={setActiveInfo}
               />
             </div>

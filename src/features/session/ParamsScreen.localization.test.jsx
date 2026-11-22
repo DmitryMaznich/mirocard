@@ -81,7 +81,7 @@ it("keeps the number-path bounds ordered and saves only an available grid size",
   const rangeRow = (label) => [...host.querySelectorAll(".param-row")].find((row) => row.textContent.includes(label));
   const [lowerMax] = rangeRow("Максимальное число").querySelectorAll(".stepper-btn");
   const [, raiseMin] = rangeRow("Минимальное число").querySelectorAll(".stepper-btn");
-  for (let i = 0; i < 5; i++) await act(async () => lowerMax.click());
+  for (let i = 0; i < 14; i++) await act(async () => lowerMax.click());
   expect(button("Средняя · 10 × 10")).toBeUndefined();
   await act(async () => raiseMin.click());
   await act(async () => raiseMin.click());
@@ -117,7 +117,7 @@ it.each([
   expect(minRow.querySelector(".stepper-btn").disabled).toBe(true);
   await act(async () => button("Начать занятие").click());
   const { params } = mocks.persist.mock.lastCall[2];
-  expect(params.byMode.number_path).toMatchObject({ minNumber: 6, maxNumber: 10, boardSize });
+  expect(params.byMode.number_path).toMatchObject({ minNumber: 6, maxNumber: 19, boardSize });
   const [first] = generateTasks(NUMBER_PATH_MODE, [card], params.byMode.number_path);
   expect(first).toMatchObject({ number: 6, size: boardSize });
   expect(first.cells).toHaveLength(cellCount);

@@ -1,8 +1,9 @@
-export const NUMBER_PATH_TITLE = { ru: "Состав числа", en: "Number Composition" };
+export const NUMBER_COMPOSITION_TITLE = { ru: "Состав числа", en: "Number Composition" };
+export const NUMBER_COMPOSITION_ICON = "media/icons/math_composition.svg";
 export const NUMBER_PATH_ICON = "media/icons/number_path.svg";
 export const NUMBER_PATH_NUMBERS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 const MIN_PATH_NUMBER = 3;
-const MAX_PATH_NUMBER = 20;
+const MAX_PATH_NUMBER = 19;
 const SMALL_BOARD_THROUGH = 5;
 
 export const MATH_HOUSE_MODES = [
@@ -10,7 +11,7 @@ export const MATH_HOUSE_MODES = [
     id: "math_houses_practice",
     type: "math_houses_practice",
     evaluation: "auto",
-    ui: { title: "Домик", instruction: "Работай с домиком числа", icon: "media/icons/math_houses.svg" },
+    ui: { title: "Домики числа", instruction: "Работай с домиком числа", icon: "media/icons/math_houses.svg" },
     params: {
       subtype: {
         type: "enum", label: { ru: "Задание" }, default: "fill",
@@ -44,7 +45,7 @@ export const NUMBER_PATH_MODE = {
   hideConceptPicker: true,
   paramsScope: "mode",
   ui: {
-    title: "Найди дорожку",
+    title: "Числовая дорожка",
     instruction: "Нажимай на соседние клетки с нужной суммой.",
     icon: NUMBER_PATH_ICON,
   },
@@ -54,7 +55,7 @@ export const NUMBER_PATH_MODE = {
       label: { ru: "Минимальное число", sl: "Najmanjše število" },
     },
     maxNumber: {
-      type: "number", min: MIN_PATH_NUMBER, max: MAX_PATH_NUMBER, default: 10,
+      type: "number", min: MIN_PATH_NUMBER, max: MAX_PATH_NUMBER, default: MAX_PATH_NUMBER,
       label: { ru: "Максимальное число" },
     },
     boardSize: {
@@ -89,6 +90,10 @@ export function numberPathBoardSizes(number) {
 
 export function numberPathMinForBoard(boardSize) {
   return boardSize === NUMBER_PATH_MODE.params.boardSize.default ? MIN_PATH_NUMBER : SMALL_BOARD_THROUGH + 1;
+}
+
+export function numberPathRewardPerCard(boardSize) {
+  return boardSize > NUMBER_PATH_MODE.params.boardSize.default;
 }
 
 export function normalizeNumberPathParams(params = {}) {
