@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прописи: группировка кнопок конструктора — макет 2026-11-22</title>
+<style>
+  :root { --bg:#fdfcf9; --surface:#fff; --strip:#f6f1e4; --line:#e3dccb; --ink:#28323c; --muted:#8b93a1; --teal:#4a9b8f; --teal-dark:#2a6b60; --teal-soft:#e5f2ef; --red:#dc2626; --board:#cfc4ad; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eceae4; color: var(--ink); font: 15px/1.4 "Nunito", system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 34px 0 10px; }
+  p.lead { margin: 0 0 8px; color: #4b5563; max-width: 860px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; margin: 14px 0 6px; }
+  .tag.now { background: #f1e6e5; color: #9f3a35; }
+  .tag.new { background: var(--teal-soft); color: var(--teal-dark); }
+  .device { background: var(--surface); border-radius: 18px; box-shadow: 0 8px 26px rgba(40,50,60,.14); overflow: hidden; }
+  .strip { display: flex; align-items: flex-end; gap: 4px; padding: 6px 10px; background: var(--strip); border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .strip.row { background: #eef3fb; border-bottom: 3px solid #3b82f6; }
+  .grp { display: flex; flex-direction: column; align-items: stretch; flex: 0 0 auto; }
+  .grp-cap { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 0 6px 2px; white-space: nowrap; }
+  .grp-btns { display: flex; gap: 2px; }
+  .sep { width: 1px; align-self: stretch; margin: 14px 6px 4px; background: var(--line); flex: 0 0 auto; }
+  .b { flex: 0 0 auto; min-width: 58px; height: 58px; padding: 5px 7px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; color: var(--ink); font-size: 11px; font-weight: 700; }
+  .b svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .b .v { font-size: 13px; font-weight: 800; height: 24px; display: flex; align-items: center; gap: 2px; }
+  .b .v::after { content: "▾"; font-size: 9px; opacity: .6; }
+  .b.on { background: var(--teal-soft); color: var(--teal-dark); box-shadow: inset 0 -3px 0 var(--teal); }
+  .b.off { color: #b8bec8; }
+  .b.danger { color: var(--red); }
+  .b.hl { outline: 2px dashed #f59e0b; outline-offset: -2px; }
+  .b.gone { opacity: .35; text-decoration: line-through; }
+  .canvas { height: 90px; background: var(--board); display: grid; place-items: center; color: #6b5f48; font-size: 13px; }
+  .note { font-size: 13px; color: #4b5563; margin: 6px 2px 0; max-width: 900px; }
+  .note b { color: var(--ink); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #4b5563; margin: 4px 0 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 18px; height: 14px; border-radius: 4px; display: inline-block; }
+  /* desktop */
+  .desk { display: grid; grid-template-columns: 150px 1fr 300px; min-height: 560px; }
+  .rail { background: #f3efe4; border-right: 1px solid var(--line); padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .thumb { height: 120px; background: #fff; border: 2px solid #3b82f6; border-radius: 6px; }
+  .thumb.dim { border-color: var(--line); }
+  .rail-btns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+  .mini { width: 32px; height: 32px; border-radius: 8px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; }
+  .mini svg { width: 18px; height: 18px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .mini.danger svg { stroke: var(--red); }
+  .sheet { background: var(--board); display: grid; place-items: center; }
+  .sheet .paper { width: 70%; height: 86%; background: #fffdf8; box-shadow: 0 4px 14px rgba(0,0,0,.18); background-image: repeating-linear-gradient(transparent 0 38px, #c9c3b6 38px 39px); }
+  .panel { border-left: 1px solid var(--line); background: #fff; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
+  .panel h3 { margin: 0; font-size: 15px; }
+  .panel h3 small { color: var(--muted); font-weight: 600; }
+  .sec-cap { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; background: #f4efe4; border-radius: 12px; padding: 3px; }
+  .seg div { text-align: center; font-size: 12px; font-weight: 700; padding: 8px 4px; border-radius: 9px; }
+  .seg .on { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12); color: var(--teal-dark); }
+  .seg .off { color: #b8bec8; }
+  .rowbtns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #eef3fb; border-radius: 12px; padding: 4px; }
+  .rowbtns div { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; padding: 6px 0; }
+  .rowbtns svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .rowbtns .danger { color: var(--red); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .chip { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; font-weight: 700; }
+  .chip svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .chip.off { color: #b8bec8; }
+  /* clipboard popover */
+  .clip-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .pop { width: 380px; background: #fff; border-radius: 16px; box-shadow: 0 14px 34px rgba(40,50,60,.25); border: 1px solid var(--line); overflow: hidden; }
+  .pop-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; font-weight: 800; }
+  .pop-head svg { width: 22px; height: 22px; fill: none; stroke: var(--teal-dark); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .pop-sub { padding: 0 14px 8px; font-size: 12px; color: var(--muted); }
+  .prev { margin: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: #fffdf8; }
+  .prev div { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; border-bottom: 1px solid #efe9db; font: italic 20px/1.2 "Georgia", serif; color: #1d4ed8; }
+  .prev div:last-child { border-bottom: none; }
+  .prev small { font: 700 11px/1 system-ui; color: var(--muted); font-style: normal; width: 44px; flex: 0 0 auto; }
+  .prev .new small { color: var(--teal-dark); }
+  .acts { display: grid; gap: 6px; padding: 12px 14px 14px; }
+  .act { padding: 11px 12px; border-radius: 12px; font-weight: 800; font-size: 14px; text-align: center; }
+  .act.main { background: var(--teal); color: #fff; box-shadow: 0 3px 0 var(--teal-dark); }
+  .act.ghost { background: #fff; color: var(--teal-dark); box-shadow: inset 0 0 0 2px var(--teal); }
+  .act.ghost2 { background: #f6f1e4; color: var(--ink); }
+  .ios { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.12); font-size: 13px; color: #4b5563; }
+  .ios .bubble { display: inline-block; margin: 8px 0; background: #2c2c2e; color: #fff; border-radius: 10px; padding: 8px 14px; font: 600 15px system-ui; }
+  ul.points { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: #374151; max-width: 900px; }
+  ul.points li { margin: 3px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Конструктор прописей: группировка кнопок</h1>
+  <p class="lead">Макет к обсуждению (2026-11-22). Группы — по вопросу, который решает взрослый: <b>на какой бумаге</b> (полоса листа) и <b>что пишем → как выглядит → что делаем со строкой</b> (полоса строки). Кнопки, которые сейчас то появляются, то исчезают, стоят на своём месте всегда — серые, когда в этой строке или на этой бумаге не работают.</p>
+  <div class="legend">
+    <span><i class="sw" style="background:#fff;outline:2px dashed #f59e0b"></i>переехала</span>
+    <span><i class="sw" style="background:#e5e7eb"></i><b style="color:#b8bec8">серая</b> — есть всегда, недоступна здесь</span>
+    <span><i class="sw" style="background:var(--teal-soft)"></i>новая</span>
+  </div>
+
+  <!-- ───────────────── tablet: page strip ───────────────── -->
+  <h2>1. Планшет и телефон — полоса листа</h2>
+  <div class="tag now">Сейчас</div>
+  <div class="device">
+    <div class="strip">
+      <div class="b"><span class="v">A5</span>Формат</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 12h18M3 16h18"/></svg>Бумага</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M5 20 11 4M10 20 16 4M15 20 21 4"/></svg>Наклон</div>
+      <div class="b"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M5 3l14 18"/></svg>Поля</div>
+      <div class="b on"><svg viewBox="0 0 24 24"><path d="M3 12h3M9 12h3M15 12h3M21 12h0"/></svg>Пунктир</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M3 14h18M6 8l12 12"/></svg>Подсветка</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M4 18h16M7 14l8-8 2 2-8 8H7z"/></svg>Строка для письма</div>
+      <div class="sep"></div>
+      <div class="b"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>Добавить</div>
+      <div class="b"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Копия</div>
+      <div class="b danger"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Удалить</div>
+    </div>
+    <div class="canvas">лист</div>
+  </div>
+  <div class="tag new">Предложение</div>
+  <div class="device">
+    <div class="strip">
+      <div class="grp"><div class="grp-cap">Лист</div><div class="grp-btns">
+        <div class="b"><span class="v">A5</span>Формат</div>
+        <div class="b hl"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M5 3l14 18"/></svg>Поля</div>
+      </div></div>
+      <div class="sep"></div>
+      <div class="grp"><div class="grp-cap">Линовка — зависит от бумаги</div><div class="grp-btns">
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 12h18M3 16h18"/></svg>Бумага</div>
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M5 20 11 4M10 20 16 4M15 20 21 4"/></svg>Наклон</div>
+        <div class="b on"><svg viewBox="0 0 24 24"><path d="M3 12h3M9 12h3M15 12h3"/></svg>Пунктир</div>
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M3 14h18M6 8l12 12"/></svg>Подсветка</div>
+      </div></div>
+      <div class="sep"></div>
+      <div class="grp"><div class="grp-cap">Ритм листа</div><div class="grp-btns">
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M4 18h16M7 14l8-8 2 2-8 8H7z"/></svg>Строка для письма</div>
+      </div></div>
+      <div class="sep"></div>
+      <div class="grp"><div class="grp-cap">Страница</div><div class="grp-btns">
+        <div class="b"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>Добавить</div>
+        <div class="b"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Копия</div>
+        <div class="b danger"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Удалить</div>
+      </div></div>
+    </div>
+    <div class="canvas">лист</div>
+  </div>
+  <p class="note"><b>Почему так.</b> «Поля» — про размер листа, как «Формат», а не про линовку. Наклон, пунктир и подсветка зависят от бумаги (на клетке их нет) — стоят сразу за ней, и видно, почему они серые.</p>
+
+  <!-- ───────────────── tablet: row strip ───────────────── -->
+  <h2>2. Планшет и телефон — полоса строки</h2>
+  <div class="tag now">Сейчас</div>
+  <div class="device">
+    <div class="strip row">
+      <div class="b on"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h10"/></svg>Текст</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M6 20 12 4l6 16M8.5 14h7"/></svg>Штрихи</div>
+      <div class="b"><span class="v">Пунктир</span>Образец</div>
+      <div class="b"><span class="v">Везде</span>Точки</div>
+      <div class="b"><span class="v">Проп</span>Стиль строки</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M6 19c3-10 6-14 8-14s2 6-2 10"/></svg>Элемент</div>
+      <div class="b"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/></svg>Вставить</div>
+      <div class="b"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 16l3-8 3 8M10 13h4"/></svg>Буква справа</div>
+      <div class="sep"></div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Выше</div>
+      <div class="b"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Ниже</div>
+      <div class="b"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Дубль</div>
+      <div class="b danger"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Удалить</div>
+    </div>
+    <div class="canvas">«Штрихи» есть только у строки из одной буквы, «Буква справа» — только на бумаге прописей: полоса прыгает</div>
+  </div>
+  <div class="tag new">Предложение</div>
+  <div class="device">
+    <div class="strip row">
+      <div class="grp"><div class="grp-cap">Что пишем</div><div class="grp-btns">
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M6 19c3-10 6-14 8-14s2 6-2 10"/></svg>Элемент</div>
+        <div class="b off"><svg viewBox="0 0 24 24"><path d="M6 20 12 4l6 16M8.5 14h7"/></svg>Штрихи</div>
+        <div class="b"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 16l3-8 3 8M10 13h4"/></svg>Буква на краю</div>
+      </div></div>
+      <div class="sep"></div>
+      <div class="grp"><div class="grp-cap">Как выглядит</div><div class="grp-btns">
+        <div class="b"><span class="v">Образец</span>Строка</div>
+        <div class="b"><span class="v">Пунктир</span>Повтор</div>
+        <div class="b"><span class="v">Везде</span>Точки</div>
+        <div class="b"><span class="v">Проп</span>Стиль</div>
+      </div></div>
+      <div class="sep"></div>
+      <div class="grp"><div class="grp-cap">Буфер</div><div class="grp-btns">
+        <div class="b on"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Копировать</div>
+        <div class="b hl"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/></svg>Вставить</div>
+      </div></div>
+      <div class="sep"></div>
+      <div class="grp"><div class="grp-cap">Строка</div><div class="grp-btns">
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Выше</div>
+        <div class="b"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Ниже</div>
+        <div class="b"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Дубль</div>
+        <div class="b danger"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Удалить</div>
+      </div></div>
+    </div>
+    <div class="canvas">строка «мама»: «Штрихи» серые (в строке не одна буква), остальное на своих местах</div>
+  </div>
+  <ul class="points">
+    <li><b>«Что пишем»</b> — то, что кладёт содержание в строку: элемент, часть буквы, печатная буква на краю.</li>
+    <li><b>«Как выглядит»</b> — вид той же строки: образец или связный текст («Текст» становится выбором «Строка: Образец / Текст», как на компьютере), повтор, точки, стиль.</li>
+    <li><b>«Буфер»</b> — пара «Копировать / Вставить» (новая «Копировать» — текст строки или выделенных строк). Рядом со строкой, не с элементами.</li>
+    <li><b>«Строка»</b> — порядок и судьба строки; «Удалить» последней и красной.</li>
+    <li>«Штрихи» и «Буква на краю» не исчезают, а серые: рука запоминает место.</li>
+  </ul>
+
+  <!-- ───────────────── desktop ───────────────── -->
+  <h2>3. Компьютер — тот же порядок</h2>
+  <div class="device desk">
+    <div class="rail">
+      <div class="thumb"></div><div class="thumb dim"></div>
+      <div class="sec-cap" style="margin:0">Страница</div>
+      <div class="rail-btns">
+        <div class="mini" title="Добавить"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <div class="mini" title="Копия"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg></div>
+        <div class="mini" title="Раньше"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
+        <div class="mini" title="Позже"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
+        <div class="mini danger" title="Удалить"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></div>
+      </div>
+    </div>
+    <div class="sheet"><div class="paper"></div></div>
+    <div class="panel">
+      <h3>Строка 3 <small>· образец</small></h3>
+      <div><div class="sec-cap">Что пишем</div>
+        <div class="two"><div class="chip"><svg viewBox="0 0 24 24"><path d="M6 19c3-10 6-14 8-14s2 6-2 10"/></svg>Элемент</div><div class="chip"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 16l3-8 3 8M10 13h4"/></svg>Буква на краю</div></div>
+        <div class="chip off" style="margin-top:6px"><svg viewBox="0 0 24 24"><path d="M6 20 12 4l6 16M8.5 14h7"/></svg>Штрихи — у строки из одной буквы</div>
+      </div>
+      <div><div class="sec-cap">Как выглядит</div>
+        <div class="seg"><div class="on">Образец</div><div>Связный текст</div></div>
+        <div class="seg" style="margin-top:6px"><div>Один раз</div><div class="on">Пунктир</div><div>Бледно</div><div>Затухание</div></div>
+        <div class="seg" style="margin-top:6px"><div>Нет</div><div>У образца</div><div class="on">Везде</div></div>
+        <div class="seg" style="margin-top:6px"><div class="on">Прописные</div><div>Печатные</div><div>Книжные</div></div>
+      </div>
+      <div><div class="sec-cap">Буфер</div>
+        <div class="two"><div class="chip"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Копировать</div><div class="chip"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/></svg>Вставить…</div></div>
+      </div>
+      <div><div class="sec-cap">Строка</div>
+        <div class="rowbtns">
+          <div><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Выше</div>
+          <div><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Ниже</div>
+          <div><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>Дубль</div>
+          <div class="danger"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Удалить</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Сейчас в правой панели кнопки строки (Выше/Ниже/Дубль/Удалить) стоят первыми, «Элемент» и «Вставить» — в верхней полосе. В предложении панель идёт сверху вниз в том же порядке, что полоса на планшете; «Страница» — только под миниатюрами слева (из верхней полосы уходит).</p>
+
+  <!-- ───────────────── clipboard ───────────────── -->
+  <h2>4. «Вставить…» — сначала показать, что в буфере</h2>
+  <div class="clip-wrap">
+    <div class="pop">
+      <div class="pop-head"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/></svg>В буфере 3 строки</div>
+      <div class="pop-sub">Так они встанут на лист (лишние пробелы и знаки убраны)</div>
+      <div class="prev">
+        <div class="new"><small>стр. 4</small>Мама мыла раму.</div>
+        <div class="new"><small>стр. 5</small>У Милы мяч.</div>
+        <div class="new"><small>стр. 6</small>Шура шил.</div>
+      </div>
+      <div class="acts">
+        <div class="act main">Вставить после строки 3</div>
+        <div class="act ghost">Заменить строку 3</div>
+        <div class="act ghost2">Отмена</div>
+      </div>
+    </div>
+    <div>
+      <div class="ios"><b>iPhone / iPad.</b> Прочитать буфер браузер даёт только по разрешению: при первом нажатии «Вставить…» система покажет свою кнопку —<br><span class="bubble">Вставить</span><br>— после неё откроется окно слева. Обойти это нельзя; окно хотя бы показывает, что встанет на лист, <b>до</b> вставки, а не после.</div>
+      <ul class="points">
+        <li>Текст из одной строки — окно короче: «Вставить в строку 3 (к курсору)» / «Заменить строку 3».</li>
+        <li>Буфер пуст или в нём не текст — окно говорит об этом, ничего не вставляется.</li>
+        <li>Ctrl+V на компьютере остаётся как есть — вставка к курсору без окна.</li>
+      </ul>
+    </div>
+  </div>
+</main>
+</body>
+</html>
