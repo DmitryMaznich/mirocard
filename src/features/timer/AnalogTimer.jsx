@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTimer } from "./TimerContext";
 import { getMinuteLabel } from "./timerFormat";
 import { makeYoutubeEmbedUrl } from "@/shared/utils/format";
-import { normalizeRewardVideoIds, pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
+import { normalizeRewardVideoIds, pickStoredRewardVideoId, preloadRewardVideoRotation } from "@/shared/utils/rewardVideoPicker";
 import { useAppStore } from "@/core/store";
 import { recordRewardVideoView } from "@/core/rewardVideoViews";
 
@@ -78,6 +78,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   const normalizedRewardVideos = normalizeRewardVideoIds(rewardVideos);
   const studentId = useAppStore((s) => s.activeStudentId);
   const recordedPlaybackRef = useRef(null);
+  useEffect(() => { void preloadRewardVideoRotation("analog-timer"); }, []);
 
   useEffect(() => {
     if (!successVideoUrl || listenState !== "success" || recordedPlaybackRef.current === rewardPlaybackNonce) return;
