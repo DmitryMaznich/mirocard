@@ -2070,6 +2070,33 @@ function partsGlyphMap(map, key) {
 // the sheet is the same strokes as ever: only the animation changes.
 // (a stroke as its commands: "M x y", "C …", "L …"; a placed stroke keeps the commands of its glyph's, a join may add or take some at its end)
 const pathCommands = (d) => String(d).trim().split(/\s*(?=[LQC])/); // (a command may follow a number with no space: «58.04L 143.6 36»)
+// A marked letter's own strokes as the row placed them: each the first as many commands as the glyph's own stroke has; what a stroke has
+// beyond them is its exit (tailSplit — and a join that changed the end: о before т), the stroke left out (`tailStroke`) is the exit whole.
+// null when the placed strokes do not fit the glyph's (ч entered at the top of its stem).
+function placedOwnStrokes(g, placed) {
+  const mine = ownStrokes(g);
+  const keep = placed.map((_, k) => k).filter((k) => !(Number.isInteger(g.tailStroke) && k === g.tailStroke));
+  if (keep.length !== mine.length) return null;
+  const own = [], tails = [];
+  for (const [j, k] of keep.entries()) {
+    const cmds = pathCommands(placed[k].d), n = pathCommands(mine[j].d).length;
+    if (cmds.length < n) return null;
+    own.push({ ...placed[k], d: cmds.slice(0, n).join(" ") });
+    if (cmds.length > n) { const from = getPathEndpoints(own[own.length - 1].d).end; tails.push(`M ${from[0]} ${from[1]} ${cmds.slice(n).join(" ")}`); }
+  }
+  return { own, tails };
+}
+// «Каждый штрих» (row flag `#k`): where the pen starts each ELEMENT of a marked letter (letter_elements.json — the lifted technique's
+// touch-downs), joins left out; null for a letter not marked (the caller then dots the start of each of its strokes) or one that does not fit
+function elementStartPoints(glyph, placed) {
+  if (!glyph?.trajectory || glyph.upright || glyph.hiddenParts) return null;
+  const split = placedOwnStrokes(glyph, placed.filter((s) => !s.hidden));
+  if (!split) return null;
+  try {
+    const pts = letterMoves(glyph, "lifted", split.own).filter((m) => m.kind === "ink" && m.startDot).map((m) => getPathEndpoints(m.d).start);
+    return pts.length ? pts : null;
+  } catch { return null; }
+}
 function liftedAnimStrokes(strokes, markedRuns) {
   const out = [];
   for (let i = 0; i < strokes.length; i += 1) {
@@ -2078,21 +2105,10 @@ function liftedAnimStrokes(strokes, markedRuns) {
     const placed = strokes.slice(i, i + run.count);
     i += run.count - 1;
     const g = run.glyph;
-    // the letter's own strokes as placed: each the first as many commands as the glyph's own stroke has; what a stroke has beyond them is
-    // its exit (tailSplit — and a join that changed the end: о before т); the stroke left out (`tailStroke`) is the exit whole
-    const mine = ownStrokes(g);
-    const keep = placed.map((_, k) => k).filter((k) => !(Number.isInteger(g.tailStroke) && k === g.tailStroke));
-    const own = [], tails = [];
-    let ok = keep.length === mine.length;
-    keep.forEach((k, j) => {
-      if (!ok) return;
-      const cmds = pathCommands(placed[k].d), n = pathCommands(mine[j].d).length;
-      if (cmds.length < n) { ok = false; return; }
-      own.push({ ...placed[k], d: cmds.slice(0, n).join(" ") });
-      if (cmds.length > n) { const from = getPathEndpoints(own[own.length - 1].d).end; tails.push(`M ${from[0]} ${from[1]} ${cmds.slice(n).join(" ")}`); }
-    });
+    const split = placedOwnStrokes(g, placed);
+    const own = split?.own, tails = split?.tails ?? [];
     let moves = null;
-    if (ok) { try { moves = letterMoves(g, "lifted", own); } catch { moves = null; } }
+    if (split) { try { moves = letterMoves(g, "lifted", own); } catch { moves = null; } }
     // (a letter its strokes do not fit: written stroke by stroke, as it is)
     if (!moves) { for (const st of placed) { const { continuous: _c, ...rest } = st; out.push(rest); } continue; }
     for (const m of moves) if (m.kind === "ink") out.push({ d: m.d, ...(m.continues ? { continuous: true } : {}) });
@@ -2175,8 +2191,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
   // L = the pen animated in the LIFTED technique (docs/propis2-letter-parts.md): every element of a marked letter, every join, on its own
-  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxvL]|[igw]\d+|[bB][^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxvLk]|[igw]\d+|[bB][^#\s]))+)$/.exec(l) ?? [])[1] ?? "");
   const liftedRows = flags.map((f) => f.includes("#L"));
+  // k = the start dots of every element of the sample letter (propis2 «Каждый штрих»); its copies keep one dot at their start
+  const strokeDotRows = flags.map((f) => f.includes("#k"));
   // bX / BX = the row has a printed letter X (propis2 «буквица», drawn by PrintPageView) at its left / right end: a flag of the row, no ink of its own
   const dropMarks = flags.map((f) => /#([bB])([^#\s])/.exec(f));
   const drops = dropMarks.map((m) => (m ? m[2] : null));
@@ -2202,7 +2220,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxvL]|[igw]\d+|[bB][^#\s]))+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxvLk]|[igw]\d+|[bB][^#\s]))+$/, ""));
   // `script.caps` (the Slovenian «Velike tiskane črke», docs/propis2-sl.md): a style of capitals only, as the first school year writes —
   // whatever the adult typed is written in capitals («mama» → MAMA; digits and signs have no case)
   if (glyphsByLabel?.script?.caps) lines = lines.map((l) => l.toLocaleUpperCase("sl"));
@@ -3255,11 +3273,19 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         cellRun.push(cellRec);
         if (prevExit && !exactTouch && !liftJoin) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null || capAfterCap) {
-          // every token's first glyph gets its red start dot(s), and so does a capital written apart after a capital; only the very first one also gets direction arrows
+          // every token's first glyph gets ONE red start dot (owner, 2026-11-22: one per sample / copy — the bar of Э, the dots of ё get
+          // theirs only in «Каждый штрих»), and so does a capital written apart after a capital; only the very first one also gets
+          // direction arrows. `#k` («Каждый штрих»): the SAMPLE of a one-letter row has a dot at every element of its letter.
+          const everyElement = strokeDotRows[rowIndex] && !dashed && labels.length === 1;
+          const elementDots = everyElement ? elementStartPoints(glyph, movedOut) : null;
+          if (elementDots) startPoints.push(...elementDots);
+          let dotted = Boolean(elementDots);
           for (const [si, s] of movedOut.entries()) {
             if (!glyph.hiddenParts && glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
             if (s.hidden) continue; // a part of the letter not written in this row (`#p`): no dot where it would start
-            startPoints.push(getPathEndpoints(s.d).start);
+            if (dotted && !everyElement) continue;
+            if (!elementDots) startPoints.push(getPathEndpoints(s.d).start);
+            dotted = true;
             if (!WIDE_DIRECTION_ARROWS || dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
             directionArrows.push(...longArrowsFor(s.d, scale, glyph.arrowSpan ?? null));
           }

@@ -110,9 +110,17 @@ export const IconMarkClean = () => S(<>{rule(18)}{guide(12)}</>);
 export const IconRepOne = () => S(<>{rule(18)}{hook(3)}</>);
 export const IconRepAll = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, copy)}{hook(2 + 2 * STEP, copy)}</>);
 export const IconRepFade = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { ...copy, opacity: 0.55 })}{hook(2 + 2 * STEP, { ...copy, opacity: 0.22 })}</>);
-export const IconDotsNone = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}<circle cx={HX + 3} cy={HY} r={1.7} stroke={RED} strokeWidth={1.1} /><path d="M3.5 21.5L20.5 3.5" stroke={GRAY} strokeWidth={1.3} /></>);
+// (owner, 2026-11-22: the icon IS the sample — no dot at all for «Нет», a dot at the sample, at every copy, at every stroke of the sample)
+export const IconDotsNone = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}</>);
 export const IconDotsOne = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}</>);
 export const IconDotsAll = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
+// «Каждый штрих»: a letter of two strokes (a stick and a hook, «р»), a dot at the start of each on the sample, one on the copy
+const P_STICK = (x) => `M${x + 5} 7 L${x + 1.6} 21`;
+const P_HOOK = (x) => `M${x + 3.6} 12.5 C${x + 4.6} 8.2 ${x + 9} 6.6 ${x + 9.6} 9.4 C${x + 10.2} 12.3 ${x + 7.2} 14.6 ${x + 4.6} 13.8`;
+export const IconDotsStrokes = () => S(<>{rule(18)}
+  <path d={`${P_STICK(1)} ${P_HOOK(1)}`} />
+  <path d={`${P_STICK(11.5)} ${P_HOOK(11.5)}`} {...copy} />
+  {redDot(6, 7)}{redDot(4.6, 12.5)}{redDot(16.5, 7)}</>);
 export const IconRepSolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}{hook(2 + 2 * STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}</>);
 export const IconCopySolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { opacity: 0.35 })}{hook(2 + 2 * STEP, { opacity: 0.35 })}</>);
 

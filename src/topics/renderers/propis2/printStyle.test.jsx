@@ -91,7 +91,10 @@ describe("propis2: a row writes only some strokes of its letter (row.parts → #
     const keep = ds(whole).filter((_, i) => i % 3 !== 2);
     expect(ds(part)).toEqual(keep);
     const dots = (r) => r.segments.flatMap((sg) => sg.startPoints ?? []).length;
-    expect(dots(part)).toBeLessThan(dots(whole));
+    // one start dot per copy (owner, 2026-11-22: every stroke's dot only in «Каждый штрих», on the sample), the part's at its first written stroke
+    expect(dots(whole)).toBe(n);
+    expect(dots(part)).toBe(n);
+    expect(row("А#r#k").segments.flatMap((sg) => sg.startPoints ?? []).length).toBe(n + 2); // «Каждый штрих»: the sample's three strokes
   });
   it("a row's parts reach the line only while its text is the letter they were picked for", async () => {
     const { pageToLines, newRow } = await import("./model.js");

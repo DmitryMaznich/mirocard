@@ -98,7 +98,9 @@ const REPEAT_OPTS = [
 const DOT_OPTS = [
   { id: "none", label: "Без красных точек", short: "Нет", Icon: I.IconDotsNone },
   { id: "one", label: "Красная точка у образца", short: "У образца", Icon: I.IconDotsOne },
-  { id: "all", label: "Красные точки у образца и копий", short: "Везде", Icon: I.IconDotsAll },
+  { id: "all", label: "Красные точки у образца и у каждого повтора", short: "У повторов", Icon: I.IconDotsAll },
+  // (owner, 2026-11-22) a row of one letter: a dot at every element of the sample, one at each copy; not for a word or a syllable
+  { id: "strokes", label: "Красные точки у каждого штриха образца", short: "Каждый штрих", Icon: I.IconDotsStrokes },
 ];
 // What a row strip button did, for the offer to do it on the next rows too (owner, 2026-10-24)
 const ROW_SAYS = {
@@ -302,6 +304,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const rowEditable = !locked && Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
   // a row of an ELEMENT (kind element, or a text row whose text is an element — typed as {эN}): elements are the copybook hand's, so the
   // row has no other style and is no running text (owner, 2026-11-22: no button that cannot do its job — «Печатные» wrote «РИТМ-ВОЛНА»)
+  // a row of ONE symbol (a letter, a digit, an element): only it may have «Каждый штрих» (owner, 2026-11-22: on a word the dots are a load)
+  const rowSingle = Boolean(selected) && (selected.kind === "element" || (selected.kind === "text" && (() => { const t = String(selected.text ?? "").trim(); return [...t].length === 1 || glyphMap?.get(t)?.kind === "element"; })()));
+  const dotOpts = DOT_OPTS.map((o) => (o.id === "strokes" && !rowSingle ? { ...o, disabled: true } : o));
   const rowIsElement = Boolean(selected) && (selected.kind === "element" || (selected.kind === "text" && glyphMap?.get(String(selected.text ?? "").trim())?.kind === "element"));
   // the elements are drawn for the Cyrillic copybook hand (65° slant, its ruling): not on a print paper, not in a Latin language, not into a
   // row written in another style than the copybook one (owner, 2026-11-22)
@@ -651,7 +656,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </section>
           <section className="p2-insp-sec" aria-label="Красные точки">
             <span className="p2-insp-lbl">Красные точки — где начинать</span>
-            <Seg label="Красные точки" options={DOT_OPTS} value={rowOpts?.dots ?? "all"} onChange={(id) => setRowSetting("dots", id)} />
+            <Seg label="Красные точки" options={dotOpts} value={rowOpts?.dots === "strokes" && !rowSingle ? "all" : rowOpts?.dots ?? "all"} onChange={(id) => setRowSetting("dots", id)} />
           </section>
         </>
       )}
@@ -680,7 +685,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           {selected && selected.kind !== "blank" && !rowIsElement && <IconBtn label={t("propis2.rowAsText")} caption={t("propis2.text")} on={selected.kind === "passage"} disabled={locked} onMouseDown={keepFocus} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>}
           {partsGlyph && <PartsPicker glyph={partsGlyph} text={partsText} map={rowGlyphMap(glyphMap, selected)} keep={partsKeep} onToggle={togglePart} partial={Boolean(partsSaved)} />}
           <Propis2Picker label={t("propis2.repeat")} caption={t("propis2.sample")} value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
-          <Propis2Picker label={t("propis2.redDots")} caption={t("propis2.dots")} value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
+          <Propis2Picker label={t("propis2.redDots")} caption={t("propis2.dots")} value={rowOpts?.dots === "strokes" && !rowSingle ? "all" : rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={dotOpts} />
           {styles && rowStyleOptions.length > 1 && <Propis2Picker label={t("propis2.rowStyle")} caption={t("propis2.rowStyle")} kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank" || rowIsElement} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
           {rowEls}
           {dropPage && <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}

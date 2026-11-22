@@ -125,12 +125,14 @@ export function newId(prefix = "p") {
 //           fade out towards the middle of the row). A single letter or element is multiplied too, a mixed sequence ("и м")
 //           repeats as a whole.
 //  dots   — red start dots: "none", "one" (at the sample only), "all" (at every place across the row where a copy starts or
-//           would start: with "one" repeat no copies are drawn, the dots alone mark where the child starts writing).
+//           would start: with "one" repeat no copies are drawn, the dots alone mark where the child starts writing), "strokes"
+//           (owner, 2026-11-22; a row of ONE letter: the sample has a dot at every element of the letter, every copy one at its start —
+//           as "all" plus the row flag `#k`). One dot per sample / copy otherwise, whatever the letter (the bar of Э, the dots of ё).
 //  copies — "dash" (dashed, default) or "solid" (pale solid).
 // Rows from the ready methodology sheets and rows saved before these options existed have no `repeat`: they keep the old
 // rule («auto»: only a word or an already repeating group is multiplied; `mark` "d" / "c" = extra dots / clean row).
 export const REPEATS = ["all", "one", "fade"];
-export const DOTS = ["all", "one", "none"];
+export const DOTS = ["all", "one", "none", "strokes"];
 export const COPY_STYLES = ["dash", "solid"];
 export function rowParams(row) {
   const explicit = REPEATS.includes(row?.repeat);
@@ -243,18 +245,19 @@ export function rowToLine(row) {
     // old rule: the sheet's own mark, nothing else (a "solid copies" choice still applies)
     let legacy = row.mark === "d" || row.mark === "c" ? row.mark : "";
     if (dots === "none") legacy = "c"; else if (dots === "one") legacy = "o";
-    return `${text}${legacy ? `#${legacy}` : ""}${copies === "solid" ? "#s" : ""}`;
+    return `${text}${legacy ? `#${legacy}` : ""}${dots === "strokes" ? "#k" : ""}${copies === "solid" ? "#s" : ""}`;
   }
   const flags = [];
   if (repeat === "fade") flags.push("f");
   else if (repeat === "all") flags.push("r");
-  else if (dots === "all") flags.push("r", "x"); // one sample, the dots mark every place the child starts
+  else if (dots === "all" || dots === "strokes") flags.push("r", "x"); // one sample, the dots mark every place the child starts
   else flags.push("1");
   if (dots === "none") flags.push("c");
   else if (dots === "one") flags.push("o");
+  else if (dots === "strokes") flags.push("k");
   if (copies === "solid") flags.push("s");
   // `gap`: extra cells between the repeated units of the row (a kit's pairs «Аа»: the pair is told from the next one)
-  if (Number(row?.gap) > 0 && (repeat === "all" || repeat === "fade" || dots === "all")) flags.push(`g${Math.min(8, Math.floor(row.gap))}`);
+  if (Number(row?.gap) > 0 && (repeat === "all" || repeat === "fade" || dots === "all" || dots === "strokes")) flags.push(`g${Math.min(8, Math.floor(row.gap))}`);
   // `even`: the symbols stand a fixed gap after each other's ink, off the slant grid (wordEngine `#v`, as the alphabet on the cover's
   // back): a kit's pairs «Г г» — counted in cells from the capital's start, a wide capital pushed its lowercase a whole cell further
   if (row?.even) flags.push("v");
