@@ -1,22 +1,99 @@
-.graphic-matrix {
-  align-self: center;
-  width: min(100%, 560px);
-  margin: auto;
-  padding: 12px clamp(8px, 2vw, 16px);
+.session-screen.session-screen--graphic-matrix {
+  background:
+    radial-gradient(ellipse at 13% 21%, #fffdf5 0, transparent 48%),
+    radial-gradient(ellipse at 96% 93%, #e6f1e9 0, transparent 56%),
+    #faf2e5;
 }
 
-.graphic-matrix__title { margin: 0 0 12px; font-size: clamp(22px, 4vw, 30px); line-height: 1.15; }
+.session-screen--graphic-matrix .session-topbar {
+  background: #fffbf4;
+  border-bottom-color: #e8decf;
+}
+
+.session-screen--graphic-matrix .session-header-wrap { margin-bottom: 44px; }
+
+.session-screen--graphic-matrix .session-renderer-wrap {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.graphic-matrix {
+  --matrix-ink: #21364a;
+  --matrix-blue: #dceaf8;
+  --matrix-peach: #ffe5ce;
+  --matrix-green: #27745d;
+  align-self: stretch;
+  width: 100%;
+  margin: 0 auto auto;
+  margin-top: clamp(0px, calc((100dvh - 100vw - 250px) / 4), 44px);
+  padding: 12px 0 2px;
+  color: var(--matrix-ink);
+}
+
+.graphic-matrix__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 clamp(12px, 2vw, 24px) clamp(10px, 2.6vw, 20px);
+}
+
+.graphic-matrix__title {
+  margin: 0;
+  max-width: 13em;
+  font-size: clamp(24px, 5vw, 42px);
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -.042em;
+  text-wrap: balance;
+}
+
+.graphic-matrix__progress {
+  flex: none;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  min-width: clamp(66px, 16vw, 106px);
+  padding: 7px 11px 9px;
+  border: 1px solid #dcdcc9;
+  border-radius: 16px;
+  background: #fffdf6;
+  color: #314b48;
+  font-size: clamp(.8rem, 2.7vw, 1rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.graphic-matrix__progress-track {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e1e8df;
+}
+
+.graphic-matrix__progress-track > div {
+  height: 100%;
+  border-radius: inherit;
+  background: #38816a;
+  transition: width .18s ease-out;
+}
 
 .graphic-matrix__board {
+  --tile-gap: clamp(4px, 1.1vw, 8px);
+  --tile-radius: clamp(7px, 2vw, 14px);
+  --axis-size: clamp(44px, 13vw, 96px);
   display: grid;
-  grid-template-columns: .8fr repeat(var(--matrix-size), 1fr);
-  grid-template-rows: .8fr repeat(var(--matrix-size), 1fr);
-  aspect-ratio: 1;
-  border: 1px solid #8694a9;
-  border-right: 0;
-  border-bottom: 0;
-  background: #fff;
-  color: #212c42;
+  grid-template-columns: var(--axis-size) repeat(var(--matrix-size), minmax(0, 1fr));
+  grid-template-rows: var(--axis-size);
+  gap: var(--tile-gap);
+  padding: clamp(6px, 1.6vw, 12px);
+  border: 1px solid #dccbb0;
+  border-radius: clamp(14px, 4vw, 26px);
+  background: #f0e4d1;
+  box-shadow: 0 4px 0 #e0d0b6, 0 14px 28px #6d563913, inset 0 1px #fff9;
 }
 
 .graphic-matrix__sample,
@@ -24,23 +101,68 @@
   position: relative;
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid #8694a9;
-  border-bottom: 1px solid #8694a9;
+  border-radius: var(--tile-radius);
 }
+
+.graphic-matrix__corner {
+  display: grid;
+  grid-template: repeat(2, 1fr) / repeat(2, 1fr);
+  align-self: center;
+  justify-self: center;
+  gap: clamp(2px, .6vw, 4px);
+  width: 43%;
+  aspect-ratio: 1;
+  transform: rotate(-9deg);
+}
+
+.graphic-matrix__corner > i {
+  border-radius: 25%;
+  background: #e5d1b6;
+}
+
+.graphic-matrix__corner > i:nth-child(2) { background: #f6be90; }
+.graphic-matrix__corner > i:nth-child(3) { background: #aacbe8; }
+.graphic-matrix__corner > i:nth-child(4) { background: #74a997; }
 
 .graphic-matrix__sample {
   display: grid;
   place-items: center;
-  background: #f1f5fb;
+  border: 1px solid var(--tile-edge);
+  box-shadow: inset 0 1px #fff8, inset 0 -2px #21364a0a;
 }
 
-.graphic-matrix__sample svg { display: block; width: 83%; height: 83%; }
+.graphic-matrix__sample--top {
+  --tile-edge: #e8b48e;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--matrix-peach);
+  color: #714021;
+}
+
+.graphic-matrix__sample--left {
+  --tile-edge: #a9c6e0;
+  background: var(--matrix-blue);
+  color: #274e73;
+}
+
+.graphic-matrix__sample svg {
+  position: absolute;
+  inset: 0;
+  width: min(92%, 106px);
+  height: min(92%, 106px);
+  margin: auto;
+}
 
 .graphic-matrix__cell {
+  aspect-ratio: 1;
   overflow: hidden;
   touch-action: none;
   user-select: none;
-  color: #2356ad;
+  background: #fffef9;
+  color: #264d7d;
+  box-shadow: inset 0 0 0 1px #c7b89f, inset 0 -2px #f3ebdb;
+  transition: background-color .15s ease-out, box-shadow .15s ease-out;
 }
 
 .graphic-matrix__cell svg {
@@ -54,14 +176,53 @@
 .graphic-matrix__board path {
   fill: none;
   stroke: currentColor;
-  stroke-width: 3.5;
+  stroke-width: 4.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.graphic-matrix__cell--done { background: #e8f5ee; }
-.graphic-matrix__check { position: absolute; top: 2px; right: 5px; color: #246647; }
-.graphic-matrix__invalid { color: #a85d12; }
-.graphic-matrix__feedback { display: flex; align-items: start; gap: 8px; justify-content: space-between; margin-top: 8px; min-height: 2.5em; }
-.graphic-matrix__feedback p { margin: 0; }
-.graphic-matrix__feedback > span { margin-left: auto; white-space: nowrap; }
+.graphic-matrix__cell--done {
+  background: #dcf0e2;
+  color: #225c5a;
+  box-shadow: inset 0 0 0 1px #8ebba4, inset 0 -2px #c7e1d1;
+}
+
+.graphic-matrix__check {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  top: clamp(3px, .8vw, 7px);
+  right: clamp(3px, .8vw, 7px);
+  width: clamp(16px, 3.2vw, 24px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--matrix-green);
+  color: #fff;
+  font-size: clamp(10px, 2.3vw, 15px);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.graphic-matrix__cell--retry {
+  background: #fff3df;
+  box-shadow: inset 0 0 0 2px #c17d37;
+}
+
+.graphic-matrix__invalid { color: #95501b; }
+
+.graphic-matrix__feedback {
+  margin: 10px 12px 0;
+  min-height: 2.4em;
+  color: #70421f;
+  font-size: clamp(.86rem, 2.8vw, 1rem);
+  font-weight: 750;
+  text-align: center;
+}
+
+.graphic-matrix__feedback--done { color: #215d4b; }
+
+@media (prefers-reduced-motion: reduce) {
+  .graphic-matrix__cell,
+  .graphic-matrix__progress-track > div { transition: none; }
+}

@@ -355,7 +355,7 @@ export default function SessionScreen() {
   const isDailyOrientation = topicRecord.meta.renderer === "daily_orientation";
 
   return (
-    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}${isNumberPath ? " session-screen--number-path" : ""}`}>
+    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}${isNumberPath ? " session-screen--number-path" : ""}${isGraphicMatrix ? " session-screen--graphic-matrix" : ""}`}>
       {sessionExitPromptOpen && (
         <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
       )}
