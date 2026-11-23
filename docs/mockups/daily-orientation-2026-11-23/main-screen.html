@@ -123,6 +123,9 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .tgi.off{background:#fdecec;border-color:#f3b4b4;color:#b42318}.tgi.off b{opacity:.35}
 .tgi.off::after{content:"НЕ БУДЕТ";position:absolute;top:-12px;background:#dc2626;color:#fff;font-size:13px;border-radius:8px;padding:1px 8px}
 .sheet .more{margin-top:14px;font-size:16px;font-weight:800;color:#4a9b8f}
+.cx{left:0;width:150px;height:170px;transform:translate(0,-46%);font-size:19px;z-index:2}
+.cx .e{font-size:70px}
+.shift{position:absolute;inset:0;transform:translateX(180px)}
 </style></head><body>
 <div class="screen">
   <div class="garland"><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b></div><div class="topbar"><nav class="nav" id="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav><div class="rib" id="rib"></div></div>
@@ -162,8 +165,9 @@ if(s==='tomorrow'){B.classList.add('off-day');nav.innerHTML='<span>ВЧЕРА</s
  wd.querySelector('.big').textContent='ВТОРНИК';
  document.querySelector('.dline .num').textContent='24';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ЧЕТВЁРТОЕ<br>НОЯБРЯ';}
 function slot(i,cls,extra=''){const it=items[i];if(!it)return'';return `<div class="slot ${cls}${it[2]?' '+it[2]:''}">${extra}<span class="e">${it[0]}</span>${it[1]}</div>`}
-if(s==='cancelled'){items=[['🏫','ШКОЛА','cancel'],WEEK[1],WEEK[2],WEEK[3]];}
-car.innerHTML=slot(f,'f')+slot(f+1,'n','<span class="lbl">ПОТОМ</span>')+slot(f+2,'nn')+slot(f+3,'nnn');
+if(s==='cancelled'){items=[['🏫','ШКОЛА','cancel'],WEEK[1],WEEK[2],WEEK[3]];
+ car.innerHTML=`<div class="slot cx cancel"><span class="e">🏫</span>ШКОЛА</div>`+'<div class="shift">'+slot(1,'f')+slot(2,'n','<span class="lbl">ПОТОМ</span>')+slot(3,'nn')+'</div>';}
+else car.innerHTML=slot(f,'f')+slot(f+1,'n','<span class="lbl">ПОТОМ</span>')+slot(f+2,'nn')+slot(f+3,'nnn');
 
 document.querySelectorAll('.slot.cancel').forEach(e=>e.insertAdjacentHTML('beforeend','<span class="nb">НЕ БУДЕТ</span>'));
 document.querySelector('.today').insertAdjacentHTML('beforeend','<div class="pen">✏️</div>');
