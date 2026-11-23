@@ -139,7 +139,7 @@ function watermarkMarkup() {
 // external/same-origin resource fetches — an <img> or <link> that stalls
 // (slow network, DNS hiccup) blocks Android's print-preview generation
 // indefinitely (observed: "Preparing preview..." hangs forever).
-const MIRONIUM_LOGO_SVG = mironiumLogoSvg({ className: "sdp-footer-logo", font: "Georgia, serif" });
+const MIRONIUM_LOGO_SVG = mironiumLogoSvg({ className: "sdp-footer-logo" });
 
 function footerMarkup() {
   return `

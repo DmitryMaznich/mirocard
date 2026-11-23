@@ -11160,8 +11160,8 @@ button {
 }
 .auth-logo svg {
   display: block;
-  height: 56px;
-  width: auto;
+  height: auto;
+  width: min(300px, calc(100vw - 48px));
 }
 .auth-form {
   display: flex;

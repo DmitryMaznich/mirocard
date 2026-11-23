@@ -1,18 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { mironiumLogoSvg } from "./mironiumLogo.js";
+import { mironiumLogoSvg, LOGO_GOLD, LOGO_INK } from "./mironiumLogo.js";
 
 describe("mironiumLogoSvg", () => {
-  it("draws the mark and the wordmark with the gold italic «u», in the app's DM Serif Display", () => {
+  it("draws the mark, the word and the gold «u» as outlines — no font needed", () => {
     const svg = mironiumLogoSvg({ className: "x" });
     expect(svg).toContain('class="x"');
-    expect(svg).toContain("DM Serif Display");
-    expect(svg).toContain('fill="#C18B22" font-size="58" font-style="italic"');
-    expect(svg).toContain('fill="#1C3634"');
+    expect(svg).toContain(`fill="${LOGO_INK}"`);
+    expect(svg).toContain(`fill="${LOGO_GOLD}"`);
+    expect(svg).not.toContain("<text");
+    expect(svg).not.toContain("font-family");
+    expect((svg.match(/<path /g) || []).length).toBe(3);
   });
 
-  it("lets the print footer keep a fonts-free Georgia stack", () => {
-    const svg = mironiumLogoSvg({ font: "Georgia, serif" });
-    expect(svg).not.toContain("DM Serif Display");
-    expect(svg).toContain('font-family="Georgia, serif"');
+  it("can be recoloured for a dark background", () => {
+    const svg = mironiumLogoSvg({ ink: "#FFFFFF", gold: "#F2C45A" });
+    expect(svg).toContain('fill="#FFFFFF"');
+    expect(svg).toContain('fill="#F2C45A"');
   });
 });
