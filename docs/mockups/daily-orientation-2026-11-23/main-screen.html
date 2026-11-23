@@ -107,6 +107,22 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .off-day [data-now]{background:rgba(255,255,255,.25) !important;box-shadow:none}
 .slot.e2 .e{font-size:inherit}
 .f{font-size:27px !important}.n{font-size:19px !important}.nn,.nnn{font-size:15px !important}
+.pen{position:absolute;top:12px;right:14px;width:40px;height:40px;border-radius:12px;background:#fff;border:2px solid #e8dcc8;display:flex;align-items:center;justify-content:center;font-size:20px;z-index:5}
+.slot.cancel{opacity:1 !important}
+.slot.cancel .e{opacity:.35}
+.slot.cancel::before{content:"";position:absolute;left:12%;right:12%;top:44%;height:8px;background:#dc2626;border-radius:4px;transform:rotate(-28deg)}
+.slot.cancel .nb{position:absolute;bottom:-16px;background:#dc2626;color:#fff;font-size:17px;border-radius:10px;padding:2px 10px}
+.dimall{position:absolute;inset:0;background:rgba(20,30,30,.35);z-index:20}
+.sheet{position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:720px;background:#fff;border-radius:26px 26px 0 0;z-index:21;padding:18px 26px 26px;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
+.sheet h3{font-size:24px;font-weight:900;margin-bottom:4px}
+.sheet .h{font-size:16px;color:#6b8285;font-weight:700;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tabs span{font-size:18px;font-weight:900;padding:6px 18px;border-radius:14px;background:#f1ede6}.tabs .on{background:#0f3b4c;color:#fff}
+.tg{display:flex;gap:12px;flex-wrap:wrap}
+.tgi{width:150px;height:120px;border-radius:20px;background:#f6f3ee;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:18px;border:3px solid #cfe5df;position:relative}
+.tgi b{font-size:44px}
+.tgi.off{background:#fdecec;border-color:#f3b4b4;color:#b42318}.tgi.off b{opacity:.35}
+.tgi.off::after{content:"НЕ БУДЕТ";position:absolute;top:-12px;background:#dc2626;color:#fff;font-size:13px;border-radius:8px;padding:1px 8px}
+.sheet .more{margin-top:14px;font-size:16px;font-weight:800;color:#4a9b8f}
 </style></head><body>
 <div class="screen">
   <div class="garland"><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b></div><div class="topbar"><nav class="nav" id="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav><div class="rib" id="rib"></div></div>
@@ -132,6 +148,7 @@ const WEEK=[['🏫','ШКОЛА'],['👟','СПОРТ'],['📚','ЗАНИМАЕ�
 let items=WEEK.slice(),f=0,done=-1;
 function setTime(h,m,hw,mw){dig.innerHTML=`<span>${h}</span>:<span>${m}</span>`;tw.innerHTML=`<span class="hh">${hw}</span><br><span class="mm">${mw}</span>`}
 function setDp(w,bg){dp.textContent=w;nowc.style.background=bg}
+if(s==='cancel-sheet'||s==='cancelled'){}
 if(s==='afternoon'){f=1;done=0;setDp('ДЕНЬ','#e6f3fb');setTime('15','10','ПЯТНАДЦАТЬ ЧАСОВ','ДЕСЯТЬ МИНУТ');}
 if(s==='evening'){f=2;done=1;setDp('ВЕЧЕР','#efe7fb');setTime('19','05','ДЕВЯТНАДЦАТЬ ЧАСОВ','ПЯТЬ МИНУТ');}
 if(s==='event'){B.classList.add('has-rib','festive');items=[WEEK[0],['👵','БАБУШКА','imp'],WEEK[2],WEEK[3]];
@@ -145,5 +162,13 @@ if(s==='tomorrow'){B.classList.add('off-day');nav.innerHTML='<span>ВЧЕРА</s
  wd.querySelector('.big').textContent='ВТОРНИК';
  document.querySelector('.dline .num').textContent='24';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ЧЕТВЁРТОЕ<br>НОЯБРЯ';}
 function slot(i,cls,extra=''){const it=items[i];if(!it)return'';return `<div class="slot ${cls}${it[2]?' '+it[2]:''}">${extra}<span class="e">${it[0]}</span>${it[1]}</div>`}
+if(s==='cancelled'){items=[['🏫','ШКОЛА','cancel'],WEEK[1],WEEK[2],WEEK[3]];}
 car.innerHTML=slot(f,'f')+slot(f+1,'n','<span class="lbl">ПОТОМ</span>')+slot(f+2,'nn')+slot(f+3,'nnn');
+
+document.querySelectorAll('.slot.cancel').forEach(e=>e.insertAdjacentHTML('beforeend','<span class="nb">НЕ БУДЕТ</span>'));
+document.querySelector('.today').insertAdjacentHTML('beforeend','<div class="pen">✏️</div>');
+if(s==='cancel-sheet'){document.querySelector('.screen').insertAdjacentHTML('beforeend',`<div class="dimall"></div><div class="sheet"><h3>Что меняется?</h3><div class="h">Касание выключает дело только на этот день. Недельный план не меняется.</div>
+<div class="tabs"><span class="on">Сегодня</span><span>Завтра</span></div>
+<div class="tg"><div class="tgi off"><b>🏫</b>Школа</div><div class="tgi"><b>👟</b>Спорт</div><div class="tgi"><b>📚</b>Занимаемся</div><div class="tgi"><b>🛏️</b>Спать</div></div>
+<div class="more">+ Добавить дело на этот день</div></div>`);}
 </script></body></html>
