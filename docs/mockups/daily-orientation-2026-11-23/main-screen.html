@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
-<title>«Сегодня» — концепт 05: план на день, цифровое время</title>
+<title>«Сегодня» — главный экран — рабочий вариант (06)</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0}
 body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
-.screen{width:1280px;height:800px;margin:0 auto;padding:16px 28px 24px;display:grid;grid-template-rows:60px 330px 1fr;gap:16px;background:linear-gradient(#fbf8f2,#f4efe6)}
+.screen{width:1280px;height:800px;margin:0 auto;padding:22px 28px 24px;display:grid;grid-template-rows:60px 330px 1fr;gap:16px;background:linear-gradient(#fbf8f2,#f4efe6)}
 .cap{font-size:21px;font-weight:800;color:#47606b}
 .card{border-radius:28px;box-shadow:0 2px 10px rgba(60,40,10,.08);padding:16px 22px;position:relative;overflow:hidden}
 .nav{display:flex;gap:26px;align-items:center;font-size:24px;font-weight:900;color:#7a8b93}
@@ -92,18 +92,33 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .nnn .e{font-size:60px}
 .p{display:none}
 .car{justify-content:flex-start}
+.topbar{display:flex;align-items:center;gap:18px;position:relative;z-index:6}
+.rib{display:none;flex:1;height:58px;border-radius:20px;align-items:center;gap:14px;padding:0 10px 0 8px;font-weight:900;font-size:26px;background:#fff7dc;box-shadow:0 2px 8px rgba(120,80,0,.12)}
+.rib .ph{width:46px;height:46px;border-radius:50%;background:#fde68a;display:flex;align-items:center;justify-content:center;font-size:30px;flex:none;border:3px solid #fff}
+.rib .marks{margin-left:auto;display:flex;gap:6px}.rib .marks i{width:18px;height:18px;border-radius:50%;background:#f59e0b;display:block}.rib .marks i.off{background:#eadfc4}
+.rib .q{width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid #e6d7a8;display:flex;align-items:center;justify-content:center;font-size:20px;color:#a07a1a;flex:none;margin-left:auto}
+.rib .marks+.q{margin-left:0}
+.has-rib .rib{display:flex}
+.garland{display:none;position:absolute;top:0;left:0;right:0;height:22px;justify-content:space-around;z-index:7}
+.garland b{width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:20px solid var(--g)}
+.festive .garland{display:flex}.festive .screen{background:linear-gradient(#fff4e0,#fbead2)}
+.screen{position:relative}
+.off-day [data-now]>*{visibility:hidden}
+.off-day [data-now]{background:rgba(255,255,255,.25) !important;box-shadow:none}
+.slot.e2 .e{font-size:inherit}
+.f{font-size:27px !important}.n{font-size:19px !important}.nn,.nnn{font-size:15px !important}
 </style></head><body>
 <div class="screen">
-  <nav class="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav>
+  <div class="garland"><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b></div><div class="topbar"><nav class="nav" id="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav><div class="rib" id="rib"></div></div>
   <div class="r1">
     <section class="card weekday" id="wd"><div class="cap">День недели</div><div class="wdbox"><div class="big">ПОНЕДЕЛЬНИК</div><div class="kind">БУДНИЙ ДЕНЬ</div></div></section>
     <section class="card leaf"><div class="sbg"></div><div class="row"><div class="cap">Число</div><div class="dline"><span class="num">23</span> <span class="mon">НОЯБРЯ</span></div><div class="dwords">ДВАДЦАТЬ ТРЕТЬЕ<br>НОЯБРЯ</div></div><div class="sez2">ОСЕНЬ</div></section>
-    <section class="card time"><div class="cap">Время</div><div class="dig" id="dig"><span>08</span>:<span>20</span></div><div class="tw" id="tw"><span class="hh">ВОСЕМЬ ЧАСОВ</span><br><span class="mm">ДВАДЦАТЬ МИНУТ</span></div></section>
+    <section class="card time" data-now><div class="cap">Время</div><div class="dig" id="dig"><span>08</span>:<span>20</span></div><div class="tw" id="tw"><span class="hh">ВОСЕМЬ ЧАСОВ</span><br><span class="mm">ДВАДЦАТЬ МИНУТ</span></div></section>
   </div>
   <div class="r2">
     <div class="left">
-      <section class="card now" id="nowc"><div class="cap">Сейчас</div><div class="big" id="dp">УТРО</div></section>
-      <section class="card wx"><div class="ic">☀️</div><div><div class="cap">Погода</div><div class="tx">СОЛНЕЧНО</div></div></section>
+      <section class="card now" id="nowc" data-now><div class="cap">Сейчас</div><div class="big" id="dp">УТРО</div></section>
+      <section class="card wx" data-now><div class="ic">☀️</div><div><div class="cap">Погода</div><div class="tx">СОЛНЕЧНО</div></div></section>
     </div>
     <section class="card today"><div class="cap">План на день</div>
       <div class="car" id="car"></div>
@@ -111,17 +126,24 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
   </div>
 </div>
 <script>
-const s=new URLSearchParams(location.search).get('t')||'start';
-let items0=null;
-const items=s==='three'?[['🏫','ШКОЛА'],['🚶','ПРОГУЛКА'],['🛁','ВАННА']]:s==='weekend'?[['🚶','ПРОГУЛКА'],['🏊','БАССЕЙН'],['☕','КАФЕ'],['🏠','ДОМА']]:[['🏫','ШКОЛА'],['⚽','СПОРТ'],['👵','БАБУШКА','imp'],['🚶','ПРОГУЛКА']];
+const s=new URLSearchParams(location.search).get('t')||'morning';
+const B=document.body;
+const WEEK=[['🏫','ШКОЛА'],['👟','СПОРТ'],['📚','ЗАНИМАЕМСЯ'],['🛏️','СПАТЬ']];
+let items=WEEK.slice(),f=0,done=-1;
+function setTime(h,m,hw,mw){dig.innerHTML=`<span>${h}</span>:<span>${m}</span>`;tw.innerHTML=`<span class="hh">${hw}</span><br><span class="mm">${mw}</span>`}
+function setDp(w,bg){dp.textContent=w;nowc.style.background=bg}
+if(s==='afternoon'){f=1;done=0;setDp('ДЕНЬ','#e6f3fb');setTime('15','10','ПЯТНАДЦАТЬ ЧАСОВ','ДЕСЯТЬ МИНУТ');}
+if(s==='evening'){f=2;done=1;setDp('ВЕЧЕР','#efe7fb');setTime('19','05','ДЕВЯТНАДЦАТЬ ЧАСОВ','ПЯТЬ МИНУТ');}
+if(s==='event'){B.classList.add('has-rib','festive');items=[WEEK[0],['👵','БАБУШКА','imp'],WEEK[2],WEEK[3]];
+ rib.innerHTML='<div class="ph">👵</div>СЕГОДНЯ ПРИЕЗД БАБУШКИ!<div class="q">?</div>';}
+if(s==='countdown'){B.classList.add('has-rib');
+ rib.innerHTML='<div class="ph">🎂</div>ДЕНЬ РОЖДЕНИЯ МАМЫ ЧЕРЕЗ 3 ДНЯ<div class="marks"><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div><div class="q">?</div>';}
 if(s==='weekend'){wd.classList.add('weekend');wd.querySelector('.big').textContent='СУББОТА';wd.querySelector('.kind').textContent='ВЫХОДНОЙ';
- document.querySelector('.dline .num').textContent='28';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ВОСЬМОЕ<br>НОЯБРЯ';}
-let f=0,done=-1;
-if(s==='swiped')f=1;
-if(s==='done'){f=1;done=0;}
-function slot(i,cls,extra=''){const it=items[i];if(!it)return'';return `<div class="slot ${cls}${it[2]?' '+it[2]:''}${i<=done?' done':''}">${extra}<span class="e">${it[0]}</span>${it[1]}</div>`}
+ document.querySelector('.dline .num').textContent='28';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ВОСЬМОЕ<br>НОЯБРЯ';
+ items=[['🚶','ПРОГУЛКА'],['☕','КАФЕ'],['📚','ЗАНИМАЕМСЯ'],['🛏️','СПАТЬ']];}
+if(s==='tomorrow'){B.classList.add('off-day');nav.innerHTML='<span>ВЧЕРА</span><span>СЕГОДНЯ</span><span class="on">ЗАВТРА</span>';
+ wd.querySelector('.big').textContent='ВТОРНИК';
+ document.querySelector('.dline .num').textContent='24';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ЧЕТВЁРТОЕ<br>НОЯБРЯ';}
+function slot(i,cls,extra=''){const it=items[i];if(!it)return'';return `<div class="slot ${cls}${it[2]?' '+it[2]:''}">${extra}<span class="e">${it[0]}</span>${it[1]}</div>`}
 car.innerHTML=slot(f,'f')+slot(f+1,'n','<span class="lbl">ПОТОМ</span>')+slot(f+2,'nn')+slot(f+3,'nnn');
-if(s==='done'){dp.textContent='ДЕНЬ';nowc.style.background='#e6f3fb';
-  
-  dig.innerHTML='<span>15</span>:<span>10</span>';tw.innerHTML='<span class="hh">ПЯТНАДЦАТЬ ЧАСОВ</span><br><span class="mm">ДЕСЯТЬ МИНУТ</span>';}
 </script></body></html>
