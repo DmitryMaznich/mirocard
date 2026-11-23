@@ -215,3 +215,53 @@ export function serializePlanPhotos(photos, itemsByDay) {
   const kept = Object.entries(photos ?? {}).filter(([key, url]) => used.has(key) && url);
   return kept.length ? JSON.stringify(Object.fromEntries(kept)) : "";
 }
+
+// ── «План на день» on the wall screen ─────────────────────────────────────
+//
+// The day's items: the weekly template for that weekday, the day's important
+// dates and the adult's changes for that date (owner, 2026-11-23):
+//   off   -- keys switched off for that date: a template item or an important
+//            date stays in place crossed out («НЕ БУДЕТ») -- the child sees it
+//            was cancelled, not that it vanished; an item added only for that
+//            date is simply removed;
+//   added -- items added only for that date;
+//   done  -- keys the child marked «сделали» (today only).
+// Important dates and added items go before the day's last item: the day ends
+// the same way («Спать»), the extra thing comes before it.
+
+export function eventPlanKey(event) {
+  return `event:${event.id}`;
+}
+
+export function buildDayPlan({ templateItems = [], events = [], changes = {}, photos = {} }) {
+  const off = new Set(changes.off ?? []);
+  const done = new Set(changes.done ?? []);
+  const base = templateItems.map((item) => ({
+    key: planItemKey(item),
+    text: item.text,
+    icon: item.icon,
+    photo: photos[planItemKey(item)] ?? null,
+  }));
+  const extra = [
+    ...events.map((event) => ({ key: eventPlanKey(event), text: event.title, icon: event.icon ?? null, photo: event.photo ?? null, important: true })),
+    ...(changes.added ?? [])
+      .map((item) => ({ key: planItemKey(item), text: item.text, icon: item.icon ?? null, photo: photos[planItemKey(item)] ?? null, added: true }))
+      .filter((item) => !off.has(item.key)),
+  ].filter((item) => !base.some((other) => other.key === item.key));
+  const items = base.length > 1
+    ? [...base.slice(0, -1), ...extra, base[base.length - 1]]
+    : [...base, ...extra];
+  return items.map((item) => ({ ...item, cancelled: off.has(item.key), done: done.has(item.key) }));
+}
+
+// The child's next thing: the first item neither done nor cancelled.
+export function planFocusIndex(items) {
+  return items.findIndex((item) => !item.done && !item.cancelled);
+}
+
+export function toggleKey(list, key) {
+  const set = new Set(list ?? []);
+  if (set.has(key)) set.delete(key);
+  else set.add(key);
+  return [...set];
+}

@@ -38,14 +38,14 @@ describe("DailyOrientationSettings", () => {
   it("switches the whole clock card at once and hides its sub-options with it", () => {
     mount({});
     act(() => button(/^Время:/).click());
-    expect([latest.showAnalogClock, latest.showDigitalTime, latest.showTimeWords]).toEqual([false, false, false]);
+    expect([latest.showDigitalTime, latest.showTimeWords]).toEqual([false, false]);
     expect(container.querySelector(".dos-chips")).toBeNull();
   });
 
   it("never lets the last visible card be hidden", () => {
     mount({
       showDayOfMonth: false, showMonth: false, showSeason: false, showDaypart: false,
-      showWeather: false, showAnalogClock: false, showDigitalTime: false, showTimeWords: false,
+      showWeather: false, showDigitalTime: false, showTimeWords: false, showPlan: false,
     });
     act(() => button(/^День недели:/).click());
     expect(latest.showWeekday).not.toBe(false);

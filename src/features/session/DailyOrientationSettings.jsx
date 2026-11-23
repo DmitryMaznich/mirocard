@@ -25,24 +25,22 @@ import "./dailyOrientationSettings.css";
 // one-line-per-day weeklyPlan text, see weekPlan.js), so saved settings keep working.
 
 const CLOCK_PARTS = [
-  { key: "showAnalogClock", label: "Стрелки" },
   { key: "showDigitalTime", label: "Цифры" },
   { key: "showTimeWords", label: "Словами" },
 ];
 
-// Same order and flex shares as the real screen (dailyOrientation.css:
-// big 5 / narrow 2 / wide 3, Время суток 4), so the map is a true miniature.
+// Same order and shares as the real screen (dailyOrientation.css: three
+// equal cards over Сейчас + Погода + План на день), so the map is a true miniature.
 const MAP_ROWS = [
   [
-    { id: "weekday", label: "День недели", sample: "ПЯТНИЦА", keys: ["showWeekday"], flex: 5, tone: "sage" },
-    { id: "date", label: "Число", sample: "25", keys: ["showDayOfMonth"], flex: 2, tone: "coral" },
-    { id: "month", label: "Месяц", sample: "СЕНТЯБРЬ", keys: ["showMonth"], flex: 3, tone: "coral" },
-    { id: "season", label: "Время года", sample: "ОСЕНЬ", keys: ["showSeason"], flex: 3, tone: "amber" },
+    { id: "weekday", label: "День недели", sample: "ПЯТНИЦА", keys: ["showWeekday"], flex: 1, tone: "sage" },
+    { id: "date", label: "Число", sample: "25 СЕНТЯБРЯ", keys: ["showDayOfMonth", "showMonth", "showSeason"], flex: 1, tone: "coral" },
+    { id: "time", label: "Время", sample: "10:35", keys: CLOCK_PARTS.map((p) => p.key), flex: 1, tone: "blue" },
   ],
   [
-    { id: "daypart", label: "Сейчас", sample: "УТРО", keys: ["showDaypart"], flex: 4, tone: "peach" },
-    { id: "weather", label: "Погода", sample: "☁", keys: ["showWeather"], flex: 2, tone: "sand" },
-    { id: "time", label: "Время", sample: "10:35", keys: CLOCK_PARTS.map((p) => p.key), flex: 5, tone: "blue" },
+    { id: "daypart", label: "Сейчас", sample: "УТРО", keys: ["showDaypart"], flex: 7, tone: "peach" },
+    { id: "weather", label: "Погода", sample: "☁", keys: ["showWeather"], flex: 5, tone: "sand" },
+    { id: "plan", label: "План на день", sample: "🏫 › 👟", keys: ["showPlan"], flex: 16, tone: "amber" },
   ],
 ];
 const MAP_CARDS = MAP_ROWS.flat();

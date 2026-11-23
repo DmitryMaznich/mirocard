@@ -102,3 +102,41 @@ describe("plan photos", () => {
     expect(parsePlanPhotos('{"a":5,"b":"/api/photos/x"}')).toEqual({ b: "/api/photos/x" });
   });
 });
+
+describe("the day's plan on the wall screen", () => {
+  it("puts the day's important date and added items before its last item", async () => {
+    const { buildDayPlan, parsePlanItems } = await import("./weekPlan.js");
+    const items = buildDayPlan({
+      templateItems: parsePlanItems("🏫 Школа, 📚 Занимаемся, 🛏️ Спать"),
+      events: [{ id: "g", title: "Приезд бабушки", icon: "👵" }],
+      changes: { added: [{ icon: "☕", text: "Кафе" }] },
+    });
+    expect(items.map((item) => item.text)).toEqual(["Школа", "Занимаемся", "Приезд бабушки", "Кафе", "Спать"]);
+    expect(items[2]).toMatchObject({ key: "event:g", important: true });
+  });
+
+  it("crosses out a cancelled template item or date, but drops a cancelled added one", async () => {
+    const { buildDayPlan, parsePlanItems, planFocusIndex } = await import("./weekPlan.js");
+    const items = buildDayPlan({
+      templateItems: parsePlanItems("🏫 Школа, 👟 Спорт, 🛏️ Спать"),
+      events: [{ id: "g", title: "Гости", icon: "🏠" }],
+      changes: { off: ["школа", "event:g", "кафе"], added: [{ text: "Кафе" }], done: [] },
+    });
+    expect(items.map((item) => [item.text, item.cancelled])).toEqual([
+      ["Школа", true], ["Спорт", false], ["Гости", true], ["Спать", false],
+    ]);
+    expect(planFocusIndex(items)).toBe(1);
+  });
+
+  it("moves the focus past what the child marked done, and takes the item's photo", async () => {
+    const { buildDayPlan, parsePlanItems, planFocusIndex } = await import("./weekPlan.js");
+    const items = buildDayPlan({
+      templateItems: parsePlanItems("🏫 Школа, 👟 Спорт"),
+      changes: { done: ["школа"] },
+      photos: { "спорт": "/api/photos/s" },
+    });
+    expect(planFocusIndex(items)).toBe(1);
+    expect(items[1].photo).toBe("/api/photos/s");
+    expect(planFocusIndex(buildDayPlan({ templateItems: parsePlanItems("Школа"), changes: { done: ["школа"] } }))).toBe(-1);
+  });
+});
