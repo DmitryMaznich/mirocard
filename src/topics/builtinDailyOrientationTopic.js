@@ -158,6 +158,14 @@ export function buildDailyOrientationTopicRecord() {
             placeholder: { ru: "Пн: Школа\nВт: Школа\nСр: Школа\nЧт: Школа\nПт: Школа\nСб: Поездка в парк\nВс: " },
             section: "План на неделю",
           },
+          // Photos of the plan's items: JSON of item key -> /api/photos/… URL,
+          // edited only by the weekly plan editor (see weekPlan.js).
+          planPhotos: {
+            type: "free_text",
+            label: { ru: "Фото дел плана" },
+            default: "",
+            section: "План на неделю",
+          },
         },
         ui: {
           title: { ru: "Экран на сегодня" },

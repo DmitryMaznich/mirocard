@@ -193,3 +193,25 @@ export function serializeWeekItems(itemsByDay) {
     .filter(Boolean)
     .join("\n");
 }
+
+// Photos of plan items live next to the plan, not in it (params.planPhotos,
+// JSON of item key -> /api/photos/… URL): the «Пн: …» line stays readable
+// for an older app, and the emoji stays as the picture wherever the photo
+// can't be shown. Keyed like pictures, so «Спорт» has one photo in every day.
+export function parsePlanPhotos(text) {
+  if (!text) return {};
+  try {
+    const value = JSON.parse(text);
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter(([, url]) => typeof url === "string" && url));
+  } catch {
+    return {};
+  }
+}
+
+// Only items still in the week keep their photo; an empty map is "".
+export function serializePlanPhotos(photos, itemsByDay) {
+  const used = new Set(Object.values(itemsByDay).flat().map(planItemKey));
+  const kept = Object.entries(photos ?? {}).filter(([key, url]) => used.has(key) && url);
+  return kept.length ? JSON.stringify(Object.fromEntries(kept)) : "";
+}

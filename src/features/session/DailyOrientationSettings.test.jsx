@@ -97,4 +97,16 @@ describe("DailyOrientationSettings", () => {
     act(() => button(/^Убрать/).click());
     expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа\nСр: 👟 Спорт");
   });
+
+  it("removes the photo of an item that left the week, and drops the photo when an emoji is picked", () => {
+    mount({ weeklyPlan: "Пн: 👟 Спорт, 🛏️ Спать", planPhotos: '{"спорт":"/api/photos/a","спать":"/api/photos/b"}' });
+    act(() => button(/^Спать: изменить/).click());
+    act(() => button(/^Убрать/).click());
+    expect(JSON.parse(latest.planPhotos)).toEqual({ "спорт": "/api/photos/a" });
+    act(() => button(/^Спорт: изменить/).click());
+    act(() => button(/^Картинка$/).click());
+    act(() => button(/^⚽$/).click());
+    expect(latest.weeklyPlan).toBe("Пн: ⚽ Спорт");
+    expect(latest.planPhotos).toBe("");
+  });
 });

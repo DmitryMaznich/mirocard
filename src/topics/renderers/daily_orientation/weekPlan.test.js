@@ -85,3 +85,20 @@ describe("the whole week", () => {
     expect(serializeWeekItems(week)).toBe("Пн: 🏫 Школа, 👟 Спорт");
   });
 });
+
+describe("plan photos", () => {
+  it("keeps a photo only while its item is somewhere in the week", async () => {
+    const { parsePlanPhotos, serializePlanPhotos, parseWeekItems } = await import("./weekPlan.js");
+    const photos = parsePlanPhotos('{"спорт":"/api/photos/a","кафе":"/api/photos/b"}');
+    const text = serializePlanPhotos(photos, parseWeekItems("Пн: 👟 Спорт"));
+    expect(JSON.parse(text)).toEqual({ "спорт": "/api/photos/a" });
+    expect(serializePlanPhotos(photos, parseWeekItems(""))).toBe("");
+  });
+
+  it("reads broken or foreign text as no photos", async () => {
+    const { parsePlanPhotos } = await import("./weekPlan.js");
+    expect(parsePlanPhotos("не json")).toEqual({});
+    expect(parsePlanPhotos("[1]")).toEqual({});
+    expect(parsePlanPhotos('{"a":5,"b":"/api/photos/x"}')).toEqual({ b: "/api/photos/x" });
+  });
+});

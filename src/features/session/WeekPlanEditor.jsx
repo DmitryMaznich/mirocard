@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { api } from "@/core/api";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import {
   FREQUENT_EMOJI,
   PLAN_WEEK_ORDER,
   collectPlanItems,
   firstEmoji,
   moveItem,
+  parsePlanPhotos,
   parseWeekItems,
   planItemKey,
+  serializePlanPhotos,
   serializeWeekItems,
   setItemIconEverywhere,
   suggestEmoji,
@@ -18,44 +23,97 @@ import {
 // adult's own, or a new one with a picture they pick), tap an event to move it,
 // change its picture (in every day at once) or remove it. An empty day can be
 // filled «Как в …» from the nearest filled day before it.
+//
+// A picture is an emoji, a photo or nothing -- the adult chooses (owner,
+// 2026-11-23). A photo belongs to the item like its emoji does, and the emoji
+// is kept underneath as the picture wherever the photo can't be shown.
 
 const WEEKEND = new Set([6, 0]);
+const PHOTO_MAX_SIZE = 768;
+const PHOTO_JPEG_QUALITY = 0.85;
 
-function PicturePicker({ word, value, onChange }) {
+// Unlike My People, no offline data-URL fallback: the plan travels in the
+// topic's settings, and a whole photo inside them would bloat every sync.
+async function uploadPhoto(file) {
+  const dataUrl = await squarePhotoDataUrl(file, { maxSize: PHOTO_MAX_SIZE, quality: PHOTO_JPEG_QUALITY });
+  const { url } = await api.post("/photos", { dataUrl });
+  if (typeof url !== "string" || !url.startsWith("/api/photos/")) throw new Error("upload failed");
+  return url;
+}
+
+function ItemPicture({ item, photo }) {
+  if (photo) return <AuthenticatedImage className="dos-plan__chip-photo" src={photo} alt="" />;
+  return item.icon ? <span className="dos-plan__chip-icon" aria-hidden="true">{item.icon}</span> : null;
+}
+
+function PicturePicker({ word, value, photo, onChange, onPhoto }) {
   const { t } = useUiTranslation();
   const [showAll, setShowAll] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const fileRef = useRef(null);
   const suggested = suggestEmoji(word);
-  const choice = (emoji) => (
-    <button
-      key={emoji}
-      type="button"
-      className={`dos-plan__emoji${emoji === value ? " dos-plan__emoji--on" : ""}`}
-      aria-pressed={emoji === value}
-      onClick={() => onChange(emoji === value ? null : emoji)}
-    >
-      {emoji}
-    </button>
-  );
+  const choice = (emoji) => {
+    const on = !photo && emoji === value;
+    return (
+      <button
+        key={emoji}
+        type="button"
+        className={`dos-plan__emoji${on ? " dos-plan__emoji--on" : ""}`}
+        aria-pressed={on}
+        onClick={() => onChange(on ? null : emoji)}
+      >
+        {emoji}
+      </button>
+    );
+  };
+
+  async function pickPhoto(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      onPhoto(await uploadPhoto(file));
+    } catch (failure) {
+      setError(failure instanceof PhotoPrepareError ? failure.message : t("dailyPlan.photoFailed"));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div className="dos-plan__picker">
+      {photo && (
+        <div className="dos-plan__photo-row">
+          <AuthenticatedImage className="dos-plan__photo" src={photo} alt="" />
+          <button type="button" className="dos-plan__link" onClick={() => onPhoto(null)}>{t("dailyPlan.removePhoto")}</button>
+        </div>
+      )}
       {suggested.length > 0 && (
         <div className="dos-plan__emoji-row" role="group" aria-label={t("dailyPlan.suggested")}>
           {suggested.map(choice)}
         </div>
       )}
       <div className="dos-plan__picker-actions">
+        <button type="button" className="dos-plan__link" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          {uploading ? t("dailyPlan.uploading") : `📷 ${t("dailyPlan.photo")}`}
+        </button>
         <button type="button" className="dos-plan__link" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
           {t("dailyPlan.morePictures")}
         </button>
         <button
           type="button"
-          className={`dos-plan__link${value ? "" : " dos-plan__link--on"}`}
-          aria-pressed={!value}
+          className={`dos-plan__link${value || photo ? "" : " dos-plan__link--on"}`}
+          aria-pressed={!value && !photo}
           onClick={() => onChange(null)}
         >
           {t("dailyPlan.noPicture")}
         </button>
+        <input ref={fileRef} type="file" accept={PHOTO_ACCEPT} hidden onChange={pickPhoto} />
       </div>
+      {error && <p className="dos-plan__error" role="alert">{error}</p>}
       {showAll && (
         <>
           <div className="dos-plan__emoji-grid" role="group" aria-label={t("dailyPlan.morePictures")}>
@@ -64,7 +122,6 @@ function PicturePicker({ word, value, onChange }) {
           <input
             className="dos-plan__any"
             type="text"
-            inputMode="text"
             aria-label={t("dailyPlan.anyEmoji")}
             placeholder={t("dailyPlan.anyEmoji")}
             value=""
@@ -79,11 +136,12 @@ function PicturePicker({ word, value, onChange }) {
   );
 }
 
-function AddPanel({ dayItems, ownItems, onAdd, onClose }) {
+function AddPanel({ dayItems, ownItems, photos, onAdd, onClose }) {
   const { t } = useUiTranslation();
   const [text, setText] = useState("");
   const [icon, setIcon] = useState(null);
   const [iconTouched, setIconTouched] = useState(false);
+  const [photo, setPhoto] = useState(null);
   const used = new Set(dayItems.map(planItemKey));
   const available = ownItems.filter((item) => !used.has(planItemKey(item)));
   // Until the adult picks, the first suggestion for the word is pre-selected:
@@ -94,12 +152,14 @@ function AddPanel({ dayItems, ownItems, onAdd, onClose }) {
   function submit(event) {
     event.preventDefault();
     if (!text.trim()) return;
-    onAdd(known ? { ...known } : { icon: shownIcon, text: text.trim() });
+    onAdd(known ? { ...known } : { icon: shownIcon, text: text.trim() }, known ? null : photo);
     setText("");
     setIcon(null);
     setIconTouched(false);
+    setPhoto(null);
   }
 
+  const previewPhoto = known ? photos[planItemKey(known)] : photo;
   return (
     <div className="dos-plan__panel">
       {available.length > 0 && (
@@ -107,8 +167,8 @@ function AddPanel({ dayItems, ownItems, onAdd, onClose }) {
           <p className="dos-plan__label">{t("dailyPlan.yours")}</p>
           <div className="dos-plan__chips">
             {available.map((item) => (
-              <button key={planItemKey(item)} type="button" className="dos-plan__chip dos-plan__chip--own" onClick={() => onAdd({ ...item })}>
-                {item.icon && <span className="dos-plan__chip-icon" aria-hidden="true">{item.icon}</span>}
+              <button key={planItemKey(item)} type="button" className="dos-plan__chip dos-plan__chip--own" onClick={() => onAdd({ ...item }, null)}>
+                <ItemPicture item={item} photo={photos[planItemKey(item)]} />
                 {item.text}
               </button>
             ))}
@@ -118,7 +178,9 @@ function AddPanel({ dayItems, ownItems, onAdd, onClose }) {
       <form className="dos-plan__group" onSubmit={submit}>
         <label className="dos-plan__label" htmlFor="dos-plan-new">{t("dailyPlan.newItem")}</label>
         <div className="dos-plan__new">
-          <span className="dos-plan__preview" aria-hidden="true">{(known?.icon ?? shownIcon) || "·"}</span>
+          <span className="dos-plan__preview" aria-hidden="true">
+            {previewPhoto ? <AuthenticatedImage src={previewPhoto} alt="" /> : (known?.icon ?? shownIcon) || "·"}
+          </span>
           <input
             id="dos-plan-new"
             className="dos-plan__input"
@@ -131,7 +193,13 @@ function AddPanel({ dayItems, ownItems, onAdd, onClose }) {
           <button type="submit" className="dos-plan__add-btn" disabled={!text.trim()}>{t("dailyPlan.addButton")}</button>
         </div>
         {text.trim() && !known && (
-          <PicturePicker word={text} value={shownIcon} onChange={(next) => { setIcon(next); setIconTouched(true); }} />
+          <PicturePicker
+            word={text}
+            value={shownIcon}
+            photo={photo}
+            onChange={(next) => { setIcon(next); setIconTouched(true); setPhoto(null); }}
+            onPhoto={setPhoto}
+          />
         )}
       </form>
       <button type="button" className="dos-plan__done" onClick={onClose}>{t("dailyPlan.done")}</button>
@@ -139,9 +207,10 @@ function AddPanel({ dayItems, ownItems, onAdd, onClose }) {
   );
 }
 
-export default function WeekPlanEditor({ weeklyPlan, onChange }) {
+export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
   const { t } = useUiTranslation();
   const week = parseWeekItems(weeklyPlan ?? "");
+  const photos = parsePlanPhotos(planPhotos);
   const ownItems = collectPlanItems(week, PLAN_WEEK_ORDER);
   // { day, index } of the tapped event, the day whose «+» panel is open, the
   // item whose picture is being changed (by key).
@@ -149,11 +218,11 @@ export default function WeekPlanEditor({ weeklyPlan, onChange }) {
   const [addingDay, setAddingDay] = useState(null);
   const [pictureKey, setPictureKey] = useState(null);
 
-  function save(next) {
-    onChange(serializeWeekItems(next));
+  function save(nextWeek, nextPhotos = photos) {
+    onChange({ weeklyPlan: serializeWeekItems(nextWeek), planPhotos: serializePlanPhotos(nextPhotos, nextWeek) });
   }
-  function setDay(day, items) {
-    save({ ...week, [day]: items });
+  function setDay(day, items, nextPhotos) {
+    save({ ...week, [day]: items }, nextPhotos);
   }
 
   function copySource(day) {
@@ -178,6 +247,7 @@ export default function WeekPlanEditor({ weeklyPlan, onChange }) {
           const source = items.length ? null : copySource(day);
           const sel = selected?.day === day ? selected.index : null;
           const selItem = sel !== null ? items[sel] : null;
+          const selKey = selItem ? planItemKey(selItem) : null;
           return (
             <div key={day} className={`dos-plan__day${WEEKEND.has(day) ? " dos-plan__day--weekend" : ""}`}>
               <div className="dos-plan__head">
@@ -202,7 +272,7 @@ export default function WeekPlanEditor({ weeklyPlan, onChange }) {
                         setSelected(sel === index ? null : { day, index });
                       }}
                     >
-                      {item.icon && <span className="dos-plan__chip-icon" aria-hidden="true">{item.icon}</span>}
+                      <ItemPicture item={item} photo={photos[planItemKey(item)]} />
                       {item.text}
                     </button>
                   </li>
@@ -227,11 +297,7 @@ export default function WeekPlanEditor({ weeklyPlan, onChange }) {
                   <button type="button" disabled={sel === items.length - 1} onClick={() => { setDay(day, moveItem(items, sel, 1)); setSelected({ day, index: sel + 1 }); }}>
                     {t("dailyPlan.later")}
                   </button>
-                  <button
-                    type="button"
-                    aria-expanded={pictureKey === planItemKey(selItem)}
-                    onClick={() => setPictureKey(pictureKey === planItemKey(selItem) ? null : planItemKey(selItem))}
-                  >
+                  <button type="button" aria-expanded={pictureKey === selKey} onClick={() => setPictureKey(pictureKey === selKey ? null : selKey)}>
                     {t("dailyPlan.picture")}
                   </button>
                   <button type="button" className="dos-plan__remove" onClick={() => { setDay(day, items.filter((_, i) => i !== sel)); setSelected(null); setPictureKey(null); }}>
@@ -239,13 +305,24 @@ export default function WeekPlanEditor({ weeklyPlan, onChange }) {
                   </button>
                 </div>
               )}
-              {selItem && pictureKey === planItemKey(selItem) && (
+              {selItem && pictureKey === selKey && (
                 <div className="dos-plan__panel">
                   <p className="dos-plan__label">{t("dailyPlan.pictureFor", { text: selItem.text })}</p>
                   <PicturePicker
                     word={selItem.text}
                     value={selItem.icon}
-                    onChange={(icon) => save(setItemIconEverywhere(week, planItemKey(selItem), icon))}
+                    photo={photos[selKey] ?? null}
+                    onChange={(icon) => {
+                      const nextPhotos = { ...photos };
+                      delete nextPhotos[selKey];
+                      save(setItemIconEverywhere(week, selKey, icon), nextPhotos);
+                    }}
+                    onPhoto={(url) => {
+                      const nextPhotos = { ...photos };
+                      if (url) nextPhotos[selKey] = url;
+                      else delete nextPhotos[selKey];
+                      save(week, nextPhotos);
+                    }}
                   />
                 </div>
               )}
@@ -253,7 +330,8 @@ export default function WeekPlanEditor({ weeklyPlan, onChange }) {
                 <AddPanel
                   dayItems={items}
                   ownItems={ownItems}
-                  onAdd={(item) => setDay(day, [...items, item])}
+                  photos={photos}
+                  onAdd={(item, photo) => setDay(day, [...items, item], photo ? { ...photos, [planItemKey(item)]: photo } : photos)}
                   onClose={() => setAddingDay(null)}
                 />
               )}

@@ -378,7 +378,7 @@ export default function DailyOrientationSettings({ params, setParams, student, o
         </div>
       </section>
 
-      <WeekPlanEditor weeklyPlan={params.weeklyPlan} onChange={(weeklyPlan) => set({ weeklyPlan })} />
+      <WeekPlanEditor weeklyPlan={params.weeklyPlan} planPhotos={params.planPhotos} onChange={set} />
     </div>
   );
 }
