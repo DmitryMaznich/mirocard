@@ -13,9 +13,9 @@ const feedbackKeys = {
   extra: "graphicMatrix.compare",
 };
 
-function Sample({ sample }) {
+function Sample({ sample, side }) {
   return (
-    <div className="graphic-matrix__sample">
+    <div className={`graphic-matrix__sample graphic-matrix__sample--${side}`}>
       <svg viewBox="0 0 100 100" aria-hidden="true">
         {sampleLines(sample).map((points, index) => <path key={index} d={pathData(points)} />)}
       </svg>
@@ -36,6 +36,7 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
   const resolved = useRef(false);
   const acceptedCount = work.filter((strokes, index) => strokes.length === targets[index].total).length;
   const complete = sessionStatus === "answer_correct" || acceptedCount === targets.length;
+  const completedCells = complete ? targets.length : acceptedCount;
 
   useEffect(() => () => clearTimeout(feedbackTimer.current), []);
 
@@ -142,22 +143,38 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
   const hint = complete ? "graphicMatrix.ready" : feedback?.key;
   return (
     <div className="graphic-matrix">
-      <h1 className="graphic-matrix__title">{t("graphicMatrix.title")}</h1>
+      <div className="graphic-matrix__heading">
+        <h1 className="graphic-matrix__title">{t("graphicMatrix.title")}</h1>
+        <div
+          className="graphic-matrix__progress"
+          role="progressbar"
+          aria-label={t("graphicMatrix.completedCells")}
+          aria-valuemin={0}
+          aria-valuenow={completedCells}
+          aria-valuemax={targets.length}
+        >
+          <span>{t("graphicMatrix.count", { done: completedCells, total: targets.length })}</span>
+          <div className="graphic-matrix__progress-track" aria-hidden="true">
+            <div style={{ width: `${completedCells * 100 / targets.length}%` }} />
+          </div>
+        </div>
+      </div>
       <div className="graphic-matrix__board" role="group" aria-label={t("graphicMatrix.board")} style={{ "--matrix-size": rows.length }}>
-        <div className="graphic-matrix__sample" aria-hidden="true" />
-        {columns.map((sample, index) => <Sample key={index} sample={sample} />)}
+        <div className="graphic-matrix__corner" aria-hidden="true"><i /><i /><i /><i /></div>
+        {columns.map((sample, index) => <Sample key={index} sample={sample} side="top" />)}
         {rows.map((sample, row) => [
-          <Sample key={`sample-${row}`} sample={sample} />,
+          <Sample key={`sample-${row}`} sample={sample} side="left" />,
           ...columns.map((_, column) => {
             const index = row * columns.length + column;
             const done = work[index].length === targets[index].total;
+            const retry = feedback?.index === index || (trace?.index === index && trace.outside);
             const cancelled = (event) => {
               if (active.current?.pointerId === event.pointerId) cancelStroke();
             };
             return (
               <div
                 key={`cell-${index}`}
-                className={`graphic-matrix__cell${done ? " graphic-matrix__cell--done" : ""}`}
+                className={`graphic-matrix__cell${done ? " graphic-matrix__cell--done" : ""}${retry ? " graphic-matrix__cell--retry" : ""}`}
                 aria-label={t("graphicMatrix.cell", { row: row + 1, column: column + 1 })}
                 role="img"
                 onPointerDown={(event) => startStroke(event, index)}
@@ -177,10 +194,9 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
           }),
         ])}
       </div>
-      <div className="graphic-matrix__feedback">
-        <p role="status">{hint ? t(hint) : null}</p>
-        <span>{t("graphicMatrix.count", { done: complete ? targets.length : acceptedCount, total: targets.length })}</span>
-      </div>
+      <p className={`graphic-matrix__feedback${complete ? " graphic-matrix__feedback--done" : ""}`} role="status">
+        {hint ? t(hint) : null}
+      </p>
     </div>
   );
 }

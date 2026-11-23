@@ -53,6 +53,11 @@ describe("graphic matrix drawing screen", () => {
     expect(container.querySelector("h1").textContent).toBe("Что получится в клетках?");
     expect(container.textContent).not.toContain("Посмотри на чёрточки");
     expect(container.querySelectorAll("button")).toHaveLength(0);
+    expect(container.querySelectorAll(".graphic-matrix__sample--top")).toHaveLength(2);
+    expect(container.querySelectorAll(".graphic-matrix__sample--left")).toHaveLength(2);
+    const progress = container.querySelector('[role="progressbar"]');
+    expect(progress.getAttribute("aria-valuenow")).toBe("0");
+    expect(progress.getAttribute("aria-valuemax")).toBe("4");
   });
 
   it("uses a tap to erase only the tapped unfinished drawing without penalty", () => {
@@ -76,6 +81,7 @@ describe("graphic matrix drawing screen", () => {
     gesture(partial, [[50, 50], [52, 51]], { pointerType: "pen" });
     expect(partial.querySelectorAll("path")).toHaveLength(0);
     expect(other.querySelectorAll("path")).toHaveLength(1);
+    expect(container.querySelector('[role="progressbar"]').getAttribute("aria-valuenow")).toBe("1");
     expect(onCorrect).not.toHaveBeenCalled();
     expect(onStreakReset).not.toHaveBeenCalled();
   });
