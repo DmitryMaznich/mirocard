@@ -46,7 +46,10 @@ export function restoreActiveSessionState(snapshot, context) {
   if (normalized.context.topicId !== context.topicId) return null;
   if ((normalized.context.textId ?? null) !== (context.textId ?? null)) return null;
   if (normalized.context.modeId !== context.modeId) return null;
-  if (normalized.sessionState.topicVersion !== context.topicVersion) return null;
+  const savedVersion = normalized.sessionState.topicVersion;
+  const versionChanged = savedVersion !== context.topicVersion;
+  if (versionChanged && (!Array.isArray(context.compatibleTopicVersions)
+      || !context.compatibleTopicVersions.includes(savedVersion))) return null;
   if (Object.hasOwn(context, "rewardPolicy")) {
     const saved = normalized.sessionState.rewardPolicy;
     if ((saved?.version ?? 1) !== (context.rewardPolicy?.version ?? 1)) return null;
@@ -68,7 +71,7 @@ export function restoreActiveSessionState(snapshot, context) {
   const savedParams = normalized.sessionState.statistics?.conditions?.params;
   if (context.params && savedParams && !sameParams(savedParams, context.params)) return null;
 
-  return normalized.sessionState;
+  return versionChanged ? { ...normalized.sessionState, topicVersion: context.topicVersion } : normalized.sessionState;
 }
 
 function sameParams(saved, expected) {

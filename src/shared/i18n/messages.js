@@ -1,3 +1,4 @@
+import { GRAPHIC_MATRIX_MESSAGES } from "./graphicMatrixMessages.js";
 import { PARKING_MESSAGES } from "./parkingMessages.js";
 import { SETTINGS_MESSAGES } from "./settingsMessages.js";
 import { AUTH_MESSAGES } from "./authMessages.js";
@@ -10,6 +11,7 @@ import { TOPIC_PREVIEW_MESSAGES } from "./topicPreviewMessages.js";
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
   ru: {
+    ...GRAPHIC_MATRIX_MESSAGES.ru,
     ...PARKING_MESSAGES.ru,
     ...TOPIC_PREVIEW_MESSAGES.ru,
     ...TOPIC_LANGUAGE_MESSAGES.ru,
@@ -103,6 +105,7 @@ export const UI_MESSAGES = {
     ...PROPIS2_EDITOR_MESSAGES.ru,
   },
   sl: {
+    ...GRAPHIC_MATRIX_MESSAGES.sl,
     ...PARKING_MESSAGES.sl,
     ...TOPIC_PREVIEW_MESSAGES.sl,
     ...TOPIC_LANGUAGE_MESSAGES.sl,
@@ -198,6 +201,7 @@ export const UI_MESSAGES = {
   // English is the fallback for every language (shared/ui-languages.mjs); it
   // fills in screen by screen as text moves into the dictionaries.
   en: {
+    ...GRAPHIC_MATRIX_MESSAGES.en,
     ...PARKING_MESSAGES.en,
     ...TOPIC_PREVIEW_MESSAGES.en,
     ...TOPIC_LANGUAGE_MESSAGES.en,
