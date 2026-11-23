@@ -3,8 +3,6 @@ import {
   DEFAULT_BED_HOUR,
   DEFAULT_WAKE_HOUR,
   getDaypartId,
-  parseWeeklyPlan,
-  splitPlanIcon,
 } from "@/topics/renderers/daily_orientation/timeUtils";
 import {
   daysUntil,
@@ -13,6 +11,7 @@ import {
   sortByNextOccurrence,
   visibleImportantDates,
 } from "@/features/importantDates/importantDates";
+import WeekPlanEditor from "./WeekPlanEditor.jsx";
 import "./dailyOrientationSettings.css";
 
 // Settings screen for the "Сегодня" wall display. Instead of a flat list of
@@ -23,7 +22,7 @@ import "./dailyOrientationSettings.css";
 // MAP_ROWS rather than special-casing it in markup.
 //
 // Stored params are unchanged (showWeekday, …, wakeHour, bedHour and the
-// "Пн: …" weeklyPlan text), so saved settings keep working.
+// one-line-per-day weeklyPlan text, see weekPlan.js), so saved settings keep working.
 
 const CLOCK_PARTS = [
   { key: "showAnalogClock", label: "Стрелки" },
@@ -48,20 +47,6 @@ const MAP_ROWS = [
 ];
 const MAP_CARDS = MAP_ROWS.flat();
 
-const WEEK = [
-  { day: 1, short: "Пн", name: "Понедельник" },
-  { day: 2, short: "Вт", name: "Вторник" },
-  { day: 3, short: "Ср", name: "Среда" },
-  { day: 4, short: "Чт", name: "Четверг" },
-  { day: 5, short: "Пт", name: "Пятница" },
-  { day: 6, short: "Сб", name: "Суббота", weekend: true },
-  { day: 0, short: "Вс", name: "Воскресенье", weekend: true },
-];
-
-// Pictures for the weekly plan: a child who doesn't read yet recognises
-// the day by its picture ("🏊 Бассейн").
-const PLAN_ICONS = ["🏫", "🏠", "🏊", "⚽", "🎨", "🎵", "🗣️", "🩺", "🛒", "🌳", "🚗", "🧸", "👵", "🎂"];
-
 const WAKE_RANGE = [5, 9];
 const BED_RANGE = [19, 23];
 const DAYPART_LABELS = { morning: "Утро", day: "День", evening: "Вечер", night: "Ночь" };
@@ -85,13 +70,6 @@ function isOn(params, key) {
 
 function cardIsOn(params, card) {
   return card.keys.some((key) => isOn(params, key));
-}
-
-function serializeWeeklyPlan(plan) {
-  return WEEK
-    .map(({ day, short }) => (plan[day]?.trim() ? `${short}: ${plan[day].trim()}` : null))
-    .filter(Boolean)
-    .join("\n");
 }
 
 function hourLabel(hour) {
@@ -151,11 +129,6 @@ export default function DailyOrientationSettings({ params, setParams, student, o
   const [nudgedCard, setNudgedCard] = useState(null);
   const wakeHour = Number(params.wakeHour ?? DEFAULT_WAKE_HOUR);
   const bedHour = Number(params.bedHour ?? DEFAULT_BED_HOUR);
-  // The inputs show their own draft: the stored "Пн: …" text is re-parsed
-  // with trimming, so reading straight from it would eat a space the moment
-  // it's typed between two words.
-  const [planDraft, setPlanDraft] = useState(() => parseWeeklyPlan(params.weeklyPlan ?? ""));
-  const [iconPickerDay, setIconPickerDay] = useState(null);
   const visibleCards = MAP_CARDS.filter((card) => cardIsOn(params, card));
   const hiddenLabels = [
     ...(isOn(params, "showCarousel") ? [] : ["вчера, сегодня, завтра"]),
@@ -191,18 +164,6 @@ export default function DailyOrientationSettings({ params, setParams, student, o
     const on = isOn(params, key);
     if (on && clockPartsOn.length <= 1) return; // turning the last one off = hide the card (use the map)
     set({ [key]: !on });
-  }
-
-  function setPlanDay(day, text) {
-    const next = { ...planDraft, [day]: text };
-    setPlanDraft(next);
-    set({ weeklyPlan: serializeWeeklyPlan(next) });
-  }
-
-  // The picture is stored in front of the text ("🏊 Бассейн"), so saved
-  // plans and the "Пн: …" format stay as they were.
-  function setPlanDayParts(day, { icon, text }) {
-    setPlanDay(day, icon ? `${icon} ${text}` : text);
   }
 
   return (
@@ -417,61 +378,7 @@ export default function DailyOrientationSettings({ params, setParams, student, o
         </div>
       </section>
 
-      <section className="dos-section" aria-labelledby="dos-week-title">
-        <header className="dos-section__head">
-          <h2 className="dos-section__title" id="dos-week-title">План на неделю</h2>
-          <p className="dos-section__hint">Открывается тапом по карточке «День недели». Пустой день просто не показывается.</p>
-        </header>
-
-        <div className="dos-card dos-week">
-          {WEEK.map(({ day, short, name, weekend }) => {
-            const { icon, text } = splitPlanIcon(planDraft[day] ?? "");
-            return (
-              <div key={day} className={`dos-week__row${weekend ? " dos-week__row--weekend" : ""}`}>
-                <span className="dos-week__day" title={name}>{short}</span>
-                <button
-                  type="button"
-                  className={`dos-week__icon${icon ? "" : " dos-week__icon--empty"}`}
-                  aria-label={icon ? `Картинка ${name}: ${icon}. Изменить` : `Добавить картинку: ${name}`}
-                  aria-expanded={iconPickerDay === day}
-                  onClick={() => setIconPickerDay(iconPickerDay === day ? null : day)}
-                >
-                  {icon ?? "＋"}
-                </button>
-                <input
-                  id={`dos-week-${day}`}
-                  className="dos-week__input"
-                  type="text"
-                  aria-label={name}
-                  value={text}
-                  placeholder={weekend ? "Например: поездка в парк" : "Например: школа"}
-                  maxLength={60}
-                  onChange={(event) => setPlanDayParts(day, { icon, text: event.target.value })}
-                />
-                {iconPickerDay === day && (
-                  <div className="dos-week__icons" role="group" aria-label={`Картинка для дня: ${name}`}>
-                    {PLAN_ICONS.map((choice) => (
-                      <button
-                        key={choice}
-                        type="button"
-                        className={`dos-week__icon-choice${choice === icon ? " dos-week__icon-choice--on" : ""}`}
-                        onClick={() => { setPlanDayParts(day, { icon: choice, text }); setIconPickerDay(null); }}
-                      >
-                        {choice}
-                      </button>
-                    ))}
-                    {icon && (
-                      <button type="button" className="dos-week__icon-clear" onClick={() => { setPlanDayParts(day, { icon: null, text }); setIconPickerDay(null); }}>
-                        Без картинки
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
+      <WeekPlanEditor weeklyPlan={params.weeklyPlan} onChange={(weeklyPlan) => set({ weeklyPlan })} />
     </div>
   );
 }

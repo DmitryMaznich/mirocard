@@ -6,6 +6,7 @@ import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
 import { TOPIC_PREVIEW_MESSAGES } from "./topicPreviewMessages.js";
+import { DAILY_ORIENTATION_MESSAGES } from "./dailyOrientationMessages.js";
 
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
@@ -101,6 +102,7 @@ export const UI_MESSAGES = {
     ...SETTINGS_MESSAGES.ru,
     ...AUTH_MESSAGES.ru,
     ...PROPIS2_EDITOR_MESSAGES.ru,
+    ...DAILY_ORIENTATION_MESSAGES.ru,
   },
   sl: {
     ...PARKING_MESSAGES.sl,
@@ -194,6 +196,7 @@ export const UI_MESSAGES = {
     ...SETTINGS_MESSAGES.sl,
     ...AUTH_MESSAGES.sl,
     ...PROPIS2_EDITOR_MESSAGES.sl,
+    ...DAILY_ORIENTATION_MESSAGES.sl,
   },
   // English is the fallback for every language (shared/ui-languages.mjs); it
   // fills in screen by screen as text moves into the dictionaries.
@@ -281,5 +284,6 @@ export const UI_MESSAGES = {
     ...SETTINGS_MESSAGES.en,
     ...AUTH_MESSAGES.en,
     ...PROPIS2_EDITOR_MESSAGES.en,
+    ...DAILY_ORIENTATION_MESSAGES.en,
   },
 };

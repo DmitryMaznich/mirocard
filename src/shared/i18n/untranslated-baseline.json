@@ -76,7 +76,7 @@
   "src/features/rewards/rewardText.js": 30,
   "src/features/rewards/useAdultVideoBonus.jsx": 1,
   "src/features/session/ColumnOperandsParam.jsx": 18,
-  "src/features/session/DailyOrientationSettings.jsx": 92,
+  "src/features/session/DailyOrientationSettings.jsx": 69,
   "src/features/session/DrawingColoringSlider.jsx": 7,
   "src/features/session/ParamsScreen.jsx": 2,
   "src/features/session/PlaceValueCheckResult.jsx": 9,

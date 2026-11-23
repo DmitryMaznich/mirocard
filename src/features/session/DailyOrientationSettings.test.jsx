@@ -51,15 +51,50 @@ describe("DailyOrientationSettings", () => {
     expect(latest.showWeekday).not.toBe(false);
   });
 
-  it("edits the weekly plan per day and stores it in the renderer's «Пн: …» format", () => {
-    mount({ weeklyPlan: "Пн: Школа" });
-    const sunday = container.querySelector("#dos-week-0");
+  const typeInto = (input, value) => {
     const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
     act(() => {
-      setValue.call(sunday, "Гости у бабушки ");
-      sunday.dispatchEvent(new Event("input", { bubbles: true }));
+      setValue.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    expect(latest.weeklyPlan).toBe("Пн: Школа\nВс: Гости у бабушки");
-    expect(sunday.value).toBe("Гости у бабушки ");
+  };
+
+  it("shows a plan saved as one line per day as separate events", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа, спорт" });
+    expect(button(/^Школа: изменить/)).toBeTruthy();
+    expect(button(/^спорт: изменить/)).toBeTruthy();
+  });
+
+  it("adds a new event with the picture suggested for its word, in the stored «Пн: …» form", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа" });
+    act(() => button(/^Добавить дело: Понедельник/).click());
+    typeInto(container.querySelector("#dos-plan-new"), "Бассейн");
+    act(() => container.querySelector(".dos-plan__panel form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа, 🏊 Бассейн");
+  });
+
+  it("adds one of the week's own events with one tap", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа, 👟 Спорт" });
+    act(() => button(/^Добавить дело: Вторник/).click());
+    act(() => Array.from(container.querySelectorAll(".dos-plan__chip--own")).find((el) => /Спорт/.test(el.textContent)).click());
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа, 👟 Спорт\nВт: 👟 Спорт");
+  });
+
+  it("fills an empty day like the nearest filled day before it", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа, 👟 Спорт" });
+    act(() => button(/^Как в понедельник/).click());
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа, 👟 Спорт\nВт: 🏫 Школа, 👟 Спорт");
+  });
+
+  it("moves, re-pictures (in every day) and removes an event", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа, Спорт\nСр: Спорт" });
+    act(() => button(/^Спорт: изменить/).click());
+    act(() => button(/^← Раньше/).click());
+    expect(latest.weeklyPlan).toBe("Пн: Спорт, 🏫 Школа\nСр: Спорт");
+    act(() => button(/^Картинка$/).click());
+    act(() => button(/^👟$/).click());
+    expect(latest.weeklyPlan).toBe("Пн: 👟 Спорт, 🏫 Школа\nСр: 👟 Спорт");
+    act(() => button(/^Убрать/).click());
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа\nСр: 👟 Спорт");
   });
 });
