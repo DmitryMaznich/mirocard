@@ -3,6 +3,8 @@ import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { evaluateMatrixStroke, isOutsideCell, matrixCellTargets, pathData, sampleLines } from "./model";
 import "./graphicMatrix.css";
 
+const tapSlop = 6; // CSS pixels, independent of the size of the board.
+
 const feedbackKeys = {
   outside: "graphicMatrix.outside",
   shape: "graphicMatrix.shape",
@@ -28,14 +30,12 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
   const [work, setWork] = useState(() => targets.map(() => []));
   const [trace, setTrace] = useState(null);
   const [feedback, setFeedback] = useState(null);
-  const [eraseMode, setEraseMode] = useState(null);
   const workRef = useRef(work);
   const active = useRef(null);
   const feedbackTimer = useRef(null);
   const resolved = useRef(false);
   const acceptedCount = work.filter((strokes, index) => strokes.length === targets[index].total).length;
   const complete = sessionStatus === "answer_correct" || acceptedCount === targets.length;
-  const hasInk = work.some((strokes) => strokes.length > 0);
 
   useEffect(() => () => clearTimeout(feedbackTimer.current), []);
 
@@ -59,32 +59,31 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
     setTrace(null);
   }
 
-  function erase(index) {
-    cancelStroke();
-    dismissFeedback();
-    setDrawing(workRef.current.map((strokes, current) => index === undefined || current === index ? [] : strokes));
-    setEraseMode(null);
+  function eraseCell(index) {
+    if (feedback?.index === index) dismissFeedback();
+    if (workRef.current[index].length) {
+      setDrawing(workRef.current.map((strokes, cell) => cell === index ? [] : strokes));
+    }
   }
 
   function startStroke(event, index) {
     if (interactionDisabled || complete || resolved.current || active.current ||
-        !["touch", "pen"].includes(event.pointerType) || event.button !== 0) return;
+        !["touch", "pen"].includes(event.pointerType) || event.button !== 0 ||
+        workRef.current[index].length === targets[index].total) return;
     event.preventDefault();
-    if (eraseMode === "cell") {
-      if (workRef.current[index].length) erase(index);
-      return;
-    }
-    if (eraseMode === "all" || workRef.current[index].length === targets[index].total) return;
-    dismissFeedback();
     const rect = event.currentTarget.querySelector("svg").getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    const stroke = { pointerId: event.pointerId, index, rect, element: event.currentTarget, points: [] };
+    const stroke = {
+      pointerId: event.pointerId, index, rect, element: event.currentTarget, points: [],
+      startX: event.clientX, startY: event.clientY, dragged: false,
+    };
     active.current = stroke;
     collect(event, stroke);
   }
 
   function collect(event, stroke) {
+    stroke.dragged ||= Math.hypot(event.clientX - stroke.startX, event.clientY - stroke.startY) >= tapSlop;
     const x = (event.clientX - stroke.rect.left) * 100 / stroke.rect.width;
     const y = (event.clientY - stroke.rect.top) * 100 / stroke.rect.height;
     const point = [x, y].map((value) => Math.round(Math.max(-20, Math.min(120, value))));
@@ -100,8 +99,11 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
       cancelStroke();
       return;
     }
+    const wasDragging = stroke.dragged;
     for (const sample of event.nativeEvent.getCoalescedEvents?.() ?? []) collect(sample, stroke);
     collect(event, stroke);
+    if (!stroke.dragged) return;
+    if (!wasDragging) dismissFeedback();
     setTrace({ index: stroke.index, path: pathData(stroke.points), outside: stroke.outside });
   }
 
@@ -113,6 +115,11 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
     if (interactionDisabled || resolved.current) return;
 
     const { index, points } = current;
+    if (!current.dragged) {
+      eraseCell(index);
+      return;
+    }
+    dismissFeedback();
     const result = evaluateMatrixStroke(points, targets[index], workRef.current[index]);
     if (result.kind === "idle") return;
     if (result.kind !== "correct") {
@@ -132,17 +139,10 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
     }
   }
 
-  function showEraseMode(mode) {
-    cancelStroke();
-    dismissFeedback();
-    setEraseMode(eraseMode === mode ? null : mode);
-  }
-
-  const hint = complete ? "graphicMatrix.ready" : eraseMode === "cell" ? "graphicMatrix.pickCell"
-    : eraseMode === "all" ? "graphicMatrix.askEraseAll" : feedback?.key;
+  const hint = complete ? "graphicMatrix.ready" : feedback?.key;
   return (
     <div className="graphic-matrix">
-      <p className="graphic-matrix__instruction">{t("graphicMatrix.instruction")}</p>
+      <h1 className="graphic-matrix__title">{t("graphicMatrix.title")}</h1>
       <div className="graphic-matrix__board" role="group" aria-label={t("graphicMatrix.board")} style={{ "--matrix-size": rows.length }}>
         <div className="graphic-matrix__sample" aria-hidden="true" />
         {columns.map((sample, index) => <Sample key={index} sample={sample} />)}
@@ -181,15 +181,6 @@ export default function GraphicMatrixTask({ task, sessionStatus, interactionDisa
         <p role="status">{hint ? t(hint) : null}</p>
         <span>{t("graphicMatrix.count", { done: complete ? targets.length : acceptedCount, total: targets.length })}</span>
       </div>
-      {!complete && (
-        <div className="graphic-matrix__tools">
-          {eraseMode !== "all" && <button type="button" className="btn btn--secondary" disabled={!hasInk || interactionDisabled} aria-pressed={eraseMode === "cell"} onClick={() => showEraseMode("cell")}>{t("graphicMatrix.eraseCell")}</button>}
-          <button type="button" className="btn btn--secondary" disabled={!hasInk || interactionDisabled} onClick={() => eraseMode === "all" ? erase() : showEraseMode("all")}>
-            {t(eraseMode === "all" ? "graphicMatrix.confirmEraseAll" : "graphicMatrix.eraseAll")}
-          </button>
-          {eraseMode === "all" && <button type="button" className="btn btn--secondary" onClick={() => showEraseMode(null)}>{t("common.cancel")}</button>}
-        </div>
-      )}
     </div>
   );
 }

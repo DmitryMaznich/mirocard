@@ -77,6 +77,7 @@ export default function SessionHeader({
     />
   ) : null;
 
+  const subtitle = [topicTitle, modeTitle].filter(Boolean).join(" · ");
   return (
     <div className="session-topbar">
       {showProgress ? (
@@ -85,12 +86,12 @@ export default function SessionHeader({
             {streakBar}
             {rightCluster}
           </div>
-          <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
+          <div className="session-subtitle">{subtitle}</div>
         </>
       ) : (
         <div className="session-topbar-controls">
           {streakBar}
-          <div className="session-subtitle session-subtitle--inline">{topicTitle} · {modeTitle}</div>
+          <div className="session-subtitle session-subtitle--inline">{subtitle}</div>
           {rightCluster}
         </div>
       )}

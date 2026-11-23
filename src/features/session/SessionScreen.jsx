@@ -303,7 +303,7 @@ export default function SessionScreen() {
   const isGraphicMatrix = mode.type === GRAPHIC_MATRIX_MODE;
   const Renderer = isGraphicMatrix ? GraphicMatrixTask : TopicRenderer;
   const modeTitle = isGraphicMatrix
-    ? t("graphicMatrix.title")
+    ? null
     : getTopicTitle(mode.ui?.title, topicRecord.languageContract ? uiLanguage : "ru") || mode.id;
 
   const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
