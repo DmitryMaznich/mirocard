@@ -108,6 +108,16 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .pin{position:absolute;top:-30px;font-size:24px;background:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,.25);transform:translateX(-50%);left:var(--x)}
 .pin::after{content:"";position:absolute;bottom:-12px;left:50%;margin-left:-2px;width:4px;height:12px;background:#c2410c}
 .bar{overflow:visible}
+
+.strip{display:flex;gap:14px;align-items:center;overflow:hidden;padding:6px 4px;position:relative}
+.st{flex:none;width:150px;height:190px;background:#fff;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:22px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.st .e{font-size:76px;line-height:1.15}
+.st.done{opacity:.4}
+.st.done::after{content:"✓";position:absolute;top:8px;right:14px;font-size:32px;color:#16a34a}
+.st.next{border:5px solid #0f3b4c}
+.arrow{flex:none;font-size:28px;color:#b49a7a;font-weight:900}
+.strip-fade{position:absolute;right:0;top:0;bottom:0;width:70px;background:linear-gradient(90deg,rgba(255,243,226,0),#fff3e2)}
+.plan-day{grid-template-columns:220px 1fr}
 </style></head>
 <body>
 <div class="screen">
@@ -179,6 +189,18 @@ if(s==='dawn'){
   dig.innerHTML='<span>06</span>:<span>50</span>';
   tw.innerHTML='<span class="hh">ШЕСТЬ ЧАСОВ</span><br><span class="mm">ПЯТЬДЕСЯТ МИНУТ</span>';
   wx.classList.add('stale');wx.innerHTML='<div class="ic">?</div><div><div class="tx">ПОГОДА?</div></div>';
+}
+if(s==='plan'||s==='plan2'){
+  const day=document.querySelector('.day');day.classList.add('plan-day');
+  const items=[['🏫','ШКОЛА'],['🏊','БАССЕЙН'],['🍽️','ОБЕД'],['🌳','ПРОГУЛКА'],['☕','КАФЕ'],['🛁','ВАННА'],['🛏️','СОН']];
+  const done=s==='plan2'?3:0;
+  const flow=day.querySelector('.flow');
+  flow.innerHTML='<div class="cap" style="margin-bottom:8px">Сегодня</div><div class="strip">'+items.map((it,i)=>`<div class="st${i<done?' done':''}${i===done?' next':''}"><span class="e">${it[0]}</span>${it[1]}</div>`).join('<span class="arrow">›</span>')+'<div class="strip-fade"></div></div>';
+  if(s==='plan2'){flow.querySelector('.strip').scrollLeft=0;flow.querySelector('.strip').style.transform='translateX(-330px)';
+    document.getElementById('dpw').textContent='ДЕНЬ';day.style.background='#e6f3fb';
+    clk.style.setProperty('--ha','105deg');clk.style.setProperty('--ma','60deg');
+    dig.innerHTML='<span>15</span>:<span>10</span>';tw.innerHTML='<span class="hh">ПЯТНАДЦАТЬ ЧАСОВ</span><br><span class="mm">ДЕСЯТЬ МИНУТ</span>';}
+  document.querySelector('.wd-plan').remove();
 }
 if(s==='night')document.body.classList.add('night');
 
