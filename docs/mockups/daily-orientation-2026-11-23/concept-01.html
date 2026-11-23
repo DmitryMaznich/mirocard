@@ -38,13 +38,13 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .mon{font-size:40px;font-weight:900;text-align:center;line-height:1.05}
 .seas{display:inline-block;margin-top:14px;font-size:30px;font-weight:900;background:#db9f48;color:#fff;border-radius:14px;padding:4px 16px}
 /* row 2: day */
-.day{background:#fff3e2;display:grid;grid-template-columns:230px 1fr;gap:20px}
-.dp{display:flex;flex-direction:column}
+.day{background:#fff3e2;display:grid;grid-template-columns:250px 1fr;gap:20px;align-items:center}
+.dp{display:flex;flex-direction:column;align-self:start}
 .dp .word{font-size:76px;font-weight:900;line-height:1;margin-top:4px}
 .dp .sky{margin-top:auto;height:150px;border-radius:22px;background:var(--sky);display:flex;align-items:center;justify-content:center;font-size:78px;position:relative}
 .dp .sky small{position:absolute;bottom:8px;font-size:15px;font-weight:800;color:#fff;background:rgba(0,0,0,.25);padding:2px 10px;border-radius:10px}
-.flow{display:flex;flex-direction:column}
-.tiles{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:14px;align-items:end;height:220px}
+.flow{display:flex;flex-direction:column;justify-content:center}
+.tiles{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:14px;align-items:end;height:250px}
 .t{background:#fff;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;font-weight:900;height:170px;position:relative}
 .t .e{font-size:70px;line-height:1.1}
 .t .n{font-size:24px}
@@ -121,7 +121,6 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
     </section>
     <section class="card leaf tap">
       <div class="sticker" id="stk">👵</div><div class="pic"></div><div class="fade"></div>
-      <div class="ring"><span></span><span></span></div>
       <div class="body">
         <div><div class="lab">Число</div><div class="num">23</div></div>
         <div style="text-align:center"><div class="lab">Месяц</div><div class="mon">НОЯБРЬ</div><div class="seas">ОСЕНЬ</div></div>
@@ -134,7 +133,6 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
       <div class="dp">
         <div class="cap">Сейчас</div>
         <div class="word" id="dpw">УТРО</div>
-        <div class="sky" id="sky" style="--sky:linear-gradient(#ffd8a8,#bfe3f7)">🌅<small>в окне</small></div>
       </div>
       <div class="flow">
         <div class="tiles" id="tiles">
@@ -142,7 +140,6 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
           <div class="t now"><span class="k">СЕЙЧАС</span><span class="e">🏫</span><span class="n">ДЕТСКИЙ САД</span></div>
           <div class="t"><span class="k">потом</span><span class="e">🍲</span><span class="n">ОБЕД</span></div>
         </div>
-        <div class="bar" id="bar"><div class="m cur">УТРО</div><div class="dd">ДЕНЬ</div><div class="ev">ВЕЧЕР</div><div class="ni">НОЧЬ</div><span class="marker" style="--x:22%"></span></div>
       </div>
     </section>
     <div class="rc">
@@ -152,28 +149,36 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
           <div class="w" id="tw"><span class="hh">ВОСЕМЬ ЧАСОВ</span><br><span class="mm">ДВАДЦАТЬ МИНУТ</span></div></div>
       </section>
       <section class="card weather tap" id="wx">
-        <div class="ic">☀️</div><div><div class="tx">СОЛНЕЧНО</div><div class="st">отметили в 8:05</div></div>
+        <div class="ic">☀️</div><div><div class="tx">СОЛНЕЧНО</div></div>
       </section>
     </div>
   </div>
 
-  <div class="sleep"><div class="moon">🌙</div><div class="w">НОЧЬ</div><div class="s">ВСЕ СПЯТ</div><div class="c">23:40</div></div>
+  <div class="sleep"><div class="moon">🌙</div><div class="w">НОЧЬ</div><div class="c">23:40</div></div>
 </div>
 <script>
 const s=new URLSearchParams(location.search).get('t');
 if(s==='evening'){
   dpw.textContent='ВЕЧЕР';
-  sky.style.setProperty('--sky','linear-gradient(#5b4b8a,#f29b6b)');sky.firstChild.textContent='🌇';
+  
   document.querySelector('.day').style.background='#efe7fb';
   tiles.innerHTML=`<div class="t was"><span class="k">было</span><span class="e">🍽️</span><span class="n">УЖИН</span></div>
    <div class="t now"><span class="k">СЕЙЧАС</span><span class="e">🛁</span><span class="n">ВАННА</span></div>
    <div class="t"><span class="k">потом</span><span class="e">🛏️</span><span class="n">СОН</span></div>`;
-  bar.querySelector('.cur').classList.remove('cur');bar.querySelector('.ev').classList.add('cur');
-  bar.querySelector('.marker').style.setProperty('--x','76%');
+  
   clk.style.setProperty('--ha','600deg');clk.style.setProperty('--ma','66deg');
   dig.innerHTML='<span>20</span>:<span>11</span>';
   tw.innerHTML='<span class="hh">ДВАДЦАТЬ ЧАСОВ</span><br><span class="mm">ОДИННАДЦАТЬ МИНУТ</span>';
   wx.classList.add('stale');wx.innerHTML='<div class="ic">?</div><div><div class="tx">ПОГОДА?</div><div class="st">посмотри в окно</div></div>';
+}
+if(s==='dawn'){
+  tiles.innerHTML=`<div class="t was"><span class="k">было</span><span class="e">🛏️</span><span class="n">СОН</span></div>
+   <div class="t now"><span class="k">СЕЙЧАС</span><span class="e">🪥</span><span class="n">УМЫВАЕМСЯ</span></div>
+   <div class="t"><span class="k">потом</span><span class="e">🥣</span><span class="n">ЗАВТРАК</span></div>`;
+  clk.style.setProperty('--ha','205deg');clk.style.setProperty('--ma','300deg');
+  dig.innerHTML='<span>06</span>:<span>50</span>';
+  tw.innerHTML='<span class="hh">ШЕСТЬ ЧАСОВ</span><br><span class="mm">ПЯТЬДЕСЯТ МИНУТ</span>';
+  wx.classList.add('stale');wx.innerHTML='<div class="ic">?</div><div><div class="tx">ПОГОДА?</div></div>';
 }
 if(s==='night')document.body.classList.add('night');
 
@@ -183,8 +188,7 @@ if(s==='countdown'){B.classList.add('has-rib');
  }
 if(s==='event'){B.classList.add('has-rib','festive');
  rib.innerHTML='<div class="ph">👵</div>СЕГОДНЯ ПРИЕЗД БАБУШКИ!<div class="q" style="margin-left:auto">?</div>';
- 
- bar.insertAdjacentHTML('beforeend','<span class="pin" style="--x:58%">👵</span>');}
+ }
 if(s==='yesterday'){B.classList.add('has-rib');
  document.querySelector('.nav .on').classList.remove('on');document.querySelector('.nav span').classList.add('on');
  rib.innerHTML='<div class="ph">👵</div>ВЧЕРА БЫЛ ПРИЕЗД БАБУШКИ<div class="photos"><span>📷</span><span>📷</span><span>📷</span></div><div class="q">?</div>';
