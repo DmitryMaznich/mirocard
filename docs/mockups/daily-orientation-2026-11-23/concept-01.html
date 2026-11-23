@@ -83,10 +83,36 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .night .sleep{display:flex}
 .sleep{display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#c9d6ea;font-weight:900}
 .sleep .moon{font-size:160px}.sleep .w{font-size:96px;letter-spacing:2px}.sleep .s{font-size:40px;color:#8fa3c0}.sleep .c{font-size:44px;color:#6f84a3;margin-top:20px}
+
+/* top bar with important-date ribbon */
+.topbar{display:flex;align-items:center;gap:18px}
+.topbar .nav{flex:none;gap:26px;font-size:24px}
+.topbar .nav .on{font-size:30px;padding:6px 22px}
+.rib{display:none;flex:1;height:64px;border-radius:20px;align-items:center;gap:14px;padding:0 18px 0 8px;font-weight:900;font-size:28px;background:#fff7dc;box-shadow:0 2px 8px rgba(120,80,0,.12);position:relative}
+.rib .ph{width:52px;height:52px;border-radius:50%;background:#fde68a;display:flex;align-items:center;justify-content:center;font-size:34px;flex:none;border:3px solid #fff}
+.rib .marks{margin-left:auto;display:flex;gap:6px;align-items:center}
+.rib .marks i{width:20px;height:20px;border-radius:50%;background:#f59e0b;display:block}
+.rib .marks i.off{background:#eadfc4}
+.rib .q{width:40px;height:40px;border-radius:50%;background:#fff;border:2px solid #e6d7a8;display:flex;align-items:center;justify-content:center;font-size:22px;color:#a07a1a;flex:none}
+.rib .photos{display:flex;gap:6px;margin-left:auto}
+.rib .photos span{width:52px;height:52px;border-radius:10px;background:#e9dfcc;display:flex;align-items:center;justify-content:center;font-size:26px}
+.has-rib .rib{display:flex}
+.d .ev{position:absolute;top:-10px;right:-6px;font-size:26px;background:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,.2)}
+.d{position:relative}
+.sticker{display:none;position:absolute;right:14px;bottom:14px;width:74px;height:74px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:44px;align-items:center;justify-content:center;z-index:2}
+.festive .sticker{display:flex}
+.garland{display:none;position:absolute;top:0;left:0;right:0;height:26px;background:repeating-linear-gradient(90deg,transparent 0 6px,transparent 6px 60px);z-index:5}
+.festive .garland{display:flex;justify-content:space-around}
+.garland b{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:24px solid var(--g)}
+.festive .screen{background:linear-gradient(#fff4e0,#fbead2)}
+.pin{position:absolute;top:-30px;font-size:24px;background:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,.25);transform:translateX(-50%);left:var(--x)}
+.pin::after{content:"";position:absolute;bottom:-12px;left:50%;margin-left:-2px;width:4px;height:12px;background:#c2410c}
+.bar{overflow:visible}
 </style></head>
 <body>
 <div class="screen">
-  <nav class="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav>
+  <div class="garland"><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b></div>
+  <div class="topbar"><nav class="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav><div class="rib" id="rib"></div></div>
 
   <div class="row r1">
     <section class="card weekday tap">
@@ -103,7 +129,7 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
       </div>
     </section>
     <section class="card leaf tap">
-      <div class="pic"></div><div class="fade"></div>
+      <div class="sticker" id="stk">👵</div><div class="pic"></div><div class="fade"></div>
       <div class="ring"><span></span><span></span></div>
       <div class="body">
         <div><div class="lab">Число</div><div class="num">23</div></div>
@@ -159,5 +185,23 @@ if(s==='evening'){
   wx.classList.add('stale');wx.innerHTML='<div class="ic">?</div><div><div class="tx">ПОГОДА?</div><div class="st">посмотри в окно</div></div>';
 }
 if(s==='night')document.body.classList.add('night');
+
+const B=document.body;
+if(s==='countdown'){B.classList.add('has-rib');
+ rib.innerHTML='<div class="ph">🎄</div>НОВЫЙ ГОД ЧЕРЕЗ 5 ДНЕЙ<div class="marks"><i></i><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div><div class="q">?</div>';
+ document.querySelectorAll('.d')[5].insertAdjacentHTML('beforeend','<span class="ev">🎄</span>');}
+if(s==='event'){B.classList.add('has-rib','festive');
+ rib.innerHTML='<div class="ph">👵</div>СЕГОДНЯ ПРИЕЗД БАБУШКИ!<div class="q" style="margin-left:auto">?</div>';
+ document.querySelector('.wd-plan').innerHTML='<b>👵</b>БАБУШКА';
+ document.querySelector('.d.today i').textContent='👵';
+ bar.insertAdjacentHTML('beforeend','<span class="pin" style="--x:58%">👵</span>');}
+if(s==='yesterday'){B.classList.add('has-rib');
+ document.querySelector('.nav .on').classList.remove('on');document.querySelector('.nav span').classList.add('on');
+ rib.innerHTML='<div class="ph">👵</div>ВЧЕРА БЫЛ ПРИЕЗД БАБУШКИ<div class="photos"><span>📷</span><span>📷</span><span>📷</span></div><div class="q">?</div>';
+ document.querySelector('.wd-name').textContent='ВОСКРЕСЕНЬЕ';document.querySelector('.wd-name').style.fontSize='60px';
+ document.querySelector('.wd-plan').innerHTML='<b>👵</b>БАБУШКА';
+ document.querySelector('.d.today').classList.remove('today');const ds=document.querySelectorAll('.d');ds[6].classList.add('today');ds[6].querySelector('i').textContent='👵';
+ document.querySelector('.num').textContent='22';
+ document.querySelector('.r2').style.opacity='.35';}
 </script>
 </body></html>
