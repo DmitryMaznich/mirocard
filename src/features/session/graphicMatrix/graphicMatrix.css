@@ -22,9 +22,8 @@
   --matrix-blue: #dceaf8;
   --matrix-peach: #ffe5ce;
   --matrix-green: #27745d;
-  align-self: center;
-  width: min(calc(100% - 24px), 600px);
-  width: min(calc(100% - 24px), clamp(276px, 100dvh - 255px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px), 600px));
+  align-self: stretch;
+  width: 100%;
   margin: 0 auto auto;
   margin-top: clamp(0px, calc((100dvh - 100vw - 250px) / 4), 44px);
   padding: 12px 0 2px;
@@ -36,7 +35,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: clamp(10px, 2.6vw, 20px);
+  margin: 0 clamp(12px, 2vw, 24px) clamp(10px, 2.6vw, 20px);
 }
 
 .graphic-matrix__title {
@@ -85,10 +84,10 @@
 .graphic-matrix__board {
   --tile-gap: clamp(4px, 1.1vw, 8px);
   --tile-radius: clamp(7px, 2vw, 14px);
+  --axis-size: clamp(44px, 13vw, 96px);
   display: grid;
-  grid-template-columns: .77fr repeat(var(--matrix-size), 1fr);
-  grid-template-rows: .77fr repeat(var(--matrix-size), 1fr);
-  aspect-ratio: 1;
+  grid-template-columns: var(--axis-size) repeat(var(--matrix-size), minmax(0, 1fr));
+  grid-template-rows: var(--axis-size);
   gap: var(--tile-gap);
   padding: clamp(6px, 1.6vw, 12px);
   border: 1px solid #dccbb0;
@@ -134,6 +133,9 @@
 
 .graphic-matrix__sample--top {
   --tile-edge: #e8b48e;
+  position: sticky;
+  top: 0;
+  z-index: 2;
   background: var(--matrix-peach);
   color: #714021;
 }
@@ -144,9 +146,16 @@
   color: #274e73;
 }
 
-.graphic-matrix__sample svg { display: block; width: 92%; height: 92%; }
+.graphic-matrix__sample svg {
+  position: absolute;
+  inset: 0;
+  width: min(92%, 106px);
+  height: min(92%, 106px);
+  margin: auto;
+}
 
 .graphic-matrix__cell {
+  aspect-ratio: 1;
   overflow: hidden;
   touch-action: none;
   user-select: none;
@@ -203,7 +212,7 @@
 .graphic-matrix__invalid { color: #95501b; }
 
 .graphic-matrix__feedback {
-  margin: 10px 0 0;
+  margin: 10px 12px 0;
   min-height: 2.4em;
   color: #70421f;
   font-size: clamp(.86rem, 2.8vw, 1rem);
@@ -212,29 +221,6 @@
 }
 
 .graphic-matrix__feedback--done { color: #215d4b; }
-
-@media (min-width: 620px) and (max-height: 540px) and (orientation: landscape) {
-  .graphic-matrix {
-    --matrix-landscape-size: clamp(276px, 100dvh - 112px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px), 420px);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--matrix-landscape-size);
-    grid-template-rows: 1fr auto 1fr;
-    column-gap: clamp(16px, 4vw, 36px);
-    width: min(calc(100% - 24px), calc(260px + var(--matrix-landscape-size)));
-    margin-top: 0;
-    padding-top: 4px;
-  }
-
-  .graphic-matrix__heading {
-    grid-row: 2;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .graphic-matrix__title { font-size: clamp(24px, 4vw, 36px); text-wrap: initial; }
-  .graphic-matrix__board { grid-area: 1 / 2 / span 3; }
-  .graphic-matrix__feedback { grid-row: 3; text-align: start; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .graphic-matrix__cell,
