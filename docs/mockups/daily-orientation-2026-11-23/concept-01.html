@@ -17,9 +17,9 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .r2{grid-template-columns:1fr 400px}
 .weekday{background:#e7f4ef;display:flex;flex-direction:column}
 .wd-top{display:flex;align-items:center;gap:22px;margin-top:6px}
-.wd-name{font-size:68px;font-weight:900;letter-spacing:-2px;line-height:1}
-.wd-plan{display:flex;align-items:center;gap:8px;background:#fff;border-radius:18px;padding:6px 14px;font-size:22px;font-weight:800}
-.wd-plan b{font-size:36px}
+.wd-name{margin-top:8px;font-size:76px;font-weight:900;letter-spacing:-2px;line-height:1}
+.wd-plan{margin-top:auto;align-self:flex-start;display:flex;align-items:center;gap:18px;background:#fff;border-radius:22px;padding:10px 26px 10px 14px;font-size:34px;font-weight:900}
+.wd-plan b{font-size:72px;line-height:1}
 .week{margin-top:auto;display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .d{height:92px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#0f3b4c;background:var(--c);border:3px solid transparent}
 .d i{font-style:normal;font-size:30px;height:36px}
@@ -100,7 +100,7 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
 .d .ev{position:absolute;top:-10px;right:-6px;font-size:26px;background:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,.2)}
 .d{position:relative}
 .sticker{display:none;position:absolute;right:14px;bottom:14px;width:74px;height:74px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:44px;align-items:center;justify-content:center;z-index:2}
-.festive .sticker{display:flex}
+
 .garland{display:none;position:absolute;top:0;left:0;right:0;height:26px;background:repeating-linear-gradient(90deg,transparent 0 6px,transparent 6px 60px);z-index:5}
 .festive .garland{display:flex;justify-content:space-around}
 .garland b{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:24px solid var(--g)}
@@ -117,16 +117,7 @@ body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
   <div class="row r1">
     <section class="card weekday tap">
       <div class="cap">День недели</div>
-      <div class="wd-top"><div class="wd-name">ПОНЕДЕЛЬНИК</div><div class="wd-plan"><b>🎨</b>РИСОВАНИЕ</div></div>
-      <div class="week">
-        <div class="d today" style="--c:#fecaca">ПН<i>🎨</i></div>
-        <div class="d" style="--c:#fed7aa">ВТ<i>🏊</i></div>
-        <div class="d" style="--c:#fef08a">СР<i></i></div>
-        <div class="d" style="--c:#bbf7d0">ЧТ<i>🗣️</i></div>
-        <div class="d" style="--c:#bae6fd">ПТ<i>🏊</i></div>
-        <div class="d" style="--c:#c7d2fe">СБ<i>👵</i></div>
-        <div class="d" style="--c:#e9d5ff">ВС<i>🏠</i></div>
-      </div>
+      <div class="wd-name">ПОНЕДЕЛЬНИК</div><div class="wd-plan"><b>🎨</b><span>РИСОВАНИЕ</span></div>
     </section>
     <section class="card leaf tap">
       <div class="sticker" id="stk">👵</div><div class="pic"></div><div class="fade"></div>
@@ -189,18 +180,17 @@ if(s==='night')document.body.classList.add('night');
 const B=document.body;
 if(s==='countdown'){B.classList.add('has-rib');
  rib.innerHTML='<div class="ph">🎄</div>НОВЫЙ ГОД ЧЕРЕЗ 5 ДНЕЙ<div class="marks"><i></i><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div><div class="q">?</div>';
- document.querySelectorAll('.d')[5].insertAdjacentHTML('beforeend','<span class="ev">🎄</span>');}
+ }
 if(s==='event'){B.classList.add('has-rib','festive');
  rib.innerHTML='<div class="ph">👵</div>СЕГОДНЯ ПРИЕЗД БАБУШКИ!<div class="q" style="margin-left:auto">?</div>';
- document.querySelector('.wd-plan').innerHTML='<b>👵</b>БАБУШКА';
- document.querySelector('.d.today i').textContent='👵';
+ 
  bar.insertAdjacentHTML('beforeend','<span class="pin" style="--x:58%">👵</span>');}
 if(s==='yesterday'){B.classList.add('has-rib');
  document.querySelector('.nav .on').classList.remove('on');document.querySelector('.nav span').classList.add('on');
  rib.innerHTML='<div class="ph">👵</div>ВЧЕРА БЫЛ ПРИЕЗД БАБУШКИ<div class="photos"><span>📷</span><span>📷</span><span>📷</span></div><div class="q">?</div>';
- document.querySelector('.wd-name').textContent='ВОСКРЕСЕНЬЕ';document.querySelector('.wd-name').style.fontSize='60px';
- document.querySelector('.wd-plan').innerHTML='<b>👵</b>БАБУШКА';
- document.querySelector('.d.today').classList.remove('today');const ds=document.querySelectorAll('.d');ds[6].classList.add('today');ds[6].querySelector('i').textContent='👵';
+ document.querySelector('.wd-name').textContent='ВОСКРЕСЕНЬЕ';
+ document.querySelector('.wd-plan').innerHTML='<b>🏠</b><span>ДОМА</span>';
+ 
  document.querySelector('.num').textContent='22';
  document.querySelector('.r2').style.opacity='.35';}
 </script>
