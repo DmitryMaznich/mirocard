@@ -58,6 +58,48 @@ describe("graphic matrix", () => {
     }
   });
 
+  it("changes both heading groups between consecutive boards and across the loop", async () => {
+    const topic = await install();
+    for (const size of ["2x2", "4x4"]) {
+      const { tasks } = sessionFor(topic, size);
+      const sides = ["rows", "columns"];
+      const shapes = new Set();
+      tasks.forEach((task, index) => {
+        const following = tasks[(index + 1) % tasks.length];
+        for (const side of sides) {
+          expect(task[side]).not.toEqual(following[side]);
+          if (size === "4x4") {
+            const group = (board) => board[side].map((sample) => sample.join(":")).sort();
+            expect(group(task)).not.toEqual(group(following));
+          }
+          task[side].forEach((sample) => shapes.add(sample.join(":")));
+        }
+      });
+      if (size === "2x2") {
+        expect(shapes.size).toBe(4);
+      } else {
+        for (const direction of ["rising", "falling"]) {
+          expect(shapes.has(direction + ":2")).toBe(true);
+          expect(shapes.has(direction + ":3")).toBe(true);
+        }
+        for (const corner of ["topLeft", "topRight", "bottomLeft", "bottomRight"]) {
+          expect(shapes.has(corner + ":1")).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("accepts one rounded corner in either drawing direction and rejects the opposite corner and double bends", () => {
+    const target = { counts: { topLeft: 1, falling: 1 } };
+    const rounded = [[74, 20], [51, 18], [30, 20], [22, 24], [18, 31], [19, 51], [18, 76]];
+    expect(evaluateMatrixStroke(rounded, target, []).stroke?.orientation).toBe("topLeft");
+    expect(evaluateMatrixStroke([...rounded].reverse(), target, []).stroke?.orientation).toBe("topLeft");
+    expect(evaluateMatrixStroke(sampleLines(["bottomRight", 1])[0], target, []).kind).toBe("direction");
+    expect(evaluateMatrixStroke([[76, 18], [18, 18], [18, 54], [52, 54]], target, []).kind).toBe("shape");
+    expect(evaluateMatrixStroke([[76, 18], [18, 18]], target, []).kind).toBe("direction");
+    expect(evaluateMatrixStroke([[18, 18], [76, 76]], target, []).stroke?.orientation).toBe("falling");
+  });
+
   it("treats touches and short movement as idle and catches material stroke errors", () => {
     const target = { counts: { horizontal: 2, falling: 1 } };
     const stroke = (points, accepted = []) => evaluateMatrixStroke(points, target, accepted);
