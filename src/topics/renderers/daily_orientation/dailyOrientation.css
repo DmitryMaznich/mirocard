@@ -49,8 +49,8 @@
   height: 1000px;
   display: flex;
   flex-direction: column;
-  gap: 38px;
-  padding: 64px 50px;
+  gap: 34px;
+  padding: 46px 50px;
   transform-origin: center center;
   will-change: transform;
 }
@@ -1099,3 +1099,367 @@
 /* Sentence case ("Среда", not "СРЕДА") everywhere the screen used capitals. */
 .daily-orientation--sentence-case .daily-orientation__carousel-item,
 .daily-orientation--sentence-case .daily-orientation__time-words { text-transform: none; }
+
+
+/* ── Главный экран, 2026-11-23 (docs/daily-orientation-wall-plan.md) ──
+   Top row: День недели, Число (with the season behind it), Время -- three
+   equal cards. Bottom row: «Сейчас» over «Погода» in a column, then the wide
+   «План на день». */
+.daily-orientation__row--top > .daily-orientation__card { flex: 1 1 0; }
+.daily-orientation__row--bottom .daily-orientation__now-column {
+  flex: 0 0 43%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  gap: 34px;
+}
+.daily-orientation__now-column > .daily-orientation__card--daypart { flex: 7 1 0; }
+.daily-orientation__now-column > .daily-orientation__card--weather { flex: 5 1 0; }
+
+/* День недели: the name, then «БУДНИЙ ДЕНЬ» / «ВЫХОДНОЙ»; warm on the weekend. */
+.daily-orientation__weekday-body {
+  align-self: stretch;
+  justify-self: stretch;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+.daily-orientation__day-kind {
+  padding: 8px 26px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .72);
+  color: #2f6b5c;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: none;
+}
+.daily-orientation__card--weekday.daily-orientation__card--weekend { background: #fbe1d4; }
+.daily-orientation__card--weekend .daily-orientation__day-kind { color: #9c4424; }
+
+/* Число: «23 НОЯБРЯ» + its words, the season's picture softly behind it. */
+.daily-orientation__card.daily-orientation__card--date { background: #f3e6d6; padding-bottom: 64px; }
+.daily-orientation__date-backdrop { position: absolute; inset: -24px; z-index: 0; }
+.daily-orientation__date-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(6px) saturate(.8);
+  opacity: .8;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.daily-orientation__date-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 46%, rgba(255, 249, 240, .86), rgba(255, 249, 240, .3) 78%);
+}
+.daily-orientation__card--date > .daily-orientation__question,
+.daily-orientation__date-body { position: relative; z-index: 1; }
+.daily-orientation__date-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.daily-orientation__date-line {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 20px;
+  line-height: .95;
+}
+.daily-orientation__card--date .daily-orientation__date-number {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: #c2410c;
+  font-size: 116px;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+.daily-orientation__date-month {
+  color: var(--orientation-ink);
+  font-size: 52px;
+  font-weight: 950;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.daily-orientation__date-month:focus-visible { outline: 3px solid #db9f48; outline-offset: 4px; border-radius: 8px; }
+.daily-orientation__date-words {
+  margin: 0;
+  color: #9a3412;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+  text-wrap: balance;
+}
+.daily-orientation__card--date .daily-orientation__date-mark { top: 20px; bottom: auto; left: auto; right: 26px; transform: none; z-index: 1; }
+.daily-orientation__card--date .daily-orientation__season-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: block;
+  padding: 8px 20px 10px;
+  border: 0;
+  background: rgba(236, 212, 180, .88);
+  color: #7a4a1c;
+  font: inherit;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.daily-orientation__season-band--winter { background: rgba(214, 230, 244, .9); color: #2f5675; }
+.daily-orientation__season-band--spring { background: rgba(214, 236, 204, .9); color: #3c6b2f; }
+.daily-orientation__season-band--summer { background: rgba(250, 232, 170, .9); color: #7a5a10; }
+
+/* Время: digits and words only. */
+.daily-orientation__card.daily-orientation__card--time {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center;
+  align-items: center;
+  gap: 10px;
+  padding: var(--caption-top) 36px 30px;
+}
+.daily-orientation__card--time .daily-orientation__time-readout {
+  align-self: stretch;
+  justify-self: stretch;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  overflow: visible;
+}
+/* As wide as its longest line and centred by its margins: a word too long
+   for the card then overflows to the right, where useFitTimeWords sees it
+   (an overflow to the left of a centred line is invisible to scrollWidth). */
+.daily-orientation__card--time .daily-orientation__time-readout .daily-orientation__time-words {
+  width: max-content;
+  margin: 0 auto;
+  align-items: center;
+}
+.daily-orientation__card--time .daily-orientation__digital-time { flex: none; font-size: 96px; padding: 6px 26px 10px; border-radius: 22px; }
+
+.daily-orientation__time-modal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 4vw, 56px);
+  padding: clamp(12px, 3vw, 40px);
+}
+.daily-orientation__time-modal .daily-orientation__clock { width: clamp(220px, 42vmin, 420px); height: clamp(220px, 42vmin, 420px); }
+.daily-orientation__time-modal .daily-orientation__digital-time { font-size: clamp(48px, 9vmin, 110px); }
+
+/* План на день. */
+.daily-orientation__card.daily-orientation__card--plan {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: var(--caption-top) 0 22px;
+  background: #fff8ee;
+  container-type: normal;
+}
+.daily-orientation__plan-edit {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  z-index: 2;
+  width: 60px;
+  height: 60px;
+  padding: 14px;
+  border: 2px solid #eadcc6;
+  border-radius: 18px;
+  background: #fff;
+  color: #8a6a4a;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.daily-orientation__plan-edit svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.daily-orientation__plan-strip {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 30px 40px 8px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.daily-orientation__plan-strip::-webkit-scrollbar { display: none; }
+.daily-orientation__plan-slot { flex: none; display: flex; }
+.daily-orientation__plan-item {
+  --tile-w: 170px;
+  --tile-h: 188px;
+  --word-max: 21px;
+  --picture: 76px;
+  --photo: 96px;
+  position: relative;
+  box-sizing: border-box;
+  width: var(--tile-w);
+  height: var(--tile-h);
+  margin: 0;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 5px solid transparent;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(55, 50, 39, .1);
+  color: var(--orientation-ink);
+  font: inherit;
+  font-weight: 900;
+  text-align: center;
+}
+button.daily-orientation__plan-item { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button.daily-orientation__plan-item:focus-visible { outline: 4px solid #db9f48; outline-offset: 3px; }
+.daily-orientation__plan-picture { font-size: var(--picture); line-height: 1.05; }
+.daily-orientation__plan-picture--photo { width: var(--photo); height: var(--photo); border-radius: 20px; object-fit: cover; }
+/* One line per word, never broken mid-word: the size steps down for a long
+   word («ЗАНИМАЕМСЯ») so it fits the tile (--chars set per item). */
+.daily-orientation__plan-word {
+  max-width: 100%;
+  font-size: min(var(--word-max), calc((var(--tile-w) - 30px) / (var(--chars, 8) * .76)));
+  line-height: 1.05;
+}
+.daily-orientation__plan-item--focus { --tile-w: 236px; --tile-h: 236px; --word-max: 32px; --picture: 120px; --photo: 150px; border-color: var(--orientation-ink); }
+.daily-orientation__plan-item--next { --tile-w: 196px; --tile-h: 206px; --word-max: 25px; --picture: 92px; --photo: 118px; }
+.daily-orientation__plan-item--done { --tile-w: 140px; --tile-h: 160px; --word-max: 18px; --picture: 60px; --photo: 76px; opacity: .45; }
+.daily-orientation__plan-item--later { opacity: .5; }
+.daily-orientation__plan-item--important { background: #fff7dc; border-color: #f2b544; }
+.daily-orientation__plan-item--focus.daily-orientation__plan-item--important { border-color: var(--orientation-ink); }
+.daily-orientation__plan-item--done::after {
+  content: "✓";
+  position: absolute;
+  top: 6px;
+  right: 14px;
+  color: #16a34a;
+  font-size: 40px;
+}
+.daily-orientation__plan-item--cancelled .daily-orientation__plan-picture,
+.daily-orientation__plan-item--cancelled .daily-orientation__plan-word { opacity: .4; }
+.daily-orientation__plan-item--cancelled::before {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 42%;
+  z-index: 1;
+  height: 9px;
+  border-radius: 5px;
+  background: #dc2626;
+  transform: rotate(-28deg);
+}
+.daily-orientation__plan-cancelled,
+.daily-orientation__plan-tag {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 16px 5px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.daily-orientation__plan-cancelled { bottom: -18px; background: #dc2626; }
+.daily-orientation__plan-tag { top: -22px; background: var(--orientation-ink); }
+
+/* «Что меняется?» -- outside the scaled canvas, sized with clamp. */
+.daily-orientation__plan-changes { display: grid; gap: clamp(10px, 1.6vw, 18px); padding: clamp(6px, 1.5vw, 20px); }
+.daily-orientation__plan-changes-title { margin: 0; font-size: clamp(22px, 3vw, 34px); font-weight: 900; color: var(--orientation-ink); }
+.daily-orientation__plan-changes-lead, .daily-orientation__plan-changes-sub { margin: 0; color: #5d7378; font-size: clamp(14px, 1.6vw, 19px); font-weight: 700; }
+.daily-orientation__plan-changes-tabs { display: flex; gap: 10px; }
+.daily-orientation__plan-changes-tabs button,
+.daily-orientation__plan-changes-add button {
+  min-height: 48px;
+  padding: 6px 20px;
+  border: 0;
+  border-radius: 16px;
+  background: #f1ede6;
+  color: var(--orientation-ink);
+  font: inherit;
+  font-size: clamp(16px, 1.8vw, 22px);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.daily-orientation__plan-changes-tabs button.is-on { background: var(--orientation-ink); color: #fff; }
+.daily-orientation__plan-changes-items, .daily-orientation__plan-changes-add { display: flex; flex-wrap: wrap; gap: 12px; }
+.daily-orientation__plan-change {
+  position: relative;
+  width: clamp(120px, 15vw, 170px);
+  min-height: clamp(110px, 13vw, 140px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 3px solid #cfe5df;
+  border-radius: 20px;
+  background: #f8f6f1;
+  color: var(--orientation-ink);
+  font: inherit;
+  font-size: clamp(15px, 1.7vw, 20px);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.daily-orientation__plan-change-picture { font-size: clamp(36px, 5vw, 52px); line-height: 1; }
+.daily-orientation__plan-change-picture--photo { width: clamp(52px, 7vw, 72px); height: clamp(52px, 7vw, 72px); border-radius: 14px; object-fit: cover; }
+.daily-orientation__plan-change.is-off { border-color: #f3b4b4; background: #fdecec; color: #b42318; }
+.daily-orientation__plan-change.is-off .daily-orientation__plan-change-picture { opacity: .35; }
+.daily-orientation__plan-change-mark {
+  position: absolute;
+  top: -12px;
+  padding: 1px 10px 2px;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 13px;
+}
+
+/* A day with an important-date ribbon: the ribbon takes ~140px of height,
+   so the two card rows step their sizes down to still fit whole. */
+.daily-orientation__canvas--ribbon .daily-orientation__question { font-size: 38px; }
+.daily-orientation__canvas--ribbon { --caption-top: 16px; }
+.daily-orientation__canvas--ribbon .daily-orientation__card--date .daily-orientation__date-number { font-size: 84px; }
+.daily-orientation__canvas--ribbon .daily-orientation__date-month { font-size: 40px; }
+.daily-orientation__canvas--ribbon .daily-orientation__date-words { font-size: 23px; }
+.daily-orientation__canvas--ribbon .daily-orientation__date-body { gap: 6px; }
+.daily-orientation__canvas--ribbon .daily-orientation__card--date .daily-orientation__season-band { font-size: 24px; padding: 5px 16px 7px; }
+.daily-orientation__canvas--ribbon .daily-orientation__card.daily-orientation__card--date { padding-bottom: 46px; }
+.daily-orientation__canvas--ribbon .daily-orientation__card--time .daily-orientation__digital-time { font-size: 70px; }
+.daily-orientation__canvas--ribbon .daily-orientation__card--time .daily-orientation__time-readout { gap: 10px; }
+.daily-orientation__canvas--ribbon .daily-orientation__day-kind { font-size: 28px; padding: 4px 20px; }
+.daily-orientation__canvas--ribbon .daily-orientation__weekday-body { gap: 12px; }
+.daily-orientation__canvas--ribbon .daily-orientation__plan-strip { padding-top: 24px; padding-bottom: 4px; }
+.daily-orientation__canvas--ribbon .daily-orientation__plan-item { --tile-w: 136px; --tile-h: 148px; --word-max: 18px; --picture: 58px; --photo: 74px; }
+.daily-orientation__canvas--ribbon .daily-orientation__plan-item--focus { --tile-w: 156px; --tile-h: 152px; --word-max: 24px; --picture: 80px; --photo: 100px; }
+.daily-orientation__canvas--ribbon .daily-orientation__plan-item--next { --tile-w: 148px; --tile-h: 152px; --word-max: 21px; --picture: 70px; --photo: 90px; }
+.daily-orientation__canvas--ribbon .daily-orientation__plan-item--done { --tile-w: 118px; --tile-h: 130px; --word-max: 16px; --picture: 48px; --photo: 60px; }

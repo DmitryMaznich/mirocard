@@ -103,7 +103,7 @@
 .dos-map-carousel:focus-visible,
 .dos-chip:focus-visible,
 .dos-hour__btn:focus-visible,
-.dos-week__input:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+
 
 .dos-map-card--sage { background: #e7f4ef; }
 .dos-map-card--coral { background: #fff0ec; }
@@ -256,38 +256,6 @@
 .dos-dayline__part--evening { background: #e6dbf6; }
 .dos-dayline__part--night { background: #cfd6ea; }
 
-/* ── План на неделю ─────────────────────────────────────────────── */
-.dos-week { display: flex; flex-direction: column; padding: 4px 0; }
-.dos-week__row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 14px;
-}
-.dos-week__row + .dos-week__row { border-top: 1px solid var(--dos-line); }
-.dos-week__day {
-  flex: 0 0 2.4em;
-  font-weight: 800;
-  font-size: .9rem;
-  color: var(--dos-ink);
-}
-.dos-week__row--weekend .dos-week__day { color: #b8532f; }
-.dos-week__input {
-  flex: 1;
-  min-width: 0;
-  min-height: 40px;
-  padding: 6px 10px;
-  border: 1.5px solid transparent;
-  border-radius: 10px;
-  background: transparent;
-  font: inherit;
-  font-size: .95rem;
-  color: var(--dos-ink);
-}
-.dos-week__input::placeholder { color: #b3c3c1; }
-.dos-week__input:hover { background: #f5f8f7; }
-.dos-week__input:focus { background: #fff; border-color: var(--dos-accent); outline: none; }
-
 @media (max-width: 440px) {
   .dos-map { padding: 8px; gap: 6px; }
   .dos-map-row { gap: 5px; }
@@ -329,44 +297,149 @@
 .dos-dates__style-hint { flex: 1 1 100%; margin: 0; color: var(--dos-muted); font-size: .8rem; }
 .dos-dates__styles { display: flex; gap: 6px; flex-wrap: wrap; }
 
-/* Plan pictures: a button before each day's text, a palette under it. */
-.dos-week__row { flex-wrap: wrap; }
-.dos-week__icon {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border: 1.5px solid #e2ded5;
-  border-radius: 10px;
-  background: #fffdf9;
-  font-size: 1.3rem;
-  line-height: 1;
+/* ── План на неделю: дела дня рядами (WeekPlanEditor) ──────────── */
+.dos-plan { display: flex; flex-direction: column; padding: 4px 0; }
+.dos-plan__day { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px; }
+.dos-plan__day + .dos-plan__day { border-top: 1px solid var(--dos-line); }
+.dos-plan__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.dos-plan__name { font-weight: 800; font-size: .95rem; color: var(--dos-ink); }
+.dos-plan__day--weekend .dos-plan__name { color: #b8532f; }
+.dos-plan__items { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dos-plan__slot { display: flex; align-items: center; gap: 6px; }
+.dos-plan__slot + .dos-plan__slot:not(.dos-plan__slot--plus)::before { content: "›"; color: #c7ab84; font-weight: 900; }
+.dos-plan__slot--plus { margin-left: 4px; }
+.dos-plan button {
+  font-family: inherit;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.dos-week__icon--empty { border-style: dashed; color: var(--dos-muted); font-size: 1rem; }
-.dos-week__icons { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 8px calc(2.4em + 12px); }
-.dos-week__icon-choice {
+.dos-plan button:focus-visible, .dos-plan input:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.dos-plan__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 12px 4px 8px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #f4efe6;
+  color: var(--dos-ink);
+  font-weight: 800;
+  font-size: .92rem;
+}
+.dos-plan__chip--on { border-color: var(--dos-accent); background: #fff; }
+.dos-plan__chip--own { background: var(--dos-accent-soft); }
+.dos-plan__chip-icon { font-size: 1.3rem; line-height: 1; }
+.dos-plan__plus {
+  width: 40px;
+  height: 40px;
+  border: 2px dashed #b9c7c5;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--dos-muted);
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+.dos-plan__plus--on { border-style: solid; border-color: var(--dos-accent); color: var(--dos-accent); }
+.dos-plan__copy {
+  min-height: 32px;
+  padding: 2px 10px;
+  border: 1.5px solid #cfe5df;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--dos-accent);
+  font-size: .82rem;
+  font-weight: 800;
+}
+.dos-plan__actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.dos-plan__actions button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: #eef4f3;
+  color: var(--dos-ink);
+  font-size: .85rem;
+  font-weight: 800;
+}
+.dos-plan__actions button:disabled { opacity: .4; cursor: default; }
+.dos-plan__actions .dos-plan__remove { background: #fdecec; color: #b3261e; }
+.dos-plan__panel { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 14px; background: #faf8f4; }
+.dos-plan__group { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.dos-plan__label { margin: 0; color: var(--dos-muted); font-size: .78rem; font-weight: 800; }
+.dos-plan__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dos-plan__new { display: flex; align-items: center; gap: 8px; }
+.dos-plan__preview {
+  flex: 0 0 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 1.4rem;
+  color: var(--dos-muted);
+}
+.dos-plan__input, .dos-plan__any {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1.5px solid #dfe5e4;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: .95rem;
+  color: var(--dos-ink);
+}
+.dos-plan__input:focus, .dos-plan__any:focus { border-color: var(--dos-accent); outline: none; }
+.dos-plan__add-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--dos-accent);
+  color: #fff;
+  font-weight: 900;
+}
+.dos-plan__add-btn:disabled { opacity: .45; cursor: default; }
+.dos-plan__picker { display: flex; flex-direction: column; gap: 8px; }
+.dos-plan__emoji-row, .dos-plan__emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.dos-plan__emoji {
   width: 42px;
   height: 42px;
   border: 2px solid transparent;
   border-radius: 10px;
-  background: #f4f0e8;
-  font-size: 1.3rem;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  background: #f1ece3;
+  font-size: 1.5rem;
+  line-height: 1;
 }
-.dos-week__icon-choice--on { border-color: var(--dos-accent); background: var(--dos-accent-soft); }
-.dos-week__icon-clear {
-  min-height: 42px;
+.dos-plan__emoji--on { border-color: var(--dos-accent); background: var(--dos-accent-soft); }
+.dos-plan__picker-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.dos-plan__link {
+  min-height: 36px;
   padding: 0 12px;
-  border: 0;
-  background: none;
-  color: #b3261e;
-  font: inherit;
+  border: 1.5px solid #dfe5e4;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--dos-ink);
   font-size: .85rem;
   font-weight: 800;
-  cursor: pointer;
 }
-.dos-week__icon:focus-visible, .dos-week__icon-choice:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.dos-plan__link--on { border-color: var(--dos-accent); color: var(--dos-accent); }
+.dos-plan__done {
+  align-self: flex-end;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1.5px solid var(--dos-accent);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--dos-accent);
+  font-weight: 800;
+}
+.dos-plan__chip-photo { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; }
+.dos-plan__preview img { width: 100%; height: 100%; border-radius: 10px; object-fit: cover; }
+.dos-plan__photo-row { display: flex; align-items: center; gap: 12px; }
+.dos-plan__photo { width: 72px; height: 72px; border-radius: 14px; object-fit: cover; }
+.dos-plan__link:disabled { opacity: .6; cursor: default; }
+.dos-plan__error { margin: 0; color: #b3261e; font-size: .82rem; font-weight: 700; }

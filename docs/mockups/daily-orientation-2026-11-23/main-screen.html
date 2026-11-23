@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>«Сегодня» — главный экран — рабочий вариант (06)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font-family:Nunito,sans-serif;background:#e9e4da;color:#0f3b4c}
+.screen{width:1280px;height:800px;margin:0 auto;padding:22px 28px 24px;display:grid;grid-template-rows:60px 330px 1fr;gap:16px;background:linear-gradient(#fbf8f2,#f4efe6)}
+.cap{font-size:21px;font-weight:800;color:#47606b}
+.card{border-radius:28px;box-shadow:0 2px 10px rgba(60,40,10,.08);padding:16px 22px;position:relative;overflow:hidden}
+.nav{display:flex;gap:26px;align-items:center;font-size:24px;font-weight:900;color:#7a8b93}
+.nav .on{color:#0f3b4c;background:#e4f2ee;padding:6px 22px;border-radius:20px;font-size:30px}
+.r1{display:grid;grid-template-columns:1fr 330px 300px;gap:16px}
+.r2{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.weekday{background:#e7f4ef;display:flex;flex-direction:column}
+.big{font-size:56px;font-weight:900;letter-spacing:-1px;line-height:1;margin:auto 0}
+.leaf{background:#f6e7d3;display:flex;flex-direction:column}
+.leaf .row{margin:auto 0;display:flex;flex-direction:column;align-items:center}
+.num{font-size:120px;font-weight:900;line-height:.95;color:#c2410c}
+.mon{font-size:44px;font-weight:900}
+.sez{margin-top:8px;font-size:24px;font-weight:900;color:#fff;background:#b7793a;border-radius:12px;padding:2px 14px}
+.time{background:#e4f0fb;display:flex;flex-direction:column;align-items:center}
+.clock{width:150px;height:150px;border-radius:50%;border:9px solid #3d7ca6;background:#fff;position:relative;margin-top:6px}
+.clock b{position:absolute;font-size:19px}
+.clock .h,.clock .mn{position:absolute;left:50%;bottom:50%;transform-origin:bottom center;border-radius:4px}
+.clock .h{width:8px;height:38px;margin-left:-4px;background:#c2410c;transform:rotate(var(--ha))}
+.clock .mn{width:5px;height:56px;margin-left:-2.5px;background:#1d4ed8;transform:rotate(var(--ma))}
+.dig{font-size:40px;font-weight:900;margin-top:4px}.dig span:first-child{color:#c2410c}.dig span:last-child{color:#1d4ed8}
+.tw{font-size:19px;font-weight:900;text-align:center;line-height:1.1}.tw .hh{color:#c2410c}.tw .mm{color:#1d4ed8}
+.left{display:grid;grid-template-rows:1fr 120px;gap:16px}
+.now{background:#fff3e2;display:flex;flex-direction:column}
+.now .big{font-size:72px}
+.wx{background:#eef4f7;display:flex;align-items:center;gap:14px}
+.wx .ic{font-size:56px}.wx .tx{font-size:28px;font-weight:900}
+.today{background:#fff8ee;display:flex;flex-direction:column}
+.viewport{flex:1;overflow:hidden;position:relative;margin:8px -22px 0;padding:0 22px}
+.track{display:flex;gap:10px;align-items:center;height:100%;transform:translateX(var(--shift,0))}
+.st{flex:none;width:168px;height:220px;background:#fff;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:22px;position:relative;box-shadow:0 1px 5px rgba(0,0,0,.08);border:4px solid transparent}
+.st .e{font-size:88px;line-height:1.15}
+.st.done{opacity:.38}
+.st.done::after{content:"✓";position:absolute;top:8px;right:14px;font-size:34px;color:#16a34a}
+.st.next{border-color:#0f3b4c}
+.st.imp{background:#fff7dc;border-color:#f59e0b}
+.arrow{flex:none;font-size:34px;color:#c7ab84;font-weight:900}
+.fade{position:absolute;top:0;bottom:0;width:60px;pointer-events:none}
+.fade.r{right:0;background:linear-gradient(90deg,rgba(255,248,238,0),#fff8ee)}
+.fade.l{left:0;background:linear-gradient(270deg,rgba(255,248,238,0),#fff8ee)}
+
+.car{flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+.slot{position:absolute;top:50%;left:50%;background:#fff;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .3s}
+.slot .e{line-height:1.1}
+.f{width:250px;height:250px;transform:translate(-50%,-50%);border:5px solid #0f3b4c;font-size:32px;z-index:3}
+.f .e{font-size:130px}
+.n{width:170px;height:190px;transform:translate(calc(-50% + 245px),-46%);font-size:22px;z-index:2}
+.n .e{font-size:84px}
+.n .lbl{position:absolute;top:-22px;background:#0f3b4c;color:#fff;font-size:20px;border-radius:12px;padding:3px 14px}
+.p{width:150px;height:170px;transform:translate(calc(-50% - 230px),-46%);font-size:20px;opacity:.45;z-index:2}
+.p .e{font-size:72px}
+.nn{width:130px;height:150px;transform:translate(calc(-50% + 410px),-44%);font-size:18px;opacity:.35;z-index:1}
+.nn .e{font-size:60px}
+.slot.imp{background:#fff7dc;border-color:#f59e0b}
+.n.imp,.nn.imp,.p.imp{border:4px solid #f59e0b}
+.slot.done::after{content:"✓";position:absolute;top:8px;right:14px;font-size:34px;color:#16a34a}
+.slot.done{opacity:.4}
+.f.done{opacity:.55}
+.chev{position:absolute;top:50%;transform:translateY(-50%);font-size:44px;color:#c7ab84;font-weight:900;z-index:4}
+.dline{display:flex;align-items:baseline;gap:12px;margin-top:4px}.dline .num{font-size:96px}.dline .mon{font-size:40px}
+.dwords{margin-top:6px;font-size:22px;font-weight:900;color:#9a3412;text-align:center;line-height:1.15}
+.sez2{position:absolute;left:0;right:0;bottom:0;padding:6px;text-align:center;font-size:20px;font-weight:900;color:#8a5a2b;background:#ecd4b4}
+.r1{grid-template-columns:1fr 380px 300px !important}
+.leaf{background:#f3e6d6}
+.leaf>*{position:relative}
+.sbg{position:absolute !important;inset:-30px;background:url(../../../public/daily-orientation/season_autumn.webp) center/cover;filter:blur(4px) saturate(.75);opacity:.8}
+.leaf::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(255,248,238,.8),rgba(255,248,238,.25) 75%)}
+.leaf .row,.leaf .sez2{z-index:1}
+.sez2{background:rgba(236,212,180,.85) !important}
+.weekday.weekend{background:#fbe1d4}
+.weekday.weekend .big{color:#7a2e12}
+.r1{grid-template-columns:1fr 1fr 1fr !important}
+.wdbox{margin:auto 0}
+.weekday .big{margin:0;font-size:44px}
+.kind{margin-top:14px;display:inline-block;font-size:26px;font-weight:900;color:#2f6b5c;background:rgba(255,255,255,.7);border-radius:14px;padding:4px 16px}
+.weekend .kind{color:#9c4424}
+.time{justify-content:center}
+.time .cap{position:absolute;top:16px;left:22px}
+.dig{font-size:104px !important;line-height:1;letter-spacing:-2px;margin:0 !important}
+.tw{font-size:24px !important;margin-top:10px}
+.f{transform:translate(0,-50%) !important;left:0 !important}
+.n{left:0 !important;transform:translate(270px,-46%) !important}
+.nn{left:0 !important;transform:translate(462px,-44%) !important}
+.nnn{left:0;width:130px;height:150px;transform:translate(612px,-44%);font-size:18px;opacity:.3;z-index:1}
+.nnn .e{font-size:60px}
+.p{display:none}
+.car{justify-content:flex-start}
+.topbar{display:flex;align-items:center;gap:18px;position:relative;z-index:6}
+.rib{display:none;flex:1;height:58px;border-radius:20px;align-items:center;gap:14px;padding:0 10px 0 8px;font-weight:900;font-size:26px;background:#fff7dc;box-shadow:0 2px 8px rgba(120,80,0,.12)}
+.rib .ph{width:46px;height:46px;border-radius:50%;background:#fde68a;display:flex;align-items:center;justify-content:center;font-size:30px;flex:none;border:3px solid #fff}
+.rib .marks{margin-left:auto;display:flex;gap:6px}.rib .marks i{width:18px;height:18px;border-radius:50%;background:#f59e0b;display:block}.rib .marks i.off{background:#eadfc4}
+.rib .q{width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid #e6d7a8;display:flex;align-items:center;justify-content:center;font-size:20px;color:#a07a1a;flex:none;margin-left:auto}
+.rib .marks+.q{margin-left:0}
+.has-rib .rib{display:flex}
+.garland{display:none;position:absolute;top:0;left:0;right:0;height:22px;justify-content:space-around;z-index:7}
+.garland b{width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:20px solid var(--g)}
+.festive .garland{display:flex}.festive .screen{background:linear-gradient(#fff4e0,#fbead2)}
+.screen{position:relative}
+.off-day [data-now]>*{visibility:hidden}
+.off-day [data-now]{background:rgba(255,255,255,.25) !important;box-shadow:none}
+.slot.e2 .e{font-size:inherit}
+.f{font-size:27px !important}.n{font-size:19px !important}.nn,.nnn{font-size:15px !important}
+.pen{position:absolute;top:12px;right:14px;width:40px;height:40px;border-radius:12px;background:#fff;border:2px solid #e8dcc8;display:flex;align-items:center;justify-content:center;font-size:20px;z-index:5}
+.slot.cancel{opacity:1 !important}
+.slot.cancel .e{opacity:.35}
+.slot.cancel::before{content:"";position:absolute;left:12%;right:12%;top:44%;height:8px;background:#dc2626;border-radius:4px;transform:rotate(-28deg)}
+.slot.cancel .nb{position:absolute;bottom:-16px;background:#dc2626;color:#fff;font-size:17px;border-radius:10px;padding:2px 10px}
+.dimall{position:absolute;inset:0;background:rgba(20,30,30,.35);z-index:20}
+.sheet{position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:720px;background:#fff;border-radius:26px 26px 0 0;z-index:21;padding:18px 26px 26px;box-shadow:0 -8px 30px rgba(0,0,0,.2)}
+.sheet h3{font-size:24px;font-weight:900;margin-bottom:4px}
+.sheet .h{font-size:16px;color:#6b8285;font-weight:700;margin-bottom:12px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tabs span{font-size:18px;font-weight:900;padding:6px 18px;border-radius:14px;background:#f1ede6}.tabs .on{background:#0f3b4c;color:#fff}
+.tg{display:flex;gap:12px;flex-wrap:wrap}
+.tgi{width:150px;height:120px;border-radius:20px;background:#f6f3ee;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:18px;border:3px solid #cfe5df;position:relative}
+.tgi b{font-size:44px}
+.tgi.off{background:#fdecec;border-color:#f3b4b4;color:#b42318}.tgi.off b{opacity:.35}
+.tgi.off::after{content:"НЕ БУДЕТ";position:absolute;top:-12px;background:#dc2626;color:#fff;font-size:13px;border-radius:8px;padding:1px 8px}
+.sheet .more{margin-top:14px;font-size:16px;font-weight:800;color:#4a9b8f}
+.cx{left:0;width:150px;height:170px;transform:translate(0,-46%);font-size:19px;z-index:2}
+.cx .e{font-size:70px}
+.shift{position:absolute;inset:0;transform:translateX(180px)}
+</style></head><body>
+<div class="screen">
+  <div class="garland"><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b><b style="--g:#ef4444"></b><b style="--g:#f59e0b"></b><b style="--g:#22c55e"></b><b style="--g:#3b82f6"></b><b style="--g:#a855f7"></b></div><div class="topbar"><nav class="nav" id="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav><div class="rib" id="rib"></div></div>
+  <div class="r1">
+    <section class="card weekday" id="wd"><div class="cap">День недели</div><div class="wdbox"><div class="big">ПОНЕДЕЛЬНИК</div><div class="kind">БУДНИЙ ДЕНЬ</div></div></section>
+    <section class="card leaf"><div class="sbg"></div><div class="row"><div class="cap">Число</div><div class="dline"><span class="num">23</span> <span class="mon">НОЯБРЯ</span></div><div class="dwords">ДВАДЦАТЬ ТРЕТЬЕ<br>НОЯБРЯ</div></div><div class="sez2">ОСЕНЬ</div></section>
+    <section class="card time" data-now><div class="cap">Время</div><div class="dig" id="dig"><span>08</span>:<span>20</span></div><div class="tw" id="tw"><span class="hh">ВОСЕМЬ ЧАСОВ</span><br><span class="mm">ДВАДЦАТЬ МИНУТ</span></div></section>
+  </div>
+  <div class="r2">
+    <div class="left">
+      <section class="card now" id="nowc" data-now><div class="cap">Сейчас</div><div class="big" id="dp">УТРО</div></section>
+      <section class="card wx" data-now><div class="ic">☀️</div><div><div class="cap">Погода</div><div class="tx">СОЛНЕЧНО</div></div></section>
+    </div>
+    <section class="card today"><div class="cap">План на день</div>
+      <div class="car" id="car"></div>
+    </section>
+  </div>
+</div>
+<script>
+const s=new URLSearchParams(location.search).get('t')||'morning';
+const B=document.body;
+const WEEK=[['🏫','ШКОЛА'],['👟','СПОРТ'],['📚','ЗАНИМАЕМСЯ'],['🛏️','СПАТЬ']];
+let items=WEEK.slice(),f=0,done=-1;
+function setTime(h,m,hw,mw){dig.innerHTML=`<span>${h}</span>:<span>${m}</span>`;tw.innerHTML=`<span class="hh">${hw}</span><br><span class="mm">${mw}</span>`}
+function setDp(w,bg){dp.textContent=w;nowc.style.background=bg}
+if(s==='cancel-sheet'||s==='cancelled'){}
+if(s==='afternoon'){f=1;done=0;setDp('ДЕНЬ','#e6f3fb');setTime('15','10','ПЯТНАДЦАТЬ ЧАСОВ','ДЕСЯТЬ МИНУТ');}
+if(s==='evening'){f=2;done=1;setDp('ВЕЧЕР','#efe7fb');setTime('19','05','ДЕВЯТНАДЦАТЬ ЧАСОВ','ПЯТЬ МИНУТ');}
+if(s==='event'){B.classList.add('has-rib','festive');items=[WEEK[0],['👵','БАБУШКА','imp'],WEEK[2],WEEK[3]];
+ rib.innerHTML='<div class="ph">👵</div>СЕГОДНЯ ПРИЕЗД БАБУШКИ!<div class="q">?</div>';}
+if(s==='countdown'){B.classList.add('has-rib');
+ rib.innerHTML='<div class="ph">🎂</div>ДЕНЬ РОЖДЕНИЯ МАМЫ ЧЕРЕЗ 3 ДНЯ<div class="marks"><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div><div class="q">?</div>';}
+if(s==='weekend'){wd.classList.add('weekend');wd.querySelector('.big').textContent='СУББОТА';wd.querySelector('.kind').textContent='ВЫХОДНОЙ';
+ document.querySelector('.dline .num').textContent='28';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ВОСЬМОЕ<br>НОЯБРЯ';
+ items=[['🚶','ПРОГУЛКА'],['☕','КАФЕ'],['📚','ЗАНИМАЕМСЯ'],['🛏️','СПАТЬ']];}
+if(s==='tomorrow'){B.classList.add('off-day');nav.innerHTML='<span>ВЧЕРА</span><span>СЕГОДНЯ</span><span class="on">ЗАВТРА</span>';
+ wd.querySelector('.big').textContent='ВТОРНИК';
+ document.querySelector('.dline .num').textContent='24';document.querySelector('.dwords').innerHTML='ДВАДЦАТЬ ЧЕТВЁРТОЕ<br>НОЯБРЯ';}
+function slot(i,cls,extra=''){const it=items[i];if(!it)return'';return `<div class="slot ${cls}${it[2]?' '+it[2]:''}">${extra}<span class="e">${it[0]}</span>${it[1]}</div>`}
+if(s==='cancelled'){items=[['🏫','ШКОЛА','cancel'],WEEK[1],WEEK[2],WEEK[3]];
+ car.innerHTML=`<div class="slot cx cancel"><span class="e">🏫</span>ШКОЛА</div>`+'<div class="shift">'+slot(1,'f')+slot(2,'n','<span class="lbl">ПОТОМ</span>')+slot(3,'nn')+'</div>';}
+else car.innerHTML=slot(f,'f')+slot(f+1,'n','<span class="lbl">ПОТОМ</span>')+slot(f+2,'nn')+slot(f+3,'nnn');
+
+document.querySelectorAll('.slot.cancel').forEach(e=>e.insertAdjacentHTML('beforeend','<span class="nb">НЕ БУДЕТ</span>'));
+document.querySelector('.today').insertAdjacentHTML('beforeend','<div class="pen">✏️</div>');
+if(s==='cancel-sheet'){document.querySelector('.screen').insertAdjacentHTML('beforeend',`<div class="dimall"></div><div class="sheet"><h3>Что меняется?</h3><div class="h">Касание выключает дело только на этот день. Недельный план не меняется.</div>
+<div class="tabs"><span class="on">Сегодня</span><span>Завтра</span></div>
+<div class="tg"><div class="tgi off"><b>🏫</b>Школа</div><div class="tgi"><b>👟</b>Спорт</div><div class="tgi"><b>📚</b>Занимаемся</div><div class="tgi"><b>🛏️</b>Спать</div></div>
+<div class="more">+ Добавить дело на этот день</div></div>`);}
+</script></body></html>

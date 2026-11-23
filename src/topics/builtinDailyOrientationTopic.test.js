@@ -16,9 +16,9 @@ describe("daily orientation built-in mode", () => {
       "showSeason",
       "showDaypart",
       "showWeather",
-      "showAnalogClock",
       "showTimeWords",
       "showDigitalTime",
+      "showPlan",
       "wakeHour",
       "bedHour",
       "letterCase",
@@ -26,6 +26,7 @@ describe("daily orientation built-in mode", () => {
       "cardSound",
       "importantDatesStyle",
       "weeklyPlan",
+      "planPhotos",
     ]);
     const displaySwitches = Object.entries(mode.params).filter(([key]) => key.startsWith("show"));
     expect(displaySwitches.every(([, param]) => param.type === "boolean" && param.default === true)).toBe(true);

@@ -72,12 +72,6 @@ export function buildDailyOrientationTopicRecord() {
             default: true,
             section: "Что показывать",
           },
-          showAnalogClock: {
-            type: "boolean",
-            label: { ru: "Аналоговые часы" },
-            default: true,
-            section: "Что показывать",
-          },
           showTimeWords: {
             type: "boolean",
             label: { ru: "Время словами" },
@@ -87,6 +81,15 @@ export function buildDailyOrientationTopicRecord() {
           showDigitalTime: {
             type: "boolean",
             label: { ru: "Цифровое время" },
+            default: true,
+            section: "Что показывать",
+          },
+          // «План на день»: the weekly plan's events for the day (2026-11-23).
+          // The wall screen no longer shows an analog dial (it is in the «Часы»
+          // modal), so there is no showAnalogClock switch any more.
+          showPlan: {
+            type: "boolean",
+            label: { ru: "План на день" },
             default: true,
             section: "Что показывать",
           },
@@ -156,6 +159,14 @@ export function buildDailyOrientationTopicRecord() {
             default: "",
             rows: 8,
             placeholder: { ru: "Пн: Школа\nВт: Школа\nСр: Школа\nЧт: Школа\nПт: Школа\nСб: Поездка в парк\nВс: " },
+            section: "План на неделю",
+          },
+          // Photos of the plan's items: JSON of item key -> /api/photos/… URL,
+          // edited only by the weekly plan editor (see weekPlan.js).
+          planPhotos: {
+            type: "free_text",
+            label: { ru: "Фото дел плана" },
+            default: "",
             section: "План на неделю",
           },
         },
