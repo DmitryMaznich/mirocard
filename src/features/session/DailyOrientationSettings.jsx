@@ -11,6 +11,7 @@ import {
   sortByNextOccurrence,
   visibleImportantDates,
 } from "@/features/importantDates/importantDates";
+import PlanTodayEditor from "./PlanTodayEditor.jsx";
 import WeekPlanEditor from "./WeekPlanEditor.jsx";
 import "./dailyOrientationSettings.css";
 
@@ -166,6 +167,8 @@ export default function DailyOrientationSettings({ params, setParams, student, o
 
   return (
     <div className="dos">
+      <PlanTodayEditor params={params} student={student} />
+
       <section className="dos-section" aria-labelledby="dos-screen-title">
         <header className="dos-section__head">
           <h2 className="dos-section__title" id="dos-screen-title">Что видит ребёнок</h2>

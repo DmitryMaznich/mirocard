@@ -265,3 +265,51 @@ export function toggleKey(list, key) {
   else set.add(key);
   return [...set];
 }
+
+// ── Changes shared between devices ───────────────────────────────────────
+//
+// Cancelled/added events for a date are made on the wall tablet or on a
+// phone (owner, 2026-11-23), so they live in the account: one document per
+// student, `daily_orientation:plan:<studentId>` -> { days: { "YYYY-MM-DD":
+// { off, added, updatedAt } } }. Two devices merge it day by day, the newer
+// day wins. «Сделали» marks are not in it: only the child makes them, at the
+// wall, so they stay on that device and never overwrite a change from a phone.
+
+export function planChangesKey(studentId) {
+  return `daily_orientation:plan:${studentId}`;
+}
+
+export function normalizePlanDoc(value) {
+  const days = value && typeof value === "object" && value.days && typeof value.days === "object" ? value.days : {};
+  const clean = {};
+  for (const [dateKey, day] of Object.entries(days)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey) || !day || typeof day !== "object") continue;
+    clean[dateKey] = {
+      off: Array.isArray(day.off) ? day.off.filter((key) => typeof key === "string") : [],
+      added: Array.isArray(day.added) ? day.added.filter((item) => item && typeof item.text === "string") : [],
+      updatedAt: Number(day.updatedAt) || 0,
+    };
+  }
+  return { days: clean };
+}
+
+// Day by day, the newer one wins; days before oldestKey are dropped.
+export function mergePlanDocs(a, b, oldestKey = "") {
+  const left = normalizePlanDoc(a).days;
+  const right = normalizePlanDoc(b).days;
+  const days = {};
+  for (const dateKey of new Set([...Object.keys(left), ...Object.keys(right)])) {
+    if (dateKey < oldestKey) continue;
+    const x = left[dateKey];
+    const y = right[dateKey];
+    days[dateKey] = !x ? y : !y ? x : (y.updatedAt > x.updatedAt ? y : x);
+  }
+  return { days };
+}
+
+export function updatePlanDoc(doc, dateKey, update, now = Date.now()) {
+  const days = normalizePlanDoc(doc).days;
+  const current = days[dateKey] ?? { off: [], added: [] };
+  const next = update({ off: current.off, added: current.added });
+  return { days: { ...days, [dateKey]: { off: next.off ?? [], added: next.added ?? [], updatedAt: now } } };
+}

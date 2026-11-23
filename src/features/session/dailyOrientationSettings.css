@@ -443,3 +443,31 @@
 .dos-plan__photo { width: 72px; height: 72px; border-radius: 14px; object-fit: cover; }
 .dos-plan__link:disabled { opacity: .6; cursor: default; }
 .dos-plan__error { margin: 0; color: #b3261e; font-size: .82rem; font-weight: 700; }
+
+/* ── Изменения на сегодня и завтра (PlanTodayEditor) ─────────────── */
+.dos-today { gap: 12px; padding: 12px 14px 14px; }
+.dos-today__tabs { display: flex; gap: 8px; }
+.dos-today__tabs button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #f1ede6;
+  color: var(--dos-ink);
+  font-weight: 800;
+}
+.dos-today__tabs button.is-on { background: var(--dos-ink); color: #fff; }
+.dos-today__item { position: relative; }
+.dos-today__item--off { background: #fdecec; color: #b3261e; }
+.dos-today__item--off .dos-today__text { text-decoration: line-through; }
+.dos-today__item--off .dos-plan__chip-icon, .dos-today__item--off .dos-plan__chip-photo { opacity: .4; }
+.dos-today__mark {
+  margin-left: 4px;
+  padding: 1px 8px 2px;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  font-size: .72rem;
+  text-decoration: none;
+}
+.dos-today__empty { margin: 0; color: var(--dos-muted); font-size: .88rem; }

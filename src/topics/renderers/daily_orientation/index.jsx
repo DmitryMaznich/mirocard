@@ -47,14 +47,13 @@ import {
 } from "./timeUtils";
 import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
 import { PlanCard, PlanChangesContent } from "./PlanCard.jsx";
-import { usePlanChanges } from "./planChanges.js";
+import { useDoneMarks, useSharedPlanChanges } from "./planChanges.js";
 import {
   PLAN_WEEK_ORDER,
   buildDayPlan,
   collectPlanItems,
   parsePlanPhotos,
   parseWeekItems,
-  toggleKey,
 } from "./weekPlan.js";
 import "./dailyOrientation.css";
 
@@ -827,7 +826,7 @@ function DigitalClock({ now }) {
   );
 }
 
-export default function DailyOrientationRenderer({ sessionParams, soundEnabled }) {
+export default function DailyOrientationRenderer({ sessionParams, soundEnabled, accountKv }) {
   const now = useCurrentTime();
   const { viewportRef, scale, width: canvasWidth, height: canvasHeight } = useDashboardScale();
   useFullscreenOnFirstTouch();
@@ -888,7 +887,16 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const planPhotos = parsePlanPhotos(sessionParams?.planPhotos);
   const todayKey = getLocalDateKey(now);
   const activeDateKey = getLocalDateKey(activeDate);
-  const { changesFor, updateChanges } = usePlanChanges(getLocalDateKey(addCalendarDays(now, -1)));
+  const oldestPlanKey = getLocalDateKey(addCalendarDays(now, -1));
+  // Cancelled/added events come from the account (a phone can change them);
+  // «сделали» marks stay on this device -- see planChanges.js.
+  const { changesFor: sharedChangesFor, updateChanges, refresh: refreshPlanChanges } = useSharedPlanChanges({
+    accountKv,
+    studentId: student?.id,
+    oldestKey: oldestPlanKey,
+  });
+  const { doneFor, toggleDone } = useDoneMarks(oldestPlanKey);
+  const changesFor = (dateKey) => ({ ...sharedChangesFor(dateKey), done: doneFor(dateKey) });
   const planFor = (date) => buildDayPlan({
     templateItems: weekItems[date.getDay()],
     events: eventsOnDate(importantDates, date).map((item) => ({
@@ -1241,9 +1249,9 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     today={offset === 0}
                     caseText={caseText}
                     cardProps={conceptCardProps("week")}
-                    onDone={(key) => updateChanges(activeDateKey, (changes) => ({ ...changes, done: toggleKey(changes.done, key) }))}
-                    onUndo={(key) => updateChanges(activeDateKey, (changes) => ({ ...changes, done: toggleKey(changes.done, key) }))}
-                    onEdit={offset >= 0 ? () => setPlanChangesOpen(true) : null}
+                    onDone={(key) => toggleDone(activeDateKey, key)}
+                    onUndo={(key) => toggleDone(activeDateKey, key)}
+                    onEdit={offset >= 0 ? () => { refreshPlanChanges(); setPlanChangesOpen(true); } : null}
                   />
                 )}
               </div>

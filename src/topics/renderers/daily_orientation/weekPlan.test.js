@@ -140,3 +140,23 @@ describe("the day's plan on the wall screen", () => {
     expect(planFocusIndex(buildDayPlan({ templateItems: parsePlanItems("Школа"), changes: { done: ["школа"] } }))).toBe(-1);
   });
 });
+
+describe("plan changes shared between devices", () => {
+  it("merges two devices' documents day by day, the newer day winning, old days dropped", async () => {
+    const { mergePlanDocs } = await import("./weekPlan.js");
+    const wall = { days: { "2026-11-23": { off: ["школа"], added: [], updatedAt: 5 }, "2026-11-20": { off: ["x"], added: [], updatedAt: 1 } } };
+    const phone = { days: { "2026-11-23": { off: [], added: [], updatedAt: 9 }, "2026-11-24": { off: ["спорт"], added: [], updatedAt: 3 } } };
+    expect(mergePlanDocs(wall, phone, "2026-11-22")).toEqual({ days: {
+      "2026-11-23": { off: [], added: [], updatedAt: 9 },
+      "2026-11-24": { off: ["спорт"], added: [], updatedAt: 3 },
+    } });
+  });
+
+  it("updates one day with a fresh time and reads junk as an empty document", async () => {
+    const { normalizePlanDoc, updatePlanDoc } = await import("./weekPlan.js");
+    const doc = updatePlanDoc(null, "2026-11-23", (day) => ({ ...day, off: ["школа"] }), 42);
+    expect(doc).toEqual({ days: { "2026-11-23": { off: ["школа"], added: [], updatedAt: 42 } } });
+    expect(normalizePlanDoc("мусор")).toEqual({ days: {} });
+    expect(normalizePlanDoc({ days: { "вчера": {}, "2026-11-23": { off: [1, "a"] } } })).toEqual({ days: { "2026-11-23": { off: ["a"], added: [], updatedAt: 0 } } });
+  });
+});
