@@ -8,7 +8,7 @@ import { selectedTopicLanguage } from "../../../shared/topic-language-contract.m
 import { createContentContext } from "../../../shared/topic-language-contract.mjs";
 import { recordUsage } from "@/shared/hooks/useUsageTracking";
 import { peopleFor } from "../../../shared/student-people.mjs";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useEffectEvent, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { flushQueue } from "@/core/syncApi";
@@ -21,6 +21,7 @@ import { createSessionState, markSessionAction, handleAnswer, handleAdvance, han
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
+import { GRAPHIC_MATRIX_MODE } from "./graphicMatrix/model";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
 import { applyParamLimits } from "@/topics/paramLimits";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -166,7 +167,7 @@ export function buildGeneratedSessionState({
     // These drills do not use parent-selectable picture concepts. Their one
     // metadata card is part of the mode itself, so an old saved selection must
     // never be allowed to filter it away and leave the session with no tasks.
-    const isSelfContainedDrill = ["navigator", "coordinates"].includes(mode.type);
+    const isSelfContainedDrill = ["navigator", "coordinates", GRAPHIC_MATRIX_MODE].includes(mode.type);
     const selected = isSelfContainedDrill
       ? allConcepts.filter((c) => c.cards.some((card) => card.taskKind === mode.type))
       : allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
@@ -335,6 +336,7 @@ export function useSessionEngine() {
       textId: isReading ? activeTextId : null,
       modeId: activeModeId,
       topicVersion: topicRecord.meta.version,
+      compatibleTopicVersions: topicRecord.meta.resumeCompatibleFrom,
       conceptIds: mode.type === "number_path" ? generatedState.conceptIds : selectedConceptIds,
       languageContext: generatedState.languageContext,
       params: generatedState.statistics?.conditions?.params,
@@ -708,7 +710,7 @@ export function useSessionEngine() {
     }
     setSessionState((prev) => {
       const s = withWork(prev, options.work);
-      if (s.mode?.type === "number_path" && s.status !== "task_active") return s;
+      if (["number_path", GRAPHIC_MATRIX_MODE].includes(s.mode?.type) && s.status !== "task_active") return s;
       if (s.mode?.evaluation === "instant") {
         const next = handleInstantCorrect(s, conceptId, cardId);
         if (next.status === "completed") finishSession(next);
@@ -722,8 +724,9 @@ export function useSessionEngine() {
       return next;
     });
 
-    // Number Path credits the route at the finish and advances after its follow-up.
-    const shouldAutoAdvance = mode?.type !== "number_path" && (options.autoAdvance === true || !tapToAdvance);
+    // Number Path and the matrix manage their own post-completion timing.
+    const shouldAutoAdvance = !["number_path", GRAPHIC_MATRIX_MODE].includes(mode?.type)
+      && (options.autoAdvance === true || !tapToAdvance);
     if (shouldAutoAdvance && !adultConfirmAdvance) {
       const delayMs = options.autoAdvance === true
         ? Math.max(0, Number(options.autoAdvanceDelayMs) || 0)
@@ -783,7 +786,8 @@ export function useSessionEngine() {
 
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
-      if ((s.mode?.id === PEOPLE_MODE_ID || s.mode?.type === "number_path") && s.status !== "answer_correct") return s;
+      if ((s.mode?.id === PEOPLE_MODE_ID || ["number_path", GRAPHIC_MATRIX_MODE].includes(s.mode?.type))
+          && s.status !== "answer_correct") return s;
       const next = advanceTask(s);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
@@ -810,6 +814,17 @@ export function useSessionEngine() {
     }), autoAdvanceDelay * 1000);
     return () => clearTimeout(timer);
   }, [mode?.id, sessionState, tapToAdvance, autoAdvanceDelay, rewardPending]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const advanceGraphicMatrixCard = useEffectEvent(() => onAdvance());
+
+  // A matrix card advances after the complete field is shown. Scheduling from
+  // session state also resumes an already credited card after a reload.
+  useEffect(() => {
+    if (mode?.type !== GRAPHIC_MATRIX_MODE || sessionState?.status !== "answer_correct"
+        || rewardPending || rewardPendingRef.current) return;
+    const timer = setTimeout(() => advanceGraphicMatrixCard(), 650);
+    return () => clearTimeout(timer);
+  }, [mode?.type, sessionState?.status, sessionState?.taskIndex, rewardPending]);
 
   const onQualityAnswer = useCallback((quality, conceptId, cardId) => {
     setSessionState((s) => {

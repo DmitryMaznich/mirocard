@@ -17,6 +17,8 @@ import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import SessionHeader from "./SessionHeader";
 import SessionExitPrompt from "./SessionExitPrompt";
+import GraphicMatrixTask from "./graphicMatrix/GraphicMatrixTask";
+import { GRAPHIC_MATRIX_MODE } from "./graphicMatrix/model";
 import { ADVANCE_GATE_IDLE, ADVANCE_GATE_WAITING, ADVANCE_GATE_READY, resolveTapAdvanceGate } from "./advanceGate";
 
 const noop = () => {};
@@ -252,7 +254,7 @@ export default function SessionScreen() {
 
   // Dynamic renderer: use a topic-supplied renderer.js when appropriate,
   // otherwise fall back to the renderer bundled with the app.
-  const [Renderer, setRenderer]           = useState(() =>
+  const [TopicRenderer, setRenderer]           = useState(() =>
     topicRecord ? (RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null) : null
   );
   const [rendererReady, setRendererReady] = useState(
@@ -298,7 +300,11 @@ export default function SessionScreen() {
     : status;
 
   const topicTitle = getTopicTitle(topicRecord.meta.title, topicRecord.languageContract ? uiLanguage : "ru") || topicRecord.meta.id;
-  const modeTitle  = getTopicTitle(mode.ui?.title, topicRecord.languageContract ? uiLanguage : "ru") || mode.id;
+  const isGraphicMatrix = mode.type === GRAPHIC_MATRIX_MODE;
+  const Renderer = isGraphicMatrix ? GraphicMatrixTask : TopicRenderer;
+  const modeTitle = isGraphicMatrix
+    ? null
+    : getTopicTitle(mode.ui?.title, topicRecord.languageContract ? uiLanguage : "ru") || mode.id;
 
   const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
     && mode.id === "navigator_learning"
@@ -321,7 +327,7 @@ export default function SessionScreen() {
   const keepsStorySupportOnMistake = currentTask?.type === "story_quiz";
   const isNumberPath = currentTask?.type === "number_path";
   const rewardPerPath = isNumberPath && numberPathRewardPerCard(currentTask.size);
-  const tapToAdvanceOnBoard = !isNumberPath && (isCorrectFeedback || isAdvanceGateActive);
+  const tapToAdvanceOnBoard = !isNumberPath && !isGraphicMatrix && (isCorrectFeedback || isAdvanceGateActive);
   const rendererTaskKey = isNumberPath ? `${taskIndex}:${currentTask.layoutIndex}`
     : keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
       ? String(taskIndex)
@@ -333,7 +339,7 @@ export default function SessionScreen() {
     rewardAvailable: rewardProgress?.available ?? false,
   });
   const showProgress = !(
-    mode.type === "drawing_coloring"
+    isGraphicMatrix || mode.type === "drawing_coloring"
     || (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
     || topicRecord.meta.renderer === "spatial_prepositions"

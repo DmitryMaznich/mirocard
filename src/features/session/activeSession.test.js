@@ -55,6 +55,19 @@ describe("activeSession helpers", () => {
     })).toBeNull();
   });
 
+  it("keeps a saved grid lesson on an explicitly compatible additive deck upgrade", () => {
+    const context = {
+      studentId: "s1", topicId: "symmetry_draw", modeId: "repeat_draw",
+      topicVersion: "1.13.0", compatibleTopicVersions: ["1.12.20"],
+    };
+    const original = { status: "task_active", topicVersion: "1.12.20", taskIndex: 3, correctCount: 4 };
+    const snapshot = createActiveSessionSnapshot(context, original);
+    expect(restoreActiveSessionState(snapshot, context)).toEqual({ ...original, topicVersion: "1.13.0" });
+    expect(snapshot.sessionState.topicVersion).toBe("1.12.20");
+    expect(restoreActiveSessionState(snapshot, { ...context, compatibleTopicVersions: ["1.12.19"] })).toBeNull();
+    expect(restoreActiveSessionState(snapshot, { ...context, modeId: "graphic_matrix" })).toBeNull();
+  });
+
   it("starts a fresh deck when the selected concepts changed", () => {
     const savedState = {
       status: "task_active",
