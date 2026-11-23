@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>«Сегодня» — редактор недельного плана (макет)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font-family:Nunito,sans-serif;background:#d9d4cb;color:#173b44}
+.phone{width:390px;height:844px;margin:0 auto;background:#f6f3ee;overflow:hidden;position:relative;padding:14px 12px}
+h2{font-size:19px;font-weight:900;padding:0 4px}
+.hint{font-size:13px;color:#6b8285;padding:2px 4px 10px;line-height:1.35}
+.card{background:#fff;border-radius:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.day{padding:10px 12px;border-top:1px solid #eef0ef}
+.day:first-child{border-top:0}
+.dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.dn{font-weight:900;font-size:15px}
+.we .dn{color:#b8532f}
+.same{font-size:12px;font-weight:800;color:#4a9b8f;background:#e7f4ef;border-radius:10px;padding:3px 9px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{display:flex;align-items:center;gap:5px;background:#f4efe6;border-radius:12px;padding:5px 10px 5px 7px;font-weight:800;font-size:14px}
+.chip b{font-size:20px}
+.chip.sel{outline:3px solid #4a9b8f;background:#fff}
+.arrow{color:#c7ab84;font-weight:900}
+.add{width:36px;height:34px;border-radius:12px;border:2px dashed #b9c7c5;color:#6b8285;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900}
+.copy{font-size:13px;font-weight:800;color:#4a9b8f;border:2px solid #cfe5df;border-radius:12px;padding:5px 10px}
+.menu{display:flex;gap:6px;margin-top:8px}
+.menu span{flex:1;text-align:center;font-size:13px;font-weight:800;background:#eef4f3;border-radius:10px;padding:7px 0}
+.menu span.del{background:#fdecec;color:#b42318}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);padding:12px 14px 22px}
+.grab{width:44px;height:5px;border-radius:3px;background:#d6dcdb;margin:0 auto 10px}
+.sh{font-weight:900;font-size:17px;margin-bottom:4px}
+.sub{font-size:12px;font-weight:800;color:#6b8285;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.it{background:#f6f3ee;border-radius:14px;padding:7px 2px;text-align:center;font-weight:800;font-size:12px}
+.it b{display:block;font-size:28px;line-height:1.2}
+.it.mine{background:#e7f4ef}
+.own{margin-top:10px;display:flex;gap:8px}
+.own .in{flex:1;border:2px solid #dfe5e4;border-radius:12px;padding:8px 10px;color:#9aaeb0;font-weight:700;font-size:14px}
+.own .btn{background:#4a9b8f;color:#fff;font-weight:900;border-radius:12px;padding:8px 12px;font-size:14px}
+.dim{position:absolute;inset:0;background:rgba(20,30,30,.28)}
+</style></head><body>
+<div class="phone" id="ph">
+  <h2>План на неделю</h2>
+  <div class="hint">Крупные дела дня по порядку. На экране — «План на день», в карточке «Неделя» — у каждого дня.</div>
+  <div class="card" id="week"></div>
+</div>
+<script>
+const s=new URLSearchParams(location.search).get('t')||'list';
+const SCH=['🏫','ШКОЛА'],SP=['👟','СПОРТ'],ZN=['📚','ЗАНИМАЕМСЯ'],SL=['🛏️','СПАТЬ'],PR=['🚶','ПРОГУЛКА'],KF=['☕','КАФЕ'];
+const plan=[['Понедельник',[SCH,SP,ZN,SL]],['Вторник',[SCH,ZN,SL],'same'],['Среда',[SCH,SP,ZN,SL]],['Четверг',[SCH,ZN,SL]],['Пятница',[SCH,SP,ZN,SL]],['Суббота',[PR,KF,ZN,SL],'we'],['Воскресенье',[],'we']];
+const cap=w=>w[0]+w.slice(1).toLowerCase();
+week.innerHTML=plan.map(([n,its,f],di)=>`<div class="day${f==='we'?' we':''}"><div class="dh"><span class="dn">${n}</span>${its.length?'':'<span class="copy">Как в субботу</span>'}</div>
+<div class="chips">${its.map((it,i)=>`<span class="chip${s==='chip'&&di===0&&i===1?' sel':''}"><b>${it[0]}</b>${cap(it[1])}</span>`).join('<span class="arrow">›</span>')}<span class="add">+</span></div>
+${s==='chip'&&di===0?'<div class="menu"><span>← Раньше</span><span>Позже →</span><span>Картинка</span><span class="del">Убрать</span></div>':''}</div>`).join('');
+if(s==='add'){
+ ph.insertAdjacentHTML('beforeend',`<div class="dim"></div><div class="sheet"><div class="grab"></div><div class="sh">Добавить в четверг</div>
+ <div class="sub">Ваши дела</div><div class="grid">${[SCH,SP,ZN,SL,PR,KF].map(i=>`<div class="it mine"><b>${i[0]}</b>${cap(i[1])}</div>`).join('')}</div>
+ <div class="sub">Ещё</div><div class="grid">${[['🏊','Бассейн'],['🗣️','Логопед'],['🛒','Магазин'],['🏠','Дома'],['🚗','Поездка'],['🎉','Гости'],['🩺','Врач'],['🎂','Праздник']].map(i=>`<div class="it"><b>${i[0]}</b>${i[1]}</div>`).join('')}</div>
+ <div class="own"><div class="in">Своё дело…</div><div class="btn">Создать</div></div></div>`);
+}
+</script></body></html>
