@@ -1,7 +1,9 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.12.20",
+    "version": "1.13.0",
+    "minAppVersion": "1.1.192",
+    "resumeCompatibleFrom": ["1.12.20"],
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -387,6 +389,51 @@
         "title": "Симметричный рисунок",
         "instruction": "Дорисуй вторую половину фигуры",
         "icon": "media/symmetry_avatar.svg"
+      }
+    },
+    {
+      "id": "graphic_matrix",
+      "type": "graphic_matrix",
+      "evaluation": "auto",
+      "loop": true,
+      "paramsScope": "mode",
+      "hideConceptPicker": true,
+      "cardIds": [
+        "graphic_matrix_board"
+      ],
+      "params": {
+        "boardSize": {
+          "type": "enum",
+          "label": {
+            "ru": "Размер поля",
+            "sl": "Velikost polja",
+            "en": "Grid size"
+          },
+          "values": [
+            "2x2",
+            "4x4"
+          ],
+          "default": "2x2",
+          "labels": {
+            "ru": {
+              "2x2": "2 × 2 · Обучение",
+              "4x4": "4 × 4 · Самостоятельно"
+            },
+            "sl": {
+              "2x2": "2 × 2 · Učenje",
+              "4x4": "4 × 4 · Samostojno"
+            },
+            "en": {
+              "2x2": "2 × 2 · Practice",
+              "4x4": "4 × 4 · Independent"
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Графическая матрица",
+        "instruction": "Посмотри на чёрточки слева и сверху. Нарисуй их вместе в клетке.",
+        "icon": "media/coordinates_avatar.svg"
       }
     }
   ],
@@ -11042,6 +11089,13 @@
           "row": 3
         }
       ]
+    },
+    {
+      "id": "graphic_matrix_board",
+      "conceptId": "graphic_matrix_board",
+      "primary": true,
+      "label": "Графическая матрица",
+      "taskKind": "graphic_matrix"
     }
   ]
 }

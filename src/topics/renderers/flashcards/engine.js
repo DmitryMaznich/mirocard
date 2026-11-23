@@ -1,3 +1,4 @@
+import { generateGraphicMatrixTasks, GRAPHIC_MATRIX_MODE } from "@/features/session/graphicMatrix/model.js";
 import { shuffle } from "@/shared/utils/shuffle";
 import { pickVariation, deriveConcepts } from "@/shared/utils/topicUtils";
 import { selectDistractorConceptIds } from "@/shared/utils/distractorEngine";
@@ -564,6 +565,7 @@ export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode
   switch (modeType) {
     case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true, picturesPerConcept: params.picturesPerConcept });
     case "act_out":                return generateActOutTasks(displayConcepts);
+    case GRAPHIC_MATRIX_MODE: return generateGraphicMatrixTasks(params.boardSize, displayConcepts[0]?.primary);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);

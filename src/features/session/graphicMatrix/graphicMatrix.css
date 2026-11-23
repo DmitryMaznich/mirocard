@@ -1,0 +1,70 @@
+.graphic-matrix {
+  align-self: center;
+  width: min(100%, 560px);
+  margin: auto;
+  padding: 12px clamp(8px, 2vw, 16px);
+}
+
+.graphic-matrix__instruction { margin: 0 0 12px; }
+
+.graphic-matrix__board {
+  display: grid;
+  grid-template-columns: .8fr repeat(var(--matrix-size), 1fr);
+  grid-template-rows: .8fr repeat(var(--matrix-size), 1fr);
+  aspect-ratio: 1;
+  border: 1px solid #8694a9;
+  border-right: 0;
+  border-bottom: 0;
+  background: #fff;
+  color: #212c42;
+}
+
+.graphic-matrix__sample,
+.graphic-matrix__cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid #8694a9;
+  border-bottom: 1px solid #8694a9;
+}
+
+.graphic-matrix__sample {
+  display: grid;
+  place-items: center;
+  background: #f1f5fb;
+}
+
+.graphic-matrix__sample svg { display: block; width: 83%; height: 83%; }
+
+.graphic-matrix__cell {
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  color: #2356ad;
+}
+
+.graphic-matrix__cell svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.graphic-matrix__board path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.graphic-matrix__cell--done { background: #e8f5ee; }
+.graphic-matrix__check { position: absolute; top: 2px; right: 5px; color: #246647; }
+.graphic-matrix__invalid { color: #a85d12; }
+.graphic-matrix__feedback { display: flex; align-items: start; gap: 8px; justify-content: space-between; margin-top: 8px; min-height: 2.5em; }
+.graphic-matrix__feedback p { margin: 0; }
+.graphic-matrix__feedback > span { margin-left: auto; white-space: nowrap; }
+.graphic-matrix__tools { display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px; }
+.graphic-matrix__tools button { min-height: 44px; }
+.graphic-matrix__tools button[aria-pressed="true"] { outline: 2px solid #2356ad; outline-offset: -2px; }
