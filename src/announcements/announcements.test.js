@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ANNOUNCEMENTS } from "./announcements.js";
-import { isActive, matchesAudience, pickAnnouncement, validateAnnouncements } from "./announcementLogic.js";
+import { archiveAnnouncements, isActive, matchesAudience, pickAnnouncement, validateAnnouncements } from "./announcementLogic.js";
 
 const day = (s) => Date.parse(s);
 
@@ -12,12 +12,12 @@ describe("announcements: the list", () => {
     for (const a of ANNOUNCEMENTS) expect(a.until, a.id).toBeTruthy();
   });
   it("catches a duplicate id and a missing Russian text", () => {
-    expect(validateAnnouncements([{ id: "a", title: { ru: "x" }, body: { ru: ["y"] } }, { id: "a", title: {}, body: {} }])).toEqual(["duplicate id: a", "a: no title.ru", "a: no body.ru"]);
+    expect(validateAnnouncements([{ id: "a", date: "2026-11-24", title: { ru: "x" }, body: { ru: ["y"] } }, { id: "a", title: {}, body: {} }])).toEqual(["duplicate id: a", "a: no title.ru", "a: no body.ru", "a: no date"]);
   });
 });
 
 describe("announcements: who sees what", () => {
-  const base = { id: "x", title: { ru: "t" }, body: { ru: ["b"] } };
+  const base = { id: "x", date: "2026-11-24", title: { ru: "t" }, body: { ru: ["b"] } };
 
   it("from / until", () => {
     const a = { ...base, from: "2026-11-24", until: "2027-01-31" };
@@ -47,6 +47,24 @@ describe("announcements: who sees what", () => {
     expect(await matchesAudience({ ...base, match: () => { throw new Error("x"); } }, {})).toBe(false);
   });
 
+  it("flags: only accounts with one of the feature flags (try it on your own account first)", async () => {
+    const a = { ...base, flags: ["announcements_preview"] };
+    expect(await matchesAudience(a, { featureFlags: [] })).toBe(false);
+    expect(await matchesAudience(a, {})).toBe(false);
+    expect(await matchesAudience(a, { featureFlags: ["announcements_preview"] })).toBe(true);
+  });
+
+  it("«Что нового»: published, not older than a year, the audience's, newest first; `until` does not hide it", async () => {
+    const list = [
+      { ...base, id: "old", date: "2025-10-01" },
+      { ...base, id: "mid", date: "2026-11-01", until: "2026-11-10" },
+      { ...base, id: "new", date: "2026-11-20" },
+      { ...base, id: "later", date: "2026-11-20", from: "2026-12-01" },
+      { ...base, id: "theirs", date: "2026-11-21", topics: ["none"] },
+    ];
+    expect((await archiveAnnouncements(list, {}, day("2026-11-24"))).map((a) => a.id)).toEqual(["new", "mid"]);
+  });
+
   it("the first due, unread one in the list's order", async () => {
     const list = [{ ...base, id: "a" }, { ...base, id: "b" }, { ...base, id: "c", topics: ["none"] }];
     expect((await pickAnnouncement(list, [], {}))?.id).toBe("a");
@@ -58,8 +76,9 @@ describe("announcements: who sees what", () => {
     const a = ANNOUNCEMENTS.find((x) => x.id === "propis2-0-8-0");
     const now = day("2026-11-25");
     expect(isActive(a, now)).toBe(true);
-    expect(await matchesAudience(a, { ownedTopicIds: ["propis2"], accountCreatedAt: "2026-09-01T00:00:00Z" })).toBe(true);
-    expect(await matchesAudience(a, { ownedTopicIds: ["math"], accountCreatedAt: "2026-09-01T00:00:00Z" })).toBe(false);
-    expect(await matchesAudience(a, { ownedTopicIds: ["propis2"], accountCreatedAt: "2026-11-25T00:00:00Z" })).toBe(false);
+    const flags = ["announcements_preview"]; // (deploy 1: the owner's account only; the flag goes with the deck's release)
+    expect(await matchesAudience(a, { featureFlags: flags, ownedTopicIds: ["propis2"], accountCreatedAt: "2026-09-01T00:00:00Z" })).toBe(true);
+    expect(await matchesAudience(a, { featureFlags: flags, ownedTopicIds: ["math"], accountCreatedAt: "2026-09-01T00:00:00Z" })).toBe(false);
+    expect(await matchesAudience(a, { featureFlags: flags, ownedTopicIds: ["propis2"], accountCreatedAt: "2026-11-25T00:00:00Z" })).toBe(false);
   });
 });

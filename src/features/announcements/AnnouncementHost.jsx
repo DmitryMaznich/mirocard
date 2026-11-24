@@ -7,7 +7,8 @@ import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import { ANNOUNCEMENTS } from "@/announcements/announcements.js";
 import { pickAnnouncement } from "@/announcements/announcementLogic.js";
-import { keepLocal, localSeen, markSeen, remoteSeen } from "@/announcements/seenStore.js";
+import { markSeen } from "@/announcements/seenStore.js";
+import { announcementContext, seenIds } from "@/announcements/announcementState.js";
 
 // One-time announcements (docs/announcements.md): on the home screen, the first due one of src/announcements/announcements.js
 // that this account has not read; «Понятно» marks it read on the device and in the account. No ×, no tap outside: closing
@@ -24,25 +25,8 @@ export default function AnnouncementHost({ list = ANNOUNCEMENTS }) {
     let alive = true;
     (async () => {
       const db = await getDb();
-      const ids = list.map((a) => a.id);
-      let seen = await localSeen(db, ids);
-      if (account) {
-        const remote = await remoteSeen();
-        if (remote) {
-          const fresh = remote.filter((id) => !seen.includes(id));
-          if (fresh.length) await keepLocal(db, fresh);
-          seen = [...seen, ...fresh];
-        }
-      }
-      const s = useAppStore.getState();
-      const ctx = {
-        db,
-        account: s.account,
-        accountCreatedAt: s.account?.createdAt ?? null,
-        ownedTopicIds: (s.ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId),
-        installedTopicIds: (s.topicRecords ?? []).map((r) => r.meta?.id).filter(Boolean),
-        uiLanguage: language,
-      };
+      const seen = await seenIds(list, db);
+      const ctx = announcementContext(db, language);
       const next = await pickAnnouncement(list, seen, ctx);
       if (alive && next && useAppStore.getState().screen === "home") setShown(next);
     })().catch(() => {});

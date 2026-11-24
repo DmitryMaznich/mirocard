@@ -5,6 +5,7 @@
 //
 // {
 //   id: "propis2-0-8-0",              // unique, never reused or changed: the «read» mark is kept under it
+//   date: "2026-11-24",               // publication day: shown in «Что нового», which keeps the entry a year
 //   title: { ru, sl, en },            // interface languages; missing ones fall back (language → English → Russian)
 //   body: { ru: ["абзац", …], … },    // paragraphs
 //   from: "2026-11-24",               // optional: not before this day
@@ -12,11 +13,16 @@
 //   topics: ["propis2"],              // optional: only to accounts that have one of these topics
 //   accountsCreatedBefore: "2026-11-24", // optional: only to accounts made before this day (news of a change)
 //   languages: ["ru"],                // optional: only to these interface languages
+//   flags: ["announcements_preview"], // optional: only to accounts with this feature flag (admin panel «Объявления (тест)»):
+//                                     // try it on your own account first, then remove the line and deploy again
 //   match: async (ctx) => true,       // optional: any other rule (ctx: announcementHost's context)
 // }
 export const ANNOUNCEMENTS = [
   {
     id: "propis2-0-8-0",
+    date: "2026-11-24",
+    // first on the owner's account only (deploy 1, before «Прописи» 0.8.0); removed with the deck's release (deploy 2)
+    flags: ["announcements_preview"],
     topics: ["propis2"],
     accountsCreatedBefore: "2026-11-24",
     until: "2027-01-31",

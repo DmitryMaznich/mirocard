@@ -220,7 +220,8 @@ hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 
 Однократное сообщение пользователям «что изменилось»: запись в `src/announcements/announcements.js` + обычный деплой.
 Показ — на главном экране, пока не нажмут «Понятно»; отметка `announcements:seen:<id>` на устройстве и в аккаунте.
-Кому — `topics`, `accountsCreatedBefore`, `languages`, `match`; `until` обязателен. **Read `docs/announcements.md`.**
+Кому — `topics`, `accountsCreatedBefore`, `languages`, `flags` (проверка на своём аккаунте), `match`; `date` и `until` обязательны.
+Все объявления аккаунта за год — раздел «Что нового» в меню. **Read `docs/announcements.md`.**
 
 ## Важные даты (important dates) for the "Сегодня" screen
 

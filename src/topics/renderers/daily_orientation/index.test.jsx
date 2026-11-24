@@ -485,22 +485,36 @@ describe("DailyOrientationRenderer", () => {
       expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("1 октября");
     });
 
-    it("Месяц (the month word on the Число card): twelve months grouped by season", () => {
-      mountAt(new Date(2028, 1, 10, 10, 0)); // leap February
+    const seasonNames = (dialog) => Array.from(dialog.querySelectorAll(".dom-year__head span")).map((n) => n.textContent);
+    const monthNames = (dialog) => Array.from(dialog.querySelectorAll(".dom-year__month-name")).map((n) => n.textContent);
+
+    it("Год (from the month word or the season band): the current season first, whole seasons, the month the only accent", () => {
+      mountAt(new Date(2026, 10, 24, 10, 0)); // November
       const dialog = openFrom(".daily-orientation__date-month");
-      const months = Array.from(dialog.querySelectorAll(".dom-months__month"));
-      expect(months).toHaveLength(12);
-      expect(months[0].textContent).toBe("Декабрь");
-      const february = dialog.querySelector(".dom-months__month--active");
-      expect(february.textContent).toBe("Февраль");
+      expect(dialog.querySelector(".dom-title").textContent).toBe("Год");
+      expect(seasonNames(dialog)).toEqual(["Осень", "Зима", "Весна", "Лето"]);
+      expect(monthNames(dialog).slice(0, 6)).toEqual(["сентябрь", "октябрь", "ноябрь", "декабрь", "январь", "февраль"]);
+      expect(dialog.querySelector(".dom-year__month--now .dom-year__month-name").textContent).toBe("ноябрь");
+      expect(dialog.querySelector(".dom-year__phrase").textContent).toBe("Сейчас ноябрь");
+      act(() => container.querySelector(".daily-orientation__modal-close").click());
+      expect(seasonNames(openFrom(".daily-orientation__season-band"))[0]).toBe("Осень");
     });
 
-    it("Время года: the four seasons as a cycle with the current one marked", () => {
-      mountAt(new Date(2026, 8, 29, 10, 0));
+    it("Год turns round by a season (after summer autumn again), a tap shows a month, and it goes back after a minute", () => {
+      mountAt(new Date(2026, 10, 24, 10, 0));
       const dialog = openFrom(".daily-orientation__season-band");
-      expect(Array.from(dialog.querySelectorAll(".dom-cycle__name")).map((n) => n.textContent)).toEqual(["Зима", "Весна", "Лето", "Осень"]);
-      expect(dialog.querySelector(".dom-cycle__item--active .dom-cycle__name").textContent).toBe("Осень");
-      expect(dialog.querySelector(".dom-cycle__month--active").textContent).toBe("сентябрь");
+      act(() => dialog.querySelector(".dom-year__nav--next").click());
+      expect(seasonNames(dialog)).toEqual(["Зима", "Весна", "Лето", "Осень"]);
+      act(() => dialog.querySelector(".dom-year__nav--prev").click());
+      act(() => dialog.querySelector(".dom-year__nav--prev").click());
+      expect(seasonNames(dialog)).toEqual(["Лето", "Осень", "Зима", "Весна"]);
+      const march = Array.from(dialog.querySelectorAll(".dom-year__month")).find((m) => m.textContent === "март");
+      act(() => march.click());
+      expect(dialog.querySelector(".dom-year__phrase").textContent).toBe("Март");
+      expect(dialog.querySelector(".dom-year__chip").textContent).toContain("Весна");
+      act(() => { vi.advanceTimersByTime(60_000); });
+      expect(seasonNames(dialog)[0]).toBe("Осень");
+      expect(dialog.querySelector(".dom-year__phrase").textContent).toBe("Сейчас ноябрь");
     });
 
     it("Время суток: the four parts with the child's own hours, and no modal for вчера/завтра", () => {
