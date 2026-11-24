@@ -617,7 +617,11 @@ function FitText({ className, children }) {
   );
 }
 
+// «Сейчас — УТРО»: the pictogram and one word (owner, 2026-11-24). The other
+// three parts are not listed here -- four words would compete for the one
+// answer; the cycle is in the modal.
 function DaypartCard({ daypartId, hidden, speakerButton, cardProps, caseText }) {
+  const label = DAYPARTS.find((part) => part.id === daypartId)?.label ?? "";
   return (
     <article
       className={`daily-orientation__card daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId} daily-orientation__card--speakable${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
@@ -627,21 +631,8 @@ function DaypartCard({ daypartId, hidden, speakerButton, cardProps, caseText }) 
       {speakerButton}
       <img className="daily-orientation__daypart-picture" src={`/daily-orientation/daypart_${daypartId}.webp`} alt="" draggable="false" />
       <div className="daily-orientation__daypart-side">
-      <p className="daily-orientation__question">{CAPTION_DAYPART}</p>
-      {/* The whole cycle top to bottom, current part emphasised: shows both
-          "what now" and what comes before/after, the same idea as
-          вчера→сегодня→завтра. */}
-      <ol className="daily-orientation__daypart-strip">
-        {DAYPARTS.map((part) => (
-          <li
-            key={part.id}
-            className={`daily-orientation__daypart-step${part.id === daypartId ? " daily-orientation__daypart-step--current" : ""}`}
-            aria-current={part.id === daypartId ? "true" : undefined}
-          >
-            {caseText(part.label)}
-          </li>
-        ))}
-      </ol>
+        <p className="daily-orientation__question">{CAPTION_DAYPART}</p>
+        <p className="daily-orientation__daypart-word">{caseText(label)}</p>
       </div>
     </article>
   );
@@ -1307,7 +1298,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
           {openConcept === "week" && <WeekContent today={now} weekItems={weekItems} planPhotos={planPhotos} importantDates={importantDates} onSpeak={soundEnabled ? speakInModal : null} speakDays={cardSound} />}
           {openConcept === "date" && <DateContent activeDate={activeDate} today={now} importantDates={importantDates} pictureFor={importantPicture} />}
           {openConcept === "year" && <YearContent activeDate={now} importantDates={importantDates} pictureFor={importantPicture} />}
-          {openConcept === "daypart" && <DaypartContent daypartId={daypartId} bounds={bounds} />}
+          {openConcept === "daypart" && <DaypartContent daypartId={daypartId} />}
           {openConcept === "time" && (
             <div className="daily-orientation__time-modal">
               <AnalogClock now={now} />

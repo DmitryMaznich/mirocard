@@ -423,13 +423,9 @@ export function YearContent({ activeDate, importantDates = [], pictureFor = () =
 }
 
 // ── Время суток ───────────────────────────────────────────────────────
-export function DaypartContent({ daypartId, bounds }) {
-  const ranges = {
-    morning: [bounds.morning, bounds.day],
-    day: [bounds.day, bounds.evening],
-    evening: [bounds.evening, bounds.night],
-    night: [bounds.night, bounds.morning],
-  };
+// The cycle утро → день → вечер → ночь, now outlined, the rest paler; no
+// hours (owner, 2026-11-24): they are the adult's setting, not the child's.
+export function DaypartContent({ daypartId }) {
   return (
     <div className="dom">
       <h2 className="dom-title">Время суток</h2>
@@ -437,20 +433,17 @@ export function DaypartContent({ daypartId, bounds }) {
         {DAYPARTS.map((part, index) => (
           <li key={part.id} className="dom-cycle__slot">
             <div
-              className={`dom-cycle__item dom-daypart-tone--${part.id}${part.id === daypartId ? " dom-cycle__item--active" : ""}`}
+              className={`dom-cycle__item dom-daypart-tone--${part.id}${part.id === daypartId ? " dom-cycle__item--active" : " dom-cycle__item--other"}`}
               aria-current={part.id === daypartId ? "true" : undefined}
             >
               <img className="dom-cycle__picture" src={`/daily-orientation/daypart_${part.id}.webp`} alt="" draggable="false" />
               <span className="dom-cycle__name">{DAYPART_NAMES[part.id]}</span>
-              <span className="dom-cycle__months">
-                <span>{ranges[part.id][0]}:00 – {ranges[part.id][1]}:00</span>
-              </span>
             </div>
             {index < DAYPARTS.length - 1 ? <CycleArrow /> : null}
           </li>
         ))}
       </ol>
-      <p className="dom-cycle__note">После ночи снова наступает утро</p>
+      <p className="dom-cycle__note">После ночи снова утро</p>
     </div>
   );
 }

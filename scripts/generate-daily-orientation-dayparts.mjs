@@ -61,9 +61,17 @@ const TARGETS = [
   {
     id: "day",
     label: "день",
-    prompt: `${STYLE} DAYTIME: the child figure running and kicking a ball ` +
-      "(simple circle) on a flat ground line. In the top corner, a small full " +
-      "round sun with short rays.",
+    // 2026-11-24 (owner): no activity -- day is the part with the most
+    // varied things in it (school, lessons, a walk), so any one of them would
+    // be untrue on some days. Day is the one part always light, in any season.
+    prompt: "Minimalist pictogram in the style of an AAC communication symbol or an ISO " +
+      "7001 public information sign: smooth solid single-colour silhouettes, flat fill, " +
+      "dark teal-navy colour (#073d4f) only, on a plain pure white background. DAYTIME: " +
+      "one large full round sun with short straight rays, high up in the upper part of " +
+      "the picture, above a long flat ground line at the bottom. Nothing else: no " +
+      "person, no clouds, no trees, no house, no hills. No shading, no gradients, no " +
+      "second colour. Centred, generous white margin, nothing touching the edges. No " +
+      "text, letters or numbers. No border, no frame. Square 1:1.",
   },
   {
     id: "evening",
