@@ -138,11 +138,12 @@ describe("DailyOrientationRenderer", () => {
   });
 
   it("marks the current part of the day by the child's own wake/bed hours, today only", () => {
-    const currentStep = () => container.querySelector(".daily-orientation__daypart-step--current")?.textContent;
+    const currentStep = () => container.querySelector(".daily-orientation__daypart-word")?.textContent;
 
     mountAt(new Date(2026, 8, 22, 14, 35));
     expect(currentStep()).toBe("ДЕНЬ");
-    expect(container.querySelectorAll(".daily-orientation__daypart-step")).toHaveLength(4);
+    // One word: the other three parts are not listed on the card.
+    expect(container.querySelector(".daily-orientation__card--daypart").textContent).toBe("СейчасДЕНЬ");
     expect(container.querySelector(".daily-orientation__daypart-picture")?.getAttribute("src"))
       .toBe("/daily-orientation/daypart_day.webp");
 
@@ -517,12 +518,12 @@ describe("DailyOrientationRenderer", () => {
       expect(dialog.querySelector(".dom-year__phrase").textContent).toBe("Сейчас ноябрь");
     });
 
-    it("Время суток: the four parts with the child's own hours, and no modal for вчера/завтра", () => {
+    it("Время суток: the four parts as a cycle without hours, and no modal for вчера/завтра", () => {
       mountAt(new Date(2026, 8, 29, 20, 0), { wakeHour: 6, bedHour: 22 });
       const dialog = openFrom(".daily-orientation__card--daypart");
       expect(dialog.querySelector(".dom-cycle__item--active .dom-cycle__name").textContent).toBe("Вечер");
-      expect(dialog.textContent).toContain("6:00 – 12:00");
-      expect(dialog.textContent).toContain("22:00 – 6:00");
+      expect(dialog.textContent).not.toMatch(/\d/);
+      expect(dialog.querySelectorAll(".dom-cycle__item")).toHaveLength(4);
       act(() => container.querySelector(".daily-orientation__modal-close").click());
 
       const yesterday = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Вчера");

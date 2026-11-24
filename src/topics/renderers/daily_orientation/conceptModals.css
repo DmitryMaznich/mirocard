@@ -716,3 +716,5 @@
   font-weight: 900;
 }
 .dom-year__chip--event { background: #fff7dc; border: 3px solid #f2b544; }
+
+.dom-cycle__item--other { opacity: .55; }

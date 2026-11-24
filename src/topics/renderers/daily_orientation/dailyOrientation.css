@@ -1504,3 +1504,26 @@ button.daily-orientation__plan-item:focus-visible { outline: 4px solid #db9f48; 
 .daily-orientation__night-next-photo { width: 8vmin; height: 8vmin; border-radius: 1.6vmin; object-fit: cover; filter: brightness(.75); }
 .daily-orientation__night-next-word { font-size: 4.6vmin; font-weight: 900; }
 .daily-orientation--sentence-case .daily-orientation__night-word { text-transform: none; }
+
+/* «Сейчас»: caption, the pictogram, one word, top to bottom (2026-11-24). */
+.daily-orientation__card.daily-orientation__card--daypart {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  row-gap: 8px;
+  padding: var(--caption-top) 24px 26px;
+}
+.daily-orientation__card--daypart .daily-orientation__daypart-side { display: contents; }
+.daily-orientation__card--daypart .daily-orientation__question { grid-row: 1; }
+.daily-orientation__card--daypart .daily-orientation__daypart-picture { grid-row: 2; width: 100%; height: 100%; object-fit: contain; }
+.daily-orientation__daypart-word {
+  grid-row: 3;
+  margin: 0;
+  color: var(--orientation-ink);
+  font-size: min(80px, 100cqi / (5 * .78));
+  font-weight: 950;
+  line-height: 1;
+  text-align: center;
+}

@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const DRAFT_DIR = join(ROOT, "scripts", "_daypart_drafts");
 const OUT_DIR = join(ROOT, "public", "daily-orientation");
-const MODEL = "gemini-3.1-flash-image";
+const MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-3.1-flash-image";
 const OUTPUT_SIZE = 512;
 const IDS = process.argv.find((a) => a.startsWith("--ids="))?.split("=")[1]?.split(",") ?? null;
 const ADAPT_ONLY = process.argv.includes("--adapt-only");
@@ -61,9 +61,17 @@ const TARGETS = [
   {
     id: "day",
     label: "день",
-    prompt: `${STYLE} DAYTIME: the child figure running and kicking a ball ` +
-      "(simple circle) on a flat ground line. In the top corner, a small full " +
-      "round sun with short rays.",
+    // 2026-11-24 (owner): no activity -- day is the part with the most
+    // varied things in it (school, lessons, a walk), so any one of them would
+    // be untrue on some days. Day is the one part always light, in any season.
+    prompt: "Minimalist pictogram in the style of an AAC communication symbol or an ISO " +
+      "7001 public information sign: smooth solid single-colour silhouettes, flat fill, " +
+      "dark teal-navy colour (#073d4f) only, on a plain pure white background. DAYTIME: " +
+      "one large full round sun with short straight rays, high up in the upper part of " +
+      "the picture, above a long flat ground line at the bottom. Nothing else: no " +
+      "person, no clouds, no trees, no house, no hills. No shading, no gradients, no " +
+      "second colour. Centred, generous white margin, nothing touching the edges. No " +
+      "text, letters or numbers. No border, no frame. Square 1:1.",
   },
   {
     id: "evening",
@@ -71,10 +79,16 @@ const TARGETS = [
     // Washing before bed, not dinner: a meal says nothing about which part of
     // the day it is. A shower (the family's own evening routine) rather than
     // a bath.
-    prompt: `${STYLE} EVENING: the child figure standing under a simple ` +
-      "shower head mounted on the wall, a few straight lines of water falling " +
-      "from it onto the child, standing on a flat floor line. In the top " +
-      "corner, a small half-sun setting below a horizon line, no rays.",
+    // 2026-11-24 (owner): the shower stays -- the family's evening shower is
+    // a must -- but nothing else: the small «setting sun» in the corner read
+    // as a second shower head. One shower head, one child, water, a floor.
+    prompt: `${STYLE} EVENING: exactly one simple shower head on a short ` +
+      "pipe coming from the top edge, above and slightly in front of the child " +
+      "figure, who stands upright with arms relaxed. Three to five straight " +
+      "parallel lines of water fall from the shower head down onto the child's " +
+      "head. A flat floor line under the feet. Nothing else in the picture: no " +
+      "sun, no moon, no horizon, no second shower head, no tub, no tiles, no " +
+      "curtain, no bubbles, no droplets.",
   },
   {
     id: "night",
@@ -89,14 +103,15 @@ mkdirSync(DRAFT_DIR, { recursive: true });
 mkdirSync(OUT_DIR, { recursive: true });
 
 if (!ADAPT_ONLY) {
-  const apiKey = getGeminiApiKey();
+  const apiKey = process.env.GEMINI_VIA_PROXY ? null : getGeminiApiKey();
   for (const target of TARGETS) {
     process.stdout.write(`  gen   ${target.id} (${target.label})… `);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        // No key header when there's no local key: in a cloud session a proxy adds it.
+        headers: { "Content-Type": "application/json", ...(apiKey ? { "x-goog-api-key": apiKey } : {}) },
         body: JSON.stringify({
           contents: [{ parts: [{ text: target.prompt }] }],
           generationConfig: { imageConfig: { aspectRatio: "1:1", imageSize: "1K" } },
