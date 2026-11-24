@@ -17,7 +17,6 @@ const baseRule = (y, x1 = 2.5, x2 = 21.5) => <path d={`M${x1} ${y}H${x2}`} strok
 const guide = (y, x1 = 2.5, x2 = 21.5) => <path d={`M${x1} ${y}H${x2}`} stroke={RED} strokeWidth={1.2} strokeDasharray="1.5 1.7" />;
 const shape = (name, x = 0, y = 0, props = {}) => <g transform={`translate(${x} ${y})`} {...props}>{SH[name].d.map((d, i) => <path key={i} d={d} />)}</g>;
 const slants = (xs, y1, y2) => xs.map((x) => <path key={x} d={`M${x} ${y1}L${x - (y2 - y1) * 0.466} ${y2}`} stroke={GRAY} strokeWidth={1} />);
-const redDot = (x, y) => <circle cx={x} cy={y} r={1.7} fill={RED} stroke="none" />;
 
 // ---- paper kinds -------------------------------------------------------------------------------------------------------
 export const IconPaperSquare = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke={GRAY} strokeWidth={1.1} /></>);
