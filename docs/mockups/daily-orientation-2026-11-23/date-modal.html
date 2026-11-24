@@ -14,6 +14,8 @@ h1{font-size:40px;font-weight:900;margin-bottom:10px}
 .c.b{background:none}
 .c.today{background:#d76747;color:#fff;box-shadow:0 0 0 4px #fff,0 0 0 7px #d76747}
 .c.sel{box-shadow:0 0 0 5px #f2c94c}
+.c u{text-decoration:none;font-size:12px;font-weight:900;color:#3d8f7f;text-transform:uppercase;line-height:1;margin-bottom:3px}
+.c.today u{color:#fff}
 .c i{font-style:normal;font-size:30px;line-height:1;margin-top:2px}
 .c.ev{padding-top:4px;justify-content:flex-start}
 .right{display:flex;flex-direction:column;padding-top:70px}
@@ -46,12 +48,13 @@ h1{font-size:40px;font-weight:900;margin-bottom:10px}
 const sel=+(new URLSearchParams(location.search).get('d')||24);
 const names=['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'];
 const ev={12:['🎂','День рождения мамы'],27:['👵','Приезд бабушки']};
-const ord={24:'двадцать четвёртое',27:'двадцать седьмое'};
+const ord={24:'двадцать четвёртое',25:'двадцать пятое',27:'двадцать седьмое'};
+const tags={23:'вчера',24:'сегодня',25:'завтра'};
 let h=names.map((n,i)=>`<div class="h${i>4?' we':''}">${n}</div>`).join('');
 for(let i=0;i<6;i++)h+='<div class="c b"></div>';
 for(let d=1;d<=30;d++){const col=(6+d-1)%7;const e=ev[d];
- h+=`<div class="c${col>4?' we':''}${d<24?' past':''}${d===24?' today':''}${d===sel&&sel!==24?' sel':''}${e?' ev':''}">${d}${e?`<i>${e[0]}</i>`:''}</div>`;}
+ h+=`<div class="c${col>4?' we':''}${d<24?' past':''}${d===24?' today':''}${d===sel&&sel!==24?' sel':''}${e?' ev':''}">${tags[d]?`<u>${tags[d]}</u>`:''}${d}${e?`<i>${e[0]}</i>`:''}</div>`;}
 g.innerHTML=h;
 const col=(6+sel-1)%7;
-say.innerHTML=`<div class="cap">${sel===24?'Сегодня':'Этот день'}</div><div class="line"><b>${sel}</b> ноября</div><div class="words">${ord[sel]} ноября</div><div class="wd"><span>${names[col][0].toUpperCase()+names[col].slice(1)}</span>${ev[sel]?`<span class="evp">${ev[sel][0]} ${ev[sel][1]}</span>`:''}</div>`;
+say.innerHTML=`<div class="cap">${tags[sel]?tags[sel][0].toUpperCase()+tags[sel].slice(1):'Этот день'}</div><div class="line"><b>${sel}</b> ноября</div><div class="words">${ord[sel]} ноября</div><div class="wd"><span>${names[col][0].toUpperCase()+names[col].slice(1)}</span>${ev[sel]?`<span class="evp">${ev[sel][0]} ${ev[sel][1]}</span>`:''}</div>`;
 </script></body></html>
