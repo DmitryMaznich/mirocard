@@ -1527,3 +1527,108 @@ button.daily-orientation__plan-item:focus-visible { outline: 4px solid #db9f48; 
   line-height: 1;
   text-align: center;
 }
+
+/* ── Мой день (2026-11-24): утро / день / вечер / ночь with the day's events ─ */
+.daily-orientation__row--bottom .daily-orientation__now-column--weather-only { flex: 0 0 17%; }
+.daily-orientation__card.daily-orientation__card--myday {
+  flex: 1 1 0;
+  padding: 22px;
+  background: #fffdf8;
+  overflow: visible;
+}
+.daily-orientation__myday {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.daily-orientation__myday-part {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 12px 14px;
+  border-radius: 28px;
+  container-type: inline-size;
+}
+.daily-orientation__myday-part--morning { background: #fff0e6; }
+.daily-orientation__myday-part--day { background: #e6f3fb; }
+.daily-orientation__myday-part--evening { background: #f1eafa; }
+.daily-orientation__myday-part--night { background: #e8ebf5; }
+.daily-orientation__myday-part--past { opacity: .42; }
+.daily-orientation__myday-part--now { box-shadow: 0 0 0 7px var(--orientation-ink); }
+.daily-orientation__myday-now {
+  position: absolute;
+  top: -22px;
+  padding: 3px 18px 5px;
+  border-radius: 14px;
+  background: var(--orientation-ink);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+}
+.daily-orientation__myday-picture { width: 84px; height: 84px; object-fit: contain; }
+.daily-orientation__myday-part--now .daily-orientation__myday-picture { width: 108px; height: 108px; }
+.daily-orientation__myday-word { color: var(--orientation-ink); font-size: 38px; font-weight: 950; line-height: 1; }
+.daily-orientation__myday-part--now .daily-orientation__myday-word { font-size: 50px; }
+.daily-orientation__myday-items { width: 100%; min-height: 0; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.daily-orientation__myday-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border: 3px solid transparent;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--orientation-ink);
+  font-weight: 900;
+}
+.daily-orientation__myday-item-picture { flex: none; font-size: 34px; line-height: 1; }
+.daily-orientation__myday-item-picture--photo { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+.daily-orientation__myday-item-word { min-width: 0; font-size: min(24px, calc((100cqi - 74px) / (var(--chars, 8) * .7))); line-height: 1.05; }
+.daily-orientation__myday-part--now .daily-orientation__myday-item { padding: 8px 12px; }
+.daily-orientation__myday-part--now .daily-orientation__myday-item-picture { font-size: 50px; }
+.daily-orientation__myday-part--now .daily-orientation__myday-item-picture--photo { width: 58px; height: 58px; }
+.daily-orientation__myday-part--now .daily-orientation__myday-item-word { font-size: min(30px, calc((100cqi - 104px) / (var(--chars, 8) * .72))); }
+.daily-orientation__myday-item--important { background: #fff7dc; border-color: #f2b544; }
+.daily-orientation__myday-item--cancelled .daily-orientation__myday-item-picture,
+.daily-orientation__myday-item--cancelled .daily-orientation__myday-item-word { opacity: .4; }
+.daily-orientation__myday-item--cancelled::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 46%;
+  height: 6px;
+  border-radius: 3px;
+  background: #dc2626;
+  transform: rotate(-8deg);
+}
+.daily-orientation__myday-item--cancelled .daily-orientation__plan-cancelled { top: -12px; bottom: auto; left: auto; right: 6px; transform: none; font-size: 16px; padding: 1px 8px 2px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-picture { width: 56px; height: 56px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-part--now .daily-orientation__myday-picture { width: 70px; height: 70px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-word { font-size: 28px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-part--now .daily-orientation__myday-word { font-size: 36px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-part { gap: 6px; padding-top: 14px; }
+.daily-orientation__card--myday .daily-orientation__plan-edit { top: -22px; right: 18px; }
+
+/* Head of a part: pictogram and word on one line, so the events get the height. */
+.daily-orientation__myday-head { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; }
+.daily-orientation__myday .daily-orientation__myday-picture { width: 64px; height: 64px; }
+.daily-orientation__myday .daily-orientation__myday-part--now .daily-orientation__myday-picture { width: 78px; height: 78px; }
+.daily-orientation__myday .daily-orientation__myday-word { font-size: min(36px, calc((100cqi - 80px) / (5 * .78))); }
+.daily-orientation__myday .daily-orientation__myday-part--now .daily-orientation__myday-word { font-size: min(44px, calc((100cqi - 96px) / (5 * .78))); }
+.daily-orientation__myday-items { flex: 1; gap: 10px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday .daily-orientation__myday-picture { width: 46px; height: 46px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday .daily-orientation__myday-part--now .daily-orientation__myday-picture { width: 54px; height: 54px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-items { gap: 6px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-item { padding: 3px 10px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-part--now .daily-orientation__myday-item { padding: 4px 10px; }
+.daily-orientation__canvas--ribbon .daily-orientation__myday-part--now .daily-orientation__myday-item-picture { font-size: 40px; }

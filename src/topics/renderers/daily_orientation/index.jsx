@@ -44,9 +44,9 @@ import {
   spokenClockSentence,
 } from "./timeUtils";
 import { DateContent, DaypartContent, WeekContent, YearContent } from "./ConceptModals.jsx";
-import { PlanCard, PlanChangesContent } from "./PlanCard.jsx";
+import { MyDayCard, PlanChangesContent } from "./PlanCard.jsx";
 import { NightScreen } from "./NightScreen.jsx";
-import { useDoneMarks, useSharedPlanChanges } from "./planChanges.js";
+import { useSharedPlanChanges } from "./planChanges.js";
 import {
   PLAN_WEEK_ORDER,
   buildDayPlan,
@@ -907,7 +907,6 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
   const weekItems = parseWeekItems(sessionParams?.weeklyPlan);
   const planPhotos = parsePlanPhotos(sessionParams?.planPhotos);
   const todayKey = getLocalDateKey(now);
-  const activeDateKey = getLocalDateKey(activeDate);
   const oldestPlanKey = getLocalDateKey(addCalendarDays(now, -1));
   // Cancelled/added events come from the account (a phone can change them);
   // «сделали» marks stay on this device -- see planChanges.js.
@@ -916,8 +915,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
     studentId: student?.id,
     oldestKey: oldestPlanKey,
   });
-  const { doneFor, toggleDone } = useDoneMarks(oldestPlanKey);
-  const changesFor = (dateKey) => ({ ...sharedChangesFor(dateKey), done: doneFor(dateKey) });
+  const changesFor = sharedChangesFor;
   const planFor = (date) => buildDayPlan({
     templateItems: weekItems[date.getDay()],
     events: eventsOnDate(importantDates, date).map((item) => ({
@@ -1214,9 +1212,12 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
 
             {showBottomRow && (
               <div className="daily-orientation__row daily-orientation__row--bottom">
-                {(display.showDaypart || display.showWeather) && (
-                  <div className="daily-orientation__now-column">
-                  {display.showDaypart && (
+                {/* With the day's plan on, «Сейчас» lives in it (the framed part of
+                    «Мой день»); the separate card stays only for a screen without
+                    the plan. */}
+                {((display.showDaypart && !display.showPlan) || display.showWeather) && (
+                  <div className={`daily-orientation__now-column${display.showPlan ? " daily-orientation__now-column--weather-only" : ""}`}>
+                  {display.showDaypart && !display.showPlan && (
                     <DaypartCard
                       daypartId={daypartId}
                       caseText={caseText}
@@ -1271,13 +1272,13 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
                   </div>
                 )}
                 {display.showPlan && (
-                  <PlanCard
+                  <MyDayCard
                     items={dayPlanItems}
+                    daypartId={daypartId}
                     today={offset === 0}
                     caseText={caseText}
-                    cardProps={conceptCardProps("week")}
-                    onDone={(key) => toggleDone(activeDateKey, key)}
-                    onUndo={(key) => toggleDone(activeDateKey, key)}
+                    partLabel={(part) => DAYPARTS.find((entry) => entry.id === part)?.label ?? ""}
+                    cardProps={offset === 0 ? conceptCardProps("daypart") : {}}
                     onEdit={offset >= 0 ? () => { refreshPlanChanges(); setPlanChangesOpen(true); } : null}
                   />
                 )}

@@ -5,6 +5,7 @@ import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import {
   FREQUENT_EMOJI,
+  PLAN_DAYPARTS,
   PLAN_WEEK_ORDER,
   collectPlanItems,
   firstEmoji,
@@ -15,6 +16,7 @@ import {
   serializePlanPhotos,
   serializeWeekItems,
   setItemIconEverywhere,
+  sortByDaypart,
   suggestEmoji,
 } from "@/topics/renderers/daily_orientation/weekPlan.js";
 
@@ -136,12 +138,36 @@ function PicturePicker({ word, value, photo, onChange, onPhoto }) {
   );
 }
 
+// Утро / день / вечер / ночь: which part of the day an event belongs to
+// (owner, 2026-11-24) -- the wall screen lays the day out by it.
+function DaypartPicker({ value, onChange, label }) {
+  const { t } = useUiTranslation();
+  return (
+    <div className="dos-plan__dayparts" role="radiogroup" aria-label={label}>
+      {PLAN_DAYPARTS.map((part) => (
+        <button
+          key={part}
+          type="button"
+          role="radio"
+          aria-checked={value === part}
+          className={`dos-plan__daypart dos-plan__daypart--${part}${value === part ? " dos-plan__daypart--on" : ""}`}
+          onClick={() => onChange(part)}
+        >
+          {t(`dailyDay.part.${part}`)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AddPanel({ dayItems, ownItems, photos, onAdd, onClose }) {
   const { t } = useUiTranslation();
   const [text, setText] = useState("");
   const [icon, setIcon] = useState(null);
   const [iconTouched, setIconTouched] = useState(false);
   const [photo, setPhoto] = useState(null);
+  // New events go after the day's last waking part by default.
+  const [daypart, setDaypart] = useState(() => [...dayItems].reverse().find((item) => item.daypart !== "night")?.daypart ?? "morning");
   const used = new Set(dayItems.map(planItemKey));
   const available = ownItems.filter((item) => !used.has(planItemKey(item)));
   // Until the adult picks, the first suggestion for the word is pre-selected:
@@ -152,7 +178,7 @@ function AddPanel({ dayItems, ownItems, photos, onAdd, onClose }) {
   function submit(event) {
     event.preventDefault();
     if (!text.trim()) return;
-    onAdd(known ? { ...known } : { icon: shownIcon, text: text.trim() }, known ? null : photo);
+    onAdd(known ? { ...known, daypart } : { icon: shownIcon, text: text.trim(), daypart }, known ? null : photo);
     setText("");
     setIcon(null);
     setIconTouched(false);
@@ -162,12 +188,16 @@ function AddPanel({ dayItems, ownItems, photos, onAdd, onClose }) {
   const previewPhoto = known ? photos[planItemKey(known)] : photo;
   return (
     <div className="dos-plan__panel">
+      <div className="dos-plan__group">
+        <p className="dos-plan__label">{t("dailyPlan.when")}</p>
+        <DaypartPicker value={daypart} onChange={setDaypart} label={t("dailyPlan.when")} />
+      </div>
       {available.length > 0 && (
         <div className="dos-plan__group">
           <p className="dos-plan__label">{t("dailyPlan.yours")}</p>
           <div className="dos-plan__chips">
             {available.map((item) => (
-              <button key={planItemKey(item)} type="button" className="dos-plan__chip dos-plan__chip--own" onClick={() => onAdd({ ...item }, null)}>
+              <button key={planItemKey(item)} type="button" className="dos-plan__chip dos-plan__chip--own" onClick={() => onAdd({ ...item, daypart }, null)}>
                 <ItemPicture item={item} photo={photos[planItemKey(item)]} />
                 {item.text}
               </button>
@@ -272,6 +302,7 @@ export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
                         setSelected(sel === index ? null : { day, index });
                       }}
                     >
+                      <span className={`dos-plan__chip-part dos-plan__daypart--${item.daypart}`}>{t(`dailyDay.part.${item.daypart}`)}</span>
                       <ItemPicture item={item} photo={photos[planItemKey(item)]} />
                       {item.text}
                     </button>
@@ -291,10 +322,10 @@ export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
               </ol>
               {selItem && (
                 <div className="dos-plan__actions">
-                  <button type="button" disabled={sel === 0} onClick={() => { setDay(day, moveItem(items, sel, -1)); setSelected({ day, index: sel - 1 }); }}>
+                  <button type="button" disabled={sel === 0 || items[sel - 1].daypart !== selItem.daypart} onClick={() => { setDay(day, moveItem(items, sel, -1)); setSelected({ day, index: sel - 1 }); }}>
                     {t("dailyPlan.earlier")}
                   </button>
-                  <button type="button" disabled={sel === items.length - 1} onClick={() => { setDay(day, moveItem(items, sel, 1)); setSelected({ day, index: sel + 1 }); }}>
+                  <button type="button" disabled={sel === items.length - 1 || items[sel + 1].daypart !== selItem.daypart} onClick={() => { setDay(day, moveItem(items, sel, 1)); setSelected({ day, index: sel + 1 }); }}>
                     {t("dailyPlan.later")}
                   </button>
                   <button type="button" aria-expanded={pictureKey === selKey} onClick={() => setPictureKey(pictureKey === selKey ? null : selKey)}>
@@ -304,6 +335,17 @@ export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
                     {t("dailyPlan.remove")}
                   </button>
                 </div>
+              )}
+              {selItem && (
+                <DaypartPicker
+                  value={selItem.daypart}
+                  label={t("dailyPlan.when")}
+                  onChange={(part) => {
+                    const next = sortByDaypart(items.map((item, i) => (i === sel ? { ...item, daypart: part } : item)));
+                    setDay(day, next);
+                    setSelected({ day, index: next.findIndex((item) => planItemKey(item) === selKey) });
+                  }}
+                />
               )}
               {selItem && pictureKey === selKey && (
                 <div className="dos-plan__panel">

@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { mergePlanDocs, normalizePlanDoc, planChangesKey, toggleKey, updatePlanDoc } from "./weekPlan.js";
+import { mergePlanDocs, normalizePlanDoc, planChangesKey, updatePlanDoc } from "./weekPlan.js";
 
-// «Сделали» marks: only the child makes them, at the wall, so they stay on
-// this device (like the weather pick). Dates before oldestKey are dropped.
-const DONE_STORAGE_KEY = "daily_orientation_plan_changes";
 // The shared changes document, cached for a start without the network.
 const SHARED_CACHE_PREFIX = "daily_orientation_plan_shared:";
 // A change made on a phone reaches the wall within this time.
@@ -24,20 +21,6 @@ function writeJson(key, value) {
   } catch {
     // Best effort: blocked storage only means it won't survive a reload.
   }
-}
-
-export function useDoneMarks(oldestKey) {
-  const [, forceRerender] = useState(0);
-  const all = readJson(DONE_STORAGE_KEY) ?? {};
-  const doneFor = (dateKey) => all[dateKey]?.done ?? [];
-  const toggleDone = useCallback((dateKey, itemKey) => {
-    const current = readJson(DONE_STORAGE_KEY) ?? {};
-    const next = Object.fromEntries(Object.entries(current).filter(([key]) => key >= oldestKey));
-    next[dateKey] = { done: toggleKey(next[dateKey]?.done, itemKey) };
-    writeJson(DONE_STORAGE_KEY, next);
-    forceRerender((v) => v + 1);
-  }, [oldestKey]);
-  return { doneFor, toggleDone };
 }
 
 // Cancelled/added events per date, shared by every device of the account

@@ -1,17 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
-import { planFocusIndex, planItemKey, toggleKey } from "./weekPlan.js";
+import { PLAN_DAYPARTS, planItemKey, toggleKey } from "./weekPlan.js";
 
-// «План на день» (owner, 2026-11-23): the day's big events left to right,
-// the first one not yet done in a frame, the next one under «ПОТОМ». No times:
-// the screen hangs at home and can't know what is happening at school, only
-// the order of the day. The child marks the framed event «сделали» with a tap;
-// it then shrinks to the left with a tick (a tap on it undoes it) and the frame
-// moves on. A cancelled event stays in its place crossed out «НЕ БУДЕТ».
+// «Мой день» and «Что меняется?» (see below).
 
-const SCROLL_HOME_MS = 60_000;
-const CAPTION_PLAN = "План на день";
-const LABEL_NEXT = "Потом";
+const LABEL_NOW = "Сейчас";
 const LABEL_CANCELLED = "Не будет";
 
 function longestWord(text) {
@@ -24,34 +17,16 @@ function PlanPicture({ item, className }) {
   return null;
 }
 
-export function PlanCard({ items, today, caseText, cardProps, onDone, onUndo, onEdit }) {
-  const stripRef = useRef(null);
-  const homeTimer = useRef(null);
-  const focus = today ? planFocusIndex(items) : items.findIndex((item) => !item.cancelled);
-  // Today: what's done before the frame leaves, except the last done thing,
-  // which stays small with a tick (and is where an accidental tap is undone).
-  const lastDone = today ? items.reduce((found, item, index) => (item.done && (focus === -1 || index < focus) ? index : found), -1) : -1;
-  const shown = items
-    .map((item, index) => ({ item, index }))
-    .filter(({ item, index }) => !today || !item.done || index === lastDone);
-  const nextIndex = focus === -1 ? -1 : items.findIndex((item, index) => index > focus && !item.cancelled && !(today && item.done));
-
-  // A strip scrolled by a curious child goes back to its start after a minute,
-  // so the next person passing by sees the day's next thing first.
-  const scheduleHome = useCallback(() => {
-    window.clearTimeout(homeTimer.current);
-    homeTimer.current = window.setTimeout(() => {
-      if (stripRef.current) stripRef.current.scrollLeft = 0;
-    }, SCROLL_HOME_MS);
-  }, []);
-  useEffect(() => () => window.clearTimeout(homeTimer.current), []);
-  useEffect(() => {
-    if (stripRef.current) stripRef.current.scrollLeft = 0;
-  }, [focus]);
-
+// «Мой день» (owner, 2026-11-24): the day as утро / день / вечер / ночь, each
+// with its pictogram and the day's events of that part. The current part is
+// framed «СЕЙЧАС» with its events large -- the answer to «что сейчас?» -- the
+// parts gone by paler, the rest as they are: the screen follows the clock, no
+// one has to tap anything. A cancelled event stays crossed out «НЕ БУДЕТ».
+// Вчера/Завтра: no part is «now».
+export function MyDayCard({ items, daypartId, today, caseText, cardProps, onEdit, partLabel }) {
+  const nowIndex = today ? PLAN_DAYPARTS.indexOf(daypartId) : -1;
   return (
-    <article className="daily-orientation__card daily-orientation__card--plan daily-orientation__card--speakable" {...cardProps}>
-      <p className="daily-orientation__question">{CAPTION_PLAN}</p>
+    <article className="daily-orientation__card daily-orientation__card--myday" {...cardProps}>
       {onEdit && (
         <button
           type="button"
@@ -62,30 +37,33 @@ export function PlanCard({ items, today, caseText, cardProps, onDone, onUndo, on
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></svg>
         </button>
       )}
-      <ol className="daily-orientation__plan-strip" ref={stripRef} onScroll={scheduleHome}>
-        {shown.map(({ item, index }) => {
-          const role = item.cancelled ? "cancelled" : today && item.done ? "done" : index === focus ? "focus" : index === nextIndex ? "next" : "later";
-          const tappable = today && (role === "focus" || role === "done");
-          const Tag = tappable ? "button" : "div";
+      <ol className="daily-orientation__myday">
+        {PLAN_DAYPARTS.map((part, index) => {
+          const partItems = items.filter((item) => item.daypart === part);
+          const state = nowIndex < 0 ? "" : index < nowIndex ? " daily-orientation__myday-part--past" : index === nowIndex ? " daily-orientation__myday-part--now" : "";
           return (
-            <li key={`${index}-${item.key}`} className="daily-orientation__plan-slot">
-              <Tag
-                {...(tappable ? {
-                  type: "button",
-                  onClick: (event) => { event.stopPropagation(); if (role === "focus") onDone(item.key); else onUndo(item.key); },
-                  "aria-label": role === "focus" ? `${item.text}: сделали` : `${item.text}: вернуть`,
-                } : {})}
-                className={[
-                  "daily-orientation__plan-item",
-                  `daily-orientation__plan-item--${role}`,
-                  item.important ? "daily-orientation__plan-item--important" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                {role === "next" && <span className="daily-orientation__plan-tag">{caseText(LABEL_NEXT)}</span>}
-                <PlanPicture item={item} className="daily-orientation__plan-picture" />
-                <span className="daily-orientation__plan-word" style={{ "--chars": longestWord(item.text) }}>{caseText(item.text)}</span>
-                {role === "cancelled" && <span className="daily-orientation__plan-cancelled">{caseText(LABEL_CANCELLED)}</span>}
-              </Tag>
+            <li key={part} className={`daily-orientation__myday-part daily-orientation__myday-part--${part}${state}`} aria-current={index === nowIndex ? "time" : undefined}>
+              {index === nowIndex && <span className="daily-orientation__myday-now">{caseText(LABEL_NOW)}</span>}
+              <span className="daily-orientation__myday-head">
+                <img className="daily-orientation__myday-picture" src={`/daily-orientation/daypart_${part}.webp`} alt="" draggable="false" />
+                <span className="daily-orientation__myday-word">{caseText(partLabel(part))}</span>
+              </span>
+              <span className="daily-orientation__myday-items">
+                {partItems.map((item) => (
+                  <span
+                    key={item.key}
+                    className={[
+                      "daily-orientation__myday-item",
+                      item.important ? "daily-orientation__myday-item--important" : "",
+                      item.cancelled ? "daily-orientation__myday-item--cancelled" : "",
+                    ].filter(Boolean).join(" ")}
+                  >
+                    <PlanPicture item={item} className="daily-orientation__myday-item-picture" />
+                    <span className="daily-orientation__myday-item-word" style={{ "--chars": longestWord(item.text) }}>{caseText(item.text)}</span>
+                    {item.cancelled && <span className="daily-orientation__plan-cancelled">{caseText(LABEL_CANCELLED)}</span>}
+                  </span>
+                ))}
+              </span>
             </li>
           );
         })}

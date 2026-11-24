@@ -39,7 +39,7 @@ describe("PlanTodayEditor — a change from the phone reaches the wall", () => {
   it("switches today's school off on the phone; the wall shows it crossed out after its next check", async () => {
     vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
     vi.setSystemTime(new Date(2026, 9, 7, 8, 0)); // a Wednesday
-    const params = { weeklyPlan: "Ср: 🏫 Школа, 📚 Занимаемся, 🛏️ Спать" };
+    const params = { weeklyPlan: "Ср: 🏫 Школа [утро], 📚 Занимаемся [вечер], 🛏️ Спать [ночь]" };
     const student = { id: "s1", importantDates: [] };
     const account = fakeAccount();
 
@@ -54,8 +54,8 @@ describe("PlanTodayEditor — a change from the phone reaches the wall", () => {
     useAppStore.setState({ activeStudentId: "s1", students: [student] });
     const wall = await mount(<DailyOrientationRenderer sessionParams={params} soundEnabled={false} accountKv={account.kv} />);
     await act(async () => {});
-    const first = wall.querySelector(".daily-orientation__plan-item");
-    expect(first.classList.contains("daily-orientation__plan-item--cancelled")).toBe(true);
+    const first = wall.querySelector(".daily-orientation__myday-part--morning .daily-orientation__myday-item");
+    expect(first.classList.contains("daily-orientation__myday-item--cancelled")).toBe(true);
     expect(first.textContent).toContain("НЕ БУДЕТ");
   });
 

@@ -13,22 +13,60 @@ function cleanText(text) {
   return String(text ?? "").replaceAll(ITEM_SEPARATOR, " ").replace(/\s+/g, " ").trim();
 }
 
+// Each item belongs to a part of the day (owner, 2026-11-24): the wall screen
+// lays the day out as утро / день / вечер / ночь and follows the clock, so no
+// one has to tap «сделали». Stored after the item in square brackets
+// («🏫 Школа [утро]»); an item saved without one gets a part from its place in
+// the day (see guessDayparts).
+export const PLAN_DAYPARTS = ["morning", "day", "evening", "night"];
+const DAYPART_WORD = { morning: "утро", day: "день", evening: "вечер", night: "ночь" };
+const DAYPART_BY_WORD = Object.fromEntries(Object.entries(DAYPART_WORD).map(([id, word]) => [word, id]));
+const DAYPART_TAG = /\s*\[(утро|день|вечер|ночь)\]\s*$/u;
+const NIGHT_WORDS = /^(спать|сон|спим|ночь)$/iu;
+
+// Parts for items stored without one: the last of several is ночь (the day
+// ends going to bed) unless the day already has its bedtime, the rest spread over утро → вечер in their order
+// («Школа, Спорт, Занимаемся, Душ, Спать» → утро, день, вечер, вечер, ночь); a
+// «Спать»/«Сон» item is always ночь.
+export function guessDayparts(items) {
+  const count = items.length;
+  const hasBedtime = items.some((item) => item.daypart === "night" || NIGHT_WORDS.test(item.text ?? ""));
+  return items.map((item, index) => {
+    if (item.daypart) return item;
+    if (NIGHT_WORDS.test(item.text ?? "")) return { ...item, daypart: "night" };
+    if (!hasBedtime && count > 1 && index === count - 1) return { ...item, daypart: "night" };
+    const spread = count > 1 ? Math.round((index * 3) / (count - 1)) : 0;
+    return { ...item, daypart: PLAN_DAYPARTS[Math.min(2, spread)] };
+  });
+}
+
+// Items in the order of the day: by part of the day, then as entered.
+export function sortByDaypart(items) {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => (PLAN_DAYPARTS.indexOf(a.item.daypart) - PLAN_DAYPARTS.indexOf(b.item.daypart)) || (a.index - b.index))
+    .map(({ item }) => item);
+}
+
 export function parsePlanItems(dayText) {
   if (!dayText) return [];
-  return String(dayText)
+  const items = String(dayText)
     .split(ITEM_SEPARATOR)
     .map((part) => {
-      const { icon, text } = splitPlanIcon(part.trim());
-      return { icon: icon ?? null, text: cleanText(text) };
+      const raw = part.trim();
+      const tag = DAYPART_TAG.exec(raw);
+      const { icon, text } = splitPlanIcon(tag ? raw.slice(0, tag.index) : raw);
+      return { icon: icon ?? null, text: cleanText(text), daypart: tag ? DAYPART_BY_WORD[tag[1]] : null };
     })
     .filter((item) => item.text || item.icon);
+  return sortByDaypart(guessDayparts(items));
 }
 
 export function serializePlanItems(items) {
-  return (items ?? [])
-    .map((item) => ({ icon: item.icon || null, text: cleanText(item.text) }))
-    .filter((item) => item.text || item.icon)
-    .map((item) => (item.icon ? `${item.icon} ${item.text}`.trim() : item.text))
+  return sortByDaypart(guessDayparts((items ?? [])
+    .map((item) => ({ icon: item.icon || null, text: cleanText(item.text), daypart: PLAN_DAYPARTS.includes(item.daypart) ? item.daypart : null }))
+    .filter((item) => item.text || item.icon)))
+    .map((item) => `${item.icon ? `${item.icon} ${item.text}`.trim() : item.text} [${DAYPART_WORD[item.daypart]}]`)
     .join(`${ITEM_SEPARATOR} `);
 }
 
@@ -224,10 +262,8 @@ export function serializePlanPhotos(photos, itemsByDay) {
 //            date stays in place crossed out («НЕ БУДЕТ») -- the child sees it
 //            was cancelled, not that it vanished; an item added only for that
 //            date is simply removed;
-//   added -- items added only for that date;
-//   done  -- keys the child marked «сделали» (today only).
-// Important dates and added items go before the day's last item: the day ends
-// the same way («Спать»), the extra thing comes before it.
+//   added -- items added only for that date.
+// Every item sits in its part of the day (important dates «день» unless set).
 
 export function eventPlanKey(event) {
   return `event:${event.id}`;
@@ -235,28 +271,34 @@ export function eventPlanKey(event) {
 
 export function buildDayPlan({ templateItems = [], events = [], changes = {}, photos = {} }) {
   const off = new Set(changes.off ?? []);
-  const done = new Set(changes.done ?? []);
   const base = templateItems.map((item) => ({
     key: planItemKey(item),
     text: item.text,
     icon: item.icon,
+    daypart: item.daypart ?? "day",
     photo: photos[planItemKey(item)] ?? null,
   }));
   const extra = [
-    ...events.map((event) => ({ key: eventPlanKey(event), text: event.title, icon: event.icon ?? null, photo: event.photo ?? null, important: true })),
+    ...events.map((event) => ({
+      key: eventPlanKey(event),
+      text: event.title,
+      icon: event.icon ?? null,
+      daypart: PLAN_DAYPARTS.includes(event.daypart) ? event.daypart : "day",
+      photo: event.photo ?? null,
+      important: true,
+    })),
     ...(changes.added ?? [])
-      .map((item) => ({ key: planItemKey(item), text: item.text, icon: item.icon ?? null, photo: photos[planItemKey(item)] ?? null, added: true }))
+      .map((item) => ({
+        key: planItemKey(item),
+        text: item.text,
+        icon: item.icon ?? null,
+        daypart: PLAN_DAYPARTS.includes(item.daypart) ? item.daypart : "day",
+        photo: photos[planItemKey(item)] ?? null,
+        added: true,
+      }))
       .filter((item) => !off.has(item.key)),
   ].filter((item) => !base.some((other) => other.key === item.key));
-  const items = base.length > 1
-    ? [...base.slice(0, -1), ...extra, base[base.length - 1]]
-    : [...base, ...extra];
-  return items.map((item) => ({ ...item, cancelled: off.has(item.key), done: done.has(item.key) }));
-}
-
-// The child's next thing: the first item neither done nor cancelled.
-export function planFocusIndex(items) {
-  return items.findIndex((item) => !item.done && !item.cancelled);
+  return sortByDaypart([...base, ...extra]).map((item) => ({ ...item, cancelled: off.has(item.key) }));
 }
 
 export function toggleKey(list, key) {

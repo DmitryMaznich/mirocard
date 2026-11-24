@@ -65,48 +65,61 @@ describe("DailyOrientationSettings", () => {
     expect(button(/^спорт: изменить/)).toBeTruthy();
   });
 
-  it("adds a new event with the picture suggested for its word, in the stored «Пн: …» form", () => {
-    mount({ weeklyPlan: "Пн: 🏫 Школа" });
+  const partRadio = (group, name) => Array.from(group.querySelectorAll('[role="radio"]')).find((el) => el.textContent === name);
+
+  it("adds a new event in the chosen part of the day, with the picture suggested for its word", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа [утро]" });
     act(() => button(/^Добавить дело: Понедельник/).click());
+    const panel = container.querySelector(".dos-plan__panel");
+    // New events go after the day's last waking part by default.
+    expect(partRadio(panel, "Утро").getAttribute("aria-checked")).toBe("true");
+    act(() => partRadio(panel, "День").click());
     typeInto(container.querySelector("#dos-plan-new"), "Бассейн");
-    act(() => container.querySelector(".dos-plan__panel form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
-    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа, 🏊 Бассейн");
+    act(() => panel.querySelector("form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], 🏊 Бассейн [день]");
   });
 
-  it("adds one of the week's own events with one tap", () => {
-    mount({ weeklyPlan: "Пн: 🏫 Школа, 👟 Спорт" });
+  it("adds one of the week's own events with one tap, in the chosen part", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа [утро], 👟 Спорт [день]" });
     act(() => button(/^Добавить дело: Вторник/).click());
+    const panel = container.querySelector(".dos-plan__panel");
+    act(() => partRadio(panel, "Вечер").click());
     act(() => Array.from(container.querySelectorAll(".dos-plan__chip--own")).find((el) => /Спорт/.test(el.textContent)).click());
-    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа, 👟 Спорт\nВт: 👟 Спорт");
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], 👟 Спорт [день]\nВт: 👟 Спорт [вечер]");
   });
 
   it("fills an empty day like the nearest filled day before it", () => {
-    mount({ weeklyPlan: "Пн: 🏫 Школа, 👟 Спорт" });
+    mount({ weeklyPlan: "Пн: 🏫 Школа [утро], 👟 Спорт [день]" });
     act(() => button(/^Как в понедельник/).click());
-    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа, 👟 Спорт\nВт: 🏫 Школа, 👟 Спорт");
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], 👟 Спорт [день]\nВт: 🏫 Школа [утро], 👟 Спорт [день]");
   });
 
-  it("moves, re-pictures (in every day) and removes an event", () => {
-    mount({ weeklyPlan: "Пн: 🏫 Школа, Спорт\nСр: Спорт" });
-    act(() => button(/^Спорт: изменить/).click());
+  it("moves an event to another part of the day, reorders within a part, re-pictures it everywhere and removes it", () => {
+    mount({ weeklyPlan: "Пн: 🏫 Школа [утро], Занимаемся [вечер], Душ [вечер]\nСр: Занимаемся [вечер]" });
+    act(() => button(/^Душ: изменить/).click());
     act(() => button(/^← Раньше/).click());
-    expect(latest.weeklyPlan).toBe("Пн: Спорт, 🏫 Школа\nСр: Спорт");
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], Душ [вечер], Занимаемся [вечер]\nСр: Занимаемся [вечер]");
+    act(() => button(/^Занимаемся: изменить/).click());
+    // The first of its part can't go «earlier» into another part: that's the part buttons' job.
+    expect(button(/^Позже/).disabled).toBe(true);
+    act(() => partRadio(container.querySelector(".dos-plan__day"), "День").click());
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], Занимаемся [день], Душ [вечер]\nСр: Занимаемся [вечер]");
     act(() => button(/^Картинка$/).click());
-    act(() => button(/^👟$/).click());
-    expect(latest.weeklyPlan).toBe("Пн: 👟 Спорт, 🏫 Школа\nСр: 👟 Спорт");
+    act(() => button(/^📚$/).click());
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], 📚 Занимаемся [день], Душ [вечер]\nСр: 📚 Занимаемся [вечер]");
     act(() => button(/^Убрать/).click());
-    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа\nСр: 👟 Спорт");
+    expect(latest.weeklyPlan).toBe("Пн: 🏫 Школа [утро], Душ [вечер]\nСр: 📚 Занимаемся [вечер]");
   });
 
   it("removes the photo of an item that left the week, and drops the photo when an emoji is picked", () => {
-    mount({ weeklyPlan: "Пн: 👟 Спорт, 🛏️ Спать", planPhotos: '{"спорт":"/api/photos/a","спать":"/api/photos/b"}' });
+    mount({ weeklyPlan: "Пн: 👟 Спорт [день], 🛏️ Спать [ночь]", planPhotos: '{"спорт":"/api/photos/a","спать":"/api/photos/b"}' });
     act(() => button(/^Спать: изменить/).click());
     act(() => button(/^Убрать/).click());
     expect(JSON.parse(latest.planPhotos)).toEqual({ "спорт": "/api/photos/a" });
     act(() => button(/^Спорт: изменить/).click());
     act(() => button(/^Картинка$/).click());
     act(() => button(/^⚽$/).click());
-    expect(latest.weeklyPlan).toBe("Пн: ⚽ Спорт");
+    expect(latest.weeklyPlan).toBe("Пн: ⚽ Спорт [день]");
     expect(latest.planPhotos).toBe("");
   });
 

@@ -536,3 +536,20 @@
   font-size: .7rem;
   font-weight: 700;
 }
+
+/* Часть суток у дела (2026-11-24). */
+.dos-plan__dayparts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.dos-plan__daypart {
+  min-height: 38px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  color: var(--dos-ink);
+  font-size: .85rem;
+  font-weight: 800;
+}
+.dos-plan__daypart--morning { background: #fde3d2; }
+.dos-plan__daypart--day { background: #d7ebfb; }
+.dos-plan__daypart--evening { background: #e6dbf6; }
+.dos-plan__daypart--night { background: #cfd6ea; }
+.dos-plan__daypart--on { border-color: var(--dos-ink); }
+.dos-plan__chip-part { padding: 1px 6px; border-radius: 6px; font-size: .68rem; font-weight: 800; color: var(--dos-ink); }
