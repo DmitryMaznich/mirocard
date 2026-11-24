@@ -320,72 +320,104 @@ export function DateContent({ activeDate, today, importantDates = [], pictureFor
   );
 }
 
-// ── Месяц ─────────────────────────────────────────────────────────────
-// All twelve, grouped by the season they belong to: month and time of year
-// connected in one picture. (Each month's length used to be shown too --
-// not something this screen's children need, and one more thing to read.)
-export function MonthContent({ activeDate }) {
-  const activeMonth = activeDate.getMonth();
+// ── Год: месяцы и времена года (owner, 2026-11-24) ────────────────────
+// One modal for both: the four seasons as whole blocks of three months, the
+// current season first and the current month the only accent. Swiping (or
+// the ‹ › arrows) turns the strip by one season, round and round -- after
+// summer comes autumn again -- and it turns back to now after a minute. A tap
+// on a month shows it in the phrase below («Март · Весна») with its important
+// dates; the month's own name here is the nominative («Сейчас ноябрь»): this is
+// the answer to «какой сейчас месяц?», not to «какое число?».
+const SEASON_ICONS = { winter: "❄️", spring: "🌱", summer: "☀️", autumn: "🍂" };
+const YEAR_RETURN_MS = 60_000;
+const YEAR_SWIPE_PX = 45;
+
+export function YearContent({ activeDate, importantDates = [], pictureFor = () => null }) {
+  const year = activeDate.getFullYear();
+  const currentMonth = activeDate.getMonth();
+  const startIndex = SEASON_ORDER.indexOf(getSeason(currentMonth).id);
+  const [shift, setShift] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const swipeRef = useRef(null);
+  useEffect(() => {
+    if (shift === 0 && picked === null) return undefined;
+    const timer = window.setTimeout(() => { setShift(0); setPicked(null); }, YEAR_RETURN_MS);
+    return () => window.clearTimeout(timer);
+  }, [shift, picked]);
+
+  const seasons = [0, 1, 2, 3].map((i) => SEASON_ORDER[(startIndex + shift + i) % 4]);
+  // A month's important dates in the coming twelve months.
+  const eventsIn = (month) => {
+    const inYear = month >= currentMonth ? year : year + 1;
+    return Array.from({ length: daysInMonth(inYear, month) }, (_, index) => index + 1)
+      .flatMap((day) => eventsOnDate(importantDates, new Date(inYear, month, day)));
+  };
+  const turn = (delta) => setShift((value) => (value + delta + 4) % 4);
+  const shownMonth = picked ?? currentMonth;
+  const shownSeason = getSeason(shownMonth).id;
+  const shownEvents = eventsIn(shownMonth);
+
   return (
-    <div className="dom">
-      <h2 className="dom-title">Месяцы</h2>
-      <div className="dom-months">
-        {SEASON_ORDER.map((seasonId) => (
-          <section key={seasonId} className={`dom-months__season dom-season-tone--${seasonId}`}>
-            <h3 className="dom-months__season-name">
-              <img className="dom-months__season-thumb" src={seasonPicture(seasonId)} alt="" draggable="false" />
-              {SEASON_LABELS[seasonId]}
-            </h3>
-            <ol className="dom-months__list">
-              {SEASON_MONTHS[seasonId].map((monthIndex) => {
-                const isActive = monthIndex === activeMonth;
-                return (
-                  <li
-                    key={monthIndex}
-                    className={`dom-months__month${isActive ? " dom-months__month--active" : ""}`}
-                    aria-current={isActive ? "true" : undefined}
-                  >
-                    <span className="dom-months__month-name">{capitalize(MONTHS_NOMINATIVE[monthIndex])}</span>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
+    <div className="dom dom--year">
+      <h2 className="dom-title">Год</h2>
+      <div className="dom-year">
+        <button type="button" className="dom-year__nav dom-year__nav--prev" aria-label="Предыдущее время года" onClick={() => turn(-1)}>‹</button>
+        <div
+          className="dom-year__strip"
+          onPointerDown={(event) => { swipeRef.current = { x: event.clientX, id: event.pointerId }; }}
+          onPointerUp={(event) => {
+            const start = swipeRef.current;
+            swipeRef.current = null;
+            if (!start || start.id !== event.pointerId) return;
+            const dx = event.clientX - start.x;
+            if (Math.abs(dx) >= YEAR_SWIPE_PX) turn(dx < 0 ? 1 : -1);
+          }}
+          onPointerCancel={() => { swipeRef.current = null; }}
+        >
+          {seasons.map((seasonId) => (
+            <section key={seasonId} className={`dom-year__season dom-year__season--${seasonId}`} aria-label={SEASON_LABELS[seasonId]}>
+              <div className={`dom-year__head${SEASON_MONTHS[seasonId].includes(currentMonth) ? " dom-year__head--now" : ""}`}>
+                <img src={seasonPicture(seasonId)} alt="" draggable="false" />
+                <span>{SEASON_LABELS[seasonId]}</span>
+              </div>
+              <div className="dom-year__months">
+                {SEASON_MONTHS[seasonId].map((month) => {
+                  const events = eventsIn(month);
+                  return (
+                    <button
+                      key={month}
+                      type="button"
+                      aria-current={month === currentMonth ? "date" : undefined}
+                      aria-pressed={month === shownMonth}
+                      className={[
+                        "dom-year__month",
+                        month === currentMonth ? "dom-year__month--now" : "",
+                        month === picked && month !== currentMonth ? "dom-year__month--picked" : "",
+                      ].filter(Boolean).join(" ")}
+                      onClick={() => setPicked(month === currentMonth ? null : month)}
+                    >
+                      <span className="dom-year__month-name">{MONTHS_NOMINATIVE[month]}</span>
+                      {events.length > 0 && <EventPicture item={events[0]} pictureFor={pictureFor} className="dom-year__mark" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+        <button type="button" className="dom-year__nav dom-year__nav--next" aria-label="Следующее время года" onClick={() => turn(1)}>›</button>
+      </div>
+      <div className="dom-year__say">
+        <p className="dom-year__phrase">
+          {shownMonth === currentMonth ? <>Сейчас <em>{MONTHS_NOMINATIVE[shownMonth]}</em></> : <em>{capitalize(MONTHS_NOMINATIVE[shownMonth])}</em>}
+        </p>
+        <span className="dom-year__chip">{SEASON_ICONS[shownSeason]} {SEASON_LABELS[shownSeason]}</span>
+        {shownEvents.slice(0, 3).map((item) => (
+          <span key={item.id} className="dom-year__chip dom-year__chip--event">
+            <EventPicture item={item} pictureFor={pictureFor} className="dom-year__chip-picture" /> {item.title}
+          </span>
         ))}
       </div>
-    </div>
-  );
-}
-
-// ── Время года ────────────────────────────────────────────────────────
-export function SeasonContent({ activeDate }) {
-  const current = getSeason(activeDate.getMonth()).id;
-  const activeMonth = activeDate.getMonth();
-  return (
-    <div className="dom">
-      <h2 className="dom-title">Времена года</h2>
-      <ol className="dom-cycle">
-        {SEASON_ORDER.map((seasonId, index) => (
-          <li key={seasonId} className="dom-cycle__slot">
-            <div
-              className={`dom-cycle__item dom-season-tone--${seasonId}${seasonId === current ? " dom-cycle__item--active" : ""}`}
-              aria-current={seasonId === current ? "true" : undefined}
-            >
-              <img className="dom-cycle__season-picture" src={seasonPicture(seasonId)} alt="" draggable="false" />
-              <span className="dom-cycle__name">{SEASON_LABELS[seasonId]}</span>
-              <span className="dom-cycle__months">
-                {SEASON_MONTHS[seasonId].map((monthIndex) => (
-                  <span key={monthIndex} className={monthIndex === activeMonth ? "dom-cycle__month--active" : undefined}>
-                    {MONTHS_NOMINATIVE[monthIndex]}
-                  </span>
-                ))}
-              </span>
-            </div>
-            {index < SEASON_ORDER.length - 1 ? <CycleArrow /> : null}
-          </li>
-        ))}
-      </ol>
-      <p className="dom-cycle__note">После осени снова приходит зима</p>
     </div>
   );
 }

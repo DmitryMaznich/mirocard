@@ -43,7 +43,7 @@ import {
   MONTHS_GENITIVE,
   spokenClockSentence,
 } from "./timeUtils";
-import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
+import { DateContent, DaypartContent, WeekContent, YearContent } from "./ConceptModals.jsx";
 import { PlanCard, PlanChangesContent } from "./PlanCard.jsx";
 import { NightScreen } from "./NightScreen.jsx";
 import { useDoneMarks, useSharedPlanChanges } from "./planChanges.js";
@@ -347,8 +347,7 @@ function CloseIcon() {
 const CONCEPT_MODAL_LABELS = {
   week: "Неделя",
   date: "Календарь месяца",
-  month: "Месяцы",
-  season: "Времена года",
+  year: "Год",
   daypart: "Время суток",
   time: "Часы",
 };
@@ -1149,13 +1148,13 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
                             className="daily-orientation__date-month"
                             role="button"
                             tabIndex={0}
-                            aria-label="Месяцы"
-                            onClick={(event) => { event.stopPropagation(); setOpenConcept("month"); }}
+                            aria-label="Год: месяцы и времена года"
+                            onClick={(event) => { event.stopPropagation(); setOpenConcept("year"); }}
                             onKeyDown={(event) => {
                               if (event.key !== "Enter" && event.key !== " ") return;
                               event.preventDefault();
                               event.stopPropagation();
-                              setOpenConcept("month");
+                              setOpenConcept("year");
                             }}
                           >
                             {caseText(display.showDayOfMonth ? MONTHS_GENITIVE[activeDate.getMonth()] : month)}
@@ -1176,7 +1175,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
                         type="button"
                         className={`daily-orientation__season-band daily-orientation__season-band--${season.id}`}
                         aria-label={`Время года: ${season.label.toLowerCase()}`}
-                        onClick={(event) => { event.stopPropagation(); setOpenConcept("season"); }}
+                        onClick={(event) => { event.stopPropagation(); setOpenConcept("year"); }}
                       >
                         {caseText(season.label)}
                       </button>
@@ -1307,8 +1306,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
         <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
           {openConcept === "week" && <WeekContent today={now} weekItems={weekItems} planPhotos={planPhotos} importantDates={importantDates} onSpeak={soundEnabled ? speakInModal : null} speakDays={cardSound} />}
           {openConcept === "date" && <DateContent activeDate={activeDate} today={now} importantDates={importantDates} pictureFor={importantPicture} />}
-          {openConcept === "month" && <MonthContent activeDate={activeDate} />}
-          {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
+          {openConcept === "year" && <YearContent activeDate={now} importantDates={importantDates} pictureFor={importantPicture} />}
           {openConcept === "daypart" && <DaypartContent daypartId={daypartId} bounds={bounds} />}
           {openConcept === "time" && (
             <div className="daily-orientation__time-modal">

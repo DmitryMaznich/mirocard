@@ -622,3 +622,97 @@
 .dom-date-events li { display: flex; align-items: center; gap: 12px; font-size: clamp(15px, 1.6vw, 22px); font-weight: 900; }
 .dom-date-events li b { width: 2em; text-align: right; color: #c2410c; }
 .dom-date-events__item--past { opacity: .42; }
+
+/* ── Год: месяцы и времена года (2026-11-24) ─────────────────────── */
+.dom--year { gap: clamp(14px, 2vw, 28px); }
+.dom-year { position: relative; display: flex; align-items: center; gap: clamp(6px, 1vw, 12px); }
+.dom-year__nav {
+  flex: none;
+  width: clamp(36px, 4vw, 52px);
+  height: clamp(36px, 4vw, 52px);
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  color: var(--dom-ink, #0f3b4c);
+  font: inherit;
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dom-year__strip {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(10px, 1.6vw, 22px); /* wider than between months: a season reads as one block */
+  touch-action: pan-y;
+  user-select: none;
+}
+.dom-year__season { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.dom-year__head {
+  position: relative;
+  height: clamp(64px, 11vh, 120px);
+  border-radius: 16px 16px 6px 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+}
+.dom-year__head img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .75; }
+.dom-year__head::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .85)); }
+.dom-year__head span { position: relative; z-index: 1; font-size: clamp(16px, 2vw, 26px); font-weight: 900; }
+.dom-year__head--now { box-shadow: inset 0 0 0 4px var(--dom-ink, #0f3b4c); }
+.dom-year__months { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.dom-year__month {
+  height: clamp(64px, 11vh, 120px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px 6px 14px 14px;
+  color: var(--dom-ink, #0f3b4c);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dom-year__season--winter .dom-year__month { background: #e6f1fa; }
+.dom-year__season--spring .dom-year__month { background: #ecf6e6; }
+.dom-year__season--summer .dom-year__month { background: #fff6d8; }
+.dom-year__season--autumn .dom-year__month { background: #fdeede; }
+.dom-year__months { container-type: inline-size; }
+/* «сентябрь» (8 letters) must fit a third of the season: sized by the season's own width. */
+.dom-year__month-name { font-size: min(18px, calc(100cqi / 3 / 8 / .62)); font-weight: 900; white-space: nowrap; }
+.dom-year__month--now { background: var(--dom-date) !important; color: #fff; box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--dom-date); }
+.dom-year .dom-year__month--picked { outline: 3px dashed #8a9a9e; outline-offset: -3px; }
+.dom-year__month:focus-visible, .dom-year__nav:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.dom-year__mark { font-size: clamp(16px, 2vw, 26px); line-height: 1; }
+.dom-year__mark--photo, .dom-year__chip-picture--photo { width: 1.4em; height: 1.4em; border-radius: 6px; object-fit: cover; }
+.dom-year__say {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(10px, 1.4vw, 20px);
+  padding: clamp(14px, 1.8vw, 24px) clamp(18px, 2.2vw, 30px);
+  border-radius: clamp(16px, 1.8vw, 24px);
+  background: #fff3ec;
+}
+.dom-year__phrase { margin: 0; font-size: clamp(26px, 3.6vw, 46px); font-weight: 950; }
+.dom-year__phrase em { font-style: normal; color: #c2410c; }
+.dom-year__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 14px;
+  background: #fff;
+  font-size: clamp(15px, 1.9vw, 24px);
+  font-weight: 900;
+}
+.dom-year__chip--event { background: #fff7dc; border: 3px solid #f2b544; }
