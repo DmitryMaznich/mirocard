@@ -1,8 +1,6 @@
 import { useState } from "react";
 import {
-  DAYPART_HOUR_RANGES,
   daypartBounds,
-  getDaypartId,
 } from "@/topics/renderers/daily_orientation/timeUtils";
 import {
   daysUntil,
@@ -12,6 +10,7 @@ import {
   visibleImportantDates,
 } from "@/features/importantDates/importantDates";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import DaypartBar from "./DaypartBar.jsx";
 import PlanTodayEditor from "./PlanTodayEditor.jsx";
 import WeekPlanEditor from "./WeekPlanEditor.jsx";
 import "./dailyOrientationSettings.css";
@@ -47,15 +46,6 @@ const MAP_ROWS = [
 ];
 const MAP_CARDS = MAP_ROWS.flat();
 
-// Each part's stepper, in the order of the day; its param keeps the old
-// name for утро (wakeHour) and ночь (bedHour) -- see daypartBounds.
-const DAYPART_STEPPERS = [
-  { id: "morning", param: "wakeHour" },
-  { id: "day", param: "dayHour" },
-  { id: "evening", param: "eveningHour" },
-  { id: "night", param: "bedHour" },
-];
-const DAYPART_LABELS = { morning: "Утро", day: "День", evening: "Вечер", night: "Ночь" };
 
 const IMPORTANT_DATES_STYLES = [
   { value: "bright", label: "Празднично", hint: "Гирлянда, тёплый фон и полоса с фото" },
@@ -78,24 +68,6 @@ function cardIsOn(params, card) {
   return card.keys.some((key) => isOn(params, key));
 }
 
-function hourLabel(hour) {
-  return `${hour}:00`;
-}
-
-// Contiguous runs of the same part of the day across 24 hours, starting at
-// the wake hour so the bar reads like the child's day: утро → … → ночь.
-function daypartSegments(bounds) {
-  const segments = [];
-  for (let i = 0; i < 24; i++) {
-    const hour = (bounds.morning + i) % 24;
-    const id = getDaypartId(new Date(2026, 0, 1, hour), bounds);
-    const last = segments[segments.length - 1];
-    if (last && last.id === id) last.hours += 1;
-    else segments.push({ id, from: hour, hours: 1 });
-  }
-  return segments;
-}
-
 function MapCard({ card, on, locked, onToggle }) {
   return (
     <button
@@ -114,20 +86,6 @@ function MapCard({ card, on, locked, onToggle }) {
         ) : null}
       </span>
     </button>
-  );
-}
-
-function HourStepper({ id, label, value, range, onChange }) {
-  const [min, max] = range;
-  return (
-    <div className="dos-hour">
-      <span className="dos-hour__label" id={`${id}-label`}>{label}</span>
-      <div className="dos-hour__control" role="group" aria-labelledby={`${id}-label`}>
-        <button type="button" className="dos-hour__btn" aria-label={`${label}: раньше`} disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
-        <output className="dos-hour__value" aria-live="polite">{hourLabel(value)}</output>
-        <button type="button" className="dos-hour__btn" aria-label={`${label}: позже`} disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
-      </div>
-    </div>
   );
 }
 
@@ -291,36 +249,7 @@ export default function DailyOrientationSettings({ params, setParams, student, o
         </header>
 
         <div className="dos-card">
-          <div className="dos-hours">
-            {DAYPART_STEPPERS.map(({ id, param }, index) => {
-              // Never past its neighbours: утро < день < вечер < ночь.
-              const [min, max] = DAYPART_HOUR_RANGES[id];
-              const prev = index > 0 ? bounds[DAYPART_STEPPERS[index - 1].id] + 1 : min;
-              const next = index < DAYPART_STEPPERS.length - 1 ? bounds[DAYPART_STEPPERS[index + 1].id] - 1 : max;
-              return (
-                <HourStepper
-                  key={id}
-                  id={`dos-${id}`}
-                  label={t(`dailyDay.from.${id}`)}
-                  value={bounds[id]}
-                  range={[Math.max(min, prev), Math.min(max, next)]}
-                  onChange={(v) => set({ [param]: v })}
-                />
-              );
-            })}
-          </div>
-          <div className="dos-dayline" aria-hidden="true">
-            {daypartSegments(bounds).map((segment) => (
-              <div
-                key={`${segment.id}-${segment.from}`}
-                className={`dos-dayline__part dos-dayline__part--${segment.id}`}
-                style={{ flexGrow: segment.hours }}
-              >
-                <span className="dos-dayline__name">{DAYPART_LABELS[segment.id]}</span>
-                <span className="dos-dayline__from">{hourLabel(segment.from)}</span>
-              </div>
-            ))}
-          </div>
+          <DaypartBar bounds={bounds} onChange={set} />
         </div>
         <div className="dos-subgroup">
           <span className="dos-subgroup__label" id="dos-night-label">{t("dailyNight.label")}</span>

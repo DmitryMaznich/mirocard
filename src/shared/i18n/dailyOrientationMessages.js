@@ -3,7 +3,11 @@
 export const DAILY_ORIENTATION_MESSAGES = {
   ru: {
     "dailyDay.title": "Части суток",
-    "dailyDay.hint": "С какого часа на карточке «Сейчас» начинается утро, день, вечер и ночь. С начала ночи экран тёмный.",
+    "dailyDay.part.morning": "Утро",
+    "dailyDay.part.day": "День",
+    "dailyDay.part.evening": "Вечер",
+    "dailyDay.part.night": "Ночь",
+    "dailyDay.hint": "Потяните границы: с какого часа на карточке «Сейчас» начинается утро, день, вечер и ночь. С начала ночи экран тёмный.",
     "dailyDay.hintOff": "Включите карточку «Сейчас», чтобы части суток были видны ребёнку.",
     "dailyDay.from.morning": "Утро с",
     "dailyDay.from.day": "День с",
@@ -53,7 +57,11 @@ export const DAILY_ORIENTATION_MESSAGES = {
   },
   sl: {
     "dailyDay.title": "Deli dneva",
-    "dailyDay.hint": "Od katere ure se na kartici »Zdaj« začnejo jutro, dan, večer in noč. Od začetka noči je zaslon temen.",
+    "dailyDay.part.morning": "Jutro",
+    "dailyDay.part.day": "Dan",
+    "dailyDay.part.evening": "Večer",
+    "dailyDay.part.night": "Noč",
+    "dailyDay.hint": "Povlecite meje: od katere ure se na kartici »Zdaj« začnejo jutro, dan, večer in noč. Od začetka noči je zaslon temen.",
     "dailyDay.hintOff": "Vklopite kartico »Zdaj«, da otrok vidi dele dneva.",
     "dailyDay.from.morning": "Jutro od",
     "dailyDay.from.day": "Dan od",
@@ -103,7 +111,11 @@ export const DAILY_ORIENTATION_MESSAGES = {
   },
   en: {
     "dailyDay.title": "Parts of the day",
-    "dailyDay.hint": "The hour morning, day, evening and night start at on the “Now” card. From the start of night the screen is dark.",
+    "dailyDay.part.morning": "Morning",
+    "dailyDay.part.day": "Day",
+    "dailyDay.part.evening": "Evening",
+    "dailyDay.part.night": "Night",
+    "dailyDay.hint": "Drag the borders: the hour morning, day, evening and night start at on the “Now” card. From the start of night the screen is dark.",
     "dailyDay.hintOff": "Turn on the “Now” card so the child sees the parts of the day.",
     "dailyDay.from.morning": "Morning from",
     "dailyDay.from.day": "Day from",

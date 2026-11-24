@@ -471,3 +471,68 @@
   text-decoration: none;
 }
 .dos-today__empty { margin: 0; color: var(--dos-muted); font-size: .88rem; }
+
+/* ── Части суток: one bar, a handle on each border (DaypartBar) ──── */
+.dos-daybar { padding: 34px 18px 10px; }
+.dos-daybar__track {
+  position: relative;
+  height: 52px;
+  border-radius: 12px;
+  touch-action: none;
+}
+.dos-daybar__part {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.dos-daybar__part:first-child { border-radius: 12px 0 0 12px; }
+.dos-daybar__part:nth-child(5) { border-radius: 0 12px 12px 0; }
+.dos-daybar__name { font-size: .78rem; font-weight: 800; color: var(--dos-ink); white-space: nowrap; }
+.dos-daybar__handle {
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  width: 44px;
+  margin-left: -22px;
+  display: flex;
+  justify-content: center;
+  cursor: ew-resize;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 1;
+}
+.dos-daybar__handle::before {
+  content: "";
+  width: 6px;
+  border-radius: 3px;
+  background: var(--dos-ink);
+  box-shadow: 0 0 0 2px #fff;
+}
+.dos-daybar__handle:focus-visible { outline: none; }
+.dos-daybar__handle:focus-visible::before { background: var(--dos-accent); }
+.dos-daybar__hour {
+  position: absolute;
+  top: -22px;
+  padding: 1px 6px;
+  border-radius: 7px;
+  background: var(--dos-ink);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+/* Neighbouring borders an hour apart would put their hours on top of each
+   other: утро and вечер are labelled above the bar, день and ночь below. */
+.dos-daybar__handle--below .dos-daybar__hour { top: auto; bottom: -22px; }
+.dos-daybar__scale { position: relative; height: 18px; margin-top: 32px; }
+.dos-daybar__scale span {
+  position: absolute;
+  transform: translateX(-50%);
+  color: var(--dos-muted);
+  font-size: .7rem;
+  font-weight: 700;
+}

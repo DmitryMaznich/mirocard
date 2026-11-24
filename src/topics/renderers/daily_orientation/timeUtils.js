@@ -80,10 +80,10 @@ export const DEFAULT_EVENING_HOUR = 18;
 // wakeHour (= утро с, the old «Подъём»), dayHour, eveningHour and bedHour
 // (= ночь с, the old «Отбой»), so settings saved before keep working.
 export const DAYPART_HOUR_RANGES = {
-  morning: [4, 10],
-  day: [9, 15],
-  evening: [14, 20],
-  night: [18, 23],
+  morning: [3, 11],
+  day: [8, 16],
+  evening: [13, 21],
+  night: [17, 23],
 };
 
 // Always in order (утро < день < вечер < ночь), whatever was stored.

@@ -110,13 +110,17 @@ describe("DailyOrientationSettings", () => {
     expect(latest.planPhotos).toBe("");
   });
 
-  it("sets where each part of the day starts, never past its neighbour", () => {
+  it("moves a border of the day bar by an hour, never past its neighbour", () => {
+    const slider = (name) => container.querySelector(`[role="slider"][aria-label="${name}"]`);
+    const key = (el, k) => act(() => el.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true })));
     mount({ wakeHour: 7, dayHour: 12, eveningHour: 18, bedHour: 21 });
-    act(() => button(/^Вечер с: раньше/).click());
+    key(slider("Вечер с"), "ArrowLeft");
     expect(latest.eveningHour).toBe(17);
     act(() => root.unmount()); container.remove();
     mount({ wakeHour: 7, dayHour: 13, eveningHour: 14, bedHour: 21 });
-    expect(button(/^День с: позже/).disabled).toBe(true);
+    expect(slider("День с").getAttribute("aria-valuemax")).toBe("13");
+    key(slider("День с"), "ArrowRight");
+    expect(latest.dayHour).toBe(13);
   });
 });
 
