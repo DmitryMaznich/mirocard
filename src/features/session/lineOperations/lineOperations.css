@@ -1,27 +1,33 @@
 .line-operations {
   --line-ink: #24394a;
+  --line-quiet: #4c5965;
+  --line-stage: #fbf5ea;
+  --line-edge: #ddcbb3;
   --line-green: #25674f;
   --line-amber: #a4591d;
+  box-sizing: border-box;
   width: 100%;
   max-width: 1160px;
   margin: 0 auto auto;
-  padding: 12px clamp(10px, 2.5vw, 26px);
+  padding: clamp(12px, 3vw, 24px);
+  border: 1px solid var(--line-edge);
+  border-radius: clamp(15px, 3vw, 24px);
+  background: var(--line-stage);
   color: var(--line-ink);
 }
 
 .line-operations__title {
   margin: 0;
-  font-size: clamp(24px, 5vw, 42px);
-  font-weight: 900;
-  line-height: 1.06;
+  font-size: clamp(23px, 4.6vw, 36px);
+  font-weight: 850;
+  line-height: 1.12;
   letter-spacing: -.035em;
-  text-wrap: balance;
 }
 
 .line-operations__prompt {
-  margin: 6px 0 clamp(14px, 3vw, 24px);
-  color: #4c5965;
-  font-size: clamp(14px, 2.5vw, 18px);
+  margin: 7px 0 clamp(14px, 3vw, 23px);
+  color: var(--line-quiet);
+  font-size: clamp(14px, 2.4vw, 17px);
 }
 
 .line-operations__equation {
@@ -52,13 +58,14 @@
   background: #fffefa;
   color: #b7a181;
   border-color: currentColor;
-  box-shadow: 0 3px 0 #ddcbb3;
+  box-shadow: 0 3px 0 var(--line-edge);
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
 }
 
 .line-operations__panel svg { display: block; width: 100%; height: 100%; pointer-events: none; }
-.line-operations__symbol { font-size: clamp(24px, 4vw, 42px); font-weight: 900; text-align: center; line-height: 1; }
+.line-operations__symbol { font-size: clamp(22px, 4vw, 33px); font-weight: 800; text-align: center; line-height: 1; }
 .line-operations__grid { fill: none; stroke: #2239412b; stroke-width: .65; }
 .line-operations__ink { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .line-operations__response { color: var(--line-ink); }
@@ -92,7 +99,7 @@
 
 @media (max-width: 570px) {
   .line-operations__equation { grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr); gap: 7px; }
-  .line-operations__example { max-width: min(178px, max(100px, 20dvh)); }
+  .line-operations__example { max-width: min(178px, max(100px, 22dvh)); }
   .line-operations__equals { grid-column: 1 / -1; }
   .line-operations__result { grid-column: 1 / -1; max-width: none; }
 }

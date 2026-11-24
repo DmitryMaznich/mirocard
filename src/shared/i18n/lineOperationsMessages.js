@@ -2,7 +2,7 @@ export const LINE_OPERATIONS_MESSAGES = {
   ru: {
     "lineOperations.title": "Какой рисунок получится?",
     "lineOperations.plusPrompt": "Нарисуй все линии вместе.",
-    "lineOperations.minusPrompt": "Нарисуй первый рисунок без линий из второго.",
+    "lineOperations.minusPrompt": "Нарисуй первый рисунок без оранжевых линий.",
     "lineOperations.first": "Первый рисунок",
     "lineOperations.second": "Второй рисунок",
     "lineOperations.plus": "Добавь",
@@ -15,7 +15,7 @@ export const LINE_OPERATIONS_MESSAGES = {
   sl: {
     "lineOperations.title": "Katera risba bo nastala?",
     "lineOperations.plusPrompt": "Nariši vse črte skupaj.",
-    "lineOperations.minusPrompt": "Nariši prvo risbo brez črt iz druge.",
+    "lineOperations.minusPrompt": "Nariši prvo risbo brez oranžnih črt.",
     "lineOperations.first": "Prva risba",
     "lineOperations.second": "Druga risba",
     "lineOperations.plus": "Dodaj",
@@ -28,7 +28,7 @@ export const LINE_OPERATIONS_MESSAGES = {
   en: {
     "lineOperations.title": "What picture will you get?",
     "lineOperations.plusPrompt": "Draw all the lines together.",
-    "lineOperations.minusPrompt": "Draw the first picture without the lines from the second.",
+    "lineOperations.minusPrompt": "Draw the first picture without the orange lines.",
     "lineOperations.first": "First picture",
     "lineOperations.second": "Second picture",
     "lineOperations.plus": "Add",
