@@ -17,7 +17,7 @@ import texts  # noqa: E402
 import words  # noqa: E402
 
 ROWS = 17  # rows of an A5 page on the narrow ruling: all 17 ruling rows of the printed notebook
-wide = json.load(open(ROOT / "tools" / "propis" / "wide.json", encoding="utf-8"))
+wide = json.load(open(ROOT / "tools" / "handwriting" / "cyrillic" / "wide.json", encoding="utf-8"))
 HAVE = {g["label"] for g in wide["glyphs"]} | {a for g in wide["glyphs"] for a in g.get("aliases", [])}
 
 # every kit page is a page of the printed notebooks: the narrow ruling, the standard 20 mm slants, the red margin
@@ -362,7 +362,7 @@ W_ROWS, N_ROWS = 16, 17
 S_WIDE = {**PAGE, "ruling": "wide", "grid": "dense"}   # the frequent slants of the methodology sheets: they show the slope
 S_NARROW = {**PAGE, "grid": "dense"}
 HAVE |= {"Ё", "Й"}  # built from Е / И and the marks in the app (propis2/glyphOverrides.js withMarkedCapitals), not in wide.json
-ELEMENT_IDS = {e["id"] for e in json.load(open(ROOT / "tools" / "propis" / "elements.json", encoding="utf-8"))["elements"]}
+ELEMENT_IDS = {e["id"] for e in json.load(open(ROOT / "tools" / "handwriting" / "cyrillic" / "elements.json", encoding="utf-8"))["elements"]}
 HAVE |= ELEMENT_IDS  # drawn from elements.json by id (pageTask.js buildGlyphMap)
 # what makes an element row (the editor's «Элемент» kind): the elements.json ids and the wide elements that are not a letter
 ELEMENT_TOKENS = ELEMENT_IDS | {g["label"] for g in wide["glyphs"] if g.get("kind") == "element" and not (len(g["label"]) == 1 and g["label"].isalpha())}
@@ -697,7 +697,67 @@ series.append(series_kit("s14-phrases", "14. Слова и фразы", "Узк�
 
 # ---- 15-16. punctuation, copying a text: the notebooks above, steps of the series ---------------------------------------------------
 series += [punct_kit, texts_kit]
+
+
+# ---- from print to handwriting (not a step of the series: 12 pages, after the digits) (owner, 2026-11-24): a child who already writes learns to COPY a printed model in handwriting ---------
+# Every model row is in the «Книжные» style (`book`, script.readingSample: printed once, no red dots), the row under it is empty: the child
+# recodes print into handwriting. Methodology and the reasons for every page: docs/propis2-print-to-cursive.md.
+def book(text, as_text=True, gap=None, even=False):
+    r = {"text": text, "kind": "text", "repeat": "one", "dots": "none", "copies": "dash", "asText": as_text, "style": "book"}
+    if gap:
+        r["gap"] = gap
+    if even:
+        r["even"] = True
+    return r
+
+
+def copy_page(title, models, **kw):
+    """The model in print, the empty row under it to write it in handwriting; 8 pairs + the 17th row empty."""
+    assert len(models) == ROWS // 2, (title, len(models))
+    rows = []
+    for t in models:
+        rows += [book(t, **kw), blank()]
+    return page(title, rows + [blank()])
+
+
+# 24 pages x 8 sentences (owner: 12 first, then «стандартная тетрадь» — 24), every sentence different (owner, 2026-11-24: «одна строка предложение, вторая для повтора»). The ladder runs
+# inside the sentences: length, then other ends of a sentence, then words not written as said, then the longest.
+SENTENCES = [
+    ("Два слова", ["Кот спит.", "Мама поёт.", "Идёт снег.", "Дует ветер.", "Я рисую.", "Папа читает.", "Утка плывёт.", "Дети играют."]),
+    ("Два слова", ["Пёс лает.", "Мы гуляем.", "Светит солнце.", "Птица летит.", "Рыба плавает.", "Малыш спит.", "Мяч прыгает.", "Аня читает."]),
+    ("Два слова", ["Лев рычит.", "Конь скачет.", "Вова поёт.", "Гром гремит.", "Лена спит.", "Дед смеётся.", "Чайник кипит.", "Листья падают."]),
+    ("Два слова", ["Жук ползёт.", "Петух поёт.", "Мы обедаем.", "Часы тикают.", "Цветы растут.", "Белка прыгает.", "Девочка плачет.", "Машина едет."]),
+    ("Три слова", ["Я люблю маму.", "Кот пьёт молоко.", "Мы идём гулять.", "У Тани мяч.", "Миша ест суп.", "Папа моет посуду.", "Оля пьёт чай.", "Дед колет дрова."]),
+    ("Три слова", ["Птицы поют песни.", "Мама варит кашу.", "Мы лепим снеговика.", "Лиса бежит быстро.", "Дима строит дом.", "Бабушка вяжет носки.", "Кошка ловит мышь.", "Сова спит днём."]),
+    ("Три слова", ["Мама моет пол.", "Кот ловит мяч.", "Мы пьём сок.", "Ёж несёт гриб.", "Петя любит кашу.", "У меня кукла.", "Дети пьют чай.", "Аня рисует дом."]),
+    ("Три слова", ["Гуси щиплют траву.", "Пчела собирает мёд.", "Волк воет громко.", "Заяц ест морковь.", "Дима читает сказку.", "Мама гладит кота.", "Папа пилит доску.", "Медведь спит зимой."]),
+    ("Три-четыре слова", ["На ветке сидит птица.", "Бабушка печёт пирог.", "Собака спит у двери.", "Я пью тёплый чай.", "В лесу растут грибы.", "Мы с мамой в парке.", "Летом мы купаемся.", "Брат читает книгу."]),
+    ("Три-четыре слова", ["На столе стоит ваза.", "Петя рисует море.", "У нас живёт кот.", "Мы едем на дачу.", "В саду цветут розы.", "Папа чинит кран.", "Дети едут на санках.", "Ветер гонит тучи."]),
+    ("Три-четыре слова", ["На полке лежит мяч.", "Мы идём в магазин.", "Кошка сидит на окне.", "Я играю с братом.", "У дома растёт ель.", "Мама шьёт платье.", "Рыбки живут в пруду.", "Папа едет на работу."]),
+    ("Три-четыре слова", ["Мы гуляем в саду.", "Птица вьёт гнездо.", "Я надел тёплую шапку.", "Вова идёт в школу.", "Кот играет с мячом.", "На небе тучи.", "Дедушка пьёт чай.", "Мы ждём автобус."]),
+    ("Вопрос", ["Где мой мяч?", "Кто там?", "Как тебя зовут?", "Ты пойдёшь гулять?", "Что ты рисуешь?", "Где живёт ёжик?", "Когда придёт папа?", "Сколько тебе лет?"]),
+    ("Вопрос", ["Где твоя шапка?", "Кто съел пирог?", "Что ты читаешь?", "Ты любишь кашу?", "Куда ты идёшь?", "Почему идёт дождь?", "Чей это мяч?", "Можно мне сок?"]),
+    ("Восклицание и обращение", ["Ура, каникулы!", "Какой красивый снег!", "Привет, Миша!", "Осторожно, лужа!", "Мама, смотри!", "Как вкусно пахнет!", "Аня, иди сюда!", "Спасибо, бабушка!"]),
+    ("Восклицание и обращение", ["Какой большой слон!", "С днём рождения!", "Миша, лови мяч!", "Как тепло на улице!", "Мама, я дома!", "Ой, какой ёжик!", "Здравствуй, зима!", "Папа, помоги!"]),
+    ("Пишем, как напечатано", ["Сегодня тепло.", "Его зовут Серёжа.", "Ёжик живёт в лесу.", "Зимой стоит мороз.", "Дуб растёт у дороги.", "Молоко в стакане.", "Под ногами снег.", "Хлеб лежит на столе."]),
+    ("Пишем, как напечатано", ["Вода очень холодная.", "Корова даёт молоко.", "Голуби клюют зерно.", "Сорока сидит на дубе.", "Мороз щиплет нос.", "Ребята идут домой.", "Что у тебя в руке?", "Огород за домом."]),
+    ("Пишем, как напечатано", ["Река широкая.", "Сапоги в коридоре.", "Лошадь везёт воз.", "Морковь на грядке.", "Тетрадь на столе.", "Медведь любит мёд.", "Глаза у кота жёлтые.", "Вчера было холодно."]),
+    ("Пишем, как напечатано", ["Колобок катится.", "Ворона на заборе.", "Сосед чинит забор.", "Солнце светит ярко.", "Праздник в школе.", "Мой друг весёлый.", "Лягушка квакает.", "Сегодня мы рисуем."]),
+    ("Предложения длиннее", ["Утром я чищу зубы.", "Вечером мы пьём чай.", "Кот спит на диване.", "Мама купила яблоки.", "Ночью светит луна.", "Белка грызёт орехи.", "Мы рисуем красками.", "Дети бегут в школу."]),
+    ("Предложения длиннее", ["Днём мы идём гулять.", "Бабушка вяжет шарф.", "Лиса живёт в норе.", "Я читаю про зайца.", "Папа принёс ёлку.", "Мы катаемся с горки.", "Кошка спит у печки.", "Зимой птицы мёрзнут."]),
+    ("Итог", ["Наступила зима.", "Выпал белый снег.", "Дети лепят снежки.", "Весной тает лёд.", "Летом мы на море.", "Осенью идут дожди.", "Я люблю свою семью.", "Мы дружим с Олей."]),
+    ("Итог", ["Пришла весна.", "Светит тёплое солнце.", "Бегут ручьи.", "Прилетели птицы.", "Я люблю весну.", "Мама печёт блины.", "Мы ждём гостей.", "Скоро лето!"]),
+]
+_all = [t for _, ts in SENTENCES for t in ts]
+assert len(_all) == len(set(_all)) == 192, "every sentence different"
+assert max(map(len, _all)) <= 21, "a longer sentence does not fit the row in handwriting (checked on the page, 2026-11-24)"
+COPY_PAGES = [copy_page(title, ts) for title, ts in SENTENCES]
+copy_kit = kit("print-to-cursive", "С печатного — прописью",
+               "Узкая строка. Для ребёнка, который уже пишет: предложение печатными буквами — под ним строка, чтобы переписать его прописью. "
+               "От двух слов к длинным предложениям, вопросы и восклицания, слова, которые пишутся не как слышатся.", COPY_PAGES)
+assert len(copy_kit["pages"]) == 24
 kits[:0] = series
+kits.insert(kits.index(digits_kit) + 1, copy_kit)
 
 
 # Blank copybooks (owner, 2026-10-14: «пустографки»): 12 notebook leaves = 24 pages of the copybook ruling, nothing written, the red

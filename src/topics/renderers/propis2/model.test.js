@@ -489,7 +489,7 @@ describe("ready notebooks (kits.json): one series of 16 notebooks × 24 pages, t
   const kitOf = (id) => kits.find((k) => k.id === id);
   const rowsOf = (k) => k.pages.flatMap((pg) => pg.rows);
   it("the notebooks are there in order, every page fits one page and every symbol has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual([...PROPIS2_LADDER, "digits", "blank-narrow", "blank-wide", "blank-dense", "blank-square", "blank-ruled"]);
+    expect(kits.map((k) => k.id)).toEqual([...PROPIS2_LADDER, "digits", "print-to-cursive", "blank-narrow", "blank-wide", "blank-dense", "blank-square", "blank-ruled"]);
     for (const k of kits) {
       for (const pg of k.pages) {
         expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(rowsPerPage({ ...k.page, ...pg.paper }));
