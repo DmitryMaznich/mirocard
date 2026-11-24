@@ -5,7 +5,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { letterPieces } from "@/handwriting/letterParts.js";
-import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, otherRowsOtherwise, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
+import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, otherRowsOtherwise, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, menuPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -543,7 +543,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               before that the picker showed only on a page already made A4) */}
           <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           {/* the page's writing style (docs/propis2-languages.md «Стиль у страницы»): only a language with several styles */}
-          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={(styles?.papers ?? deckPapers(topicRecord)).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id), ...(g.group ? { group: g.group } : {}) }))} />
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={menuPapers(styles?.papers ?? deckPapers(topicRecord)).map((g) => ({ id: g.id, label: g.label, Icon: paperIcon(g.id), ...(g.group ? { group: g.group } : {}) }))} />
           {/* the wide row is gone from the choice (owner, 2026-11-05: the Mazina steps replace it); it shows only on a page that still has it */}
           {(page.ruling === "wide" || mx.ruling) && <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked || !propisGrid} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />}
           <Propis2Picker label="Косая линейка" caption="Наклон" value={slantValue} disabled={locked || !SLANT_PAPERS.has(gridKind)} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id], disabled: (mazinaPaper && g.id === "regular") || (bgPaper && g.id === "dense") }))} />

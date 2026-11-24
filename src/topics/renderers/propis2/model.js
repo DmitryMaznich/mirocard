@@ -66,6 +66,14 @@ export const deckPapers = (topicRecord) => {
   const ids = topicRecord?.meta?.papers;
   return GRID_KINDS.filter((g) => (Array.isArray(ids) ? ids : RU_PAPERS).includes(g.id)).sort((a, b) => (ids ?? RU_PAPERS).indexOf(a.id) - (ids ?? RU_PAPERS).indexOf(b.id));
 };
+// The paper menu (2026-11-24, owner: «сначала 5, потом 8, потом 6, потом 4 — нужно 4, 5, 6, 8»): the papers of one family of
+// rows (the British ones, the Slovene ones) by their lowercase height, smallest first, where the first of them stands; the rest
+// (square, ruled) as listed. Only the menu: the list itself keeps its order, its first paper is the one of a new notebook.
+export const menuPapers = (papers) => {
+  const sized = papers.filter((g) => isFourLinePaper(g.id)).sort((a, b) => fourLinePaper(a.id).xMm - fourLinePaper(b.id).xMm);
+  let i = 0;
+  return papers.map((g) => (isFourLinePaper(g.id) ? sized[i++] : g));
+};
 export const pageGridKind = (page) => page?.gridKind ?? (page?.grid === "square" ? "square" : "propis");
 // The grid name the page task / PrintPageView understands.
 export const taskGrid = (page) => {
