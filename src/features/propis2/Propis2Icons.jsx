@@ -1,4 +1,5 @@
 import SH from "./iconShapes.json";
+import { FOUR_LINE_PAPERS } from "@/handwriting/fourLinePapers.js";
 
 // Pictograms of the `propis2` constructor. Every control of the constructor is an icon (no visible text; the name of a
 // control is its aria-label for screen readers). 24x24, drawn with currentColor so a button decides the colour.
@@ -24,24 +25,36 @@ export const IconPaperPropis = () => S(<>{slants([9, 15, 21, 27], 3, 21)}{rule(6
 export const IconPaperSquare = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke={GRAY} strokeWidth={1.1} /></>);
 // the Bulgarian copybook ruling: bold - thin - thin - bold, a steep guide
 export const IconPaperBg = () => S(<><path d="M14 4L10 20" stroke={GRAY} strokeWidth={1} />{baseRule(4)}{rule(10, 3, 21)}{rule(14, 3, 21)}{baseRule(20)}</>);
-// A three-line paper drawn from its own measures (fourLinePapers.js: upMm xMm downMm gapMm, lines): its rows at 0.55 px per mm, as many
-// as fit — the 10 mm paper one big row, the 4.5 mm one two or three small ones — top line thin, x-line dashed (or thin), baseline bold
-// (owner, 2026-11-14: the Slovene papers all had the same Bulgarian icon, «все иконки этих сеток одинаковые»)
+// A three- or four-line paper (fourLinePapers.js): ONE row of it, its lines as the paper draws them (top / x-line / baseline / bottom:
+// thin, dashed, bold or none), a dimension arrow over the lowercase band and its height in mm — the way the Russian rows are told
+// apart (mmRow below; owner, 2026-11-24: «в русских мы сделали цифру… ни в славянской, ни в британской таких обозначений не делали»,
+// the British papers all had the Bulgarian icon, the Slovene ones only differed by how many rows fit). Drawn to one scale per family
+// of papers (the Slovene ones together, the British ones together), so a larger paper is also a taller row.
 const fourLineIcons = new Map();
+const familyOf = (id) => (id.startsWith("en_") ? id.split("_").slice(0, 2).join("_") : id.split("_")[0]);
+const rowMm = (p) => p.upMm + p.xMm + p.downMm;
+const mmText = (mm) => (Number.isInteger(mm) ? String(mm) : String(Math.round(mm * 10) / 10).replace(".", ","));
 export const fourLinePaperIcon = (id, p) => {
   if (fourLineIcons.has(id)) return fourLineIcons.get(id);
-  const k = 0.55, pitch = (p.upMm + p.xMm + p.downMm + p.gapMm) * k;
-  const band = (p.upMm + p.xMm) * k, n = Math.max(1, Math.floor((17.5 - band) / pitch) + 1);
-  const y0 = 12 - ((n - 1) * pitch + band) / 2; // the rows centred in the icon
-  const rows = Array.from({ length: n }, (_, i) => y0 + i * pitch);
-  const line = (kind, y, key) => kind === "dash"
-    ? <path key={key} d={`M2.5 ${y}H21.5`} stroke={GRAY} strokeWidth={1} strokeDasharray="1.6 1.4" />
-    : kind === "none" ? null : <path key={key} d={`M2.5 ${y}H21.5`} stroke={GRAY} strokeWidth={1.1} />;
-  const Icon = () => S(<>{rows.map((y, i) => <g key={i}>
-    {line(p.lines?.top ?? "thin", y, "t")}
-    {line(p.lines?.x ?? "dash", y + p.upMm * k, "x")}
-    <path d={`M2.5 ${y + (p.upMm + p.xMm) * k}H21.5`} stroke={DARK} strokeWidth={1.4} />
-  </g>)}</>);
+  const family = Object.entries(FOUR_LINE_PAPERS).filter(([pid]) => familyOf(pid) === familyOf(id)).map(([, q]) => rowMm(q));
+  const k = 19 / Math.max(rowMm(p), ...family);
+  const top = 12 - (rowMm(p) * k) / 2;
+  const ys = { top, x: top + p.upMm * k, base: top + (p.upMm + p.xMm) * k, bottom: top + rowMm(p) * k };
+  const kinds = { top: "thin", x: "dash", base: "bold", bottom: "thin", ...(p.lines ?? {}) };
+  const line = (which) => {
+    const y = ys[which];
+    if (kinds[which] === "none") return null;
+    if (kinds[which] === "dash") return <path key={which} d={`M2.5 ${y}H13`} stroke={GRAY} strokeWidth={1.1} strokeDasharray="1.6 1.4" />;
+    if (kinds[which] === "bold") return <path key={which} d={`M2.5 ${y}H13`} stroke={DARK} strokeWidth={1.6} />;
+    return <path key={which} d={`M2.5 ${y}H13`} stroke={GRAY} strokeWidth={1.1} />;
+  };
+  const t = mmText(p.xMm);
+  const head = Math.min(1.6, (ys.base - ys.x) / 3);
+  const Icon = () => S(<>
+    {["top", "x", "base", "bottom"].map(line)}
+    <path d={`M14.8 ${ys.x}V${ys.base}M${14.8 - head * 0.6} ${ys.x + head}L14.8 ${ys.x}L${14.8 + head * 0.6} ${ys.x + head}M${14.8 - head * 0.6} ${ys.base - head}L14.8 ${ys.base}L${14.8 + head * 0.6} ${ys.base - head}`} stroke={DARK} strokeWidth={1} />
+    <text x={t.length > 1 ? 20.3 : 19.9} y={(ys.x + ys.base) / 2 + (t.length > 1 ? 2.8 : 3.3)} textAnchor="middle" fontSize={t.length > 2 ? 5.6 : t.length > 1 ? 7.6 : 9.5} fontWeight="700" fontFamily="system-ui, sans-serif" fill={DARK} stroke="none">{t}</text>
+  </>);
   Icon.displayName = `IconPaper_${id}`;
   fourLineIcons.set(id, Icon);
   return Icon;
