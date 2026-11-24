@@ -21,6 +21,7 @@ describe("daily orientation built-in mode", () => {
       "showPlan",
       "wakeHour",
       "bedHour",
+      "nightScreen",
       "letterCase",
       "timeWordsStyle",
       "cardSound",

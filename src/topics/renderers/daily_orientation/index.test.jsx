@@ -564,6 +564,27 @@ describe("DailyOrientationRenderer — оценка темы, шаг 3", () => {
     window.localStorage.clear();
   });
 
+  it("goes dark after bedtime with «НОЧЬ», the clock and the next day's first thing; a tap shows the screen for a minute", () => {
+    mountAt(new Date(2026, 9, 6, 22, 30), { weeklyPlan: PLAN, bedHour: 21 }); // Tuesday night, Wednesday next
+    const night = () => container.querySelector(".daily-orientation__night");
+    expect(night().textContent).toContain("НОЧЬ");
+    expect(night().textContent).toContain("22:30");
+    expect(night().querySelector(".daily-orientation__night-next-word").textContent).toBe("ШКОЛА");
+    act(() => night().click());
+    expect(night()).toBeNull();
+    act(() => { vi.advanceTimersByTime(60_000); });
+    expect(night()).not.toBeNull();
+  });
+
+  it("after midnight the next thing is that same day's, and the dark screen can be switched off", () => {
+    mountAt(new Date(2026, 9, 7, 5, 0), { weeklyPlan: PLAN, wakeHour: 7 }); // Wednesday 5:00
+    expect(container.querySelector(".daily-orientation__night-next-word").textContent).toBe("ШКОЛА");
+    act(() => root.unmount());
+    container.remove();
+    mountAt(new Date(2026, 9, 7, 5, 0), { weeklyPlan: PLAN, nightScreen: false });
+    expect(container.querySelector(".daily-orientation__night")).toBeNull();
+  });
+
   it("writes answers in sentence case when asked to", () => {
     mountAt(new Date(2026, 9, 7, 9, 0), { letterCase: "sentence" });
     expect(container.textContent).toContain("Среда");

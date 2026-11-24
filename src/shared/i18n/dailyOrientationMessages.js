@@ -2,6 +2,11 @@
 // The Slovenian and English lines are first drafts — read by a native speaker before they are published.
 export const DAILY_ORIENTATION_MESSAGES = {
   ru: {
+    "dailyNight.label": "Ночью, после отбоя",
+    "dailyNight.dark": "Тёмный экран",
+    "dailyNight.usual": "Обычный экран",
+    "dailyNight.darkHint": "«Ночь», тусклые часы и что будет потом. Касание показывает обычный экран на минуту.",
+    "dailyNight.usualHint": "Экран ночью такой же, как днём.",
     "dailyToday.title": "Изменения на сегодня и завтра",
     "dailyToday.hint": "Касание выключает дело только на этот день: на экране оно будет зачёркнуто «НЕ БУДЕТ». Недельный план не меняется.",
     "dailyToday.today": "Сегодня",
@@ -40,6 +45,11 @@ export const DAILY_ORIENTATION_MESSAGES = {
     "dailyPlan.dayAcc.5": "пятницу", "dailyPlan.dayAcc.6": "субботу", "dailyPlan.dayAcc.0": "воскресенье",
   },
   sl: {
+    "dailyNight.label": "Ponoči, po uri za spanje",
+    "dailyNight.dark": "Temen zaslon",
+    "dailyNight.usual": "Običajen zaslon",
+    "dailyNight.darkHint": "»Noč«, zatemnjena ura in kaj pride potem. Dotik za minuto pokaže običajen zaslon.",
+    "dailyNight.usualHint": "Ponoči je zaslon tak kot podnevi.",
     "dailyToday.title": "Spremembe za danes in jutri",
     "dailyToday.hint": "Dotik izklopi dejavnost samo za ta dan: na zaslonu bo prečrtana »NE BO«. Tedenski načrt se ne spremeni.",
     "dailyToday.today": "Danes",
@@ -78,6 +88,11 @@ export const DAILY_ORIENTATION_MESSAGES = {
     "dailyPlan.dayAcc.5": "petek", "dailyPlan.dayAcc.6": "soboto", "dailyPlan.dayAcc.0": "nedeljo",
   },
   en: {
+    "dailyNight.label": "At night, after bedtime",
+    "dailyNight.dark": "Dark screen",
+    "dailyNight.usual": "Usual screen",
+    "dailyNight.darkHint": "“Night”, a dim clock and what comes next. A tap shows the usual screen for a minute.",
+    "dailyNight.usualHint": "The screen looks the same at night as in the day.",
     "dailyToday.title": "Changes for today and tomorrow",
     "dailyToday.hint": "A tap switches an event off for that day only: on the screen it is crossed out “NOT TODAY”. The weekly plan stays as it is.",
     "dailyToday.today": "Today",

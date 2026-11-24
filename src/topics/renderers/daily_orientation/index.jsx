@@ -47,6 +47,7 @@ import {
 } from "./timeUtils";
 import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
 import { PlanCard, PlanChangesContent } from "./PlanCard.jsx";
+import { NightScreen } from "./NightScreen.jsx";
 import { useDoneMarks, useSharedPlanChanges } from "./planChanges.js";
 import {
   PLAN_WEEK_ORDER,
@@ -66,6 +67,7 @@ const SPEAK_COOLDOWN_MS = 2000;
 // display, so a modal left open by a child who wandered off must not stay
 // open indefinitely.
 const MODAL_IDLE_CLOSE_MS = 90_000;
+const NIGHT_PEEK_MS = 60_000;
 
 const WEATHER_STORAGE_KEY = "daily_orientation_weather";
 
@@ -840,6 +842,13 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
   const [viewerPhotos, setViewerPhotos] = useState(null);
   const [isWeatherPickerOpen, setIsWeatherPickerOpen] = useState(false);
   const [planChangesOpen, setPlanChangesOpen] = useState(false);
+  // A tap on the night screen shows the usual one for a minute.
+  const [nightPeek, setNightPeek] = useState(false);
+  useEffect(() => {
+    if (!nightPeek) return undefined;
+    const timer = window.setTimeout(() => { setNightPeek(false); setOffset(0); }, NIGHT_PEEK_MS);
+    return () => window.clearTimeout(timer);
+  }, [nightPeek]);
   const dragStart = useRef(null);
   const lastSpokenAtRef = useRef(0);
   const display = resolveDisplayOptions(sessionParams);
@@ -909,6 +918,12 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
     photos: planPhotos,
   });
   const dayPlanItems = planFor(activeDate);
+  // Night: from the bed hour to the wake hour (the «Режим дня» settings).
+  // What comes after it is the first event of the next waking day.
+  const isNight = daypartId === "night" && sessionParams?.nightScreen !== false && !nightPeek;
+  const nightNext = isNight
+    ? planFor(now.getHours() >= wakeHour ? addCalendarDays(now, 1) : now).find((item) => !item.cancelled) ?? null
+    : null;
 
   // Calendar row (day, date, clock) over a "this day" row (part of day and
   // weather, then the day's plan).
@@ -1261,6 +1276,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
           {isFestive && <Garland width={canvasWidth} />}
         </div>
       </div>
+      {isNight && <NightScreen now={now} next={nightNext} caseText={caseText} onWake={() => setNightPeek(true)} />}
       <div className="daily-orientation__rotate-notice" role="status">
         <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="28" y="20" width="64" height="80" rx="10" /><path d="M99 60a39 39 0 0 1-35 38M21 60a39 39 0 0 1 35-38" /><path d="m91 88 7 10 10-7M29 32l-7-10-10 7" /></svg>
         <p>Поверните планшет горизонтально</p>

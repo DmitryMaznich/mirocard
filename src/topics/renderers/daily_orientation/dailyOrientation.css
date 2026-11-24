@@ -1463,3 +1463,44 @@ button.daily-orientation__plan-item:focus-visible { outline: 4px solid #db9f48; 
 .daily-orientation__canvas--ribbon .daily-orientation__plan-item--focus { --tile-w: 156px; --tile-h: 152px; --word-max: 24px; --picture: 80px; --photo: 100px; }
 .daily-orientation__canvas--ribbon .daily-orientation__plan-item--next { --tile-w: 148px; --tile-h: 152px; --word-max: 21px; --picture: 70px; --photo: 90px; }
 .daily-orientation__canvas--ribbon .daily-orientation__plan-item--done { --tile-w: 118px; --tile-h: 130px; --word-max: 16px; --picture: 48px; --photo: 60px; }
+
+/* ── Ночь (NightScreen) ─────────────────────────────────────────────
+   Over the whole screen, outside the scaled canvas, so sized in vmin. Dark
+   and dim: it hangs in the flat at night. */
+.daily-orientation__night {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4vmin;
+  padding: calc(4vmin + var(--app-safe-top, 0px)) calc(4vmin + var(--app-safe-right, 0px)) calc(4vmin + var(--app-safe-bottom, 0px)) calc(4vmin + var(--app-safe-left, 0px));
+  border: 0;
+  background: #0b1422;
+  color: #b9c6dc;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The dark-ink pictogram, drawn light on the dark ground. */
+.daily-orientation__night-picture { width: 30vmin; height: 30vmin; object-fit: contain; filter: brightness(0) invert(.78); opacity: .8; user-select: none; -webkit-user-drag: none; }
+.daily-orientation__night-word { font-size: 14vmin; font-weight: 950; line-height: 1; letter-spacing: .02em; }
+.daily-orientation__night-clock { font-size: 6vmin; font-weight: 900; color: #6f819e; font-variant-numeric: tabular-nums; }
+.daily-orientation__night-next {
+  margin-top: 2vmin;
+  display: flex;
+  align-items: center;
+  gap: 2vmin;
+  padding: 1.6vmin 3vmin;
+  border-radius: 3vmin;
+  background: rgba(255, 255, 255, .06);
+  color: #93a3bd;
+}
+.daily-orientation__night-next-label { font-size: 3.6vmin; font-weight: 900; }
+.daily-orientation__night-next-icon { font-size: 7vmin; line-height: 1; filter: saturate(.5) brightness(.8); }
+.daily-orientation__night-next-photo { width: 8vmin; height: 8vmin; border-radius: 1.6vmin; object-fit: cover; filter: brightness(.75); }
+.daily-orientation__night-next-word { font-size: 4.6vmin; font-weight: 900; }
+.daily-orientation--sentence-case .daily-orientation__night-word { text-transform: none; }

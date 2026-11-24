@@ -112,6 +112,15 @@ export function buildDailyOrientationTopicRecord() {
             compact: true,
             section: "Режим дня",
           },
+          // After bedtime the wall screen goes dark: the night pictogram,
+          // «НОЧЬ», a dim clock and what comes next (2026-11-24). A tap shows the
+          // usual screen for a minute.
+          nightScreen: {
+            type: "boolean",
+            label: { ru: "Тёмный экран ночью" },
+            default: true,
+            section: "Режим дня",
+          },
           // "СРЕДА" or "Среда" on the cards -- one form everywhere, for a
           // child who reads whole words.
           letterCase: {

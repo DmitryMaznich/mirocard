@@ -11,6 +11,7 @@ import {
   sortByNextOccurrence,
   visibleImportantDates,
 } from "@/features/importantDates/importantDates";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import PlanTodayEditor from "./PlanTodayEditor.jsx";
 import WeekPlanEditor from "./WeekPlanEditor.jsx";
 import "./dailyOrientationSettings.css";
@@ -125,6 +126,7 @@ function HourStepper({ id, label, value, range, onChange }) {
 }
 
 export default function DailyOrientationSettings({ params, setParams, student, onOpenImportantDates }) {
+  const { t } = useUiTranslation();
   const [nudgedCard, setNudgedCard] = useState(null);
   const wakeHour = Number(params.wakeHour ?? DEFAULT_WAKE_HOUR);
   const bedHour = Number(params.bedHour ?? DEFAULT_BED_HOUR);
@@ -302,6 +304,24 @@ export default function DailyOrientationSettings({ params, setParams, student, o
               </div>
             ))}
           </div>
+        </div>
+        <div className="dos-subgroup">
+          <span className="dos-subgroup__label" id="dos-night-label">{t("dailyNight.label")}</span>
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-night-label">
+            {[[true, t("dailyNight.dark")], [false, t("dailyNight.usual")]].map(([value, label]) => (
+              <button
+                key={String(value)}
+                type="button"
+                role="radio"
+                aria-checked={(params.nightScreen !== false) === value}
+                className={`dos-chip${(params.nightScreen !== false) === value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ nightScreen: value })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="dos-dates__style-hint">{t(params.nightScreen !== false ? "dailyNight.darkHint" : "dailyNight.usualHint")}</p>
         </div>
       </section>
 
