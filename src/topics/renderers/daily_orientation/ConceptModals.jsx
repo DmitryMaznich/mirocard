@@ -11,11 +11,12 @@ import {
   getSeason,
   getSpokenWeekday,
   monthEndingChange,
-  splitPlanIcon,
   WEEKDAY_NAMES,
 } from "./timeUtils.js";
 import { weekPhraseClipKeys, weekPhraseSpoken, weekWagonClipKeys } from "./audioBank.js";
 import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
+import { planItemKey } from "./weekPlan.js";
 import "./conceptModals.css";
 
 // What each card's tap opens: the whole range of that concept with the
@@ -69,7 +70,6 @@ function importantMark(events) {
   return isBirthdayType(events[0]) ? "🎂" : events[0].icon;
 }
 
-const WEEKS_AROUND = [-2, -1, 0, 1, 2];
 const COUNT_STEP_MS = 1400;
 
 function mondayOf(date) {
@@ -80,59 +80,28 @@ function daysBetween(from, to) {
   return Math.round((addCalendarDays(to, 0) - addCalendarDays(from, 0)) / 86_400_000);
 }
 
-function weekLabel(week) {
-  if (week === 0) return "Эта неделя";
-  if (week === -1) return "Прошлая неделя";
-  if (week === 1) return "Следующая неделя";
-  return week < 0 ? "Позапрошлая неделя" : "Через две недели";
-}
-
-function Locomotive() {
-  return (
-    <svg className="dom-train__loco" viewBox="0 0 120 120" aria-hidden="true">
-      <rect className="dom-train__loco-body" x="62" y="22" width="50" height="8" rx="3" />
-      <rect className="dom-train__loco-body" x="66" y="28" width="42" height="58" rx="6" />
-      <rect x="76" y="38" width="22" height="20" rx="4" fill="#cfe3ec" />
-      <rect className="dom-train__loco-body" x="18" y="50" width="52" height="34" rx="14" />
-      <rect x="28" y="30" width="12" height="22" rx="2" fill="#3d3a36" />
-      <rect x="24" y="26" width="20" height="7" rx="3" fill="#3d3a36" />
-      <circle cx="16" cy="66" r="8" fill="#3d3a36" />
-      <circle cx="14" cy="66" r="5" fill="#ffd9a0" />
-      <path className="dom-train__loco-body" d="M18 84 L4 98 L22 98 Z" />
-      <rect x="14" y="82" width="98" height="7" rx="3" fill="#3d3a36" />
-      <circle cx="38" cy="96" r="11" fill="#3d3a36" stroke="#fffdf8" strokeWidth="3" />
-      <circle cx="38" cy="96" r="3.5" fill="#9a9184" />
-      <circle cx="88" cy="94" r="14" fill="#3d3a36" stroke="#fffdf8" strokeWidth="3" />
-      <circle cx="88" cy="94" r="4.5" fill="#9a9184" />
-    </svg>
-  );
-}
-
-export function WeekContent({ activeDate, today, plan, importantDates = [], onSpeak = null, speakDays = false }) {
-  const thisMonday = mondayOf(today);
-  const firstDay = addCalendarDays(thisMonday, WEEKS_AROUND[0] * 7);
-  const lastDay = addCalendarDays(thisMonday, WEEKS_AROUND[WEEKS_AROUND.length - 1] * 7 + 6);
-  const [selected, setSelected] = useState(() => addCalendarDays(activeDate, 0));
-  // «Дни недели по порядку»: which train is being walked through and how far (1-7 wagons, 8 = "это одна неделя").
-  const [count, setCount] = useState(null);
+// The week as a page of a planner (owner, 2026-11-24): seven rows top to
+// bottom, Monday first, full names -- no train, no numbers, no other weeks.
+// Today framed, the days of this week already gone paler, вчера/сегодня/
+// завтра as on the main screen's switch, weekends warm. Each row shows that
+// day's events from the weekly plan, except those every planned day has
+// («Спать», «Занимаемся»: they tell no day from another), and its important
+// dates. «Дни недели по порядку» lights the rows one by one, naming them, then
+// says it's one week; a tap on a row lights it (and names it with the card
+// speakers on), so an adult can go through the week with a finger.
+export function WeekContent({ today, weekItems = {}, planPhotos = {}, importantDates = [], onSpeak = null, speakDays = false }) {
+  const monday = mondayOf(today);
+  const days = WEEK_MONDAY_FIRST.map(({ day, name, weekend }, index) => ({ day, name, weekend, date: addCalendarDays(monday, index) }));
+  const plannedDays = days.map(({ day }) => weekItems[day] ?? []).filter((items) => items.length);
+  const everyDay = plannedDays.length > 1
+    ? new Set(plannedDays[0].map(planItemKey).filter((key) => plannedDays.every((items) => items.some((item) => planItemKey(item) === key))))
+    : new Set();
+  const [lit, setLit] = useState(null);
+  const [walking, setWalking] = useState(false);
   const [phrase, setPhrase] = useState(null);
-  const trackRef = useRef(null);
   const timersRef = useRef([]);
-  const hasScrolledRef = useRef(false);
-  const selectedWeek = Math.floor(daysBetween(thisMonday, selected) / 7);
 
   useEffect(() => () => timersRef.current.forEach((id) => window.clearTimeout(id)), []);
-
-  // Keep the selected day's train in the middle of the track.
-  useEffect(() => {
-    const track = trackRef.current;
-    const train = track?.querySelector(`[data-week="${selectedWeek}"]`);
-    if (!train || typeof track.scrollTo !== "function") return;
-    const left = train.offsetLeft - (track.clientWidth - train.offsetWidth) / 2;
-    const instant = !hasScrolledRef.current || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    track.scrollTo({ left, behavior: instant ? "auto" : "smooth" });
-    hasScrolledRef.current = true;
-  }, [selectedWeek]);
 
   function say(text, clipKeys, display, aloud = true) {
     setPhrase(display);
@@ -140,15 +109,10 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
   }
 
   function select(date) {
-    if (count || date < firstDay || date > lastDay) return;
+    if (walking) return;
+    setLit(date.getDay());
     const fromToday = daysBetween(today, date);
-    const crossedIntoMonday = date.getDay() === 1 && daysBetween(selected, date) === 1;
-    setSelected(date);
     const name = WEEKDAY_NAMES[date.getDay()];
-    if (crossedIntoMonday) {
-      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Новая неделя. Снова <em>понедельник</em></>, speakDays);
-      return;
-    }
     const tag = relativeDayTag(date, today);
     say(
       tag ? getSpokenWeekday(date, fromToday) : capitalize(name),
@@ -158,29 +122,24 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
     );
   }
 
-  function startCount() {
-    if (count) return;
-    const monday = mondayOf(selected);
+  function walk() {
+    if (walking) return;
+    setWalking(true);
     const schedule = (delay, step) => timersRef.current.push(window.setTimeout(step, delay));
-    setCount({ week: Math.floor(daysBetween(thisMonday, monday) / 7), step: 0 });
-    for (let step = 1; step <= 7; step++) {
-      schedule((step - 1) * COUNT_STEP_MS, () => {
-        const day = addCalendarDays(monday, step - 1);
-        setCount((value) => value && { ...value, step });
-        setSelected(day);
-        const name = capitalize(WEEKDAY_NAMES[day.getDay()]);
-        say(name, [`weekday_${day.getDay()}`], <em>{name}</em>);
+    days.forEach(({ day }, index) => {
+      schedule(index * COUNT_STEP_MS, () => {
+        setLit(day);
+        const name = capitalize(WEEKDAY_NAMES[day]);
+        say(name, [`weekday_${day}`], <em>{name}</em>);
       });
-    }
+    });
     schedule(7 * COUNT_STEP_MS, () => {
-      setCount((value) => value && { ...value, step: 8 });
+      setLit("all");
       say(weekPhraseSpoken("one"), weekPhraseClipKeys("one"), <>Это одна <em>неделя</em></>);
     });
     schedule(8 * COUNT_STEP_MS + 600, () => {
-      const nextMonday = addCalendarDays(monday, 7);
-      setCount(null);
-      if (nextMonday > lastDay) return;
-      setSelected(nextMonday);
+      setLit(1);
+      setWalking(false);
       say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Потом снова <em>понедельник</em></>);
     });
   }
@@ -188,93 +147,51 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
   return (
     <div className="dom dom--week">
       <div className="dom-week__head">
-        <div className="dom-week__head-text">
-          <h2 className="dom-title">Неделя</h2>
-          <p className="dom-week__lead">Дни недели едут друг за другом. Потом снова понедельник.</p>
-        </div>
-        <button type="button" className="dom-week__count" onClick={startCount} disabled={Boolean(count)}>
+        <h2 className="dom-title">Неделя</h2>
+        <button type="button" className="dom-week__count" onClick={walk} disabled={walking}>
           Дни недели по порядку
         </button>
       </div>
-
-      <div className="dom-week__track-wrap">
-        <button
-          type="button"
-          className="dom-week__nav dom-week__nav--prev"
-          aria-label="Предыдущий день"
-          disabled={Boolean(count) || selected <= firstDay}
-          onClick={() => select(addCalendarDays(selected, -1))}
-        >‹</button>
-        <div className="dom-week__track" ref={trackRef}>
-          {WEEKS_AROUND.map((week) => {
-            const monday = addCalendarDays(thisMonday, week * 7);
-            const counted = count?.week === week ? count.step : 0;
-            return (
-              <section
-                key={week}
-                data-week={week}
+      <ol className="dom-weekplan">
+        {days.map(({ day, name, weekend, date }) => {
+          const tag = relativeDayTag(date, today);
+          const items = (weekItems[day] ?? []).filter((item) => !everyDay.has(planItemKey(item)));
+          const events = eventsOnDate(importantDates, date);
+          return (
+            <li key={day}>
+              <button
+                type="button"
                 className={[
-                  "dom-train",
-                  week === 0 ? "dom-train--current" : "",
-                  week === selectedWeek ? "dom-train--selected" : "",
+                  "dom-weekplan__day",
+                  weekend ? "dom-weekplan__day--weekend" : "",
+                  sameDay(date, today) ? "dom-weekplan__day--today" : "",
+                  date < today && !sameDay(date, today) ? "dom-weekplan__day--past" : "",
+                  lit === day || lit === "all" ? "dom-weekplan__day--lit" : "",
                 ].filter(Boolean).join(" ")}
-                aria-label={weekLabel(week)}
+                aria-current={sameDay(date, today) ? "date" : undefined}
+                onClick={() => select(date)}
               >
-                <p className="dom-train__plate">
-                  <span className="dom-train__label">{weekLabel(week)}</span>
-                </p>
-                <Locomotive />
-                <ol className="dom-week">
-                  {WEEK_MONDAY_FIRST.map(({ day, name, weekend }, index) => {
-                    const date = addCalendarDays(monday, index);
-                    const isSelected = sameDay(date, selected);
-                    const tag = relativeDayTag(date, today);
-                    const entry = plan[day] ? splitPlanIcon(plan[day]) : null;
-                    return (
-                      <li key={day} className="dom-week__slot">
-                        <button
-                          type="button"
-                          className={[
-                            "dom-week__day",
-                            weekend ? "dom-week__day--weekend" : "",
-                            isSelected ? "dom-week__day--active" : "",
-                            counted && counted <= 7 && index === counted - 1 ? "dom-week__day--counting" : "",
-                          ].filter(Boolean).join(" ")}
-                          aria-current={isSelected ? "date" : undefined}
-                          onClick={() => select(date)}
-                        >
-                          <span className="dom-week__rim" aria-hidden="true" />
-                          <span className="dom-week__tag">{tag ?? " "}</span>
-                          <span className="dom-week__name">{capitalize(name)}</span>
-                          {eventsOnDate(importantDates, date).map((item) => (
-                            <span key={item.id} className="dom-week__event">
-                              <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}
-                            </span>
-                          ))}
-                          {entry ? (
-                            <span className="dom-week__plan">
-                              {entry.icon && <span className="dom-week__plan-icon" aria-hidden="true">{entry.icon}</span>}
-                              {entry.text}
-                            </span>
-                          ) : null}
-                        </button>
-                      </li>
-                    );
+                <span className="dom-weekplan__tag">{tag ?? ""}</span>
+                <span className="dom-weekplan__name">{capitalize(name)}</span>
+                <span className="dom-weekplan__items">
+                  {items.map((item) => {
+                    const photo = planPhotos[planItemKey(item)];
+                    return photo
+                      ? <AuthenticatedImage key={planItemKey(item)} className="dom-weekplan__photo" src={photo} alt={item.text} draggable="false" />
+                      : <span key={planItemKey(item)} className="dom-weekplan__icon" title={item.text} role="img" aria-label={item.text}>{item.icon || item.text}</span>;
                   })}
-                </ol>
-              </section>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          className="dom-week__nav dom-week__nav--next"
-          aria-label="Следующий день"
-          disabled={Boolean(count) || selected >= lastDay}
-          onClick={() => select(addCalendarDays(selected, 1))}
-        >›</button>
-      </div>
-
+                  {events.map((item) => (
+                    <span key={item.id} className="dom-weekplan__event">
+                      <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}
+                    </span>
+                  ))}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="dom-weekplan__cycle"><span aria-hidden="true">↻</span> После воскресенья снова понедельник</p>
       <p className="dom-week__say" aria-live="polite">{phrase ?? " "}</p>
     </div>
   );

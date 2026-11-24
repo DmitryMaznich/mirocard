@@ -510,3 +510,57 @@
 .dom-week__name + .dom-week__event { margin-top: auto; }
 .dom-week__event ~ .dom-week__plan { margin-top: 6px; }
 .dom-week__plan-icon { display: block; margin-bottom: 2px; font-size: clamp(24px, 3vw, 40px); line-height: 1.1; }
+
+/* ── Неделя как страница ежедневника (2026-11-24) ─────────────────── */
+.dom--week .dom-week__head .dom-title { flex: 1 1 auto; }
+.dom-weekplan {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, .7vh, 8px);
+}
+.dom-weekplan__day {
+  width: 100%;
+  min-height: clamp(44px, 8.4vh, 78px);
+  display: grid;
+  grid-template-columns: clamp(64px, 9vw, 120px) clamp(150px, 24vw, 300px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(8px, 1.4vw, 18px);
+  padding: 2px clamp(12px, 1.8vw, 22px);
+  border: 3px solid transparent;
+  border-radius: clamp(12px, 1.4vw, 18px);
+  background: #f2f6f4;
+  color: var(--dom-ink, #0f3b4c);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity .2s, box-shadow .2s;
+}
+.dom-weekplan__day--weekend { background: #fbe7dc; }
+.dom-weekplan__day--past { opacity: .45; }
+.dom-weekplan__day--today { border-color: #0f3b4c; background: #fff; }
+.dom-weekplan__day--lit { opacity: 1; box-shadow: 0 0 0 5px #f2c94c; }
+.dom-weekplan__day:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.dom-weekplan__tag { font-size: clamp(11px, 1.2vw, 17px); font-weight: 900; color: #3d8f7f; text-transform: uppercase; }
+.dom-weekplan__day--today .dom-weekplan__tag { color: #0f3b4c; }
+.dom-weekplan__name { font-size: clamp(20px, 2.6vw, 34px); font-weight: 900; line-height: 1.1; }
+.dom-weekplan__day--weekend .dom-weekplan__name { color: #9c4424; }
+.dom-weekplan__items { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(8px, 1.1vw, 14px); min-width: 0; }
+.dom-weekplan__icon { font-size: clamp(24px, 3vw, 40px); line-height: 1; }
+.dom-weekplan__photo { width: clamp(30px, 3.6vw, 48px); height: clamp(30px, 3.6vw, 48px); border-radius: 10px; object-fit: cover; }
+.dom-weekplan__event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 12px;
+  border: 3px solid #f2b544;
+  border-radius: 14px;
+  background: #fff7dc;
+  font-size: clamp(13px, 1.5vw, 20px);
+  font-weight: 900;
+}
+.dom-weekplan__cycle { margin: clamp(4px, 1vh, 10px) 0 0; color: #5d7378; font-size: clamp(14px, 1.7vw, 22px); font-weight: 800; }
