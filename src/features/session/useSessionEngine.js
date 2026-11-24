@@ -21,7 +21,7 @@ import { createSessionState, markSessionAction, handleAnswer, handleAdvance, han
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
-import { GRAPHIC_MATRIX_MODE } from "./graphicMatrix/model";
+import { isGridDrawingMode } from "./gridDrawingModes";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
 import { applyParamLimits } from "@/topics/paramLimits";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -167,7 +167,7 @@ export function buildGeneratedSessionState({
     // These drills do not use parent-selectable picture concepts. Their one
     // metadata card is part of the mode itself, so an old saved selection must
     // never be allowed to filter it away and leave the session with no tasks.
-    const isSelfContainedDrill = ["navigator", "coordinates", GRAPHIC_MATRIX_MODE].includes(mode.type);
+    const isSelfContainedDrill = ["navigator", "coordinates"].includes(mode.type) || isGridDrawingMode(mode.type);
     const selected = isSelfContainedDrill
       ? allConcepts.filter((c) => c.cards.some((card) => card.taskKind === mode.type))
       : allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
@@ -710,7 +710,7 @@ export function useSessionEngine() {
     }
     setSessionState((prev) => {
       const s = withWork(prev, options.work);
-      if (["number_path", GRAPHIC_MATRIX_MODE].includes(s.mode?.type) && s.status !== "task_active") return s;
+      if ((s.mode?.type === "number_path" || isGridDrawingMode(s.mode?.type)) && s.status !== "task_active") return s;
       if (s.mode?.evaluation === "instant") {
         const next = handleInstantCorrect(s, conceptId, cardId);
         if (next.status === "completed") finishSession(next);
@@ -724,8 +724,8 @@ export function useSessionEngine() {
       return next;
     });
 
-    // Number Path and the matrix manage their own post-completion timing.
-    const shouldAutoAdvance = !["number_path", GRAPHIC_MATRIX_MODE].includes(mode?.type)
+    // Number Path and the grid drawing modes manage their post-completion timing.
+    const shouldAutoAdvance = mode?.type !== "number_path" && !isGridDrawingMode(mode?.type)
       && (options.autoAdvance === true || !tapToAdvance);
     if (shouldAutoAdvance && !adultConfirmAdvance) {
       const delayMs = options.autoAdvance === true
@@ -786,7 +786,7 @@ export function useSessionEngine() {
 
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
-      if ((s.mode?.id === PEOPLE_MODE_ID || ["number_path", GRAPHIC_MATRIX_MODE].includes(s.mode?.type))
+      if ((s.mode?.id === PEOPLE_MODE_ID || s.mode?.type === "number_path" || isGridDrawingMode(s.mode?.type))
           && s.status !== "answer_correct") return s;
       const next = advanceTask(s);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
@@ -815,14 +815,14 @@ export function useSessionEngine() {
     return () => clearTimeout(timer);
   }, [mode?.id, sessionState, tapToAdvance, autoAdvanceDelay, rewardPending]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const advanceGraphicMatrixCard = useEffectEvent(() => onAdvance());
+  const advanceGridDrawingCard = useEffectEvent(() => onAdvance());
 
-  // A matrix card advances after the complete field is shown. Scheduling from
+  // A grid drawing card advances after showing the finished drawing. Scheduling from
   // session state also resumes an already credited card after a reload.
   useEffect(() => {
-    if (mode?.type !== GRAPHIC_MATRIX_MODE || sessionState?.status !== "answer_correct"
+    if (!isGridDrawingMode(mode?.type) || sessionState?.status !== "answer_correct"
         || rewardPending || rewardPendingRef.current) return;
-    const timer = setTimeout(() => advanceGraphicMatrixCard(), 650);
+    const timer = setTimeout(() => advanceGridDrawingCard(), 650);
     return () => clearTimeout(timer);
   }, [mode?.type, sessionState?.status, sessionState?.taskIndex, rewardPending]);
 

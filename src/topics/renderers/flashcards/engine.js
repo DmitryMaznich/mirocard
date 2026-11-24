@@ -1,3 +1,4 @@
+import { generateLineOperationTasks, LINE_OPERATIONS_MODE } from "@/features/session/lineOperations/model.js";
 import { generateGraphicMatrixTasks, GRAPHIC_MATRIX_MODE } from "@/features/session/graphicMatrix/model.js";
 import { shuffle } from "@/shared/utils/shuffle";
 import { pickVariation, deriveConcepts } from "@/shared/utils/topicUtils";
@@ -566,6 +567,7 @@ export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode
     case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true, picturesPerConcept: params.picturesPerConcept });
     case "act_out":                return generateActOutTasks(displayConcepts);
     case GRAPHIC_MATRIX_MODE: return generateGraphicMatrixTasks(params.boardSize, displayConcepts[0]?.primary);
+    case LINE_OPERATIONS_MODE: return generateLineOperationTasks(params.lineAction, displayConcepts[0]?.primary);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);

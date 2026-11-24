@@ -1506,28 +1506,28 @@
     {
       "id": "symmetry_draw",
       "title": "Рисуем по клеткам",
-      "version": "1.13.0",
+      "version": "1.14.0",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/symmetry_draw_v1.13.0.zip",
+        "public/decks/symmetry_draw_v1.14.0.zip",
         "src/topics/renderers/flashcards",
         "tools/symmetry_draw/topic.json"
       ],
       "bundle": {
-        "version": "1.13.0",
-        "url": "./decks/symmetry_draw_v1.13.0.zip",
+        "version": "1.14.0",
+        "url": "./decks/symmetry_draw_v1.14.0.zip",
         "title": "Рисуем по клеткам",
         "description": "Работа на клетчатом поле: направления стрелок, движение по устной инструкции, координаты точек, копирование готовой фигуры, графический диктант и достраивание второй половины симметричного рисунка.",
         "renderer": "flashcards",
-        "modes": 7,
-        "cards": 100
+        "modes": 8,
+        "cards": 101
       },
       "builtin": false,
       "catalogEntry": {
         "id": "symmetry_draw",
-        "version": "1.13.0",
-        "url": "./decks/symmetry_draw_v1.13.0.zip",
-        "zipUrl": "symmetry_draw_v1.13.0.zip",
+        "version": "1.14.0",
+        "url": "./decks/symmetry_draw_v1.14.0.zip",
+        "zipUrl": "symmetry_draw_v1.14.0.zip",
         "title": {
           "ru": "Рисуем по клеткам"
         },
@@ -1542,7 +1542,7 @@
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-22T19:21:32Z"
+      "sourceUpdatedAt": "2026-11-23T13:55:01Z"
     },
     {
       "id": "tools_functions",

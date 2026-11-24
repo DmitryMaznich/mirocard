@@ -19,6 +19,8 @@ import SessionHeader from "./SessionHeader";
 import SessionExitPrompt from "./SessionExitPrompt";
 import GraphicMatrixTask from "./graphicMatrix/GraphicMatrixTask";
 import { GRAPHIC_MATRIX_MODE } from "./graphicMatrix/model";
+import LineOperationsTask from "./lineOperations/LineOperationsTask";
+import { isGridDrawingMode } from "./gridDrawingModes";
 import { ADVANCE_GATE_IDLE, ADVANCE_GATE_WAITING, ADVANCE_GATE_READY, resolveTapAdvanceGate } from "./advanceGate";
 
 const noop = () => {};
@@ -300,9 +302,11 @@ export default function SessionScreen() {
     : status;
 
   const topicTitle = getTopicTitle(topicRecord.meta.title, topicRecord.languageContract ? uiLanguage : "ru") || topicRecord.meta.id;
-  const isGraphicMatrix = mode.type === GRAPHIC_MATRIX_MODE;
-  const Renderer = isGraphicMatrix ? GraphicMatrixTask : TopicRenderer;
-  const modeTitle = isGraphicMatrix
+  const gridDrawing = isGridDrawingMode(mode.type);
+  const Renderer = gridDrawing
+    ? (mode.type === GRAPHIC_MATRIX_MODE ? GraphicMatrixTask : LineOperationsTask)
+    : TopicRenderer;
+  const modeTitle = gridDrawing
     ? null
     : getTopicTitle(mode.ui?.title, topicRecord.languageContract ? uiLanguage : "ru") || mode.id;
 
@@ -327,7 +331,7 @@ export default function SessionScreen() {
   const keepsStorySupportOnMistake = currentTask?.type === "story_quiz";
   const isNumberPath = currentTask?.type === "number_path";
   const rewardPerPath = isNumberPath && numberPathRewardPerCard(currentTask.size);
-  const tapToAdvanceOnBoard = !isNumberPath && !isGraphicMatrix && (isCorrectFeedback || isAdvanceGateActive);
+  const tapToAdvanceOnBoard = !isNumberPath && !gridDrawing && (isCorrectFeedback || isAdvanceGateActive);
   const rendererTaskKey = isNumberPath ? `${taskIndex}:${currentTask.layoutIndex}`
     : keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsComparisonProgressOnMistake || keepsStorySupportOnMistake
       ? String(taskIndex)
@@ -339,7 +343,7 @@ export default function SessionScreen() {
     rewardAvailable: rewardProgress?.available ?? false,
   });
   const showProgress = !(
-    isGraphicMatrix || mode.type === "drawing_coloring"
+    gridDrawing || mode.type === "drawing_coloring"
     || (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
     || topicRecord.meta.renderer === "spatial_prepositions"
@@ -355,7 +359,7 @@ export default function SessionScreen() {
   const isDailyOrientation = topicRecord.meta.renderer === "daily_orientation";
 
   return (
-    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}${isNumberPath ? " session-screen--number-path" : ""}${isGraphicMatrix ? " session-screen--graphic-matrix" : ""}`}>
+    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}${currentTask?.text?.storyStage === "micro" ? " session-screen--micro-reading" : ""}${isNumberPath ? " session-screen--number-path" : ""}${gridDrawing ? " session-screen--graphic-matrix" : ""}`}>
       {sessionExitPromptOpen && (
         <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
       )}

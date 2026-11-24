@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import catalog from "../../../../public/decks/catalog.json";
+import app from "../../../../package.json";
 import { describe, expect, it } from "vitest";
 import { openDb } from "@/core/db";
 import { getTopicRecord, importTopic } from "@/topics/topicLoader";
@@ -8,15 +10,15 @@ import { evaluateMatrixStroke, matrixCellTargets, sampleLines } from "./model";
 
 const storageTopic = "symmetry_draw";
 const matrixMode = "graphic_matrix";
-const zipPath = "public/decks/symmetry_draw_v1.13.0.zip";
+const zipPath = "public/decks/" + catalog.decks.find(({ id }) => id === storageTopic).zipUrl;
 
 async function install() {
   const db = await openDb("graphic-matrix-" + crypto.randomUUID());
   const bytes = await readFile(zipPath);
   const deck = Uint8Array.from(bytes);
-  await expect(importTopic(db, deck, "1.1.191")).rejects.toThrow("1.1.192");
+  await expect(importTopic(db, deck, "1.1.191")).rejects.toThrow("Обновите приложение");
   expect(await getTopicRecord(db, storageTopic)).toBeFalsy();
-  return importTopic(db, deck, "1.1.192");
+  return importTopic(db, deck, app.version);
 }
 
 function sessionFor(topicRecord, boardSize, answersPerStar = 1) {
