@@ -41,7 +41,6 @@ import {
   getSpokenWeekday,
   getSpokenClockWordParts,
   MONTHS_GENITIVE,
-  parseWeeklyPlan,
   spokenClockSentence,
 } from "./timeUtils";
 import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
@@ -881,7 +880,6 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
   // always used with an adult and the child says the answer. They're for a
   // child who can't say it -- then the speaker is the child's voice (AAC).
   const cardSound = soundEnabled && sessionParams?.cardSound === true;
-  const weeklyPlan = parseWeeklyPlan(sessionParams?.weeklyPlan);
   const { weatherId, selectWeather } = useTodaysWeather(getLocalDateKey(now));
   const activeDate = addCalendarDays(now, offset);
   const student = useAppStore((state) => state.students.find((candidate) => candidate.id === state.activeStudentId) ?? null);
@@ -1307,7 +1305,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
       </div>
       {openConcept && (
         <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
-          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} importantDates={importantDates} onSpeak={soundEnabled ? speakInModal : null} speakDays={cardSound} />}
+          {openConcept === "week" && <WeekContent today={now} weekItems={weekItems} planPhotos={planPhotos} importantDates={importantDates} onSpeak={soundEnabled ? speakInModal : null} speakDays={cardSound} />}
           {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} importantDates={importantDates} />}
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
