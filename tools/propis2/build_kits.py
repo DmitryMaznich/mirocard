@@ -701,8 +701,7 @@ series += [punct_kit, texts_kit]
 
 # ---- from print to handwriting (not a step of the series: 12 pages, after the digits) (owner, 2026-11-24): a child who already writes learns to COPY a printed model in handwriting ---------
 # Every model row is in the «Книжные» style (`book`, script.readingSample: printed once, no red dots), the row under it is empty: the child
-# recodes print into handwriting. Letters and syllables are only a warm-up (2 pages), words 2, phrases/sentences/texts 8. Methodology and
-# the reasons for every page: docs/propis2-print-to-cursive.md.
+# recodes print into handwriting. Methodology and the reasons for every page: docs/propis2-print-to-cursive.md.
 def book(text, as_text=True, gap=None, even=False):
     r = {"text": text, "kind": "text", "repeat": "one", "dots": "none", "copies": "dash", "asText": as_text, "style": "book"}
     if gap:
@@ -721,47 +720,39 @@ def copy_page(title, models, **kw):
     return page(title, rows + [blank()])
 
 
-def text_page(title, texts_):
-    """Copying from a distance: a text of a few sentences on top (one sentence a row), all the rows under it to copy it into."""
-    rows = []
-    for tx_ in texts_:
-        rows += [book(t) for t in tx_] + [blank()] * (len(tx_) + 2)
-    assert len(rows) <= ROWS, (title, len(rows))
-    return page(title, rows + [blank()] * (ROWS - len(rows)))
-
-
-COPY_PAGES = [
-    # 1. letters: the print and handwritten pairs grouped from alike to most unlike (т д б г п и к look quite another letter in hand)
-    copy_page("Буквы: печатная — письменная", ["Аа Оо Уу Ээ", "Ее Ёё Яя Юю", "Ии Йй ы ь ъ", "Тт Пп Гг Рр", "Дд Бб Вв Зз", "Кк Лл Мм Нн",
-                                             "Сс Хх Фф Жж", "Шш Щщ Цц Чч"], as_text=False, gap=2),
-    # 2. syllables: the joins; the letters whose hand form differs most, hard and soft vowels, closed syllables, a capital at the start
-    copy_page("Слоги", ["ма мя мо мё", "та ти ту те", "да до ди дя", "ба бу бе бю", "ла ло ли лю", "ак ом ус ыр", "сто три кру",
-                        "Ма То Ли Да"], as_text=False, gap=2),
-    # 3-4. words: first written as said (open syllables, CVC), then clusters, ь й ё ю щ ж ш and names with a capital
-    copy_page("Короткие слова", ["дом кот сок", "мак лук сыр", "мама папа", "рука нога", "лиса коза", "мыло вата", "репа дыня", "пила игла"]),
-    copy_page("Слова потруднее", ["стол слон", "кошка мышка", "день конь соль", "чай май", "ёлка юла", "щука ящик", "жук шуба", "Таня Дима"]),
-    # 5. two-three words: the space between words, no capital and full stop yet
-    copy_page("Два слова рядом", ["мой дом", "кот спит", "мама и папа", "белый снег", "идёт дождь", "моя кукла", "синее небо", "я рисую"]),
-    # 6-8. a sentence: the capital and the full stop, then longer
-    copy_page("Предложение из двух слов", ["Кот спит.", "Мама поёт.", "Идёт снег.", "Дует ветер.", "Я рисую.", "Папа читает.",
-                                           "Утка плывёт.", "Дети играют."]),
-    copy_page("Предложение из трёх слов", ["Я люблю маму.", "Кот пьёт молоко.", "Мы идём гулять.", "Папа читает книгу.", "У Тани мяч.",
-                                           "Птицы поют песни.", "Светит яркое солнце.", "Миша ест суп."]),
-    copy_page("Предложения длиннее", ["Мы с мамой в парке.", "Дима строит дом.", "На ветке сидит птица.", "Бабушка печёт пирог.",
-                                      "Летом мы едем на море.", "Собака спит у двери.", "Я пью тёплый чай.", "В лесу растут грибы."]),
-    # 9. other ends of a sentence and a comma: the marks are copied too
-    copy_page("Вопрос и восклицание", ["Где мой мяч?", "Кто там?", "Как тебя зовут?", "Ура, каникулы!", "Какой красивый снег!",
-                                       "Ты пойдёшь гулять?", "Привет, Миша!", "Осторожно, лужа!"]),
-    # 10. written not as said: the child copies what is printed, not what is heard (unstressed о е, «что», «его», voiced at the end)
-    copy_page("Пишем, как напечатано", ["Сегодня тепло.", "Что ты рисуешь?", "Его зовут Серёжа.", "Ёжик живёт в лесу.",
-                                        "Зимой стоит мороз.", "Дуб растёт у дороги.", "Молоко в стакане.", "Под ногами снег."]),
-    # 11-12. a short text on top and the rows under it: the child keeps a phrase in mind, writes it, finds the place again
-    text_page("Короткие тексты", [["Это Миша.", "У Миши кот.", "Кота зовут Пух."], ["Идёт дождь.", "Мы сидим дома.", "Мама варит суп."]]),
-    text_page("Итоговый текст", [["Наступила зима.", "Выпал белый снег.", "Дети лепят снеговика.", "Как весело во дворе!"]]),
+# 12 pages x 8 sentences, every sentence different (owner, 2026-11-24: «одна строка предложение, вторая для повтора»). The ladder runs
+# inside the sentences: length, then other ends of a sentence, then words not written as said, then the longest.
+SENTENCES = [
+    ("Два слова", ["Кот спит.", "Мама поёт.", "Идёт снег.", "Дует ветер.", "Я рисую.", "Папа читает.", "Утка плывёт.", "Дети играют."]),
+    ("Два слова", ["Пёс лает.", "Мы гуляем.", "Светит солнце.", "Птица летит.", "Рыба плавает.", "Малыш спит.", "Мяч прыгает.", "Аня читает."]),
+    ("Три слова", ["Я люблю маму.", "Кот пьёт молоко.", "Мы идём гулять.", "У Тани мяч.", "Миша ест суп.", "Папа моет посуду.",
+                   "Оля пьёт чай.", "Дед колет дрова."]),
+    ("Три слова", ["Птицы поют песни.", "Мама варит кашу.", "Мы лепим снеговика.", "Лиса бежит быстро.", "Дима строит дом.",
+                   "Бабушка вяжет носки.", "Кошка ловит мышь.", "Сова спит днём."]),
+    ("Три-четыре слова", ["На ветке сидит птица.", "Бабушка печёт пирог.", "Собака спит у двери.", "Я пью тёплый чай.",
+                          "В лесу растут грибы.", "Мы с мамой в парке.", "Летом мы купаемся.", "Брат читает книгу."]),
+    ("Три-четыре слова", ["На столе стоит ваза.", "Петя рисует море.", "У нас живёт кот.", "Мы едем на дачу.", "В саду цветут розы.",
+                          "Папа чинит кран.", "Дети едут на санках.", "Ветер гонит тучи."]),
+    ("Вопрос", ["Где мой мяч?", "Кто там?", "Как тебя зовут?", "Ты пойдёшь гулять?", "Что ты рисуешь?", "Где живёт ёжик?",
+                "Когда придёт папа?", "Сколько тебе лет?"]),
+    ("Восклицание и обращение", ["Ура, каникулы!", "Какой красивый снег!", "Привет, Миша!", "Осторожно, лужа!", "Мама, смотри!",
+                                 "Как вкусно пахнет!", "Аня, иди сюда!", "Спасибо, бабушка!"]),
+    ("Пишем, как напечатано", ["Сегодня тепло.", "Его зовут Серёжа.", "Ёжик живёт в лесу.", "Зимой стоит мороз.", "Дуб растёт у дороги.",
+                               "Молоко в стакане.", "Под ногами снег.", "Хлеб лежит на столе."]),
+    ("Пишем, как напечатано", ["Вода очень холодная.", "Корова даёт молоко.", "Голуби клюют зерно.", "Сорока сидит на дубе.",
+                               "Мороз щиплет нос.", "Ребята идут домой.", "Что у тебя в руке?", "Огород за домом."]),
+    ("Предложения длиннее", ["Утром я чищу зубы.", "Вечером мы пьём чай.", "Кот спит на диване.", "Мама купила яблоки.",
+                             "Ночью светит луна.", "Белка грызёт орехи.", "Мы рисуем красками.", "Дети бегут в школу."]),
+    ("Итог", ["Наступила зима.", "Выпал белый снег.", "Дети лепят снежки.", "Весной тает лёд.", "Летом мы на море.", "Осенью идут дожди.",
+              "Я люблю свою семью.", "Мы дружим с Олей."]),
 ]
+_all = [t for _, ts in SENTENCES for t in ts]
+assert len(_all) == len(set(_all)) == 96, "every sentence different"
+assert max(map(len, _all)) <= 21, "a longer sentence does not fit the row in handwriting (checked on the page, 2026-11-24)"
+COPY_PAGES = [copy_page(title, ts) for title, ts in SENTENCES]
 copy_kit = kit("print-to-cursive", "С печатного — прописью",
-               "Узкая строка. Для ребёнка, который уже пишет: печатный образец — под ним строка, чтобы переписать его прописью. "
-               "Буквы и слоги — разгон, затем слова, предложения и короткие тексты.", COPY_PAGES)
+               "Узкая строка. Для ребёнка, который уже пишет: предложение печатными буквами — под ним строка, чтобы переписать его прописью. "
+               "От двух слов к длинным предложениям, вопросы и восклицания, слова, которые пишутся не как слышатся.", COPY_PAGES)
 assert len(copy_kit["pages"]) == 12
 kits[:0] = series
 kits.insert(kits.index(digits_kit) + 1, copy_kit)
