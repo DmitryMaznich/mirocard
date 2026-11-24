@@ -70,6 +70,26 @@ describe("DailyOrientationRenderer", () => {
     expect(timeCard?.getAttribute("aria-hidden")).toBe("false");
   });
 
+  it("asks for fullscreen once, not on every tap (a pinned Android app showed its «unpin» hint each time)", () => {
+    const requestFullscreen = vi.fn(() => Promise.resolve());
+    Object.defineProperty(document, "fullscreenEnabled", { configurable: true, value: true });
+    document.documentElement.requestFullscreen = requestFullscreen;
+    try {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      act(() => container.querySelector(".daily-orientation__card--date").click());
+      act(() => container.querySelector(".daily-orientation__modal-close").click());
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
+      expect(requestFullscreen).toHaveBeenCalledTimes(1);
+      // Back from sleep (still not fullscreen): one more try.
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      act(() => container.querySelector(".daily-orientation__modal-close").click());
+      expect(requestFullscreen).toHaveBeenCalledTimes(2);
+    } finally {
+      delete document.fullscreenEnabled;
+      delete document.documentElement.requestFullscreen;
+    }
+  });
+
   it("warms the weekday card on the weekend and says «ВЫХОДНОЙ»", () => {
     mountAt(new Date(2026, 10, 28, 10, 0));
     const card = container.querySelector(".daily-orientation__card--weekday");

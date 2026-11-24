@@ -213,16 +213,28 @@ function useFullscreenOnFirstTouch() {
     const root = document.documentElement;
     if (!document.fullscreenEnabled || typeof root.requestFullscreen !== "function") return undefined;
     let entered = false;
+    // One request per wake-up, not one per tap: with the app pinned on
+    // Android (screen pinning), the system keeps leaving fullscreen, and a
+    // request on every tap -- opening a card's modal, say -- made it flash
+    // its «unpin» hint at the bottom each time (owner, 2026-11-24). It is
+    // armed again when the screen comes back from sleep, the case the
+    // per-tap retry was there for.
+    let armed = true;
     function enter() {
-      if (document.fullscreenElement) return;
+      if (!armed || document.fullscreenElement) return;
+      armed = false;
       root.requestFullscreen({ navigationUI: "hide" }).then(() => { entered = true; }).catch(() => {});
+    }
+    function rearm() {
+      if (document.visibilityState === "visible" && !document.fullscreenElement) armed = true;
     }
     // "click", not "pointerdown": a finger's pointerdown doesn't count as a
     // user gesture on Android, so the request was silently refused there.
-    // Keeps trying on every tap until it's in (no-op once it is).
     document.addEventListener("click", enter, true);
+    document.addEventListener("visibilitychange", rearm);
     return () => {
       document.removeEventListener("click", enter, true);
+      document.removeEventListener("visibilitychange", rearm);
       if (entered && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     };
   }, []);
