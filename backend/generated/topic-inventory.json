@@ -224,10 +224,22 @@
       "version": "0.5.2",
       "renderer": "comparison_language_pilot",
       "sources": [
+        "public/decks/comparison_language_pilot_v0.5.2.zip",
         "src/topics/renderers/comparison_language_pilot",
         "tools/comparison_language_pilot/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "0.5.2",
+        "url": "./decks/comparison_language_pilot_v0.5.2.zip",
+        "title": {
+          "ru": "Сравнение · языковой пилот",
+          "sl": "Primerjanje · jezikovni pilot"
+        },
+        "description": null,
+        "renderer": "comparison_language_pilot",
+        "modes": 3,
+        "cards": 3
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "comparison_language_pilot",
@@ -289,7 +301,7 @@
           "sl"
         ]
       },
-      "sourceUpdatedAt": "2026-11-21T09:18:49+00:00"
+      "sourceUpdatedAt": "2026-11-24T13:45:12+00:00"
     },
     {
       "id": "daily_orientation",
