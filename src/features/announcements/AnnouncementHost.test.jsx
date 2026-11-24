@@ -13,8 +13,8 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 
 const list = [
-  { id: "t-one", title: { ru: "Первое", en: "First" }, body: { ru: ["Абзац один", "Абзац два"] }, until: "2999-01-01" },
-  { id: "t-two", topics: ["propis2"], title: { ru: "Второе" }, body: { ru: ["Про прописи"] }, until: "2999-01-01" },
+  { id: "t-one", date: "2026-11-20", title: { ru: "Первое", en: "First" }, body: { ru: ["Абзац один", "Абзац два"] }, until: "2999-01-01" },
+  { id: "t-two", date: "2026-11-21", topics: ["propis2"], title: { ru: "Второе" }, body: { ru: ["Про прописи"] }, until: "2999-01-01" },
 ];
 
 async function mount() {
@@ -93,3 +93,46 @@ describe("AnnouncementHost: a one-time announcement", () => {
     await m.done();
   });
 });
+
+describe("«Что нового»: every announcement of the account, read or not", () => {
+  beforeEach(async () => {
+    vi.restoreAllMocks();
+    document.body.innerHTML = "";
+    pushOp.mockClear();
+    const db = await getDb();
+    for (const a of list) await kv.del(db, SEEN_PREFIX + a.id);
+    useAppStore.setState({ screen: "whatsNew", account: { id: "acc", createdAt: "2026-01-01T00:00:00Z" }, ownedTopics: [{ topicId: "propis2", source: "paid" }], topicRecords: [] });
+    vi.spyOn(api, "get").mockResolvedValue({ kv: [] });
+  });
+
+  it("newest first, unread ones marked «Новое»; opening it reads them, so the dialog will not show them", async () => {
+    const { default: WhatsNewScreen } = await import("./WhatsNewScreen.jsx");
+    await markSeenFor("t-one");
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<WhatsNewScreen list={list} />); await tick(); });
+    for (let i = 0; i < 20; i++) await act(async () => { await tick(20); });
+    const items = [...host.querySelectorAll('[data-testid="whats-new-item"]')];
+    expect(items.map((el) => el.dataset.announcementId)).toEqual(["t-two", "t-one"]);
+    expect(items.map((el) => Boolean(el.querySelector(".whats-new-badge")))).toEqual([true, false]);
+    expect(await kv.get(await getDb(), SEEN_PREFIX + "t-two")).toEqual({ at: expect.any(Number) });
+    expect(pushOp).toHaveBeenCalledWith("kv.upsert", { key: SEEN_PREFIX + "t-two", value: { at: expect.any(Number) } });
+    await act(async () => { root.unmount(); });
+  });
+
+  it("nothing for this account: «Пока новостей нет»", async () => {
+    const { default: WhatsNewScreen } = await import("./WhatsNewScreen.jsx");
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<WhatsNewScreen list={[]} />); await tick(); });
+    for (let i = 0; i < 10; i++) await act(async () => { await tick(20); });
+    expect(host.textContent).toContain("Пока новостей нет");
+    await act(async () => { root.unmount(); });
+  });
+});
+
+async function markSeenFor(id) {
+  await kv.set(await getDb(), SEEN_PREFIX + id, { at: 1 });
+}

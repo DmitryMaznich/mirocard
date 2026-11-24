@@ -24,6 +24,7 @@ const FLAGS = [
   ["lesson_plan", "План занятий"],
   ["instructions", "Инструкции"],
   ["billing_preview", "Подписка Paddle (тест)"],
+  ["announcements_preview", "Объявления (тест)"],
   ["beta", "Beta-темы (старый флаг)"],
   ["experimental", "Экспериментальные темы (старый флаг)"],
 ];

@@ -1135,6 +1135,7 @@ export default function HomeScreen() {
           onOpenSettings={preview ? null : () => setScreen("settings")}
           onOpenLanguage={preview ? () => setLanguageOpen(true) : null}
           languageLabel={menuUiLanguages(uiLanguage).find((item) => item.code === uiLanguage)?.label}
+          onOpenWhatsNew={() => setScreen("whatsNew")}
           onOpenHelp={() => setScreen("help")}
           extraItems={preview ? [
             hasLessonPlanAccess && { id: "lesson_plan", label: t("home.lessonPlan"), onClick: () => changeTab("lesson_plan") },
