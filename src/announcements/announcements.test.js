@@ -76,7 +76,7 @@ describe("announcements: who sees what", () => {
     const a = ANNOUNCEMENTS.find((x) => x.id === "propis2-0-8-0");
     const now = day("2026-11-25");
     expect(isActive(a, now)).toBe(true);
-    const flags = ["announcements_preview"]; // (deploy 1: the owner's account only; the flag goes with the deck's release)
+    const flags = []; // (deploy 1 kept it behind `announcements_preview`; out for everyone with the deck, deploy 2)
     expect(await matchesAudience(a, { featureFlags: flags, ownedTopicIds: ["propis2"], accountCreatedAt: "2026-09-01T00:00:00Z" })).toBe(true);
     expect(await matchesAudience(a, { featureFlags: flags, ownedTopicIds: ["math"], accountCreatedAt: "2026-09-01T00:00:00Z" })).toBe(false);
     expect(await matchesAudience(a, { featureFlags: flags, ownedTopicIds: ["propis2"], accountCreatedAt: "2026-11-25T00:00:00Z" })).toBe(false);

@@ -21,8 +21,6 @@ export const ANNOUNCEMENTS = [
   {
     id: "propis2-0-8-0",
     date: "2026-11-24",
-    // first on the owner's account only (deploy 1, before «Прописи» 0.8.0); removed with the deck's release (deploy 2)
-    flags: ["announcements_preview"],
     topics: ["propis2"],
     accountsCreatedBefore: "2026-11-24",
     until: "2027-01-31",
