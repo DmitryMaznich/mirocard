@@ -17,7 +17,7 @@ import texts  # noqa: E402
 import words  # noqa: E402
 
 ROWS = 17  # rows of an A5 page on the narrow ruling: all 17 ruling rows of the printed notebook
-wide = json.load(open(ROOT / "tools" / "propis" / "wide.json", encoding="utf-8"))
+wide = json.load(open(ROOT / "tools" / "handwriting" / "cyrillic" / "wide.json", encoding="utf-8"))
 HAVE = {g["label"] for g in wide["glyphs"]} | {a for g in wide["glyphs"] for a in g.get("aliases", [])}
 
 # every kit page is a page of the printed notebooks: the narrow ruling, the standard 20 mm slants, the red margin
@@ -362,7 +362,7 @@ W_ROWS, N_ROWS = 16, 17
 S_WIDE = {**PAGE, "ruling": "wide", "grid": "dense"}   # the frequent slants of the methodology sheets: they show the slope
 S_NARROW = {**PAGE, "grid": "dense"}
 HAVE |= {"Ё", "Й"}  # built from Е / И and the marks in the app (propis2/glyphOverrides.js withMarkedCapitals), not in wide.json
-ELEMENT_IDS = {e["id"] for e in json.load(open(ROOT / "tools" / "propis" / "elements.json", encoding="utf-8"))["elements"]}
+ELEMENT_IDS = {e["id"] for e in json.load(open(ROOT / "tools" / "handwriting" / "cyrillic" / "elements.json", encoding="utf-8"))["elements"]}
 HAVE |= ELEMENT_IDS  # drawn from elements.json by id (pageTask.js buildGlyphMap)
 # what makes an element row (the editor's «Элемент» kind): the elements.json ids and the wide elements that are not a letter
 ELEMENT_TOKENS = ELEMENT_IDS | {g["label"] for g in wide["glyphs"] if g.get("kind") == "element" and not (len(g["label"]) == 1 and g["label"].isalpha())}
@@ -697,7 +697,74 @@ series.append(series_kit("s14-phrases", "14. Слова и фразы", "Узк�
 
 # ---- 15-16. punctuation, copying a text: the notebooks above, steps of the series ---------------------------------------------------
 series += [punct_kit, texts_kit]
+
+
+# ---- from print to handwriting (not a step of the series: 12 pages, after the digits) (owner, 2026-11-24): a child who already writes learns to COPY a printed model in handwriting ---------
+# Every model row is in the «Книжные» style (`book`, script.readingSample: printed once, no red dots), the row under it is empty: the child
+# recodes print into handwriting. Letters and syllables are only a warm-up (2 pages), words 2, phrases/sentences/texts 8. Methodology and
+# the reasons for every page: docs/propis2-print-to-cursive.md.
+def book(text, as_text=True, gap=None, even=False):
+    r = {"text": text, "kind": "text", "repeat": "one", "dots": "none", "copies": "dash", "asText": as_text, "style": "book"}
+    if gap:
+        r["gap"] = gap
+    if even:
+        r["even"] = True
+    return r
+
+
+def copy_page(title, models, **kw):
+    """The model in print, the empty row under it to write it in handwriting; 8 pairs + the 17th row empty."""
+    assert len(models) == ROWS // 2, (title, len(models))
+    rows = []
+    for t in models:
+        rows += [book(t, **kw), blank()]
+    return page(title, rows + [blank()])
+
+
+def text_page(title, texts_):
+    """Copying from a distance: a text of a few sentences on top (one sentence a row), all the rows under it to copy it into."""
+    rows = []
+    for tx_ in texts_:
+        rows += [book(t) for t in tx_] + [blank()] * (len(tx_) + 2)
+    assert len(rows) <= ROWS, (title, len(rows))
+    return page(title, rows + [blank()] * (ROWS - len(rows)))
+
+
+COPY_PAGES = [
+    # 1. letters: the print and handwritten pairs grouped from alike to most unlike (т д б г п и к look quite another letter in hand)
+    copy_page("Буквы: печатная — письменная", ["Аа Оо Уу Ээ", "Ее Ёё Яя Юю", "Ии Йй ы ь ъ", "Тт Пп Гг Рр", "Дд Бб Вв Зз", "Кк Лл Мм Нн",
+                                             "Сс Хх Фф Жж", "Шш Щщ Цц Чч"], as_text=False, gap=2),
+    # 2. syllables: the joins; the letters whose hand form differs most, hard and soft vowels, closed syllables, a capital at the start
+    copy_page("Слоги", ["ма мя мо мё", "та ти ту те", "да до ди дя", "ба бу бе бю", "ла ло ли лю", "ак ом ус ыр", "сто три кру",
+                        "Ма То Ли Да"], as_text=False, gap=2),
+    # 3-4. words: first written as said (open syllables, CVC), then clusters, ь й ё ю щ ж ш and names with a capital
+    copy_page("Короткие слова", ["дом кот сок", "мак лук сыр", "мама папа", "рука нога", "лиса коза", "мыло вата", "репа дыня", "пила игла"]),
+    copy_page("Слова потруднее", ["стол слон", "кошка мышка", "день конь соль", "чай май", "ёлка юла", "щука ящик", "жук шуба", "Таня Дима"]),
+    # 5. two-three words: the space between words, no capital and full stop yet
+    copy_page("Два слова рядом", ["мой дом", "кот спит", "мама и папа", "белый снег", "идёт дождь", "моя кукла", "синее небо", "я рисую"]),
+    # 6-8. a sentence: the capital and the full stop, then longer
+    copy_page("Предложение из двух слов", ["Кот спит.", "Мама поёт.", "Идёт снег.", "Дует ветер.", "Я рисую.", "Папа читает.",
+                                           "Утка плывёт.", "Дети играют."]),
+    copy_page("Предложение из трёх слов", ["Я люблю маму.", "Кот пьёт молоко.", "Мы идём гулять.", "Папа читает книгу.", "У Тани мяч.",
+                                           "Птицы поют песни.", "Светит яркое солнце.", "Миша ест суп."]),
+    copy_page("Предложения длиннее", ["Мы с мамой в парке.", "Дима строит дом.", "На ветке сидит птица.", "Бабушка печёт пирог.",
+                                      "Летом мы едем на море.", "Собака спит у двери.", "Я пью тёплый чай.", "В лесу растут грибы."]),
+    # 9. other ends of a sentence and a comma: the marks are copied too
+    copy_page("Вопрос и восклицание", ["Где мой мяч?", "Кто там?", "Как тебя зовут?", "Ура, каникулы!", "Какой красивый снег!",
+                                       "Ты пойдёшь гулять?", "Привет, Миша!", "Осторожно, лужа!"]),
+    # 10. written not as said: the child copies what is printed, not what is heard (unstressed о е, «что», «его», voiced at the end)
+    copy_page("Пишем, как напечатано", ["Сегодня тепло.", "Что ты рисуешь?", "Его зовут Серёжа.", "Ёжик живёт в лесу.",
+                                        "Зимой стоит мороз.", "Дуб растёт у дороги.", "Молоко в стакане.", "Под ногами снег."]),
+    # 11-12. a short text on top and the rows under it: the child keeps a phrase in mind, writes it, finds the place again
+    text_page("Короткие тексты", [["Это Миша.", "У Миши кот.", "Кота зовут Пух."], ["Идёт дождь.", "Мы сидим дома.", "Мама варит суп."]]),
+    text_page("Итоговый текст", [["Наступила зима.", "Выпал белый снег.", "Дети лепят снеговика.", "Как весело во дворе!"]]),
+]
+copy_kit = kit("print-to-cursive", "С печатного — прописью",
+               "Узкая строка. Для ребёнка, который уже пишет: печатный образец — под ним строка, чтобы переписать его прописью. "
+               "Буквы и слоги — разгон, затем слова, предложения и короткие тексты.", COPY_PAGES)
+assert len(copy_kit["pages"]) == 12
 kits[:0] = series
+kits.insert(kits.index(digits_kit) + 1, copy_kit)
 
 
 # Blank copybooks (owner, 2026-10-14: «пустографки»): 12 notebook leaves = 24 pages of the copybook ruling, nothing written, the red
