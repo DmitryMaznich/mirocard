@@ -66,13 +66,16 @@ export const deckPapers = (topicRecord) => {
   const ids = topicRecord?.meta?.papers;
   return GRID_KINDS.filter((g) => (Array.isArray(ids) ? ids : RU_PAPERS).includes(g.id)).sort((a, b) => (ids ?? RU_PAPERS).indexOf(a.id) - (ids ?? RU_PAPERS).indexOf(b.id));
 };
-// The paper menu (2026-11-24, owner: «сначала 5, потом 8, потом 6, потом 4 — нужно 4, 5, 6, 8»): the papers of one family of
-// rows (the British ones, the Slovene ones) by their lowercase height, smallest first, where the first of them stands; the rest
-// (square, ruled) as listed. Only the menu: the list itself keeps its order, its first paper is the one of a new notebook.
+// The paper menu (2026-11-24, owner: «сначала 5, потом 8, потом 6, потом 4 — нужно 4, 5, 6, 8… то же самое для русских»): the papers
+// that have a row height in mm by that height, smallest first, where the first of them stands — the British, the Slovene, and the
+// Russian ones (the copybook row 4 mm, Mazina step 2 5 mm, step 1 8 mm, as on their icons); the rest (square, ruled) as listed.
+// Only the menu: the list itself keeps its order, its first paper is the one of a new notebook.
+const RU_ROW_MM = { propis: 4, m2: 5, m1: 8 };
+const rowSizeMm = (id) => RU_ROW_MM[id] ?? (isFourLinePaper(id) ? fourLinePaper(id).xMm : null);
 export const menuPapers = (papers) => {
-  const sized = papers.filter((g) => isFourLinePaper(g.id)).sort((a, b) => fourLinePaper(a.id).xMm - fourLinePaper(b.id).xMm);
+  const sized = papers.filter((g) => rowSizeMm(g.id) != null).sort((a, b) => rowSizeMm(a.id) - rowSizeMm(b.id));
   let i = 0;
-  return papers.map((g) => (isFourLinePaper(g.id) ? sized[i++] : g));
+  return papers.map((g) => (rowSizeMm(g.id) != null ? sized[i++] : g));
 };
 export const pageGridKind = (page) => page?.gridKind ?? (page?.grid === "square" ? "square" : "propis");
 // The grid name the page task / PrintPageView understands.
