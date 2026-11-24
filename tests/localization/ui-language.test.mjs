@@ -17,8 +17,10 @@ test("both dictionaries contain every prototype message and the same placeholder
     const variables = (value) => [...value.matchAll(/\{\{(\w+)\}\}/g)].map((match) => match[1]).sort();
     assert.deepEqual(variables(UI_MESSAGES.sl[key]), variables(UI_MESSAGES.ru[key]), key);
   }
-  assert.equal(isUiLanguage("en"), false);
+  // English is a draft of the registry (shared/ui-languages.mjs): a language the app knows, chosen on a device, not offered in menus
+  assert.equal(isUiLanguage("en"), true);
   assert.equal(isUiLanguage("sl-SI"), false);
+  assert.equal(isUiLanguage("de"), false);
   assert.equal(translateUiMessage("sl", "settings.zoneIcon", { icon: "📦" }), "Ikona mesta shranjevanja: 📦");
 });
 
@@ -47,7 +49,7 @@ test("a manual choice wins over late and repeated IDB/server hydration", () => {
 });
 
 test("legacy supported settings seed an unset preference; invalid values never activate", () => {
-  for (const invalid of [null, "en", "sl-SI", "<script>", "", "SL"]) {
+  for (const invalid of [null, "de", "sl-SI", "<script>", "", "SL"]) {
     const controller = createUiLanguageController({ storage: memoryStorage(invalid) });
     assert.equal(controller.getSnapshot().language, "ru");
     const before = controller.getSnapshot();
@@ -57,6 +59,8 @@ test("legacy supported settings seed an unset preference; invalid values never a
   const controller = createUiLanguageController({ storage: memoryStorage() });
   controller.hydrate("sl");
   assert.equal(controller.getSnapshot().language, "sl");
+  // a draft of the registry (English) chosen on this device stays chosen
+  assert.equal(createUiLanguageController({ storage: memoryStorage("en") }).getSnapshot().language, "en");
 });
 
 test("blocked storage still allows switching and protects it from bootstrap", () => {
@@ -88,7 +92,8 @@ test("pre-React HTML bootstrap uses the same key and validation, including block
   const html = await readFile(new URL("../../index.html", import.meta.url), "utf8");
   const script = html.match(/<script id="ui-language-boot">([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script);
-  for (const [saved, expected] of [["sl", "sl"], ["ru", "ru"], ["en", "ru"], [null, "ru"]]) {
+  // (any code of two or three letters is set before the first paint; the app checks it against the registry on start)
+  for (const [saved, expected] of [["sl", "sl"], ["ru", "ru"], ["en", "en"], ["<x>", "ru"], [null, "ru"]]) {
     const context = { document: { documentElement: { lang: "ru" } }, localStorage: memoryStorage(saved) };
     vm.runInNewContext(script, context);
     assert.equal(context.document.documentElement.lang, expected);

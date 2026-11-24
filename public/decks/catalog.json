@@ -164,7 +164,7 @@
     },
     {
       "id": "comparison_language_pilot",
-      "version": "0.5.1",
+      "version": "0.5.2",
       "title": {
         "ru": "Сравнение · языковой пилот",
         "sl": "Primerjanje · jezikovni pilot"
@@ -173,17 +173,17 @@
         "ru": "Три режима пилотной копии: сравнение количеств и чисел с крокодилом, рисование знака. Русский и словенский материал выбираются независимо от интерфейса. В русском пакете озвучена подсказка после ошибки; словенский пока без речи.",
         "sl": "Trije načini v pilotni kopiji: primerjanje količin in števil s krokodilom ter risanje znaka. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora."
       },
-      "url": "./decks/comparison_language_pilot_v0.5.1.zip",
+      "url": "./decks/comparison_language_pilot_v0.5.2.zip",
       "status": "hidden",
       "hidden": true,
       "access": "free",
       "languageDownload": {
         "schemaVersion": 1,
         "core": {
-          "url": "./decks/comparison_language_pilot_v0.5.1.zip",
-          "version": "0.5.1",
-          "bytes": 10625,
-          "sha256": "069bf34e6b43a30fe73947f6978b7e6ee8a7affee28f87342f3121bd23664885"
+          "url": "./decks/comparison_language_pilot_v0.5.2.zip",
+          "version": "0.5.2",
+          "bytes": 10624,
+          "sha256": "d1961b79a7f3ab360337b3dd03c5de6ca46bcece3a9c8cfd2845a1d620abe8c5"
         },
         "languages": {
           "ru": {

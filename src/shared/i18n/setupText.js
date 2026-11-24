@@ -316,7 +316,9 @@ const isLocalized = (value) => value != null && typeof value === "object" && !Ar
 export function setupText(value, language = getUiLanguage()) {
   if (isLocalized(value) && value[language] != null && value[language] !== "") return getTopicTitle(value[language], language);
   const source = getTopicTitle(value, SOURCE_UI_LANGUAGE);
-  const translated = SETUP_LABEL_TRANSLATIONS[language]?.[source];
+  // own keys only: a label «constructor» or «toString» must not find the object's prototype (tests/localization/ui-language.test.mjs)
+  const table = SETUP_LABEL_TRANSLATIONS[language];
+  const translated = table && typeof source === "string" && Object.hasOwn(table, source) ? table[source] : null;
   if (translated) return translated;
   if (language === SOURCE_UI_LANGUAGE || !isLocalized(value)) return source;
   return getTopicTitle(pickUiText(value, language), language);

@@ -136,7 +136,7 @@ test("blocked storage is visible while switching remains functional", async () =
 test("unsupported choices do not enter the account queue", async () => {
   const f = fixture();
   f.login();
-  f.controller.chooseUiLanguage("en");
+  f.controller.chooseUiLanguage("de"); // (not "en": English is a draft of the registry since 2026-11-19, a language the app knows)
   f.controller.chooseCardLanguage("sl-SI");
   await f.controller.flush();
   assert.equal(f.ui(), "ru");
