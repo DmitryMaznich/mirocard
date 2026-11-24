@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.14.0",
+    "version": "1.14.1",
     "minAppVersion": "1.1.203",
-    "resumeCompatibleFrom": ["1.12.20", "1.13.0"],
+    "resumeCompatibleFrom": ["1.12.20", "1.13.0", "1.14.0"],
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -480,7 +480,7 @@
         }
       },
       "ui": {
-        "title": "Добавь или убери линии",
+        "title": "Графическая арифметика",
         "instruction": "Нарисуй результат в пустом квадрате.",
         "icon": "media/repeat_avatar.svg"
       }
@@ -11150,7 +11150,7 @@
       "id": "line_operations_board",
       "conceptId": "line_operations_board",
       "primary": true,
-      "label": "Добавь или убери линии",
+      "label": "Графическая арифметика",
       "taskKind": "line_operations"
     }
   ]
