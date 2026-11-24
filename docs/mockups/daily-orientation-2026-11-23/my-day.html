@@ -1,0 +1,40 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Мой день — части суток с делами (макет)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:Nunito,sans-serif;background:#f4efe6;width:1280px;height:800px;color:#0f3b4c}
+.screen{padding:22px 28px;display:grid;grid-template-rows:56px 300px 1fr;gap:16px;height:800px}
+.nav{display:flex;gap:26px;align-items:center;font-size:24px;font-weight:900;color:#7a8b93}
+.nav .on{color:#0f3b4c;background:#e4f2ee;padding:6px 22px;border-radius:20px;font-size:30px}
+.r1{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.card{border-radius:26px;box-shadow:0 2px 10px rgba(60,40,10,.08);padding:16px 20px;position:relative;overflow:hidden}
+.cap{font-size:22px;font-weight:800;color:#47606b;text-align:center}
+.ph{background:#fff;opacity:.55;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#8a9a9e}
+.r2{display:grid;grid-template-columns:210px 1fr;gap:16px}
+.wx{background:#eef4f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.wx .ic{font-size:64px}.wx .tx{font-size:24px;font-weight:900}
+.day{background:#fffdf8;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px}
+.col{border-radius:20px;display:flex;flex-direction:column;align-items:center;padding:12px 8px;gap:10px;position:relative}
+.col.morning{background:#fff0e6}.col.dayp{background:#e6f3fb}.col.evening{background:#f1eafa}.col.night{background:#e8ebf5}
+.col.past{opacity:.4}
+.col.now{box-shadow:0 0 0 5px #0f3b4c}
+.col img{width:64px;height:64px;object-fit:contain}
+.col .w{font-size:26px;font-weight:950}
+.col.now .w{font-size:34px}
+.col .tag{position:absolute;top:-16px;background:#0f3b4c;color:#fff;font-size:16px;font-weight:900;border-radius:10px;padding:2px 12px}
+.ev{width:100%;background:#fff;border-radius:16px;display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:19px;font-weight:900}
+.ev b{font-size:32px}
+.col.now .ev{font-size:22px;padding:8px 10px}.col.now .ev b{font-size:40px}
+.ev.imp{background:#fff7dc;border:3px solid #f2b544}
+</style></head><body><div class="screen">
+<nav class="nav"><span>ВЧЕРА</span><span class="on">СЕГОДНЯ</span><span>ЗАВТРА</span></nav>
+<div class="r1"><div class="card ph">День недели</div><div class="card ph">Число</div><div class="card ph">Время</div></div>
+<div class="r2">
+ <div class="card wx"><div class="cap">Погода</div><div class="ic">☀️</div><div class="tx">СОЛНЕЧНО</div></div>
+ <div class="card day" id="d"></div>
+</div></div>
+<script>
+const now=new URLSearchParams(location.search).get('n')||'evening';
+const cols=[['morning','УТРО','morning',[['🏫','Школа']]],['dayp','ДЕНЬ','day',[['👟','Спорт'],['👵','Бабушка','imp']]],['evening','ВЕЧЕР','evening',[['📚','Занимаемся'],['🚿','Душ']]],['night','НОЧЬ','night',[['🛏️','Спать']]]];
+const order=cols.map(c=>c[0]);const ni=order.indexOf(now==='day'?'dayp':now);
+d.innerHTML=cols.map(([cls,w,img,evs],i)=>`<div class="col ${cls}${i<ni?' past':''}${i===ni?' now':''}">${i===ni?'<span class="tag">СЕЙЧАС</span>':''}<img src="../../../public/daily-orientation/daypart_${img}.webp"><span class="w">${w}</span>${evs.map(e=>`<div class="ev${e[2]?' imp':''}"><b>${e[0]}</b>${e[1].toUpperCase()}</div>`).join('')}</div>`).join('');
+</script></body></html>
