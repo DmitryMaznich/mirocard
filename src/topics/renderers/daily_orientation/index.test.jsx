@@ -447,24 +447,42 @@ describe("DailyOrientationRenderer", () => {
       return container.querySelector('[role="dialog"]');
     }
 
-    it("Число: month calendar with the day circled and «29 сентября» linked to «сентябрь»", () => {
-      mountAt(new Date(2026, 8, 29, 10, 0));
+    it("Число: the month's calendar, only today in colour, вчера/сегодня/завтра in their cells, the card's phrase beside", () => {
+      mountAt(new Date(2026, 8, 29, 10, 0)); // Tuesday 29 September
       const dialog = openFrom(".daily-orientation__card--date");
-      expect(dialog.querySelector(".dom-title").textContent).toBe("Сентябрь 2026");
+      expect(dialog.querySelector(".dom-title").textContent).toBe("Сентябрь");
       expect(dialog.querySelectorAll(".dom-calendar__cell:not(.dom-calendar__cell--blank)")).toHaveLength(30);
-      expect(dialog.querySelector(".dom-calendar__cell--active").textContent).toBe("29");
-      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("Сегодня 29 сентября");
-      // the one letter that changes is marked in both forms
-      expect(Array.from(dialog.querySelectorAll(".dom-date-say__bridge mark")).map((m) => m.textContent)).toEqual(["ь", "я"]);
+      expect(dialog.querySelector(".dom-calendar__cell--today .dom-calendar__number").textContent).toBe("29");
+      expect(Array.from(dialog.querySelectorAll(".dom-calendar__tag")).map((t) => t.textContent)).toEqual(["вчера", "сегодня", "завтра"]);
+      expect(dialog.querySelector(".dom-date-say__caption").textContent).toBe("Сегодня");
+      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("29 сентября");
+      expect(dialog.querySelector(".dom-date-say__words").textContent).toBe("двадцать девятое сентября");
+      expect(dialog.querySelector(".dom-date-say__weekday").textContent).toBe("Вторник");
     });
 
-    it("Число follows the carousel: tomorrow's date and «Завтра будет»", () => {
+    it("Число: a tap on a number shows that day in the phrase, framed thinly, and it goes back after a minute", () => {
+      mountAt(new Date(2026, 8, 22, 10, 0));
+      const dialog = openFrom(".daily-orientation__card--date");
+      const cell = (n) => Array.from(dialog.querySelectorAll(".dom-calendar__cell")).find((c) => c.querySelector(".dom-calendar__number")?.textContent === String(n));
+      act(() => cell(23).click());
+      expect(dialog.querySelector(".dom-date-say__caption").textContent).toBe("Завтра");
+      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("23 сентября");
+      expect(cell(23).classList.contains("dom-calendar__cell--picked")).toBe(true);
+      act(() => cell(25).click());
+      expect(dialog.querySelector(".dom-date-say__caption").textContent).toBe("Этот день");
+      expect(dialog.querySelector(".dom-date-say__weekday").textContent).toBe("Пятница");
+      act(() => { vi.advanceTimersByTime(60_000); });
+      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("22 сентября");
+    });
+
+    it("Число follows the carousel: tomorrow's month and date", () => {
       mountAt(new Date(2026, 8, 30, 10, 0));
       const tomorrow = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Завтра");
       act(() => tomorrow.click());
       const dialog = openFrom(".daily-orientation__card--date");
-      expect(dialog.querySelector(".dom-title").textContent).toBe("Октябрь 2026");
-      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("Завтра будет 1 октября");
+      expect(dialog.querySelector(".dom-title").textContent).toBe("Октябрь");
+      expect(dialog.querySelector(".dom-date-say__caption").textContent).toBe("Завтра");
+      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("1 октября");
     });
 
     it("Месяц (the month word on the Число card): twelve months grouped by season", () => {

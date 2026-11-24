@@ -10,8 +10,8 @@ import {
   daysInMonth,
   getSeason,
   getSpokenWeekday,
-  monthEndingChange,
   WEEKDAY_NAMES,
+  DATE_ORDINALS,
 } from "./timeUtils.js";
 import { weekPhraseClipKeys, weekPhraseSpoken, weekWagonClipKeys } from "./audioBank.js";
 import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
@@ -198,12 +198,26 @@ export function WeekContent({ today, weekItems = {}, planPhotos = {}, importantD
 }
 
 // ── Число ─────────────────────────────────────────────────────────────
-// A calendar of the month with the day circled, then the spoken form of the
-// date. "29 сентября" vs the Месяц card's "сентябрь" is shown, not hidden:
-// the same word, with the one letter that changes after a number marked.
-const DATE_LEAD = { "-1": "Вчера было", 0: "Сегодня", 1: "Завтра будет" };
+// (owner, 2026-11-24) The month as a calendar -- a thing from real life --
+// with only «сегодня» as the accent; вчера/сегодня/завтра written small in
+// their cells (always about the real today), the days gone paler, weekends
+// warm and the month's important dates as pictures in their cells. Beside it
+// the same phrase as the card: «24 ноября», «двадцать четвёртое ноября», the
+// weekday and that day's events. A tap on a number shows that day there (a
+// thin dashed frame marks it, so it doesn't compete with today) -- count
+// with the child how many days to grandma's -- and it goes back after a
+// minute. Below, the month's events in a list. No year, no «ноябрь→ноября»
+// grammar panel: the phrase itself is the model.
+const DATE_PICK_RETURN_MS = 60_000;
+const RELATIVE_TAGS = { "-1": "вчера", 0: "сегодня", 1: "завтра" };
 
-export function DateContent({ activeDate, offset, today, importantDates = [] }) {
+function EventPicture({ item, pictureFor, className }) {
+  const photo = pictureFor(item);
+  if (photo) return <AuthenticatedImage className={`${className} ${className}--photo`} src={photo} alt="" draggable="false" />;
+  return <span className={className} aria-hidden="true">{importantMark([item])}</span>;
+}
+
+export function DateContent({ activeDate, today, importantDates = [], pictureFor = () => null }) {
   const year = activeDate.getFullYear();
   const monthIndex = activeDate.getMonth();
   const total = daysInMonth(year, monthIndex);
@@ -212,14 +226,25 @@ export function DateContent({ activeDate, offset, today, importantDates = [] }) 
     ...Array.from({ length: firstWeekday }, () => null),
     ...Array.from({ length: total }, (_, index) => index + 1),
   ];
-  const { stem, nominativeEnding, genitiveEnding } = monthEndingChange(monthIndex);
-  const dayNumber = activeDate.getDate();
-  const todayInMonth = today.getFullYear() === year && today.getMonth() === monthIndex ? today.getDate() : null;
+  const [picked, setPicked] = useState(null);
+  useEffect(() => {
+    if (picked === null) return undefined;
+    const timer = window.setTimeout(() => setPicked(null), DATE_PICK_RETURN_MS);
+    return () => window.clearTimeout(timer);
+  }, [picked]);
+  const selectedDay = picked ?? activeDate.getDate();
+  const selected = new Date(year, monthIndex, selectedDay);
+  const tagFor = (date) => RELATIVE_TAGS[daysBetween(today, date)] ?? null;
+  const selectedTag = tagFor(selected);
+  const selectedEvents = eventsOnDate(importantDates, selected);
+  const monthEvents = Array.from({ length: total }, (_, index) => index + 1)
+    .flatMap((day) => eventsOnDate(importantDates, new Date(year, monthIndex, day)).map((item) => ({ day, item })));
+  const isPast = (date) => date < today && !sameDay(date, today);
 
   return (
     <div className="dom dom--date">
       <div className="dom-calendar">
-        <h2 className="dom-title">{capitalize(MONTHS_NOMINATIVE[monthIndex])} {year}</h2>
+        <h2 className="dom-title">{capitalize(MONTHS_NOMINATIVE[monthIndex])}</h2>
         <div className="dom-calendar__grid" role="grid" aria-label={`Календарь: ${MONTHS_NOMINATIVE[monthIndex]}`}>
           {WEEK_MONDAY_FIRST.map(({ day, name, weekend }) => (
             <span key={day} className={`dom-calendar__head${weekend ? " dom-calendar__head--weekend" : ""}`} role="columnheader">
@@ -228,50 +253,68 @@ export function DateContent({ activeDate, offset, today, importantDates = [] }) 
           ))}
           {cells.map((number, index) => {
             if (number === null) return <span key={`blank-${index}`} className="dom-calendar__cell dom-calendar__cell--blank" />;
-            const weekend = index % 7 >= 5;
-            const past = todayInMonth !== null && number < todayInMonth;
-            const events = eventsOnDate(importantDates, new Date(year, monthIndex, number));
-            const mark = importantMark(events);
+            const date = new Date(year, monthIndex, number);
+            const events = eventsOnDate(importantDates, date);
+            const tag = tagFor(date);
+            const isToday = sameDay(date, today);
             return (
-              <span
+              <button
                 key={number}
+                type="button"
                 role="gridcell"
-                aria-current={number === dayNumber ? "date" : undefined}
+                aria-current={isToday ? "date" : undefined}
+                aria-selected={number === selectedDay}
                 className={[
                   "dom-calendar__cell",
-                  weekend ? "dom-calendar__cell--weekend" : "",
-                  past ? "dom-calendar__cell--past" : "",
-                  number === dayNumber ? "dom-calendar__cell--active" : "",
-                  mark ? "dom-calendar__cell--important" : "",
+                  index % 7 >= 5 ? "dom-calendar__cell--weekend" : "",
+                  isPast(date) ? "dom-calendar__cell--past" : "",
+                  isToday ? "dom-calendar__cell--today" : "",
+                  number === selectedDay && !isToday ? "dom-calendar__cell--picked" : "",
+                  events.length ? "dom-calendar__cell--important" : "",
                 ].filter(Boolean).join(" ")}
                 title={events.map((item) => item.title).join(", ") || undefined}
+                onClick={() => setPicked(number === activeDate.getDate() ? null : number)}
               >
-                {number}
-                {mark && <span className="dom-calendar__mark" aria-hidden="true">{mark}</span>}
-              </span>
+                {tag && <span className="dom-calendar__tag">{tag}</span>}
+                <span className="dom-calendar__number">{number}</span>
+                {events.length > 0 && <EventPicture item={events[0]} pictureFor={pictureFor} className="dom-calendar__mark" />}
+              </button>
             );
           })}
         </div>
       </div>
 
-      <div className="dom-date-say">
-        <p className="dom-date-say__caption">Как мы говорим</p>
-        <p className="dom-date-say__phrase">
-          <span className="dom-date-say__lead">{DATE_LEAD[offset] ?? DATE_LEAD[0]}</span>{" "}
-          <span className="dom-date-say__number">{dayNumber}</span>{" "}
-          <span className="dom-date-say__month">{stem}<mark>{genitiveEnding}</mark></span>
-        </p>
-        <div className="dom-date-say__bridge" aria-label={`${stem}${nominativeEnding}, но ${dayNumber} ${stem}${genitiveEnding}`}>
-          <span className="dom-date-say__form">
-            <span className="dom-date-say__form-label">Месяц</span>
-            <span className="dom-date-say__form-word">{stem}<mark>{nominativeEnding || " "}</mark></span>
-          </span>
-          <CycleArrow />
-          <span className="dom-date-say__form">
-            <span className="dom-date-say__form-label">После числа</span>
-            <span className="dom-date-say__form-word"><span className="dom-date-say__number">{dayNumber}</span> {stem}<mark>{genitiveEnding}</mark></span>
-          </span>
+      <div className="dom-date-side">
+        <div className="dom-date-say">
+          <p className="dom-date-say__caption">{selectedTag ? capitalize(selectedTag) : "Этот день"}</p>
+          <p className="dom-date-say__phrase">
+            <span className="dom-date-say__number">{selectedDay}</span>{" "}
+            <span className="dom-date-say__month">{MONTHS_GENITIVE[monthIndex]}</span>
+          </p>
+          <p className="dom-date-say__words">{DATE_ORDINALS[selectedDay - 1]} {MONTHS_GENITIVE[monthIndex]}</p>
+          <div className="dom-date-say__chips">
+            <span className="dom-date-say__weekday">{capitalize(WEEKDAY_NAMES[selected.getDay()])}</span>
+            {selectedEvents.map((item) => (
+              <span key={item.id} className="dom-date-say__event">
+                <EventPicture item={item} pictureFor={pictureFor} className="dom-date-say__event-picture" /> {item.title}
+              </span>
+            ))}
+          </div>
         </div>
+        {monthEvents.length > 0 && (
+          <div className="dom-date-events">
+            <p className="dom-date-events__caption">В этом месяце</p>
+            <ul>
+              {monthEvents.map(({ day, item }) => (
+                <li key={`${day}-${item.id}`} className={isPast(new Date(year, monthIndex, day)) ? "dom-date-events__item--past" : ""}>
+                  <b>{day}</b>
+                  <EventPicture item={item} pictureFor={pictureFor} className="dom-date-events__picture" />
+                  {item.title}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

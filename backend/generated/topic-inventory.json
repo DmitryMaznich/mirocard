@@ -1138,10 +1138,19 @@
       "version": "0.8.0",
       "renderer": "propis2",
       "sources": [
+        "public/decks/propis2_v0.8.0.zip",
         "src/topics/renderers/propis2",
         "tools/propis2/topic.json"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "0.8.0",
+        "url": "./decks/propis2_v0.8.0.zip",
+        "title": "Прописи",
+        "description": "Конструктор тетрадей по письму и тренажёры букв на нескольких языках: русский, болгарский, казахский, английский и словенский. Вы отмечаете свои языки («Языки» на экране тетрадей), и тема показывает только их — готовые тетради, язык новой тетради, карточки; тетради других языков не удаляются, они собраны под «Другие». У русского — прописные, печатные и книжные буквы, у английского — печатные и британские по схеме Nelson Handwriting (раздельные, соединённые, соединённые наклонные), у словенского — ступени словенской школы; стиль выбирается для страницы и для строки. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант» (для тех, у кого среди языков есть русский). Nelson Handwriting — товарный знак Oxford University Press; приложение с издательством не связано.",
+        "renderer": "propis2",
+        "modes": 4,
+        "cards": 1
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "propis2",
@@ -1165,7 +1174,7 @@
           "sl"
         ]
       },
-      "sourceUpdatedAt": "2026-11-24T09:21:52+00:00"
+      "sourceUpdatedAt": "2026-11-24T10:11:27+00:00"
     },
     {
       "id": "propis2_bg",
@@ -1204,7 +1213,7 @@
           "bg"
         ]
       },
-      "sourceUpdatedAt": "2026-11-24T09:21:52+00:00"
+      "sourceUpdatedAt": "2026-11-24T10:11:27+00:00"
     },
     {
       "id": "propis2_lang",
@@ -1246,7 +1255,7 @@
           "en"
         ]
       },
-      "sourceUpdatedAt": "2026-11-24T09:21:52+00:00"
+      "sourceUpdatedAt": "2026-11-24T10:11:27+00:00"
     },
     {
       "id": "reading_dad_instructions",
@@ -1499,16 +1508,16 @@
     {
       "id": "symmetry_draw",
       "title": "Рисуем по клеткам",
-      "version": "1.14.0",
+      "version": "1.14.1",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/symmetry_draw_v1.14.0.zip",
+        "public/decks/symmetry_draw_v1.14.1.zip",
         "src/topics/renderers/flashcards",
         "tools/symmetry_draw/topic.json"
       ],
       "bundle": {
-        "version": "1.14.0",
-        "url": "./decks/symmetry_draw_v1.14.0.zip",
+        "version": "1.14.1",
+        "url": "./decks/symmetry_draw_v1.14.1.zip",
         "title": "Рисуем по клеткам",
         "description": "Работа на клетчатом поле: направления стрелок, движение по устной инструкции, координаты точек, копирование готовой фигуры, графический диктант и достраивание второй половины симметричного рисунка.",
         "renderer": "flashcards",
@@ -1518,9 +1527,9 @@
       "builtin": false,
       "catalogEntry": {
         "id": "symmetry_draw",
-        "version": "1.14.0",
-        "url": "./decks/symmetry_draw_v1.14.0.zip",
-        "zipUrl": "symmetry_draw_v1.14.0.zip",
+        "version": "1.14.1",
+        "url": "./decks/symmetry_draw_v1.14.1.zip",
+        "zipUrl": "symmetry_draw_v1.14.1.zip",
         "title": {
           "ru": "Рисуем по клеткам"
         },
@@ -1850,7 +1859,5 @@
       "sourceUpdatedAt": "2026-11-21T09:18:49+00:00"
     }
   ],
-  "warnings": [
-    "public/decks/propis2_v0.7.1.zip: ENOENT: no such file or directory, open '/home/user/mirocard/public/decks/propis2_v0.7.1.zip'"
-  ]
+  "warnings": []
 }

@@ -1,0 +1,63 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Число — модалка (макет)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:Nunito,sans-serif;background:#5f7478;width:1280px;height:800px;display:flex;align-items:center;justify-content:center;color:#0f3b4c}
+.m{width:1180px;height:740px;background:#fffdf8;border-radius:34px;padding:28px 40px;position:relative;display:grid;grid-template-columns:640px 1fr;gap:36px}
+.x{position:absolute;top:20px;right:22px;width:56px;height:56px;border-radius:50%;background:#0f3b4c;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}
+h1{font-size:40px;font-weight:900;margin-bottom:10px}
+.g{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.h{font-size:14px;font-weight:800;color:#5d7378;text-align:center;padding-bottom:2px}
+.h.we{color:#b8532f}
+.c{height:84px;border-radius:14px;background:#f2f0ea;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:26px;font-weight:900;position:relative}
+.c.we{background:#fbe7dc;color:#9c4424}
+.c.past{color:rgba(15,59,76,.35)}
+.c.past.we{color:rgba(156,68,36,.35);background:#fdf1ea}
+.c.past:not(.we){background:#f7f6f2}
+.c.past i{opacity:.45}
+.c.b{background:none}
+.c.today{background:#d76747;color:#fff;box-shadow:0 0 0 4px #fff,0 0 0 7px #d76747}
+.c.sel{outline:3px dashed #8a9a9e;outline-offset:-3px}
+.c u{text-decoration:none;font-size:12px;font-weight:900;color:#5d7378;text-transform:uppercase;line-height:1;margin-bottom:3px}
+.c.today u{color:#fff}
+.c i{font-style:normal;font-size:30px;line-height:1;margin-top:2px}
+.c.ev{padding-top:4px;justify-content:flex-start}
+.right{display:flex;flex-direction:column;padding-top:70px}
+.say{background:#fff3ec;border-radius:26px;padding:26px 30px}
+.cap{font-size:18px;font-weight:800;color:#8a6a4a;margin-bottom:8px}
+.line{font-size:64px;font-weight:950;line-height:1}
+.line b{color:#c2410c}
+.words{font-size:28px;font-weight:900;color:#9a3412;margin-top:10px}
+.wd{margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.wd span{font-size:24px;font-weight:900;background:#fff;border-radius:14px;padding:6px 14px}
+.wd .evp{background:#fff7dc;border:3px solid #f2b544}
+.list{margin-top:22px}
+.list p{font-size:17px;font-weight:800;color:#5d7378;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:900;padding:6px 0}
+.li b{width:42px;text-align:right;color:#c2410c}
+.li i{font-style:normal;font-size:28px}
+.li.past{opacity:.42}
+.hint{margin-top:auto;font-size:16px;font-weight:700;color:#8a9a9e}
+</style></head><body><div class="m"><div class="x">✕</div>
+<div><h1>Ноябрь</h1><div class="g" id="g"></div></div>
+<div class="right">
+ <div class="say" id="say"></div>
+ <div class="list"><p>В этом месяце</p>
+  <div class="li past"><b>12</b><i>🎂</i>День рождения мамы</div>
+  <div class="li"><b>27</b><i>👵</i>Приезд бабушки</div>
+ </div>
+ <div class="hint">Нажмите на число — фраза покажет этот день.</div>
+</div></div>
+<script>
+const sel=+(new URLSearchParams(location.search).get('d')||24);
+const names=['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'];
+const ev={12:['🎂','День рождения мамы'],27:['👵','Приезд бабушки']};
+const ord={24:'двадцать четвёртое',25:'двадцать пятое',27:'двадцать седьмое'};
+const tags={23:'вчера',24:'сегодня',25:'завтра'};
+let h=names.map((n,i)=>`<div class="h${i>4?' we':''}">${n}</div>`).join('');
+for(let i=0;i<6;i++)h+='<div class="c b"></div>';
+for(let d=1;d<=30;d++){const col=(6+d-1)%7;const e=ev[d];
+ h+=`<div class="c${col>4?' we':''}${d<24?' past':''}${d===24?' today':''}${d===sel&&sel!==24?' sel':''}${e?' ev':''}">${tags[d]?`<u>${tags[d]}</u>`:''}${d}${e?`<i>${e[0]}</i>`:''}</div>`;}
+g.innerHTML=h;
+const col=(6+sel-1)%7;
+say.innerHTML=`<div class="cap">${tags[sel]?tags[sel][0].toUpperCase()+tags[sel].slice(1):'Этот день'}</div><div class="line"><b>${sel}</b> ноября</div><div class="words">${ord[sel]} ноября</div><div class="wd"><span>${names[col][0].toUpperCase()+names[col].slice(1)}</span>${ev[sel]?`<span class="evp">${ev[sel][0]} ${ev[sel][1]}</span>`:''}</div>`;
+</script></body></html>
