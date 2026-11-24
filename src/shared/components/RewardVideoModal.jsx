@@ -2,7 +2,7 @@ import { useRewardSettings } from "@/features/rewards/useRewardSettings.js";
 import { rewardVideoSeconds } from "../../../shared/reward-policy.mjs";
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
-import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
+import { pickStoredRewardVideoId, preloadRewardVideoRotation } from "@/shared/utils/rewardVideoPicker";
 import { formatRewardTime } from "@/shared/utils/format";
 import { recordRewardVideoView } from "@/core/rewardVideoViews";
 
@@ -39,6 +39,12 @@ export default function RewardVideoModal({
   const watchRequestedRef = useRef(false);
   const expiredRef = useRef(false);
   const viewRecordedRef = useRef(false);
+
+  // Continue the student's cycle from the account copy: a restarted app or a
+  // device whose local storage loses writes must not start from a stale state.
+  useEffect(() => {
+    void preloadRewardVideoRotation(`student:${studentId ?? "unknown"}`);
+  }, [studentId]);
 
   useEffect(() => {
     if (!videoId || !hasStarted || viewRecordedRef.current) return;

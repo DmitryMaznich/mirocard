@@ -40,90 +40,133 @@ export function pickRewardVideoId(videoIds, previousVideoId = null, shownIds = [
   return choices[Math.max(0, Math.min(index, choices.length - 1))] ?? null;
 }
 
-function lastStorageKey(scope) {
-  return `${LAST_PREFIX}${scope || "global"}`;
-}
+// ─── Rotation state ──────────────────────────────────────────────────────────
+// One document per scope: { shown: [ids of the current cycle], last, rev }.
+//
+// It is kept in three places, because no single one was reliable on a
+// low-end Android tablet: localStorage there kept handing back an old state
+// after every restart (writes that never reached the disk), so the cycle
+// froze on the same handful of "unseen" clips for hours.
+//   1. memory   — the truth while the app is open;
+//   2. account  — the server copy (`kv.upsert`), loaded when a reward opens,
+//                 so a restart or a broken local storage resumes the cycle;
+//   3. localStorage — only a fallback for offline starts.
+// The copy with the higher `rev` wins; every pick writes rev + 1.
 
-function shownStorageKey(scope) {
-  return `${SHOWN_PREFIX}${scope || "global"}`;
-}
-
-// The rotation state lives in memory first and localStorage second. When
-// localStorage is full (drawings and other topics write there too), setItem
-// throws while getItem keeps returning the last value that did get written.
-// Reading that stale state on every pick froze the cycle: "unseen" stayed the
-// same one or two videos, so the same clip came up again and again. Memory
-// always holds the real last state for this app run; storage only carries it
-// across reloads, and a failed write removes the stale copy instead of
-// leaving it behind.
+const STATE_PREFIX = "mirocard:rewardVideoRotation:";
+const ACCOUNT_PREFIX = "reward_video_rotation:";
 const memory = new Map();
 
-function readKey(key) {
-  if (memory.has(key)) return memory.get(key);
+function normalizeState(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const shown = Array.isArray(raw.shown) ? raw.shown.filter((id) => typeof id === "string") : [];
+  const last = typeof raw.last === "string" ? raw.last : null;
+  const rev = Number.isSafeInteger(raw.rev) && raw.rev >= 0 ? raw.rev : 0;
+  return { shown, last, rev };
+}
+
+function readLocalState(scope) {
   try {
-    return window.localStorage?.getItem(key) ?? null;
+    const raw = window.localStorage?.getItem(STATE_PREFIX + (scope || "global"));
+    return raw ? normalizeState(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
 }
 
-function writeKey(key, value) {
-  memory.set(key, value);
+function writeLocalState(scope, state) {
+  const key = STATE_PREFIX + (scope || "global");
   try {
-    window.localStorage?.setItem(key, value);
+    window.localStorage?.setItem(key, JSON.stringify(state));
   } catch {
-    try {
-      window.localStorage?.removeItem(key);
-    } catch {
-      // Storage unavailable: the in-memory state still rotates this run.
-    }
+    try { window.localStorage?.removeItem(key); } catch { /* memory still rotates */ }
+  }
+}
+
+function newer(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  return b.rev > a.rev ? b : a;
+}
+
+function currentState(scope) {
+  return memory.get(scope || "global") ?? readLocalState(scope) ?? { shown: [], last: null, rev: 0 };
+}
+
+function setState(scope, state) {
+  memory.set(scope || "global", state);
+  writeLocalState(scope, state);
+}
+
+// The state writer for the account copy; replaced in tests.
+let accountWriter = async (key, value) => {
+  const { pushOp } = await import("@/core/syncApi");
+  await pushOp("kv.upsert", { key, value });
+};
+let accountReader = async (key) => {
+  const { api } = await import("@/core/api");
+  const res = await api.get(`/account/kv?prefix=${encodeURIComponent(key)}`);
+  return (Array.isArray(res?.kv) ? res.kv : []).find((item) => item.key === key)?.value ?? null;
+};
+
+function accountKey(scope) {
+  return ACCOUNT_PREFIX + (scope || "global");
+}
+
+/**
+ * Loads the account copy of the rotation, so the next pick continues the
+ * cycle the student is actually in. Call when a reward opens, before Watch.
+ * Offline or signed out it does nothing: the local state is used.
+ */
+export async function preloadRewardVideoRotation(scope) {
+  try {
+    const remote = normalizeState(await accountReader(accountKey(scope)));
+    const local = currentState(scope);
+    const winner = newer(local, remote);
+    if (winner !== local) setState(scope, winner);
+  } catch {
+    // Offline or signed out: keep rotating locally.
   }
 }
 
 export function getLastRewardVideoId(scope) {
-  return readKey(lastStorageKey(scope)) || null;
-}
-
-export function setLastRewardVideoId(scope, videoId) {
-  if (!videoId) return;
-  writeKey(lastStorageKey(scope), videoId);
+  return currentState(scope).last;
 }
 
 export function getShownRewardVideoIds(scope) {
-  try {
-    const raw = readKey(shownStorageKey(scope));
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return currentState(scope).shown;
 }
 
-export function setShownRewardVideoIds(scope, ids) {
-  writeKey(shownStorageKey(scope), JSON.stringify(ids));
-}
-
-/** Test hook: forget the in-memory rotation state. */
+/** Test hooks. */
 export function resetRewardVideoMemory() {
   memory.clear();
+}
+export function setRewardVideoAccountStore({ read, write }) {
+  if (read) accountReader = read;
+  if (write) accountWriter = write;
 }
 
 export function pickStoredRewardVideoId(videos, scope, random = Math.random) {
   const ids = normalizeRewardVideoIds(videos);
-  const previous = getLastRewardVideoId(scope);
+  const state = currentState(scope);
   // Drop ids no longer in the current list (a video was removed) so a
   // shrunk/edited list can't get permanently stuck thinking everything's
   // already been shown.
-  const shown = getShownRewardVideoIds(scope).filter((id) => ids.includes(id));
+  const shown = state.shown.filter((id) => ids.includes(id));
 
-  const selected = pickRewardVideoId(videos, previous, shown, random);
+  const selected = pickRewardVideoId(videos, state.last, shown, random);
   if (selected) {
-    setLastRewardVideoId(scope, selected);
     const unseen = ids.filter((id) => !shown.includes(id));
     // An empty unseen pool means pickRewardVideoId fell back to the full
     // list (every video had already been shown) — this selection starts a
     // fresh cycle instead of extending the old, now-complete one.
-    setShownRewardVideoIds(scope, unseen.length ? [...shown, selected] : [selected]);
+    const next = {
+      shown: unseen.length ? [...shown, selected] : [selected],
+      last: selected,
+      rev: state.rev + 1,
+    };
+    setState(scope, next);
+    accountWriter(accountKey(scope), next).catch(() => {});
   }
   return selected;
 }

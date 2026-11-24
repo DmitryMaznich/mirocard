@@ -2,6 +2,7 @@ export const GRAPHIC_MATRIX_MESSAGES = {
   ru: {
     "graphicMatrix.title": "Что получится в клетках?",
     "graphicMatrix.count": "{{done}} из {{total}}",
+    "graphicMatrix.completedCells": "Готовые клетки",
     "graphicMatrix.board": "Поле для рисования",
     "graphicMatrix.cell": "Строка {{row}}, столбец {{column}}",
     "graphicMatrix.ready": "Все клетки готовы!",
@@ -13,6 +14,7 @@ export const GRAPHIC_MATRIX_MESSAGES = {
   sl: {
     "graphicMatrix.title": "Kaj bo nastalo v kvadratkih?",
     "graphicMatrix.count": "{{done}} od {{total}}",
+    "graphicMatrix.completedCells": "Končani kvadratki",
     "graphicMatrix.board": "Polje za risanje",
     "graphicMatrix.cell": "Vrstica {{row}}, stolpec {{column}}",
     "graphicMatrix.ready": "Vsi kvadratki so končani!",
@@ -24,6 +26,7 @@ export const GRAPHIC_MATRIX_MESSAGES = {
   en: {
     "graphicMatrix.title": "What goes in the squares?",
     "graphicMatrix.count": "{{done}} of {{total}}",
+    "graphicMatrix.completedCells": "Completed squares",
     "graphicMatrix.board": "Drawing grid",
     "graphicMatrix.cell": "Row {{row}}, column {{column}}",
     "graphicMatrix.ready": "All squares are done!",

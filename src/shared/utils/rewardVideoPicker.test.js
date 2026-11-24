@@ -4,6 +4,8 @@ import {
   pickRewardVideoId,
   pickStoredRewardVideoId,
   resetRewardVideoMemory,
+  preloadRewardVideoRotation,
+  setRewardVideoAccountStore,
 } from "./rewardVideoPicker";
 
 const A = "aaaaaaaaaaa";
@@ -49,12 +51,19 @@ describe("pickRewardVideoId", () => {
   });
 });
 
+const account = new Map();
+setRewardVideoAccountStore({
+  read: async (key) => account.get(key) ?? null,
+  write: async (key, value) => { account.set(key, structuredClone(value)); },
+});
+
 describe("pickStoredRewardVideoId (cycle, via localStorage)", () => {
   const scope = "test-scope";
 
   beforeEach(() => {
     window.localStorage.clear();
     resetRewardVideoMemory();
+    account.clear();
   });
 
   it("shows every video exactly once before any repeats", () => {
@@ -108,6 +117,35 @@ describe("pickStoredRewardVideoId (cycle, via localStorage)", () => {
         cycle.add(id);
       }
       expect(cycle.size).toBe(4);
+    } finally {
+      setItem.mockRestore();
+    }
+  });
+
+  it("after a restart, continues the cycle from the account even if localStorage lost every write", async () => {
+    const ids = Array.from({ length: 30 }, (_, i) => `v${String(i).padStart(10, "0")}`);
+    const videos = ids.map((id) => `https://youtu.be/${id}`);
+    const firstCycle = new Set();
+    for (let i = 0; i < 25; i += 1) firstCycle.add(pickStoredRewardVideoId(videos, scope));
+    const frozen = window.localStorage.getItem(`mirocard:rewardVideoRotation:${scope}`);
+
+    // From now on writes are silently dropped: every restart reads `frozen` again.
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {});
+    try {
+      const seen = [];
+      for (let restart = 0; restart < 12; restart += 1) {
+        resetRewardVideoMemory();
+        expect(window.localStorage.getItem(`mirocard:rewardVideoRotation:${scope}`)).toBe(frozen);
+        await preloadRewardVideoRotation(scope);
+        seen.push(pickStoredRewardVideoId(videos, scope));
+      }
+      // The 5 clips the first cycle still owed come first, then a new cycle
+      // of the whole list — never the same clip twice in a row, never stuck.
+      const owed = seen.slice(0, 5);
+      expect(new Set(owed).size).toBe(5);
+      expect(owed.some((id) => firstCycle.has(id))).toBe(false);
+      expect(new Set(seen.slice(5)).size).toBe(7);
+      seen.forEach((id, i) => { if (i) expect(id).not.toBe(seen[i - 1]); });
     } finally {
       setItem.mockRestore();
     }
