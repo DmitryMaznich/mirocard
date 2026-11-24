@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.13.0",
-    "minAppVersion": "1.1.192",
-    "resumeCompatibleFrom": ["1.12.20"],
+    "version": "1.14.1",
+    "minAppVersion": "1.1.203",
+    "resumeCompatibleFrom": ["1.12.20", "1.13.0", "1.14.0"],
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -434,6 +434,55 @@
         "title": "Графическая матрица",
         "instruction": "Посмотри на чёрточки слева и сверху. Нарисуй их вместе в клетке.",
         "icon": "media/coordinates_avatar.svg"
+      }
+    },
+    {
+      "id": "line_operations",
+      "type": "line_operations",
+      "evaluation": "auto",
+      "loop": true,
+      "paramsScope": "mode",
+      "hideConceptPicker": true,
+      "cardIds": [
+        "line_operations_board"
+      ],
+      "params": {
+        "lineAction": {
+          "type": "enum",
+          "label": {
+            "ru": "Задания",
+            "sl": "Naloge",
+            "en": "Exercises"
+          },
+          "values": [
+            "plus",
+            "minus",
+            "mixed"
+          ],
+          "default": "plus",
+          "labels": {
+            "ru": {
+              "plus": "Добавь линии",
+              "minus": "Убери линии",
+              "mixed": "Вперемешку"
+            },
+            "sl": {
+              "plus": "Dodaj črte",
+              "minus": "Odstrani črte",
+              "mixed": "Mešano"
+            },
+            "en": {
+              "plus": "Add lines",
+              "minus": "Remove lines",
+              "mixed": "Mixed"
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Графическая арифметика",
+        "instruction": "Нарисуй результат в пустом квадрате.",
+        "icon": "media/repeat_avatar.svg"
       }
     }
   ],
@@ -11096,6 +11145,13 @@
       "primary": true,
       "label": "Графическая матрица",
       "taskKind": "graphic_matrix"
+    },
+    {
+      "id": "line_operations_board",
+      "conceptId": "line_operations_board",
+      "primary": true,
+      "label": "Графическая арифметика",
+      "taskKind": "line_operations"
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { LINE_OPERATIONS_MESSAGES } from "./lineOperationsMessages.js";
 import { GRAPHIC_MATRIX_MESSAGES } from "./graphicMatrixMessages.js";
 import { PARKING_MESSAGES } from "./parkingMessages.js";
 import { SETTINGS_MESSAGES } from "./settingsMessages.js";
@@ -13,6 +14,7 @@ import { DAILY_ORIENTATION_MESSAGES } from "./dailyOrientationMessages.js";
 export const UI_MESSAGES = {
   ru: {
     ...GRAPHIC_MATRIX_MESSAGES.ru,
+    ...LINE_OPERATIONS_MESSAGES.ru,
     ...PARKING_MESSAGES.ru,
     ...TOPIC_PREVIEW_MESSAGES.ru,
     ...TOPIC_LANGUAGE_MESSAGES.ru,
@@ -108,6 +110,7 @@ export const UI_MESSAGES = {
   },
   sl: {
     ...GRAPHIC_MATRIX_MESSAGES.sl,
+    ...LINE_OPERATIONS_MESSAGES.sl,
     ...PARKING_MESSAGES.sl,
     ...TOPIC_PREVIEW_MESSAGES.sl,
     ...TOPIC_LANGUAGE_MESSAGES.sl,
@@ -205,6 +208,7 @@ export const UI_MESSAGES = {
   // fills in screen by screen as text moves into the dictionaries.
   en: {
     ...GRAPHIC_MATRIX_MESSAGES.en,
+    ...LINE_OPERATIONS_MESSAGES.en,
     ...PARKING_MESSAGES.en,
     ...TOPIC_PREVIEW_MESSAGES.en,
     ...TOPIC_LANGUAGE_MESSAGES.en,
