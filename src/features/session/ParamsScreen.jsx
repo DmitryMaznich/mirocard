@@ -21,7 +21,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { GRAPHIC_MATRIX_MODE } from "./graphicMatrix/model";
+import { isGridDrawingMode } from "./gridDrawingModes";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, sessionEndsOnItsOwn, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
@@ -2579,7 +2579,7 @@ export default function ParamsScreen() {
                 showSeries={mode.evaluation !== "none" && !rewardPerPath}
                 answersPerStar={answersPerStar}
                 onAnswersPerStar={setAnswersPerStar}
-                showAtEnd={mode.type !== GRAPHIC_MATRIX_MODE && mode.evaluation !== "none" && endsOnItsOwn}
+                showAtEnd={!isGridDrawingMode(mode.type) && mode.evaluation !== "none" && endsOnItsOwn}
                 atEnd={params.videoAtEnd === true}
                 onAtEnd={(on) => setParams((p) => ({ ...p, videoAtEnd: on }))}
                 showStrict={mode.evaluation !== "none" && !rewardPerPath}
