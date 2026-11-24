@@ -208,6 +208,20 @@ function resolveDisplayOptions(sessionParams = {}) {
 // useDashboardScale re-measures on resize. Browsers only allow this from a
 // tap, hence the listener; where it's unsupported (iPhone) nothing happens.
 // Leaving the screen leaves fullscreen.
+// Fullscreen is only asked for to hide the system bars. An app that already
+// covers the whole screen (installed full-screen, pinned/kiosk with the bars
+// hidden) has nothing to hide -- asking anyway made Chrome flash its «to
+// exit full screen, drag from the top» hint over the first modal (owner,
+// 2026-11-24).
+function coversWholeScreen() {
+  if (window.matchMedia?.("(display-mode: fullscreen)")?.matches) return true;
+  const { width, height } = window.screen ?? {};
+  if (!width || !height) return false;
+  const near = (a, b) => Math.abs(a - b) <= 16; // a status bar alone is ~24-32px
+  return (near(window.innerWidth, width) && near(window.innerHeight, height))
+    || (near(window.innerWidth, height) && near(window.innerHeight, width));
+}
+
 function useFullscreenOnFirstTouch(enabled = true) {
   useEffect(() => {
     const root = document.documentElement;
@@ -221,7 +235,7 @@ function useFullscreenOnFirstTouch(enabled = true) {
     // per-tap retry was there for.
     let armed = true;
     function enter() {
-      if (!armed || document.fullscreenElement) return;
+      if (!armed || document.fullscreenElement || coversWholeScreen()) return;
       armed = false;
       root.requestFullscreen({ navigationUI: "hide" }).then(() => { entered = true; }).catch(() => {});
     }

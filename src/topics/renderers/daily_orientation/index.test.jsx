@@ -90,6 +90,15 @@ describe("DailyOrientationRenderer", () => {
       mountAt(new Date(2026, 8, 22, 14, 35), { fullscreen: false });
       act(() => container.querySelector(".daily-orientation__card--weekday").click());
       expect(requestFullscreen).not.toHaveBeenCalled();
+
+      // Already covering the whole screen (no system bars): nothing to hide.
+      act(() => root.unmount());
+      container.remove();
+      vi.stubGlobal("screen", { width: window.innerWidth, height: window.innerHeight });
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
+      expect(requestFullscreen).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
     } finally {
       delete document.fullscreenEnabled;
       delete document.documentElement.requestFullscreen;
