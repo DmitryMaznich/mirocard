@@ -20,6 +20,8 @@ describe("daily orientation built-in mode", () => {
       "showDigitalTime",
       "showPlan",
       "wakeHour",
+      "dayHour",
+      "eveningHour",
       "bedHour",
       "nightScreen",
       "letterCase",

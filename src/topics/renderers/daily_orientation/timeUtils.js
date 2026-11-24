@@ -63,9 +63,7 @@ export function getSeason(monthIndex) {
   return { id: "autumn", label: "ОСЕНЬ" };
 }
 
-// Parts of the day follow the child's own routine at the edges -- "ночь" is
-// when they sleep, not a fixed 23:00 -- and fixed noon/18:00 in the middle,
-// since those line up with lunch and dinner for most families anyway.
+// Parts of the day; where each starts is the family's own (daypartBounds).
 export const DAYPARTS = [
   { id: "morning", label: "УТРО" },
   { id: "day", label: "ДЕНЬ" },
@@ -74,14 +72,40 @@ export const DAYPARTS = [
 ];
 export const DEFAULT_WAKE_HOUR = 7;
 export const DEFAULT_BED_HOUR = 21;
-const DAY_START_HOUR = 12;
-const EVENING_START_HOUR = 18;
+export const DEFAULT_DAY_HOUR = 12;
+export const DEFAULT_EVENING_HOUR = 18;
 
-export function getDaypartId(date, wakeHour = DEFAULT_WAKE_HOUR, bedHour = DEFAULT_BED_HOUR) {
+// The hour each part of the day starts at, set by the adult (owner,
+// 2026-11-24: «Утро с / День с / Вечер с / Ночь с»). Stored as params
+// wakeHour (= утро с, the old «Подъём»), dayHour, eveningHour and bedHour
+// (= ночь с, the old «Отбой»), so settings saved before keep working.
+export const DAYPART_HOUR_RANGES = {
+  morning: [4, 10],
+  day: [9, 15],
+  evening: [14, 20],
+  night: [18, 23],
+};
+
+// Always in order (утро < день < вечер < ночь), whatever was stored.
+export function daypartBounds(params = {}) {
+  const pick = (value, fallback, [min, max]) => {
+    const hour = Number(value ?? fallback);
+    return Number.isFinite(hour) ? Math.min(max, Math.max(min, Math.round(hour))) : fallback;
+  };
+  const morning = pick(params.wakeHour, DEFAULT_WAKE_HOUR, DAYPART_HOUR_RANGES.morning);
+  const day = Math.max(pick(params.dayHour, DEFAULT_DAY_HOUR, DAYPART_HOUR_RANGES.day), morning + 1);
+  const evening = Math.max(pick(params.eveningHour, DEFAULT_EVENING_HOUR, DAYPART_HOUR_RANGES.evening), day + 1);
+  const night = Math.min(23, Math.max(pick(params.bedHour, DEFAULT_BED_HOUR, DAYPART_HOUR_RANGES.night), evening + 1));
+  return { morning, day, evening, night };
+}
+
+// bounds: from daypartBounds; two numbers (wake, bed) still work.
+export function getDaypartId(date, bounds = daypartBounds(), legacyBed) {
+  const b = typeof bounds === "number" ? daypartBounds({ wakeHour: bounds, bedHour: legacyBed }) : bounds;
   const hour = date.getHours();
-  if (hour >= bedHour || hour < wakeHour) return "night";
-  if (hour < DAY_START_HOUR) return "morning";
-  if (hour < EVENING_START_HOUR) return "day";
+  if (hour >= b.night || hour < b.morning) return "night";
+  if (hour < b.day) return "morning";
+  if (hour < b.evening) return "day";
   return "evening";
 }
 

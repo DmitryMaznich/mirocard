@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
-  DEFAULT_BED_HOUR,
-  DEFAULT_WAKE_HOUR,
+  DAYPART_HOUR_RANGES,
+  daypartBounds,
   getDaypartId,
 } from "@/topics/renderers/daily_orientation/timeUtils";
 import {
@@ -23,7 +23,7 @@ import "./dailyOrientationSettings.css";
 // card -> its own options), so keep each card a self-contained entry in
 // MAP_ROWS rather than special-casing it in markup.
 //
-// Stored params are unchanged (showWeekday, …, wakeHour, bedHour and the
+// Stored params are unchanged (showWeekday, …, wakeHour/dayHour/eveningHour/bedHour and the
 // one-line-per-day weeklyPlan text, see weekPlan.js), so saved settings keep working.
 
 const CLOCK_PARTS = [
@@ -47,8 +47,14 @@ const MAP_ROWS = [
 ];
 const MAP_CARDS = MAP_ROWS.flat();
 
-const WAKE_RANGE = [5, 9];
-const BED_RANGE = [19, 23];
+// Each part's stepper, in the order of the day; its param keeps the old
+// name for утро (wakeHour) and ночь (bedHour) -- see daypartBounds.
+const DAYPART_STEPPERS = [
+  { id: "morning", param: "wakeHour" },
+  { id: "day", param: "dayHour" },
+  { id: "evening", param: "eveningHour" },
+  { id: "night", param: "bedHour" },
+];
 const DAYPART_LABELS = { morning: "Утро", day: "День", evening: "Вечер", night: "Ночь" };
 
 const IMPORTANT_DATES_STYLES = [
@@ -78,11 +84,11 @@ function hourLabel(hour) {
 
 // Contiguous runs of the same part of the day across 24 hours, starting at
 // the wake hour so the bar reads like the child's day: утро → … → ночь.
-function daypartSegments(wakeHour, bedHour) {
+function daypartSegments(bounds) {
   const segments = [];
   for (let i = 0; i < 24; i++) {
-    const hour = (wakeHour + i) % 24;
-    const id = getDaypartId(new Date(2026, 0, 1, hour), wakeHour, bedHour);
+    const hour = (bounds.morning + i) % 24;
+    const id = getDaypartId(new Date(2026, 0, 1, hour), bounds);
     const last = segments[segments.length - 1];
     if (last && last.id === id) last.hours += 1;
     else segments.push({ id, from: hour, hours: 1 });
@@ -128,8 +134,7 @@ function HourStepper({ id, label, value, range, onChange }) {
 export default function DailyOrientationSettings({ params, setParams, student, onOpenImportantDates }) {
   const { t } = useUiTranslation();
   const [nudgedCard, setNudgedCard] = useState(null);
-  const wakeHour = Number(params.wakeHour ?? DEFAULT_WAKE_HOUR);
-  const bedHour = Number(params.bedHour ?? DEFAULT_BED_HOUR);
+  const bounds = daypartBounds(params);
   const visibleCards = MAP_CARDS.filter((card) => cardIsOn(params, card));
   const hiddenLabels = [
     ...(isOn(params, "showCarousel") ? [] : ["вчера, сегодня, завтра"]),
@@ -279,21 +284,33 @@ export default function DailyOrientationSettings({ params, setParams, student, o
 
       <section className={`dos-section${daypartOn ? "" : " dos-section--muted"}`} aria-labelledby="dos-day-title">
         <header className="dos-section__head">
-          <h2 className="dos-section__title" id="dos-day-title">Режим дня</h2>
+          <h2 className="dos-section__title" id="dos-day-title">{t("dailyDay.title")}</h2>
           <p className="dos-section__hint">
-            {daypartOn
-              ? "Когда начинается утро и ночь на карточке «Сейчас»"
-              : "Включите карточку «Сейчас», чтобы режим дня был виден ребёнку"}
+            {t(daypartOn ? "dailyDay.hint" : "dailyDay.hintOff")}
           </p>
         </header>
 
         <div className="dos-card">
           <div className="dos-hours">
-            <HourStepper id="dos-wake" label="Подъём" value={wakeHour} range={WAKE_RANGE} onChange={(v) => set({ wakeHour: v })} />
-            <HourStepper id="dos-bed" label="Отбой" value={bedHour} range={BED_RANGE} onChange={(v) => set({ bedHour: v })} />
+            {DAYPART_STEPPERS.map(({ id, param }, index) => {
+              // Never past its neighbours: утро < день < вечер < ночь.
+              const [min, max] = DAYPART_HOUR_RANGES[id];
+              const prev = index > 0 ? bounds[DAYPART_STEPPERS[index - 1].id] + 1 : min;
+              const next = index < DAYPART_STEPPERS.length - 1 ? bounds[DAYPART_STEPPERS[index + 1].id] - 1 : max;
+              return (
+                <HourStepper
+                  key={id}
+                  id={`dos-${id}`}
+                  label={t(`dailyDay.from.${id}`)}
+                  value={bounds[id]}
+                  range={[Math.max(min, prev), Math.min(max, next)]}
+                  onChange={(v) => set({ [param]: v })}
+                />
+              );
+            })}
           </div>
           <div className="dos-dayline" aria-hidden="true">
-            {daypartSegments(wakeHour, bedHour).map((segment) => (
+            {daypartSegments(bounds).map((segment) => (
               <div
                 key={`${segment.id}-${segment.from}`}
                 className={`dos-dayline__part dos-dayline__part--${segment.id}`}

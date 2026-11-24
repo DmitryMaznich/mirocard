@@ -109,4 +109,14 @@ describe("DailyOrientationSettings", () => {
     expect(latest.weeklyPlan).toBe("Пн: ⚽ Спорт");
     expect(latest.planPhotos).toBe("");
   });
+
+  it("sets where each part of the day starts, never past its neighbour", () => {
+    mount({ wakeHour: 7, dayHour: 12, eveningHour: 18, bedHour: 21 });
+    act(() => button(/^Вечер с: раньше/).click());
+    expect(latest.eveningHour).toBe(17);
+    act(() => root.unmount()); container.remove();
+    mount({ wakeHour: 7, dayHour: 13, eveningHour: 14, bedHour: 21 });
+    expect(button(/^День с: позже/).disabled).toBe(true);
+  });
 });
+

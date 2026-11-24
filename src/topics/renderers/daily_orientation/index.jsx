@@ -30,8 +30,7 @@ import {
   formatRussianClockTime,
   DATE_ORDINALS,
   DAYPARTS,
-  DEFAULT_BED_HOUR,
-  DEFAULT_WAKE_HOUR,
+  daypartBounds,
   getClockWordParts,
   getDaypartId,
   getLocalDateKey,
@@ -886,9 +885,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
   const timeWordsMinuteFirst = spokenTime && timeWords.minute !== "ровно";
   const timeWordsText = timeWordsMinuteFirst ? `${timeWords.minute} ${timeWords.hour}` : `${timeWords.hour} ${timeWords.minute}`;
   const timeWordsFit = useFitTimeWords(timeWordsText);
-  const wakeHour = Number(sessionParams?.wakeHour ?? DEFAULT_WAKE_HOUR);
-  const bedHour = Number(sessionParams?.bedHour ?? DEFAULT_BED_HOUR);
-  const daypartId = getDaypartId(now, wakeHour, bedHour);
+  const bounds = daypartBounds(sessionParams ?? {});
+  const daypartId = getDaypartId(now, bounds);
 
   // «План на день»: the weekly template for that weekday, the day's important
   // dates and the changes made for that date (see weekPlan.js / PlanCard.jsx).
@@ -922,7 +920,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
   // What comes after it is the first event of the next waking day.
   const isNight = daypartId === "night" && sessionParams?.nightScreen !== false && !nightPeek;
   const nightNext = isNight
-    ? planFor(now.getHours() >= wakeHour ? addCalendarDays(now, 1) : now).find((item) => !item.cancelled) ?? null
+    ? planFor(now.getHours() >= bounds.morning ? addCalendarDays(now, 1) : now).find((item) => !item.cancelled) ?? null
     : null;
 
   // Calendar row (day, date, clock) over a "this day" row (part of day and
@@ -1287,7 +1285,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
           {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} importantDates={importantDates} />}
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
-          {openConcept === "daypart" && <DaypartContent daypartId={daypartId} wakeHour={wakeHour} bedHour={bedHour} />}
+          {openConcept === "daypart" && <DaypartContent daypartId={daypartId} bounds={bounds} />}
           {openConcept === "time" && (
             <div className="daily-orientation__time-modal">
               <AnalogClock now={now} />

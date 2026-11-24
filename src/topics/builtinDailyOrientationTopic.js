@@ -93,21 +93,41 @@ export function buildDailyOrientationTopicRecord() {
             default: true,
             section: "Что показывать",
           },
-          // Where "ночь" ends and begins for this child -- see getDaypartId.
+          // Where each part of the day starts (daypartBounds in timeUtils.js):
+          // утро с = wakeHour and ночь с = bedHour keep their old names, so
+          // settings saved as «Подъём»/«Отбой» still hold.
           wakeHour: {
             type: "enum",
-            label: { ru: "Подъём (начало утра)" },
-            values: [5, 6, 7, 8, 9],
-            labels: { ru: { 5: "5:00", 6: "6:00", 7: "7:00", 8: "8:00", 9: "9:00" } },
+            label: { ru: "Утро с" },
+            values: [4, 5, 6, 7, 8, 9, 10],
+            labels: { ru: { 4: "4:00", 5: "5:00", 6: "6:00", 7: "7:00", 8: "8:00", 9: "9:00", 10: "10:00" } },
             default: 7,
+            compact: true,
+            section: "Режим дня",
+          },
+          dayHour: {
+            type: "enum",
+            label: { ru: "День с" },
+            values: [9, 10, 11, 12, 13, 14, 15],
+            labels: { ru: { 9: "9:00", 10: "10:00", 11: "11:00", 12: "12:00", 13: "13:00", 14: "14:00", 15: "15:00" } },
+            default: 12,
+            compact: true,
+            section: "Режим дня",
+          },
+          eveningHour: {
+            type: "enum",
+            label: { ru: "Вечер с" },
+            values: [14, 15, 16, 17, 18, 19, 20],
+            labels: { ru: { 14: "14:00", 15: "15:00", 16: "16:00", 17: "17:00", 18: "18:00", 19: "19:00", 20: "20:00" } },
+            default: 18,
             compact: true,
             section: "Режим дня",
           },
           bedHour: {
             type: "enum",
-            label: { ru: "Отбой (начало ночи)" },
-            values: [19, 20, 21, 22, 23],
-            labels: { ru: { 19: "19:00", 20: "20:00", 21: "21:00", 22: "22:00", 23: "23:00" } },
+            label: { ru: "Ночь с" },
+            values: [18, 19, 20, 21, 22, 23],
+            labels: { ru: { 18: "18:00", 19: "19:00", 20: "20:00", 21: "21:00", 22: "22:00", 23: "23:00" } },
             default: 21,
             compact: true,
             section: "Режим дня",

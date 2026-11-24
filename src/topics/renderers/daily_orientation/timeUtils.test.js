@@ -141,3 +141,24 @@ describe("разговорное время", async () => {
     expect(at(0, 10)).toBe("десять минут первого");
   });
 });
+
+describe("daypartBounds — where each part of the day starts", () => {
+  it("reads the four hours, the old «Подъём»/«Отбой» as утро/ночь, defaults 7/12/18/21", async () => {
+    const { daypartBounds } = await import("./timeUtils.js");
+    expect(daypartBounds()).toEqual({ morning: 7, day: 12, evening: 18, night: 21 });
+    expect(daypartBounds({ wakeHour: 6, dayHour: 11, eveningHour: 17, bedHour: 22 })).toEqual({ morning: 6, day: 11, evening: 17, night: 22 });
+  });
+
+  it("keeps them in order whatever was stored", async () => {
+    const { daypartBounds } = await import("./timeUtils.js");
+    expect(daypartBounds({ dayHour: 9, wakeHour: 10, eveningHour: 14, bedHour: 18 })).toEqual({ morning: 10, day: 11, evening: 14, night: 18 });
+  });
+
+  it("puts an hour in the part the family set", async () => {
+    const { getDaypartId } = await import("./timeUtils.js");
+    const bounds = { morning: 6, day: 11, evening: 16, night: 20 };
+    const at = (h) => new Date(2026, 0, 1, h, 0);
+    expect([5, 6, 11, 16, 20].map((h) => getDaypartId(at(h), bounds))).toEqual(["night", "morning", "day", "evening", "night"]);
+  });
+});
+

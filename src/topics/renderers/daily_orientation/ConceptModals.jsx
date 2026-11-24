@@ -431,12 +431,12 @@ export function SeasonContent({ activeDate }) {
 }
 
 // ── Время суток ───────────────────────────────────────────────────────
-export function DaypartContent({ daypartId, wakeHour, bedHour }) {
+export function DaypartContent({ daypartId, bounds }) {
   const ranges = {
-    morning: [wakeHour, 12],
-    day: [12, 18],
-    evening: [18, bedHour],
-    night: [bedHour, wakeHour],
+    morning: [bounds.morning, bounds.day],
+    day: [bounds.day, bounds.evening],
+    evening: [bounds.evening, bounds.night],
+    night: [bounds.night, bounds.morning],
   };
   return (
     <div className="dom">
