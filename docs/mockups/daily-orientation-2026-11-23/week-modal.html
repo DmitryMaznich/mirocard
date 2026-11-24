@@ -1,0 +1,37 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Неделя — модалка (макет)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:Nunito,sans-serif;background:#5f7478;width:1280px;height:800px;display:flex;align-items:center;justify-content:center;color:#0f3b4c}
+.m{width:1180px;height:760px;background:#fffdf8;border-radius:34px;padding:26px 40px;position:relative;display:flex;flex-direction:column}
+.x{position:absolute;top:20px;right:22px;width:56px;height:56px;border-radius:50%;background:#0f3b4c;color:#fff;font-size:30px;display:flex;align-items:center;justify-content:center}
+.top{display:flex;align-items:center;gap:24px;margin-bottom:14px}
+h1{font-size:38px;font-weight:900}
+.go{margin-left:auto;margin-right:70px;background:#3d8f7f;color:#fff;font-weight:900;font-size:22px;border-radius:18px;padding:12px 24px;box-shadow:0 4px 0 #2a6b60}
+.rows{flex:1;display:flex;flex-direction:column;gap:7px}
+.r{flex:1;display:grid;grid-template-columns:120px 300px 1fr;align-items:center;gap:16px;background:#f3f7f5;border-radius:18px;padding:0 22px;border:4px solid transparent}
+.r.we{background:#fbe7dc}
+.r.past{opacity:.45}
+.r.today{border-color:#0f3b4c;background:#fff}
+.r.walk{box-shadow:0 0 0 6px #f2c94c}
+.tag{font-size:17px;font-weight:900;color:#3d8f7f;text-transform:uppercase}
+.r.today .tag{color:#0f3b4c}
+.n{font-size:34px;font-weight:900}
+.r.we .n{color:#9c4424}
+.ic{display:flex;gap:14px;font-size:40px;align-items:center}
+.ev{font-size:20px;font-weight:900;background:#fff7dc;border:3px solid #f2b544;border-radius:14px;padding:2px 12px;display:flex;align-items:center;gap:8px}
+.ev b{font-size:30px}
+.foot{margin-top:10px;font-size:22px;font-weight:800;color:#5d7378;display:flex;align-items:center;gap:10px}
+.foot span{font-size:28px}
+</style></head><body><div class="m"><div class="x">✕</div>
+<div class="top"><h1>Неделя</h1><div class="go">▶ Дни недели по порядку</div></div>
+<div class="rows">
+<div class="r past"><span class="tag"></span><span class="n">Понедельник</span><span class="ic">🏫 👟</span></div>
+<div class="r past walk"><span class="tag">вчера</span><span class="n">Вторник</span><span class="ic">🏫 🏊</span></div>
+<div class="r today"><span class="tag">сегодня</span><span class="n">Среда</span><span class="ic">🏫 👟</span></div>
+<div class="r"><span class="tag">завтра</span><span class="n">Четверг</span><span class="ic">🏫 🏊 <span class="ev"><b>👵</b>Приезд бабушки</span></span></div>
+<div class="r"><span class="tag"></span><span class="n">Пятница</span><span class="ic">🏫 👟</span></div>
+<div class="r we"><span class="tag"></span><span class="n">Суббота</span><span class="ic">🚶 ☕</span></div>
+<div class="r we"><span class="tag"></span><span class="n">Воскресенье</span><span class="ic">🏠 <span class="ev"><b>🎂</b>День рождения мамы</span></span></div>
+</div>
+<div class="foot"><span>↻</span> После воскресенья снова понедельник</div>
+</div></body></html>
