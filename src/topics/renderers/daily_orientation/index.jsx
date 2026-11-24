@@ -208,10 +208,10 @@ function resolveDisplayOptions(sessionParams = {}) {
 // useDashboardScale re-measures on resize. Browsers only allow this from a
 // tap, hence the listener; where it's unsupported (iPhone) nothing happens.
 // Leaving the screen leaves fullscreen.
-function useFullscreenOnFirstTouch() {
+function useFullscreenOnFirstTouch(enabled = true) {
   useEffect(() => {
     const root = document.documentElement;
-    if (!document.fullscreenEnabled || typeof root.requestFullscreen !== "function") return undefined;
+    if (!enabled || !document.fullscreenEnabled || typeof root.requestFullscreen !== "function") return undefined;
     let entered = false;
     // One request per wake-up, not one per tap: with the app pinned on
     // Android (screen pinning), the system keeps leaving fullscreen, and a
@@ -237,7 +237,7 @@ function useFullscreenOnFirstTouch() {
       document.removeEventListener("visibilitychange", rearm);
       if (entered && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     };
-  }, []);
+  }, [enabled]);
 }
 
 // Text and icons are sized once for a 1600x1000 design and scaled uniformly
@@ -842,7 +842,7 @@ function DigitalClock({ now }) {
 export default function DailyOrientationRenderer({ sessionParams, soundEnabled, accountKv }) {
   const now = useCurrentTime();
   const { viewportRef, scale, width: canvasWidth, height: canvasHeight } = useDashboardScale();
-  useFullscreenOnFirstTouch();
+  useFullscreenOnFirstTouch(sessionParams?.fullscreen !== false);
   const { speak } = useSpeech();
   const { play: playClips } = useClipPlayer();
   const [offset, setOffset] = useState(0);

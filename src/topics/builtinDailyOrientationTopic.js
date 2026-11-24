@@ -141,6 +141,15 @@ export function buildDailyOrientationTopicRecord() {
             default: true,
             section: "Режим дня",
           },
+          // The first tap puts the screen in fullscreen (hides Android's bars).
+          // Off for a pinned app: each entry made Android show its «swipe from
+          // the top to exit» hint (owner, 2026-11-24).
+          fullscreen: {
+            type: "boolean",
+            label: { ru: "Во весь экран" },
+            default: true,
+            section: "Что показывать",
+          },
           // "СРЕДА" or "Среда" on the cards -- one form everywhere, for a
           // child who reads whole words.
           letterCase: {

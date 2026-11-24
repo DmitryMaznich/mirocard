@@ -271,6 +271,29 @@ export default function DailyOrientationSettings({ params, setParams, student, o
         </div>
       </section>
 
+      <section className="dos-section" aria-labelledby="dos-screen-mode-title">
+        <header className="dos-section__head">
+          <h2 className="dos-section__title" id="dos-screen-mode-title">{t("dailyScreen.title")}</h2>
+          <p className="dos-section__hint">{t("dailyScreen.hint")}</p>
+        </header>
+        <div className="dos-subgroup">
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-screen-mode-title">
+            {[[true, t("dailyScreen.full")], [false, t("dailyScreen.usual")]].map(([value, label]) => (
+              <button
+                key={String(value)}
+                type="button"
+                role="radio"
+                aria-checked={(params.fullscreen !== false) === value}
+                className={`dos-chip${(params.fullscreen !== false) === value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ fullscreen: value })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="dos-section" aria-labelledby="dos-sound-title">
         <header className="dos-section__head">
           <h2 className="dos-section__title" id="dos-sound-title">Озвучка карточек</h2>

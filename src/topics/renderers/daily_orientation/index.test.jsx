@@ -84,6 +84,12 @@ describe("DailyOrientationRenderer", () => {
       act(() => document.dispatchEvent(new Event("visibilitychange")));
       act(() => container.querySelector(".daily-orientation__modal-close").click());
       expect(requestFullscreen).toHaveBeenCalledTimes(2);
+      act(() => root.unmount());
+      container.remove();
+      requestFullscreen.mockClear();
+      mountAt(new Date(2026, 8, 22, 14, 35), { fullscreen: false });
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
+      expect(requestFullscreen).not.toHaveBeenCalled();
     } finally {
       delete document.fullscreenEnabled;
       delete document.documentElement.requestFullscreen;
