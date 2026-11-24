@@ -51,6 +51,7 @@ import PrivacyScreen from "@/features/help/PrivacyScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
+import AnnouncementHost from "@/features/announcements/AnnouncementHost";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
 import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
 import PlannerPutawayScreen from "@/features/planner/PlannerPutawayScreen";
@@ -412,6 +413,7 @@ export default function App() {
       </ErrorBoundary>
       <TopicUiPreviewContext />
       <TopicLanguageDialog />
+      <AnnouncementHost />
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}
     </>

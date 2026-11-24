@@ -216,6 +216,12 @@ hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
 `language === "sl"`. Запасная цепочка: язык → английский → русский. Как добавить язык и что ещё не
 переведено — `docs/localization/adding-a-language.md`.
 
+## Объявления пользователям (с 2026-11-24)
+
+Однократное сообщение пользователям «что изменилось»: запись в `src/announcements/announcements.js` + обычный деплой.
+Показ — на главном экране, пока не нажмут «Понятно»; отметка `announcements:seen:<id>` на устройстве и в аккаунте.
+Кому — `topics`, `accountsCreatedBefore`, `languages`, `match`; `until` обязателен. **Read `docs/announcements.md`.**
+
 ## Важные даты (important dates) for the "Сегодня" screen
 
 Birthdays, holidays and one-off events kept on the student
