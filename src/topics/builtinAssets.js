@@ -1,4 +1,5 @@
 import { NUMBER_COMPOSITION_ICON, NUMBER_PATH_ICON } from "./renderers/math_houses/numberPathConfig.js";
+import { uiFallbackChain } from "../../shared/ui-languages.mjs";
 
 const BUILTIN_ASSETS = {
   "media/avatar_games.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#fff4e8"/><path d="M20 89h88" stroke="#b9bbc6" stroke-width="16" stroke-linecap="round"/><rect x="25" y="57" width="68" height="29" rx="12" fill="#ee7869"/><path d="m41 58 9-20h24l16 20" fill="#ee7869"/><path d="m52 43-6 13h31L68 43" fill="#cfefed"/><circle cx="43" cy="86" r="10" fill="#25354c"/><circle cx="80" cy="86" r="10" fill="#25354c"/><path d="M103 24v46" stroke="#25354c" stroke-width="4"/><path d="M105 24h17v20h-17z" fill="#1b9a9b"/></svg>`,
@@ -1079,27 +1080,12 @@ const BUILTIN_ASSETS = {
   <circle cx="96" cy="90" r="22" fill="#4a9b8f"/>
   <path d="M86 90 93 98 108 80" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
-  // Прописи (propis) topic avatar -- 2026-08-20. Solid illustrated icon (cream card, ruled
-  // notebook page, cursive wave, pencil accent) -- kept as the ORIGINAL well-received design
-  // (a later transparent-line-on-color-gradient variant was tried for the topic-catalog tile
-  // specifically, but that whole tile treatment was reverted, and the transparent style also
-  // read as illegible on the plain/transparent HomeScreen avatar bubble background, which
-  // this same asset feeds too -- see TopicCover usage in HomeScreen.jsx).
+  // «Прописи» (propis2) cover -- 2026-11-24, owner: «говорящие, понятные сходу пиктограммы»; replaces the 2026-08-20 card with a
+  // wave. A copybook line: «Аа» in the topic's own Russian cursive (the engine's ink paths, not a font; thin — owner: «линию в 2 раза
+  // тоньше»), the red start dot, a pencil at the end of the stroke. Other interface languages get their own letters and paper
+  // (TOPIC_AVATAR_BY_LANGUAGE below) — a Slovenian teenager sees no Cyrillic on it.
   "media/avatar_propis.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="26" fill="#f7ecd8"/>
-  <rect x="16" y="16" width="96" height="96" rx="12" fill="#fffdf8" stroke="#e3cfa0" stroke-width="3"/>
-  <path d="M28 42h72" stroke="#e3cfa0" stroke-width="1.5" opacity="0.6"/>
-  <path d="M28 60h72" stroke="#bcd8ec" stroke-width="2"/>
-  <path d="M28 84h72" stroke="#bcd8ec" stroke-width="2"/>
-  <path d="M28 102h72" stroke="#e3cfa0" stroke-width="1.5" opacity="0.6"/>
-  <path d="M32 78c5-16 11-16 16 0s11 16 16 0 11-16 16 0" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <g transform="rotate(40 100 32)">
-    <rect x="92" y="4" width="13" height="44" rx="6" fill="#ef6f5e"/>
-    <path d="M92 44h13l-6.5 13z" fill="#fbbf24"/>
-    <circle cx="98.5" cy="10" r="3.5" fill="#fff" opacity="0.55"/>
-  </g>
-</svg>`,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#f7ecd8"></rect><rect x="14" y="14" width="100" height="100" rx="12" fill="#fffdf8" stroke="#e3cfa0" stroke-width="3"></rect><path d="M34 34L0.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M52 34L18.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M70 34L36.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M88 34L54.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M106 34L72.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M124 34L90.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M142 34L108.4 106" stroke="#e4ecf5" stroke-width="1.4"></path><path d="M22 40h84" stroke="#bcd8ec" stroke-width="1.6"></path><path d="M22 60h84" stroke="#f2a7a0" stroke-width="1.4" stroke-dasharray="3 3"></path><path d="M22 84h84" stroke="#6fa3e0" stroke-width="2.4"></path><path d="M22 100h84" stroke="#bcd8ec" stroke-width="1.6"></path><g fill="none" stroke="#1d4ed8" stroke-linecap="round" stroke-linejoin="round" transform="translate(17.075760334600712 30.009080091166332) scale(0.8497729977208417)" stroke-width="3.765711558948864"><path d="M 5.596 52.000 C 2.590 58.462 2.255 64.000 7.672 64.000 C 12.748 64.000 17.421 59.002 22.256 54.367 C 34.677 42.437 44.448 29.648 51.564 16.000"></path><path d="M 51.564 16.000 C 44.268 31.649 36.971 47.299 29.674 62.948"></path><path d="M 29.674 62.948 C 29.672 62.698 29.677 62.2 29.667 61.443 C 29.651 60.691 29.637 59.389 29.575 58.424 C 29.52 57.46 29.454 56.44 29.329 55.665 C 29.203 54.885 29.017 54.344 28.816 53.767 C 28.624 53.191 28.357 52.656 28.148 52.189 C 27.933 51.727 27.697 51.299 27.534 50.975 C 27.37 50.653 27.28 50.436 27.171 50.255 C 27.053 50.076 27.015 50.02 26.857 49.886 C 26.697 49.748 26.532 49.642 26.222 49.439 C 25.914 49.24 25.473 48.954 25.022 48.686 C 24.565 48.423 23.998 48.091 23.495 47.86 C 22.989 47.624 22.483 47.407 21.997 47.288 C 21.511 47.172 21.047 47.159 20.587 47.154 C 20.12 47.154 19.633 47.233 19.227 47.283 C 18.819 47.329 18.437 47.398 18.137 47.444 C 17.848 47.495 17.632 47.519 17.449 47.565 C 17.267 47.611 17.161 47.662 17.024 47.721 C 16.879 47.777 16.755 47.846 16.624 47.92 C 16.485 47.994 16.333 48.077 16.191 48.165 C 16.049 48.252 15.925 48.344 15.785 48.46 C 15.652 48.571 15.514 48.691 15.361 48.838 C 15.216 48.986 15.05 49.166 14.886 49.351 C 14.731 49.535 14.552 49.748 14.408 49.942 C 14.264 50.136 14.13 50.334 14.018 50.523 C 13.904 50.707 13.81 50.879 13.728 51.058 C 13.643 51.234 13.573 51.4 13.534 51.584 C 13.484 51.764 13.464 51.954 13.453 52.148 C 13.452 52.341 13.459 52.54 13.495 52.748 C 13.524 52.956 13.569 53.163 13.66 53.385 C 13.751 53.606 13.872 53.837 14.034 54.091 C 14.196 54.344 14.392 54.621 14.63 54.903 C 14.863 55.189 15.115 55.503 15.447 55.789 C 15.771 56.076 16.117 56.352 16.587 56.624 C 17.053 56.892 17.636 57.156 18.247 57.404 C 18.851 57.659 19.598 57.917 20.229 58.134 C 20.86 58.346 21.491 58.54 22.02 58.683 C 22.542 58.831 22.97 58.927 23.398 59.002 C 23.828 59.08 24.198 59.112 24.577 59.145 C 24.956 59.177 25.343 59.186 25.673 59.2 C 26.003 59.214 26.277 59.233 26.558 59.227 C 26.849 59.223 27.018 59.227 27.395 59.168 C 27.764 59.108 28.151 59.029 28.793 58.873 C 29.433 58.715 30.405 58.484 31.252 58.231 C 37.355 56.417 45.144 53.703 51.347 52"></path><path d="M 66.351 52 C 69.445 45.373 68.592 40 64.45 40 C 60.307 40 54.441 45.373 51.347 52 C 48.262 58.627 49.115 64 53.257 64 C 57.4 64 63.265 58.627 66.351 52 C 68.218 48 70.086 44 71.952 40 C 69.049 46.22 66.147 52.44 63.244 58.66 C 61.088 63.28 66.26 65.108 70.902 61.36 C 74.773 58.24 77.238 54.02 81.109 50.9"></path><circle cx="5.596" cy="52.0" r="4.001068531383168" fill="#dc2626" stroke="none"></circle></g><g transform="translate(86.00000313324836 73.26253039563835) rotate(35)"><rect x="-6.5" y="-42" width="13" height="34" rx="5" fill="#ef6f5e"></rect><rect x="-6.5" y="-15" width="13" height="5" fill="#d9564a"></rect><path d="M-6.5 -10h13l-6.5 12z" fill="#f6d39a"></path><path d="M-2.4 -2.4h4.8l-2.4 4.4z" fill="#25354c"></path></g></svg>`,
   // «Прописи: латиница» (propis2_lang) -- 2026-11-11, owner: «чтобы было понятно, что это именно английские прописи». The «Прописи»
   // card with the British four-line ruling, «abc» in the deck's own British joined hand (the engine's ink paths, not a font) and a small
   // Union flag in the corner.
@@ -1342,6 +1328,27 @@ const TOPIC_AVATAR_VARIANTS = {
 </svg>`,
 };
 
+// Covers drawn per interface language (2026-11-24): the base asset is the Russian one; a language listed here gets its own picture,
+// any other one goes down the interface's fallback chain (language → English → Russian). «Прописи»: the Slovenian cursive «Aa» on
+// the Slovenian paper (three thin lines, no bottom line), the British joined «Aa» on the British four lines (thin, dashed, dashed, thin).
+const BASE_ASSET_LANGUAGE = "ru";
+const TOPIC_AVATAR_BY_LANGUAGE = {
+  "media/avatar_propis.svg": {
+    sl: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#f7ecd8"></rect><rect x="14" y="14" width="100" height="100" rx="12" fill="#fffdf8" stroke="#e3cfa0" stroke-width="3"></rect><path d="M22 40h84" stroke="#8fb8e4" stroke-width="1.8"></path><path d="M22 60h84" stroke="#8fb8e4" stroke-width="1.8"></path><path d="M22 80h84" stroke="#8fb8e4" stroke-width="1.8"></path><g fill="none" stroke="#1d4ed8" stroke-linecap="round" stroke-linejoin="round" transform="translate(23.07498035350637 41.54035460912826) scale(0.5381820933373788)" stroke-width="5.945942905970982"><path d="M 6.435 50.2 C 6.435 61 10.035 64.6 14.235 64.6 C 20.835 64.6 25.035 56.8 25.035 46 C 25.035 25 29.835 4 39.435 4 C 44.835 4 46.635 10 46.635 22 C 46.635 34.4 46.635 46.8 46.635 59.2 C 46.635 62.8 48.435 64.6 50.835 64.6 C 56.835 64.6 60.981 56.777 64.635 48.4"></path><path d="M 18.435 41.200 C 29.435 41.200 40.435 41.200 51.435 41.200"></path><path d="M 64.635 48.400 L 67.401 42.060 L 67.401 42.060"></path><path d="M 67.415 42.03 C 69.229 37.88 72.58 35.074 76.393 34.654 C 80.809 34.168 85.045 36.952 87.259 41.8 C 84.403 35.542 78.313 32.932 73.027 35.698 C 67.741 38.464 64.897 45.748 66.379 52.726 C 67.861 59.71 73.207 64.222 78.877 63.274 C 84.547 62.332 88.789 56.224 88.789 49 C 88.789 44.2 88.789 39.4 88.789 34.6 C 88.789 42 88.789 49.4 88.789 56.8 C 88.789 61 90.889 63.1 94.189 63.1 C 100.189 63.1 104.689 56.8 109.489 48.4"></path><circle cx="6.435" cy="50.2" r="6.317564337594168" fill="#dc2626" stroke="none"></circle></g><g transform="translate(82.00000318845741 67.58837205037253) rotate(35)"><rect x="-6.5" y="-42" width="13" height="34" rx="5" fill="#ef6f5e"></rect><rect x="-6.5" y="-15" width="13" height="5" fill="#d9564a"></rect><path d="M-6.5 -10h13l-6.5 12z" fill="#f6d39a"></path><path d="M-2.4 -2.4h4.8l-2.4 4.4z" fill="#25354c"></path></g></svg>`,
+    en: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#f7ecd8"></rect><rect x="14" y="14" width="100" height="100" rx="12" fill="#fffdf8" stroke="#e3cfa0" stroke-width="3"></rect><path d="M22 40h84" stroke="#8fb8e4" stroke-width="1.8"></path><path d="M22 60h84" stroke="#8fb8e4" stroke-width="1.8" stroke-dasharray="4 3"></path><path d="M22 82h84" stroke="#8fb8e4" stroke-width="1.8" stroke-dasharray="4 3"></path><path d="M22 98h84" stroke="#8fb8e4" stroke-width="1.8"></path><g fill="none" stroke="#1d4ed8" stroke-linecap="round" stroke-linejoin="round" transform="translate(25.78039973965496 38.82915896010786) scale(0.6439890508300798)" stroke-width="4.969028581891742"><path d="M 24.341 11.800 C 15.982 29.817 8.700 45.983 0.341 64.000"></path><path d="M 24.341 11.800 C 31.766 29.673 38.100 46.127 45.525 64.000"></path><path d="M 12.514 41.714 C 20.020 41.714 27.520 41.714 35.025 41.714"></path><path d="M 74.982 37.242 C 72.080 35.846 69.714 34.484 66.403 34.484 C 59.013 34.484 53.025 42.157 53.025 51.631 C 53.025 58.634 56.659 64.266 61.141 64.266 C 69.415 64.266 76.125 50.742 76.125 34.000 C 76.125 40.416 76.125 46.831 76.125 53.246 C 76.125 59.183 77.751 64.000 79.759 64.000 C 83.128 64.000 85.539 60.642 87.299 58.231"></path><circle cx="24.341" cy="11.8" r="5.279592868259975" fill="#dc2626" stroke="none"></circle></g><g transform="translate(82.00000487346915 76.32928661007645) rotate(35)"><rect x="-6.5" y="-42" width="13" height="34" rx="5" fill="#ef6f5e"></rect><rect x="-6.5" y="-15" width="13" height="5" fill="#d9564a"></rect><path d="M-6.5 -10h13l-6.5 12z" fill="#f6d39a"></path><path d="M-2.4 -2.4h4.8l-2.4 4.4z" fill="#25354c"></path></g></svg>`,
+  },
+};
+
+export function localizedAssetSvg(assetPath, language) {
+  const variants = TOPIC_AVATAR_BY_LANGUAGE[assetPath];
+  if (!variants || !language) return BUILTIN_ASSETS[assetPath] ?? null;
+  for (const candidate of uiFallbackChain(language)) {
+    if (candidate === BASE_ASSET_LANGUAGE) break;
+    if (variants[candidate]) return variants[candidate];
+  }
+  return BUILTIN_ASSETS[assetPath] ?? null;
+}
+
 function svgToDataUrl(svg) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.trim())}`;
 }
@@ -1361,7 +1368,8 @@ export function getBuiltinTopicAvatarPath(topicId) {
   return "media/avatar_flashcards.svg";
 }
 
-export function getBuiltinTopicAsset(topicId, assetPath) {
+// `language`: the interface language, for the covers drawn per language (localizedAssetSvg)
+export function getBuiltinTopicAsset(topicId, assetPath, language = null) {
   if (
     (assetPath === "media/avatar_flashcards.svg"
       || assetPath === "media/avatar_comparison.svg"
@@ -1370,7 +1378,7 @@ export function getBuiltinTopicAsset(topicId, assetPath) {
   ) {
     return svgToDataUrl(TOPIC_AVATAR_VARIANTS[topicId]);
   }
-  const svg = BUILTIN_ASSETS[assetPath];
+  const svg = localizedAssetSvg(assetPath, language);
   return svg ? svgToDataUrl(svg) : null;
 }
 

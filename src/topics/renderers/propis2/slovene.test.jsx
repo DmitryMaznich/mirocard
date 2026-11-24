@@ -11,12 +11,12 @@ import { buildPageTask, glyphMapOf } from "./pageTask.js";
 import { languageView } from "./languages.js";
 import { deckPapers } from "./model.js";
 
-// The Slovenian language of «Прописи: латиница» (docs/propis2-sl.md, step 2), a draft published in the deck since 0.10.0. Here it is laid over
+// The Slovenian language of «Прописи: латиница» (docs/propis2-sl.md, step 2), in the deck since 0.10.0 (a draft marked «черновик» until 0.12.4, ready since). Here it is laid over
 // the published Latin deck the way scripts/build-propis2-deck.mjs does it (a style's letters from its `glyphsFile`).
-const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
 const db = await openDb(`test-latin-sl-${Date.now()}`);
-await importTopic(db, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-const published = await getTopicRecord(db, "propis2_lang");
+await importTopic(db, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+const published = await getTopicRecord(db, "propis2");
 const spec = JSON.parse(await readFile("tools/propis2/languages.json", "utf-8")).languages.find((l) => l.id === "sl");
 const { deck: _deck, ...sl } = spec;
 sl.styles = await Promise.all(sl.styles.map(async ({ glyphsFile, ...st }) => ({ ...st, glyphs: JSON.parse(await readFile(glyphsFile, "utf-8")).glyphs })));
@@ -25,12 +25,12 @@ const view = (style) => languageView(deck, "sl", style);
 const page = (rec, lines, grid) => renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines, grid })} bare />);
 const inkOf = (rec, text) => layoutWideLinesIntoRows([text], glyphMapOf(rec), undefined, false).placed[0];
 
-describe("Slovenian (draft)", () => {
-  it("is a draft of the Latin deck, published all the same (marked «черновик»: publishDraft, deck 0.10.0)", () => {
-    expect(spec.status).toBe("draft");
+describe("Slovenian", () => {
+  it("is a ready language of the Latin deck, no «черновик» mark (owner, 2026-11-24; a draft with publishDraft 0.10.0–0.12.3)", () => {
+    expect(spec.status).toBe("ready");
     expect(spec.deck).toBe("latin");
-    expect(spec.publishDraft).toBe(true);
-    expect(published.languages.find((l) => l.id === "sl")?.status).toBe("draft");
+    expect(spec.publishDraft).toBeUndefined();
+    expect(published.languages.find((l) => l.id === "sl")?.status).toBe("ready");
   });
 
   it("25 letters, every one with a small and a capital form in both styles; the borrowed q w x y ć đ ä ö ü written too", () => {

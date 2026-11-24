@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { getDb, topics } from "@/core/db";
 import { getInitials, getTopicTitle } from "@/shared/utils/format";
 import { getBuiltinTopicAsset } from "@/topics/builtinAssets";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { CATALOG_COVER_PATH, catalogCoverUrl } from "@/features/topics/catalogCovers";
 
 export default function TopicCover({ topicId, avatarPath, title, size = "medium" }) {
   const [src, setSrc] = useState(null);
+  // a cover may be drawn per interface language (builtinAssets.js, TOPIC_AVATAR_BY_LANGUAGE)
+  const { language } = useUiTranslation();
 
   useEffect(() => {
     if (!topicId || !avatarPath) return;
@@ -18,13 +21,13 @@ export default function TopicCover({ topicId, avatarPath, title, size = "medium"
           objectUrl = URL.createObjectURL(blob);
           setSrc(objectUrl);
         } else {
-          setSrc(getBuiltinTopicAsset(topicId, avatarPath));
+          setSrc(getBuiltinTopicAsset(topicId, avatarPath, language));
         }
       });
     return () => {
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [topicId, avatarPath]);
+  }, [topicId, avatarPath, language]);
 
   const cls = `topic-cover topic-cover--${size}`;
   // A catalog cover is bundled; no IndexedDB lookup (topic UI preview only).

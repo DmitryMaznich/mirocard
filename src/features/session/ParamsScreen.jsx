@@ -2586,7 +2586,7 @@ export default function ParamsScreen() {
                 strict={strictStars}
                 onStrict={setStrictStars}
                 rules={mode.evaluation !== "none" && !rewardPerPath ? studentRewardSettings : null}
-                note={rewardPerPath ? setupText({ ru: "Видеоприз за одну дорожку, пройденную без ошибок.", sl: "Videonagrada za eno pot brez napak." }) : null}
+                note={rewardPerPath ? tr("setup.rewardPerPathNote") : null}
                 onShowInfo={setActiveInfo}
               />
             </div>

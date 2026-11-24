@@ -14,6 +14,9 @@ import { PREFS_KEY } from "@/topics/renderers/propis2/myLanguages.js";
 // «Прописи: латиница» carries every language since deck 0.11.0 with «Мои языки» (myLanguages.js): these English tests pick English and
 // Slovenian (a draft: the account has the flag), as an English-teaching adult would
 const seedMyLangs = (db) => kv.set(db, PREFS_KEY, { langs: ["en", "sl"], updatedAt: 1 });
+// «Прописи» itself carries every language with «Мои языки» since deck 0.8.0 (2026-11-24): the Cyrillic tests below are an adult who
+// picked Russian, Bulgarian and Kazakh
+const seedCyrillic = (db) => kv.set(db, PREFS_KEY, { langs: ["ru", "bg", "kk"], updatedAt: 1 });
 
 vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
 
@@ -49,20 +52,35 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     useAppStore.setState({ topicRecords: [record], activeTopicId: "propis2", activeStudentId: "s1", students: [{ id: "s1", name: "1А" }], studentTopicLinks: {}, screen: "params" });
   });
 
-  it("one list, a language per notebook; the ready notebooks of every language always, with marks and a filter", async () => {
+  it("a Russian adult who has picked no languages: Russian only — its ready notebooks, no marks, no filter (deck 0.8.0)", async () => {
+    const db = await openDb("p2lang-default-" + Date.now());
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    for (let i = 0; i < 100 && !cards(host, "propis2-ready-card").length; i++) await act(async () => { await tick(50); }); // the bundled kits load apart
+    expect(cards(host, "propis2-ready-card").length).toBeGreaterThan(0);
+    expect(cards(host, "propis2-ready-card").some((c) => /БЪЛ|ҚАЗ|ENG|SLO/.test(c.textContent))).toBe(false);
+    expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Русский");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  });
+
+  it("one list, a language per notebook; the ready notebooks of every language of mine, with marks and a filter", async () => {
     const db = await openDb("p2lang-home-" + Date.now());
+    await seedCyrillic(db);
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
 
-    // only Russian in use, yet the ready notebooks of every language are offered (owner, 2026-11-02), each with its mark, and a filter
+    // only Russian in use, yet the ready notebooks of every language of mine are offered (owner, 2026-11-02), each with its mark, and a filter
     expect(host.querySelector('[data-testid="propis2-new-lang"]').textContent).toContain("Русский");
     for (let i = 0; i < 100 && !cards(host, "propis2-ready-card").some((c) => c.textContent.includes("РУС")); i++) await act(async () => { await tick(50); }); // the bundled kits load apart
     const readyMarks = () => new Set(cards(host, "propis2-ready-card").map((c) => ["РУС", "БЪЛ", "ҚАЗ"].find((m) => c.textContent.includes(m))));
     expect([...readyMarks()].sort()).toEqual(["БЪЛ", "РУС", "ҚАЗ"].sort());
     const filter0 = host.querySelector('[data-testid="propis2-lang-filter"]');
-    expect([...filter0.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Русский", "Български", "Қазақша"]);
+    expect([...filter0.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Русский", "Български", "Қазақша", "＋"]); // «＋»: «Мои языки»
     await click([...filter0.querySelectorAll("button")].find((b) => b.textContent === "Қазақша"));
     // Kazakh: its own two word notebooks (variant.json kits, 2026-11-02)
     expect(cards(host, "propis2-ready-card").map((c) => c.textContent)).toEqual([expect.stringContaining("Слова 1: А – О"), expect.stringContaining("Слова 2: Ө – Я")]);
@@ -92,7 +110,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     expect(cards(host, "propis2-set-card")).toHaveLength(1);
     expect(cards(host, "propis2-set-card")[0].textContent).toContain("ҚАЗ");
     const filter = host.querySelector('[data-testid="propis2-lang-filter"]');
-    expect([...filter.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Русский", "Български", "Қазақша"]);
+    expect([...filter.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Все", "Русский", "Български", "Қазақша", "＋"]); // «＋»: «Мои языки»
     expect(cards(host, "propis2-ready-card").some((c) => c.textContent.includes("БЪЛ"))).toBe(true);
     await click([...filter.querySelectorAll("button")].find((b) => b.textContent === "Български"));
     expect(cards(host, "propis2-set-card")).toHaveLength(0);
@@ -130,6 +148,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     for (const [lang, title, paper] of [["bg", "Български", "bg"], ["ru", "Русский", undefined]]) {
       localStorage.clear();
       const db = await openDb("p2lang-paper-" + Date.now() + Math.random());
+      await seedCyrillic(db);
       const host = document.createElement("div");
       document.body.appendChild(host);
       const root = createRoot(host);
@@ -157,6 +176,7 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     for (const [lang, title] of [["bg", "Български"], ["ru", "Русский"]]) {
       localStorage.clear();
       const db = await openDb("p2style-new-" + Date.now() + Math.random());
+      await seedCyrillic(db);
       const host = document.createElement("div");
       document.body.appendChild(host);
       const root = createRoot(host);
@@ -186,8 +206,9 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     let lib = upsertPage(upsertPage(emptyLibrary(), pg), pgRu);
     lib = upsertSet(lib, newSet("English one", { id: "st_en", pageIds: [pg.id], lang: "en", style: "print" }));
     lib = upsertSet(lib, newSet("Русская", { id: "st_ru", pageIds: [pgRu.id], lang: "ru" }));
-    const withEn = { ...record, languages: [...record.languages, { id: "en", title: "English", short: "ENG", status: "draft", alphabet: { lower: "abcdefghijklmnopqrstuvwxyz" }, methodology: false }] };
-    for (const [rec, titles] of [[record, ["Русская"]], [withEn, ["English one", "Русская"]]]) {
+    // (a deck without English — every one before «Прописи» 0.8.0 — and the deck of today, which has it)
+    const noEn = { ...record, languages: record.languages.filter((l) => l.id !== "en") };
+    for (const [rec, titles] of [[noEn, ["Русская"]], [record, ["English one", "Русская"]]]) {
       useAppStore.setState({ topicRecords: [rec] });
       const db = await openDb("p2lang-unknown-" + Date.now() + Math.random());
       await saveLibrary(lib, db);
@@ -202,10 +223,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     }
   });
   it("«Мои языки» = Russian only, with English and Slovenian notebooks made before: the new notebook still shows its language; the filter has «Другие» (owner, 2026-11-19)", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2my-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2")], activeTopicId: "propis2", account: { featureFlags: [] } });
     const db = await openDb("p2my-ru-" + Date.now());
     await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
     let lib = emptyLibrary();
@@ -232,18 +253,18 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
   it("an English notebook («Прописи: латиница») opens in the editor on its own paper", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2lang-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    const testCopy = await getTopicRecord(tdb, "propis2_lang");
-    useAppStore.setState({ topicRecords: [testCopy], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    const testCopy = await getTopicRecord(tdb, "propis2");
+    useAppStore.setState({ topicRecords: [testCopy], activeTopicId: "propis2", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2lang-en-" + Date.now());
     await seedMyLangs(db);
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
-    expect(host.querySelector(".screen-title").textContent).toBe("Прописи: латиница");
+    expect(host.querySelector(".screen-title").textContent).toBe("Прописи");
     // English and Slovenian (a published draft since deck 0.10.0): the new notebook's language can be chosen, English first
     expect(host.querySelector('[data-testid="propis2-new-lang"]')).not.toBeNull();
     await click(btn(host, "Новая тетрадь"));
@@ -280,10 +301,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
   it("a row's style is offered for the whole page for a few seconds, «На всю страницу» (owner, 2026-11-20); no page style button", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2pstyle-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2")], activeTopicId: "propis2", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2pstyle-en-" + Date.now());
     await seedMyLangs(db);
     const host = document.createElement("div");
@@ -328,10 +349,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
   it("a row of an English page writes in a style of its own (row.style): print, then joined, on one page", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2rstyle-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2")], activeTopicId: "propis2", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2rstyle-en-" + Date.now());
     await seedMyLangs(db);
     const host = document.createElement("div");
@@ -370,10 +391,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
   it("a Russian row takes «Печатные» on the copybook ruling; a print paper (picked in «Бумага») takes the page into print letters, «Прописные» stays in the list, greyed (owner, 2026-11-20)", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2rstyle-ru-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2")], activeTopicId: "propis2", account: { featureFlags: [] } });
     const db = await openDb("p2rstyle-ru-" + Date.now());
     await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
     const host = document.createElement("div");
@@ -423,10 +444,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
   it("«Книжные» (print capitals + small letters) makes the row a sample to copy: written once, no red dots (owner, 2026-11-21)", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2book-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: [] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2")], activeTopicId: "propis2", account: { featureFlags: [] } });
     const db = await openDb("p2book-ru-" + Date.now());
     await kv.set(db, PREFS_KEY, { langs: ["ru"], updatedAt: 1 });
     const host = document.createElement("div");
@@ -458,10 +479,10 @@ describe("propis2: languages per notebook in «Мои тетради»", () => {
     host.remove();
   });
   it("a ready Latin notebook (the Nelson joins) opens as a copy in its own style, «Британские соединённые»", async () => {
-    const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+    const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
     const tdb = await openDb("p2kit-tc-" + Date.now());
-    await importTopic(tdb, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2_lang")], activeTopicId: "propis2_lang", account: { featureFlags: ["draft_languages"] } });
+    await importTopic(tdb, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+    useAppStore.setState({ topicRecords: [await getTopicRecord(tdb, "propis2")], activeTopicId: "propis2", account: { featureFlags: ["draft_languages"] } });
     const db = await openDb("p2kit-en-" + Date.now());
     await seedMyLangs(db);
     const host = document.createElement("div");

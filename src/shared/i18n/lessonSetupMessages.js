@@ -2,6 +2,8 @@
 export const LESSON_SETUP_MESSAGES = {
   "ru": {
     "setup.contentLanguageRequired": "Выберите доступный язык занятия. Автоматическая подмена материала отключена.",
+    "setup.rewardPerPathNote": "Видеоприз за одну дорожку, пройденную без ошибок.",
+    "session.pathDone": "Дорожка пройдена!",
     "account.subscription": "Подписка",
     "account.noSubscription": "Подписка не оформлена",
     "account.manageSubscription": "Управлять подпиской",
@@ -467,6 +469,8 @@ export const LESSON_SETUP_MESSAGES = {
   },
   "sl": {
     "setup.contentLanguageRequired": "Izberite razpoložljivi jezik učnega gradiva. Samodejna zamenjava gradiva je izklopljena.",
+    "setup.rewardPerPathNote": "Videonagrada za eno pot brez napak.",
+    "session.pathDone": "Pot je prehojena!",
     "account.subscription": "Naročnina",
     "account.noSubscription": "Naročnina ni sklenjena",
     "account.manageSubscription": "Upravljaj naročnino",
@@ -933,6 +937,8 @@ export const LESSON_SETUP_MESSAGES = {
   // First English draft (2026-11-19), to be read before English is published.
   en: {
     "setup.contentLanguageRequired": "Choose an available lesson language. Automatic substitution of material is turned off.",
+    "setup.rewardPerPathNote": "A video prize for one path done without mistakes.",
+    "session.pathDone": "Path done!",
     "account.subscription": "Subscription",
     "account.noSubscription": "No subscription",
     "account.manageSubscription": "Manage subscription",

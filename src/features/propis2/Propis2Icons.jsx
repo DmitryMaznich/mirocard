@@ -1,4 +1,5 @@
 import SH from "./iconShapes.json";
+import { FOUR_LINE_PAPERS } from "@/handwriting/fourLinePapers.js";
 
 // Pictograms of the `propis2` constructor. Every control of the constructor is an icon (no visible text; the name of a
 // control is its aria-label for screen readers). 24x24, drawn with currentColor so a button decides the colour.
@@ -15,33 +16,42 @@ const rule = (y, x1 = 2.5, x2 = 21.5) => <path d={`M${x1} ${y}H${x2}`} stroke={G
 const baseRule = (y, x1 = 2.5, x2 = 21.5) => <path d={`M${x1} ${y}H${x2}`} stroke={DARK} strokeWidth={1.6} />;
 const guide = (y, x1 = 2.5, x2 = 21.5) => <path d={`M${x1} ${y}H${x2}`} stroke={RED} strokeWidth={1.2} strokeDasharray="1.5 1.7" />;
 const shape = (name, x = 0, y = 0, props = {}) => <g transform={`translate(${x} ${y})`} {...props}>{SH[name].d.map((d, i) => <path key={i} d={d} />)}</g>;
-const shapeStart = (name) => SH[name].d[0].match(/-?\d*\.?\d+/g).slice(0, 2).map(Number);
 const slants = (xs, y1, y2) => xs.map((x) => <path key={x} d={`M${x} ${y1}L${x - (y2 - y1) * 0.466} ${y2}`} stroke={GRAY} strokeWidth={1} />);
-const redDot = (x, y) => <circle cx={x} cy={y} r={1.7} fill={RED} stroke="none" />;
 
 // ---- paper kinds -------------------------------------------------------------------------------------------------------
-export const IconPaperPropis = () => S(<>{slants([9, 15, 21, 27], 3, 21)}{rule(6)}{guide(12)}{baseRule(18)}</>);
 export const IconPaperSquare = () => S(<><rect x="3.5" y="3.5" width="17" height="17" rx="1.5" stroke={GRAY} strokeWidth={1.2} /><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17" stroke={GRAY} strokeWidth={1.1} /></>);
 // the Bulgarian copybook ruling: bold - thin - thin - bold, a steep guide
 export const IconPaperBg = () => S(<><path d="M14 4L10 20" stroke={GRAY} strokeWidth={1} />{baseRule(4)}{rule(10, 3, 21)}{rule(14, 3, 21)}{baseRule(20)}</>);
-// A three-line paper drawn from its own measures (fourLinePapers.js: upMm xMm downMm gapMm, lines): its rows at 0.55 px per mm, as many
-// as fit — the 10 mm paper one big row, the 4.5 mm one two or three small ones — top line thin, x-line dashed (or thin), baseline bold
-// (owner, 2026-11-14: the Slovene papers all had the same Bulgarian icon, «все иконки этих сеток одинаковые»)
+// A three- or four-line paper (fourLinePapers.js): ONE row of it, its lines as the paper draws them (top / x-line / baseline / bottom:
+// thin, dashed, bold or none), a dimension arrow over the lowercase band and its height in mm — the way the Russian rows are told
+// apart (mmRow below; owner, 2026-11-24: «в русских мы сделали цифру… ни в славянской, ни в британской таких обозначений не делали»,
+// the British papers all had the Bulgarian icon, the Slovene ones only differed by how many rows fit). Drawn to one scale per family
+// of papers (the Slovene ones together, the British ones together), so a larger paper is also a taller row.
 const fourLineIcons = new Map();
+const familyOf = (id) => (id.startsWith("en_") ? id.split("_").slice(0, 2).join("_") : id.split("_")[0]);
+const rowMm = (p) => p.upMm + p.xMm + p.downMm;
+const mmText = (mm) => (Number.isInteger(mm) ? String(mm) : String(Math.round(mm * 10) / 10).replace(".", ","));
 export const fourLinePaperIcon = (id, p) => {
   if (fourLineIcons.has(id)) return fourLineIcons.get(id);
-  const k = 0.55, pitch = (p.upMm + p.xMm + p.downMm + p.gapMm) * k;
-  const band = (p.upMm + p.xMm) * k, n = Math.max(1, Math.floor((17.5 - band) / pitch) + 1);
-  const y0 = 12 - ((n - 1) * pitch + band) / 2; // the rows centred in the icon
-  const rows = Array.from({ length: n }, (_, i) => y0 + i * pitch);
-  const line = (kind, y, key) => kind === "dash"
-    ? <path key={key} d={`M2.5 ${y}H21.5`} stroke={GRAY} strokeWidth={1} strokeDasharray="1.6 1.4" />
-    : kind === "none" ? null : <path key={key} d={`M2.5 ${y}H21.5`} stroke={GRAY} strokeWidth={1.1} />;
-  const Icon = () => S(<>{rows.map((y, i) => <g key={i}>
-    {line(p.lines?.top ?? "thin", y, "t")}
-    {line(p.lines?.x ?? "dash", y + p.upMm * k, "x")}
-    <path d={`M2.5 ${y + (p.upMm + p.xMm) * k}H21.5`} stroke={DARK} strokeWidth={1.4} />
-  </g>)}</>);
+  const family = Object.entries(FOUR_LINE_PAPERS).filter(([pid]) => familyOf(pid) === familyOf(id)).map(([, q]) => rowMm(q));
+  const k = 19 / Math.max(rowMm(p), ...family);
+  const top = 12 - (rowMm(p) * k) / 2;
+  const ys = { top, x: top + p.upMm * k, base: top + (p.upMm + p.xMm) * k, bottom: top + rowMm(p) * k };
+  const kinds = { top: "thin", x: "dash", base: "bold", bottom: "thin", ...(p.lines ?? {}) };
+  const line = (which) => {
+    const y = ys[which];
+    if (kinds[which] === "none") return null;
+    if (kinds[which] === "dash") return <path key={which} d={`M2.5 ${y}H13`} stroke={GRAY} strokeWidth={1.1} strokeDasharray="1.6 1.4" />;
+    if (kinds[which] === "bold") return <path key={which} d={`M2.5 ${y}H13`} stroke={DARK} strokeWidth={1.6} />;
+    return <path key={which} d={`M2.5 ${y}H13`} stroke={GRAY} strokeWidth={1.1} />;
+  };
+  const t = mmText(p.xMm);
+  const head = Math.min(1.6, (ys.base - ys.x) / 3);
+  const Icon = () => S(<>
+    {["top", "x", "base", "bottom"].map(line)}
+    <path d={`M14.8 ${ys.x}V${ys.base}M${14.8 - head * 0.6} ${ys.x + head}L14.8 ${ys.x}L${14.8 + head * 0.6} ${ys.x + head}M${14.8 - head * 0.6} ${ys.base - head}L14.8 ${ys.base}L${14.8 + head * 0.6} ${ys.base - head}`} stroke={DARK} strokeWidth={1} />
+    <text x={t.length > 1 ? 20.3 : 19.9} y={(ys.x + ys.base) / 2 + (t.length > 1 ? 2.8 : 3.3)} textAnchor="middle" fontSize={t.length > 2 ? 5.6 : t.length > 1 ? 7.6 : 9.5} fontWeight="700" fontFamily="system-ui, sans-serif" fill={DARK} stroke="none">{t}</text>
+  </>);
   Icon.displayName = `IconPaper_${id}`;
   fourLineIcons.set(id, Icon);
   return Icon;
@@ -84,27 +94,20 @@ export const IconWriteAfter = () => S(<>{baseRule(10.5)}{shape("a_narrow", 4, -5
 
 // ---- page actions -------------------------------------------------------------------------------------------------------
 export const IconPlay = () => S(<><circle cx="12" cy="12" r="9" /><path d="M10 8.5l5.5 3.5-5.5 3.5z" fill="currentColor" /></>);
-export const IconFromMarked = () => S(<><path d="M7 3h7l4 4v14H7z" /><path d="M14 3v4h4" /><path d="M10.5 14.5l2 2 3.5-4" /></>);
 
 // ---- row tools ---------------------------------------------------------------------------------------------------------
-export const IconBackspace = () => S(<><path d="M8.5 5H20a1 1 0 011 1v12a1 1 0 01-1 1H8.5L3 12z" /><path d="M12.5 9.5l5 5M17.5 9.5l-5 5" /></>);
 export const IconUp = () => S(<><path d="M12 19V5M6 11l6-6 6 6" /></>);
 export const IconDown = () => S(<><path d="M12 5v14M6 13l6 6 6-6" /></>);
 export const IconDuplicate = () => S(<><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" /></>);
 // a clipboard with lines of text: «Вставить» (paste the copied text)
 export const IconPaste = () => S(<><path d="M9 4.5H7a2 2 0 00-2 2V19a2 2 0 002 2h10a2 2 0 002-2V6.5a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="3.5" rx="1" /><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4" /></>);
 export const IconTrash = () => S(<><path d="M4 7h16M10 7V4.5h4V7M6.5 7l1 13h9l1-13" /><path d="M10 11v6M14 11v6" /></>);
-export const IconRepeat = () => S(<><path d="M17 3l3 3-3 3" /><path d="M4 11V9.5A3.5 3.5 0 017.5 6H20" /><path d="M7 21l-3-3 3-3" /><path d="M20 13v1.5a3.5 3.5 0 01-3.5 3.5H4" /></>);
 export const IconWarn = () => S(<><path d="M12 3.5L2.8 19.5h18.4z" /><path d="M12 10v4.5" /><circle cx="12" cy="17.2" r=".6" fill="currentColor" /></>);
 
-// ---- kinds of a row: the sample, the sample with start dots, a clean row ----------------------------------------------------
+// ---- the element «крючок» and its copies, for the row options below ----------------------------------------------------------
 const hook = (x, props) => shape("hook", x, 0, props);
 const copy = { strokeDasharray: "1.4 2", stroke: "#6b7280", strokeWidth: 1.5 };
 const STEP = 7;
-const [HX, HY] = shapeStart("hook");
-export const IconMarkSample = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}</>);
-export const IconMarkDots = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
-export const IconMarkClean = () => S(<>{rule(18)}{guide(12)}</>);
 
 // ---- row options: repeat (the element «крючок» and its copies: dashed, pale solid, fading), start dots ---------------------------------------
 export const IconRepOne = () => S(<>{rule(18)}{hook(3)}</>);
@@ -129,30 +132,14 @@ export const IconDotsOne = () => dotsA([aStart(A_X)[0]]);
 export const IconDotsAll = () => dotsA([aStart(A_X)[0], aStart(A_COPY_X)[0]]);
 export const IconDotsStrokes = () => dotsA([...aStart(A_X), aStart(A_COPY_X)[0]]);
 export const IconRepSolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}{hook(2 + 2 * STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}</>);
-export const IconCopySolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { opacity: 0.35 })}{hook(2 + 2 * STEP, { opacity: 0.35 })}</>);
 
 // ---- what to put on the page: a symbol, a word, a text ------------------------------------------------------------------------
-export const IconTabWord = () => S(<><path d="M3 18h18" strokeWidth="1.3" opacity=".5" /><path d="M4 17c0-5 1.3-7 3-7s2 2 2 4.5c0-2.5.8-4.5 2.2-4.5S13 12 13 17" strokeWidth="1.6" /><path d="M13 17c0-3 1.2-5 3-5s2.5 2 2.5 5" strokeWidth="1.6" /></>);
 export const IconTabText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);
 export const IconAddRow = () => S(<><path d="M3 18h10" strokeWidth="1.6" /><path d="M3 12h10" strokeDasharray="2 2.4" strokeWidth="1.4" /><path d="M18 8v8M14 12h8" /></>);
-export const IconAddBlank = () => S(<><rect x="3.5" y="7" width="17" height="10" rx="2" strokeDasharray="2.2 2.6" strokeWidth="1.5" /><path d="M12 10v4M10 12h4" /></>);
-export const IconAddText = () => S(<><path d="M3 6h14M3 10.5h14M3 15h8" /><path d="M18 14v7M14.5 17.5h7" /></>);
 
-// ---- the hint shown while no row is selected: tap a row, then a symbol ------------------------------------------------------------
-export const IconTapHint = () => (
-  <svg viewBox="0 0 120 40" width="120" height="40" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-    <path d="M6 30h34M6 22h34" strokeDasharray="2 2.6" strokeWidth="1.4" opacity=".6" />
-    <path d="M26 6v14l-3-2.5-2 .6 5.2 8.4c.9 1.4 2.2 2.2 3.8 2.2h4c2.2 0 4-1.8 4-4v-5.5c0-1.2-1-2.2-2.2-2.2-.4-1-1.3-1.5-2.3-1.5-.6-1-1.5-1.5-2.5-1.5H29V6a1.5 1.5 0 00-3 0z" strokeWidth="1.5" />
-    <path d="M52 20h18M64 14l6 6-6 6" />
-    <path d="M82 31c0-9 3-13 6-13s4 4 4 9c0-5 1.4-9 4-9s5 4 5 13" strokeWidth="2" stroke="#1d4ed8" />
-  </svg>
-);
-
-// ---- presets ---------------------------------------------------------------------------------------------------------------
-export const IconPresets = () => S(<><rect x="6.5" y="3" width="13" height="15" rx="1.6" /><path d="M4 7v12.5A1.5 1.5 0 005.5 21H16" /><path d="M10 8h6M10 11.5h6M10 15h3.5" strokeWidth="1.4" /></>);
-export const IconSavePreset = () => S(<><path d="M6 3.5h12v17l-6-4-6 4z" /><path d="M12 7.5v5M9.5 10h5" /></>);
-// clear the page: an eraser (the bin is «delete», the pencil ✎ is «edit»)
-export const IconClearPage = () => S(<><path d="M14.5 4.5l5 5-8.5 8.5H6.5l-2.5-2.5a1.5 1.5 0 010-2.1z" /><path d="M10 9l5 5" /><path d="M11 18h9" stroke={GRAY} strokeWidth={1.4} /></>);
+// ---- clear, undo / redo, lock -------------------------------------------------------------------------------------------------
+// «Очистить» (2026-11-24): the sheet with its lines and an eraser on it — the eraser alone was small and read as «a tag»
+export const IconClearPage = () => S(<><path d="M13 20.5H5.2a1.7 1.7 0 01-1.7-1.7V5.2a1.7 1.7 0 011.7-1.7h8.6a1.7 1.7 0 011.7 1.7v4.3" /><path d="M6.5 8h6M6.5 11.5h4.5" strokeWidth="1.4" opacity=".6" /><path d="M14.6 21l-2.8-2.8a1.3 1.3 0 010-1.8l5.6-5.6a1.3 1.3 0 011.8 0l2.3 2.3a1.3 1.3 0 010 1.8L17.5 21z" /><path d="M14.4 13.6l4.9 4.9" /></>);
 // undo / redo: curved arrows, as in the editors (Edits)
 export const IconUndo = () => S(<><path d="M9 14L4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 010 11H11" /></>);
 export const IconRedo = () => S(<><path d="M15 14l5-5-5-5" /><path d="M20 9H9.5a5.5 5.5 0 000 11H13" /></>);
@@ -171,23 +158,23 @@ export const IconFormatA5 = () => formatText("А5");
 
 // ---- the list of elements: a hook and a fence on a row ----
 // elements = a tile like the ones in the list: a ruled cell with one pen stroke in it
-// elements = a tile like the ones in the list: two hooks (крючок влево, крючок вправо) on their ruling
-export const IconElement = () => S(<><rect x="2" y="2" width="20" height="20" rx="3.5" stroke={GRAY} strokeWidth={1.2} />{rule(6, 3.5, 20.5)}{guide(12.5, 3.5, 20.5)}{baseRule(19, 3.5, 20.5)}{shape("hook_l_big", 5)}{shape("hook_big", 12.5)}</>);
+// «Элемент» (2026-11-24): one copybook element, large, on its row — the old one had two small hooks inside a frame, hard to see on a button
+export const IconElement = () => S(<>{guide(12.5, 2.5, 21.5)}{baseRule(19.5, 2.5, 21.5)}<g transform="translate(8.2 -2.9) scale(1.2)" strokeWidth={1.6}>{shape("hook_big")}</g></>);
 // the printed letter in a frame (the «Буква» button): the frame and the capital «А» in the app's teal, as the letter stands on the page
 export const IconLetterFrame = () => S(<><rect x="3" y="3" width="18" height="18" rx="4.6" fill="#e8f4f1" stroke="#2a6b60" strokeWidth={1.8} /><path d="M8 17L12 7L16 17M9.5 13.6H14.5" stroke="#2a6b60" strokeWidth={2} /></>);
-export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);
 
 export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>); // pencil: unlock the kit page layout, keep the rows
 
 export const IconFitPage = () => S(<><rect x="8" y="6" width="8" height="12" rx="1.2" strokeWidth="1.4" /><path d="M3 7.5V3h4.5M16.5 3H21v4.5M21 16.5V21h-4.5M7.5 21H3v-4.5" strokeWidth="1.7" /></>); // the whole page in the frame
 export const IconFitWidth = () => S(<><rect x="7" y="4" width="10" height="16" rx="1.5" strokeWidth="1.4" /><path d="M2.5 12h6M2.5 12l2.2-2.2M2.5 12l2.2 2.2M21.5 12h-6M21.5 12l-2.2-2.2M21.5 12l-2.2 2.2" strokeWidth="1.7" /></>); // the page as wide as the canvas
-export const IconSpread = () => S(<><rect x="9" y="8" width="6" height="8" rx="1" /><path d="M6 12H2m2-2-2 2 2 2M18 12h4m-2-2 2 2-2 2M12 5V2m-2 2 2-2 2 2M12 19v3m-2-2 2 2 2-2" strokeWidth="1.6" /></>); // a setting of this page onto the whole notebook
+export const IconSpread = () => S(<><rect x="2" y="6" width="7.5" height="11" rx="1.3" /><path d="M10.6 11.5h3M12.2 9.9l1.6 1.6-1.6 1.6" strokeWidth="1.6" /><path d="M18 3.5h4v11.5" strokeWidth="1.4" opacity=".5" /><path d="M16.4 5h4v11.5" strokeWidth="1.4" opacity=".75" /><rect x="14.8" y="6.5" width="5.6" height="11.5" rx="1.1" fill="currentColor" fillOpacity=".12" /></>); // a setting of this row / page onto the rest: one sheet → the stack (2026-11-24: the four arrows read as «move»)
 export const IconAddPage = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.8" /><path d="M12 8.5v7M8.5 12h7" /></>); // a new blank page in the notebook
 
 export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18" rx="1.8" /><path d="M9 3v18" /><path d="M12 8h4M12 11.5h4" strokeWidth="1.4" /></>); // a notebook card in the library
 export const IconRename = () => S(<><path d="M4 20h16" /><path d="M6 16l.8-3.2L15.6 4a1.8 1.8 0 012.6 0 1.8 1.8 0 010 2.6L9.4 15.4z" /></>);
 
-// «Штрихи»: a letter А whose bar is left out (dashed) — the row writes some strokes of its letter
-export const IconStrokes = () => S(<><path d="M5 20L12 4l7 16" /><path d="M8.2 14h7.6" strokeDasharray="1.6 2" /></>);
+// «Штрихи» (2026-11-24): «А» of three strokes, one in ink and two pale — «write a part of the letter» (was the same «А» with a dashed bar,
+// which said nothing about parts; a copybook «а» at 24 px read as «0»)
+export const IconStrokes = () => S(<><path d="M12 3.5L18.6 20.5M8.4 14.5h7.2" strokeWidth={2} opacity={0.25} /><path d="M12 3.5L5.4 20.5" strokeWidth={2.2} /></>);
 // keep the changes in the notebook: a floppy disk, still the one save sign everybody reads (owner, 2026-11-19: the tick read as «закрыть»)
 export const IconSave = () => S(<><path d="M5 4h11.5L20 7.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" /><path d="M8 4v4.5h7V4" /><rect x="7.5" y="13" width="9" height="7" rx=".5" /></>);

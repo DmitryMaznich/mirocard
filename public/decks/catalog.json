@@ -164,7 +164,7 @@
     },
     {
       "id": "comparison_language_pilot",
-      "version": "0.5.1",
+      "version": "0.5.2",
       "title": {
         "ru": "Сравнение · языковой пилот",
         "sl": "Primerjanje · jezikovni pilot"
@@ -173,17 +173,17 @@
         "ru": "Три режима пилотной копии: сравнение количеств и чисел с крокодилом, рисование знака. Русский и словенский материал выбираются независимо от интерфейса. В русском пакете озвучена подсказка после ошибки; словенский пока без речи.",
         "sl": "Trije načini v pilotni kopiji: primerjanje količin in števil s krokodilom ter risanje znaka. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora."
       },
-      "url": "./decks/comparison_language_pilot_v0.5.1.zip",
+      "url": "./decks/comparison_language_pilot_v0.5.2.zip",
       "status": "hidden",
       "hidden": true,
       "access": "free",
       "languageDownload": {
         "schemaVersion": 1,
         "core": {
-          "url": "./decks/comparison_language_pilot_v0.5.1.zip",
-          "version": "0.5.1",
-          "bytes": 10625,
-          "sha256": "069bf34e6b43a30fe73947f6978b7e6ee8a7affee28f87342f3121bd23664885"
+          "url": "./decks/comparison_language_pilot_v0.5.2.zip",
+          "version": "0.5.2",
+          "bytes": 10624,
+          "sha256": "d1961b79a7f3ab360337b3dd03c5de6ca46bcece3a9c8cfd2845a1d620abe8c5"
         },
         "languages": {
           "ru": {
@@ -424,27 +424,29 @@
     },
     {
       "id": "propis2",
-      "version": "0.7.1",
+      "version": "0.8.0",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
       },
       "description": {
-        "ru": "Конструктор тетрадей по письму и тренажёры письменных букв на русском, болгарском и казахском: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
-        "en": "Handwriting notebook builder and written-letter trainers in Russian, Bulgarian and Kazakh: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
+        "ru": "Конструктор тетрадей по письму и тренажёры букв на русском, болгарском, казахском, английском и словенском: вы отмечаете свои языки, остальные не мешают. Прописные, печатные и книжные стили, страницы из элементов, букв, слов, цифр и текстов, готовые тетради, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант» (русский).",
+        "en": "Handwriting notebook builder and letter trainers in Russian, Bulgarian, Kazakh, English and Slovenian: pick your languages, the others stay out of the way. Cursive, print and book styles, pages of elements, letters, words, digits and texts, ready notebooks, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation (Russian)."
       },
-      "url": "./decks/propis2_v0.7.1.zip",
+      "url": "./decks/propis2_v0.8.0.zip",
       "status": "release",
       "access": "paid",
       "materialLanguages": [
         "ru",
         "bg",
-        "kk"
+        "kk",
+        "en",
+        "sl"
       ]
     },
     {
       "id": "propis2_lang",
-      "version": "0.12.3",
+      "version": "0.12.4",
       "title": {
         "ru": "Прописи: латиница",
         "en": "Copybook: Latin script"
@@ -453,8 +455,8 @@
         "ru": "Прописи на всех языках в одной теме (проба перед слиянием с «Прописями»): русский, болгарский, казахский, английский — вы отмечаете свои языки, остальные не мешают. Прописные и печатные стили, конструктор тетрадей, готовые тетради, карточки «Узнай букву» и «Строчная и заглавная», диктант — для русского.",
         "en": "Every alphabet of the Copybook in one topic (the try-out before it joins «Прописи»): Russian, Bulgarian, Kazakh, English — pick your languages, the others stay out of the way. Cursive and print styles, a notebook builder, ready notebooks, letter cards; dictation in Russian."
       },
-      "url": "./decks/propis2_lang_v0.12.3.zip",
-      "status": "release",
+      "url": "./decks/propis2_lang_v0.12.4.zip",
+      "status": "archived",
       "access": "paid",
       "materialLanguages": [
         "ru",

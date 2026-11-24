@@ -22,7 +22,9 @@ async function install(id, file) {
   await importTopic(db, await readFile(file ?? `public/decks/${entry.url.replace("./decks/", "")}`), "999.0.0");
   return getTopicRecord(db, id);
 }
-const [multi, ru, bg] = await Promise.all([install("propis2"), install("propis2", "test-fixtures/decks/propis2_v0.5.11.zip"), install("propis2_bg")]);
+const [multi, ru, bg, tried] = await Promise.all([install("propis2"), install("propis2", "test-fixtures/decks/propis2_v0.5.11.zip"), install("propis2_bg"), install("propis2_lang")]);
+// (`tried`: «Прописи: латиница» 0.12.4, the try-out of every alphabet in one topic the owner checked before it became «Прописи» 0.8.0,
+// 2026-11-24 — since then the copybook letters are the redrawn ones (letter parts, «Штрихи»), no longer v0.5.11's)
 const page = (rec, lines, grid) => renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines, grid })} bare />);
 
 describe("propis2 Kazakh word notebooks (variant.json kits, 2026-11-02)", () => {
@@ -52,22 +54,24 @@ describe("propis2 writing languages", () => {
     expect(pickLanguage(ru, "bg")).toBeNull();
   });
 
-  it("«Прописи» carry Russian, Bulgarian and Kazakh, for everyone, the dictation kept — no draft language; the Latin deck is released too", () => {
+  it("«Прописи» carry every alphabet, for everyone, the dictation kept (Russian) — no draft language; the Latin try-out deck is archived", () => {
     expect(catalog.decks.find((d) => d.id === "propis2").status).toBe("release");
-    // «Прописи: латиница» (English) — open to everyone since 2026-11-11, paid as propis2 (docs/latin-letters.md)
-    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("release");
-    expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "ready"]]);
+    // «Прописи: латиница» — archived since propis2 0.8.0 (2026-11-24): its languages are in «Прописи» itself
+    expect(catalog.decks.find((d) => d.id === "propis2_lang").status).toBe("archived");
+    expect(deckLanguages(multi).map((l) => [l.id, l.status])).toEqual([["ru", "ready"], ["bg", "ready"], ["kk", "ready"], ["en", "ready"], ["sl", "ready"]]);
+    expect(multi.meta.myLanguages).toBe(true);
+    expect(multi.modes.find((m) => m.type === "dictation").requiresLanguages).toEqual(["ru"]);
     expect(multi.modes.map((m) => m.type)).toEqual(ru.modes.map((m) => m.type));
     expect(multi.modes.map((m) => m.type)).toContain("dictation");
-    expect(offeredLanguages(multi).map((l) => l.id)).toEqual(["ru", "bg", "kk"]);
-    expect(offeredLanguages(multi, true).map((l) => l.id)).toEqual(["ru", "bg", "kk"]);
+    expect(offeredLanguages(multi).map((l) => l.id)).toEqual(["ru", "bg", "kk", "en", "sl"]);
+    expect(offeredLanguages(multi, true).map((l) => l.id)).toEqual(["ru", "bg", "kk", "en", "sl"]);
     expect(pickLanguage(multi, undefined)).toBe("ru");
     expect(pickLanguage(multi, "xx")).toBe("ru");
   });
 
-  it("its Russian is `propis2` v0.5.11 exactly: pages on every paper, alphabet, dictation banks", () => {
+  it("its Russian: the pages of the checked try-out deck exactly; alphabet and dictation banks of `propis2` v0.5.11", () => {
     const lines = ["мама мыла раму", "у Шуры шары", "Ёжик и Юля", "", "щука, ёлка, съел"];
-    for (const grid of ["regular", "dense", "square", "ruled"]) expect(page(languageView(multi, "ru"), lines, grid)).toBe(page(ru, lines, grid));
+    for (const grid of ["regular", "dense", "square", "ruled"]) expect(page(languageView(multi, "ru"), lines, grid)).toBe(page(languageView(tried, "ru"), lines, grid));
     expect(topicAlphabet(languageView(multi, "ru")).lower.join("")).toBe(topicAlphabet(ru).lower.join(""));
     expect(multi.words).toEqual(ru.words);
     expect(multi.texts).toEqual(ru.texts);
@@ -91,7 +95,9 @@ describe("propis2 writing languages", () => {
   it("its Kazakh is the Kazakh variant (tools/propis2/variants/kk/variant.json) exactly: 42 letters, its writing, the same pages", async () => {
     // the variant deck as build-propis2-deck.mjs --variant kk makes it, over the installed `propis2` (the same base)
     const v = JSON.parse(await readFile("tools/propis2/variants/kk/variant.json", "utf-8"));
-    const kk = structuredClone({ ...ru, meta: { ...ru.meta }, modes: ru.modes });
+    // (over the Russian of today's deck: the copybook letters Kazakh shares with Russian are the redrawn ones since 0.8.0)
+    const base = languageView(multi, "ru");
+    const kk = structuredClone({ ...base, languages: undefined, meta: { ...base.meta }, modes: ru.modes });
     applyVariant(kk, v);
     const view = languageView(multi, "kk");
     const lower = topicAlphabet(view, buildGlyphMap(view)).lower.join("");
@@ -105,7 +111,7 @@ describe("propis2 writing languages", () => {
 
   it("the letter cards take the language from the mode's own settings, Russian by default", () => {
     for (const m of multi.modes.filter((x) => ["letters_recognize", "letters_case"].includes(x.type))) {
-      expect(m.params.writingLang).toMatchObject({ type: "enum", values: ["ru", "bg", "kk"], default: "ru" });
+      expect(m.params.writingLang).toMatchObject({ type: "enum", values: ["ru", "bg", "kk", "en", "sl"], default: "ru" });
       expect(m.params.writingLang.labels.ru.kk).toBe("Қазақша");
     }
     // Kazakh words start with Ы (Ыстық): its capital is expected, it shows up once it is drawn

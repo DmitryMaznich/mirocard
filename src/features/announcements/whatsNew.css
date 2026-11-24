@@ -1,0 +1,7 @@
+/* «Что нового» (WhatsNewScreen.jsx): a card per announcement, on the settings screens' sections (.settings-section) */
+.whats-new-item { padding: 14px 16px 6px; }
+.whats-new-meta { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #7c8c89; font-weight: 700; }
+.whats-new-badge { background: #4a9b8f; color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800; }
+.whats-new-title { margin: 6px 0 8px; font-size: 1.05rem; font-weight: 800; color: #1f3b38; }
+.whats-new-item p { margin: 0 0 10px; line-height: 1.45; color: #2f4a47; }
+.whats-new-empty { text-align: center; color: #7c8c89; margin-top: 24px; }

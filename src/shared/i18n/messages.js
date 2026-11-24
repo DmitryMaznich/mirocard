@@ -6,6 +6,7 @@ import { AUTH_MESSAGES } from "./authMessages.js";
 import { PROPIS2_EDITOR_MESSAGES } from "./propis2EditorMessages.js";
 import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
+import { ANNOUNCEMENT_MESSAGES } from "./announcementMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
 import { TOPIC_PREVIEW_MESSAGES } from "./topicPreviewMessages.js";
 import { DAILY_ORIENTATION_MESSAGES } from "./dailyOrientationMessages.js";
@@ -19,6 +20,7 @@ export const UI_MESSAGES = {
     ...TOPIC_PREVIEW_MESSAGES.ru,
     ...TOPIC_LANGUAGE_MESSAGES.ru,
     ...ADULT_MESSAGES.ru,
+    ...ANNOUNCEMENT_MESSAGES.ru,
     ...LESSON_SETUP_MESSAGES.ru,
     "languages.lesson": "Предпочтительный язык занятий",
     "languages.inherit": "Как в настройках аккаунта",
@@ -115,6 +117,7 @@ export const UI_MESSAGES = {
     ...TOPIC_PREVIEW_MESSAGES.sl,
     ...TOPIC_LANGUAGE_MESSAGES.sl,
     ...ADULT_MESSAGES.sl,
+    ...ANNOUNCEMENT_MESSAGES.sl,
     ...LESSON_SETUP_MESSAGES.sl,
     "languages.lesson": "Želeni jezik vaj",
     "languages.inherit": "Kot v nastavitvah računa",
@@ -213,6 +216,7 @@ export const UI_MESSAGES = {
     ...TOPIC_PREVIEW_MESSAGES.en,
     ...TOPIC_LANGUAGE_MESSAGES.en,
     ...ADULT_MESSAGES.en,
+    ...ANNOUNCEMENT_MESSAGES.en,
     ...LESSON_SETUP_MESSAGES.en,
     "languages.lesson": "Preferred lesson language",
     "languages.inherit": "As in the account settings",

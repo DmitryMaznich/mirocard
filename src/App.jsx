@@ -47,10 +47,12 @@ import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import AccountScreen from "@/features/settings/AccountScreen";
 import HelpScreen from "@/features/help/HelpScreen";
+import WhatsNewScreen from "@/features/announcements/WhatsNewScreen";
 import PrivacyScreen from "@/features/help/PrivacyScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
+import AnnouncementHost from "@/features/announcements/AnnouncementHost";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
 import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
 import PlannerPutawayScreen from "@/features/planner/PlannerPutawayScreen";
@@ -129,6 +131,7 @@ const SCREENS = {
   settings: SettingsScreen,
   account: AccountScreen,
   help: HelpScreen,
+  whatsNew: WhatsNewScreen,
   privacy: PrivacyScreen,
   planner_menu: PlannerMenuScreen,
   planner_shopping: PlannerShoppingScreen,
@@ -412,6 +415,7 @@ export default function App() {
       </ErrorBoundary>
       <TopicUiPreviewContext />
       <TopicLanguageDialog />
+      <AnnouncementHost />
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}
     </>
