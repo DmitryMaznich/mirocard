@@ -32,18 +32,17 @@ const variantId = (() => {
 })();
 if (variantId !== null && !/^[a-z]+$/.test(variantId ?? "")) throw new Error("--variant needs an id (tools/propis2/variants/<id>)");
 const LANGUAGES_PATH = variantId ? null : "tools/propis2/languages.json";
-// `--latin`: «Прописи: латиница» (id `propis2_lang`, tools/propis2/latin.json; owner, 2026-11-09: Cyrillic and Latin are two decks, too
-// many languages and styles in one) -- the same engine and renderer, built from data only, with ONLY the languages marked
-// `deck: "latin"` in languages.json (English), and without the dictation (Russian only). The ordinary build never takes a
-// `deck: "latin"` language, nor a draft one. Since the Latin deck is out for everyone (`release`, 2026-11-11) its build leaves draft
-// languages out too (the Slovenian one, docs/propis2-sl.md); `--drafts --out <file.zip>` builds a try-out copy WITH them, written only
-// to that file — public/decks and the catalog are not touched.
+// `--latin` built «Прописи: латиница» (id `propis2_lang`, tools/propis2/latin.json), the try-out of ONE «Прописи» with every alphabet and
+// «Мои языки» (owner, 2026-11-16). Since `propis2` 0.8.0 (2026-11-24, owner: «заменить тему Прописи») the ordinary build IS that deck:
+// every language of languages.json (the Latin ones too), «Мои языки», the dictation for those who have Russian; `propis2_lang` is
+// archived (catalog status `archived`: keeps installed copies hidden — never delete the entry). Draft languages stay out unless
+// `publishDraft`; `--drafts --out <file.zip>` builds a try-out copy WITH them, written only to that file — public/decks and the catalog
+// are not touched.
 const latin = process.argv.includes("--latin");
 const drafts = process.argv.includes("--drafts");
 const OUT = process.argv.includes("--out") ? process.argv[process.argv.indexOf("--out") + 1] : null;
 if (drafts && !OUT) throw new Error("--drafts builds a try-out copy: give it --out <file.zip> (never public/decks)");
-if (latin && variantId) throw new Error("--latin builds the Latin deck, not a variant");
-const LATIN_PATH = "tools/propis2/latin.json";
+if (latin) throw new Error("--latin: «Прописи: латиница» (propis2_lang) is archived since propis2 0.8.0 — the ordinary build carries every language");
 const VARIANT_PATH = variantId && `tools/propis2/variants/${variantId}/variant.json`;
 const variant = variantId ? JSON.parse(readFileSync(VARIANT_PATH, "utf-8")) : null;
 
@@ -97,7 +96,7 @@ if (langSpec) {
   // since the Latin deck 0.10.0, owner, 2026-11-14: «сразу в латиницу для всех»)
   // «Прописи: латиница» is the try-out of ONE «Прописи» with every alphabet and «Мои языки» (owner, 2026-11-16: «откатать слияние на
   // теме Прописи латиница, если всё ок — соберём всё в главную тему»): it takes every language, the Cyrillic ones too
-  const inDeck = (l) => (latin || l.deck !== "latin") && (drafts || l.status !== "draft" || l.publishDraft);
+  const inDeck = (l) => drafts || l.status !== "draft" || l.publishDraft;
   const skipped = langSpec.languages.filter((l) => !inDeck(l)).map((l) => l.id);
   if (skipped.length) console.log(`  (languages left out of this deck: ${skipped.join(", ")})`);
   topic.languages = langSpec.languages.filter(inDeck).map((spec) => {
@@ -169,10 +168,7 @@ if (langSpec) {
 // the variant's ready notebooks (variant.json `kits`, built from the base kits): carried in the deck, Propis2Home takes them over its own
 if (variant?.kits?.length) topic.kits = variantKits(variant, JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits);
 
-if (latin) {
-  const tc = JSON.parse(readFileSync(LATIN_PATH, "utf-8"));
-  // its own description for the topic card (latin.json `about`: the Nelson scheme, no dictation), not propis2's
-  topic.meta = { ...topic.meta, id: "propis2_lang", version: tc.version, title: tc.title.ru, ...(tc.about ? { about: tc.about } : {}), ...(tc.avatar ? { avatar: tc.avatar } : {}) };
+if (!variant) {
   // «Мои языки» (src/topics/renderers/propis2/myLanguages.js): the adult sees the languages they picked; the dictation is recorded in
   // Russian only — it is shown to those who have Russian among theirs (`requiresLanguages`, owner 2026-11-16: «диктант скрываем для тех
   // языков, где нет озвучки»)
@@ -183,7 +179,7 @@ const ID = topic.meta.id;
 const VERSION = topic.meta.version;
 const ZIP_PATH = OUT ?? `public/decks/${ID}_v${VERSION}.zip`;
 if (!OUT && existsSync(ZIP_PATH)) {
-  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? (latin ? LATIN_PATH : TOPIC_PATH)} before building again.`);
+  throw new Error(`${ZIP_PATH} already exists. Bump meta.version in ${VARIANT_PATH ?? TOPIC_PATH} before building again.`);
 }
 
 const zip = new JSZip();
@@ -194,7 +190,7 @@ console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024).toFixed(0)} KB, ${topic.w
 if (OUT) process.exit(0); // a try-out copy: the catalog stays as it is
 
 const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
-const own = variant ?? (latin ? JSON.parse(readFileSync(LATIN_PATH, "utf-8")) : null);
+const own = variant;
 const entry = own
   ? { id: ID, version: VERSION, title: (own.catalog ?? own).title, description: (own.catalog ?? own).description, url: `./decks/${ID}_v${VERSION}.zip`, status: (own.catalog ?? own).status, access: (own.catalog ?? own).access }
   : {
@@ -202,8 +198,8 @@ const entry = own
     version: VERSION,
     title: { ru: topic.meta.title, en: "Copybook" },
     description: {
-      ru: "Конструктор тетрадей по письму и тренажёры письменных букв на русском, болгарском и казахском: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
-      en: "Handwriting notebook builder and written-letter trainers in Russian, Bulgarian and Kazakh: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation.",
+      ru: "Конструктор тетрадей по письму и тренажёры букв на русском, болгарском, казахском, английском и словенском: вы отмечаете свои языки, остальные не мешают. Прописные, печатные и книжные стили, страницы из элементов, букв, слов, цифр и текстов, готовые тетради, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант» (русский).",
+      en: "Handwriting notebook builder and letter trainers in Russian, Bulgarian, Kazakh, English and Slovenian: pick your languages, the others stay out of the way. Cursive, print and book styles, pages of elements, letters, words, digits and texts, ready notebooks, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation (Russian).",
     },
     url: `./decks/propis2_v${VERSION}.zip`,
     status: "release",

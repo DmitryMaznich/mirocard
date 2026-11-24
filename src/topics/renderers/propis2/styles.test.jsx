@@ -34,9 +34,9 @@ const twoStyles = {
 describe("propis2 writing styles", () => {
   it("a language without styles gives the view it always gave", () => {
     // (Russian has styles since deck 0.7.0 — «Прописные» first, «Печатные»: its first style writes the page it always wrote)
-    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => st.id)).toEqual(["cursive", "print"]);
+    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => st.id)).toEqual(["cursive", "print", "book"]);
     expect(page(languageView(deck, "ru", "cursive"), ["мама мыла раму"], "propis")).toBe(page(languageView(deck, "ru", "x"), ["мама мыла раму"], "propis"));
-    for (const l of deck.languages.filter((x) => x.id !== "ru")) {
+    for (const l of deck.languages.filter((x) => ["bg", "kk"].includes(x.id))) { // (English and Slovenian have styles of their own)
       expect(langStyles(l)).toBeNull();
       expect(pickStyle(deck, l.id, "anything")).toBeNull();
       const view = languageView(deck, l.id, "anything");

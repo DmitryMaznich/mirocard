@@ -13,10 +13,10 @@ import { deckPapers } from "./model.js";
 
 // The Slovenian language of «Прописи: латиница» (docs/propis2-sl.md, step 2), in the deck since 0.10.0 (a draft marked «черновик» until 0.12.4, ready since). Here it is laid over
 // the published Latin deck the way scripts/build-propis2-deck.mjs does it (a style's letters from its `glyphsFile`).
-const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
 const db = await openDb(`test-latin-sl-${Date.now()}`);
-await importTopic(db, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-const published = await getTopicRecord(db, "propis2_lang");
+await importTopic(db, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+const published = await getTopicRecord(db, "propis2");
 const spec = JSON.parse(await readFile("tools/propis2/languages.json", "utf-8")).languages.find((l) => l.id === "sl");
 const { deck: _deck, ...sl } = spec;
 sl.styles = await Promise.all(sl.styles.map(async ({ glyphsFile, ...st }) => ({ ...st, glyphs: JSON.parse(await readFile(glyphsFile, "utf-8")).glyphs })));

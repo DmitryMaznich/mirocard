@@ -17,7 +17,7 @@ async function install(id) {
   await importTopic(db, await readFile(`public/decks/${entry.url.replace("./decks/", "")}`), "999.0.0");
   return getTopicRecord(db, id);
 }
-const decks = await Promise.all(["propis2", "propis2_lang"].map(install));
+const decks = await Promise.all(["propis2"].map(install));
 const hands = decks.flatMap((rec) => (deckLanguages(rec) ?? []).flatMap((l) => (langStyles(l) ?? [null]).map((st) => ({ name: `${rec.meta.id}/${l.id}${st ? `/${st.id}` : ""}`, view: languageView(rec, l.id, st?.id) }))));
 
 describe("colon, semicolon and dash in every alphabet", () => {

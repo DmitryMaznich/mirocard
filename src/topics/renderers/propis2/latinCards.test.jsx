@@ -8,10 +8,10 @@ import { generateTasks } from "./engine.js";
 
 // The letter cards («Узнай букву», «Строчная и заглавная») in English, both styles (docs/latin-letters.md): the tasks are made of the
 // Latin alphabet and every card view draws them from the chosen style. «Прописи: латиница» (propis2_lang) carries English.
-const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
 const db = await openDb(`test-latin-cards-${Date.now()}`);
-await importTopic(db, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-const deck = await getTopicRecord(db, "propis2_lang");
+await importTopic(db, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+const deck = await getTopicRecord(db, "propis2");
 const modes = deck.modes.filter((m) => ["letters_recognize", "letters_case"].includes(m.type));
 
 describe("letter cards in English", () => {

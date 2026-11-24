@@ -46,21 +46,20 @@ describe("English print letters in the propis2 engine", () => {
     }
   });
 
-  it("English is in «Прописи: латиница» (the try-out of every alphabet in one topic), not yet in propis2", async () => {
+  it("English is in «Прописи» (since 0.8.0, 2026-11-24: every alphabet in one topic; «Прописи: латиница» archived)", async () => {
     const catalog = JSON.parse(readFileSync("public/decks/catalog.json", "utf-8"));
     const deck = async (id) => {
       const e = catalog.decks.find((d) => d.id === id);
       const zip = await JSZip.loadAsync(readFileSync(`public/decks/${e.url.replace("./decks/", "")}`));
       return { entry: e, topic: JSON.parse(await zip.file("topic.json").async("string")) };
     };
-    const prod = await deck("propis2");
-    expect(prod.entry.status).toBe("release");
-    expect(prod.topic.languages.map((l) => l.id)).not.toContain("en");
-    const test = await deck("propis2_lang");
-    expect(test.entry.status).toBe("release"); // open to all since 2026-11-11 (paid, as propis2)
-    expect(test.entry.access).toBe(prod.entry.access); // paid as propis2
-    expect(test.topic.meta.title).toBe("Прописи: латиница");
-    // since 0.11.0 the try-out of ONE «Прописи» with every alphabet and «Мои языки» (owner, 2026-11-16); Slovenian a published draft
+    const test = await deck("propis2");
+    expect(test.entry.status).toBe("release");
+    expect(test.entry.access).toBe("paid");
+    expect(test.topic.meta.title).toBe("Прописи");
+    // the try-out deck is archived (its entry stays: it keeps installed copies hidden)
+    expect((await deck("propis2_lang")).entry.status).toBe("archived");
+    // every alphabet and «Мои языки» (owner, 2026-11-16; in propis2 since 0.8.0); Slovenian ready since 2026-11-24
     expect(test.topic.languages.map((l) => l.id)).toEqual(["ru", "bg", "kk", "en", "sl"]);
     expect(test.topic.meta.myLanguages).toBe(true);
     // the dictation is recorded in Russian: shown only to those with Russian among «Мои языки» (myLanguagesView.js)

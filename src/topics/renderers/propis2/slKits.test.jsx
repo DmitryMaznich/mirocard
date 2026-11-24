@@ -8,10 +8,10 @@ import { glyphMapOf } from "./pageTask.js";
 
 // The Slovenian ready notebooks (tools/propis2/build-sl-kits.mjs → sl-kits.json, docs/propis2-sl.md step 5): «Abeceda» in the three
 // school styles, «Števila», «Dnevi in meseci», «Moji podatki» — words from «Za začetek», on the Slovene paper 5 mm, A5.
-const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
 const db = await openDb(`test-sl-kits-${Date.now()}`);
-await importTopic(db, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-const deck = await getTopicRecord(db, "propis2_lang");
+await importTopic(db, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+const deck = await getTopicRecord(db, "propis2");
 const kits = deck.languages.find((l) => l.id === "sl").kits;
 
 describe("Slovenian ready notebooks", () => {

@@ -10,10 +10,10 @@ import { LATIN_KIT_OLD_TITLES } from "./data.js";
 
 // The ready notebooks of «Прописи: латиница» (tools/propis2/latin-kits.json, scripts/lib/propis2-latin-kits.mjs, docs/latin-letters.md):
 // the Nelson joins, a page per pair, 16 pages a notebook, words from the CIS second-year English textbooks.
-const tc = JSON.parse(await readFile("tools/propis2/latin.json", "utf-8"));
+const tc = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8")).meta;
 const db = await openDb(`test-latin-kits-${Date.now()}`);
-await importTopic(db, await readFile(`public/decks/propis2_lang_v${tc.version}.zip`), "999.0.0");
-const deck = await getTopicRecord(db, "propis2_lang");
+await importTopic(db, await readFile(`public/decks/propis2_v${tc.version}.zip`), "999.0.0");
+const deck = await getTopicRecord(db, "propis2");
 const allKits = deck.languages.find((l) => l.id === "en").kits;
 const kits = allKits.filter((k) => k.id.startsWith("en-join-"));
 const series = allKits.filter((k) => k.id.startsWith("en-steps-"));

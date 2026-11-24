@@ -42,8 +42,9 @@ function letterBoxes(line, paper) {
 }
 
 describe("propis2: the Russian print style «Печатные»", () => {
-  it("Russian has two styles, the copybook hand first; the print one writes capitals only, on its own three papers", () => {
-    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => [st.id, st.title])).toEqual([["cursive", "Прописные"], ["print", "Печатные"]]);
+  it("Russian has three styles, the copybook hand first; the print one writes capitals only, on its own three papers", () => {
+    // («Книжные» since 2026-11-21: print capitals + small letters, a sample to copy)
+    expect(langStyles(deck.languages.find((l) => l.id === "ru")).map((st) => [st.id, st.title])).toEqual([["cursive", "Прописные"], ["print", "Печатные"], ["book", "Книжные"]]);
     expect(deckPapers(view).map((g) => g.id)).toEqual(["print_cell", "print_bigcell", "print_line"]);
     expect(deckPapers(languageView(deck, "ru", "cursive")).map((g) => g.id)).toEqual(["propis", "m1", "m2", "square", "ruled"]);
     expect(map.script).toMatchObject({ joins: false, caps: true });
@@ -105,11 +106,11 @@ describe("propis2: a row writes only some strokes of its letter (row.parts → #
   });
 });
 
-describe("propis2: the copybook hand has no parts in the app yet (owner, 2026-11-16: the automatic cut needs polishing first)", () => {
-  it("и а п are one part each: «Что пишем» offers nothing, the row writes the letter whole", async () => {
+describe("propis2: the copybook hand's parts come from the letters' own elements, not from the automatic cut (still off in the app)", () => {
+  it("и а п have their elements (tools/handwriting/cyrillic/letter_elements.json, «Штрихи», 2026-11-21): two parts each", async () => {
     const { letterPieces } = await import("@/handwriting/letterParts.js");
     const cursive = glyphMapOf(languageView(deck, "ru", "cursive"));
-    expect([..."иап"].map((ch) => letterPieces(cursive.get(ch)).length)).toEqual([1, 1, 1]);
+    expect([..."иап"].map((ch) => letterPieces(cursive.get(ch)).length)).toEqual([2, 2, 2]);
     // the print letters keep theirs: every stroke a part
     expect(letterPieces(map.get("А")).length).toBe(3);
   });
