@@ -1306,7 +1306,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled, 
       {openConcept && (
         <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
           {openConcept === "week" && <WeekContent today={now} weekItems={weekItems} planPhotos={planPhotos} importantDates={importantDates} onSpeak={soundEnabled ? speakInModal : null} speakDays={cardSound} />}
-          {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} importantDates={importantDates} />}
+          {openConcept === "date" && <DateContent activeDate={activeDate} today={now} importantDates={importantDates} pictureFor={importantPicture} />}
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
           {openConcept === "daypart" && <DaypartContent daypartId={daypartId} bounds={bounds} />}

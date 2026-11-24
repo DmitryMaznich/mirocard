@@ -564,3 +564,61 @@
   font-weight: 900;
 }
 .dom-weekplan__cycle { margin: clamp(4px, 1vh, 10px) 0 0; color: #5d7378; font-size: clamp(14px, 1.7vw, 22px); font-weight: 800; }
+
+/* ── Число, 2026-11-24: only «сегодня» stands out ─────────────────── */
+.dom--date .dom-calendar__cell {
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px;
+  border: 0;
+  color: var(--dom-ink, #0f3b4c);
+  font-family: inherit;
+  font-size: clamp(15px, 1.8vw, 26px);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dom--date .dom-calendar__cell--weekend { color: #9c4424; }
+.dom--date .dom-calendar__cell--blank { cursor: default; }
+/* Past days: the number fades, a «вчера» above it stays readable. */
+.dom--date .dom-calendar__cell--past { opacity: 1; background: #f7f6f2; }
+.dom--date .dom-calendar__cell--past.dom-calendar__cell--weekend { background: #fdf1ea; }
+.dom--date .dom-calendar__cell--past .dom-calendar__number { opacity: .38; }
+.dom--date .dom-calendar__cell--past .dom-calendar__mark { opacity: .45; }
+.dom--date .dom-calendar__cell--today {
+  background: var(--dom-date);
+  color: #fff;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--dom-date);
+}
+.dom--date .dom-calendar__cell--picked { outline: 3px dashed #8a9a9e; outline-offset: -3px; }
+.dom--date .dom-calendar__cell:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.dom-calendar__tag { font-size: clamp(8px, .85vw, 12px); font-weight: 900; color: #5d7378; text-transform: uppercase; line-height: 1; }
+.dom-calendar__cell--today .dom-calendar__tag { color: #fff; }
+.dom--date .dom-calendar__mark { position: static; font-size: clamp(16px, 2.1vw, 30px); line-height: 1; }
+.dom--date .dom-calendar__mark--photo { width: clamp(18px, 2.4vw, 32px); height: clamp(18px, 2.4vw, 32px); border-radius: 6px; object-fit: cover; }
+
+.dom-date-side { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: clamp(12px, 1.6vw, 22px); padding-top: clamp(30px, 4.6vw, 64px); }
+.dom-date-side .dom-date-say { flex: none; justify-content: flex-start; gap: clamp(6px, .8vw, 10px); background: #fff3ec; }
+.dom-date-side .dom-date-say__caption { text-transform: none; letter-spacing: 0; color: #8a6a4a; font-size: clamp(13px, 1.3vw, 18px); }
+.dom-date-side .dom-date-say__phrase { font-size: clamp(32px, 4.6vw, 64px); font-weight: 950; line-height: 1; }
+.dom-date-side .dom-date-say__number { color: #c2410c; }
+.dom-date-say__words { margin: 0; font-size: clamp(16px, 2vw, 28px); font-weight: 900; color: #9a3412; }
+.dom-date-say__chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.dom-date-say__weekday, .dom-date-say__event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 14px;
+  background: #fff;
+  font-size: clamp(15px, 1.7vw, 24px);
+  font-weight: 900;
+}
+.dom-date-say__event { background: #fff7dc; border: 3px solid #f2b544; }
+.dom-date-say__event-picture--photo, .dom-date-events__picture--photo { width: 1.4em; height: 1.4em; border-radius: 6px; object-fit: cover; }
+.dom-date-events__caption { margin: 0 0 6px; color: #5d7378; font-size: clamp(13px, 1.2vw, 17px); font-weight: 800; }
+.dom-date-events ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.dom-date-events li { display: flex; align-items: center; gap: 12px; font-size: clamp(15px, 1.6vw, 22px); font-weight: 900; }
+.dom-date-events li b { width: 2em; text-align: right; color: #c2410c; }
+.dom-date-events__item--past { opacity: .42; }
