@@ -186,7 +186,7 @@ geometry, glyph capture) — still worth reading when touching the shared engine
 Перед продолжением — **`docs/propis2-letter-parts.md`**: что готово, где резать (`src/handwriting/letterParts.js`), стенд, картинка
 текущей автоматики (`docs/mockups/propis2-parts/`), подводные камни (сдвиг индексов сохранённых `row.parts`).
 
-**Готовая тетрадь «С печатного — прописью»** (`print-to-cursive`, 12 стр., 2026-11-24): предложение печатными (стиль «Книжные») → пустая строка, чтобы переписать прописью; 96 разных предложений, от двух слов к длинным. Методика и лестница — `docs/propis2-print-to-cursive.md`.
+**Готовая тетрадь «С печатного — прописью»** (`print-to-cursive`, 24 стр., 2026-11-24): предложение печатными (стиль «Книжные») → пустая строка, чтобы переписать прописью; 192 разных предложения, от двух слов к длинным. Методика и лестница — `docs/propis2-print-to-cursive.md`.
 
 Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
