@@ -5,6 +5,7 @@ export function buildDailyOrientationTopicRecord() {
       renderer: "daily_orientation",
       version: "1.0.0",
       title: { ru: "Сегодня" },
+      avatar: "media/avatar_daily_orientation.svg",
       builtin: true,
       about: {
         description: "Постоянный визуальный ориентир для коротких разговоров о дне, дате, месяце, времени года, времени суток и текущем времени.",

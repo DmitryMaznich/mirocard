@@ -2,6 +2,27 @@ import { NUMBER_COMPOSITION_ICON, NUMBER_PATH_ICON } from "./renderers/math_hous
 import { uiFallbackChain } from "../../shared/ui-languages.mjs";
 
 const BUILTIN_ASSETS = {
+  // «Сегодня» (daily_orientation, 2026-11-25): a calendar page with today
+  // picked out and a clock in the screen's hand colours -- what day, what time.
+  "media/avatar_daily_orientation.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff4e8"/>
+  <rect x="16" y="26" width="72" height="78" rx="14" fill="#fff"/>
+  <path d="M16 40a14 14 0 0 1 14-14h44a14 14 0 0 1 14 14v6H16z" fill="#d76747"/>
+  <rect x="32" y="18" width="7" height="16" rx="3.5" fill="#0f3b4c"/>
+  <rect x="65" y="18" width="7" height="16" rx="3.5" fill="#0f3b4c"/>
+  <g fill="#f2ece2">
+    <rect x="24" y="54" width="14" height="12" rx="3"/><rect x="45" y="54" width="14" height="12" rx="3"/><rect x="66" y="54" width="14" height="12" rx="3"/>
+    <rect x="24" y="72" width="14" height="12" rx="3"/><rect x="66" y="72" width="14" height="12" rx="3"/>
+    <rect x="24" y="88" width="14" height="10" rx="3"/><rect x="45" y="88" width="14" height="10" rx="3"/>
+  </g>
+  <rect x="45" y="72" width="14" height="12" rx="3" fill="#d76747"/>
+  <circle cx="92" cy="86" r="22" fill="#0f3b4c"/>
+  <circle cx="92" cy="86" r="17" fill="#fff"/>
+  <path d="M92 86V75" stroke="#c2410c" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M92 86h8" stroke="#1d4ed8" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="92" cy="86" r="2.6" fill="#0f3b4c"/>
+</svg>`,
   "media/avatar_games.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#fff4e8"/><path d="M20 89h88" stroke="#b9bbc6" stroke-width="16" stroke-linecap="round"/><rect x="25" y="57" width="68" height="29" rx="12" fill="#ee7869"/><path d="m41 58 9-20h24l16 20" fill="#ee7869"/><path d="m52 43-6 13h31L68 43" fill="#cfefed"/><circle cx="43" cy="86" r="10" fill="#25354c"/><circle cx="80" cy="86" r="10" fill="#25354c"/><path d="M103 24v46" stroke="#25354c" stroke-width="4"/><path d="M105 24h17v20h-17z" fill="#1b9a9b"/></svg>`,
   // «Мои люди» (2026-11-11): a photo card with a family; one picture per mode
   // that shows what the child does in it.
@@ -1365,6 +1386,7 @@ export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "sentence_puzzle") return "media/avatar_sentence_puzzle.svg";
   if (topicId === "streak_tracker") return "media/avatar_streak_tracker.svg";
   if (topicId === "my_people") return "media/avatar_my_people.svg";
+  if (topicId === "daily_orientation") return "media/avatar_daily_orientation.svg";
   return "media/avatar_flashcards.svg";
 }
 
