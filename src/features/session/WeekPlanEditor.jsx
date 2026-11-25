@@ -2,6 +2,10 @@ import { useRef, useState } from "react";
 import { api } from "@/core/api";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { localeFor } from "@/shared/i18n/uiLanguage.js";
+import { accountKv } from "@/topics/accountKv";
+import { addCalendarDays, getLocalDateKey } from "@/topics/renderers/daily_orientation/timeUtils";
+import { useSharedPlanChanges } from "@/topics/renderers/daily_orientation/planChanges.js";
 import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import {
   FREQUENT_EMOJI,
@@ -18,6 +22,7 @@ import {
   setItemIconEverywhere,
   sortByDaypart,
   suggestEmoji,
+  toggleKey,
 } from "@/topics/renderers/daily_orientation/weekPlan.js";
 
 // The weekly plan as rows of the day's big events (owner, 2026-11-23): what
@@ -237,8 +242,21 @@ function AddPanel({ dayItems, ownItems, photos, onAdd, onClose }) {
   );
 }
 
-export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
-  const { t } = useUiTranslation();
+export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange, student = null, kv = accountKv }) {
+  const { t, language } = useUiTranslation();
+  // «Не будет …» (owner, 2026-11-25): switch an event off for the nearest such
+  // weekday only -- the same shared per-date changes as the wall's pencil and
+  // «Изменения на сегодня и завтра»; «Убрать» takes it out of every week.
+  const today = new Date();
+  const { changesFor, updateChanges } = useSharedPlanChanges({
+    accountKv: kv,
+    studentId: student?.id,
+    oldestKey: getLocalDateKey(addCalendarDays(today, -1)),
+  });
+  const nextDateOf = (day) => addCalendarDays(today, (day - today.getDay() + 7) % 7);
+  const dateLabel = (date) => (getLocalDateKey(date) === getLocalDateKey(today)
+    ? t("dailyToday.today").toLowerCase()
+    : new Intl.DateTimeFormat(localeFor(language), { day: "numeric", month: "long" }).format(date));
   const week = parseWeekItems(weeklyPlan ?? "");
   const photos = parsePlanPhotos(planPhotos);
   const ownItems = collectPlanItems(week, PLAN_WEEK_ORDER);
@@ -293,7 +311,7 @@ export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
                   <li key={`${index}-${planItemKey(item)}`} className="dos-plan__slot">
                     <button
                       type="button"
-                      className={`dos-plan__chip${sel === index ? " dos-plan__chip--on" : ""}`}
+                      className={`dos-plan__chip${sel === index ? " dos-plan__chip--on" : ""}${student && (changesFor(getLocalDateKey(nextDateOf(day))).off ?? []).includes(planItemKey(item)) ? " dos-plan__chip--off" : ""}`}
                       aria-pressed={sel === index}
                       aria-label={t("dailyPlan.edit", { text: item.text || item.icon })}
                       onClick={() => {
@@ -336,6 +354,21 @@ export default function WeekPlanEditor({ weeklyPlan, planPhotos, onChange }) {
                   </button>
                 </div>
               )}
+              {selItem && student && (() => {
+                const dateKey = getLocalDateKey(nextDateOf(day));
+                const off = (changesFor(dateKey).off ?? []).includes(selKey);
+                const label = dateLabel(nextDateOf(day));
+                return (
+                  <button
+                    type="button"
+                    className={`dos-plan__cancel${off ? " dos-plan__cancel--on" : ""}`}
+                    aria-pressed={off}
+                    onClick={() => updateChanges(dateKey, (changes) => ({ ...changes, off: toggleKey(changes.off, selKey) }))}
+                  >
+                    {t(off ? "dailyPlan.uncancelOn" : "dailyPlan.cancelOn", { date: label })}
+                  </button>
+                );
+              })()}
               {selItem && (
                 <DaypartPicker
                   value={selItem.daypart}

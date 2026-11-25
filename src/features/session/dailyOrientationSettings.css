@@ -553,3 +553,17 @@
 .dos-plan__daypart--night { background: #cfd6ea; }
 .dos-plan__daypart--on { border-color: var(--dos-ink); }
 .dos-plan__chip-part { padding: 1px 6px; border-radius: 6px; font-size: .68rem; font-weight: 800; color: var(--dos-ink); }
+
+/* «Не будет …» for the nearest such day (2026-11-25). */
+.dos-plan__cancel {
+  min-height: 42px;
+  border: 2px solid #f3b4b4;
+  border-radius: 12px;
+  background: #fff;
+  color: #b3261e;
+  font-size: .9rem;
+  font-weight: 900;
+}
+.dos-plan__cancel--on { border-color: #cfe5df; color: var(--dos-accent); }
+.dos-plan__chip--off { background: #fdecec; color: #b3261e; text-decoration: line-through; }
+.dos-plan__chip--off .dos-plan__chip-icon, .dos-plan__chip--off .dos-plan__chip-photo { opacity: .4; }
