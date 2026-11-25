@@ -24,6 +24,14 @@ describe("line operations", () => {
     }
     for (const task of tasks) {
       expect(task.target.length).toBeGreaterThan(0);
+      for (const path of [...task.first, ...task.second]) {
+        for (let i = 1; i < path.length; i += 1) {
+          const [x1, y1] = [...path[i - 1]].map(Number);
+          const [x2, y2] = [...path[i]].map(Number);
+          expect(Math.abs(x1 - x2) + Math.abs(y1 - y2)).toBe(1);
+          expect([1, 2]).toContain(x1 === x2 ? x1 : y1);
+        }
+      }
       const target = new Set(task.target);
       for (const edge of task.target) {
         const nodes = edge.split("-");
@@ -33,23 +41,23 @@ describe("line operations", () => {
   });
 
   it("combines all the segments from the two drawings", () => {
-    const [task, withSharedStroke] = generateLineOperationTasks("plus", card);
-    expect(task.target).toHaveLength(8);
+    const [task, , withSharedStroke] = generateLineOperationTasks("plus", card);
+    expect(task.target).toHaveLength(9);
     const count = [...withSharedStroke.first, ...withSharedStroke.second]
       .reduce((sum, path) => sum + path.length - 1, 0);
     expect(withSharedStroke.target).toHaveLength(count - 1);
   });
 
   it("accepts connected and individual lines, preserving the position of the result", () => {
-    const [task] = generateLineOperationTasks("minus", card);
+    const [, task] = generateLineOperationTasks("minus", card);
     const target = new Set(task.target);
-    expect(evaluateLineOperationStroke(lineExamplePoints(["30", "21", "11", "00"]), target)).toEqual({
-      kind: "correct", edges: ["21-30", "11-21", "00-11"],
+    expect(evaluateLineOperationStroke(lineExamplePoints(["23", "22", "12", "11", "01"]), target)).toEqual({
+      kind: "correct", edges: ["22-23", "12-22", "11-12", "01-11"],
     });
     expect(evaluateLineOperationStroke(lineExamplePoints(["11", "10"]), target).kind).toBe("incorrect");
-    expect(evaluateLineOperationStroke(lineExamplePoints(["11", "12"]), target).kind).toBe("incorrect");
+    expect(evaluateLineOperationStroke(lineExamplePoints(["11", "21"]), target).kind).toBe("incorrect");
     expect(evaluateLineOperationStroke([[17, 17], [19, 18]], target).kind).toBe("idle");
-    expect(evaluateLineOperationStroke([[17, 17], [45, 16], [39, 39]], target).kind).toBe("incorrect");
+    expect(evaluateLineOperationStroke([[17, 39], [25, 26], [39, 39]], target).kind).toBe("incorrect");
   });
 
   it("starts from the current deck using saved mode settings and the regular video reward", async () => {
