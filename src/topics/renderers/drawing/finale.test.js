@@ -53,3 +53,50 @@ describe('drawing finale', () => {
     expect(svg.querySelector('[data-finale]')).toBeNull();
   });
 });
+
+describe('striped fish finale', () => {
+  beforeEach(() => {
+    controller.dispose();
+    svg.innerHTML = '<path data-finish-part="head" transform="translate(1 2)"/><g data-finish-part="head"/><path data-finish-part="tail"/><g data-finish-part="tail"/>' +
+      '<path data-finish-part="stripes"/>'.repeat(13);
+    controller = createDrawingFinale(svg, { finale: { type: 'striped-fish', tail: [470, 150] } });
+  });
+  it('waves through separate stripes, swims left, returns and restores the drawing', () => {
+    expect(controller.play()).toBe(true); advance(900);
+    const stripes = [...svg.querySelectorAll('[data-finish-part="stripes"]')];
+    expect(new Set(stripes.map(node => node.getAttribute('transform'))).size).toBe(13);
+    const tails = [...svg.querySelectorAll('[data-finish-part="tail"]')];
+    expect(tails[0].getAttribute('transform')).toBe(tails[1].getAttribute('transform'));
+    advance(2900);
+    const head = svg.querySelector('[data-finish-part="head"]');
+    expect(Number(head.getAttribute('transform').match(/translate\(([-\d.]+)/)[1])).toBeLessThan(-600);
+    advance(700);
+    expect(Number(head.getAttribute('transform').match(/translate\(([-\d.]+)/)[1])).toBeGreaterThan(570);
+    advance(2800);
+    expect(head.getAttribute('transform')).toBe('translate(1 2)');
+    expect(stripes.every(node => !node.hasAttribute('transform'))).toBe(true);
+    expect(svg.querySelector('[data-finale]')).toBeNull(); expect(queue.size).toBe(0);
+  });
+  it('stops without changing layer order or leaving transformed parts', () => {
+    const nodes = [...svg.children];
+    controller.play(); advance(2500); controller.stop();
+    expect([...svg.children]).toEqual(nodes);
+    expect(nodes[0].getAttribute('transform')).toBe('translate(1 2)');
+    expect(nodes.slice(1).every(node => !node.hasAttribute('transform'))).toBe(true);
+    expect(queue.size).toBe(0);
+    controller.play(); advance(1000); controller.dispose();
+    expect(queue.size).toBe(0); expect(svg.querySelector('[data-finale]')).toBeNull();
+  });
+  it('requires the full fish and respects reduced motion and hidden pages', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    expect(controller.play()).toBe(false);
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
+    controller.play(); advance(1000);
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(queue.size).toBe(0); expect(controller.play()).toBe(false);
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
+    svg.querySelector('[data-finish-part="stripes"]').remove();
+    expect(controller.play()).toBe(false); expect(queue.size).toBe(0);
+  });
+});

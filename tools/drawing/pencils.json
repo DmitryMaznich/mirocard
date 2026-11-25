@@ -130,5 +130,11 @@
     "type": "pencil",
     "name": "Малиновый карандаш",
     "color": "#ce3dab"
+  },
+  "navy": {
+    "id": "navy",
+    "type": "pencil",
+    "name": "Тёмно-синий карандаш",
+    "color": "#24486d"
   }
 }

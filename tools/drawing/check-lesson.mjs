@@ -22,6 +22,7 @@ try{
  },{id,revision:lesson.progressRevision});
  await page.goto(process.env.DRAWING_PREVIEW_URL??`http://localhost:8081/tools/drawing/preview.html?lesson=${id}`);
  await page.locator('.drawing-card').filter({hasText:card.label}).tap();
+ if(lesson.paperOrientation==='landscape')await page.getByRole('button',{name:'Начать рисовать',exact:true}).tap();
  assert.equal(await page.locator('.drawing-show').count(),0,'Start without legacy progress');
  await page.clock.install();
  await page.evaluate(()=>{document.querySelector('.preview-header').style.display='none';document.getElementById('root').style.height='100dvh';document.documentElement.style.setProperty('--app-safe-top','59px');document.documentElement.style.setProperty('--app-safe-bottom','34px');});
