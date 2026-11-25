@@ -25,17 +25,18 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
   const label = place[activeStep.position];
   const working = place[activeStep.column];
   if (activeStep.cellType === "carry") return ["Шаг 2", "Переносим", `В разряде «${working}» получилось больше 9. Перенеси 1 в клетку сверху.`];
+  // Borrowing through a 0 (801 − 605, owner 2026-11-25): the units ask the tens — 0, nothing
+  // to give; the hundreds give one hundred = 10 tens: one ten to the units («1»), 9 stay over
+  // the 0, and the hundreds are one less.
+  const lenders = activeStep.lenders ?? [];
+  if (activeStep.cellType === "borrow" && lenders.length > 1) {
+    const far = lenders[lenders.length - 1];
+    return ["Шаг 2", "Занимаем через ноль", `В разряде «${place[lenders[0]]}» 0 — занять нечего. Идём к разряду «${place[far]}»: берём у него один. Один десяток идёт сюда — поставь маленькую 1.`];
+  }
   if (activeStep.cellType === "borrow") return ["Шаг 2", "Занимаем", `В разряде «${working}» не хватает — берём десяток у подсвеченной цифры. Поставь маленькую 1: твоё число стало на 10 больше.`];
-  // Borrowing through a 0 (708 − 409): the ten travels top-down — the far
-  // place gives first, it becomes 10 over the 0, that 10 gives one away (9),
-  // and only then does the short place take its «1».
-  const dative = { units: "Единицам", tens: "Десяткам", hundreds: "Сотням" };
-  const zeroBelow = task.columns[task.columns.indexOf(col) - 1];
-  if (activeStep.cellType === "crossout" && activeStep.first && zeroBelow?.topDigit === 0 && zeroBelow.position !== activeStep.column) return ["Шаг 2", "Занимаем через ноль", `${dative[activeStep.column]} не хватает. В разряде «${place[zeroBelow.position]}» 0 — занять нечего. Идём к разряду «${label}»: проведи пальцем по его цифре.`];
-  if (activeStep.cellType === "regroup") return ["Шаг 2", "Одна сотня — это 10 десятков", "Сотня пришла к десяткам: был 0, стало 10. Впиши 10 над нулём."];
-  if (activeStep.cellType === "crossout" && col.topDigit === 0) return ["Шаг 2", "Десяток отдаём вниз", `Теперь тут 10. Один десяток отдаём единицам — проведи пальцем по нулю.`];
-  if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдали десяток", `Зачеркни цифру в разряде «${label}» — у неё взяли один.`];
-  if (activeStep.cellType === "adjust" && col.topDigit === 0) return ["Шаг 2", "Ноль стал девяткой", "10 − 1 = 9. Впиши 9 в клетку сверху."];
+  if (activeStep.cellType === "crossout" && activeStep.throughZero) return ["Шаг 2", "Ноль стал девяткой", "Пришло 10, один отдали — осталось 9. Зачеркни ноль."];
+  if (activeStep.cellType === "adjust" && activeStep.throughZero) return ["Шаг 2", "Ноль стал девяткой", "10 − 1 = 9. Впиши 9 в клетку сверху."];
+  if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдали один", `Зачеркни цифру в разряде «${label}» — у неё взяли один.`];
   if (activeStep.cellType === "adjust") return ["Шаг 2", "Стало на 1 меньше", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в клетку сверху.`];
   // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit at this
   // position — nothing to add or subtract, the top digit just comes down.

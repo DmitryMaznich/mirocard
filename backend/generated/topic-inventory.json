@@ -322,16 +322,16 @@
         "ru": "Рисование",
         "en": "Drawing"
       },
-      "version": "0.42.0",
+      "version": "0.43.0",
       "renderer": "drawing",
       "sources": [
-        "public/decks/drawing_v0.42.0.zip",
+        "public/decks/drawing_v0.43.0.zip",
         "src/topics/renderers/drawing",
         "tools/drawing/topic.json"
       ],
       "bundle": {
-        "version": "0.42.0",
-        "url": "./decks/drawing_v0.42.0.zip",
+        "version": "0.43.0",
+        "url": "./decks/drawing_v0.43.0.zip",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
@@ -339,28 +339,28 @@
         "description": "Рисование на бумаге по образцу, первые линии и тренировка закрашивания фигур и дорожек на экране.",
         "renderer": "drawing",
         "modes": 4,
-        "cards": 21
+        "cards": 22
       },
       "builtin": false,
       "catalogEntry": {
         "id": "drawing",
-        "version": "0.42.0",
+        "version": "0.43.0",
         "title": {
           "ru": "Рисование",
           "en": "Drawing"
         },
         "description": {
-          "ru": "Двадцать рисунков на бумаге: малыш, домик, шесть пар героев из мира Пеппы, снеговик, собачка и другие. Также доступны «Первые линии» и тренировка закрашивания фигур и дорожек.",
-          "en": "Twenty paper drawing lessons, including a baby, a house, six Peppa family and friends pairs, a snowman and a dog, plus First Lines and coloring practice."
+          "ru": "Двадцать один рисунок на бумаге: полосатая рыбка с оживлением, малыш, домик, шесть пар героев из мира Пеппы, снеговик, собачка и другие. Также доступны «Первые линии» и тренировка закрашивания фигур и дорожек.",
+          "en": "Twenty-one paper drawing lessons, including an animated striped fish, a baby, a house, six Peppa family and friends pairs, a snowman and a dog, plus First Lines and coloring practice."
         },
-        "url": "./decks/drawing_v0.42.0.zip",
+        "url": "./decks/drawing_v0.43.0.zip",
         "status": "beta",
         "access": "free",
         "materialLanguages": [
           "ru"
         ]
       },
-      "sourceUpdatedAt": "2026-11-21T09:18:49+00:00"
+      "sourceUpdatedAt": "2026-11-25T08:38:10Z"
     },
     {
       "id": "emotions_v2",

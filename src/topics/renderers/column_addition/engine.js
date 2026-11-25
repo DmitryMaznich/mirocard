@@ -86,9 +86,9 @@ function buildAddSteps(columns) {
 //   3. not enough → borrow: the neighbour on the left lights up (a 0 there
 //      lends through — the next one lights up too) and a «1» goes in front of
 //      the place's own number (2 → 12);
-//   4. the lender is crossed out and written one less over it; a 0 between
-//      becomes 9 (302 − 195: 3 → 2, then 0 → 9) — take, give, reduce
-//      (owner, 2026-11-16; before: reduce first, then the «1»);
+//   4. each 0 on the way is crossed out and becomes 9, nearest first, then the
+//      lender is crossed out and written one less (302 − 195: 0 → 9, 3 → 2) —
+//      take, give, reduce (owner, 2026-11-16 and 2026-11-25);
 //   5. the result digit. A leading zero of the answer is not written, and a
 //      leading place lent down to 0 gets no «0» over it (102 − 7 = 95).
 // Nothing is ever overwritten: 532 − 157 keeps «2» over the crossed-out 3 of
@@ -106,32 +106,22 @@ function buildSubSteps(columns) {
     if (need !== null && have < need) {
       let j = i + 1;
       while (cur[j] === 0) j++;
-      // take — give — reduce (owner, 2026-11-16): the place(s) we take from light up while the
-      // «1» goes in front of our own number, then the lender is crossed out and written one less
       const lenders = columns.slice(i + 1, j + 1).map((c) => c.position);
-      if (j === i + 1) {
-        place.push({ cellType: "borrow", position: col.position, digit: 1, lenders });
-        place.push({ cellType: "crossout", position: columns[j].position, digit: null });
-        cur[j] -= 1;
-        if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
-      } else {
-        // Borrowing through a 0 (708 − 409, owner 2026-11-22): the ten travels
-        // top-down as on paper, and only then does our place take its «1»:
-        // the hundreds give one (7 → 6) → it becomes 10 over the 0 (the child
-        // writes «10») → that 10 gives one away (crossed out, → 9) → «1» in
-        // front of our number → its result. «Хватает?» is still asked first,
-        // on the place's first step (the crossout of the far lender).
-        place.push({ cellType: "crossout", position: columns[j].position, digit: null });
-        cur[j] -= 1;
-        if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
-        for (let k = j - 1; k > i; k--) {
-          cur[k] = 9;
-          place.push({ cellType: "regroup", position: columns[k].position, digit: 10 });
-          place.push({ cellType: "crossout", position: columns[k].position, digit: null });
-          place.push({ cellType: "adjust", position: columns[k].position, digit: 9 });
-        }
-        place.push({ cellType: "borrow", position: col.position, digit: 1, lenders: [columns[i + 1].position] });
+      // The «1» goes in front of our number while every place we go to lights up;
+      // then, nearest first, each 0 on the way is crossed out and becomes 9, and
+      // the far lender is crossed out and written one less. 801 − 605 (owner,
+      // 2026-11-25, as at school: 1 hundred = 10 tens, one ten to the units, 9
+      // stay): «1» in front of the 1 → 0 → 9 → 8 → 7. Before (2026-11-22) the
+      // child wrote «10» over the 0 and struck it out — no one could follow it.
+      place.push({ cellType: "borrow", position: col.position, digit: 1, lenders });
+      for (let k = i + 1; k < j; k++) {
+        cur[k] = 9;
+        place.push({ cellType: "crossout", position: columns[k].position, digit: null, throughZero: true });
+        place.push({ cellType: "adjust", position: columns[k].position, digit: 9, throughZero: true });
       }
+      place.push({ cellType: "crossout", position: columns[j].position, digit: null });
+      cur[j] -= 1;
+      if (!(j === last && cur[j] === 0)) place.push({ cellType: "adjust", position: columns[j].position, digit: cur[j] });
       value += 10;
     }
     const digit = value - (need ?? 0);

@@ -8,10 +8,45 @@ export function createDrawingFinale(svg, lesson) {
     if (frame !== null) cancelAnimationFrame(frame);
     frame = null; cleanup?.(); cleanup = null;
   }
+  function playStripedFish(config) {
+    const parts = name => [...svg.querySelectorAll(`[data-finish-part="${name}"]`)];
+    const head = parts('head'), tail = parts('tail'), stripes = parts('stripes');
+    if (!head.length || !tail.length || stripes.length !== 13 || !config.tail?.every(Number.isFinite) || config.tail.length !== 2) return false;
+    const original = [...head, ...tail, ...stripes].map(node => [node, node.getAttribute('transform')]);
+    const layer = document.createElementNS(ns, 'g');
+    layer.dataset.finale = 'striped-fish'; layer.setAttribute('aria-hidden', 'true');
+    svg.append(layer);
+    cleanup = () => {
+      for (const [node, transform] of original) {
+        if (transform === null) node.removeAttribute('transform'); else node.setAttribute('transform', transform);
+      }
+      layer.remove();
+    };
+    const [tx, ty] = config.tail;
+    let elapsed = 0, last = performance.now();
+    function tick(now) {
+      elapsed += Math.min(64, now-last); last = now;
+      const t = elapsed/1000;
+      const energy = smooth(t/.7)*(1-smooth((t-6.3)/.9));
+      // Both sides of the wrap are entirely outside the 600-unit sheet.
+      // The fish keeps facing its direction of travel, then settles at home.
+      const dx = t < 1.2 ? 0 : t < 4.2 ? -650*smooth((t-1.2)/3) : 600*(1-smooth((t-4.2)/3));
+      for (const node of head) node.setAttribute('transform', `translate(${dx} 0)`);
+      stripes.forEach((node, i) => node.setAttribute('transform', `translate(${dx} ${5*energy*Math.sin(t*7-i*.48)})`));
+      const angle = 9*energy*Math.sin(t*9);
+      for (const node of tail) node.setAttribute('transform', `translate(${dx} 0) translate(${tx} ${ty}) rotate(${angle}) translate(${-tx} ${-ty})`);
+      if (t >= 7.2) { stop(); return; }
+      frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick);
+    return true;
+  }
   function play() {
     stop();
     const config = lesson.finale;
-    if (config?.type !== 'fish' || document.hidden || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
+    if (document.hidden || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
+    if (config?.type === 'striped-fish') return playStripedFish(config);
+    if (config?.type !== 'fish') return false;
     const parts = name => [...svg.querySelectorAll(`[data-finish-part="${name}"]`)];
     const pupil = parts('pupil'), upper = parts('upper-lip'), lower = parts('lower-lip');
     if (!pupil.length || !upper.length || !lower.length) return false;

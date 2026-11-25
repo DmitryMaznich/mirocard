@@ -23,6 +23,14 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
+    const striped = tasks.find(task => task.cardId === 'striped_fish').lesson;
+    expect(striped.finale).toMatchObject({ type: 'striped-fish', tail: [470, 150] });
+    const bars = striped.steps.filter(step => step.part === 'stripes');
+    expect(bars.flatMap(step => step.paths)).toHaveLength(13);
+    expect(bars.map(step => step.paths.length)).toEqual([4, 5, 4]);
+    expect(bars.every(step => step.kind === 'stroke' && step.tool === 'navy')).toBe(true);
+    expect(striped.steps.find(step => step.kind === 'color' && step.part === 'head').d).toContain('A 4 4');
+    expect(await archive.file('media/striped_fish.svg').async('string')).toContain('#24486d');
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog", "snowman_glasses"]));
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining([
       'cute_baby', 'house_tree_sun', 'peppa_collection_peppa_george',

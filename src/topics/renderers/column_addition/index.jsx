@@ -208,17 +208,14 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   // time (an empty box early would give the next step away).
   const markPositions = new Set(task.steps.filter((s) => s.cellType === "adjust").map((s) => s.position));
   if (phase === "solve") {
-    // `under` — what an empty active slot still shows: the «10» written over
-    // a 0 (borrowing through it), struck through, while the child works out
-    // the 9 that replaces it.
-    const part = (type, pos, under = null) => {
+    const part = (type, pos) => {
       const key = `${type}:${pos}`;
       const filled = filledCells[key] !== undefined;
       const active = activeStep?.cellType === type && activeStep?.position === pos && !compareColumn;
       if (!filled && !active) return null;
-      const shown = filled ? filledCells[key] : partialEntry || under;
+      const shown = filled ? filledCells[key] : partialEntry;
       return (
-        <span key={key} data-cell-key={key} className={["col-mark-part", type === "borrow" ? "col-mark-part--one" : "", filled ? "" : "col-mark-part--slot", String(shown ?? "").length > 1 ? "col-mark-part--wide" : "", !filled && !partialEntry && under ? "col-mark-part--struck" : ""].filter(Boolean).join(" ")}>
+        <span key={key} data-cell-key={key} className={["col-mark-part", type === "borrow" ? "col-mark-part--one" : "", filled ? "" : "col-mark-part--slot", String(shown ?? "").length > 1 ? "col-mark-part--wide" : ""].filter(Boolean).join(" ")}>
           {shown != null && shown !== "" ? <span className="col-slant">{shown}</span> : ""}
         </span>
       );
@@ -226,17 +223,8 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
     for (let i = 0; i < digits; i++) {
       const pos = POSITIONS[i];
       const one = operation === "subtract" ? part("borrow", pos) : null;
-      // Borrowing through a 0: the child first writes «10» over it; once the
-      // 0 is crossed out that 10 is struck through, and the adjusted 9 takes
-      // its place.
-      const tenKey = `regroup:${pos}`;
-      const ten = filledCells[tenKey];
-      const struckTen = ten !== undefined && filledCells[`crossout:${pos}`] !== undefined;
       const value = operation === "subtract"
-        ? part("adjust", pos, struckTen ? ten : null)
-          ?? (struckTen
-            ? <span key={tenKey} data-cell-key={tenKey} className="col-mark-part col-mark-part--wide col-mark-part--struck"><span className="col-slant">{ten}</span></span>
-            : part("regroup", pos))
+        ? part("adjust", pos)
         : part("carry", pos);
       if (!one && !value) continue;
       const comparing = !!value && pos === comparingPosition && filledCells[`adjust:${pos}`] !== undefined;
@@ -515,7 +503,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
   const [shakeCell, setShakeCell] = useState(null);
   const [solved, setSolved] = useState(false);
   const [resolvedCompares, setResolvedCompares] = useState(new Set());
-  // Digits typed so far for a multi-digit step (only «regroup» = 10).
+  // Digits typed so far for a multi-digit step (no step needs more than one digit now).
   const [partialEntry, setPartialEntry] = useState("");
   const [crossoutPaths, setCrossoutPaths] = useState({});
   const [showHelper, setShowHelper] = useState(false);
@@ -719,7 +707,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams, noHin
     if (!activeStep) return;
     const expected = String(activeStep.digit);
     if (expected.length > 1) {
-      // Multi-digit entry (the «10» over a 0): digit by digit, left to right.
+      // Multi-digit entry: digit by digit, left to right.
       const typed = partialEntry + String(digit);
       if (!expected.startsWith(typed)) {
         setPartialEntry("");

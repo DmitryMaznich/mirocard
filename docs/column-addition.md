@@ -71,6 +71,22 @@ out first (3 → 2), then the 0 of the tens (→ 9), then the tens and hundreds 
 counted. A leading zero of the answer is not written (102 − 7 = 95, 52 − 47 =
 5): no step and no cell for it.
 
+### Through a zero, as at school (owner, 2026-11-25)
+
+The 2026-11-22 order (cross out 7 → 6, write «10» over the 0, strike the 10 out, write 9, only
+then the «1» in front of the units) was dropped after a tablet test on 801 − 605: the child typed
+«1» into the two-digit slot and was stuck (the «1» is what every other borrow asks for), had to
+destroy a correct «10», and the attention jumped units → hundreds → tens → units. School
+(«Школа России», Моро, 3rd grade) writes dots and says «1 сотня — это 10 десятков, один десяток
+отдаём единицам, 9 остаётся»; we write it out instead of keeping it in the head.
+
+Now the same take — give — reduce as a plain borrow, with every place on the way:
+«хватает? — не хватает» → the «1» in front of the units (the empty tens and the hundreds light up)
+→ the 0 crossed out, 9 over it → the hundreds crossed out, one less → the results.
+801 − 605: «1» → 0 → 9 → 8 → 7 → 6, 9, 1. Steps of a passed 0 carry `throughZero: true` (hints).
+No «regroup» step any more. «80 → 79 in one stroke» (cross the whole number on the
+left) was discussed and not taken: not the school's way, and it needs 80 − 1 in the head.
+
 ## One order for every place (2026-11-15)
 
 Owner's decision after the mockup `docs/mockups/column-addition/2026-11-15-unified-steps.html`

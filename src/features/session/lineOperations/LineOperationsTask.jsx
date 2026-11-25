@@ -5,14 +5,28 @@ import { evaluateLineOperationStroke, lineExamplePoints, lineTicks } from "./mod
 import "./lineOperations.css";
 
 const tapSlop = 6;
-const gridPath = lineTicks.map((value) => `M${value} 17V83M17 ${value}H83`).join("");
+const gridStart = lineTicks[0];
+const gridEnd = lineTicks.at(-1);
+const gridSize = gridEnd - gridStart;
+const gridPath = lineTicks.slice(1, -1)
+  .map((value) => `M${value} ${gridStart}V${gridEnd}M${gridStart} ${value}H${gridEnd}`)
+  .join("");
 const emptyDrawing = () => ({ paths: [], accepted: new Set() });
+
+function Grid() {
+  return (
+    <>
+      <path className="line-operations__grid" d={gridPath} />
+      <rect className="line-operations__frame" x={gridStart} y={gridStart} width={gridSize} height={gridSize} />
+    </>
+  );
+}
 
 function Example({ paths, label, side }) {
   return (
     <div className={`line-operations__panel line-operations__example line-operations__example--${side}`}>
       <svg viewBox="0 0 100 100" role="img" aria-label={label}>
-        <path className="line-operations__grid" d={gridPath} />
+        <Grid />
         {paths.map((path, index) => (
           <path key={index} className="line-operations__ink" d={pathData(lineExamplePoints(path))} />
         ))}
@@ -149,7 +163,7 @@ export default function LineOperationsTask({ task, sessionStatus, interactionDis
           onLostPointerCapture={cancelPointer}
         >
           <svg viewBox="0 0 100 100" role="img" aria-label={t("lineOperations.answer")}>
-            <path className="line-operations__grid" d={gridPath} />
+            <Grid />
             {drawing.paths.map((path, index) => <path key={index} className="line-operations__ink line-operations__response" d={path} />)}
             {trace && <path className="line-operations__ink line-operations__response" d={trace} />}
             {feedback?.path && <path className="line-operations__ink line-operations__invalid" d={feedback.path} />}
