@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.47.0",
+    "version": "0.48.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -728,6 +728,14 @@
       "label": "Зелёная машинка",
       "image": "media/green_car.svg",
       "lessonFile": "lessons/green_car.json"
+    },
+    {
+      "id": "zebra_butterfly",
+      "conceptId": "zebra_butterfly",
+      "primary": true,
+      "label": "Зебра и бабочка",
+      "image": "media/zebra_butterfly.svg",
+      "lessonFile": "lessons/zebra_butterfly.json"
     },
     {
       "id": "first_lines:short_line",

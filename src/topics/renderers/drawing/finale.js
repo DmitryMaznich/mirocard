@@ -8,6 +8,104 @@ export function createDrawingFinale(svg, lesson) {
     if (frame !== null) cancelAnimationFrame(frame);
     frame = null; cleanup?.(); cleanup = null;
   }
+  function playZebra(config) {
+    const actor = [...svg.querySelectorAll('[data-finish-actor="zebra"]')];
+    const parts = name => actor.filter(node => node.dataset.finishPart === name);
+    if (!actor.length || config.legs?.length !== 4 || !config.torso) return false;
+    const legs = config.legs.map(leg => ({ ...leg, nodes: parts(leg.part), hooves: parts(leg.hoof) }));
+    if (legs.some(leg => !leg.nodes.length || !leg.hooves.length || !leg.mask || !(leg.cap > leg.root))) return false;
+    const butterfly = config.butterfly ? [...svg.querySelectorAll('[data-finish-actor="butterfly"]')] : [];
+    const wings = (config.butterfly?.wings ?? []).map(wing => ({ ...wing, nodes: butterfly.filter(node => node.dataset.finishPart === wing.part) }));
+    if (config.butterfly && (!butterfly.length || wings.length !== 2 || wings.some(wing => !wing.nodes.length))) return false;
+    // Only the leg curves bend. Their roots stay fixed; each complete hoof
+    // (outline, mask and pencil texture) translates as one rigid piece.
+    const parse = d => (d.match(/[MCLZ][^MCLZ]*/gi) ?? []).map(command => ({
+      type: command[0], values: (command.slice(1).match(/[-+]?(?:\d*\.)?\d+(?:e[-+]?\d+)?/gi) ?? []).map(Number),
+    }));
+    const bend = (commands, root, cap, dx, dy) => commands.map(({ type, values }) => {
+      const output = [];
+      for (let i = 0; i < values.length; i += 2) {
+        const weight = smooth((values[i+1]-root)/(cap-root));
+        output.push((values[i]+dx*weight).toFixed(3), (values[i+1]+dy*weight).toFixed(3));
+      }
+      return type+' '+output.join(' ');
+    }).join(' ');
+    const moving = [...svg.querySelectorAll('[data-finish-actor]')].filter(node => actor.includes(node) || butterfly.includes(node));
+    const positions = moving.map(node => [node, node.parentNode, node.nextSibling]);
+    const transforms = moving.map(node => [node, node.getAttribute('transform')]);
+    const originals = legs.flatMap(leg => leg.nodes.map(node => [node, node.getAttribute('d')]));
+    const layer = document.createElementNS(ns, 'g');
+    layer.dataset.finale = 'zebra-run'; layer.setAttribute('aria-hidden', 'true'); layer.setAttribute('pointer-events', 'none');
+    const white = d => {
+      const node = document.createElementNS(ns, 'path');
+      node.setAttribute('d', d); node.setAttribute('fill', '#fffefa'); node.setAttribute('fill-rule', 'evenodd');
+      node.setAttribute('stroke', 'none'); layer.append(node); return node;
+    };
+    white(config.torso); for (const d of config.extraBody ?? []) white(d);
+    for (const leg of legs) {
+      leg.curves = leg.nodes.map(node => [node, parse(leg.path ?? node.getAttribute('d'))]);
+      leg.silhouette = white(leg.mask); leg.maskCurves = parse(leg.mask);
+    }
+    for (const node of actor) layer.append(node);
+    svg.append(layer);
+    const flight = butterfly.length ? document.createElementNS(ns, 'g') : null;
+    if (flight) {
+      flight.dataset.finaleFollower = 'butterfly'; flight.setAttribute('aria-hidden', 'true'); flight.setAttribute('pointer-events', 'none');
+      for (const node of butterfly) flight.append(node);
+      svg.append(flight);
+    }
+    cleanup = () => {
+      for (const [node, d] of originals) node.setAttribute('d', d);
+      for (const [node, transform] of transforms) {
+        if (transform === null) node.removeAttribute('transform'); else node.setAttribute('transform', transform);
+      }
+      // Reverse insertion also restores consecutive siblings in their exact order.
+      for (const [node, parent, next] of positions.slice().reverse()) parent.insertBefore(node, next?.parentNode === parent ? next : null);
+      layer.remove(); flight?.remove();
+    };
+    const tail = [...parts('tail'), ...parts('tail-tuft')];
+    const [tx, ty] = config.tail ?? [414, 320];
+    let elapsed = 0, last = performance.now();
+    function tick(now) {
+      elapsed += Math.min(64, now-last); last = now;
+      const t = elapsed/1000, returning = t >= 4;
+      const energy = returning ? 0 : smooth((t-.3)/.3);
+      const phase = (t-.4)*13;
+      for (const leg of legs) {
+        const stride = phase+leg.phase;
+        const dx = 15*energy*Math.sin(stride), dy = -11*energy*Math.max(0, Math.cos(stride));
+        for (const [node, commands] of leg.curves) node.setAttribute('d', bend(commands, leg.root, leg.cap, dx, dy));
+        leg.silhouette.setAttribute('d', bend(leg.maskCurves, leg.root, leg.cap, dx, dy));
+        for (const node of leg.hooves) node.setAttribute('transform', `translate(${dx} ${dy})`);
+      }
+      for (const node of tail) node.setAttribute('transform', `rotate(${5*energy*Math.sin(phase*.7)} ${tx} ${ty})`);
+      const dx = returning ? 0 : -720*smooth((t-.45)/3.15);
+      const dy = returning ? 0 : -4*energy*(.5+.5*Math.cos(phase*2));
+      // The neck/front legs are already on the left and the tail on the right:
+      // keep the original pose, rather than mirroring the animal tail-first.
+      layer.setAttribute('transform', `translate(${dx} ${dy})`);
+      // Once it has left the sheet, gently restore the completed paper model.
+      layer.setAttribute('opacity', String(returning ? smooth((t-4)/.8) : 1));
+      if (flight) {
+        const flutter = returning ? 0 : smooth((t-.55)/.3);
+        const flyX = returning ? 0 : -720*smooth((t-.95)/2.9);
+        const flyY = returning ? 0 : flutter*(-9+8*Math.sin((t-.8)*5));
+        const [ax, ay] = config.butterfly.anchor;
+        const tilt = returning ? 0 : 3*flutter*Math.sin(t*6);
+        flight.setAttribute('transform', `translate(${flyX} ${flyY}) rotate(${tilt} ${ax} ${ay})`);
+        flight.setAttribute('opacity', String(returning ? smooth((t-4)/.8) : 1));
+        for (const wing of wings) {
+          const [x, y] = wing.hinge;
+          const fold = 1-flutter*(.42-.38*Math.cos(t*21+wing.phase));
+          const transform = `translate(${x} ${y}) rotate(${wing.angle}) scale(1 ${fold}) rotate(${-wing.angle}) translate(${-x} ${-y})`;
+          for (const node of wing.nodes) node.setAttribute('transform', transform);
+        }
+      }
+      if (t >= 4.8) { stop(); return; }
+      frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick); return true;
+  }
   function playStripedFish(config) {
     const parts = name => [...svg.querySelectorAll(`[data-finish-part="${name}"]`)];
     const head = parts('head'), tail = parts('tail');
@@ -85,6 +183,7 @@ export function createDrawingFinale(svg, lesson) {
     stop();
     const config = lesson.finale;
     if (document.hidden || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
+    if (config?.type === 'zebra-run') return playZebra(config);
     if (config?.type === 'striped-fish') return playStripedFish(config);
     if (config?.type !== 'fish') return false;
     const parts = name => [...svg.querySelectorAll(`[data-finish-part="${name}"]`)];

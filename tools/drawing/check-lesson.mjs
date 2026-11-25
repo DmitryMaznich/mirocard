@@ -52,7 +52,7 @@ try{
    await page.clock.runFor(120);assert.equal(await index(),i-1,'Colour index advances only after animation');
    assert(await page.locator(`[data-layer=${currentStep.background?'background-colors':'colors'}] [data-region="${i-1}"] g[visibility=hidden]`).count()>0,'Future pencil lines must remain hidden');
   }
-  await page.clock.runFor(16000);assert.equal(await index(),i,'Step '+i);
+  await page.clock.runFor(Math.max(16000,(currentStep.regions?.length??1)*4500));assert.equal(await index(),i,'Step '+i);
   assert.deepEqual(await page.locator('[data-layer=labels] text[visibility=visible]').allTextContents(),(lesson.labels??[]).filter(label=>i>=(label.afterStep??0)).map(label=>label.text),'Labels must follow their object outlines');
   if(lesson.steps[i-1].title==='Зелёный контур травки'){
    assert.equal(await page.locator(`[data-layer=colors] [data-region="${i}"]`).count(),0,'Grass must still be uncoloured');

@@ -23,6 +23,32 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
+    const zebra = tasks.find(task => task.cardId === 'zebra_butterfly').lesson;
+    expect(zebra.steps).toHaveLength(46);
+    expect(zebra.finale.type).toBe('zebra-run');
+    expect(zebra.finale.legs).toHaveLength(4);
+    for (const leg of zebra.finale.legs) {
+      const step = zebra.steps.find(step => step.part === leg.part || step.paths?.some(item => item.part === leg.part));
+      expect(step.actor).toBe('zebra');
+    }
+    const zebraColourSteps = zebra.steps.filter(step => step.kind === 'color');
+    const zebraColours = zebraColourSteps.flatMap(step => step.regions?.map(region => ({ ...step, ...region })) ?? [step]);
+    expect(zebraColourSteps.filter(step => step.part === 'zebra-stripes')).toHaveLength(1);
+    expect(zebraColourSteps.find(step => step.part === 'zebra-stripes').regions).toHaveLength(13);
+    expect(zebraColourSteps.find(step => step.part === 'zebra-hooves').regions).toHaveLength(4);
+    expect(zebra.steps.find(step => step.part === 'zebra-stripes' && step.kind === 'stroke').paths).toHaveLength(13);
+    expect(zebra.steps.find(step => step.part === 'zebra-hooves' && step.kind === 'stroke').paths).toHaveLength(4);
+    expect(zebraColours.filter(step => step.part.startsWith('hoof-'))).toHaveLength(4);
+    expect(zebraColours.filter(step => step.part.startsWith('stripe-'))).toHaveLength(13);
+    for (const step of zebraColours.filter(step => step.part.startsWith('stripe-'))) expect(step.clip).toBe(zebra.geometry.body);
+    expect(zebraColours.find(step => step.part === 'inner-ear-1').tool).toBe('light_pink');
+    expect(zebraColours.find(step => step.part === 'inner-ear-2').tool).toBe('light_pink');
+    expect(zebraColours.find(step => step.part === 'butterfly-upper').tool).toBe('light_blue');
+    expect(zebraColours.find(step => step.part === 'butterfly-lower').tool).toBe('fox_orange');
+    expect(zebraColours.find(step => step.part === 'flower-petals').tool).toBe('coral');
+    expect(zebraColours.find(step => step.part === 'flower-centre').tool).toBe('yellow');
+    expect(zebraColours.find(step => step.part === 'grass').background).toBe(true);
+    expect(await archive.file('media/zebra_butterfly.svg').async('string')).toContain(zebra.viewBox);
     const car = tasks.find(task => task.cardId === 'green_car').lesson;
     expect(car.steps).toHaveLength(39);
     expect(car.steps.find(step => step.part === 'sun-rays').paths).toHaveLength(8);

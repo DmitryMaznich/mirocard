@@ -52,12 +52,15 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
       if (ink) node.style.stroke = ink;
     }
     if (item.fill) node.dataset.fill = item.fill;
-    if (step?.part) node.dataset.finishPart = step.part;
+    const part = item.part ?? step?.part;
+    if (part) node.dataset.finishPart = part;
+    if (step?.actor) node.dataset.finishActor = step.actor;
     return node;
   };
 function buildRegion(part,regionIndex){
  const container=element('g',{'data-region':regionIndex},part.background?backgroundColors:part.overlay?accents:colors);
  if(part.part)container.dataset.finishPart=part.part;
+ if(part.actor)container.dataset.finishActor=part.actor;
  const defs=element('defs',{},container);
  let seed=17;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
  const {fill,d}=part;const i=regionIndex;
@@ -101,6 +104,10 @@ function buildRegion(part,regionIndex){
   }
   return {segments,length:total,fill,cursor:0};
 }
+  // A single child-controlled step can colour several separate shapes in order.
+  // Each keeps its own mask and part tag; other lessons remain single-region.
+  const colorParts = step => step.regions?.map(region => ({ ...step, ...region })) ?? [step];
+  const regionId = (step, index, part) => step.regions ? `${index}-${part}` : index;
 function revealRegion(region,distance){
  const segments=region.segments;
  while(region.cursor<segments.length-1&&distance>=segments[region.cursor].start+segments[region.cursor].length){
@@ -126,7 +133,9 @@ function revealRegion(region,distance){
       const step = steps[i];
       if (step.kind === "stroke") for (const item of step.paths) {
         const node = path(item, step); if (node.dataset.fill) node.style.fill = node.dataset.fill;
-      } else { const region = buildRegion(step, i); revealRegion(region, region.length); }
+      } else colorParts(step).forEach((part, j) => {
+        const region = buildRegion(part, regionId(step, i, j)); revealRegion(region, region.length);
+      });
     }
     pencil.setAttribute("visibility", "hidden"); tip.setAttribute("visibility", "hidden");
   }
@@ -173,10 +182,14 @@ function revealRegion(region,distance){
         node.style.strokeDasharray = "none"; if (node.dataset.fill) node.style.fill = node.dataset.fill;
       }
     } else {
-      sound.beginStroke();
-      const region = buildRegion(step, index); pencil.setAttribute("visibility", "visible");
-      pencil.querySelector("path").style.fill = region.fill;
-      await animate(Math.max(650, Math.min(7000, region.length * .36)) * pace, token, t => { const point = revealRegion(region, region.length*t); if (!paused) sound.move(point.x, point.y, region.cursor); });
+      const parts = colorParts(step);
+      for (let j = 0; j < parts.length; j++) {
+        if (token !== version || disposed) return;
+        sound.beginStroke();
+        const region = buildRegion(parts[j], regionId(step, index, j)); pencil.setAttribute("visibility", "visible");
+        pencil.querySelector("path").style.fill = region.fill;
+        await animate(Math.max(650, Math.min(7000, region.length * .36)) * pace, token, t => { const point = revealRegion(region, region.length*t); if (!paused) sound.move(point.x, point.y, region.cursor); });
+      }
     }
     if (token !== version || disposed) return;
     tip.setAttribute("visibility", "hidden"); pencil.setAttribute("visibility", "hidden");
