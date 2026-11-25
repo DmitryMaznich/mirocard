@@ -42,6 +42,12 @@ try {
   await page.locator('.drawing-show').tap(); await page.clock.runFor(16000); await assertRestored();
   await next(); await page.clock.runFor(900);
   assert.equal(await page.locator('[data-finale=striped-fish]').count(), 1);
+  assert.equal(await page.locator('[data-finale-leaf]').count(), 4);
+  assert.equal(await page.locator('[data-finale-bubble]').count(), 6);
+  assert(await page.locator('[data-finale-bubble]').evaluateAll(nodes => nodes.some(node => Number(node.getAttribute('opacity')) > 0)));
+  assert(await page.locator('[data-finale]').evaluate(node =>
+    [...node.parentElement.querySelectorAll('[data-finish-part]')].every(part => Boolean(node.compareDocumentPosition(part) & 2))),
+  'Leaves must follow all fish parts in paint order; the signature can follow the scenery');
   const bars = await page.locator('[data-finish-part^="stripe-"]').evaluateAll(nodes => nodes.map(node => node.getAttribute('transform')));
   assert.equal(new Set(bars).size, 13, 'The ripple has a different phase on each stripe');
   for (const name of lesson.finale.stripes) {

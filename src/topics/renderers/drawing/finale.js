@@ -18,6 +18,33 @@ export function createDrawingFinale(svg, lesson) {
     const original = [...head, ...tail, ...stripes.flat()].map(node => [node, node.getAttribute('transform')]);
     const layer = document.createElementNS(ns, 'g');
     layer.dataset.finale = 'striped-fish'; layer.setAttribute('aria-hidden', 'true');
+    layer.setAttribute('pointer-events', 'none');
+    const shape = (tag, attributes, parent) => {
+      const node = document.createElementNS(ns, tag);
+      for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+      parent.append(node); return node;
+    };
+    // Foreground leaves hide the fish as it swims through the left edge.
+    // They belong only to the celebration, never to the child's drawing steps.
+    const scenery = shape('g', { 'data-finale-scenery': '', opacity: 0 }, layer);
+    const leaves = [
+      ['M18 300 C4 240 -3 160 22 85 C48 151 39 232 28 300 Z', 'M23 297 Q14 190 22 91', '#6eaf86'],
+      ['M40 300 C22 230 30 165 62 120 C75 185 68 249 53 300 Z', 'M47 297 Q42 209 61 127', '#3d946f'],
+      ['M64 300 C49 260 66 210 95 169 C105 223 93 272 77 300 Z', 'M70 297 Q73 235 93 176', '#8bc69a'],
+      ['M25 300 C21 225 45 160 39 60 C71 130 64 235 40 300 Z', 'M33 297 Q53 180 40 68', '#56a97a'],
+    ].map(([d, vein, fill], i) => {
+      const leaf = shape('g', { 'data-finale-leaf': i }, scenery);
+      shape('path', { d, fill, stroke: '#347457', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }, leaf);
+      shape('path', { d: vein, fill: 'none', stroke: '#347457', 'stroke-width': 1, 'stroke-linecap': 'round' }, leaf);
+      return leaf;
+    });
+    const swimX = t => t < 1.2 ? 0 : t < 4.2 ? -650*smooth((t-1.2)/3) : 600*(1-smooth((t-4.2)/3));
+    const bubbles = Array.from({ length: 6 }, (_, i) => {
+      const delay = .5+i*.22;
+      const circle = shape('circle', { 'data-finale-bubble': i, fill: '#d5f5f7', 'fill-opacity': .4,
+        stroke: '#56b4c7', 'stroke-width': 1.3, opacity: 0 }, scenery);
+      return { circle, delay, x: 73+swimX(delay), i };
+    });
     svg.append(layer);
     cleanup = () => {
       for (const [node, transform] of original) {
@@ -33,7 +60,7 @@ export function createDrawingFinale(svg, lesson) {
       const energy = smooth(t/.7)*(1-smooth((t-6.3)/.9));
       // Both sides of the wrap are entirely outside the 600-unit sheet.
       // The fish keeps facing its direction of travel, then settles at home.
-      const dx = t < 1.2 ? 0 : t < 4.2 ? -650*smooth((t-1.2)/3) : 600*(1-smooth((t-4.2)/3));
+      const dx = swimX(t);
       for (const node of head) node.setAttribute('transform', `translate(${dx} 0)`);
       stripes.forEach((nodes, i) => {
         const transform = `translate(${dx} ${5*energy*Math.sin(t*7-i*.48)})`;
@@ -41,6 +68,15 @@ export function createDrawingFinale(svg, lesson) {
       });
       const angle = 9*energy*Math.sin(t*9);
       for (const node of tail) node.setAttribute('transform', `translate(${dx} 0) translate(${tx} ${ty}) rotate(${angle}) translate(${-tx} ${-ty})`);
+      scenery.setAttribute('opacity', String(smooth((t-.2)/.6)*(1-smooth((t-5.1)/1))));
+      leaves.forEach((leaf, i) => leaf.setAttribute('transform', `rotate(${1.8*Math.sin(t*2+i*.8)} 45 300)`));
+      for (const { circle, delay, x, i } of bubbles) {
+        const u = (t-delay)/2.5, v = Math.max(0, Math.min(1, u));
+        circle.setAttribute('cx', String(x+9*Math.sin(v*4+i)*v));
+        circle.setAttribute('cy', String(148-(105+i*3)*v));
+        circle.setAttribute('r', String((3+i%3)*(.8+.35*v)));
+        circle.setAttribute('opacity', String(u < 0 || u > 1 ? 0 : smooth(u/.12)*(1-smooth((u-.75)/.25))));
+      }
       if (t >= 7.2) { stop(); return; }
       frame = requestAnimationFrame(tick);
     }

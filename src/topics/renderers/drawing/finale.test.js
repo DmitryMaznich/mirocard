@@ -77,6 +77,26 @@ describe('striped fish finale', () => {
     expect(stripes.every(node => !node.hasAttribute('transform'))).toBe(true);
     expect(svg.querySelector('[data-finale]')).toBeNull(); expect(queue.size).toBe(0);
   });
+  it('adds foreground seaweed and rising bubbles only during the finale', () => {
+    expect(svg.querySelector('[data-finale-scenery]')).toBeNull();
+    controller.play(); advance(1200);
+    const layer = svg.querySelector('[data-finale]');
+    expect(svg.lastElementChild).toBe(layer);
+    expect(layer.getAttribute('pointer-events')).toBe('none');
+    const leaves = [...layer.querySelectorAll('[data-finale-leaf]')];
+    expect(leaves).toHaveLength(4);
+    expect(leaves.every(leaf => leaf.firstElementChild.getAttribute('fill') !== 'none')).toBe(true);
+    const bubble = layer.querySelector('[data-finale-bubble]');
+    expect(layer.querySelectorAll('[data-finale-bubble]')).toHaveLength(6);
+    expect(Number(bubble.getAttribute('opacity'))).toBeGreaterThan(0);
+    const height = Number(bubble.getAttribute('cy'));
+    advance(500); expect(Number(bubble.getAttribute('cy'))).toBeLessThan(height);
+    advance(4600);
+    expect(Number(layer.querySelector('[data-finale-scenery]').getAttribute('opacity'))).toBe(0);
+    controller.stop();
+    expect(svg.querySelector('[data-finale-leaf]')).toBeNull();
+    expect(svg.querySelector('[data-finale-bubble]')).toBeNull();
+  });
   it('stops without changing layer order or leaving transformed parts', () => {
     const nodes = [...svg.children];
     controller.play(); advance(2500); controller.stop();
