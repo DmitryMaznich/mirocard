@@ -99,4 +99,21 @@ describe('striped fish finale', () => {
     svg.querySelector('[data-finish-part="stripes"]').remove();
     expect(controller.play()).toBe(false); expect(queue.size).toBe(0);
   });
+  it('keeps each coloured stripe inside its own moving outline and restores both layers', () => {
+    controller.dispose();
+    svg.querySelectorAll('[data-finish-part="stripes"]').forEach(node => node.remove());
+    const names = Array.from({ length: 13 }, (_, i) => `stripe-${i+1}`);
+    svg.innerHTML += names.map(name => `<path data-finish-part="${name}"/><g data-finish-part="${name}" clip-path="url(#${name})"><defs><clipPath id="${name}"><path/></clipPath></defs><path/></g>`).join('');
+    const nodes = [...svg.children];
+    controller = createDrawingFinale(svg, { finale: { type: 'striped-fish', tail: [470, 150], stripes: names } });
+    expect(controller.play()).toBe(true); advance(1800);
+    for (const name of names) {
+      const pair = [...svg.querySelectorAll(`[data-finish-part="${name}"]`)];
+      expect(pair[0].getAttribute('transform')).toBe(pair[1].getAttribute('transform'));
+      expect(pair[1].getAttribute('clip-path')).toBe(`url(#${name})`);
+    }
+    controller.stop();
+    expect([...svg.children]).toEqual(nodes);
+    expect(nodes.slice(1).every(node => !node.hasAttribute('transform'))).toBe(true);
+  });
 });

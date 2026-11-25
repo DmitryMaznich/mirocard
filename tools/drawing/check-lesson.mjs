@@ -70,7 +70,7 @@ try{
    assert(inks.every(ink=>ink===expected),'Wrong pencil for '+step.title);
   }
  }
- assert.equal(changes,lesson.palette.length-1);
+ assert.equal(changes,lesson.steps.filter((step,i)=>i>0&&step.tool!==lesson.steps[i-1].tool).length);
  await page.locator('.drawing-show').tap();await page.clock.runFor(16000);assert.equal(await index(),lesson.steps.length);
  assert.equal(await page.locator('.drawing-top h2').textContent(),card.label,'Explicit finish required');await page.locator('.drawing-primary[aria-label="Дальше"]').tap();
  assert.equal(await page.locator('.drawing-top h2').textContent(),'Рисунок готов');await page.locator('.drawing-board > svg').screenshot({path:`/workspace/${id}-finished.png`});
