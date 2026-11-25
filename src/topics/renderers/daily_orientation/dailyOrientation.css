@@ -1249,9 +1249,11 @@
    for the card then overflows to the right, where useFitTimeWords sees it
    (an overflow to the left of a centred line is invisible to scrollWidth). */
 .daily-orientation__card--time .daily-orientation__time-readout .daily-orientation__time-words {
-  width: max-content;
-  margin: 0 auto;
-  align-items: center;
+  width: 100%;
+  margin: 0;
+  align-items: stretch;
+  text-align: center;
+  gap: 6px;
 }
 .daily-orientation__card--time .daily-orientation__digital-time { flex: none; font-size: 96px; padding: 6px 26px 10px; border-radius: 22px; }
 
@@ -1632,3 +1634,45 @@ button.daily-orientation__plan-item:focus-visible { outline: 4px solid #db9f48; 
 .daily-orientation__canvas--ribbon .daily-orientation__myday-item { padding: 3px 10px; }
 .daily-orientation__canvas--ribbon .daily-orientation__myday-part--now .daily-orientation__myday-item { padding: 4px 10px; }
 .daily-orientation__canvas--ribbon .daily-orientation__myday-part--now .daily-orientation__myday-item-picture { font-size: 40px; }
+
+/* Погода in its narrow column (2026-11-25): the pictogram is a picture of its
+   own between the caption and the word, as wide as the card allows -- it used
+   to be a whole-card backdrop sized for a wide card and spilled over the edges. */
+.daily-orientation__now-column--weather-only .daily-orientation__card.daily-orientation__card--weather {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  row-gap: 8px;
+  padding: var(--caption-top) 16px 22px;
+  container-type: size;
+}
+.daily-orientation__now-column--weather-only .daily-orientation__weather-backdrop {
+  position: static;
+  grid-row: 2;
+  width: min(100cqw, 70cqh);
+  height: min(100cqw, 70cqh);
+}
+.daily-orientation__now-column--weather-only .daily-orientation__weather-backdrop::after { content: none; }
+.daily-orientation__now-column--weather-only .daily-orientation__weather-backdrop .daily-orientation__weather-mark {
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  transform: none;
+}
+.daily-orientation__now-column--weather-only .daily-orientation__card--weather > .daily-orientation__question { grid-row: 1; }
+.daily-orientation__now-column--weather-only .daily-orientation__weather-display { grid-row: 3; height: auto; }
+.daily-orientation__now-column--weather-only .daily-orientation__weather-display--unset { grid-row: 2 / 4; }
+.daily-orientation__now-column--weather-only .daily-orientation__weather-display--set,
+.daily-orientation__now-column--weather-only .daily-orientation__weather-display--set span { font-size: min(36px, 100cqw / (var(--fit-chars, 8) * .74)); }
+/* Время: each half on one line («ДЕВЯТНАДЦАТЬ ЧАСОВ» / «СОРОК СЕМЬ МИНУТ»),
+   centred under the digits; useFitTimeWords shrinks it to the card's width. */
+.daily-orientation__card--time .daily-orientation__time-words > span { display: block; white-space: nowrap; }
+.daily-orientation__card.daily-orientation__card--time .daily-orientation__time-readout { width: 100%; min-width: 0; justify-self: stretch; overflow: hidden; }
+/* The card's one grid column takes the card's whole width: the readout has
+   inline-size containment, so it gives the column no width of its own. */
+.daily-orientation__card.daily-orientation__card--time { grid-template-columns: minmax(0, 1fr); }
+.daily-orientation__now-column--weather-only .daily-orientation__card.daily-orientation__card--weather { grid-template-columns: minmax(0, 1fr); }
+.daily-orientation__now-column--weather-only .daily-orientation__weather-display--unset { align-self: center; border: 0; padding: 0; }
+.daily-orientation__now-column--weather-only .daily-orientation__weather-unset-mark { --unset-size: min(110px, 60cqw); }
+.daily-orientation__now-column--weather-only .daily-orientation__card--weather > .daily-orientation__weather-display--unset { height: 100%; min-height: 0; overflow: visible; }
