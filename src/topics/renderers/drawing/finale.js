@@ -1,12 +1,81 @@
-// Optional, finite celebration. It moves the finished drawing's own parts;
-// no audio, looping, or changes to the lesson's step count.
+import { createCarHorn } from './hornSound.js';
+
+// Optional, finite celebrations using the finished drawing's own parts.
+// The car's brief horn plays only after explicit completion; nothing loops.
 const ns = 'http://www.w3.org/2000/svg';
 const smooth = value => { const t = Math.max(0, Math.min(1, value)); return t*t*(3-2*t); };
-export function createDrawingFinale(svg, lesson) {
+export function createDrawingFinale(svg, lesson, options = {}) {
   let frame = null, cleanup = null;
+  const horn = lesson.finale?.type === 'car-drive' ? options.horn ?? createCarHorn() : null;
   function stop() {
     if (frame !== null) cancelAnimationFrame(frame);
-    frame = null; cleanup?.(); cleanup = null;
+    frame = null; horn?.stop(); cleanup?.(); cleanup = null;
+  }
+  function playCar(config, reducedMotion) {
+    const actor = [...svg.querySelectorAll('[data-finish-actor="car"]')];
+    const wheels = (config.wheels ?? []).map(wheel => ({ ...wheel,
+      nodes: actor.filter(node => [wheel.rim, wheel.hub].includes(node.dataset.finishPart)) }));
+    if (!actor.length || wheels.length !== 2 || wheels.some(wheel => !wheel.nodes.length) || !(config.track?.length >= 2)) return false;
+    horn?.play();
+    if (reducedMotion) return false;
+    const positions = actor.map(node => [node, node.parentNode, node.nextSibling]);
+    const originals = actor.map(node => [node, node.getAttribute('transform')]);
+    const layer = document.createElementNS(ns, 'g');
+    layer.dataset.finale = 'car-drive'; layer.setAttribute('aria-hidden', 'true'); layer.setAttribute('pointer-events', 'none');
+    const shape = (tag, attrs, parent = layer) => {
+      const node = document.createElementNS(ns, tag);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      parent.append(node); return node;
+    };
+    for (const d of config.silhouette ?? []) shape('path', { d, fill: '#fffefa', stroke: 'none' });
+    for (const node of actor) layer.append(node);
+    for (const wheel of wheels) {
+      const [x, y] = wheel.centre;
+      wheel.spokes = shape('g', { 'data-car-spokes': wheel.rim, stroke: '#c6ddd3', 'stroke-width': 2.4, 'stroke-linecap': 'round', opacity: .85 });
+      for (let i = 0; i < 3; i++) {
+        const a = i*Math.PI*2/3;
+        shape('path', { d: `M ${x+11*Math.cos(a)} ${y+11*Math.sin(a)} L ${x+24*Math.cos(a)} ${y+24*Math.sin(a)}` }, wheel.spokes);
+      }
+    }
+    const honk = shape('g', { 'data-car-honk': '', stroke: '#dba143', 'stroke-width': 2.8, 'stroke-linecap': 'round', opacity: 0 });
+    for (const d of ['M680 340L692 334', 'M683 351L699 351', 'M680 363L692 370']) shape('path', { d }, honk);
+    svg.append(layer);
+    cleanup = () => {
+      for (const [node, transform] of originals) {
+        if (transform === null) node.removeAttribute('transform'); else node.setAttribute('transform', transform);
+      }
+      for (const [node, parent, next] of positions.slice().reverse()) parent.insertBefore(node, next?.parentNode === parent ? next : null);
+      layer.remove();
+    };
+    const track = x => {
+      let i = 1;
+      while (i < config.track.length-1 && config.track[i][0] < x) i++;
+      const [a, b] = [config.track[i-1], config.track[i]];
+      return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);
+    };
+    const [[rx, ry], [fx, fy]] = wheels.map(wheel => wheel.centre);
+    const baseAngle = Math.atan2(fy-ry, fx-rx);
+    let elapsed = 0, last = performance.now();
+    function tick(now) {
+      elapsed += Math.min(64, now-last); last = now;
+      const t = elapsed/1000, returning = t >= 4.45;
+      const dx = returning ? 0 : 830*smooth((t-.85)/3.25);
+      const dy = returning ? 0 : track(rx+dx)-ry;
+      const angle = returning ? 0 : (Math.atan2(track(fx+dx)-track(rx+dx), fx-rx)-baseAngle)*180/Math.PI;
+      layer.setAttribute('transform', `translate(${dx} ${dy}) translate(${rx} ${ry}) rotate(${angle}) translate(${-rx} ${-ry})`);
+      layer.setAttribute('opacity', String(returning ? smooth((t-4.45)/.75) : 1));
+      const pulse = smooth(t/.04)*(1-smooth((t-.48)/.12));
+      honk.setAttribute('opacity', String(pulse));
+      for (const wheel of wheels) {
+        const [x, y] = wheel.centre;
+        const transform = `rotate(${returning ? 0 : dx/wheel.radius*180/Math.PI} ${x} ${y})`;
+        for (const node of wheel.nodes) node.setAttribute('transform', transform);
+        wheel.spokes.setAttribute('transform', transform);
+      }
+      if (t >= 5.25) { stop(); return; }
+      frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick); return true;
   }
   function playZebra(config) {
     const actor = [...svg.querySelectorAll('[data-finish-actor="zebra"]')];
@@ -182,7 +251,10 @@ export function createDrawingFinale(svg, lesson) {
   function play() {
     stop();
     const config = lesson.finale;
-    if (document.hidden || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
+    if (document.hidden) return false;
+    const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (config?.type === 'car-drive') return playCar(config, reducedMotion);
+    if (reducedMotion) return false;
     if (config?.type === 'zebra-run') return playZebra(config);
     if (config?.type === 'striped-fish') return playStripedFish(config);
     if (config?.type !== 'fish') return false;
@@ -239,5 +311,5 @@ export function createDrawingFinale(svg, lesson) {
   }
   const onVisibility = () => { if (document.hidden) stop(); };
   document.addEventListener('visibilitychange', onVisibility);
-  return { play, stop, dispose() { stop(); document.removeEventListener('visibilitychange', onVisibility); } };
+  return { play, stop, setSoundEnabled(value) { horn?.setEnabled(value); }, dispose() { stop(); horn?.dispose(); document.removeEventListener('visibilitychange', onVisibility); } };
 }

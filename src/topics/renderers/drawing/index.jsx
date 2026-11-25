@@ -140,6 +140,7 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
   }, [phase, lesson.title, choices.signatureCase]);
   useEffect(() => { player.current?.setSpeed(choices.speed); }, [choices.speed]);
   useEffect(() => { player.current?.setSoundEnabled(soundEnabled && choices.pencilSound); }, [soundEnabled, choices.pencilSound]);
+  useEffect(() => { player.current?.setEffectsSoundEnabled(soundEnabled); }, [soundEnabled]);
   const context = toolForStep(lesson, phase === 'copy' || phase === 'done' ? Math.max(0, state.index-1) : Math.min(state.index, lesson.steps.length-1));
   const openSettings = () => {
     player.current.stopFinale();

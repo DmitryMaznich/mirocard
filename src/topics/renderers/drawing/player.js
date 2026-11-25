@@ -35,6 +35,7 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
   element("path", { d: "M-1.3 -4 L0 0 L1.3 -4 Z", style: "fill:#514535;stroke:none" }, pencilBody);
   const tip = element("circle", { r: 4, fill: "#749b80", visibility: "hidden" }, svg);
   const finale = createDrawingFinale(svg, lesson);
+  finale.setSoundEnabled(options.effectsSoundEnabled !== false);
   const steps = lesson.steps;
   const sound = options.sound ?? createPencilSound();
   sound.setEnabled(options.soundEnabled !== false);
@@ -207,6 +208,7 @@ function revealRegion(region,distance){
     reset() { if (!disposed) { stop(); index=0; redraw(); emit(); } },
     togglePause() { if (!disposed && busy) { paused=!paused; sound.stop(); if (!paused) sound.unlock(); emit(); } },
     setSoundEnabled(value) { sound.setEnabled(value); },
+    setEffectsSoundEnabled(value) { finale.setSoundEnabled(value); },
     setSpeed(value) { speed = { slow: 1.65, normal: 1, fast: .6 }[value] ?? 1; },
     dispose() { stop(); finale.dispose(); sound.dispose(); disposed=true; svg.replaceChildren(); },
   };

@@ -696,7 +696,7 @@
     },
     {
       "id": "drawing",
-      "version": "0.48.0",
+      "version": "0.49.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
@@ -705,7 +705,7 @@
         "ru": "Двадцать три рисунка на бумаге: зебра с бабочкой и оживлением, зелёная машинка, разноцветная полосатая рыбка, малыш, домик, шесть пар героев из мира Пеппы, снеговик, собачка и другие. Также доступны «Первые линии» и тренировка закрашивания фигур и дорожек.",
         "en": "Twenty-three paper drawing lessons, including a zebra and butterfly with a running finale, a green car, a rainbow striped fish, a baby, a house, six Peppa family and friends pairs, a snowman and a dog, plus First Lines and coloring practice."
       },
-      "url": "./decks/drawing_v0.48.0.zip",
+      "url": "./decks/drawing_v0.49.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

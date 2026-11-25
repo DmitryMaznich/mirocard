@@ -6,6 +6,7 @@ the three blue pencil regions share the exact outlines of the window frames.
 import json
 import math
 from pathlib import Path
+from geometry import at
 
 BASE = Path(__file__).resolve().parents[1]
 PENCILS = json.loads((BASE / 'pencils.json').read_text())
@@ -55,10 +56,10 @@ stroke('Низ кузова, задняя арка и багажник', ['M 537
 for name, frame in windows:
     stroke({'rear': 'Заднее окно', 'middle': 'Среднее окно', 'front': 'Переднее окно'}[name],
            [frame], part='window-'+name)
-stroke('Линия под окнами', ['M 150 310 L 620 329'])
-stroke('Задняя дверца', ['M 330 317.277 L 330 390.080'])
-stroke('Передняя дверца', ['M 475 323.138 L 475 392.826'])
-stroke('Две дверные ручки', ['M 346 332 L 358 332', 'M 490 339 L 502 339'])
+stroke('Линия под окнами', ['M 150 310 L 620 329'], part='beltline')
+stroke('Задняя дверца', ['M 330 317.277 L 330 390.080'], part='door-rear')
+stroke('Передняя дверца', ['M 475 323.138 L 475 392.826'], part='door-front')
+stroke('Две дверные ручки', ['M 346 332 L 358 332', 'M 490 339 L 502 339'], part='door-handles')
 for i, d in enumerate(wheels, 1):
     stroke(f'Колесо {i}', [d], part=f'wheel-{i}')
 for i, d in enumerate(hubs, 1):
@@ -74,7 +75,9 @@ stones = [
 ]
 stroke('Четыре камешка вдоль обочины', stones, part='roadside-stones', background=True)
 
-road_top = 'M 20 352 C 165 384 280 401 400 404 C 550 410 660 411 780 386'
+road_curves = [((20, 352), (165, 384), (280, 401), (400, 404)),
+               ((400, 404), (550, 410), (660, 411), (780, 386))]
+road_top = 'M 20 352'+''.join(' C '+' '.join(f'{x} {y}' for x, y in c[1:]) for c in road_curves)
 road_bottom = 'M 780 458 C 660 482 550 478 400 474 C 240 469 100 438 20 418'
 road = road_top+' L 780 458 '+road_bottom.split(' ', 3)[3]+' L 20 352 Z'
 dashes = [road_dash(x, y, angle) for x, y, angle in
@@ -116,9 +119,41 @@ stroke('Круг солнышка', [sun], 'yellow', 'sun')
 stroke('Восемь коротких лучиков', rays, 'yellow', 'sun-rays')
 colour('Закрашиваем солнышко жёлтым', sun, 'yellow', 'sun')
 
+for step in STEPS:
+    part = step.get('part', '')
+    if part in {'body', 'beltline', 'door-rear', 'door-front', 'door-handles'} or part.startswith(('window-', 'wheel-', 'hub-', 'light-')):
+        step['actor'] = 'car'
+
+def road_height(x):
+    if x <= 20:
+        return 352+(x-20)*(384-352)/(165-20)
+    if x >= 780:
+        return 386+(x-780)*(386-411)/(780-660)
+    curve = road_curves[0 if x <= 400 else 1]
+    lo, hi = 0., 1.
+    for _ in range(45):
+        mid = (lo+hi)/2
+        if at(curve, mid)[0] < x:
+            lo = mid
+        else:
+            hi = mid
+    return at(curve, (lo+hi)/2)[1]
+
+# Match the original drawing at both axles; thereafter follow the same road
+# curve, extending its tangent outside the sheet instead of driving sideways.
+offset = 393-road_height(235)
+correction = (400-road_height(575)-offset)/(575-235)
+track = [[x, road_height(x)+offset+correction*(x-235)] for x in sorted(set(range(0, 1601, 20)) | {235, 575})]
+shell_front = 'C 645 329 662 344 667 368 C 670 379 669 389 660 393 L 613 396 L 537 394'
+shell_back = 'L 273 389 L 197 387 L 165 385 C 150 384 143 378 144 364 L 150 310'
+shell = 'M 150 310 '+roof+' '+shell_front+' '+shell_back+' Z'
+
 lesson = dict(
     id='green_car', title='Зелёная машинка', viewBox='0 0 800 500', paperOrientation='landscape',
     progressRevision=3,
+    finale=dict(type='car-drive', silhouette=[shell]+wheels, track=track,
+                wheels=[dict(rim='wheel-1', hub='hub-1', centre=[235, 393], radius=29),
+                        dict(rim='wheel-2', hub='hub-2', centre=[575, 400], radius=29)]),
     source=dict(title='Машинка на дороге по фотографии владельца',
                 origin='Фото и согласование макета предоставлены владельцем приложения 2026-11-25.',
                 note='Последний выбранный вариант: без людей и бликов; три окна полностью '

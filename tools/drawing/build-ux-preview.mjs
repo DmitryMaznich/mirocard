@@ -20,6 +20,7 @@ const player = await readFile(new URL('src/topics/renderers/drawing/player.js', 
 await writeFile(new URL('previewPlayer.js', staging), player);
 await writeFile(new URL('labels.js', staging), await readFile(new URL('src/topics/renderers/drawing/labels.js', root)));
 await writeFile(new URL('finale.js', staging), await readFile(new URL('src/topics/renderers/drawing/finale.js', root)));
+await writeFile(new URL('hornSound.js', staging), await readFile(new URL('src/topics/renderers/drawing/hornSound.js', root)));
 await writeFile(new URL('pencilRecording.js', staging), await readFile(new URL('src/topics/renderers/drawing/pencilRecording.js', root)));
 await writeFile(new URL('pencil-writing.pcm', staging), await readFile(new URL('src/topics/renderers/drawing/pencil-writing.pcm', root)));
 await writeFile(new URL('pencilSound.js', staging), await readFile(new URL('src/topics/renderers/drawing/pencilSound.js', root)));

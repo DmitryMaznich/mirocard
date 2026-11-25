@@ -23,6 +23,48 @@ beforeEach(() => {
 });
 afterEach(() => { controller.dispose(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
+describe('car departure finale', () => {
+  let horn;
+  beforeEach(() => {
+    controller.dispose();
+    svg.innerHTML = '<path data-finish-part="sun"/><g data-layer="drawing">'+
+      ['body', 'wheel-1', 'hub-1', 'wheel-2', 'hub-2'].map(part => `<path data-finish-actor="car" data-finish-part="${part}"/>`).join('')+'</g><path data-finish-part="road"/>';
+    horn = { play: vi.fn(), stop: vi.fn(), dispose: vi.fn(), setEnabled: vi.fn() };
+    controller = createDrawingFinale(svg, { finale: { type: 'car-drive', track: [[235, 393], [575, 400], [1200, 340]],
+      wheels: [{ rim: 'wheel-1', hub: 'hub-1', centre: [235, 393], radius: 29 }, { rim: 'wheel-2', hub: 'hub-2', centre: [575, 400], radius: 29 }] } }, { horn });
+  });
+  it('honks before moving right, turns both wheels and restores every original node', () => {
+    const original = svg.innerHTML;
+    expect(controller.play()).toBe(true); expect(horn.play).toHaveBeenCalledTimes(1);
+    advance(400);
+    const layer = svg.querySelector('[data-finale="car-drive"]');
+    expect(layer.getAttribute('transform')).toContain('translate(0 0)');
+    advance(1600);
+    expect(Number(layer.getAttribute('transform').match(/translate\(([-\d.]+)/)[1])).toBeGreaterThan(0);
+    expect(layer.contains(svg.querySelector('[data-finish-part="road"]'))).toBe(false);
+    expect(layer.contains(svg.querySelector('[data-finish-part="sun"]'))).toBe(false);
+    for (const number of [1, 2]) {
+      const wheel = svg.querySelector(`[data-finish-part="wheel-${number}"]`);
+      expect(wheel.getAttribute('transform')).toBe(svg.querySelector(`[data-finish-part="hub-${number}"]`).getAttribute('transform'));
+      expect(wheel.getAttribute('transform')).toBe(svg.querySelector(`[data-car-spokes="wheel-${number}"]`).getAttribute('transform'));
+    }
+    advance(3400); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+  });
+  it('cancels sound and motion on hiding, and honours reduced motion and mute', () => {
+    const original = svg.innerHTML;
+    controller.setSoundEnabled(false); expect(horn.setEnabled).toHaveBeenCalledWith(false);
+    controller.play(); advance(1400);
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(svg.innerHTML).toBe(original); expect(horn.stop).toHaveBeenCalled(); expect(queue.size).toBe(0);
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
+    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    const count = horn.play.mock.calls.length;
+    expect(controller.play()).toBe(false); expect(horn.play).toHaveBeenCalledTimes(count+1);
+    expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+  });
+});
+
 describe('drawing finale', () => {
   it('plays once and restores the original drawing without leaving animated nodes', () => {
     expect(controller.play()).toBe(true);
