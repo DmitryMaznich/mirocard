@@ -49,8 +49,10 @@ import DailyOrientationSettings from "@/features/session/DailyOrientationSetting
 import { allowedEnumValues, applyParamLimits } from "@/topics/paramLimits";
 import { normalizeNumberPathParams, numberPathBoardSizes, numberPathMinForBoard, numberPathRewardPerCard } from "@/topics/renderers/math_houses/numberPathConfig.js";
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
+import DictationNumbersParam from "./DictationNumbersParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
 import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
+import { resolveDictationParams } from "@/topics/renderers/addition_subtraction/dictation.js";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -1740,6 +1742,15 @@ export default function ParamsScreen() {
         out[key] = resolveOperands({ operands: saved[key], digits: saved.digits });
         continue;
       }
+      if (def.type === "dictation_numbers") {
+        // settings saved before 2026-11-25 carry «Максимальное число» (maxNumber); with them the
+        // other two settings of the cells change too (dictation.js resolveDictationParams)
+        const resolved = resolveDictationParams(saved);
+        out[key] = resolved.numbers;
+        if (saved.operation == null && mode?.params?.operation) out.operation = resolved.operation;
+        if (saved.crossTen == null && mode?.params?.crossTen) out.crossTen = resolved.crossTen;
+        continue;
+      }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
     }
     // «Видео в конце занятия» is not a declared mode option: kept with the params like figureFilters
@@ -2317,6 +2328,20 @@ export default function ParamsScreen() {
                 value={params[key]}
                 operation={params.operation ?? mode.params?.operation?.default}
                 carryMode={params.carryMode ?? mode.params?.carryMode?.default}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "dictation_numbers") {
+            const label = setupText(def.label) || key;
+            return (
+              <DictationNumbersParam
+                key={key}
+                label={label}
+                labelNode={<ParamLabel label={label} info={setupInfo(def.info)} onShowInfo={setActiveInfo} />}
+                value={params[key]}
+                operation={params.operation ?? mode.params?.operation?.default}
+                crossTen={params.crossTen ?? mode.params?.crossTen?.default}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
             );

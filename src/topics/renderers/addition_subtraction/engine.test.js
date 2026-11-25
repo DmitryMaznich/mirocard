@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { dictationPlan, normalizeDictationNumbers, resolveDictationParams } from "./dictation.js";
 import { generateTasks } from "./engine";
 
 const CARDS = [
@@ -395,68 +396,90 @@ describe("operation_missing_term", () => {
 });
 
 describe("operation_audio", () => {
-  it("generates tasks with operation_audio type", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 12, { maxNumber: 20 });
-    expect(tasks.every((t) => t.type === "operation_audio")).toBe(true);
-  });
+  const one = (tens, units) => ({ tens, units });
+  const nums = (top, bottom) => ({ top, bottom });
+  const ok = (t) => {
+    expect(t.type).toBe("operation_audio");
+    expect(t.operation === "add" ? t.start + t.delta : t.start - t.delta).toBe(t.result);
+    expect(t.result).toBeGreaterThanOrEqual(1);
+    expect(t.result).toBeLessThanOrEqual(99);
+  };
 
-  it("keeps arithmetic valid for both operations", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 30, { maxNumber: 20 });
+  it("defaults to one-digit addition without crossing a ten (состав до 10)", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 30, {});
+    expect(tasks).toHaveLength(30);
     tasks.forEach((t) => {
-      if (t.operation === "add") expect(t.start + t.delta).toBe(t.result);
-      else expect(t.start - t.delta).toBe(t.result);
-      expect(t.result).toBeGreaterThanOrEqual(1);
-      expect(t.result).toBeLessThanOrEqual(20);
+      ok(t);
+      expect(t.operation).toBe("add");
+      expect(t.start).toBeLessThan(10);
+      expect(t.delta).toBeLessThan(10);
+      expect(t.result).toBeLessThan(10);
     });
   });
 
-  it("allows numbers up to 100, unlike the visual-rail modes capped at 20", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 30, { maxNumber: 100, changeMax: 40 });
-    expect(tasks.some((t) => t.start > 20 || t.result > 20)).toBe(true);
+  it("«1» in the tens of the first number gives the teens: 13 − 6 through a ten", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 40, {
+      operation: "subtract", crossTen: "cross", numbers: nums(one(1, "any"), one("none", "any")),
+    });
     tasks.forEach((t) => {
-      expect(t.start).toBeLessThanOrEqual(100);
-      expect(t.result).toBeLessThanOrEqual(100);
+      ok(t);
+      expect(t.operation).toBe("subtract");
+      expect(t.start).toBeGreaterThanOrEqual(11);
+      expect(t.start).toBeLessThanOrEqual(19);
+      expect(t.start % 10).toBeLessThan(t.delta);
+      expect(t.conceptId).toBe("minus");
     });
   });
 
-  it("never lands on 100 itself in the 'до 100' range — it's the one number that doesn't compose as tens+ones", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 200, { maxNumber: 100, changeMax: 99 });
-    tasks.forEach((t) => {
-      expect(t.start).toBeLessThan(100);
-      expect(t.delta).toBeLessThan(100);
-      expect(t.result).toBeLessThan(100);
+  it("a fixed digit drills one fact: + 9", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 30, {
+      operation: "add", crossTen: "mixed", numbers: nums(one("none", "any"), one("none", 9)),
     });
+    tasks.forEach((t) => { ok(t); expect(t.delta).toBe(9); });
   });
 
-  it("can include zero when requested", () => {
-    const tasks = generateTasks("operation_audio", [CARDS[1]], 20, { maxNumber: 3, changeMax: 3, includeZero: true });
-    expect(tasks.every((t) => t.result >= 0)).toBe(true);
+  it("«any» never draws a 0, a chosen 0 makes round numbers", () => {
+    const any = generateTasks("operation_audio", CARDS, 80, { crossTen: "mixed", numbers: nums(one("any", "any"), one("none", "any")) });
+    any.forEach((t) => { ok(t); expect(t.start % 10).not.toBe(0); expect(t.delta).not.toBe(0); });
+    const round = generateTasks("operation_audio", CARDS, 30, { numbers: nums(one("any", 0), one("any", 0)) });
+    round.forEach((t) => { ok(t); expect(t.start % 10).toBe(0); expect(t.delta % 10).toBe(0); });
   });
 
-  it("generates requested count", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 9, { maxNumber: 20 });
-    expect(tasks).toHaveLength(9);
+  it("mixes both operations with «Микс»", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 60, { operation: "mixed", crossTen: "mixed", numbers: nums(one("any", "any"), one("none", "any")) });
+    tasks.forEach(ok);
+    expect(new Set(tasks.map((t) => t.operation))).toEqual(new Set(["add", "subtract"]));
   });
 
-  it("allows mixed-magnitude pairs (single-digit with two-digit) by default", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 60, { maxNumber: 100, changeMax: 99 });
-    expect(tasks.some((t) => (t.start <= 9) !== (t.delta <= 9))).toBe(true);
+  it("an impossible ten setting gives way to the digits (40 + 30 «через десяток»)", () => {
+    const plan = dictationPlan({ operation: "add", crossTen: "cross", numbers: nums(one("any", 0), one("any", 0)) });
+    expect(plan.relaxed).toBe(true);
+    expect(plan.empty).toBe(false);
   });
 
-  it("forces same-magnitude pairs when mixedMagnitude is false", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 60, { maxNumber: 100, changeMax: 99, mixedMagnitude: false });
-    tasks.forEach((t) => {
-      expect(t.start <= 9).toBe(t.delta <= 9);
-      if (t.operation === "add") expect(t.start + t.delta).toBe(t.result);
-      else expect(t.start - t.delta).toBe(t.result);
+  it("cells with no example at all fall back to the default instead of an empty lesson", () => {
+    const numbers = nums(one("none", 5), one("none", 7));
+    expect(dictationPlan({ operation: "subtract", numbers }).empty).toBe(true);
+    const tasks = generateTasks("operation_audio", CARDS, 10, { operation: "subtract", numbers });
+    expect(tasks).toHaveLength(10);
+    tasks.forEach(ok);
+  });
+
+  it("all cells fixed is one example, and the plan says so", () => {
+    expect(dictationPlan({ numbers: nums(one(1, 6), one("none", 9)), crossTen: "mixed" }).single).toBe(true);
+  });
+
+  it("maps settings saved before 2026-11-25: «до 20» → teens ± one digit, «до 100» → two-digit numbers", () => {
+    expect(resolveDictationParams({ maxNumber: 20, changeMax: 99 })).toEqual({
+      operation: "add", crossTen: "mixed", numbers: nums(one(1, "any"), one("none", "any")),
     });
+    expect(resolveDictationParams({ maxNumber: 100 }).numbers).toEqual(nums(one("any", "any"), one("any", "any")));
+    const tasks = generateTasks("operation_audio", CARDS, 40, { maxNumber: 20, changeMax: 99 });
+    tasks.forEach((t) => { ok(t); expect(t.start).toBeGreaterThanOrEqual(11); expect(t.start).toBeLessThanOrEqual(19); });
   });
 
-  it("still produces valid same-magnitude pairs when changeMax only allows single digits", () => {
-    const tasks = generateTasks("operation_audio", CARDS, 30, { maxNumber: 100, changeMax: 5, mixedMagnitude: false });
-    tasks.forEach((t) => {
-      expect(t.start <= 9).toBe(t.delta <= 9);
-      expect(t.result).toBeGreaterThanOrEqual(1);
-    });
+  it("with «−» the second number is never longer than the first", () => {
+    expect(normalizeDictationNumbers(nums(one("none", "any"), one("any", "any")), "subtract").bottom.tens).toBe("none");
+    expect(normalizeDictationNumbers(nums(one("none", "any"), one("any", "any")), "add").bottom.tens).toBe("any");
   });
 });

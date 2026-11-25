@@ -542,6 +542,20 @@ const DEFAULT_MODE_METHODOLOGY = {
       settings: ["Начинайте с двух действий, предела 10 и изменения на 1; три и четыре действия — когда два решаются уверенно.", "«По шагам» разбивает пример на действия; решение с подсказкой не даёт звезду."],
       goal: "Ребёнок считает пример в несколько действий (2–4) по порядку слева направо, удерживая промежуточный результат.",
     },
+    operation_audio: {
+      settings: [
+        "«Операция» — сложение, вычитание или вперемешку.",
+        "«Через десяток» — без перехода, с переходом или вперемешку.",
+        "«Числа в примере» — клетки: «любая» цифра, одна определённая цифра или «нет». «1» в десятках первого числа — счёт до 20; одна цифра во втором числе — один приём (+9, ±1, +10); 0 в единицах — круглые числа.",
+      ],
+      tips: [
+        "Начинайте с однозначных без перехода (состав до 10), затем — через десяток в пределах 20 («1» в десятках первого числа).",
+        "Двузначные числа вводите, когда ребёнок уверенно считает десятками (40 + 30).",
+        "Кнопка «Ещё раз» — ребёнок сам решает, когда переслушать пример.",
+      ],
+      goal: "Ребёнок вычисляет произнесённый пример без зрительной записи, до автоматизма — вид примеров выбирает взрослый.",
+      duration: "4–6 мин",
+    },
     operation_missing_term: {
       settings: ["Начинайте с правого неизвестного и операции +.", "Счётный помощник (🧮) помогает отсчитать от результата назад."],
       goal: "Ребёнок находит неизвестный операнд в уравнении вида A + ❓ = C или ❓ + B = C.",
@@ -1252,6 +1266,53 @@ const DEFAULT_MODES = {
           labels: { ru: { question: "? Знак вопроса", x: "x Буква икс" } },
           default: "question",
           label: { ru: "Символ неизвестного" },
+        },
+      },
+    },
+    // «Слушай и посчитай»: settings in the style of «Столбик — Тренажёр» (2026-11-25) — the
+    // example drawn as cells, each «любая» / a fixed digit / «нет» (dictation.js). Code-owned
+    // here, so installed decks (their manifest still lists maxNumber/changeMax) get it too.
+    {
+      id: "operation_audio",
+      type: "operation_audio",
+      evaluation: "auto",
+      defaultCardId: "operation_plus",
+      hideConceptPicker: true,
+      ui: { title: "12. Слушай и посчитай", instruction: "Слушай пример и вводи ответ", icon: "media/icons/ops_audio.svg" },
+      params: {
+        operation: {
+          type: "enum",
+          values: ["add", "subtract", "mixed"],
+          labels: { ru: { add: "+", subtract: "−", mixed: "Микс" } },
+          default: "add",
+          label: { ru: "Операция" },
+          section: "Какие примеры",
+          info: { ru: { text: "Только сложение, только вычитание или оба вида вперемешку." } },
+        },
+        crossTen: {
+          type: "enum",
+          values: ["none", "cross", "mixed"],
+          labels: { ru: { none: "Без", cross: "С", mixed: "Микс" } },
+          default: "none",
+          label: { ru: "Через десяток" },
+          section: "Какие примеры",
+          info: {
+            ru: {
+              text: "Переходит ли пример через десяток: 7 + 5, 13 − 6, 45 + 7 — с переходом; 3 + 4, 45 + 3 — без.",
+              tip: "Сначала «Без», потом «С» отдельно, «Микс» — когда оба вида считаются уверенно. Если цифры в клетках не дают выбранного (40 + 30 через десяток не переходит), под примером будет пояснение.",
+            },
+          },
+        },
+        numbers: {
+          type: "dictation_numbers",
+          label: { ru: "Числа в примере" },
+          section: "Какие примеры",
+          info: {
+            ru: {
+              text: "Пример нарисован клетками: десятки и единицы первого и второго числа. Нажмите на клетку и выберите: «любая» цифра, одна определённая цифра или «нет» — разряда нет. «Любая» не даёт 0: ноль — только когда выбран. Ответ — от 1 до 99. Внизу — пример, который услышит ребёнок; ▶ проигрывает его тем же голосом.",
+              tip: "«1» в десятках первого числа — счёт в пределах 20 (13 − 6). Одна цифра во втором числе — отработка приёма: 9 — «прибавить 9», 1 — «плюс-минус один», 1 и 0 — «прибавить 10». 0 в единицах — круглые числа (40 + 30).",
+            },
+          },
         },
       },
     },
@@ -2173,8 +2234,8 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
 // mergeDefaultModesKeepOrder only appends new defaults at the end. The finger
 // modes (moved in from column_addition) belong inside the ladder, so the order
 // is pinned here for both fresh imports and already-installed records.
-// operation_audio is manifest-only (no DEFAULT_MODES entry), so its number is
-// set here too.
+// operation_audio came from the manifest only until 2026-11-25 (now also in
+// DEFAULT_MODES for its settings); its number is still set here too.
 const ADDITION_SUBTRACTION_ORDER = [
   "fingers_show",
   "operation_observe",

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Плюс и минус: «Слушай и посчитай» — клетки с выбором цифры</title>
+<style>
+  @font-face { font-family: Primo; src: url("../../../public/fonts/primo.ttf"); }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; background: #f6f4ef; color: #1f2d2b; }
+  main { max-width: 1120px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 21px; margin: 6px 0 4px; }
+  .sub { color: #64748b; font-size: 14px; margin: 0 0 16px; line-height: 1.45; max-width: 840px; }
+  .layout { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+  .phone { width: 375px; background: #f6f4ef; border-radius: 28px; padding: 18px 14px 22px; box-shadow: 0 10px 30px rgba(0,0,0,.12); border: 1px solid #e5e1d8; }
+  .topbar { display: flex; align-items: center; gap: 10px; margin: 0 2px 14px; }
+  .topbar .back { width: 36px; height: 36px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .topbar .t { font-weight: 800; font-size: 17px; line-height: 1.15; }
+  .topbar .t small { display: block; font-weight: 600; font-size: 12.5px; color: #64748b; }
+  .section-h { font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #7a9e9a; text-transform: uppercase; margin: 4px 0 6px 4px; }
+  .prow { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .prow b { font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .i { width: 18px; height: 18px; border-radius: 50%; background: #e8efee; color: #537b75; font-size: 11px; font-style: italic; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+  .seg { display: flex; gap: 6px; }
+  .seg button { min-width: 44px; min-height: 40px; padding: 6px 10px; border: 1.5px solid #c8d4d2; border-radius: 10px; background: #f0f5f4; color: #3a5c58; font: 700 15px inherit; font-family: inherit; cursor: pointer; }
+  .seg button.sign-b { font-size: 22px; line-height: 1; }
+  .seg button.on { background: #1c7a6e; border-color: #1c7a6e; color: #fff; }
+  .card { background: #fff; border-radius: 14px; padding: 14px 16px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 8px; position: relative; }
+  .card-title { font-weight: 800; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+  .body { display: flex; gap: 16px; align-items: flex-start; }
+  .col { --c: 50px; display: grid; grid-template-columns: 34px repeat(2, var(--c)); grid-template-rows: var(--c) var(--c) 6px; column-gap: 4px; row-gap: 4px; align-items: center; }
+  .cell { width: var(--c); height: var(--c); border-radius: 12px; border: 2px dashed #c3d0ce; background: #fafcfc; display: flex; align-items: center; justify-content: center; font-family: Primo, "Comic Sans MS", cursive; font-size: 30px; color: #b45309; cursor: pointer; user-select: none; transition: background .12s, border-color .12s, transform .08s, box-shadow .12s; -webkit-tap-highlight-color: transparent; }
+  .cell:active:not(.off) { transform: scale(.94); }
+  .cell.any { border: 2px solid #1c7a6e; background: #d7efe9; }
+  .cell.any::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #1c7a6e; opacity: .55; }
+  .cell.fix { border: 2px solid #d97706; background: #fff4dc; }
+  .cell.off { opacity: .3; border-style: dotted; cursor: default; }
+  .cell.editing { box-shadow: 0 0 0 4px rgba(37,99,235,.35); }
+  .sign { font-family: Primo, "Comic Sans MS", cursive; font-size: 30px; color: #2563eb; text-align: center; }
+  .sign.minus { color: #dc2626; }
+  .line { height: 3px; border-radius: 2px; background: #1f2d2b; align-self: start; grid-column: 1 / 4; }
+  .legend { list-style: none; margin: 4px 0 0; padding: 0; font-size: 13px; color: #475569; font-weight: 600; display: grid; gap: 8px; }
+  .legend li { display: flex; align-items: center; gap: 8px; }
+  .mini { width: 22px; height: 22px; border-radius: 6px; border: 2px dashed #c3d0ce; background: #fafcfc; display: inline-flex; align-items: center; justify-content: center; font-family: Primo, cursive; font-size: 15px; color: #b45309; flex: none; }
+  .mini.any { border: 2px solid #1c7a6e; background: #d7efe9; }
+  .mini.any::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1c7a6e; opacity: .55; }
+  .mini.fix { border: 2px solid #d97706; background: #fff4dc; }
+
+  /* the picker: opens under the cells, one tap picks */
+  .picker { margin-top: 10px; padding: 10px; border-radius: 14px; background: #fff; border: 1.5px solid #bfd3f5; box-shadow: 0 8px 22px rgba(37,99,235,.14); }
+  .picker .ph { font-size: 12.5px; font-weight: 700; color: #475569; margin: 0 2px 8px; display: flex; justify-content: space-between; }
+  .picker .ph button { border: 0; background: none; font: 700 18px inherit; color: #94a3b8; cursor: pointer; line-height: 1; padding: 0 2px; }
+  .pg { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .pg button { min-height: 44px; border-radius: 10px; border: 1.5px solid #e3c9a0; background: #fffaf0; color: #b45309; font-family: Primo, cursive; font-size: 24px; cursor: pointer; padding: 0; }
+  .pg button.word { font-family: inherit; font-size: 12px; letter-spacing: -.02em; font-weight: 800; }
+  .pg button.w-any { border-color: #9fcfc5; background: #eef8f5; color: #1c7a6e; }
+  .pg button.w-none { border: 1.5px dashed #c3d0ce; background: #fafcfc; color: #64748b; }
+  .pg button.cur { outline: 3px solid #2563eb; outline-offset: 1px; }
+  .pg button:disabled { opacity: .25; cursor: default; }
+
+  .example { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #f4f8f7; display: grid; grid-template-columns: 1fr auto auto; gap: 4px 8px; align-items: center; }
+  .example .lbl { grid-column: 1 / -1; font-size: 12.5px; font-weight: 700; color: #64748b; }
+  .example .said { font-size: 17px; font-weight: 700; color: #1f2d2b; line-height: 1.25; }
+  .example .said small { display: block; font-family: Primo, cursive; font-weight: 400; font-size: 15px; color: #94a3b8; margin-top: 2px; }
+  .btn { width: 44px; height: 44px; border: 0; border-radius: 12px; background: #eaf1f0; color: #1c7a6e; font-size: 20px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn.play { background: #1c7a6e; color: #fff; font-size: 17px; }
+  .btn:disabled { opacity: .35; }
+  .note { margin-top: 8px; font-size: 12.5px; color: #b45309; line-height: 1.4; }
+  .start { display: block; width: 100%; margin-top: 14px; min-height: 52px; border: 0; border-radius: 14px; background: #1c7a6e; color: #fff; font: 800 17px inherit; font-family: inherit; }
+
+  .side { flex: 1; min-width: 320px; }
+  .side h2 { font-size: 16px; margin: 0 0 4px; }
+  .side .how { font-size: 13.5px; color: #475569; margin: 0 0 10px; line-height: 1.45; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
+  .kind { background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.07); cursor: pointer; border: 2px solid transparent; }
+  .kind:hover { border-color: #b9dcd5; }
+  .kind.cur { border-color: #1c7a6e; }
+  .kind .col { --c: 30px; grid-template-columns: 22px repeat(2, var(--c)); pointer-events: none; }
+  .kind .cell { font-size: 18px; border-radius: 8px; }
+  .kind .cell.any::after { width: 6px; height: 6px; }
+  .kind .sign { font-size: 20px; }
+  .kind .ex { font-family: Primo, cursive; font-size: 20px; margin-top: 6px; }
+  .kind .cap { font-size: 12.5px; color: #475569; line-height: 1.35; margin-top: 2px; }
+  .kind .tag { display: inline-block; font-size: 11px; font-weight: 800; color: #537b75; background: #eaf1f0; border-radius: 6px; padding: 1px 6px; margin-top: 4px; }
+  .kind.new .cap::before { content: "новое · "; color: #b45309; font-weight: 800; }
+
+  .notes { margin-top: 22px; background: #fff; border-radius: 14px; padding: 14px 18px; font-size: 14px; line-height: 1.55; }
+  .notes h3 { margin: 0 0 6px; font-size: 15px; }
+  .notes ul { margin: 0 0 10px; padding-left: 20px; }
+  .notes li { margin-bottom: 4px; }
+  .was { color: #94a3b8; text-decoration: line-through; }
+</style>
+</head>
+<body>
+<main>
+<h1>«Слушай и посчитай» — клетка с выбором цифры</h1>
+<p class="sub">Макет 2, 25.11.2026. Нажатие на клетку открывает под клетками панель: «любая», 0–9, «нет». Второе нажатие выбирает и закрывает панель. Слева — экран настроек на телефоне, всё нажимается. Справа — виды примеров: нажмите на вид, и он встанет в настройки. Звук в макете — голос браузера, в приложении ▶ играет те же записи, что и занятие.</p>
+
+<div class="layout">
+  <div class="phone">
+    <div class="topbar"><div class="back">←</div><div class="t">Слушай и посчитай<small>Плюс и минус</small></div></div>
+
+    <div class="section-h">Какие примеры</div>
+    <div class="prow"><b>Операция <span class="i">i</span></b><div class="seg" id="op"><button data-v="add" class="on sign-b">+</button><button data-v="sub" class="sign-b">−</button><button data-v="mix">Микс</button></div></div>
+    <div class="prow"><b>Через десяток <span class="i">i</span></b><div class="seg" id="cross"><button data-v="none" class="on">Без</button><button data-v="cross">С</button><button data-v="mix">Микс</button></div></div>
+
+    <div class="card">
+      <div class="card-title">Числа в примере <span class="i">i</span></div>
+      <div class="body">
+        <div class="col" id="cells"></div>
+        <ul class="legend">
+          <li><span class="mini any"></span> любая цифра</li>
+          <li><span class="mini fix">7</span> только эта</li>
+          <li><span class="mini"></span> разряда нет</li>
+        </ul>
+      </div>
+      <div class="picker" id="picker" hidden></div>
+      <div class="example">
+        <div class="lbl">Ребёнок услышит, например:</div>
+        <div class="said" id="said"></div>
+        <button class="btn play" id="play" aria-label="Послушать">▶</button>
+        <button class="btn" id="again" aria-label="Другой пример">↻</button>
+      </div>
+      <div class="note" id="note" hidden></div>
+    </div>
+
+    <button class="start">Начать</button>
+  </div>
+
+  <div class="side">
+    <h2>Виды примеров — одной настройкой</h2>
+    <p class="how">Строка «Все числа до» больше не нужна: «в пределах 20» — это «1» в десятках верхнего числа. Конкретная цифра даёт и отдельные приёмы: +9, ±1, +10.</p>
+    <div class="gallery" id="gallery"></div>
+
+    <div class="notes">
+      <h3>Правила клеток</h3>
+      <ul>
+        <li>Десятки: «любая», 1–9 или «нет»; 0 недоступен (число не начинается с нуля).</li>
+        <li>Единицы: «любая» или 0–9; «нет» недоступно — единицы есть всегда.</li>
+        <li>«Любая» в единицах двузначного числа не даёт 0 (как в столбике): 0 — только когда он выбран.</li>
+        <li>При «−» нижнее число не длиннее верхнего: если у верхнего десятков нет, десятки нижнего затемнены.</li>
+        <li>Ответ — от 1 до 99 (дальше нет записанных слов).</li>
+      </ul>
+      <h3>Защита от неудачных сочетаний</h3>
+      <ul>
+        <li>Все клетки заданы цифрами — «Это один и тот же пример — освободите хотя бы одну клетку».</li>
+        <li>Цифры сами решают, есть ли переход (45 + 7 — всегда с ним) — пояснение, примеры идут как получается. Так же сделано в столбике.</li>
+        <li>Примеров нет совсем (5 − 7) — «Таких примеров нет», ▶ неактивна, «Начать» в приложении тоже.</li>
+      </ul>
+      <h3>Что уходит</h3>
+      <ul>
+        <li><span class="was">Максимальное число</span>, <span class="was">Максимальное изменение</span>, <span class="was">Включить ноль</span>, выбор карточек «Плюс» / «Минус».</li>
+        <li>Старые настройки: «до 20» → 1▢ ± ▢ и «Микс»; «до 50/100» → ▢▢ ± ▢▢ и «Микс».</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+const ONES = ["ноль","один","два","три","четыре","пять","шесть","семь","восемь","девять","десять","одиннадцать","двенадцать","тринадцать","четырнадцать","пятнадцать","шестнадцать","семнадцать","восемнадцать","девятнадцать"];
+const TENS = ["","","двадцать","тридцать","сорок","пятьдесят","шестьдесят","семьдесят","восемьдесят","девяносто"];
+const words = (n) => n < 20 ? ONES[n] : TENS[Math.floor(n / 10)] + (n % 10 ? " " + ONES[n % 10] : "");
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+// a cell: "any" | 0..9 | "none". Number: { t: tens cell, u: units cell }
+let st = { top: { t: "none", u: "any" }, bot: { t: "none", u: "any" } };
+let op = "add", cross = "none", seed = 0, current = null, editing = null;
+
+const twoDigit = (n) => n.t !== "none";
+function draw(n) {
+  const t = n.t === "none" ? 0 : n.t === "any" ? rnd(1, 9) : n.t;
+  const u = n.u === "any" ? (twoDigit(n) ? rnd(1, 9) : rnd(1, 9)) : n.u;
+  return t * 10 + u;
+}
+const crosses = (a, b, o) => o === "add" ? (a % 10) + (b % 10) >= 10 : (a % 10) < (b % 10);
+function example(o, c) {
+  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < 800; i++) {
+    const a = draw(st.top), b = draw(st.bot);
+    const r = o === "add" ? a + b : a - b;
+    if (r < 1 || r > 99) continue;
+    if (pass === 0 && c !== "mix" && crosses(a, b, o) !== (c === "cross")) continue;
+    return { a, b, r, o, relaxed: pass === 1 && c !== "mix" };
+  }
+  return null;
+}
+const fixedAll = () => [st.top.u, st.bot.u, ...(twoDigit(st.top) ? [st.top.t] : []), ...(twoDigit(st.bot) ? [st.bot.t] : [])].every((v) => typeof v === "number");
+const label = (v) => v === "any" ? "любая" : v === "none" ? "нет" : String(v);
+
+function grid(el, s, sign, onTap) {
+  el.innerHTML = "";
+  for (const [row, gr] of [["top", 1], ["bot", 2]]) {
+    if (row === "bot") { const g = document.createElement("div"); g.className = "sign" + (sign === "−" ? " minus" : ""); g.style.gridRow = gr; g.style.gridColumn = 1; g.textContent = sign; el.appendChild(g); }
+    for (const [place, colN] of [["t", 2], ["u", 3]]) {
+      const v = s[row][place];
+      const locked = onTap && row === "bot" && place === "t" && sign === "−" && s.top.t === "none";
+      const c = document.createElement("div");
+      c.className = "cell" + (v === "any" ? " any" : typeof v === "number" ? " fix" : "") + (locked ? " off" : "")
+        + (editing && editing.row === row && editing.place === place ? " editing" : "");
+      c.style.gridRow = gr; c.style.gridColumn = colN;
+      if (typeof v === "number") c.textContent = v;
+      if (onTap && !locked) c.onclick = (e) => { e.stopPropagation(); onTap(row, place); };
+      el.appendChild(c);
+    }
+  }
+  const l = document.createElement("div"); l.className = "line"; l.style.gridRow = 3; el.appendChild(l);
+}
+
+function openPicker(row, place) {
+  editing = editing && editing.row === row && editing.place === place ? null : { row, place };
+  render();
+}
+function renderPicker() {
+  const p = document.getElementById("picker");
+  if (!editing) { p.hidden = true; return; }
+  p.hidden = false;
+  const { row, place } = editing;
+  const cur = st[row][place];
+  const opts = ["any", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "none"];
+  const name = `${row === "top" ? "Первое" : "Второе"} число, ${place === "t" ? "десятки" : "единицы"}`;
+  p.innerHTML = `<div class="ph"><span>${name}</span><button aria-label="Закрыть">×</button></div><div class="pg"></div>`;
+  p.querySelector(".ph button").onclick = () => { editing = null; render(); };
+  const pg = p.querySelector(".pg");
+  for (const v of opts) {
+    const b = document.createElement("button");
+    b.textContent = label(v);
+    b.className = (typeof v === "number" ? "" : "word " + (v === "any" ? "w-any" : "w-none")) + (v === cur ? " cur" : "");
+    b.disabled = (place === "t" && v === 0) || (place === "u" && v === "none");
+    b.onclick = () => { st[row][place] = v; editing = null; normalize(); render(); };
+    pg.appendChild(b);
+  }
+}
+function normalize() {
+  if (op === "sub" && st.top.t === "none") st.bot.t = "none";
+}
+
+function render() {
+  const o = op === "mix" ? (seed % 2 ? "sub" : "add") : op;
+  const sign = op === "sub" ? "−" : op === "add" ? "+" : (o === "sub" ? "−" : "+");
+  grid(document.getElementById("cells"), st, sign, openPicker);
+  renderPicker();
+  current = example(o, cross);
+  const said = document.getElementById("said"), note = document.getElementById("note");
+  document.getElementById("play").disabled = !current;
+  if (current) {
+    const s = current.o === "add" ? "плюс" : "минус";
+    said.innerHTML = `«${words(current.a)} ${s} ${words(current.b)}»<small>${current.a} ${current.o === "add" ? "+" : "−"} ${current.b} = ${current.r}</small>`;
+  } else said.innerHTML = `Таких примеров нет<small>${o === "sub" ? "второе число больше первого" : "ответ больше 99"}</small>`;
+  let msg = "";
+  if (current && fixedAll()) msg = "Это один и тот же пример — освободите хотя бы одну клетку.";
+  else if (current && current.relaxed) msg = cross === "cross" ? "С такими цифрами через десяток не перейти — примеры будут без перехода." : "С такими цифрами без перехода через десяток не обойтись — примеры будут с ним.";
+  note.hidden = !msg; note.textContent = msg;
+  for (const k of document.querySelectorAll(".kind")) k.classList.toggle("cur", k.dataset.key === key());
+}
+const key = () => JSON.stringify([op, cross, st]);
+
+function seg(id, set) {
+  const el = document.getElementById(id);
+  el.onclick = (e) => { const b = e.target.closest("button"); if (!b) return; for (const x of el.children) x.classList.toggle("on", x === b); set(b.dataset.v); normalize(); render(); };
+}
+seg("op", (v) => { op = v; });
+seg("cross", (v) => { cross = v; });
+function setSeg(id, v) { for (const x of document.getElementById(id).children) x.classList.toggle("on", x.dataset.v === v); }
+document.getElementById("again").onclick = () => { seed++; render(); };
+document.getElementById("play").onclick = () => {
+  if (!current || !window.speechSynthesis) return;
+  const u = new SpeechSynthesisUtterance(`${words(current.a)} ${current.o === "add" ? "плюс" : "минус"} ${words(current.b)}`);
+  u.lang = "ru-RU"; u.rate = 0.85; speechSynthesis.cancel(); speechSynthesis.speak(u);
+};
+document.addEventListener("click", (e) => { if (editing && !e.target.closest("#picker")) { editing = null; render(); } });
+
+const N = (t, u) => ({ t, u });
+const KINDS = [
+  { op: "add", cross: "none",  top: N("none","any"), bot: N("none","any"), ex: "3 + 4",   cap: "Состав до 10" },
+  { op: "add", cross: "cross", top: N("none","any"), bot: N("none","any"), ex: "7 + 5",   cap: "Сложение через десяток" },
+  { op: "sub", cross: "cross", top: N(1,"any"),      bot: N("none","any"), ex: "13 − 6",  cap: "Вычитание через десяток", isNew: true },
+  { op: "add", cross: "none",  top: N(1,"any"),      bot: N("none","any"), ex: "14 + 3",  cap: "До 20 без перехода", isNew: true },
+  { op: "add", cross: "cross", top: N("none","any"), bot: N("none",9),     ex: "6 + 9",   cap: "Прибавить 9", isNew: true },
+  { op: "mix", cross: "mix",   top: N("any","any"),  bot: N("none",1),     ex: "45 + 1 · 38 − 1", cap: "Плюс-минус один", isNew: true },
+  { op: "add", cross: "none",  top: N("any","any"),  bot: N(1,0),          ex: "37 + 10", cap: "Прибавить 10", isNew: true },
+  { op: "add", cross: "none",  top: N("any",0),      bot: N("any",0),      ex: "40 + 30", cap: "Десятками, как единицами" },
+  { op: "add", cross: "none",  top: N("any","any"),  bot: N("none","any"), ex: "45 + 3",  cap: "Двузначное и однозначное" },
+  { op: "add", cross: "cross", top: N("any","any"),  bot: N("none","any"), ex: "45 + 7",  cap: "То же, через десяток" },
+  { op: "sub", cross: "cross", top: N("any",0),      bot: N("none","any"), ex: "60 − 4",  cap: "От круглого" },
+  { op: "add", cross: "mix",   top: N("any","any"),  bot: N("any","any"),  ex: "45 + 23 · 45 + 27", cap: "Двузначные, вперемешку" },
+];
+const gal = document.getElementById("gallery");
+for (const k of KINDS) {
+  const s = { top: { ...k.top }, bot: { ...k.bot } };
+  const card = document.createElement("div"); card.className = "kind" + (k.isNew ? " new" : "");
+  card.dataset.key = JSON.stringify([k.op, k.cross, s]);
+  const col = document.createElement("div"); col.className = "col";
+  grid(col, s, k.op === "sub" ? "−" : k.op === "mix" ? "±" : "+");
+  card.appendChild(col);
+  card.insertAdjacentHTML("beforeend", `<div class="ex">${k.ex}</div><div class="cap">${k.cap}</div><span class="tag">через десяток: ${{ none: "без", cross: "с", mix: "микс" }[k.cross]}</span>`);
+  card.onclick = (e) => { e.stopPropagation(); op = k.op; cross = k.cross; st = { top: { ...k.top }, bot: { ...k.bot } }; editing = null; setSeg("op", op); setSeg("cross", cross); seed = 0; render(); };
+  gal.appendChild(card);
+}
+render();
+</script>
+</body>
+</html>

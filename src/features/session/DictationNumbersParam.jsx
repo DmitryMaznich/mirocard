@@ -1,0 +1,172 @@
+// «Числа в примере» of «Слушай и посчитай» (operation_audio, owner, 2026-11-25; mockup
+// docs/mockups/addition-subtraction/2026-11-25-dictation-settings.html). The example is drawn
+// as two numbers of two cells, like «Столбик — Тренажёр» (ColumnOperandsParam), but a tap on a
+// cell opens a picker under the cells — «любая», 0–9, «нет» — and the second tap picks: any
+// state in two taps, all of them in sight. The column's own cells are not changed (owner: not
+// carried over to the column for now). Under the cells — an example as the child will hear it;
+// ▶ plays it with the lesson's own recordings.
+// Value: { top: { tens, units }, bottom: { tens, units } } — dictation.js.
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import {
+  dictationPlan,
+  drawDictationExample,
+  normalizeDictationNumbers,
+} from "@/topics/renderers/addition_subtraction/dictation.js";
+import { audioKeyUrl, numberToWords, SIGN_WORDS, taskAudioItems } from "@/topics/renderers/addition_subtraction/audioNumbers.js";
+import { useAudioSequence } from "@/topics/renderers/addition_subtraction/useAudioSequence.js";
+import "./columnOperandsParam.css";
+import "./dictationNumbersParam.css";
+
+const ROWS = ["top", "bottom"];
+const PLACES = ["tens", "units"];
+const OPTIONS = ["any", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "none"];
+
+function seededRandom(seed) {
+  let a = (seed * 2654435761 + 1) >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let x = Math.imul(a ^ (a >>> 15), 1 | a);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function optionDisabled(place, value) {
+  return (place === "tens" && value === 0) || (place === "units" && value === "none");
+}
+
+export default function DictationNumbersParam({ label, labelNode, value, operation = "add", crossTen = "none", onChange }) {
+  const { t } = useUiTranslation();
+  const limitOp = operation === "subtract" ? "subtract" : "add";
+  const numbers = normalizeDictationNumbers(value, limitOp);
+  const key = JSON.stringify(numbers);
+  // switching to «−» drops the tens of a second number longer than the first — save it as shown
+  useEffect(() => {
+    if (JSON.stringify(value ?? null) !== key) onChange(numbers);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  const [editing, setEditing] = useState(null);
+  const [seed, setSeed] = useState(1);
+  const rootRef = useRef(null);
+  useEffect(() => {
+    if (!editing) return undefined;
+    const close = (event) => { if (!rootRef.current?.contains(event.target)) setEditing(null); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [editing]);
+
+  const plan = useMemo(() => dictationPlan({ numbers, operation, crossTen }), [key, operation, crossTen]); // eslint-disable-line react-hooks/exhaustive-deps
+  const example = useMemo(() => drawDictationExample(plan, seededRandom(seed)), [plan, seed]);
+  const { isPlaying, play } = useAudioSequence();
+
+  const sign = (example?.operation ?? (operation === "subtract" ? "subtract" : "add")) === "subtract" ? "−" : "+";
+  const lockedBottomTens = limitOp === "subtract" && numbers.top.tens === "none";
+  const cellText = (v) => (v === "any" ? t("dictation.any") : v === "none" ? t("dictation.none") : String(v));
+  const pick = (v) => {
+    const next = { ...numbers, [editing.row]: { ...numbers[editing.row], [editing.place]: v } };
+    setEditing(null);
+    onChange(normalizeDictationNumbers(next, limitOp));
+  };
+
+  const note = plan.empty ? t("dictation.empty")
+    : plan.single ? t("dictation.single")
+    : plan.relaxed ? t(crossTen === "cross" ? "dictation.relaxedCross" : "dictation.relaxedNone")
+    : null;
+
+  return (
+    <div className="param-row param-row--block cop dnp" aria-label={label} ref={rootRef}>
+      {labelNode}
+      <div className="cop-body">
+        <div className="cop-column dnp-column">
+          {ROWS.map((row, r) => [
+            row === "bottom" && (
+              <span key="sign" className={`cop-sign${sign === "−" ? " dnp-sign--minus" : ""}`} style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
+            ),
+            ...PLACES.map((place, p) => {
+              const v = numbers[row][place];
+              const off = row === "bottom" && place === "tens" && lockedBottomTens;
+              const isEditing = editing?.row === row && editing?.place === place;
+              return (
+                <button
+                  key={`${row}-${place}`}
+                  type="button"
+                  disabled={off}
+                  className={[
+                    "cop-cell",
+                    v === "any" ? "cop-cell--on" : "",
+                    typeof v === "number" ? "dnp-cell--fixed" : "",
+                    off ? "cop-cell--off" : "",
+                    isEditing ? "dnp-cell--editing" : "",
+                  ].filter(Boolean).join(" ")}
+                  style={{ gridRow: r + 1, gridColumn: p + 2 }}
+                  aria-label={t("dictation.cellState", { cell: t(`dictation.cell.${row}.${place}`), value: cellText(v) })}
+                  aria-expanded={isEditing}
+                  onClick={() => setEditing(isEditing ? null : { row, place })}
+                >
+                  {typeof v === "number" ? v : ""}
+                </button>
+              );
+            }),
+          ])}
+          <span className="cop-line" style={{ gridRow: 3, gridColumn: "1 / 4" }} />
+        </div>
+        <ul className="cop-legend">
+          <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> {t("dictation.legendAny")}</li>
+          <li><span className="cop-mini dnp-mini--fixed" aria-hidden="true">7</span> {t("dictation.legendFixed")}</li>
+          <li><span className="cop-mini" aria-hidden="true" /> {t("dictation.legendNone")}</li>
+        </ul>
+      </div>
+
+      {editing && (
+        <div className="dnp-picker" role="group" aria-label={t(`dictation.cell.${editing.row}.${editing.place}`)}>
+          <div className="dnp-picker__head">
+            <span>{t(`dictation.cell.${editing.row}.${editing.place}`)}</span>
+            <button type="button" className="dnp-picker__close" aria-label={t("dictation.close")} onClick={() => setEditing(null)}>×</button>
+          </div>
+          <div className="dnp-picker__grid">
+            {OPTIONS.map((v) => (
+              <button
+                key={String(v)}
+                type="button"
+                className={[
+                  "dnp-option",
+                  v === "any" ? "dnp-option--any" : v === "none" ? "dnp-option--none" : "",
+                  numbers[editing.row][editing.place] === v ? "dnp-option--current" : "",
+                ].filter(Boolean).join(" ")}
+                disabled={optionDisabled(editing.place, v)}
+                aria-pressed={numbers[editing.row][editing.place] === v}
+                onClick={() => pick(v)}
+              >
+                {cellText(v)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="dnp-example">
+        <div className="dnp-example__label">{t("dictation.willHear")}</div>
+        <div className="dnp-example__said">
+          {example ? (
+            <>
+              «{numberToWords(example.start)} {SIGN_WORDS[example.operation]} {numberToWords(example.delta)}»
+              <small>{example.start} {sign} {example.delta} = {example.result}</small>
+            </>
+          ) : "—"}
+        </div>
+        <button
+          type="button"
+          className={`dnp-play${isPlaying ? " dnp-play--playing" : ""}`}
+          aria-label={t("dictation.listen")}
+          disabled={!example}
+          onClick={() => play(taskAudioItems(example).map(({ key: k, tight }) => ({ url: audioKeyUrl(k), tight })))}
+        >▶</button>
+        <button type="button" className="cop-again" aria-label={t("dictation.another")} onClick={() => setSeed((s) => s + 1)}>↻</button>
+      </div>
+      {note && <div className="cop-note">{note}</div>}
+    </div>
+  );
+}
