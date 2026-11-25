@@ -7,6 +7,35 @@ flagging what needs a real decision or an asset that isn't available in this
 sandbox. This file is the handoff — read it first if you're picking this back
 up in a new session/account.
 
+## 2026-11-25: «Слушай и посчитай» — settings as cells (trainer style)
+
+Owner: the drill modes of this topic should be as convenient to set up as «Столбик — Тренажёр»;
+the dictation (`operation_audio`) first. Mockups: `docs/mockups/addition-subtraction/2026-11-25-dictation-settings.html`
+(the second one, «клетка с выбором цифры», was taken). Owner's decisions: one digit per cell (not a set),
+the column's own cells stay as they are for now.
+
+- Settings: «Операция» (+ / − / Микс), «Через десяток» (Без / С / Микс), «Числа в примере» — two numbers of
+  two cells (tens, units). A tap on a cell opens a picker under the cells: «любая», 0–9, «нет»; the second
+  tap picks. Tens: no 0; units: no «нет». «Любая» never draws a 0. With «−» the second number has no tens over
+  a one-digit first. «1» in the tens of the first number = within 20 (13 − 6); a fixed second digit = one fact
+  (+9, ±1, +10); 0 in the units = round numbers. Answers 1…99 (the recorded bank).
+- Under the cells: «Ребёнок услышит, например» — the words, the example in digits, ▶ plays it with the lesson's
+  own recordings, ↻ another one. Notes: all cells fixed («один и тот же пример»), the ten setting impossible with
+  these digits (examples go as the digits allow — the column's rule), no example at all (the lesson falls back to
+  the default cells).
+- Gone: «Максимальное число», «Максимальное изменение», «Включить ноль», the hidden `mixedMagnitude`, and the
+  plus/minus card picker (`hideConceptPicker`; the card is chosen by the operation for statistics).
+- Code: `src/topics/renderers/addition_subtraction/dictation.js` (cells, all allowed pairs enumerated, the plan,
+  old settings), `src/features/session/DictationNumbersParam.jsx` (+ `.css`, reuses the column's
+  `columnOperandsParam.css`), param type `dictation_numbers` in `ParamsScreen.jsx`, texts in
+  `src/shared/i18n/mathTrainerMessages.js`. The mode is now in `DEFAULT_MODES.addition_subtraction`
+  (code-owned ui/params), so installed decks get it with no deck rebuild — the deck ZIP still lists the old
+  params, they are replaced on load.
+- Old saved settings (`resolveDictationParams`): «до 20» → 1▢ ± ▢, «до 50/100» → ▢▢ ± ▢▢, «Через десяток:
+  Микс». «до 20» loses the one-digit examples (3 + 4) it used to mix in — accepted. Old card selection is not
+  read: operation defaults to «+».
+- Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
+
 ## Mode numbering changed 2026-10-07
 
 The two finger modes moved in from «Сложение и вычитание в столбик»

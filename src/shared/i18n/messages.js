@@ -6,6 +6,7 @@ import { AUTH_MESSAGES } from "./authMessages.js";
 import { PROPIS2_EDITOR_MESSAGES } from "./propis2EditorMessages.js";
 import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
+import { MATH_TRAINER_MESSAGES } from "./mathTrainerMessages.js";
 import { ANNOUNCEMENT_MESSAGES } from "./announcementMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
 import { TOPIC_PREVIEW_MESSAGES } from "./topicPreviewMessages.js";
@@ -22,6 +23,7 @@ export const UI_MESSAGES = {
     ...ADULT_MESSAGES.ru,
     ...ANNOUNCEMENT_MESSAGES.ru,
     ...LESSON_SETUP_MESSAGES.ru,
+    ...MATH_TRAINER_MESSAGES.ru,
     "languages.lesson": "Предпочтительный язык занятий",
     "languages.inherit": "Как в настройках аккаунта",
     "languages.preferenceOnly": "Это предпочтение для будущих языковых версий занятий. Доступные сейчас материалы сохраняют свой язык.",
@@ -119,6 +121,7 @@ export const UI_MESSAGES = {
     ...ADULT_MESSAGES.sl,
     ...ANNOUNCEMENT_MESSAGES.sl,
     ...LESSON_SETUP_MESSAGES.sl,
+    ...MATH_TRAINER_MESSAGES.sl,
     "languages.lesson": "Želeni jezik vaj",
     "languages.inherit": "Kot v nastavitvah računa",
     "languages.preferenceOnly": "To je nastavitev za prihodnje jezikovne različice vaj. Trenutno dostopna gradiva ohranijo svoj jezik.",
@@ -218,6 +221,7 @@ export const UI_MESSAGES = {
     ...ADULT_MESSAGES.en,
     ...ANNOUNCEMENT_MESSAGES.en,
     ...LESSON_SETUP_MESSAGES.en,
+    ...MATH_TRAINER_MESSAGES.en,
     "languages.lesson": "Preferred lesson language",
     "languages.inherit": "As in the account settings",
     "languages.preferenceOnly": "This is a preference for future language versions of lessons. Materials available now keep their own language.",

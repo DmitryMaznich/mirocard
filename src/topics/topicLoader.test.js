@@ -221,6 +221,7 @@ describe("importTopic — valid cases", () => {
       "operation_tests_link", // the check → «Контрольные по математике» (2026-11-16)
       "operation_worksheet", // retired
       "operation_missing_term",
+      "operation_audio", // a default since 2026-11-25 (its settings are code-owned)
     ]);
     expect(record.modes.map((m) => m.ui.title)).toEqual([
       "1. Покажи на пальцах",
@@ -235,6 +236,7 @@ describe("importTopic — valid cases", () => {
       "10. Контрольная работа", // the link
       "10. Контрольная работа", // retired: out of the mode lists
       "11. Найди неизвестное",
+      "12. Слушай и посчитай",
     ]);
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
     expect(observeMode.params.maxNumber.default).toBe(3);
@@ -768,7 +770,11 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
       "operation_chain", "operation_tests_link", "operation_worksheet", "operation_missing_term", "operation_audio",
     ]);
     const audio = record.modes.find((m) => m.id === "operation_audio");
-    expect(audio.ui).toMatchObject({ title: "12. Слушай и посчитай", instruction: "Послушай пример" });
+    expect(audio.ui).toMatchObject({ title: "12. Слушай и посчитай", instruction: "Слушай пример и вводи ответ" });
+    // an installed deck still lists maxNumber/changeMax — the cells replace them (2026-11-25)
+    expect(Object.keys(audio.params)).toEqual(["operation", "crossTen", "numbers"]);
+    expect(audio.params.numbers.type).toBe("dictation_numbers");
+    expect(audio.hideConceptPicker).toBe(true);
   });
 
   it("refreshes the rest of column_addition's modes to the reference screen shape", async () => {

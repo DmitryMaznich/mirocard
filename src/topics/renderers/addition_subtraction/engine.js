@@ -1,5 +1,6 @@
 import { shuffle } from "@/shared/utils/shuffle";
 import { generateFingerTasks } from "./fingers/fingerTasks.js";
+import { DICTATION_MAX_ANSWER, dictationPlan, drawDictationExample, resolveDictationParams } from "./dictation.js";
 
 const DEFAULT_CHANGE_MAX = 1;
 const DEFAULT_RAIL_SIZE = 20;
@@ -190,77 +191,6 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   };
 }
 
-const AUDIO_DEFAULT_MAX_NUMBER = 20;
-const AUDIO_HARD_CAP = 100;
-const AUDIO_SAME_MAGNITUDE_ATTEMPTS = 40;
-
-// Same digit-count bucket: both single-digit (0-9) or both two-plus-digit.
-function sameMagnitude(a, b) {
-  return (a <= 9) === (b <= 9);
-}
-
-// Spoken-example task: no visual rail, so unlike buildOperationTask this
-// isn't clamped to DEFAULT_RAIL_SIZE (20) — a diktor can say "сорок пять"
-// as easily as "пять", so maxNumber can go up to AUDIO_HARD_CAP. "100" is
-// still a single recorded word ("сто"), but it's the one number in this
-// whole task that doesn't compose from a tens+ones pair like every other
-// two-digit number — landing on it as a start/delta/result breaks the
-// tens+ones pattern the "до 100" range is meant to drill. So generation
-// itself is capped at 99, one below the enum's own 100 ceiling.
-function buildAudioTask(card, params = {}) {
-  const operation = normalizeOperation(card.params?.operation);
-  const maxNumber = Math.max(3, Math.min(AUDIO_HARD_CAP, toNumber(params.maxNumber, AUDIO_DEFAULT_MAX_NUMBER)));
-  const genCap = Math.min(maxNumber, 99);
-  const changeMax = Math.max(1, Math.min(genCap - 1, toNumber(params.changeMax, genCap)));
-  const includeZero = Boolean(params.includeZero);
-  const minVal = includeZero ? 0 : 1;
-  const mixedMagnitude = params.mixedMagnitude !== false;
-
-  function pickPair() {
-    const pairDelta = randomInt(1, changeMax);
-    const pairStart = operation === "add"
-      ? randomInt(minVal, Math.max(minVal, genCap - pairDelta))
-      : randomInt(Math.max(minVal, pairDelta + minVal), genCap);
-    return { start: pairStart, delta: pairDelta };
-  }
-
-  let { start, delta } = pickPair();
-
-  if (!mixedMagnitude && !sameMagnitude(start, delta)) {
-    for (let attempt = 0; attempt < AUDIO_SAME_MAGNITUDE_ATTEMPTS; attempt++) {
-      const candidate = pickPair();
-      if (sameMagnitude(candidate.start, candidate.delta)) {
-        ({ start, delta } = candidate);
-        break;
-      }
-    }
-    // maxNumber/changeMax can make a same-magnitude pair rare or (with a
-    // small changeMax) impossible above single digits — fall back to
-    // forcing both into 0-9, always representable since delta only needs
-    // room for one more single-digit number on the other side of the sign.
-    if (!sameMagnitude(start, delta)) {
-      const onesDelta = Math.max(1, Math.min(9 - minVal, changeMax));
-      delta = randomInt(1, onesDelta);
-      start = operation === "add"
-        ? randomInt(minVal, Math.max(minVal, 9 - delta))
-        : randomInt(Math.max(minVal, delta + minVal), 9);
-    }
-  }
-
-  const result = operation === "add" ? start + delta : start - delta;
-
-  return {
-    type: "operation_audio",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    operation,
-    sign: operation === "add" ? "+" : "-",
-    start,
-    delta,
-    result,
-    maxNumber,
-  };
-}
 
 export const CHAIN_STEP_OPTIONS = [2, 3, 4];
 
@@ -427,9 +357,27 @@ export function generateTasks(mode, cards, arg3, arg4) {
   }
 
   if (modeType === "operation_audio") {
-    return shuffle(Array.from({ length: count }, (_, index) =>
-      buildAudioTask(operationCards[index % operationCards.length], params)
-    ));
+    // Settings saved before 2026-11-25 (maxNumber/changeMax) map onto the cells (dictation.js).
+    let plan = dictationPlan(resolveDictationParams(params));
+    if (plan.empty) plan = dictationPlan(resolveDictationParams({}));
+    const cardFor = (op) => operationCards.find((card) => normalizeOperation(card.params?.operation) === op) ?? operationCards[0];
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      const ex = drawDictationExample(plan, Math.random, tasks[i - 1]);
+      const card = cardFor(ex.operation);
+      tasks.push({
+        type: "operation_audio",
+        cardId: card.id,
+        conceptId: card.conceptId,
+        operation: ex.operation,
+        sign: ex.operation === "add" ? "+" : "-",
+        start: ex.start,
+        delta: ex.delta,
+        result: ex.result,
+        maxNumber: DICTATION_MAX_ANSWER,
+      });
+    }
+    return tasks;
   }
 
   if (modeType === "operation_worksheet") {
