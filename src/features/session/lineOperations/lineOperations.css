@@ -67,6 +67,7 @@
 .line-operations__panel svg { display: block; width: 100%; height: 100%; pointer-events: none; }
 .line-operations__symbol { font-size: clamp(22px, 4vw, 33px); font-weight: 800; text-align: center; line-height: 1; }
 .line-operations__grid { fill: none; stroke: #2239412b; stroke-width: .65; }
+.line-operations__frame { fill: none; stroke: currentColor; stroke-width: 2.1; }
 .line-operations__ink { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .line-operations__response { color: var(--line-ink); }
 .line-operations__invalid { color: var(--line-amber); opacity: .72; }
