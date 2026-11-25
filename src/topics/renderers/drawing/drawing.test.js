@@ -25,10 +25,16 @@ describe("downloadable drawing topic", () => {
     const tasks = generateTasks(record.modes[0], record.cards);
     const striped = tasks.find(task => task.cardId === 'striped_fish').lesson;
     expect(striped.finale).toMatchObject({ type: 'striped-fish', tail: [470, 150] });
-    const bars = striped.steps.filter(step => step.part === 'stripes');
+    const bars = striped.steps.filter(step => step.part?.startsWith('stripe-') && step.kind === 'stroke');
     expect(bars.flatMap(step => step.paths)).toHaveLength(13);
-    expect(bars.map(step => step.paths.length)).toEqual([4, 5, 4]);
-    expect(bars.every(step => step.kind === 'stroke' && step.tool === 'navy')).toBe(true);
+    expect(bars.every(step => step.paths.length === 1 && step.tool === 'black' && step.paths[0].endsWith('Z'))).toBe(true);
+    const colouredBars = striped.steps.filter(step => step.part?.startsWith('stripe-') && step.kind === 'color');
+    expect(colouredBars).toHaveLength(13);
+    expect(colouredBars.map(step => step.part)).toEqual(striped.finale.stripes);
+    expect(colouredBars.map(step => step.d)).toEqual(bars.map(step => step.paths[0]));
+    expect(colouredBars.map(step => step.tool)).toEqual(['red', 'orange', 'yellow', 'light_green', 'green', 'turquoise', 'light_blue', 'blue', 'purple', 'pink', 'coral', 'orange', 'yellow']);
+    expect(striped.steps.slice(0, 15).every(step => step.kind === 'stroke')).toBe(true);
+    expect(striped.steps.slice(15).every(step => step.kind === 'color')).toBe(true);
     expect(striped.steps.find(step => step.kind === 'color' && step.part === 'head').d).toContain('A 4 4');
     expect(await archive.file('media/striped_fish.svg').async('string')).toContain('#24486d');
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog", "snowman_glasses"]));
@@ -164,10 +170,12 @@ describe("downloadable drawing topic", () => {
       if (task.lesson.stepOrder === 'authored') {
         const original = JSON.parse(await readFile(`tools/drawing/lessons/${task.lesson.id}.json`, 'utf8'));
         expect(task.lesson.steps).toEqual(original.steps);
-        const [first, second] = task.lesson.characters;
-        expect(task.lesson.steps.slice(0, first.endStep).every(step => step.character === first.name)).toBe(true);
-        expect(task.lesson.steps[first.endStep - 1].kind).toBe('color');
-        expect(task.lesson.steps.slice(first.endStep).every(step => step.character === second.name)).toBe(true);
+        if (task.lesson.characters) {
+          const [first, second] = task.lesson.characters;
+          expect(task.lesson.steps.slice(0, first.endStep).every(step => step.character === first.name)).toBe(true);
+          expect(task.lesson.steps[first.endStep - 1].kind).toBe('color');
+          expect(task.lesson.steps.slice(first.endStep).every(step => step.character === second.name)).toBe(true);
+        }
       } else {
         expect(new Set(groups).size).toBe(groups.length);
         expect(groups).toEqual(task.lesson.palette.map(tool => tool.id));

@@ -10,9 +10,12 @@ export function createDrawingFinale(svg, lesson) {
   }
   function playStripedFish(config) {
     const parts = name => [...svg.querySelectorAll(`[data-finish-part="${name}"]`)];
-    const head = parts('head'), tail = parts('tail'), stripes = parts('stripes');
-    if (!head.length || !tail.length || stripes.length !== 13 || !config.tail?.every(Number.isFinite) || config.tail.length !== 2) return false;
-    const original = [...head, ...tail, ...stripes].map(node => [node, node.getAttribute('transform')]);
+    const head = parts('head'), tail = parts('tail');
+    // Older ZIPs contain single strokes; closed stripes pair their own outline
+    // and pencil fill under one part name, even though they occupy different layers.
+    const stripes = config.stripes ? config.stripes.map(parts) : parts('stripes').map(node => [node]);
+    if (!head.length || !tail.length || stripes.length !== 13 || stripes.some(nodes => !nodes.length) || !config.tail?.every(Number.isFinite) || config.tail.length !== 2) return false;
+    const original = [...head, ...tail, ...stripes.flat()].map(node => [node, node.getAttribute('transform')]);
     const layer = document.createElementNS(ns, 'g');
     layer.dataset.finale = 'striped-fish'; layer.setAttribute('aria-hidden', 'true');
     svg.append(layer);
@@ -32,7 +35,10 @@ export function createDrawingFinale(svg, lesson) {
       // The fish keeps facing its direction of travel, then settles at home.
       const dx = t < 1.2 ? 0 : t < 4.2 ? -650*smooth((t-1.2)/3) : 600*(1-smooth((t-4.2)/3));
       for (const node of head) node.setAttribute('transform', `translate(${dx} 0)`);
-      stripes.forEach((node, i) => node.setAttribute('transform', `translate(${dx} ${5*energy*Math.sin(t*7-i*.48)})`));
+      stripes.forEach((nodes, i) => {
+        const transform = `translate(${dx} ${5*energy*Math.sin(t*7-i*.48)})`;
+        for (const node of nodes) node.setAttribute('transform', transform);
+      });
       const angle = 9*energy*Math.sin(t*9);
       for (const node of tail) node.setAttribute('transform', `translate(${dx} 0) translate(${tx} ${ty}) rotate(${angle}) translate(${-tx} ${-ty})`);
       if (t >= 7.2) { stop(); return; }
