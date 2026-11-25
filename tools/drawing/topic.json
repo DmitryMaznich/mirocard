@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.46.0",
+    "version": "0.47.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -720,6 +720,14 @@
       "label": "Полосатая рыбка",
       "image": "media/striped_fish.svg",
       "lessonFile": "lessons/striped_fish.json"
+    },
+    {
+      "id": "green_car",
+      "conceptId": "green_car",
+      "primary": true,
+      "label": "Зелёная машинка",
+      "image": "media/green_car.svg",
+      "lessonFile": "lessons/green_car.json"
     },
     {
       "id": "first_lines:short_line",

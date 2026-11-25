@@ -23,6 +23,20 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
+    const car = tasks.find(task => task.cardId === 'green_car').lesson;
+    expect(car.steps).toHaveLength(39);
+    expect(car.steps.find(step => step.part === 'sun-rays').paths).toHaveLength(8);
+    expect(car.steps.find(step => step.part === 'roadside-stones' && step.kind === 'stroke').paths).toHaveLength(4);
+    expect(car.steps.find(step => step.part === 'sun' && step.kind === 'color').tool).toBe('yellow');
+    expect(car.paperOrientation).toBe('landscape');
+    for (const name of ['rear', 'middle', 'front']) {
+      const frame = car.steps.find(step => step.part === 'window-'+name && step.kind === 'stroke');
+      const patch = car.steps.find(step => step.part === 'window-'+name && step.kind === 'color');
+      expect(patch.tool).toBe('pale_blue'); expect(patch.d).toBe(frame.paths[0]);
+    }
+    expect(car.steps.find(step => step.part === 'road-marks').paths).toHaveLength(7);
+    expect(car.steps.filter(step => step.part === 'road').every(step => step.background)).toBe(true);
+    expect(await archive.file('media/green_car.svg').async('string')).toContain('#7da89b');
     const striped = tasks.find(task => task.cardId === 'striped_fish').lesson;
     expect(striped.finale).toMatchObject({ type: 'striped-fish', tail: [470, 150] });
     const bars = striped.steps.filter(step => step.part?.startsWith('stripe-') && step.kind === 'stroke');

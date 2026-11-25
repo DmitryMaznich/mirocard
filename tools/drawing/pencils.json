@@ -142,5 +142,23 @@
     "type": "pencil",
     "name": "Коралловый карандаш",
     "color": "#f06a73"
+  },
+  "sage": {
+    "id": "sage",
+    "type": "pencil",
+    "name": "Серо-зелёный карандаш",
+    "color": "#7da89b"
+  },
+  "pale_mint": {
+    "id": "pale_mint",
+    "type": "pencil",
+    "name": "Светлый мятный карандаш",
+    "color": "#c6ddd3"
+  },
+  "pale_blue": {
+    "id": "pale_blue",
+    "type": "pencil",
+    "name": "Светло-голубой карандаш",
+    "color": "#b2dcef"
   }
 }
