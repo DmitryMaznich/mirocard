@@ -45,9 +45,32 @@ steps += [
 for i, (d, part, tool) in enumerate(zip(stripes, parts, colours), 1):
     steps.append(dict(kind='color', title=f'Закрашиваем полоску {i}', d=d,
                       fill=PENCILS[tool]['color'], tool=tool, part=part))
+ground = 'M 18 256 C 35 253 55 251 74 251 C 146 246 172 264 246 254 C 340 241 440 265 578 251'
+leaves = [
+    ('M 24 254 C 9 220 9 180 20 141 C 34 183 37 220 31 254 Z', 'green', [28, 254]),
+    ('M 39 252 C 28 204 35 155 45 109 C 59 158 56 209 47 252 Z', 'light_green', [43, 252]),
+    ('M 54 252 C 44 223 49 193 65 169 C 73 203 68 230 61 252 Z', 'green', [58, 252]),
+]
+stones = [f'M {x-rx} {y} A {rx} {ry} 0 1 0 {x+rx} {y} A {rx} {ry} 0 1 0 {x-rx} {y} Z'
+          for x, y, rx, ry in [(200, 269, 10, 5), (350, 267, 7, 4), (484, 270, 12, 5)]]
+steps.append(dict(kind='stroke', title='Волнистая линия дна', paths=[ground],
+                  tool='brown', part='seabed', background=True))
+for i, (d, _, _) in enumerate(leaves, 1):
+    steps.append(dict(kind='stroke', title=f'Контур листа водоросли {i}', paths=[d],
+                      tool='black', part=f'seaweed-{i}', background=True))
+steps.append(dict(kind='stroke', title='Три камешка на дне', paths=stones,
+                  tool='black', part='pebbles', background=True))
+steps.append(dict(kind='color', title='Закрашиваем дно песочным цветом',
+                  d=ground+' L 578 288 L 18 288 Z '+' '.join(stones),
+                  fill=PENCILS['beige']['color'], tool='beige', part='seabed', background=True))
+for i, (d, tool, _) in enumerate(leaves, 1):
+    steps.append(dict(kind='color', title=f'Закрашиваем лист водоросли {i}', d=d,
+                      fill=PENCILS[tool]['color'], tool=tool, part=f'seaweed-{i}', background=True))
+steps.append(dict(kind='color', title='Серые камешки', d=' '.join(stones),
+                  fill=PENCILS['gray']['color'], tool='gray', part='pebbles', background=True))
 lesson = dict(
     id='striped_fish', title='Полосатая рыбка', viewBox='0 0 600 300',
-    paperOrientation='landscape', progressRevision=2, stepOrder='authored',
+    paperOrientation='landscape', progressRevision=4, stepOrder='authored',
     source=dict(title='Графическая рыбка с фотографии владельца',
                 origin='Фото предоставлено владельцем приложения 2026-11-25.',
                 note='Крупная тёмная рыбка справа: 13 вертикальных линий тела, '
@@ -56,8 +79,10 @@ lesson = dict(
                      'в замкнутые формы с разноцветной штриховкой. '
                      'Каждый контур и каждое закрашивание — отдельный шаг. '
                      'Фото, надпись и фон в урок не включены.'),
-    finale=dict(type='striped-fish', tail=[470, 150], stripes=parts),
-    palette=list(dict.fromkeys(['black', 'navy']+colours)), steps=steps,
+    finale=dict(type='striped-fish', tail=[470, 150], stripes=parts,
+                seaweedForeground=True,
+                seaweed=[dict(part=f'seaweed-{i}', root=root) for i, (_, _, root) in enumerate(leaves, 1)]),
+    palette=list(dict.fromkeys(['black', 'navy']+colours+['brown', 'beige', 'gray'])), steps=steps,
 )
 (BASE / 'lessons/striped_fish.json').write_text(
     json.dumps(lesson, ensure_ascii=False, indent=2)+'\n')

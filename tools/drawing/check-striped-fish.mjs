@@ -38,16 +38,31 @@ try {
   }
   assert.equal(await page.locator('[data-finish-part=head]').count(), 3, 'Head fill, contour and eye move together');
   assert.equal(await page.locator('[data-finish-part=tail]').count(), 3);
+  const background = page.locator('[data-layer=background]');
+  assert.equal(await background.locator('[data-finish-part^="seaweed-"]').count(), 6);
+  assert.equal(await background.locator('[data-finish-part=seabed]').count(), 2);
+  assert(await background.evaluate(node => Boolean(node.compareDocumentPosition(node.parentElement.querySelector('[data-layer=colors]')) & 4)), 'Seaweed stays behind the fish');
+  const headX = await page.locator('path[data-finish-part=head]').first().evaluate(node=>node.getBBox().x);
+  for (const { part } of lesson.finale.seaweed) {
+    const right = await background.locator(`path[data-finish-part="${part}"]`).evaluate(node=>{const b=node.getBBox();return b.x+b.width;});
+    assert(right < headX-4, 'Leaves must not cover the resting fish');
+  }
   await page.screenshot({ path: '/workspace/striped-fish-ready.png' });
   await page.locator('.drawing-show').tap(); await page.clock.runFor(16000); await assertRestored();
+  const backgroundBefore = await background.innerHTML();
   await next(); await page.clock.runFor(900);
   assert.equal(await page.locator('[data-finale=striped-fish]').count(), 1);
-  assert.equal(await page.locator('[data-finale-leaf]').count(), 4);
+  assert(await background.evaluate(node => Boolean(node.compareDocumentPosition(node.parentElement.querySelector('[data-layer=colors]')) & 2)), 'Drawn leaves move in front while the fish swims behind them');
+  assert.equal(await page.locator('[data-finale-leaf]').count(), 0, 'Plants are drawn lesson elements');
   assert.equal(await page.locator('[data-finale-bubble]').count(), 6);
   assert(await page.locator('[data-finale-bubble]').evaluateAll(nodes => nodes.some(node => Number(node.getAttribute('opacity')) > 0)));
   assert(await page.locator('[data-finale]').evaluate(node =>
     [...node.parentElement.querySelectorAll('[data-finish-part]')].every(part => Boolean(node.compareDocumentPosition(part) & 2))),
-  'Leaves must follow all fish parts in paint order; the signature can follow the scenery');
+  'Bubble overlay follows the drawing');
+  for (const { part } of lesson.finale.seaweed) {
+    const transforms = await background.locator(`[data-finish-part="${part}"]`).evaluateAll(nodes=>nodes.map(node=>node.getAttribute('transform')));
+    assert.equal(new Set(transforms).size, 1, 'Leaf outline and fill sway together');
+  }
   const bars = await page.locator('[data-finish-part^="stripe-"]').evaluateAll(nodes => nodes.map(node => node.getAttribute('transform')));
   assert.equal(new Set(bars).size, 13, 'The ripple has a different phase on each stripe');
   for (const name of lesson.finale.stripes) {
@@ -59,6 +74,8 @@ try {
   assert.equal(new Set(heads).size, 1); assert.equal(new Set(tails).size, 1);
   await page.screenshot({ path: '/workspace/striped-fish-alive.png' });
   await page.clock.runFor(6500); await assertRestored();
+  assert((await background.innerHTML()) === backgroundBefore, 'Drawn seaweed, seabed and stones remain after the finale');
+  assert(await background.evaluate(node => node === node.parentElement.firstElementChild), 'Restore the background layer after the swim');
   assert.equal(await page.locator('.drawing-top h2').textContent(), 'Рисунок готов');
   // Reopening starts a fresh paper lesson, even when completion was recorded.
   await page.getByRole('button', { name: 'Другой рисунок', exact: true }).tap(); await open();

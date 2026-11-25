@@ -3,7 +3,7 @@
   "title": "Полосатая рыбка",
   "viewBox": "0 0 600 300",
   "paperOrientation": "landscape",
-  "progressRevision": 2,
+  "progressRevision": 4,
   "stepOrder": "authored",
   "source": {
     "title": "Графическая рыбка с фотографии владельца",
@@ -30,6 +30,30 @@
       "stripe-11",
       "stripe-12",
       "stripe-13"
+    ],
+    "seaweedForeground": true,
+    "seaweed": [
+      {
+        "part": "seaweed-1",
+        "root": [
+          28,
+          254
+        ]
+      },
+      {
+        "part": "seaweed-2",
+        "root": [
+          43,
+          252
+        ]
+      },
+      {
+        "part": "seaweed-3",
+        "root": [
+          58,
+          252
+        ]
+      }
     ]
   },
   "palette": [
@@ -45,7 +69,10 @@
     "blue",
     "purple",
     "pink",
-    "coral"
+    "coral",
+    "brown",
+    "beige",
+    "gray"
   ],
   "steps": [
     {
@@ -304,6 +331,103 @@
       "fill": "#efdd05",
       "tool": "yellow",
       "part": "stripe-13"
+    },
+    {
+      "kind": "stroke",
+      "title": "Волнистая линия дна",
+      "paths": [
+        "M 18 256 C 35 253 55 251 74 251 C 146 246 172 264 246 254 C 340 241 440 265 578 251"
+      ],
+      "tool": "brown",
+      "part": "seabed",
+      "background": true
+    },
+    {
+      "kind": "stroke",
+      "title": "Контур листа водоросли 1",
+      "paths": [
+        "M 24 254 C 9 220 9 180 20 141 C 34 183 37 220 31 254 Z"
+      ],
+      "tool": "black",
+      "part": "seaweed-1",
+      "background": true
+    },
+    {
+      "kind": "stroke",
+      "title": "Контур листа водоросли 2",
+      "paths": [
+        "M 39 252 C 28 204 35 155 45 109 C 59 158 56 209 47 252 Z"
+      ],
+      "tool": "black",
+      "part": "seaweed-2",
+      "background": true
+    },
+    {
+      "kind": "stroke",
+      "title": "Контур листа водоросли 3",
+      "paths": [
+        "M 54 252 C 44 223 49 193 65 169 C 73 203 68 230 61 252 Z"
+      ],
+      "tool": "black",
+      "part": "seaweed-3",
+      "background": true
+    },
+    {
+      "kind": "stroke",
+      "title": "Три камешка на дне",
+      "paths": [
+        "M 190 269 A 10 5 0 1 0 210 269 A 10 5 0 1 0 190 269 Z",
+        "M 343 267 A 7 4 0 1 0 357 267 A 7 4 0 1 0 343 267 Z",
+        "M 472 270 A 12 5 0 1 0 496 270 A 12 5 0 1 0 472 270 Z"
+      ],
+      "tool": "black",
+      "part": "pebbles",
+      "background": true
+    },
+    {
+      "kind": "color",
+      "title": "Закрашиваем дно песочным цветом",
+      "d": "M 18 256 C 35 253 55 251 74 251 C 146 246 172 264 246 254 C 340 241 440 265 578 251 L 578 288 L 18 288 Z M 190 269 A 10 5 0 1 0 210 269 A 10 5 0 1 0 190 269 Z M 343 267 A 7 4 0 1 0 357 267 A 7 4 0 1 0 343 267 Z M 472 270 A 12 5 0 1 0 496 270 A 12 5 0 1 0 472 270 Z",
+      "fill": "#f2d69a",
+      "tool": "beige",
+      "part": "seabed",
+      "background": true
+    },
+    {
+      "kind": "color",
+      "title": "Закрашиваем лист водоросли 1",
+      "d": "M 24 254 C 9 220 9 180 20 141 C 34 183 37 220 31 254 Z",
+      "fill": "#30bb05",
+      "tool": "green",
+      "part": "seaweed-1",
+      "background": true
+    },
+    {
+      "kind": "color",
+      "title": "Закрашиваем лист водоросли 2",
+      "d": "M 39 252 C 28 204 35 155 45 109 C 59 158 56 209 47 252 Z",
+      "fill": "#75d816",
+      "tool": "light_green",
+      "part": "seaweed-2",
+      "background": true
+    },
+    {
+      "kind": "color",
+      "title": "Закрашиваем лист водоросли 3",
+      "d": "M 54 252 C 44 223 49 193 65 169 C 73 203 68 230 61 252 Z",
+      "fill": "#30bb05",
+      "tool": "green",
+      "part": "seaweed-3",
+      "background": true
+    },
+    {
+      "kind": "color",
+      "title": "Серые камешки",
+      "d": "M 190 269 A 10 5 0 1 0 210 269 A 10 5 0 1 0 190 269 Z M 343 267 A 7 4 0 1 0 357 267 A 7 4 0 1 0 343 267 Z M 472 270 A 12 5 0 1 0 496 270 A 12 5 0 1 0 472 270 Z",
+      "fill": "#777b7c",
+      "tool": "gray",
+      "part": "pebbles",
+      "background": true
     }
   ]
 }

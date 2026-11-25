@@ -34,9 +34,9 @@ try{
   if(await page.locator('[role=status]').textContent()==='Подготовьте следующий карандаш'){changes++;await page.clock.runFor(1150);}
   const currentStep=lesson.steps[i-1];
   if(currentStep.kind==='stroke'&&currentStep.paths.length>1){
-   const previousPaths=lesson.steps.slice(0,i-1).filter(s=>s.kind==='stroke').reduce((sum,s)=>sum+s.paths.length,0);
+   const previousPaths=lesson.steps.slice(0,i-1).filter(s=>s.kind==='stroke'&&Boolean(s.background)===Boolean(currentStep.background)).reduce((sum,s)=>sum+s.paths.length,0);
    await page.clock.runFor(120);
-   const paths=page.locator('[data-layer=drawing] > path');
+   const paths=page.locator(`[data-layer=${currentStep.background?'background-drawing':'drawing'}] > path`);
    assert.equal(await paths.count(),previousPaths+1,'Later strokes in a combined step must wait for the pencil');
    assert(Number(await paths.last().evaluate(p=>p.style.strokeDashoffset))>0,'Combined step must animate its first stroke');
   }
@@ -66,7 +66,7 @@ try{
   const step=lesson.steps[i-1];
   if(step.kind==='stroke'&&step.tool!=='black'){
    const expected=await page.evaluate(colour=>{const e=document.createElement('div');e.style.color=colour;return e.style.color;},lesson.palette.find(t=>t.id===step.tool).color);
-   const inks=await page.locator('[data-layer=drawing] > path').evaluateAll((ps,n)=>ps.slice(-n).map(p=>p.style.stroke),step.paths.length);
+   const inks=await page.locator(`[data-layer=${step.background?'background-drawing':'drawing'}] > path`).evaluateAll((ps,n)=>ps.slice(-n).map(p=>p.style.stroke),step.paths.length);
    assert(inks.every(ink=>ink===expected),'Wrong pencil for '+step.title);
   }
  }

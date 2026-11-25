@@ -696,7 +696,7 @@
     },
     {
       "id": "drawing",
-      "version": "0.45.0",
+      "version": "0.46.0",
       "title": {
         "ru": "Рисование",
         "en": "Drawing"
@@ -705,7 +705,7 @@
         "ru": "Двадцать один рисунок на бумаге: разноцветная полосатая рыбка с оживлением, малыш, домик, шесть пар героев из мира Пеппы, снеговик, собачка и другие. Также доступны «Первые линии» и тренировка закрашивания фигур и дорожек.",
         "en": "Twenty-one paper drawing lessons, including an animated rainbow striped fish, a baby, a house, six Peppa family and friends pairs, a snowman and a dog, plus First Lines and coloring practice."
       },
-      "url": "./decks/drawing_v0.45.0.zip",
+      "url": "./decks/drawing_v0.46.0.zip",
       "status": "beta",
       "access": "free",
       "materialLanguages": [

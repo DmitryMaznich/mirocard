@@ -15,6 +15,9 @@ function element(tag, attrs, parent) {
 
 export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "drawing", options = {}) {
   svg.replaceChildren();
+  const background = lesson.steps.some(step => step.background) ? element('g', { 'data-layer': 'background' }, svg) : null;
+  const backgroundColors = background ? element('g', { 'data-layer': 'background-colors' }, background) : null;
+  const backgroundDrawing = background ? element('g', { 'data-layer': 'background-drawing' }, background) : null;
   const colors = element("g", { "data-layer": "colors" }, svg);
   const drawing = element("g", { "data-layer": "drawing" }, svg);
   const accents = element("g", { "data-layer": "accents" }, svg);
@@ -43,7 +46,7 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
     onChange({ index, busy, paused });
   };
   const path = (item, step) => {
-    const node = element("path", { d: typeof item === "string" ? item : item.d }, drawing);
+    const node = element("path", { d: typeof item === "string" ? item : item.d }, step?.background ? backgroundDrawing : drawing);
     if (step?.tool && step.tool !== "black") {
       const ink = lesson.palette?.find(tool => tool.id === step.tool)?.color;
       if (ink) node.style.stroke = ink;
@@ -53,7 +56,7 @@ export function createDrawingPlayer(svg, lesson, onChange = () => {}, prefix = "
     return node;
   };
 function buildRegion(part,regionIndex){
- const container=element('g',{'data-region':regionIndex},part.overlay?accents:colors);
+ const container=element('g',{'data-region':regionIndex},part.background?backgroundColors:part.overlay?accents:colors);
  if(part.part)container.dataset.finishPart=part.part;
  const defs=element('defs',{},container);
  let seed=17;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
@@ -118,6 +121,7 @@ function revealRegion(region,distance){
   function redraw() {
     finale.stop();
     drawing.replaceChildren(); colors.replaceChildren(); accents.replaceChildren();
+    backgroundColors?.replaceChildren(); backgroundDrawing?.replaceChildren();
     for (let i = 0; i < index; i++) {
       const step = steps[i];
       if (step.kind === "stroke") for (const item of step.paths) {

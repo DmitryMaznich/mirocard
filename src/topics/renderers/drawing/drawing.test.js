@@ -34,7 +34,16 @@ describe("downloadable drawing topic", () => {
     expect(colouredBars.map(step => step.d)).toEqual(bars.map(step => step.paths[0]));
     expect(colouredBars.map(step => step.tool)).toEqual(['red', 'orange', 'yellow', 'light_green', 'green', 'turquoise', 'light_blue', 'blue', 'purple', 'pink', 'coral', 'orange', 'yellow']);
     expect(striped.steps.slice(0, 15).every(step => step.kind === 'stroke')).toBe(true);
-    expect(striped.steps.slice(15).every(step => step.kind === 'color')).toBe(true);
+    expect(striped.steps.slice(15, 30).every(step => step.kind === 'color')).toBe(true);
+    expect(striped.steps).toHaveLength(40);
+    expect(striped.steps.slice(30).every(step => step.background)).toBe(true);
+    for (const { part } of striped.finale.seaweed) {
+      const pair = striped.steps.filter(step => step.part === part);
+      expect(pair.map(step => step.kind)).toEqual(['stroke', 'color']);
+      expect(pair[0].paths[0]).toBe(pair[1].d);
+    }
+    expect(striped.steps.some(step => step.part === 'seabed' && step.kind === 'stroke')).toBe(true);
+    expect(striped.steps.find(step => step.part === 'seabed' && step.kind === 'color')).toMatchObject({ tool: 'beige', fill: '#f2d69a', background: true });
     expect(striped.steps.find(step => step.kind === 'color' && step.part === 'head').d).toContain('A 4 4');
     expect(await archive.file('media/striped_fish.svg').async('string')).toContain('#24486d');
     expect(tasks.map(task => task.cardId)).toEqual(expect.arrayContaining(["kompot", "gonya", "korzhik", "goldfish", "parrot", "donkey", "peppa_george", "snail", "sun_earth_moon", "jupiter_saturn", "dog", "snowman_glasses"]));

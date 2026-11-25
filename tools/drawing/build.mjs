@@ -30,23 +30,24 @@ for (const card of manifest.cards) {
     zip.file(card.image, await readFile(new URL('media/first-lines.svg', base)));
     continue;
   }
-  const parts = [], strokes = [], overlays = [], defs = [];
+  const parts = [], strokes = [], overlays = [], defs = [], backgroundParts = [], backgroundStrokes = [];
   card.lesson.steps.forEach((step, i) => {
     if (step.kind === "stroke") for (const item of step.paths) {
       const path = typeof item === "string" ? { d: item } : item;
       const ink = step.tool !== 'black' ? card.lesson.palette.find(tool => tool.id === step.tool)?.color : null;
-      strokes.push(`<path d="${escape(path.d)}" fill="${escape(path.fill ?? "none")}"${ink ? ` stroke="${escape(ink)}"` : ''}/>`);
+      (step.background ? backgroundStrokes : strokes).push(`<path d="${escape(path.d)}" fill="${escape(path.fill ?? "none")}"${ink ? ` stroke="${escape(ink)}"` : ''}/>`);
     } else {
       if (step.clip) defs.push(`<clipPath id="clip-${i}"><path d="${escape(step.clip)}"/></clipPath>`);
       const shape = `<path d="${escape(step.d)}" fill="${escape(step.fill)}" fill-rule="evenodd" stroke="none"${step.clip ? ` clip-path="url(#clip-${i})"` : ""}/>`;
-      (step.overlay ? overlays : parts).push(shape);
+      (step.background ? backgroundParts : step.overlay ? overlays : parts).push(shape);
     }
   });
   const labels = (card.lesson.labels ?? []).map(label => {
     const attrs = Object.entries(drawingLabelAttributes(label)).map(([name, value]) => `${svgAttributeName(name)}="${escape(value)}"`).join(' ');
     return `<text ${attrs}>${escape(label.text)}</text>`;
   }).join('');
-  const cover = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${escape(card.lesson.viewBox)}"><defs>${defs.join("")}</defs><g>${parts.join("")}</g><g stroke="#26352d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">${strokes.join("")}</g>${overlays.join("")}${labels}</svg>`;
+  const background = backgroundParts.length || backgroundStrokes.length ? `<g data-layer="background"><g>${backgroundParts.join('')}</g><g stroke="#26352d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">${backgroundStrokes.join('')}</g></g>` : '';
+  const cover = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${escape(card.lesson.viewBox)}"><defs>${defs.join("")}</defs>${background}<g>${parts.join("")}</g><g stroke="#26352d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">${strokes.join("")}</g>${overlays.join("")}${labels}</svg>`;
   zip.file(card.image, cover);
 }
 const output = new URL(`../../public/decks/drawing_v${manifest.meta.version}.zip`, base);

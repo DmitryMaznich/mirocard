@@ -77,15 +77,14 @@ describe('striped fish finale', () => {
     expect(stripes.every(node => !node.hasAttribute('transform'))).toBe(true);
     expect(svg.querySelector('[data-finale]')).toBeNull(); expect(queue.size).toBe(0);
   });
-  it('adds foreground seaweed and rising bubbles only during the finale', () => {
+  it('adds rising bubbles during the finale without generating extra plants', () => {
     expect(svg.querySelector('[data-finale-scenery]')).toBeNull();
     controller.play(); advance(1200);
     const layer = svg.querySelector('[data-finale]');
     expect(svg.lastElementChild).toBe(layer);
     expect(layer.getAttribute('pointer-events')).toBe('none');
     const leaves = [...layer.querySelectorAll('[data-finale-leaf]')];
-    expect(leaves).toHaveLength(4);
-    expect(leaves.every(leaf => leaf.firstElementChild.getAttribute('fill') !== 'none')).toBe(true);
+    expect(leaves).toHaveLength(0);
     const bubble = layer.querySelector('[data-finale-bubble]');
     expect(layer.querySelectorAll('[data-finale-bubble]')).toHaveLength(6);
     expect(Number(bubble.getAttribute('opacity'))).toBeGreaterThan(0);
@@ -96,6 +95,23 @@ describe('striped fish finale', () => {
     controller.stop();
     expect(svg.querySelector('[data-finale-leaf]')).toBeNull();
     expect(svg.querySelector('[data-finale-bubble]')).toBeNull();
+  });
+  it('moves the drawn leaves in front for the swim, then restores their layer and drawing', () => {
+    controller.dispose();
+    const names = ['seaweed-1', 'seaweed-2', 'seaweed-3'];
+    svg.insertAdjacentHTML('afterbegin', `<g data-layer="background">${names.map(name => `<path data-finish-part="${name}"/><g data-finish-part="${name}"/>`).join('')}</g>`);
+    const background = svg.firstElementChild, original = background.innerHTML;
+    controller = createDrawingFinale(svg, { finale: { type: 'striped-fish', tail: [470, 150], seaweedForeground: true, seaweed: names.map(part => ({ part, root: [40, 252] })) } });
+    expect(controller.play()).toBe(true); advance(1500);
+    expect(svg.querySelector('[data-finale]').previousElementSibling).toBe(background);
+    for (const name of names) {
+      const pair = [...background.querySelectorAll(`[data-finish-part="${name}"]`)];
+      expect(pair[0].getAttribute('transform')).toContain('rotate(');
+      expect(pair[0].getAttribute('transform')).toBe(pair[1].getAttribute('transform'));
+    }
+    controller.stop(); expect(background.innerHTML).toBe(original);
+    expect(svg.firstElementChild).toBe(background);
+    expect(background.children).toHaveLength(6);
   });
   it('stops without changing layer order or leaving transformed parts', () => {
     const nodes = [...svg.children];
