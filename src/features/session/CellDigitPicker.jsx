@@ -1,5 +1,5 @@
 // The digit picker of the number cells (owner, 2026-11-25/26): a tap on a cell opens it under the
-// cells — «любая», 0–9, «нет» — and the second tap picks; every state is in sight, two taps at
+// cells — 0–9, «случайная», «нет» — and the second tap picks; every state is in sight, two taps at
 // most. Shared by «Числа в примере» of «Слушай и посчитай» (DictationNumbersParam) and of
 // «Столбик» / «Реши в столбик» (ColumnOperandsParam).
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -12,7 +12,7 @@ export function useCellText() {
   return (v) => (v === "any" ? t("cells.any") : v === "none" ? t("cells.none") : String(v));
 }
 
-// The sign cell (2026-11-26): «+», «−» or «любой» (both, mixed) — the same picker, three options.
+// The sign cell (2026-11-26): «+», «−» or «случайный» (both, mixed) — the same picker, three options.
 export const SIGN_OPTIONS = ["add", "subtract", "mixed"];
 export const SIGN_GLYPH = { add: "+", subtract: "−", mixed: "±" };
 
@@ -26,31 +26,62 @@ export default function CellDigitPicker({ title, current, options = CELL_OPTIONS
   const digitText = useCellText();
   const cellText = text ?? digitText;
   const isSign = options === SIGN_OPTIONS;
+  const option = (v) => (
+    <button
+      key={String(v)}
+      type="button"
+      className={[
+        "cdp-option",
+        v === "any" ? "cdp-option--any" : v === "none" ? "cdp-option--none" : "",
+        current === v ? "cdp-option--current" : "",
+      ].filter(Boolean).join(" ")}
+      disabled={isDisabled(v)}
+      aria-pressed={current === v}
+      onClick={() => onPick(v)}
+    >
+      {cellText(v)}
+    </button>
+  );
   return (
     <div className="cdp-picker" role="group" aria-label={title}>
       <div className="cdp-picker__head">
         <span>{title}</span>
         <button type="button" className="cdp-picker__close" aria-label={t("cells.close")} onClick={onClose}>×</button>
       </div>
-      <div className={`cdp-picker__grid${isSign ? " cdp-picker__grid--sign" : ""}`}>
-        {options.map((v) => (
-          <button
-            key={String(v)}
-            type="button"
-            className={[
-              "cdp-option",
-              v === "any" || v === "mixed" ? "cdp-option--any" : v === "none" ? "cdp-option--none" : "",
-              isSign && v !== "mixed" ? "cdp-option--sign" : "",
-              current === v ? "cdp-option--current" : "",
-            ].filter(Boolean).join(" ")}
-            disabled={isDisabled(v)}
-            aria-pressed={current === v}
-            onClick={() => onPick(v)}
-          >
-            {cellText(v)}
-          </button>
-        ))}
-      </div>
+      {isSign ? (
+        // square tiles (owner, 2026-11-26): «+», «−», and «случайный» as «±» with a caption
+        <div className="cdp-picker__signs">
+          {options.map((v) => (
+            <button
+              key={v}
+              type="button"
+              className={[
+                "cdp-option",
+                "cdp-option--sign",
+                v === "subtract" ? "cdp-option--minus" : "",
+                v === "mixed" ? "cdp-option--random" : "",
+                current === v ? "cdp-option--current" : "",
+              ].filter(Boolean).join(" ")}
+              aria-pressed={current === v}
+              aria-label={cellText(v)}
+              onClick={() => onPick(v)}
+            >
+              {SIGN_GLYPH[v]}
+              {v === "mixed" && <small>{cellText(v)}</small>}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* the digits as square tiles, five in a row; the two words under them, wide */}
+          <div className="cdp-picker__digits">
+            {options.filter((v) => typeof v === "number").map(option)}
+          </div>
+          <div className="cdp-picker__words">
+            {options.filter((v) => typeof v !== "number").map(option)}
+          </div>
+        </>
+      )}
     </div>
   );
 }

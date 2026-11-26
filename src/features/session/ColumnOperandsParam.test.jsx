@@ -5,7 +5,7 @@ import ColumnOperandsParam, { cellOptionDisabled } from "./ColumnOperandsParam.j
 import { normalizeOperands, operandsExample, setOperandCell } from "@/topics/renderers/column_addition/engine.js";
 
 // cells in DOM order: top hundreds, tens, units; bottom hundreds, tens, units
-describe("ColumnOperandsParam — a cell picks «любая», 0–9 or «нет»", () => {
+describe("ColumnOperandsParam — a cell picks «случайная», 0–9 or «нет»", () => {
   let container, root, value;
   afterEach(() => { act(() => root.unmount()); container.remove(); });
   function mount(start, operation = "add") {
@@ -20,16 +20,16 @@ describe("ColumnOperandsParam — a cell picks «любая», 0–9 or «нет
 
   it("an empty cell grows the number, «нет» cuts it, 0 and digits stay in their cell", () => {
     mount({ top: 2, topZeros: [], bottom: 2, bottomZeros: [] });
-    pick(0, "любая");
+    pick(0, "случайная");
     expect(value.top).toBe(3);
     pick(1, "0");
     pick(2, "5");
     expect(value).toEqual({ top: 3, topZeros: [1], topFixed: { 0: 5 }, bottom: 2, bottomZeros: [] });
-    pick(2, "любая");
+    pick(2, "случайная");
     expect(value.topFixed).toBeUndefined();
     pick(1, "нет"); // the tens go — and the hundreds with them
     expect(value.top).toBe(1);
-    pick(3, "любая"); // the bottom may be longer than the top: 5 + 326
+    pick(3, "случайная"); // the bottom may be longer than the top: 5 + 326
     expect(value.bottom).toBe(3);
     expect(container.querySelector(".cdp-picker")).toBeNull();
   });

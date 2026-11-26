@@ -41,19 +41,19 @@ const pick = async (i, option) => {
 };
 const start = async () => act(async () => [...host.querySelectorAll("button")].find((b) => b.textContent.trim() === "Начать занятие").click());
 
-it("2 + 2: a cell picks «нет», «любая», 0 or a digit; the number grows and shrinks with it", async () => {
+it("2 + 2: a cell picks «нет», «случайная», 0 or a digit; the number grows and shrinks with it", async () => {
   mountWith({});
   await act(async () => root.render(<ParamsScreen />));
   expect(state()).toBe("_••_••");
   await pick(1, "нет"); // the top's tens — the number is one digit now
   expect(state()).toBe("__•_••");
-  await pick(0, "любая"); // a value over an empty cell grows the top to 3 digits
+  await pick(0, "случайная"); // a value over an empty cell grows the top to 3 digits
   expect(state()).toBe("•••_••");
   await pick(1, "0");
   expect(state()).toBe("•0•_••");
   await pick(1, "7"); // a fixed digit
   expect(state()).toBe("•7•_••");
-  await pick(3, "любая"); // a 3-digit bottom
+  await pick(3, "случайная"); // a 3-digit bottom
   await start();
   expect(mocks.persist).toHaveBeenCalledWith("kid", "column_addition", expect.objectContaining({
     params: expect.objectContaining({ operands: { top: 3, topZeros: [], topFixed: { 1: 7 }, bottom: 3, bottomZeros: [] } }),
@@ -76,7 +76,7 @@ it("the sign is a cell; «Перенос / заём» is one row, the button the
   expect(button("Перенос").getAttribute("aria-pressed")).toBe("true");
   expect(button("Заём").disabled).toBe(true); // «+»: no borrow
   await act(async () => host.querySelector(".cop-sign-cell").click());
-  await act(async () => [...host.querySelectorAll(".cdp-option")].find((b) => b.textContent === "любой").click());
+  await act(async () => [...host.querySelectorAll(".cdp-option")].find((b) => b.getAttribute("aria-label") === "случайный").click());
   expect(host.querySelector(".cop-sign-cell").textContent).toBe("±");
   expect(button("Заём").disabled).toBe(false);
   expect(labels()).toContain("«Хватает?»");

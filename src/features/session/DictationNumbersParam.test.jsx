@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import DictationNumbersParam from "./DictationNumbersParam.jsx";
 
 // cells in DOM order: first number tens, units; second number tens, units
-describe("DictationNumbersParam — a cell picks «любая», a digit or «нет»", () => {
+describe("DictationNumbersParam — a cell picks «случайная», a digit or «нет»", () => {
   let container, root, value;
   afterEach(() => { act(() => root.unmount()); container.remove(); });
   function mount(start, props = {}) {
@@ -38,7 +38,7 @@ describe("DictationNumbersParam — a cell picks «любая», a digit or «н
     pick("9");
     expect(value.bottom).toEqual({ tens: "none", units: 9 });
     open(3);
-    pick("любая");
+    pick("случайная");
     expect(value.bottom.units).toBe("any");
   });
 
@@ -58,11 +58,11 @@ describe("DictationNumbersParam — a cell picks «любая», a digit or «н
     expect(container.querySelector(".cop-note").textContent).toMatch(/не переходит/);
   });
 
-  it("the sign is a cell: «+», «−» or «любой»", () => {
+  it("the sign is a cell: «+», «−» or «случайный»", () => {
     let op = "add";
     mount(undefined, { onOperationChange: (v) => { op = v; } });
     act(() => container.querySelector(".cop-sign-cell").click());
-    expect([...container.querySelectorAll(".cdp-option")].map((b) => b.textContent)).toEqual(["+", "−", "любой"]);
+    expect([...container.querySelectorAll(".cdp-option")].map((b) => b.getAttribute("aria-label"))).toEqual(["+", "−", "случайный"]);
     act(() => [...container.querySelectorAll(".cdp-option")][2].click());
     expect(op).toBe("mixed");
   });
