@@ -34,7 +34,7 @@ beforeEach(async () => {
 afterEach(async () => { if (root) await act(async () => root.unmount()); host.remove(); });
 const click = async button => act(async () => button.click());
 async function answer(value) {
-  for (const digit of String(value)) await click([...host.querySelectorAll(".operation-audio-keypad__grid button")].find(button => button.textContent === digit));
+  for (const digit of String(value)) await click([...host.querySelectorAll(".aod-pad .aod-key")].find(button => button.textContent === digit));
   await click(host.querySelector('[aria-label="Проверить"]'));
 }
 

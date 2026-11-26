@@ -16973,101 +16973,8 @@ button.operation-dot {
   flex: 0 0 auto;
 }
 
-/* ─── Audio mode: spoken example, digit-by-digit typed answer ───────────── */
-.operation-stage--audio {
-  justify-content: flex-start;
-  padding-top: clamp(28px, 8dvh, 64px);
-}
-
-.operation-audio {
-  width: min(560px, 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(16px, 3dvh, 28px);
-}
-
-.operation-audio-diktor-wrap {
-  position: relative;
-  width: clamp(115px, 31vw, 158px);
-  height: clamp(115px, 31vw, 158px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.operation-audio-ripple {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid #2f6f65;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.operation-audio-diktor-wrap--playing .operation-audio-ripple {
-  animation: operation-audio-ripple 1600ms ease-out infinite;
-}
-
-.operation-audio-diktor-wrap--playing .operation-audio-ripple:nth-child(1) { animation-delay: 0ms; }
-.operation-audio-diktor-wrap--playing .operation-audio-ripple:nth-child(2) { animation-delay: 400ms; }
-.operation-audio-diktor-wrap--playing .operation-audio-ripple:nth-child(3) { animation-delay: 800ms; }
-
-@keyframes operation-audio-ripple {
-  0%   { transform: scale(1); opacity: 0.45; }
-  100% { transform: scale(1.85); opacity: 0; }
-}
-
-.operation-audio-diktor {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 50%;
-  background: linear-gradient(160deg, #4a9b8f, #2f6f65);
-  box-shadow: 0 10px 24px rgba(47, 111, 101, 0.32), inset 0 -6px 0 rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(6px, 1.7vw, 11px);
-  padding: 0;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.1s ease;
-}
-
-.operation-audio-diktor:active:not(:disabled) {
-  transform: scale(0.96);
-}
-
-.operation-audio-diktor:disabled {
-  cursor: default;
-}
-
-.operation-audio-bar {
-  width: clamp(7px, 1.9vw, 12px);
-  height: 30%;
-  border-radius: 999px;
-  background: #eafcf6;
-  opacity: 0.75;
-  transform-origin: center;
-}
-
-.operation-audio-diktor--playing .operation-audio-bar {
-  animation: operation-audio-bounce 900ms ease-in-out infinite;
-}
-
-.operation-audio-bar:nth-child(1) { animation-delay: 0ms; }
-.operation-audio-bar:nth-child(2) { animation-delay: 140ms; }
-.operation-audio-bar:nth-child(3) { animation-delay: 280ms; }
-.operation-audio-bar:nth-child(4) { animation-delay: 420ms; }
-
-@keyframes operation-audio-bounce {
-  0%, 100% { height: 26%; opacity: 0.7; }
-  50%      { height: 70%; opacity: 1; }
-}
-
+/* ─── Spoken-example answer box and digit keypad (operation_missing_term, the pad of «Сколько стало?» …).
+   The «Слушай и посчитай» screen itself has its own file since 2026-11-26: addition_subtraction/audioDictation.css. */
 .operation-audio-answer {
   min-width: clamp(168px, 44vw, 256px);
   min-height: clamp(128px, 32vw, 176px);
@@ -17082,25 +16989,6 @@ button.operation-dot {
   font-weight: 900;
   font-size: clamp(3.6rem, 16vw, 5.2rem);
   transition: border-color 0.15s, background 0.15s;
-}
-
-.operation-audio-continue-hint {
-  color: #1f5f57;
-  font-weight: 700;
-  font-size: clamp(0.95rem, 3vw, 1.1rem);
-  opacity: 0;
-  animation: operation-audio-continue-hint-in 0.3s ease 0.5s forwards,
-             operation-audio-continue-hint-pulse 1600ms ease-in-out 900ms infinite;
-}
-
-@keyframes operation-audio-continue-hint-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 0.85; transform: translateY(0); }
-}
-
-@keyframes operation-audio-continue-hint-pulse {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
 }
 
 .operation-audio-answer--wrong {

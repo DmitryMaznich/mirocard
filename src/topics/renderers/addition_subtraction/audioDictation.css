@@ -1,0 +1,122 @@
+/* ─── «Слушай и посчитай» (operation_audio): the child's screen (owner, 2026-11-26) ─────────────────────────────────────────
+   Built after the dictation of `propis2` (propis2/dictation.css — copied, not shared): a big voice circle the child taps to hear
+   the example again, the answer as notebook cells in the handwriting font, a 3D keypad. Math, so the paper is squared, not ruled.
+
+   It fills the whole session area under the session header (not 100dvh) and scales with it: the stage is a size container and
+   every size is calc(N * var(--u)) — px of a reference area stretched to the real one, so a tablet shows the same composition as a
+   phone, just larger. Portrait reference 390 x 640 (one column: the circle in the free middle, the answer, the keypad); landscape
+   (aspect >= 5:4) 1000 x 560 (the circle on the left, the answer and the keypad on the right). */
+.aod-stage {
+  container: aod / size;
+  flex: 1 1 auto; align-self: stretch; width: 100%; min-height: 0; position: relative; overflow: hidden;
+  border-radius: 18px;
+  background-color: #f4f8ff;
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: center;
+  color: #28323c;
+}
+
+.aod-frame {
+  --u: min(calc(100cqw / 390), calc(100cqh / 640));
+  --teal: #4a9b8f; --teal-dark: #2a6b60; --teal-soft: #e5f2ef; --line: #d5e0ee; --muted: #8b93a1;
+  height: 100%; box-sizing: border-box; margin: 0 auto; width: min(100%, calc(440 * var(--u)));
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-areas: "voice" "answer" "pad";
+  row-gap: calc(18 * var(--u));
+  padding: calc(16 * var(--u)) calc(20 * var(--u)) calc(20 * var(--u) + var(--app-safe-bottom, 0px));
+}
+
+/* the voice: tap to hear the example again; ripples and bars only while it sounds */
+.aod-voice { grid-area: voice; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.aod-diktor-wrap { --d: calc(200 * var(--u)); position: relative; flex: none; width: var(--d); height: var(--d); display: flex; align-items: center; justify-content: center; }
+.aod-ripple { position: absolute; inset: 0; border-radius: 50%; border: max(1.5px, calc(0.008 * var(--d))) solid var(--teal); opacity: 0; pointer-events: none; }
+.aod-diktor-wrap.is-speaking .aod-ripple { animation: aod-ripple 1600ms ease-out infinite; }
+.aod-diktor-wrap.is-speaking .aod-ripple:nth-child(2) { animation-delay: 400ms; }
+.aod-diktor-wrap.is-speaking .aod-ripple:nth-child(3) { animation-delay: 800ms; }
+@keyframes aod-ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.5); opacity: 0; } }
+
+.aod-diktor {
+  position: relative; width: 100%; height: 100%; padding: 0; border: none; border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #5fb3a6 0%, var(--teal) 45%, var(--teal-dark) 100%);
+  box-shadow: 0 calc(0.06 * var(--d)) calc(0.12 * var(--d)) rgba(42, 107, 96, 0.3), inset 0 calc(-0.033 * var(--d)) 0 rgba(0, 0, 0, 0.12), 0 0 0 calc(0.042 * var(--d)) rgba(74, 155, 143, 0.1);
+  display: flex; align-items: center; justify-content: center; gap: calc(var(--d) * 0.055);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, filter 0.3s ease;
+}
+.aod-diktor:active:not(:disabled) { transform: scale(0.96); }
+.aod-diktor:disabled { cursor: default; }
+/* the silence after the voice (time to count): the circle steps back; it stays tappable for a repeat */
+.aod-diktor-wrap:not(.is-speaking) .aod-diktor { filter: saturate(0.75) brightness(1.04); }
+.aod-bar { width: calc(var(--d) * 0.06); height: 28%; border-radius: 999px; background: #f0fbf8; opacity: 0.85; }
+.aod-bar:nth-child(2), .aod-bar:nth-child(3) { height: 40%; }
+.aod-diktor-wrap.is-speaking .aod-bar { animation: aod-bounce 900ms ease-in-out infinite; }
+.aod-bar:nth-child(2) { animation-delay: 140ms; }
+.aod-bar:nth-child(3) { animation-delay: 280ms; }
+.aod-bar:nth-child(4) { animation-delay: 420ms; }
+@keyframes aod-bounce { 0%, 100% { transform: scaleY(0.55); } 50% { transform: scaleY(1.3); } }
+
+/* the answer: notebook cells, the number written in them from the right (units in the last cell) */
+.aod-answer { grid-area: answer; display: flex; flex-direction: column; align-items: center; gap: calc(10 * var(--u)); }
+.aod-cells { --c: calc(84 * var(--u)); display: flex; gap: calc(8 * var(--u)); }
+.aod-cell {
+  width: var(--c); height: var(--c); box-sizing: border-box; display: grid; place-items: center;
+  border: max(2px, calc(3 * var(--u))) solid var(--line); border-radius: calc(0.2 * var(--c)); background: #fff;
+  box-shadow: 0 calc(4 * var(--u)) 0 #e3ebf5;
+  font-family: 'Primo', cursive; font-size: calc(0.62 * var(--c)); line-height: 1; color: #1f2a44;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.aod-cell.is-next { border-color: #3b82f6; border-style: dashed; }
+.aod-cells.is-wrong .aod-cell { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+.aod-cells.is-wrong { animation: aod-shake 0.4s ease; }
+.aod-cells.is-correct .aod-cell { border-color: #16a34a; background: #dcfce7; color: #166534; box-shadow: 0 calc(4 * var(--u)) 0 #bbe5c8; }
+.aod-digit { display: inline-block; line-height: 1; }
+@keyframes aod-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(4px); } }
+
+/* the keypad: 3D keys, digits in two rows of five, «стереть» and «проверить» under them */
+.aod-pad { grid-area: pad; --k: calc(62 * var(--u)); --gap: calc(8 * var(--u)); display: grid; grid-template-columns: repeat(5, var(--k)); gap: var(--gap); justify-content: center; }
+.aod-key {
+  height: var(--k); min-height: 44px; padding: 0; box-sizing: border-box;
+  border: max(1.5px, calc(2 * var(--u))) solid var(--line); border-radius: calc(0.26 * var(--k)); background: #fff; color: #1f2a44;
+  box-shadow: 0 calc(4 * var(--u)) 0 #dbe4ef; font: inherit; font-size: calc(0.44 * var(--k)); font-weight: 800; line-height: 1;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s, box-shadow 0.08s, opacity 0.15s;
+}
+.aod-key:active:not(:disabled) { transform: translateY(calc(3 * var(--u))); box-shadow: 0 calc(1 * var(--u)) 0 #dbe4ef; }
+.aod-key:disabled { opacity: 0.4; cursor: default; }
+.aod-key--erase { grid-column: span 2; color: var(--muted); }
+.aod-key--erase svg { width: calc(0.5 * var(--k)); height: calc(0.5 * var(--k)); }
+.aod-key--check { grid-column: span 3; border-color: var(--teal-dark); background: var(--teal); color: #fff; box-shadow: 0 calc(5 * var(--u)) 0 var(--teal-dark); }
+.aod-key--check:active:not(:disabled) { box-shadow: 0 calc(1 * var(--u)) 0 var(--teal-dark); }
+.aod-key--check svg { width: calc(0.5 * var(--k)); height: calc(0.5 * var(--k)); }
+
+/* after a right answer the keypad gives its place to «Нажми, чтобы продолжить» */
+.aod-continue {
+  grid-area: pad; align-self: center; justify-self: center; color: var(--teal-dark); font-weight: 800; font-size: calc(19 * var(--u));
+  opacity: 0; animation: aod-continue-in 0.3s ease 0.5s forwards, aod-continue-pulse 1600ms ease-in-out 900ms infinite;
+}
+@keyframes aod-continue-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 0.85; transform: translateY(0); } }
+@keyframes aod-continue-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+/* ── landscape: the circle | the answer over the keypad ── */
+@container aod (min-aspect-ratio: 5/4) {
+  .aod-frame {
+    --u: min(calc(100cqw / 1000), calc(100cqh / 560));
+    width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    grid-template-areas: "voice ." "voice answer" "voice pad" "voice .";
+    column-gap: calc(70 * var(--u)); row-gap: calc(28 * var(--u));
+    padding: calc(24 * var(--u)) calc(48 * var(--u)) calc(24 * var(--u) + var(--app-safe-bottom, 0px));
+  }
+  .aod-voice { justify-content: flex-end; }
+  .aod-diktor-wrap { --d: calc(320 * var(--u)); }
+  .aod-answer { align-items: flex-start; }
+  .aod-cells { --c: calc(96 * var(--u)); }
+  .aod-pad { --k: calc(70 * var(--u)); --gap: calc(10 * var(--u)); justify-content: start; }
+  .aod-continue { justify-self: start; font-size: calc(22 * var(--u)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aod-diktor-wrap.is-speaking .aod-ripple, .aod-diktor-wrap.is-speaking .aod-bar { animation: none; }
+}

@@ -44,6 +44,12 @@ the column's own cells stay as they are for now.
   «a + b = ?» was tried the same day and dropped). In the column the sign stands between the two rows, as in
   a notebook. Picker tiles are the size of the cells; the signs are drawn (`SignGlyph`), the handwriting font's
   digits are moved back to the middle by a per-digit offset (`CellDigit`, measured).
+- 2026-11-26: the child's screen of «Слушай и посчитай» redone after the dictation of `propis2` (owner): it fills the
+  whole session area and scales with it (`audioDictation.css`: the stage is a size container, sizes in `--u` of a
+  390 x 640 portrait / 1000 x 560 landscape reference), squared paper, the big voice circle with ripples, the answer
+  as two notebook cells in Primo written from the right (units last), a 3D keypad (digits 5 + 5, «стереть», «проверить»).
+  Landscape: the circle left, the answer over the keypad right. The old `.operation-audio-diktor…` styles are gone;
+  `AudioAnswerPad` of the other modes is unchanged.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
 ## Mode numbering changed 2026-10-07

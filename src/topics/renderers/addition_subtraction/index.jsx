@@ -11,6 +11,7 @@ import {
 } from "./stickModel";
 import { taskAudioItems, audioKeyUrl } from "./audioNumbers";
 import { useAudioSequence } from "./useAudioSequence";
+import "./audioDictation.css";
 import {
   observeCorrectAudioItems,
   observeQuestionAudioItems,
@@ -1210,6 +1211,11 @@ function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck, maxDi
   );
 }
 
+// The handwriting font's digits sit right of and above the middle of their box, each by its own amount
+// (measured 2026-11-26, em) — moved back so a digit stands in the middle of its answer cell.
+const PRIMO_DX = [0.167, 0.267, 0.117, 0.15, 0.117, 0.167, 0.167, 0.267, 0.167, 0.217];
+const AUDIO_ANSWER_CELLS = 2; // answers are 1…99 (dictation.js)
+
 function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   const [digits, setDigits] = useState([]);
   const [wrong, setWrong] = useState(false);
@@ -1227,17 +1233,17 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   }, [playPrompt]);
 
   function addDigit(d) {
-    if (answered || digits.length >= AUDIO_MAX_DIGITS) return;
+    if (answered || wrong || digits.length >= AUDIO_ANSWER_CELLS) return;
     setDigits((prev) => [...prev, d]);
   }
 
   function removeDigit() {
-    if (answered) return;
+    if (answered || wrong) return;
     setDigits((prev) => prev.slice(0, -1));
   }
 
   function checkAnswer() {
-    if (answered || digits.length === 0) return;
+    if (answered || wrong || digits.length === 0) return;
     const value = Number(digits.join(""));
     if (value === task.result) {
       setAnswered(true);
@@ -1249,48 +1255,52 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
     }
   }
 
-  const displayValue = answered ? String(task.result) : digits.join("");
+  // the number stands in the cells from the right, as written: units in the last cell
+  const shown = answered ? String(task.result).split("").map(Number) : digits;
+  const cells = Array.from({ length: AUDIO_ANSWER_CELLS }, (_, i) => shown[i - (AUDIO_ANSWER_CELLS - shown.length)]);
+  const nextCell = !answered && !wrong && digits.length < AUDIO_ANSWER_CELLS ? AUDIO_ANSWER_CELLS - 1 : -1;
 
   return (
-    <div className="operation-stage operation-stage--audio">
-      <div className="operation-audio">
-        <div className={`operation-audio-diktor-wrap${isPlaying ? " operation-audio-diktor-wrap--playing" : ""}`}>
-          <span className="operation-audio-ripple" />
-          <span className="operation-audio-ripple" />
-          <span className="operation-audio-ripple" />
-          <button
-            type="button"
-            className={`operation-audio-diktor${isPlaying ? " operation-audio-diktor--playing" : ""}`}
-            onClick={playPrompt}
-            disabled={isPlaying}
-            aria-label="Повторить пример"
-          >
-            <span className="operation-audio-bar" />
-            <span className="operation-audio-bar" />
-            <span className="operation-audio-bar" />
-            <span className="operation-audio-bar" />
-          </button>
+    <div className="aod-stage">
+      <div className="aod-frame">
+        <div className="aod-voice">
+          <div className={`aod-diktor-wrap${isPlaying ? " is-speaking" : ""}`}>
+            <span className="aod-ripple" />
+            <span className="aod-ripple" />
+            <span className="aod-ripple" />
+            <button type="button" className="aod-diktor" onClick={playPrompt} disabled={isPlaying} aria-label="Повторить пример">
+              <span className="aod-bar" />
+              <span className="aod-bar" />
+              <span className="aod-bar" />
+              <span className="aod-bar" />
+            </button>
+          </div>
         </div>
-        <div
-          className={[
-            "operation-audio-answer",
-            wrong ? "operation-audio-answer--wrong" : "",
-            answered ? "operation-audio-answer--correct" : "",
-          ].filter(Boolean).join(" ")}
-        >
-          {displayValue || "?"}
+
+        <div className="aod-answer">
+          <div className={`aod-cells${wrong ? " is-wrong" : ""}${answered ? " is-correct" : ""}`} aria-live="polite" aria-label={shown.join("") || "?"}>
+            {cells.map((d, i) => (
+              <span key={i} className={`aod-cell${i === nextCell && digits.length === 0 ? " is-next" : ""}`}>
+                {d != null && <span className="aod-digit" style={{ transform: `translate(${-PRIMO_DX[d]}em, 0.2em)` }}>{d}</span>}
+              </span>
+            ))}
+          </div>
         </div>
-        {answered && (
-          <div className="operation-audio-continue-hint">Нажми, чтобы продолжить</div>
-        )}
-        {!answered && (
-          <AudioAnswerPad
-            digits={digits}
-            disabled={wrong}
-            onDigit={addDigit}
-            onBackspace={removeDigit}
-            onCheck={checkAnswer}
-          />
+
+        {answered ? (
+          <div className="aod-continue">Нажми, чтобы продолжить</div>
+        ) : (
+          <div className="aod-pad">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
+              <button key={d} type="button" className="aod-key" disabled={wrong || digits.length >= AUDIO_ANSWER_CELLS} onClick={() => addDigit(d)}>{d}</button>
+            ))}
+            <button type="button" className="aod-key aod-key--erase" disabled={wrong || digits.length === 0} onClick={removeDigit} aria-label="Стереть">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5h11v14H9l-6-7z" /><path d="M12.5 9.5l5 5M17.5 9.5l-5 5" /></svg>
+            </button>
+            <button type="button" className="aod-key aod-key--check" disabled={wrong || digits.length === 0} onClick={checkAnswer} aria-label="Проверить">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+            </button>
+          </div>
         )}
       </div>
     </div>
