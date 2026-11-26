@@ -165,6 +165,31 @@ export function resolveRegroup(params = {}) {
   };
 }
 
+// «Перенос / заём» as one row of buttons (owner, 2026-11-26): «Перенос» and «Заём» switch on and off
+// («есть» / «нет» for that action), «любой» — both kinds mixed for every action of the chosen sign. The
+// button of an action the sign doesn't have («Заём» with «+») is off.
+export function regroupActions(operation) {
+  return operation === "subtract" ? ["borrow"] : operation === "mixed" ? ["carry", "borrow"] : ["carry"];
+}
+
+export function regroupAnyOn(regroup, operation) {
+  return regroupActions(operation).every((a) => regroup[a] === "any");
+}
+
+export function toggleRegroup(regroup, operation, button) {
+  const actions = regroupActions(operation);
+  const anyOn = regroupAnyOn(regroup, operation);
+  const next = { ...regroup };
+  if (button === "any") {
+    for (const a of actions) next[a] = anyOn ? "none" : "any";
+    return next;
+  }
+  if (!actions.includes(button)) return next;
+  if (anyOn) for (const a of actions) next[a] = "none";
+  next[button] = !anyOn && regroup[button] === "with" ? "none" : "with";
+  return next;
+}
+
 // The `carryMode` operandsExample takes, for one operation.
 export function carryModeFor(regroup, op) {
   return CARRY_MODE_OF[op === "subtract" ? regroup.borrow : regroup.carry] ?? "none";

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow, columnTaskOfExample, operandsExample, normalizeOperands, resolveOperands, resolveRegroup } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow, columnTaskOfExample, operandsExample, normalizeOperands, resolveOperands, resolveRegroup, toggleRegroup } from "./engine.js";
 
 const CARDS = [
   { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
@@ -611,5 +611,16 @@ describe("«Перенос» and «Заём» per action (2026-11-26)", () => {
     expect(resolveRegroup({ carryMode: "carry" })).toEqual({ carry: "with", borrow: "with" });
     expect(resolveRegroup({ carryMode: "mixed", borrow: "none" })).toEqual({ carry: "any", borrow: "none" });
     expect(resolveRegroup({})).toEqual({ carry: "none", borrow: "none" });
+  });
+
+  it("one row of buttons: «Перенос» / «Заём» on-off, «любой» mixes the actions of the sign", () => {
+    const r0 = { carry: "none", borrow: "none" };
+    expect(toggleRegroup(r0, "add", "carry")).toEqual({ carry: "with", borrow: "none" });
+    expect(toggleRegroup({ carry: "with", borrow: "none" }, "add", "carry")).toEqual(r0);
+    expect(toggleRegroup(r0, "add", "borrow")).toEqual(r0); // no borrow with «+»
+    expect(toggleRegroup(r0, "mixed", "any")).toEqual({ carry: "any", borrow: "any" });
+    expect(toggleRegroup({ carry: "any", borrow: "any" }, "mixed", "any")).toEqual(r0);
+    // from «любой» a button leaves the mix: that action «есть», the other «нет»
+    expect(toggleRegroup({ carry: "any", borrow: "any" }, "mixed", "borrow")).toEqual({ carry: "none", borrow: "with" });
   });
 });

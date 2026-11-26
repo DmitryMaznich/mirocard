@@ -741,9 +741,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // the sign is a cell of «Пример» (2026-11-26), «Перенос» and «Заём» are separate rows
     expect(mode.params.operation.hidden).toBe(true);
     expect(mode.params).not.toHaveProperty("carryMode");
-    expect(Object.keys(mode.params)).toEqual(["operation", "operands", "carry", "borrow", "showHelper", "compareMode"]);
-    expect(mode.params.carry.showWhen).toEqual({ operation: ["add", "mixed"] });
-    expect(mode.params.borrow.showWhen).toEqual({ operation: ["subtract", "mixed"] });
+    expect(Object.keys(mode.params)).toEqual(["operation", "operands", "regroup", "carry", "borrow", "showHelper", "compareMode"]);
+    expect(mode.params.regroup.type).toBe("column_regroup");
+    expect(mode.params.carry.hidden).toBe(true);
+    expect(mode.params.borrow.hidden).toBe(true);
     expect(mode.params.operands.section).toBe("Что решаем");
     expect(mode.params.showHelper.section).toBe("Отображение в занятии");
     expect(mode.params.operands.info.ru.text).toEqual(expect.any(String));

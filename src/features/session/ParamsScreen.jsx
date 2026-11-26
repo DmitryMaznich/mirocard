@@ -51,7 +51,7 @@ import { normalizeNumberPathParams, numberPathBoardSizes, numberPathMinForBoard,
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
 import DictationNumbersParam from "./DictationNumbersParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
-import { resolveOperands, resolveRegroup } from "@/topics/renderers/column_addition/engine.js";
+import { regroupActions, regroupAnyOn, resolveOperands, resolveRegroup, toggleRegroup } from "@/topics/renderers/column_addition/engine.js";
 import { resolveDictationParams } from "@/topics/renderers/addition_subtraction/dictation.js";
 
 // `showWhen: { key: value }` — or a list of values, any of which shows the setting
@@ -392,6 +392,33 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
         })}
       </div>
       {hint ? <div className="param-hint param-hint--ordered">{hint}</div> : null}
+    </div>
+  );
+}
+
+// «Перенос / заём» of «Столбик — Тренажёр» (owner, 2026-11-26): one row — «Перенос» and «Заём» switch
+// on and off, «любой» mixes; the button the sign has no use for is off (engine.js toggleRegroup).
+function RegroupParam({ label, labels, operation, regroup, onChange, info, onShowInfo }) {
+  const actions = regroupActions(operation);
+  const anyOn = regroupAnyOn(regroup, operation);
+  const pressed = { carry: !anyOn && regroup.carry === "with", borrow: !anyOn && regroup.borrow === "with", any: anyOn };
+  return (
+    <div className="param-row">
+      <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
+      <div className="param-enum-group">
+        {["carry", "borrow", "any"].map((b) => (
+          <button
+            key={b}
+            type="button"
+            aria-pressed={pressed[b]}
+            className={`enum-btn ${pressed[b] ? "enum-btn--active" : ""}`}
+            disabled={b !== "any" && !actions.includes(b)}
+            onClick={() => onChange(toggleRegroup(regroup, operation, b))}
+          >
+            {labels?.[b] ?? b}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1748,6 +1775,7 @@ export default function ParamsScreen() {
         out[key] = resolveOperands({ operands: saved[key], digits: saved.digits });
         continue;
       }
+      if (def.type === "column_regroup") continue; // draws carry / borrow, holds no value of its own
       if ((key === "carry" || key === "borrow") && mode?.type === "column_arithmetic") {
         // settings saved before 2026-11-26 carry one «Перенос / заём» (carryMode) for both actions
         out[key] = resolveRegroup(saved)[key];
@@ -2330,6 +2358,20 @@ export default function ParamsScreen() {
                 onShowInfo={setActiveInfo}
                 ordered={def.ordered === true}
                 hint={setupText(def.hint) || ""}
+              />
+            );
+          }
+          if (def.type === "column_regroup") {
+            return (
+              <RegroupParam
+                key={key}
+                label={setupText(def.label) || key}
+                labels={setupLabels(def.labels)}
+                operation={params.operation ?? mode.params?.operation?.default}
+                regroup={resolveRegroup(params)}
+                onChange={(r) => setParams((p) => ({ ...p, ...r }))}
+                info={setupInfo(def.info)}
+                onShowInfo={setActiveInfo}
               />
             );
           }
