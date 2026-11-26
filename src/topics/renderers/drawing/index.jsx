@@ -5,7 +5,7 @@ import { createDrawingPlayer } from './player.js';
 import { toolForStep } from './lessonPlan.js';
 import './drawing.css';
 import FirstLines from './firstLines/FirstLines.jsx';
-import { drawingLabelAttributes } from './labels.js';
+import Cover from './DrawingCover.jsx';
 import Portrait from './portrait/Portrait.jsx';
 import { MenuButton, Primary, ShowAgain } from './ui.jsx';
 import { writeSignature } from './signature.js';
@@ -41,21 +41,6 @@ function AdultDialog({ page, onDismiss, children }) {
     {page && children}
   </dialog>;
 }
-function Cover({ card, loadTopicFileUrl, topicId }) {
-  const [url, setUrl] = useState(card.coverUrl);
-  useEffect(() => {
-    let active = true, ownedUrl;
-    if (!card.coverUrl && loadTopicFileUrl) Promise.resolve(loadTopicFileUrl(topicId, card.image)).then(value => {
-      if (value?.startsWith('blob:')) ownedUrl = value;
-      if (active) setUrl(value);
-      else if (ownedUrl) URL.revokeObjectURL(ownedUrl);
-    }).catch(() => {});
-    return () => { active = false; if (ownedUrl) URL.revokeObjectURL(ownedUrl); };
-  }, [card.coverUrl, card.image, loadTopicFileUrl, topicId]);
-  return url ? <img src={url} alt="" /> : <svg viewBox={card.lesson.viewBox} aria-hidden="true"><g fill="none" stroke="#26352d" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-    {card.lesson.steps.flatMap((step, i) => step.kind === 'stroke' ? step.paths.map((item, n) => <path key={`${i}-${n}`} d={typeof item === 'string' ? item : item.d} fill={item.fill ?? 'none'} />) : [])}
-  </g>{card.lesson.labels?.map(label => <text key={label.id} {...drawingLabelAttributes(label)}>{label.text}</text>)}</svg>;
-}
 function readStored(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
 function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Local-mode previews can have no storage. */ } }
 
@@ -64,12 +49,17 @@ export default function DrawingRenderer(props) {
   return props.task?.type === 'drawing_coloring' ? <Coloring {...props} /> : props.task?.type === 'drawing_first_line' ? <FirstLines {...props} /> : <PaperDrawing {...props} />;
 }
 
-function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onRequestVideoBonus }) {
+function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, sessionParams, soundEnabled = true, loadTopicFileUrl, onRequestVideoBonus, onRequestDrawingSelection }) {
   const cards = topicRecord?.cards?.filter(card => card.lesson?.steps?.length) ?? [];
   const fallback = { id: task?.cardId ?? task?.lesson?.id, label: task?.lesson?.title, lesson: task?.lesson };
-  const [selected, setSelected] = useState(() => cards.length > 1 ? null : cards[0] ?? fallback);
+  const [selected, setSelected] = useState(() => cards.find(card => card.id === sessionParams?.drawingCardId) ?? (cards.length > 1 ? null : cards[0] ?? fallback));
   const [menu, setMenu] = useState(null);
-  const [choices, setChoices] = useState(() => ({ labels: true, tap: false, speed: sessionParams?.speed ?? 'normal', pencilSound: sessionParams?.pencilSound !== 'off', signatureCase: sessionParams?.signatureCase ?? 'normal', ...readStored('drawing-ui-options', {}) }));
+  const [choices, setChoices] = useState(() => {
+    const saved = readStored('drawing-ui-options', {});
+    return { labels: true, tap: false, ...saved, speed: sessionParams?.speed ?? saved.speed ?? 'normal',
+      pencilSound: sessionParams?.pencilSound == null ? saved.pencilSound ?? true : sessionParams.pencilSound !== 'off',
+      signatureCase: sessionParams?.signatureCase ?? saved.signatureCase ?? 'normal' };
+  });
   const [bonusEnabled, setBonusEnabled] = useState(sessionParams?.videoRewardEnabled === true);
   const bonusAvailable = typeof onRequestVideoBonus === 'function' && Boolean(student?.rewardVideos?.length);
   const bonus = { enabled: bonusEnabled, available: bonusAvailable, setEnabled: setBonusEnabled, request: onRequestVideoBonus };
@@ -80,7 +70,7 @@ function PaperDrawing({ task, topicRecord, topicId = 'drawing', student, session
   // A drawing is drawn in one sitting (owner, 2026-11-16): opening it always starts from the first step.
   // The position is still written (the browser checks read it), but never restored.
   if (selected?.lesson?.steps?.length) return <PreparedLesson key={selected.id} card={selected} saved={null} choices={choices} onChoice={changeChoice}
-    soundEnabled={soundEnabled} bonus={bonus} onSave={snapshot => saveProgress(selected.id, snapshot)} onDrawings={() => setSelected(null)} />;
+    soundEnabled={soundEnabled} bonus={bonus} onSave={snapshot => saveProgress(selected.id, snapshot)} onDrawings={() => onRequestDrawingSelection ? onRequestDrawingSelection() : setSelected(null)} />;
   return <section className="drawing-lesson drawing-picker" aria-label="Рисование">
     <div className="drawing-picker__adult"><MenuButton onOpen={() => setMenu('settings')} /></div>
     <h2>Рисование</h2><p>Выбери рисунок</p>
@@ -198,10 +188,11 @@ function Lesson({ card, saved, choices, onChoice, soundEnabled, onSave, onDrawin
       {state.paused && <div className="drawing-pause-curtain"><Icon name="pause" /></div>}
       {!done && state.index > 0 && !state.busy && <ShowAgain label="Показать этот шаг ещё раз" onClick={event => { event.stopPropagation(); repeat(); }} />}
     </div>
-    {/* Back is the child's (owner, 2026-11-16): it only rewinds the model on screen — the paper stays — so
-        a child who got lost can look again by themselves. One tap, one step; restart stays with the adult. */}
-    {state.index > 0 && !state.busy && <button type="button" className="drawing-back" aria-label="Назад на шаг" onClick={previous}>
-      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M37 24H13M23 13 12 24l11 11" /></svg></button>}
+    {/* During drawing, rewind one step. The finished picture offers a full
+        restart in the same place, with the circular arrow (owner, 2026-11-26). */}
+    {state.index > 0 && !state.busy && <button type="button" className="drawing-back" data-icon={done ? 'again' : 'back'}
+      aria-label={done ? 'Начать сначала' : 'Назад на шаг'} disabled={done && bonusPending} onClick={done ? reset : previous}>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d={done ? 'M12 16a14 14 0 1 1-2 15M11 7v10h10' : 'M37 24H13M23 13 12 24l11 11'} /></svg></button>}
     {done ? <Primary icon={offerBonus ? 'next' : 'drawings'} label={offerBonus ? 'Дальше — бонус' : 'Другой рисунок'} disabled={bonusPending} onClick={finishDrawing} />
       : <Primary icon="next" label="Дальше" disabled={state.busy && !state.paused} onClick={next} />}
     <span className="drawing-sr-only" role="status" aria-live="polite">{state.paused ? 'Анимация на паузе' : done ? 'Рисунок готов' : phase === 'copy' ? 'Можно рисовать на бумаге' : phase === 'tool' ? 'Подготовьте следующий карандаш' : 'Показать следующий шаг'}</span>

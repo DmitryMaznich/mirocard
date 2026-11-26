@@ -1,3 +1,4 @@
+import DrawingLaunchScreen from '@/features/session/DrawingLaunchScreen';
 import TopicUiPreviewContext from "@/features/topics/TopicUiPreviewContext";
 import TopicLanguageDialog from "@/features/topics/TopicLanguageDialog.jsx";
 import { useCallback, useEffect, useRef, Component } from "react";
@@ -87,6 +88,7 @@ class ErrorBoundary extends Component {
 // `propis2` owns its home screen for its constructor mode (and `print_letters` for its constructor); its other modes (copied from `propis` («Прописи старые»), 2026-10-10) and every other
 // topic keep the generic settings screen.
 function ParamsRoute() {
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeModeId = useAppStore((s) => s.activeModeId);
   const topicRecords = useAppStore((s) => s.topicRecords);
@@ -100,6 +102,7 @@ function ParamsRoute() {
   // «Контрольные по математике»: the test constructor and its «Решать на экране» are one full screen too
   // (PrintLettersScreen hosts any such renderer: it passes accountKv and onBack)
   if (record?.meta.renderer === "math_tests") return <PrintLettersScreen />;
+  if (record?.meta.renderer === "drawing" && mode?.type === "drawing_steps") return <DrawingLaunchScreen key={`${activeStudentId}:${activeTopicId}:${activeModeId}`} />;
   return <ParamsScreen />;
 }
 

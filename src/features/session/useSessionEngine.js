@@ -74,6 +74,10 @@ export function resolveModeSelection(topicRecord, mode, link, isReading, activeT
   if (topicRecord?.languageContract) {
     sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params);
   }
+  if (topicRecord?.meta.renderer === 'drawing' && mode?.type === 'drawing_steps') {
+    const chosen = topicRecord.cards.find(card => card.id === sessionParams.drawingCardId && card.lesson?.steps?.length);
+    if (chosen) return { sessionParams, selectedConceptIds: [chosen.conceptId ?? chosen.id] };
+  }
   const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
     && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)

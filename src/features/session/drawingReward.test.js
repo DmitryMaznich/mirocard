@@ -15,3 +15,9 @@ it('keeps the adult end bonus separate from the disabled cumulative video prize'
   expect(buildRewardProgress({ sessionState: { tasks: [1], correctCount: 50 }, mode,
     videoRewardEnabled: true, hasRewardVideos: true }).available).toBe(false);
 });
+it('uses the explicitly chosen drawing even with an older concept filter', () => {
+  const record = { ...topic, cards: [{ id: 'house', conceptId: 'house', primary: true, lesson: { steps: [1] } }, { id: 'fish', conceptId: 'fish', primary: true, lesson: { steps: [1] } }] };
+  const selection = resolveModeSelection(record, mode, { selectedConceptIds: ['fish'], params: { byMode: { drawing_steps: { drawingCardId: 'house' } } } }, false, null);
+  expect(selection.selectedConceptIds).toEqual(['house']);
+  expect(selection.sessionParams.drawingCardId).toBe('house');
+});

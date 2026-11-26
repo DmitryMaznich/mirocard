@@ -35,4 +35,9 @@ describe("shouldPreferBundledRenderer", () => {
   it("keeps supporting dynamic renderers for other topics", () => {
     expect(shouldPreferBundledRenderer("flashcards")).toBe(false);
   });
+  it('uses the current paper drawing flow with cached topic renderers', () => {
+    expect(shouldPreferBundledRenderer('drawing', 'drawing_steps')).toBe(true);
+    expect(shouldPreferBundledRenderer('drawing', 'drawing_first_lines')).toBe(false);
+    expect(shouldPreferBundledRenderer('drawing', 'drawing_coloring')).toBe(false);
+  });
 });

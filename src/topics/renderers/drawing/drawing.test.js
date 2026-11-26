@@ -269,6 +269,7 @@ describe("downloadable drawing topic", () => {
     const cards = [{ id: "second", lesson }, { id: "first", lesson }, { id: "unfinished" }];
     expect(generateTasks({}, cards, 500).map(task => task.cardId)).toEqual(["second", "first"]);
     expect(generateTasks({}, [])).toEqual([]);
+    expect(generateTasks({ type: 'drawing_steps' }, cards, 500, { drawingCardId: 'first' }).map(task => task.cardId)).toEqual(['first']);
   });
 });
 

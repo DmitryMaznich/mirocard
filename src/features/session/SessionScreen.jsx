@@ -46,8 +46,8 @@ export function shouldShowSessionStreak({ mode, isNavigatorFlashCards, renderer,
 // This renderer is maintained by the application itself.  Older versions of
 // its ZIP used to ship a renderer.js; if one remains in IndexedDB it must not
 // override the current bundled component after the topic has been updated.
-export function shouldPreferBundledRenderer(renderer) {
-  return renderer === "spatial_prepositions" || renderer === "my_people";
+export function shouldPreferBundledRenderer(renderer, modeType) {
+  return renderer === "spatial_prepositions" || renderer === "my_people" || (renderer === "drawing" && modeType === "drawing_steps");
 }
 
 export default function SessionScreen() {
@@ -266,21 +266,23 @@ export default function SessionScreen() {
     if (!topicRecord) return;
     const { renderer: rendererId } = topicRecord.meta;
 
-    if (shouldPreferBundledRenderer(rendererId)) {
+    if (shouldPreferBundledRenderer(rendererId, mode?.type)) {
       setRenderer(() => RENDERER_REGISTRY[rendererId] ?? null);
       setRendererReady(true);
       return undefined;
     }
 
+    let active = true;
     loadRenderer(topicRecord.meta.id)
       .then((DynamicRenderer) => {
-        setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[rendererId] ?? null);
+        if (active) setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[rendererId] ?? null);
       })
       .catch(() => {
-        setRenderer(() => RENDERER_REGISTRY[rendererId] ?? null);
+        if (active) setRenderer(() => RENDERER_REGISTRY[rendererId] ?? null);
       })
-      .finally(() => setRendererReady(true));
-  }, [topicRecord?.meta.id, topicRecord?.meta.renderer]);
+      .finally(() => { if (active) setRendererReady(true); });
+    return () => { active = false; };
+  }, [topicRecord?.meta.id, topicRecord?.meta.renderer, mode?.type]);
 
   if (!sessionState || !topicRecord || !mode) {
     return (
@@ -421,6 +423,7 @@ export default function SessionScreen() {
             onStreakReset={isAdvanceGateActive ? noop : handleStreakReset}
             onFlashIncorrect={isAdvanceGateActive ? noop : handleFlashIncorrect}
             onAdvance={isNumberPath ? onAdvance : requestAdvance}
+            onRequestDrawingSelection={mode?.type === "drawing_steps" ? () => { setSessionReturnScreen(null); setScreen("params"); } : undefined}
             onRequestVideoBonus={mode?.adultVideoReward === true ? adultVideoBonus.request : undefined}
             onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}
             onClose={openSessionExitPrompt}

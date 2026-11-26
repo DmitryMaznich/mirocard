@@ -104,7 +104,9 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
     });
     return tasks.map((task, index) => ({ ...task, sheetKinds: tasks.slice(Math.floor(index / 4) * 4, Math.floor(index / 4) * 4 + 4).map(t => t.exerciseKind) }));
   }
-  return (Array.isArray(cards) ? cards : []).filter(card => card.lesson?.steps?.length).map(card => ({
+  const paperCards = (Array.isArray(cards) ? cards : []).filter(card => card.lesson?.steps?.length);
+  const chosen = paperCards.find(card => card.id === params.drawingCardId);
+  return (chosen ? [chosen] : paperCards).map(card => ({
     type: "drawing_lesson",
     id: `drawing:${card.id}`,
     cardId: card.id,

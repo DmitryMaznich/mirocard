@@ -1,3 +1,5 @@
+import { loadTopicFileUrl } from '@/shared/hooks/useTopicFile';
+import DrawingCover from '@/topics/renderers/drawing/DrawingCover';
 import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
 import VideoPrizeCard from "@/features/rewards/VideoPrizeCard.jsx";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
@@ -1582,7 +1584,7 @@ function ComparisonParams({ params, onChange }) {
   );
 }
 
-export default function ParamsScreen() {
+export default function ParamsScreen({ drawingCard = null, onDrawingBack } = {}) {
   const { t: tr } = useUiTranslation();
   const { enabled: preview } = useTopicUiPreview();
   const setScreen              = useAppStore((s) => s.setScreen);
@@ -1921,21 +1923,22 @@ export default function ParamsScreen() {
     // matches on identity and would otherwise silently resurrect the old task list and
     // old answersPerStar/strictStars. An unchanged round-trip (just opened Настройки
     // and left) must still resume normally, so only clear when settings really differ.
+    const launchParams = drawingCard ? { ...params, drawingCardId: drawingCard.id } : params;
     const baseline = {
-      params: getInitialParams(),
+      params: drawingCard ? { ...getInitialParams(), drawingCardId: readModeParams(link.params, mode).drawingCardId } : getInitialParams(),
       videoRewardEnabled: hideVideoReward ? false : (link.videoRewardEnabled ?? true),
       rewardLossMode,
       answersPerStar: link.answersPerStar ?? 1,
       strictStars: link.strictStars ?? true,
     };
-    const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars, rewardLossMode };
-    if (sessionSettingsChanged(current, baseline)) {
+    const current = { params: launchParams, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars, rewardLossMode };
+    if ((drawingCard && sessionReturnScreen !== 'session') || sessionSettingsChanged(current, baseline)) {
       clearActiveSessionSnapshot();
       getDb().then((db) => clearPersistedActiveSessionSnapshot(db)).catch(() => {});
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, params),
+      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, launchParams),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
       strictStars,
@@ -2201,7 +2204,7 @@ export default function ParamsScreen() {
     </>
   ) : (
     <>
-      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && preview && (
+      {!drawingCard && !isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && preview && (
         // New interface: how many cards go into the lesson, no mastery dots —
         // those stay on the picker «Изменить» opens (owner, 2026-11-18).
         <button type="button" className="param-row topic-ui-param-pick" onClick={() => setScreen("concepts")}>
@@ -2226,7 +2229,7 @@ export default function ParamsScreen() {
           <span className="topic-ui-param-pick__action">{tr("setup.edit")}<ChevronRightIcon size={15} /></span>
         </button>
       )}
-      {!isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && !preview && (
+      {!drawingCard && !isShortStories && !modeHasCategoryParam && !mode?.hideConceptPicker && !preview && (
         <div className="param-row param-row--block">
           <div className="param-label">{tr(topicRecord?.meta?.conceptNoun === "letters" ? "setup.letters" : "setup.concepts")}</div>
           <div className="param-concept-col">
@@ -2586,11 +2589,12 @@ export default function ParamsScreen() {
   return (
     <div className={preview ? "screen topic-ui-params" : "screen"}>
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(modeBackScreen)}><BackArrowIcon /></button>
-        <h1 className="screen-title">{modeTitle}</h1>
+        <button className="back-btn" onClick={() => onDrawingBack ? onDrawingBack() : setScreen(modeBackScreen)}><BackArrowIcon /></button>
+        <h1 className="screen-title">{drawingCard?.label ?? modeTitle}</h1>
         <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title={tr("mode.about")}>?</button>
       </div>
 
+      {drawingCard && <div className="drawing-launch-summary"><DrawingCover card={drawingCard} topicId={activeTopicId} loadTopicFileUrl={loadTopicFileUrl} /><p>Настройки перед рисованием</p></div>}
       {needsContentLanguage && <div className="param-hint" role="alert"><p>{tr("topicLanguage.required")}</p><button className="link-btn" onClick={() => requestTopicLanguage({ record: topicRecord })}>{tr("topicLanguage.change")}</button></div>}
       <div className="params-layout">
         {/* Left info column — visible only on tablet via CSS */}
