@@ -69,12 +69,22 @@
   .choice.big { min-width: 190px; font-size: 22px; font-family: Arial, sans-serif; }
   .sym { font: 700 40px/1 Georgia, serif; }
 
-  /* цветная запись: размер группы = цвет фрукта, число групп = синий тарелки */
+  /* Цифры одного цвета. Смысл числа даёт значок под ним (подсказка внутри задания, а не цвет):
+     цветная метка у детей с РАС легко становится тем, на что ребёнок реагирует вместо числа. */
   .eq { font: 700 46px/1.1 Georgia, serif; display: flex; align-items: flex-start; gap: 14px; justify-content: center; }
   .eq .k { display: flex; flex-direction: column; align-items: center; }
-  .eq .a { color: var(--apple); }
-  .eq .b { color: var(--banana); }
-  .eq .g { color: var(--blue); }
+  .eq .a, .eq .b, .eq .g { color: var(--ink); }
+  .eq .hint.fade { opacity: .3; }
+  .minirow { width: 26px; height: 9px; border-radius: 5px; background: #efe6d6; border: 2px solid var(--blue); }
+  .eq .hint.rows { flex-direction: column; gap: 2px; height: auto; }
+  .choice.tall { height: 84px; padding-top: 4px; }
+  .emo { font-size: 92px; line-height: 1; filter: drop-shadow(1px 4px 3px #63452c40); }
+  .exemplars { display: flex; gap: 12px; }
+  .ex { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 10px; border-radius: 10px;
+        background: #fffaf0cc; border: 1px solid #d8c09f; font-size: 12px; color: #6b5a44; }
+  .ex .pics { font-size: 22px; line-height: 1; letter-spacing: 1px; white-space: nowrap; }
+  .eggbox { display: grid; grid-template-columns: repeat(3, 14px); gap: 3px; padding: 4px; border-radius: 6px; background: #c9b08a; }
+  .eggbox i { width: 14px; height: 17px; border-radius: 50% 50% 45% 45%; background: #fff7ea; }
   .eq .hint { display: flex; gap: 3px; margin-top: 4px; height: 22px; align-items: center; }
   .eq .hint img { height: 20px; }
   .eq .hint .mini { width: 20px; height: 20px; border-radius: 50%; background: center / contain url(img/plate-photo.webp); }
@@ -106,10 +116,12 @@
 <body>
 <h1 class="page-title">Умножение — лестница режимов</h1>
 <p class="page-sub">
-  Макет к разбору от 2026-11-26. Сквозная идея: <b style="color:#b3261e">число в группе — цветом фрукта</b>,
-  <b style="color:#233f7a">число групп — синим, как кайма тарелки</b>. Цвет держится одинаково от тарелок до записи
-  и до таблицы, поэтому ребёнок видит, какое число что значит, без слов. Голос (🔊) — одна и та же формула:
-  «по три… четыре раза». Фрукты на тарелке лежат как точки на кубике. Наверху — обычная шапка занятия со звёздами, вкладок режимов нет.
+  Макет к разбору от 2026-11-26, версия 2 — после сверки с исследованиями. Порядок ступеней: предмет → картинка → запись
+  (CRA), счёт группами перед умножением (Mulligan &amp; Mitchelmore), ряды и поворот для перестановки множителей (Barmby и др.).
+  <b>Цвета у цифр убраны</b>: цветная метка у детей с РАС легко заменяет собой смысл (сверхизбирательность). Вместо цвета
+  под каждым числом значок того, что оно значит: три яблока под «3», четыре тарелки под «4», позже — ряды под числом рядов.
+  Значки — часть задания, и их постепенно убирают (полупрозрачные → нет). Группы — не только тарелки (ступень 2б).
+  Голос (🔊) — одна и та же формула: «по три… четыре раза». Наверху — обычная шапка занятия со звёздами.
 </p>
 
 <div class="grid" id="grid"></div>
@@ -140,6 +152,14 @@ const topbar = (stars, lit) => `<div class="topbar">✕ Умножение<span 
 const say = t => `<div class="say"><span class="spk">🔊</span><span class="txt">${t}</span></div>`;
 const k = (n, cls, hint = "") => `<span class="k"><span class="${cls}">${n}</span><span class="hint">${hint}</span></span>`;
 const apples = n => `<img src="img/apple-photo.webp">`.repeat(1) ;
+const fr = (n, f = "apple") => `<img src="img/${f}-photo.webp">`.repeat(n);
+const rowsIcon = n => `<span class="minirow"></span>`.repeat(n);
+// запись «a × b» со значками-смыслами под числами; fade — значки ослаблены
+function ex(a, b, { f = "apple", groups = "plates", fade = false, cls = "eq sm", style = "", tail = "" } = {}) {
+  const h = fade ? " fade" : "";
+  const gHint = groups === "rows" ? `<span class="hint rows${h}">${rowsIcon(b)}</span>` : `<span class="hint${h}">${minis(b)}</span>`;
+  return `<span class="${cls}" style="${style}"><span class="k"><span>${a}</span><span class="hint${h}">${fr(a, f)}</span></span><span>×</span><span class="k"><span>${b}</span>${gHint}</span>${tail}</span>`;
+}
 const minis = n => `<span class="mini"></span>`.repeat(n);
 const tray = (n, f = "apple") => `<div class="tray">${`<img src="img/${f}-photo.webp">`.repeat(n)}</div>`;
 
@@ -175,6 +195,26 @@ const frames = [
   cap: `Главный мостик к умножению — <b>счёт группами, а не по одному</b>. Нажал на тарелку — над ней появилась сумма (3 → 6 → 9…), голос говорит «три… шесть…». Следующая тарелка обведена; нажать не по порядку нельзя. На старших ступенях ребёнок сам выбирает число над тарелкой (из 2–3 вариантов) — так проверяется счёт тройками.`
 },
 {
+  step: "2б", name: "Другие группы",
+  html: topbar(8, 4) + say("По пять. Сколько всего?") + `
+    <div class="mat" style="flex-direction:column;gap:18px">
+      <div class="row" style="gap:34px">
+        <div class="col"><span class="badge">5</span><span class="emo">✋</span></div>
+        <div class="col"><span class="badge">10</span><span class="emo">✋</span></div>
+        <div class="col"><span class="badge ghost">15</span><span class="emo" style="outline:3px solid #233f7a;outline-offset:6px;border-radius:16px">✋</span></div>
+      </div>
+      <div class="exemplars">
+        <div class="ex"><span class="pics">✋✋</span>руки по 5</div>
+        <div class="ex"><span class="pics">🧦🧦 🧦🧦</span>носки по 2</div>
+        <div class="ex"><span class="eggbox">${"<i></i>".repeat(6)}</span>коробки по 6</div>
+        <div class="ex"><span class="pics">🌷🌷🌷</span>букеты по 3</div>
+        <div class="ex"><span class="pics">🍓🍓🍓🍓</span>корзинки по 4</div>
+      </div>
+      <span class="note">эмодзи — заглушки; в деле нужны фото в одном стиле с тарелками</span>
+    </div>`,
+  cap: `Тот же счёт группами, но <b>группы разные</b>: руки, носки парами, коробки яиц, букеты, корзинки. Обучение на многих разных примерах — одно из самых надёжных средств переноса навыка у детей с РАС. Если показывать только тарелки, «умножение» может остаться навыком про тарелки. Ступени 2–5 берут предметы вперемешку; тарелки остаются только в первом знакомстве.`
+},
+{
   step: "3", name: "Сложение → умножение",
   html: topbar(8, 5) + say("По три, четыре раза") + `
     <div class="mat" style="flex-direction:column;gap:14px">
@@ -182,22 +222,22 @@ const frames = [
       <div class="eq sm"><span class="a">3</span>+<span class="a">3</span>+<span class="a">3</span>+<span class="a">3</span>=<span>12</span></div>
       <div class="eq">${k(3, "a", `<img src="img/apple-photo.webp"><img src="img/apple-photo.webp"><img src="img/apple-photo.webp">`)}<span>×</span>${k(4, "g", minis(4))}<span>=</span><span>12</span></div>
     </div>`,
-  cap: `Та же картинка, длинное сложение анимацией «сворачивается» в короткую запись: три красные тройки собираются в одну <b style="color:#b3261e">3</b>, количество троек становится синей <b>4</b>. Под числами — значки: «3» = три яблока, «4» = четыре тарелки. Ничего решать не надо, это показ; повторяется после каждого задания на ступенях 2–5.`
+  cap: `Та же картинка, длинное сложение анимацией «сворачивается» в короткую запись: одинаковые тройки собираются в одну <b>3</b>, их количество становится <b>4</b>. Под числами значки: «3» = три яблока, «4» = четыре тарелки — смысл числа виден прямо в записи, без цвета и слов. Ничего решать не надо, это показ; повторяется после каждого задания на ступенях 2–5.`
 },
 {
   step: "4", name: "Картинка → пример",
   html: topbar(8, 3) + say("Какой пример?") + `
     <div class="mat"><div class="row">${[1,2,3].map(() => plate(4, "apple", {size: 128})).join("")}</div></div>
     <div class="btns">
-      <span class="choice"><span class="eq sm" style="font-size:30px"><span class="a">4</span>×<span class="g">3</span></span></span>
-      <span class="choice"><span class="eq sm" style="font-size:30px"><span class="a">3</span>×<span class="g">3</span></span></span>
-      <span class="choice wrong"><span class="eq sm" style="font-size:30px"><span class="a">4</span>+<span class="g">3</span></span></span>
+      <span class="choice tall">${ex(4, 3, {style: "font-size:30px"})}</span>
+      <span class="choice tall">${ex(3, 3, {style: "font-size:30px"})}</span>
+      <span class="choice tall wrong">${ex(4, 2, {style: "font-size:30px"})}</span>
     </div>`,
-  cap: `Это твой режим «Картинка и пример», но <b>без перевёрнутого примера (3 × 4) среди вариантов</b>: неверный вариант отличается числом или знаком. Цвета в кнопках сначала есть, потом становятся серыми — это ослабление подсказки. Ошибка гасит кнопку, текста нет. Размер группы меняется от 2 до 5, число тарелок — тоже; 2 × 2 и 3 × 3 — только на поздних ступенях.`
+  cap: `Это твой режим «Картинка и пример», но <b>без перевёрнутого примера (3 × 4) среди вариантов</b>: неверный вариант отличается числом. На первых ступенях под числами в кнопках есть значки — ребёнок сверяет их с картинкой, ошибиться почти нельзя. Потом значки бледнеют и исчезают: ребёнок сам переводит картинку в числа. Вариант со знаком «+» добавляется, когда значков уже нет. Ошибка гасит кнопку, текста нет. Размер группы меняется от 2 до 5, число тарелок — тоже; 2 × 2 и 3 × 3 — только на поздних ступенях.`
 },
 {
   step: "5", name: "Пример → собери",
-  html: topbar(8, 2) + `<div class="say"><span class="spk">🔊</span><span class="eq sm" style="font-size:34px"><span class="b">2</span>×<span class="g">4</span></span></div>` + `
+  html: topbar(8, 2) + `<div class="say"><span class="spk">🔊</span>${ex(2, 4, {f: "banana", style: "font-size:34px"})}</div>` + `
     <div class="mat" style="justify-content:space-between;padding:0 24px">
       <div class="col" style="gap:2px">${plate(0, "apple", {size: 70})}<div style="margin-top:-60px">${plate(0, "apple", {size: 70})}</div><div style="margin-top:-60px">${plate(0, "apple", {size: 70})}</div><div style="margin-top:-60px">${plate(0, "apple", {size: 70})}</div><div style="margin-top:-60px">${plate(0, "apple", {size: 70})}</div></div>
       <div class="row" style="flex-wrap:wrap;width:450px">
@@ -206,7 +246,7 @@ const frames = [
       <div class="col">${tray(1, "banana")}<span style="font-size:12px;color:#6b5a44">ещё 3</span></div>
       <div style="position:absolute;left:20px;bottom:8px;display:flex;gap:6px">${minis(3).replace(/mini"/g, 'mini" style="width:22px;height:22px;display:inline-block;background:center/contain url(img/plate-photo.webp);border-radius:50%"')}<span style="font-size:12px;color:#233f7a;align-self:center">3 из 4</span></div>
     </div>`,
-  cap: `Обратное направление: дан пример, ребёнок сам ставит <b style="color:#233f7a">нужное число тарелок</b> (берёт из стопки слева) и кладёт на каждую <b style="color:#a86a00">по два</b>. Бананов на подносе <b>больше, чем нужно</b>, поэтому вовремя остановиться — тоже часть задания. Синие тарелки-значки внизу отмечают, сколько тарелок уже стоит.`
+  cap: `Обратное направление: дан пример, ребёнок сам ставит <b>нужное число тарелок</b> (берёт из стопки слева) и кладёт на каждую <b>по два</b>. Значки под числами в задании подсказывают, что значит каждое число; на поздних ступенях их нет. Бананов на подносе <b>больше, чем нужно</b>, поэтому вовремя остановиться — тоже часть задания. Синие тарелки-значки внизу отмечают, сколько тарелок уже стоит.`
 },
 {
   step: "6", name: "Тарелки → ряды",
@@ -215,22 +255,22 @@ const frames = [
       <div class="col" style="gap:8px">${[1,2,3].map(() => plate(4, "apple", {size: 84})).join("")}</div>
       <span class="arrow">→</span>
       <div class="board">${[1,2,3].map(() => `<div class="r">${`<span class="c"><img src="img/apple-photo.webp"></span>`.repeat(4)}</div>`).join("")}</div>
-      <div class="eq sm">${k(4, "a")}<span>×</span>${k(3, "g")}</div>
+      ${ex(4, 3, {groups: "rows"})}
     </div>`,
-  cap: `Переход к прямоугольнику — основе таблицы умножения и переместительного закона. Каждая тарелка «высыпается» в свой ряд лотка (ряд = тарелка, у ряда такой же тёплый фон). Первые задания — с анимацией перехода, потом сразу лоток. В рядах до 5–6, иначе ребёнок перестаёт видеть количество с одного взгляда.`
+  cap: `Переход к прямоугольнику — основе таблицы умножения и переместительного закона. Каждая тарелка «высыпается» в свой ряд лотка. Значок под числом групп меняется с тарелок на ряды — так ребёнку показывают, что ряд — это та же группа (сам по себе он ряды и столбцы в прямоугольнике не видит, это отмечают и Barmby с коллегами). Первые задания — с анимацией перехода, потом сразу лоток. В рядах до 5–6, иначе ребёнок перестаёт видеть количество с одного взгляда.`
 },
 {
   step: "7", name: "Повернули — сколько теперь?",
   html: topbar(8, 6) + say("Повернём. Сколько теперь?") + `
     <div class="mat" style="gap:28px">
       <div class="col"><div class="board">${[1,2].map(() => `<div class="r">${`<span class="c"><img src="img/apple-photo.webp"></span>`.repeat(3)}</div>`).join("")}</div>
-        <div class="eq sm" style="font-size:28px"><span class="a">3</span>×<span class="g">2</span>=6</div></div>
+        ${ex(3, 2, {groups: "rows", style: "font-size:28px", tail: "<span>=</span><span>6</span>"})}</div>
       <span class="rotate">↻</span>
       <div class="col"><div class="board">${[1,2,3].map(() => `<div class="r">${`<span class="c"><img src="img/apple-photo.webp"></span>`.repeat(2)}</div>`).join("")}</div>
-        <div class="eq sm" style="font-size:28px"><span class="a">2</span>×<span class="g">3</span>=<span class="slot">6</span></div></div>
+        ${ex(2, 3, {groups: "rows", style: "font-size:28px", tail: "<span>=</span><span class=\"slot\">6</span>"})}</div>
     </div>
     <div class="btns"><span class="choice">5</span><span class="choice">6</span><span class="choice">8</span></div>`,
-  cap: `Замена режима «Переложи яблоки». Ребёнок нажимает ↻ — <b>тот же лоток</b> поворачивается на 90°, ни одно яблоко не двигается. Было 2 ряда по 3, стало 3 ряда по 2. Сначала ответ ищем пересчётом, потом его можно «узнать». Цвета чисел меняются вместе с ролью: размер ряда всегда красный, число рядов — синее. Ответ к новой записи закрыт: его надо найти, а не списать — смысл в том, чтобы увидеть, что он совпал.`
+  cap: `Замена режима «Переложи яблоки». Ребёнок нажимает ↻ — <b>тот же лоток</b> поворачивается на 90°, ни одно яблоко не двигается. Было 2 ряда по 3, стало 3 ряда по 2. Сначала ответ ищем пересчётом, потом его можно «узнать». Значки под числами меняются вместе с поворотом: под первым числом — сколько в ряду, под вторым — сколько рядов. Ответ к новой записи закрыт: его надо найти, а не списать — смысл в том, чтобы увидеть, что он совпал.`
 },
 {
   step: "8", name: "Пример без картинки",
@@ -242,7 +282,7 @@ const frames = [
       </div>
       <div class="keypad">${[1,2,3,4,5,6,7,8,9,0].map(d => `<span>${d}</span>`).join("")}</div>
     </div>`,
-  cap: `Конец лестницы: число набирается на цифровой клавиатуре, без выбора из трёх (угадать нельзя). Кнопка «показать» достаёт тарелки или лоток к этому примеру — подсказка всегда под рукой, но стоит «звезду» (в задание засчитывается как «с подсказкой»). Цвета чисел гаснут на последних ступенях.`
+  cap: `Конец лестницы: число набирается на цифровой клавиатуре, без выбора из трёх (угадать нельзя). Кнопка «показать» достаёт тарелки или лоток к этому примеру — подсказка всегда под рукой, но стоит «звезду» (в задание засчитывается как «с подсказкой»). Значков под числами уже нет. <b>Открытый вопрос:</b> клавиатура или выбор из 2–3 чисел. Сравнений для математики при РАС я не нашёл; «на клавиатуре нельзя угадать» — рассуждение, не доказательство. Решать по тому, как пойдёт у сына.`
 },
 ];
 
