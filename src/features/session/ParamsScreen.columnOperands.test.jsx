@@ -77,7 +77,7 @@ it("the sign is a cell; «Перенос / заём» is one row, the button the
   expect(button("Заём").disabled).toBe(true); // «+»: no borrow
   await act(async () => host.querySelector(".cop-sign-cell").click());
   await act(async () => [...host.querySelectorAll(".cdp-option")].find((b) => b.getAttribute("aria-label") === "случайный").click());
-  expect(host.querySelector(".cop-sign-cell").textContent).toBe("±");
+  expect(host.querySelector(".cop-sign-cell").getAttribute("aria-label")).toMatch(/случайный/); // drawn, not a «±» character
   expect(button("Заём").disabled).toBe(false);
   expect(labels()).toContain("«Хватает?»");
   await act(async () => button("Заём").click()); // «есть» → «нет» for the borrow
