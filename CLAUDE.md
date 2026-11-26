@@ -322,6 +322,13 @@ faded out as a prompt). Not the app's Slovenian UI localization. **Read
 «Найди букву») — с 2026-11-18 в проде, каталог `release` (открыта всем, доступ платный); меню 1–4, картинки и голос слов, звуки гласных; согласные ждут записи владельца.
 **Read `docs/letters-and-sounds.md` first.**
 
+## Умножение — новая тема, методика и макеты (started 2026-11-26)
+
+For the owner's son (minimally verbal, ASD, counts confidently). Ladder: поровну → счёт группами → запись → ряды →
+поворот; numbers are not colour-coded (overselectivity), the meaning of a number is an icon under it, faded by plan.
+No code yet. **Read `docs/multiplication-methodology.md` first** — evidence table, rules, ladder, open questions,
+per-step polishing log; mockups in `docs/mockups/multiplication-2026-11-26/`.
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
