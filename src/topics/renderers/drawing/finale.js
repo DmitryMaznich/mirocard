@@ -4,12 +4,106 @@ import { createCarHorn } from './hornSound.js';
 // The car's brief horn plays only after explicit completion; nothing loops.
 const ns = 'http://www.w3.org/2000/svg';
 const smooth = value => { const t = Math.max(0, Math.min(1, value)); return t*t*(3-2*t); };
+let snowfallId = 0;
 export function createDrawingFinale(svg, lesson, options = {}) {
   let frame = null, cleanup = null;
   const horn = lesson.finale?.type === 'car-drive' ? options.horn ?? createCarHorn() : null;
   function stop() {
     if (frame !== null) cancelAnimationFrame(frame);
     frame = null; horn?.stop(); cleanup?.(); cleanup = null;
+  }
+  function playSnowfall(config) {
+    const template = [...svg.querySelectorAll('path[data-finish-part]')].filter(node => node.dataset.finishPart === config.part);
+    const bounds = String(lesson.viewBox ?? '').trim().split(/\s+/).map(Number);
+    if (template.length !== 3 || bounds.length !== 4 || !bounds.every(Number.isFinite) || bounds[2] <= 0 || bounds[3] <= 0 ||
+      config.centre?.length !== 2 || !config.centre.every(Number.isFinite)) return false;
+    const parts = name => [...svg.querySelectorAll('[data-finish-part]')].filter(node => node.dataset.finishPart === name);
+    const drawn = (config.drawnFlakes ?? []).map(flake => ({ ...flake, nodes: parts(flake.part) }));
+    const eyes = (config.eyes ?? []).map(eye => ({ ...eye, nodes: parts(eye.part) }));
+    if ([...drawn, ...eyes].some(part => part.centre?.length !== 2 || !part.centre.every(Number.isFinite)) ||
+      drawn.some(flake => flake.nodes.length !== 3) || eyes.some(eye => !eye.nodes.some(node => node.tagName.toLowerCase() === 'path'))) return false;
+    const [x, y, width, height] = bounds, [cx, cy] = config.centre;
+    const layer = document.createElementNS(ns, 'g');
+    layer.dataset.finale = 'snowfall'; layer.setAttribute('aria-hidden', 'true'); layer.setAttribute('pointer-events', 'none');
+    const make = (tag, attrs, parent) => {
+      const node = document.createElementNS(ns, tag);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      parent.append(node); return node;
+    };
+    const clipId = `drawing-snowfall-${++snowfallId}`;
+    const defs = make('defs', {}, layer), clip = make('clipPath', { id: clipId, clipPathUnits: 'userSpaceOnUse' }, defs);
+    make('rect', { x, y, width, height }, clip);
+    const particles = make('g', { 'clip-path': `url(#${clipId})` }, layer);
+    const flakes = Array.from({ length: 20 }, (_, i) => {
+      const node = make('g', { 'data-falling-snowflake': i, opacity: 0 }, particles);
+      const shape = make('g', { transform: `translate(${-cx} ${-cy})` }, node);
+      for (const source of template) {
+        const path = source.cloneNode(false);
+        path.removeAttribute('data-finish-part'); path.removeAttribute('data-finish-actor'); path.removeAttribute('id');
+        path.style.strokeDasharray = 'none'; path.style.strokeDashoffset = '0'; shape.append(path);
+      }
+      return { node, delay: i*.085, duration: 4.5+i%5*.15, scale: .58+i%4*.14,
+        startX: x+20+(i*.61803398875%1)*(width-40), phase: i*2.4 };
+    });
+    // Move the five real flakes, so the child's marks themselves come alive.
+    const drawnNodes = new Set(drawn.flatMap(flake => flake.nodes));
+    const positions = [...svg.querySelectorAll('[data-finish-part]')].filter(node => drawnNodes.has(node))
+      .map(node => [node, node.parentNode, node.nextSibling]);
+    for (const flake of drawn) {
+      flake.group = make('g', { 'data-drawn-snowflake': flake.part }, particles);
+      for (const node of flake.nodes) flake.group.append(node);
+    }
+    // The outline and its pencil fill squash together. A small blue patch
+    // behind each eye fills the original hole in the head's shading.
+    const transforms = eyes.flatMap(eye => eye.nodes.map(node => [node, node.getAttribute('transform')]));
+    const eyeBackground = make('g', { 'data-snowfall-eye-background': '', 'pointer-events': 'none' }, svg);
+    const colors = svg.querySelector('[data-layer="colors"]');
+    if (colors) colors.insertBefore(eyeBackground, colors.firstChild);
+    else svg.insertBefore(eyeBackground, svg.querySelector('[data-layer="drawing"]'));
+    for (const eye of eyes) {
+      eye.patch = eye.nodes.find(node => node.tagName.toLowerCase() === 'path').cloneNode(false);
+      for (const name of ['id', 'data-finish-part', 'data-finish-actor', 'transform']) eye.patch.removeAttribute(name);
+      eye.patch.setAttribute('style', 'fill:#d0e9f4;stroke:none'); eye.patch.setAttribute('opacity', '0'); eyeBackground.append(eye.patch);
+    }
+    svg.append(layer);
+    cleanup = () => {
+      for (const [node, transform] of transforms) {
+        if (transform === null) node.removeAttribute('transform'); else node.setAttribute('transform', transform);
+      }
+      for (const [node, parent, next] of positions.slice().reverse()) parent.insertBefore(node, next?.parentNode === parent ? next : null);
+      eyeBackground.remove(); layer.remove();
+    };
+    let elapsed = 0, last = performance.now();
+    function tick(now) {
+      elapsed += Math.min(64, now-last); last = now;
+      const t = elapsed/1000;
+      for (const flake of flakes) {
+        const u = (t-flake.delay)/flake.duration, v = Math.max(0, Math.min(1, u));
+        const drift = 12*v+Math.sin(v*Math.PI*2+flake.phase)*16*v;
+        const py = y-20+(height+40)*v;
+        flake.node.setAttribute('transform', `translate(${flake.startX+drift} ${py}) rotate(${Math.sin(t*.7+flake.phase)*12}) scale(${flake.scale})`);
+        flake.node.setAttribute('opacity', String(u <= 0 || u >= 1 ? 0 : .8*smooth(v/.1)*(1-smooth((v-.88)/.12))*(1-smooth((t-5.8)/.35))));
+      }
+      for (const [i, flake] of drawn.entries()) {
+        const [px, py] = flake.centre;
+        const progress = t*(125+i*9)/(y+height+24-py), returning = t >= 6.2;
+        const dy = returning ? 0 : t*(125+i*9);
+        const dx = returning ? 0 : Math.sin(t*.9+i)*16*Math.min(1, t);
+        const angle = returning ? 0 : Math.sin(t*.7+i)*10*Math.min(1, t);
+        flake.group.setAttribute('transform', `translate(${dx} ${dy}) translate(${px} ${py}) rotate(${angle}) translate(${-px} ${-py})`);
+        flake.group.setAttribute('opacity', String(returning ? smooth((t-6.2)/.55) : 1-smooth((progress-.84)/.16)));
+      }
+      const closing = Math.max(...[.55, 3.3].map(start => smooth((t-start)/.22)*(1-smooth((t-start-.30)/.28))));
+      for (const eye of eyes) {
+        const [ex, ey] = eye.centre;
+        const transform = `translate(${ex} ${ey}) scale(${1+.05*closing} ${1-.88*closing}) translate(${-ex} ${-ey})`;
+        for (const node of eye.nodes) node.setAttribute('transform', transform);
+        eye.patch.setAttribute('opacity', String(smooth(closing/.15)));
+      }
+      if (t >= 6.8) { stop(); return; }
+      frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick); return true;
   }
   function playCar(config, reducedMotion) {
     const actor = [...svg.querySelectorAll('[data-finish-actor="car"]')];
@@ -255,6 +349,7 @@ export function createDrawingFinale(svg, lesson, options = {}) {
     const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (config?.type === 'car-drive') return playCar(config, reducedMotion);
     if (reducedMotion) return false;
+    if (config?.type === 'snowfall') return playSnowfall(config);
     if (config?.type === 'zebra-run') return playZebra(config);
     if (config?.type === 'striped-fish') return playStripedFish(config);
     if (config?.type !== 'fish') return false;

@@ -23,6 +23,20 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
+    const winter = tasks.find(task => task.cardId === 'snowman_broom').lesson;
+    expect(winter.steps).toHaveLength(40);
+    expect(winter.finale.type).toBe('snowfall');
+    expect(winter.finale.drawnFlakes).toHaveLength(5);
+    expect(winter.steps.some(step => step.part?.startsWith('winter-'))).toBe(false);
+    for (const flake of winter.finale.drawnFlakes) {
+      const step = winter.steps.find(step => step.part === flake.part);
+      expect(step).toMatchObject({ kind: 'stroke', tool: 'light_blue', background: true });
+      expect(step.paths).toHaveLength(3);
+    }
+    for (const eye of winter.finale.eyes) {
+      expect(winter.steps.some(step => step.paths?.some(path => path.part === eye.part))).toBe(true);
+      expect(winter.steps.some(step => step.regions?.some(region => region.part === eye.part))).toBe(true);
+    }
     const zebra = tasks.find(task => task.cardId === 'zebra_butterfly').lesson;
     expect(zebra.steps).toHaveLength(46);
     expect(zebra.finale.type).toBe('zebra-run');

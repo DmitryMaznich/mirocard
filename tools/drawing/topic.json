@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.49.0",
+    "version": "0.50.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -648,6 +648,14 @@
       "label": "Снеговик в очках",
       "image": "media/snowman_glasses.svg",
       "lessonFile": "lessons/snowman_glasses.json"
+    },
+    {
+      "id": "snowman_broom",
+      "conceptId": "snowman_broom",
+      "primary": true,
+      "label": "Снеговик с метлой",
+      "image": "media/snowman_broom.svg",
+      "lessonFile": "lessons/snowman_broom.json"
     },
     {
       "id": "cute_baby",

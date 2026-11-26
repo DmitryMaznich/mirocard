@@ -23,6 +23,74 @@ beforeEach(() => {
 });
 afterEach(() => { controller.dispose(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
+describe('snowfall finale', () => {
+  let lesson;
+  beforeEach(() => {
+    controller.dispose();
+    svg.innerHTML = '<g data-layer="background-drawing"><path data-finish-part="snowflake-1" d="M10 20L30 20" style="stroke:rgb(52, 198, 232)"/><path data-finish-part="snowflake-1" d="M15 11L25 29"/><path data-finish-part="snowflake-1" d="M15 29L25 11"/></g><path data-finish-part="snowman" d="M100 100L200 200"/>';
+    lesson = { viewBox: '0 0 800 500', finale: { type: 'snowfall', part: 'snowflake-1', centre: [20, 20] } };
+    controller = createDrawingFinale(svg, lesson);
+  });
+  it('uses the drawn three-line flakes, falls downward once and restores the exact drawing', () => {
+    const original = svg.innerHTML;
+    expect(svg.querySelector('[data-finale]')).toBeNull(); expect(controller.play()).toBe(true);
+    const flakes = svg.querySelectorAll('[data-falling-snowflake]'); expect(flakes).toHaveLength(20);
+    for (const flake of flakes) expect(flake.querySelectorAll('path')).toHaveLength(3);
+    expect(flakes[0].querySelector('path').style.stroke).toBe('rgb(52, 198, 232)');
+    advance(1300);
+    const firstY = Number(flakes[0].getAttribute('transform').match(/translate\([^ ]+ ([^)]+)/)[1]);
+    expect(firstY).toBeGreaterThan(0); expect(Number(flakes[0].getAttribute('opacity'))).toBeGreaterThan(0);
+    advance(1200);
+    const secondY = Number(flakes[0].getAttribute('transform').match(/translate\([^ ]+ ([^)]+)/)[1]);
+    expect(secondY).toBeGreaterThan(firstY);
+    expect(svg.querySelectorAll('[data-finish-part="snowflake-1"]')).toHaveLength(3);
+    advance(4400); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+  });
+  it('replays without overlap and cancels immediately on stopping or hiding', () => {
+    const original = svg.innerHTML;
+    controller.play(); advance(1000); controller.play();
+    expect(svg.querySelectorAll('[data-finale]')).toHaveLength(1);
+    controller.stop(); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+    controller.play(); advance(700); vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0); expect(controller.play()).toBe(false);
+  });
+  it('keeps reduced-motion and incomplete lessons still', () => {
+    const original = svg.innerHTML;
+    vi.stubGlobal('matchMedia', () => ({ matches: true })); expect(controller.play()).toBe(false);
+    expect(svg.innerHTML).toBe(original);
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
+    svg.querySelector('path').remove(); const incomplete = svg.innerHTML;
+    expect(controller.play()).toBe(false); expect(svg.innerHTML).toBe(incomplete); expect(queue.size).toBe(0);
+  });
+  it('moves the actual drawn flakes and squashes eye outlines and fills together for a blink', () => {
+    controller.dispose();
+    svg.insertAdjacentHTML('beforeend', '<g data-layer="colors"><g data-finish-part="eye-left"><path d="M100 90L104 90"/></g><g data-finish-part="eye-right"><path d="M120 90L124 90"/></g></g><g data-layer="drawing"><path data-finish-part="eye-left" d="M100 86Q108 90 100 94Q92 90 100 86Z"/><path data-finish-part="eye-right" d="M120 86Q128 90 120 94Q112 90 120 86Z"/></g>');
+    lesson.finale.drawnFlakes = [{ part: 'snowflake-1', centre: [20, 20] }];
+    lesson.finale.eyes = [{ part: 'eye-left', centre: [100, 90] }, { part: 'eye-right', centre: [120, 90] }];
+    controller = createDrawingFinale(svg, lesson);
+    const original = svg.innerHTML, actualFlake = svg.querySelector('path[data-finish-part="snowflake-1"]');
+    controller.play(); advance(800);
+    const moving = svg.querySelector('[data-drawn-snowflake="snowflake-1"]');
+    expect(moving.contains(actualFlake)).toBe(true);
+    expect(svg.querySelector('[data-layer="background-drawing"]').children).toHaveLength(0);
+    expect(Number(moving.getAttribute('transform').match(/translate\([^ ]+ ([^)]+)/)[1])).toBeGreaterThan(0);
+    for (const part of ['eye-left', 'eye-right']) {
+      const pair = [...svg.querySelectorAll(`[data-finish-part="${part}"]`)];
+      expect(pair).toHaveLength(2); expect(pair[0].getAttribute('transform')).toBe(pair[1].getAttribute('transform'));
+      expect(Number(pair[0].getAttribute('transform').match(/scale\([^ ]+ ([^)]+)/)[1])).toBeLessThan(.15);
+    }
+    advance(500);
+    expect(svg.querySelector('[data-finish-part="eye-left"]').getAttribute('transform')).toContain('scale(1 1)');
+    advance(5600);
+    expect(svg.innerHTML).toBe(original); expect(svg.querySelector('path[data-finish-part="snowflake-1"]')).toBe(actualFlake);
+    expect(queue.size).toBe(0);
+    controller.play(); advance(800); controller.stop(); expect(svg.innerHTML).toBe(original);
+    controller.play(); advance(800); vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    document.dispatchEvent(new Event('visibilitychange')); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+  });
+});
+
 describe('car departure finale', () => {
   let horn;
   beforeEach(() => {
