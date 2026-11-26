@@ -51,8 +51,14 @@ import { normalizeNumberPathParams, numberPathBoardSizes, numberPathMinForBoard,
 import ColumnOperandsParam from "./ColumnOperandsParam.jsx";
 import DictationNumbersParam from "./DictationNumbersParam.jsx";
 import TopicLinkScreen from "./TopicLinkScreen.jsx";
-import { resolveOperands } from "@/topics/renderers/column_addition/engine.js";
+import { resolveOperands, resolveRegroup } from "@/topics/renderers/column_addition/engine.js";
 import { resolveDictationParams } from "@/topics/renderers/addition_subtraction/dictation.js";
+
+// `showWhen: { key: value }` — or a list of values, any of which shows the setting
+// («Перенос» for «+» and «любой»: `{ operation: ["add", "mixed"] }`)
+function showWhenMatches(actual, expected) {
+  return Array.isArray(expected) ? expected.includes(actual) : actual === expected;
+}
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -1742,13 +1748,22 @@ export default function ParamsScreen() {
         out[key] = resolveOperands({ operands: saved[key], digits: saved.digits });
         continue;
       }
+      if ((key === "carry" || key === "borrow") && mode?.type === "column_arithmetic") {
+        // settings saved before 2026-11-26 carry one «Перенос / заём» (carryMode) for both actions
+        out[key] = resolveRegroup(saved)[key];
+        continue;
+      }
       if (def.type === "dictation_numbers") {
         // settings saved before 2026-11-25 carry «Максимальное число» (maxNumber); with them the
         // other two settings of the cells change too (dictation.js resolveDictationParams)
         const resolved = resolveDictationParams(saved);
         out[key] = resolved.numbers;
         if (saved.operation == null && mode?.params?.operation) out.operation = resolved.operation;
-        if (saved.crossTen == null && mode?.params?.crossTen) out.crossTen = resolved.crossTen;
+        continue;
+      }
+      if ((key === "crossAdd" || key === "crossSub") && mode?.type === "operation_audio") {
+        // settings saved before 2026-11-26 carry one «Через десяток» (crossTen) for both actions
+        out[key] = resolveDictationParams(saved)[key];
         continue;
       }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
@@ -1962,9 +1977,9 @@ export default function ParamsScreen() {
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
         // (a choice of one: «Мои языки» left a single language — propis2/myLanguagesView.js)
         if (def.hidden) return null;
-        if (def.showWhen && !Object.entries(def.showWhen).every(([condition, expected]) => (
-          params[condition] ?? mode.params[condition]?.default
-        ) === expected)) return null;
+        if (def.showWhen && !Object.entries(def.showWhen).every(([condition, expected]) => showWhenMatches(
+          params[condition] ?? mode.params[condition]?.default, expected,
+        ))) return null;
         if (def.type === "story_quiz") {
           return (
             <StoryQuizEditorParam
@@ -2252,7 +2267,7 @@ export default function ParamsScreen() {
           if (def.type === "concept_selector" || def.type === "content_language") return null;
           if (def.showWhen) {
             const [condKey, condVal] = Object.entries(def.showWhen)[0];
-            if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
+            if (!showWhenMatches(params[condKey] ?? mode.params?.[condKey]?.default, condVal)) return null;
           }
           const isDisabled = def.disabledWhen
             ? Object.entries(def.disabledWhen).some(([condKey, condValue]) => (params[condKey] ?? mode.params?.[condKey]?.default) === condValue)
@@ -2327,7 +2342,8 @@ export default function ParamsScreen() {
                 labelNode={<ParamLabel label={label} info={setupInfo(def.info)} onShowInfo={setActiveInfo} />}
                 value={params[key]}
                 operation={params.operation ?? mode.params?.operation?.default}
-                carryMode={params.carryMode ?? mode.params?.carryMode?.default}
+                regroup={resolveRegroup(params)}
+                onOperationChange={(v) => setParams((p) => ({ ...p, operation: v }))}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
             );
@@ -2341,7 +2357,9 @@ export default function ParamsScreen() {
                 labelNode={<ParamLabel label={label} info={setupInfo(def.info)} onShowInfo={setActiveInfo} />}
                 value={params[key]}
                 operation={params.operation ?? mode.params?.operation?.default}
-                crossTen={params.crossTen ?? mode.params?.crossTen?.default}
+                crossAdd={params.crossAdd ?? mode.params?.crossAdd?.default}
+                crossSub={params.crossSub ?? mode.params?.crossSub?.default}
+                onOperationChange={(v) => setParams((p) => ({ ...p, operation: v }))}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
             );

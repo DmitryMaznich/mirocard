@@ -65,3 +65,20 @@ it("an old saved «Разрядность» opens as cells", async () => {
   await act(async () => root.render(<ParamsScreen />));
   expect(state()).toBe("•0•_••");
 });
+
+it("the sign is a cell; «Перенос» shows for «+», «Заём» for «−», both for «любой»", async () => {
+  mountWith({ carryMode: "carry" }); // an old «Перенос / заём: С» — both actions «есть»
+  await act(async () => root.render(<ParamsScreen />));
+  const labels = () => [...host.querySelectorAll(".param-label")].map((l) => l.textContent.trim());
+  expect(labels()).toContain("Перенос");
+  expect(labels()).not.toContain("Заём");
+  expect(labels()).not.toContain("«Хватает?»");
+  await act(async () => host.querySelector(".cop-sign-cell").click());
+  await act(async () => [...host.querySelectorAll(".cdp-option")].find((b) => b.textContent === "любой").click());
+  expect(host.querySelector(".cop-sign-cell").textContent).toBe("±");
+  expect(labels()).toEqual(expect.arrayContaining(["Перенос", "Заём", "«Хватает?»"]));
+  await start();
+  expect(mocks.persist).toHaveBeenCalledWith("kid", "column_addition", expect.objectContaining({
+    params: expect.objectContaining({ operation: "mixed", carry: "with", borrow: "with" }),
+  }));
+});

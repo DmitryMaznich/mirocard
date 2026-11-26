@@ -150,6 +150,26 @@ export function resolveCompareMode(sessionParams) {
   return "onBorrow";
 }
 
+// «Перенос» and «Заём» (2026-11-26, owner): one setting per action — «нет» / «есть» / «любой»
+// (without / only with / both) — instead of one «Перенос / заём: Без / С / Микс» for both. A
+// setting saved before (`carryMode`: none / carry / mixed) gives both actions the same value.
+export const REGROUP_VALUES = ["none", "with", "any"];
+const CARRY_MODE_OF = { none: "none", with: "carry", any: "mixed" };
+const REGROUP_OF = { none: "none", carry: "with", mixed: "any" };
+
+export function resolveRegroup(params = {}) {
+  const legacy = REGROUP_OF[params.carryMode] ?? "none";
+  return {
+    carry: REGROUP_VALUES.includes(params.carry) ? params.carry : legacy,
+    borrow: REGROUP_VALUES.includes(params.borrow) ? params.borrow : legacy,
+  };
+}
+
+// The `carryMode` operandsExample takes, for one operation.
+export function carryModeFor(regroup, op) {
+  return CARRY_MODE_OF[op === "subtract" ? regroup.borrow : regroup.carry] ?? "none";
+}
+
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const mode = typeof modeOrObj === "string" ? modeOrObj : (modeOrObj?.type ?? modeOrObj?.id ?? "");
   const count = typeof countOrParams === "number" ? countOrParams : 15;
@@ -165,7 +185,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (!arithmeticCards.length) return [];
 
   const operation = params.operation ?? "add";
-  const carryMode = params.carryMode ?? "none";
+  const regroup = resolveRegroup(params);
   const operands = resolveOperands(params);
 
   const filtered   = operation === "mixed" ? arithmeticCards
@@ -180,7 +200,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     attempts++;
     const card = activePool[idx % activePool.length];
     const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
-    const ex = operandsExample(operands, op, carryMode, usedPairs);
+    const ex = operandsExample(operands, op, carryModeFor(regroup, op), usedPairs);
     if (ex) { tasks.push(trainerTaskFrom(ex, card)); idx++; }
   }
 

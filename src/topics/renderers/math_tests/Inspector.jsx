@@ -24,6 +24,7 @@ function Field({ field, block, onPatch }) {
           value={value}
           operation={block.ops === "both" ? "mixed" : block.ops}
           onChange={(v) => onPatch({ [field.key]: v })}
+          onOperationChange={(op) => onPatch({ ops: op === "mixed" ? "both" : op })}
         />
       </div>
     );

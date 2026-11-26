@@ -738,10 +738,16 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(mode.params).not.toHaveProperty("showCompare");
     expect(mode.params.compareMode.type).toBe("enum");
     expect(mode.params.compareMode.values).toEqual(["onBorrow", "always", "off"]);
-    expect(mode.params.operation.section).toBe("Что решаем");
+    // the sign is a cell of «Пример» (2026-11-26), «Перенос» and «Заём» are separate rows
+    expect(mode.params.operation.hidden).toBe(true);
+    expect(mode.params).not.toHaveProperty("carryMode");
+    expect(Object.keys(mode.params)).toEqual(["operation", "operands", "carry", "borrow", "showHelper", "compareMode"]);
+    expect(mode.params.carry.showWhen).toEqual({ operation: ["add", "mixed"] });
+    expect(mode.params.borrow.showWhen).toEqual({ operation: ["subtract", "mixed"] });
+    expect(mode.params.operands.section).toBe("Что решаем");
     expect(mode.params.showHelper.section).toBe("Отображение в занятии");
-    expect(mode.params.operation.info.ru.text).toEqual(expect.any(String));
-    expect(mode.params.operation.info.ru.tip).toEqual(expect.any(String));
+    expect(mode.params.operands.info.ru.text).toEqual(expect.any(String));
+    expect(mode.params.operands.info.ru.tip).toEqual(expect.any(String));
   });
 
   it("slots the finger modes into an installed addition_subtraction record's ladder", async () => {
@@ -772,7 +778,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const audio = record.modes.find((m) => m.id === "operation_audio");
     expect(audio.ui).toMatchObject({ title: "12. Слушай и посчитай", instruction: "Слушай пример и вводи ответ" });
     // an installed deck still lists maxNumber/changeMax — the cells replace them (2026-11-25)
-    expect(Object.keys(audio.params)).toEqual(["operation", "crossTen", "numbers"]);
+    expect(Object.keys(audio.params)).toEqual(["operation", "numbers", "crossAdd", "crossSub"]);
+    expect(audio.params.operation.hidden).toBe(true);
     expect(audio.params.numbers.type).toBe("dictation_numbers");
     expect(audio.hideConceptPicker).toBe(true);
   });

@@ -11,7 +11,7 @@ describe("ColumnOperandsParam — a cell picks «любая», 0–9 or «нет
   function mount(start, operation = "add") {
     container = document.createElement("div"); document.body.appendChild(container);
     root = createRoot(container);
-    function App() { const [v, setV] = useState(start); value = v; return <ColumnOperandsParam value={v} operation={operation} carryMode="mixed" onChange={setV} />; }
+    function App() { const [v, setV] = useState(start); value = v; return <ColumnOperandsParam value={v} operation={operation} regroup={{ carry: "any", borrow: "any" }} onChange={setV} />; }
     act(() => root.render(<App />));
   }
   const cell = (i) => container.querySelectorAll(".cop-cell")[i];
@@ -63,7 +63,7 @@ describe("ColumnOperandsParam — a cell picks «любая», 0–9 or «нет
   it("digits that cannot borrow say so (▢9 − ▢ with «С займом» → without)", () => {
     container = document.createElement("div"); document.body.appendChild(container);
     root = createRoot(container);
-    act(() => root.render(<ColumnOperandsParam value={{ top: 2, topZeros: [], topFixed: { 0: 9 }, bottom: 1, bottomZeros: [] }} operation="subtract" carryMode="carry" onChange={() => {}} />));
+    act(() => root.render(<ColumnOperandsParam value={{ top: 2, topZeros: [], topFixed: { 0: 9 }, bottom: 1, bottomZeros: [] }} operation="subtract" regroup={{ carry: "with", borrow: "with" }} onChange={() => {}} />));
     expect(container.querySelector(".cop-note").textContent).toMatch(/заёма не бывает/);
   });
 });

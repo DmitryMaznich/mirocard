@@ -44,6 +44,15 @@ no longer needed for the column.
   fixed — the note «один и тот же пример»; when the fresh examples run out an example repeats instead of the
   lesson coming out short. The «Перенос / заём» note now says which way the digits force it
   (`column.relaxed.*` in `mathTrainerMessages.js`). The same cells in «Реши в столбик» of `math_tests`.
+- **The sign is a cell; «Перенос» and «Заём» per action (2026-11-26, owner).** The «Операция» row is
+  gone: the sign cell of «Пример» opens «+ / − / любой» (`operation` stays a param, `hidden: true`).
+  «Перенос / заём: Без / С / Микс» is split into «Перенос» and «Заём» (`carry`, `borrow`: «нет» / «есть» /
+  «любой» = none / with / any), each shown only for its sign (`showWhen: { operation: [...] }` — a list
+  of values is new in ParamsScreen), «Хватает?» only with «−» or «любой». «любой» means «вперемешку»
+  everywhere (digit, sign, carry) — no «Микс» any more. Engine: `resolveRegroup` (an old `carryMode` gives
+  both actions its value), `carryModeFor(regroup, op)`. So «+» with a carry and «−» without a borrow in one
+  mixed lesson is possible now. In «Реши в столбик» (`math_tests`) the sign cell edits `block.ops` and the
+  «Действие» row is gone; its «Перенос / заём» (все / без / вперемешку) is not split yet.
 - **«Контрольная работа» moved to «Контрольные по математике» (2026-11-16, owner).** The mode list shows
   `column_tests_link` (type `topic_link`: `link: {topicId, title, text}`) — ParamsScreen opens
   `TopicLinkScreen` for it: the topic opens if installed, else the catalog opens on it (store

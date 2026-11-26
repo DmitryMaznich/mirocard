@@ -80,9 +80,9 @@ BLOCK_KINDS.column = {
   sample: "47 + 38 столбиком",
   fields: [
     { ...COMMON[0], label: "Примеров" },
-    OPS,
-    // the numbers as cells, the same setting as the «Столбик» trainer (2026-11-16)
-    { key: "operands", label: "Числа", kind: "operands" },
+    // the example as cells — sign and numbers, the same setting as the «Столбик» trainer (2026-11-16;
+    // the sign is a cell since 2026-11-26, no «Действие» row of its own)
+    { key: "operands", label: "Пример", kind: "operands" },
     { key: "form", label: "Пример", kind: "seg", options: () => [{ value: "column", label: "столбиком" }, { value: "line", label: "строкой" }] },
     { key: "newPlace", label: "Новый разряд в ответе (95 + 7 = 102)", kind: "toggle" },
     { key: "regroup", label: "Перенос / заём", kind: "seg", options: () => [{ value: "mixed", label: "вперемешку" }, { value: "with", label: "все" }, { value: "without", label: "без" }] },

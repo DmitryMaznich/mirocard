@@ -12,23 +12,35 @@ export function useCellText() {
   return (v) => (v === "any" ? t("cells.any") : v === "none" ? t("cells.none") : String(v));
 }
 
-export default function CellDigitPicker({ title, current, isDisabled = () => false, onPick, onClose }) {
+// The sign cell (2026-11-26): «+», «−» or «любой» (both, mixed) — the same picker, three options.
+export const SIGN_OPTIONS = ["add", "subtract", "mixed"];
+export const SIGN_GLYPH = { add: "+", subtract: "−", mixed: "±" };
+
+export function useSignText() {
   const { t } = useUiTranslation();
-  const cellText = useCellText();
+  return (v) => (v === "mixed" ? t("cells.anySign") : SIGN_GLYPH[v]);
+}
+
+export default function CellDigitPicker({ title, current, options = CELL_OPTIONS, text, isDisabled = () => false, onPick, onClose }) {
+  const { t } = useUiTranslation();
+  const digitText = useCellText();
+  const cellText = text ?? digitText;
+  const isSign = options === SIGN_OPTIONS;
   return (
     <div className="cdp-picker" role="group" aria-label={title}>
       <div className="cdp-picker__head">
         <span>{title}</span>
         <button type="button" className="cdp-picker__close" aria-label={t("cells.close")} onClick={onClose}>×</button>
       </div>
-      <div className="cdp-picker__grid">
-        {CELL_OPTIONS.map((v) => (
+      <div className={`cdp-picker__grid${isSign ? " cdp-picker__grid--sign" : ""}`}>
+        {options.map((v) => (
           <button
             key={String(v)}
             type="button"
             className={[
               "cdp-option",
-              v === "any" ? "cdp-option--any" : v === "none" ? "cdp-option--none" : "",
+              v === "any" || v === "mixed" ? "cdp-option--any" : v === "none" ? "cdp-option--none" : "",
+              isSign && v !== "mixed" ? "cdp-option--sign" : "",
               current === v ? "cdp-option--current" : "",
             ].filter(Boolean).join(" ")}
             disabled={isDisabled(v)}

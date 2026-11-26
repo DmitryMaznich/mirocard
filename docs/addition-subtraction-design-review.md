@@ -34,6 +34,9 @@ the column's own cells stay as they are for now.
 - Old saved settings (`resolveDictationParams`): «до 20» → 1▢ ± ▢, «до 50/100» → ▢▢ ± ▢▢, «Через десяток:
   Микс». «до 20» loses the one-digit examples (3 + 4) it used to mix in — accepted. Old card selection is not
   read: operation defaults to «+».
+- 2026-11-26: the sign is a cell too («+ / − / любой», the «Операция» row hidden), «Через десяток» split into
+  «Через десяток (+)» / «(−)» (`crossAdd`, `crossSub`: «нет» / «есть» / «любой»), each shown for its sign — the
+  same as «Перенос» / «Заём» of the column. The day-old `crossTen` maps onto both.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
 ## Mode numbering changed 2026-10-07
