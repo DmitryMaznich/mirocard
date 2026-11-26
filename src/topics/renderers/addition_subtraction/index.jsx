@@ -1258,7 +1258,6 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   // the number stands in the cells from the right, as written: units in the last cell
   const shown = answered ? String(task.result).split("").map(Number) : digits;
   const cells = Array.from({ length: AUDIO_ANSWER_CELLS }, (_, i) => shown[i - (AUDIO_ANSWER_CELLS - shown.length)]);
-  const nextCell = !answered && !wrong && digits.length < AUDIO_ANSWER_CELLS ? AUDIO_ANSWER_CELLS - 1 : -1;
 
   return (
     <div className="aod-stage">
@@ -1278,9 +1277,9 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
         </div>
 
         <div className="aod-answer">
-          <div className={`aod-cells${wrong ? " is-wrong" : ""}${answered ? " is-correct" : ""}`} aria-live="polite" aria-label={shown.join("") || "?"}>
+          <div className={`aod-cells${wrong ? " is-wrong" : ""}${answered ? " is-correct" : ""}${!answered && !wrong && digits.length === 0 ? " is-empty" : ""}`} aria-live="polite" aria-label={shown.join("") || "?"}>
             {cells.map((d, i) => (
-              <span key={i} className={`aod-cell${i === nextCell && digits.length === 0 ? " is-next" : ""}`}>
+              <span key={i} className="aod-cell">
                 {d != null && <span className="aod-digit" style={{ transform: `translate(${-PRIMO_DX[d]}em, 0.2em)` }}>{d}</span>}
               </span>
             ))}

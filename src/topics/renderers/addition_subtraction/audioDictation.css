@@ -60,18 +60,25 @@
 
 /* the answer: notebook cells, the number written in them from the right (units in the last cell) */
 .aod-answer { grid-area: answer; display: flex; flex-direction: column; align-items: center; gap: calc(10 * var(--u)); }
-.aod-cells { --c: calc(84 * var(--u)); display: flex; gap: calc(8 * var(--u)); }
+/* the cells stand together as one number (owner, 2026-11-26): no gap, a shared thin divider, each about as wide as a
+   handwritten digit — «25», not «2  5» */
+.aod-cells { --c: calc(84 * var(--u)); --b: max(2px, calc(3 * var(--u))); display: flex; border-radius: calc(0.2 * var(--c)); box-shadow: 0 calc(4 * var(--u)) 0 #e3ebf5; }
 .aod-cell {
-  width: var(--c); height: var(--c); box-sizing: border-box; display: grid; place-items: center;
-  border: max(2px, calc(3 * var(--u))) solid var(--line); border-radius: calc(0.2 * var(--c)); background: #fff;
-  box-shadow: 0 calc(4 * var(--u)) 0 #e3ebf5;
+  width: calc(0.7 * var(--c)); height: var(--c); box-sizing: border-box; display: grid; place-items: center;
+  border: var(--b) solid var(--line); background: #fff;
   font-family: 'Primo', cursive; font-size: calc(0.62 * var(--c)); line-height: 1; color: #1f2a44;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
-.aod-cell.is-next { border-color: #3b82f6; border-style: dashed; }
+.aod-cell:first-child { border-right-width: 0; border-radius: calc(0.2 * var(--c)) 0 0 calc(0.2 * var(--c)); }
+.aod-cell:last-child { border-radius: 0 calc(0.2 * var(--c)) calc(0.2 * var(--c)) 0; }
+.aod-cell + .aod-cell { border-left: max(1px, calc(1.5 * var(--u))) dashed var(--line); }
+.aod-cells.is-empty .aod-cell { border-color: #93b4f5; }
+.aod-cells.is-empty .aod-cell + .aod-cell { border-left-color: #c7d7f8; }
 .aod-cells.is-wrong .aod-cell { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
 .aod-cells.is-wrong { animation: aod-shake 0.4s ease; }
-.aod-cells.is-correct .aod-cell { border-color: #16a34a; background: #dcfce7; color: #166534; box-shadow: 0 calc(4 * var(--u)) 0 #bbe5c8; }
+.aod-cells.is-correct { box-shadow: 0 calc(4 * var(--u)) 0 #bbe5c8; }
+.aod-cells.is-correct .aod-cell { border-color: #16a34a; background: #dcfce7; color: #166534; }
+.aod-cells.is-wrong .aod-cell + .aod-cell, .aod-cells.is-correct .aod-cell + .aod-cell { border-left-style: dashed; }
 .aod-digit { display: inline-block; line-height: 1; }
 @keyframes aod-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(4px); } }
 
