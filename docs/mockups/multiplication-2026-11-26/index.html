@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Умножение · макет лестницы</title>
+<style>
+  :root {
+    font-family: Arial, sans-serif; color: #232c31; background: #efece3;
+    --ink: #232c31; --muted: #535b58; --blue: #233f7a; --blue-dark: #19315e; --green: #16a34a; --warn: #c2410c; --line: #d8d2c5;
+    --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px); --safe-right: env(safe-area-inset-right, 0px);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  /* ── навигация макета (не часть приложения) ── */
+  .nav { flex: none; display: flex; align-items: center; gap: 8px; padding: calc(8px + var(--safe-top)) calc(10px + var(--safe-right)) 8px calc(10px + var(--safe-left));
+         background: #2b3440; color: #fff; }
+  .nav .brand { font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; padding: 2px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; min-width: 40px; height: 36px; padding: 0 10px; border-radius: 18px; border: 2px solid #5b6675; background: transparent; color: #dfe5ee; font-weight: 700; font-size: 14px; }
+  .chip.live { border-color: #7fd49a; }
+  .chip[aria-current="true"] { background: #fff; color: #2b3440; border-color: #fff; }
+  .infobtn { flex: none; height: 36px; padding: 0 12px; border-radius: 18px; border: 0; background: #ffd666; color: #2b3440; font-weight: 700; font-size: 14px; }
+
+  .stage { flex: 1; min-height: 0; display: flex; }
+
+  /* ── экран ребёнка ── */
+  .screen { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #f9f7f0;
+            padding: 0 calc(clamp(10px, 2.5vw, 26px) + var(--safe-right)) calc(clamp(10px, 2vw, 20px) + var(--safe-bottom)) calc(clamp(10px, 2.5vw, 26px) + var(--safe-left)); }
+  .topbar { flex: none; display: flex; align-items: center; height: 44px; border-bottom: 1px solid var(--line); color: var(--blue); font-weight: 700; font-size: 14px; }
+  .stars { margin-left: auto; letter-spacing: 2px; color: #e0a800; font-size: 16px; }
+  .stars i { color: #d8d2c5; font-style: normal; }
+  .say { flex: none; display: flex; align-items: center; gap: 10px; margin: 10px 0; min-height: 44px; }
+  .spk { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--blue); color: #fff; font-size: 18px; }
+  .say .txt { font: 600 clamp(21px, 4.2vw, 30px)/1.1 Georgia, serif; letter-spacing: -.02em; }
+  .sketch { margin-left: auto; font-size: 12px; color: #8a6d3b; background: #fff3d6; border: 1px solid #ead08c; border-radius: 10px; padding: 3px 8px; white-space: nowrap; }
+
+  .mat { position: relative; flex: 1; min-height: 0; container-type: size; display: flex; flex-direction: column; align-items: center; justify-content: center;
+         gap: clamp(8px, 2.5cqh, 18px); padding: 8px; border: 1px solid #d8c09f; border-radius: 10px; overflow: hidden; touch-action: none;
+         background: radial-gradient(ellipse at 20% 0%, #f2e4cc, transparent 76%), linear-gradient(150deg, #ebd8ba, #e4cbaa);
+         box-shadow: inset 0 1px 0 #fff5e1; --gap: clamp(10px, 4cqw, 40px); --hf: .7; }
+  .plates { width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: var(--gap); flex-wrap: nowrap; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .rowf { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 3cqw, 24px); flex-wrap: wrap; }
+
+  /* тарелка: размер считается от самого игрового поля (container query), а не от окна */
+  .plate { position: relative; flex: none; padding: 0; border: 0; border-radius: 50%; aspect-ratio: 1;
+           width: min(var(--s, 240px), calc((100cqw - 16px - (var(--n, 2) - 1) * var(--gap)) / var(--n, 2)), calc(100cqh * var(--hf)));
+           background: center / contain no-repeat url(img/plate-photo.webp); filter: drop-shadow(2px 6px 4px #63452c46);
+           outline: 4px solid transparent; outline-offset: 4px; transition: width .35s ease, outline-color .2s; touch-action: none; }
+  .mat.checking .plate { width: min(var(--s, 240px), calc((100cqw - 16px - (var(--n, 2) - 1) * var(--gap)) / var(--n, 2)), calc(100cqh * .36)); }
+  .plate img { position: absolute; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 2px #6a431e39); pointer-events: none; transition: opacity .3s; }
+  .plate:focus { outline-color: transparent; }
+  .plate.ok { outline-color: var(--green); }
+  .plate.more, .plate.hint-from { outline: 4px dashed var(--warn); }
+  .plate.hint-to { outline: 4px dashed var(--blue); }
+  .plate.hint-from, .plate.hint-to { animation: pulse 1s ease-in-out infinite; }
+  .plate.sel, .plate.ring { outline-color: var(--blue); }
+  .plate.drop { outline: 4px solid var(--blue); }
+  .plate.dim { opacity: .5; }
+  @keyframes pulse { 50% { outline-offset: 9px; } }
+
+  .pairs { display: grid; gap: 6px; }
+  .pairs[hidden] { display: none; }
+  .pair-row { display: flex; gap: 4px; padding: 3px 8px; border-radius: 30px; background: #fbf5e9aa; }
+  .pair-row span { width: var(--a); height: var(--a); display: grid; place-items: center; border-radius: 50%; }
+  .pair-row img { width: 88%; animation: pop .35s both; }
+  .pair-row span.extra { outline: 3px dashed var(--warn); outline-offset: -1px; background: #fff1e6; }
+  .pair-row span.gap { border: 2px dashed #c9b79a; }
+  .pairs { --a: min(44px, 11cqw, 11cqh); }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } }
+
+  .badge { min-width: 38px; padding: 1px 8px; border-radius: 20px; background: #fff; border: 2px solid var(--blue);
+           color: var(--blue); font: 700 clamp(16px, 4cqw, 22px)/1.25 Georgia, serif; text-align: center; }
+  .badge.ghost { border-style: dashed; color: transparent; background: transparent; border-color: #a99a80; }
+
+  .answers { flex: none; display: flex; gap: clamp(8px, 2vw, 18px); justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .ans, .choice { min-height: 64px; padding: 6px 14px; border-radius: 14px; border: 3px solid #b9c3d6; background: #fff; box-shadow: 0 4px 0 #b9c3d6;
+         display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: 700 clamp(22px, 5vw, 30px)/1 Georgia, serif; color: var(--ink); }
+  .ans { flex: 1 1 0; max-width: 250px; min-height: clamp(64px, 12vh, 90px); }
+  .ans:active, .choice:active { transform: translateY(3px); box-shadow: none; }
+  .ans .sym { font: 700 clamp(38px, 8vw, 52px)/1 Georgia, serif; color: var(--blue); }
+  .ans .ico { display: flex; gap: 4px; align-items: flex-end; }
+  .ans .ico i { width: 14px; border-radius: 3px; background: #c9a77c; }
+  .ans.right { border-color: var(--green); background: #f0fdf4; box-shadow: 0 4px 0 var(--green); }
+  .ans.wrong, .choice.wrong { border-color: #ef4444; background: #fef2f2; box-shadow: 0 4px 0 #ef4444; }
+  .ans.wrong { animation: shake .4s; }
+  .choice.wrong { opacity: .55; }
+  .ans.off { opacity: .35; pointer-events: none; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+  .next { position: absolute; right: 10px; bottom: 10px; width: 60px; height: 60px; border-radius: 50%; border: 0;
+          background: var(--blue); color: #fff; font-size: 28px; box-shadow: 0 4px 0 var(--blue-dark); z-index: 2; }
+  .next[hidden] { display: none; }
+
+  /* запись: цифры одного цвета, смысл — значок под числом */
+  .eq { display: flex; align-items: flex-start; justify-content: center; gap: .3em; font: 700 clamp(26px, 7cqw, 46px)/1.1 Georgia, serif; }
+  .eq .k { display: flex; flex-direction: column; align-items: center; }
+  .eq .hint { display: flex; gap: 2px; margin-top: 3px; height: .45em; align-items: center; }
+  .eq .hint img { height: 100%; }
+  .eq .hint .mini { height: 100%; aspect-ratio: 1; border-radius: 50%; background: center / contain url(img/plate-photo.webp); }
+  .eq .hint.rows { flex-direction: column; height: auto; gap: 2px; }
+  .minirow { width: .6em; height: .18em; border-radius: 4px; background: #efe6d6; border: 2px solid var(--blue); }
+  .eq.sm { font-size: clamp(22px, 5.5cqw, 34px); }
+  .slot { border: 3px dashed #a99a80; border-radius: 8px; min-width: 1.2em; color: transparent; text-align: center; }
+
+  .tray { display: flex; gap: 4px; padding: 6px 12px; border-radius: 30px; background: #d9b98f; box-shadow: inset 0 2px 5px #7a5a3555; }
+  .tray img { height: clamp(24px, 6cqw, 34px); }
+  .stack .plate { --s: 70px; margin-top: -60px; } .stack .plate:first-child { margin-top: 0; }
+  .board { display: grid; gap: 5px; padding: 8px; border-radius: 12px; background: #fbf8f1; border: 3px solid var(--blue); box-shadow: 2px 6px 6px #63452c33; --c: min(40px, 8cqw, 10cqh); }
+  .board .r { display: flex; gap: 5px; padding: 3px; border-radius: 30px; background: #efe6d6; }
+  .board .c { width: var(--c); height: var(--c); border-radius: 50%; background: #e3d6bf; display: grid; place-items: center; }
+  .board .c img { width: 86%; }
+  .rotate { width: 54px; height: 54px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 28px; box-shadow: 0 3px 0 var(--blue-dark); flex: none; }
+  .keypad { display: grid; grid-template-columns: repeat(5, min(56px, 16cqw)); gap: 8px; }
+  .keypad span { height: min(52px, 12cqh); border-radius: 10px; background: #fff; border: 2px solid #b9c3d6; box-shadow: 0 3px 0 #b9c3d6; display: grid; place-items: center; font: 700 24px/1 Georgia, serif; }
+  .answer { min-width: 1.8em; padding: 0 .2em; border: 3px solid var(--blue); border-radius: 12px; background: #fff; text-align: center; color: var(--blue); }
+  .emo { font-size: min(90px, 20cqw, 30cqh); line-height: 1; }
+  .ex { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 8px; border-radius: 10px; background: #fffaf0cc; border: 1px solid #d8c09f; font-size: 12px; color: #6b5a44; }
+  .ex .pics { font-size: 20px; line-height: 1; white-space: nowrap; }
+  .eggbox { display: grid; grid-template-columns: repeat(3, 12px); gap: 3px; padding: 4px; border-radius: 6px; background: #c9b08a; }
+  .eggbox i { width: 12px; height: 15px; border-radius: 50% 50% 45% 45%; background: #fff7ea; }
+  .ghost-apple { position: fixed; width: 60px; pointer-events: none; z-index: 50; transform: translate(-50%, -50%) scale(1.1); filter: drop-shadow(0 6px 6px #0004); }
+  .hintarrow { position: absolute; height: 0; border-top: 4px dashed var(--blue); transform-origin: left center; pointer-events: none; }
+  .hintarrow::after { content: ""; position: absolute; right: -4px; top: -12px; border: 10px solid transparent; border-left: 16px solid var(--blue); }
+  .hand { position: absolute; font-size: 34px; pointer-events: none; }
+
+  /* ── пояснения: справа на широком экране, шторкой снизу на телефоне ── */
+  .info { width: 380px; flex: none; overflow: auto; background: #fff; border-left: 1px solid var(--line); padding: 16px 18px calc(16px + var(--safe-bottom)); font-size: 14px; line-height: 1.45; }
+  .info h2 { font: 600 21px/1.2 Georgia, serif; margin: 0 0 4px; }
+  .info .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
+  .info .tag.live { background: #dcfce7; color: #166534; } .info .tag.sk { background: #fff3d6; color: #8a6d3b; }
+  .info ul { padding-left: 18px; margin: 6px 0; }
+  .info .lv { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px; }
+  .info .lv button { padding: 7px 10px; border-radius: 8px; border: 2px solid #b9c3d6; background: #fff; font-weight: 700; font-size: 13px; }
+  .info .lv button[aria-pressed="true"] { border-color: var(--blue); background: var(--blue); color: #fff; }
+  .info .log { font: 12px/1.4 monospace; background: #f7f7f4; border: 1px solid var(--line); border-radius: 8px; padding: 8px; max-height: 160px; overflow: auto; }
+  .info .close { display: none; }
+  @media (max-width: 640px) {
+    .nav { flex-wrap: wrap; }
+    .nav .brand { display: none; }
+    .chips { order: 2; flex-basis: 100%; flex-wrap: wrap; overflow: visible; }
+    .chips { gap: 4px; }
+    .chip { min-width: 32px; height: 34px; padding: 0 4px; font-size: 13px; }
+    .infobtn { order: 1; margin-left: auto; }
+    .nav::before { content: "× Умножение · макет"; order: 0; font-weight: 700; font-size: 14px; }
+  }
+  .infobtn { display: none; }
+  @media (max-width: 999px) {
+    .infobtn { display: block; }
+    .info { position: fixed; left: 0; right: 0; bottom: 0; width: auto; max-height: 72dvh; border-left: 0; border-radius: 16px 16px 0 0;
+            box-shadow: 0 -8px 30px #0003; transform: translateY(105%); transition: transform .25s ease; z-index: 40;
+            padding-left: calc(18px + var(--safe-left)); padding-right: calc(18px + var(--safe-right)); }
+    .info.open { transform: none; }
+    .info .close { display: block; position: sticky; top: 0; margin-left: auto; width: 40px; height: 40px; border-radius: 50%; border: 0; background: #eee; font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <span class="brand">× Умножение</span>
+  <div class="chips" id="chips"></div>
+  <button class="infobtn" id="infobtn">Что это?</button>
+</nav>
+<div class="stage">
+  <main class="screen">
+    <div class="topbar">✕ Умножение<span class="stars" id="stars"></span></div>
+    <div class="say"><button class="spk" id="spk" aria-label="Повторить">🔊</button><span class="txt" id="say"></span><span class="sketch" id="sketch" hidden>эскиз</span></div>
+    <div class="mat" id="mat"></div>
+    <div class="answers" id="answers"></div>
+  </main>
+  <aside class="info" id="info"></aside>
+</div>
+
+<script>
+/* ───────── общие детали ───────── */
+const $ = s => document.querySelector(s);
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const NUM = ["", "одному", "два", "три", "четыре", "пять", "шесть"];
+const DICE = {
+  0: [], 1: [[50,50]], 2: [[34,34],[66,66]], 3: [[50,30],[31,65],[69,65]], 4: [[33,33],[67,33],[33,67],[67,67]],
+  5: [[31,31],[69,31],[50,50],[31,69],[69,69]], 6: [[33,26],[67,26],[33,50],[67,50],[33,74],[67,74]],
+  7: [[30,26],[70,26],[30,50],[50,50],[70,50],[30,74],[70,74]], 8: [[30,24],[50,24],[70,24],[30,50],[70,50],[30,76],[50,76],[70,76]],
+};
+const BANANA = { 1: [[50,50,-9]], 2: [[46,38,-10],[54,63,4]], 3: [[47,30,-10],[53,51,3],[47,71,-6]] };
+function layout(n) {
+  if (DICE[n]) return DICE[n];
+  const cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols), pts = [];
+  for (let k = 0; k < n; k++) { const r = Math.floor(k / cols), c = k % cols;
+    pts.push([24 + (cols === 1 ? 26 : c * 52 / (cols - 1)), 24 + (rows === 1 ? 26 : r * 52 / (rows - 1))]); }
+  return pts;
+}
+function scatter(n) {
+  for (let t = 0; t < 200; t++) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      let p, ok = false;
+      for (let k = 0; k < 60 && !ok; k++) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * 27;
+        p = [50 + r * Math.cos(a), 50 + r * Math.sin(a)]; ok = pts.every(q => Math.hypot(q[0] - p[0], q[1] - p[1]) > 25); }
+      if (!ok) break; pts.push(p);
+    }
+    if (pts.length === n) return pts;
+  }
+  return DICE[n];
+}
+function fruitsHtml(n, fruit = "apple", pos = null) {
+  if (fruit === "banana") return (BANANA[n] || []).map(([x, y, r]) => `<img src="img/banana-photo.webp" style="left:${x}%;top:${y}%;width:60%;transform:translate(-50%,-50%) rotate(${r}deg)">`).join("");
+  const w = n > 8 ? 18 : n >= 5 ? 25 : n === 1 ? 36 : 29;
+  return (pos || layout(n)).map(([x, y]) => `<img src="img/apple-photo.webp" style="left:${x}%;top:${y}%;width:${w}%">`).join("");
+}
+const plate = (n, fruit = "apple", { cls = "", tag = "div", attrs = "", s = "" } = {}) =>
+  `<${tag} class="plate ${cls}" ${attrs} ${s ? `style="--s:${s}px"` : ""}>${fruitsHtml(n, fruit)}</${tag}>`;
+const apples = (n, f = "apple") => `<img src="img/${f}-photo.webp">`.repeat(n);
+const minis = n => `<span class="mini"></span>`.repeat(n);
+const rowsIcon = n => `<span class="minirow"></span>`.repeat(n);
+function ex(a, b, { f = "apple", groups = "plates", cls = "eq sm", tail = "" } = {}) {
+  const g = groups === "rows" ? `<span class="hint rows">${rowsIcon(b)}</span>` : `<span class="hint">${minis(b)}</span>`;
+  return `<span class="${cls}"><span class="k"><span>${a}</span><span class="hint">${apples(a, f)}</span></span><span>×</span><span class="k"><span>${b}</span>${g}</span>${tail}</span>`;
+}
+const board = (rows, cols) => `<div class="board">${Array.from({ length: rows }, () => `<div class="r">${`<span class="c"><img src="img/apple-photo.webp"></span>`.repeat(cols)}</div>`).join("")}</div>`;
+function pairsHtml(counts, judge = true) {
+  const min = Math.min(...counts), max = Math.max(...counts), w = Math.max(6, max);
+  return counts.map(n => `<div class="pair-row">${Array.from({ length: w }, (_, j) => j < n
+    ? `<span class="${judge && j >= min ? "extra" : ""}"><img src="img/apple-photo.webp" style="animation-delay:${judge ? j * 80 : 0}ms"></span>`
+    : (judge && j < max ? `<span class="gap"></span>` : `<span></span>`)).join("")}</div>`).join("");
+}
+let stars = 0;
+const TOTAL = 8;
+function renderStars(lit = stars) { $("#stars").innerHTML = "★".repeat(lit) + `<i>${"★".repeat(TOTAL - lit)}</i>`; }
+function say(t) { $("#say").textContent = t; }
+function log(t) { const l = $("#log"); if (l) l.insertAdjacentHTML("afterbegin", `<div>${t}</div>`); }
+let cleanup = () => {};
+
+/* ───────── ступень 0 «Поровну?» (живая) ───────── */
+const step0 = {
+  id: "0", title: "Поровну?", live: true,
+  levels: [["R", "ряды уже видны"], ["A", "разница ≥ 2"], ["B", "разница в 1"], ["D", "вразброс"]],
+  state: { level: "R", history: [], errStreak: 0, last: [], always: true },
+  info: `<ul>
+    <li><b>Что делает ребёнок:</b> смотрит на две тарелки и жмёт «=» или «≠». На кнопках нет слов — знак и значок-столбики.</li>
+    <li><b>Уровни:</b> R — под тарелками уже стоят ряды один к одному (ошибиться почти нельзя) → A — разница ≥ 2 → B — разница в одно яблоко → D — у каждой тарелки свой разброс (иначе ребёнок сравнивает узор, а не количество).</li>
+    <li><b>После ответа</b> яблоки встают в ряды один к одному: видно, что поровну или где лишнее. Пока не освоен A — после каждого ответа, потом только после ошибки.</li>
+    <li><b>Ошибка:</b> ряды, ответ повторяется на том же задании, следующее — на уровень проще.</li>
+    <li><b>Переход:</b> вверх — 8 верных с первого нажатия из 10; вниз — 2 ошибки подряд.</li>
+    <li>Только две тарелки: с тремя «≠» становится «найди не такую» — это другой навык.</li>
+    <li>Кнопки «разложить в ряды» нет: ребёнок с РАС быстро начнёт жать её всегда. Её роль играет уровень R.</li></ul>`,
+  start() {
+    $("#answers").innerHTML = `<button class="ans" data-a="eq"><span class="sym">=</span><span class="ico"><i style="height:28px"></i><i style="height:28px"></i></span></button>
+      <button class="ans" data-a="ne"><span class="sym">≠</span><span class="ico"><i style="height:32px"></i><i style="height:14px"></i></span></button>`;
+    $("#answers").onclick = e => { const b = e.target.closest(".ans"); if (b) this.answer(b); };
+    this.next();
+  },
+  pick() {
+    const st = this.state, L = { R: [2, 5], A: [2, 5], B: [1, 1], D: [1, 1] }[st.level];
+    const eq = st.last.length >= 2 && st.last[0] === st.last[1] ? !st.last[0] : Math.random() < .5;
+    if (eq) { const n = rnd(2, 5); return [n, n]; }
+    let a, b; do { a = rnd(1, 6); b = rnd(1, 6); } while (a === b || Math.abs(a - b) < L[0] || Math.abs(a - b) > L[1]);
+    return [a, b];
+  },
+  next() {
+    const st = this.state, counts = this.pick();
+    this.task = { counts, equal: counts[0] === counts[1], firstTry: true, answered: false };
+    st.last.unshift(this.task.equal); st.last = st.last.slice(0, 2);
+    const sc = st.level === "D";
+    $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", ".72");
+    $("#mat").innerHTML = `<div class="plates" style="--n:2">${counts.map(n => `<div class="plate" style="--s:240px">${fruitsHtml(n, "apple", sc ? scatter(n) : null)}</div>`).join("")}</div>
+      <div class="pairs" id="pairs" hidden></div><button class="next" id="next" hidden aria-label="Дальше">→</button>`;
+    $("#next").onclick = () => { this.adapt(); this.next(); };
+    say("Поровну?"); renderStars();
+    if (st.level === "R") this.rows(false);
+    this.renderLevel();
+  },
+  rows(judge = true) {
+    const { counts, equal } = this.task, max = Math.max(...counts);
+    $("#mat").classList.add("checking");
+    document.querySelectorAll("#mat .plate").forEach((p, i) => {
+      p.classList.toggle("ok", judge && equal); p.classList.toggle("more", judge && !equal && counts[i] === max);
+      if (judge) p.querySelectorAll("img").forEach(img => img.style.opacity = .25);
+    });
+    $("#pairs").hidden = false; $("#pairs").innerHTML = pairsHtml(counts, judge);
+  },
+  answer(btn) {
+    const t = this.task, st = this.state; if (t.answered) return;
+    const saidEq = btn.dataset.a === "eq", right = saidEq === t.equal;
+    log(`[${st.level}] ${t.counts.join(" / ")} → ${saidEq ? "=" : "≠"} ${right ? (t.firstTry ? "верно" : "верно со 2-й") : "ошибка"}`);
+    if (right) {
+      t.answered = true; st.history.unshift(t.firstTry); st.history = st.history.slice(0, 10); if (t.firstTry) st.errStreak = 0;
+      if (st.level === "R" || st.always || !t.firstTry) this.rows();
+      btn.classList.add("right"); document.querySelectorAll(".ans").forEach(b => b !== btn && b.classList.add("off"));
+      say(t.equal ? `Поровну! По ${NUM[t.counts[0]]}` : "Не поровну");
+      stars = Math.min(TOTAL, stars + 1); renderStars(); $("#next").hidden = false;
+    } else {
+      t.firstTry = false; st.errStreak++; this.rows(); btn.classList.add("wrong"); say("Посмотри");
+      setTimeout(() => btn.classList.remove("wrong"), 900);
+    }
+    this.renderLevel();
+  },
+  adapt() {
+    const st = this.state, order = this.levels.map(l => l[0]), i = order.indexOf(st.level);
+    if ((st.errStreak >= 2 || !this.task.firstTry) && i > 0) { st.level = order[i - 1]; st.history = []; st.errStreak = 0; log(`↓ уровень ${st.level}`); return; }
+    if (st.history.length >= 10 && st.history.filter(Boolean).length >= 8 && i < order.length - 1) {
+      if (st.level === "A") { st.always = false; log("A освоен → ряды только после ошибки"); }
+      st.level = order[i + 1]; st.history = []; log(`↑ уровень ${st.level}`);
+    }
+  },
+  renderLevel() { renderLevelButtons(this); },
+};
+
+/* ───────── ступень 1 «Сделай поровну» (живая) ───────── */
+const step1 = {
+  id: "1", title: "Сделай поровну", live: true,
+  levels: [["R", "2 тарелки, подсказка сразу"], ["A", "2 тарелки, 1 ход"], ["B", "2 тарелки, 2 хода"], ["C", "3 тарелки"], ["D", "3–4 тарелки"]],
+  state: { level: "R", history: [], arrowStreak: 0 },
+  info: `<ul>
+    <li><b>Что делает ребёнок:</b> перетаскивает яблоко на другую тарелку — или нажимает тарелку «откуда», потом «куда».</li>
+    <li><b>Кнопки «Проверить» нет.</b> Как только поровну — тарелки зелёные, яблоки встают в ряды, голос: «Поровну! По три».</li>
+    <li><b>Сколько класть — не говорим:</b> «по три» ребёнок находит сам. Решение одно.</li>
+    <li><b>Подсказка нарастает:</b> 6 секунд без хода или 2 хода «не туда» → мигает тарелка, где больше; ещё → стрелка «откуда → куда». На R тарелка «откуда» видна сразу.</li>
+    <li><b>Ход «не туда» не запрещаем</b> — запрет ничему не учит, подсказка придёт сама.</li>
+    <li><b>«Чисто»</b> — без подсказки и не длиннее кратчайшего больше чем на ход. Вверх — 8 чистых из 10; вниз — 2 задания подряд со стрелкой.</li>
+    <li>3–4 тарелки — именно здесь: надо проверить все тарелки.</li></ul>`,
+  start() { $("#answers").innerHTML = ""; this.next(); },
+  gen(level) {
+    for (;;) {
+      const n = level === "D" ? rnd(3, 4) : level === "C" ? 3 : 2, t = rnd(2, n === 4 ? 4 : 5), c = Array(n).fill(t);
+      const moves = { R: 1, A: 1, B: 2, C: rnd(1, 2), D: rnd(2, 3) }[level];
+      for (let k = 0; k < moves; k++) { const f = rnd(0, n - 1), to = rnd(0, n - 1); if (f === to || c[to] === 0) { k--; continue; } c[to]--; c[f]++; }
+      const m = c.reduce((s, x) => s + Math.max(0, x - t), 0);
+      if (m !== moves || Math.max(...c) > 8 || (level === "D" && c.filter(x => x !== t).length < 3)) continue;
+      return { counts: c.sort(() => Math.random() - .5), target: t, min: m };
+    }
+  },
+  next() {
+    const st = this.state;
+    this.task = { ...this.gen(st.level), moves: 0, wasted: 0, hint: 0, finished: false };
+    this.sel = null;
+    const n = this.task.counts.length;
+    $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", ".72");
+    $("#mat").innerHTML = `<div class="plates" id="plates" style="--n:${n}">${this.task.counts.map((_, i) => `<button class="plate" data-i="${i}" style="--s:240px" aria-label="Тарелка ${i + 1}"></button>`).join("")}</div>
+      <div class="pairs" id="pairs" hidden></div><button class="next" id="next" hidden aria-label="Дальше">→</button>`;
+    this.task.counts.forEach((_, i) => this.draw(i));
+    $("#next").onclick = () => { this.adapt(); this.next(); };
+    say("Сделай поровну"); renderStars();
+    log(`[${st.level}] ${this.task.counts.join(" / ")} → по ${this.task.target}, кратчайше ${this.task.min}`);
+    if (st.level === "R") this.hint(1, true);
+    this.bind(); this.arm(); renderLevelButtons(this);
+  },
+  el(i) { return document.querySelector(`#plates .plate[data-i="${i}"]`); },
+  draw(i) { this.el(i).innerHTML = fruitsHtml(this.task.counts[i]); },
+  dev(c) { return c.reduce((s, x) => s + Math.abs(x - this.task.target), 0); },
+  move(f, to) {
+    const t = this.task; if (t.finished || f === to || t.counts[f] === 0) return;
+    const before = this.dev(t.counts); t.counts[f]--; t.counts[to]++; t.moves++;
+    if (this.dev(t.counts) >= before) t.wasted++;
+    this.draw(f); this.draw(to); this.clearHint();
+    if (t.counts.every(x => x === t.target)) return this.finish();
+    if (t.wasted >= 4 && t.hint < 2) this.hint(2); else if (t.wasted >= 2 && t.hint < 1) this.hint(1);
+    this.arm();
+  },
+  finish() {
+    const t = this.task, st = this.state; t.finished = true; clearTimeout(this.timer); this.clearHint();
+    const clean = t.hint === 0 && t.moves <= t.min + 1;
+    log(`  поровну за ${t.moves} (кратчайше ${t.min}), подсказка: ${["нет", "тарелка", "стрелка"][t.hint]} → ${clean ? "чисто" : "с помощью"}`);
+    st.history.unshift(clean); st.history = st.history.slice(0, 10); st.arrowStreak = t.hint === 2 ? st.arrowStreak + 1 : 0;
+    document.querySelectorAll("#plates .plate").forEach(p => { p.classList.add("ok"); p.querySelectorAll("img").forEach(i => i.style.opacity = .25); });
+    $("#mat").classList.add("checking"); $("#pairs").hidden = false; $("#pairs").innerHTML = pairsHtml(t.counts, false);
+    say(`Поровну! По ${NUM[t.target]}`); stars = Math.min(TOTAL, stars + 1); renderStars(); $("#next").hidden = false; renderLevelButtons(this);
+  },
+  hint(k, silent = false) {
+    const t = this.task; if (!silent) t.hint = Math.max(t.hint, k);
+    this.clearHint();
+    const f = t.counts.indexOf(Math.max(...t.counts)), to = t.counts.indexOf(Math.min(...t.counts));
+    this.el(f).classList.add("hint-from");
+    if (k >= 2) {
+      this.el(to).classList.add("hint-to");
+      const m = $("#mat").getBoundingClientRect(), a = this.el(f).getBoundingClientRect(), b = this.el(to).getBoundingClientRect();
+      const x1 = a.left + a.width / 2 - m.left, y1 = Math.max(14, a.top - m.top - 14), x2 = b.left + b.width / 2 - m.left, y2 = Math.max(14, b.top - m.top - 14);
+      const ar = document.createElement("div"); ar.className = "hintarrow";
+      ar.style.cssText = `left:${x1}px;top:${y1}px;width:${Math.hypot(x2 - x1, y2 - y1)}px;transform:rotate(${Math.atan2(y2 - y1, x2 - x1)}rad)`;
+      $("#mat").append(ar);
+    }
+    if (!silent) log(`  подсказка: ${k === 1 ? "тарелка, где больше" : "стрелка"}`);
+  },
+  clearHint() { document.querySelectorAll("#plates .plate").forEach(p => p.classList.remove("hint-from", "hint-to")); document.querySelectorAll(".hintarrow").forEach(a => a.remove()); },
+  arm() { clearTimeout(this.timer); this.timer = setTimeout(() => { if (!this.task.finished) { this.hint(Math.min(2, this.task.hint + 1)); this.arm(); } }, 6000); },
+  bind() {
+    const plates = $("#plates");
+    let drag = null;
+    plates.onclick = e => {
+      const p = e.target.closest(".plate"); if (!p || this.task.finished || this.justDragged) return;
+      const i = +p.dataset.i;
+      if (this.sel === null) { if (this.task.counts[i] === 0) return; this.sel = i; p.classList.add("sel"); }
+      else { this.el(this.sel).classList.remove("sel"); const f = this.sel; this.sel = null; if (f !== i) this.move(f, i); }
+    };
+    plates.onpointerdown = e => {
+      const p = e.target.closest(".plate"); if (!p || this.task.finished) return;
+      const i = +p.dataset.i; if (this.task.counts[i] === 0) return;
+      drag = { from: i, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, over: null };
+      try { plates.setPointerCapture(e.pointerId); } catch {}
+    };
+    plates.onpointermove = e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10) return;
+      if (!drag.moved) {
+        drag.moved = true; if (this.sel !== null) { this.el(this.sel).classList.remove("sel"); this.sel = null; }
+        this.task.counts[drag.from]--; this.draw(drag.from);
+        drag.ghost = Object.assign(document.createElement("img"), { src: "img/apple-photo.webp", className: "ghost-apple" }); document.body.append(drag.ghost);
+      }
+      drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px";
+      const over = document.elementFromPoint(e.clientX, e.clientY)?.closest("#plates .plate");
+      document.querySelectorAll(".plate.drop").forEach(x => x.classList.remove("drop"));
+      if (over && +over.dataset.i !== drag.from) over.classList.add("drop");
+      drag.over = over ? +over.dataset.i : null;
+    };
+    const end = e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const d = drag; drag = null;
+      if (!d.moved) return;
+      d.ghost.remove(); document.querySelectorAll(".plate.drop").forEach(x => x.classList.remove("drop"));
+      this.task.counts[d.from]++;
+      if (d.over !== null && d.over !== d.from && e.type === "pointerup") this.move(d.from, d.over); else this.draw(d.from);
+      this.justDragged = true; setTimeout(() => { this.justDragged = false; }, 50);
+    };
+    plates.onpointerup = end; plates.onpointercancel = end;
+  },
+  adapt() {
+    const st = this.state, order = this.levels.map(l => l[0]), i = order.indexOf(st.level);
+    if (st.arrowStreak >= 2 && i > 0) { st.level = order[i - 1]; st.history = []; st.arrowStreak = 0; log(`↓ уровень ${st.level}`); return; }
+    if (st.history.length >= 10 && st.history.filter(Boolean).length >= 8 && i < order.length - 1) { st.level = order[i + 1]; st.history = []; log(`↑ уровень ${st.level}`); }
+  },
+  stop() { clearTimeout(this.timer); },
+};
+
+/* ───────── эскизы следующих ступеней ───────── */
+const sketch = (id, title, sayText, info, mat, answers = "", hf = ".7") => ({
+  id, title, live: false, info,
+  start() { $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", hf); $("#mat").innerHTML = mat(); $("#answers").innerHTML = answers; say(sayText); renderStars(4); },
+});
+const steps = [
+  step0, step1,
+  sketch("2", "Считаем группами", "По три. Сколько всего?",
+    `<p>Главный мостик к умножению — <b>счёт группами, а не по одному</b> (Mulligan &amp; Mitchelmore). Нажал на тарелку — над ней появилась сумма: 3 → 6 → 9, голос «три… шесть…». Нажимать по порядку; следующая тарелка обведена. Позже ребёнок сам выбирает число над тарелкой из 2–3.</p>`,
+    () => `<div class="plates" style="--n:4">
+      <div class="col"><span class="badge">3</span>${plate(3, "apple", { cls: "ok", s: 200 })}</div>
+      <div class="col"><span class="badge">6</span>${plate(3, "apple", { cls: "ok", s: 200 })}</div>
+      <div class="col"><span class="badge ghost">9</span>${plate(3, "apple", { cls: "ring", s: 200 })}</div>
+      <div class="col"><span class="badge ghost">12</span>${plate(3, "apple", { cls: "dim", s: 200 })}</div></div>`, "", ".6"),
+  sketch("2б", "Другие группы", "По пять. Сколько всего?",
+    `<p>Тот же счёт, но <b>группы разные</b>: руки, носки парами, коробки яиц, букеты, корзинки. Обучение на многих примерах — надёжный путь к переносу навыка при РАС; иначе «умножение» останется навыком про тарелки. Эмодзи — заглушки, нужны фото в одном стиле.</p>`,
+    () => `<div class="rowf"><div class="col"><span class="badge">5</span><span class="emo">✋</span></div><div class="col"><span class="badge">10</span><span class="emo">✋</span></div><div class="col"><span class="badge ghost">15</span><span class="emo">✋</span></div></div>
+      <div class="rowf"><div class="ex"><span class="pics">🧦🧦 🧦🧦</span>по 2</div><div class="ex"><span class="eggbox">${"<i></i>".repeat(6)}</span>по 6</div><div class="ex"><span class="pics">🌷🌷🌷</span>по 3</div><div class="ex"><span class="pics">🍓🍓🍓🍓</span>по 4</div></div>`),
+  sketch("3", "Сложение → умножение", "По три, четыре раза",
+    `<p>Показ, решать не надо. Запись <b>3 + 3 + 3 + 3</b> сворачивается в <b>3 × 4</b>. Под числами значки: «3» — три яблока, «4» — четыре тарелки. Цифры одного цвета: цветная метка у ребёнка с РАС легко заменяет смысл.</p>`,
+    () => `<div class="plates" style="--n:4">${[1, 2, 3, 4].map(() => plate(3, "apple", { s: 130 })).join("")}</div>
+      <div class="eq sm"><span>3</span>+<span>3</span>+<span>3</span>+<span>3</span>=<span>12</span></div>
+      ${ex(3, 4, { cls: "eq", tail: "<span>=</span><span>12</span>" })}`, "", ".34"),
+  sketch("4", "Картинка → пример", "Какой пример?",
+    `<p>Неверные варианты отличаются <b>числом</b>; перевёрнутого примера (3 × 4) среди них нет до ступени 7. Значки под числами в кнопках — сначала есть (ребёнок сверяет их с картинкой), потом бледнеют и исчезают. «+» среди вариантов — когда значков уже нет. Ошибка гасит кнопку, без текста.</p>`,
+    () => `<div class="plates" style="--n:3">${[1, 2, 3].map(() => plate(4, "apple", { s: 200 })).join("")}</div>`,
+    `<span class="choice">${ex(4, 3)}</span><span class="choice">${ex(3, 3)}</span><span class="choice wrong">${ex(4, 2)}</span>`, ".8"),
+  sketch("5", "Пример → собери", "Собери",
+    `<p>Обратное направление: дан пример, ребёнок сам ставит <b>нужное число тарелок</b> из стопки и кладёт на каждую <b>по два</b>. Бананов на подносе больше, чем нужно — вовремя остановиться тоже часть задания. Значки под числами задания позже убираются.</p>`,
+    () => `${ex(2, 4, { f: "banana", cls: "eq" })}<div class="rowf">
+      <div class="col stack">${[1, 2, 3, 4].map(() => plate(0, "apple")).join("")}</div>
+      <div class="plates" style="--n:3;width:auto">${plate(2, "banana", { cls: "ok", s: 150 })}${plate(2, "banana", { cls: "ok", s: 150 })}${plate(1, "banana", { cls: "ring", s: 150 })}</div>
+      <div class="tray">${apples(2, "banana")}</div></div>`, "", ".42"),
+  sketch("6", "Тарелки → ряды", "По четыре, три раза",
+    `<p>Переход к прямоугольнику — основе таблицы и перестановки множителей (Barmby и др.). Каждая тарелка «высыпается» в свой ряд лотка; значок под числом групп меняется с тарелок на ряды. Сам по себе ряды и столбцы в прямоугольнике ребёнок не видит — поэтому переход показан.</p>`,
+    () => `<div class="rowf"><div class="col">${[1, 2, 3].map(() => plate(4, "apple", { s: 80 })).join("")}</div><span style="font:700 36px Georgia;color:#233f7a">→</span>${board(3, 4)}${ex(4, 3, { groups: "rows" })}</div>`, "", ".22"),
+  sketch("7", "Повернули", "Повернём. Сколько теперь?",
+    `<p>Вместо «Переложи яблоки»: ребёнок нажимает ↻ — <b>тот же лоток</b> поворачивается, ни одно яблоко не двигается. Было 2 ряда по 3, стало 3 ряда по 2. Ответ новой записи закрыт — его надо найти, а не списать.</p>`,
+    () => `<div class="rowf"><div class="col">${board(2, 3)}${ex(3, 2, { groups: "rows", tail: "<span>=</span><span>6</span>" })}</div><span class="rotate">↻</span><div class="col">${board(3, 2)}${ex(2, 3, { groups: "rows", tail: "<span>=</span><span class=\"slot\">6</span>" })}</div></div>`,
+    `<span class="choice">5</span><span class="choice">6</span><span class="choice">8</span>`),
+  sketch("8", "Без картинки", "Сколько будет?",
+    `<p>Конец лестницы: значков нет. Кнопка с тарелкой достаёт картинку к примеру — засчитывается как «с подсказкой». <b>Открытый вопрос:</b> клавиатура или выбор из 2–3 чисел — доказательств ни за то, ни за другое не нашли; решать по тому, как пойдёт у сына.</p>`,
+    () => `<div class="rowf"><span class="eq" style="font-size:min(56px,12cqw)"><span>3</span>×<span>5</span>=<span class="answer">15</span></span><span class="choice" style="min-height:56px">${plate(3, "apple", { s: 40 })}</span></div>
+      <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(d => `<span>${d}</span>`).join("")}</div>`),
+];
+
+/* ───────── навигация ───────── */
+function renderLevelButtons(st) {
+  const box = $("#lv"); if (!box) return;
+  box.innerHTML = st.levels.map(([k, t]) => `<button data-l="${k}" aria-pressed="${k === st.state.level}">${k} · ${t}</button>`).join("");
+  box.onclick = e => { const b = e.target.closest("button"); if (!b) return; Object.assign(st.state, { level: b.dataset.l, history: [] }); st.next(); };
+  const h = st.state.history; $("#lvlstat").textContent = `уровень ${st.state.level}, верно/чисто ${h.filter(Boolean).length} из ${h.length}`;
+}
+function open(id) {
+  cleanup();
+  const st = steps.find(s => s.id === id) || steps[0];
+  location.hash = "s" + st.id;
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-current", c.dataset.id === st.id));
+  $("#sketch").hidden = st.live;
+  $("#answers").onclick = null;
+  $("#info").innerHTML = `<button class="close" id="close" aria-label="Закрыть">✕</button>
+    <h2>${st.id}. ${st.title}</h2><span class="tag ${st.live ? "live" : "sk"}">${st.live ? "живой макет — можно нажимать" : "эскиз — только картинка"}</span>
+    ${st.info}
+    ${st.live ? `<p><b>Сейчас:</b> <span id="lvlstat"></span><br><small>Приложение переключает само; кнопки — чтобы посмотреть любой.</small></p><div class="lv" id="lv"></div><p><b>Журнал</b></p><div class="log" id="log"></div>` : ""}
+    <p style="margin-top:14px;color:#6b6b6b;font-size:12px">Вся методика: docs/multiplication-methodology.md</p>`;
+  $("#close").onclick = () => $("#info").classList.remove("open");
+  stars = 0;
+  st.start();
+  cleanup = () => st.stop?.();
+}
+$("#chips").innerHTML = steps.map(s => `<button class="chip ${s.live ? "live" : ""}" data-id="${s.id}" title="${s.title}">${s.id}</button>`).join("");
+$("#chips").onclick = e => { const c = e.target.closest(".chip"); if (c) open(c.dataset.id); };
+$("#infobtn").onclick = () => $("#info").classList.toggle("open");
+$("#spk").onclick = () => { if ("speechSynthesis" in window) { const u = new SpeechSynthesisUtterance($("#say").textContent); u.lang = "ru-RU"; speechSynthesis.speak(u); } };
+open((location.hash.match(/^#s(.+)$/) || [])[1] ? decodeURIComponent(location.hash.slice(2)) : "0");
+</script>
+</body>
+</html>
