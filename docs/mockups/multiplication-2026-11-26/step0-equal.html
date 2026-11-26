@@ -68,6 +68,8 @@
   .side .lv button[aria-pressed="true"] { border-color: var(--blue); background: var(--blue); color: #fff; }
   .side ul { padding-left: 18px; margin: 6px 0; }
   .side .log { font: 12px/1.4 monospace; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; max-height: 150px; overflow: auto; }
+  .rule { background: #eef3fb; border: 1px solid #c4d1ea; border-radius: 8px; padding: 8px 10px; margin-top: 12px; }
+  .opt { margin: 6px 0 12px; display: flex; gap: 8px; align-items: center; }
   .q { background: #fff7e0; border: 1px solid #e8cf86; border-radius: 8px; padding: 8px 10px; margin-top: 12px; }
 </style>
 </head>
@@ -88,29 +90,26 @@
 
 <div class="side">
   <h2>Ступень 0 «Поровну?»</h2>
-  Уровень (в приложении ведёт сам, здесь — переключить для просмотра):
+  Уровень — приложение ведёт само по правилу ниже; кнопками можно переключить для просмотра:
   <div class="lv" id="levels">
-    <button data-l="A" aria-pressed="true">A · 2 тарелки, разница ≥ 2</button>
+    <button data-l="R">R · ряды уже видны</button>
+    <button data-l="A">A · разница ≥ 2</button>
     <button data-l="B">B · разница в 1</button>
-    <button data-l="C">C · 3 тарелки</button>
     <button data-l="D">D · вразброс</button>
   </div>
-  <b>Что происходит</b>
-  <ul>
-    <li>Голос: «Поровну?» (кнопка 🔊 повторяет).</li>
-    <li>Ответ — одной из двух кнопок. На кнопках нет слов: знак и значок «столбики равные / разные».</li>
-    <li><b>После любого ответа</b> предметы съезжают с тарелок в ряды друг под другом — один к одному. Видно, что ряды одной длины, или где лишнее (оранжевый пунктир). Это и есть объяснение, без слов.</li>
-    <li>Верно: зелёная кнопка, голос «Поровну! По три» или «Не поровну». Неверно: кнопка краснеет, ряды показываются так же, ответ повторяется на том же задании.</li>
-    <li>Поровну и не поровну — примерно поровну, без длинных серий одного ответа (не больше 2 подряд).</li>
-  </ul>
-  <div class="q"><b>Решить с владельцем:</b>
+  <div class="opt"><label><input type="checkbox" id="always" checked> проверка рядами после <b>каждого</b> ответа (первые занятия)</label></div>
+  <div class="rule"><b>Решения методиста</b>
     <ul>
-      <li>Ряды-проверка после каждого ответа или только после ошибки?</li>
-      <li>Уровень D (вразброс) нужен: на одинаковой «кубиковой» раскладке ребёнок может сравнивать узор, а не количество.</li>
-      <li>Нужна ли подсказка «до ответа» (кнопка «разложить в ряды») или только после?</li>
+      <li><b>R — подсказка внутри задания.</b> В первых заданиях яблоки уже стоят рядами один к одному под тарелками: сравнивать легко, ошибиться почти нельзя. Кнопки «разложить» нет — ребёнок с РАС быстро начинает жать её всегда.</li>
+      <li><b>Проверка рядами:</b> после каждого ответа, пока уровень A не освоен; дальше — только после ошибки.</li>
+      <li><b>Ошибка:</b> ряды показываются, ответ повторяется на том же задании, следующее задание — на уровень проще.</li>
+      <li><b>Переход:</b> вверх — 8 верных из последних 10 без ошибки на первом нажатии; вниз — 2 ошибки подряд.</li>
+      <li><b>Только две тарелки.</b> Три и больше — на ступени 1 «Сделай поровну»: с тремя тарелками «≠» превращается в «найди не такую», это другой навык.</li>
+      <li><b>D обязателен</b>, и разброс свой на каждой тарелке: «поровну» с разными узорами, «не поровну» с похожими. Иначе ребёнок сравнивает узор, а не количество.</li>
+      <li>Ответы «=» и «≠» — примерно поровну, не больше двух одинаковых подряд.</li>
     </ul>
   </div>
-  <p><b>Журнал</b></p>
+  <p><b>Журнал</b> <span id="lvl"></span></p>
   <div class="log" id="log"></div>
 </div>
 
@@ -119,71 +118,83 @@ const DICE = {
   1: [[50,50]], 2: [[34,34],[66,66]], 3: [[50,30],[31,65],[69,65]], 4: [[33,33],[67,33],[33,67],[67,67]],
   5: [[31,31],[69,31],[50,50],[31,69],[69,69]], 6: [[33,26],[67,26],[33,50],[67,50],[33,74],[67,74]],
 };
-// заранее подобранные «вразброс» позиции, без наложений
-const SCATTER = [[30,40],[62,28],[70,62],[40,70],[50,48],[24,60]];
+const ORDER = ["R", "A", "B", "D"];
 const LEVELS = {
-  A: { plates: 2, gen: () => pickPair(2) },
-  B: { plates: 2, gen: () => pickPair(1) },
-  C: { plates: 3, gen: () => pickTriple() },
-  D: { plates: 2, gen: () => pickPair(1), scatter: true },
+  R: { minDiff: 2, rowsFirst: true },
+  A: { minDiff: 2 },
+  B: { minDiff: 1, maxDiff: 1 },
+  D: { minDiff: 1, maxDiff: 1, scatter: true },
 };
-let level = "A", task, done = 0, last = [];
+let level = "R", task, done = 0, last = [], history = [], errStreak = 0, masteredA = false;
 const TOTAL = 8;
 const $ = s => document.querySelector(s);
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
 function wantEqual() {
-  // не больше двух одинаковых ответов подряд
   if (last.length >= 2 && last[0] === last[1]) return !last[0];
   return Math.random() < .5;
 }
-function pickPair(minDiff) {
-  const eq = wantEqual();
-  if (eq) { const n = rnd(2, 5); return [n, n]; }
+function pickPair({ minDiff, maxDiff = 5 }) {
+  if (wantEqual()) { const n = rnd(2, 5); return [n, n]; }
   let a, b;
-  do { a = rnd(1, 6); b = rnd(1, 6); } while (Math.abs(a - b) < minDiff || (minDiff === 1 && Math.abs(a - b) > 1) || a === b);
+  do { a = rnd(1, 6); b = rnd(1, 6); } while (a === b || Math.abs(a - b) < minDiff || Math.abs(a - b) > maxDiff);
   return [a, b];
 }
-function pickTriple() {
-  const eq = wantEqual(); const n = rnd(2, 5);
-  if (eq) return [n, n, n];
-  const t = [n, n, n]; t[rnd(0, 2)] = n + (n < 5 ? 1 : -1); return t;
+// свой случайный разброс для каждой тарелки, без наложений
+function scatter(n) {
+  for (let tries = 0; tries < 200; tries++) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      let p, ok = false;
+      for (let k = 0; k < 60 && !ok; k++) {
+        const ang = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * 27;
+        p = [50 + r * Math.cos(ang), 50 + r * Math.sin(ang)];
+        ok = pts.every(q => Math.hypot(q[0] - p[0], q[1] - p[1]) > 25);
+      }
+      if (!ok) break;
+      pts.push(p);
+    }
+    if (pts.length === n) return pts;
+  }
+  return DICE[n];
 }
 
-function newTask() {
+function newTask(repeat = false) {
   const L = LEVELS[level];
-  const counts = L.gen();
-  task = { counts, equal: counts.every(c => c === counts[0]), answered: false, scatter: !!L.scatter };
-  last.unshift(task.equal); last = last.slice(0, 2);
-  const size = counts.length === 3 ? 190 : 230;
-  $("#plates").innerHTML = counts.map(n => {
-    const pos = task.scatter ? SCATTER.slice(0, n).sort(() => Math.random() - .5) : DICE[n];
+  if (!repeat) {
+    const counts = pickPair(L);
+    task = { counts, equal: counts[0] === counts[1], firstTry: true };
+    last.unshift(task.equal); last = last.slice(0, 2);
+  }
+  task.answered = false;
+  $("#plates").innerHTML = task.counts.map(n => {
+    const pos = L.scatter ? scatter(n) : DICE[n];
     const w = n >= 5 ? 25 : 29;
-    return `<div class="plate" style="--s:${size}px">${pos.map(([x, y]) => `<img src="img/apple-photo.webp" style="left:${x}%;top:${y}%;width:${w}%">`).join("")}</div>`;
+    return `<div class="plate" style="--s:230px">${pos.map(([x, y]) => `<img src="img/apple-photo.webp" style="left:${x}%;top:${y}%;width:${w}%">`).join("")}</div>`;
   }).join("");
   document.querySelector(".mat").classList.remove("checking");
   $("#pairs").hidden = true; $("#pairs").innerHTML = "";
   $("#next").hidden = true;
   document.querySelectorAll(".ans").forEach(b => b.className = "ans");
   $("#say").textContent = "Поровну?";
-  renderStars();
+  if (L.rowsFirst) showPairs(false);
+  renderStars(); renderLevel();
 }
 
-function showPairs() {
+function showPairs(judge = true) {
   const { counts } = task;
   const min = Math.min(...counts), max = Math.max(...counts);
-  const plates = [...document.querySelectorAll(".plate")];
-  plates.forEach((p, i) => {
-    p.classList.toggle("ok", task.equal);
-    p.classList.toggle("more", !task.equal && counts[i] === max);
-    p.querySelectorAll("img").forEach(img => img.style.opacity = .25);
-  });
   document.querySelector(".mat").classList.add("checking");
+  document.querySelectorAll(".plate").forEach((p, i) => {
+    p.classList.toggle("ok", judge && task.equal);
+    p.classList.toggle("more", judge && !task.equal && counts[i] === max);
+    if (judge) p.querySelectorAll("img").forEach(img => img.style.opacity = .25);
+  });
   $("#pairs").hidden = false;
   $("#pairs").innerHTML = counts.map(n => `<div class="pair-row">${
     Array.from({ length: 6 }, (_, j) => j < n
-      ? `<span class="${j >= min ? "extra" : ""}"><img src="img/apple-photo.webp" style="animation-delay:${j * 90}ms"></span>`
-      : (j < max ? `<span class="gap"></span>` : `<span></span>`)).join("")
+      ? `<span class="${judge && j >= min ? "extra" : ""}"><img src="img/apple-photo.webp" style="animation-delay:${judge ? j * 90 : 0}ms"></span>`
+      : (judge && j < max ? `<span class="gap"></span>` : `<span></span>`)).join("")
   }</div>`).join("");
 }
 
@@ -191,10 +202,13 @@ function answer(btn) {
   if (task.answered) return;
   const saidEqual = btn.dataset.a === "eq";
   const right = saidEqual === task.equal;
-  log(`${task.counts.join(" / ")} → ${saidEqual ? "=" : "≠"} ${right ? "верно" : "ошибка"}`);
-  showPairs();
+  log(`[${level}] ${task.counts.join(" / ")} → ${saidEqual ? "=" : "≠"} ${right ? (task.firstTry ? "верно" : "верно со 2-й") : "ошибка"}`);
   if (right) {
     task.answered = true;
+    history.unshift(task.firstTry); history = history.slice(0, 10);
+    if (task.firstTry) errStreak = 0;
+    const showRows = !LEVELS[level].rowsFirst && ($("#always").checked || !task.firstTry);
+    if (showRows) showPairs(); else if (LEVELS[level].rowsFirst) showPairs();
     btn.classList.add("right");
     document.querySelectorAll(".ans").forEach(b => b !== btn && b.classList.add("off"));
     $("#say").textContent = task.equal ? `Поровну! По ${["", "одному", "два", "три", "четыре", "пять", "шесть"][task.counts[0]]}` : "Не поровну";
@@ -202,24 +216,40 @@ function answer(btn) {
     renderStars();
     $("#next").hidden = false;
   } else {
+    task.firstTry = false;
+    errStreak++;
+    showPairs();
     btn.classList.add("wrong");
     $("#say").textContent = "Посмотри";
     setTimeout(() => btn.classList.remove("wrong"), 900);
   }
 }
 
+function adapt() {
+  const i = ORDER.indexOf(level);
+  const ok = history.filter(Boolean).length;
+  if (errStreak >= 2 && i > 0) { level = ORDER[i - 1]; history = []; errStreak = 0; log(`↓ уровень ${level}`); return; }
+  if (task && !task.firstTry && i > 0) { level = ORDER[i - 1]; history = []; log(`↓ после ошибки: ${level}`); return; }
+  if (history.length >= 10 && ok >= 8 && i < ORDER.length - 1) {
+    if (level === "A") { masteredA = true; $("#always").checked = false; log("A освоен → проверка рядами только после ошибки"); }
+    level = ORDER[i + 1]; history = []; log(`↑ уровень ${level}`);
+  }
+}
+
 function renderStars() { $("#stars").innerHTML = "★".repeat(done) + `<i>${"★".repeat(TOTAL - done)}</i>`; }
+function renderLevel() {
+  $("#lvl").textContent = `(уровень ${level}, верно ${history.filter(Boolean).length}/${history.length})`;
+  document.querySelectorAll("#levels button").forEach(x => x.setAttribute("aria-pressed", x.dataset.l === level));
+}
 function log(t) { $("#log").insertAdjacentHTML("afterbegin", `<div>${t}</div>`); }
 
 document.querySelectorAll(".ans").forEach(b => b.addEventListener("click", () => answer(b)));
-$("#next").addEventListener("click", newTask);
+$("#next").addEventListener("click", () => { adapt(); newTask(); });
 $("#spk").addEventListener("click", () => {
   if ("speechSynthesis" in window) { const u = new SpeechSynthesisUtterance($("#say").textContent); u.lang = "ru-RU"; speechSynthesis.speak(u); }
 });
 document.querySelectorAll("#levels button").forEach(b => b.addEventListener("click", () => {
-  level = b.dataset.l;
-  document.querySelectorAll("#levels button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  newTask();
+  level = b.dataset.l; history = []; errStreak = 0; newTask();
 }));
 newTask();
 </script>
