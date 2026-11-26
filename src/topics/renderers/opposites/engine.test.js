@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { generateTasks } from "./engine";
+import shippedTopic from "../../../../public/decks/opposites_draft/topic.json";
 
 const CARDS = [
   { id: "big_dog",    conceptId: "big_small", pole: "left",  objectId: "dog",   objectLabel: "собака", poleLabel: "большой",   nominativeLabel: "большая",   instructionLabel: "большую",    poleLabelNeutral: "большое",   poleLabelPlural: "большие",   image: "media/big_dog.webp" },
@@ -72,14 +73,96 @@ describe("generateTasks — find_opposite (image)", () => {
     }
   });
 
-  it("sameConcept=true: distractors from same conceptId, different objectId", () => {
+  it("sameConcept=true: distractors have the stimulus pole, never another valid opposite", () => {
     const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { distractorCount: 2, sameConcept: true });
     for (const t of tasks) {
       for (const d of t.options.filter(o => !o.isTarget)) {
         expect(d.card.conceptId).toBe(t.stimulusCard.conceptId);
-        expect(d.card.objectId).not.toBe(t.stimulusCard.objectId);
+        expect(d.card.pole).toBe(t.stimulusCard.pole);
       }
     }
+  });
+});
+
+describe("generateTasks — sort, controlled field size", () => {
+  const cards = shippedTopic.cards.filter(c => c.conceptId === "big_small");
+
+  it.each([4, 6, 8])("uses %i cards with matched objects and balanced poles", cardCount => {
+    const [task] = generateTasks({ type: "sort" }, cards, 500, { cardCount });
+    expect(task.cards).toHaveLength(cardCount);
+    for (const zone of task.zones) {
+      expect(task.cards.filter(item => item.targetZoneId === zone.id)).toHaveLength(cardCount / 2);
+    }
+    const objects = new Set(task.cards.map(item => item.card.objectId));
+    expect(objects.size).toBe(cardCount / 2);
+    for (const objectId of objects) {
+      expect(task.cards.filter(item => item.card.objectId === objectId)
+        .map(item => item.card.pole).sort()).toEqual(["left", "right"]);
+    }
+  });
+
+  it("starts with four cards when no size is supplied", () => {
+    const [task] = generateTasks({ type: "sort" }, cards, 500);
+    expect(task.cards).toHaveLength(4);
+  });
+
+  it("keeps concepts separate in mixed lessons", () => {
+    const tasks = generateTasks({ type: "sort" }, shippedTopic.cards, 500, { cardCount: 6 });
+    expect(tasks).toHaveLength(9);
+    for (const task of tasks) {
+      expect(task.cards).toHaveLength(6);
+      expect(new Set(task.cards.map(item => item.card.conceptId)).size).toBe(1);
+    }
+  });
+
+  it("uses available complete pairs without duplicating cards or adding incomplete objects", () => {
+    const partial = [...CARDS.filter(c => c.objectId === "dog"), CARDS.find(c => c.id === "big_cat")];
+    const [task] = generateTasks({ type: "sort" }, partial, 500, { cardCount: 8 });
+    expect(task.cards.map(item => item.card.id).sort()).toEqual(["big_dog", "small_dog"]);
+  });
+});
+
+describe("generateTasks — find_opposite, unambiguous choices", () => {
+  const settings = ["image", "text"].flatMap(stimulusType =>
+    ["image", "text"].flatMap(distractorType =>
+      [false, true].map(sameConcept => ({ stimulusType, distractorType, sameConcept }))
+    )
+  );
+
+  function checkChoices(tasks, params) {
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const task of tasks) {
+      expect(task.options.length).toBeGreaterThanOrEqual(2);
+      expect(task.options.length).toBeLessThanOrEqual((params.distractorCount ?? 2) + 1);
+      expect(task.options.filter(o => o.isTarget)).toHaveLength(1);
+      // A non-target must not express the same opposite as the target.
+      const semanticAnswers = task.options.filter(o =>
+        o.card.conceptId === task.stimulusCard.conceptId && o.card.pole !== task.stimulusCard.pole
+      );
+      expect(semanticAnswers).toHaveLength(1);
+      expect(semanticAnswers[0].isTarget).toBe(true);
+      const labels = task.options.map(o => params.distractorType === "text" ? o.card.poleLabel : o.card.id);
+      expect(new Set(labels).size).toBe(labels.length);
+    }
+  }
+
+  it.each(settings)("offers a real choice in every single-concept lesson: %j", params => {
+    for (const conceptId of new Set(shippedTopic.cards.map(c => c.conceptId))) {
+      const cards = shippedTopic.cards.filter(c => c.conceptId === conceptId);
+      checkChoices(generateTasks({ type: "find_opposite" }, cards, 500, params), params);
+    }
+  });
+
+  it.each(settings)("keeps all mixed-lesson answers distinct with six distractors requested: %j", params => {
+    const settings = { ...params, distractorCount: 6 };
+    checkChoices(generateTasks({ type: "find_opposite" }, shippedTopic.cards, 500, settings), settings);
+  });
+
+  it.each(settings)("works even when only one object pair is available: %j", params => {
+    const cards = CARDS.filter(c => c.objectId === "dog");
+    const tasks = generateTasks({ type: "find_opposite" }, cards, 500, params);
+    checkChoices(tasks, params);
+    expect(tasks[0].options).toHaveLength(2);
   });
 });
 
