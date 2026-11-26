@@ -1255,9 +1255,12 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
     }
   }
 
-  // the number stands in the cells from the right, as written: units in the last cell
+  // typed left to right, as written: the tens first, then the units (owner, 2026-11-26) — a digit never jumps
+  // while typing; the right answer stands as a number, units in the last cell (a one-digit answer in the units)
   const shown = answered ? String(task.result).split("").map(Number) : digits;
-  const cells = Array.from({ length: AUDIO_ANSWER_CELLS }, (_, i) => shown[i - (AUDIO_ANSWER_CELLS - shown.length)]);
+  const cells = answered
+    ? Array.from({ length: AUDIO_ANSWER_CELLS }, (_, i) => shown[i - (AUDIO_ANSWER_CELLS - shown.length)])
+    : Array.from({ length: AUDIO_ANSWER_CELLS }, (_, i) => digits[i]);
 
   return (
     <div className="aod-stage">
