@@ -7,7 +7,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  await page.setContent(html); await page.locator('.card').nth(3).tap();
+  await page.setContent(html); await page.locator('.card').filter({ hasText: 'Золотая рыбка' }).tap();
   await page.clock.install();
   // Draw from scratch: restoring all steps alone misses missing part tags in
   // the player's normal next() path.
@@ -31,7 +31,7 @@ try {
   assert.equal(await page.evaluate(() => window.__drawingUx.get().index), 45);
   assert.equal(await page.locator('.done-action').count(), 1);
   // Returning to a completed lesson must not trigger another celebration.
-  await page.locator('.done-action').tap(); await page.locator('.card').nth(3).tap();
+  await page.locator('.done-action').tap(); await page.locator('.card').filter({ hasText: 'Золотая рыбка' }).tap();
   assert.equal(await page.locator('[data-finale]').count(), 0);
   await page.evaluate(() => window.__drawingUx.seek(45));
   await page.locator('.next').tap(); await page.clock.runFor(1400);

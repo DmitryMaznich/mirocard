@@ -23,6 +23,13 @@ describe("downloadable drawing topic", () => {
     expect(record.modes[0]).toMatchObject({ type: "drawing_steps", evaluation: "none", finite: true, hideVideoReward: true, adultVideoReward: true });
     expect(record.modes[0].params.videoRewardEnabled.default).toBe(false);
     const tasks = generateTasks(record.modes[0], record.cards);
+    expect(record.cards.filter(card => card.lesson?.steps?.length)[0].id).toBe('yellow_house');
+    expect(tasks[0].cardId).toBe('yellow_house');
+    const house = tasks[0].lesson;
+    expect(house.steps).toHaveLength(22);
+    expect(house.finale).toMatchObject({ type: 'house-evening', smoke: { part: 'smoke', origin: [596, 116], helix: { turns: 5 } }, windows: ['window-side', 'window-attic'] });
+    expect(house.steps.find(step => step.part === 'smoke').paths).toHaveLength(1);
+    expect(house.steps.find(step => step.part === 'windows').regions).toHaveLength(2);
     const winter = tasks.find(task => task.cardId === 'snowman_broom').lesson;
     expect(winter.steps).toHaveLength(40);
     expect(winter.finale.type).toBe('snowfall');
@@ -248,12 +255,13 @@ describe("downloadable drawing topic", () => {
       }
     }
     expect(gonya.steps.findIndex(step => step.tool === "light_blue")).toBeLessThan(gonya.steps.findIndex(step => step.tool === "blue"));
-    expect(tasks[0]).toMatchObject({ type: "drawing_lesson", cardId: "kompot", conceptId: "kompot" });
-    expect(tasks[0].lesson.steps).toHaveLength(42);
-    expect(tasks[0].lesson.steps.slice(0, 20).every(step => step.kind === "stroke")).toBe(true);
-    expect(tasks[0].lesson.steps.slice(20).every(step => step.kind === "color")).toBe(true);
-    expect(tasks[0].lesson.steps[18].title).toContain("уса слева");
-    expect(tasks[0].lesson.steps[41].title).toContain("правого ушка");
+    const kompot = tasks.find(task => task.cardId === 'kompot');
+    expect(kompot).toMatchObject({ type: "drawing_lesson", cardId: "kompot", conceptId: "kompot" });
+    expect(kompot.lesson.steps).toHaveLength(42);
+    expect(kompot.lesson.steps.slice(0, 20).every(step => step.kind === "stroke")).toBe(true);
+    expect(kompot.lesson.steps.slice(20).every(step => step.kind === "color")).toBe(true);
+    expect(kompot.lesson.steps[18].title).toContain("уса слева");
+    expect(kompot.lesson.steps[41].title).toContain("правого ушка");
     db.close();
   });
   it("uses the chosen drawings in their content order, with no fixed task count", () => {

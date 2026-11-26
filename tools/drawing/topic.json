@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "drawing",
-    "version": "0.50.0",
+    "version": "0.51.0",
     "renderer": "drawing",
     "customModesOnly": true,
     "title": {
@@ -553,6 +553,14 @@
     }
   ],
   "cards": [
+    {
+      "id": "yellow_house",
+      "conceptId": "yellow_house",
+      "primary": true,
+      "label": "Домик с красной крышей",
+      "image": "media/yellow_house.svg",
+      "lessonFile": "lessons/yellow_house.json"
+    },
     {
       "id": "kompot",
       "conceptId": "kompot",

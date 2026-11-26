@@ -23,6 +23,44 @@ beforeEach(() => {
 });
 afterEach(() => { controller.dispose(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
+describe('house evening finale', () => {
+  let lesson;
+  beforeEach(() => {
+    controller.dispose();
+    svg.innerHTML = '<g data-layer="background-drawing"><path data-finish-part="smoke" d="M100 50C90 30 80 30 70 50" style="stroke:#777b7c;stroke-width:3.5"/></g><g data-layer="colors"><g data-finish-part="window-side"><path d="M10 10L20 20" style="fill:none;stroke:#34c6e8;stroke-opacity:.56"/></g><g data-finish-part="window-attic"><path d="M30 10L40 20" style="stroke:#34c6e8"/></g></g><g data-layer="drawing"><path data-finish-part="window-side" d="M10 10L20 10L20 20Z"/></g>';
+    lesson = { finale: { type: 'house-evening', smoke: { part: 'smoke', origin: [100, 50] }, windows: ['window-side', 'window-attic'] } };
+    controller = createDrawingFinale(svg, lesson);
+  });
+  it('winds the real smoke out of its fixed chimney origin, warms the windows and restores the drawing', () => {
+    const original = svg.innerHTML, outline = svg.querySelector('[data-layer="drawing"]').outerHTML;
+    expect(controller.play()).toBe(true); advance(2000);
+    const smoke = svg.querySelector('[data-finish-part="smoke"]');
+    const first = smoke.getAttribute('d');
+    expect(first).toMatch(/^M 100 50 C /);
+    expect(smoke.getAttribute('transform')).toBeNull(); expect(smoke.getAttribute('opacity')).toBeNull();
+    expect(svg.querySelectorAll('[data-house-smoke]')).toHaveLength(0);
+    advance(500);
+    expect(smoke.getAttribute('d')).not.toBe(first); expect(smoke.getAttribute('d')).toMatch(/^M 100 50 C /);
+    for (const path of svg.querySelectorAll('[data-layer="colors"] path')) expect(path.style.stroke).toBe('rgb(255, 198, 85)');
+    expect(svg.querySelector('[data-layer="drawing"]').outerHTML).toBe(outline);
+    advance(5000); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+  });
+  it('cancels light and smoke on replay, stopping and hiding; honours reduced motion', () => {
+    const original = svg.innerHTML;
+    controller.play(); advance(2000); controller.play(); expect(svg.querySelectorAll('[data-finale]')).toHaveLength(1);
+    advance(1000); controller.stop(); expect(svg.innerHTML).toBe(original);
+    controller.play(); advance(2000); vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+    document.dispatchEvent(new Event('visibilitychange')); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(false); vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    expect(controller.play()).toBe(false); expect(svg.innerHTML).toBe(original);
+  });
+  it('leaves incomplete drawings untouched', () => {
+    svg.querySelector('[data-layer="colors"] [data-finish-part="window-attic"]').remove();
+    const original = svg.innerHTML;
+    expect(controller.play()).toBe(false); expect(svg.innerHTML).toBe(original); expect(queue.size).toBe(0);
+  });
+});
+
 describe('snowfall finale', () => {
   let lesson;
   beforeEach(() => {

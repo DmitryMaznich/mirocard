@@ -12,6 +12,74 @@ export function createDrawingFinale(svg, lesson, options = {}) {
     if (frame !== null) cancelAnimationFrame(frame);
     frame = null; horn?.stop(); cleanup?.(); cleanup = null;
   }
+  function playHouse(config) {
+    const smoke = [...svg.querySelectorAll('path[data-finish-part]')].filter(node => node.dataset.finishPart === config.smoke?.part);
+    const windows = (config.windows ?? []).map(part => {
+      const group = [...svg.querySelectorAll('[data-layer="colors"] > [data-finish-part]')].find(node => node.dataset.finishPart === part);
+      return { strokes: group ? [...group.querySelectorAll('path')].filter(node => node.style.stroke && node.style.stroke !== 'none')
+        .map(node => ({ node, style: node.getAttribute('style') })) : [], lastColor: null };
+    });
+    if (smoke.length !== 1 || !windows.length || windows.some(window => !window.strokes.length) ||
+      config.smoke.origin?.length !== 2 || !config.smoke.origin.every(Number.isFinite)) return false;
+    const [cx, cy] = config.smoke.origin;
+    const original = smoke.map(node => [node, node.getAttribute('d')]);
+    const layer = document.createElementNS(ns, 'g');
+    layer.dataset.finale = 'house-evening'; layer.setAttribute('aria-hidden', 'true'); layer.setAttribute('pointer-events', 'none');
+    svg.append(layer);
+    cleanup = () => {
+      for (const [node, path] of original) node.setAttribute('d', path);
+      for (const window of windows) for (const { node, style } of window.strokes) {
+        if (style === null) node.removeAttribute('style'); else node.setAttribute('style', style);
+      }
+      layer.remove();
+    };
+    const cold = [52, 198, 232], warm = [255, 198, 85];
+    const { pitch = 8, radiusX = 18, radiusY = 14, turns = 5 } = config.smoke.helix ?? {};
+    // Travelling helix phase: each turn rotates and advances away from the
+    // chimney. A tapered first turn keeps the real pencil line attached to it.
+    const helix = t => {
+      const phase = Math.PI*4*smooth(t/6.8);
+      const motion = smooth(t/.5)*(1-smooth((t-6)/.8));
+      const sample = u => {
+        const z = Math.min(1, u/2.2), radius = smooth(z), dr = z < 1 ? 6*z*(1-z)/2.2 : 0;
+        const angle = u-phase;
+        const still = [cx-pitch*u+radiusX*Math.sin(u), cy-radiusY+radiusY*Math.cos(u)];
+        const moving = [cx-pitch*u+radiusX*radius*Math.sin(angle), cy+radiusY*radius*(Math.cos(angle)-1)];
+        const stillTangent = [-pitch+radiusX*Math.cos(u), -radiusY*Math.sin(u)];
+        const movingTangent = [-pitch+radiusX*(dr*Math.sin(angle)+radius*Math.cos(angle)),
+          radiusY*(dr*(Math.cos(angle)-1)-radius*Math.sin(angle))];
+        return { point: still.map((value, j) => value+(moving[j]-value)*motion),
+          tangent: stillTangent.map((value, j) => value+(movingTangent[j]-value)*motion) };
+      };
+      let path = `M ${cx} ${cy}`;
+      const count = Math.ceil(turns*12), step = turns*Math.PI*2/count;
+      for (let i = 0; i < count; i++) {
+        const a = sample(i*step), b = sample((i+1)*step);
+        const first = a.point.map((value, j) => value+a.tangent[j]*step/3);
+        const second = b.point.map((value, j) => value-b.tangent[j]*step/3);
+        path += ' C '+[...first, ...second, ...b.point].map(value => value.toFixed(4)).join(' ');
+      }
+      return path;
+    };
+    let elapsed = 0, last = performance.now();
+    function tick(now) {
+      elapsed += Math.min(64, now-last); last = now;
+      const t = elapsed/1000;
+      const path = helix(t);
+      for (const node of smoke) node.setAttribute('d', path);
+      windows.forEach((window, i) => {
+        const light = smooth((t-.35-i*.25)/1.1)*(1-smooth((t-5.15)/1.1));
+        const color = `rgb(${cold.map((value, j) => Math.round(value+(warm[j]-value)*light)).join(',')})`;
+        if (color !== window.lastColor) {
+          for (const { node } of window.strokes) node.style.stroke = color;
+          window.lastColor = color;
+        }
+      });
+      if (t >= 6.8) { stop(); return; }
+      frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick); return true;
+  }
   function playSnowfall(config) {
     const template = [...svg.querySelectorAll('path[data-finish-part]')].filter(node => node.dataset.finishPart === config.part);
     const bounds = String(lesson.viewBox ?? '').trim().split(/\s+/).map(Number);
@@ -350,6 +418,7 @@ export function createDrawingFinale(svg, lesson, options = {}) {
     if (config?.type === 'car-drive') return playCar(config, reducedMotion);
     if (reducedMotion) return false;
     if (config?.type === 'snowfall') return playSnowfall(config);
+    if (config?.type === 'house-evening') return playHouse(config);
     if (config?.type === 'zebra-run') return playZebra(config);
     if (config?.type === 'striped-fish') return playStripedFish(config);
     if (config?.type !== 'fish') return false;
