@@ -49,12 +49,12 @@ describe("DictationNumbersParam — a cell picks «любая», a digit or «н
   });
 
   it("all cells fixed — says it is one and the same example", () => {
-    mount({ top: { tens: 1, units: 6 }, bottom: { tens: "none", units: 9 } }, { crossAdd: "any" });
+    mount({ top: { tens: 1, units: 6 }, bottom: { tens: "none", units: 9 } }, { crossTen: "any" });
     expect(container.querySelector(".cop-note").textContent).toMatch(/один и тот же/);
   });
 
   it("digits that cannot keep the ten setting say so (40 + 30 через десяток)", () => {
-    mount({ top: { tens: "any", units: 0 }, bottom: { tens: "any", units: 0 } }, { crossAdd: "with" });
+    mount({ top: { tens: "any", units: 0 }, bottom: { tens: "any", units: 0 } }, { crossTen: "with" });
     expect(container.querySelector(".cop-note").textContent).toMatch(/не переходит/);
   });
 

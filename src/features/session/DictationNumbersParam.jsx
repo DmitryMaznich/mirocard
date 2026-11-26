@@ -38,7 +38,7 @@ export function optionDisabled(place, value) {
 }
 
 // The sign is a cell too (2026-11-26): «+», «−» or «любой» — `onOperationChange`.
-export default function DictationNumbersParam({ label, labelNode, value, operation = "add", crossAdd = "none", crossSub = "none", onChange, onOperationChange }) {
+export default function DictationNumbersParam({ label, labelNode, value, operation = "add", crossTen = "none", onChange, onOperationChange }) {
   const { t } = useUiTranslation();
   const limitOp = operation === "subtract" ? "subtract" : "add";
   const numbers = normalizeDictationNumbers(value, limitOp);
@@ -59,7 +59,7 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
     return () => document.removeEventListener("pointerdown", close);
   }, [editing]);
 
-  const plan = useMemo(() => dictationPlan({ numbers, operation, crossAdd, crossSub }), [key, operation, crossAdd, crossSub]); // eslint-disable-line react-hooks/exhaustive-deps
+  const plan = useMemo(() => dictationPlan({ numbers, operation, crossTen }), [key, operation, crossTen]); // eslint-disable-line react-hooks/exhaustive-deps
   const example = useMemo(() => drawDictationExample(plan, seededRandom(seed)), [plan, seed]);
   const { isPlaying, play } = useAudioSequence();
 

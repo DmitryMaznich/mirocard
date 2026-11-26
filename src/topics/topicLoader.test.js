@@ -778,7 +778,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const audio = record.modes.find((m) => m.id === "operation_audio");
     expect(audio.ui).toMatchObject({ title: "12. Слушай и посчитай", instruction: "Слушай пример и вводи ответ" });
     // an installed deck still lists maxNumber/changeMax — the cells replace them (2026-11-25)
-    expect(Object.keys(audio.params)).toEqual(["operation", "numbers", "crossAdd", "crossSub"]);
+    expect(Object.keys(audio.params)).toEqual(["operation", "numbers", "crossTen"]);
     expect(audio.params.operation.hidden).toBe(true);
     expect(audio.params.numbers.type).toBe("dictation_numbers");
     expect(audio.hideConceptPicker).toBe(true);

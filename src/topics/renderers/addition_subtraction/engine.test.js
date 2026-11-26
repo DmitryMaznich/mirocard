@@ -452,7 +452,7 @@ describe("operation_audio", () => {
   });
 
   it("an impossible ten setting gives way to the digits (40 + 30 «через десяток»)", () => {
-    const plan = dictationPlan({ operation: "add", crossAdd: "with", numbers: nums(one("any", 0), one("any", 0)) });
+    const plan = dictationPlan({ operation: "add", crossTen: "with", numbers: nums(one("any", 0), one("any", 0)) });
     expect(plan.relaxed).toEqual({ add: "with" });
     expect(plan.empty).toBe(false);
   });
@@ -466,28 +466,29 @@ describe("operation_audio", () => {
   });
 
   it("all cells fixed is one example, and the plan says so", () => {
-    expect(dictationPlan({ numbers: nums(one(1, 6), one("none", 9)), crossAdd: "any" }).single).toBe(true);
+    expect(dictationPlan({ numbers: nums(one(1, 6), one("none", 9)), crossTen: "any" }).single).toBe(true);
   });
 
   it("maps settings saved before 2026-11-25: «до 20» → teens ± one digit, «до 100» → two-digit numbers", () => {
     expect(resolveDictationParams({ maxNumber: 20, changeMax: 99 })).toEqual({
-      operation: "add", crossAdd: "any", crossSub: "any", numbers: nums(one(1, "any"), one("none", "any")),
+      operation: "add", crossTen: "any", numbers: nums(one(1, "any"), one("none", "any")),
     });
     expect(resolveDictationParams({ maxNumber: 100 }).numbers).toEqual(nums(one("any", "any"), one("any", "any")));
     const tasks = generateTasks("operation_audio", CARDS, 40, { maxNumber: 20, changeMax: 99 });
     tasks.forEach((t) => { ok(t); expect(t.start).toBeGreaterThanOrEqual(11); expect(t.start).toBeLessThanOrEqual(19); });
   });
 
-  it("«Через десяток» per action: + with a ten, − without, in one mixed lesson; yesterday's crossTen maps to both", () => {
+  it("«Через десяток» applies to whichever sign: «есть» with «любой» — both actions cross; old values map", () => {
     const tasks = generateTasks("operation_audio", CARDS, 80, {
-      operation: "mixed", crossAdd: "with", crossSub: "none", numbers: nums(one("any", "any"), one("none", "any")),
+      operation: "mixed", crossTen: "with", numbers: nums(one("any", "any"), one("none", "any")),
     });
     tasks.forEach((t) => {
       ok(t);
       if (t.operation === "add") expect((t.start % 10) + t.delta).toBeGreaterThanOrEqual(10);
-      else expect(t.start % 10).toBeGreaterThanOrEqual(t.delta);
+      else expect(t.start % 10).toBeLessThan(t.delta);
     });
-    expect(resolveDictationParams({ crossTen: "cross", numbers: nums(one("any", "any"), one("none", "any")) })).toMatchObject({ crossAdd: "with", crossSub: "with" });
+    expect(resolveDictationParams({ crossTen: "cross" }).crossTen).toBe("with");
+    expect(resolveDictationParams({ crossTen: "mixed" }).crossTen).toBe("any");
   });
 
   it("with «−» the second number is never longer than the first", () => {

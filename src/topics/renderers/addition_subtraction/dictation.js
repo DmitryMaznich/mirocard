@@ -9,7 +9,7 @@
 // a single fact drilled (+9, ±1, +10).
 //
 // Value of the setting: { top: { tens, units }, bottom: { tens, units } }.
-// Other settings: operation "add" | "subtract" | "mixed" (the sign cell), crossAdd / crossSub "none" | "with" | "any".
+// Other settings: operation "add" | "subtract" | "mixed" (the sign cell), crossTen "none" | "with" | "any".
 // Answers stay within 1…99: the recorded number bank has no words past 100, and 0 as an
 // answer (7 − 7) is not a dictation example.
 
@@ -44,11 +44,10 @@ export function normalizeDictationNumbers(value, operation = "add") {
   return { top, bottom };
 }
 
-// «Через десяток» per action (2026-11-26, owner — like «Перенос» / «Заём» of the column):
-// crossAdd / crossSub — "none" (without), "with" (only with), "any" (both). The day before it was
-// one `crossTen` (none / cross / mixed) for both.
+// «Через десяток»: "none" (without), "with" (only with), "any" (both) — one setting for whichever sign
+// is chosen (owner, 2026-11-26: not a row per action). Until 2026-11-26 its values were none / cross / mixed.
 export const CROSS_VALUES = ["none", "with", "any"];
-const CROSS_OF_TEN = { none: "none", cross: "with", mixed: "any" };
+const CROSS_OF_OLD = { cross: "with", mixed: "any" };
 
 // Settings saved before 2026-11-25 carry «Максимальное число» (maxNumber 20/50/100): «до 20» is
 // the teens with a one-digit number, «до 50/100» two two-digit numbers; examples of both kinds
@@ -63,10 +62,9 @@ export function resolveDictationParams(saved = {}) {
         : { top: { tens: "any", units: "any" }, bottom: { tens: "any", units: "any" } })
       : DEFAULT_DICTATION_NUMBERS;
   const operation = ["add", "subtract", "mixed"].includes(saved.operation) ? saved.operation : "add";
-  const fallback = CROSS_OF_TEN[saved.crossTen] ?? (legacy ? "any" : "none");
-  const crossAdd = CROSS_VALUES.includes(saved.crossAdd) ? saved.crossAdd : fallback;
-  const crossSub = CROSS_VALUES.includes(saved.crossSub) ? saved.crossSub : fallback;
-  return { operation, crossAdd, crossSub, numbers: normalizeDictationNumbers(numbers, operation) };
+  const crossTen = CROSS_VALUES.includes(saved.crossTen) ? saved.crossTen
+    : CROSS_OF_OLD[saved.crossTen] ?? (legacy ? "any" : "none");
+  return { operation, crossTen, numbers: normalizeDictationNumbers(numbers, operation) };
 }
 
 function candidates(n) {
@@ -100,14 +98,14 @@ function allPairs(numbers, operation) {
 // relaxed: { add|subtract: "with"|"none" } — the ten setting of that action cannot be kept with these
 // digits (40 + 30 «через десяток», 60 − 4 «без»), so its examples go as the digits allow — the
 // same rule as «Перенос» / «Заём» in the column.
-export function dictationPlan({ numbers, operation = "add", crossAdd = "none", crossSub = "none" } = {}) {
+export function dictationPlan({ numbers, operation = "add", crossTen = "none" } = {}) {
   const ops = operation === "mixed" ? ["add", "subtract"] : [operation];
   const byOp = {};
   const relaxed = {};
   for (const op of ops) {
     const all = allPairs(numbers, op);
     if (!all.length) continue;
-    const cross = op === "add" ? crossAdd : crossSub;
+    const cross = CROSS_VALUES.includes(crossTen) ? crossTen : CROSS_OF_OLD[crossTen] ?? "none";
     const kept = cross === "any" ? all : all.filter((p) => p.crosses === (cross === "with"));
     if (!kept.length) relaxed[op] = cross;
     byOp[op] = kept.length ? kept : all;

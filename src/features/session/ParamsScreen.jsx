@@ -1761,9 +1761,9 @@ export default function ParamsScreen() {
         if (saved.operation == null && mode?.params?.operation) out.operation = resolved.operation;
         continue;
       }
-      if ((key === "crossAdd" || key === "crossSub") && mode?.type === "operation_audio") {
-        // settings saved before 2026-11-26 carry one «Через десяток» (crossTen) for both actions
-        out[key] = resolveDictationParams(saved)[key];
+      if (key === "crossTen" && mode?.type === "operation_audio") {
+        // «Через десяток» saved before 2026-11-26 was none / cross / mixed (dictation.js)
+        out[key] = resolveDictationParams(saved).crossTen;
         continue;
       }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
@@ -2357,8 +2357,7 @@ export default function ParamsScreen() {
                 labelNode={<ParamLabel label={label} info={setupInfo(def.info)} onShowInfo={setActiveInfo} />}
                 value={params[key]}
                 operation={params.operation ?? mode.params?.operation?.default}
-                crossAdd={params.crossAdd ?? mode.params?.crossAdd?.default}
-                crossSub={params.crossSub ?? mode.params?.crossSub?.default}
+                crossTen={params.crossTen ?? mode.params?.crossTen?.default}
                 onOperationChange={(v) => setParams((p) => ({ ...p, operation: v }))}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
