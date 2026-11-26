@@ -33,26 +33,30 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); useAppStore.setState(initial, true); });
 
 const cells = () => [...host.querySelectorAll(".cop-cell")];
-const state = () => cells().map((c) => (c.classList.contains("cop-cell--zero") ? "0" : c.classList.contains("cop-cell--on") ? "•" : "_")).join("");
-const tap = async (i) => act(async () => cells()[i].click());
+const state = () => cells().map((c) => (c.textContent || (c.classList.contains("cop-cell--on") ? "•" : "_"))).join("");
+// a tap opens the picker under the cells, the second tap picks (2026-11-26)
+const pick = async (i, option) => {
+  await act(async () => cells()[i].click());
+  await act(async () => [...host.querySelectorAll(".cdp-option")].find((b) => b.textContent === option).click());
+};
 const start = async () => act(async () => [...host.querySelectorAll("button")].find((b) => b.textContent.trim() === "Начать занятие").click());
 
-it("2 + 2: the middle cell goes off (it is the leading tens), grows back, a 3-digit top takes a zero in the middle", async () => {
+it("2 + 2: a cell picks «нет», «любая», 0 or a digit; the number grows and shrinks with it", async () => {
   mountWith({});
   await act(async () => root.render(<ParamsScreen />));
   expect(state()).toBe("_••_••");
-  await tap(1); // the leading tens of a 2-digit top — off
+  await pick(1, "нет"); // the top's tens — the number is one digit now
   expect(state()).toBe("__•_••");
-  await tap(0); // grow the top to 3 digits
-  await tap(1); // the middle is the tens of a 3-digit number now — 0
-  expect(state()).toBe("•0•_••");
-  await tap(1); // the 0 again — any digit
+  await pick(0, "любая"); // a value over an empty cell grows the top to 3 digits
   expect(state()).toBe("•••_••");
-  await tap(1);
-  await tap(3); // a 3-digit bottom
+  await pick(1, "0");
+  expect(state()).toBe("•0•_••");
+  await pick(1, "7"); // a fixed digit
+  expect(state()).toBe("•7•_••");
+  await pick(3, "любая"); // a 3-digit bottom
   await start();
   expect(mocks.persist).toHaveBeenCalledWith("kid", "column_addition", expect.objectContaining({
-    params: expect.objectContaining({ operands: { top: 3, topZeros: [1], bottom: 3, bottomZeros: [] } }),
+    params: expect.objectContaining({ operands: { top: 3, topZeros: [], topFixed: { 1: 7 }, bottom: 3, bottomZeros: [] } }),
   }));
 });
 

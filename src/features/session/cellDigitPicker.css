@@ -1,0 +1,58 @@
+/* CellDigitPicker.jsx: «любая», 0–9, «нет» under the number cells. */
+
+.cdp-picker {
+  width: 100%;
+  padding: 10px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1.5px solid #bfd3f5;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.14);
+}
+.cdp-picker__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 2px 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+.cdp-picker__close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: 700 1.25rem/1 inherit;
+  font-family: inherit;
+  color: #94a3b8;
+  cursor: pointer;
+}
+.cdp-picker__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+
+.cdp-option {
+  min-height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1.5px solid #e3c9a0;
+  background: #fffaf0;
+  color: #b45309;
+  font-family: 'Primo', cursive;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.cdp-option--any,
+.cdp-option--none {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.cdp-option--any { border-color: #9fcfc5; background: #eef8f5; color: #1c7a6e; }
+.cdp-option--none { border: 1.5px dashed #c3d0ce; background: #fafcfc; color: #64748b; }
+.cdp-option--current { outline: 3px solid #2563eb; outline-offset: 1px; }
+.cdp-option:disabled { opacity: 0.25; cursor: default; }
+

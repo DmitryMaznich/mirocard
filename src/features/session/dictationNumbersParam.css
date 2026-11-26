@@ -1,72 +1,12 @@
 /* «Числа в примере» of «Слушай и посчитай» (DictationNumbersParam.jsx): the column's cells
-   (columnOperandsParam.css) with two places, a fixed digit drawn in amber like the column's 0,
-   and the digit picker under the cells. */
+   (columnOperandsParam.css) with two places, the picker is CellDigitPicker (cellDigitPicker.css). */
 
 .dnp-column { grid-template-columns: 32px repeat(2, var(--cop-cell)); }
 @media (max-width: 380px) {
   .dnp-column { grid-template-columns: 24px repeat(2, var(--cop-cell)); }
 }
 
-.dnp-cell--fixed { border: 2px solid #d97706; background: #fff4dc; }
-.dnp-cell--editing { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35); }
 .dnp-sign--minus { color: #dc2626; }
-.dnp-mini--fixed { border: 1.5px solid #d97706; background: #fff4dc; }
-
-.dnp-picker {
-  width: 100%;
-  padding: 10px;
-  border-radius: 14px;
-  background: #fff;
-  border: 1.5px solid #bfd3f5;
-  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.14);
-}
-.dnp-picker__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 2px 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #475569;
-}
-.dnp-picker__close {
-  width: 32px;
-  height: 32px;
-  border: 0;
-  background: none;
-  padding: 0;
-  font: 700 1.25rem/1 inherit;
-  font-family: inherit;
-  color: #94a3b8;
-  cursor: pointer;
-}
-.dnp-picker__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
-
-.dnp-option {
-  min-height: 44px;
-  padding: 0;
-  border-radius: 10px;
-  border: 1.5px solid #e3c9a0;
-  background: #fffaf0;
-  color: #b45309;
-  font-family: 'Primo', cursive;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.dnp-option--any,
-.dnp-option--none {
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-.dnp-option--any { border-color: #9fcfc5; background: #eef8f5; color: #1c7a6e; }
-.dnp-option--none { border: 1.5px dashed #c3d0ce; background: #fafcfc; color: #64748b; }
-.dnp-option--current { outline: 3px solid #2563eb; outline-offset: 1px; }
-.dnp-option:disabled { opacity: 0.25; cursor: default; }
 
 .dnp-example {
   width: 100%;

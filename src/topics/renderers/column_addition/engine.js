@@ -359,15 +359,71 @@ const KIND_ZEROS = { round: [0], zero: [1] };
 
 const clampDigits = (n, fallback) => Math.min(3, Math.max(1, Math.round(Number(n)) || fallback));
 
+// A fixed digit (2026-11-26, owner: the same picker as «Слушай и посчитай»): `topFixed` /
+// `bottomFixed` — { place: 1…9 }, only when some are set (a 0 stays in the zeros, so settings
+// and tests saved before read the same). A leading place may hold a fixed digit, never a 0.
+function cleanFixed(fixed, digits, zeros) {
+  const out = {};
+  if (!fixed || typeof fixed !== "object") return out;
+  for (const key of Object.keys(fixed).map(Number).sort((a, b) => a - b)) {
+    const d = Number(fixed[key]);
+    if (Number.isInteger(key) && key >= 0 && key < digits && Number.isInteger(d) && d >= 1 && d <= 9 && !zeros.includes(key)) out[key] = d;
+  }
+  return out;
+}
+
 export function normalizeOperands(o, operation = "add") {
   const top = clampDigits(o?.top, 2);
   const bottom = Math.min(clampDigits(o?.bottom, top), operation === "add" ? 3 : top);
+  const topZeros = cleanZeros(o?.topZeros ?? KIND_ZEROS[o?.topKind], top);
+  const bottomZeros = cleanZeros(o?.bottomZeros ?? KIND_ZEROS[o?.bottomKind], bottom);
+  const topFixed = cleanFixed(o?.topFixed, top, topZeros);
+  const bottomFixed = cleanFixed(o?.bottomFixed, bottom, bottomZeros);
   return {
     top,
-    topZeros: cleanZeros(o?.topZeros ?? KIND_ZEROS[o?.topKind], top),
+    topZeros,
+    ...(Object.keys(topFixed).length ? { topFixed } : {}),
     bottom,
-    bottomZeros: cleanZeros(o?.bottomZeros ?? KIND_ZEROS[o?.bottomKind], bottom),
+    bottomZeros,
+    ...(Object.keys(bottomFixed).length ? { bottomFixed } : {}),
   };
+}
+
+// What a cell holds: "any" | 0…9 | "none" — the picker's value.
+export function operandCell(o, row, place) {
+  const digits = o[row];
+  if (place >= digits) return "none";
+  if (o[`${row}Zeros`].includes(place)) return 0;
+  return o[`${row}Fixed`]?.[place] ?? "any";
+}
+
+// Puts a picked value into a cell. «нет» cuts the number below that place (the units are always
+// there); a value over an empty place grows the number to it (the places between: «любая»).
+export function setOperandCell(o, row, place, value, operation = "add") {
+  const zerosKey = `${row}Zeros`;
+  const fixedKey = `${row}Fixed`;
+  let digits = o[row];
+  let zeros = [...o[zerosKey]];
+  const fixed = { ...(o[fixedKey] ?? {}) };
+  if (value === "none") {
+    if (place === 0) return normalizeOperands(o, operation);
+    digits = Math.min(digits, place);
+  } else {
+    digits = Math.max(digits, place + 1);
+    zeros = zeros.filter((p) => p !== place);
+    delete fixed[place];
+    if (value === 0) { if (place < digits - 1) zeros.push(place); }
+    else if (value !== "any") fixed[place] = value;
+  }
+  return normalizeOperands({ ...o, [row]: digits, [zerosKey]: zeros, [fixedKey]: fixed }, operation);
+}
+
+// Every cell of both numbers fixed (or 0): the same example every time.
+export function operandsSingle(o) {
+  return ["top", "bottom"].every((row) => {
+    for (let p = 0; p < o[row]; p++) if (operandCell(o, row, p) === "any") return false;
+    return true;
+  });
 }
 
 // The old «Разрядность» values, for settings saved before 2026-11-15.
@@ -384,18 +440,22 @@ export function resolveOperands(params) {
 }
 
 // `rng` — a seeded generator for «Контрольные по математике» (the same sheet from the same seed).
-function drawOperand(digits, zeros, rng = Math.random) {
+function drawOperand(digits, zeros, rng = Math.random, fixed = {}) {
   const int = (min, max) => min + Math.floor(rng() * (max - min + 1));
-  if (digits === 1) return int(2, 9);
+  const digit = (p, min) => fixed[p] ?? (zeros.includes(p) ? 0 : int(min, 9));
+  if (digits === 1) return digit(0, 2);
   let n = 0;
-  for (let p = digits - 1; p >= 0; p--) n = n * 10 + (zeros.includes(p) ? 0 : int(1, 9));
+  for (let p = digits - 1; p >= 0; p--) n = n * 10 + digit(p, 1);
   return n;
 }
 
 function drawOperandsPair(o, op, carryMode, usedPairs, { rng = Math.random, newPlace = false } = {}) {
+  // with fixed digits there may be fewer examples than the lesson asks for: then one repeats
+  // rather than the lesson coming out short
+  let repeat = null;
   for (let attempt = 0; attempt < 300; attempt++) {
-    const top = drawOperand(o.top, o.topZeros, rng);
-    const bottom = drawOperand(o.bottom, o.bottomZeros, rng);
+    const top = drawOperand(o.top, o.topZeros, rng, o.topFixed);
+    const bottom = drawOperand(o.bottom, o.bottomZeros, rng, o.bottomFixed);
     const answer = op === "add" ? top + bottom : top - bottom;
     if (answer <= 0) continue;
     // the trainer's answer is as wide as the longer number; a test may let it grow or shrink a
@@ -406,11 +466,11 @@ function drawOperandsPair(o, op, carryMode, usedPairs, { rng = Math.random, newP
       if (crosses !== (carryMode === "carry")) continue;
     }
     const pairKey = `${op}:${top},${bottom}`;
-    if (usedPairs?.has(pairKey)) continue;
+    if (usedPairs?.has(pairKey)) { repeat ??= { operation: op, top, bottom }; continue; }
     usedPairs?.add(pairKey);
     return { operation: op, top, bottom };
   }
-  return null;
+  return repeat;
 }
 
 // A carry the numbers can't have (40 + 50 with «С переносом»: round tens

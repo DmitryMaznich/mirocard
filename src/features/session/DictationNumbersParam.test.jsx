@@ -15,18 +15,18 @@ describe("DictationNumbersParam — a cell picks «любая», a digit or «н
   }
   const cell = (i) => container.querySelectorAll(".cop-cell")[i];
   const open = (i) => act(() => cell(i).click());
-  const option = (text) => [...container.querySelectorAll(".dnp-option")].find((b) => b.textContent === text);
+  const option = (text) => [...container.querySelectorAll(".cdp-option")].find((b) => b.textContent === text);
   const pick = (text) => act(() => option(text).click());
 
   it("starts as one digit + one digit; the second tap picks and closes", () => {
     mount(undefined);
     expect(value).toEqual({ top: { tens: "none", units: "any" }, bottom: { tens: "none", units: "any" } });
     open(0);
-    expect(container.querySelectorAll(".dnp-option")).toHaveLength(12);
+    expect(container.querySelectorAll(".cdp-option")).toHaveLength(12);
     expect(option("0").disabled).toBe(true); // a number never starts with 0
     pick("1");
     expect(value.top.tens).toBe(1);
-    expect(container.querySelector(".dnp-picker")).toBeNull();
+    expect(container.querySelector(".cdp-picker")).toBeNull();
     expect(cell(0).textContent).toBe("1");
     expect(container.querySelector(".dnp-example__said").textContent).toMatch(/^«/);
   });

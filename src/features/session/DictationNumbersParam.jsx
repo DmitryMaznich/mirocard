@@ -16,12 +16,12 @@ import {
 } from "@/topics/renderers/addition_subtraction/dictation.js";
 import { audioKeyUrl, numberToWords, SIGN_WORDS, taskAudioItems } from "@/topics/renderers/addition_subtraction/audioNumbers.js";
 import { useAudioSequence } from "@/topics/renderers/addition_subtraction/useAudioSequence.js";
+import CellDigitPicker, { CellLegend, useCellText } from "./CellDigitPicker.jsx";
 import "./columnOperandsParam.css";
 import "./dictationNumbersParam.css";
 
 const ROWS = ["top", "bottom"];
 const PLACES = ["tens", "units"];
-const OPTIONS = ["any", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "none"];
 
 function seededRandom(seed) {
   let a = (seed * 2654435761 + 1) >>> 0;
@@ -64,7 +64,7 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
 
   const sign = (example?.operation ?? (operation === "subtract" ? "subtract" : "add")) === "subtract" ? "−" : "+";
   const lockedBottomTens = limitOp === "subtract" && numbers.top.tens === "none";
-  const cellText = (v) => (v === "any" ? t("dictation.any") : v === "none" ? t("dictation.none") : String(v));
+  const cellText = useCellText();
   const pick = (v) => {
     const next = { ...numbers, [editing.row]: { ...numbers[editing.row], [editing.place]: v } };
     setEditing(null);
@@ -72,7 +72,7 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
   };
 
   const note = plan.empty ? t("dictation.empty")
-    : plan.single ? t("dictation.single")
+    : plan.single ? t("cells.single")
     : plan.relaxed ? t(crossTen === "cross" ? "dictation.relaxedCross" : "dictation.relaxedNone")
     : null;
 
@@ -97,9 +97,9 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
                   className={[
                     "cop-cell",
                     v === "any" ? "cop-cell--on" : "",
-                    typeof v === "number" ? "dnp-cell--fixed" : "",
+                    typeof v === "number" ? "cop-cell--fixed" : "",
                     off ? "cop-cell--off" : "",
-                    isEditing ? "dnp-cell--editing" : "",
+                    isEditing ? "cop-cell--editing" : "",
                   ].filter(Boolean).join(" ")}
                   style={{ gridRow: r + 1, gridColumn: p + 2 }}
                   aria-label={t("dictation.cellState", { cell: t(`dictation.cell.${row}.${place}`), value: cellText(v) })}
@@ -113,38 +113,17 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
           ])}
           <span className="cop-line" style={{ gridRow: 3, gridColumn: "1 / 4" }} />
         </div>
-        <ul className="cop-legend">
-          <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> {t("dictation.legendAny")}</li>
-          <li><span className="cop-mini dnp-mini--fixed" aria-hidden="true">7</span> {t("dictation.legendFixed")}</li>
-          <li><span className="cop-mini" aria-hidden="true" /> {t("dictation.legendNone")}</li>
-        </ul>
+        <CellLegend />
       </div>
 
       {editing && (
-        <div className="dnp-picker" role="group" aria-label={t(`dictation.cell.${editing.row}.${editing.place}`)}>
-          <div className="dnp-picker__head">
-            <span>{t(`dictation.cell.${editing.row}.${editing.place}`)}</span>
-            <button type="button" className="dnp-picker__close" aria-label={t("dictation.close")} onClick={() => setEditing(null)}>×</button>
-          </div>
-          <div className="dnp-picker__grid">
-            {OPTIONS.map((v) => (
-              <button
-                key={String(v)}
-                type="button"
-                className={[
-                  "dnp-option",
-                  v === "any" ? "dnp-option--any" : v === "none" ? "dnp-option--none" : "",
-                  numbers[editing.row][editing.place] === v ? "dnp-option--current" : "",
-                ].filter(Boolean).join(" ")}
-                disabled={optionDisabled(editing.place, v)}
-                aria-pressed={numbers[editing.row][editing.place] === v}
-                onClick={() => pick(v)}
-              >
-                {cellText(v)}
-              </button>
-            ))}
-          </div>
-        </div>
+        <CellDigitPicker
+          title={t(`dictation.cell.${editing.row}.${editing.place}`)}
+          current={numbers[editing.row][editing.place]}
+          isDisabled={(v) => optionDisabled(editing.place, v)}
+          onPick={pick}
+          onClose={() => setEditing(null)}
+        />
       )}
 
       <div className="dnp-example">

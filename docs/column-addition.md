@@ -34,6 +34,16 @@ no longer needed for the column.
   says so. Old saved `digits` map onto it (`resolveOperands`; ParamsScreen
   does it when the settings open). Three cells: the trainer stays within
   three digits — four would mean thousands (owner agreed).
+- **A cell picks a digit (2026-11-26, owner: the same as «Слушай и посчитай»).** The tap gesture above
+  is replaced: a tap on any cell opens a picker under the cells — «любая», 0–9, «нет» — the second tap picks
+  (`CellDigitPicker.jsx`, shared with `DictationNumbersParam.jsx`). A value over an empty cell grows the
+  number to it, «нет» cuts the number below it; no 0 where it would lead, no «нет» for the units. A fixed
+  digit 1–9 is stored additively in `topFixed` / `bottomFixed` (`{ place: digit }`, only when set) — a 0
+  stays in the zeros, so settings and tests saved before read the same and an older client just sees «любая».
+  Engine: `operandCell`, `setOperandCell`, `operandsSingle`; `drawOperand` draws the fixed digit. All cells
+  fixed — the note «один и тот же пример»; when the fresh examples run out an example repeats instead of the
+  lesson coming out short. The «Перенос / заём» note now says which way the digits force it
+  (`column.relaxed.*` in `mathTrainerMessages.js`). The same cells in «Реши в столбик» of `math_tests`.
 - **«Контрольная работа» moved to «Контрольные по математике» (2026-11-16, owner).** The mode list shows
   `column_tests_link` (type `topic_link`: `link: {topicId, title, text}`) — ParamsScreen opens
   `TopicLinkScreen` for it: the topic opens if installed, else the catalog opens on it (store
