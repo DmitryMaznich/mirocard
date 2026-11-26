@@ -1,20 +1,9 @@
 /* «Пример» of «Слушай и посчитай» (DictationNumbersParam.jsx): the column's cells
-   (columnOperandsParam.css) set in a line — number, sign, number, «= ?» (2026-11-26); the picker is
+   (columnOperandsParam.css) one under another, the sign between them in the middle (2026-11-26); the picker is
    CellDigitPicker (cellDigitPicker.css). */
 
-.dnp-body { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.dnp-line { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.dnp-stack { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none; }
 .dnp-term { display: flex; gap: 4px; }
-.dnp-equals {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
-  color: #94a3b8;
-  white-space: nowrap;
-  padding-left: 2px;
-}
-/* the legend under the line, in a row */
-.dnp-body .cop-legend { flex-direction: row; flex-wrap: wrap; gap: 6px 14px; font-size: 0.85rem; }
 
 .dnp-sign--minus { color: #dc2626; }
 

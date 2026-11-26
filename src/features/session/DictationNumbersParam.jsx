@@ -82,10 +82,10 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
   return (
     <div className="param-row param-row--block cop dnp" aria-label={label} ref={rootRef}>
       {labelNode}
-      {/* the example in a line — number, sign, number, «= ?» (owner, 2026-11-26): not tied to the
-          column, so a third number with its own sign can join it later (chains) */}
-      <div className="dnp-body">
-        <div className="dnp-line">
+      {/* the numbers one under another with the sign between them, in the middle (owner, 2026-11-26):
+          not a column — a chain just grows down: number, sign, number, sign, number */}
+      <div className="cop-body dnp-body">
+        <div className="dnp-stack">
           {ROWS.map((row, r) => [
             r > 0 && (
               <button
@@ -126,7 +126,6 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
               })}
             </div>,
           ])}
-          <span className="dnp-equals" aria-hidden="true">= ?</span>
         </div>
         <CellLegend />
       </div>
