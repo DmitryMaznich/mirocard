@@ -1,10 +1,9 @@
-/* «Числа в примере» of «Слушай и посчитай» (DictationNumbersParam.jsx): the column's cells
-   (columnOperandsParam.css) with two places, the picker is CellDigitPicker (cellDigitPicker.css). */
+/* «Пример» of «Слушай и посчитай» (DictationNumbersParam.jsx): the column's cells
+   (columnOperandsParam.css) one under another, the sign between them in the middle (2026-11-26); the picker is
+   CellDigitPicker (cellDigitPicker.css). */
 
-.dnp-column { grid-template-columns: 40px repeat(2, var(--cop-cell)); }
-@media (max-width: 380px) {
-  .dnp-column { grid-template-columns: 36px repeat(2, var(--cop-cell)); }
-}
+.dnp-stack { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none; }
+.dnp-term { display: flex; gap: 4px; }
 
 .dnp-sign--minus { color: #dc2626; }
 

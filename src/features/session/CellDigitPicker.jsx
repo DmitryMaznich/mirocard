@@ -1,5 +1,5 @@
 // The digit picker of the number cells (owner, 2026-11-25/26): a tap on a cell opens it under the
-// cells — «любая», 0–9, «нет» — and the second tap picks; every state is in sight, two taps at
+// cells — 0–9, «случайная», «нет» — and the second tap picks; every state is in sight, two taps at
 // most. Shared by «Числа в примере» of «Слушай и посчитай» (DictationNumbersParam) and of
 // «Столбик» / «Реши в столбик» (ColumnOperandsParam).
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -12,9 +12,40 @@ export function useCellText() {
   return (v) => (v === "any" ? t("cells.any") : v === "none" ? t("cells.none") : String(v));
 }
 
-// The sign cell (2026-11-26): «+», «−» or «любой» (both, mixed) — the same picker, three options.
+// The sign cell (2026-11-26): «+», «−» or «случайный» (both, mixed) — the same picker, three options.
 export const SIGN_OPTIONS = ["add", "subtract", "mixed"];
 export const SIGN_GLYPH = { add: "+", subtract: "−", mixed: "±" };
+
+// The handwriting font (Primo) draws its digits right of and above the middle of their box, each by
+// its own amount (measured 2026-11-26 at 30px: ink centre minus box centre, in em). A digit in a square
+// cell or tile is moved back by its own offset so it stands in the middle.
+const PRIMO_DX = [0.167, 0.267, 0.117, 0.15, 0.117, 0.167, 0.167, 0.267, 0.167, 0.217];
+const PRIMO_DY = 0.2;
+
+export function CellDigit({ d }) {
+  return (
+    <span className="cdp-digit" style={{ transform: `translate(${-PRIMO_DX[d]}em, ${PRIMO_DY}em)` }}>{d}</span>
+  );
+}
+
+// The sign drawn as strokes (owner, 2026-11-26): the handwriting font's «+» and «−» sit right of and
+// above the middle of their box, so in a square cell they looked off-centre.
+export function SignGlyph({ op }) {
+  return (
+    <svg className="cdp-sign-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {op === "mixed" ? (
+        <>
+          <path d="M12 4v11M6.5 9.5h11" />
+          <path d="M6.5 19.5h11" />
+        </>
+      ) : op === "subtract" ? (
+        <path d="M5.5 12h13" />
+      ) : (
+        <path d="M12 5.5v13M5.5 12h13" />
+      )}
+    </svg>
+  );
+}
 
 export function useSignText() {
   const { t } = useUiTranslation();
@@ -26,31 +57,63 @@ export default function CellDigitPicker({ title, current, options = CELL_OPTIONS
   const digitText = useCellText();
   const cellText = text ?? digitText;
   const isSign = options === SIGN_OPTIONS;
+  const option = (v) => (
+    <button
+      key={String(v)}
+      type="button"
+      className={[
+        "cdp-option",
+        v === "any" ? "cdp-option--any" : v === "none" ? "cdp-option--none" : "",
+        current === v ? "cdp-option--current" : "",
+      ].filter(Boolean).join(" ")}
+      disabled={isDisabled(v)}
+      aria-pressed={current === v}
+      onClick={() => onPick(v)}
+    >
+      {typeof v === "number" ? <CellDigit d={v} /> : cellText(v)}
+    </button>
+  );
   return (
     <div className="cdp-picker" role="group" aria-label={title}>
       <div className="cdp-picker__head">
         <span>{title}</span>
         <button type="button" className="cdp-picker__close" aria-label={t("cells.close")} onClick={onClose}>×</button>
       </div>
-      <div className={`cdp-picker__grid${isSign ? " cdp-picker__grid--sign" : ""}`}>
-        {options.map((v) => (
-          <button
-            key={String(v)}
-            type="button"
-            className={[
-              "cdp-option",
-              v === "any" || v === "mixed" ? "cdp-option--any" : v === "none" ? "cdp-option--none" : "",
-              isSign && v !== "mixed" ? "cdp-option--sign" : "",
-              current === v ? "cdp-option--current" : "",
-            ].filter(Boolean).join(" ")}
-            disabled={isDisabled(v)}
-            aria-pressed={current === v}
-            onClick={() => onPick(v)}
-          >
-            {cellText(v)}
-          </button>
-        ))}
-      </div>
+      {isSign ? (
+        // tiles the size of the cells (owner, 2026-11-26); «случайный» is «±» with a caption under it
+        <div className="cdp-picker__signs">
+          {options.map((v) => (
+            <div key={v} className="cdp-sign">
+              <button
+                type="button"
+                className={[
+                  "cdp-option",
+                  "cdp-option--sign",
+                  v === "subtract" ? "cdp-option--minus" : "",
+                  v === "mixed" ? "cdp-option--random" : "",
+                  current === v ? "cdp-option--current" : "",
+                ].filter(Boolean).join(" ")}
+                aria-pressed={current === v}
+                aria-label={cellText(v)}
+                onClick={() => onPick(v)}
+              >
+                <SignGlyph op={v} />
+              </button>
+              {v === "mixed" && <small className="cdp-sign__caption" aria-hidden="true">{cellText(v)}</small>}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* the digits as square tiles, five in a row; the two words under them, wide */}
+          <div className="cdp-picker__digits">
+            {options.filter((v) => typeof v === "number").map(option)}
+          </div>
+          <div className="cdp-picker__words">
+            {options.filter((v) => typeof v !== "number").map(option)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -61,7 +124,7 @@ export function CellLegend() {
   return (
     <ul className="cop-legend">
       <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> {t("cells.legendAny")}</li>
-      <li><span className="cop-mini cop-mini--fixed" aria-hidden="true">7</span> {t("cells.legendFixed")}</li>
+      <li><span className="cop-mini cop-mini--fixed" aria-hidden="true"><CellDigit d={7} /></span> {t("cells.legendFixed")}</li>
       <li><span className="cop-mini" aria-hidden="true" /> {t("cells.legendNone")}</li>
     </ul>
   );

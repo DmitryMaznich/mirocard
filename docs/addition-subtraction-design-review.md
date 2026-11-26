@@ -38,6 +38,12 @@ the column's own cells stay as they are for now.
   «нет / есть / любой» (`crossTen`: none / with / any) for whichever sign is chosen — a row per action was tried
   and dropped the same day (owner: two look-alike rows are clumsy). The day-old values cross / mixed map to
   with / any.
+- 2026-11-26: the dictation's example is drawn as numbers one under another with the sign between them, in the
+  middle (`DictationNumbersParam`, `.dnp-stack`) — not a column with the sign at the side (owner: the model for the
+  other trainers — chains, «Сколько стало?» — a chain just grows down: number, sign, number, sign, number; a line
+  «a + b = ?» was tried the same day and dropped). In the column the sign stands between the two rows, as in
+  a notebook. Picker tiles are the size of the cells; the signs are drawn (`SignGlyph`), the handwriting font's
+  digits are moved back to the middle by a per-digit offset (`CellDigit`, measured).
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
 ## Mode numbering changed 2026-10-07

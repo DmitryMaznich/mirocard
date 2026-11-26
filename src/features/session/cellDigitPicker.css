@@ -1,4 +1,4 @@
-/* CellDigitPicker.jsx: «любая», 0–9, «нет» under the number cells. */
+/* CellDigitPicker.jsx: 0–9, «случайная», «нет» under the number cells; square tiles (owner, 2026-11-26). */
 
 .cdp-picker {
   width: 100%;
@@ -28,7 +28,10 @@
   color: #94a3b8;
   cursor: pointer;
 }
-.cdp-picker__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.cdp-picker__digits { display: grid; grid-template-columns: repeat(5, var(--cop-cell, 48px)); gap: 6px; }
+.cdp-picker__digits .cdp-option { width: var(--cop-cell, 48px); height: var(--cop-cell, 48px); min-height: 0; }
+.cdp-picker__words { display: flex; gap: 6px; margin-top: 6px; }
+.cdp-picker__words .cdp-option { height: var(--cop-cell, 48px); min-height: 0; padding: 0 16px; min-width: 96px; }
 
 .cdp-option {
   min-height: 44px;
@@ -57,7 +60,28 @@
 .cdp-option:disabled { opacity: 0.25; cursor: default; }
 
 
-/* the sign cell's picker: three wide buttons */
-.cdp-picker__grid--sign { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.cdp-option--sign { font-family: 'Primo', cursive; font-size: 30px; color: #2563eb; border-color: #bfd3f5; background: #f3f7ff; }
-.cdp-option--sign:nth-child(2) { color: #dc2626; border-color: #f5c2c2; background: #fff5f5; }
+/* the sign cell's picker: three tiles the size of the cells; «случайный» — «±» with a caption */
+.cdp-picker__signs { display: flex; gap: 6px; align-items: flex-start; }
+.cdp-sign { width: var(--cop-cell, 48px); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cdp-sign__caption { white-space: nowrap; }
+.cdp-option--sign {
+  width: var(--cop-cell, 48px);
+  height: var(--cop-cell, 48px);
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  border-color: #bfd3f5;
+  background: #f3f7ff;
+}
+.cdp-option--minus { color: #dc2626; border-color: #f5c2c2; background: #fff5f5; }
+.cdp-option--random { color: #1c7a6e; border-color: #9fcfc5; background: #eef8f5; }
+.cdp-sign__caption { font-size: 0.7rem; font-weight: 700; color: #1c7a6e; }
+
+/* the drawn sign: in the tiles and in the sign cell of the example */
+.cdp-sign-glyph { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+
+
+/* a digit moved back to the middle of its square (CellDigit: per-digit offsets of the handwriting font) */
+.cdp-digit { display: inline-block; line-height: 1; }

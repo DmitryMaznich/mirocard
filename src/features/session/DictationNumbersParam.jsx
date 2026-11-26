@@ -16,10 +16,11 @@ import {
 } from "@/topics/renderers/addition_subtraction/dictation.js";
 import { audioKeyUrl, numberToWords, SIGN_WORDS, taskAudioItems } from "@/topics/renderers/addition_subtraction/audioNumbers.js";
 import { useAudioSequence } from "@/topics/renderers/addition_subtraction/useAudioSequence.js";
-import CellDigitPicker, { CellLegend, SIGN_GLYPH, SIGN_OPTIONS, useCellText, useSignText } from "./CellDigitPicker.jsx";
+import CellDigitPicker, { CellDigit, CellLegend, SIGN_OPTIONS, SignGlyph, useCellText, useSignText } from "./CellDigitPicker.jsx";
 import "./columnOperandsParam.css";
 import "./dictationNumbersParam.css";
 
+// the numbers of the example, left to right (a third one would join here)
 const ROWS = ["top", "bottom"];
 const PLACES = ["tens", "units"];
 
@@ -81,49 +82,50 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
   return (
     <div className="param-row param-row--block cop dnp" aria-label={label} ref={rootRef}>
       {labelNode}
-      <div className="cop-body">
-        <div className="cop-column dnp-column">
+      {/* the numbers one under another with the sign between them, in the middle (owner, 2026-11-26):
+          not a column — a chain just grows down: number, sign, number, sign, number */}
+      <div className="cop-body dnp-body">
+        <div className="dnp-stack">
           {ROWS.map((row, r) => [
-            row === "bottom" && (
+            r > 0 && (
               <button
-                key="sign"
+                key={`sign-${r}`}
                 type="button"
                 className={["cop-sign", "cop-sign-cell", operation === "subtract" ? "cop-sign-cell--minus" : "", editing?.row === "sign" ? "cop-cell--editing" : ""].filter(Boolean).join(" ")}
-                style={{ gridRow: 2, gridColumn: 1 }}
                 aria-label={t("dictation.cellState", { cell: t("cells.sign"), value: signText(operation) })}
                 aria-expanded={editing?.row === "sign"}
                 onClick={() => setEditing(editing?.row === "sign" ? null : { row: "sign" })}
               >
-                {SIGN_GLYPH[operation] ?? "+"}
+                <SignGlyph op={operation} />
               </button>
             ),
-            ...PLACES.map((place, p) => {
-              const v = numbers[row][place];
-              const off = row === "bottom" && place === "tens" && lockedBottomTens;
-              const isEditing = editing?.row === row && editing?.place === place;
-              return (
-                <button
-                  key={`${row}-${place}`}
-                  type="button"
-                  disabled={off}
-                  className={[
-                    "cop-cell",
-                    v === "any" ? "cop-cell--on" : "",
-                    typeof v === "number" ? "cop-cell--fixed" : "",
-                    off ? "cop-cell--off" : "",
-                    isEditing ? "cop-cell--editing" : "",
-                  ].filter(Boolean).join(" ")}
-                  style={{ gridRow: r + 1, gridColumn: p + 2 }}
-                  aria-label={t("dictation.cellState", { cell: t(`dictation.cell.${row}.${place}`), value: cellText(v) })}
-                  aria-expanded={isEditing}
-                  onClick={() => setEditing(isEditing ? null : { row, place })}
-                >
-                  {typeof v === "number" ? v : ""}
-                </button>
-              );
-            }),
+            <div key={row} className="dnp-term">
+              {PLACES.map((place) => {
+                const v = numbers[row][place];
+                const off = row === "bottom" && place === "tens" && lockedBottomTens;
+                const isEditing = editing?.row === row && editing?.place === place;
+                return (
+                  <button
+                    key={place}
+                    type="button"
+                    disabled={off}
+                    className={[
+                      "cop-cell",
+                      v === "any" ? "cop-cell--on" : "",
+                      typeof v === "number" ? "cop-cell--fixed" : "",
+                      off ? "cop-cell--off" : "",
+                      isEditing ? "cop-cell--editing" : "",
+                    ].filter(Boolean).join(" ")}
+                    aria-label={t("dictation.cellState", { cell: t(`dictation.cell.${row}.${place}`), value: cellText(v) })}
+                    aria-expanded={isEditing}
+                    onClick={() => setEditing(isEditing ? null : { row, place })}
+                  >
+                    {typeof v === "number" ? <CellDigit d={v} /> : ""}
+                  </button>
+                );
+              })}
+            </div>,
           ])}
-          <span className="cop-line" style={{ gridRow: 3, gridColumn: "1 / 4" }} />
         </div>
         <CellLegend />
       </div>
