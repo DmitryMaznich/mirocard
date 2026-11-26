@@ -44,6 +44,18 @@ no longer needed for the column.
   fixed — the note «один и тот же пример»; when the fresh examples run out an example repeats instead of the
   lesson coming out short. The «Перенос / заём» note now says which way the digits force it
   (`column.relaxed.*` in `mathTrainerMessages.js`). The same cells in «Реши в столбик» of `math_tests`.
+- **The sign is a cell; «Перенос» and «Заём» per action (2026-11-26, owner).** The «Операция» row is
+  gone: the sign cell of «Пример» opens «+ / − / любой» (`operation` stays a param, `hidden: true`).
+  «Перенос / заём: Без / С / Микс» became one row of buttons (`regroup`, type `column_regroup`, draws and
+  sets the hidden `carry` / `borrow`: none / with / any): «Перенос» and «Заём» switch on («есть») and off
+  («нет»), «любой» mixes every action of the sign; the button the sign has no use for is off («Заём» with
+  «+») — `toggleRegroup`. (Two rows of «нет / есть / любой» were tried the same day and dropped, owner.)
+  «Хватает?» shows only with «−» or «любой» (`showWhen: { operation: [...] }` — a list of values is new in
+  ParamsScreen). A disabled `.enum-btn` is dimmed now (it looked enabled before). «любой» means «вперемешку»
+  everywhere (digit, sign, carry) — no «Микс» any more. Engine: `resolveRegroup` (an old `carryMode` gives
+  both actions its value), `carryModeFor(regroup, op)`. So «+» with a carry and «−» without a borrow in one
+  mixed lesson is possible now. In «Реши в столбик» (`math_tests`) the sign cell edits `block.ops` and the
+  «Действие» row is gone; its «Перенос / заём» (все / без / вперемешку) is not split yet.
 - **«Контрольная работа» moved to «Контрольные по математике» (2026-11-16, owner).** The mode list shows
   `column_tests_link` (type `topic_link`: `link: {topicId, title, text}`) — ParamsScreen opens
   `TopicLinkScreen` for it: the topic opens if installed, else the catalog opens on it (store

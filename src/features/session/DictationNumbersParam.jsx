@@ -16,7 +16,7 @@ import {
 } from "@/topics/renderers/addition_subtraction/dictation.js";
 import { audioKeyUrl, numberToWords, SIGN_WORDS, taskAudioItems } from "@/topics/renderers/addition_subtraction/audioNumbers.js";
 import { useAudioSequence } from "@/topics/renderers/addition_subtraction/useAudioSequence.js";
-import CellDigitPicker, { CellLegend, useCellText } from "./CellDigitPicker.jsx";
+import CellDigitPicker, { CellLegend, SIGN_GLYPH, SIGN_OPTIONS, useCellText, useSignText } from "./CellDigitPicker.jsx";
 import "./columnOperandsParam.css";
 import "./dictationNumbersParam.css";
 
@@ -37,7 +37,8 @@ export function optionDisabled(place, value) {
   return (place === "tens" && value === 0) || (place === "units" && value === "none");
 }
 
-export default function DictationNumbersParam({ label, labelNode, value, operation = "add", crossTen = "none", onChange }) {
+// The sign is a cell too (2026-11-26): «+», «−» or «любой» — `onOperationChange`.
+export default function DictationNumbersParam({ label, labelNode, value, operation = "add", crossTen = "none", onChange, onOperationChange }) {
   const { t } = useUiTranslation();
   const limitOp = operation === "subtract" ? "subtract" : "add";
   const numbers = normalizeDictationNumbers(value, limitOp);
@@ -62,7 +63,8 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
   const example = useMemo(() => drawDictationExample(plan, seededRandom(seed)), [plan, seed]);
   const { isPlaying, play } = useAudioSequence();
 
-  const sign = (example?.operation ?? (operation === "subtract" ? "subtract" : "add")) === "subtract" ? "−" : "+";
+  const signText = useSignText();
+  const exampleSign = example?.operation === "subtract" ? "−" : "+";
   const lockedBottomTens = limitOp === "subtract" && numbers.top.tens === "none";
   const cellText = useCellText();
   const pick = (v) => {
@@ -73,7 +75,7 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
 
   const note = plan.empty ? t("dictation.empty")
     : plan.single ? t("cells.single")
-    : plan.relaxed ? t(crossTen === "cross" ? "dictation.relaxedCross" : "dictation.relaxedNone")
+    : Object.keys(plan.relaxed).length ? Object.entries(plan.relaxed).map(([op, cross]) => t(`dictation.relaxed.${op}.${cross}`)).join(" ")
     : null;
 
   return (
@@ -83,7 +85,17 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
         <div className="cop-column dnp-column">
           {ROWS.map((row, r) => [
             row === "bottom" && (
-              <span key="sign" className={`cop-sign${sign === "−" ? " dnp-sign--minus" : ""}`} style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
+              <button
+                key="sign"
+                type="button"
+                className={["cop-sign", "cop-sign-cell", operation === "subtract" ? "cop-sign-cell--minus" : "", editing?.row === "sign" ? "cop-cell--editing" : ""].filter(Boolean).join(" ")}
+                style={{ gridRow: 2, gridColumn: 1 }}
+                aria-label={t("dictation.cellState", { cell: t("cells.sign"), value: signText(operation) })}
+                aria-expanded={editing?.row === "sign"}
+                onClick={() => setEditing(editing?.row === "sign" ? null : { row: "sign" })}
+              >
+                {SIGN_GLYPH[operation] ?? "+"}
+              </button>
             ),
             ...PLACES.map((place, p) => {
               const v = numbers[row][place];
@@ -116,7 +128,17 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
         <CellLegend />
       </div>
 
-      {editing && (
+      {editing?.row === "sign" && (
+        <CellDigitPicker
+          title={t("cells.sign")}
+          options={SIGN_OPTIONS}
+          text={signText}
+          current={operation}
+          onPick={(v) => { setEditing(null); onOperationChange?.(v); }}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {editing && editing.row !== "sign" && (
         <CellDigitPicker
           title={t(`dictation.cell.${editing.row}.${editing.place}`)}
           current={numbers[editing.row][editing.place]}
@@ -132,7 +154,7 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
           {example ? (
             <>
               «{numberToWords(example.start)} {SIGN_WORDS[example.operation]} {numberToWords(example.delta)}»
-              <small>{example.start} {sign} {example.delta} = {example.result}</small>
+              <small>{example.start} {exampleSign} {example.delta} = {example.result}</small>
             </>
           ) : "—"}
         </div>

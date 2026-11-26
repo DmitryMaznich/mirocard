@@ -13,9 +13,9 @@
 // Value: { top, topZeros, topFixed?, bottom, bottomZeros, bottomFixed? } — engine.js normalizeOperands.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { normalizeOperands, operandCell, operandsExample, operandsSingle, setOperandCell } from "@/topics/renderers/column_addition/engine.js";
+import { carryModeFor, normalizeOperands, operandCell, operandsExample, operandsSingle, setOperandCell } from "@/topics/renderers/column_addition/engine.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
-import CellDigitPicker, { CellLegend, useCellText } from "./CellDigitPicker.jsx";
+import CellDigitPicker, { CellLegend, SIGN_GLYPH, SIGN_OPTIONS, useCellText, useSignText } from "./CellDigitPicker.jsx";
 import "./columnOperandsParam.css";
 
 const CELLS = 3;
@@ -27,9 +27,12 @@ export function cellOptionDisabled(o, row, place, value) {
   return false;
 }
 
-function OperandCells({ o, sign, limitOp, onChange }) {
+// `operation` + `onOperationChange`: the sign is a cell too (2026-11-26) — «+», «−» or «любой» (±).
+function OperandCells({ o, operation, limitOp, onChange, onOperationChange }) {
   const { t } = useUiTranslation();
   const cellText = useCellText();
+  const signText = useSignText();
+  const sign = SIGN_GLYPH[operation] ?? "+";
   const [editing, setEditing] = useState(null);
   const rootRef = useRef(null);
   useEffect(() => {
@@ -76,13 +79,36 @@ function OperandCells({ o, sign, limitOp, onChange }) {
       <div className="cop-body">
         <div className="cop-column">
           {rowCells("top", 1, CELLS)}
-          <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
+          {onOperationChange ? (
+            <button
+              type="button"
+              className={["cop-sign", "cop-sign-cell", operation === "subtract" ? "cop-sign-cell--minus" : "", editing?.row === "sign" ? "cop-cell--editing" : ""].filter(Boolean).join(" ")}
+              style={{ gridRow: 2, gridColumn: 1 }}
+              aria-label={t("dictation.cellState", { cell: t("cells.sign"), value: signText(operation) })}
+              aria-expanded={editing?.row === "sign"}
+              onClick={() => setEditing(editing?.row === "sign" ? null : { row: "sign" })}
+            >
+              {sign}
+            </button>
+          ) : (
+            <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
+          )}
           {rowCells("bottom", 2, limitOp === "add" ? CELLS : o.top)}
           <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
         </div>
         <CellLegend />
       </div>
-      {editing && (
+      {editing?.row === "sign" && (
+        <CellDigitPicker
+          title={t("cells.sign")}
+          options={SIGN_OPTIONS}
+          text={signText}
+          current={operation}
+          onPick={(v) => { setEditing(null); onOperationChange(v); }}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {editing && editing.row !== "sign" && (
         <CellDigitPicker
           title={cellName(editing.row, editing.place)}
           current={operandCell(o, editing.row, editing.place)}
@@ -96,14 +122,14 @@ function OperandCells({ o, sign, limitOp, onChange }) {
 }
 
 // `operation`: "add" | "subtract" | "mixed" — only «−» limits the bottom number.
-export function ColumnOperandCells({ value, operation, onChange }) {
+export function ColumnOperandCells({ value, operation, onChange, onOperationChange }) {
   const limitOp = operation === "subtract" ? "subtract" : "add";
   const o = normalizeOperands(value, limitOp);
-  const sign = operation === "subtract" ? "−" : operation === "add" ? "+" : "±";
-  return <OperandCells o={o} sign={sign} limitOp={limitOp} onChange={onChange} />;
+  return <OperandCells o={o} operation={operation} limitOp={limitOp} onChange={onChange} onOperationChange={onOperationChange} />;
 }
 
-export default function ColumnOperandsParam({ label, value, operation, carryMode, onChange, labelNode }) {
+// `regroup`: { carry, borrow } — «нет» / «есть» / «любой» per action (engine.js resolveRegroup).
+export default function ColumnOperandsParam({ label, value, operation = "add", regroup = { carry: "none", borrow: "none" }, onChange, onOperationChange, labelNode }) {
   const { t } = useUiTranslation();
   const limitOp = operation === "subtract" ? "subtract" : "add";
   const o = normalizeOperands(value, limitOp);
@@ -115,10 +141,10 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
   }, [shownKey]);
   const [seed, setSeed] = useState(0);
   const op = operation === "subtract" ? "subtract" : operation === "mixed" ? (seed % 2 ? "subtract" : "add") : "add";
-  const sign = op === "subtract" ? "−" : "+";
+  const carryMode = carryModeFor(regroup, op);
   const key = JSON.stringify(o);
   const example = useMemo(
-    () => operandsExample(o, op, carryMode ?? "none"),
+    () => operandsExample(o, op, carryMode),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key, op, carryMode, seed],
   );
@@ -126,7 +152,7 @@ export default function ColumnOperandsParam({ label, value, operation, carryMode
   return (
     <div className="param-row param-row--block cop" aria-label={label}>
       {labelNode}
-      <OperandCells o={o} sign={sign} limitOp={limitOp} onChange={onChange} />
+      <OperandCells o={o} operation={operation} limitOp={limitOp} onChange={onChange} onOperationChange={onOperationChange} />
       <div className="cop-example">
         <span>Например:</span>
         <span className="cop-example__numbers">{example ? `${example.top} ${example.operation === "subtract" ? "−" : "+"} ${example.bottom}` : "—"}</span>

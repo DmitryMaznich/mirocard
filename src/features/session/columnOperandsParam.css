@@ -8,7 +8,7 @@
 .cop-column {
   --cop-cell: 48px;
   display: grid;
-  grid-template-columns: 32px repeat(3, var(--cop-cell));
+  grid-template-columns: 40px repeat(3, var(--cop-cell));
   grid-template-rows: var(--cop-cell) var(--cop-cell) 6px;
   align-items: center;
   column-gap: 4px;
@@ -160,7 +160,21 @@
 .cop-cell--editing { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35); }
 
 @media (max-width: 380px) {
-  .cop-column { --cop-cell: 42px; grid-template-columns: 24px repeat(3, var(--cop-cell)); }
+  .cop-column { --cop-cell: 42px; grid-template-columns: 36px repeat(3, var(--cop-cell)); }
   .cop-body { gap: 10px; }
   .cop-legend { font-size: 0.82rem; gap: 6px; }
 }
+
+/* the sign is a cell too (2026-11-26): tapped, it opens «+ / − / любой» */
+.cop-sign-cell {
+  width: 100%;
+  height: var(--cop-cell);
+  padding: 0;
+  border: 2px solid #bfd3f5;
+  border-radius: 10px;
+  background: #f3f7ff;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.cop-sign-cell--minus { color: #dc2626; border-color: #f5c2c2; background: #fff5f5; }

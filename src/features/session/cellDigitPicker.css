@@ -56,3 +56,8 @@
 .cdp-option--current { outline: 3px solid #2563eb; outline-offset: 1px; }
 .cdp-option:disabled { opacity: 0.25; cursor: default; }
 
+
+/* the sign cell's picker: three wide buttons */
+.cdp-picker__grid--sign { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cdp-option--sign { font-family: 'Primo', cursive; font-size: 30px; color: #2563eb; border-color: #bfd3f5; background: #f3f7ff; }
+.cdp-option--sign:nth-child(2) { color: #dc2626; border-color: #f5c2c2; background: #fff5f5; }

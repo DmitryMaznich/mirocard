@@ -14256,6 +14256,10 @@ kbd {
   box-shadow: 0 2px 8px rgba(28, 122, 110, 0.35);
 }
 .enum-btn--active:hover { background: #18695f; }
+/* an option the other settings rule out («Заём» with «+», 2026-11-26) — it looked like any other */
+.enum-btn:disabled { opacity: 0.4; cursor: default; }
+.enum-btn:disabled:hover { background: #f0f5f4; }
+.enum-btn--active:disabled:hover { background: #1c7a6e; }
 
 /* two-segment switch: text on one side, a small preview graphic on the other */
 .param-row--visual-toggle { padding: 10px; }

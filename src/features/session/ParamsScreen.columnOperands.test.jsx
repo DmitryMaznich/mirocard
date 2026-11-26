@@ -65,3 +65,26 @@ it("an old saved «Разрядность» opens as cells", async () => {
   await act(async () => root.render(<ParamsScreen />));
   expect(state()).toBe("•0•_••");
 });
+
+it("the sign is a cell; «Перенос / заём» is one row, the button the sign has no use for is off", async () => {
+  mountWith({ carryMode: "carry" }); // an old «Перенос / заём: С» — both actions «есть»
+  await act(async () => root.render(<ParamsScreen />));
+  const button = (text) => [...host.querySelectorAll(".enum-btn")].find((b) => b.textContent === text);
+  const labels = () => [...host.querySelectorAll(".param-label")].map((l) => l.textContent.trim());
+  expect(labels()).toContain("Перенос / заём");
+  expect(labels()).not.toContain("«Хватает?»");
+  expect(button("Перенос").getAttribute("aria-pressed")).toBe("true");
+  expect(button("Заём").disabled).toBe(true); // «+»: no borrow
+  await act(async () => host.querySelector(".cop-sign-cell").click());
+  await act(async () => [...host.querySelectorAll(".cdp-option")].find((b) => b.textContent === "любой").click());
+  expect(host.querySelector(".cop-sign-cell").textContent).toBe("±");
+  expect(button("Заём").disabled).toBe(false);
+  expect(labels()).toContain("«Хватает?»");
+  await act(async () => button("Заём").click()); // «есть» → «нет» for the borrow
+  await start();
+  expect(mocks.persist).toHaveBeenCalledWith("kid", "column_addition", expect.objectContaining({
+    params: expect.objectContaining({ operation: "mixed", carry: "with", borrow: "none" }),
+  }));
+  const saved = mocks.persist.mock.calls.at(-1)[2].params;
+  expect(saved).not.toHaveProperty("regroup");
+});
