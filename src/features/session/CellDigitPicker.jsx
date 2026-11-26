@@ -16,6 +16,25 @@ export function useCellText() {
 export const SIGN_OPTIONS = ["add", "subtract", "mixed"];
 export const SIGN_GLYPH = { add: "+", subtract: "−", mixed: "±" };
 
+// The sign drawn as strokes (owner, 2026-11-26): the handwriting font's «+» and «−» sit right of and
+// above the middle of their box, so in a square cell they looked off-centre.
+export function SignGlyph({ op }) {
+  return (
+    <svg className="cdp-sign-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {op === "mixed" ? (
+        <>
+          <path d="M12 4v11M6.5 9.5h11" />
+          <path d="M6.5 19.5h11" />
+        </>
+      ) : op === "subtract" ? (
+        <path d="M5.5 12h13" />
+      ) : (
+        <path d="M12 5.5v13M5.5 12h13" />
+      )}
+    </svg>
+  );
+}
+
 export function useSignText() {
   const { t } = useUiTranslation();
   return (v) => (v === "mixed" ? t("cells.anySign") : SIGN_GLYPH[v]);
@@ -49,26 +68,27 @@ export default function CellDigitPicker({ title, current, options = CELL_OPTIONS
         <button type="button" className="cdp-picker__close" aria-label={t("cells.close")} onClick={onClose}>×</button>
       </div>
       {isSign ? (
-        // square tiles (owner, 2026-11-26): «+», «−», and «случайный» as «±» with a caption
+        // tiles the size of the cells (owner, 2026-11-26); «случайный» is «±» with a caption under it
         <div className="cdp-picker__signs">
           {options.map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={[
-                "cdp-option",
-                "cdp-option--sign",
-                v === "subtract" ? "cdp-option--minus" : "",
-                v === "mixed" ? "cdp-option--random" : "",
-                current === v ? "cdp-option--current" : "",
-              ].filter(Boolean).join(" ")}
-              aria-pressed={current === v}
-              aria-label={cellText(v)}
-              onClick={() => onPick(v)}
-            >
-              {SIGN_GLYPH[v]}
-              {v === "mixed" && <small>{cellText(v)}</small>}
-            </button>
+            <div key={v} className="cdp-sign">
+              <button
+                type="button"
+                className={[
+                  "cdp-option",
+                  "cdp-option--sign",
+                  v === "subtract" ? "cdp-option--minus" : "",
+                  v === "mixed" ? "cdp-option--random" : "",
+                  current === v ? "cdp-option--current" : "",
+                ].filter(Boolean).join(" ")}
+                aria-pressed={current === v}
+                aria-label={cellText(v)}
+                onClick={() => onPick(v)}
+              >
+                <SignGlyph op={v} />
+              </button>
+              {v === "mixed" && <small className="cdp-sign__caption" aria-hidden="true">{cellText(v)}</small>}
+            </div>
           ))}
         </div>
       ) : (

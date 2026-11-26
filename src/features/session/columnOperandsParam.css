@@ -3,12 +3,15 @@
    follow the settings screen (teal .enum-btn), the zero is amber. */
 
 .cop { gap: 10px; }
+/* one cell size for the example, the sign and the picker's tiles */
+.cop, .cop-cells { --cop-cell: 48px; }
+@media (max-width: 380px) { .cop, .cop-cells { --cop-cell: 42px; } }
 .cop-cells { width: 100%; display: flex; flex-direction: column; gap: 10px; }
 
 .cop-column {
   --cop-cell: 48px;
   display: grid;
-  grid-template-columns: 40px repeat(3, var(--cop-cell));
+  grid-template-columns: repeat(4, var(--cop-cell));
   grid-template-rows: var(--cop-cell) var(--cop-cell) 6px;
   align-items: center;
   column-gap: 4px;
@@ -160,15 +163,18 @@
 .cop-cell--editing { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35); }
 
 @media (max-width: 380px) {
-  .cop-column { --cop-cell: 42px; grid-template-columns: 36px repeat(3, var(--cop-cell)); }
+  .cop-column { --cop-cell: 42px; grid-template-columns: repeat(4, var(--cop-cell)); }
   .cop-body { gap: 10px; }
   .cop-legend { font-size: 0.82rem; gap: 6px; }
 }
 
 /* the sign is a cell too (2026-11-26): tapped, it opens «+ / − / любой» */
 .cop-sign-cell {
-  width: 100%;
+  width: var(--cop-cell);
   height: var(--cop-cell);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
   border: 2px solid #bfd3f5;
   border-radius: 10px;
@@ -178,3 +184,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 .cop-sign-cell--minus { color: #dc2626; border-color: #f5c2c2; background: #fff5f5; }
+
+/* the sign without a picker (no onOperationChange): the drawn glyph alone */
+.cop-sign-static { display: flex; align-items: center; justify-content: center; height: var(--cop-cell); }
+.cop-sign-static .cdp-sign-glyph, .cop-sign-cell .cdp-sign-glyph { width: 55%; height: 55%; }
+
+/* the handwriting font's digits sit ~0.17em right of and ~0.2em above the middle of their box
+   (measured 2026-11-26) — nudged back so a 0 or a fixed digit stands in the middle of its cell
+   (the same in CellDigitPicker's tiles) */
+.cop-cell.cop-cell--zero,
+.cop-cell.cop-cell--fixed,
+.cop-mini.cop-mini--zero,
+.cop-mini.cop-mini--fixed { padding: 0.4em 0.34em 0 0; }

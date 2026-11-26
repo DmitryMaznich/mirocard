@@ -16,7 +16,7 @@ import {
 } from "@/topics/renderers/addition_subtraction/dictation.js";
 import { audioKeyUrl, numberToWords, SIGN_WORDS, taskAudioItems } from "@/topics/renderers/addition_subtraction/audioNumbers.js";
 import { useAudioSequence } from "@/topics/renderers/addition_subtraction/useAudioSequence.js";
-import CellDigitPicker, { CellLegend, SIGN_GLYPH, SIGN_OPTIONS, useCellText, useSignText } from "./CellDigitPicker.jsx";
+import CellDigitPicker, { CellLegend, SIGN_OPTIONS, SignGlyph, useCellText, useSignText } from "./CellDigitPicker.jsx";
 import "./columnOperandsParam.css";
 import "./dictationNumbersParam.css";
 
@@ -94,7 +94,7 @@ export default function DictationNumbersParam({ label, labelNode, value, operati
                 aria-expanded={editing?.row === "sign"}
                 onClick={() => setEditing(editing?.row === "sign" ? null : { row: "sign" })}
               >
-                {SIGN_GLYPH[operation] ?? "+"}
+                <SignGlyph op={operation} />
               </button>
             ),
             ...PLACES.map((place, p) => {

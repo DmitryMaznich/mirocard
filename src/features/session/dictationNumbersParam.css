@@ -1,9 +1,9 @@
 /* «Числа в примере» of «Слушай и посчитай» (DictationNumbersParam.jsx): the column's cells
    (columnOperandsParam.css) with two places, the picker is CellDigitPicker (cellDigitPicker.css). */
 
-.dnp-column { grid-template-columns: 40px repeat(2, var(--cop-cell)); }
+.dnp-column { grid-template-columns: repeat(3, var(--cop-cell)); }
 @media (max-width: 380px) {
-  .dnp-column { grid-template-columns: 36px repeat(2, var(--cop-cell)); }
+  .dnp-column { grid-template-columns: repeat(3, var(--cop-cell)); }
 }
 
 .dnp-sign--minus { color: #dc2626; }

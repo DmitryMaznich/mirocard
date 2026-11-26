@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { carryModeFor, normalizeOperands, operandCell, operandsExample, operandsSingle, setOperandCell } from "@/topics/renderers/column_addition/engine.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
-import CellDigitPicker, { CellLegend, SIGN_GLYPH, SIGN_OPTIONS, useCellText, useSignText } from "./CellDigitPicker.jsx";
+import CellDigitPicker, { CellLegend, SIGN_OPTIONS, SignGlyph, useCellText, useSignText } from "./CellDigitPicker.jsx";
 import "./columnOperandsParam.css";
 
 const CELLS = 3;
@@ -32,7 +32,6 @@ function OperandCells({ o, operation, limitOp, onChange, onOperationChange }) {
   const { t } = useUiTranslation();
   const cellText = useCellText();
   const signText = useSignText();
-  const sign = SIGN_GLYPH[operation] ?? "+";
   const [editing, setEditing] = useState(null);
   const rootRef = useRef(null);
   useEffect(() => {
@@ -88,10 +87,10 @@ function OperandCells({ o, operation, limitOp, onChange, onOperationChange }) {
               aria-expanded={editing?.row === "sign"}
               onClick={() => setEditing(editing?.row === "sign" ? null : { row: "sign" })}
             >
-              {sign}
+              <SignGlyph op={operation} />
             </button>
           ) : (
-            <span className="cop-sign" style={{ gridRow: 2, gridColumn: 1 }}>{sign}</span>
+            <span className={`cop-sign cop-sign-static${operation === "subtract" ? " cop-sign-cell--minus" : ""}`} style={{ gridRow: 2, gridColumn: 1 }}><SignGlyph op={operation} /></span>
           )}
           {rowCells("bottom", 2, limitOp === "add" ? CELLS : o.top)}
           <span className="cop-line" style={{ gridRow: 3, gridColumn: `1 / ${CELLS + 2}` }} />
