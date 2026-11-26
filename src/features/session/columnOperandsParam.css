@@ -189,10 +189,7 @@
 .cop-sign-static { display: flex; align-items: center; justify-content: center; height: var(--cop-cell); }
 .cop-sign-static .cdp-sign-glyph, .cop-sign-cell .cdp-sign-glyph { width: 55%; height: 55%; }
 
-/* the handwriting font's digits sit ~0.17em right of and ~0.2em above the middle of their box
-   (measured 2026-11-26) — nudged back so a 0 or a fixed digit stands in the middle of its cell
-   (the same in CellDigitPicker's tiles) */
-.cop-cell.cop-cell--zero,
-.cop-cell.cop-cell--fixed,
-.cop-mini.cop-mini--zero,
-.cop-mini.cop-mini--fixed { padding: 0.4em 0.34em 0 0; }
+
+/* the sign stands between the two numbers, as written in a notebook (owner, 2026-11-26) */
+.cop-column > .cop-sign-cell,
+.cop-column > .cop-sign-static { align-self: center; }

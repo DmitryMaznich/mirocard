@@ -16,6 +16,18 @@ export function useCellText() {
 export const SIGN_OPTIONS = ["add", "subtract", "mixed"];
 export const SIGN_GLYPH = { add: "+", subtract: "−", mixed: "±" };
 
+// The handwriting font (Primo) draws its digits right of and above the middle of their box, each by
+// its own amount (measured 2026-11-26 at 30px: ink centre minus box centre, in em). A digit in a square
+// cell or tile is moved back by its own offset so it stands in the middle.
+const PRIMO_DX = [0.167, 0.267, 0.117, 0.15, 0.117, 0.167, 0.167, 0.267, 0.167, 0.217];
+const PRIMO_DY = 0.2;
+
+export function CellDigit({ d }) {
+  return (
+    <span className="cdp-digit" style={{ transform: `translate(${-PRIMO_DX[d]}em, ${PRIMO_DY}em)` }}>{d}</span>
+  );
+}
+
 // The sign drawn as strokes (owner, 2026-11-26): the handwriting font's «+» and «−» sit right of and
 // above the middle of their box, so in a square cell they looked off-centre.
 export function SignGlyph({ op }) {
@@ -58,7 +70,7 @@ export default function CellDigitPicker({ title, current, options = CELL_OPTIONS
       aria-pressed={current === v}
       onClick={() => onPick(v)}
     >
-      {cellText(v)}
+      {typeof v === "number" ? <CellDigit d={v} /> : cellText(v)}
     </button>
   );
   return (
@@ -112,7 +124,7 @@ export function CellLegend() {
   return (
     <ul className="cop-legend">
       <li><span className="cop-mini cop-mini--on" aria-hidden="true" /> {t("cells.legendAny")}</li>
-      <li><span className="cop-mini cop-mini--fixed" aria-hidden="true">7</span> {t("cells.legendFixed")}</li>
+      <li><span className="cop-mini cop-mini--fixed" aria-hidden="true"><CellDigit d={7} /></span> {t("cells.legendFixed")}</li>
       <li><span className="cop-mini" aria-hidden="true" /> {t("cells.legendNone")}</li>
     </ul>
   );

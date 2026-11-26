@@ -82,6 +82,6 @@
 /* the drawn sign: in the tiles and in the sign cell of the example */
 .cdp-sign-glyph { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
 
-/* the handwriting font's digits sit right of and above the middle of their box (measured: ~0.17em
-   right, ~0.2em up) — nudged back so a digit stands in the middle of its square */
-.cdp-picker__digits .cdp-option { padding: 0.4em 0.34em 0 0; }
+
+/* a digit moved back to the middle of its square (CellDigit: per-digit offsets of the handwriting font) */
+.cdp-digit { display: inline-block; line-height: 1; }
