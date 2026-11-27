@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Умножение — предложение по интерфейсу</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; color: #1e293b; background: #f0f6ff; }
+  .screen { width: 1024px; height: 700px; display: flex; flex-direction: column; padding: 14px 22px 20px; gap: 12px; }
+  .say { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 30px; }
+  .spk { width: 46px; height: 46px; border-radius: 50%; background: #2563eb; display: grid; place-items: center; box-shadow: 0 3px 0 #1d4ed8; }
+  .spk svg { width: 24px; height: 24px; }
+  .mat { flex: 1; border-radius: 16px; border: 1px solid #d8c09f; position: relative;
+         background: radial-gradient(ellipse at 20% 0%, #f2e4cc, transparent 76%), linear-gradient(150deg, #ebd8ba, #e4cbaa);
+         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+  .row { display: flex; gap: 56px; align-items: flex-end; }
+  .plate { position: relative; width: var(--s, 230px); aspect-ratio: 1; border-radius: 50%;
+           background: center / contain no-repeat url(img/plate-photo.webp); filter: drop-shadow(2px 6px 4px #63452c46); transition: transform .3s; }
+  .plate img { position: absolute; width: 29%; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 2px #6a431e39); }
+  /* следующая — тарелка чуть приподнята, без обводки */
+  .plate.next { transform: translateY(-10px) scale(1.05); filter: drop-shadow(4px 18px 10px #63452c55); }
+  /* готовая — маленькая галочка в углу, без кольца */
+  .tick { position: absolute; right: 4%; top: 4%; width: 22%; aspect-ratio: 1; border-radius: 50%; background: #16a34a;
+          display: grid; place-items: center; box-shadow: 0 2px 4px #0003; }
+  .tick svg { width: 60%; }
+  .num { font-weight: 900; font-size: 44px; line-height: 1; color: #1e293b; height: 48px; text-align: center; }
+  .num.old { color: #94a3b8; font-size: 34px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  /* ряды один к одному: лишнее — мягкое оранжевое пятно, недостача — пустой кружок */
+  .rows { display: grid; gap: 8px; }
+  .line { display: flex; gap: 6px; padding: 4px 10px; border-radius: 30px; background: #fbf5e9b0; }
+  .cell { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+  .cell img { width: 36px; }
+  .cell.extra { background: #fed7aa; box-shadow: 0 0 0 3px #fdba74; }
+  .cell.hole { border: 2px dashed #c9b79a; }
+  .answers { display: flex; gap: 22px; justify-content: center; }
+  .ans { width: 330px; white-space: nowrap; height: 96px; border-radius: 18px; border: 3px solid #bfdbfe; background: #fff; box-shadow: 0 5px 0 #93c5fd;
+         display: flex; align-items: center; gap: 16px; padding: 0 22px; font-weight: 900; font-size: 30px; }
+  .ans svg { width: 70px; height: 56px; flex: none; }
+  .ans.right { border-color: #16a34a; background: #dcfce7; box-shadow: 0 5px 0 #16a34a; }
+  .ans.dim { opacity: .35; }
+  .cap { width: 1024px; padding: 10px 22px 26px; font-size: 15px; line-height: 1.45; background: #fff; }
+  .cap b { color: #1d4ed8; }
+  h2 { margin: 0; padding: 18px 22px 6px; font-size: 22px; background: #fff; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="scale-even" viewBox="0 0 70 56"><g fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M35 8v40M22 50h26M8 16h54"/><path d="M8 16 2 32h12zM62 16l-6 16h12z"/><path d="M2 32a6 4 0 0 0 12 0M56 32a6 4 0 0 0 12 0"/></g></symbol>
+    <symbol id="scale-tilt" viewBox="0 0 70 56"><g fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M35 8v40M22 50h26M8 24 62 8"/><path d="M8 24 2 40h12zM62 8l-6 16h12z"/><path d="M2 40a6 4 0 0 0 12 0M56 24a6 4 0 0 0 12 0"/></g></symbol>
+    <symbol id="tick" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="spk" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<h2>Ступень 0 «Поровну?» — вопрос</h2>
+<div class="screen" id="s1"></div>
+<div class="cap"><b>Кнопки — слово и картинка-весы</b>: ровные весы — «Поровну», перекошенные — «Не поровну». Слово ребёнок читает или слышит (нажатие озвучивает), весы помогают тем, кто не читает. Без знаков «=» и «≠» — их ребёнок пока не знает.</div>
+
+<h2>Ступень 0 — после ответа</h2>
+<div class="screen" id="s2"></div>
+<div class="cap"><b>Никаких колец вокруг тарелок.</b> Объяснение — в рядах один к одному: лишние яблоки подсвечены мягким оранжевым пятном, у короткого ряда пустые места. Выбранная кнопка зелёная, вторая бледнеет.</div>
+
+<h2>Ступень 2 «Считаем группами»</h2>
+<div class="screen" id="s3"></div>
+<div class="cap"><b>Следующая тарелка приподнята</b> (тень и чуть крупнее) — без мигающего кольца. <b>Готовая — маленькая галочка</b> в углу. <b>Числа просто написаны</b> над тарелками, без рамок: последнее крупно, прошлые серым.</div>
+
+<script>
+const DICE = { 1:[[50,50]], 2:[[34,34],[66,66]], 3:[[50,30],[31,65],[69,65]], 4:[[33,33],[67,33],[33,67],[67,67]], 5:[[31,31],[69,31],[50,50],[31,69],[69,69]] };
+const plate = (n, cls = "", extra = "", s = 230) => `<div class="plate ${cls}" style="--s:${s}px">${DICE[n].map(([x,y]) => `<img src="img/apple-photo.webp" style="left:${x}%;top:${y}%">`).join("")}${extra}</div>`;
+const tick = `<span class="tick"><svg><use href="#tick"/></svg></span>`;
+const say = (t) => `<div class="say"><span class="spk"><svg><use href="#spk"/></svg></span>${t}</div>`;
+const answers = (state) => `<div class="answers">
+  <div class="ans ${state === "ne" ? "dim" : ""}"><svg><use href="#scale-even"/></svg>Поровну</div>
+  <div class="ans ${state === "ne" ? "right" : ""}"><svg><use href="#scale-tilt"/></svg>Не поровну</div></div>`;
+const rows = (a, b) => { const max = Math.max(a, b), min = Math.min(a, b);
+  return `<div class="rows">${[a, b].map(n => `<div class="line">${Array.from({ length: max }, (_, j) => j < n ? `<span class="cell ${j >= min ? "extra" : ""}"><img src="img/apple-photo.webp"></span>` : `<span class="cell hole"></span>`).join("")}</div>`).join("")}</div>`; };
+
+document.getElementById("s1").innerHTML = say("Поровну?") + `<div class="mat"><div class="row">${plate(3)}${plate(5)}</div></div>` + answers();
+document.getElementById("s2").innerHTML = say("Не поровну") + `<div class="mat"><div class="row" style="opacity:.55">${plate(3, "", "", 150)}${plate(5, "", "", 150)}</div>${rows(3, 5)}</div>` + answers("ne");
+document.getElementById("s3").innerHTML = say("6") + `<div class="mat"><div class="row" style="gap:40px">
+  <div class="col"><div class="num old">3</div>${plate(3, "", tick, 180)}</div>
+  <div class="col"><div class="num">6</div>${plate(3, "", tick, 180)}</div>
+  <div class="col"><div class="num"></div>${plate(3, "next", "", 180)}</div>
+  <div class="col"><div class="num"></div>${plate(3, "", "", 180)}</div></div></div><div style="height:96px"></div>`;
+</script>
+</body>
+</html>
