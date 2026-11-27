@@ -151,6 +151,16 @@
     .nav::before { content: "× Умножение · макет"; order: 0; font-weight: 700; font-size: 14px; }
   }
   .infobtn { display: none; }
+  /* ступень 2: число над тарелкой и досчёт */
+  .slotnum { min-width: 2.2em; height: 1.5em; display: grid; place-items: center; }
+  .badge.faded { opacity: .22; }
+  .badge.pop { animation: pop .35s both; }
+  .plate.upnext { outline: 4px solid var(--blue); animation: pulse 1.1s ease-in-out infinite; }
+  .plate.locked { cursor: default; }
+  .cnt { position: absolute; transform: translate(-10%, -95%); min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px;
+         background: #fff; border: 2px solid var(--warn); color: var(--warn); font: 700 13px/18px Arial; text-align: center; animation: pop .3s both; pointer-events: none; z-index: 1; }
+  .choice.off { opacity: .35; pointer-events: none; }
+  .choice.big2 { min-width: 92px; font-size: clamp(26px, 6vw, 36px); }
   /* подсказка для того, кто смотрит макет (в приложении её нет) */
   .guide { flex: none; display: flex; gap: 10px; align-items: flex-start; margin: 8px 0 0; padding: 9px 12px; border-radius: 10px;
            background: #fff3bf; border: 1px solid #f0d36b; color: #5b4500; font-size: clamp(13px, 3.4vw, 15px); line-height: 1.35; }
@@ -187,7 +197,7 @@
   <h2>Как смотреть этот макет</h2>
   <ol>
     <li>Это будущая тема «Умножение» — <b>лестница из ступеней</b>, от простого к сложному. Номера ступеней — сверху: 0, 1, 2 …</li>
-    <li>Ступени <span class="pill">0</span> и <span class="pill">1</span> (обведены зелёным) — <b>живые</b>: пройди их сам, как ребёнок. Что нажать — написано в жёлтой полосе.</li>
+    <li>Ступени <span class="pill">0</span>, <span class="pill">1</span> и <span class="pill">2</span> (обведены зелёным) — <b>живые</b>: пройди их сам, как ребёнок. Что нажать — написано в жёлтой полосе.</li>
     <li>Остальные ступени — <b>картинки-эскизы</b>: как будет выглядеть экран. Нажимать там нечего.</li>
     <li>Зачем ступень устроена именно так — кнопка <b>«Что это?»</b> (на компьютере — колонка справа).</li>
   </ol>
@@ -488,20 +498,106 @@ const step1 = {
   stop() { clearTimeout(this.timer); this.stopDemo?.(); this.demoShown = false; },
 };
 
+/* ───────── ступень 2 «Считаем группами» (живая) ───────── */
+const TIMES = n => `${["", "один", "два", "три", "четыре", "пять"][n]} ${n >= 2 && n <= 4 ? "раза" : "раз"}`;
+const step2 = {
+  id: "2", title: "Считаем группами", live: true,
+  guide: "<b>Попробуй как ребёнок:</b> нажимай на тарелки по очереди — следующая обведена синим. Над тарелкой появится, сколько уже всего. С уровня A число надо выбрать самому.",
+  levels: [["R", "число появляется само"], ["A", "выбрать из 2"], ["B", "выбрать из 3, по 3 и 4"], ["C", "прошлые числа гаснут"], ["D", "по 2–5, до 5 тарелок"]],
+  state: { level: "R", history: [], badStreak: 0 },
+  info: `<ul>
+    <li><b>Зачем:</b> счёт группами (3 → 6 → 9) — мостик от счёта по одному к умножению (Mulligan &amp; Mitchelmore). Без него запись «3 × 4» останется непонятным значком.</li>
+    <li><b>Что делает ребёнок:</b> нажимает тарелки по очереди; над тарелкой — сколько уже всего. Нажать не по порядку нельзя: следующая обведена.</li>
+    <li><b>Уровни:</b> R — число появляется само, голос считает «три… шесть…» (образец) → A — выбрать число из двух → B — из трёх, по 3 и по 4 → C — прошлые числа над тарелками гаснут, держать счёт в голове → D — по 2–5, до 5 тарелок.</li>
+    <li><b>С чего начинаем:</b> по 2 и по 5 — эти ряды дети запоминают легче всего; по 3 и 4 — с уровня B.</li>
+    <li><b>Неверные варианты</b> — типичные ошибки: «прибавил одно яблоко вместо тарелки» (6 → 7) и «обсчитался на одно» (9 ± 1).</li>
+    <li><b>Ошибка:</b> кнопка гаснет, а яблоки на тарелке досчитываются по одному от прошлого числа: «семь, восемь, девять». Это и есть способ найти ответ, а не просто «неверно».</li>
+    <li><b>В конце:</b> все тарелки зелёные, голос: «Двенадцать! По три, четыре раза» — та же формула, что будет в записи на ступени 3.</li>
+    <li><b>«Чисто»</b> — без ошибок. Вверх — 8 чистых из 10; вниз — 2 задания подряд с двумя и больше ошибками.</li></ul>`,
+  start() { this.next(); },
+  gen(level) {
+    const sizes = { R: [2, 5], A: [2, 5], B: [3, 4], C: [2, 3, 4, 5], D: [2, 3, 4, 5] }[level];
+    const g = sizes[rnd(0, sizes.length - 1)];
+    const n = level === "D" ? rnd(3, 5) : rnd(3, 4);
+    return { g, n };
+  },
+  next() {
+    const st = this.state, { g, n } = this.gen(st.level);
+    this.task = { g, n, idx: 0, errors: 0, finished: false, waiting: false };
+    $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", ".6");
+    $("#mat").innerHTML = `<div class="plates" id="plates" style="--n:${n}">${Array.from({ length: n }, (_, i) =>
+      `<div class="col"><span class="slotnum" id="slot${i}"></span><button class="plate locked" data-i="${i}" style="--s:200px" aria-label="Тарелка ${i + 1}">${fruitsHtml(g)}</button></div>`).join("")}</div>
+      <button class="next" id="next" hidden aria-label="Дальше">→</button>`;
+    $("#answers").innerHTML = "";
+    $("#next").onclick = () => { this.adapt(); this.next(); };
+    $("#plates").onclick = e => { const pl = e.target.closest(".plate"); if (pl) this.tap(+pl.dataset.i); };
+    say(`По ${NUM[g]}. Сколько всего?`); renderStars();
+    log(`[${st.level}] по ${g}, ${n} тарелки`);
+    this.mark(); renderLevelButtons(this);
+  },
+  el(i) { return document.querySelector(`#plates .plate[data-i="${i}"]`); },
+  mark() {
+    document.querySelectorAll("#plates .plate").forEach((pl, i) => { pl.classList.toggle("upnext", i === this.task.idx && !this.task.waiting); pl.classList.toggle("locked", i !== this.task.idx); });
+  },
+  tap(i) {
+    const t = this.task; if (t.finished || t.waiting || i !== t.idx) return;
+    const total = t.g * (i + 1);
+    if (this.state.level === "R") { this.place(i, total); return; }
+    t.waiting = true; this.mark(); this.el(i).classList.add("ring");
+    const prev = t.g * i;
+    let opts = [total, i === 0 ? 1 : prev + 1];
+    if (this.state.level !== "A") opts.push(Math.random() < .5 ? total + 1 : total - 1);
+    opts = [...new Set(opts.filter(x => x > 0))].sort(() => Math.random() - .5);
+    $("#answers").innerHTML = opts.map(v => `<button class="choice big2" data-v="${v}">${v}</button>`).join("");
+    $("#answers").onclick = e => { const b = e.target.closest(".choice"); if (b) this.pick(i, +b.dataset.v, b); };
+  },
+  pick(i, v, btn) {
+    const t = this.task, total = t.g * (i + 1);
+    if (v === total) { $("#answers").innerHTML = ""; this.el(i).classList.remove("ring"); t.waiting = false; this.place(i, total); return; }
+    t.errors++; btn.classList.add("wrong", "off"); log(`  тарелка ${i + 1}: выбрал ${v}, надо ${total}`);
+    this.countOn(i);
+  },
+  // досчёт: яблоки текущей тарелки помечаются числами от прошлого итога
+  countOn(i) {
+    const t = this.task, pl = this.el(i), prev = t.g * i;
+    pl.querySelectorAll(".cnt").forEach(c => c.remove());
+    [...pl.querySelectorAll("img")].forEach((img, k) => setTimeout(() => {
+      const c = document.createElement("span"); c.className = "cnt"; c.textContent = prev + k + 1;
+      c.style.left = img.style.left; c.style.top = img.style.top; pl.append(c);
+    }, 450 * k));
+    say(i === 0 ? "Посчитаем" : `${prev}, и ещё ${NUM[t.g]}`);
+  },
+  place(i, total) {
+    const t = this.task;
+    this.el(i).querySelectorAll(".cnt").forEach(c => c.remove());
+    if (this.state.level === "C" || this.state.level === "D") document.querySelectorAll(".slotnum .badge").forEach(b => b.classList.add("faded"));
+    $("#slot" + i).innerHTML = `<span class="badge pop">${total}</span>`;
+    this.el(i).classList.add("ok");
+    t.idx++;
+    if (t.idx < t.n) { say(String(total)); this.mark(); return; }
+    t.finished = true; this.mark();
+    document.querySelectorAll(".slotnum .badge").forEach(b => b.classList.remove("faded"));
+    const clean = t.errors === 0;
+    this.state.history.unshift(clean); this.state.history = this.state.history.slice(0, 10);
+    this.state.badStreak = t.errors >= 2 ? this.state.badStreak + 1 : 0;
+    log(`  итог ${total}, ошибок ${t.errors} → ${clean ? "чисто" : "с ошибками"}`);
+    say(`${total}! По ${NUM[t.g]}, ${TIMES(t.n)}`);
+    stars = Math.min(TOTAL, stars + 1); renderStars(); $("#next").hidden = false; renderLevelButtons(this);
+  },
+  adapt() {
+    const st = this.state, order = this.levels.map(l => l[0]), i = order.indexOf(st.level);
+    if (st.badStreak >= 2 && i > 0) { st.level = order[i - 1]; st.history = []; st.badStreak = 0; log(`↓ уровень ${st.level}`); return; }
+    if (st.history.length >= 10 && st.history.filter(Boolean).length >= 8 && i < order.length - 1) { st.level = order[i + 1]; st.history = []; log(`↑ уровень ${st.level}`); }
+  },
+};
+
 /* ───────── эскизы следующих ступеней ───────── */
 const sketch = (id, title, sayText, info, mat, answers = "", hf = ".7") => ({
   id, title, live: false, info,
   start() { $("#mat").className = "mat"; $("#mat").style.setProperty("--hf", hf); $("#mat").innerHTML = mat(); $("#answers").innerHTML = answers; say(sayText); renderStars(4); },
 });
 const steps = [
-  step0, step1,
-  sketch("2", "Считаем группами", "По три. Сколько всего?",
-    `<p>Главный мостик к умножению — <b>счёт группами, а не по одному</b> (Mulligan &amp; Mitchelmore). Нажал на тарелку — над ней появилась сумма: 3 → 6 → 9, голос «три… шесть…». Нажимать по порядку; следующая тарелка обведена. Позже ребёнок сам выбирает число над тарелкой из 2–3.</p>`,
-    () => `<div class="plates" style="--n:4">
-      <div class="col"><span class="badge">3</span>${plate(3, "apple", { cls: "ok", s: 200 })}</div>
-      <div class="col"><span class="badge">6</span>${plate(3, "apple", { cls: "ok", s: 200 })}</div>
-      <div class="col"><span class="badge ghost">9</span>${plate(3, "apple", { cls: "ring", s: 200 })}</div>
-      <div class="col"><span class="badge ghost">12</span>${plate(3, "apple", { cls: "dim", s: 200 })}</div></div>`, "", ".6"),
+  step0, step1, step2,
   sketch("2б", "Другие группы", "По пять. Сколько всего?",
     `<p>Тот же счёт, но <b>группы разные</b>: руки, носки парами, коробки яиц, букеты, корзинки. Обучение на многих примерах — надёжный путь к переносу навыка при РАС; иначе «умножение» останется навыком про тарелки. Эмодзи — заглушки, нужны фото в одном стиле.</p>`,
     () => `<div class="rowf"><div class="col"><span class="badge">5</span><span class="emo">✋</span></div><div class="col"><span class="badge">10</span><span class="emo">✋</span></div><div class="col"><span class="badge ghost">15</span><span class="emo">✋</span></div></div>
