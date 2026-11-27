@@ -29,7 +29,7 @@ function tasksFor(modeId, language, level = "auto", count = 6) {
   return { mode, tasks: generateTasks(mode, topic.cards, count, { level }, context, pack) };
 }
 async function show(mode, task, extra = {}) {
-  const props = { task, mode, sessionId: `s-${Math.random()}`, student: { id: "kid" }, soundEnabled: false, onCorrect: vi.fn(), onMistake: vi.fn(), ...extra };
+  const props = { task, mode, sessionId: `s-${Math.random()}`, student: { id: "kid" }, soundEnabled: false, onCorrect: vi.fn(), onStreakReset: vi.fn(), ...extra };
   await act(async () => root.render(<Multiplication {...props} />));
   return props;
 }
@@ -44,9 +44,14 @@ describe("topic package", () => {
     const mode = topic.modes[0];
     expect(() => generateTasks(mode, topic.cards, 3, {}, null, topic.languageResources.content.ru)).toThrow();
   });
+  it("makes a finite lesson of 8 tasks that the strip can count", () => {
+    const { tasks } = tasksFor("skip_count", "ru");
+    expect(tasks.map((t) => [t.index, t.total])).toEqual(Array.from({ length: 8 }, (_, i) => [i, 8]));
+    expect(topic.modes.every((m) => m.finite)).toBe(true);
+  });
   it("balances «=» and «≠» without three of a kind in a row", () => {
-    const { tasks } = tasksFor("equal_check", "ru", "auto", 200);
-    for (let i = 2; i < tasks.length; i++) expect(tasks[i].equal === tasks[i - 1].equal && tasks[i].equal === tasks[i - 2].equal).toBe(false);
+    const tasks = Array.from({ length: 25 }, () => tasksFor("equal_check", "ru").tasks).flat();
+    for (let i = 2; i < tasks.length; i++) if (tasks[i].index >= 2) expect(tasks[i].equal === tasks[i - 1].equal && tasks[i].equal === tasks[i - 2].equal).toBe(false);
     const equal = tasks.filter((t) => t.equal).length;
     expect(equal).toBeGreaterThan(60); expect(equal).toBeLessThan(140);
   });
@@ -59,12 +64,15 @@ for (const language of LANGUAGES) describe(`lesson in ${language}`, () => {
     const ex = equalExercise("A", task.equal, seededRng(task.seed));
     const props = await show(mode, task);
     expect(sayText()).toBe(task.messages["equal.prompt"]);
-    const [eq, ne] = host.querySelectorAll(".mul-answers button");
+    const [eq, ne] = host.querySelectorAll(".mul-shelf button");
+    expect([eq.textContent, ne.textContent]).toEqual([task.messages["equal.answer.equal"], task.messages["equal.answer.notEqual"]]);
     await click(ex.counts[0] === ex.counts[1] ? ne : eq);
-    expect(props.onMistake).toHaveBeenCalledTimes(1);
+    expect(props.onStreakReset).toHaveBeenCalledTimes(1);
     expect(host.querySelector("[data-testid=mul-rows]")).not.toBeNull();
     await click(ex.counts[0] === ex.counts[1] ? eq : ne);
     expect(props.onCorrect).toHaveBeenCalledWith(task.conceptId, task.cardId);
+    expect(host.querySelector(".mul-table--good")).not.toBeNull();
+    expect(host.querySelectorAll(".mul-strip .on").length).toBe(task.index + 1);
   });
 
   it("«Сделай поровну»: tapping from the fullest group to the emptiest finishes the task", async () => {
@@ -91,14 +99,14 @@ for (const language of LANGUAGES) describe(`lesson in ${language}`, () => {
     const groups = () => [...host.querySelectorAll(".mul-row .mul-group")];
     for (let i = 0; i < ex.groups; i++) {
       await click(groups()[i]);
-      const buttons = [...host.querySelectorAll(".mul-answers button")];
+      const buttons = [...host.querySelectorAll(".mul-shelf button")];
       if (i === 1) {
         await click(buttons.find((b) => Number(b.textContent) !== ex.size * 2));
-        expect(props.onMistake).toHaveBeenCalledTimes(1);
+        expect(props.onStreakReset).toHaveBeenCalledTimes(1);
         await act(async () => vi.advanceTimersByTime(3000));
         expect(host.querySelectorAll(".mul-count").length).toBeGreaterThan(0);
       }
-      await click([...host.querySelectorAll(".mul-answers button")].find((b) => Number(b.textContent) === ex.size * (i + 1)));
+      await click([...host.querySelectorAll(".mul-shelf button")].find((b) => Number(b.textContent) === ex.size * (i + 1)));
     }
     expect(props.onCorrect).toHaveBeenCalledTimes(1);
     expect(sayText()).toContain(String(ex.size * ex.groups));
@@ -121,7 +129,7 @@ for (const language of LANGUAGES) describe(`lesson in ${language}`, () => {
       await click(record.querySelector(`[data-role=${role}]`));
       await act(async () => vi.advanceTimersByTime(1400));
     }
-    expect(props.onMistake).not.toHaveBeenCalled();
+    expect(props.onStreakReset).not.toHaveBeenCalled();
     expect(props.onCorrect).toHaveBeenCalledTimes(1);
   });
 });
@@ -132,5 +140,21 @@ describe("independent of the interface language", () => {
     await show(mode, tasks[0], { uiLanguage: "ru" });
     expect(sayText()).toBe("Enako?");
     expect(host.querySelector(".mul-root").getAttribute("lang")).toBe("sl");
+  });
+});
+
+describe("a mistake keeps the task where the child is", () => {
+  it("reports in-task mistakes without asking the host to remount (onStreakReset, not onMistake)", async () => {
+    vi.useFakeTimers();
+    const { mode, tasks } = tasksFor("skip_count", "ru", "B");
+    const task = tasks[0];
+    const ex = skipCountExercise("B", seededRng(task.seed));
+    const props = await show(mode, task, { onMistake: vi.fn() });
+    await click(host.querySelectorAll(".mul-row .mul-group")[0]);
+    await click([...host.querySelectorAll(".mul-shelf button")].find((b) => Number(b.textContent) === ex.size));
+    await click(host.querySelectorAll(".mul-row .mul-group")[1]);
+    await click([...host.querySelectorAll(".mul-shelf button")].find((b) => Number(b.textContent) !== ex.size * 2));
+    expect(props.onMistake).not.toHaveBeenCalled();
+    expect(props.onStreakReset).toHaveBeenCalledTimes(1);
   });
 });

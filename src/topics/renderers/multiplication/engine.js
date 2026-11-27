@@ -6,8 +6,12 @@
 import { LEVELS } from "./mechanics.js";
 
 export const MODE_IDS = Object.keys(LEVELS);
+// A lesson is finite and visible: 8 tasks, one apple each in the strip, then the summary
+// (and the end video if the adult switched it on). The host's generic count is ignored.
+export const LESSON_TASKS = 8;
 
-export function generateTasks(mode, cards, count = 20, params = {}, context, pack) {
+export function generateTasks(mode, cards, _count, params = {}, context, pack) {
+  const count = LESSON_TASKS;
   if (!context || !pack || context.contentLanguage !== pack.language || context.packageId !== pack.packageId || context.contentVersion !== pack.version) {
     throw new Error("Explicit matching content package required");
   }
@@ -28,6 +32,8 @@ export function generateTasks(mode, cards, count = 20, params = {}, context, pac
       conceptId: card.conceptId,
       cardId: card.id,
       seed: Math.floor(Math.random() * 2 ** 31),
+      index: i,
+      total: count,
       equal,
       level,
       notation,

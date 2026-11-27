@@ -1,14 +1,14 @@
 {
   "meta": {
     "id": "multiplication",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "renderer": "multiplication",
     "title": {
       "ru": "Умножение",
       "sl": "Množenje",
       "en": "Multiplication"
     },
-    "minAppVersion": "1.1.238",
+    "minAppVersion": "1.1.239",
     "avatar": "media/avatar.svg"
   },
   "languageContract": {
@@ -74,7 +74,7 @@
     "selectionScope": "topic",
     "delivery": {
       "version": 1,
-      "coreUrl": "./decks/multiplication_v0.1.0.zip"
+      "coreUrl": "./decks/multiplication_v0.2.0.zip"
     }
   },
   "modes": [
@@ -112,7 +112,8 @@
       "paramsScope": "mode",
       "cardIds": [
         "mul_equal"
-      ]
+      ],
+      "finite": true
     },
     {
       "id": "make_equal",
@@ -146,7 +147,8 @@
       "paramsScope": "mode",
       "cardIds": [
         "mul_make_equal"
-      ]
+      ],
+      "finite": true
     },
     {
       "id": "skip_count",
@@ -186,7 +188,8 @@
       "paramsScope": "mode",
       "cardIds": [
         "mul_skip_count"
-      ]
+      ],
+      "finite": true
     },
     {
       "id": "sum_to_product",
@@ -237,7 +240,8 @@
       "paramsScope": "mode",
       "cardIds": [
         "mul_sum_to_product"
-      ]
+      ],
+      "finite": true
     }
   ],
   "cards": [

@@ -2,7 +2,11 @@
 
 Методика, решения по ступеням и источники — `docs/multiplication-methodology.md`. Макет — `docs/mockups/multiplication-2026-11-26/index.html`.
 
-- Версия 0.1.0 (2026-11-27), каталог `beta` (видят только аккаунты, которым тему выдал администратор), доступ `free`.
+- Версия 0.2.0 (2026-11-27): интерфейс «стол и полка» по `docs/multiplication-design-brief.md` (макет
+  `docs/mockups/multiplication-2026-11-26/design-v2.html`): без колец, слова на кнопках, ошибка без красного, занятие — 8 заданий
+  (`finite`, полоска из 8 яблок), видео в конце включает взрослый. Ошибка внутри задания — `onStreakReset`, не `onMistake`
+  (тот перезапускает экран и стирает сделанное). 0.1.0 (тот же день) — первая версия, интерфейс отклонён.
+- Каталог `beta` (видят только аккаунты, которым тему выдал администратор), доступ `free`.
 - Четыре режима = ступени 0–3: `equal_check` «Поровну?», `make_equal` «Сделай поровну», `skip_count` «Считаем группами»,
   `sum_to_product` «Сложение → умножение». Код — `src/topics/renderers/multiplication/`.
 - Многоязычная по контракту `docs/localization/authoring-language-rules.md` (как `comparison_language_pilot`):

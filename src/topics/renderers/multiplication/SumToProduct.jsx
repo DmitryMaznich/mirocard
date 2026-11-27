@@ -4,12 +4,12 @@
 import { useMemo, useState } from "react";
 import { recordOrder, seededRng, sumExercise } from "./mechanics.js";
 import { lessonLevel, recordResult } from "./levelStore.js";
-import { Group, Say } from "./shared.jsx";
+import { Group, Top } from "./shared.jsx";
 import { itemImage, msg, useTimers } from "./lesson.js";
 
 const STEP_MS = 700;
 
-export default function SumToProduct({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect, onMistake }) {
+export default function SumToProduct({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect, onStreakReset }) {
   const lesson = useMemo(() => lessonLevel({ sessionId, modeId: task.type, studentId: student?.id, param: task.level }), [sessionId, task, student?.id]);
   const level = lesson.level;
   const ex = useMemo(() => sumExercise(level, seededRng(task.seed)), [task, level]);
@@ -48,7 +48,7 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
     setIdx(next);
     setSay(String(ex.size * next));
     if (next < ex.groups) return;
-    // под каждым слагаемым — какой это раз; последний номер становится числом групп
+    // под каждым слагаемым появляется маленькая тарелка — «один раз»; их число станет числом групп
     for (let k = 1; k <= ex.groups; k++) later(() => { setTimesShown(k); setSay(msg(task, `times.${k}`)); }, STEP_MS * k);
     later(showRecord, STEP_MS * (ex.groups + 1) + 400);
   }
@@ -70,10 +70,8 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
       }, 1300);
     } else {
       setErrors((e) => e + 1);
-      onMistake?.(task.conceptId, task.cardId);
-      setMarks((m) => ({ ...m, [role]: "bad" }));
-      later(() => setMarks((m) => ({ ...m, [role]: m[role] === "bad" ? undefined : m[role] })), 600);
-      glow(want);
+      onStreakReset?.(task.conceptId, task.cardId);
+      glow(want); // no red: the meaning of the asked number lights up as the hint
     }
   }
   function choose(value) {
@@ -82,17 +80,18 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
     glow(ex.hide);
     if (value === right) { setFilled(true); setSay(formula); finish(); return; }
     setErrors((e) => e + 1);
-    onMistake?.(task.conceptId, task.cardId);
+    onStreakReset?.(task.conceptId, task.cardId);
     setOffChoices((o) => [...o, value]);
   }
 
+  // the meaning of a number: one group rises with its items bumping (size) or all groups rise (groups)
   const groupLit = (i) => {
     if (!light) return "";
-    if (light.role === "size") return i === 0 ? " mul-group--glow mul-group--bump" : "";
-    return " mul-group--glow";
+    if (light.role === "size") return i === 0 ? " mul-group--lift mul-group--bump" : "";
+    return " mul-group--lift";
   };
   const item = ex.kind === "egg" ? <span className="mul-mini-egg" /> : <img src={itemImage(ex.kind)} alt="" draggable={false} />;
-  const container = ex.kind === "egg" ? <span className="mul-mini-box" /> : <span className="mul-mini-plate" />;
+  const container = <span className={`mul-mini${ex.kind === "egg" ? " mul-mini--box" : ""}`} />;
   const hintsOn = level !== "C";
   const factor = (part, key) => {
     const hidden = level === "C" && !filled && part.role === ex.hide;
@@ -101,10 +100,12 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
     return (
       <span className="mul-factor" key={key}>
         {hidden
-          ? <span className="mul-num mul-num--slot" data-role={part.role}>{part.value}</span>
-          : <button type="button" data-role={part.role} className={`mul-num${tappable ? " mul-num--tap" : ""}${mark ? ` mul-num--${mark}` : ""}`} onClick={() => pointAt(part.role)}>{part.value}</button>}
+          ? <span className="mul-card mul-card--slot" data-role={part.role}>{part.value}</span>
+          : tappable || mark
+            ? <button type="button" data-role={part.role} className={`mul-card${mark === "good" ? " mul-card--good" : ""}`} onClick={() => pointAt(part.role)}>{part.value}</button>
+            : <span data-role={part.role}>{part.value}</span>}
         {hintsOn && (
-          <span className={`mul-hint${level === "B" ? " mul-hint--faded" : ""}`}>
+          <span className={`mul-icons${level === "B" ? " mul-icons--faded" : ""}`}>
             {Array.from({ length: part.value }, (_, k) => <span key={k} style={{ display: "contents" }}>{part.role === "size" ? item : container}</span>)}
           </span>
         )}
@@ -114,21 +115,21 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
 
   return (
     <>
-      <Say task={task} text={say} soundEnabled={soundEnabled} />
-      <div className="mul-mat" style={{ "--hf": ".34" }}>
+      <Top task={task} text={say} soundEnabled={soundEnabled} finished={done} />
+      <div className={`mul-table${done ? " mul-table--good" : ""}`} style={{ "--hf": ".32" }}>
         <div className="mul-row" style={{ "--n": ex.groups }}>
           {Array.from({ length: ex.groups }, (_, i) => (
             <Group key={i} button kind={ex.kind} count={ex.size} size={200}
-              className={`${builds && i < idx ? "mul-group--ok" : ""}${builds && !record && i === idx ? " mul-group--next" : ""}${groupLit(i)}`}
+              className={`${builds && !record && i === idx ? "mul-group--lift" : ""}${groupLit(i)}`}
               onClick={() => tap(i)} aria-label={msg(task, "aria.group", { n: i + 1 })} />
           ))}
         </div>
         {builds && (
-          <div className={`mul-sum${record ? " mul-sum--gone" : ""}`} data-testid="mul-sum">
+          <div className={`mul-sum${record ? " mul-sum--faded" : ""}`} data-testid="mul-sum">
             {Array.from({ length: idx }, (_, i) => (
               <span key={i} style={{ display: "contents" }}>
                 {i > 0 && <span className="mul-term">+</span>}
-                <span className="mul-term"><span>{ex.size}</span>{i < timesShown && <span className="mul-times">{i + 1}</span>}</span>
+                <span className="mul-term"><span>{ex.size}</span>{i < timesShown ? container : <span className="mul-mini" style={{ visibility: "hidden" }} />}</span>
               </span>
             ))}
             {idx === ex.groups && <><span className="mul-term">=</span><span className="mul-term">{total}</span></>}
@@ -140,9 +141,9 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
           </div>
         )}
       </div>
-      <div className="mul-answers">
+      <div className="mul-shelf">
         {level === "C" && !done && ex.choices.map((v) => (
-          <button key={v} type="button" className={`mul-btn${offChoices.includes(v) ? " mul-btn--wrong mul-btn--off" : ""}`} onClick={() => choose(v)}>{v}</button>
+          <button key={v} type="button" className={`mul-btn${offChoices.includes(v) ? " mul-btn--quiet" : ""}`} disabled={offChoices.includes(v)} onClick={() => choose(v)}>{v}</button>
         ))}
       </div>
     </>

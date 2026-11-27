@@ -2,10 +2,10 @@
 import { useMemo, useState } from "react";
 import { layout, seededRng, skipChoices, skipCountExercise } from "./mechanics.js";
 import { lessonLevel, recordResult } from "./levelStore.js";
-import { Group, Say } from "./shared.jsx";
+import { Group, Top } from "./shared.jsx";
 import { BANANA_POS, msg, useTimers } from "./lesson.js";
 
-export default function SkipCount({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect, onMistake }) {
+export default function SkipCount({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect, onStreakReset }) {
   const lesson = useMemo(() => lessonLevel({ sessionId, modeId: task.type, studentId: student?.id, param: task.level }), [sessionId, task, student?.id]);
   const level = lesson.level;
   const rng = useMemo(() => seededRng(task.seed), [task]);
@@ -30,8 +30,9 @@ export default function SkipCount({ task, sessionId, student, soundEnabled, inte
     const total = ex.size * (idx + 1);
     if (c.value === total) { setChoices(null); setCounting(null); return place(idx); }
     setErrors((e) => e + 1);
-    onMistake?.(task.conceptId, task.cardId);
-    setChoices((list) => list.map((x) => (x === c ? { ...x, off: true, wrong: true } : x)));
+    onStreakReset?.(task.conceptId, task.cardId);
+    // no red: the chosen number just goes quiet, the items are counted on from the last total
+    setChoices((list) => list.map((x) => (x === c ? { ...x, off: true } : x)));
     // досчёт: предметы этой группы помечаются числами от прошлого итога
     const prev = ex.size * idx;
     setSay(idx === 0 ? msg(task, "skip.countFirst") : msg(task, "skip.countOn", { prev, size: ex.size }));
@@ -52,19 +53,19 @@ export default function SkipCount({ task, sessionId, student, soundEnabled, inte
   const points = ex.kind === "banana" ? BANANA_POS[ex.size] : layout(ex.size);
   return (
     <>
-      <Say task={task} text={say} soundEnabled={soundEnabled} />
-      <div className="mul-mat" style={{ "--hf": ".6" }}>
+      <Top task={task} text={say} soundEnabled={soundEnabled} finished={done} />
+      <div className={`mul-table${done ? " mul-table--good" : ""}`} style={{ "--hf": ".56" }}>
         <div className="mul-row" style={{ "--n": ex.groups }}>
           {Array.from({ length: ex.groups }, (_, i) => {
             const placed = i < totals.length;
             const latest = i === totals.length - 1;
-            const cls = [placed && "mul-group--ok", !done && !choices && i === idx && "mul-group--next", choices && i === idx && "mul-group--sel"].filter(Boolean).join(" ");
+            // the group to tap next rises above the table; placed ones stay as they are, with their total above
+            const next = !done && i === idx;
+            const totalCls = placed ? (latest || done ? "mul-total" : fading ? "mul-total mul-total--old mul-total--hidden" : "mul-total mul-total--old") : "mul-total";
             return (
               <div className="mul-col" key={i}>
-                <span className="mul-slot">
-                  {placed && <span className={`mul-badge${fading && !done && !latest ? " mul-badge--faded" : ""}`}>{totals[i]}</span>}
-                </span>
-                <Group button kind={ex.kind} count={ex.size} size={260} className={cls} onClick={() => tap(i)}
+                <span className={totalCls}>{placed ? totals[i] : ""}</span>
+                <Group button kind={ex.kind} count={ex.size} size={260} className={next ? "mul-group--lift" : ""} onClick={() => tap(i)}
                   aria-label={msg(task, "aria.group", { n: i + 1 })}>
                   {counting?.group === i && points && points.slice(0, counting.upTo).map(([x, y], k) => (
                     <span key={k} className="mul-count" style={{ left: `${x}%`, top: `${y}%` }}>{counting.from + k + 1}</span>
@@ -75,9 +76,9 @@ export default function SkipCount({ task, sessionId, student, soundEnabled, inte
           })}
         </div>
       </div>
-      <div className="mul-answers">
+      <div className="mul-shelf">
         {choices?.map((c) => (
-          <button key={c.value} type="button" className={`mul-btn${c.wrong ? " mul-btn--wrong" : ""}${c.off ? " mul-btn--off" : ""}`} onClick={() => choose(c)}>{c.value}</button>
+          <button key={c.value} type="button" className={`mul-btn${c.off ? " mul-btn--quiet" : ""}`} disabled={c.off} onClick={() => choose(c)}>{c.value}</button>
         ))}
       </div>
     </>

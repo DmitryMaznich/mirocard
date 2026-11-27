@@ -44,7 +44,7 @@ export function Rows({ counts, judge = true }) {
           {Array.from({ length: width }, (_, j) => {
             if (j < n) return (
               <span key={j} className={`mul-rows-cell${judge && j >= min ? " mul-rows-cell--extra" : ""}`}>
-                <img src={APPLE} alt="" draggable={false} style={{ animationDelay: judge ? `${j * 80}ms` : "0ms" }} />
+                <img src={APPLE} alt="" draggable={false} style={{ animationDelay: `${(r * width + j) * 60}ms` }} />
               </span>
             );
             return <span key={j} className={`mul-rows-cell${judge && j < max ? " mul-rows-cell--gap" : ""}`} />;
@@ -55,15 +55,22 @@ export function Rows({ counts, judge = true }) {
   );
 }
 
-// The spoken line: shown on screen, said aloud when it changes, repeated by the speaker button.
-export function Say({ task, text, soundEnabled }) {
+// Zone 1: the spoken line (said aloud when it changes, repeated by the speaker button) and the
+// lesson strip — one apple per finished task, so the child sees how much is left.
+export function Top({ task, text, soundEnabled, finished = false }) {
   const language = lessonLanguage(task);
   useEffect(() => { speakLesson(text, language, { enabled: soundEnabled }); }, [text, language, soundEnabled]);
   useEffect(() => () => stopLessonVoice(), []);
+  const done = task.index + (finished ? 1 : 0);
   return (
-    <div className="mul-say" lang={language}>
-      <button type="button" className="mul-speak" aria-label="🔊" onClick={() => speakLesson(text, language, { enabled: true })}>🔊</button>
+    <div className="mul-top" lang={language}>
+      <button type="button" className="mul-speak" aria-label="🔊" onClick={() => speakLesson(text, language, { enabled: true })}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
       <span className="mul-say-text" data-testid="mul-say">{text}</span>
+      <span className="mul-strip" data-testid="mul-strip">
+        {Array.from({ length: task.total }, (_, i) => <i key={i} className={i < done ? "on" : i === done ? "now" : ""} />)}
+      </span>
     </div>
   );
 }

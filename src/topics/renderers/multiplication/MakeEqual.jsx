@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { makeEqualExercise, seededRng } from "./mechanics.js";
 import { demoPending, lessonLevel, markDemoPlayed, recordResult } from "./levelStore.js";
 import { APPLE } from "./assets.js";
-import { Group, Rows, Say } from "./shared.jsx";
+import { Group, Rows, Top } from "./shared.jsx";
 import { msg, useTimers } from "./lesson.js";
 
 const IDLE_MS = 6000;
@@ -28,22 +28,13 @@ function playDemo(mat, from, to) {
   return stop;
 }
 
-// Hint arrow «откуда → куда», over the table, in table coordinates.
-function arrowBetween(mat, from, to) {
-  const m = mat?.getBoundingClientRect(), a = centre(mat, from), b = centre(mat, to);
-  if (!m || !a || !b) return null;
-  const x1 = a.left + a.width / 2 - m.left, y1 = Math.max(14, a.top - m.top - 14);
-  const x2 = b.left + b.width / 2 - m.left, y2 = Math.max(14, b.top - m.top - 14);
-  return { left: x1, top: y1, width: Math.hypot(x2 - x1, y2 - y1), angle: Math.atan2(y2 - y1, x2 - x1) };
-}
-
 export default function MakeEqual({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect }) {
   const lesson = useMemo(() => lessonLevel({ sessionId, modeId: task.type, studentId: student?.id, param: task.level }), [sessionId, task, student?.id]);
   const level = lesson.level;
   const ex = useMemo(() => makeEqualExercise(level, seededRng(task.seed)), [task, level]);
   const [counts, setCounts] = useState(ex.counts);
   const [sel, setSel] = useState(null);
-  const [hint, setHint] = useState(0);          // 0 none, 1 «где больше», 2 стрелка
+  const [hint, setHint] = useState(0);          // 0 none, 1 «где больше» приподнята, 2 рука показывает ход
   const [shownHint, setShownHint] = useState(level === "R" ? 1 : 0);
   const [drop, setDrop] = useState(null);
   const [done, setDone] = useState(false);
@@ -54,16 +45,20 @@ export default function MakeEqual({ task, sessionId, student, soundEnabled, inte
   const justDragged = useRef(false);
   const idle = useRef(null);
   const later = useTimers();
+  const stopDemo = useRef(() => {});
   const n = counts.length;
 
   const from = counts.indexOf(Math.max(...counts));
   const to = counts.indexOf(Math.min(...counts));
 
-  const [arrow, setArrow] = useState(null);
+  // Hint 1: the fullest group rises above the table. Hint 2: the hand shows the move again.
   function raiseHint(k, current = counts) {
     setHint((h) => Math.max(h, k));
     setShownHint((h) => Math.max(h, k));
-    if (k >= 2) setArrow(arrowBetween(matRef.current, current.indexOf(Math.max(...current)), current.indexOf(Math.min(...current))));
+    if (k >= 2) {
+      stopDemo.current();
+      stopDemo.current = playDemo(matRef.current, current.indexOf(Math.max(...current)), current.indexOf(Math.min(...current)));
+    }
   }
   function armIdle() {
     clearTimeout(idle.current);
@@ -72,7 +67,6 @@ export default function MakeEqual({ task, sessionId, student, soundEnabled, inte
   useEffect(() => { armIdle(); return () => clearTimeout(idle.current); }); // re-armed after every change
 
   // Образец в первом задании занятия: рука дважды переносит предмет «откуда → куда».
-  const stopDemo = useRef(() => {});
   useEffect(() => {
     if (!demoPending({ sessionId, modeId: task.type })) return undefined;
     const id = setTimeout(() => {
@@ -90,12 +84,12 @@ export default function MakeEqual({ task, sessionId, student, soundEnabled, inte
     stats.current.moves++;
     if (deviation(next, ex.target) >= deviation(counts, ex.target)) stats.current.wasted++;
     setCounts(next);
-    setShownHint(0); setArrow(null);
+    setShownHint(0);
     if (next.every((x) => x === ex.target)) return finish();
     if (stats.current.wasted >= 4) raiseHint(2, next); else if (stats.current.wasted >= 2) raiseHint(1, next);
   }
   function finish() {
-    setDone(true); setArrow(null);
+    setDone(true); stopDemo.current();
     clearTimeout(idle.current);
     const clean = hint === 0 && stats.current.moves <= ex.min + 1;
     recordResult({ sessionId, modeId: task.type, studentId: student?.id }, { clean, down: hint === 2 });
@@ -148,25 +142,21 @@ export default function MakeEqual({ task, sessionId, student, soundEnabled, inte
       const next = [...base]; next[a]--; next[b]++;
       stats.current.moves++;
       if (deviation(next, ex.target) >= deviation(base, ex.target)) stats.current.wasted++;
-      setCounts(next); setShownHint(0); setArrow(null);
+      setCounts(next); setShownHint(0);
       if (next.every((x) => x === ex.target)) return finish();
       if (stats.current.wasted >= 4) raiseHint(2, next); else if (stats.current.wasted >= 2) raiseHint(1, next);
     } else setCounts(base);
   }
   useEffect(() => () => drag.current?.ghost?.remove(), []);
 
-  const cls = (i) => [
-    done && "mul-group--ok mul-faded",
-    !done && sel === i && "mul-group--sel",
-    !done && drop === i && "mul-group--drop",
-    !done && shownHint >= 1 && i === from && "mul-group--from",
-    !done && shownHint >= 2 && i === to && "mul-group--to",
-  ].filter(Boolean).join(" ");
+  // the chosen «откуда», the group under a dragged item and the hinted fullest group rise — no rings
+  const lifted = (i) => !done && (sel === i || drop === i || (shownHint >= 1 && sel === null && drop === null && i === from));
+  const cls = (i) => [done && "mul-group--quiet", lifted(i) && "mul-group--lift"].filter(Boolean).join(" ");
 
   return (
     <>
-      <Say task={task} text={say} soundEnabled={soundEnabled} />
-      <div ref={matRef} className={`mul-mat${done ? " mul-mat--small" : ""}`} style={{ "--hf": ".72" }}
+      <Top task={task} text={say} soundEnabled={soundEnabled} finished={done} />
+      <div ref={matRef} className={`mul-table${done ? " mul-table--small mul-table--good" : ""}`} style={{ "--hf": ".72" }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
         <div className="mul-row" style={{ "--n": n }}>
           {counts.map((c, i) => (
@@ -175,9 +165,8 @@ export default function MakeEqual({ task, sessionId, student, soundEnabled, inte
           ))}
         </div>
         {done && <Rows counts={counts} judge={false} />}
-        {arrow && <div className="mul-arrow" style={{ left: arrow.left, top: arrow.top, width: arrow.width, transform: `rotate(${arrow.angle}rad)` }} />}
       </div>
-      <div className="mul-answers" />
+      <div className="mul-shelf" />
     </>
   );
 }
