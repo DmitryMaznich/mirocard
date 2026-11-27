@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Умножение — дизайн v2 «стол и полка» (2026-11-27)</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; color: #1e293b; background: #e2e8f0; padding: 24px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .lead { max-width: 1000px; font-size: 15px; line-height: 1.5; margin: 0 0 22px; color: #334155; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1024px); gap: 28px; }
+  figure { margin: 0; }
+  figcaption { font-size: 15px; line-height: 1.45; padding: 10px 4px 0; max-width: 1024px; color: #334155; }
+  figcaption b { color: #0f172a; }
+  .step { display: inline-block; background: #0f172a; color: #fff; border-radius: 8px; padding: 1px 8px; margin-right: 6px; font-weight: 800; }
+
+  /* ── экран ── */
+  .screen { position: relative; width: 1024px; height: 700px; background: #f8fafc; border-radius: 18px; overflow: hidden;
+            display: grid; grid-template-rows: 84px 1fr 150px; box-shadow: 0 10px 30px #0f172a22; }
+  /* зона 1: реплика + полоска занятия */
+  .top { display: flex; align-items: center; gap: 16px; padding: 0 26px; }
+  .spk { width: 52px; height: 52px; border-radius: 50%; background: #2563eb; display: grid; place-items: center; box-shadow: 0 4px 0 #1d4ed8; flex: none; }
+  .spk svg { width: 26px; height: 26px; }
+  .say { font-weight: 900; font-size: 34px; letter-spacing: -.01em; }
+  .progress { margin-left: auto; display: flex; gap: 8px; }
+  .progress i { width: 26px; height: 26px; border-radius: 50%; background: #e2e8f0; box-shadow: inset 0 2px 3px #0f172a1a; }
+  .progress i.on { background: center / 112% no-repeat url(img/apple-photo.webp), #fff; box-shadow: 0 1px 2px #0f172a33; }
+  .progress i.now { outline: 3px solid #93c5fd; outline-offset: 2px; }
+  /* зона 2: стол */
+  .table { position: relative; margin: 0 22px; border-radius: 22px; overflow: hidden;
+           background: radial-gradient(ellipse at 30% 10%, #f3e6cf, transparent 70%), linear-gradient(160deg, #ecd9bb, #dfc4a0);
+           box-shadow: inset 0 2px 0 #fff6e6, inset 0 -6px 18px #8a643a22;
+           display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+  .table.good::after { content: ""; position: absolute; inset: 0; border-radius: 22px; box-shadow: inset 0 0 0 6px #86efac, inset 0 0 60px #bbf7d0aa; }
+  .row { display: flex; gap: 60px; align-items: flex-end; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .plate { position: relative; width: var(--s, 220px); aspect-ratio: 1; border-radius: 50%;
+           background: center / contain no-repeat url(img/plate-photo.webp); filter: drop-shadow(2px 7px 5px #63452c40); }
+  .plate img { position: absolute; width: 29%; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 2px #6a431e40); }
+  .plate.lift { transform: translateY(-26px) scale(1.12); filter: drop-shadow(8px 34px 14px #63452c70); }
+  .plate.done { filter: drop-shadow(2px 7px 5px #63452c40) saturate(.85); }
+  .plate.ghost img { opacity: .28; }
+  .total { font-weight: 900; font-size: 52px; line-height: 1; height: 56px; }
+  .total.old { color: #94a3b8; font-size: 38px; }
+  .count { position: absolute; transform: translate(-50%, -125%); background: #fff; border-radius: 12px; padding: 0 8px;
+           font-weight: 900; font-size: 18px; color: #0f172a; box-shadow: 0 2px 4px #0f172a33; }
+  .rows { display: grid; gap: 10px; }
+  .line { display: flex; gap: 8px; padding: 6px 12px; border-radius: 40px; background: #fff8eccc; }
+  .cell { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; }
+  .cell img { width: 42px; }
+  .cell.hole { border: 3px dashed #cbb89a; }
+  .cell.extra img { transform: translateY(-10px); filter: drop-shadow(0 8px 4px #6a431e55); }
+  /* рука-образец */
+  .hand { position: absolute; font-size: 64px; filter: drop-shadow(0 4px 4px #0005); }
+  .fly { position: absolute; width: 66px; filter: drop-shadow(0 10px 8px #0005); }
+  .trail { position: absolute; height: 0; border-top: 4px dotted #ffffffcc; transform-origin: left center; }
+  /* зона 3: полка ответов */
+  .shelf { display: flex; align-items: center; justify-content: center; gap: 26px; padding: 0 26px; border-top: 1px solid #e2e8f0; background: #fff; }
+  .btn { min-width: 300px; height: 100px; border-radius: 22px; background: #fff; border: 3px solid #cbd5e1; box-shadow: 0 6px 0 #cbd5e1;
+         display: grid; place-items: center; font-weight: 900; font-size: 36px; color: #0f172a; }
+  .btn.num { min-width: 130px; font-size: 48px; }
+  .btn.chosen { border-color: #22c55e; background: #f0fdf4; box-shadow: 0 6px 0 #22c55e; }
+  .btn.quiet { opacity: .4; }
+  .shelf .hint { font-size: 18px; color: #94a3b8; font-weight: 700; }
+  /* запись */
+  .sum { display: flex; gap: 14px; align-items: flex-start; font-weight: 900; font-size: 44px; }
+  .sum.faded { opacity: .3; font-size: 34px; }
+  .term { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .mini { width: 30px; height: 30px; border-radius: 50%; background: center / contain url(img/plate-photo.webp); filter: drop-shadow(0 1px 1px #0003); }
+  .record { display: flex; gap: 22px; align-items: flex-start; font-weight: 900; font-size: 76px; line-height: 1; }
+  .factor { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .card { background: #fff; border-radius: 20px; padding: 6px 22px; box-shadow: 0 6px 0 #cbd5e1, 0 0 0 3px #cbd5e1; }
+  .icons { display: flex; gap: 4px; height: 30px; align-items: center; }
+  .icons img { height: 30px; }
+  .icons .mini { width: 28px; height: 28px; }
+</style>
+</head>
+<body>
+<h1>Умножение — дизайн v2: «стол и полка»</h1>
+<p class="lead">Сделано по заданию <code>docs/multiplication-design-brief.md</code>. Во всех режимах три постоянные зоны: <b>сверху</b> — реплика
+(её же говорит голос) и полоска занятия из 8 яблок; <b>в центре</b> — стол с группами; <b>снизу</b> — белая полка с ответами.
+Никаких колец и придуманных значков: состояние передают сами предметы (переезжают, встают рядами, приподнимаются). На кнопках —
+слова. Ошибка не красная и не трясётся: экран показывает, как найти ответ. Успех — мягкое зелёное свечение всего стола и новое
+яблоко в полоске.</p>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="spk" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const DICE = { 1:[[50,50]], 2:[[34,34],[66,66]], 3:[[50,30],[31,65],[69,65]], 4:[[33,33],[67,33],[33,67],[67,67]], 5:[[31,31],[69,31],[50,50],[31,69],[69,69]] };
+const apples = (n, labels) => DICE[n].map(([x, y], k) => `<img src="img/apple-photo.webp" style="left:${x}%;top:${y}%">${labels ? `<span class="count" style="left:${x}%;top:${y}%">${labels[k]}</span>` : ""}`).join("");
+const plate = (n, { cls = "", s = 220, labels } = {}) => `<div class="plate ${cls}" style="--s:${s}px">${apples(n, labels)}</div>`;
+const header = (text, done = 2) => `<div class="top"><span class="spk"><svg><use href="#spk"/></svg></span><span class="say">${text}</span>
+  <span class="progress">${Array.from({ length: 8 }, (_, i) => `<i class="${i < done ? "on" : i === done ? "now" : ""}"></i>`).join("")}</span></div>`;
+const shelf = (inner) => `<div class="shelf">${inner}</div>`;
+const yesNo = (state = {}) => shelf(`<div class="btn ${state.eq || ""}">Поровну</div><div class="btn ${state.ne || ""}">Не поровну</div>`);
+const rows = (a, b) => { const max = Math.max(a, b), min = Math.min(a, b);
+  return `<div class="rows">${[a, b].map((n) => `<div class="line">${Array.from({ length: max }, (_, j) => j < n ? `<span class="cell ${j >= min ? "extra" : ""}"><img src="img/apple-photo.webp"></span>` : `<span class="cell hole"></span>`).join("")}</div>`).join("")}</div>`; };
+const screen = (inner) => `<div class="screen">${inner}</div>`;
+
+const frames = [
+  ["0", "Поровну? — вопрос", screen(header("Поровну?") + `<div class="table"><div class="row">${plate(3)}${plate(4)}</div></div>` + yesNo()),
+   "Две тарелки и два слова. Кнопки «Поровну» и «Не поровну» всегда на своих местах (не перемешиваются). Нажатие озвучивает слово."],
+  ["0", "Поровну? — после ошибки", screen(header("Посмотри") + `<div class="table"><div class="row">${plate(3, { cls: "ghost", s: 150 })}${plate(4, { cls: "ghost", s: 150 })}</div>${rows(3, 4)}</div>` + yesNo()),
+   "Ребёнок нажал «Поровну». Ничего красного: кнопка просто вернулась. Яблоки <b>переехали</b> с тарелок в ряды один к одному — у короткого ряда пустое место, лишнее яблоко приподнято. Вопрос остаётся, отвечать снова."],
+  ["0", "Поровну? — верно", screen(header("Поровну! По 3", 3) + `<div class="table good"><div class="row">${plate(3, { cls: "ghost", s: 150 })}${plate(3, { cls: "ghost", s: 150 })}</div>${rows(3, 3)}</div>` + yesNo({ eq: "chosen", ne: "quiet" })),
+   "Успех всегда один и тот же: мягкое зелёное свечение всего стола (не каждой тарелки), выбранное слово зелёное, в полоске сверху прибавилось яблоко. Без конфетти."],
+  ["1", "Сделай поровну — образец", screen(header("Смотри") + `<div class="table"><div class="row">${plate(4)}${plate(2)}</div>
+    <div class="trail" style="left:420px;top:150px;width:170px;transform:rotate(4deg)"></div>
+    <img class="fly" src="img/apple-photo.webp" style="left:560px;top:122px"><span class="hand" style="left:582px;top:140px">👆</span></div>` + shelf(`<span class="hint">полка пустая — отвечать здесь не надо, работа на столе</span>`)),
+   "В первом задании занятия рука сама переносит яблоко с полной тарелки на пустую — дважды. След пунктиром показывает путь. Потом ребёнок делает сам."],
+  ["1", "Сделай поровну — подсказка", screen(header("Сделай поровну") + `<div class="table"><div class="row">${plate(5, { cls: "lift" })}${plate(3)}${plate(4)}</div></div>` + shelf("")),
+   "Подсказка без колец: тарелка, где больше, <b>приподнимается</b> над столом (тень длиннее, она крупнее). Если не помогло — рука показывает ход, как в образце."],
+  ["2", "Считаем группами — выбор числа", screen(header("По 3. Сколько всего?") + `<div class="table"><div class="row" style="gap:44px">
+    <div class="col"><div class="total old">3</div>${plate(3, { cls: "done", s: 180 })}</div>
+    <div class="col"><div class="total">6</div>${plate(3, { cls: "done", s: 180 })}</div>
+    <div class="col"><div class="total"></div>${plate(3, { cls: "lift", s: 180 })}</div>
+    <div class="col"><div class="total"></div>${plate(3, { s: 180 })}</div></div></div>` + shelf(`<div class="btn num">7</div><div class="btn num">9</div><div class="btn num">8</div>`)),
+   "Числа просто написаны над тарелками: последнее крупно, прошлые серым. Следующая тарелка приподнята (а не обведена). Ответы — на той же полке, числа перемешиваются."],
+  ["2", "Считаем группами — после ошибки", screen(header("6, и ещё 3") + `<div class="table"><div class="row" style="gap:44px">
+    <div class="col"><div class="total old">3</div>${plate(3, { cls: "done", s: 180 })}</div>
+    <div class="col"><div class="total">6</div>${plate(3, { cls: "done", s: 180 })}</div>
+    <div class="col"><div class="total"></div>${plate(3, { cls: "lift", s: 180, labels: [7, 8, 9] })}</div>
+    <div class="col"><div class="total"></div>${plate(3, { s: 180 })}</div></div></div>` + shelf(`<div class="btn num quiet">7</div><div class="btn num">9</div><div class="btn num">8</div>`)),
+   "Ребёнок выбрал 7 (прибавил одно яблоко вместо тарелки). Кнопка 7 просто бледнеет. На яблоках третьей тарелки по одному появляются 7, 8, 9 — счёт продолжается от 6. Голос: «Шесть, и ещё три»."],
+  ["3", "Сложение → умножение — сборка", screen(header("три раза", 5) + `<div class="table">
+    <div class="row" style="gap:36px">${plate(5, { cls: "done", s: 150 })}${plate(5, { cls: "done", s: 150 })}${plate(5, { cls: "done", s: 150 })}</div>
+    <div class="sum">${[1, 2, 3].map((k) => `<span class="term">5<span class="mini"></span></span>${k < 3 ? "<span>+</span>" : ""}`).join("")}<span>=</span><span>15</span></div></div>` + shelf("")),
+   "Под каждым слагаемым «5» появляется маленькая тарелка — это «один раз». Три слагаемых — три маленькие тарелки. Так видно, откуда в записи возьмётся «3», без цифр-номеров в кружках."],
+  ["3", "Сложение → умножение — запись", screen(header("Покажи: сколько тарелок?", 5) + `<div class="table">
+    <div class="row" style="gap:36px">${plate(5, { s: 130 })}${plate(5, { s: 130 })}${plate(5, { s: 130 })}</div>
+    <div class="sum faded">${[1, 2, 3].map((k) => `<span class="term">5<span class="mini"></span></span>${k < 3 ? "<span>+</span>" : ""}`).join("")}<span>=</span><span>15</span></div>
+    <div class="record"><span class="factor"><span class="card">5</span><span class="icons">${'<img src="img/apple-photo.webp">'.repeat(5)}</span></span><span>×</span>
+      <span class="factor"><span class="card">3</span><span class="icons">${'<span class="mini"></span>'.repeat(3)}</span></span><span>=</span><span>15</span></div></div>` + shelf("")),
+   "Сложение тускнеет и «складывается» в запись. Маленькие тарелки съезжаются под «3», яблоки — под «5». Числа записи — белые карточки: их нажимают, отвечая «сколько тарелок» и «сколько на одной». Знак и порядок — как в школе языка занятия."],
+  ["—", "Конец занятия", screen(header("Молодец!", 8) + `<div class="table good"><div style="font-size:110px">🎬</div><div class="say" style="font-size:30px">Видео</div></div>` + shelf(`<div class="btn">Смотреть видео</div>`)),
+   "Занятие конечное: 8 заданий, полоска заполнена — дальше видео (обычная награда приложения). Вместо «1 / 500» в шапке."],
+];
+document.getElementById("grid").innerHTML = frames.map(([step, name, html, cap]) =>
+  `<figure>${html}<figcaption><span class="step">${step}</span><b>${name}.</b> ${cap}</figcaption></figure>`).join("");
+</script>
+</body>
+</html>
