@@ -17,7 +17,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#080f20" />
+    <meta name="theme-color" content="#06171d" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,229 +30,173 @@
   </head>
   <body>
     <style>
-      #splash {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        background: #080f20;
-        transition: opacity 0.55s ease, transform 0.55s ease;
+      #splash { position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
+        overflow:hidden; background:#06171d; transition:opacity .45s ease; }
+      #splash.splash--exit { opacity:0; pointer-events:none; }
+      .spl-night { position:absolute; inset:0; opacity:1; pointer-events:none;
+        background:radial-gradient(ellipse at 18% 12%,#183644 0%,#0b202c 42%,#06171d 100%); }
+      .spl-sky { position:absolute; inset:0; width:100%; height:100%; }
+      .spl-sky-star:nth-child(11n) { filter:drop-shadow(0 0 3px #dbeaff); }
+      .spl-content { position:relative; width:min(420px,92vw); }
+      .spl-scene { display:block; width:100%; height:auto; overflow:visible; }
+      .spl-ink { fill:#ffffff; }
+      .spl-gold { fill:#f2c45a; }
+      .spl-u-base { opacity:0; }
+      .spl-wordmark { filter:drop-shadow(0 0 22px #8eacb326); }
+      .spl-mark { filter:drop-shadow(0 0 24px #8eacb345); }
+      .spl-u-ember { fill:none; stroke:#fff6d5; stroke-width:4; stroke-linejoin:round; stroke-linecap:round; opacity:0; }
+      .spl-u-ember-soft { stroke:#ffbb50; stroke-width:14; filter:url(#spl-soft); }
+      .spl-flight { fill:none; stroke:#e3ac47; stroke-width:3.8; stroke-linecap:round; opacity:0; }
+      .spl-flight-core { stroke:#fff2c3; stroke-width:2.2; }
+      .spl-flight-soft { stroke:#edbd5c; stroke-width:16; filter:url(#spl-soft); }
+      .spl-star { opacity:0; transform-origin:0 0; }
+      .spl-star-glyph { transform-origin:0 0; }
+      .spl-impact { opacity:0; }
+      .spl-tagline { fill:#c4d3d8; font:italic 40px Georgia,serif; letter-spacing:.5px; }
+      @media (max-width:600px) { .spl-tagline { font-size:44px; } }
+      @media (prefers-reduced-motion:reduce) {
+        #splash { transition:none; }
+        .spl-flight,.spl-star,.spl-u-ember,.spl-impact { display:none; }
       }
-      #splash.splash--exit { opacity: 0; transform: scale(1.05); pointer-events: none; }
-
-      .spl-bg {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(ellipse 90% 55% at 50% 58%, #0e2255 0%, #080f20 100%);
-      }
-      .spl-stars {
-        position: absolute;
-        inset: 0;
-        background-image:
-          radial-gradient(1px 1px at 4% 9%, rgba(255,255,255,.4) 0%, transparent 100%),
-          radial-gradient(1px 1px at 13% 22%, rgba(255,255,255,.3) 0%, transparent 100%),
-          radial-gradient(1px 1px at 24% 6%, rgba(255,255,255,.35) 0%, transparent 100%),
-          radial-gradient(1px 1px at 33% 34%, rgba(255,255,255,.25) 0%, transparent 100%),
-          radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,.3) 0%, transparent 100%),
-          radial-gradient(1px 1px at 52% 46%, rgba(255,255,255,.22) 0%, transparent 100%),
-          radial-gradient(1px 1px at 61% 11%, rgba(255,255,255,.35) 0%, transparent 100%),
-          radial-gradient(1px 1px at 70% 28%, rgba(255,255,255,.3) 0%, transparent 100%),
-          radial-gradient(1px 1px at 79% 5%, rgba(255,255,255,.25) 0%, transparent 100%),
-          radial-gradient(1px 1px at 87% 20%, rgba(255,255,255,.35) 0%, transparent 100%),
-          radial-gradient(1px 1px at 95% 40%, rgba(255,255,255,.28) 0%, transparent 100%),
-          radial-gradient(1px 1px at 9% 55%, rgba(255,255,255,.3) 0%, transparent 100%),
-          radial-gradient(1px 1px at 18% 68%, rgba(255,255,255,.25) 0%, transparent 100%),
-          radial-gradient(1px 1px at 29% 88%, rgba(255,255,255,.32) 0%, transparent 100%),
-          radial-gradient(1px 1px at 41% 62%, rgba(255,255,255,.22) 0%, transparent 100%),
-          radial-gradient(1px 1px at 50% 92%, rgba(255,255,255,.3) 0%, transparent 100%),
-          radial-gradient(1px 1px at 58% 75%, rgba(255,255,255,.25) 0%, transparent 100%),
-          radial-gradient(1px 1px at 66% 58%, rgba(255,255,255,.3) 0%, transparent 100%),
-          radial-gradient(1px 1px at 73% 84%, rgba(255,255,255,.24) 0%, transparent 100%),
-          radial-gradient(1px 1px at 82% 66%, rgba(255,255,255,.32) 0%, transparent 100%),
-          radial-gradient(1px 1px at 90% 90%, rgba(255,255,255,.26) 0%, transparent 100%),
-          radial-gradient(1px 1px at 97% 72%, rgba(255,255,255,.3) 0%, transparent 100%);
-        animation: starsdrift 60s linear infinite;
-      }
-      @keyframes starsdrift {
-        from { transform: translateY(0); }
-        to   { transform: translateY(-14px); }
-      }
-      .spl-stars::before,
-      .spl-stars::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-      }
-      .spl-stars::before {
-        background-image:
-          radial-gradient(1.6px 1.6px at  8% 12%, #fff 0%, transparent 100%),
-          radial-gradient(1.4px 1.4px at 83% 18%, #fff 0%, transparent 100%),
-          radial-gradient(1.3px 1.3px at 22% 42%, #fff 0%, transparent 100%),
-          radial-gradient(1.6px 1.6px at 68% 72%, #fff 0%, transparent 100%),
-          radial-gradient(1.3px 1.3px at 38% 82%, #fff 0%, transparent 100%),
-          radial-gradient(1.4px 1.4px at 91% 52%, #fff 0%, transparent 100%),
-          radial-gradient(1.3px 1.3px at 14% 76%, #fff 0%, transparent 100%);
-        animation: twinklespl 2.6s ease-in-out infinite;
-      }
-      .spl-stars::after {
-        background-image:
-          radial-gradient(1.5px 1.5px at 57%  8%, #fff 0%, transparent 100%),
-          radial-gradient(2px   2px   at 47% 28%, #fff 0%, transparent 100%),
-          radial-gradient(1.4px 1.4px at 76% 38%, #fff 0%, transparent 100%),
-          radial-gradient(1.3px 1.3px at 30% 22%, #fff 0%, transparent 100%),
-          radial-gradient(1.4px 1.4px at 93% 85%, #fff 0%, transparent 100%),
-          radial-gradient(1.3px 1.3px at  5% 40%, #fff 0%, transparent 100%),
-          radial-gradient(1.5px 1.5px at 63% 94%, #fff 0%, transparent 100%);
-        animation: twinklespl 3.4s ease-in-out .9s infinite;
-      }
-      @keyframes twinklespl {
-        0%, 100% { opacity: .25; }
-        50%      { opacity: 1; }
-      }
-      .spl-sparkle {
-        position: absolute;
-        width: 14px;
-        height: 14px;
-        opacity: 0;
-        filter:
-          drop-shadow(0 0 5px rgba(255,255,255,.9))
-          drop-shadow(0 0 10px rgba(120,180,255,.6));
-      }
-      .spl-sparkle::before,
-      .spl-sparkle::after {
-        content: "";
-        position: absolute;
-        background: #fff;
-        border-radius: 2px;
-      }
-      .spl-sparkle::before { top: 50%; left: 0; right: 0; height: 1.4px; transform: translateY(-50%); }
-      .spl-sparkle::after  { left: 50%; top: 0; bottom: 0; width: 1.4px; transform: translateX(-50%); }
-      .spl-sparkle--1 { top: 18%; left: 20%; animation: sparklepop 3.6s ease-in-out .4s infinite; }
-      .spl-sparkle--2 { top: 24%; right: 16%; width: 10px; height: 10px; animation: sparklepop 3.6s ease-in-out 1.6s infinite; }
-      .spl-sparkle--3 { bottom: 22%; left: 14%; width: 9px; height: 9px; animation: sparklepop 3.6s ease-in-out 2.5s infinite; }
-      @keyframes sparklepop {
-        0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); }
-        50%      { opacity: 1; transform: scale(1) rotate(90deg); }
-      }
-      .spl-shoot {
-        position: absolute;
-        top: 20%;
-        left: -10%;
-        width: 70px;
-        height: 1.5px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,.9) 60%, #fff);
-        border-radius: 2px;
-        opacity: 0;
-        transform: rotate(18deg);
-        animation: shoot 1.15s cubic-bezier(.2,.6,.3,1) 1.3s 1;
-      }
-      @keyframes shoot {
-        0%   { opacity: 0; transform: translate(0,0) rotate(18deg); }
-        8%   { opacity: 1; }
-        70%  { opacity: .85; }
-        100% { opacity: 0; transform: translate(70vw, 22vh) rotate(18deg); }
-      }
-      .spl-aurora {
-        position: absolute;
-        width: 420px;
-        height: 420px;
-        border-radius: 50%;
-        background: radial-gradient(circle,
-          rgba(74,158,255,.18) 0%,
-          rgba(61,126,200,.10) 45%,
-          transparent 70%);
-        animation: aurorapulse 4s ease-in-out infinite;
-        opacity: 0;
-        animation-fill-mode: both;
-      }
-      @keyframes aurorapulse {
-        0%   { opacity: .7; transform: scale(1);    }
-        50%  { opacity: 1;  transform: scale(1.10); }
-        100% { opacity: .7; transform: scale(1);    }
-      }
-      .spl-warmth {
-        position: absolute;
-        bottom: 0; left: 0; right: 0;
-        height: 180px;
-        background: linear-gradient(to top, rgba(255,179,71,.07), transparent);
-        pointer-events: none;
-      }
-      .spl-content {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-      }
-      .spl-logo {
-        width: 110px;
-        height: auto;
-        opacity: 0;
-        transform: scale(.82);
-        animation: logoin .75s cubic-bezier(.34,1.56,.64,1) .25s forwards;
-        filter:
-          drop-shadow(0 0 18px rgba(74,158,255,.60))
-          drop-shadow(0 0 48px rgba(74,158,255,.25));
-      }
-      @keyframes logoin { to { opacity: 1; transform: scale(1); } }
-
-      .spl-name {
-        margin-top: 20px;
-        font-family: 'Nunito', sans-serif;
-        font-weight: 900;
-        font-size: clamp(32px, 8.5vw, 50px);
-        letter-spacing: -0.01em;
-        color: #fff;
-        line-height: 1;
-        opacity: 0;
-        transform: translateY(8px);
-        animation: textin .6s ease .55s forwards;
-        text-shadow: 0 0 36px rgba(74,158,255,.45);
-      }
-      .spl-divider {
-        margin-top: 14px;
-        width: 36px;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, rgba(74,158,255,.8), transparent);
-        opacity: 0;
-        animation: textin .5s ease .80s forwards;
-      }
-      .spl-tagline {
-        margin-top: 12px;
-        font-family: 'DM Serif Display', Georgia, serif;
-        font-style: italic;
-        font-size: clamp(15px, 3.8vw, 19px);
-        font-weight: 400;
-        letter-spacing: .01em;
-        color: rgba(255,255,255,.72);
-        opacity: 0;
-        transform: translateY(7px);
-        animation: textin .6s ease .90s forwards;
-      }
-      @keyframes textin { to { opacity: 1; transform: translateY(0); } }
     </style>
 
-    <div id="splash">
-      <div class="spl-bg"></div>
-      <div class="spl-stars"></div>
-      <div class="spl-sparkle spl-sparkle--1"></div>
-      <div class="spl-sparkle spl-sparkle--2"></div>
-      <div class="spl-sparkle spl-sparkle--3"></div>
-      <div class="spl-shoot"></div>
-      <div class="spl-aurora"></div>
-      <div class="spl-warmth"></div>
+    <div id="splash" role="status" aria-label="Mironium — загрузка приложения">
+      <div class="spl-night" aria-hidden="true"><svg class="spl-sky" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><circle class="spl-sky-star" cx="167.49" cy="800.11" r="2.03" fill="#ffe2a6" opacity="0.50"/><circle class="spl-sky-star" cx="1245.60" cy="562.38" r="2.67" fill="#f0f5ff" opacity="0.81"/><circle class="spl-sky-star" cx="1468.57" cy="822.31" r="2.61" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="1199.48" cy="649.53" r="1.27" fill="#f0f5ff" opacity="0.67"/><circle class="spl-sky-star" cx="1497.27" cy="120.66" r="2.39" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="277.30" cy="67.31" r="2.60" fill="#ffe2a6" opacity="0.88"/><circle class="spl-sky-star" cx="318.55" cy="728.17" r="1.09" fill="#f0f5ff" opacity="0.82"/><circle class="spl-sky-star" cx="629.58" cy="850.87" r="1.31" fill="#f0f5ff" opacity="0.76"/><circle class="spl-sky-star" cx="852.43" cy="583.55" r="1.78" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="86.53" cy="56.96" r="1.42" fill="#f0f5ff" opacity="0.90"/><circle class="spl-sky-star" cx="1013.72" cy="39.88" r="1.55" fill="#ffe2a6" opacity="0.52"/><circle class="spl-sky-star" cx="1191.73" cy="38.33" r="2.68" fill="#f0f5ff" opacity="0.78"/><circle class="spl-sky-star" cx="82.09" cy="306.71" r="2.49" fill="#f0f5ff" opacity="0.61"/><circle class="spl-sky-star" cx="207.30" cy="563.56" r="1.42" fill="#f0f5ff" opacity="0.63"/><circle class="spl-sky-star" cx="888.19" cy="474.08" r="2.21" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="1022.41" cy="452.63" r="1.30" fill="#ffe2a6" opacity="0.80"/><circle class="spl-sky-star" cx="963.47" cy="58.05" r="1.74" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="27.91" cy="319.73" r="2.63" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="315.75" cy="70.29" r="1.70" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="682.44" cy="878.73" r="1.85" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="1154.10" cy="159.45" r="2.38" fill="#ffe2a6" opacity="0.84"/><circle class="spl-sky-star" cx="1034.27" cy="702.26" r="2.53" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="1055.71" cy="137.68" r="1.83" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="1436.06" cy="731.14" r="2.51" fill="#f0f5ff" opacity="0.50"/><circle class="spl-sky-star" cx="23.67" cy="142.22" r="2.17" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="425.41" cy="687.64" r="2.53" fill="#ffe2a6" opacity="0.82"/><circle class="spl-sky-star" cx="1397.66" cy="325.69" r="2.56" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="1427.80" cy="996.41" r="0.94" fill="#f0f5ff" opacity="0.61"/><circle class="spl-sky-star" cx="72.75" cy="752.22" r="2.59" fill="#f0f5ff" opacity="0.66"/><circle class="spl-sky-star" cx="1104.16" cy="22.05" r="2.25" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="787.19" cy="265.84" r="2.25" fill="#ffe2a6" opacity="0.64"/><circle class="spl-sky-star" cx="1534.97" cy="624.44" r="1.24" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="1310.02" cy="530.11" r="1.31" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="1451.00" cy="130.33" r="2.23" fill="#f0f5ff" opacity="0.76"/><circle class="spl-sky-star" cx="140.87" cy="605.01" r="1.62" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="528.57" cy="319.87" r="2.26" fill="#ffe2a6" opacity="0.97"/><circle class="spl-sky-star" cx="886.06" cy="291.28" r="1.05" fill="#f0f5ff" opacity="0.63"/><circle class="spl-sky-star" cx="169.86" cy="877.22" r="1.17" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="856.83" cy="488.60" r="1.85" fill="#f0f5ff" opacity="0.53"/><circle class="spl-sky-star" cx="430.69" cy="380.88" r="2.32" fill="#f0f5ff" opacity="0.80"/><circle class="spl-sky-star" cx="58.86" cy="835.92" r="1.00" fill="#ffe2a6" opacity="0.63"/><circle class="spl-sky-star" cx="596.54" cy="384.22" r="1.58" fill="#f0f5ff" opacity="0.78"/><circle class="spl-sky-star" cx="1379.07" cy="820.32" r="1.74" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="1312.18" cy="987.28" r="1.74" fill="#f0f5ff" opacity="0.96"/><circle class="spl-sky-star" cx="269.60" cy="805.07" r="2.54" fill="#f0f5ff" opacity="0.67"/><circle class="spl-sky-star" cx="491.38" cy="281.06" r="1.27" fill="#ffe2a6" opacity="0.67"/><circle class="spl-sky-star" cx="20.83" cy="551.46" r="2.31" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="525.43" cy="529.65" r="1.12" fill="#f0f5ff" opacity="0.80"/><circle class="spl-sky-star" cx="1417.00" cy="13.38" r="1.88" fill="#f0f5ff" opacity="0.70"/><circle class="spl-sky-star" cx="760.79" cy="304.51" r="1.54" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="546.97" cy="362.08" r="0.98" fill="#ffe2a6" opacity="0.95"/><circle class="spl-sky-star" cx="1079.18" cy="280.63" r="1.47" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="1142.34" cy="421.48" r="0.92" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="156.67" cy="726.52" r="1.32" fill="#f0f5ff" opacity="0.72"/><circle class="spl-sky-star" cx="1011.07" cy="393.39" r="1.11" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="199.43" cy="102.61" r="2.22" fill="#ffe2a6" opacity="0.53"/><circle class="spl-sky-star" cx="597.77" cy="714.74" r="1.69" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="437.95" cy="495.77" r="2.24" fill="#f0f5ff" opacity="0.64"/><circle class="spl-sky-star" cx="565.79" cy="87.87" r="2.54" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="542.78" cy="860.27" r="1.78" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="78.27" cy="4.54" r="2.17" fill="#ffe2a6" opacity="0.65"/><circle class="spl-sky-star" cx="545.26" cy="779.54" r="1.76" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="636.69" cy="320.74" r="2.52" fill="#f0f5ff" opacity="0.78"/><circle class="spl-sky-star" cx="830.39" cy="598.92" r="1.94" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="1254.36" cy="929.78" r="2.50" fill="#f0f5ff" opacity="0.51"/><circle class="spl-sky-star" cx="876.12" cy="389.36" r="1.23" fill="#ffe2a6" opacity="0.61"/><circle class="spl-sky-star" cx="1182.17" cy="522.19" r="1.99" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="1160.27" cy="221.85" r="2.58" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="523.99" cy="525.38" r="2.19" fill="#f0f5ff" opacity="0.54"/><circle class="spl-sky-star" cx="1516.27" cy="802.80" r="2.36" fill="#f0f5ff" opacity="0.85"/><circle class="spl-sky-star" cx="385.55" cy="71.90" r="1.23" fill="#ffe2a6" opacity="0.98"/><circle class="spl-sky-star" cx="1223.60" cy="100.65" r="1.23" fill="#f0f5ff" opacity="0.93"/><circle class="spl-sky-star" cx="771.36" cy="569.04" r="1.37" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="1289.56" cy="888.22" r="2.05" fill="#f0f5ff" opacity="0.82"/><circle class="spl-sky-star" cx="172.65" cy="61.05" r="1.80" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="1404.23" cy="431.86" r="1.16" fill="#ffe2a6" opacity="0.50"/><circle class="spl-sky-star" cx="202.63" cy="755.92" r="2.42" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="522.98" cy="468.07" r="1.80" fill="#f0f5ff" opacity="0.76"/><circle class="spl-sky-star" cx="52.92" cy="430.94" r="1.50" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="1003.44" cy="487.64" r="2.25" fill="#f0f5ff" opacity="0.76"/><circle class="spl-sky-star" cx="911.99" cy="601.43" r="1.91" fill="#ffe2a6" opacity="0.83"/><circle class="spl-sky-star" cx="306.90" cy="926.79" r="1.33" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="1276.95" cy="69.88" r="2.42" fill="#f0f5ff" opacity="0.51"/><circle class="spl-sky-star" cx="1153.59" cy="419.48" r="2.66" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="117.35" cy="66.69" r="1.67" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="919.29" cy="86.50" r="1.63" fill="#ffe2a6" opacity="0.88"/><circle class="spl-sky-star" cx="240.47" cy="213.83" r="1.18" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="450.28" cy="506.11" r="1.97" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="1114.15" cy="617.94" r="0.99" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="777.57" cy="666.93" r="2.08" fill="#f0f5ff" opacity="0.74"/><circle class="spl-sky-star" cx="974.35" cy="926.39" r="2.60" fill="#ffe2a6" opacity="0.88"/><circle class="spl-sky-star" cx="52.22" cy="994.45" r="1.93" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="1484.44" cy="333.98" r="2.55" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="1128.23" cy="82.68" r="1.06" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="1590.19" cy="100.07" r="1.53" fill="#f0f5ff" opacity="0.67"/><circle class="spl-sky-star" cx="1191.77" cy="488.35" r="1.30" fill="#ffe2a6" opacity="0.95"/><circle class="spl-sky-star" cx="1217.52" cy="648.21" r="1.86" fill="#f0f5ff" opacity="0.78"/><circle class="spl-sky-star" cx="1192.36" cy="225.95" r="1.20" fill="#f0f5ff" opacity="0.53"/><circle class="spl-sky-star" cx="1057.51" cy="433.47" r="1.14" fill="#f0f5ff" opacity="0.50"/><circle class="spl-sky-star" cx="1387.35" cy="333.81" r="2.18" fill="#f0f5ff" opacity="0.51"/><circle class="spl-sky-star" cx="1400.87" cy="564.69" r="1.32" fill="#ffe2a6" opacity="0.97"/><circle class="spl-sky-star" cx="386.68" cy="385.89" r="1.16" fill="#f0f5ff" opacity="0.96"/><circle class="spl-sky-star" cx="804.68" cy="170.85" r="1.92" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="93.10" cy="537.75" r="2.14" fill="#f0f5ff" opacity="0.91"/><circle class="spl-sky-star" cx="420.85" cy="976.22" r="1.17" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="1225.55" cy="937.50" r="2.63" fill="#ffe2a6" opacity="0.52"/><circle class="spl-sky-star" cx="864.73" cy="986.37" r="1.18" fill="#f0f5ff" opacity="0.75"/><circle class="spl-sky-star" cx="23.80" cy="19.68" r="1.52" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="729.87" cy="756.75" r="2.01" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="904.21" cy="111.22" r="2.40" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="1139.02" cy="986.00" r="1.31" fill="#ffe2a6" opacity="0.96"/><circle class="spl-sky-star" cx="535.65" cy="790.46" r="2.02" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="1393.68" cy="704.75" r="1.29" fill="#f0f5ff" opacity="0.93"/><circle class="spl-sky-star" cx="371.89" cy="37.51" r="1.01" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="479.34" cy="97.47" r="2.61" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="742.22" cy="883.63" r="1.52" fill="#ffe2a6" opacity="0.51"/><circle class="spl-sky-star" cx="606.31" cy="263.65" r="1.42" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="547.18" cy="966.71" r="1.20" fill="#f0f5ff" opacity="0.70"/><circle class="spl-sky-star" cx="1009.49" cy="651.65" r="1.90" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="753.28" cy="823.56" r="2.43" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="393.49" cy="706.69" r="1.67" fill="#ffe2a6" opacity="0.58"/><circle class="spl-sky-star" cx="1566.48" cy="731.23" r="2.68" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="1361.12" cy="592.08" r="1.97" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="1504.63" cy="856.46" r="2.65" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="1438.18" cy="593.02" r="1.25" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="475.32" cy="602.37" r="1.49" fill="#ffe2a6" opacity="0.96"/><circle class="spl-sky-star" cx="987.11" cy="670.03" r="1.54" fill="#f0f5ff" opacity="0.85"/><circle class="spl-sky-star" cx="807.00" cy="579.68" r="1.13" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="81.68" cy="643.96" r="1.43" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="29.79" cy="990.48" r="1.41" fill="#f0f5ff" opacity="0.82"/><circle class="spl-sky-star" cx="357.44" cy="109.48" r="1.94" fill="#ffe2a6" opacity="0.76"/><circle class="spl-sky-star" cx="314.28" cy="826.07" r="2.69" fill="#f0f5ff" opacity="0.61"/><circle class="spl-sky-star" cx="24.86" cy="824.56" r="2.28" fill="#f0f5ff" opacity="0.82"/><circle class="spl-sky-star" cx="552.13" cy="273.14" r="2.21" fill="#f0f5ff" opacity="0.70"/><circle class="spl-sky-star" cx="1531.66" cy="108.06" r="1.18" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="941.02" cy="873.61" r="2.36" fill="#ffe2a6" opacity="0.76"/><circle class="spl-sky-star" cx="578.95" cy="277.43" r="2.57" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="196.83" cy="246.75" r="1.13" fill="#f0f5ff" opacity="0.66"/><circle class="spl-sky-star" cx="364.32" cy="207.92" r="1.89" fill="#f0f5ff" opacity="0.91"/><circle class="spl-sky-star" cx="1539.26" cy="223.82" r="1.83" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="1333.15" cy="798.80" r="1.11" fill="#ffe2a6" opacity="0.56"/><circle class="spl-sky-star" cx="15.42" cy="942.45" r="2.46" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="1080.84" cy="351.73" r="1.74" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="608.15" cy="3.92" r="1.89" fill="#f0f5ff" opacity="0.81"/><circle class="spl-sky-star" cx="1204.89" cy="479.67" r="2.11" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="891.86" cy="629.18" r="1.49" fill="#ffe2a6" opacity="0.56"/><circle class="spl-sky-star" cx="1393.59" cy="436.77" r="2.38" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="921.18" cy="439.59" r="1.84" fill="#f0f5ff" opacity="0.89"/><circle class="spl-sky-star" cx="768.99" cy="929.35" r="2.02" fill="#f0f5ff" opacity="0.96"/><circle class="spl-sky-star" cx="88.85" cy="629.24" r="2.03" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="45.87" cy="9.51" r="1.78" fill="#ffe2a6" opacity="0.68"/><circle class="spl-sky-star" cx="1077.42" cy="660.16" r="2.43" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="1347.96" cy="261.26" r="1.32" fill="#f0f5ff" opacity="0.90"/><circle class="spl-sky-star" cx="974.10" cy="579.46" r="1.35" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="1265.07" cy="636.42" r="1.81" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="425.87" cy="304.91" r="1.30" fill="#ffe2a6" opacity="0.54"/><circle class="spl-sky-star" cx="173.58" cy="706.95" r="2.42" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="884.23" cy="695.98" r="2.48" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="1247.34" cy="554.95" r="1.05" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="1246.97" cy="66.44" r="2.35" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="497.72" cy="100.34" r="2.25" fill="#ffe2a6" opacity="0.75"/><circle class="spl-sky-star" cx="194.94" cy="870.46" r="2.37" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="1416.12" cy="161.84" r="1.76" fill="#f0f5ff" opacity="0.75"/><circle class="spl-sky-star" cx="782.46" cy="698.52" r="1.66" fill="#f0f5ff" opacity="0.85"/><circle class="spl-sky-star" cx="728.32" cy="660.01" r="1.41" fill="#f0f5ff" opacity="0.90"/><circle class="spl-sky-star" cx="566.55" cy="840.19" r="2.52" fill="#ffe2a6" opacity="0.56"/><circle class="spl-sky-star" cx="1132.71" cy="206.39" r="2.30" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="466.64" cy="228.14" r="2.08" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="713.09" cy="137.04" r="1.81" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="112.84" cy="125.95" r="1.23" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="1277.66" cy="396.37" r="2.39" fill="#ffe2a6" opacity="0.93"/><circle class="spl-sky-star" cx="1591.22" cy="260.35" r="1.04" fill="#f0f5ff" opacity="0.94"/><circle class="spl-sky-star" cx="887.37" cy="319.40" r="1.99" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="1544.19" cy="574.56" r="1.21" fill="#f0f5ff" opacity="0.56"/><circle class="spl-sky-star" cx="1558.67" cy="645.40" r="0.91" fill="#f0f5ff" opacity="0.91"/><circle class="spl-sky-star" cx="590.41" cy="538.77" r="2.16" fill="#ffe2a6" opacity="0.61"/><circle class="spl-sky-star" cx="481.12" cy="961.02" r="1.24" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="699.07" cy="688.41" r="2.13" fill="#f0f5ff" opacity="0.75"/><circle class="spl-sky-star" cx="753.07" cy="540.86" r="1.82" fill="#f0f5ff" opacity="0.98"/><circle class="spl-sky-star" cx="1252.64" cy="113.00" r="2.49" fill="#f0f5ff" opacity="0.90"/><circle class="spl-sky-star" cx="694.34" cy="492.26" r="1.71" fill="#ffe2a6" opacity="0.76"/><circle class="spl-sky-star" cx="973.70" cy="645.53" r="1.90" fill="#f0f5ff" opacity="0.89"/><circle class="spl-sky-star" cx="833.10" cy="580.48" r="1.44" fill="#f0f5ff" opacity="0.64"/><circle class="spl-sky-star" cx="1346.77" cy="228.12" r="2.67" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="1223.79" cy="79.53" r="2.55" fill="#f0f5ff" opacity="0.56"/><circle class="spl-sky-star" cx="483.87" cy="860.09" r="2.56" fill="#ffe2a6" opacity="0.85"/><circle class="spl-sky-star" cx="280.55" cy="213.18" r="2.45" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="292.48" cy="996.46" r="1.18" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="1033.81" cy="72.38" r="0.98" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="250.22" cy="564.87" r="1.43" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="874.95" cy="964.92" r="2.50" fill="#ffe2a6" opacity="0.77"/><circle class="spl-sky-star" cx="775.36" cy="15.61" r="2.23" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="828.95" cy="832.51" r="1.48" fill="#f0f5ff" opacity="0.64"/><circle class="spl-sky-star" cx="264.26" cy="827.24" r="1.72" fill="#f0f5ff" opacity="0.85"/><circle class="spl-sky-star" cx="55.85" cy="983.08" r="1.90" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="1235.83" cy="388.20" r="1.04" fill="#ffe2a6" opacity="0.75"/><circle class="spl-sky-star" cx="871.24" cy="725.00" r="0.90" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="1521.04" cy="11.01" r="1.03" fill="#f0f5ff" opacity="0.96"/><circle class="spl-sky-star" cx="184.84" cy="171.63" r="1.53" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="555.38" cy="236.79" r="1.51" fill="#f0f5ff" opacity="0.94"/><circle class="spl-sky-star" cx="10.16" cy="654.60" r="1.46" fill="#ffe2a6" opacity="0.82"/><circle class="spl-sky-star" cx="567.27" cy="681.37" r="2.33" fill="#f0f5ff" opacity="0.81"/><circle class="spl-sky-star" cx="1052.44" cy="547.22" r="2.28" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="1340.09" cy="46.17" r="1.96" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="353.42" cy="260.45" r="2.23" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="993.38" cy="211.74" r="1.24" fill="#ffe2a6" opacity="0.53"/><circle class="spl-sky-star" cx="57.55" cy="399.82" r="2.18" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="1223.99" cy="258.84" r="0.90" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="639.69" cy="674.55" r="1.69" fill="#f0f5ff" opacity="0.80"/><circle class="spl-sky-star" cx="368.83" cy="341.95" r="2.19" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="476.94" cy="41.22" r="2.26" fill="#ffe2a6" opacity="0.67"/><circle class="spl-sky-star" cx="866.64" cy="32.31" r="2.67" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="438.07" cy="153.58" r="1.00" fill="#f0f5ff" opacity="0.93"/><circle class="spl-sky-star" cx="991.55" cy="280.05" r="1.97" fill="#f0f5ff" opacity="0.63"/><circle class="spl-sky-star" cx="1223.81" cy="956.06" r="1.52" fill="#f0f5ff" opacity="0.73"/><circle class="spl-sky-star" cx="581.06" cy="706.04" r="2.01" fill="#ffe2a6" opacity="0.58"/><circle class="spl-sky-star" cx="672.46" cy="369.16" r="2.59" fill="#f0f5ff" opacity="0.50"/><circle class="spl-sky-star" cx="1254.67" cy="34.00" r="1.72" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="610.39" cy="54.76" r="1.10" fill="#f0f5ff" opacity="0.72"/><circle class="spl-sky-star" cx="476.36" cy="446.77" r="2.60" fill="#f0f5ff" opacity="0.98"/><circle class="spl-sky-star" cx="514.24" cy="315.63" r="1.95" fill="#ffe2a6" opacity="0.54"/><circle class="spl-sky-star" cx="1577.93" cy="18.28" r="1.33" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="395.31" cy="216.97" r="1.04" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="1171.99" cy="999.74" r="2.52" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="1107.22" cy="666.84" r="1.09" fill="#f0f5ff" opacity="0.63"/><circle class="spl-sky-star" cx="1.48" cy="771.88" r="1.88" fill="#ffe2a6" opacity="0.77"/><circle class="spl-sky-star" cx="82.71" cy="532.39" r="2.14" fill="#f0f5ff" opacity="0.51"/><circle class="spl-sky-star" cx="1404.52" cy="14.54" r="2.33" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="80.23" cy="788.03" r="1.22" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="914.61" cy="240.03" r="1.80" fill="#f0f5ff" opacity="0.70"/><circle class="spl-sky-star" cx="1282.80" cy="432.08" r="1.24" fill="#ffe2a6" opacity="0.95"/><circle class="spl-sky-star" cx="1414.51" cy="363.21" r="2.60" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="929.78" cy="59.34" r="0.92" fill="#f0f5ff" opacity="0.61"/><circle class="spl-sky-star" cx="41.07" cy="987.00" r="2.64" fill="#f0f5ff" opacity="0.76"/><circle class="spl-sky-star" cx="1183.41" cy="848.58" r="1.69" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="79.15" cy="528.67" r="2.57" fill="#ffe2a6" opacity="0.60"/><circle class="spl-sky-star" cx="309.76" cy="142.13" r="2.62" fill="#f0f5ff" opacity="0.70"/><circle class="spl-sky-star" cx="319.29" cy="891.35" r="0.99" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="633.73" cy="23.39" r="1.09" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="672.96" cy="384.07" r="2.31" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="272.25" cy="396.97" r="2.33" fill="#ffe2a6" opacity="0.51"/><circle class="spl-sky-star" cx="613.87" cy="762.66" r="2.63" fill="#f0f5ff" opacity="0.92"/><circle class="spl-sky-star" cx="1151.51" cy="935.34" r="1.46" fill="#f0f5ff" opacity="0.72"/><circle class="spl-sky-star" cx="1058.26" cy="542.94" r="1.31" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="1062.04" cy="415.68" r="2.24" fill="#f0f5ff" opacity="0.64"/><circle class="spl-sky-star" cx="869.88" cy="190.82" r="1.48" fill="#ffe2a6" opacity="0.73"/><circle class="spl-sky-star" cx="1376.14" cy="144.68" r="1.13" fill="#f0f5ff" opacity="0.54"/><circle class="spl-sky-star" cx="260.36" cy="871.68" r="2.05" fill="#f0f5ff" opacity="0.96"/><circle class="spl-sky-star" cx="1148.85" cy="135.42" r="2.48" fill="#f0f5ff" opacity="0.73"/><circle class="spl-sky-star" cx="1293.10" cy="952.02" r="2.58" fill="#f0f5ff" opacity="0.81"/><circle class="spl-sky-star" cx="589.56" cy="401.24" r="2.40" fill="#ffe2a6" opacity="0.51"/><circle class="spl-sky-star" cx="285.68" cy="561.83" r="1.06" fill="#f0f5ff" opacity="0.72"/><circle class="spl-sky-star" cx="708.69" cy="705.38" r="2.49" fill="#f0f5ff" opacity="0.51"/><circle class="spl-sky-star" cx="267.59" cy="529.51" r="2.65" fill="#f0f5ff" opacity="0.52"/><circle class="spl-sky-star" cx="839.15" cy="731.32" r="2.42" fill="#f0f5ff" opacity="0.75"/><circle class="spl-sky-star" cx="192.12" cy="255.66" r="1.60" fill="#ffe2a6" opacity="0.73"/><circle class="spl-sky-star" cx="333.70" cy="169.75" r="2.53" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="1472.42" cy="969.25" r="1.11" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="1369.04" cy="230.77" r="2.34" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="835.50" cy="998.56" r="2.40" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="868.46" cy="812.39" r="1.44" fill="#ffe2a6" opacity="0.56"/><circle class="spl-sky-star" cx="1203.76" cy="133.07" r="2.20" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="1220.06" cy="253.00" r="1.22" fill="#f0f5ff" opacity="0.74"/><circle class="spl-sky-star" cx="622.87" cy="552.98" r="1.47" fill="#f0f5ff" opacity="0.73"/><circle class="spl-sky-star" cx="470.97" cy="735.49" r="2.19" fill="#f0f5ff" opacity="0.63"/><circle class="spl-sky-star" cx="830.59" cy="196.25" r="2.62" fill="#ffe2a6" opacity="0.87"/><circle class="spl-sky-star" cx="226.33" cy="914.91" r="2.12" fill="#f0f5ff" opacity="0.76"/><circle class="spl-sky-star" cx="1049.17" cy="240.61" r="1.61" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="501.29" cy="66.85" r="1.17" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="1087.67" cy="622.70" r="1.92" fill="#f0f5ff" opacity="0.86"/><circle class="spl-sky-star" cx="564.26" cy="440.20" r="2.49" fill="#ffe2a6" opacity="0.85"/><circle class="spl-sky-star" cx="449.24" cy="478.77" r="1.21" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="6.52" cy="369.02" r="1.71" fill="#f0f5ff" opacity="0.64"/><circle class="spl-sky-star" cx="1595.56" cy="93.40" r="1.25" fill="#f0f5ff" opacity="0.95"/><circle class="spl-sky-star" cx="1087.99" cy="368.93" r="1.37" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="899.72" cy="27.81" r="1.91" fill="#ffe2a6" opacity="0.88"/><circle class="spl-sky-star" cx="1497.99" cy="417.29" r="2.58" fill="#f0f5ff" opacity="0.54"/><circle class="spl-sky-star" cx="611.82" cy="219.45" r="1.88" fill="#f0f5ff" opacity="0.64"/><circle class="spl-sky-star" cx="1407.72" cy="212.98" r="1.66" fill="#f0f5ff" opacity="0.69"/><circle class="spl-sky-star" cx="333.20" cy="969.92" r="1.22" fill="#f0f5ff" opacity="0.50"/><circle class="spl-sky-star" cx="43.93" cy="873.19" r="1.72" fill="#ffe2a6" opacity="0.80"/><circle class="spl-sky-star" cx="613.12" cy="284.62" r="1.78" fill="#f0f5ff" opacity="0.85"/><circle class="spl-sky-star" cx="131.43" cy="967.74" r="1.77" fill="#f0f5ff" opacity="0.87"/><circle class="spl-sky-star" cx="1048.59" cy="22.28" r="1.72" fill="#f0f5ff" opacity="0.79"/><circle class="spl-sky-star" cx="33.53" cy="42.32" r="1.83" fill="#f0f5ff" opacity="0.67"/><circle class="spl-sky-star" cx="760.36" cy="708.50" r="1.11" fill="#ffe2a6" opacity="0.54"/><circle class="spl-sky-star" cx="1208.53" cy="179.51" r="1.12" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="915.51" cy="498.59" r="1.77" fill="#f0f5ff" opacity="0.62"/><circle class="spl-sky-star" cx="428.73" cy="771.82" r="1.86" fill="#f0f5ff" opacity="0.75"/><circle class="spl-sky-star" cx="505.17" cy="935.39" r="2.24" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="1169.70" cy="558.95" r="1.43" fill="#ffe2a6" opacity="0.92"/><circle class="spl-sky-star" cx="1513.84" cy="760.53" r="2.31" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="141.27" cy="301.51" r="1.62" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="2.32" cy="634.67" r="2.21" fill="#f0f5ff" opacity="0.66"/><circle class="spl-sky-star" cx="1235.37" cy="614.56" r="1.54" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="141.22" cy="174.45" r="1.37" fill="#ffe2a6" opacity="0.61"/><circle class="spl-sky-star" cx="843.96" cy="694.01" r="2.47" fill="#f0f5ff" opacity="0.96"/><circle class="spl-sky-star" cx="484.51" cy="557.00" r="1.49" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="222.66" cy="238.57" r="2.62" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="170.59" cy="368.92" r="1.39" fill="#f0f5ff" opacity="0.63"/><circle class="spl-sky-star" cx="69.91" cy="643.20" r="1.33" fill="#ffe2a6" opacity="0.52"/><circle class="spl-sky-star" cx="511.24" cy="510.12" r="1.32" fill="#f0f5ff" opacity="0.81"/><circle class="spl-sky-star" cx="84.89" cy="490.22" r="1.48" fill="#f0f5ff" opacity="0.61"/><circle class="spl-sky-star" cx="113.54" cy="331.85" r="2.32" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="346.23" cy="686.03" r="2.19" fill="#f0f5ff" opacity="0.74"/><circle class="spl-sky-star" cx="1256.16" cy="368.89" r="1.45" fill="#ffe2a6" opacity="0.61"/><circle class="spl-sky-star" cx="1072.03" cy="580.37" r="1.56" fill="#f0f5ff" opacity="0.53"/><circle class="spl-sky-star" cx="255.66" cy="87.64" r="2.53" fill="#f0f5ff" opacity="0.74"/><circle class="spl-sky-star" cx="828.08" cy="282.75" r="2.67" fill="#f0f5ff" opacity="0.66"/><circle class="spl-sky-star" cx="12.05" cy="86.75" r="1.15" fill="#f0f5ff" opacity="0.53"/><circle class="spl-sky-star" cx="1462.66" cy="178.41" r="1.58" fill="#ffe2a6" opacity="0.66"/><circle class="spl-sky-star" cx="949.63" cy="433.74" r="2.25" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="1143.92" cy="982.00" r="2.15" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="296.23" cy="716.07" r="2.53" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="1279.85" cy="109.19" r="1.10" fill="#f0f5ff" opacity="0.85"/><circle class="spl-sky-star" cx="1071.41" cy="974.85" r="1.27" fill="#ffe2a6" opacity="0.88"/><circle class="spl-sky-star" cx="380.33" cy="436.73" r="2.58" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="19.76" cy="567.31" r="2.08" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="512.76" cy="857.45" r="1.65" fill="#f0f5ff" opacity="0.82"/><circle class="spl-sky-star" cx="816.39" cy="166.77" r="2.67" fill="#f0f5ff" opacity="0.78"/><circle class="spl-sky-star" cx="1136.93" cy="758.30" r="1.74" fill="#ffe2a6" opacity="0.68"/><circle class="spl-sky-star" cx="35.58" cy="179.93" r="1.18" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="392.97" cy="316.33" r="1.17" fill="#f0f5ff" opacity="0.54"/><circle class="spl-sky-star" cx="1206.69" cy="900.37" r="2.24" fill="#f0f5ff" opacity="0.93"/><circle class="spl-sky-star" cx="867.90" cy="63.11" r="2.29" fill="#f0f5ff" opacity="0.75"/><circle class="spl-sky-star" cx="296.27" cy="103.60" r="1.29" fill="#ffe2a6" opacity="0.64"/><circle class="spl-sky-star" cx="486.15" cy="882.26" r="2.33" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="1020.78" cy="263.70" r="1.01" fill="#f0f5ff" opacity="0.50"/><circle class="spl-sky-star" cx="246.21" cy="80.58" r="2.08" fill="#f0f5ff" opacity="0.54"/><circle class="spl-sky-star" cx="908.01" cy="567.64" r="1.93" fill="#f0f5ff" opacity="0.57"/><circle class="spl-sky-star" cx="887.39" cy="947.47" r="1.86" fill="#ffe2a6" opacity="0.94"/><circle class="spl-sky-star" cx="506.08" cy="92.21" r="1.18" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="1006.59" cy="933.74" r="1.14" fill="#f0f5ff" opacity="0.68"/><circle class="spl-sky-star" cx="412.92" cy="962.14" r="1.19" fill="#f0f5ff" opacity="0.78"/><circle class="spl-sky-star" cx="1457.10" cy="40.96" r="1.33" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="790.24" cy="733.61" r="2.55" fill="#ffe2a6" opacity="0.86"/><circle class="spl-sky-star" cx="676.83" cy="279.08" r="2.05" fill="#f0f5ff" opacity="0.84"/><circle class="spl-sky-star" cx="1041.52" cy="745.23" r="2.54" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="623.69" cy="701.21" r="2.30" fill="#f0f5ff" opacity="0.83"/><circle class="spl-sky-star" cx="639.94" cy="164.95" r="2.47" fill="#f0f5ff" opacity="0.59"/><circle class="spl-sky-star" cx="345.48" cy="296.26" r="1.46" fill="#ffe2a6" opacity="0.84"/><circle class="spl-sky-star" cx="661.70" cy="335.04" r="1.72" fill="#f0f5ff" opacity="0.93"/><circle class="spl-sky-star" cx="1210.48" cy="153.55" r="1.53" fill="#f0f5ff" opacity="0.88"/><circle class="spl-sky-star" cx="1334.85" cy="619.85" r="1.98" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="655.66" cy="408.89" r="1.57" fill="#f0f5ff" opacity="0.55"/><circle class="spl-sky-star" cx="549.25" cy="921.41" r="1.19" fill="#ffe2a6" opacity="0.82"/><circle class="spl-sky-star" cx="410.50" cy="883.61" r="1.87" fill="#f0f5ff" opacity="0.97"/><circle class="spl-sky-star" cx="1083.92" cy="94.13" r="2.30" fill="#f0f5ff" opacity="0.60"/><circle class="spl-sky-star" cx="1132.26" cy="81.80" r="1.87" fill="#f0f5ff" opacity="0.61"/><circle class="spl-sky-star" cx="602.15" cy="939.11" r="2.05" fill="#f0f5ff" opacity="0.71"/><circle class="spl-sky-star" cx="622.23" cy="383.26" r="2.01" fill="#ffe2a6" opacity="0.95"/><circle class="spl-sky-star" cx="879.74" cy="583.77" r="1.51" fill="#f0f5ff" opacity="0.51"/><circle class="spl-sky-star" cx="1496.80" cy="796.48" r="1.25" fill="#f0f5ff" opacity="0.77"/><circle class="spl-sky-star" cx="961.82" cy="559.16" r="2.42" fill="#f0f5ff" opacity="0.81"/><circle class="spl-sky-star" cx="611.24" cy="263.47" r="1.27" fill="#f0f5ff" opacity="0.65"/><circle class="spl-sky-star" cx="165.68" cy="681.01" r="2.51" fill="#ffe2a6" opacity="0.91"/><circle class="spl-sky-star" cx="1360.80" cy="522.61" r="1.44" fill="#f0f5ff" opacity="0.70"/><circle class="spl-sky-star" cx="856.43" cy="60.03" r="2.33" fill="#f0f5ff" opacity="0.74"/><circle class="spl-sky-star" cx="1116.88" cy="33.05" r="1.94" fill="#f0f5ff" opacity="0.58"/><circle class="spl-sky-star" cx="121.37" cy="120.45" r="1.01" fill="#f0f5ff" opacity="0.97"/><path class="spl-sky-star" d="M147.0449509777245 867.8180396389507h10 M152.0449509777245 862.8180396389507v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M998.3482213273237 185.2032548038551h10 M1003.3482213273237 180.2032548038551v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M423.20086269368403 824.0869732155261h10 M428.20086269368403 819.0869732155261v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M538.7261337858217 84.8175203160281h10 M543.7261337858217 79.8175203160281v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M809.3701232810326 251.08314044809958h10 M814.3701232810326 246.08314044809958v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M414.0527126060624 469.81503811657603h10 M419.0527126060624 464.81503811657603v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M160.33584990218515 673.5651881499507h10 M165.33584990218515 668.5651881499507v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M781.1159129248699 827.5258657172344h10 M786.1159129248699 822.5258657172344v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M545.9322201976465 409.5677277826326h10 M550.9322201976465 404.5677277826326v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M185.76627087284578 287.22085562289976h10 M190.76627087284578 282.22085562289976v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M556.2273641496722 594.0602318329184h10 M561.2273641496722 589.0602318329184v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M1207.1304395910556 603.3053757887501h10 M1212.1304395910556 598.3053757887501v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M392.27815262856893 683.4450910275336h10 M397.27815262856893 678.4450910275336v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M1059.1575823591847 825.6246850343814h10 M1064.1575823591847 820.6246850343814v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M1106.03119782274 381.3345751803354h10 M1111.03119782274 376.3345751803354v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/><path class="spl-sky-star" d="M1199.8455461236579 646.0270270403271h10 M1204.8455461236579 641.0270270403271v10" stroke="#fff0cc" stroke-width="1.1" opacity=".85"/></svg></div>
       <div class="spl-content">
-        <svg class="spl-logo" viewBox="0 0 496 440" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 98.0 0.0 L 376.0 0.0 L 401.0 5.0 L 401.0 7.0 L 388.0 12.0 L 382.0 20.0 L 379.0 17.0 L 369.0 15.0 L 342.0 24.0 L 319.0 23.0 L 291.0 29.0 L 291.0 31.0 L 297.0 29.0 L 313.0 29.0 L 313.0 31.0 L 279.0 41.0 L 229.0 67.0 L 219.0 67.0 L 209.0 61.0 L 215.0 69.0 L 233.0 71.0 L 245.0 67.0 L 265.0 55.0 L 268.0 56.0 L 247.0 71.0 L 204.0 88.0 L 198.0 96.0 L 196.0 112.0 L 200.0 102.0 L 209.0 93.0 L 219.0 91.0 L 206.0 102.0 L 199.0 125.0 L 188.0 136.0 L 200.0 132.0 L 194.0 142.0 L 193.0 151.0 L 201.0 143.0 L 198.0 156.0 L 203.0 167.0 L 206.0 148.0 L 209.0 147.0 L 207.0 151.0 L 209.0 155.0 L 216.0 150.0 L 213.0 159.0 L 214.0 200.0 L 212.0 206.0 L 196.0 224.0 L 176.0 236.0 L 171.0 245.0 L 173.0 255.0 L 191.0 273.0 L 190.0 284.0 L 185.0 289.0 L 186.0 296.0 L 197.0 303.0 L 198.0 310.0 L 209.0 311.0 L 213.0 309.0 L 215.0 311.0 L 212.0 316.0 L 199.0 317.0 L 194.0 322.0 L 195.0 331.0 L 202.0 338.0 L 204.0 344.0 L 203.0 365.0 L 205.0 375.0 L 214.0 386.0 L 224.0 390.0 L 274.0 390.0 L 294.0 396.0 L 304.0 406.0 L 311.0 421.0 L 316.0 440.0 L 92.0 440.0 L 75.0 435.0 L 54.0 422.0 L 42.0 408.0 L 35.0 395.0 L 30.0 374.0 L 31.0 61.0 L 40.0 36.0 L 59.0 15.0 L 77.0 5.0 Z" fill="white"/>
+        <svg class="spl-scene" viewBox="170 -500 940 900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <path class="spl-u-track" id="spl-u-track" d="M808 103 C804 128 792 174 791 194 C788 229 829 206 860 176 L881 102 L861 195 Q855 225 896 198"/>
+            <clipPath id="spl-u-clip"><path d="M795.38 220.64Q786.67 220.64 780.4 215.39Q774.13 210.14 774.13 199.65Q774.13 193.76 775.41 186.85Q776.69 179.94 778.23 173.28L789.49 122.85Q791.79 112.86 782.58 108.26L777.71 106.21L777.97 103.39L826.35 89.57L828.66 91.62L810.74 169.95Q809.2 176.35 808.18 181.47Q807.15 186.59 807.15 190.94Q807.15 196.58 809.71 199.01Q812.27 201.44 816.37 201.44Q822.26 201.44 829.43 197.22Q836.59 192.99 846.07 184.03Q846.32 182.5 846.83 180.7L855.54 139.49Q857.59 129.5 859.51 119.39Q861.43 109.28 863.22 99.04L895.47 89.57L898.29 91.87L878.07 184.8Q876.02 193.76 876.02 198.88Q876.02 204.26 880.63 204.26Q884.21 204.26 888.31 201.31Q892.4 198.37 898.29 192.48L901.36 195.55Q894.96 205.02 885.11 212.83Q875.25 220.64 862.71 220.64Q854.77 220.64 849.52 215.14Q844.27 209.63 844.27 199.39Q844.27 195.55 844.79 191.97Q831.47 205.28 819.06 212.96Q806.64 220.64 795.38 220.64Z"/></clipPath>
+            <mask id="spl-u-burn-mask" maskUnits="userSpaceOnUse" x="760" y="75" width="160" height="160">
+              <path class="spl-u-reveal" d="M808 103 C804 128 792 174 791 194 C788 229 829 206 860 176 L881 102 L861 195 Q855 225 896 198" fill="none" stroke="white" stroke-width="76" stroke-linecap="round" stroke-linejoin="round"/>
+            </mask>
+            <mask id="spl-u-erase-mask" maskUnits="userSpaceOnUse" x="760" y="75" width="160" height="160">
+              <rect x="760" y="75" width="160" height="160" fill="white"/>
+              <path class="spl-u-erase" d="M808 103 C804 128 792 174 791 194 C788 229 829 206 860 176 L881 102 L861 195 Q855 225 896 198" fill="none" stroke="black" stroke-width="76" stroke-linecap="round" stroke-linejoin="round"/>
+            </mask>
+            <filter id="spl-soft" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+            <radialGradient id="spl-halo"><stop stop-color="#eac675" stop-opacity=".5"/><stop offset="1" stop-color="#eac675" stop-opacity="0"/></radialGradient>
+          </defs>
+          <g transform="translate(-0.28 -37.8)">
+            <g class="spl-wordmark spl-ink"><path class="spl-word-prefix" d="M220.05 200.69Q213.25 200.69 209.65 196.89Q206.05 193.09 206.05 186.29V70.49Q206.05 63.69 209.95 59.89Q213.85 56.09 220.65 56.09Q226.65 56.09 230.15 58.39Q233.65 60.69 236.65 66.29L282.85 150.69H276.05L322.25 66.29Q325.25 60.69 328.75 58.39Q332.25 56.09 338.05 56.09Q344.85 56.09 348.55 59.89Q352.25 63.69 352.25 70.49V186.29Q352.25 193.09 348.65 196.89Q345.05 200.69 338.25 200.69Q331.45 200.69 327.75 196.89Q324.05 193.09 324.05 186.29V105.29H328.45L291.25 171.89Q288.85 175.69 286.15 177.59Q283.45 179.49 279.05 179.49Q274.65 179.49 271.85 177.49Q269.05 175.49 266.85 171.89L229.25 105.09H234.05V186.29Q234.05 193.09 230.55 196.89Q227.05 200.69 220.05 200.69Z M388.45 200.49Q381.05 200.49 377.15 196.19Q373.25 191.89 373.25 184.09V115.69Q373.25 107.69 377.15 103.39Q381.05 99.09 388.45 99.09Q395.65 99.09 399.55 103.39Q403.45 107.69 403.45 115.69V184.09Q403.45 191.89 399.65 196.19Q395.85 200.49 388.45 200.49ZM388.45 82.69Q380.05 82.69 375.55 78.79Q371.05 74.89 371.05 67.69Q371.05 60.29 375.55 56.39Q380.05 52.49 388.45 52.49Q396.85 52.49 401.25 56.39Q405.65 60.29 405.65 67.69Q405.65 74.89 401.25 78.79Q396.85 82.69 388.45 82.69Z M437.45 200.69Q429.85 200.69 425.85 196.69Q421.85 192.69 421.85 185.29V114.29Q421.85 106.89 425.75 102.99Q429.65 99.09 436.65 99.09Q443.85 99.09 447.65 102.99Q451.45 106.89 451.45 114.29V124.69H449.45Q451.85 112.69 460.05 106.09Q468.25 99.49 481.25 98.69Q486.25 98.29 488.95 101.19Q491.65 104.09 491.85 110.69Q492.25 116.89 489.35 120.49Q486.45 124.09 479.65 124.89L475.05 125.29Q463.65 126.29 458.15 131.89Q452.65 137.49 452.65 148.09V185.29Q452.65 192.69 448.75 196.69Q444.85 200.69 437.45 200.69Z M544.71 201.09Q528.91 201.09 517.21 194.89Q505.51 188.69 499.11 177.09Q492.71 165.49 492.71 149.69Q492.71 137.89 496.31 128.49Q499.91 119.09 506.81 112.39Q513.71 105.69 523.31 102.19Q532.91 98.69 544.71 98.69Q560.51 98.69 572.21 104.89Q583.91 111.09 590.41 122.49Q596.91 133.89 596.91 149.69Q596.91 161.69 593.21 171.09Q589.51 180.49 582.71 187.29Q575.91 194.09 566.21 197.59Q556.51 201.09 544.71 201.09ZM544.71 178.49Q551.31 178.49 556.11 175.29Q560.91 172.09 563.71 165.79Q566.51 159.49 566.51 149.69Q566.51 135.09 560.51 128.19Q554.51 121.29 544.71 121.29Q538.31 121.29 533.41 124.29Q528.51 127.29 525.81 133.59Q523.11 139.89 523.11 149.69Q523.11 164.29 529.11 171.39Q535.11 178.49 544.71 178.49Z M625.51 200.69Q618.11 200.69 614.21 196.69Q610.31 192.69 610.31 185.29V114.29Q610.31 106.89 614.21 102.99Q618.11 99.09 625.11 99.09Q632.31 99.09 636.11 102.99Q639.91 106.89 639.91 114.29V125.69L637.71 119.09Q642.31 109.29 651.41 103.99Q660.51 98.69 672.11 98.69Q683.91 98.69 691.51 103.19Q699.11 107.69 702.91 116.79Q706.71 125.89 706.71 139.89V185.29Q706.71 192.69 702.81 196.69Q698.91 200.69 691.51 200.69Q684.31 200.69 680.41 196.69Q676.51 192.69 676.51 185.29V141.29Q676.51 131.09 672.81 126.59Q669.11 122.09 661.51 122.09Q651.91 122.09 646.21 128.09Q640.51 134.09 640.51 144.09V185.29Q640.51 200.69 625.51 200.69Z M739.51 200.49Q732.11 200.49 728.21 196.19Q724.31 191.89 724.31 184.09V115.69Q724.31 107.69 728.21 103.39Q732.11 99.09 739.51 99.09Q746.71 99.09 750.61 103.39Q754.51 107.69 754.51 115.69V184.09Q754.51 191.89 750.71 196.19Q746.91 200.49 739.51 200.49ZM739.51 82.69Q731.11 82.69 726.61 78.79Q722.11 74.89 722.11 67.69Q722.11 60.29 726.61 56.39Q731.11 52.49 739.51 52.49Q747.91 52.49 752.31 56.39Q756.71 60.29 756.71 67.69Q756.71 74.89 752.31 78.79Q747.91 82.69 739.51 82.69Z "/><path class="spl-word-last" d="M940.85 200.69Q933.45 200.69 929.55 196.69Q925.65 192.69 925.65 185.29V114.29Q925.65 106.89 929.55 102.99Q933.45 99.09 940.45 99.09Q947.65 99.09 951.45 102.99Q955.25 106.89 955.25 114.29V127.09L953.05 119.09Q957.05 109.89 965.45 104.29Q973.85 98.69 985.25 98.69Q996.65 98.69 1004.25 104.09Q1011.85 109.49 1015.05 120.69H1012.25Q1016.65 110.49 1025.75 104.59Q1034.85 98.69 1046.65 98.69Q1058.05 98.69 1065.35 103.19Q1072.65 107.69 1076.25 116.79Q1079.85 125.89 1079.85 139.89V185.29Q1079.85 192.69 1075.95 196.69Q1072.05 200.69 1064.85 200.69Q1057.45 200.69 1053.55 196.69Q1049.65 192.69 1049.65 185.29V140.89Q1049.65 131.09 1046.55 126.59Q1043.45 122.09 1036.05 122.09Q1027.45 122.09 1022.65 128.09Q1017.85 134.09 1017.85 145.09V185.29Q1017.85 192.69 1013.95 196.69Q1010.05 200.69 1002.85 200.69Q995.65 200.69 991.65 196.69Q987.65 192.69 987.65 185.29V140.89Q987.65 131.09 984.55 126.59Q981.45 122.09 974.05 122.09Q965.45 122.09 960.65 128.09Q955.85 134.09 955.85 145.09V185.29Q955.85 200.69 940.85 200.69Z"/><path class="spl-u-base" d="M827.85 201.09Q815.45 201.09 807.25 196.49Q799.05 191.89 795.15 182.59Q791.25 173.29 791.25 159.49V114.29Q791.25 106.69 795.15 102.89Q799.05 99.09 806.25 99.09Q813.45 99.09 817.45 102.89Q821.45 106.69 821.45 114.29V160.29Q821.45 169.09 825.05 173.39Q828.65 177.69 836.45 177.69Q845.05 177.69 850.55 171.59Q856.05 165.49 856.05 155.49V114.29Q856.05 106.69 859.95 102.89Q863.85 99.09 871.05 99.09Q878.45 99.09 882.35 102.89Q886.25 106.69 886.25 114.29V185.29Q886.25 200.69 871.65 200.69Q864.45 200.69 860.65 196.69Q856.85 192.69 856.85 185.29V171.89L859.85 179.69Q855.45 189.89 847.25 195.49Q839.05 201.09 827.85 201.09Z" mask="url(#spl-u-erase-mask)"/></g>
+            <path class="spl-u-fill spl-gold" d="M795.38 220.64Q786.67 220.64 780.4 215.39Q774.13 210.14 774.13 199.65Q774.13 193.76 775.41 186.85Q776.69 179.94 778.23 173.28L789.49 122.85Q791.79 112.86 782.58 108.26L777.71 106.21L777.97 103.39L826.35 89.57L828.66 91.62L810.74 169.95Q809.2 176.35 808.18 181.47Q807.15 186.59 807.15 190.94Q807.15 196.58 809.71 199.01Q812.27 201.44 816.37 201.44Q822.26 201.44 829.43 197.22Q836.59 192.99 846.07 184.03Q846.32 182.5 846.83 180.7L855.54 139.49Q857.59 129.5 859.51 119.39Q861.43 109.28 863.22 99.04L895.47 89.57L898.29 91.87L878.07 184.8Q876.02 193.76 876.02 198.88Q876.02 204.26 880.63 204.26Q884.21 204.26 888.31 201.31Q892.4 198.37 898.29 192.48L901.36 195.55Q894.96 205.02 885.11 212.83Q875.25 220.64 862.71 220.64Q854.77 220.64 849.52 215.14Q844.27 209.63 844.27 199.39Q844.27 195.55 844.79 191.97Q831.47 205.28 819.06 212.96Q806.64 220.64 795.38 220.64Z" mask="url(#spl-u-burn-mask)"/>
+            <path class="spl-u-ember spl-u-ember-soft" d="M808 103 C804 128 792 174 791 194 C788 229 829 206 860 176 L881 102 L861 195 Q855 225 896 198" clip-path="url(#spl-u-clip)"/>
+            <path class="spl-u-ember spl-u-ember-core" d="M808 103 C804 128 792 174 791 194 C788 229 829 206 860 176 L881 102 L861 195 Q855 225 896 198" clip-path="url(#spl-u-clip)"/>
+            <path class="spl-flight spl-flight-soft" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/>
+            <path class="spl-flight spl-flight-tail" data-tail="0" style="stroke-width:4.2" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="1" style="stroke-width:3.92" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="2" style="stroke-width:3.64" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="3" style="stroke-width:3.3600000000000003" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="4" style="stroke-width:3.08" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="5" style="stroke-width:2.8" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="6" style="stroke-width:2.52" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="7" style="stroke-width:2.24" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="8" style="stroke-width:1.96" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="9" style="stroke-width:1.6799999999999997" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="10" style="stroke-width:1.4" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/><path class="spl-flight spl-flight-tail" data-tail="11" style="stroke-width:1.12" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/>
+            <path class="spl-flight spl-flight-core" d="M1290 -285 C1188 -233 977 -122 826.35 89.57"/>
+            <circle class="spl-impact" cx="808" cy="103" r="54" fill="url(#spl-halo)"/>
+            <g class="spl-star">
+              <g class="spl-star-glyph">
+              <circle r="23" fill="url(#spl-halo)"/>
+              <path d="M0 -12 Q2.5 -2.5 10 0 Q2.5 2.5 0 12 Q-2.5 2.5 -10 0 Q-2.5 -2.5 0 -12Z" fill="#f2c45a"/>
+              <circle r="2.7" fill="#fff9e2"/>
+              </g>
+            </g>
+            <g class="spl-mark spl-ink" transform="translate(469 -492) scale(2.3)"><path d="M30.14 41.39 L137.55 41.39 L147.2 43.32 L147.2 44.09 L142.18 46.02 L139.86 49.11 L138.7 47.96 L134.84 47.18 L124.41 50.66 L115.52 50.27 L104.7 52.59 L104.7 53.36 L107.02 52.59 L113.2 52.59 L113.2 53.36 L100.07 57.23 L80.75 67.27 L76.89 67.27 L73.02 64.96 L75.34 68.05 L82.3 68.82 L86.93 67.27 L94.66 62.64 L95.82 63.02 L87.7 68.82 L71.09 75.39 L68.77 78.48 L68 84.66 L69.55 80.8 L73.02 77.32 L76.89 76.55 L71.86 80.8 L69.16 89.68 L64.91 93.93 L69.55 92.39 L67.23 96.25 L66.84 99.73 L69.93 96.64 L68.77 101.66 L70.7 105.91 L71.86 98.57 L73.02 98.18 L72.25 99.73 L73.02 101.27 L75.73 99.34 L74.57 102.82 L74.95 118.66 L74.18 120.98 L68 127.93 L60.27 132.57 L58.34 136.05 L59.11 139.91 L66.07 146.86 L65.68 151.11 L63.75 153.05 L64.14 155.75 L68.39 158.46 L68.77 161.16 L73.02 161.55 L74.57 160.77 L75.34 161.55 L74.18 163.48 L69.16 163.86 L67.23 165.8 L67.61 169.27 L70.32 171.98 L71.09 174.3 L70.7 182.41 L71.48 186.27 L74.95 190.52 L78.82 192.07 L98.14 192.07 L105.86 194.39 L109.73 198.25 L112.43 204.05 L114.36 211.39 L27.82 211.39 L21.25 209.46 L13.14 204.43 L8.5 199.02 L5.8 194 L3.86 185.89 L4.25 64.96 L7.73 55.3 L15.07 47.18 L22.02 43.32 Z"/></g>
+            <text class="spl-tagline" x="642.95" y="292" text-anchor="middle">Your child can be more</text>
+          </g>
         </svg>
-        <div class="spl-name">Mironium</div>
-        <div class="spl-divider"></div>
-        <div class="spl-tagline">Your child can be more</div>
       </div>
     </div>
+    <script>
+      (() => {
+        const splash = document.getElementById('splash');
+        window.__mironiumSplashStartedAt = performance.now();
+        if (!splash || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const animations = [];
+        const animate = (selector, frames, timing) => {
+          const node=typeof selector==='string'?splash.querySelector(selector):selector;
+          const animation = node.animate(frames, { fill:'both', iterations:1, ...timing });
+          animations.push(animation);
+          return animation;
+        };
+        const smileAnimation=animate('.spl-mark path',[
+          {d:"path(\"M30.14 41.39 L137.55 41.39 L147.2 43.32 L147.2 44.09 L142.18 46.02 L139.86 49.11 L138.7 47.96 L134.84 47.18 L124.41 50.66 L115.52 50.27 L104.7 52.59 L104.7 53.36 L107.02 52.59 L113.2 52.59 L113.2 53.36 L100.07 57.23 L80.75 67.27 L76.89 67.27 L73.02 64.96 L75.34 68.05 L82.3 68.82 L86.93 67.27 L94.66 62.64 L95.82 63.02 L87.7 68.82 L71.09 75.39 L68.77 78.48 L68 84.66 L69.55 80.8 L73.02 77.32 L76.89 76.55 L71.86 80.8 L69.16 89.68 L64.91 93.93 L69.55 92.39 L67.23 96.25 L66.84 99.73 L69.93 96.64 L68.77 101.66 L70.7 105.91 L71.86 98.57 L73.02 98.18 L72.25 99.73 L73.02 101.27 L75.73 99.34 L74.57 102.82 L74.95 118.66 L74.18 120.98 L68 127.93 L60.27 132.57 L58.34 136.05 L59.11 139.91 L66.07 146.86 L65.68 151.11 L63.75 153.05 L64.14 155.75 L68.39 158.46 C68.517 159.360 68.643 160.260 68.77 161.16 C70.187 161.290 71.603 161.420 73.02 161.55 C73.537 161.290 74.053 161.030 74.57 160.77 C74.827 161.030 75.083 161.290 75.34 161.55 C74.953 162.193 74.567 162.837 74.18 163.48 C72.507 163.607 70.833 163.733 69.16 163.86 C68.517 164.507 67.873 165.153 67.23 165.8 L67.61 169.27 L70.32 171.98 L71.09 174.3 L70.7 182.41 L71.48 186.27 L74.95 190.52 L78.82 192.07 L98.14 192.07 L105.86 194.39 L109.73 198.25 L112.43 204.05 L114.36 211.39 L27.82 211.39 L21.25 209.46 L13.14 204.43 L8.5 199.02 L5.8 194 L3.86 185.89 L4.25 64.96 L7.73 55.3 L15.07 47.18 L22.02 43.32 Z\")"},
+          {d:"path(\"M30.14 41.39 L137.55 41.39 L147.2 43.32 L147.2 44.09 L142.18 46.02 L139.86 49.11 L138.7 47.96 L134.84 47.18 L124.41 50.66 L115.52 50.27 L104.7 52.59 L104.7 53.36 L107.02 52.59 L113.2 52.59 L113.2 53.36 L100.07 57.23 L80.75 67.27 L76.89 67.27 L73.02 64.96 L75.34 68.05 L82.3 68.82 L86.93 67.27 L94.66 62.64 L95.82 63.02 L87.7 68.82 L71.09 75.39 L68.77 78.48 L68 84.66 L69.55 80.8 L73.02 77.32 L76.89 76.55 L71.86 80.8 L69.16 89.68 L64.91 93.93 L69.55 92.39 L67.23 96.25 L66.84 99.73 L69.93 96.64 L68.77 101.66 L70.7 105.91 L71.86 98.57 L73.02 98.18 L72.25 99.73 L73.02 101.27 L75.73 99.34 L74.57 102.82 L74.95 118.66 L74.18 120.98 L68 127.93 L60.27 132.57 L58.34 136.05 L59.11 139.91 L66.07 146.86 L65.68 151.11 L63.75 153.05 L64.14 155.75 L68.39 158.46 C68.4 159.5 68.55 160.7 68.9 161.1 C70.1 161.5 71.8 161.4 73.2 160.9 C74.2 160.55 75.1 160.05 75.75 159.65 C76.35 159.2 76.7 158.85 77 159.05 C77.35 159.35 76.9 160.4 76.2 161 C74.2 162.5 71.4 163.7 69.4 164.15 C68.45 164.4 67.75 165.1 67.3 165.85 L67.61 169.27 L70.32 171.98 L71.09 174.3 L70.7 182.41 L71.48 186.27 L74.95 190.52 L78.82 192.07 L98.14 192.07 L105.86 194.39 L109.73 198.25 L112.43 204.05 L114.36 211.39 L27.82 211.39 L21.25 209.46 L13.14 204.43 L8.5 199.02 L5.8 194 L3.86 185.89 L4.25 64.96 L7.73 55.3 L15.07 47.18 L22.02 43.32 Z\")"}
+        ],{delay:950,duration:700,easing:'cubic-bezier(.22,1,.36,1)'});
+        splash.querySelectorAll('.spl-sky-star').forEach((star,index)=>{
+          const base=Number(star.getAttribute('opacity'));
+          animate(star,Array.from({length:13},(_,frame)=>({
+            opacity:base*(.72+.28*Math.pow(Math.sin(index*2.4+frame*.9),2)),offset:frame/12
+          })),{duration:4150});
+        });
+        const flight = splash.querySelector('.spl-flight-core');
+        const stroke = splash.querySelector('.spl-u-track');
+        // Start beyond the actual screen corner, including tall mobile screens.
+        // The SVG's own box covers only the logo area, so it cannot define entry.
+        const entry = new DOMPoint(innerWidth*.06,-32).matrixTransform(flight.getScreenCTM().inverse());
+        const flightPath = 'M'+entry.x+' '+entry.y+' L808 103';
+        splash.querySelectorAll('.spl-flight').forEach(path=>path.setAttribute('d',flightPath));
+        const flightLength = flight.getTotalLength();
+        const strokeLength = stroke.getTotalLength();
+        const fallStart=650, fallDuration=1500, drawDuration=1020, drawStart=fallStart+fallDuration;
+        // Close the two gaps symmetrically; keep the word centered throughout.
+        const letterTiming={delay:drawStart,duration:440,easing:'cubic-bezier(.22,1,.36,1)'};
+        animate('.spl-word-prefix',[{transform:'translateX(20px)'},{transform:'translateX(0)'}],letterTiming);
+        animate('.spl-word-last',[{transform:'translateX(-20px)'},{transform:'translateX(0)'}],letterTiming);
+        // The moving stroke reveals exact gold geometry and consumes the white u.
+        for(const selector of ['.spl-u-reveal','.spl-u-erase']) {
+          const maskStroke=splash.querySelector(selector);
+          maskStroke.style.strokeDasharray=String(strokeLength);
+          animate(maskStroke,[{strokeDashoffset:String(strokeLength)},{strokeDashoffset:'0'}],
+            {delay:drawStart,duration:drawDuration,easing:'linear'});
+          animate(maskStroke,[{opacity:0},{opacity:1}],{delay:drawStart,duration:1});
+        }
+        const burnEnds=drawStart+drawDuration;
+        animate('.spl-u-base',[
+          {opacity:1,offset:0},{opacity:1,offset:(burnEnds-80)/burnEnds},{opacity:0,offset:1}
+        ],{duration:burnEnds});
+        const flightProgress = t => .5*t+.5*t*t;
+        const travelFrames=[];
+        // Baked points give the comet and the trace one continuous, seekable motion.
+        for(let i=0;i<=90;i++) {
+          const t=i/90;
+          const p=flight.getPointAtLength(flightLength * flightProgress(t));
+          travelFrames.push({transform:'translate('+p.x+'px,'+p.y+'px)',offset:t*fallDuration/(fallDuration+drawDuration)});
+        }
+        for(let i=1;i<=180;i++) {
+          const t=i/180;
+          const p=stroke.getPointAtLength(strokeLength*t);
+          travelFrames.push({transform:'translate('+p.x+'px,'+p.y+'px)',offset:(fallDuration+t*drawDuration)/(fallDuration+drawDuration)});
+        }
+        animate('.spl-star',travelFrames,{delay:fallStart,duration:fallDuration+drawDuration,easing:'linear'});
+        animate('.spl-star-glyph',[{transform:'scale(1.65)',offset:0},{transform:'scale(1.65)',offset:.7},{transform:'scale(1)',offset:1}],
+          {delay:fallStart,duration:fallDuration});
+        animate('.spl-star', [{opacity:0,offset:0},{opacity:1,offset:.045},{opacity:1,offset:.86},{opacity:0,offset:1}],
+          {delay:fallStart,duration:fallDuration+drawDuration+80});
+        for(const node of splash.querySelectorAll('.spl-flight')) {
+          const tailLength=Math.min(540,flightLength*.4);
+          const soft=node.classList.contains('spl-flight-soft');
+          const core=node.classList.contains('spl-flight-core');
+          const tailIndex=Number(node.dataset.tail || 0);
+          const segmentLength=soft?tailLength:core?tailLength/12:tailLength/12+1;
+          const behind=soft||core?0:tailIndex*tailLength/12;
+          const opacity=soft?.35:core?1:.9*Math.pow(1-tailIndex/12,1.4);
+          node.style.strokeDasharray=segmentLength+' '+(flightLength+tailLength);
+          animate(node,Array.from({length:91},(_,i)=>{
+            const t=i/90;
+            return {strokeDashoffset:String(segmentLength+behind-flightLength*flightProgress(t)),offset:t};
+          }),{delay:fallStart,duration:fallDuration});
+          animate(node,[{opacity:0,offset:0},{opacity,offset:.05},{opacity,offset:.85},{opacity:0,offset:1}],
+            {delay:fallStart,duration:fallDuration+180});
+        }
+        for(const node of splash.querySelectorAll('.spl-u-ember')) {
+          node.style.strokeDasharray='25 '+(strokeLength+25);
+          animate(node,[{strokeDashoffset:'25'},{strokeDashoffset:String(25-strokeLength)}],
+            {delay:drawStart,duration:drawDuration,easing:'linear'});
+          animate(node,[{opacity:0,offset:0},{opacity:1,offset:.05},{opacity:1,offset:.85},{opacity:0,offset:1}],
+            {delay:drawStart,duration:drawDuration+100});
+        }
+        animate('.spl-u-fill',[{opacity:0},{opacity:1}],{delay:drawStart,duration:1});
+        animate('.spl-impact',[{opacity:0},{opacity:1,offset:.2},{opacity:0}],{delay:drawStart,duration:520});
+        animate('.spl-tagline',[{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],
+          {delay:drawStart+drawDuration+50,duration:550,easing:'ease-out'});
+        window.replayMironiumSplash = () => {
+          animations.forEach(animation => { animation.currentTime=0; animation.play(); });
+        };
+      })();
+    </script>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
