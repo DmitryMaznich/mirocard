@@ -40,7 +40,7 @@ function describe(id) {
   const n = id.length;
   return `EXACTLY ${n} raised finger${n > 1 ? "s" : ""}, finger by finger (thumb is the leftmost):
 ${lines.join("\n")}
-Do NOT draw a familiar gesture (rock horns, "I love you", "OK", peace sign) unless it matches this list exactly.`;
+${id.includes("t") ? "" : "The THUMB is NOT raised and NOT spread to the side: it is bent and lies across the folded fingers, exactly like the thumb in reference 2. A thumb sticking out to the left counts as a raised finger and makes the picture wrong.\n"}Do NOT draw a familiar gesture (rock horns, "I love you", "OK", peace sign) unless it matches this list exactly.`;
 }
 
 const STYLE = `Flat digital illustration for a children's educational app.
