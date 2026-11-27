@@ -102,7 +102,7 @@ function bootMainApp() {
       });
   }
 
-  const SPLASH_MIN_MS = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? 600 : 4150;
+  const SPLASH_MIN_MS = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? 600 : 1900;
   const splashStart = window.__mironiumSplashStartedAt ?? performance.now();
   let splashDismissQueued = false;
 
@@ -115,7 +115,7 @@ function bootMainApp() {
     const wait = immediate ? 0 : Math.max(0, SPLASH_MIN_MS - elapsed);
     setTimeout(() => {
       splash.classList.add("splash--exit");
-      setTimeout(() => splash.remove(), immediate ? 0 : 580);
+      setTimeout(() => splash.remove(), immediate ? 0 : 220);
     }, wait);
   }
 

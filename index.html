@@ -31,7 +31,7 @@
   <body>
     <style>
       #splash { position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
-        overflow:hidden; background:#06171d; transition:opacity .45s ease; }
+        overflow:hidden; background:#06171d; transition:opacity .20s ease; }
       #splash.splash--exit { opacity:0; pointer-events:none; }
       .spl-night { position:absolute; inset:0; opacity:1; pointer-events:none;
         background:radial-gradient(ellipse at 18% 12%,#183644 0%,#0b202c 42%,#06171d 100%); }
@@ -114,12 +114,12 @@
         const smileAnimation=animate('.spl-mark path',[
           {d:"path(\"M30.14 41.39 L137.55 41.39 L147.2 43.32 L147.2 44.09 L142.18 46.02 L139.86 49.11 L138.7 47.96 L134.84 47.18 L124.41 50.66 L115.52 50.27 L104.7 52.59 L104.7 53.36 L107.02 52.59 L113.2 52.59 L113.2 53.36 L100.07 57.23 L80.75 67.27 L76.89 67.27 L73.02 64.96 L75.34 68.05 L82.3 68.82 L86.93 67.27 L94.66 62.64 L95.82 63.02 L87.7 68.82 L71.09 75.39 L68.77 78.48 L68 84.66 L69.55 80.8 L73.02 77.32 L76.89 76.55 L71.86 80.8 L69.16 89.68 L64.91 93.93 L69.55 92.39 L67.23 96.25 L66.84 99.73 L69.93 96.64 L68.77 101.66 L70.7 105.91 L71.86 98.57 L73.02 98.18 L72.25 99.73 L73.02 101.27 L75.73 99.34 L74.57 102.82 L74.95 118.66 L74.18 120.98 L68 127.93 L60.27 132.57 L58.34 136.05 L59.11 139.91 L66.07 146.86 L65.68 151.11 L63.75 153.05 L64.14 155.75 L68.39 158.46 C68.517 159.360 68.643 160.260 68.77 161.16 C70.187 161.290 71.603 161.420 73.02 161.55 C73.537 161.290 74.053 161.030 74.57 160.77 C74.827 161.030 75.083 161.290 75.34 161.55 C74.953 162.193 74.567 162.837 74.18 163.48 C72.507 163.607 70.833 163.733 69.16 163.86 C68.517 164.507 67.873 165.153 67.23 165.8 L67.61 169.27 L70.32 171.98 L71.09 174.3 L70.7 182.41 L71.48 186.27 L74.95 190.52 L78.82 192.07 L98.14 192.07 L105.86 194.39 L109.73 198.25 L112.43 204.05 L114.36 211.39 L27.82 211.39 L21.25 209.46 L13.14 204.43 L8.5 199.02 L5.8 194 L3.86 185.89 L4.25 64.96 L7.73 55.3 L15.07 47.18 L22.02 43.32 Z\")"},
           {d:"path(\"M30.14 41.39 L137.55 41.39 L147.2 43.32 L147.2 44.09 L142.18 46.02 L139.86 49.11 L138.7 47.96 L134.84 47.18 L124.41 50.66 L115.52 50.27 L104.7 52.59 L104.7 53.36 L107.02 52.59 L113.2 52.59 L113.2 53.36 L100.07 57.23 L80.75 67.27 L76.89 67.27 L73.02 64.96 L75.34 68.05 L82.3 68.82 L86.93 67.27 L94.66 62.64 L95.82 63.02 L87.7 68.82 L71.09 75.39 L68.77 78.48 L68 84.66 L69.55 80.8 L73.02 77.32 L76.89 76.55 L71.86 80.8 L69.16 89.68 L64.91 93.93 L69.55 92.39 L67.23 96.25 L66.84 99.73 L69.93 96.64 L68.77 101.66 L70.7 105.91 L71.86 98.57 L73.02 98.18 L72.25 99.73 L73.02 101.27 L75.73 99.34 L74.57 102.82 L74.95 118.66 L74.18 120.98 L68 127.93 L60.27 132.57 L58.34 136.05 L59.11 139.91 L66.07 146.86 L65.68 151.11 L63.75 153.05 L64.14 155.75 L68.39 158.46 C68.4 159.5 68.55 160.7 68.9 161.1 C70.1 161.5 71.8 161.4 73.2 160.9 C74.2 160.55 75.1 160.05 75.75 159.65 C76.35 159.2 76.7 158.85 77 159.05 C77.35 159.35 76.9 160.4 76.2 161 C74.2 162.5 71.4 163.7 69.4 164.15 C68.45 164.4 67.75 165.1 67.3 165.85 L67.61 169.27 L70.32 171.98 L71.09 174.3 L70.7 182.41 L71.48 186.27 L74.95 190.52 L78.82 192.07 L98.14 192.07 L105.86 194.39 L109.73 198.25 L112.43 204.05 L114.36 211.39 L27.82 211.39 L21.25 209.46 L13.14 204.43 L8.5 199.02 L5.8 194 L3.86 185.89 L4.25 64.96 L7.73 55.3 L15.07 47.18 L22.02 43.32 Z\")"}
-        ],{delay:950,duration:700,easing:'cubic-bezier(.22,1,.36,1)'});
+        ],{delay:200,duration:500,easing:'cubic-bezier(.22,1,.36,1)'});
         splash.querySelectorAll('.spl-sky-star').forEach((star,index)=>{
           const base=Number(star.getAttribute('opacity'));
           animate(star,Array.from({length:13},(_,frame)=>({
-            opacity:base*(.72+.28*Math.pow(Math.sin(index*2.4+frame*.9),2)),offset:frame/12
-          })),{duration:4150});
+            opacity:base*(.72+.28*Math.pow(Math.sin(index*2.4+frame*.45),2)),offset:frame/12
+          })),{duration:2100});
         });
         const flight = splash.querySelector('.spl-flight-core');
         const stroke = splash.querySelector('.spl-u-track');
@@ -130,9 +130,9 @@
         splash.querySelectorAll('.spl-flight').forEach(path=>path.setAttribute('d',flightPath));
         const flightLength = flight.getTotalLength();
         const strokeLength = stroke.getTotalLength();
-        const fallStart=650, fallDuration=1500, drawDuration=1020, drawStart=fallStart+fallDuration;
+        const fallStart=50, fallDuration=900, drawDuration=800, drawStart=fallStart+fallDuration;
         // Close the two gaps symmetrically; keep the word centered throughout.
-        const letterTiming={delay:drawStart,duration:440,easing:'cubic-bezier(.22,1,.36,1)'};
+        const letterTiming={delay:drawStart,duration:350,easing:'cubic-bezier(.22,1,.36,1)'};
         animate('.spl-word-prefix',[{transform:'translateX(20px)'},{transform:'translateX(0)'}],letterTiming);
         animate('.spl-word-last',[{transform:'translateX(-20px)'},{transform:'translateX(0)'}],letterTiming);
         // The moving stroke reveals exact gold geometry and consumes the white u.
@@ -191,7 +191,7 @@
         animate('.spl-u-fill',[{opacity:0},{opacity:1}],{delay:drawStart,duration:1});
         animate('.spl-impact',[{opacity:0},{opacity:1,offset:.2},{opacity:0}],{delay:drawStart,duration:520});
         animate('.spl-tagline',[{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],
-          {delay:drawStart+drawDuration+50,duration:550,easing:'ease-out'});
+          {delay:drawStart+150,duration:400,easing:'ease-out'});
         window.replayMironiumSplash = () => {
           animations.forEach(animation => { animation.currentTime=0; animation.play(); });
         };
