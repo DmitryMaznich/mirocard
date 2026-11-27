@@ -23,7 +23,6 @@ export function lessonLevel({ sessionId, modeId, studentId, param }) {
       fixed,
       history: [],
       strike: 0,
-      rowsAlways: true,
     });
   }
   return sessions.get(key);

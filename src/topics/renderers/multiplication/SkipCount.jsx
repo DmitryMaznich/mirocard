@@ -5,7 +5,7 @@ import { lessonLevel, recordResult } from "./levelStore.js";
 import { Group, Top } from "./shared.jsx";
 import { BANANA_POS, msg, useTimers } from "./lesson.js";
 
-export default function SkipCount({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect, onStreakReset }) {
+export default function SkipCount({ task, sessionId, student, interactionDisabled, onCorrect, onStreakReset }) {
   const lesson = useMemo(() => lessonLevel({ sessionId, modeId: task.type, studentId: student?.id, param: task.level }), [sessionId, task, student?.id]);
   const level = lesson.level;
   const rng = useMemo(() => seededRng(task.seed), [task]);
@@ -53,7 +53,7 @@ export default function SkipCount({ task, sessionId, student, soundEnabled, inte
   const points = ex.kind === "banana" ? BANANA_POS[ex.size] : layout(ex.size);
   return (
     <>
-      <Top task={task} text={say} soundEnabled={soundEnabled} finished={done} />
+      <Top task={task} text={say} finished={done} />
       <div className={`mul-table${done ? " mul-table--good" : ""}`} style={{ "--hf": ".56" }}>
         <div className="mul-row" style={{ "--n": ex.groups }}>
           {Array.from({ length: ex.groups }, (_, i) => {

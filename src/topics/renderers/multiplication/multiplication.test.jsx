@@ -68,8 +68,10 @@ for (const language of LANGUAGES) describe(`lesson in ${language}`, () => {
     expect([eq.textContent, ne.textContent]).toEqual([task.messages["equal.answer.equal"], task.messages["equal.answer.notEqual"]]);
     await click(ex.counts[0] === ex.counts[1] ? ne : eq);
     expect(props.onStreakReset).toHaveBeenCalledTimes(1);
-    expect(host.querySelector("[data-testid=mul-rows]")).not.toBeNull();
+    expect(host.querySelector("[data-testid=mul-rows]")).toBeNull();
+    expect(sayText()).toBe(task.messages["equal.look"]);
     await click(ex.counts[0] === ex.counts[1] ? eq : ne);
+    expect(host.querySelector("[data-testid=mul-verdict]").textContent).toBe(task.messages[ex.counts[0] === ex.counts[1] ? "equal.answer.equal" : "equal.answer.notEqual"]);
     expect(props.onCorrect).toHaveBeenCalledWith(task.conceptId, task.cardId);
     expect(host.querySelector(".mul-table--good")).not.toBeNull();
     expect(host.querySelectorAll(".mul-strip .on").length).toBe(task.index + 1);
@@ -136,9 +138,9 @@ for (const language of LANGUAGES) describe(`lesson in ${language}`, () => {
 
 describe("independent of the interface language", () => {
   it("keeps Slovenian lesson text whatever the UI says", async () => {
-    const { mode, tasks } = tasksFor("equal_check", "sl", "R");
+    const { mode, tasks } = tasksFor("equal_check", "sl", "A");
     await show(mode, tasks[0], { uiLanguage: "ru" });
-    expect(sayText()).toBe("Enako?");
+    expect(sayText()).toBe("Je na krožnikih enako?");
     expect(host.querySelector(".mul-root").getAttribute("lang")).toBe("sl");
   });
 });

@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "multiplication",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "renderer": "multiplication",
     "title": {
       "ru": "Умножение",
@@ -21,7 +21,7 @@
     "packages": {
       "ru": {
         "packageId": "multiplication.ru",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "file": "content/ru.json",
         "modeIds": [
           "equal_check",
@@ -31,14 +31,14 @@
         ],
         "audio": "none",
         "download": {
-          "url": "./decks/languages/multiplication/ru_v0.1.0.zip",
-          "bytes": 895,
-          "sha256": "4173ab6ef134f859972b6a939658a7004a0e723b5c8b966d84532b99f4a5de30"
+          "url": "./decks/languages/multiplication/ru_v0.2.0.zip",
+          "bytes": 905,
+          "sha256": "c03dfde6419c07f1584b517bc1aed3b7fa2a7fcfdaf690748888307d8cfbcf39"
         }
       },
       "sl": {
         "packageId": "multiplication.sl",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "file": "content/sl.json",
         "modeIds": [
           "equal_check",
@@ -48,14 +48,14 @@
         ],
         "audio": "none",
         "download": {
-          "url": "./decks/languages/multiplication/sl_v0.1.0.zip",
-          "bytes": 793,
-          "sha256": "c1dbc38c793011bdb4e2ab8a6c25f14ad7e9055ee5509e8e63ddd8218c9c978a"
+          "url": "./decks/languages/multiplication/sl_v0.2.0.zip",
+          "bytes": 806,
+          "sha256": "7dfa42525d867cd00f380cf17f850d39abaca99e6f3d3f0b3eb49218917852ab"
         }
       },
       "en": {
         "packageId": "multiplication.en",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "file": "content/en.json",
         "modeIds": [
           "equal_check",
@@ -65,16 +65,16 @@
         ],
         "audio": "none",
         "download": {
-          "url": "./decks/languages/multiplication/en_v0.1.0.zip",
-          "bytes": 772,
-          "sha256": "82bdbd82c8db5a400b2e137e372991117a2a181d4534db0f17ac09911c6e360f"
+          "url": "./decks/languages/multiplication/en_v0.2.0.zip",
+          "bytes": 790,
+          "sha256": "382f273a8dc43386492331ba02ece30bde2ea503c7e8a15554bc15407151d2ee"
         }
       }
     },
     "selectionScope": "topic",
     "delivery": {
       "version": 1,
-      "coreUrl": "./decks/multiplication_v0.2.1.zip"
+      "coreUrl": "./decks/multiplication_v0.3.0.zip"
     }
   },
   "modes": [
@@ -89,7 +89,6 @@
           "type": "enum",
           "values": [
             "auto",
-            "R",
             "A",
             "B",
             "D"

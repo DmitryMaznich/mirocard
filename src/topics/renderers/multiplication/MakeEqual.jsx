@@ -28,7 +28,7 @@ function playDemo(mat, from, to) {
   return stop;
 }
 
-export default function MakeEqual({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect }) {
+export default function MakeEqual({ task, sessionId, student, interactionDisabled, onCorrect }) {
   const lesson = useMemo(() => lessonLevel({ sessionId, modeId: task.type, studentId: student?.id, param: task.level }), [sessionId, task, student?.id]);
   const level = lesson.level;
   const ex = useMemo(() => makeEqualExercise(level, seededRng(task.seed)), [task, level]);
@@ -155,7 +155,7 @@ export default function MakeEqual({ task, sessionId, student, soundEnabled, inte
 
   return (
     <>
-      <Top task={task} text={say} soundEnabled={soundEnabled} finished={done} />
+      <Top task={task} text={say} finished={done} />
       <div ref={matRef} className={`mul-table${done ? " mul-table--small mul-table--good" : ""}`} style={{ "--hf": ".72" }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
         <div className="mul-row" style={{ "--n": n }}>

@@ -3,7 +3,7 @@
 // Methodology and the reasons for every rule: docs/multiplication-methodology.md.
 
 export const LEVELS = {
-  equal_check: ["R", "A", "B", "D"],
+  equal_check: ["A", "B", "D"], // R (rows shown from the start) removed by the owner 2026-11-27
   make_equal: ["R", "A", "B", "C", "D"],
   skip_count: ["R", "A", "B", "C", "D"],
   sum_to_product: ["R", "A", "B", "C"],
@@ -74,7 +74,7 @@ export function scatter(n, rng) {
 // (balanced, never more than two same answers in a row).
 export function equalExercise(level, equal, rng) {
   if (equal) { const n = randInt(rng, 2, 5); return { counts: [n, n], scatter: level === "D" }; }
-  const [minDiff, maxDiff] = level === "R" || level === "A" ? [2, 5] : [1, 1];
+  const [minDiff, maxDiff] = level === "A" ? [2, 5] : [1, 1];
   let a, b;
   do { a = randInt(rng, 1, 6); b = randInt(rng, 1, 6); }
   while (a === b || Math.abs(a - b) < minDiff || Math.abs(a - b) > maxDiff);
@@ -155,8 +155,7 @@ export function nextLevel(modeId, state, result) {
     return { ...out, level: order[i - 1], history: [], strike: 0 };
   }
   if (history.length >= 10 && history.filter(Boolean).length >= 8 && i < order.length - 1) {
-    // Step 0: once A is mastered, the rows check comes only after a mistake.
-    return { ...out, level: order[i + 1], history: [], strike: 0, rowsAlways: modeId === "equal_check" && state.level === "A" ? false : state.rowsAlways };
+    return { ...out, level: order[i + 1], history: [], strike: 0 };
   }
   return out;
 }

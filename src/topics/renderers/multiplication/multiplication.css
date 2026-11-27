@@ -8,7 +8,7 @@
 }
 
 /* zone 1: the spoken line + the lesson strip */
-.mul-top { display: flex; align-items: center; gap: 14px; padding: 10px clamp(10px, 2.4vw, 26px); min-height: 64px; }
+.mul-top { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding: 10px clamp(10px, 2.4vw, 26px); min-height: 56px; min-width: 0; }
 .mul-speak {
   flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: #2563eb; box-shadow: 0 4px 0 #1d4ed8;
   display: grid; place-items: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
@@ -16,8 +16,8 @@
 .mul-speak:active { transform: translateY(3px); box-shadow: none; }
 .mul-speak svg { width: 24px; height: 24px; }
 .mul-say-text { font-weight: 900; font-size: clamp(22px, 4.2vw, 34px); line-height: 1.15; letter-spacing: -.01em; }
-.mul-strip { margin-left: auto; display: flex; gap: clamp(4px, .8vw, 8px); flex: none; }
-.mul-strip i { width: clamp(16px, 2.6vw, 26px); aspect-ratio: 1; border-radius: 50%; background: #e2e8f0; box-shadow: inset 0 2px 3px #0f172a1a; }
+.mul-strip { margin-left: auto; display: flex; gap: clamp(3px, .8vw, 8px); flex: none; }
+.mul-strip i { width: clamp(12px, 2.6vw, 26px); aspect-ratio: 1; border-radius: 50%; background: #e2e8f0; box-shadow: inset 0 2px 3px #0f172a1a; }
 .mul-strip i.on { background: center / 112% no-repeat var(--apple), #fff; box-shadow: 0 1px 2px #0f172a33; }
 .mul-strip i.now { outline: 3px solid #93c5fd; outline-offset: 2px; }
 
@@ -100,7 +100,8 @@
   color: #0f172a; font: 900 clamp(28px, 5.5vw, 48px)/1 "Nunito", sans-serif; display: grid; place-items: center; white-space: nowrap;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: opacity .25s, background .25s;
 }
-.mul-btn--word { min-width: clamp(200px, 30vw, 320px); font-size: clamp(24px, 4vw, 36px); }
+/* the two word buttons share the shelf width: never past the right edge of a phone */
+.mul-btn--word { flex: 1 1 0; min-width: 0; max-width: 320px; padding: 0 12px; font-size: clamp(18px, 4.6vw, 36px); }
 .mul-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #cbd5e1; }
 .mul-btn--chosen { border-color: #22c55e; background: #f0fdf4; box-shadow: 0 6px 0 #22c55e; }
 .mul-btn--quiet { opacity: .4; }
@@ -113,4 +114,24 @@
 @media (prefers-reduced-motion: reduce) {
   .mul-group, .mul-item, .mul-egg, .mul-table::after { transition: none; }
   .mul-rows-cell img, .mul-total, .mul-count, .mul-term, .mul-mini, .mul-record { animation: none; }
+}
+
+/* «Поровну?»: the answer, written large on the table after a right answer */
+.mul-verdict {
+  font: 900 clamp(26px, 11cqh, 64px)/1 "Nunito", sans-serif; color: #14532d; background: #ffffffd9; border-radius: 18px;
+  padding: .15em .5em; box-shadow: 0 4px 12px #0f172a1f; animation: mul-pop .35s both;
+}
+
+/* low screens (a phone held sideways): compact top line and shelf, the table gets the height */
+@media (max-height: 520px) {
+  .mul-root { grid-template-rows: auto 1fr 70px; }
+  .mul-top { min-height: 40px; padding-top: 4px; padding-bottom: 4px; }
+  .mul-say-text { font-size: 20px; }
+  .mul-strip i { width: 14px; }
+  .mul-btn { height: 52px; font-size: 26px; }
+  .mul-btn--word { font-size: 20px; }
+  .mul-shelf { padding-top: 6px; padding-bottom: calc(6px + var(--app-safe-bottom, 0px)); }
+  /* little height, plenty of width: the answer stands beside the plates, not under them */
+  .mul-table:has(.mul-verdict) { flex-direction: row; }
+  .mul-table:has(.mul-verdict) .mul-row { width: auto; }
 }

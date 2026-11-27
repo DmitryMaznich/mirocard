@@ -1,8 +1,6 @@
-import { useEffect } from "react";
 import { APPLE, BANANA } from "./assets.js";
 import { layout } from "./mechanics.js";
 import { BANANA_POS, lessonLanguage } from "./lesson.js";
-import { speakLesson, stopLessonVoice } from "./voice.js";
 
 export function Items({ kind = "apple", count, positions }) {
   if (kind === "egg") {
@@ -55,21 +53,15 @@ export function Rows({ counts, judge = true }) {
   );
 }
 
-// Zone 1: the spoken line (said aloud when it changes, repeated by the speaker button) and the
-// lesson strip — one apple per finished task, so the child sees how much is left.
-export function Top({ task, text, soundEnabled, finished = false }) {
+// Zone 1: the line of the task and the lesson strip — one apple per finished task, so the child sees
+// how much is left. Voice is off (owner, 2026-11-27): no speech and no speaker button for now;
+// voice.js stays for when recorded speech arrives.
+export function Top({ task, text, finished = false }) {
   const language = lessonLanguage(task);
-  useEffect(() => { speakLesson(text, language, { enabled: soundEnabled }); }, [text, language, soundEnabled]);
-  useEffect(() => () => stopLessonVoice(), []);
-  // The lesson strip needs index/total from the engine (app ≥ 1.1.239). An older app runs the older
-  // engine from its own bundle: then there is simply no strip, the rest of the screen works the same.
   const total = Number.isInteger(task.total) ? task.total : 0;
   const done = (task.index ?? 0) + (finished ? 1 : 0);
   return (
     <div className="mul-top" lang={language}>
-      <button type="button" className="mul-speak" aria-label="🔊" onClick={() => speakLesson(text, language, { enabled: true })}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
       <span className="mul-say-text" data-testid="mul-say">{text}</span>
       {total > 0 && (
         <span className="mul-strip" data-testid="mul-strip">

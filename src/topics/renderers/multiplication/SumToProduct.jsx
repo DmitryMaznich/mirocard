@@ -9,7 +9,7 @@ import { itemImage, msg, useTimers } from "./lesson.js";
 
 const STEP_MS = 700;
 
-export default function SumToProduct({ task, sessionId, student, soundEnabled, interactionDisabled, onCorrect, onStreakReset }) {
+export default function SumToProduct({ task, sessionId, student, interactionDisabled, onCorrect, onStreakReset }) {
   const lesson = useMemo(() => lessonLevel({ sessionId, modeId: task.type, studentId: student?.id, param: task.level }), [sessionId, task, student?.id]);
   const level = lesson.level;
   const ex = useMemo(() => sumExercise(level, seededRng(task.seed)), [task, level]);
@@ -115,7 +115,7 @@ export default function SumToProduct({ task, sessionId, student, soundEnabled, i
 
   return (
     <>
-      <Top task={task} text={say} soundEnabled={soundEnabled} finished={done} />
+      <Top task={task} text={say} finished={done} />
       <div className={`mul-table${done ? " mul-table--good" : ""}`} style={{ "--hf": ".32" }}>
         <div className="mul-row" style={{ "--n": ex.groups }}>
           {Array.from({ length: ex.groups }, (_, i) => (

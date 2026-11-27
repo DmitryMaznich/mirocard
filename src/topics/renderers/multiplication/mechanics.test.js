@@ -12,7 +12,7 @@ describe("«Поровну?» exercises", () => {
       for (const ex of runs((rng) => equalExercise(level, true, rng))) expect(ex.counts[0]).toBe(ex.counts[1]);
       for (const ex of runs((rng) => equalExercise(level, false, rng))) {
         const diff = Math.abs(ex.counts[0] - ex.counts[1]);
-        if (level === "R" || level === "A") expect(diff).toBeGreaterThanOrEqual(2);
+        if (level === "A") expect(diff).toBeGreaterThanOrEqual(2);
         else expect(diff).toBe(1);
         expect(ex.scatter).toBe(level === "D");
       }
@@ -83,10 +83,10 @@ describe("level within a lesson", () => {
     expect(s.level).toBe("A");
     expect(nextLevel("equal_check", start("equal_check", "B"), { clean: false, down: true }).level).toBe("A");
   });
-  it("stops showing rows after every answer once «Поровну?» level A is mastered", () => {
+  it("«Поровну?» starts at A (no level R since 2026-11-27) and moves up to B", () => {
+    expect(LEVELS.equal_check[0]).toBe("A");
     let s = start("equal_check", "A");
     for (let i = 0; i < 10; i++) s = nextLevel("equal_check", s, { clean: true, down: false });
     expect(s.level).toBe("B");
-    expect(s.rowsAlways).toBe(false);
   });
 });
