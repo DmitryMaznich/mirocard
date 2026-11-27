@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { handPoseImage } from "./fingerTasks.js";
-import { FingersKeypad } from "./FingersCountTask.jsx";
+import { ChecklistItem, FingersKeypad, HandArrows } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
@@ -53,34 +53,71 @@ function LearnTask({ task, hint, onCorrect, onPrevious }) {
   );
 }
 
-// «Цифра → пальцы»: only the number; the child shows it on their own hands and
-// the adult marks it. «Не показал» opens the model hands first, so the child can
-// copy it, and only «Дальше» moves on (the mistake is counted then).
-function ShowCheckTask({ task, onCorrect, onIncorrect }) {
-  const [missed, setMissed] = useState(false);
-  useEffect(() => { setMissed(false); }, [task.cardId]);
-  const { right, left } = getFingerConfig(task.n);
+// «Цифра → пальцы»: the number and two fists with ▲ / ▼ arrows (the build step of
+// «Считаем на пальцах»). The child raises fingers on either hand; any split that
+// adds up to n is right (5 + 2, 4 + 3 …) — checked by a tap on «Покажи n». A wrong
+// check shakes, resets to fists and costs the star series; after the second one the
+// canonical pose is shown under the hands as a model (owner, 2026-11-27). Whether
+// the child also shows it on their own hands is the adult's business.
+const MODEL_AFTER_MISTAKES = 2;
+
+function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  const [left, setLeft] = useState(0);
+  const [right, setRight] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+  const [shake, setShake] = useState(false);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setLeft(0); setRight(0); setMistakes(0); setShake(false); setDone(false);
+  }, [task.cardId, task.n]);
+
+  function confirm() {
+    if (done || shake) return;
+    if (left + right === task.n) {
+      setDone(true);
+      setTimeout(() => onCorrect(task.conceptId, task.cardId), 700);
+      return;
+    }
+    setShake(true);
+    setMistakes(m => m + 1);
+    onMistake?.(task.conceptId, task.cardId);
+    onFlashIncorrect?.();
+    setTimeout(() => { setShake(false); setLeft(0); setRight(0); }, 500);
+  }
+
+  const showModel = mistakes >= MODEL_AFTER_MISTAKES && !done;
+  const model = getFingerConfig(task.n);
+  const arrows = !done && !shake;
   return (
-    <div className="fng-show-screen">
-      <div className={`fng-show-number-zone${missed ? "" : " fng-show-number-zone--alone"}`}>
-        <div className="fng-show-number">{task.n}</div>
+    <div className="fng-add-screen fng-show-check">
+      <div className="fng-add-top">
+        <div className={`fng-count-expr${done ? " fng-count-answer--correct" : ""}`}>{task.n}</div>
       </div>
-      {missed && <ChildHands left={left} right={right} />}
-      <div className="fng-show-buttons">
-        {missed ? (
-          <button className="fng-show-btn fng-show-btn--next" onClick={() => onIncorrect(task.conceptId, task.cardId)}>
-            Дальше <ForwardArrowIcon size={16} />
-          </button>
-        ) : (
-          <>
-            <button className="fng-show-btn fng-show-btn--miss" onClick={() => setMissed(true)}>
-              ✗ Не показал
-            </button>
-            <button className="fng-show-btn fng-show-btn--next" onClick={() => onCorrect(task.conceptId, task.cardId)}>
-              ✓ Показал
-            </button>
-          </>
-        )}
+      <div className="fng-checklist">
+        <ChecklistItem
+          text={`Покажи ${task.n}`}
+          state={done ? "done" : shake ? "wrong" : "active"}
+          onTap={confirm}
+        />
+      </div>
+      <div className="fng-add-hands-zone">
+        <div className="fng-sub-hands">
+          <div className="fng-sub-hand-wrap">
+            <div className="fng-sub-hand-inner">
+              <AnimatedHand count={left} side="right" style={{ width: "100%", height: "100%" }} />
+              {arrows && <HandArrows count={left} onRaise={() => setLeft(c => Math.min(5, c + 1))} onLower={() => setLeft(c => Math.max(0, c - 1))} />}
+            </div>
+          </div>
+          <div className="fng-sub-hand-wrap">
+            <div className="fng-sub-hand-inner">
+              <AnimatedHand count={right} side="left" style={{ width: "100%", height: "100%" }} />
+              {arrows && <HandArrows count={right} onRaise={() => setRight(c => Math.min(5, c + 1))} onLower={() => setRight(c => Math.max(0, c - 1))} />}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className={`fng-show-model${showModel ? " is-visible" : ""}`} aria-hidden={!showModel}>
+        {showModel && <ChildHands left={model.left} right={model.right} className="fng-show-model-hands" />}
       </div>
     </div>
   );
@@ -132,9 +169,11 @@ function RecognizeTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   );
 }
 
-export default function FingersShowTask({ task, sessionParams, onCorrect, onIncorrect, onMistake, onFlashIncorrect, onPrevious }) {
+export default function FingersShowTask({ task, sessionParams, onCorrect, onMistake, onFlashIncorrect, onPrevious }) {
   const variant = task.variant ?? "learn";
-  if (variant === "show") return <ShowCheckTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  if (variant === "show") {
+    return <ShowCheckTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} />;
+  }
   if (variant === "recognize") {
     return <RecognizeTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} />;
   }

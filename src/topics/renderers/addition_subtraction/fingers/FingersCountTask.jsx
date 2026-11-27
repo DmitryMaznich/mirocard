@@ -50,7 +50,7 @@ function CheckIcon() {
 // current step. `clickable=false` is for the final "Введи ответ" row: it
 // still shows pending → done, but ticks itself off once the numpad gets
 // the right digits, not from a tap on the row.
-function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
+export function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
   const done = state === "done";
   const wrong = state === "wrong";
   const interactive = clickable && !done;
@@ -79,7 +79,7 @@ function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true
 // hints the answer, and any wrong split is genuinely reachable and
 // self-correctable with the opposite arrow (no full reset needed for a
 // single mis-tap).
-function HandArrows({ count, onRaise, onLower }) {
+export function HandArrows({ count, onRaise, onLower }) {
   return (
     <div className="fng-hand-arrows">
       <button

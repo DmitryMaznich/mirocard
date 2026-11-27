@@ -89,9 +89,42 @@
 }
 
 
-/* «Цифра → пальцы»: only the number, as large as the screen allows. */
-.fng-show-number-zone--alone .fng-show-number {
-  font-size: clamp(120px, 42vmin, 360px);
+/* «Цифра → пальцы»: the model (canonical pose) after the second wrong check,
+   in a strip under the hands whose height is kept so nothing jumps. */
+.fng-show-model {
+  flex: 0 0 22%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.fng-show-model.is-visible { opacity: 1; }
+.fng-show-check { position: relative; }
+/* Landscape (tablet): the hands sit far apart, so the model goes in the gap
+   between them instead of taking height from them. */
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .fng-show-check .fng-show-model {
+    position: absolute;
+    left: 50%;
+    bottom: calc(14px + var(--app-safe-bottom, 0px));
+    transform: translateX(-50%);
+    width: 22%;
+    height: 30%;
+    pointer-events: none;
+  }
+  .fng-show-check .fng-show-model-hands { width: 100%; }
+}
+.fng-show-model-hands {
+  display: flex;
+  gap: 4px;
+  height: 100%;
+  width: min(60%, 320px);
+  padding: 4px 10px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(26, 37, 64, 0.12);
 }
 
 /* «Пальцы → цифра»: the typed answer in the number's place. */
@@ -115,11 +148,6 @@
   -webkit-user-drag: none;
 }
 .fng-pose-hand--mirror { transform: scaleX(-1); }
-
-.fng-show-btn--miss {
-  background: #fde2e2;
-  color: #c04040;
-}
 
 .fng-show-screen .fng-add-kbd-zone {
   width: 100%;

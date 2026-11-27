@@ -62,9 +62,14 @@ Owner's decisions (step 1 of 2):
   `DEFAULT_MODES` + `modeWithParamEvaluation` (`src/shared/utils/topicUtils.js`, applied in `useSessionEngine`):
   learn is `none` (no stars, no video, nothing counted as an answer), both checks are `instant`.
 - **Обучение** as before: the number, the model hands («Руки-подсказка»), «Назад / Следующая»; 0 → 10 in order.
-- **Цифра → пальцы**: only the number (large); the adult taps «✓ Показал» (star) or «✗ Не показал» — then the
-  model hands open and «Дальше» records the mistake and moves on (the child copies the model first). Numbers in
-  shuffled rounds of 0–10, never the same twice in a row. Stats per `fshow_<n>` (the old card ids).
+- **Цифра → пальцы** (redone the same day, owner): the number and two fists with the ▲ / ▼ arrows of
+  «Считаем на пальцах» (`HandArrows`, `ChecklistItem` exported from `FingersCountTask.jsx`); the child raises
+  fingers on the screen hands, any split that adds up to n is right; the check is a tap on «Покажи n». A wrong
+  check shakes, resets to fists and resets the star series (`onStreakReset`); after the 2nd one the canonical
+  pose appears under the hands as a model (`MODEL_AFTER_MISTAKES`). The first version — the adult marks
+  «Показал / Не показал» — was dropped: owner, «если пальцы выставлены, это и есть правильный ответ», whether
+  the child also shows it on their own hands is the adult's control. Numbers in shuffled rounds of 0–10, never
+  the same twice in a row (0 = two fists, checked at once). Stats per `fshow_<n>` (the old card ids).
 - **Пальцы → цифра**: hands in a random split of n (`fingerSplits`: 5 = 0+5 … 5+0), the child types n on the
   finger modes' keypad (`FingersKeypad`, exported from `FingersCountTask.jsx`); a wrong number shakes, resets
   the star series (`onStreakReset`, no remount) and the task stays. 1–10 (two fists = 0 left out). Stats per
