@@ -101,6 +101,61 @@
 }
 .fng-show-model.is-visible { opacity: 1; }
 .fng-show-check { position: relative; }
+
+/* «Цифра → пальцы»: two hands, a row of five finger dots under each wrist. */
+.fng-tap-hands {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+.fng-tap-hands.is-shaking { animation: fng-answer-shake 0.4s ease; }
+.fng-tap-hand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* lets the dots size themselves from this hand's width */
+  container-type: inline-size;
+}
+.fng-tap-hand__img {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.fng-finger-dots {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2.5cqw;
+  padding: 6px 0 4px;
+}
+.fng-finger-dot {
+  width: min(17cqw, 72px);
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: min(7cqw, 28px);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+  transition: background-color 0.15s ease, transform 0.12s ease;
+}
+.fng-finger-dot:active { transform: scale(0.9); }
+.fng-finger-dot.is-up { background: #ef4444; }
+.fng-finger-dot:disabled { pointer-events: none; }
 /* Landscape (tablet): the hands sit far apart, so the model goes in the gap
    between them instead of taking height from them. */
 @media (orientation: landscape) and (min-aspect-ratio: 5/4) {

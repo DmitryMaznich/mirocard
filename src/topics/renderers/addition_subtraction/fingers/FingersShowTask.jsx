@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
-import { handPoseImage } from "./fingerTasks.js";
-import { ChecklistItem, FingersKeypad, HandArrows } from "./FingersCountTask.jsx";
+import { handPoseImage, poseFromFingers } from "./fingerTasks.js";
+import { ChecklistItem, FingersKeypad } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
@@ -53,27 +53,73 @@ function LearnTask({ task, hint, onCorrect, onPrevious }) {
   );
 }
 
-// «Цифра → пальцы»: the number and two fists with ▲ / ▼ arrows (the build step of
-// «Считаем на пальцах»). The child raises fingers on either hand; any split that
-// adds up to n is right (5 + 2, 4 + 3 …) — checked by a tap on «Покажи n». A wrong
-// check shakes, resets to fists and costs the star series; after the second one the
-// canonical pose is shown under the hands as a model (owner, 2026-11-27). Whether
-// the child also shows it on their own hands is the adult's business.
+// «Цифра → пальцы»: the number and two fists; under each hand a row of five dots,
+// one per finger in the order the fingers stand in the drawing (the child's left
+// hand: thumb … pinky from the left; the right hand, mirrored: pinky … thumb). A dot
+// is green ▲ while its finger is down (tap = raise it) and red ▼ while it is up
+// (tap = fold it) — owner, 2026-11-27: a row under the wrist, not dots on the fingers.
+// Any fingers that add up to n are right; the check is a tap on «Покажи n». A wrong
+// check shakes, folds everything and costs the star series; after the second one the
+// canonical pose is shown as a model. Whether the child also shows it on their own
+// hands is the adult's business.
 const MODEL_AFTER_MISTAKES = 2;
+const DOTS_LEFT_HAND = ["t", "i", "m", "r", "p"];
+const DOTS_RIGHT_HAND = ["p", "r", "m", "i", "t"];
+
+function FingerDots({ order, raised, onToggle, disabled }) {
+  return (
+    <div className="fng-finger-dots">
+      {order.map((f) => {
+        const up = raised.includes(f);
+        return (
+          <button
+            key={f}
+            type="button"
+            className={`fng-finger-dot${up ? " is-up" : ""}`}
+            disabled={disabled}
+            onClick={() => onToggle(f)}
+            aria-label={up ? "Опустить палец" : "Поднять палец"}
+          >
+            {up ? "▼" : "▲"}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function TapHand({ pose, mirror, order, onToggle, disabled }) {
+  const base = import.meta.env?.BASE_URL ?? "/";
+  return (
+    <div className="fng-tap-hand">
+      <img
+        className={`fng-tap-hand__img${mirror ? " fng-pose-hand--mirror" : ""}`}
+        src={base + handPoseImage(pose)}
+        alt=""
+        draggable={false}
+      />
+      <FingerDots order={order} raised={pose} onToggle={onToggle} disabled={disabled} />
+    </div>
+  );
+}
+
+function toggleFinger(pose, f) {
+  return poseFromFingers(pose.includes(f) ? pose.replace(f, "") : pose + f);
+}
 
 function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
-  const [left, setLeft] = useState(0);
-  const [right, setRight] = useState(0);
+  const [left, setLeft] = useState("");
+  const [right, setRight] = useState("");
   const [mistakes, setMistakes] = useState(0);
   const [shake, setShake] = useState(false);
   const [done, setDone] = useState(false);
   useEffect(() => {
-    setLeft(0); setRight(0); setMistakes(0); setShake(false); setDone(false);
+    setLeft(""); setRight(""); setMistakes(0); setShake(false); setDone(false);
   }, [task.cardId, task.n]);
 
   function confirm() {
     if (done || shake) return;
-    if (left + right === task.n) {
+    if (left.length + right.length === task.n) {
       setDone(true);
       setTimeout(() => onCorrect(task.conceptId, task.cardId), 700);
       return;
@@ -82,12 +128,12 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
     setMistakes(m => m + 1);
     onMistake?.(task.conceptId, task.cardId);
     onFlashIncorrect?.();
-    setTimeout(() => { setShake(false); setLeft(0); setRight(0); }, 500);
+    setTimeout(() => { setShake(false); setLeft(""); setRight(""); }, 500);
   }
 
   const showModel = mistakes >= MODEL_AFTER_MISTAKES && !done;
   const model = getFingerConfig(task.n);
-  const arrows = !done && !shake;
+  const locked = done || shake;
   return (
     <div className="fng-add-screen fng-show-check">
       <div className="fng-add-top">
@@ -100,21 +146,9 @@ function ShowCheckTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
           onTap={confirm}
         />
       </div>
-      <div className="fng-add-hands-zone">
-        <div className="fng-sub-hands">
-          <div className="fng-sub-hand-wrap">
-            <div className="fng-sub-hand-inner">
-              <AnimatedHand count={left} side="right" style={{ width: "100%", height: "100%" }} />
-              {arrows && <HandArrows count={left} onRaise={() => setLeft(c => Math.min(5, c + 1))} onLower={() => setLeft(c => Math.max(0, c - 1))} />}
-            </div>
-          </div>
-          <div className="fng-sub-hand-wrap">
-            <div className="fng-sub-hand-inner">
-              <AnimatedHand count={right} side="left" style={{ width: "100%", height: "100%" }} />
-              {arrows && <HandArrows count={right} onRaise={() => setRight(c => Math.min(5, c + 1))} onLower={() => setRight(c => Math.max(0, c - 1))} />}
-            </div>
-          </div>
-        </div>
+      <div className={`fng-tap-hands${shake ? " is-shaking" : ""}`}>
+        <TapHand pose={left} order={DOTS_LEFT_HAND} onToggle={f => setLeft(p => toggleFinger(p, f))} disabled={locked} />
+        <TapHand pose={right} mirror order={DOTS_RIGHT_HAND} onToggle={f => setRight(p => toggleFinger(p, f))} disabled={locked} />
       </div>
       <div className={`fng-show-model${showModel ? " is-visible" : ""}`} aria-hidden={!showModel}>
         {showModel && <ChildHands left={model.left} right={model.right} className="fng-show-model-hands" />}

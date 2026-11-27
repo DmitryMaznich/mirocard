@@ -48,6 +48,13 @@ export const HAND_POSES = {
   5: ["timrp"],
 };
 
+const FINGER_ORDER = "timrp";
+
+// The raised fingers as a pose id in the fixed t i m r p order («pt» → «tp»).
+export function poseFromFingers(fingers) {
+  return [...FINGER_ORDER].filter(f => fingers.includes(f)).join("");
+}
+
 export function handPoseImage(pose) {
   const count = pose.length;
   return pose === HAND_POSES[count][0] ? `hands/hand_right_${count}.webp` : `hands/combo_${pose}.webp`;
