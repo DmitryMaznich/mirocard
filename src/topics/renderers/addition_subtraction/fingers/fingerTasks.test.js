@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
-import { generateFingerTasks, FINGER_CARDS } from "./fingerTasks.js";
+import { generateFingerTasks, generateFingersShowTasks, fingerSplits, FINGER_CARDS } from "./fingerTasks.js";
 
 describe("FingerSystem", () => {
   it("FINGER_MAP has 11 entries 0..10", () => {
@@ -64,6 +64,42 @@ describe("generateTasks – fingers_show", () => {
     expect(tasks[0].n).toBeDefined();
   });
 
+  it("Обучение: 0..10 in order, one round (the mode loops)", () => {
+    const tasks = generateFingersShowTasks({});
+    expect(tasks.map(t => t.n)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(tasks.every(t => t.variant === "learn")).toBe(true);
+  });
+
+  it("Цифра → пальцы: shuffled rounds of 0..10, never the same number twice in a row", () => {
+    const tasks = generateFingersShowTasks({ task: "show" });
+    expect(tasks.length).toBe(110);
+    for (let r = 0; r < 10; r++) {
+      expect(tasks.slice(r * 11, r * 11 + 11).map(t => t.n).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    }
+    for (let i = 1; i < tasks.length; i++) expect(tasks[i].n).not.toBe(tasks[i - 1].n);
+    expect(tasks.every(t => t.variant === "show" && t.conceptId === `fshow_${t.n}`)).toBe(true);
+    expect(tasks.slice(0, 11).map(t => t.n)).not.toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  });
+
+  it("Пальцы → цифра: 1..10, hands add up to n, splits vary", () => {
+    const tasks = generateFingersShowTasks({ task: "recognize" });
+    expect(tasks.length).toBe(100);
+    for (const t of tasks) {
+      expect(t.variant).toBe("recognize");
+      expect(t.left + t.right).toBe(t.n);
+      expect(t.left).toBeLessThanOrEqual(5);
+      expect(t.right).toBeLessThanOrEqual(5);
+      expect(t.n).toBeGreaterThan(0);
+    }
+    const fives = new Set(tasks.filter(t => t.n === 5).map(t => `${t.left}+${t.right}`));
+    expect(fives.size).toBeGreaterThan(1);
+  });
+
+  it("fingerSplits lists every way to split n over two hands", () => {
+    expect(fingerSplits(5)).toHaveLength(6);
+    expect(fingerSplits(10)).toEqual([{ left: 5, right: 5 }]);
+    expect(fingerSplits(8).map(s => s.left)).toEqual([3, 4, 5]);
+  });
 });
 
 describe("generateTasks – fingers_count", () => {

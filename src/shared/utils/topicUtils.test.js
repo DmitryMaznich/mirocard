@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   deriveConcepts, getConceptCards, getFigureFilter, getPrimaryCard, withFigureFilter,
-  isConceptSelectionScopedByMode, readModeSelectedConceptIds, writeModeSelectedConceptIds,
+  isConceptSelectionScopedByMode, readModeSelectedConceptIds, writeModeSelectedConceptIds, modeWithParamEvaluation,
 } from "./topicUtils";
 
 const CARDS = [
@@ -253,5 +253,14 @@ describe("getPrimaryCard", () => {
 
   it("returns null for unknown conceptId", () => {
     expect(getPrimaryCard(CARDS, "hat")).toBeNull();
+  });
+});
+
+describe("modeWithParamEvaluation", () => {
+  const mode = { id: "m", evaluation: "instant", evaluationByParam: { param: "task", values: { learn: "none", show: "instant" } }, params: { task: { default: "learn" } } };
+  it("takes the scoring from the setting, its default when unset", () => {
+    expect(modeWithParamEvaluation(mode, {}).evaluation).toBe("none");
+    expect(modeWithParamEvaluation(mode, { task: "show" }).evaluation).toBe("instant");
+    expect(modeWithParamEvaluation({ evaluation: "auto" }, {}).evaluation).toBe("auto");
   });
 });

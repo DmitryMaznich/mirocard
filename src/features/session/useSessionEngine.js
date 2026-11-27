@@ -12,7 +12,7 @@ import { useState, useCallback, useEffect, useEffectEvent, useRef } from "react"
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { flushQueue } from "@/core/syncApi";
-import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, modeWithParamEvaluation, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
 import { generateNumberPath } from "@/topics/renderers/math_houses/numberPath.js";
@@ -306,7 +306,7 @@ export function useSessionEngine() {
   const defaultModeSettings = topicRecord
     ? getDefaultModeSettings(topicRecord.meta.renderer, activeModeId)
     : null;
-  const mode = resolveMode(topicRecord, activeModeId);
+  const baseMode = resolveMode(topicRecord, activeModeId);
   const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
@@ -317,7 +317,8 @@ export function useSessionEngine() {
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
-  const { sessionParams, selectedConceptIds } = resolveModeSelection(topicRecord, mode, link, isReading, activeTextId);
+  const { sessionParams, selectedConceptIds } = resolveModeSelection(topicRecord, baseMode, link, isReading, activeTextId);
+  const mode = modeWithParamEvaluation(baseMode, sessionParams);
 
   const [sessionState, setSessionState] = useState(() => {
     const generatedState = buildGeneratedSessionState({

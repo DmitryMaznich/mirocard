@@ -229,3 +229,13 @@ export function sessionEndsOnItsOwn(mode, renderer) {
   if (mode.finite) return true;
   return mode.evaluation !== "instant" && !mode.loop;
 }
+
+// A mode whose scoring depends on a setting (`evaluationByParam: { param, values }`): «Покажи на
+// пальцах» → «Обучение» is unscored ("none"), its two checks are scored ("instant").
+export function modeWithParamEvaluation(mode, params) {
+  const rule = mode?.evaluationByParam;
+  if (!rule?.param) return mode;
+  const value = params?.[rule.param] ?? mode.params?.[rule.param]?.default;
+  const evaluation = rule.values?.[value];
+  return evaluation && evaluation !== mode.evaluation ? { ...mode, evaluation } : mode;
+}

@@ -1350,10 +1350,10 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student, accountKv }) {
+export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student, accountKv }) {
   if (!task) return null;
   if (task.type === "fingers_show") {
-    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
+    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onStreakReset} onFlashIncorrect={onFlashIncorrect} onPrevious={onPrevious} />;
   }
   if (task.type === "fingers_count") {
     return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onMistake : undefined} onFlashIncorrect={onFlashIncorrect} />;

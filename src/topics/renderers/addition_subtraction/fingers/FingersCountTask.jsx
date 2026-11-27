@@ -10,7 +10,7 @@ import "./fingers.css";
 // key (needed here since results can be multi-digit and mistyped, unlike a
 // single-cell column entry). fontFamily is forced to sans-serif for the ⌫
 // glyph — Primo (the digit font) doesn't have a glyph for it.
-function FingersKeypad({ onDigit, onDelete, active }) {
+export function FingersKeypad({ onDigit, onDelete, active }) {
   // 48 is the shared col-tap-kb base — 15% smaller here specifically,
   // since this keypad felt oversized on phone; passed locally rather than
   // changed in useTapButtonSize itself so the Столбик keyboard is untouched.

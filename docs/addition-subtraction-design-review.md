@@ -52,6 +52,34 @@ the column's own cells stay as they are for now.
   `AudioAnswerPad` of the other modes is unchanged.
 - Next: the same panel for «Сколько стало?», «Пример в несколько действий», «Найди неизвестное».
 
+## 2026-11-27: «1. Покажи на пальцах» (fingers_show) — обучение и две проверки
+
+Owner's decisions (step 1 of 2):
+- **The session goes round** until the adult ends it (`loop: true`) — before, it ended after 33 cards and the
+  summary offered «Видео в конце занятия».
+- **Setting «Задание»** (`params.task`): «Обучение» (`learn`) / «Проверка: цифра → пальцы» (`show`) /
+  «Проверка: пальцы → цифра» (`recognize`). The mode's scoring follows it — `evaluationByParam` in
+  `DEFAULT_MODES` + `modeWithParamEvaluation` (`src/shared/utils/topicUtils.js`, applied in `useSessionEngine`):
+  learn is `none` (no stars, no video, nothing counted as an answer), both checks are `instant`.
+- **Обучение** as before: the number, the model hands («Руки-подсказка»), «Назад / Следующая»; 0 → 10 in order.
+- **Цифра → пальцы**: only the number (large); the adult taps «✓ Показал» (star) or «✗ Не показал» — then the
+  model hands open and «Дальше» records the mistake and moves on (the child copies the model first). Numbers in
+  shuffled rounds of 0–10, never the same twice in a row. Stats per `fshow_<n>` (the old card ids).
+- **Пальцы → цифра**: hands in a random split of n (`fingerSplits`: 5 = 0+5 … 5+0), the child types n on the
+  finger modes' keypad (`FingersKeypad`, exported from `FingersCountTask.jsx`); a wrong number shakes, resets
+  the star series (`onStreakReset`, no remount) and the task stays. 1–10 (two fists = 0 left out). Stats per
+  `frec_<n>`.
+- **Hands «как у ребёнка»**: the drawings are palms of a LEFT hand, so `AnimatedHand side="right"` (not mirrored)
+  is the child's left hand. The screen already showed the child's left hand on the left, right on the right,
+  palms towards the child — the earlier «hands are swapped» note was a misreading of the prop name. Commented
+  in `FingersShowTask.jsx` (`ChildHands`).
+- **Step 2 (not done):** different fingers inside one hand (2 = index+middle, thumb+index, thumb+pinky,
+  index+pinky; 3 = thumb+index+middle, index+middle+ring, middle+ring+pinky; 4 = without thumb, without
+  pinky; 1 = thumb, index, pinky — never the middle finger alone). Needs ~12 new right-hand drawings in the
+  style of `public/hands/` (Gemini via `scripts/generate-finger-hands.mjs`, reachable through this
+  environment's proxy), a contact sheet approved by the owner (a folded finger must never read as raised),
+  then vectorised like `handShapes.js`; `recognize` tasks then carry the finger set, not only a count.
+
 ## Mode numbering changed 2026-10-07
 
 The two finger modes moved in from «Сложение и вычитание в столбик»

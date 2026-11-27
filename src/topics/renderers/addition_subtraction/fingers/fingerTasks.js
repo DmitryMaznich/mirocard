@@ -13,14 +13,82 @@ export const FINGER_CARDS = [
   ...SUB_PAIRS.map(([a, b]) => ({ id: `fcount_s_${a}_${b}`, conceptId: `fcount_s_${a}_${b}`, params: { mode: "fingers_count", op: "sub", a, b } })),
 ];
 
-export function generateFingersShow(card) {
+export function generateFingersShow(card, variant = "learn") {
   const n = card.params?.n ?? 0;
   return {
     type: "fingers_show",
     cardId: card.id,
     conceptId: card.conceptId,
     n,
+    variant,
   };
+}
+
+// «Пальцы → цифра»: every way to split n between two hands of 0–5 fingers
+// (5 = 5+0, 4+1, 3+2, 2+3, 1+4, 0+5). `left` / `right` are the child's own hands.
+export function fingerSplits(n) {
+  const splits = [];
+  for (let left = 0; left <= 5; left++) {
+    const right = n - left;
+    if (right >= 0 && right <= 5) splits.push({ left, right });
+  }
+  return splits;
+}
+
+function shuffled(items, random) {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+// Rounds of all numbers in a new order each; a round never starts with the
+// number that closed the one before (no accidental «7, 7»).
+function shuffledRounds(items, rounds, random, keyOf) {
+  const out = [];
+  for (let r = 0; r < rounds; r++) {
+    let round = shuffled(items, random);
+    const last = out.at(-1);
+    if (last && round.length > 1 && keyOf(round[0]) === keyOf(last)) {
+      round = [...round.slice(1), round[0]];
+    }
+    out.push(...round);
+  }
+  return out;
+}
+
+export function generateFingersShowTasks(params = {}, cards = FINGER_CARDS, random = Math.random) {
+  const variant = ["show", "recognize"].includes(params.task) ? params.task : "learn";
+  const pool = cards.filter(c => c.params?.mode === "fingers_show")
+    .sort((a, b) => (a.params?.n ?? 0) - (b.params?.n ?? 0));
+  if (!pool.length) return [];
+
+  // Обучение: 0 → 10 in order; the mode loops, so it goes round again.
+  if (variant === "learn") return pool.map(card => generateFingersShow(card, "learn"));
+
+  if (variant === "show") {
+    return shuffledRounds(pool, 10, random, card => card.params?.n)
+      .map(card => generateFingersShow(card, "show"));
+  }
+
+  // Пальцы → цифра: one task per number per round, its split drawn at random.
+  // 0 (two fists) is left out: nothing to count.
+  const numbers = pool.map(card => card.params?.n ?? 0).filter(n => n > 0);
+  return shuffledRounds(numbers, 10, random, n => n).map((n) => {
+    const splits = fingerSplits(n);
+    const { left, right } = splits[Math.floor(random() * splits.length)];
+    return {
+      type: "fingers_show",
+      variant: "recognize",
+      cardId: `frec_${n}_${left}_${right}`,
+      conceptId: `frec_${n}`,
+      n,
+      left,
+      right,
+    };
+  });
 }
 
 export function generateFingersCount(card) {
@@ -34,17 +102,9 @@ export function generateFingersCount(card) {
 }
 
 export function generateFingerTasks(mode, count, params = {}, cards = FINGER_CARDS) {
-  const fingerShowCards  = cards.filter(c => c.params?.mode === "fingers_show");
   const fingerCountCards = cards.filter(c => c.params?.mode === "fingers_count");
 
-  if (mode === "fingers_show") {
-    const pool = fingerShowCards;
-    const tasks = [];
-    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
-      tasks.push(generateFingersShow(pool[i % pool.length]));
-    }
-    return tasks;
-  }
+  if (mode === "fingers_show") return generateFingersShowTasks(params, cards);
 
   if (mode === "fingers_count") {
     const opFilter = params.op;
