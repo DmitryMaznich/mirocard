@@ -28,6 +28,10 @@ const MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3-pro-image";
 const API_KEY = process.env.GEMINI_API_KEY || "proxy-injected";
 
 const ONLY = process.argv.find(a => a.startsWith("--only="))?.split("=")[1];
+// --edit=<pose>:<hint> — draw by editing one approved drawing instead of from the
+// open hand: public/hands/combo_<pose>.webp is the only reference, <hint> says what
+// to change (e.g. --edit=mrp:"fold the middle finger down too" for rp).
+const EDIT = process.argv.find(a => a.startsWith("--edit="))?.slice(7);
 const TRIES = Number(process.argv.find(a => a.startsWith("--tries="))?.split("=")[1] ?? 1);
 
 const NAMES = { t: "thumb", i: "index finger", m: "middle finger", r: "ring finger", p: "pinky" };
@@ -65,6 +69,16 @@ POSE — ${describe(id)}
 CHECK before finishing: count the raised fingers — there must be exactly ${id.length}.`;
 }
 
+function editPrompt(id, hint) {
+  return `The reference image is a finished drawing from a set. Change ONLY this: ${hint}.
+Keep everything else pixel-identical: style, outline, colour, palm lines, size, position, wrist, the
+fingers that stay as they are. Pure white background.
+
+RESULT — ${describe(id)}
+
+CHECK before finishing: count the raised fingers — there must be exactly ${id.length}.`;
+}
+
 async function callGemini(parts) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`;
   const res = await fetch(url, {
@@ -89,14 +103,18 @@ async function refPart(file) {
 }
 
 fs.mkdirSync(OUT, { recursive: true });
-const refs = [await refPart("hand_right_5.webp"), await refPart("hand_right_2.webp")];
+const [editPose, ...editHint] = EDIT ? EDIT.split(":") : [];
+const refs = EDIT
+  ? [await refPart(`combo_${editPose}.webp`)]
+  : [await refPart("hand_right_5.webp"), await refPart("hand_right_2.webp")];
 const poses = ONLY ? ONLY.split(",") : POSES;
 for (const id of poses) {
   for (let k = 1; k <= TRIES; k++) {
     const file = path.join(OUT, TRIES > 1 ? `hand_${id}_${k}.png` : `hand_${id}.png`);
     process.stdout.write(`▶ ${path.basename(file)} … `);
     try {
-      const raw = await callGemini([...refs, { text: prompt(id) }]);
+      const text = EDIT ? editPrompt(id, editHint.join(":")) : prompt(id);
+      const raw = await callGemini([...refs, { text }]);
       await sharp(raw).resize({ width: 512, height: 640, fit: "contain", background: "#ffffff" }).png().toFile(file);
       console.log("✓");
     } catch (e) { console.log("✗ " + e.message); }
