@@ -55,6 +55,15 @@ export function poseFromFingers(fingers) {
   return [...FINGER_ORDER].filter(f => fingers.includes(f)).join("");
 }
 
+// Every pose that has a drawing (14 of the 32 finger sets of one hand).
+export const DRAWN_POSES = new Set(Object.values(HAND_POSES).flat());
+
+// «Цифра → пальцы»: a finger dot works only when the tap leads to a drawn pose.
+export function canToggleFinger(pose, finger) {
+  const next = poseFromFingers(pose.includes(finger) ? pose.replace(finger, "") : pose + finger);
+  return DRAWN_POSES.has(next);
+}
+
 export function handPoseImage(pose) {
   const count = pose.length;
   return pose === HAND_POSES[count][0] ? `hands/hand_right_${count}.webp` : `hands/combo_${pose}.webp`;

@@ -156,6 +156,12 @@
 .fng-finger-dot:active { transform: scale(0.9); }
 .fng-finger-dot.is-up { background: #ef4444; }
 .fng-finger-dot:disabled { pointer-events: none; }
+/* A dot whose tap would lead to an undrawn pose: its own colour (down green / up
+   red still tells the finger's state), but pale and flat. */
+.fng-finger-dot.is-blocked {
+  box-shadow: none;
+  opacity: 0.28;
+}
 /* Landscape (tablet): the hands sit far apart, so the model goes in the gap
    between them instead of taking height from them. */
 @media (orientation: landscape) and (min-aspect-ratio: 5/4) {

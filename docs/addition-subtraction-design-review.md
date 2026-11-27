@@ -62,14 +62,22 @@ Owner's decisions (step 1 of 2):
   `DEFAULT_MODES` + `modeWithParamEvaluation` (`src/shared/utils/topicUtils.js`, applied in `useSessionEngine`):
   learn is `none` (no stars, no video, nothing counted as an answer), both checks are `instant`.
 - **Обучение** as before: the number, the model hands («Руки-подсказка»), «Назад / Следующая»; 0 → 10 in order.
-- **Цифра → пальцы** (redone the same day, owner): the number and two fists with the ▲ / ▼ arrows of
-  «Считаем на пальцах» (`HandArrows`, `ChecklistItem` exported from `FingersCountTask.jsx`); the child raises
-  fingers on the screen hands, any split that adds up to n is right; the check is a tap on «Покажи n». A wrong
-  check shakes, resets to fists and resets the star series (`onStreakReset`); after the 2nd one the canonical
-  pose appears under the hands as a model (`MODEL_AFTER_MISTAKES`). The first version — the adult marks
-  «Показал / Не показал» — was dropped: owner, «если пальцы выставлены, это и есть правильный ответ», whether
-  the child also shows it on their own hands is the adult's control. Numbers in shuffled rounds of 0–10, never
-  the same twice in a row (0 = two fists, checked at once). Stats per `fshow_<n>` (the old card ids).
+- **Цифра → пальцы** (redone twice the same day, owner): the number and two fists; under each wrist a row of
+  five dots, one per finger in the order the fingers stand in the drawing (child's left hand: thumb … pinky;
+  right hand, mirrored: pinky … thumb). Green ▲ = the finger is down (tap raises it), red ▼ = up (tap folds it).
+  Owner: a row under the wrist, NOT dots on the fingers (tried before, less clear). Any fingers that add up to
+  n are right; check = tap on «Покажи n»; a wrong check shakes, folds all, resets the star series
+  (`onStreakReset`); after the 2nd one the canonical pose appears as a model (`MODEL_AFTER_MISTAKES`).
+  Only the 14 drawn poses can be reached (`DRAWN_POSES`, `canToggleFinger`): a dot whose tap would lead to an
+  undrawn finger set is pale (keeps its colour) and does nothing — owner's choice over «strict order + коза».
+  The middle finger alone is therefore never shown. Hands are raster (`TapHand`, `handPoseImage`).
+  Dropped on the way: «Показал / Не показал» by the adult (owner: «если пальцы выставлены, это и есть
+  правильный ответ»); ▲ / ▼ arrows on the palm (canonical poses only).
+- **Why only 14 poses**: the other 18 finger sets (ring alone, middle + ring …) were tried — Gemini drew wrong
+  fingers or wrong counts in almost every draft, and gluing fingers from the open hand onto the fist left seams
+  the owner rejected. Don't retry either without a new idea (a hand drawn in code is the remaining option).
+- On a phone the dots are ≈32 px (five per hand, two hands across 390 px) — under the 48 px guideline; fine on
+  a tablet (≈72 px). Numbers in shuffled rounds of 0–10, never the same twice in a row. Stats per `fshow_<n>`.
 - **Пальцы → цифра**: hands in a random split of n (`fingerSplits`: 5 = 0+5 … 5+0), the child types n on the
   finger modes' keypad (`FingersKeypad`, exported from `FingersCountTask.jsx`); a wrong number shakes, resets
   the star series (`onStreakReset`, no remount) and the task stays. 1–10 (two fists = 0 left out). Stats per

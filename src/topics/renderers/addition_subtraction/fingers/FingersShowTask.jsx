@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
-import { handPoseImage, poseFromFingers } from "./fingerTasks.js";
+import { canToggleFinger, handPoseImage, poseFromFingers } from "./fingerTasks.js";
 import { ChecklistItem, FingersKeypad } from "./FingersCountTask.jsx";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
@@ -58,6 +58,8 @@ function LearnTask({ task, hint, onCorrect, onPrevious }) {
 // hand: thumb … pinky from the left; the right hand, mirrored: pinky … thumb). A dot
 // is green ▲ while its finger is down (tap = raise it) and red ▼ while it is up
 // (tap = fold it) — owner, 2026-11-27: a row under the wrist, not dots on the fingers.
+// Only 14 of the 32 finger sets are drawn (the model cannot draw «ring finger alone»),
+// so a dot works only when the tap leads to a drawn pose; the others are pale grey.
 // Any fingers that add up to n are right; the check is a tap on «Покажи n». A wrong
 // check shakes, folds everything and costs the star series; after the second one the
 // canonical pose is shown as a model. Whether the child also shows it on their own
@@ -71,12 +73,13 @@ function FingerDots({ order, raised, onToggle, disabled }) {
     <div className="fng-finger-dots">
       {order.map((f) => {
         const up = raised.includes(f);
+        const blocked = !canToggleFinger(raised, f);
         return (
           <button
             key={f}
             type="button"
-            className={`fng-finger-dot${up ? " is-up" : ""}`}
-            disabled={disabled}
+            className={`fng-finger-dot${up ? " is-up" : ""}${blocked ? " is-blocked" : ""}`}
+            disabled={disabled || blocked}
             onClick={() => onToggle(f)}
             aria-label={up ? "Опустить палец" : "Поднять палец"}
           >
