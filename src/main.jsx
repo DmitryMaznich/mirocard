@@ -102,8 +102,8 @@ function bootMainApp() {
       });
   }
 
-  const SPLASH_MIN_MS = 1800;
-  const splashStart = performance.now();
+  const SPLASH_MIN_MS = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? 600 : 4150;
+  const splashStart = window.__mironiumSplashStartedAt ?? performance.now();
   let splashDismissQueued = false;
 
   function dismissSplash({ immediate = false } = {}) {
