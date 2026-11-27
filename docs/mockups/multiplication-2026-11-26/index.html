@@ -151,6 +151,21 @@
     .nav::before { content: "× Умножение · макет"; order: 0; font-weight: 700; font-size: 14px; }
   }
   .infobtn { display: none; }
+  /* подсказка для того, кто смотрит макет (в приложении её нет) */
+  .guide { flex: none; display: flex; gap: 10px; align-items: flex-start; margin: 8px 0 0; padding: 9px 12px; border-radius: 10px;
+           background: #fff3bf; border: 1px solid #f0d36b; color: #5b4500; font-size: clamp(13px, 3.4vw, 15px); line-height: 1.35; }
+  .guide b { color: #3d2e00; }
+  .guide .gi { font-size: 18px; line-height: 1.1; }
+  .demo-hand { position: fixed; z-index: 45; font-size: 40px; pointer-events: none; transform: translate(-20%, -10%); filter: drop-shadow(0 3px 3px #0005); }
+  .demo-apple { position: fixed; z-index: 44; width: 54px; pointer-events: none; transform: translate(-50%, -50%); filter: drop-shadow(0 5px 5px #0004); }
+  .intro { position: fixed; inset: 0; z-index: 60; background: #1d2530cc; display: grid; place-items: center; padding: 16px; }
+  .intro[hidden] { display: none; }
+  .intro .card { max-width: 520px; background: #fff; border-radius: 16px; padding: 20px 22px; font-size: 15px; line-height: 1.45; box-shadow: 0 20px 50px #0006; }
+  .intro h2 { font: 600 22px/1.2 Georgia, serif; margin: 0 0 10px; }
+  .intro ol { padding-left: 20px; margin: 8px 0 16px; } .intro li { margin-bottom: 6px; }
+  .intro .ok { width: 100%; height: 52px; border: 0; border-radius: 12px; background: var(--blue); color: #fff; font-weight: 700; font-size: 17px; }
+  .intro .pill { display: inline-block; padding: 0 7px; border-radius: 10px; border: 2px solid #7fd49a; font-weight: 700; }
+  .helpbtn { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #5b6675; background: transparent; color: #fff; font-weight: 700; }
   @media (max-width: 999px) {
     .infobtn { display: block; }
     .info { position: fixed; left: 0; right: 0; bottom: 0; width: auto; max-height: 72dvh; border-left: 0; border-radius: 16px 16px 0 0;
@@ -166,9 +181,21 @@
   <span class="brand">× Умножение</span>
   <div class="chips" id="chips"></div>
   <button class="infobtn" id="infobtn">Что это?</button>
+  <button class="helpbtn" id="helpbtn" aria-label="Как смотреть">?</button>
 </nav>
+<div class="intro" id="intro" hidden><div class="card">
+  <h2>Как смотреть этот макет</h2>
+  <ol>
+    <li>Это будущая тема «Умножение» — <b>лестница из ступеней</b>, от простого к сложному. Номера ступеней — сверху: 0, 1, 2 …</li>
+    <li>Ступени <span class="pill">0</span> и <span class="pill">1</span> (обведены зелёным) — <b>живые</b>: пройди их сам, как ребёнок. Что нажать — написано в жёлтой полосе.</li>
+    <li>Остальные ступени — <b>картинки-эскизы</b>: как будет выглядеть экран. Нажимать там нечего.</li>
+    <li>Зачем ступень устроена именно так — кнопка <b>«Что это?»</b> (на компьютере — колонка справа).</li>
+  </ol>
+  <button class="ok" id="introok">Понятно, начать со ступени 0</button>
+</div></div>
 <div class="stage">
   <main class="screen">
+    <div class="guide" id="guide"><span class="gi">👉</span><span id="guidetxt"></span></div>
     <div class="topbar">✕ Умножение<span class="stars" id="stars"></span></div>
     <div class="say"><button class="spk" id="spk" aria-label="Повторить">🔊</button><span class="txt" id="say"></span><span class="sketch" id="sketch" hidden>эскиз</span></div>
     <div class="mat" id="mat"></div>
@@ -241,6 +268,7 @@ let cleanup = () => {};
 /* ───────── ступень 0 «Поровну?» (живая) ───────── */
 const step0 = {
   id: "0", title: "Поровну?", live: true,
+  guide: "<b>Попробуй как ребёнок:</b> посмотри на две тарелки и нажми внизу <b>=</b>, если яблок поровну, или <b>≠</b>, если нет. Потом — стрелка → к следующему заданию.",
   levels: [["R", "ряды уже видны"], ["A", "разница ≥ 2"], ["B", "разница в 1"], ["D", "вразброс"]],
   state: { level: "R", history: [], errStreak: 0, last: [], always: true },
   info: `<ul>
@@ -316,6 +344,7 @@ const step0 = {
 /* ───────── ступень 1 «Сделай поровну» (живая) ───────── */
 const step1 = {
   id: "1", title: "Сделай поровну", live: true,
+  guide: "<b>Попробуй как ребёнок:</b> перетащи яблоко пальцем с одной тарелки на другую (или нажми тарелку, потом другую), пока на всех не станет поровну. Сначала рука покажет, как.",
   levels: [["R", "2 тарелки, подсказка сразу"], ["A", "2 тарелки, 1 ход"], ["B", "2 тарелки, 2 хода"], ["C", "3 тарелки"], ["D", "3–4 тарелки"]],
   state: { level: "R", history: [], arrowStreak: 0 },
   info: `<ul>
@@ -350,7 +379,26 @@ const step1 = {
     say("Сделай поровну"); renderStars();
     log(`[${st.level}] ${this.task.counts.join(" / ")} → по ${this.task.target}, кратчайше ${this.task.min}`);
     if (st.level === "R") this.hint(1, true);
+    if (!this.demoShown) { this.demoShown = true; setTimeout(() => this.demo(), 700); }
     this.bind(); this.arm(); renderLevelButtons(this);
+  },
+  // показ образца: рука переносит яблоко с тарелки, где больше, на тарелку, где меньше (дважды), сами яблоки не меняются
+  demo() {
+    const t = this.task; if (!t || t.finished || t.moves) return;
+    const f = this.el(t.counts.indexOf(Math.max(...t.counts))), to = this.el(t.counts.indexOf(Math.min(...t.counts)));
+    if (!f || !to) return;
+    const a = f.getBoundingClientRect(), b = to.getBoundingClientRect();
+    const hand = Object.assign(document.createElement("div"), { className: "demo-hand", textContent: "👆" });
+    const apple = Object.assign(document.createElement("img"), { className: "demo-apple", src: IMG.apple });
+    document.body.append(apple, hand);
+    const from = [a.left + a.width / 2, a.top + a.height / 2], dest = [b.left + b.width / 2, b.top + b.height / 2];
+    const kf = (p, o = 1) => ({ left: p[0] + "px", top: p[1] + "px", opacity: o });
+    const opt = { duration: 1500, iterations: 2, easing: "ease-in-out" };
+    const frames = [kf(from, 0), kf(from), kf(dest), kf(dest, 0)];
+    apple.animate(frames, opt); const anim = hand.animate(frames, opt);
+    const stop = () => { hand.remove(); apple.remove(); };
+    anim.onfinish = stop; this.stopDemo = stop;
+    say("Смотри"); setTimeout(() => { if (!this.task.moves && !this.task.finished) say("Сделай поровну"); }, 3000);
   },
   el(i) { return document.querySelector(`#plates .plate[data-i="${i}"]`); },
   draw(i) { this.el(i).innerHTML = fruitsHtml(this.task.counts[i]); },
@@ -400,6 +448,7 @@ const step1 = {
       else { this.el(this.sel).classList.remove("sel"); const f = this.sel; this.sel = null; if (f !== i) this.move(f, i); }
     };
     plates.onpointerdown = e => {
+      this.stopDemo?.();
       const p = e.target.closest(".plate"); if (!p || this.task.finished) return;
       const i = +p.dataset.i; if (this.task.counts[i] === 0) return;
       drag = { from: i, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, over: null };
@@ -435,7 +484,7 @@ const step1 = {
     if (st.arrowStreak >= 2 && i > 0) { st.level = order[i - 1]; st.history = []; st.arrowStreak = 0; log(`↓ уровень ${st.level}`); return; }
     if (st.history.length >= 10 && st.history.filter(Boolean).length >= 8 && i < order.length - 1) { st.level = order[i + 1]; st.history = []; log(`↑ уровень ${st.level}`); }
   },
-  stop() { clearTimeout(this.timer); },
+  stop() { clearTimeout(this.timer); this.stopDemo?.(); this.demoShown = false; },
 };
 
 /* ───────── эскизы следующих ступеней ───────── */
@@ -497,6 +546,7 @@ function open(id) {
   location.hash = "s" + st.id;
   document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-current", c.dataset.id === st.id));
   $("#sketch").hidden = st.live;
+  $("#guidetxt").innerHTML = st.guide || `<b>Это эскиз</b> — картинка будущей ступени ${st.id}, нажимать нечего. Что здесь будет делать ребёнок и почему — <b>«Что это?»</b>${matchMedia("(min-width: 1000px)").matches ? " (справа)" : ""}.`;
   $("#answers").onclick = null;
   $("#info").innerHTML = `<button class="close" id="close" aria-label="Закрыть">✕</button>
     <h2>${st.id}. ${st.title}</h2><span class="tag ${st.live ? "live" : "sk"}">${st.live ? "живой макет — можно нажимать" : "эскиз — только картинка"}</span>
@@ -510,6 +560,10 @@ function open(id) {
 }
 $("#chips").innerHTML = steps.map(s => `<button class="chip ${s.live ? "live" : ""}" data-id="${s.id}" title="${s.title}">${s.id}</button>`).join("");
 $("#chips").onclick = e => { const c = e.target.closest(".chip"); if (c) open(c.dataset.id); };
+const intro = $("#intro");
+$("#helpbtn").onclick = () => { intro.hidden = false; };
+$("#introok").onclick = () => { intro.hidden = true; try { localStorage.setItem("mult-mockup-intro", "1"); } catch {} if (!location.hash) open("0"); };
+try { if (!localStorage.getItem("mult-mockup-intro")) intro.hidden = false; } catch { intro.hidden = false; }
 $("#infobtn").onclick = () => $("#info").classList.toggle("open");
 $("#spk").onclick = () => { if ("speechSynthesis" in window) { const u = new SpeechSynthesisUtterance($("#say").textContent); u.lang = "ru-RU"; speechSynthesis.speak(u); } };
 open((location.hash.match(/^#s(.+)$/) || [])[1] ? decodeURIComponent(location.hash.slice(2)) : "0");
