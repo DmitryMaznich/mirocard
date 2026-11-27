@@ -2117,7 +2117,26 @@ function liftedAnimStrokes(strokes, markedRuns) {
   }
   return out;
 }
+// The PEN COLOUR of a row (`propis2` row panel «Цвет пера», owner 2026-11-27: the print samples in one colour, the copybook ones in
+// another): its line ends with `#n<colour id>`, after every other flag. Taken off before anything else reads the line; the laid-out row
+// gets `ink` (the id, PrintPageView draws it with INK_COLORS[id]). Without the flag nothing changes. One row object per (row, colour), so
+// the sheet keeps skipping rows that did not change.
+const INK_FLAG = /#n([a-z]+)$/;
+const INK_ROWS = new WeakMap(); // laid-out row -> Map(colour -> the same row with `ink`)
+function inkRow(row, ink) {
+  if (!row || !ink) return row;
+  let byInk = INK_ROWS.get(row);
+  if (!byInk) { byInk = new Map(); INK_ROWS.set(row, byInk); }
+  if (!byInk.has(ink)) byInk.set(ink, { ...row, ink });
+  return byInk.get(ink);
+}
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+  if (!lines.some((l) => INK_FLAG.test(l))) return layoutWideLinesIntoRowsParts(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  const inks = lines.map((l) => INK_FLAG.exec(l)?.[1] ?? null);
+  const res = layoutWideLinesIntoRowsParts(lines.map((l) => l.replace(INK_FLAG, "")), glyphsByLabel, snapX, multiply, scale, maxX);
+  return { ...res, placed: res.placed.map((row, i) => inkRow(row, inks[i])) };
+}
+function layoutWideLinesIntoRowsParts(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   if (!glyphsByLabel || !lines.some((l) => PARTS_FLAG.test(l))) return layoutWideLinesIntoRowsStyled(lines, glyphsByLabel, snapX, multiply, scale, maxX);
   const parts = lines.map((l) => PARTS_FLAG.exec(l)?.[1] ?? null);
   const bare = lines.map((l) => l.replace(PARTS_FLAG, ""));

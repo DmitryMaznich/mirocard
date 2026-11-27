@@ -172,6 +172,10 @@ export const PRINT_FIRST_BASELINE_MM = 12;
 export const PRINT_ROWS_PER_PAGE = 17;
 
 export const INK_COLOR = "#1d4ed8";
+// The pen colours a `propis2` row may write in (row panel «Цвет пера», owner 2026-11-27; `row.ink`, line flag `#n<id>`). No red: the start
+// dots, arrows and the margin are red, and red is the teacher's «mistake» colour. Blue is the default (a row without `ink`).
+export const INK_COLORS = { blue: INK_COLOR, black: "#1f2937", green: "#15803d", violet: "#7e22ce" };
+export const inkColorOf = (id) => INK_COLORS[id] ?? INK_COLOR;
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:
 // PropisPracticeView's 2x crop zoom already doubles on-screen thickness by itself,

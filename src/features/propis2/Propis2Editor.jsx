@@ -5,7 +5,8 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { letterPieces } from "@/handwriting/letterParts.js";
-import { pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, otherRowsOtherwise, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, menuPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
+import { inkColorOf } from "@/handwriting/propisRuling.js";
+import { ROW_INKS, pageMidDash, rowPartsOf, PARTS_VERSION, SLANT_PAPERS, SOLID_REPEAT, followingSameRows, otherRowsOtherwise, mixedRowSettings, rowGlyphMap, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, menuPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt , withRowDrop, pageHasDropRows, BAND_FILLS, bandFillId, bandFillPaper } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { dropLetters, suggestDrop } from "@/topics/renderers/propis2/dropCap.js";
 import { buildTiles } from "./Propis2Carousel";
@@ -71,6 +72,7 @@ const SETTING_SAYS = {
   writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
   // the short name («Соед»), as on the button: the full one made the offer three lines on a phone (owner, 2026-11-21)
   style: (v, styles) => { const st = styles?.find((x) => x.id === v); return `Стиль: ${st?.short ?? st?.title ?? v}`; },
+  ink: (v, _styles, t) => `${t("propis2.ink")}: ${t(`propis2.ink.${v}`)}`,
 };
 // a writing style in the strips: its abbreviation on the button («П», «БР», «БС», «БСН»), the abbreviation and the full name in the list
 // (owner, 2026-11-11: the button stays light, the list says what the letters stand for)
@@ -109,8 +111,14 @@ const ROW_SAYS = {
   dots: (v) => `Точки: ${optionName(DOT_OPTS, v)}`,
   // the short name («Соед»), as on the button: the full one made the offer three lines on a phone (owner, 2026-11-21)
   style: (v, styles) => { const st = styles?.find((x) => x.id === v); return `Стиль: ${st?.short ?? st?.title ?? v}`; },
+  ink: (v, _styles, t) => `${t("propis2.ink")}: ${t(`propis2.ink.${v}`)}`,
 };
-const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }), style: (v) => ({ style: v }) };
+const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }), style: (v) => ({ style: v }), ink: (v) => ({ ink: v === "blue" ? undefined : v }) };
+// «Цвет пера» (owner, 2026-11-27): a swatch of the colour as the option's picture
+const inkSwatch = (id) => function InkSwatch() {
+  return <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill={inkColorOf(id)} /></svg>;
+};
+const INK_SWATCHES = Object.fromEntries(ROW_INKS.map((id) => [id, inkSwatch(id)]));
 const onRows = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "строке" : "строках"}`;
 
 
@@ -337,11 +345,14 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const old = rowSetting(selected, key, glyphMap);
     patchSelected(rowPatch(key, value, selected));
     // a row's style is offered for the whole page (the page has no style button of its own since 2026-11-20); Образец / Точки — the rows below
-    const page_ = key === "style";
-    const ids = old === value ? [] : page_ ? otherRowsOtherwise(page.rows, selectedIndex, key, value, glyphMap) : followingSameRows(page.rows, selectedIndex, key, old, glyphMap);
+    // the pen colour too, to the rows in the same style as this one (the print samples black, the copybook ones blue: owner, 2026-11-27)
+    const page_ = key === "style" || key === "ink";
+    const sameStyle = (id) => key !== "ink" || rowSetting(page.rows.find((r) => r.id === id), "style", glyphMap) === rowSetting(selected, "style", glyphMap);
+    const ids = old === value ? [] : page_ ? otherRowsOtherwise(page.rows, selectedIndex, key, value, glyphMap).filter(sameStyle) : followingSameRows(page.rows, selectedIndex, key, old, glyphMap);
     showOffer(ids.length ? { scope: "rows", page: page_, key, value, ids, row: selectedIndex + 1 } : null, OFFER_MS);
   };
   const rowMixed = useMemo(() => mixedRowSettings(page.rows, glyphMap), [page.rows, glyphMap]);
+  const inkOptions = ROW_INKS.map((id) => ({ id, label: t(`propis2.ink.${id}`), ...(id === "violet" ? { short: t("propis2.ink.violet.short") } : {}), Icon: INK_SWATCHES[id] }));
 
   // A click on the sheet (PrintPage onSheetPoint: the sheet row under it, the x in the row): the caret goes to the nearest letter
   // boundary of that row — an empty place on the sheet gets a new, empty row first (any ruled row can be clicked and typed into);
@@ -669,6 +680,12 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             options={rowStyleOptions.map((o) => ({ id: o.id, label: o.label, short: o.label, disabled: o.disabled }))} />
         </section>
       )}
+      {selected.kind !== "blank" && (
+        <section className="p2-insp-sec" aria-label={t("propis2.ink")}>
+          <span className="p2-insp-lbl">{t("propis2.ink")}</span>
+          <Seg label={t("propis2.ink")} disabled={locked} value={rowSetting(selected, "ink", glyphMap)} onChange={(id) => setRowSetting("ink", id)} options={inkOptions} />
+        </section>
+      )}
       {/* (a printed letter goes only on the copybook's narrow rows: elsewhere the section is left out, not shown dead) */}
       {dropPage && <section className="p2-insp-sec" aria-label="Буква на полях">
         <span className="p2-insp-lbl">Печатная буква на краю строки</span>
@@ -688,6 +705,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label={t("propis2.repeat")} caption={t("propis2.sample")} value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
           <Propis2Picker label={t("propis2.redDots")} caption={t("propis2.dots")} value={rowOpts?.dots === "strokes" && !rowSingle ? "all" : rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={dotOpts} />
           {styles && rowStyleOptions.length > 1 && <Propis2Picker label={t("propis2.rowStyle")} caption={t("propis2.rowStyle")} kind="style" value={rowStyleValue} disabled={locked || !selected || selected.kind === "blank" || rowIsElement} mixed={rowMixed.style} onChange={(id) => setRowSetting("style", id)} options={rowStyleOptions} />}
+          <Propis2Picker label={t("propis2.ink")} caption={t("propis2.inkCap")} kind="ink" value={selected ? rowSetting(selected, "ink", glyphMap) : "blue"} disabled={locked || !selected || selected.kind === "blank"} mixed={rowMixed.ink} onChange={(id) => setRowSetting("ink", id)} options={inkOptions} />
           {rowEls}
           {dropPage && <LetterPicker letters={dropLettersList} suggestion={suggestDrop(selected, dropLettersList)} sides={dropSides} disabled={Boolean(dropBlock)} label={dropLabel}
             onPick={(l, side) => { onChange(withRowDrop(page, selectedId, l, side)); setCaretRequest({ pos: sel.start, n: Date.now() }); }} />}
@@ -735,7 +753,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const offerEl = offer && (rowOffer || notebook) && (
           <div className="p2-offer" role="status" data-testid="propis2-offer">
             <span className="p2-offer-msg">{rowOffer
-              ? `${ROW_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? (offer.page ? t("propis2.onWholePage") : `ещё на ${onRows(offer.ids.length)} ниже`) : `на строке ${offer.row}`}`
+              ? `${ROW_SAYS[offer.key](offer.value, styles?.options, t)} — ${offer.done ? (offer.page ? t("propis2.onWholePage") : `ещё на ${onRows(offer.ids.length)} ниже`) : `на строке ${offer.row}`}`
               : `${SETTING_SAYS[offer.key](offer.value, styles?.options)} — ${offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}`}</span>
             {offer.done
               ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
